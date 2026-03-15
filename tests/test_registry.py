@@ -20,6 +20,22 @@ from gpd.registry import (
 )
 
 
+def _write_review_contract_command(tmp_path: Path, file_name: str, review_contract_body: str) -> Path:
+    """Write a minimal command file with a configurable review-contract body."""
+    path = tmp_path / file_name
+    path.write_text(
+        "---\n"
+        "name: gpd:test-review-contract\n"
+        "review-contract:\n"
+        "  review_mode: publication\n"
+        f"{review_contract_body}"
+        "---\n"
+        "Body.",
+        encoding="utf-8",
+    )
+    return path
+
+
 class TestParseFrontmatter:
     """Tests for _parse_frontmatter edge cases."""
 
@@ -356,6 +372,80 @@ class TestParseCommandFile:
         )
 
         with pytest.raises(ValueError, match=r"Invalid review-contract in .*review-rounds\.md.*max_review_rounds"):
+            _parse_command_file(f, source="commands")
+
+    @pytest.mark.parametrize(
+        "field_name",
+        [
+            "required_outputs",
+            "required_evidence",
+            "blocking_conditions",
+            "preflight_checks",
+            "stage_ids",
+            "stage_artifacts",
+        ],
+    )
+    def test_command_review_contract_list_fields_reject_non_string_members(
+        self, tmp_path: Path, field_name: str
+    ) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            f"{field_name}-non-string-member.md",
+            f"  {field_name}:\n"
+            "    - valid\n"
+            "    - true\n",
+        )
+
+        with pytest.raises(ValueError, match=rf"Invalid review-contract in .*{field_name}-non-string-member\.md.*{field_name}"):
+            _parse_command_file(f, source="commands")
+
+    @pytest.mark.parametrize(
+        "field_name",
+        [
+            "required_outputs",
+            "required_evidence",
+            "blocking_conditions",
+            "preflight_checks",
+            "stage_ids",
+            "stage_artifacts",
+        ],
+    )
+    def test_command_review_contract_list_fields_reject_invalid_scalar_values(
+        self, tmp_path: Path, field_name: str
+    ) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            f"{field_name}-invalid-scalar.md",
+            f"  {field_name}: 7\n",
+        )
+
+        with pytest.raises(ValueError, match=rf"Invalid review-contract in .*{field_name}-invalid-scalar\.md.*{field_name}"):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_bool_max_rounds_is_rejected(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "review-rounds-bool.md",
+            "  max_review_rounds: true\n",
+        )
+
+        with pytest.raises(ValueError, match=r"Invalid review-contract in .*review-rounds-bool\.md.*max_review_rounds"):
+            _parse_command_file(f, source="commands")
+
+    @pytest.mark.parametrize("raw_value", ["7", "true"])
+    def test_command_review_contract_review_mode_requires_string(self, tmp_path: Path, raw_value: str) -> None:
+        f = tmp_path / f"review-mode-{raw_value}.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:review-mode-invalid\n"
+            "review-contract:\n"
+            f"  review_mode: {raw_value}\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match=rf"Invalid review-contract in .*review-mode-{raw_value}\.md.*review_mode"):
             _parse_command_file(f, source="commands")
 
     @pytest.mark.parametrize("schema_version", ['"v1"', "2"])

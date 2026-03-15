@@ -796,7 +796,12 @@ def _doctor_check_protocol_bundles(specs_dir: Path) -> HealthCheck:
     for path in sorted(bundles_dir.glob("*.md")):
         document_count += 1
         try:
-            meta, _body = extract_frontmatter(path.read_text(encoding="utf-8"))
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            issues.append(f"{path.name}: unreadable bundle ({exc})")
+            continue
+        try:
+            meta, _body = extract_frontmatter(text)
         except FrontmatterParseError as exc:
             issues.append(f"{path.name}: invalid frontmatter ({exc})")
             continue
@@ -820,7 +825,16 @@ def _doctor_check_protocol_bundles(specs_dir: Path) -> HealthCheck:
 
         for role, asset in bundle.assets.iter_assets():
             asset_path = specs_dir / asset.path
-            if asset_path.exists():
+            try:
+                asset_exists = asset_path.is_file()
+            except OSError as exc:
+                message = f"{path.name}: unreadable {role} asset {asset.path} ({exc})"
+                if asset.required:
+                    issues.append(message)
+                else:
+                    warnings.append(message)
+                continue
+            if asset_exists:
                 continue
             message = f"{path.name}: missing {role} asset {asset.path}"
             if asset.required:

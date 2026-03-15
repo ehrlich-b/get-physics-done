@@ -892,9 +892,36 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "Verification targets must stay user-visible" in verify_phase
     assert "must_haves" not in verify_phase
     assert "comparison_verdicts" in compare_workflow
+    assert "selected_protocol_bundle_ids" in compare_workflow
+    assert "protocol_bundle_context" in compare_workflow
+    assert "active_reference_context" in compare_workflow
+    assert "protocol_bundle_ids (optional):" in compare_workflow
+    assert "bundle_expectations (optional):" in compare_workflow
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" in compare_workflow
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" in comparison_template
     assert "subject_role" in comparison_template
     assert "Profiles and autonomy modes may compress prose or cadence, but they do NOT relax contract-result emission" in executor_agent
     assert "Use claim IDs, deliverable IDs, acceptance test IDs, reference IDs, and forbidden proxy IDs directly from the `contract` block." in verifier_agent
+
+
+def test_verification_prompts_keep_suggested_contract_check_bindings_schema_tight() -> None:
+    verification_template = (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
+    research_verification = (TEMPLATES_DIR / "research-verification.md").read_text(encoding="utf-8")
+    verify_workflow = (WORKFLOWS_DIR / "verify-work.md").read_text(encoding="utf-8")
+    verifier_agent = (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
+
+    assert 'suggested_subject_id: ""' not in verification_template
+    assert 'suggested_subject_id: [contract id or ""]' not in research_verification
+    assert 'suggested_subject_id: [contract id or ""]' not in verify_workflow
+    assert "suggested_subject_id: [matching contract id]" in research_verification
+    assert "suggested_subject_id: [matching contract id]" in verify_workflow
+    assert "test-benchmark" in verification_template
+    assert "test-benchmark" in research_verification
+    assert "test-benchmark" in verifier_agent
+    assert "omit both keys instead of leaving one blank" in verification_template
+    assert "omit both keys instead of leaving one blank" in research_verification
+    assert "omit both keys instead of leaving one blank" in verify_workflow
+    assert "omit both keys instead of leaving one blank" in verifier_agent
 
 
 def test_contract_schema_references_stay_wired_into_templates_and_review_docs() -> None:

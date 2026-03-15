@@ -260,6 +260,28 @@ class ComparisonVerdict(BaseModel):
     def _normalize_optional_fields(cls, value: object) -> object:
         return _normalize_optional_str(value)
 
+    @property
+    def subject_role_explicit(self) -> bool:
+        """Return whether ``subject_role`` was explicitly set in source data."""
+
+        return "subject_role" in self.model_fields_set
+
+    def anchored_reference_ids(self, known_reference_ids: set[str] | None = None) -> set[str]:
+        """Return contract reference anchors named by this verdict.
+
+        ``reference_id`` is the explicit anchor field. ``subject_kind: reference``
+        also anchors the verdict directly to the referenced contract node.
+        """
+
+        anchors: set[str] = set()
+        if self.reference_id is not None:
+            anchors.add(self.reference_id)
+        if self.subject_kind == "reference":
+            anchors.add(self.subject_id)
+        if known_reference_ids is None:
+            return anchors
+        return anchors.intersection(known_reference_ids)
+
 
 class ContractScope(BaseModel):
     """High-level problem boundary for a project or phase."""

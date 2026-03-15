@@ -165,6 +165,61 @@ def test_build_paper_quality_input_is_conservative_when_artifacts_are_missing(tm
     assert report.categories["verification"].checks["contract_targets_verified"] == 5.0
 
 
+def test_build_paper_quality_input_requires_decisive_verdicts_for_decisive_artifact_coverage(tmp_path: Path) -> None:
+    _write(
+        tmp_path / ".gpd" / "paper" / "FIGURE_TRACKER.md",
+        """---
+figure_registry:
+  - id: fig-benchmark
+    label: "Fig. 1"
+    kind: figure
+    role: benchmark
+    path: paper/figures/benchmark.pdf
+    contract_ids: [claim-benchmark, deliv-figure]
+    decisive: true
+    has_units: true
+    has_uncertainty: true
+    referenced_in_text: true
+    caption_self_contained: true
+    colorblind_safe: true
+    comparison_sources:
+      - .gpd/comparisons/benchmark-COMPARISON.md
+---
+
+# Figure Tracker
+""",
+    )
+    _write(
+        tmp_path / ".gpd" / "comparisons" / "benchmark-COMPARISON.md",
+        """---
+comparison_kind: benchmark
+comparison_verdicts:
+  - subject_id: claim-benchmark
+    subject_kind: claim
+    subject_role: supporting
+    reference_id: ref-benchmark
+    comparison_kind: benchmark
+    metric: relative_error
+    threshold: "<= 0.01"
+    verdict: pass
+---
+
+# Internal Comparison
+""",
+    )
+    _write(
+        tmp_path / ".gpd" / "phases" / "01-benchmark" / "01-01-PLAN.md",
+        (STAGE0_FIXTURES_DIR / "plan_with_contract.md").read_text(encoding="utf-8"),
+    )
+
+    result = build_paper_quality_input(tmp_path)
+
+    assert result.results.decisive_artifacts_with_explicit_verdicts.satisfied == 0
+    assert result.results.decisive_artifacts_with_explicit_verdicts.total == 1
+    assert result.results.decisive_artifacts_benchmark_anchored.satisfied == 0
+    assert result.results.decisive_artifacts_benchmark_anchored.total == 1
+
+
 def test_build_paper_quality_input_reads_manuscript_dir_and_config_title(tmp_path: Path) -> None:
     _write(
         tmp_path / "manuscript" / "main.tex",
@@ -429,6 +484,9 @@ def test_publication_review_surfaces_keep_protocol_bundle_guidance_additive() ->
     internal_template = (repo_root / "src/gpd/specs/templates/paper/internal-comparison.md").read_text(
         encoding="utf-8"
     )
+    experimental_template = (repo_root / "src/gpd/specs/templates/paper/experimental-comparison.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "protocol_bundle_context" in write_paper
     assert "additive specialized-publication guidance" in write_paper
@@ -451,3 +509,6 @@ def test_publication_review_surfaces_keep_protocol_bundle_guidance_additive() ->
     assert "protocol_bundle_ids (optional):" in internal_template
     assert "bundle_expectations (optional):" in internal_template
     assert "additive provenance" in internal_template
+    assert "protocol_bundle_ids (optional):" in experimental_template
+    assert "bundle_expectations (optional):" in experimental_template
+    assert "additive provenance" in experimental_template

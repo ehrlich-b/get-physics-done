@@ -55,10 +55,12 @@ comparison_reference_id: [reference-id or ""]
 expected: |
 [what the researcher should confirm or evaluate]
 suggested_contract_checks:
+  # If you cannot bind the gap to a known contract target yet, omit both
+  # `suggested_subject_kind` and `suggested_subject_id` instead of leaving one blank.
   - check: [missing decisive check]
     reason: [why the missing check matters]
     suggested_subject_kind: [claim | deliverable | acceptance_test | reference]
-    suggested_subject_id: [contract id or ""]
+    suggested_subject_id: [matching contract id]
     evidence_path: [artifact path or expected evidence path]
 awaiting: researcher response
 
@@ -77,10 +79,12 @@ comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline 
 comparison_reference_id: [reference-id or ""]
 expected: [what should hold - physical reasoning, derivation step, or result property]
 suggested_contract_checks:
+  # If you cannot bind the gap to a known contract target yet, omit both
+  # `suggested_subject_kind` and `suggested_subject_id` instead of leaving one blank.
   - check: [missing decisive check]
     reason: [why the missing check matters]
     suggested_subject_kind: [claim | deliverable | acceptance_test | reference]
-    suggested_subject_id: [contract id or ""]
+    suggested_subject_id: [matching contract id]
     evidence_path: [artifact path or expected evidence path]
 result: [pending]
 
@@ -132,11 +136,11 @@ The frontmatter `comparison_verdicts` ledger is authoritative; this section is a
 
 <!-- APPEND if the verifier finds missing decisive checks that should be added to the contract -->
 
-- check: "[short description]"
-  reason: "[why this seems required]"
-  suggested_subject_kind: claim | deliverable | acceptance_test | reference
-  suggested_subject_id: ""
-  evidence_path: ""
+- check: "Add decisive normalization benchmark comparison"
+  reason: "The phase conclusion depends on an explicit benchmark acceptance test that is not yet named in the contract."
+  suggested_subject_kind: acceptance_test
+  suggested_subject_id: "test-benchmark"
+  evidence_path: ".gpd/phases/01-benchmark/benchmark-comparison.csv"
 
 ## Gaps
 
@@ -197,6 +201,7 @@ The frontmatter `comparison_verdicts` ledger is authoritative; this section is a
 - Use `comparison_kind` / `comparison_reference_id` when the check should later emit a comparison verdict
 - Use `suggested_contract_checks` only when the verifier believes the contract omitted a decisive check, or when a decisive benchmark / cross-method check remains partial, not attempted, or still lacks a decisive verdict
 - Keep `suggested_contract_checks` schema-tight: only `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path` are valid keys
+- `suggested_subject_kind` and `suggested_subject_id` travel together; if the missing check is not bound to a known contract target yet, omit both keys instead of leaving one blank
 
 **Summary:**
 

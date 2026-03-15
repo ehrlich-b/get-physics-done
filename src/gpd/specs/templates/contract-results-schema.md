@@ -102,7 +102,7 @@ comparison_verdicts:
     subject_kind: claim|deliverable|acceptance_test|reference
     subject_role: decisive|supporting|supplemental|other
     reference_id: ref-main
-    comparison_kind: benchmark|prior_work|experiment|cross_method|baseline
+    comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other
     metric: relative_error
     threshold: "<= 0.01"
     verdict: pass|tension|fail|inconclusive

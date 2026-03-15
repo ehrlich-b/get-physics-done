@@ -668,6 +668,8 @@ class TestManifestConsistency:
             ("gemini", True),
             ("codex", False),
             ("codex", True),
+            ("opencode", False),
+            ("opencode", True),
         ],
     )
     def test_manifest_records_explicit_target_metadata(

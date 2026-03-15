@@ -99,12 +99,14 @@ comparison_verdicts:
 # Also required when a decisive benchmark / cross-method check remains partial, not attempted,
 # or still lacks the decisive comparison verdict that would let the target pass honestly.
 # Keep these entries structured; do not replace them with freeform prose or invented keys.
+# If you can bind the gap to a known contract target, include `suggested_subject_kind`
+# and `suggested_subject_id` together. Otherwise omit both keys instead of leaving one blank.
 suggested_contract_checks:
-  - check: "[short description of missing decisive check]"
-    reason: "[why the verifier believes it should exist]"
-    suggested_subject_kind: claim|deliverable|acceptance_test|reference
-    suggested_subject_id: ""
-    evidence_path: ""
+  - check: "Add decisive normalization benchmark comparison"
+    reason: "The reported agreement depends on a normalization-sensitive benchmark that is not yet explicit."
+    suggested_subject_kind: acceptance_test
+    suggested_subject_id: test-benchmark
+    evidence_path: .gpd/phases/01-benchmark/benchmark-comparison.csv
 ---
 
 # Phase {X}: {Name} Verification Report
@@ -151,10 +153,11 @@ Only `subject_role: decisive` closes a decisive benchmark/cross-method requireme
 
 Reserve this section for obvious missing decisive checks on user-visible targets. Do not populate it with style requests, paperwork wishes, or generic process polish. Each row should name one missing check, why it matters, which user-visible target it affects, and the artifact or evidence path that would close it.
 Allowed keys are exactly `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path`.
+If the missing check is already tied to a known contract target, fill `Suggested Subject Kind` and `Suggested Subject ID` together; otherwise omit both keys in frontmatter instead of leaving one blank.
 
 | Suggested Check | Why It Seems Required | Suggested Subject Kind | Suggested Subject ID | Evidence Path |
 | --------------- | --------------------- | ---------------------- | -------------------- | ------------- |
-| {missing check} | {why the verifier thinks it is decisive} | {claim|deliverable|acceptance_test|reference} | {id or blank} | {where evidence would come from} |
+| {missing check} | {why the verifier thinks it is decisive} | {claim|deliverable|acceptance_test|reference} | {matching contract id} | {where evidence would come from} |
 | {missing check} | {reason} | {kind} | {id} | {path} |
 
 ## Dimensional Analysis

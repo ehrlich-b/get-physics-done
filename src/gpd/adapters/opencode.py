@@ -24,6 +24,9 @@ from gpd.adapters.install_utils import (
     HOOK_SCRIPTS,
     MANIFEST_NAME,
     PATCHES_DIR_NAME,
+    _default_install_target,
+    _normalize_install_scope_flag,
+    _paths_equal,
     compile_markdown_for_runtime,
     compute_path_prefix,
     convert_tool_references_in_body,
@@ -396,6 +399,7 @@ def write_manifest(
     *,
     runtime: str | None = None,
     install_scope: str | None = None,
+    explicit_target: bool | None = None,
 ) -> dict:
     """Write file manifest after installation for future modification detection.
 
@@ -416,10 +420,18 @@ def write_manifest(
     }
     if isinstance(runtime, str) and runtime.strip():
         manifest["runtime"] = runtime.strip()
-    if install_scope in ("local", "--local"):
+    normalized_scope = _normalize_install_scope_flag(install_scope)
+    if normalized_scope == "--local":
         manifest["install_scope"] = "local"
-    elif install_scope in ("global", "--global"):
+    elif normalized_scope == "--global":
         manifest["install_scope"] = "global"
+    manifest["install_target_dir"] = str(config_dir)
+    if explicit_target is not None:
+        manifest["explicit_target"] = bool(explicit_target)
+    elif isinstance(runtime, str) and runtime.strip() and normalized_scope in {"--local", "--global"}:
+        default_target = _default_install_target(config_dir, runtime.strip(), normalized_scope)
+        if default_target is not None:
+            manifest["explicit_target"] = not _paths_equal(config_dir, default_target)
 
     # get-physics-done/ files
     gpd_hashes = generate_manifest(gpd_dir)
@@ -809,6 +821,7 @@ class OpenCodeAdapter(RuntimeAdapter):
             version,
             runtime=self.runtime_name,
             install_scope=self._current_install_scope_flag(),
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
 
     def uninstall(self, target_dir: Path) -> dict[str, object]:

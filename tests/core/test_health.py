@@ -485,6 +485,50 @@ assets:
         assert checks["Protocol Bundles"].status == CheckStatus.FAIL
         assert any("templates/missing-template.md" in issue for issue in checks["Protocol Bundles"].issues)
 
+    def test_protocol_bundles_check_fails_when_asset_path_escapes_specs_dir(self, tmp_path: Path):
+        specs_dir = self._make_specs_dir(tmp_path)
+        bundles_dir = specs_dir / "bundles"
+        bundles_dir.mkdir()
+        (bundles_dir / "path-escape-bundle.md").write_text(
+            """---
+bundle_id: path-escape-bundle
+bundle_version: 1
+title: Path Escape Bundle
+summary: Bundle with an invalid asset path.
+trigger:
+  any_terms:
+    - path escape bundle
+  min_term_matches: 1
+  min_score: 3
+assets:
+  project_types:
+    - path: ../outside.md
+      required: true
+---
+
+# Path Escape Bundle
+""",
+            encoding="utf-8",
+        )
+
+        report = run_doctor(specs_dir=specs_dir, version="0.1.0")
+        checks = {check.label: check for check in report.checks}
+
+        assert checks["Protocol Bundles"].status == CheckStatus.FAIL
+        assert any("path must stay within specs dir" in issue for issue in checks["Protocol Bundles"].issues)
+
+    def test_protocol_bundles_check_fails_when_bundle_file_is_not_utf8(self, tmp_path: Path):
+        specs_dir = self._make_specs_dir(tmp_path)
+        bundles_dir = specs_dir / "bundles"
+        bundles_dir.mkdir()
+        (bundles_dir / "invalid-encoding.md").write_bytes(b"\xff\xfe\x80")
+
+        report = run_doctor(specs_dir=specs_dir, version="0.1.0")
+        checks = {check.label: check for check in report.checks}
+
+        assert checks["Protocol Bundles"].status == CheckStatus.FAIL
+        assert any("unreadable bundle" in issue for issue in checks["Protocol Bundles"].issues)
+
     def test_protocol_bundles_check_fails_when_verifier_extension_check_id_is_unknown(self, tmp_path: Path):
         specs_dir = self._make_specs_dir(tmp_path)
         bundles_dir = specs_dir / "bundles"

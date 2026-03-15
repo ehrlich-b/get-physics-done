@@ -762,6 +762,140 @@ def test_validate_frontmatter_summary_requires_decisive_role_for_decisive_compar
     assert any("Missing decisive comparison_verdict for acceptance test test-benchmark" in error for error in result.errors)
 
 
+@pytest.mark.parametrize("comparison_kind", ["benchmark", "prior_work", "experiment", "cross_method"])
+def test_validate_frontmatter_summary_rejects_implicit_subject_role_for_decisive_comparison_kind(
+    tmp_path: Path, comparison_kind: str
+) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    reference_line = "    reference_id: ref-benchmark\n" if comparison_kind != "cross_method" else ""
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(
+            "comparison_verdicts:\n",
+            "comparison_verdicts:\n"
+            "  - subject_id: claim-benchmark\n"
+            "    subject_kind: claim\n"
+            f"{reference_line}"
+            f"    comparison_kind: {comparison_kind}\n"
+            "    metric: relative_error\n"
+            '    threshold: "<= 0.02"\n'
+            "    verdict: pass\n"
+            "    recommended_action: Keep this comparison explicit in the record.\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is False
+    assert any(
+        f"must declare subject_role explicitly for {comparison_kind} comparisons" in error for error in result.errors
+    )
+
+
+@pytest.mark.parametrize("comparison_kind", ["benchmark", "prior_work", "experiment"])
+def test_validate_frontmatter_summary_rejects_unanchored_decisive_external_comparison(
+    tmp_path: Path, comparison_kind: str
+) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(
+            "comparison_verdicts:\n",
+            "comparison_verdicts:\n"
+            "  - subject_id: claim-benchmark\n"
+            "    subject_kind: claim\n"
+            "    subject_role: decisive\n"
+            f"    comparison_kind: {comparison_kind}\n"
+            "    metric: relative_error\n"
+            '    threshold: "<= 0.02"\n'
+            "    verdict: pass\n"
+            "    recommended_action: Keep this comparison explicit in the record.\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is False
+    assert any(
+        f"must include reference_id or use subject_kind: reference for decisive {comparison_kind} comparisons"
+        in error
+        for error in result.errors
+    )
+
+
+def test_validate_frontmatter_summary_rejects_prior_work_verdict_for_benchmark_acceptance_test(
+    tmp_path: Path,
+) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace("comparison_kind: benchmark", "comparison_kind: prior_work", 1),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is False
+    assert any("Missing decisive comparison_verdict for acceptance test test-benchmark" in error for error in result.errors)
+
+
+def test_validate_frontmatter_summary_accepts_decisive_cross_method_without_reference_anchor(
+    tmp_path: Path,
+) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md")
+        .read_text(encoding="utf-8")
+        .replace("role: benchmark", "role: method", 1)
+        .replace("required_actions: [read, compare, cite]", "required_actions: [read, cite]", 1)
+        .replace("kind: benchmark", "kind: cross_method", 1)
+        .replace("procedure: Compare against the benchmark reference", "procedure: Compare the independent methods", 1)
+        .replace("pass_condition: Matches reference within tolerance", "pass_condition: Independent methods agree within tolerance", 1),
+        encoding="utf-8",
+    )
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace(
+            "    subject_role: decisive\n"
+            "    reference_id: ref-benchmark\n"
+            "    comparison_kind: benchmark\n",
+            "    subject_role: decisive\n"
+            "    comparison_kind: cross_method\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is True
+    assert result.errors == []
+
+
 def test_validate_frontmatter_summary_rejects_contract_results_context_usage(tmp_path: Path) -> None:
     phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
     phase_dir.mkdir(parents=True)

@@ -27,9 +27,11 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-- Parse JSON for: `commit_docs`, `state_exists`, `project_exists`, `current_phase`
+- Parse JSON for: `commit_docs`, `state_exists`, `project_exists`, `current_phase`, `project_contract`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`
 - **If `state_exists` is true:** Read `.gpd/state.json` to extract `convention_lock` for unit system, metric signature, and Fourier conventions. Extract active approximations and their validity ranges from state. Load `intermediate_results` from state for any previously computed quantities.
 - **If `state_exists` is false** (standalone usage): Proceed with explicit convention declarations required from user via ask_user (unit system, sign conventions, normalization)
+- **If `selected_protocol_bundle_ids` is non-empty:** Treat `protocol_bundle_context` as additive provenance guidance only. Keep any decisive-artifact, estimator, or benchmark expectations visible while choosing theory/data anchors, and record the bundle IDs / expectations in the output frontmatter when they materially informed the comparison.
+- **If `active_reference_context` is non-empty:** Keep those contract-backed anchors visible when selecting `reference_id`, interpreting tolerances, and deciding whether the comparison closes a decisive requirement.
 
 Convention context is critical for theory-experiment comparison: unit mismatches and convention mismatches are the two most common sources of discrepancy.
 
@@ -227,6 +229,10 @@ Write COMPARISON.md:
 date: { YYYY-MM-DD }
 theory_source: { derivation/computation path }
 data_source: { experiment/measurement reference }
+protocol_bundle_ids (optional):
+  - { bundle-id }
+bundle_expectations (optional):
+  - { additive provenance cue that materially informed the comparison }
 overall_agreement: good | tension | discrepancy
 chi2_ndof: { value }
 p_value: { value }
@@ -236,7 +242,7 @@ comparison_verdicts:
     subject_kind: claim|deliverable|acceptance_test|reference
     subject_role: decisive|supporting|supplemental|other
     reference_id: ref-id
-    comparison_kind: benchmark|prior_work|experiment|cross_method|baseline
+    comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other
     metric: chi2_ndof | relative_error | pull
     threshold: "<= 2 sigma"
     verdict: pass | tension | fail | inconclusive
@@ -260,6 +266,7 @@ comparison_verdicts:
 {Document all convention alignments}
 
 Only `subject_role: decisive` satisfies a required decisive comparison. `supporting` and `supplemental` verdicts record useful tension or corroboration but do not replace the decisive verdict the contract requires.
+If selected protocol bundles informed the comparison design, record them in `protocol_bundle_ids` / `bundle_expectations` as additive provenance only; they do not replace contract IDs, benchmark anchors, or pass/fail thresholds.
 
 ## Point-by-Point Comparison
 

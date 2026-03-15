@@ -117,6 +117,22 @@ def test_validate_project_contract_command_blocks_must_surface_reference_without
     assert any("must_surface but missing applies_to" in error for error in payload["errors"])
 
 
+def test_validate_project_contract_command_blocks_references_without_any_must_surface_anchor(tmp_path: Path) -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["references"][0]["must_surface"] = False
+    contract["references"][0]["required_actions"] = ["read", "compare"]
+    contract["references"][0]["applies_to"] = ["claim-benchmark"]
+    contract_path = tmp_path / "project-contract.json"
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+
+    result = runner.invoke(app, ["--raw", "validate", "project-contract", str(contract_path)], catch_exceptions=False)
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.output)
+    assert payload["valid"] is False
+    assert any("references must include at least one must_surface=true anchor" in error for error in payload["errors"])
+
+
 def test_validate_project_contract_command_blocks_background_only_reference_in_approved_mode(tmp_path: Path) -> None:
     contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
     contract["references"] = [

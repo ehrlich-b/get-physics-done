@@ -221,6 +221,18 @@ def test_validate_project_contract_rejects_must_surface_reference_without_applie
     assert "reference ref-benchmark is must_surface but missing applies_to" in result.errors
 
 
+def test_validate_project_contract_rejects_references_without_any_must_surface_anchor() -> None:
+    contract = _load_contract_fixture()
+    contract["references"][0]["must_surface"] = False
+    contract["references"][0]["required_actions"] = ["read", "compare"]
+    contract["references"][0]["applies_to"] = ["claim-benchmark"]
+
+    result = validate_project_contract(contract, mode="approved")
+
+    assert result.valid is False
+    assert "references must include at least one must_surface=true anchor" in result.errors
+
+
 def test_validate_project_contract_rejects_invalid_forbidden_proxy_and_link_bindings() -> None:
     contract = _load_contract_fixture()
     contract["forbidden_proxies"][0]["subject"] = "missing-claim"

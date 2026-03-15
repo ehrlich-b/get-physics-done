@@ -293,6 +293,9 @@ def _light_contract_consistency_errors(contract: ResearchContract) -> list[str]:
     known_subject_ids = claim_ids | deliverable_ids
     known_ids = known_subject_ids | acceptance_test_ids | reference_ids
 
+    if contract.references and not any(reference.must_surface for reference in contract.references):
+        errors.append("references must include at least one must_surface=true anchor")
+
     for must_read_ref in contract.context_intake.must_read_refs:
         if must_read_ref not in reference_ids:
             errors.append(f"context_intake.must_read_refs references unknown reference {must_read_ref}")

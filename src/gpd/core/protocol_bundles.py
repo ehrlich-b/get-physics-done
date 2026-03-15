@@ -11,9 +11,9 @@ import logging
 import re
 import textwrap
 from functools import lru_cache
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic import ValidationError as PydanticValidationError
 
 from gpd.contracts import ResearchContract
@@ -52,6 +52,23 @@ class BundleAsset(BaseModel):
     path: str
     required: bool = False
     note: str | None = None
+
+    @field_validator("path", mode="before")
+    @classmethod
+    def _validate_path(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("path must not be empty")
+        if normalized.startswith(("~", "/")):
+            raise ValueError("path must be relative to specs dir")
+        if "\\" in normalized:
+            raise ValueError("path must use forward slashes")
+        pure_path = PurePosixPath(normalized)
+        if any(part == ".." for part in pure_path.parts):
+            raise ValueError("path must stay within specs dir")
+        return pure_path.as_posix()
 
 
 class BundleAssets(BaseModel):

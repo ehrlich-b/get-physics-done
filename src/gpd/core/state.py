@@ -917,7 +917,11 @@ def parse_state_to_json(content: str) -> dict:
 # ─── Schema Enforcement ───────────────────────────────────────────────────────
 
 
-def _normalize_state_schema(raw: dict | None) -> tuple[dict, list[str]]:
+def _normalize_state_schema(
+    raw: dict | None,
+    *,
+    allow_project_contract_salvage: bool = True,
+) -> tuple[dict, list[str]]:
     """Normalize a raw state dict and capture integrity-affecting coercions."""
     if not raw:
         return default_state_dict(), []
@@ -941,7 +945,11 @@ def _normalize_state_schema(raw: dict | None) -> tuple[dict, list[str]]:
                 )
                 del normalized[key]
 
-    normalized = _salvage_state_sections(normalized, integrity_issues)
+    normalized = _salvage_state_sections(
+        normalized,
+        integrity_issues,
+        allow_project_contract_salvage=allow_project_contract_salvage,
+    )
 
     try:
         return ResearchState.model_validate(normalized).model_dump(), integrity_issues
@@ -1003,7 +1011,12 @@ def _integrity_issue_from_contract_error(error: str) -> str:
     return f"schema normalization: {error}"
 
 
-def _normalize_project_contract_section(value: object, integrity_issues: list[str]) -> object:
+def _normalize_project_contract_section(
+    value: object,
+    integrity_issues: list[str],
+    *,
+    allow_project_contract_salvage: bool,
+) -> object:
     if value is None or not isinstance(value, dict):
         return value
 
@@ -1014,6 +1027,11 @@ def _normalize_project_contract_section(value: object, integrity_issues: list[st
 
     normalized_contract, errors = salvage_project_contract(value)
     integrity_issues.extend(_integrity_issue_from_contract_error(error) for error in errors)
+    if not allow_project_contract_salvage:
+        integrity_issues.append(
+            'schema normalization: dropped "project_contract" because contract schema required normalization'
+        )
+        return None
     return normalized_contract.model_dump() if normalized_contract is not None else None
 
 
@@ -1075,11 +1093,17 @@ def _normalize_intermediate_results_section(value: object, integrity_issues: lis
     return normalized_results if changed else value
 
 
-def _salvage_state_sections(normalized: dict[str, object], integrity_issues: list[str]) -> dict[str, object]:
+def _salvage_state_sections(
+    normalized: dict[str, object],
+    integrity_issues: list[str],
+    *,
+    allow_project_contract_salvage: bool,
+) -> dict[str, object]:
     if normalized.get("project_contract") is not None:
         normalized["project_contract"] = _normalize_project_contract_section(
             normalized.get("project_contract"),
             integrity_issues,
+            allow_project_contract_salvage=allow_project_contract_salvage,
         )
     if normalized.get("intermediate_results") is not None:
         normalized["intermediate_results"] = _normalize_intermediate_results_section(
@@ -1101,6 +1125,12 @@ def ensure_state_schema(raw: dict | None) -> dict:
     succeeds. This guarantees the function never raises on any input dict.
     """
     normalized, _issues = _normalize_state_schema(raw)
+    return normalized
+
+
+def _normalize_state_for_persistence(raw: dict | None) -> dict:
+    """Normalize state for writes without salvaging malformed project contracts."""
+    normalized, _issues = _normalize_state_schema(raw, allow_project_contract_salvage=False)
     return normalized
 
 
@@ -1612,7 +1642,7 @@ def _build_state_from_markdown(cwd: Path, md_content: str) -> dict:
     else:
         merged = parsed
 
-    return ensure_state_schema(merged)
+    return _normalize_state_for_persistence(merged)
 
 
 def _write_state_pair_locked(cwd: Path, *, state_obj: dict, md_content: str) -> dict:
@@ -1629,7 +1659,7 @@ def _write_state_pair_locked(cwd: Path, *, state_obj: dict, md_content: str) -> 
     json_backup = safe_read_file(json_path)
     md_backup = safe_read_file(md_path)
 
-    normalized = ensure_state_schema(state_obj)
+    normalized = _normalize_state_for_persistence(state_obj)
     json_rendered = json.dumps(normalized, indent=2) + "\n"
 
     try:
@@ -1716,7 +1746,10 @@ def load_state_json(cwd: Path, integrity_mode: str = "standard") -> dict | None:
 
         try:
             raw = json_path.read_text(encoding="utf-8")
-            normalized, integrity_issues = _normalize_state_schema(json.loads(raw))
+            normalized, integrity_issues = _normalize_state_schema(
+                json.loads(raw),
+                allow_project_contract_salvage=False,
+            )
             if integrity_mode == "review" and integrity_issues:
                 logger.warning("state.json failed review-mode integrity checks: %s", "; ".join(integrity_issues))
                 return None
@@ -1732,7 +1765,10 @@ def load_state_json(cwd: Path, integrity_mode: str = "standard") -> dict | None:
             # Try backup
             try:
                 bak_raw = bak_path.read_text(encoding="utf-8")
-                restored, integrity_issues = _normalize_state_schema(json.loads(bak_raw))
+                restored, integrity_issues = _normalize_state_schema(
+                    json.loads(bak_raw),
+                    allow_project_contract_salvage=False,
+                )
                 if integrity_mode == "review" and integrity_issues:
                     logger.warning("state.json backup failed review-mode integrity checks: %s", "; ".join(integrity_issues))
                     return None
@@ -1761,7 +1797,7 @@ def save_state_json_locked(cwd: Path, state_obj: dict) -> None:
 
     Caller MUST hold the canonical state lock.
     """
-    normalized = ensure_state_schema(state_obj)
+    normalized = _normalize_state_for_persistence(state_obj)
     _write_state_pair_locked(cwd, state_obj=normalized, md_content=generate_state_markdown(normalized))
 
 

@@ -211,7 +211,7 @@ Rules:
 - If a forbidden proxy exists, create an explicit rejection check rather than assuming silence means success.
 - If the contract lacks an obvious decisive check, create a `suggested_contract_check` entry with a short rationale instead of silently dropping the concern.
 - Only create `suggested_contract_check` entries for obvious decisive gaps on user-visible targets, not for paperwork preferences or generic workflow niceties.
-- Each `suggested_contract_check` entry must stay structured: `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id` when known, and `evidence_path`.
+- Each `suggested_contract_check` entry must stay structured: `check`, `reason`, optional paired `suggested_subject_kind` + `suggested_subject_id` when the gap can be bound to a known contract target, and `evidence_path`. If no target is known yet, omit both keys instead of leaving one blank.
 
 **Examples with computational verification:**
 
@@ -356,10 +356,12 @@ computation: |
 precomputed_result: |
 [result of AI's independent computation]
 suggested_contract_checks:
+  # If you cannot bind the gap to a known contract target yet, omit both
+  # `suggested_subject_kind` and `suggested_subject_id` instead of leaving one blank.
   - check: [missing decisive check]
     reason: [why the missing check matters]
     suggested_subject_kind: [claim | deliverable | acceptance_test | reference]
-    suggested_subject_id: [contract id or ""]
+    suggested_subject_id: [matching contract id]
     evidence_path: [artifact path or expected evidence path]
 awaiting: researcher response
 
@@ -380,10 +382,12 @@ expected: [verifiable physics outcome]
 computation: [specific numerical test performed]
 precomputed_result: [AI's independent computation result]
 suggested_contract_checks:
+  # If you cannot bind the gap to a known contract target yet, omit both
+  # `suggested_subject_kind` and `suggested_subject_id` instead of leaving one blank.
   - check: [missing decisive check]
     reason: [why the missing check matters]
     suggested_subject_kind: [claim | deliverable | acceptance_test | reference]
-    suggested_subject_id: [contract id or ""]
+    suggested_subject_id: [matching contract id]
     evidence_path: [artifact path or expected evidence path]
 result: [pending]
 

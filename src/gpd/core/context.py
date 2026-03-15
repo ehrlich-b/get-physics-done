@@ -16,7 +16,7 @@ from pathlib import Path
 from gpd.adapters import iter_adapters
 from gpd.adapters.install_utils import AGENTS_DIR_NAME, FLAT_COMMANDS_DIR_NAME, GPD_INSTALL_DIR_NAME, HOOKS_DIR_NAME
 from gpd.contracts import ResearchContract, contract_from_data
-from gpd.core.config import GPDProjectConfig, resolve_agent_tier
+from gpd.core.config import GPDProjectConfig
 from gpd.core.config import load_config as _load_config_structured
 from gpd.core.config import resolve_model as _resolve_model_canonical
 from gpd.core.constants import (
@@ -850,22 +850,7 @@ def _resolve_model(
     if active_runtime == "unknown":
         active_runtime = None
 
-    if config is None:
-        return _resolve_model_canonical(cwd, agent_type, runtime=active_runtime)
-
-    if not active_runtime:
-        return None
-
-    profile = config.get("model_profile", str(GPDProjectConfig.model_fields["model_profile"].default.value))
-    tier = resolve_agent_tier(agent_type, profile).value
-    runtime_overrides = config.get("model_overrides")
-    if not isinstance(runtime_overrides, dict):
-        return None
-    runtime_map = runtime_overrides.get(active_runtime)
-    if not isinstance(runtime_map, dict):
-        return None
-    value = runtime_map.get(tier)
-    return value if isinstance(value, str) and value else None
+    return _resolve_model_canonical(cwd, agent_type, runtime=active_runtime)
 
 
 # ─── Phase Info Helper ────────────────────────────────────────────────────────

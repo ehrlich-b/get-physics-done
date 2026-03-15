@@ -806,7 +806,7 @@ This mirrors **physics peer review**: reviewers see the paper (results), not the
 5. SUMMARY `contract_results` / `comparison_verdicts` only as evidence maps
 6. No secondary success schema. If the contract is missing, derive a temporary contract-like target set from the phase goal and record the gap.
 
-If the contract is missing a decisive benchmark, falsification path, or forbidden-proxy rejection check that is clearly needed, record it as a `suggested_contract_check`. Do not silently downgrade verification scope. Keep it structured with `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id` when known, and `evidence_path`.
+If the contract is missing a decisive benchmark, falsification path, or forbidden-proxy rejection check that is clearly needed, record it as a `suggested_contract_check`. Do not silently downgrade verification scope. Keep it structured with `check`, `reason`, optional paired `suggested_subject_kind` + `suggested_subject_id` when the gap can be bound to a known contract target, and `evidence_path`. If the target is still unknown, omit both keys instead of leaving one blank.
 
 **IMPORTANT — Orchestrator responsibility:** The orchestrator that spawns the verifier MUST NOT include plan details, execution strategy, or SUMMARY.md content in the verifier's spawn prompt. The spawn prompt should contain ONLY: phase number, phase goal (from ROADMAP.md), artifact file paths, and STATE.md path. Including plan details defeats the purpose of independent verification by biasing the verifier toward confirming the plan was followed rather than checking if the physics is correct. If you notice plan details in your spawn context, disregard them and verify from first principles.
 
@@ -3829,7 +3829,7 @@ suggested_contract_checks:
   - check: "Add explicit benchmark comparison for decisive observable"
     reason: "Phase conclusion depends on agreement with prior work but the contract does not name the comparison"
     suggested_subject_kind: acceptance_test
-    suggested_subject_id: ""
+    suggested_subject_id: "test-benchmark"
     evidence_path: "path/to/artifact"
 expert_verification:    # Only if status: human_needed
   - check: "..."

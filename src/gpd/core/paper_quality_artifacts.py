@@ -392,11 +392,12 @@ def _build_figures_input(
         if entry.has_uncertainty:
             uncertainty_count += 1
         entry_verdicts = _find_verdict_for_entry(entry, verdicts, project_root)
-        if entry_verdicts:
+        decisive_entry_verdicts = [verdict for verdict in entry_verdicts if verdict.subject_role == "decisive"]
+        if decisive_entry_verdicts:
             decisive_with_verdict += 1
-        if any(verdict.reference_id for verdict in entry_verdicts):
+        if any(verdict.reference_id for verdict in decisive_entry_verdicts):
             decisive_with_anchor += 1
-        for verdict in entry_verdicts:
+        for verdict in decisive_entry_verdicts:
             if verdict.verdict in {"fail", "tension"} and not (verdict.recommended_action or verdict.notes):
                 decisive_failures_scoped = False
 

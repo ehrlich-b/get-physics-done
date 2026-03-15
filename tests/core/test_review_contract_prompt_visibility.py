@@ -61,11 +61,16 @@ def test_write_paper_prompt_discovers_plan_scoped_and_legacy_phase_summaries() -
 
 def test_comparison_templates_match_full_comparison_verdict_subject_kind_enum() -> None:
     expected = "subject_kind: claim|deliverable|acceptance_test|reference"
+    expected_kind = "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other"
     internal = (TEMPLATES_DIR / "paper" / "internal-comparison.md").read_text(encoding="utf-8")
     experimental = (TEMPLATES_DIR / "paper" / "experimental-comparison.md").read_text(encoding="utf-8")
+    contract_results = (TEMPLATES_DIR / "contract-results-schema.md").read_text(encoding="utf-8")
 
     assert expected in internal
     assert expected in experimental
+    assert expected_kind in internal
+    assert expected_kind in experimental
+    assert expected_kind in contract_results
     assert "Only `subject_role: decisive` closes a decisive requirement" in internal
     assert "Only `subject_role: decisive` closes a decisive requirement" in experimental
 

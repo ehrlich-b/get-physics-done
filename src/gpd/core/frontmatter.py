@@ -251,6 +251,13 @@ UNSUPPORTED_FRONTMATTER_FIELDS: dict[str, dict[str, str]] = {
     },
 }
 
+_DECISIVE_COMPARISON_KINDS = frozenset({"benchmark", "prior_work", "experiment", "cross_method"})
+_DECISIVE_EXTERNAL_COMPARISON_KINDS = frozenset({"benchmark", "prior_work", "experiment"})
+_DECISIVE_ACCEPTANCE_TEST_COMPARISON_KINDS: dict[str, frozenset[str]] = {
+    "benchmark": frozenset({"benchmark"}),
+    "cross_method": frozenset({"cross_method"}),
+}
+
 
 class FrontmatterValidation(BaseModel):
     """Result of frontmatter schema validation."""
@@ -474,6 +481,32 @@ def _unsupported_frontmatter_errors(schema_name: str, meta: dict[str, object]) -
     ]
 
 
+def _matches_decisive_acceptance_test_verdict(
+    verdict: ComparisonVerdict,
+    *,
+    subject_ids: set[str],
+    allowed_comparison_kinds: frozenset[str],
+) -> bool:
+    """Return whether *verdict* closes a decisive acceptance-test comparison."""
+
+    return (
+        verdict.subject_role == "decisive"
+        and verdict.comparison_kind in allowed_comparison_kinds
+        and verdict.subject_id in subject_ids
+    )
+
+
+def _matches_decisive_reference_verdict(
+    verdict: ComparisonVerdict,
+    *,
+    reference_id: str,
+    known_reference_ids: set[str],
+) -> bool:
+    """Return whether *verdict* closes a decisive reference-backed comparison."""
+
+    return verdict.subject_role == "decisive" and reference_id in verdict.anchored_reference_ids(known_reference_ids)
+
+
 def _summary_contract_errors(
     contract: ResearchContract,
     contract_results: ContractResults,
@@ -586,9 +619,24 @@ def _summary_contract_errors(
             errors.append(
                 "comparison_verdict for "
                 f"{verdict.subject_id} has subject_kind {verdict.subject_kind} but contract id is a {expected_subject_kind}"
-        )
+            )
         if verdict.reference_id is not None and verdict.reference_id not in reference_ids:
             errors.append(f"comparison_verdict references unknown reference_id {verdict.reference_id}")
+        if verdict.comparison_kind in _DECISIVE_COMPARISON_KINDS and not verdict.subject_role_explicit:
+            errors.append(
+                "comparison_verdict for "
+                f"{verdict.subject_id} must declare subject_role explicitly for {verdict.comparison_kind} comparisons"
+            )
+        if (
+            verdict.subject_role == "decisive"
+            and verdict.comparison_kind in _DECISIVE_EXTERNAL_COMPARISON_KINDS
+            and not verdict.anchored_reference_ids(reference_ids)
+        ):
+            errors.append(
+                "comparison_verdict for "
+                f"{verdict.subject_id} must include reference_id or use subject_kind: reference "
+                f"for decisive {verdict.comparison_kind} comparisons"
+            )
         if verdict.subject_role != "decisive":
             continue
         if verdict.subject_id in contract_results.claims:
@@ -626,22 +674,35 @@ def _summary_contract_errors(
                     f"{verdict.subject_id} contradicts failed contract_results status"
                 )
 
-    decisive_comparison_groups: list[tuple[set[str], str]] = []
     for test in contract.acceptance_tests:
-        if test.kind not in {"benchmark", "cross_method"}:
+        allowed_comparison_kinds = _DECISIVE_ACCEPTANCE_TEST_COMPARISON_KINDS.get(test.kind)
+        if allowed_comparison_kinds is None:
             continue
         result = contract_results.acceptance_tests.get(test.id)
-        linked_ids = set(result.linked_ids) if result is not None else set()
-        decisive_comparison_groups.append(({test.id, test.subject, *linked_ids}, f"acceptance test {test.id}"))
+        subject_ids = {test.id, test.subject}
+        if result is not None:
+            subject_ids.update(result.linked_ids)
+        if not any(
+            _matches_decisive_acceptance_test_verdict(
+                verdict,
+                subject_ids=subject_ids,
+                allowed_comparison_kinds=allowed_comparison_kinds,
+            )
+            for verdict in comparison_verdicts
+        ):
+            errors.append(f"Missing decisive comparison_verdict for acceptance test {test.id}")
     for reference in contract.references:
         if reference.role != "benchmark" and "compare" not in reference.required_actions:
             continue
-        decisive_comparison_groups.append(({reference.id, *reference.applies_to}, f"reference {reference.id}"))
-
-    verdict_subject_ids = {verdict.subject_id for verdict in comparison_verdicts if verdict.subject_role == "decisive"}
-    for subject_ids, source in decisive_comparison_groups:
-        if not subject_ids.intersection(verdict_subject_ids):
-            errors.append(f"Missing decisive comparison_verdict for {source}")
+        if not any(
+            _matches_decisive_reference_verdict(
+                verdict,
+                reference_id=reference.id,
+                known_reference_ids=reference_ids,
+            )
+            for verdict in comparison_verdicts
+        ):
+            errors.append(f"Missing decisive comparison_verdict for reference {reference.id}")
 
     return errors
 

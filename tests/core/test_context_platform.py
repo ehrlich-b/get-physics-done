@@ -72,3 +72,24 @@ def test_init_context_prefers_explicit_gpd_runtime_override(
             assert ctx["platform"] == "codex"
 
     importlib.reload(context_module)
+
+
+def test_resolve_model_delegates_runtime_specific_lookup_to_config_helper(tmp_path: Path) -> None:
+    calls: dict[str, object] = {}
+
+    def _fake_resolve_model(project_dir: Path, agent_name: str, runtime: str | None = None) -> str | None:
+        calls["project_dir"] = project_dir
+        calls["agent_name"] = agent_name
+        calls["runtime"] = runtime
+        return "delegated-model"
+
+    with patch.object(context_module, "_resolve_model_canonical", side_effect=_fake_resolve_model):
+        result = context_module._resolve_model(
+            tmp_path,
+            "gpd-planner",
+            {"model_profile": "review", "model_overrides": {"codex": {"tier-1": "do-not-read-directly"}}},
+            runtime="codex",
+        )
+
+    assert result == "delegated-model"
+    assert calls == {"project_dir": tmp_path, "agent_name": "gpd-planner", "runtime": "codex"}

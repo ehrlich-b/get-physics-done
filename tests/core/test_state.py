@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from gpd.core.constants import ProjectLayout
+from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, ProjectLayout
 from gpd.core.state import (
     VALID_STATUSES,
     ResearchState,
@@ -549,6 +549,101 @@ def test_state_set_project_contract_rejects_schema_drifted_contract(tmp_path: Pa
     saved = load_state_json(tmp_path)
     assert saved is not None
     assert saved["project_contract"] is None
+
+
+def test_save_state_json_drops_malformed_project_contract_instead_of_salvaging(tmp_path: Path):
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+
+    state = default_state_dict()
+    state["position"]["current_phase"] = "2"
+    state["position"]["status"] = "Executing"
+    state["open_questions"] = ["Keep this question"]
+    state["project_contract"] = contract
+
+    save_state_json(tmp_path, state)
+
+    layout = ProjectLayout(tmp_path)
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert persisted["project_contract"] is None
+    assert persisted["open_questions"] == ["Keep this question"]
+
+
+def test_save_state_markdown_drops_existing_malformed_project_contract_instead_of_salvaging(tmp_path: Path):
+    state = default_state_dict()
+    state["position"]["current_phase"] = "2"
+    state["position"]["status"] = "Executing"
+    save_state_json(tmp_path, state)
+
+    layout = ProjectLayout(tmp_path)
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    persisted["project_contract"] = contract
+    layout.state_json.write_text(json.dumps(persisted, indent=2) + "\n", encoding="utf-8")
+
+    md_content = layout.state_md.read_text(encoding="utf-8").replace("**Status:** Executing", "**Status:** Paused", 1)
+    result = save_state_markdown(tmp_path, md_content)
+
+    assert result["project_contract"] is None
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert persisted["project_contract"] is None
+    assert persisted["position"]["status"] == "Paused"
+
+
+def test_load_state_json_backup_restore_drops_malformed_project_contract_instead_of_salvaging(tmp_path: Path):
+    state = default_state_dict()
+    state["position"]["current_phase"] = "2"
+    state["position"]["status"] = "Executing"
+    save_state_json(tmp_path, state)
+
+    layout = ProjectLayout(tmp_path)
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+
+    backup_state = default_state_dict()
+    backup_state["position"]["current_phase"] = "9"
+    backup_state["position"]["status"] = "Planning"
+    backup_state["open_questions"] = ["Recovered from backup"]
+    backup_state["project_contract"] = contract
+
+    layout.state_json.write_text("{not-json", encoding="utf-8")
+    (layout.gpd / STATE_JSON_BACKUP_FILENAME).write_text(
+        json.dumps(backup_state, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    loaded = load_state_json(tmp_path)
+
+    assert loaded is not None
+    assert loaded["project_contract"] is None
+    assert loaded["position"]["current_phase"] == "9"
+    assert loaded["open_questions"] == ["Recovered from backup"]
+
+    restored = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert restored["project_contract"] is None
+
+
+def test_load_state_json_primary_file_drops_malformed_project_contract_instead_of_salvaging(tmp_path: Path):
+    state = default_state_dict()
+    state["position"]["current_phase"] = "2"
+    state["position"]["status"] = "Executing"
+    save_state_json(tmp_path, state)
+
+    layout = ProjectLayout(tmp_path)
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+
+    corrupted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    corrupted["project_contract"] = contract
+    layout.state_json.write_text(json.dumps(corrupted, indent=2) + "\n", encoding="utf-8")
+
+    loaded = load_state_json(tmp_path)
+
+    assert loaded is not None
+    assert loaded["project_contract"] is None
+    assert loaded["position"]["current_phase"] == "2"
 
 
 def test_ensure_state_schema_preserves_good_fields_when_one_is_bad():

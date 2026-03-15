@@ -145,13 +145,31 @@ def _parse_tools(raw: object) -> list[str]:
     return []
 
 
-def _parse_str_list(raw: object) -> list[str]:
-    """Normalize a raw scalar/list field into a list of strings."""
+def _parse_str_list(raw: object, *, field_name: str, command_name: str) -> list[str]:
+    """Normalize review-contract string list fields with explicit validation."""
+    if raw is None:
+        return []
     if isinstance(raw, str):
         return [raw]
-    if isinstance(raw, list):
-        return [str(item) for item in raw]
-    return []
+    if not isinstance(raw, list):
+        raise ValueError(f"{field_name} for {command_name} must be a string or list of strings")
+
+    values: list[str] = []
+    for item in raw:
+        if not isinstance(item, str):
+            raise ValueError(f"{field_name} for {command_name} must contain only strings")
+        values.append(item)
+    return values
+
+
+def _parse_required_str_field(raw: object, *, field_name: str, command_name: str) -> str:
+    """Normalize required review-contract string fields with explicit validation."""
+    if not isinstance(raw, str):
+        raise ValueError(f"{field_name} for {command_name} must be a string")
+    value = raw.strip()
+    if not value:
+        raise ValueError(f"{field_name} for {command_name} must be a non-empty string")
+    return value
 
 
 def _parse_bool_field(raw: object, *, field_name: str, command_name: str, default: bool = False) -> bool:
@@ -177,6 +195,8 @@ def _parse_non_negative_int_field(raw: object, *, field_name: str, command_name:
     """Normalize integer-like review-contract fields with explicit validation."""
     if raw is None:
         return default
+    if isinstance(raw, bool):
+        raise ValueError(f"{field_name} for {command_name} must be an integer")
     if isinstance(raw, str):
         stripped = raw.strip()
         if not stripped:
@@ -412,21 +432,50 @@ def _parse_review_contract(raw: object, command_name: str, requires: dict[str, o
         raw_requires_state = requires.get("state")
         required_state = str(raw_requires_state).strip() if raw_requires_state is not None else ""
 
-    review_mode = str(merged.get("review_mode", "")).strip()
-    if not review_mode:
+    raw_review_mode = merged.get("review_mode")
+    if raw_review_mode is None:
         if raw is None:
             return None
         raise ValueError(f"review-contract for {command_name} must set review_mode")
+    review_mode = _parse_required_str_field(
+        raw_review_mode,
+        field_name="review_mode",
+        command_name=command_name,
+    )
     schema_version = _parse_review_contract_schema_version(merged.get("schema_version"), command_name=command_name)
 
     return ReviewCommandContract(
         review_mode=review_mode,
-        required_outputs=_parse_str_list(merged.get("required_outputs")),
-        required_evidence=_parse_str_list(merged.get("required_evidence")),
-        blocking_conditions=_parse_str_list(merged.get("blocking_conditions")),
-        preflight_checks=_parse_str_list(merged.get("preflight_checks")),
-        stage_ids=_parse_str_list(merged.get("stage_ids")),
-        stage_artifacts=_parse_str_list(merged.get("stage_artifacts")),
+        required_outputs=_parse_str_list(
+            merged.get("required_outputs"),
+            field_name="required_outputs",
+            command_name=command_name,
+        ),
+        required_evidence=_parse_str_list(
+            merged.get("required_evidence"),
+            field_name="required_evidence",
+            command_name=command_name,
+        ),
+        blocking_conditions=_parse_str_list(
+            merged.get("blocking_conditions"),
+            field_name="blocking_conditions",
+            command_name=command_name,
+        ),
+        preflight_checks=_parse_str_list(
+            merged.get("preflight_checks"),
+            field_name="preflight_checks",
+            command_name=command_name,
+        ),
+        stage_ids=_parse_str_list(
+            merged.get("stage_ids"),
+            field_name="stage_ids",
+            command_name=command_name,
+        ),
+        stage_artifacts=_parse_str_list(
+            merged.get("stage_artifacts"),
+            field_name="stage_artifacts",
+            command_name=command_name,
+        ),
         final_decision_output=str(merged.get("final_decision_output", "")).strip(),
         requires_fresh_context_per_stage=_parse_bool_field(
             merged.get("requires_fresh_context_per_stage"),
