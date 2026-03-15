@@ -1037,6 +1037,8 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "aliases: [\"optional stable label or citation shorthand\"]" in plan_schema
     assert "carry_forward_to: [planning, verification]" in plan_schema
     assert "automation: automated | hybrid | human" in plan_schema
+    assert "For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required." in plan_schema
+    assert "All ID cross-links must resolve to declared IDs." in plan_schema
     assert "`deliverables[]` must not be empty." in plan_schema
     assert "`acceptance_tests[]` must not be empty." in plan_schema
     assert "If `must_surface: true`, `applies_to[]` must not be empty." in plan_schema
@@ -1053,9 +1055,27 @@ def test_state_json_schema_surfaces_stdin_contract_persistence_and_model_normali
     assert "`schema_version` must be `1`." in state_schema
     assert "Approved project contracts must include at least one observable, claim, or deliverable." in state_schema
     assert "`uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations` must both be non-empty." in state_schema
+    assert "`scope.in_scope` must name at least one project boundary or objective." in state_schema
+    assert "If a project contract has any `references[]`, at least one reference must set `must_surface: true`." in state_schema
+    assert "If a project-contract reference sets `must_surface: true`, `applies_to[]` must not be empty." in state_schema
     assert "If a project-contract reference sets `must_surface: true`, `required_actions[]` must not be empty." in state_schema
     assert "Which reference should serve as the decisive benchmark anchor?" in state_schema
     assert "Blank-after-trim values are invalid" in state_schema
+
+
+def test_phase_prompt_surfaces_validation_critical_plan_contract_rules() -> None:
+    phase_prompt = (TEMPLATES_DIR / "phase-prompt.md").read_text(encoding="utf-8")
+
+    assert "the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies" in phase_prompt
+    assert "If references are present, at least one must set `must_surface: true`." in phase_prompt
+    assert "If the plan is intentionally scoping-only" in phase_prompt
+
+
+def test_review_ledger_schema_surfaces_enforced_id_formats() -> None:
+    review_ledger_schema = (TEMPLATES_DIR / "paper" / "review-ledger-schema.md").read_text(encoding="utf-8")
+
+    assert "`issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`" in review_ledger_schema
+    assert "Every `claim_ids[]` entry must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*`." in review_ledger_schema
 
 
 def test_contract_models_match_prompted_schema_contracts() -> None:

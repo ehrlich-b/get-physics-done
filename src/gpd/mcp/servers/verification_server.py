@@ -433,6 +433,34 @@ def _truthy(value: object) -> bool:
     return value in (True, "true", "True", 1, "1", "yes", "YES")
 
 
+_BINDING_TARGETS: tuple[str, ...] = (
+    "observable",
+    "claim",
+    "deliverable",
+    "acceptance_test",
+    "reference",
+    "forbidden_proxy",
+)
+_SUPPORTED_BINDING_KEY_LABELS: tuple[str, ...] = tuple(f"{target}_id(s)" for target in _BINDING_TARGETS)
+_SUPPORTED_BINDING_KEYS: dict[str, str] = {
+    key: target
+    for target in _BINDING_TARGETS
+    for key in (f"{target}_id", f"{target}_ids")
+}
+
+
+def _binding_key_labels_for_targets(targets: Iterable[str]) -> list[str]:
+    seen: set[str] = set()
+    labels: list[str] = []
+    for target in targets:
+        label = f"{target}_id(s)"
+        if label in seen:
+            continue
+        seen.add(label)
+        labels.append(label)
+    return labels
+
+
 def _binding_values_for_target(binding: dict[str, object], target: str) -> list[str]:
     values: list[str] = []
     for key in (f"{target}_id", f"{target}_ids"):
@@ -478,12 +506,20 @@ def _collect_binding_context(
     check_targets: Iterable[str],
     binding: dict[str, object],
     contract: ResearchContract | None,
+    binding_supplied: bool,
 ) -> tuple[dict[str, list[str]], list[str], list[str]]:
     """Return valid binding ids by target, user-facing issues, and contract impacts."""
 
+    check_targets = tuple(check_targets)
     valid_by_target: dict[str, list[str]] = {}
     binding_issues: list[str] = []
     contract_impacts: list[str] = []
+
+    unknown_keys = sorted(str(key) for key in binding if key not in _SUPPORTED_BINDING_KEYS)
+    if unknown_keys:
+        supported = ", ".join(_SUPPORTED_BINDING_KEY_LABELS)
+        joined = ", ".join(unknown_keys)
+        binding_issues.append(f"binding contains unsupported keys: {joined}; supported keys are {supported}")
 
     for target in check_targets:
         values = _binding_values_for_target(binding, target)
@@ -506,6 +542,13 @@ def _collect_binding_context(
                 f"binding.{target}_{suffix} references unknown contract {target} {', '.join(unknown_values)}"
             )
 
+    if binding_supplied and not any(valid_by_target.values()):
+        expected = ", ".join(_binding_key_labels_for_targets(check_targets))
+        binding_issues.append(
+            "binding must include at least one valid bound ID for this check"
+            + (f" via {expected}" if expected else "")
+        )
+
     return valid_by_target, binding_issues, contract_impacts
 
 
@@ -523,6 +566,8 @@ def _unique_strings(values: Iterable[str]) -> list[str]:
 def _benchmark_reference_candidates(
     contract: ResearchContract,
     binding_ids: dict[str, list[str]],
+    *,
+    binding_supplied: bool,
 ) -> list[str]:
     benchmark_refs = [
         reference
@@ -572,13 +617,18 @@ def _benchmark_reference_candidates(
     if candidate_reference_ids:
         return _unique_strings(candidate_reference_ids)
 
-    if not binding_ids and len(benchmark_refs) == 1:
+    if not binding_supplied and not binding_ids and len(benchmark_refs) == 1:
         return [benchmark_refs[0].id]
 
     return []
 
 
-def _limit_regime_candidates(contract: ResearchContract, binding_ids: dict[str, list[str]]) -> list[str]:
+def _limit_regime_candidates(
+    contract: ResearchContract,
+    binding_ids: dict[str, list[str]],
+    *,
+    binding_supplied: bool,
+) -> list[str]:
     observables_by_id = {observable.id: observable for observable in contract.observables}
     claims_by_id = {claim.id: claim for claim in contract.claims}
     tests_by_id = {test.id: test for test in contract.acceptance_tests}
@@ -611,7 +661,7 @@ def _limit_regime_candidates(contract: ResearchContract, binding_ids: dict[str, 
     global_regimes = _unique_strings(
         observable.regime for observable in contract.observables if observable.regime
     )
-    if not binding_ids and len(global_regimes) == 1:
+    if not binding_supplied and not binding_ids and len(global_regimes) == 1:
         return global_regimes
     return []
 
@@ -620,6 +670,7 @@ def _validate_benchmark_reference_binding(
     *,
     contract: ResearchContract | None,
     binding_ids: dict[str, list[str]],
+    binding_supplied: bool,
     source_reference_id: object,
 ) -> tuple[str | None, str | None]:
     """Validate that a benchmark anchor exists and matches the bound contract context."""
@@ -632,7 +683,7 @@ def _validate_benchmark_reference_binding(
     if source_reference_id not in _contract_ids_for_target(contract, "reference"):
         return None, f"metadata.source_reference_id references unknown contract reference {source_reference_id}"
 
-    candidates = _benchmark_reference_candidates(contract, binding_ids)
+    candidates = _benchmark_reference_candidates(contract, binding_ids, binding_supplied=binding_supplied)
     if binding_ids and candidates and source_reference_id not in candidates:
         expected = ", ".join(candidates)
         return None, (
@@ -646,6 +697,7 @@ def _validate_limit_regime_binding(
     *,
     contract: ResearchContract | None,
     binding_ids: dict[str, list[str]],
+    binding_supplied: bool,
     regime_label: object,
 ) -> tuple[str | None, str | None]:
     """Validate that a regime label matches the bound contract context when known."""
@@ -656,7 +708,7 @@ def _validate_limit_regime_binding(
     if contract is None:
         return regime_label, None
 
-    candidates = _limit_regime_candidates(contract, binding_ids)
+    candidates = _limit_regime_candidates(contract, binding_ids, binding_supplied=binding_supplied)
     if binding_ids and candidates and regime_label not in candidates:
         expected = ", ".join(candidates)
         return None, (
@@ -671,6 +723,7 @@ def _with_contract_policy_defaults(
     *,
     contract: ResearchContract | None,
     binding_ids: dict[str, list[str]],
+    binding_supplied: bool,
     metadata: dict[str, object],
 ) -> dict[str, object]:
     """Fill contract-check metadata from structured contract policy when missing."""
@@ -680,7 +733,7 @@ def _with_contract_policy_defaults(
 
     enriched = dict(metadata)
     if check_key == "contract.benchmark_reproduction" and not enriched.get("source_reference_id"):
-        candidates = _benchmark_reference_candidates(contract, binding_ids)
+        candidates = _benchmark_reference_candidates(contract, binding_ids, binding_supplied=binding_supplied)
         if len(candidates) == 1:
             enriched["source_reference_id"] = candidates[0]
 
@@ -698,7 +751,7 @@ def _with_contract_policy_defaults(
 
     if check_key == "contract.limit_recovery":
         if not enriched.get("regime_label"):
-            candidates = _limit_regime_candidates(contract, binding_ids)
+            candidates = _limit_regime_candidates(contract, binding_ids, binding_supplied=binding_supplied)
             if len(candidates) == 1:
                 enriched["regime_label"] = candidates[0]
 
@@ -742,6 +795,7 @@ def run_contract_check(request: dict) -> dict:
                     return _error_result(f"Invalid contract payload: {exc}")
 
             binding = binding_raw or {}
+            binding_supplied = binding_raw is not None
             metadata = _normalize_contract_metadata(metadata_raw or {})
             observed = observed_raw or {}
             artifact_content = str(request.get("artifact_content") or "")
@@ -749,11 +803,13 @@ def run_contract_check(request: dict) -> dict:
                 check_targets=check_meta.binding_targets,
                 binding=binding,
                 contract=contract,
+                binding_supplied=binding_supplied,
             )
             metadata = _with_contract_policy_defaults(
                 check_meta.check_key,
                 contract=contract,
                 binding_ids=binding_ids,
+                binding_supplied=binding_supplied,
                 metadata=metadata,
             )
 
@@ -770,6 +826,7 @@ def run_contract_check(request: dict) -> dict:
                 regime_label, regime_issue = _validate_limit_regime_binding(
                     contract=contract,
                     binding_ids=binding_ids,
+                    binding_supplied=binding_supplied,
                     regime_label=regime_label,
                 )
                 if regime_issue:
@@ -803,6 +860,7 @@ def run_contract_check(request: dict) -> dict:
                 source_reference_id, source_reference_issue = _validate_benchmark_reference_binding(
                     contract=contract,
                     binding_ids=binding_ids,
+                    binding_supplied=binding_supplied,
                     source_reference_id=source_reference_id,
                 )
                 if source_reference_issue:

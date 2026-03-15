@@ -86,7 +86,7 @@ contract_results:
 # instead of omitting the entry or upgrading the parent target to `passed`.
 comparison_verdicts:
   - subject_id: claim-id
-    subject_kind: claim|deliverable|acceptance_test|reference|artifact|other
+    subject_kind: claim|deliverable|acceptance_test|reference
     subject_role: decisive|supporting|supplemental|other
     reference_id: reference-id
     comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other
@@ -98,7 +98,7 @@ comparison_verdicts:
 # Required when the verifier can name a missing decisive check on a user-visible target.
 # Also required when a decisive benchmark / cross-method check remains partial, not attempted,
 # or still lacks the decisive comparison verdict that would let the target pass honestly.
-# Keep these entries structured; do not replace them with freeform prose.
+# Keep these entries structured; do not replace them with freeform prose or invented keys.
 suggested_contract_checks:
   - check: "[short description of missing decisive check]"
     reason: "[why the verifier believes it should exist]"
@@ -145,10 +145,12 @@ When a decisive comparison was attempted but remains unresolved, keep the affect
 | {deliverable-id} | deliverable | cross_method | {reference-id or artifact path} | {difference} | {threshold} | {verdict} | {notes} |
 
 Emit comparison verdicts whenever the contract or decisive anchor context requires a benchmark, prior-work, experiment, baseline, or cross-method comparison. If a comparison is decisive, absence of a verdict is itself a gap; a prose claim like "agrees with literature" is not a substitute. For partial or exploratory phases, `inconclusive` and `tension` are valid honest outcomes when the check was started but not closed.
+Only `subject_role: decisive` closes a decisive benchmark/cross-method requirement or contradicts a passed contract target. `supporting` and `supplemental` verdicts are recorded context, not decisive blockers on their own.
 
 ## Suggested Contract Checks
 
 Reserve this section for obvious missing decisive checks on user-visible targets. Do not populate it with style requests, paperwork wishes, or generic process polish. Each row should name one missing check, why it matters, which user-visible target it affects, and the artifact or evidence path that would close it.
+Allowed keys are exactly `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path`.
 
 | Suggested Check | Why It Seems Required | Suggested Subject Kind | Suggested Subject ID | Evidence Path |
 | --------------- | --------------------- | ---------------------- | -------------------- | ------------- |

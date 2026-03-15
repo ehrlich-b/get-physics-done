@@ -170,6 +170,9 @@ Rules:
 
 ## Contract Alignment Rules
 
+- For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required.
+- For non-scoping plans, include `references[]` unless explicit grounding context survives elsewhere in the contract (`context_intake`, `approach_policy`, or preserved scoping inputs).
+- All ID cross-links must resolve to declared IDs. Unresolved IDs are validation errors, not TODO placeholders.
 - IDs must be unique across each section.
 - Canonical IDs and other required strings are trimmed before validation; blank-after-trim values are invalid.
 - A cross-reference must fail loudly if it points to an undeclared ID.

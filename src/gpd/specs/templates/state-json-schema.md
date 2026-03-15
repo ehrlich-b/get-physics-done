@@ -184,6 +184,8 @@ Approved project contracts must include at least one observable, claim, or deliv
 
 Canonical IDs and other required string fields are trimmed before validation. Blank-after-trim values are invalid, and duplicates that differ only by surrounding whitespace still collide after normalization.
 
+`scope.in_scope` must name at least one project boundary or objective.
+
 The following fields always store arrays of objects, never arrays of plain strings:
 
 - `observables[]` — `{ "id", "name", "kind", "definition", "regime?", "units?" }`
@@ -195,6 +197,10 @@ The following fields always store arrays of objects, never arrays of plain strin
 - `links[]` — `{ "id", "source", "target", "relation", "verified_by[]" }`
 
 If a project-contract reference sets `must_surface: true`, `required_actions[]` must not be empty.
+
+If a project contract has any `references[]`, at least one reference must set `must_surface: true`.
+
+If a project-contract reference sets `must_surface: true`, `applies_to[]` must not be empty.
 
 #### Project Contract ID Linkage Rules
 

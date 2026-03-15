@@ -358,6 +358,39 @@ class TestParseCommandFile:
         with pytest.raises(ValueError, match=r"Invalid review-contract in .*review-rounds\.md.*max_review_rounds"):
             _parse_command_file(f, source="commands")
 
+    @pytest.mark.parametrize("schema_version", ['"v1"', "2"])
+    def test_command_review_contract_invalid_schema_version_reports_file_context(
+        self, tmp_path: Path, schema_version: str
+    ) -> None:
+        f = tmp_path / "peer-review.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:peer-review\n"
+            "review-contract:\n"
+            f"  schema_version: {schema_version}\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match=r"Invalid review-contract in .*peer-review\.md.*schema_version"):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_unknown_keys_raise(self, tmp_path: Path) -> None:
+        f = tmp_path / "write-paper.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:write-paper\n"
+            "review-contract:\n"
+            "  approval_gate: strict\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match=r"Invalid review-contract in .*write-paper\.md.*approval_gate"):
+            _parse_command_file(f, source="commands")
+
 
 class TestEncodingEdgeCases:
     """Tests for files with encoding issues."""

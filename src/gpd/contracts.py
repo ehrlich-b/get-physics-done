@@ -205,7 +205,7 @@ class ContractResults(BaseModel):
 class SuggestedContractCheck(BaseModel):
     """Structured gap to add when the contract is missing decisive verification."""
 
-    model_config = ConfigDict(validate_assignment=True, extra="allow")
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     check: str
     reason: str
@@ -235,7 +235,7 @@ class ComparisonVerdict(BaseModel):
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     subject_id: str
-    subject_kind: Literal["claim", "deliverable", "acceptance_test", "reference", "artifact", "other"] = "other"
+    subject_kind: Literal["claim", "deliverable", "acceptance_test", "reference"]
     subject_role: Literal["decisive", "supporting", "supplemental", "other"] = "other"
     reference_id: str | None = None
     comparison_kind: Literal["benchmark", "prior_work", "experiment", "cross_method", "baseline", "other"] = "other"
@@ -248,6 +248,11 @@ class ComparisonVerdict(BaseModel):
     @field_validator("subject_id", mode="before")
     @classmethod
     def _normalize_subject_id(cls, value: object) -> object:
+        return _normalize_required_str(value)
+
+    @field_validator("subject_kind", "subject_role", "comparison_kind", "verdict", mode="before")
+    @classmethod
+    def _normalize_required_literals(cls, value: object) -> object:
         return _normalize_required_str(value)
 
     @field_validator("reference_id", "metric", "threshold", "recommended_action", "notes", mode="before")

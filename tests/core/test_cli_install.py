@@ -645,6 +645,50 @@ def test_install_single_runtime_resolves_relative_target_dir_against_cli_cwd(tmp
     assert captured_calls == [cli_cwd / "relative-target"]
 
 
+def test_local_install_manifest_stays_non_explicit_outside_process_cwd(gpd_root: Path, tmp_path: Path):
+    """Default local installs should not become explicit targets just because cwd differs."""
+    from gpd.adapters.claude_code import ClaudeCodeAdapter
+    from gpd.hooks.install_metadata import installed_update_command
+
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    target = workspace / ".claude"
+
+    adapter = ClaudeCodeAdapter()
+    adapter.install(gpd_root, target, is_global=False, explicit_target=False)
+
+    manifest = json.loads((target / "gpd-file-manifest.json").read_text(encoding="utf-8"))
+    command = installed_update_command(target)
+
+    assert manifest["install_scope"] == "local"
+    assert manifest["install_target_dir"] == str(target)
+    assert manifest["explicit_target"] is False
+    assert command is not None
+    assert "--local" in command
+    assert "--target-dir" not in command
+
+
+def test_hook_install_metadata_uses_adapter_completeness_rules(tmp_path: Path):
+    """Shared hook metadata should defer completeness checks to the owning adapter."""
+    from gpd.hooks.install_metadata import config_dir_has_complete_install
+
+    config_dir = tmp_path / ".claude"
+    config_dir.mkdir()
+    (config_dir / "get-physics-done").mkdir()
+    (config_dir / "gpd-file-manifest.json").write_text(
+        json.dumps({"runtime": "claude-code", "install_scope": "local"}),
+        encoding="utf-8",
+    )
+
+    adapter = MagicMock()
+    adapter.has_complete_install.return_value = False
+
+    with patch("gpd.hooks.install_metadata.get_adapter", return_value=adapter):
+        assert config_dir_has_complete_install(config_dir) is False
+
+    adapter.has_complete_install.assert_called_once_with(config_dir)
+
+
 def test_uninstall_resolves_relative_target_dir_against_cli_cwd(tmp_path: Path):
     """Relative uninstall --target-dir should be anchored to --cwd."""
     cli_cwd = tmp_path / "workspace"

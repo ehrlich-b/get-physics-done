@@ -196,6 +196,7 @@ The frontmatter `comparison_verdicts` ledger is authoritative; this section is a
 - Use `forbidden_proxy_id` for explicit proxy-rejection checks
 - Use `comparison_kind` / `comparison_reference_id` when the check should later emit a comparison verdict
 - Use `suggested_contract_checks` only when the verifier believes the contract omitted a decisive check, or when a decisive benchmark / cross-method check remains partial, not attempted, or still lacks a decisive verdict
+- Keep `suggested_contract_checks` schema-tight: only `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path` are valid keys
 
 **Summary:**
 
@@ -206,6 +207,8 @@ The frontmatter `comparison_verdicts` ledger is authoritative; this section is a
 
 - APPEND when a decisive comparison is performed
 - Record verdicts against contract IDs rather than prose labels
+- Use `subject_kind: claim|deliverable|acceptance_test|reference` only; contract-backed verdicts do not accept ad-hoc `artifact` or `other` subject kinds
+- Only `subject_role: decisive` closes a decisive requirement; `supporting` / `supplemental` verdicts are informative context
 - Keep the matching frontmatter `comparison_verdicts` array synchronized; body-only verdicts do not satisfy contract validation
 
 **Suggested Contract Checks:**

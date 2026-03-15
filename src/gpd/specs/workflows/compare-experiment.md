@@ -47,12 +47,13 @@ fi
 
 If the project is contract-backed, first resolve the comparison target against the approved contract:
 - `subject_id`
-- `subject_kind` (`claim`, `deliverable`, `acceptance_test`, or artifact)
-- `subject_role` (`decisive`, `supporting`, `supplemental`)
+- `subject_kind` (`claim`, `deliverable`, `acceptance_test`, or `reference`)
+- `subject_role` (`decisive`, `supporting`, `supplemental`, or `other`)
 - `reference_id` for the benchmark / prior-work / data anchor
 - the pass condition or tolerance that makes this comparison decisive
 
 Do not write a generic comparison report without this mapping when a decisive comparison target exists.
+If the comparison is about a concrete file or plot, map it to the deliverable or reference ID that owns it instead of inventing an `artifact` subject kind.
 
 ### 1a. Theoretical predictions
 
@@ -232,8 +233,8 @@ p_value: { value }
 max_tension_sigma: { value }
 comparison_verdicts:
   - subject_id: claim-id
-    subject_kind: claim|deliverable|acceptance_test|artifact
-    subject_role: decisive|supporting|supplemental
+    subject_kind: claim|deliverable|acceptance_test|reference
+    subject_role: decisive|supporting|supplemental|other
     reference_id: ref-id
     comparison_kind: benchmark|prior_work|experiment|cross_method|baseline
     metric: chi2_ndof | relative_error | pull
@@ -257,6 +258,8 @@ comparison_verdicts:
 ## Convention Matching
 
 {Document all convention alignments}
+
+Only `subject_role: decisive` satisfies a required decisive comparison. `supporting` and `supplemental` verdicts record useful tension or corroboration but do not replace the decisive verdict the contract requires.
 
 ## Point-by-Point Comparison
 

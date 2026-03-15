@@ -586,9 +586,11 @@ def _summary_contract_errors(
             errors.append(
                 "comparison_verdict for "
                 f"{verdict.subject_id} has subject_kind {verdict.subject_kind} but contract id is a {expected_subject_kind}"
-            )
+        )
         if verdict.reference_id is not None and verdict.reference_id not in reference_ids:
             errors.append(f"comparison_verdict references unknown reference_id {verdict.reference_id}")
+        if verdict.subject_role != "decisive":
+            continue
         if verdict.subject_id in contract_results.claims:
             claim_status = contract_results.claims[verdict.subject_id].status
             if claim_status == "passed" and verdict.verdict in {"fail", "tension", "inconclusive"}:
@@ -636,7 +638,7 @@ def _summary_contract_errors(
             continue
         decisive_comparison_groups.append(({reference.id, *reference.applies_to}, f"reference {reference.id}"))
 
-    verdict_subject_ids = {verdict.subject_id for verdict in comparison_verdicts}
+    verdict_subject_ids = {verdict.subject_id for verdict in comparison_verdicts if verdict.subject_role == "decisive"}
     for subject_ids, source in decisive_comparison_groups:
         if not subject_ids.intersection(verdict_subject_ids):
             errors.append(f"Missing decisive comparison_verdict for {source}")

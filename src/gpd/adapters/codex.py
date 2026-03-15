@@ -656,6 +656,7 @@ class CodexAdapter(RuntimeAdapter):
             skills_dir=str(self._skills_dir),
             metadata={_MANIFEST_CODEX_SKILLS_DIR_KEY: str(self._skills_dir)},
             install_scope=self._current_install_scope_flag(),
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
 
     def uninstall(

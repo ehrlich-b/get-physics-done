@@ -852,6 +852,7 @@ class GeminiAdapter(RuntimeAdapter):
             runtime=self.runtime_name,
             metadata=metadata or None,
             install_scope=self._current_install_scope_flag(),
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
 
     def finish_install(

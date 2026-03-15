@@ -363,11 +363,45 @@ _DEFAULT_REVIEW_CONTRACTS: dict[str, dict[str, object]] = {
     },
 }
 
+_VALID_REVIEW_CONTRACT_KEYS: frozenset[str] = frozenset(
+    {
+        "review_mode",
+        "required_outputs",
+        "required_evidence",
+        "blocking_conditions",
+        "preflight_checks",
+        "stage_ids",
+        "stage_artifacts",
+        "final_decision_output",
+        "requires_fresh_context_per_stage",
+        "max_review_rounds",
+        "required_state",
+        "schema_version",
+    }
+)
+
+
+def _parse_review_contract_schema_version(raw: object, *, command_name: str) -> int:
+    """Validate review-contract schema_version without coercing unsupported values."""
+    if raw is None:
+        return 1
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        raise ValueError(f"schema_version for {command_name} must be the integer 1")
+    if raw != 1:
+        raise ValueError(f"schema_version for {command_name} must be 1")
+    return raw
+
 
 def _parse_review_contract(raw: object, command_name: str, requires: dict[str, object]) -> ReviewCommandContract | None:
     """Parse review contract frontmatter or provide a typed default for review workflows."""
     merged = dict(_DEFAULT_REVIEW_CONTRACTS.get(command_name, {}))
+    if raw is not None and not isinstance(raw, dict):
+        raise ValueError(f"review-contract for {command_name} must be a mapping")
     if isinstance(raw, dict):
+        unknown_keys = sorted(str(key) for key in raw if str(key) not in _VALID_REVIEW_CONTRACT_KEYS)
+        if unknown_keys:
+            formatted = ", ".join(unknown_keys)
+            raise ValueError(f"Unknown review-contract field(s) for {command_name}: {formatted}")
         merged.update(raw)
 
     if not merged:
@@ -380,13 +414,10 @@ def _parse_review_contract(raw: object, command_name: str, requires: dict[str, o
 
     review_mode = str(merged.get("review_mode", "")).strip()
     if not review_mode:
-        return None
-
-    schema_version_raw = merged.get("schema_version", 1)
-    try:
-        schema_version = int(schema_version_raw)
-    except (TypeError, ValueError):
-        schema_version = 1
+        if raw is None:
+            return None
+        raise ValueError(f"review-contract for {command_name} must set review_mode")
+    schema_version = _parse_review_contract_schema_version(merged.get("schema_version"), command_name=command_name)
 
     return ReviewCommandContract(
         review_mode=review_mode,

@@ -99,8 +99,8 @@ Rules:
 ```yaml
 comparison_verdicts:
   - subject_id: claim-main
-    subject_kind: claim|deliverable|acceptance_test|reference|artifact
-    subject_role: decisive|supporting|supplemental
+    subject_kind: claim|deliverable|acceptance_test|reference
+    subject_role: decisive|supporting|supplemental|other
     reference_id: ref-main
     comparison_kind: benchmark|prior_work|experiment|cross_method|baseline
     metric: relative_error
@@ -113,7 +113,9 @@ comparison_verdicts:
 Rules:
 
 - `subject_id` must be a real ID from the referenced PLAN contract.
-- `subject_kind` must match the actual contract ID kind referenced by `subject_id`.
+- `subject_kind` must be `claim`, `deliverable`, `acceptance_test`, or `reference`, and it must match the actual contract ID kind referenced by `subject_id`.
+- Do not invent `artifact` or `other` subject kinds for contract-backed verdicts. If the thing you compared is a file, plot, or table, point the verdict at the deliverable or reference ID that owns it.
+- Only `subject_role: decisive` satisfies a required decisive comparison or participates in pass/fail consistency checks against `contract_results`. `supporting` and `supplemental` verdicts are informative context only.
 - If a decisive comparison is required, omitting its verdict makes the artifact incomplete.
 - If the decisive comparison is still open, emit `verdict: inconclusive` or `verdict: tension` instead of omitting the entry.
 - A prose sentence like “agrees with literature” does not replace a verdict entry.
@@ -124,6 +126,7 @@ Rules:
 
 For `VERIFICATION.md`, keep the frontmatter compatible with `verification-report.md`.
 If a decisive benchmark / cross-method check remains `partial`, `not_attempted`, or still lacks a decisive verdict, the frontmatter must also include structured `suggested_contract_checks` entries explaining the missing decisive work.
+Each `suggested_contract_checks` entry may only use these keys: `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path`. Invented keys such as `check_id` fail validation.
 
 ---
 

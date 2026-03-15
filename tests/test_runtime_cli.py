@@ -78,3 +78,38 @@ def test_runtime_cli_dispatches_with_runtime_pin(monkeypatch, tmp_path: Path) ->
     assert observed["argv"] == ["gpd", "state", "load"]
     assert observed["runtime"] == "codex"
     assert observed["disable_reexec"] == "1"
+
+
+def test_runtime_cli_resolves_local_config_dir_from_ancestor_workspace(monkeypatch, tmp_path: Path) -> None:
+    config_dir = tmp_path / ".codex"
+    _mark_complete_install(config_dir, runtime="codex")
+    nested_cwd = tmp_path / "research" / "notes"
+    nested_cwd.mkdir(parents=True)
+    monkeypatch.chdir(nested_cwd)
+    monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
+
+    observed: dict[str, object] = {}
+
+    def fake_entrypoint() -> int:
+        observed["argv"] = list(sys.argv)
+        observed["runtime"] = os.environ.get(ENV_GPD_ACTIVE_RUNTIME)
+        return 0
+
+    monkeypatch.setattr("gpd.cli.entrypoint", fake_entrypoint)
+
+    exit_code = main(
+        [
+            "--runtime",
+            "codex",
+            "--config-dir",
+            "./.codex",
+            "--install-scope",
+            "local",
+            "state",
+            "load",
+        ]
+    )
+
+    assert exit_code == 0
+    assert observed["argv"] == ["gpd", "state", "load"]
+    assert observed["runtime"] == "codex"

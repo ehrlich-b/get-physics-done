@@ -1931,18 +1931,25 @@ def state_set_project_contract(cwd: Path, contract_data: dict[str, object] | Res
     """Persist the canonical project contract to ``state.json``.
 
     This is a JSON-only state field, so it bypasses ``STATE.md`` field patching and
-    writes through the authoritative structured state path instead.
+    writes through the authoritative structured state path instead. Unlike
+    ``ensure_state_schema()``, this write path rejects user input that needs schema
+    salvage instead of persisting a healed variant.
     """
-    from pydantic import ValidationError
-
     try:
         if isinstance(contract_data, ResearchContract):
             parsed = contract_data
         else:
-            normalized_contract, _errors = salvage_project_contract(contract_data)
-            candidate = normalized_contract.model_dump() if normalized_contract is not None else contract_data
-            parsed = ResearchContract.model_validate(candidate)
-    except ValidationError as exc:
+            normalized_contract, schema_errors = salvage_project_contract(contract_data)
+            if schema_errors:
+                return StateUpdateResult(
+                    updated=False,
+                    reason="Invalid project contract schema: " + "; ".join(schema_errors),
+                )
+            if normalized_contract is None:
+                parsed = ResearchContract.model_validate(contract_data)
+            else:
+                parsed = normalized_contract
+    except PydanticValidationError as exc:
         first_error = exc.errors()[0] if exc.errors() else {}
         location = ".".join(str(part) for part in first_error.get("loc", ())) or "project_contract"
         message = first_error.get("msg", "validation failed")

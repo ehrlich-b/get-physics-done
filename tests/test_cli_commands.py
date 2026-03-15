@@ -308,6 +308,25 @@ class TestStateCommands:
         assert payload["valid"] is False
         assert any("weakest_anchors" in error for error in payload["errors"])
 
+    def test_set_project_contract_rejects_schema_drifted_contract(self, gpd_project: Path) -> None:
+        contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+        contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+        contract_path = gpd_project / "invalid-contract.json"
+        contract_path.write_text(json.dumps(contract), encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            ["--raw", "state", "set-project-contract", str(contract_path)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        assert payload["valid"] is False
+        assert "context_intake.must_read_refs: Input should be a valid list" in payload["errors"]
+        state = json.loads((gpd_project / ".gpd" / "state.json").read_text(encoding="utf-8"))
+        assert state["project_contract"] is None
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Init commands

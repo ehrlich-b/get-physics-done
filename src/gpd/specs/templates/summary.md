@@ -141,7 +141,7 @@ contract_results (required for contract-backed plans):
 # Required whenever a contract-backed claim / deliverable / acceptance test depends on a decisive comparison.
 comparison_verdicts (required when a decisive comparison was required or attempted):
   - subject_id: claim-id
-    subject_kind: claim|deliverable|acceptance_test|reference|artifact|other
+    subject_kind: claim|deliverable|acceptance_test|reference
     subject_role: decisive|supporting|supplemental|other
     reference_id: reference-id
     comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other
@@ -151,7 +151,7 @@ comparison_verdicts (required when a decisive comparison was required or attempt
     recommended_action: "[what to do next]"
     notes: "[optional context]"
 
-[When a decisive comparison is required by the contract, omitting the corresponding `comparison_verdicts` entry makes the summary incomplete. If the check is still open, emit `verdict: inconclusive` or `verdict: tension` instead of omitting the entry.]
+[When a decisive comparison is required by the contract, omitting the corresponding `comparison_verdicts` entry makes the summary incomplete. Only `subject_role: decisive` closes that requirement or drives pass/fail consistency against `contract_results`; `supporting` and `supplemental` verdicts are informative only. If the check is still open, emit `verdict: inconclusive` or `verdict: tension` instead of omitting the entry.]
 
 # Metrics
 duration: Xmin

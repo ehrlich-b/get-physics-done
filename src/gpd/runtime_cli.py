@@ -35,11 +35,24 @@ def _parse_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     return options, gpd_args
 
 
-def _resolve_config_dir(raw_value: str) -> Path:
-    """Resolve the configured runtime dir from an absolute or workspace-relative reference."""
+def _resolve_local_config_dir(raw_value: str) -> Path:
+    """Resolve a local config dir reference against the nearest matching ancestor."""
+    relative = Path(raw_value).expanduser()
+    resolved_cwd = Path.cwd().resolve(strict=False)
+    for base in (resolved_cwd, *resolved_cwd.parents):
+        candidate = (base / relative).resolve(strict=False)
+        if candidate.exists():
+            return candidate
+    return (resolved_cwd / relative).resolve(strict=False)
+
+
+def _resolve_config_dir(raw_value: str, *, install_scope: str, explicit_target: bool) -> Path:
+    """Resolve the configured runtime dir from an absolute or local-workspace reference."""
     candidate = Path(raw_value).expanduser()
     if candidate.is_absolute():
         return candidate.resolve(strict=False)
+    if install_scope == "local" and not explicit_target:
+        return _resolve_local_config_dir(raw_value)
     return (Path.cwd() / candidate).resolve(strict=False)
 
 
@@ -87,7 +100,11 @@ def main(argv: list[str] | None = None) -> int:
     """Validate the install contract, then dispatch into ``gpd.cli``."""
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     options, gpd_args = _parse_args(raw_argv)
-    config_dir = _resolve_config_dir(options.config_dir)
+    config_dir = _resolve_config_dir(
+        options.config_dir,
+        install_scope=options.install_scope,
+        explicit_target=bool(options.explicit_target),
+    )
     adapter = get_adapter(options.runtime)
     missing = adapter.missing_install_artifacts(config_dir)
     if missing:

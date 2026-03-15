@@ -60,9 +60,21 @@ def test_write_paper_prompt_discovers_plan_scoped_and_legacy_phase_summaries() -
 
 
 def test_comparison_templates_match_full_comparison_verdict_subject_kind_enum() -> None:
-    expected = "subject_kind: claim|deliverable|acceptance_test|reference|artifact|other"
+    expected = "subject_kind: claim|deliverable|acceptance_test|reference"
     internal = (TEMPLATES_DIR / "paper" / "internal-comparison.md").read_text(encoding="utf-8")
     experimental = (TEMPLATES_DIR / "paper" / "experimental-comparison.md").read_text(encoding="utf-8")
 
     assert expected in internal
     assert expected in experimental
+    assert "Only `subject_role: decisive` closes a decisive requirement" in internal
+    assert "Only `subject_role: decisive` closes a decisive requirement" in experimental
+
+
+def test_contract_ledgers_surface_decisive_only_verdict_rules_and_strict_suggested_check_keys() -> None:
+    contract_results = (TEMPLATES_DIR / "contract-results-schema.md").read_text(encoding="utf-8")
+    verification_template = (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
+
+    assert "Do not invent `artifact` or `other` subject kinds" in contract_results
+    assert "Only `subject_role: decisive` satisfies a required decisive comparison" in contract_results
+    assert "Invented keys such as `check_id` fail validation." in contract_results
+    assert "Allowed keys are exactly `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path`." in verification_template

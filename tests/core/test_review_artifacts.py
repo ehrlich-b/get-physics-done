@@ -204,3 +204,30 @@ def test_review_ledger_rejects_unexpected_extra_fields(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError):
         read_review_ledger(ledger_path)
+
+
+def test_review_ledger_rejects_invalid_issue_and_claim_id_formats(tmp_path: Path) -> None:
+    ledger_path = tmp_path / "REVIEW-LEDGER.json"
+    ledger_path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "round": 1,
+                "manuscript_path": "paper/main.tex",
+                "issues": [
+                    {
+                        "issue_id": "ISSUE-001",
+                        "opened_by_stage": "physics",
+                        "severity": "major",
+                        "claim_ids": ["claim-001"],
+                        "summary": "A remaining issue.",
+                        "status": "open",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValidationError):
+        read_review_ledger(ledger_path)

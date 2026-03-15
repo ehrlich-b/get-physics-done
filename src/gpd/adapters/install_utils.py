@@ -1009,6 +1009,7 @@ def write_manifest(
     skills_dir: str | Path | None = None,
     metadata: dict[str, object] | None = None,
     install_scope: str | None = None,
+    explicit_target: bool | None = None,
 ) -> dict[str, object]:
     """Write a file manifest after installation for future modification detection.
 
@@ -1033,7 +1034,9 @@ def write_manifest(
     elif normalized_scope == "--global":
         manifest["install_scope"] = "global"
     manifest["install_target_dir"] = str(config_dir)
-    if isinstance(runtime, str) and runtime.strip() and normalized_scope in {"--local", "--global"}:
+    if explicit_target is not None:
+        manifest["explicit_target"] = bool(explicit_target)
+    elif isinstance(runtime, str) and runtime.strip() and normalized_scope in {"--local", "--global"}:
         default_target = _default_install_target(config_dir, runtime.strip(), normalized_scope)
         if default_target is not None:
             manifest["explicit_target"] = not _paths_equal(config_dir, default_target)

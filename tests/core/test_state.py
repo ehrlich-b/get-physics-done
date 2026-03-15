@@ -535,17 +535,20 @@ def test_state_set_project_contract_rejects_contract_missing_skeptical_fields(tm
     assert saved["project_contract"] is None
 
 
-def test_state_set_project_contract_accepts_self_healable_contract(tmp_path: Path):
+def test_state_set_project_contract_rejects_schema_drifted_contract(tmp_path: Path):
     contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
     contract["context_intake"]["must_read_refs"] = "ref-benchmark"
     save_state_json(tmp_path, default_state_dict())
 
     result = state_set_project_contract(tmp_path, contract)
 
-    assert result.updated is True
+    assert result.updated is False
+    assert result.reason is not None
+    assert "Invalid project contract schema:" in result.reason
+    assert "context_intake.must_read_refs" in result.reason
     saved = load_state_json(tmp_path)
     assert saved is not None
-    assert saved["project_contract"]["context_intake"]["must_read_refs"] == []
+    assert saved["project_contract"] is None
 
 
 def test_ensure_state_schema_preserves_good_fields_when_one_is_bad():

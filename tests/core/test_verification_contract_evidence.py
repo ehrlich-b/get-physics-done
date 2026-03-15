@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from gpd.core.frontmatter import validate_frontmatter, verify_summary
 
 FIXTURES_STAGE0 = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
@@ -683,6 +685,83 @@ def test_validate_frontmatter_summary_rejects_mismatched_comparison_verdict_subj
     assert any("has subject_kind deliverable but contract id is a claim" in error for error in result.errors)
 
 
+def test_validate_frontmatter_summary_rejects_non_contract_comparison_verdict_subject_kind(tmp_path: Path) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace("subject_kind: claim", "subject_kind: artifact", 1),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is False
+    assert any("comparison_verdicts:" in error and "acceptance_test' or 'reference'" in error for error in result.errors)
+
+
+@pytest.mark.parametrize("role", ["supporting", "supplemental"])
+def test_validate_frontmatter_summary_allows_non_decisive_comparison_tension_without_contradicting_passed_target(
+    tmp_path: Path, role: str
+) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(
+            "comparison_verdicts:\n",
+            "comparison_verdicts:\n"
+            "  - subject_id: claim-benchmark\n"
+            "    subject_kind: claim\n"
+            f"    subject_role: {role}\n"
+            "    reference_id: ref-benchmark\n"
+            "    comparison_kind: prior_work\n"
+            "    metric: chi2_ndof\n"
+            '    threshold: "<= 1.5"\n'
+            "    verdict: tension\n"
+            "    recommended_action: Reconcile the auxiliary prior-work normalization.\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is True
+    assert result.errors == []
+
+
+def test_validate_frontmatter_summary_requires_decisive_role_for_decisive_comparison_coverage(tmp_path: Path) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    summary_path = phase_dir / "01-SUMMARY.md"
+    summary_path.write_text(
+        (FIXTURES_STAGE4 / "summary_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace("subject_role: decisive", "subject_role: supporting", 1),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
+
+    assert result.valid is False
+    assert any("Missing decisive comparison_verdict for acceptance test test-benchmark" in error for error in result.errors)
+
+
 def test_validate_frontmatter_summary_rejects_contract_results_context_usage(tmp_path: Path) -> None:
     phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
     phase_dir.mkdir(parents=True)
@@ -807,6 +886,64 @@ def test_validate_frontmatter_verification_rejects_half_bound_suggested_contract
 
     assert result.valid is False
     assert any("must provide suggested_subject_kind and suggested_subject_id together" in error for error in result.errors)
+
+
+def test_validate_frontmatter_verification_rejects_extra_keys_in_suggested_contract_check(tmp_path: Path) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    verification_path = phase_dir / "01-VERIFICATION.md"
+    verification_path.write_text(
+        (FIXTURES_STAGE4 / "verification_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace(
+            "status: passed\nscore: 3/3 contract targets verified\n",
+            "status: gaps_found\nscore: 1/3 contract targets verified\n",
+            1,
+        )
+        .replace(
+            "      status: passed\n      summary: Claim independently verified.\n",
+            "      status: partial\n      summary: Benchmark comparison started but is not yet decisive.\n",
+            1,
+        )
+        .replace(
+            "      status: passed\n      summary: Acceptance test executed and passed.\n",
+            "      status: partial\n      summary: Initial benchmark comparison run completed.\n",
+            1,
+        )
+        .replace(
+            "    verdict: pass\n",
+            "    verdict: inconclusive\n",
+            1,
+        )
+        .replace(
+            "comparison_verdicts:\n",
+            "suggested_contract_checks:\n"
+            "  - check: Add decisive normalization benchmark comparison\n"
+            "    reason: The reported agreement depends on a normalization-sensitive benchmark that is not yet explicit\n"
+            "    suggested_subject_kind: acceptance_test\n"
+            "    suggested_subject_id: test-benchmark\n"
+            "    evidence_path: .gpd/phases/01-benchmark/01-VERIFICATION.md\n"
+            "    check_id: benchmark-gap\n"
+            "comparison_verdicts:\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(
+        verification_path.read_text(encoding="utf-8"),
+        "verification",
+        source_path=verification_path,
+    )
+
+    assert result.valid is False
+    assert any(
+        "suggested_contract_checks:" in error and "Extra inputs are not permitted" in error for error in result.errors
+    )
 
 
 def test_verify_summary_requires_must_surface_reference_actions(tmp_path: Path) -> None:

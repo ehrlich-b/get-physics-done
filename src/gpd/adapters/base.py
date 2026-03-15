@@ -396,6 +396,7 @@ class RuntimeAdapter(abc.ABC):
             version,
             runtime=self.runtime_name,
             install_scope=self._current_install_scope_flag(),
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
 
     def _verify(self, target_dir: Path) -> None:  # noqa: B027
