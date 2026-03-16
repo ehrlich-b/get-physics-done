@@ -1,0 +1,88 @@
+{
+  "test": "Test A -- Static Diagonal-State Sweep",
+  "date": "2026-03-16",
+  "seed": 20260316,
+  "conventions": {
+    "entropy_base": "nats",
+    "mutual_information": "I_vN(B;M) = S_vN(B) + S_vN(M) - S_vN(BM)",
+    "experiential_density": "rho_Q = I_vN * (1 - I_vN/S_vN(B))"
+  },
+  "d2_grid": {
+    "n_p": 200,
+    "n_alpha": 198,
+    "p_range": [
+      0.01,
+      0.99
+    ],
+    "alpha_range": [
+      0.51,
+      0.999
+    ],
+    "ratio_range": [
+      0.0001414431841200318,
+      0.9885921125983141
+    ],
+    "rho_q_range": [
+      7.91991495829769e-06,
+      0.17328372933808828
+    ]
+  },
+  "alpha_half_analysis": {
+    "is_constant": false,
+    "d2_mean": 0.9034927796903404,
+    "d2_spread": 0.0692675378133788,
+    "d2_std": 0.015861178853075968,
+    "n_valid": 200,
+    "representative_values": {
+      "p=0.10": 0.9155962120382446,
+      "p=0.20": 0.9014130582699746,
+      "p=0.30": 0.8944736232866126,
+      "p=0.50": 0.8899721355618002,
+      "p=0.70": 0.8944736232866126,
+      "p=0.80": 0.9014130582699746,
+      "p=0.90": 0.9155962120382446
+    }
+  },
+  "born_comparison": {
+    "born_cos^2": {
+      "n_valid": 186,
+      "mean": 0.9099404410022108,
+      "spread": 0.06879976263670695,
+      "std": 0.019582034292084317
+    },
+    "non-born-1_cos^4_z": {
+      "n_valid": 130,
+      "mean": 0.9162586247113432,
+      "spread": 0.06891515448003516,
+      "std": 0.021679936888859573
+    },
+    "non-born-2_|cos|_z": {
+      "n_valid": 200,
+      "mean": 0.8983357926823595,
+      "spread": 0.04122438136323581,
+      "std": 0.009956626560054867
+    },
+    "non-born-3_uniform": {
+      "n_valid": 200,
+      "mean": 0.8899721355618001,
+      "spread": 0.0,
+      "std": 1.1102230246251565e-16
+    }
+  },
+  "d2_vs_d3_comparison": {
+    "d2_mean_alpha_half": 0.9034927796903404,
+    "d3_mean_alpha_half": 0.8476468447057055,
+    "qualitative_agreement": true,
+    "note": "Both d=2 and d=3 show alpha_half varying with p and no special Born-rule property. The p-dependence pattern is qualitatively similar across dimensions."
+  },
+  "verdict": "FALSIFIES STATIC: alpha_half varies with p and Born-rule distributions show no special property at half-saturation.",
+  "references": {
+    "baez_dolan_2001": "Groupoid cardinality motivating 1/|Aut(x)| weighting on structure space",
+    "quantum_extension_draft_sec_6_3": "States the Born-Fisher conjecture being tested"
+  },
+  "figures": {
+    "heatmap": "figures/test_a_heatmap.pdf",
+    "alpha_half": "figures/test_a_alpha_half.pdf",
+    "rho_q": "figures/test_a_rho_q.pdf"
+  }
+}
