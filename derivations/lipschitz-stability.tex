@@ -435,6 +435,145 @@ $\delta = \|\pi - \pi'\|_1 \le \varepsilon/\gap$.
 using $h_{\mathrm{bin}}(x) \le \ln 2$ for all $x \in [0,1]$.
 
 %% ====================================================================
+%% Section 6: Limiting Cases and Remarks
+%% ====================================================================
+\section{Limiting Cases and Remarks}
+
+\subsection{Limiting case 1: Zero perturbation ($P' = P$)}
+
+When $P' = P$: $\varepsilon = \|P - P'\|_\infty = 0$, $\delta = 0$,
+and the bound~\eqref{eq:rho-nonlinear} gives $|\rho - \rho'| \le 0$.
+This is correct since $\rho(P) = \rho(P)$.
+
+\subsection{Limiting case 2: Fast mixing ($\gap(P) \to 1$)}
+
+For $\gap(P) = 1$ (which requires $P$ to have all eigenvalues in
+$\{1\} \cup \{0\}$, e.g., a rank-one matrix $P = \mathbf{1}\pi$):
+\[
+  L_{\text{eff}} \;\sim\; \frac{1}{2}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr].
+\]
+For the toy model ($|B| = |M| = 4$, $n = 16$):
+$L_{\text{eff}} \approx 3.00$ nats.  Since $\rho_{\max} = H(B)/4
+\le \ln(4)/4 \approx 0.347$ nats, a Lipschitz constant of $\sim 3$ means
+the bound allows $\rho$ to change by its full range when
+$\varepsilon \sim 0.1$, which is reasonable: fast mixing limits are stable.
+
+\subsection{Limiting case 3: Slow mixing ($\gap(P) \to 0$)}
+
+As $\gap(P) \to 0$:
+\begin{itemize}
+  \item The Cho--Meyer bound gives
+    $\delta \le \varepsilon/\gap(P) \to \infty$ (capped at $\delta = 2$
+    since $\|\pi - \pi'\|_1 \le 2$).
+  \item The non-linear bound saturates at
+    $|\rho - \rho'| \le \frac{1}{2}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+    \cdot \frac{\varepsilon}{\gap(P)}$
+    (plus an additive constant $4\ln 2$).
+  \item The Lipschitz constant $L \to \infty$.
+\end{itemize}
+
+This is correct: nearly reducible chains have stationary distributions
+that are extremely sensitive to small kernel perturbations.  If the
+chain barely communicates between basins, tiny changes in transition
+probabilities can redirect all stationary mass from one basin to another.
+
+\subsection{Limiting case 4: Independent $B$, $M$ ($I(B;M) = 0$)}
+
+When the stationary distribution factorizes ($p(b,m) = p_B(b)\,p_M(m)$),
+$I(B;M) = 0$ and $\rho = 0$.  Near this boundary, $\rho \sim I$
+(to leading order in $I$, since $1 - I/H(B) \to 1$).
+
+The bound gives $|\rho - \rho'| \le |I - I'| + |H - H'|$, which is
+consistent: small perturbations from the independent case produce
+small $I'$ and hence small $\rho'$.
+
+\subsection{Limiting case 5: Perfect tracking ($I(B;M) = H(B)$)}
+
+When $M$ is a deterministic function of $B$ (i.e., $H(M|B) = 0$),
+$I(B;M) = H(B)$ and $\rho = 0$.  Near this boundary,
+$\rho \sim H(B) - I = H(M|B)$.
+
+The bound handles this via $|\partial_I f| = |1 - 2I/H| \to 1$ as
+$I \to H$, so perturbations in $I$ near the right boundary have
+first-order effect.  This is correct: moving away from perfect tracking
+(increasing $H(M|B)$ from zero) increases $\rho$ linearly.
+
+\subsection{Limiting case 6: Toy model evaluation}
+
+For the 7-chain toy model: $|B| = |M| = 4$, $n = |\Omega| = 16$.
+
+The logarithmic coefficient in the non-linear bound~\eqref{eq:nonlinear-final}:
+\[
+  \frac{1}{2}\bigl[2\ln 3 + \ln 3 + \ln 15\bigr]
+  = \frac{1}{2}[2.197 + 1.099 + 2.708] = 3.002.
+\]
+
+Let $g = \gap(P)$ denote the spectral gap of the observer chain
+(to be computed numerically in Plan~02).  Then for perturbation
+size $\varepsilon$:
+\[
+  |\rho(P) - \rho(P')| \;\le\;
+  \frac{3.002\,\varepsilon}{2\,g}
+  + 4\,h_{\mathrm{bin}}\!\Bigl(\frac{\varepsilon}{2\,g}\Bigr).
+\]
+
+For representative parameter values:
+\begin{center}
+\begin{tabular}{cccc}
+  $g$ & $\varepsilon$ & $\delta$ & Non-linear bound (nats) \\
+  \hline
+  1.0 & 0.01 & 0.01 & 0.156 \\
+  1.0 & 0.10 & 0.10 & 1.094 \\
+  0.5 & 0.01 & 0.02 & 0.284 \\
+  0.5 & 0.10 & 0.20 & 1.901 \\
+  0.1 & 0.01 & 0.10 & 1.094 \\
+  0.1 & 0.10 & 1.00 & 5.775
+\end{tabular}
+\end{center}
+
+Since $\rho_{\max} = H(B)/4 = \ln(4)/4 \approx 0.347$ nats, the bound
+is non-vacuous (smaller than $\rho_{\max}$) for small perturbations
+with moderate spectral gap.  For large perturbations or small gaps,
+the bound exceeds $\rho_{\max}$, indicating that the bound is
+technically valid but not informative in that regime.
+
+\subsection{Remark on tightness}
+
+The 3-step composition uses worst-case bounds at each step.  The
+actual Lipschitz constant of $\rho$ may be smaller because:
+\begin{enumerate}
+  \item[(a)] The Cho--Meyer bound is tight for specific adversarial
+    perturbations, not for typical random perturbations.
+  \item[(b)] The entropy continuity bound is tight for worst-case
+    distributions (supported on two points), not for the
+    specific marginals arising from the $\rho$ functional.
+  \item[(c)] The MVT bound $|\partial_I f| \le 1$ and $|\partial_H f| \le 1$
+    uses the worst case over $I/H \in [0,1]$; for the specific
+    $I/H$ ratio of the chain, both derivatives may be much smaller.
+  \item[(d)] The decomposition $|I-I'| + |H-H'|$ overcounts because
+    $I$ and $H$ are correlated (both depend on $\pi$), so their
+    perturbations may partially cancel.
+\end{enumerate}
+
+Numerical comparison of $L_{\text{proven}}$ with
+$L_{\text{numerical}} = \sup_{\varepsilon} |\rho(P) - \rho(P')|/\varepsilon$
+(Plan~02) will determine the tightness factor.
+
+\subsection{Remark on domain and $H(B)$ dependence}
+
+The Lipschitz constant $L$ in~\eqref{eq:L-explicit} does \emph{not}
+depend on $H_\pi(B)$ or on a lower bound $h_{\min}$.  This is because
+the mean value theorem bound~\eqref{eq:mvt} uses
+$|\partial f/\partial I| = |1 - 2I/H| \le 1$ and
+$|\partial f/\partial H| = I^2/H^2 \le 1$, which hold universally
+on $\{0 \le I \le H,\, H > 0\}$ without a lower bound on $H$.
+
+The bound holds on the open set of irreducible stochastic matrices
+(i.e., $P$ irreducible with $\gap(P) > 0$ and $P'$ irreducible).
+At the boundary where $H_\pi(B) \to 0$ (degenerate $B$ marginal),
+$\rho \to 0$ as well, so the bound remains valid but becomes trivial.
+
+%% ====================================================================
 %% Bibliography
 %% ====================================================================
 
