@@ -93,12 +93,12 @@ Plans:
 4. Numerical verification: L_numerical <= L_proven for random kernel perturbations of the 7-chain toy model (100+ perturbations tested)
 5. In the limit of large spectral gap (fast mixing), L remains finite and the bound is non-vacuous
 
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md -- Derive 3-step Lipschitz bound with explicit L = O(ln(|Omega|)/gap(P)) and verify limiting cases
+- [ ] 02-02-PLAN.md -- Numerically verify L_proven against 1000+ random perturbations of toy model, test scaling with gap and |Omega|
 
 ### Phase 3: Born-Fisher Test
 
