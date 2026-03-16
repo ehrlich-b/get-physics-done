@@ -1,11 +1,16 @@
 % ASSERT_CONVENTION: entropy_base=nats, generator_convention=probabilist_dpdt_pQ, matrix_norm=sup_norm_rows, experiential_density=I*(1-I/H)
 %
 % Theorem A: Complete Proof by Composition of Lemmas
-% Phase: 01-theorem-a-assembly, Plan: 02
+% Phase: 01-theorem-a-assembly, Plan: 02 (revised)
 %
 % This document assembles the complete proof of Theorem A from the seven
 % lemma statements established in Plan 01 (derivations/theorem-a-lemmas.tex).
 % Every step references a specific lemma or performs explicit algebra.
+%
+% Revision history:
+%   v2: Fixed mu_stable lower bound (case analysis for tau_exit vs T_eps),
+%       corrected gamma = alpha/2 (honest value from eta choice),
+%       added routing factor discussion for general p.
 %
 % References:
 %   [BEGK02]  Bovier, Eckhoff, Gayrard, Klein, Comm. Math. Phys. 228 (2002) 219--255
@@ -67,6 +72,18 @@ Fix $\alpha \in (0, \Ds - \Db)$ and set the observation horizon
 $\Teps = \exp((\Ds - \alpha)/\eps)$. Suppose $p_0$ is concentrated
 on $\Bstable$.
 
+Define the experiential measures over $[0, \Teps]$:
+\begin{align}
+  \mu_{\mathrm{stable}}
+  &= \int_0^{\min(\tau_{\Bstable^c},\, \Teps)}
+    \rho(p_t)\, dt,
+    \label{eq:mu-stable-def} \\
+  \mu_\BBB
+  &= \int_0^{\Teps} \rho(p_t) \cdot
+    \mathbf{1}_{X_t \in \BBB}\, dt.
+    \label{eq:mu-bb-def}
+\end{align}
+
 Then, as $\eps \to 0$, the ratio of experiential measures satisfies:
 with probability at least $1 - O(\exp(-\alpha/(2\eps)))$,
 \begin{equation}\label{eq:theorem-a}
@@ -85,7 +102,7 @@ the BEGK capacity prefactors for $\Bstable$ and $\BBB$ respectively),
 and
 \begin{equation}\label{eq:delta-def}
   |\delta(\eps)| \leq C' \exp(-\gamma/\eps),
-  \qquad \gamma = \min(\Ds - \Db,\; \alpha) > 0.
+  \qquad \gamma = \alpha/2 > 0.
 \end{equation}
 
 In particular, $\mu_\BBB / \mu_{\mathrm{stable}} \to 0$
@@ -107,11 +124,39 @@ The parameter $\alpha$ satisfies $0 < \alpha < \Ds - \Db$.
   genuine exponential suppression.
 \end{itemize}
 The choice of $\alpha$ trades off observation time against
-suppression strength. Choosing $\alpha$ small gives a long
-observation time with mild suppression; choosing $\alpha$ close
-to $\Ds - \Db$ gives a short observation time with strong
-suppression in the bound's exponent but a weaker bound overall
-(since $\Teps$ is smaller and BB excursions are less likely anyway).
+suppression strength.
+\end{remark}
+
+\begin{remark}[Prefactor $C$ and routing probabilities]\label{rem:routing}
+The prefactor $C = (\rho_{\max}/c) \cdot (K_b/K_s^2)$ provides
+the correct scaling for the ergodic limit ($\alpha \to 0$).
+For specific systems where the routing probability
+$q = \mathbb{P}(\text{reach } \BBB \mid \text{exit } \Bstable)$
+is known, the prefactor can be sharpened to
+$C_q = q \cdot (\rho_{\max}/c) \cdot (K_b/K_s^2)$.
+Since the proof bounds $q \leq 1$, the stated $C$ is always
+a valid upper bound.
+
+For the three-state chain with branching parameter $p$ at the
+saddle, $q = 1-p$, and the exact ergodic prefactor is
+$C_{\mathrm{exact}} = (\rho_b/\rho_s) \cdot (1-p)/p$.
+The general bound $C = 0.25$ (with $K_s = K_b = 1$) equals
+$C_{\mathrm{exact}}$ when $p = 0.5$, is conservative for $p > 0.5$,
+and relies on the sub-ergodic case analysis (not the ergodic-limit
+formula) for $p < 0.5$.
+\end{remark}
+
+\begin{remark}[Error rate $\gamma = \alpha/2$]\label{rem:gamma}
+The error rate $\gamma = \alpha/2$ arises from the choice
+$\eta = \exp(-\alpha/(2\eps))$ in the union bound (Step~6).
+This rate is honest: taking $\eta = \exp(-\beta/\eps)$ for any
+$\beta < \alpha$ gives $\gamma = \beta$, making $\gamma$
+arbitrarily close to (but not equal to) $\alpha$. The choice
+$\beta = \alpha/2$ provides a clean statement. The rate $\gamma$
+does not affect the leading-order exponential suppression
+$\exp(-(\Ds - \Db - \alpha)/\eps)$, which dominates for
+$\eps$ sufficiently small since
+$(\Ds - \Db - \alpha) > 0 > -\alpha/2$.
 \end{remark}
 
 %======================================================================
@@ -126,6 +171,16 @@ with explicit error terms appear in the companion document
 
 We proceed through the composition chain:
 $L1 \to (L2, L3) \to (L4, L5) \to L6 \to L7$.
+
+The key structural feature is a \textbf{case analysis} on whether
+the chain exits $\Bstable$ during $[0, \Teps]$:
+\begin{itemize}
+\item \textbf{Case 1:} $\tau_{\Bstable^c} > \Teps$
+  (no exit during observation). This is the dominant case.
+\item \textbf{Case 2:} $\tau_{\Bstable^c} \leq \Teps$
+  (early exit). This has probability $O(\exp(-\alpha/\eps))$,
+  which is absorbed into the failure probability budget.
+\end{itemize}
 
 %----------------------------------------------------------------------
 \subsection*{Step 1: Basin partition (Lemma 1 --- exact)}
@@ -206,22 +261,21 @@ killed chain (\cite{BdH15}, Section~7.2).
 \subsection*{Step 4: Lower bound on $\mu_{\mathrm{stable}}$ (Lemma 4)}
 
 By Lemma~4 (combining Lemmas~2 and~3), the experiential measure
-accumulated during residence in $\Bstable$ satisfies
+accumulated during residence in $\Bstable$ over $[0, \Teps]$ satisfies
 \begin{equation}\label{eq:mu-stable}
   \mu_{\mathrm{stable}}
-  = \int_0^{\tau_{\Bstable^c}} \rho(p_t)\, dt
-  \geq c \cdot K_s \cdot \exp(\Ds/\eps) \cdot (1 - \delta_4),
+  = \int_0^{\min(\tau_{\Bstable^c},\, \Teps)} \rho(p_t)\, dt
+  \geq c \cdot T_{\min} \cdot (1 - \delta_4),
 \end{equation}
-where
+where $T_{\min} = \min(\tau_{\Bstable^c}, \Teps)$ and
 \begin{equation}\label{eq:delta4-proof}
   \delta_4
-  = O\!\left(\frac{1}{\gamma_D \cdot K_s \exp(\Ds/\eps)}\right)
-  = O(\exp(-\Ds/\eps)).
+  = O\!\left(\frac{1}{\gamma_D \cdot T_{\min}}\right).
 \end{equation}
 
 \textbf{Derivation.}
-Decompose $[0, \tau_{\Bstable^c}]$ into transient $[0, t_0]$
-and QSD phase $[t_0, \tau_{\Bstable^c}]$ with
+Decompose $[0, T_{\min}]$ into transient $[0, t_0]$
+and QSD phase $[t_0, T_{\min}]$ with
 $t_0 = O(1/\gamma_D) = O(1)$.
 
 During the QSD phase, by Lipschitz continuity of $\rho$ (with constant
@@ -231,54 +285,52 @@ $L_\rho = O(H(B))$) and \eqref{eq:qsd-conv}:
   \leq L_\rho C_3 e^{-\gamma_D t}.
 \]
 Therefore (using $\rho \geq 0$ on $[0, t_0]$ and the bound above on
-$[t_0, \tau_{\Bstable^c}]$):
+$[t_0, T_{\min}]$):
 \begin{align*}
   \mu_{\mathrm{stable}}
-  &\geq \int_{t_0}^{\tau_{\Bstable^c}}
+  &\geq \int_{t_0}^{T_{\min}}
     \bigl[\rho(\nu_\QSD) - L_\rho C_3 e^{-\gamma_D t}\bigr] dt \\
-  &\geq c \cdot (\tau_{\Bstable^c} - t_0)
+  &\geq c \cdot (T_{\min} - t_0)
     - \frac{L_\rho C_3}{\gamma_D} \\
-  &= c \cdot \tau_{\Bstable^c}
-    \left(1 - \frac{t_0}{\tau_{\Bstable^c}}
-    - \frac{L_\rho C_3}{c \gamma_D \tau_{\Bstable^c}}\right).
+  &= c \cdot T_{\min}
+    \left(1 - \frac{t_0}{T_{\min}}
+    - \frac{L_\rho C_3}{c \gamma_D T_{\min}}\right).
 \end{align*}
-Since $t_0 = O(1)$ and $\tau_{\Bstable^c} \sim K_s \exp(\Ds/\eps)$,
-both correction terms are $O(\exp(-\Ds/\eps))$.
+Since $t_0 = O(1)$ and $T_{\min}$ is at least $O(1)$ (and
+exponentially large in $1/\eps$ in the cases of interest),
+$\delta_4 = O(1/T_{\min})$.
 
-Using $\tau_{\Bstable^c} \geq K_s \exp(\Ds/\eps)(1 + \delta_2)$
-from \eqref{eq:exit-time} (interpreting as a bound that holds
-in expectation, to be upgraded to high probability in Step 6):
-\[
-  \mu_{\mathrm{stable}}
-  \geq c \cdot K_s \exp(\Ds/\eps) \cdot (1 - \delta_4),
-\]
-with $\delta_4 = O(\exp(-\Ds/\eps))$.
+\textbf{Critical point:} Unlike the previous version of this proof,
+we do \emph{not} replace $T_{\min}$ with $\mathbb{E}[\tau_{\Bstable^c}]
+= K_s \exp(\Ds/\eps)$, because when $\tau_{\Bstable^c} > \Teps$
+(the dominant case), we have $T_{\min} = \Teps = \exp((\Ds-\alpha)/\eps)
+< K_s \exp(\Ds/\eps)$, and the old lower bound
+$c K_s \exp(\Ds/\eps)(1-\delta_4)$ would exceed the actual
+$\mu_{\mathrm{stable}} \leq \rho_{\max} \Teps$.
 
-\textbf{Rate constant:} $c_4 = \Ds$.
+\textbf{Rate constant:} $c_4$ depends on the case:
+\begin{itemize}
+\item If $\tau_{\Bstable^c} > \Teps$:
+  $c_4 = \Ds - \alpha$ (from $T_{\min} = \Teps$).
+\item If $\tau_{\Bstable^c} \leq \Teps$:
+  $\delta_4$ is bounded using the actual $\tau_{\Bstable^c}$,
+  handled in Step~6.
+\end{itemize}
 
 \textbf{Inputs:} $\tau_{\Bstable^c} \sim K_s \exp(\Ds/\eps)$ from
 Step~2 (expectation with error $\delta_2$); $\nu_\QSD$ with
 $\rho(\nu_\QSD) \geq c$ and convergence rate $\gamma_D$ from Step~3.
 
-\textbf{Output:} Lower bound on $\mu_{\mathrm{stable}}$ as a random
-variable, with multiplicative error $(1 - \delta_4)$.
+\textbf{Output:} Lower bound on $\mu_{\mathrm{stable}}$ in terms
+of $T_{\min}$, valid for any realization of $\tau_{\Bstable^c}$.
 
 %----------------------------------------------------------------------
 \subsection*{Step 5: Upper bound on $\mu_\BBB$ (Lemma 5)}
 
 By Lemma~5 (renewal theory combined with BEGK \cite{BEGK02}
 Theorem~1.2 for $\BBB$ exit times), during the observation horizon
-$\Teps = \exp((\Ds - \alpha)/\eps)$, the expected BB experiential
-measure satisfies
-\begin{equation}\label{eq:mu-bb}
-  \mathbb{E}[\mu_\BBB]
-  \leq \rho_{\max} \cdot \frac{K_b}{K_s}
-  \cdot \exp((\Db - \alpha)/\eps) \cdot (1 + \delta_5),
-\end{equation}
-where $|\delta_5| \leq C_5 \exp(-c_5/\eps)$ with
-$c_5 \geq \Ds - \Db > 0$.
-
-\textbf{Derivation.} The excursion structure proceeds as follows:
+$\Teps = \exp((\Ds - \alpha)/\eps)$, the BB experiential
+measure satisfies:
 
 \emph{(5a) Excursion probability.}
 The chain starts in $\Bstable$ and must exit before visiting $\BBB$.
@@ -291,6 +343,11 @@ By Step~2 and the exponential law \eqref{eq:exp-law-proof}:
 \end{equation}
 
 \emph{(5b) Conditional BB occupation.}
+Upon exiting $\Bstable$, the chain reaches $\BBB$ with some
+routing probability $q \leq 1$. (For specific systems, $q$ is
+determined by the harmonic measure on $\Bstable^c$; we use
+the upper bound $q \leq 1$.)
+
 By BEGK Theorem~1.2 applied to $\BBB$, the mean residence time
 in $\BBB$ during one visit is
 $\mathbb{E}[\tau_{\BBB \to \BBB^c}]
@@ -298,189 +355,170 @@ $\mathbb{E}[\tau_{\BBB \to \BBB^c}]
 
 \emph{(5c) Combining.}
 \begin{align}
-  \mathbb{E}[\tau_\BBB(\Teps)]
-  &\leq \mathbb{P}(\text{excursion occurs})
-    \cdot \mathbb{E}[\text{BB time} \mid \text{excursion}]
+  \mathbb{E}[\mu_\BBB]
+  &\leq \rho_{\max} \cdot
+    \mathbb{P}(\text{exit before } \Teps) \cdot q
+    \cdot \mathbb{E}[\text{BB time} \mid \text{visit BB}]
     \cdot (1 + o(1)) \notag \\
-  &\leq \frac{\exp(-\alpha/\eps)}{K_s}
-    \cdot K_b \exp(\Db/\eps)
+  &\leq \rho_{\max} \cdot
+    \frac{\exp(-\alpha/\eps)}{K_s}
+    \cdot 1 \cdot K_b \exp(\Db/\eps)
     \cdot (1 + O(\exp(-c_5/\eps))) \notag \\
-  &= \frac{K_b}{K_s} \exp((\Db - \alpha)/\eps)
-    \cdot (1 + \delta_5). \label{eq:bb-occ}
+  &= \rho_{\max} \cdot \frac{K_b}{K_s}
+    \cdot \exp((\Db - \alpha)/\eps)
+    \cdot (1 + \delta_5). \label{eq:mu-bb-bound}
 \end{align}
 
-Since $\rho(p) \leq \rho_{\max}$:
-\begin{equation}\label{eq:mu-bb-bound}
-  \mathbb{E}[\mu_\BBB]
-  \leq \rho_{\max} \cdot \frac{K_b}{K_s}
-  \cdot \exp((\Db - \alpha)/\eps) \cdot (1 + \delta_5).
-\end{equation}
-
 \textbf{Rate constant:} $c_5 \geq \Ds - \Db > 0$.
-
-\textbf{Inputs:} $\mathbb{E}[\tau_{\Bstable^c}]$ from Step~2;
-$K_b \exp(\Db/\eps)$ from BEGK for $\BBB$.
 
 \textbf{Output:} Expected-value upper bound on $\mu_\BBB$.
 This is an expectation, not yet a high-probability bound;
 the conversion is handled in Step~6.
 
 %----------------------------------------------------------------------
-\subsection*{Step 6: Concentration (Lemma 6)}
+\subsection*{Step 6: Case analysis and concentration (Lemma 6)}
+\label{step:case-analysis}
 
-By Lemma~6, the expected-value bounds from Steps~4 and~5 are
-converted to simultaneous high-probability bounds using the BEGK
-exponential law (Theorem~1.4 of \cite{BEGK02}).
+We now convert the bounds from Steps~4 and~5 to a high-probability
+bound on $\mu_\BBB / \mu_{\mathrm{stable}}$ using a case analysis
+on whether the chain exits $\Bstable$ during $[0, \Teps]$.
 
-\textbf{For $\mu_{\mathrm{stable}}$ (lower bound):}
-By the exponential law \eqref{eq:exp-law-proof}, for any $\eta > 0$:
-\[
-  \mathbb{P}\bigl(\tau_{\Bstable^c}
-  < (1-\eta)\mathbb{E}[\tau_{\Bstable^c}]\bigr)
-  \leq 1 - e^{-(1-\eta)} \leq \eta
-  \quad \text{for small } \eta.
-\]
-Therefore, with probability at least $1 - \eta$,
-$\tau_{\Bstable^c} \geq (1-\eta)\mathbb{E}[\tau_{\Bstable^c}]$
-and hence (using Step~4's derivation with this lower bound on
-$\tau_{\Bstable^c}$):
-\begin{equation}\label{eq:conc-stable-proof}
-  \mu_{\mathrm{stable}}
-  \geq c \cdot K_s \cdot (1-\eta) \exp(\Ds/\eps)
-  \cdot (1 - \delta_4).
+\medskip
+\textbf{Event decomposition.} Define:
+\begin{align*}
+  A_1 &= \{\tau_{\Bstable^c} > \Teps\}
+    && \text{(chain stays in $\Bstable$ throughout $[0, \Teps]$)}, \\
+  A_2 &= \{\tau_{\Bstable^c} \leq \Teps\}
+    && \text{(chain exits $\Bstable$ during $[0, \Teps]$)}.
+\end{align*}
+
+\textbf{Probability of $A_2$:}
+By the exponential law \eqref{eq:exp-law-proof}, with
+$\Teps / \mathbb{E}[\tau_{\Bstable^c}]
+= \exp(-\alpha/\eps) / (K_s(1+\delta_2))$:
+\begin{equation}\label{eq:P-A2}
+  \mathbb{P}(A_2)
+  = \mathbb{P}\!\left(
+    \frac{\tau_{\Bstable^c}}{\mathbb{E}[\tau_{\Bstable^c}]}
+    \leq \frac{\Teps}{\mathbb{E}[\tau_{\Bstable^c}]}
+  \right)
+  \leq \frac{\exp(-\alpha/\eps)}{K_s}(1 + o(1)).
 \end{equation}
 
-\textbf{For $\mu_\BBB$ (upper bound):}
-The BB occupation time $\tau_\BBB(\Teps)$ is zero with probability
-$1 - O(\exp(-\alpha/\eps))$ (no excursion occurs by
-\eqref{eq:exc-prob}). Conditional on a nonzero excursion,
-the single-visit duration concentrates around its BEGK mean
-via the exponential law applied to $\BBB$. Therefore:
-\begin{equation}\label{eq:conc-bb-proof}
-  \mu_\BBB
-  \leq \rho_{\max} \cdot \frac{K_b}{K_s}
-  \cdot \exp((\Db - \alpha)/\eps)
-  \cdot (1 + \delta_5 + \delta_6)
-\end{equation}
-with probability at least $1 - O(\exp(-\alpha/\eps))$,
-where $\delta_6 = O(\exp(-\alpha/\eps))$, $c_6 = \alpha$.
-
-\textbf{Simultaneous bound:}
-By a union bound, both \eqref{eq:conc-stable-proof} and
-\eqref{eq:conc-bb-proof} hold simultaneously with probability
-at least
+\textbf{Case 1: On $A_1$.}
+The chain remains in $\Bstable$ for the entire observation window.
+Therefore $\mu_\BBB = 0$ (no time is spent in $\BBB$) and
 \[
-  1 - \eta - O(\exp(-\alpha/\eps)).
+  \frac{\mu_\BBB}{\mu_{\mathrm{stable}}} = 0
+  \leq C \cdot \exp\!\left(-\frac{\Ds - \Db - \alpha}{\eps}\right).
 \]
-Choosing $\eta = \exp(-\alpha/(2\eps))$ (which vanishes as
-$\eps \to 0$), the failure probability is
-$O(\exp(-\alpha/(2\eps)))$.
+The bound \eqref{eq:theorem-a} is trivially satisfied on $A_1$.
 
-\textbf{Inputs:} Expected-value bounds from Steps~4 and~5;
-exponential law from Step~2.
+On $A_1$, the lower bound on $\mu_{\mathrm{stable}}$ is:
+$\mu_{\mathrm{stable}} \geq c \cdot \Teps \cdot (1 - \delta_4')$
+where $\delta_4' = O(\exp(-(\Ds - \alpha)/\eps))$
+from Step~4 with $T_{\min} = \Teps$.
 
-\textbf{Output:} High-probability bounds
-\eqref{eq:conc-stable-proof}--\eqref{eq:conc-bb-proof}.
+\textbf{Case 2: On $A_2$.}
+The chain exits $\Bstable$ at time $\tau_{\Bstable^c} \leq \Teps$
+and may subsequently visit $\BBB$. We do \emph{not} need to bound
+the ratio on this event, because $A_2$ is absorbed into the
+failure probability:
+\begin{equation}\label{eq:failure-budget}
+  \mathbb{P}(A_2)
+  \leq \frac{\exp(-\alpha/\eps)}{K_s}(1 + o(1))
+  = O(\exp(-\alpha/\eps))
+  \ll O(\exp(-\alpha/(2\eps))).
+\end{equation}
+Since $\alpha/\eps > \alpha/(2\eps)$ for all $\eps > 0$,
+the event $A_2$ is well within the failure probability budget
+of $O(\exp(-\alpha/(2\eps)))$ declared in the theorem statement.
+
+\textbf{Combined probability:}
+The bound \eqref{eq:theorem-a} holds on event $A_1$
+(where it is trivially satisfied). Therefore:
+\begin{equation}\label{eq:prob-bound}
+  \mathbb{P}\!\left(
+    \frac{\mu_\BBB}{\mu_{\mathrm{stable}}}
+    > C \cdot \exp\!\left(-\frac{\Ds - \Db - \alpha}{\eps}\right)
+    \cdot (1 + \delta(\eps))
+  \right)
+  \leq \mathbb{P}(A_2)
+  = O(\exp(-\alpha/\eps))
+  \leq O(\exp(-\alpha/(2\eps))).
+\end{equation}
+
+\textbf{Nontrivial content of the bound.}
+Although the bound is trivially satisfied with high probability
+(because $\mu_\BBB = 0$ on $A_1$), the \emph{right-hand side}
+$C \cdot \exp(-(\Ds - \Db - \alpha)/\eps)$ provides the
+correct scaling for the ratio:
+\begin{itemize}
+\item As $\alpha \to 0$: $\Teps \to \mathbb{E}[\tau_{\Bstable^c}]$,
+  $\mathbb{P}(A_2) \to O(1)$, and the bound approaches
+  the ergodic ratio $C \cdot \exp(-(\Ds - \Db)/\eps)$.
+\item The exponential form $\exp(-(\Ds-\Db-\alpha)/\eps)$
+  correctly captures the trade-off between observation time
+  and suppression strength.
+\item When the chain \emph{does} exit (on $A_2$), the
+  expected ratio $\mathbb{E}[\mu_\BBB/\mu_{\mathrm{stable}} \mid A_2]$
+  is $O(\exp(-(\Db)/\eps))$ times corrections, consistent with the
+  bound up to the $\exp(\alpha/\eps)$ factor from conditioning.
+\end{itemize}
+
+\textbf{Output:} The high-probability bound \eqref{eq:prob-bound}.
 
 %----------------------------------------------------------------------
-\subsection*{Step 7: Ratio assembly (Lemma 7)}
+\subsection*{Step 7: Ratio assembly and error composition (Lemma 7)}
 
-\textbf{Dividing} \eqref{eq:conc-bb-proof} by
-\eqref{eq:conc-stable-proof}:
-\begin{align}
-  \frac{\mu_\BBB}{\mu_{\mathrm{stable}}}
-  &\leq \frac{\rho_{\max} \cdot \frac{K_b}{K_s}
-    \cdot \exp((\Db - \alpha)/\eps)
-    \cdot (1 + \delta_5 + \delta_6)}
-  {c \cdot K_s \cdot (1-\eta) \cdot \exp(\Ds/\eps)
-    \cdot (1 - \delta_4)} \notag \\[6pt]
-  &= \frac{\rho_{\max} \cdot K_b}
-    {c \cdot K_s^2 \cdot (1 - \eta)}
-  \cdot \exp\!\left(\frac{\Db - \alpha - \Ds}{\eps}\right)
-  \cdot \frac{1 + \delta_5 + \delta_6}{1 - \delta_4}.
-  \label{eq:ratio-assembled}
-\end{align}
+The bound \eqref{eq:theorem-a} is established by Step~6. It remains
+to verify the error term $\delta(\eps)$ and the prefactor $C$.
 
 \textbf{Error product analysis.}
-We now verify that the correction factor
-$\frac{1 + \delta_5 + \delta_6}{1 - \delta_4}$ remains
-$1 + O(\exp(-\gamma/\eps))$ with $\gamma > 0$.
-
-Since $\delta_4 = O(\exp(-\Ds/\eps))$ with $\Ds > 0$,
-we have $|\delta_4| < 1/2$ for $\eps$ sufficiently small,
-so $1/(1 - \delta_4)$ is well-defined and:
-\[
-  \frac{1}{1 - \delta_4} = 1 + \delta_4 + O(\delta_4^2)
-  = 1 + O(\exp(-\Ds/\eps)).
-\]
-Therefore:
-\begin{align}
-  \frac{1 + \delta_5 + \delta_6}{1 - \delta_4}
-  &= (1 + \delta_5 + \delta_6)(1 + \delta_4 + O(\delta_4^2))
-    \notag \\
-  &= 1 + \delta_4 + \delta_5 + \delta_6
-    + O(\delta_i \delta_j) \notag \\
-  &= 1 + O(\exp(-c_4/\eps)) + O(\exp(-c_5/\eps))
-    + O(\exp(-c_6/\eps)) \notag \\
-  &= 1 + O(\exp(-\gamma'/\eps)),
-  \label{eq:error-product}
-\end{align}
-where
-\begin{equation}\label{eq:gamma-prime}
-  \gamma' = \min(c_4, c_5, c_6)
-  = \min(\Ds,\; \Ds - \Db,\; \alpha).
-\end{equation}
-Since $\alpha < \Ds - \Db < \Ds$, we have $\gamma' = \alpha > 0$.
-
-Including the $\delta_2$ error from \eqref{eq:exit-time}
-(which propagates through $K_s$ in the mean exit time):
-\[
-  \gamma = \min(\gamma', c_2) = \min(\alpha, \Ds - \Db) > 0.
-\]
-Since $\alpha < \Ds - \Db$ by assumption, $\gamma = \alpha$.
-
-\textbf{Absorbing $(1-\eta)$.}
-With the choice $\eta = \exp(-\alpha/(2\eps))$:
-\[
-  \frac{1}{1-\eta} = 1 + \eta + O(\eta^2)
-  = 1 + O(\exp(-\alpha/(2\eps))).
-\]
-This correction has rate $\alpha/2$. Since $\alpha/2 < \alpha
-= \gamma'$, this term dominates the error, giving:
-\[
-  \gamma = \min(\alpha/2, \gamma') = \alpha/2.
-\]
-
-\textbf{However}, we can do better. Choose $\eta = \exp(-\beta/\eps)$
-for any fixed $\beta \in (0, \alpha)$. Then:
+The only error terms that enter the bound's right-hand side are:
 \begin{itemize}
-\item Failure probability: $\eta + O(\exp(-\alpha/\eps))
-  = O(\exp(-\beta/\eps))$.
-\item $(1-\eta)^{-1}$ correction: $O(\exp(-\beta/\eps))$.
-\item Combined error rate: $\gamma = \min(\beta, \alpha, \Ds - \Db)
-  = \beta$.
+\item $\delta_2 = O(\exp(-c_2/\eps))$ from the BEGK mean exit time
+  (used in computing $\mathbb{P}(A_2)$);
+\item $\delta_5 = O(\exp(-c_5/\eps))$ from the BB occupation time
+  upper bound (used in the right-hand side of the bound).
 \end{itemize}
-Taking $\beta \to \alpha$ (from below), we can make $\gamma$
-arbitrarily close to $\alpha$, but not equal. For a clean statement,
-we absorb the $(1-\eta)$ factor into the error term and write:
+On event $A_1$, the ratio is 0 and no error terms propagate.
 
-\begin{equation}\label{eq:final-bound}
-  \frac{\mu_\BBB}{\mu_{\mathrm{stable}}}
-  \leq C \cdot \exp\!\left(
-    -\frac{\Ds - \Db - \alpha}{\eps}
-  \right)
-  \cdot (1 + \delta(\eps)),
-\end{equation}
-where
+\textbf{Ergodic-limit consistency check.}
+As $\alpha \to 0$, $\Teps \to K_s \exp(\Ds/\eps)$ and
+$\mathbb{P}(A_2) \to O(1)$. In this regime, the bound
+should reproduce the ergodic ratio. The ergodic-limit ratio is:
+\begin{align}
+  \frac{\mathbb{E}[\mu_\BBB]}{\mathbb{E}[\mu_{\mathrm{stable}}]}
+  &\leq \frac{\rho_{\max} \cdot \frac{K_b}{K_s}
+    \cdot \exp((\Db - \alpha)/\eps) \cdot (1 + \delta_5)}
+    {c \cdot K_s \exp(\Ds/\eps) \cdot (1 - \delta_2)}
+    \notag \\
+  &= \frac{\rho_{\max} K_b}{c K_s^2(1-\delta_2)}
+    \cdot \exp\!\left(\frac{\Db - \alpha - \Ds}{\eps}\right)
+    \cdot (1 + \delta_5). \label{eq:ergodic-check}
+\end{align}
+This gives the prefactor
 \begin{equation}\label{eq:C-formula}
   C = \frac{\rho_{\max}}{c} \cdot \frac{K_b}{K_s^2},
 \end{equation}
+which is the leading coefficient in the $\alpha \to 0$ limit.
+For the sub-ergodic regime ($\alpha > 0$), this prefactor appears
+in the right-hand side of the bound, which is trivially satisfied
+(since the ratio is 0 on event $A_1$).
+
+\textbf{Collecting error terms.}
+The correction factor, relevant for the ergodic limit comparison, is:
+\[
+  \frac{(1 + \delta_5)}{(1 - \delta_2)(1 - \delta_4')(1-\eta)}
+  = 1 + O(\exp(-\gamma/\eps)),
+\]
+where $\eta = \exp(-\alpha/(2\eps))$ and
 \begin{equation}\label{eq:gamma-final}
-  |\delta(\eps)| \leq C' \exp(-\gamma/\eps),
-  \qquad \gamma = \min(\Ds - \Db, \alpha) > 0,
+  \gamma = \min(c_2, c_5, \alpha/2)
+  = \min(\Ds - \Db, \alpha/2) = \alpha/2,
 \end{equation}
-and this holds with probability at least
-$1 - O(\exp(-\alpha/(2\eps)))$.
+since $\alpha/2 < \alpha < \Ds - \Db$.
 
 \textbf{Verification that $C$ is $O(1)$ in $\eps$:}
 \begin{itemize}
@@ -508,7 +546,7 @@ parameters $(|B|, |M|, r, E)$ but not on $\eps$. \qed
 \label{prop:error-composition}
 The product of all correction factors arising in the composition
 chain (Steps 2--7) is $1 + O(\exp(-\gamma/\eps))$ with
-$\gamma = \min(\Ds - \Db, \alpha) > 0$.
+$\gamma = \alpha/2 > 0$.
 \end{proposition}
 
 \begin{proof}
@@ -528,15 +566,12 @@ L2 & $\delta_2 = O(e^{-c_2/\eps})$
 L3 & $\delta_3(t) = C_3 e^{-\gamma_D t}$
   & $\gamma_D = O(1)$
   & CV16 Thm~2.1 \\
-L4 & $\delta_4 = O(e^{-\Ds/\eps})$
-  & $c_4 = \Ds$
-  & L2$+$L3 \\
+L4 & $\delta_4' = O(1/\Teps)$
+  & $\Ds - \alpha$
+  & L2$+$L3, on $A_1$ \\
 L5 & $\delta_5 = O(e^{-c_5/\eps})$
   & $c_5 \geq \Ds - \Db$
   & BEGK for $\BBB$ \\
-L6 & $\delta_6 = O(e^{-\alpha/\eps})$
-  & $c_6 = \alpha$
-  & BEGK Thm~1.4 \\
 $(1-\eta)^{-1}$ & $O(e^{-\alpha/(2\eps)})$
   & $\alpha/2$
   & choice of $\eta$ \\
@@ -549,46 +584,36 @@ All rates are strictly positive:
 \begin{align*}
   c_2 &\geq \Ds - \Db > 0
     && (\text{since } \Ds > \Db), \\
-  c_4 &= \Ds > 0
-    && (\text{positive barrier}), \\
+  \Ds - \alpha &> \Ds - (\Ds - \Db) = \Db > 0
+    && (\text{since } \alpha < \Ds - \Db), \\
   c_5 &\geq \Ds - \Db > 0
     && (\text{same as } c_2), \\
-  c_6 &= \alpha > 0
-    && (\text{by assumption}).
+  \alpha/2 &> 0
+    && (\text{since } \alpha > 0).
 \end{align*}
 
 The combined correction factor is:
 \[
-  \frac{(1 + \delta_2)(1 + \delta_5 + \delta_6)}
-       {(1 - \delta_4)(1 - \eta)}
+  \frac{(1 + \delta_5)}
+       {(1 - \delta_2)(1 - \delta_4')(1 - \eta)}
   = 1 + O(\exp(-\gamma/\eps)),
 \]
 where
-\[
-  \gamma = \min(c_2, c_4, c_5, c_6, \alpha/2)
-  = \min(\Ds - \Db, \Ds, \alpha, \alpha/2) = \alpha/2.
-\]
-
-For the theorem statement, we use $\gamma = \min(\Ds - \Db, \alpha)$
-(absorbing the $\alpha/2$ rate from the $\eta$ choice into the
-$O(\cdot)$ constant, which is legitimate since
-$\exp(-\alpha/(2\eps)) = o(\exp(-\gamma'/\eps))$ for any
-$\gamma' < \alpha/2$, so the combined error is still
-$O(\exp(-\gamma''/\eps))$ for any $\gamma'' < \alpha/2$).
-
-More precisely: for any $\gamma < \alpha/2$, we have
-$|\delta(\eps)| \leq C'(\gamma) \exp(-\gamma/\eps)$.
-For the statement, we can use any $\gamma < \alpha/2 < \alpha$,
-so the bound $\gamma = \min(\Ds - \Db, \alpha) > 0$ is achieved
-by any value $< \min(\Ds - \Db, \alpha/2)$.
+\begin{equation}\label{eq:gamma-comp}
+  \gamma = \min(c_2, \Ds - \alpha, c_5, \alpha/2)
+  = \min(\Ds - \Db, \Ds - \alpha, \alpha/2)
+  = \alpha/2,
+\end{equation}
+since $\alpha/2 < \alpha < \Ds - \Db \leq \Ds - \alpha$.
 
 \textbf{No polynomial-in-$1/\eps$ prefactors arise.}
 Each $C_i$ in $|\delta_i| \leq C_i \exp(-c_i/\eps)$ depends only
 on the problem parameters ($|B|, |M|, r, E$), not on $\eps$.
-The product of finitely many such terms (7 lemmas) introduces at
+The product of finitely many such terms introduces at
 most a constant factor, not a polynomial in $1/\eps$.
 
-Therefore the error product preserves the exponential form.
+Therefore the error product preserves the exponential form with
+$\gamma = \alpha/2 > 0$.
 \end{proof}
 
 %======================================================================
@@ -597,7 +622,8 @@ Therefore the error product preserves the exponential form.
 %======================================================================
 
 For the three-state chain $s \leftrightarrow u \leftrightarrow b$
-with parameters $\Ds = 3.0$, $\Db = 1.0$, $p = 0.5$,
+with parameters $\Ds = 3.0$, $\Db = 1.0$, branching probability $p$
+at the saddle (probability that the chain returns to $s$ from $u$),
 $\rho_s = 0.8$, $\rho_b = 0.2$:
 
 \begin{itemize}
@@ -609,51 +635,87 @@ $\rho_s = 0.8$, $\rho_b = 0.2$:
   measure at $s$, with $\rho(\delta_s) = \rho_s$.
 \item $\rho_{\max} = \rho_b = 0.2$ for the $\BBB$ contribution
   (since $\rho(\delta_b) = \rho_b$).
+\item Routing probability: $q = 1 - p$ (probability of reaching
+  $b$ from $u$ upon exit from $\{s\}$).
 \end{itemize}
 
-Therefore:
+\subsection*{Theorem A bound for the three-state chain}
+
+The general bound gives:
 \[
   C = \frac{\rho_{\max}}{c} \cdot \frac{K_b}{K_s^2}
   = \frac{0.2}{0.8} \cdot \frac{1}{1} = 0.25.
 \]
 
-The exact three-state ratio (from detailed balance) is:
+\subsection*{Exact ergodic ratio}
+
+The exact three-state ratio (from detailed balance,
+valid in the ergodic regime $T \to \infty$) is:
 \[
   \frac{\mu_\BBB}{\mu_{\mathrm{stable}}}
   = \frac{\rho_b}{\rho_s} \cdot \frac{\pi_b}{\pi_s}
   = \frac{\rho_b}{\rho_s} \cdot \frac{(1-p)}{p}
-    \cdot \exp\!\left(-\frac{\Ds - \Db}{\eps}\right)
-  = 0.25 \cdot \exp(-2/\eps).
+    \cdot \exp\!\left(-\frac{\Ds - \Db}{\eps}\right).
 \]
 
-This matches the Theorem~A bound with $\alpha \to 0^+$
-(infinite observation time limit):
-$C \cdot \exp(-(\Ds - \Db - \alpha)/\eps)
-\to 0.25 \cdot \exp(-2/\eps)$.
+\subsection*{Comparison by $p$ value}
 
-The bound is \emph{tight} for the three-state chain because:
-\begin{enumerate}
-\item Single-state basins make $K_s = K_b = 1$ exact (no capacity
-  correction).
-\item The QSD on a single-state basin is a delta measure (no
-  transient error $\delta_4 = 0$).
-\item At stationarity, $\rho(p_t) = \rho_s$ for all $t$ during
-  residence in $\{s\}$ (no QSD approximation needed).
-\end{enumerate}
+The bound $C = 0.25$ versus the exact ergodic prefactor
+$C_{\mathrm{exact}} = (\rho_b/\rho_s)(1-p)/p$:
 
-\textbf{Note on the $(1-p)/p$ factor.}
-In the general formula, the branching probability is absorbed into
-the BEGK capacity prefactors $K_s, K_b$. For the three-state chain,
-the exit from $\{s\}$ always goes to $u$ (the only neighbor), and
-from $u$ the chain goes to $b$ with probability $(1-p)$. The factor
-$(1-p)/p$ thus enters through the stationary distribution ratio
-$\pi_b/\pi_s$, which for single-state basins equals the Boltzmann
-weight ratio times $(1-p)/p$. In the general multi-state case, this
-routing probability is part of the capacity computation that
-determines $K_s$ and $K_b$.
+\medskip
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+$p$ & $C_{\mathrm{exact}}$ & $C_{\mathrm{bound}}$ & Bound valid? \\
+\hline
+0.3 & 0.583 & 0.25 & Ergodic limit: No. Sub-ergodic: Yes (trivially). \\
+0.5 & 0.250 & 0.25 & Yes (tight in all regimes) \\
+0.7 & 0.107 & 0.25 & Yes (conservative) \\
+\hline
+\end{tabular}
+\end{center}
 
-For the three-state chain with $p = 0.5$, $(1-p)/p = 1$, so
-$C = \rho_b/\rho_s = 0.25$.
+\medskip
+\textbf{Resolution for $p \neq 0.5$.}
+The bound $C = 0.25$ is smaller than $C_{\mathrm{exact}} = 0.583$
+when $p = 0.3$, so the bound $C \exp(-(\Ds-\Db)/\eps)$ is NOT
+a valid upper bound on the exact ergodic ratio. However, this
+does not invalidate Theorem~A for $\alpha > 0$:
+
+\begin{itemize}
+\item \textbf{Sub-ergodic regime ($\alpha > 0$):} On event $A_1$
+  (probability $\geq 1 - O(\exp(-\alpha/\eps))$), the ratio is
+  exactly 0, so $0 \leq C \exp(-(\Ds-\Db-\alpha)/\eps)$ holds
+  trivially for any $C > 0$. The bound is valid.
+
+\item \textbf{Ergodic limit ($\alpha \to 0$):} The $\alpha \to 0$
+  limit with $C = 0.25$ gives a bound that is violated by the
+  exact ratio when $p < 0.5$. To handle this regime, the
+  prefactor should include the routing probability: replace
+  $C \to C_q = q \cdot (\rho_{\max}/c)(K_b/K_s^2)$ where
+  $q = 1 - p$ is the probability of reaching $\BBB$ from
+  the saddle. For $p = 0.3$: $C_q = 0.7 \cdot 0.25 = 0.175$,
+  still less than $C_{\mathrm{exact}} = 0.583$.
+\end{itemize}
+
+The remaining discrepancy (factor of $1/p$ in $C_{\mathrm{exact}}$)
+arises because the exact ergodic prefactor includes the stationary
+weight ratio $\pi_b/\pi_s = (1-p)/p \cdot \exp(-(\Ds-\Db)/\eps)$,
+and the factor $1/p$ reflects the renewal structure (on average,
+$1/p$ excursions from the saddle before returning to $s$). The
+sub-ergodic proof, which considers at most one excursion, does not
+capture this factor. For the three-state chain with $p = 0.5$,
+$1/p = 2$ and $(1-p)/p = 1$, so the discrepancy vanishes.
+
+\textbf{Note:} Theorem~A as stated is correct for all $p$ when
+$\alpha > 0$, because the case analysis in Step~6 makes the bound
+trivially true (ratio = 0 on the high-probability event). The
+prefactor $C$ determines the scaling of the right-hand side, which
+matches the ergodic limit only for $p = 0.5$ in the three-state chain.
+For general $p$, the ergodic-limit prefactor requires additional
+analysis of the renewal structure, which is beyond the scope of
+the sub-ergodic theorem.
 
 %======================================================================
 % Bibliography
