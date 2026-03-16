@@ -126,12 +126,12 @@ Plans:
 4. Non-Born distributions show a different ratio, establishing that Born rule is special (or showing it is not)
 5. In the decoherence limit (t >> tau_D), quantum rho_Q reduces to the classical rho, confirming consistency with the existing classical toy model
 
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Quantum info utilities + static diagonal-state Test A (alpha_half analysis, Born vs non-Born comparison)
+- [ ] 03-02-PLAN.md -- Lindblad dynamics Test B + asymmetric extension + final verdict on Born-Fisher conjecture
 
 ## Phase Dependencies
 
