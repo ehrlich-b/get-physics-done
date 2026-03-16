@@ -1,0 +1,477 @@
+% ASSERT_CONVENTION: entropy_base=nats, mutual_information=H(B)+H(M)-H(B,M), experiential_density=I*(1-I/H(B)), matrix_norm=row_sum_inf, l1_not_tv=true
+%
+% Lipschitz Stability of the Experiential Density
+% Phase 02, Plan 01: Formal proof with explicit constants
+%
+% Conventions:
+%   - All entropies in nats (natural logarithm)
+%   - ||.||_1 = sum |p_i - q_i| throughout (NOT total variation)
+%   - ||P||_inf = max_i sum_j |P_ij| (row-sum norm)
+%   - Stationary distribution: row vector pi with pi P = pi
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+
+\DeclareMathOperator{\gap}{gap}
+\DeclareMathOperator{\tr}{Tr}
+
+\title{Lipschitz Stability of the Experiential Density}
+\author{Phase 02, Plan 01}
+\date{}
+
+\begin{document}
+\maketitle
+
+%% ====================================================================
+%% Section 1: Setup and Statement
+%% ====================================================================
+\section{Setup and Theorem Statement}
+
+\begin{definition}[Experiential density]
+Let $P$ be an irreducible row-stochastic matrix on $\Omega = B \times M$
+with stationary distribution $\pi$ (the unique row vector satisfying
+$\pi P = \pi$, $\pi_i \ge 0$, $\sum_i \pi_i = 1$).
+Reshape $\pi$ as a joint distribution $p(b,m)$ on $B \times M$.
+The \emph{experiential density} is
+\begin{equation}\label{eq:rho-def}
+  \rho(P) \;=\; I_\pi(B;M)\,\Bigl(1 - \frac{I_\pi(B;M)}{H_\pi(B)}\Bigr),
+\end{equation}
+where $I_\pi(B;M) = H_\pi(B) + H_\pi(M) - H_\pi(B,M)$ is the mutual
+information and $H_\pi(B) = -\sum_b p_B(b)\ln p_B(b)$ is the marginal
+entropy on $B$, all in nats.
+\end{definition}
+
+This functional belongs to the LMC (Lopez-Ruiz--Mancini--Calbet) statistical
+complexity family~\cite{LMC1995}, which measures the product of information
+content and disequilibrium.  More broadly, it sits within the effective
+complexity framework of Gell-Mann and Lloyd~\cite{GellMannLloyd2003},
+capturing the idea that meaningful complexity peaks between pure order
+($I = H(B)$, $\rho = 0$) and pure randomness ($I = 0$, $\rho = 0$).
+
+\begin{definition}[Spectral gap and norms]
+For an irreducible stochastic matrix $P$ on $n = |\Omega|$ states:
+\begin{itemize}
+  \item The \emph{absolute spectral gap} is
+        $\gap(P) = 1 - |\lambda_2(P)|$, where $\lambda_2$ is the
+        eigenvalue of $P$ with second-largest absolute value.
+  \item The \emph{row-sum norm} is
+        $\|P\|_\infty = \max_i \sum_j |P_{ij}|$.
+        For the difference of stochastic matrices,
+        $\|P - P'\|_\infty = \max_i \sum_j |P_{ij} - P'_{ij}|
+        = \max_i \|P_i - P'_i\|_1$.
+  \item We use the $\ell^1$ norm throughout:
+        $\|p - q\|_1 = \sum_i |p_i - q_i|$.
+        The total variation distance is
+        $\|p-q\|_{\mathrm{TV}} = \tfrac{1}{2}\|p-q\|_1$.
+\end{itemize}
+\end{definition}
+
+\begin{theorem}[Lipschitz stability of $\rho$]\label{thm:lipschitz}
+Let $P$, $P'$ be irreducible row-stochastic matrices on
+$\Omega = B \times M$ with $|B| \ge 2$, $|M| \ge 2$, $|\Omega| = n$.
+Let $\pi$, $\pi'$ be their stationary distributions, and suppose
+$\gap(P) > 0$.
+
+\medskip\noindent
+\textbf{Non-linear bound (sharpest form).}
+Define $\delta = \|\pi - \pi'\|_1$.  Then:
+\begin{equation}\label{eq:rho-nonlinear}
+  |\rho(P) - \rho(P')| \;\le\;
+  \frac{\delta}{2}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+  + 4\,h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr),
+\end{equation}
+where $h_{\mathrm{bin}}(x) = -x\ln x - (1-x)\ln(1-x)$ and
+$\delta \le \|P - P'\|_\infty / \gap(P)$ by the Cho--Meyer bound.
+
+\medskip\noindent
+\textbf{Linear Lipschitz bound.}
+Equivalently,
+\begin{equation}\label{eq:lipschitz-bound}
+  |\rho(P) - \rho(P')| \;\le\; L(\delta) \cdot \|P - P'\|_\infty,
+\end{equation}
+where
+\begin{equation}\label{eq:L-explicit}
+  L(\delta) \;=\; \frac{C_I(\delta) + C_H(\delta)}{\gap(P)},
+\end{equation}
+with
+\begin{align}
+  C_I(\delta) &= \frac{1}{2}\bigl[\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+         + 3\,\frac{h_{\mathrm{bin}}(\delta/2)}{\delta}, \label{eq:CI} \\
+  C_H(\delta) &= \frac{1}{2}\ln(|B|-1) + \frac{h_{\mathrm{bin}}(\delta/2)}{\delta}. \label{eq:CH}
+\end{align}
+
+For small perturbations ($\delta \ll 1$),
+$h_{\mathrm{bin}}(\delta/2)/\delta \sim \frac{1}{2}\ln(2/\delta)$,
+which is large but finite for any fixed $\delta > 0$.
+The leading behavior of $L$ is:
+\begin{equation}\label{eq:L-leading}
+  L \;\sim\; \frac{1}{2\,\gap(P)}\,
+  \bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+  + \frac{2\ln(2/\delta)}{\gap(P)}.
+\end{equation}
+
+\medskip\noindent
+\textbf{Uniform non-linear bound (for all perturbation sizes simultaneously).}
+Substituting $\delta \le \|P-P'\|_\infty/\gap(P)$ into~\eqref{eq:rho-nonlinear}
+and using $h_{\mathrm{bin}}(x) \le \ln 2$ for all $x$:
+\begin{equation}\label{eq:rho-uniform}
+  |\rho(P) - \rho(P')| \;\le\;
+  \frac{\|P-P'\|_\infty}{2\,\gap(P)}\bigl[2\ln(|B|-1) + \ln(|M|-1)
+  + \ln(n-1)\bigr] + 4\ln 2.
+\end{equation}
+The first term is the Lipschitz part (linear in $\|P-P'\|_\infty$)
+and the second is a universal additive constant ($4\ln 2 \approx 2.77$ nats).
+For large perturbations, the Lipschitz term dominates; for small
+perturbations, the additive constant is an overestimate (the true
+bound~\eqref{eq:rho-nonlinear} is much smaller).
+
+\medskip\noindent
+\textbf{Domain of validity:}
+\begin{enumerate}
+  \item $P$ irreducible with $\gap(P) > 0$;
+  \item $P'$ irreducible (so $\pi'$ exists and is unique);
+  \item $|B| \ge 2$ (otherwise $H_\pi(B) = 0$ and $\rho \equiv 0$).
+\end{enumerate}
+No lower bound on $H_\pi(B)$ is required in the Lipschitz constant.
+\end{theorem}
+
+The proof proceeds in three steps, each using a standard result.
+
+%% ====================================================================
+%% Section 2: Step 1 -- Stationary Distribution Perturbation
+%% ====================================================================
+\section{Step 1: Stationary Distribution Perturbation}
+
+\begin{lemma}[Cho--Meyer perturbation bound~\cite{ChoMeyer2001}]
+\label{lem:cho-meyer}
+Let $P$, $P'$ be irreducible stochastic matrices on $n$ states with
+stationary distributions $\pi$, $\pi'$.  Let
+$\Pi = \mathbf{1}\pi$ be the rank-one stationary projector.  Then
+\begin{equation}\label{eq:cho-meyer}
+  \|\pi - \pi'\|_1 \;\le\;
+  \frac{1}{\gap(P)}\,\|P - P'\|_\infty.
+\end{equation}
+\end{lemma}
+
+\begin{proof}[Proof sketch (following Cho--Meyer~\cite{ChoMeyer2001})]
+From $\pi P = \pi$ and $\pi' P' = \pi'$:
+\[
+  \pi' - \pi \;=\; \pi'(P' - P)(I - P + \Pi)^{-1},
+\]
+where $(I - P + \Pi)^{-1}$ is the group inverse of $(I - P)$.
+The key bound is $\|(I - P + \Pi)^{-1}\|_\infty \le 1/\gap(P)$
+(Meyer~\cite{Meyer1975}; Cho--Meyer~\cite{ChoMeyer2001}, Theorem~3.1).
+Since $\|\pi'\|_1 = 1$:
+\[
+  \|\pi' - \pi\|_1
+  \;\le\; \|\pi'\|_1 \cdot \|P' - P\|_\infty \cdot \|(I - P + \Pi)^{-1}\|_\infty
+  \;\le\; \frac{\|P - P'\|_\infty}{\gap(P)}.
+\]
+Here we used $\|v A\|_1 \le \|v\|_1 \cdot \|A\|_\infty$ for a row
+vector $v$ and matrix $A$ (standard submultiplicativity for the
+$\ell^1$-$\ell^\infty$ pair).
+\end{proof}
+
+\begin{remark}
+The bound~\eqref{eq:cho-meyer} may be loose for specific chains.
+The sharper Cho--Meyer condition number
+$\kappa(P) = \|\pi\|_\infty \cdot \|(I - P + \Pi)^{-1}\|_\infty$
+can be much smaller than $1/\gap(P)$.  We use the simpler bound because
+it gives clean dependence on the spectral gap.
+\end{remark}
+
+\textbf{Interface to Step 2:}
+Define $\delta = \|\pi - \pi'\|_1$.  Reshaping $\pi$ and $\pi'$ as
+joint distributions $p$ and $q$ on $B \times M$ (with
+$p(b,m) = \pi_{(b,m)}$), we have $\|p - q\|_1 = \|\pi - \pi'\|_1 = \delta$.
+By Lemma~\ref{lem:cho-meyer}:
+\begin{equation}\label{eq:delta-bound}
+  \delta \;\le\; \frac{\|P - P'\|_\infty}{\gap(P)}.
+\end{equation}
+
+%% ====================================================================
+%% Section 3: Step 2 -- Mutual Information Continuity
+%% ====================================================================
+\section{Step 2: Mutual Information and Entropy Continuity}
+
+\subsection{Entropy continuity lemma}
+
+\begin{lemma}[Entropy continuity~\cite{CsiszarKorner2011,Audenaert2007}]
+\label{lem:entropy-cont}
+Let $p$, $q$ be probability distributions on an alphabet of size $k \ge 2$
+with $\|p - q\|_1 = \delta \in (0, 2(1 - 1/k)]$.  Then
+\begin{equation}\label{eq:fannes}
+  |H(p) - H(q)| \;\le\; \frac{\delta}{2}\,\ln(k-1)
+  + h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr),
+\end{equation}
+where $h_{\mathrm{bin}}(x) = -x\ln x - (1-x)\ln(1-x)$ in nats.
+\end{lemma}
+
+\begin{remark}[Convention check]\label{rem:convention}
+Many references state this bound with $\delta_{\mathrm{TV}} = \|p-q\|_{\mathrm{TV}}
+= \frac{1}{2}\|p-q\|_1$.  In that convention, the bound reads
+$|H(p) - H(q)| \le \delta_{\mathrm{TV}}\ln(k-1) + h_{\mathrm{bin}}(\delta_{\mathrm{TV}})$.
+Our formula~\eqref{eq:fannes} is the same after substituting
+$\delta_{\mathrm{TV}} = \delta/2$.
+The tight constant is due to Audenaert~\cite{Audenaert2007}.
+\end{remark}
+
+\subsection{Data processing inequality for marginals}
+
+\begin{lemma}[Marginal contraction]\label{lem:marginal}
+Let $p$, $q$ be joint distributions on $B \times M$.  Then
+\begin{equation}\label{eq:marginal-contract}
+  \|p_B - q_B\|_1 \;\le\; \|p - q\|_1,
+  \qquad
+  \|p_M - q_M\|_1 \;\le\; \|p - q\|_1,
+\end{equation}
+where $p_B(b) = \sum_m p(b,m)$ and $p_M(m) = \sum_b p(b,m)$.
+\end{lemma}
+
+\begin{proof}
+By the triangle inequality:
+$\|p_B - q_B\|_1 = \sum_b |p_B(b) - q_B(b)|
+= \sum_b \bigl|\sum_m (p(b,m) - q(b,m))\bigr|
+\le \sum_b \sum_m |p(b,m) - q(b,m)| = \|p - q\|_1$.
+\end{proof}
+
+\subsection{Mutual information continuity bound}
+
+Using $I(B;M) = H(B) + H(M) - H(B,M)$ and the triangle inequality:
+\begin{equation}\label{eq:MI-triangle}
+  |I_p(B;M) - I_q(B;M)| \;\le\;
+  |H_p(B) - H_q(B)| + |H_p(M) - H_q(M)| + |H_p(B,M) - H_q(B,M)|.
+\end{equation}
+
+Apply Lemma~\ref{lem:entropy-cont} to each term.  The marginal
+perturbation bounds (Lemma~\ref{lem:marginal}) give
+$\|p_B - q_B\|_1 \le \delta$ and $\|p_M - q_M\|_1 \le \delta$,
+where $\delta = \|p - q\|_1$.
+
+\begin{itemize}
+  \item $H(B)$: alphabet size $|B|$, perturbation $\le \delta$:
+    $|H_p(B) - H_q(B)| \le \frac{\delta}{2}\ln(|B|-1) + h_{\mathrm{bin}}(\delta/2)$.
+
+  \item $H(M)$: alphabet size $|M|$, perturbation $\le \delta$:
+    $|H_p(M) - H_q(M)| \le \frac{\delta}{2}\ln(|M|-1) + h_{\mathrm{bin}}(\delta/2)$.
+
+  \item $H(B,M)$: alphabet size $n = |B| \cdot |M|$, perturbation $= \delta$:
+    $|H_p(B,M) - H_q(B,M)| \le \frac{\delta}{2}\ln(n-1) + h_{\mathrm{bin}}(\delta/2)$.
+\end{itemize}
+
+Summing:
+\begin{equation}\label{eq:MI-bound}
+  |I_p(B;M) - I_q(B;M)| \;\le\;
+  \frac{\delta}{2}\bigl[\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+  + 3\,h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr).
+\end{equation}
+
+\subsection{Entropy of $B$ continuity (separate bound for Step 3)}
+
+We also need $|H_p(B) - H_q(B)|$ separately:
+\begin{equation}\label{eq:HB-bound}
+  |H_p(B) - H_q(B)| \;\le\;
+  \frac{\delta}{2}\ln(|B|-1) + h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr).
+\end{equation}
+
+%% ====================================================================
+%% Section 4: Step 3 -- Composition through rho = I(1 - I/H)
+%% ====================================================================
+\section{Step 3: Composition through $\rho = I(1 - I/H)$}
+
+Write $\rho = f(I, H)$ where $f(I, H) = I(1 - I/H)$, with
+$I = I_\pi(B;M) \ge 0$, $H = H_\pi(B) > 0$, and $0 \le I \le H$.
+
+\subsection{Gradient bound via mean value theorem}
+
+The partial derivatives of $f$ on the domain $\mathcal{D} = \{(I,H) : 0 \le I \le H,\, H > 0\}$:
+\begin{align}
+  \frac{\partial f}{\partial I} &= 1 - \frac{2I}{H},
+  \qquad\text{so } \Bigl|\frac{\partial f}{\partial I}\Bigr| \le 1
+  \quad\text{(since $I/H \in [0,1]$)}; \label{eq:df-dI}\\[4pt]
+  \frac{\partial f}{\partial H} &= \frac{I^2}{H^2},
+  \qquad\text{so } \Bigl|\frac{\partial f}{\partial H}\Bigr| \le 1
+  \quad\text{(since $I/H \in [0,1]$)}. \label{eq:df-dH}
+\end{align}
+
+The domain $\mathcal{D}$ is convex: for $(I,H), (I',H') \in \mathcal{D}$
+and $t \in [0,1]$, the convex combination
+$\bar{H} = (1-t)H + tH' > 0$ and
+$\bar{I} = (1-t)I + tI' \le (1-t)H + tH' = \bar{H}$, so
+$(\bar{I},\bar{H}) \in \mathcal{D}$.
+
+By the multivariate mean value theorem, there exists
+$(\bar{I},\bar{H})$ on the line segment from $(I,H)$ to $(I',H')$
+such that:
+\begin{align}
+  f(I,H) - f(I',H') &= \frac{\partial f}{\partial I}\Big|_{(\bar{I},\bar{H})}
+  (I - I') + \frac{\partial f}{\partial H}\Big|_{(\bar{I},\bar{H})}(H - H'). \notag
+\end{align}
+
+Therefore:
+\begin{equation}\label{eq:mvt}
+  |f(I,H) - f(I',H')|
+  \;\le\; \Bigl|\frac{\partial f}{\partial I}\Bigr|\,|I - I'|
+  + \Bigl|\frac{\partial f}{\partial H}\Bigr|\,|H - H'|
+  \;\le\; |I - I'| + |H - H'|.
+\end{equation}
+
+\begin{remark}
+This bound is clean: no factors of $H$, $H'$, or $h_{\min}$ appear.
+The key observation is that $f(I,H) = I(1-I/H)$ has
+$\|\nabla f\|_\infty \le 1$ everywhere on its feasible domain,
+because $I/H$ is bounded in $[0,1]$.
+\end{remark}
+
+\subsection{Final composition}
+
+Combining~\eqref{eq:mvt} with the MI bound~\eqref{eq:MI-bound},
+the $H(B)$ bound~\eqref{eq:HB-bound}, and the Cho--Meyer
+bound~\eqref{eq:delta-bound}:
+
+\begin{align}
+  |\rho(P) - \rho(P')|
+  &\le |I - I'| + |H - H'| \notag\\
+  &\le \biggl[\frac{\delta}{2}\bigl(\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr)
+       + 3\,h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr)\biggr] \notag\\
+  &\quad + \biggl[\frac{\delta}{2}\ln(|B|-1)
+       + h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr)\biggr] \notag\\
+  &= \frac{\delta}{2}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+     + 4\,h_{\mathrm{bin}}\!\Bigl(\frac{\delta}{2}\Bigr), \label{eq:rho-bound-nonlinear}
+\end{align}
+with $\delta \le \|P - P'\|_\infty / \gap(P)$.
+
+This is the non-linear bound~\eqref{eq:rho-nonlinear}.
+
+\medskip
+\textbf{Linear Lipschitz form.}  Writing
+$h_{\mathrm{bin}}(\delta/2) \le \delta \cdot [h_{\mathrm{bin}}(\delta/2)/\delta]$
+and defining $\eta(\delta) = h_{\mathrm{bin}}(\delta/2)/\delta$ (finite for
+any $\delta > 0$):
+\begin{align}
+  |\rho(P) - \rho(P')|
+  &\le \bigl[C_I(\delta) + C_H(\delta)\bigr]\,\delta \notag\\
+  &\le \frac{C_I(\delta) + C_H(\delta)}{\gap(P)}\,\|P - P'\|_\infty,
+  \label{eq:rho-bound-linear}
+\end{align}
+where $C_I(\delta)$ and $C_H(\delta)$ are as in~\eqref{eq:CI}--\eqref{eq:CH}
+with $\eta = \eta(\delta) = h_{\mathrm{bin}}(\delta/2)/\delta$.
+
+\begin{equation}\label{eq:L-final}
+  \boxed{L(\delta) \;=\; \frac{C_I(\delta) + C_H(\delta)}{\gap(P)}}
+\end{equation}
+
+\begin{remark}[On the $\delta$-dependence of $L$]
+The Lipschitz ``constant'' $L(\delta)$ depends on $\delta$ through
+the $h_{\mathrm{bin}}/\delta$ ratio, which grows as $\frac{1}{2}\ln(2/\delta)$
+for small $\delta$.  This is not a deficiency of the proof: it reflects
+a genuine feature of entropy continuity.  Shannon entropy is \emph{not}
+Lipschitz (in the usual sense of a finite global constant) on the
+probability simplex, because $|H(p) - H(q)|/\|p-q\|_1$ diverges
+logarithmically as $p$ approaches a vertex of the simplex.
+
+For any \emph{fixed} perturbation size $\varepsilon = \|P - P'\|_\infty$,
+the constant $L(\varepsilon/\gap(P))$ is finite and explicit.
+For the non-linear bound~\eqref{eq:rho-nonlinear}, no $\delta$-dependent
+constant is needed: the bound is valid for all $\delta$ simultaneously.
+\end{remark}
+
+\begin{remark}[Improvement over the plan's estimate]
+The plan estimated $L = (2C_I + C_H)/\gap(P)$ using a product-rule
+decomposition of $|f(I,H) - f(I',H')|$.  The mean value theorem
+yields the tighter bound $L = (C_I + C_H)/\gap(P)$, replacing
+the factor $2C_I$ with $C_I$.  This is because $|\partial f/\partial I| \le 1$
+(not $\le 2$) on the feasible domain.
+\end{remark}
+
+%% ====================================================================
+%% Section 5: Explicit Formulas
+%% ====================================================================
+\section{Explicit Formulas}
+
+\textbf{Notation:} $n = |B| \cdot |M| = |\Omega|$,
+$\gap = \gap(P)$, $\varepsilon = \|P - P'\|_\infty$,
+$\delta = \|\pi - \pi'\|_1 \le \varepsilon/\gap$.
+
+\medskip\noindent
+\textbf{Non-linear bound (recommended for evaluation):}
+\begin{equation}\label{eq:nonlinear-final}
+  |\rho(P) - \rho(P')| \;\le\;
+  \frac{\varepsilon}{2\,\gap}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+  + 4\,h_{\mathrm{bin}}\!\Bigl(\frac{\varepsilon}{2\,\gap}\Bigr).
+\end{equation}
+
+\noindent
+\textbf{Linear bound (with $\delta$-dependent constant):}
+\begin{align}
+  L(\delta) &= \frac{1}{\gap}\left\{
+    \frac{1}{2}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+    + 4\,\frac{h_{\mathrm{bin}}(\delta/2)}{\delta}
+  \right\}. \label{eq:L-collected}
+\end{align}
+
+\noindent
+\textbf{Asymptotic form (small perturbation, $\delta \to 0$):}
+\begin{equation}\label{eq:L-asymptotic}
+  L \;\sim\; \frac{1}{2\,\gap}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+  + \frac{2}{\gap}\ln\!\Bigl(\frac{2\,\gap}{\varepsilon}\Bigr).
+\end{equation}
+
+\noindent
+\textbf{Uniform additive bound (for all perturbation sizes):}
+\begin{equation}\label{eq:uniform}
+  |\rho(P) - \rho(P')| \;\le\;
+  \frac{\varepsilon}{2\,\gap}\bigl[2\ln(|B|-1) + \ln(|M|-1) + \ln(n-1)\bigr]
+  + 4\ln 2,
+\end{equation}
+using $h_{\mathrm{bin}}(x) \le \ln 2$ for all $x \in [0,1]$.
+
+%% ====================================================================
+%% Bibliography
+%% ====================================================================
+
+\begin{thebibliography}{99}
+\bibitem{LMC1995}
+R.~Lopez-Ruiz, H.~L.~Mancini, X.~Calbet,
+``A statistical measure of complexity,''
+\emph{Phys.\ Lett.\ A} \textbf{209} (1995) 321--326.
+
+\bibitem{GellMannLloyd2003}
+M.~Gell-Mann, S.~Lloyd,
+``Effective complexity,''
+in \emph{Nonextensive Entropy}, eds.\ M.~Gell-Mann, C.~Tsallis,
+Oxford Univ.\ Press (2004); original preprint 1996/2003.
+
+\bibitem{ChoMeyer2001}
+G.~E.~Cho, C.~D.~Meyer,
+``Comparison of perturbation bounds for the stationary distribution
+of a Markov chain,''
+\emph{Linear Algebra Appl.} \textbf{335} (2001) 137--150.
+
+\bibitem{Meyer1975}
+C.~D.~Meyer,
+``The role of the group generalized inverse in the theory of
+finite Markov chains,''
+\emph{SIAM Rev.} \textbf{17} (1975) 443--464.
+
+\bibitem{CsiszarKorner2011}
+I.~Csisz\'ar, J.~K\"orner,
+\emph{Information Theory: Coding Theorems for Discrete Memoryless Systems},
+2nd ed., Cambridge Univ.\ Press (2011), Lemma~2.7.
+
+\bibitem{Audenaert2007}
+K.~M.~R.~Audenaert,
+``A sharp continuity estimate for the von Neumann entropy,''
+\emph{J.\ Phys.\ A} \textbf{40} (2007) 8127--8136;
+arXiv:quant-ph/0610146.
+\end{thebibliography}
+
+\end{document}
