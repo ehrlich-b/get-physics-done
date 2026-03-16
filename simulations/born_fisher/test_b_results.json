@@ -1,0 +1,214 @@
+{
+  "test_a_verdict": "FALSIFIES STATIC: alpha_half varies with p and Born-rule distributions show no special property at half-saturation.",
+  "test_b_verdict": "FALSIFIED",
+  "test_bplus_verdict": "FALSIFIED",
+  "FINAL_VERDICT": "FALSIFIED",
+  "VERDICT_EXPLANATION": "The Lindblad dynamics (dephasing + exchange Hamiltonian) produces I_vN/S_vN(B) in [1, 2] throughout the entire evolution for all tested (theta, gamma_D, g) combinations. Starting from pure entangled states (ratio=2), the ratio monotonically decreases to 1 (perfect tracking) under decoherence, never passing through the regime I < S_B where rho_Q > 0. Consequently mu_Q(theta) = 0 identically for all theta, and there is no dynamical selection of Born-rule initial states. The experiential density rho_Q = I*(1-I/S_B) is non-positive throughout Lindblad evolution in this model because the exchange coupling maintains perfect tracking (I >= S_B) at all times.",
+  "verdict_reason": "ratio_always_geq_1",
+  "rho_Q_ever_positive": false,
+  "ratio_ever_below_1": false,
+  "mu_q_curves": {
+    "gD=0.1_g=0.1": {
+      "gamma_D": 0.1,
+      "g": 0.1,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.54825598495901e-15,
+      "range_mu_Q": 2.54825598495901e-15,
+      "rho_Q_ever_positive": false
+    },
+    "gD=0.1_g=0.5": {
+      "gamma_D": 0.1,
+      "g": 0.5,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.54825598495901e-15,
+      "range_mu_Q": 2.54825598495901e-15,
+      "rho_Q_ever_positive": false
+    },
+    "gD=0.1_g=1.0": {
+      "gamma_D": 0.1,
+      "g": 1.0,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.54825598495901e-15,
+      "range_mu_Q": 2.54825598495901e-15,
+      "rho_Q_ever_positive": false
+    },
+    "gD=0.1_g=2.0": {
+      "gamma_D": 0.1,
+      "g": 2.0,
+      "theta_max": 1.5207963267948965,
+      "max_mu_Q": 2.4101572426029753e-15,
+      "range_mu_Q": 2.4101572426029753e-15,
+      "rho_Q_ever_positive": false
+    },
+    "gD=1.0_g=0.1": {
+      "gamma_D": 1.0,
+      "g": 0.1,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.2510348902065415e-16,
+      "range_mu_Q": 2.2510348902065415e-16,
+      "rho_Q_ever_positive": false
+    },
+    "gD=1.0_g=0.5": {
+      "gamma_D": 1.0,
+      "g": 0.5,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.2510348902065415e-16,
+      "range_mu_Q": 2.2510348902065415e-16,
+      "rho_Q_ever_positive": false
+    },
+    "gD=1.0_g=1.0": {
+      "gamma_D": 1.0,
+      "g": 1.0,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.2510348902065415e-16,
+      "range_mu_Q": 2.2510348902065415e-16,
+      "rho_Q_ever_positive": false
+    },
+    "gD=1.0_g=2.0": {
+      "gamma_D": 1.0,
+      "g": 2.0,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.2510348902065415e-16,
+      "range_mu_Q": 2.2510348902065415e-16,
+      "rho_Q_ever_positive": false
+    },
+    "gD=10.0_g=0.1": {
+      "gamma_D": 10.0,
+      "g": 0.1,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.420013380624188e-17,
+      "range_mu_Q": 2.420013380624188e-17,
+      "rho_Q_ever_positive": false
+    },
+    "gD=10.0_g=0.5": {
+      "gamma_D": 10.0,
+      "g": 0.5,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.420013380624188e-17,
+      "range_mu_Q": 2.420013380624188e-17,
+      "rho_Q_ever_positive": false
+    },
+    "gD=10.0_g=1.0": {
+      "gamma_D": 10.0,
+      "g": 1.0,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.420013380624188e-17,
+      "range_mu_Q": 2.420013380624188e-17,
+      "rho_Q_ever_positive": false
+    },
+    "gD=10.0_g=2.0": {
+      "gamma_D": 10.0,
+      "g": 2.0,
+      "theta_max": 1.5059397982414127,
+      "max_mu_Q": 2.420013380624188e-17,
+      "range_mu_Q": 2.420013380624188e-17,
+      "rho_Q_ever_positive": false
+    }
+  },
+  "theta_max_symmetric": {
+    "gD=0.1_g=0.1": 1.5059397982414127,
+    "gD=0.1_g=0.5": 1.5059397982414127,
+    "gD=0.1_g=1.0": 1.5059397982414127,
+    "gD=0.1_g=2.0": 1.5207963267948965,
+    "gD=1.0_g=0.1": 1.5059397982414127,
+    "gD=1.0_g=0.5": 1.5059397982414127,
+    "gD=1.0_g=1.0": 1.5059397982414127,
+    "gD=1.0_g=2.0": 1.5059397982414127,
+    "gD=10.0_g=0.1": 1.5059397982414127,
+    "gD=10.0_g=0.5": 1.5059397982414127,
+    "gD=10.0_g=1.0": 1.5059397982414127,
+    "gD=10.0_g=2.0": 1.5059397982414127
+  },
+  "theta_max_asymmetric": {
+    "ratio=0.1": 0.05,
+    "ratio=0.2": 0.05,
+    "ratio=0.5": 0.05,
+    "ratio=1.0": 0.05,
+    "ratio=2.0": 0.05,
+    "ratio=5.0": 0.05,
+    "ratio=10.0": 0.05
+  },
+  "asymmetric_details": {
+    "ratio=0.1": {
+      "gamma_ratio": 0.1,
+      "gamma_0": 0.18181818181818182,
+      "gamma_1": 1.8181818181818181,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    },
+    "ratio=0.2": {
+      "gamma_ratio": 0.2,
+      "gamma_0": 0.33333333333333337,
+      "gamma_1": 1.6666666666666667,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    },
+    "ratio=0.5": {
+      "gamma_ratio": 0.5,
+      "gamma_0": 0.6666666666666666,
+      "gamma_1": 1.3333333333333333,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    },
+    "ratio=1.0": {
+      "gamma_ratio": 1.0,
+      "gamma_0": 1.0,
+      "gamma_1": 1.0,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    },
+    "ratio=2.0": {
+      "gamma_ratio": 2.0,
+      "gamma_0": 1.3333333333333333,
+      "gamma_1": 0.6666666666666666,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    },
+    "ratio=5.0": {
+      "gamma_ratio": 5.0,
+      "gamma_0": 1.6666666666666667,
+      "gamma_1": 0.3333333333333333,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    },
+    "ratio=10.0": {
+      "gamma_ratio": 10.0,
+      "gamma_0": 1.8181818181818181,
+      "gamma_1": 0.18181818181818182,
+      "max_mu_Q": 0.0,
+      "rho_Q_ever_positive": false
+    }
+  },
+  "d3_spot_check": [
+    {
+      "theta": 0.39269908169872414,
+      "mu_Q": 0.0,
+      "max_rho_Q": -9.617837815446585e-10,
+      "min_ratio": 1.000000001856709,
+      "max_trace_err": 0.0
+    },
+    {
+      "theta": 0.7853981633974483,
+      "mu_Q": 0.0,
+      "max_rho_Q": -1.943942560019998e-09,
+      "min_ratio": 1.0000000018696775,
+      "max_trace_err": 0.0
+    },
+    {
+      "theta": 1.1780972450961724,
+      "mu_Q": 0.0,
+      "max_rho_Q": -1.862668114475081e-09,
+      "min_ratio": 1.00000000184764,
+      "max_trace_err": 2.220446049250313e-16
+    }
+  ],
+  "physics_explanation": {
+    "why_rho_Q_never_positive": "For pure entangled initial states, I_vN/S_vN(B) = 2. Under Lindblad evolution with dephasing + exchange coupling, the ratio monotonically decreases from 2 to 1. It never drops below 1 because the exchange Hamiltonian maintains perfect tracking (I_vN = S_vN(B)) at late times. Since rho_Q = I*(1 - I/S_B) is non-negative only when I/S_B <= 1, and the ratio stays in [1, 2], rho_Q <= 0 throughout.",
+    "physical_mechanism": "Dephasing destroys quantum entanglement (excess MI above S_B), while the exchange Hamiltonian rebuilds classical correlations. The system transitions directly from over-correlated (quantum, I > S_B) to perfectly correlated (classical, I = S_B), without ever passing through an under-correlated phase (I < S_B).",
+    "implication_for_conjecture": "The Born-Fisher-Experiential conjecture predicts that mu_Q(theta) selects Born-rule initial states via a maximum. Since mu_Q = 0 identically (no positive rho_Q region), there is no selection mechanism. The conjecture is falsified for this class of Lindblad models."
+  },
+  "references": {
+    "baez_dolan_2001": "Groupoid cardinality motivating 1/|Aut(x)| weighting",
+    "quantum_extension_draft": "Sections 3, 6, 8 -- conjecture statement and toy model"
+  }
+}
