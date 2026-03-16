@@ -5,23 +5,23 @@
 See: .gpd/PROJECT.md (updated 2026-03-15)
 
 **Core research question:** Can the experiential measure framework on structure space be formalized with rigorous proofs?
-**Current focus:** Phase 2 complete; next: Phase 3 - Born-Fisher Test
+**Current focus:** Phase 3 complete -- Born-Fisher conjecture FALSIFIED
 
 ## Current Position
 
-**Current Phase:** 2
-**Current Phase Name:** Lipschitz Stability
+**Current Phase:** 3
+**Current Phase Name:** Born-Fisher Test
 **Total Phases:** 3
 **Current Plan:** 2/2 (complete)
 **Total Plans in Phase:** 2
-**Status:** Phase 2 execution complete (pending verification)
-**Last Activity:** 2026-03-16 -- Lipschitz bound proven and numerically validated
+**Status:** Phase 3 complete (verified)
+**Last Activity:** 2026-03-16 -- Born-Fisher conjecture FALSIFIED: mu_Q identically zero across 1900+ trajectories
 
-**Progress:** [██████░░░░] 67%
+**Progress:** [██████████] 100%
 
 ## Active Calculations
 
-None (Phase 2 execution complete, pending verification).
+None (Phase 3 execution complete, pending verification).
 
 ## Intermediate Results
 
@@ -32,10 +32,15 @@ None (Phase 2 execution complete, pending verification).
 - L(delta) = (C_I+C_H)/gap(P), improved from plan's (2C_I+C_H)/gap(P) via MVT
 - Observer chain: gap=0.1, rho=0.346 nats, I/H=0.508
 - Numerical validation: 3000 perturbations, zero violations, tightness 450-9500x
+- Test A (static): alpha_half(p=0.5,d=2) = 0.890, spread over p = 0.069; Born-rule not special; FALSIFIES STATIC
+- d=3 confirms: not a d=2 artifact (alpha_half spread = 0.023)
+- Test B (dynamic): rho_Q(t) <= 0 throughout all 1900+ Lindblad trajectories; mu_Q = 0 identically
+- Exchange Hamiltonian maintains perfect tracking (I=S_B late-time), system never enters I < S_B
+- FINAL VERDICT: Born-Fisher-Experiential conjecture FALSIFIED
 
 ## Open Questions
 
-- Whether qubit model needs 2x2 or larger Hilbert space to be informative
+- Whether non-Markovian or amplitude-damping channels could produce rho_Q > 0 regime
 - Bound looseness (450-9500x): direct differentiation could yield tighter L
 
 ## Performance Metrics
@@ -47,6 +52,8 @@ None (Phase 2 execution complete, pending verification).
 | 01-02-fix | 25min | 3     | 3     |
 | 02-01 | 10min    | 2     | 1     |
 | 02-02 | 10min    | 2     | 2     |
+| 03-01 | 7min     | 2     | 7     |
+| 03-02 | 8min     | 2     | 7     |
 
 ## Accumulated Context
 
@@ -57,6 +64,9 @@ None (Phase 2 execution complete, pending verification).
 - Restructured mu_stable bound with case analysis using min(tau_exit, T_eps) after verification found original bound exceeded observation window
 - Used MVT for Lipschitz Step 3 composition, yielding tighter L = (C_I+C_H)/gap instead of (2C_I+C_H)/gap
 - Stated non-linear Lipschitz bound as primary result (linear L is delta-dependent due to h_bin logarithmic divergence)
+- Test A verdict: FALSIFIES STATIC -- Born-rule distributions have no special property at half-saturation for diagonal states
+- Test B verdict: FALSIFIED -- mu_Q identically zero, no dynamical selection mechanism
+- Combined: Born-Fisher conjecture falsified in this toy model (valid decisive result per contract)
 
 ### Active Approximations
 
@@ -107,5 +117,5 @@ None
 ## Session Continuity
 
 **Last session:** 2026-03-16
-**Stopped at:** Phase 2 execution complete, pending verification
+**Stopped at:** All 3 phases complete -- milestone ready for completion
 **Resume file:** —

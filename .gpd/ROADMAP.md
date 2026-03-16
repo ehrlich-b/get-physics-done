@@ -10,13 +10,13 @@ This project closes three formal gaps in the experiential measure framework: ass
 | --- | --- | --- | --- |
 | claim-theorem-a | claim | Phase 1 | Verified |
 | claim-lipschitz | claim | Phase 2 | Verified |
-| claim-born-fisher | claim | Phase 3 | Planned |
+| claim-born-fisher | claim | Phase 3 | Verified |
 | deliv-theorem-a-proof | derivation | Phase 1 | Verified |
 | deliv-lipschitz-proof | derivation | Phase 2 | Verified |
-| deliv-qubit-code | code | Phase 3 | Planned |
+| deliv-qubit-code | code | Phase 3 | Verified |
 | obs-theorem-a | proof obligation | Phase 1 | Verified |
 | obs-lipschitz | proof obligation | Phase 2 | Verified |
-| obs-qubit-test | scalar | Phase 3 | Planned |
+| obs-qubit-test | scalar | Phase 3 | Verified |
 | fp-sketch-only | forbidden proxy | Phase 1 | Rejected |
 | fp-numerics-only | forbidden proxy | Phase 2 | Rejected |
 
@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Theorem A Assembly** - Compose the 7-lemma proof of Boltzmann brain negligibility with explicit error scaling
 - [x] **Phase 2: Lipschitz Stability** - Prove rho is Lipschitz in the transition kernel and verify numerically
-- [ ] **Phase 3: Born-Fisher Test** - Implement qubit model and compute I_vN(B;M)/S_vN(B) for Born vs non-Born distributions
+- [x] **Phase 3: Born-Fisher Test** - Implement qubit model and compute I_vN(B;M)/S_vN(B) for Born vs non-Born distributions
 
 ## Phase Details
 
@@ -130,8 +130,8 @@ Plans:
 
 Plans:
 
-- [ ] 03-01-PLAN.md -- Quantum info utilities + static diagonal-state Test A (alpha_half analysis, Born vs non-Born comparison)
-- [ ] 03-02-PLAN.md -- Lindblad dynamics Test B + asymmetric extension + final verdict on Born-Fisher conjecture
+- [x] 03-01-PLAN.md -- Quantum info utilities + static diagonal-state Test A (alpha_half analysis, Born vs non-Born comparison)
+- [x] 03-02-PLAN.md -- Lindblad dynamics Test B + asymmetric extension + final verdict on Born-Fisher conjecture
 
 ## Phase Dependencies
 
@@ -169,4 +169,4 @@ Phases execute in numeric order (1, 2, 3) but are all independent.
 | --- | --- | --- | --- |
 | 1. Theorem A Assembly | 2/2 | Complete | 2026-03-16 |
 | 2. Lipschitz Stability | 2/2 | Complete | 2026-03-16 |
-| 3. Born-Fisher Test | 0/TBD | Not started | - |
+| 3. Born-Fisher Test | 2/2 | Complete | 2026-03-16 |
