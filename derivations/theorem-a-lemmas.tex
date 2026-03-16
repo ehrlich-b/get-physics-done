@@ -703,6 +703,19 @@ The seven lemmas form a directed acyclic graph (DAG).
 Each edge is annotated with the mathematical object that flows from
 source to target and the type of that object.
 
+\begin{verbatim}
+L1 (Basin Partition -- exact)
+ |-- L2 (Residence Time -- expectation + concentration)
+ |    |-- L4 (Stable Measure Lower Bound -- high-prob bound)
+ |    +-- L5 (BB Occupation Upper Bound -- expected value)
+ |-- L3 (QSD Convergence -- TV bound, rate gamma_D)
+ |    +-- L4
+ +-- L6 (Concentration -- converts E[.] to high-prob bounds)
+      +-- L7 (Ratio Assembly -- Theorem A bound)
+              ^
+       L4, L5 -+
+\end{verbatim}
+
 \medskip
 \noindent
 \textbf{Topological order:}
