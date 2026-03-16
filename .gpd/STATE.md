@@ -5,34 +5,38 @@
 See: .gpd/PROJECT.md (updated 2026-03-15)
 
 **Core research question:** Can the experiential measure framework on structure space be formalized with rigorous proofs?
-**Current focus:** Phase 1 complete; next: Phase 2 - Lipschitz Stability
+**Current focus:** Phase 2 complete; next: Phase 3 - Born-Fisher Test
 
 ## Current Position
 
-**Current Phase:** 1
-**Current Phase Name:** Theorem A Assembly
+**Current Phase:** 2
+**Current Phase Name:** Lipschitz Stability
 **Total Phases:** 3
 **Current Plan:** 2/2 (complete)
 **Total Plans in Phase:** 2
-**Status:** Phase 1 complete (verified 9/9, confidence HIGH)
-**Last Activity:** 2026-03-16 -- Phase 1 verified and closed
+**Status:** Phase 2 execution complete (pending verification)
+**Last Activity:** 2026-03-16 -- Lipschitz bound proven and numerically validated
 
-**Progress:** [███░░░░░░░] 33%
+**Progress:** [██████░░░░] 67%
 
 ## Active Calculations
 
-None (Phase 1 complete).
+None (Phase 2 execution complete, pending verification).
 
 ## Intermediate Results
 
 - Theorem A error composition rate: gamma = alpha/2 (from eta = exp(-alpha/(2*eps)) choice)
 - Theorem A prefactor: C = (rho_max/c)(K_b/K_s^2) = O(1) in epsilon; C = 0.25 for three-state chain (p=0.5)
 - MC validation: all 9 (p,alpha) test cases pass (p in {0.3, 0.5, 0.7}, alpha in {0.3, 0.5, 1.0})
+- Lipschitz bound: |rho-rho'| <= (delta/2)[2ln(|B|-1)+ln(|M|-1)+ln(n-1)] + 4*h_bin(delta/2)
+- L(delta) = (C_I+C_H)/gap(P), improved from plan's (2C_I+C_H)/gap(P) via MVT
+- Observer chain: gap=0.1, rho=0.346 nats, I/H=0.508
+- Numerical validation: 3000 perturbations, zero violations, tightness 450-9500x
 
 ## Open Questions
 
-- Exact form of L(|Omega|, spectral_gap) in Lipschitz bound
 - Whether qubit model needs 2x2 or larger Hilbert space to be informative
+- Bound looseness (450-9500x): direct differentiation could yield tighter L
 
 ## Performance Metrics
 
@@ -41,6 +45,8 @@ None (Phase 1 complete).
 | 01-01 | 6min     | 2     | 1     |
 | 01-02 | 11min    | 2     | 3     |
 | 01-02-fix | 25min | 3     | 3     |
+| 02-01 | 10min    | 2     | 1     |
+| 02-02 | 10min    | 2     | 2     |
 
 ## Accumulated Context
 
@@ -49,6 +55,8 @@ None (Phase 1 complete).
 - Used BEGK Thm 1.4 (exponential law) as primary concentration tool for Theorem A, avoiding full DV extension to rho-weighted functionals
 - Corrected gamma from min(Delta_s-Delta_b, alpha) to alpha/2 after verification found overstatement
 - Restructured mu_stable bound with case analysis using min(tau_exit, T_eps) after verification found original bound exceeded observation window
+- Used MVT for Lipschitz Step 3 composition, yielding tighter L = (C_I+C_H)/gap instead of (2C_I+C_H)/gap
+- Stated non-linear Lipschitz bound as primary result (linear L is delta-dependent due to h_bin logarithmic divergence)
 
 ### Active Approximations
 
@@ -99,5 +107,5 @@ None
 ## Session Continuity
 
 **Last session:** 2026-03-16
-**Stopped at:** Phase 1 complete, verified
+**Stopped at:** Phase 2 execution complete, pending verification
 **Resume file:** —

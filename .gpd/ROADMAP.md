@@ -9,16 +9,16 @@ This project closes three formal gaps in the experiential measure framework: ass
 | Contract Item | Kind | Advanced By | Status |
 | --- | --- | --- | --- |
 | claim-theorem-a | claim | Phase 1 | Verified |
-| claim-lipschitz | claim | Phase 2 | Planned |
+| claim-lipschitz | claim | Phase 2 | Verified |
 | claim-born-fisher | claim | Phase 3 | Planned |
 | deliv-theorem-a-proof | derivation | Phase 1 | Verified |
-| deliv-lipschitz-proof | derivation | Phase 2 | Planned |
+| deliv-lipschitz-proof | derivation | Phase 2 | Verified |
 | deliv-qubit-code | code | Phase 3 | Planned |
 | obs-theorem-a | proof obligation | Phase 1 | Verified |
-| obs-lipschitz | proof obligation | Phase 2 | Planned |
+| obs-lipschitz | proof obligation | Phase 2 | Verified |
 | obs-qubit-test | scalar | Phase 3 | Planned |
 | fp-sketch-only | forbidden proxy | Phase 1 | Rejected |
-| fp-numerics-only | forbidden proxy | Phase 2 | Active |
+| fp-numerics-only | forbidden proxy | Phase 2 | Rejected |
 
 ## Phases
 
@@ -30,7 +30,7 @@ This project closes three formal gaps in the experiential measure framework: ass
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Theorem A Assembly** - Compose the 7-lemma proof of Boltzmann brain negligibility with explicit error scaling
-- [ ] **Phase 2: Lipschitz Stability** - Prove rho is Lipschitz in the transition kernel and verify numerically
+- [x] **Phase 2: Lipschitz Stability** - Prove rho is Lipschitz in the transition kernel and verify numerically
 - [ ] **Phase 3: Born-Fisher Test** - Implement qubit model and compute I_vN(B;M)/S_vN(B) for Born vs non-Born distributions
 
 ## Phase Details
@@ -97,8 +97,8 @@ Plans:
 
 Plans:
 
-- [ ] 02-01-PLAN.md -- Derive 3-step Lipschitz bound with explicit L = O(ln(|Omega|)/gap(P)) and verify limiting cases
-- [ ] 02-02-PLAN.md -- Numerically verify L_proven against 1000+ random perturbations of toy model, test scaling with gap and |Omega|
+- [x] 02-01-PLAN.md -- Derive 3-step Lipschitz bound with explicit L = O(ln(|Omega|)/gap(P)) and verify limiting cases
+- [x] 02-02-PLAN.md -- Numerically verify L_proven against 1000+ random perturbations of toy model, test scaling with gap and |Omega|
 
 ### Phase 3: Born-Fisher Test
 
@@ -168,5 +168,5 @@ Phases execute in numeric order (1, 2, 3) but are all independent.
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 1. Theorem A Assembly | 2/2 | Complete | 2026-03-16 |
-| 2. Lipschitz Stability | 0/TBD | Not started | - |
+| 2. Lipschitz Stability | 2/2 | Complete | 2026-03-16 |
 | 3. Born-Fisher Test | 0/TBD | Not started | - |
