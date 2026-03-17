@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from gpd.adapters import get_adapter
 from gpd.hooks.runtime_detect import (
     RUNTIME_UNKNOWN,
@@ -54,6 +56,14 @@ def _clean_runtime_env() -> dict[str, str]:
         for key, value in os.environ.items()
         if not key.startswith(_RUNTIME_ENV_PREFIXES) and key not in _RUNTIME_ENV_VARS_TO_CLEAR
     }
+
+
+@pytest.fixture(autouse=True)
+def _reset_runtime_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep runtime-detection tests isolated from ambient runtime env drift."""
+    for key in list(os.environ):
+        if key.startswith(_RUNTIME_ENV_PREFIXES) or key in _RUNTIME_ENV_VARS_TO_CLEAR:
+            monkeypatch.delenv(key, raising=False)
 
 
 def _mark_gpd_install(config_dir: Path, *, runtime: str | None = None, install_scope: str = SCOPE_LOCAL) -> None:

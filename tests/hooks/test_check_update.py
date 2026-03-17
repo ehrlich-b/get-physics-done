@@ -7,9 +7,12 @@ logic, background spawn failure, and graceful degradation.
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from gpd.adapters import get_adapter
 from gpd.hooks.check_update import (
@@ -20,6 +23,17 @@ from gpd.hooks.check_update import (
     main,
 )
 from gpd.hooks.runtime_detect import UpdateCacheCandidate
+
+_RUNTIME_ENV_PREFIXES = ("CLAUDE_CODE", "CODEX", "GEMINI", "OPENCODE")
+_RUNTIME_ENV_VARS_TO_CLEAR = {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
+
+
+@pytest.fixture(autouse=True)
+def _reset_runtime_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep update-hook tests isolated from prior runtime env overrides."""
+    for key in list(os.environ):
+        if key.startswith(_RUNTIME_ENV_PREFIXES) or key in _RUNTIME_ENV_VARS_TO_CLEAR:
+            monkeypatch.delenv(key, raising=False)
 
 
 def _cache_candidate(path: Path) -> UpdateCacheCandidate:

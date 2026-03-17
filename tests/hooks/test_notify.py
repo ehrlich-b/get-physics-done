@@ -4,13 +4,27 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import threading
 import time
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from gpd.adapters import get_adapter
 from gpd.hooks.notify import _check_and_notify_update, _emit_execution_notification, _hook_payload_policy, main
+
+_RUNTIME_ENV_PREFIXES = ("CLAUDE_CODE", "CODEX", "GEMINI", "OPENCODE")
+_RUNTIME_ENV_VARS_TO_CLEAR = {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
+
+
+@pytest.fixture(autouse=True)
+def _reset_runtime_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep notify-hook tests isolated from prior runtime env overrides."""
+    for key in list(os.environ):
+        if key.startswith(_RUNTIME_ENV_PREFIXES) or key in _RUNTIME_ENV_VARS_TO_CLEAR:
+            monkeypatch.delenv(key, raising=False)
 
 
 def _write_current_execution(workspace: Path, payload: dict[str, object]) -> None:

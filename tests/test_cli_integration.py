@@ -9,6 +9,7 @@ without crashing.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,6 +21,17 @@ from gpd.cli import app
 from gpd.core.state import default_state_dict, generate_state_markdown
 
 runner = CliRunner()
+
+_RUNTIME_ENV_PREFIXES = ("CLAUDE_CODE", "CODEX", "GEMINI", "OPENCODE")
+_RUNTIME_ENV_VARS_TO_CLEAR = {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
+
+
+@pytest.fixture(autouse=True)
+def _reset_runtime_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep CLI integration tests isolated from prior runtime env overrides."""
+    for key in list(os.environ):
+        if key.startswith(_RUNTIME_ENV_PREFIXES) or key in _RUNTIME_ENV_VARS_TO_CLEAR:
+            monkeypatch.delenv(key, raising=False)
 
 
 # ---------------------------------------------------------------------------
