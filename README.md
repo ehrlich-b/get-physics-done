@@ -11,7 +11,7 @@ Get Physics Done is an open-source AI copilot for physics research from [Physica
 
 **Watch the Demo:**
 
-[![Watch the Demo](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_Play_Demo-2:45-blue?style=for-the-badge&logo=github)](https://github.com/user-attachments/assets/aaa2410f-6039-420f-8857-d3fbb8634074)
+[![Watch the Demo](https://img.youtube.com/vi/IKRxz7_wR2Q/maxresdefault.jpg)](https://youtu.be/IKRxz7_wR2Q)
 
 [Quick Start](#quick-start) · [Supported Runtimes](#supported-runtimes) · [Workflow](#what-gpd-does) · [Commands](#key-in-runtime-commands) · [Models](#optional-model-profiles-and-tier-overrides) · [Advanced CLI](#advanced-cli-utilities) · [System Requirements](#system-requirements)
 
