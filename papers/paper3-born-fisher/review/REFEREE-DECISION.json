@@ -1,0 +1,26 @@
+{
+  "manuscript_path": "papers/paper3-born-fisher/main.tex",
+  "target_journal": "unspecified",
+  "final_recommendation": "major_revision",
+  "final_confidence": "high",
+  "stage_artifacts": [
+    "papers/paper3-born-fisher/review/CLAIMS-EXTRACTION.md",
+    "papers/paper3-born-fisher/review/LITERATURE-CONTEXT.md",
+    "papers/paper3-born-fisher/review/MATH-SOUNDNESS.md",
+    "papers/paper3-born-fisher/review/PHYSICS-ASSESSMENT.md",
+    "papers/paper3-born-fisher/review/SIGNIFICANCE-ASSESSMENT.md"
+  ],
+  "central_claims_supported": true,
+  "claim_scope_proportionate_to_evidence": true,
+  "physical_assumptions_justified": true,
+  "unsupported_claims_are_central": false,
+  "reframing_possible_without_new_results": true,
+  "mathematical_correctness": "strong",
+  "novelty": "weak",
+  "significance": "weak",
+  "venue_fit": "weak",
+  "literature_positioning": "weak",
+  "unresolved_major_issues": 4,
+  "unresolved_minor_issues": 5,
+  "blocking_issue_ids": ["REF-001", "REF-002", "REF-003", "REF-004"]
+}

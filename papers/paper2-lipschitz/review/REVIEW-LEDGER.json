@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "round": 1,
+  "manuscript_path": "papers/paper2-lipschitz/main.tex",
+  "issues": [
+    {
+      "issue_id": "REF-001",
+      "opened_by_stage": "interestingness",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-001"],
+      "summary": "Standalone significance insufficient for physics/math-physics journals. Result is a standard-techniques service theorem for an unvalidated framework with a vacuous bound at the paper's own operating point.",
+      "rationale": "The proof composes three off-the-shelf tools (Cho-Meyer, Fannes-Audenaert, MVT) to prove Lipschitz continuity of an author-defined functional. No new technique introduced. The bound exceeds rho_max for the test chain at moderate perturbation. The functional has no independent empirical or theoretical validation.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex#Introduction", "papers/paper2-lipschitz/main.tex#Discussion"],
+      "required_action": "Merge into Paper 1 as section + appendix (strongly recommended), OR restructure standalone framing with expanded literature context, comparison with alternative approaches, and physically motivated perturbation scenario.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-002",
+      "opened_by_stage": "reader",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-008"],
+      "summary": "The ln|Omega| scaling 'confirmation' is tautological -- tests the closed-form formula, not an independent empirical observation. L_numerical*gap actually decreases with system size.",
+      "rationale": "L_proven is a closed-form formula containing ln(|B|-1), ln(|M|-1), ln(n-1). Plotting L_proven*gap vs ln|Omega| and finding linearity is confirming the formula evaluates correctly. The abstract claims this as empirical confirmation. L_numerical*gap shows a negative slope, contradicting the claimed scaling.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:49", "papers/paper2-lipschitz/main.tex:723-727"],
+      "required_action": "Rewrite abstract and Section 8.4 to either report L_numerical*gap vs ln|Omega| honestly or remove the ln|Omega| confirmation claim.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-003",
+      "opened_by_stage": "reader",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-011"],
+      "summary": "Physical observable framing unsupported. Paper treats rho as an established physical quantity when it is a proposed construction with no empirical validation.",
+      "rationale": "Section 1.2 states 'A physical theory must exhibit continuous dependence on its parameters' and frames rho as a 'physically meaningful observable.' Many physical quantities are discontinuous (order parameters at phase transitions). The experiential density has no empirical backing and its quantum extension's first test was falsified.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:93-105", "papers/paper2-lipschitz/main.tex:793-813"],
+      "required_action": "Soften 'physical theory must' to 'quantitative bounds are desirable'; replace 'physically meaningful observable' with 'well-behaved dynamical functional' or similar.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-004",
+      "opened_by_stage": "reader",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-007"],
+      "summary": "Gap exponent -0.89 described as 'consistent with' theoretical -1.0 without verifying the finite-sample explanation.",
+      "rationale": "10% deviation from predicted exponent. Explanation (finite-sample underestimation) is plausible but untested. Abstract uses 'confirmed' rather than 'approximately consistent.'",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:718-721"],
+      "required_action": "Soften to 'approximately consistent' and note alternative explanations for the deviation.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-005",
+      "opened_by_stage": "literature",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-001"],
+      "summary": "Experiential measure framework referenced but never cited. Reader cannot assess motivation for rho.",
+      "rationale": "Paper references an 'experiential measure framework' in Sec 1.1 and Sec 9.3, positions itself as 'the second of three foundational properties,' but provides no citation to work defining the framework.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:63-65", "papers/paper2-lipschitz/main.tex:793-803"],
+      "required_action": "Add explicit citation to the framework-defining work or state clearly it is a companion paper.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-006",
+      "opened_by_stage": "literature",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-002"],
+      "summary": "Alternative MI continuity pathway (conditional-entropy bounds, Winter 2016, Alhejji-Smith 2019) not discussed.",
+      "rationale": "Writing I(B;M) = H(B) - H(B|M) and using direct conditional-entropy continuity bounds could yield a tighter result with fewer h_bin terms. Paper should acknowledge this alternative.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:350-377"],
+      "required_action": "Add remark comparing triangle-inequality approach with conditional-entropy pathway. Cite Winter 2016 and Alhejji-Smith 2019.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-007",
+      "opened_by_stage": "literature",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-001"],
+      "summary": "Bibliography too thin (10 refs) for standalone paper. LMC stability literature, Ipsen-Meyer 1994, and conditional-entropy continuity references missing.",
+      "rationale": "Paper claims connections to LMC complexity, Markov chain perturbation theory, and information theory but cites only foundational references. Thirty years of LMC literature and alternative perturbation approaches are unengaged.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:819-875"],
+      "required_action": "Expand bibliography to 15-20 references covering LMC stability literature, Ipsen-Meyer 1994, Martin-Plastino-Rosso 2006, Winter 2016.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-008",
+      "opened_by_stage": "physics",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-001"],
+      "summary": "Non-vacuous regime not explicitly characterized. No formula for when the bound is informative.",
+      "rationale": "Paper notes bound is vacuous at eps=0.01, gap=0.1 but does not give a crisp condition for non-vacuousness as a function of gap and state-space size.",
+      "evidence_refs": ["papers/paper2-lipschitz/main.tex:807-813"],
+      "required_action": "Add formula or table showing the non-vacuousness boundary.",
+      "status": "open"
+    }
+  ]
+}

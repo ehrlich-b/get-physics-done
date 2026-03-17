@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "round": 1,
+  "stage_id": "math",
+  "stage_kind": "math",
+  "manuscript_path": "papers/paper3-born-fisher/main.tex",
+  "manuscript_sha256": "e8b6fc30f0ca73022373abfb7cf730ee85ab94e456ecc9b3de823c5642dd34a4",
+  "claims_reviewed": [
+    "CLM-rhoQ-def",
+    "CLM-pure-state-limit",
+    "CLM-superoperator",
+    "CLM-dephasing-rate",
+    "CLM-r-geq-1",
+    "CLM-muQ-zero",
+    "CLM-falsification"
+  ],
+  "summary": "The paper's mathematical framework is sound. The quantum experiential density definition, superoperator construction, RK4 integrator, and falsification logic are all correct. The key mechanism -- that the exchange Hamiltonian preserves |00> and |11> populations while dephasing destroys coherences, forcing the ratio I/S_B to decrease monotonically from 2 to 1 without entering the under-correlated regime -- is analytically provable. One minor numerical error was found: a factor-of-two mistake in a quoted rho_Q value on line 402 (-0.693 should be -1.386 nats). This does not affect any conclusion. All code logic was verified against the stated equations.",
+  "strengths": [
+    "Equations are standard quantum information theory applied to a well-defined functional; no novel mathematical machinery that could hide errors",
+    "Superoperator construction matches the standard vectorization identity for column-stacking and is verified against explicit matrix computation to machine precision",
+    "The r >= 1 mechanism is analytically provable: H|00> = H|11> = 0 ensures populations are time-invariant, so S_BM increases monotonically from 0 to S_B, keeping r in [1,2]",
+    "Numerical validation is thorough: 10 quantum info checks, 6 Lindblad checks, RK4 fourth-order convergence confirmed, trace preserved to 1e-16",
+    "The falsification logic is clean: mu_Q = 0 identically follows necessarily from rho_Q <= 0 everywhere, which follows from r >= 1 throughout",
+    "Code logic faithfully implements the stated equations with no ad hoc corrections or hard-coded values"
+  ],
+  "findings": [
+    {
+      "issue_id": "MATH-001",
+      "claim_ids": ["CLM-pure-state-limit"],
+      "severity": "minor",
+      "summary": "Factor-of-two error in quoted rho_Q value for pilot trajectory",
+      "rationale": "Line 402 states rho_Q = -0.693 nats for the theta=pi/4 pilot trajectory. Given I_vN = 2*ln(2) = 1.386 and S_B = ln(2) = 0.693, the correct value is rho_Q = I*(1-I/S_B) = 1.386*(1-2) = -1.386 nats, not -0.693 nats. The code computes the correct value; only the narrative text is wrong.",
+      "evidence_refs": [
+        "papers/paper3-born-fisher/main.tex:402",
+        "papers/paper3-born-fisher/main.tex:126"
+      ],
+      "manuscript_locations": ["papers/paper3-born-fisher/main.tex:402"],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Correct the quoted value from -0.693 to -1.386 nats on line 402"
+    }
+  ],
+  "equations_checked": [
+    {
+      "equation": "rho_Q = I_vN(B;M) * (1 - I_vN/S_vN(B))",
+      "location": "Eq. (3), Definition 1",
+      "check": "Direct quantum analogue of classical Eq. (1); code implements exactly this formula",
+      "status": "sound"
+    },
+    {
+      "equation": "Pure state: I_vN = 2*S_B, rho_Q = -2*S_B",
+      "location": "Eq. (4)",
+      "check": "Schmidt decomposition gives S_BM=0, S_B=S_M, hence I=2*S_B. Substitution gives rho_Q = 2*S_B*(1-2) = -2*S_B",
+      "status": "sound"
+    },
+    {
+      "equation": "L_super = -i(I kron H - H^T kron I) + dissipator terms",
+      "location": "Eq. (14)",
+      "check": "Verified against column-stacking identity vec(A rho B) = (B^T kron A) vec(rho). Each term matches. Code matches. Oracle verification to 0.0 error.",
+      "status": "sound"
+    },
+    {
+      "equation": "Off-diagonal decay: rho[0,3](t) = rho[0,3](0)*exp(-2*gamma_D*t)",
+      "location": "Section 5, line 507-508",
+      "check": "Derived from L = sqrt(gamma_D)*sigma_z kron I: L^dag L = gamma_D*I, dissipator rate = -2*gamma_D on (0,3) element. Verified numerically to 5e-11 relative error.",
+      "status": "sound"
+    },
+    {
+      "equation": "H = g*(sigma_x kron sigma_x + sigma_y kron sigma_y) has H|00> = H|11> = 0",
+      "location": "Eq. (8)",
+      "check": "Sum of Kronecker products gives 2g*(|01><10| + |10><01|), which annihilates |00> and |11>. This ensures populations in the initial-state subspace are time-invariant under H.",
+      "status": "sound"
+    }
+  ],
+  "limits_and_crosschecks": [
+    {
+      "limit": "alpha=1 (perfect tracking): r=1, rho_Q=0",
+      "location": "Section 2.2",
+      "status": "verified"
+    },
+    {
+      "limit": "alpha=1/d (no tracking): I=0, rho_Q=0",
+      "location": "Section 2.2",
+      "status": "verified"
+    },
+    {
+      "limit": "Pure Bell state: I = 2*ln(2)",
+      "location": "Validation table (b)",
+      "status": "verified to 1e-12"
+    },
+    {
+      "limit": "Product state: I = 0",
+      "location": "Validation table (c)",
+      "status": "verified to 1e-12"
+    },
+    {
+      "limit": "Peak rho_Q = S_B/4 at r=1/2",
+      "location": "Section 3.1",
+      "status": "verified (0.002% agreement for d=2)"
+    },
+    {
+      "limit": "Symmetry: I(p,alpha) = I(1-p,alpha)",
+      "location": "Section 3.2",
+      "status": "verified to 2e-16"
+    },
+    {
+      "limit": "Late-time diagonal state matches static calculation",
+      "location": "Validation table (e)",
+      "status": "verified (off-diag sum < 2e-9)"
+    }
+  ],
+  "unchecked_risk_areas": [
+    {
+      "area": "Qutrit (d=3) swap Hamiltonian construction",
+      "location": "test_b_dynamics.py lines 576-595",
+      "reason": "Only 3 spot-check trajectories; full permutation operator construction not independently verified in detail",
+      "risk": "low"
+    },
+    {
+      "area": "alpha_half spread of 0.069 (Test A)",
+      "location": "Section 3.2, Table",
+      "reason": "Not independently reproduced; code logic is sound so no reason to doubt",
+      "risk": "low"
+    },
+    {
+      "area": "Non-Markovian and amplitude-damping channels",
+      "location": "Section 6 (Future Directions)",
+      "reason": "Not tested; paper correctly identifies as open",
+      "risk": "out of scope (correctly scoped)"
+    }
+  ],
+  "confidence": "high",
+  "recommendation_ceiling": "minor_revision"
+}

@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "round": 1,
+  "manuscript_path": "papers/paper3-born-fisher/main.tex",
+  "issues": [
+    {
+      "issue_id": "REF-001",
+      "opened_by_stage": "interestingness",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-001"],
+      "summary": "Insufficient standalone significance for journal publication. Conjecture is self-posed, unpublished, and without community uptake.",
+      "rationale": "The Born-Fisher-Experiential conjecture has no external significance. Falsifying a self-posed conjecture in a minimal toy model is an internal research-program exercise. The negative result does not constrain any well-known open problem or resolve any existing controversy.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex#abstract", "papers/paper3-born-fisher/main.tex#discussion", "papers/paper3-born-fisher/main.tex#conclusion"],
+      "required_action": "Reframe contribution, merge into comprehensive paper, or add analytical theorem characterizing the Markovian channel class for which r >= 1.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-002",
+      "opened_by_stage": "literature",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-008"],
+      "summary": "Missing Deutsch-Wallace and Zurek envariance references; novelty claim overstated.",
+      "rationale": "The paper claims no existing Born-rule derivation connects the rule to observer-side variational principles. Deutsch-Wallace decision theory and Zurek envariance both involve observer-oriented reasoning about probability assignments. The novelty framing is materially overstated without engaging these programmes.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:83-88"],
+      "required_action": "Add Deutsch-Wallace and Zurek envariance citations. Revise novelty claim to narrow its scope or explain the distinction.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-003",
+      "opened_by_stage": "literature",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-001"],
+      "summary": "Self-citation titles in bibliography do not match actual companion papers.",
+      "rationale": "Ehrlich2026a is listed with a fabricated title that does not match Paper 1 (Boltzmann Brain Suppression...). Ehrlich2026b title is close but inexact vs Paper 2 (Lipschitz Stability of the Experiential Density Functional).",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:728-739", "papers/paper1-theorem-a/main.tex:22-23", "papers/paper2-lipschitz/main.tex:24"],
+      "required_action": "Update both self-citation titles to match actual companion paper titles.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-004",
+      "opened_by_stage": "meta",
+      "severity": "major",
+      "blocking": true,
+      "claim_ids": ["CLM-003", "CLM-004"],
+      "summary": "Missing analytical proof that r >= 1 under exchange-plus-dephasing dynamics; result relies entirely on numerical evidence.",
+      "rationale": "The monotone decrease of r from 2 to 1 is demonstrated numerically across 1900+ trajectories but is analytically provable from the dynamics structure. An analytical theorem would elevate the contribution from numerical observation to structural result.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex#mechanism"],
+      "required_action": "State and prove analytically that r(t) >= 1 for the exchange-plus-dephasing model class. Ideally characterize the broader channel class.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-005",
+      "opened_by_stage": "math",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-003"],
+      "summary": "Factor-of-2 error in quoted rho_Q value for pilot trajectory (line 402).",
+      "rationale": "rho_Q = I*(1-I/S_B) = 1.386*(1-2) = -1.386 nats, not -0.693 nats as stated. Code computes correctly.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:402"],
+      "required_action": "Change -0.693 nats to -1.386 nats on line 402.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-006",
+      "opened_by_stage": "reader",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-008"],
+      "summary": "Fisher information invoked in conjecture name but absent from paper.",
+      "rationale": "No Fisher information computation or definition appears. The Baez-Dolan connection is asserted in one sentence. Frieden's programme is uncited.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:37", "papers/paper3-born-fisher/main.tex:155-158"],
+      "required_action": "Explain Fisher connection or clarify it is developed in companion work; cite Frieden.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-007",
+      "opened_by_stage": "physics",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-009"],
+      "summary": "No discussion of quantum discord as mechanism for I_vN > S_B.",
+      "rationale": "The excess mutual information for entangled states includes a quantum discord contribution. Naming this clarifies the physics.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:121-132"],
+      "required_action": "Add one sentence naming discord; cite Ollivier-Zurek (2001).",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-008",
+      "opened_by_stage": "physics",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-005"],
+      "summary": "Structural negativity of rho_Q for pure states inadequately discussed as limitation of quantum extension.",
+      "rationale": "The pure-state negativity is a structural property that any future quantum application must address. The paper notes it but does not discuss implications.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:534-548"],
+      "required_action": "Add 2-3 sentences in Section 5.2 on implications for the quantum extension.",
+      "status": "open"
+    },
+    {
+      "issue_id": "REF-009",
+      "opened_by_stage": "literature",
+      "severity": "minor",
+      "blocking": false,
+      "claim_ids": ["CLM-008"],
+      "summary": "Missing comparison to integrated information theory (Tononi, Zanardi et al.).",
+      "rationale": "The experiential density is structurally parallel to IIT's bipartite information functional. Quantum IIT faces analogous challenges.",
+      "evidence_refs": ["papers/paper3-born-fisher/main.tex:93-102"],
+      "required_action": "Add brief comparison to IIT/QIIT in introduction or discussion.",
+      "status": "open"
+    }
+  ]
+}
