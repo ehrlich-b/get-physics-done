@@ -9,6 +9,8 @@
 
 Get Physics Done is an open-source AI copilot for physics research from [Physical Superintelligence PBC (PSI)](https://www.psi.inc), released as a community contribution. GPD helps turn a research question into a structured workflow: scope the problem, plan the work, derive results, verify them, and package the output.
 
+https://github.com/user-attachments/assets/e79f8153-c0bd-484f-b69e-da8f142649e0
+
 [Quick Start](#quick-start) · [Supported Runtimes](#supported-runtimes) · [Workflow](#what-gpd-does) · [Commands](#key-in-runtime-commands) · [Models](#optional-model-profiles-and-tier-overrides) · [Advanced CLI](#advanced-cli-utilities) · [System Requirements](#system-requirements)
 
 ## Who This Is For
@@ -16,7 +18,6 @@ Get Physics Done is an open-source AI copilot for physics research from [Physica
 GPD is for hard physics research problems that cannot be handled reliably with manual prompting.
 
 It is designed for long-horizon projects that require rigorous verification, structured research memory, multi-step analytical work, complex numerical studies, and manuscript writing or review.
-
 
 We welcome contributions and feedback via GitHub issues or pull requests; if GPD is useful in your work, please star the repo, and share it with colleagues who might benefit.
 
@@ -495,7 +496,7 @@ The `gpd` CLI also includes machine-readable validation, observability, and trac
 | `gpd validate verification-contract <VERIFICATION.md>` | Validate verification frontmatter plus contract-result / comparison alignment |
 | `gpd validate review-ledger <file.json>` | Validate the final staged peer-review issue ledger |
 | `gpd validate referee-decision <file.json> [--strict] [--ledger <file.json>]` | Validate a staged peer-review decision against hard recommendation gates and optional ledger consistency |
-| `gpd validate reproducibility-manifest <file.json> --strict` | Validate a reproducibility manifest and require review-ready coverage |
+| `gpd validate reproducibility-manifest <file.json> [--strict] [--kernel-verdict]` | Validate a reproducibility manifest, optionally requiring review-ready coverage or emitting a content-addressed kernel verdict |
 
 </details>
 
