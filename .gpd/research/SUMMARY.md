@@ -1,404 +1,445 @@
 # Research Summary
 
-**Project:** Experiential Measure on Structure Space (v2.0 -- QM from Algebraic Genericity)
-**Domain:** Quantum foundations / Algebraic quantum theory / QM reconstruction
-**Researched:** 2026-03-20
+**Project:** Experiential Measure on Structure Space -- v3.0 GR Extension
+**Domain:** Quantum foundations / Quantum gravity / Thermodynamic gravity / Entanglement-gravity correspondence
+**Researched:** 2026-03-21
 **Confidence:** MEDIUM
 
 ## Unified Notation
 
-All downstream work uses these conventions. Where research files differed, reconciliation is noted.
+| Symbol | Quantity | Units/Dimensions | Convention Notes |
+|--------|---------|-----------------|-----------------|
+| g_ab | Spacetime metric | dimensionless | Abstract index notation, signature (-,+,+,+) following Wald |
+| G_ab | Einstein tensor | [length]^{-2} | G_ab = R_ab - (1/2) R g_ab |
+| R_ab | Ricci tensor | [length]^{-2} | Follows from metric connection |
+| T_ab | Stress-energy tensor | [mass][length]^{-3} | Source term in Einstein equations |
+| S_EE | Entanglement entropy | dimensionless (natural units) | von Neumann: S_EE = -Tr(rho_A ln rho_A); distinguished from S_BH |
+| S_BH | Bekenstein-Hawking entropy | dimensionless | S_BH = A/(4G) in natural units |
+| I(A:B) | Mutual information | dimensionless | I(A:B) = S(A) + S(B) - S(AB) |
+| K | Modular Hamiltonian | dimensionless | K = -ln(rho_A); generates modular flow |
+| A_x | Local algebra at site x | -- | A_x = M_n(C), full matrix algebra |
+| M_n(C)^sa | Self-adjoint part of n x n matrices | -- | The Jordan algebra from Paper 5 |
+| theta | Expansion of null congruence | [length]^{-1} | Raychaudhuri variable |
+| sigma_ab | Shear of null congruence | [length]^{-1} | Traceless part of expansion tensor |
+| k^a | Null normal to horizon | [length]^{-1} | Affinely parametrized null generator |
+| chi^a | Boost Killing vector | dimensionless | Approximate, at local Rindler horizon |
+| v_LR | Lieb-Robinson velocity | [length]/[time] | Effective speed of information propagation |
+| eta | Entropy density | [length]^{-2} | S = eta * A; eta = 1/(4G) |
+| Delta | Spectral gap | [energy] | E_1 - E_0 for ground state |
+| xi | Correlation length | [length] | Exponential decay scale of correlations |
 
-| Symbol | Quantity | Convention | Notes |
-|--------|---------|-----------|-------|
-| a . b | Sequential product | van de Wetering (arXiv:1803.11139) | Non-commutative; "test a then test b" |
-| a o b | Jordan product | a o b = (1/2)(a . b + b . a) | Commutative; the symmetrized sequential product. NOTE: factor of 1/2 is easy to drop (Pitfall P6 checklist) |
-| [0,1]\_V | Effect space | {a in V : 0 <= a <= 1} | Effects on order unit space V with unit 1 |
-| 1 | Order unit | Identity effect / trivial test | Standard |
-| Omega(V) | State space | Compact convex set of normalized positive functionals on V | Matches van de Wetering |
-| a perp b | Orthogonality | a . b = 0 | Defined via sequential product, not algebraic complement |
-| a\* | Involution / adjoint | C\*-algebra involution (goal of derivation) | Does NOT exist until Phase 2 succeeds |
-| S1--S7 | Sequential product axioms | Van de Wetering (arXiv:1803.11139) formulation exclusively | NOT Gudder-Greechie original axioms (different S4). See Pitfall P8. |
-| E(B), E(M) | Effect algebras of body, model | To be determined: E(B) vs E(B x M) is Phase 1 research question | See Pitfall P2 |
-| EJA | Euclidean Jordan algebra | Finite-dimensional formally real Jordan algebra | JVW classification: 5 simple types |
-| M\_n(K)\_sa | Self-adjoint n x n matrices over K | K in {R, C, H}; plus spin factors V\_n and Albert algebra M\_3(O)\_sa | Standard Jordan algebra notation |
+**Unit system:** Natural units (hbar = c = k_B = 1) for all derivations. Restore factors only in final expressions.
 
-**Unit system:** Natural (dimensionless algebraic quantities throughout).
-**Metric/signature:** Not applicable (no spacetime structure; this is algebraic quantum foundations).
-**Standing assumption:** All systems finite-dimensional.
+**Metric signature:** (-,+,+,+) throughout, following Wald and Jacobson (2016). Note: Jacobson (1995) uses (+,-,-,-); signs in the Raychaudhuri equation must be adjusted when comparing.
 
-**Convention conflict resolved:** METHODS.md sometimes uses a & b for the sequential product while PRIOR-WORK.md uses a . b. Both follow van de Wetering. We adopt a . b (dot notation) as standard, matching the published journal version (J. Math. Phys. 60, 062201). COMPUTATIONAL.md uses `seq(a,b)` in code, which is the programmatic representation.
+**Convention conflicts resolved:**
+
+1. Jacobson 1995 uses (+,-,-,-) while Jacobson 2016 and standard GR texts use (-,+,+,+). We adopt (-,+,+,+). The Raychaudhuri equation changes sign on the R_ab k^a k^b term: in our convention, d(theta)/d(lambda) = -(1/(D-2)) theta^2 - sigma^2 - R_ab k^a k^b (for geodesic, twist-free congruence).
+
+2. "Entropy" appears in three senses: S_EE (entanglement), S_BH (Bekenstein-Hawking thermodynamic), and S_thermo (Clausius relation). Jacobson (2012, 2016) argues S_EE = S_BH for horizons; this identification is an input assumption, not a derived result.
+
+3. "Area law" in condensed matter (S_EE proportional to boundary area of spatial region) vs. "area law" in black hole physics (S_BH proportional to horizon area). Same mathematical statement, different physical context. We unify: both are instances of entanglement entropy scaling with boundary area.
 
 ## Executive Summary
 
-This project aims to derive the C\*-algebra involution -- the last missing piece in the L4 --> QM chain -- from the sequential product structure of self-modeling systems. The route is: (1) show that the "test-update-test" operation on a self-modeling system satisfies van de Wetering's axioms S1--S7, which forces the algebra of effects to be a Euclidean Jordan algebra; (2) show that body-model compositionality implies local tomography, which via Hanche-Olsen's theorem promotes the Jordan algebra to a C\*-algebra. Both steps rest on established published theorems. The novelty and risk are entirely in verifying that the self-modeling construction satisfies the axiom inputs.
+The v3.0 milestone aims to derive Einstein's field equations from the locality of self-modeling, extending the v2.0 result (self-modeling forces M_n(C)^sa) to gravity. The proposed derivation chain is: local self-modeling on a lattice of M_n(C)^sa systems produces area-law entanglement entropy; Jacobson's thermodynamic argument (1995/2016) converts area-law entropy into the Einstein field equations. The literature strongly supports the individual links: area laws for gapped local Hamiltonians are rigorously established in 1D (Hastings 2007) and for frustration-free 2D systems (Anshu-Arad-Gosset 2022), while Jacobson's thermodynamic derivation is widely accepted and has been refined over 30 years. The critical gap -- and the project's novel contribution -- is the bridge from self-modeling locality to the conditions that imply area-law entanglement. No prior work has connected a QM reconstruction program to emergent gravity.
 
-The critical bottleneck is axiom S4 (symmetry of orthogonality): if testing a then b gives zero, does testing b then a also give zero? For the standard quantum sequential product (Luders rule), this follows from spectral arguments. For the self-modeling product, the model-update step introduces an asymmetry that could break S4. No prior work has verified S4 for any construction beyond B(H). This is simultaneously the project's main novelty and its main risk. If S4 fails, a backup route exists via D'Ariano's faithful-state construction, and a conditional result (L4 + C\* ==> QM) is still publishable.
+The recommended approach is: (1) formalize self-modeling locality using the standard quantum lattice system framework (Bratteli-Robinson), (2) prove area-law entanglement via a channel capacity / mutual information bound that bypasses the need for a spectral gap, (3) apply Jacobson's 2016 "entanglement equilibrium" formulation (which uses entanglement entropy directly, avoiding the need for explicit Rindler horizons or Unruh temperature on the lattice), and (4) construct emergent spatial geometry from mutual information using the Cao-Carroll-Michalakis framework as a consistency check. The Jacobson 2016 formulation is strongly preferred over the 1995 version because it is more compatible with a lattice/discrete setting.
 
-The computational work is lightweight proof-support: symbolic axiom checking on 2x2 and 3x3 matrix models using SymPy, with NumPy for numerical cross-checks. No HPC or specialized software is needed. The main computational deliverable is a test harness that verifies S1--S7 against known positive controls (Luders product), negative controls (asymmetric product violating S4), and the novel self-modeling product once formalized.
+The principal risks are: (a) the self-modeling fixed point may not be a state with area-law entanglement (the "which state?" problem), (b) background dependence circularity (the lattice topology is an input, so "emergent geometry" means emergent metric, not emergent topology), and (c) Jacobson's argument requires a smooth manifold, but the self-modeling system is a finite lattice -- a continuum limit is needed but is an open problem in quantum gravity. These risks are manageable: (a) is addressed by the information-theoretic channel capacity route, (b) is mitigated by honest framing, and (c) is handled by adopting the standard Wilsonian perspective (lattice = UV, Einstein equations = IR effective description).
 
 ## Key Findings
 
-### Methods
-
-The project employs a sequence of established analytical methods, connected by published theorems, with one genuinely novel verification step.
-
-- **Sequential product axiom verification (S1--S7):** Direct axiom-by-axiom checking against the self-modeling construction in the order unit space framework. S1--S3 are essentially free (linearity, continuity in finite dim, unit). S5--S7 are moderate algebraic consequences. S4 is the decisive test. [CONFIDENCE: HIGH for the method; MEDIUM for whether S4 holds]
-- **Koecher-Vinberg pathway:** Once S1--S7 hold, van de Wetering Theorem 1 gives EJA structure automatically. This is a published theorem application, not novel work. [CONFIDENCE: HIGH]
-- **Hanche-Olsen tensor product criterion:** Promotes Jordan --> C\* via local tomography. Also a published theorem. [CONFIDENCE: HIGH]
-- **Local tomography from B-M independence:** The gap between "independent accessibility" and "local tomography" must be bridged. This is the second novel argument needed. Three techniques available: GPT dimension counting, information-theoretic argument, or categorical (Barnum-Wilce). [CONFIDENCE: MEDIUM]
-- **D'Ariano faithful-state backup:** If S4 fails, construct the involution from a symmetric faithful state. Requires the B-M correlation state to be faithful and symmetric -- non-trivial but plausible. [CONFIDENCE: MEDIUM]
-
 ### Prior Work Landscape
 
-The sequential product --> Jordan algebra --> C\* pipeline is well-established.
+Three distinct programs derive gravity from entanglement, and their relative strengths determine the recommended approach:
 
-**Must reproduce (critical benchmarks):**
-- Van de Wetering's Theorem 1: S1--S7 on finite-dim order unit space ==> EJA (this is invoked, not re-derived)
-- Van de Wetering's Theorem 3 / Hanche-Olsen: EJA + locally tomographic composite ==> C\*-algebra (invoked)
-- Westerbaan-Westerbaan-van de Wetering: associative sequential product ==> commutative (must verify self-modeling product is non-associative as a sanity check)
-- Barnum-Graydon-Wilce: compositionality excludes Albert algebra (must verify B-M composite satisfies their conditions)
+**Program 1: Jacobson's Thermodynamic Gravity (1995, 2012, 2016).** Derives the full nonlinear Einstein equations from area-law entropy + Clausius relation + Unruh effect. Does NOT require AdS/CFT. Works in any spacetime dimension. This is the recommended terminus of the derivation chain because it produces the strongest result (full nonlinear equations) with the fewest framework assumptions. [CONFIDENCE: HIGH]
 
-**Novel contributions (what this project adds):**
-- First verification of S1--S7 for a physically motivated construction beyond B(H)
-- Derivation of C\*-involution from a single operational premise (if S4 holds + local tomography proved)
-- If S4 fails: precise characterization of which axiom the self-modeling product violates, and what additional assumption bridges the gap
+**Program 2: AdS/CFT Entanglement Gravity (FLM, LMVR, Van Raamsdonk).** Derives linearized Einstein equations from the entanglement first law within holographic CFTs. Requires the full AdS/CFT apparatus. Not suitable as the primary route because self-modeling systems are not CFTs with holographic duals. However, the conceptual insight -- that entanglement constraints determine gravitational dynamics -- transfers directly. [CONFIDENCE: HIGH for the results within AdS/CFT; NOT APPLICABLE to this project as primary method]
 
-**Critical observation from PRIOR-WORK.md:** Every existing QM reconstruction program smuggles in the involution via some axiom (purification, local tomography, continuous reversibility, faithful state). If v2.0 succeeds, it would be the first to derive the involution purely from operational measurement structure.
+**Program 3: Emergent Geometry (Cao-Carroll-Michalakis 2017).** Constructs spatial geometry from entanglement structure of a quantum state in finite-dimensional Hilbert space. Produces a spatial analog of Einstein's equation from entanglement perturbations. Most directly compatible with the lattice framework. Gives spatial geometry only, not full spacetime dynamics. [CONFIDENCE: MEDIUM]
+
+**No direct precedent exists** for deriving GR from self-modeling, self-reference, or similar operational premises. The novelty is genuine: no published work chains QM reconstruction to emergent gravity. Each individual link (self-modeling to M_n(C)^sa, area laws from locality, Jacobson's derivation) has strong precedent, but the complete chain is new.
+
+**Must reproduce (benchmarks):**
+
+- Jacobson's derivation: G_ab + Lambda g_ab = (8 pi G) T_ab from area-law entropy, in the continuum limit
+- Area-law scaling: S(A) ~ |boundary(A)| for the relevant lattice state, not volume-law
+- Lieb-Robinson bounds: finite propagation speed from local interactions
+
+**Novel contributions:**
+
+- Self-modeling locality forces area-law entanglement (the bridge argument)
+- Complete chain from a single operational premise (self-modeling) to GR via QM
+- Identification of which self-modeling state satisfies area-law conditions
+
+### Methods and Tools
+
+The v3.0 methods work ABOVE the C*-algebra level established in v2.0: we now HAVE M_n(C)^sa at each site and must derive consequences of assembling many such sites into a lattice with local interactions. Seven methods are identified, with a clear critical path.
+
+**Critical path (sequential):**
+
+1. **Quantum lattice system formalization** (Bratteli-Robinson framework) -- define the lattice with A_x = M_n(C) at each site, nearest-neighbor interactions encoding self-modeling coupling. [CONFIDENCE: HIGH, standard framework]
+2. **Lieb-Robinson bounds** -- establish finite propagation speed and effective causal structure from local interactions. [CONFIDENCE: HIGH, rigorous theorems since 1972]
+3. **Area-law entanglement** via channel capacity / mutual information bound -- the CRITICAL STEP. Four routes available, ranked by promise: (3D) channel capacity bound (most promising, requires pure global state), (3A) WVCH mutual information bound (requires thermal state identification), (3C) Brandao-Horodecki correlation decay (1D only), (3B) Hastings gapped ground state (1D only, requires gap). [CONFIDENCE: MEDIUM for applicability to self-modeling]
+4. **Entanglement first law** -- delta S = delta <K> connects area-law perturbations to modular energy, bridging to Jacobson. [CONFIDENCE: MEDIUM-HIGH]
+5. **Jacobson 2016 entanglement equilibrium** -- MVEH (vacuum maximizes entanglement entropy in small geodesic balls) implies Einstein's equations. Preferred over 1995 because it uses entanglement entropy directly. [CONFIDENCE: HIGH for the continuum result; MEDIUM for lattice adaptation]
+
+**Supporting track (parallel):**
+
+6. **Cao-Carroll-Michalakis emergent geometry** -- construct spatial geometry from mutual information matrix via MDS. Consistency check, not on the critical path. [CONFIDENCE: MEDIUM]
+7. **MERA / holographic geometry** -- conceptual support showing area-law states can produce geometry. Not used as proof strategy. [CONFIDENCE: MEDIUM as conceptual framework]
+
+**Rate-limiting step:** Method 3 (area-law entanglement from self-modeling locality). The bridge between self-modeling locality and the information-theoretic conditions for area-law scaling is the single most important methodological question.
 
 ### Computational Approaches
 
-All computation is proof-support, not simulation. The stack is SymPy (symbolic identity verification) + NumPy/SciPy (numerical cross-checks). No dedicated software exists for sequential product axiom verification -- a lightweight Python test harness must be built from scratch.
+The v3.0 milestone is primarily proof work, not heavy numerics. Computation serves verification and illustration: small-scale numerical checks that area-law scaling holds for self-modeling lattices and that intermediate steps (entanglement first law) are numerically satisfied.
 
-**Key computational elements:**
-1. **Positive control:** Luders product on M\_2(C) must pass all S1--S7 checks (validates tooling)
-2. **Negative control:** Plain matrix multiplication must fail S4 (validates S4 detection)
-3. **Target:** Self-modeling sequential product (pending Phase 1 formalization)
-4. **Spin factor models:** V\_n for n > 3 provide non-quantum EJAs that still satisfy S1--S7, useful for catching dimension-specific bugs
+**Core approach:**
 
-Resource requirements are negligible: matrices are at most 4x4 (8x8 for composites), all computation runs on a single CPU in under 10 minutes.
+- Exact diagonalization (NumPy/SciPy) for lattices up to ~20 qubits / 10 M_2(C)^sa sites
+- QuTiP for partial trace and entanglement entropy extraction
+- Linear regression to distinguish area-law vs volume-law scaling
 
-### Pitfalls
+**Feasibility:** All computation is local laptop-scale. Sweet spots: 1D chain N=16-20 qubits and 2D 4x4 lattice (1 MB state vector, seconds to minutes). Total new code: ~300-400 lines of Python.
 
-The 7 critical pitfalls, ranked by severity and likelihood.
+**Critical dependency:** All numerical computation is blocked until Phase 1 defines the self-modeling interaction Hamiltonian. Benchmark computations (Heisenberg chain, transverse Ising) can validate infrastructure in parallel.
 
-1. **Circularity in the update map (P6):** If the self-modeling update rule uses Luders' rule, sqrt, inner product, or any Hilbert space structure, quantum mechanics is assumed, not derived. The update map must use ONLY order unit space primitives + the self-modeling constraint. Prevention: every step in Phase 1 must be audited for Hilbert space imports.
-2. **S4 assumed rather than proved (P3):** S4 is the hardest axiom. It must be the longest, most detailed proof. If the proof is short, something is wrong. Prevention: dedicated S4 analysis with multiple techniques (spectral decomposition, inner product symmetry, faithfulness reduction, contrapositive search).
-3. **Wrong effect algebra carrier (P2):** Effects on B vs effects on B x M give different sequential products. The correct framing is a RESULT of Phase 1, not a premise. Prevention: explore both framings in parallel.
-4. **Conflating local tomography with independent accessibility (P4):** Independent accessibility means you CAN measure each subsystem. Local tomography means product measurements SUFFICE to determine the joint state. The gap is the entangled sector. Prevention: Phase 2 must explicitly address which EJA type emerges and prove local tomography for that type.
-5. **Associativity kills non-commutativity (P9):** If the self-modeling sequential product is associative, the algebra is necessarily commutative (classical). This is a fatal obstruction. Prevention: verify non-associativity early in Phase 1 as a sanity check.
-6. **Axiom version mismatch (P8):** Gudder-Greechie S4 != van de Wetering S4. Pin all references to arXiv:1803.11139 exclusively.
-7. **Checking standard QM instead of the self-model (P1):** The false-progress trap. If any proof step invokes Hilbert space structure or works identically for any sequential product, it proves nothing about the self-modeling case.
+### Critical Pitfalls
+
+13 pitfalls identified, 8 critical and 5 moderate. The top 5:
+
+1. **The "Which State?" Problem (P1)** -- Area laws hold for ground states of gapped local Hamiltonians, not generic states. **Avoid by:** using the information-theoretic channel capacity route (Route 3D), which does not require a Hamiltonian or spectral gap, only that the global state is pure and information flow is local.
+
+2. **Background Dependence Circularity (P2)** -- The lattice connectivity is an input, so "emergent geometry" risks being tautological. **Avoid by:** separating claims: topology is input, metric is derived.
+
+3. **Jacobson Requires Smooth Manifold (P3)** -- Rindler horizons, Raychaudhuri equation, and Unruh temperature do not exist on a finite lattice. **Avoid by:** using Jacobson 2016 (entanglement equilibrium) and the Wilsonian perspective (lattice = UV, continuum = IR).
+
+4. **Spectral Gap Not Guaranteed (P4)** -- The gap is unproven for self-modeling and potentially undecidable (Cubitt-Perez-Garcia-Wolf 2015). **Avoid by:** using gap-free routes to area law.
+
+5. **Continuum Limit is an Open Problem (P6)** -- No known rigorous route from finite lattice to smooth manifold. **Avoid by:** framing as leading-order effective description, analogous to lattice QCD.
 
 ## Approximation Landscape
 
 | Method | Valid Regime | Breaks Down When | Controlled? | Complements |
-|--------|-------------|-----------------|-------------|-------------|
-| Sequential product axiom verification | Finite-dim order unit spaces with continuous sequential product | Infinite dimensions (need JB-algebra theory) | Yes (each axiom is a checkable identity) | D'Ariano backup if S4 fails |
-| Koecher-Vinberg (S1-S7 --> EJA) | Finite-dim, homogeneous self-dual cones | Infinite-dim or non-self-dual cones | Yes (theorem with explicit conditions) | Direct Jordan algebra construction |
-| Hanche-Olsen (EJA + tensor --> C\*) | JB-algebras admitting tensor products | Exceptional Jordan algebras (Albert algebra) | Yes (proven theorem) | Alfsen-Shultz orientation approach |
-| Local tomography argument | Complex matrix algebras | Real, quaternionic, or spin factor algebras (local tomography fails for these) | Partially (depends on formalization of "independence") | Purification axiom (Hardy) |
-| D'Ariano faithful-state route | Algebras with symmetric faithful states | Algebras without faithful states; or when composition-preservation fails | No (composition-preservation is postulated, not derived) | Sequential product route |
+|--------|------------|------------------|-------------|-------------|
+| Hastings area law | 1D, gapped, local H | Gapless (log corrections); D > 1 (unproven) | Yes (expansion in 1/Delta) | Brandao-Horodecki (no gap needed) |
+| Brandao-Horodecki | 1D, exponential correlation decay | Algebraic decay; D > 1 | Yes (expansion in xi) | Mutual info bound (works in all D) |
+| WVCH mutual info bound | Any D, thermal states of local H | Not thermal; not local H | Yes (bound: beta * boundary * h) | Channel capacity (no H needed) |
+| Channel capacity bound | Any D, pure global state, local info flow | Mixed global state; long-range channels | Yes (capacity = 2 log n per bond) | WVCH (handles thermal states) |
+| Jacobson 1995 | Smooth manifold, local equilibrium | Non-equilibrium (gives f(R) gravity); lattice | No (assumes equilibrium exactly) | Jacobson 2016 |
+| Jacobson 2016 | Conformal fields, first-order perturbations | Non-conformal (needs conjecture); higher order | Partially (first order) | CCM spatial Einstein analog |
+| CCM emergent geometry | Finite-dim Hilbert space, area-law states | Non-area-law states; distance inconsistency | No (constructive) | Jacobson for dynamics |
+| Exact diagonalization | N <= ~24 qubits | Memory overflow N > ~28 qubits | Yes (exact to machine precision) | DMRG for larger 1D |
 
-**Coverage gap:** The regime where S4 fails AND no faithful state exists is not covered by any method. In that case, the C\*-involution cannot be derived from self-modeling alone, and the result is the conditional statement: L4 + C\* ==> QM (still publishable, still novel).
+**Coverage gap:** No controlled method for proving area-law entanglement in D > 1 for general gapped Hamiltonians. The channel capacity argument is dimension-independent but requires the pure-state condition.
 
 ## Theoretical Connections
 
-### Established Connections
+### Entanglement First Law as Universal Bridge [ESTABLISHED]
 
-1. **Sequential products <--> Jordan algebras (van de Wetering 2018):** S1--S7 force EJA structure via Koecher-Vinberg. The Jordan product is the symmetrized sequential product: a o b = (1/2)(a . b + b . a). [ESTABLISHED]
+The entanglement first law delta S = delta <K> is the common thread linking all three programs. In Jacobson: it is the Clausius relation rewritten in entanglement language. In FLM/LMVR: it gives linearized Einstein equations via Ryu-Takayanagi. On a lattice: it is an exact quantum information identity for first-order perturbations of any state. The lattice formulation is mathematically identical to the continuum -- only the interpretation of K changes.
 
-2. **Jordan algebras + local tomography <--> C\*-algebras (Hanche-Olsen 1985, Barnum-Wilce 2014):** Among EJAs, only the complex matrix algebras M\_n(C)\_sa survive the local tomography constraint. The involution emerges because the self-adjoint part of a C\*-algebra inherits the \*-operation. [ESTABLISHED]
+### Modular Hamiltonian as Discrete Boost Generator [CONJECTURED]
 
-3. **Compositionality <--> exclusion of exceptional types (Barnum-Graydon-Wilce 2016/2020):** Having well-defined composites kills the Albert algebra, spin factors (n >= 4), and forces complex type -- independently of local tomography. This provides a second route to the same conclusion. [ESTABLISHED]
+In continuum QFT, the modular Hamiltonian of the vacuum restricted to a Rindler wedge IS the boost generator (Bisognano-Wichmann). On a lattice, K = -ln(rho_A) is well-defined but has no a priori geometric interpretation. The conjecture: for area-law states on lattices, K is approximately local (concentrated at the boundary of A), and in the continuum limit, K approaches the boost generator. This establishes the Unruh temperature through the modular Hamiltonian rather than through Lorentz invariance.
 
-4. **Associativity <--> commutativity in SEAs (Westerbaan-Westerbaan-van de Wetering 2020):** Associative normal SEAs are commutative (classical). Quantum non-commutativity requires non-associativity of the sequential product. [ESTABLISHED]
+### Self-Modeling Locality as Information-Theoretic Locality [SPECULATIVE]
 
-### Conjectured Connections (to be proved/disproved by this project)
+The deepest connection: the self-modeling constraint (model probes body through boundary) IS information-theoretic locality (mutual information bounded by channel capacity of intermediate bonds). If this identification holds, the area law follows immediately. This is the project's core hypothesis and its novel contribution.
 
-5. **Self-modeling "test-update-test" <--> sequential product satisfying S1--S7:** The central conjecture. If the self-modeling update map preserves enough structure, the operational "test-update-test" satisfies the sequential product axioms. [CONJECTURED -- this IS the project]
+### Area-Law Universality [ESTABLISHED]
 
-6. **B-M independent accessibility <--> local tomography:** If the self-model can probe B and M independently, and M faithfully tracks B, then product measurements suffice to determine the joint state. [CONJECTURED -- Phase 2]
+Area-law entanglement appears across: condensed matter ground states, black hole horizons, Ryu-Takayanagi surfaces, tensor network states. The universality strongly suggests it is a fundamental constraint. The self-modeling project would add another instance from an operational/algebraic premise.
 
-7. **Model faithfulness <--> S4 symmetry of orthogonality:** If M is a faithful model of B (injective embedding of state spaces), the model update is isometric, and isometries preserve orthogonality symmetrically. This is the most physically motivated route to S4. [CONJECTURED -- Phase 1]
+### Cross-Validation Matrix
 
-### Cross-Validation Opportunities
+|                      | Jacobson 2016 | CCM Geometry | Exact Diag. | Known Limits |
+|:---------------------|:---:|:---:|:---:|:---:|
+| Channel capacity (3D) | Area-law input | MI provides distances | S(A) scaling check | Flat: S = const/bond |
+| Jacobson 2016        | -- | Compatible curvature | Equil. check | Flat: T=0, R=0 |
+| CCM Geometry         | Spatial curvature | -- | MDS dim check | 1D chain -> 1D |
 
-| | Koecher-Vinberg | Hanche-Olsen | Barnum-Graydon-Wilce | D'Ariano backup |
-|---|:---:|:---:|:---:|:---:|
-| **S1--S7 verification** | Produces EJA; check classification | -- | -- | -- |
-| **Koecher-Vinberg** | -- | Promotes EJA to C\* | BGW compositionality independently excludes exceptional types | Both should give same C\* structure |
-| **Hanche-Olsen** | -- | -- | Both select complex type from Jordan classification | Both derive involution (different routes) |
+**High-risk gap:** The channel capacity argument has no independent cross-validation. If it fails, fallback to WVCH (thermal) or Brandao-Horodecki (1D only).
 
-**High-risk node:** S4 verification has NO independent cross-check. If S4 holds, there is no second method to confirm it besides the direct proof. If S4 fails, the counterexample serves as confirmation. This is the single-point-of-failure in the methodology.
+## Implications for Research Plan
 
-## Critical Claim Verification
+### Phase 1: Locality Formalization
 
-| # | Claim | Source | Verification | Result |
-|---|-------|--------|--------------|--------|
-| 1 | S1-S7 on finite-dim order unit space ==> EJA (van de Wetering Thm 1) | METHODS.md, PRIOR-WORK.md | web\_search: van de Wetering sequential product Jordan algebras | CONFIRMED -- published J. Math. Phys. 60, 062201 (2019) |
-| 2 | JB-algebra with tensor product ==> C\*-algebra (Hanche-Olsen) | METHODS.md, PRIOR-WORK.md | web\_search: Hanche-Olsen JB-algebras tensor products C\*-algebras | CONFIRMED -- LNM 1132 (1985), cited extensively |
-| 3 | Associativity of normal SEA ==> commutativity | PITFALLS.md | web\_search: Westerbaan van de Wetering associativity commutativity | CONFIRMED -- Quantum 4, 378 (2020) |
-| 4 | Compositionality excludes Albert algebra from composites | PRIOR-WORK.md | web\_search: Barnum Graydon Wilce composites exceptional Jordan | CONFIRMED -- Quantum 4, 359 (2020) |
-| 5 | D'Ariano involution from faithful state + composition-preserving extension | METHODS.md | web\_search: D'Ariano operational axioms faithful state involution | CONFIRMED -- arXiv:quant-ph/0611094 (2006); key: composition-preservation is postulated (Postulate 5) |
-| 6 | No prior verification of S1-S7 for any construction beyond B(H) | PRIOR-WORK.md | Inference from literature survey (no counterexample found in search) | UNVERIFIED -- plausible but cannot confirm a negative |
-| 7 | Local tomography fails for real and quaternionic QM | PITFALLS.md | Known result from Barnum-Wilce (2014) arXiv:1202.4513 | CONFIRMED -- established in multiple sources |
+**Rationale:** Everything depends on precisely defining "local self-modeling" on a lattice. Must establish the lattice structure, interaction Hamiltonian, and mapping from self-modeling locality to Hamiltonian/information-theoretic locality.
+**Delivers:** Formal lattice definition; interaction Hamiltonian H; locality axiom; Lieb-Robinson velocity.
+**Methods:** Quantum lattice formalization, Lieb-Robinson bounds.
+**Builds on:** Paper 5 (M_n(C)^sa, local tomography, composite structure).
+**Avoids:** P2 (circularity), P9 (locality conflation).
+**Risk:** MEDIUM.
 
-## Implications for Roadmap
+### Phase 2: Area-Law Derivation
 
-### Suggested Phase Structure
+**Rationale:** The area law is the critical link. Must be established before Jacobson applies. This is the rate-limiting step and the novel contribution.
+**Delivers:** Proof or strong argument that S(A) ~ |boundary(A)| for self-modeling lattice state.
+**Methods:** Channel capacity (Route 3D) primary, WVCH (Route 3A) backup.
+**Builds on:** Phase 1 (lattice, locality axiom).
+**Avoids:** P1 (which state?), P4 (spectral gap), P11 (higher-D conjecture).
+**Risk:** HIGH.
 
-### Phase 1: Sequential Product Formalization and S1-S7 Verification
+### Phase 3: Jacobson Application
 
-**Rationale:** Everything downstream depends on whether S1--S7 hold. The formal definition of the self-modeling sequential product is the foundational step -- without it, no axiom can be checked. S4 is the critical gate.
+**Rationale:** Once area-law entanglement is established, Jacobson 2016 converts it to Einstein's equations. Continuum limit argued physically, not proved rigorously.
+**Delivers:** G_ab + Lambda g_ab = (8 pi G) T_ab from entanglement equilibrium; G = 1/(4 eta).
+**Methods:** Jacobson 2016 entanglement equilibrium, entanglement first law.
+**Builds on:** Phase 2 (area law), Phase 1 (causal structure).
+**Avoids:** P3 (smooth manifold), P5 (equilibrium), P6 (continuum limit), P8 (Unruh temperature).
+**Risk:** HIGH.
 
-**Delivers:** (a) Formal definition of the self-modeling sequential product in the order unit space framework, with explicit effect algebra framing chosen (B vs B x M). (b) Proof or disproof of each axiom S1--S7. (c) If S1--S7 hold: the EJA classification of the resulting algebra. (d) Sanity checks: non-associativity, non-commutativity.
+### Phase 4: Numerical Verification
 
-**Methods:** Direct axiom verification (Method 1), dedicated S4 analysis (Method 2), Koecher-Vinberg invocation (Method 3).
+**Rationale:** Small-scale numerics validate Phases 2-3. Benchmarks on standard models validate infrastructure; self-modeling lattice checks require Phase 1 Hamiltonian.
+**Delivers:** Area-law scaling data; entanglement first law verification; entanglement equilibrium check.
+**Methods:** Exact diagonalization (SciPy), QuTiP.
+**Builds on:** Phase 1 (Hamiltonian).
+**Risk:** LOW.
 
-**Validates:** Self-modeling sequential product satisfies S1--S7; Jordan algebra classification; non-associativity confirmed.
+### Phase 5: Emergent Geometry and Paper Assembly
 
-**Avoids:** Pitfalls P1 (circular use of QM), P2 (wrong effect algebra), P3 (S4 assumed), P6 (circular update map), P8 (axiom version mismatch), P9 (associativity trap).
-
-**Needs research:** YES -- this is genuinely novel territory; no prior work on S1--S7 for non-B(H) constructions.
-
-**Risk:** HIGH -- S4 may fail.
-
-### Phase 2: Local Tomography from B-M Compositionality
-
-**Rationale:** Depends on Phase 1 succeeding (EJA structure established). Must bridge the gap from "independent accessibility" to "local tomography" to invoke Hanche-Olsen/Barnum-Wilce for Jordan --> C\* promotion.
-
-**Delivers:** (a) Proof that B-M compositionality implies local tomography (or identification of the additional assumption needed). (b) C\*-algebra structure via Hanche-Olsen. (c) Explicit exclusion of non-complex EJA types (real, quaternionic, spin factor, Albert).
-
-**Methods:** GPT compositional analysis (Method 5), Hanche-Olsen criterion (Method 4).
-
-**Builds on:** Phase 1 (EJA structure), Barnum-Wilce (arXiv:1202.4513), Barnum-Graydon-Wilce (arXiv:1606.09331).
-
-**Avoids:** Pitfalls P4 (conflating accessibility with tomography), P5 (Albert algebra obstruction), P7 (norm completion trap).
-
-**Needs research:** YES -- the formalization of "independent accessibility implies local tomography" is novel.
-
-**Risk:** MEDIUM -- the mathematical framework is established; the question is whether the self-modeling context provides the right operational assumptions.
-
-### Phase 3: Paper Assembly (Paper 5)
-
-**Rationale:** Depends on Phases 1--2. Assembles the complete L4 --> QM chain (if both phases succeed) or the conditional chain L4 + C\* --> QM (if either phase produces a partial result).
-
-**Delivers:** Paper 5 with the full or conditional derivation.
-
-**Methods:** Standard mathematical writing. The published theorems (van de Wetering, Hanche-Olsen, Barnum-Wilce) are cited; the novel content is the self-modeling --> S1--S7 verification and the local tomography argument.
-
-**Needs research:** NO -- this is assembly of established results plus Phase 1--2 outputs.
-
-**Risk:** LOW (assuming Phases 1--2 complete).
-
-### Phase 4: D'Ariano Backup (Contingency)
-
-**Rationale:** Triggered ONLY if Phase 1 fails at S4. Constructs the involution from D'Ariano's faithful-state method instead of the sequential product route.
-
-**Delivers:** Involution from the B-M correlation state, if it is faithful and symmetric.
-
-**Methods:** D'Ariano faithful-state construction (Method 6).
-
-**Avoids:** Pitfall P10 (faithful state existence is non-trivial).
-
-**Needs research:** YES (if triggered) -- must prove faithfulness and symmetry of the B-M correlation state.
-
-**Risk:** MEDIUM-HIGH -- composition-preservation (D'Ariano's Postulate 5) may need to be postulated rather than derived, which weakens the "one premise" claim.
+**Rationale:** CCM emergent geometry provides consistency check. Paper 6 assembles the full chain with honest framing.
+**Delivers:** Emergent spatial geometry; Paper 6 "Spacetime from Self-Modeling."
+**Methods:** CCM emergent geometry, MDS embedding.
+**Builds on:** All prior phases.
+**Avoids:** P7 (dimension not determined), P12 (classical only), P13 (factorization).
+**Risk:** MEDIUM.
 
 ### Phase Ordering Rationale
 
-- Phase 1 before Phase 2: Phase 2 assumes EJA structure, which Phase 1 establishes.
-- Phase 2 before Phase 3: Paper requires complete chain.
-- Phase 4 is conditional: only triggered by Phase 1 failure at S4.
-- Phases 1 and 2 are strictly sequential (no parallelism).
-- Within Phase 1: S1--S3 in parallel, then S4 (the gate), then S5--S7 only if S4 passes.
+- Phase 1 before Phase 2: cannot prove area law without defining the lattice
+- Phase 2 before Phase 3: area-law entanglement is input to Jacobson
+- Phase 4 partially parallel to Phases 2-3: benchmarks can begin immediately
+- Phase 5 after Phases 1-4: paper assembly requires all results
 
 ### Phases Requiring Deep Investigation
 
-- **Phase 1 (S4 verification):** No literature precedent for this specific verification. Multiple proof techniques available but none guaranteed to work.
-- **Phase 2 (local tomography argument):** The formalization of "independent accessibility implies local tomography" is novel. Standard GPT framework provides tools but the specific argument is new.
+- **Phase 2 (Area-Law Derivation):** Novel theoretical work; no existing theorem directly applies. Must construct the bridge argument.
+- **Phase 3 (Jacobson Application):** No published discrete lattice version of Jacobson exists. Original work required.
 
 Phases with established methodology:
-- **Phase 3 (paper assembly):** Straightforward once results are in hand.
-- **Phase 1 (S1--S3, S5--S7):** These axioms follow established patterns; the difficulty is concentrated in S4.
 
-### Input Quality --> Roadmap Impact
-
-| Input File | Quality | Affected Recommendations | Impact if Wrong |
-|------------|---------|------------------------|-----------------|
-| METHODS.md | Good | Method selection, phase ordering, S4 proof techniques | Phases 1-2 may need different proof strategies |
-| PRIOR-WORK.md | Good | Benchmark theorems, chain of published results | Unlikely wrong (published theorems); would invalidate the entire approach |
-| COMPUTATIONAL.md | Good | Tool selection, test harness design | Low impact (computational work is proof-support, not the main argument) |
-| PITFALLS.md | Good | Risk mitigation across all phases | Blind spots in Phase 1 formalization are the main danger |
+- **Phase 1 (Locality Formalization):** Standard quantum lattice framework (Bratteli-Robinson, 40+ years).
+- **Phase 4 (Numerical Verification):** Well-established exact diagonalization and entanglement entropy methods.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|-----------|-------|
-| Methods | MEDIUM | Methods themselves are sound (published theorems). Confidence is MEDIUM because the novel step (S4 verification) has unknown difficulty. |
-| Prior Work | HIGH | All key theorems are published and peer-reviewed. The logical chain from sequential products to C\*-algebras is well-established. |
-| Computational Approaches | MEDIUM | Adequate for proof-support. The key limitation is that computation cannot prove S4 in general -- it can only find counterexamples or build confidence. |
-| Pitfalls | HIGH | Comprehensive identification of failure modes. The pitfall-to-phase mapping is complete. |
+| Prior Work | HIGH | Jacobson's thermodynamic gravity well-established (30 years). Area-law literature mature. |
+| Methods | MEDIUM | Individual methods well-established; application to self-modeling is novel. Critical gap at bridge step. |
+| Computational Approaches | MEDIUM-HIGH | Standard, validated techniques. Blocked until Hamiltonian defined. |
+| Pitfalls | MEDIUM | Known issues well-cataloged; self-modeling-specific pitfalls inferred from structural analysis. |
 
-**Overall confidence:** MEDIUM. The downstream mathematics is solid; the uncertainty is concentrated in the novel steps (S4 verification and local tomography formalization).
+**Overall confidence:** MEDIUM
 
 ### Gaps to Address
 
-- **S4 proof technique:** No single technique is guaranteed. The "model faithfulness implies S4" route (Technique 2d in METHODS.md) is the most promising but requires formalizing "faithful model" in the order unit space setting.
-- **Effect algebra framing:** E(B) vs E(B x M) must be resolved in Phase 1. Both framings should be explored in parallel.
-- **Qubit existence:** Barnum-Wilce requires at least one qubit-like system. Must verify that the self-modeling framework admits a 2-dimensional subsystem.
-- **D'Ariano backup feasibility:** If needed, the faithfulness and symmetry of the B-M correlation state are non-trivial claims requiring independent proofs.
+- **Self-modeling state identification:** Which state has area-law entanglement? Must resolve in Phase 2.
+- **Pure state condition:** Channel capacity route requires pure global state. Does self-modeling have a pure fixed point?
+- **Continuum limit:** Cannot solve this open problem; must frame correctly as leading-order IR effective description.
+- **Higher-D area law:** Rigorous only in 1D and 2D frustration-free. Must prove 1D rigorously, argue physically for higher D.
+- **Spectral gap:** Unknown and potentially undecidable. Recommended approach deliberately bypasses this.
+
+### Critical Claim Verification
+
+| # | Claim | Source | Verification | Result |
+|---|-------|--------|--------------|--------|
+| 1 | Jacobson 2016: delta S_EE = 0 iff Einstein eqs (conformal, 1st order) | PRIOR-WORK.md | web_search: arXiv:1505.04753, PRL 116, 201101 | CONFIRMED |
+| 2 | Hastings area law: rigorous only in 1D; higher-D open | PITFALLS.md | web_search: general D>1 still open as of 2025 | CONFIRMED |
+| 3 | Anshu-Arad-Gosset: 2D frustration-free area law | PRIOR-WORK.md | web_search: arXiv:2103.02492, STOC 2022 | CONFIRMED |
+| 4 | WVCH: mutual info area law for thermal states | METHODS.md | web_search: PRL 100, 070502 (2008) | CONFIRMED |
+| 5 | CCM: emergent geometry from mutual information | METHODS.md | web_search: PRD 95, 024031 (2017) | CONFIRMED |
+| 6 | No prior GR-from-self-modeling work exists | PRIOR-WORK.md | Researcher survey; no contradicting evidence | UNVERIFIED (consistent with absence) |
 
 ## Open Questions
 
-1. **Does the self-modeling sequential product satisfy S4?** [PRIORITY: HIGH, blocks Phase 1] -- The decisive question of the entire project. If yes, Jordan algebra structure follows. If no, the sequential product route fails.
-
-2. **Which effect algebra framing is correct -- E(B) or E(B x M)?** [PRIORITY: HIGH, blocks Phase 1] -- The two framings give different sequential products. One may satisfy S4 while the other does not.
-
-3. **Does B-M independent accessibility imply local tomography?** [PRIORITY: HIGH, blocks Phase 2] -- The gap between "can measure independently" and "product measurements suffice" must be bridged.
-
-4. **Does the self-modeling framework admit a qubit-like system?** [PRIORITY: MEDIUM, blocks Phase 2] -- Barnum-Wilce requires at least one 2-dimensional system.
-
-5. **Is the self-modeling sequential product non-associative?** [PRIORITY: MEDIUM, blocks Phase 1 early] -- If associative, the algebra is necessarily commutative (classical). Quick sanity check.
-
-6. **If S4 fails, is the B-M correlation state faithful?** [PRIORITY: LOW until Phase 1 fails, then HIGH] -- Needed for D'Ariano backup route.
+1. **Does self-modeling locality map onto information-theoretic locality?** [HIGH, blocks Phase 2]
+2. **Is the self-modeling fixed point a pure global state?** [HIGH, blocks Route 3D]
+3. **What Hamiltonian encodes self-modeling locality?** [HIGH, blocks Phase 4]
+4. **Can Jacobson's entanglement equilibrium work on a finite lattice?** [MEDIUM, blocks Phase 3]
+5. **How does the continuum limit emerge?** [MEDIUM, blocks rigorous Phase 3]
+6. **Does the self-modeling lattice have a spectral gap?** [MEDIUM, non-blocking]
+7. **Does self-modeling determine spatial dimension D?** [LOW, out of scope]
 
 ## Sources
 
-### Primary (HIGH confidence)
+### Primary (HIGH)
 
-- van de Wetering, "Sequential product spaces are Jordan algebras," [J. Math. Phys. 60, 062201 (2019)](https://arxiv.org/abs/1803.11139) -- S1-S7, Theorem 1 (S1-S7 => EJA), Theorem 3 (EJA + local tomography => C\*)
-- van de Wetering, "Three characterisations of the sequential product," [J. Math. Phys. 59, 082202 (2018)](https://arxiv.org/abs/1803.08453) -- Uniqueness of Luders product; inner product symmetry characterization
-- Gudder and Greechie, "Sequential products on effect algebras," Rep. Math. Phys. 49, 87-111 (2002) -- Original sequential effect algebra definition
-- Westerbaan, Westerbaan, van de Wetering, "The three types of normal sequential effect algebras," [Quantum 4, 378 (2020)](https://arxiv.org/abs/2004.12749) -- Classification; associativity => commutativity
-- Barnum and Wilce, "Local tomography and the Jordan structure of quantum theory," [Found. Phys. 44, 192-212 (2014)](https://arxiv.org/abs/1202.4513) -- Jordan + local tomography + qubit => complex QM
-- Barnum, Graydon, Wilce, "Composites and categories of Euclidean Jordan algebras," [Quantum 4, 359 (2020)](https://arxiv.org/abs/1606.09331) -- Compositionality excludes exceptional types
-- Hanche-Olsen, "JB-algebras with tensor products are C\*-algebras," [LNM 1132, Springer (1985)](https://link.springer.com/content/pdf/10.1007/BFb0074886) -- THE Jordan-to-C\* promotion theorem
-- Jordan, von Neumann, Wigner, "On an algebraic generalization of the quantum mechanical formalism," Ann. Math. 35, 29-64 (1934) -- Classification of formally real Jordan algebras
+- Jacobson (1995), "Thermodynamics of Spacetime," PRL 75, 1260, [arXiv:gr-qc/9504004](https://arxiv.org/abs/gr-qc/9504004)
+- Jacobson (2016), "Entanglement Equilibrium and the Einstein Equation," PRL 116, 201101, [arXiv:1505.04753](https://arxiv.org/abs/1505.04753)
+- Jacobson (2012), "Gravitation and Vacuum Entanglement Entropy," [arXiv:1204.6349](https://arxiv.org/abs/1204.6349)
+- Hastings (2007), "An Area Law for One Dimensional Quantum Systems," JSTAT P08024, [arXiv:0705.2024](https://arxiv.org/abs/0705.2024)
+- Eisert, Cramer, Plenio (2010), "Area Laws for the Entanglement Entropy," RMP 82, 277, [arXiv:0808.3773](https://arxiv.org/abs/0808.3773)
+- Wolf, Verstraete, Cirac, Hastings (2008), "Area Laws: Mutual Information and Correlations," PRL 100, 070502, [arXiv:0704.3906](https://arxiv.org/abs/0704.3906)
+- Lieb, Robinson (1972), "The Finite Group Velocity of Quantum Spin Systems," Commun. Math. Phys. 28, 251
+- Bratteli, Robinson (1979/1981), "Operator Algebras and Quantum Statistical Mechanics," Springer
+- Bisognano, Wichmann (1975/1976), J. Math. Phys. 16, 985; 17, 303
 
-### Secondary (MEDIUM confidence)
+### Secondary (MEDIUM)
 
-- D'Ariano, "Operational axioms for quantum mechanics," [arXiv:quant-ph/0611094 (2006)](https://arxiv.org/abs/quant-ph/0611094) -- Faithful state construction of involution (backup route)
-- Barnum, Ududec, van de Wetering, "Self-duality from homogeneity and pure transitivity," [arXiv:2306.00362 (2023)](https://arxiv.org/abs/2306.00362) -- Reduces geometric assumptions for Koecher-Vinberg (preprint)
-- Plavala, "General probabilistic theories: An introduction," [Physics Reports 1033, 1-64 (2023)](https://arxiv.org/abs/2103.07469) -- GPT review covering effect algebras in GPT context
+- Cao, Carroll, Michalakis (2017), "Space from Hilbert Space," PRD 95, 024031, [arXiv:1606.08444](https://arxiv.org/abs/1606.08444)
+- Faulkner, Lewkowycz, Maldacena (2014), JHEP 1403, 051, [arXiv:1312.7856](https://arxiv.org/abs/1312.7856)
+- Lashkari, McDermott, Van Raamsdonk (2014), JHEP 1404, 195, [arXiv:1308.3716](https://arxiv.org/abs/1308.3716)
+- Van Raamsdonk (2010), GRG 42, 2323, [arXiv:1005.3035](https://arxiv.org/abs/1005.3035)
+- Brandao, Horodecki (2013/2015), Nature Physics 9, 721, [arXiv:1206.2947](https://arxiv.org/abs/1206.2947)
+- Anshu, Arad, Gosset (2022), [arXiv:2103.02492](https://arxiv.org/abs/2103.02492)
+- Swingle (2012), PRD 86, 065007, [arXiv:1209.3304](https://arxiv.org/abs/1209.3304)
+- Casini, Huerta, Myers (2011), JHEP 1105, 036, [arXiv:1102.0440](https://arxiv.org/abs/1102.0440)
+- Nachtergaele, Sims (2006/2019), [arXiv:1810.02428](https://arxiv.org/abs/1810.02428)
+- Bravyi, Hastings, Verstraete (2006), PRL 97, 050401, [arXiv:quant-ph/0603121](https://arxiv.org/abs/quant-ph/0603121)
 
-### Tertiary (LOW confidence -- useful for context only)
+### Tertiary (LOW)
 
-- Gudder, "Open problems for sequential effect algebras," Int. J. Theor. Phys. 44, 755-772 (2005) -- Historical open problems
-- Stuckey et al. (2024), "Completing QRP via relativity" -- Tangential; different philosophical framework
+- Verlinde (2011), [arXiv:1001.0785](https://arxiv.org/abs/1001.0785) -- tangential
+- Padmanabhan (2010), [arXiv:0911.5004](https://arxiv.org/abs/0911.5004) -- broader program
+- Chirco, Liberati (2010), [arXiv:0909.4194](https://arxiv.org/abs/0909.4194) -- non-equilibrium
+- Cubitt, Perez-Garcia, Wolf (2015), [arXiv:1502.04573](https://arxiv.org/abs/1502.04573) -- undecidability
 
 ---
 
-_Research synthesis completed: 2026-03-20_
+_Research analysis completed: 2026-03-21_
 _Ready for research plan: yes_
 
 ```yaml
 # --- ROADMAP INPUT (machine-readable, consumed by gpd-roadmapper) ---
 synthesis_meta:
-  project_title: "Experiential Measure on Structure Space (v2.0)"
-  synthesis_date: "2026-03-20"
+  project_title: "Experiential Measure on Structure Space -- v3.0 GR Extension"
+  synthesis_date: "2026-03-21"
   input_files: [METHODS.md, PRIOR-WORK.md, COMPUTATIONAL.md, PITFALLS.md]
   input_quality: {METHODS: good, PRIOR-WORK: good, COMPUTATIONAL: good, PITFALLS: good}
 
 conventions:
   unit_system: "natural"
-  metric_signature: "N/A"
-  fourier_convention: "N/A"
-  coupling_convention: "N/A"
+  metric_signature: "mostly_plus"
+  fourier_convention: "physics"
+  coupling_convention: "G = 1/(4*eta) where eta is entanglement entropy density"
   renormalization_scheme: "N/A"
 
 methods_ranked:
-  - name: "Sequential product axiom verification (S1-S7)"
-    regime: "Finite-dim order unit spaces"
+  - name: "Channel capacity / mutual information area law (Route 3D)"
+    regime: "Any D, pure global state, local information flow"
     confidence: MEDIUM
-    cost: "Analytical proof work; computational support O(n^3) per matrix multiply, n <= 8"
-    complements: "D'Ariano faithful-state backup"
-  - name: "Koecher-Vinberg pathway (S1-S7 => EJA)"
-    regime: "Finite-dim homogeneous self-dual cones"
+    cost: "Analytical proof; numerical check O(d^N) for N-site ED"
+    complements: "WVCH mutual info bound (handles thermal states)"
+  - name: "Jacobson 2016 entanglement equilibrium"
+    regime: "Conformal fields, first-order perturbations, smooth manifold (continuum limit)"
     confidence: HIGH
-    cost: "Theorem citation (near zero)"
-    complements: "Direct Jordan algebra construction"
-  - name: "Hanche-Olsen tensor product criterion (EJA => C*)"
-    regime: "JB-algebras admitting tensor products"
+    cost: "Analytical derivation; numerical check O(d^N) for entanglement equilibrium"
+    complements: "CCM emergent geometry (spatial consistency check)"
+  - name: "Quantum lattice formalization (Bratteli-Robinson)"
+    regime: "Any finite-dimensional local algebra, any graph"
     confidence: HIGH
-    cost: "Theorem citation (near zero)"
-    complements: "Alfsen-Shultz orientation approach"
-  - name: "Local tomography from B-M independence"
-    regime: "GPT composites of EJAs"
+    cost: "Analytical framework setup, 3-5 days"
+    complements: "Lieb-Robinson bounds (establishes causal structure)"
+  - name: "Lieb-Robinson bounds"
+    regime: "Finite-range interactions, bounded local dimension"
+    confidence: HIGH
+    cost: "Invoke known results, 1-2 days"
+    complements: "Lattice formalization (provides input structure)"
+  - name: "WVCH mutual information bound (Route 3A)"
+    regime: "Any D, thermal states of local Hamiltonians"
     confidence: MEDIUM
-    cost: "Analytical proof work"
-    complements: "Hardy purification axiom"
-  - name: "D'Ariano faithful-state backup"
-    regime: "Algebras with symmetric faithful states"
+    cost: "Analytical; requires identifying self-modeling thermal state"
+    complements: "Channel capacity (handles pure states)"
+  - name: "CCM emergent geometry"
+    regime: "Finite-dim Hilbert space, area-law states"
     confidence: MEDIUM
-    cost: "Analytical proof work (2-3 weeks)"
-    complements: "Sequential product route (primary)"
+    cost: "O(N^2 * d^N) for mutual info + O(N^3) for MDS"
+    complements: "Jacobson (provides dynamics; CCM gives only spatial geometry)"
+  - name: "Exact diagonalization + entanglement entropy"
+    regime: "N <= 24 qubits (d^N manageable)"
+    confidence: HIGH
+    cost: "O(d^{2N}) per ground state; minutes on laptop for N<=20"
+    complements: "DMRG (extends to N~100 in 1D)"
 
 phase_suggestions:
-  - name: "Sequential Product Formalization and S1-S7 Verification"
-    goal: "Prove or disprove that self-modeling sequential product satisfies S1-S7, yielding EJA structure"
-    methods: ["Sequential product axiom verification (S1-S7)", "Koecher-Vinberg pathway (S1-S7 => EJA)"]
+  - name: "Locality Formalization"
+    goal: "Define self-modeling lattice with precise locality axiom and effective causal structure"
+    methods: ["Quantum lattice formalization (Bratteli-Robinson)", "Lieb-Robinson bounds"]
     depends_on: []
+    needs_research: false
+    risk: MEDIUM
+    pitfalls: ["P2-background-dependence", "P9-locality-conflation"]
+  - name: "Area-Law Derivation"
+    goal: "Prove or strongly argue that local self-modeling implies area-law entanglement"
+    methods: ["Channel capacity / mutual information area law (Route 3D)", "WVCH mutual information bound (Route 3A)"]
+    depends_on: ["Locality Formalization"]
     needs_research: true
     risk: HIGH
-    pitfalls: ["P1-circular-verification", "P2-wrong-effect-algebra", "P3-S4-assumed", "P6-circular-update-map", "P8-axiom-version-mismatch", "P9-associativity-trap"]
-  - name: "Local Tomography from B-M Compositionality"
-    goal: "Prove B-M independent accessibility implies local tomography, promoting Jordan algebra to C*-algebra"
-    methods: ["Local tomography from B-M independence", "Hanche-Olsen tensor product criterion (EJA => C*)"]
-    depends_on: ["Sequential Product Formalization and S1-S7 Verification"]
+    pitfalls: ["P1-which-state", "P4-spectral-gap", "P11-higher-D-conjecture"]
+  - name: "Jacobson Application"
+    goal: "Derive Einstein field equations from entanglement equilibrium in continuum limit"
+    methods: ["Jacobson 2016 entanglement equilibrium", "CCM emergent geometry"]
+    depends_on: ["Area-Law Derivation"]
     needs_research: true
-    risk: MEDIUM
-    pitfalls: ["P4-local-tomo-conflation", "P5-Albert-algebra", "P7-norm-completion"]
-  - name: "Paper Assembly (Paper 5)"
-    goal: "Assemble complete L4 => QM chain (or conditional L4 + C* => QM) into publishable paper"
-    methods: []
-    depends_on: ["Local Tomography from B-M Compositionality"]
+    risk: HIGH
+    pitfalls: ["P3-smooth-manifold", "P5-local-equilibrium", "P6-continuum-limit", "P8-unruh-temperature"]
+  - name: "Numerical Verification"
+    goal: "Validate area-law scaling and entanglement equilibrium on small lattices"
+    methods: ["Exact diagonalization + entanglement entropy"]
+    depends_on: ["Locality Formalization"]
     needs_research: false
     risk: LOW
-    pitfalls: ["publication-overclaiming"]
-  - name: "D'Ariano Backup (Contingency)"
-    goal: "Construct involution from faithful B-M correlation state if S4 fails"
-    methods: ["D'Ariano faithful-state backup"]
-    depends_on: ["Sequential Product Formalization and S1-S7 Verification"]
-    needs_research: true
-    risk: HIGH
-    pitfalls: ["P10-faithful-state-existence"]
+    pitfalls: ["finite-size-effects"]
+  - name: "Paper Assembly"
+    goal: "Assemble Paper 6 with complete chain, precise gap identification, and honest framing"
+    methods: ["CCM emergent geometry"]
+    depends_on: ["Locality Formalization", "Area-Law Derivation", "Jacobson Application", "Numerical Verification"]
+    needs_research: false
+    risk: MEDIUM
+    pitfalls: ["P7-dimension-problem", "P12-classical-only", "P13-factorization"]
 
 critical_benchmarks:
-  - quantity: "Van de Wetering Theorem 1 (S1-S7 => EJA)"
-    value: "Published theorem -- must be correctly invoked"
-    source: "van de Wetering, J. Math. Phys. 60, 062201 (2019)"
+  - quantity: "Area-law scaling for 1D gapped local Hamiltonian"
+    value: "S(A) = O(1) for half-chain (constant, independent of system size)"
+    source: "Hastings (2007), arXiv:0705.2024"
     confidence: HIGH
-  - quantity: "Hanche-Olsen criterion (EJA + tensor => C*)"
-    value: "Published theorem -- must be correctly invoked"
-    source: "Hanche-Olsen, LNM 1132 (1985)"
+  - quantity: "Critical 1D CFT entanglement (negative control)"
+    value: "S(A) = (c/6) ln(L) with c = 1/2 for transverse-field Ising at criticality"
+    source: "Calabrese-Cardy (2004), arXiv:hep-th/0405152"
     confidence: HIGH
-  - quantity: "Associativity => commutativity for normal SEAs"
-    value: "Published theorem -- sanity check (product must be non-associative)"
-    source: "Westerbaan-Westerbaan-van de Wetering, Quantum 4, 378 (2020)"
+  - quantity: "Jacobson Einstein equation from entanglement equilibrium"
+    value: "G_ab + Lambda g_ab = (8 pi G) T_ab for conformal fields at first order"
+    source: "Jacobson (2016), PRL 116, 201101"
     confidence: HIGH
-  - quantity: "Compositionality excludes Albert algebra"
-    value: "Published theorem -- B-M composite must satisfy BGW conditions"
-    source: "Barnum-Graydon-Wilce, Quantum 4, 359 (2020)"
+  - quantity: "Mutual information area law for thermal states"
+    value: "I(A:B) <= beta * |boundary(A)| * ||h||"
+    source: "Wolf-Verstraete-Cirac-Hastings (2008), PRL 100, 070502"
     confidence: HIGH
 
 open_questions:
-  - question: "Does the self-modeling sequential product satisfy S4 (symmetry of orthogonality)?"
+  - question: "Does self-modeling locality map onto information-theoretic channel capacity locality?"
     priority: HIGH
-    blocks_phase: "Sequential Product Formalization and S1-S7 Verification"
-  - question: "Which effect algebra framing is correct -- E(B) or E(B x M)?"
+    blocks_phase: "Area-Law Derivation"
+  - question: "Is the self-modeling fixed point a pure global state?"
     priority: HIGH
-    blocks_phase: "Sequential Product Formalization and S1-S7 Verification"
-  - question: "Does B-M independent accessibility imply local tomography?"
+    blocks_phase: "Area-Law Derivation"
+  - question: "What Hamiltonian encodes self-modeling locality?"
     priority: HIGH
-    blocks_phase: "Local Tomography from B-M Compositionality"
-  - question: "Does the self-modeling framework admit a qubit-like (2-dimensional) system?"
+    blocks_phase: "Numerical Verification"
+  - question: "Can Jacobson's entanglement equilibrium be formulated on a finite lattice?"
     priority: MEDIUM
-    blocks_phase: "Local Tomography from B-M Compositionality"
-  - question: "Is the self-modeling sequential product non-associative?"
+    blocks_phase: "Jacobson Application"
+  - question: "How does the continuum limit emerge from the self-modeling lattice?"
     priority: MEDIUM
-    blocks_phase: "Sequential Product Formalization and S1-S7 Verification"
+    blocks_phase: "Jacobson Application"
+  - question: "Does the self-modeling lattice have a spectral gap?"
+    priority: MEDIUM
+    blocks_phase: "none"
+  - question: "Does self-modeling determine the spatial dimension D?"
+    priority: LOW
+    blocks_phase: "none"
 
-contradictions_unresolved: []
+contradictions_unresolved:
+  - claim_a: "Hastings area law provides the route to S(A) ~ |boundary(A)| (requires spectral gap)"
+    claim_b: "Channel capacity argument provides the route (requires pure global state, no gap needed)"
+    source_a: "METHODS.md Route 3B, PITFALLS.md P4"
+    source_b: "METHODS.md Route 3D"
+    investigation_needed: "Determine whether the self-modeling fixed point is a gapped ground state (favoring Hastings) or a pure state accessible via channel capacity (favoring Route 3D). Both routes are viable; the choice depends on properties of the self-modeling dynamics that are currently unknown."
 ```

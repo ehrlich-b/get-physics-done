@@ -1,31 +1,180 @@
-# Computational Approaches: Sequential Product Axioms and Jordan Algebra Structures
+# Computational Approaches: GR from Self-Modeling Locality
 
-**Surveyed:** 2026-03-20
-**Domain:** Mathematical physics / quantum foundations (effect algebras, sequential products, Jordan algebras)
+**Surveyed:** 2026-03-21
+**Domain:** Quantum foundations / quantum gravity / entanglement entropy / thermodynamic gravity
 **Confidence:** MEDIUM
+
+### Scope Boundary
+
+COMPUTATIONAL.md covers computational TOOLS, libraries, and infrastructure for the v3.0 GR extension. It does NOT cover physics methods (METHODS.md) or the theoretical landscape (PRIOR-WORK.md). Focus: what software, algorithms, and numerical checks support the proof-driven derivation of GR from self-modeling locality.
 
 ## Recommended Stack
 
-The computational work for v2.0 is primarily **proof support**, not heavy numerics. The main computational needs are: (1) symbolic verification that specific axiom identities hold for concrete matrix representations, (2) constructing and testing toy models of sequential products, and (3) exploring the Jordan algebra structure that emerges. The recommended stack is **SymPy for symbolic axiom checking** on explicit low-dimensional matrix models, with **SageMath as a reference tool** for Jordan algebra structure verification when needed. No dedicated software exists for effect algebra or sequential product computation -- this is a build-from-scratch-in-Python situation for the domain-specific parts, leveraging standard symbolic/numerical libraries for the linear algebra backbone.
+The v3.0 milestone is primarily proof work, not heavy numerics. The computational role is **verification and illustration**: small-scale numerical checks that confirm (or falsify) the area-law entanglement scaling for self-modeling lattices, and that validate intermediate steps in the Jacobson argument. The recommended stack extends v2.0's Python/SymPy base with targeted additions for entanglement entropy computation on small lattices.
 
-There is no existing software package for "verify van de Wetering axioms S1-S7 on a given sequential product." This must be built as a lightweight test harness. The good news: the axioms are concrete algebraic identities on finite-dimensional spaces, so verification reduces to symbolic matrix manipulation, which SymPy handles well.
+**Primary approach:** Exact diagonalization of small lattice systems (up to ~16 qubits / 8 sites of M_2(C)^sa) using NumPy/SciPy, with QuTiP for entanglement entropy and partial trace convenience functions. Tensor network methods (TeNPy/DMRG) are available as a reach tool for larger 1D systems but are unlikely to be needed given the proof-driven nature of the work.
+
+**Architecture:** Build a lightweight Python module that constructs a lattice of M_n(C)^sa systems with nearest-neighbor coupling, computes ground states via exact diagonalization, and extracts entanglement entropy for subregions of varying size to check area vs. volume scaling.
 
 ## Numerical Algorithms
 
+### 1. Entanglement Entropy via Exact Diagonalization
+
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Symbolic identity verification | Check S1-S7 axiom equalities for parametric matrix families | Exact (symbolic) | O(n^3) per matrix multiply, n = dim | O(n^2) | SymPy docs |
-| Positive semidefiniteness check | Verify effect algebra membership (0 <= a <= 1) | Exact (eigenvalue) | O(n^3) | O(n^2) | numpy.linalg.eigvalsh |
-| Jordan product computation | Compute a o b = (ab + ba)/2 symbolically | Exact | O(n^3) | O(n^2) | Direct implementation |
-| Cone membership (Koecher-Vinberg) | Check homogeneity and self-duality of positive cone | Numerical/symbolic | O(n^6) worst case for automorphism search | O(n^4) | Orlitzky (2022) |
+| Full ED + partial trace | S(A) for subregion A of lattice | Exact | O(d^{2N}) for N sites, local dim d | O(d^N) for state vector | Laflorencie, Phys. Rep. 646, 1 (2016) |
+| Lanczos + partial trace | Ground state S(A) only | O(1/k) for k Lanczos steps | O(k * d^N) | O(d^N) for state + k Lanczos vectors | Lehoucq et al., ARPACK Users' Guide |
+| Swap trick (Renyi-2) | S_2(A) = -ln Tr(rho_A^2) | Exact for given state | O(d^N) | O(d^N) | Hastings et al., PRL 104, 157201 (2010) |
 
-### Convergence Properties
+#### Algorithm: Computing S(A) for a Subregion
 
-These are all exact-arithmetic or finite-precision linear algebra operations, not iterative algorithms. The relevant "convergence" issue is symbolic simplification:
+```
+INPUT:  Hamiltonian H on lattice of N sites, each with local dim d
+        Subregion A (subset of sites)
+OUTPUT: von Neumann entropy S(A)
 
-- **Symbolic simplification:** SymPy's `simplify()` is not guaranteed to recognize all equalities. Use `expand()` then `simplify()`, and cross-check numerically for parametric identities.
-- **Numerical cross-check:** For any symbolic identity, instantiate at 10+ random parameter values and check to machine precision. If symbolic fails but numerical passes, the identity likely holds but SymPy cannot simplify it -- try manual algebraic manipulation.
-- **Known failure mode:** SymPy struggles with expressions involving square roots of matrices (relevant for the Luders product a^{1/2} b a^{1/2}). For 2x2 matrices, compute sqrt explicitly via the Cayley-Hamilton formula. For larger matrices, use numerical evaluation.
+1. Find ground state |psi> of H
+   - If N*log2(d) <= 16: full diagonalization via numpy.linalg.eigh
+   - If N*log2(d) <= 24: Lanczos via scipy.sparse.linalg.eigsh
+   - If N*log2(d) > 24: tensor network (TeNPy DMRG) or out of scope
+
+2. Form density matrix rho = |psi><psi|
+   - For pure state: store |psi> as vector, compute rho_A directly
+
+3. Compute reduced density matrix rho_A = Tr_Abar(rho)
+   - Reshape |psi> as tensor with shape (d_A, d_Abar)
+     where d_A = d^|A|, d_Abar = d^(N-|A|)
+   - rho_A = sum_j <j_Abar|psi><psi|j_Abar> (partial trace)
+   - Efficient: rho_A = psi_reshaped @ psi_reshaped.conj().T
+
+4. Compute S(A) = -Tr(rho_A ln rho_A)
+   - Eigendecompose rho_A: eigenvalues {lambda_i}
+   - S(A) = -sum_i lambda_i * ln(lambda_i) for lambda_i > 0
+   - Use threshold lambda_i > 1e-14 to avoid log(0)
+```
+
+#### Convergence Properties
+
+- **Full ED:** Exact to machine precision. No convergence issue. Limited by memory: d^N doubles of storage for state vector. For M_2(C)^sa (d=2 per site), N=16 sites requires 2^16 = 65536 complex numbers = 1 MB. N=20 requires 2^20 = ~8 MB. N=24 requires ~128 MB. N=28 is borderline at ~2 GB.
+- **Lanczos:** Converges to ground state exponentially fast in number of iterations when gap is O(1). Typically 50-200 iterations suffice. Convergence criterion: |E_k - E_{k-1}|/|E_k| < 1e-12. Fails when gap is exponentially small.
+- **Partial trace:** Exact reshaping operation. No numerical error beyond machine precision.
+- **Entropy from eigenvalues:** Numerically stable if eigenvalues are computed via symmetric eigendecomposition (which is backward stable). Catastrophic cancellation possible if rho_A has eigenvalues very close to 0 or 1; mitigated by the threshold cutoff.
+
+### 2. Area-Law Scaling Verification
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Systematic subregion sweep | S(A) vs |boundary(A)| and |A| | N/A (data analysis) | Per subregion: O(d^N) | O(d^N) | Eisert et al., RMP 82, 277 (2010) |
+| Linear regression | Fit S = alpha * |boundary| + beta vs S = gamma * |volume| + delta | Standard R^2 | O(number of data points) | Negligible | Standard statistics |
+
+#### Algorithm: Area vs. Volume Law Check
+
+```
+INPUT:  Lattice of N sites in d_spatial dimensions with local dim d
+        Hamiltonian H with nearest-neighbor interactions
+OUTPUT: Scaling coefficient and R^2 for area-law and volume-law fits
+
+1. Compute ground state |psi> of H (as above)
+
+2. For each connected subregion A of size |A| = 1, 2, ..., N/2:
+   a. Compute S(A) via partial trace + eigendecomposition
+   b. Record |A| (volume), |boundary(A)| (number of boundary links)
+
+3. Fit two models:
+   - Area law:   S(A) = alpha * |boundary(A)| + c_area
+   - Volume law: S(A) = gamma * |A| + c_vol
+
+4. Compare R^2 values. Area law should win for gapped ground states.
+
+5. For 1D chains: |boundary(A)| = 2 (constant for interior cuts)
+   -> Area law predicts S(A) = const, independent of |A|
+   -> Volume law predicts S(A) ~ |A|
+   This is the clearest test.
+```
+
+#### Feasible Lattice Sizes
+
+| Geometry | Sites N | Local dim d | Hilbert space dim | Memory (state) | Feasibility |
+|----------|---------|-------------|-------------------|----------------|-------------|
+| 1D chain | 16 | 2 (qubit) | 65,536 | 1 MB | Easy |
+| 1D chain | 20 | 2 | 1,048,576 | 8 MB | Easy |
+| 1D chain | 24 | 2 | 16,777,216 | 128 MB | Moderate |
+| 2D square | 4x4 | 2 | 65,536 | 1 MB | Easy |
+| 2D square | 4x5 | 2 | 1,048,576 | 8 MB | Easy |
+| 2D square | 5x5 | 2 | 33,554,432 | 256 MB | Moderate |
+| 1D chain | 8 | 4 (M_2(C)^sa) | 65,536 | 1 MB | Easy |
+| 1D chain | 10 | 4 | 1,048,576 | 8 MB | Easy |
+| 1D chain | 12 | 4 | 16,777,216 | 128 MB | Moderate |
+| 2D square | 3x3 | 4 | 262,144 | 2 MB | Easy |
+| 2D square | 4x3 | 4 | 16,777,216 | 128 MB | Moderate |
+
+**Recommendation:** Use d=2 (qubit) systems for initial area-law verification (simpler Hamiltonian, same scaling physics). Then d=4 for M_2(C)^sa-specific checks. The 1D chain with N=16-20 qubits and the 2D 4x4 lattice are the sweet spots: large enough to see scaling, small enough for exact diagonalization on a laptop.
+
+### 3. Fisher Information Metric on Lattice
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Numerical differentiation of state | g_ij = Re Tr(d_i rho * d_j ln rho) | O(epsilon^2) for step epsilon | O(d^{2N} * p^2) for p parameters | O(d^N) | Paris, Int. J. Quant. Inf. 7, 125 (2009) |
+| SLD Fisher info | g_ij via symmetric logarithmic derivative | Exact (solve Lyapunov eq) | O(d^{3N}) per matrix equation | O(d^{2N}) | Braunstein & Caves, PRL 72, 3439 (1994) |
+
+#### Algorithm: Fisher Information Metric from Parameterized States
+
+```
+INPUT:  Family of states rho(theta) parameterized by theta = (theta_1, ..., theta_p)
+        (e.g., theta_i = coupling strength at site i)
+OUTPUT: Fisher information matrix g_ij(theta)
+
+1. For each parameter theta_i:
+   a. Compute rho(theta + epsilon * e_i) and rho(theta - epsilon * e_i)
+   b. d_i(rho) = (rho(theta + eps*e_i) - rho(theta - eps*e_i)) / (2*epsilon)
+
+2. For each pair (i,j):
+   a. Solve the SLD equation: d_i(rho) = (L_i * rho + rho * L_i) / 2
+      - This is a Lyapunov equation; solve via vectorization:
+        (I tensor rho + rho tensor I) vec(L_i) = 2 * vec(d_i(rho))
+   b. g_ij = (1/2) * Tr(rho * (L_i * L_j + L_j * L_i))
+
+Alternative (simpler, for pure states rho = |psi><psi|):
+   g_ij = 4 * Re(<d_i psi | d_j psi> - <d_i psi|psi><psi|d_j psi>)
+   (Fubini-Study metric on projective Hilbert space)
+```
+
+**Relevance to emergent geometry:** The Fisher information metric on the parameter space of local coupling constants defines a Riemannian geometry. If the parameters are identified with spatial coordinates, this metric IS the emergent spatial metric. Cao-Carroll-Michalakis (2017) use mutual information instead, but the Fisher metric approach is more directly geometric.
+
+**Practical note:** For the v3.0 project, the Fisher metric computation is a bonus (Step 4 in GR_EXTENSION.md). Prioritize entanglement entropy calculations first.
+
+### 4. Mutual Information as Emergent Distance (Cao-Carroll-Michalakis approach)
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Pairwise mutual information | I(i:j) = S(i) + S(j) - S(i,j) for all site pairs | Exact (given state) | O(N^2 * d^N) for N site pairs | O(d^N) | Cao, Carroll, Michalakis, PRD 95, 024031 (2017) |
+| Classical MDS | Embed distance matrix into R^k | Exact for given dimension k | O(N^3) for eigendecomposition | O(N^2) | Borg & Groenen, Modern MDS (2005) |
+
+#### Algorithm: Emergent Geometry from Entanglement
+
+```
+INPUT:  Ground state |psi> on lattice of N sites
+OUTPUT: Emergent spatial geometry (distance matrix + embedding dimension)
+
+1. For each pair of sites (i,j):
+   a. Compute S(i) = -Tr(rho_i ln rho_i)
+   b. Compute S(j) = -Tr(rho_j ln rho_j)
+   c. Compute S(i,j) = -Tr(rho_{ij} ln rho_{ij})
+   d. I(i:j) = S(i) + S(j) - S(i,j)
+
+2. Define distance: d(i,j) = f(I(i:j))
+   - Cao-Carroll-Michalakis use d(i,j) ~ 1/I(i:j)
+   - Must verify triangle inequality
+
+3. Classical multidimensional scaling on distance matrix:
+   a. Double-center the squared distance matrix
+   b. Eigendecompose: largest eigenvalues give embedding coordinates
+   c. Number of significant eigenvalues = emergent spatial dimension
+
+4. Compare emergent geometry to input lattice geometry
+```
+
+**This is the key numerical check for Step 4 (emergent geometry).** For a 1D chain with local interactions, the mutual information should decay exponentially with lattice distance, and MDS should recover a 1D embedding. For a 2D lattice, MDS should recover 2D. This is a powerful consistency check.
 
 ## Software Ecosystem
 
@@ -33,284 +182,330 @@ These are all exact-arithmetic or finite-precision linear algebra operations, no
 
 | Tool | Version | Purpose | License | Maturity |
 |------|---------|---------|---------|----------|
-| SymPy | >= 1.12 | Symbolic axiom verification, parametric matrix identities | BSD | Stable |
-| NumPy | >= 1.24 | Numerical cross-checks, random matrix generation, eigenvalue computation | BSD | Stable |
-| SciPy | >= 1.11 | Matrix functions (sqrtm for Luders product), optimization | BSD | Stable |
+| NumPy | >= 1.26 | Dense linear algebra, state vectors, eigendecomposition | BSD | Stable |
+| SciPy | >= 1.12 | Sparse eigensolvers (Lanczos), matrix functions | BSD | Stable |
+| SymPy | >= 1.13 | Symbolic verification of algebraic identities (carries from v2.0) | BSD | Stable |
+| QuTiP | >= 5.0 | Partial trace, entropy functions, tensor product states | BSD | Stable |
 
 ### Supporting Tools
 
 | Tool | Version | Purpose | When Needed |
 |------|---------|---------|-------------|
-| SageMath | >= 10.0 | Jordan algebra structure verification, exceptional algebra exploration | If you need to verify Jordan algebra classification results or work with the full EJA taxonomy |
-| Matplotlib | >= 3.7 | Visualizing state spaces, effect algebra geometry | For toy model visualization only |
+| TeNPy | >= 1.0 | DMRG for 1D systems beyond ED reach (N > 24 qubits) | Only if 1D area-law check needs larger systems |
+| QuSpin | >= 1.0 | ED with symmetry sectors for spin chains | If symmetry-exploiting ED needed for larger lattices |
+| scikit-learn | >= 1.4 | Classical MDS for emergent geometry embedding | For Step 4 (emergent geometry) only |
+| Matplotlib | >= 3.8 | Plotting S(A) vs |boundary(A)|, emergent geometry visualization | For figures in paper |
+
+### Why These Tools
+
+**QuTiP over hand-rolled partial trace:** QuTiP's `Qobj.ptrace()` handles arbitrary tensor product structures correctly, including non-contiguous subsystems. Hand-rolling partial traces on general subsystem decompositions is error-prone. QuTiP also provides `entropy_vn()`, `entropy_mutual()`, and `concurrence()` as validated black-box functions. The v3.0 work involves many partial trace operations on different subregions; QuTiP's convenience functions save development time and reduce bugs.
+
+**NumPy/SciPy over QuTiP for the Hamiltonian:** QuTiP's Hamiltonian construction is oriented toward open quantum systems dynamics (Lindblad, Monte Carlo). For static ground-state problems on lattices, constructing the Hamiltonian directly as a sparse SciPy matrix and using `scipy.sparse.linalg.eigsh` (ARPACK-based Lanczos) is more direct and efficient. Use QuTiP only for the entanglement entropy extraction step.
+
+**TeNPy as reach tool, not primary:** TeNPy's DMRG is the standard tool for 1D entanglement entropy in large systems. But our lattice sizes (N <= 20 qubits for ED) are sufficient to demonstrate area-law scaling in 1D. DMRG would be needed only if we want to push to N=100+ sites for a convincing scaling plot, which is a nice-to-have, not essential for a proof-driven paper.
+
+**QuSpin as alternative ED:** QuSpin handles symmetry-reduced exact diagonalization efficiently for spin chains (translation, parity, spin-flip symmetries). If the self-modeling Hamiltonian has symmetries that reduce the Hilbert space, QuSpin can push ED to larger systems. But the self-modeling interaction structure may not have standard symmetries, making QuSpin's advantage marginal.
 
 ### Why NOT Other Tools
 
 | Tool | Why Skip |
 |------|----------|
-| Mathematica | Stronger symbolic engine, but project is Python-native. SymPy suffices for the matrix dimensions involved (2x2 to 4x4). |
-| GAP (computational algebra) | Designed for group theory, not Jordan algebras or order unit spaces. |
-| Lean/Coq (proof assistants) | Overkill for the current scope. The axiom verification is algebraic identity checking, not deep formal verification. Revisit only if a paper referee demands machine-checked proofs. |
-| QuTiP | Designed for quantum dynamics simulation. The v2.0 work is algebraic structure, not dynamics. The existing Lindblad code from v1.0 is irrelevant here. |
+| ITensor (C++/Julia) | Excellent for production tensor network calculations, but requires Julia or C++. Project is Python-native. TeNPy covers the same ground in Python. |
+| Qiskit / Cirq | Quantum circuit simulators. Our problem is static ground-state computation, not circuit simulation. Wrong abstraction. |
+| DMRG++ (C++) | High-performance DMRG code. Overkill for our small-lattice verification needs. |
+| PETSc/SLEPc | Industrial sparse eigensolvers. SciPy's ARPACK wrapper is sufficient for d^N <= 10^7. |
+| Mathematica | Stronger symbolic engine than SymPy but not Python-native. v2.0 established SymPy as adequate. |
 
 ## Data Flow
 
 ```
-Define order unit space V (finite-dim, with unit 1 and positive cone)
-  -> Define effects E(V) = {a in V : 0 <= a <= 1}
-  -> Define candidate sequential product: seq(a,b) = [self-modeling construction]
-  -> Check S1: seq(a, lambda*b1 + (1-lambda)*b2) = lambda*seq(a,b1) + (1-lambda)*seq(a,b2)
-  -> Check S2: continuity of a -> seq(a,b) [automatic in finite dim]
-  -> Check S3: seq(1, a) = a
-  -> Check S4: seq(a,b) = 0 iff seq(b,a) = 0  [THE CRITICAL ONE]
-  -> Check S5-S7: compatibility conditions
-  -> If all pass: invoke Koecher-Vinberg -> Jordan algebra classification
-  -> Validate: check Jordan identity (a o b) o a^2 = a o (b o a^2) on result
+Define self-modeling lattice Hamiltonian
+  Parameters: n (local algebra dim), N (lattice size), J (coupling), geometry (1D/2D)
+  -> Construct H as sparse matrix (scipy.sparse)
+  -> Exact diagonalization: ground state |psi> (scipy.sparse.linalg.eigsh)
+  -> For each subregion A of size |A| = 1, ..., N/2:
+     -> Partial trace: rho_A = Tr_Abar(|psi><psi|) (QuTiP ptrace or manual reshape)
+     -> Von Neumann entropy: S(A) = -Tr(rho_A ln rho_A) (QuTiP entropy_vn)
+     -> Record (|A|, |boundary(A)|, S(A))
+  -> Fit S(A) vs |boundary(A)| (area law) and S(A) vs |A| (volume law)
+  -> Report R^2 values, scaling coefficients
+
+Bonus: Emergent geometry
+  -> Compute pairwise mutual information I(i:j) for all site pairs
+  -> Classical MDS on 1/I distance matrix (scikit-learn MDS)
+  -> Report embedding dimension, compare to lattice geometry
 ```
 
 ## Computation Order and Dependencies
 
 | Step | Depends On | Produces | Can Parallelize? |
 |------|-----------|----------|-----------------|
-| 1. Implement Luders product for M_n(C) | Nothing | Reference sequential product implementation | Yes |
-| 2. Implement self-modeling sequential product | Formal definition from Phase 1 proof work | Candidate sequential product function | No (needs math first) |
-| 3. Verify S1-S3 symbolically (2x2) | Steps 1-2 | Pass/fail for easy axioms | Yes (independent axioms) |
-| 4. Verify S4 symbolically (2x2) | Steps 1-2 | Pass/fail for critical axiom | Yes |
-| 5. Verify S5-S7 symbolically (2x2) | Steps 1-2 | Pass/fail for remaining axioms | Yes |
-| 6. Numerical cross-check (3x3, 4x4) | Steps 3-5 passing | Confidence in generality | Yes |
-| 7. Jordan product verification | Step 6 | Confirm Jordan identity holds | No (needs prior steps) |
+| 1. Define self-modeling Hamiltonian | Locality formalization (Phase 1 proof work) | H as sparse matrix | No (needs math first) |
+| 2. Benchmark on standard models (Heisenberg, transverse Ising) | Nothing | Verified area-law checker | Yes (known results) |
+| 3. Ground state computation | Step 1 (or 2 for benchmarks) | Ground state vector |psi> | Yes per model |
+| 4. Subregion entropy sweep | Step 3 | S(A) vs |A| and |boundary(A)| data | Yes (subregions independent given |psi>) |
+| 5. Area vs volume law fit | Step 4 | Scaling exponent, R^2 | No (needs all data) |
+| 6. Pairwise mutual information | Step 3 | I(i:j) matrix | Yes (site pairs independent) |
+| 7. MDS embedding | Step 6 | Emergent geometry | No (needs full I matrix) |
+| 8. Fisher information metric | Step 3 + parameterized family | g_ij metric tensor | Yes per parameter pair |
+
+**Critical path:** Steps 1 -> 3 -> 4 -> 5. This is the area-law check.
+**Bonus path:** Steps 3 -> 6 -> 7 (emergent geometry) and Steps 3 -> 8 (Fisher metric).
 
 ## Resource Estimates
 
 | Computation | Time (estimate) | Memory | Storage | Hardware |
 |-------------|-----------------|--------|---------|----------|
-| Symbolic S1-S7 check (2x2 matrices) | < 1 minute | < 100 MB | Negligible | Local CPU |
-| Symbolic S1-S7 check (3x3 matrices) | 1-10 minutes | < 500 MB | Negligible | Local CPU |
-| Numerical cross-check (4x4, 1000 samples) | < 1 minute | < 100 MB | Negligible | Local CPU |
-| SageMath Jordan algebra classification | < 1 minute | < 500 MB | Negligible | Local CPU |
+| ED ground state, 16-qubit 1D chain | < 1 second | 1 MB | Negligible | Local CPU |
+| ED ground state, 20-qubit 1D chain | < 10 seconds | 8 MB | Negligible | Local CPU |
+| ED ground state, 24-qubit 1D chain | 1-10 minutes | 128 MB | Negligible | Local CPU |
+| ED ground state, 4x4 qubit lattice (2D) | < 1 second | 1 MB | Negligible | Local CPU |
+| ED ground state, 5x5 qubit lattice (2D) | ~30 minutes | 256 MB | Negligible | Local CPU |
+| Subregion entropy sweep (all cuts, 16 sites) | < 1 minute | 1 MB | Negligible | Local CPU |
+| Subregion entropy sweep (all cuts, 20 sites) | < 10 minutes | 8 MB | Negligible | Local CPU |
+| Pairwise mutual info (16 sites) | < 5 minutes | 1 MB | Negligible | Local CPU |
+| Fisher info metric (8 sites, 8 params) | < 30 minutes | 1 MB | Negligible | Local CPU |
+| DMRG 1D chain (100 sites, chi=64) | < 5 minutes | 100 MB | Negligible | Local CPU |
 
-All computation is trivially local. No HPC, no GPU, no cluster. The matrices involved are at most 4x4 (or 8x8 for body-model composites). This is proof-support computation, not simulation.
+All computation is local laptop-scale. No HPC, no GPU, no cluster needed.
 
 ## Integration with Existing Code
 
-The v1.0 codebase (Lindblad dynamics, Markov chain analysis) is **not directly relevant** to v2.0. The v2.0 work is algebraic structure theory, not dynamical simulation. However:
+### v2.0 Codebase
 
-- **Input formats:** The self-modeling construction from v1.0 defines body B and model M as finite-dimensional systems with transition matrices. The v2.0 code needs to extract the effect algebra from this.
-- **Output formats:** Axiom verification results (pass/fail per axiom, with counterexample if fail). Jordan algebra type classification.
-- **Interface points:** The "self-modeling sequential product" definition bridges v1.0 (operational construction) and v2.0 (algebraic axiom checking). This definition is the key formalization task in Phase 1 -- it must be written down mathematically before any code.
+The v2.0 computational work was algebraic structure verification (sequential product axioms, Jordan algebra checks) using SymPy. The v3.0 work is numerically different: ground-state physics and entanglement entropy on lattices. There is no code reuse from v2.0 beyond the Python environment.
 
-## Concrete Toy Models for Testing
+**However:** The M_n(C)^sa algebra construction from v2.0 provides the local algebra at each lattice site. The self-modeling sequential product (Luders product sqrt(a) b sqrt(a)) from v2.0 may inform the interaction Hamiltonian construction.
 
-These are the sequential products to implement and test against, ordered by usefulness.
+### Interface Points
 
-### Model 1: Standard Quantum Sequential Product (Luders product on M_2(C))
+- **Input from v2.0:** M_n(C)^sa structure at each site (n=2 gives qubits). Local tomography result determines tensor product structure.
+- **Input from Phase 1 (v3.0):** Formal definition of "local self-modeling interaction" determines the Hamiltonian. This is the critical dependency -- no computation can start until the Hamiltonian is defined.
+- **Output to Phase 2 (v3.0):** Area-law scaling data {S(A), |A|, |boundary(A)|} to support or refute the area-law argument.
+- **Output to Phase 3 (v3.0):** Emergent geometry data (mutual information matrix, MDS embedding) to support the Jacobson application.
 
-**What:** For effects a, b in the set of positive operators on C^2 with 0 <= a <= I, define seq(a,b) = a^{1/2} b a^{1/2}.
+### What Must Be Built
 
-**Why first:** This is the canonical example that satisfies all of S1-S7 by construction. It serves as a **positive control** -- if your axiom-checking code does not confirm S1-S7 for this model, you have a bug.
+1. **Lattice Hamiltonian constructor:** Takes lattice geometry (1D chain, 2D square, etc.), local dimension n, and coupling type. Outputs sparse Hamiltonian matrix. ~100 lines of Python.
+2. **Entanglement entropy scanner:** Takes ground state and subregion specification. Outputs S(A). Wraps QuTiP's ptrace and entropy_vn. ~50 lines.
+3. **Area-law checker:** Takes entropy data, fits area and volume models, reports R^2. ~30 lines.
+4. **Mutual information computer:** Takes ground state, computes I(i:j) for all pairs. ~40 lines.
+5. **Benchmark suite:** Verifies area-law checker against known results (Heisenberg chain, transverse Ising at and away from criticality). ~100 lines.
 
-**Implementation:**
-```python
-import numpy as np
-from scipy.linalg import sqrtm
+Total new code: ~300-400 lines of Python. This is a weekend of work, not a software project.
 
-def luders_product(a, b):
-    """Standard quantum sequential product: sqrt(a) @ b @ sqrt(a)"""
-    sqrt_a = sqrtm(a)
-    return sqrt_a @ b @ sqrt_a
-```
+## Discretizing Jacobson's Argument
 
-**Dimension:** 2x2 complex matrices. Effects are 2x2 positive semidefinite with eigenvalues in [0,1].
+### State of the Art
 
-**Reference:** Gudder and Greechie (2002), "Sequential products on effect algebras," Reports on Mathematical Physics 49:87-111.
+No published discrete lattice version of Jacobson's full thermodynamic argument exists. Jacobson's original 1995 derivation and his 2016 "Entanglement Equilibrium" reformulation both operate in the continuum, requiring:
 
-### Model 2: Classical Sequential Product (diagonal matrices / Boolean algebra)
+1. **Rindler horizons:** Local causal horizons through each spacetime point. On a lattice, there is no continuous notion of "local causal horizon." The nearest analogue is a bipartition boundary -- but this lacks the boost Killing vector structure.
 
-**What:** For a commutative algebra (diagonal matrices), seq(a,b) = a * b (pointwise product).
+2. **Boost Killing vector:** The generator of Lorentz boosts that preserves the Rindler horizon. On a lattice, there is no continuous symmetry group. Possible discrete analogues: modular Hamiltonian K = -ln(rho_A) generates "modular flow" (Tomita-Takesaki theory), which is the algebraic analogue of geometric boosts.
 
-**Why second:** This is the classical limit. It trivially satisfies S1-S7 and produces a commutative Jordan algebra (the spin factor of dimension 1, i.e., just R^n with pointwise multiplication). Serves as a **degenerate control**.
+3. **Raychaudhuri equation:** Governs focusing of null geodesic congruences. No lattice analogue exists. The Raychaudhuri equation is intrinsically a continuum differential geometry statement.
 
-**Implementation:**
-```python
-def classical_product(a, b):
-    """Classical sequential product: pointwise multiplication of diagonals"""
-    return np.diag(np.diag(a) * np.diag(b))
-```
+4. **Unruh temperature:** T = a/(2pi) for acceleration a. On a lattice with finite degrees of freedom, the Unruh effect requires a continuum limit or an analogue construction.
 
-### Model 3: Self-Modeling Sequential Product (THE TARGET)
+### What Can Be Computed
 
-**What:** For a self-modeling system with body B and model M, the sequential product is: "test effect a on B, update M via the self-modeling map, test effect b on B." The precise mathematical form depends on the Phase 1 formalization.
+The Cao-Carroll-Michalakis approach (PRD 95, 024031, 2017) bypasses these continuum structures entirely. Their route:
+- Start with a finite-dimensional Hilbert space (no continuum needed)
+- Define geometry from entanglement (mutual information as distance)
+- Show that entanglement perturbations obey a spatial analogue of Einstein's equation
+- The "spatial Einstein equation" emerges from entanglement first law: delta S = delta <K>
 
-**Why third:** This is the actual construction to be verified. Cannot be implemented until the formal definition is complete. The code structure should be: define the update map phi: E(B) -> channels on M, then seq(a,b) = [result of testing a, applying phi(a) to update M, then testing b].
+This is more natural for our lattice setting than trying to discretize Jacobson's continuum argument directly.
 
-**Implementation sketch (pending formalization):**
-```python
-def self_model_product(a, b, update_map, state):
-    """
-    Self-modeling sequential product.
-    a, b: effects on body B
-    update_map: E(B) -> CPTP maps on M
-    state: current state of B x M
+Jacobson's 2016 "Entanglement Equilibrium" paper (PRL 116, 201101) provides a bridge: Einstein's equations follow from the hypothesis that entanglement entropy in small geodesic balls is maximized in vacuum. This is closer to a lattice-friendly formulation because it's about entropy of subregions, which we can compute directly.
 
-    Returns: probability of (a then b) = Tr[b . update_map(a)(sqrt(a) state sqrt(a))]
-    """
-    # Precise form TBD -- depends on Phase 1 formalization
-    pass
-```
+### Computational Checks
 
-**Key question:** Does seq(a,b) live in E(B), E(M), or E(B tensor M)? The framing choice (effects on B vs effects on B x M) is itself a Phase 1 research question.
-
-### Model 4: Spin Factor Sequential Product
-
-**What:** The spin factor V_n = R + R^n with Jordan product (alpha, x) o (beta, y) = (alpha*beta + <x,y>, alpha*y + beta*x). The effect algebra is {(alpha, x) : alpha + |x| <= 1, alpha - |x| >= 0}. The sequential product is defined via the spectral decomposition.
-
-**Why:** The spin factors are the simplest non-trivial Euclidean Jordan algebras beyond M_n(C). V_3 (the Bloch ball) is isomorphic to the 2x2 quantum case, so it provides an alternative representation of Model 1. V_n for n > 3 gives genuinely non-quantum Jordan algebras that still satisfy S1-S7. Testing against these catches bugs that only appear outside the quantum case.
-
-**Reference:** van de Wetering (2018/2019), arXiv:1803.11139, Section 5.
-
-### Model 5: Non-Example (Violating S4)
-
-**What:** Construct a sequential product that violates S4 (symmetry of orthogonality). For instance, take seq(a,b) = a*b (just matrix multiplication, no symmetrization). This fails S4 because a*b = 0 does not imply b*a = 0 for general matrices.
-
-**Why:** Serves as a **negative control**. If your axiom-checking code does not detect the S4 violation for this model, you have a bug in the S4 check.
-
-**Implementation:**
-```python
-def asymmetric_product(a, b):
-    """Non-example: plain matrix multiplication. Violates S4."""
-    return a @ b
-```
-
-## Axiom Verification Strategy
-
-For each axiom, the verification approach:
-
-| Axiom | Statement | Verification Method | Difficulty |
-|-------|-----------|-------------------|------------|
-| S1 | seq(a, lambda*b1 + (1-lambda)*b2) = lambda*seq(a,b1) + (1-lambda)*seq(a,b2) | Symbolic: expand both sides, check equality | Easy |
-| S2 | a_n -> a implies seq(a_n, b) -> seq(a, b) | Automatic in finite dimensions (matrix sqrt is continuous on PSD cone) | Free |
-| S3 | seq(1, a) = a | Direct substitution | Trivial |
-| S4 | seq(a, b) = 0 iff seq(b, a) = 0 | Must check both directions. Symbolic: parameterize generic a, b, impose seq(a,b)=0, check if seq(b,a)=0 follows. Numerical: random search for counterexamples. | HARD -- this is the critical axiom |
-| S5 | If a, b commute and a+b <= 1, then seq(a+b, c) = seq(a, c) + seq(b, c) | Symbolic with commutativity constraint | Medium |
-| S6 | If a, b commute, then seq(a, b) = seq(b, a) | Symbolic with commutativity constraint | Easy |
-| S7 | If a, b commute and a+b <= 1, then a+b commutes with any c that both a,b commute with | Symbolic | Medium |
-
-### S4 Verification -- The Critical Check
-
-S4 is the make-or-break axiom. For the standard Luders product, S4 holds because a^{1/2} b a^{1/2} = 0 iff the ranges of a and b are orthogonal (as subspaces), which is a symmetric relation. For the self-modeling product, this is not obvious.
-
-**Approach for S4:**
-1. **Symbolic (2x2):** Parameterize generic 2x2 effects a = [[a11, a12], [a12*, a22]] with 0 <= a <= I. Compute seq(a,b) symbolically. Impose seq(a,b) = 0 (4 equations). Check whether seq(b,a) = 0 follows.
-2. **Numerical search for counterexample:** Generate 10,000+ random pairs (a,b) in E(C^2). For each pair where |seq(a,b)| < epsilon, check |seq(b,a)|. If any pair has |seq(a,b)| < epsilon but |seq(b,a)| >> epsilon, S4 fails.
-3. **Analytic argument:** If steps 1-2 suggest S4 holds, construct a proof. If they suggest failure, characterize the counterexample.
-
-## Validation Strategy
-
-| Result | Validation Method | Benchmark | Source |
-|--------|------------------|-----------|--------|
-| Luders product satisfies S1-S7 | Run axiom checker on Model 1 | All axioms pass | Gudder-Greechie (2002), van de Wetering (2018) |
-| Classical product satisfies S1-S7 | Run axiom checker on Model 2 | All axioms pass | Trivial (commutative algebra) |
-| Asymmetric product violates S4 | Run axiom checker on Model 5 | S4 fails | Construction (non-symmetric zero divisors exist) |
-| Jordan identity holds for verified product | Check (a o b) o a^2 = a o (b o a^2) | Identity holds | Definition of Jordan algebra |
-| Spin factor classification | SageMath Jordan algebra tools | Known classification (R, spin factors, M_n(R), M_n(C), M_n(H), M_3(O)) | Jordan-von Neumann-Wigner (1934) |
+| Check | What to Compute | Expected Result | Feasibility |
+|-------|----------------|-----------------|-------------|
+| Entanglement first law | delta S(A) vs delta <K_A> for small perturbations | delta S = delta <K> | Feasible: exact for small lattices |
+| Modular Hamiltonian | K_A = -ln(rho_A) | Should generate "modular flow" | Feasible: direct computation from rho_A |
+| Entanglement equilibrium | Is vacuum S(A) maximal at fixed |A|? | Yes for area-law states | Feasible: compare S(A) across state families |
 
 ## Open Questions
 
 | Question | Why Open | Impact on Project | Approaches Being Tried |
 |----------|---------|-------------------|----------------------|
-| Does the self-modeling sequential product satisfy S4? | No prior work on this specific construction | If no: project produces valuable negative result. If yes: involution derived. | Formal proof (Phase 1), computational testing (this plan) |
-| Which effect algebra framing is correct? | Effects on B vs effects on B x M give different sequential products | Determines the entire algebraic setup | Try both, see which satisfies more axioms |
-| Is there existing GPT computation software? | Web search found no dedicated package | Must build axiom checker from scratch | Confirmed: no existing package. Build lightweight Python harness. |
+| What Hamiltonian encodes self-modeling locality? | Self-modeling is an operational/algebraic concept; translating to a Hamiltonian is nontrivial | Blocks all numerical computation until resolved | Phase 1 formalization; may need to define the Hamiltonian axiomatically |
+| Does the self-modeling ground state have a spectral gap? | Hastings' area law requires a gap; without it, area law is not guaranteed | Could invalidate the Hastings route to area law | Check numerically for small lattices; may need information-theoretic argument instead |
+| Can Jacobson's argument work on a lattice without continuum limit? | Rindler horizons, boost Killing vectors, Raychaudhuri equation are continuum structures | If no: need continuum limit argument; if yes: direct lattice derivation | Cao-Carroll-Michalakis approach bypasses continuum structures |
+| What is the right coupling for M_n(C)^sa neighbors? | Many possible nearest-neighbor interactions; self-modeling constrains but may not determine uniquely | Different couplings give different ground states and possibly different entropy scaling | Derive from self-modeling update map; test several candidates numerically |
 
 ## Anti-Approaches
 
 | Anti-Approach | Why Avoid | What to Do Instead |
 |---------------|-----------|-------------------|
-| Using QuTiP or quantum dynamics simulators | v2.0 is algebraic structure theory, not dynamics simulation | Build lightweight symbolic/numerical axiom checker in plain SymPy + NumPy |
-| Attempting infinite-dimensional verification | van de Wetering's theorem requires additional assumptions in infinite dimensions | Stay in finite dimensions. Start with n=2, then n=3. |
-| Trying to use Lean/Coq for axiom verification | Massive overhead for formalizing effect algebras in a proof assistant; no existing libraries | Use symbolic Python for computational checks; write human-readable proofs |
-| Numerical-only axiom checking | Floating point cannot prove identities, only find counterexamples | Symbolic verification primary, numerical as cross-check only |
-| SageMath-only approach | SageMath's Jordan algebra module handles specific algebra types (exceptional, from bilinear forms) but not sequential product axioms | Use SageMath only for Jordan algebra classification after axioms are verified; use SymPy for the axiom checking itself |
+| Large-scale tensor network simulation | This is a proof project, not a condensed matter simulation. Spending weeks optimizing DMRG for large lattices adds nothing to the theoretical argument. | Exact diagonalization on small lattices (N <= 20 qubits). The point is to CHECK the area law, not to compute it with maximum precision. |
+| Discretizing the Raychaudhuri equation | No clean lattice analogue exists. Attempting to define null geodesic focusing on a graph is a research program, not a verification step. | Use the Cao-Carroll-Michalakis or Jacobson entanglement equilibrium formulations that work with subregion entropies directly. |
+| Quantum circuit simulation | The problem is static ground-state entanglement, not quantum dynamics or quantum computing. Qiskit/Cirq are wrong tools. | SciPy sparse eigensolvers for ground states. |
+| Monte Carlo for entanglement entropy | QMC methods for Renyi entropy (replica trick) are powerful but complex to implement and require careful thermalization. | Exact diagonalization is sufficient at our lattice sizes and gives von Neumann entropy directly. |
+| Trying to derive Newton's constant G | Out of scope per PROJECT.md. The thermodynamic argument gives Einstein's equations with G as an undetermined proportionality constant (G = 1/(4*eta) where eta is the entropy-area proportionality). | Accept G as a free parameter. The derivation's value is the FORM of the equations, not the constant. |
 
 ## Logical Dependencies
 
 ```
-Formal definition of self-modeling sequential product (MATH, Phase 1)
-  -> Implementation of seq(a,b) in Python
-  -> Symbolic axiom checking S1-S7 (this computational plan)
-  -> If S1-S7 pass: Jordan algebra identification via Koecher-Vinberg
+Paper 5 results (M_n(C)^sa, local tomography, Luders product)
+  -> Lattice site algebra (each site is M_n(C)^sa)
+  -> Tensor product structure for multi-site system (from local tomography)
 
-Luders product implementation (KNOWN)
-  -> Positive control for axiom checker
-  -> Must pass before trusting any results on novel constructions
+Phase 1: Locality formalization
+  -> Self-modeling interaction Hamiltonian H
+  -> Blocks: all numerical ground-state computations
 
-Classical product implementation (KNOWN)
-  -> Degenerate control for axiom checker
+Phase 2: Area-law argument
+  -> Numerical check: S(A) vs |boundary(A)| for self-modeling lattice
+  -> Requires: ground state of H from Phase 1
 
-S4 verification result
-  -> If PASS: proceed to S5-S7 and then Jordan classification
-  -> If FAIL: characterize failure, pivot to D'Ariano backup (Phase 4)
+Phase 3: Jacobson application
+  -> Numerical check: entanglement first law delta S = delta <K>
+  -> Numerical check: entanglement equilibrium (S maximized in vacuum)
+  -> Requires: area-law confirmation from Phase 2
+
+Phase 4 (bonus): Emergent geometry
+  -> Numerical check: MDS embedding recovers lattice dimension
+  -> Requires: ground state from Phase 1
+  -> Independent of Phases 2-3 (can parallelize)
+
+Benchmark computations (Heisenberg chain, transverse Ising)
+  -> Validates computational infrastructure
+  -> Independent of all phases (do first)
 ```
 
 ## Recommended Investigation Scope
 
 Prioritize:
-1. **Implement Luders product axiom checker (positive control)** -- confirms tooling works before applying to novel construction
-2. **Implement self-modeling sequential product** -- once Phase 1 formalization is complete
-3. **S4 verification** -- the decisive computation
+1. **Benchmark area-law checker on known models** -- Heisenberg chain (gapped: S = const) and critical transverse Ising (S ~ (c/3) ln L) as positive and negative controls. This validates infrastructure before applying to the novel self-modeling Hamiltonian.
+2. **Compute S(A) for self-modeling lattice** -- Once Phase 1 provides the Hamiltonian. Check area vs. volume scaling for 1D chains (N=8-20) and 2D lattices (4x4, 3x4) with M_2(C)^sa local algebras.
+3. **Entanglement first law check** -- Verify delta S(A) = delta <K_A> for small perturbations of the ground state. This is the key input to the Jacobson/entanglement-equilibrium argument.
 
 Defer:
-- **SageMath Jordan algebra exploration** -- only needed after axioms are confirmed
-- **Spin factor models** -- useful for intuition but not on the critical path
-- **Visualization** -- nice-to-have, not needed for proofs
+- **Emergent geometry via MDS:** Nice result but not on the critical path for the area-law -> Einstein equation chain. Do after the core argument is established.
+- **Fisher information metric:** Requires a parameterized family of states and is the most computationally expensive calculation. Only relevant for Step 4 (bonus).
+- **Large-scale DMRG computations:** Only if small-lattice ED results are inconclusive about scaling behavior.
+
+## Validation Strategy
+
+| Result | Validation Method | Benchmark | Source |
+|--------|------------------|-----------|--------|
+| Area-law checker correctness | Heisenberg chain (gapped, Delta > 1) | S(A) = const for interior bipartitions | Hastings (2007), arXiv:0705.2024 |
+| Area-law checker correctness | Critical transverse Ising chain (gapless) | S(A) ~ (c/6) ln L with c=1/2 | Calabrese & Cardy, JSTAT P06002 (2004) |
+| Volume-law detection | Random state entropy | S(A) ~ |A| * ln(d) - 1/2 | Page, PRL 71, 1291 (1993) |
+| Partial trace implementation | Bell state rho_A | S(A) = ln(2) for maximally entangled pair | Textbook |
+| Mutual information | Product state | I(i:j) = 0 for all pairs | Definition |
+| Mutual information | GHZ state | I(i:j) > 0 for all pairs, equal by symmetry | Known result |
+| Entanglement first law | Perturbed ground state | delta S = delta <K> to O(delta^2) | Blanco et al., JHEP 01, 130 (2013) |
 
 ## Installation / Setup
 
 ```bash
-# Core stack (likely already installed from v1.0)
+# Core stack (extends v2.0 environment)
 pip install numpy scipy sympy matplotlib
 
-# SageMath (optional, for Jordan algebra classification)
-# SageMath is a large install (~2GB). Only install if needed for Jordan algebra tools.
-# brew install --cask sage   # macOS
-# Or use SageMath online: https://sagecell.sagemath.org/
+# Entanglement entropy computation (NEW for v3.0)
+pip install qutip
+
+# Optional: larger-scale tensor networks (only if needed)
+pip install physics-tenpy
+
+# Optional: symmetry-exploiting ED (only if needed)
+pip install quspin
+
+# Optional: MDS for emergent geometry (only if needed)
+pip install scikit-learn
 ```
 
-No additional specialized packages needed. The axiom checker will be custom Python code using SymPy and NumPy.
+**Note:** QuTiP v5 (current) requires Python >= 3.10. TeNPy v1 requires Python >= 3.9. Both are compatible with the existing v2.0 environment.
 
-## SageMath Jordan Algebra Capabilities (Reference)
+**Do NOT install** without user confirmation per shared-protocols.md.
 
-SageMath (>= 10.0) provides `sage.algebras.jordan_algebra` with:
+## Concrete Implementation Sketch
 
-- **Construction from associative algebras:** JordanAlgebra(A) where A is an associative algebra, giving Jordan product a o b = (ab + ba)/2
-- **Construction from bilinear forms:** JordanAlgebra(M, B) where M is a module and B a symmetric bilinear form
-- **Exceptional Jordan algebra:** 27-dimensional algebra of 3x3 self-adjoint matrices over octonions, via `sage.algebras.octonion_algebra`
-- **Operations:** Jordan product, unit element, derivation algebra (returns Lie algebra of type F4 for exceptional case)
+### Benchmark: Heisenberg Chain Area Law
 
-**Limitation:** SageMath does NOT implement Euclidean Jordan algebras as a standalone class with spectral decomposition, trace form, or cone-of-squares computation. Michael Orlitzky has written extensively on EJA computation for optimization (see his 2022 draft "Euclidean Jordan algebras for optimization") but this is not yet merged into SageMath proper. For our purposes, the main SageMath JordanAlgebra class suffices for structural checks; spectral decomposition on small matrices can be done directly in NumPy/SciPy.
+```python
+import numpy as np
+from scipy.sparse import kron, eye
+from scipy.sparse.linalg import eigsh
 
-**Relevant SageMath classes:**
-- `sage.algebras.jordan_algebra.JordanAlgebra` -- general Jordan algebra construction
-- `sage.algebras.octonion_algebra.OctonionAlgebra` -- for exceptional Jordan algebra
-- `sage.matrix.matrix2.Matrix.jordan_form()` -- Jordan normal form (different concept, but useful for spectral decomposition of individual elements)
+def heisenberg_chain(N):
+    """Construct Heisenberg XXX Hamiltonian on N-site chain."""
+    d = 2  # qubit
+    # Pauli matrices
+    sx = np.array([[0, 1], [1, 0]], dtype=complex) / 2
+    sy = np.array([[0, -1j], [1j, 0]], dtype=complex) / 2
+    sz = np.array([[1, 0], [0, -1]], dtype=complex) / 2
+    I2 = eye(2, format='csr')
+
+    H = None
+    for i in range(N - 1):
+        # S_i . S_{i+1} = sx_i sx_{i+1} + sy_i sy_{i+1} + sz_i sz_{i+1}
+        for S in [sx, sy, sz]:
+            term = eye(1, format='csr')
+            for j in range(N):
+                if j == i:
+                    term = kron(term, S, format='csr')
+                elif j == i + 1:
+                    term = kron(term, S, format='csr')
+                else:
+                    term = kron(term, I2, format='csr')
+            H = term if H is None else H + term
+    return H
+
+def entanglement_entropy(psi, N, subsys_size):
+    """Compute von Neumann entropy S(A) for first subsys_size sites."""
+    d = 2
+    d_A = d ** subsys_size
+    d_B = d ** (N - subsys_size)
+    psi_matrix = psi.reshape(d_A, d_B)
+    rho_A = psi_matrix @ psi_matrix.conj().T
+    eigenvalues = np.linalg.eigvalsh(rho_A)
+    eigenvalues = eigenvalues[eigenvalues > 1e-14]
+    return -np.sum(eigenvalues * np.log(eigenvalues))
+
+# Example: N=12 Heisenberg chain
+N = 12
+H = heisenberg_chain(N)
+E, psi = eigsh(H, k=1, which='SA')
+psi = psi[:, 0]
+
+# Sweep subregion size
+for L in range(1, N // 2 + 1):
+    S = entanglement_entropy(psi, N, L)
+    print(f"|A|={L}, S(A)={S:.4f}")
+# Expected: S(A) roughly constant for L >= 2 (area law in 1D)
+```
+
+This benchmark should be the FIRST computation run, before any self-modeling-specific work. It validates the entire toolchain.
 
 ## Key References
 
-- van de Wetering (2018/2019), "Sequential product spaces are Jordan algebras," arXiv:1803.11139, J. Math. Phys. 60:062201 -- Defines axioms S1-S7, proves main theorem via Koecher-Vinberg
-- van de Wetering (2018), "Three characterisations of the sequential product," arXiv:1803.08453 -- Additional characterizations, useful for understanding what makes the standard product special
-- Gudder and Greechie (2002), "Sequential products on effect algebras," Reports on Mathematical Physics 49:87-111 -- Original sequential product formalism
-- Westerbaan, Westerbaan, and van de Wetering (2020), "The three types of normal sequential effect algebras," arXiv:2004.12749, Quantum 4:378 -- Classification into Boolean, convex, and almost-convex types. Key result: no finite non-Boolean SEAs exist (constrains what toy models are possible)
-- Orlitzky (2022), "Euclidean Jordan algebras for optimization" (draft) -- Computational algorithms for EJA rank, characteristic polynomials, and cone membership. URL: michael.orlitzky.com
-- Barnum, Ududec, van de Wetering (2023), "Composites and categories of Euclidean Jordan algebras," arXiv:2306.00362 -- Compositionality constraints relevant to Phase 2 local tomography
-- Plavala (2023), "General probabilistic theories: An introduction," arXiv:2103.07469, Physics Reports 1033:1-64 -- Comprehensive GPT review; Section 6 covers effect algebras and sequential products in GPT context
-- SageMath documentation, "Jordan Algebras," doc.sagemath.org/html/en/reference/algebras/sage/algebras/jordan_algebra.html
-- SymPy documentation, "Matrices," docs.sympy.org/latest/modules/matrices/matrices.html -- Symbolic matrix operations including noncommutative support
+- Eisert, Cramer, Plenio (2010), "Colloquium: Area laws for the entanglement entropy," RMP 82, 277, arXiv:0808.3773 -- Comprehensive review of area laws; Section III covers numerical methods
+- Hastings (2007), "An area law for one-dimensional quantum systems," JSTAT P08024, arXiv:0705.2024 -- Rigorous 1D area law proof; states conditions (gapped, local, finite-range)
+- Calabrese, Cardy (2004), "Entanglement entropy and quantum field theory," JSTAT P06002, arXiv:hep-th/0405152 -- CFT formula S ~ (c/3) ln L for critical 1D systems; benchmark for gapless case
+- Cao, Carroll, Michalakis (2017), "Space from Hilbert space," PRD 95, 024031, arXiv:1606.08444 -- Emergent geometry from entanglement in finite Hilbert spaces; closest existing framework
+- Jacobson (1995), "Thermodynamics of Spacetime," PRL 75, 1260, arXiv:gr-qc/9504004 -- Original thermodynamic derivation of Einstein equations
+- Jacobson (2016), "Entanglement Equilibrium and the Einstein Equation," PRL 116, 201101, arXiv:1505.04753 -- Reformulation via entanglement equilibrium in causal diamonds
+- Blanco, Casini, Hung, Myers (2013), "Relative entropy and holography," JHEP 01, 130, arXiv:1305.3182 -- Entanglement first law: delta S = delta <K>
+- Laflorencie (2016), "Quantum entanglement in condensed matter systems," Phys. Rep. 646, 1, arXiv:1512.03388 -- Review of numerical methods for entanglement entropy
+- Page (1993), "Average entropy of a subsystem," PRL 71, 1291 -- Random state entropy: S ~ |A| ln(d) - d_A/(2 d_B); benchmark for volume law
+- QuTiP documentation: https://qutip.org/docs/latest/ -- entropy_vn, ptrace, tensor operations
+- TeNPy documentation: https://tenpy.readthedocs.io/en/latest/ -- DMRG, MPS, entanglement entropy
+- QuSpin documentation: https://quspin.github.io/QuSpin/ -- ED with symmetries for spin chains
 
 ## Sources
 
-- SageMath Jordan algebra module: [doc.sagemath.org](https://doc.sagemath.org/html/en/reference/algebras/sage/algebras/jordan_algebra.html) -- Verified 2026-03-20, Release 10.6
-- SymPy noncommutative support: [github.com/sympy/sympy](https://github.com/sympy/sympy) -- Verified active, Issue #18367 documents commutative=False behavior
-- Orlitzky EJA draft: [michael.orlitzky.com](https://michael.orlitzky.com/documents/books/euclidean_jordan_algebras_for_optimization.pdf) -- Not yet integrated into SageMath
-- van de Wetering (2019): [arXiv:1803.11139](https://arxiv.org/abs/1803.11139) -- Published in J. Math. Phys.
-- Three types of SEAs: [arXiv:2004.12749](https://arxiv.org/abs/2004.12749) -- Published in Quantum journal
-- GPT introduction: [arXiv:2103.07469](https://arxiv.org/abs/2103.07469) -- Published in Physics Reports
+- Eisert et al. (2010): [arXiv:0808.3773](https://arxiv.org/abs/0808.3773) -- Area law review with numerical methods survey
+- Hastings (2007): [arXiv:0705.2024](https://arxiv.org/abs/0705.2024) -- 1D area law theorem conditions
+- Cao, Carroll, Michalakis (2017): [arXiv:1606.08444](https://arxiv.org/abs/1606.08444) -- Emergent geometry algorithm (MDS from mutual information)
+- Jacobson (2016): [arXiv:1505.04753](https://arxiv.org/abs/1505.04753) -- Entanglement equilibrium formulation
+- TeNPy v1 paper: [arXiv:2408.02010](https://arxiv.org/abs/2408.02010) -- TeNPy version 1, August 2024
+- QuTiP entropy module: [qutip.org](https://qutip.org/docs/4.0.2/modules/qutip/entropy.html) -- Verified 2026-03-21
+- QuSpin: [SciPost Phys. 2, 003 (2017)](https://scipost.org/SciPostPhys.2.1.003) -- ED with symmetries
+- Entanglement entropy bounds (2025): [Comm. Math. Phys.](https://link.springer.com/article/10.1007/s00220-025-05324-3) -- Recent area law conditional proofs for rapid decorrelation
+- Bipartite reweight-annealing QMC (2025): [Nature Communications](https://www.nature.com/articles/s41467-025-61084-7) -- Large-scale Renyi entropy extraction
