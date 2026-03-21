@@ -1,99 +1,101 @@
-# Requirements: QM from Algebraic Genericity
+# Requirements: GR from Self-Modeling
 
-**Defined:** 2026-03-20
-**Core Research Question:** Does the sequential product structure of self-modeling systems satisfy van de Wetering's axioms S1-S7, thereby deriving quantum mechanics from a single operational premise?
+**Defined:** 2026-03-21
+**Core Research Question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
 
 ## Primary Requirements
 
-### Sequential Product Formalization
+### Locality Formalization
 
-- [ ] **SPFM-01**: Formally define the self-modeling sequential product on a finite-dimensional order unit space, exploring both effect algebra framings (E(B) and E(B x M)), and determine which framing is correct
-- [ ] **SPFM-02**: Verify axioms S1-S3 and S5-S7 for the self-modeling sequential product (per van de Wetering arXiv:1803.11139 exclusively — NOT Gudder-Greechie axioms)
-- [ ] **SPFM-03**: Prove or disprove S4 (symmetry of orthogonality) for the self-modeling construction — this is the decisive test
-- [ ] **SPFM-04**: Verify non-associativity of the self-modeling sequential product (associativity forces commutativity per Westerbaan-Westerbaan-van de Wetering 2020)
-- [ ] **SPFM-05**: If S4 fails, characterize exactly which physical property of the self-model's update map is responsible for the failure
+- [ ] **LOCL-01**: Define lattice of self-modeling M_n(C)^sa systems with local coupling in Bratteli-Robinson framework, specifying: lattice graph, local algebra A_x = M_n(C) at each site, nearest-neighbor interactions encoding self-modeling coupling through B-M boundaries
+- [ ] **LOCL-02**: Establish Lieb-Robinson bounds and effective causal structure from local self-modeling interactions, yielding finite propagation speed v_LR
 
-### Local Tomography
+### Area-Law Derivation
 
-- [ ] **LTOM-01**: Formalize "independently accessible B and M" in the order unit space / GPT framework
-- [ ] **LTOM-02**: Prove or disprove that B-M independent accessibility implies local tomography on B tensor M
-- [ ] **LTOM-03**: If local tomography fails, identify which additional assumption bridges the gap
+- [ ] **AREA-01**: Prove or strongly argue that local self-modeling interactions produce area-law entanglement entropy S(A) ~ |boundary(A)| for the relevant state, using channel capacity / mutual information route (preferred) or Hastings / Brandao-Horodecki (backup)
+- [ ] **AREA-02**: Identify which state of the self-modeling lattice has area-law entanglement -- resolve the "which state?" problem by connecting the self-modeling fixed point to a state satisfying area-law conditions
+
+### Jacobson Application
+
+- [ ] **JACB-01**: Verify that the self-modeling lattice satisfies Jacobson 2016's entanglement equilibrium condition (delta S_EE = 0 for small geodesic balls in the emergent geometry), using the modular Hamiltonian as discrete boost generator
+- [ ] **JACB-02**: Derive Einstein's field equations G_ab + Lambda g_ab = (8 pi G) T_ab from self-modeling area-law entropy via Jacobson's 2016 entanglement equilibrium argument, with the continuum limit framed as leading-order IR effective description
+
+### Numerical Verification
+
+- [ ] **NUMR-01**: Verify area-law scaling numerically on small self-modeling lattices (exact diagonalization, N=16-20 qubits / 8-10 M_2(C)^sa sites), distinguishing area vs volume law via linear regression on S(A) vs |boundary(A)| and |volume(A)|
 
 ### Paper Assembly
 
-- [ ] **PAPR-01**: Assemble Paper 5 with the complete chain L4 → sequential product → Jordan algebra → C*-algebra → QM (full version if Phases 1-2 succeed, conditional version L4 + C* if either fails)
-
-### D'Ariano Backup
-
-- [ ] **DRBK-01**: If S4 fails, verify whether the B-M correlation state satisfies D'Ariano's Postulate 5 (symmetric faithful state), enabling explicit involution construction
+- [ ] **PAPR-01**: Assemble Paper 6 "Spacetime from Self-Modeling" with complete derivation chain (self-modeling locality -> area law -> Jacobson -> Einstein), precise gap identification, and honest framing of assumptions
 
 ## Follow-up Requirements
 
 ### Extended Analysis
 
-- **EXTD-01**: Verify S1-S7 for infinite-dimensional generalizations (JB-algebra setting)
-- **EXTD-02**: Investigate whether non-Markovian self-models change the S4 verdict
-- **EXTD-03**: Connect to other QM reconstruction programs (Hardy, Chiribella-D'Ariano-Perinotti) and compare premise counts
+- **LOCL-03**: Derive or justify the lattice topology from self-modeling constraints (address background dependence circularity)
+- **AREA-03**: Establish whether the self-modeling fixed point is a pure global state (needed for channel capacity route)
+- **JACB-03**: Identify the emergent Newton's constant G = 1/(4 eta) in terms of self-modeling lattice parameters
+- **NUMR-02**: Verify entanglement first law delta S = delta <K> on self-modeling lattice
+- **NUMR-03**: Construct emergent geometry from mutual information matrix via Cao-Carroll-Michalakis MDS embedding (consistency check)
 
 ## Out of Scope
 
 | Topic | Reason |
 | ----- | ------ |
-| Standard Model derivation | Level 4+ in the hierarchy, far beyond current scope |
-| Self-modeling constants experiment | Level 6, requires experimental apparatus |
-| Experiential measure extensions | v1.0 is complete; this milestone is about algebraic structure |
-| Infinite-dimensional systems | All proofs restricted to finite dimensions |
-| Blog series writeup | Separate project |
+| Value of Newton's constant G | Not derivable from this framework without additional input |
+| Number of spacetime dimensions | Not derivable; lattice topology is input |
+| Standard Model gauge groups | Level 4+ in hierarchy |
+| Full quantum gravity theory | Goal is Einstein's equations only, not UV completion |
+| Cosmological constant problem | Lambda appears as undetermined constant in Jacobson |
+| Rigorous continuum limit | Open problem in quantum gravity; use Wilsonian framing |
+| Infinite-dimensional systems | Paper 5 restriction carries forward |
 
 ## Accuracy and Validation Criteria
 
 | Requirement | Accuracy Target | Validation Method |
 | ----------- | --------------- | ----------------- |
-| SPFM-01 | Exact formal definition | Audit for Hilbert space imports (circularity check) |
-| SPFM-02 | Rigorous proof for each axiom | Line-by-line verification; positive control (Luders product must pass) |
-| SPFM-03 | Rigorous proof or explicit counterexample | If proof: check each step for hidden assumptions. If disproof: construct explicit a,b with a.b=0 but b.a!=0 |
-| SPFM-04 | Explicit non-associative triple | Construct a,b,c with (a.b).c != a.(b.c) |
-| SPFM-05 | Precise identification of failing property | Must point to specific step in S4 proof that breaks |
-| LTOM-01 | Exact formal definition | Check compatibility with GPT framework (Barnum-Wilce) |
-| LTOM-02 | Rigorous proof or explicit counterexample | Verify against known cases (QM passes, real QM fails) |
-| PAPR-01 | Publication-ready manuscript | Self-contained logical chain; peer-review ready |
-| DRBK-01 | Rigorous verification | Check faithfulness and symmetry conditions explicitly |
+| LOCL-01 | Exact formal definition | Consistency with Bratteli-Robinson framework; Paper 5 algebra per site |
+| LOCL-02 | Rigorous bound | Lieb-Robinson velocity computed from interaction Hamiltonian |
+| AREA-01 | Strong argument with precise gap identification | Must cite specific theorem or construct specific argument; identify exactly what assumption bridges any gap |
+| AREA-02 | Clear identification of state | Must specify which state and why it satisfies area-law conditions |
+| JACB-01 | Verification against Jacobson 2016 conditions | Check each condition of arXiv:1505.04753 |
+| JACB-02 | Full nonlinear Einstein equations | Must recover G_ab + Lambda g_ab = (8 pi G) T_ab |
+| NUMR-01 | Scaling exponent distinguishes area vs volume | R^2 > 0.9 for area-law fit; R^2 < 0.5 for volume-law fit (or vice versa) |
+| PAPR-01 | Publication-ready manuscript | Self-contained chain; honest gap framing; all assumptions listed |
 
 ## Contract Coverage
 
 | Requirement | Decisive Output / Deliverable | Anchor / Benchmark / Reference | Prior Inputs / Baselines | False Progress To Reject |
 | ----------- | ----------------------------- | ------------------------------ | ------------------------ | ------------------------ |
-| SPFM-01 | Formal definition with chosen effect algebra framing | van de Wetering arXiv:1803.11139 definitions | v1.0 composite process framework | Definition that uses Hilbert space primitives (circular) |
-| SPFM-02 | Proof of each axiom S1-S3, S5-S7 | Luders product as positive control | — | Proof that works for any sequential product (proves nothing about self-model) |
-| SPFM-03 | Proof or disproof of S4 | — (no prior benchmark) | — | Short proof (S4 is hard; short means something is hidden) |
-| SPFM-04 | Non-associative triple | Westerbaan et al. (2020) theorem | — | Associativity claim without explicit test |
-| LTOM-01 | Formal definition of independent accessibility | Barnum-Wilce GPT framework | — | Conflating accessibility with tomography |
-| LTOM-02 | Proof or disproof of local tomography | Hanche-Olsen (1985) | — | Assuming complex field without proof |
-| PAPR-01 | Paper 5 manuscript | All v2.0 anchors | v1.0 papers | Paper that assumes C* without acknowledging it as an additional premise |
-| DRBK-01 | Faithfulness/symmetry verification | D'Ariano arXiv:quant-ph/0611094 | — | Assuming faithful state without checking |
+| LOCL-01 | Formal lattice definition with interaction H | Bratteli-Robinson framework | Paper 5 M_n(C)^sa | Lattice defined without specifying how self-modeling constrains coupling |
+| LOCL-02 | Lieb-Robinson velocity v_LR | Lieb-Robinson (1972) | -- | Citing LR bounds without computing v_LR for the specific Hamiltonian |
+| AREA-01 | Proof/argument that S(A) ~ |boundary(A)| | Hastings (2007), WVCH (2008) | Phase 1 lattice | Citing area-law theorems without checking their hypotheses apply |
+| AREA-02 | Identified state with justification | -- (novel) | Phase 1 lattice | Assuming "ground state" without defining the Hamiltonian first |
+| JACB-01 | Verification of entanglement equilibrium | Jacobson (2016) arXiv:1505.04753 | Phases 1-2 | Restating Jacobson's conditions without verifying them |
+| JACB-02 | Einstein's equations derived | Jacobson (1995, 2016) | Phases 1-3 | Citing Jacobson without connecting to self-modeling |
+| NUMR-01 | Area-law scaling data with fit statistics | Known models (Heisenberg, Ising) as benchmark | Phase 1 Hamiltonian | Only checking 1D (must attempt 2D if feasible) |
+| PAPR-01 | Paper 6 manuscript | Paper 5 (cited) | All prior phases | Paper that glosses over gaps instead of identifying them precisely |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| SPFM-01 | Phase 4 | Pending |
-| SPFM-02 | Phase 4 | Pending |
-| SPFM-03 | Phase 4 | Pending |
-| SPFM-04 | Phase 4 | Pending |
-| SPFM-05 | Phase 4 | Pending |
-| LTOM-01 | Phase 5 | Pending |
-| LTOM-02 | Phase 5 | Pending |
-| LTOM-03 | Phase 5 | Pending |
-| PAPR-01 | Phase 6 | Pending |
-| DRBK-01 | Phase 7 (contingency) | Pending |
+| LOCL-01 | TBD | Pending |
+| LOCL-02 | TBD | Pending |
+| AREA-01 | TBD | Pending |
+| AREA-02 | TBD | Pending |
+| JACB-01 | TBD | Pending |
+| JACB-02 | TBD | Pending |
+| NUMR-01 | TBD | Pending |
+| PAPR-01 | TBD | Pending |
 
 **Coverage:**
 
-- Primary requirements: 10 total
-- Mapped to phases: 10/10
-- Unmapped: 0
+- Primary requirements: 8 total
+- Mapped to phases: 0 (awaiting roadmap)
+- Unmapped: 8
 
 ---
 
-_Requirements defined: 2026-03-20_
-_Last updated: 2026-03-20 after initial definition_
+_Requirements defined: 2026-03-21_
+_Last updated: 2026-03-21 after initial definition_
