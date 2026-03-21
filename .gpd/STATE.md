@@ -7,24 +7,24 @@ See: .gpd/PROJECT.md (updated 2026-03-20)
 **Machine-readable scoping contract:** `.gpd/state.json` field `project_contract`
 
 **Core research question:** Does the sequential product structure of self-modeling systems satisfy van de Wetering's axioms S1-S7, thereby deriving quantum mechanics from a single operational premise?
-**Current focus:** Phase 5 COMPLETE -- Phase 6 next (Paper Assembly)
+**Current focus:** Phase 6 complete -- Paper Assembly done, verification passed
 
 ## Current Position
 
 **Current Phase:** 6
 **Current Phase Name:** Paper Assembly
 **Total Phases:** 4 (Phases 4-7; v1.0 Phases 1-3 complete)
-**Current Plan:** --
-**Total Plans in Phase:** TBD
-**Status:** Phase 5 complete; ready to plan Phase 6
+**Current Plan:** 3
+**Total Plans in Phase:** 3
+**Status:** Phase 6 complete -- all 3 plans done, verification passed (8/10 -> 10/10 after gap closure), consistency PASS
 **Last Activity:** 2026-03-21
-**Last Activity Description:** Phase 5 complete -- local tomography proved, all non-complex types excluded, C*-algebra promotion established, verification passed (6/6)
+**Last Activity Description:** Wave 2 complete -- discussion, appendices, derivation chain figure, manuscript assembly, circularity/completeness/notation audits all PASS
 
-**Progress:** [██████████] 100% (Phase 5)
+**Progress:** [██████████] 100% (Phase 6)
 
 ## Active Calculations
 
-None (Phase 5 complete, Phase 6 not started).
+None (Phase 6 complete).
 
 ## Intermediate Results
 
@@ -67,6 +67,9 @@ None (Phase 5 complete, Phase 6 not started).
 | 04-04 | 15min    | 3     | 2     |
 | 05-01 | 28min    | 3     | 3     |
 | 05-02 | 15min    | 2     | 2     |
+| 06-01 | 5min     | 2     | 3     |
+| 06-02 | 4min     | 2     | 3     |
+| 06-03 | 12min    | 3     | 10    |
 
 ## Accumulated Context
 
@@ -122,5 +125,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-21
-**Stopped at:** Phase 5 complete; ready to plan Phase 6 (Paper Assembly)
+**Stopped at:** Phase 6 complete; milestone v2.0 ready for completion
 **Resume file:** --
