@@ -42,7 +42,7 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 
 - [x] **Phase 4: Sequential Product Formalization** -- All S1-S7 proved; EJA classification via vdW Theorem 1 (completed 2026-03-21)
 - [x] **Phase 5: Local Tomography from B-M Compositionality** -- Local tomography proved from faithful tracking; all non-complex types excluded; C*-algebra promotion complete (completed 2026-03-21)
-- [ ] **Phase 6: Paper Assembly** -- Assemble Paper 5 (full chain or conditional, adapting to Phase 4-5 outcomes)
+- [ ] **Phase 6: Paper Assembly** -- Assemble Paper 5 as complete full-chain manuscript (L4 -> QM, one premise)
 - [ ] **Phase 7: D'Ariano Backup** -- (CONTINGENCY) Construct involution from faithful B-M correlation state if S4 fails
 
 ## Phase Details
@@ -150,6 +150,13 @@ Plans:
 4. The paper honestly states limitations, including finite-dimensionality restriction and any assumptions that were needed beyond L4
 5. The manuscript is formatted for the target venue (Foundations of Physics / PRA / NJP) with abstract, introduction, main results, proofs, discussion, and bibliography
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md -- LaTeX scaffold, introduction, preliminaries, self-modeling construction (Sections 1-3)
+- [ ] 06-02-PLAN.md -- Axiom verification, composite/LT, type exclusion/C*-promotion (Sections 4-6)
+- [ ] 06-03-PLAN.md -- Discussion, appendices, figure, assembly, circularity audit, final review (Section 7 + assembly)
+
 **Backtracking triggers:**
 - If the logical chain has a gap discovered during writing -> return to Phase 4 or 5 to close it
 - If peer review (adversarial AI or human) identifies circularity -> return to Phase 4
@@ -218,5 +225,5 @@ Plans:
 | ----- | -------------- | ------ | --------- |
 | 4. Sequential Product Formalization | 5/6 (1 skipped) | Complete | 2026-03-21 |
 | 5. Local Tomography | 2/2 | Complete | 2026-03-21 |
-| 6. Paper Assembly | 0/TBD | Not started | -- |
+| 6. Paper Assembly | 0/3 | Planned | -- |
 | 7. D'Ariano Backup (contingency) | 0/TBD | Not needed (S4 passed) | -- |
