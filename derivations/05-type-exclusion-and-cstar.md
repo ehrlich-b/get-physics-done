@@ -384,17 +384,10 @@ That is, X* is the conjugate transpose.
 
 Let X = [[1, i], [0, 2]]. Then:
 - X* = [[1, 0], [-i, 2]]
-- X*X = [[1, 0], [-i, 2]] * [[1, i], [0, 2]] = [[1, i], [-i, 4+i*0]] = [[1, i], [-i, 4]]
-
-Wait, let me compute carefully:
-
-X* = [[1, 0], [-i, 2]]
-
-X*X:
-Row 1: [1*1 + 0*0, 1*i + 0*2] = [1, i]
-Row 2: [(-i)*1 + 2*0, (-i)*i + 2*2] = [-i, -i^2 + 4] = [-i, 1 + 4] = [-i, 5]
-
-So X*X = [[1, i], [-i, 5]].
+- X*X = [[1, 0], [-i, 2]] * [[1, i], [0, 2]]:
+  - Row 1: [1*1 + 0*0, 1*i + 0*2] = [1, i]
+  - Row 2: [(-i)*1 + 2*0, (-i)*i + 2*2] = [-i, 1 + 4] = [-i, 5]
+- So X*X = [[1, i], [-i, 5]].
 
 ||X*X|| = max eigenvalue of X*X. Since X*X is Hermitian PSD, its eigenvalues are:
 trace = 1 + 5 = 6, det = 1*5 - i*(-i) = 5 - 1 = 4.
