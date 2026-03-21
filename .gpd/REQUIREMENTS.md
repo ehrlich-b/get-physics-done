@@ -76,22 +76,22 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| SPFM-01 | — | Pending |
-| SPFM-02 | — | Pending |
-| SPFM-03 | — | Pending |
-| SPFM-04 | — | Pending |
-| SPFM-05 | — | Pending |
-| LTOM-01 | — | Pending |
-| LTOM-02 | — | Pending |
-| LTOM-03 | — | Pending |
-| PAPR-01 | — | Pending |
-| DRBK-01 | — | Pending |
+| SPFM-01 | Phase 4 | Pending |
+| SPFM-02 | Phase 4 | Pending |
+| SPFM-03 | Phase 4 | Pending |
+| SPFM-04 | Phase 4 | Pending |
+| SPFM-05 | Phase 4 | Pending |
+| LTOM-01 | Phase 5 | Pending |
+| LTOM-02 | Phase 5 | Pending |
+| LTOM-03 | Phase 5 | Pending |
+| PAPR-01 | Phase 6 | Pending |
+| DRBK-01 | Phase 7 (contingency) | Pending |
 
 **Coverage:**
 
 - Primary requirements: 10 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 10 (warning — roadmap will resolve)
+- Mapped to phases: 10/10
+- Unmapped: 0
 
 ---
 

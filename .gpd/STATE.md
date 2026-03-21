@@ -4,18 +4,21 @@
 
 See: .gpd/PROJECT.md (updated 2026-03-20)
 
+**Machine-readable scoping contract:** `.gpd/state.json` field `project_contract`
+
 **Core research question:** Does the sequential product structure of self-modeling systems satisfy van de Wetering's axioms S1-S7, thereby deriving quantum mechanics from a single operational premise?
-**Current focus:** Defining objectives for v2.0
+**Current focus:** Phase 4 -- Sequential Product Formalization
 
 ## Current Position
 
-**Current Phase:** —
-**Current Phase Name:** —
-**Total Phases:** —
-**Current Plan:** —
-**Total Plans in Phase:** —
-**Status:** Defining objectives
+**Current Phase:** 4
+**Current Phase Name:** Sequential Product Formalization
+**Total Phases:** 4 (Phases 4-7; v1.0 Phases 1-3 complete)
+**Current Plan:** --
+**Total Plans in Phase:** TBD
+**Status:** Ready to plan
 **Last Activity:** 2026-03-20
+**Last Activity Description:** Roadmap created for v2.0 milestone
 
 **Progress:** [░░░░░░░░░░] 0%
 
@@ -32,49 +35,47 @@ None yet (v1.0 results archived in MILESTONES.md).
 - Which effect algebra framing is correct for the self-modeling sequential product (effects on B vs B x M)?
 - Whether S4 (symmetry of orthogonality) holds for the self-modeling construction
 - Whether B-M independent accessibility implies local tomography
+- Does the self-modeling framework admit a qubit-like 2-dimensional subsystem?
+- Is the self-modeling sequential product non-associative?
 
 ## Performance Metrics
 
 (v1.0 metrics archived in MILESTONES.md)
 
+| Label | Duration | Tasks | Files |
+| ----- | -------- | ----- | ----- |
+| -     | -        | -     | -     |
+
 ## Accumulated Context
 
 ### Decisions
 
-- Started milestone v2.0: QM from Algebraic Genericity (new direction, sequential product route)
-- Sequential product route chosen over direct involution construction (van de Wetering axioms give cleaner path; D'Ariano as backup)
-- Explore both effect algebra framings in Phase 1 (correct framing is a result, not a premise)
-- [Phase 0]: Started milestone v2.0: QM from Algebraic Genericity — New milestone cycle — sequential product route to derive C*-algebra involution
+Full log: `.gpd/DECISIONS.md`
+
+**Recent high-impact:**
+- [Phase 0]: Sequential product route chosen over direct involution construction (van de Wetering axioms give cleaner path; D'Ariano as backup)
+- [Phase 0]: Explore both effect algebra framings in Phase 4 (correct framing is a result, not a premise)
+- [Phase 0]: Non-associativity check ordered early in Phase 4 (kills the program if it fails)
+- [Phase 0]: Roadmap created with 4 phases (4-7), Phase 7 contingency only
 
 ### Active Approximations
 
-None yet.
+None (algebraic proof work, no approximations).
 
 **Convention Lock:**
 
 - Metric signature: N/A (algebraic/categorical project)
-- Fourier convention: N/A
 - Natural units: N/A (dimensionless algebraic work)
-- Gauge choice: N/A
-- Regularization scheme: N/A
-- Renormalization scheme: N/A
-- Coordinate system: N/A
-- Spin basis: N/A
-- State normalization: N/A
-- Coupling convention: N/A
-- Index positioning: N/A
-- Time ordering: N/A
-- Commutation convention: N/A
-- Levi-Civita sign: N/A
-- Generator normalization: N/A
-- Covariant derivative sign: N/A
-- Gamma matrix convention: N/A
-- Creation/annihilation order: N/A
+- All other convention fields: N/A
 
 *Custom conventions:*
 - Entropy Base: nats (natural logarithm)
 - Mutual Information: I(B;M) = H(B) + H(M) - H(B,M)
 - Experiential Density: rho(p) = I(B;M) * (1 - I(B;M)/H(B))
+- Sequential product notation: a . b (dot notation, per van de Wetering journal version)
+- Jordan product: a o b = (1/2)(a . b + b . a)
+- Orthogonality: a perp b iff a . b = 0
+- Axiom source: van de Wetering arXiv:1803.11139 EXCLUSIVELY (not Gudder-Greechie)
 
 ### Propagated Uncertainties
 
@@ -86,10 +87,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None
+- S4 is the single-point-of-failure with no independent cross-check method
+- Circularity risk: update map must use ONLY order unit space primitives
 
 ## Session Continuity
 
 **Last session:** 2026-03-20
-**Stopped at:** Milestone v2.0 initialization in progress
-**Resume file:** —
+**Stopped at:** Roadmap created for v2.0; ready to plan Phase 4
+**Resume file:** --
