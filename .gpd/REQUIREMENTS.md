@@ -80,22 +80,22 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| LOCL-01 | TBD | Pending |
-| LOCL-02 | TBD | Pending |
-| AREA-01 | TBD | Pending |
-| AREA-02 | TBD | Pending |
-| JACB-01 | TBD | Pending |
-| JACB-02 | TBD | Pending |
-| NUMR-01 | TBD | Pending |
-| PAPR-01 | TBD | Pending |
+| LOCL-01 | Phase 8 | Pending |
+| LOCL-02 | Phase 8 | Pending |
+| AREA-01 | Phase 9 | Pending |
+| AREA-02 | Phase 9 | Pending |
+| JACB-01 | Phase 10 | Pending |
+| JACB-02 | Phase 10 | Pending |
+| NUMR-01 | Phase 11 | Pending |
+| PAPR-01 | Phase 12 | Pending |
 
 **Coverage:**
 
 - Primary requirements: 8 total
-- Mapped to phases: 0 (awaiting roadmap)
-- Unmapped: 8
+- Mapped to phases: 8
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-03-21_
-_Last updated: 2026-03-21 after initial definition_
+_Last updated: 2026-03-21 after roadmap creation (Phases 8-12)_
