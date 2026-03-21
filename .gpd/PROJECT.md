@@ -1,96 +1,109 @@
-# Experiential Measure on Structure Space — Formalization
+# Experiential Measure on Structure Space
 
 ## What This Is
 
-Rigorous formalization of the experiential measure framework on the structure space of self-modeling composite Markov processes. The project completes three formal gaps in the existing draft: assembling Theorem A (Boltzmann brain negligibility) from its constituent metastability lemmas, proving Lipschitz stability of the experiential density, and testing the Born-Fisher-Experiential conjecture on a toy qubit model. The subfield is mathematical physics / information-theoretic foundations, with the expected deliverables being proofs and a numerical falsification test.
+Deriving quantum mechanics from the algebraic structure of self-modeling composite processes. The v1.0 milestone formalized the experiential measure framework (Theorem A, Lipschitz stability, Born-Fisher falsification). The v2.0 milestone closes the last gap in the algebraic genericity chain: why should a self-modeling system's algebra carry a C*-involution? The route is through van de Wetering's sequential product axioms — if self-modeling "test-update-test" satisfies S1-S7, the involution is derived, not postulated. The subfield is mathematical physics / quantum foundations, with the expected deliverable being a paper (Paper 5) deriving QM from a single operational premise (L4: self-models test and update).
 
 ## Core Research Question
 
-Can the experiential measure framework on structure space be formalized with rigorous proofs — specifically, can Theorem A be assembled from its constituent lemmas, can rho's Lipschitz stability be proven, and does the Born-Fisher conjecture survive a qubit falsification test?
+Does the sequential product structure of self-modeling systems satisfy van de Wetering's axioms S1-S7, thereby deriving quantum mechanics from a single operational premise?
+
+## Current Milestone: v2.0 QM from Algebraic Genericity
+
+**Goal:** Derive the C*-algebra involution from the sequential product structure of self-modeling systems, closing the last gap in the L4 → QM chain.
+
+**Target results:**
+
+- Proof or disproof that the self-modeling sequential product satisfies van de Wetering's S1-S7
+- If S1-S7 hold: proof that B-M compositionality implies local tomography, completing the Jordan → C* promotion
+- Paper 5 assembling the full chain (one premise) or conditional chain (L4 + C*)
 
 ## Scoping Contract Summary
 
 ### Contract Coverage
 
-- **Theorem A assembly (claim-theorem-a):** Self-contained proof composing BEGK, FW, DV, QSD lemmas with explicit error scaling
-- **Lipschitz stability (claim-lipschitz):** Proven bound |rho(P) - rho(P')| <= L*||P-P'|| with L characterized
-- **Born-Fisher test (claim-born-fisher):** Numerical verdict on whether I_vN(B;M) = S_vN(B)/2 for Born-rule distributions
-- **False progress to reject:** Another proof sketch without assembled composition; more numerics without formal bounds
+- **Sequential product axioms (claim-sp-axioms):** Formal verification of S1-S7 for the self-modeling construction, with S4 as the critical test
+- **Local tomography (claim-local-tomo):** Proof or disproof that B-M independent accessibility implies local tomography
+- **Paper assembly (claim-paper-5):** Complete chain paper (if Phases 1-2 succeed) or conditional chain paper (if either fails)
+- **False progress to reject:** A sketch arguing S1-S7 "should hold" without formally checking each axiom against the construction; hand-waving about the effect algebra framing
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Complete logical chain from lemma statements to Theorem A; Lipschitz constant L as function of |Omega| and spectral gap; I_vN(B;M)/S_vN(B) ratio for Born-rule distributions
-- **User-stated deliverables:** Theorem A proof (derivation), Lipschitz proof (derivation), qubit model code (Python)
-- **Must-have references / prior outputs:** draft.md, composite_self_model.py, three_state_chain.py, quantum-extension/draft.md
-- **Stop / rethink conditions:** If BEGK/DV/QSD error bounds don't compose (exponential suppression breaks); if qubit test fails (Born-Fisher conjecture falsified)
+- **User-stated observables:** Whether each of S1-S7 holds for the self-modeling sequential product; which effect algebra framing (effects on B vs B x M) is correct
+- **User-stated deliverables:** Proof/disproof of S1-S7 (Phase 1), proof/disproof of local tomography (Phase 2), Paper 5 (Phase 3)
+- **Must-have references / prior outputs:** van de Wetering (2018, arXiv:1803.11139), Gudder-Greechie (2002), v1.0 papers, blog repo drafts (experiential-measure/draft.md, quantum-extension/draft.md)
+- **Stop / rethink conditions:** If the effect algebra framing is fundamentally incompatible with the self-modeling construction; if S4 fails AND the D'Ariano backup also fails
 
 ### Scope Boundaries
 
 **In scope**
 
-- Assemble Theorem A proof from BEGK, Freidlin-Wentzell, Donsker-Varadhan, and QSD lemmas with explicit error scaling
-- Prove Lipschitz stability of rho(P) under kernel perturbations
-- Compute I_vN(B;M) and S_vN(B) for toy qubit model to test Born-Fisher conjecture
+- Formalize the self-modeling sequential product on a finite-dimensional order unit space
+- Verify axioms S1-S7, exploring both framings (effects on B, effects on B x M)
+- If S1-S7 hold: prove local tomography from B-M compositionality
+- Assemble Paper 5 (full chain or conditional)
+- D'Ariano backup route (Phase 4, only if Phase 1 fails)
 
 **Out of scope**
 
-- Countable state space generalization (Stage 1 of extension program)
-- Full variational structure of mu_Q beyond qubit test
-- Non-equilibrium extension via quasi-potentials
-- Reference measure nu on structure space
-- Eternal inflation regime (fixed epsilon, T -> infinity)
+- Standard Model derivation (Level 4+)
+- Self-modeling constants experiment (Level 6)
+- Experiential measure extensions beyond v1.0
+- Blog series (separate project)
+- Countable/continuous state space generalization
 
 ### Active Anchor Registry
 
-- **ref-begk:** Bovier, Eckhoff, Gayrard, Klein — Metastability papers (2001-2004)
-  - Why it matters: Exponential residence time bounds for Theorem A Lemma 2
+- **ref-vdw2018:** van de Wetering — Sequential product spaces are Jordan algebras (2018, arXiv:1803.11139)
+  - Why it matters: Theorems 1 and 3 are the key results — S1-S7 → Jordan algebra, Jordan + local tomography → C*-algebra
   - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
-- **ref-fw:** Freidlin, Wentzell — Random Perturbations of Dynamical Systems (1984/2012)
-  - Why it matters: Cycle hierarchy and communication heights for Theorem A Lemma 1
-  - Carry forward: planning, execution, verification, writing
+- **ref-gudder-greechie:** Gudder, Greechie — Sequential products on effect algebras (2002)
+  - Why it matters: Original sequential product formalism; definitions and basic properties
+  - Carry forward: planning, execution, writing
   - Required action: read, cite
 
-- **ref-dv:** Donsker, Varadhan — Large deviations for Markov processes (1975-1983)
-  - Why it matters: Concentration inequality for weighted empirical measure in Theorem A Lemma 6
-  - Carry forward: planning, execution, verification
+- **ref-barnum2023:** Barnum, Ududec, van de Wetering — Composites and categories of Euclidean Jordan algebras (2023, arXiv:2306.00362)
+  - Why it matters: Compositionality constraints on Jordan algebras; relevant to Phase 2 local tomography
+  - Carry forward: planning, execution, writing
   - Required action: read, cite
 
-- **ref-baez-dolan:** Baez, Dolan — From Finite Sets to Feynman Diagrams (2001)
-  - Why it matters: Groupoid cardinality motivating 1/|Aut(x)| weighting
-  - Carry forward: planning, writing
-  - Required action: cite
+- **ref-dariano2006:** D'Ariano — How to derive the Hilbert space formulation (2006, arXiv:quant-ph/0611094)
+  - Why it matters: Backup route — Postulate 5 (symmetric faithful state) gives explicit involution construction
+  - Carry forward: planning (Phase 4 only)
+  - Required action: read if Phase 1 fails
 
-- **ref-lmc:** Lopez-Ruiz, Mancini, Calbet — A statistical measure of complexity (1995)
-  - Why it matters: rho belongs to LMC family — pedigree of I*(1-I/H) form
+- **ref-barandes:** Barandes — Stochastic-quantum bijection (2025)
+  - Why it matters: Final step in chain — quantum indivisibility from unitary automorphisms
   - Carry forward: writing
   - Required action: cite
 
-- **ref-gell-mann-lloyd:** Gell-Mann, Lloyd — Effective Complexity (1996/2003)
-  - Why it matters: Broader family of measures peaking between order and randomness
+- **ref-motzkin-taussky:** Motzkin, Taussky — Pairs of matrices with property L (1955)
+  - Why it matters: Generic non-commutativity of matrix algebras — NC step in the chain
   - Carry forward: writing
   - Required action: cite
 
 ### Carry-Forward Inputs
 
 - ~/repos/blog/research/experiential-measure/draft.md (main framework draft)
-- ~/repos/blog/research/experiential-measure/toy-model/composite_self_model.py (7 chains)
-- ~/repos/blog/research/experiential-measure/toy-model/three_state_chain.py (FW verification)
-- ~/repos/blog/research/quantum-extension/draft.md (quantum extension)
+- ~/repos/blog/research/quantum-extension/draft.md (quantum extension, algebraic genericity chain)
+- ~/repos/blog/research/qm-genericity-review/ (adversarial review of the chain)
+- v1.0 papers (Theorem A, Lipschitz, Born-Fisher falsification)
 
 ### Skeptical Review
 
-- **Weakest anchor:** BEGK error bounds may not compose cleanly across all 7 lemmas — individual bounds are established but their product has not been verified to preserve the exponential form
-- **Unvalidated assumptions:** Reversibility assumption in Theorem A (real observers are non-equilibrium); factorization condition exactness (real systems have approximate factorization)
-- **Competing explanation:** Alternative density functions in the LMC family with same boundary conditions but different peak behavior could work equally well
-- **Disconfirming observation:** BEGK/DV/QSD error bounds do not compose; Born-rule distributions do NOT satisfy I_vN(B;M) = S_vN(B)/2
-- **False progress to reject:** Another proof sketch without assembled composition; more numerics confirming intuition without formal bounds
+- **Weakest anchor:** S4 (symmetry of orthogonality) for the self-modeling construction — no prior work verifies this specific axiom for this specific construction
+- **Unvalidated assumptions:** That "test-update-test" maps cleanly onto van de Wetering's sequential product formalism; that the correct effect algebra is effects on B (vs B x M)
+- **Competing explanation:** The involution might require an independent physical postulate (C*-axiom) rather than being derivable — many reconstruction programs assume it
+- **Disconfirming observation:** S4 fails for the self-modeling sequential product; or the effect algebra framing is incompatible with the construction entirely
+- **False progress to reject:** Arguing axioms hold "by physical intuition" without formal proofs; checking axioms for quantum sequential products (which trivially satisfy them) instead of the self-modeling construction
 
 ### Open Contract Questions
 
-- ~~Exact form of L(|Omega|, spectral_gap) in Lipschitz bound~~ -- RESOLVED: L = (C_I + C_H)/gap(P)
-- ~~Whether qubit model needs 2x2 or larger Hilbert space to be informative~~ -- RESOLVED: d=2 sufficient; d=3 spot checks confirm
+- Which effect algebra framing is correct (effects on B vs effects on B x M)?
+- Whether S4 holds for the self-modeling sequential product
+- Whether B-M independent accessibility is sufficient for local tomography
 
 ## Research Questions
 
@@ -102,7 +115,10 @@ Can the experiential measure framework on structure space be formalized with rig
 
 ### Active
 
-(None -- all v1.0 questions answered)
+- [ ] Does the self-modeling sequential product satisfy van de Wetering's axioms S1-S7?
+- [ ] Does S4 (symmetry of orthogonality) hold for the self-modeling construction?
+- [ ] Does B-M compositionality (independent accessibility) imply local tomography?
+- [ ] Which effect algebra framing is correct for the self-modeling sequential product?
 
 ### Out of Scope
 
@@ -110,48 +126,47 @@ Can the experiential measure framework on structure space be formalized with rig
 - Non-Markovian quantum channels -- could produce rho_Q > 0 regime, untested
 - Non-equilibrium extension -- requires different mathematical framework
 - Reference measure nu -- shared open problem with Mueller (2020)
-- Amplitude damping channels -- may allow r < 1 transient, untested
+- Standard Model derivation -- Level 4+, far beyond current scope
+- Self-modeling constants experiment -- Level 6, requires experimental apparatus
 
 ## Research Context
 
 ### Physical System
 
-Self-modeling composite Markov processes on finite product state spaces Omega = B x M, where B is the "body" subsystem and M is the "self-model" subsystem. The transition kernel satisfies a factorization condition ensuring the model updates by observing the body's state. The structure space S is the quotient of such processes by product-preserving isomorphisms.
+Self-modeling composite processes with body B and model M. The sequential product structure arises from the operational cycle: test effect a on B, update M based on result, test effect b on B. The algebraic structure of this operation determines whether the system's observables form a C*-algebra (quantum) or something else.
 
 ### Theoretical Framework
 
-Mathematical physics: stochastic processes, information theory, metastability theory. Key tools: continuous-time Markov chains, mutual information, Shannon/von Neumann entropy, Freidlin-Wentzell theory, BEGK metastability, Donsker-Varadhan large deviations, quasi-stationary distributions.
+Quantum foundations / algebraic quantum theory: effect algebras, sequential products, order unit spaces, Euclidean Jordan algebras, C*-algebras. Key tools: van de Wetering's sequential product characterization, Artin-Wedderburn structure theory, Skolem-Noether theorem, Gleason's theorem.
 
 ### Key Parameters and Scales
 
 | Parameter | Symbol | Regime | Notes |
 | --------- | ------ | ------ | ----- |
-| State space size | \|Omega\| = \|B\| x \|M\| | Finite | Current toy model: 16 states (4x4) |
-| Noise intensity | epsilon | epsilon -> 0 | Controls metastability; Theorem A is a low-noise result |
-| Communication height (stable) | Delta_s | Delta_s > Delta_b | Depth of stable observer basin |
-| Communication height (BB) | Delta_b | Delta_b < Delta_s | Depth of Boltzmann brain basin |
-| Tracking accuracy | alpha | [0, 1] | Model-body correlation; rho peaks at alpha ~= 0.5 |
-| Observation horizon | T | T_epsilon = exp((Delta_s - alpha_param)/epsilon) | Finite horizon, not T -> infinity |
+| Body dimension | dim(B) | Finite | Determines effect algebra structure |
+| Model dimension | dim(M) | Finite | Must be sufficient to track B |
+| Effect algebra | E(B) or E(B x M) | To be determined | Phase 1 resolves which framing |
 
 ### Known Results
 
-- Toy model verification: rho = 0.347 for observer, 0.239 for BB+self-model, 0.000 for thermostat/crystal/BB — Ehrlich draft
-- Parametric sweep: peak at alpha ~= 0.498, I*/H = 0.507 — Ehrlich draft
-- Three-state chain: mu_BB/mu_stable matches analytical formula within 1% — Ehrlich draft
-- BEGK residence times: exponential in communication height — Bovier et al. (2001-2004)
-- QSD convergence: exponential in spectral gap — Champagnat, Villemonais
+- Algebraic genericity chain validated through 6 rounds of LLM research + 2 adversarial reviews -- Ehrlich blog repo
+- Chain airtight from Step 3 onward (NC generic → matrix algebras → unitary → QM) -- Ehrlich blog repo
+- Gap isolated to involution (*-operation) on the algebra -- Ehrlich blog repo
+- v1.0 results: Theorem A, Lipschitz stability, Born-Fisher falsification -- this project
+- van de Wetering (2018): S1-S7 → Jordan algebra; Jordan + local tomography → C*-algebra
+- Gudder-Greechie (2002): sequential product formalism on effect algebras
 
 ### What Is New
 
-Assembling the known metastability tools into a complete proof for the specific observable (rho-weighted trajectory integral). Proving Lipschitz stability as a foundation for approximate factorization. First numerical test of the Born-Fisher-Experiential conjecture.
+Connecting self-modeling "test-update-test" to sequential product formalism to derive the C*-involution. No prior work has checked van de Wetering's axioms for this specific construction. If it works, QM follows from one premise (L4) instead of postulating the C*-algebra structure.
 
 ### Target Venue
 
-To be determined — likely mathematical physics journal (Journal of Mathematical Physics, Communications in Mathematical Physics) or foundations of physics venue.
+Foundations of physics journal (Foundations of Physics, Physical Review A — Quantum Foundations, or New Journal of Physics).
 
 ### Computational Environment
 
-Local workstation. Python with numpy, scipy for qubit model. No HPC needed — all calculations are small-scale (finite state spaces, toy models).
+Local workstation. Primarily proof work — no heavy computation needed. Python for any small verification calculations.
 
 ## Notation and Conventions
 
@@ -160,7 +175,7 @@ See `.gpd/NOTATION_GLOSSARY.md` for symbol definitions.
 
 ## Unit System
 
-Information-theoretic: bits or nats for entropy/mutual information, seconds for time (bit-seconds or nat-seconds for trajectory functional mu). No natural units (hbar = c = 1) needed — this is not a QFT calculation.
+Dimensionless (algebraic/categorical work). No physical units needed for the sequential product verification.
 
 ## Requirements
 
@@ -168,18 +183,18 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-- Bovier, Eckhoff, Gayrard, Klein — Metastability papers (2001-2004) [BEGK]
-- Freidlin, Wentzell — Random Perturbations of Dynamical Systems (1984/2012)
-- Donsker, Varadhan — Large deviations for Markov processes (1975-1983)
-- Baez, Dolan — From Finite Sets to Feynman Diagrams (2001)
-- Lopez-Ruiz, Mancini, Calbet — A statistical measure of complexity (1995)
-- Gell-Mann, Lloyd — Effective Complexity (1996/2003)
-- Champagnat, Villemonais — QSD convergence results
+- van de Wetering (2018), arXiv:1803.11139 — Sequential product spaces are Jordan algebras
+- Gudder, Greechie (2002) — Sequential products on effect algebras
+- Barnum, Ududec, van de Wetering (2023), arXiv:2306.00362 — Composites of Euclidean Jordan algebras
+- D'Ariano (2006), arXiv:quant-ph/0611094 — Hilbert space from operational axioms
+- Barandes (2025) — Stochastic-quantum bijection
+- Motzkin, Taussky (1955) — Generic non-commutativity
+- Gleason (1957) — Born rule uniqueness
 
 ## Constraints
 
-- **Reversibility:** Theorem A proof assumes reversible Metropolis-type dynamics — non-equilibrium extension is out of scope
-- **Finite state spaces:** All proofs for finite |Omega| only — countable extension deferred
+- **Finite dimensions:** All proofs for finite-dimensional systems only
+- **Proof-driven:** No numerics-as-substitute for formal arguments (v1.0 lesson)
 
 ## Key Decisions
 
@@ -191,16 +206,18 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 | Deep-theory model profile | Heavy proof work benefits from tier-1 models | Good -- all proofs completed |
 | 3 standalone papers over single monograph | Papers written independently for different audiences | Revisit -- peer review suggests Paper 2 may be better as section of Paper 1 |
 | Honest framing over cosmological claims | Peer review flagged overclaiming; reframed titles and abstracts | Good -- papers now accurately scope their claims |
+| Sequential product route over direct involution construction | van de Wetering axioms give cleaner path; D'Ariano as backup | Pending |
+| Explore both effect algebra framings | Correct framing is a Phase 1 result, not a premise | Pending |
 
-## Current State (v1.0 complete)
+## v1.0 Summary (complete)
 
 All three formal gaps in the experiential measure framework are closed:
 1. **Theorem A** assembled from 7 metastability lemmas with explicit error composition
 2. **Lipschitz stability** proven with L = (C_I + C_H)/gap(P), verified numerically
 3. **Born-Fisher conjecture falsified** -- rho_Q <= 0 for all exchange-plus-dephasing Lindblad dynamics (proved analytically)
 
-Three papers written, peer-reviewed (18-agent 6-pass panel), and revised. All math verified correct. Framing toned down per review: exponential suppression attributed to metastability (not rho specifically), literature gaps filled, self-citations corrected.
+Three papers written, peer-reviewed (18-agent 6-pass panel), and revised.
 
 ---
 
-_Last updated: 2026-03-16 after v1.0 milestone_
+_Last updated: 2026-03-20 after v2.0 milestone initialization_
