@@ -4,7 +4,7 @@
 %   JVW = Jordan-von Neumann-Wigner classification
 %   X* = X^dagger = conjugate transpose
 
-\section{Type Exclusion and C*-Algebra Promotion}\label{sec:type-exclusion}
+\section{Type Exclusion and $C^*$-Algebra Promotion}\label{sec:exclusion}
 
 %--------------------------------------------------------------------
 \subsection{The Jordan--von Neumann--Wigner
@@ -12,7 +12,7 @@ Classification}\label{subsec:jvw}
 
 By Theorem~\ref{thm:EJA}, the state space~$V$ is a Euclidean Jordan
 algebra (EJA). The Jordan--von Neumann--Wigner
-classification~\cite{JvNW1934} asserts that every finite-dimensional
+classification~\cite{JordanVonNeumannWigner1934} asserts that every finite-dimensional
 simple EJA belongs to one of five families:
 
 \begin{center}
@@ -87,9 +87,9 @@ composite exists for these types (Theorem~4.1 of~\cite{BarnumWilce2014}).
 \noindent
 \textbf{Albert algebra, $M_3(\mathbb{O})^{\mathrm{sa}}$.}
 The exclusion here is the strongest: Barnum, Graydon, and
-Wilce~\cite{BGW2020} prove that no non-signaling composite with product
+Wilce~\cite{BarnumUdudeckVdW2020} prove that no non-signaling composite with product
 states exists for any EJA containing an Albert algebra summand
-(Theorem~1 of~\cite{BGW2020}). The 27-dimensional exceptional Jordan
+(Theorem~1 of~\cite{BarnumUdudeckVdW2020}). The 27-dimensional exceptional Jordan
 algebra cannot form \emph{any} consistent bipartite system, even a
 non-locally-tomographic one.
 
@@ -109,7 +109,7 @@ Three published theorems, each with independently verifiable hypotheses,
 promote the surviving EJA to a C*-algebra.
 
 \begin{theorem}[{C*-algebra structure;
-  \cite[Theorem~3]{vdW2019}}]\label{thm:vdW3}
+  \cite[Theorem~3]{vandeWetering2019b}}]\label{thm:vdW3}
 Let $V$ be a sequential product space satisfying S1--S7. If the
 composite $V\otimes V$, equipped with the product-form sequential
 product, is also a sequential product space and the composite is locally
@@ -122,7 +122,7 @@ tomographic, then $V$ is the self-adjoint part of a C*-algebra.
 \textbf{Hypothesis} & \textbf{Status} & \textbf{Established in} \\
 \midrule
 $V$ satisfies S1--S7
-  & Verified & Section~\ref{sec:axiom-verification} \\
+  & Verified & Section~\ref{sec:axioms} \\
 $V\otimes V$ with product-form SP satisfies S1--S7
   & Verified & Proposition~\ref{prop:inheritance} \\
 Composite is locally tomographic
@@ -225,11 +225,11 @@ premise of faithful self-modeling.
 \begin{enumerate}
 \item The self-modeling constraint yields a sequential product on
   $V$ via the ``test--update--test'' operational
-  semantics (Section~\ref{sec:construction}).
+  semantics (Section~\ref{sec:sp}).
 \item The corrected product formula~\eqref{eq:corrected-product},
   incorporating the Peirce $1$-space feedback selected by faithful
   tracking, satisfies S1--S7
-  (Section~\ref{sec:axiom-verification}).
+  (Section~\ref{sec:axioms}).
 \item By Theorem~\ref{thm:EJA} (van de Wetering), $V$ is an EJA.
 \item The composite $V_{BM}$ with the product-form SP inherits
   S1--S7 (Proposition~\ref{prop:inheritance}), and the
