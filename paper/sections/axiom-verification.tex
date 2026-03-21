@@ -180,39 +180,65 @@ $\sqrt{\alpha\beta\cdot\gamma\delta}
 for non-negative reals ensures compatibility of the mixing function. \qed
 
 %--------------------------------------------------------------------
-\subsection*{S6 (Compatible Additivity)}
+\subsection*{S6 (Additivity of Compatibility)}
 
 \begin{quote}
-\emph{If $\sp{a}{\mathbf{1}} = a$, then for compatible $a$ and $b$:
-$\sp{(a+b)}{c} = \sp{a}{c} + \sp{b}{c}$ whenever $a + b \le
-\mathbf{1}$.}
+\emph{If $a \compatible b$ then $a \compatible (\mathbf{1} - b)$; if
+also $a \compatible c$ then $a \compatible (b + c)$ whenever
+$b + c \le \mathbf{1}$.}
 \end{quote}
 
-The condition $\sp{a}{\mathbf{1}} = a$ is satisfied by construction:
-$C_{p_i}(\mathbf{1}) = p_i$ and $P_{ij}(\mathbf{1}) = 0$, so
-$\sp{a}{\mathbf{1}} = \sum_i \lambda_i\, p_i = a$ for all effects~$a$.
-When $a$ and $b$ are compatible, they are simultaneously diagonalizable.
-The additivity then follows from S1 (additivity in the second argument)
-applied to the shared spectral basis, together with the linearity of the
-spectral weight map. \qed
+\noindent\textbf{Part (i): $a \compatible b \implies a \compatible
+(\mathbf{1} - b)$.} By S1, the map $b \mapsto \sp{a}{b}$ is additive,
+and by construction $\sp{a}{\mathbf{1}} = a$ (since
+$C_{p_i}(\mathbf{1}) = p_i$ and $P_{ij}(\mathbf{1}) = 0$). Therefore
+$\sp{a}{(\mathbf{1} - b)} = a - \sp{a}{b}$. For the reverse product:
+when $a$ and $b$ are compatible ($[a,b] = 0$ in the Jordan algebra),
+the Luders product reduces to the ordinary product, giving
+$\sp{b}{a} = ba$ and $\sp{(\mathbf{1} - b)}{a} = (1-b)a = a - ba$.
+Since $a \compatible b$ means $\sp{a}{b} = \sp{b}{a}$, we have
+$\sp{a}{(\mathbf{1}-b)} = a - \sp{a}{b} = a - \sp{b}{a} =
+\sp{(\mathbf{1}-b)}{a}$, establishing $a \compatible (\mathbf{1}-b)$.
+
+\noindent\textbf{Part (ii): $a \compatible b$ and $a \compatible c
+\implies a \compatible (b+c)$.} By S1,
+$\sp{a}{(b+c)} = \sp{a}{b} + \sp{a}{c}$. For the reverse: since $a$
+is compatible with both $b$ and $c$, all three are simultaneously
+diagonalizable. In the common eigenbasis the Luders product reduces to
+ordinary multiplication, so $\sp{(b+c)}{a} = (b+c)\,a = ba + ca =
+\sp{b}{a} + \sp{c}{a}$. Using compatibility:
+$\sp{a}{(b+c)} = \sp{a}{b} + \sp{a}{c} = \sp{b}{a} + \sp{c}{a} =
+\sp{(b+c)}{a}$. \qed
 
 %--------------------------------------------------------------------
-\subsection*{S7 (Compatible Multiplicativity)}
+\subsection*{S7 (Multiplicativity of Compatibility)}
 
 \begin{quote}
-\emph{For compatible $a$ and $b$: $\sp{a}{b} = a \circ b$ (the Jordan
-product).}
+\emph{If $a \compatible b$ and $a \compatible c$ then
+$a \compatible \sp{b}{c}$.}
 \end{quote}
 
-When $a$ and $b$ commute (i.e., $[a,b] = 0$ in the sense that they share
-a spectral decomposition), the functional calculus ensures that all
-spectral functions commute as well: $[\,f(a),\, g(b)\,] = 0$ for
-continuous $f,g$. In particular, the spectral projectors of $a$ commute
-with $b$, and the sequential product reduces to
-$\sp{a}{b} = \sum_i \lambda_i\, C_{p_i}(b) = \sum_i \lambda_i\,
-p_i \circ b = a \circ b$
-(where the Peirce $1$-space contribution vanishes because $P_{ij}(b) = 0$
-when $b$ lies in the simultaneous eigenspaces). \qed
+By the functional calculus, $[a,b] = 0$ implies $[a, f(b)] = 0$ for any
+continuous $f$, and in particular $[a, \sqrt{b}] = 0$. Now
+$\sp{b}{c} = \sqrt{b}\,c\,\sqrt{b}$ (Luders form). Since $a$ commutes
+with $\sqrt{b}$ and with $c$:
+\[
+  a\,\sp{b}{c}
+  = a\,\sqrt{b}\,c\,\sqrt{b}
+  = \sqrt{b}\,a\,c\,\sqrt{b}
+  = \sqrt{b}\,c\,a\,\sqrt{b}
+  = \sqrt{b}\,c\,\sqrt{b}\,a
+  = \sp{b}{c}\,a.
+\]
+Therefore $[a, \sp{b}{c}] = 0$, and since the Luders product of
+commuting effects equals their ordinary product, both
+$\sp{a}{(\sp{b}{c})}$ and $\sp{(\sp{b}{c})}{a}$ equal
+$a \cdot \sp{b}{c}$, establishing $a \compatible \sp{b}{c}$.
+
+At the OUS level, the argument uses compression commutativity
+(Niestegge~\cite{Niestegge2009}, Lemma~3.3): when the compressions for
+$a$'s spectral projectors commute with those for $b$'s and $c$'s, they
+commute with every building block of $\sp{b}{c}$. \qed
 
 %--------------------------------------------------------------------
 \bigskip
