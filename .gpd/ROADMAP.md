@@ -41,7 +41,7 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 ## Phase Summary
 
 - [x] **Phase 4: Sequential Product Formalization** -- All S1-S7 proved; EJA classification via vdW Theorem 1 (completed 2026-03-21)
-- [ ] **Phase 5: Local Tomography from B-M Compositionality** -- Prove B-M independent accessibility implies local tomography, promoting Jordan -> C*
+- [x] **Phase 5: Local Tomography from B-M Compositionality** -- Local tomography proved from faithful tracking; all non-complex types excluded; C*-algebra promotion complete (completed 2026-03-21)
 - [ ] **Phase 6: Paper Assembly** -- Assemble Paper 5 (full chain or conditional, adapting to Phase 4-5 outcomes)
 - [ ] **Phase 7: D'Ariano Backup** -- (CONTINGENCY) Construct involution from faithful B-M correlation state if S4 fails
 
@@ -118,8 +118,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Formalize B-M composite OUS with product-form SP; prove faithful tracking implies local tomography
-- [ ] 05-02-PLAN.md -- Exclude non-complex EJA types; C*-algebra promotion via vdW Thm 3 + Barnum-Wilce + Hanche-Olsen; exhibit involution
+- [x] 05-01-PLAN.md -- Formalize B-M composite OUS with product-form SP; prove faithful tracking implies local tomography
+- [x] 05-02-PLAN.md -- Exclude non-complex EJA types; C*-algebra promotion via vdW Thm 3 + Barnum-Wilce + Hanche-Olsen; exhibit involution
 
 **Backtracking triggers:**
 - If the EJA from Phase 4 is a spin factor or the Albert algebra -> local tomography fails for structural reasons; reclassify Phase 4 result
@@ -217,6 +217,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 | ----- | -------------- | ------ | --------- |
 | 4. Sequential Product Formalization | 5/6 (1 skipped) | Complete | 2026-03-21 |
-| 5. Local Tomography | 0/2 | Planned | -- |
+| 5. Local Tomography | 2/2 | Complete | 2026-03-21 |
 | 6. Paper Assembly | 0/TBD | Not started | -- |
 | 7. D'Ariano Backup (contingency) | 0/TBD | Not needed (S4 passed) | -- |
