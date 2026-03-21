@@ -115,6 +115,12 @@ Plans:
 3. The non-complex EJA types (real M_n(R)_sa, quaternionic M_n(H)_sa, spin factors V_n for n >= 4, Albert algebra M_3(O)_sa) are each explicitly excluded by the compositionality / local tomography constraint
 4. If local tomography holds: the C*-algebra structure is identified via Hanche-Olsen, and the involution is exhibited as an explicit operation on the algebra
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md -- Formalize B-M composite OUS with product-form SP; prove faithful tracking implies local tomography
+- [ ] 05-02-PLAN.md -- Exclude non-complex EJA types; C*-algebra promotion via vdW Thm 3 + Barnum-Wilce + Hanche-Olsen; exhibit involution
+
 **Backtracking triggers:**
 - If the EJA from Phase 4 is a spin factor or the Albert algebra -> local tomography fails for structural reasons; reclassify Phase 4 result
 - If the self-modeling framework does not admit a qubit-like 2-dimensional subsystem -> Barnum-Wilce cannot be applied; need alternative route
@@ -211,6 +217,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 | ----- | -------------- | ------ | --------- |
 | 4. Sequential Product Formalization | 5/6 (1 skipped) | Complete | 2026-03-21 |
-| 5. Local Tomography | 0/TBD | Ready to plan | -- |
+| 5. Local Tomography | 0/2 | Planned | -- |
 | 6. Paper Assembly | 0/TBD | Not started | -- |
 | 7. D'Ariano Backup (contingency) | 0/TBD | Not needed (S4 passed) | -- |
