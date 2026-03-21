@@ -70,7 +70,14 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 4. All remaining axioms S1-S3 and S5-S7 are individually verified with proofs pinned to arXiv:1803.11139 definitions exclusively (not Gudder-Greechie axioms)
 5. Non-associativity is confirmed by exhibiting an explicit triple (a,b,c) with (a.b).c != a.(b.c), ruling out the commutativity trap (Westerbaan-Westerbaan-van de Wetering 2020)
 
-**Plans:** TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 04-01-PLAN.md -- Define compression-based sequential product, resolve E(B) vs E(B x M) framing, verify bilinearity, classical limit
+- [ ] 04-02-PLAN.md -- Non-associativity sanity check (kill gate if associative)
+- [ ] 04-03-PLAN.md -- Verify axioms S1-S3 and S5-S7
+- [ ] 04-04-PLAN.md -- S4 (decisive test): prove or disprove, characterize phi-dependence, EJA classification
+- [ ] 04-05-PLAN.md -- (CONDITIONAL) Characterize S4 failure if Plan 04 disproves S4
 
 **Backtracking triggers:**
 - If the circularity audit reveals Hilbert space imports in the update map definition -> STOP, redesign the update map from order unit space primitives only
@@ -202,7 +209,7 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 
 | Phase | Plans Complete | Status | Completed |
 | ----- | -------------- | ------ | --------- |
-| 4. Sequential Product Formalization | 0/TBD | Not started | -- |
+| 4. Sequential Product Formalization | 0/5 | Planned | -- |
 | 5. Local Tomography | 0/TBD | Not started | -- |
 | 6. Paper Assembly | 0/TBD | Not started | -- |
 | 7. D'Ariano Backup (contingency) | 0/TBD | Not started | -- |
