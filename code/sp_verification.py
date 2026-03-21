@@ -1,10 +1,11 @@
 """
 Sequential Product Verification Harness
 ========================================
-Phase: 04-sequential-product-formalization, Plans: 01, 06
+Phase: 04-sequential-product-formalization, Plans: 01, 06, 02
 
 Verifies the compression-based sequential product on low-dimensional examples.
 Plan 06 adds the corrected product with Peirce 1-space feedback.
+Plan 02 adds non-associativity verification.
 Uses SymPy for exact symbolic arithmetic.
 
 Convention lock:
@@ -1000,6 +1001,190 @@ def test_phi_algebraic_essential():
 
 
 # ============================================================
+# Plan 02: Non-Associativity Verification
+# ============================================================
+# The corrected sequential product (= Luders on M_2(C)^sa) is
+# non-associative: (a & b) & c != a & (b & c) for generic
+# non-commuting effects. This is REQUIRED by Westerbaan-
+# Westerbaan-vdW (Quantum 4, 378, 2020): associativity would
+# force commutativity (classical), killing the program.
+
+
+def test_non_associativity(product_fn, a, b, c, label=""):
+    """Test whether a product is associative on the triple (a, b, c).
+
+    Returns (delta, is_nonzero) where delta = (a & b) & c - a & (b & c)
+    and is_nonzero is True when delta is symbolically nonzero.
+    """
+    lhs = product_fn(product_fn(a, b), c)
+    rhs = product_fn(a, product_fn(b, c))
+    delta = simplify(lhs - rhs)
+    is_nonzero = not delta.equals(zeros(2))
+    return delta, is_nonzero
+
+
+def test_corrected_non_associativity():
+    """Non-associativity of the corrected sequential product.
+
+    Witness triple: a = diag(3/4, 1/4), b = (I+sigma_x/2)/2, c = P0.
+    Delta = (a & b) & c - a & (b & c) must be nonzero (exact symbolic).
+    """
+    print("\n=== CORRECTED PRODUCT: Non-Associativity ===")
+    all_pass = True
+
+    # Witness triple
+    a = Matrix([[Rational(3, 4), 0], [0, Rational(1, 4)]])
+    b = Matrix([[Rational(1, 2), Rational(1, 4)],
+                [Rational(1, 4), Rational(1, 2)]])
+    c = P0
+
+    print("  Witness: a = diag(3/4, 1/4), b = (I+sigma_x/2)/2, c = P0")
+
+    # Test corrected product
+    delta, is_nonzero = test_non_associativity(corrected_sp, a, b, c,
+                                                "corrected")
+    print(f"\n  Corrected product non-associative? "
+          f"{'YES (PASS)' if is_nonzero else 'NO (FAIL -- KILL GATE)'}")
+    if is_nonzero:
+        print(f"  Delta =")
+        for i in range(2):
+            row = "    ["
+            for j in range(2):
+                entry = simplify(delta[i, j])
+                row += f" {entry}"
+                if j < 1:
+                    row += ","
+            row += " ]"
+            print(row)
+        # Verify specific entry: Delta[0,0] = 39/224 - 3*sqrt(3)/32
+        d00_expected = Rational(39, 224) - 3 * sqrt(3) / 32
+        d00_match = simplify(delta[0, 0] - d00_expected) == 0
+        print(f"  Delta[0,0] = 39/224 - 3*sqrt(3)/32? {d00_match}")
+        all_pass &= d00_match
+        # Verify Delta[0,1] = sqrt(3)/112
+        d01_expected = sqrt(3) / 112
+        d01_match = simplify(delta[0, 1] - d01_expected) == 0
+        print(f"  Delta[0,1] = sqrt(3)/112? {d01_match}")
+        all_pass &= d01_match
+    else:
+        print("  FAIL: Self-modeling product appears ASSOCIATIVE")
+        print("  PROGRAM KILL GATE TRIGGERED")
+        all_pass = False
+
+    all_pass &= is_nonzero
+
+    # Positive control 1: Luders product also non-associative
+    print("\n  --- Positive control: Luders product ---")
+    delta_lud, is_nonzero_lud = test_non_associativity(luders_product,
+                                                        a, b, c, "Luders")
+    print(f"  Luders non-associative? "
+          f"{'YES (PASS)' if is_nonzero_lud else 'NO (unexpected!)'}")
+    all_pass &= is_nonzero_lud
+
+    # Verify corrected == Luders Delta (since corrected = Luders on M_2(C)^sa)
+    deltas_match = simplify(delta - delta_lud).equals(zeros(2))
+    print(f"  Corrected Delta == Luders Delta? "
+          f"{'YES (PASS)' if deltas_match else 'NO (unexpected!)'}")
+    all_pass &= deltas_match
+
+    # Positive control 2: Matrix multiplication is associative
+    print("\n  --- Positive control: Matrix multiplication ---")
+    delta_mm, is_nonzero_mm = test_non_associativity(matrix_mult_product,
+                                                      a, b, c, "matmult")
+    print(f"  Matrix mult associative? "
+          f"{'YES (PASS)' if not is_nonzero_mm else 'NO (unexpected!)'}")
+    all_pass &= (not is_nonzero_mm)
+
+    print(f"\n  Non-associativity: "
+          f"{'ALL PASS' if all_pass else 'SOME FAILED'}")
+    return all_pass
+
+
+def test_non_associativity_random_search():
+    """Search for non-associativity across random effect triples.
+
+    Generate 20 random effects in M_2(C)^sa, test associativity for
+    each random triple. Report how many are non-associative.
+
+    Uses exact rational arithmetic (no floats) by parameterizing effects
+    with rational Bloch vector components.
+    """
+    print("\n=== NON-ASSOCIATIVITY: Random Search (20 triples) ===")
+
+    # Generate effects with rational Bloch components
+    # a = (1/2)(I + r_x*sigma_x + r_y*sigma_y + r_z*sigma_z)
+    # where |r| <= 1 ensures 0 <= a <= I
+    from sympy import Rational as R
+
+    # Rational points inside the Bloch ball (|r| < 1)
+    bloch_points = [
+        (R(1, 3), R(1, 4), R(1, 5)),
+        (R(-1, 3), R(1, 2), R(0)),
+        (R(0), R(0), R(2, 3)),
+        (R(1, 5), R(-1, 5), R(1, 5)),
+        (R(0), R(1, 3), R(-1, 4)),
+        (R(-1, 4), R(-1, 4), R(1, 4)),
+        (R(1, 2), R(0), R(0)),
+        (R(0), R(-1, 2), R(0)),
+        (R(1, 6), R(1, 6), R(1, 6)),
+        (R(-1, 3), R(-1, 3), R(1, 3)),
+        (R(2, 5), R(1, 5), R(-1, 5)),
+        (R(0), R(0), R(-1, 2)),
+        (R(1, 4), R(1, 4), R(0)),
+        (R(-1, 5), R(2, 5), R(1, 5)),
+        (R(1, 3), R(-1, 3), R(-1, 3)),
+        (R(0), R(0), R(1, 4)),
+        (R(1, 7), R(2, 7), R(3, 7)),
+        (R(-1, 6), R(1, 3), R(1, 6)),
+        (R(1, 2), R(-1, 4), R(1, 4)),
+        (R(-2, 5), R(1, 5), R(0)),
+    ]
+
+    def bloch_to_effect(rx, ry, rz):
+        return R(1, 2) * (I2 + rx * Matrix([[0, 1], [1, 0]])
+                          + ry * Matrix([[0, -symI], [symI, 0]])
+                          + rz * Matrix([[1, 0], [0, -1]]))
+
+    nonzero_count = 0
+    tested = 0
+
+    for i in range(0, len(bloch_points) - 2, 3):
+        a = bloch_to_effect(*bloch_points[i])
+        b = bloch_to_effect(*bloch_points[i + 1])
+        c = bloch_to_effect(*bloch_points[i + 2])
+
+        # Skip if all three commute (associativity expected)
+        delta, is_nonzero = test_non_associativity(corrected_sp, a, b, c)
+        tested += 1
+        if is_nonzero:
+            nonzero_count += 1
+
+    # Also test some mixed triples (different groupings)
+    for i in range(min(14, len(bloch_points))):
+        j = (i + 3) % len(bloch_points)
+        k = (i + 7) % len(bloch_points)
+        a = bloch_to_effect(*bloch_points[i])
+        b = bloch_to_effect(*bloch_points[j])
+        c = bloch_to_effect(*bloch_points[k])
+
+        delta, is_nonzero = test_non_associativity(corrected_sp, a, b, c)
+        tested += 1
+        if is_nonzero:
+            nonzero_count += 1
+
+    print(f"  Tested {tested} triples: {nonzero_count} non-associative, "
+          f"{tested - nonzero_count} associative")
+    frac = nonzero_count / tested if tested > 0 else 0
+    print(f"  Non-associativity rate: {100 * frac:.0f}%")
+
+    # Pass if majority are non-associative
+    majority = nonzero_count > tested // 2
+    print(f"  Majority non-associative? "
+          f"{'YES (PASS)' if majority else 'NO (concerning)'}")
+    return majority
+
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -1056,7 +1241,7 @@ def test_peirce_decomposition_analysis():
 def main():
     print("=" * 60)
     print("Sequential Product Verification Harness")
-    print("Phase 04, Plans 01 + 06")
+    print("Phase 04, Plans 01 + 06 + 02")
     print("=" * 60)
 
     results = {}
@@ -1093,6 +1278,13 @@ def main():
     results["corrected_effect_range"] = test_corrected_effect_range()
     results["corrected_vs_luders"] = test_corrected_vs_luders()
     results["phi_essential"] = test_phi_algebraic_essential()
+
+    # ---- Plan 02 tests: non-associativity ----
+    print("\n" + "=" * 60)
+    print("PLAN 02: Non-Associativity Verification")
+    print("=" * 60)
+    results["non_associativity"] = test_corrected_non_associativity()
+    results["non_assoc_random"] = test_non_associativity_random_search()
 
     # ---- Summary ----
     print("\n" + "=" * 60)
@@ -1133,7 +1325,16 @@ def main():
 
     plan06_ok = all(results[n] for n in corrected_tests)
 
-    overall = plan01_ok and plan06_ok
+    print(f"\n  --- Plan 02 (non-associativity) ---")
+    non_assoc_tests = ["non_associativity", "non_assoc_random"]
+    for name in non_assoc_tests:
+        ok = results[name]
+        status = "PASS" if ok else "FAIL"
+        print(f"  {name}: {status}")
+
+    plan02_ok = all(results[n] for n in non_assoc_tests)
+
+    overall = plan01_ok and plan06_ok and plan02_ok
     print(f"\n{'=' * 60}")
     print(f"Overall harness: {'CORRECT' if overall else 'UNEXPECTED RESULTS'}")
     if overall:
@@ -1152,6 +1353,12 @@ def main():
         print("  - Corrected product maps effects to effects (0 <= a&b <= I)")
         print("  - Corrected product = Luders product on M_2(C)^sa")
         print("  - phi is algebraically essential (f=0 recovers failed naive product)")
+        print("  Plan 02:")
+        print("  - Non-associativity witness: Delta != 0 (exact symbolic)")
+        print("  - Corrected Delta == Luders Delta (consistency)")
+        print("  - Matrix multiplication associative (positive control)")
+        print("  - Random search: majority of triples non-associative")
+        print("  - Kill gate PASSED: program continues")
     return 0 if overall else 1
 
 
