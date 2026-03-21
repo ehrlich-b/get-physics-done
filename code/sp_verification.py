@@ -1,9 +1,10 @@
 """
 Sequential Product Verification Harness
 ========================================
-Phase: 04-sequential-product-formalization, Plan: 01
+Phase: 04-sequential-product-formalization, Plans: 01, 06
 
 Verifies the compression-based sequential product on low-dimensional examples.
+Plan 06 adds the corrected product with Peirce 1-space feedback.
 Uses SymPy for exact symbolic arithmetic.
 
 Convention lock:
@@ -660,6 +661,345 @@ def test_self_model_vs_luders_on_general():
 
 
 # ============================================================
+# Plan 06: Corrected Product with Peirce 1-Space Feedback
+# ============================================================
+# OUS PRIMITIVES USED (circularity self-check):
+#   - Spectral decomposition (eigenvalues + eigenprojectors)
+#   - Compressions C_{p_i}(b) = p_i * b * p_i (concrete form in M_2(C)^sa)
+#   - Peirce 1-space projection P_{ij}(b) = b - sum_i C_{p_i}(b)
+#   - Scalar sqrt on real spectral values (real-number arithmetic)
+#   - Spectral functional calculus g(a) = sum g(lambda_i) p_i
+#
+# NOT USED in corrected_sp definition:
+#   - Operator square root as C*-algebra operation
+#   - Trace, inner product, density matrices
+#   - Luders rule (used only in comparison tests, not in the product)
+#   - C*-multiplication
+
+def corrected_sp(a, b):
+    """Corrected sequential product with Peirce 1-space feedback.
+
+    Formula (Eq. 04-06.4):
+        a & b = sum_i lambda_i C_{p_i}(b) + sum_{i<j} sqrt(lambda_i lambda_j) P_{ij}(b)
+
+    where:
+        - C_{p_i}(b) = p_i * b * p_i (compression / Peirce 2-space)
+        - P_{ij}(b) = b - sum_k C_{p_k}(b) (Peirce 1-space component)
+        - f(lambda_i, lambda_j) = sqrt(lambda_i * lambda_j) (faithful self-model)
+
+    This is derived from OUS primitives + positivity + self-modeling faithfulness.
+    It coincides with the Luders product sqrt(a)*b*sqrt(a) on M_2(C)^sa.
+    """
+    # Get spectral decomposition of a
+    eigdata = a.eigenvects()
+
+    # Build eigenprojectors
+    projectors = []  # list of (eigenvalue, projector)
+    for eigenval, multiplicity, eigvecs in eigdata:
+        for v in eigvecs:
+            norm_sq = v.dot(v.conjugate())
+            v_norm = v / sqrt(norm_sq)
+            p = v_norm * v_norm.H
+            projectors.append((eigenval, simplify(p)))
+
+    n = len(projectors)
+
+    # Term 1: Diagonal (compression/pinching) contribution
+    # sum_i lambda_i C_{p_i}(b)
+    result = zeros(2)
+    for lam_i, p_i in projectors:
+        result = result + lam_i * (p_i * b * p_i)
+
+    # Term 2: Peirce 1-space contribution
+    # sum_{i<j} sqrt(lambda_i * lambda_j) * P_{ij}(b)
+    # For 2x2 case with two projectors: P_{01}(b) = b - C_{p_0}(b) - C_{p_1}(b)
+    if n >= 2:
+        # Compute pinching
+        pinch = zeros(2)
+        for _, p_i in projectors:
+            pinch = pinch + p_i * b * p_i
+        peirce_1 = b - pinch  # total Peirce 1-space component
+
+        # For 2x2 there is exactly one Peirce 1-space V_{01}
+        # Weight = sqrt(lambda_0 * lambda_1)
+        for i in range(n):
+            for j in range(i + 1, n):
+                lam_i = projectors[i][0]
+                lam_j = projectors[j][0]
+                weight = sqrt(lam_i * lam_j)
+                # For 2x2, all of peirce_1 belongs to V_{01}
+                result = result + weight * peirce_1
+
+    return simplify(result)
+
+
+# Additional projections for testing
+Py_plus = Rational(1, 2) * Matrix([[1, -symI], [symI, 1]])   # |R><R| (circular)
+Py_minus = Rational(1, 2) * Matrix([[1, symI], [-symI, 1]])   # |L><L|
+
+
+def test_corrected_S3():
+    """S3 for corrected product: 1 & a = a for effects with off-diagonal components."""
+    print("\n=== CORRECTED PRODUCT: S3 (unitality) ===")
+    all_pass = True
+
+    test_effects = [
+        ("P+", Px_plus),
+        ("Py+", Py_plus),
+        ("generic", Matrix([[Rational(3, 4), Rational(1, 4)],
+                            [Rational(1, 4), Rational(1, 4)]])),
+        ("P0", P0),
+        ("I/2", Rational(1, 2) * I2),
+        ("diag(1/4,3/4)", Matrix([[Rational(1, 4), 0], [0, Rational(3, 4)]])),
+    ]
+
+    for name, a in test_effects:
+        result = corrected_sp(I2, a)
+        diff = simplify(result - a)
+        ok = diff.equals(zeros(2))
+        print(f"  1 & {name} = {name}? {'PASS' if ok else 'FAIL'}")
+        if not ok:
+            print(f"    1 & {name} = {result}")
+            print(f"    diff = {diff}")
+        all_pass &= ok
+
+    # THE critical test: 1 & P+ should be P+, not (1/2)I
+    naive = self_model_product(I2, Px_plus)
+    naive_diff = simplify(naive - Px_plus)
+    naive_fail = not naive_diff.equals(zeros(2))
+    print(f"\n  Comparison: naive product gives 1 & P+ = P+? "
+          f"{'FAIL (expected)' if naive_fail else 'PASS (unexpected)'}")
+    if naive_fail:
+        print(f"    naive 1 & P+ = {naive} (should be P+, is (1/2)I)")
+
+    print(f"\n  Corrected S3: {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    return all_pass
+
+
+def test_corrected_bilinearity():
+    """Bilinearity of corrected product in second argument (S1).
+
+    Note: The corrected product is NOT linear in the first argument (the map
+    a -> a & b involves sqrt of spectral values, which is nonlinear). This is
+    correct: vdW only requires S1 (additivity in 2nd arg) and S2 (continuity
+    in 1st arg), NOT linearity in the 1st argument.
+    """
+    print("\n=== CORRECTED PRODUCT: Bilinearity in 2nd argument ===")
+    all_pass = True
+
+    # Test effects
+    b1 = Rational(1, 3) * P0 + Rational(1, 6) * I2  # valid effect
+    b2 = Rational(1, 4) * Px_plus  # valid effect
+    test_a_effects = [
+        ("P0", P0),
+        ("P+", Px_plus),
+        ("diag(3/4,1/4)", Matrix([[Rational(3, 4), 0], [0, Rational(1, 4)]])),
+        ("generic", Matrix([[Rational(3, 4), Rational(1, 4)],
+                            [Rational(1, 4), Rational(1, 4)]])),
+    ]
+
+    for name_a, a in test_a_effects:
+        # S1: a & (b1 + b2) = a & b1 + a & b2
+        lhs = corrected_sp(a, b1 + b2)
+        rhs = corrected_sp(a, b1) + corrected_sp(a, b2)
+        diff = simplify(lhs - rhs)
+        ok = diff.equals(zeros(2))
+        print(f"  S1 [{name_a}]: a & (b1+b2) = a&b1 + a&b2? {'PASS' if ok else 'FAIL'}")
+        if not ok:
+            print(f"    diff = {diff}")
+        all_pass &= ok
+
+    # Scalar multiplication: a & (alpha*b) = alpha*(a & b)
+    alpha = Rational(2, 5)
+    a_test = Matrix([[Rational(3, 4), 0], [0, Rational(1, 4)]])
+    b_test = Px_plus
+    lhs2 = corrected_sp(a_test, alpha * b_test)
+    rhs2 = alpha * corrected_sp(a_test, b_test)
+    diff2 = simplify(lhs2 - rhs2)
+    ok2 = diff2.equals(zeros(2))
+    print(f"  Scalar: a & (alpha*b) = alpha*(a&b)? {'PASS' if ok2 else 'FAIL'}")
+    all_pass &= ok2
+
+    print(f"\n  Bilinearity (2nd arg): {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    return all_pass
+
+
+def test_corrected_classical_limit():
+    """Classical limit: corrected product = pointwise on diagonal (simplex) effects."""
+    print("\n=== CORRECTED PRODUCT: Classical limit ===")
+    all_pass = True
+
+    diag_effects = [
+        ("(1/3,2/3)", Matrix([[Rational(1, 3), 0], [0, Rational(2, 3)]])),
+        ("(1/4,3/4)", Matrix([[Rational(1, 4), 0], [0, Rational(3, 4)]])),
+        ("(1/2,1/2)", Matrix([[Rational(1, 2), 0], [0, Rational(1, 2)]])),
+        ("(1,0)", P0),
+        ("(0,1)", P1),
+    ]
+
+    for name_a, a in diag_effects:
+        for name_b, b in diag_effects:
+            result = corrected_sp(a, b)
+            pw = Matrix([[a[0, 0] * b[0, 0], 0], [0, a[1, 1] * b[1, 1]]])
+            diff = simplify(result - pw)
+            ok = diff.equals(zeros(2))
+            if not ok:
+                print(f"  FAIL: {name_a} & {name_b} != pointwise. diff = {diff}")
+                all_pass = False
+
+    if all_pass:
+        count = len(diag_effects) ** 2
+        print(f"  All {count} diagonal pairs match pointwise product. PASS")
+
+    print(f"\n  Classical limit: {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    return all_pass
+
+
+def test_corrected_sharp_agreement():
+    """Sharp effects: corrected product = compression = p*b*p."""
+    print("\n=== CORRECTED PRODUCT: Sharp effect agreement ===")
+    all_pass = True
+
+    projs = [
+        ("P0", P0), ("P1", P1),
+        ("P+", Px_plus), ("P-", Px_minus),
+        ("Py+", Py_plus), ("Py-", Py_minus),
+    ]
+    test_bs = [
+        Rational(1, 3) * P0 + Rational(1, 6) * I2,
+        Px_plus,
+        Matrix([[Rational(3, 4), Rational(1, 4)],
+                [Rational(1, 4), Rational(1, 4)]]),
+        Rational(1, 2) * I2,
+    ]
+
+    for name_p, p in projs:
+        for b in test_bs:
+            corr = corrected_sp(p, b)
+            comp = simplify(p * b * p)  # compression C_p(b)
+            diff = simplify(corr - comp)
+            ok = diff.equals(zeros(2))
+            if not ok:
+                print(f"  FAIL: corrected({name_p}, b) != C_p(b). diff = {diff}")
+                all_pass = False
+
+    if all_pass:
+        count = len(projs) * len(test_bs)
+        print(f"  All {count} sharp-effect pairs agree with compression. PASS")
+
+    print(f"\n  Sharp agreement: {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    return all_pass
+
+
+def test_corrected_vs_luders():
+    """Compare corrected product with Luders product on M_2(C)^sa."""
+    print("\n=== CORRECTED PRODUCT vs LUDERS ===")
+    all_pass = True
+
+    test_pairs = [
+        ("diag(3/4,1/4)", Matrix([[Rational(3, 4), 0], [0, Rational(1, 4)]]),
+         "P+", Px_plus),
+        ("diag(1/2,1/2)", Rational(1, 2) * I2,
+         "P+", Px_plus),
+        ("diag(1/3,2/3)", Matrix([[Rational(1, 3), 0], [0, Rational(2, 3)]]),
+         "generic", Matrix([[Rational(3, 4), Rational(1, 4)],
+                            [Rational(1, 4), Rational(1, 4)]])),
+        ("P0", P0, "P+", Px_plus),
+        ("P+", Px_plus, "P0", P0),
+        ("generic_a", Matrix([[Rational(3, 4), Rational(1, 4)],
+                              [Rational(1, 4), Rational(1, 4)]]),
+         "P+", Px_plus),
+    ]
+
+    for name_a, a, name_b, b in test_pairs:
+        corr = corrected_sp(a, b)
+        lud = luders_product(a, b)
+        diff = simplify(corr - lud)
+        ok = diff.equals(zeros(2))
+        print(f"  {name_a} & {name_b}: corrected = Luders? {'PASS' if ok else 'DIFFER'}")
+        if not ok:
+            print(f"    corrected: {corr}")
+            print(f"    luders:    {lud}")
+            print(f"    diff:      {diff}")
+        all_pass &= ok
+
+    if all_pass:
+        print("\n  Corrected product = Luders product on ALL tested pairs.")
+        print("  This confirms: OUS-derived product coincides with known quantum SP")
+    else:
+        print("\n  Some pairs differ -- investigate.")
+
+    print(f"\n  Luders comparison: {'ALL MATCH' if all_pass else 'SOME DIFFER'}")
+    return all_pass
+
+
+def test_corrected_effect_range():
+    """Verify 0 <= corrected_sp(a, b) <= I for effects a, b."""
+    print("\n=== CORRECTED PRODUCT: Effect range ===")
+    all_pass = True
+
+    effects = [
+        ("P0", P0),
+        ("P1", P1),
+        ("P+", Px_plus),
+        ("P-", Px_minus),
+        ("I/2", Rational(1, 2) * I2),
+        ("diag(1/4,3/4)", Matrix([[Rational(1, 4), 0], [0, Rational(3, 4)]])),
+        ("generic", Matrix([[Rational(3, 4), Rational(1, 4)],
+                            [Rational(1, 4), Rational(1, 4)]])),
+    ]
+
+    for name_a, a in effects:
+        for name_b, b in effects:
+            result = corrected_sp(a, b)
+            psd = is_positive_semidefinite(result)
+            upper = is_positive_semidefinite(eye(2) - result)
+            ok = psd and upper
+            if not ok:
+                print(f"  FAIL: {name_a} & {name_b} not an effect. result={result}")
+                all_pass = False
+
+    if all_pass:
+        print(f"  All {len(effects)**2} pairs: PASS (0 <= a & b <= I)")
+
+    return all_pass
+
+
+def test_phi_algebraic_essential():
+    """Verify that phi enters algebraically: f=0 (no feedback) recovers the
+    naive pinching product that fails S3, while f=sqrt (faithful tracking)
+    gives the corrected product that passes S3.
+    """
+    print("\n=== PHI ALGEBRAICALLY ESSENTIAL ===")
+    all_pass = True
+
+    a = Px_plus  # effect with off-diagonal components
+
+    # f = sqrt (faithful self-model) -> corrected product
+    corrected = corrected_sp(I2, a)
+    s3_corrected = simplify(corrected - a).equals(zeros(2))
+    print(f"  f = sqrt (faithful): 1 & P+ = P+? {'PASS' if s3_corrected else 'FAIL'}")
+    all_pass &= s3_corrected
+
+    # f = 0 (no self-model / trivial phi) -> naive pinching product
+    naive = self_model_product(I2, a)
+    s3_naive = simplify(naive - a).equals(zeros(2))
+    print(f"  f = 0 (no feedback): 1 & P+ = P+? "
+          f"{'PASS (unexpected!)' if s3_naive else 'FAIL (expected)'}")
+    # We EXPECT this to fail (confirming phi is algebraically essential)
+    phi_essential = not s3_naive
+    all_pass &= phi_essential
+
+    if phi_essential:
+        print(f"    Naive gives 1 & P+ = {naive} != P+")
+        print("    Removing phi (setting f=0) recovers the failed naive extension.")
+        print("    Therefore phi is algebraically essential, not just interpretive.")
+
+    print(f"\n  phi essential: {'CONFIRMED' if all_pass else 'NOT CONFIRMED'}")
+    return all_pass
+
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -716,12 +1056,12 @@ def test_peirce_decomposition_analysis():
 def main():
     print("=" * 60)
     print("Sequential Product Verification Harness")
-    print("Phase 04, Plan 01")
+    print("Phase 04, Plans 01 + 06")
     print("=" * 60)
 
     results = {}
 
-    # Tests that PASS
+    # ---- Plan 01 tests (unchanged) ----
     results["positive_control"] = test_positive_control_all_axioms()
     results["negative_control"] = test_negative_control_S4_fails()
     results["effect_range"] = test_effect_range()
@@ -732,7 +1072,7 @@ def main():
 
     # Tests that document KNOWN FAILURES (the Peirce decomposition problem)
     print("\n" + "=" * 60)
-    print("KNOWN FAILURES: Peirce Decomposition Problem")
+    print("KNOWN FAILURES: Peirce Decomposition Problem (Plan 01)")
     print("(These test the naive spectral extension, which fails S3")
     print(" on non-commutative systems. This is a CORRECT finding.)")
     print("=" * 60)
@@ -742,10 +1082,24 @@ def main():
     # Analysis of the root cause
     results["peirce_analysis"] = test_peirce_decomposition_analysis()
 
+    # ---- Plan 06 tests: corrected product ----
+    print("\n" + "=" * 60)
+    print("PLAN 06: Corrected Product with Peirce 1-Space Feedback")
+    print("=" * 60)
+    results["corrected_S3"] = test_corrected_S3()
+    results["corrected_bilinearity"] = test_corrected_bilinearity()
+    results["corrected_classical"] = test_corrected_classical_limit()
+    results["corrected_sharp"] = test_corrected_sharp_agreement()
+    results["corrected_effect_range"] = test_corrected_effect_range()
+    results["corrected_vs_luders"] = test_corrected_vs_luders()
+    results["phi_essential"] = test_phi_algebraic_essential()
+
+    # ---- Summary ----
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
 
+    print("\n  --- Plan 01 (naive product) ---")
     expected_pass = ["positive_control", "negative_control", "effect_range",
                      "classical_limit", "complement", "sharp_agreement",
                      "general_difference", "peirce_analysis"]
@@ -762,18 +1116,42 @@ def main():
         status = "KNOWN FAIL (expected)" if not ok else "UNEXPECTED PASS"
         print(f"  {name}: {status}")
 
-    # Overall: all expected_pass should pass, expected_fail should fail
     pass_ok = all(results[n] for n in expected_pass)
     fail_ok = all(not results[n] for n in expected_fail)
-    overall = pass_ok and fail_ok
-    print(f"\nOverall harness: {'CORRECT' if overall else 'UNEXPECTED RESULTS'}")
+    plan01_ok = pass_ok and fail_ok
+
+    print(f"\n  --- Plan 06 (corrected product) ---")
+    corrected_tests = [
+        "corrected_S3", "corrected_bilinearity", "corrected_classical",
+        "corrected_sharp", "corrected_effect_range", "corrected_vs_luders",
+        "phi_essential",
+    ]
+    for name in corrected_tests:
+        ok = results[name]
+        status = "PASS" if ok else "FAIL"
+        print(f"  {name}: {status}")
+
+    plan06_ok = all(results[n] for n in corrected_tests)
+
+    overall = plan01_ok and plan06_ok
+    print(f"\n{'=' * 60}")
+    print(f"Overall harness: {'CORRECT' if overall else 'UNEXPECTED RESULTS'}")
     if overall:
+        print("  Plan 01:")
         print("  - Positive control (Luders): all S1-S7 pass")
         print("  - Negative control (matrix mult): correctly detected as invalid SP")
         print("  - Classical limit: compression product matches pointwise multiplication")
         print("  - Peirce finding: compression product fails S3 on non-commutative systems")
         print("  - Sharp effects: self-model product agrees with Luders on projections")
         print("  - General effects: self-model product differs from Luders (decoheres)")
+        print("  Plan 06:")
+        print("  - Corrected product passes S3 (unitality) on off-diagonal effects")
+        print("  - Corrected product is linear in second argument (S1)")
+        print("  - Corrected product = pointwise on simplices (classical limit)")
+        print("  - Corrected product = compression on sharp effects")
+        print("  - Corrected product maps effects to effects (0 <= a&b <= I)")
+        print("  - Corrected product = Luders product on M_2(C)^sa")
+        print("  - phi is algebraically essential (f=0 recovers failed naive product)")
     return 0 if overall else 1
 
 
