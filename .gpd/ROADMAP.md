@@ -70,10 +70,11 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 4. All remaining axioms S1-S3 and S5-S7 are individually verified with proofs pinned to arXiv:1803.11139 definitions exclusively (not Gudder-Greechie axioms)
 5. Non-associativity is confirmed by exhibiting an explicit triple (a,b,c) with (a.b).c != a.(b.c), ruling out the commutativity trap (Westerbaan-Westerbaan-van de Wetering 2020)
 
-**Plans:** 5 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- Define compression-based sequential product, resolve E(B) vs E(B x M) framing, verify bilinearity, classical limit
+- [x] 04-01-PLAN.md -- Define compression-based sequential product, resolve E(B) vs E(B x M) framing, verify bilinearity, classical limit
+- [ ] 04-06-PLAN.md -- (GAP CLOSURE) Peirce 1-space feedback extension: correct sharp-to-general extension using self-modeling feedback
 - [ ] 04-02-PLAN.md -- Non-associativity sanity check (kill gate if associative)
 - [ ] 04-03-PLAN.md -- Verify axioms S1-S3 and S5-S7
 - [ ] 04-04-PLAN.md -- S4 (decisive test): prove or disprove, characterize phi-dependence, EJA classification
