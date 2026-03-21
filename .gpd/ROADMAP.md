@@ -88,7 +88,12 @@ See `.gpd/milestones/v2.0-ROADMAP.md` for full details.
 4. All terms in the Hamiltonian have correct energy dimensions, and the lattice structure is consistent with the Bratteli-Robinson quantum lattice framework
 5. The mapping is shown to be compatible with Paper 5's local tomography: the composite structure of two neighboring sites in the lattice reproduces the B-M composite OUS from v2.0
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 08-01-PLAN.md -- Lattice definition + locality mapping + Hamiltonian construction from SP constraints
+- [ ] 08-02-PLAN.md -- Lieb-Robinson framework instantiation + Heisenberg chain benchmark
+- [ ] 08-03-PLAN.md -- LR velocity for self-modeling Hamiltonian + Paper 5 compatibility verification
 
 **Backtracking triggers:**
 - If "locality" in the self-modeling sense does not map onto "locality" in the Hamiltonian sense (the two notions are structurally incompatible) -> STOP, return to user for scope decision. This is a stop/rethink condition from the contract.
@@ -260,7 +265,7 @@ Wave 4: Phase 12 (requires all prior phases)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 8. Locality Formalization | v3.0 | 0/TBD | Not started | -- |
+| 8. Locality Formalization | v3.0 | 0/3 | Planned | -- |
 | 9. Area-Law Derivation | v3.0 | 0/TBD | Not started | -- |
 | 10. Jacobson Application | v3.0 | 0/TBD | Not started | -- |
 | 11. Numerical Verification | v3.0 | 0/TBD | Not started | -- |
