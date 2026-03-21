@@ -2,74 +2,51 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-03-20)
+See: .gpd/PROJECT.md (updated 2026-03-21)
 
 **Machine-readable scoping contract:** `.gpd/state.json` field `project_contract`
 
-**Core research question:** Does the sequential product structure of self-modeling systems satisfy van de Wetering's axioms S1-S7, thereby deriving quantum mechanics from a single operational premise?
-**Current focus:** Phase 6 complete -- Paper Assembly done, verification passed
+**Core research question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
+**Current focus:** Defining objectives for v3.0 GR Extension
 
 ## Current Position
 
-**Current Phase:** 6
-**Current Phase Name:** Paper Assembly
-**Total Phases:** 4 (Phases 4-7; v1.0 Phases 1-3 complete)
-**Current Plan:** 3
-**Total Plans in Phase:** 3
-**Status:** Phase 6 complete -- all 3 plans done, verification passed (8/10 -> 10/10 after gap closure), consistency PASS
+**Current Phase:** --
+**Current Phase Name:** --
+**Total Phases:** TBD (v3.0 phases start at 8)
+**Current Plan:** --
+**Total Plans in Phase:** --
+**Status:** Defining objectives
 **Last Activity:** 2026-03-21
-**Last Activity Description:** Wave 2 complete -- discussion, appendices, derivation chain figure, manuscript assembly, circularity/completeness/notation audits all PASS
+**Last Activity Description:** Started milestone v3.0: GR Extension
 
-**Progress:** [██████████] 100% (Phase 6)
+**Progress:** [░░░░░░░░░░] 0% (v3.0)
 
 ## Active Calculations
 
-None (Phase 6 complete).
+None (milestone initialization).
 
 ## Intermediate Results
 
-### Phase 5 Results (Local Tomography from B-M Compositionality)
-- **Composite OUS V_BM formalized** with product-form SP; S1-S7 inherited from factors (HIGH)
-- **Local tomography proved**: dim(V_BM) = dim(V_B) * dim(V_M) via EJA trace form non-degeneracy + composite minimality (HIGH)
-- **Correlation form**: B(a, b) = tau(a * phi^{-1}(b)) -- non-degenerate on simple EJA (HIGH)
-- **Negative checks**: real (9!=10) and quaternionic (36!=28) correctly excluded (HIGH)
-- **658+ SymPy tests** on V_3 tensor V_3 all pass (HIGH)
-- **Researcher checkpoint APPROVED** (HIGH)
+(v2.0 results archived in MILESTONES.md)
 
-### Phase 4 Results (Sequential Product Formalization)
-- **E(B) framing selected** over E(B x M) with three failure modes (HIGH)
-- **Corrected product formula** Eq. (04-06.4): a & b = sum lambda_i C_{p_i}(b) + sum sqrt(lambda_i lambda_j) P_{ij}(b) (HIGH)
-- **Luders equivalence** on M_2(C)^sa: corrected product = sqrt(a) b sqrt(a) (HIGH)
-- **phi algebraically essential**: faithful self-modeling saturates positivity bound, selects f = sqrt (HIGH)
-- **Non-associativity confirmed**: Delta[0,0] = 39/224 - 3sqrt(3)/32 != 0 (HIGH)
-- **S1-S7 all proved** for the corrected product on finite-dim spectral OUS (HIGH)
-- **S4 phi-independent**: holds for all f with f(0,x)=0 via facial orthogonality (HIGH)
-- **EJA classification**: vdW Theorem 1 applies, spin factor V_3 for M_2(C)^sa (HIGH)
+### Paper 5 Results (v2.0, carried forward as input)
+- M_n(C)^sa with Luders product and conjugate-transpose involution
+- Local tomography: dim(V_BM) = dim(V_B) * dim(V_M)
+- All S1-S7 proved for self-modeling sequential product
+- All non-complex EJA types excluded
+- Paper 5 assembled and reviewed (3 rounds)
 
 ## Open Questions
 
-- RESOLVED: B-M independent accessibility implies local tomography (proved in Plan 05-01)
-- Does the self-modeling framework admit a qubit-like 2-dimensional subsystem?
-- Does positivity bound generalize to M_n(C)^sa for n >= 3?
-- Can the faithful-tracking selection principle be formalized as a theorem?
-- Does the facial orthogonality argument extend to infinite-dimensional spectral OUS?
+- Does self-modeling locality force area-law entanglement entropy?
+- Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs?
+- What is the precise gap (if any) between self-modeling locality and existing area-law theorems?
+- Does the self-modeling fixed point correspond to a gapped ground state?
 
 ## Performance Metrics
 
-(v1.0 metrics archived in MILESTONES.md)
-
-| Label | Duration | Tasks | Files |
-| ----- | -------- | ----- | ----- |
-| 04-01 | 11min    | 2     | 3     |
-| 04-06 | 8min     | 2     | 2     |
-| 04-02 | 10min    | 2     | 2     |
-| 04-03 | 12min    | 2     | 2     |
-| 04-04 | 15min    | 3     | 2     |
-| 05-01 | 28min    | 3     | 3     |
-| 05-02 | 15min    | 2     | 2     |
-| 06-01 | 5min     | 2     | 3     |
-| 06-02 | 4min     | 2     | 3     |
-| 06-03 | 12min    | 3     | 10    |
+(v1.0 and v2.0 metrics archived in MILESTONES.md)
 
 ## Accumulated Context
 
@@ -78,36 +55,24 @@ None (Phase 6 complete).
 Full log: `.gpd/DECISIONS.md`
 
 **Recent high-impact:**
-- [Phase 5, Plan 01]: Composite V_BM defined as MINIMAL OUS with product-form SP
-- [Phase 5, Plan 01]: Correlation form B(a,b) = tau(a * phi^{-1}(b)) bridges faithful tracking to local tomography
-- [Phase 5, Plan 01]: Entangled sector eliminated via minimality + SP closure + non-degeneracy
-- [Phase 5, Plan 01]: Researcher approved -- load-bearing: non-degeneracy -> span d_B*d_M -> equals maximal for complex only
-- [Phase 4, Plan 04]: S4 proved via facial orthogonality -- phi-independent, applies to all f with f(0,x)=0
-- [Phase 4, Plan 04]: All S1-S7 established -- vdW Theorem 1 invoked for EJA classification
-- [Phase 4, Plan 06]: Corrected product uses sqrt Peirce 1-space feedback; faithful self-modeling selects maximal f, recovering Luders
-- [Phase 4, Plan 06]: Decisive insight was Peirce 1-space resolution (S3), not S4
-- [Phase 4, Plan 01]: E(B) framing selected over E(B x M)
-- [Phase 0]: Sequential product route chosen over direct involution construction
+- [Phase 0]: Started milestone v3.0: GR Extension -- extending self-modeling to derive GR via locality -> area law -> Jacobson
+- [Phase 0]: Lattice architecture (option b) selected for spatially extended self-modeling
+- [Phase 0]: Strong argument with precise gap identification (not full theorem, not bare conditional)
+- [Phase 0]: Standalone Paper 6 (separate from Paper 5)
 
 ### Active Approximations
 
-None (algebraic proof work, no approximations).
+None yet.
 
 **Convention Lock:**
 
-- Metric signature: N/A (algebraic/categorical project)
-- Natural units: N/A (dimensionless algebraic work)
-- All other convention fields: N/A
+- Metric signature: (-,+,+,+) (standard GR convention, to be confirmed during planning)
+- Natural units: hbar = c = k_B = 1 (for thermodynamic/GR portions)
 
-*Custom conventions:*
+*Custom conventions (carried forward from v2.0):*
 - Sequential product notation: a & b (non-commutative, per vdW arXiv:1803.11139 Def. 2)
-- Jordan product: a * b = (1/2)(a & b + b & a)
-- Orthogonality: a perp b iff a & b = 0
-- Axiom source: van de Wetering arXiv:1803.11139 EXCLUSIVELY
-- Compression: C_p (Alfsen-Shultz P-projection)
-- Corrected product: a & b = sum lambda_i C_{p_i}(b) + sum sqrt(lambda_i lambda_j) P_{ij}(b)
-- Composite product: (a tensor b) & (c tensor d) = (a & c) tensor (b & d)
 - Local tomography: dim(V_BM) = dim(V_B) * dim(V_M)
+- Local algebra: each lattice site carries M_n(C)^sa
 
 ### Propagated Uncertainties
 
@@ -119,11 +84,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- RESOLVED: Circularity risk -- local tomography derived without importing C*-structure (circularity audit passed)
-- Minimality assumption for composite: physically justified for complex QM (minimal = maximal) but a substantive choice
+- Gap between self-modeling locality and lattice Hamiltonian locality is the critical unknown
+- Area-law theorems (Hastings) require gapped Hamiltonians; self-modeling framework has no Hamiltonian a priori
 
 ## Session Continuity
 
 **Last session:** 2026-03-21
-**Stopped at:** Phase 6 complete; milestone v2.0 ready for completion
+**Stopped at:** Milestone v3.0 initialization -- defining objectives
 **Resume file:** --

@@ -14,3 +14,19 @@
 
 ---
 
+## v2.0 QM from Algebraic Genericity (Shipped: 2026-03-21)
+
+**Phases completed:** 3 phases (4-6), 11 plans (1 skipped), Phase 7 contingency not needed
+
+**Key accomplishments:**
+- Sequential product formalized on finite-dim spectral OUS; corrected product formula with Peirce 1-space feedback; E(B) framing selected over E(B x M)
+- All S1-S7 proved: S4 via facial orthogonality (phi-independent), f = sqrt(xy) forced by multiplicative functional equation (S5) + degenerate limit (S2)
+- Local tomography proved from faithful tracking via state separation on minimal composite OUS
+- All non-complex EJA types excluded by dimension counting + Barnum-Wilce + Albert algebra no-composite theorem
+- C*-algebra promotion via vdW Theorem 3; involution = conjugate transpose; BW and HO as consistency checks
+- Paper 5 assembled (7 sections + appendices), passed 3 rounds of adversarial review with all fixes applied
+- Full chain established: L4 (self-modeling) -> SP (S1-S7) -> EJA -> LT -> type exclusion -> C*-algebra -> M_n(C)^sa
+
+**Last phase number:** 7 (contingency, not executed)
+
+---

@@ -2,108 +2,118 @@
 
 ## What This Is
 
-Deriving quantum mechanics from the algebraic structure of self-modeling composite processes. The v1.0 milestone formalized the experiential measure framework (Theorem A, Lipschitz stability, Born-Fisher falsification). The v2.0 milestone closes the last gap in the algebraic genericity chain: why should a self-modeling system's algebra carry a C*-involution? The route is through van de Wetering's sequential product axioms — if self-modeling "test-update-test" satisfies S1-S7, the involution is derived, not postulated. The subfield is mathematical physics / quantum foundations, with the expected deliverable being a paper (Paper 5) deriving QM from a single operational premise (L4: self-models test and update).
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise: self-modeling forces M_n(C)^sa with Luders product and conjugate-transpose involution (Paper 5, three rounds of adversarial review passed). v3.0 extends to gravity: self-modeling is inherently local (the model probes through the B-M boundary), locality forces area-law entanglement, and Jacobson's thermodynamic argument converts area-law entropy to Einstein's field equations. The subfield is mathematical physics / quantum foundations / quantum gravity, with the expected deliverable being Paper 6 deriving GR from self-modeling.
 
 ## Core Research Question
 
-Does the sequential product structure of self-modeling systems satisfy van de Wetering's axioms S1-S7, thereby deriving quantum mechanics from a single operational premise?
+Does the locality of self-modeling -- the fact that the model probes the body through the boundary, not telepathically through the bulk -- force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
 
-## Current Milestone: v2.0 QM from Algebraic Genericity
+## Current Milestone: v3.0 GR Extension
 
-**Goal:** Derive the C*-algebra involution from the sequential product structure of self-modeling systems, closing the last gap in the L4 → QM chain.
+**Goal:** Derive Einstein's field equations from the locality of self-modeling, via the chain: local self-modeling lattice -> area-law entanglement -> Jacobson's thermodynamic derivation -> GR.
 
 **Target results:**
 
-- Proof or disproof that the self-modeling sequential product satisfies van de Wetering's S1-S7
-- If S1-S7 hold: proof that B-M compositionality implies local tomography, completing the Jordan → C* promotion
-- Paper 5 assembling the full chain (one premise) or conditional chain (L4 + C*)
+- Formalization of locality of self-modeling for spatially extended systems (lattice of M_n(C)^sa sites)
+- Proof or strong argument that local self-modeling implies area-law entanglement entropy
+- Verification that Jacobson's inputs (area-law S, Clausius relation, Unruh temperature) are satisfied
+- Paper 6 assembling the chain with precise gap identification
 
 ## Scoping Contract Summary
 
 ### Contract Coverage
 
-- **Sequential product axioms (claim-sp-axioms):** Formal verification of S1-S7 for the self-modeling construction, with S4 as the critical test
-- **Local tomography (claim-local-tomo):** Proof or disproof that B-M independent accessibility implies local tomography
-- **Paper assembly (claim-paper-5):** Complete chain paper (if Phases 1-2 succeed) or conditional chain paper (if either fails)
-- **False progress to reject:** A sketch arguing S1-S7 "should hold" without formally checking each axiom against the construction; hand-waving about the effect algebra framing
+- **Locality formalization (claim-locality):** Make precise what "self-modeling is local" means for a lattice of self-modeling systems, each site an M_n(C)^sa from Paper 5
+- **Area law (claim-area-law):** Prove or give strong argument that local self-modeling interactions produce area-law entanglement entropy S(A) ~ |boundary(A)|
+- **Jacobson application (claim-jacobson):** Verify that the self-modeling composite satisfies Jacobson's three inputs (area-law S, Clausius at Rindler horizons, Unruh temperature)
+- **Paper assembly (claim-paper-6):** Paper 6 "Spacetime from Self-Modeling" with complete chain and precise gap identification
+- **False progress to reject:** Hand-waving the locality -> area law step without identifying what assumption bridges any gap; citing area-law theorems without checking their hypotheses apply to self-modeling systems
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Whether each of S1-S7 holds for the self-modeling sequential product; which effect algebra framing (effects on B vs B x M) is correct
-- **User-stated deliverables:** Proof/disproof of S1-S7 (Phase 1), proof/disproof of local tomography (Phase 2), Paper 5 (Phase 3)
-- **Must-have references / prior outputs:** van de Wetering (2018, arXiv:1803.11139), Gudder-Greechie (2002), v1.0 papers, blog repo drafts (experiential-measure/draft.md, quantum-extension/draft.md)
-- **Stop / rethink conditions:** If the effect algebra framing is fundamentally incompatible with the self-modeling construction; if S4 fails AND the D'Ariano backup also fails
+- **User-stated observables:** Whether locality -> area law holds; what exact assumption bridges any gap between self-modeling locality and existing area-law theorems
+- **User-stated deliverables:** Paper 6 (standalone, separate from Paper 5)
+- **User-stated architecture:** Lattice of self-modeling systems (option b), with note that tensor decomposition of large M_N(C)^sa (option a) is equivalent
+- **Must-have references / prior outputs:** Paper 5 results (M_n(C)^sa, local tomography, composite structure), Jacobson (1995), Hastings (2007), Cao-Carroll-Michalakis (2017)
+- **Stop / rethink conditions:** If "locality" in the self-modeling sense doesn't map onto "locality" in the lattice Hamiltonian sense; if no area-law argument (rigorous or strong physical) can be made
 
 ### Scope Boundaries
 
 **In scope**
 
-- Formalize the self-modeling sequential product on a finite-dimensional order unit space
-- Verify axioms S1-S7, exploring both framings (effects on B, effects on B x M)
-- If S1-S7 hold: prove local tomography from B-M compositionality
-- Assemble Paper 5 (full chain or conditional)
-- D'Ariano backup route (Phase 4, only if Phase 1 fails)
+- Formalize locality of self-modeling for spatially extended systems
+- Derive or argue area-law entanglement from local self-modeling
+- Apply Jacobson's thermodynamic argument to get Einstein's equations
+- Identify emergent geometry (bonus, if steps 1-3 work)
+- Paper 6 assembly
 
 **Out of scope**
 
-- Standard Model derivation (Level 4+)
-- Self-modeling constants experiment (Level 6)
-- Experiential measure extensions beyond v1.0
-- Blog series (separate project)
-- Countable/continuous state space generalization
+- Deriving the specific value of G (Newton's constant)
+- Deriving 3+1 dimensions
+- Deriving Standard Model gauge groups
+- Full quantum gravity theory
+- Cosmological constant problem
+- Infinite-dimensional systems (Paper 5 restriction carries forward)
 
 ### Active Anchor Registry
 
-- **ref-vdw2018:** van de Wetering — Sequential product spaces are Jordan algebras (2018, arXiv:1803.11139)
-  - Why it matters: Theorems 1 and 3 are the key results — S1-S7 → Jordan algebra, Jordan + local tomography → C*-algebra
+- **ref-jacobson1995:** Jacobson -- Thermodynamics of Spacetime: The Einstein Equation of State (1995, PRL 75, 1260)
+  - Why it matters: The key theorem -- area-law entropy + Clausius relation + Unruh temperature = Einstein's equations
   - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
-- **ref-gudder-greechie:** Gudder, Greechie — Sequential products on effect algebras (2002)
-  - Why it matters: Original sequential product formalism; definitions and basic properties
+- **ref-hastings2007:** Hastings -- An area law for one-dimensional quantum systems (2007, JSTAT P08024)
+  - Why it matters: Rigorous area law for 1D gapped Hamiltonians; template for higher-D arguments
   - Carry forward: planning, execution, writing
   - Required action: read, cite
 
-- **ref-barnum2023:** Barnum, Ududec, van de Wetering — Composites and categories of Euclidean Jordan algebras (2023, arXiv:2306.00362)
-  - Why it matters: Compositionality constraints on Jordan algebras; relevant to Phase 2 local tomography
+- **ref-ccm2017:** Cao, Carroll, Michalakis -- Space from Hilbert space (2017, PRD 95, 024031)
+  - Why it matters: Emergent geometry from entanglement in finite Hilbert spaces; closest existing framework to our lattice approach
   - Carry forward: planning, execution, writing
   - Required action: read, cite
 
-- **ref-dariano2006:** D'Ariano — How to derive the Hilbert space formulation (2006, arXiv:quant-ph/0611094)
-  - Why it matters: Backup route — Postulate 5 (symmetric faithful state) gives explicit involution construction
-  - Carry forward: planning (Phase 4 only)
-  - Required action: read if Phase 1 fails
-
-- **ref-barandes:** Barandes — Stochastic-quantum bijection (2025)
-  - Why it matters: Final step in chain — quantum indivisibility from unitary automorphisms
+- **ref-vanraamsdonk2010:** Van Raamsdonk -- Building up spacetime with quantum entanglement (2010, GRG 42, 2323)
+  - Why it matters: Entanglement = geometric connectivity; conceptual foundation for emergent geometry
   - Carry forward: writing
   - Required action: cite
 
-- **ref-motzkin-taussky:** Motzkin, Taussky — Pairs of matrices with property L (1955)
-  - Why it matters: Generic non-commutativity of matrix algebras — NC step in the chain
-  - Carry forward: writing
+- **ref-lmvr2014:** Lashkari, McDermott, Van Raamsdonk -- Gravitational dynamics from entanglement (2014, JHEP 04, 195)
+  - Why it matters: First law of entanglement entropy = linearized Einstein's equations
+  - Carry forward: planning, execution, writing
+  - Required action: read, cite
+
+- **ref-faulkner2014:** Faulkner et al. -- Gravitation from entanglement in holographic CFTs (2014, JHEP 03, 051)
+  - Why it matters: Nonlinear Einstein's equations from entanglement
+  - Carry forward: execution, writing
+  - Required action: read, cite
+
+- **ref-paper5:** Paper 5 (this project, v2.0) -- QM from self-modeling
+  - Why it matters: Provides the M_n(C)^sa algebra, local tomography, and composite structure that are inputs to v3.0
+  - Carry forward: planning, execution, verification, writing
   - Required action: cite
 
 ### Carry-Forward Inputs
 
-- ~/repos/blog/research/experiential-measure/draft.md (main framework draft)
-- ~/repos/blog/research/quantum-extension/draft.md (quantum extension, algebraic genericity chain)
-- ~/repos/blog/research/qm-genericity-review/ (adversarial review of the chain)
+- Paper 5 results: M_n(C)^sa with Luders product, local tomography, composite OUS framework
+- paper/sections/*.tex (Paper 5 section files)
+- paper/GR_EXTENSION.md (v3.0 research plan)
 - v1.0 papers (Theorem A, Lipschitz, Born-Fisher falsification)
 
 ### Skeptical Review
 
-- **Weakest anchor:** S4 (symmetry of orthogonality) for the self-modeling construction — no prior work verifies this specific axiom for this specific construction
-- **Unvalidated assumptions:** That "test-update-test" maps cleanly onto van de Wetering's sequential product formalism; that the correct effect algebra is effects on B (vs B x M)
-- **Competing explanation:** The involution might require an independent physical postulate (C*-axiom) rather than being derivable — many reconstruction programs assume it
-- **Disconfirming observation:** S4 fails for the self-modeling sequential product; or the effect algebra framing is incompatible with the construction entirely
-- **False progress to reject:** Arguing axioms hold "by physical intuition" without formal proofs; checking axioms for quantum sequential products (which trivially satisfy them) instead of the self-modeling construction
+- **Weakest anchor:** The locality -> area law step. Self-modeling locality is a statement about B-M boundary interactions; area-law theorems (Hastings) require gapped local Hamiltonians. The bridge between these two notions of locality is the critical gap.
+- **Unvalidated assumptions:** That a lattice of self-modeling systems produces a "ground state" or low-energy state to which area-law theorems apply; that the Clausius relation holds at causal horizons in the self-modeling framework
+- **Competing explanation:** Area-law entanglement might require additional dynamical assumptions beyond locality (e.g., a spectral gap, specific interaction structure) that self-modeling alone doesn't provide
+- **Disconfirming observation:** Self-modeling locality doesn't produce correlation decay; or the resulting entropy scaling is volume-law, not area-law
+- **False progress to reject:** Citing area-law theorems without verifying their hypotheses apply; arguing "locality implies area law" without identifying the precise mathematical connection
 
 ### Open Contract Questions
 
-- Which effect algebra framing is correct (effects on B vs effects on B x M)?
-- Whether S4 holds for the self-modeling sequential product
-- Whether B-M independent accessibility is sufficient for local tomography
+- Does self-modeling locality map onto lattice Hamiltonian locality?
+- Does the self-modeling fixed point correspond to a gapped ground state?
+- Can area-law entanglement be derived purely information-theoretically, bypassing Hamiltonian assumptions?
+- Does the Unruh effect hold in the M_n(C)^sa framework (finite dimensions)?
 
 ## Research Questions
 
@@ -111,14 +121,18 @@ Does the sequential product structure of self-modeling systems satisfy van de We
 
 - [x] Can the 7 lemmas in Theorem A's dependency graph be assembled into a self-contained proof with explicit error scaling? -- **YES.** Proof assembled with composite error rate gamma = min(alpha/2, Ds - alpha). Validated on three-state chain across 9 parameter combinations. -- v1.0
 - [x] Is the experiential density rho Lipschitz continuous in the transition kernel, and what is the constant L? -- **YES.** L = (C_I + C_H)/gap(P), scaling as ln|Omega|/gap. Verified numerically: 3000 perturbations, zero violations. -- v1.0
-- [x] Do Born-rule distributions satisfy I_vN(B;M) = S_vN(B)/2 in a toy qubit composite process? -- **NO. Conjecture FALSIFIED.** rho_Q <= 0 throughout all 1900+ Lindblad trajectories; mu_Q identically zero. Exchange Hamiltonian maintains I_vN >= S_B at all times. -- v1.0
+- [x] Do Born-rule distributions satisfy I_vN(B;M) = S_vN(B)/2 in a toy qubit composite process? -- **NO. Conjecture FALSIFIED.** rho_Q <= 0 throughout all 1900+ Lindblad trajectories; mu_Q identically zero. -- v1.0
+- [x] Does the self-modeling sequential product satisfy van de Wetering's axioms S1-S7? -- **YES.** All seven axioms proved for the corrected product on finite-dim spectral OUS. S4 proved via facial orthogonality (phi-independent). -- v2.0
+- [x] Does S4 (symmetry of orthogonality) hold for the self-modeling construction? -- **YES.** Proved via facial orthogonality argument; holds for all mixing functions f with f(0,x)=0. -- v2.0
+- [x] Does B-M compositionality (independent accessibility) imply local tomography? -- **YES.** Proved via state separation on minimal composite OUS. dim(V_BM) = dim(V_B) * dim(V_M). -- v2.0
+- [x] Which effect algebra framing is correct for the self-modeling sequential product? -- **E(B).** E(B x M) framing fails in three ways; E(B) framing gives correct corrected product formula. -- v2.0
 
 ### Active
 
-- [ ] Does the self-modeling sequential product satisfy van de Wetering's axioms S1-S7?
-- [ ] Does S4 (symmetry of orthogonality) hold for the self-modeling construction?
-- [ ] Does B-M compositionality (independent accessibility) imply local tomography?
-- [ ] Which effect algebra framing is correct for the self-modeling sequential product?
+- [ ] Does self-modeling locality force area-law entanglement entropy?
+- [ ] Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs?
+- [ ] What is the precise gap (if any) between self-modeling locality and existing area-law theorems?
+- [ ] Can Einstein's field equations be derived from self-modeling without additional dynamical assumptions?
 
 ### Out of Scope
 
@@ -128,45 +142,48 @@ Does the sequential product structure of self-modeling systems satisfy van de We
 - Reference measure nu -- shared open problem with Mueller (2020)
 - Standard Model derivation -- Level 4+, far beyond current scope
 - Self-modeling constants experiment -- Level 6, requires experimental apparatus
+- Value of Newton's constant G -- not derivable from this framework
+- Number of spacetime dimensions -- not derivable from this framework
 
 ## Research Context
 
 ### Physical System
 
-Self-modeling composite processes with body B and model M. The sequential product structure arises from the operational cycle: test effect a on B, update M based on result, test effect b on B. The algebraic structure of this operation determines whether the system's observables form a C*-algebra (quantum) or something else.
+A lattice of self-modeling composite processes, each site carrying an M_n(C)^sa algebra (from Paper 5). Nearest-neighbor sites interact through body-model boundaries: site A's model of site B is updated through the shared boundary. Information between distant sites must propagate through intermediaries. The global state of the lattice has entanglement structure determined by these local interactions.
 
 ### Theoretical Framework
 
-Quantum foundations / algebraic quantum theory: effect algebras, sequential products, order unit spaces, Euclidean Jordan algebras, C*-algebras. Key tools: van de Wetering's sequential product characterization, Artin-Wedderburn structure theory, Skolem-Noether theorem, Gleason's theorem.
+Quantum foundations / quantum gravity / thermodynamic gravity: algebraic quantum theory (from Paper 5), entanglement entropy and area laws, Jacobson's thermodynamic derivation of Einstein's equations, emergent geometry from entanglement (Van Raamsdonk program). Key tools: Hastings' area law, Rindler horizon thermodynamics, Unruh effect, Fisher information metric.
 
 ### Key Parameters and Scales
 
 | Parameter | Symbol | Regime | Notes |
 | --------- | ------ | ------ | ----- |
-| Body dimension | dim(B) | Finite | Determines effect algebra structure |
-| Model dimension | dim(M) | Finite | Must be sufficient to track B |
-| Effect algebra | E(B) or E(B x M) | To be determined | Phase 1 resolves which framing |
+| Local algebra dimension | n | Finite | Each lattice site is M_n(C)^sa |
+| Lattice size | N | Large | Number of self-modeling sites |
+| Entanglement entropy | S(A) | To be determined | Should scale as |boundary(A)| |
+| Spectral gap | Delta | To be determined | Needed for Hastings-type area law |
 
 ### Known Results
 
-- Algebraic genericity chain validated through 6 rounds of LLM research + 2 adversarial reviews -- Ehrlich blog repo
-- Chain airtight from Step 3 onward (NC generic → matrix algebras → unitary → QM) -- Ehrlich blog repo
-- Gap isolated to involution (*-operation) on the algebra -- Ehrlich blog repo
-- v1.0 results: Theorem A, Lipschitz stability, Born-Fisher falsification -- this project
-- van de Wetering (2018): S1-S7 → Jordan algebra; Jordan + local tomography → C*-algebra
-- Gudder-Greechie (2002): sequential product formalism on effect algebras
+- v2.0: Self-modeling forces M_n(C)^sa with Luders product and conjugate-transpose involution (Paper 5)
+- v2.0: Local tomography for B-M composite; all non-complex EJA types excluded
+- Jacobson (1995): Area-law S + Clausius + Unruh = Einstein's equations (published theorem)
+- Hastings (2007): Area law for 1D gapped local Hamiltonians (rigorous)
+- Cao-Carroll-Michalakis (2017): Emergent geometry from entanglement in finite Hilbert spaces
+- Lashkari-McDermott-Van Raamsdonk (2014): First law of entanglement entropy = linearized Einstein
 
 ### What Is New
 
-Connecting self-modeling "test-update-test" to sequential product formalism to derive the C*-involution. No prior work has checked van de Wetering's axioms for this specific construction. If it works, QM follows from one premise (L4) instead of postulating the C*-algebra structure.
+Connecting self-modeling's inherent locality (the model probes through the boundary, not the bulk) to area-law entanglement and thereby to Einstein's equations. No prior work has derived GR from self-modeling. If successful, both QM (Paper 5) and GR (Paper 6) follow from a single operational premise with no additional assumptions.
 
 ### Target Venue
 
-Foundations of physics journal (Foundations of Physics, Physical Review A — Quantum Foundations, or New Journal of Physics).
+Foundations of physics / quantum gravity journal (same tier as Paper 5). Possibly Physical Review D for the gravity content.
 
 ### Computational Environment
 
-Local workstation. Primarily proof work — no heavy computation needed. Python for any small verification calculations.
+Local workstation. Primarily conceptual/proof work. Python for any verification calculations.
 
 ## Notation and Conventions
 
@@ -175,7 +192,7 @@ See `.gpd/NOTATION_GLOSSARY.md` for symbol definitions.
 
 ## Unit System
 
-Dimensionless (algebraic/categorical work). No physical units needed for the sequential product verification.
+Natural units (hbar = c = k_B = 1) for the GR/thermodynamic portions. Dimensionless for algebraic portions (Paper 5 framework).
 
 ## Requirements
 
@@ -183,18 +200,21 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-- van de Wetering (2018), arXiv:1803.11139 — Sequential product spaces are Jordan algebras
-- Gudder, Greechie (2002) — Sequential products on effect algebras
-- Barnum, Ududec, van de Wetering (2023), arXiv:2306.00362 — Composites of Euclidean Jordan algebras
-- D'Ariano (2006), arXiv:quant-ph/0611094 — Hilbert space from operational axioms
-- Barandes (2025) — Stochastic-quantum bijection
-- Motzkin, Taussky (1955) — Generic non-commutativity
-- Gleason (1957) — Born rule uniqueness
+- Jacobson (1995), PRL 75, 1260 -- Einstein equation as equation of state
+- Hastings (2007), JSTAT P08024 -- Area law for 1D gapped systems
+- Cao, Carroll, Michalakis (2017), PRD 95, 024031 -- Space from Hilbert space
+- Van Raamsdonk (2010), GRG 42, 2323 -- Spacetime from entanglement
+- Lashkari, McDermott, Van Raamsdonk (2014), JHEP 04, 195 -- Gravitational dynamics from entanglement
+- Faulkner et al. (2014), JHEP 03, 051 -- Nonlinear Einstein from entanglement
+- Swingle (2012), PRD 86, 065007 -- MERA and AdS/CFT
+- Paper 5 (this project, v2.0) -- QM from self-modeling
 
 ## Constraints
 
-- **Finite dimensions:** All proofs for finite-dimensional systems only
-- **Proof-driven:** No numerics-as-substitute for formal arguments (v1.0 lesson)
+- **Finite dimensions:** All proofs for finite-dimensional systems only (Paper 5 restriction)
+- **Argument quality:** Strong physical argument with precise gap identification; not full theorem, not bare conditional
+- **Paper 5 as input:** Takes M_n(C)^sa, local tomography, and composite structure as established results
+- **No new QM assumptions:** GR must follow from self-modeling locality alone, not from additional physical postulates
 
 ## Key Decisions
 
@@ -206,8 +226,11 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 | Deep-theory model profile | Heavy proof work benefits from tier-1 models | Good -- all proofs completed |
 | 3 standalone papers over single monograph | Papers written independently for different audiences | Revisit -- peer review suggests Paper 2 may be better as section of Paper 1 |
 | Honest framing over cosmological claims | Peer review flagged overclaiming; reframed titles and abstracts | Good -- papers now accurately scope their claims |
-| Sequential product route over direct involution construction | van de Wetering axioms give cleaner path; D'Ariano as backup | Pending |
-| Explore both effect algebra framings | Correct framing is a Phase 1 result, not a premise | Pending |
+| Sequential product route over direct involution construction | van de Wetering axioms give cleaner path; D'Ariano as backup | Good -- S1-S7 all proved, backup not needed |
+| Explore both effect algebra framings | Correct framing is a Phase 1 result, not a premise | Good -- E(B) selected, E(B x M) failure documented |
+| Lattice architecture for GR extension | Connects directly to Hastings area-law machinery; Cao-Carroll-Michalakis precedent | Pending |
+| Strong argument over full theorem | First pass; full theorem too ambitious; bare conditional too weak | Pending |
+| Standalone Paper 6 over Paper 5 extension | Clean conceptual separation: Paper 5 = QM, Paper 6 = GR | Pending |
 
 ## v1.0 Summary (complete)
 
@@ -218,6 +241,17 @@ All three formal gaps in the experiential measure framework are closed:
 
 Three papers written, peer-reviewed (18-agent 6-pass panel), and revised.
 
+## v2.0 Summary (complete)
+
+QM derived from a single operational premise (faithful self-modeling):
+1. **Sequential product formalized** on finite-dim spectral OUS; corrected product with Peirce 1-space feedback
+2. **S1-S7 all proved** -- S4 via facial orthogonality (phi-independent); functional form f = sqrt(xy) forced by S5 + S2
+3. **Local tomography proved** from faithful tracking via state separation on minimal composite
+4. **Type exclusion** -- all non-complex EJA types excluded by dimension counting + Barnum-Wilce
+5. **C*-algebra promotion** via vdW Theorem 3; involution = conjugate transpose
+
+Paper 5 assembled, passed three rounds of adversarial review. Chain: L4 -> SP -> EJA -> LT -> type exclusion -> C*-algebra -> M_n(C)^sa.
+
 ---
 
-_Last updated: 2026-03-20 after v2.0 milestone initialization_
+_Last updated: 2026-03-21 after v3.0 milestone initialization_
