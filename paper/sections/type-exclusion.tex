@@ -133,11 +133,25 @@ Composite is locally tomographic
 
 \begin{theorem}[{Complex type identification;
   \cite{BarnumWilce2014}}]\label{thm:BW}
-Let $V$ be a finite-dimensional EJA admitting a locally tomographic
-composite and containing a qubit subsystem ($V_3 \cong
-M_2(\mathbb{C})^{\mathrm{sa}}$). Then $V \cong
-M_n(\mathbb{C})^{\mathrm{sa}}$ for some $n \ge 1$.
+Let $(V, \cdot)$ be a finite-dimensional EJA embedded as a system type
+in a locally tomographic dagger-compact probabilistic theory containing
+a qubit ($V_3 \cong M_2(\mathbb{C})^{\mathrm{sa}}$) as a subsystem.
+Then $V \cong M_n(\mathbb{C})^{\mathrm{sa}}$ for some $n \ge 1$.
 \end{theorem}
+
+\noindent
+The qubit hypothesis requires care: the type exclusions above have
+already eliminated real ($n \ge 2$), quaternionic ($n \ge 2$), spin
+factors ($n \ge 4$, $n \ne 3$), and the Albert algebra. The only
+surviving simple EJA types are $\mathbb{R}$ (trivial) and
+$M_n(\mathbb{C})^{\mathrm{sa}}$ for $n \ge 2$. For $n \ge 2$, any
+orthogonal pair $\{p, p^\perp\}$ of projective units defines a two-level
+face that is isomorphic to $V_3 \cong M_2(\mathbb{C})^{\mathrm{sa}}$ ---
+this identification is valid precisely because the non-complex types have
+already been excluded. The categorical structure (dagger-compact
+probabilistic theory) is provided by the composite $V_{BM}$ with its
+product-form sequential product and the dagger given by the involution
+exhibited below.
 
 \begin{center}
 \begin{tabular}{lll}
@@ -146,29 +160,38 @@ M_n(\mathbb{C})^{\mathrm{sa}}$ for some $n \ge 1$.
 \midrule
 $V$ is a finite-dimensional EJA
   & Verified & Theorem~\ref{thm:EJA} \\
-$V$ admits a locally tomographic composite
+Locally tomographic composite
   & Verified & Theorem~\ref{thm:local-tomo} \\
-$V$ contains a qubit subsystem $V_3$
-  & Verified & EJA face structure
-  (any orthogonal pair $\{p,\,p^\perp\}$ \\
-  & & defines a $V_3$-like 2-level sector) \\
+Qubit subsystem $V_3$
+  & Verified & Type exclusion above \\
+  & & (only complex survives; \\
+  & & two-level faces are $V_3$) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \begin{theorem}[{Jordan-to-C* promotion;
   \cite{HancheOlsen1985}}]\label{thm:HO}
-Let $V$ be a JB-algebra. If $V$ admits a tensor product (in the sense
-that $V\otimes V$ is again a JB-algebra with product states), then $V$ is
-the self-adjoint part of a C*-algebra.
+Let $E$ be a JB-algebra. If $E \otimes E_2$ can be given the structure
+of a JB-algebra such that the Jordan product satisfies the factorization
+identities $(a \otimes 1) \circ (b \otimes 1) = (a \circ b) \otimes 1$
+and $(1 \otimes x) \circ (1 \otimes y) = 1 \otimes (x \circ y)$,
+where $E_2 = M_2(\mathbb{C})^{\mathrm{sa}}$, then $E$ is the
+self-adjoint part of a C*-algebra.
 \end{theorem}
 
 \noindent
 The hypotheses of Theorem~\ref{thm:HO} are satisfied: $V$ is a
-finite-dimensional EJA (hence a JB-algebra), and the composite $V_{BM}$
-with S1--S7 provides the required tensor product structure. This theorem
-is consistent with Theorems~\ref{thm:vdW3} and~\ref{thm:BW} and
-provides an independent route to the C*-algebra conclusion.
+finite-dimensional EJA (hence a JB-algebra), and the qubit subsystem
+$E_2 = M_2(\mathbb{C})^{\mathrm{sa}}$ is available by the type
+identification above. The composite $V_{BM}$ with its product-form
+sequential product provides the JB-algebra tensor product, and the
+product-form condition $\sp{(a\otimes b)}{(c\otimes d)}
+= \sp{a}{c} \otimes \sp{b}{d}$ implies the required Jordan-product
+factorization identities.
+This theorem is consistent with Theorems~\ref{thm:vdW3}
+and~\ref{thm:BW} and provides an independent route to the C*-algebra
+conclusion.
 
 %--------------------------------------------------------------------
 \subsection{The Involution}\label{subsec:involution}
