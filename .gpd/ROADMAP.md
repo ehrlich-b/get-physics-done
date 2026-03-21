@@ -40,7 +40,7 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 
 ## Phase Summary
 
-- [ ] **Phase 4: Sequential Product Formalization** -- Prove or disprove S1-S7 for the self-modeling sequential product; establish or refute Jordan algebra structure
+- [x] **Phase 4: Sequential Product Formalization** -- All S1-S7 proved; EJA classification via vdW Theorem 1 (completed 2026-03-21)
 - [ ] **Phase 5: Local Tomography from B-M Compositionality** -- Prove B-M independent accessibility implies local tomography, promoting Jordan -> C*
 - [ ] **Phase 6: Paper Assembly** -- Assemble Paper 5 (full chain or conditional, adapting to Phase 4-5 outcomes)
 - [ ] **Phase 7: D'Ariano Backup** -- (CONTINGENCY) Construct involution from faithful B-M correlation state if S4 fails
@@ -73,12 +73,12 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 **Plans:** 6 plans
 
 Plans:
-- [x] 04-01-PLAN.md -- Define compression-based sequential product, resolve E(B) vs E(B x M) framing, verify bilinearity, classical limit
-- [ ] 04-06-PLAN.md -- (GAP CLOSURE) Peirce 1-space feedback extension: correct sharp-to-general extension using self-modeling feedback
-- [ ] 04-02-PLAN.md -- Non-associativity sanity check (kill gate if associative)
-- [ ] 04-03-PLAN.md -- Verify axioms S1-S3 and S5-S7
-- [ ] 04-04-PLAN.md -- S4 (decisive test): prove or disprove, characterize phi-dependence, EJA classification
-- [ ] 04-05-PLAN.md -- (CONDITIONAL) Characterize S4 failure if Plan 04 disproves S4
+- [x] 04-01-PLAN.md -- Define compression-based sequential product, resolve E(B) vs E(B x M) framing
+- [x] 04-06-PLAN.md -- (GAP CLOSURE) Peirce 1-space feedback extension: corrected product with phi essential
+- [x] 04-02-PLAN.md -- Non-associativity confirmed (kill gate passed)
+- [x] 04-03-PLAN.md -- S1-S3, S5-S7 all proved
+- [x] 04-04-PLAN.md -- S4 proved (phi-independent, facial orthogonality), EJA classification
+- [x] 04-05-PLAN.md -- SKIPPED (S4 passed, no failure to characterize)
 
 **Backtracking triggers:**
 - If the circularity audit reveals Hilbert space imports in the update map definition -> STOP, redesign the update map from order unit space primitives only
@@ -210,7 +210,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 | ----- | -------------- | ------ | --------- |
-| 4. Sequential Product Formalization | 0/5 | Planned | -- |
-| 5. Local Tomography | 0/TBD | Not started | -- |
+| 4. Sequential Product Formalization | 5/6 (1 skipped) | Complete | 2026-03-21 |
+| 5. Local Tomography | 0/TBD | Ready to plan | -- |
 | 6. Paper Assembly | 0/TBD | Not started | -- |
-| 7. D'Ariano Backup (contingency) | 0/TBD | Not started | -- |
+| 7. D'Ariano Backup (contingency) | 0/TBD | Not needed (S4 passed) | -- |
