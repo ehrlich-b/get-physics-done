@@ -162,7 +162,12 @@ Plans:
 4. Einstein's field equations G_ab + Lambda g_ab = (8 pi G) T_ab are derived in the continuum limit, with G = 1/(4 eta) where eta is the entanglement entropy density, and Lambda appearing as an undetermined integration constant
 5. The argument addresses the three historical Jacobson inputs -- (i) area-law entropy (from Phase 9), (ii) local equilibrium / entanglement equilibrium (verified or assumed), (iii) boost generator / modular Hamiltonian (identified) -- with each input's status in the self-modeling framework made explicit
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 10-01-PLAN.md -- Wilsonian continuum limit framework + MVEH as Assumption A5 + Jacobson input status
+- [ ] 10-02-PLAN.md -- Jacobson 2016 derivation: Raychaudhuri + CHM modular Hamiltonian + MVEH -> Einstein equations
+- [ ] 10-03-PLAN.md -- Master theorem synthesis + gap statement + known limits + Phase 11-12 interface
 
 **Backtracking triggers:**
 - If the entanglement first law does not hold for the self-modeling state (e.g., the state is not differentiable under perturbations) -> investigate whether an approximate first law suffices.
