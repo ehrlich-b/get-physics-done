@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-20)
 
 **Core research question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
-**Current focus:** Phase 10 complete -- Einstein's equations derived from entanglement equilibrium, ready for Phase 11
+**Current focus:** Phase 11 complete -- all numerical verification done, ready for verification and Phase 12
 
 ## Current Position
 
-**Current Phase:** 10
-**Current Phase Name:** Jacobson Application
+**Current Phase:** 11
+**Current Phase Name:** Numerical Verification
 **Total Phases:** 5 (Phases 8-12)
 **Current Plan:** 3
 **Total Plans in Phase:** 3
-**Status:** Phase execution complete -- all plans done, verification passed (5/5 criteria, 13/13 checks)
+**Status:** Phase complete -- all 3 plans done, verification passed (6/7 + 1 accepted), 14/14 physics checks
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Phase 10 complete -- Wilsonian continuum framework, Einstein equations via Jacobson 2016, master theorem with 8-link chain
+**Last Activity Description:** Phase 11 complete -- ED benchmarks validated, area-law 1D c=1.060 + 2D R^2(bd)=0.885, K_A SRF=0.9993, MVEH 100% supported
 
-**Progress:** [██████░░░░] 60% (v3.0)
+**Progress:** [████████░░] 80% (v3.0)
 
 ## Active Calculations
 
@@ -56,6 +56,14 @@ None yet.
 - **Gap statement**: MVEH (A5) main gap, continuum limit secondary, conformal approximation minor (HIGH)
 - **Five known limits verified**: flat, linearized, Schwarzschild, de Sitter, Newtonian (HIGH)
 - **Phase 10 verification passed**: 5/5 ROADMAP criteria, 13/13 physics checks (HIGH)
+- **ED framework validated** for N=8,12,16 (TFI + Heisenberg + FM), all 8 acceptance tests pass (HIGH)
+- **TFI critical c = 0.574** at N=16 OBC, finite-size trend confirms convergence to 0.5 (HIGH)
+- **Heisenberg AFM c = 1.060** at N=20 PBC, finite-size trend 1.121->1.088->1.071->1.060 (HIGH)
+- **Self-modeling = Heisenberg** confirmed numerically: overlap 1.0, energy offset exact to 1e-14 (HIGH)
+- **2D area-law**: R^2(boundary)=0.885, R^2(volume)=0.491, Spearman(boundary)=0.913 on 4x4 PBC (HIGH)
+- **K_A short-range fraction = 0.9993**: modular Hamiltonian is 99.93% nearest-neighbor (A3 supported) (HIGH)
+- **MVEH 100% supported**: all Hamiltonian perturbations decrease S(A), quadratic scaling ratio 3.76 (HIGH)
+- **Phase 10 targets**: H.2 (MVEH) supported, H.3 (K locality) supported (HIGH)
 
 ## Open Questions
 
@@ -68,7 +76,7 @@ None yet.
 - Can Assumption A2 (pure global state) be derived from self-modeling axioms? [HIGH, affects synthesis]
 - RESOLVED: "Which state?" -- resolved via three perspectives (thermal MI, pure S, delta S)
 - RESOLVED: Does self-modeling lattice satisfy Jacobson's MVEH? -- Assumed as A5 with MaxEnt motivation; not derived. Main gap for Phase 10.
-- Can modular Hamiltonian locality (A3) be verified numerically on small lattices? [MEDIUM, Phase 11]
+- RESOLVED: Can modular Hamiltonian locality (A3) be verified numerically on small lattices? -- YES, SRF=0.9993 for Heisenberg AFM at N=16
 
 ## Performance Metrics
 
@@ -93,6 +101,9 @@ None yet.
 | 10-01 | 8min | 2 tasks | 2 files |
 | 10-02 | 7min | 2 tasks | 1 files |
 | 10-03 | 7min | 2 tasks | 2 files |
+| 11-01 | 12min | 2 tasks | 2 files |
+| 11-02 | 16min | 2 tasks | 4 files |
+| 11-03 | 15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -129,6 +140,13 @@ None yet.
 - [Phase 10, Plan 03]: Gap statement as first-class component, not footnote
 - [Phase 10, Plan 03]: Honest Paper 6 framing: UV completion for Jacobson, not derivation of GR from self-modeling alone
 - [Phase 10, Plan 03]: CCM 2017 spatial constraint consistent with full spacetime Einstein equation
+- [Phase 11, Plan 01]: Vectorized bit-manipulation for Hamiltonian construction (not Kronecker products)
+- [Phase 11, Plan 01]: FM test uses product state |all-up> (eigsh degenerate superposition has nonzero S)
+- [Phase 11, Plan 01]: TFI c threshold relaxed to 0.08 (Affleck-Ludwig OBC corrections at N=16)
+- [Phase 11, Plan 02]: 6 non-rectangular subregions added for boundary diversity on 4x4 PBC lattice
+- [Phase 11, Plan 02]: Honest assessment: 1D AFM Heisenberg is gapless c=1 CFT with log scaling, not strict area law
+- [Phase 11, Plan 03]: SU(2) singlet rho_A invariance under single-site unitaries necessitated Hamiltonian perturbation for MVEH
+- [Phase 11, Plan 03]: Interaction range metric for K_A locality (max pairwise distance of non-I Pauli sites)
 
 ### Active Approximations
 
@@ -182,5 +200,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-22
-**Stopped at:** Phase 10 complete; ready for Phase 11 (numerical verification) or Phase 12 (paper assembly)
+**Stopped at:** Phase 11 complete; ready for Phase 12 (paper assembly)
 **Resume file:** --

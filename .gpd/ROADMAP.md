@@ -60,7 +60,7 @@ See `.gpd/milestones/v2.0-ROADMAP.md` for full details.
 - [ ] **Phase 8: Locality Formalization** -- Define self-modeling lattice in Bratteli-Robinson framework; establish Lieb-Robinson bounds and effective causal structure
 - [ ] **Phase 9: Area-Law Derivation** -- Prove or strongly argue that local self-modeling interactions produce area-law entanglement; identify which state satisfies area-law conditions
 - [ ] **Phase 10: Jacobson Application** -- Verify entanglement equilibrium and derive Einstein's field equations via Jacobson 2016
-- [ ] **Phase 11: Numerical Verification** -- Validate area-law scaling on small self-modeling lattices via exact diagonalization
+- [x] **Phase 11: Numerical Verification** -- Validate area-law scaling on small self-modeling lattices via exact diagonalization
 - [ ] **Phase 12: Paper Assembly** -- Assemble Paper 6 "Spacetime from Self-Modeling" with complete chain and precise gap identification
 
 ## Phase Details
@@ -201,9 +201,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md -- ED infrastructure + TFI/Heisenberg benchmarks (wave 1)
-- [ ] 11-02-PLAN.md -- Self-modeling lattice 1D + 2D area-law verification (wave 2, depends on 01)
-- [ ] 11-03-PLAN.md -- Modular Hamiltonian locality + MVEH qualitative check (wave 2, depends on 01)
+- [x] 11-01-PLAN.md -- ED infrastructure + TFI/Heisenberg benchmarks (wave 1)
+- [x] 11-02-PLAN.md -- Self-modeling lattice 1D + 2D area-law verification (wave 2, depends on 01)
+- [x] 11-03-PLAN.md -- Modular Hamiltonian locality + MVEH qualitative check (wave 2, depends on 01)
 
 **Backtracking triggers:**
 - If the self-modeling lattice shows volume-law scaling -> contradicts Phase 9 argument. Return to Phase 9 for debugging.
@@ -283,5 +283,5 @@ Wave 4: Phase 12 (requires all prior phases)
 | 8. Locality Formalization | v3.0 | 3/3 | Complete | 2026-03-22 |
 | 9. Area-Law Derivation | v3.0 | 3/3 | Complete | 2026-03-22 |
 | 10. Jacobson Application | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 11. Numerical Verification | v3.0 | 0/TBD | Not started | -- |
+| 11. Numerical Verification | v3.0 | 3/3 | Complete | 2026-03-22 |
 | 12. Paper Assembly | v3.0 | 0/TBD | Not started | -- |
