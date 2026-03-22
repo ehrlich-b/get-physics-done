@@ -212,7 +212,7 @@ Newton's constant is set by the UV entropy density:
 $\Gnewton = 1/(4\eta)$.  From the lattice-to-continuum mapping
 (Sec.~\ref{sec:continuum}), $\eta = \eta_{\mathrm{lattice}}/a^{d-1}$,
 where $\eta_{\mathrm{lattice}} \leq \log n$ is the entropy per
-boundary bond (from the channel capacity
+boundary bond (from the per-bond Schmidt
 bound~\eqref{eq:channel-bound}).  This gives
 \begin{equation}
   \Gnewton \geq \frac{a^{d-1}}{4\log n},
@@ -253,10 +253,17 @@ ingredients, none of which require a conformal modular Hamiltonian:
   (Eq.~\ref{eq:first-law}), an exact identity.  Combined with the
   area-law structure (Sec.~\ref{sec:arealaw}), this implies that
   perturbations of entanglement are equivalent to perturbations of the
-  emergent geometry.  The resulting equation relating metric
-  perturbations to matter perturbations is therefore a symmetric,
-  divergence-free 2-tensor equation built from the metric and its
-  derivatives (because both sides are geometric quantities).
+  emergent geometry.  We assume the resulting equation relating metric
+  perturbations to matter perturbations is a symmetric 2-tensor equation
+  built from the metric and at most second derivatives (\emph{tensoriality
+  assumption}).  Symmetry follows from the symmetry of the metric;
+  the second-derivative restriction follows from the entanglement first
+  law being first-order in the perturbation, which couples to the
+  modular Hamiltonian (a local operator at leading order in the
+  derivative expansion).  Divergence-freeness is then a consequence
+  of Lovelock's theorem rather than an input: Lovelock identifies the
+  unique tensor, and that tensor happens to be divergence-free
+  (the contracted Bianchi identity).
 \item \emph{Lovelock's theorem.}  Lovelock~\cite{Lovelock1971,
   Lovelock1972} proved that in $d + 1$ spacetime dimensions with
   $d \geq 2$, the \emph{unique} symmetric, divergence-free 2-tensor
@@ -272,15 +279,28 @@ ingredients, none of which require a conformal modular Hamiltonian:
 \end{enumerate}
 
 Combining these: since the entanglement-geometry relation is a
-symmetric, divergence-free 2-tensor equation in the emergent
-$(d{+}1)$-dimensional spacetime, Lovelock's theorem forces it to be
+symmetric 2-tensor equation with at most second derivatives in the
+emergent $(d{+}1)$-dimensional spacetime, Lovelock's theorem constrains
+the geometric side to be
 \begin{equation}
-  \Gab + \Lambda\, \gab = 8\pi\Gnewton\, \Tab,
+  \alpha\, \Gab + \beta\, \gab = \text{(matter source)},
   \label{eq:einstein-lovelock}
 \end{equation}
-the same Einstein equation as Route~A.  The proportionality constant
-$\Gnewton = 1/(4\eta)$ is fixed by matching the UV entanglement
-density, as in Sec.~\ref{sec:parameters}.
+in $d + 1 \leq 4$ dimensions.  (In $d + 1 > 4$, higher Lovelock terms
+such as the Gauss--Bonnet combination are permitted; restricting to
+$d + 1 \leq 4$, or equivalently to at most second-order field equations,
+excludes them.)  Identifying $\alpha = 1$, $\beta = \Lambda$, and
+$\Gnewton = 1/(4\eta)$ by matching the UV entanglement density
+(Sec.~\ref{sec:parameters}) recovers Eq.~\eqref{eq:einstein}.
+
+Route~B constrains the \emph{geometric sector}: it shows the left side
+must be Einsteinian.  It does not independently derive the matter
+coupling $8\pi\Gnewton\,\Tab$ on the right side; that identification
+comes from Route~A's explicit modular Hamiltonian computation, or more
+generally from identifying the modular Hamiltonian perturbation with
+the local stress tensor (the entanglement first law).  The two routes
+are therefore genuinely complementary: Route~A supplies the matter
+coupling, Route~B supplies the geometric uniqueness.
 
 \emph{Complementarity of the two routes.}---The Jacobson route
 (Route~A) derives the \emph{specific form} of the Einstein equation by
@@ -305,11 +325,17 @@ Weakness & Conformal approx.\ & No explicit $\Tab$ \\
 \end{ruledtabular}
 \end{table}
 
-In $d = 1$, Route~A gives the (trivially satisfied) Einstein equation
-$\Gab = 0$ via the exact WZW modular Hamiltonian, while Lovelock's
-theorem provides no constraint (in $1{+}1$ dimensions, every metric
-satisfies $\Gab = 0$).  In $d \geq 2$, Route~B forces the Einstein
-equation by uniqueness without requiring conformal symmetry of the
-infrared theory, while Route~A provides the explicit computation in the
-conformal window $a \ll \ell \ll 1/m$.  Together, the two routes cover
-all dimensions.
+In $d = 1$ ($1{+}1$ spacetime), $\Gab = 0$ identically for all metrics,
+so both routes produce a trivially satisfied equation. Route~A gives
+$\Lambda\,\gab = 8\pi\Gnewton\,\Tab$ (a cosmological-constant equation)
+via the exact WZW modular Hamiltonian; Lovelock's theorem provides no
+constraint.  The $d = 1$ case serves as a controlled consistency check
+rather than a demonstration of nontrivial gravitational dynamics.
+
+In $d \geq 2$, Route~B forces the geometric sector to be Einsteinian
+by uniqueness, without requiring conformal symmetry of the infrared
+theory.  Route~A provides the explicit matter coupling in the conformal
+window $a \ll \ell \ll 1/m$.  Neither route is assumption-free: Route~A
+needs the conformal approximation, Route~B needs the tensoriality
+assumption.  Their complementarity strengthens the overall case, with
+each route addressing the other's principal weakness.

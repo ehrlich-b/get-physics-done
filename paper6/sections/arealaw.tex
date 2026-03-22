@@ -36,9 +36,8 @@ input~(J2).
 
 Consider a bipartition of the lattice $V = A \cup B$ with boundary
 $\partial A = \{\langle x,y \rangle \in E : x \in A,\, y \in B\}$ of
-size $|\partial A|$.  We establish area-law bounds from three
-complementary perspectives, covering different state classes and
-requiring different assumptions.
+size $|\partial A|$.  We establish sub-volume entanglement scaling from
+complementary perspectives.
 
 \subsubsection{Thermal mutual information (WVCH)}
 \label{sec:wvch}
@@ -101,16 +100,22 @@ open~\cite{EisertCramerPlenio2010}.  Our numerical results
 (Sec.~\ref{sec:numerical}) on the $4 \times 4$ lattice are consistent
 with area-law scaling ($R^2 = 0.885$ for boundary, $0.491$ for volume).
 
-In all cases, the entanglement entropy of the self-modeling lattice
-ground state scales at most as
+The maximum entanglement that a single boundary bond ($\mathbb{C}^n
+\otimes \mathbb{C}^n$) can carry is
 \begin{equation}
-  \ent(A) \lesssim \log(n) \cdot |\partial A|,
+  \ent_{\mathrm{bond}} \leq \log n,
   \label{eq:channel-bound}
 \end{equation}
-where $\log n$ is the maximum entanglement per boundary bond (from the
-Schmidt decomposition of a single $\mathbb{C}^n \otimes \mathbb{C}^n$
-bond).  This is an upper bound, saturated by maximally entangled bonds;
-actual ground-state entanglement is typically smaller.
+by the Schmidt decomposition.  This per-bond capacity sets the
+entanglement density scale $\eta_{\mathrm{lattice}} \leq \log n$
+used in the parameter identification of
+Sec.~\ref{sec:parameters}.  Note that $\ent(A)$ for the full
+ground state is \emph{not} bounded by $\log(n) \cdot |\partial A|$:
+the gapless AFM chain has $\ent(A) \sim (c/3)\ln L$, which grows
+without bound as $L \to \infty$ while $|\partial A|$ remains fixed.
+The Jacobson argument requires sub-volume scaling of $\delta\ent$,
+not a strict area-law bound on $\ent(A)$ itself
+(Sec.~\ref{sec:delta-s}).
 
 \subsubsection{Perturbative $\delta\ent$ (modular Hamiltonian locality)}
 \label{sec:delta-s}
@@ -153,18 +158,21 @@ AFM case).
 \subsection{What this establishes}
 \label{sec:area-summary}
 
-The three perspectives complement each other:
+The perspectives complement each other:
 \begin{itemize}
 \item \textbf{Thermal states:} $I(A{:}B) \leq 2\beta|J|\,|\partial A|$
-  (WVCH, no gap required).
-\item \textbf{Ground states:} $\ent(A) \lesssim \log(n)\,|\partial A|$
-  (Heisenberg model: Calabrese--Cardy in 1D, Hastings for gapped,
-  numerical evidence in 2D).
-\item \textbf{Any state, perturbatively:}
-  $\delta\ent \sim O(|\partial A|)$ (modular Hamiltonian locality).
+  (WVCH, no gap required, strict area law on mutual information).
+\item \textbf{Ground states:} Sub-volume scaling
+  ($\ent \sim \ln L$ in gapless 1D, strict area law in gapped phases).
+  Not a strict area law in the gapless case, but sufficient for
+  Jacobson.
+\item \textbf{Perturbatively:}
+  $\delta\ent \sim O(|\partial A|)$ (modular Hamiltonian locality,
+  numerically verified).
 \end{itemize}
-Together, they establish Jacobson input~(J1): the entanglement entropy
-variation $\delta\ent$ scales with the boundary area, not the volume.
+The third perspective is the most directly relevant for the Jacobson
+argument, which requires area-law scaling of $\delta\ent$, not of
+$\ent$ itself.
 Combined with the entanglement first law~\eqref{eq:first-law}, which
 establishes Jacobson input~(J2), the self-modeling lattice provides the
 two UV inputs required by Jacobson's entanglement equilibrium
