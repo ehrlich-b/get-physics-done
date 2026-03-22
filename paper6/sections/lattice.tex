@@ -75,17 +75,31 @@ the adjoint action of $U(n)$:
 The composite sequential product
 $(a \otimes b) \mathbin{\&} (c \otimes d) = (a \mathbin{\&} c) \otimes
 (b \mathbin{\&} d)$ is covariant under $U(n) \times U(n)$ (independent
-rotations at each site).  The coupling, however, physically connects
-the two sites through a shared boundary; basis independence requires
-that the same rotation be applied to both sites.  This constrains
-$h_{xy}$ to be invariant under the \emph{diagonal} $U(n)$:
+rotations at each site).  The coupling, however, is constrained to
+\emph{diagonal} $U(n)$ by the self-modeling structure, as follows.
+
+The self-model $M$ interacts with both sites $x$ and $y$ through the
+shared boundary.  The model has \emph{one} state space
+$M_n(\mathbb{C})^{sa}$ and one $U(n)$ covariance group: it describes
+both sites using the same algebraic labels.  A basis relabeling
+$U \in U(n)$ of the model's description acts identically on both
+sites---$M$ has no independent reference frame for $x$ and $y$
+separately.  This is the physical content of self-modeling at a
+boundary: the model probes both sides through the \emph{same} sequential
+product structure, so rotations act as $U \otimes U$ (diagonal), not as
+$U_x \otimes U_y$ (independent).  Full $U(n) \times U(n)$ invariance
+would require two independent probes with independent reference frames,
+contradicting the single-subsystem structure of the self-model.
+
+This constrains $h_{xy}$ to be invariant under the diagonal $U(n)$:
 \begin{equation}
   (U \otimes U)\, h_{xy}\, (U \otimes U)^\dagger = h_{xy}
   \qquad \forall\, U \in U(n).
   \label{eq:diagonal-invariance}
 \end{equation}
-Full $U(n) \times U(n)$ invariance would kill all coupling, leaving
-$h_{xy} \propto \1 \otimes \1$.
+Note that full $U(n) \times U(n)$ invariance would kill all coupling,
+leaving $h_{xy} \propto \1 \otimes \1$.  Diagonal $U(n)$ is the maximal
+symmetry compatible with nontrivial interaction.
 
 By \textbf{Schur--Weyl duality} for the symmetric group $S_2$ acting
 on $(\mathbb{C}^n)^{\otimes 2}$, this space decomposes under the

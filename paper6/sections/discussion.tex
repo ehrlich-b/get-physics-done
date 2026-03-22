@@ -13,16 +13,16 @@ standard methodology.
 
 \emph{Derived from self-modeling.}---The local algebra
 $M_n(\mathbb{C})^{sa}$ with the L\"uders sequential product is forced by
-faithful self-modeling~\cite{Paper5}. The SWAP interaction Hamiltonian
-$H = \sum_{\langle x,y\rangle} J\,\swapop$ is forced by diagonal $U(n)$
-covariance and Schur--Weyl duality (Sec.~\ref{sec:lattice}).  The
-area-law entanglement structure follows from the locality of this
-Hamiltonian via the WVCH mutual information
-bound~\cite{WVCH2008}, channel-capacity arguments, and the entanglement
-first law combined with modular Hamiltonian locality
-(Sec.~\ref{sec:arealaw}).  The entanglement first law
-$\delta\ent = \delta\langle\modH\rangle$ is an exact identity of quantum
-information theory, requiring no additional assumptions.
+faithful self-modeling~\cite{Paper5}. Diagonal $U(n)$ covariance of the
+boundary coupling is derived from the single-probe structure of the
+self-model (Sec.~\ref{sec:hamiltonian}).  The SWAP interaction
+Hamiltonian $H = \sum_{\langle x,y\rangle} J\,\swapop$ then follows from
+Schur--Weyl duality.  The area-law entanglement structure follows from
+known properties of the Heisenberg model: the Calabrese--Cardy formula
+and WVCH mutual information bound~\cite{WVCH2008}, combined with the
+exact entanglement first law
+$\delta\ent = \delta\langle\modH\rangle$
+(Sec.~\ref{sec:arealaw}).
 
 \emph{Input: lattice topology.}---The graph $G = (V, E)$ defining which
 sites are nearest neighbors is not derived from self-modeling.  The paper
@@ -65,22 +65,35 @@ requirements for geometric modular flow.
 
 Three gaps remain in the derivation chain.
 
-\paragraph{Gap 1: Continuum limit.}
+\paragraph{Gap 1: Continuum limit and $d \geq 2$ infrared behavior
+(principal open problem).}
 The Wilsonian argument that the lattice produces a smooth Riemannian
-manifold $(M, \gab)$ at long wavelengths is a physical argument, not a
-rigorous construction.  A constructive proof would require showing that
-lattice correlation functions converge (in an appropriate sense) to those
-of a local quantum field theory on a Riemannian manifold as $a \to 0$.
-This is a hard open problem shared by \emph{all} lattice quantum gravity
-programs---lattice QCD, causal dynamical triangulations, Regge
-calculus---and is not specific to self-modeling.  The Lovelock route
-(Sec.~\ref{sec:route-b}) removes the CFT requirement but still needs
-this continuum limit to produce smooth geometry.  The infrared behavior
-of the $d \geq 2$ Heisenberg model (likely N\'eel-ordered rather than
-conformal) means the emergent geometry may carry specific
-signatures---e.g., a mass gap corresponding to a cosmological
-constant---rather than being exactly Minkowski.  This is potentially
-interesting rather than problematic.
+manifold $(M, \gab)$ at long wavelengths is the \emph{principal open
+problem} of this paper.  Both Route~A and Route~B require a smooth
+emergent geometry; neither derives it.  A rigorous proof would require
+showing that lattice correlation functions converge to those of a local
+quantum field theory on a Riemannian manifold as $a \to 0$.
+
+In $d \geq 2$, this is compounded by the infrared behavior of the
+Heisenberg antiferromagnet: the $d \geq 2$ model is expected to exhibit
+N\'eel order (spontaneous symmetry breaking of $SU(n)$) rather than
+conformal symmetry.  The resulting effective theory is a nonlinear sigma
+model with a mass gap, not a CFT.  Whether this produces a smooth
+Riemannian geometry at long wavelengths, and if so with what
+signatures---a mass gap may correspond to a cosmological constant, for
+instance---is an open question in condensed matter physics that we
+cannot resolve here.
+
+This is the same wall that the entire ``gravity from entanglement''
+program hits.  Jacobson's argument~\cite{Jacobson2016} assumes smooth
+geometry.  The holographic results
+of~\cite{LMVR2014, Faulkner2014} assume AdS/CFT.  The CCM
+reconstruction~\cite{CCM2017} assumes a factored Hilbert space with
+specific entanglement structure.  No program in this field derives the
+continuum limit from a UV theory.  Our contribution is the UV
+completion (L1--L5), not the continuum limit.  The lattice provides the
+UV; the continuum limit is the interface to GR; and that interface is
+open for everyone.
 
 \paragraph{Gap 2: Conformal approximation (Route A only).}
 The Casini--Huerta--Myers conformal modular
@@ -96,15 +109,20 @@ problematic.  This gap is specific to Route~A; Route~B
 (Sec.~\ref{sec:route-b}) circumvents it via Lovelock uniqueness.
 
 \paragraph{Gap 3: Tensoriality assumption (Route B only).}
-The Lovelock route assumes that the equation relating entanglement
-perturbations to geometry perturbations is a symmetric, divergence-free
-2-tensor equation built from the metric and its first two derivatives.
-This is physically reasonable---both sides are geometric
-quantities---but it is an assumption, not derived from self-modeling.
-If the entanglement-geometry relation involves higher derivatives or
-non-local terms, Lovelock's theorem does not apply and the resulting
-equation could differ from Einstein's (e.g., Lovelock gravity in
-$d + 1 > 4$).  This gap is specific to Route~B; Route~A derives the
+The Lovelock route assumes that the entanglement-geometry equation is a
+symmetric 2-tensor equation with at most second derivatives
+(Sec.~\ref{sec:route-b}).  Symmetry follows from the metric; the
+second-derivative restriction follows from the entanglement first law
+being first-order in the perturbation, coupling to the modular
+Hamiltonian (local at leading order in the derivative expansion).
+Divergence-freeness is then a consequence of Lovelock's theorem
+itself (the contracted Bianchi identity), not an additional input.
+These justifications are physically reasonable but constitute an
+assumption, not a derivation from self-modeling.  If the
+entanglement-geometry relation involves higher derivatives or non-local
+terms, Lovelock's theorem does not apply and the resulting equation
+could include higher Lovelock terms (in $d + 1 > 4$) or other
+modifications.  This gap is specific to Route~B; Route~A derives the
 equation form explicitly.
 
 \paragraph{Note on MVEH.}
