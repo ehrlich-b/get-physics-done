@@ -198,7 +198,12 @@ Plans:
 3. If 2D is computationally feasible (4x4 lattice, 16 qubits): area-law scaling verified in 2D with the same fit criteria
 4. Entanglement entropy values are converged (insensitive to numerical precision artifacts) and error bars from finite-size effects are estimated
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 11-01-PLAN.md -- ED infrastructure + TFI/Heisenberg benchmarks (wave 1)
+- [ ] 11-02-PLAN.md -- Self-modeling lattice 1D + 2D area-law verification (wave 2, depends on 01)
+- [ ] 11-03-PLAN.md -- Modular Hamiltonian locality + MVEH qualitative check (wave 2, depends on 01)
 
 **Backtracking triggers:**
 - If the self-modeling lattice shows volume-law scaling -> contradicts Phase 9 argument. Return to Phase 9 for debugging.
