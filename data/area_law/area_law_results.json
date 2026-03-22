@@ -1,0 +1,427 @@
+{
+  "metadata": {
+    "date": "2026-03-22T17:03:42.794514+00:00",
+    "contract_requirement": "NUMR-01",
+    "python_version": "3.14.2",
+    "numpy_version": "2.4.2",
+    "eigenvalue_threshold": 1e-14
+  },
+  "1d_afm": {
+    "J": 1.0,
+    "bc": "pbc",
+    "system_sizes": {
+      "N=8": {
+        "E_0": -7.302186817874353,
+        "S_L": [
+          0.6931471805599452,
+          0.9279225731881611,
+          1.0236573246849159,
+          1.0511658766146605
+        ],
+        "cc_fit": {
+          "c": 1.1209947259279953,
+          "c_1": 0.7042066822287332,
+          "R2_cc": 0.9997108362780004
+        },
+        "R2_constant": 0.0,
+        "R2_linear": 0.8615985286562231,
+        "consistency_pass": true
+      },
+      "N=12": {
+        "E_0": -10.774781834890403,
+        "S_L": [
+          0.6931471805599454,
+          0.9424900400954386,
+          1.0655569723689637,
+          1.1353183696790417,
+          1.1724640710766405,
+          1.1842237418013024
+        ],
+        "cc_fit": {
+          "c": 1.0881905443032236,
+          "c_1": 0.7014382342169848,
+          "R2_cc": 0.9995000508066523
+        },
+        "R2_constant": 0.0,
+        "R2_linear": 0.8317549288897879,
+        "consistency_pass": true
+      },
+      "N=16": {
+        "E_0": -14.28459272123355,
+        "S_L": [
+          0.6931471805599461,
+          0.9474349718173314,
+          1.0794972734735282,
+          1.1623257074768545,
+          1.2173143457959847,
+          1.2529394821694853,
+          1.2731072787650248,
+          1.279649453873146
+        ],
+        "cc_fit": {
+          "c": 1.0709341478547771,
+          "c_1": 0.7021809405792943,
+          "R2_cc": 0.9994262056291477
+        },
+        "R2_constant": 0.0,
+        "R2_linear": 0.8139069687525583,
+        "consistency_pass": true
+      },
+      "N=20": {
+        "E_0": -17.808773059752877,
+        "S_L": [
+          0.6931471805599455,
+          0.9496964969146,
+          1.0858299328640084,
+          1.1744568704263594,
+          1.2371280109241525,
+          1.2825880952844009,
+          1.315110656551949,
+          1.3370615232679501,
+          1.3497731243432423,
+          1.3539386944522485
+        ],
+        "cc_fit": {
+          "c": 1.0600088139300394,
+          "c_1": 0.7035900713680775,
+          "R2_cc": 0.9994114962411447
+        },
+        "R2_constant": 0.0,
+        "R2_linear": 0.8011987501243749,
+        "consistency_pass": true,
+        "S_L_eq_S_NmL_max_diff": 0.0
+      }
+    },
+    "finite_size_trend": {
+      "c_values": [
+        1.1209947259279953,
+        1.0881905443032236,
+        1.0709341478547771,
+        1.0600088139300394
+      ],
+      "N_values": [
+        8,
+        12,
+        16,
+        20
+      ],
+      "converging_to_1": true
+    }
+  },
+  "1d_fm": {
+    "J": -1.0,
+    "bc": "pbc",
+    "system_sizes": {
+      "N=8": {
+        "E_0": -4.0,
+        "S_L": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "max_S": 0.0
+      },
+      "N=16": {
+        "E_0": -7.999999999999993,
+        "S_L": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "max_S": 0.0
+      }
+    }
+  },
+  "2d_afm": {
+    "J": 1.0,
+    "bc": "pbc",
+    "Lx": 4,
+    "Ly": 4,
+    "E_0": -22.45696641685771,
+    "E_0_per_site": -1.403560401053607,
+    "n_bonds": 32,
+    "subregions": [
+      {
+        "a": 1,
+        "b": 1,
+        "volume": 1,
+        "boundary": 4,
+        "S": 0.6931471805599456,
+        "independent": true,
+        "label": "1x1"
+      },
+      {
+        "a": 1,
+        "b": 2,
+        "volume": 2,
+        "boundary": 6,
+        "S": 1.1111161518001222,
+        "independent": true,
+        "label": "1x2"
+      },
+      {
+        "a": 1,
+        "b": 3,
+        "volume": 3,
+        "boundary": 8,
+        "S": 1.4260929665879605,
+        "independent": true,
+        "label": "1x3"
+      },
+      {
+        "a": 1,
+        "b": 4,
+        "volume": 4,
+        "boundary": 8,
+        "S": 1.577212299391031,
+        "independent": true,
+        "label": "1x4"
+      },
+      {
+        "a": 2,
+        "b": 1,
+        "volume": 2,
+        "boundary": 6,
+        "S": 1.1111161518001218,
+        "independent": false,
+        "label": "2x1"
+      },
+      {
+        "a": 2,
+        "b": 2,
+        "volume": 4,
+        "boundary": 8,
+        "S": 1.5772122993910305,
+        "independent": true,
+        "label": "2x2"
+      },
+      {
+        "a": 2,
+        "b": 3,
+        "volume": 6,
+        "boundary": 10,
+        "S": 1.8798489935970173,
+        "independent": true,
+        "label": "2x3"
+      },
+      {
+        "a": 2,
+        "b": 4,
+        "volume": 8,
+        "boundary": 8,
+        "S": 1.8209350816192629,
+        "independent": true,
+        "label": "2x4"
+      },
+      {
+        "a": 3,
+        "b": 1,
+        "volume": 3,
+        "boundary": 8,
+        "S": 1.4260929665879607,
+        "independent": false,
+        "label": "3x1"
+      },
+      {
+        "a": 3,
+        "b": 2,
+        "volume": 6,
+        "boundary": 10,
+        "S": 1.8798489935970188,
+        "independent": false,
+        "label": "3x2"
+      },
+      {
+        "a": 3,
+        "b": 3,
+        "volume": 9,
+        "boundary": 12,
+        "S": 2.0504645534595105,
+        "independent": true,
+        "label": "3x3"
+      },
+      {
+        "a": 3,
+        "b": 4,
+        "volume": 12,
+        "boundary": 8,
+        "S": 1.577212299391026,
+        "independent": true,
+        "label": "3x4"
+      },
+      {
+        "a": 4,
+        "b": 1,
+        "volume": 4,
+        "boundary": 8,
+        "S": 1.577212299391031,
+        "independent": false,
+        "label": "4x1"
+      },
+      {
+        "a": 4,
+        "b": 2,
+        "volume": 8,
+        "boundary": 8,
+        "S": 1.820935081619267,
+        "independent": false,
+        "label": "4x2"
+      },
+      {
+        "a": 4,
+        "b": 3,
+        "volume": 12,
+        "boundary": 8,
+        "S": 1.5772122993910318,
+        "independent": false,
+        "label": "4x3"
+      }
+    ],
+    "non_rectangular_subregions": {
+      "included": true,
+      "count": 6,
+      "data": [
+        {
+          "sites": [
+            0,
+            1,
+            4
+          ],
+          "volume": 3,
+          "boundary": 8,
+          "S": 1.426092966587961,
+          "label": "L-shape-3"
+        },
+        {
+          "sites": [
+            0,
+            1,
+            2,
+            5
+          ],
+          "volume": 4,
+          "boundary": 10,
+          "S": 1.6803707945318869,
+          "label": "T-shape-4"
+        },
+        {
+          "sites": [
+            1,
+            4,
+            5,
+            6,
+            9
+          ],
+          "volume": 5,
+          "boundary": 12,
+          "S": 1.8789093962926722,
+          "label": "plus-5"
+        },
+        {
+          "sites": [
+            0,
+            5
+          ],
+          "volume": 2,
+          "boundary": 8,
+          "S": 1.2145918242861566,
+          "label": "diagonal-2"
+        },
+        {
+          "sites": [
+            0,
+            1,
+            5,
+            6
+          ],
+          "volume": 4,
+          "boundary": 10,
+          "S": 1.7123200822898759,
+          "label": "S-shape-4"
+        },
+        {
+          "sites": [
+            0,
+            1,
+            2,
+            4,
+            8
+          ],
+          "volume": 5,
+          "boundary": 12,
+          "S": 1.9740034546024618,
+          "label": "L-shape-5"
+        }
+      ],
+      "note": "L-shaped, T-shaped, plus, diagonal, S-shaped subregions for boundary diversity"
+    },
+    "regression_boundary_all15": {
+      "slope": 0.17717085122470508,
+      "intercept": 0.12301049808124853,
+      "R2": 0.8525262787284726,
+      "spearman_rho": 0.8851791001576985,
+      "p_value": 9.183886094129234e-07
+    },
+    "regression_boundary_9indep": {
+      "slope": 0.17416837937980123,
+      "intercept": 0.13034650116124635,
+      "R2": 0.885144306774323,
+      "spearman_rho": 0.9128709291752768,
+      "p_value": 0.00015662675694337407
+    },
+    "regression_volume_all15": {
+      "slope": 0.06468576448010725,
+      "intercept": 1.1781370267902886,
+      "R2": 0.41100693045361725,
+      "spearman_rho": 0.7567764119468139,
+      "p_value": 0.010007150165020922
+    },
+    "regression_volume_9indep": {
+      "slope": 0.08038282541865613,
+      "intercept": 1.0860537089203062,
+      "R2": 0.4912497372630714,
+      "spearman_rho": 0.728039845617479,
+      "p_value": 0.035433033048422706
+    },
+    "regression_boundary_combined": {
+      "slope": 0.14602261543128858,
+      "intercept": 0.3194227313877336,
+      "R2": 0.7798593258099767,
+      "spearman_rho": 0.8686273250814107,
+      "p_value": 1.1503370129575247e-07
+    },
+    "regression_volume_combined": {
+      "slope": 0.06223688942610839,
+      "intercept": 1.2539333794371788,
+      "R2": 0.3383737000403552,
+      "spearman_rho": 0.7739159982568848,
+      "p_value": 0.005672912344140789
+    },
+    "discrimination": {
+      "R2_boundary_minus_R2_volume_all15": 0.4415193482748554,
+      "R2_boundary_minus_R2_volume_9indep": 0.39389456951125157,
+      "R2_boundary_minus_R2_volume_combined": 0.4414856257696215
+    }
+  },
+  "contract_criteria": {
+    "NUMR_01_1d_c_extracted": 1.0600088139300394,
+    "NUMR_01_1d_c_deviation": 0.06000881393003943,
+    "NUMR_01_1d_c_pass": true,
+    "NUMR_01_1d_fm_max_S": 0.0,
+    "NUMR_01_1d_fm_pass": true,
+    "NUMR_01_2d_boundary_R2": 0.885144306774323,
+    "NUMR_01_2d_boundary_R2_gt_0p9": false,
+    "NUMR_01_2d_volume_R2": 0.4912497372630714,
+    "NUMR_01_2d_volume_R2_lt_0p5": true,
+    "NUMR_01_2d_discrimination_gap": 0.39389456951125157,
+    "NUMR_01_2d_discrimination_gt_0p4": false,
+    "NUMR_01_finite_size_converging": true,
+    "NUMR_01_1d_honest_assessment": "AFM Heisenberg is gapless c=1 CFT; shows log scaling S~(1/3)ln(L), not strict area law. This is expected and consistent with Phase 9."
+  }
+}
