@@ -254,3 +254,180 @@ SELF-CRITIQUE CHECKPOINT (Parts A-D complete):
 4. DIMENSION CHECK: $[K] = [\text{dimensionless}]$ ($K = -\ln\rho$). Eq. (10-01.10): $[2\pi] \cdot [\text{length}^{d-1}] \cdot [\text{length}^2/\text{length}] \cdot [T_{00}]$. Need $[T_{00}] = [\text{energy}/\text{length}^{d-1}] = [\text{length}^{-d-1+1}]$ in natural units. So $[\text{length}^{d-1}] \cdot [\text{length}] \cdot [\text{length}^{-d}] = [\text{dimensionless}]$. Consistent with $[K] = [\text{dimensionless}]$.
 
 All checks pass.
+
+---
+
+## Part E: Maximal Vacuum Entanglement Hypothesis (MVEH)
+
+### E.1 Statement
+
+The Maximal Vacuum Entanglement Hypothesis (Jacobson 2016, arXiv:1505.04753) states:
+
+> **MVEH:** Among all quantum states with the same expectation value of the stress-energy tensor $T_{ab}$, the vacuum state $|0\rangle$ maximizes the entanglement entropy $S(A)$ for any small geodesic ball $A$.
+
+Equivalently: the vacuum is an entanglement equilibrium state. Under first-order perturbations that preserve $\langle T_{ab} \rangle$:
+
+$$\delta S_{\text{EE}} = 0 \quad \text{(vacuum is an entropy extremum)} \tag{10-01.14}$$
+
+Combined with the physical expectation that the vacuum is an entropy MAXIMUM (not a minimum or saddle point), this gives "entanglement equilibrium":
+
+$$\delta S = 0 \quad \text{for the vacuum, at fixed } \langle T_{ab} \rangle \tag{10-01.15}$$
+
+### E.2 Why MVEH Matters
+
+The entanglement entropy of a geodesic ball has two contributions (Jacobson 2016):
+
+$$S = S_{\text{UV}} + S_{\text{mat}} \tag{10-01.16}$$
+
+where:
+- $S_{\text{UV}}$ is the UV-divergent part, proportional to the area $\mathcal{A}$ of the entangling surface. This is the Bekenstein-Hawking-like contribution: $S_{\text{UV}} = \eta \mathcal{A}$.
+- $S_{\text{mat}}$ is the finite, state-dependent part arising from matter excitations above the vacuum.
+
+Entanglement equilibrium ($\delta S = 0$) then requires:
+
+$$\delta S_{\text{UV}} + \delta S_{\text{mat}} = 0 \tag{10-01.17}$$
+
+This balances the geometric change in area ($\delta S_{\text{UV}} \propto \delta\mathcal{A}$) against the matter entanglement change ($\delta S_{\text{mat}}$), yielding Einstein's equation (see Plan 02 for the full derivation).
+
+Without MVEH, there is no reason for $\delta S = 0$, and the derivation does not proceed. MVEH is the physical principle that makes Einstein's equation an equilibrium condition.
+
+### E.3 Formulation as Assumption A5
+
+We formulate MVEH as **Assumption A5** for the self-modeling lattice:
+
+> **A5 (Maximal Vacuum Entanglement Hypothesis).** The self-modeling equilibrium state, when mapped to the emergent continuum description via the Wilsonian continuum limit (Part A), maximizes entanglement entropy among states with the same stress-energy tensor expectation value.
+
+Precisely: let $\rho_0$ be the vacuum state of the emergent continuum theory. For any geodesic ball $B$ with $R \gg a$:
+
+$$S(\rho_{0,B}) \geq S(\sigma_B) \quad \text{for all } \sigma \text{ with } \langle T_{ab} \rangle_\sigma = \langle T_{ab} \rangle_{\rho_0} \tag{10-01.18}$$
+
+where $\rho_{0,B} = \text{Tr}_{\bar{B}}(\rho_0)$ is the reduced state of the vacuum on $B$.
+
+**A5 is an ASSUMPTION, not a theorem.** It is not derived from the self-modeling axioms.
+
+### E.4 MaxEnt Motivation for A5
+
+The principle of Maximum Entropy (MaxEnt, Jaynes 1957) provides physical motivation for A5:
+
+**The MaxEnt principle:** Given a set of constraints (e.g., fixed expectation values of observables), the state that maximizes the entropy is the least biased (most typical) state consistent with those constraints.
+
+**Application to the self-modeling lattice:**
+
+1. The self-modeling fixed point is the state (or class of states) that best satisfies the self-modeling constraint: $\mathcal{E}(a) = a \mathbin{\&} \mathcal{E}(u)$ for all effects $a$ in the local algebra.
+
+2. MaxEnt reasoning suggests that among all states satisfying the self-modeling constraint, the equilibrium state is the one that maximizes entropy. The self-modeling constraint selects a specific class of dynamics ($H = \sum JF$, Phase 8), and the equilibrium state of this dynamics at fixed energy is the Gibbs state (MaxEnt at fixed energy).
+
+3. In the continuum limit, "at fixed energy-momentum distribution" maps to "at fixed $\langle T_{ab} \rangle$." The MaxEnt state at fixed $\langle T_{ab} \rangle$ is the vacuum (by definition: the vacuum maximizes $S$ among states with vanishing stress-energy, and the argument extends perturbatively to nearby $\langle T_{ab} \rangle$).
+
+**This is a PHYSICAL ARGUMENT, not a proof.** The chain of reasoning contains several non-rigorous steps:
+
+- The mapping from "self-modeling constraint" to "fixed $T_{ab}$" is part of the continuum limit and inherits its uncertainties (Part A).
+- The identification of the self-modeling equilibrium with the MaxEnt state at fixed $T_{ab}$ assumes that the Wilsonian continuum limit preserves the entropy-maximizing character.
+- The extension from "MaxEnt at fixed energy" (lattice) to "MaxEnt at fixed $T_{ab}$" (continuum) requires that the local energy density resolves into the full stress-energy tensor in the continuum limit.
+
+### E.5 Gap Statement for A5
+
+**What self-modeling property would ESTABLISH A5?**
+
+A rigorous proof of A5 would require showing:
+
+1. The self-modeling equilibrium state (the state that minimizes the self-modeling mismatch, or equivalently the Gibbs state of $H = \sum JF$) maps to a state in the continuum that satisfies MVEH.
+
+2. Specifically: in the continuum limit, this state must maximize $S(B)$ for small geodesic balls $B$ among all states with the same $\langle T_{ab} \rangle$.
+
+3. This is equivalent to showing that the self-modeling equilibrium is an "entanglement equilibrium" state in the sense of Jacobson 2016.
+
+**Current status:** No such proof exists. For conformal field theories, Jacobson 2016 showed that MVEH is EQUIVALENT to Einstein's equations. This means A5 is exactly as strong as the conclusion for CFT: assuming A5 gives Einstein's equations, but Einstein's equations also imply A5 (for CFT). For the self-modeling lattice, where the IR theory is generally non-conformal, A5 remains a genuine assumption.
+
+**What would disconfirm A5:** If one could construct a state $\sigma$ of the self-modeling lattice in the continuum limit with $\langle T_{ab} \rangle_\sigma = \langle T_{ab} \rangle_{\rho_0}$ but $S(\sigma_B) > S(\rho_{0,B})$, then A5 would fail and Einstein's equations would not follow from this argument alone.
+
+---
+
+## Part F: Extended Assumption Register A1-A5
+
+Inheriting A1-A4 from Phase 9 (derivations/09-area-law-synthesis.md, Part E) and adding A5:
+
+| ID | Assumption | Statement | Status | What It Buys | What Fails Without It |
+|---|---|---|---|---|---|
+| A1 | Thermal state | $\rho = e^{-\beta H}/Z$ at finite $T > 0$ | Physical (MaxEnt + KMS) | WVCH MI area law $I \leq 2\beta|\partial||J|$ | MI bound fails; fall back to A2 or $\delta S$ route |
+| A2 | Pure global state | Global state is pure $|\psi\rangle$ | Physical (closed system) | von Neumann $S$ area law $S \leq \log(n)|\partial|$ | $S$ area law uncontrolled; fall back to A1 or $\delta S$ route |
+| A3 | Modular $K$ locality | $K_A$ concentrated near $\partial(A)$ | Physical (BW + Peschel) | $\delta S \sim |\partial|$ (Eq. 09-03.6) | $\delta S$ may be volume-law; Jacobson (J1) fails |
+| A4 | Lattice as Hamiltonian system | Lattice QM captures self-modeling | Derived (Phase 8) | All lattice machinery applies | Must use different formalism |
+| A5 | MVEH | Vacuum maximizes $S$ at fixed $\langle T_{ab} \rangle$ | Physical (MaxEnt motivation) | Einstein's equations follow (Plan 02) | Only conditional: "if A5 then Einstein" |
+
+### F.1 Assumption Hierarchy
+
+- **A4 (derived):** This is the most secure assumption -- it follows from Phase 8's mapping of self-modeling to lattice quantum mechanics.
+- **A1, A2 (physical, standard):** These are standard physical assumptions used throughout quantum statistical mechanics and quantum information. They are well-motivated but not derived from self-modeling.
+- **A3 (physical, motivated):** Physically motivated by Bisognano-Wichmann and Peschel results, but not proven for the self-modeling lattice specifically. This is the weakest of A1-A4.
+- **A5 (physical, weakest):** The most significant assumption. For CFT, it is equivalent to the conclusion (Jacobson 2016). For non-CFT, it is a genuine additional postulate.
+
+### F.2 Logical Dependence
+
+```
+A4 (derived) --> enables lattice QM formulation
+    |
+    +-- A1 (thermal) --> WVCH MI area law
+    +-- A2 (pure) --> channel capacity S area law
+    +-- A3 (K locality) --> delta S ~ |boundary|
+    |       |
+    |       +-- Entanglement first law (exact) --> delta S = delta <K>
+    |               |
+    +-- A5 (MVEH) --+--> delta S = 0 for vacuum
+                    |
+                    +--> Einstein's equations (Plan 02)
+```
+
+The derivation of Einstein's equations in Plan 02 requires: A4 + A3 + A5 (plus the Wilsonian continuum limit).
+
+---
+
+## Part G: Jacobson Input Status Table
+
+The three inputs required by Jacobson's 2016 derivation, and their status for the self-modeling lattice:
+
+| Jacobson Input | Content | Status | Source | Assumption | Notes |
+|---|---|---|---|---|---|
+| **(J1)** Area-law $\delta S$ | $\delta S \sim |\partial(A)|$ for local perturbations | **Established** | Phase 9, Eq. 09-03.6 | A3 (modular $K$ locality) | Also supported by static area-law bounds (A1 or A2) |
+| **(J2)** Entanglement first law | $\delta S = \delta\langle K_A \rangle$ | **Exact identity** | Phase 9, Eq. 09-03.3 | None | Standard QI result; holds for any state and perturbation |
+| **(J3)** MVEH | $\delta S = 0$ for vacuum at fixed $\langle T_{ab} \rangle$ | **Assumed as A5** | This plan (Part E) | A5 (MVEH) | Motivated by MaxEnt; equivalent to conclusion for CFT |
+
+### G.1 What Is Delivered vs. What Is Assumed
+
+**Delivered by Phase 9:**
+- (J1): $\delta S \sim |\partial|$ via three complementary perspectives (Eq. 09-03.6 under A3; Eq. 09-03.1 under A1; Eq. 09-03.2 under A2)
+- (J2): $\delta S = \delta\langle K\rangle$ as exact identity (Eq. 09-03.3)
+
+**Assumed in Phase 10:**
+- (J3): MVEH as Assumption A5, with MaxEnt motivation (Part E) and explicit gap statement (Part E.5)
+
+**The derivation of Einstein's equations in Plan 02 is therefore CONDITIONAL on A5.**
+
+The result has the structure: "If A1-A5 hold for the self-modeling lattice, then in the Wilsonian continuum limit, Einstein's equations $G_{ab} + \Lambda g_{ab} = 8\pi G \, T_{ab}$ emerge as the leading-order gravitational dynamics."
+
+### G.2 Equivalence for CFT
+
+Jacobson 2016 proved: for conformal fields, MVEH $\Leftrightarrow$ Einstein's equations. This means:
+- A5 is exactly as strong as the conclusion for conformal fields
+- The argument is circular for CFT in the sense that assuming the result gives the result
+- The non-trivial content is the PHYSICAL MOTIVATION for A5 (MaxEnt) rather than its logical status
+
+For nonconformal fields (the generic case for the self-modeling lattice), A5 is a genuine additional postulate that is strictly stronger than the conclusion, since the equivalence has not been established beyond CFT.
+
+---
+
+## Part H: Complete Input Summary for Plan 02
+
+Plan 02 will use the following inputs from this plan:
+
+1. **Wilsonian continuum limit** (Part A): Lattice $\to$ smooth manifold at scales $L \gg a$
+2. **Lattice-to-continuum mapping** (Part B): $\eta = \eta_{\text{lattice}}/a^{d-1}$, $G = 1/(4\eta)$, $v_{LR} \to c$
+3. **CHM formula** (Part D): $K_B^{\text{CFT}} = 2\pi \int (R^2 - r^2)/(2R) \, T_{00} \, d^{d-1}x$ (exact for CFT, approximate otherwise)
+4. **MVEH as A5** (Part E): $\delta S = 0$ for vacuum at fixed $\langle T_{ab} \rangle$
+5. **UV/matter decomposition** (Part E.2): $S = S_{\text{UV}} + S_{\text{mat}}$, with $\delta S_{\text{UV}} + \delta S_{\text{mat}} = 0$
+6. **Assumption register A1-A5** (Part F): Complete tracking of all assumptions
+7. **Jacobson input status** (Part G): (J1) established, (J2) exact, (J3) assumed as A5
+
+---
+
+_End of derivation. Phase 10, Plan 01._
