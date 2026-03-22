@@ -125,7 +125,12 @@ Plans:
 4. The argument addresses spatial dimension: rigorous in 1D, with a physically motivated extension to higher D (or clear statement that higher D remains conjectural)
 5. The area-law result is shown to be robust under perturbations of the interaction Hamiltonian within the family of self-modeling-compatible interactions (if the family is non-unique from Phase 8)
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md -- WVCH thermal MI area law + Heisenberg ground-state entanglement characterization
+- [ ] 09-02-PLAN.md -- Channel capacity / information-theoretic area law for pure states
+- [ ] 09-03-PLAN.md -- Synthesis: "which state?" resolution, Jacobson bridge, gap statement, robustness
 
 **Backtracking triggers:**
 - If the self-modeling fixed point has volume-law entanglement -> the core hypothesis is falsified. Document the result and return to user for scope decision.
@@ -266,7 +271,7 @@ Wave 4: Phase 12 (requires all prior phases)
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 8. Locality Formalization | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 9. Area-Law Derivation | v3.0 | 0/TBD | Not started | -- |
+| 9. Area-Law Derivation | v3.0 | 0/3 | Planned | -- |
 | 10. Jacobson Application | v3.0 | 0/TBD | Not started | -- |
 | 11. Numerical Verification | v3.0 | 0/TBD | Not started | -- |
 | 12. Paper Assembly | v3.0 | 0/TBD | Not started | -- |
