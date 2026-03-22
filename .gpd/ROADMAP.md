@@ -265,7 +265,7 @@ Wave 4: Phase 12 (requires all prior phases)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 8. Locality Formalization | v3.0 | 0/3 | Planned | -- |
+| 8. Locality Formalization | v3.0 | 3/3 | Complete | 2026-03-22 |
 | 9. Area-Law Derivation | v3.0 | 0/TBD | Not started | -- |
 | 10. Jacobson Application | v3.0 | 0/TBD | Not started | -- |
 | 11. Numerical Verification | v3.0 | 0/TBD | Not started | -- |
