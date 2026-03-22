@@ -262,5 +262,50 @@
     "test7_consistency_checks": true,
     "test8_tfi_energy_exact": true,
     "all_pass": true
+  },
+  "finite_size_scaling": {
+    "tfi_critical_c": {
+      "N_values": [
+        8,
+        12,
+        16
+      ],
+      "c_values": [
+        0.5873506396419733,
+        0.5800966354670933,
+        0.5735776696426937
+      ],
+      "exact_c": 0.5,
+      "trend": "monotonically decreasing toward 0.5",
+      "note": "Subleading corrections from Affleck-Ludwig boundary entropy (OBC)"
+    },
+    "heisenberg_afm_c": {
+      "N_values": [
+        8,
+        12,
+        16
+      ],
+      "c_values": [
+        1.1209947259279915,
+        1.0881905443032205,
+        1.0709341478547827
+      ],
+      "exact_c": 1.0,
+      "trend": "monotonically decreasing toward 1.0"
+    },
+    "heisenberg_afm_energy": {
+      "N_values": [
+        8,
+        12,
+        16
+      ],
+      "E0_per_site": [
+        -0.9127733522342945,
+        -0.8978984862408698,
+        -0.8927870450770983
+      ],
+      "bethe_ansatz": -0.8862943611198906,
+      "trend": "monotonically approaching Bethe ansatz from below"
+    }
   }
 }
