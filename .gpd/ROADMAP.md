@@ -234,7 +234,12 @@ Plans:
 4. Numerical results from Phase 11 are presented as supporting evidence with proper error quantification
 5. The paper is formatted for the target venue (PRD or Foundations of Physics) with abstract, introduction, main results, discussion, and complete bibliography
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md -- LaTeX infrastructure + bibliography + Introduction (L1-L8 chain table) + Discussion (gaps, comparison, future work)
+- [ ] 12-02-PLAN.md -- Technical core: Sec 2 (lattice), Sec 3 (area law), Sec 4 (entanglement equilibrium + MVEH dissolution), Sec 5 (Einstein's equations)
+- [ ] 12-03-PLAN.md -- Sec 6 (numerical verification + figures) + final assembly + consistency verification
 
 **Backtracking triggers:**
 - If assembling the chain reveals a logical gap not caught in Phases 8-10 -> return to the relevant phase.
