@@ -61,7 +61,7 @@ See `.gpd/milestones/v2.0-ROADMAP.md` for full details.
 - [ ] **Phase 9: Area-Law Derivation** -- Prove or strongly argue that local self-modeling interactions produce area-law entanglement; identify which state satisfies area-law conditions
 - [ ] **Phase 10: Jacobson Application** -- Verify entanglement equilibrium and derive Einstein's field equations via Jacobson 2016
 - [x] **Phase 11: Numerical Verification** -- Validate area-law scaling on small self-modeling lattices via exact diagonalization
-- [ ] **Phase 12: Paper Assembly** -- Assemble Paper 6 "Spacetime from Self-Modeling" with complete chain and precise gap identification
+- [x] **Phase 12: Paper Assembly** -- Assemble Paper 6 "Spacetime from Self-Modeling" with complete chain and precise gap identification
 
 ## Phase Details
 
@@ -237,9 +237,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md -- LaTeX infrastructure + bibliography + Introduction (L1-L8 chain table) + Discussion (gaps, comparison, future work)
-- [ ] 12-02-PLAN.md -- Technical core: Sec 2 (lattice), Sec 3 (area law), Sec 4 (entanglement equilibrium + MVEH dissolution), Sec 5 (Einstein's equations)
-- [ ] 12-03-PLAN.md -- Sec 6 (numerical verification + figures) + final assembly + consistency verification
+- [x] 12-01-PLAN.md -- LaTeX infrastructure + bibliography + Introduction (L1-L8 chain table) + Discussion (gaps, comparison, future work)
+- [x] 12-02-PLAN.md -- Technical core: Sec 2 (lattice), Sec 3 (area law), Sec 4 (entanglement equilibrium + MVEH dissolution), Sec 5 (Einstein's equations)
+- [x] 12-03-PLAN.md -- Sec 6 (numerical verification + figures) + final assembly + consistency verification
 
 **Backtracking triggers:**
 - If assembling the chain reveals a logical gap not caught in Phases 8-10 -> return to the relevant phase.
@@ -289,4 +289,4 @@ Wave 4: Phase 12 (requires all prior phases)
 | 9. Area-Law Derivation | v3.0 | 3/3 | Complete | 2026-03-22 |
 | 10. Jacobson Application | v3.0 | 3/3 | Complete | 2026-03-22 |
 | 11. Numerical Verification | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 12. Paper Assembly | v3.0 | 0/TBD | Not started | -- |
+| 12. Paper Assembly | v3.0 | 3/3 | Complete | 2026-03-22 |

@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-20)
 
 **Core research question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
-**Current focus:** Phase 11 complete -- all numerical verification done, ready for verification and Phase 12
+**Current focus:** Phase 12 complete -- Paper 6 manuscript assembled, all phases done, milestone v3.0 complete
 
 ## Current Position
 
-**Current Phase:** 11
-**Current Phase Name:** Numerical Verification
+**Current Phase:** 12
+**Current Phase Name:** Paper Assembly
 **Total Phases:** 5 (Phases 8-12)
 **Current Plan:** 3
 **Total Plans in Phase:** 3
-**Status:** Phase complete -- all 3 plans done, verification passed (6/7 + 1 accepted), 14/14 physics checks
+**Status:** Phase complete -- Paper 6 assembled, verified (14/14 targets, 12/12 physics checks), consistency checked (41 checks, 0 physics errors)
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Phase 11 complete -- ED benchmarks validated, area-law 1D c=1.060 + 2D R^2(bd)=0.885, K_A SRF=0.9993, MVEH 100% supported
+**Last Activity Description:** Phase 12 complete -- Paper 6 manuscript assembled with 7 sections, 4 figures, 33 bibliography entries, MVEH definitional, L1-L8 chain complete
 
-**Progress:** [████████░░] 80% (v3.0)
+**Progress:** [##########] 100% (v3.0)
 
 ## Active Calculations
 
@@ -64,6 +64,12 @@ None yet.
 - **K_A short-range fraction = 0.9993**: modular Hamiltonian is 99.93% nearest-neighbor (A3 supported) (HIGH)
 - **MVEH 100% supported**: all Hamiltonian perturbations decrease S(A), quadratic scaling ratio 3.76 (HIGH)
 - **Phase 10 targets**: H.2 (MVEH) supported, H.3 (K locality) supported (HIGH)
+- **Paper 6 manuscript assembled**: 7 sections, 4 figures, 33 bibliography entries (HIGH)
+- **Verification passed**: 14/14 contract targets, 12/12 physics checks, 41/41 consistency checks (HIGH)
+- **MVEH definitional throughout**: zero "Assumption A5" instances, 14 "definitional" instances (HIGH)
+- **L1-L8 chain complete**: all 8 links present in corresponding sections with Table I in introduction (HIGH)
+- **10/10 anchor references cited**: Jacobson 1995/2016, Connes-Rovelli, Sorce, Hastings, VanRaamsdonk, LMVR, Faulkner, CCM, Paper 5 (HIGH)
+- **No overclaiming**: zero forbidden phrases, explicit non-claims for G, d=3+1, Lambda (HIGH)
 
 ## Open Questions
 
@@ -104,6 +110,9 @@ None yet.
 | 11-01 | 12min | 2 tasks | 2 files |
 | 11-02 | 16min | 2 tasks | 4 files |
 | 11-03 | 15min | 2 tasks | 4 files |
+| 12-01 | 5min | 2 tasks | 10 files |
+| 12-02 | 6min | 2 tasks | 5 files |
+| 12-03 | 6min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -147,6 +156,13 @@ None yet.
 - [Phase 11, Plan 02]: Honest assessment: 1D AFM Heisenberg is gapless c=1 CFT with log scaling, not strict area law
 - [Phase 11, Plan 03]: SU(2) singlet rho_A invariance under single-site unitaries necessitated Hamiltonian perturbation for MVEH
 - [Phase 11, Plan 03]: Interaction range metric for K_A locality (max pairwise distance of non-I Pauli sites)
+- [Phase 12, Plan 01]: MVEH framed as definitional via Connes-Rovelli thermal time hypothesis, not Assumption A5
+- [Phase 12, Plan 01]: Derivation chain table (Table I) placed in introduction main text as structural spine
+- [Phase 12, Plan 01]: Two gaps: continuum limit (standard, shared) and conformal approximation (minor). MVEH no longer a gap.
+- [Phase 12, Plan 02]: Adopted Jacobson 2016 G = 1/(4 eta) in paper; MVEH dissolution uses exact phrasing from researcher lock
+- [Phase 12, Plan 02]: Conformal approximation stated as honest caveat with Speranza 2016 reference
+- [Phase 12, Plan 03]: All numerical results framed as "consistent with" / "supporting evidence", never "proves"
+- [Phase 12, Plan 03]: 2D R^2=0.885 shortfall honestly noted with PBC wrapping explanation
 
 ### Active Approximations
 
@@ -200,5 +216,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-22
-**Stopped at:** Phase 11 complete; ready for Phase 12 (paper assembly)
+**Stopped at:** Phase 12 complete; v3.0 milestone complete -- all 5 phases (8-12) done
 **Resume file:** --
