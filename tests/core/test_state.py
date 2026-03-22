@@ -664,6 +664,18 @@ def test_state_set_project_contract_rejects_whole_singleton_defaulting(tmp_path:
         assert saved["project_contract"] is None
 
 
+def test_state_set_project_contract_rejects_non_object_input_without_crashing(tmp_path: Path):
+    save_state_json(tmp_path, default_state_dict())
+
+    result = state_set_project_contract(tmp_path, [])
+
+    assert result.updated is False
+    assert result.reason == "Invalid project contract schema: project contract must be a JSON object"
+    saved = load_state_json(tmp_path)
+    assert saved is not None
+    assert saved["project_contract"] is None
+
+
 def test_save_state_json_normalizes_singleton_list_project_contract_fields(tmp_path: Path):
     contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
     contract["context_intake"]["must_read_refs"] = "ref-benchmark"
@@ -1051,6 +1063,25 @@ def test_state_validate_matches_load_for_recoverable_project_contract_warning_dr
     assert loaded["project_contract"]["references"][0]["aliases"] == ["not-a-list"]
     assert validation.valid is True
     assert any("references.0.aliases" in warning for warning in validation.warnings)
+
+
+def test_state_load_surfaces_standard_mode_warnings(tmp_path: Path) -> None:
+    state = default_state_dict()
+    state["position"]["status"] = "Executing"
+    save_state_json(tmp_path, state)
+
+    layout = ProjectLayout(tmp_path)
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["references"][0]["aliases"] = "not-a-list"
+
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    persisted["project_contract"] = contract
+    layout.state_json.write_text(json.dumps(persisted, indent=2) + "\n", encoding="utf-8")
+
+    loaded = state_load(tmp_path)
+
+    assert loaded.integrity_status == "warning"
+    assert any("references.0.aliases" in issue for issue in loaded.integrity_issues)
 
 
 def test_state_validate_warns_when_project_contract_is_recovered_from_backup(tmp_path: Path) -> None:

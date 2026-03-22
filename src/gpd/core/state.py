@@ -2016,6 +2016,9 @@ def state_load(cwd: Path, integrity_mode: str = "standard") -> StateLoadResult:
     """Load full state with config and file-existence metadata."""
     state_obj = load_state_json(cwd, integrity_mode=integrity_mode)
     validation = state_validate(cwd, integrity_mode=integrity_mode)
+    integrity_issues = list(validation.issues)
+    if integrity_mode == "standard" and validation.warnings:
+        integrity_issues.extend(validation.warnings)
 
     layout = ProjectLayout(cwd)
     state_raw = safe_read_file(layout.state_md) or ""
@@ -2028,7 +2031,7 @@ def state_load(cwd: Path, integrity_mode: str = "standard") -> StateLoadResult:
         config_exists=layout.config_json.exists(),
         integrity_mode=integrity_mode,
         integrity_status=validation.integrity_status,
-        integrity_issues=list(validation.issues),
+        integrity_issues=integrity_issues,
     )
 
 
@@ -2165,8 +2168,13 @@ def state_set_project_contract(cwd: Path, contract_data: dict[str, object] | Res
         # checked through the same strict path as JSON/dict input.
         if isinstance(contract_data, ResearchContract):
             contract_payload = contract_data.model_dump(mode="python")
-        else:
+        elif isinstance(contract_data, dict):
             contract_payload = contract_data
+        else:
+            return StateUpdateResult(
+                updated=False,
+                reason="Invalid project contract schema: project contract must be a JSON object",
+            )
         list_shape_drift_errors = _collect_list_shape_drift_errors(contract_payload)
         normalized_contract, schema_findings = salvage_project_contract(contract_payload)
         schema_warnings, schema_errors = _split_project_contract_schema_findings(
