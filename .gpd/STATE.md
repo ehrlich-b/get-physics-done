@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-20)
 
 **Core research question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
-**Current focus:** Phase 9 execution complete -- all 3 plans done, ready for verification
+**Current focus:** Phase 10 complete -- Einstein's equations derived from entanglement equilibrium, ready for Phase 11
 
 ## Current Position
 
-**Current Phase:** 9
-**Current Phase Name:** Area-Law Derivation
+**Current Phase:** 10
+**Current Phase Name:** Jacobson Application
 **Total Phases:** 5 (Phases 8-12)
 **Current Plan:** 3
 **Total Plans in Phase:** 3
-**Status:** Phase execution complete -- all plans done, ready for verification
+**Status:** Phase execution complete -- all plans done, verification passed (5/5 criteria, 13/13 checks)
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Phase 9 complete -- WVCH MI area law, channel capacity S area law, synthesis with Jacobson bridge and gap statement
+**Last Activity Description:** Phase 10 complete -- Wilsonian continuum framework, Einstein equations via Jacobson 2016, master theorem with 8-link chain
 
-**Progress:** [████░░░░░░] 40% (v3.0)
+**Progress:** [██████░░░░] 60% (v3.0)
 
 ## Active Calculations
 
@@ -42,18 +42,32 @@ None yet.
 - **Synthesis Theorem (a)-(c)**: thermal MI + pure S + delta S area laws (HIGH)
 - **Jacobson bridge**: (J1) established, (J2) exact, (J3) MVEH open for Phase 10 (HIGH)
 - **Assumption register A1-A4** with complete gap statement (HIGH)
+- **Wilsonian continuum limit**: lattice -> smooth manifold at L >> a, G = 1/(4 eta) (HIGH)
+- **Channel capacity bound**: G >= a^{d-1}/(4 log(n)), so a ~ l_Planck (HIGH)
+- **v_LR -> c** (emergent speed of light identification) (MEDIUM)
+- **MVEH formulated as Assumption A5** with MaxEnt motivation, not claimed proven (HIGH)
+- **Assumption register A1-A5** complete with hierarchy (HIGH)
+- **Jacobson inputs**: (J1) established under A3, (J2) exact identity, (J3) assumed as A5 (HIGH)
+- **Einstein's equations derived**: G_ab + Lambda g_ab = 8 pi G T_ab under A1-A5 (HIGH)
+- **G = 1/(4 eta)** connecting lattice entropy density to Newton's constant (HIGH)
+- **Sign chain verified**: positive mass -> attractive gravity at 6 intermediate steps (HIGH)
+- **Lambda undetermined** integration constant (not predicted) (HIGH)
+- **Master Theorem**: 8-link chain L1-L8 self-modeling -> Einstein, all links with status (HIGH)
+- **Gap statement**: MVEH (A5) main gap, continuum limit secondary, conformal approximation minor (HIGH)
+- **Five known limits verified**: flat, linearized, Schwarzschild, de Sitter, Newtonian (HIGH)
+- **Phase 10 verification passed**: 5/5 ROADMAP criteria, 13/13 physics checks (HIGH)
 
 ## Open Questions
 
 - RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent
 - RESOLVED: Does self-modeling locality force area-law entanglement? -- YES via WVCH (thermal MI) and channel capacity (pure S)
-- Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs? [HIGH, blocks Phase 10]
+- RESOLVED: Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs? -- YES: (J1) area law established, (J2) entanglement first law exact, (J3) MVEH assumed as A5
 - RESOLVED: What is the precise gap? -- Assumption A1 (thermal state) for WVCH, Assumption A2 (pure state) for channel capacity
-- Can Jacobson's entanglement equilibrium be formulated on a finite lattice? [MEDIUM, blocks Phase 10]
+- RESOLVED: Can Jacobson's entanglement equilibrium be formulated on a finite lattice? -- Formulated in continuum limit (Wilsonian), not on finite lattice directly
 - Basis-independence -> diagonal U(n) invariance of h_xy is a physical postulate, not a theorem [NOTE for Paper 6]
 - Can Assumption A2 (pure global state) be derived from self-modeling axioms? [HIGH, affects synthesis]
 - RESOLVED: "Which state?" -- resolved via three perspectives (thermal MI, pure S, delta S)
-- Does self-modeling lattice satisfy Jacobson's MVEH? [HIGH, blocks Phase 10]
+- RESOLVED: Does self-modeling lattice satisfy Jacobson's MVEH? -- Assumed as A5 with MaxEnt motivation; not derived. Main gap for Phase 10.
 - Can modular Hamiltonian locality (A3) be verified numerically on small lattices? [MEDIUM, Phase 11]
 
 ## Performance Metrics
@@ -76,6 +90,9 @@ None yet.
 | 09-01 | 6min | 2 tasks | 3 files |
 | 09-02 | 5min | 1 tasks | 2 files |
 | 09-03 | 7min | 2 tasks | 2 files |
+| 10-01 | 8min | 2 tasks | 2 files |
+| 10-02 | 7min | 2 tasks | 1 files |
+| 10-03 | 7min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -104,6 +121,14 @@ None yet.
 - [Phase 9, Plan 03]: delta S (not S) is what Jacobson needs -- decouples area-law from state-selection
 - [Phase 9, Plan 03]: Modular Hamiltonian locality (A3) is weakest anchor; physically motivated but unproven
 - [Phase 9, Plan 03]: MVEH identified as main Phase 10 gap, separate from area-law question
+- [Phase 10, Plan 01]: Wilsonian continuum limit framed as physical argument, not rigorous construction
+- [Phase 10, Plan 01]: MVEH stated as Assumption A5 (not derived); MaxEnt motivation; gap identifies what self-modeling property would establish it
+- [Phase 10, Plan 01]: Conformal restriction stated honestly; 1D AFM Heisenberg identified as most controlled case (exact CFT)
+- [Phase 10, Plan 02]: Adopted Jacobson 2016 G = 1/(4 eta) for d=3; independent derivation confirmed tensor structure and sign
+- [Phase 10, Plan 02]: Lambda explicitly left undetermined; no prediction claimed
+- [Phase 10, Plan 03]: Gap statement as first-class component, not footnote
+- [Phase 10, Plan 03]: Honest Paper 6 framing: UV completion for Jacobson, not derivation of GR from self-modeling alone
+- [Phase 10, Plan 03]: CCM 2017 spatial constraint consistent with full spacetime Einstein equation
 
 ### Active Approximations
 
@@ -156,6 +181,6 @@ None yet.
 
 ## Session Continuity
 
-**Last session:** 2026-03-21
-**Stopped at:** Phase 6 complete; milestone v2.0 ready for completion
+**Last session:** 2026-03-22
+**Stopped at:** Phase 10 complete; ready for Phase 11 (numerical verification) or Phase 12 (paper assembly)
 **Resume file:** --
