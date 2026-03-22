@@ -109,9 +109,12 @@ def _latest_update_cache(cwd: str | None = None) -> tuple[dict[str, object] | No
         if active_installed_runtime not in (None, "", "unknown")
         else None
     )
-    if self_config_dir is not None and (
-        active_install_target is None or self_config_dir == active_install_target.config_dir
-    ):
+    prefer_self_cache = self_config_dir is not None
+    if self_config_dir is not None and active_install_target is not None and self_config_dir != active_install_target.config_dir:
+        prefer_self_cache = not (
+            workspace_path is not None and getattr(active_install_target, "install_scope", None) == "local"
+        )
+    if self_config_dir is not None and prefer_self_cache:
         cache_file = self_config_dir / "cache" / "gpd-update-check.json"
         if cache_file.exists():
             try:

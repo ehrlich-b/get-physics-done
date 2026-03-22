@@ -268,9 +268,12 @@ def _read_current_task(session_id: str, workspace_dir: str | None = None) -> str
         if active_installed_runtime not in (None, "", "unknown")
         else None
     )
-    if self_config_dir is not None and (
-        active_install_target is None or self_config_dir == active_install_target.config_dir
-    ):
+    prefer_self_todos = self_config_dir is not None
+    if self_config_dir is not None and active_install_target is not None and self_config_dir != active_install_target.config_dir:
+        prefer_self_todos = not (
+            workspace_path is not None and getattr(active_install_target, "install_scope", None) == "local"
+        )
+    if self_config_dir is not None and prefer_self_todos:
         self_candidate = TodoCandidate(
             self_config_dir / "todos",
             runtime=installed_runtime(self_config_dir),

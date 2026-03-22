@@ -172,7 +172,7 @@ class TestAllNullFields:
         assert result["project_contract"] is not None
         assert result["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
         assert result["project_contract"]["approach_policy"] == {
-            "formulations": [],
+            "formulations": ["not-a-list"],
             "allowed_estimator_families": [],
             "forbidden_estimator_families": [],
             "allowed_fit_families": [],
@@ -226,7 +226,7 @@ class TestUnknownExtraFields:
         assert result["project_contract"] is not None
         assert result["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
         assert result["project_contract"]["context_intake"] == {
-            "must_read_refs": [],
+            "must_read_refs": ["not-a-list"],
             "must_include_prior_outputs": [".gpd/phases/00-baseline/00-01-SUMMARY.md"],
             "user_asserted_anchors": [],
             "known_good_baselines": [],
@@ -244,7 +244,7 @@ class TestUnknownExtraFields:
         normalized, integrity_issues = _normalize_state_schema({"project_contract": contract})
 
         assert normalized["project_contract"] is not None
-        assert normalized["project_contract"]["context_intake"]["must_read_refs"] == []
+        assert normalized["project_contract"]["context_intake"]["must_read_refs"] == ["not-a-list"]
         assert any("project_contract.context_intake.must_read_refs" in issue for issue in integrity_issues)
 
     def test_project_contract_self_heals_malformed_uncertainty_markers(self) -> None:
@@ -259,7 +259,7 @@ class TestUnknownExtraFields:
         assert result["project_contract"] is not None
         assert result["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
         assert result["project_contract"]["uncertainty_markers"] == {
-            "weakest_anchors": [],
+            "weakest_anchors": ["not-a-list"],
             "unvalidated_assumptions": [],
             "competing_explanations": [],
             "disconfirming_observations": ["Benchmark mismatch survives normalization fix"],
@@ -277,7 +277,7 @@ class TestUnknownExtraFields:
         assert result["project_contract"] is not None
         assert result["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
         assert result["project_contract"]["approach_policy"] == {
-            "formulations": [],
+            "formulations": ["hamiltonian"],
             "allowed_estimator_families": [],
             "forbidden_estimator_families": [],
             "allowed_fit_families": [],

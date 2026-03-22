@@ -635,7 +635,9 @@ class TestUninstall:
 
         adapter.uninstall(target)
 
-        config = json.loads((target / "opencode.json").read_text(encoding="utf-8"))
-        permission = config.get("permission", {})
-        assert permission != "allow"
-        assert not any("get-physics-done" in key for key in permission.get("external_directory", {}))
+        config_path = target / "opencode.json"
+        if config_path.exists():
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            permission = config.get("permission", {})
+            assert permission != "allow"
+            assert not any("get-physics-done" in key for key in permission.get("external_directory", {}))

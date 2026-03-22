@@ -26,7 +26,7 @@ This graph therefore includes:
 
 <!-- repo-graph-scope:start -->
 
-- Live repo files analyzed in the current tree: `662`
+- Live repo files analyzed in the current tree: `658`
 - Python files under `src/` and `tests/`: `223`
 - `src/gpd/commands/*.md`: `61`
 - `src/gpd/agents/*.md`: `23`
@@ -36,7 +36,7 @@ This graph therefore includes:
 - `src/gpd/adapters/*.py`: `9`
 - `src/gpd/hooks/*.py`: `6`
 - `src/gpd/mcp/servers/*.py`: `8`
-- `tests/**` files: `158`
+- `tests/**` files: `154`
 - `infra/gpd-*.json`: `8`
 
 Excluded as noise from node counting, but still modeled where contractually relevant:

@@ -554,6 +554,8 @@ class TestValidateFrontmatter:
             "contract:\n"
             "  scope:\n"
             "    question: What benchmark must this plan recover?\n"
+            "  context_intake:\n"
+            "    must_read_refs: [ref-main]\n"
             "  claims:\n"
             "    - id: claim-main\n"
             "      statement: Recover the benchmark value within tolerance\n"

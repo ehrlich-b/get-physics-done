@@ -39,6 +39,7 @@ from gpd.adapters.install_utils import (
     managed_hook_paths,
     parse_jsonc,
     prune_empty_ancestors,
+    remove_empty_json_object_file,
     remove_stale_agents,
     render_markdown_frontmatter,
     replace_placeholders,
@@ -827,6 +828,7 @@ def uninstall_opencode(target_dir: Path, *, config_dir: Path) -> dict[str, int]:
         if modified:
             oc_config_path.write_text(json.dumps(oc_config, indent=2) + "\n", encoding="utf-8")
             counts["permissions"] += 1
+        remove_empty_json_object_file(oc_config_path)
 
     for path in (
         target_dir / "command",
