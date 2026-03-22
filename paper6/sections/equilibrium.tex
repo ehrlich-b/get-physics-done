@@ -110,7 +110,7 @@ of $SU(n)$~symmetric spin models.  For $n = 2$ with $J > 0$
 Wess--Zumino--Witten conformal field theory with central charge
 $c = 1$~\cite{Affleck1986, AffleckHaldane1987}.  For general~$n$ with
 $J > 0$, the $SU(n)$ Heisenberg model flows to the $SU(n)_1$ WZW
-CFT~\cite{Affleck1988}.  In these conformal theories, the modular
+CFT~\cite{Affleck1986b}.  In these conformal theories, the modular
 Hamiltonian of the vacuum restricted to an interval takes the
 Casini--Huerta--Myers form~\cite{CasiniHuertaMyers2011}, and the
 Sorce condition is satisfied.
@@ -119,30 +119,41 @@ We state honestly that Sorce's result provides \emph{necessary}
 conditions for geometric modular flow; \emph{sufficient} conditions
 remain an open question.  The resolution via $SU(n)$ conformal
 symmetry in the infrared is clean for the one-dimensional case
-($d = 1$).  For $d \geq 2$, the infrared theory of the $SU(n)$
-Heisenberg model is not a free CFT, and the conformal approximation
-discussed in Sec.~\ref{sec:conformal-approx} applies in a window
-$a \ll R \ll 1/m$ (if such a window exists).
+($d = 1$), where the WZW CFT description is well established.
+
+For $d \geq 2$, this resolution faces a genuine open problem.  The
+$SU(n)$ Heisenberg antiferromagnet on the square lattice ($d = 2$) is
+expected to exhibit N\'eel order---spontaneous breaking of $SU(n)$
+symmetry---rather than conformal behavior.  The infrared theory is
+then a nonlinear sigma model with a mass gap (spin-wave gap), not a
+CFT.  The conformal modular Hamiltonian
+(Sec.~\ref{sec:conformal-approx}) would apply only in the window
+$a \ll \ell \ll 1/m$ (where $m$ is the N\'eel gap scale), if such a
+window exists.  This is the principal limitation of the present
+approach in dimensions $d \geq 2$: the paper's results are strongest
+in $d = 1$, where the WZW conformal structure is exact.
 
 \subsection{Wilsonian continuum limit}
 \label{sec:continuum}
 
-At length scales $L \gg a$ (lattice spacing), the lattice details
-become irrelevant by the standard Wilsonian universality argument.
-The long-wavelength physics is governed by the symmetry-allowed
-effective field theory.  The self-modeling lattice provides the UV
-completion; the smooth Riemannian manifold $(M, \gab)$ emerges at
-long wavelengths.
+At length scales $L \gg a$ (lattice spacing), we assume that the
+lattice details become irrelevant by a Wilsonian universality
+argument: the long-wavelength physics is governed by the
+symmetry-allowed effective field theory, and the smooth Riemannian
+manifold $(M, \gab)$ emerges at long wavelengths.
 
-This is the same assumption made in lattice QCD, causal dynamical
-triangulations, and Regge calculus: the passage from a discrete
-structure to a smooth manifold at long wavelengths is a universal
-feature of lattice approaches to quantum gravity, not specific to
-self-modeling.  A rigorous constructive proof of this continuum limit
-(showing that lattice correlation functions converge to those of a
-local quantum field theory on a Riemannian manifold) is a hard open
-problem shared by all lattice quantum gravity programs.  We frame the
-continuum limit as a physical argument, not a rigorous construction.
+The Wilsonian continuum limit is standard \emph{methodology}, employed
+in lattice QCD, causal dynamical triangulations, and Regge calculus.
+However, its \emph{applicability} to a given lattice model is not
+automatic.  Lattice QCD benefits from asymptotic freedom, which
+guarantees a UV fixed point and controlled continuum limit.  The
+self-modeling Hamiltonian has no such guarantee in $d \geq 2$: whether
+the Heisenberg model on a $d$-dimensional lattice admits a continuum
+limit with the correct universality class is an open question,
+particularly for $d \geq 3$ where the model may be trivial or
+confining.  A rigorous constructive proof is a hard open problem shared
+by all lattice quantum gravity programs.  We frame the continuum limit
+as a physical argument, not a rigorous construction.
 
 The Wilsonian picture suggests a natural perspective from the
 self-modeler:  the compressed model $M$ is finite-dimensional.  Below

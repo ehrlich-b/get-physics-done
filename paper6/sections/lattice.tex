@@ -122,8 +122,13 @@ Heisenberg model.
 The sign of~$J$ is \emph{not} determined by the self-modeling
 constraints: $J > 0$ gives the antiferromagnetic (AFM) Heisenberg
 model, $J < 0$ gives the ferromagnetic (FM) model.  Both signs are
-compatible with the algebraic structure; the consequences for
-entanglement are analyzed in Sec.~\ref{sec:arealaw}.
+compatible with the algebraic structure.  However, the FM ground state
+($J < 0$) is a product state with $\ent(A) = 0$ for all subsystem
+sizes, producing no entanglement structure and hence no emergent
+geometry.  Only the AFM case ($J > 0$) supports the nontrivial
+entanglement that drives the Jacobson argument.  We therefore work
+with $J > 0$ throughout; this is an input to the derivation, not
+forced by self-modeling.
 
 \subsection{Lieb--Robinson bounds and emergent causal structure}
 \label{sec:lr-bounds}
@@ -146,18 +151,19 @@ dimension-dependent prefactor, and $\vlr$ is the \textbf{Lieb--Robinson
 velocity}---the maximum speed of information propagation on the
 lattice.
 
-For the self-modeling Hamiltonian on the one-dimensional lattice
-$\mathbb{Z}^1$ (coordination number $z = 2$), using the
-Nachtergaele--Sims framework~\cite{NachtergaeleSims2006} with
-exponential decay function $F_a(r) = e^{-ar}$ at $a = 1$:
+For the self-modeling Hamiltonian on a lattice with coordination
+number~$z$, the Nachtergaele--Sims
+framework~\cite{NachtergaeleSims2006} with exponential decay function
+$F_a(r) = e^{-ar}$ at $a = 1$ gives
 \begin{equation}
-  \vlr = \frac{8eJ}{e - 1} \approx 12.66\, J.
+  \vlr = \frac{4ze|J|}{e - 1}.
   \label{eq:vlr}
 \end{equation}
-Crucially, $\vlr$ is \emph{independent of the local dimension~$n$}:
-the SWAP operator $F$ satisfies $\|F\| = 1$ for all $n \geq 2$, so
-the Lieb--Robinson velocity depends only on the coupling strength~$J$
-and the lattice coordination number~$z$.
+For the one-dimensional chain ($z = 2$), this is $\vlr = 8e|J|/(e-1)
+\approx 12.66\,|J|$.  Crucially, $\vlr$ is \emph{independent of the
+local dimension~$n$}: the SWAP operator $F$ satisfies $\|F\| = 1$ for
+all $n \geq 2$, so the Lieb--Robinson velocity depends only on the
+coupling strength~$|J|$ and the lattice coordination number~$z$.
 
 The bound~\eqref{eq:lr-bound} defines an effective \emph{light cone}
 on the lattice: correlations outside the cone ($d(x,y) > \vlr |t|$)

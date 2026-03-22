@@ -73,13 +73,13 @@ $\mathrm{sign}(J)$), so it applies equally to the AFM and FM cases.
 \emph{Assumption:}  The global state is a pure state
 $|\psi\rangle \in \mathcal{H}_A \otimes \mathcal{H}_B$.
 
-Self-modeling locality constrains all information exchange between $A$
-and $B$ to flow through the $|\partial A|$ boundary bonds.  Each bond
-connects two $n$-dimensional systems; the quantum channel capacity per
-bond is at most $2\log n$~nats of mutual information~\cite{Holevo1973,
-BennettWiesner1992}.  By the data processing inequality, the total
-mutual information satisfies $I(A{:}B) \leq 2\log(n) \cdot |\partial A|$.
-For a pure state, $I(A{:}B) = 2\ent(A)$, so
+Self-modeling locality constrains all correlations between $A$ and $B$
+to be mediated by the $|\partial A|$ boundary bonds.  Each bond
+connects two $n$-dimensional systems.  By the Schmidt decomposition,
+the entanglement across a single bond is at most $\log n$~nats (the
+maximum von~Neumann entropy of one factor of $\mathbb{C}^n \otimes
+\mathbb{C}^n$).  By subadditivity, the total entanglement entropy
+contributed by $|\partial A|$ independent bonds satisfies
 \begin{equation}
   \boxed{\ent(A) \leq \log(n) \cdot |\partial A|.}
   \label{eq:channel-bound}
@@ -88,9 +88,11 @@ This is an area law for the von~Neumann entropy: it scales with the
 boundary, not the volume.  The bound depends only on the graph
 structure~$G$ and the local dimension~$n$, not on the
 Hamiltonian~$h_{xy}$, the coupling~$J$, or the temperature.  The
-coefficient $\log n$ has a direct physical interpretation: it is the
-maximum entanglement a single bond can carry, achieved by a maximally
-entangled state.
+coefficient $\log n$ is the maximum entanglement a single bond can
+carry, achieved by a maximally entangled state.  (In the language of
+quantum communication, $\log n$ is the entanglement capacity of one
+bond~\cite{Holevo1973, BennettWiesner1992}; the bound above follows
+from the simpler Schmidt/subadditivity argument.)
 
 \subsubsection{Perturbative $\delta\ent$ (modular Hamiltonian locality)}
 \label{sec:delta-s}
@@ -149,8 +151,10 @@ establishes Jacobson input~(J2), the self-modeling lattice provides the
 two UV inputs required by Jacobson's entanglement equilibrium
 argument.
 
-\emph{Note on Hastings (2007).}---The Hastings area-law
-theorem~\cite{Hastings2007} for one-dimensional gapped ground states
+\emph{Note on Hastings (2007).}---For a comprehensive review of area
+laws in quantum systems, see Ref.~\cite{EisertCramerPlenio2010}.  The
+Hastings area-law theorem~\cite{Hastings2007} for one-dimensional
+gapped ground states
 does not directly apply here: the self-modeling Hamiltonian is gapless
 for both signs of~$J$ in one dimension (the AFM Heisenberg chain
 flows to the $SU(2)_1$ WZW conformal field theory with central

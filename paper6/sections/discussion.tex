@@ -32,14 +32,19 @@ compatible with the entanglement structure---but not the
 a $d$-dimensional regular lattice yields $d$ emergent spatial dimensions.
 This is an irreducible input to the framework.
 
-\emph{Standard physics: Wilsonian continuum limit.}---The passage from a
-lattice theory to a smooth Riemannian manifold at long wavelengths
-$L \gg a$ (where $a$ is the lattice spacing) is a standard Wilsonian
-universality argument.  At long wavelengths the lattice details are
-irrelevant and the physics is governed by the symmetry-allowed effective
-field theory.  This is the same assumption made in lattice QCD, causal
-dynamical triangulations, and Regge calculus---it is a universal feature
-of lattice approaches to quantum gravity, not specific to self-modeling.
+\emph{Input: antiferromagnetic coupling.}---The sign of~$J$ is not
+determined by self-modeling.  Only $J > 0$ (antiferromagnetic) supports
+nontrivial entanglement; the ferromagnetic ground state is a product
+state with zero entanglement (Sec.~\ref{sec:lattice}).  We work with
+$J > 0$ throughout; this is an input.
+
+\emph{Standard methodology: Wilsonian continuum limit.}---The passage
+from a lattice theory to a smooth Riemannian manifold at long wavelengths
+$L \gg a$ (where $a$ is the lattice spacing) employs a Wilsonian
+universality argument.  This is standard methodology in lattice QCD,
+causal dynamical triangulations, and Regge calculus.  However, its
+applicability to the self-modeling Hamiltonian in $d \geq 2$ is not
+guaranteed---see Gap~1 below.
 
 \emph{Definitional: MVEH via thermal time.}---The maximal vacuum
 entanglement hypothesis does not appear as an assumption in our framework.
@@ -81,11 +86,11 @@ The Casini--Huerta--Myers conformal modular
 Hamiltonian~\cite{CasiniHuertaMyers2011}, used in
 Sec.~\ref{sec:einstein} to evaluate the matter entropy variation, is
 exact only for conformal field theories in causal diamonds.  For
-nonconformal fields, corrections of order $O\!\left((mR)^{2\Delta}\right)$
+nonconformal fields, corrections of order $O\!\left((m\ell)^{2\Delta}\right)$
 appear~\cite{Speranza2016}, where $m$ is the mass scale breaking
-conformal invariance and $R$ is the ball radius.  These corrections modify
-the derived Einstein equation at subleading order.  In the window
-$a \ll R \ll 1/m$ (if it exists), the corrections are suppressed.  For
+conformal invariance and $\ell$ is the ball radius.  These corrections
+modify the derived Einstein equation at subleading order.  In the window
+$a \ll \ell \ll 1/m$ (if it exists), the corrections are suppressed.  For
 the one-dimensional antiferromagnetic Heisenberg chain ($n = 2$, $J > 0$),
 which flows to the $SU(2)_1$ Wess--Zumino--Witten conformal field theory
 with central charge $c = 1$, the theory is exactly conformal and this gap
@@ -182,6 +187,11 @@ We state explicitly what lies outside the scope of this paper:
   undetermined integration constant in the Jacobson
   derivation~\cite{Jacobson2016, JacobsonSperanza2019}.  We do not
   predict its value.
+\item \textbf{Null energy condition.}  The sign chain producing
+  attractive gravity (Sec.~\ref{sec:einstein}) assumes the NEC
+  ($\Tab\, k^a k^b \geq 0$ for null $k^a$).  The tensor
+  equation~\eqref{eq:einstein} holds without the NEC; only the sign
+  interpretation requires it.
 \item \textbf{Proof of MVEH.}  We do not prove the maximal vacuum
   entanglement hypothesis from self-modeling.  We reframe it as
   definitional via the thermal time hypothesis.  This reframing is an
