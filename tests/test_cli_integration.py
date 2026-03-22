@@ -580,6 +580,46 @@ class TestConfigCommands:
         assert "brave_search" not in config
         assert "search_gitignored" not in config
 
+    def test_permissions_sync_updates_installed_runtime(self, gpd_project: Path) -> None:
+        from gpd.adapters.claude_code import ClaudeCodeAdapter
+
+        target = gpd_project / ".claude"
+        target.mkdir()
+        gpd_root = Path(__file__).resolve().parents[1] / "src" / "gpd"
+        ClaudeCodeAdapter().install(gpd_root, target)
+
+        result = _invoke("--raw", "permissions", "sync", "--runtime", "claude-code", "--autonomy", "yolo")
+        parsed = json.loads(result.output)
+        settings = json.loads((target / "settings.json").read_text(encoding="utf-8"))
+
+        assert parsed["runtime"] == "claude-code"
+        assert parsed["sync_applied"] is True
+        assert settings["permissions"]["defaultMode"] == "bypassPermissions"
+
+    def test_config_set_autonomy_attempts_runtime_permission_sync(
+        self,
+        gpd_project: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        from gpd.adapters.claude_code import ClaudeCodeAdapter
+
+        target = gpd_project / ".claude"
+        target.mkdir()
+        gpd_root = Path(__file__).resolve().parents[1] / "src" / "gpd"
+        adapter = ClaudeCodeAdapter()
+        adapter.install(gpd_root, target)
+        adapter.sync_runtime_permissions(target, autonomy="yolo")
+        monkeypatch.setenv("GPD_ACTIVE_RUNTIME", "claude-code")
+
+        result = _invoke("--raw", "config", "set", "autonomy", "balanced")
+        parsed = json.loads(result.output)
+        settings = json.loads((target / "settings.json").read_text(encoding="utf-8"))
+
+        assert parsed["value"] == "balanced"
+        assert parsed["runtime_permissions"]["runtime"] == "claude-code"
+        assert parsed["runtime_permissions"]["sync_applied"] is True
+        assert settings.get("permissions", {}).get("defaultMode") != "bypassPermissions"
+
     def test_config_help(self) -> None:
         result = _invoke("config", "--help")
         assert "get" in result.output
