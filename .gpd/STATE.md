@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-20)
 
 **Core research question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
-**Current focus:** Phase 8 complete -- Locality Formalization done, verification passed
+**Current focus:** Phase 9 execution complete -- all 3 plans done, ready for verification
 
 ## Current Position
 
-**Current Phase:** 8
-**Current Phase Name:** Locality Formalization
+**Current Phase:** 9
+**Current Phase Name:** Area-Law Derivation
 **Total Phases:** 5 (Phases 8-12)
 **Current Plan:** 3
 **Total Plans in Phase:** 3
-**Status:** Phase complete -- verified, ready for Phase 9
+**Status:** Phase execution complete -- all plans done, ready for verification
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Phase 8 complete -- lattice defined, h_xy = JF derived, v_LR computed, Paper 5 compatibility verified
+**Last Activity Description:** Phase 9 complete -- WVCH MI area law, channel capacity S area law, synthesis with Jacobson bridge and gap statement
 
-**Progress:** [██░░░░░░░░] 20% (v3.0)
+**Progress:** [████░░░░░░] 40% (v3.0)
 
 ## Active Calculations
 
@@ -32,15 +32,29 @@ None yet.
 - **Negative checks**: real (9!=10) and quaternionic (36!=28) correctly excluded (HIGH)
 - **658+ SymPy tests** on V_3 tensor V_3 all pass (HIGH)
 - **Researcher checkpoint APPROVED** (HIGH)
+- **WVCH thermal MI area law**: I(A:B) <= 2*beta*|boundary(A)|*|J| for self-modeling Hamiltonian (HIGH)
+- **Channel capacity area law**: S(A) <= log(n)*|boundary(A)| for pure states (HIGH)
+- **FM entanglement**: S(A) = 0 (product state), gap ~ O(1/N^2) -> 0 (HIGH)
+- **AFM entanglement**: S(L) = (1/3)*ln(L) + const (c=1 CFT), gap = 0 exactly (HIGH)
+- **Hastings 2007 inapplicable**: gapless for both signs of J (HIGH)
+- **Entanglement first law**: delta S = delta <K_A> (exact QI identity) (HIGH)
+- **delta S ~ |boundary|** for local perturbations (physical argument under A3) (MEDIUM)
+- **Synthesis Theorem (a)-(c)**: thermal MI + pure S + delta S area laws (HIGH)
+- **Jacobson bridge**: (J1) established, (J2) exact, (J3) MVEH open for Phase 10 (HIGH)
+- **Assumption register A1-A4** with complete gap statement (HIGH)
 
 ## Open Questions
 
-- Sign of J (AFM vs FM) not determined by SP constraints -- affects Phase 9 area-law analysis [HIGH, blocks Phase 9]
-- Does self-modeling locality force area-law entanglement entropy? [HIGH, blocks Phase 9]
+- RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent
+- RESOLVED: Does self-modeling locality force area-law entanglement? -- YES via WVCH (thermal MI) and channel capacity (pure S)
 - Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs? [HIGH, blocks Phase 10]
-- What is the precise gap between self-modeling locality and existing area-law theorems? [HIGH, blocks Phase 9]
+- RESOLVED: What is the precise gap? -- Assumption A1 (thermal state) for WVCH, Assumption A2 (pure state) for channel capacity
 - Can Jacobson's entanglement equilibrium be formulated on a finite lattice? [MEDIUM, blocks Phase 10]
 - Basis-independence -> diagonal U(n) invariance of h_xy is a physical postulate, not a theorem [NOTE for Paper 6]
+- Can Assumption A2 (pure global state) be derived from self-modeling axioms? [HIGH, affects synthesis]
+- RESOLVED: "Which state?" -- resolved via three perspectives (thermal MI, pure S, delta S)
+- Does self-modeling lattice satisfy Jacobson's MVEH? [HIGH, blocks Phase 10]
+- Can modular Hamiltonian locality (A3) be verified numerically on small lattices? [MEDIUM, Phase 11]
 
 ## Performance Metrics
 
@@ -59,6 +73,9 @@ None yet.
 | 08-01 | 25min | 2 tasks | 3 files |
 | 08-02 | 7min | 2 tasks | 2 files |
 | 08-03 | 15min | 2 tasks | 3 files |
+| 09-01 | 6min | 2 tasks | 3 files |
+| 09-02 | 5min | 1 tasks | 2 files |
+| 09-03 | 7min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +97,13 @@ None yet.
 - [Phase 8, Plan 01]: Graph topology G = (V, E) is input (background dependence acknowledged)
 - [Phase 8, Plan 01]: Sign of J undetermined by SP constraints; affects Phase 9 area-law analysis
 - [Phase 8, Plan 03]: Self-modeling h_xy = JF identical to Heisenberg; v_LR independent of n
+- [Phase 9, Plan 01]: WVCH (not Hastings) as primary area-law theorem -- gap fails for both signs of J
+- [Phase 9, Plan 01]: Thermal state identification (Assumption A1) explicitly flagged as gap
+- [Phase 9, Plan 01]: Both signs of J analyzed independently; WVCH bound is sign-independent
+- [Phase 9, Plan 02]: Channel capacity + DPI for pure-state S area law; Assumption A2 (pure state) flagged as gap
+- [Phase 9, Plan 03]: delta S (not S) is what Jacobson needs -- decouples area-law from state-selection
+- [Phase 9, Plan 03]: Modular Hamiltonian locality (A3) is weakest anchor; physically motivated but unproven
+- [Phase 9, Plan 03]: MVEH identified as main Phase 10 gap, separate from area-law question
 
 ### Active Approximations
 
