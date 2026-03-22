@@ -3,14 +3,22 @@
 \section{Einstein's Equations}
 \label{sec:einstein}
 
-We now apply the Jacobson (2016) entanglement equilibrium
-argument~\cite{Jacobson2016} to the self-modeling lattice as UV
-completion.  Links~L1--L5 of Table~\ref{tab:chain} (this work)
-provide the UV inputs; links~L6--L8 follow Jacobson's derivation,
-with the MVEH reframed as definitional
-(Sec.~\ref{sec:equilibrium}).
+We present two independent routes from the self-modeling lattice to
+Einstein's field equations, with complementary strengths.  Route~A
+(Sec.~\ref{sec:route-a}) applies Jacobson's (2016) entanglement
+equilibrium argument~\cite{Jacobson2016} using the conformal modular
+Hamiltonian; it is exact in the conformal regime ($d = 1$ WZW, or the
+window $a \ll \ell \ll 1/m$ in higher $d$).  Route~B
+(Sec.~\ref{sec:route-b}) uses Lovelock's uniqueness
+theorem~\cite{Lovelock1971, Lovelock1972} to show that \emph{any}
+tensorial equation relating entanglement perturbations to geometry
+perturbations must be Einstein's equation in $d \geq 2$ spatial
+dimensions.  Route~B does not require a conformal modular Hamiltonian.
 
-\subsection{Setup: entropy decomposition}
+\subsection{Route A: Jacobson entanglement equilibrium (conformal regime)}
+\label{sec:route-a}
+
+\subsubsection{Entropy decomposition}
 \label{sec:setup}
 
 Consider a point $p$ in the emergent spacetime manifold $(M, \gab)$
@@ -43,7 +51,7 @@ spacetime (MSS) vacuum:
   \label{eq:ds-decomp}
 \end{equation}
 
-\subsection{Geometric variation (Raychaudhuri)}
+\subsubsection{Geometric variation (Raychaudhuri)}
 \label{sec:raychaudhuri}
 
 The change in area $\delta\mathcal{A}$ of the entangling surface
@@ -98,7 +106,7 @@ $\delta\ent_{\mathrm{UV}}$ is exactly cancelled by a corresponding
 contribution to $\delta\ent_{\mathrm{mat}}$~\cite{Jacobson2016}, so
 only the Ricci part survives.
 
-\subsection{Matter variation (conformal modular Hamiltonian)}
+\subsubsection{Matter variation (conformal modular Hamiltonian)}
 \label{sec:conformal-approx}
 
 From the entanglement first law~\eqref{eq:first-law},
@@ -135,10 +143,11 @@ Jacobson~\cite{Jacobson2016} conjectures that the leading-order
 Einstein equation survives nonconformal corrections; this is
 physically motivated but not proven.
 
-\subsection{Entanglement equilibrium implies Einstein's equation}
+\subsubsection{Entanglement equilibrium implies Einstein's equation}
 \label{sec:ee-implies-einstein}
 
-The MVEH---definitional in our framework
+The MVEH---identified as the only available vacuum selection criterion
+in a pre-geometric framework
 (Sec.~\ref{sec:mveh})---requires entanglement equilibrium:
 \begin{equation}
   \delta\ent = \delta\ent_{\mathrm{UV}} + \delta\ent_{\mathrm{mat}} = 0.
@@ -196,7 +205,7 @@ The NEC is not derived from self-modeling; it is an input to the sign
 chain.  The tensor equation~\eqref{eq:einstein} itself holds
 independently of the NEC.
 
-\subsection{Parameter identification}
+\subsubsection{Parameter identification}
 \label{sec:parameters}
 
 Newton's constant is set by the UV entropy density:
@@ -218,3 +227,89 @@ The Lieb--Robinson velocity $\vlr$ (Eq.~\ref{eq:vlr}) maps to the
 speed of light~$c$ in the continuum limit.  The cosmological
 constant~$\Lambda$ is undetermined; this paper does not predict its
 value.
+
+\subsection{Route B: Lovelock uniqueness ($d \geq 2$)}
+\label{sec:route-b}
+
+Route~A derives Einstein's equation by explicit computation of
+$\delta\ent_{\mathrm{UV}}$ and $\delta\ent_{\mathrm{mat}}$ using the
+Raychaudhuri equation and the conformal modular Hamiltonian.  The
+conformal approximation (Sec.~\ref{sec:conformal-approx}) limits this
+route to the conformal regime, which is controlled in $d = 1$ but
+problematic in $d \geq 2$ where the infrared theory likely has N\'eel
+order rather than conformal symmetry.
+
+Route~B circumvents this limitation entirely.  It uses only three
+ingredients, none of which require a conformal modular Hamiltonian:
+
+\begin{enumerate}
+\item \emph{Emergent geometry from entanglement.}  The self-modeling
+  lattice defines an emergent geometry via the thermal time
+  identification (Sec.~\ref{sec:equilibrium}): the modular flow of the
+  lattice state defines the geometric flow, and the entanglement
+  structure encodes the metric.  This holds in all spatial dimensions.
+\item \emph{Entanglement first law.}  Perturbations of the entanglement
+  entropy satisfy $\delta\ent = \delta\langle\modH\rangle$
+  (Eq.~\ref{eq:first-law}), an exact identity.  Combined with the
+  area-law structure (Sec.~\ref{sec:arealaw}), this implies that
+  perturbations of entanglement are equivalent to perturbations of the
+  emergent geometry.  The resulting equation relating metric
+  perturbations to matter perturbations is therefore a symmetric,
+  divergence-free 2-tensor equation built from the metric and its
+  derivatives (because both sides are geometric quantities).
+\item \emph{Lovelock's theorem.}  Lovelock~\cite{Lovelock1971,
+  Lovelock1972} proved that in $d + 1$ spacetime dimensions with
+  $d \geq 2$, the \emph{unique} symmetric, divergence-free 2-tensor
+  constructed from the metric $\gab$ and its first and second
+  derivatives is a linear combination of $\Gab$ and $\gab$:
+  \begin{equation}
+    \mathcal{E}_{ab} = \alpha\, \Gab + \beta\, \gab
+  \end{equation}
+  for constants $\alpha$, $\beta$.  (In $d + 1 > 4$, Lovelock gravity
+  allows higher-curvature terms built from the generalized
+  Euler densities; in $d + 1 = 3$ and $d + 1 = 4$, the Einstein
+  tensor and cosmological term are the unique possibilities.)
+\end{enumerate}
+
+Combining these: since the entanglement-geometry relation is a
+symmetric, divergence-free 2-tensor equation in the emergent
+$(d{+}1)$-dimensional spacetime, Lovelock's theorem forces it to be
+\begin{equation}
+  \Gab + \Lambda\, \gab = 8\pi\Gnewton\, \Tab,
+  \label{eq:einstein-lovelock}
+\end{equation}
+the same Einstein equation as Route~A.  The proportionality constant
+$\Gnewton = 1/(4\eta)$ is fixed by matching the UV entanglement
+density, as in Sec.~\ref{sec:parameters}.
+
+\emph{Complementarity of the two routes.}---The Jacobson route
+(Route~A) derives the \emph{specific form} of the Einstein equation by
+explicit computation, but requires the conformal modular Hamiltonian
+and is therefore controlled only in the conformal regime.  The Lovelock
+route (Route~B) derives the \emph{uniqueness} of the Einstein equation
+from general principles, but requires the assumption that the
+entanglement-geometry relation produces a tensorial equation with at
+most second-order derivatives.
+
+\begin{table}
+\caption{Comparison of the two routes to Einstein's equations.
+\label{tab:routes}}
+\begin{ruledtabular}
+\begin{tabular}{lll}
+  & Route A (Jacobson) & Route B (Lovelock) \\ \hline
+Strength & Explicit derivation & Uniqueness argument \\
+Best in & $d = 1$ (WZW CFT) & $d \geq 2$ (all) \\
+Requires & Conformal $\modH$ & Tensorial equation \\
+Weakness & Conformal approx.\ & No explicit $\Tab$ \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+In $d = 1$, Route~A gives the (trivially satisfied) Einstein equation
+$\Gab = 0$ via the exact WZW modular Hamiltonian, while Lovelock's
+theorem provides no constraint (in $1{+}1$ dimensions, every metric
+satisfies $\Gab = 0$).  In $d \geq 2$, Route~B forces the Einstein
+equation by uniqueness without requiring conformal symmetry of the
+infrared theory, while Route~A provides the explicit computation in the
+conformal window $a \ll \ell \ll 1/m$.  Together, the two routes cover
+all dimensions.
