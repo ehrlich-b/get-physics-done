@@ -2,118 +2,108 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise: self-modeling forces M_n(C)^sa with Luders product and conjugate-transpose involution (Paper 5, three rounds of adversarial review passed). v3.0 extends to gravity: self-modeling is inherently local (the model probes through the B-M boundary), locality forces area-law entanglement, and Jacobson's thermodynamic argument converts area-law entropy to Einstein's field equations. The subfield is mathematical physics / quantum foundations / quantum gravity, with the expected deliverable being Paper 6 deriving GR from self-modeling.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise: self-modeling forces M_n(C)^sa with Luders product and conjugate-transpose involution (Paper 5). v3.0 derived GR: locality forces area-law entanglement, Jacobson's argument gives Einstein's equations (Paper 6). v4.0 investigates whether the self-modeling composite carries a real spectral triple of KO-dimension 6, which via Connes' classification would give the Standard Model gauge group and the spectral action (GR + SM from a single construction). The subfield is mathematical physics / noncommutative geometry / quantum foundations, with the expected deliverable being Paper 7.
 
 ## Core Research Question
 
-Does the locality of self-modeling -- the fact that the model probes the body through the boundary, not telepathically through the bulk -- force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
+Does the self-modeling composite naturally carry the structure of a real spectral triple of KO-dimension 6, and if so, does Connes' classification give the finite algebra A_F = C + H + M_3(C) (the Standard Model)?
 
-## Current Milestone: v3.0 GR Extension
+## Current Milestone: v4.0 Spectral Triple from Self-Modeling
 
-**Goal:** Derive Einstein's field equations from the locality of self-modeling, via the chain: local self-modeling lattice -> area-law entanglement -> Jacobson's thermodynamic derivation -> GR.
+**Goal:** Determine whether the doubled self-modeling composite (H, J, gamma) satisfies the axioms of a real spectral triple of KO-dimension 6, construct the Dirac operator D, and identify the subalgebra forced by the first-order condition.
 
 **Target results:**
 
-- Formalization of locality of self-modeling for spatially extended systems (lattice of M_n(C)^sa sites)
-- Proof or strong argument that local self-modeling implies area-law entanglement entropy
-- Verification that Jacobson's inputs (area-law S, Clausius relation, Unruh temperature) are satisfied
-- Paper 6 assembling the chain with precise gap identification
+- Verification of all spectral triple axioms (order zero condition, KO-dimension 6 sign relations) for general n
+- Construction of D from the sequential product's temporal asymmetry, satisfying D gamma = -gamma D and JD = DJ
+- Identification of the subalgebra A_F forced by the first-order condition [[D, a], Jb*J^{-1}] = 0
+- Paper 7 assembling the chain with precise gap identification
 
 ## Scoping Contract Summary
 
 ### Contract Coverage
 
-- **Locality formalization (claim-locality):** Make precise what "self-modeling is local" means for a lattice of self-modeling systems, each site an M_n(C)^sa from Paper 5
-- **Area law (claim-area-law):** Prove or give strong argument that local self-modeling interactions produce area-law entanglement entropy S(A) ~ |boundary(A)|
-- **Jacobson application (claim-jacobson):** Verify that the self-modeling composite satisfies Jacobson's three inputs (area-law S, Clausius at Rindler horizons, Unruh temperature)
-- **Paper assembly (claim-paper-6):** Paper 6 "Spacetime from Self-Modeling" with complete chain and precise gap identification
-- **False progress to reject:** Hand-waving the locality -> area law step without identifying what assumption bridges any gap; citing area-law theorems without checking their hypotheses apply to self-modeling systems
+- **Spectral triple axioms (claim-axioms):** Verify all axioms of a real spectral triple of KO-dimension 6 for the doubled self-modeling composite, including order zero condition [a, Jb*J^{-1}] = 0
+- **Dirac operator (claim-dirac):** Construct D from the sequential product's temporal asymmetry (a.b != b.a), satisfying D gamma = -gamma D and JD = DJ
+- **First-order condition (claim-first-order):** Determine the subalgebra A_F forced by [[D, a], Jb*J^{-1}] = 0 and compare to C + H + M_3(C)
+- **Paper assembly (claim-paper-7):** Paper 7 "Spectral Triple from Self-Modeling" with complete derivation chain and precise gap identification
+- **False progress to reject:** Assuming KO-dimension 6 without verifying all sign relations hold simultaneously; claiming SM gauge group without explicitly checking first-order condition; using ad hoc D without deriving it from self-modeling structure
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Whether locality -> area law holds; what exact assumption bridges any gap between self-modeling locality and existing area-law theorems
-- **User-stated deliverables:** Paper 6 (standalone, separate from Paper 5)
-- **User-stated architecture:** Lattice of self-modeling systems (option b), with note that tensor decomposition of large M_N(C)^sa (option a) is equivalent
-- **Must-have references / prior outputs:** Paper 5 results (M_n(C)^sa, local tomography, composite structure), Jacobson (1995), Hastings (2007), Cao-Carroll-Michalakis (2017)
-- **Stop / rethink conditions:** If "locality" in the self-modeling sense doesn't map onto "locality" in the lattice Hamiltonian sense; if no area-law argument (rigorous or strong physical) can be made
+- **User-stated observables:** Whether the self-modeling composite carries a KO-dim 6 spectral triple; what algebra A_F the first-order condition forces
+- **User-stated deliverables:** Paper 7 (standalone), derivation documents per phase, SymPy verification code
+- **User-stated architecture:** Doubled Hilbert space H = (C^n x C^n)_particle + (C^n x C^n)_antiparticle; J swaps observer/observed; gamma = SWAP * matter-sign
+- **Must-have references / prior outputs:** Paper 5 (M_n(C)^sa, J = dagger), Paper 6 (SWAP, Schur-Weyl), Connes 1995 (axioms), Chamseddine-Connes 2008 (classification), van Suijlekom 2024 (textbook)
+- **Stop / rethink conditions:** If order zero condition fails for all algebra actions (not just the naive one); if no D exists with required sign relations
+- **Strategy on failure:** If order zero fails, pivot to find the correct algebra action (do not abandon). Work with general n first, then specialize.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Formalize locality of self-modeling for spatially extended systems
-- Derive or argue area-law entanglement from local self-modeling
-- Apply Jacobson's thermodynamic argument to get Einstein's equations
-- Identify emergent geometry (bonus, if steps 1-3 work)
-- Paper 6 assembly
+- Verify spectral triple axioms for the doubled self-modeling composite at general n
+- Construct Dirac operator D from sequential product asymmetry
+- Determine subalgebra A_F from first-order condition
+- Identify which n (if any) gives C + H + M_3(C)
+- SymPy verification of all algebraic identities
+- Paper 7 assembly
 
 **Out of scope**
 
-- Deriving the specific value of G (Newton's constant)
-- Deriving 3+1 dimensions
-- Deriving Standard Model gauge groups
-- Full quantum gravity theory
-- Cosmological constant problem
-- Infinite-dimensional systems (Paper 5 restriction carries forward)
+- Full spectral action computation (coupling constants, masses, Higgs potential details)
+- Cosmological predictions from spectral action
+- Infinite-dimensional systems
+- Higher KO-dimensions (focus on 6)
+- Phenomenological comparison with experimental data
 
 ### Active Anchor Registry
 
-- **ref-jacobson1995:** Jacobson -- Thermodynamics of Spacetime: The Einstein Equation of State (1995, PRL 75, 1260)
-  - Why it matters: The key theorem -- area-law entropy + Clausius relation + Unruh temperature = Einstein's equations
+- **ref-connes1995:** Connes -- Noncommutative geometry and reality (1995, J. Math. Phys. 36, 6194)
+  - Why it matters: Defines the axioms of a real spectral triple, KO-dimension classification
   - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
-- **ref-hastings2007:** Hastings -- An area law for one-dimensional quantum systems (2007, JSTAT P08024)
-  - Why it matters: Rigorous area law for 1D gapped Hamiltonians; template for higher-D arguments
+- **ref-chamseddine-connes2008:** Chamseddine-Connes -- Why the Standard Model (arXiv:0706.3688)
+  - Why it matters: Classification theorem -- KO-dim 6 spectral triple with specific conditions gives C + H + M_3(C)
   - Carry forward: planning, execution, writing
   - Required action: read, cite
 
-- **ref-ccm2017:** Cao, Carroll, Michalakis -- Space from Hilbert space (2017, PRD 95, 024031)
-  - Why it matters: Emergent geometry from entanglement in finite Hilbert spaces; closest existing framework to our lattice approach
-  - Carry forward: planning, execution, writing
-  - Required action: read, cite
-
-- **ref-vanraamsdonk2010:** Van Raamsdonk -- Building up spacetime with quantum entanglement (2010, GRG 42, 2323)
-  - Why it matters: Entanglement = geometric connectivity; conceptual foundation for emergent geometry
-  - Carry forward: writing
-  - Required action: cite
-
-- **ref-lmvr2014:** Lashkari, McDermott, Van Raamsdonk -- Gravitational dynamics from entanglement (2014, JHEP 04, 195)
-  - Why it matters: First law of entanglement entropy = linearized Einstein's equations
-  - Carry forward: planning, execution, writing
-  - Required action: read, cite
-
-- **ref-faulkner2014:** Faulkner et al. -- Gravitation from entanglement in holographic CFTs (2014, JHEP 03, 051)
-  - Why it matters: Nonlinear Einstein's equations from entanglement
-  - Carry forward: execution, writing
+- **ref-van-suijlekom2024:** van Suijlekom -- NCG and Particle Physics, 2nd ed (2024 textbook)
+  - Why it matters: Definitive modern reference for spectral triple axioms and SM derivation
+  - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
 - **ref-paper5:** Paper 5 (this project, v2.0) -- QM from self-modeling
-  - Why it matters: Provides the M_n(C)^sa algebra, local tomography, and composite structure that are inputs to v3.0
+  - Why it matters: Source of M_n(C)^sa, Luders product, J = dagger involution, sequential product
   - Carry forward: planning, execution, verification, writing
+  - Required action: cite
+
+- **ref-paper6:** Paper 6 (this project, v3.0) -- Spacetime from self-modeling
+  - Why it matters: Source of SWAP Hamiltonian, diagonal U(n) covariance, Schur-Weyl decomposition
+  - Carry forward: planning, execution, writing
   - Required action: cite
 
 ### Carry-Forward Inputs
 
-- Paper 5 results: M_n(C)^sa with Luders product, local tomography, composite OUS framework
-- paper/sections/*.tex (Paper 5 section files)
-- paper/GR_EXTENSION.md (v3.0 research plan)
-- v1.0 papers (Theorem A, Lipschitz, Born-Fisher falsification)
+- Paper 5 results: M_n(C)^sa with Luders product, J = conjugate transpose, sequential product a.b = sqrt(a) b sqrt(a)
+- Paper 6 results: SWAP Hamiltonian, Sym^2/wedge^2 decomposition, diagonal U(n) covariance
+- paper7-spectral-triple-prompt.md (v4.0 research plan with verified J gamma = -gamma J)
 
 ### Skeptical Review
 
-- **Weakest anchor:** The locality -> area law step. Self-modeling locality is a statement about B-M boundary interactions; area-law theorems (Hastings) require gapped local Hamiltonians. The bridge between these two notions of locality is the critical gap.
-- **Unvalidated assumptions:** That a lattice of self-modeling systems produces a "ground state" or low-energy state to which area-law theorems apply; that the Clausius relation holds at causal horizons in the self-modeling framework
-- **Competing explanation:** Area-law entanglement might require additional dynamical assumptions beyond locality (e.g., a spectral gap, specific interaction structure) that self-modeling alone doesn't provide
-- **Disconfirming observation:** Self-modeling locality doesn't produce correlation decay; or the resulting entropy scaling is volume-law, not area-law
-- **False progress to reject:** Citing area-law theorems without verifying their hypotheses apply; arguing "locality implies area law" without identifying the precise mathematical connection
+- **Weakest anchor:** The order zero condition. The naive algebra action pi(a)(psi, chi) = (a x 1)psi, (a x 1)chi) may not commute with the J-conjugated opposite action. If it fails, finding the correct action is non-trivial.
+- **Unvalidated assumptions:** That the SWAP-based gamma corresponds to chirality in the physical sense; that the sequential product asymmetry gives a natural Dirac operator; that the doubled Hilbert space is the right particle/antiparticle decomposition
+- **Competing explanation:** The eigenvalue pattern matching Connes' SM could be coincidental -- SWAP decomposition into Sym^2/wedge^2 is generic for any doubled tensor product, not specific to self-modeling
+- **Disconfirming observation:** Order zero fails for all reasonable algebra actions; no D exists with both D gamma = -gamma D and JD = DJ; first-order condition gives a trivial or non-SM subalgebra
+- **False progress to reject:** Matching the eigenvalue pattern without verifying all axioms; finding a D that works for specific n but not general n; claiming SM without checking the first-order condition in detail
 
 ### Open Contract Questions
 
-- Does self-modeling locality map onto lattice Hamiltonian locality?
-- Does the self-modeling fixed point correspond to a gapped ground state?
-- Can area-law entanglement be derived purely information-theoretically, bypassing Hamiltonian assumptions?
-- Does the Unruh effect hold in the M_n(C)^sa framework (finite dimensions)?
+- Does the order zero condition hold for the naive algebra action, or does it require modification?
+- What is the natural Dirac operator from sequential product asymmetry?
+- Which value of n gives C + H + M_3(C) (if any)?
+- Does the spectral action from this triple reproduce the correct GR + SM terms?
 
 ## Research Questions
 
@@ -126,13 +116,17 @@ Does the locality of self-modeling -- the fact that the model probes the body th
 - [x] Does S4 (symmetry of orthogonality) hold for the self-modeling construction? -- **YES.** Proved via facial orthogonality argument; holds for all mixing functions f with f(0,x)=0. -- v2.0
 - [x] Does B-M compositionality (independent accessibility) imply local tomography? -- **YES.** Proved via state separation on minimal composite OUS. dim(V_BM) = dim(V_B) * dim(V_M). -- v2.0
 - [x] Which effect algebra framing is correct for the self-modeling sequential product? -- **E(B).** E(B x M) framing fails in three ways; E(B) framing gives correct corrected product formula. -- v2.0
+- [x] Does self-modeling locality force area-law entanglement entropy? -- **YES** via WVCH (thermal MI) and channel capacity (pure S); sub-volume scaling for gapless case. -- v3.0
+- [x] Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs? -- **YES**: (J1) area law established, (J2) entanglement first law exact, (J3) MVEH as structural identification via Connes-Rovelli. -- v3.0
+- [x] Can Einstein's field equations be derived from self-modeling? -- **YES** via two routes: Jacobson entanglement equilibrium (Route A, conformal) and Lovelock uniqueness (Route B, d>=2). Paper 6 assembled. -- v3.0
 
 ### Active
 
-- [ ] Does self-modeling locality force area-law entanglement entropy?
-- [ ] Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs?
-- [ ] What is the precise gap (if any) between self-modeling locality and existing area-law theorems?
-- [ ] Can Einstein's field equations be derived from self-modeling without additional dynamical assumptions?
+- [ ] Does the doubled self-modeling composite carry a real spectral triple of KO-dimension 6?
+- [ ] Does the order zero condition [a, Jb*J^{-1}] = 0 hold for the natural algebra action?
+- [ ] What Dirac operator D arises naturally from the sequential product's temporal asymmetry?
+- [ ] What subalgebra A_F does the first-order condition [[D, a], Jb*J^{-1}] = 0 force?
+- [ ] For which n (if any) does A_F = C + H + M_3(C)?
 
 ### Out of Scope
 
@@ -140,50 +134,51 @@ Does the locality of self-modeling -- the fact that the model probes the body th
 - Non-Markovian quantum channels -- could produce rho_Q > 0 regime, untested
 - Non-equilibrium extension -- requires different mathematical framework
 - Reference measure nu -- shared open problem with Mueller (2020)
-- Standard Model derivation -- Level 4+, far beyond current scope
 - Self-modeling constants experiment -- Level 6, requires experimental apparatus
-- Value of Newton's constant G -- not derivable from this framework
-- Number of spacetime dimensions -- not derivable from this framework
+- Full spectral action computation (coupling constants, Higgs mass) -- beyond Paper 7 scope
+- Phenomenological predictions -- requires spectral action computation
 
 ## Research Context
 
 ### Physical System
 
-A lattice of self-modeling composite processes, each site carrying an M_n(C)^sa algebra (from Paper 5). Nearest-neighbor sites interact through body-model boundaries: site A's model of site B is updated through the shared boundary. Information between distant sites must propagate through intermediaries. The global state of the lattice has entanglement structure determined by these local interactions.
+A single self-modeling composite: body B and model M, each carrying M_n(C)^sa (from Paper 5). The doubled Hilbert space H = (C^n x C^n)_particle + (C^n x C^n)_antiparticle, where the two sectors correspond to which subsystem plays the observer role. The SWAP operator P decomposes C^n x C^n into Sym^2(C^n) (P=+1) and wedge^2(C^n) (P=-1). The construction (H, J, gamma) with J(psi, chi) = (PC chi-bar, PC psi-bar) and gamma(psi, chi) = (P psi, -P chi) gives KO-dimension 6 sign relations (J^2 = +1, J gamma = -gamma J verified).
 
 ### Theoretical Framework
 
-Quantum foundations / quantum gravity / thermodynamic gravity: algebraic quantum theory (from Paper 5), entanglement entropy and area laws, Jacobson's thermodynamic derivation of Einstein's equations, emergent geometry from entanglement (Van Raamsdonk program). Key tools: Hastings' area law, Rindler horizon thermodynamics, Unruh effect, Fisher information metric.
+Noncommutative geometry (Connes program): real spectral triples, KO-dimension classification, spectral action principle. Key tools: order zero condition, first-order condition, Chamseddine-Connes classification theorem. Built on algebraic quantum theory (Paper 5) and SWAP/Schur-Weyl structure (Paper 6).
 
 ### Key Parameters and Scales
 
 | Parameter | Symbol | Regime | Notes |
 | --------- | ------ | ------ | ----- |
-| Local algebra dimension | n | Finite | Each lattice site is M_n(C)^sa |
-| Lattice size | N | Large | Number of self-modeling sites |
-| Entanglement entropy | S(A) | To be determined | Should scale as |boundary(A)| |
-| Spectral gap | Delta | To be determined | Needed for Hastings-type area law |
+| Local algebra dimension | n | General, then specialize | Each site is M_n(C)^sa; n=4 conjectured for SM |
+| Hilbert space dimension | dim(H) | 2n^2 | Doubled: particle + antiparticle sectors |
+| KO-dimension | d_KO | 6 | Sign relations J^2=+1, J gamma=-gamma J verified |
+| Symmetric sector dim | dim(Sym^2) | n(n+1)/2 | SWAP eigenvalue +1 |
+| Antisymmetric sector dim | dim(wedge^2) | n(n-1)/2 | SWAP eigenvalue -1 |
 
 ### Known Results
 
-- v2.0: Self-modeling forces M_n(C)^sa with Luders product and conjugate-transpose involution (Paper 5)
-- v2.0: Local tomography for B-M composite; all non-complex EJA types excluded
-- Jacobson (1995): Area-law S + Clausius + Unruh = Einstein's equations (published theorem)
-- Hastings (2007): Area law for 1D gapped local Hamiltonians (rigorous)
-- Cao-Carroll-Michalakis (2017): Emergent geometry from entanglement in finite Hilbert spaces
-- Lashkari-McDermott-Van Raamsdonk (2014): First law of entanglement entropy = linearized Einstein
+- v2.0: Self-modeling forces M_n(C)^sa with Luders product and J = conjugate transpose (Paper 5)
+- v2.0: Sequential product a.b = sqrt(a) b sqrt(a), temporally asymmetric (a.b != b.a)
+- v3.0: SWAP Hamiltonian forced by diagonal U(n) covariance + Schur-Weyl (Paper 6)
+- v3.0: Einstein's equations via Jacobson (Route A) and Lovelock (Route B)
+- Connes (1995): Real spectral triple axioms, KO-dimension classification
+- Chamseddine-Connes (2008): KO-dim 6 + first-order condition -> C + H + M_3(C)
+- Verified: J^2 = +1 and J gamma = -gamma J for the candidate construction
 
 ### What Is New
 
-Connecting self-modeling's inherent locality (the model probes through the boundary, not the bulk) to area-law entanglement and thereby to Einstein's equations. No prior work has derived GR from self-modeling. If successful, both QM (Paper 5) and GR (Paper 6) follow from a single operational premise with no additional assumptions.
+Constructing a spectral triple directly from the self-modeling composite's algebraic structure, without postulating particle physics content. The doubled Hilbert space, J (observer swap), and gamma (SWAP x matter-sign) all arise from self-modeling. If the spectral triple axioms are satisfied and the first-order condition gives C + H + M_3(C), this would derive the Standard Model gauge group from self-modeling -- a result with no precedent.
 
 ### Target Venue
 
-Foundations of physics / quantum gravity journal (same tier as Paper 5). Possibly Physical Review D for the gravity content.
+Journal of Mathematical Physics, Communications in Mathematical Physics, or Journal of Noncommutative Geometry. High-impact if SM gauge group emerges.
 
 ### Computational Environment
 
-Local workstation. Primarily conceptual/proof work. Python for any verification calculations.
+Local workstation. Algebraic proofs + SymPy verification. Python for explicit matrix computations at small n.
 
 ## Notation and Conventions
 
@@ -200,21 +195,21 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-- Jacobson (1995), PRL 75, 1260 -- Einstein equation as equation of state
-- Hastings (2007), JSTAT P08024 -- Area law for 1D gapped systems
-- Cao, Carroll, Michalakis (2017), PRD 95, 024031 -- Space from Hilbert space
-- Van Raamsdonk (2010), GRG 42, 2323 -- Spacetime from entanglement
-- Lashkari, McDermott, Van Raamsdonk (2014), JHEP 04, 195 -- Gravitational dynamics from entanglement
-- Faulkner et al. (2014), JHEP 03, 051 -- Nonlinear Einstein from entanglement
-- Swingle (2012), PRD 86, 065007 -- MERA and AdS/CFT
-- Paper 5 (this project, v2.0) -- QM from self-modeling
+- Connes (1995), J. Math. Phys. 36, 6194 -- Noncommutative geometry and reality (spectral triple axioms)
+- Chamseddine-Connes (2008), arXiv:0706.3688 -- Why the Standard Model (classification theorem)
+- Connes (2006), arXiv:hep-th/0608226 -- NCG and SM with neutrino mixing
+- van Suijlekom (2024), NCG and Particle Physics 2nd ed -- definitive textbook
+- Boeijink-van den Dungen (2016), arXiv:1605.03231 -- explicit gamma_F construction
+- Paper 5 (this project, v2.0) -- QM from self-modeling (M_n(C)^sa, J, sequential product)
+- Paper 6 (this project, v3.0) -- Spacetime from self-modeling (SWAP, Schur-Weyl)
 
 ## Constraints
 
 - **Finite dimensions:** All proofs for finite-dimensional systems only (Paper 5 restriction)
-- **Argument quality:** Strong physical argument with precise gap identification; not full theorem, not bare conditional
-- **Paper 5 as input:** Takes M_n(C)^sa, local tomography, and composite structure as established results
-- **No new QM assumptions:** GR must follow from self-modeling locality alone, not from additional physical postulates
+- **Rigorous proofs:** Algebraic identities must be proved exactly, not argued physically; SymPy verification required
+- **Papers 5-6 as input:** Takes M_n(C)^sa, J = dagger, sequential product, SWAP Hamiltonian as established
+- **No ad hoc choices:** J, gamma, D must be derived from self-modeling structure, not postulated to match Connes
+- **General n first:** Work at general n, then specialize; do not assume n=4 until forced
 
 ## Key Decisions
 
@@ -252,6 +247,16 @@ QM derived from a single operational premise (faithful self-modeling):
 
 Paper 5 assembled, passed three rounds of adversarial review. Chain: L4 -> SP -> EJA -> LT -> type exclusion -> C*-algebra -> M_n(C)^sa.
 
+## v3.0 Summary (complete)
+
+GR derived from self-modeling locality:
+1. **Self-modeling lattice** with SWAP Hamiltonian forced by diagonal U(n) covariance + Schur-Weyl
+2. **Area-law entanglement** via WVCH (thermal MI), Heisenberg ground-state properties, modular Hamiltonian locality
+3. **Einstein's equations** via two routes: Jacobson entanglement equilibrium (Route A, conformal) and Lovelock uniqueness (Route B, d>=2)
+4. **Numerical verification** on N=8-20 lattices: ED benchmarks, area-law scaling, K_A locality, MVEH support
+
+Paper 6 assembled, passed adversarial review. Gaps honestly identified: continuum limit (shared wall), conformal approximation (Route A), tensoriality (Route B).
+
 ---
 
-_Last updated: 2026-03-21 after v3.0 milestone initialization_
+_Last updated: 2026-03-22 after v4.0 milestone initialization_

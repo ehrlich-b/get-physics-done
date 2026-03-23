@@ -2,23 +2,23 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-03-20)
+See: .gpd/PROJECT.md (updated 2026-03-22)
 
-**Core research question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
-**Current focus:** Phase 12 complete -- Paper 6 manuscript assembled, all phases done, milestone v3.0 complete
+**Core research question:** Does the self-modeling composite carry a real spectral triple of KO-dimension 6, giving A_F = C + H + M_3(C) (Standard Model)?
+**Current focus:** Milestone v4.0 initialized -- defining objectives
 
 ## Current Position
 
-**Current Phase:** 12
-**Current Phase Name:** Paper Assembly
-**Total Phases:** 5 (Phases 8-12)
-**Current Plan:** 3
-**Total Plans in Phase:** 3
-**Status:** Phase complete -- Paper 6 assembled, verified (14/14 targets, 12/12 physics checks), consistency checked (41 checks, 0 physics errors)
+**Current Phase:** --
+**Current Phase Name:** --
+**Total Phases:** -- (to be determined by roadmap)
+**Current Plan:** --
+**Total Plans in Phase:** --
+**Status:** Defining objectives for v4.0 Spectral Triple from Self-Modeling
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Phase 12 complete -- Paper 6 manuscript assembled with 7 sections, 4 figures, 33 bibliography entries, MVEH definitional, L1-L8 chain complete
+**Last Activity Description:** Started milestone v4.0: Spectral Triple from Self-Modeling
 
-**Progress:** [##########] 100% (v3.0)
+**Progress:** [..........] 0% (v4.0)
 
 ## Active Calculations
 
@@ -163,6 +163,7 @@ None yet.
 - [Phase 12, Plan 02]: Conformal approximation stated as honest caveat with Speranza 2016 reference
 - [Phase 12, Plan 03]: All numerical results framed as "consistent with" / "supporting evidence", never "proves"
 - [Phase 12, Plan 03]: 2D R^2=0.885 shortfall honestly noted with PBC wrapping explanation
+- [Phase 0]: Started milestone v4.0: Spectral Triple from Self-Modeling — New milestone cycle -- spectral triple from self-modeling composite, targeting Standard Model via Connes classification
 
 ### Active Approximations
 
