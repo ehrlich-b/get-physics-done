@@ -79,27 +79,27 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| AXVM-01 | -- | Pending |
-| AXVM-02 | -- | Pending |
-| AXVM-03 | -- | Pending |
-| AXVM-04 | -- | Pending |
-| DIRC-01 | -- | Pending |
-| DIRC-02 | -- | Pending |
-| DIRC-03 | -- | Pending |
-| FRST-01 | -- | Pending |
-| FRST-02 | -- | Pending |
-| FRST-03 | -- | Pending |
-| COMP-01 | -- | Pending |
-| COMP-02 | -- | Pending |
-| PAPR-01 | -- | Pending |
+| AXVM-01 | Phase 13 | Pending |
+| AXVM-02 | Phase 16 | Pending |
+| AXVM-03 | Phase 16 | Pending |
+| AXVM-04 | Phase 13 | Pending |
+| DIRC-01 | Phase 14 | Pending |
+| DIRC-02 | Phase 14 | Pending |
+| DIRC-03 | Phase 14 | Pending |
+| FRST-01 | Phase 15 | Pending |
+| FRST-02 | Phase 15 | Pending |
+| FRST-03 | Phase 15 | Pending |
+| COMP-01 | Phase 13 | Pending |
+| COMP-02 | Phase 14, 15, 16 | Pending |
+| PAPR-01 | Phase 17 | Pending |
 
 **Coverage:**
 
 - Primary requirements: 13 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 13
+- Mapped to phases: 13/13
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-03-22_
-_Last updated: 2026-03-22 after initial definition_
+_Last updated: 2026-03-22 after roadmap creation (Phases 13-17)_

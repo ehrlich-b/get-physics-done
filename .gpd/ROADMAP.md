@@ -4,7 +4,8 @@
 
 - **v1.0 Experiential Measure Formalization** -- Phases 1-3 (completed 2026-03-16)
 - **v2.0 QM from Algebraic Genericity** -- Phases 4-7 (completed 2026-03-21)
-- **v3.0 GR Extension** -- Phases 8-12 (active)
+- **v3.0 GR Extension** -- Phases 8-12 (completed 2026-03-22)
+- **v4.0 Spectral Triple from Self-Modeling** -- Phases 13-17 (active)
 
 ## Phases
 
@@ -31,262 +32,247 @@ See `.gpd/milestones/v2.0-ROADMAP.md` for full details.
 
 </details>
 
-### Active: v3.0 GR Extension
+<details>
+<summary>v3.0 GR Extension (Phases 8-12) -- COMPLETED 2026-03-22</summary>
 
-**Milestone Goal:** Derive Einstein's field equations from the locality of self-modeling, via the chain: local self-modeling lattice -> area-law entanglement -> Jacobson's thermodynamic derivation -> GR. Assemble as standalone Paper 6 with precise gap identification.
+- [x] Phase 8: Locality Formalization (3/3 plans) -- completed 2026-03-22
+- [x] Phase 9: Area-Law Derivation (3/3 plans) -- completed 2026-03-22
+- [x] Phase 10: Jacobson Application (3/3 plans) -- completed 2026-03-22
+- [x] Phase 11: Numerical Verification (3/3 plans) -- completed 2026-03-22
+- [x] Phase 12: Paper Assembly (3/3 plans) -- completed 2026-03-22
+
+See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
+
+</details>
+
+### Active: v4.0 Spectral Triple from Self-Modeling
+
+**Milestone Goal:** Determine whether the doubled self-modeling composite (H, J, gamma) satisfies the axioms of a real spectral triple of KO-dimension 6, construct the Dirac operator D, identify the subalgebra A_F forced by the first-order condition, and assemble as Paper 7 with honest gap identification.
 
 ## Contract Overview
 
 | Contract Item | Type | Advanced By Phase(s) | Status |
 | ------------- | ---- | -------------------- | ------ |
-| claim-locality (local self-modeling formalization) | claim | Phase 8 | Planned |
-| claim-area-law (area-law entanglement from locality) | claim | Phase 9, Phase 11 | Planned |
-| claim-jacobson (Jacobson inputs verified, Einstein derived) | claim | Phase 10 | Planned |
-| claim-paper-6 (Paper 6 assembly) | claim | Phase 12 | Planned |
-| ref-jacobson2016 (Jacobson 2016, PRL 116, 201101) | anchor | Phase 10, Phase 12 | Planned |
-| ref-jacobson1995 (Jacobson 1995, PRL 75, 1260) | anchor | Phase 10, Phase 12 | Planned |
-| ref-hastings2007 (Hastings 2007, JSTAT P08024) | anchor | Phase 9, Phase 12 | Planned |
-| ref-ccm2017 (Cao-Carroll-Michalakis 2017, PRD 95, 024031) | anchor | Phase 10, Phase 12 | Planned |
-| ref-paper5 (Paper 5, v2.0 -- QM from self-modeling) | anchor | Phase 8, Phase 12 | Planned |
-| ref-vanraamsdonk2010 (Van Raamsdonk 2010, GRG 42, 2323) | anchor | Phase 12 | Planned |
-| ref-lmvr2014 (Lashkari-McDermott-Van Raamsdonk 2014) | anchor | Phase 10, Phase 12 | Planned |
-| ref-faulkner2014 (Faulkner et al. 2014) | anchor | Phase 12 | Planned |
-| False progress: citing area-law theorems without checking hypotheses | forbidden proxy | Phase 9 | Active |
-| False progress: citing Jacobson without connecting to self-modeling | forbidden proxy | Phase 10 | Active |
-| False progress: hand-waving locality -> area law without gap identification | forbidden proxy | Phase 9, Phase 12 | Active |
+| claim-axioms (spectral triple axioms verified) | claim | Phase 13, Phase 16 | Planned |
+| claim-dirac (Dirac operator from self-modeling) | claim | Phase 14 | Planned |
+| claim-first-order (subalgebra from first-order condition) | claim | Phase 15 | Planned |
+| claim-paper-7 (Paper 7 assembly) | claim | Phase 17 | Planned |
+| ref-connes1995 (Connes 1995, J. Math. Phys. 36, 6194) | anchor | Phase 13, Phase 16, Phase 17 | Planned |
+| ref-chamseddine-connes2008 (CCM 2008, arXiv:0706.3688) | anchor | Phase 13, Phase 15, Phase 17 | Planned |
+| ref-van-suijlekom2024 (van Suijlekom 2024, textbook) | anchor | Phase 13, Phase 14, Phase 16 | Planned |
+| ref-paper5 (Paper 5, M_n(C)^sa, J = dagger, SP) | anchor | Phase 13, Phase 14, Phase 17 | Planned |
+| ref-paper6 (Paper 6, SWAP, Schur-Weyl) | anchor | Phase 13, Phase 14, Phase 17 | Planned |
+| False progress: assuming KO-dim 6 without verifying all sign relations | forbidden proxy | Phase 13 | Active |
+| False progress: claiming SM gauge group without checking first-order condition | forbidden proxy | Phase 15 | Active |
+| False progress: using ad hoc D without deriving from self-modeling | forbidden proxy | Phase 14 | Active |
+| False progress: checking order zero only for specific a,b instead of all | forbidden proxy | Phase 13 | Active |
 
 ## Phase Summary
 
-- [ ] **Phase 8: Locality Formalization** -- Define self-modeling lattice in Bratteli-Robinson framework; establish Lieb-Robinson bounds and effective causal structure
-- [ ] **Phase 9: Area-Law Derivation** -- Prove or strongly argue that local self-modeling interactions produce area-law entanglement; identify which state satisfies area-law conditions
-- [ ] **Phase 10: Jacobson Application** -- Verify entanglement equilibrium and derive Einstein's field equations via Jacobson 2016
-- [x] **Phase 11: Numerical Verification** -- Validate area-law scaling on small self-modeling lattices via exact diagonalization
-- [x] **Phase 12: Paper Assembly** -- Assemble Paper 6 "Spacetime from Self-Modeling" with complete chain and precise gap identification
+- [ ] **Phase 13: Order Zero + Representation Theory** -- Verify order zero condition [pi(a), pi_o(b)] = 0, compute bimodule decomposition, resolve dimension counting 2n^2 vs CCM k^2, with SymPy verification at n=2
+- [ ] **Phase 14: Dirac Operator Construction** -- Parameterize D moduli space (D*=D, D gamma=-gamma D, JD=DJ), test sequential product asymmetry candidate, with SymPy verification at n=2,3,4
+- [ ] **Phase 15: First-Order Condition + Algebra Identification** -- Compute [[D,a], Jb*J^{-1}], identify maximal subalgebra A_F, evaluate at n=2,3,4 vs C + H + M_3(C)
+- [ ] **Phase 16: Remaining Axioms + Classification** -- Verify Poincare duality, document orientability failure, check CCM classification hypotheses
+- [ ] **Phase 17: Paper 7 Assembly** -- Paper 7 "Spectral Triple from Self-Modeling" with complete chain and tiered success statement
 
 ## Phase Details
 
-### Phase 8: Locality Formalization
+### Phase 13: Order Zero + Representation Theory
 
-**Goal:** The self-modeling lattice is precisely defined as a quantum lattice system, with interactions encoding the B-M boundary coupling, and an effective causal structure established via Lieb-Robinson bounds.
+**Goal:** The order zero condition [pi(a), Jb*J^{-1}] = 0 is verified for the self-modeling doubled Hilbert space at general n, the bimodule decomposition of H is computed, and the dimension counting 2n^2 vs CCM k^2 is resolved.
 
-**Depends on:** Paper 5 results (M_n(C)^sa, local tomography, composite structure) -- carried forward from v2.0
+**Depends on:** Paper 5 (M_n(C)^sa, J = dagger), Paper 6 (SWAP, doubled space) -- carried forward from v2.0/v3.0
 
-**Requirements:** LOCL-01, LOCL-02
+**Requirements:** AXVM-01, AXVM-04, COMP-01
 
 **Contract Coverage:**
-- Advances: claim-locality
-- Deliverables: Formal lattice definition (graph, local algebras A_x = M_n(C), interaction Hamiltonian H encoding self-modeling coupling through B-M boundaries); Lieb-Robinson velocity v_LR computed for the specific interaction
-- Anchor coverage: ref-paper5 (M_n(C)^sa per site, local tomography, composite OUS), Bratteli-Robinson (1979/1981), Lieb-Robinson (1972), Nachtergaele-Sims (2006/2019)
-- Forbidden proxies: Lattice defined without specifying how self-modeling constrains the coupling; citing Lieb-Robinson bounds without computing v_LR for the specific Hamiltonian
-- Prior inputs: Paper 5 composite OUS framework, M_n(C)^sa with Luders product
+- Advances: claim-axioms (order zero -- gatekeeper axiom)
+- Deliverables: Proof that [pi(a), pi_o(b)] = 0 for all a, b in M_n(C) at general n; explicit computation of pi_o(b) = Jb*J^{-1}; bimodule decomposition of H into irreducible A-A^o bimodules; Krajewski diagram; resolution of 2n^2 vs k^2 dimension counting
+- Anchor coverage: ref-connes1995 (order zero condition definition), ref-van-suijlekom2024 (Ch. 2-4, bimodule decomposition), ref-chamseddine-connes2008 (CCM k^2 counting), ref-paper5 (J = dagger, M_n(C)^sa), ref-paper6 (SWAP, doubled space)
+- Forbidden proxies: Checking order zero only for specific a,b instead of all; claiming order zero holds without tracking J's sector-swap through the computation; assuming KO-dim 6 without verifying all sign relations simultaneously
+- Stop/rethink condition: If order zero fails for ALL algebra actions (not just the naive one), pivot to find the correct action (do not abandon)
 
 **Success Criteria** (what must be TRUE):
 
-1. The lattice is defined with graph G = (V, E), local algebra A_x = M_n(C) at each site x, and nearest-neighbor interaction Hamiltonian H = sum_{<x,y>} h_{xy} where each h_{xy} encodes the self-modeling coupling through the shared B-M boundary
-2. "Self-modeling locality" (model probes body through boundary, not bulk) is formally mapped onto "Hamiltonian locality" (finite-range interactions) with the correspondence made explicit -- specifically, how the B-M boundary interaction constrains the form of h_{xy}
-3. Lieb-Robinson velocity v_LR is computed from the interaction Hamiltonian, establishing an effective light cone ||[O_X(t), O_Y]|| <= C exp(-mu(d(X,Y) - v_LR|t|)) with explicit constants C, mu, v_LR
-4. All terms in the Hamiltonian have correct energy dimensions, and the lattice structure is consistent with the Bratteli-Robinson quantum lattice framework
-5. The mapping is shown to be compatible with Paper 5's local tomography: the composite structure of two neighboring sites in the lattice reproduces the B-M composite OUS from v2.0
+1. pi_o(b) = Jpi(b*)J^{-1} is computed explicitly as a matrix on H = C^{2n^2}, showing how J's sector-swap and SWAP operator transform the algebra action
+2. [pi(a), pi_o(b)] = 0 is verified for ALL a, b in M_n(C) at general n (symbolic proof), with SymPy verification at n=2 (8x8 matrices) confirming the general result
+3. The bimodule decomposition of H into irreducible A-A^o bimodules is computed, with multiplicities, and the Krajewski diagram is drawn
+4. The dimension mismatch 2n^2 vs CCM k^2 per generation is resolved: either (a) explicit mapping showing how 2n^2 decomposes into generation structure, or (b) identification that the self-modeling triple differs from CCM in generation counting, with implications stated
+5. If order zero fails for the naive pi(a) = a tensor 1 action, the failure mode is characterized and an alternative algebra action is identified or the obstruction is documented
 
-**Plans:** 3 plans
-
-Plans:
-- [ ] 08-01-PLAN.md -- Lattice definition + locality mapping + Hamiltonian construction from SP constraints
-- [ ] 08-02-PLAN.md -- Lieb-Robinson framework instantiation + Heisenberg chain benchmark
-- [ ] 08-03-PLAN.md -- LR velocity for self-modeling Hamiltonian + Paper 5 compatibility verification
+**Plans:** TBD
 
 **Backtracking triggers:**
-- If "locality" in the self-modeling sense does not map onto "locality" in the Hamiltonian sense (the two notions are structurally incompatible) -> STOP, return to user for scope decision. This is a stop/rethink condition from the contract.
-- If the self-modeling coupling through B-M boundaries does not uniquely determine the interaction Hamiltonian (underdetermined) -> identify the family of compatible Hamiltonians and whether area-law results are robust across the family.
+- If order zero fails for ALL reasonable algebra actions -> STOP per contract. Document what was tried and return to user.
+- If pi_o(b) has unexpected form due to J's sector-swap -> re-examine J definition from Paper 5; verify J^2 = +1 still holds with the correct pi_o.
 
 ---
 
-### Phase 9: Area-Law Derivation
+### Phase 14: Dirac Operator Construction
 
-**Goal:** It is established (by proof or strong argument with precise gap identification) that local self-modeling interactions produce area-law entanglement entropy S(A) ~ |boundary(A)|, and the specific state satisfying the area law is identified.
+**Goal:** The moduli space of Dirac operators satisfying D* = D, D gamma = -gamma D, and JD = DJ is parameterized, and the sequential product asymmetry candidate is tested as a natural D from self-modeling structure.
 
-**Depends on:** Phase 8 (lattice definition, interaction Hamiltonian, locality mapping)
+**Depends on:** Phase 13 (bimodule decomposition constrains allowed D blocks)
 
-**Requirements:** AREA-01, AREA-02
+**Requirements:** DIRC-01, DIRC-02, DIRC-03, COMP-02 (partial: D verification at n=2,3,4)
 
 **Contract Coverage:**
-- Advances: claim-area-law
-- Deliverables: Proof or strong argument that S(A) ~ |boundary(A)| for the self-modeling lattice state; identification of which state (ground state, fixed point, thermal state) has the area law with justification; precise statement of any gap between self-modeling locality and existing area-law theorems
-- Anchor coverage: ref-hastings2007 (area law for 1D gapped Hamiltonians -- template, hypothesis check required), Wolf-Verstraete-Cirac-Hastings 2008 (mutual info bound for thermal states), Brandao-Horodecki (2013/2015, correlation decay in 1D), Anshu-Arad-Gosset (2022, 2D frustration-free)
-- Forbidden proxies: Citing area-law theorems without verifying their hypotheses apply to the self-modeling lattice; arguing "locality implies area law" without identifying the precise mathematical connection; assuming "ground state" without defining the Hamiltonian first (Phase 8 must be complete)
-- User-stated observable: Whether locality -> area law holds; what exact assumption bridges any gap
-- Stop/rethink condition: If no area-law argument (rigorous or strong physical) can be made, STOP
+- Advances: claim-dirac
+- Deliverables: Complete parameterization of D moduli space (dimension count); sequential product asymmetry operator L_a - R_a tested against all three constraints; if sequential product candidate works, identification of which parameters it corresponds to; if it fails, identification of the most naturally motivated D from self-modeling structure
+- Anchor coverage: ref-van-suijlekom2024 (D parameterization), Barrett 2015 (matrix geometries, general D form for M_n(C)), ref-paper5 (sequential product sp(a,b) = sqrt(a) b sqrt(a))
+- Forbidden proxies: Constructing ad hoc D without self-modeling motivation; testing only specific D without parameterizing the full moduli space first (pitfall P4); assuming D exists without verifying the moduli space is non-empty
+- User-stated observable: Whether D arises naturally from sequential product asymmetry
 
 **Success Criteria** (what must be TRUE):
 
-1. The state of the self-modeling lattice that has area-law entanglement is identified -- whether it is the ground state of H (if a spectral gap can be established or assumed), a thermal state (if WVCH route is used), or a pure state with local information flow (if channel capacity route is used) -- with explicit justification for why this state is the physically relevant one
-2. Area-law scaling S(A) ~ |boundary(A)| is established for the identified state, with the argument either (a) proving it rigorously by verifying the hypotheses of an existing theorem (Hastings, Brandao-Horodecki, WVCH) apply, or (b) constructing a new information-theoretic argument (channel capacity bound) that S(A) <= c * |boundary(A)| * log(n) where n is local dimension
-3. Any gap between the self-modeling setup and the hypotheses of the invoked theorem/argument is precisely stated -- e.g., "this argument requires the state to be the ground state of a gapped Hamiltonian; we have established/assumed that the self-modeling Hamiltonian is gapped because [reason]"
-4. The argument addresses spatial dimension: rigorous in 1D, with a physically motivated extension to higher D (or clear statement that higher D remains conjectural)
-5. The area-law result is shown to be robust under perturbations of the interaction Hamiltonian within the family of self-modeling-compatible interactions (if the family is non-unique from Phase 8)
+1. The D moduli space is fully parameterized: all self-adjoint operators on H = C^{2n^2} satisfying D gamma = -gamma D and JD = DJ are written in terms of free parameters, with the dimension of the moduli space computed at general n and verified at n=2,3,4
+2. The moduli space is non-trivial (dimension > 0), confirming that at least one non-zero D exists; if the moduli space is empty or D=0 only, this is documented as a negative result
+3. The sequential product asymmetry operator (L_a - R_a or natural contraction) is tested: either (a) it lies in the D moduli space, establishing D from self-modeling, or (b) the specific constraint it violates is identified (JD != DJ or D gamma != -gamma D)
+4. If the sequential product candidate fails, the D in the moduli space most naturally motivated from self-modeling structure is identified with explicit rationale
+5. SymPy verification at n=2 (8x8), n=3 (18x18), and n=4 (32x32) confirms the moduli space parameterization and tests the sequential product candidate
 
-**Plans:** 3 plans
-
-Plans:
-- [ ] 09-01-PLAN.md -- WVCH thermal MI area law + Heisenberg ground-state entanglement characterization
-- [ ] 09-02-PLAN.md -- Channel capacity / information-theoretic area law for pure states
-- [ ] 09-03-PLAN.md -- Synthesis: "which state?" resolution, Jacobson bridge, gap statement, robustness
+**Plans:** TBD
 
 **Backtracking triggers:**
-- If the self-modeling fixed point has volume-law entanglement -> the core hypothesis is falsified. Document the result and return to user for scope decision.
-- If the channel capacity route requires a pure global state and the self-modeling fixed point is mixed -> fall back to WVCH (thermal) route or Hastings (gapped ground state) route.
-- If all area-law routes fail -> STOP. This is a stop/rethink condition from the contract.
+- If the D moduli space is empty (no non-trivial D exists) -> reconsider gamma or J definitions; explore alternative SWAP/grading constructions from Paper 6.
+- If the sequential product candidate violates JD = DJ -> investigate whether a modified J (still satisfying J^2 = +1, J gamma = -gamma J) admits the sequential product D.
 
 ---
 
-### Phase 10: Jacobson Application
+### Phase 15: First-Order Condition + Algebra Identification
 
-**Goal:** Jacobson's 2016 entanglement equilibrium condition is verified for the self-modeling lattice, and Einstein's field equations are derived as the leading-order IR effective description of the continuum limit.
+**Goal:** The maximal subalgebra A_F of M_n(C) satisfying the first-order condition [[D, a], Jb*J^{-1}] = 0 is identified, evaluated at n=2,3,4, and compared to the Standard Model algebra C + H + M_3(C).
 
-**Depends on:** Phase 8 (causal structure), Phase 9 (area-law entanglement)
+**Depends on:** Phase 14 (specific D from moduli space)
 
-**Requirements:** JACB-01, JACB-02
+**Requirements:** FRST-01, FRST-02, FRST-03, COMP-02 (partial: first-order verification at n=2,3,4)
 
 **Contract Coverage:**
-- Advances: claim-jacobson
-- Deliverables: Verification that the self-modeling lattice satisfies Jacobson 2016's maximal vacuum entanglement hypothesis (MVEH): delta S_EE = 0 for small geodesic balls; derivation of G_ab + Lambda g_ab = (8 pi G) T_ab in the continuum limit; identification of G = 1/(4 eta) in terms of self-modeling lattice parameters
-- Anchor coverage: ref-jacobson2016 (PREFERRED -- entanglement equilibrium, PRL 116, 201101), ref-jacobson1995 (original thermodynamic derivation), ref-lmvr2014 (entanglement first law), ref-ccm2017 (emergent spatial geometry as consistency check)
-- Forbidden proxies: Restating Jacobson's conditions without verifying they hold for self-modeling; citing Jacobson without connecting to the self-modeling lattice; hand-waving the continuum limit without framing it as a Wilsonian effective description
-- User-stated deliverable: Full nonlinear Einstein equations G_ab + Lambda g_ab = (8 pi G) T_ab
+- Advances: claim-first-order
+- Deliverables: Maximal subalgebra A_F identified as an abstract algebra with dimension and structure; explicit evaluation at n=2 (dim(A_F), structure), n=3, n=4; comparison to C + H + M_3(C); if A_F differs, characterization of the resulting gauge group
+- Anchor coverage: ref-chamseddine-connes2008 (first-order condition -> C + H + M_3(C) in CCM setting), Chamseddine-Connes-van Suijlekom 2013 (Pati-Salam fallback), ref-van-suijlekom2024 (first-order condition as linear algebra)
+- Forbidden proxies: Assuming A_F = C + H + M_3(C) without computing the first-order condition; claiming SM gauge group without checking all factors of the algebra; checking first-order condition for only some a,b
+- User-stated observable: What algebra A_F the first-order condition forces; for which n (if any) A_F = C + H + M_3(C)
 
 **Success Criteria** (what must be TRUE):
 
-1. The entanglement first law delta S = delta <K> is verified for the self-modeling lattice state from Phase 9, with K = -ln(rho_A) identified as the modular Hamiltonian of the reduced state
-2. Jacobson 2016's MVEH (maximal vacuum entanglement hypothesis) is either (a) verified to hold for the self-modeling area-law state, or (b) identified as an additional assumption with clear statement of what self-modeling property would establish it
-3. The continuum limit is framed as a Wilsonian effective description: lattice = UV completion, Einstein's equations = leading-order IR theory at scales >> lattice spacing, with the lattice spacing a as the cutoff
-4. Einstein's field equations G_ab + Lambda g_ab = (8 pi G) T_ab are derived in the continuum limit, with G = 1/(4 eta) where eta is the entanglement entropy density, and Lambda appearing as an undetermined integration constant
-5. The argument addresses the three historical Jacobson inputs -- (i) area-law entropy (from Phase 9), (ii) local equilibrium / entanglement equilibrium (verified or assumed), (iii) boost generator / modular Hamiltonian (identified) -- with each input's status in the self-modeling framework made explicit
+1. [[D, a], Jb*J^{-1}] is computed for general a, b in M_n(C), recast as a linear constraint Mv = 0 on the algebra elements, and the null space (= A_F) is determined
+2. A_F is identified as an abstract *-algebra: its dimension, simple summands, and center are computed
+3. At n=2, 3, 4: A_F is evaluated explicitly, with dim(A_F) and isomorphism type determined by SymPy null space computation
+4. Comparison with C + H + M_3(C) (dim = 14, summands = C + H + M_3(C)) is made; if A_F matches, the gauge group U(1) x SU(2) x SU(3) is confirmed; if A_F differs, the actual gauge group is identified
+5. If the first-order condition fails entirely (A_F = C only, or trivial), the Pati-Salam fallback (Chamseddine-Connes-van Suijlekom 2013) is evaluated
 
-**Plans:** 3 plans
-
-Plans:
-- [ ] 10-01-PLAN.md -- Wilsonian continuum limit framework + MVEH as Assumption A5 + Jacobson input status
-- [ ] 10-02-PLAN.md -- Jacobson 2016 derivation: Raychaudhuri + CHM modular Hamiltonian + MVEH -> Einstein equations
-- [ ] 10-03-PLAN.md -- Master theorem synthesis + gap statement + known limits + Phase 11-12 interface
+**Plans:** TBD
 
 **Backtracking triggers:**
-- If the entanglement first law does not hold for the self-modeling state (e.g., the state is not differentiable under perturbations) -> investigate whether an approximate first law suffices.
-- If MVEH cannot be verified or motivated from self-modeling properties -> identify as a gap in Paper 6, not a roadblock. Jacobson's argument still applies conditionally.
-- If the continuum limit produces f(R) gravity instead of Einstein's equations -> indicates non-equilibrium effects. Revisit the equilibrium assumption.
+- If A_F is trivial (C only) for all D in the moduli space -> the first-order condition is too restrictive; investigate whether relaxing it (as in CCSV 2013) gives Pati-Salam.
+- If A_F depends sensitively on which D is chosen from the moduli space -> document the D-dependence; identify whether self-modeling selects a preferred D.
 
 ---
 
-### Phase 11: Numerical Verification
+### Phase 16: Remaining Axioms + Classification
 
-**Goal:** Area-law scaling and entanglement structure are verified numerically on small self-modeling lattices, benchmarked against known models.
+**Goal:** All remaining spectral triple axioms are verified or their failure documented, the CCM classification hypotheses are assessed, and a complete axiom checklist is produced.
 
-**Depends on:** Phase 8 (interaction Hamiltonian -- needed for self-modeling lattice numerics)
-**Partial parallelism:** Benchmark computations on known models (Heisenberg chain, transverse Ising) can begin immediately, without Phase 8. Self-modeling-specific numerics require Phase 8's Hamiltonian.
+**Depends on:** Phase 13 (order zero), Phase 14 (D), Phase 15 (A_F)
 
-**Requirements:** NUMR-01
+**Requirements:** AXVM-02, AXVM-03, COMP-02 (partial: remaining axiom checks at n=3,4)
 
 **Contract Coverage:**
-- Advances: claim-area-law (numerical support)
-- Deliverables: Area-law scaling data with fit statistics (R^2 for area-law vs volume-law fits); benchmark validation on Heisenberg and transverse Ising models; S(A) vs |boundary(A)| and |volume(A)| regression for self-modeling lattice
-- Anchor coverage: Known benchmarks (Heisenberg chain, transverse Ising at criticality and away from criticality) as positive and negative controls
-- Forbidden proxies: Only checking 1D without attempting 2D (if feasible); reporting scaling without fit statistics; claiming area law without distinguishing from volume law quantitatively
+- Advances: claim-axioms (completion)
+- Deliverables: Orientability check with expected failure documented per Barrett 2007/Stephan 2006; Poincare duality (intersection form) computed; irreducibility, quaternion linearity, unimodularity, massivity conditions assessed; complete axiom checklist with pass/fail status for each
+- Anchor coverage: ref-connes1995 (full axiom list), ref-van-suijlekom2024 (Poincare duality, orientability), Barrett 2007 (orientability failure precedent), Cacic 2009 (Poincare duality for finite triples)
+- Forbidden proxies: Claiming "spectral triple established" without checking all non-trivial axioms; ignoring CCM classification hypotheses (irreducibility, quaternion linearity, unimodularity) when comparing to SM
 
 **Success Criteria** (what must be TRUE):
 
-1. Benchmark models reproduce known results: (a) gapped 1D Heisenberg/Ising shows S(A) = O(1) (area law), (b) critical 1D Ising shows S(A) ~ (c/6) ln(L) (log violation), confirming the numerical infrastructure is correct
-2. Self-modeling lattice (exact diagonalization, N = 16-20 qubits / 8-10 M_2(C)^sa sites in 1D) shows area-law scaling: R^2 > 0.9 for S(A) vs |boundary(A)| fit, R^2 < 0.5 for S(A) vs |volume(A)| fit
-3. If 2D is computationally feasible (4x4 lattice, 16 qubits): area-law scaling verified in 2D with the same fit criteria
-4. Entanglement entropy values are converged (insensitive to numerical precision artifacts) and error bars from finite-size effects are estimated
+1. Orientability (existence of Hochschild cycle c with gamma = pi(c)Jpi(c')J^{-1}) is checked; expected failure documented with precedent citations (Barrett 2007, Stephan 2006) showing this is standard for KO-dim 6 finite triples
+2. Poincare duality (non-degeneracy of the intersection form on K-theory) is computed for the candidate spectral triple; pass or fail with explicit calculation
+3. CCM classification hypotheses assessed: (a) irreducibility -- does A act irreducibly on each summand? (b) quaternion linearity -- does A contain a quaternion subalgebra acting on the appropriate sector? (c) unimodularity -- does det(u) = 1 for the gauge group? (d) massivity -- is D generically non-degenerate?
+4. Complete axiom checklist produced with status for each axiom: order zero (Phase 13), KO-dim 6 signs (verified in preliminary work), Dirac operator (Phase 14), first-order condition (Phase 15), orientability, Poincare duality, CCM hypotheses
+5. An honest assessment of which axioms hold, which fail (with severity: fatal vs expected/non-fatal), and what the overall status of the spectral triple is
 
-**Plans:** 3 plans
-
-Plans:
-- [x] 11-01-PLAN.md -- ED infrastructure + TFI/Heisenberg benchmarks (wave 1)
-- [x] 11-02-PLAN.md -- Self-modeling lattice 1D + 2D area-law verification (wave 2, depends on 01)
-- [x] 11-03-PLAN.md -- Modular Hamiltonian locality + MVEH qualitative check (wave 2, depends on 01)
+**Plans:** TBD
 
 **Backtracking triggers:**
-- If the self-modeling lattice shows volume-law scaling -> contradicts Phase 9 argument. Return to Phase 9 for debugging.
-- If benchmark models fail to reproduce known results -> numerical infrastructure error. Debug before proceeding to self-modeling lattice.
+- If Poincare duality fails -> investigate whether modification of the construction can restore it; this would be a more serious failure than orientability.
+- If CCM hypotheses fail -> the classification theorem does not directly apply; document what weaker classification (if any) does apply.
 
 ---
 
-### Phase 12: Paper Assembly
+### Phase 17: Paper 7 Assembly
 
-**Goal:** Paper 6 "Spacetime from Self-Modeling" is assembled as a complete, self-contained manuscript presenting the derivation chain from self-modeling locality to Einstein's field equations, with precise gap identification and honest framing.
+**Goal:** Paper 7 "Spectral Triple from Self-Modeling" is assembled with the complete derivation chain, SymPy verification code, tiered success statement (strong/medium/informative failure), and honest gap identification.
 
-**Depends on:** Phase 8 (lattice), Phase 9 (area law), Phase 10 (Jacobson), Phase 11 (numerics)
+**Depends on:** Phase 13, Phase 14, Phase 15, Phase 16 (all prior v4.0 phases)
 
 **Requirements:** PAPR-01
 
 **Contract Coverage:**
-- Advances: claim-paper-6
-- Deliverables: Paper 6 manuscript (LaTeX, publication-ready) with: introduction motivating the chain, self-modeling lattice definition, area-law argument, Jacobson application, numerical verification, discussion with gap identification, bibliography
-- Anchor coverage: All v3.0 anchors cited (ref-jacobson1995, ref-jacobson2016, ref-hastings2007, ref-ccm2017, ref-paper5, ref-vanraamsdonk2010, ref-lmvr2014, ref-faulkner2014); Paper 5 cited as input
-- Forbidden proxies: Paper that glosses over gaps instead of identifying them precisely; hand-waving the locality -> area law step; overclaiming scope (lesson from v1.0 peer review)
-- User-stated deliverable: Paper 6, standalone, separate from Paper 5
+- Advances: claim-paper-7
+- Deliverables: Paper 7 manuscript (LaTeX, publication-ready) with: introduction extending Papers 5-6 chain, spectral triple construction, axiom verification, Dirac operator derivation, first-order condition and subalgebra identification, classification assessment, discussion with gap identification, bibliography; SymPy verification code as supplementary material
+- Anchor coverage: ref-connes1995 (cited), ref-chamseddine-connes2008 (cited), ref-van-suijlekom2024 (cited), ref-paper5 (cited as input), ref-paper6 (cited as input)
+- Forbidden proxies: Overclaiming (SM "derived") when conditions assumed; glossing over axiom failures; pattern matching without algebraic proof
+- User-stated deliverable: Paper 7, standalone, with tiered success statement
 
 **Success Criteria** (what must be TRUE):
 
-1. The paper presents the complete chain: self-modeling (Paper 5) -> local lattice (Phase 8) -> area-law entanglement (Phase 9) -> entanglement equilibrium (Phase 10) -> Einstein's field equations, with every step either a published result (cited) or a result argued in the paper
-2. Every gap in the argument is precisely identified -- e.g., "the area-law step assumes X, which we have established/not established because Y" -- with no hand-waving or elision of assumptions
-3. The paper is honest about what is derived vs assumed: self-modeling as sole premise, lattice topology as input, continuum limit as Wilsonian effective description, any additional assumptions for area law or MVEH
-4. Numerical results from Phase 11 are presented as supporting evidence with proper error quantification
-5. The paper is formatted for the target venue (PRD or Foundations of Physics) with abstract, introduction, main results, discussion, and complete bibliography
+1. The paper presents the complete chain: self-modeling (Paper 5) -> SWAP structure (Paper 6) -> doubled Hilbert space + J + gamma -> order zero -> Dirac operator -> first-order condition -> A_F, with every step either proved or gap-identified
+2. Tiered success statement is explicit: (a) STRONG: A_F = C + H + M_3(C) and all axioms hold (b) MEDIUM: non-trivial A_F with interesting gauge group but not SM (c) INFORMATIVE FAILURE: construction fails at specific axiom, failure mode characterized
+3. SymPy verification code for all algebraic identities is included as supplementary material, with instructions for reproduction
+4. Every gap and assumption is precisely identified; no hand-waving or elision
+5. The paper is formatted for target venue (J. Math. Phys. or Commun. Math. Phys.) with complete bibliography citing all active anchors
 
-**Plans:** 3 plans
-
-Plans:
-- [x] 12-01-PLAN.md -- LaTeX infrastructure + bibliography + Introduction (L1-L8 chain table) + Discussion (gaps, comparison, future work)
-- [x] 12-02-PLAN.md -- Technical core: Sec 2 (lattice), Sec 3 (area law), Sec 4 (entanglement equilibrium + MVEH dissolution), Sec 5 (Einstein's equations)
-- [x] 12-03-PLAN.md -- Sec 6 (numerical verification + figures) + final assembly + consistency verification
+**Plans:** TBD
 
 **Backtracking triggers:**
-- If assembling the chain reveals a logical gap not caught in Phases 8-10 -> return to the relevant phase.
-- If adversarial review (AI or human) identifies circularity or overclaiming -> revise specific sections.
+- If assembling the chain reveals a logical gap not caught in Phases 13-16 -> return to the relevant phase.
+- If adversarial review identifies circularity or overclaiming -> revise specific sections.
 
 ## Phase Dependencies
 
 | Phase | Depends On | Enables | Critical Path? |
 |-------|-----------|---------|:-:|
-| 8 - Locality Formalization | Paper 5 (v2.0) | 9, 10, 11 | Yes |
-| 9 - Area-Law Derivation | 8 | 10, 12 | Yes |
-| 10 - Jacobson Application | 8, 9 | 12 | Yes |
-| 11 - Numerical Verification | 8 (partial: benchmarks independent) | 12 | No (parallel with 9-10) |
-| 12 - Paper Assembly | 8, 9, 10, 11 | -- | Yes |
+| 13 - Order Zero + Representation Theory | Papers 5-6 (v2.0/v3.0) | 14, 15, 16 | Yes |
+| 14 - Dirac Operator Construction | 13 | 15, 16 | Yes |
+| 15 - First-Order Condition + Algebra ID | 14 | 16, 17 | Yes |
+| 16 - Remaining Axioms + Classification | 13, 14, 15 | 17 | No (parallel with 15 partially) |
+| 17 - Paper 7 Assembly | 13, 14, 15, 16 | -- | Yes |
 
-**Critical path:** 8 -> 9 -> 10 -> 12 (4 phases, minimum duration)
-**Parallelizable:** Phase 11 benchmark infrastructure begins immediately; self-modeling numerics run after Phase 8 completes, concurrent with Phases 9-10.
+**Critical path:** 13 -> 14 -> 15 -> 17 (4 phases, minimum duration)
+**Parallelizable:** Phase 16 (remaining axioms) can begin after Phase 14 completes for orientability/Poincare duality checks; first-order condition assessment requires Phase 15. In practice, Phase 16 is best done after Phase 15 since CCM hypothesis assessment needs A_F.
 
 **Execution order:**
 
 ```
-Wave 1: Phase 8 (sole entry point)
-Wave 2: Phase 9 + Phase 11 (benchmarks) -- parallel
-Wave 3: Phase 10 + Phase 11 (self-modeling numerics) -- parallel
-Wave 4: Phase 12 (requires all prior phases)
+Wave 1: Phase 13 (sole entry point -- gatekeeper)
+Wave 2: Phase 14 (requires Phase 13 bimodule structure)
+Wave 3: Phase 15 (requires Phase 14 D)
+Wave 4: Phase 16 (requires Phases 13-15 for complete assessment)
+Wave 5: Phase 17 (requires all prior phases)
 ```
 
 ## Risk Register
 
 | Phase | Top Risk | Probability | Impact | Mitigation |
 |-------|---------|:-:|:-:|-----------|
-| 8 | Self-modeling locality does not map onto Hamiltonian locality | LOW | FATAL | Contract stop/rethink condition. If the two locality notions are structurally incompatible, the entire v3.0 chain breaks. Return to user. |
-| 9 | Self-modeling state has volume-law, not area-law, entanglement | MEDIUM | FATAL | Try multiple routes (channel capacity, WVCH, Hastings). If all fail, the hypothesis is falsified. Document and return. |
-| 9 | Channel capacity route requires pure state; self-modeling fixed point is mixed | MEDIUM | HIGH | Fall back to WVCH (thermal) or Hastings (gapped). These routes have additional hypotheses to verify. |
-| 10 | No published lattice version of Jacobson exists; adaptation fails | MEDIUM | HIGH | Jacobson 2016 (entanglement equilibrium) is more lattice-compatible than 1995. Entanglement first law is an exact identity on any lattice. Gap is MVEH verification -- identify as explicit assumption if needed. |
-| 10 | Continuum limit produces modified gravity (f(R)) instead of GR | LOW | MEDIUM | Indicates non-equilibrium correction. Identify as gap in paper. |
-| 11 | Numerics contradict analytical area-law argument | LOW | HIGH | Debug: either numerics or analytics have an error. Systematically check. |
-| 12 | Logical gap discovered during paper assembly | LOW | MEDIUM | Return to relevant phase (8, 9, or 10) to close it. |
+| 13 | Order zero condition fails for naive algebra action | MEDIUM | HIGH | Standard tensor product argument suggests it should hold; if fails, search for modified action or subalgebra. Not fatal if alternative action found. |
+| 13 | Dimension counting 2n^2 vs k^2 has no solution | MEDIUM | MEDIUM | May indicate self-modeling triple differs from CCM in generation structure. Document and proceed -- first-order condition is the real test. |
+| 14 | D moduli space is empty or trivial (D=0 only) | LOW | FATAL | Reconsider gamma or J definitions. Explore alternative grading from Paper 6. |
+| 14 | Sequential product asymmetry violates JD = DJ | MEDIUM | HIGH | Fall back to generic D from moduli space. Loss of "derived from self-modeling" narrative but spectral triple may still exist. |
+| 15 | First-order condition gives trivial A_F (= C only) | MEDIUM | HIGH | Try all D in moduli space. If all give trivial A_F, relax first-order condition -> Pati-Salam (CCSV 2013). |
+| 15 | A_F is non-trivial but not C + H + M_3(C) | MEDIUM | MEDIUM | Still publishable. Characterize actual gauge group. Pati-Salam is a viable outcome. |
+| 16 | Poincare duality fails | LOW | MEDIUM | More serious than orientability. Investigate construction modifications. |
+| 17 | Results are negative (no spectral triple) | LOW | LOW | Informative failure is still publishable if failure mode is characterized. Paper becomes "obstruction theorem." |
 
 ## Progress
 
-**Execution Order:** 8 -> (9, 11-benchmarks) -> (10, 11-self-modeling) -> 12
+**Execution Order:** 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 8. Locality Formalization | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 9. Area-Law Derivation | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 10. Jacobson Application | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 11. Numerical Verification | v3.0 | 3/3 | Complete | 2026-03-22 |
-| 12. Paper Assembly | v3.0 | 3/3 | Complete | 2026-03-22 |
+| 13. Order Zero + Representation Theory | v4.0 | 0/TBD | Not started | - |
+| 14. Dirac Operator Construction | v4.0 | 0/TBD | Not started | - |
+| 15. First-Order Condition + Algebra ID | v4.0 | 0/TBD | Not started | - |
+| 16. Remaining Axioms + Classification | v4.0 | 0/TBD | Not started | - |
+| 17. Paper 7 Assembly | v4.0 | 0/TBD | Not started | - |

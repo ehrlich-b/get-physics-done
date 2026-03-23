@@ -5,18 +5,18 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the self-modeling composite carry a real spectral triple of KO-dimension 6, giving A_F = C + H + M_3(C) (Standard Model)?
-**Current focus:** Milestone v4.0 initialized -- defining objectives
+**Current focus:** Phase 13 -- Order Zero + Representation Theory (gatekeeper)
 
 ## Current Position
 
-**Current Phase:** --
-**Current Phase Name:** --
-**Total Phases:** -- (to be determined by roadmap)
+**Current Phase:** 13
+**Current Phase Name:** Order Zero + Representation Theory
+**Total Phases:** 5 (Phases 13-17)
 **Current Plan:** --
-**Total Plans in Phase:** --
-**Status:** Defining objectives for v4.0 Spectral Triple from Self-Modeling
+**Total Plans in Phase:** TBD
+**Status:** Ready to plan
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Started milestone v4.0: Spectral Triple from Self-Modeling
+**Last Activity Description:** Roadmap created for v4.0 (Phases 13-17); Phase 13 is gatekeeper
 
 **Progress:** [..........] 0% (v4.0)
 
