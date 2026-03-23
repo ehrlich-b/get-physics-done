@@ -695,3 +695,112 @@ def test_barrett_vs_general_d(n):
         assert compute_af_dim(n, D_g) == 1, (
             f"n={n}: General D gives wrong dim(A_F)"
         )
+
+
+# ===========================================================================
+# I. Phase synthesis tests -- Plan 15-02 Task 2
+# ===========================================================================
+
+def test_synthesis_table():
+    """Generate and verify the n vs dim(A_F) synthesis table."""
+    rng = np.random.default_rng(20260323 + 700)
+    results = {}
+    for n in [2, 3, 4]:
+        # Barrett
+        K = random_symmetric_real(n, rng)
+        D_b = build_barrett_D(n, K)
+        af_barrett = compute_af_dim(n, D_b)
+
+        # General
+        D_g = build_general_D(n, rng)
+        af_general = compute_af_dim(n, D_g)
+
+        results[n] = {
+            'moduli_dim': n * n * (n * n + 1),
+            'barrett_dim': n * (n + 1) // 2,
+            'af_barrett': af_barrett,
+            'af_general': af_general,
+        }
+
+    # Verify table entries
+    for n in [2, 3, 4]:
+        r = results[n]
+        assert r['moduli_dim'] == n * n * (n * n + 1)
+        assert r['barrett_dim'] == n * (n + 1) // 2
+        assert r['af_barrett'] == n * n, f"n={n}: Barrett af={r['af_barrett']}"
+        assert r['af_general'] == 1, f"n={n}: General af={r['af_general']}"
+
+
+def test_af_is_star_subalgebra_general_d():
+    """A_F = C*I is a *-subalgebra: closed under product and adjoint."""
+    n = 2
+    rng = np.random.default_rng(42)
+    D = build_general_D(n, rng)
+
+    # a = alpha * I for various alpha
+    for alpha in [1.0 + 0j, 1j, 2.0 + 3j]:
+        a = alpha * np.eye(n, dtype=complex)
+        pi_a = build_pi_a(n, a)
+        for k in range(n):
+            for l in range(n):
+                b = matrix_unit(n, k, l)
+                pi_o_b = build_pi_o_b(n, b)
+                dc = double_commutator(D, pi_a, pi_o_b)
+                err = np.linalg.norm(dc, 'fro')
+                assert err < 1e-12, (
+                    f"alpha={alpha}, b=E_{k}{l}: ||dc|| = {err}"
+                )
+
+
+def test_non_identity_violates_first_order_general_d():
+    """For general D, a = E_{01} (non-scalar) violates first-order condition."""
+    n = 2
+    rng = np.random.default_rng(42)
+    D = build_general_D(n, rng)
+
+    a = matrix_unit(n, 0, 1)  # E_{01}, not a scalar
+    pi_a = build_pi_a(n, a)
+
+    max_err = 0.0
+    for k in range(n):
+        for l in range(n):
+            b = matrix_unit(n, k, l)
+            pi_o_b = build_pi_o_b(n, b)
+            dc = double_commutator(D, pi_a, pi_o_b)
+            err = np.linalg.norm(dc, 'fro')
+            max_err = max(max_err, err)
+
+    assert max_err > 0.1, (
+        f"E_01 should violate first-order for general D, "
+        f"but max ||dc|| = {max_err:.4f}"
+    )
+
+
+def test_case_consistency():
+    """Verify characterization is internally consistent at all n."""
+    rng = np.random.default_rng(20260323 + 800)
+    for n in [2, 3, 4]:
+        # For general D: A_F = C (dim 1) is a *-subalgebra of M_n(C)
+        # Its gauge group = U(1)
+
+        # For Barrett D: A_F = M_n(C) (dim n^2) is a *-subalgebra
+        # Its gauge group = U(n)
+
+        # Containment: C subset M_n(C) -- correct
+        # Union: {Barrett D} union {general D} = full moduli -- the
+        # Barrett subspace is the ONLY locus with A_F = M_n(C)
+
+        # Verify: D = 0 (in both subspaces) gives A_F = M_n(C)
+        D_zero = np.zeros((2 * n * n, 2 * n * n), dtype=complex)
+        af_zero = compute_af_dim(n, D_zero)
+        assert af_zero == n * n, (
+            f"n={n}: D=0 should give A_F = M_n(C) (vacuous condition)"
+        )
+
+        # Verify: random Barrett gives n^2, random general gives 1
+        K = random_symmetric_real(n, rng)
+        D_b = build_barrett_D(n, K)
+        assert compute_af_dim(n, D_b) == n * n
+
+        D_g = build_general_D(n, rng)
+        assert compute_af_dim(n, D_g) == 1
