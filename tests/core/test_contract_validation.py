@@ -776,6 +776,108 @@ def test_contract_results_strict_mode_requires_explicit_uncertainty_markers() ->
         ContractResults.model_validate(normalize_contract_results_input({"claims": {}}, strict=True))
 
 
+def test_contract_results_strict_mode_rejects_scalar_uncertainty_marker_lists() -> None:
+    payload = {
+        "claims": {},
+        "deliverables": {},
+        "acceptance_tests": {},
+        "references": {},
+        "forbidden_proxies": {},
+        "uncertainty_markers": {
+            "weakest_anchors": "anchor-main",
+            "unvalidated_assumptions": ["assumption-main"],
+            "competing_explanations": ["alternative-main"],
+            "disconfirming_observations": "observation-main",
+        },
+    }
+
+    with pytest.raises(ValidationError) as excinfo:
+        ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
+
+    message = str(excinfo.value)
+    assert "uncertainty_markers.weakest_anchors must be a list, not str" in message
+    assert "uncertainty_markers.disconfirming_observations must be a list, not str" in message
+
+
+@pytest.mark.parametrize(
+    ("section_name", "entry_payload", "error_fragment"),
+    [
+        (
+            "claims",
+            {"status": "passed", "linked_ids": "deliv-main"},
+            "claims.claim-main.linked_ids must be a list, not str",
+        ),
+        (
+            "deliverables",
+            {"status": "passed", "linked_ids": "claim-main"},
+            "deliverables.deliv-main.linked_ids must be a list, not str",
+        ),
+        (
+            "acceptance_tests",
+            {"status": "passed", "linked_ids": "ref-main"},
+            "acceptance_tests.test-main.linked_ids must be a list, not str",
+        ),
+        (
+            "references",
+            {"status": "completed", "completed_actions": "compare"},
+            "references.ref-main.completed_actions must be a list, not str",
+        ),
+        (
+            "references",
+            {"status": "missing", "missing_actions": "cite"},
+            "references.ref-main.missing_actions must be a list, not str",
+        ),
+    ],
+)
+def test_contract_results_strict_mode_rejects_scalar_string_list_drift(
+    section_name: str,
+    entry_payload: dict[str, object],
+    error_fragment: str,
+) -> None:
+    entry_id_by_section = {
+        "claims": "claim-main",
+        "deliverables": "deliv-main",
+        "acceptance_tests": "test-main",
+        "references": "ref-main",
+    }
+    payload = {
+        section_name: {entry_id_by_section[section_name]: entry_payload},
+        "uncertainty_markers": {
+            "weakest_anchors": ["anchor-main"],
+            "disconfirming_observations": ["observation-main"],
+        },
+    }
+
+    with pytest.raises(ValidationError, match=re.escape(error_fragment)):
+        ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
+
+
+def test_contract_results_non_strict_mode_preserves_existing_scalar_to_list_normalization() -> None:
+    payload = {
+        "claims": {
+            "claim-main": {
+                "status": "passed",
+                "linked_ids": "deliv-main",
+            }
+        },
+        "references": {
+            "ref-main": {
+                "status": "completed",
+                "completed_actions": "compare",
+            }
+        },
+        "uncertainty_markers": {
+            "weakest_anchors": ["anchor-main"],
+            "disconfirming_observations": ["observation-main"],
+        },
+    }
+
+    parsed = ContractResults.model_validate(normalize_contract_results_input(payload, strict=False))
+
+    assert parsed.claims["claim-main"].linked_ids == ["deliv-main"]
+    assert parsed.references["ref-main"].completed_actions == ["compare"]
+
+
 def test_plan_contract_schema_uses_supported_contract_enum_values() -> None:
     schema_text = (TEMPLATES_DIR / "plan-contract-schema.md").read_text(encoding="utf-8")
 

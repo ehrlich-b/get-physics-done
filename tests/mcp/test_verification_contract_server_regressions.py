@@ -76,6 +76,97 @@ def _derived_template_contract() -> dict[str, object]:
     return contract
 
 
+def _multi_limit_contract() -> dict[str, object]:
+    contract = copy.deepcopy(_load_project_contract_fixture())
+    contract["observables"][0]["regime"] = "large-k"
+    contract["claims"][0]["acceptance_tests"].append("test-limit-large-k")
+    contract["acceptance_tests"].append(
+        {
+            "id": "test-limit-large-k",
+            "subject": "claim-benchmark",
+            "kind": "limiting_case",
+            "procedure": "Evaluate the large-k limit against the asymptotic target.",
+            "pass_condition": "Recovers the contracted large-k scaling",
+            "evidence_required": ["deliv-figure"],
+            "automation": "automated",
+        }
+    )
+    contract["observables"].append(
+        {
+            "id": "obs-small-k",
+            "name": "small-k observable",
+            "kind": "scalar",
+            "definition": "Secondary observable tracked in the small-k regime",
+            "regime": "small-k",
+        }
+    )
+    contract["deliverables"].append(
+        {
+            "id": "deliv-small-k",
+            "kind": "figure",
+            "path": "figures/small-k.png",
+            "description": "Small-k comparison figure",
+            "must_contain": ["small-k branch"],
+        }
+    )
+    contract["claims"].append(
+        {
+            "id": "claim-small-k",
+            "statement": "Recover the small-k limiting behavior",
+            "observables": ["obs-small-k"],
+            "deliverables": ["deliv-small-k"],
+            "acceptance_tests": ["test-limit-small-k"],
+            "references": [],
+        }
+    )
+    contract["acceptance_tests"].append(
+        {
+            "id": "test-limit-small-k",
+            "subject": "claim-small-k",
+            "kind": "limiting_case",
+            "procedure": "Evaluate the small-k limit against the asymptotic target.",
+            "pass_condition": "Recovers the contracted small-k scaling",
+            "evidence_required": ["deliv-small-k"],
+            "automation": "automated",
+        }
+    )
+    return contract
+
+
+def _ambiguous_request_template_contract() -> dict[str, object]:
+    contract = _multi_limit_contract()
+    contract["references"].append(
+        {
+            "id": "ref-benchmark-2",
+            "locator": "doi:10.1000/second-benchmark",
+            "role": "benchmark",
+            "why_it_matters": "Second benchmark anchor for ambiguity coverage",
+            "required_actions": ["compare"],
+            "applies_to": ["claim-benchmark"],
+            "must_surface": True,
+        }
+    )
+    contract["acceptance_tests"].append(
+        {
+            "id": "test-benchmark-2",
+            "subject": "claim-benchmark",
+            "kind": "benchmark",
+            "procedure": "Compare against the second benchmark reference.",
+            "pass_condition": "Matches the second benchmark within tolerance",
+            "evidence_required": ["ref-benchmark-2"],
+            "automation": "automated",
+        }
+    )
+    contract["claims"][0]["acceptance_tests"].append("test-benchmark-2")
+    contract["approach_policy"] = {
+        "allowed_fit_families": ["power_law", "spline"],
+        "forbidden_fit_families": ["polynomial"],
+        "allowed_estimator_families": ["bootstrap", "jackknife"],
+        "forbidden_estimator_families": [],
+    }
+    return contract
+
+
 def _assert_contract_tools_reject(contract: dict[str, object], expected_error: str) -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 
@@ -301,6 +392,114 @@ def test_run_contract_check_reuses_contract_derived_limit_and_family_defaults() 
     assert limit["status"] == "pass"
     assert fit["status"] == "pass"
     assert estimator["status"] == "pass"
+
+
+def test_run_contract_check_limit_recovery_uses_bound_acceptance_test_pass_condition() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.limit_recovery",
+            "contract": _multi_limit_contract(),
+            "binding": {"acceptance_test_ids": ["test-limit-small-k"]},
+            "observed": {"limit_passed": True, "observed_limit": "small-k"},
+        }
+    )
+
+    assert result["status"] == "pass"
+    assert result["missing_inputs"] == []
+    assert result["metrics"]["regime_label"] == "small-k"
+
+
+def test_run_contract_check_direct_proxy_consistency_marks_missing_direct_anchor_as_missing_evidence() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.direct_proxy_consistency",
+            "observed": {"proxy_available": True},
+        }
+    )
+
+    assert result["status"] == "insufficient_evidence"
+    assert result["missing_inputs"] == ["observed.direct_available"]
+    assert result["automated_issues"] == []
+
+
+def test_run_contract_check_direct_proxy_consistency_requires_consistency_comparison_when_both_sources_exist() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.direct_proxy_consistency",
+            "observed": {"direct_available": True, "proxy_available": True},
+        }
+    )
+
+    assert result["status"] == "insufficient_evidence"
+    assert result["missing_inputs"] == ["observed.consistency_passed"]
+
+
+def test_run_contract_check_estimator_negative_diagnostics_are_not_treated_as_missing_inputs() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.estimator_family_mismatch",
+            "contract": _derived_template_contract(),
+            "observed": {
+                "selected_family": "bootstrap",
+                "bias_checked": False,
+                "calibration_checked": False,
+            },
+        }
+    )
+
+    assert result["status"] == "warning"
+    assert result["missing_inputs"] == []
+    assert "Estimator family is missing bias or calibration diagnostics" in result["automated_issues"]
+
+
+def test_suggest_contract_checks_leaves_ambiguous_metadata_placeholders_unresolved() -> None:
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    result = suggest_contract_checks(_ambiguous_request_template_contract())
+    checks = {entry["check_key"]: entry for entry in result["suggested_checks"]}
+
+    benchmark = checks["contract.benchmark_reproduction"]["request_template"]
+    limit = checks["contract.limit_recovery"]["request_template"]
+    fit = checks["contract.fit_family_mismatch"]["request_template"]
+    estimator = checks["contract.estimator_family_mismatch"]["request_template"]
+
+    assert benchmark["metadata"]["source_reference_id"] is None
+    assert limit["metadata"]["regime_label"] is None
+    assert limit["metadata"]["expected_behavior"] is None
+    assert fit["metadata"]["declared_family"] is None
+    assert estimator["metadata"]["declared_family"] is None
+
+
+def test_run_contract_check_keyword_fallback_does_not_raise_warning_while_required_inputs_are_missing() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    limit = run_contract_check(
+        {
+            "check_key": "contract.limit_recovery",
+            "artifact_content": "Observed asymptotic limit and scaling discussion.",
+        }
+    )
+    benchmark = run_contract_check(
+        {
+            "check_key": "contract.benchmark_reproduction",
+            "artifact_content": "Published benchmark baseline comparison appears in prose.",
+        }
+    )
+
+    assert limit["status"] == "insufficient_evidence"
+    assert "metadata.regime_label" in limit["missing_inputs"]
+    assert "metadata.expected_behavior" in limit["missing_inputs"]
+    assert benchmark["status"] == "insufficient_evidence"
+    assert "metadata.source_reference_id" in benchmark["missing_inputs"]
+    assert "observed.metric_value" in benchmark["missing_inputs"]
 
 
 def test_suggest_contract_checks_surfaces_salvage_warnings() -> None:

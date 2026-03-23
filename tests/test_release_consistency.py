@@ -552,6 +552,69 @@ def test_public_cli_docs_cover_project_contract_comparison_and_paper_build() -> 
     assert "`gpd paper-build [PAPER-CONFIG.json] [--output-dir <dir>]`" in readme
 
 
+def test_help_reference_surfaces_clarify_runtime_slash_commands_vs_local_cli() -> None:
+    repo_root = _repo_root()
+    help_command = (repo_root / "src/gpd/commands/help.md").read_text(encoding="utf-8")
+    help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
+
+    required_snippets = (
+        "`/gpd:*`",
+        "in-runtime",
+        "slash-command",
+        "local `gpd` CLI",
+        "gpd --help",
+        "gpd validate command-context gpd:<name>",
+    )
+
+    for snippet in required_snippets:
+        assert snippet in help_command
+        assert snippet in help_workflow
+
+
+def test_help_reference_surfaces_keep_regression_check_wording_aligned_with_implementation() -> None:
+    repo_root = _repo_root()
+    help_command = (repo_root / "src/gpd/commands/help.md").read_text(encoding="utf-8")
+    help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
+
+    for content in (help_command, help_workflow):
+        assert "SUMMARY" in content
+        assert "frontmatter" in content
+        assert "convention conflicts" in content
+        assert "VERIFICATION" in content
+        assert "canonical statuses" in content
+        assert "re-runs dimensional analysis" not in content
+        assert "re-runs limiting cases" not in content
+        assert "re-runs numerical checks" not in content
+
+
+def test_regression_check_canonical_surfaces_match_scan_only_implementation() -> None:
+    repo_root = _repo_root()
+    command = (repo_root / "src/gpd/commands/regression-check.md").read_text(encoding="utf-8")
+    workflow = (repo_root / "src/gpd/specs/workflows/regression-check.md").read_text(encoding="utf-8")
+    transition = (repo_root / "src/gpd/specs/workflows/transition.md").read_text(encoding="utf-8")
+    verify_work = (repo_root / "src/gpd/specs/workflows/verify-work.md").read_text(encoding="utf-8")
+
+    for content in (command, workflow):
+        assert "does **not** re-run physics, numerical, dimensional, or contract verification" in content
+        assert "SUMMARY.md" in content
+        assert "VERIFICATION.md" in content
+        assert "convention_conflict" in content or "convention conflicts" in content
+        assert "invalid_verification_status" in content or "invalid" in content
+        assert "REGRESSION-REPORT.md" not in content
+        assert "re-check verified targets" not in content
+        assert "re-runs limiting cases" not in content
+
+    assert "frontmatter" in transition
+    assert "invalid verification statuses" in transition
+    assert "/gpd:verify-work <phase>" in transition
+    assert "| Result conflict |" not in transition
+
+    assert "re-verify previously validated contract-backed outcomes" not in verify_work
+    assert "SUMMARY.md" in verify_work
+    assert "VERIFICATION.md" in verify_work
+    assert "frontmatter" in verify_work
+
+
 def test_public_runtime_command_table_has_unique_entries() -> None:
     repo_root = _repo_root()
     lines = (repo_root / "README.md").read_text(encoding="utf-8").splitlines()

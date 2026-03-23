@@ -779,11 +779,19 @@ def test_planning_and_phase_templates_surface_active_reference_context() -> None
 
 def test_progress_workflow_surfaces_contract_load_and_validation_state() -> None:
     workflow_text = (WORKFLOWS_DIR / "progress.md").read_text(encoding="utf-8")
+    command_text = (COMMANDS_DIR / "progress.md").read_text(encoding="utf-8")
 
     assert "project_contract_validation" in workflow_text
     assert "project_contract_load_info" in workflow_text
     assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in workflow_text
     assert "structured load status, warnings, and blockers for the contract" in workflow_text
+    status_scan = 'grep -l -E "^(status: (gaps_found|human_needed|expert_needed)|session_status: diagnosed)$"'
+    assert status_scan in workflow_text
+    assert status_scan in command_text
+    assert 'status: (gaps_found|diagnosed|human_needed|expert_needed)' not in workflow_text
+    assert 'status: (gaps_found|diagnosed|human_needed|expert_needed)' not in command_text
+    assert "`session_status: diagnosed`" in workflow_text
+    assert "`session_status: diagnosed`" in command_text
 
 
 def test_planning_prompts_keep_contract_gate_in_light_mode_and_all_modes() -> None:
@@ -943,6 +951,7 @@ def test_phase_research_and_verification_surfaces_keep_anchor_checks_mandatory()
 
 
 def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_ledgers() -> None:
+    contract_results_schema = (TEMPLATES_DIR / "contract-results-schema.md").read_text(encoding="utf-8")
     summary_template = (TEMPLATES_DIR / "summary.md").read_text(encoding="utf-8")
     verification_template = (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
     research_verification = (TEMPLATES_DIR / "research-verification.md").read_text(encoding="utf-8")
@@ -986,14 +995,31 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "weakest_anchors: [anchor-1]" in research_verification
     assert "disconfirming_observations: [observation-1]" in research_verification
     assert "session_status: validating | completed | diagnosed" in research_verification
+    assert "verified: 2026-03-15T14:45:00Z" in research_verification
+    assert "score: 3/4 contract targets verified" in research_verification
+    assert "session_status: diagnosed" in research_verification
+    assert "\nstatus: diagnosed\n" not in research_verification
+    assert 'status -> "completed"' not in research_verification
+    assert '`session_status` -> "diagnosed"' in research_verification
+    assert 'status -> "diagnosed"' not in research_verification
     assert "The frontmatter `comparison_verdicts` ledger is authoritative" in research_verification
+    assert "subject_role: decisive | supporting | supplemental | other" in research_verification
+    assert "Only `subject_role: decisive` closes a required decisive comparison" in research_verification
     assert "decisive benchmark / cross-method check remains partial, not attempted, or still lacks a decisive verdict" in research_verification
+    assert "even a single item must stay a YAML list" in contract_results_schema
+    assert "scalar strings are invalid" in contract_results_schema
+    assert "Even singleton values must stay YAML lists in strict contract-backed ledgers" in summary_template
+    assert "Even singleton values must stay YAML lists in strict contract-backed ledgers" in verification_template
     assert "claim_id" in research_verification
     assert "acceptance_test_id" in research_verification
     assert "frontmatter contract compatible with `@{GPD_INSTALL_DIR}/templates/verification-report.md`" in verify_workflow
     assert "status: passed | gaps_found | expert_needed | human_needed" in verify_workflow
     assert "session_status: validating" in verify_workflow
     assert "uncertainty_markers:" in verify_workflow
+    assert "weakest_anchors: [anchor-1]" in verify_workflow
+    assert "disconfirming_observations: [observation-1]" in verify_workflow
+    assert "weakest_anchors: []" not in verify_workflow
+    assert "disconfirming_observations: []" not in verify_workflow
     assert "Mirror decisive verdicts into frontmatter `comparison_verdicts`." in verify_workflow
     assert "structured `suggested_contract_checks` entry before final validation" in verify_workflow
     assert "request_template" in verify_workflow
@@ -1009,6 +1035,10 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "Each gap has: `subject_kind`" not in verifier_agent
     assert "Verification Status:** {passed | gaps_found | expert_needed | human_needed}" in verifier_agent
     assert "uncertainty_markers:" in verifier_agent
+    assert "weakest_anchors: [anchor-1]" in verifier_agent
+    assert "disconfirming_observations: [observation-1]" in verifier_agent
+    assert "weakest_anchors: []" not in verifier_agent
+    assert "disconfirming_observations: []" not in verifier_agent
     assert "`suggested_contract_check`" not in verifier_agent
     assert "`contract_results` is authoritative." in execute_plan
     assert "project_contract_validation" in execute_plan
@@ -1532,6 +1562,31 @@ def test_stage5_execution_surfaces_use_bounded_review_cadence_and_first_result_g
     assert "execution_segment" in continuation
     assert "Required Checkpoint Payload" in checkpoints
     assert "rollback primitive" in checkpoint_flow
+    assert "| `completed`    | -> update_roadmap (interactive verify-work equivalent)" not in execute_phase
+    assert "| `diagnosed`    | Gaps were debugged; review fixes, then -> update_roadmap" not in execute_phase
+    assert "| `validating`   | Verification in progress; wait or re-run verify-phase" not in execute_phase
+    assert "If the same report also carries `session_status: validating|completed|diagnosed`, treat that as conversational progress only." in execute_phase
+    assert "If the prior report carries `session_status: diagnosed`" in execute_phase
+
+
+def test_show_phase_workflow_distinguishes_verification_status_from_session_status() -> None:
+    show_phase = (WORKFLOWS_DIR / "show-phase.md").read_text(encoding="utf-8")
+
+    assert "read frontmatter to extract canonical verification `status`, plus `session_status` when present" in show_phase
+    assert "Automated verification uses `passed`/`gaps_found`/`expert_needed`/`human_needed`" in show_phase
+    assert "researcher-session progress uses `session_status: validating|completed|diagnosed`" in show_phase
+    assert "Automated verification uses `passed`/`gaps_found`/`human_needed`" not in show_phase
+    assert "interactive validation uses `validating`/`completed`/`diagnosed`" not in show_phase
+
+
+def test_debug_prompts_use_session_status_for_diagnosis_progress() -> None:
+    debug_workflow = (WORKFLOWS_DIR / "debug.md").read_text(encoding="utf-8")
+    debugger = (AGENTS_DIR / "gpd-debugger.md").read_text(encoding="utf-8")
+
+    assert 'set `session_status: diagnosed`' in debug_workflow
+    assert 'Update status in frontmatter to "diagnosed"' not in debug_workflow
+    assert 'update `session_status` to "diagnosed"' in debugger
+    assert 'Update status to "diagnosed"' not in debugger
 
 
 def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
@@ -1713,6 +1768,47 @@ def test_stage9_adaptive_mode_and_review_cadence_docs_stay_aligned() -> None:
     assert "There is no separate `adaptive_transition` block" in research_modes
     assert "The decision is evidence-driven, not phase-count-driven." in meta_orchestration
     assert "Proxy-only or sanity-only passes do NOT satisfy this." in meta_orchestration
+
+
+def test_help_surfaces_distinguish_runtime_slash_commands_from_local_cli_subcommands() -> None:
+    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+
+    for content in (help_command, help_workflow):
+        assert "`/gpd:*`" in content
+        assert "in-runtime" in content
+        assert "slash-command" in content
+        assert "local `gpd` CLI" in content
+        assert "gpd --help" in content
+        assert "gpd validate command-context gpd:<name>" in content
+
+
+def test_help_surfaces_describe_regression_check_as_metadata_scan_not_full_reverification() -> None:
+    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+
+    for content in (help_command, help_workflow):
+        assert "SUMMARY" in content
+        assert "frontmatter" in content
+        assert "convention conflicts" in content
+        assert "VERIFICATION" in content
+        assert "canonical statuses" in content
+        assert "re-runs dimensional analysis" not in content
+        assert "re-runs limiting cases" not in content
+        assert "re-runs numerical checks" not in content
+
+
+def test_help_surfaces_use_projectless_examples_that_satisfy_command_context_predicates() -> None:
+    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+
+    for content in (help_command, help_workflow):
+        assert 'Usage: `/gpd:derive-equation "derive the one-loop beta function"`' in content
+        assert "Usage: `/gpd:dimensional-analysis 3`" in content
+        assert "Usage: `/gpd:limiting-cases 3`" in content
+        assert "Usage: `/gpd:numerical-convergence 3`" in content
+        assert "Usage: `/gpd:compare-experiment predictions.csv experiment.csv`" in content
+        assert "Usage: `/gpd:sensitivity-analysis --target cross_section --params g,m,Lambda --method numerical`" in content
 
 
 def test_verification_and_publication_prompts_keep_decisive_contract_targets_reader_visible() -> None:

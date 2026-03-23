@@ -137,7 +137,7 @@ Look for:
 - `*-VERIFICATION.md` — automated physics checks
 - `*-VALIDATION.md` — researcher-reviewed validation
 
-For each file found, read frontmatter to extract `status`. Automated verification uses `passed`/`gaps_found`/`human_needed`; interactive validation uses `validating`/`completed`/`diagnosed`.
+For each file found, read frontmatter to extract canonical verification `status`, plus `session_status` when present. Automated verification uses `passed`/`gaps_found`/`expert_needed`/`human_needed`; researcher-session progress uses `session_status: validating|completed|diagnosed`.
 
 Present:
 

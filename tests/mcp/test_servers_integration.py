@@ -657,7 +657,8 @@ class TestSkillsServerIntegration:
         assert "error" not in result
         assert result["name"] == "gpd-help"
         assert "gpd command reference" in result["content"].lower()
-        assert "/gpd:" not in result["content"]
+        assert "`/gpd:*`" in result["content"]
+        assert "gpd validate command-context gpd:<name>" in result["content"]
         assert "gpd-new-project" in result["content"]
         assert result["file_count"] == 1
 

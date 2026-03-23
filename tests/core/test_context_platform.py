@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -246,3 +247,66 @@ def test_resolve_model_falls_back_to_platform_detection_when_runtime_detector_re
 
     assert result == "fallback-model"
     assert calls == {"project_dir": tmp_path, "agent_name": "gpd-executor", "runtime": runtime}
+
+
+def test_resolve_model_uses_runtime_unknown_constant_not_literal(tmp_path: Path) -> None:
+    runtime_unknown = "runtime-unknown"
+    calls: dict[str, object] = {}
+
+    def _fake_resolve_model(project_dir: Path, agent_name: str, runtime: str | None = None) -> str | None:
+        calls["project_dir"] = project_dir
+        calls["agent_name"] = agent_name
+        calls["runtime"] = runtime
+        return "default-model"
+
+    with (
+        patch("gpd.hooks.runtime_detect.RUNTIME_UNKNOWN", runtime_unknown),
+        patch("gpd.hooks.runtime_detect.detect_runtime_for_gpd_use", return_value=runtime_unknown),
+        patch.object(context_module, "_detect_platform", return_value=runtime_unknown),
+        patch.object(context_module, "_resolve_model_canonical", side_effect=_fake_resolve_model),
+    ):
+        result = context_module._resolve_model(tmp_path, "gpd-executor")
+
+    assert result == "default-model"
+    assert calls == {"project_dir": tmp_path, "agent_name": "gpd-executor", "runtime": None}
+
+
+def test_detect_platform_uses_runtime_unknown_constant_not_literal(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    runtime_unknown = "runtime-unknown"
+    installed_runtime = _RUNTIME_NAMES[0]
+
+    def _fake_detect_runtime_install_target(
+        runtime: str,
+        *,
+        cwd: Path | None = None,
+        home: Path | None = None,
+    ) -> object | None:
+        if runtime == installed_runtime:
+            return SimpleNamespace(config_dir=tmp_path / "installed", install_scope="local")
+        return None
+
+    with monkeypatch.context() as runtime_env:
+        _clear_runtime_env(runtime_env)
+        with (
+            patch("gpd.hooks.runtime_detect.RUNTIME_UNKNOWN", runtime_unknown),
+            patch("gpd.core.context.Path.home", return_value=tmp_path),
+            patch("gpd.hooks.runtime_detect.detect_active_runtime", return_value=runtime_unknown),
+            patch("gpd.hooks.runtime_detect.detect_runtime_for_gpd_use", return_value=runtime_unknown),
+            patch("gpd.hooks.runtime_detect.detect_runtime_install_target", side_effect=_fake_detect_runtime_install_target),
+        ):
+            assert context_module._detect_platform(tmp_path) == installed_runtime
+
+
+def test_detect_platform_degrades_cleanly_when_runtime_detect_import_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    runtime_detect_module = sys.modules.get("gpd.hooks.runtime_detect")
+    monkeypatch.setitem(sys.modules, "gpd.hooks.runtime_detect", None)
+    try:
+        assert context_module._detect_platform(tmp_path) == "unknown"
+    finally:
+        if runtime_detect_module is None:
+            sys.modules.pop("gpd.hooks.runtime_detect", None)
+        else:
+            monkeypatch.setitem(sys.modules, "gpd.hooks.runtime_detect", runtime_detect_module)

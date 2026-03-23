@@ -76,6 +76,14 @@ class _StrictContractResultsInput(dict[str, object]):
     """Marker mapping for strict contract-results validation contexts."""
 
 
+_STRICT_CONTRACT_RESULTS_STRING_LIST_FIELDS: dict[str, tuple[str, ...]] = {
+    "claims": ("linked_ids",),
+    "deliverables": ("linked_ids",),
+    "acceptance_tests": ("linked_ids",),
+    "references": ("completed_actions", "missing_actions"),
+}
+
+
 def _normalize_literal_choice(value: object, choices: tuple[str, ...]) -> object:
     if isinstance(value, str):
         stripped = value.strip()
@@ -148,8 +156,27 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
                     f"{section_name}.{entry_id}.status must be explicit in contract-backed contract_results"
                 )
 
+    for section_name, field_names in _STRICT_CONTRACT_RESULTS_STRING_LIST_FIELDS.items():
+        section = value.get(section_name)
+        if not isinstance(section, dict):
+            continue
+        for entry_id, entry in section.items():
+            if not isinstance(entry, dict):
+                continue
+            for field_name in field_names:
+                if isinstance(entry.get(field_name), str):
+                    errors.append(f"{section_name}.{entry_id}.{field_name} must be a list, not str")
+
     markers = value.get("uncertainty_markers")
     if isinstance(markers, dict):
+        for field_name in (
+            "weakest_anchors",
+            "unvalidated_assumptions",
+            "competing_explanations",
+            "disconfirming_observations",
+        ):
+            if isinstance(markers.get(field_name), str):
+                errors.append(f"uncertainty_markers.{field_name} must be a list, not str")
         if not markers.get("weakest_anchors"):
             errors.append(
                 "uncertainty_markers.weakest_anchors must be non-empty in contract-backed contract_results"

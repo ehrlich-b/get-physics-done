@@ -41,7 +41,7 @@ Parse `$ARGUMENTS` for specific check flags:
 - `--dimensional` — Run only dimensional analysis checks
 - `--limits` — Run only limiting case checks
 - `--convergence` — Run only numerical convergence checks
-- `--regression` — Run regression check (re-verify previously validated contract-backed outcomes)
+- `--regression` — Run regression scan (check `SUMMARY.md`/`VERIFICATION.md` frontmatter for convention conflicts and verification-state issues)
 - `--all` or no flags — Run full verification suite
 
 This allows targeted verification without running the full suite.
@@ -336,10 +336,10 @@ contract_results:
   references: {}
   forbidden_proxies: {}
   uncertainty_markers:
-    weakest_anchors: []
-    unvalidated_assumptions: []
-    competing_explanations: []
-    disconfirming_observations: []
+    weakest_anchors: [anchor-1]
+    unvalidated_assumptions: [assumption-1]
+    competing_explanations: [alternative-1]
+    disconfirming_observations: [observation-1]
 comparison_verdicts: []
 suggested_contract_checks: []
 source: [list of SUMMARY.md files]

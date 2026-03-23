@@ -52,8 +52,8 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
         "request_template": {
             "binding": {},
             "metadata": {
-                "regime_label": "infrared limit",
-                "expected_behavior": "matches the contracted asymptotic scaling",
+                "regime_label": None,
+                "expected_behavior": None,
             },
             "observed": {
                 "limit_passed": None,
@@ -72,7 +72,7 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
         "request_template": {
             "binding": {},
             "metadata": {
-                "source_reference_id": "ref-benchmark",
+                "source_reference_id": None,
             },
             "observed": {
                 "metric_value": None,
@@ -115,8 +115,8 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
         "request_template": {
             "binding": {},
             "metadata": {
-                "declared_family": "linear",
-                "allowed_families": ["linear", "quadratic"],
+                "declared_family": None,
+                "allowed_families": [],
                 "forbidden_families": [],
             },
             "observed": {
@@ -139,8 +139,8 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
         "request_template": {
             "binding": {},
             "metadata": {
-                "declared_family": "bootstrap",
-                "allowed_families": ["bootstrap", "jackknife"],
+                "declared_family": None,
+                "allowed_families": [],
                 "forbidden_families": [],
             },
             "observed": {
@@ -773,6 +773,9 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
             limit_tests,
             include_observable_binding=True,
         )
+        if limit_test is None:
+            binding_ids = {target: _binding_values_for_target(binding, target) for target in _BINDING_TARGETS}
+            limit_test = _resolve_single_limit_acceptance_test(contract, binding_ids)
         if limit_test is not None and limit_test.pass_condition:
             metadata["expected_behavior"] = limit_test.pass_condition
 
@@ -1761,6 +1764,142 @@ def _limit_regime_candidates(
     return [], None
 
 
+def _deliverable_ids_for_subject(
+    subject_id: str,
+    *,
+    claims_by_id: dict[str, object],
+    claims_by_deliverable: dict[str, list[str]],
+) -> list[str]:
+    claim = claims_by_id.get(subject_id)
+    if claim is not None:
+        return _unique_strings(claim.deliverables)
+    if subject_id in claims_by_deliverable:
+        return [subject_id]
+    return []
+
+
+def _observable_ids_for_subject(
+    subject_id: str,
+    *,
+    claims_by_id: dict[str, object],
+    claims_by_deliverable: dict[str, list[str]],
+) -> list[str]:
+    observable_ids: list[str] = []
+    for claim_id in _claim_ids_for_subject(
+        subject_id,
+        claims_by_id=claims_by_id,
+        claims_by_deliverable=claims_by_deliverable,
+    ):
+        claim = claims_by_id.get(claim_id)
+        if claim is None:
+            continue
+        observable_ids.extend(claim.observables)
+    return _unique_strings(observable_ids)
+
+
+def _resolve_single_limit_acceptance_test(
+    contract: ResearchContract,
+    binding_ids: dict[str, list[str]],
+) -> object | None:
+    """Return the uniquely bound limiting-case acceptance test when one can be resolved."""
+
+    limit_tests = _matching_acceptance_tests(
+        contract,
+        kinds=("limiting_case",),
+        keywords=("limit", "asymptotic", "boundary", "scaling"),
+    )
+    if not limit_tests:
+        return None
+
+    tests_by_id = {test.id: test for test in limit_tests}
+    bound_acceptance_tests = [
+        tests_by_id[test_id]
+        for test_id in binding_ids.get("acceptance_test", [])
+        if test_id in tests_by_id
+    ]
+    if len(bound_acceptance_tests) == 1:
+        return bound_acceptance_tests[0]
+    if len(bound_acceptance_tests) > 1:
+        return None
+
+    claims_by_id = {claim.id: claim for claim in contract.claims}
+    claims_by_deliverable = _claim_ids_by_deliverable(contract)
+    references_by_id = {reference.id: reference for reference in contract.references}
+    candidates = list(limit_tests)
+
+    claim_ids = set(binding_ids.get("claim", []))
+    if claim_ids:
+        candidates = [
+            test
+            for test in candidates
+            if claim_ids.intersection(
+                _claim_ids_for_subject(
+                    test.subject,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+        ]
+
+    deliverable_ids = set(binding_ids.get("deliverable", []))
+    if deliverable_ids:
+        candidates = [
+            test
+            for test in candidates
+            if deliverable_ids.intersection(
+                _deliverable_ids_for_subject(
+                    test.subject,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+        ]
+
+    observable_ids = set(binding_ids.get("observable", []))
+    if observable_ids:
+        candidates = [
+            test
+            for test in candidates
+            if observable_ids.intersection(
+                _observable_ids_for_subject(
+                    test.subject,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+        ]
+
+    reference_ids = set(binding_ids.get("reference", []))
+    if reference_ids:
+        reference_subject_claim_ids: set[str] = set()
+        for reference_id in reference_ids:
+            reference = references_by_id.get(reference_id)
+            if reference is None:
+                continue
+            for subject_id in reference.applies_to:
+                reference_subject_claim_ids.update(
+                    _claim_ids_for_subject(
+                        subject_id,
+                        claims_by_id=claims_by_id,
+                        claims_by_deliverable=claims_by_deliverable,
+                    )
+                )
+        candidates = [
+            test
+            for test in candidates
+            if reference_ids.intersection(test.evidence_required)
+            or reference_subject_claim_ids.intersection(
+                _claim_ids_for_subject(
+                    test.subject,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+        ]
+
+    return candidates[0] if len(candidates) == 1 else None
+
+
 def _summarize_contract_salvage_errors(errors: list[str]) -> str:
     if not errors:
         return ""
@@ -2038,17 +2177,7 @@ def _with_contract_policy_defaults(
             if len(candidates) == 1:
                 enriched["regime_label"] = candidates[0]
         if not enriched.get("expected_behavior"):
-            limit_tests = _matching_acceptance_tests(
-                contract,
-                kinds=("limiting_case",),
-                keywords=("limit", "asymptotic", "boundary", "scaling"),
-            )
-            limit_test = _apply_single_acceptance_test_binding(
-                {},
-                contract,
-                limit_tests,
-                include_observable_binding=True,
-            )
+            limit_test = _resolve_single_limit_acceptance_test(contract, binding_ids)
             if limit_test is not None and limit_test.pass_condition:
                 enriched["expected_behavior"] = limit_test.pass_condition
 
@@ -2317,7 +2446,11 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                     automated_issues.append("Observed limit behavior does not match the contracted asymptotic expectation")
                     status = "fail"
                     evidence_directness = "direct"
-                elif artifact_content and any(token in artifact_content.lower() for token in ["limit", "asymptotic", "scaling", "boundary"]):
+                elif (
+                    artifact_content
+                    and not missing_inputs
+                    and any(token in artifact_content.lower() for token in ["limit", "asymptotic", "scaling", "boundary"])
+                ):
                     status = "warning"
                     evidence_directness = "mixed"
                 elif not missing_inputs:
@@ -2363,7 +2496,11 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                     else:
                         automated_issues.append("Benchmark comparison exceeds the allowed tolerance")
                         status = "fail"
-                elif artifact_content and any(token in artifact_content.lower() for token in ["benchmark", "baseline", "published", "reference"]):
+                elif (
+                    artifact_content
+                    and not missing_inputs
+                    and any(token in artifact_content.lower() for token in ["benchmark", "baseline", "published", "reference"])
+                ):
                     status = "warning"
                     evidence_directness = "mixed"
 
@@ -2397,18 +2534,28 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                         "consistency_passed": consistency_passed,
                     }
                 )
-                if proxy_only or (proxy_available and not direct_available):
+                if proxy_only is True:
                     automated_issues.append("Proxy evidence was supplied without a decisive direct observable")
                     status = "fail"
                     evidence_directness = "proxy"
-                elif direct_available and proxy_available and consistency_passed is True:
+                elif proxy_available is True and direct_available is None:
+                    missing_inputs.append("observed.direct_available")
+                    evidence_directness = "proxy"
+                elif proxy_available is True and direct_available is False:
+                    automated_issues.append("Proxy evidence was supplied without a decisive direct observable")
+                    status = "fail"
+                    evidence_directness = "proxy"
+                elif direct_available is True and proxy_available is True and consistency_passed is None:
+                    missing_inputs.append("observed.consistency_passed")
+                    evidence_directness = "mixed"
+                elif direct_available is True and proxy_available is True and consistency_passed is True:
                     status = "pass"
                     evidence_directness = "mixed"
-                elif direct_available and proxy_available and consistency_passed is False:
+                elif direct_available is True and proxy_available is True and consistency_passed is False:
                     automated_issues.append("Direct and proxy evidence disagree")
                     status = "fail"
                     evidence_directness = "mixed"
-                elif direct_available:
+                elif direct_available is True:
                     status = "warning"
                     evidence_directness = "direct"
 
@@ -2480,9 +2627,9 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                     missing_inputs.append("metadata.declared_family")
                 if selected_family is None:
                     missing_inputs.append("observed.selected_family")
-                if bias_checked is not True:
+                if bias_checked is None:
                     missing_inputs.append("observed.bias_checked")
-                if calibration_checked is not True:
+                if calibration_checked is None:
                     missing_inputs.append("observed.calibration_checked")
                 metrics.update(
                     {

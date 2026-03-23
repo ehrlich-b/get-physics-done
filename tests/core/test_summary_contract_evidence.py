@@ -135,14 +135,33 @@ def test_summary_extract_normalizes_reference_action_ledgers(tmp_path: Path) -> 
     assert result.contract_results.references["ref-benchmark"].missing_actions == []
 
 
+def test_summary_extract_rejects_scalar_reference_action_ledgers_for_contract_backed_summary(
+    tmp_path: Path,
+) -> None:
+    _write_contract_backed_summary(
+        tmp_path,
+        _summary_with_reference_usage(
+            status="Completed",
+            completed_actions="Read",
+            missing_actions="[]",
+        ),
+        required_actions=["read"],
+    )
+
+    with pytest.raises(ValidationError) as excinfo:
+        cmd_summary_extract(tmp_path, "01-SUMMARY.md")
+
+    message = str(excinfo.value)
+    assert "completed_actions must be a list, not str" in message
+
+
 @pytest.mark.parametrize(
     ("status", "completed_actions", "missing_actions", "expected_completed", "expected_missing"),
     [
-        ("Completed", "Read", "[]", ["read"], []),
         ("completed", '[" read ", READ, "read"]', "[]", ["read"], []),
     ],
 )
-def test_summary_extract_normalizes_singleton_and_case_variant_reference_action_ledgers(
+def test_summary_extract_normalizes_case_variant_reference_action_ledgers(
     tmp_path: Path,
     status: str,
     completed_actions: str,

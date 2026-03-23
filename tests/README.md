@@ -479,6 +479,18 @@ flowchart TD
   `include`
   Explicit same-stem command-to-workflow includes are node-level edges, not just an aggregate count.
 
+- `src/gpd/commands/help.md -> runtime slash-command surface contract {in-runtime `/gpd:*` reference, local CLI distinction, `gpd --help`, `gpd validate command-context gpd:<name>`}`
+  `behavior-contract`
+  Help must say these entries describe the in-runtime slash-command surface, not promise that every item is a direct local `gpd` CLI subcommand.
+
+- `src/gpd/commands/help.md -> src/gpd/core/commands.py::cmd_regression_check`
+  `behavior-contract`
+  `/gpd:regression-check` help must describe the implemented SUMMARY/VERIFICATION scan instead of claiming a full re-run of dimensional, limit, or numerical verification.
+
+- `src/gpd/specs/workflows/help.md -> slash-command/local-CLI distinction and regression-check wording from src/gpd/commands/help.md`
+  `parity`
+  Command and workflow help surfaces should stay synchronized on invocation-surface semantics and on the actual `regression-check` behavior.
+
 - `src/gpd/commands/explain.md -> src/gpd/agents/{gpd-explainer,gpd-bibliographer}.md`
   `spawn`
 

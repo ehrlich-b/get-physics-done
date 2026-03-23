@@ -1002,26 +1002,27 @@ def _normalize_state_schema_with_backup_project_contract(
     *,
     allow_project_contract_salvage: bool = True,
     retain_blocking_project_contract_errors: bool = True,
-) -> tuple[dict, list[str], bool]:
-    """Normalize state and recover a valid backup project contract when needed."""
+) -> tuple[dict, list[str], bool, bool]:
+    """Normalize state and recover backup state / contract when needed."""
 
     normalized, integrity_issues = _normalize_state_schema(
         raw,
         allow_project_contract_salvage=allow_project_contract_salvage,
         retain_blocking_project_contract_errors=retain_blocking_project_contract_errors,
     )
-    recovered_from_backup = False
+    recovered_root_from_backup = False
+    recovered_project_contract_from_backup = False
 
-    if not isinstance(raw, dict) and isinstance(backup_raw, dict) and backup_raw.get("project_contract") is not None:
+    if not isinstance(raw, dict) and isinstance(backup_raw, dict):
         backup_normalized, _backup_issues = _normalize_state_schema(
             backup_raw,
             allow_project_contract_salvage=allow_project_contract_salvage,
             retain_blocking_project_contract_errors=retain_blocking_project_contract_errors,
         )
-        if backup_normalized.get("project_contract") is not None:
-            normalized = backup_normalized
-            recovered_from_backup = True
-            logger.warning("Recovered state.json from state.json.bak after primary state.json required normalization")
+        normalized = backup_normalized
+        recovered_root_from_backup = True
+        recovered_project_contract_from_backup = backup_normalized.get("project_contract") is not None
+        logger.warning("Recovered state.json from state.json.bak after primary state.json required normalization")
 
     if (
         isinstance(raw, dict)
@@ -1038,13 +1039,13 @@ def _normalize_state_schema_with_backup_project_contract(
         backup_contract = backup_normalized.get("project_contract")
         if backup_contract is not None:
             normalized["project_contract"] = copy.deepcopy(backup_contract)
-            integrity_issues = [issue for issue in integrity_issues if "project_contract" not in issue]
-            recovered_from_backup = True
+            integrity_issues = _normalize_recovered_project_contract_issues(integrity_issues)
+            recovered_project_contract_from_backup = True
             logger.warning(
                 "Recovered project_contract from state.json.bak after primary state.json required blocking normalization"
             )
 
-    return normalized, integrity_issues, recovered_from_backup
+    return normalized, integrity_issues, recovered_root_from_backup, recovered_project_contract_from_backup
 
 
 def _format_validation_location(loc: tuple[object, ...]) -> str:
@@ -1059,6 +1060,8 @@ def _first_validation_issue(exc: PydanticValidationError) -> str:
 
 
 def _integrity_issue_from_contract_error(error: str) -> str:
+    if error.startswith("project_contract."):
+        return f"schema normalization: {error}"
     if error.endswith(": Extra inputs are not permitted"):
         path = error.rsplit(":", 1)[0].strip()
         return f'schema normalization: dropped unknown "project_contract.{path}"'
@@ -1074,7 +1077,47 @@ def _integrity_issue_from_contract_error(error: str) -> str:
     if ":" in error:
         path, detail = error.split(":", 1)
         return f'schema normalization: dropped malformed "project_contract.{path.strip()}": {detail.strip()}'
+    path_match = re.match(
+        r"^(schema_version|[A-Za-z_][A-Za-z0-9_]*(?:\.\d+|\.[A-Za-z_][A-Za-z0-9_]*)*)\s+(.*)$",
+        error,
+    )
+    if path_match is not None:
+        path, detail = path_match.groups()
+        return f"schema normalization: project_contract.{path} {detail}"
     return f"schema normalization: {error}"
+
+
+_PROJECT_CONTRACT_RECOVERY_ISSUE = (
+    'schema normalization: recovered "project_contract" from state.json.bak '
+    "after primary project_contract required blocking normalization"
+)
+_PROJECT_CONTRACT_ROOT_KEYS = set(ResearchContract.model_fields)
+
+
+def _looks_like_project_contract_issue(raw_issue: str) -> bool:
+    if raw_issue.startswith("project_contract."):
+        return True
+
+    path_match = re.match(r"^(schema_version|[A-Za-z_][A-Za-z0-9_]*)", raw_issue)
+    if path_match is None:
+        return False
+    return path_match.group(1) in _PROJECT_CONTRACT_ROOT_KEYS
+
+
+def _normalize_recovered_project_contract_issues(integrity_issues: list[str]) -> list[str]:
+    normalized_issues: list[str] = []
+    for issue in integrity_issues:
+        if issue.startswith('schema normalization: dropped "project_contract"'):
+            continue
+        if issue.startswith("schema normalization: ") and "project_contract" not in issue:
+            raw_issue = issue.removeprefix("schema normalization: ").strip()
+            if _looks_like_project_contract_issue(raw_issue):
+                issue = _integrity_issue_from_contract_error(raw_issue)
+        if issue not in normalized_issues:
+            normalized_issues.append(issue)
+    if _PROJECT_CONTRACT_RECOVERY_ISSUE not in normalized_issues:
+        normalized_issues.append(_PROJECT_CONTRACT_RECOVERY_ISSUE)
+    return normalized_issues
 
 
 def _normalize_project_contract_section(
@@ -1959,11 +2002,13 @@ def _load_state_json_with_integrity_issues(
                 bak_parsed = None
             if isinstance(bak_parsed, dict):
                 backup_parsed = bak_parsed
-            normalized, integrity_issues, _recovered_from_backup = _normalize_state_schema_with_backup_project_contract(
+            normalized, integrity_issues, _recovered_root_from_backup, _recovered_contract_from_backup = (
+                _normalize_state_schema_with_backup_project_contract(
                 parsed,
                 backup_parsed,
                 allow_project_contract_salvage=allow_project_contract_salvage,
                 retain_blocking_project_contract_errors=False,
+                )
             )
             normalized, contract_integrity_issues = _drop_invalid_project_contract(normalized)
             integrity_issues.extend(contract_integrity_issues)
@@ -1985,11 +2030,13 @@ def _load_state_json_with_integrity_issues(
                 bak_parsed = json.loads(bak_raw)
                 if not isinstance(bak_parsed, dict):
                     raise TypeError(f"state root must be an object, got {type(bak_parsed).__name__}")
-                restored, integrity_issues, _recovered_from_backup = _normalize_state_schema_with_backup_project_contract(
+                restored, integrity_issues, _recovered_root_from_backup, _recovered_contract_from_backup = (
+                    _normalize_state_schema_with_backup_project_contract(
                     bak_parsed,
                     None,
                     allow_project_contract_salvage=allow_project_contract_salvage,
                     retain_blocking_project_contract_errors=False,
+                    )
                 )
                 restored, contract_integrity_issues = _drop_invalid_project_contract(restored)
                 integrity_issues.extend(contract_integrity_issues)
@@ -2690,21 +2737,23 @@ def state_validate(cwd: Path, integrity_mode: str = "standard") -> StateValidate
             raw_state_json_backup = json.loads(bak_path.read_text(encoding="utf-8"))
         except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
             raw_state_json_backup = None
-        state_json, normalization_issues, recovered_from_backup = _normalize_state_schema_with_backup_project_contract(
+        state_json, normalization_issues, recovered_root_from_backup, recovered_project_contract_from_backup = (
+            _normalize_state_schema_with_backup_project_contract(
             raw_state_json,
             raw_state_json_backup if isinstance(raw_state_json_backup, dict) else None,
             allow_project_contract_salvage=False,
             retain_blocking_project_contract_errors=False,
+            )
         )
         if normalization_issues:
             target = issues if integrity_mode == "review" else warnings
             target.extend(normalization_issues)
-        if recovered_from_backup and raw_root_issue is not None:
+        if recovered_root_from_backup and raw_root_issue is not None:
             if raw_root_issue in issues:
                 issues.remove(raw_root_issue)
             target = issues if integrity_mode == "review" else warnings
             target.append("state.json root was recovered from state.json.bak after primary state.json required normalization")
-        if recovered_from_backup:
+        if recovered_project_contract_from_backup:
             target = issues if integrity_mode == "review" else warnings
             target.append(
                 "state.json project_contract was recovered from state.json.bak after primary state.json required blocking normalization"

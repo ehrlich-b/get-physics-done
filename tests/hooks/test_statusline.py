@@ -852,6 +852,19 @@ class TestCheckUpdateHook:
 
         assert "gpd-update" in result
 
+    def test_read_current_task_uses_runtime_unknown_constant_not_literal(self, tmp_path: Path) -> None:
+        runtime_unknown = "runtime-unknown"
+
+        with (
+            patch("gpd.hooks.statusline._self_config_dir", return_value=None),
+            patch("gpd.hooks.runtime_detect.RUNTIME_UNKNOWN", runtime_unknown),
+            patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value=runtime_unknown),
+            patch("gpd.hooks.runtime_detect.detect_runtime_for_gpd_use", return_value=runtime_unknown),
+            patch("gpd.hooks.runtime_detect.get_todo_candidates", return_value=[]),
+            patch("gpd.hooks.runtime_detect.detect_runtime_install_target", side_effect=AssertionError("unexpected lookup")),
+        ):
+            assert _read_current_task("session-1", str(tmp_path)) == ""
+
     def test_known_runtime_resolves_scope_for_bootstrap_update_command(self, tmp_path: Path) -> None:
         """Known runtimes should still resolve scope before rendering the bootstrap command."""
         gpd_cache = tmp_path / ".gpd" / "cache"

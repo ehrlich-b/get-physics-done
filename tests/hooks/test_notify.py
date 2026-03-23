@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import pytest
 
+import gpd.hooks.notify as notify_module
 from gpd.adapters import get_adapter
 from gpd.adapters.install_utils import build_runtime_install_repair_command
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
@@ -252,6 +253,22 @@ def test_notify_uses_explicit_workspace_cwd_over_process_cwd(tmp_path: Path) -> 
     output = stderr.getvalue()
     assert "Update available: v2.0.0" in output
     assert "Run: npx -y get-physics-done --codex --local" in output
+
+
+def test_latest_update_cache_uses_runtime_unknown_constant_not_literal(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    runtime_unknown = "runtime-unknown"
+
+    with (
+        patch("gpd.hooks.notify._self_config_dir", return_value=None),
+        patch("gpd.hooks.notify.resolve_project_root", return_value=workspace),
+        patch("gpd.hooks.runtime_detect.RUNTIME_UNKNOWN", runtime_unknown),
+        patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value=runtime_unknown),
+        patch("gpd.hooks.runtime_detect.detect_runtime_install_target", side_effect=AssertionError("unexpected lookup")),
+        patch("gpd.hooks.runtime_detect.get_update_cache_candidates", return_value=[]),
+    ):
+        assert notify_module._latest_update_cache(str(workspace)) == (None, None)
 
 
 def test_notify_prefers_explicit_target_hook_cache_and_target_dir_command(tmp_path: Path) -> None:

@@ -1632,7 +1632,8 @@ class TestVerificationServer:
         assert result["check_key"] == "contract.limit_recovery"
         assert result["contract_aware"] is True
         assert result["required_request_fields"] == ["metadata.regime_label", "metadata.expected_behavior"]
-        assert result["request_template"]["metadata"]["regime_label"] == "infrared limit"
+        assert result["request_template"]["metadata"]["regime_label"] is None
+        assert result["request_template"]["metadata"]["expected_behavior"] is None
 
     def test_run_check_contract_benchmark_reproduction_flags_missing_anchor(self):
         from gpd.mcp.servers.verification_server import run_check
@@ -2214,7 +2215,8 @@ class TestVerificationServer:
         assert "evidence_kind" in result["universal_checks"][0]
         contract_check = next(entry for entry in result["universal_checks"] if entry["check_key"] == "contract.limit_recovery")
         assert contract_check["required_request_fields"] == ["metadata.regime_label", "metadata.expected_behavior"]
-        assert contract_check["request_template"]["metadata"]["regime_label"] == "infrared limit"
+        assert contract_check["request_template"]["metadata"]["regime_label"] is None
+        assert contract_check["request_template"]["metadata"]["expected_behavior"] is None
 
     def test_get_checklist_unknown_domain(self):
         from gpd.mcp.servers.verification_server import get_checklist

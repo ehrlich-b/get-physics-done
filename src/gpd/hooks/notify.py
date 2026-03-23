@@ -95,6 +95,7 @@ def _latest_update_cache(cwd: str | None = None) -> tuple[dict[str, object] | No
     from types import SimpleNamespace
 
     from gpd.hooks.runtime_detect import (
+        RUNTIME_UNKNOWN,
         detect_active_runtime_with_gpd_install,
         detect_runtime_install_target,
         get_update_cache_candidates,
@@ -106,7 +107,7 @@ def _latest_update_cache(cwd: str | None = None) -> tuple[dict[str, object] | No
     self_config_dir = _self_config_dir()
     active_install_target = (
         detect_runtime_install_target(active_installed_runtime, cwd=workspace_path)
-        if active_installed_runtime not in (None, "", "unknown")
+        if active_installed_runtime not in (None, "", RUNTIME_UNKNOWN)
         else None
     )
     prefer_self_cache = self_config_dir is not None

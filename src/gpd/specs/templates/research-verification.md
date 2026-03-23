@@ -131,12 +131,15 @@ The frontmatter `comparison_verdicts` ledger is authoritative; this section is a
 
 - subject_kind: claim | deliverable | acceptance_test | reference
   subject_id: "contract-id"
+  subject_role: decisive | supporting | supplemental | other
   reference_id: "reference-id"
   comparison_kind: benchmark | prior_work | experiment | cross_method | baseline
   verdict: pass | tension | fail | inconclusive
   metric: ""
   threshold: ""
   notes: ""
+
+Only `subject_role: decisive` closes a required decisive comparison; the other roles are informative context only.
 
 ## Suggested Contract Checks
 
@@ -305,7 +308,7 @@ Probe how sensitive results are to assumptions and approximations.
 3. Each agent investigates one gap, returns root cause
 4. VERIFICATION.md Gaps section updated with diagnosis:
    - Each gap gets `root_cause`, `artifacts`, `missing`, `debug_session` filled
-5. status -> "diagnosed"
+5. `session_status` -> "diagnosed" while final `status` stays in verification-report vocabulary (typically `gaps_found` until every gap is explicitly closed)
 6. Ready for /gpd:plan-phase --gaps with root causes
 
 **After diagnosis:**
@@ -356,7 +359,8 @@ Probe how sensitive results are to assumptions and approximations.
 
 **On completion:**
 
-- status -> "completed"
+- `status` stays in canonical verification vocabulary (`passed | gaps_found | expert_needed | human_needed`)
+- `session_status` -> "completed"
 - Current Check -> "[verification completed]"
 - Commit file
 - Present summary with next steps
@@ -389,11 +393,14 @@ Default: **major** (safe default, researcher can clarify if wrong)
 
 ```markdown
 ---
-status: diagnosed
+status: gaps_found
+verified: 2026-03-15T14:45:00Z
+score: 3/4 contract targets verified
 phase: 03-phase-diagram
 source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md
 started: 2026-03-15T14:00:00Z
 updated: 2026-03-15T14:45:00Z
+session_status: diagnosed
 ---
 
 ## Current Check

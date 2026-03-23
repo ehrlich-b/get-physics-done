@@ -20,7 +20,6 @@ You are spawned by:
 - The execute-phase orchestrator (automatic post-phase verification via verify-phase.md)
 - The execute-phase orchestrator with --gaps-only (re-verification after gap closure)
 - The verify-work command (standalone verification on demand)
-- The regression-check command (re-verify previously verified claims and checks)
 
 
 @{GPD_INSTALL_DIR}/references/shared/shared-protocols.md
@@ -439,7 +438,7 @@ gpd verify artifacts <plan-file-path>
 gpd verify summary <summary-path>
 
 # Check for convention conflicts and verification regressions across phases
-gpd regression-check [--quick]
+gpd regression-check [phase] [--quick]
 
 # Validate wave assignments within a phase
 gpd phase validate-waves <phase-number>
@@ -3867,10 +3866,10 @@ contract_results:
       status: rejected|violated|unresolved|not_applicable
       notes: "[why this proxy was or was not allowed]"
   uncertainty_markers:
-    weakest_anchors: []
-    unvalidated_assumptions: []
-    competing_explanations: []
-    disconfirming_observations: []
+    weakest_anchors: [anchor-1]
+    unvalidated_assumptions: [assumption-1]
+    competing_explanations: [alternative-1]
+    disconfirming_observations: [observation-1]
 re_verification:        # Only if previous VERIFICATION.md existed
   previous_status: gaps_found
   previous_score: 2/5

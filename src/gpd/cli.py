@@ -262,6 +262,12 @@ class ReviewPreflightResult:
     required_outputs: list[str]
     required_evidence: list[str]
     blocking_conditions: list[str]
+    validated_surface: str = "public_runtime_slash_command"
+    local_cli_equivalence_guaranteed: bool = False
+    dispatch_note: str = (
+        "This preflight validates the public `/gpd:*` runtime slash-command surface from the command registry. "
+        "It does not guarantee a same-name local `gpd` subcommand exists."
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -285,6 +291,12 @@ class CommandContextPreflightResult:
     explicit_inputs: list[str]
     guidance: str
     checks: list[CommandContextCheck]
+    validated_surface: str = "public_runtime_slash_command"
+    local_cli_equivalence_guaranteed: bool = False
+    dispatch_note: str = (
+        "This preflight validates the public `/gpd:*` runtime slash-command surface from the command registry. "
+        "It does not guarantee a same-name local `gpd` subcommand exists."
+    )
 
 
 def _format_runtime_list(runtime_names: list[str]) -> str:
@@ -1776,6 +1788,33 @@ def observe_show(
 init_app = typer.Typer(help="Assemble context for AI agent workflows")
 app.add_typer(init_app, name="init")
 
+_INIT_EXECUTE_PHASE_INCLUDES = frozenset({"config", "roadmap", "state"})
+_INIT_PLAN_PHASE_INCLUDES = frozenset(
+    {"context", "requirements", "research", "roadmap", "state", "validation", "verification"}
+)
+_INIT_PHASE_OP_INCLUDES = frozenset({"config", "roadmap", "state"})
+_INIT_PROGRESS_INCLUDES = frozenset({"config", "project", "roadmap", "state"})
+
+
+def _parse_init_include_option(
+    include: str | None,
+    *,
+    command_name: str,
+    allowed: frozenset[str],
+) -> set[str]:
+    """Normalize comma-separated init includes and reject unknown tokens."""
+    if include is None:
+        return set()
+
+    includes = {token.strip() for token in include.split(",") if token.strip()}
+    unknown = sorted(includes - allowed)
+    if unknown:
+        _error(
+            f"Unknown --include value(s) for {command_name}: {', '.join(unknown)}. "
+            f"Allowed values: {', '.join(sorted(allowed))}."
+        )
+    return includes
+
 
 @init_app.command("execute-phase")
 def init_execute_phase(
@@ -1785,7 +1824,11 @@ def init_execute_phase(
     """Assemble context for executing a phase."""
     from gpd.core.context import init_execute_phase
 
-    includes = set(include.split(",")) if include else set()
+    includes = _parse_init_include_option(
+        include,
+        command_name="gpd init execute-phase",
+        allowed=_INIT_EXECUTE_PHASE_INCLUDES,
+    )
     _output(init_execute_phase(_get_cwd(), phase, includes=includes))
 
 
@@ -1797,7 +1840,11 @@ def init_plan_phase(
     """Assemble context for planning a phase."""
     from gpd.core.context import init_plan_phase
 
-    includes = set(include.split(",")) if include else set()
+    includes = _parse_init_include_option(
+        include,
+        command_name="gpd init plan-phase",
+        allowed=_INIT_PLAN_PHASE_INCLUDES,
+    )
     _output(init_plan_phase(_get_cwd(), phase, includes=includes))
 
 
@@ -1853,7 +1900,11 @@ def init_progress(
     """Assemble context for progress review."""
     from gpd.core.context import init_progress
 
-    includes = set(include.split(",")) if include else set()
+    includes = _parse_init_include_option(
+        include,
+        command_name="gpd init progress",
+        allowed=_INIT_PROGRESS_INCLUDES,
+    )
     _output(init_progress(_get_cwd(), includes=includes))
 
 
@@ -1883,7 +1934,11 @@ def init_phase_op(
     """Assemble context for generic phase operations."""
     from gpd.core.context import init_phase_op
 
-    includes = set(include.split(",")) if include else set()
+    includes = _parse_init_include_option(
+        include,
+        command_name="gpd init phase-op",
+        allowed=_INIT_PHASE_OP_INCLUDES,
+    )
     _output(init_phase_op(_get_cwd(), phase, includes))
 
 
@@ -2920,15 +2975,19 @@ _PROJECT_AWARE_EXPLICIT_INPUTS: dict[str, tuple[list[str], Callable[[str | None]
 
 def _build_project_aware_guidance(explicit_inputs: list[str]) -> str:
     """Render the standardized project-aware guidance string."""
+    init_guidance = (
+        "initialize a project with `/gpd:new-project` in the runtime surface "
+        "or `gpd init new-project` in the local CLI"
+    )
     if not explicit_inputs:
-        return "Either provide explicit inputs for this command, or run `gpd init new-project`."
+        return f"Either provide explicit inputs for this command, or {init_guidance}."
     if len(explicit_inputs) == 1:
         requirement_text = explicit_inputs[0]
     elif len(explicit_inputs) == 2:
         requirement_text = f"{explicit_inputs[0]} and {explicit_inputs[1]}"
     else:
         requirement_text = ", ".join(explicit_inputs[:-1]) + f", and {explicit_inputs[-1]}"
-    return f"Either provide {requirement_text} explicitly, or run `gpd init new-project`."
+    return f"Either provide {requirement_text} explicitly, or {init_guidance}."
 
 
 def _unique_preserving_order(values: list[str]) -> list[str]:
@@ -3022,7 +3081,10 @@ def _build_command_context_preflight(
         guidance = (
             ""
             if project_exists
-            else "This command requires an initialized GPD project. Run `gpd init new-project`."
+            else (
+                "This command requires an initialized GPD project. "
+                "Use `/gpd:new-project` in the runtime surface or `gpd init new-project` in the local CLI."
+            )
         )
         return CommandContextPreflightResult(
             command=public_command_name,
@@ -3107,10 +3169,13 @@ def _build_review_preflight(
         )
 
     context_preflight = _build_command_context_preflight(command_name, arguments=subject)
+    context_detail = context_preflight.guidance or f"context_mode={command.context_mode}"
+    if context_preflight.dispatch_note:
+        context_detail = f"{context_detail}; {context_preflight.dispatch_note}"
     add_check(
         "command_context",
         context_preflight.passed,
-        context_preflight.guidance or f"context_mode={command.context_mode}",
+        context_detail,
         blocking=True,
     )
 
@@ -3400,6 +3465,9 @@ def _build_review_preflight(
         required_outputs=contract.required_outputs,
         required_evidence=contract.required_evidence,
         blocking_conditions=contract.blocking_conditions,
+        validated_surface=context_preflight.validated_surface,
+        local_cli_equivalence_guaranteed=context_preflight.local_cli_equivalence_guaranteed,
+        dispatch_note=context_preflight.dispatch_note,
     )
 
 

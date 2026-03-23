@@ -48,3 +48,7 @@ def test_verifier_prompt_frontmatter_example_includes_contract_ledgers() -> None
     assert "subject_kind: claim|deliverable|acceptance_test|reference" in verifier
     assert "subject_role: decisive|supporting|supplemental|other" in verifier
     assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" in verifier
+    assert "weakest_anchors: [anchor-1]" in verifier
+    assert "disconfirming_observations: [observation-1]" in verifier
+    assert "weakest_anchors: []" not in verifier
+    assert "disconfirming_observations: []" not in verifier

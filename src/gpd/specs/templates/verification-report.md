@@ -52,6 +52,7 @@ Every declared claim, deliverable, acceptance test, reference, and forbidden pro
 Keep `uncertainty_markers` explicit in the `contract_results` ledger, and use non-empty placeholder anchors in `weakest_anchors` and `disconfirming_observations` so unresolved uncertainty is visible before final validation.
 Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML and apply it literally rather than paraphrasing from memory.
 `plan_contract_ref` must be a project-local PLAN path, not absolute or parent-traversing, and must end with the exact `#/contract` fragment. For reference-backed decisive comparisons, `comparison_kind: benchmark|prior_work|experiment|baseline|cross_method` can satisfy the requirement; `comparison_kind: other` cannot.
+Even singleton values must stay YAML lists in strict contract-backed ledgers: use `linked_ids: [claim-id]`, `completed_actions: [read]`, and `weakest_anchors: [anchor-1]`, never scalar strings.
 
 ```markdown
 ---

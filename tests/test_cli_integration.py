@@ -392,7 +392,43 @@ class TestFrontmatterValidate:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 5. regression-check
+# 5. init include parsing + command-context surface
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestInitIncludeParsing:
+    def test_init_progress_include_trims_whitespace_and_drops_empty_entries(self) -> None:
+        result = _invoke("--raw", "init", "progress", "--include", " state, roadmap, , ")
+        payload = json.loads(result.output)
+
+        assert payload["state_content"] is not None
+        assert payload["roadmap_content"] is not None
+
+    def test_init_progress_include_rejects_unknown_values(self) -> None:
+        result = _invoke("--raw", "init", "progress", "--include", "state, bogus", expect_ok=False)
+
+        assert result.exit_code == 1
+        payload = json.loads(result.output)
+        assert payload["error"] == (
+            "Unknown --include value(s) for gpd init progress: bogus. "
+            "Allowed values: config, project, roadmap, state."
+        )
+
+
+class TestCommandContextSurface:
+    def test_validate_command_context_reports_runtime_slash_command_surface(self) -> None:
+        result = _invoke("--raw", "validate", "command-context", "gpd:settings")
+        payload = json.loads(result.output)
+
+        assert payload["command"] == "gpd:settings"
+        assert payload["validated_surface"] == "public_runtime_slash_command"
+        assert payload["local_cli_equivalence_guaranteed"] is False
+        assert "public `/gpd:*` runtime slash-command surface" in payload["dispatch_note"]
+        assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 6. regression-check
 # ═══════════════════════════════════════════════════════════════════════════
 
 

@@ -207,3 +207,33 @@ def test_compare_branches_prompt_keeps_branch_summary_extraction_in_memory() -> 
     assert "do not write it to `.gpd/tmp/` just to run a path-based extractor." in workflow
     assert "Keep branch-summary extraction in memory/stdout only" in workflow
     assert "do not use `.gpd/tmp/`, `/tmp`, or another temp root for this step." in workflow
+
+
+def test_regression_check_prompt_examples_include_optional_phase_before_quick_flag() -> None:
+    verifier = (REPO_ROOT / "src/gpd/agents/gpd-verifier.md").read_text(encoding="utf-8")
+    infra = (REPO_ROOT / "src/gpd/specs/references/orchestration/agent-infrastructure.md").read_text(encoding="utf-8")
+
+    for content in (verifier, infra):
+        assert "gpd regression-check [phase] [--quick]" in content
+        assert "gpd regression-check [--quick]" not in content
+
+
+def test_verifier_prompt_does_not_claim_regression_check_spawns_verifier() -> None:
+    verifier = (REPO_ROOT / "src/gpd/agents/gpd-verifier.md").read_text(encoding="utf-8")
+
+    assert "The regression-check command" not in verifier
+
+
+def test_execute_phase_failure_recovery_counts_only_top_level_verification_statuses() -> None:
+    workflow = (REPO_ROOT / "src/gpd/specs/workflows/execute-phase.md").read_text(encoding="utf-8")
+
+    assert (
+        "FAILED_COUNT=$(rg -c '^status: (gaps_found|expert_needed|human_needed)$'"
+        in workflow
+    )
+    assert (
+        "TOTAL_COUNT=$(rg -c '^status: (passed|gaps_found|expert_needed|human_needed)$'"
+        in workflow
+    )
+    assert 'grep -c "status: failed"' not in workflow
+    assert 'grep -c "status:"' not in workflow

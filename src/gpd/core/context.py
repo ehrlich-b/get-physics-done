@@ -1111,14 +1111,16 @@ def _resolve_model(
     active_runtime = runtime
     if active_runtime is None:
         try:
-            from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use
+            from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, detect_runtime_for_gpd_use
 
             active_runtime = detect_runtime_for_gpd_use(cwd=cwd)
         except Exception:
             active_runtime = _detect_platform(cwd)
-    if active_runtime == "unknown":
+    else:
+        RUNTIME_UNKNOWN = "unknown"
+    if active_runtime == RUNTIME_UNKNOWN:
         active_runtime = _detect_platform(cwd)
-    if active_runtime == "unknown":
+    if active_runtime == RUNTIME_UNKNOWN:
         active_runtime = None
 
     return _resolve_model_canonical(cwd, agent_type, runtime=active_runtime)
@@ -1152,19 +1154,22 @@ def _detect_platform(cwd: Path | None = None) -> str:
     """Detect the active AI runtime, if any."""
     resolved_cwd = cwd or Path.cwd()
     resolved_home = Path.home()
+    runtime_unknown = "unknown"
     try:
         from gpd.hooks.runtime_detect import (
+            RUNTIME_UNKNOWN,
             detect_active_runtime,
             detect_runtime_for_gpd_use,
             detect_runtime_install_target,
         )
+        runtime_unknown = RUNTIME_UNKNOWN
 
         active = detect_active_runtime(cwd=resolved_cwd, home=resolved_home)
-        if active != "unknown":
+        if active != runtime_unknown:
             return active
 
         detected = detect_runtime_for_gpd_use(cwd=resolved_cwd, home=resolved_home)
-        if detected != "unknown":
+        if detected != runtime_unknown:
             return detected
 
         for descriptor in iter_runtime_descriptors():
@@ -1181,7 +1186,7 @@ def _detect_platform(cwd: Path | None = None) -> str:
     except Exception:
         pass
 
-    return "unknown"
+    return runtime_unknown
 
 
 # ─── Context Assemblers ──────────────────────────────────────────────────────

@@ -513,9 +513,9 @@ fi
 
 <step name="quick_regression_check">
 
-**Run a quick regression check on previously verified phases.**
+**Run a quick regression scan on recently completed phases.**
 
-After committing the transition, verify that the completed phase hasn't introduced regressions in previously verified results. This catches convention redefinitions, symbol conflicts, and result inconsistencies early.
+After committing the transition, scan the most recent completed phases for artifact-level regressions in recorded verification state. This catches convention redefinitions, symbol conflicts, and invalid verification statuses early without pretending the underlying physics was re-verified.
 
 ```bash
 gpd regression-check --quick
@@ -523,10 +523,10 @@ gpd regression-check --quick
 
 The `--quick` flag limits the check to the most recent 2 completed phases. It:
 
-- Reads all completed phase VERIFICATION.md files
-- Checks for convention redefinitions across SUMMARYs (e.g., same symbol defined with different values)
-- Reports any symbols redefined with different values
-- Flags results that contradict earlier verified claims
+- Reads completed `SUMMARY.md` and `VERIFICATION.md` frontmatter
+- Checks for convention redefinitions across summaries (e.g., same symbol defined with different values)
+- Flags missing, invalid, or non-canonical verification statuses
+- Reports the affected phases and files for follow-up verification or repair
 
 **If issues found:**
 
@@ -540,12 +540,13 @@ The following regressions were detected after completing Phase {X}:
 | Issue | Phase | Details |
 |-------|-------|---------|
 | Convention redefinition | Phase {A} vs Phase {B} | Symbol `g` redefined: 0.3 → 0.5 |
-| Result conflict | Phase {A} vs Phase {B} | Critical temperature differs by >5% |
+| Invalid verification status | Phase {B} | `status: completed` is not a canonical verification status |
+| Unresolved verification issues | Phase {C} | `status: gaps_found`, `score: 3/5` |
 
 Options:
 1. Acknowledge and proceed (issues may be intentional updates)
-2. Investigate before continuing
-3. Run full regression check: `/gpd:regression-check`
+2. Investigate and repair the artifact or frontmatter before continuing
+3. Run `/gpd:verify-work <phase>` for any phase that now needs real re-verification
 ```
 
 Wait for user response before proceeding.

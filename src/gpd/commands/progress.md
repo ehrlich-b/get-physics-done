@@ -203,16 +203,16 @@ State: "This phase has {X} plans, {Y} summaries."
 
 **Step 7.1.5: Check for unaddressed validation gaps**
 
-Check for VERIFICATION.md files with gaps or review requirements. This includes `gaps_found` (verification found issues), `diagnosed` (root causes identified), `human_needed` (human review required), and `expert_needed` (domain expert review required).
+Check for VERIFICATION.md files with gaps or review requirements. This includes canonical verification `status: gaps_found|human_needed|expert_needed`, plus researcher-session files where `session_status: diagnosed` records rooted gap analysis without changing the final verification vocabulary.
 
 ```bash
 # Check for validation with gaps or review requirements
-grep -l -E "status: (gaps_found|diagnosed|human_needed|expert_needed)" .gpd/phases/[current-phase-dir]/*-VERIFICATION.md 2>/dev/null
+grep -l -E "^(status: (gaps_found|human_needed|expert_needed)|session_status: diagnosed)$" .gpd/phases/[current-phase-dir]/*-VERIFICATION.md 2>/dev/null
 ```
 
 Track:
 
-- `validation_with_gaps`: VERIFICATION.md files with status "gaps_found", "diagnosed", "human_needed", or "expert_needed"
+- `validation_with_gaps`: VERIFICATION.md files with `status: gaps_found|human_needed|expert_needed` or `session_status: diagnosed`
 
 **Step 7.1.75: Check for existing gap-closure plans**
 

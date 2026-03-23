@@ -250,6 +250,7 @@ def _read_current_task(session_id: str, workspace_dir: str | None = None) -> str
         return ""
 
     from gpd.hooks.runtime_detect import (
+        RUNTIME_UNKNOWN,
         TodoCandidate,
         detect_active_runtime_with_gpd_install,
         detect_runtime_for_gpd_use,
@@ -265,7 +266,7 @@ def _read_current_task(session_id: str, workspace_dir: str | None = None) -> str
     self_config_dir = _self_config_dir()
     active_install_target = (
         detect_runtime_install_target(active_installed_runtime, cwd=workspace_path)
-        if active_installed_runtime not in (None, "", "unknown")
+        if active_installed_runtime not in (None, "", RUNTIME_UNKNOWN)
         else None
     )
     prefer_self_todos = self_config_dir is not None

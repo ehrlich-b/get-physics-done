@@ -1589,7 +1589,7 @@ Based on status:
 <step name="return_diagnosis">
 **Diagnose-only mode (goal: find_root_cause_only).**
 
-Update status to "diagnosed".
+Keep canonical verification `status` unchanged and update `session_status` to "diagnosed".
 
 Return structured diagnosis:
 

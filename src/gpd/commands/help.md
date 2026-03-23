@@ -40,6 +40,8 @@ Output this and STOP (do not display the full reference):
 
 **GPD** (Get Physics Done) — agentic physics research with AI research agents.
 
+These `/gpd:*` entries are canonical in-runtime slash-command names exposed inside the installed agent surface. They are not a promise that the local `gpd` CLI exposes matching top-level subcommands.
+
 ## Quick Start
 
 1. `/gpd:new-project` — Initialize research project
@@ -65,6 +67,14 @@ Display the reference content directly — no additions or modifications.
 # GPD Command Reference
 
 **GPD** (Get Physics Done) creates hierarchical research plans optimized for solo agentic physics research with AI research agents.
+
+## Invocation Surfaces
+
+This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
+
+- Use these names inside the installed agent/runtime command surface.
+- The local `gpd` CLI may expose different `gpd ...` subcommands and grouping. Use `gpd --help` to inspect the executable CLI surface directly.
+- If you need to validate whether a slash-command can run in the current workspace, use `gpd validate command-context gpd:<name>`.
 
 ## Quick Start
 
@@ -215,7 +225,7 @@ Perform a rigorous physics derivation with systematic verification at each step.
 - Justifies and bounds all approximations with error estimates
 - Produces a complete, self-contained derivation document with boxed final result
 
-Usage: `/gpd:derive-equation`
+Usage: `/gpd:derive-equation "derive the one-loop beta function"`
 
 ### Quick Mode
 
@@ -418,7 +428,8 @@ Check dimensional consistency of equations and expressions.
 - Checks final results have correct dimensions
 - Flags dimensionless ratios and magic numbers
 
-Usage: `/gpd:dimensional-analysis`
+Usage: `/gpd:dimensional-analysis 3`
+Usage: `/gpd:dimensional-analysis results/01-SUMMARY.md`
 
 **`/gpd:limiting-cases`**
 Verify results reduce correctly in known limiting cases.
@@ -427,7 +438,8 @@ Verify results reduce correctly in known limiting cases.
 - Compares against textbook expressions in each limit
 - Flags limits that are not recovered
 
-Usage: `/gpd:limiting-cases`
+Usage: `/gpd:limiting-cases 3`
+Usage: `/gpd:limiting-cases results/01-SUMMARY.md`
 
 **`/gpd:numerical-convergence`**
 Run systematic convergence tests on numerical computations.
@@ -436,7 +448,8 @@ Run systematic convergence tests on numerical computations.
 - Estimates convergence order via Richardson extrapolation
 - Constructs error budgets for computed quantities
 
-Usage: `/gpd:numerical-convergence`
+Usage: `/gpd:numerical-convergence 3`
+Usage: `/gpd:numerical-convergence results/mesh-study.csv`
 
 **`/gpd:compare-experiment`**
 Compare theoretical/numerical results against experimental data.
@@ -445,7 +458,7 @@ Compare theoretical/numerical results against experimental data.
 - Computes chi-squared or other goodness-of-fit measures
 - Identifies systematic deviations and their possible origins
 
-Usage: `/gpd:compare-experiment`
+Usage: `/gpd:compare-experiment predictions.csv experiment.csv`
 
 **`/gpd:validate-conventions [phase]`**
 Validate convention consistency across all phases.
@@ -459,11 +472,13 @@ Usage: `/gpd:validate-conventions`
 Usage: `/gpd:validate-conventions 3`
 
 **`/gpd:regression-check [phase]`**
-Re-verify all previously verified claims and checks to catch regressions after changes.
+Scan completed phase artifacts for regressions in already-recorded verification state.
 
-- Extracts verified results from VERIFICATION.md files
-- Re-runs dimensional analysis, limiting cases, and numerical checks
-- Reports any results that no longer hold
+- Detects convention conflicts where the same symbol is redefined with different values across completed SUMMARY artifacts
+- Scans `SUMMARY.md` and `VERIFICATION.md` frontmatter rather than re-running numerical or physics verification
+- Flags non-passing, invalid, or non-canonical `VERIFICATION.md` statuses in completed phases
+- Uses canonical statuses `passed`, `gaps_found`, `expert_needed`, and `human_needed`
+- Reports the affected phases and files for follow-up verification or repair
 - Scope to a single phase using the optional phase argument, or run across all completed phases
 
 Usage: `/gpd:regression-check`
@@ -491,7 +506,7 @@ Determine which input parameters most strongly affect output quantities.
 - Supports analytical and numerical methods
 
 Usage: `/gpd:sensitivity-analysis --target cross_section --params g,m,Lambda`
-Usage: `/gpd:sensitivity-analysis --method numerical`
+Usage: `/gpd:sensitivity-analysis --target cross_section --params g,m,Lambda --method numerical`
 
 **`/gpd:error-propagation`**
 Track how uncertainties propagate through multi-step calculations.

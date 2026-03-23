@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from gpd.core.constants import ProjectLayout
 from gpd.core.contract_validation import validate_project_contract
 from gpd.core.health import (
     CheckStatus,
@@ -30,6 +31,7 @@ from gpd.core.health import (
     run_doctor,
     run_health,
 )
+from gpd.core.state import default_state_dict, save_state_json
 from gpd.core.storage_paths import ProjectStorageLayout
 
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
@@ -443,6 +445,22 @@ class TestCheckStateValidity:
         assert result.label == "State Validity"
         assert result.status == CheckStatus.FAIL
         assert result.issues
+
+    def test_does_not_repair_state_json_while_inspecting(self, tmp_path: Path) -> None:
+        state = default_state_dict()
+        state["position"]["status"] = "Executing"
+        save_state_json(tmp_path, state)
+        layout = ProjectLayout(tmp_path)
+
+        corrupt_state = "{bad json\n"
+        backup_before = layout.state_json_backup.read_text(encoding="utf-8")
+        layout.state_json.write_text(corrupt_state, encoding="utf-8")
+
+        result = check_state_validity(tmp_path)
+
+        assert result.status == CheckStatus.FAIL
+        assert layout.state_json.read_text(encoding="utf-8") == corrupt_state
+        assert layout.state_json_backup.read_text(encoding="utf-8") == backup_before
 
 
 # ─── run_health Integration ──────────────────────────────────────────────────

@@ -20,6 +20,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as PydanticValidationError
 
+from gpd.contracts import contract_from_data
 from gpd.core.config import GPDProjectConfig, load_config
 from gpd.core.constants import (
     DECISION_THRESHOLD,
@@ -43,6 +44,7 @@ from gpd.core.errors import GPDError, ValidationError
 from gpd.core.frontmatter import FrontmatterParseError, extract_frontmatter, validate_frontmatter
 from gpd.core.observability import gpd_span
 from gpd.core.state import (
+    _normalize_state_schema_with_backup_project_contract,
     load_state_json,
     state_validate,
     sync_state_json,
@@ -189,6 +191,35 @@ def check_storage_paths(cwd: Path) -> HealthCheck:
     return HealthCheck(status=status, label="Storage-Path Policy", details=details, warnings=warnings)
 
 
+def _peek_normalized_state_for_health(cwd: Path) -> dict[str, object] | None:
+    """Load normalized state for inspection without mutating on-disk files."""
+    layout = ProjectLayout(cwd)
+
+    def _read_state_object(path: Path) -> dict[str, object] | None:
+        try:
+            parsed = json.loads(path.read_text(encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
+            return None
+        return parsed if isinstance(parsed, dict) else None
+
+    raw_state = _read_state_object(layout.state_json)
+    backup_state = _read_state_object(layout.state_json_backup)
+    if raw_state is None and backup_state is None:
+        return None
+
+    normalized, _integrity_issues, _recovered_root, _recovered_contract = _normalize_state_schema_with_backup_project_contract(
+        raw_state,
+        backup_state,
+        allow_project_contract_salvage=False,
+        retain_blocking_project_contract_errors=False,
+    )
+    project_contract = normalized.get("project_contract")
+    if project_contract is not None and contract_from_data(project_contract) is None:
+        normalized = dict(normalized)
+        normalized["project_contract"] = None
+    return normalized
+
+
 def check_state_validity(cwd: Path) -> HealthCheck:
     """Cross-check state.json and STATE.md consistency.
 
@@ -198,7 +229,7 @@ def check_state_validity(cwd: Path) -> HealthCheck:
     issues = list(result.issues)
     warnings = list(result.warnings)
 
-    state_obj = load_state_json(cwd)
+    state_obj = _peek_normalized_state_for_health(cwd)
     if isinstance(state_obj, dict) and state_obj.get("project_contract") is not None:
         approval_validation = validate_project_contract(state_obj["project_contract"], mode="approved")
         if not approval_validation.valid:

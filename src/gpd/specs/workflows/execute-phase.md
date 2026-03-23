@@ -1199,12 +1199,11 @@ grep "^status:" "$phase_dir"/*-VERIFICATION.md | head -1 | cut -d: -f2 | tr -d '
 | Status         | Action                                                      |
 | -------------- | ----------------------------------------------------------- |
 | `passed`       | -> update_roadmap                                           |
-| `completed`    | -> update_roadmap (interactive verify-work equivalent)      |
 | `human_needed`  | Present items for human review, get approval or feedback    |
 | `expert_needed` | Domain expert review required; present items, escalate      |
 | `gaps_found`    | Present gap summary, offer `/gpd:plan-phase {phase} --gaps` |
-| `diagnosed`    | Gaps were debugged; review fixes, then -> update_roadmap    |
-| `validating`   | Verification in progress; wait or re-run verify-phase       |
+
+If the same report also carries `session_status: validating|completed|diagnosed`, treat that as conversational progress only. It does not replace the canonical verification `status` read above. A diagnosed verification session will normally still report `status: gaps_found` until the fixes are re-verified.
 
 **If human_needed:**
 
@@ -1250,9 +1249,10 @@ Gap closure cycle: `/gpd:plan-phase {X} --gaps` reads VERIFICATION.md -> creates
 Before triggering gap closure, classify the failure to select the minimum-cost recovery strategy. See `agent-infrastructure.md` Meta-Orchestration Intelligence > Feedback Loop Intelligence for the full classification table.
 
 ```bash
-# Count failed contract targets and classify
-FAILED_COUNT=$(grep -c "status: failed" "${phase_dir}"/*-VERIFICATION.md 2>/dev/null || echo 0)
-TOTAL_COUNT=$(grep -c "status:" "${phase_dir}"/*-VERIFICATION.md 2>/dev/null || echo 0)
+# Count only top-level verification outcomes. Nested contract-results and gap
+# ledgers also have `status:` fields, so unanchored grep would overcount them.
+FAILED_COUNT=$(rg -c '^status: (gaps_found|expert_needed|human_needed)$' "${phase_dir}"/*-VERIFICATION.md 2>/dev/null | awk -F: '{sum += $2} END {print sum+0}')
+TOTAL_COUNT=$(rg -c '^status: (passed|gaps_found|expert_needed|human_needed)$' "${phase_dir}"/*-VERIFICATION.md 2>/dev/null | awk -F: '{sum += $2} END {print sum+0}')
 ```
 
 | Failure Pattern | Recovery | Cost |
@@ -1368,7 +1368,7 @@ Read these files using the file_read tool:
 - Roadmap: .gpd/ROADMAP.md
 </files_to_read>
 
-Focus on the gaps that were marked as 'failed' or 'diagnosed' in the previous verification.
+Focus on the gaps that were previously marked failed, partial, blocked, or otherwise unresolved in the previous verification. If the prior report carries `session_status: diagnosed`, use the recorded root causes and missing actions as the starting point for re-verification.
 Check whether the gap closure plans have resolved each issue.
 Update VERIFICATION.md with new status for each gap.
 Return verification status: passed | gaps_found.",

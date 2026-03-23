@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from gpd.adapters.runtime_catalog import list_runtime_names
 from gpd.cli import app
 from gpd.core.state import default_state_dict, generate_state_markdown
 
@@ -403,6 +404,23 @@ class TestInitCommands:
 
     def test_execute_phase(self) -> None:
         _invoke("init", "execute-phase", "1")
+
+    def test_progress_include_trims_whitespace_and_empty_entries(self) -> None:
+        _invoke("init", "progress", "--include", " state, roadmap, , ")
+
+    def test_progress_include_rejects_unknown_values(self) -> None:
+        result = runner.invoke(
+            app,
+            ["--raw", "init", "progress", "--include", "state, bogus"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        assert payload["error"] == (
+            "Unknown --include value(s) for gpd init progress: bogus. "
+            "Allowed values: config, project, roadmap, state."
+        )
 
     def test_plan_phase_surfaces_artifact_derived_reference_context(self, gpd_project: Path) -> None:
         literature_dir = gpd_project / ".gpd" / "literature"
@@ -825,7 +843,8 @@ class TestReviewValidationCommands:
         assert payload["context_mode"] == "project-required"
         assert payload["passed"] is False
         assert payload["guidance"] == (
-            "This command requires an initialized GPD project. Run `gpd init new-project`."
+            "This command requires an initialized GPD project. "
+            "Use `/gpd:new-project` in the runtime surface or `gpd init new-project` in the local CLI."
         )
 
     def test_command_context_projectless_passes_without_project(
@@ -844,6 +863,21 @@ class TestReviewValidationCommands:
         assert payload["command"] == "gpd:map-research"
         assert payload["context_mode"] == "projectless"
         assert payload["passed"] is True
+
+    def test_command_context_surfaces_runtime_slash_command_dispatch_note(self) -> None:
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "command-context", "gpd:settings"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        assert payload["command"] == "gpd:settings"
+        assert payload["validated_surface"] == "public_runtime_slash_command"
+        assert payload["local_cli_equivalence_guaranteed"] is False
+        assert "public `/gpd:*` runtime slash-command surface" in payload["dispatch_note"]
+        assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
 
     def test_command_context_slides_passes_without_project(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -884,8 +918,24 @@ class TestReviewValidationCommands:
         assert payload["passed"] is False
         assert payload["explicit_inputs"] == ["phase number or standalone topic"]
         assert payload["guidance"] == (
-            "Either provide phase number or standalone topic explicitly, or run `gpd init new-project`."
+            "Either provide phase number or standalone topic explicitly, or initialize a project with "
+            "`/gpd:new-project` in the runtime surface or `gpd init new-project` in the local CLI."
         )
+
+    def test_review_preflight_propagates_runtime_surface_metadata(self) -> None:
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "peer-review"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        assert payload["validated_surface"] == "public_runtime_slash_command"
+        assert payload["local_cli_equivalence_guaranteed"] is False
+        assert "public `/gpd:*` runtime slash-command surface" in payload["dispatch_note"]
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert "same-name local `gpd` subcommand" in checks["command_context"]["detail"]
 
     def test_command_context_project_aware_accepts_explicit_inputs_without_project(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -943,7 +993,8 @@ class TestReviewValidationCommands:
         assert payload["passed"] is False
         assert payload["explicit_inputs"] == ["concept, result, method, notation, or paper"]
         assert payload["guidance"] == (
-            "Either provide concept, result, method, notation, or paper explicitly, or run `gpd init new-project`."
+            "Either provide concept, result, method, notation, or paper explicitly, or initialize a project with "
+            "`/gpd:new-project` in the runtime surface or `gpd init new-project` in the local CLI."
         )
 
     def test_command_context_compare_results_requires_explicit_inputs_without_project(
@@ -966,7 +1017,8 @@ class TestReviewValidationCommands:
         assert payload["passed"] is False
         assert payload["explicit_inputs"] == ["phase, artifact, or comparison target"]
         assert payload["guidance"] == (
-            "Either provide phase, artifact, or comparison target explicitly, or run `gpd init new-project`."
+            "Either provide phase, artifact, or comparison target explicitly, or initialize a project with "
+            "`/gpd:new-project` in the runtime surface or `gpd init new-project` in the local CLI."
         )
 
     def test_review_preflight_write_paper_strict(self) -> None:
@@ -2882,7 +2934,7 @@ def test_resolve_model_normalizes_runtime_aliases(monkeypatch: pytest.MonkeyPatc
     import gpd.cli as cli_module
     import gpd.core.config as config_module
 
-    monkeypatch.setattr(cli_module, "_supported_runtime_names", lambda: ["claude-code", "gemini", "codex", "opencode"])
+    monkeypatch.setattr(cli_module, "_supported_runtime_names", list_runtime_names)
     monkeypatch.setattr(config_module, "validate_agent_name", lambda agent_name: None)
     monkeypatch.setattr(config_module, "resolve_model", lambda cwd, agent_name, runtime=None: runtime)
 

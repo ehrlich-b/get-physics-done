@@ -309,7 +309,7 @@ gpd verify artifacts <plan-file-path>
 gpd verify summary <summary-path>
 
 # Check for convention conflicts and verification regressions across phases
-gpd regression-check [--quick]
+gpd regression-check [phase] [--quick]
 
 # Validate wave assignments within a phase
 gpd phase validate-waves <phase-number>

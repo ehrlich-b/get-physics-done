@@ -11,6 +11,7 @@ from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, ProjectLayout
 from gpd.core.state import (
     VALID_STATUSES,
     ResearchState,
+    _normalize_recovered_project_contract_issues,
     _normalize_state_schema,
     default_state_dict,
     ensure_state_schema,
@@ -466,8 +467,8 @@ def test_normalize_state_schema_reports_coercive_project_contract_scalars():
     normalized, issues = _normalize_state_schema({"project_contract": contract})
 
     assert normalized["project_contract"] is None
-    assert any("schema_version must be the integer 1" in issue for issue in issues)
-    assert any("references.0.must_surface must be a boolean" in issue for issue in issues)
+    assert any("project_contract.schema_version must be the integer 1" in issue for issue in issues)
+    assert any("project_contract.references.0.must_surface must be a boolean" in issue for issue in issues)
     assert any(
         'schema normalization: dropped "project_contract" because authoritative scalar fields required normalization'
         in issue
@@ -1235,6 +1236,55 @@ def test_state_validate_warns_when_project_contract_is_recovered_from_backup(tmp
     assert any("project_contract was recovered from state.json.bak" in warning for warning in validation.warnings)
 
 
+def test_state_load_preserves_prefixed_project_contract_issues_when_backup_contract_is_recovered(tmp_path: Path) -> None:
+    baseline = default_state_dict()
+    baseline["position"]["status"] = "Executing"
+    save_state_json(tmp_path, baseline)
+    save_state_markdown(tmp_path, generate_state_markdown(baseline))
+    layout = ProjectLayout(tmp_path)
+
+    broken_state = default_state_dict()
+    broken_state["position"]["status"] = "Executing"
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["references"][0]["must_surface"] = "yes"
+    broken_state["project_contract"] = contract
+    layout.state_json.write_text(json.dumps(broken_state, indent=2) + "\n", encoding="utf-8")
+
+    backup_state = default_state_dict()
+    backup_state["position"]["status"] = "Executing"
+    backup_state["project_contract"] = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    layout.state_json_backup.write_text(json.dumps(backup_state, indent=2) + "\n", encoding="utf-8")
+
+    loaded = state_load(tmp_path)
+
+    assert loaded.state["project_contract"] is not None
+    assert any(
+        "project_contract.references.0.must_surface must be a boolean" in issue
+        for issue in loaded.integrity_issues
+    )
+    assert any(
+        'recovered "project_contract" from state.json.bak after primary project_contract required blocking normalization'
+        in issue
+        for issue in loaded.integrity_issues
+    )
+    assert not any(
+        'dropped "project_contract" because authoritative scalar fields required normalization' in issue
+        for issue in loaded.integrity_issues
+    )
+
+
+def test_normalize_recovered_project_contract_issues_leaves_unrelated_state_issues_untouched() -> None:
+    normalized = _normalize_recovered_project_contract_issues(
+        [
+            "schema normalization: position.current_phase must be a string",
+            "schema normalization: references.0.must_surface must be a boolean",
+        ]
+    )
+
+    assert "schema normalization: position.current_phase must be a string" in normalized
+    assert "schema normalization: project_contract.references.0.must_surface must be a boolean" in normalized
+
+
 def test_state_validate_recovers_backup_when_primary_root_is_not_an_object(tmp_path: Path) -> None:
     baseline = default_state_dict()
     baseline["project_contract"] = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
@@ -1250,6 +1300,26 @@ def test_state_validate_recovers_backup_when_primary_root_is_not_an_object(tmp_p
     assert validation.valid is True
     assert validation.integrity_status == "warning"
     assert any("state.json root was recovered from state.json.bak" in warning for warning in validation.warnings)
+
+
+def test_state_validate_recovers_backup_root_without_project_contract(tmp_path: Path) -> None:
+    baseline = default_state_dict()
+    baseline["position"]["status"] = "Executing"
+    save_state_json(tmp_path, baseline)
+    save_state_markdown(tmp_path, generate_state_markdown(baseline))
+    layout = ProjectLayout(tmp_path)
+
+    backup_state = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    backup_state["project_contract"] = None
+    layout.state_json.write_text("[]\n", encoding="utf-8")
+    layout.state_json_backup.write_text(json.dumps(backup_state, indent=2) + "\n", encoding="utf-8")
+
+    validation = state_validate(tmp_path)
+
+    assert validation.valid is True
+    assert validation.integrity_status == "warning"
+    assert any("state.json root was recovered from state.json.bak" in warning for warning in validation.warnings)
+    assert not any("project_contract was recovered from state.json.bak" in warning for warning in validation.warnings)
 
 
 def test_state_validate_review_blocks_when_project_contract_is_recovered_from_backup(tmp_path: Path) -> None:
@@ -1273,6 +1343,28 @@ def test_state_validate_review_blocks_when_project_contract_is_recovered_from_ba
     assert validation.valid is False
     assert validation.integrity_status == "blocked"
     assert any("project_contract was recovered from state.json.bak" in issue for issue in validation.issues)
+
+
+def test_state_validate_review_blocks_when_state_root_is_recovered_from_backup_without_project_contract(
+    tmp_path: Path,
+) -> None:
+    baseline = default_state_dict()
+    baseline["position"]["status"] = "Executing"
+    save_state_json(tmp_path, baseline)
+    save_state_markdown(tmp_path, generate_state_markdown(baseline))
+    layout = ProjectLayout(tmp_path)
+
+    backup_state = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    backup_state["project_contract"] = None
+    layout.state_json.write_text("[]\n", encoding="utf-8")
+    layout.state_json_backup.write_text(json.dumps(backup_state, indent=2) + "\n", encoding="utf-8")
+
+    validation = state_validate(tmp_path, integrity_mode="review")
+
+    assert validation.valid is False
+    assert validation.integrity_status == "blocked"
+    assert any("state.json root was recovered from state.json.bak" in issue for issue in validation.issues)
+    assert not any("project_contract was recovered from state.json.bak" in issue for issue in validation.issues)
 
 
 def test_state_validate_review_blocks_missing_evidence_file(tmp_path):
