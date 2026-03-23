@@ -354,3 +354,189 @@ Self-modeling (L4) $\to$ M_n(C)^{sa} (Paper 5) $\to$ C*-observer with $\mathbb{C
 **Cross-check:** Consistent with Boyle 2020's identification of $V_{1/2}$ in $h_3^\mathbb{C}(\mathbb{O})$ as $S_{10}^+$.
 
 **No forbidden proxies violated:** Complexification derived from C*-nature (not assumed). Spin(10) established via representation-theoretic branching rule (not asserted).
+
+---
+
+## Part III: Full Algebra Complexification, F_4 -> E_6, and the 27-dim Decomposition
+
+**(Phase 18, Plan 02: CMPL-02 -- Global structure of h_3^C(O))**
+
+Part II established complexification at the level of the Peirce space $V_{1/2}$. Part III extends this to the full exceptional Jordan algebra, tracking the automorphism group upgrade $F_4 \to E_6$ and the 27-dimensional representation decomposition under $\mathrm{Spin}(10)$.
+
+### Step 12: Complexification of the Full Algebra h_3(O) -> h_3^C(O)
+
+**Definition.** The complexified exceptional Jordan algebra is:
+
+$$h_3^\mathbb{C}(\mathbb{O}) := h_3(\mathbb{O}) \otimes_\mathbb{R} \mathbb{C}$$
+
+This is the extension of scalars of the real Jordan algebra $h_3(\mathbb{O})$ from $\mathbb{R}$ to $\mathbb{C}$.
+
+**Elements.** An element of $h_3^\mathbb{C}(\mathbb{O})$ is a formal $\mathbb{C}$-linear combination of elements of $h_3(\mathbb{O})$. Equivalently, elements are $3 \times 3$ matrices over $\mathbb{O}_\mathbb{C} = \mathbb{O} \otimes_\mathbb{R} \mathbb{C}$ (the complexified octonions, $\dim_\mathbb{C} = 8$) satisfying the complexified Hermiticity condition.
+
+**Important note.** $h_3^\mathbb{C}(\mathbb{O})$ is NOT the set of $3 \times 3$ Hermitian matrices over $\mathbb{O}_\mathbb{C}$ in the naive sense. Rather, it is the complexification of the real Jordan algebra. The "Hermiticity" condition extends $\mathbb{C}$-linearly: if $X \in h_3(\mathbb{O})$ satisfies $X = X^\dagger$ (octonion conjugation + transpose), then $X \otimes 1 \in h_3^\mathbb{C}(\mathbb{O})$ satisfies $(X \otimes 1)^\sharp = X \otimes 1$ where $\sharp$ is the $\mathbb{C}$-linear extension of $\dagger$.
+
+**Dimension.**
+
+$$\dim_\mathbb{C}(h_3^\mathbb{C}(\mathbb{O})) = \dim_\mathbb{R}(h_3(\mathbb{O})) = 27$$
+
+This follows from the general property of extension of scalars: $\dim_\mathbb{C}(V \otimes_\mathbb{R} \mathbb{C}) = \dim_\mathbb{R}(V)$.
+
+**Jordan product.** The Jordan product extends $\mathbb{C}$-linearly:
+
+$$(a \otimes z) \circ (b \otimes w) = (a \circ b) \otimes (zw)$$
+
+for $a, b \in h_3(\mathbb{O})$ and $z, w \in \mathbb{C}$. The complexified algebra $h_3^\mathbb{C}(\mathbb{O})$ is a complex Jordan algebra of dimension 27.
+
+**Cubic form.** The determinant (cubic norm form) of $h_3(\mathbb{O})$ extends $\mathbb{C}$-linearly to a cubic form on $h_3^\mathbb{C}(\mathbb{O})$:
+
+$$\det(X) = \alpha\beta\gamma - \alpha |x_1|^2 - \beta |x_2|^2 - \gamma |x_3|^2 + 2\,\mathrm{Re}(x_1(x_2 x_3))$$
+
+extends via $(X \otimes z) \mapsto \det(X) \cdot z^3$, and then by $\mathbb{C}$-linearity to all of $h_3^\mathbb{C}(\mathbb{O})$.
+
+**Consistency with Plan 01.** The complexification of the full algebra contains the complexification of each Peirce subspace:
+
+$$h_3^\mathbb{C}(\mathbb{O}) = V_1^\mathbb{C} \oplus V_{1/2}^\mathbb{C} \oplus V_0^\mathbb{C}$$
+
+where:
+- $V_1^\mathbb{C} = \mathbb{R} \cdot E_{11} \otimes_\mathbb{R} \mathbb{C} = \mathbb{C} \cdot E_{11}$, $\dim_\mathbb{C} = 1$
+- $V_{1/2}^\mathbb{C} = \mathbb{O}^2 \otimes_\mathbb{R} \mathbb{C}$, $\dim_\mathbb{C} = 16$ (established in Part II as $S_{10}^+$)
+- $V_0^\mathbb{C} = h_2(\mathbb{O}) \otimes_\mathbb{R} \mathbb{C} = h_2^\mathbb{C}(\mathbb{O})$, $\dim_\mathbb{C} = 10$
+
+**Dimension check:**
+$$1 + 16 + 10 = 27 = \dim_\mathbb{C}(h_3^\mathbb{C}(\mathbb{O})) \quad \checkmark$$
+
+SELF-CRITIQUE CHECKPOINT (Step 12):
+1. SIGN CHECK: No sign-sensitive operations. N/A.
+2. FACTOR CHECK: $\dim_\mathbb{C}(h_3^\mathbb{C}(\mathbb{O})) = 27$; $27 = 3 \cdot 1 + 3 \cdot 8$ for real, same count as complex dimension after extension. $\checkmark$
+3. CONVENTION CHECK: Jordan product $\circ = \frac{1}{2}(ab + ba)$ extended $\mathbb{C}$-linearly. Peirce under $E_{11}$ as before. $\checkmark$
+4. DIMENSION CHECK: $1 + 16 + 10 = 27$. $\checkmark$
+
+### Step 13: Structure Group Upgrade F_4 -> E_6
+
+**F_4 as automorphism group of h_3(O).**
+
+The automorphism group of $h_3(\mathbb{O})$ as a Jordan algebra is the compact exceptional Lie group:
+
+$$\mathrm{Aut}(h_3(\mathbb{O})) = F_4$$
+
+with $\dim(F_4) = 52$ (Baez, "The Octonions," Sec 4.3; Yokota, "Exceptional Lie Groups," Ch 2).
+
+An automorphism $\phi \in F_4$ satisfies:
+$$\phi(A \circ B) = \phi(A) \circ \phi(B) \quad \text{for all } A, B \in h_3(\mathbb{O})$$
+and preserves the unit element $\phi(\mathbb{1}) = \mathbb{1}$.
+
+**E_6 as structure group of h_3^C(O).**
+
+The structure group of $h_3^\mathbb{C}(\mathbb{O})$ is the exceptional Lie group $E_6$. More precisely, the relevant group is the connected component of the structure group:
+
+$$\mathrm{Str}_0(h_3^\mathbb{C}(\mathbb{O})) = E_6$$
+
+with $\dim(E_6) = 78$.
+
+A structure transformation $g \in E_6$ preserves the cubic form up to a scalar (determinant-preserving up to scale):
+
+$$\det(g \cdot X) = \chi(g)^3 \det(X)$$
+
+for some character $\chi : E_6 \to \mathbb{C}^*$. The subgroup preserving the determinant exactly (i.e., $\chi = 1$) is the reduced structure group.
+
+**The F_4 -> E_6 embedding.**
+
+$F_4$ embeds into $E_6$ as the subgroup that preserves the real structure:
+
+$$F_4 = \{ g \in E_6 : g(h_3(\mathbb{O})) = h_3(\mathbb{O}) \}$$
+
+That is, $F_4$ is the subgroup of $E_6$ that maps the real form $h_3(\mathbb{O}) \subset h_3^\mathbb{C}(\mathbb{O})$ to itself. Equivalently, $F_4$ is the fixed-point set of the complex conjugation automorphism on $E_6$ (the automorphism that acts as complex conjugation on $h_3^\mathbb{C}(\mathbb{O})$).
+
+**Why complexification upgrades $F_4$ to $E_6$:** Before complexification, the symmetry of $h_3(\mathbb{O})$ is $F_4$ (preserving the Jordan product). After complexification, the symmetry enlarges to $E_6$ because:
+1. The complexified algebra has additional structure (the cubic form extends to $\mathbb{C}$)
+2. Transformations that mix real and imaginary parts are now available
+3. These additional transformations generate $E_6$ from $F_4$
+
+**Dimension accounting:**
+
+$$\dim(E_6) - \dim(F_4) = 78 - 52 = 26$$
+
+The 26 additional dimensions correspond to the additional generators that become available after complexification. These generators act non-trivially on the imaginary (iX for $X \in h_3(\mathbb{O})$) directions.
+
+**Tracking through the Peirce decomposition:**
+
+The upgrade $F_4 \to E_6$ is not merely a group-theoretic statement; it can be seen through how the groups act on the Peirce decomposition.
+
+Under $F_4$: Each Peirce space $V_\lambda$ is stable under $\mathrm{Stab}_{F_4}(E_{11}) = \mathrm{Spin}(9)$. The $F_4$ action permutes elements within each Peirce space (and can mix different idempotents, moving between different Peirce decompositions).
+
+Under $E_6$: After complexification, each $V_\lambda^\mathbb{C}$ is stable under $\mathrm{Stab}_{E_6}(E_{11}) = \mathrm{Spin}(10) \times \mathrm{U}(1)$ (see Step 14). The $E_6$ action on $h_3^\mathbb{C}(\mathbb{O})$ permutes elements within each complexified Peirce space, now with the larger stabilizer symmetry.
+
+The key point: the Peirce subspaces do not change their role or structure under complexification -- they simply acquire the larger symmetry. This is because the Peirce decomposition is defined by the eigenvalues of $L_e$, and the operator $L_e$ extends $\mathbb{C}$-linearly to $h_3^\mathbb{C}(\mathbb{O})$ with the same eigenvalues $\{0, 1/2, 1\}$.
+
+**References:**
+- Baez, "The Octonions," Bull. AMS 39 (2002), Sec 4.3: $F_4 = \mathrm{Aut}(h_3(\mathbb{O}))$
+- Yokota, "Exceptional Lie Groups" (2009), Ch 2-3: $F_4 \hookrightarrow E_6$ embedding, structure group
+- Boyle (arXiv:2006.16265): $E_6$ as structure group of $h_3^\mathbb{C}(\mathbb{O})$, cubic form preservation
+
+SELF-CRITIQUE CHECKPOINT (Step 13):
+1. SIGN CHECK: No signs in group dimension computation. N/A.
+2. FACTOR CHECK: $78 - 52 = 26$ $\checkmark$. No factors of 2, $\pi$, etc.
+3. CONVENTION CHECK: $F_4$ is the compact form. $E_6$ here refers to the compact real form $E_6^{-78}$ (maximal compact, Killing form negative definite), consistent with its role as structure group of a compact Jordan algebra. $\checkmark$
+4. DIMENSION CHECK: $\dim(F_4) = 52 = \frac{1}{2} \cdot 4 \cdot (4 \cdot 6 + 2) = 52$ (checking: rank 4 exceptional group) $\checkmark$. $\dim(E_6) = 78$ (rank 6 exceptional group). $\checkmark$
+
+### Step 14: Stabilizer Upgrade Spin(9) -> Spin(10) x U(1)
+
+**Before complexification: Spin(9) = Stab_{F_4}(E_11).**
+
+From Part I (Step 4):
+$$\mathrm{Stab}_{F_4}(E_{11}) = \mathrm{Spin}(9), \quad \dim = 36 = \binom{9}{2}$$
+
+The orbit of $E_{11}$ under $F_4$ is the Cayley projective plane:
+$$F_4 / \mathrm{Spin}(9) \cong \mathbb{O}P^2, \quad \dim = 52 - 36 = 16$$
+
+**After complexification: Spin(10) x U(1) = Stab_{E_6}(E_11).**
+
+In $E_6$, the stabilizer of the idempotent $E_{11} \in h_3^\mathbb{C}(\mathbb{O})$ is:
+
+$$\mathrm{Stab}_{E_6}(E_{11}) = \mathrm{Spin}(10) \times \mathrm{U}(1)$$
+
+with:
+$$\dim(\mathrm{Spin}(10) \times \mathrm{U}(1)) = 45 + 1 = 46$$
+
+**Dimension check on the orbit:**
+$$\dim(E_6) - \dim(\mathrm{Spin}(10) \times \mathrm{U}(1)) = 78 - 46 = 32$$
+
+The orbit $E_6 / (\mathrm{Spin}(10) \times \mathrm{U}(1))$ is a 32-dimensional space. This is the complexified Cayley plane $(\mathbb{O}P^2)^\mathbb{C}$: $\dim_\mathbb{R}(\mathbb{O}P^2) = 16$, so $\dim_\mathbb{R}((\mathbb{O}P^2)^\mathbb{C}) = 32$, consistent with $78 - 46 = 32$. $\checkmark$
+
+**The stabilizer upgrade is consistent with Part II.**
+
+Part II established that $V_{1/2}^\mathbb{C} = S_{10}^+$ carries a $\mathrm{Spin}(10)$ action. The stabilizer of $E_{11}$ in $E_6$ must preserve each complexified Peirce space, and in particular must act on $V_{1/2}^\mathbb{C}$. The $\mathrm{Spin}(10)$ factor is precisely the group that acts on $V_{1/2}^\mathbb{C} = S_{10}^+$ via the Weyl spinor representation.
+
+The $\mathrm{U}(1)$ factor corresponds to overall phase rotations that are available after complexification. In the physics literature (Boyle 2020), this $\mathrm{U}(1)$ is identified with $B - L$ (baryon minus lepton number), but we defer this identification to Phase 19-20. For the current analysis, we note its existence and dimension ($+1$) in the stabilizer.
+
+**Tracking the Spin(9) -> Spin(10) embedding through Peirce spaces:**
+
+| Peirce Space | Before (real, $\mathrm{Spin}(9)$) | After (complex, $\mathrm{Spin}(10)$) | Representation Upgrade |
+|:---:|:---:|:---:|:---:|
+| $V_1 \to V_1^\mathbb{C}$ | $\mathbb{R}$, dim 1, trivial $\mathbf{1}$ | $\mathbb{C}$, dim 1, trivial $\mathbf{1}$ | Unchanged (trivial rep) |
+| $V_{1/2} \to V_{1/2}^\mathbb{C}$ | $\mathbb{O}^2$, dim 16, spinor $S_9$ | $\mathbb{O}^2 \otimes \mathbb{C}$, dim 16, Weyl $S_{10}^+$ | $S_9 \to S_{10}^+$ (Part II result) |
+| $V_0 \to V_0^\mathbb{C}$ | $h_2(\mathbb{O})$, dim 10, $\mathbf{9} \oplus \mathbf{1}$ | $h_2(\mathbb{O}) \otimes \mathbb{C}$, dim 10, vector $\mathbf{10}$ | $\mathbf{9} \oplus \mathbf{1} \to \mathbf{10}$ |
+
+The key structural change for $V_0$: Under $\mathrm{Spin}(9)$, $V_0 = h_2(\mathbb{O})$ decomposes as $\mathbf{9} \oplus \mathbf{1}$ (traceless part + trace). Under $\mathrm{Spin}(10)$, the complexified $V_0^\mathbb{C}$ is the 10-dimensional vector (defining) representation $\mathbf{10}$ of $\mathrm{Spin}(10)$. This is consistent with the branching rule:
+
+$$\mathbf{10}\big|_{\mathrm{Spin}(9)} = \mathbf{9} \oplus \mathbf{1}$$
+
+which states that the vector representation of $\mathrm{Spin}(10)$, restricted to $\mathrm{Spin}(9)$, decomposes as the vector of $\mathrm{Spin}(9)$ plus a singlet. This is the standard embedding $\mathrm{SO}(9) \hookrightarrow \mathrm{SO}(10)$ where the 10-vector splits as $9 + 1$ under the $\mathrm{SO}(9)$ subgroup. $\checkmark$
+
+**References:**
+- Yokota, "Exceptional Lie Groups" (2009): $\mathrm{Stab}_{E_6}(E_{11}) = \mathrm{Spin}(10) \times \mathrm{U}(1)$
+- Boyle (arXiv:2006.16265): orbit structure and $\mathrm{U}(1)$ identification
+
+SELF-CRITIQUE CHECKPOINT (Step 14):
+1. SIGN CHECK: N/A (no sign-sensitive computation).
+2. FACTOR CHECK: $78 - 46 = 32 = 2 \times 16$ (complexified Cayley plane). $\checkmark$. $\dim(\mathrm{Spin}(10)) = \binom{10}{2} = 45$ $\checkmark$.
+3. CONVENTION CHECK: $\mathrm{Spin}(10) \times \mathrm{U}(1)$ stabilizer. The $\mathrm{U}(1)$ factor is noted but not analyzed (deferred). $\checkmark$
+4. DIMENSION CHECK: $45 + 1 = 46$; orbit $78 - 46 = 32$. Branching $\mathbf{10}|_{\mathrm{Spin}(9)} = \mathbf{9} + \mathbf{1}$: $9 + 1 = 10$. $\checkmark$
+
+**Chain summary (Steps 12-14):**
+
+$$F_4 = \mathrm{Aut}(h_3(\mathbb{O})) \;\xrightarrow{\text{complexification}}\; E_6 = \mathrm{Str}_0(h_3^\mathbb{C}(\mathbb{O}))$$
+
+$$\mathrm{Stab}_{F_4}(E_{11}) = \mathrm{Spin}(9) \;\xrightarrow{\text{complexification}}\; \mathrm{Stab}_{E_6}(E_{11}) = \mathrm{Spin}(10) \times \mathrm{U}(1)$$
+
+Tracked through Peirce decomposition: each subspace followed from real to complex, with representation upgrades verified at each level.
