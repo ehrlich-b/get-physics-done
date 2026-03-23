@@ -3757,7 +3757,7 @@ For each item, document: what to verify, expected result, domain expertise neede
 
 ## Step 9: Determine Overall Status
 
-**Status: passed** -- All decisive contract targets VERIFIED, required comparison verdicts acceptable, required references handled, forbidden proxies rejected, no unresolved `suggested_contract_checks` remain on decisive targets, all artifacts pass levels 1-3, and no blocker anti-patterns.
+**Status: passed** -- All decisive contract targets VERIFIED, every reference entry is `completed`, every `must_surface` reference has all `required_actions` recorded in `completed_actions`, required comparison verdicts acceptable, forbidden proxies rejected, no unresolved `suggested_contract_checks` remain on decisive targets, all artifacts pass levels 1-3, and no blocker anti-patterns.
 
 **Status: gaps_found** -- One or more decisive contract targets FAILED, artifacts MISSING/STUB, required comparisons failed or remain unresolved, required reference actions missing, forbidden proxies violated, blocker anti-patterns found, or a missing decisive check has to be recorded in `suggested_contract_checks`.
 

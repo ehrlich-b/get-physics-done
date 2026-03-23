@@ -705,6 +705,117 @@ def test_run_contract_check_ambiguous_context_accepts_explicit_metadata_selector
     assert limit["automated_issues"] == []
 
 
+def test_run_contract_check_unique_bound_context_does_not_require_redundant_selector_metadata() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    benchmark = run_contract_check(
+        {
+            "check_key": "contract.benchmark_reproduction",
+            "contract": _ambiguous_benchmark_binding_contract(),
+            "binding": {"acceptance_test_ids": ["test-benchmark"]},
+            "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+        }
+    )
+    limit = run_contract_check(
+        {
+            "check_key": "contract.limit_recovery",
+            "contract": _multi_limit_contract(),
+            "binding": {"claim_ids": ["claim-small-k"]},
+            "observed": {"limit_passed": True, "observed_limit": "small-k"},
+        }
+    )
+
+    assert benchmark["status"] == "pass"
+    assert benchmark["missing_inputs"] == []
+    assert benchmark["automated_issues"] == []
+    assert benchmark["metrics"]["source_reference_id"] == "ref-benchmark"
+
+    assert limit["status"] == "pass"
+    assert limit["missing_inputs"] == []
+    assert limit["automated_issues"] == []
+    assert limit["metrics"]["regime_label"] == "small-k"
+
+
+def test_run_contract_check_direct_proxy_consistency_ambiguous_contract_requires_binding() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.direct_proxy_consistency",
+            "contract": _binding_inconsistency_contract(),
+            "observed": {
+                "direct_available": True,
+                "proxy_available": True,
+                "consistency_passed": True,
+            },
+        }
+    )
+
+    assert result["status"] == "insufficient_evidence"
+    assert "binding.forbidden_proxy_ids" in result["missing_inputs"]
+    assert "Ambiguous direct/proxy context requires an explicit forbidden proxy binding" in result["automated_issues"]
+
+
+def test_run_contract_check_direct_proxy_consistency_bound_proxy_can_resolve_ambiguous_contract() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.direct_proxy_consistency",
+            "contract": _binding_inconsistency_contract(),
+            "binding": {"forbidden_proxy_ids": ["fp-01"]},
+            "observed": {
+                "direct_available": True,
+                "proxy_available": True,
+                "consistency_passed": True,
+            },
+        }
+    )
+
+    assert result["status"] == "pass"
+    assert result["missing_inputs"] == []
+    assert result["automated_issues"] == []
+    assert result["contract_impacts"] == ["fp-01"]
+
+
+def test_run_contract_check_limit_recovery_derives_expected_behavior_from_regime_metadata() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.limit_recovery",
+            "contract": _multi_limit_contract(),
+            "metadata": {"regime_label": "small-k"},
+            "observed": {"limit_passed": True, "observed_limit": "small-k"},
+        }
+    )
+
+    assert result["status"] == "pass"
+    assert result["missing_inputs"] == []
+    assert result["automated_issues"] == []
+    assert result["metrics"]["regime_label"] == "small-k"
+
+
+def test_run_contract_check_limit_recovery_rejects_mismatched_expected_behavior() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.limit_recovery",
+            "contract": _multi_limit_contract(),
+            "metadata": {"regime_label": "small-k", "expected_behavior": "WRONG"},
+            "observed": {"limit_passed": True, "observed_limit": "small-k"},
+        }
+    )
+
+    assert result["status"] == "insufficient_evidence"
+    assert "metadata.expected_behavior" in result["missing_inputs"]
+    assert any(
+        issue.startswith("metadata.expected_behavior does not match the resolved contract context; expected")
+        for issue in result["automated_issues"]
+    )
+
+
 def test_run_contract_check_keyword_fallback_reaches_warning_when_prose_evidence_is_present() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check
 

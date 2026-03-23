@@ -1002,6 +1002,8 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "uncertainty_markers:" in verification_template
     assert "weakest_anchors: [anchor-1]" in verification_template
     assert "disconfirming_observations: [observation-1]" in verification_template
+    assert "every reference entry is `completed`" in verification_template
+    assert "every `must_surface` reference has all `required_actions` recorded in `completed_actions`" in verification_template
     assert "Benchmark acceptance tests require `comparison_kind: benchmark`" in verification_template
     assert "cross-method acceptance tests require `comparison_kind: cross_method`" in verification_template
     assert "Section-specific status vocabularies are mandatory" in contract_results_schema
@@ -1023,7 +1025,9 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "comparison_verdicts:" in research_verification
     assert "subject_role: decisive" in research_verification
     assert "comparison_kind: benchmark" in research_verification
-    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" in research_verification
+    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]" in research_verification
+    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" not in research_verification
+    assert "omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders" in research_verification
     assert "comparison_kind: benchmark | prior_work | experiment | cross_method | baseline | other" in research_verification
     assert 'comparison_kind: "benchmark | prior_work | experiment | cross_method | baseline | other"' in research_verification
     assert "verification-side `suggested_contract_checks` entries are part of the same canonical schema surface" in research_verification
@@ -1078,6 +1082,9 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "comparison_verdicts:" in verify_workflow
     assert "subject_role: decisive" in verify_workflow
     assert "comparison_kind: benchmark" in verify_workflow
+    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]" in verify_workflow
+    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | \"\"]" not in verify_workflow
+    assert "omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders" in verify_workflow
     assert "suggested_contract_checks:" in verify_workflow
     assert "`suggested_contract_check`" not in verify_workflow
     assert "Return status (`passed` | `gaps_found` | `expert_needed` | `human_needed`)" in verify_phase
@@ -1557,6 +1564,7 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "### `links[]`" in phase_prompt
     assert "# PLAN Contract Schema" in planner_prompt
     assert "non-empty `context_intake` object" in planner_prompt
+    assert "Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended" in planner_prompt
     assert "scope.unresolved_questions" in planner_prompt
     assert "Every claim must declare a stable `id`." in planner_prompt
     assert (
@@ -1640,6 +1648,9 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "aliases: [\"optional stable label or citation shorthand\"]" in plan_schema
     assert "carry_forward_to: [planning, verification]" in plan_schema
     assert "automation: automated | hybrid | human" in plan_schema
+    assert "`kind` is optional and defaults to `other`; set it when the plan knows a more specific semantic category." in plan_schema
+    assert "`kind` and `role` are optional and default to `other`; set them when the anchor semantics are already known." in plan_schema
+    assert "`relation` is optional and defaults to `other`; set it when the dependency type is already known." in plan_schema
     assert "required_actions: [read, compare, cite, avoid]" in plan_schema
     assert "`required_actions[]` values must use the closed action vocabulary: `read`, `use`, `compare`, `cite`, `avoid`." in plan_schema
     assert "For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required." in plan_schema
@@ -1695,6 +1706,7 @@ def test_phase_prompt_surfaces_validation_critical_plan_contract_rules() -> None
 
     assert "the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies" in phase_prompt
     assert "If references are present, at least one must set `must_surface: true`." in phase_prompt
+    assert "Semantic enum fields with schema defaults may be omitted when `other` is actually intended." in phase_prompt
     assert "If the plan is intentionally scoping-only" in phase_prompt
 
 

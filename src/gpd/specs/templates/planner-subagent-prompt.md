@@ -19,6 +19,7 @@ Template for spawning `gpd-planner`. The planner agent owns the planning logic; 
 **Autonomy:** {autonomy}
 
 Planning requires an approved scoping contract. That contract must include a non-empty `context_intake`. If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of inferring scope from roadmap text alone.
+The contract still exposes defaultable semantic fields: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other` and may be omitted only when that generic category is actually intended.
 
 **Project State:** {state_content}
 **Project Contract:** {project_contract}
@@ -53,6 +54,8 @@ Each plan MUST include:
 - **Error budget:** For numerical work, specify target precision and identify dominant error sources
 - **Consistency checks:** Cross-checks between independent methods or approaches where possible
 - **Contract completeness:** Every plan must carry decisive claims, deliverables, references, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter
+- **Semantic defaults:** Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended; otherwise set the more specific value explicitly
+- **Defaulted semantic fields:** `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation` all exist in the contract and default to `other`
 - **Context intake:** Every plan must carry a non-empty `context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs the executor needs before planning
 - **Anchor discipline:** If a benchmark, paper, dataset, baseline, or prior artifact is contract-critical, surface it in the plan instead of treating it as optional background
 - **Protocol bundle coverage:** If specialized protocol bundles are selected, carry their anchor prompts, estimator policies, decisive artifact guidance, and verification extensions into the plan rather than leaving them implicit

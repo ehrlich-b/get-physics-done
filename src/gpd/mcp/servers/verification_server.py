@@ -867,7 +867,9 @@ def _subject_binding_requirement(
             binding_ids,
             binding_supplied=bool(binding_ids),
         )
-        if len(reference_candidates) > 1 or len(_unique_strings(benchmark_reference_ids)) > 1 or len(benchmark_tests) > 1:
+        if len(reference_candidates) > 1 or (
+            not binding_ids and (len(_unique_strings(benchmark_reference_ids)) > 1 or len(benchmark_tests) > 1)
+        ):
             return [
                 "metadata.source_reference_id"
             ], "Ambiguous benchmark context requires an explicit benchmark reference"
@@ -884,8 +886,19 @@ def _subject_binding_requirement(
             binding_ids,
             binding_supplied=bool(binding_ids),
         )
-        if len(regime_candidates) > 1 or len(regime_ids) > 1 or len(limit_tests) > 1:
+        if len(regime_candidates) > 1 or (not binding_ids and (len(regime_ids) > 1 or len(limit_tests) > 1)):
             return ["metadata.regime_label"], "Ambiguous limit context requires an explicit regime selection"
+
+    if check_key == "contract.direct_proxy_consistency":
+        forbidden_proxy_candidates, _ = _direct_proxy_candidates(
+            contract,
+            binding_ids,
+            binding_supplied=bool(binding_ids),
+        )
+        if len(forbidden_proxy_candidates) > 1 or (not binding_ids and len(contract.forbidden_proxies) > 1):
+            return [
+                "binding.forbidden_proxy_ids"
+            ], "Ambiguous direct/proxy context requires an explicit forbidden proxy binding"
 
     return [], None
 
@@ -1733,9 +1746,10 @@ def _benchmark_reference_candidates(
         test = tests_by_id.get(test_id)
         if test is None:
             continue
-        for evidence_id in test.evidence_required:
-            if evidence_id in references_by_id:
-                acceptance_test_candidates.append(evidence_id)
+        direct_benchmark_refs = [evidence_id for evidence_id in test.evidence_required if evidence_id in references_by_id]
+        if direct_benchmark_refs:
+            acceptance_test_candidates.extend(direct_benchmark_refs)
+            continue
         acceptance_test_candidates.extend(
             _benchmark_references_for_subject_ids(
                 [test.subject],
@@ -1757,6 +1771,108 @@ def _benchmark_reference_candidates(
 
     if not binding_supplied and not binding_ids and len(benchmark_refs) == 1:
         return [benchmark_refs[0].id], None
+
+    return [], None
+
+
+def _direct_proxy_candidates(
+    contract: ResearchContract,
+    binding_ids: dict[str, list[str]],
+    *,
+    binding_supplied: bool,
+) -> tuple[list[str], str | None]:
+    forbidden_proxies = list(contract.forbidden_proxies)
+    proxies_by_id = {proxy.id: proxy for proxy in forbidden_proxies}
+    claims_by_id = {claim.id: claim for claim in contract.claims}
+    tests_by_id = {test.id: test for test in contract.acceptance_tests}
+    claims_by_deliverable = _claim_ids_by_deliverable(contract)
+
+    def _proxy_candidates_for_subject_ids(subject_ids: Iterable[str]) -> list[str]:
+        normalized_subject_ids = _unique_strings(subject_ids)
+        if not normalized_subject_ids:
+            return []
+
+        bound_claim_ids: list[str] = []
+        bound_deliverable_ids: list[str] = []
+        for subject_id in normalized_subject_ids:
+            bound_claim_ids.extend(
+                _claim_ids_for_subject(
+                    subject_id,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+            bound_deliverable_ids.extend(
+                _deliverable_ids_for_subject(
+                    subject_id,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+
+        bound_claim_set = set(_unique_strings(bound_claim_ids))
+        bound_deliverable_set = set(_unique_strings(bound_deliverable_ids))
+        candidates: list[str] = []
+        for forbidden_proxy in forbidden_proxies:
+            if forbidden_proxy.subject in normalized_subject_ids:
+                candidates.append(forbidden_proxy.id)
+                continue
+            proxy_claim_ids = set(
+                _claim_ids_for_subject(
+                    forbidden_proxy.subject,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+            if proxy_claim_ids.intersection(bound_claim_set):
+                candidates.append(forbidden_proxy.id)
+                continue
+            proxy_deliverable_ids = set(
+                _deliverable_ids_for_subject(
+                    forbidden_proxy.subject,
+                    claims_by_id=claims_by_id,
+                    claims_by_deliverable=claims_by_deliverable,
+                )
+            )
+            if proxy_deliverable_ids.intersection(bound_deliverable_set):
+                candidates.append(forbidden_proxy.id)
+        return _unique_strings(candidates)
+
+    context_candidates: dict[str, list[str]] = {}
+    direct_candidates = [
+        forbidden_proxy_id
+        for forbidden_proxy_id in binding_ids.get("forbidden_proxy", [])
+        if forbidden_proxy_id in proxies_by_id
+    ]
+    if direct_candidates:
+        context_candidates["forbidden_proxy"] = _unique_strings(direct_candidates)
+
+    claim_candidates = _proxy_candidates_for_subject_ids(binding_ids.get("claim", []))
+    if claim_candidates:
+        context_candidates["claim"] = claim_candidates
+
+    deliverable_candidates = _proxy_candidates_for_subject_ids(binding_ids.get("deliverable", []))
+    if deliverable_candidates:
+        context_candidates["deliverable"] = deliverable_candidates
+
+    acceptance_test_candidates: list[str] = []
+    for test_id in binding_ids.get("acceptance_test", []):
+        test = tests_by_id.get(test_id)
+        if test is None:
+            continue
+        acceptance_test_candidates.extend(_proxy_candidates_for_subject_ids([test.subject]))
+    if acceptance_test_candidates:
+        context_candidates["acceptance_test"] = _unique_strings(acceptance_test_candidates)
+
+    candidates, issue = _resolve_binding_candidates(
+        label="forbidden proxy candidates",
+        context_candidates=context_candidates,
+    )
+    if candidates or issue:
+        return candidates, issue
+
+    if not binding_supplied and not binding_ids and len(forbidden_proxies) == 1:
+        return [forbidden_proxies[0].id], None
 
     return [], None
 
@@ -2304,7 +2420,12 @@ def _with_contract_policy_defaults(
             if len(candidates) == 1:
                 enriched["regime_label"] = candidates[0]
         if not enriched.get("expected_behavior"):
-            limit_test = _resolve_single_limit_acceptance_test(contract, binding_ids)
+            resolved_binding_ids = _binding_ids_with_regime(
+                contract,
+                binding_ids,
+                _normalize_optional_scalar_str(enriched.get("regime_label")),
+            )
+            limit_test = _resolve_single_limit_acceptance_test(contract, resolved_binding_ids)
             if limit_test is not None and limit_test.pass_condition:
                 enriched["expected_behavior"] = limit_test.pass_condition
 
@@ -2396,6 +2517,52 @@ def _claim_ids_for_regime(contract: ResearchContract, regime_label: str) -> list
         ):
             matching_claim_ids.append(claim.id)
     return matching_claim_ids
+
+
+def _binding_ids_with_regime(
+    contract: ResearchContract,
+    binding_ids: dict[str, list[str]],
+    regime_label: str | None,
+) -> dict[str, list[str]]:
+    """Augment binding ids with regime-derived claims/observables when available."""
+
+    resolved_binding_ids = {target: list(values) for target, values in binding_ids.items()}
+    if not regime_label:
+        return resolved_binding_ids
+    if not resolved_binding_ids.get("claim"):
+        resolved_binding_ids["claim"] = _claim_ids_for_regime(contract, regime_label)
+    if not resolved_binding_ids.get("observable"):
+        resolved_binding_ids["observable"] = [
+            observable.id for observable in contract.observables if observable.regime == regime_label
+        ]
+    return resolved_binding_ids
+
+
+def _validate_limit_expected_behavior_binding(
+    *,
+    contract: ResearchContract | None,
+    binding_ids: dict[str, list[str]],
+    regime_label: str | None,
+    expected_behavior: object,
+) -> tuple[str | None, str | None]:
+    """Validate expected limit behavior against the resolved contract context when possible."""
+
+    expected_behavior = _normalize_optional_scalar_str(expected_behavior)
+    if not isinstance(expected_behavior, str) or not expected_behavior:
+        return None, None
+    if contract is None:
+        return expected_behavior, None
+
+    resolved_binding_ids = _binding_ids_with_regime(contract, binding_ids, regime_label)
+    limit_test = _resolve_single_limit_acceptance_test(contract, resolved_binding_ids)
+    if limit_test is None or not limit_test.pass_condition:
+        return expected_behavior, None
+    if expected_behavior != limit_test.pass_condition:
+        return None, (
+            "metadata.expected_behavior does not match the resolved contract context; "
+            f"expected {limit_test.pass_condition}"
+        )
+    return expected_behavior, None
 
 
 @mcp.tool()
@@ -2550,7 +2717,6 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
 
             if check_meta.check_key == "contract.limit_recovery":
                 regime_label = metadata.get("regime_label")
-                expected_behavior = _normalize_optional_scalar_str(metadata.get("expected_behavior"))
                 regime_label, regime_issue = _validate_limit_regime_binding(
                     contract=contract,
                     binding_ids=binding_ids,
@@ -2559,6 +2725,14 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                 )
                 if regime_issue:
                     automated_issues.append(regime_issue)
+                expected_behavior, expected_behavior_issue = _validate_limit_expected_behavior_binding(
+                    contract=contract,
+                    binding_ids=binding_ids,
+                    regime_label=regime_label,
+                    expected_behavior=metadata.get("expected_behavior"),
+                )
+                if expected_behavior_issue:
+                    automated_issues.append(expected_behavior_issue)
                 if not regime_label:
                     missing_inputs.append("metadata.regime_label")
                 if not expected_behavior:

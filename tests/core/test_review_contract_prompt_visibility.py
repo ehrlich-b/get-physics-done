@@ -84,6 +84,8 @@ def test_verification_template_surfaces_strict_passed_and_blocked_semantics() ->
     assert "status: passed` is strict" in verification_template
     assert "every claim, deliverable, and acceptance_test entry in `contract_results` is `passed`" in verification_template
     assert "If any contract target is `partial`, `failed`, `blocked`, `missing`, or `unresolved`, use `gaps_found`, `expert_needed`, or `human_needed` instead of `passed`." in verification_template
+    assert "every reference entry is `completed`" in verification_template
+    assert "every `must_surface` reference has all `required_actions` recorded in `completed_actions`" in verification_template
     assert "Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML" in verification_template
     assert "verification-side `suggested_contract_checks`" in verification_template
     assert "same canonical schema surface as the rest of the verification ledger" in verification_template
@@ -97,9 +99,11 @@ def test_research_verification_template_surfaces_non_empty_uncertainty_markers()
 
     assert "Use `@{GPD_INSTALL_DIR}/templates/verification-report.md` for the canonical verification frontmatter contract." in research_verification
     assert "verification-side `suggested_contract_checks` entries are part of the same canonical schema surface" in research_verification
-    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" in research_verification
+    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]" in research_verification
+    assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" not in research_verification
     assert "comparison_kind: benchmark | prior_work | experiment | cross_method | baseline | other" in research_verification
     assert 'comparison_kind: "benchmark | prior_work | experiment | cross_method | baseline | other"' in research_verification
+    assert "omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders" in research_verification
     assert "uncertainty_markers:" in research_verification
     assert "weakest_anchors: [anchor-1]" in research_verification
     assert "disconfirming_observations: [observation-1]" in research_verification

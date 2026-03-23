@@ -14,7 +14,7 @@ Template for `.gpd/phases/XX-name/{phase}-VERIFICATION.md` -- physics verificati
 
 **Standard Verification:** All applicable sections for your project type (default).
 
-`status: passed` is strict: use it only when every claim, deliverable, and acceptance_test entry in `contract_results` is `passed`, every forbidden_proxy is `rejected` or `not_applicable`, every required decisive comparison has a decisive verdict, and `suggested_contract_checks` is empty. If any contract target is `partial`, `failed`, `blocked`, `missing`, or `unresolved`, use `gaps_found`, `expert_needed`, or `human_needed` instead of `passed`.
+`status: passed` is strict: use it only when every claim, deliverable, and acceptance_test entry in `contract_results` is `passed`, every reference entry is `completed`, every `must_surface` reference has all `required_actions` recorded in `completed_actions`, every forbidden_proxy is `rejected` or `not_applicable`, every required decisive comparison has a decisive verdict, and `suggested_contract_checks` is empty. If any contract target is `partial`, `failed`, `blocked`, `missing`, or `unresolved`, use `gaps_found`, `expert_needed`, or `human_needed` instead of `passed`.
 
 ---
 

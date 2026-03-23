@@ -346,14 +346,10 @@ _DECISIVE_ACCEPTANCE_TEST_COMPARISON_KINDS: dict[str, frozenset[str]] = {
     "benchmark": frozenset({"benchmark"}),
     "cross_method": frozenset({"cross_method"}),
 }
-_PLAN_CONTRACT_EXPLICIT_COLLECTION_FIELDS: tuple[tuple[str, str], ...] = (
-    ("observables", "kind"),
-    ("deliverables", "kind"),
-    ("acceptance_tests", "kind"),
-    ("references", "kind"),
-    ("references", "role"),
-    ("links", "relation"),
-)
+# Plan contracts can omit collection fields that already have safe closed-vocabulary
+# defaults in the schema models; downstream validation should stabilize them rather
+# than reject otherwise valid model output for restating "other".
+_PLAN_CONTRACT_EXPLICIT_COLLECTION_FIELDS: tuple[tuple[str, str], ...] = ()
 
 
 class FrontmatterValidation(BaseModel):
@@ -372,7 +368,12 @@ def _resolve_field(meta: dict, name: str) -> str | None:
 
 
 def _collect_plan_contract_explicit_field_errors(contract_data: dict[str, object]) -> list[str]:
-    """Return missing enum-backed semantic fields that plans must state explicitly."""
+    """Return missing semantic fields that lack safe schema defaults.
+
+    Defaultable ``kind`` / ``role`` / ``relation`` fields are intentionally
+    excluded here so omitted values normalize through the contract model
+    instead of failing plan validation for restating the safe ``other`` default.
+    """
 
     errors: list[str] = []
     for collection_name, field_name in _PLAN_CONTRACT_EXPLICIT_COLLECTION_FIELDS:

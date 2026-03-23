@@ -137,6 +137,7 @@ Rules:
 Rules:
 
 - Every observable must declare `id`, `name`, and `definition`.
+- `kind` is optional and defaults to `other`; set it when the plan knows a more specific semantic category.
 - `regime` and `units` are optional strings; omit them instead of fabricating placeholders.
 - Claims may only reference observables that appear in `observables[]`.
 
@@ -152,7 +153,8 @@ Rules:
 
 Rules:
 
-- Every deliverable must declare `id`, `kind`, and `description`.
+- Every deliverable must declare `id` and `description`.
+- `kind` is optional and defaults to `other`; set it when the deliverable type is already known.
 - `path` is optional, but preferred whenever the plan already knows the durable artifact location.
 - `must_contain` is optional, but if present it must be an array of strings.
 
@@ -187,6 +189,7 @@ Rules:
 Rules:
 
 - Every reference must declare a stable `id`.
+- `kind` and `role` are optional and default to `other`; set them when the anchor semantics are already known.
 - `aliases[]` is optional and stores stable human-facing labels or citation shorthands that downstream anchor-resolution logic may use.
 - `applies_to[]` may only reference declared claim or deliverable IDs.
 - `carry_forward_to[]` is optional free-text workflow scope (for example `planning`, `verification`, `writing`); do not overload it with contract IDs.
@@ -208,6 +211,7 @@ Rules:
 
 Rules:
 
+- `kind` is optional and defaults to `other`; set it when the test category is already known.
 - `subject` must reference a declared claim or deliverable ID.
 - `evidence_required[]` may only reference declared claim, deliverable, acceptance-test, or reference IDs.
 - `automation` is optional and defaults to `hybrid`, but if present it must be `automated`, `hybrid`, or `human`.
@@ -224,6 +228,7 @@ Rules:
 
 Rules:
 
+- `relation` is optional and defaults to `other`; set it when the dependency type is already known.
 - `source` and `target` may only reference declared claim, deliverable, acceptance-test, or reference IDs.
 - `verified_by[]` may only reference declared `acceptance_tests[].id`.
 
@@ -247,7 +252,9 @@ Rules:
 
 ## Contract Alignment Rules
 
+- The schema still exposes the semantic fields `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`; their default is `other`. Omit them only when `other` is genuinely intended, and set the specific value explicitly when the semantics are already known.
 - For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required.
+- The defaultable semantic fields above do not relax the hard requirements on `context_intake` or `uncertainty_markers`, and they do not replace required contract targets for non-scoping plans.
 - For non-scoping plans, include `references[]` unless explicit grounding context survives elsewhere in the contract (`context_intake`, `approach_policy`, or preserved scoping inputs).
 - When a plan depends on traceable handoffs or decisive comparisons, surface `links[]` explicitly instead of burying the dependency in prose.
 - All ID cross-links must resolve to declared IDs. Unresolved IDs are validation errors, not TODO placeholders.

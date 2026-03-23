@@ -308,20 +308,22 @@ class TestParseContractBlock:
             parse_contract_block(content)
 
     @pytest.mark.parametrize(
-        ("missing_line", "expected_error"),
+        ("missing_line", "collection_name", "field_name", "expected_value"),
         [
-            ("      kind: scalar\n", "observables.0.kind must be explicit in plan contracts"),
-            ("      kind: figure\n", "deliverables.0.kind must be explicit in plan contracts"),
-            ("      kind: benchmark\n", "acceptance_tests.0.kind must be explicit in plan contracts"),
-            ("      kind: paper\n", "references.0.kind must be explicit in plan contracts"),
-            ("      role: benchmark\n", "references.0.role must be explicit in plan contracts"),
-            ("      relation: supports\n", "links.0.relation must be explicit in plan contracts"),
+            ("      kind: scalar\n", "observables", "kind", "other"),
+            ("      kind: figure\n", "deliverables", "kind", "other"),
+            ("      kind: benchmark\n", "acceptance_tests", "kind", "other"),
+            ("      kind: paper\n", "references", "kind", "other"),
+            ("      role: benchmark\n", "references", "role", "other"),
+            ("      relation: supports\n", "links", "relation", "other"),
         ],
     )
-    def test_missing_explicit_semantic_field_raises(
+    def test_missing_defaultable_semantic_field_uses_contract_default(
         self,
         missing_line: str,
-        expected_error: str,
+        collection_name: str,
+        field_name: str,
+        expected_value: str,
     ):
         content = _plan_contract_frontmatter_with_explicit_semantic_sections().replace(
             missing_line,
@@ -329,8 +331,10 @@ class TestParseContractBlock:
             1,
         ) + "Body.\n"
 
-        with pytest.raises(FrontmatterValidationError, match=expected_error):
-            parse_contract_block(content)
+        contract = parse_contract_block(content)
+
+        collection = getattr(contract, collection_name)
+        assert getattr(collection[0], field_name) == expected_value
 
     def test_semantically_incomplete_contract_raises(self):
         content = (
@@ -477,20 +481,19 @@ class TestValidateFrontmatter:
         assert any("context_intake must not be empty" in error for error in result.errors)
 
     @pytest.mark.parametrize(
-        ("missing_line", "expected_error"),
+        "missing_line",
         [
-            ("      kind: scalar\n", "contract: observables.0.kind must be explicit in plan contracts"),
-            ("      kind: figure\n", "contract: deliverables.0.kind must be explicit in plan contracts"),
-            ("      kind: benchmark\n", "contract: acceptance_tests.0.kind must be explicit in plan contracts"),
-            ("      kind: paper\n", "contract: references.0.kind must be explicit in plan contracts"),
-            ("      role: benchmark\n", "contract: references.0.role must be explicit in plan contracts"),
-            ("      relation: supports\n", "contract: links.0.relation must be explicit in plan contracts"),
+            "      kind: scalar\n",
+            "      kind: figure\n",
+            "      kind: benchmark\n",
+            "      kind: paper\n",
+            "      role: benchmark\n",
+            "      relation: supports\n",
         ],
     )
-    def test_plan_rejects_missing_explicit_semantic_fields(
+    def test_plan_accepts_missing_defaultable_semantic_fields(
         self,
         missing_line: str,
-        expected_error: str,
     ):
         content = _plan_contract_frontmatter_with_explicit_semantic_sections().replace(
             missing_line,
@@ -500,8 +503,8 @@ class TestValidateFrontmatter:
 
         result = validate_frontmatter(content, "plan")
 
-        assert result.valid is False
-        assert expected_error in result.errors
+        assert result.valid is True
+        assert result.errors == []
 
     def test_missing_fields(self):
         content = "---\nphase: 01-test\n---\n\nBody."

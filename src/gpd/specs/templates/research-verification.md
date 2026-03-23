@@ -91,8 +91,9 @@ deliverable_id: [deliverable-id or ""]
 acceptance_test_id: [acceptance-test-id or ""]
 reference_ids: [reference-id, ...]
 forbidden_proxy_id: [forbidden-proxy-id or ""]
-comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | ""]
-comparison_reference_id: [reference-id or ""]
+comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]
+comparison_reference_id: [reference-id]
+# If this check is not comparison-backed yet, omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders.
 expected: |
 [what the researcher should confirm or evaluate]
 # Use `comparison_kind: benchmark` for benchmark acceptance tests and
@@ -120,8 +121,9 @@ deliverable_id: [deliverable-id or ""]
 acceptance_test_id: [acceptance-test-id or ""]
 reference_ids: [reference-id, ...]
 forbidden_proxy_id: [forbidden-proxy-id or ""]
-comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | ""]
-comparison_reference_id: [reference-id or ""]
+comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]
+comparison_reference_id: [reference-id]
+# If this check is not comparison-backed yet, omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders.
 expected: [what should hold - physical reasoning, derivation step, or result property]
 suggested_contract_checks:
   # If you cannot bind the gap to a known contract target yet, omit both
