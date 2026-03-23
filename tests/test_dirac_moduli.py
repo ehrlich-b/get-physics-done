@@ -638,6 +638,563 @@ def test_involution_trace(n):
 
 
 # ===================================================================
+# SECTION 9: CANDIDATE INFRASTRUCTURE (Plan 14-02)
+# ===================================================================
+
+def build_commutator_D(n, a):
+    """Build D_a^comm on the doubled space H = C^{2n^2} from [a, X] = aX - Xa.
+
+    Under Barrett iso, H = M_n(C)_p + M_n(C)_{ap}. The commutator [a, -]
+    acts identically on both sectors: D(X_p, X_{ap}) = ([a,X_p], [a,X_{ap}]).
+
+    The resulting D is a 2n^2 x 2n^2 matrix acting on vectors in H where
+    we vectorize X in M_n(C) using column-major (Fortran) ordering.
+
+    Parameters:
+        n: algebra dimension (A = M_n(C))
+        a: n x n complex matrix
+    Returns:
+        D: 2n^2 x 2n^2 complex matrix
+    """
+    dim = n * n
+    # [a, X] = aX - Xa as a linear map on vec(X)
+    # vec(aX) = (I kron a) vec(X), vec(Xa) = (a^T kron I) vec(X)
+    I_n = np.eye(n, dtype=complex)
+    La = np.kron(I_n, a)  # left multiplication by a
+    Ra = np.kron(a.T, I_n)  # right multiplication by a
+    comm = La - Ra  # [a, -] as dim x dim matrix
+
+    # On doubled space: D acts as comm on each sector
+    D = np.zeros((2 * dim, 2 * dim), dtype=complex)
+    D[:dim, :dim] = comm
+    D[dim:, dim:] = comm
+    return D
+
+
+def build_sp_D(n, a):
+    """Build D_a^sp on the doubled space from sqrt(a) X sqrt(a).
+
+    Parameters:
+        n: algebra dimension
+        a: n x n positive semidefinite Hermitian matrix
+    Returns:
+        D: 2n^2 x 2n^2 complex matrix
+    """
+    dim = n * n
+    # Compute matrix sqrt
+    evals, evecs = np.linalg.eigh(a)
+    evals = np.maximum(evals, 0)  # ensure non-negative
+    sqrt_a = evecs @ np.diag(np.sqrt(evals)) @ evecs.conj().T
+
+    # sqrt(a) X sqrt(a) as linear map: vec(sqrt(a) X sqrt(a)) = (sqrt(a)^T kron sqrt(a)) vec(X)
+    I_n = np.eye(n, dtype=complex)
+    sp_map = np.kron(sqrt_a.T, sqrt_a)
+
+    D = np.zeros((2 * dim, 2 * dim), dtype=complex)
+    D[:dim, :dim] = sp_map
+    D[dim:, dim:] = sp_map
+    return D
+
+
+def build_barrett_D(n, K):
+    """Build Barrett-form D on the doubled space.
+
+    D(X_p, X_{ap}) = (K X_{ap} + X_{ap} K^*, K X_p + X_p K^*)
+
+    This is the sigma_1 tensor D_1 form from Barrett 2015 with
+    D_1(X) = KX + XK^*.
+
+    Parameters:
+        n: algebra dimension
+        K: n x n complex matrix
+    Returns:
+        D: 2n^2 x 2n^2 complex matrix
+    """
+    dim = n * n
+    I_n = np.eye(n, dtype=complex)
+    # D_1(X) = KX + XK^* = (I kron K)vec(X) + (K^{*T} kron I)vec(X)
+    # = (I kron K + conj(K) kron I) vec(X)   [since K^{*T} = conj(K)]
+    # Wait: vec(XK^*) = (K^{*T} kron I) vec(X) = (conj(K) kron I) vec(X)?
+    # No. vec(XB) = (B^T kron I) vec(X). So vec(X K^*) = (K^{*T} kron I) vec(X).
+    # K^{*T} = conj(K^T)^T ... no. K^* = conj(K). K^{*T} = conj(K)^T.
+    D1 = np.kron(I_n, K) + np.kron(np.conj(K).T, I_n)
+
+    # Barrett form: off-diagonal in V = C^2
+    # D(X_p, X_{ap}) = (D_1(X_{ap}), D_1(X_p))
+    D = np.zeros((2 * dim, 2 * dim), dtype=complex)
+    D[:dim, dim:] = D1  # particle row, antiparticle col
+    D[dim:, :dim] = D1  # antiparticle row, particle col
+    return D
+
+
+def check_all_constraints(D, n, tol=1e-12):
+    """Check all three D constraints: D*=D, D gamma=-gamma D, JD=DJ.
+
+    Parameters:
+        D: 2n^2 x 2n^2 complex matrix
+        n: algebra dimension
+        tol: tolerance for Frobenius norm checks
+    Returns:
+        dict with keys:
+            'self_adjoint': (bool, float) -- (pass, Frobenius norm of D - D^dag)
+            'gamma_anticommutes': (bool, float) -- (pass, Frobenius norm of {D,gamma})
+            'j_commutes': (bool, float) -- (pass, Frobenius norm of JDJ - D)
+    """
+    gamma = build_gamma_matrix(n)
+    J_mat = build_J_matrix(n)
+
+    # Constraint 1: D = D^dag
+    sa_err = np.linalg.norm(D - D.conj().T, 'fro')
+
+    # Constraint 2: D gamma + gamma D = 0
+    anticomm = D @ gamma + gamma @ D
+    gamma_err = np.linalg.norm(anticomm, 'fro')
+
+    # Constraint 3: J_matrix @ conj(D) @ J_matrix = D (antilinear J)
+    JDJ = J_mat @ np.conj(D) @ J_mat
+    j_err = np.linalg.norm(JDJ - D, 'fro')
+
+    return {
+        'self_adjoint': (sa_err < tol, sa_err),
+        'gamma_anticommutes': (gamma_err < tol, gamma_err),
+        'j_commutes': (j_err < tol, j_err),
+    }
+
+
+def project_onto_moduli(D, n):
+    """Project D onto the moduli space; return coefficients and residual.
+
+    Parameters:
+        D: 2n^2 x 2n^2 complex matrix
+        n: algebra dimension
+    Returns:
+        (coeffs, residual_norm, D_projected)
+        coeffs: array of real coefficients in the moduli basis
+        residual_norm: Frobenius norm of D - D_projected
+        D_projected: closest element in the moduli space
+    """
+    basis = build_moduli_basis(n)
+    if not basis:
+        return np.array([]), np.linalg.norm(D, 'fro'), np.zeros_like(D)
+
+    dim_full = 2 * n * n
+
+    # Vectorize basis elements (real representation)
+    vecs = []
+    for B in basis:
+        v = np.concatenate([B.real.ravel(), B.imag.ravel()])
+        vecs.append(v)
+    mat = np.column_stack(vecs)
+
+    # Vectorize D
+    d_vec = np.concatenate([D.real.ravel(), D.imag.ravel()])
+
+    # Least squares projection
+    coeffs, residuals, _, _ = np.linalg.lstsq(mat, d_vec, rcond=None)
+
+    # Reconstruct projected D
+    D_proj = sum(c * B for c, B in zip(coeffs, basis))
+
+    residual_norm = np.linalg.norm(D - D_proj, 'fro')
+
+    return coeffs, residual_norm, D_proj
+
+
+# ===================================================================
+# SECTION 10: CANDIDATE A TESTS (Commutator [a, -])
+# ===================================================================
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_commutator_self_adjoint(n):
+    """D_a^comm is self-adjoint when a = a^dagger."""
+    # a = diag(1,0,...,0) -- Hermitian
+    a = np.zeros((n, n), dtype=complex)
+    a[0, 0] = 1.0
+    D = build_commutator_D(n, a)
+    result = check_all_constraints(D, n)
+    assert result['self_adjoint'][0], (
+        f"Commutator D not self-adjoint at n={n}: Frobenius = {result['self_adjoint'][1]:.2e}"
+    )
+
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_commutator_gamma_anticommutes(n):
+    """D_a^comm anticommutes with gamma for symmetric a."""
+    # a = diag(1,0,...,0) -- real symmetric
+    a = np.zeros((n, n), dtype=complex)
+    a[0, 0] = 1.0
+    D = build_commutator_D(n, a)
+    result = check_all_constraints(D, n)
+    assert result['gamma_anticommutes'][0], (
+        f"Commutator D doesn't anticommute with gamma at n={n}: "
+        f"Frobenius = {result['gamma_anticommutes'][1]:.2e}"
+    )
+
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_commutator_j_constraint_fails(n):
+    """D_a^comm FAILS JD = DJ: should get JD = -DJ instead."""
+    a = np.zeros((n, n), dtype=complex)
+    a[0, 0] = 1.0
+    D = build_commutator_D(n, a)
+    J_mat = build_J_matrix(n)
+
+    # Check JDJ = D (should FAIL)
+    JDJ = J_mat @ np.conj(D) @ J_mat
+    err_plus = np.linalg.norm(JDJ - D, 'fro')
+    # Check JDJ = -D (should PASS -- anticommutation)
+    err_minus = np.linalg.norm(JDJ + D, 'fro')
+
+    assert err_plus > 1e-10, (
+        f"Commutator D unexpectedly PASSES J constraint at n={n}"
+    )
+    assert err_minus < 1e-10, (
+        f"Commutator D does not satisfy JD = -DJ at n={n}: "
+        f"||JDJ + D|| = {err_minus:.2e}"
+    )
+
+
+@pytest.mark.parametrize("n", [2])
+def test_commutator_multiple_a(n):
+    """Test commutator with multiple a values at n=2."""
+    a_list = {
+        'diag(1,0)': np.diag([1.0, 0.0]).astype(complex),
+        'E12+E21': np.array([[0, 1], [1, 0]], dtype=complex),
+        'diag(1,2)': np.diag([1.0, 2.0]).astype(complex),
+    }
+
+    for name, a in a_list.items():
+        D = build_commutator_D(n, a)
+        if np.allclose(D, 0):
+            continue  # skip trivial case
+
+        result = check_all_constraints(D, n)
+        J_mat = build_J_matrix(n)
+        JDJ = J_mat @ np.conj(D) @ J_mat
+
+        # Self-adjoint: PASS for Hermitian a
+        assert result['self_adjoint'][0], (
+            f"a={name}: not self-adjoint, Frob = {result['self_adjoint'][1]:.2e}"
+        )
+        # Gamma anticommutation: PASS for real symmetric a
+        assert result['gamma_anticommutes'][0], (
+            f"a={name}: gamma anticomm fails, Frob = {result['gamma_anticommutes'][1]:.2e}"
+        )
+        # J constraint: FAIL (JD = -DJ)
+        err_minus = np.linalg.norm(JDJ + D, 'fro')
+        assert err_minus < 1e-10, (
+            f"a={name}: JD = -DJ not satisfied, Frob = {err_minus:.2e}"
+        )
+
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_commutator_projection(n):
+    """Project commutator D onto moduli space; report residual."""
+    a = np.zeros((n, n), dtype=complex)
+    a[0, 0] = 1.0
+    D = build_commutator_D(n, a)
+
+    if np.allclose(D, 0):
+        pytest.skip(f"Trivial D at n={n}")
+
+    coeffs, residual, D_proj = project_onto_moduli(D, n)
+    D_norm = np.linalg.norm(D, 'fro')
+
+    # The commutator should NOT be in the moduli space
+    # (it fails the J constraint), so residual should be significant
+    relative_residual = residual / D_norm if D_norm > 0 else 0
+    print(f"n={n}: ||D|| = {D_norm:.4f}, residual = {residual:.4f}, "
+          f"relative = {relative_residual:.4f}")
+
+    # The residual should be nonzero since commutator fails J constraint
+    # But projection is onto the basis of the MODULI SPACE, so the projected
+    # part may be zero or nonzero depending on whether any component of D
+    # lies in the moduli space. Since JDJ = -D and moduli requires JDJ = D,
+    # the projection should be zero.
+    # Actually: D = D_in + D_out where D_in satisfies JDJ=D and D_out satisfies JDJ=-D.
+    # Since JDJ = -D, we have D_in = 0 and D_out = D. So projection onto moduli = 0.
+    assert residual > 0.1 * D_norm, (
+        f"Commutator D has unexpectedly small moduli residual at n={n}: "
+        f"relative = {relative_residual:.4f}"
+    )
+
+
+# ===================================================================
+# SECTION 11: CANDIDATE B TESTS (SP operator sqrt(a) X sqrt(a))
+# ===================================================================
+
+@pytest.mark.parametrize("n", [2])
+def test_sp_gamma_commutes(n):
+    """SP operator sqrt(a) X sqrt(a) COMMUTES with gamma (SWAP-even)."""
+    a = np.diag([1.0, 0.0]).astype(complex)
+    D = build_sp_D(n, a)
+    gamma = build_gamma_matrix(n)
+
+    # Check D gamma - gamma D = 0 (commutation, not anticommutation)
+    comm = D @ gamma - gamma @ D
+    comm_err = np.linalg.norm(comm, 'fro')
+
+    # Check D gamma + gamma D != 0 (anticommutation fails)
+    anticomm = D @ gamma + gamma @ D
+    anticomm_err = np.linalg.norm(anticomm, 'fro')
+
+    assert comm_err < 1e-12, (
+        f"SP operator doesn't commute with gamma: Frob = {comm_err:.2e}"
+    )
+    assert anticomm_err > 1e-10, (
+        f"SP operator unexpectedly anticommutes with gamma: Frob = {anticomm_err:.2e}"
+    )
+
+
+@pytest.mark.parametrize("n", [2])
+def test_sp_odd_extraction_fails(n):
+    """SWAP-odd extraction of SP operator has wrong structure."""
+    a = np.diag([1.0, 0.0]).astype(complex)
+
+    dim = n * n
+    I_n = np.eye(n, dtype=complex)
+    evals, evecs = np.linalg.eigh(a)
+    evals = np.maximum(evals, 0)
+    sqrt_a = evecs @ np.diag(np.sqrt(evals)) @ evecs.conj().T
+
+    # SP map: sqrt(a) X sqrt(a)
+    sp_map = np.kron(sqrt_a.T, sqrt_a)
+
+    # SWAP (transpose) map on M_n(C)
+    P_mat = np.zeros((dim, dim), dtype=float)
+    for i in range(n):
+        for j in range(n):
+            P_mat[i * n + j, j * n + i] = 1.0
+
+    # SWAP-odd part: (SP - P SP P) / 2
+    # P SP P(X) = P(sqrt(a) (PX) sqrt(a)) = (sqrt(a) X^T sqrt(a))^T
+    # For real symmetric sqrt(a): = sqrt(a) X sqrt(a) = SP(X)
+    # So SWAP-odd part = 0 for real symmetric a!
+    sp_odd = (sp_map - P_mat @ sp_map @ P_mat) / 2
+    odd_norm = np.linalg.norm(sp_odd, 'fro')
+
+    # The SWAP-odd part should be zero (or near-zero) since SP commutes with P
+    assert odd_norm < 1e-12, (
+        f"SWAP-odd extraction unexpectedly nonzero: Frob = {odd_norm:.2e}"
+    )
+
+
+# ===================================================================
+# SECTION 12: CANDIDATE C TESTS (Barrett form)
+# ===================================================================
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_barrett_candidate(n):
+    """Barrett-form D with non-scalar K: check all constraints."""
+    # K = diag(1,0,...,0) -- Hermitian but not scalar
+    K = np.zeros((n, n), dtype=complex)
+    K[0, 0] = 1.0
+    D = build_barrett_D(n, K)
+    result = check_all_constraints(D, n)
+
+    # Self-adjoint: should pass (K Hermitian)
+    assert result['self_adjoint'][0], (
+        f"Barrett D not self-adjoint at n={n}: Frob = {result['self_adjoint'][1]:.2e}"
+    )
+
+    # Gamma anticommutation: check numerically
+    # Barrett form D = sigma_1 tensor D_1 should give
+    # {D, gamma} = i sigma_2 tensor [P, D_1]
+    # D_1 = KX + XK^*. For K Hermitian: K^* = K^T.
+    # [P, D_1] != 0 unless K is real AND symmetric.
+    # For K = diag(1,0,...,0): K is real and symmetric, so K^* = K^T = K.
+    # Then D_1(X) = KX + XK. Check [P, D_1]:
+    # P D_1(X) = (KX + XK)^T = X^T K^T + K^T X^T = X^T K + K X^T
+    # D_1(PX) = K X^T + X^T K
+    # So P D_1 = D_1 P: PASS.
+    # So gamma anticommutation should PASS for real symmetric K.
+
+    # J constraint: Barrett form with real symmetric K PASSES JD = DJ.
+    # The J constraint requires [K^T - K, Y] = 0 for all Y, i.e., K^T = K.
+    # K = diag(1,0,...,0) IS real symmetric, so it passes.
+    assert result['j_commutes'][0], (
+        f"Barrett D with real symmetric K fails J at n={n}: "
+        f"Frobenius = {result['j_commutes'][1]:.2e}"
+    )
+    assert result['gamma_anticommutes'][0], (
+        f"Barrett D gamma anticomm fails at n={n}: "
+        f"Frobenius = {result['gamma_anticommutes'][1]:.2e}"
+    )
+
+
+@pytest.mark.parametrize("n", [2, 3])
+def test_barrett_nonsymmetric_k_fails(n):
+    """Barrett-form D with non-symmetric K FAILS the J constraint."""
+    # K = upper triangular, NOT symmetric
+    K = np.zeros((n, n), dtype=complex)
+    K[0, 1] = 1.0  # K_{01} = 1, K_{10} = 0: not symmetric
+    D = build_barrett_D(n, K)
+    result = check_all_constraints(D, n)
+
+    # J constraint should FAIL for non-symmetric K
+    assert not result['j_commutes'][0], (
+        f"Barrett D with non-symmetric K passes J at n={n} (unexpected)"
+    )
+
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_barrett_scalar_k(n):
+    """Barrett-form D with K = lambda I should pass all constraints."""
+    K = np.eye(n, dtype=complex)  # K = I (scalar, lambda=1)
+    D = build_barrett_D(n, K)
+    result = check_all_constraints(D, n)
+
+    assert result['self_adjoint'][0], (
+        f"Barrett scalar K not self-adjoint at n={n}: Frob = {result['self_adjoint'][1]:.2e}"
+    )
+    # gamma: D_1(X) = IX + XI = 2X. P D_1 = D_1 P trivially. So should pass.
+    assert result['gamma_anticommutes'][0], (
+        f"Barrett scalar K gamma fail at n={n}: Frob = {result['gamma_anticommutes'][1]:.2e}"
+    )
+    # J: K = I is scalar, should pass
+    assert result['j_commutes'][0], (
+        f"Barrett scalar K J fail at n={n}: Frob = {result['j_commutes'][1]:.2e}"
+    )
+
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_barrett_scalar_in_moduli(n):
+    """Barrett D with K = lambda I should be in the moduli space."""
+    K = np.eye(n, dtype=complex)
+    D = build_barrett_D(n, K)
+
+    coeffs, residual, D_proj = project_onto_moduli(D, n)
+    D_norm = np.linalg.norm(D, 'fro')
+
+    relative_residual = residual / D_norm if D_norm > 0 else 0
+    print(f"n={n}: Barrett scalar ||D|| = {D_norm:.4f}, residual = {residual:.6f}, "
+          f"relative = {relative_residual:.6f}")
+
+    assert relative_residual < 1e-10, (
+        f"Barrett scalar K not in moduli space at n={n}: "
+        f"relative residual = {relative_residual:.2e}"
+    )
+
+
+# ===================================================================
+# SECTION 13: NATURAL D IDENTIFICATION
+# ===================================================================
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_natural_d_simplest(n):
+    """Verify the simplest non-trivial D in the moduli space."""
+    # The simplest D: M with only M_{12} and M_{21} nonzero
+    # At n=2: s=3, a=1. M_{12} is 1x1, M_{21} is 3x3.
+    # Simplest: M_{12} = alpha, M_{21} = beta * I_s
+    # For testing: alpha = 1, beta = 1
+
+    basis = build_moduli_basis(n)
+    assert len(basis) > 0, f"Empty moduli basis at n={n}"
+
+    # Pick the first nonzero basis element as a representative
+    D_test = None
+    for B in basis:
+        if np.linalg.norm(B, 'fro') > 1e-10:
+            D_test = B
+            break
+
+    assert D_test is not None, f"No nonzero basis element at n={n}"
+
+    result = check_all_constraints(D_test, n)
+    assert result['self_adjoint'][0], f"Natural D not self-adjoint at n={n}"
+    assert result['gamma_anticommutes'][0], f"Natural D gamma fail at n={n}"
+    assert result['j_commutes'][0], f"Natural D J fail at n={n}"
+
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_natural_d_nonzero(n):
+    """Verify that nontrivial D exist in the moduli space."""
+    basis = build_moduli_basis(n)
+    norms = [np.linalg.norm(B, 'fro') for B in basis]
+    assert max(norms) > 1e-10, f"All moduli basis elements zero at n={n}"
+    print(f"n={n}: {len(basis)} basis elements, max norm = {max(norms):.4f}")
+
+
+# ===================================================================
+# SECTION 14: SUMMARY TABLE
+# ===================================================================
+
+def test_candidate_summary_table():
+    """Print summary table of all candidate tests at n=2,3,4."""
+    print("\n" + "=" * 90)
+    print("CANDIDATE TESTING SUMMARY TABLE")
+    print("=" * 90)
+    print(f"{'Candidate':<30} {'n':>3} {'D*=D':>10} {'Dgamma=-gammaD':>16} "
+          f"{'JD=DJ':>10} {'In moduli?':>12} {'Residual':>10}")
+    print("-" * 90)
+
+    for n in [2, 3, 4]:
+        dim = n * n
+
+        # Candidate A: commutator
+        a = np.zeros((n, n), dtype=complex)
+        a[0, 0] = 1.0
+        D = build_commutator_D(n, a)
+        if not np.allclose(D, 0):
+            r = check_all_constraints(D, n)
+            _, resid, _ = project_onto_moduli(D, n)
+            D_norm = np.linalg.norm(D, 'fro')
+            rel_resid = resid / D_norm if D_norm > 0 else 0
+            print(f"{'A: [a,X] a=diag(1,0..)':<30} {n:>3} "
+                  f"{'PASS' if r['self_adjoint'][0] else 'FAIL':>10} "
+                  f"{'PASS' if r['gamma_anticommutes'][0] else 'FAIL':>16} "
+                  f"{'PASS' if r['j_commutes'][0] else 'FAIL':>10} "
+                  f"{'YES' if rel_resid < 1e-6 else 'NO':>12} "
+                  f"{rel_resid:>10.4f}")
+
+        # Candidate B: SP operator
+        D = build_sp_D(n, a)
+        if not np.allclose(D, 0):
+            r = check_all_constraints(D, n)
+            _, resid, _ = project_onto_moduli(D, n)
+            D_norm = np.linalg.norm(D, 'fro')
+            rel_resid = resid / D_norm if D_norm > 0 else 0
+            print(f"{'B: sqrt(a)Xsqrt(a)':<30} {n:>3} "
+                  f"{'PASS' if r['self_adjoint'][0] else 'FAIL':>10} "
+                  f"{'PASS' if r['gamma_anticommutes'][0] else 'FAIL':>16} "
+                  f"{'PASS' if r['j_commutes'][0] else 'FAIL':>10} "
+                  f"{'YES' if rel_resid < 1e-6 else 'NO':>12} "
+                  f"{rel_resid:>10.4f}")
+
+        # Candidate C: Barrett with non-scalar K
+        K = np.zeros((n, n), dtype=complex)
+        K[0, 0] = 1.0
+        D = build_barrett_D(n, K)
+        if not np.allclose(D, 0):
+            r = check_all_constraints(D, n)
+            _, resid, _ = project_onto_moduli(D, n)
+            D_norm = np.linalg.norm(D, 'fro')
+            rel_resid = resid / D_norm if D_norm > 0 else 0
+            print(f"{'C: Barrett K=diag(1,0..)':<30} {n:>3} "
+                  f"{'PASS' if r['self_adjoint'][0] else 'FAIL':>10} "
+                  f"{'PASS' if r['gamma_anticommutes'][0] else 'FAIL':>16} "
+                  f"{'PASS' if r['j_commutes'][0] else 'FAIL':>10} "
+                  f"{'YES' if rel_resid < 1e-6 else 'NO':>12} "
+                  f"{rel_resid:>10.4f}")
+
+        # Candidate C: Barrett with scalar K = I
+        K = np.eye(n, dtype=complex)
+        D = build_barrett_D(n, K)
+        r = check_all_constraints(D, n)
+        _, resid, _ = project_onto_moduli(D, n)
+        D_norm = np.linalg.norm(D, 'fro')
+        rel_resid = resid / D_norm if D_norm > 0 else 0
+        print(f"{'C: Barrett K=I (scalar)':<30} {n:>3} "
+              f"{'PASS' if r['self_adjoint'][0] else 'FAIL':>10} "
+              f"{'PASS' if r['gamma_anticommutes'][0] else 'FAIL':>16} "
+              f"{'PASS' if r['j_commutes'][0] else 'FAIL':>10} "
+              f"{'YES' if rel_resid < 1e-6 else 'NO':>12} "
+              f"{rel_resid:>10.4f}")
+
+    print("=" * 90)
+
+
+# ===================================================================
 # Entry point
 # ===================================================================
 
