@@ -48,6 +48,7 @@ Not all verification sections apply to every project. Select based on physics do
 Use `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` as the schema source of truth for `plan_contract_ref`, `contract_results`, and `comparison_verdicts`.
 For exploratory or partial phases, keep the report honest without inventing certainty: leave affected contract targets at `partial` when decisive work remains open, and use explicit `comparison_verdicts` entries such as `inconclusive` or `tension` when a decisive comparison was attempted but not resolved.
 If a decisive benchmark / cross-method check remains `partial`, `not_attempted`, or still lacks its decisive verdict, add structured `suggested_contract_checks` entries before final validation.
+The same structured suggestion is required when a benchmark-style reference anchors the subject or a reference with `required_actions` including `compare` is still incomplete.
 Every declared claim, deliverable, acceptance test, reference, and forbidden proxy ID from the source PLAN contract must appear in the matching `contract_results` section. Use explicit negative or incomplete statuses instead of omitting IDs.
 Keep `uncertainty_markers` explicit in the `contract_results` ledger, and use non-empty placeholder anchors in `weakest_anchors` and `disconfirming_observations` so unresolved uncertainty is visible before final validation.
 Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML and apply it literally rather than paraphrasing from memory.
@@ -166,6 +167,7 @@ Only `subject_role: decisive` closes a decisive benchmark/cross-method requireme
 Reserve this section for obvious missing decisive checks on user-visible targets. Do not populate it with style requests, paperwork wishes, or generic process polish. Each row should name one missing check, why it matters, which user-visible target it affects, and the artifact or evidence path that would close it.
 Allowed keys are exactly `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path`.
 If the missing check is already tied to a known contract target, fill `Suggested Subject Kind` and `Suggested Subject ID` together; otherwise omit both keys in frontmatter instead of leaving one blank.
+Include a `suggested_contract_checks` entry whenever a decisive benchmark / cross-method comparison is still partial or unresolved, and also whenever a benchmark-style reference or a reference with `required_actions` containing `compare` is still incomplete.
 
 | Suggested Check | Why It Seems Required | Suggested Subject Kind | Suggested Subject ID | Evidence Path |
 | --------------- | --------------------- | ---------------------- | -------------------- | ------------- |

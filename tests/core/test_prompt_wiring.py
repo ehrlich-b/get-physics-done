@@ -12,6 +12,7 @@ from gpd import registry
 from gpd.adapters.install_utils import expand_at_includes
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.contracts import ResearchContract, VerificationEvidence
+from gpd.core.frontmatter import validate_frontmatter
 from gpd.registry import _parse_frontmatter, _parse_tools
 from scripts.repo_graph_contract import parse_scope_count
 
@@ -31,6 +32,8 @@ WORKFLOWS_DIR = REPO_ROOT / "src/gpd/specs/workflows"
 COMMANDS_DIR = REPO_ROOT / "src/gpd/commands"
 AGENTS_DIR = REPO_ROOT / "src/gpd/agents"
 REFERENCES_DIR = REPO_ROOT / "src/gpd/specs/references"
+FIXTURES_STAGE0 = REPO_ROOT / "tests" / "fixtures" / "stage0"
+FIXTURES_STAGE4 = REPO_ROOT / "tests" / "fixtures" / "stage4"
 GRAPH_PATH = REPO_ROOT / "tests" / "README.md"
 WORKFLOW_EXEMPT_COMMANDS = frozenset({"health", "suggest-next"})
 
@@ -996,6 +999,12 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "disconfirming_observations: [observation-1]" in verification_template
     assert "Benchmark acceptance tests require `comparison_kind: benchmark`" in verification_template
     assert "cross-method acceptance tests require `comparison_kind: cross_method`" in verification_template
+    assert "Section-specific status vocabularies are mandatory" in contract_results_schema
+    assert "`references` use `completed`, `missing`, or `not_applicable`" in contract_results_schema
+    assert "`forbidden_proxies` use `rejected`, `violated`, `unresolved`, or `not_applicable`" in contract_results_schema
+    assert "The same requirement applies when a benchmark-style reference anchors the subject" in contract_results_schema
+    assert "The same structured suggestion is required when a benchmark-style reference anchors the subject" in verification_template
+    assert "Include a `suggested_contract_checks` entry whenever a decisive benchmark / cross-method comparison is still partial or unresolved" in verification_template
     assert "Use `@{GPD_INSTALL_DIR}/templates/verification-report.md` for the canonical verification frontmatter contract." in research_verification
     assert "status: passed | gaps_found | expert_needed | human_needed" in research_verification
     assert "deliverables: {}" not in research_verification
@@ -1139,6 +1148,110 @@ def test_verification_prompts_keep_suggested_contract_check_bindings_schema_tigh
     assert "Each gap has: `gap_subject_kind`" in verifier_agent
     assert "Each gap has: `subject_kind`" not in verifier_agent
     assert "Verification Status:** {passed | gaps_found | expert_needed | human_needed}" in verifier_agent
+
+
+def test_verification_prompt_wiring_rejects_invalid_reference_and_proxy_scaffolds(tmp_path: Path) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    verification_path = phase_dir / "01-VERIFICATION.md"
+    verification_path.write_text(
+        (FIXTURES_STAGE4 / "verification_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace(
+            "  references:\n"
+            "    ref-benchmark:\n"
+            "      status: completed\n"
+            "      completed_actions: [read, compare, cite]\n"
+            "      missing_actions: []\n"
+            "      summary: Benchmark anchor was surfaced.\n",
+            "  references:\n"
+            "    ref-benchmark:\n"
+            "      completed_actions: [read, cite]\n"
+            "      missing_actions: [compare]\n"
+            "      summary: Benchmark anchor was surfaced.\n",
+            1,
+        )
+        .replace(
+            "  forbidden_proxies:\n"
+            "    fp-benchmark:\n"
+            "      status: rejected\n",
+            "  forbidden_proxies:\n"
+            "    fp-benchmark:\n"
+            "      notes: Proxy scaffold left status unspecified.\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(
+        verification_path.read_text(encoding="utf-8"),
+        "verification",
+        source_path=verification_path,
+    )
+
+    assert result.valid is False
+    assert any(
+        "references.ref-benchmark.status must be explicit in contract-backed contract_results" in error
+        for error in result.errors
+    )
+    assert any(
+        "forbidden_proxies.fp-benchmark.status must be explicit in contract-backed contract_results" in error
+        for error in result.errors
+    )
+
+
+def test_verification_prompt_wiring_requires_suggested_checks_for_compare_required_references(
+    tmp_path: Path,
+) -> None:
+    phase_dir = tmp_path / ".gpd" / "phases" / "01-benchmark"
+    phase_dir.mkdir(parents=True)
+    (phase_dir / "01-01-PLAN.md").write_text(
+        (FIXTURES_STAGE0 / "plan_with_contract.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    verification_path = phase_dir / "01-VERIFICATION.md"
+    verification_path.write_text(
+        (FIXTURES_STAGE4 / "verification_with_contract_results.md")
+        .read_text(encoding="utf-8")
+        .replace(
+            "status: passed\nscore: 3/3 contract targets verified\n",
+            "status: gaps_found\nscore: 2/3 contract targets verified\n",
+            1,
+        )
+        .replace(
+            "  references:\n"
+            "    ref-benchmark:\n"
+            "      status: completed\n"
+            "      completed_actions: [read, compare, cite]\n"
+            "      missing_actions: []\n"
+            "      summary: Benchmark anchor was surfaced.\n",
+            "  references:\n"
+            "    ref-benchmark:\n"
+            "      status: completed\n"
+            "      completed_actions: [read, cite]\n"
+            "      missing_actions: []\n"
+            "      summary: Benchmark anchor was surfaced.\n",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    result = validate_frontmatter(
+        verification_path.read_text(encoding="utf-8"),
+        "verification",
+        source_path=verification_path,
+    )
+
+    assert result.valid is False
+    assert any(
+        "suggested_contract_checks: required when decisive benchmark/cross-method checks remain missing, partial, or incomplete"
+        in error
+        for error in result.errors
+    )
 
 
 def test_verifier_entry_points_expose_contract_check_tools() -> None:

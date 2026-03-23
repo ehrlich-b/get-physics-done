@@ -92,7 +92,11 @@ Rules:
 - Missing contract-backed `contract_results` is invalid.
 - `uncertainty_markers` must remain explicit in contract-backed outputs so the model sees unresolved anchors, competing explanations, and disconfirming observations before writing.
 - Every declared claim, deliverable, acceptance test, reference, and forbidden proxy ID from the referenced PLAN contract must appear in its matching section.
-- Do not silently omit unfinished work. Use `not_attempted`, `missing`, `not_applicable`, or `unresolved` explicitly when a contract ID is still open.
+- Section-specific status vocabularies are mandatory:
+  - `claims`, `deliverables`, and `acceptance_tests` use `passed`, `partial`, `failed`, `blocked`, or `not_attempted` while work is still open.
+  - `references` use `completed`, `missing`, or `not_applicable`.
+  - `forbidden_proxies` use `rejected`, `violated`, `unresolved`, or `not_applicable`.
+- Do not silently omit unfinished work. Use the section-specific open-work status explicitly when a contract ID is still open.
 - `linked_ids` and evidence sub-IDs (`claim_id`, `deliverable_id`, `acceptance_test_id`, `reference_id`, `forbidden_proxy_id`) must point to declared contract IDs.
 - If a PLAN reference has `must_surface: true`, the ledger must include a matching `contract_results.references.<reference-id>` entry.
 - For `must_surface` references, `completed_actions` must cover every `required_actions` item; do not mark the anchor as handled while leaving required actions only in prose.
@@ -144,6 +148,7 @@ Rules:
 
 For `VERIFICATION.md`, keep the frontmatter compatible with `verification-report.md`.
 If a decisive benchmark / cross-method check remains `partial`, `not_attempted`, or still lacks a decisive verdict, the frontmatter must also include structured `suggested_contract_checks` entries explaining the missing decisive work.
+The same requirement applies when a benchmark-style reference anchors the subject or a reference with `required_actions` containing `compare` is still incomplete.
 Each `suggested_contract_checks` entry may only use these keys: `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id`, and `evidence_path`. Invented keys such as `check_id` fail validation.
 
 ---
