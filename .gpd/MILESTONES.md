@@ -30,3 +30,20 @@
 **Last phase number:** 7 (contingency, not executed)
 
 ---
+
+## v3.0 GR Extension (Shipped: 2026-03-22)
+
+**Phases completed:** 5 phases (8-12), 15 plans
+
+**Key accomplishments:**
+- Self-modeling lattice with SWAP Hamiltonian forced by diagonal U(n) covariance + Schur-Weyl duality
+- Area-law entanglement via WVCH thermal MI bound, Heisenberg ground-state properties, modular Hamiltonian locality
+- Einstein's equations derived via two routes: Jacobson entanglement equilibrium (Route A, conformal) and Lovelock uniqueness (Route B, d>=2)
+- Numerical verification on N=8-20 lattices: ED benchmarks, area-law scaling (2D R^2=0.885 boundary), K_A locality (SRF=0.9993), MVEH support
+- MVEH reframed as structural identification via Connes-Rovelli thermal time hypothesis + Van Raamsdonk
+- Paper 6 assembled (7 sections, 4 figures, 33 bib entries), passed adversarial review with 3 rounds of fixes
+- Gaps honestly identified: continuum limit (shared wall), conformal approximation (Route A), tensoriality (Route B)
+
+**Last phase number:** 12
+
+---
