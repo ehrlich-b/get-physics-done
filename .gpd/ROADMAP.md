@@ -136,7 +136,11 @@ Plans:
 4. If the sequential product candidate fails, the D in the moduli space most naturally motivated from self-modeling structure is identified with explicit rationale
 5. SymPy verification at n=2 (8x8), n=3 (18x18), and n=4 (32x32) confirms the moduli space parameterization and tests the sequential product candidate
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 14-01-PLAN.md -- Parameterize D moduli space: block decomposition, J constraint, dimension formula, SymPy/NumPy verification at n=1,2,3,4
+- [ ] 14-02-PLAN.md -- Test sequential product candidates (commutator, SP operator, Barrett form) against moduli space; identify most natural D
 
 **Backtracking triggers:**
 - If the D moduli space is empty (no non-trivial D exists) -> reconsider gamma or J definitions; explore alternative SWAP/grading constructions from Paper 6.
