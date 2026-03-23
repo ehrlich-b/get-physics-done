@@ -77,25 +77,25 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| CMPL-01 | TBD | Pending |
-| CMPL-02 | TBD | Pending |
-| CHIR-01 | TBD | Pending |
-| CHIR-02 | TBD | Pending |
-| CHIR-03 | TBD | Pending |
-| CHIR-04 | TBD | Pending |
-| SYNT-01 | TBD | Pending |
-| SYNT-02 | TBD | Pending |
-| COMP-01 | TBD | Pending |
-| COMP-02 | TBD | Pending |
-| PAPR-01 | TBD | Pending |
+| CMPL-01 | Phase 18 | Pending |
+| CMPL-02 | Phase 18 | Pending |
+| CHIR-01 | Phase 19 | Pending |
+| CHIR-02 | Phase 19 | Pending |
+| CHIR-03 | Phase 19 | Pending |
+| CHIR-04 | Phase 19 | Pending |
+| SYNT-01 | Phase 20 | Pending |
+| SYNT-02 | Phase 20 | Pending |
+| COMP-01 | Phase 19 | Pending |
+| COMP-02 | Phase 19 | Pending |
+| PAPR-01 | Phase 21 | Pending |
 
 **Coverage:**
 
 - Primary requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 (roadmap pending)
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-03-23_
-_Last updated: 2026-03-23 after initial definition_
+_Last updated: 2026-03-23 after roadmap phase mapping_
