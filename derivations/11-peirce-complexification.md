@@ -540,3 +540,151 @@ $$F_4 = \mathrm{Aut}(h_3(\mathbb{O})) \;\xrightarrow{\text{complexification}}\; 
 $$\mathrm{Stab}_{F_4}(E_{11}) = \mathrm{Spin}(9) \;\xrightarrow{\text{complexification}}\; \mathrm{Stab}_{E_6}(E_{11}) = \mathrm{Spin}(10) \times \mathrm{U}(1)$$
 
 Tracked through Peirce decomposition: each subspace followed from real to complex, with representation upgrades verified at each level.
+
+### Step 15: The 27-Dimensional Representation under Spin(10)
+
+The 27-dimensional fundamental representation of $E_6$ decomposes under the subgroup $\mathrm{Spin}(10) \times \mathrm{U}(1) = \mathrm{Stab}_{E_6}(E_{11})$ as:
+
+$$\mathbf{27} \to \mathbf{1}_{(-4)} \oplus \mathbf{10}_{(2)} \oplus \mathbf{16}_{(-1)}$$
+
+where the subscripts denote $\mathrm{U}(1)$ charges (recorded for completeness; not essential for this phase).
+
+**Identification with Peirce subspaces:**
+
+| Summand | $\mathrm{Spin}(10)$ Rep | Peirce Space | Identification |
+|:---:|:---:|:---:|:---:|
+| $\mathbf{1}$ | Trivial (singlet) | $V_1^\mathbb{C} = \mathbb{C} \cdot E_{11}$ | The idempotent's eigenspace. Observer's "slot." |
+| $\mathbf{10}$ | Vector (defining) | $V_0^\mathbb{C} = h_2^\mathbb{C}(\mathbb{O})$ | The "rest" subspace, carrying SO(10) vector structure. |
+| $\mathbf{16}$ | Weyl spinor $S_{10}^+$ | $V_{1/2}^\mathbb{C} = (\mathbb{O}^2)^\mathbb{C}$ | The interaction space. One generation of SM fermions (Boyle). |
+
+**Dimension sum:**
+$$1 + 10 + 16 = 27 \quad \checkmark$$
+
+**Detailed identification of each summand:**
+
+**The singlet $\mathbf{1} \leftrightarrow V_1^\mathbb{C}$:** This is the 1-dimensional eigenspace of eigenvalue 1 under $L_{E_{11}}$. It consists of $\mathbb{C}$-multiples of the idempotent $E_{11}$. Under $\mathrm{Spin}(10) \times \mathrm{U}(1)$, it transforms trivially under $\mathrm{Spin}(10)$ (since $E_{11}$ is fixed by the stabilizer) and with $\mathrm{U}(1)$ charge $-4$. The $\mathrm{U}(1)$ charge reflects the weight of $E_{11}$ under the overall $\mathrm{U}(1)$ factor in the stabilizer.
+
+**The vector $\mathbf{10} \leftrightarrow V_0^\mathbb{C}$:** $V_0 = h_2(\mathbb{O})$ (the $2 \times 2$ Hermitian octonion matrices in the lower-right block) has $\dim_\mathbb{R} = 10$. After complexification, $V_0^\mathbb{C} = h_2(\mathbb{O}) \otimes_\mathbb{R} \mathbb{C}$ has $\dim_\mathbb{C} = 10$.
+
+Under $\mathrm{Spin}(9)$, this decomposed as $\mathbf{9} \oplus \mathbf{1}$ (traceless part + trace). Under $\mathrm{Spin}(10)$, the complexified space is the **vector representation** $\mathbf{10}$. The branching rule $\mathbf{10}|_{\mathrm{Spin}(9)} = \mathbf{9} \oplus \mathbf{1}$ (verified in Step 14) confirms this identification.
+
+In the physics interpretation (Boyle 2020), the $\mathbf{10}$ carries the remaining gauge bosons (under further decomposition to $\mathrm{SU}(5)$ or the SM gauge group). We note this but do not analyze it further in this phase.
+
+**The Weyl spinor $\mathbf{16} \leftrightarrow V_{1/2}^\mathbb{C}$:** This is the central result connecting Part II to Part III. In Part II (Steps 5-8), we established:
+
+$$V_{1/2}^\mathbb{C} = \mathbb{O}^2 \otimes_\mathbb{R} \mathbb{C} = S_{10}^+ \quad (\text{Weyl spinor, } \dim_\mathbb{C} = 16)$$
+
+The derivation was:
+1. $V_{1/2} = \mathbb{O}^2 = S_9$ (Part I, Step 4)
+2. C*-observer forces extension of scalars (Part II, Steps 5-6)
+3. $S_9 \otimes_\mathbb{R} \mathbb{C} = S_{10}^+$ (Part II, Step 8)
+
+The $\mathbf{16}$ in the $E_6$ branching rule is exactly this $S_{10}^+$. In the physics interpretation (Boyle 2020), this is **one generation of Standard Model fermions** (before further decomposition under $\mathrm{SU}(5)$ or the SM gauge group).
+
+**Cross-check with Boyle 2020:**
+
+Boyle (arXiv:2006.16265) arrives at the same decomposition $\mathbf{27} \to \mathbf{1} \oplus \mathbf{10} \oplus \mathbf{16}$ by analyzing $h_3^\mathbb{C}(\mathbb{O})$ directly. He identifies:
+- The $\mathbf{16}$ as one generation of SM fermions (16 = number of Weyl fermions per generation including right-handed neutrino)
+- The $\mathbf{10}$ as related to gauge structure
+- The $\mathbf{1}$ as a singlet associated with the observer's projection
+
+Our derivation arrives at the same result but via the route: real Jordan algebra $\to$ Peirce decomposition $\to$ C*-observer complexification $\to$ complexified Peirce spaces $\to$ Spin(10) decomposition. The novel element is that the complexification is derived from the observer's C*-nature (Paper 5), not assumed as a mathematical starting point.
+
+SELF-CRITIQUE CHECKPOINT (Step 15):
+1. SIGN CHECK: N/A (no sign-sensitive operations).
+2. FACTOR CHECK: $1 + 10 + 16 = 27$ $\checkmark$. U(1) charges $(-4, 2, -1)$ are standard; we record but do not derive them.
+3. CONVENTION CHECK: $S_{10}^+$ convention (following Boyle). Peirce under $E_{11}$. $\checkmark$
+4. DIMENSION CHECK: $\dim_\mathbb{C}(V_1^\mathbb{C}) = 1$, $\dim_\mathbb{C}(V_0^\mathbb{C}) = 10$, $\dim_\mathbb{C}(V_{1/2}^\mathbb{C}) = 16$. Sum = 27. Each matches its $\mathrm{Spin}(10)$ representation. $\checkmark$
+
+### Step 16: Representation Verification for V_0^C
+
+We provide an independent check that $V_0^\mathbb{C}$ carries the $\mathbf{10}$ (vector) representation of $\mathrm{Spin}(10)$.
+
+$V_0 = h_2(\mathbb{O})$ consists of $2 \times 2$ Hermitian matrices over $\mathbb{O}$:
+
+$$Y = \begin{pmatrix} \beta & \bar{x}_1 \\ x_1 & \gamma \end{pmatrix}, \quad \beta, \gamma \in \mathbb{R},\; x_1 \in \mathbb{O}$$
+
+$\dim_\mathbb{R}(V_0) = 2 + 8 = 10$.
+
+Under $\mathrm{Spin}(9)$, the traceless part $h_2^0(\mathbb{O}) = \{Y \in h_2(\mathbb{O}) : \mathrm{tr}(Y) = 0\}$ has $\dim = 9$ and carries the **vector** (defining) representation of $\mathrm{SO}(9) = \mathrm{Spin}(9)/\mathbb{Z}_2$. The trace $\mathrm{tr}(Y) = \beta + \gamma$ is a singlet. So:
+
+$$V_0\big|_{\mathrm{Spin}(9)} = \mathbf{9} \oplus \mathbf{1}$$
+
+After complexification, $V_0^\mathbb{C}$ has $\dim_\mathbb{C} = 10$. The key representation-theoretic fact is:
+
+$$\mathbf{10}\big|_{\mathrm{Spin}(9)} = \mathbf{9} \oplus \mathbf{1}$$
+
+This is the standard branching rule for $\mathrm{SO}(10) \supset \mathrm{SO}(9)$: the 10-dimensional vector of $\mathrm{SO}(10)$ restricted to $\mathrm{SO}(9)$ gives the 9-vector plus a singlet (the component in the 10th direction).
+
+Since $V_0$ carries $\mathbf{9} \oplus \mathbf{1}$ of $\mathrm{Spin}(9)$, and this matches the branching of the $\mathbf{10}$ of $\mathrm{Spin}(10)$, the complexified $V_0^\mathbb{C}$ carries the $\mathbf{10}$ of $\mathrm{Spin}(10)$. $\checkmark$
+
+**Consistency check:** $\dim_\mathbb{C}(\mathbf{10}) = 10 = \dim_\mathbb{C}(V_0^\mathbb{C})$ $\checkmark$.
+
+### Step 17: Phase 18 Synthesis
+
+Collecting all results from Plans 01 and 02:
+
+---
+
+**CMPL-01 (Complexification proof -- Plan 01):**
+
+1. The observer's C*-algebra nature (Paper 5: self-modeling $\to$ local tomography $\to$ $M_n(\mathbb{C})^{sa}$) gives the observer $\mathbb{C}$ as its scalar field.
+2. The observer probes the Peirce space $V_{1/2} = \mathbb{O}^2 = S_9$ ($\mathrm{Spin}(9)$ spinor, $\dim_\mathbb{R} = 16$).
+3. The C*-nature forces extension of scalars: $V_{1/2} \to V_{1/2}^\mathbb{C} = S_9 \otimes_\mathbb{R} \mathbb{C}$.
+4. The complexified spinor is $V_{1/2}^\mathbb{C} = S_{10}^+$ (Weyl spinor of $\mathrm{Spin}(10)$, $\dim_\mathbb{C} = 16$).
+5. Symmetry upgrade: $\mathrm{Spin}(9) \to \mathrm{Spin}(10)$ on $V_{1/2}^\mathbb{C}$.
+
+**Key property:** The complexification is **derived**, not assumed. It follows from the observer's proven C*-nature.
+
+---
+
+**CMPL-02 (F_4 -> E_6 upgrade -- Plan 02):**
+
+1. The full algebra complexifies: $h_3(\mathbb{O}) \to h_3^\mathbb{C}(\mathbb{O}) = h_3(\mathbb{O}) \otimes_\mathbb{R} \mathbb{C}$, $\dim_\mathbb{C} = 27$.
+2. The automorphism group upgrades: $F_4 = \mathrm{Aut}(h_3(\mathbb{O})) \to E_6 = \mathrm{Str}_0(h_3^\mathbb{C}(\mathbb{O}))$.
+3. The stabilizer upgrades: $\mathrm{Spin}(9) = \mathrm{Stab}_{F_4}(E_{11}) \to \mathrm{Spin}(10) \times \mathrm{U}(1) = \mathrm{Stab}_{E_6}(E_{11})$.
+4. The 27-dim fundamental of $E_6$ decomposes under $\mathrm{Spin}(10)$ as: $\mathbf{27} \to \mathbf{1} \oplus \mathbf{10} \oplus \mathbf{16}$.
+5. Each summand matches a Peirce subspace: $\mathbf{1} = V_1^\mathbb{C}$, $\mathbf{10} = V_0^\mathbb{C}$, $\mathbf{16} = V_{1/2}^\mathbb{C} = S_{10}^+$.
+
+**Key property:** The decomposition is **traced through the Peirce structure**, not just cited as a branching rule. Each summand is identified with its algebraic origin in $h_3(\mathbb{O})$.
+
+---
+
+**What Phase 18 establishes for Phase 19:**
+
+- The complexified Peirce space $V_{1/2}^\mathbb{C} = S_{10}^+$ is a $\mathrm{Spin}(10)$ Weyl spinor of $\dim_\mathbb{C} = 16$.
+- Phase 19 will show: choosing a complex structure on $\mathrm{Im}(\mathbb{O})$ (i.e., selecting a unit imaginary octonion $u \in S^6$) gives $\mathbb{O} = \mathbb{C} \oplus \mathbb{C}^3$, inducing $\mathrm{Cl}(6) \hookrightarrow \mathrm{Cl}(10)$, whose chirality operator selects a definite chirality on $S_{10}^+$.
+
+---
+
+**Gaps acknowledged:**
+
+1. **Gap B step 1 (rank-1 idempotent choice):** The choice $e = E_{11}$ is taken as input. Why the observer selects a rank-1 idempotent (rather than rank-2 or the identity) is not derived from self-modeling in this phase.
+
+2. **U(1) factor:** The $\mathrm{U}(1)$ in $\mathrm{Spin}(10) \times \mathrm{U}(1)$ is identified as $B - L$ in the literature (Boyle 2020) but not analyzed here. Relevant for Phase 19-20.
+
+3. **"Probing" step formalizability:** The argument that the C*-observer's probing of $V_{1/2}$ forces extension of scalars (Step 6) is physically motivated but not stated as a formal theorem. This is the weakest link in the CMPL-01 chain.
+
+4. **From local to global complexification:** The observer directly complexifies $V_{1/2}$ (Part II). The full algebra complexification $h_3(\mathbb{O}) \to h_3^\mathbb{C}(\mathbb{O})$ (Part III) is the natural algebraic completion. A formal proof that complexification of $V_{1/2}$ alone necessitates complexification of the full algebra is not provided; rather, we observe that the full complexification is the consistent algebraic framework containing $V_{1/2}^\mathbb{C}$.
+
+---
+
+## Summary of Part III
+
+**Central result:**
+
+$$\boxed{\mathbf{27} \to \mathbf{1} \oplus \mathbf{10} \oplus \mathbf{16} \quad \text{under } \mathrm{Spin}(10) \subset E_6 = \mathrm{Str}_0(h_3^\mathbb{C}(\mathbb{O}))}$$
+
+with each summand identified with a Peirce subspace of $h_3(\mathbb{O})$:
+
+$$\mathbf{1} = V_1^\mathbb{C}, \quad \mathbf{10} = V_0^\mathbb{C}, \quad \mathbf{16} = V_{1/2}^\mathbb{C} = S_{10}^+$$
+
+**Full upgrade chain (Phase 18 combined):**
+
+$$\begin{aligned}
+\text{Algebra:} &\quad h_3(\mathbb{O}) \xrightarrow{\text{C*-observer}} h_3^\mathbb{C}(\mathbb{O}) \\
+\text{Symmetry:} &\quad F_4 \to E_6 \\
+\text{Stabilizer:} &\quad \mathrm{Spin}(9) \to \mathrm{Spin}(10) \times \mathrm{U}(1) \\
+\text{Spinor:} &\quad S_9 \to S_{10}^+ \\
+\text{Decomposition:} &\quad 27 = 1 + 16 + 10 \;\to\; 27 = \mathbf{1} + \mathbf{16} + \mathbf{10} \text{ of } \mathrm{Spin}(10)
+\end{aligned}$$
