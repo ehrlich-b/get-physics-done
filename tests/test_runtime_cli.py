@@ -12,7 +12,7 @@ import pytest
 import gpd.cli as cli_module
 import gpd.runtime_cli as runtime_cli
 from gpd.adapters import get_adapter
-from gpd.adapters.runtime_catalog import iter_runtime_descriptors
+from gpd.adapters.runtime_catalog import iter_runtime_descriptors, resolve_global_config_dir
 from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, ENV_GPD_DISABLE_CHECKOUT_REEXEC
 from gpd.runtime_cli import _parse_args, _resolve_cli_cwd_from_argv, main
 
@@ -995,3 +995,48 @@ def test_runtime_cli_prefers_manifest_scoped_local_install_when_global_env_point
     assert observed["argv"] == ["gpd", "state", "load"]
     assert observed["runtime"] == descriptor.runtime_name
     assert observed["disable_reexec"] == "1"
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_runtime_cli_does_not_treat_canonical_global_dir_as_local_when_runtime_env_overrides_elsewhere(
+    monkeypatch,
+    tmp_path: Path,
+    descriptor,
+) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+
+    canonical_global_dir = resolve_global_config_dir(descriptor, home=home, environ={})
+    _mark_complete_install(canonical_global_dir, runtime=descriptor.runtime_name, install_scope="global")
+
+    override_dir = tmp_path / "override" / descriptor.config_dir_name
+    override_dir.mkdir(parents=True)
+    global_config = descriptor.global_config
+    env_var = global_config.env_var or global_config.env_dir_var or global_config.env_file_var
+    assert env_var is not None
+    env_value = str(override_dir / "config.json") if env_var == global_config.env_file_var else str(override_dir)
+    monkeypatch.setenv(env_var, env_value)
+
+    cli_cwd = home / "research" / "notes"
+    cli_cwd.mkdir(parents=True)
+    expected_missing_target = cli_cwd / descriptor.config_dir_name
+
+    exit_code, observed = _run_runtime_cli_with_recording(
+        monkeypatch,
+        cwd=cli_cwd,
+        argv=[
+            "--runtime",
+            descriptor.runtime_name,
+            "--config-dir",
+            f"./{descriptor.config_dir_name}",
+            "--install-scope",
+            "local",
+            "state",
+            "load",
+        ],
+        runtime=descriptor.runtime_name,
+    )
+
+    assert exit_code == 127
+    assert observed["config_dir"] == expected_missing_target

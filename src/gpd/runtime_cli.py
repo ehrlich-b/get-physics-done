@@ -20,6 +20,7 @@ from pathlib import Path
 
 from gpd.adapters import get_adapter
 from gpd.adapters.install_utils import MANIFEST_NAME, build_runtime_install_repair_command
+from gpd.adapters.runtime_catalog import resolve_global_config_dir
 from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, ENV_GPD_DISABLE_CHECKOUT_REEXEC
 from gpd.hooks.install_metadata import installed_runtime
 from gpd.hooks.runtime_detect import normalize_runtime_name
@@ -196,7 +197,8 @@ def _is_matching_local_install_candidate(candidate: Path, *, runtime: str) -> bo
             return False
 
     adapter = get_adapter(runtime)
-    if _paths_equal(candidate, adapter.global_config_dir) and manifest_scope != "local":
+    canonical_global_dir = resolve_global_config_dir(adapter.runtime_descriptor, home=Path.home(), environ={})
+    if _paths_equal(candidate, canonical_global_dir) and manifest_scope != "local":
         return False
 
     return installed_runtime(candidate) == runtime

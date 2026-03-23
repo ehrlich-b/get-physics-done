@@ -10,8 +10,10 @@ from gpd.adapters.install_utils import build_runtime_install_repair_command
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors, resolve_global_config_dir
 from gpd.hooks.runtime_detect import (
     RUNTIME_UNKNOWN,
+    SCOPE_GLOBAL,
     SCOPE_LOCAL,
     _runtime_from_manifest_or_path,
+    detect_install_scope,
     normalize_runtime_name,
 )
 
@@ -58,6 +60,22 @@ def install_scope_from_manifest(config_dir: Path) -> str | None:
 
     scope = load_install_manifest(config_dir).get("install_scope")
     return scope if scope in {"local", "global"} else None
+
+
+def _install_scope_from_installed_update_workflow(config_dir: Path) -> str | None:
+    """Return the persisted install scope from the installed update workflow."""
+
+    update_workflow = config_dir / "get-physics-done" / "workflows" / "update.md"
+    try:
+        content = update_workflow.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    if 'INSTALL_SCOPE="--local"' in content:
+        return SCOPE_LOCAL
+    if 'INSTALL_SCOPE="--global"' in content:
+        return SCOPE_GLOBAL
+    return None
 
 
 def _manifest_target_dir(config_dir: Path) -> Path:
@@ -148,6 +166,34 @@ def _infer_explicit_target(
     return not _paths_equal(install_target, canonical_global_dir)
 
 
+def _detect_install_scope_fallback(
+    config_dir: Path,
+    *,
+    runtime: str,
+    install_target: Path,
+) -> str | None:
+    """Return a stable install-scope fallback when the manifest omits it."""
+
+    persisted_scope = _install_scope_from_installed_update_workflow(config_dir)
+    if persisted_scope is not None:
+        return persisted_scope
+
+    try:
+        adapter = get_adapter(runtime)
+    except KeyError:
+        return None
+
+    canonical_global_dir = resolve_global_config_dir(adapter.runtime_descriptor, home=Path.home(), environ={})
+    if _paths_equal(install_target, canonical_global_dir) or _paths_equal(config_dir, canonical_global_dir):
+        return SCOPE_GLOBAL
+
+    if _paths_equal(install_target, config_dir) and config_dir.name == adapter.local_config_dir_name:
+        detected_scope = detect_install_scope(runtime, cwd=install_target.parent)
+        return detected_scope or SCOPE_LOCAL
+
+    return None
+
+
 def config_dir_has_complete_install(config_dir: Path) -> bool:
     """Return whether *config_dir* has the stable markers of a GPD install."""
     manifest = load_install_manifest(config_dir)
@@ -169,18 +215,22 @@ def installed_update_command(config_dir: Path) -> str | None:
     if runtime is None:
         return None
 
-    scope = install_scope_from_manifest(config_dir)
+    install_target = _manifest_target_dir(config_dir)
+    scope = install_scope_from_manifest(config_dir) or _detect_install_scope_fallback(
+        config_dir,
+        runtime=runtime,
+        install_target=install_target,
+    )
     try:
         adapter = get_adapter(runtime)
     except KeyError:
         return build_runtime_install_repair_command(
             runtime,
             install_scope=scope,
-            target_dir=_manifest_target_dir(config_dir),
+            target_dir=install_target,
             explicit_target=bool(_manifest_explicit_target(config_dir)),
         )
 
-    install_target = _manifest_target_dir(config_dir)
     explicit_target = _manifest_explicit_target(config_dir)
 
     if explicit_target is None:

@@ -765,6 +765,41 @@ class TestCheckUpdateHook:
         assert expected in result
         assert str(explicit_target) in result
 
+    def test_explicit_target_hook_cache_recovers_missing_install_scope_from_installed_surface(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        explicit_target = tmp_path / "custom-runtime-dir"
+        hook_path = explicit_target / "hooks" / "statusline.py"
+        cache_file = explicit_target / "cache" / "gpd-update-check.json"
+        hook_path.parent.mkdir(parents=True)
+        cache_file.parent.mkdir(parents=True)
+        hook_path.write_text("# hook\n", encoding="utf-8")
+        _mark_complete_install(explicit_target, runtime="codex")
+        update_workflow = explicit_target / "get-physics-done" / "workflows" / "update.md"
+        update_workflow.parent.mkdir(parents=True, exist_ok=True)
+        update_workflow.write_text('INSTALL_SCOPE="--local"\n', encoding="utf-8")
+        manifest_path = explicit_target / "gpd-file-manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest.pop("install_scope", None)
+        manifest["explicit_target"] = True
+        manifest["install_target_dir"] = str(explicit_target)
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        cache_file.write_text(json.dumps({"update_available": True, "checked": 20}), encoding="utf-8")
+
+        with patch("gpd.hooks.statusline.__file__", str(hook_path)):
+            result = _check_update(str(workspace))
+
+        expected = _repair_command(
+            "codex",
+            install_scope="local",
+            target_dir=explicit_target,
+            explicit_target=True,
+        )
+        assert expected in result
+
     def test_explicit_target_hook_without_runtime_metadata_uses_runtime_neutral_command(self, tmp_path: Path) -> None:
         workspace = tmp_path / "workspace"
         workspace.mkdir()
