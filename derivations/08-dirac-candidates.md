@@ -448,17 +448,23 @@ DJ component 1: K overline{X_p}^T + overline{X_p}^T K^T
 
 For JD = DJ: overline{X_p}^T K + K^T overline{X_p}^T = K overline{X_p}^T + overline{X_p}^T K^T.
 
-This requires overline{X_p}^T K = K overline{X_p}^T and K^T overline{X_p}^T = overline{X_p}^T K^T for all X_p.
+This is a SINGLE combined condition. Let Y = overline{X_p}^T (which ranges over all of M_n(C)). The condition becomes:
 
-The first: [overline{X_p}^T, K] = 0 for all X_p, which forces K to be a scalar (K = lambda I) since overline{X_p}^T ranges over all of M_n(C) as X_p ranges over M_n(C).
+YK + K^T Y = KY + YK^T for all Y in M_n(C).
 
-**Wait.** overline{X_p}^T = X_p^dag ranges over all of M_n(C) as X_p does (since dag is a bijection). So [Y, K] = 0 for all Y in M_n(C) forces K = lambda I (scalar multiple of identity).
+Rearranging: YK - KY = YK^T - K^T Y, i.e., [Y, K] = [Y, K^T] for all Y.
 
-But K = lambda I with lambda real (since K is Hermitian) gives D_1(X) = lambda X + lambda X = 2 lambda X, which is just scalar multiplication. This commutes with EVERYTHING including gamma. But then D = 2lambda sigma_1 tensor I acts as D(X_p, X_{ap}) = (2lambda X_{ap}, 2lambda X_p), which is SWAP-even in V but does NOT have the right gamma anticommutation unless lambda = 0.
+Decompose K = S + A where S = (K + K^T)/2 (symmetric part) and A = (K - K^T)/2 (antisymmetric part). Then:
+- [Y, K] = [Y, S] + [Y, A]
+- [Y, K^T] = [Y, S - A] = [Y, S] - [Y, A]
 
-Actually, let me re-examine. sigma_1 tensor I anticommutes with sigma_3 tensor P iff [I, P] = 0 (from our earlier calculation, the anticommutation requires [P, D_1] = 0). Since D_1 = 2lambda I commutes with everything including P, the anticommutation condition {sigma_1 tensor 2lambda I, sigma_3 tensor P} = i sigma_2 tensor [P, 2lambda I] = 0. So it does anticommute with gamma.
+Setting equal: [Y, A] = -[Y, A], so 2[Y, A] = 0 for all Y. Hence [Y, K - K^T] = 0 for all Y in M_n(C).
 
-But we showed JD = DJ forces K = lambda I (scalar). So the only Barrett-form candidate that satisfies all three constraints is D_1(X) = 2 lambda X, i.e., D is a scalar multiple of the V-swap operator.
+By Schur's lemma, K - K^T = lambda I for some scalar. But K - K^T is antisymmetric: (K - K^T)^T = -(K - K^T), while (lambda I)^T = lambda I. So lambda = 0, giving **K = K^T (K is real symmetric, since K is Hermitian and symmetric).**
+
+This is LESS restrictive than K = scalar. The Barrett-form D_1(X) = KX + XK = 2(K * X) where K * X = (KX + XK)/2 is the Jordan product. Since K ranges over all n x n real symmetric matrices, the Barrett subspace has dimension n(n+1)/2.
+
+Note: D_1(X) = KX + XK maps Sym -> Sym and Skew -> Skew when K is symmetric (since (KX + XK)^T = X^T K^T + K^T X^T = X^T K + K X^T). Wait -- this is SWAP-even. But D_1 enters via sigma_1 tensor D_1 in the full Barrett decomposition, and sigma_1 anticommutes with sigma_3, so the full D anticommutes with gamma = sigma_3 tensor P regardless of whether D_1 commutes with P. The gamma anticommutation is carried by the V-space (sigma) structure, not by D_1's transpose parity.
 
 Wait, but this seems too restrictive. Let me re-examine the Barrett form more carefully.
 
@@ -538,26 +544,22 @@ For Y = I: -K' - K' = K'^T + K'^T, so -2K' = 2K'^T, giving K' = -K'^T. Combined 
 
 ### C.5: Summary of Barrett-form analysis
 
-The general Barrett form D = sigma_1 tensor D_1 + i sigma_2 tensor D_2 with D_i(X) = K_i X + X K_i^* satisfies all three constraints only when:
+The general Barrett form D = sigma_1 tensor D_1 + i sigma_2 tensor D_2 with D_i(X) = K_i X + X K_i^* satisfies all three constraints when:
 
-- K_1 = lambda I (scalar, real lambda) -- gives D that is a scalar swap
-- K_2 = 0 -- forced by J constraint
+- K_1 = any real symmetric matrix (K_1 = K_1^T, K_1 real) -- gives D_1(X) = K_1 X + X K_1 = 2(K_1 * X), the Jordan product
+- K_2 = 0 -- forced by J constraint (anti-Hermitian + Hermitian = 0)
 
-This is a 1-parameter family (real lambda), giving dim = 1.
+The sigma_1 channel gives an n(n+1)/2-parameter family (real symmetric K_1). At n=4 this is 10 parameters.
 
-**But Plan 14-01 found dim(moduli) = n^2(n^2 + 1) at general n.** This is vastly larger.
+This Barrett subspace sits inside the full moduli space (dim = n^2(n^2+1)). The first-order condition [[D, pi(a)], pi_o(b)] = 0 (Phase 15) will further constrain D. The Barrett-form operators D_1(X) = KX + XK are natural candidates since they arise from the Jordan product, which is the symmetrization of the sequential product.
 
-**Resolution:** Barrett's form applies to D operators satisfying the FIRST-ORDER CONDITION [[D, pi(a)], pi_o(b)] = 0 in addition to the three basic axioms. Our moduli space imposes only the three basic axioms. The Barrett form D = (K X + X K^*) tensor gamma v is the parameterization of D operators satisfying all four conditions (three axioms + first-order). Without the first-order condition, the space is much larger.
-
-So the Barrett-form analysis above confirms: Barrett-form D operators that satisfy JD = DJ within our KO-dim 6 structure form a 1-parameter family (for the sigma_1 channel only). The sigma_2 channel is zero. The full moduli space without the first-order condition is n^2(n^2+1)-dimensional.
-
-**Candidate C conclusion:** The Barrett form with K related to the sequential product structure (e.g., K = a) gives D_1(X) = aX + Xa^* for the sigma_1 component. But the J constraint forces K to be scalar, so no non-trivial K related to specific a works. Only K = lambda I survives.
+**Candidate C conclusion:** The Barrett form with real symmetric K gives D_1(X) = KX + XK = 2(K * X), the Jordan product. This is exactly the linearization of the sequential product sp(a, X) = sqrt(a) X sqrt(a) at a = I: d/dt sp(I + tK, X)|_{t=0} = KX + XK. So the Barrett-form D IS the linearized sequential product, establishing a natural self-modeling origin for the Dirac operator.
 
 SELF-CRITIQUE CHECKPOINT (C):
 1. SIGN CHECK: JD vs DJ signs tracked through 4 component calculations. Key sign: the minus in (i sigma_2) introduces a relative sign that makes the J constraint more restrictive. Expected: additional sign. Actual: yes, forcing K_2 = 0.
-2. FACTOR CHECK: Factor of 2 in D_1(X) = 2 lambda X for K_1 = lambda I. No spurious factors.
+2. FACTOR CHECK: D_1(X) = KX + XK for real symmetric K. No spurious factors.
 3. CONVENTION CHECK: epsilon' = +1, sigma_i standard Pauli matrices, Barrett iso consistent.
-4. DIMENSION CHECK: Barrett K is n x n -> 2n^2 real params, reduced to 1 param after J constraint. Consistent with first-order condition imposing strong constraints.
+4. DIMENSION CHECK: Barrett K is n x n real symmetric -> n(n+1)/2 real params. Barrett subspace is a proper subspace of the full n^2(n^2+1)-dim moduli space.
 
 ## Summary of Candidate Testing
 
@@ -566,13 +568,13 @@ SELF-CRITIQUE CHECKPOINT (C):
 | A: [a,-] (a real sym) | PASS | PASS | **FAIL** (JD = -DJ) | NO |
 | B: sqrt(a) X sqrt(a) | PASS | **FAIL** (SWAP-even) | not tested | NO |
 | B': SWAP-odd extraction | N/A | **FAIL** (wrong structure) | not tested | NO |
-| C: Barrett sigma_1 (general K) | PASS | PASS (K Herm) | **FAIL** (K must be scalar) | Only K = lambda I |
+| C: Barrett sigma_1 (K real sym) | PASS | PASS | **PASS** (K = K^T) | YES, dim n(n+1)/2 |
 | C: Barrett sigma_2 | PASS | PASS | **FAIL** (K = 0 forced) | NO |
 
-**Key finding:** All three sequential product candidates fail at least one D axiom. The failure mechanisms are:
+**Key finding:** The commutator and SP operator fail, but the Barrett-form sigma_1 channel with real symmetric K passes all three axioms. The resulting D_1(X) = KX + XK = 2(K * X) is the Jordan product -- the linearization of the sequential product at the identity. This establishes a natural self-modeling origin for D:
 1. **Commutator:** Transpose-odd nature means JD = -DJ (wrong epsilon' sign)
 2. **SP operator:** Inherently SWAP-even (commutes with transpose)
-3. **Barrett form:** J constraint forces K to be scalar, eliminating any structure related to specific a
+3. **Barrett form (sigma_1):** K = real symmetric passes JD = DJ; D is the Jordan product = linearized sequential product
 
 ## Identification of Most Natural D from Self-Modeling Structure
 
@@ -610,7 +612,7 @@ Wait, this is getting complex. Let me check computationally for specific K. The 
 
 The moduli space contains ALL D satisfying the three axioms. Among these, which ones have a natural self-modeling interpretation?
 
-**Key insight:** The D operators in the moduli space that involve left/right multiplication (L_K, R_K) satisfy the first-order condition but are restricted to K = scalar by the J constraint (Candidate C analysis). Operators that are NOT built from left/right multiplication can still be in the moduli space but lack a direct self-modeling interpretation.
+**Key insight:** The Barrett-form D operators D_1(X) = KX + XK with real symmetric K lie in the moduli space (dim n(n+1)/2 subspace). These are Jordan products D_1(X) = 2(K * X), the linearization of the sequential product at the identity. This gives a natural self-modeling interpretation for the Barrett subspace of the D moduli space.
 
 **The most natural D from self-modeling:**
 
@@ -626,11 +628,11 @@ These generate all operators on M_n(C) via the A tensor A^{op} action (since A t
 
 The D moduli space is parameterized by M satisfying M = J_+ M^T J_+. The basis elements of this space are abstract n^2 x n^2 matrices satisfying this involution constraint. Not all of them have simple left/right multiplication form.
 
-**Observation:** The Barrett-form D with K = lambda I (surviving candidate from Candidate C) gives:
+**Observation:** The Barrett-form D with real symmetric K gives:
 
-D_lambda(X_p, X_{ap}) = lambda(X_{ap} + X_{ap}, X_p + X_p) = (2 lambda X_{ap}, 2 lambda X_p)
+D_K(X_p, X_{ap}) = (KX_{ap} + X_{ap}K, KX_p + X_p K) = (2K * X_{ap}, 2K * X_p)
 
-This simply swaps particle and antiparticle sectors with a scale factor. In the (H_+, H_-) basis, this is D = [[0, 2lambda I], [2lambda I, 0]]. So M = 2 lambda I_{n^2}.
+where K * X = (KX + XK)/2 is the Jordan product. The K = I special case gives D_I(X_p, X_{ap}) = (2X_{ap}, 2X_p), swapping sectors with scale 2. For general real symmetric K, D_K encodes the Jordan product structure.
 
 Does M = I satisfy M = J_+ M^T J_+? J_+ I^T J_+ = J_+ I J_+ = J_+^2. Since J_+^2 = [[0,-I_a],[I_s,0]]^2 = [[-I_a, 0],[0, -I_s]]... wait, that's -(I_a + I_s) = -I? But we need J_+^2 to be in the correct space.
 
@@ -713,7 +715,7 @@ I have J_+ with row blocks (a, s) and column blocks (s, a). For J_+^2, both fact
 
 Wait, I'm confusing myself. Let me just compute this numerically in Task 2. The key analytical result is:
 
-**For the Barrett-form candidate, the J constraint forces K = scalar. For the commutator candidate, J gives the wrong sign. For the SP candidate, SWAP parity is wrong.**
+**For the Barrett-form candidate, the J constraint forces K = real symmetric (not scalar): D(X) = KX + XK = 2(K * X) is the Jordan product = linearized sequential product. For the commutator candidate, J gives the wrong sign. For the SP candidate, SWAP parity is wrong.**
 
 ### Step 4: Most natural D identification
 
@@ -750,13 +752,16 @@ The connection to sequential product structure is INDIRECT: the sequential produ
 
 **Answer to the contract question:** "Does the sequential product asymmetry operator lie in the D moduli space?"
 
-**NO.** All three linearizations of the sequential product asymmetry fail at least one D axiom:
-- The commutator [a, X] satisfies D*=D and D gamma=-gamma D but fails JD=DJ (gets JD=-DJ)
-- The SP operator sqrt(a) X sqrt(a) is SWAP-even, failing D gamma=-gamma D
-- Barrett-form D with non-scalar K fails JD=DJ
+**PARTIALLY YES.** The direct commutator [a, X] = L_a - R_a fails JD = DJ (gets JD = -DJ, wrong epsilon' sign). The SP operator sqrt(a)Xsqrt(a) is SWAP-even, failing gamma anticommutation. However, the Barrett-form D with real symmetric K PASSES all three axioms, giving:
 
-The fundamental obstruction is the INTERPLAY between the transpose in J and the left/right multiplication structure: the transpose reverses the order of products, introducing a sign that is incompatible with the epsilon' = +1 requirement of KO-dimension 6.
+D_K(X) = KX + XK = 2(K * X)
 
-**Most natural D:** The simplest non-trivial element of the moduli space is a sector-swapping operator. Its connection to self-modeling is through structural compatibility, not direct derivation from the sequential product.
+where K * X is the Jordan product. The Jordan product is the symmetrization of the sequential product, and D_K is the linearization of the sequential product at the identity:
 
-**Significance:** This result means the Dirac operator cannot be DERIVED from the sequential product structure alone. D must be an ADDITIONAL input to the spectral triple, specified independently. The moduli space (dim = n^2(n^2+1)) provides the space of valid choices, and the first-order condition (Phase 15) will further constrain this space. The sequential product defines the algebra and its action, but not the Dirac operator.
+d/dt sp(I + tK, X)|_{t=0} = KX + XK = D_K(X)
+
+**So D arises from the sequential product, but through its linearization (Jordan product), not through the commutator (asymmetry).**
+
+The Barrett subspace (dim = n(n+1)/2, e.g. 10 at n=4) sits inside the full moduli space (dim = n^2(n^2+1) = 272 at n=4). The first-order condition (Phase 15) will further constrain D within this subspace.
+
+**Significance:** The Dirac operator has a natural self-modeling origin through the Jordan product / linearized sequential product. The KO-dim 6 sign epsilon' = +1 selects the anticommutator L_K + R_K over the commutator L_K - R_K, which is physically meaningful: the Dirac operator encodes the SYMMETRIC part of left-right interaction (Jordan product), not the antisymmetric part (Lie bracket).
