@@ -497,3 +497,201 @@ def test_barrett_d_satisfies_axioms(n):
     JDJ = J_mat @ np.conj(D) @ J_mat
     j_err = np.linalg.norm(JDJ - D, 'fro')
     assert j_err < 1e-12, f"JDJ != D: err={j_err}"
+
+
+# ===========================================================================
+# H. General D from full moduli space -- Plan 15-02
+# ===========================================================================
+# Import moduli space basis from test_dirac_moduli
+import importlib
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+from test_dirac_moduli import build_moduli_basis
+
+
+def build_general_D(n, rng):
+    """Build a random D from the full n^2(n^2+1)-dim moduli space."""
+    basis = build_moduli_basis(n)
+    coeffs = rng.standard_normal(len(basis))
+    return sum(c * B for c, B in zip(coeffs, basis))
+
+
+def build_first_order_constraint_general(n, D):
+    """Build constraint matrix for first-order condition with arbitrary D.
+
+    Returns matrix C such that C @ alpha = 0 iff a = sum alpha_{pq} E_{pq}
+    satisfies [[D, L_a], R_b] = 0 for all b.
+    """
+    dim = n * n
+    rows = []
+    for k in range(n):
+        for l in range(n):
+            b = matrix_unit(n, k, l)
+            pi_o_b = build_pi_o_b(n, b)
+            row_block = []
+            for p in range(n):
+                for q in range(n):
+                    a = matrix_unit(n, p, q)
+                    pi_a = build_pi_a(n, a)
+                    dc = double_commutator(D, pi_a, pi_o_b)
+                    row_block.append(dc.ravel())
+            block = np.column_stack(row_block)
+            rows.append(block)
+    C = np.vstack(rows)
+    return C
+
+
+def compute_af_dim(n, D, tol=1e-10):
+    """Compute dim(A_F) for given D via constraint matrix null space."""
+    C = build_first_order_constraint_general(n, D)
+    sv = np.linalg.svd(C, compute_uv=False)
+    return int(np.sum(sv < tol))
+
+
+# ---------------------------------------------------------------------------
+# H1. General D gives dim(A_F) = 1 at n=2
+# ---------------------------------------------------------------------------
+
+def test_general_d_af_dim_n2():
+    """For 20 random D from full moduli at n=2, dim(A_F) = 1."""
+    n = 2
+    rng = np.random.default_rng(42)
+    for trial in range(20):
+        D = build_general_D(n, rng)
+        af_dim = compute_af_dim(n, D)
+        assert af_dim == 1, (
+            f"n=2, trial {trial}: dim(A_F) = {af_dim}, expected 1"
+        )
+
+
+def test_general_d_af_dim_n3():
+    """For 10 random D from full moduli at n=3, dim(A_F) = 1."""
+    n = 3
+    rng = np.random.default_rng(42)
+    for trial in range(10):
+        D = build_general_D(n, rng)
+        af_dim = compute_af_dim(n, D)
+        assert af_dim == 1, (
+            f"n=3, trial {trial}: dim(A_F) = {af_dim}, expected 1"
+        )
+
+
+def test_general_d_af_dim_n4():
+    """For 10 random D from full moduli at n=4, dim(A_F) = 1."""
+    n = 4
+    rng = np.random.default_rng(42)
+    for trial in range(10):
+        D = build_general_D(n, rng)
+        af_dim = compute_af_dim(n, D)
+        assert af_dim == 1, (
+            f"n=4, trial {trial}: dim(A_F) = {af_dim}, expected 1"
+        )
+
+
+# ---------------------------------------------------------------------------
+# H2. Barrett D from full moduli gives dim(A_F) = n^2 (consistency)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_barrett_d_af_full_algebra_general_code(n):
+    """Barrett D gives dim(A_F) = n^2 using the general constraint code."""
+    rng = np.random.default_rng(20260323 + 500 + n)
+    K = random_symmetric_real(n, rng)
+    D = build_barrett_D(n, K)
+    af_dim = compute_af_dim(n, D)
+    assert af_dim == n * n, (
+        f"n={n}, Barrett D: dim(A_F) = {af_dim}, expected {n*n}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# H3. Null space is C*I for general D
+# ---------------------------------------------------------------------------
+
+def test_general_d_null_space_is_identity():
+    """The 1-dim null space for general D is spanned by the identity."""
+    n = 2
+    rng = np.random.default_rng(42)
+    D = build_general_D(n, rng)
+    C = build_first_order_constraint_general(n, D)
+    U, sv, Vh = np.linalg.svd(C)
+    null_mask = sv < 1e-10
+    null_dim = int(np.sum(null_mask))
+    assert null_dim == 1
+
+    # The null vector is the last row of Vh
+    null_vec = Vh[-1, :]
+    a_mat = null_vec.reshape((n, n))
+
+    # Check proportional to identity
+    off_diag = a_mat - a_mat[0, 0] * np.eye(n)
+    err = np.linalg.norm(off_diag, 'fro') / np.linalg.norm(a_mat, 'fro')
+    assert err < 1e-10, (
+        f"Null space not proportional to I: relative error {err:.2e}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# H4. SVD tolerance stability
+# ---------------------------------------------------------------------------
+
+def test_svd_tolerance_stability():
+    """dim(A_F) = 1 is stable under SVD threshold variation."""
+    n = 2
+    rng = np.random.default_rng(42)
+    D = build_general_D(n, rng)
+    for tol in [1e-8, 1e-10, 1e-12]:
+        af_dim = compute_af_dim(n, D, tol=tol)
+        assert af_dim == 1, (
+            f"n=2, tol={tol:.0e}: dim(A_F) = {af_dim}, expected 1"
+        )
+
+
+# ---------------------------------------------------------------------------
+# H5. Barrett mixing: any non-Barrett perturbation drops A_F to C
+# ---------------------------------------------------------------------------
+
+def test_barrett_mixing_drops_af():
+    """Adding epsilon * (random D) to Barrett D drops dim(A_F) from n^2 to 1."""
+    n = 2
+    rng = np.random.default_rng(42)
+    K = random_symmetric_real(n, rng)
+    D_barrett = build_barrett_D(n, K)
+
+    # Pure Barrett: dim(A_F) = 4
+    assert compute_af_dim(n, D_barrett) == n * n
+
+    # With perturbation: dim(A_F) = 1
+    D_rand = build_general_D(n, rng)
+    for eps in [0.01, 0.1, 1.0]:
+        D_mixed = D_barrett + eps * D_rand
+        af_dim = compute_af_dim(n, D_mixed)
+        assert af_dim == 1, (
+            f"eps={eps}: dim(A_F) = {af_dim}, expected 1"
+        )
+
+
+# ---------------------------------------------------------------------------
+# H6. Barrett vs non-Barrett comparison test
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_barrett_vs_general_d(n):
+    """Compare dim(A_F) for Barrett D vs general D at each n."""
+    rng = np.random.default_rng(20260323 + 600 + n)
+
+    # Barrett: expect n^2
+    for _ in range(5):
+        K = random_symmetric_real(n, rng)
+        D_b = build_barrett_D(n, K)
+        assert compute_af_dim(n, D_b) == n * n, (
+            f"n={n}: Barrett D gives wrong dim(A_F)"
+        )
+
+    # General: expect 1
+    for _ in range(5):
+        D_g = build_general_D(n, rng)
+        assert compute_af_dim(n, D_g) == 1, (
+            f"n={n}: General D gives wrong dim(A_F)"
+        )
