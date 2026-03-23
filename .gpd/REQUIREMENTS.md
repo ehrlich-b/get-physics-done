@@ -1,101 +1,105 @@
-# Requirements: GR from Self-Modeling
+# Requirements: Spectral Triple from Self-Modeling
 
-**Defined:** 2026-03-21
-**Core Research Question:** Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?
+**Defined:** 2026-03-22
+**Core Research Question:** Does the self-modeling composite carry a real spectral triple of KO-dimension 6, giving A_F = C + H + M_3(C) (Standard Model)?
 
 ## Primary Requirements
 
-### Locality Formalization
+### Axiom Verification
 
-- [ ] **LOCL-01**: Define lattice of self-modeling M_n(C)^sa systems with local coupling in Bratteli-Robinson framework, specifying: lattice graph, local algebra A_x = M_n(C) at each site, nearest-neighbor interactions encoding self-modeling coupling through B-M boundaries
-- [ ] **LOCL-02**: Establish Lieb-Robinson bounds and effective causal structure from local self-modeling interactions, yielding finite propagation speed v_LR
+- [ ] **AXVM-01**: Compute pi_o(b) = Jb*J^{-1} explicitly for general n and verify order zero condition [pi(a), pi_o(b)] = 0 for all a, b in M_n(C), with SymPy verification at n=2,3,4
+- [ ] **AXVM-02**: Check orientability condition (gamma = pi(c) J pi(c') J^{-1} for some Hochschild cycle); document expected failure per Barrett 2007 / Stephan 2006 precedent
+- [ ] **AXVM-03**: Verify Poincare duality (intersection form non-degenerate) for the candidate spectral triple
+- [ ] **AXVM-04**: Resolve dimension counting: how does dim(H) = 2n^2 map to the CCM classification's k^2 per generation; determine which n (if any) is compatible with SM particle content
 
-### Area-Law Derivation
+### Dirac Operator Construction
 
-- [ ] **AREA-01**: Prove or strongly argue that local self-modeling interactions produce area-law entanglement entropy S(A) ~ |boundary(A)| for the relevant state, using channel capacity / mutual information route (preferred) or Hastings / Brandao-Horodecki (backup)
-- [ ] **AREA-02**: Identify which state of the self-modeling lattice has area-law entanglement -- resolve the "which state?" problem by connecting the self-modeling fixed point to a state satisfying area-law conditions
+- [ ] **DIRC-01**: Parameterize all self-adjoint D satisfying D gamma = -gamma D and JD = DJ on the doubled Hilbert space H = C^{2n^2} (the D moduli space)
+- [ ] **DIRC-02**: Construct the sequential product asymmetry operator (L_a - R_a or natural contraction thereof) and determine whether it lies in the D moduli space
+- [ ] **DIRC-03**: If sequential product candidate fails JD = DJ or D gamma = -gamma D, identify which D in the moduli space is most naturally motivated from self-modeling structure
 
-### Jacobson Application
+### First-Order Condition and Subalgebra
 
-- [ ] **JACB-01**: Verify that the self-modeling lattice satisfies Jacobson 2016's entanglement equilibrium condition (delta S_EE = 0 for small geodesic balls in the emergent geometry), using the modular Hamiltonian as discrete boost generator
-- [ ] **JACB-02**: Derive Einstein's field equations G_ab + Lambda g_ab = (8 pi G) T_ab from self-modeling area-law entropy via Jacobson's 2016 entanglement equilibrium argument, with the continuum limit framed as leading-order IR effective description
+- [ ] **FRST-01**: Compute [[D, a], Jb*J^{-1}] for general a, b in A = M_n(C) and identify the maximal subalgebra A_F where it vanishes, for the D from Phase 2
+- [ ] **FRST-02**: Evaluate A_F at n=2, 3, 4 and compare to C + H + M_3(C) (Standard Model algebra)
+- [ ] **FRST-03**: If A_F differs from SM algebra, characterize the resulting gauge group (Pati-Salam fallback per Chamseddine-Connes-van Suijlekom 2013)
 
-### Numerical Verification
+### Computational Verification
 
-- [ ] **NUMR-01**: Verify area-law scaling numerically on small self-modeling lattices (exact diagonalization, N=16-20 qubits / 8-10 M_2(C)^sa sites), distinguishing area vs volume law via linear regression on S(A) vs |boundary(A)| and |volume(A)|
+- [ ] **COMP-01**: SymPy verification pipeline at n=2 (8x8 matrices): order zero, D moduli space, first-order condition
+- [ ] **COMP-02**: Extend SymPy verification to n=3 (18x18) and n=4 (32x32)
 
 ### Paper Assembly
 
-- [ ] **PAPR-01**: Assemble Paper 6 "Spacetime from Self-Modeling" with complete derivation chain (self-modeling locality -> area law -> Jacobson -> Einstein), precise gap identification, and honest framing of assumptions
+- [ ] **PAPR-01**: Paper 7 "Spectral Triple from Self-Modeling" with complete derivation chain, honest gap identification, and tiered success statement (strong/medium/informative failure)
 
 ## Follow-up Requirements
 
 ### Extended Analysis
 
-- **LOCL-03**: Derive or justify the lattice topology from self-modeling constraints (address background dependence circularity)
-- **AREA-03**: Establish whether the self-modeling fixed point is a pure global state (needed for channel capacity route)
-- **JACB-03**: Identify the emergent Newton's constant G = 1/(4 eta) in terms of self-modeling lattice parameters
-- **NUMR-02**: Verify entanglement first law delta S = delta <K> on self-modeling lattice
-- **NUMR-03**: Construct emergent geometry from mutual information matrix via Cao-Carroll-Michalakis MDS embedding (consistency check)
+- **EXTN-01**: Investigate Boyle-Farnsworth Jordan geometry (arXiv:1910.11888, 2206.07039) as alternative framework if C*-algebraic route encounters obstruction
+- **EXTN-02**: Full spectral action computation (coupling constants, Higgs potential, Yukawa terms) if spectral triple is established
+- **EXTN-03**: Connection between Paper 6 (Jacobson/Lovelock GR) and Paper 7 (spectral action GR) -- are they consistent?
 
 ## Out of Scope
 
 | Topic | Reason |
 | ----- | ------ |
-| Value of Newton's constant G | Not derivable from this framework without additional input |
-| Number of spacetime dimensions | Not derivable; lattice topology is input |
-| Standard Model gauge groups | Level 4+ in hierarchy |
-| Full quantum gravity theory | Goal is Einstein's equations only, not UV completion |
-| Cosmological constant problem | Lambda appears as undetermined constant in Jacobson |
-| Rigorous continuum limit | Open problem in quantum gravity; use Wilsonian framing |
-| Infinite-dimensional systems | Paper 5 restriction carries forward |
+| Full spectral action computation | Requires established spectral triple first; separate paper |
+| Phenomenological predictions (masses, mixing angles) | Requires spectral action; well beyond current scope |
+| Lorentzian spectral triples | Active research area; Euclidean signature sufficient for classification |
+| Infinite-dimensional spectral triples | Paper 5 restriction to finite dimensions carries forward |
+| Generations (why 3 families) | Separate question from algebra identification |
 
 ## Accuracy and Validation Criteria
 
 | Requirement | Accuracy Target | Validation Method |
 | ----------- | --------------- | ----------------- |
-| LOCL-01 | Exact formal definition | Consistency with Bratteli-Robinson framework; Paper 5 algebra per site |
-| LOCL-02 | Rigorous bound | Lieb-Robinson velocity computed from interaction Hamiltonian |
-| AREA-01 | Strong argument with precise gap identification | Must cite specific theorem or construct specific argument; identify exactly what assumption bridges any gap |
-| AREA-02 | Clear identification of state | Must specify which state and why it satisfies area-law conditions |
-| JACB-01 | Verification against Jacobson 2016 conditions | Check each condition of arXiv:1505.04753 |
-| JACB-02 | Full nonlinear Einstein equations | Must recover G_ab + Lambda g_ab = (8 pi G) T_ab |
-| NUMR-01 | Scaling exponent distinguishes area vs volume | R^2 > 0.9 for area-law fit; R^2 < 0.5 for volume-law fit (or vice versa) |
-| PAPR-01 | Publication-ready manuscript | Self-contained chain; honest gap framing; all assumptions listed |
+| AXVM-01 | Exact algebraic proof | SymPy verification at n=2,3,4 |
+| AXVM-02 | Exact (pass/fail) | Explicit Hochschild cycle search or proof of non-existence |
+| AXVM-04 | Exact dimension match | Compare 2n^2 to CCM classification tables |
+| DIRC-01 | Complete parameterization | Dimension count of moduli space matches independent calculation |
+| DIRC-02 | Exact (in moduli space or not) | SymPy check of all three conditions |
+| FRST-01 | Exact subalgebra identification | SymPy null space computation at specific n |
+| FRST-02 | Exact algebra comparison | Isomorphism check against C + H + M_3(C) |
+| COMP-01 | Zero tolerance (exact algebra) | All commutator/anticommutator identities vanish exactly |
 
 ## Contract Coverage
 
-| Requirement | Decisive Output / Deliverable | Anchor / Benchmark / Reference | Prior Inputs / Baselines | False Progress To Reject |
-| ----------- | ----------------------------- | ------------------------------ | ------------------------ | ------------------------ |
-| LOCL-01 | Formal lattice definition with interaction H | Bratteli-Robinson framework | Paper 5 M_n(C)^sa | Lattice defined without specifying how self-modeling constrains coupling |
-| LOCL-02 | Lieb-Robinson velocity v_LR | Lieb-Robinson (1972) | -- | Citing LR bounds without computing v_LR for the specific Hamiltonian |
-| AREA-01 | Proof/argument that S(A) ~ |boundary(A)| | Hastings (2007), WVCH (2008) | Phase 1 lattice | Citing area-law theorems without checking their hypotheses apply |
-| AREA-02 | Identified state with justification | -- (novel) | Phase 1 lattice | Assuming "ground state" without defining the Hamiltonian first |
-| JACB-01 | Verification of entanglement equilibrium | Jacobson (2016) arXiv:1505.04753 | Phases 1-2 | Restating Jacobson's conditions without verifying them |
-| JACB-02 | Einstein's equations derived | Jacobson (1995, 2016) | Phases 1-3 | Citing Jacobson without connecting to self-modeling |
-| NUMR-01 | Area-law scaling data with fit statistics | Known models (Heisenberg, Ising) as benchmark | Phase 1 Hamiltonian | Only checking 1D (must attempt 2D if feasible) |
-| PAPR-01 | Paper 6 manuscript | Paper 5 (cited) | All prior phases | Paper that glosses over gaps instead of identifying them precisely |
+| Requirement | Decisive Output | Anchor / Reference | Prior Inputs | False Progress To Reject |
+| ----------- | --------------- | ------------------ | ------------ | ------------------------ |
+| AXVM-01 | Proof + SymPy verification that [pi(a), pi_o(b)] = 0 | Connes 1995 axioms; van Suijlekom 2024 Ch. 3 | J from Paper 5, SWAP from Paper 6 | Checking only for specific a,b instead of all |
+| AXVM-04 | Explicit mapping of 2n^2 to CCM counting | Chamseddine-Connes 2008 classification | Paper 5 dim counting | Ignoring generation structure |
+| DIRC-02 | Sequential product asymmetry operator tested against all 3 conditions | Barrett 2015 matrix geometries | Sequential product from Paper 5 | Constructing ad hoc D without self-modeling motivation |
+| FRST-01 | Identified subalgebra A_F with proof | CCM 2008 first-order condition | D from Phase 2, pi_o from Phase 1 | Assuming A_F without computing first-order condition |
+| FRST-02 | Comparison A_F vs C + H + M_3(C) | Standard Model algebra | A_F from FRST-01 | Claiming SM match without checking all factors |
+| PAPR-01 | Paper 7 with honest gaps | Papers 5-6, CCM classification | All prior phases | Overclaiming (SM "derived") when conditions assumed |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| LOCL-01 | Phase 8 | Pending |
-| LOCL-02 | Phase 8 | Pending |
-| AREA-01 | Phase 9 | Pending |
-| AREA-02 | Phase 9 | Pending |
-| JACB-01 | Phase 10 | Pending |
-| JACB-02 | Phase 10 | Pending |
-| NUMR-01 | Phase 11 | Pending |
-| PAPR-01 | Phase 12 | Pending |
+| AXVM-01 | -- | Pending |
+| AXVM-02 | -- | Pending |
+| AXVM-03 | -- | Pending |
+| AXVM-04 | -- | Pending |
+| DIRC-01 | -- | Pending |
+| DIRC-02 | -- | Pending |
+| DIRC-03 | -- | Pending |
+| FRST-01 | -- | Pending |
+| FRST-02 | -- | Pending |
+| FRST-03 | -- | Pending |
+| COMP-01 | -- | Pending |
+| COMP-02 | -- | Pending |
+| PAPR-01 | -- | Pending |
 
 **Coverage:**
 
-- Primary requirements: 8 total
-- Mapped to phases: 8
-- Unmapped: 0
+- Primary requirements: 13 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 13
 
 ---
 
-_Requirements defined: 2026-03-21_
-_Last updated: 2026-03-21 after roadmap creation (Phases 8-12)_
+_Requirements defined: 2026-03-22_
+_Last updated: 2026-03-22 after initial definition_
