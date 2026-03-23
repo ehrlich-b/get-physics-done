@@ -35,6 +35,37 @@ for descriptor in _RUNTIME_DESCRIPTORS:
 GPD_ROOT = Path(__file__).resolve().parent.parent / "src" / "gpd"
 
 
+def _runtime_env_prefixes() -> tuple[str, ...]:
+    prefixes: set[str] = set()
+    for descriptor in _RUNTIME_DESCRIPTORS:
+        for env_var in descriptor.activation_env_vars:
+            prefixes.add(env_var)
+            prefixes.add(env_var.rsplit("_", 1)[0] if "_" in env_var else env_var)
+    return tuple(sorted(prefixes, key=len, reverse=True))
+
+
+def _runtime_env_vars_to_clear() -> set[str]:
+    env_vars = {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
+    for descriptor in _RUNTIME_DESCRIPTORS:
+        global_config = descriptor.global_config
+        for env_var in (global_config.env_var, global_config.env_dir_var, global_config.env_file_var):
+            if env_var:
+                env_vars.add(env_var)
+    return env_vars
+
+
+_RUNTIME_ENV_PREFIXES = _runtime_env_prefixes()
+_RUNTIME_ENV_VARS_TO_CLEAR = _runtime_env_vars_to_clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_runtime_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep runtime-CLI tests isolated from ambient runtime env drift."""
+    for key in list(os.environ):
+        if key.startswith(_RUNTIME_ENV_PREFIXES) or key in _RUNTIME_ENV_VARS_TO_CLEAR:
+            monkeypatch.delenv(key, raising=False)
+
+
 def _mark_complete_install(config_dir: Path, *, runtime: str, install_scope: str = "local") -> None:
     adapter = get_adapter(runtime)
     config_dir.mkdir(parents=True, exist_ok=True)
@@ -61,10 +92,11 @@ def _run_runtime_cli_with_recording(
 ) -> tuple[int, dict[str, object]]:
     observed: dict[str, object] = {}
     adapter = get_adapter(runtime)
+    original_missing_install_artifacts = adapter.missing_install_artifacts
 
     def record_missing_install_artifacts(target_dir: Path) -> tuple[str, ...]:
         observed["config_dir"] = target_dir
-        return ()
+        return original_missing_install_artifacts(target_dir)
 
     def fake_entrypoint() -> int:
         observed["argv"] = list(sys.argv)
@@ -842,6 +874,43 @@ def test_runtime_cli_ignores_unrelated_nested_runtime_dirs_when_resolving_ancest
 
     assert exit_code == 0
     assert observed["config_dir"] == config_dir
+    assert observed["argv"] == ["gpd", "state", "load"]
+    assert observed["runtime"] == descriptor.runtime_name
+    assert observed["disable_reexec"] == "1"
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_runtime_cli_skips_stale_partial_nested_local_candidate_when_ancestor_install_exists(
+    monkeypatch,
+    tmp_path: Path,
+    descriptor,
+) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    ancestor_config_dir = tmp_path / adapter.config_dir_name
+    _mark_complete_install(ancestor_config_dir, runtime=descriptor.runtime_name)
+    stale_workspace = tmp_path / "workspace"
+    _mark_incomplete_install(stale_workspace / adapter.config_dir_name, runtime=descriptor.runtime_name)
+    nested_cwd = stale_workspace / "research" / "notes"
+    nested_cwd.mkdir(parents=True)
+
+    exit_code, observed = _run_runtime_cli_with_recording(
+        monkeypatch,
+        cwd=nested_cwd,
+        argv=[
+            "--runtime",
+            descriptor.runtime_name,
+            "--config-dir",
+            f"./{adapter.config_dir_name}",
+            "--install-scope",
+            "local",
+            "state",
+            "load",
+        ],
+        runtime=descriptor.runtime_name,
+    )
+
+    assert exit_code == 0
+    assert observed["config_dir"] == ancestor_config_dir
     assert observed["argv"] == ["gpd", "state", "load"]
     assert observed["runtime"] == descriptor.runtime_name
     assert observed["disable_reexec"] == "1"

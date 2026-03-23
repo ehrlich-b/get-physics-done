@@ -38,7 +38,19 @@ def _runtime_env_prefixes() -> tuple[str, ...]:
 
 
 _RUNTIME_ENV_PREFIXES = _runtime_env_prefixes()
-_RUNTIME_ENV_VARS_TO_CLEAR = {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
+
+
+def _runtime_env_vars_to_clear() -> set[str]:
+    env_vars = {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
+    for descriptor in _RUNTIME_DESCRIPTORS:
+        global_config = descriptor.global_config
+        for env_var in (global_config.env_var, global_config.env_dir_var, global_config.env_file_var):
+            if env_var:
+                env_vars.add(env_var)
+    return env_vars
+
+
+_RUNTIME_ENV_VARS_TO_CLEAR = _runtime_env_vars_to_clear()
 
 
 @pytest.fixture(autouse=True)

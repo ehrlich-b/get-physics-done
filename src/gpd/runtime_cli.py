@@ -195,11 +195,8 @@ def _is_matching_local_install_candidate(candidate: Path, *, runtime: str) -> bo
         if manifest_runtime_value and manifest_runtime_value != runtime:
             return False
 
-    if manifest_scope == "local":
-        return True
-
     adapter = get_adapter(runtime)
-    if _paths_equal(candidate, adapter.global_config_dir):
+    if _paths_equal(candidate, adapter.global_config_dir) and manifest_scope != "local":
         return False
 
     return installed_runtime(candidate) == runtime
@@ -209,10 +206,18 @@ def _resolve_local_config_dir(raw_value: str, *, runtime: str, cli_cwd: Path) ->
     """Resolve a local config dir reference against the nearest matching ancestor."""
     relative = Path(raw_value).expanduser()
     resolved_cwd = cli_cwd.resolve(strict=False)
+    fallback: Path | None = None
+    adapter = get_adapter(runtime)
     for base in (resolved_cwd, *resolved_cwd.parents):
         candidate = (base / relative).resolve(strict=False)
-        if _is_matching_local_install_candidate(candidate, runtime=runtime):
+        if not _is_matching_local_install_candidate(candidate, runtime=runtime):
+            continue
+        if adapter.has_complete_install(candidate):
             return candidate
+        if fallback is None:
+            fallback = candidate
+    if fallback is not None:
+        return fallback
     return (resolved_cwd / relative).resolve(strict=False)
 
 

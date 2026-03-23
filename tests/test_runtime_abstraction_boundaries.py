@@ -32,6 +32,10 @@ def _runtime_env_prefix_patterns() -> list[str]:
             patterns.add(re.escape(env_var))
             prefix = env_var.rsplit("_", 1)[0] if "_" in env_var else env_var
             patterns.add(rf"{re.escape(prefix)}_[A-Z0-9_]*")
+        global_config = descriptor.global_config
+        for env_var in (global_config.env_var, global_config.env_dir_var, global_config.env_file_var):
+            if env_var:
+                patterns.add(re.escape(env_var))
     return sorted(patterns)
 
 
@@ -44,8 +48,14 @@ def _runtime_literal_patterns() -> list[str]:
             descriptor.config_dir_name,
             descriptor.launch_command,
             descriptor.install_flag,
+            descriptor.global_config.env_var,
+            descriptor.global_config.env_dir_var,
+            descriptor.global_config.env_file_var,
+            descriptor.global_config.home_subpath,
+            descriptor.global_config.xdg_subdir,
         ):
-            patterns.add(re.escape(value))
+            if value:
+                patterns.add(re.escape(value))
         for value in descriptor.selection_flags:
             patterns.add(re.escape(value))
         for value in descriptor.selection_aliases:
@@ -62,10 +72,13 @@ def _runtime_command_prefix_patterns() -> list[str]:
 def _runtime_owned_path_patterns() -> list[str]:
     patterns: set[str] = set()
     for descriptor in _RUNTIME_DESCRIPTORS:
-        config_dir = re.escape(descriptor.config_dir_name)
-        patterns.add(rf"{config_dir}/agents")
-        patterns.add(rf"{config_dir}/commands")
-        patterns.add(rf"{config_dir}/command")
+        for base in (descriptor.config_dir_name, descriptor.global_config.home_subpath):
+            if not base:
+                continue
+            escaped_base = re.escape(base)
+            patterns.add(rf"{escaped_base}/agents")
+            patterns.add(rf"{escaped_base}/commands")
+            patterns.add(rf"{escaped_base}/command")
     return sorted(patterns)
 
 _RUNTIME_PATTERN = (
@@ -82,6 +95,7 @@ _RUNTIME_PATTERN = (
 _DOC_SUFFIXES = {".md"}
 _RUNTIME_OWNED_PREFIXES = (
     *(f"{descriptor.config_dir_name}/" for descriptor in _RUNTIME_DESCRIPTORS),
+    *(f"{descriptor.global_config.home_subpath}/" for descriptor in _RUNTIME_DESCRIPTORS if descriptor.global_config.home_subpath),
     "src/gpd/adapters/",
 )
 _ALLOWED_RUNTIME_FILES = {

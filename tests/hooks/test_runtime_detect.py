@@ -54,6 +54,15 @@ _RUNTIME_ENV_VARS_TO_CLEAR = {
     env_var
     for descriptor in _RUNTIME_DESCRIPTORS
     for env_var in descriptor.activation_env_vars
+} | {
+    env_var
+    for descriptor in _RUNTIME_DESCRIPTORS
+    for env_var in (
+        descriptor.global_config.env_var,
+        descriptor.global_config.env_dir_var,
+        descriptor.global_config.env_file_var,
+    )
+    if env_var
 } | {"GPD_ACTIVE_RUNTIME", "XDG_CONFIG_HOME"}
 
 
