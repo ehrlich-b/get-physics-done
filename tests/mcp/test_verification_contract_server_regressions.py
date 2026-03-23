@@ -210,6 +210,19 @@ def _binding_inconsistency_contract() -> dict[str, object]:
     return contract
 
 
+def _ambiguous_direct_proxy_contract() -> dict[str, object]:
+    contract = _binding_inconsistency_contract()
+    contract["forbidden_proxies"].append(
+        {
+            "id": "fp-02",
+            "subject": "claim-small-k",
+            "proxy": "proxy-small-k",
+            "reason": "Second proxy keeps the direct/proxy check ambiguous",
+        }
+    )
+    return contract
+
+
 def _assert_contract_tools_reject(contract: dict[str, object], expected_error: str) -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 
@@ -477,6 +490,38 @@ def test_suggest_contract_checks_derives_request_templates_from_contract() -> No
     ]
 
 
+def test_suggest_contract_checks_omits_contract_derived_metadata_from_required_fields() -> None:
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    result = suggest_contract_checks(_derived_template_contract())
+    checks = {entry["check_key"]: entry for entry in result["suggested_checks"]}
+
+    benchmark = checks["contract.benchmark_reproduction"]
+    limit = checks["contract.limit_recovery"]
+    direct_proxy = checks["contract.direct_proxy_consistency"]
+
+    assert "metadata.source_reference_id" not in benchmark["required_request_fields"]
+    assert benchmark["request_template"]["metadata"]["source_reference_id"] == "ref-benchmark"
+
+    assert "metadata.regime_label" not in limit["required_request_fields"]
+    assert "metadata.expected_behavior" not in limit["required_request_fields"]
+    assert limit["request_template"]["metadata"]["regime_label"] == "large-k"
+    assert limit["request_template"]["metadata"]["expected_behavior"] == "Recovers the contracted large-k scaling"
+
+    assert direct_proxy["required_request_fields"] == []
+    assert direct_proxy["request_template"]["binding"]["forbidden_proxy_ids"] == ["fp-01"]
+
+
+def test_suggest_contract_checks_requires_forbidden_proxy_binding_when_contract_is_ambiguous() -> None:
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    result = suggest_contract_checks(_ambiguous_direct_proxy_contract())
+    direct_proxy = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency")
+
+    assert direct_proxy["required_request_fields"] == ["binding.forbidden_proxy_ids"]
+    assert direct_proxy["request_template"]["binding"]["forbidden_proxy_ids"] is None
+
+
 def test_suggest_contract_checks_templates_do_not_pass_when_reused_unchanged() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 
@@ -527,6 +572,43 @@ def test_run_contract_check_reuses_contract_derived_limit_and_family_defaults() 
     assert limit["status"] == "pass"
     assert fit["status"] == "pass"
     assert estimator["status"] == "pass"
+
+
+def test_run_contract_check_backfills_contract_impacts_for_decisive_passes_without_explicit_binding() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    contract = _derived_template_contract()
+
+    benchmark = run_contract_check(
+        {
+            "check_key": "contract.benchmark_reproduction",
+            "contract": contract,
+            "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+        }
+    )
+    limit = run_contract_check(
+        {
+            "check_key": "contract.limit_recovery",
+            "contract": contract,
+            "observed": {"limit_passed": True, "observed_limit": "large-k"},
+        }
+    )
+    direct_proxy = run_contract_check(
+        {
+            "check_key": "contract.direct_proxy_consistency",
+            "contract": contract,
+            "observed": {"direct_available": True},
+        }
+    )
+
+    assert benchmark["status"] == "pass"
+    assert benchmark["contract_impacts"] == ["ref-benchmark"]
+
+    assert limit["status"] == "pass"
+    assert limit["contract_impacts"] == ["claim-benchmark", "obs-benchmark"]
+
+    assert direct_proxy["status"] == "pass"
+    assert direct_proxy["contract_impacts"] == ["fp-01"]
 
 
 def test_run_contract_check_limit_recovery_uses_bound_acceptance_test_pass_condition() -> None:

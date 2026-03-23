@@ -728,6 +728,12 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
 
     binding = request_template.setdefault("binding", {})
     metadata = request_template.setdefault("metadata", {})
+    has_policy_defaults = bool(
+        contract.approach_policy.allowed_fit_families
+        or contract.approach_policy.forbidden_fit_families
+        or contract.approach_policy.allowed_estimator_families
+        or contract.approach_policy.forbidden_estimator_families
+    )
 
     if check_key == "contract.benchmark_reproduction":
         benchmark_reference_ids = [
@@ -752,6 +758,10 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
                     "reference_ids",
                     [reference_id for reference_id in benchmark_test.evidence_required if reference_id in benchmark_reference_ids],
                 )
+            if has_policy_defaults:
+                enriched_hint["required_request_fields"] = [
+                    field for field in enriched_hint["required_request_fields"] if field != "metadata.source_reference_id"
+                ]
 
     elif check_key == "contract.limit_recovery":
         limit_tests = _matching_acceptance_tests(
@@ -782,12 +792,31 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
                 limit_test = _resolve_single_limit_acceptance_test(contract, binding_ids)
             if limit_test is not None and limit_test.pass_condition:
                 metadata["expected_behavior"] = limit_test.pass_condition
+            if has_policy_defaults:
+                enriched_hint["required_request_fields"] = [
+                    field
+                    for field in enriched_hint["required_request_fields"]
+                    if field not in {"metadata.regime_label", "metadata.expected_behavior"}
+                ]
 
     elif check_key == "contract.direct_proxy_consistency":
-        if len(contract.forbidden_proxies) == 1:
-            forbidden_proxy = contract.forbidden_proxies[0]
-            binding["forbidden_proxy_ids"] = [forbidden_proxy.id]
-            _apply_subject_binding(binding, contract, forbidden_proxy.subject)
+        forbidden_proxy_candidates, _ = _direct_proxy_candidates(
+            contract,
+            {},
+            binding_supplied=False,
+        )
+        if len(forbidden_proxy_candidates) == 1:
+            forbidden_proxy_id = forbidden_proxy_candidates[0]
+            binding["forbidden_proxy_ids"] = [forbidden_proxy_id]
+            forbidden_proxy = next(
+                (proxy for proxy in contract.forbidden_proxies if proxy.id == forbidden_proxy_id),
+                None,
+            )
+            if forbidden_proxy is not None:
+                _apply_subject_binding(binding, contract, forbidden_proxy.subject)
+        else:
+            binding.setdefault("forbidden_proxy_ids", None)
+            enriched_hint["required_request_fields"] = ["binding.forbidden_proxy_ids"]
         proxy_tests = _matching_acceptance_tests(
             contract,
             kinds=("proxy",),
@@ -1602,6 +1631,61 @@ def _collect_binding_context(
         )
 
     return valid_by_target, binding_issues, contract_impacts
+
+
+def _decisive_contract_impacts(
+    *,
+    check_key: str,
+    contract: ResearchContract | None,
+    binding_ids: dict[str, list[str]],
+    binding_supplied: bool,
+    metadata: dict[str, object],
+) -> list[str]:
+    if contract is None:
+        return []
+
+    if check_key == "contract.benchmark_reproduction":
+        source_reference_id = _normalize_optional_scalar_str(metadata.get("source_reference_id"))
+        if source_reference_id:
+            return [source_reference_id]
+        candidates, _ = _benchmark_reference_candidates(
+            contract,
+            binding_ids,
+            binding_supplied=binding_supplied,
+        )
+        return candidates
+
+    if check_key == "contract.limit_recovery":
+        regime_label = _normalize_optional_scalar_str(metadata.get("regime_label"))
+        if not regime_label:
+            candidates, _ = _limit_regime_candidates(
+                contract,
+                binding_ids,
+                binding_supplied=binding_supplied,
+            )
+            if len(candidates) == 1:
+                regime_label = candidates[0]
+        resolved_binding_ids = _binding_ids_with_regime(contract, binding_ids, regime_label)
+        impacts = [
+            *resolved_binding_ids.get("claim", []),
+            *resolved_binding_ids.get("observable", []),
+        ]
+        if impacts:
+            return _unique_strings(impacts)
+        limit_test = _resolve_single_limit_acceptance_test(contract, resolved_binding_ids)
+        if limit_test is not None:
+            return [limit_test.id]
+        return []
+
+    if check_key == "contract.direct_proxy_consistency":
+        candidates, _ = _direct_proxy_candidates(
+            contract,
+            binding_ids,
+            binding_supplied=binding_supplied,
+        )
+        return candidates
+
+    return []
 
 
 def _unique_strings(values: Iterable[str]) -> list[str]:
@@ -2998,6 +3082,14 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                 automated_issues.append("Binding validation issues prevent a decisive contract-aware verdict")
                 status = "insufficient_evidence"
                 evidence_directness = "mixed" if artifact_content else "metadata_only"
+            if not contract_impacts and contract is not None and status != "insufficient_evidence":
+                contract_impacts = _decisive_contract_impacts(
+                    check_key=check_meta.check_key,
+                    contract=contract,
+                    binding_ids=binding_ids,
+                    binding_supplied=binding_supplied,
+                    metadata=metadata,
+                )
 
             return stable_mcp_response(
                 {
