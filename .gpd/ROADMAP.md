@@ -108,7 +108,11 @@ See `.gpd/milestones/v4.0-ROADMAP.md` for full details.
 3. At the h_3(O) level, F_4 -> E_6 is tracked explicitly through the Peirce decomposition, with the structure-preserving group of h_3^C(O) identified as E_6
 4. The 27-dimensional representation decomposes under Spin(10) as 27 -> 1 + 10 + 16, consistent with Boyle 2020
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md -- Peirce decomposition, complexification proof, Spin(9) -> Spin(10)
+- [ ] 18-02-PLAN.md -- F_4 -> E_6 upgrade, 27 -> 1 + 10 + 16 decomposition, synthesis
 
 **Backtracking trigger:** If complexification requires more structure than just "being a C*-algebra observer" (e.g., needs a specific embedding or additional data beyond the complex structure), document what additional input is needed and assess whether it is derivable from self-modeling.
 
@@ -215,7 +219,7 @@ See `.gpd/milestones/v4.0-ROADMAP.md` for full details.
 
 | Phase | Plans Complete | Status | Completed |
 | ----- | -------------- | ------ | --------- |
-| 18. Complexification (Part A) | 0/TBD | Not started | - |
+| 18. Complexification (Part A) | 0/2 | Planned | - |
 | 19. Cl(6) Chirality (Part B) | 0/TBD | Not started | - |
 | 20. Synthesis | 0/TBD | Not started | - |
 | 21. Paper Assembly | 0/TBD | Not started | - |
