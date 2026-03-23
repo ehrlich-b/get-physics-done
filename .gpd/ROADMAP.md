@@ -69,7 +69,7 @@ See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
 
 ## Phase Summary
 
-- [ ] **Phase 13: Order Zero + Representation Theory** -- Verify order zero condition [pi(a), pi_o(b)] = 0, compute bimodule decomposition, resolve dimension counting 2n^2 vs CCM k^2, with SymPy verification at n=2
+- [x] **Phase 13: Order Zero + Representation Theory** (3/3 plans) -- completed 2026-03-22
 - [ ] **Phase 14: Dirac Operator Construction** -- Parameterize D moduli space (D*=D, D gamma=-gamma D, JD=DJ), test sequential product asymmetry candidate, with SymPy verification at n=2,3,4
 - [ ] **Phase 15: First-Order Condition + Algebra Identification** -- Compute [[D,a], Jb*J^{-1}], identify maximal subalgebra A_F, evaluate at n=2,3,4 vs C + H + M_3(C)
 - [ ] **Phase 16: Remaining Axioms + Classification** -- Verify Poincare duality, document orientability failure, check CCM classification hypotheses
@@ -103,9 +103,9 @@ See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 13-01-PLAN.md -- Derive pi_o(b) at general n and prove order zero condition algebraically
-- [ ] 13-02-PLAN.md -- SymPy verification of order zero at n=2,3,4 with full basis test
-- [ ] 13-03-PLAN.md -- Bimodule decomposition, Krajewski diagram, dimension counting resolution
+- [x] 13-01-PLAN.md -- Derive pi_o(b) at general n and prove order zero condition algebraically
+- [x] 13-02-PLAN.md -- SymPy verification of order zero at n=2,3,4 with full basis test
+- [x] 13-03-PLAN.md -- Bimodule decomposition, Krajewski diagram, dimension counting resolution
 
 **Backtracking triggers:**
 - If order zero fails for ALL reasonable algebra actions -> STOP per contract. Document what was tried and return to user.
@@ -276,7 +276,7 @@ Wave 5: Phase 17 (requires all prior phases)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 13. Order Zero + Representation Theory | v4.0 | 0/3 | Planned | - |
+| 13. Order Zero + Representation Theory | v4.0 | 3/3 | Complete | 2026-03-22 |
 | 14. Dirac Operator Construction | v4.0 | 0/TBD | Not started | - |
 | 15. First-Order Condition + Algebra ID | v4.0 | 0/TBD | Not started | - |
 | 16. Remaining Axioms + Classification | v4.0 | 0/TBD | Not started | - |

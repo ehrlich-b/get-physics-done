@@ -12,13 +12,13 @@ See: .gpd/PROJECT.md (updated 2026-03-22)
 **Current Phase:** 13
 **Current Phase Name:** Order Zero + Representation Theory
 **Total Phases:** 5 (Phases 13-17)
-**Current Plan:** --
-**Total Plans in Phase:** TBD
-**Status:** Ready to plan
+**Current Plan:** 03
+**Total Plans in Phase:** 3
+**Status:** All plans complete, verification pending
 **Last Activity:** 2026-03-22
-**Last Activity Description:** Roadmap created for v4.0 (Phases 13-17); Phase 13 is gatekeeper
+**Last Activity Description:** All 3 plans complete; order zero passed, bimodule decomposition done, dimension counting resolved
 
-**Progress:** [..........] 0% (v4.0)
+**Progress:** [██████....] 60% (v4.0)
 
 ## Active Calculations
 
@@ -71,6 +71,20 @@ None yet.
 - **10/10 anchor references cited**: Jacobson 1995/2016, Connes-Rovelli, Sorce, Hastings, VanRaamsdonk, LMVR, Faulkner, CCM, Paper 5 (HIGH)
 - **No overclaiming**: zero forbidden phrases, explicit non-claims for G, d=3+1, Lambda (HIGH)
 
+- **pi_o(b) = diag(I_n tensor b^T, I_n tensor b^T)** at general n via J antilinearity (HIGH)
+- **[pi(a), pi_o(b)] = 0** for all a, b in M_n(C) at general n -- order zero PASSED (HIGH)
+- **Both naive and contragredient actions satisfy order zero** (HIGH)
+- **pi_o is *-representation of A^{op}** (HIGH)
+- **Even condition [gamma, pi(a)] = 0 FAILS** for all non-scalar a; only C*I survives (HIGH)
+- **KO-dim 6 signs verified**: J^2 = +1, J gamma = -gamma J (HIGH)
+- **Commutant dimension**: comm(pi(M_n)) = 4n^2 (HIGH)
+- **52 pytest tests pass** at n=2,3,4 with zero failures (HIGH)
+- **H = 2 x C^{n^2}** as irreducible M_n(C)-M_n(C)^o bimodules (HIGH)
+- **Krajewski diagram**: single vertex (n,n), multiplicity 2 (HIGH)
+- **Barrett isomorphism**: C^n tensor C^n = M_n(C) via v tensor w -> v w^T (HIGH)
+- **Per-sector n^2 = k^2** with k = n; n=4 gives k=4 (SM value), dim(H) = 32 (HIGH)
+- **Gamma-refined decomposition**: Sym^2_p(+1) + wedge^2_p(-1) + wedge^2_{ap}(+1) + Sym^2_{ap}(-1) (HIGH)
+
 ## Open Questions
 
 - RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent
@@ -113,6 +127,9 @@ None yet.
 | 12-01 | 5min | 2 tasks | 10 files |
 | 12-02 | 6min | 2 tasks | 5 files |
 | 12-03 | 6min | 2 tasks | 8 files |
+| 13-01 | 7min | 2 tasks | 1 files |
+| 13-02 | 8min | 2 tasks | 1 files |
+| 13-03 | 10min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -164,6 +181,13 @@ None yet.
 - [Phase 12, Plan 03]: All numerical results framed as "consistent with" / "supporting evidence", never "proves"
 - [Phase 12, Plan 03]: 2D R^2=0.885 shortfall honestly noted with PBC wrapping explanation
 - [Phase 0]: Started milestone v4.0: Spectral Triple from Self-Modeling — New milestone cycle -- spectral triple from self-modeling composite, targeting Standard Model via Connes classification
+- [Phase 13, Plan 01]: Naive algebra action pi(a) = diag(a tensor I, a tensor I) used as primary; contragredient also satisfies order zero
+- [Phase 13, Plan 01]: pi_o(b) = diag(I_n tensor b^T, I_n tensor b^T) derived via J antilinearity chain
+- [Phase 13, Plan 02]: [gamma, pi(a)] = 0 fails for ALL non-scalar a -- only C*I satisfies even condition with SWAP-based chirality
+- [Phase 13, Plan 02]: Three resolution paths: (a) different algebra action, (b) different gamma, (c) odd spectral triple
+- [Phase 13, Plan 03]: Per-sector n^2 = k^2 is the correct CCM comparison (not naive 2n^2 = k^2); factor of 2 is J-doubling
+- [Phase 13, Plan 03]: Barrett spinor space V = C^2; H = V tensor M_n(C) with two sectors
+- [Phase 13, Plan 03]: A_F identification deferred to Phase 15; no premature SM claims
 
 ### Active Approximations
 
