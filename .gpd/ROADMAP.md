@@ -71,7 +71,7 @@ See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
 
 - [x] **Phase 13: Order Zero + Representation Theory** (3/3 plans) -- completed 2026-03-22
 - [x] **Phase 14: Dirac Operator Construction** (2/2 plans) -- completed 2026-03-23
-- [ ] **Phase 15: First-Order Condition + Algebra Identification** -- Compute [[D,a], Jb*J^{-1}], identify maximal subalgebra A_F, evaluate at n=2,3,4 vs C + H + M_3(C)
+- [x] **Phase 15: First-Order Condition + Algebra Identification** (2/2 plans) -- completed 2026-03-23
 - [ ] **Phase 16: Remaining Axioms + Classification** -- Verify Poincare duality, document orientability failure, check CCM classification hypotheses
 - [ ] **Phase 17: Paper 7 Assembly** -- Paper 7 "Spectral Triple from Self-Modeling" with complete chain and tiered success statement
 
@@ -174,8 +174,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md -- Derive first-order condition triviality for Barrett-form D; verify A_F = M_n(C) at n=2,3,4; compare to CCM
-- [ ] 15-02-PLAN.md -- Extend first-order condition to general D from full moduli space; characterize A_F; synthesis
+- [x] 15-01-PLAN.md -- Derive first-order condition triviality for Barrett-form D; verify A_F = M_n(C) at n=2,3,4; compare to CCM
+- [x] 15-02-PLAN.md -- Extend first-order condition to general D from full moduli space; characterize A_F; synthesis
 
 **Backtracking triggers:**
 - If A_F is trivial (C only) for all D in the moduli space -> the first-order condition is too restrictive; investigate whether relaxing it (as in CCSV 2013) gives Pati-Salam.
@@ -286,6 +286,6 @@ Wave 5: Phase 17 (requires all prior phases)
 | ----- | --------- | -------------- | ------ | --------- |
 | 13. Order Zero + Representation Theory | v4.0 | 3/3 | Complete | 2026-03-22 |
 | 14. Dirac Operator Construction | v4.0 | 2/2 | Complete | 2026-03-23 |
-| 15. First-Order Condition + Algebra ID | v4.0 | 0/TBD | Not started | - |
+| 15. First-Order Condition + Algebra ID | v4.0 | 2/2 | Complete | 2026-03-23 |
 | 16. Remaining Axioms + Classification | v4.0 | 0/TBD | Not started | - |
 | 17. Paper 7 Assembly | v4.0 | 0/TBD | Not started | - |

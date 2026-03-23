@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the self-modeling composite carry a real spectral triple of KO-dimension 6, giving A_F = C + H + M_3(C) (Standard Model)?
-**Current focus:** Phase 14 -- Dirac Operator Construction
+**Current focus:** Phase 16 -- Remaining Axioms + Classification
 
 ## Current Position
 
-**Current Phase:** 14
-**Current Phase Name:** Dirac Operator Construction
+**Current Phase:** 16
+**Current Phase Name:** Remaining Axioms + Classification
 **Total Phases:** 5 (Phases 13-17)
 **Current Plan:** 01
-**Total Plans in Phase:** 2
-**Status:** All plans complete, verification pending
+**Total Plans in Phase:** TBD
+**Status:** Not started
 **Last Activity:** 2026-03-23
-**Last Activity Description:** Sequential product candidates tested: commutator fails JD=DJ, Barrett-form with real sym K passes (Jordan product connection)
+**Last Activity Description:** Phase 15 complete: Barrett D gives A_F = M_n(C) (gauge U(n)); general D gives A_F = C. Medium success tier.
 
-**Progress:** [██████░░░░] 60% (v4.0)
+**Progress:** [████████░░] 80% (v4.0)
 
 ## Active Calculations
 
@@ -98,6 +98,17 @@ None yet.
 - **Barrett subspace dim = n(n+1)/2**: n=2:3, n=3:6, n=4:10 (HIGH)
 - **85 pytest tests pass** verifying all candidates at n=2,3,4 (HIGH)
 
+- **[[D_K, L_a], R_b] = 0** for all a, b in M_n(C), all K in M_n(R)^sym -- first-order condition trivially satisfied for Barrett-form D (HIGH)
+- **[D_1, L_a] = L_{[K,a]}** -- first commutator is pure left multiplication; commutativity with R_b follows from associativity (HIGH)
+- **A_F = M_n(C)** (full algebra) for Barrett-form D -- no restriction from first-order condition (HIGH)
+- **Gauge group U(n)** for Barrett D; at n=4: U(4), NOT U(1) x SU(2) x SU(3) (HIGH)
+- **General D: A_F = C** (dim 1, gauge U(1)) for non-Barrett D from full moduli space (HIGH)
+- **Master formula**: [[M, L_a], R_b](X) = sum_k [A_k, a] X [b, B_k]; Barrett is uniquely "pure-left type" (HIGH)
+- **Discontinuous transition**: any non-Barrett perturbation drops A_F from M_n(C) to C (HIGH)
+- **No D produces C + H + M_3(C)**: simple M_n(C) algebra cannot give SM -- requires direct sum structure (HIGH)
+- **Medium success tier**: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra (HIGH)
+- **50 pytest tests pass** verifying first-order condition at n=2,3,4 for Barrett and general D (HIGH)
+
 ## Open Questions
 
 - RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent
@@ -145,6 +156,8 @@ None yet.
 | 13-03 | 10min | 2 tasks | 1 files |
 | 14-01 | 10min | 2 tasks | 2 files |
 | 14-02 | 15min | 2 tasks | 2 files |
+| 15-01 | 4min | 2 tasks | 2 files |
+| 15-02 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -211,6 +224,14 @@ None yet.
 - [Phase 14, Plan 02]: Barrett D_1(X) = KX + XK = 2(K*X) is twice the Jordan product = linearized sequential product
 - [Phase 14, Plan 02]: KO-dim 6 epsilon'=+1 selects L_K + R_K (anticommutator) over L_K - R_K (commutator)
 - [Phase 14, Plan 02]: Barrett subspace dim = n(n+1)/2 (10 at n=4); expected to match first-order condition subspace
+- [Phase 15, Plan 01]: A_F = M_n(C) for Barrett-form D -- first-order condition is automatically satisfied for all a, b
+- [Phase 15, Plan 01]: The proof reduces to [L_C, R_b] = 0 (associativity), same identity as order zero
+- [Phase 15, Plan 01]: Gauge group U(n) at n=4 gives U(4), not SM -- structural consequence of simple algebra
+- [Phase 15, Plan 01]: CCM difference is structural: simple M_n(C) vs direct sum M_2(H) + M_4(C)
+- [Phase 15, Plan 02]: A_F = C (dim 1) for generic D from full moduli space; only Barrett D gives A_F = M_n(C)
+- [Phase 15, Plan 02]: No intermediate subalgebra exists for simple M_n(C): only C or M_n(C)
+- [Phase 15, Plan 02]: Medium success tier: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra
+- [Phase 15, Plan 02]: Master formula [[M, L_a], R_b](X) = sum_k [A_k, a] X [b, B_k] -- Barrett is pure-left type
 
 ### Active Approximations
 
