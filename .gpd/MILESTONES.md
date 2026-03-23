@@ -47,3 +47,20 @@
 **Last phase number:** 12
 
 ---
+
+## v4.0 Spectral Triple from Self-Modeling (Closed: 2026-03-23, medium success)
+
+**Phases completed:** 3 phases (13-15), 7 plans. Phases 16-17 abandoned.
+
+**Key accomplishments:**
+- Order zero condition [pi(a), pi_o(b)] = 0 verified at general n with pi_o derived from J antilinearity; 52 SymPy tests at n=2,3,4
+- Bimodule decomposition H = 2 x C^{n^2}; per-sector n^2 = k^2 gives k=4 (SM value) at n=4; Krajewski diagram drawn
+- D moduli space fully parameterized: dim = n^2(n^2+1) at general n (272 at n=4); Barrett-form D with real symmetric K identified as linearized sequential product (Jordan product connection)
+- First-order condition resolved: Barrett D gives A_F = M_n(C) (trivially satisfied, gauge U(n)); general D gives A_F = C (gauge U(1))
+- **Structural obstruction identified:** Simple algebra M_n(C) cannot produce SM gauge group C + H + M_3(C); SM requires direct sum starting algebra
+
+**Outcome:** Valid spectral triple established with U(n) gauge group, but the simple algebra M_n(C) is structurally incompatible with the SM. The approach is superseded by a new Paper 7 milestone with different starting point.
+
+**Last phase number:** 15 (16-17 abandoned)
+
+---

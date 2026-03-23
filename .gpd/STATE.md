@@ -4,21 +4,21 @@
 
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
-**Core research question:** Does the self-modeling composite carry a real spectral triple of KO-dimension 6, giving A_F = C + H + M_3(C) (Standard Model)?
-**Current focus:** Phase 16 -- Remaining Axioms + Classification
+**Core research question:** (To be defined by next milestone)
+**Current focus:** Milestone v4.0 closed. Awaiting new milestone.
 
 ## Current Position
 
-**Current Phase:** 16
-**Current Phase Name:** Remaining Axioms + Classification
-**Total Phases:** 5 (Phases 13-17)
-**Current Plan:** 01
-**Total Plans in Phase:** TBD
-**Status:** Not started
+**Current Phase:** --
+**Current Phase Name:** --
+**Total Phases:** --
+**Current Plan:** --
+**Total Plans in Phase:** --
+**Status:** Between milestones
 **Last Activity:** 2026-03-23
-**Last Activity Description:** Phase 15 complete: Barrett D gives A_F = M_n(C) (gauge U(n)); general D gives A_F = C. Medium success tier.
+**Last Activity Description:** v4.0 milestone closed (medium success). Simple M_n(C) cannot give SM. New Paper 7 approach needed.
 
-**Progress:** [████████░░] 80% (v4.0)
+**Progress:** [██████████] 100% (v4.0 closed)
 
 ## Active Calculations
 

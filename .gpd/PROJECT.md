@@ -8,16 +8,7 @@ Deriving the fundamental laws of physics from the algebraic structure of self-mo
 
 Does the self-modeling composite naturally carry the structure of a real spectral triple of KO-dimension 6, and if so, does Connes' classification give the finite algebra A_F = C + H + M_3(C) (the Standard Model)?
 
-## Current Milestone: v4.0 Spectral Triple from Self-Modeling
-
-**Goal:** Determine whether the doubled self-modeling composite (H, J, gamma) satisfies the axioms of a real spectral triple of KO-dimension 6, construct the Dirac operator D, and identify the subalgebra forced by the first-order condition.
-
-**Target results:**
-
-- Verification of all spectral triple axioms (order zero condition, KO-dimension 6 sign relations) for general n
-- Construction of D from the sequential product's temporal asymmetry, satisfying D gamma = -gamma D and JD = DJ
-- Identification of the subalgebra A_F forced by the first-order condition [[D, a], Jb*J^{-1}] = 0
-- Paper 7 assembling the chain with precise gap identification
+## Current Milestone: (none -- awaiting new milestone definition)
 
 ## Scoping Contract Summary
 
@@ -119,14 +110,14 @@ Does the self-modeling composite naturally carry the structure of a real spectra
 - [x] Does self-modeling locality force area-law entanglement entropy? -- **YES** via WVCH (thermal MI) and channel capacity (pure S); sub-volume scaling for gapless case. -- v3.0
 - [x] Does a lattice of self-modeling M_n(C)^sa systems satisfy Jacobson's thermodynamic inputs? -- **YES**: (J1) area law established, (J2) entanglement first law exact, (J3) MVEH as structural identification via Connes-Rovelli. -- v3.0
 - [x] Can Einstein's field equations be derived from self-modeling? -- **YES** via two routes: Jacobson entanglement equilibrium (Route A, conformal) and Lovelock uniqueness (Route B, d>=2). Paper 6 assembled. -- v3.0
+- [x] Does the order zero condition [a, Jb*J^{-1}] = 0 hold for the natural algebra action? -- **YES.** [pi(a), pi_o(b)] = 0 for all a, b in M_n(C) at general n. -- v4.0
+- [x] What Dirac operator D arises naturally from the sequential product's temporal asymmetry? -- **Barrett-form D_K(X) = KX + XK** with K real symmetric. D moduli dim = n^2(n^2+1). Jordan product = linearized sequential product. -- v4.0
+- [x] What subalgebra A_F does the first-order condition force? -- **A_F = M_n(C)** for Barrett D (trivially satisfied); **A_F = C** for general D. No D produces C + H + M_3(C). -- v4.0
+- [x] Does the doubled self-modeling composite carry a real spectral triple of KO-dimension 6? -- **YES** (valid spectral triple with U(n) gauge group), but simple M_n(C) cannot give SM. Structural obstruction: SM requires direct sum algebra. -- v4.0
 
 ### Active
 
-- [ ] Does the doubled self-modeling composite carry a real spectral triple of KO-dimension 6?
-- [ ] Does the order zero condition [a, Jb*J^{-1}] = 0 hold for the natural algebra action?
-- [ ] What Dirac operator D arises naturally from the sequential product's temporal asymmetry?
-- [ ] What subalgebra A_F does the first-order condition [[D, a], Jb*J^{-1}] = 0 force?
-- [ ] For which n (if any) does A_F = C + H + M_3(C)?
+(To be defined by next milestone)
 
 ### Out of Scope
 
@@ -257,6 +248,16 @@ GR derived from self-modeling locality:
 
 Paper 6 assembled, passed adversarial review. Gaps honestly identified: continuum limit (shared wall), conformal approximation (Route A), tensoriality (Route B).
 
+## v4.0 Summary (closed, medium success)
+
+Spectral triple investigation for self-modeling composite:
+1. **Order zero verified** -- [pi(a), pi_o(b)] = 0 at general n; bimodule H = 2 x C^{n^2}; k=4 at n=4
+2. **D moduli parameterized** -- dim = n^2(n^2+1); Barrett-form D = Jordan product (linearized sequential product)
+3. **First-order condition resolved** -- Barrett D: A_F = M_n(C) (gauge U(n)); general D: A_F = C (gauge U(1))
+4. **Structural obstruction** -- Simple M_n(C) cannot produce SM gauge group C + H + M_3(C). SM requires direct sum starting algebra.
+
+Phases 16-17 abandoned. New approach needed for Paper 7.
+
 ---
 
-_Last updated: 2026-03-22 after v4.0 milestone initialization_
+_Last updated: 2026-03-23 after v4.0 milestone closure_

@@ -23,7 +23,9 @@ affects: [09-area-law, 10-jacobson, 11-numerics]
 
 methods:
   added: [NS LR velocity applied to self-modeling interaction, composite OUS axiom verification, light cone simulation via exact diagonalization]
-  patterns: [self-modeling h_{xy} = J*F identical to Heisenberg, v_LR independent of n]
+  patterns:
+    - "self-modeling h_{xy} = J*F identical to Heisenberg"
+    - "v_LR independent of n"
 
 key-files:
   created:

@@ -30,7 +30,10 @@ affects: [04-04, 04-05]
 
 methods:
   added: [compatibility verification via corrected_sp commutativity, parametric continuity testing]
-  patterns: [compatible effects = commuting matrices on M_2(C)^sa, Peirce 1-space idempotence P_{01}^2 = P_{01}, compression composition C_p C_q = C_{p^q} for compatible projective units]
+  patterns:
+    - "compatible effects = commuting matrices on M_2(C)^sa"
+    - "Peirce 1-space idempotence P_{01}^2 = P_{01}"
+    - "compression composition C_p C_q = C_{p^q} for compatible projective units"
 
 key-files:
   created:
