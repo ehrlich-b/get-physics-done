@@ -171,7 +171,11 @@ Plans:
 4. Comparison with C + H + M_3(C) (dim = 14, summands = C + H + M_3(C)) is made; if A_F matches, the gauge group U(1) x SU(2) x SU(3) is confirmed; if A_F differs, the actual gauge group is identified
 5. If the first-order condition fails entirely (A_F = C only, or trivial), the Pati-Salam fallback (Chamseddine-Connes-van Suijlekom 2013) is evaluated
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md -- Derive first-order condition triviality for Barrett-form D; verify A_F = M_n(C) at n=2,3,4; compare to CCM
+- [ ] 15-02-PLAN.md -- Extend first-order condition to general D from full moduli space; characterize A_F; synthesis
 
 **Backtracking triggers:**
 - If A_F is trivial (C only) for all D in the moduli space -> the first-order condition is too restrictive; investigate whether relaxing it (as in CCSV 2013) gives Pati-Salam.
