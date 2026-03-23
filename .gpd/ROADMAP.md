@@ -70,7 +70,7 @@ See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
 ## Phase Summary
 
 - [x] **Phase 13: Order Zero + Representation Theory** (3/3 plans) -- completed 2026-03-22
-- [ ] **Phase 14: Dirac Operator Construction** -- Parameterize D moduli space (D*=D, D gamma=-gamma D, JD=DJ), test sequential product asymmetry candidate, with SymPy verification at n=2,3,4
+- [x] **Phase 14: Dirac Operator Construction** (2/2 plans) -- completed 2026-03-23
 - [ ] **Phase 15: First-Order Condition + Algebra Identification** -- Compute [[D,a], Jb*J^{-1}], identify maximal subalgebra A_F, evaluate at n=2,3,4 vs C + H + M_3(C)
 - [ ] **Phase 16: Remaining Axioms + Classification** -- Verify Poincare duality, document orientability failure, check CCM classification hypotheses
 - [ ] **Phase 17: Paper 7 Assembly** -- Paper 7 "Spectral Triple from Self-Modeling" with complete chain and tiered success statement
@@ -139,8 +139,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 14-01-PLAN.md -- Parameterize D moduli space: block decomposition, J constraint, dimension formula, SymPy/NumPy verification at n=1,2,3,4
-- [ ] 14-02-PLAN.md -- Test sequential product candidates (commutator, SP operator, Barrett form) against moduli space; identify most natural D
+- [x] 14-01-PLAN.md -- Parameterize D moduli space: block decomposition, J constraint, dimension formula, SymPy/NumPy verification at n=1,2,3,4
+- [x] 14-02-PLAN.md -- Test sequential product candidates (commutator, SP operator, Barrett form) against moduli space; identify most natural D
 
 **Backtracking triggers:**
 - If the D moduli space is empty (no non-trivial D exists) -> reconsider gamma or J definitions; explore alternative SWAP/grading constructions from Paper 6.
@@ -281,7 +281,7 @@ Wave 5: Phase 17 (requires all prior phases)
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 13. Order Zero + Representation Theory | v4.0 | 3/3 | Complete | 2026-03-22 |
-| 14. Dirac Operator Construction | v4.0 | 0/TBD | Not started | - |
+| 14. Dirac Operator Construction | v4.0 | 2/2 | Complete | 2026-03-23 |
 | 15. First-Order Condition + Algebra ID | v4.0 | 0/TBD | Not started | - |
 | 16. Remaining Axioms + Classification | v4.0 | 0/TBD | Not started | - |
 | 17. Paper 7 Assembly | v4.0 | 0/TBD | Not started | - |

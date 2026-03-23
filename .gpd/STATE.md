@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the self-modeling composite carry a real spectral triple of KO-dimension 6, giving A_F = C + H + M_3(C) (Standard Model)?
-**Current focus:** Phase 13 -- Order Zero + Representation Theory (gatekeeper)
+**Current focus:** Phase 14 -- Dirac Operator Construction
 
 ## Current Position
 
-**Current Phase:** 13
-**Current Phase Name:** Order Zero + Representation Theory
+**Current Phase:** 14
+**Current Phase Name:** Dirac Operator Construction
 **Total Phases:** 5 (Phases 13-17)
-**Current Plan:** 03
-**Total Plans in Phase:** 3
+**Current Plan:** 01
+**Total Plans in Phase:** 2
 **Status:** All plans complete, verification pending
-**Last Activity:** 2026-03-22
-**Last Activity Description:** All 3 plans complete; order zero passed, bimodule decomposition done, dimension counting resolved
+**Last Activity:** 2026-03-23
+**Last Activity Description:** Sequential product candidates tested: commutator fails JD=DJ, Barrett-form with real sym K passes (Jordan product connection)
 
-**Progress:** [██████....] 60% (v4.0)
+**Progress:** [██████░░░░] 60% (v4.0)
 
 ## Active Calculations
 
@@ -85,6 +85,19 @@ None yet.
 - **Per-sector n^2 = k^2** with k = n; n=4 gives k=4 (SM value), dim(H) = 32 (HIGH)
 - **Gamma-refined decomposition**: Sym^2_p(+1) + wedge^2_p(-1) + wedge^2_{ap}(+1) + Sym^2_{ap}(-1) (HIGH)
 
+- **D moduli space dim = n^2(n^2+1)** at general n; closed-form formula (HIGH)
+- **Dimension sequence**: n=1:2, n=2:20, n=3:90, n=4:272 (HIGH)
+- **Sub-block constraints**: M_{12} = M_{12}^T, M_{21} = M_{21}^T, M_{22} = -M_{11}^T (HIGH)
+- **Non-trivial D exists** at all n >= 1 (moduli space is never empty) (HIGH)
+- **52 pytest tests pass** verifying all three axioms for every basis element at n=1,2,3,4 (HIGH)
+- **n=1 moduli dim = 2** (not 1): J constraint trivially satisfied since J_+ = I at n=1 (HIGH)
+- **Commutator [a,-] gets JD = -DJ** (epsilon' = -1 behavior), structural for all real symmetric a (HIGH)
+- **SP operator sqrt(a)Xsqrt(a) is SWAP-even**, commutes with gamma (HIGH)
+- **Barrett-form D with K real symmetric passes all 3 D axioms** at n=2,3,4 (HIGH)
+- **Jordan product connection**: D_1(X) = 2(K*X) = linearized sequential product (HIGH)
+- **Barrett subspace dim = n(n+1)/2**: n=2:3, n=3:6, n=4:10 (HIGH)
+- **85 pytest tests pass** verifying all candidates at n=2,3,4 (HIGH)
+
 ## Open Questions
 
 - RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent
@@ -130,6 +143,8 @@ None yet.
 | 13-01 | 7min | 2 tasks | 1 files |
 | 13-02 | 8min | 2 tasks | 1 files |
 | 13-03 | 10min | 2 tasks | 1 files |
+| 14-01 | 10min | 2 tasks | 2 files |
+| 14-02 | 15min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -188,6 +203,14 @@ None yet.
 - [Phase 13, Plan 03]: Per-sector n^2 = k^2 is the correct CCM comparison (not naive 2n^2 = k^2); factor of 2 is J-doubling
 - [Phase 13, Plan 03]: Barrett spinor space V = C^2; H = V tensor M_n(C) with two sectors
 - [Phase 13, Plan 03]: A_F identification deferred to Phase 15; no premature SM claims
+- [Phase 14, Plan 01]: D moduli space dim = n^2(n^2+1) at general n; involution constraint M = J_+ M^T J_+
+- [Phase 14, Plan 01]: n=1 moduli dim is 2 (not 1): J constraint trivially satisfied since J_+ = I at n=1
+- [Phase 14, Plan 01]: Barrett cross-check is partial -- Barrett's D includes first-order condition not yet imposed
+- [Phase 14, Plan 01]: Sub-block constraints: M_{12} = M_{12}^T, M_{21} = M_{21}^T, M_{22} = -M_{11}^T
+- [Phase 14, Plan 02]: Barrett J constraint requires K^T = K (symmetric), NOT K = scalar
+- [Phase 14, Plan 02]: Barrett D_1(X) = KX + XK = 2(K*X) is twice the Jordan product = linearized sequential product
+- [Phase 14, Plan 02]: KO-dim 6 epsilon'=+1 selects L_K + R_K (anticommutator) over L_K - R_K (commutator)
+- [Phase 14, Plan 02]: Barrett subspace dim = n(n+1)/2 (10 at n=4); expected to match first-order condition subspace
 
 ### Active Approximations
 
