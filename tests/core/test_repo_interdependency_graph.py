@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-import sys
 from contextlib import contextmanager
 from pathlib import Path
+from shutil import which
 
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from scripts.repo_graph_contract import (
@@ -16,6 +16,8 @@ from scripts.repo_graph_contract import (
     GENERATED_ON_START,
     GRAPH_PATH,
     REPO_ROOT,
+    SAME_STEM_COMMAND_WORKFLOW_END,
+    SAME_STEM_COMMAND_WORKFLOW_START,
     SCOPE_END,
     SCOPE_START,
     expected_scope_counts,
@@ -26,6 +28,8 @@ from scripts.repo_graph_contract import (
     read_graph_text,
     render_generated_on_block,
     render_scope_block,
+    replace_marked_block,
+    sync_readme_text,
 )
 
 
@@ -205,6 +209,45 @@ def test_graph_readme_generated_blocks_match_contract() -> None:
     assert extract_marked_block(graph_text, SCOPE_START, SCOPE_END) == render_scope_block(contract)
 
 
+def test_graph_sync_repairs_stale_marked_blocks() -> None:
+    original = read_graph_text()
+    contract = load_contract()
+    stale_contract = dict(contract)
+    stale_contract["generated_on"] = "2000-01-01"
+    stale_contract["scope_counts"] = {
+        label: int(value) + 1 for label, value in contract["scope_counts"].items()
+    }
+
+    stale = replace_marked_block(
+        original,
+        GENERATED_ON_START,
+        GENERATED_ON_END,
+        render_generated_on_block(stale_contract),
+    )
+    stale = replace_marked_block(
+        stale,
+        SCOPE_START,
+        SCOPE_END,
+        render_scope_block(stale_contract),
+    )
+    stale = replace_marked_block(
+        stale,
+        SAME_STEM_COMMAND_WORKFLOW_START,
+        SAME_STEM_COMMAND_WORKFLOW_END,
+        "\n".join(
+            (
+                SAME_STEM_COMMAND_WORKFLOW_START,
+                "- `src/gpd/commands/old.md -> src/gpd/specs/workflows/old.md`",
+                SAME_STEM_COMMAND_WORKFLOW_END,
+            )
+        ),
+    )
+
+    repaired = sync_readme_text(stale, contract)
+
+    assert repaired == original
+
+
 def test_live_repo_file_count_ignores_transient_root_artifacts() -> None:
     baseline = live_repo_file_count()
 
@@ -254,8 +297,10 @@ def test_live_repo_file_count_ignores_runtime_mirror_dirs(tmp_path: Path) -> Non
 def test_sync_repo_graph_script_runs_as_direct_file() -> None:
     graph_before = GRAPH_PATH.read_text(encoding="utf-8")
     contract_before = CONTRACT_PATH.read_text(encoding="utf-8")
+    python_bin = which("python")
+    assert python_bin is not None, "plain PATH python is required for repo-graph bootstrap"
     completed = subprocess.run(
-        [sys.executable, "scripts/sync_repo_graph_contract.py"],
+        [python_bin, "scripts/sync_repo_graph_contract.py"],
         cwd=REPO_ROOT,
         check=False,
         capture_output=True,
