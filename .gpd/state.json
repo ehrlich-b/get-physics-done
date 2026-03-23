@@ -1,8 +1,8 @@
 {
   "project_reference": {
-    "project_md_updated": "2026-03-20",
-    "core_research_question": "Does the locality of self-modeling force area-law entanglement and thereby Einstein's field equations via Jacobson's thermodynamic argument?",
-    "current_focus": "Phase 12 complete -- Paper 6 manuscript assembled, all phases done, milestone v3.0 complete"
+    "project_md_updated": "2026-03-22",
+    "core_research_question": "Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?",
+    "current_focus": "v5.0 Chirality from h_3(O) via Cl(6) -- Defining objectives"
   },
   "project_contract": {
     "schema_version": 1,
@@ -423,15 +423,15 @@
     }
   },
   "position": {
-    "current_phase": "12",
-    "current_phase_name": "Paper Assembly",
+    "current_phase": "--",
+    "current_phase_name": "--",
     "total_phases": null,
-    "current_plan": "3",
-    "total_plans_in_phase": 3,
-    "status": "Phase complete -- Paper 6 assembled, verified (14/14 targets, 12/12 physics checks), consistency checked (41 checks, 0 physics errors)",
-    "last_activity": "2026-03-22",
-    "last_activity_desc": "Started milestone v4.0: Spectral Triple from Self-Modeling",
-    "progress_percent": 100,
+    "current_plan": "--",
+    "total_plans_in_phase": null,
+    "status": "Defining objectives",
+    "last_activity": "2026-03-23",
+    "last_activity_desc": "Started milestone v5.0: Chirality from h_3(O) via Cl(6)",
+    "progress_percent": 0,
     "paused_at": null
   },
   "active_calculations": [],
@@ -479,7 +479,42 @@
     "**MVEH definitional throughout**: zero \"Assumption A5\" instances, 14 \"definitional\" instances (HIGH)",
     "**L1-L8 chain complete**: all 8 links present in corresponding sections with Table I in introduction (HIGH)",
     "**10/10 anchor references cited**: Jacobson 1995/2016, Connes-Rovelli, Sorce, Hastings, VanRaamsdonk, LMVR, Faulkner, CCM, Paper 5 (HIGH)",
-    "**No overclaiming**: zero forbidden phrases, explicit non-claims for G, d=3+1, Lambda (HIGH)"
+    "**No overclaiming**: zero forbidden phrases, explicit non-claims for G, d=3+1, Lambda (HIGH)",
+    "**pi_o(b) = diag(I_n tensor b^T, I_n tensor b^T)** at general n via J antilinearity (HIGH)",
+    "**[pi(a), pi_o(b)] = 0** for all a, b in M_n(C) at general n -- order zero PASSED (HIGH)",
+    "**Both naive and contragredient actions satisfy order zero** (HIGH)",
+    "**pi_o is *-representation of A^{op}** (HIGH)",
+    "**Even condition [gamma, pi(a)] = 0 FAILS** for all non-scalar a; only C*I survives (HIGH)",
+    "**KO-dim 6 signs verified**: J^2 = +1, J gamma = -gamma J (HIGH)",
+    "**Commutant dimension**: comm(pi(M_n)) = 4n^2 (HIGH)",
+    "**52 pytest tests pass** at n=2,3,4 with zero failures (HIGH)",
+    "**H = 2 x C^{n^2}** as irreducible M_n(C)-M_n(C)^o bimodules (HIGH)",
+    "**Krajewski diagram**: single vertex (n,n), multiplicity 2 (HIGH)",
+    "**Barrett isomorphism**: C^n tensor C^n = M_n(C) via v tensor w -> v w^T (HIGH)",
+    "**Per-sector n^2 = k^2** with k = n; n=4 gives k=4 (SM value), dim(H) = 32 (HIGH)",
+    "**Gamma-refined decomposition**: Sym^2_p(+1) + wedge^2_p(-1) + wedge^2_{ap}(+1) + Sym^2_{ap}(-1) (HIGH)",
+    "**D moduli space dim = n^2(n^2+1)** at general n; closed-form formula (HIGH)",
+    "**Dimension sequence**: n=1:2, n=2:20, n=3:90, n=4:272 (HIGH)",
+    "**Sub-block constraints**: M_{12} = M_{12}^T, M_{21} = M_{21}^T, M_{22} = -M_{11}^T (HIGH)",
+    "**Non-trivial D exists** at all n >= 1 (moduli space is never empty) (HIGH)",
+    "**52 pytest tests pass** verifying all three axioms for every basis element at n=1,2,3,4 (HIGH)",
+    "**n=1 moduli dim = 2** (not 1): J constraint trivially satisfied since J_+ = I at n=1 (HIGH)",
+    "**Commutator [a,-] gets JD = -DJ** (epsilon' = -1 behavior), structural for all real symmetric a (HIGH)",
+    "**SP operator sqrt(a)Xsqrt(a) is SWAP-even**, commutes with gamma (HIGH)",
+    "**Barrett-form D with K real symmetric passes all 3 D axioms** at n=2,3,4 (HIGH)",
+    "**Jordan product connection**: D_1(X) = 2(K*X) = linearized sequential product (HIGH)",
+    "**Barrett subspace dim = n(n+1)/2**: n=2:3, n=3:6, n=4:10 (HIGH)",
+    "**85 pytest tests pass** verifying all candidates at n=2,3,4 (HIGH)",
+    "**[[D_K, L_a], R_b] = 0** for all a, b in M_n(C), all K in M_n(R)^sym -- first-order condition trivially satisfied for Barrett-form D (HIGH)",
+    "**[D_1, L_a] = L_{[K,a]}** -- first commutator is pure left multiplication; commutativity with R_b follows from associativity (HIGH)",
+    "**A_F = M_n(C)** (full algebra) for Barrett-form D -- no restriction from first-order condition (HIGH)",
+    "**Gauge group U(n)** for Barrett D; at n=4: U(4), NOT U(1) x SU(2) x SU(3) (HIGH)",
+    "**General D: A_F = C** (dim 1, gauge U(1)) for non-Barrett D from full moduli space (HIGH)",
+    "**Master formula**: [[M, L_a], R_b](X) = sum_k [A_k, a] X [b, B_k]; Barrett is uniquely \"pure-left type\" (HIGH)",
+    "**Discontinuous transition**: any non-Barrett perturbation drops A_F from M_n(C) to C (HIGH)",
+    "**No D produces C + H + M_3(C)**: simple M_n(C) algebra cannot give SM -- requires direct sum structure (HIGH)",
+    "**Medium success tier**: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra (HIGH)",
+    "**50 pytest tests pass** verifying first-order condition at n=2,3,4 for Barrett and general D (HIGH)"
   ],
   "open_questions": [
     "RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent",
@@ -644,6 +679,48 @@
         "duration": "6min",
         "tasks": "2",
         "files": "8"
+      },
+      {
+        "label": "13-01",
+        "duration": "7min",
+        "tasks": "2",
+        "files": "1"
+      },
+      {
+        "label": "13-02",
+        "duration": "8min",
+        "tasks": "2",
+        "files": "1"
+      },
+      {
+        "label": "13-03",
+        "duration": "10min",
+        "tasks": "2",
+        "files": "1"
+      },
+      {
+        "label": "14-01",
+        "duration": "10min",
+        "tasks": "2",
+        "files": "2"
+      },
+      {
+        "label": "14-02",
+        "duration": "15min",
+        "tasks": "2",
+        "files": "2"
+      },
+      {
+        "label": "15-01",
+        "duration": "4min",
+        "tasks": "2",
+        "files": "2"
+      },
+      {
+        "label": "15-02",
+        "duration": "8min",
+        "tasks": "2",
+        "files": "2"
       }
     ]
   },
@@ -877,6 +954,126 @@
       "phase": "0",
       "summary": "Started milestone v4.0: Spectral Triple from Self-Modeling",
       "rationale": "New milestone cycle -- spectral triple from self-modeling composite, targeting Standard Model via Connes classification"
+    },
+    {
+      "phase": "13, Plan 01",
+      "summary": "Naive algebra action pi(a) = diag(a tensor I, a tensor I) used as primary; contragredient also satisfies order zero",
+      "rationale": null
+    },
+    {
+      "phase": "13, Plan 01",
+      "summary": "pi_o(b) = diag(I_n tensor b^T, I_n tensor b^T) derived via J antilinearity chain",
+      "rationale": null
+    },
+    {
+      "phase": "13, Plan 02",
+      "summary": "[gamma, pi(a)] = 0 fails for ALL non-scalar a -- only C*I satisfies even condition with SWAP-based chirality",
+      "rationale": null
+    },
+    {
+      "phase": "13, Plan 02",
+      "summary": "Three resolution paths: (a) different algebra action, (b) different gamma, (c) odd spectral triple",
+      "rationale": null
+    },
+    {
+      "phase": "13, Plan 03",
+      "summary": "Per-sector n^2 = k^2 is the correct CCM comparison (not naive 2n^2 = k^2); factor of 2 is J-doubling",
+      "rationale": null
+    },
+    {
+      "phase": "13, Plan 03",
+      "summary": "Barrett spinor space V = C^2; H = V tensor M_n(C) with two sectors",
+      "rationale": null
+    },
+    {
+      "phase": "13, Plan 03",
+      "summary": "A_F identification deferred to Phase 15; no premature SM claims",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 01",
+      "summary": "D moduli space dim = n^2(n^2+1) at general n; involution constraint M = J_+ M^T J_+",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 01",
+      "summary": "n=1 moduli dim is 2 (not 1): J constraint trivially satisfied since J_+ = I at n=1",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 01",
+      "summary": "Barrett cross-check is partial -- Barrett's D includes first-order condition not yet imposed",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 01",
+      "summary": "Sub-block constraints: M_{12} = M_{12}^T, M_{21} = M_{21}^T, M_{22} = -M_{11}^T",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 02",
+      "summary": "Barrett J constraint requires K^T = K (symmetric), NOT K = scalar",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 02",
+      "summary": "Barrett D_1(X) = KX + XK = 2(K*X) is twice the Jordan product = linearized sequential product",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 02",
+      "summary": "KO-dim 6 epsilon'=+1 selects L_K + R_K (anticommutator) over L_K - R_K (commutator)",
+      "rationale": null
+    },
+    {
+      "phase": "14, Plan 02",
+      "summary": "Barrett subspace dim = n(n+1)/2 (10 at n=4); expected to match first-order condition subspace",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 01",
+      "summary": "A_F = M_n(C) for Barrett-form D -- first-order condition is automatically satisfied for all a, b",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 01",
+      "summary": "The proof reduces to [L_C, R_b] = 0 (associativity), same identity as order zero",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 01",
+      "summary": "Gauge group U(n) at n=4 gives U(4), not SM -- structural consequence of simple algebra",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 01",
+      "summary": "CCM difference is structural: simple M_n(C) vs direct sum M_2(H) + M_4(C)",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 02",
+      "summary": "A_F = C (dim 1) for generic D from full moduli space; only Barrett D gives A_F = M_n(C)",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 02",
+      "summary": "No intermediate subalgebra exists for simple M_n(C): only C or M_n(C)",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 02",
+      "summary": "Medium success tier: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra",
+      "rationale": null
+    },
+    {
+      "phase": "15, Plan 02",
+      "summary": "Master formula [[M, L_a], R_b](X) = sum_k [A_k, a] X [b, B_k] -- Barrett is pure-left type",
+      "rationale": null
+    },
+    {
+      "phase": "0",
+      "summary": "Started milestone v5.0: Chirality from h_3(O) via Cl(6)",
+      "rationale": "New milestone cycle -- h_3(O)/Cl(6) route to chirality replaces spectral triple approach"
     }
   ],
   "approximations": [],
@@ -923,5 +1120,5 @@
     "resume_file": "--"
   },
   "_version": 1,
-  "_synced_at": "2026-03-23T00:31:21.359611+00:00"
+  "_synced_at": "2026-03-23T22:48:07.838435+00:00"
 }

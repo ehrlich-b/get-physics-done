@@ -4,21 +4,21 @@
 
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
-**Core research question:** (To be defined by next milestone)
-**Current focus:** Milestone v4.0 closed. Awaiting new milestone.
+**Core research question:** Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?
+**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Defining objectives
 
 ## Current Position
 
 **Current Phase:** --
 **Current Phase Name:** --
-**Total Phases:** --
+**Total Phases:** TBD
 **Current Plan:** --
 **Total Plans in Phase:** --
-**Status:** Between milestones
+**Status:** Defining objectives
 **Last Activity:** 2026-03-23
-**Last Activity Description:** v4.0 milestone closed (medium success). Simple M_n(C) cannot give SM. New Paper 7 approach needed.
+**Last Activity Description:** Started milestone v5.0: Chirality from h_3(O) via Cl(6)
 
-**Progress:** [██████████] 100% (v4.0 closed)
+**Progress:** [░░░░░░░░░░] 0% (v5.0)
 
 ## Active Calculations
 
@@ -232,6 +232,7 @@ None yet.
 - [Phase 15, Plan 02]: No intermediate subalgebra exists for simple M_n(C): only C or M_n(C)
 - [Phase 15, Plan 02]: Medium success tier: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra
 - [Phase 15, Plan 02]: Master formula [[M, L_a], R_b](X) = sum_k [A_k, a] X [b, B_k] -- Barrett is pure-left type
+- [Phase 0]: Started milestone v5.0: Chirality from h_3(O) via Cl(6) — New milestone cycle -- h_3(O)/Cl(6) route to chirality replaces spectral triple approach
 
 ### Active Approximations
 

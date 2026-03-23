@@ -6,9 +6,18 @@ Deriving the fundamental laws of physics from the algebraic structure of self-mo
 
 ## Core Research Question
 
-Does the self-modeling composite naturally carry the structure of a real spectral triple of KO-dimension 6, and if so, does Connes' classification give the finite algebra A_F = C + H + M_3(C) (the Standard Model)?
+Does the observer's complexification of h_3(O) automatically produce the correct chiral (left-handed) SM representation via Cl(6), making chirality a consequence of the observer being a complex system in an octonionic universe?
 
-## Current Milestone: (none -- awaiting new milestone definition)
+## Current Milestone: v5.0 Chirality from h_3(O) via Cl(6)
+
+**Goal:** Prove that the observer's C*-algebra nature forces complexification of h_3(O), upgrading Spin(9) to Spin(10), and that the octonion splitting O = C + C^3 induces a Cl(6) structure whose volume form selects the chiral (left) SM embedding. One choice -> gauge group + chirality.
+
+**Target results:**
+
+- Part A: C*-algebra observer forces complexification of Peirce V_1 = O^2 to Spin(10) Weyl spinor
+- Part B: Cl(6) from O = C + C^3 splitting gives chiral embedding via Todorov-Furey mechanism
+- Synthesis: Single complex structure choice simultaneously gives SM gauge group and chirality
+- Paper 7 "Chirality from h_3(O)" assembled with honest gap identification
 
 ## Scoping Contract Summary
 
@@ -117,7 +126,11 @@ Does the self-modeling composite naturally carry the structure of a real spectra
 
 ### Active
 
-(To be defined by next milestone)
+- [ ] Does C*-algebra observer nature force complexification of h_3(O) Peirce decomposition?
+- [ ] Does complexification upgrade Spin(9) to Spin(10) on V_1 = O^2?
+- [ ] Does the O = C + C^3 splitting induce Cl(6) inside Cl(10) with chiral volume form?
+- [ ] Does the Cl(6)/Pati-Salam route give the SM gauge group with LEFT embedding?
+- [ ] Is chirality automatic (Furey) or does it require an additional discrete choice?
 
 ### Out of Scope
 
@@ -260,4 +273,4 @@ Phases 16-17 abandoned. New approach needed for Paper 7.
 
 ---
 
-_Last updated: 2026-03-23 after v4.0 milestone closure_
+_Last updated: 2026-03-23 after v5.0 milestone initialization_
