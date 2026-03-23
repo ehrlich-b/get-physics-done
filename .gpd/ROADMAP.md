@@ -100,7 +100,12 @@ See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
 4. The dimension mismatch 2n^2 vs CCM k^2 per generation is resolved: either (a) explicit mapping showing how 2n^2 decomposes into generation structure, or (b) identification that the self-modeling triple differs from CCM in generation counting, with implications stated
 5. If order zero fails for the naive pi(a) = a tensor 1 action, the failure mode is characterized and an alternative algebra action is identified or the obstruction is documented
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 13-01-PLAN.md -- Derive pi_o(b) at general n and prove order zero condition algebraically
+- [ ] 13-02-PLAN.md -- SymPy verification of order zero at n=2,3,4 with full basis test
+- [ ] 13-03-PLAN.md -- Bimodule decomposition, Krajewski diagram, dimension counting resolution
 
 **Backtracking triggers:**
 - If order zero fails for ALL reasonable algebra actions -> STOP per contract. Document what was tried and return to user.
@@ -271,7 +276,7 @@ Wave 5: Phase 17 (requires all prior phases)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 13. Order Zero + Representation Theory | v4.0 | 0/TBD | Not started | - |
+| 13. Order Zero + Representation Theory | v4.0 | 0/3 | Planned | - |
 | 14. Dirac Operator Construction | v4.0 | 0/TBD | Not started | - |
 | 15. First-Order Condition + Algebra ID | v4.0 | 0/TBD | Not started | - |
 | 16. Remaining Axioms + Classification | v4.0 | 0/TBD | Not started | - |
