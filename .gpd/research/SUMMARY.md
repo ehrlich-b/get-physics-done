@@ -1,445 +1,470 @@
 # Research Summary
 
-**Project:** Experiential Measure on Structure Space -- v3.0 GR Extension
-**Domain:** Quantum foundations / Quantum gravity / Thermodynamic gravity / Entanglement-gravity correspondence
-**Researched:** 2026-03-21
+**Project:** Experiential Measure on Structure Space -- v4.0 Spectral Triple from Self-Modeling
+**Domain:** Noncommutative geometry / Finite spectral triples / KO-dimension classification / Particle physics from NCG
+**Researched:** 2026-03-22
 **Confidence:** MEDIUM
 
 ## Unified Notation
 
 | Symbol | Quantity | Units/Dimensions | Convention Notes |
 |--------|---------|-----------------|-----------------|
-| g_ab | Spacetime metric | dimensionless | Abstract index notation, signature (-,+,+,+) following Wald |
-| G_ab | Einstein tensor | [length]^{-2} | G_ab = R_ab - (1/2) R g_ab |
-| R_ab | Ricci tensor | [length]^{-2} | Follows from metric connection |
-| T_ab | Stress-energy tensor | [mass][length]^{-3} | Source term in Einstein equations |
-| S_EE | Entanglement entropy | dimensionless (natural units) | von Neumann: S_EE = -Tr(rho_A ln rho_A); distinguished from S_BH |
-| S_BH | Bekenstein-Hawking entropy | dimensionless | S_BH = A/(4G) in natural units |
-| I(A:B) | Mutual information | dimensionless | I(A:B) = S(A) + S(B) - S(AB) |
-| K | Modular Hamiltonian | dimensionless | K = -ln(rho_A); generates modular flow |
-| A_x | Local algebra at site x | -- | A_x = M_n(C), full matrix algebra |
-| M_n(C)^sa | Self-adjoint part of n x n matrices | -- | The Jordan algebra from Paper 5 |
-| theta | Expansion of null congruence | [length]^{-1} | Raychaudhuri variable |
-| sigma_ab | Shear of null congruence | [length]^{-1} | Traceless part of expansion tensor |
-| k^a | Null normal to horizon | [length]^{-1} | Affinely parametrized null generator |
-| chi^a | Boost Killing vector | dimensionless | Approximate, at local Rindler horizon |
-| v_LR | Lieb-Robinson velocity | [length]/[time] | Effective speed of information propagation |
-| eta | Entropy density | [length]^{-2} | S = eta * A; eta = 1/(4G) |
-| Delta | Spectral gap | [energy] | E_1 - E_0 for ground state |
-| xi | Correlation length | [length] | Exponential decay scale of correlations |
+| A | Algebra of the spectral triple | -- | A = M_n(C), full matrix algebra; acts on H via representation pi |
+| A_F | Physical subalgebra | -- | Subalgebra forced by first-order condition; target: C + H + M_3(C) |
+| H | Hilbert space | -- | H = C^{2n^2}, doubled: (C^n x C^n)_particle + (C^n x C^n)_antiparticle |
+| D | Dirac operator | -- | Self-adjoint on H; D gamma = -gamma D; JD = DJ |
+| J | Real structure | -- | Antilinear isometry; J(psi,chi) = (PC chi-bar, PC psi-bar); J^2 = +1 |
+| gamma | Grading (chirality) | -- | gamma(psi,chi) = (P psi, -P chi); gamma^2 = 1 |
+| P | SWAP operator | -- | P: v x w -> w x v on C^n x C^n; eigenvalues +/-1 |
+| PC | SWAP + conjugation | -- | PC: v x w -> w-bar x v-bar |
+| pi(a) | Algebra representation | -- | pi(a) = a x 1 on each sector (subject to order zero check) |
+| pi_o(b) | Opposite algebra action | -- | pi_o(b) = J pi(b*) J^{-1}; expected to act as 1 x b^T |
+| epsilon, epsilon', epsilon'' | KO-dimension signs | -- | KO-dim 6: (+1, +1, -1); J^2 = +1, JD = +DJ, J gamma = -gamma J |
+| sp(a,b) | Sequential product | -- | sp(a,b) = sqrt(a) b sqrt(a); temporally asymmetric |
+| Sym^2(C^n) | Symmetric subspace | dim = n(n+1)/2 | P = +1 eigenspace |
+| wedge^2(C^n) | Antisymmetric subspace | dim = n(n-1)/2 | P = -1 eigenspace |
+| E_{ij} | Matrix units | -- | (E_{ij})_{kl} = delta_{ik} delta_{jl}; basis for M_n(C) |
+| [[D,a], b^o] | Double commutator | -- | First-order condition: must vanish for all a in A_F, b in A |
+| H_3(O) | Exceptional Jordan algebra | -- | 3x3 Hermitian octonionic matrices; Aut = F_4 |
 
-**Unit system:** Natural units (hbar = c = k_B = 1) for all derivations. Restore factors only in final expressions.
+**Unit system:** Dimensionless for all algebraic structure. Natural units (hbar = c = 1) only when connecting to continuum spacetime physics.
 
-**Metric signature:** (-,+,+,+) throughout, following Wald and Jacobson (2016). Note: Jacobson (1995) uses (+,-,-,-); signs in the Raychaudhuri equation must be adjusted when comparing.
+**Convention choices:**
+- Inner product: linear in second argument (physics convention)
+- J: antilinear (J(alpha psi) = alpha-bar J(psi))
+- KO-dimension sign table: follows van Suijlekom (2024) Table 3.2 and Connes (1995)
+- Algebra notation: C + H + M_3(C) denotes a direct sum of real *-algebras (C = complex numbers as 2-dim real algebra, H = quaternions as 4-dim real algebra)
+- "x" denotes tensor product throughout (not direct product)
 
 **Convention conflicts resolved:**
 
-1. Jacobson 1995 uses (+,-,-,-) while Jacobson 2016 and standard GR texts use (-,+,+,+). We adopt (-,+,+,+). The Raychaudhuri equation changes sign on the R_ab k^a k^b term: in our convention, d(theta)/d(lambda) = -(1/(D-2)) theta^2 - sigma^2 - R_ab k^a k^b (for geodesic, twist-free congruence).
+1. **J in spectral triples vs. Tomita-Takesaki:** The self-modeling J = dagger (Paper 5) maps to the spectral triple real structure J, NOT the Tomita-Takesaki modular conjugation. They coincide for type I factors but differ generally.
 
-2. "Entropy" appears in three senses: S_EE (entanglement), S_BH (Bekenstein-Hawking thermodynamic), and S_thermo (Clausius relation). Jacobson (2012, 2016) argues S_EE = S_BH for horizons; this identification is an input assumption, not a derived result.
+2. **Pre-Barrett vs. post-Barrett H_F dimension:** Pre-Barrett (KO-dim 0): H_F = 96 dimensions. Post-Barrett (KO-dim 6): H_F = 32 per generation. We use exclusively the post-Barrett framework.
 
-3. "Area law" in condensed matter (S_EE proportional to boundary area of spatial region) vs. "area law" in black hole physics (S_BH proportional to horizon area). Same mathematical statement, different physical context. We unify: both are instances of entanglement entropy scaling with boundary area.
+3. **"Input" algebra vs. physical algebra:** The CCM classification starts from the "input" algebra M_2(H) + M_4(C) and derives the physical subalgebra C + H + M_3(C) via the first-order condition. These are different objects. The self-modeling algebra M_n(C) is the input; the physical algebra emerges from it.
 
 ## Executive Summary
 
-The v3.0 milestone aims to derive Einstein's field equations from the locality of self-modeling, extending the v2.0 result (self-modeling forces M_n(C)^sa) to gravity. The proposed derivation chain is: local self-modeling on a lattice of M_n(C)^sa systems produces area-law entanglement entropy; Jacobson's thermodynamic argument (1995/2016) converts area-law entropy into the Einstein field equations. The literature strongly supports the individual links: area laws for gapped local Hamiltonians are rigorously established in 1D (Hastings 2007) and for frustration-free 2D systems (Anshu-Arad-Gosset 2022), while Jacobson's thermodynamic derivation is widely accepted and has been refined over 30 years. The critical gap -- and the project's novel contribution -- is the bridge from self-modeling locality to the conditions that imply area-law entanglement. No prior work has connected a QM reconstruction program to emergent gravity.
+The v4.0 milestone investigates whether the doubled self-modeling composite -- with Hilbert space H = C^{2n^2}, real structure J from observer-swap, and chirality gamma from SWAP x matter-sign -- satisfies the axioms of a real spectral triple of KO-dimension 6. If the axioms hold and the first-order condition forces the subalgebra C + H + M_3(C), this would derive the Standard Model gauge group from self-modeling, extending the chain: self-modeling -> QM (Paper 5) -> GR (Paper 6) -> SM (Paper 7). The KO-dimension 6 sign relations J^2 = +1 and J gamma = -gamma J are already verified; the remaining signs and axioms require explicit construction of D and verification of the order zero and first-order conditions.
 
-The recommended approach is: (1) formalize self-modeling locality using the standard quantum lattice system framework (Bratteli-Robinson), (2) prove area-law entanglement via a channel capacity / mutual information bound that bypasses the need for a spectral gap, (3) apply Jacobson's 2016 "entanglement equilibrium" formulation (which uses entanglement entropy directly, avoiding the need for explicit Rindler horizons or Unruh temperature on the lattice), and (4) construct emergent spatial geometry from mutual information using the Cao-Carroll-Michalakis framework as a consistency check. The Jacobson 2016 formulation is strongly preferred over the 1995 version because it is more compatible with a lattice/discrete setting.
+The literature strongly supports the mathematical framework. Connes' classification (1995), Chamseddine-Connes' "Why the Standard Model" theorem (2007), and the post-Barrett KO-dimension 6 resolution of fermion doubling (2006) are all HIGH-confidence established results. The finite-dimensional setting means all axioms reduce to explicit matrix identities -- there are no analytical subtleties, only algebraic ones. The Boyle-Farnsworth Jordan geometry program (2019) provides a natural bridge: the self-modeling construction produces M_n(C)^sa (a special Jordan algebra), and Jordan algebras can serve as coordinate algebras in spectral triples. No existing computation package exists for finite spectral triple verification; custom SymPy/NumPy routines (~400-600 lines) suffice.
 
-The principal risks are: (a) the self-modeling fixed point may not be a state with area-law entanglement (the "which state?" problem), (b) background dependence circularity (the lattice topology is an input, so "emergent geometry" means emergent metric, not emergent topology), and (c) Jacobson's argument requires a smooth manifold, but the self-modeling system is a finite lattice -- a continuum limit is needed but is an open problem in quantum gravity. These risks are manageable: (a) is addressed by the information-theoretic channel capacity route, (b) is mitigated by honest framing, and (c) is handled by adopting the standard Wilsonian perspective (lattice = UV, Einstein equations = IR effective description).
+The principal risks are: (a) the order zero condition may fail for the naive algebra action, requiring modification (the PROJECT.md skeptical review identifies this as the "weakest anchor"); (b) no non-trivial Dirac operator may satisfy all four simultaneous constraints (self-adjointness, anti-commutation with gamma, commutation with J, first-order condition); (c) the first-order condition may force a subalgebra different from C + H + M_3(C), giving a different gauge group (still publishable but not the SM). Risk (a) is mitigated by the standard result that for matrix algebras with SWAP-type J, the opposite algebra acts on the complementary tensor factor and automatically commutes. Risk (b) requires systematic enumeration of the D-space before attempting specific candidates. Risk (c) is an empirical question resolved by explicit computation. A graceful fallback exists: if the first-order condition fails entirely, Chamseddine-Connes-van Suijlekom (2013) showed the result is Pati-Salam SU(2)_R x SU(2)_L x SU(4), a phenomenologically viable GUT.
 
 ## Key Findings
 
 ### Prior Work Landscape
 
-Three distinct programs derive gravity from entanglement, and their relative strengths determine the recommended approach:
+The NCG approach to the Standard Model is mature (30 years, textbook-level). The foundational chain is:
 
-**Program 1: Jacobson's Thermodynamic Gravity (1995, 2012, 2016).** Derives the full nonlinear Einstein equations from area-law entropy + Clausius relation + Unruh effect. Does NOT require AdS/CFT. Works in any spacetime dimension. This is the recommended terminus of the derivation chain because it produces the strongest result (full nonlinear equations) with the fewest framework assumptions. [CONFIDENCE: HIGH]
+**Established results (HIGH confidence):**
+- Connes (1995): Real spectral triple axioms and KO-dimension mod 8 classification via signs (epsilon, epsilon', epsilon'')
+- Connes (2006): KO-dimension 6 (not 0) resolves fermion doubling; gamma_F eigenvalue pattern matches SM chirality
+- Chamseddine-Connes-Marcolli (2007): Classification theorem -- irreducible finite spectral triples of KO-dim 6, with first-order condition + quaternion linearity + unimodularity, give A_F = C + H + M_3(C) as the unique solution (k=4, dim H_F = 16 per generation)
+- Krajewski (1997): Diagrammatic classification of all finite spectral triples via decorated graphs
+- Barrett (2015): General Dirac operator form for A = M_n(C) spectral triples; D = sum L_{e_i} x gamma^i + R_{f_j} x delta^j
 
-**Program 2: AdS/CFT Entanglement Gravity (FLM, LMVR, Van Raamsdonk).** Derives linearized Einstein equations from the entanglement first law within holographic CFTs. Requires the full AdS/CFT apparatus. Not suitable as the primary route because self-modeling systems are not CFTs with holographic duals. However, the conceptual insight -- that entanglement constraints determine gravitational dynamics -- transfers directly. [CONFIDENCE: HIGH for the results within AdS/CFT; NOT APPLICABLE to this project as primary method]
+**Directly relevant to self-modeling (MEDIUM confidence):**
+- Boyle-Farnsworth (2019): Jordan geometry as alternative to NCG; M_n(C)^sa with Jordan product a o b = (ab+ba)/2 naturally accommodates SM algebra; gauge fields automatically unimodular
+- Farnsworth (2022): Spectral triples with Jordan coordinate algebras; reformulates order zero and first-order conditions for Jordan algebras
+- Connes-van Suijlekom (2020): Operator systems (self-adjoint unital subspaces of C*-algebras) replace C*-algebras in spectral truncations; operator systems ARE Jordan algebras under symmetrized product
 
-**Program 3: Emergent Geometry (Cao-Carroll-Michalakis 2017).** Constructs spatial geometry from entanglement structure of a quantum state in finite-dimensional Hilbert space. Produces a spatial analog of Einstein's equation from entanglement perturbations. Most directly compatible with the lattice framework. Gives spatial geometry only, not full spacetime dynamics. [CONFIDENCE: MEDIUM]
-
-**No direct precedent exists** for deriving GR from self-modeling, self-reference, or similar operational premises. The novelty is genuine: no published work chains QM reconstruction to emergent gravity. Each individual link (self-modeling to M_n(C)^sa, area laws from locality, Jacobson's derivation) has strong precedent, but the complete chain is new.
+**Key structural facts for this project:**
+- The self-modeling gamma eigenvalue pattern (Sym^2 <-> right-handed, wedge^2 <-> left-handed, with matter-sign flip for antiparticles) exactly matches the Connes (2006) KO-dim 6 grading pattern
+- The order zero condition [a x 1, 1 x b^T] = 0 holds automatically for operators on different tensor factors -- but J involves sector-swap, so the actual computation must track cross-sector terms
+- Orientability (Hochschild cycle condition) is expected to fail for KO-dim 6 finite spectral triples; this is standard and does not invalidate the construction (Barrett 2007, Stephan 2006, Cacic 2009)
+- If the first-order condition fails, the fallback is Pati-Salam (Chamseddine-Connes-van Suijlekom 2013)
 
 **Must reproduce (benchmarks):**
+- KO-dim 6 signs: (epsilon, epsilon', epsilon'') = (+1, +1, -1)
+- For k=4 SM triple: A_F = C + H + M_3(C), gauge group U(1) x SU(2) x SU(3)
+- dim(A_F) = 1 + 4 + 9 = 14 for the SM algebra
 
-- Jacobson's derivation: G_ab + Lambda g_ab = (8 pi G) T_ab from area-law entropy, in the continuum limit
-- Area-law scaling: S(A) ~ |boundary(A)| for the relevant lattice state, not volume-law
-- Lieb-Robinson bounds: finite propagation speed from local interactions
-
-**Novel contributions:**
-
-- Self-modeling locality forces area-law entanglement (the bridge argument)
-- Complete chain from a single operational premise (self-modeling) to GR via QM
-- Identification of which self-modeling state satisfies area-law conditions
+**Novel contributions (if successful):**
+- Derivation of the SM algebra from self-modeling (no prior work connects QM reconstruction to particle physics)
+- Natural Dirac operator from sequential product asymmetry (no existing construction derives D from operational axioms)
+- Jordan algebra route to spectral triples grounded in a physical principle (self-modeling) rather than mathematical axiom-choice
 
 ### Methods and Tools
 
-The v3.0 methods work ABOVE the C*-algebra level established in v2.0: we now HAVE M_n(C)^sa at each site and must derive consequences of assembling many such sites into a lattice with local interactions. Seven methods are identified, with a clear critical path.
+All v4.0 methods are algebraic: finite-dimensional matrix identities on H = C^{2n^2}. Six methods form the critical path, all HIGH-confidence standard techniques applied to a novel construction.
 
-**Critical path (sequential):**
+**Major components:**
 
-1. **Quantum lattice system formalization** (Bratteli-Robinson framework) -- define the lattice with A_x = M_n(C) at each site, nearest-neighbor interactions encoding self-modeling coupling. [CONFIDENCE: HIGH, standard framework]
-2. **Lieb-Robinson bounds** -- establish finite propagation speed and effective causal structure from local interactions. [CONFIDENCE: HIGH, rigorous theorems since 1972]
-3. **Area-law entanglement** via channel capacity / mutual information bound -- the CRITICAL STEP. Four routes available, ranked by promise: (3D) channel capacity bound (most promising, requires pure global state), (3A) WVCH mutual information bound (requires thermal state identification), (3C) Brandao-Horodecki correlation decay (1D only), (3B) Hastings gapped ground state (1D only, requires gap). [CONFIDENCE: MEDIUM for applicability to self-modeling]
-4. **Entanglement first law** -- delta S = delta <K> connects area-law perturbations to modular energy, bridging to Jacobson. [CONFIDENCE: MEDIUM-HIGH]
-5. **Jacobson 2016 entanglement equilibrium** -- MVEH (vacuum maximizes entanglement entropy in small geodesic balls) implies Einstein's equations. Preferred over 1995 because it uses entanglement entropy directly. [CONFIDENCE: HIGH for the continuum result; MEDIUM for lattice adaptation]
+1. **Direct axiom verification** (van Suijlekom Ch. 2-4) -- Write J, gamma, pi(a) as explicit matrices on C^{2n^2}; verify each axiom as a matrix identity. Cost: O(n^4) per check. For n=4 (SM candidate): 32x32 matrices, trivially fast.
 
-**Supporting track (parallel):**
+2. **Bimodule decomposition / Krajewski diagrams** (Krajewski 1997, Cacic 2009) -- Decompose H into irreducible A-A^o bimodules to classify all compatible Dirac operators. Determines which off-diagonal blocks D can connect. The diagram encodes the spectral triple.
 
-6. **Cao-Carroll-Michalakis emergent geometry** -- construct spatial geometry from mutual information matrix via MDS. Consistency check, not on the critical path. [CONFIDENCE: MEDIUM]
-7. **MERA / holographic geometry** -- conceptual support showing area-law states can produce geometry. Not used as proof strategy. [CONFIDENCE: MEDIUM as conceptual framework]
+3. **First-order condition as linear algebra** (Chamseddine-Connes 2008) -- For each candidate D, the condition [[D,a], Jb*J^{-1}] = 0 is linear in a. Recast as matrix equation Mv = 0; null space = subalgebra A_F. This is how CCM identified C + H + M_3(C).
 
-**Rate-limiting step:** Method 3 (area-law entanglement from self-modeling locality). The bridge between self-modeling locality and the information-theoretic conditions for area-law scaling is the single most important methodological question.
+4. **Systematic D parameterization** (Barrett 2015) -- D must be self-adjoint, off-diagonal in gamma eigenspaces (D gamma = -gamma D), and satisfy JD = DJ. These are linear constraints reducing the n^4-dimensional parameter space to a tractable moduli space.
+
+5. **Sequential product asymmetry candidate** -- The operator L_a - R_a = sp(a,-) - sp(-,a) is antisymmetric under SWAP, mapping Sym^2 <-> wedge^2, giving D gamma = -gamma D. Whether it also satisfies JD = DJ and the first-order condition is the core open question.
+
+6. **Numerical verification at small n** -- SymPy (exact symbolic) for n=2,3 general proofs; NumPy for n=4 spot checks. All matrices are at most 32x32. No specialized software exists for finite spectral triple verification; custom code (~400-600 lines) built on existing SymPy/NumPy infrastructure.
 
 ### Computational Approaches
 
-The v3.0 milestone is primarily proof work, not heavy numerics. Computation serves verification and illustration: small-scale numerical checks that area-law scaling holds for self-modeling lattices and that intermediate steps (entanglement first law) are numerically satisfied.
+The v4.0 computation is entirely laptop-scale. All operators are explicit matrices on C^{2n^2}: 8x8 for n=2, 18x18 for n=3, 32x32 for n=4. No HPC, GPU, or cluster needed. The bottleneck is organizing the computation systematically, not compute time.
 
-**Core approach:**
+**Core approach:** SymPy symbolic matrices for general-n patterns, NumPy explicit matrices for n=2,3,4 spot-checks. The existing SymPy infrastructure (Peirce decomposition, spectral extension, 658+ tests) transfers directly.
 
-- Exact diagonalization (NumPy/SciPy) for lattices up to ~20 qubits / 10 M_2(C)^sa sites
-- QuTiP for partial trace and entanglement entropy extraction
-- Linear regression to distinguish area-law vs volume-law scaling
+**Resource estimates:** Zero-order check at n=4: < 100 ms. Full D parameterization at n=4: < 1 min. First-order constraint matrix + SVD at n=4: < 5 min. Full axiom suite across n=2,3,4: < 10 min total.
 
-**Feasibility:** All computation is local laptop-scale. Sweet spots: 1D chain N=16-20 qubits and 2D 4x4 lattice (1 MB state vector, seconds to minutes). Total new code: ~300-400 lines of Python.
+**No existing NCG software package exists.** Confirmed by literature survey: the field works with pen-and-paper. Barrett (2024) is the most recent computational work on finite spectral triples and confirms no published verification code exists. This means we build targeted verification routines, which is straightforward given the small matrix sizes.
 
-**Critical dependency:** All numerical computation is blocked until Phase 1 defines the self-modeling interaction Hamiltonian. Benchmark computations (Heisenberg chain, transverse Ising) can validate infrastructure in parallel.
+**Recommended investigation order:** n=2 first (proof-of-concept, 8x8 matrices), then n=3 (color algebra relevance, 18x18), then n=4 (SM candidate, 32x32), then general-n symbolic.
 
 ### Critical Pitfalls
 
-13 pitfalls identified, 8 critical and 5 moderate. The top 5:
+8 pitfalls identified, ranked by severity. The top 5:
 
-1. **The "Which State?" Problem (P1)** -- Area laws hold for ground states of gapped local Hamiltonians, not generic states. **Avoid by:** using the information-theoretic channel capacity route (Route 3D), which does not require a Hamiltonian or spectral gap, only that the global state is pure and information flow is local.
+1. **Premature victory from KO-dimension signs alone (P1)** -- Signs J^2 = +1, J gamma = -gamma J are necessary but NOT sufficient for a spectral triple. The order zero condition, first-order condition, and Poincare duality are the hard checks. **Avoid by:** maintaining an explicit axiom checklist; do not claim "spectral triple established" until all non-trivial axioms are verified.
 
-2. **Background Dependence Circularity (P2)** -- The lattice connectivity is an input, so "emergent geometry" risks being tautological. **Avoid by:** separating claims: topology is input, metric is derived.
+2. **Order zero condition failure for naive algebra action (P2)** -- If pi(a) = a x 1 on both sectors fails to commute with pi_o(b) = J pi(b*) J^{-1}, the spectral triple is dead. This is the weakest anchor. **Avoid by:** explicit SymPy computation at n=2,3 before attempting general proof. If it fails, search for modified algebra actions or subalgebras. The standard result (opposite algebra = 1 x b^T, which commutes with a x 1) suggests it should hold, but J's sector-swap must be tracked carefully.
 
-3. **Jacobson Requires Smooth Manifold (P3)** -- Rindler horizons, Raychaudhuri equation, and Unruh temperature do not exist on a finite lattice. **Avoid by:** using Jacobson 2016 (entanglement equilibrium) and the Wilsonian perspective (lattice = UV, continuum = IR).
+3. **No non-trivial D satisfying all four constraints simultaneously (P4)** -- D must be self-adjoint, off-diagonal in gamma, commute with J, AND satisfy the first-order condition. The intersection of these constraint spaces may be trivial (D=0 only). **Avoid by:** enumerate the full D-space from constraints (1)-(3) BEFORE checking (4). If the moduli space is empty or trivial, explore alternative J or gamma definitions.
 
-4. **Spectral Gap Not Guaranteed (P4)** -- The gap is unproven for self-modeling and potentially undecidable (Cubitt-Perez-Garcia-Wolf 2015). **Avoid by:** using gap-free routes to area law.
+4. **First-order condition failure (P5)** -- Even if D exists satisfying (1)-(3), the first-order condition may fail for the full M_n(C), forcing a different subalgebra than C + H + M_3(C). **Avoid by:** compute the actual subalgebra; any non-trivial result is publishable. If the first-order condition fails entirely, Pati-Salam emerges (Chamseddine-Connes-van Suijlekom 2013).
 
-5. **Continuum Limit is an Open Problem (P6)** -- No known rigorous route from finite lattice to smooth manifold. **Avoid by:** framing as leading-order effective description, analogous to lattice QCD.
+5. **CCM classification requires additional hypotheses beyond KO-dimension (P7)** -- Irreducibility, quaternion linearity, unimodularity, and massivity conditions must ALL hold for the classification theorem to apply. **Avoid by:** check each hypothesis explicitly against the self-modeling construction; cite the precise theorem statement.
+
+**Additional pitfalls:** Orientability failure is expected and non-fatal (P3). SWAP decomposition pattern match may be coincidental (P8) -- the value is in the algebraic proof, not the pattern. Confusing finite spectral triples with almost-commutative ones inflates trivially-true conditions (P6).
 
 ## Approximation Landscape
 
 | Method | Valid Regime | Breaks Down When | Controlled? | Complements |
 |--------|------------|------------------|-------------|-------------|
-| Hastings area law | 1D, gapped, local H | Gapless (log corrections); D > 1 (unproven) | Yes (expansion in 1/Delta) | Brandao-Horodecki (no gap needed) |
-| Brandao-Horodecki | 1D, exponential correlation decay | Algebraic decay; D > 1 | Yes (expansion in xi) | Mutual info bound (works in all D) |
-| WVCH mutual info bound | Any D, thermal states of local H | Not thermal; not local H | Yes (bound: beta * boundary * h) | Channel capacity (no H needed) |
-| Channel capacity bound | Any D, pure global state, local info flow | Mixed global state; long-range channels | Yes (capacity = 2 log n per bond) | WVCH (handles thermal states) |
-| Jacobson 1995 | Smooth manifold, local equilibrium | Non-equilibrium (gives f(R) gravity); lattice | No (assumes equilibrium exactly) | Jacobson 2016 |
-| Jacobson 2016 | Conformal fields, first-order perturbations | Non-conformal (needs conjecture); higher order | Partially (first order) | CCM spatial Einstein analog |
-| CCM emergent geometry | Finite-dim Hilbert space, area-law states | Non-area-law states; distance inconsistency | No (constructive) | Jacobson for dynamics |
-| Exact diagonalization | N <= ~24 qubits | Memory overflow N > ~28 qubits | Yes (exact to machine precision) | DMRG for larger 1D |
+| Direct matrix computation | Any finite n; exact | n too large for explicit matrices (n > ~10) | Yes (exact) | General-n symbolic (SymPy) |
+| SymPy symbolic verification | General n with parametric entries | Expressions grow too complex for simplification | Partially (depends on algebraic structure) | NumPy numerical at specific n |
+| Krajewski diagram classification | Any finite-dim *-algebra | Infinite-dimensional algebras | Yes (complete for finite dim) | Direct matrix computation |
+| First-order condition linear algebra | Any finite spectral triple with given D | If D is not fixed (need full D moduli space first) | Yes (exact linear algebra) | Bimodule decomposition |
+| Sequential product asymmetry for D | Self-modeling construction | If asymmetry does not satisfy JD = DJ | Novel (untested) | Generic D parameterization |
+| Jordan algebra route (Boyle-Farnsworth) | Special Jordan algebras (M_n(C)^sa) | Exceptional Jordan algebras; no classification theorem yet | No (framework incomplete) | Standard C*-algebraic route |
 
-**Coverage gap:** No controlled method for proving area-law entanglement in D > 1 for general gapped Hamiltonians. The channel capacity argument is dimension-independent but requires the pure-state condition.
+**Coverage gap:** No established method connects the sequential product asymmetry to a Dirac operator satisfying the first-order condition. This is the novel bridge that v4.0 must construct. The bimodule decomposition provides the space of ALLOWED D values; the question is whether the physically-motivated candidate lies in that space.
 
 ## Theoretical Connections
 
-### Entanglement First Law as Universal Bridge [ESTABLISHED]
+### Self-Modeling Jordan Algebra = NCG Coordinate Algebra [CONJECTURED]
 
-The entanglement first law delta S = delta <K> is the common thread linking all three programs. In Jacobson: it is the Clausius relation rewritten in entanglement language. In FLM/LMVR: it gives linearized Einstein equations via Ryu-Takayanagi. On a lattice: it is an exact quantum information identity for first-order perturbations of any state. The lattice formulation is mathematically identical to the continuum -- only the interpretation of K changes.
+The deepest connection: self-modeling forces M_n(C)^sa (Paper 5), which is a special Jordan algebra. Boyle-Farnsworth (2019) and Farnsworth (2022) show that Jordan algebras can serve as coordinate algebras in spectral triples, with automatically unimodular gauge fields. Connes-van Suijlekom (2020) show that operator systems (which are Jordan algebras under the symmetrized product) generalize C*-algebras in NCG. If this identification is made rigorous, the self-modeling construction provides a physical origin for the Jordan algebraic input to the NCG Standard Model. Confidence: MEDIUM. The mathematical structures match, but the bridge from "M_n(C)^sa arises from self-modeling" to "M_n(C)^sa defines a spectral triple giving the SM" requires the full axiom verification.
 
-### Modular Hamiltonian as Discrete Boost Generator [CONJECTURED]
+### SWAP Chirality = KO-Dimension 6 Grading [ESTABLISHED]
 
-In continuum QFT, the modular Hamiltonian of the vacuum restricted to a Rindler wedge IS the boost generator (Bisognano-Wichmann). On a lattice, K = -ln(rho_A) is well-defined but has no a priori geometric interpretation. The conjecture: for area-law states on lattices, K is approximately local (concentrated at the boundary of A), and in the continuum limit, K approaches the boost generator. This establishes the Unruh temperature through the modular Hamiltonian rather than through Lorentz invariance.
+The SWAP operator P on C^n x C^n decomposes into Sym^2 (P=+1) and wedge^2 (P=-1). The grading gamma = (P, -P) on the doubled space gives exactly the KO-dimension 6 eigenvalue pattern from Connes (2006): right-handed particles and left-handed antiparticles get gamma = +1; left-handed particles and right-handed antiparticles get gamma = -1. The sign relations J^2 = +1 and J gamma = -gamma J are algebraically verified. Note: this correspondence is structurally guaranteed by the tensor product decomposition and does not by itself imply SM content. The SM content must come from the first-order condition.
 
-### Self-Modeling Locality as Information-Theoretic Locality [SPECULATIVE]
+### Sequential Product Asymmetry = Dirac Operator [SPECULATIVE]
 
-The deepest connection: the self-modeling constraint (model probes body through boundary) IS information-theoretic locality (mutual information bounded by channel capacity of intermediate bonds). If this identification holds, the area law follows immediately. This is the project's core hypothesis and its novel contribution.
+The sequential product sp(a,b) = sqrt(a) b sqrt(a) is temporally asymmetric: sp(a,b) != sp(b,a). The "asymmetry operator" L_a - R_a maps Sym^2 to wedge^2 and vice versa (it is odd under SWAP), giving D gamma = -gamma D. If this operator also commutes with J and satisfies the first-order condition, it would provide a derivation of the Dirac operator from self-modeling -- with no precedent in the literature. Confidence: LOW until explicit verification.
 
-### Area-Law Universality [ESTABLISHED]
+### First-Order Condition as Algebra Filter [ESTABLISHED]
 
-Area-law entanglement appears across: condensed matter ground states, black hole horizons, Ryu-Takayanagi surfaces, tensor network states. The universality strongly suggests it is a fundamental constraint. The self-modeling project would add another instance from an operational/algebraic premise.
+In CCM, the starting algebra is M_2(H) + M_4(C) (or M_n(C) in our case), and the first-order condition [[D,a], Jb*J^{-1}] = 0 acts as a filter, selecting the maximal subalgebra compatible with D. This is the mechanism that produces C + H + M_3(C). The same mechanism applies to the self-modeling construction: whatever subalgebra the first-order condition forces IS the physical algebra, and its unitary group (modulo unimodularity) IS the gauge group.
 
 ### Cross-Validation Matrix
 
-|                      | Jacobson 2016 | CCM Geometry | Exact Diag. | Known Limits |
-|:---------------------|:---:|:---:|:---:|:---:|
-| Channel capacity (3D) | Area-law input | MI provides distances | S(A) scaling check | Flat: S = const/bond |
-| Jacobson 2016        | -- | Compatible curvature | Equil. check | Flat: T=0, R=0 |
-| CCM Geometry         | Spatial curvature | -- | MDS dim check | 1D chain -> 1D |
+|                          | Barrett M_n(C) triple | CCM SM triple | Jordan (Boyle-Farnsworth) | Exact numerical |
+|:-------------------------|:---:|:---:|:---:|:---:|
+| Self-modeling triple     | Bimodule structure comparison | Subalgebra = C + H + M_3(C)? | Jordan algebra identification | n=2,3,4 matrix checks |
+| Barrett M_n(C) triple   | -- | D parameterization | M_n(C)^sa is special Jordan | Eigenvalue comparison |
+| CCM SM triple            | -- | -- | SM algebra IS Jordan | dim(A_F) = 14 |
 
-**High-risk gap:** The channel capacity argument has no independent cross-validation. If it fails, fallback to WVCH (thermal) or Brandao-Horodecki (1D only).
+**High-risk gap:** The sequential product asymmetry candidate for D has no cross-validation. It is a novel proposal with no independent check other than direct axiom verification.
 
-## Implications for Research Plan
+## Implications for Roadmap
 
-### Phase 1: Locality Formalization
+### Phase 1: Order Zero Verification and Representation Theory
 
-**Rationale:** Everything depends on precisely defining "local self-modeling" on a lattice. Must establish the lattice structure, interaction Hamiltonian, and mapping from self-modeling locality to Hamiltonian/information-theoretic locality.
-**Delivers:** Formal lattice definition; interaction Hamiltonian H; locality axiom; Lieb-Robinson velocity.
-**Methods:** Quantum lattice formalization, Lieb-Robinson bounds.
-**Builds on:** Paper 5 (M_n(C)^sa, local tomography, composite structure).
-**Avoids:** P2 (circularity), P9 (locality conflation).
-**Risk:** MEDIUM.
+**Rationale:** The order zero condition [a, Jb*J^{-1}] = 0 is the gatekeeper. If it fails for all reasonable algebra actions, the entire v4.0 program is blocked. Must resolve this FIRST.
+**Delivers:** Verified order zero condition (or identification of correct algebra action); bimodule decomposition of H into irreducible A-A^o bimodules; Krajewski diagram.
+**Methods:** Direct matrix computation (Method 1), opposite algebra computation (Method 3), bimodule decomposition (Method 2).
+**Builds on:** Paper 5 (M_n(C)^sa, J = dagger), Paper 6 (SWAP, doubled space).
+**Avoids:** P1 (sign-only false progress), P2 (order zero failure), P6 (trivial axiom inflation).
+**Success criteria:** [pi(a), pi_o(b)] = 0 verified at n=2,3,4 and symbolically at general n; bimodule multiplicities computed.
+**Risk:** MEDIUM. The standard tensor product argument (a x 1 commutes with 1 x b^T) is strong but J's sector-swap adds complexity.
 
-### Phase 2: Area-Law Derivation
+### Phase 2: Dirac Operator Construction
 
-**Rationale:** The area law is the critical link. Must be established before Jacobson applies. This is the rate-limiting step and the novel contribution.
-**Delivers:** Proof or strong argument that S(A) ~ |boundary(A)| for self-modeling lattice state.
-**Methods:** Channel capacity (Route 3D) primary, WVCH (Route 3A) backup.
-**Builds on:** Phase 1 (lattice, locality axiom).
-**Avoids:** P1 (which state?), P4 (spectral gap), P11 (higher-D conjecture).
-**Risk:** HIGH.
+**Rationale:** With order zero established, parameterize the full space of Dirac operators satisfying D* = D, D gamma = -gamma D, JD = DJ. This is the moduli space (Cacic 2009). Then test whether the sequential product asymmetry candidate lies in this space.
+**Delivers:** Moduli space of allowed D (dimension count); identification of physically motivated D from sequential product; verification of JD = DJ (completing KO-dim 6).
+**Methods:** D parameterization (Method 4); sequential product asymmetry construction.
+**Builds on:** Phase 1 (bimodule structure constrains D blocks).
+**Avoids:** P4 (D compatibility -- enumerate space BEFORE trying specific candidates).
+**Success criteria:** Non-trivial D exists (moduli space dimension > 0); sequential product candidate satisfies all constraints; JD = DJ verified (epsilon' = +1 confirmed).
+**Risk:** MEDIUM-HIGH. The moduli space could be empty or contain only D = 0.
 
-### Phase 3: Jacobson Application
+### Phase 3: First-Order Condition and Algebra Identification
 
-**Rationale:** Once area-law entanglement is established, Jacobson 2016 converts it to Einstein's equations. Continuum limit argued physically, not proved rigorously.
-**Delivers:** G_ab + Lambda g_ab = (8 pi G) T_ab from entanglement equilibrium; G = 1/(4 eta).
-**Methods:** Jacobson 2016 entanglement equilibrium, entanglement first law.
-**Builds on:** Phase 2 (area law), Phase 1 (causal structure).
-**Avoids:** P3 (smooth manifold), P5 (equilibrium), P6 (continuum limit), P8 (Unruh temperature).
-**Risk:** HIGH.
+**Rationale:** Given D from Phase 2, determine the maximal subalgebra A_F of M_n(C) satisfying [[D,a], Jb*J^{-1}] = 0. This is where the SM algebra would emerge.
+**Delivers:** Identification of A_F; dimension and structure of A_F; comparison with C + H + M_3(C); gauge group identification.
+**Methods:** First-order condition linear algebra (Method 5); null space computation.
+**Builds on:** Phase 2 (specific D).
+**Avoids:** P5 (first-order failure -- compute explicitly, don't assume); P7 (classification hypotheses -- check all of them).
+**Success criteria:** A_F identified as an abstract algebra; if A_F = C + H + M_3(C), the gauge group U(1) x SU(2) x SU(3) emerges. If A_F is different, document the actual result.
+**Risk:** HIGH. This is the core open question. The subalgebra depends on D, which depends on the sequential product, which is novel.
 
-### Phase 4: Numerical Verification
+### Phase 4: Remaining Axioms and Classification
 
-**Rationale:** Small-scale numerics validate Phases 2-3. Benchmarks on standard models validate infrastructure; self-modeling lattice checks require Phase 1 Hamiltonian.
-**Delivers:** Area-law scaling data; entanglement first law verification; entanglement equilibrium check.
-**Methods:** Exact diagonalization (SciPy), QuTiP.
-**Builds on:** Phase 1 (Hamiltonian).
-**Risk:** LOW.
+**Rationale:** Verify Poincare duality, document orientability failure (expected), check irreducibility, verify unimodularity condition. These are required for the CCM classification theorem to apply.
+**Delivers:** Complete axiom checklist; classification theorem applicability assessment; honest gap identification.
+**Methods:** KO-dimension verification (Method 6); K-theory intersection form computation.
+**Builds on:** Phases 1-3.
+**Avoids:** P3 (orientability -- document expected failure), P7 (classification hypotheses).
+**Success criteria:** All non-trivial axioms checked; CCM hypotheses assessed; complete spectral triple or precise identification of which axioms fail.
+**Risk:** LOW-MEDIUM. The checks are straightforward once Phases 1-3 are complete.
 
-### Phase 5: Emergent Geometry and Paper Assembly
+### Phase 5: Paper 7 Assembly
 
-**Rationale:** CCM emergent geometry provides consistency check. Paper 6 assembles the full chain with honest framing.
-**Delivers:** Emergent spatial geometry; Paper 6 "Spacetime from Self-Modeling."
-**Methods:** CCM emergent geometry, MDS embedding.
+**Rationale:** Assemble the complete derivation chain with precise gap identification and honest framing.
+**Delivers:** Paper 7 "Spectral Triple from Self-Modeling" with complete chain, SymPy verification code, and precise statement of what is derived vs. assumed.
 **Builds on:** All prior phases.
-**Avoids:** P7 (dimension not determined), P12 (classical only), P13 (factorization).
-**Risk:** MEDIUM.
+**Avoids:** P8 (coincidental pattern matching -- value is in algebraic proof, not pattern), publication pitfalls (overclaiming, missing citations).
+**Risk:** MEDIUM. Depends on outcomes of Phases 1-3.
 
 ### Phase Ordering Rationale
 
-- Phase 1 before Phase 2: cannot prove area law without defining the lattice
-- Phase 2 before Phase 3: area-law entanglement is input to Jacobson
-- Phase 4 partially parallel to Phases 2-3: benchmarks can begin immediately
-- Phase 5 after Phases 1-4: paper assembly requires all results
+- Phase 1 before Phase 2: cannot parameterize D without knowing the bimodule structure
+- Phase 2 before Phase 3: first-order condition requires a specific D
+- Phase 3 is the decisive phase: determines whether SM emerges
+- Phase 4 after Phase 3: classification theorem applicability assessment requires knowing A_F
+- Phase 5 after all: paper assembly requires all results
 
 ### Phases Requiring Deep Investigation
 
-- **Phase 2 (Area-Law Derivation):** Novel theoretical work; no existing theorem directly applies. Must construct the bridge argument.
-- **Phase 3 (Jacobson Application):** No published discrete lattice version of Jacobson exists. Original work required.
+- **Phase 2:** Novel construction (sequential product asymmetry as D); no literature precedent for deriving D from operational axioms
+- **Phase 3:** Core open question; outcome determines the paper's main result
 
 Phases with established methodology:
 
-- **Phase 1 (Locality Formalization):** Standard quantum lattice framework (Bratteli-Robinson, 40+ years).
-- **Phase 4 (Numerical Verification):** Well-established exact diagonalization and entanglement entropy methods.
+- **Phase 1:** Standard bimodule decomposition and commutator verification (van Suijlekom Ch. 2-4, Krajewski 1997)
+- **Phase 4:** Standard axiom checks (textbook material)
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|-----------|-------|
-| Prior Work | HIGH | Jacobson's thermodynamic gravity well-established (30 years). Area-law literature mature. |
-| Methods | MEDIUM | Individual methods well-established; application to self-modeling is novel. Critical gap at bridge step. |
-| Computational Approaches | MEDIUM-HIGH | Standard, validated techniques. Blocked until Hamiltonian defined. |
-| Pitfalls | MEDIUM | Known issues well-cataloged; self-modeling-specific pitfalls inferred from structural analysis. |
+| Methods | HIGH | All methods are standard finite-dim linear algebra; the novelty is in WHAT they are applied to, not HOW |
+| Prior Work | HIGH | NCG-SM program is 30 years old with textbook-level results; Connes, CCM, Barrett are definitive |
+| Computational Approaches | MEDIUM-HIGH | Standard NumPy/SymPy matrix algebra; no specialized software exists but none needed at these matrix sizes |
+| Pitfalls | MEDIUM-HIGH | Comprehensive identification of 8 pitfalls with recovery strategies; self-modeling-specific risks well-characterized |
 
 **Overall confidence:** MEDIUM
 
+The uncertainty is NOT in the methods or prior work (both HIGH), but in the OUTCOME: whether the self-modeling construction actually produces a spectral triple that gives the SM. The order zero condition, D existence, and first-order subalgebra identification are all genuinely open questions.
+
 ### Gaps to Address
 
-- **Self-modeling state identification:** Which state has area-law entanglement? Must resolve in Phase 2.
-- **Pure state condition:** Channel capacity route requires pure global state. Does self-modeling have a pure fixed point?
-- **Continuum limit:** Cannot solve this open problem; must frame correctly as leading-order IR effective description.
-- **Higher-D area law:** Rigorous only in 1D and 2D frustration-free. Must prove 1D rigorously, argue physically for higher D.
-- **Spectral gap:** Unknown and potentially undecidable. Recommended approach deliberately bypasses this.
+- **Which n gives the SM?** CCM requires dim(H_F) = k^2 per generation. Self-modeling gives dim(H) = 2n^2. The mapping 2n^2 = k^2 has no integer solution (2n^2 is never a perfect square for n > 0). This potential obstruction needs careful analysis: the "per generation" counting may differ from the self-modeling Hilbert space structure, or the particle/antiparticle doubling may already account for the factor of 2.
+- **Orientability:** Expected to fail; must be documented with precedent citations (Barrett 2007, Stephan 2006).
+- **Poincare duality:** Not trivially guaranteed for finite spectral triples; the intersection form must be computed explicitly. Cacic (2009) showed it can fail.
+- **Lorentzian signature:** The entire NCG framework is Euclidean (Riemannian). The connection to Lorentzian physics is an open problem (Boeijink-van den Dungen 2016). Must be flagged but is out of v4.0 scope.
 
 ### Critical Claim Verification
 
 | # | Claim | Source | Verification | Result |
 |---|-------|--------|--------------|--------|
-| 1 | Jacobson 2016: delta S_EE = 0 iff Einstein eqs (conformal, 1st order) | PRIOR-WORK.md | web_search: arXiv:1505.04753, PRL 116, 201101 | CONFIRMED |
-| 2 | Hastings area law: rigorous only in 1D; higher-D open | PITFALLS.md | web_search: general D>1 still open as of 2025 | CONFIRMED |
-| 3 | Anshu-Arad-Gosset: 2D frustration-free area law | PRIOR-WORK.md | web_search: arXiv:2103.02492, STOC 2022 | CONFIRMED |
-| 4 | WVCH: mutual info area law for thermal states | METHODS.md | web_search: PRL 100, 070502 (2008) | CONFIRMED |
-| 5 | CCM: emergent geometry from mutual information | METHODS.md | web_search: PRD 95, 024031 (2017) | CONFIRMED |
-| 6 | No prior GR-from-self-modeling work exists | PRIOR-WORK.md | Researcher survey; no contradicting evidence | UNVERIFIED (consistent with absence) |
+| 1 | CCM classification: KO-dim 6 + first-order + quaternion linearity -> C + H + M_3(C) uniquely | PRIOR-WORK.md | web_search: arXiv:0706.3688, J. Geom. Phys. 58, 38-64 (2008) | CONFIRMED |
+| 2 | Barrett: general Dirac operator form for A = M_n(C) spectral triples | METHODS.md | web_search: arXiv:1502.05383, J. Math. Phys. 56, 082301 (2015) | CONFIRMED |
+| 3 | Boyle-Farnsworth: Jordan geometry gives SM + Pati-Salam naturally | PRIOR-WORK.md | web_search: arXiv:1910.11888, New J. Phys. 22, 073023 (2020) | CONFIRMED |
+| 4 | Farnsworth: Jordan spectral triples have automatically unimodular gauge fields | PRIOR-WORK.md | web_search: arXiv:2206.07039, J. Math. Phys. 63, 103505 (2022) | CONFIRMED |
+| 5 | Chamseddine-Connes-van Suijlekom: dropping first-order gives Pati-Salam | PITFALLS.md | web_search: arXiv:1304.7583, J. Geom. Phys. 73, 222 (2013) | CONFIRMED |
+| 6 | No existing computational package for finite spectral triple verification | COMPUTATIONAL.md | web_search: Barrett arXiv:2403.18428 (2024) confirms pen-and-paper methods | CONFIRMED |
+| 7 | Connes-van Suijlekom: operator systems generalize C*-algebras in NCG | PRIOR-WORK.md | web_search: arXiv:2004.14115, Commun. Math. Phys. 383, 2021 (2021) | CONFIRMED (note: paper does not explicitly mention Jordan algebras, but the mathematical equivalence is standard) |
+
+### Input Quality -> Roadmap Impact
+
+| Input File | Quality | Affected Recommendations | Impact if Wrong |
+|------------|---------|------------------------|-----------------|
+| METHODS.md | Good | Method selection, phase ordering | Low -- methods are standard linear algebra |
+| PRIOR-WORK.md | Good | Benchmark values, classification theorem conditions | Medium -- wrong CCM conditions would change Phase 3 |
+| COMPUTATIONAL.md | Good | Resource estimates, tool selection | Low -- all laptop-scale, tool substitution trivial |
+| PITFALLS.md | Good | Risk mitigation in all phases, axiom checklist | Medium -- missed pitfall could cause false progress |
 
 ## Open Questions
 
-1. **Does self-modeling locality map onto information-theoretic locality?** [HIGH, blocks Phase 2]
-2. **Is the self-modeling fixed point a pure global state?** [HIGH, blocks Route 3D]
-3. **What Hamiltonian encodes self-modeling locality?** [HIGH, blocks Phase 4]
-4. **Can Jacobson's entanglement equilibrium work on a finite lattice?** [MEDIUM, blocks Phase 3]
-5. **How does the continuum limit emerge?** [MEDIUM, blocks rigorous Phase 3]
-6. **Does the self-modeling lattice have a spectral gap?** [MEDIUM, non-blocking]
-7. **Does self-modeling determine spatial dimension D?** [LOW, out of scope]
+1. **Does the order zero condition hold for the natural algebra action?** [HIGH, blocks Phase 1] The standard tensor product argument suggests yes, but J's sector-swap must be verified explicitly.
+
+2. **Does a non-trivial D exist satisfying D* = D, D gamma = -gamma D, JD = DJ simultaneously?** [HIGH, blocks Phase 2] If the moduli space is empty, the construction fails at the spectral triple level.
+
+3. **Does the sequential product asymmetry give a valid Dirac operator?** [HIGH, blocks Phase 2] Novel claim with no precedent. Even if D exists in the abstract moduli space, the asymmetry-derived candidate may not lie in it.
+
+4. **What subalgebra does the first-order condition force?** [HIGH, blocks Phase 3] This determines whether the result is SM (C + H + M_3(C)), Pati-Salam, or something else.
+
+5. **Which n gives the SM?** [MEDIUM, blocks Phase 3] The dimension matching 2n^2 = k^2 has no integer solution; the resolution may involve generation counting or a different Hilbert space interpretation.
+
+6. **Is Poincare duality satisfied?** [MEDIUM, non-blocking for spectral triple existence but needed for CCM classification]
+
+7. **Does the Jordan route (Boyle-Farnsworth) give better results than the C*-algebraic route?** [LOW, fallback option] Recommendation: try associative first (more mature framework), Jordan as backup.
 
 ## Sources
 
 ### Primary (HIGH)
 
-- Jacobson (1995), "Thermodynamics of Spacetime," PRL 75, 1260, [arXiv:gr-qc/9504004](https://arxiv.org/abs/gr-qc/9504004)
-- Jacobson (2016), "Entanglement Equilibrium and the Einstein Equation," PRL 116, 201101, [arXiv:1505.04753](https://arxiv.org/abs/1505.04753)
-- Jacobson (2012), "Gravitation and Vacuum Entanglement Entropy," [arXiv:1204.6349](https://arxiv.org/abs/1204.6349)
-- Hastings (2007), "An Area Law for One Dimensional Quantum Systems," JSTAT P08024, [arXiv:0705.2024](https://arxiv.org/abs/0705.2024)
-- Eisert, Cramer, Plenio (2010), "Area Laws for the Entanglement Entropy," RMP 82, 277, [arXiv:0808.3773](https://arxiv.org/abs/0808.3773)
-- Wolf, Verstraete, Cirac, Hastings (2008), "Area Laws: Mutual Information and Correlations," PRL 100, 070502, [arXiv:0704.3906](https://arxiv.org/abs/0704.3906)
-- Lieb, Robinson (1972), "The Finite Group Velocity of Quantum Spin Systems," Commun. Math. Phys. 28, 251
-- Bratteli, Robinson (1979/1981), "Operator Algebras and Quantum Statistical Mechanics," Springer
-- Bisognano, Wichmann (1975/1976), J. Math. Phys. 16, 985; 17, 303
+- Connes, "Noncommutative geometry and reality," J. Math. Phys. 36, 6194 (1995) -- axioms, KO-dimension
+- Chamseddine-Connes-Marcolli, "Why the Standard Model," [arXiv:0706.3688](https://arxiv.org/abs/0706.3688), J. Geom. Phys. 58, 38 (2008) -- classification theorem
+- Connes, "NCG and SM with neutrino mixing," [arXiv:hep-th/0608226](https://arxiv.org/abs/hep-th/0608226) (2006) -- KO-dim 6, fermion doubling resolution
+- Chamseddine-Connes, "The spectral action principle," [arXiv:hep-th/9606001](https://arxiv.org/abs/hep-th/9606001) (1996) -- spectral action formula
+- van Suijlekom, "NCG and Particle Physics," 2nd ed. (2024) -- definitive textbook
+- Krajewski, "Classification of finite spectral triples," [arXiv:hep-th/9701081](https://arxiv.org/abs/hep-th/9701081) (1997) -- Krajewski diagrams
+- Barrett, "Matrix geometries and fuzzy spaces as finite spectral triples," [arXiv:1502.05383](https://arxiv.org/abs/1502.05383) (2015) -- Dirac operators on M_n(C)
+- Cacic, "Moduli spaces of Dirac operators for finite spectral triples," [arXiv:0902.2068](https://arxiv.org/abs/0902.2068) (2009) -- moduli space framework
 
 ### Secondary (MEDIUM)
 
-- Cao, Carroll, Michalakis (2017), "Space from Hilbert Space," PRD 95, 024031, [arXiv:1606.08444](https://arxiv.org/abs/1606.08444)
-- Faulkner, Lewkowycz, Maldacena (2014), JHEP 1403, 051, [arXiv:1312.7856](https://arxiv.org/abs/1312.7856)
-- Lashkari, McDermott, Van Raamsdonk (2014), JHEP 1404, 195, [arXiv:1308.3716](https://arxiv.org/abs/1308.3716)
-- Van Raamsdonk (2010), GRG 42, 2323, [arXiv:1005.3035](https://arxiv.org/abs/1005.3035)
-- Brandao, Horodecki (2013/2015), Nature Physics 9, 721, [arXiv:1206.2947](https://arxiv.org/abs/1206.2947)
-- Anshu, Arad, Gosset (2022), [arXiv:2103.02492](https://arxiv.org/abs/2103.02492)
-- Swingle (2012), PRD 86, 065007, [arXiv:1209.3304](https://arxiv.org/abs/1209.3304)
-- Casini, Huerta, Myers (2011), JHEP 1105, 036, [arXiv:1102.0440](https://arxiv.org/abs/1102.0440)
-- Nachtergaele, Sims (2006/2019), [arXiv:1810.02428](https://arxiv.org/abs/1810.02428)
-- Bravyi, Hastings, Verstraete (2006), PRL 97, 050401, [arXiv:quant-ph/0603121](https://arxiv.org/abs/quant-ph/0603121)
+- Boyle-Farnsworth, "The SM, the Pati-Salam model, and Jordan geometry," [arXiv:1910.11888](https://arxiv.org/abs/1910.11888) (2019) -- Jordan geometry
+- Farnsworth, "Particle models from special Jordan backgrounds," [arXiv:2206.07039](https://arxiv.org/abs/2206.07039) (2022) -- Jordan spectral triples
+- Connes-van Suijlekom, "Spectral truncations and operator systems," [arXiv:2004.14115](https://arxiv.org/abs/2004.14115) (2020) -- operator systems in NCG
+- Chamseddine-Connes-van Suijlekom, "Inner fluctuations without first-order condition," [arXiv:1304.7583](https://arxiv.org/abs/1304.7583) (2013) -- Pati-Salam fallback
+- Dubois-Violette-Todorov, "Exceptional Jordan algebra and SM," [arXiv:1805.06739](https://arxiv.org/abs/1805.06739) (2018) -- F_4 and gauge group
+- Barrett, "Fermion integrals for finite spectral triples," [arXiv:2403.18428](https://arxiv.org/abs/2403.18428) (2024) -- recent computational work
 
 ### Tertiary (LOW)
 
-- Verlinde (2011), [arXiv:1001.0785](https://arxiv.org/abs/1001.0785) -- tangential
-- Padmanabhan (2010), [arXiv:0911.5004](https://arxiv.org/abs/0911.5004) -- broader program
-- Chirco, Liberati (2010), [arXiv:0909.4194](https://arxiv.org/abs/0909.4194) -- non-equilibrium
-- Cubitt, Perez-Garcia, Wolf (2015), [arXiv:1502.04573](https://arxiv.org/abs/1502.04573) -- undecidability
+- Boyle, "The SM, the exceptional Jordan algebra, and triality," [arXiv:2006.16265](https://arxiv.org/abs/2006.16265) (2020) -- octonionic connection
+- Devastato-Lizzi-Martinetti, twisted spectral triples (2018) -- Lorentzian signature
+- Filaci-Martinetti, [arXiv:2512.15450](https://arxiv.org/abs/2512.15450) (2025) -- twisted spectral triples, emergence of time
+- Boeijink-van den Dungen, [arXiv:1605.03231](https://arxiv.org/abs/1605.03231) (2016) -- Lorentzian signature problem
 
 ---
 
-_Research analysis completed: 2026-03-21_
+_Research analysis completed: 2026-03-22_
 _Ready for research plan: yes_
 
 ```yaml
 # --- ROADMAP INPUT (machine-readable, consumed by gpd-roadmapper) ---
 synthesis_meta:
-  project_title: "Experiential Measure on Structure Space -- v3.0 GR Extension"
-  synthesis_date: "2026-03-21"
+  project_title: "Experiential Measure on Structure Space -- v4.0 Spectral Triple from Self-Modeling"
+  synthesis_date: "2026-03-22"
   input_files: [METHODS.md, PRIOR-WORK.md, COMPUTATIONAL.md, PITFALLS.md]
   input_quality: {METHODS: good, PRIOR-WORK: good, COMPUTATIONAL: good, PITFALLS: good}
 
 conventions:
   unit_system: "natural"
-  metric_signature: "mostly_plus"
-  fourier_convention: "physics"
-  coupling_convention: "G = 1/(4*eta) where eta is entanglement entropy density"
+  metric_signature: "euclidean"
+  coupling_convention: "alpha = g^2/(4pi) when connecting to gauge theory; dimensionless for algebraic structure"
   renormalization_scheme: "N/A"
 
 methods_ranked:
-  - name: "Channel capacity / mutual information area law (Route 3D)"
-    regime: "Any D, pure global state, local information flow"
+  - name: "Direct axiom verification (matrix computation)"
+    regime: "Any finite n; exact for all finite-dimensional spectral triples"
+    confidence: HIGH
+    cost: "O(n^4) per axiom check; n=4 -> 32x32 matrices, < 100 ms"
+    complements: "SymPy symbolic verification (general-n patterns)"
+  - name: "Bimodule decomposition / Krajewski diagrams"
+    regime: "Any finite-dimensional *-algebra"
+    confidence: HIGH
+    cost: "O(n^2) representation-theoretic; one-time setup per n"
+    complements: "Direct axiom verification (provides specific checks)"
+  - name: "First-order condition linear algebra (null space method)"
+    regime: "Any finite spectral triple with given D"
+    confidence: HIGH
+    cost: "O(n^6) brute-force; < 5 min for n=4"
+    complements: "Bimodule decomposition (constrains D before applying first-order)"
+  - name: "Systematic D parameterization (Barrett method)"
+    regime: "A = M_n(C) with known J, gamma"
+    confidence: HIGH
+    cost: "Linear system solve; < 1 min for n=4"
+    complements: "First-order condition (acts on parameterized D)"
+  - name: "Sequential product asymmetry candidate for D"
+    regime: "Self-modeling construction only"
+    confidence: LOW
+    cost: "Analytical construction + numerical verification"
+    complements: "Generic D parameterization (validates whether candidate is in allowed space)"
+  - name: "Jordan algebra route (Boyle-Farnsworth)"
+    regime: "Special Jordan algebras (M_n(C)^sa)"
     confidence: MEDIUM
-    cost: "Analytical proof; numerical check O(d^N) for N-site ED"
-    complements: "WVCH mutual info bound (handles thermal states)"
-  - name: "Jacobson 2016 entanglement equilibrium"
-    regime: "Conformal fields, first-order perturbations, smooth manifold (continuum limit)"
-    confidence: HIGH
-    cost: "Analytical derivation; numerical check O(d^N) for entanglement equilibrium"
-    complements: "CCM emergent geometry (spatial consistency check)"
-  - name: "Quantum lattice formalization (Bratteli-Robinson)"
-    regime: "Any finite-dimensional local algebra, any graph"
-    confidence: HIGH
-    cost: "Analytical framework setup, 3-5 days"
-    complements: "Lieb-Robinson bounds (establishes causal structure)"
-  - name: "Lieb-Robinson bounds"
-    regime: "Finite-range interactions, bounded local dimension"
-    confidence: HIGH
-    cost: "Invoke known results, 1-2 days"
-    complements: "Lattice formalization (provides input structure)"
-  - name: "WVCH mutual information bound (Route 3A)"
-    regime: "Any D, thermal states of local Hamiltonians"
-    confidence: MEDIUM
-    cost: "Analytical; requires identifying self-modeling thermal state"
-    complements: "Channel capacity (handles pure states)"
-  - name: "CCM emergent geometry"
-    regime: "Finite-dim Hilbert space, area-law states"
-    confidence: MEDIUM
-    cost: "O(N^2 * d^N) for mutual info + O(N^3) for MDS"
-    complements: "Jacobson (provides dynamics; CCM gives only spatial geometry)"
-  - name: "Exact diagonalization + entanglement entropy"
-    regime: "N <= 24 qubits (d^N manageable)"
-    confidence: HIGH
-    cost: "O(d^{2N}) per ground state; minutes on laptop for N<=20"
-    complements: "DMRG (extends to N~100 in 1D)"
+    cost: "Analytical framework adaptation"
+    complements: "Standard C*-algebraic route (mature classification)"
 
 phase_suggestions:
-  - name: "Locality Formalization"
-    goal: "Define self-modeling lattice with precise locality axiom and effective causal structure"
-    methods: ["Quantum lattice formalization (Bratteli-Robinson)", "Lieb-Robinson bounds"]
+  - name: "Order Zero Verification"
+    goal: "Verify [pi(a), J pi(b*) J^{-1}] = 0 and decompose H into irreducible A-A^o bimodules"
+    methods: ["Direct axiom verification (matrix computation)", "Bimodule decomposition / Krajewski diagrams"]
     depends_on: []
     needs_research: false
     risk: MEDIUM
-    pitfalls: ["P2-background-dependence", "P9-locality-conflation"]
-  - name: "Area-Law Derivation"
-    goal: "Prove or strongly argue that local self-modeling implies area-law entanglement"
-    methods: ["Channel capacity / mutual information area law (Route 3D)", "WVCH mutual information bound (Route 3A)"]
-    depends_on: ["Locality Formalization"]
+    pitfalls: ["P1-sign-only-false-progress", "P2-order-zero-failure", "P6-finite-vs-almost-commutative"]
+  - name: "Dirac Operator Construction"
+    goal: "Parameterize moduli space of allowed D; test sequential product asymmetry candidate"
+    methods: ["Systematic D parameterization (Barrett method)", "Sequential product asymmetry candidate for D"]
+    depends_on: ["Order Zero Verification"]
+    needs_research: true
+    risk: MEDIUM
+    pitfalls: ["P4-D-compatibility"]
+  - name: "First-Order Condition and Algebra Identification"
+    goal: "Determine subalgebra A_F forced by [[D,a], Jb*J^{-1}] = 0; compare to C + H + M_3(C)"
+    methods: ["First-order condition linear algebra (null space method)"]
+    depends_on: ["Dirac Operator Construction"]
     needs_research: true
     risk: HIGH
-    pitfalls: ["P1-which-state", "P4-spectral-gap", "P11-higher-D-conjecture"]
-  - name: "Jacobson Application"
-    goal: "Derive Einstein field equations from entanglement equilibrium in continuum limit"
-    methods: ["Jacobson 2016 entanglement equilibrium", "CCM emergent geometry"]
-    depends_on: ["Area-Law Derivation"]
-    needs_research: true
-    risk: HIGH
-    pitfalls: ["P3-smooth-manifold", "P5-local-equilibrium", "P6-continuum-limit", "P8-unruh-temperature"]
-  - name: "Numerical Verification"
-    goal: "Validate area-law scaling and entanglement equilibrium on small lattices"
-    methods: ["Exact diagonalization + entanglement entropy"]
-    depends_on: ["Locality Formalization"]
+    pitfalls: ["P5-first-order-failure", "P7-classification-hypotheses", "P8-coincidental-pattern"]
+  - name: "Remaining Axioms and Classification"
+    goal: "Verify Poincare duality, document orientability, check CCM classification hypotheses"
+    methods: ["Direct axiom verification (matrix computation)"]
+    depends_on: ["First-Order Condition and Algebra Identification"]
     needs_research: false
     risk: LOW
-    pitfalls: ["finite-size-effects"]
-  - name: "Paper Assembly"
-    goal: "Assemble Paper 6 with complete chain, precise gap identification, and honest framing"
-    methods: ["CCM emergent geometry"]
-    depends_on: ["Locality Formalization", "Area-Law Derivation", "Jacobson Application", "Numerical Verification"]
+    pitfalls: ["P3-orientability", "P7-classification-hypotheses"]
+  - name: "Paper 7 Assembly"
+    goal: "Assemble Paper 7 with complete derivation chain, SymPy verification, and honest gap identification"
+    methods: []
+    depends_on: ["Order Zero Verification", "Dirac Operator Construction", "First-Order Condition and Algebra Identification", "Remaining Axioms and Classification"]
     needs_research: false
     risk: MEDIUM
-    pitfalls: ["P7-dimension-problem", "P12-classical-only", "P13-factorization"]
+    pitfalls: ["P8-coincidental-pattern"]
 
 critical_benchmarks:
-  - quantity: "Area-law scaling for 1D gapped local Hamiltonian"
-    value: "S(A) = O(1) for half-chain (constant, independent of system size)"
-    source: "Hastings (2007), arXiv:0705.2024"
+  - quantity: "KO-dimension 6 sign relations"
+    value: "(epsilon, epsilon', epsilon'') = (+1, +1, -1)"
+    source: "Connes (1995), van Suijlekom (2024) Table 3.2"
     confidence: HIGH
-  - quantity: "Critical 1D CFT entanglement (negative control)"
-    value: "S(A) = (c/6) ln(L) with c = 1/2 for transverse-field Ising at criticality"
-    source: "Calabrese-Cardy (2004), arXiv:hep-th/0405152"
+  - quantity: "SM algebra dimension"
+    value: "dim(A_F) = dim(C + H + M_3(C)) = 1 + 4 + 9 = 14"
+    source: "Chamseddine-Connes-Marcolli (2007)"
     confidence: HIGH
-  - quantity: "Jacobson Einstein equation from entanglement equilibrium"
-    value: "G_ab + Lambda g_ab = (8 pi G) T_ab for conformal fields at first order"
-    source: "Jacobson (2016), PRL 116, 201101"
+  - quantity: "SM gauge group from A_F"
+    value: "U(A_F)/center = U(1) x SU(2) x SU(3)"
+    source: "Chamseddine-Connes-Marcolli (2007)"
     confidence: HIGH
-  - quantity: "Mutual information area law for thermal states"
-    value: "I(A:B) <= beta * |boundary(A)| * ||h||"
-    source: "Wolf-Verstraete-Cirac-Hastings (2008), PRL 100, 070502"
+  - quantity: "Hilbert space dimension per generation (CCM)"
+    value: "k^2 = 16 for k=4 (32 with particle/antiparticle doubling)"
+    source: "Chamseddine-Connes-Marcolli (2007)"
     confidence: HIGH
 
 open_questions:
-  - question: "Does self-modeling locality map onto information-theoretic channel capacity locality?"
+  - question: "Does the order zero condition hold for the self-modeling algebra action on the doubled space?"
     priority: HIGH
-    blocks_phase: "Area-Law Derivation"
-  - question: "Is the self-modeling fixed point a pure global state?"
+    blocks_phase: "Order Zero Verification"
+  - question: "Does a non-trivial D exist satisfying D*=D, D gamma=-gamma D, JD=DJ simultaneously?"
     priority: HIGH
-    blocks_phase: "Area-Law Derivation"
-  - question: "What Hamiltonian encodes self-modeling locality?"
+    blocks_phase: "Dirac Operator Construction"
+  - question: "Does the sequential product asymmetry give a valid Dirac operator?"
     priority: HIGH
-    blocks_phase: "Numerical Verification"
-  - question: "Can Jacobson's entanglement equilibrium be formulated on a finite lattice?"
+    blocks_phase: "Dirac Operator Construction"
+  - question: "What subalgebra does the first-order condition force?"
+    priority: HIGH
+    blocks_phase: "First-Order Condition and Algebra Identification"
+  - question: "Which value of n (if any) gives C + H + M_3(C)?"
     priority: MEDIUM
-    blocks_phase: "Jacobson Application"
-  - question: "How does the continuum limit emerge from the self-modeling lattice?"
-    priority: MEDIUM
-    blocks_phase: "Jacobson Application"
-  - question: "Does the self-modeling lattice have a spectral gap?"
+    blocks_phase: "First-Order Condition and Algebra Identification"
+  - question: "Is Poincare duality satisfied for the self-modeling spectral triple?"
     priority: MEDIUM
     blocks_phase: "none"
-  - question: "Does self-modeling determine the spatial dimension D?"
+  - question: "Does the Jordan route give better results than C*-algebraic for this construction?"
     priority: LOW
     blocks_phase: "none"
 
 contradictions_unresolved:
-  - claim_a: "Hastings area law provides the route to S(A) ~ |boundary(A)| (requires spectral gap)"
-    claim_b: "Channel capacity argument provides the route (requires pure global state, no gap needed)"
-    source_a: "METHODS.md Route 3B, PITFALLS.md P4"
-    source_b: "METHODS.md Route 3D"
-    investigation_needed: "Determine whether the self-modeling fixed point is a gapped ground state (favoring Hastings) or a pure state accessible via channel capacity (favoring Route 3D). Both routes are viable; the choice depends on properties of the self-modeling dynamics that are currently unknown."
+  - claim_a: "CCM classification requires dim(H_F) = k^2 per generation, with k=4 giving dim(H_F) = 16 (or 32 doubled)"
+    claim_b: "Self-modeling gives dim(H) = 2n^2, which is never a perfect square for n > 0"
+    source_a: "PRIOR-WORK.md (CCM 2007 theorem)"
+    source_b: "PROJECT.md (self-modeling construction)"
+    investigation_needed: "Determine whether the CCM 'per generation' counting maps differently onto the self-modeling Hilbert space structure. Possibilities: (1) the doubling factor of 2 is already in the CCM counting (so match k^2 = n^2, giving k=n), (2) the per-generation subspace has different dimension, (3) the self-modeling construction requires a product algebra rather than M_n(C) alone."
+  - claim_a: "METHODS.md suggests n=5 gives A_F = C + H + M_3(C) based on the CCM formula k-2 = 3"
+    claim_b: "PRIOR-WORK.md suggests n=4 based on dim(H) = 2n^2 = 32 matching CCM's 32-dimensional H_F"
+    source_a: "METHODS.md Method 5"
+    source_b: "PRIOR-WORK.md open question 3"
+    investigation_needed: "The discrepancy arises from different mappings between the self-modeling parameter n and the CCM parameter k. Resolve by explicit computation at n=2,3,4,5 -- the first-order subalgebra is a computational output, not an input."
 ```

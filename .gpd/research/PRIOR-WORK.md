@@ -1,10 +1,10 @@
-# Prior Work: GR from Self-Modeling Locality via Area-Law Entanglement and Thermodynamic Gravity
+# Prior Work: Spectral Triples from Self-Modeling and the Noncommutative Standard Model
 
-**Surveyed:** 2026-03-21
-**Domain:** Quantum gravity foundations / Thermodynamic gravity / Entanglement-gravity correspondence
+**Surveyed:** 2026-03-22
+**Domain:** Noncommutative geometry / Spectral triples / Particle physics from NCG / Jordan algebras
 **Confidence:** MEDIUM-HIGH
 
-This document covers prior work relevant to deriving Einstein's equations from self-modeling locality. The proposed chain is: local self-modeling on a lattice of M_n(C)^sa systems -> area-law entanglement -> Jacobson's thermodynamic argument -> Einstein's equations. It does NOT re-cover the v2.0 results (self-modeling -> sequential products -> Jordan algebras -> C*-algebras), which are validated and complete.
+This document covers prior work relevant to determining whether the self-modeling composite carries a real spectral triple of KO-dimension 6 and whether Connes' classification gives the Standard Model algebra A_F = C + H + M_3(C). It does NOT re-cover the v2.0 results (self-modeling -> M_n(C)^sa) or v3.0 results (locality -> Einstein's equations), which are validated and complete.
 
 ---
 
@@ -12,398 +12,261 @@ This document covers prior work relevant to deriving Einstein's equations from s
 
 | Result | Expression / Value | Conditions | Source | Year | Confidence |
 |--------|-------------------|------------|--------|------|------------|
-| Clausius relation on local Rindler horizons implies Einstein equations | G_ab + Lambda g_ab = (8 pi G / c^4) T_ab | Entropy proportional to horizon area; local equilibrium (vanishing expansion and shear); Unruh temperature T = hbar a / (2 pi c k_B) | Jacobson, gr-qc/9504004 | 1995 | HIGH |
-| Entanglement equilibrium iff Einstein equation | delta S_EE = 0 for small geodesic balls iff G_ab = 8 pi G T_ab | Conformal fields; UV-finite entanglement entropy with area-law leading term; first-order variations only | Jacobson, arXiv:1505.04753 | 2015/2016 | HIGH |
-| Entanglement first law implies linearized Einstein equations in AdS | delta S = delta E (modular energy) implies linearized Einstein eqs | CFT with semiclassical holographic dual; Ryu-Takayanagi formula S = A/(4G_N); perturbations about AdS vacuum | Faulkner-Lewkowycz-Maldacena, arXiv:1312.7856 | 2013/2014 | HIGH |
-| Nonlinear gravitational equations from entanglement in CFTs | Einstein equations to second order in perturbations | Holographic CFT; entanglement entropy for ball-shaped regions | Agon-Mezei (and related work), arXiv:1509.04325 | 2017 | MEDIUM-HIGH |
-| Disentangling => spacetime disconnection | Reducing entanglement between CFT subsystems separates dual spacetime regions | AdS/CFT; thermofield double state | Van Raamsdonk, arXiv:1005.3035 | 2010 | HIGH |
-| Ryu-Takayanagi formula | S_A = Area(gamma_A) / (4 G_N) | Static spacetime; minimal surface gamma_A homologous to boundary region A; classical limit of holographic dual | Ryu-Takayanagi, hep-th/0603001 | 2006 | HIGH |
-| Proof of Ryu-Takayanagi via replica trick | Gravitational entropy = area of minimal surface | Euclidean gravity with boundary circle; classical saddle-point approximation | Lewkowycz-Maldacena, arXiv:1304.4926 | 2013 | HIGH |
-| Area law for 1D gapped ground states | S(rho_L) <= O(exp(c/Delta)) in 1D; O(log^3 d / epsilon) (improved) | Gapped local Hamiltonian; ground state; 1D chain | Hastings (2007); Arad-Kitaev-Landau-Vazirani (2013, improved) | 2007/2013 | HIGH |
-| Area law for ground states of local Hamiltonians (general) | S(rho_A) ~ |partial A| for gapped systems | Ground state; gapped local Hamiltonian; short-range interactions; not at critical point | Eisert-Cramer-Plenio review, arXiv:0808.3773 | 2010 | HIGH |
-| UV-finite entanglement entropy implies dynamical spacetime | S_ent finite => Newton's constant G ~ 1/s_ent (entropy density) | UV cutoff renders entanglement entropy finite; thermodynamic argument | Jacobson, arXiv:1204.6349 | 2012 | MEDIUM-HIGH |
+| KO-dim 6 sign relations | J^2 = +1, JD = +DJ, J gamma = -gamma J | Real spectral triple, even, KO-dimension 6 mod 8 | Connes, J. Math. Phys. 36, 6194 | 1995 | HIGH |
+| Classification of irreducible finite KO-dim 6 geometries | dim(H_F) = k^2 per generation; quaternion linearity singles out k=4 giving A_F = C + H + M_3(C) | Irreducible, KO-dim 6, first-order condition, massless graviton constraint, Poincare duality | Chamseddine-Connes-Marcolli, arXiv:0706.3688 | 2007 | HIGH |
+| Spectral action gives SM + gravity | Tr(chi(D/Lambda)) + (psi, D psi) = Einstein-Hilbert + Yang-Mills + Higgs + fermion terms | Almost-commutative geometry M x F, A_F = C + H + M_3(C), asymptotic expansion | Chamseddine-Connes, hep-th/9606001 | 1996 | HIGH |
+| Finite space resolves fermion doubling | Changing grading on antiparticle sector (KO-dim 6 not 0) eliminates fermion doubling | Metric dimension 0, KO-dimension 6 for F | Connes, hep-th/0608226 | 2006 | HIGH |
+| First-order condition can be relaxed | Inner fluctuations acquire quadratic term; leads to Pati-Salam SU(2)_R x SU(2)_L x SU(4) | Spectral triple without first-order condition | Chamseddine-Connes-van Suijlekom, arXiv:1304.7583 | 2013 | HIGH |
+| Krajewski diagram classification | Finite real spectral triples classified by decorated graphs (Krajewski diagrams) | Finite-dimensional algebra, even spectral triple | Krajewski, hep-th/9701081 | 1997 | HIGH |
+| Jordan geometry reproduces SM | Jordan algebra approach: coordinate algebra is Jordan, not associative; gauge fields automatically unimodular | Replaces associative algebra axiom with Jordan algebra | Boyle-Farnsworth, arXiv:1910.11888 | 2019 | MEDIUM |
+| Exceptional Jordan algebra and SM gauge group | Aut(H_3(O)) = F_4; intersection Spin(9) cap subgroup of F_4 = G_SM | Exceptional Jordan algebra H_3(O), 27-dimensional | Dubois-Violette-Todorov, arXiv:1805.06739 | 2018 | MEDIUM |
+| Jordan algebras define spectral triples | Spectral triples built from special Jordan backgrounds; gauge-invariant bosonic configuration spaces | Jordan coordinate algebras, not C*-algebras | Farnsworth, arXiv:2206.07039 | 2022 | MEDIUM |
+| Matrix geometries as finite spectral triples | General form of Dirac operator for finite spectral triples with A = M_n(C) | Finite-dimensional Hilbert space, real spectral triple | Barrett, arXiv:1502.05383 | 2015 | HIGH |
+| Operator systems generalize spectral triples | Spectral truncations use operator systems (Jordan-like) in place of C*-algebras | Truncated spectral triples | Connes-van Suijlekom, arXiv:2004.14115 | 2020 | MEDIUM |
 
 ---
 
 ## Foundational Work
 
-### Jacobson (1995) - Thermodynamics of Spacetime: The Einstein Equation of State
+### Connes (1995) - Noncommutative Geometry and Reality
 
-**Key contribution:** Derived the Einstein field equations from thermodynamics by applying the Clausius relation delta Q = T delta S to local Rindler horizons at every spacetime point.
+**Key contribution:** Defined the axioms of a real spectral triple and classified them by KO-dimension mod 8 using the signs (epsilon, epsilon', epsilon'') of the relations J^2 = epsilon, JD = epsilon' DJ, J gamma = epsilon'' gamma J.
 
-**Method:** At any point p in spacetime, construct a local Rindler horizon (the past light cone of a small patch of the future of p, as seen by an accelerated observer). The key inputs are:
+**The KO-dimension sign table** (established, textbook-level, HIGH confidence):
 
-1. **Unruh temperature:** T = hbar a / (2 pi c k_B), where a is the acceleration of the observer at the horizon.
-2. **Bekenstein-Hawking entropy-area proportionality:** delta S = eta delta A, where eta = c^3 / (4 hbar G) and delta A is the change in cross-sectional area of the horizon.
-3. **Heat flux:** delta Q = integral T_ab chi^a d Sigma^b, where chi^a is the approximate boost Killing vector and T_ab is the stress-energy tensor.
-4. **Raychaudhuri equation:** Relates the change in horizon area delta A to the Ricci tensor R_ab via the focusing of null geodesic congruences.
+| KO-dim | epsilon (J^2) | epsilon' (JD) | epsilon'' (J gamma) |
+|--------|--------------|---------------|-------------------|
+| 0 | +1 | +1 | +1 |
+| 1 | +1 | -1 | -- |
+| 2 | -1 | +1 | +1 |
+| 3 | -1 | +1 | -- |
+| 4 | -1 | +1 | -1 |
+| 5 | -1 | -1 | -- |
+| 6 | +1 | +1 | -1 |
+| 7 | +1 | -1 | -- |
 
-Combining these yields: R_ab - (1/2) R g_ab + Lambda g_ab = (8 pi G / c^4) T_ab, where Lambda appears as an undetermined integration constant.
+(Odd KO-dimensions have no grading operator gamma, so epsilon'' is not applicable.)
 
-**Precise assumptions (listed for downstream use):**
+**For KO-dimension 6:** J^2 = +1, JD = +DJ, J gamma = -gamma J. This is precisely what the self-modeling construction gives with the candidate J(psi,chi) = (PC chi-bar, PC psi-bar) and gamma(psi,chi) = (P psi, -P chi).
 
-- (J1) Entropy is proportional to horizon area (Bekenstein-Hawking relation, assumed to hold for ALL local causal horizons, not just black holes)
-- (J2) The Unruh effect: accelerated observers see thermal radiation at temperature T = hbar a / (2 pi c k_B)
-- (J3) Local equilibrium: the expansion and shear of the null congruence generating the horizon vanish at the point p (so the Raychaudhuri equation reduces to its Ricci tensor term)
-- (J4) The Clausius relation delta Q = T delta S holds for all local Rindler horizons
-- (J5) The energy flux delta Q is given by the stress-energy tensor contracted with the boost Killing vector
+**The axioms of a real spectral triple** (A, H, D, J, gamma) are:
+1. A is a *-algebra represented on a Hilbert space H
+2. D is a self-adjoint (unbounded) operator on H with compact resolvent (for infinite-dimensional H)
+3. [a, JbJ^{-1}] = 0 for all a, b in A (order zero condition / zeroth-order condition)
+4. [[D, a], JbJ^{-1}] = 0 for all a, b in A (first-order condition)
+5. J, gamma satisfy the KO-dimension sign relations
+6. D gamma = -gamma D (even case)
+7. Orientability (Hochschild cycle condition)
+8. Poincare duality (intersection form is non-degenerate)
 
-**What the derivation does NOT determine:** The cosmological constant Lambda arises as an integration constant and is not fixed by the thermodynamic argument. The value of Newton's constant G is set by the assumed entropy-area proportionality constant eta.
+For finite-dimensional spectral triples (our case), conditions 2 and 7-8 simplify: D is just a self-adjoint matrix, compact resolvent is automatic, orientability becomes a condition on the representation, and Poincare duality becomes a condition on the K-theory pairing.
 
-**Limitations:**
+**Limitations:** The axioms were formulated for Riemannian (Euclidean) signature. Lorentzian versions require Krein spaces (see below).
 
-- Requires local equilibrium (J3), which excludes rapidly varying spacetimes
-- Produces only the classical Einstein equation; quantum corrections require going beyond the area-entropy law
-- Does not explain WHY entropy is proportional to area; this is an input assumption
-- Does not address higher-derivative gravity theories without modification
+**Relevance:** This is the foundation. The self-modeling construction must satisfy these axioms. J^2 = +1 and J gamma = -gamma J are already verified. The remaining checks are: order zero condition, first-order condition, and existence of D with D gamma = -gamma D and JD = DJ.
 
-**Relevance:** This is the terminus of the proposed derivation chain. If self-modeling locality produces area-law entanglement, and if that entanglement entropy can be identified with the horizon entropy in Jacobson's argument, then Einstein's equations follow. The critical link is identifying vacuum entanglement entropy with the thermodynamic entropy delta S in the Clausius relation.
+### Chamseddine-Connes-Marcolli (2007) - Why the Standard Model
 
-### Jacobson (2012) - Gravitation and Vacuum Entanglement Entropy
+**Key contribution:** Classified all irreducible finite noncommutative geometries of KO-dimension 6 mod 8 and showed that under specific additional conditions, the Standard Model algebra is the unique solution.
 
-**Key contribution:** Argued that if UV physics renders vacuum entanglement entropy finite, then the thermodynamic reasoning of the 1995 paper implies gravity must exist, with Newton's constant determined by the entanglement entropy density: G ~ 1/s_ent.
+**Precise classification theorem statement:**
 
-**Method:** The vacuum of quantum fields has correlated fluctuations across any surface. When restricted to one side, these have a divergent entropy of entanglement that scales with the surface area. If UV physics (e.g., Planck-scale discreteness) renders this entropy finite, then the finite entropy density s_ent = S / A sets Newton's constant via eta = s_ent, and the 1995 thermodynamic argument yields Einstein's equations with G = c^3 / (4 hbar s_ent).
+*Theorem (CCM 2007):* Consider irreducible finite real spectral triples (A_F, H_F, D_F, J_F, gamma_F) of KO-dimension 6 mod 8. Then:
 
-**Significance for this project:** This paper bridges the gap between area-law entanglement and the 1995 thermodynamic derivation. It explicitly states: if entanglement entropy obeys an area law AND is finite, then gravity follows. Self-modeling locality on a lattice naturally provides both: the lattice cutoff renders entanglement entropy finite, and locality of the Hamiltonian gives the area law.
+1. The Hilbert space dimension per generation satisfies dim(H_F) = k^2 for some positive integer k.
+2. The algebra A_F is a direct sum of matrix algebras over R, C, or H (quaternions).
 
-**Limitations:** Does not determine corrections to Einstein gravity. The thermodynamic argument is powerful but coarse-grained; it cannot see details of the UV completion.
+Under the additional conditions:
+- (C1) The representation of A_F on H_F satisfies the first-order condition
+- (C2) The constraint on the subalgebra imposed by the massless graviton condition (A_F contains the field of rationals, ensuring the algebra is "big enough")
+- (C3) Quaternion linearity (the algebra contains H as a summand, acting on H_F from the left)
+- (C4) Unimodularity (SU(A_F) rather than U(A_F))
 
-### Jacobson (2015/2016) - Entanglement Equilibrium and the Einstein Equation
+the unique solution is k = 4, giving:
 
-**Key contribution:** Reformulated the thermodynamic derivation using entanglement entropy directly, without invoking horizons or the Clausius relation as primitive. Introduced the Maximal Vacuum Entanglement Hypothesis (MVEH).
+**A_F = M_2(H) + M_4(C)** (the "input" algebra)
 
-**MVEH:** The vacuum entanglement entropy of a sufficiently small geodesic ball in a maximally symmetric spacetime is locally maximal at fixed volume.
+with the subalgebra surviving the first-order condition being:
 
-**Main result:** For first-order perturbations of the local vacuum state of conformal quantum fields, the vacuum entanglement entropy is stationary (delta S_EE = 0 for fixed volume) if and only if the semiclassical Einstein equation holds.
+**A_F^{(1)} = C + H + M_3(C)** (the Standard Model algebra)
 
-**Precise structure of the argument:**
+The gauge group is then U(A_F^{(1)}) / center = U(1) x SU(2) x SU(3), which is the Standard Model gauge group.
 
-1. The entanglement entropy S_EE of a small geodesic ball B has a UV-divergent leading term proportional to the area |partial B|, plus subleading terms including a piece proportional to the matter entanglement delta S_matter.
-2. The variation delta S_EE has two contributions: (a) the geometric area variation delta A (which encodes spacetime curvature via the Ricci tensor), and (b) the matter entanglement variation delta S_matter (which encodes the stress-energy tensor via the modular Hamiltonian).
-3. Setting delta S_EE = 0 (entanglement equilibrium) for all small balls at all points yields exactly the Einstein equation.
+**Critical subtlety for this project:** The "input" algebra in CCM is M_2(H) + M_4(C), not C + H + M_3(C). The SM algebra emerges as the SUBALGEBRA consistent with the first-order condition [[D, a], Jb*J^{-1}] = 0. This is a constraint FROM D, not on D. The first-order condition acts as a filter: given the full algebra and Hilbert space, only a subalgebra is compatible with any given Dirac operator satisfying the first-order condition.
 
-**Key assumptions:**
+**What the classification does NOT determine:** The Dirac operator D_F is not uniquely determined by the axioms -- it lives in a moduli space parameterized by fermion masses and mixing matrices. The spectral action then determines the dynamics.
 
-- (EE1) UV physics renders entanglement entropy finite, with leading area-law term
-- (EE2) Conformal matter fields (for non-conformal fields, an additional conjecture about delta S_matter is needed)
-- (EE3) First-order variations only; higher-order corrections correspond to higher-derivative gravity
-- (EE4) Small geodesic ball regime (so that the local Rindler approximation is valid)
+**Relevance to this project:** If the self-modeling composite gives an irreducible finite spectral triple of KO-dimension 6, this theorem constrains the algebra. The key question is whether the self-modeling composite's Hilbert space (dim = 2n^2) gives k^2 = 2n^2 for some integer k, and whether the additional conditions (C1)-(C4) hold. For n=4: dim(H) = 32, giving k^2 = 32, which is NOT a perfect square. This is a potential obstruction -- see PITFALLS.md. However, the theorem applies per generation; with the correct counting (particle/antiparticle doubling already in H), the effective dimension may differ.
 
-**Relation to 1995 argument:** This is a refinement, not a replacement. The 2015 version replaces the thermodynamic entropy with entanglement entropy and replaces the Clausius relation with the MVEH. The physical content is the same but the conceptual framework is cleaner: gravity = entanglement equilibrium.
+### Connes (2006) - NCG and the Standard Model with Neutrino Mixing
 
-**Relevance:** This version is more directly usable for the project because it explicitly involves entanglement entropy (which self-modeling locality produces) rather than thermodynamic entropy (which requires additional interpretation).
+**Key contribution:** Resolved the fermion doubling problem by recognizing that the finite noncommutative geometry F should have KO-dimension 6 (not 0), with metric dimension 0. This key insight allows the metric dimension and KO-dimension to be independent.
 
-### Van Raamsdonk (2010) - Building Up Spacetime with Quantum Entanglement
+**Method:** Changed the grading on the antiparticle sector to its opposite. In the old model (KO-dim 0), the finite space had gamma_F = +1 on particles and +1 on antiparticles. In the new model (KO-dim 6), gamma_F = +1 on right-handed particles and left-handed antiparticles, and gamma_F = -1 on left-handed particles and right-handed antiparticles. This eliminates the unphysical doubling of fermion degrees of freedom and naturally incorporates the see-saw mechanism for neutrino masses.
 
-**Key contribution:** Argued that quantum entanglement in the boundary CFT is responsible for the connectivity of the dual bulk spacetime. Reducing entanglement between two subsystems causes the corresponding spacetime regions to separate and eventually disconnect.
+**The eigenvalue pattern** of gamma_F in the KO-dim 6 model is:
 
-**Method:** Considered the thermofield double state in two copies of a CFT, which is dual to an eternal AdS black hole (the two-sided Maldacena geometry). Progressively disentangling the two CFT copies corresponds to the Einstein-Rosen bridge pinching off until the spacetime separates into disconnected components.
+| Sector | gamma_F eigenvalue |
+|--------|-------------------|
+| nu_R, e_R, u_R, d_R (right-handed particles) | +1 |
+| nu_L, e_L, u_L, d_L (left-handed particles) | -1 |
+| (nu_R)^c, (e_R)^c, (u_R)^c, (d_R)^c (right-handed antiparticles) | -1 |
+| (nu_L)^c, (e_L)^c, (u_L)^c, (d_L)^c (left-handed antiparticles) | +1 |
 
-**Significance:** Established the slogan "entanglement = spacetime connectivity" (or ER = EPR in its strong form). This is complementary to the Jacobson program: while Jacobson derives the equations of motion from entanglement properties, Van Raamsdonk argues that the very existence of connected spacetime requires entanglement.
+**Relevance to this project:** This eigenvalue pattern is EXACTLY what the self-modeling gamma(psi,chi) = (P psi, -P chi) produces (as documented in paper7-spectral-triple-prompt.md). The correspondence is:
+- wedge^2-particle (P=-1, matter-sign=+1, gamma=-1) <-> left-handed particles
+- Sym^2-particle (P=+1, matter-sign=+1, gamma=+1) <-> right-handed particles
+- wedge^2-antiparticle (P=-1, matter-sign=-1, gamma=+1) <-> left-handed antiparticles
+- Sym^2-antiparticle (P=+1, matter-sign=-1, gamma=-1) <-> right-handed antiparticles
 
-**Limitations:** The argument is qualitative and relies on AdS/CFT. It does not by itself derive Einstein's equations.
+### Chamseddine-Connes (1996) - The Spectral Action Principle
 
-### Faulkner, Lewkowycz, Maldacena (2013/2014) - Gravitation from Entanglement in Holographic CFTs
+**Key contribution:** Proposed that the entire bosonic Lagrangian (Einstein-Hilbert + Yang-Mills + Higgs) is given by a single trace formula: Tr(chi(D/Lambda)), where chi is a smooth approximation to a cutoff function, D is the full Dirac operator, and Lambda is a cutoff scale.
 
-**Key contribution:** Proved that in any CFT with a semiclassical holographic dual, the entanglement first law (delta S = delta <K>, where K is the modular Hamiltonian) for all ball-shaped regions in the CFT is equivalent to the linearized Einstein equations in the bulk.
+**The spectral action formula:**
 
-**Method:**
+S = Tr(chi(D/Lambda)) + (1/2) <J psi, D psi>
 
-1. Start with the entanglement first law: for small perturbations of a state rho about the vacuum, delta S_EE = delta <K_0>, where K_0 = -log rho_0 is the vacuum modular Hamiltonian.
-2. For a ball-shaped region in a CFT, the vacuum modular Hamiltonian is known explicitly (Casini-Huerta-Myers, building on Bisognano-Wichmann): K_0 = integral of a local expression involving T_00.
-3. Using the Ryu-Takayanagi formula S_EE = A / (4 G_N), the left side delta S_EE becomes delta A / (4 G_N), which encodes the metric perturbation.
-4. Demanding this equality for all ball-shaped regions at all points is equivalent to the linearized Einstein equations for the bulk metric perturbation.
+The first term gives the bosonic action (gravity + gauge + Higgs). The second term gives the fermionic action. The asymptotic expansion of the trace in powers of Lambda gives:
 
-**Precise assumptions:**
+Tr(chi(D/Lambda)) ~ sum_{n >= 0} f_n a_n(D^2)
 
-- (FLM1) CFT with a large-N, semiclassical holographic dual
-- (FLM2) Ryu-Takayanagi formula S = A / (4G_N) for entanglement entropy
-- (FLM3) Ball-shaped subregions in the CFT (for which the modular Hamiltonian is known)
-- (FLM4) First-order perturbations around the vacuum / pure AdS
+where f_n are moments of chi and a_n are the Seeley-DeWitt coefficients. For an almost-commutative geometry M x F:
+- a_0 gives the cosmological constant
+- a_2 gives the Einstein-Hilbert action + Higgs mass term
+- a_4 gives the Yang-Mills action + Higgs quartic coupling + topological terms
 
-**What is proved:** Linearized Einstein equations (not full nonlinear Einstein equations). Extensions to second order exist (Agon-Mezei and others) but the full nonlinear case remains open.
+**Relevance:** If the self-modeling spectral triple is established, the spectral action automatically gives the physical Lagrangian. This is the payoff: all of the Standard Model + gravity from a single spectral action principle applied to the self-modeling spectral triple.
 
-**Relevance:** Demonstrates that entanglement constraints can determine gravitational dynamics. The mechanism is analogous to what the self-modeling project needs, but FLM works within AdS/CFT while the self-modeling project operates without assuming a holographic dual.
+### Krajewski (1997) - Classification of Finite Spectral Triples
 
-### Lashkari, McDermott, Van Raamsdonk (2013/2014) - Gravitational Dynamics From Entanglement "Thermodynamics"
+**Key contribution:** Developed a diagrammatic method (Krajewski diagrams) for classifying all finite real spectral triples. Each irreducible representation of the algebra corresponds to a vertex; Dirac operator matrix elements correspond to edges; and the constraints (order zero, first-order condition, J-reality, gamma-grading) translate to selection rules on the diagram.
 
-**Key contribution:** Showed that for perturbations of the vacuum state in a general CFT, the first law of entanglement delta S = delta E (where E is the hyperbolic/modular energy) is exact, and for holographic theories this implies the linearized Einstein equations.
+**Method:** A finite spectral triple has A = direct_sum M_{n_i}(F_i) where F_i in {R, C, H}. The Hilbert space H = direct_sum H_{ij} where each H_{ij} carries a left action of M_{n_i} and a right action of M_{n_j}. The Krajewski diagram has vertices labeled by (i, n_i, F_i) and edges connecting vertices where the Dirac operator has non-zero matrix elements.
 
-**Method:** Similar to FLM but with emphasis on the exactness of the first law of entanglement entropy and its physical interpretation as an energy-entropy balance in Rindler-like regions.
+**Selection rules from the axioms:**
+- Order zero condition: the right action of A commutes with the left action, so H_{ij} = C^{n_i} tensor (C^{n_j})* (bimodule structure)
+- First-order condition: D can only connect H_{ij} to H_{kl} if i=k or j=l (at most one index changes)
+- J maps H_{ij} to H_{ji} (swaps left and right)
+- gamma gives eigenvalue +1 or -1 on each H_{ij}
 
-**Relevance:** Strengthens the FLM result and provides a cleaner physical interpretation connecting entanglement thermodynamics to gravitational dynamics.
+**Relevance:** This provides the explicit technology for checking whether the self-modeling Hilbert space decomposition admits a valid Krajewski diagram for the SM algebra.
 
-### Ryu and Takayanagi (2006) - Holographic Entanglement Entropy
+### Boyle-Farnsworth (2014, 2018, 2019) - Non-Associative/Jordan Geometry and the Standard Model
 
-**Key contribution:** Proposed that in AdS/CFT, the entanglement entropy of a boundary region A is given by the area of the minimal surface gamma_A in the bulk that is homologous to A: S_A = Area(gamma_A) / (4 G_N).
+**Key contributions (three papers):**
 
-**Status:** Originally conjectured. Proved by Lewkowycz and Maldacena (2013, arXiv:1304.4926) using the gravitational replica trick for static spacetimes. Extended to the covariant (time-dependent) case by Hubeny, Rangamani, and Takayanagi (HRT formula, 2007, arXiv:0705.0016) and further justified by Dong (2016).
+**Paper 1 (arXiv:1401.5083, 2014):** Reformulated Connes' NCG axioms. Key insight: many axioms can be unified into one. Generalized from non-commutative to non-associative geometry. Resolved the problem of 7 unwanted terms in the NCG action that previously required a non-geometric assumption to remove.
 
-**Relevance:** The RT formula is the bridge between entanglement in the boundary theory and geometry in the bulk. It is assumed (not derived) in the FLM and LMVR derivations of linearized Einstein equations. For the self-modeling project, no direct analog of the RT formula is needed; instead, the area-law entanglement directly feeds into Jacobson's thermodynamic argument.
+**Paper 2 (arXiv:1604.00847, 2018, JHEP):** Introduced a "new algebraic structure" in the SM. Found that the internal algebra of the NCG Standard Model naturally carries additional structure -- specifically, the algebra A_F = C + H + M_3(C) can be understood as the complexification of a particular real Jordan algebra.
 
-### Eisert, Cramer, Plenio (2010) - Area Laws for Entanglement Entropy (Review)
+**Paper 3 (arXiv:1910.11888, 2019):** Proposed "Jordan geometry" as a replacement for NCG. Instead of replacing commutative coordinates by a noncommutative algebra, replace them by a Jordan algebra. The Standard Model and Pati-Salam model both arise naturally. Jordan geometry gives:
+- Automatically unimodular gauge fields (no ad hoc unimodularity constraint)
+- Natural accommodation of the SM algebra
+- Extension to include three right-handed sterile neutrinos and a complex scalar
 
-**Key contribution:** Comprehensive review of area laws for entanglement entropy in quantum many-body systems. Established that for ground states of gapped local Hamiltonians, the entanglement entropy of a subregion scales with the boundary area, not the volume.
+**Relevance to this project:** This is the most directly relevant prior work. The self-modeling construction produces Jordan algebras (M_n(C)^sa with Jordan product a o b = (ab + ba)/2) as the natural algebraic structure. Boyle-Farnsworth show that Jordan algebras can replace C*-algebras in the spectral triple framework. This could provide the bridge: self-modeling -> Jordan algebra -> Jordan spectral triple -> SM.
 
-**Key results relevant to this project:**
+**Critical assessment:** The Boyle-Farnsworth program is promising but incomplete. The Jordan geometry framework does not yet have a full analog of the spectral action principle or a complete classification theorem analogous to CCM. The program is better developed for the SM algebra identification than for the dynamical content.
 
-- Gapped local Hamiltonians in d spatial dimensions: S(rho_A) <= c |partial A|, where |partial A| is the boundary area (proved rigorously in 1D by Hastings 2007, expected in higher dimensions)
-- Critical (gapless) systems: logarithmic violations in 1D (S ~ (c/3) log L for 1+1 CFT with central charge c), possible area-law violations in higher dimensions
-- Bosonic vs fermionic: both obey area law for gapped systems; fermionic systems may show log corrections at Fermi surfaces
-- Long-range interactions can violate the area law
+### Farnsworth (2022) - Particle Models from Special Jordan Backgrounds and Spectral Triples
 
-**Conditions for area law (for self-modeling project):**
+**Key contribution:** Defined spectral triples with Jordan coordinate algebras (not associative algebras). Constructed natural and gauge-invariant bosonic configuration spaces of fluctuated Dirac operators. The resulting theory is NOT equivalent to standard associative NCG -- it gives different physical content.
 
-- The Hamiltonian must be local (interactions couple only nearby sites)
-- The ground state must be gapped (energy gap Delta > 0 above the ground state)
-- Short-range interactions (exponentially decaying)
+**Key result:** In the Jordan case, gauge fields are ALWAYS unimodular. This resolves a long-standing problem in NCG where the unimodularity condition U(1) -> SU(1) x ... had to be imposed by hand.
 
-**Relevance:** This is the theoretical foundation for the step "local self-modeling Hamiltonian -> area-law entanglement." A lattice of locally-coupled M_n(C)^sa self-modeling systems with a spectral gap above the ground state will have area-law entanglement by general results.
+**Method:** Replace the associative *-algebra A in (A, H, D, J, gamma) with a special Jordan algebra. The order zero condition [a, Jb*J^{-1}] = 0 and first-order condition [[D, a], Jb*J^{-1}] = 0 are reformulated for Jordan algebras using the Jordan product a o b = (ab + ba)/2 instead of associative multiplication.
 
-### Hastings (2007) - An Area Law for One-Dimensional Quantum Systems
+**Relevance:** Direct relevance. The self-modeling construction gives M_n(C)^sa, which is a special Jordan algebra (it is the self-adjoint part of a C*-algebra). This paper shows how to build spectral triples from exactly this type of algebraic object.
 
-**Key contribution:** Proved rigorously that ground states of 1D gapped local Hamiltonians obey an area law for entanglement entropy: S(rho_L) <= c * exp(c'/Delta), where Delta is the spectral gap.
+### Dubois-Violette-Todorov (2018, 2019) - Exceptional Jordan Algebra and the Standard Model
 
-**Subsequent improvement:** Arad, Kitaev, Landau, and Vazirani (2013) improved the bound to S <= O(log^3(d) / epsilon), removing the exponential dependence on 1/Delta.
+**Key contribution:** Showed that the automorphism group F_4 of the exceptional Jordan algebra H_3(O) (3x3 Hermitian octonionic matrices) contains the Standard Model gauge group G_SM = [SU(3) x SU(2) x U(1)] / Z_6 as a specific intersection of subgroups.
 
-**Status in higher dimensions:** The area law for gapped ground states in d > 1 dimensions is widely believed but NOT rigorously proved in full generality. Partial results exist for specific model classes (frustration-free systems, etc.).
+**Precise result:** F_4 has two maximal Borel-de Siebenthal subgroups: Spin(9) and SU(3) x SU(3)/Z_3. Their intersection in F_4 is precisely G_SM.
 
-**Relevance:** Provides the rigorous foundation for area-law entanglement from local Hamiltonians in 1D. For the self-modeling project, the higher-dimensional case is needed but remains a conjecture (HIGH confidence based on extensive numerical evidence and partial proofs).
+**Related work by Todorov (arXiv:1911.13124):** Extended to show H_3(O) "appears designed for" three generations of fundamental fermions: the 27-dimensional representation decomposes under G_SM into exactly the quantum numbers of one generation of quarks and leptons.
+
+**Relevance:** This is an alternative to the Connes program that uses Jordan algebras directly. The self-modeling construction gives M_n(C)^sa, which for n=3 gives a special Jordan algebra. The exceptional Jordan algebra H_3(O) is NOT a special Jordan algebra (it is not the self-adjoint part of any associative algebra), so the connection to self-modeling is indirect. However, the result shows that Jordan algebraic structures can encode the SM gauge group, supporting the broader program.
+
+**Boyle (arXiv:2006.16265, 2020):** Connected the exceptional Jordan algebra to the SM via triality. Showed that the complexified exceptional Jordan algebra organizes the fundamental fermions, with three generations related to SO(8) triality.
+
+### Barrett (2015) - Matrix Geometries and Fuzzy Spaces as Finite Spectral Triples
+
+**Key contribution:** Defined and investigated finite spectral triples with algebra A = M_n(C) and determined the general form of the Dirac operator. Provided concrete examples including fuzzy spheres.
+
+**Key result for this project:** For A = M_n(C), the Hilbert space of a finite spectral triple is H = M_n(C) tensor C^k (the algebra acting on itself tensored with a "spinor" space). The Dirac operator is of the form D = sum_i L_{e_i} tensor gamma^i + sum_j R_{f_j} tensor delta^j, where L and R are left and right multiplication, and gamma^i, delta^j are matrices on the spinor space.
+
+**Relevance:** This provides the technology for constructing explicit Dirac operators on M_n(C) spectral triples. The self-modeling algebra is M_n(C)^sa, and the natural Hilbert space is C^n tensor C^n = M_n(C) (viewing the tensor product as the space of n x n matrices). Barrett's results constrain what D can look like.
+
+### Connes-van Suijlekom (2020) - Spectral Truncations and Operator Systems
+
+**Key contribution:** Extended NCG to spectral truncations, where operator systems (self-adjoint unital subspaces of C*-algebras) replace the C*-algebra. Operator systems are closely related to Jordan algebras: an operator system is a Jordan algebra under the product a o b = (ab + ba)/2.
+
+**Relevance:** This provides a mathematical framework for treating the self-adjoint part M_n(C)^sa as a coordinate space in NCG. In the Connes-van Suijlekom framework, M_n(C)^sa is an operator system and can serve as the "algebra" of a spectral triple. This is a more natural fit for the self-modeling construction than the standard C*-algebraic framework.
+
+### Chamseddine-Connes-van Suijlekom (2013) - Inner Fluctuations without the First-Order Condition
+
+**Key contribution:** Extended the theory of inner fluctuations to spectral triples that do NOT satisfy the first-order condition [[D, a], Jb*J^{-1}] = 0. The inner fluctuations acquire a quadratic term in addition to the usual linear term.
+
+**Main result:** Without the first-order condition, the spectral action leads to Pati-Salam unification SU(2)_R x SU(2)_L x SU(4). The SM is recovered as a spontaneously broken phase.
+
+**Relevance:** This is important for this project because the first-order condition may not hold for the self-modeling Dirac operator. If it fails, the construction is NOT dead -- it leads to a Pati-Salam model instead, which is a phenomenologically viable GUT. This provides a graceful fallback.
 
 ---
 
-## The Entanglement-Gravity Programs: Taxonomy
+## Recent Developments
 
-Three distinct but related programs derive gravity from entanglement. Understanding their differences is critical for the self-modeling project.
-
-### Program 1: Jacobson's Thermodynamic Gravity (1995, 2012, 2015)
-
-**Input assumptions:** Entropy-area proportionality (or UV-finite entanglement area law) + Clausius relation (or entanglement equilibrium) + Unruh effect.
-
-**Output:** Full nonlinear Einstein equations (with undetermined cosmological constant).
-
-**Framework:** General, does NOT require AdS/CFT. Works for any spacetime dimension. Does not assume holography.
-
-**Strength for this project:** Framework-independent. Can be applied wherever area-law entanglement holds.
-
-**Weakness:** Requires local equilibrium. Produces only the Einstein equation, not corrections.
-
-### Program 2: AdS/CFT Entanglement Gravity (FLM, LMVR, Van Raamsdonk)
-
-**Input assumptions:** CFT with holographic dual + Ryu-Takayanagi formula + entanglement first law.
-
-**Output:** Linearized Einstein equations (extended to second order in some works). The Van Raamsdonk argument gives spacetime connectivity but not equations of motion.
-
-**Framework:** Requires AdS/CFT correspondence. Specific to asymptotically AdS spacetimes. Requires large N.
-
-**Strength:** Rigorous within AdS/CFT. Connects to a vast body of work on holographic entanglement.
-
-**Weakness for this project:** Requires the full AdS/CFT apparatus, which the self-modeling project does not have. The linearized-only result is weaker than Jacobson's full nonlinear equations.
-
-### Program 3: Emergent Spacetime from Entanglement (Cao-Carroll, Swingle, tensor networks)
-
-**Input assumptions:** Abstract quantum state in Hilbert space + entanglement structure defines geometry.
-
-**Output:** Emergent spatial geometry (using mutual information as distance). Spatial analog of Einstein's equation from entanglement perturbations.
-
-**Framework:** Does not require AdS/CFT. Works from abstract Hilbert space.
-
-**Strength for this project:** Closest in spirit to the self-modeling approach. Starts from quantum structure and derives geometry.
-
-**Weakness:** Spatial geometry only (not spacetime). Results are less rigorous than Jacobson or FLM.
-
-### Recommendation for the Self-Modeling Project
-
-**Use Program 1 (Jacobson) as the primary route.** Reasons:
-
-1. It produces the full nonlinear Einstein equations, not just linearized.
-2. It does not require AdS/CFT or holography.
-3. It requires exactly what self-modeling locality provides: area-law entanglement entropy that is UV-finite.
-4. The assumptions (J1)-(J5) are physically motivated and checkable.
-
-**Use Program 3 (Cao-Carroll) as conceptual scaffolding** for the step "entanglement structure -> emergent geometry" but do not rely on it for the derivation.
-
-**Do NOT use Program 2 (FLM/LMVR)** as the primary route because it requires AdS/CFT, which is not available in the self-modeling framework.
+| Paper | Authors | Year | Advance | Impact on Our Work |
+|-------|---------|------|---------|--------------------|
+| Twisted spectral triples | Devastato-Lizzi-Martinetti | 2018 | Lorentzian signature via twisted spectral triples on Krein spaces | May be needed for Lorentzian extension |
+| Spectral geometry, the spectral standpoint | Connes | 2019 (arXiv:1910.10407) | Review of current state of NCG program | Confirms KO-dim 6 as standard; discusses open problems |
+| Fundamental fermions as internal forms | Dabrowski-Dossena | 2017 | Reinterpretation of SM fermions as differential forms on the internal space | Alternative perspective on the Hilbert space |
+| Spectral action for Robertson-Walker metrics | Chamseddine-Connes | 2014 | Explicit spectral action for cosmological metrics | Relevant if extending to cosmology |
+| Eckstein-Iochum textbook | Eckstein-Iochum | 2019 (arXiv:1902.05306) | Comprehensive treatment of spectral action computation | Reference for spectral action calculations |
 
 ---
 
-## Relationship Between Jacobson's Approach and AdS/CFT Programs
+## Known Limiting Cases
 
-### Complementarity, Not Tension
-
-Jacobson's approach and the AdS/CFT entanglement programs are complementary, not competing:
-
-- **Jacobson** works at the level of local thermodynamics/entanglement equilibrium. It is background-independent and applies to any spacetime satisfying certain thermodynamic conditions. It gives the full nonlinear Einstein equation.
-
-- **FLM/LMVR** work within AdS/CFT and use the specific structure of the Ryu-Takayanagi formula. They give a precise derivation of linearized equations but only within the holographic framework.
-
-- **Key connection:** Jacobson's 2015 paper explicitly identifies the conceptual link. The modular Hamiltonian approach used by FLM/LMVR (where delta S = delta <K_0> is the entanglement first law) can be seen as the AdS/CFT realization of Jacobson's entanglement equilibrium condition. In both cases, the Einstein equation arises because perturbations of the geometry and matter must be balanced so that the total entanglement entropy remains stationary.
-
-- **Unified picture:** Jacobson's approach is the "coarse-grained" or "thermodynamic" version; FLM/LMVR is the "microscopic" or "statistical" version within AdS/CFT. They make the same physical point from different levels of description.
-
-### Where They Differ
-
-| Aspect | Jacobson | FLM/LMVR |
-|--------|----------|-----------|
-| Framework | General (any spacetime) | AdS/CFT specific |
-| Result | Full nonlinear Einstein eqs | Linearized Einstein eqs (second order in extensions) |
-| Entropy concept | Thermodynamic / entanglement (identified) | Entanglement (via RT formula) |
-| Modular Hamiltonian | Not needed | Central role (Bisognano-Wichmann + Casini-Huerta-Myers) |
-| Requires holographic dual | No | Yes |
-| Cosmological constant | Appears as integration constant | Fixed by AdS boundary conditions |
-| Quantum corrections | Not accessible | In principle accessible via quantum RT (FLM formula with bulk entropy) |
+| Limit | Known Result | Source | Verified By |
+|-------|-------------|--------|------------|
+| Commutative A | Connes reconstruction theorem: recovers Riemannian geometry | Connes (2008, arXiv:0810.2088) | Multiple authors |
+| A_F = C | Trivial internal space; no gauge fields | Direct | Standard |
+| A_F = M_n(C) | U(n) gauge theory | Barrett (2015) | Multiple |
+| A_F = C + H + M_3(C) | Full Standard Model | CCM (2007) | Multiple independent verifications |
+| First-order condition relaxed | Pati-Salam SU(2)_R x SU(2)_L x SU(4) | CCSvS (2013) | Independent |
+| n=1 (single state) | Trivial: M_1(C) = C, no internal structure | Direct | Trivial |
+| n=2 | H_F = C^4 doubled = C^8; Sym^2 = C^3, wedge^2 = C^1; k^2 = 8 not perfect square | Direct calculation | Should be checked computationally |
 
 ---
 
-## Thermodynamic/Entropic Gravity: Other Approaches
+## Open Questions
 
-### Padmanabhan (2002-2014) - Emergent Gravity Paradigm
+1. **Order zero condition for the self-modeling algebra action** -- Does [a, Jb*J^{-1}] = 0 hold for the natural action pi(a)(psi,chi) = (a tensor 1)(psi), (a tensor 1)(chi)? The answer depends on the precise definition of the algebra action and J. This is the first critical check. If it fails for the naive action, a modified action must be found.
 
-**Key contribution:** Developed a comprehensive program viewing gravity as emergent, demonstrating that Einstein's field equations on any null surface reduce to a thermodynamic identity TdS = dE + PdV, and that projected onto any null surface they reduce to the Navier-Stokes equation.
+2. **Natural Dirac operator from temporal asymmetry** -- The sequential product a.b = sqrt(a) b sqrt(a) is temporally asymmetric. Does the "asymmetry operator" D_asym, defined by some natural construction from sp(a,b) - sp(b,a), satisfy D gamma = -gamma D and JD = DJ? No prior work derives D from sequential product asymmetry; this would be new.
 
-**Relation to Jacobson:** Padmanabhan's program is broader and more ambitious than Jacobson's single derivation. It encompasses Jacobson's result as a special case but also addresses the cosmological constant problem (via the bulk-surface relation) and extends to Lanczos-Lovelock gravity theories.
+3. **Which n gives the SM?** -- The CCM classification gives k=4 (dim H_F = 16 per generation, 32 with particle/antiparticle doubling). The self-modeling construction gives dim(H) = 2n^2. Matching 2n^2 = 32 gives n = 4. But the counting may not be this simple due to the distinction between the CCM "generation" counting and the self-modeling Hilbert space structure.
 
-**Relevance:** Provides additional confidence that the thermodynamic route to gravity is robust. However, for the self-modeling project, Jacobson's original argument is more directly applicable because it has the fewest assumptions.
+4. **Is the Jordan route better than the C*-algebraic route?** -- Boyle-Farnsworth suggest replacing NCG with Jordan geometry. The self-modeling construction gives Jordan algebras naturally (M_n(C)^sa). Should we attempt to satisfy Connes' axioms (which require an associative algebra) or Boyle-Farnsworth's Jordan axioms (which are more natural for our construction but less developed)? Recommendation: try Connes first (more mature, clearer classification), with Jordan as fallback.
 
-### Verlinde (2010/2011) - Entropic Gravity
-
-**Key contribution:** Proposed that gravity is an entropic force arising from changes in information associated with the positions of material bodies, deriving Newton's law F = ma and Newton's gravitational law F = G m M / r^2 from holographic assumptions.
-
-**Limitations:** Verlinde's entropic gravity is more speculative and controversial than Jacobson's thermodynamic derivation. The holographic screen assumption is stronger than Jacobson's local Rindler horizon. The approach has faced criticism regarding its consistency and foundational assumptions.
-
-**Relevance:** Tangential to the self-modeling project. Verlinde's approach requires holographic screens, which are not naturally present in the self-modeling framework. Jacobson's approach is preferred.
+5. **What happens if the first-order condition fails?** -- If [[D, a], Jb*J^{-1}] != 0 for the natural D, we get Pati-Salam instead of SM. This is not a failure -- Pati-Salam is a viable GUT. But the SM would then emerge only after spontaneous symmetry breaking, which adds a step to the derivation chain.
 
 ---
 
-## Has Anyone Derived GR from Self-Modeling, Self-Reference, or Similar Premises?
+## Notation Conventions in the Literature
 
-### Direct Precedent: None Found
-
-No published work derives Einstein's equations from self-modeling, self-reference, or closely analogous operational/foundational premises. This is a genuinely novel direction. The closest approaches are:
-
-1. **Self-simulation hypothesis (Irwin et al., 2020):** Proposes the universe is a "mental self-simulation" but does not derive specific equations of motion. Philosophically adjacent but technically unrelated.
-
-2. **Quantum vacuum self-consistency (various, 2025):** Proposes that classical backgrounds emerge as self-consistent macroscopic order parameters of the quantum vacuum. This shares the "self-consistency" flavor but does not start from a specific self-modeling axiom and does not derive Einstein's equations from it.
-
-3. **QM reconstruction -> gravity:** Several QM reconstruction programs (Hardy, Chiribella-D'Ariano-Perinotti, Masanes-Mueller) derive quantum mechanics from operational axioms, but none extend to gravity. The self-modeling project would be the first to chain QM reconstruction -> entanglement structure -> gravity.
-
-4. **It from Qubit program (Simons Foundation):** A research initiative connecting quantum information and gravity, but this is a community program, not a specific derivation. It includes work by many groups (Swingle, Van Raamsdonk, Almheiri, Harlow, etc.) on entanglement and gravity, but does not start from self-modeling.
-
-### Indirect Precedent: The Chain Has Pieces
-
-The specific chain "self-modeling -> area-law entanglement -> Jacobson -> GR" is novel, but each link has precedent:
-
-| Link | Precedent | Gap |
-|------|-----------|-----|
-| Self-modeling -> M_n(C)^sa | Paper 5 (v2.0), validated | Complete |
-| Local M_n(C)^sa systems -> area-law entanglement | General area-law theorems (Hastings, Eisert-Cramer-Plenio) | Must verify spectral gap and locality conditions for specific self-modeling Hamiltonian |
-| Area-law entanglement -> Jacobson's entropy input | Jacobson 2012 (entanglement entropy = thermodynamic entropy) | Conceptual identification; must verify the entanglement entropy of the self-modeling ground state is the right entropy for Jacobson's argument |
-| Jacobson's argument -> Einstein equations | Jacobson 1995, 2015 | Established; must verify local equilibrium conditions |
-
----
-
-## Open Problems Relevant to This Project
-
-### Open Problem 1: Area Law in d > 1 Dimensions
-
-**Statement:** Prove that ground states of gapped local Hamiltonians in d > 1 spatial dimensions satisfy an area law for entanglement entropy.
-
-**Why it matters:** The self-modeling lattice is presumably d = 3 dimensional. Hastings' rigorous area-law proof covers only d = 1. In d > 1, the area law is strongly supported by numerical evidence and partial analytical results but not rigorously proved in full generality.
-
-**Current status:** Proved for 1D (Hastings 2007, improved by Arad-Kitaev-Landau-Vazirani 2013). Proved for specific model classes in higher dimensions (frustration-free systems, Anshu-Arad-Gosset 2021). General case remains open.
-
-**Key references:** Eisert-Cramer-Plenio review, arXiv:0808.3773; Hastings, arXiv:0705.2024
-
-### Open Problem 2: Identifying Entanglement Entropy with Jacobson's Thermodynamic Entropy
-
-**Statement:** Under what precise conditions does the vacuum entanglement entropy across a surface serve as the "entropy" in Jacobson's Clausius relation?
-
-**Why it matters:** Jacobson's 1995 argument uses thermodynamic entropy (delta S in delta Q = T delta S). His 2012 and 2015 papers argue this should be identified with entanglement entropy, but the identification is not fully rigorous for interacting quantum field theories. The entanglement entropy depends on the UV cutoff; the thermodynamic entropy should be a physical observable.
-
-**Current status:** Jacobson's 2015 entanglement equilibrium paper provides the strongest case for this identification, showing equivalence for conformal fields at first order. Non-conformal case requires an additional conjecture. The deep question of what "entropy" means in quantum gravity remains open.
-
-**Key references:** Jacobson arXiv:1204.6349, arXiv:1505.04753
-
-### Open Problem 3: Spectral Gap of the Self-Modeling Hamiltonian
-
-**Statement:** Does the effective Hamiltonian governing the self-modeling lattice have a spectral gap above the ground state?
-
-**Why it matters:** The area law requires a spectral gap. If the self-modeling Hamiltonian is gapless, the entanglement entropy may have logarithmic (in 1D) or more severe violations of the area law, invalidating the simple area-law input to Jacobson's argument.
-
-**Current status:** Unstudied. This is a new question specific to this project.
-
-**Key references:** No prior work on this specific question.
-
-### Open Problem 4: Local Equilibrium from Self-Modeling Dynamics
-
-**Statement:** Does the ground state / low-energy sector of the self-modeling lattice satisfy Jacobson's local equilibrium conditions (vanishing expansion and shear)?
-
-**Why it matters:** Jacobson's argument requires local equilibrium (J3). If the self-modeling dynamics generates rapidly varying spacetimes, the derivation may fail.
-
-**Current status:** Unstudied. This is a consistency condition that must be checked after the emergent spacetime is identified.
-
-### Open Problem 5: The Cosmological Constant
-
-**Statement:** Jacobson's derivation leaves the cosmological constant Lambda undetermined. Can self-modeling fix its value?
-
-**Why it matters:** The observed cosmological constant is notoriously small compared to naive quantum field theory estimates. If the self-modeling framework determines Lambda, that would be a major result.
-
-**Current status:** Speculative. No known mechanism within the self-modeling framework to fix Lambda.
-
----
-
-## Supporting Technical Results
-
-### Bisognano-Wichmann Theorem (1975/1976)
-
-**Statement:** In relativistic QFT, the vacuum state restricted to a Rindler wedge is a thermal (KMS) state with respect to the boost Hamiltonian, at inverse temperature beta = 2 pi.
-
-**Why it matters:** This is the field-theoretic foundation of the Unruh effect (assumption J2 in Jacobson's argument). It also provides the explicit form of the modular Hamiltonian for Rindler wedges, which is used by FLM/LMVR.
-
-**Reference:** Bisognano-Wichmann, J. Math. Phys. 16, 985 (1975); 17, 303 (1976)
-
-### Casini-Huerta-Myers (2011) - Modular Hamiltonian for Spherical Regions in CFT
-
-**Statement:** In a conformal field theory, the modular Hamiltonian for the vacuum state reduced to a ball-shaped region B of radius R is a local operator: K_B = 2 pi integral_B d^{d-1}x (R^2 - |x-x_0|^2) / (2R) T_00(x).
-
-**Why it matters:** This explicit form of the modular Hamiltonian is what makes the FLM derivation work. It also connects to Jacobson's approach: the modular energy delta <K_B> is the "heat flux" delta Q in a form that makes the Einstein equation manifest.
-
-**Reference:** Casini-Huerta-Myers, JHEP 1105, 036 (2011), arXiv:1102.0440
-
-### Unruh Effect (1976)
-
-**Statement:** An observer with constant proper acceleration a in Minkowski vacuum perceives a thermal bath at temperature T = hbar a / (2 pi c k_B).
-
-**Why it matters:** This is assumption (J2) in Jacobson's derivation. It is a well-established result of QFT in curved spacetime, derived by Unruh (1976) and independently by Davies (1975).
-
-**Reference:** Unruh, Phys. Rev. D 14, 870 (1976)
-
-### Bekenstein-Hawking Entropy (1972/1974)
-
-**Statement:** A black hole has entropy S_BH = k_B c^3 A / (4 hbar G), where A is the area of the event horizon.
-
-**Why it matters:** This is the prototype of the entropy-area relation (assumption J1). Jacobson's insight was to apply this relation not just to black hole horizons but to all local causal horizons.
-
-**Reference:** Bekenstein, Phys. Rev. D 7, 2333 (1973); Hawking, Commun. Math. Phys. 43, 199 (1975)
-
-### Almheiri-Dong-Harlow (2015) - Bulk Locality and Quantum Error Correction in AdS/CFT
-
-**Key contribution:** Showed that the emergence of bulk locality in AdS/CFT is connected to quantum error correction, with bulk operators in a subregion reconstructible from the boundary region whose Ryu-Takayanagi surface encloses it.
-
-**Relevance:** Provides a conceptual framework for understanding how bulk spacetime structure emerges from boundary quantum information. While the self-modeling project does not use AdS/CFT, the quantum error correction perspective on emergent spacetime is conceptually relevant.
-
-### Cao, Carroll, Michalakis (2017) - Space from Hilbert Space
-
-**Key contribution:** Showed how spatial geometry can be recovered from the entanglement structure of an abstract quantum state in Hilbert space. Entanglement perturbations on emergent geometries give rise to modifications of spatial curvature obeying a spatial analog of Einstein's equation.
-
-**Relevance:** Most directly relevant as a conceptual model for how self-modeling lattice entanglement could give rise to emergent spatial geometry. However, this gives spatial geometry only, not full spacetime dynamics (which requires Jacobson's argument or equivalent).
-
-### Swingle (2012) - Entanglement Renormalization and Holography
-
-**Key contribution:** Connected the MERA (multi-scale entanglement renormalization ansatz) tensor network to holographic geometry, suggesting that the entanglement structure of a ground state naturally generates an emergent spatial dimension interpretable as the radial direction of AdS.
-
-**Relevance:** Provides a concrete model for how entanglement structure in a lattice system can generate emergent geometry. Relevant as background for understanding the self-modeling lattice, but the MERA-AdS connection is specific to CFT ground states and may not directly apply.
+| Quantity | Standard Symbol(s) | Variations | Our Choice | Reason |
+|----------|-------------------|------------|-----------|--------|
+| Real structure | J | J, J_F (finite part) | J | Matches Paper 5's involution |
+| Chirality grading | gamma, gamma_5, gamma_F | chi (some authors) | gamma | Standard in Connes |
+| KO-dimension signs | (epsilon, epsilon', epsilon'') | (e, e', e''); some authors use n mod 8 directly | (epsilon, epsilon', epsilon'') | Standard in CCM |
+| Finite algebra | A_F | A_int, A_discrete | A_F | Standard |
+| Order zero condition | [a, Jb*J^{-1}] = 0 | [a, b^o] = 0 where b^o = Jb*J^{-1} | [a, Jb*J^{-1}] = 0 | Explicit J |
+| First-order condition | [[D, a], Jb*J^{-1}] = 0 | [[D, a], b^o] = 0 | [[D, a], Jb*J^{-1}] = 0 | Explicit J |
+| Spectral action | Tr(chi(D/Lambda)) | S_b, S_bos | Tr(chi(D/Lambda)) | Standard |
+| Sequential product | sp(a,b) = sqrt(a) b sqrt(a) | a . b, a * b, L_a(b) | sp(a,b) | Matches Paper 5 |
 
 ---
 
@@ -412,151 +275,71 @@ The specific chain "self-modeling -> area-law entanglement -> Jacobson -> GR" is
 ### Governing Theory
 
 | Framework | Scope | Key Equations | Regime of Validity |
-|-----------|-------|---------------|-------------------|
-| General relativity | Classical spacetime dynamics | Einstein field equations: G_ab + Lambda g_ab = (8 pi G / c^4) T_ab | Classical, smooth spacetime, energy scales << Planck scale |
-| QFT in curved spacetime | Quantum fields on classical background | Unruh effect, Bisognano-Wichmann theorem, vacuum entanglement | Semiclassical regime; background geometry fixed |
-| Entanglement thermodynamics | Entanglement entropy of quantum subsystems | First law of entanglement: delta S = delta <K>; area laws | Ground states or near-ground-state perturbations of local Hamiltonians |
+|-----------|-------|--------------|-------------------|
+| Noncommutative geometry (Connes) | Spectral characterization of geometry; unification of gravity and gauge theory | Spectral action: S = Tr(chi(D/Lambda)) + (1/2)<J psi, D psi> | Almost-commutative geometries; compact Riemannian manifolds; finite-dimensional internal spaces |
+| Self-modeling framework (Papers 5-6) | Forces QM (M_n(C)^sa) and GR (Einstein's equations) from self-modeling | Sequential product: sp(a,b) = sqrt(a) b sqrt(a); Hamiltonian: H ~ J*SWAP | Finite-dimensional systems; discrete lattice with thermodynamic/continuum limit |
 
 ### Mathematical Prerequisites
 
 | Topic | Why Needed | Key Results | References |
 |-------|-----------|-------------|-----------|
-| Riemannian / Lorentzian geometry | Spacetime structure, curvature, geodesics | Raychaudhuri equation, geodesic deviation | Carroll (textbook); Wald (textbook) |
-| Entanglement entropy | Area-law input to Jacobson's argument | von Neumann entropy S = -tr(rho log rho); area-law scaling | Nielsen-Chuang; Eisert-Cramer-Plenio review |
-| Modular theory (Tomita-Takesaki) | Modular Hamiltonian, KMS states, Bisognano-Wichmann | Modular flow, modular conjugation, KMS condition | Haag, "Local Quantum Physics" (textbook) |
-| Null congruences and Raychaudhuri equation | Horizon focusing in Jacobson's argument | d theta / d lambda = -(1/D) theta^2 - sigma^2 + omega^2 - R_ab k^a k^b | Wald, Ch. 9; Poisson, "A Relativist's Toolkit" |
-| Operator algebras (C*-algebras, von Neumann algebras) | Algebraic QFT framework for entanglement entropy | Type III_1 factors for local algebras in QFT; Araki relative entropy | Bratteli-Robinson; Haag |
+| KO-theory / Real K-theory | Classifies real structures on spectral triples; determines sign table | KO-dimension mod 8 classification; Bott periodicity | Connes (1995); Gracia-Bondia-Varilly-Figueroa textbook |
+| Krajewski diagram theory | Classifies finite spectral triples; constrains Dirac operator | Selection rules from order zero and first-order conditions | Krajewski, hep-th/9701081 |
+| Jordan algebras | M_n(C)^sa is a special Jordan algebra; alternative to C*-algebraic framework | JvNW classification (1934); Boyle-Farnsworth reformulation | McCrimmon textbook; Boyle-Farnsworth (2019) |
+| Representation theory of finite-dimensional algebras | Decomposes H_F into irreducible bimodules | Wedderburn-Artin theorem; bimodule decomposition | Any algebra textbook |
+| Clifford algebras | Control the KO-dimension and real structure | Cl(p,q) classification; periodicity mod 8 | Lawson-Michelsohn; Gracia-Bondia et al. |
 
 ### Symmetries and Conservation Laws
 
 | Symmetry | Conserved Quantity | Implications for Methods |
 |----------|-------------------|------------------------|
-| Diffeomorphism invariance | No local energy-momentum (but ADM energy at infinity) | Must use covariant formulations; Jacobson's argument is manifestly covariant |
-| Local Lorentz invariance | Connections between frames at each point | Unruh temperature is Lorentz invariant for accelerated observers |
-| CPT symmetry (of QFT vacuum) | Vacuum is CPT invariant | Bisognano-Wichmann modular flow is related to CPT |
-| Boost invariance (of Rindler wedge) | KMS condition / thermality | Foundation of Unruh effect |
+| Diagonal U(n) covariance (Paper 6) | Gauge invariance of self-modeling Hamiltonian | Forces SWAP Hamiltonian; constrains algebra action |
+| SWAP symmetry (P^2 = 1) | Z/2 grading (chirality gamma) | Decomposes H into Sym^2 + wedge^2 |
+| CPT (if applicable) | Combined charge-parity-time | J gamma = -gamma J (KO-dim 6 relation) |
+| Gauge group G_SM | Charges (hypercharge, weak isospin, color) | Determined by first-order condition on A_F |
 
 ### Unit System and Conventions
 
-- **Unit system:** Natural units (hbar = c = k_B = 1) for the derivation; restore factors for final expressions
-- **Metric signature:** (-,+,+,+) (mostly plus, following Jacobson and Wald)
-- **Newton's constant:** G = 1/(4 eta) where eta is the entropy density (entropy per unit area)
-- **Entropy convention:** S = eta A with eta = 1/(4G) in natural units (Bekenstein-Hawking)
-
-Note: Jacobson's original 1995 paper uses signature (+,-,-,-). His 2015 paper is more flexible. We adopt (-,+,+,+) to match Wald and standard GR conventions. When citing Jacobson 1995, signs in the Raychaudhuri equation must be adjusted accordingly.
-
-### Known Limiting Cases
-
-| Limit | Parameter Regime | Expected Behavior | Reference |
-|-------|-----------------|-------------------|-----------|
-| Flat spacetime | R_abcd = 0 | T_ab = 0; entanglement entropy = pure area law with no curvature corrections | Jacobson 1995 |
-| Weak gravity | |h_ab| << 1 (linearized metric perturbation) | Linearized Einstein equations; recoverable from entanglement first law (FLM) | Faulkner et al. 2014 |
-| Conformally flat (d=2 CFT) | Central charge c | S ~ (c/3) log(L/epsilon); Cardy formula for entropy | Calabrese-Cardy 2004 |
-| Large area limit | A >> l_P^2 | S ~ A/(4G) dominates; subleading corrections are O(log A) | Bekenstein-Hawking |
-| Zero temperature | T -> 0 | Pure vacuum entanglement; ground state area law | Eisert-Cramer-Plenio 2010 |
+- **Unit system:** Natural units (hbar = c = k_B = 1) for dynamical content; dimensionless for algebraic structure
+- **Metric signature:** Not directly applicable (finite NCG is algebraic); (+,-,-,-) when connecting to continuous spacetime
+- **Hilbert space convention:** Inner product linear in second argument (physics convention, <psi|phi> = psi^dagger phi)
+- **J convention:** Antilinear isometry; J(alpha psi) = alpha-bar J(psi)
+- **Grading convention:** gamma = +1 on "right-handed" (Sym^2-particle, wedge^2-antiparticle); gamma = -1 on "left-handed" (wedge^2-particle, Sym^2-antiparticle)
 
 ---
 
 ## Alternatives Considered
 
 | Category | Recommended | Alternative | Why Not |
-|----------|------------|------------|---------|
-| Route to Einstein equations | Jacobson thermodynamic (1995/2015) | FLM/LMVR via AdS/CFT | Requires holographic dual not available in self-modeling framework; gives only linearized equations |
-| Route to Einstein equations | Jacobson thermodynamic | Verlinde entropic gravity | Requires holographic screens; more speculative; controversial |
-| Source of area law | General area-law theorems (Hastings, Eisert-Cramer-Plenio) | Specific lattice model calculation | General theorems apply broadly; specific calculation needed only to verify spectral gap |
-| Entropy identification | Vacuum entanglement entropy (Jacobson 2012, 2015) | Bekenstein-Hawking thermodynamic entropy | Entanglement interpretation is more fundamental and directly connected to self-modeling lattice |
-| Spacetime emergence | Jacobson + area law (dynamics) | Cao-Carroll (spatial geometry from entanglement) | Cao-Carroll gives only spatial geometry, not spacetime dynamics |
-
----
-
-## Notation Conventions in the Literature
-
-| Quantity | Standard Symbol(s) | Variations | Our Choice | Reason |
-|----------|-------------------|------------|------------|--------|
-| Metric | g_ab | g_{mu nu}, ds^2 | g_ab (abstract index) | Follows Wald |
-| Ricci tensor | R_ab | R_{mu nu}, Ric | R_ab | Standard |
-| Einstein tensor | G_ab | G_{mu nu} | G_ab | Standard |
-| Entanglement entropy | S_EE, S_A, S(rho_A) | S_vN, S_ent | S_EE | Distinguishes from thermodynamic S |
-| Modular Hamiltonian | K, H_mod, K_A | -log rho_A | K | Follows Casini-Huerta |
-| Null normal to horizon | k^a | l^a, n^a | k^a | Follows Jacobson 1995 |
-| Expansion of null congruence | theta | Theta | theta | Standard |
-| Shear of null congruence | sigma_ab | sigma_{mu nu} | sigma_ab | Standard |
-| Horizon area element | dA, d Sigma | delta A | dA | Standard |
-| Boost Killing vector | chi^a | xi^a, K^a | chi^a | Follows Jacobson 1995 |
-
----
-
-## The Logical Chain and Where Prior Work Fits
-
-```
-Self-modeling locality (L4 on lattice of M_n(C)^sa)
-    |--- Paper 5 (v2.0): validated
-    |
-    v
-Local coupling Hamiltonian on lattice
-    |--- Must specify the self-modeling interaction
-    |--- Coupling must be nearest-neighbor (locality)
-    |
-    v
-Ground state has area-law entanglement
-    |--- Hastings 2007 (1D rigorous proof)
-    |--- Eisert-Cramer-Plenio 2010 (general review)
-    |--- REQUIRES: spectral gap above ground state
-    |--- REQUIRES: short-range interactions
-    |
-    v
-Entanglement entropy across any surface ~ Area
-    |--- UV-finite because lattice provides natural cutoff
-    |--- Entropy density eta = S/A determines Newton's constant G = 1/(4 eta)
-    |--- Jacobson 2012 (identification of entanglement with thermodynamic entropy)
-    |
-    v  [Jacobson 1995/2015]
-Clausius relation / entanglement equilibrium on local Rindler horizons
-    |--- Requires: Unruh effect (Bisognano-Wichmann theorem)
-    |--- Requires: local equilibrium (vanishing expansion and shear)
-    |--- Requires: Raychaudhuri equation
-    |
-    v
-Einstein field equations: G_ab + Lambda g_ab = (8 pi G / c^4) T_ab
-    |--- Lambda undetermined (integration constant)
-    |--- G determined by entanglement entropy density
-```
-
-**What prior work gives us:** Every step below "Ground state has area-law entanglement" is established physics/mathematics. The area-law theorems are rigorous in 1D and strongly supported in higher dimensions. Jacobson's thermodynamic argument is well-established and widely accepted.
-
-**What prior work does NOT give us:**
-
-1. The specific self-modeling Hamiltonian and proof that it has a spectral gap
-2. Verification that the lattice entanglement entropy can be identified with Jacobson's thermodynamic entropy in the continuum limit
-3. The mechanism by which the lattice structure gives rise to a smooth emergent spacetime on which the Raychaudhuri equation and Unruh effect make sense
-4. The value of the cosmological constant
-
-**The novelty of this project:** The top of the chain (self-modeling -> local lattice Hamiltonian -> area law) is new. No one has previously attempted to connect a QM reconstruction program (self-modeling -> M_n(C)^sa) to emergent gravity via entanglement.
+|----------|------------|-------------|---------|
+| Algebraic framework | Connes' real spectral triple (associative algebra) | Boyle-Farnsworth Jordan geometry | Jordan framework less mature; no classification theorem yet; try associative first |
+| Algebra action | Left action pi(a) = a tensor 1 | Two-sided action pi(a) = a tensor a* | Two-sided action violates linearity of the representation |
+| Hilbert space | Doubled H = (C^n tensor C^n) + (C^n tensor C^n) | Single copy C^n tensor C^n | Must double for particle/antiparticle to get J gamma = -gamma J |
+| KO-dimension | 6 | 0, 2, or 4 | Sign relations J^2 = +1, J gamma = -gamma J force KO-dim = 6 (the only even KO-dim with these signs) |
+| Dirac operator source | Sequential product asymmetry | Postulated D matching Connes | Must derive D from self-modeling, not postulate it |
+| Classification approach | CCM (2007) top-down classification | Bottom-up: construct A_F directly | CCM gives the cleanest identification conditions |
 
 ---
 
 ## Sources
 
-- Jacobson, T. (1995), "Thermodynamics of Spacetime: The Einstein Equation of State," Phys. Rev. Lett. 75, 1260, arXiv:gr-qc/9504004 -- Foundational derivation of Einstein equations from thermodynamics
-- Jacobson, T. (2012), "Gravitation and Vacuum Entanglement Entropy," Int. J. Mod. Phys. D 21, 1242006, arXiv:1204.6349 -- UV-finite entanglement entropy implies gravity
-- Jacobson, T. (2016), "Entanglement Equilibrium and the Einstein Equation," Phys. Rev. Lett. 116, 201101, arXiv:1505.04753 -- Entanglement equilibrium derivation of Einstein equations
-- Faulkner, T., Lewkowycz, A., Maldacena, J. (2014), "Gravitation from Entanglement in Holographic CFTs," JHEP 1403, 051, arXiv:1312.7856 -- Linearized Einstein equations from entanglement first law in AdS/CFT
-- Lashkari, N., McDermott, M., Van Raamsdonk, M. (2014), "Gravitational Dynamics From Entanglement 'Thermodynamics'," JHEP 1404, 195, arXiv:1308.3716 -- Gravitational dynamics from entanglement first law
-- Van Raamsdonk, M. (2010), "Building Up Spacetime with Quantum Entanglement," Gen. Rel. Grav. 42, 2323, arXiv:1005.3035 -- Entanglement as the fabric of spacetime connectivity
-- Ryu, S., Takayanagi, T. (2006), "Holographic Derivation of Entanglement Entropy from AdS/CFT," Phys. Rev. Lett. 96, 181602, arXiv:hep-th/0603001 -- Holographic entanglement entropy formula
-- Lewkowycz, A., Maldacena, J. (2013), "Generalized Gravitational Entropy," JHEP 1308, 090, arXiv:1304.4926 -- Proof of Ryu-Takayanagi via replica trick
-- Eisert, J., Cramer, M., Plenio, M.B. (2010), "Area Laws for the Entanglement Entropy," Rev. Mod. Phys. 82, 277, arXiv:0808.3773 -- Comprehensive review of area laws
-- Hastings, M.B. (2007), "An Area Law for One Dimensional Quantum Systems," J. Stat. Mech. P08024, arXiv:0705.2024 -- Rigorous proof of 1D area law
-- Casini, H., Huerta, M., Myers, R.C. (2011), "Towards a Derivation of Holographic Entanglement Entropy," JHEP 1105, 036, arXiv:1102.0440 -- Modular Hamiltonian for spherical regions in CFT
-- Bisognano, J., Wichmann, E. (1975/1976), "On the Duality Condition for Quantum Fields," J. Math. Phys. 16, 985 (1975); 17, 303 (1976) -- Modular theory for Rindler wedges
-- Unruh, W.G. (1976), "Notes on Black-Hole Evaporation," Phys. Rev. D 14, 870 -- Unruh effect
-- Bekenstein, J.D. (1973), "Black Holes and Entropy," Phys. Rev. D 7, 2333 -- Black hole entropy
-- Hawking, S.W. (1975), "Particle Creation by Black Holes," Commun. Math. Phys. 43, 199 -- Hawking radiation and black hole thermodynamics
-- Padmanabhan, T. (2010), "Thermodynamical Aspects of Gravity: New Insights," Rep. Prog. Phys. 73, 046901, arXiv:0911.5004 -- Review of emergent gravity paradigm
-- Verlinde, E. (2011), "On the Origin of Gravity and the Laws of Newton," JHEP 1104, 029, arXiv:1001.0785 -- Entropic gravity proposal
-- Cao, C., Carroll, S.M., Michalakis, S. (2017), "Space from Hilbert Space," Phys. Rev. D 95, 024031, arXiv:1606.08444 -- Emergent geometry from entanglement
-- Swingle, B. (2012), "Entanglement Renormalization and Holography," Phys. Rev. D 86, 065007, arXiv:1209.3304 -- MERA and holographic geometry
-- Almheiri, A., Dong, X., Harlow, D. (2015), "Bulk Locality and Quantum Error Correction in AdS/CFT," JHEP 1504, 163, arXiv:1411.7041 -- Quantum error correction and holography
-- Carroll, S.M. (2004), "Spacetime and Geometry" (textbook) -- Standard GR reference
-- Wald, R.M. (1984), "General Relativity" (textbook) -- Standard GR reference
-- Haag, R. (1996), "Local Quantum Physics" (textbook) -- Algebraic QFT and modular theory
+- Connes, "Noncommutative geometry and reality," J. Math. Phys. 36, 6194 (1995) -- foundational axioms and KO-dimension classification
+- Chamseddine-Connes, "The spectral action principle," arXiv:hep-th/9606001 -- spectral action formula
+- Chamseddine-Connes-Marcolli, "Why the Standard Model," arXiv:0706.3688 -- classification theorem
+- Connes, "NCG and the SM with neutrino mixing," arXiv:hep-th/0608226 -- KO-dim 6 resolution of fermion doubling
+- Krajewski, "Classification of finite spectral triples," arXiv:hep-th/9701081 -- Krajewski diagrams
+- Barrett, "Matrix geometries and fuzzy spaces as finite spectral triples," arXiv:1502.05383 -- Dirac operators on M_n(C)
+- Boyle-Farnsworth, "Non-commutative geometry, non-associative geometry and the SM," arXiv:1401.5083 -- axiom reformulation
+- Boyle-Farnsworth, "A new algebraic structure in the SM," arXiv:1604.00847 -- algebraic structure identification
+- Boyle-Farnsworth, "The SM, the Pati-Salam model, and Jordan geometry," arXiv:1910.11888 -- Jordan geometry program
+- Farnsworth, "Particle models from special Jordan backgrounds," arXiv:2206.07039 -- Jordan spectral triples
+- Boyle, "The SM, the exceptional Jordan algebra, and triality," arXiv:2006.16265 -- octonionic connection
+- Dubois-Violette-Todorov, "Octonions, exceptional Jordan algebra, and F_4 in particle physics," arXiv:1805.06739 -- F_4 and SM gauge group
+- Todorov, "Exceptional quantum algebra for the SM," arXiv:1911.13124 -- H_3(O) and three generations
+- Chamseddine-Connes-van Suijlekom, "Inner fluctuations without first-order condition," arXiv:1304.7583 -- Pati-Salam from relaxed axioms
+- Chamseddine-Connes, "Beyond the spectral SM: Pati-Salam unification," arXiv:1304.8050 -- Pati-Salam emergence
+- Connes-van Suijlekom, "Spectral truncations and operator systems," arXiv:2004.14115 -- operator systems in NCG
+- van Suijlekom, "NCG and Particle Physics," 2nd ed. (2024) -- definitive textbook
+- Eckstein-Iochum, "Spectral Action in NCG," arXiv:1902.05306 -- comprehensive spectral action reference
+- Cacic, "Moduli spaces of Dirac operators for finite spectral triples," arXiv:0902.2068 -- moduli space structure
+- Connes, "NCG, the spectral standpoint," arXiv:1910.10407 -- 2019 review of the full program
