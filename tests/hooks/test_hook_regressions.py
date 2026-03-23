@@ -287,5 +287,16 @@ def test_installed_runtime_recovers_opencode_from_global_path_when_manifest_is_c
     opencode_dir.mkdir(parents=True)
     (opencode_dir / "gpd-file-manifest.json").write_text("not-json", encoding="utf-8")
 
-    with patch("gpd.hooks.runtime_detect.Path.home", return_value=home):
+    with (
+        patch.dict(
+            "os.environ",
+            {
+                "OPENCODE_CONFIG_DIR": str(tmp_path / "foreign-opencode"),
+                "OPENCODE_CONFIG": str(tmp_path / "foreign-opencode" / "config.json"),
+                "XDG_CONFIG_HOME": str(tmp_path / "foreign-xdg"),
+            },
+            clear=False,
+        ),
+        patch("gpd.hooks.runtime_detect.Path.home", return_value=home),
+    ):
         assert installed_runtime(opencode_dir) == "opencode"

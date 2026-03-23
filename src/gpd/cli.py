@@ -4734,7 +4734,7 @@ def uninstall(
             failures = True
             outcome = {"runtime": rt, "status": "failed", "target": target_dir or "", "error": error_text}
             if not _raw:
-                console.print(f"  [red]✗[/] {rt} — {error_text}")
+                console.print(f"  [red]✗[/] {rt} — {error_text}", soft_wrap=True)
             uninstall_results.append(outcome)
             continue
         except Exception as exc:
@@ -4742,7 +4742,7 @@ def uninstall(
             failures = True
             outcome = {"runtime": rt, "status": "failed", "target": target_dir or "", "error": error_text}
             if not _raw:
-                console.print(f"  [red]✗[/] {rt} — {error_text}")
+                console.print(f"  [red]✗[/] {rt} — {error_text}", soft_wrap=True)
             uninstall_results.append(outcome)
             continue
         target = _resolve_cli_target_dir(target_dir) if target_dir else adapter.resolve_target_dir(is_global, _get_cwd())
@@ -4754,7 +4754,10 @@ def uninstall(
                 "reason": f"not installed at {_format_display_path(target)}",
             }
             if not _raw:
-                console.print(f"  [yellow]⊘[/] {adapter.display_name} — not installed at {_format_display_path(target)}")
+                console.print(
+                    f"  [yellow]⊘[/] {adapter.display_name} — not installed at {_format_display_path(target)}",
+                    soft_wrap=True,
+                )
             uninstall_results.append(outcome)
             continue
         try:
@@ -4768,7 +4771,7 @@ def uninstall(
                 "error": str(exc),
             }
             if not _raw:
-                console.print(f"  [red]✗[/] {adapter.display_name} — {exc}")
+                console.print(f"  [red]✗[/] {adapter.display_name} — {exc}", soft_wrap=True)
             uninstall_results.append(outcome)
             continue
         removed_items = list(result.get("removed", []))

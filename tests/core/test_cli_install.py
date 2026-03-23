@@ -962,6 +962,26 @@ def test_uninstall_rejects_target_dir_with_foreign_manifest(tmp_path: Path) -> N
     assert json.loads(manifest_path.read_text(encoding="utf-8"))["runtime"] == "gemini"
 
 
+def test_uninstall_rejects_target_dir_with_foreign_manifest_without_wrapping(tmp_path: Path) -> None:
+    """Foreign-manifest ownership errors should stay stable under narrow terminals."""
+    target = tmp_path / "shared-runtime-dir"
+    target.mkdir()
+    (target / "get-physics-done").mkdir()
+    (target / "gpd-file-manifest.json").write_text(
+        json.dumps({"runtime": "gemini", "install_scope": "local", "explicit_target": True}),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["uninstall", "claude-code", "--target-dir", str(target)],
+        terminal_width=80,
+    )
+
+    assert result.exit_code == 1
+    assert "Gemini CLI (`gemini`), not Claude Code (`claude-code`)" in result.output
+
+
 def test_install_interactive_rejects_ambiguous_runtime_name(tmp_path: Path):
     """Substring matches that hit multiple runtimes should fail closed."""
     with (

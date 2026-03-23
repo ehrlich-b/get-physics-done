@@ -18,7 +18,12 @@ from gpd.adapters.install_utils import (
     MANIFEST_NAME,
     UPDATE_CACHE_FILENAME,
 )
-from gpd.adapters.runtime_catalog import iter_runtime_descriptors
+from gpd.adapters.runtime_catalog import (
+    iter_runtime_descriptors,
+)
+from gpd.adapters.runtime_catalog import (
+    resolve_global_config_dir as _resolve_global_config_dir,
+)
 from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, PLANNING_DIR_NAME, TODOS_DIR_NAME
 
 RUNTIME_UNKNOWN = "unknown"
@@ -172,6 +177,7 @@ def _runtime_from_manifest_or_path(config_dir: Path, *, home: Path | None = None
     if manifest_has_runtime:
         return manifest_runtime or RUNTIME_UNKNOWN
 
+    resolved_home = home or Path.home()
     for runtime in ALL_RUNTIMES:
         adapter = _adapter(runtime)
         if adapter is None:
@@ -179,6 +185,13 @@ def _runtime_from_manifest_or_path(config_dir: Path, *, home: Path | None = None
         if config_dir.name == adapter.local_config_dir_name:
             return runtime
         if _paths_equal(config_dir, adapter.resolve_global_config_dir(home=home)):
+            return runtime
+        # Explicit config-dir ownership should remain stable even when the
+        # current process carries unrelated runtime/XDG override env vars.
+        if _paths_equal(
+            config_dir,
+            _resolve_global_config_dir(adapter.runtime_descriptor, home=resolved_home, environ={}),
+        ):
             return runtime
     return None
 
