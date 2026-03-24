@@ -376,3 +376,73 @@ These three links stand regardless of the gaps.
 4. **$h_3(\mathbb{O})$ as a candidate for "beyond the Standard Model."** Dubois-Violette (1995), Boyle (2020), Krasnov (2019-2024). The connection between $h_3(\mathbb{O})$ and the SM is widely explored.
 
 **The v5.0 contribution is the CONNECTIONS (items 1-3 in NEW), not the individual components.**
+
+---
+
+## Part VI: Synthesis
+
+### Step 17: The One Choice, Two Consequences Theorem (Final Form)
+
+**THEOREM (One Choice, Two Consequences -- Synthesis).**
+
+Let $h_3(\mathbb{O})$ be the exceptional Jordan algebra. Assume:
+- (Gap A) $h_3(\mathbb{O})$ is identified as the universe algebra via non-composability.
+- (Gap B, step 1) An observer selects a rank-1 idempotent $e = E_{11} \in h_3(\mathbb{O})$, breaking $F_4 \to \mathrm{Spin}(9)$.
+- (Gap B, step 2) A complex structure $u \in S^6 \subset \mathrm{Im}(\mathbb{O})$ is chosen.
+
+Then:
+
+**(i) COMPLEXIFICATION IS FORCED.** The observer's C\*-algebra nature (Paper 5) forces extension of scalars $V_{1/2} \otimes_{\mathbb{R}} \mathbb{C}$, upgrading the symmetry from $\mathrm{Spin}(9)$ to $\mathrm{Spin}(10)$ acting on a 16-dimensional complex Weyl spinor $S_{10}^+$, and upgrading $F_4 \to E_6$ with $\mathrm{Stab}_{E_6}(E_{11}) = \mathrm{Spin}(10) \times \mathrm{U}(1)$. [Phase 18, proved]
+
+**(ii) ONE CHOICE, TWO CONSEQUENCES.** The single additional datum $u$ simultaneously determines:
+
+$\quad$ **(a) GAUGE GROUP:** The breaking $F_4 \supset [\mathrm{SU}(3)_C \times \mathrm{SU}(3)_J]/\mathbb{Z}_3$ via the Todorov-Drenska $F_4$ subgroup intersection, whose intersection with $\mathrm{Spin}(9) = \mathrm{Stab}_{F_4}(E_{11})$ gives the SM gauge group $\mathrm{SU}(3)_C \times \mathrm{SU}(2) \times \mathrm{U}(1)$ (dim 12). [Phase 20 Plan 01, proved]
+
+$\quad$ **(b) CHIRALITY:** The splitting $\mathbb{O} = \mathbb{C} \oplus \mathbb{C}^3$ induces $\mathrm{Cl}(6) \subset \mathrm{Cl}(10)$ whose volume form $\omega_6 = \gamma_1 \cdots \gamma_6$ selects the LEFT (chiral) SM embedding: $\mathbf{16} \to (\mathbf{4}, \mathbf{2}, \mathbf{1}) \oplus (\bar{\mathbf{4}}, \mathbf{1}, \mathbf{2})$ under Pati-Salam, with $\mathrm{SU}(2)_L$ acting on left-handed fermions only. [Phase 19, proved]
+
+**(iii) CHIRAL UPGRADE.** The Cl(6)/Pati-Salam route (b) provides a chiral representation for the same gauge algebra that the $F_4$ intersection route (a) provides without chirality. Specifically:
+- The gauge algebra $\mathfrak{su}(3) \oplus \mathfrak{su}(2) \oplus \mathfrak{u}(1)$ is identical in both routes (all three factors matched: Steps 7-9).
+- The $F_4$ route acts on the real $\mathbf{27}$ with no L/R distinction.
+- The Cl(6) route acts on the complex $\mathbf{16}$ with the LEFT embedding.
+- The chirality is not an additional postulate -- it is a consequence of the same algebraic choice $u$ that gives the gauge group.
+
+**CONDITIONS.** The theorem is conditional on:
+- (a) The identification of $h_3(\mathbb{O})$ as the universe algebra (Gap A: non-composability argument, standard but separate from self-modeling).
+- (b) The choice of rank-1 idempotent $E_{11}$ (Gap B step 1: symmetry-breaking input, not derived).
+- (c) The choice of complex structure $u \in S^6$ (Gap B step 2: symmetry-breaking input, not derived).
+
+Conditions (b) and (c) are symmetry-breaking choices (all $E_{11}$ conjugate under $F_4$; all $u$ conjugate under $G_2$). Condition (a) is a standard mathematical result (JvNW classification) combined with a physical principle (the universe is not a subsystem).
+
+### Step 18: The Complete Chain in One Sentence
+
+> Self-modeling forces C\*-algebra (Paper 5); the C\*-observer complexifies $h_3(\mathbb{O})$ (Part A, Phase 18); the single complex structure choice $u$ simultaneously gives the SM gauge group and its chiral representation (Part B, Phase 19 + Synthesis, Phase 20).
+
+Expanded version with gap qualifications:
+
+> Conditional on the universe algebra being $h_3(\mathbb{O})$ (Gap A) and the observer selecting a rank-1 idempotent $E_{11}$ (Gap B step 1) and a complex structure $u \in S^6$ (Gap B step 2), the self-modeling axioms (Paper 5) force C\*-algebra structure whose complexification (Phase 18) upgrades $\mathrm{Spin}(9) \to \mathrm{Spin}(10)$, and the single choice $u$ simultaneously yields the SM gauge group $\mathrm{SU}(3)_C \times \mathrm{SU}(2)_L \times \mathrm{U}(1)_Y$ via $F_4$ intersection (Phase 20) and its chiral representation via $\mathrm{Cl}(6)$ (Phase 19).
+
+### Step 19: Gap Register for Phase 21 (Paper 7)
+
+| Gap | Description | Nature | Severity | Status |
+|-----|-------------|--------|----------|--------|
+| **B1** | Rank-1 idempotent $E_{11}$ choice | Symmetry breaking: all rank-1 idempotents conjugate under $F_4$; orbit = $\mathbb{OP}^2$ (dim 16). The observer's existence breaks $F_4 \to \mathrm{Spin}(9)$, but what selects WHICH idempotent is not addressed. | **HIGH** -- without this, no Peirce decomposition, no $\mathrm{Spin}(9)$, no downstream chain | Open |
+| **B2** | Complex structure $u \in S^6$ choice | Symmetry breaking: all $u$ conjugate under $G_2$; orbit = $S^6 = G_2/\mathrm{SU}(3)$ (dim 6). The "one choice" produces "two consequences," but what makes this choice is not addressed. | **HIGH** -- without this, no chirality, no SM gauge group | Open |
+| **A** | Non-composability $\to$ $h_3(\mathbb{O})$ | Standard mathematics (JvNW classification) + physical principle (universe is not a subsystem). The mathematical fact is proved; the physical principle is motivated but not derived from self-modeling. | **MEDIUM** -- established but requires accepting a separate physical argument | Established |
+| **Gen** | Why 3 generations | Open question. The "3" in $h_3(\mathbb{O})$ ($3 \times 3$ matrices) is suggestive, and the 3 off-diagonal octonion entries may relate to 3 generations. But no mechanism producing 3 copies of the $\mathbf{16}$ representation has been established. | **LOW** for this paper -- explicitly out of scope | Open |
+| **SA** | Spectral action computation | Deferred computation. The current work establishes the algebraic input (gauge group + chiral representation) but not the dynamics (the GR + SM Lagrangian). Computing the spectral action from an $h_3(\mathbb{O})$-based spectral triple is a separate research direction. | **LOW** for this paper -- separate future work | Deferred |
+
+**Gap independence:** Gaps B1 and B2 are structurally independent (fixing $E_{11}$ does not constrain $u$; see Step 14). Gap A is logically upstream of both B1 and B2 (without $h_3(\mathbb{O})$, there is no $E_{11}$ or $u$ to choose).
+
+### Step 20: The v5.0 Milestone Result
+
+The v5.0 milestone establishes:
+
+**A C\*-observer probing $h_3(\mathbb{O})$, upon choosing a single complex structure $u \in S^6$, automatically obtains the Standard Model gauge group $\mathrm{SU}(3)_C \times \mathrm{SU}(2)_L \times \mathrm{U}(1)_Y$ with the correct chiral (left-handed) representation.**
+
+The chirality is not an additional postulate -- it is a consequence of the same algebraic choice that gives the gauge group. The "one choice" ($u$) simultaneously:
+1. Breaks $F_4 \to$ SM gauge group (via $F_4$ intersection with $\mathrm{Spin}(9)$);
+2. Defines $\mathrm{Cl}(6) \subset \mathrm{Cl}(10)$ whose volume form $\omega_6$ selects the LEFT embedding.
+
+The result is conditional on three inputs (Gap A: $h_3(\mathbb{O})$ identification; Gap B1: $E_{11}$ choice; Gap B2: $u$ choice). Within these conditions, the derivation chain from self-modeling (Paper 5) through complexification (Phase 18, Part A) to the chiral SM (Phase 19-20, Part B + Synthesis) is complete.
+
+This completes Phase 20: Synthesis -- One Choice, Two Consequences.
