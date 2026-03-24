@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?
-**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 18 ready to plan
+**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 18 complete, Phase 19 next
 
 ## Current Position
 
-**Current Phase:** 18
+**Current Phase:** 18 (complete)
 **Current Phase Name:** Complexification from C*-Observer (Part A)
 **Total Phases:** 4 (Phases 18-21)
-**Current Plan:** --
-**Total Plans in Phase:** TBD
-**Status:** Ready to plan
+**Current Plan:** 2/2 complete
+**Total Plans in Phase:** 2
+**Status:** Phase 18 complete, verified (6/6 claims, 12/12 physics checks)
 **Last Activity:** 2026-03-23
-**Last Activity Description:** Roadmap created for v5.0: 4 phases (18-21), 11 requirements mapped
+**Last Activity Description:** Phase 18 complete -- Peirce decomposition, C*-complexification, F_4->E_6, 27->1+10+16
 
-**Progress:** [░░░░░░░░░░] 0% (v5.0)
+**Progress:** [██░░░░░░░░] 25% (v5.0)
 
 ## Active Calculations
 
@@ -108,6 +108,18 @@ None yet.
 - **No D produces C + H + M_3(C)**: simple M_n(C) algebra cannot give SM -- requires direct sum structure (HIGH)
 - **Medium success tier**: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra (HIGH)
 - **50 pytest tests pass** verifying first-order condition at n=2,3,4 for Barrett and general D (HIGH)
+
+- **Peirce decomposition h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10)** under E_11, dim check 1+16+10=27 (HIGH)
+- **V_{1/2} = O^2 = S_9** (real Spin(9) spinor, dim_R = 16) (HIGH)
+- **C*-observer forces V_{1/2}^C = S_{10}^+** (Weyl spinor of Spin(10), dim_C = 16) (MEDIUM)
+- **Spin(9) -> Spin(10) upgrade** via branching rule S_{10}^+|_{Spin(9)} = S_9^C (HIGH)
+- **Cross-check with Boyle 2020**: consistent identification of V_{1/2} as S_{10}^+ (HIGH)
+- **Backtracking trigger NOT fired**: complexification follows from C*-nature alone (HIGH)
+- **F_4 -> E_6 upgrade** tracked through Peirce: Aut -> Str_0, dim 52 -> 78 (HIGH)
+- **Stab_{E_6}(E_11) = Spin(10) x U(1)**, dim 46, orbit = complexified Cayley plane dim 32 (HIGH)
+- **27 -> 1 + 10 + 16** under Spin(10): 1=V_1^C, 10=V_0^C, 16=V_{1/2}^C=S_{10}^+ (HIGH)
+- **V_0^C = 10 (vector)** verified via branching 10|_{Spin(9)} = 9+1 (HIGH)
+- **Phase 18 verified**: 6/6 contract claims, 12/12 physics checks, consistency 27/27 (HIGH)
 
 ## Open Questions
 
@@ -233,6 +245,11 @@ None yet.
 - [Phase 15, Plan 02]: Medium success tier: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra
 - [Phase 15, Plan 02]: Master formula [[M, L_a], R_b](X) = sum_k [A_k, a] X [b, B_k] -- Barrett is pure-left type
 - [Phase 0]: Started milestone v5.0: Chirality from h_3(O) via Cl(6) — New milestone cycle -- h_3(O)/Cl(6) route to chirality replaces spectral triple approach
+- [Phase 18, Plan 01]: S_{10}^+ convention following Boyle 2020; chirality deferred to Phase 19
+- [Phase 18, Plan 01]: Rank-1 idempotent e = E_11 taken as given input (Gap B step 1)
+- [Phase 18, Plan 01]: Backtracking trigger NOT fired -- complexification follows from C*-nature alone
+- [Phase 18, Plan 02]: U(1) charges (-4, 2, -1) recorded but physical meaning (B-L) deferred to Phase 19-20
+- [Phase 18, Plan 02]: Local-to-global complexification noted as consistent completion, not formally necessary
 
 ### Active Approximations
 
@@ -286,5 +303,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-23
-**Stopped at:** v5.0 roadmap created; Phase 18 ready to plan
+**Stopped at:** Phase 18 complete and verified; Phase 19 ready to plan
 **Resume file:** --
