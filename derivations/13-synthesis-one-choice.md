@@ -260,3 +260,119 @@ The following gaps are honestly acknowledged:
 4. **Spectral action.** The GR + SM Lagrangian from the spectral triple (Connes framework) has not been computed. The current work establishes the *algebraic* input (gauge group + chiral representation) but not the *dynamics*. Computing the spectral action from the h_3(O)-based spectral triple is a separate research direction.
 
 5. **The finite quotient.** The precise global structure of the SM gauge group (whether $[\mathrm{SU}(3) \times \mathrm{SU}(2) \times \mathrm{U}(1)] / \mathbb{Z}_6$ or some other quotient) requires tracking the center of each factor through both routes. This is a known subtlety that does not affect the Lie algebra identification but matters for the global topology of the gauge group.
+
+---
+
+## Part V: The Complete Chain -- Self-Modeling to Chirality
+
+**Phase 20, Plan 02: Complete Chain Table and Synthesis**
+
+### Step 13: The Complete Chain Table
+
+The logical chain from self-modeling axioms to the chiral Standard Model representation consists of 9 links. Each link is classified by its source, status (proved within this work, established by prior standard results, or an explicit gap), and confidence level.
+
+| Link | Statement | Source | Status | Confidence |
+|------|-----------|--------|--------|------------|
+| **L1** | Self-modeling forces $M_n(\mathbb{C})^{sa}$ with C\*-algebra structure: a system that faithfully models itself has a state space isomorphic to the self-adjoint part of a matrix C\*-algebra | Paper 5 (v2.0) | **Proved** | HIGH |
+| **L2** | Non-composability of $h_3(\mathbb{O})$ makes it the unique EJA that breaks local tomography, identifying it as the "universe algebra" -- the single system that is not a subsystem of any larger system | Gap A (separate argument; JvNW classification) | **Established** | MEDIUM |
+| **L3** | Observer selects rank-1 idempotent $e = E_{11} \in h_3(\mathbb{O})$, inducing Peirce decomposition $h_3(\mathbb{O}) = V_1(1) \oplus V_{1/2}(16) \oplus V_0(10)$ with $\mathrm{Stab}_{F_4}(E_{11}) = \mathrm{Spin}(9)$ | Gap B step 1 | **Gap (input)** | -- |
+| **L4** | C\*-observer nature forces complexification: $V_{1/2} \otimes_{\mathbb{R}} \mathbb{C} = S_{10}^+$, upgrading the symmetry from $\mathrm{Spin}(9)$ to $\mathrm{Spin}(10)$ on a 16-dim complex Weyl spinor | Phase 18 Plan 01 | **Proved** | HIGH |
+| **L5** | Complexification upgrades $F_4 \to E_6$, $\mathrm{Spin}(9) \to \mathrm{Spin}(10)$, $\mathbf{27} \to \mathbf{1} \oplus \mathbf{10} \oplus \mathbf{16}$ under $\mathrm{Spin}(10)$ | Phase 18 Plan 02 | **Proved** | HIGH |
+| **L6** | Observer selects complex structure $u \in S^6 \subset \mathrm{Im}(\mathbb{O})$, splitting $\mathbb{O} = \mathbb{C} \oplus \mathbb{C}^3$ with $W = u^\perp \cap \mathrm{Im}(\mathbb{O})$ ($\dim W = 6$) | Gap B step 2 | **Gap (input)** | -- |
+| **L7** | $u$ defines $\mathrm{Cl}(6) \subset \mathrm{Cl}(10)$ from $W$; volume form $\omega_6 = \gamma_1 \cdots \gamma_6$ selects the chiral (LEFT) embedding: $\mathbf{16} \to (\mathbf{4}, \mathbf{2}, \mathbf{1}) \oplus (\bar{\mathbf{4}}, \mathbf{1}, \mathbf{2})$ under Pati-Salam | Phase 19 | **Proved** | HIGH |
+| **L8** | Same $u$ breaks $F_4 \to [\mathrm{SU}(3)_C \times \mathrm{SU}(3)_J]/\mathbb{Z}_3$; intersection with $\mathrm{Spin}(9)$ gives $\mathrm{SU}(3)_C \times \mathrm{SU}(2) \times \mathrm{U}(1)$ (the SM gauge group) | Phase 20 Plan 01 | **Proved** | HIGH |
+| **L9** | The Cl(6)/Pati-Salam route gives the **same** SM gauge group as the $F_4$ intersection route, **plus** the chiral representation that $F_4$ alone cannot provide | Phase 20 Plan 01 | **Proved** | HIGH |
+
+**Link count verification:** 9 links (L1 through L9), all present, no gaps in numbering. Each link has source, status, and confidence.
+
+**Logical dependency:** Each link depends only on earlier links or external inputs:
+- L1 is the starting axiom (self-modeling).
+- L2 depends on L1 (restricting from $M_n(\mathbb{C})^{sa}$ to $h_3(\mathbb{O})$) plus the JvNW classification.
+- L3 depends on L2 (the observer probes $h_3(\mathbb{O})$) and is an external input (Gap B step 1).
+- L4 depends on L3 (the Peirce decomposition gives $V_{1/2}$) and L1 (the C\*-nature forces complexification).
+- L5 depends on L4 (complexification is the structural upgrade from $F_4$ to $E_6$).
+- L6 is an external input (Gap B step 2), applied to the setting established by L2.
+- L7 depends on L5 (the $\mathrm{Spin}(10)$ spinor) and L6 (the splitting $\mathbb{O} = \mathbb{C} \oplus \mathbb{C}^3$).
+- L8 depends on L3 ($\mathrm{Spin}(9)$ stabilizer) and L6 (the $F_4$ breaking by $u$).
+- L9 depends on L7 and L8 (comparing the two routes).
+
+No circular dependencies: the chain is a directed acyclic graph.
+
+### Step 14: Gap Analysis
+
+**Gap B step 1 (L3): What mechanism selects $E_{11}$?**
+
+In the self-modeling framework, the observer IS the rank-1 idempotent -- it defines the "observer subspace" via the Peirce decomposition $h_3(\mathbb{O}) = V_1 \oplus V_{1/2} \oplus V_0$. The $V_1$ subspace (dimension 1) is the observer's own degree of freedom; $V_{1/2}$ (dimension 16) is the space the observer probes; $V_0$ (dimension 10) is the "complement."
+
+The choice of WHICH rank-1 idempotent is a symmetry-breaking choice. In $h_3(\mathbb{O})$, all rank-1 idempotents are conjugate under $F_4$ (the orbit is $\mathbb{OP}^2$, the octonionic projective plane, $\dim = 16$). So the choice of $E_{11}$ over $E_{22}$ or any other rank-1 idempotent is analogous to spontaneous symmetry breaking: the symmetry $F_4$ is broken to $\mathrm{Spin}(9)$ by the observer's existence.
+
+This choice is **not derived** from self-modeling. The self-modeling axioms establish that the observer is described by $M_n(\mathbb{C})^{sa}$ (Paper 5), and the non-composability argument identifies $h_3(\mathbb{O})$ as the universe algebra (Gap A). But nothing in the framework selects a specific rank-1 idempotent. The observer's existence -- the fact that there IS an observer with a definite viewpoint -- is the input.
+
+**Gap B step 2 (L6): What mechanism selects $u$?**
+
+The complex structure $u \in S^6 = G_2/\mathrm{SU}(3)$ determines the splitting $\mathbb{O} = \mathbb{C} \oplus \mathbb{C}^3$ and thus the entire SM structure (both gauge group and chirality). In the current framework, $u$ is a modulus: any $u \in S^6$ gives the same SM (all choices are related by $G_2$, which permutes the imaginary octonions). But what SELECTS a specific $u$ is not addressed.
+
+This is the "one choice" that produces "two consequences." The work establishes what the choice gives, not why the choice is made. The freedom is parametrized by $S^6$, a 6-dimensional manifold. Whether this is a genuine modulus (a family of physically equivalent vacua), is fixed by dynamics (a potential on $S^6$), or is determined by a deeper principle is an open question.
+
+Note: Gap B steps 1 and 2 are structurally independent. Fixing $E_{11}$ does not constrain $u$ (the stabilizer $\mathrm{Spin}(9) = \mathrm{Stab}_{F_4}(E_{11})$ contains $G_2$, which acts transitively on $S^6$, so all $u$ remain equivalent after fixing $E_{11}$). Conversely, fixing $u$ does not constrain $E_{11}$ (the $u$-preserving subgroup $[\mathrm{SU}(3) \times \mathrm{SU}(3)]/\mathbb{Z}_3$ acts transitively on the rank-1 idempotents of $h_3(\mathbb{C}) \subset h_3(\mathbb{O})$, but not on all rank-1 idempotents of $h_3(\mathbb{O})$).
+
+**Gap A (L2): Non-composability $\to$ $h_3(\mathbb{O})$**
+
+The Jordan-von Neumann-Wigner classification establishes that the finite-dimensional formally real Jordan algebras are: $\mathbb{R}$, spin factors $V_n$, $h_n(\mathbb{R})$, $h_n(\mathbb{C})$, $h_n(\mathbb{H})$ (for all $n$), and the single exceptional case $h_3(\mathbb{O})$. Among these, $h_3(\mathbb{O})$ is the unique one that is:
+- Not a spin factor (these are composable for $n \geq 3$)
+- Not $h_n(\mathbb{K})$ for $\mathbb{K} \in \{\mathbb{R}, \mathbb{C}, \mathbb{H}\}$ with $n \geq 3$ (these embed into $M_n(\mathbb{K})$ and are composable)
+- Exceptional (does not embed into any associative algebra)
+
+The argument that the "universe algebra" should be non-composable (because the universe is not a subsystem of a larger system, so the tensor product structure that composability requires is inappropriate) is physically motivated. It is standard in the literature (Baez, Boyle) but it is a separate argument from self-modeling -- it invokes a principle about the universe as a whole, not the self-modeling axioms of Paper 5.
+
+Status: **Established** (standard mathematics + a physically motivated but separate argument).
+
+### Step 15: Conditional Structure
+
+The chain has the following conditional structure:
+
+**UNCONDITIONAL (proved within this work):**
+- L1: Self-modeling $\to$ $M_n(\mathbb{C})^{sa}$ [Paper 5]
+- L4: C\*-observer $\to$ complexification [Phase 18]
+- L5: Complexification upgrade [Phase 18]
+
+These three links stand regardless of the gaps.
+
+**CONDITIONAL ON Gap A (L2):**
+- L2: Non-composability $\to$ $h_3(\mathbb{O})$
+- Everything downstream (L3-L9) inherits this condition, since it all takes place within $h_3(\mathbb{O})$
+
+**CONDITIONAL ON Gap B step 1 (L3):**
+- L3: Observer selects $E_{11}$
+- L4, L5: Peirce decomposition requires $E_{11}$
+- L7, L8, L9: These require $\mathrm{Spin}(9)$ and $\mathrm{Spin}(10)$, which come from $E_{11}$
+
+**CONDITIONAL ON Gap B step 2 (L6):**
+- L6: Observer selects $u$
+- L7: Cl(6) chirality requires $u$
+- L8: $F_4$ intersection requires $u$
+- L9: Comparison of the two routes requires both L7 and L8
+
+**The strongest unconditional statement:** "If the universe algebra is $h_3(\mathbb{O})$ and an observer selects an idempotent $E_{11}$ and a complex structure $u$, then the C\*-nature of the observer forces complexification ($\mathrm{Spin}(9) \to \mathrm{Spin}(10)$), and $u$ simultaneously gives the SM gauge group and its chiral representation."
+
+### Step 16: Novelty Delineation
+
+**NEW in this work (v5.0):**
+
+1. **Complexification derived from C\*-observer nature** (Phase 18). Boyle (2020) assumes complexification; we derive it from the requirement that the observer is a C\*-algebra system. This is the key advancement of Part A.
+
+2. **Cl(6) chirality and $F_4$ intersection traced to the SAME algebraic input $u$** (Phase 20 Plan 01). The literature treats the Cl(6)/Furey route and the $F_4$/Todorov-Drenska route as separate approaches. We prove they share the same input ($u \in S^6$) and produce the same gauge group, with Cl(6) additionally providing chirality.
+
+3. **Complete chain from self-modeling axioms to chiral SM** (this document). No prior work connects the self-modeling axioms (Paper 5) through complexification (Part A) to the chiral SM representation (Part B) in a single chain with explicit gap identification.
+
+**EXISTING (established in the literature):**
+
+1. **$h_3(\mathbb{O})$ and exceptional Jordan algebra structure.** Albert (1934), Jordan-von Neumann-Wigner (1934), Baez (2002). The classification and properties of $h_3(\mathbb{O})$ are standard.
+
+2. **$\mathrm{Cl}(6) \to$ Pati-Salam $\to$ SM.** Furey (2018), Todorov (2019-2022). The construction of SM representations from $\mathrm{Cl}(6)$ via the Witt decomposition is established.
+
+3. **$F_4$ intersection $\to$ SM gauge group.** Todorov-Drenska (2018). The breaking of $F_4$ by a complex structure and its intersection with $\mathrm{Spin}(9)$ giving the SM gauge group is established.
+
+4. **$h_3(\mathbb{O})$ as a candidate for "beyond the Standard Model."** Dubois-Violette (1995), Boyle (2020), Krasnov (2019-2024). The connection between $h_3(\mathbb{O})$ and the SM is widely explored.
+
+**The v5.0 contribution is the CONNECTIONS (items 1-3 in NEW), not the individual components.**
