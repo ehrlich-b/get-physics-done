@@ -201,7 +201,12 @@ Plans:
 3. The v4.0 obstruction (simple M_n(C) cannot give SM) is presented as motivation for the h_3(O) route, connecting this paper to the research arc
 4. All anchor references are cited and the relationship to Todorov-Drenska, Furey, and Boyle is made explicit
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 21-01-PLAN.md -- Paper skeleton, preamble, bibliography, introduction with chain table
+- [ ] 21-02-PLAN.md -- Technical body: Part A (complexification), Part B (chirality), Synthesis
+- [ ] 21-03-PLAN.md -- Gap analysis, discussion, final assembly and verification
 
 ## Phase Dependencies
 
