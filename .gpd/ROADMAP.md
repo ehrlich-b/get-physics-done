@@ -161,7 +161,9 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 
 **Backtracking trigger:** If entropy can decrease for generic initial states, document the conditions for decrease and assess whether the selection argument (Phase 26) can still work with conditional entropy increase.
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 23-01-PLAN.md -- Explicit 2-qubit Luders channel, unitality test, entropy change (CALC-01)
+- [ ] 23-02-PLAN.md -- Entropy monotonicity theorem, iterated dynamics, Phase 26 assessment (ENTR-01, ENTR-02)
 
 ### Phase 24: Chirality Requires Time-Orientation
 
@@ -246,7 +248,7 @@ Phase 23 and Phase 24 are independent (parallel). Phase 25 requires Phase 23. Ph
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 23. Entropy Increase under Sequential Products | v7.0 | 0/TBD | Not started | - |
+| 23. Entropy Increase under Sequential Products | v7.0 | 0/2 | Planned | - |
 | 24. Chirality Requires Time-Orientation | v7.0 | 0/TBD | Not started | - |
 | 25. Self-Modeling Requires Free Energy | v7.0 | 0/TBD | Not started | - |
 | 26. Entropy Gradient Theorem + Gap C | v7.0 | 0/TBD | Not started | - |
