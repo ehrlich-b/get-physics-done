@@ -163,4 +163,100 @@ No additional algebraic input beyond $u$ and $E_{11}$ is needed for either route
 
 ---
 
-*(Part III and Part IV continue in Task 2.)*
+## Part III: Explicit Group Identification (SYNT-02)
+
+### Step 7: Matching SU(3)_C Across Routes
+
+**F_4 route:** $\mathrm{SU}(3)_C = \mathrm{Stab}_{G_2}(u)$. This is the subgroup of octonion automorphisms $G_2 = \mathrm{Aut}(\mathbb{O})$ that fixes $u = e_7$ pointwise. It preserves the complex structure $J: W \to W$ defined by $J(w) = u \cdot w$, and acts on $W \cong \mathbb{C}^3$ via the defining 3-dimensional representation.
+
+**Cl(6)/PS route:** $\mathrm{SU}(3)_C$ from $\mathrm{SU}(4) \to \mathrm{SU}(3) \times \mathrm{U}(1)_{B-L}$. Here $\mathrm{SU}(4) = \mathrm{Spin}(6)$ is the part of $\mathrm{Stab}_{\mathrm{Spin}(10)}(\omega_6)$ acting on the 6 internal directions (directions 1-6 of $\mathrm{Cl}(10)$). These 6 directions ARE the directions of $W = e_7^\perp \cap \mathrm{Im}(\mathbb{O})$. The same $u$ that defines $\mathrm{Cl}(6)$ also breaks $\mathrm{SU}(4)$ by distinguishing the $u$-direction within the internal space. The stabilizer of $u$ within $\mathrm{SU}(4)$ gives $\mathrm{SU}(3)_C \times \mathrm{U}(1)$.
+
+**Identification.** In both routes, $\mathrm{SU}(3)_C$ is **the group of transformations of $W \cong \mathbb{C}^3$ that preserve the complex structure $J$ defined by $u$**:
+
+- Route A phrases this as $\mathrm{Stab}_{G_2}(u)$: the automorphisms of $\mathbb{O}$ fixing $u$, which automatically preserve $J(w) = u \cdot w$.
+- Route B phrases this as the subgroup of $\mathrm{Spin}(6) \cong \mathrm{SU}(4)$ (acting on the 6 directions of $W$) that commutes with $J$. Since $J$ is an orthogonal complex structure on $W \cong \mathbb{R}^6$, its stabilizer in $\mathrm{SO}(6)$ is $\mathrm{U}(3)$, and in $\mathrm{SU}(4) \cong \mathrm{Spin}(6)$ is $\mathrm{SU}(3) \times \mathrm{U}(1)$.
+
+Both act on $W \cong \mathbb{C}^3$ via the **same representation** (the defining 3-dim representation of $\mathrm{SU}(3)$), because both preserve the same complex structure $J$ on the same 6-dimensional real vector space $W$.
+
+**Explicit check on W:** In both routes, with $u = e_7$ and the Fano convention:
+$$W = \mathrm{span}_{\mathbb{R}}\{e_1, e_2, e_3, e_4, e_5, e_6\}$$
+The complex structure pairs: $(e_k, e_7 \cdot e_k)$ for $k = 1, 2, 3$. This is the same pairing used to define the Witt operators $a_j = \frac{1}{2}(\gamma_{2j-1} + i\gamma_{2j})$ in Phase 19.
+
+$\therefore$ **$\mathrm{SU}(3)_C$ is the same group in both routes.**
+
+### Step 8: Matching SU(2) Across Routes
+
+**F_4 route:** $\mathrm{SU}(2)$ comes from $\mathrm{U}(2)_J = \mathrm{Stab}_{\mathrm{SU}(3)_J}(E_{11})$, the subgroup of the Jordan flavor $\mathrm{SU}(3)_J$ that preserves the idempotent $E_{11}$. Writing $\mathrm{U}(2) = [\mathrm{SU}(2) \times \mathrm{U}(1)] / \mathbb{Z}_2$, the $\mathrm{SU}(2)$ factor acts on the 2nd and 3rd rows/columns of $h_3(\mathbb{C})$, mixing the off-diagonal entries $x_1, x_2$ (the two octonion entries NOT in the first row/column).
+
+**Cl(6)/PS route:** $\mathrm{SU}(2)_L$ from $\mathrm{Spin}(4) = \mathrm{SU}(2)_L \times \mathrm{SU}(2)_R$, the external part of $\mathrm{Stab}_{\mathrm{Spin}(10)}(\omega_6)$. $\mathrm{Spin}(4)$ acts on the 4 external $\mathrm{Cl}(10)$ directions (7-10), which correspond to the non-octonion generators. These directions come from the $V_0$ Peirce space ($h_2(\mathbb{O})$ sector of the Peirce decomposition).
+
+**Identification.** Both $\mathrm{SU}(2)$ factors arise from the same structural origin: the part of $\mathrm{Spin}(9)$ (or $\mathrm{Spin}(10)$ after complexification) that acts on the "external" directions — the directions in the $V_0$ Peirce sector rather than the $V_{1/2}$ sector. In the F_4 route, this is phrased as the $\mathrm{SU}(2)$ inside $\mathrm{U}(2)_J \subset \mathrm{SU}(3)_J$. In the Cl(6)/PS route, this is the $\mathrm{SU}(2)_L$ factor of $\mathrm{Spin}(4)$.
+
+The Cl(6)/PS route provides **additional information**: it distinguishes $\mathrm{SU}(2)_L$ from $\mathrm{SU}(2)_R$ via the LEFT embedding ($\mathbf{16} \to (\mathbf{4}, \mathbf{2}, \mathbf{1}) \oplus (\bar{\mathbf{4}}, \mathbf{1}, \mathbf{2})$). The F_4 route sees only a generic $\mathrm{SU}(2)$ without this left-right distinction, because $F_4$ works at the real level where chirality is not defined.
+
+$\therefore$ **$\mathrm{SU}(2)$ is the same factor in both routes** (acting on the same directions), but the Cl(6)/PS route additionally identifies it as $\mathrm{SU}(2)_L$ with a chiral action.
+
+### Step 9: Matching U(1) Across Routes
+
+**F_4 route:** $\mathrm{U}(1)$ from the center of $\mathrm{U}(2)_J = [\mathrm{SU}(2) \times \mathrm{U}(1)] / \mathbb{Z}_2$. This is the phase rotation $\mathrm{diag}(e^{i\alpha}, e^{-i\alpha/2}, e^{-i\alpha/2})$ on $h_3(\mathbb{C})$ (distinguishing the 1st row/column from the 2nd and 3rd, consistent with fixing $E_{11}$).
+
+**Cl(6)/PS route:** $\mathrm{U}(1)_Y$ with hypercharge $Y = (B-L) + 2 J_3^R$, where:
+- $B - L$ comes from $\mathrm{SU}(4) \to \mathrm{SU}(3) \times \mathrm{U}(1)_{B-L}$ (the $u$-breaking of the internal $\mathrm{SU}(4)$)
+- $J_3^R$ comes from $\mathrm{SU}(2)_R$ (the right-handed part of $\mathrm{Spin}(4)$)
+
+**Identification.** Both $\mathrm{U}(1)$ factors are generated by the same Cartan element: the one that lies in the intersection of the maximal torus of $\mathrm{Spin}(9)$ (or $\mathrm{Spin}(10)$) with the $u$-preserving subgroup, modulo the $\mathrm{SU}(3)_C \times \mathrm{SU}(2)$ factors already matched. The rank-4 groups in both routes (Cartan of $[\mathrm{SU}(3) \times \mathrm{SU}(3)]/\mathbb{Z}_3$ has rank 4, and Cartan of $\mathrm{Spin}(10)$ has rank 5) share a common rank-4 torus inside $F_4$ (rank 4). After removing the 2 Cartan generators of $\mathrm{SU}(3)_C$ and the 1 Cartan generator of $\mathrm{SU}(2)$, exactly 1 $\mathrm{U}(1)$ remains. This is the hypercharge $\mathrm{U}(1)_Y$ in both routes.
+
+$\therefore$ **$\mathrm{U}(1)$ is the same factor in both routes** (determined by rank counting within the common Cartan subalgebra).
+
+### Summary: Complete Group Matching
+
+| Factor | F_4 Route (origin) | Cl(6)/PS Route (origin) | Identification |
+|--------|-------------------|------------------------|----------------|
+| $\mathrm{SU}(3)_C$ | $\mathrm{Stab}_{G_2}(u)$ (dim 8) | $\mathrm{Stab}_{\mathrm{SU}(4)}(u)$ (dim 8) | Same: preserves $J: W \to W$, acts on $W \cong \mathbb{C}^3$ via $\mathbf{3}$ |
+| $\mathrm{SU}(2)$ | $\mathrm{U}(2)_J \cap \mathrm{Spin}(9)$ (dim 3) | $\mathrm{SU}(2)_L \subset \mathrm{Spin}(4)$ (dim 3) | Same: acts on external (Peirce $V_0$) directions |
+| $\mathrm{U}(1)$ | Center of $\mathrm{U}(2)_J$ (dim 1) | $\mathrm{U}(1)_Y = (B-L) + 2J_3^R$ (dim 1) | Same: unique residual Cartan generator |
+| **Total** | **dim 12** | **dim 12** | **Same gauge algebra $\mathfrak{su}(3) \oplus \mathfrak{su}(2) \oplus \mathfrak{u}(1)$** |
+
+---
+
+## Part IV: The Chiral Upgrade
+
+### Step 10: The Chiral Upgrade Theorem
+
+**Theorem (One Choice, Two Consequences).** Let $u \in S^6 \subset \mathrm{Im}(\mathbb{O})$ be a unit imaginary octonion, and let $E_{11}$ be a rank-1 idempotent in $h_3(\mathbb{O})$. Then:
+
+**(a) GAUGE GROUP:** The subgroup of $F_4 = \mathrm{Aut}(h_3(\mathbb{O}))$ that preserves both $E_{11}$ and the complex structure defined by $u$ contains the SM gauge group $\mathrm{SU}(3)_C \times \mathrm{SU}(2) \times \mathrm{U}(1)$ (Part I, Steps 1-4).
+
+**(b) CHIRALITY:** The same $u$ defines $\mathbb{O} = \mathbb{C} \oplus \mathbb{C}^3$, inducing $\mathrm{Cl}(6) \subset \mathrm{Cl}(10)$, whose volume form $\omega_6$ selects the chiral (left) embedding: the SM gauge group acts on $\mathbf{16} \to (\mathbf{4}, \mathbf{2}, \mathbf{1}) \oplus (\bar{\mathbf{4}}, \mathbf{1}, \mathbf{2})$ with $\mathrm{SU}(2)_L$ on left-handed fermions only (Phase 19, Steps 1-9).
+
+**(c) UPGRADE:** The Cl(6)/Pati-Salam route (b) provides a **chiral representation** for the **same gauge algebra** that the F_4 intersection (a) provides without chirality. The full chain from self-modeling to chirality is:
+
+$$\text{self-modeling} \to h_3(\mathbb{O}) \xrightarrow{E_{11}} \mathrm{Spin}(9) \xrightarrow{\text{C*-complexification}} \mathrm{Spin}(10) \xrightarrow{u \in S^6} \mathrm{SU}(3)_C \times \mathrm{SU}(2)_L \times \mathrm{U}(1)_Y \text{ with LEFT embedding}$$
+
+### Step 11: What Each Route Provides and Does Not Provide
+
+| | F_4 Intersection Route | Cl(6)/Pati-Salam Route |
+|---|---|---|
+| **Gauge algebra** | $\mathfrak{su}(3) \oplus \mathfrak{su}(2) \oplus \mathfrak{u}(1)$ (dim 12) | Same (dim 12) |
+| **Chirality** | **NO** — $F_4$ is a real group, $h_3(\mathbb{O})$ is a real algebra; no complex structure on the representation $\mathbf{27}$, hence no L/R distinction | **YES** — $\omega_6$ provides the complex structure ($i\omega_6$ is the chirality operator); $\mathbf{16} = (\mathbf{4}, \mathbf{2}, \mathbf{1}) \oplus (\bar{\mathbf{4}}, \mathbf{1}, \mathbf{2})$ is the LEFT embedding |
+| **Representation** | Acts on $\mathbf{27}$ (no chiral decomposition) | Acts on $\mathbf{16}$ (one generation of SM fermions with definite chirality) |
+| **Input** | $E_{11}$ + $u$ | $E_{11}$ + $u$ (same) |
+| **Independent cross-check** | **YES** — provides independent verification that the gauge group is $\mathrm{SU}(3) \times \mathrm{SU}(2) \times \mathrm{U}(1)$ from a different algebraic perspective | Not independent (uses same $u$) but provides strictly more information |
+
+The Cl(6) route is **strictly more informative**: it gives everything the F_4 route gives (the gauge algebra), plus chirality. The F_4 route is valuable as an **independent cross-check** on the gauge group from a different algebraic framework (automorphisms of the Jordan algebra vs. Clifford algebra structures).
+
+Neither route produces chirality or gauge group independently of $u$. Without $u$, the F_4 route has only $\mathrm{Spin}(9)$ (no SM gauge group), and the Cl(6) route has only $\mathrm{Cl}(10)$ with $\mathrm{Spin}(10)$ (no Pati-Salam breaking).
+
+### Step 12: Remaining Gaps
+
+The following gaps are honestly acknowledged:
+
+1. **Gap B step 1: The choice of $E_{11}$.** The rank-1 idempotent $E_{11} \in h_3(\mathbb{O})$ is taken as input (the "observer selects a viewpoint"). It is NOT derived from self-modeling. All rank-1 idempotents in $h_3(\mathbb{O})$ are conjugate under $F_4$, so the choice is equivalent to breaking $F_4 \to \mathrm{Spin}(9)$. The physical motivation (the observer must select a state to probe) is plausible but not a derivation.
+
+2. **Gap B step 2: The choice of $u \in S^6$.** The unit imaginary octonion $u$ that defines the complex structure is also input, not derived from self-modeling. The space of choices is $S^6 = G_2/\mathrm{SU}(3)$, which is a continuous family. No mechanism within the self-modeling framework selects a preferred $u$. This is a genuine symmetry-breaking input.
+
+3. **Generation structure.** Why are there 3 generations of SM fermions? This phase addresses one generation only. The 3-fold structure of $h_3(\mathbb{O})$ (the "3" in $3 \times 3$ matrices) is suggestive but establishing a 3-generation mechanism is beyond the current scope.
+
+4. **Spectral action.** The GR + SM Lagrangian from the spectral triple (Connes framework) has not been computed. The current work establishes the *algebraic* input (gauge group + chiral representation) but not the *dynamics*. Computing the spectral action from the h_3(O)-based spectral triple is a separate research direction.
+
+5. **The finite quotient.** The precise global structure of the SM gauge group (whether $[\mathrm{SU}(3) \times \mathrm{SU}(2) \times \mathrm{U}(1)] / \mathbb{Z}_6$ or some other quotient) requires tracking the center of each factor through both routes. This is a known subtlety that does not affect the Lie algebra identification but matters for the global topology of the gauge group.
