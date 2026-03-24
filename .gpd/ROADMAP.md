@@ -140,7 +140,11 @@ Plans:
 4. Furey's Witt decomposition result is verified: creation/annihilation operators a_i = (1/2)(-e_{i+4} + i*e_i) automatically channel SU(2) to a single chirality without ad hoc projectors
 5. All 16 SM quantum numbers (Y, I_3, color) for one generation are reproduced correctly from the Cl(6) Witt decomposition, verified by explicit matrix computation
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 19-01-PLAN.md -- Cl(6) from O = C + C^3, volume form, Pati-Salam breaking, Furey Witt decomposition (CHIR-01, CHIR-02, CHIR-03, CHIR-04)
+- [ ] 19-02-PLAN.md -- Explicit 32x32 matrix verification, all 16 SM quantum numbers (COMP-01, COMP-02)
 
 **Backtracking trigger:** If the Cl(6) volume form does not cleanly select the LEFT embedding (e.g., if additional discrete choices beyond the complex structure are needed to break L/R symmetry), document what extra input is required. Partial success (chirality reduced to a single discrete orientation choice) is still valuable.
 
