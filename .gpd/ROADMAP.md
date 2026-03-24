@@ -27,7 +27,7 @@ See `.gpd/milestones/v1.0-ROADMAP.md` for full details.
 - [x] Phase 4: Sequential Product Formalization (5/6 plans, 1 skipped) -- completed 2026-03-21
 - [x] Phase 5: Local Tomography from B-M Compositionality (2/2 plans) -- completed 2026-03-21
 - [x] Phase 6: Paper Assembly (3/3 plans) -- completed 2026-03-21
-- [ ] Phase 7: D'Ariano Backup (contingency) -- not needed (S4 passed)
+- [x] Phase 7: D'Ariano Backup (contingency) -- not needed (S4 passed)
 
 See `.gpd/milestones/v2.0-ROADMAP.md` for full details.
 
@@ -52,8 +52,8 @@ See `.gpd/milestones/v3.0-ROADMAP.md` for full details.
 - [x] Phase 13: Order Zero + Representation Theory (3/3 plans) -- completed 2026-03-22
 - [x] Phase 14: Dirac Operator Construction (2/2 plans) -- completed 2026-03-23
 - [x] Phase 15: First-Order Condition + Algebra Identification (2/2 plans) -- completed 2026-03-23
-- Phase 16: Remaining Axioms + Classification -- abandoned
-- Phase 17: Paper 7 Assembly -- abandoned (superseded)
+- [x] Phase 16: Remaining Axioms + Classification -- abandoned
+- [x] Phase 17: Paper 7 Assembly -- abandoned (superseded)
 
 See `.gpd/milestones/v4.0-ROADMAP.md` for full details.
 
