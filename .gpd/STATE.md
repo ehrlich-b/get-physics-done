@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?
-**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 19 executing
+**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 20 executing
 
 ## Current Position
 
-**Current Phase:** 19 (complete)
-**Current Phase Name:** Cl(6) Chirality and SM Embedding (Part B)
+**Current Phase:** 20 (complete)
+**Current Phase Name:** Synthesis -- One Choice, Two Consequences
 **Total Phases:** 4 (Phases 18-21)
 **Current Plan:** 2/2 complete
 **Total Plans in Phase:** 2
-**Status:** Phase 19 complete, verified (9/9 claims, 12/12 physics checks)
+**Status:** Phase 20 complete -- F_4 intersection, two-routes identification, chiral upgrade, 9-link chain, synthesis theorem
 **Last Activity:** 2026-03-23
-**Last Activity Description:** Phase 19 complete -- Cl(6) chirality, omega_6 projector, Pati-Salam LEFT, 16 SM states, 29/29 tests
+**Last Activity Description:** Phase 20 complete -- one choice two consequences synthesis, 9-link chain L1-L9, gap register (B1, B2, A, Gen, SA)
 
-**Progress:** [█████░░░░░] 50% (v5.0)
+**Progress:** [███████░░░] 75% (v5.0)
 
 ## Active Calculations
 
@@ -132,6 +132,16 @@ None yet.
 - **16 SM states matched**: u_L x3, d_L x3, nu_L, e_L, u_R x3, d_R x3, nu_R, e_R in Pati-Salam convention (HIGH)
 - **Q distribution {-1:2, -1/3:6, 0:2, +2/3:6}** matches Pati-Salam SM exactly (HIGH)
 - **Schwinger boson SU(2)_L x SU(2)_R**: full algebra + L-R commutativity + omega_6 commutativity verified (HIGH)
+
+- **F_4 breaking by u:** [SU(3)_C x SU(3)_J]/Z_3 (dim 16) subset F_4 (HIGH)
+- **SM from F_4 intersection:** Spin(9) cap [SU(3)xSU(3)]/Z_3 contains SU(3)_C x SU(2) x U(1) (dim 12) (HIGH)
+- **Single-input theorem:** Both F_4 and Cl(6)/PS routes use same u in S^6 and same W = u^perp cap Im(O) (HIGH)
+- **Chiral upgrade:** F_4 route = gauge algebra (no chirality); Cl(6) route = same algebra + LEFT embedding (HIGH)
+- **Factor matching:** SU(3)_C = Stab_{G_2}(u) in both routes; SU(2) from Spin(4) in both; U(1) unique residual Cartan (HIGH)
+- **9-link chain L1-L9** from self-modeling to chiral SM, all with status (HIGH)
+- **Synthesis theorem** conditional on gaps A, B1, B2: one choice u gives gauge group + chirality (HIGH)
+- **Gap register:** B1 rank-1 idempotent (HIGH), B2 complex structure (HIGH), A non-composability (MEDIUM), Gen generations (LOW), SA spectral action (LOW) (HIGH)
+- **v5.0 milestone statement:** C*-observer probing h_3(O), upon choosing u, obtains SM gauge group with LEFT chirality (HIGH)
 
 ## Open Questions
 
@@ -269,6 +279,13 @@ None yet.
 - [Phase 19, Plan 02]: B-L = 1 - (2/3)N for Pati-Salam assignment (N=1 quarks: +1/3, N=3 leptons: -1)
 - [Phase 19, Plan 02]: Pati-Salam left-right symmetric convention: 16 contains L+R particles, same Q operator for both
 - [Phase 19, Plan 02]: P selects omega_6 = +i eigenspace = odd N (N=1 quarks + N=3 leptons)
+- [Phase 20, Plan 01]: [SU(3)xSU(3)]/Z_3 is maximal-rank subgroup of F_4, per Yokota and Adams
+- [Phase 20, Plan 01]: SU(3)_C identified across F_4 and Cl(6)/PS routes via common complex structure J on W
+- [Phase 20, Plan 01]: F_4 route provides gauge algebra only; Cl(6) route provides gauge algebra + chirality
+- [Phase 20, Plan 01]: U(1) matching via rank counting (rank 4 = rank F_4, minus SU(3) and SU(2) Cartans leaves 1)
+- [Phase 20, Plan 02]: Gap B steps 1 and 2 classified as structurally independent (Spin(9) contains G_2 acting transitively on S^6)
+- [Phase 20, Plan 02]: Synthesis theorem stated as conditional on 3 gaps (A, B1, B2), not unconditional
+- [Phase 20, Plan 02]: Generation structure and spectral action classified as LOW severity for this paper
 
 ### Active Approximations
 
