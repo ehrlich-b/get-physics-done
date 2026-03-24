@@ -305,6 +305,87 @@ Each link's output is exactly the next link's input. The chain is logically comp
 
 ---
 
+## 7. Phase 25 Master Theorem
+
+### Master Theorem (Self-Modeling Thermodynamics)
+
+Let (B, M, &) be a self-modeling composite in the sense of Paper 5, on a finite SWAP lattice (Paper 6), in thermal contact with an environment at temperature T. Then:
+
+**1. [LAND-01] Landauer bound on self-modeling.**
+The self-modeling update cycle dissipates work W >= kT * I(B;M) per cycle.
+- *Proof:* Plan 25-01, Landauer-Bennett bound on Luders product erasure.
+- *Numerical verification:* 7/7 tests passing, 100+ quantum states.
+
+**2. [LAND-02] Coherence loophole closed.**
+Quantum coherence cannot circumvent the Landauer bound:
+- (a) The Luders sequential product destroys coherence in the measured basis (CPTP map).
+- (b) Maintaining coherence in a thermal bath itself requires free energy.
+- (c) The Sagawa-Ueda fluctuation theorem independently confirms the bound.
+- *Proof:* Plan 25-02, three independent arguments.
+
+**3. [LAND-03] Self-modeling requires entropy gradient.**
+The chain self-modeling -> free energy -> non-equilibrium -> entropy gradient holds:
+- Link 1: THEOREM (W >= kT * I, Plan 25-01)
+- Link 2: STANDARD PHYSICS (Second Law)
+- Link 3: PHYSICAL ARGUMENT + A3 (finite system equilibration + Phase 23)
+- *Proof:* Plan 25-03 (this document), three-link chain with assumptions A1-A4.
+
+**4. [VALD-02] Cross-check: Sagawa-Ueda consistency.**
+The Landauer bound is consistent with the Sagawa-Ueda generalized Jarzynski equality for feedback-controlled systems. The self-modeler maps to a Maxwell demon / feedback controller.
+- *Cross-check:* Plan 25-02.
+
+**5. [VALD-03] Thermal equilibrium: I = 0, rho = 0.**
+At thermal equilibrium (rho_BM = I/(d_B d_M)), I(B;M) = 0 and rho = 0. Self-modeling is impossible without free energy.
+- *Proof:* Plan 25-01, Section 5 (analytical) + numerical verification.
+
+### Requirement Verification Matrix
+
+| Requirement | Status | Plan | Evidence |
+|-------------|--------|------|----------|
+| LAND-01 | Proved | 01 | W >= kT * I(B;M); 7/7 numerical tests |
+| LAND-02 | Resolved (loophole closed) | 02 | Three independent arguments |
+| LAND-03 | Derived (with A1-A4) | 03 | Three-link chain theorem |
+| VALD-02 | Cross-check passed | 02 | Sagawa-Ueda consistency |
+| VALD-03 | Verified | 01 | I=0 at equilibrium; analytical + numerical |
+
+### Roadmap Success Criteria Verification
+
+1. **"Self-modeling cycle mapped to information-processing cycle with quantifiable information flow, Landauer bound applied with concrete bound: free energy >= kT * I(B;M) per update cycle"**
+   - SATISFIED (Plan 01: erasure step identified, W >= kT * I derived)
+
+2. **"Coherence loophole addressed decisively"**
+   - SATISFIED (Plan 02: proved impossible within Paper 5 framework; three independent arguments)
+
+3. **"Chain self-modeling -> free energy -> non-equilibrium -> entropy gradient connected explicitly, with each implication stated as theorem or clearly labeled assumption"**
+   - SATISFIED (Plan 03: Link 1 = THEOREM, Link 2 = STANDARD PHYSICS, Link 3 = PHYSICAL ARGUMENT + A3)
+
+4. **"Landauer bound cross-checked against Sagawa-Ueda generalized Jarzynski framework"**
+   - SATISFIED (Plan 02: self-modeler mapped to feedback controller, bounds consistent)
+
+5. **"rho = 0 at thermal equilibrium verified: I(B;M) = 0 when system at maximum entropy"**
+   - SATISFIED (Plan 01: I = 0 and rho = 0 at rho_BM = I/d, verified analytically and numerically to 1e-14)
+
+### Phase 26 Assessment
+
+The coherence loophole was CLOSED (Plan 25-02). Therefore Phase 26 proceeds at full strength.
+
+The chain theorem provides the key input for Phase 26: **self-modeling requires an entropy gradient**. Phase 26 will build the evolutionary selection argument:
+- Self-modelers with higher experiential density have selective advantage
+- But they must pay higher free energy cost (W >= kT * I)
+- The available free energy comes from the entropy gradient (Link 3)
+- Therefore: the arrow of time (entropy gradient) is necessary for the existence of self-modelers
+
+### Backtracking trigger
+
+If the coherence loophole had been OPEN (Plan 25-02 found a genuine circumvention of the Landauer bound via quantum coherence), Phase 26 would need to proceed with caveats:
+- The Landauer bound would hold only for classical or decoherent self-modelers
+- Coherent self-modelers could potentially sustain I > 0 at lower free energy cost
+- The chain theorem would weaken (Links 1 and 3 affected, Link 2 unchanged)
+
+Since the loophole is CLOSED, no backtracking is needed.
+
+---
+
 *Phase: 25-self-modeling-requires-free-energy-key-phase*
-*Plan: 03, Task 1*
+*Plan: 03*
 *Completed: 2026-03-24*
