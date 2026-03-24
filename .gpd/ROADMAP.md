@@ -228,8 +228,8 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 **Backtracking trigger:** If Phase 25 identified a coherence loophole, this phase proceeds with weakened claims: "partial motivation for complexification" rather than "theorem." The Gap C statement becomes conditional on the Landauer bound applying to quantum self-modeling.
 
 **Plans:** 2 plans
-- [ ] 26-01-PLAN.md -- Entropy gradient theorem via three routes (Direct, Boundary, rho selection) + assumption register + Hoffman FBT (GRAD-01)
-- [ ] 26-02-PLAN.md -- Gap C resolution as selection effect + Paper 8 theorem + updated 9-link chain + v7.0 master theorem (GRAD-02)
+- [x] 26-01-PLAN.md -- Entropy gradient theorem via three routes (Direct, Boundary, rho selection) + assumption register + Hoffman FBT (GRAD-01) -- completed 2026-03-24
+- [x] 26-02-PLAN.md -- Gap C resolution as selection effect + Paper 8 theorem + updated 9-link chain + v7.0 master theorem (GRAD-02) -- completed 2026-03-24
 
 ### Phase 27: Quantitative Predictions (Conditional)
 
@@ -258,6 +258,6 @@ Phase 23 and Phase 24 are independent (parallel). Phase 25 requires Phase 23. Ph
 | 23. Entropy Increase under Sequential Products | v7.0 | 2/2 | Complete | 2026-03-24 |
 | 24. Chirality Requires Time-Orientation | v7.0 | 2/2 | Complete | 2026-03-24 |
 | 25. Self-Modeling Requires Free Energy | v7.0 | 3/3 | Complete | 2026-03-24 |
-| 26. Entropy Gradient Theorem + Gap C | v7.0 | 0/TBD | Not started | - |
+| 26. Entropy Gradient Theorem + Gap C | v7.0 | 2/2 | Complete | 2026-03-24 |
 | 27. Quantitative Predictions | v7.0 | 0/TBD | Not started | - |
 
