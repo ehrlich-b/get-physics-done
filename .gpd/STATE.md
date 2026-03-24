@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?
-**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 18 complete, Phase 19 next
+**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 19 executing
 
 ## Current Position
 
-**Current Phase:** 18 (complete)
-**Current Phase Name:** Complexification from C*-Observer (Part A)
+**Current Phase:** 19 (complete)
+**Current Phase Name:** Cl(6) Chirality and SM Embedding (Part B)
 **Total Phases:** 4 (Phases 18-21)
 **Current Plan:** 2/2 complete
 **Total Plans in Phase:** 2
-**Status:** Phase 18 complete, verified (6/6 claims, 12/12 physics checks)
+**Status:** Phase 19 complete, verified (9/9 claims, 12/12 physics checks)
 **Last Activity:** 2026-03-23
-**Last Activity Description:** Phase 18 complete -- Peirce decomposition, C*-complexification, F_4->E_6, 27->1+10+16
+**Last Activity Description:** Phase 19 complete -- Cl(6) chirality, omega_6 projector, Pati-Salam LEFT, 16 SM states, 29/29 tests
 
-**Progress:** [██░░░░░░░░] 25% (v5.0)
+**Progress:** [█████░░░░░] 50% (v5.0)
 
 ## Active Calculations
 
@@ -120,6 +120,18 @@ None yet.
 - **27 -> 1 + 10 + 16** under Spin(10): 1=V_1^C, 10=V_0^C, 16=V_{1/2}^C=S_{10}^+ (HIGH)
 - **V_0^C = 10 (vector)** verified via branching 10|_{Spin(9)} = 9+1 (HIGH)
 - **Phase 18 verified**: 6/6 contract claims, 12/12 physics checks, consistency 27/27 (HIGH)
+
+- **Cl(6) = Alg(gamma_1,...,gamma_6) subset Cl(10)** from O = C + C^3 splitting with u = e_7 (HIGH)
+- **omega_6^2 = -1**, P = (1/2)(1 - i*omega_6), tr(P) = 16 on 32-dim Dirac spinor (HIGH)
+- **Stab_{Spin(10)}(omega_6) = SU(4) x SU(2)_L x SU(2)_R / Z_2**, dim 21 = 15 + 6 (HIGH)
+- **16 -> (4,2,1) + (4bar,1,2)** LEFT embedding verified (SU(2)_L on left-handed only) (HIGH)
+- **Spin(10) -> Pati-Salam -> SU(3)_C x SU(2)_L x U(1)_Y** from single input u in S^6 (HIGH)
+- **Furey Witt: 27/27 CAR verified, omega_6 = -i*(-1)^N**, automatic chirality (HIGH)
+- **10/10 numerical tests pass** verifying Cl(6) algebra, volume form, stabilizer, Witt CAR (HIGH)
+- **29/29 pytest tests pass** verifying explicit 32x32 Cl(10)/Cl(6) construction, Witt CAR, SU(2) algebras, and 16 SM quantum numbers (HIGH)
+- **16 SM states matched**: u_L x3, d_L x3, nu_L, e_L, u_R x3, d_R x3, nu_R, e_R in Pati-Salam convention (HIGH)
+- **Q distribution {-1:2, -1/3:6, 0:2, +2/3:6}** matches Pati-Salam SM exactly (HIGH)
+- **Schwinger boson SU(2)_L x SU(2)_R**: full algebra + L-R commutativity + omega_6 commutativity verified (HIGH)
 
 ## Open Questions
 
@@ -250,6 +262,13 @@ None yet.
 - [Phase 18, Plan 01]: Backtracking trigger NOT fired -- complexification follows from C*-nature alone
 - [Phase 18, Plan 02]: U(1) charges (-4, 2, -1) recorded but physical meaning (B-L) deferred to Phase 19-20
 - [Phase 18, Plan 02]: Local-to-global complexification noted as consistent completion, not formally necessary
+- [Phase 19, Plan 01]: u = e_7 (Fano) as complex structure; Cl(10) via gamma_k x I + i*omega_6 x tau_a; P selects omega_6 = -i eigenspace (Todorov particle convention)
+- [Phase 19, Plan 01]: Witt basis a_j = (1/2)(gamma_{2j-1} + i*gamma_{2j}); Furey octonion-label remapping deferred to Plan 02
+- [Phase 19, Plan 01]: omega_6 separates chiralities before Pati-Salam breaking; LEFT not diagonal embedding
+- [Phase 19, Plan 02]: Schwinger boson SU(2) from Cl(4) Witt: J3L = (m1+m2-1)/2, J3R = (m1-m2)/2
+- [Phase 19, Plan 02]: B-L = 1 - (2/3)N for Pati-Salam assignment (N=1 quarks: +1/3, N=3 leptons: -1)
+- [Phase 19, Plan 02]: Pati-Salam left-right symmetric convention: 16 contains L+R particles, same Q operator for both
+- [Phase 19, Plan 02]: P selects omega_6 = +i eigenspace = odd N (N=1 quarks + N=3 leptons)
 
 ### Active Approximations
 

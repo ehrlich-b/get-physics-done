@@ -135,7 +135,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
 1. Six internal gamma matrices gamma_1...gamma_6 are constructed explicitly from the imaginary part of C^3 (orthogonal to u in Im(O)), satisfying Clifford relations {gamma_i, gamma_j} = 2 delta_ij inside Cl(10)
-2. The volume form omega_6 = gamma_1...gamma_6 satisfies omega_6^2 = 1, and the projector P = (1/2)(1 - i*omega_6) has trace 16 on the 32-dim Dirac spinor, selecting one Weyl representation of Spin(10)
+2. The volume form omega_6 = gamma_1...gamma_6 satisfies omega_6^2 = -1, and the projector P = (1/2)(1 - i*omega_6) has trace 16 on the 32-dim Dirac spinor, selecting one Weyl representation of Spin(10)
 3. The Pati-Salam group SU(4) x SU(2)_L x SU(2)_R is identified as the stabilizer of omega_6 in Spin(10), and the further breaking SU(4) -> SU(3) x U(1) (from the same complex structure) gives the SM gauge group with LEFT embedding -- SU(2)_L acts on left-handed fermions only
 4. Furey's Witt decomposition result is verified: creation/annihilation operators a_i = (1/2)(-e_{i+4} + i*e_i) automatically channel SU(2) to a single chirality without ad hoc projectors
 5. All 16 SM quantum numbers (Y, I_3, color) for one generation are reproduced correctly from the Cl(6) Witt decomposition, verified by explicit matrix computation
@@ -143,8 +143,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 19-01-PLAN.md -- Cl(6) from O = C + C^3, volume form, Pati-Salam breaking, Furey Witt decomposition (CHIR-01, CHIR-02, CHIR-03, CHIR-04)
-- [ ] 19-02-PLAN.md -- Explicit 32x32 matrix verification, all 16 SM quantum numbers (COMP-01, COMP-02)
+- [x] 19-01-PLAN.md -- Cl(6) from O = C + C^3, volume form, Pati-Salam breaking, Furey Witt decomposition (CHIR-01, CHIR-02, CHIR-03, CHIR-04)
+- [x] 19-02-PLAN.md -- Explicit 32x32 matrix verification, all 16 SM quantum numbers (COMP-01, COMP-02)
 
 **Backtracking trigger:** If the Cl(6) volume form does not cleanly select the LEFT embedding (e.g., if additional discrete choices beyond the complex structure are needed to break L/R symmetry), document what extra input is required. Partial success (chirality reduced to a single discrete orientation choice) is still valuable.
 
@@ -224,6 +224,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 | ----- | -------------- | ------ | --------- |
 | 18. Complexification (Part A) | 2/2 | Complete | 2026-03-23 |
-| 19. Cl(6) Chirality (Part B) | 0/TBD | Not started | - |
+| 19. Cl(6) Chirality (Part B) | 2/2 | Complete | 2026-03-23 |
 | 20. Synthesis | 0/TBD | Not started | - |
 | 21. Paper Assembly | 0/TBD | Not started | - |
