@@ -1,0 +1,86 @@
+% preamble.sty — Custom macros for Paper 7: Chirality from h_3(O)
+% ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba), clifford_convention=euclidean_positive, octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7, spin_representation=S10plus_boyle, pati_salam=SU4xSU2LxSU2R
+
+% ————————————————————————————————————
+% Packages
+% ————————————————————————————————————
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{bbm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% ————————————————————————————————————
+% Jordan algebra macros
+% ————————————————————————————————————
+\newcommand{\jordan}[2]{#1 \circ #2}                     % Jordan product a * b
+\newcommand{\hthree}{h_3(\mathbb{O})}                    % h_3(O)
+\newcommand{\hthreeC}{h_3^{\mathbb{C}}(\mathbb{O})}      % h_3^C(O)
+\newcommand{\hnK}[2]{h_{#1}(\mathbb{#2})}                % h_n(K) for arbitrary n, K
+
+% ————————————————————————————————————
+% Clifford algebra macros
+% ————————————————————————————————————
+\newcommand{\Cl}[1]{\mathrm{Cl}(#1)}                     % Cl(n)
+\newcommand{\omegasix}{\omega_6}                          % Cl(6) volume form
+
+% ————————————————————————————————————
+% Peirce space macros
+% ————————————————————————————————————
+\newcommand{\Vone}{V_1}                                   % Peirce 1-space
+\newcommand{\Vhalf}{V_{1/2}}                              % Peirce 1/2-space
+\newcommand{\Vzero}{V_0}                                  % Peirce 0-space
+
+% ————————————————————————————————————
+% Group macros
+% ————————————————————————————————————
+\newcommand{\Spin}[1]{\mathrm{Spin}(#1)}                  % Spin(n)
+\newcommand{\SU}[1]{\mathrm{SU}(#1)}                      % SU(n)
+\newcommand{\SO}[1]{\mathrm{SO}(#1)}                      % SO(n)
+\newcommand{\UU}[1]{\mathrm{U}(#1)}                       % U(n)
+\newcommand{\Gfour}{G_2}                                  % G_2 (named Gfour for macro, but prints G_2)
+\newcommand{\Ffour}{F_4}                                  % F_4
+\newcommand{\Esix}{E_6}                                   % E_6
+
+% ————————————————————————————————————
+% Standard Model macros
+% ————————————————————————————————————
+\newcommand{\SMgauge}{\SU{3}_C \times \SU{2}_L \times \UU{1}_Y}  % SM gauge group
+\newcommand{\PS}{\SU{4} \times \SU{2}_L \times \SU{2}_R}          % Pati-Salam group
+
+% ————————————————————————————————————
+% Representation macros
+% ————————————————————————————————————
+\newcommand{\rep}[1]{\mathbf{#1}}                          % bold representation
+\newcommand{\Stenplus}{S_{10}^+}                           % Spin(10) Weyl spinor
+
+% ————————————————————————————————————
+% Standard math shortcuts (reused from Paper 6)
+% ————————————————————————————————————
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\newcommand{\bra}[1]{\langle #1 |}
+\newcommand{\ket}[1]{| #1 \rangle}
+\newcommand{\braket}[2]{\langle #1 | #2 \rangle}
+\newcommand{\expval}[1]{\langle #1 \rangle}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Stab}{Stab}
+\DeclareMathOperator{\Str}{Str}
+\DeclareMathOperator{\im}{Im}
+\newcommand{\1}{\mathbbm{1}}                               % identity operator
+
+% ————————————————————————————————————
+% Theorem environments
+% ————————————————————————————————————
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
