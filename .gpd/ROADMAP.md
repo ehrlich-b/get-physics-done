@@ -204,9 +204,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 21-01-PLAN.md -- Paper skeleton, preamble, bibliography, introduction with chain table
-- [ ] 21-02-PLAN.md -- Technical body: Part A (complexification), Part B (chirality), Synthesis
-- [ ] 21-03-PLAN.md -- Gap analysis, discussion, final assembly and verification
+- [x] 21-01-PLAN.md -- Paper skeleton, preamble, bibliography, introduction with chain table
+- [x] 21-02-PLAN.md -- Technical body: Part A (complexification), Part B (chirality), Synthesis
+- [x] 21-03-PLAN.md -- Gap analysis, discussion, final assembly and verification
 
 ## Phase Dependencies
 
@@ -235,4 +235,4 @@ Plans:
 | 18. Complexification (Part A) | 2/2 | Complete | 2026-03-23 |
 | 19. Cl(6) Chirality (Part B) | 2/2 | Complete | 2026-03-23 |
 | 20. Synthesis | 2/2 | Complete | 2026-03-23 |
-| 21. Paper Assembly | 0/TBD | Not started | - |
+| 21. Paper Assembly | 3/3 | Complete | 2026-03-24 |

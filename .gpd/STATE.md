@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-22)
 
 **Core research question:** Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?
-**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 20 executing
+**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 21 complete
 
 ## Current Position
 
-**Current Phase:** 20 (complete)
-**Current Phase Name:** Synthesis -- One Choice, Two Consequences
+**Current Phase:** 21 (complete)
+**Current Phase Name:** Paper 7 Assembly
 **Total Phases:** 4 (Phases 18-21)
-**Current Plan:** 2/2 complete
-**Total Plans in Phase:** 2
-**Status:** Phase 20 complete -- F_4 intersection, two-routes identification, chiral upgrade, 9-link chain, synthesis theorem
-**Last Activity:** 2026-03-23
-**Last Activity Description:** Phase 20 complete -- one choice two consequences synthesis, 9-link chain L1-L9, gap register (B1, B2, A, Gen, SA)
+**Current Plan:** 3/3 complete
+**Total Plans in Phase:** 3
+**Status:** Phase 21 complete -- Paper 7 assembled (6 sections), verified 9/9 contract targets, 12/12 physics checks, zero overclaiming
+**Last Activity:** 2026-03-24
+**Last Activity Description:** Phase 21 complete -- Paper 7 "Chirality from h_3(O)" fully assembled with intro (chain table L1-L9), complexification (Part A), chirality (Part B), synthesis, gap analysis, discussion
 
-**Progress:** [███████░░░] 75% (v5.0)
+**Progress:** [██████████] 100% (v5.0)
 
 ## Active Calculations
 
