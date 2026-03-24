@@ -201,3 +201,145 @@ This is scalar multiplication by $\alpha/2$. The action is trivial (proportional
 **Core obstacle:** The GNS construction for $h_3(\mathbb{O})$ does not produce a complex Hilbert space (because $h_3(\mathbb{O})$ is not a JC-algebra). The observer's GNS space $H_\omega$ is complex, but the Peirce interface between $V_1$ and $V_{1/2}$ transmits only scalar information (because $V_1 = \mathbb{R}$), insufficient to induce a complex structure on $V_{1/2}$.
 
 ---
+
+## Task 2: Does the GNS Construction Canonically Induce Complexification of V_{1/2}?
+
+### 2.1 Precise Statement of the Question
+
+**Route 3 asks:** Does the GNS representation of $h_3(\mathbb{O})$ on a complex Hilbert space $H_\omega$ (from an observer state $\omega$) canonically induce $V_{1/2} \otimes_\mathbb{R} \mathbb{C}$?
+
+For "canonically induce" to hold, we need a canonical $\mathbb{R}$-linear embedding $\iota : V_{1/2} \to H$ into some complex Hilbert space $H$ arising from the GNS construction such that:
+
+(i) $\iota$ is $\mathbb{R}$-linear and injective
+
+(ii) The $\mathbb{C}$-span of $\iota(V_{1/2})$ in $H$ is isomorphic to $V_{1/2} \otimes_\mathbb{R} \mathbb{C}$ as a $\mathrm{Spin}(9)$-representation
+
+(iii) The embedding $\iota$ is **canonical** -- it depends only on the algebraic structure of $h_3(\mathbb{O})$ and the Peirce decomposition, not on the choice of state $\omega$ or any auxiliary data
+
+### 2.2 The Obstruction Theorem
+
+**Theorem (Route 3 Obstruction).** The GNS construction does NOT canonically induce the complexification $V_{1/2} \otimes_\mathbb{R} \mathbb{C}$. More precisely:
+
+(A) The direct GNS of $h_3(\mathbb{O})$ produces no complex Hilbert space at all.
+
+(B) The observer-mediated GNS (through the Peirce interface) produces only scalar information about $V_{1/2}$.
+
+(C) Any complexification obtained through the GNS route requires a non-canonical choice (state-dependent or structure-dependent) beyond what the GNS construction alone provides.
+
+**Proof.**
+
+**(A) No complex Hilbert space from direct GNS.**
+
+By the Alfsen-Shultz classification (Section 1.1 above), $h_3(\mathbb{O})$ is a purely exceptional JB-algebra. The JB-algebra GNS construction (Alfsen-Shultz 2001, Ch. 11) for a faithful state $\omega$ produces:
+
+$$H_\omega = (h_3(\mathbb{O}), \langle \cdot, \cdot \rangle_\omega) \cong \mathbb{R}^{27}$$
+
+with inner product $\langle a, b \rangle_\omega = \omega(a \circ b)$. This is a real inner product space. There is no canonical complex structure on $\mathbb{R}^{27}$ (27 is odd, so $\mathbb{R}^{27}$ does not admit a complex structure at all -- a complex vector space must have even real dimension).
+
+% IDENTITY_CLAIM: R^{27} admits no complex structure (odd dimension)
+% IDENTITY_SOURCE: derived (a complex vector space over C has dim_R = 2 * dim_C, hence even)
+% IDENTITY_VERIFIED: 27 is odd. A complex structure J : R^n -> R^n with J^2 = -Id requires det(J)^2 = det(-Id) = (-1)^n, which for n odd gives det(J)^2 = -1 < 0, contradicting det(J) in R. Verified.
+
+Therefore: the direct GNS of $h_3(\mathbb{O})$ gives $\mathbb{R}^{27}$, which cannot be complexified as a whole (odd dimension). Even if we restrict to the $V_{1/2}$ component (16-dimensional, even), the GNS inner product on $V_{1/2}$ is real and carries no canonical complex structure.
+
+**(B) Observer-mediated GNS transmits only scalar information.**
+
+The observer is $M_n(\mathbb{C})^{sa}$, which sits in the Peirce $V_1$ slot. But $V_1 = \mathbb{R} \cdot E_{11} \cong \mathbb{R}$: the observer occupies a 1-dimensional real subspace of $h_3(\mathbb{O})$.
+
+The Peirce multiplication $V_1 \circ V_{1/2} \subset V_{1/2}$ gives, for $\alpha E_{11} \in V_1$ and $v \in V_{1/2}$:
+
+$$(\alpha E_{11}) \circ v = \frac{\alpha}{2} v$$
+
+This is scalar multiplication by $\alpha/2$. The entire content of the $V_1$-action on $V_{1/2}$ is the map:
+
+$$\mathbb{R} \to \mathrm{End}_\mathbb{R}(V_{1/2}), \quad \alpha \mapsto \frac{\alpha}{2} \mathrm{Id}_{V_{1/2}}$$
+
+This is the trivial representation. It carries:
+- No information about the internal structure of $V_{1/2}$
+- No preferred direction or decomposition
+- No complex structure (scalar multiplication by a real number cannot produce $J^2 = -\mathrm{Id}$)
+- No connection to the observer's complex Hilbert space $H_\omega$
+
+**The fundamental reason this fails:** The observer's rich C*-algebraic structure (with complex scalars, *-involution, positivity, etc.) lives in $M_n(\mathbb{C})^{sa}$, but this is an **external** algebra. Its intersection with $h_3(\mathbb{O})$ through the Peirce decomposition is only $V_1 = \mathbb{R}$. The 1-dimensional "port" between the observer and $V_{1/2}$ is too narrow to transmit the observer's complex structure.
+
+To say this more precisely: the GNS construction of $M_n(\mathbb{C})^{sa}$ produces $H_\omega \cong \mathbb{C}^{n^2}$ (for a faithful state). But the only canonical map from the observer's algebraic action to $V_{1/2}$ is through the Peirce product, which passes through $V_1 = \mathbb{R}$. This "bottleneck" kills the complex structure.
+
+**(C) Any complexification requires a non-canonical choice.**
+
+To complexify $V_{1/2}$, one must choose a complex structure $J : V_{1/2} \to V_{1/2}$ with $J^2 = -\mathrm{Id}$. The space of such complex structures on $\mathbb{R}^{16}$ is:
+
+$$\mathcal{J}(V_{1/2}) = \mathrm{GL}(16, \mathbb{R}) / \mathrm{GL}(8, \mathbb{C})$$
+
+This is a non-trivial manifold. For the complexification to be canonical (in the GNS sense), $J$ must be determined uniquely by the GNS data. But:
+
+- The GNS of $h_3(\mathbb{O})$ (sub-route a) gives $\mathbb{R}^{27}$, which contains $V_{1/2}$ as a real subspace with no preferred $J$.
+- The GNS of $V_0$ (sub-route b) acts on $V_{1/2}$ through Jordan multiplication, which is self-adjoint and hence cannot produce $J$ (self-adjoint endomorphisms satisfy $J^2 \geq 0$, not $J^2 = -\mathrm{Id}$).
+- The observer's GNS $H_\omega$ (sub-route c) is disconnected from $V_{1/2}$ except through scalar multiplication.
+
+The only way to get a complex structure on $V_{1/2}$ from this data would be to choose additional input beyond the GNS construction -- for example:
+- Choosing a unit imaginary octonion $u \in S^6 \subset \mathrm{Im}(\mathbb{O})$ (this is Route 4, not Route 3)
+- Choosing a complex structure on $\mathbb{O}$ compatible with $u$ (this determines $J$ on $V_{1/2} = \mathbb{O}^2$ via $J(x_2, x_3) = (ux_2, ux_3)$)
+- Choosing an embedding $\mathrm{Spin}(9) \hookrightarrow \mathrm{Spin}(10)$ (which requires choosing a 10th direction)
+
+Each of these choices is external to the GNS construction. $\square$
+
+SELF-CRITIQUE CHECKPOINT (Theorem):
+1. SIGN CHECK: $J^2 = -\mathrm{Id}$ (complex structure condition). Self-adjoint $L_a$ satisfies $L_a^2 \geq 0$ (non-negative spectrum). These are opposite signs. Correct distinction.
+2. FACTOR CHECK: dim(V_1) = 1, scalar action $\alpha/2$. dim(V_{1/2}) = 16 (even, so complex structure possible in principle). GL(16,R)/GL(8,C) is the correct coset for complex structures on R^{16}.
+3. CONVENTION CHECK: Jordan product, Peirce eigenvalues, JB/JC distinction all consistent with established conventions.
+4. DIMENSION CHECK: R^{27} (odd, no complex structure). R^{16} (even, complex structures exist but none is canonical). All consistent.
+
+### 2.3 Precise Characterization of the Failure Mode
+
+**What the GNS route fails to provide:** A canonical $\mathbb{R}$-linear embedding $\iota : V_{1/2} \to H$ into a complex Hilbert space $H$ that arises from the GNS data alone.
+
+**Why it fails:** Three independent obstructions:
+
+1. **Exceptional obstruction:** $h_3(\mathbb{O})$ has no faithful Hilbert space representation. The GNS produces $\mathbb{R}^{27}$, not $\mathbb{C}^k$ for any $k$.
+
+2. **Parity obstruction:** $\dim_\mathbb{R}(h_3(\mathbb{O})) = 27$ is odd, so even the GNS real Hilbert space $\mathbb{R}^{27}$ cannot carry a complex structure.
+
+3. **Bottleneck obstruction:** The Peirce interface $V_1 \circ V_{1/2} \subset V_{1/2}$ transmits only scalar information ($V_1 = \mathbb{R}$), so the observer's C*-nature cannot be transmitted to $V_{1/2}$ through this channel.
+
+### 2.4 What Additional Input Would Fix Route 3
+
+For the GNS route to succeed, one would need at least one of:
+
+**(i) A larger "port" between observer and interface.** If $V_1$ were larger than $\mathbb{R}$ -- say, if $V_1 \cong M_k(\mathbb{C})^{sa}$ for some $k > 0$ -- then the observer's action on $V_{1/2}$ could transmit complex structure. But for a rank-1 idempotent $e = E_{11}$ in $h_3(\mathbb{O})$, $V_1 = \mathbb{R}$ is forced by the definition of Peirce decomposition.
+
+If instead one used a rank-2 idempotent $f = E_{11} + E_{22}$ (or a rank-2 projection in the Peirce sense), then $V_1(f)$ would be larger. But the observer was defined to use a rank-1 idempotent (Gap B1), and changing this would fundamentally alter the setup.
+
+**(ii) A complex structure on $\mathbb{O}$ as additional input.** Choosing $u \in S^6 \subset \mathrm{Im}(\mathbb{O})$ provides a complex structure $J_u$ on $\mathbb{O}$ (via $J_u(x) = ux$), which induces a complex structure on $V_{1/2} = \mathbb{O}^2$ (via $J_u(x_2, x_3) = (ux_2, ux_3)$). This is Route 4 (Cl(6) route), not Route 3.
+
+**(iii) The structure group upgrade $F_4 \to E_6$.** If we allow complexification of the full algebra $h_3(\mathbb{O}) \to h_3^\mathbb{C}(\mathbb{O})$, then $E_6$ acts and $\mathrm{Spin}(10) \subset E_6$ provides the complex structure on $V_{1/2}^\mathbb{C}$. But this uses Route 1 (algebraic complexification) or Route 2 (observer map), not Route 3 (GNS).
+
+### 2.5 Comparison with Routes 1 and 2
+
+| Route | Mechanism | Provides complexification? | Canonical? |
+|:---:|:---|:---:|:---:|
+| Route 1 (algebraic) | $h_3(\mathbb{O}) \otimes_\mathbb{R} \mathbb{C}$, extension of scalars | Yes | Yes (universal property) |
+| Route 2 (observer map) | C*-observer's $\mathbb{C}$-linearity forces $V \otimes_\mathbb{R} \mathbb{C}$ | Yes | Yes (from C*-nature) |
+| **Route 3 (GNS)** | GNS representation on complex $H_\omega$ | **No** | N/A (fails) |
+| Route 4 (Cl(6)) | Complex structure from $u \in S^6 \subset \mathrm{Im}(\mathbb{O})$ | Yes | Conditional on $u$ |
+
+**Route 3 is the weakest of the four routes** because it tries to use the GNS representation -- but $h_3(\mathbb{O})$'s exceptional nature blocks the only mechanism (faithful Hilbert space representation) that could link $V_{1/2}$ to a complex Hilbert space canonically.
+
+### 2.6 Forbidden Proxy Check
+
+- **fp-wrong-algebra:** We worked specifically with $h_3(\mathbb{O})$, not a different algebra. The exceptional status of $h_3(\mathbb{O})$ is central to the obstruction. $\checkmark$
+- **fp-no-canonical:** We identified precisely that the GNS fails to provide canonical complexification. The obstruction is about canonicity (state-independent, structure-only). $\checkmark$
+- **fp-assume-spin10:** We did not assume $\mathrm{Spin}(10)$. We showed that the GNS route cannot derive $\mathrm{Spin}(10)$ because it cannot even produce a complex Hilbert space for $V_{1/2}$. $\checkmark$
+
+### 2.7 Decisive Outcome
+
+**Route 3 produces a precise obstruction statement:**
+
+$$\boxed{\text{The GNS construction does NOT canonically induce } V_{1/2} \otimes_\mathbb{R} \mathbb{C}.}$$
+
+**Obstruction:** $h_3(\mathbb{O})$ is exceptional (not a JC-algebra), so its GNS produces a real Hilbert space $\mathbb{R}^{27}$ (odd dimension, no complex structure). The observer's complex GNS space $H_\omega$ is disconnected from $V_{1/2}$ by the rank-1 Peirce bottleneck ($V_1 = \mathbb{R}$, scalar action only).
+
+**What would fix it:** Either a larger Peirce port ($V_1 \supsetneq \mathbb{R}$, requiring higher-rank idempotent), an external complex structure on $\mathbb{O}$ (Route 4), or algebraic complexification of the full algebra (Route 1/2).
+
+**Status within the four-routes framework:** Route 3 is eliminated as an independent complexification mechanism. The complexification established in prior work (Phase 18) uses Route 2 (C*-observer's $\mathbb{C}$-linearity), which does not go through GNS but rather through the universal property of extension of scalars. Route 3's failure is consistent with and reinforces the conclusion that complexification comes from the observer's C*-nature (Route 2), not from the representation theory of $h_3(\mathbb{O})$ (Route 3).
+
+---
