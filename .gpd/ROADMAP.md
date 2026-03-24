@@ -204,7 +204,10 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 
 **Backtracking trigger:** If the coherence loophole is real (self-modeling can operate in equilibrium), Phase 26 weakens. Document the loophole and assess whether a weaker version of the entropy gradient theorem still holds. The chirality-time result (Phase 24) remains valid regardless.
 
-**Plans:** TBD
+**Plans:** 3 plans
+- [ ] 25-01-PLAN.md -- Landauer bound on self-modeling cycle, equilibrium limit verification (LAND-01, VALD-03)
+- [ ] 25-02-PLAN.md -- Coherence loophole resolution + Sagawa-Ueda cross-check (LAND-02, VALD-02)
+- [ ] 25-03-PLAN.md -- Chain theorem: self-modeling -> free energy -> non-equilibrium -> entropy gradient (LAND-03)
 
 ### Phase 26: Entropy Gradient Theorem and Gap C Resolution
 
@@ -252,7 +255,7 @@ Phase 23 and Phase 24 are independent (parallel). Phase 25 requires Phase 23. Ph
 | ----- | --------- | -------------- | ------ | --------- |
 | 23. Entropy Increase under Sequential Products | v7.0 | 2/2 | Complete | 2026-03-24 |
 | 24. Chirality Requires Time-Orientation | v7.0 | 2/2 | Complete | 2026-03-24 |
-| 25. Self-Modeling Requires Free Energy | v7.0 | 0/TBD | Not started | - |
+| 25. Self-Modeling Requires Free Energy | v7.0 | 0/3 | Planned | - |
 | 26. Entropy Gradient Theorem + Gap C | v7.0 | 0/TBD | Not started | - |
 | 27. Quantitative Predictions | v7.0 | 0/TBD | Not started | - |
 
