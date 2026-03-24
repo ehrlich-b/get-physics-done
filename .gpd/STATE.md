@@ -9,16 +9,16 @@ See: .gpd/PROJECT.md (updated 2026-03-24)
 
 ## Current Position
 
-**Current Phase:** 24
-**Current Phase Name:** Chirality Requires Time-Orientation
+**Current Phase:** 25
+**Current Phase Name:** Self-Modeling Requires Free Energy (KEY PHASE)
 **Total Phases:** 5 (v7.0: Phases 23-27)
-**Current Plan:** 2/2
-**Total Plans in Phase:** 2
+**Current Plan:** 3/3
+**Total Plans in Phase:** 3
 **Status:** Complete
 **Last Activity:** 2026-03-24
-**Last Activity Description:** Phase 24 complete -- verification passed (5/5 targets, 12/12 physics checks); chirality-time theorem proved; three-consequence theorem established
+**Last Activity Description:** Phase 25 complete -- Landauer bound derived, coherence loophole closed, chain theorem proved (self-modeling -> free energy -> non-equilibrium -> entropy gradient), 13/13 numerical tests pass
 
-**Progress:** [██████████] 100% (v7.0 Phase 24, 2/2 plans)
+**Progress:** [██████████] 100% (v7.0 Phase 25, 3/3 plans)
 
 ## Active Calculations
 
