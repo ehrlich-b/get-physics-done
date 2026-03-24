@@ -1,0 +1,36 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+WORKFLOWS_DIR = REPO_ROOT / "src/gpd/specs/workflows"
+REFERENCES_DIR = REPO_ROOT / "src/gpd/specs/references/orchestration"
+
+
+def test_execute_phase_loads_artifact_surfacing_before_using_it() -> None:
+    execute_phase = (WORKFLOWS_DIR / "execute-phase.md").read_text(encoding="utf-8")
+
+    required_reading = "@{GPD_INSTALL_DIR}/references/orchestration/artifact-surfacing.md"
+    later_reference = "See `references/orchestration/artifact-surfacing.md` for artifact class definitions and review priority rules."
+
+    assert required_reading in execute_phase
+    assert execute_phase.index(required_reading) < execute_phase.index(later_reference)
+    assert "contract deliverable that is the `subject` of an acceptance test" in execute_phase
+    assert "contract deliverable tagged as an acceptance test" not in execute_phase
+
+
+def test_artifact_surfacing_uses_canonical_paths_and_contract_terms() -> None:
+    artifact_surfacing = (REFERENCES_DIR / "artifact-surfacing.md").read_text(encoding="utf-8")
+
+    assert "GPD/phases/01-*/01-01-PLAN.md" in artifact_surfacing
+    assert "GPD/paper/REVIEW-REPORT.md" in artifact_surfacing
+    assert "Contract deliverables that are the `subject` of an acceptance test" in artifact_surfacing
+    assert ".gpd/" not in artifact_surfacing
+
+
+def test_artifact_surfacing_no_longer_promises_dead_progress_or_checkpoint_shapes() -> None:
+    artifact_surfacing = (REFERENCES_DIR / "artifact-surfacing.md").read_text(encoding="utf-8")
+
+    assert "/gpd:progress" not in artifact_surfacing
+    assert "<artifacts>" not in artifact_surfacing
+    assert "checkpoint:human-verify" not in artifact_surfacing

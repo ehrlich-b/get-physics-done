@@ -9,6 +9,7 @@ Orchestrator coordinates, not executes. Each subagent loads the full execute-pla
 <required_reading>
 Read STATE.md before any operation to load project context.
 For agent selection strategy and verification failure routing, see `@{GPD_INSTALL_DIR}/references/orchestration/meta-orchestration.md`.
+For artifact class definitions and review priority rules, see `@{GPD_INSTALL_DIR}/references/orchestration/artifact-surfacing.md`.
 </required_reading>
 
 <process>
@@ -585,7 +586,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    **Classification rules:**
    - Assign artifact class from file extension and path (see artifact-surfacing.md section 1)
-   - Mark as `required` if the artifact is a load-bearing derivation, numerical result consumed by later waves, or contract deliverable tagged as an acceptance test
+   - Mark as `required` if the artifact is a load-bearing derivation, a numerical result consumed by later waves, or a contract deliverable that is the `subject` of an acceptance test
    - Mark as `final-deliverable` for completed manuscript outputs, compiled PDFs, and peer review reports
    - Mark as `optional` for supporting plots, intermediate notebooks, and literature notes
 
