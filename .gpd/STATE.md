@@ -14,9 +14,9 @@ See: .gpd/PROJECT.md (updated 2026-03-22)
 **Total Phases:** 4 (Phases 18-21)
 **Current Plan:** 3/3 complete
 **Total Plans in Phase:** 3
-**Status:** Phase 21 complete -- Paper 7 assembled (6 sections), verified 9/9 contract targets, 12/12 physics checks, zero overclaiming
+**Status:** Milestone complete
 **Last Activity:** 2026-03-24
-**Last Activity Description:** Phase 21 complete -- Paper 7 "Chirality from h_3(O)" fully assembled with intro (chain table L1-L9), complexification (Part A), chirality (Part B), synthesis, gap analysis, discussion
+**Last Activity Description:** v5.0 milestone completed and archived
 
 **Progress:** [██████████] 100% (v5.0)
 

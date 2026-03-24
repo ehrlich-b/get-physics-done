@@ -126,11 +126,15 @@ Does the observer's complexification of h_3(O) automatically produce the correct
 
 ### Active
 
-- [ ] Does C*-algebra observer nature force complexification of h_3(O) Peirce decomposition?
-- [ ] Does complexification upgrade Spin(9) to Spin(10) on V_1 = O^2?
-- [ ] Does the O = C + C^3 splitting induce Cl(6) inside Cl(10) with chiral volume form?
-- [ ] Does the Cl(6)/Pati-Salam route give the SM gauge group with LEFT embedding?
-- [ ] Is chirality automatic (Furey) or does it require an additional discrete choice?
+(None -- next milestone will define new research questions)
+
+### Answered in v5.0
+
+- [x] Does C*-algebra observer nature force complexification of h_3(O) Peirce decomposition? -- **YES.** Extension of scalars V_{1/2}^C = S_{10}^+ follows from C*-nature alone. -- v5.0
+- [x] Does complexification upgrade Spin(9) to Spin(10) on V_1 = O^2? -- **YES.** Branching rule S_{10}^+|_{Spin(9)} = S_9^C; F_4 -> E_6. -- v5.0
+- [x] Does the O = C + C^3 splitting induce Cl(6) inside Cl(10) with chiral volume form? -- **YES.** omega_6^2 = -1, P = (1/2)(1-i*omega_6), tr(P) = 16. -- v5.0
+- [x] Does the Cl(6)/Pati-Salam route give the SM gauge group with LEFT embedding? -- **YES.** SU(4) x SU(2)_L x SU(2)_R -> SU(3)_C x SU(2)_L x U(1)_Y with LEFT. All 16 SM quantum numbers verified. -- v5.0
+- [x] Is chirality automatic (Furey) or does it require an additional discrete choice? -- **Automatic given u.** Witt decomposition channels SU(2) to single chirality without ad hoc projectors. The choice of u in S^6 is the remaining input (Gap B2). -- v5.0
 
 ### Out of Scope
 
@@ -271,6 +275,16 @@ Spectral triple investigation for self-modeling composite:
 
 Phases 16-17 abandoned. New approach needed for Paper 7.
 
+## v5.0 Summary (complete)
+
+Chirality from h_3(O) via Cl(6):
+1. **Complexification derived** -- C*-observer nature forces extension of scalars on Peirce V_{1/2} = O^2, upgrading Spin(9) -> Spin(10), F_4 -> E_6
+2. **Cl(6) chirality** -- O = C + C^3 splitting by u induces Cl(6) inside Cl(10); volume form omega_6 selects LEFT embedding via Pati-Salam breaking; all 16 SM quantum numbers verified
+3. **One choice, two consequences** -- Single u in S^6 simultaneously gives SM gauge group (F_4 intersection) and chirality (Cl(6) volume form)
+4. **Paper 7 assembled** -- 6 sections, 9-link chain L1-L9, honest gap register (B1/B2 HIGH, A MEDIUM, Gen/SA LOW), zero overclaiming
+
+Result conditional on three gaps: A (non-composability), B1 (idempotent choice), B2 (complex structure choice).
+
 ---
 
-_Last updated: 2026-03-23 after v5.0 milestone initialization_
+_Last updated: 2026-03-24 after v5.0 milestone completion_
