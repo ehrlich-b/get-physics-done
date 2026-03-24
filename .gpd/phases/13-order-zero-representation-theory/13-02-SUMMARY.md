@@ -10,11 +10,11 @@ requires:
   - phase: paper7-spectral-triple-prompt.md
     provides: J, gamma, P definitions and KO-dim 6 sign relations
 provides:
-  - Order zero condition verified numerically at n=2,3,4 for naive action pi(a) = block_diag(a x I, a x I)
-  - pi_o verified as *-representation of opposite algebra A^op
-  - gamma eigenvalue pattern matches Connes SM analog (Sym^2/wedge^2 decomposition)
-  - [gamma, pi(a)] = 0 failure documented -- only C*I satisfies even condition
-  - Commutant of pi(M_n) has dimension 4n^2 = dim(M_2(C) x M_n(C))
+  - "Order zero condition verified numerically at n=2,3,4 for naive action pi(a) = block_diag(a x I, a x I)"
+  - "pi_o verified as *-representation of opposite algebra A^op"
+  - "gamma eigenvalue pattern matches Connes SM analog (Sym^2/wedge^2 decomposition)"
+  - "[gamma, pi(a)] = 0 failure documented -- only C*I satisfies even condition"
+  - "Commutant of pi(M_n) has dimension 4n^2 = dim(M_2(C) x M_n(C))"
 affects: [13-03, phase-14]
 
 methods:
