@@ -59,33 +59,33 @@ $$
 
 **Key observation: The 2-site dynamics is PERIODIC.**
 
-Since H = JF has eigenvalues +J (triplet, dim 3) and -J (singlet, dim 1), the time evolution operator satisfies:
+The unitary U(t) = exp(-iJFt) has period $T_U = 2\pi/J$ (since $U(2\pi/J) = I$). However, the density matrix $\rho_{BM}(t) = U(t)\rho U(t)^\dagger$ involves $|$amplitudes$|^2$, not amplitudes themselves. The terms $\cos^2(Jt)$ and $\sin^2(Jt)$ appearing in the reduced state have period $\pi/J$, not $2\pi/J$.
 
+More precisely, for the product initial state $\rho_B \otimes I/2$:
 $$
-U(t + \pi/J) = U(t) \cdot U(\pi/J)
-$$
-
-and $U(2\pi/J) = I$ (the identity), since:
-$$
-U(2\pi/J) = e^{-iJ F \cdot 2\pi/J} = e^{-2\pi i F}
+\rho_B(t) = \cos^2(Jt)\, \rho_B + \sin^2(Jt)\, \frac{I}{2}
 $$
 
-Since F has eigenvalues +1 and -1:
-- On the triplet: $e^{-2\pi i(+1)} = 1$
-- On the singlet: $e^{-2\pi i(-1)} = 1$
+Since $\cos^2(J(t+\pi/J)) = \cos^2(Jt+\pi) = \cos^2(Jt)$ and similarly for $\sin^2$, the reduced state has period $T_\rho = \pi/J$.
 
-So $U(2\pi/J) = I$, and the dynamics has period $T = 2\pi/J$.
+For a general (non-product) initial state, the cross terms $\sin(Jt)\cos(Jt)$ also appear, and these have the same period $\pi/J$ (since $\sin(2Jt)$ has period $\pi/J$). So:
+
+$$
+\rho_B(t + \pi/J) = \rho_B(t) \quad \Longrightarrow \quad S(\rho_B(t + \pi/J)) = S(\rho_B(t))
+$$
+
+The entropy oscillates with period $T_S = \pi/J$.
 
 **SELF-CRITIQUE CHECKPOINT (step 1):**
-1. SIGN CHECK: U = exp(-iJFt). At t = 2pi/J: exp(-i*2pi*F). Eigenvalues of F are +/-1, both give exp(-2pi*i*n) = 1. Correct.
-2. FACTOR CHECK: Period T = 2pi/J. Angular frequency omega = J (from H = JF). T = 2pi/omega. Standard.
-3. CONVENTION CHECK: H = JF (no factor of 1/2), so omega = J. Consistent with Plan 01.
-4. DIMENSION CHECK: J has units of energy (= 1/time in natural units). T = 2pi/J has units of time. Correct.
+1. SIGN CHECK: U = exp(-iJFt). Density matrix rho(t) = U rho U^dag. Period of rho is pi/J (half the unitary period) because the overall phase e^{+/-iJt} cancels in the product U rho U^dag. Correct.
+2. FACTOR CHECK: Period T_S = pi/J. cos^2(Jt) has period pi/J. sin(2Jt) has period pi/J. All terms in rho_B(t) share this period.
+3. CONVENTION CHECK: H = JF (no factor of 1/2), so omega = J. T_U = 2pi/J, T_rho = pi/J. Consistent with Plan 01.
+4. DIMENSION CHECK: J has units of energy (= 1/time in natural units). T = pi/J has units of time. Correct.
 
-**Consequence for entropy:** Since rho_BM(t) is periodic with period T = 2pi/J, the reduced state rho_B(t) is also periodic. Therefore:
+**Consequence for entropy:** Since rho_B(t) is periodic with period T_S = pi/J, the entropy S(rho_B(t)) is also periodic. Therefore:
 
 $$
-S(\rho_B(t + T)) = S(\rho_B(t))
+S(\rho_B(t + \pi/J)) = S(\rho_B(t))
 $$
 
 **Entropy oscillates -- it CANNOT increase monotonically on a 2-site system.**
@@ -97,13 +97,6 @@ $$
 \rho_B(t) = \cos^2(Jt)\, |0\rangle\langle 0| + \sin^2(Jt)\, \frac{I}{2}
 $$
 
-Eigenvalues: $\lambda_{\pm}(t) = (1 \pm \cos^2(Jt))/2 = \{(1+\cos^2(Jt))/2,\, \sin^2(Jt)/2\}$
-
-Wait -- let me be careful. rho_B(0) = |0><0| = diag(1,0). Then:
-$$
-\rho_B(t) = \cos^2(Jt)\begin{pmatrix}1 & 0 \\ 0 & 0\end{pmatrix} + \sin^2(Jt)\begin{pmatrix}1/2 & 0 \\ 0 & 1/2\end{pmatrix} = \begin{pmatrix}\cos^2(Jt) + \sin^2(Jt)/2 & 0 \\ 0 & \sin^2(Jt)/2\end{pmatrix}
-$$
-
 Eigenvalues: $\lambda_1 = 1 - \sin^2(Jt)/2$, $\lambda_2 = \sin^2(Jt)/2$.
 
 At t=0: (1, 0) -- pure state, S = 0.
@@ -112,7 +105,7 @@ At Jt=pi/2: (1/2, 1/2), S = ln(2) = 0.693 nats (maximally mixed).
 At Jt=3pi/4: (3/4, 1/4), S = 0.562 nats.
 At Jt=pi: (1, 0), S = 0 (back to pure).
 
-The entropy rises from 0 to ln(2) in the first quarter period, then falls back to 0. This confirms oscillatory behavior.
+The entropy rises from 0 to ln(2) in the first half-period, then falls back to 0. Full period is pi/J. This confirms oscillatory behavior.
 
 **CRITICAL POINT:** The single-step channel formula Eq. (23.1) assumes that rho_M = I/2 at each step. But for a 2-site system, rho_M evolves along with rho_B. After one time step, rho_M is no longer I/2 (unless it started as I/2 AND the dynamics preserves this -- which it does NOT for a product state with rho_B != I/2).
 
@@ -138,11 +131,11 @@ The distinction:
 | Evolution | Unitary on fixed BM | Unitary on B+M_k at each step |
 | rho_M at step k | Tr_B[rho_BM(k)] (entangled with B) | I/2 (fresh, uncorrelated) |
 | Entropy behavior | Oscillatory (Poincare recurrence) | Monotonically non-decreasing |
-| Recurrence time | T = 2pi/J (finite) | None (infinite bath) |
+| Recurrence time | T = pi/J (finite) | None (infinite bath) |
 
 **SELF-CRITIQUE CHECKPOINT (step 2):**
 1. SIGN CHECK: No sign issues here -- this is a structural observation.
-2. FACTOR CHECK: Period 2pi/J for 2-site. Correct.
+2. FACTOR CHECK: Period pi/J for entropy on 2-site. Correct.
 3. CONVENTION CHECK: Distinguishing closed dynamics from repeated interaction. This is a physics distinction, not convention.
 4. DIMENSION CHECK: N/A for structural argument.
 
@@ -241,7 +234,7 @@ where $2^N = \dim(\mathcal{H})$ is the total Hilbert space dimension and $c$ is 
 
 | System size N | Hilbert space dim | Recurrence time | Entropy behavior |
 |---|---|---|---|
-| 2 | 4 | $T = 2\pi/J$ (exact) | Periodic oscillation |
+| 2 | 4 | $T_S = \pi/J$ (exact) | Periodic oscillation |
 | 4 | 16 | $\sim 10^1 / J$ (quasi-periodic) | Quasi-periodic with beating |
 | 10 | 1024 | $\sim 10^{100} / J$ | Effectively irreversible |
 | 100 | $2^{100}$ | $> 10^{10^{29}} / J$ | Irreversible on any physical timescale |
@@ -271,7 +264,7 @@ Let H = J sum_{i} F_{i,i+1} be the SWAP Hamiltonian on a 1D chain of N qubits wi
 
 Then:
 
-**(a) Exact 2-site (N=2):** S(rho_1(t)) is periodic with period T = 2pi/J. Entropy oscillates and does NOT increase monotonically.
+**(a) Exact 2-site (N=2):** S(rho_1(t)) is periodic with period T_S = pi/J. Entropy oscillates and does NOT increase monotonically.
 
 **(b) Repeated interaction model (fresh bath at each step):** If each model qubit is prepared fresh in state I/2 and interacts with B via U(t) = exp(-iJFt), then S(rho_B) is monotonically non-decreasing at each step, converging geometrically to ln 2.
 
