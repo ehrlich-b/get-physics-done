@@ -2,118 +2,132 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 investigates whether Gap C (complexification of V_{1/2} = O^2 from Spin(9) to Spin(10)) is forced by the observer's C*-algebra nature, which would upgrade Paper 7's Link 4 from argued to proved. The subfield is mathematical physics / Jordan algebras / quantum foundations.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed). v7.0 attacks Gap C from the thermodynamic/evolutionary direction: complexification as a selection effect among self-modelers. The subfield is mathematical physics / quantum foundations / thermodynamics of information.
 
 ## Core Research Question
 
-Does a C*-algebra observer probing the real Jordan module V_{1/2} = O^2 inside h_3(O) necessarily induce complexification V -> V tensor_R C, closing Gap C in Paper 7's derivation chain?
+Is complexification of V_{1/2} forced by thermodynamic necessity -- self-modelers requiring free energy, which requires entropy gradients, which require time-orientation, which requires chirality, which requires complexification -- closing Gap C via the experiential measure rho rather than algebra?
 
-## Current Milestone: v6.0 Gap C -- Complexification from C*-Measurement Maps
+## Current Milestone: v7.0 Arrow of Time, Complexification, and Evolutionary Selection
 
-**Goal:** Determine whether the observer's C*-algebra nature forces complexification of V_{1/2} = O^2 (Peirce half-space of h_3(O) under E_{11}), upgrading Spin(9) to Spin(10). Four routes investigated: conditional expectations, state-effect duality, GNS construction, tensor product. If yes, Paper 7's Link 4 upgrades from argued to proved.
+**Goal:** Derive complexification as a thermodynamic selection effect: self-modelers that don't complexify have no arrow of time, no free energy, no self-modeling (rho = 0). This closes Gap C via measure selection, not algebra.
 
 **Target results:**
 
-- Formalize C*-observer measurement maps on real Jordan modules via 4 independent routes
-- Prove uniqueness/canonicity of complexification and compatibility with Spin(10) extension
-- Identify why Jordan-algebraic setting forces complexification (unlike generic real spaces)
-- State Gap C closure as a single theorem with complete proof (or precise remaining gap)
+- Prove entropy increase under Luders sequential product dynamics on the SWAP lattice
+- Verify chirality requires time-orientation (spin geometry, Lawson-Michelsohn)
+- Prove self-modeling requires free energy via Landauer/Szilard (KEY result)
+- Derive entropy gradient theorem: blocks supporting self-modelers must have Past Hypothesis
+- Quantitative predictions: minimum initial entropy, rho profile over cosmological time
 
 ## Scoping Contract Summary
 
 ### Contract Coverage
 
-- **Complexification theorem (claim-complexification):** Prove or disprove that C*-observer measurement maps on V_{1/2} = O^2 necessarily factor through V tensor_R C
-- **Uniqueness (claim-uniqueness):** If complexification occurs, prove it is unique and canonical (no choices beyond C*-nature)
-- **Jordan distinction (claim-jordan-distinction):** Identify precisely why the Jordan-algebraic setting forces complexification when generic real spaces do not
-- **Formal theorem (claim-theorem):** Single theorem statement closing Gap C, or precise characterization of minimal additional assumption needed
-- **False progress to reject:** Claiming complexification without addressing the reviewer's sub-gap (a); proving complexification for a different algebra than h_3(O); assuming Spin(10) structure instead of deriving it from complexification
+- **Entropy increase (claim-entropy):** Prove monotonic entropy increase under Luders sequential product dynamics on the SWAP lattice, or identify precise conditions
+- **Chirality-time link (claim-chirality-time):** Verify that chiral spinor bundles require time-orientation (Lawson-Michelsohn); state three-consequence theorem (u determines gauge + chirality + time)
+- **Self-modeling thermodynamics (claim-landauer):** Prove self-modeling requires free energy via Landauer/Szilard; free energy requires entropy gradient; this is the KEY claim
+- **Entropy gradient theorem (claim-gradient):** Derive that blocks supporting self-modelers must have an entropy gradient (Past Hypothesis from finitude + chirality + CPTP + Landauer)
+- **Gap C resolution (claim-gapc):** Complexification as selection effect: rho = 0 for non-complexified observers (no arrow of time, no free energy, no self-modeling)
+- **False progress to reject:** Assuming entropy increase without proving it for non-unital Luders maps; handwaving the Landauer bound without quantitative calculation; claiming to derive the Past Hypothesis without stating all assumptions
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Whether measurement maps factor through V tensor_R C; what the weakest sufficient condition is if they don't
-- **User-stated deliverables:** Theorem or counterexample per route (4 routes), formal Gap C closure theorem, updated Paper 7 section
-- **User-stated routes:** (1) Conditional expectations (Effros-Stormer), (2) State-effect duality, (3) GNS construction, (4) Tensor product
-- **Must-have references / prior outputs:** Paper 5 (C*-observer), Paper 7 v5.0 (chirality chain with Gap C), Effros-Stormer 1979, Alfsen-Shultz 2001, Baez 2002
-- **Stop / rethink conditions:** If all 4 routes produce counterexamples showing complexification is NOT forced; if the Peirce V_1 upgrade argument fails
-- **Strategy on failure:** Characterize the EXACT minimal additional assumption. Paper 7 keeps Gap C as honest gap with precise cost statement.
+- **User-stated observables:** Whether self-modeling requires free energy (Landauer); whether entropy increases under Luders dynamics (non-unital issue is key)
+- **User-stated deliverables:** Entropy theorem, chirality-time theorem, Landauer bound on self-modeling, entropy gradient theorem, quantitative predictions (min initial entropy, rho profile)
+- **User-stated phases:** (1) Entropy under sequential products, (2) Chirality requires time-orientation, (3) Self-modeling requires free energy (KEY), (4) Entropy gradient theorem, (5) Quantitative predictions
+- **Must-have references:** Landauer 1961, Bennett 1982/2003, Lindblad 1975, Lawson-Michelsohn 1989, Sagawa-Ueda 2010, Hoffman-Singh-Prakash 2015, Papers 5-7
+- **Stop / rethink conditions:** If Luders dynamics can decrease entropy (non-unital issue); if self-modeling can operate in equilibrium (coherence loophole)
+- **Strategy on failure:** If Phase 3 (Landauer) fails, Gap C remains a selection argument without rigorous thermodynamic backing. Still valuable: chirality-time connection established.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Formalize C*-observer measurement maps on V_{1/2} via 4 routes
-- Prove or disprove complexification is forced
-- If forced: prove uniqueness, compatibility with Spin(10), compatibility with Jordan structure
-- Identify why Jordan setting differs from generic real spaces
-- State formal theorem closing Gap C (or characterize remaining gap)
+- Entropy production under Luders sequential product dynamics
+- Chirality-time-orientation link from spin geometry
+- Self-modeling as Maxwell's demon: Landauer bound on self-modeling cycle
+- Entropy gradient theorem connecting self-modeling to Past Hypothesis
+- Quantitative predictions if chain holds
+- Gap C resolution via thermodynamic selection (rho = 0 for non-complexified)
 
 **Out of scope**
 
-- Chirality derivation (already done in v5.0)
-- Spectral action computation
+- Re-deriving QM, GR, or chirality (Papers 5-7 established)
+- Spectral action computation (coupling constants, Higgs mass)
 - Gaps A, B1, B2 (independent of Gap C)
-- Paper 7 full revision (only update the complexification section)
-- Thermodynamic route to complexification (Paper 8 material)
+- Full evolutionary game theory treatment (cite Maynard Smith, don't re-derive ESS theory)
+- Quantum gravity effects on entropy bounds
 
 ### Active Anchor Registry
 
-- **ref-effros-stormer1979:** Effros-Stormer -- Positive projections and Jordan structure (Math. Scand. 45, 1979)
-  - Why it matters: Conditional expectations on JBW-algebras; Route 1 foundation
+- **ref-landauer1961:** Landauer -- Irreversibility and heat generation (IBM J. 5, 1961)
+  - Why it matters: Information erasure costs kT ln 2; foundation for self-modeling thermodynamics
   - Carry forward: planning, execution, verification
   - Required action: read, cite
 
-- **ref-alfsen-shultz2001:** Alfsen-Shultz -- State Spaces of Operator Algebras (2001), Ch. 8-9
-  - Why it matters: Peirce decomposition theory, conditional expectations in Jordan setting
+- **ref-lindblad1975:** Lindblad -- Completely positive maps and entropy inequalities (CMP 40, 1975)
+  - Why it matters: Quantum H-theorem for repeated interactions; entropy monotonicity
   - Carry forward: planning, execution
   - Required action: read, cite
 
-- **ref-baez2002:** Baez -- The Octonions (Bull. AMS 39, 2002), Section 3.4
-  - Why it matters: h_3(O) structure, Peirce decomposition specifics
-  - Carry forward: planning, execution
+- **ref-lawson-michelsohn1989:** Lawson-Michelsohn -- Spin Geometry (1989), Appendix D
+  - Why it matters: Weyl spinors require time-orientation + space-orientation; chirality-time link
+  - Carry forward: execution, verification
   - Required action: read, cite
 
-- **ref-paper5:** Paper 5 (this project, v2.0) -- QM from self-modeling
-  - Why it matters: Source of C*-observer (M_n(C)^sa), the algebraic foundation for complexification argument
+- **ref-bennett1982:** Bennett -- Thermodynamics of computation (Int. J. Theor. Phys. 21, 1982)
+  - Why it matters: Logical reversibility; Maxwell's demon resolution
+  - Carry forward: execution
+  - Required action: read, cite
+
+- **ref-sagawa-ueda2010:** Sagawa-Ueda -- Generalized Jarzynski equality (PRL 104, 2010)
+  - Why it matters: Feedback control thermodynamics; self-modeler as feedback controller
+  - Carry forward: execution
+  - Required action: cite
+
+- **ref-hoffman2015:** Hoffman-Singh-Prakash -- Interface theory of perception (Psych. Bull. & Rev. 22, 2015)
+  - Why it matters: FBT theorem; connection between evolutionary interface and C*-bottleneck
+  - Carry forward: execution, writing
+  - Required action: cite
+
+- **ref-paper5:** Paper 5 (v2.0) -- QM from self-modeling
+  - Why it matters: Luders sequential product, SWAP Hamiltonian, self-modeling axioms
   - Carry forward: planning, execution, writing
   - Required action: cite
 
-- **ref-paper7:** Paper 7 (this project, v5.0) -- Chirality from h_3(O) via Cl(6)
-  - Why it matters: Contains the 9-link chain with Gap C at Link 4; target for upgrade
-  - Carry forward: planning, execution, writing
-  - Required action: read, cite, update
-
-- **ref-upmeier1987:** Upmeier -- Jordan Algebras in Analysis, Operator Theory, and QM (1987)
-  - Why it matters: Jordan-C* connections; potential Route 2-3 foundations
+- **ref-paper6:** Paper 6 (v3.0) -- GR from self-modeling
+  - Why it matters: SWAP lattice dynamics, area-law entanglement, Jacobson bridge
   - Carry forward: execution
-  - Required action: read
+  - Required action: cite
 
-- **ref-hanche-olsen1983:** Hanche-Olsen -- Structure and tensor products of JC-algebras (Can. J. Math. 35, 1983)
-  - Why it matters: JC-algebra structure theory; relevant to tensor product route
-  - Carry forward: execution
-  - Required action: read
+- **ref-paper7:** Paper 7 (v5.0) -- Chirality from h_3(O)
+  - Why it matters: Gap C target; chirality from Cl(6); 9-link chain
+  - Carry forward: execution, writing
+  - Required action: cite, update
 
 ### Carry-Forward Inputs
 
-- Paper 5 results: M_n(C)^sa with Luders product, C*-algebra observer structure
-- Paper 7 results: 9-link chain L1-L9, Gap C at Link 4 (complexification argued but not proved)
-- v5.0 Phase 18: Peirce decomposition h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10) under E_{11}
-- v5.0 Phase 18: V_{1/2} = O^2 = S_9 (real Spin(9) spinor), complexification gives S_{10}^+
+- Paper 5: M_n(C)^sa with Luders product a & b = sqrt(a) b sqrt(a), CPTP as quantum instrument
+- Paper 6: SWAP Hamiltonian H = sum JF on lattice, area-law entanglement, MVEH
+- Paper 7: Chirality from Cl(6), Gap C at Link 4 (complexification = selection, not algebra)
+- v6.0 Phase 22: All 4 algebraic routes to complexification FAILED (V_1 = R bottleneck)
+- v5.0: Peirce decomposition h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10); S_9 -> S_{10}^+ complexification
 
 ### Skeptical Review
 
-- **Weakest anchor:** The step from "observer is C*" to "observer's operations on V_{1/2} are C-linear." A complex system CAN describe real spaces -- the reviewer's sub-gap (a) is legitimate.
-- **Unvalidated assumptions:** That measurement maps must respect the Jordan product structure (not just abstract linear maps); that V_1's C*-upgrade propagates through Peirce rules to V_{1/2}
-- **Competing explanation:** Complexification might be a CHOICE (selecting which observables to measure) rather than forced by the algebra. Many C*-systems interact with real configuration spaces without complexifying them.
-- **Disconfirming observation:** A concrete C*-algebra acting on a real Jordan module via positive unital maps that does NOT induce complexification
-- **False progress to reject:** Proving complexification for abstract C*-algebras on abstract real vector spaces (must use the specific Jordan/Peirce structure); proving it for a different Jordan algebra than h_3(O)
+- **Weakest anchor:** The Landauer bound on self-modeling (Phase 3). Self-modeling might operate using quantum coherence without classical free energy expenditure. The coherence loophole must be addressed.
+- **Unvalidated assumptions:** That Luders sequential products produce monotonic entropy increase (they are non-unital, so naive DPI fails); that the connection chirality -> time-orientation is operative in a lattice context (not just continuum spin geometry)
+- **Competing explanation:** The Past Hypothesis might be genuinely independent of self-modeling (as most physicists believe). The entropy gradient might have a cosmological origin unrelated to observers.
+- **Disconfirming observation:** A self-modeling system that operates in thermal equilibrium with zero free energy cost (coherence-based self-modeling)
+- **False progress to reject:** Assuming entropy increase without proving it for non-unital maps; handwaving Landauer without quantitative bound; proving results for unital channels and claiming they apply to Luders
 
 ### Open Contract Questions
 
-- Does the Effros-Stormer conditional expectation route force complexification of V_{1/2}?
-- Is V_1 = R or C in the observer's effective description? (Key to Peirce-rule argument)
-- Does the GNS representation of a real module on a complex Hilbert space canonically give V tensor_R C?
-- Is the result specific to h_3(O), or general for any real Jordan module probed by a C*-system?
+- Does the Luders sequential product produce monotonic entropy increase on the SWAP lattice? (Non-unital issue)
+- Can self-modeling operate in thermal equilibrium using quantum coherence? (Coherence loophole)
+- Is the Landauer bound on self-modeling tight enough to REQUIRE an entropy gradient?
+- Does the chirality-time link from continuum spin geometry apply to the lattice setting?
 
 ## Research Questions
 
@@ -136,10 +150,16 @@ Does a C*-algebra observer probing the real Jordan module V_{1/2} = O^2 inside h
 
 ### Active
 
-- [ ] Do C*-observer measurement maps on V_{1/2} = O^2 necessarily factor through V tensor_R C?
-- [ ] Is the complexification unique and canonical (no choices beyond C*-nature)?
-- [ ] Does V_1's C*-structure upgrade Peirce rules to force V_{1/2} as C-module?
-- [ ] Why is the Jordan-algebraic setting different from generic real spaces probed by complex systems?
+- [ ] Does Luders sequential product dynamics produce monotonic entropy increase?
+- [ ] Does chirality require time-orientation in the lattice/algebraic context?
+- [ ] Does self-modeling require free energy (Landauer bound)?
+- [ ] Can the Past Hypothesis be derived from self-modeling + finitude + chirality?
+- [ ] Is complexification a thermodynamic selection effect (rho = 0 for non-complexified)?
+
+### Answered in v6.0
+
+- [x] Do C*-observer measurement maps on V_{1/2} force complexification? -- **NO.** All 4 algebraic routes failed. V_1 = R bottleneck. Gap C cannot be closed algebraically. -- v6.0
+- [x] Is there an h_3(O)-specific mechanism for complexification? -- **NO.** Only generic extension of scalars (works for any real V). -- v6.0
 
 ### Answered in v5.0
 
@@ -300,6 +320,16 @@ Chirality from h_3(O) via Cl(6):
 
 Result conditional on three gaps: A (non-composability), B1 (idempotent choice), B2 (complex structure choice).
 
+## v6.0 Summary (closed, negative result)
+
+Gap C algebraic investigation:
+1. **All 4 routes NEGATIVE** -- conditional expectations, state-effect duality, GNS, tensor product all failed to find h_3(O)-specific complexification mechanism
+2. **Root cause** -- V_1 = R*E_11 is 1-dimensional; Peirce interface is scalar multiplication by 1/2; no complex structure transmittable
+3. **No C*-subalgebra inside h_3(O)** (Shirshov-Cohn) -- observer necessarily external
+4. **Extension of scalars** is valid but generic (works for any real V with any C-algebra)
+
+Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.0 thermodynamic approach.
+
 ---
 
-_Last updated: 2026-03-24 after v6.0 milestone initialization_
+_Last updated: 2026-03-24 after v7.0 milestone initialization_
