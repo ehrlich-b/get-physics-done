@@ -181,7 +181,9 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 3. The three-consequence theorem is stated: single choice u in S^6 simultaneously determines (a) SM gauge group (F_4 intersection, Paper 7), (b) chirality (Cl(6) volume form, Paper 7), (c) time-orientation (via chirality-time link)
 4. The connection between lattice framing (Paper 6) and spin structure is verified -- lattice framing is stronger than spin structure
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 24-01-PLAN.md -- Chirality-time theorem from Cl(d-1,1) + lattice framing hierarchy (CHIR-01, VALD-01)
+- [ ] 24-02-PLAN.md -- Three-consequence theorem: u determines gauge + chirality + time-orientation (CHIR-02)
 
 ### Phase 25: Self-Modeling Requires Free Energy (KEY PHASE)
 
@@ -249,7 +251,7 @@ Phase 23 and Phase 24 are independent (parallel). Phase 25 requires Phase 23. Ph
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 23. Entropy Increase under Sequential Products | v7.0 | 2/2 | Complete | 2026-03-24 |
-| 24. Chirality Requires Time-Orientation | v7.0 | 0/TBD | Not started | - |
+| 24. Chirality Requires Time-Orientation | v7.0 | 0/2 | Planned | - |
 | 25. Self-Modeling Requires Free Energy | v7.0 | 0/TBD | Not started | - |
 | 26. Entropy Gradient Theorem + Gap C | v7.0 | 0/TBD | Not started | - |
 | 27. Quantitative Predictions | v7.0 | 0/TBD | Not started | - |
