@@ -170,7 +170,11 @@ Plans:
 2. The SM gauge group obtained via the Cl(6)/Pati-Salam route (with chirality) is explicitly identified with the F_4 subgroup intersection of Todorov-Drenska (without chirality) -- same group, now carrying the correct chiral representation
 3. The logical chain from self-modeling to chirality is complete: self-modeling -> Jordan algebra (Paper 5) -> h_3(O) (non-composability) -> C*-observer forces complexification (Part A) -> O = C + C^3 gives Cl(6) chirality (Part B) -> SM with left embedding
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 20-01-PLAN.md -- Todorov-Drenska F_4 intersection route, two-routes identification, chiral upgrade (SYNT-01, SYNT-02)
+- [ ] 20-02-PLAN.md -- Complete logical chain from self-modeling to chirality, synthesis theorem, gap register
 
 **Backtracking trigger:** If the two routes (F_4 intersection and Cl(6)/Pati-Salam) give the same group but the identification requires non-trivial conjugation or the chiral representation does not match, document the precise discrepancy.
 
@@ -225,5 +229,5 @@ Plans:
 | ----- | -------------- | ------ | --------- |
 | 18. Complexification (Part A) | 2/2 | Complete | 2026-03-23 |
 | 19. Cl(6) Chirality (Part B) | 2/2 | Complete | 2026-03-23 |
-| 20. Synthesis | 0/TBD | Not started | - |
+| 20. Synthesis | 0/2 | Planned | - |
 | 21. Paper Assembly | 0/TBD | Not started | - |
