@@ -274,6 +274,17 @@ def main() -> None:
             )
         ]
         if active_installed_runtime in (None, "", RUNTIME_UNKNOWN) and preferred_runtime in ALL_RUNTIMES:
+            preferred_candidates = [candidate for candidate in cache_candidates if candidate.runtime == preferred_runtime]
+            fallback_candidates = [candidate for candidate in relevant_candidates if candidate.runtime is None]
+            if preferred_candidates:
+                seen_paths: set[Path] = set()
+                preferred_first: list[UpdateCacheCandidate] = []
+                for candidate in [*preferred_candidates, *fallback_candidates]:
+                    if candidate.path in seen_paths:
+                        continue
+                    seen_paths.add(candidate.path)
+                    preferred_first.append(candidate)
+                relevant_candidates = preferred_first
             relevant_candidates = [
                 candidate
                 for candidate in relevant_candidates

@@ -38,6 +38,7 @@ from gpd.adapters.install_utils import (
     expand_tilde,
     get_global_dir,
     hook_python_interpreter,
+    materialize_first_round_review_schema_headings,
     managed_hook_paths,
     pre_install_cleanup,
     prune_empty_ancestors,
@@ -1309,6 +1310,7 @@ def _copy_agents_as_agent_files(
             src_root=source_root,
             protect_agent_prompt_body=True,
         )
+        content = materialize_first_round_review_schema_headings(content)
         content = convert_tool_references_in_body(content, _TOOL_REFERENCE_MAP)
         content = _rewrite_codex_gpd_cli_invocations(content, launcher)
         content = _normalize_codex_questioning(content)

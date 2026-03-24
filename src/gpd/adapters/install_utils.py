@@ -287,6 +287,38 @@ def replace_placeholders(
     return _replace_runtime_placeholders(content, path_prefix, runtime, install_scope)
 
 
+def materialize_first_round_review_schema_headings(content: str) -> str:
+    """Render staged-review schema headings with first-round filenames.
+
+    Source prompts stay round-aware via ``{round_suffix}``, but installed agent
+    prompts should show the concrete first-round artifact names in the schema
+    headings models read before producing those files.
+    """
+    replacements = {
+        "Required schema for `CLAIMS{round_suffix}.json` (`ClaimIndex`):": (
+            "Required schema for `CLAIMS.json` (`ClaimIndex`):"
+        ),
+        "Required schema for `STAGE-reader{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):": (
+            "Required schema for `STAGE-reader.json` (`StageReviewReport`, mirroring the staged-review contract):"
+        ),
+        "Required schema for `STAGE-literature{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):": (
+            "Required schema for `STAGE-literature.json` (`StageReviewReport`, mirroring the staged-review contract):"
+        ),
+        "Required schema for `STAGE-math{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):": (
+            "Required schema for `STAGE-math.json` (`StageReviewReport`, mirroring the staged-review contract):"
+        ),
+        "Required schema for `STAGE-physics{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):": (
+            "Required schema for `STAGE-physics.json` (`StageReviewReport`, mirroring the staged-review contract):"
+        ),
+        "Required schema for `STAGE-interestingness{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):": (
+            "Required schema for `STAGE-interestingness.json` (`StageReviewReport`, mirroring the staged-review contract):"
+        ),
+    }
+    for source, rendered in replacements.items():
+        content = content.replace(source, rendered)
+    return content
+
+
 _BRACED_PROMPT_VAR_RE = re.compile(r"(?<!\\)\$\{([A-Za-z_][A-Za-z0-9_]*)(?:[^{}]*)\}")
 _PLAIN_SHELL_VAR_RE = re.compile(r"(?<!\\)\$([A-Za-z_][A-Za-z0-9_]*)(?=[^A-Za-z0-9_-]|$)")
 _INLINE_MATH_RE = re.compile(r"(?<!\\)\$(?=\S)([^$\n]*?\S)(?<!\\)\$(?![A-Za-z0-9_])")

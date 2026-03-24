@@ -36,6 +36,7 @@ from gpd.adapters.install_utils import (
     get_global_dir,
     hook_python_interpreter,
     install_gpd_content,
+    materialize_first_round_review_schema_headings,
     managed_hook_paths,
     parse_jsonc,
     prune_empty_ancestors,
@@ -430,6 +431,7 @@ def copy_agents_as_agent_files(
             src_root=source_root,
             protect_agent_prompt_body=True,
         )
+        content = materialize_first_round_review_schema_headings(content)
         if bridge_command:
             content = _rewrite_gpd_cli_invocations(content, bridge_command)
         content = convert_claude_to_opencode_frontmatter(content, path_prefix)
