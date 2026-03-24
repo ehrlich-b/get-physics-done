@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-03-24)
 
 **Core research question:** Does a C*-algebra observer probing V_{1/2} = O^2 inside h_3(O) necessarily induce complexification V -> V tensor_R C?
-**Current focus:** v6.0 Gap C -- Complexification from C*-Measurement Maps
+**Current focus:** v6.0 closed (negative result) -- Gap C remains open
 
 ## Current Position
 
-**Current Phase:** 22
-**Current Phase Name:** Measurement Maps -- Four Routes to Complexification
-**Total Phases:** 4 (v6.0: Phases 22-25)
-**Current Plan:** 4/4
-**Total Plans in Phase:** 4
-**Status:** Phase 22 execution complete, pending verification
+**Current Phase:** --
+**Current Phase Name:** --
+**Total Phases:** 1 completed, 3 cancelled (v6.0: Phase 22 only)
+**Current Plan:** --
+**Total Plans in Phase:** --
+**Status:** v6.0 milestone closed (negative result)
 **Last Activity:** 2026-03-24
-**Last Activity Description:** Phase 22 executed -- all 4 routes resolved (3 negative, 1 weak positive)
+**Last Activity Description:** v6.0 closed -- all 4 routes negative, Gap C remains open, Phases 23-25 cancelled
 
-**Progress:** [████░░░░░░] 36% (v6.0, 4/11 plans)
+**Progress:** [██████████] 100% (v6.0 closed)
 
 ## Active Calculations
 
