@@ -128,10 +128,10 @@ See `.gpd/milestones/v5.0-ROADMAP.md` for full details.
 **Plans:** 4 plans (one per route, parallelizable)
 
 Plans:
-- [ ] 22-01: Route 1 -- Conditional expectations (Effros-Stormer)
-- [ ] 22-02: Route 2 -- State-effect duality
-- [ ] 22-03: Route 3 -- GNS construction
-- [ ] 22-04: Route 4 -- Tensor product (Hanche-Olsen)
+- [x] 22-01: Route 1 -- Conditional expectations (Effros-Stormer) -- NEGATIVE
+- [x] 22-02: Route 2 -- State-effect duality -- NEGATIVE
+- [x] 22-03: Route 3 -- GNS construction -- NEGATIVE (3 obstructions)
+- [x] 22-04: Route 4 -- Tensor product (Hanche-Olsen) -- WEAK POSITIVE (generic tautology)
 
 ### Phase 23: Uniqueness and Spin(10) Compatibility
 
@@ -224,7 +224,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 22. Measurement Maps | 0/4 | Not started | - |
+| 22. Measurement Maps | 4/4 | Complete | 2026-03-24 |
 | 23. Uniqueness | 0/3 | Not started | - |
 | 24. Observable Algebra | 0/2 | Not started | - |
 | 25. Formalization | 0/2 | Not started | - |

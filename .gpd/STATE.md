@@ -12,13 +12,13 @@ See: .gpd/PROJECT.md (updated 2026-03-24)
 **Current Phase:** 22
 **Current Phase Name:** Measurement Maps -- Four Routes to Complexification
 **Total Phases:** 4 (v6.0: Phases 22-25)
-**Current Plan:** 0/4
+**Current Plan:** 4/4
 **Total Plans in Phase:** 4
-**Status:** Ready to plan
+**Status:** Phase 22 execution complete, pending verification
 **Last Activity:** 2026-03-24
-**Last Activity Description:** v6.0 roadmap created -- 4 phases, 11 plans, 11/11 objectives mapped
+**Last Activity Description:** Phase 22 executed -- all 4 routes resolved (3 negative, 1 weak positive)
 
-**Progress:** [░░░░░░░░░░] 0% (v6.0, 0/11 plans)
+**Progress:** [████░░░░░░] 36% (v6.0, 4/11 plans)
 
 ## Active Calculations
 
@@ -142,6 +142,13 @@ None yet.
 - **Synthesis theorem** conditional on gaps A, B1, B2: one choice u gives gauge group + chirality (HIGH)
 - **Gap register:** B1 rank-1 idempotent (HIGH), B2 complex structure (HIGH), A non-composability (MEDIUM), Gen generations (LOW), SA spectral action (LOW) (HIGH)
 - **v5.0 milestone statement:** C*-observer probing h_3(O), upon choosing u, obtains SM gauge group with LEFT chirality (HIGH)
+
+- **Route 1 NEGATIVE**: Effros-Stormer conditional expectations do not force V_{1/2} complexification; Peirce interface V_1.V_{1/2} is trivially scalar (eigenvalue 1/2); no C*-subalgebra inside h_3(O) (Shirshov-Cohn) (HIGH)
+- **Route 2 NEGATIVE**: State-effect duality gives only real inner product; P_1(v*w) = [Re(x3 bar(y3)) + Re(x2 bar(y2))] E_11 is real scalar; compatible complex structures form 56-dim family O(16)/U(8), none selected (HIGH)
+- **Route 3 NEGATIVE**: GNS construction fails -- three independent obstructions: h_3(O) exceptional (GNS gives R^27 not C^k), dim 27 odd (no complex structure), V_1=R bottleneck (scalar action) (HIGH)
+- **Route 4 WEAK POSITIVE**: A tensor_R V_{1/2} = A tensor_C V_{1/2}^C canonically, but generic algebraic tautology (works for any real V), not h_3(O)-specific; equivalent to Phase 18 extension-of-scalars (HIGH)
+- **Phase 22 synthesis**: All 4 routes converge on same obstruction -- V_1 = R*E_11 is 1-dimensional, Peirce action is scalar multiplication, no complex structure transmittable through this interface (HIGH)
+- **Peirce projections**: P_1 = 2L_e^2 - L_e, P_{1/2} = -4L_e^2 + 4L_e, P_0 = 2L_e^2 - 3L_e + 1 (Lagrange interpolation) (HIGH)
 
 ## Open Questions
 
@@ -287,6 +294,14 @@ None yet.
 - [Phase 20, Plan 02]: Synthesis theorem stated as conditional on 3 gaps (A, B1, B2), not unconditional
 - [Phase 20, Plan 02]: Generation structure and spectral action classified as LOW severity for this paper
 - [Phase 0]: Started milestone v6.0: Gap C -- Complexification from C*-Measurement Maps — New milestone cycle -- closing Gap C in Paper 7 derivation chain
+- [Phase 22, Plan 01]: Route 1 (Effros-Stormer) resolved NEGATIVE -- conditional expectations do not force V_{1/2} complexification
+- [Phase 22, Plan 01]: Peirce interface V_1 . V_{1/2} is trivially scalar multiplication (eigenvalue 1/2 action)
+- [Phase 22, Plan 01]: No C*-subalgebra inside h_3(O) -- observer is external (Shirshov-Cohn)
+- [Phase 22, Plan 02]: Route 2 (state-effect duality) NEGATIVE -- P_1(v*w) is real scalar; C-linear extension inert on V_1 = R
+- [Phase 22, Plan 02]: Compatible complex structures form 56-dim family O(16)/U(8), none selected by pairing
+- [Phase 22, Plan 03]: Route 3 (GNS) NEGATIVE -- three independent obstructions (exceptional, parity, bottleneck)
+- [Phase 22, Plan 04]: Route 4 (tensor product) WEAK POSITIVE -- generic algebraic tautology, not h_3(O)-specific
+- [Phase 22, Plan 04]: Hanche-Olsen JC-algebra framework bypassed (V_{1/2} is module, not algebra; h_3(O) not JC)
 
 ### Active Approximations
 
