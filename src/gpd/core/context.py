@@ -57,6 +57,7 @@ from gpd.core.protocol_bundles import render_protocol_bundle_context, select_pro
 from gpd.core.reference_ingestion import ingest_reference_artifacts
 from gpd.core.state import _load_state_json_with_integrity_issues
 from gpd.core.state import peek_state_json as _peek_state_json
+from gpd.core.state import _current_machine_identity
 from gpd.core.utils import (
     generate_slug as _generate_slug_impl,
 )
@@ -1044,6 +1045,19 @@ def _build_execution_runtime_context(cwd: Path) -> dict[str, object]:
     state, _state_issues, _state_source = _peek_state_json(cwd)
     position = state.get("position") if isinstance(state, dict) else {}
     session = state.get("session") if isinstance(state, dict) else {}
+    machine = _current_machine_identity()
+    current_hostname = machine.get("hostname")
+    current_platform = machine.get("platform")
+    session_hostname = session.get("hostname") if isinstance(session, dict) else None
+    session_platform = session.get("platform") if isinstance(session, dict) else None
+    session_resume_file = session.get("resume_file") if isinstance(session, dict) else None
+    current_execution_resume_file = snapshot.resume_file if snapshot is not None else None
+    execution_resume_file = current_execution_resume_file or session_resume_file
+    execution_resume_file_source = (
+        "current_execution"
+        if current_execution_resume_file
+        else ("session_resume_file" if session_resume_file else None)
+    )
 
     paused_states = {"paused", "awaiting_user", "ready_to_continue", "waiting_review", "blocked"}
     segment_status = (snapshot.segment_status or "").lower() if snapshot is not None else ""
@@ -1054,10 +1068,26 @@ def _build_execution_runtime_context(cwd: Path) -> dict[str, object]:
         else (position.get("paused_at") if isinstance(position, dict) else None)
     )
     resume_file = (
-        snapshot.resume_file
-        if snapshot is not None and snapshot.resume_file
-        else (session.get("resume_file") if isinstance(session, dict) else None)
+        current_execution_resume_file
+        if current_execution_resume_file
+        else session_resume_file
     )
+    machine_change_detected = bool(
+        session_hostname
+        and session_platform
+        and (
+            session_hostname != current_hostname
+            or session_platform != current_platform
+        )
+    )
+    machine_change_notice = None
+    if machine_change_detected:
+        machine_change_notice = (
+            "Machine change detected: "
+            f"last active on {session_hostname} ({session_platform}); "
+            f"current machine {current_hostname} ({current_platform}). "
+            "The project state is portable and does not require repair."
+        )
 
     return {
         "current_execution": snapshot.model_dump(mode="json") if snapshot is not None else None,
@@ -1079,7 +1109,16 @@ def _build_execution_runtime_context(cwd: Path) -> dict[str, object]:
         "execution_blocked": bool(snapshot and snapshot.blocked_reason),
         "execution_resumable": is_resumable,
         "execution_paused_at": paused_at,
+        "current_execution_resume_file": current_execution_resume_file,
+        "session_resume_file": session_resume_file,
         "execution_resume_file": resume_file,
+        "execution_resume_file_source": execution_resume_file_source,
+        "current_hostname": current_hostname,
+        "current_platform": current_platform,
+        "session_hostname": session_hostname,
+        "session_platform": session_platform,
+        "machine_change_detected": machine_change_detected,
+        "machine_change_notice": machine_change_notice,
     }
 
 
@@ -1546,29 +1585,42 @@ def init_resume(cwd: Path) -> dict:
     segment_candidates: list[dict[str, object]] = []
     current_execution = execution_context.get("current_execution")
     if execution_context.get("execution_resumable") and isinstance(current_execution, dict):
-        segment_candidates.append(
-            {
-                "source": "current_execution",
-                "status": current_execution.get("segment_status"),
-                "phase": current_execution.get("phase"),
-                "plan": current_execution.get("plan"),
-                "segment_id": current_execution.get("segment_id"),
-                "resume_file": current_execution.get("resume_file"),
-                "checkpoint_reason": current_execution.get("checkpoint_reason"),
-                "first_result_gate_pending": current_execution.get("first_result_gate_pending"),
-                "pre_fanout_review_pending": current_execution.get("pre_fanout_review_pending"),
-                "pre_fanout_review_cleared": current_execution.get("pre_fanout_review_cleared"),
-                "skeptical_requestioning_required": current_execution.get("skeptical_requestioning_required"),
-                "skeptical_requestioning_summary": current_execution.get("skeptical_requestioning_summary"),
-                "weakest_unchecked_anchor": current_execution.get("weakest_unchecked_anchor"),
-                "disconfirming_observation": current_execution.get("disconfirming_observation"),
-                "downstream_locked": current_execution.get("downstream_locked"),
-                "waiting_reason": current_execution.get("waiting_reason"),
-                "blocked_reason": current_execution.get("blocked_reason"),
-                "last_result_label": current_execution.get("last_result_label"),
-                "updated_at": current_execution.get("updated_at"),
-            }
-        )
+        current_candidate = {
+            "source": "current_execution",
+            "status": current_execution.get("segment_status"),
+            "phase": current_execution.get("phase"),
+            "plan": current_execution.get("plan"),
+            "segment_id": current_execution.get("segment_id"),
+            "resume_file": current_execution.get("resume_file"),
+            "checkpoint_reason": current_execution.get("checkpoint_reason"),
+            "first_result_gate_pending": current_execution.get("first_result_gate_pending"),
+            "pre_fanout_review_pending": current_execution.get("pre_fanout_review_pending"),
+            "pre_fanout_review_cleared": current_execution.get("pre_fanout_review_cleared"),
+            "skeptical_requestioning_required": current_execution.get("skeptical_requestioning_required"),
+            "skeptical_requestioning_summary": current_execution.get("skeptical_requestioning_summary"),
+            "weakest_unchecked_anchor": current_execution.get("weakest_unchecked_anchor"),
+            "disconfirming_observation": current_execution.get("disconfirming_observation"),
+            "downstream_locked": current_execution.get("downstream_locked"),
+            "waiting_reason": current_execution.get("waiting_reason"),
+            "blocked_reason": current_execution.get("blocked_reason"),
+            "last_result_label": current_execution.get("last_result_label"),
+            "updated_at": current_execution.get("updated_at"),
+        }
+        segment_candidates.append(current_candidate)
+
+    session_resume_file = execution_context.get("session_resume_file")
+    if isinstance(session_resume_file, str) and session_resume_file:
+        session_candidate = {
+            "source": "session_resume_file",
+            "status": "handoff",
+            "resume_file": session_resume_file,
+            "resumable": False,
+        }
+        if not any(
+            candidate.get("resume_file") == session_candidate["resume_file"]
+            for candidate in segment_candidates
+        ):
+            segment_candidates.append(session_candidate)
     if interrupted_agent_id is not None:
         segment_candidates.append(
             {

@@ -1,0 +1,136 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from gpd.core import context as context_module
+from gpd.core import state as state_module
+from gpd.core.context import init_resume
+from gpd.core.state import parse_state_to_json, state_record_session
+
+
+def _write_current_execution(tmp_path: Path, payload: dict[str, object]) -> None:
+    observability = tmp_path / "GPD" / "observability"
+    observability.mkdir(parents=True, exist_ok=True)
+    (observability / "current-execution.json").write_text(json.dumps(payload), encoding="utf-8")
+
+
+def _update_state_session(
+    cwd: Path,
+    *,
+    hostname: str,
+    platform: str,
+    resume_file: str | None,
+) -> None:
+    state_path = cwd / "GPD" / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["session"].update(
+        {
+            "hostname": hostname,
+            "platform": platform,
+            "resume_file": resume_file,
+        }
+    )
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+
+
+def test_state_record_session_persists_machine_identity(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    cwd = state_project_factory(tmp_path)
+    monkeypatch.setattr(
+        state_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "builder-01", "platform": "Linux 6.1 x86_64"},
+    )
+
+    result = state_record_session(cwd, stopped_at="Phase 03 Plan 2", resume_file="next-step.md")
+
+    markdown = (cwd / "GPD" / "STATE.md").read_text(encoding="utf-8")
+    stored = json.loads((cwd / "GPD" / "state.json").read_text(encoding="utf-8"))
+    reparsed = parse_state_to_json(markdown)
+
+    assert result.recorded is True
+    assert set(result.updated) >= {"Last session", "Hostname", "Platform", "Stopped at", "Resume file"}
+    assert stored["session"]["hostname"] == "builder-01"
+    assert stored["session"]["platform"] == "Linux 6.1 x86_64"
+    assert reparsed["session"]["hostname"] == "builder-01"
+    assert reparsed["session"]["platform"] == "Linux 6.1 x86_64"
+    assert "**Hostname:** builder-01" in markdown
+    assert "**Platform:** Linux 6.1 x86_64" in markdown
+
+
+def test_init_resume_surfaces_machine_change_and_session_resume_candidate(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    cwd = state_project_factory(tmp_path)
+    _update_state_session(
+        cwd,
+        hostname="old-host",
+        platform="Linux 5.15 x86_64",
+        resume_file="GPD/phases/03-analysis/.continue-here.md",
+    )
+    monkeypatch.setattr(
+        context_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "new-host", "platform": "Linux 6.1 x86_64"},
+    )
+
+    ctx = init_resume(tmp_path)
+
+    assert ctx["machine_change_detected"] is True
+    assert "old-host" in ctx["machine_change_notice"]
+    assert ctx["session_hostname"] == "old-host"
+    assert ctx["session_platform"] == "Linux 5.15 x86_64"
+    assert ctx["current_hostname"] == "new-host"
+    assert ctx["current_platform"] == "Linux 6.1 x86_64"
+    assert ctx["execution_resume_file_source"] == "session_resume_file"
+    assert ctx["execution_resume_file"] == "GPD/phases/03-analysis/.continue-here.md"
+    assert ctx["resume_mode"] is None
+    assert ctx["segment_candidates"] == [
+        {
+            "source": "session_resume_file",
+            "status": "handoff",
+            "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+            "resumable": False,
+        }
+    ]
+
+
+def test_init_resume_keeps_current_execution_primary_and_includes_session_resume_file(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    cwd = state_project_factory(tmp_path)
+    _update_state_session(
+        cwd,
+        hostname="builder-01",
+        platform="Linux 6.1 x86_64",
+        resume_file="GPD/phases/03-analysis/alternate-resume.md",
+    )
+    _write_current_execution(
+        cwd,
+        {
+            "session_id": "sess-1",
+            "phase": "03",
+            "plan": "02",
+            "segment_id": "seg-4",
+            "segment_status": "paused",
+            "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+            "updated_at": "2026-03-10T12:00:00+00:00",
+        },
+    )
+    monkeypatch.setattr(
+        context_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "builder-01", "platform": "Linux 6.1 x86_64"},
+    )
+
+    ctx = init_resume(tmp_path)
+
+    assert ctx["machine_change_detected"] is False
+    assert ctx["execution_resume_file_source"] == "current_execution"
+    assert ctx["execution_resume_file"] == "GPD/phases/03-analysis/.continue-here.md"
+    assert ctx["resume_mode"] == "bounded_segment"
+    assert ctx["segment_candidates"][0]["source"] == "current_execution"
+    assert ctx["segment_candidates"][1]["source"] == "session_resume_file"
+    assert ctx["segment_candidates"][1]["resume_file"] == "GPD/phases/03-analysis/alternate-resume.md"

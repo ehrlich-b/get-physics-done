@@ -15,6 +15,8 @@ import json
 import logging
 import os
 import re
+import platform as py_platform
+import socket
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -190,6 +192,8 @@ class SessionInfo(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     last_date: str | None = None
+    hostname: str | None = None
+    platform: str | None = None
     stopped_at: str | None = None
     resume_file: str | None = None
 
@@ -414,6 +418,18 @@ class StateCompactResult(BaseModel):
 def default_state_dict() -> dict:
     """Return a dict with every field generate_state_markdown needs, initialized to defaults."""
     return ResearchState().model_dump()
+
+
+def _current_machine_identity() -> dict[str, str | None]:
+    """Return the current machine identity used for resume advisories."""
+    hostname = socket.gethostname().strip() or None
+    platform_parts = [
+        py_platform.system().strip(),
+        py_platform.release().strip(),
+        py_platform.machine().strip(),
+    ]
+    platform_value = " ".join(part for part in platform_parts if part) or None
+    return {"hostname": hostname, "platform": platform_value}
 
 
 # ─── Status Constants ──────────────────────────────────────────────────────────
@@ -757,7 +773,7 @@ def parse_state_md(content: str) -> dict:
                 blockers.append(text)
 
     # Session
-    session = {"last_date": None, "stopped_at": None, "resume_file": None}
+    session = {"last_date": None, "hostname": None, "platform": None, "stopped_at": None, "resume_file": None}
     session_match = re.search(
         r"##\s*Session Continuity\s*\n([\s\S]*?)(?=\n##|$)",
         content,
@@ -766,10 +782,16 @@ def parse_state_md(content: str) -> dict:
     if session_match:
         sec = session_match.group(1)
         ld = re.search(r"\*\*Last session:\*\*\s*(.+)", sec)
+        hn = re.search(r"\*\*Hostname:\*\*\s*(.+)", sec)
+        pf = re.search(r"\*\*Platform:\*\*\s*(.+)", sec)
         sa = re.search(r"\*\*Stopped at:\*\*\s*(.+)", sec)
         rf = re.search(r"\*\*Resume file:\*\*\s*(.+)", sec)
         if ld:
             session["last_date"] = ld.group(1).strip()
+        if hn:
+            session["hostname"] = hn.group(1).strip()
+        if pf:
+            session["platform"] = pf.group(1).strip()
         if sa:
             session["stopped_at"] = sa.group(1).strip()
         if rf:
@@ -886,10 +908,14 @@ def parse_state_to_json(content: str) -> dict:
     parsed = parse_state_md(content)
 
     last_date = _strip_placeholder(parsed["session"]["last_date"])
+    hostname = _strip_placeholder(parsed["session"]["hostname"])
+    platform_value = _strip_placeholder(parsed["session"]["platform"])
     stopped_at = _strip_placeholder(parsed["session"]["stopped_at"])
     resume_file = _strip_placeholder(parsed["session"]["resume_file"])
     session: dict[str, str | None] = {
         "last_date": last_date,
+        "hostname": hostname,
+        "platform": platform_value,
         "stopped_at": stopped_at,
         "resume_file": resume_file,
     }
@@ -1405,7 +1431,7 @@ _STATE_MD_MIRRORED_FIELDS: dict[str, tuple[str, ...] | None] = {
         "progress_percent",
         "paused_at",
     ),
-    "session": ("last_date", "stopped_at", "resume_file"),
+    "session": ("last_date", "hostname", "platform", "stopped_at", "resume_file"),
     "decisions": None,
     "blockers": None,
     "performance_metrics": ("rows",),
@@ -1688,6 +1714,8 @@ def generate_state_markdown(raw: dict) -> str:
     p("")
     sess = s.get("session") or {}
     p(f"**Last session:** {sess.get('last_date') or EM_DASH}")
+    p(f"**Hostname:** {sess.get('hostname') or EM_DASH}")
+    p(f"**Platform:** {sess.get('platform') or EM_DASH}")
     p(f"**Stopped at:** {sess.get('stopped_at') or EM_DASH}")
     p(f"**Resume file:** {sess.get('resume_file') or EM_DASH}")
     p("")
@@ -2752,6 +2780,22 @@ def state_resolve_blocker(cwd: Path, text: str) -> ResolveBlockerResult:
         return ResolveBlockerResult(resolved=False, blocker=text, reason="no match found")
 
 
+def _session_continuity_section(session: dict[str, object]) -> str:
+    """Render the Session Continuity section block."""
+    return "\n".join(
+        [
+            "## Session Continuity",
+            "",
+            f"**Last session:** {session.get('last_date') or EM_DASH}",
+            f"**Hostname:** {session.get('hostname') or EM_DASH}",
+            f"**Platform:** {session.get('platform') or EM_DASH}",
+            f"**Stopped at:** {session.get('stopped_at') or EM_DASH}",
+            f"**Resume file:** {session.get('resume_file') or EM_DASH}",
+            "",
+        ]
+    )
+
+
 @instrument_gpd_function("state.record_session")
 def state_record_session(
     cwd: Path,
@@ -2774,23 +2818,36 @@ def state_record_session(
     with _state_lock(cwd):
         content = md_path.read_text(encoding="utf-8")
         now = datetime.now(tz=UTC).isoformat()
+        machine = _current_machine_identity()
+        existing_stopped_at = state_extract_field(content, "Stopped at")
+        existing_hostname = state_extract_field(content, "Hostname")
+        existing_platform = state_extract_field(content, "Platform")
+        existing_resume_file = state_extract_field(content, "Resume file")
         updated: list[str] = []
 
-        new_content = state_replace_field(content, "Last session", now)
-        if new_content != content:
-            content = new_content
-            updated.append("Last session")
+        session_values = {
+            "last_date": now,
+            "hostname": machine["hostname"],
+            "platform": machine["platform"],
+            "stopped_at": stopped_at if stopped_at is not None else existing_stopped_at,
+            "resume_file": resume_file,
+        }
+        new_content = _session_continuity_section(session_values)
 
-        if stopped_at:
-            new_content = state_replace_field(content, "Stopped at", stopped_at)
-            if new_content != content:
-                content = new_content
-                updated.append("Stopped at")
+        session_section_pattern = re.compile(r"##\s*Session Continuity\s*\n[\s\S]*?(?=\n##|$)", re.IGNORECASE)
+        if session_section_pattern.search(content):
+            content = session_section_pattern.sub(lambda _: new_content, content, count=1)
+        else:
+            content = content.rstrip() + "\n\n" + new_content
 
-        resume = resume_file or EM_DASH
-        new_content = state_replace_field(content, "Resume file", resume)
-        if new_content != content:
-            content = new_content
+        updated.append("Last session")
+        if machine["hostname"] != existing_hostname:
+            updated.append("Hostname")
+        if machine["platform"] != existing_platform:
+            updated.append("Platform")
+        if stopped_at is not None and stopped_at != existing_stopped_at:
+            updated.append("Stopped at")
+        if (resume_file or EM_DASH) != (existing_resume_file or EM_DASH):
             updated.append("Resume file")
 
         if updated:
@@ -2800,7 +2857,9 @@ def state_record_session(
                 cwd=str(cwd),
                 updated_fields=",".join(updated),
                 stopped_at=stopped_at or "",
-                resume_file=resume,
+                resume_file=resume_file or EM_DASH,
+                hostname=machine["hostname"] or EM_DASH,
+                platform=machine["platform"] or EM_DASH,
             ):
                 pass
             return RecordSessionResult(recorded=True, updated=updated)
@@ -2809,7 +2868,9 @@ def state_record_session(
             "session.continuity.noop",
             cwd=str(cwd),
             stopped_at=stopped_at or "",
-            resume_file=resume,
+            resume_file=resume_file or EM_DASH,
+            hostname=machine["hostname"] or EM_DASH,
+            platform=machine["platform"] or EM_DASH,
         ):
             pass
         return RecordSessionResult(recorded=False, reason="No session fields found in STATE.md")
