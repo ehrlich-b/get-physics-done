@@ -908,6 +908,30 @@ class TestUninstall:
         assert (preserved_skill / "SKILL.md").exists()
         assert "gpd-user-keep" not in tracked_skill_names
 
+    def test_legacy_manifest_file_entries_drive_completeness_and_uninstall(
+        self,
+        adapter: CodexAdapter,
+        gpd_root: Path,
+        tmp_path: Path,
+    ) -> None:
+        target = tmp_path / ".codex"
+        target.mkdir()
+        skills = tmp_path / "skills"
+        skills.mkdir()
+
+        adapter.install(gpd_root, target, skills_dir=skills)
+        manifest_path = target / "gpd-file-manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        tracked_skill_names = set(manifest["codex_generated_skill_dirs"])
+        manifest.pop("codex_generated_skill_dirs", None)
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+        assert adapter.has_complete_install(target) is True
+
+        adapter.uninstall(target, skills_dir=skills)
+
+        assert not any((skills / name).exists() for name in tracked_skill_names)
+
     def test_uninstall_removes_agents(self, adapter: CodexAdapter, gpd_root: Path, tmp_path: Path) -> None:
         target = tmp_path / ".codex"
         target.mkdir()

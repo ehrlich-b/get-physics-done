@@ -1429,6 +1429,39 @@ def test_contract_tools_reject_blocking_salvage_schema_drift() -> None:
     assert suggest_result == expected
 
 
+def test_contract_tools_surface_full_contract_error_details_for_multi_error_payloads() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    contract = _load_project_contract_fixture()
+    contract["scope"]["in_scope"] = "   "
+    contract["claims"][0]["references"] = "   "
+    contract["references"][0]["aliases"] = "   "
+    contract["references"][0]["required_actions"].append(17)
+
+    request = {
+        "check_key": "contract.benchmark_reproduction",
+        "contract": contract,
+        "binding": {"claim_ids": ["claim-benchmark"]},
+        "metadata": {"source_reference_id": "ref-benchmark"},
+        "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+    }
+
+    run_result = run_contract_check(request)
+    suggest_result = suggest_contract_checks(contract)
+
+    expected_details = [
+        "scope.in_scope must not be blank",
+        "claims.0.references must not be blank",
+        "references.0.aliases must not be blank",
+        "references.0.required_actions[3] must be a non-empty string",
+    ]
+
+    assert run_result["error"] == "Invalid contract payload: scope.in_scope must not be blank; claims.0.references must not be blank; references.0.aliases must not be blank; +1 more"
+    assert run_result["contract_error_details"] == expected_details
+    assert suggest_result["error"] == run_result["error"]
+    assert suggest_result["contract_error_details"] == expected_details
+
+
 def test_contract_tool_responses_copy_binding_targets_lists() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 

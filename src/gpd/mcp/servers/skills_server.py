@@ -43,6 +43,23 @@ _CONTRACT_REFERENCE_NAMES = {
 _SPEC_ROOT = content_registry.SPECS_DIR.resolve()
 _AGENT_ROOT = content_registry.AGENTS_DIR.resolve()
 _COMMAND_ROOT = content_registry.COMMANDS_DIR.resolve()
+_REPO_ROOT = _SPEC_ROOT.parents[2]
+_SPEC_RELATIVE_REFERENCE_PREFIXES = (
+    "references/",
+    "workflows/",
+    "templates/",
+    "bundles/",
+    "shared/",
+    "domains/",
+    "execution/",
+    "verification/",
+    "conventions/",
+    "research/",
+    "publication/",
+    "protocols/",
+    "subfields/",
+    "orchestration/",
+)
 _MARKDOWN_REFERENCE_RE = re.compile(
     r"(?P<path>(?:@?\{GPD_(?:INSTALL|AGENTS)_DIR\}/|(?:\.\./|\.\/)?"
     r"(?:references|workflows|templates|agents|commands|bundles|shared|domains|execution|verification|conventions|research|publication|protocols|subfields|orchestration|GPD|src/gpd)/)"
@@ -103,7 +120,7 @@ def _normalize_allowed_tools(tools: list[str]) -> list[str]:
     return normalized
 
 
-def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) -> tuple[str, Path] | None:
+def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) -> tuple[str, Path | None] | None:
     """Return a stable reference path plus its local file path, if resolvable."""
     candidate = raw_path.rstrip(".,:;")
     if not candidate:
@@ -153,7 +170,7 @@ def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) ->
             return normalized
         return None
 
-    if candidate.startswith(("references/", "workflows/", "templates/", "bundles/")):
+    if candidate.startswith(_SPEC_RELATIVE_REFERENCE_PREFIXES):
         resolved = _SPEC_ROOT / candidate
         normalized = _normalize_resolved_path(resolved)
         return normalized
@@ -170,6 +187,17 @@ def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) ->
         normalized = _normalize_resolved_path(resolved)
         return normalized
 
+    if candidate.startswith(("GPD/", "@GPD/")):
+        project_path = candidate.removeprefix("@")
+        return f"@{project_path}", None
+
+    if candidate.startswith("src/gpd/"):
+        resolved = (_REPO_ROOT / candidate).resolve()
+        normalized = _normalize_resolved_path(resolved)
+        if normalized is not None:
+            return normalized
+        return candidate, None
+
     if base_path is not None:
         resolved = (base_path.parent / candidate).resolve()
         normalized = _normalize_resolved_path(resolved)
@@ -180,6 +208,8 @@ def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) ->
 
 
 def _reference_kind(path: str) -> str:
+    if path.startswith("@GPD/"):
+        return "project"
     if path.startswith("@{GPD_AGENTS_DIR}/"):
         return "agent"
     if path.startswith("@{GPD_INSTALL_DIR}/commands/"):
@@ -212,7 +242,7 @@ def _extract_referenced_files(content: str, *, source_path: Path | None = None) 
             if path in visited_docs:
                 continue
             visited_docs.add(path)
-            if referenced_path.suffix != ".md" or not referenced_path.exists():
+            if referenced_path is None or referenced_path.suffix != ".md" or not referenced_path.exists():
                 continue
             try:
                 nested = _portable_skill_content(referenced_path.read_text(encoding="utf-8"))

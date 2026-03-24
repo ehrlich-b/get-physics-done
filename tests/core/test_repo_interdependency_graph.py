@@ -170,6 +170,12 @@ def test_graph_does_not_reference_removed_verify_between_waves_knob() -> None:
     assert "verify_between_waves" not in graph
 
 
+def test_graph_surfaces_codex_generated_skill_dir_manifest_ownership() -> None:
+    graph = read_graph_text()
+
+    assert "codex_generated_skill_dirs" in graph
+
+
 def test_graph_test_file_references_exist() -> None:
     missing = sorted(
         {

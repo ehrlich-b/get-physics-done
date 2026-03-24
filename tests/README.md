@@ -1039,6 +1039,10 @@ flowchart TD
   `manifest-contract`
   Used later by uninstall to locate shared skills.
 
+- `src/gpd/adapters/codex.py -> gpd-file-manifest.json::codex_generated_skill_dirs`
+  `manifest-contract`
+  Codex uninstall and completeness checks use these manifest-owned skill directory names, with `files["skills/gpd-*/SKILL.md"]` as the legacy fallback when older manifests lack the explicit metadata key.
+
 - `src/gpd/adapters/install_utils.py::write_manifest -> gpd-file-manifest.json["files"]["skills/gpd-*/SKILL.md"]`
   `manifest-contract`
 

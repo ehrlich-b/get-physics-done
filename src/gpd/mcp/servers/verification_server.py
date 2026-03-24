@@ -2246,6 +2246,16 @@ def _summarize_contract_salvage_errors(errors: list[str]) -> str:
     return summary
 
 
+def _contract_payload_error(errors: list[str]) -> dict[str, object]:
+    details = list(dict.fromkeys(errors))
+    if not details:
+        return _error_result("Invalid contract payload")
+    message = f"Invalid contract payload: {_summarize_contract_salvage_errors(details)}"
+    if len(details) == 1:
+        return _error_result(message)
+    return stable_mcp_response({"contract_error_details": details}, error=message)
+
+
 def _validate_contract_schema_version(raw: object) -> dict[str, object] | None:
     """Reject unsupported contract schema versions without coercing or salvaging them."""
 
@@ -2266,7 +2276,7 @@ def _validate_contract_scalar_fields(contract_raw: dict[str, object]) -> dict[st
     errors = list(dict.fromkeys(errors))
     if not errors:
         return None
-    return _error_result(f"Invalid contract payload: {_summarize_contract_salvage_errors(errors)}")
+    return _contract_payload_error(errors)
 
 
 def _validate_contract_list_members(contract_raw: dict[str, object]) -> dict[str, object] | None:
@@ -2364,7 +2374,7 @@ def _validate_contract_list_members(contract_raw: dict[str, object]) -> dict[str
 
     if not errors:
         return None
-    return _error_result(f"Invalid contract payload: {_summarize_contract_salvage_errors(errors)}")
+    return _contract_payload_error(errors)
 
 
 def _validate_contract_integrity(contract: ResearchContract) -> dict[str, object] | None:
@@ -2373,7 +2383,7 @@ def _validate_contract_integrity(contract: ResearchContract) -> dict[str, object
     errors = collect_contract_integrity_errors(contract)
     if not errors:
         return None
-    return _error_result(f"Invalid contract payload: {_summarize_contract_salvage_errors(errors)}")
+    return _contract_payload_error(errors)
 
 
 def _parse_contract_payload(contract_raw: dict[str, object]) -> tuple[ResearchContract | None, list[str], dict | None]:
@@ -2404,11 +2414,10 @@ def _parse_contract_payload(contract_raw: dict[str, object]) -> tuple[ResearchCo
                 if integrity_error is not None:
                     return None, [], integrity_error
                 return contract, recoverable, None
-            summary = _summarize_contract_salvage_errors(blocking)
-            return None, [], _error_result(f"Invalid contract payload: {summary}")
-        summary = _summarize_contract_salvage_errors(salvage_errors)
-        detail = summary or str(exc)
-        return None, [], _error_result(f"Invalid contract payload: {detail}")
+            return None, [], _contract_payload_error(blocking)
+        if salvage_errors:
+            return None, [], _contract_payload_error(salvage_errors)
+        return None, [], _error_result(f"Invalid contract payload: {exc}")
 
 
 def _validate_benchmark_reference_binding(

@@ -674,6 +674,15 @@ class TestSkillsServerIntegration:
         assert all(not entry["path"].startswith("/") for entry in result["schema_documents"])
         assert all(not entry["path"].startswith("/") for entry in result["contract_documents"])
 
+    def test_get_skill_surfaces_project_context_references(self):
+        from gpd.mcp.servers.skills_server import get_skill
+
+        result = get_skill("gpd-discover")
+        references = {entry["path"]: entry["kind"] for entry in result["referenced_files"]}
+
+        assert references["@GPD/STATE.md"] == "project"
+        assert references["@GPD/ROADMAP.md"] == "project"
+
     def test_get_skill_peer_review_surfaces_transitive_schema_refs_and_typed_contract(self):
         from gpd.mcp.servers.skills_server import get_skill
 
