@@ -392,5 +392,5 @@ Part (a) is established by this plan. Part (b) will be addressed in Plan 02 (Gap
 ---
 
 *Phase: 26-entropy-gradient-theorem-and-gap-c-resolution*
-*Plan: 01, Task 1*
+*Plan: 01, Tasks 1-2*
 *Completed: 2026-03-24*
