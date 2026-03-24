@@ -9,16 +9,16 @@ See: .gpd/PROJECT.md (updated 2026-03-24)
 
 ## Current Position
 
-**Current Phase:** 23
-**Current Phase Name:** Entropy Increase under Sequential Products
+**Current Phase:** 24
+**Current Phase Name:** Chirality Requires Time-Orientation
 **Total Phases:** 5 (v7.0: Phases 23-27)
 **Current Plan:** 2/2
 **Total Plans in Phase:** 2
 **Status:** Complete
 **Last Activity:** 2026-03-24
-**Last Activity Description:** Phase 23 complete -- verification passed (3/3 targets, 12/12 physics checks); entropy monotonicity theorem proved; Phase 26 VIABLE
+**Last Activity Description:** Phase 24 complete -- verification passed (5/5 targets, 12/12 physics checks); chirality-time theorem proved; three-consequence theorem established
 
-**Progress:** [██████████] 100% (v7.0, 2/2 plans)
+**Progress:** [██████████] 100% (v7.0 Phase 24, 2/2 plans)
 
 ## Active Calculations
 
@@ -149,6 +149,14 @@ None yet.
 - **Route 4 WEAK POSITIVE**: A tensor_R V_{1/2} = A tensor_C V_{1/2}^C canonically, but generic algebraic tautology (works for any real V), not h_3(O)-specific; equivalent to Phase 18 extension-of-scalars (HIGH)
 - **Phase 22 synthesis**: All 4 routes converge on same obstruction -- V_1 = R*E_11 is 1-dimensional, Peirce action is scalar multiplication, no complex structure transmittable through this interface (HIGH)
 - **Peirce projections**: P_1 = 2L_e^2 - L_e, P_{1/2} = -4L_e^2 + 4L_e, P_0 = 2L_e^2 - 3L_e + 1 (Lagrange interpolation) (HIGH)
+
+- **Chirality-time theorem (CHIR-01)**: Gamma_* -> -Gamma_* under time reversal in all even d; P_L <-> P_R exchange; Weyl spinors require time-orientation + space-orientation (HIGH)
+- **Internal/spacetime chirality distinction**: omega_6 (Euclidean Cl(6)) vs Gamma_5 (Lorentzian Cl(d-1,1)); full SM chirality needs both (HIGH)
+- **Lattice framing hierarchy (VALD-01)**: framing => spin => orientability; Paper 6 lattice provides time-orientation + space-orientation + spin structure (HIGH)
+- **Three-consequence theorem (CHIR-02)**: single u in S^6 determines (a) gauge group [constructive], (b) chirality [constructive], (c) time-orientation requirement [constraint] (HIGH)
+- **Updated 9-link chain**: L7 annotated with cross-paper dependency to Paper 6 time-orientation (HIGH)
+- **Assumption register A1-A6**: A1-A4 from Paper 7, A5 continuum limit, A6 Lorentzian signature (HIGH)
+- **Phase 24 verification**: 5/5 contract targets, 12/12 physics checks, confidence HIGH (HIGH)
 
 ## Open Questions
 
