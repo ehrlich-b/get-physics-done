@@ -404,4 +404,122 @@ The choice of a single unit imaginary octonion $u \in S^6 \subset \mathrm{Im}(\m
 - Which SU(3) is the color group
 - The full Standard Model gauge group
 
-This is the content of Phase 19, Plan 01. Plan 02 will verify the explicit quantum numbers of all 16 states.
+This is the content of Phase 19, Plan 01. Plan 02 verifies the explicit quantum numbers of all 16 states below.
+
+---
+
+## Part IV: Computational Verification (Plan 02)
+
+% ASSERT_CONVENTION: natural_units=dimensionless, clifford_convention=euclidean_positive, octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7, witt_operators=a_j=(1/2)(gamma_{2j-1}+i*gamma_{2j}), hypercharge=pati_salam_Y_equals_BminusL_plus_2I3R
+
+**Code:** `tests/test_cl6_sm.py` — 29 pytest tests, all passing.
+
+### Step 10: Explicit 32×32 Matrix Construction
+
+The 10 generators $\Gamma_1, \ldots, \Gamma_{10}$ of $\mathrm{Cl}(10)$ are constructed as $32 \times 32$ complex matrices using the standard recursive tensor-product of Pauli matrices:
+
+$$\Gamma_{2k+1} = \sigma_3^{\otimes k} \otimes \sigma_1 \otimes I_2^{\otimes (4-k)}, \qquad \Gamma_{2k+2} = \sigma_3^{\otimes k} \otimes \sigma_2 \otimes I_2^{\otimes (4-k)}, \qquad k = 0, \ldots, 4$$
+
+**Verification results (all to machine precision, error = 0):**
+- All 55 $\mathrm{Cl}(10)$ anticommutation relations $\{\Gamma_A, \Gamma_B\} = 2\delta_{AB} I_{32}$ verified
+- All 21 $\mathrm{Cl}(6)$ anticommutation relations $\{\gamma_i, \gamma_j\} = 2\delta_{ij} I_{32}$ verified (first 6 generators)
+- $\omega_6^2 = -I_{32}$ verified (error = 0)
+- $P = \frac{1}{2}(I_{32} - i\omega_6)$: $P^2 = P$ (error = 0), $\mathrm{tr}(P) = 16$, $\mathrm{rank}(P) = 16$
+- $\mathrm{tr}(\omega_6) = 0$ confirmed
+- $\Gamma_{11} = \omega_6 \cdot \Gamma_7 \Gamma_8 \Gamma_9 \Gamma_{10}$ confirmed (but $\omega_6 \neq \Gamma_{11}$)
+
+### Step 11: Cl(6) and Cl(4) Witt Decompositions
+
+**Cl(6) Witt operators:**
+$$a_j = \frac{1}{2}(\gamma_{2j-1} + i\gamma_{2j}), \qquad j = 1, 2, 3$$
+
+All 27 CAR verified to machine precision: $\{a_i, a_j^\dagger\} = \delta_{ij} I_{32}$, $\{a_i, a_j\} = 0$, $\{a_i^\dagger, a_j^\dagger\} = 0$.
+
+**Clifford vacuum:** $\ker(a_1) \cap \ker(a_2) \cap \ker(a_3)$ is 4-dimensional in the 32-dim Dirac space, corresponding to the 4 states of the $\mathrm{Cl}(4)$ spinor $S_4$ (dimension $32/2^3 = 4$).
+
+**Cl(4) Witt operators:**
+$$b_1 = \frac{1}{2}(\Gamma_7 + i\Gamma_8), \qquad b_2 = \frac{1}{2}(\Gamma_9 + i\Gamma_{10})$$
+
+CAR verified: $\{b_k, b_l^\dagger\} = \delta_{kl}$, $\{b_k, b_l\} = 0$.
+
+### Step 12: SU(2)$_L$ × SU(2)$_R$ from Schwinger Boson Construction
+
+The $\mathrm{Spin}(4) \cong \mathrm{SU}(2)_L \times \mathrm{SU}(2)_R$ Cartan generators are constructed via Schwinger bosons from the $\mathrm{Cl}(4)$ number operators $m_k = b_k^\dagger b_k$:
+
+$$J_3^L = \frac{1}{2}(m_1 + m_2 - 1), \qquad J_3^R = \frac{1}{2}(m_1 - m_2)$$
+
+**Raising/lowering operators:**
+$$J_+^L = b_1^\dagger b_2^\dagger, \quad J_-^L = b_2 b_1; \qquad J_+^R = b_1^\dagger b_2, \quad J_-^R = b_2^\dagger b_1$$
+
+**Algebra verification (all to machine precision):**
+- $[J_+^L, J_-^L] = 2 J_3^L$, $[J_3^L, J_\pm^L] = \pm J_\pm^L$ — SU(2)$_L$ algebra confirmed
+- $[J_+^R, J_-^R] = 2 J_3^R$, $[J_3^R, J_\pm^R] = \pm J_\pm^R$ — SU(2)$_R$ algebra confirmed
+- $[\text{all } \mathrm{SU}(2)_L \text{ generators}, \text{all } \mathrm{SU}(2)_R \text{ generators}] = 0$ — commuting confirmed
+- $[\mathrm{SU}(2)_L, \omega_6] = 0$, $[\mathrm{SU}(2)_R, \omega_6] = 0$ — both in stabilizer confirmed
+
+### Step 13: SM Quantum Number Operators
+
+$$B - L = I_{32} - \frac{2}{3}N, \qquad Y = (B-L) + 2J_3^R, \qquad Q = J_3^L + \frac{Y}{2}$$
+
+where $N = n_1 + n_2 + n_3$ is the total $\mathrm{Cl}(6)$ particle number, $n_j = a_j^\dagger a_j$.
+
+Color Cartan generators:
+$$T_3^c = \frac{1}{2}(n_1 - n_2), \qquad T_8^c = \frac{1}{2\sqrt{3}}(n_1 + n_2 - 2n_3)$$
+
+### Step 14: Complete 16-State Quantum Number Table
+
+The projector $P$ selects the $\omega_6 = +i$ eigenspace, which corresponds to **odd** $\mathrm{Cl}(6)$ particle number ($N = 1$ or $N = 3$). For each of the 4 vacuum vectors (labeled by $\mathrm{Cl}(4)$ occupation $(m_1, m_2)$):
+- 3 states $a_j^\dagger |0\rangle$ ($N = 1$, color triplet = quarks)
+- 1 state $a_1^\dagger a_2^\dagger a_3^\dagger |0\rangle$ ($N = 3$, color singlet = lepton)
+
+Total: $4 \times 4 = 16$ linearly independent states, all in $\mathrm{range}(P)$.
+
+**All quantum numbers computed as explicit matrix eigenvalues** (not by inspection). Every state is an eigenstate of every Cartan generator with residual = 0.
+
+| # | Particle | $N$ | $J_3^L$ | $J_3^R$ | $B-L$ | $Y$ | $Q$ | $T_3^c$ | $T_8^c$ |
+|---|----------|-----|---------|---------|-------|-----|-----|---------|---------|
+| 1 | $u_R$ (r) | 1 | 0 | $+\frac{1}{2}$ | $+\frac{1}{3}$ | $+\frac{4}{3}$ | $+\frac{2}{3}$ | $+\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 2 | $u_R$ (g) | 1 | 0 | $+\frac{1}{2}$ | $+\frac{1}{3}$ | $+\frac{4}{3}$ | $+\frac{2}{3}$ | $-\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 3 | $u_R$ (b) | 1 | 0 | $+\frac{1}{2}$ | $+\frac{1}{3}$ | $+\frac{4}{3}$ | $+\frac{2}{3}$ | $0$ | $-\frac{1}{\sqrt{3}}$ |
+| 4 | $\nu_R$ | 3 | 0 | $+\frac{1}{2}$ | $-1$ | $0$ | $0$ | $0$ | $0$ |
+| 5 | $d_L$ (r) | 1 | $-\frac{1}{2}$ | $0$ | $+\frac{1}{3}$ | $+\frac{1}{3}$ | $-\frac{1}{3}$ | $+\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 6 | $d_L$ (g) | 1 | $-\frac{1}{2}$ | $0$ | $+\frac{1}{3}$ | $+\frac{1}{3}$ | $-\frac{1}{3}$ | $-\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 7 | $d_L$ (b) | 1 | $-\frac{1}{2}$ | $0$ | $+\frac{1}{3}$ | $+\frac{1}{3}$ | $-\frac{1}{3}$ | $0$ | $-\frac{1}{\sqrt{3}}$ |
+| 8 | $e_L$ | 3 | $-\frac{1}{2}$ | $0$ | $-1$ | $-1$ | $-1$ | $0$ | $0$ |
+| 9 | $u_L$ (r) | 1 | $+\frac{1}{2}$ | $0$ | $+\frac{1}{3}$ | $+\frac{1}{3}$ | $+\frac{2}{3}$ | $+\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 10 | $u_L$ (g) | 1 | $+\frac{1}{2}$ | $0$ | $+\frac{1}{3}$ | $+\frac{1}{3}$ | $+\frac{2}{3}$ | $-\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 11 | $u_L$ (b) | 1 | $+\frac{1}{2}$ | $0$ | $+\frac{1}{3}$ | $+\frac{1}{3}$ | $+\frac{2}{3}$ | $0$ | $-\frac{1}{\sqrt{3}}$ |
+| 12 | $\nu_L$ | 3 | $+\frac{1}{2}$ | $0$ | $-1$ | $-1$ | $0$ | $0$ | $0$ |
+| 13 | $d_R$ (r) | 1 | $0$ | $-\frac{1}{2}$ | $+\frac{1}{3}$ | $-\frac{2}{3}$ | $-\frac{1}{3}$ | $+\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 14 | $d_R$ (g) | 1 | $0$ | $-\frac{1}{2}$ | $+\frac{1}{3}$ | $-\frac{2}{3}$ | $-\frac{1}{3}$ | $-\frac{1}{2}$ | $+\frac{1}{2\sqrt{3}}$ |
+| 15 | $d_R$ (b) | 1 | $0$ | $-\frac{1}{2}$ | $+\frac{1}{3}$ | $-\frac{2}{3}$ | $-\frac{1}{3}$ | $0$ | $-\frac{1}{\sqrt{3}}$ |
+| 16 | $e_R$ | 3 | $0$ | $-\frac{1}{2}$ | $-1$ | $-2$ | $-1$ | $0$ | $0$ |
+
+**Pati-Salam convention (Todorov 2022):** The 16 contains left-handed particles (SU(2)$_L$ doublets: $u_L$, $d_L$, $\nu_L$, $e_L$) and right-handed particles (SU(2)$_R$ doublets: $u_R$, $d_R$, $\nu_R$, $e_R$). This is the left-right symmetric assignment where the same charge operator $Q = J_3^L + Y/2$ acts on both sectors. The left-right asymmetry of the Standard Model appears only after SU(2)$_R$ breaking.
+
+**Key consistency checks (all verified computationally):**
+- 16 linearly independent states, all in $\mathrm{range}(P)$
+- 8 SU(2)$_L$ doublet states ($J_3^L = \pm 1/2$) + 8 SU(2)$_L$ singlet states ($J_3^L = 0$)
+- 4 color singlets (leptons: $\nu_L, e_L, \nu_R, e_R$) + 12 color triplets (quarks)
+- $Q$ distribution: $\{+2/3: 6, -1/3: 6, 0: 2, -1: 2\}$ — matches Pati-Salam SM
+- $Y = (B-L) + 2J_3^R$ verified for all 16 states
+- $Q = J_3^L + Y/2$ verified for all 16 states
+- Particle identification: $u_L \times 3, d_L \times 3, \nu_L, e_L, u_R \times 3, d_R \times 3, \nu_R, e_R$ — complete one-generation SM content
+
+SELF-CRITIQUE CHECKPOINT (Step 14):
+1. SIGN CHECK: B-L = 1 - (2/3)N gives B-L = +1/3 for N=1 quarks, B-L = -1 for N=3 leptons. Signs correct for standard Pati-Salam assignment.
+2. FACTOR CHECK: Y = (B-L) + 2*J3R. Factor of 2 in front of J3R is the Gell-Mann-Nishijima convention. Q = J3L + Y/2 (the factor of 1/2 converts hypercharge to electric charge).
+3. CONVENTION CHECK: Schwinger boson construction J3L = (m1+m2-1)/2, J3R = (m1-m2)/2. Pati-Salam left-right symmetric convention throughout. Consistent with Plan 01 Cl(6) and omega_6 construction.
+4. DIMENSION CHECK: 16 = 4 (Cl(4) vacuum states) x 4 (3 quarks + 1 lepton per vacuum) = (3+1) x 4. 8 left + 8 right. 4 leptons + 12 quarks. All consistent.
+
+### Hypercharge Normalization Note
+
+The hypercharge values in the table above use the **Pati-Salam normalization** $Y = (B-L) + 2J_3^R$, which differs from the standard GUT-normalized hypercharge by:
+
+$$Y_{\mathrm{SM}} = Y_{\mathrm{PS}}, \qquad \text{i.e., no rescaling needed}$$
+
+since the Gell-Mann-Nishijima relation $Q = I_3 + Y/2$ holds with the same $Y$ in both conventions. The key differences between left-handed quarks ($Y = 1/3$) and right-handed quarks ($Y = 4/3$ or $-2/3$) arise from the $2J_3^R$ contribution.
+
+---
+
+**Plan 02 complete.** All Clifford algebra relations verified to machine precision in explicit $32 \times 32$ matrix representation. All 16 Standard Model fermion quantum numbers computed by matrix eigenvalue extraction (not by hand), matching the known Pati-Salam assignment for one generation.
