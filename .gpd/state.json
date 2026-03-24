@@ -2,7 +2,7 @@
   "project_reference": {
     "project_md_updated": "2026-03-22",
     "core_research_question": "Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?",
-    "current_focus": "v5.0 Chirality from h_3(O) via Cl(6) -- Defining objectives"
+    "current_focus": "v5.0 Chirality from h_3(O) via Cl(6) -- Phase 21 complete"
   },
   "project_contract": {
     "schema_version": 1,
@@ -423,15 +423,15 @@
     }
   },
   "position": {
-    "current_phase": "--",
-    "current_phase_name": "--",
+    "current_phase": "21 (complete)",
+    "current_phase_name": "Paper 7 Assembly",
     "total_phases": null,
-    "current_plan": "--",
-    "total_plans_in_phase": null,
-    "status": "Defining objectives",
-    "last_activity": "2026-03-23",
-    "last_activity_desc": "Started milestone v5.0: Chirality from h_3(O) via Cl(6)",
-    "progress_percent": 0,
+    "current_plan": "3/3 complete",
+    "total_plans_in_phase": 3,
+    "status": "Milestone complete",
+    "last_activity": "2026-03-24",
+    "last_activity_desc": "v5.0 milestone completed and archived",
+    "progress_percent": 100,
     "paused_at": null
   },
   "active_calculations": [],
@@ -514,7 +514,38 @@
     "**Discontinuous transition**: any non-Barrett perturbation drops A_F from M_n(C) to C (HIGH)",
     "**No D produces C + H + M_3(C)**: simple M_n(C) algebra cannot give SM -- requires direct sum structure (HIGH)",
     "**Medium success tier**: valid spectral triple with U(n) gauge group, but SM requires direct sum algebra (HIGH)",
-    "**50 pytest tests pass** verifying first-order condition at n=2,3,4 for Barrett and general D (HIGH)"
+    "**50 pytest tests pass** verifying first-order condition at n=2,3,4 for Barrett and general D (HIGH)",
+    "**Peirce decomposition h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10)** under E_11, dim check 1+16+10=27 (HIGH)",
+    "**V_{1/2} = O^2 = S_9** (real Spin(9) spinor, dim_R = 16) (HIGH)",
+    "**C*-observer forces V_{1/2}^C = S_{10}^+** (Weyl spinor of Spin(10), dim_C = 16) (MEDIUM)",
+    "**Spin(9) -> Spin(10) upgrade** via branching rule S_{10}^+|_{Spin(9)} = S_9^C (HIGH)",
+    "**Cross-check with Boyle 2020**: consistent identification of V_{1/2} as S_{10}^+ (HIGH)",
+    "**Backtracking trigger NOT fired**: complexification follows from C*-nature alone (HIGH)",
+    "**F_4 -> E_6 upgrade** tracked through Peirce: Aut -> Str_0, dim 52 -> 78 (HIGH)",
+    "**Stab_{E_6}(E_11) = Spin(10) x U(1)**, dim 46, orbit = complexified Cayley plane dim 32 (HIGH)",
+    "**27 -> 1 + 10 + 16** under Spin(10): 1=V_1^C, 10=V_0^C, 16=V_{1/2}^C=S_{10}^+ (HIGH)",
+    "**V_0^C = 10 (vector)** verified via branching 10|_{Spin(9)} = 9+1 (HIGH)",
+    "**Phase 18 verified**: 6/6 contract claims, 12/12 physics checks, consistency 27/27 (HIGH)",
+    "**Cl(6) = Alg(gamma_1,...,gamma_6) subset Cl(10)** from O = C + C^3 splitting with u = e_7 (HIGH)",
+    "**omega_6^2 = -1**, P = (1/2)(1 - i*omega_6), tr(P) = 16 on 32-dim Dirac spinor (HIGH)",
+    "**Stab_{Spin(10)}(omega_6) = SU(4) x SU(2)_L x SU(2)_R / Z_2**, dim 21 = 15 + 6 (HIGH)",
+    "**16 -> (4,2,1) + (4bar,1,2)** LEFT embedding verified (SU(2)_L on left-handed only) (HIGH)",
+    "**Spin(10) -> Pati-Salam -> SU(3)_C x SU(2)_L x U(1)_Y** from single input u in S^6 (HIGH)",
+    "**Furey Witt: 27/27 CAR verified, omega_6 = -i*(-1)^N**, automatic chirality (HIGH)",
+    "**10/10 numerical tests pass** verifying Cl(6) algebra, volume form, stabilizer, Witt CAR (HIGH)",
+    "**29/29 pytest tests pass** verifying explicit 32x32 Cl(10)/Cl(6) construction, Witt CAR, SU(2) algebras, and 16 SM quantum numbers (HIGH)",
+    "**16 SM states matched**: u_L x3, d_L x3, nu_L, e_L, u_R x3, d_R x3, nu_R, e_R in Pati-Salam convention (HIGH)",
+    "**Q distribution {-1:2, -1/3:6, 0:2, +2/3:6}** matches Pati-Salam SM exactly (HIGH)",
+    "**Schwinger boson SU(2)_L x SU(2)_R**: full algebra + L-R commutativity + omega_6 commutativity verified (HIGH)",
+    "**F_4 breaking by u:** [SU(3)_C x SU(3)_J]/Z_3 (dim 16) subset F_4 (HIGH)",
+    "**SM from F_4 intersection:** Spin(9) cap [SU(3)xSU(3)]/Z_3 contains SU(3)_C x SU(2) x U(1) (dim 12) (HIGH)",
+    "**Single-input theorem:** Both F_4 and Cl(6)/PS routes use same u in S^6 and same W = u^perp cap Im(O) (HIGH)",
+    "**Chiral upgrade:** F_4 route = gauge algebra (no chirality); Cl(6) route = same algebra + LEFT embedding (HIGH)",
+    "**Factor matching:** SU(3)_C = Stab_{G_2}(u) in both routes; SU(2) from Spin(4) in both; U(1) unique residual Cartan (HIGH)",
+    "**9-link chain L1-L9** from self-modeling to chiral SM, all with status (HIGH)",
+    "**Synthesis theorem** conditional on gaps A, B1, B2: one choice u gives gauge group + chirality (HIGH)",
+    "**Gap register:** B1 rank-1 idempotent (HIGH), B2 complex structure (HIGH), A non-composability (MEDIUM), Gen generations (LOW), SA spectral action (LOW) (HIGH)",
+    "**v5.0 milestone statement:** C*-observer probing h_3(O), upon choosing u, obtains SM gauge group with LEFT chirality (HIGH)"
   ],
   "open_questions": [
     "RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent",
@@ -1074,6 +1105,106 @@
       "phase": "0",
       "summary": "Started milestone v5.0: Chirality from h_3(O) via Cl(6)",
       "rationale": "New milestone cycle -- h_3(O)/Cl(6) route to chirality replaces spectral triple approach"
+    },
+    {
+      "phase": "18, Plan 01",
+      "summary": "S_{10}^+ convention following Boyle 2020; chirality deferred to Phase 19",
+      "rationale": null
+    },
+    {
+      "phase": "18, Plan 01",
+      "summary": "Rank-1 idempotent e = E_11 taken as given input (Gap B step 1)",
+      "rationale": null
+    },
+    {
+      "phase": "18, Plan 01",
+      "summary": "Backtracking trigger NOT fired -- complexification follows from C*-nature alone",
+      "rationale": null
+    },
+    {
+      "phase": "18, Plan 02",
+      "summary": "U(1) charges (-4, 2, -1) recorded but physical meaning (B-L) deferred to Phase 19-20",
+      "rationale": null
+    },
+    {
+      "phase": "18, Plan 02",
+      "summary": "Local-to-global complexification noted as consistent completion, not formally necessary",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 01",
+      "summary": "u = e_7 (Fano) as complex structure; Cl(10) via gamma_k x I + i*omega_6 x tau_a; P selects omega_6 = -i eigenspace (Todorov particle convention)",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 01",
+      "summary": "Witt basis a_j = (1/2)(gamma_{2j-1} + i*gamma_{2j}); Furey octonion-label remapping deferred to Plan 02",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 01",
+      "summary": "omega_6 separates chiralities before Pati-Salam breaking; LEFT not diagonal embedding",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 02",
+      "summary": "Schwinger boson SU(2) from Cl(4) Witt: J3L = (m1+m2-1)/2, J3R = (m1-m2)/2",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 02",
+      "summary": "B-L = 1 - (2/3)N for Pati-Salam assignment (N=1 quarks: +1/3, N=3 leptons: -1)",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 02",
+      "summary": "Pati-Salam left-right symmetric convention: 16 contains L+R particles, same Q operator for both",
+      "rationale": null
+    },
+    {
+      "phase": "19, Plan 02",
+      "summary": "P selects omega_6 = +i eigenspace = odd N (N=1 quarks + N=3 leptons)",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 01",
+      "summary": "[SU(3)xSU(3)]/Z_3 is maximal-rank subgroup of F_4, per Yokota and Adams",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 01",
+      "summary": "SU(3)_C identified across F_4 and Cl(6)/PS routes via common complex structure J on W",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 01",
+      "summary": "F_4 route provides gauge algebra only; Cl(6) route provides gauge algebra + chirality",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 01",
+      "summary": "U(1) matching via rank counting (rank 4 = rank F_4, minus SU(3) and SU(2) Cartans leaves 1)",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 02",
+      "summary": "Gap B steps 1 and 2 classified as structurally independent (Spin(9) contains G_2 acting transitively on S^6)",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 02",
+      "summary": "Synthesis theorem stated as conditional on 3 gaps (A, B1, B2), not unconditional",
+      "rationale": null
+    },
+    {
+      "phase": "20, Plan 02",
+      "summary": "Generation structure and spectral action classified as LOW severity for this paper",
+      "rationale": null
+    },
+    {
+      "phase": "0",
+      "summary": "Started milestone v6.0: Gap C -- Complexification from C*-Measurement Maps",
+      "rationale": "New milestone cycle -- closing Gap C in Paper 7 derivation chain"
     }
   ],
   "approximations": [],
@@ -1115,10 +1246,10 @@
     "Minimality assumption for composite: physically justified for complex QM (minimal = maximal) but a substantive choice"
   ],
   "session": {
-    "last_date": "2026-03-22",
-    "stopped_at": "Phase 12 complete; v3.0 milestone complete -- all 5 phases (8-12) done",
+    "last_date": "2026-03-23",
+    "stopped_at": "Phase 18 complete and verified; Phase 19 ready to plan",
     "resume_file": "--"
   },
   "_version": 1,
-  "_synced_at": "2026-03-23T22:48:07.838435+00:00"
+  "_synced_at": "2026-03-24T16:51:42.962185+00:00"
 }

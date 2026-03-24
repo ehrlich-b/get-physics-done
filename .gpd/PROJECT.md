@@ -2,108 +2,118 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise: self-modeling forces M_n(C)^sa with Luders product and conjugate-transpose involution (Paper 5). v3.0 derived GR: locality forces area-law entanglement, Jacobson's argument gives Einstein's equations (Paper 6). v4.0 investigates whether the self-modeling composite carries a real spectral triple of KO-dimension 6, which via Connes' classification would give the Standard Model gauge group and the spectral action (GR + SM from a single construction). The subfield is mathematical physics / noncommutative geometry / quantum foundations, with the expected deliverable being Paper 7.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 investigates whether Gap C (complexification of V_{1/2} = O^2 from Spin(9) to Spin(10)) is forced by the observer's C*-algebra nature, which would upgrade Paper 7's Link 4 from argued to proved. The subfield is mathematical physics / Jordan algebras / quantum foundations.
 
 ## Core Research Question
 
-Does the observer's complexification of h_3(O) automatically produce the correct chiral (left-handed) SM representation via Cl(6), making chirality a consequence of the observer being a complex system in an octonionic universe?
+Does a C*-algebra observer probing the real Jordan module V_{1/2} = O^2 inside h_3(O) necessarily induce complexification V -> V tensor_R C, closing Gap C in Paper 7's derivation chain?
 
-## Current Milestone: v5.0 Chirality from h_3(O) via Cl(6)
+## Current Milestone: v6.0 Gap C -- Complexification from C*-Measurement Maps
 
-**Goal:** Prove that the observer's C*-algebra nature forces complexification of h_3(O), upgrading Spin(9) to Spin(10), and that the octonion splitting O = C + C^3 induces a Cl(6) structure whose volume form selects the chiral (left) SM embedding. One choice -> gauge group + chirality.
+**Goal:** Determine whether the observer's C*-algebra nature forces complexification of V_{1/2} = O^2 (Peirce half-space of h_3(O) under E_{11}), upgrading Spin(9) to Spin(10). Four routes investigated: conditional expectations, state-effect duality, GNS construction, tensor product. If yes, Paper 7's Link 4 upgrades from argued to proved.
 
 **Target results:**
 
-- Part A: C*-algebra observer forces complexification of Peirce V_1 = O^2 to Spin(10) Weyl spinor
-- Part B: Cl(6) from O = C + C^3 splitting gives chiral embedding via Todorov-Furey mechanism
-- Synthesis: Single complex structure choice simultaneously gives SM gauge group and chirality
-- Paper 7 "Chirality from h_3(O)" assembled with honest gap identification
+- Formalize C*-observer measurement maps on real Jordan modules via 4 independent routes
+- Prove uniqueness/canonicity of complexification and compatibility with Spin(10) extension
+- Identify why Jordan-algebraic setting forces complexification (unlike generic real spaces)
+- State Gap C closure as a single theorem with complete proof (or precise remaining gap)
 
 ## Scoping Contract Summary
 
 ### Contract Coverage
 
-- **Spectral triple axioms (claim-axioms):** Verify all axioms of a real spectral triple of KO-dimension 6 for the doubled self-modeling composite, including order zero condition [a, Jb*J^{-1}] = 0
-- **Dirac operator (claim-dirac):** Construct D from the sequential product's temporal asymmetry (a.b != b.a), satisfying D gamma = -gamma D and JD = DJ
-- **First-order condition (claim-first-order):** Determine the subalgebra A_F forced by [[D, a], Jb*J^{-1}] = 0 and compare to C + H + M_3(C)
-- **Paper assembly (claim-paper-7):** Paper 7 "Spectral Triple from Self-Modeling" with complete derivation chain and precise gap identification
-- **False progress to reject:** Assuming KO-dimension 6 without verifying all sign relations hold simultaneously; claiming SM gauge group without explicitly checking first-order condition; using ad hoc D without deriving it from self-modeling structure
+- **Complexification theorem (claim-complexification):** Prove or disprove that C*-observer measurement maps on V_{1/2} = O^2 necessarily factor through V tensor_R C
+- **Uniqueness (claim-uniqueness):** If complexification occurs, prove it is unique and canonical (no choices beyond C*-nature)
+- **Jordan distinction (claim-jordan-distinction):** Identify precisely why the Jordan-algebraic setting forces complexification when generic real spaces do not
+- **Formal theorem (claim-theorem):** Single theorem statement closing Gap C, or precise characterization of minimal additional assumption needed
+- **False progress to reject:** Claiming complexification without addressing the reviewer's sub-gap (a); proving complexification for a different algebra than h_3(O); assuming Spin(10) structure instead of deriving it from complexification
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Whether the self-modeling composite carries a KO-dim 6 spectral triple; what algebra A_F the first-order condition forces
-- **User-stated deliverables:** Paper 7 (standalone), derivation documents per phase, SymPy verification code
-- **User-stated architecture:** Doubled Hilbert space H = (C^n x C^n)_particle + (C^n x C^n)_antiparticle; J swaps observer/observed; gamma = SWAP * matter-sign
-- **Must-have references / prior outputs:** Paper 5 (M_n(C)^sa, J = dagger), Paper 6 (SWAP, Schur-Weyl), Connes 1995 (axioms), Chamseddine-Connes 2008 (classification), van Suijlekom 2024 (textbook)
-- **Stop / rethink conditions:** If order zero condition fails for all algebra actions (not just the naive one); if no D exists with required sign relations
-- **Strategy on failure:** If order zero fails, pivot to find the correct algebra action (do not abandon). Work with general n first, then specialize.
+- **User-stated observables:** Whether measurement maps factor through V tensor_R C; what the weakest sufficient condition is if they don't
+- **User-stated deliverables:** Theorem or counterexample per route (4 routes), formal Gap C closure theorem, updated Paper 7 section
+- **User-stated routes:** (1) Conditional expectations (Effros-Stormer), (2) State-effect duality, (3) GNS construction, (4) Tensor product
+- **Must-have references / prior outputs:** Paper 5 (C*-observer), Paper 7 v5.0 (chirality chain with Gap C), Effros-Stormer 1979, Alfsen-Shultz 2001, Baez 2002
+- **Stop / rethink conditions:** If all 4 routes produce counterexamples showing complexification is NOT forced; if the Peirce V_1 upgrade argument fails
+- **Strategy on failure:** Characterize the EXACT minimal additional assumption. Paper 7 keeps Gap C as honest gap with precise cost statement.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Verify spectral triple axioms for the doubled self-modeling composite at general n
-- Construct Dirac operator D from sequential product asymmetry
-- Determine subalgebra A_F from first-order condition
-- Identify which n (if any) gives C + H + M_3(C)
-- SymPy verification of all algebraic identities
-- Paper 7 assembly
+- Formalize C*-observer measurement maps on V_{1/2} via 4 routes
+- Prove or disprove complexification is forced
+- If forced: prove uniqueness, compatibility with Spin(10), compatibility with Jordan structure
+- Identify why Jordan setting differs from generic real spaces
+- State formal theorem closing Gap C (or characterize remaining gap)
 
 **Out of scope**
 
-- Full spectral action computation (coupling constants, masses, Higgs potential details)
-- Cosmological predictions from spectral action
-- Infinite-dimensional systems
-- Higher KO-dimensions (focus on 6)
-- Phenomenological comparison with experimental data
+- Chirality derivation (already done in v5.0)
+- Spectral action computation
+- Gaps A, B1, B2 (independent of Gap C)
+- Paper 7 full revision (only update the complexification section)
+- Thermodynamic route to complexification (Paper 8 material)
 
 ### Active Anchor Registry
 
-- **ref-connes1995:** Connes -- Noncommutative geometry and reality (1995, J. Math. Phys. 36, 6194)
-  - Why it matters: Defines the axioms of a real spectral triple, KO-dimension classification
-  - Carry forward: planning, execution, verification, writing
+- **ref-effros-stormer1979:** Effros-Stormer -- Positive projections and Jordan structure (Math. Scand. 45, 1979)
+  - Why it matters: Conditional expectations on JBW-algebras; Route 1 foundation
+  - Carry forward: planning, execution, verification
   - Required action: read, cite
 
-- **ref-chamseddine-connes2008:** Chamseddine-Connes -- Why the Standard Model (arXiv:0706.3688)
-  - Why it matters: Classification theorem -- KO-dim 6 spectral triple with specific conditions gives C + H + M_3(C)
-  - Carry forward: planning, execution, writing
+- **ref-alfsen-shultz2001:** Alfsen-Shultz -- State Spaces of Operator Algebras (2001), Ch. 8-9
+  - Why it matters: Peirce decomposition theory, conditional expectations in Jordan setting
+  - Carry forward: planning, execution
   - Required action: read, cite
 
-- **ref-van-suijlekom2024:** van Suijlekom -- NCG and Particle Physics, 2nd ed (2024 textbook)
-  - Why it matters: Definitive modern reference for spectral triple axioms and SM derivation
-  - Carry forward: planning, execution, verification, writing
+- **ref-baez2002:** Baez -- The Octonions (Bull. AMS 39, 2002), Section 3.4
+  - Why it matters: h_3(O) structure, Peirce decomposition specifics
+  - Carry forward: planning, execution
   - Required action: read, cite
 
 - **ref-paper5:** Paper 5 (this project, v2.0) -- QM from self-modeling
-  - Why it matters: Source of M_n(C)^sa, Luders product, J = dagger involution, sequential product
-  - Carry forward: planning, execution, verification, writing
-  - Required action: cite
-
-- **ref-paper6:** Paper 6 (this project, v3.0) -- Spacetime from self-modeling
-  - Why it matters: Source of SWAP Hamiltonian, diagonal U(n) covariance, Schur-Weyl decomposition
+  - Why it matters: Source of C*-observer (M_n(C)^sa), the algebraic foundation for complexification argument
   - Carry forward: planning, execution, writing
   - Required action: cite
 
+- **ref-paper7:** Paper 7 (this project, v5.0) -- Chirality from h_3(O) via Cl(6)
+  - Why it matters: Contains the 9-link chain with Gap C at Link 4; target for upgrade
+  - Carry forward: planning, execution, writing
+  - Required action: read, cite, update
+
+- **ref-upmeier1987:** Upmeier -- Jordan Algebras in Analysis, Operator Theory, and QM (1987)
+  - Why it matters: Jordan-C* connections; potential Route 2-3 foundations
+  - Carry forward: execution
+  - Required action: read
+
+- **ref-hanche-olsen1983:** Hanche-Olsen -- Structure and tensor products of JC-algebras (Can. J. Math. 35, 1983)
+  - Why it matters: JC-algebra structure theory; relevant to tensor product route
+  - Carry forward: execution
+  - Required action: read
+
 ### Carry-Forward Inputs
 
-- Paper 5 results: M_n(C)^sa with Luders product, J = conjugate transpose, sequential product a.b = sqrt(a) b sqrt(a)
-- Paper 6 results: SWAP Hamiltonian, Sym^2/wedge^2 decomposition, diagonal U(n) covariance
-- paper7-spectral-triple-prompt.md (v4.0 research plan with verified J gamma = -gamma J)
+- Paper 5 results: M_n(C)^sa with Luders product, C*-algebra observer structure
+- Paper 7 results: 9-link chain L1-L9, Gap C at Link 4 (complexification argued but not proved)
+- v5.0 Phase 18: Peirce decomposition h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10) under E_{11}
+- v5.0 Phase 18: V_{1/2} = O^2 = S_9 (real Spin(9) spinor), complexification gives S_{10}^+
 
 ### Skeptical Review
 
-- **Weakest anchor:** The order zero condition. The naive algebra action pi(a)(psi, chi) = (a x 1)psi, (a x 1)chi) may not commute with the J-conjugated opposite action. If it fails, finding the correct action is non-trivial.
-- **Unvalidated assumptions:** That the SWAP-based gamma corresponds to chirality in the physical sense; that the sequential product asymmetry gives a natural Dirac operator; that the doubled Hilbert space is the right particle/antiparticle decomposition
-- **Competing explanation:** The eigenvalue pattern matching Connes' SM could be coincidental -- SWAP decomposition into Sym^2/wedge^2 is generic for any doubled tensor product, not specific to self-modeling
-- **Disconfirming observation:** Order zero fails for all reasonable algebra actions; no D exists with both D gamma = -gamma D and JD = DJ; first-order condition gives a trivial or non-SM subalgebra
-- **False progress to reject:** Matching the eigenvalue pattern without verifying all axioms; finding a D that works for specific n but not general n; claiming SM without checking the first-order condition in detail
+- **Weakest anchor:** The step from "observer is C*" to "observer's operations on V_{1/2} are C-linear." A complex system CAN describe real spaces -- the reviewer's sub-gap (a) is legitimate.
+- **Unvalidated assumptions:** That measurement maps must respect the Jordan product structure (not just abstract linear maps); that V_1's C*-upgrade propagates through Peirce rules to V_{1/2}
+- **Competing explanation:** Complexification might be a CHOICE (selecting which observables to measure) rather than forced by the algebra. Many C*-systems interact with real configuration spaces without complexifying them.
+- **Disconfirming observation:** A concrete C*-algebra acting on a real Jordan module via positive unital maps that does NOT induce complexification
+- **False progress to reject:** Proving complexification for abstract C*-algebras on abstract real vector spaces (must use the specific Jordan/Peirce structure); proving it for a different Jordan algebra than h_3(O)
 
 ### Open Contract Questions
 
-- Does the order zero condition hold for the naive algebra action, or does it require modification?
-- What is the natural Dirac operator from sequential product asymmetry?
-- Which value of n gives C + H + M_3(C) (if any)?
-- Does the spectral action from this triple reproduce the correct GR + SM terms?
+- Does the Effros-Stormer conditional expectation route force complexification of V_{1/2}?
+- Is V_1 = R or C in the observer's effective description? (Key to Peirce-rule argument)
+- Does the GNS representation of a real module on a complex Hilbert space canonically give V tensor_R C?
+- Is the result specific to h_3(O), or general for any real Jordan module probed by a C*-system?
 
 ## Research Questions
 
@@ -126,7 +136,10 @@ Does the observer's complexification of h_3(O) automatically produce the correct
 
 ### Active
 
-(None -- next milestone will define new research questions)
+- [ ] Do C*-observer measurement maps on V_{1/2} = O^2 necessarily factor through V tensor_R C?
+- [ ] Is the complexification unique and canonical (no choices beyond C*-nature)?
+- [ ] Does V_1's C*-structure upgrade Peirce rules to force V_{1/2} as C-module?
+- [ ] Why is the Jordan-algebraic setting different from generic real spaces probed by complex systems?
 
 ### Answered in v5.0
 
@@ -203,13 +216,15 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-- Connes (1995), J. Math. Phys. 36, 6194 -- Noncommutative geometry and reality (spectral triple axioms)
-- Chamseddine-Connes (2008), arXiv:0706.3688 -- Why the Standard Model (classification theorem)
-- Connes (2006), arXiv:hep-th/0608226 -- NCG and SM with neutrino mixing
-- van Suijlekom (2024), NCG and Particle Physics 2nd ed -- definitive textbook
-- Boeijink-van den Dungen (2016), arXiv:1605.03231 -- explicit gamma_F construction
-- Paper 5 (this project, v2.0) -- QM from self-modeling (M_n(C)^sa, J, sequential product)
-- Paper 6 (this project, v3.0) -- Spacetime from self-modeling (SWAP, Schur-Weyl)
+- Effros-Stormer (1979), Math. Scand. 45 -- Positive projections and Jordan structure
+- Alfsen-Shultz (2001), State Spaces of Operator Algebras, Ch. 8-9 -- Peirce decomposition, conditional expectations
+- Baez (2002), Bull. AMS 39 -- The Octonions, Section 3.4 (h_3(O) structure)
+- Upmeier (1987), Jordan Algebras in Analysis, Operator Theory, and QM -- Jordan-C* connections
+- Hanche-Olsen (1983), Can. J. Math. 35 -- JC-algebra structure and tensor products
+- Boyle (2020), arXiv:2006.16265 -- Complexification, E_6
+- Barnum-Graydon-Wilce (2020), Quantum 4, 359 -- Non-composability of h_3(O)
+- Paper 5 (this project, v2.0) -- QM from self-modeling (C*-observer)
+- Paper 7 (this project, v5.0) -- Chirality from h_3(O) via Cl(6) (Gap C target)
 
 ## Constraints
 
@@ -287,4 +302,4 @@ Result conditional on three gaps: A (non-composability), B1 (idempotent choice),
 
 ---
 
-_Last updated: 2026-03-24 after v5.0 milestone completion_
+_Last updated: 2026-03-24 after v6.0 milestone initialization_

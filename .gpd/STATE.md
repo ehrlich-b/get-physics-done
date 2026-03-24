@@ -2,23 +2,23 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-03-22)
+See: .gpd/PROJECT.md (updated 2026-03-24)
 
-**Core research question:** Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?
-**Current focus:** v5.0 Chirality from h_3(O) via Cl(6) -- Phase 21 complete
+**Core research question:** Does a C*-algebra observer probing V_{1/2} = O^2 inside h_3(O) necessarily induce complexification V -> V tensor_R C?
+**Current focus:** v6.0 Gap C -- Complexification from C*-Measurement Maps
 
 ## Current Position
 
-**Current Phase:** 21 (complete)
-**Current Phase Name:** Paper 7 Assembly
-**Total Phases:** 4 (Phases 18-21)
-**Current Plan:** 3/3 complete
-**Total Plans in Phase:** 3
-**Status:** Milestone complete
+**Current Phase:** -- (defining objectives)
+**Current Phase Name:** --
+**Total Phases:** 0 (v6.0)
+**Current Plan:** 0/0
+**Total Plans in Phase:** 0
+**Status:** Defining objectives
 **Last Activity:** 2026-03-24
-**Last Activity Description:** v5.0 milestone completed and archived
+**Last Activity Description:** v6.0 milestone initialized
 
-**Progress:** [██████████] 100% (v5.0)
+**Progress:** [░░░░░░░░░░] 0% (v6.0)
 
 ## Active Calculations
 
@@ -286,6 +286,7 @@ None yet.
 - [Phase 20, Plan 02]: Gap B steps 1 and 2 classified as structurally independent (Spin(9) contains G_2 acting transitively on S^6)
 - [Phase 20, Plan 02]: Synthesis theorem stated as conditional on 3 gaps (A, B1, B2), not unconditional
 - [Phase 20, Plan 02]: Generation structure and spectral action classified as LOW severity for this paper
+- [Phase 0]: Started milestone v6.0: Gap C -- Complexification from C*-Measurement Maps — New milestone cycle -- closing Gap C in Paper 7 derivation chain
 
 ### Active Approximations
 
