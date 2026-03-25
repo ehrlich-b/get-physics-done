@@ -157,17 +157,24 @@ def _infer_explicit_target(
     behave deterministically even when invoked from nested workspaces or other
     directories.
     """
+    if install_scope == SCOPE_LOCAL:
+        workflow_explicit_target = _explicit_target_from_installed_update_workflow(
+            config_dir,
+            install_scope=install_scope,
+        )
+        if workflow_explicit_target is not None:
+            return workflow_explicit_target
+        if not _paths_equal(install_target, config_dir):
+            return True
+        return config_dir.name != adapter.local_config_dir_name
+
     workflow_explicit_target = _explicit_target_from_installed_update_workflow(
         config_dir,
         install_scope=install_scope,
     )
-    if workflow_explicit_target is not None:
+    if install_scope is None and workflow_explicit_target is not None:
         return workflow_explicit_target
 
-    if install_scope == SCOPE_LOCAL:
-        if not _paths_equal(install_target, config_dir):
-            return True
-        return config_dir.name != adapter.local_config_dir_name
     canonical_global_dir = resolve_global_config_dir(adapter.runtime_descriptor, home=Path.home(), environ={})
     return not _paths_equal(install_target, canonical_global_dir)
 

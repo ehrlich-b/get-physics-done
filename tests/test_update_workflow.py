@@ -265,6 +265,53 @@ def test_legacy_global_install_without_explicit_target_ignores_current_env_overr
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_legacy_global_install_without_explicit_target_ignores_env_leak_captured_in_workflow(
+    tmp_path: Path,
+    descriptor,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    home_dir = tmp_path / "home"
+    home_dir.mkdir()
+    canonical_target = resolve_global_config_dir(descriptor, home=home_dir, environ={})
+    canonical_target.mkdir(parents=True)
+
+    install_kwargs: dict[str, object] = {"is_global": True}
+    if "skills/" in descriptor.manifest_file_prefixes:
+        skills_dir = tmp_path / "legacy-global" / "skills"
+        skills_dir.mkdir(parents=True)
+        install_kwargs["skills_dir"] = skills_dir
+
+    with monkeypatch.context() as ctx:
+        if descriptor.global_config.strategy == "env_or_home":
+            assert descriptor.global_config.env_var is not None
+            ctx.setenv(descriptor.global_config.env_var, str(tmp_path / "foreign-config"))
+        elif descriptor.global_config.strategy == "xdg_app":
+            if descriptor.global_config.env_dir_var is not None:
+                ctx.setenv(descriptor.global_config.env_dir_var, str(tmp_path / "foreign-config"))
+            elif descriptor.global_config.env_file_var is not None:
+                ctx.setenv(descriptor.global_config.env_file_var, str(tmp_path / "foreign-config" / "config.json"))
+            else:
+                ctx.setenv("XDG_CONFIG_HOME", str(tmp_path / "foreign-config"))
+        else:
+            pytest.fail(f"Unsupported global config strategy: {descriptor.global_config.strategy}")
+        ctx.setattr("gpd.hooks.install_metadata.Path.home", lambda: home_dir)
+        _install_and_finalize(adapter, GPD_ROOT, canonical_target, **install_kwargs)
+
+    manifest_path = canonical_target / "gpd-file-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("explicit_target", None)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr("gpd.hooks.install_metadata.Path.home", lambda: home_dir)
+        command = installed_update_command(canonical_target)
+
+    assert command == f"{adapter.update_command} --global"
+    assert "--target-dir" not in command
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
 def test_explicit_target_local_install_reapply_patches_uses_runtime_paths(tmp_path: Path, descriptor) -> None:
     adapter = get_adapter(descriptor.runtime_name)
     target = tmp_path / "explicit target" / f"{descriptor.runtime_name} config"
