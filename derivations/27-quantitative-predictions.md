@@ -297,7 +297,7 @@ where S_B = S(rho_B) is the body entropy (NOT the Hamiltonian H = JF; notation c
 **Properties (verified in Phase 25-01, Section 4):**
 - rho(0) = 0 (no tracking -> no experiential density)
 - rho(S_B) = 0 (maximal tracking / pure-state constraint)
-- Peak at I = S_B / 2: rho_max = S_B^2 / 4
+- Peak at I = S_B / 2: rho_max = S_B / 4
 - rho is a parabola in I, concave, non-negative on [0, S_B]
 
 ### 4.2 Verification of peak and zeros
