@@ -8,7 +8,7 @@
 - **v4.0 Spectral Triple from Self-Modeling** -- Phases 13-15 (closed 2026-03-23, medium success)
 - **v5.0 Chirality from h_3(O) via Cl(6)** -- Phases 18-21 (completed 2026-03-24)
 - **v6.0 Gap C -- Complexification from C*-Measurement Maps** -- Phase 22 (closed 2026-03-24, negative result)
-- Active: **v7.0 Arrow of Time, Complexification, and Evolutionary Selection** -- Phases 23-27 (in progress)
+- **v7.0 Arrow of Time, Complexification, and Evolutionary Selection** -- Phases 23-27 (completed 2026-03-24)
 
 ## Contract Overview
 
@@ -110,7 +110,7 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 
 </details>
 
-### Active: v7.0 Arrow of Time, Complexification, and Evolutionary Selection (Phases 23-27)
+### v7.0 Arrow of Time, Complexification, and Evolutionary Selection (Phases 23-27) -- COMPLETED 2026-03-24
 
 **Milestone Goal:** Derive complexification as a thermodynamic selection effect: self-modelers that don't complexify have no arrow of time, no free energy, no self-modeling (rho = 0). This closes Gap C via measure selection, not algebra.
 
@@ -247,8 +247,8 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 3. All predictions carry explicit uncertainty ranges and model-dependence statements
 
 **Plans:** 2 plans
-- [ ] 27-01-PLAN.md -- Minimum initial entropy from Landauer bound + rho profile over cosmological time (CALC-02)
-- [ ] 27-02-PLAN.md -- CP violation connection + prediction synthesis table + v7.0 achievement summary
+- [x] 27-01-PLAN.md -- Minimum initial entropy from Landauer bound + rho profile over cosmological time (CALC-02) -- completed 2026-03-24
+- [x] 27-02-PLAN.md -- CP violation connection + prediction synthesis table + v7.0 achievement summary -- completed 2026-03-24
 
 ## Progress
 
@@ -261,5 +261,5 @@ Phase 23 and Phase 24 are independent (parallel). Phase 25 requires Phase 23. Ph
 | 24. Chirality Requires Time-Orientation | v7.0 | 2/2 | Complete | 2026-03-24 |
 | 25. Self-Modeling Requires Free Energy | v7.0 | 3/3 | Complete | 2026-03-24 |
 | 26. Entropy Gradient Theorem + Gap C | v7.0 | 2/2 | Complete | 2026-03-24 |
-| 27. Quantitative Predictions | v7.0 | 0/2 | Planned | - |
+| 27. Quantitative Predictions | v7.0 | 2/2 | Complete | 2026-03-24 |
 
