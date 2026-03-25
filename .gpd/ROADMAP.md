@@ -246,7 +246,9 @@ See `.gpd/milestones/v6.0-ROADMAP.md` for full details.
 2. The rho profile rho = I(B;M)(1 - I/H) is evaluated over cosmological time, identifying the peak at I = H/2 and locating "now" on the curve (or explaining why this is model-dependent)
 3. All predictions carry explicit uncertainty ranges and model-dependence statements
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 27-01-PLAN.md -- Minimum initial entropy from Landauer bound + rho profile over cosmological time (CALC-02)
+- [ ] 27-02-PLAN.md -- CP violation connection + prediction synthesis table + v7.0 achievement summary
 
 ## Progress
 
@@ -259,5 +261,5 @@ Phase 23 and Phase 24 are independent (parallel). Phase 25 requires Phase 23. Ph
 | 24. Chirality Requires Time-Orientation | v7.0 | 2/2 | Complete | 2026-03-24 |
 | 25. Self-Modeling Requires Free Energy | v7.0 | 3/3 | Complete | 2026-03-24 |
 | 26. Entropy Gradient Theorem + Gap C | v7.0 | 2/2 | Complete | 2026-03-24 |
-| 27. Quantitative Predictions | v7.0 | 0/TBD | Not started | - |
+| 27. Quantitative Predictions | v7.0 | 0/2 | Planned | - |
 
