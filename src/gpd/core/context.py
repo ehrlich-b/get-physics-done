@@ -262,14 +262,6 @@ def _load_raw_project_contract_payload(cwd: Path) -> tuple[Path, object] | None:
         return source_path, None
     if not isinstance(raw_contract, dict):
         return source_path, raw_contract
-
-    normalized_contract, schema_findings = salvage_project_contract(raw_contract)
-    _schema_warnings, schema_errors = _split_project_contract_schema_findings(
-        schema_findings,
-        allow_singleton_defaults=False,
-    )
-    if schema_errors or normalized_contract is None:
-        return source_path, raw_contract
     return source_path, raw_contract
 
 

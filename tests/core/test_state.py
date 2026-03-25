@@ -1469,12 +1469,14 @@ def test_state_validate_warns_when_primary_project_contract_is_blocked(tmp_path:
     assert validation.valid is True
     assert validation.integrity_status == "warning"
     assert any(
-        'dropped "project_contract" because contract schema required normalization' in warning
+        "state.json root was recovered from state.json.bak after primary state.json required normalization"
+        in warning
         for warning in validation.warnings
     )
+    assert validation.state_source == "state.json.bak"
 
 
-def test_state_load_preserves_prefixed_project_contract_issues_when_primary_contract_is_blocked(tmp_path: Path) -> None:
+def test_state_load_recovers_backup_project_contract_when_primary_contract_is_blocked(tmp_path: Path) -> None:
     baseline = default_state_dict()
     baseline["position"]["status"] = "Executing"
     save_state_json(tmp_path, baseline)
@@ -1495,21 +1497,33 @@ def test_state_load_preserves_prefixed_project_contract_issues_when_primary_cont
 
     loaded = state_load(tmp_path)
 
-    assert loaded.state["project_contract"] is None
+    assert loaded.state["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
+    assert loaded.state_source == "state.json.bak"
     assert any(
-        "project_contract.references.0.must_surface must be a boolean" in issue
-        for issue in loaded.integrity_issues
-    )
-    assert any(
-        'dropped "project_contract" because authoritative scalar fields required normalization'
+        "state.json root was recovered from state.json.bak after primary state.json required normalization"
         in issue
         for issue in loaded.integrity_issues
     )
     assert not any(
-        'recovered "project_contract" from state.json.bak after primary project_contract required blocking normalization'
-        in issue
-        for issue in loaded.integrity_issues
+        "project_contract.references.0.must_surface must be a boolean" in issue for issue in loaded.integrity_issues
     )
+
+
+def test_save_state_json_clears_project_contract_without_resurrecting_previous_value(tmp_path: Path) -> None:
+    baseline = default_state_dict()
+    baseline["project_contract"] = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    save_state_json(tmp_path, baseline)
+
+    cleared = default_state_dict()
+    cleared["position"]["status"] = "Executing"
+    save_state_json(tmp_path, cleared)
+
+    loaded = state_load(tmp_path)
+    stored = json.loads((ProjectLayout(tmp_path).state_json).read_text(encoding="utf-8"))
+
+    assert loaded.state["project_contract"] is None
+    assert stored["project_contract"] is None
+    assert loaded.state_source == "state.json"
 
 
 def test_state_update_progress_omits_checkpoint_files_from_result_api(tmp_path: Path) -> None:
@@ -1600,9 +1614,11 @@ def test_state_validate_review_blocks_when_primary_project_contract_requires_blo
     assert validation.valid is False
     assert validation.integrity_status == "blocked"
     assert any(
-        'dropped "project_contract" because contract schema required normalization' in issue
+        "state.json root was recovered from state.json.bak after primary state.json required normalization"
+        in issue
         for issue in validation.issues
     )
+    assert validation.state_source == "state.json.bak"
 
 
 def test_state_validate_review_blocks_when_state_root_is_recovered_from_backup_without_project_contract(

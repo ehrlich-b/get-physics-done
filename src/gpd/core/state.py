@@ -1043,7 +1043,26 @@ def _normalize_state_schema_with_backup_project_contract(
             backup_raw,
             allow_project_contract_salvage=allow_project_contract_salvage,
         )
-    if not isinstance(raw, dict) and backup_normalized is not None and not backup_issues:
+    primary_contract_value = raw.get("project_contract") if isinstance(raw, dict) else None
+    primary_contract_requires_backup = (
+        isinstance(raw, dict)
+        and primary_contract_value is not None
+        and contract_from_data(normalized.get("project_contract")) is None
+    )
+    primary_root_requires_backup = any(
+        issue.startswith("schema normalization: removed invalid top-level sections")
+        or issue == "schema normalization: irrecoverable validation failure; reset to defaults"
+        for issue in integrity_issues
+    )
+    if (
+        backup_normalized is not None
+        and not backup_issues
+        and (
+            not isinstance(raw, dict)
+            or primary_root_requires_backup
+            or primary_contract_requires_backup
+        )
+    ):
         normalized = backup_normalized
         integrity_issues = []
         recovered_root_from_backup = True
@@ -1840,27 +1859,6 @@ def _write_state_pair_locked(cwd: Path, *, state_obj: dict, md_content: str) -> 
 
     normalized = _normalize_state_for_persistence(state_obj)
 
-    def _valid_project_contract_from_state_text(state_text: str | None) -> object | None:
-        if state_text is None:
-            return None
-        try:
-            parsed = json.loads(state_text)
-        except (TypeError, json.JSONDecodeError):
-            return None
-        if not isinstance(parsed, dict):
-            return None
-        project_contract = parsed.get("project_contract")
-        contract = contract_from_data(project_contract)
-        if contract is None:
-            return None
-        return contract.model_dump(mode="python")
-
-    if normalized.get("project_contract") is None:
-        preserved_contract = _valid_project_contract_from_state_text(json_backup)
-        if preserved_contract is not None:
-            normalized = copy.deepcopy(normalized)
-            normalized["project_contract"] = preserved_contract
-
     json_rendered = json.dumps(normalized, indent=2) + "\n"
     backup_rendered = json_rendered
 
@@ -2188,6 +2186,20 @@ def save_state_json_locked(cwd: Path, state_obj: dict) -> None:
 def save_state_markdown_locked(cwd: Path, md_content: str) -> dict:
     """Atomically write markdown-derived state while holding the canonical state lock."""
     merged = _build_state_from_markdown(cwd, md_content)
+    json_path = _state_json_path(cwd)
+    preserved_contract: object | None = None
+    try:
+        existing = json.loads(json_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
+        existing = None
+    if isinstance(existing, dict):
+        project_contract = existing.get("project_contract")
+        contract = contract_from_data(project_contract)
+        if contract is not None and merged.get("project_contract") is None:
+            preserved_contract = contract.model_dump(mode="python")
+    if preserved_contract is not None:
+        merged = copy.deepcopy(merged)
+        merged["project_contract"] = preserved_contract
     return _write_state_pair_locked(cwd, state_obj=merged, md_content=md_content)
 
 
