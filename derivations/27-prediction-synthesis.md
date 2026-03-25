@@ -320,6 +320,120 @@ For each model-dependent parameter in the prediction table, this section provide
 
 ---
 
+## 5. Roadmap Verification
+
+This section verifies each of the three Phase 27 success criteria from the roadmap and audits compliance with both forbidden proxies.
+
+### Criterion 1: Minimum initial entropy from Landauer bound, compared to Penrose
+
+**Roadmap statement:** "Minimum initial entropy consistent with self-modeling is computed from the Landauer bound and compared to Penrose's estimate $S_{\text{initial}} \sim 10^{88}$, with explicit assumptions stated."
+
+**Verification:**
+
+- **Computation present:** YES. derivations/27-quantitative-predictions.md, Section 1.4 derives:
+
+$$S_{\text{initial}} \leq S_{\max} - N \cdot I(B;M)$$
+
+with $\Delta S_{\min} = N \cdot I(B;M)$. The cosmological estimate (Section 2.4) gives $\Delta S_{\text{Landauer}} \sim 3 \times 10^{28}$ nats.
+
+- **Penrose comparison present:** YES. derivations/27-quantitative-predictions.md, Section 2.5-2.6 computes:
+
+$$\frac{\Delta S_{\text{Landauer}}}{\Delta S_{\text{Penrose}}} \sim 3 \times 10^{-94}$$
+
+The Landauer bound is 94 orders of magnitude weaker than Penrose's gravitational entropy estimate. Section 2.6 interprets this honestly: "The Landauer bound is NECESSARY but not SUFFICIENT."
+
+- **Assumptions explicitly stated:** YES. Section 0 lists inherited assumptions A1-A7. Section 2.1-2.3 introduces cosmological assumptions A8-A10 with explicit "[COSMOLOGICAL INPUT]" and "[MODEL-DEPENDENT]" warnings. Every numerical estimate identifies which assumptions it depends on.
+
+**VERDICT: PASS.** Section references: derivations/27-quantitative-predictions.md, Sections 1.3, 1.4, 2.4, 2.5, 2.6.
+
+### Criterion 2: rho profile evaluated, peak identified, "now" location addressed
+
+**Roadmap statement:** "The rho profile $\rho = I(B;M)(1 - I/H)$ is evaluated over cosmological time, identifying the peak at $I = H/2$ and locating 'now' on the curve (or explaining why this is model-dependent)."
+
+**Note on notation:** The roadmap uses $H$ where the framework uses $S_B = S(\rho_B)$ (body entropy). The formula is $\rho = I(1 - I/S_B)$, with peak at $I = S_B/2$.
+
+**Verification:**
+
+- **rho profile evaluated:** YES. derivations/27-quantitative-predictions.md, Section 4 (Sections 4.1-4.6) evaluates $\rho(I) = I(1 - I/S_B)$ as a function of the mutual information $I$, and tracks its evolution under the Phase 23 equilibration dynamics.
+
+- **Peak identified:** YES. Section 4.2 computes: $d\rho/dI = 1 - 2I/S_B = 0$ gives $I^* = S_B/2$, with $\rho_{\max} = S_B/4$. Verified analytically and numerically (qubit case: $\rho_{\max} = \ln 2/4 \approx 0.173$).
+
+- **"Now" location:** ADDRESSED AS MODEL-DEPENDENT. Section 4.5-4.6 explains that the qualitative shape (rise-peak-fall vs. monotone decrease) depends on the initial mutual information $I_0$ relative to $S_B/2$. The mapping from update steps $N$ to cosmological time $t$ depends on $J$, $t_{\text{cycle}}$, $S_B(t)$, and the cosmological model. These are model-dependent parameters (Section 3), so the location of "now" on the $\rho$ curve cannot be determined within the framework. This is stated explicitly in NC-2 (Section 5 of 27-quantitative-predictions.md) and in Section 4.8 of this document.
+
+**VERDICT: PASS.** Section references: derivations/27-quantitative-predictions.md, Sections 4.1, 4.2, 4.3, 4.5, 4.6, 5 (NC-2).
+
+### Criterion 3: All predictions carry uncertainty ranges and model-dependence
+
+**Roadmap statement:** "All predictions carry explicit uncertainty ranges and model-dependence statements."
+
+**Verification:**
+
+- **Prediction table completeness:** The master prediction table (this document, Section 2) has 10 entries (P1-P10). Each entry has 6 fields: Prediction, Strength, Assumptions, Model-Dependent Parameters, Uncertainty Range, Phase Source.
+
+- **Uncertainty ranges present:** All 10 entries have the "Uncertainty Range" field populated:
+  - P1, P3, P6: "None (exact inequality)" or "None (exact)" -- theorems with no model-dependent parameters.
+  - P2, P5: "Exact bound" or "Exact for given $S_B$" -- mathematical results.
+  - P4, P10: "N/A (logical chain, not a number)" or "N/A (qualitative)" -- structural arguments.
+  - P7: "$10^{25}$--$10^{32}$ nats" -- explicit numerical range.
+  - P8: "Robust: even $\pm 10$ orders in parameters gives $>80$ orders gap" -- robustness stated.
+  - P9: "$10^{108}$--$10^{114}$ s" -- explicit numerical range.
+
+- **Model-dependence statements present:** All entries have the "Model-Dependent Parameters" field populated. Entries with no model-dependent parameters say "None" explicitly. Entries with model-dependent parameters list them.
+
+- **Model-dependence register:** Section 3 provides a detailed register of all 6 model-dependent parameters ($d_B$/$d_M$, $I(B;M)$, $J$, $T$, $t_{\text{cycle}}$, $S_{\max}$) with plausible ranges, sensitivity analysis, and what could pin each one down.
+
+- **Non-claims guard against overclaiming:** NC-1 through NC-4 (derivations/27-quantitative-predictions.md, Section 5) and NC-CP-1 through NC-CP-3 (this document, Section 1.4) explicitly prevent overclaiming.
+
+**VERDICT: PASS.** Section references: this document, Sections 2 and 3; derivations/27-quantitative-predictions.md, Section 5.
+
+### Forbidden Proxy Audit
+
+**FP-1: "Claiming precise numerical predictions without stating model-dependence."**
+
+**Scan method:** Search both derivation files (27-quantitative-predictions.md and 27-prediction-synthesis.md) for all numerical values and verify each has model-dependence context.
+
+- $\Delta S_{\text{Landauer}} \sim 10^{28}$: Tagged "[MODEL-DEPENDENT: depends on $I$, $N$, $S_{\max}$]" in 27-quantitative-predictions.md Section 2.4. Listed under P7 with uncertainty range $10^{25}$--$10^{32}$ in the prediction table.
+- $\tau_{\text{exhaust}} \sim 10^{111}$ s: Tagged "[MODEL-DEPENDENT]" in 27-quantitative-predictions.md Section 3.3. Listed under P9 with uncertainty range $10^{108}$--$10^{114}$.
+- 94 orders of magnitude gap: Listed under P8 as "Robust: even $\pm 10$ orders in parameters gives $>80$ orders gap."
+- $I \sim 7 \times 10^9$ nats: Tagged "[MODEL-DEPENDENT]" in 27-quantitative-predictions.md Section 2.3 with range $10^6$--$10^{15}$.
+- $N \sim 4 \times 10^{18}$: Tagged "[MODEL-DEPENDENT]" in 27-quantitative-predictions.md Section 2.3.
+- Jarlskog invariant $J \approx 3 \times 10^{-5}$: Cited as a Standard Model parameter in NC-CP-1, NOT as a prediction of this framework.
+- Baryon-to-photon ratio $\eta_B \approx 6 \times 10^{-10}$: Cited in NC-CP-2 as external, NOT as a prediction.
+
+**Zero violations found.** Every numerical value from the framework carries model-dependence context. External numbers (Penrose, Sakharov) are clearly attributed.
+
+**VERDICT: FP-1 REJECTED (no violations).**
+
+**FP-2: "Overclaiming cosmological implications beyond what the framework supports."**
+
+**Scan method:** Search for cosmological claims and verify each is bounded by stated assumptions and non-claims.
+
+- The entropy gradient theorem (P1) claims $S < S_{\max}$ -- this is a constraint ON cosmological initial conditions, not a specific prediction. The distinction is explicit in Phase 26-01, NC-1: "This does NOT derive the Past Hypothesis from self-modeling alone."
+- The Landauer bound comparison (P8) explicitly states the bound is "NECESSARY but not SUFFICIENT" (27-quantitative-predictions.md, Section 2.6).
+- The CP violation connection (P10) is "STRUCTURAL/QUALITATIVE" with NC-CP-1/2/3 preventing overclaiming.
+- Section 4 of this document explicitly lists four "NOT ACHIEVED" items including "Derivation of $S_{\text{initial}} \sim 10^{88}$" and "Quantitative CP violation--entropy gradient connection."
+- The framework is characterized as operating "on finite SWAP lattices" with cosmological application requiring "multiple additional assumptions (A3, A6, A7)" -- consistent with the forbidden proxy's concern.
+
+**Zero violations found.** Every cosmological statement is bounded by assumptions and non-claims.
+
+**VERDICT: FP-2 REJECTED (no violations).**
+
+### Phase 27 Verification Summary
+
+| Item | Status | Evidence |
+|---|---|---|
+| Criterion 1: Minimum entropy from Landauer + Penrose comparison | **PASS** | 27-quantitative-predictions.md, Sections 1-2 |
+| Criterion 2: rho profile + peak + "now" | **PASS** | 27-quantitative-predictions.md, Section 4 |
+| Criterion 3: Uncertainty ranges + model-dependence | **PASS** | This document, Sections 2-3 |
+| Forbidden Proxy 1: Precise predictions without model-dependence | **REJECTED** | All numbers carry context |
+| Forbidden Proxy 2: Cosmological overclaiming | **REJECTED** | All claims bounded by assumptions and non-claims |
+
+**Overall Phase 27 result: 3/3 success criteria PASSED, 2/2 forbidden proxies REJECTED.**
+
+Phase 27 is complete. The v7.0 Arrow of Time program (Phases 23-27) is concluded.
+
+---
+
 *Phase: 27-quantitative-predictions-conditional*
-*Plan: 02, Task 1*
+*Plan: 02, Tasks 1-2*
 *Completed: 2026-03-24*
