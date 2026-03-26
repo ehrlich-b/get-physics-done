@@ -2,23 +2,21 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed). v7.0 attacks Gap C from the thermodynamic/evolutionary direction: complexification as a selection effect among self-modelers. The subfield is mathematical physics / quantum foundations / thermodynamics of information.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it (contrapositive logic was invalid; non-SM self-modelers in non-complexified blocks remain open). The subfield is mathematical physics / quantum foundations / thermodynamics of information.
 
 ## Core Research Question
 
-Is complexification of V_{1/2} forced by thermodynamic necessity -- self-modelers requiring free energy, which requires entropy gradients, which require time-orientation, which requires chirality, which requires complexification -- closing Gap C via the experiential measure rho rather than algebra?
+Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Current Milestone: v7.0 Arrow of Time, Complexification, and Evolutionary Selection
+## v7.0 Summary (complete -- weakened)
 
-**Goal:** Derive complexification as a thermodynamic selection effect: self-modelers that don't complexify have no arrow of time, no free energy, no self-modeling (rho = 0). This closes Gap C via measure selection, not algebra.
-
-**Target results:**
-
-- Prove entropy increase under Luders sequential product dynamics on the SWAP lattice
-- Verify chirality requires time-orientation (spin geometry, Lawson-Michelsohn)
-- Prove self-modeling requires free energy via Landauer/Szilard (KEY result)
-- Derive entropy gradient theorem: blocks supporting self-modelers must have Past Hypothesis
-- Quantitative predictions: minimum initial entropy, rho profile over cosmological time
+Arrow of time and thermodynamics of self-modeling. The math is solid but the gap-closing claim failed:
+1. **Entropy gradient theorem** proved via 3 independent routes: self-modelers require S(t) < S_max
+2. **Landauer bound** W >= kT I(B;M) on self-modeling cycle; coherence loophole closed
+3. **Three-consequence theorem** extending Paper 7: u in S^6 determines gauge + chirality + time-orientation requirement
+4. **Gap C narrowed** for SM-like observers: complexification necessary for chirality, which requires time-orientation
+5. **Gap C NOT closed**: the selection chain's contrapositive was invalid; non-SM self-modelers in non-complexified blocks remain open
+6. Paper 8 drafted, reviewed (critical logic error found and fixed), revised to minor-revision status
 
 ## Scoping Contract Summary
 
@@ -150,11 +148,15 @@ Is complexification of V_{1/2} forced by thermodynamic necessity -- self-modeler
 
 ### Active
 
-- [ ] Does Luders sequential product dynamics produce monotonic entropy increase?
-- [ ] Does chirality require time-orientation in the lattice/algebraic context?
-- [ ] Does self-modeling require free energy (Landauer bound)?
-- [ ] Can the Past Hypothesis be derived from self-modeling + finitude + chirality?
-- [ ] Is complexification a thermodynamic selection effect (rho = 0 for non-complexified)?
+(No active milestone)
+
+### Answered in v7.0
+
+- [x] Does Luders sequential product dynamics produce monotonic entropy increase? -- **YES** under repeated interactions with fresh bath; 2-site oscillates -- v7.0
+- [x] Does chirality require time-orientation in the lattice/algebraic context? -- **YES** via Cl(d-1,1) volume form; lattice framing provides spin structure -- v7.0
+- [x] Does self-modeling require free energy (Landauer bound)? -- **YES** W >= kT I(B;M) per cycle; coherence loophole closed -- v7.0
+- [x] Can the Past Hypothesis be derived from self-modeling + finitude + chirality? -- **PARTIAL** Entropy gradient theorem proved (S < S_max), but does not explain WHY initial entropy was low -- v7.0
+- [x] Is complexification a thermodynamic selection effect (rho = 0 for non-complexified)? -- **NO** Original claim invalid (wrong contrapositive). Narrowed: complexification necessary for SM-like observers, but non-SM blocks open -- v7.0
 
 ### Answered in v6.0
 
@@ -332,4 +334,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-03-24 after v7.0 milestone initialization_
+_Last updated: 2026-03-26 after v7.0 milestone completion_

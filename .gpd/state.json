@@ -1,8 +1,8 @@
 {
   "project_reference": {
-    "project_md_updated": "2026-03-22",
-    "core_research_question": "Does the observer's complexification of h_3(O) automatically produce the correct chiral SM representation via Cl(6)?",
-    "current_focus": "v5.0 Chirality from h_3(O) via Cl(6) -- Phase 21 complete"
+    "project_md_updated": "2026-03-24",
+    "core_research_question": "Is complexification forced by thermodynamic necessity -- self-modelers requiring free energy, entropy gradients, time-orientation, chirality?",
+    "current_focus": "v7.0 Arrow of Time, Complexification, and Evolutionary Selection"
   },
   "project_contract": {
     "schema_version": 1,
@@ -423,14 +423,14 @@
     }
   },
   "position": {
-    "current_phase": "21 (complete)",
-    "current_phase_name": "Paper 7 Assembly",
+    "current_phase": "27",
+    "current_phase_name": "Quantitative Predictions (Conditional)",
     "total_phases": null,
-    "current_plan": "3/3 complete",
-    "total_plans_in_phase": 3,
+    "current_plan": "2/2",
+    "total_plans_in_phase": 2,
     "status": "Milestone complete",
-    "last_activity": "2026-03-24",
-    "last_activity_desc": "v5.0 milestone completed and archived",
+    "last_activity": "2026-03-26",
+    "last_activity_desc": "v7.0 milestone completed and archived",
     "progress_percent": 100,
     "paused_at": null
   },
@@ -545,7 +545,20 @@
     "**9-link chain L1-L9** from self-modeling to chiral SM, all with status (HIGH)",
     "**Synthesis theorem** conditional on gaps A, B1, B2: one choice u gives gauge group + chirality (HIGH)",
     "**Gap register:** B1 rank-1 idempotent (HIGH), B2 complex structure (HIGH), A non-composability (MEDIUM), Gen generations (LOW), SA spectral action (LOW) (HIGH)",
-    "**v5.0 milestone statement:** C*-observer probing h_3(O), upon choosing u, obtains SM gauge group with LEFT chirality (HIGH)"
+    "**v5.0 milestone statement:** C*-observer probing h_3(O), upon choosing u, obtains SM gauge group with LEFT chirality (HIGH)",
+    "**Route 1 NEGATIVE**: Effros-Stormer conditional expectations do not force V_{1/2} complexification; Peirce interface V_1.V_{1/2} is trivially scalar (eigenvalue 1/2); no C*-subalgebra inside h_3(O) (Shirshov-Cohn) (HIGH)",
+    "**Route 2 NEGATIVE**: State-effect duality gives only real inner product; P_1(v*w) = [Re(x3 bar(y3)) + Re(x2 bar(y2))] E_11 is real scalar; compatible complex structures form 56-dim family O(16)/U(8), none selected (HIGH)",
+    "**Route 3 NEGATIVE**: GNS construction fails -- three independent obstructions: h_3(O) exceptional (GNS gives R^27 not C^k), dim 27 odd (no complex structure), V_1=R bottleneck (scalar action) (HIGH)",
+    "**Route 4 WEAK POSITIVE**: A tensor_R V_{1/2} = A tensor_C V_{1/2}^C canonically, but generic algebraic tautology (works for any real V), not h_3(O)-specific; equivalent to Phase 18 extension-of-scalars (HIGH)",
+    "**Phase 22 synthesis**: All 4 routes converge on same obstruction -- V_1 = R*E_11 is 1-dimensional, Peirce action is scalar multiplication, no complex structure transmittable through this interface (HIGH)",
+    "**Peirce projections**: P_1 = 2L_e^2 - L_e, P_{1/2} = -4L_e^2 + 4L_e, P_0 = 2L_e^2 - 3L_e + 1 (Lagrange interpolation) (HIGH)",
+    "**Chirality-time theorem (CHIR-01)**: Gamma_* -> -Gamma_* under time reversal in all even d; P_L <-> P_R exchange; Weyl spinors require time-orientation + space-orientation (HIGH)",
+    "**Internal/spacetime chirality distinction**: omega_6 (Euclidean Cl(6)) vs Gamma_5 (Lorentzian Cl(d-1,1)); full SM chirality needs both (HIGH)",
+    "**Lattice framing hierarchy (VALD-01)**: framing => spin => orientability; Paper 6 lattice provides time-orientation + space-orientation + spin structure (HIGH)",
+    "**Three-consequence theorem (CHIR-02)**: single u in S^6 determines (a) gauge group [constructive], (b) chirality [constructive], (c) time-orientation requirement [constraint] (HIGH)",
+    "**Updated 9-link chain**: L7 annotated with cross-paper dependency to Paper 6 time-orientation (HIGH)",
+    "**Assumption register A1-A6**: A1-A4 from Paper 7, A5 continuum limit, A6 Lorentzian signature (HIGH)",
+    "**Phase 24 verification**: 5/5 contract targets, 12/12 physics checks, confidence HIGH (HIGH)"
   ],
   "open_questions": [
     "RESOLVED: Sign of J (AFM vs FM) -- both analyzed; WVCH and channel capacity bounds are sign-independent",
@@ -1205,6 +1218,46 @@
       "phase": "0",
       "summary": "Started milestone v6.0: Gap C -- Complexification from C*-Measurement Maps",
       "rationale": "New milestone cycle -- closing Gap C in Paper 7 derivation chain"
+    },
+    {
+      "phase": "22, Plan 01",
+      "summary": "Route 1 (Effros-Stormer) resolved NEGATIVE -- conditional expectations do not force V_{1/2} complexification",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 01",
+      "summary": "Peirce interface V_1 . V_{1/2} is trivially scalar multiplication (eigenvalue 1/2 action)",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 01",
+      "summary": "No C*-subalgebra inside h_3(O) -- observer is external (Shirshov-Cohn)",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 02",
+      "summary": "Route 2 (state-effect duality) NEGATIVE -- P_1(v*w) is real scalar; C-linear extension inert on V_1 = R",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 02",
+      "summary": "Compatible complex structures form 56-dim family O(16)/U(8), none selected by pairing",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 03",
+      "summary": "Route 3 (GNS) NEGATIVE -- three independent obstructions (exceptional, parity, bottleneck)",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 04",
+      "summary": "Route 4 (tensor product) WEAK POSITIVE -- generic algebraic tautology, not h_3(O)-specific",
+      "rationale": null
+    },
+    {
+      "phase": "22, Plan 04",
+      "summary": "Hanche-Olsen JC-algebra framework bypassed (V_{1/2} is module, not algebra; h_3(O) not JC)",
+      "rationale": null
     }
   ],
   "approximations": [],
@@ -1246,10 +1299,10 @@
     "Minimality assumption for composite: physically justified for complex QM (minimal = maximal) but a substantive choice"
   ],
   "session": {
-    "last_date": "2026-03-23",
-    "stopped_at": "Phase 18 complete and verified; Phase 19 ready to plan",
+    "last_date": "2026-03-24",
+    "stopped_at": "v7.0 roadmap created; Phase 23 ready to plan (parallel with Phase 24)",
     "resume_file": "--"
   },
   "_version": 1,
-  "_synced_at": "2026-03-24T16:51:42.962185+00:00"
+  "_synced_at": "2026-03-26T13:09:13.133025+00:00"
 }

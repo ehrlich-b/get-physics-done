@@ -8,7 +8,10 @@ tags: [tensor-product, complexification, jordan-algebra, peirce-decomposition, C
 
 requires:
   - phase: 18-complexification-from-cstar-observer
-    provides: [Peirce decomposition h_3(O) = V_1 + V_{1/2} + V_0, V_{1/2} = O^2 = S_9, extension-of-scalars argument]
+    provides:
+      - "Peirce decomposition h_3(O) = V_1 + V_{1/2} + V_0"
+      - "V_{1/2} = O^2 = S_9"
+      - "extension-of-scalars argument"
 provides:
   - Canonical isomorphism A tensor_R V = A tensor_C V^C for any C-algebra A and real vector space V
   - Route 4 assessed as generic (not h_3(O)-specific); algebraic baseline for Routes 1-3

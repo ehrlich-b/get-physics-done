@@ -2,23 +2,21 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-03-24)
+See: .gpd/PROJECT.md (updated 2026-03-26)
 
-**Core research question:** Is complexification forced by thermodynamic necessity -- self-modelers requiring free energy, entropy gradients, time-orientation, chirality?
-**Current focus:** v7.0 Arrow of Time, Complexification, and Evolutionary Selection
+**Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
+**Current focus:** Planning next research stage
 
 ## Current Position
 
-**Current Phase:** 27
-**Current Phase Name:** Quantitative Predictions (Conditional)
-**Total Phases:** 5 (v7.0: Phases 23-27)
-**Current Plan:** 2/2
-**Total Plans in Phase:** 2
-**Status:** Complete
-**Last Activity:** 2026-03-24
-**Last Activity Description:** Phase 27 complete -- CP violation structural triangle (3 non-claims), 10-entry prediction table, model-dependence register, v7.0 assessment (5 achieved / 4 not achieved / 3 open), roadmap 3/3 PASS, 2/2 forbidden proxies rejected
+**Current Phase:** --
+**Current Phase Name:** --
+**Total Phases:** 27 (across v1.0-v7.0)
+**Status:** Between milestones
+**Last Activity:** 2026-03-26
+**Last Activity Description:** v7.0 milestone archived; Gap C narrowed (not closed)
 
-**Progress:** [██████████] 100% (v7.0 Phase 27, 2/2 plans)
+**Progress:** v7.0 complete. No active milestone.
 
 ## Active Calculations
 
