@@ -7,7 +7,7 @@ Use this workflow when:
 </trigger>
 
 <purpose>
-Instantly restore full research project context so "Where were we?" has an immediate, complete answer -- including the state of derivations, parameter values, intermediate results, and theoretical assumptions.
+Instantly restore full research project context so "Where were we?" has an immediate, complete answer -- including the state of derivations, parameter values, intermediate results, theoretical assumptions, and the canonical pause/resume handoff.
 </purpose>
 
 <required_reading>
@@ -19,7 +19,7 @@ Instantly restore full research project context so "Where were we?" has an immed
 <process>
 
 <step name="initialize">
-Load all context in one call:
+Load the shared resume context in one call. `/gpd:resume-work` is the guided runtime path, `gpd resume` is the public local read-only summary, and `gpd init resume` is the machine-readable intake they share:
 
 ```bash
 INIT=$(gpd init resume)
@@ -37,7 +37,7 @@ Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_ex
 **If `state_exists` is false but `roadmap_exists` or `project_exists` is true:** Offer to reconstruct STATE.md
 **If `planning_exists` is false:** This is a new project - route to /gpd:new-project
 
-If `resume_mode="bounded_segment"` and `active_execution_segment` exists, treat that as the primary resume target. Do not infer a second resume system from ad hoc handoff files.
+If `resume_mode="bounded_segment"` and `active_execution_segment` exists, treat that as the primary resume target. Do not infer a second resume system from ad hoc handoff files or stale notes outside the canonical handoff path.
 
 If `active_execution_segment` exists but `current_execution_resume_file` is empty, non-project, or missing on disk, treat that live snapshot as advisory context only. It can explain the last gate or paused work, but it is not a ranked bounded-segment resume candidate and does not justify `resume_mode="bounded_segment"`.
 
@@ -50,7 +50,7 @@ If `active_execution_segment.first_result_gate_pending` is true, do not treat la
 
 **machine_change_detection:** Compare the current hostname/platform with `session.hostname` and `session.platform` from `state.json`. If they differ, display the non-blocking machine-change notice from INIT and recommend rerunning the installer so runtime-local config stays current. The project state itself remains portable and does not require repair.
 
-**session_resume_file:** `execution_resume_file` is surfaced from the live execution snapshot or `session.resume_file` for display and logging. The runtime also ranks `session.resume_file` as a `session_resume_file` handoff candidate in `segment_candidates` when it is distinct from the live execution resume file. Treat it as informational continuity metadata, not as proof that a resumable bounded segment still exists.
+**canonical handoff path:** `/gpd:pause-work` records a canonical phase handoff by writing `GPD/phases/.../.continue-here.md` and persisting that pointer into session continuity. `execution_resume_file` is surfaced from the live execution snapshot or `session.resume_file` for display and logging. The runtime also ranks `session.resume_file` as a `session_resume_file` handoff candidate in `segment_candidates` when it is distinct from the live execution resume file. Treat it as informational continuity metadata, not as proof that a resumable bounded segment still exists. The same machine-readable intake powers the local `gpd resume` summary.
 
 Read and parse STATE.md, then PROJECT.md:
 

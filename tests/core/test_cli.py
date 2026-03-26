@@ -148,6 +148,7 @@ def test_help_surfaces_permissions_readiness_commands() -> None:
     assert "permissions" in result.output
     assert "Runtime permission readiness and sync" in result.output
     assert "permissions status --runtime <runtime>" in result.output
+    assert "gpd resume" in result.output
 
 
 def test_doctor_help_surfaces_runtime_readiness_mode() -> None:
@@ -199,6 +200,12 @@ def test_init_help_surfaces_local_onboarding_entrypoints() -> None:
     assert "resume" in result.output
     assert "map-research" in result.output
     assert "verify-work" in result.output
+
+
+def test_resume_help_surfaces_read_only_local_recovery_role() -> None:
+    result = runner.invoke(app, ["resume", "--help"])
+    assert result.exit_code == 0
+    assert "Summarize local recovery state without routing or modifying project files." in result.output
 
 
 def test_validate_help_surfaces_command_context_preflight_entrypoint() -> None:
@@ -941,6 +948,26 @@ def test_init_new_project(mock_init):
     mock_result.model_dump.return_value = {"context": "..."}
     mock_init.return_value = mock_result
     result = runner.invoke(app, ["init", "new-project"])
+    assert result.exit_code == 0
+    mock_init.assert_called_once()
+
+
+def test_init_resume_help_surfaces_recovery_snapshot_entrypoint() -> None:
+    result = runner.invoke(app, ["init", "resume", "--help"])
+
+    assert result.exit_code == 0
+    assert "Usage: gpd init resume" in result.output
+    assert "Assemble context for resuming previous work." in result.output
+
+
+@patch("gpd.core.context.init_resume")
+def test_init_resume(mock_init):
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {"segment_candidates": []}
+    mock_init.return_value = mock_result
+
+    result = runner.invoke(app, ["init", "resume"])
+
     assert result.exit_code == 0
     mock_init.assert_called_once()
 

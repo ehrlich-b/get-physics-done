@@ -315,6 +315,22 @@ def test_help_prompt_workflow_modes_match_current_settings_vocabulary() -> None:
         assert "git.branching_strategy" in content
 
 
+def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_return() -> None:
+    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+
+    for content in (help_command, help_workflow):
+        assert "**`/gpd:resume-work`**" in content
+        assert "Uses resume files and project state to pick up where you left off" in content
+        assert "Best first command when returning to paused or interrupted work" in content
+        assert "gpd resume" in content
+        assert "**`/gpd:pause-work`**" in content
+        assert "Create context handoff when pausing work mid-phase." in content
+        assert "Creates .continue-here file with current state" in content
+        assert "Updates STATE.md session continuity section" in content
+        assert "Captures in-progress work context" in content
+
+
 def test_new_project_prompt_surfaces_discuss_phase_before_planning() -> None:
     command = (REPO_ROOT / "src/gpd/commands/new-project.md").read_text(encoding="utf-8")
     workflow = (REPO_ROOT / "src/gpd/specs/workflows/new-project.md").read_text(encoding="utf-8")

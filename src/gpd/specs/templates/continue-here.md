@@ -2,11 +2,12 @@
 template_version: 1
 ---
 
-<!-- Used by: pause-work workflow for session handoff. -->
+<!-- Used by: pause-work workflow as the canonical pause/resume handoff artifact. -->
 
-# Continue-Here Template
+# Canonical Continue-Here Handoff Template
 
-Copy and fill this structure for `GPD/phases/XX-name/.continue-here.md`:
+Copy and fill this structure for `GPD/phases/XX-name/.continue-here.md`.
+This is the canonical phase handoff written by `/gpd:pause-work` and consumed by `/gpd:resume-work` plus the local `gpd resume` recovery surface. The machine-readable backend remains `gpd init resume`:
 
 ```yaml
 ---
@@ -102,7 +103,7 @@ Start with: [specific action - e.g., "evaluate the matrix element <n|V|m> for n,
 This section captures derivation content that must survive across ALL sessions.
 Unlike the rest of this file, this section is NOT ephemeral -- the pause-work
 workflow extracts it and appends it to `GPD/DERIVATION-STATE.md` before
-this file is deleted on resume. That file is append-only and cumulative.
+the handoff is consumed on resume. That file is append-only and cumulative.
 
 ### Equations Established This Session
 
@@ -146,13 +147,14 @@ Required YAML frontmatter:
 <guidelines>
 - Be specific enough that a fresh agent instance understands immediately
 - Include WHY decisions were made, not just what (physics reasoning)
+- Preserve these canonical section names so pause/resume tooling and humans see the same structure every time
 - Record intermediate results as structured entries: LaTeX equation + units + validity range
 - Every equation must have explicit units (even if dimensionless) and validity domain
 - Note sign conventions and normalization choices (these are the #1 source of errors on resume)
 - Convention snapshot in intermediate_results must be consistent with state.json convention_lock
 - The `<next_action>` should be actionable without reading anything else
 - The `<intermediate_results>` section is critical for physics - unlike software, you can't just "run the code" to recover state
-- This file gets DELETED after resume - it's not permanent storage
+- This file is the canonical temporary handoff artifact. `/gpd:resume-work`, `gpd resume`, and the `gpd init resume` backend reach it through session continuity or live execution pointers, and it may be deleted once the handoff is consumed
 - The `<persistent_state>` section is the exception: its content is appended to `GPD/DERIVATION-STATE.md` BEFORE this file is deleted, so equations/conventions/results accumulate permanently across all sessions
 - Fill `<persistent_state>` carefully -- it is the antidote to lossy compression across context resets
 </guidelines>

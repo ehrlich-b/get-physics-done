@@ -2000,6 +2000,25 @@ def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
     assert "Repair the blocked contract or state-integrity issue before planning or execution" in resume_work
 
 
+def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_boundary() -> None:
+    pause_work = (WORKFLOWS_DIR / "pause-work.md").read_text(encoding="utf-8")
+    resume_work = (WORKFLOWS_DIR / "resume-work.md").read_text(encoding="utf-8")
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+
+    assert (
+        "`/gpd:resume-work` is the guided runtime path, `gpd resume` is the public local read-only summary, "
+        "and `gpd init resume` is the machine-readable intake they share:"
+    ) in resume_work
+    assert "segment_candidates" in resume_work
+    assert "Do NOT invent additional candidates from plan files without summaries, auto-checkpoints, or other ad hoc checkpoints." in resume_work
+    assert "Record session continuity so /gpd:resume-work and local gpd resume" in pause_work
+    assert "This is the canonical pause/resume handoff for the current phase." in pause_work
+    assert "To return in the runtime: /gpd:resume-work" in pause_work
+    assert "To inspect local recovery summary: gpd resume" in pause_work
+    assert "/gpd:resume-work" in help_workflow
+    assert "- For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`." in help_workflow
+
+
 def test_stage6_surfaces_protocol_bundle_context_across_planning_execution_and_verification() -> None:
     planner_prompt = (TEMPLATES_DIR / "planner-subagent-prompt.md").read_text(encoding="utf-8")
     execute_phase = (WORKFLOWS_DIR / "execute-phase.md").read_text(encoding="utf-8")

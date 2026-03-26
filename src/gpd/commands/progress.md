@@ -19,6 +19,7 @@ allowed-tools:
 Check physics research progress, summarize recent work and what's ahead, then intelligently route to the next action — either executing an existing plan or creating the next one.
 
 Provides situational awareness before continuing research work.
+Use `--brief` when returning and you only need a quick orientation snapshot, or `--reconcile` when state may have drifted from disk reality.
 </objective>
 
 <execution_context>

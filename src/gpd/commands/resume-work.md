@@ -15,12 +15,15 @@ allowed-tools:
 <!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
-Restore complete research context and resume work seamlessly from previous session.
+Restore complete research context and resume work seamlessly from the latest canonical pause/resume handoff and live session state.
+
+This is the in-runtime return path. For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`.
 
 Routes to the resume-work workflow which handles:
 
 - STATE.md loading (or reconstruction if missing)
 - Active execution checkpoint detection
+- Canonical `.continue-here.md` handoff detection from pause-work session continuity
 - Incomplete work detection (PLAN without SUMMARY)
 - Full awareness of where the calculation or derivation left off
 - Restoration of parameter values, intermediate results, and assumptions
@@ -39,7 +42,7 @@ The workflow handles all resumption logic including:
 
 1. Project existence verification
 2. STATE.md loading or reconstruction
-3. Checkpoint and incomplete work detection
+3. Checkpoint, canonical handoff, and incomplete work detection
 4. Restoration of research context:
    - Where the derivation or computation was paused
    - Parameter values and variable definitions in scope
@@ -47,7 +50,7 @@ The workflow handles all resumption logic including:
    - Approximations and assumptions active at pause time
    - Planned next steps from previous session
 5. Visual status presentation
-6. Context-aware option offering (checks CONTEXT.md before suggesting plan vs discuss)
+6. Context-aware option offering (checks CONTEXT.md before suggesting plan vs discuss, using the same machine-readable resume context that powers `gpd resume`)
 7. Routing to appropriate next command
 8. Session continuity updates
    </process>

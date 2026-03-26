@@ -649,6 +649,19 @@ def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_rea
     ) in quick_start
 
 
+def test_public_readme_recovery_surfaces_keep_runtime_pause_and_resume_roles_distinct() -> None:
+    readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
+    quick_start = _markdown_section(readme, "## Quick Start")
+
+    assert "| Returning to an existing GPD project | `resume-work` |" in quick_start
+    assert "| Returning to an existing GPD project | `pause-work` |" not in quick_start
+    assert "use `gpd resume`" in quick_start
+    assert "| Returning to an existing GPD project | `/gpd:resume-work` | `$gpd-resume-work` | `/gpd-resume-work` |" in readme
+    assert "#### Session Management" in readme
+    assert "| `/gpd:resume-work` | Resume research from the previous session with full context restoration |" in readme
+    assert "| `/gpd:pause-work` | Create a context handoff when pausing research mid-phase |" in readme
+
+
 def test_public_help_surfaces_keep_settings_as_guided_post_startup_path() -> None:
     repo_root = _repo_root()
     help_command = (repo_root / "src/gpd/commands/help.md").read_text(encoding="utf-8")

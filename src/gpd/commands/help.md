@@ -56,8 +56,10 @@ Choose the path that matches your starting point:
 
 **Returning work**
 1. `/gpd:resume-work` — Restore context and continue from the current project state
-2. `/gpd:progress` — Secondary status check if you want a broader summary
+2. `/gpd:progress` — Secondary status check; use `--brief` when you only need a short snapshot
 3. `/gpd:suggest-next` — Fastest next-action hint without the full progress report
+
+Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore.
 
 **Unattended / autonomy setup**
 1. `/gpd:settings` — Primary guided setup for autonomy, runtime permission sync, and unattended budgets (`Balanced` recommended)
@@ -86,6 +88,7 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 - Use these names inside the installed agent/runtime command surface.
 - The local `gpd` CLI may expose different `gpd ...` subcommands and grouping. Use `gpd --help` to inspect the executable CLI surface directly.
 - If you need to validate whether a slash-command can run in the current workspace, use `gpd validate command-context gpd:<name>`.
+- For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`.
 
 ## Quick Start
 
@@ -102,8 +105,10 @@ Choose the path that matches your starting point:
 
 **Returning work**
 1. `/gpd:resume-work` - Restore project context and continue from current state
-2. `/gpd:progress` - Secondary manual status check when you want the broader snapshot
+2. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
 3. `/gpd:suggest-next` - Fastest next-action hint without the full progress report
+
+Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore. Use `gpd resume` from your normal system terminal when you want a read-only local recovery summary without launching the runtime.
 
 ## Core Workflow
 
@@ -357,6 +362,8 @@ Check research status and intelligently route to next action.
 - Lists key results and open issues
 - Offers to execute next plan or create it if missing
 - Detects 100% milestone completion
+- Use `--brief` when returning and you only need orientation
+- Use `--reconcile` when state appears out of sync with disk artifacts
 
 Usage: `/gpd:progress`
 Usage: `/gpd:progress --full` (detailed view with all phase artifacts)
@@ -370,6 +377,7 @@ Suggest the most impactful next action based on current project state.
 - Produces a prioritized action list
 - Local CLI fallback: `gpd --raw suggest`
 - Fastest way to answer "what should I do next?" without reading through progress reports
+- Good after `/gpd:resume-work` when you only want the next recommended command
 
 Usage: `/gpd:suggest-next`
 
@@ -381,6 +389,7 @@ Resume research from previous session with full context restoration.
 - Restores live execution state, recent progress, and session handoff context
 - Uses resume files and project state to pick up where you left off
 - Best first command when returning to paused or interrupted work
+- This is the in-runtime return path; for a normal-terminal read-only recovery snapshot, use `gpd resume`
 
 Usage: `/gpd:resume-work`
 
@@ -390,6 +399,7 @@ Create context handoff when pausing work mid-phase.
 - Creates .continue-here file with current state
 - Updates STATE.md session continuity section
 - Captures in-progress work context
+- Run this before leaving mid-phase so `/gpd:resume-work` has an explicit handoff to restore
 
 Usage: `/gpd:pause-work`
 
@@ -948,11 +958,20 @@ Example config:
 /gpd:new-project --minimal @plan.md     # Generate from existing research plan file
 ```
 
-**Resuming work after a break:**
+**Leaving and returning after a break:**
 
 ```
-/gpd:resume-work  # Restore the last handoff and continue
-/gpd:progress     # Review the broader project snapshot if needed
+/gpd:pause-work        # Before leaving mid-phase, capture a handoff
+/clear
+/gpd:resume-work       # Restore the last handoff and continue
+/gpd:progress --brief  # Short orientation snapshot if needed
+/gpd:suggest-next      # Fastest next-step recommendation
+```
+
+**Normal terminal, read-only recovery snapshot:**
+
+```
+gpd resume
 ```
 
 **Adding urgent mid-milestone work:**

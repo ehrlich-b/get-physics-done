@@ -574,6 +574,7 @@ app = _GPDTyper(
         "Use the local CLI for install, validation, context assembly, permissions readiness, optional sync, and diagnostics.\n"
         "Examples:\n"
         "  gpd install <runtime>\n"
+        "  gpd resume\n"
         "  gpd validate command-context new-project\n"
         "  gpd init new-project\n"
         "  gpd permissions status --runtime <runtime>"
@@ -937,6 +938,243 @@ def milestone_complete(
     from gpd.core.phases import milestone_complete
 
     _output(milestone_complete(_get_cwd(), version, name=name))
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# resume — Read-only recovery summary
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def _resume_status_message(payload: dict[str, object]) -> str:
+    """Return a concise human summary of resume readiness for this workspace."""
+    if not bool(payload.get("planning_exists")):
+        return "No GPD planning directory is present in this workspace."
+    if not any(bool(payload.get(key)) for key in ("state_exists", "roadmap_exists", "project_exists")):
+        return "Planning scaffolding exists, but there is no recoverable project state yet."
+    if payload.get("resume_mode") == "bounded_segment":
+        return "A bounded execution segment is resumable from the current workspace state."
+    if payload.get("resume_mode") == "interrupted_agent":
+        return "An interrupted agent marker is present, but no bounded resume segment is active."
+    if isinstance(payload.get("segment_candidates"), list) and payload["segment_candidates"]:
+        return "Recovery context is available, but no live bounded segment is currently resumable."
+    if bool(payload.get("has_live_execution")):
+        return "Live execution telemetry exists, but it does not expose a portable resume target."
+    return "No recent local recovery target is currently recorded."
+
+
+def _resume_mode_label(value: object) -> str:
+    """Format a resume mode for human-facing CLI output."""
+    if not isinstance(value, str) or not value.strip():
+        return "none"
+    return value.replace("_", " ")
+
+
+def _resume_candidate_source_label(source: object) -> str:
+    """Map internal resume candidate sources to concise user-facing labels."""
+    labels = {
+        "current_execution": "Live execution",
+        "session_resume_file": "Session handoff",
+        "interrupted_agent": "Interrupted agent",
+    }
+    source_text = str(source).strip() if source is not None else ""
+    return labels.get(source_text, source_text or "Unknown")
+
+
+def _resume_candidate_phase_plan(candidate: dict[str, object]) -> str:
+    """Format phase/plan context for one resume candidate."""
+    phase = candidate.get("phase")
+    plan = candidate.get("plan")
+    phase_text = str(phase).strip() if phase is not None else ""
+    plan_text = str(plan).strip() if plan is not None else ""
+    if phase_text and plan_text:
+        return f"{phase_text} / {plan_text}"
+    if phase_text:
+        return phase_text
+    if plan_text:
+        return plan_text
+    return "—"
+
+
+def _resume_candidate_target(candidate: dict[str, object]) -> str:
+    """Format the primary target/pointer for one resume candidate."""
+    source = str(candidate.get("source") or "").strip()
+    if source == "interrupted_agent":
+        agent_id = candidate.get("agent_id")
+        return str(agent_id).strip() if agent_id is not None and str(agent_id).strip() else "—"
+
+    resume_file = candidate.get("resume_file")
+    if isinstance(resume_file, str) and resume_file.strip():
+        return _format_display_path(resume_file.strip())
+    return "—"
+
+
+def _resume_candidate_notes(
+    candidate: dict[str, object],
+    *,
+    active_execution: dict[str, object] | None,
+) -> str:
+    """Render the most relevant resume notes for one candidate."""
+    notes: list[str] = []
+
+    checkpoint_reason = candidate.get("checkpoint_reason")
+    if isinstance(checkpoint_reason, str) and checkpoint_reason.strip():
+        notes.append(f"checkpoint: {checkpoint_reason.strip().replace('_', ' ')}")
+
+    waiting_reason = candidate.get("waiting_reason")
+    if isinstance(waiting_reason, str) and waiting_reason.strip():
+        notes.append(waiting_reason.strip())
+
+    blocked_reason = candidate.get("blocked_reason")
+    if isinstance(blocked_reason, str) and blocked_reason.strip():
+        notes.append(f"blocked: {blocked_reason.strip()}")
+
+    last_result_label = candidate.get("last_result_label")
+    if isinstance(last_result_label, str) and last_result_label.strip():
+        notes.append(f"last result: {last_result_label.strip()}")
+
+    if bool(candidate.get("first_result_gate_pending")):
+        notes.append("first-result gate pending")
+    if bool(candidate.get("pre_fanout_review_pending")):
+        notes.append("pre-fanout review pending")
+    if bool(candidate.get("skeptical_requestioning_required")):
+        notes.append("skeptical re-questioning required")
+    if bool(candidate.get("downstream_locked")):
+        notes.append("downstream locked")
+
+    if active_execution is not None:
+        current_task = active_execution.get("current_task")
+        current_task_index = active_execution.get("current_task_index")
+        current_task_total = active_execution.get("current_task_total")
+        if isinstance(current_task, str) and current_task.strip():
+            if current_task_index is not None and current_task_total is not None:
+                notes.append(f"task {current_task_index}/{current_task_total}: {current_task.strip()}")
+            else:
+                notes.append(current_task.strip())
+
+        updated_at = active_execution.get("updated_at")
+        if isinstance(updated_at, str) and updated_at.strip():
+            notes.append(f"updated {updated_at.strip()}")
+
+    if not notes:
+        source = str(candidate.get("source") or "").strip()
+        if source == "session_resume_file":
+            return "Recorded in session continuity metadata."
+        if source == "interrupted_agent":
+            return "Interrupted agent marker only; inspect agent output before continuing."
+        return "No additional resume notes recorded."
+    return "; ".join(notes[:5])
+
+
+def _render_resume_summary(payload: dict[str, object]) -> None:
+    """Render a read-only local recovery summary for humans."""
+    candidates = payload.get("segment_candidates")
+    segment_candidates = [item for item in candidates if isinstance(item, dict)] if isinstance(candidates, list) else []
+    active_execution_raw = payload.get("active_execution_segment")
+    active_execution = active_execution_raw if isinstance(active_execution_raw, dict) else None
+
+    console.print("[bold]Resume Summary[/]")
+    console.print("[dim]Read-only local recovery snapshot for this workspace.[/]")
+    console.print()
+
+    summary = Table.grid(padding=(0, 2))
+    summary.add_column(style=f"bold {_INSTALL_ACCENT_COLOR}")
+    summary.add_column()
+    summary.add_row("Workspace", _format_display_path(_get_cwd()))
+    summary.add_row("Status", _resume_status_message(payload))
+    summary.add_row("Resume mode", _resume_mode_label(payload.get("resume_mode")))
+    summary.add_row("Candidates", str(len(segment_candidates)))
+    summary.add_row("Live execution", "yes" if bool(payload.get("has_live_execution")) else "no")
+    summary.add_row("Autonomy", str(payload.get("autonomy") or "unknown"))
+    summary.add_row("Research mode", str(payload.get("research_mode") or "unknown"))
+
+    paused_at = payload.get("execution_paused_at")
+    if isinstance(paused_at, str) and paused_at.strip():
+        summary.add_row("Paused at", paused_at.strip())
+
+    primary_resume_file = payload.get("execution_resume_file")
+    if isinstance(primary_resume_file, str) and primary_resume_file.strip():
+        summary.add_row("Primary pointer", _format_display_path(primary_resume_file.strip()))
+
+    console.print(summary)
+
+    machine_change_notice = payload.get("machine_change_notice")
+    notices: list[str] = []
+    if isinstance(machine_change_notice, str) and machine_change_notice.strip():
+        notices.append(machine_change_notice.strip())
+
+    if active_execution is not None:
+        if bool(active_execution.get("waiting_for_review")):
+            notices.append("Execution is currently waiting for review before continuation.")
+        if bool(payload.get("execution_pre_fanout_review_pending")):
+            notices.append("Pre-fanout review is still pending.")
+        if bool(payload.get("execution_skeptical_requestioning_required")):
+            notices.append("Skeptical re-questioning is required before downstream work.")
+        if bool(payload.get("execution_downstream_locked")):
+            notices.append("Downstream work remains locked by the current execution snapshot.")
+        blocked_reason = active_execution.get("blocked_reason")
+        if isinstance(blocked_reason, str) and blocked_reason.strip():
+            notices.append(f"Execution is blocked: {blocked_reason.strip()}")
+
+    if notices:
+        console.print()
+        console.print("[bold]Notices[/]")
+        for notice in notices:
+            console.print(f"- {notice}")
+
+    console.print()
+    console.print("[bold]Resume Candidates[/]")
+    if segment_candidates:
+        table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
+        table.add_column("#", justify="right", no_wrap=True)
+        table.add_column("Source")
+        table.add_column("Status")
+        table.add_column("Phase/Plan")
+        table.add_column("Target")
+        table.add_column("Notes")
+        for idx, candidate in enumerate(segment_candidates, start=1):
+            candidate_execution = active_execution if candidate.get("source") == "current_execution" else None
+            status = str(candidate.get("status") or "unknown").strip().replace("_", " ")
+            table.add_row(
+                str(idx),
+                _resume_candidate_source_label(candidate.get("source")),
+                status or "unknown",
+                _resume_candidate_phase_plan(candidate),
+                _resume_candidate_target(candidate),
+                _resume_candidate_notes(candidate, active_execution=candidate_execution),
+            )
+        console.print(table)
+    else:
+        console.print(
+            "[dim]No resumable execution segment, session handoff, or interrupted-agent marker is currently recorded.[/]"
+        )
+
+    console.print()
+    console.print("[bold]References[/]")
+    console.print("- `gpd resume` is the public local recovery surface.")
+    console.print("- `gpd init resume` remains the machine-readable backend used by runtime resume workflows.")
+    console.print("- `gpd observe sessions --last 5` shows recent local observability sessions.")
+
+    try:
+        from gpd.adapters import get_adapter
+
+        runtime_name = detect_runtime_for_gpd_use(cwd=_get_cwd())
+        runtime_resume_command = get_adapter(runtime_name).format_command("resume-work")
+    except Exception:
+        runtime_resume_command = None
+    if isinstance(runtime_resume_command, str) and runtime_resume_command.strip():
+        console.print(f"- `{runtime_resume_command}` is the guided in-runtime continuation surface.")
+
+
+@app.command("resume")
+def resume() -> None:
+    """Summarize local recovery state without routing or modifying project files."""
+    from gpd.core.context import init_resume
+
+    payload = init_resume(_get_cwd())
+    if _raw:
+        _output(payload)
+        return
+    _render_resume_summary(payload)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

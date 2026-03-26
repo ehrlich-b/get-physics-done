@@ -12,15 +12,15 @@ allowed-tools:
 <!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
-Create `.continue-here.md` handoff file to preserve complete research state across sessions.
+Create the canonical `.continue-here.md` handoff file to preserve complete research state across sessions.
 
 Routes to the pause-work workflow which handles:
 
 - Current phase detection from recent files
 - Complete state gathering (current derivation state, parameter values, intermediate results, completed work, remaining work, decisions, blockers)
-- Handoff file creation with all context sections
+- Canonical handoff file creation using the shared continue-here template
 - Git commit as WIP
-- Resume instructions
+- Return instructions for `/gpd:resume-work` and the local `gpd resume` recovery surface
   </objective>
 
 <execution_context>
@@ -40,7 +40,7 @@ The workflow handles all logic including:
    - Intermediate results obtained so far
    - Approximations made and their justifications
    - Next steps that were planned before pausing
-3. Handoff file writing with timestamp
+3. Canonical `.continue-here.md` handoff writing with timestamp and session continuity pointer
 4. Git commit
-5. Confirmation with resume instructions
+5. Confirmation with runtime `/gpd:resume-work` and local `gpd resume` instructions
    </process>

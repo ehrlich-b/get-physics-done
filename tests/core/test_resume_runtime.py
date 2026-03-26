@@ -218,6 +218,51 @@ def test_init_resume_keeps_current_execution_primary_across_machine_change(
     assert ctx["segment_candidates"][1]["source"] == "session_resume_file"
 
 
+def test_init_resume_deduplicates_matching_session_handoff_and_ranks_interrupted_agent_last(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    cwd = state_project_factory(tmp_path)
+    resume_file = "GPD/phases/03-analysis/.continue-here.md"
+    _update_state_session(
+        cwd,
+        hostname="builder-01",
+        platform="Linux 6.1 x86_64",
+        resume_file=resume_file,
+    )
+    _write_current_execution(
+        cwd,
+        {
+            "session_id": "sess-1",
+            "phase": "03",
+            "plan": "02",
+            "segment_id": "seg-4",
+            "segment_status": "paused",
+            "resume_file": resume_file,
+            "updated_at": "2026-03-10T12:00:00+00:00",
+        },
+    )
+    (cwd / context_module.PLANNING_DIR_NAME / context_module.AGENT_ID_FILENAME).write_text(
+        "agent-77\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        context_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "builder-01", "platform": "Linux 6.1 x86_64"},
+    )
+
+    ctx = init_resume(tmp_path)
+
+    assert ctx["resume_mode"] == "bounded_segment"
+    assert ctx["session_resume_file"] == resume_file
+    assert [candidate["source"] for candidate in ctx["segment_candidates"]] == [
+        "current_execution",
+        "interrupted_agent",
+    ]
+    assert ctx["segment_candidates"][0]["resume_file"] == resume_file
+    assert ctx["segment_candidates"][1]["agent_id"] == "agent-77"
+
+
 def test_init_resume_normalizes_project_local_absolute_current_execution_resume_file(
     tmp_path: Path, state_project_factory, monkeypatch
 ) -> None:

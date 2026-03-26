@@ -19,6 +19,7 @@ from typer.testing import CliRunner
 from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.cli import app
+from gpd.core.constants import AGENT_ID_FILENAME
 from gpd.core.state import default_state_dict, generate_state_markdown
 from tests.runtime_install_helpers import seed_complete_runtime_install
 
@@ -263,6 +264,47 @@ class TestTimestamp:
         assert "T" in parsed["timestamp"]
 
 
+class TestResume:
+    def test_resume_raw_surfaces_ranked_candidates(self, gpd_project: Path) -> None:
+        handoff = gpd_project / "GPD" / "phases" / "01-test-phase" / ".continue-here.md"
+        handoff.write_text("resume\n", encoding="utf-8")
+        state_path = gpd_project / "GPD" / "state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["position"]["status"] = "Paused"
+        state["session"]["resume_file"] = "GPD/phases/01-test-phase/.continue-here.md"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+
+        result = _invoke("--raw", "resume")
+        parsed = json.loads(result.output)
+
+        assert parsed["resume_mode"] is None
+        assert parsed["execution_resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
+        assert parsed["segment_candidates"] == [
+            {
+                "source": "session_resume_file",
+                "status": "handoff",
+                "resume_file": "GPD/phases/01-test-phase/.continue-here.md",
+                "resumable": False,
+            }
+        ]
+
+    def test_resume_human_output_surfaces_public_and_backend_commands(self, gpd_project: Path) -> None:
+        handoff = gpd_project / "GPD" / "phases" / "01-test-phase" / ".continue-here.md"
+        handoff.write_text("resume\n", encoding="utf-8")
+        state_path = gpd_project / "GPD" / "state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["position"]["status"] = "Paused"
+        state["session"]["resume_file"] = "GPD/phases/01-test-phase/.continue-here.md"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+
+        result = _invoke("resume")
+
+        assert "Resume Summary" in result.output
+        assert "Read-only local recovery snapshot for this workspace." in result.output
+        assert "gpd resume" in result.output
+        assert "gpd init resume" in result.output
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # 2. slug
 # ═══════════════════════════════════════════════════════════════════════════
@@ -478,6 +520,61 @@ class TestInitIncludeParsing:
             "Unknown --include value(s) for gpd init progress: bogus. "
             "Allowed values: config, project, roadmap, state."
         )
+
+    def test_init_resume_is_read_only_and_returns_ranked_candidates(self, gpd_project: Path) -> None:
+        planning = gpd_project / "GPD"
+        phase_dir = planning / "phases" / "01-test-phase"
+        live_resume = phase_dir / ".continue-here.md"
+        handoff_resume = phase_dir / "alternate.md"
+        live_resume.write_text("resume\n", encoding="utf-8")
+        handoff_resume.write_text("alternate\n", encoding="utf-8")
+
+        _invoke(
+            "state",
+            "record-session",
+            "--stopped-at",
+            "Paused in phase 01",
+            "--resume-file",
+            "GPD/phases/01-test-phase/alternate.md",
+        )
+
+        observability = planning / "observability"
+        observability.mkdir(parents=True, exist_ok=True)
+        (observability / "current-execution.json").write_text(
+            json.dumps(
+                {
+                    "session_id": "sess-1",
+                    "phase": "01",
+                    "plan": "02",
+                    "segment_id": "seg-4",
+                    "segment_status": "paused",
+                    "resume_file": "GPD/phases/01-test-phase/.continue-here.md",
+                    "updated_at": "2026-03-10T12:00:00+00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (planning / AGENT_ID_FILENAME).write_text("agent-77\n", encoding="utf-8")
+        snapshot_before = _target_file_snapshot(planning)
+
+        result = _invoke("--raw", "init", "resume")
+        payload = json.loads(result.output)
+
+        assert payload["resume_mode"] == "bounded_segment"
+        assert payload["execution_resumable"] is True
+        assert payload["execution_resume_file_source"] == "current_execution"
+        assert payload["execution_resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
+        assert payload["session_resume_file"] == "GPD/phases/01-test-phase/alternate.md"
+        assert payload["has_interrupted_agent"] is True
+        assert [candidate["source"] for candidate in payload["segment_candidates"]] == [
+            "current_execution",
+            "session_resume_file",
+            "interrupted_agent",
+        ]
+        assert payload["segment_candidates"][0]["resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
+        assert payload["segment_candidates"][1]["resume_file"] == "GPD/phases/01-test-phase/alternate.md"
+        assert payload["segment_candidates"][2]["agent_id"] == "agent-77"
+        assert _target_file_snapshot(planning) == snapshot_before
 
 
 class TestCommandContextSurface:

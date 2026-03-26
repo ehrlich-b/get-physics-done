@@ -18,6 +18,7 @@ Analyze current project state and suggest the most impactful next action. Uses `
 Local CLI fallback: `gpd --raw suggest` when the installed runtime surface is unavailable.
 
 This is the fastest way to answer "what should I do next?" without reading through progress reports.
+Use it after `/gpd:resume-work` when you want the next recommended command without reading the broader project snapshot.
 </objective>
 
 <context>

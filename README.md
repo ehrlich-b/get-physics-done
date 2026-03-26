@@ -59,6 +59,8 @@ Then choose the path that matches your starting point:
 | Returning to an existing GPD project | `resume-work` | Restore prior session context and continue from the current project state. |
 | Existing research folder or codebase | `map-research` | Map existing work before planning. |
 
+Leave / return path: run `pause-work` inside the runtime before stepping away mid-phase, then use `resume-work` when you return inside the runtime. If you only need a local, read-only recovery snapshot from your normal system terminal, use `gpd resume`.
+
 Guided unattended configuration path: use `settings` after startup when you want to tune workflow toggles, tier models, research preferences, or autonomy. Start there if you are deciding how much unattended execution to allow.
 
 For unattended execution, the recommended default is Balanced (`balanced`). Use `settings` inside the runtime to confirm or change autonomy, then run `gpd permissions status --runtime <runtime> --autonomy balanced` from your normal system terminal. If it reports drift, run `gpd permissions sync --runtime <runtime> --autonomy balanced`. If it reports `requires_relaunch`, exit and relaunch the runtime before treating unattended use as ready.
@@ -97,6 +99,7 @@ If any of those fail, fix them before troubleshooting GPD itself.
 5. Run `gpd permissions status --runtime codex --autonomy balanced`. If that status reports drift, run `gpd permissions sync --runtime codex --autonomy balanced`; if it reports `requires_relaunch`, exit and relaunch Codex before treating unattended use as ready.
 6. If you explicitly want prompt-free runtime approvals, switch to YOLO (`yolo`) in `settings`, run `gpd permissions sync --runtime codex --autonomy yolo`, and relaunch when required by the runtime.
 7. If those checks pass, continue with `new-project`, `new-project --minimal`, `resume-work`, or `map-research`.
+8. For recent-session recovery from your normal system terminal without launching the runtime, use `gpd resume`. It is a read-only local recovery summary; use `resume-work` inside the runtime when you are ready to continue work there.
 
 **Troubleshooting**
 
@@ -278,11 +281,13 @@ These commands run inside your installed AI runtime after GPD has been installed
 | `new-project` | Start a new research project with the full onboarding flow |
 | `new-project --minimal` | Fast path: initialize a new project from a compact description with lighter upfront setup |
 | `resume-work` | Resume the previous session with full context restoration |
+| `pause-work` | Capture a handoff before stepping away mid-phase so `resume-work` has explicit continuity |
 | `plan-phase N` | Plan phase `N` with task breakdown and checkpoints |
 | `execute-phase N` | Execute all tasks in phase `N` |
 | `verify-work` | Run verification checks against current work |
 | `peer-review` | Run manuscript peer review inside the current project before submission |
 | `progress` | Show project state and recommend the next step |
+| `suggest-next` | Fastest next-action recommendation when you do not need the full progress snapshot |
 | `discuss-phase N` | Explore a phase before committing to a plan |
 | `quick` | Run a smaller task with a lighter workflow |
 | `settings` | Guided path for workflow defaults, autonomy, and unattended execution settings after startup |
@@ -293,6 +298,8 @@ These commands run inside your installed AI runtime after GPD has been installed
 Typical research loop: `/gpd:new-project -> /gpd:discuss-phase 1 -> /gpd:plan-phase 1 -> /gpd:execute-phase 1 -> /gpd:verify-work -> repeat -> /gpd:complete-milestone`
 
 Typical publication loop: `/gpd:write-paper -> /gpd:peer-review -> /gpd:respond-to-referees -> /gpd:arxiv-submission`
+
+Leave / return path: `/gpd:pause-work` before leaving mid-phase, `/gpd:resume-work` when you return in-runtime, `/gpd:progress --brief` or `/gpd:suggest-next` when you only need orientation, and `gpd resume` from your normal system terminal for a local read-only recovery snapshot.
 
 ### Command Context
 
