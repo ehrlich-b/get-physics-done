@@ -1060,14 +1060,21 @@ class OpenCodeAdapter(RuntimeAdapter):
         managed_state = self._runtime_permissions_manifest_state(target_dir) or {}
         managed_by_gpd = managed_state.get("mode") == "yolo"
         configured_mode = "yolo" if _opencode_permission_is_yolo(permission_value) else "default"
+        requires_relaunch = False
+        next_step: str | None = None
 
         if desired_mode == "yolo":
             config_aligned = configured_mode == "yolo"
+            requires_relaunch = config_aligned
             message = (
                 "OpenCode is configured for prompt-free permissions on the next session."
                 if config_aligned
                 else 'OpenCode is not yet configured for prompt-free execution; set `permission` to `"allow"`.'
             )
+            if config_aligned:
+                next_step = (
+                    "Restart OpenCode so the current session picks up the prompt-free permission setting."
+                )
         else:
             config_aligned = not managed_by_gpd
             if managed_by_gpd:
@@ -1085,9 +1092,11 @@ class OpenCodeAdapter(RuntimeAdapter):
             "desired_mode": desired_mode,
             "configured_mode": configured_mode,
             "config_aligned": config_aligned,
+            "requires_relaunch": requires_relaunch,
             "managed_by_gpd": managed_by_gpd,
             "settings_path": str(config_path),
             "message": message,
+            "next_step": next_step,
         }
 
     def sync_runtime_permissions(self, target_dir: Path, *, autonomy: str) -> dict[str, object]:

@@ -218,16 +218,23 @@ class ClaudeCodeAdapter(RuntimeAdapter):
         managed_state = self._runtime_permissions_manifest_state(target_dir) or {}
         managed_by_gpd = managed_state.get("mode") == "yolo"
         config_aligned = default_mode == "bypassPermissions" if desired_mode == "yolo" else not managed_by_gpd
+        requires_relaunch = desired_mode == "yolo" and config_aligned
+        next_step: str | None = None
         message = "Claude Code is using its normal permission mode."
         if desired_mode == "yolo":
             if bypass_disabled:
                 config_aligned = False
+                requires_relaunch = False
                 message = (
                     "Claude Code bypassPermissions is disabled by managed settings, so GPD cannot enable "
                     "prompt-free runtime mode automatically."
                 )
             elif default_mode == "bypassPermissions":
                 message = "Claude Code will open in bypassPermissions mode on the next launch."
+                next_step = (
+                    "Restart the Claude Code session, or switch the current session to bypassPermissions, "
+                    "before expecting uninterrupted yolo execution."
+                )
             else:
                 message = "Claude Code is not yet configured to open in bypassPermissions mode."
         elif managed_by_gpd:
@@ -237,9 +244,11 @@ class ClaudeCodeAdapter(RuntimeAdapter):
             "desired_mode": desired_mode,
             "configured_mode": default_mode or "default",
             "config_aligned": config_aligned,
+            "requires_relaunch": requires_relaunch,
             "managed_by_gpd": managed_by_gpd,
             "settings_path": str(settings_path),
             "message": message,
+            "next_step": next_step,
         }
 
     def sync_runtime_permissions(self, target_dir: Path, *, autonomy: str) -> dict[str, object]:

@@ -59,7 +59,11 @@ Then choose the path that matches your starting point:
 | Returning to an existing GPD project | `resume-work` | Restore prior session context and continue from the current project state. |
 | Existing research folder or codebase | `map-research` | Map existing work before planning. |
 
-Secondary configuration path: use `settings` after startup when you want to tune workflow toggles, tier models, or research preferences.
+Guided unattended configuration path: use `settings` after startup when you want to tune workflow toggles, tier models, research preferences, or autonomy. Start there if you are deciding how much unattended execution to allow.
+
+For unattended execution, the recommended default is Balanced (`balanced`). Use `settings` inside the runtime to confirm or change autonomy, then run `gpd permissions status --runtime <runtime> --autonomy balanced` from your normal system terminal. If it reports drift, run `gpd permissions sync --runtime <runtime> --autonomy balanced`. If it reports `requires_relaunch`, exit and relaunch the runtime before treating unattended use as ready.
+
+If you specifically want prompt-free runtime approvals, that is a stricter mode than ordinary unattended use. In practice this may require switching autonomy to YOLO (`yolo`) in `settings`, then running `gpd permissions sync --runtime <runtime> --autonomy yolo`, and relaunching the runtime when the status output says `requires_relaunch`. The exact runtime behavior differs by platform.
 
 Use the runtime-specific command syntax shown in [Supported Runtimes](#supported-runtimes), for example `/gpd:new-project --minimal`, `$gpd-resume-work`, or `/gpd:map-research`.
 
@@ -77,7 +81,9 @@ If any of those fail, fix them before troubleshooting GPD itself.
 **Advisories**
 
 - Choose `--local` or `--global` explicitly if you do not want the installer's default path selection
-- Use `settings` or `set-profile` after the first successful launch; they are not required for first-run readiness
+- Use `settings` after the first successful launch as the guided path for unattended configuration. Balanced (`balanced`) is the recommended unattended default.
+- Use `gpd permissions status --runtime <runtime> --autonomy balanced` to confirm unattended readiness; if it reports `requires_relaunch`, the runtime is not ready yet
+- If you want prompt-free runtime approvals rather than ordinary unattended execution, switch to YOLO (`yolo`) in `settings`, run `gpd permissions sync --runtime <runtime> --autonomy yolo`, and relaunch when required
 - LaTeX is optional unless you plan to use paper or manuscript workflows such as `write-paper`, `paper-build`, or `arxiv-submission`
 - Provider authentication is checked manually in the runtime itself; GPD will point this out, but it does not hard-block installation readiness on it
 - Use `--upgrade` only when you intentionally want the latest unreleased GitHub `main` snapshot
@@ -87,12 +93,17 @@ If any of those fail, fix them before troubleshooting GPD itself.
 1. Install with an explicit runtime when possible, for example `npx -y get-physics-done --codex --local`.
 2. From the same terminal, run `gpd doctor --runtime codex --local` and `gpd --help`.
 3. Launch your selected runtime and run its GPD help command (`/gpd:help`, `$gpd-help`, or `/gpd-help`).
-4. If those checks pass, continue with `new-project`, `new-project --minimal`, `resume-work`, or `map-research`.
+4. If you want unattended execution, use `settings` as the guided configuration path and keep autonomy at Balanced (`balanced`) unless you intentionally want prompt-free runtime approvals.
+5. Run `gpd permissions status --runtime codex --autonomy balanced`. If that status reports drift, run `gpd permissions sync --runtime codex --autonomy balanced`; if it reports `requires_relaunch`, exit and relaunch Codex before treating unattended use as ready.
+6. If you explicitly want prompt-free runtime approvals, switch to YOLO (`yolo`) in `settings`, run `gpd permissions sync --runtime codex --autonomy yolo`, and relaunch when required by the runtime.
+7. If those checks pass, continue with `new-project`, `new-project --minimal`, `resume-work`, or `map-research`.
 
 **Troubleshooting**
 
 - If `gpd doctor --runtime <runtime> --local|--global` fails, fix Python / `venv` / package-install problems first.
 - If the runtime launches but GPD commands are missing, rerun the installer with an explicit runtime and explicit scope from your normal system terminal.
+- If `gpd permissions status --runtime <runtime> --autonomy balanced` reports drift, run `gpd permissions sync --runtime <runtime> --autonomy balanced` and check again.
+- If `gpd permissions status` reports `requires_relaunch`, exit and relaunch the runtime before unattended use.
 - If the runtime itself cannot launch or is not authenticated, fix the runtime/provider setup outside GPD before retrying the GPD install.
 
 </details>
@@ -274,7 +285,7 @@ These commands run inside your installed AI runtime after GPD has been installed
 | `progress` | Show project state and recommend the next step |
 | `discuss-phase N` | Explore a phase before committing to a plan |
 | `quick` | Run a smaller task with a lighter workflow |
-| `settings` | Configure workflow and model defaults after startup when needed |
+| `settings` | Guided path for workflow defaults, autonomy, and unattended execution settings after startup |
 | `write-paper` | Draft a manuscript from completed research artifacts |
 | `respond-to-referees` | Structure referee responses and revise the manuscript |
 | `arxiv-submission` | Validate and package the manuscript for arXiv |

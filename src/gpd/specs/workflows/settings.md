@@ -1,5 +1,5 @@
 <purpose>
-Interactive configuration of GPD workflow agents (research, plan_checker, verifier), research profile selection, runtime-specific tier model overrides, `execution.review_cadence`, git branching, and runtime-permission sync guidance. Updates `GPD/config.json` with user preferences including model profile, optional `model_overrides`, workflow toggles, execution cadence, and branching strategy.
+Interactive configuration of autonomy, unattended execution budgets, GPD workflow agents (research, plan_checker, verifier), research profile selection, runtime-specific tier model overrides, `execution.review_cadence`, git branching, and runtime-permission sync guidance. `/gpd:settings` is the primary guided entrypoint for unattended-use setup. Recommend `Balanced` unless the user explicitly wants tighter supervision or YOLO-style speed. Updates `GPD/config.json` with user preferences including model profile, optional `model_overrides`, workflow toggles, execution cadence, and branching strategy.
 </purpose>
 
 <required_reading>
@@ -63,17 +63,19 @@ If `model_overrides.<runtime>` already exists, surface the current `tier-1` / `t
 
 > **Platform note:** If `ask_user` is not available, present these options in plain text and wait for the user's freeform response.
 
+Treat this as the primary guided unattended-use flow: explain that autonomy, unattended budgets, and runtime permission sync all live here, and that `Balanced` is the recommended default for most users.
+
 Use ask_user with current values pre-selected:
 
 ```
 ask_user([
   {
-    question: "How much autonomy should the AI have? Supervised pauses constantly, Balanced handles routine work but still pauses on important physics or scope decisions, and YOLO only stops on hard failures after runtime permissions are synced.",
+    question: "How much autonomy should the AI have? Supervised pauses constantly, Balanced is the recommended default for most unattended runs because it still pauses on important physics or scope decisions, and YOLO only stops on hard failures after runtime permissions are synced.",
     header: "Autonomy",
     multiSelect: false,
     options: [
-      { label: "Supervised", description: "Checkpoint after every important step. You approve each physics-bearing move." },
-      { label: "Balanced (Recommended)", description: "AI handles routine work and pauses on important physics decisions, ambiguities, blockers, or scope changes." },
+      { label: "Supervised", description: "Checkpoint after every important step. Best when you plan to stay nearby and approve each physics-bearing move." },
+      { label: "Balanced (Recommended)", description: "Best default for most unattended runs. AI handles routine work and pauses on important physics decisions, ambiguities, blockers, or scope changes." },
       { label: "YOLO", description: "Fastest mode. AI auto-approves checkpoints, syncs the runtime to its most autonomous permission mode when supported, and only stops on hard failures." }
     ]
   },
@@ -178,6 +180,13 @@ ask_user([
 ])
 ```
 
+After the ask_user responses are collected, ask one compact inline follow-up for unattended execution budgets using the current values as defaults:
+
+- `execution.max_unattended_minutes_per_plan`
+- `execution.max_unattended_minutes_per_wave`
+
+Explain that these budgets bound how long GPD should keep running before it creates a continuation or another review stop. If the user is unsure, preserve the current values.
+
 </step>
 
 <step name="configure_model_overrides">
@@ -263,6 +272,7 @@ Interpret the sync payload:
 
 - Always surface `message` in the final confirmation.
 - If `requires_relaunch` is `true`, surface `next_step` verbatim so the user knows whether the runtime must be restarted or relaunched through a generated wrapper command.
+- If `requires_relaunch` is `true`, explicitly state that the newly selected autonomy level is not unattended-ready yet.
 - If runtime detection or install resolution fails, explain that `GPD/config.json` was still updated but the runtime itself was not synchronized yet.
 </step>
 
@@ -295,6 +305,7 @@ Concrete tier model strings are passed through to the active runtime unchanged, 
 Runtime sync:
 - {permissions_sync.message}
 - {permissions_sync.next_step if present}
+- If relaunch is still required, say clearly that unattended use is not ready yet under the newly selected autonomy setting.
 
 Project conventions still live in `GPD/CONVENTIONS.md` and `GPD/state.json` (`convention_lock`), not in `GPD/config.json`.
 
@@ -326,9 +337,10 @@ Project conventions propagate separately through `GPD/CONVENTIONS.md` and `GPD/s
 
 - [ ] Current config read
 - [ ] Active runtime inferred or explicitly confirmed before model override guidance
-- [ ] User presented with profile, runtime-specific tier-model handling, workflow toggles, review cadence, and git branching
+- [ ] User presented with autonomy guidance (`Balanced` recommended), unattended budget review, profile, runtime-specific tier-model handling, workflow toggles, review cadence, and git branching
 - [ ] Config updated with model_profile, optional model_overrides, workflow, execution, and git sections
 - [ ] Runtime permissions sync attempted after autonomy is written, with relaunch guidance surfaced when required
+- [ ] Relaunch-required state explained as not unattended-ready yet
 - [ ] No stale `physics` section written into `GPD/config.json`
 - [ ] Concrete tier model strings stored in runtime-native format when the user chooses explicit overrides
 - [ ] Changes confirmed to user

@@ -92,6 +92,14 @@ function runtimeSelectionAliases(runtime) {
   return runtimeRecord(runtime).selection_aliases || [];
 }
 
+function runtimeCommandPrefix(runtime) {
+  return runtimeRecord(runtime).command_prefix || "";
+}
+
+function runtimeSurfaceCommand(runtime, commandName) {
+  return `${runtimeCommandPrefix(runtime)}${commandName}`;
+}
+
 function log(msg) {
   console.log(` ${cyan}i${reset} ${msg}`);
 }
@@ -812,6 +820,14 @@ function runtimeDoctorHint(runtime, scope, targetDir = null) {
   return formatShellCommand(parts);
 }
 
+function runtimePermissionsHint(action, runtime, autonomy = "balanced", targetDir = null) {
+  const parts = ["gpd", "permissions", action, "--runtime", runtime, "--autonomy", autonomy];
+  if (targetDir) {
+    parts.push("--target-dir", targetDir);
+  }
+  return formatShellCommand(parts);
+}
+
 function buildRuntimeDoctorArgs(runtime, scope, targetDir = null) {
   const args = ["-m", "gpd.cli", "--raw", "doctor", "--runtime", runtime, `--${scope}`];
   if (targetDir) {
@@ -988,6 +1004,33 @@ function runInstallReadinessPreflight(managedPython, runtimes, scope, targetDir 
   return true;
 }
 
+function printUnattendedConfigurationReminder(runtimes, targetDir = null) {
+  console.log("");
+  console.log(` ${bold}${brandTitle}Unattended configuration${reset}`);
+  console.log("");
+  log("Recommended default: Balanced autonomy (`balanced`).");
+  if (runtimes.length === 1) {
+    const runtime = runtimes[0];
+    log(
+      `Inside ${runtimeDisplayName(runtime)}, use \`${runtimeSurfaceCommand(runtime, "settings")}\` `
+      + "to review or change autonomy."
+    );
+    log(`Check unattended readiness with \`${runtimePermissionsHint("status", runtime, "balanced", targetDir)}\`.`);
+    log(`If it reports drift, run \`${runtimePermissionsHint("sync", runtime, "balanced", targetDir)}\`.`);
+    warn("If `requires_relaunch` is true, the runtime is not ready for unattended use until you exit and relaunch it.");
+  } else {
+    for (const runtime of runtimes) {
+      log(
+        `${runtimeDisplayName(runtime)}: \`${runtimeSurfaceCommand(runtime, "settings")}\`, then `
+        + `\`${runtimePermissionsHint("status", runtime)}\`.`
+      );
+    }
+    log("If permissions drift is reported, rerun the matching `gpd permissions sync --runtime <runtime> --autonomy balanced` command.");
+    warn("If any runtime reports `requires_relaunch`, treat it as not ready for unattended use until that runtime is relaunched.");
+  }
+  console.log("");
+}
+
 function formatMenuOption(index, label, details = [], options = {}) {
   const { labelWidth = label.length } = options;
   const filteredDetails = details.filter(Boolean);
@@ -1080,6 +1123,13 @@ function printHelp() {
   console.log("");
   console.log(` ${dim}# Equivalent uninstall subcommand form${reset}`);
   console.log(` ${installCommand} uninstall ${primaryRuntime} --local`);
+  console.log("");
+  console.log(` ${yellow}After install:${reset}`);
+  console.log(` ${dim}# Recommended unattended configuration${reset}`);
+  console.log(" Use the runtime-specific `settings` command to keep autonomy at Balanced (`balanced`).");
+  console.log(" Then run `gpd permissions status --runtime <runtime> --autonomy balanced`.");
+  console.log(" If it reports drift, run `gpd permissions sync --runtime <runtime> --autonomy balanced`.");
+  console.log(" If it reports `requires_relaunch`, exit and relaunch the runtime before unattended use.");
   console.log("");
 }
 
@@ -1406,6 +1456,9 @@ async function main() {
   });
 
   if (result.status === 0) {
+    if (!isUninstall) {
+      printUnattendedConfigurationReminder(selectedRuntimes, targetDir);
+    }
     return;
   } else {
     error(`${isUninstall ? "Uninstall" : "Installation"} failed. Check the output above for details.`);

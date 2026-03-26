@@ -877,6 +877,23 @@ class TestInstall:
 
 
 class TestRuntimePermissions:
+    def test_runtime_permissions_status_marks_yolo_launcher_as_relaunch_required(
+        self,
+        adapter: GeminiAdapter,
+        gpd_root: Path,
+        tmp_path: Path,
+    ) -> None:
+        target = tmp_path / ".gemini"
+        target.mkdir()
+        adapter.install(gpd_root, target)
+        adapter.sync_runtime_permissions(target, autonomy="yolo")
+
+        status = adapter.runtime_permissions_status(target, autonomy="yolo")
+
+        assert status["config_aligned"] is True
+        assert status["requires_relaunch"] is True
+        assert "gemini-gpd-yolo" in str(status["next_step"])
+
     def test_sync_runtime_permissions_yolo_creates_launcher_wrapper(
         self,
         adapter: GeminiAdapter,

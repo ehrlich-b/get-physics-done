@@ -122,7 +122,7 @@ Choose the path that matches your starting point:
 **New work**
 1. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
 2. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
-3. `/gpd:settings` - Optional: tune workflow and model defaults after setup
+3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; review budgets and sync runtime permissions here
 
 **Existing work**
 1. `/gpd:map-research` - Map an existing folder or project first
@@ -781,8 +781,12 @@ Usage: `/gpd:plan-milestone-gaps`
 ### Configuration
 
 **`/gpd:settings`**
-Configure workflow toggles, model profile, `execution.review_cadence`, and runtime-specific tier model overrides interactively.
+Primary guided setup for autonomy, unattended execution budgets, runtime permission sync, model profile, `execution.review_cadence`, and runtime-specific tier model overrides.
 
+- Choose how often GPD should pause for you (`Balanced (Recommended)` is the best default for most unattended runs)
+- Review unattended execution budgets and other bounded continuation limits before leaving runs alone
+- Sync runtime-owned permissions after autonomy changes when the active runtime supports it
+- If settings reports a relaunch is required, the new autonomy level is not unattended-ready yet
 - Toggle plan researcher, plan checker, and execution verifier agents
 - Configure inter-wave verification gates (`execution.review_cadence`: `dense`, `adaptive`, or `sparse`)
 - Toggle parallel execution of wave plans
@@ -906,18 +910,23 @@ Set during `/gpd:new-project` or changed later with `/gpd:settings`:
 - Confirms each major step
 - Uses the most checkpoints
 - Best for high-stakes work or learning the workflow
+- Best when you plan to stay nearby and approve each physics-bearing move
 
 **Balanced (Recommended)**
 
 - Handles routine work automatically
 - Pauses on physics decisions, ambiguities, blockers, or scope changes
 - Best default for most projects
+- Best first choice for unattended runs because it still pauses on important physics, scope, and blocker decisions
 
 **YOLO**
 
 - Fastest and least interactive
 - Auto-approves checkpoints and keeps going unless a hard stop fires
 - Best when you want maximum speed and minimal interruptions
+- Use only after `/gpd:settings` reports runtime permissions are synchronized and no relaunch is still required
+
+Change anytime with `/gpd:settings`. If it says a relaunch is required, the new autonomy level is not unattended-ready yet.
 
 ## Planning Configuration
 

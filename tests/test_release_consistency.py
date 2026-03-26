@@ -598,7 +598,7 @@ def test_public_help_default_quick_start_keeps_runtime_surface_readiness_path() 
     assert "**New work**" in quick_start
     assert "**Existing work**" in quick_start
     assert "**Returning work**" in quick_start
-    assert "**Optional setup**" in quick_start
+    assert "**Unattended / autonomy setup**" in quick_start
     assert "/gpd:new-project" in quick_start
     assert "/gpd:new-project --minimal" in quick_start
     assert "/gpd:map-research" in quick_start
@@ -622,12 +622,54 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     assert "| New research project, fast path | `new-project --minimal` |" in quick_start
     assert "| Returning to an existing GPD project | `resume-work` |" in quick_start
     assert "| Existing research folder or codebase | `map-research` |" in quick_start
-    assert "Secondary configuration path: use `settings` after startup" in quick_start
+    assert "Guided unattended configuration path: use `settings` after startup" in quick_start
+    assert "Start there if you are deciding how much unattended execution to allow." in quick_start
     assert "Use the exact runtime-specific command syntax below for your first command." in quick_start
     assert "If you are starting from existing work, run `map-research` first" in quick_start
     assert "/gpd:new-project --minimal" in quick_start
     assert "$gpd-resume-work" in quick_start
     assert "/gpd:map-research" in quick_start
+
+
+def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_readiness_path() -> None:
+    readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
+    quick_start = _markdown_section(readme, "## Quick Start")
+
+    assert "For unattended execution, the recommended default is Balanced (`balanced`)." in quick_start
+    assert "Use `settings` inside the runtime to confirm or change autonomy" in quick_start
+    assert "gpd permissions status --runtime <runtime> --autonomy balanced" in quick_start
+    assert "gpd permissions sync --runtime <runtime> --autonomy balanced" in quick_start
+    assert "Balanced (`balanced`) is the recommended unattended default." in quick_start
+    assert (
+        "Use `gpd permissions status --runtime <runtime> --autonomy balanced` to confirm unattended readiness; "
+        "if it reports `requires_relaunch`, the runtime is not ready yet"
+    ) in quick_start
+    assert (
+        "If `gpd permissions status` reports `requires_relaunch`, exit and relaunch the runtime before unattended use."
+    ) in quick_start
+
+
+def test_public_help_surfaces_keep_settings_as_guided_post_startup_path() -> None:
+    repo_root = _repo_root()
+    help_command = (repo_root / "src/gpd/commands/help.md").read_text(encoding="utf-8")
+    help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
+
+    for content in (help_command, help_workflow):
+        assert "3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation" in content
+        assert "Balanced (Recommended)" in content
+
+
+def test_public_settings_workflow_keeps_balanced_recommendation_and_relaunch_guidance() -> None:
+    settings_workflow = (_repo_root() / "src/gpd/specs/workflows/settings.md").read_text(encoding="utf-8")
+
+    assert '`autonomy` -- human-in-the-loop level: `"supervised"`, `"balanced"` (default), `"yolo"`' in settings_workflow
+    assert (
+        '{ label: "Balanced (Recommended)", description: "Best default for most unattended runs. '
+        'AI handles routine work and pauses on important physics decisions, ambiguities, blockers, or scope changes." }'
+    ) in settings_workflow
+    assert 'gpd --raw permissions sync --autonomy "$SELECTED_AUTONOMY"' in settings_workflow
+    assert "If `requires_relaunch` is `true`, surface `next_step` verbatim" in settings_workflow
+    assert "Runtime permissions sync attempted after autonomy is written, with relaunch guidance surfaced when required" in settings_workflow
 
 
 def test_public_bootstrap_help_examples_cover_install_and_readiness_handoff() -> None:

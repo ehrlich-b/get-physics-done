@@ -779,7 +779,9 @@ class CodexAdapter(RuntimeAdapter):
         desired_mode = "yolo" if autonomy == "yolo" else "default"
         managed_state = self._runtime_permissions_manifest_state(target_dir) or {}
         managed_by_gpd = managed_state.get("mode") == "yolo" or root_managed
+        requires_relaunch = False
 
+        next_step: str | None = None
         if desired_mode == "yolo":
             root_aligned = (
                 approval_policy == _CODEX_YOLO_APPROVAL_POLICY
@@ -793,10 +795,14 @@ class CodexAdapter(RuntimeAdapter):
                 )
             )
             config_aligned = root_aligned and roles_aligned
+            requires_relaunch = config_aligned
             if config_aligned:
                 message = (
                     "Codex is configured for prompt-free approvals and danger-full-access sandboxing "
                     "for the next session."
+                )
+                next_step = (
+                    "Restart Codex so the current session picks up the persisted yolo approval and sandbox settings."
                 )
             elif not root_aligned and not roles_aligned:
                 message = (
@@ -808,6 +814,7 @@ class CodexAdapter(RuntimeAdapter):
                 message = "Codex GPD-managed role files are not yet configured for yolo approval and sandbox settings."
         else:
             config_aligned = not managed_by_gpd
+            requires_relaunch = False
             if managed_by_gpd:
                 message = (
                     "Codex is still pinned to GPD-managed never/danger-full-access defaults from an earlier yolo sync."
@@ -830,6 +837,7 @@ class CodexAdapter(RuntimeAdapter):
             "desired_mode": desired_mode,
             "configured_mode": configured_mode,
             "config_aligned": config_aligned,
+            "requires_relaunch": requires_relaunch,
             "managed_by_gpd": managed_by_gpd,
             "settings_path": str(config_path),
             "approval_policy": approval_policy or "unset",
@@ -837,6 +845,7 @@ class CodexAdapter(RuntimeAdapter):
             "agent_role_approval_policy": role_approval_policy or "unset",
             "agent_role_sandbox_mode": role_sandbox_mode or "mixed",
             "message": message,
+            "next_step": next_step,
         }
 
     def sync_runtime_permissions(self, target_dir: Path, *, autonomy: str) -> dict[str, object]:

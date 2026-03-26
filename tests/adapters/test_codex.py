@@ -541,6 +541,25 @@ class TestInstall:
 
 
 class TestRuntimePermissions:
+    def test_runtime_permissions_status_marks_yolo_as_relaunch_required(
+        self,
+        adapter: CodexAdapter,
+        gpd_root: Path,
+        tmp_path: Path,
+    ) -> None:
+        target = tmp_path / ".codex"
+        target.mkdir()
+        skills = tmp_path / "skills"
+        skills.mkdir()
+        adapter.install(gpd_root, target, skills_dir=skills)
+        adapter.sync_runtime_permissions(target, autonomy="yolo")
+
+        status = adapter.runtime_permissions_status(target, autonomy="yolo")
+
+        assert status["config_aligned"] is True
+        assert status["requires_relaunch"] is True
+        assert "Restart Codex" in str(status["next_step"])
+
     def test_sync_runtime_permissions_yolo_updates_codex_root_and_role_configs(
         self,
         adapter: CodexAdapter,

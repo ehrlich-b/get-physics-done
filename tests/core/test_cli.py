@@ -142,6 +142,14 @@ def test_help_surfaces_local_setup_and_preflight_commands() -> None:
     assert "validate" in result.output
 
 
+def test_help_surfaces_permissions_readiness_commands() -> None:
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "permissions" in result.output
+    assert "Runtime permission readiness and sync" in result.output
+    assert "permissions status --runtime <runtime>" in result.output
+
+
 def test_doctor_help_surfaces_runtime_readiness_mode() -> None:
     result = runner.invoke(app, ["doctor", "--help"])
     assert result.exit_code == 0
@@ -150,6 +158,36 @@ def test_doctor_help_surfaces_runtime_readiness_mode() -> None:
     assert "--runtime" in result.output
     assert "--local" in result.output
     assert "--global" in result.output
+    assert "--target-dir" in result.output
+
+
+def test_permissions_help_surfaces_status_and_sync_roles() -> None:
+    result = runner.invoke(app, ["permissions", "--help"])
+    assert result.exit_code == 0
+    assert "Runtime permission readiness and sync" in result.output
+    assert "status" in result.output
+    assert "ready for unattended use" in result.output
+    assert "sync" in result.output
+    assert "gpd:settings" in result.output
+
+
+def test_permissions_status_help_surfaces_readiness_options() -> None:
+    result = runner.invoke(app, ["permissions", "status", "--help"])
+    assert result.exit_code == 0
+    assert "ready for unattended use" in result.output
+    assert "requested autonomy" in result.output
+    assert "--runtime" in result.output
+    assert "--autonomy" in result.output
+    assert "--target-dir" in result.output
+
+
+def test_permissions_sync_help_surfaces_guided_runtime_changes() -> None:
+    result = runner.invoke(app, ["permissions", "sync", "--help"])
+    assert result.exit_code == 0
+    assert "persist runtime-owned permission settings" in result.output
+    assert "gpd:settings" in result.output
+    assert "--runtime" in result.output
+    assert "--autonomy" in result.output
     assert "--target-dir" in result.output
 
 

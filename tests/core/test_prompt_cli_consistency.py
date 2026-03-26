@@ -157,7 +157,7 @@ def test_help_prompt_default_quick_start_stays_runtime_surface_focused() -> None
         "**New work**",
         "**Existing work**",
         "**Returning work**",
-        "**Optional setup**",
+        "**Unattended / autonomy setup**",
     ):
         assert section in quick_start
     for line in (

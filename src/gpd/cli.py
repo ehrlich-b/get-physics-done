@@ -571,7 +571,7 @@ app = _GPDTyper(
     epilog=(
         "Primary research workflow commands run inside an installed runtime surface, not the local `gpd` CLI.\n"
         "Use `gpd install <runtime>` to install GPD, then open that runtime and run its GPD help command there.\n\n"
-        "Use the local CLI for install, validation, context assembly, permissions sync, and diagnostics.\n"
+        "Use the local CLI for install, validation, context assembly, permissions readiness, optional sync, and diagnostics.\n"
         "Examples:\n"
         "  gpd install <runtime>\n"
         "  gpd validate command-context new-project\n"
@@ -2375,7 +2375,74 @@ def _runtime_permissions_payload(
         **payload,
     }
 
-permissions_app = typer.Typer(help="Runtime permission sync for autonomy")
+
+def _permissions_status_payload(
+    *,
+    runtime: str | None,
+    autonomy: str | None,
+    target_dir: str | None,
+) -> dict[str, object]:
+    """Return a status payload annotated for unattended-readiness checks."""
+    payload = _runtime_permissions_payload(
+        runtime=runtime,
+        autonomy=autonomy,
+        target_dir=target_dir,
+        apply_sync=False,
+        strict=True,
+    )
+    ready = (
+        bool(payload.get("runtime"))
+        and bool(payload.get("target"))
+        and bool(payload.get("config_aligned", False))
+        and not bool(payload.get("requires_relaunch", False))
+    )
+
+    if ready:
+        readiness = "ready"
+        readiness_message = "Runtime permissions are ready for unattended use."
+    elif bool(payload.get("requires_relaunch", False)):
+        readiness = "relaunch-required"
+        readiness_message = "Runtime permissions are aligned, but the runtime must be relaunched before unattended use."
+    elif "config_aligned" in payload:
+        readiness = "not-ready"
+        readiness_message = "Runtime permissions are not ready for unattended use under the requested autonomy."
+    else:
+        readiness = "unresolved"
+        readiness_message = str(payload.get("message") or "Runtime permissions are not ready for unattended use.")
+
+    next_step = payload.get("next_step")
+    if not isinstance(next_step, str) or not next_step.strip():
+        next_step = None
+    if next_step is None:
+        runtime_name = payload.get("runtime")
+        autonomy_value = payload.get("autonomy")
+        if readiness == "relaunch-required" and isinstance(runtime_name, str) and runtime_name:
+            next_step = f"Exit and relaunch {runtime_name} before treating unattended use as ready."
+        elif (
+            readiness == "not-ready"
+            and isinstance(runtime_name, str)
+            and runtime_name
+            and isinstance(autonomy_value, str)
+            and autonomy_value
+        ):
+            next_step = (
+                "Use `gpd:settings` inside the runtime for guided changes, or run "
+                f"`gpd permissions sync --runtime {runtime_name} --autonomy {autonomy_value}` "
+                "from your normal system terminal."
+            )
+        elif readiness == "unresolved" and runtime is None:
+            next_step = "Pass `--runtime <name>` to inspect a specific installed runtime."
+
+    return {
+        **payload,
+        "readiness": readiness,
+        "ready": ready,
+        "readiness_message": readiness_message,
+        "next_step": next_step,
+    }
+
+
+permissions_app = typer.Typer(help="Runtime permission readiness and sync")
 app.add_typer(permissions_app, name="permissions")
 
 
@@ -2385,16 +2452,8 @@ def permissions_status(
     autonomy: str | None = typer.Option(None, "--autonomy", help="Autonomy to compare against"),
     target_dir: str | None = typer.Option(None, "--target-dir", help="Explicit runtime config directory"),
 ) -> None:
-    """Show whether runtime-owned permissions match the requested autonomy."""
-    _output(
-        _runtime_permissions_payload(
-            runtime=runtime,
-            autonomy=autonomy,
-            target_dir=target_dir,
-            apply_sync=False,
-            strict=True,
-        )
-    )
+    """Check whether a runtime install is ready for unattended use under the requested autonomy."""
+    _output(_permissions_status_payload(runtime=runtime, autonomy=autonomy, target_dir=target_dir))
 
 
 @permissions_app.command("sync")
@@ -2403,7 +2462,7 @@ def permissions_sync(
     autonomy: str | None = typer.Option(None, "--autonomy", help="Autonomy to apply"),
     target_dir: str | None = typer.Option(None, "--target-dir", help="Explicit runtime config directory"),
 ) -> None:
-    """Persist runtime-owned permission settings for the requested autonomy."""
+    """Advanced: persist runtime-owned permission settings for the requested autonomy. Use `gpd:settings` for guided changes."""
     _output(
         _runtime_permissions_payload(
             runtime=runtime,
@@ -2438,7 +2497,7 @@ def config_set(
     key: str = typer.Argument(..., help="Config key path (dot-separated)"),
     value: str = typer.Argument(..., help="Value to set"),
 ) -> None:
-    """Set a configuration value."""
+    """Set a configuration value (advanced local override)."""
     from gpd.core.config import apply_config_update, effective_config_value, load_config
     from gpd.core.constants import ProjectLayout
     from gpd.core.utils import atomic_write, file_lock
@@ -2470,6 +2529,7 @@ def config_set(
     _found, effective_value = effective_config_value(config, key)
     result: dict[str, object] = {"key": key, "canonical_key": canonical_key, "value": effective_value, "updated": True}
     if canonical_key == "autonomy":
+        result["guided_path"] = "Use `gpd:settings` inside the runtime for guided autonomy changes."
         result["runtime_permissions"] = _runtime_permissions_payload(
             runtime=None,
             autonomy=str(effective_value),

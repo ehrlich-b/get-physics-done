@@ -1164,11 +1164,16 @@ class GeminiAdapter(RuntimeAdapter):
         wrapper_path = _managed_gemini_yolo_wrapper_path(target_dir)
         wrapper_exists = wrapper_path.is_file()
         desired_mode = "yolo" if autonomy == "yolo" else "default"
+        next_step: str | None = None
         message = "Gemini is using its normal approval-mode defaults."
         if desired_mode == "yolo":
             if wrapper_exists:
                 message = (
                     "Gemini only supports yolo at launch time. The GPD launcher is ready for the next session."
+                )
+                next_step = (
+                    "Exit the current Gemini session and relaunch with "
+                    f"{shlex.quote(str(wrapper_path))} so the runtime itself starts in yolo mode."
                 )
             else:
                 message = (
@@ -1180,9 +1185,11 @@ class GeminiAdapter(RuntimeAdapter):
             "desired_mode": desired_mode,
             "configured_mode": "launch-wrapper" if wrapper_exists else "default",
             "config_aligned": wrapper_exists if desired_mode == "yolo" else True,
+            "requires_relaunch": wrapper_exists if desired_mode == "yolo" else False,
             "managed_by_gpd": wrapper_exists,
             "launch_command": shlex.quote(str(wrapper_path)) if wrapper_exists else None,
             "message": message,
+            "next_step": next_step,
         }
 
     def sync_runtime_permissions(self, target_dir: Path, *, autonomy: str) -> dict[str, object]:

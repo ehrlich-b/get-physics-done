@@ -873,6 +873,74 @@ class TestConfigCommands:
         assert parsed["target"] == str(target.resolve(strict=False))
         assert parsed["message"] == f"validated {target.name} for balanced"
 
+    def test_permissions_status_marks_unaligned_runtime_not_ready(self, gpd_project: Path) -> None:
+        _install_runtime(gpd_project, _ENV_OVERRIDE_DESCRIPTOR)
+
+        result = _invoke(
+            "--raw",
+            "permissions",
+            "status",
+            "--runtime",
+            _ENV_OVERRIDE_DESCRIPTOR.runtime_name,
+            "--autonomy",
+            "yolo",
+        )
+        parsed = json.loads(result.output)
+
+        assert parsed["runtime"] == _ENV_OVERRIDE_DESCRIPTOR.runtime_name
+        assert parsed["config_aligned"] is False
+        assert parsed["readiness"] == "not-ready"
+        assert parsed["ready"] is False
+        assert parsed["readiness_message"] == (
+            "Runtime permissions are not ready for unattended use under the requested autonomy."
+        )
+
+    def test_permissions_status_marks_default_runtime_ready(self, gpd_project: Path) -> None:
+        _install_runtime(gpd_project, _ENV_OVERRIDE_DESCRIPTOR)
+
+        result = _invoke(
+            "--raw",
+            "permissions",
+            "status",
+            "--runtime",
+            _ENV_OVERRIDE_DESCRIPTOR.runtime_name,
+            "--autonomy",
+            "balanced",
+        )
+        parsed = json.loads(result.output)
+
+        assert parsed["runtime"] == _ENV_OVERRIDE_DESCRIPTOR.runtime_name
+        assert parsed["config_aligned"] is True
+        assert parsed["readiness"] == "ready"
+        assert parsed["ready"] is True
+        assert parsed["readiness_message"] == "Runtime permissions are ready for unattended use."
+
+    def test_permissions_status_marks_synced_yolo_runtime_relaunch_required(self, gpd_project: Path) -> None:
+        adapter, target = _install_runtime(gpd_project, _ENV_OVERRIDE_DESCRIPTOR)
+        adapter.sync_runtime_permissions(target, autonomy="yolo")
+
+        result = _invoke(
+            "--raw",
+            "permissions",
+            "status",
+            "--runtime",
+            _ENV_OVERRIDE_DESCRIPTOR.runtime_name,
+            "--autonomy",
+            "yolo",
+        )
+        parsed = json.loads(result.output)
+
+        assert parsed["runtime"] == _ENV_OVERRIDE_DESCRIPTOR.runtime_name
+        assert parsed["target"] == str(target)
+        assert parsed["config_aligned"] is True
+        assert parsed["requires_relaunch"] is True
+        assert parsed["readiness"] == "relaunch-required"
+        assert parsed["ready"] is False
+        assert parsed["readiness_message"] == (
+            "Runtime permissions are aligned, but the runtime must be relaunched before unattended use."
+        )
+        assert parsed["next_step"]
+
     @pytest.mark.parametrize("command", ["status", "sync"])
     def test_permissions_reject_foreign_manifest_target(
         self,
