@@ -54,6 +54,8 @@ __all__ = [
     "REQUIRED_SPECS_SUBDIRS",
     "REQUIREMENTS_FILENAME",
     "RESEARCH_MAP_DIR_NAME",
+    "RECENT_PROJECTS_DIR_NAME",
+    "RECENT_PROJECTS_INDEX_FILENAME",
     "RESEARCH_SUFFIX",
     "ROADMAP_FILENAME",
     "SCRATCH_DIR_NAME",
@@ -157,6 +159,12 @@ LITERATURE_DIR_NAME = "literature"
 
 RESEARCH_MAP_DIR_NAME = "research-map"
 """Subdirectory under GPD/ for theory/research map files."""
+
+RECENT_PROJECTS_DIR_NAME = "recent-projects"
+"""Subdirectory under the home GPD data root for recent-project discovery state."""
+
+RECENT_PROJECTS_INDEX_FILENAME = "index.json"
+"""Index filename for the machine-local recent-project advisory cache."""
 
 SCRATCH_DIR_NAME = "tmp"
 """Subdirectory under GPD/ for transient scratch files."""

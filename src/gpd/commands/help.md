@@ -55,12 +55,13 @@ Choose the path that matches your starting point:
 2. `/gpd:new-project` — Turn that mapped context into a structured GPD project
 
 **Returning work**
-1. `/gpd:resume-work` — Restore context and continue from the current project state
-2. `/gpd:progress` — Secondary status check; use `--brief` when you only need a short snapshot
-3. `/gpd:suggest-next` — Fastest next-action hint without the full progress report
-4. `gpd observe execution` — Read-only long-run visibility from your normal terminal; shows progress / waiting state and may say `possibly stalled`
+1. `gpd resume --recent` — Find a recently used GPD project from your normal terminal, then reopen the chosen repo
+2. `/gpd:resume-work` — Restore context and continue from the current project state
+3. `/gpd:progress` — Secondary status check; use `--brief` when you only need a short snapshot
+4. `/gpd:suggest-next` — Fastest next-action hint without the full progress report
+5. `gpd observe execution` — Read-only long-run visibility from your normal terminal; shows progress / waiting state and may say `possibly stalled`
 
-Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore.
+Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore. If you are not sure which repo to reopen, use `gpd resume --recent` first to find it, then continue inside that workspace.
 
 **Unattended / autonomy setup**
 1. `/gpd:settings` — Primary guided setup for autonomy, runtime permission sync, and unattended budgets (`Balanced` recommended)
@@ -90,6 +91,7 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 - The local `gpd` CLI may expose different `gpd ...` subcommands and grouping. Use `gpd --help` to inspect the executable CLI surface directly.
 - If you need to validate whether a slash-command can run in the current workspace, use `gpd validate command-context gpd:<name>`.
 - For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`.
+- For cross-project discovery from your normal terminal, use `gpd resume --recent` first, then open the selected project and run the per-project recovery surface there.
 
 ## Quick Start
 
@@ -105,11 +107,12 @@ Choose the path that matches your starting point:
 2. `/gpd:new-project` - Convert that mapped context into a structured GPD project
 
 **Returning work**
-1. `/gpd:resume-work` - Restore project context and continue from current state
-2. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
-3. `/gpd:suggest-next` - Fastest next-action hint without the full progress report
+1. `gpd resume --recent` - Find the project first when you are not sure which repo to reopen
+2. `/gpd:resume-work` - Restore project context and continue from current state
+3. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
+4. `/gpd:suggest-next` - Fastest next-action hint without the full progress report
 
-Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore. Use `gpd resume` from your normal system terminal when you want a read-only local recovery summary without launching the runtime.
+Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore. Use `gpd resume` from your normal system terminal when you want a read-only local recovery summary for the current project. Use `gpd resume --recent` first if you need to find the right project before resuming it.
 
 ## Core Workflow
 
@@ -390,7 +393,8 @@ Resume research from previous session with full context restoration.
 - Restores live execution state, recent progress, and session handoff context
 - Uses resume files and project state to pick up where you left off
 - Best first command when returning to paused or interrupted work
-- This is the in-runtime return path; for a normal-terminal read-only recovery snapshot, use `gpd resume`
+- This is the in-runtime return path for the selected project; for a normal-terminal read-only recovery snapshot, use `gpd resume`
+- If you are not sure which repo to reopen, use `gpd resume --recent` first to find the project, then run the per-project recovery surface there
 
 Usage: `/gpd:resume-work`
 

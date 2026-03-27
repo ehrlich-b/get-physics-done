@@ -274,7 +274,7 @@ def test_resume_recent_human_output_surfaces_command_and_missing_projects(
     resumable_root.mkdir(parents=True, exist_ok=True)
     missing_root = tmp_path / "projects" / "delta-missing"
 
-    (recent_index_dir / "recent-projects.json").write_text(
+    (recent_index_dir / "index.json").write_text(
         json.dumps(
             {
                 "projects": [

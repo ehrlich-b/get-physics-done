@@ -165,6 +165,7 @@ def test_help_prompt_default_quick_start_stays_runtime_surface_focused() -> None
         "/gpd:new-project --minimal",
         "/gpd:map-research",
         "/gpd:resume-work",
+        "gpd resume --recent",
         "/gpd:progress",
         "/gpd:suggest-next",
         "/gpd:settings",
@@ -331,6 +332,7 @@ def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_r
         assert "Uses resume files and project state to pick up where you left off" in content
         assert "Best first command when returning to paused or interrupted work" in content
         assert "gpd resume" in content
+        assert "gpd resume --recent" in content
         assert "**`/gpd:pause-work`**" in content
         assert "Create context handoff when pausing work mid-phase." in content
         assert "Creates .continue-here file with current state" in content

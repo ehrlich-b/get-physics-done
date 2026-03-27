@@ -119,7 +119,12 @@ def test_recovery_docs_keep_runtime_resume_work_distinct_from_local_resume_surfa
     portability_doc = (ROOT / "src/gpd/specs/references/orchestration/state-portability.md").read_text(encoding="utf-8")
     schema_doc = (ROOT / "src/gpd/specs/templates/state-json-schema.md").read_text(encoding="utf-8")
 
-    assert "Run `/gpd:resume-work` in the coding assistant when you are ready to continue work there" in portability_doc
+    assert (
+        "If you already know the repo, run `/gpd:resume-work` in the coding assistant when you are ready to "
+        "continue work there, or `gpd resume` from your normal system terminal for a read-only local recovery "
+        "summary."
+    ) in portability_doc
+    assert "gpd resume --recent" in portability_doc
     assert "`/gpd:pause-work`, `/gpd:resume-work`" in schema_doc
     assert "`gpd resume` is the public local read-only recovery surface" in schema_doc
     assert "`gpd init resume` remains the machine-readable backend" in schema_doc

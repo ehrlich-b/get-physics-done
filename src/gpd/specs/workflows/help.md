@@ -15,6 +15,7 @@ When a state-aware help view is requested, show guidance based on project state:
 **No project exists:**
 ```
 Getting started:
+  gpd resume --recent    — Find a recently used GPD project before opening it
   /gpd:new-project         — Start a new research project with full scoping
   /gpd:new-project --minimal — Faster one-question project bootstrap
   /gpd:map-research        — Map an existing research project
@@ -23,6 +24,7 @@ Getting started:
 **Project exists, paused or resumable:**
 ```
 Returning to work:
+  gpd resume --recent    — Find a recently used GPD project when you are not sure which repo to reopen
   /gpd:resume-work         — Restore the last handoff and continue
   /gpd:progress            — Review the broader project snapshot
   /gpd:suggest-next        — Ask for the fastest next-action recommendation
@@ -131,11 +133,12 @@ Choose the path that matches your starting point:
 2. `/gpd:new-project` - Convert that mapped context into a structured GPD project
 
 **Returning work**
-1. `/gpd:resume-work` - Restore project context and continue from current state
-2. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
-3. `/gpd:suggest-next` - Fastest next-action hint without the full progress report
+1. `gpd resume --recent` - Find the project first when you are not sure which repo to reopen
+2. `/gpd:resume-work` - Restore project context and continue from current state
+3. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
+4. `/gpd:suggest-next` - Fastest next-action hint without the full progress report
 
-Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore. Use `gpd resume` from your normal system terminal when you want a read-only local recovery summary without launching the runtime.
+Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has an explicit handoff to restore. Use `gpd resume` from your normal system terminal when you want a read-only local recovery summary for the current project. Use `gpd resume --recent` first if you need to find the right project before resuming it.
 
 ## Core Workflow
 
@@ -992,7 +995,8 @@ Example config:
 ```
 /gpd:pause-work        # Before leaving mid-phase, capture a handoff
 /clear
-/gpd:resume-work       # Restore the last handoff and continue
+gpd resume --recent    # Find a recently used GPD project when you are not sure which repo to reopen
+/gpd:resume-work       # Restore the last handoff and continue in the selected project
 /gpd:progress --brief  # Short orientation snapshot if needed
 /gpd:suggest-next      # Fastest next-step recommendation
 ```

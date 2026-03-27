@@ -9,10 +9,13 @@ from pathlib import Path
 
 from gpd.contracts import ResearchContract
 from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, ProjectLayout
+from gpd.core import state as state_module
 from gpd.core.state import (
     VALID_STATUSES,
     ResearchState,
     _normalize_state_schema,
+    _load_recent_projects_index,
+    _recent_projects_index_path,
     default_state_dict,
     ensure_state_schema,
     generate_state_markdown,
@@ -2149,6 +2152,98 @@ def test_state_record_session_does_not_emit_local_observability_events(tmp_path,
 
     observability_dir = layout.gpd / "observability"
     assert not observability_dir.exists()
+
+
+def test_state_record_session_updates_recent_project_index(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    monkeypatch.setenv("GPD_DATA_DIR", str(tmp_path / "gpd-data"))
+    monkeypatch.setattr(
+        state_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "builder-01", "platform": "Linux 6.1 x86_64"},
+    )
+
+    cwd = state_project_factory(tmp_path)
+    result = state_record_session(cwd, stopped_at="Phase 4 P2", resume_file="NEXT.md")
+
+    index = _load_recent_projects_index()
+    row = index.rows[0]
+
+    assert result.recorded is True
+    assert _recent_projects_index_path().exists()
+    assert len(index.rows) == 1
+    assert row.project_root == cwd.resolve(strict=False).as_posix()
+    assert row.last_session_at is not None
+    assert row.last_seen_at is not None
+    assert row.stopped_at == "Phase 4 P2"
+    assert row.resume_file == "NEXT.md"
+    assert row.hostname == "builder-01"
+    assert row.platform == "Linux 6.1 x86_64"
+    assert row.available is True
+
+
+def test_state_record_session_preserves_existing_recent_project_rows(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    monkeypatch.setenv("GPD_DATA_DIR", str(tmp_path / "gpd-data"))
+    monkeypatch.setattr(
+        state_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "builder-02", "platform": "Linux 6.2 x86_64"},
+    )
+
+    cwd = state_project_factory(tmp_path)
+    current_root = cwd.resolve(strict=False).as_posix()
+    stale_root = (tmp_path / "missing-project").as_posix()
+
+    index_path = _recent_projects_index_path()
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    index_path.write_text(
+        json.dumps(
+            {
+                "rows": [
+                    {
+                        "project_root": current_root,
+                        "last_session_at": "2026-03-01T00:00:00+00:00",
+                        "last_seen_at": "2026-03-01T00:00:00+00:00",
+                        "stopped_at": "Phase 1 P1",
+                        "resume_file": "old.md",
+                        "hostname": "builder-01",
+                        "platform": "Linux 6.1 x86_64",
+                        "available": True,
+                    },
+                    {
+                        "project_root": stale_root,
+                        "last_session_at": "2026-02-01T00:00:00+00:00",
+                        "last_seen_at": "2026-02-01T00:00:00+00:00",
+                        "stopped_at": "Phase 0 P1",
+                        "resume_file": "stale.md",
+                        "hostname": "builder-old",
+                        "platform": "Linux 5.15 x86_64",
+                        "available": False,
+                    },
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    state_record_session(cwd, stopped_at="Phase 4 P2", resume_file="NEXT.md")
+
+    index = _load_recent_projects_index()
+    row_roots = [row.project_root for row in index.rows]
+
+    assert row_roots == [current_root, stale_root]
+    assert len(index.rows) == 2
+    assert index.rows[0].stopped_at == "Phase 4 P2"
+    assert index.rows[0].resume_file == "NEXT.md"
+    assert index.rows[0].hostname == "builder-02"
+    assert index.rows[0].platform == "Linux 6.2 x86_64"
+    assert index.rows[1].available is False
+    assert index.rows[1].stopped_at == "Phase 0 P1"
 
 
 # ─── model types ─────────────────────────────────────────────────────────────

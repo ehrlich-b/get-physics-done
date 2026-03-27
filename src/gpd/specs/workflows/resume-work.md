@@ -19,7 +19,7 @@ Instantly restore full research project context so "Where were we?" has an immed
 <process>
 
 <step name="initialize">
-Load the shared resume context in one call. `/gpd:resume-work` is the guided runtime path, `gpd resume` is the public local read-only summary, and `gpd init resume` is the machine-readable intake they share:
+Load the shared resume context in one call. `/gpd:resume-work` is the guided runtime path for the selected project, `gpd resume` is the public local read-only summary, `gpd resume --recent` is the cross-project discovery surface, and `gpd init resume` is the machine-readable intake they share:
 
 ```bash
 INIT=$(gpd init resume)
@@ -50,7 +50,7 @@ If `active_execution_segment.first_result_gate_pending` is true, do not treat la
 
 **machine_change_detection:** Compare the current hostname/platform with `session.hostname` and `session.platform` from `state.json`. If they differ, display the non-blocking machine-change notice from INIT and recommend rerunning the installer so runtime-local config stays current. The project state itself remains portable and does not require repair.
 
-**canonical handoff path:** `/gpd:pause-work` records a canonical phase handoff by writing `GPD/phases/.../.continue-here.md` and persisting that pointer into session continuity. `execution_resume_file` is surfaced from the live execution snapshot or `session.resume_file` for display and logging. The runtime also ranks `session.resume_file` as a `session_resume_file` handoff candidate in `segment_candidates` when it is distinct from the live execution resume file. Treat it as informational continuity metadata, not as proof that a resumable bounded segment still exists. The same machine-readable intake powers the local `gpd resume` summary.
+**canonical handoff path:** `/gpd:pause-work` records a canonical phase handoff by writing `GPD/phases/.../.continue-here.md` and persisting that pointer into session continuity. `execution_resume_file` is surfaced from the live execution snapshot or `session.resume_file` for display and logging. The runtime also ranks `session.resume_file` as a `session_resume_file` handoff candidate in `segment_candidates` when it is distinct from the live execution resume file. Treat it as informational continuity metadata, not as proof that a resumable bounded segment still exists. The same machine-readable intake powers the local `gpd resume` summary. If you need to rediscover the project first, use `gpd resume --recent` before dropping into the per-project resume flow.
 
 Read and parse STATE.md, then PROJECT.md:
 

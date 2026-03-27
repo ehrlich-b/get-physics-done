@@ -1049,6 +1049,8 @@ def _build_execution_runtime_context(cwd: Path) -> dict[str, object]:
     current_platform = machine.get("platform")
     session_hostname = session.get("hostname") if isinstance(session, dict) else None
     session_platform = session.get("platform") if isinstance(session, dict) else None
+    session_last_date = session.get("last_date") if isinstance(session, dict) else None
+    session_stopped_at = session.get("stopped_at") if isinstance(session, dict) else None
     session_resume_file = _normalize_runtime_resume_file(
         cwd,
         session.get("resume_file") if isinstance(session, dict) else None,
@@ -1125,9 +1127,11 @@ def _build_execution_runtime_context(cwd: Path) -> dict[str, object]:
         "current_platform": current_platform,
         "session_hostname": session_hostname,
         "session_platform": session_platform,
+        "session_last_date": session_last_date,
+        "session_stopped_at": session_stopped_at,
         "machine_change_detected": machine_change_detected,
         "machine_change_notice": machine_change_notice,
-}
+    }
 
 
 def _normalize_runtime_resume_file(

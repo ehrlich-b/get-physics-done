@@ -2013,6 +2013,9 @@ def test_execution_observability_and_resume_surfaces_stay_conservative_about_sta
     assert "Read-only live status from your normal terminal; use this for progress / waiting state, not runtime hotkeys" in help_workflow
     assert "For read-only long-run visibility from your normal system terminal, use `gpd observe execution`." in readme
     assert "conservatively say `possibly stalled` instead of relying on runtime hotkeys" in readme
+    assert "gpd resume --recent" in help_command
+    assert "gpd resume --recent" in help_workflow
+    assert "gpd resume --recent" in readme
     assert "When STATE.md appears out of sync with disk reality" in progress
     assert "advisory context only" in resume_work
     assert "it is not a ranked bounded-segment resume candidate and does not justify `resume_mode=\"bounded_segment\"`." in resume_work
@@ -2024,17 +2027,21 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
     assert (
-        "`/gpd:resume-work` is the guided runtime path, `gpd resume` is the public local read-only summary, "
-        "and `gpd init resume` is the machine-readable intake they share:"
+        "`/gpd:resume-work` is the guided runtime path for the selected project, `gpd resume` is the public "
+        "local read-only summary, `gpd resume --recent` is the cross-project discovery surface, and "
+        "`gpd init resume` is the machine-readable intake they share:"
     ) in resume_work
     assert "segment_candidates" in resume_work
     assert "Do NOT invent additional candidates from plan files without summaries, auto-checkpoints, or other ad hoc checkpoints." in resume_work
-    assert "Record session continuity so /gpd:resume-work and local gpd resume" in pause_work
+    assert "Record session continuity so /gpd:resume-work, local gpd resume," in pause_work
+    assert "and gpd resume --recent" in pause_work
     assert "This is the canonical pause/resume handoff for the current phase." in pause_work
     assert "To return in the runtime: /gpd:resume-work" in pause_work
     assert "To inspect local recovery summary: gpd resume" in pause_work
+    assert "To rediscover the project first: gpd resume --recent" in pause_work
     assert "/gpd:resume-work" in help_workflow
     assert "- For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`." in help_workflow
+    assert "Use `gpd resume --recent` first if you need to find the right project before resuming it." in help_workflow
     assert "gpd observe execution" in help_workflow
     assert "not runtime hotkeys" in help_workflow
 
@@ -2271,6 +2278,7 @@ def test_help_command_keeps_static_quick_start_while_workflow_owns_full_referenc
         "/gpd:new-project --minimal",
         "/gpd:map-research",
         "/gpd:resume-work",
+        "gpd resume --recent",
         "/gpd:suggest-next",
         "/gpd:settings",
         "/gpd:help --all",
@@ -2283,6 +2291,7 @@ def test_help_workflow_state_aware_variant_surfaces_paused_resume_branch() -> No
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
     assert "**Project exists, paused or resumable:**" in help_workflow
+    assert "gpd resume --recent" in help_workflow
     assert "/gpd:resume-work" in help_workflow
     assert "/gpd:progress" in help_workflow
     assert "/gpd:suggest-next" in help_workflow

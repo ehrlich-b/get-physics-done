@@ -603,6 +603,7 @@ def test_public_help_default_quick_start_keeps_runtime_surface_readiness_path() 
     assert "/gpd:new-project --minimal" in quick_start
     assert "/gpd:map-research" in quick_start
     assert "/gpd:resume-work" in quick_start
+    assert "gpd resume --recent" in quick_start
     assert "/gpd:progress" in quick_start
     assert "/gpd:suggest-next" in quick_start
     assert "/gpd:settings" in quick_start
@@ -622,6 +623,7 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     assert "| New research project, fast path | `new-project --minimal` |" in quick_start
     assert "| Returning to an existing GPD project | `resume-work` |" in quick_start
     assert "| Existing research folder or codebase | `map-research` |" in quick_start
+    assert "gpd resume --recent" in quick_start
     assert "Guided unattended configuration path: use `settings` after startup" in quick_start
     assert "For model choice, the safe default is `review` plus runtime defaults." in quick_start
     assert "Use `settings` to move toward `Max quality`, `Balanced`, or `Budget-aware` only if you want to trade off quality against cost or model access." in quick_start
@@ -657,10 +659,12 @@ def test_public_readme_recovery_surfaces_keep_runtime_pause_and_resume_roles_dis
     assert "| Returning to an existing GPD project | `resume-work` |" in quick_start
     assert "| Returning to an existing GPD project | `pause-work` |" not in quick_start
     assert "use `gpd resume`" in quick_start
+    assert "gpd resume --recent" in quick_start
     assert "| Returning to an existing GPD project | `/gpd:resume-work` | `$gpd-resume-work` | `/gpd-resume-work` |" in readme
     assert "#### Session Management" in readme
     assert "| `/gpd:resume-work` | Resume research from the previous session with full context restoration |" in readme
     assert "| `/gpd:pause-work` | Create a context handoff when pausing research mid-phase |" in readme
+    assert "gpd resume --recent" in readme
 
 
 def test_public_help_surfaces_keep_settings_as_guided_post_startup_path() -> None:

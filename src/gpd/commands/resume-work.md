@@ -17,7 +17,7 @@ allowed-tools:
 <objective>
 Restore complete research context and resume work seamlessly from the latest canonical pause/resume handoff and live session state.
 
-This is the in-runtime return path. For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`.
+This is the in-runtime return path for the selected project. For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`. If you are not sure which repo to reopen, use `gpd resume --recent` first to find it, then run the per-project recovery surface there.
 
 Routes to the resume-work workflow which handles:
 

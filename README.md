@@ -56,10 +56,11 @@ Then choose the path that matches your starting point:
 |----------------|---------------|----------------|
 | New research project | `new-project` | Start a fresh GPD research workflow with the full onboarding path. |
 | New research project, fast path | `new-project --minimal` | Skip deep questioning and the literature-survey setup when you already know the scope and want the fastest project bootstrap. |
+| Find a recently used GPD project | `gpd resume --recent` | Discover recent projects from your normal system terminal, then reopen the chosen repo. |
 | Returning to an existing GPD project | `resume-work` | Restore prior session context and continue from the current project state. |
 | Existing research folder or codebase | `map-research` | Map existing work before planning. |
 
-Leave / return path: run `pause-work` inside the runtime before stepping away mid-phase, then use `resume-work` when you return inside the runtime. If you only need a local, read-only recovery snapshot from your normal system terminal, use `gpd resume`.
+Leave / return path: run `pause-work` inside the runtime before stepping away mid-phase, then use `resume-work` when you return inside the runtime. If you only need a local, read-only recovery snapshot for the current project from your normal system terminal, use `gpd resume`. If you are not sure which repo to reopen, use `gpd resume --recent` first to find it, then run the per-project recovery surface inside that workspace.
 
 For read-only long-run visibility from your normal system terminal, use `gpd observe execution`. It is the passive status surface for progress and waiting state; if it cannot prove the run is healthy, it will conservatively say `possibly stalled` instead of relying on runtime hotkeys.
 
@@ -103,7 +104,7 @@ If any of those fail, fix them before troubleshooting GPD itself.
 5. Run `gpd permissions status --runtime codex --autonomy balanced`. If that status reports drift, run `gpd permissions sync --runtime codex --autonomy balanced`; if it reports `requires_relaunch`, exit and relaunch Codex before treating unattended use as ready.
 6. If you explicitly want prompt-free runtime approvals, switch to YOLO (`yolo`) in `settings`, run `gpd permissions sync --runtime codex --autonomy yolo`, and relaunch when required by the runtime.
 7. If those checks pass, continue with `new-project`, `new-project --minimal`, `resume-work`, or `map-research`.
-8. For recent-session recovery from your normal system terminal without launching the runtime, use `gpd resume`. It is a read-only local recovery summary; use `resume-work` inside the runtime when you are ready to continue work there.
+8. For recent-session recovery from your normal system terminal without launching the runtime, use `gpd resume`. It is a read-only local recovery summary for the current project. If you are not sure which repo to reopen, use `gpd resume --recent` first to find it, then continue with the per-project recovery surface inside that workspace.
 
 **Troubleshooting**
 
@@ -284,6 +285,7 @@ These commands run inside your installed AI runtime after GPD has been installed
 | `map-research` | Map an existing research project before `new-project` |
 | `new-project` | Start a new research project with the full onboarding flow |
 | `new-project --minimal` | Fast path: initialize a new project from a compact description with lighter upfront setup |
+| `gpd resume --recent` | Find a recently used GPD project when you are not sure which repo to reopen |
 | `resume-work` | Resume the previous session with full context restoration |
 | `pause-work` | Capture a handoff before stepping away mid-phase so `resume-work` has explicit continuity |
 | `plan-phase N` | Plan phase `N` with task breakdown and checkpoints |
@@ -600,6 +602,7 @@ GPD stores project-local observability under `GPD/observability/` and detailed p
 | `gpd observe sessions [--status ...] [--command ...] [--last N]` | List recorded observability sessions |
 | `gpd observe show [--session ...] [--category ...] [--name ...] [--action ...] [--status ...] [--command ...] [--phase ...] [--plan ...] [--last N]` | Show logged observability events with filters |
 | `gpd observe execution` | Show read-only live execution status for the current workspace, including progress / waiting state and conservative `possibly stalled` wording |
+| `gpd resume --recent` | Show recently used GPD projects from the machine-local index and hand off to the chosen workspace's per-project resume flow |
 | `gpd observe event <category> <name> [--action ...] [--status ...] [--command ...] [--phase ...] [--plan ...] [--session ...] [--data <json>]` | Append an explicit observability event with optional structured metadata |
 | `gpd trace start <phase> <plan>` | Start a plan-local trace session |
 | `gpd trace log <event> [--data <json>]` | Append an event to the active trace |

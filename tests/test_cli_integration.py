@@ -238,6 +238,25 @@ def _iso_minutes_ago(minutes: int) -> str:
     return (datetime.now(UTC) - timedelta(minutes=minutes)).isoformat()
 
 
+def _bootstrap_recent_project(root: Path, *, phase_slug: str, title: str) -> Path:
+    planning = root / "GPD"
+    phase_dir = planning / "phases" / phase_slug
+    phase_dir.mkdir(parents=True, exist_ok=True)
+    (planning / "PROJECT.md").write_text(
+        f"# {title}\n\n## What This Is\n\nRecent recovery test project.\n",
+        encoding="utf-8",
+    )
+    (planning / "ROADMAP.md").write_text("# Roadmap\n\n- Phase 1\n", encoding="utf-8")
+    state = default_state_dict()
+    state["position"]["current_phase"] = "1"
+    state["position"]["status"] = "Paused"
+    planning.mkdir(parents=True, exist_ok=True)
+    (planning / "state.json").write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    (planning / "STATE.md").write_text(generate_state_markdown(state), encoding="utf-8")
+    (phase_dir / ".continue-here.md").write_text("resume\n", encoding="utf-8")
+    return root
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # 1. timestamp
 # ═══════════════════════════════════════════════════════════════════════════
@@ -308,6 +327,66 @@ class TestResume:
         assert "Read-only local recovery snapshot for this workspace." in result.output
         assert "gpd resume" in result.output
         assert "gpd init resume" in result.output
+
+    def test_resume_recent_lists_recent_projects_in_recency_order(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        data_dir = tmp_path / "gpd-data"
+        monkeypatch.setenv("GPD_DATA_DIR", str(data_dir))
+
+        older_project = _bootstrap_recent_project(
+            tmp_path / "recent-alpha",
+            phase_slug="01-alpha",
+            title="Recent Alpha Project",
+        )
+        newer_project = _bootstrap_recent_project(
+            tmp_path / "recent-beta",
+            phase_slug="01-beta",
+            title="Recent Beta Project",
+        )
+
+        monkeypatch.chdir(older_project)
+        _invoke(
+            "state",
+            "record-session",
+            "--stopped-at",
+            "Alpha stop",
+            "--resume-file",
+            "GPD/phases/01-alpha/.continue-here.md",
+        )
+        monkeypatch.chdir(newer_project)
+        _invoke(
+            "state",
+            "record-session",
+            "--stopped-at",
+            "Beta stop",
+            "--resume-file",
+            "GPD/phases/01-beta/.continue-here.md",
+        )
+
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        monkeypatch.chdir(outside)
+
+        result = _invoke("resume", "--recent")
+
+        beta_marker = "Beta stop"
+        alpha_marker = "Alpha stop"
+
+        assert beta_marker in result.output
+        assert alpha_marker in result.output
+        assert result.output.index(beta_marker) < result.output.index(alpha_marker)
+
+    def test_resume_outside_project_hints_recent_selector(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        monkeypatch.chdir(outside)
+
+        result = _invoke("resume")
+
+        assert "gpd resume --recent" in result.output
 
 
 class TestObserveExecution:

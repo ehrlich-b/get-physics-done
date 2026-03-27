@@ -25,16 +25,20 @@ def _write_current_execution(tmp_path: Path, payload: dict[str, object]) -> None
 def _update_state_session(
     cwd: Path,
     *,
+    last_date: str | None = None,
     hostname: str,
     platform: str,
+    stopped_at: str | None = None,
     resume_file: str | None,
 ) -> None:
     state_path = cwd / "GPD" / "state.json"
     state = json.loads(state_path.read_text(encoding="utf-8"))
     state["session"].update(
         {
+            "last_date": last_date,
             "hostname": hostname,
             "platform": platform,
+            "stopped_at": stopped_at,
             "resume_file": resume_file,
         }
     )

@@ -42,7 +42,12 @@ from gpd.core.cli_args import (
 from gpd.core.cli_args import (
     split_root_global_cli_options as _split_root_global_cli_options,
 )
-from gpd.core.constants import ENV_GPD_DISABLE_CHECKOUT_REEXEC, HOME_DATA_DIR_NAME
+from gpd.core.constants import (
+    ENV_GPD_DISABLE_CHECKOUT_REEXEC,
+    HOME_DATA_DIR_NAME,
+    RECENT_PROJECTS_DIR_NAME,
+    RECENT_PROJECTS_INDEX_FILENAME,
+)
 from gpd.core.errors import ConfigError, GPDError
 from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use, normalize_runtime_name
 
@@ -945,8 +950,7 @@ def milestone_complete(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-_RECENT_PROJECTS_DIR_NAME = "recent-projects"
-_RECENT_PROJECTS_INDEX_FILENAMES = ("index.json", "recent-projects.json")
+_RECENT_PROJECTS_INDEX_FILENAMES = (RECENT_PROJECTS_INDEX_FILENAME,)
 
 
 def _resume_status_message(payload: dict[str, object]) -> str:
@@ -1085,7 +1089,7 @@ def _recent_projects_data_root() -> Path:
 
 def _recent_projects_index_paths() -> list[Path]:
     """Return candidate index paths for recent-project recovery data."""
-    root = _recent_projects_data_root() / _RECENT_PROJECTS_DIR_NAME
+    root = _recent_projects_data_root() / RECENT_PROJECTS_DIR_NAME
     return [root / filename for filename in _RECENT_PROJECTS_INDEX_FILENAMES]
 
 
@@ -1120,7 +1124,18 @@ def _coerce_recent_project_rows(payload: object) -> list[dict[str, object]]:
         return [item for item in (_normalize_recent_project_row(data),) if item is not None]
 
     if isinstance(data, list):
-        return [item for item in (_normalize_recent_project_row(row) for row in data) if item is not None]
+        normalized_rows: list[dict[str, object]] = []
+        for row in data:
+            row_payload = row
+            if hasattr(row_payload, "model_dump"):
+                try:
+                    row_payload = row_payload.model_dump(mode="json")
+                except Exception:
+                    continue
+            normalized = _normalize_recent_project_row(row_payload)
+            if normalized is not None:
+                normalized_rows.append(normalized)
+        return normalized_rows
 
     return []
 
@@ -1210,16 +1225,16 @@ def _load_recent_projects_rows() -> list[dict[str, object]]:
         recent_projects_module = None
 
     if recent_projects_module is not None:
-        for attr_name in (
-            "list_recent_projects",
-            "load_recent_projects",
-            "load_recent_projects_index",
-            "get_recent_projects",
+        for attr_name, arg_sets in (
+            ("list_recent_projects", ((),)),
+            ("load_recent_projects", ((),)),
+            ("load_recent_projects_index", ((),)),
+            ("get_recent_projects", ((),)),
         ):
             loader = getattr(recent_projects_module, attr_name, None)
             if not callable(loader):
                 continue
-            for args in ((), (_get_cwd(),)):
+            for args in arg_sets:
                 try:
                     payload = loader(*args)
                 except TypeError:

@@ -1,5 +1,5 @@
 <purpose>
-Create the canonical `.continue-here.md` handoff file to preserve complete research state across sessions. This is the phase-level handoff artifact paired with `/gpd:resume-work` and the local `gpd resume` recovery surface.
+Create the canonical `.continue-here.md` handoff file to preserve complete research state across sessions. This is the phase-level handoff artifact paired with `/gpd:resume-work`, the local `gpd resume` recovery surface, and `gpd resume --recent` when the user needs to rediscover the project first.
 </purpose>
 
 <required_reading>
@@ -199,7 +199,8 @@ timestamp=$(gpd --raw timestamp full)
 **Update STATE.md with pause context:**
 
 ```bash
-# Record session continuity so /gpd:resume-work and local gpd resume
+# Record session continuity so /gpd:resume-work, local gpd resume,
+# and gpd resume --recent
 # see the same canonical handoff pointer
 gpd state record-session \
   --stopped-at "Paused at task [X]/[Y] in phase [{phase_slug}]" \
@@ -229,6 +230,8 @@ Handoff created: GPD/phases/[{phase_slug}]/.continue-here.md
 
 This is the canonical pause/resume handoff for the current phase. `/gpd:resume-work`
 and the local `gpd resume` recovery surface should now point to the same file.
+If the user is not sure which repo to reopen, `gpd resume --recent` should be
+the first discovery step before the per-project resume flow.
 
 Current state:
 
@@ -240,6 +243,7 @@ Current state:
 
 To return in the runtime: /gpd:resume-work
 To inspect local recovery summary: gpd resume
+To rediscover the project first: gpd resume --recent
 
 ```
 </step>
@@ -257,5 +261,5 @@ To inspect local recovery summary: gpd resume
 - [ ] STATE.md session continuity updated with pause point and resume file path
 - [ ] STATE.md status set to "Paused"
 - [ ] Committed as WIP (including STATE.md and state.json)
-- [ ] User knows the handoff location and the return path via `/gpd:resume-work` / `gpd resume`
+- [ ] User knows the handoff location and the return path via `/gpd:resume-work` / `gpd resume` / `gpd resume --recent`
 </success_criteria>

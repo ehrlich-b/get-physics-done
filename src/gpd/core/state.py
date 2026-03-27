@@ -54,6 +54,15 @@ from gpd.core.errors import StateError
 from gpd.core.extras import Approximation
 from gpd.core.extras import Uncertainty as PropagatedUncertainty
 from gpd.core.observability import gpd_span, instrument_gpd_function
+from gpd.core.recent_projects import (
+    load_recent_projects_index as _recent_projects_load_index,
+)
+from gpd.core.recent_projects import (
+    recent_projects_index_path as _recent_projects_index_path_impl,
+)
+from gpd.core.recent_projects import (
+    record_recent_project as _record_recent_project,
+)
 from gpd.core.results import IntermediateResult
 from gpd.core.utils import (
     atomic_write,
@@ -125,6 +134,42 @@ __all__ = [
 ]
 
 EM_DASH = "\u2014"
+
+
+def _recent_projects_index_path() -> Path:
+    """Return the machine-local recent-project index path."""
+    return _recent_projects_index_path_impl()
+
+
+def _load_recent_projects_index():
+    """Load the machine-local recent-project index for recovery tests and state hooks."""
+    return _recent_projects_load_index()
+
+
+def _record_recent_project_session(
+    cwd: Path,
+    *,
+    last_session_at: str,
+    stopped_at: str | None,
+    resume_file: str | None,
+    hostname: str,
+    platform: str,
+) -> None:
+    """Upsert the current project into the machine-local recent-project index."""
+    try:
+        _record_recent_project(
+            cwd,
+            session_data={
+                "last_date": last_session_at,
+                "stopped_at": stopped_at,
+                "resume_file": resume_file,
+                "hostname": hostname,
+                "platform": platform,
+            },
+        )
+    except Exception:
+        logger.debug("Skipping recent-project index update for %s", cwd, exc_info=True)
+
 
 # ─── Pydantic State Models ────────────────────────────────────────────────────
 
@@ -2915,6 +2960,14 @@ def state_record_session(
 
         if updated:
             _write_state_markdown_locked(cwd, content)
+            _record_recent_project_session(
+                cwd,
+                last_session_at=now,
+                stopped_at=session_values["stopped_at"],
+                resume_file=session_values["resume_file"],
+                hostname=machine["hostname"],
+                platform=machine["platform"],
+            )
             with gpd_span(
                 "session.continuity.recorded",
                 cwd=str(cwd),
@@ -2936,6 +2989,14 @@ def state_record_session(
             platform=machine["platform"] or EM_DASH,
         ):
             pass
+        _record_recent_project_session(
+            cwd,
+            last_session_at=now,
+            stopped_at=session_values["stopped_at"],
+            resume_file=session_values["resume_file"],
+            hostname=machine["hostname"],
+            platform=machine["platform"],
+        )
         return RecordSessionResult(recorded=False, reason="No session fields found in STATE.md")
 
 
