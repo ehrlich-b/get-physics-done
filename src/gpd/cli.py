@@ -42,7 +42,7 @@ from gpd.core.cli_args import (
 from gpd.core.cli_args import (
     split_root_global_cli_options as _split_root_global_cli_options,
 )
-from gpd.core.constants import ENV_GPD_DISABLE_CHECKOUT_REEXEC
+from gpd.core.constants import ENV_GPD_DISABLE_CHECKOUT_REEXEC, HOME_DATA_DIR_NAME
 from gpd.core.errors import ConfigError, GPDError
 from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use, normalize_runtime_name
 
@@ -945,6 +945,10 @@ def milestone_complete(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
+_RECENT_PROJECTS_DIR_NAME = "recent-projects"
+_RECENT_PROJECTS_INDEX_FILENAMES = ("index.json", "recent-projects.json")
+
+
 def _resume_status_message(payload: dict[str, object]) -> str:
     """Return a concise human summary of resume readiness for this workspace."""
     if not bool(payload.get("planning_exists")):
@@ -960,6 +964,15 @@ def _resume_status_message(payload: dict[str, object]) -> str:
     if bool(payload.get("has_live_execution")):
         return "Live execution telemetry exists, but it does not expose a portable resume target."
     return "No recent local recovery target is currently recorded."
+
+
+def _resume_recent_hint(payload: dict[str, object]) -> str | None:
+    """Return a cross-project recovery hint when the current workspace has nothing to resume."""
+    if bool(payload.get("planning_exists")) and any(
+        bool(payload.get(key)) for key in ("state_exists", "roadmap_exists", "project_exists")
+    ):
+        return None
+    return "If this is the wrong workspace, run `gpd resume --recent` to search other recent projects on this machine."
 
 
 def _resume_mode_label(value: object) -> str:
@@ -1065,6 +1078,222 @@ def _resume_candidate_notes(
     return "; ".join(notes[:5])
 
 
+def _recent_projects_data_root() -> Path:
+    """Return the machine-local home data root for cross-project recovery metadata."""
+    return Path.home() / HOME_DATA_DIR_NAME
+
+
+def _recent_projects_index_paths() -> list[Path]:
+    """Return candidate index paths for recent-project recovery data."""
+    root = _recent_projects_data_root() / _RECENT_PROJECTS_DIR_NAME
+    return [root / filename for filename in _RECENT_PROJECTS_INDEX_FILENAMES]
+
+
+def _recent_project_text(payload: dict[str, object], *keys: str) -> str | None:
+    """Return the first non-empty string value among *keys*."""
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped:
+                return stripped
+    return None
+
+
+def _coerce_recent_project_rows(payload: object) -> list[dict[str, object]]:
+    """Normalize a recent-project payload into a list of row dictionaries."""
+    if payload is None:
+        return []
+
+    data = payload
+    if hasattr(data, "model_dump"):
+        try:
+            data = data.model_dump(mode="json")  # type: ignore[assignment]
+        except Exception:
+            return []
+
+    if isinstance(data, dict):
+        for key in ("projects", "rows", "entries"):
+            value = data.get(key)
+            if isinstance(value, list):
+                return [item for item in (_normalize_recent_project_row(row) for row in value) if item is not None]
+        return [item for item in (_normalize_recent_project_row(data),) if item is not None]
+
+    if isinstance(data, list):
+        return [item for item in (_normalize_recent_project_row(row) for row in data) if item is not None]
+
+    return []
+
+
+def _normalize_recent_project_row(row: object) -> dict[str, object] | None:
+    """Normalize one recent-project row without dropping missing entries."""
+    if not isinstance(row, dict):
+        return None
+
+    normalized = dict(row)
+    project_root = _recent_project_text(normalized, "project_root", "workspace_root", "cwd", "path")
+    if project_root is not None:
+        normalized["project_root"] = project_root
+        project_path = Path(project_root).expanduser()
+        normalized["workspace"] = _format_display_path(project_path)
+        normalized["available"] = project_path.exists()
+        normalized["missing"] = not normalized["available"]
+        normalized["command"] = normalized.get("command") or (
+            f"gpd --cwd {shlex.quote(str(project_path.resolve(strict=False)))} resume"
+            if project_path.is_absolute()
+            else None
+        )
+    else:
+        normalized["project_root"] = None
+        normalized["workspace"] = "unknown"
+        normalized["available"] = False
+        normalized["missing"] = True
+        normalized["command"] = normalized.get("command") or None
+
+    last_session_at = _recent_project_text(
+        normalized,
+        "last_session_at",
+        "last_seen_at",
+        "last_event_at",
+        "updated_at",
+        "started_at",
+    )
+    if last_session_at is not None:
+        normalized["last_session_at"] = last_session_at
+
+    stopped_at = _recent_project_text(normalized, "stopped_at")
+    if stopped_at is not None:
+        normalized["stopped_at"] = stopped_at
+
+    resume_file = _recent_project_text(normalized, "resume_file")
+    if resume_file is not None:
+        normalized["resume_file"] = resume_file
+
+    status = _recent_project_text(normalized, "status", "state")
+    if not bool(normalized["available"]):
+        status = "unavailable"
+    elif status is None:
+        if bool(normalized.get("resumable")):
+            status = "resumable"
+        else:
+            status = "recent"
+    normalized["status"] = status
+
+    resumable_value = normalized.get("resumable")
+    if resumable_value is None:
+        resumable_value = normalized.get("can_resume")
+    normalized["resumable"] = bool(resumable_value) and bool(normalized["available"])
+
+    return normalized
+
+
+def _recent_project_sort_key(row: dict[str, object]) -> tuple[int, str, str]:
+    """Sort resumable rows first, then by most recent session timestamp."""
+    resumable_rank = 0 if bool(row.get("resumable")) else 1
+    timestamp = _recent_project_text(
+        row,
+        "last_session_at",
+        "last_seen_at",
+        "last_event_at",
+        "updated_at",
+        "started_at",
+    ) or ""
+    workspace = str(row.get("workspace") or row.get("project_root") or "")
+    return resumable_rank, timestamp, workspace
+
+
+def _load_recent_projects_rows() -> list[dict[str, object]]:
+    """Load the recent-project index, preferring the shared helper module when present."""
+    try:
+        from gpd.core import recent_projects as recent_projects_module
+    except Exception:
+        recent_projects_module = None
+
+    if recent_projects_module is not None:
+        for attr_name in (
+            "list_recent_projects",
+            "load_recent_projects",
+            "load_recent_projects_index",
+            "get_recent_projects",
+        ):
+            loader = getattr(recent_projects_module, attr_name, None)
+            if not callable(loader):
+                continue
+            for args in ((), (_get_cwd(),)):
+                try:
+                    payload = loader(*args)
+                except TypeError:
+                    continue
+                except Exception:
+                    continue
+                rows = _coerce_recent_project_rows(payload)
+                if rows:
+                    rows.sort(key=_recent_project_sort_key, reverse=True)
+                    rows.sort(key=lambda row: 0 if bool(row.get("resumable")) else 1)
+                    return rows
+
+    rows: list[dict[str, object]] = []
+    for index_path in _recent_projects_index_paths():
+        try:
+            raw = index_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            continue
+        except OSError:
+            continue
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        rows = _coerce_recent_project_rows(payload)
+        if rows:
+            break
+
+    rows.sort(key=_recent_project_sort_key, reverse=True)
+    rows.sort(key=lambda row: 0 if bool(row.get("resumable")) else 1)
+    return rows
+
+
+def _resume_recent_project_command(row: dict[str, object]) -> str:
+    """Return the exact command to inspect one recent project."""
+    project_root = row.get("project_root")
+    if not isinstance(project_root, str) or not project_root.strip():
+        return "unavailable"
+    project_path = Path(project_root).expanduser().resolve(strict=False)
+    return f"gpd --cwd {shlex.quote(str(project_path))} resume"
+
+
+def _render_recent_resume_summary(rows: list[dict[str, object]]) -> None:
+    """Render the recent-project picker for cross-project recovery."""
+    console.print("[bold]Recent Projects[/]")
+    console.print("[dim]Machine-local recovery index. Select a project and then run the exact command shown in the table.[/]")
+    console.print()
+
+    if not rows:
+        console.print("[dim]No recent projects are recorded on this machine yet.[/]")
+        console.print("[dim]Run `gpd resume` inside a project first, or wait for session continuity to be recorded.[/]")
+        return
+
+    table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
+    table.add_column("#", justify="right", no_wrap=True)
+    table.add_column("Workspace")
+    table.add_column("Last session")
+    table.add_column("Stopped at")
+    table.add_column("Resumable")
+    table.add_column("Status")
+    table.add_column("Command")
+    for idx, row in enumerate(rows, start=1):
+        table.add_row(
+            str(idx),
+            str(row.get("workspace") or _format_display_path(str(row.get("project_root") or "")) or "unknown"),
+            str(row.get("last_session_at") or row.get("last_seen_at") or row.get("last_event_at") or "—"),
+            str(row.get("stopped_at") or "—"),
+            "yes" if bool(row.get("resumable")) else "no",
+            str(row.get("status") or "unknown"),
+            _resume_recent_project_command(row),
+        )
+    console.print(table)
+
+
 def _render_resume_summary(payload: dict[str, object]) -> None:
     """Render a read-only local recovery summary for humans."""
     candidates = payload.get("segment_candidates")
@@ -1153,6 +1382,9 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     console.print("- `gpd resume` is the public local recovery surface.")
     console.print("- `gpd init resume` remains the machine-readable backend used by runtime resume workflows.")
     console.print("- `gpd observe sessions --last 5` shows recent local observability sessions.")
+    hint = _resume_recent_hint(payload)
+    if hint is not None:
+        console.print(f"- {hint}")
 
     try:
         from gpd.adapters import get_adapter
@@ -1166,8 +1398,22 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
 
 
 @app.command("resume")
-def resume() -> None:
-    """Summarize local recovery state without routing or modifying project files."""
+def resume(
+    recent: bool = typer.Option(
+        False,
+        "--recent",
+        help="List recent GPD projects on this machine instead of the current workspace recovery summary",
+    ),
+) -> None:
+    """Summarize local recovery state or list machine-local recent projects."""
+    if recent:
+        rows = _load_recent_projects_rows()
+        if _raw:
+            _output({"count": len(rows), "projects": rows})
+            return
+        _render_recent_resume_summary(rows)
+        return
+
     from gpd.core.context import init_resume
 
     payload = init_resume(_get_cwd())

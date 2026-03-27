@@ -211,7 +211,126 @@ def test_init_help_surfaces_local_onboarding_entrypoints() -> None:
 def test_resume_help_surfaces_read_only_local_recovery_role() -> None:
     result = runner.invoke(app, ["resume", "--help"])
     assert result.exit_code == 0
-    assert "Summarize local recovery state without routing or modifying project files." in result.output
+    assert "--recent" in result.output
+    assert "List recent GPD projects on this machine" in result.output
+
+
+def test_resume_recent_raw_surfaces_machine_local_recent_projects(
+    tmp_path: Path, monkeypatch
+) -> None:
+    home = tmp_path / "home"
+    recent_index_dir = home / ".gpd" / "recent-projects"
+    recent_index_dir.mkdir(parents=True, exist_ok=True)
+
+    resumable_root = tmp_path / "projects" / "alpha"
+    resumable_root.mkdir(parents=True, exist_ok=True)
+    unavailable_root = tmp_path / "projects" / "beta-missing"
+
+    (recent_index_dir / "index.json").write_text(
+        json.dumps(
+            {
+                "projects": [
+                    {
+                        "project_root": str(unavailable_root),
+                        "last_session_at": "2026-03-20T09:00:00+00:00",
+                        "stopped_at": "Phase 2",
+                        "status": "paused",
+                        "resumable": False,
+                    },
+                    {
+                        "project_root": str(resumable_root),
+                        "last_session_at": "2026-03-21T10:30:00+00:00",
+                        "stopped_at": "Phase 4",
+                        "status": "paused",
+                        "resumable": True,
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(cli_module.Path, "home", lambda: home)
+
+    result = runner.invoke(app, ["--raw", "resume", "--recent"])
+    parsed = json.loads(result.output)
+
+    assert parsed["count"] == 2
+    assert parsed["projects"][0]["project_root"] == str(resumable_root)
+    assert parsed["projects"][0]["resumable"] is True
+    assert parsed["projects"][0]["status"] == "paused"
+    assert parsed["projects"][1]["project_root"] == str(unavailable_root)
+    assert parsed["projects"][1]["available"] is False
+    assert parsed["projects"][1]["status"] == "unavailable"
+
+
+def test_resume_recent_human_output_surfaces_command_and_missing_projects(
+    tmp_path: Path, monkeypatch
+) -> None:
+    home = tmp_path / "home"
+    recent_index_dir = home / ".gpd" / "recent-projects"
+    recent_index_dir.mkdir(parents=True, exist_ok=True)
+
+    resumable_root = tmp_path / "projects" / "gamma"
+    resumable_root.mkdir(parents=True, exist_ok=True)
+    missing_root = tmp_path / "projects" / "delta-missing"
+
+    (recent_index_dir / "recent-projects.json").write_text(
+        json.dumps(
+            {
+                "projects": [
+                    {
+                        "project_root": str(resumable_root),
+                        "last_session_at": "2026-03-21T11:00:00+00:00",
+                        "stopped_at": "Phase 1",
+                        "status": "paused",
+                        "resumable": True,
+                    },
+                    {
+                        "project_root": str(missing_root),
+                        "last_session_at": "2026-03-19T08:00:00+00:00",
+                        "stopped_at": "Phase 3",
+                        "status": "paused",
+                        "resumable": False,
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(cli_module.Path, "home", lambda: home)
+
+    result = runner.invoke(app, ["resume", "--recent"])
+
+    assert result.exit_code == 0
+    assert "Recent Projects" in result.output
+    assert "gpd --cwd" in result.output
+
+
+def test_resume_plain_output_hints_recent_when_workspace_is_missing(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "gpd.core.context.init_resume",
+        lambda _cwd: {
+            "planning_exists": False,
+            "state_exists": False,
+            "roadmap_exists": False,
+            "project_exists": False,
+            "segment_candidates": [],
+            "has_live_execution": False,
+            "resume_mode": None,
+            "execution_resume_file": None,
+            "execution_paused_at": None,
+            "autonomy": None,
+            "research_mode": None,
+            "active_execution_segment": None,
+        },
+    )
+
+    result = runner.invoke(app, ["resume"])
+
+    assert result.exit_code == 0
+    assert "No GPD planning directory" in result.output
+    assert "gpd resume --recent" in result.output
 
 
 def test_observe_execution_help_surfaces_read_only_local_status_role() -> None:
