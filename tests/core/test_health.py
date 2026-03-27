@@ -938,6 +938,7 @@ trigger:
         assert "Bootstrap Network Access" not in labels
         assert "Provider/Auth Guidance" not in labels
         assert "LaTeX Toolchain" not in labels
+        assert "Optional Workflow Add-ons" not in labels
 
     def test_runtime_mode_records_virtualenv_state_without_blocking(self, tmp_path: Path):
         target_dir = tmp_path / ".codex"
@@ -978,6 +979,11 @@ trigger:
         assert not checks["Python Runtime"].issues
         assert checks["Runtime Launcher"].status == CheckStatus.OK
         assert checks["Runtime Config Target"].status == CheckStatus.OK
+        assert checks["Optional Workflow Add-ons"].status == CheckStatus.OK
+        assert checks["Optional Workflow Add-ons"].details["ready"] == 1
+        assert checks["Optional Workflow Add-ons"].details["missing"] == 0
+        assert checks["Optional Workflow Add-ons"].details["add_ons"][0]["summary"] == "ready"
+        assert checks["Optional Workflow Add-ons"].warnings == []
 
     def test_runtime_mode_fails_when_runtime_launcher_is_missing(self, tmp_path: Path):
         specs_dir = self._make_specs_dir(tmp_path)
@@ -1085,9 +1091,22 @@ trigger:
         assert checks["Bootstrap Network Access"].status == CheckStatus.WARN
         assert checks["Provider/Auth Guidance"].status == CheckStatus.OK
         assert checks["LaTeX Toolchain"].status == CheckStatus.WARN
+        assert checks["Optional Workflow Add-ons"].status == CheckStatus.WARN
+        assert checks["Optional Workflow Add-ons"].details["missing"] == 1
+        assert checks["Optional Workflow Add-ons"].details["add_ons"][0]["status"] == "missing"
+        assert checks["Optional Workflow Add-ons"].details["add_ons"][0]["summary"] == "missing (requires LaTeX)"
+        assert checks["Optional Workflow Add-ons"].warnings == [
+            "Paper/manuscript workflows unavailable: install a LaTeX toolchain to enable "
+            "`write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`."
+        ]
         assert all(
             checks[label].status != CheckStatus.FAIL
-            for label in ("Bootstrap Network Access", "Provider/Auth Guidance", "LaTeX Toolchain")
+            for label in (
+                "Bootstrap Network Access",
+                "Provider/Auth Guidance",
+                "LaTeX Toolchain",
+                "Optional Workflow Add-ons",
+            )
         )
 
     def test_runtime_mode_with_explicit_target_does_not_invent_scope(self, tmp_path: Path):
@@ -1160,11 +1179,14 @@ trigger:
             "Bootstrap Network Access",
             "Provider/Auth Guidance",
             "LaTeX Toolchain",
+            "Optional Workflow Add-ons",
         ):
             assert label in checks
         assert checks["Runtime Launcher"].status == CheckStatus.OK
         assert checks["Runtime Config Target"].status == CheckStatus.OK
         assert checks["LaTeX Toolchain"].status == CheckStatus.WARN
+        assert checks["Optional Workflow Add-ons"].status == CheckStatus.WARN
+        assert checks["Optional Workflow Add-ons"].details["add_ons"][0]["label"] == "Paper/manuscript workflows"
 
     def test_runtime_readiness_fails_when_launcher_missing(self, tmp_path: Path, monkeypatch):
         specs_dir = self._make_specs_dir(tmp_path)

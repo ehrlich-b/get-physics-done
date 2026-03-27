@@ -68,6 +68,8 @@ Guided unattended configuration path: use `settings` after startup when you want
 
 For model choice, the safe default is `review` plus runtime defaults. Use `settings` to move toward `Max quality`, `Balanced`, or `Budget-aware` only if you want to trade off quality against cost or model access.
 
+Optional workflow add-ons let you keep the base install narrow and only care about extra tooling when you need it. The first supported optional workflow add-on is paper/manuscript workflows such as `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`. If you plan to use that add-on, run `gpd doctor --runtime <runtime> --local|--global` from your normal system terminal to check LaTeX add-on readiness on this machine.
+
 For unattended execution, the recommended default is Balanced (`balanced`). Use `settings` inside the runtime to confirm or change autonomy, then run `gpd permissions status --runtime <runtime> --autonomy balanced` from your normal system terminal. If it reports drift, run `gpd permissions sync --runtime <runtime> --autonomy balanced`. If it reports `requires_relaunch`, exit and relaunch the runtime before treating unattended use as ready.
 
 If you specifically want prompt-free runtime approvals, that is a stricter mode than ordinary unattended use. In practice this may require switching autonomy to YOLO (`yolo`) in `settings`, then running `gpd permissions sync --runtime <runtime> --autonomy yolo`, and relaunching the runtime when the status output says `requires_relaunch`. The exact runtime behavior differs by platform.
@@ -91,14 +93,14 @@ If any of those fail, fix them before troubleshooting GPD itself.
 - Use `settings` after the first successful launch as the guided path for unattended configuration. Balanced (`balanced`) is the recommended unattended default.
 - Use `gpd permissions status --runtime <runtime> --autonomy balanced` to confirm unattended readiness; if it reports `requires_relaunch`, the runtime is not ready yet
 - If you want prompt-free runtime approvals rather than ordinary unattended execution, switch to YOLO (`yolo`) in `settings`, run `gpd permissions sync --runtime <runtime> --autonomy yolo`, and relaunch when required
-- LaTeX is optional unless you plan to use paper or manuscript workflows such as `write-paper`, `paper-build`, or `arxiv-submission`
+- Optional workflow add-ons are workflow-specific extra capabilities. The first supported add-on is paper/manuscript workflows; use `gpd doctor --runtime <runtime> --local|--global` to check LaTeX add-on readiness before relying on `write-paper`, `paper-build`, `peer-review`, or `arxiv-submission`
 - Provider authentication is checked manually in the runtime itself; GPD will point this out, but it does not hard-block installation readiness on it
 - Use `--upgrade` only when you intentionally want the latest unreleased GitHub `main` snapshot
 
 **Quick verification path**
 
 1. Install with an explicit runtime when possible, for example `npx -y get-physics-done --codex --local`.
-2. From the same terminal, run `gpd doctor --runtime codex --local` and `gpd --help`.
+2. From the same terminal, run `gpd doctor --runtime codex --local` and `gpd --help`. If you plan to use the paper/manuscript optional workflow add-on later, treat this doctor check as your LaTeX add-on readiness check too.
 3. Launch your selected runtime and run its GPD help command (`/gpd:help`, `$gpd-help`, or `/gpd-help`).
 4. If you want unattended execution, use `settings` as the guided configuration path and keep autonomy at Balanced (`balanced`) unless you intentionally want prompt-free runtime approvals.
 5. Run `gpd permissions status --runtime codex --autonomy balanced`. If that status reports drift, run `gpd permissions sync --runtime codex --autonomy balanced`; if it reports `requires_relaunch`, exit and relaunch Codex before treating unattended use as ready.

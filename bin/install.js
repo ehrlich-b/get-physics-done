@@ -1000,6 +1000,10 @@ function runInstallReadinessPreflight(managedPython, runtimes, scope, targetDir 
   success(`Runtime readiness preflight passed for ${formatRuntimeList(runtimes)}.`);
   const doctorHints = runtimes.map((runtime) => `\`${runtimeDoctorHint(runtime, scope, targetDir)}\``).join(", ");
   log(`For deeper local diagnostics after install, use ${doctorHints}.`);
+  log(
+    "Optional workflow add-ons: if you plan paper/manuscript workflows, rerun "
+    + `${doctorHints} after install and check \`Optional Workflow Add-ons\` plus \`LaTeX Toolchain\`.`
+  );
   console.log("");
   return true;
 }
@@ -1128,6 +1132,7 @@ function printHelp() {
   console.log(` ${dim}# Recommended unattended configuration${reset}`);
   console.log(" Use the runtime-specific `settings` command to keep autonomy at Balanced (`balanced`).");
   console.log(" Also use `settings` after startup to choose your model-cost posture; runtime defaults are the safest starting point.");
+  console.log(" Optional workflow add-ons: if you plan paper/manuscript workflows, rerun `gpd doctor --runtime <runtime> --local|--global` and check `Optional Workflow Add-ons` plus `LaTeX Toolchain`.");
   console.log(" Then run `gpd permissions status --runtime <runtime> --autonomy balanced`.");
   console.log(" If it reports drift, run `gpd permissions sync --runtime <runtime> --autonomy balanced`.");
   console.log(" If it reports `requires_relaunch`, exit and relaunch the runtime before unattended use.");

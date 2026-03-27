@@ -1190,6 +1190,44 @@ def _doctor_check_latex_toolchain() -> HealthCheck:
     )
 
 
+def _doctor_check_optional_workflow_addons(latex_check: HealthCheck) -> HealthCheck:
+    """Report readiness for optional workflow add-ons backed by known checks."""
+    latex_available_detail = latex_check.details.get("available")
+    latex_available = (
+        bool(latex_available_detail)
+        if latex_available_detail is not None
+        else latex_check.status == CheckStatus.OK
+    )
+    paper_summary = "ready" if latex_available else "missing (requires LaTeX)"
+    warnings = []
+    if not latex_available:
+        warnings.append(
+            "Paper/manuscript workflows unavailable: install a LaTeX toolchain to enable "
+            "`write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`."
+        )
+
+    return HealthCheck(
+        status=CheckStatus.OK if latex_available else CheckStatus.WARN,
+        label="Optional Workflow Add-ons",
+        details={
+            "total": 1,
+            "ready": 1 if latex_available else 0,
+            "missing": 0 if latex_available else 1,
+            "add_ons": [
+                {
+                    "id": "paper-manuscript-workflows",
+                    "label": "Paper/manuscript workflows",
+                    "status": "ready" if latex_available else "missing",
+                    "ready": latex_available,
+                    "depends_on": ["LaTeX Toolchain"],
+                    "summary": paper_summary,
+                }
+            ],
+        },
+        warnings=warnings,
+    )
+
+
 def run_doctor(
     specs_dir: Path | None = None,
     version: str | None = None,
@@ -1316,7 +1354,9 @@ def run_doctor(
             checks.append(_doctor_check_runtime_target(resolved_target))
             checks.append(_doctor_check_bootstrap_network_access())
             checks.append(_doctor_check_provider_auth(normalized_runtime, adapter.launch_command, resolved_target))
-            checks.append(_doctor_check_latex_toolchain())
+            latex_check = _doctor_check_latex_toolchain()
+            checks.append(latex_check)
+            checks.append(_doctor_check_optional_workflow_addons(latex_check))
 
         # Version (passed as parameter, no gpd import needed)
 

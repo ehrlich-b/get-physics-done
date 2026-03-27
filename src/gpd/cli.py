@@ -5585,6 +5585,12 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 "The safest starting point is `review` plus runtime defaults.",
                 soft_wrap=True,
             )
+            console.print(
+                "7. If you plan to use paper/manuscript workflows, rerun "
+                f"[bold]gpd doctor --runtime {single_runtime_name} --{doctor_scope}[/] "
+                "and check the `Optional Workflow Add-ons` and `LaTeX Toolchain` rows before publication work.",
+                soft_wrap=True,
+            )
         else:
             for display_name, launch_command, help_command, new_project_command, map_research_command in next_step_entries:
                 console.print(
@@ -5607,6 +5613,12 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
             console.print(
                 "After startup, use the runtime `settings` command to choose your model-cost posture. "
                 "The safest starting point is `review` plus runtime defaults.",
+                soft_wrap=True,
+            )
+            console.print(
+                "For paper/manuscript workflows, rerun "
+                "[bold]gpd doctor --runtime <runtime> --local|--global[/] "
+                "and check the `Optional Workflow Add-ons` and `LaTeX Toolchain` rows before publication work.",
                 soft_wrap=True,
             )
         console.print()

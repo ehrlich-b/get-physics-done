@@ -67,6 +67,10 @@ Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has 
 1. `/gpd:settings` — Primary guided setup for autonomy, runtime permission sync, and unattended budgets (`Balanced` recommended)
 2. `/gpd:help --all` — Full command reference
 
+**Optional workflow add-ons**
+1. `Paper/manuscript workflows` — First supported optional workflow add-on for `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`
+2. `gpd doctor --runtime <runtime> --local|--global` — Check LaTeX add-on readiness from your normal terminal before using that add-on
+
 **Core workflow:** new-project → discuss-phase → plan-phase → execute-phase → verify-work → repeat → complete-milestone
 **Publication:** write-paper → peer-review → respond-to-referees → arxiv-submission
 
@@ -101,6 +105,10 @@ Choose the path that matches your starting point:
 1. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
 2. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
 3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; review budgets and sync runtime permissions here
+
+**Optional workflow add-ons**
+1. `Paper/manuscript workflows` - First supported optional workflow add-on for `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`
+2. `gpd doctor --runtime <runtime> --local|--global` - Check LaTeX add-on readiness from your normal terminal before using that add-on
 
 **Existing work**
 1. `/gpd:map-research` - Map an existing folder or project first

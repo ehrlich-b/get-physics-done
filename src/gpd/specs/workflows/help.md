@@ -59,6 +59,7 @@ Phase {N} complete:
 Publication workflow:
   /gpd:peer-review         — Run manuscript peer review inside the current project
   /gpd:arxiv-submission    — Package only after review passes
+  gpd doctor --runtime <runtime> --local|--global — Check LaTeX add-on readiness for the paper/manuscript optional workflow add-on
 ```
 
 **Referee report exists:**
@@ -127,6 +128,10 @@ Choose the path that matches your starting point:
 1. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
 2. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
 3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; review budgets and sync runtime permissions here
+
+**Optional workflow add-ons**
+1. `Paper/manuscript workflows` - First supported optional workflow add-on for `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`
+2. `gpd doctor --runtime <runtime> --local|--global` - Check LaTeX add-on readiness from your normal terminal before using that add-on
 
 **Existing work**
 1. `/gpd:map-research` - Map an existing folder or project first

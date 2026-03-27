@@ -63,7 +63,11 @@ def _assert_single_runtime_next_steps(output: str, runtime: str) -> None:
         rf"Fast bootstrap: use {re.escape(_RUNTIME_NEW_PROJECT_COMMANDS[runtime])} --minimal.*?"
         rf"Use gpd --help for local install, validation, permissions, and diagnostics\..*?"
         rf"Use {re.escape(_RUNTIME_HELP_COMMANDS[runtime])} inside {re.escape(_RUNTIME_DISPLAY_NAMES[runtime])} for workflow help\..*?"
-        rf"Verify or troubleshoot this machine with gpd doctor --runtime {re.escape(runtime)} --(?:local|global)\.",
+        rf"Verify or troubleshoot this machine with gpd doctor --runtime {re.escape(runtime)} --(?:local|global)\..*?"
+        rf"After startup, use the runtime `settings` command to choose your model-cost posture\. "
+        rf"The safest starting point is `review` plus runtime defaults\..*?"
+        rf"If you plan to use paper/manuscript workflows, rerun gpd doctor --runtime {re.escape(runtime)} --(?:local|global) "
+        rf"and check the `Optional Workflow Add-ons` and `LaTeX Toolchain` rows before publication work\.",
         re.S,
     )
     assert pattern.search(output), output
@@ -432,6 +436,15 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
             f"Use {{HELP_COMMANDS[runtime]}} inside {{RUNTIME_LABELS[runtime]}} for workflow help."
         )
         print(f"5. Verify or troubleshoot this machine with gpd doctor --runtime {{runtime}} --{{scope}}.")
+        print(
+            "6. After startup, use the runtime `settings` command to choose your model-cost posture. "
+            "The safest starting point is `review` plus runtime defaults."
+        )
+        print(
+            "7. If you plan to use paper/manuscript workflows, rerun "
+            f"gpd doctor --runtime {{runtime}} --{{scope}} "
+            "and check the `Optional Workflow Add-ons` and `LaTeX Toolchain` rows before publication work."
+        )
     else:
         for runtime in runtimes:
             print(
@@ -442,6 +455,14 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
             )
         print("Use gpd --help for local install, validation, permissions, and diagnostics.")
         print("Run gpd doctor --runtime <runtime> --local|--global for a focused readiness check.")
+        print(
+            "After startup, use the runtime `settings` command to choose your model-cost posture. "
+            "The safest starting point is `review` plus runtime defaults."
+        )
+        print(
+            "For paper/manuscript workflows, rerun gpd doctor --runtime <runtime> --local|--global "
+            "and check the `Optional Workflow Add-ons` and `LaTeX Toolchain` rows before publication work."
+        )
     record()
     raise SystemExit(0)
 
@@ -580,6 +601,11 @@ def test_bootstrap_uses_managed_virtualenv_and_skips_host_pip(tmp_path: Path) ->
     assert f"{_RUNTIME_DISPLAY_NAMES[_CODEX_RUNTIME_NAME]}: readiness check passed" in result.stdout
     assert "GPD does not verify provider credentials automatically" in result.stdout
     assert f"`gpd doctor --runtime {_CODEX_RUNTIME_NAME} --local`" in result.stdout
+    assert (
+        "Optional workflow add-ons: if you plan paper/manuscript workflows, rerun "
+        f"`gpd doctor --runtime {_CODEX_RUNTIME_NAME} --local` after install and check "
+        "`Optional Workflow Add-ons` plus `LaTeX Toolchain`."
+    ) in result.stdout
     assert "Install Summary" in result.stdout
     _assert_single_runtime_next_steps(result.stdout, _CODEX_RUNTIME_NAME)
     assert f"Installing GPD for {_RUNTIME_DISPLAY_NAMES[_CODEX_RUNTIME_NAME]} (local)..." not in result.stdout
@@ -1152,6 +1178,11 @@ def test_bootstrap_supports_all_runtime_install_in_one_pass(tmp_path: Path) -> N
         assert _RUNTIME_DISPLAY_NAMES[runtime] in result.stdout
     assert "Install Summary" in result.stdout
     assert "Next steps" in result.stdout
+    assert (
+        "Optional workflow add-ons: if you plan paper/manuscript workflows, rerun "
+        + ", ".join(f"`gpd doctor --runtime {runtime} --global`" for runtime in _RUNTIME_NAMES)
+        + " after install and check `Optional Workflow Add-ons` plus `LaTeX Toolchain`."
+    ) in result.stdout
     for runtime in _RUNTIME_NAMES:
         _assert_multi_runtime_next_steps_line(result.stdout, runtime)
     assert "Use gpd --help for local install, validation, permissions, and diagnostics." in result.stdout

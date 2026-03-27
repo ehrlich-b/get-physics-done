@@ -615,6 +615,18 @@ def test_public_help_default_quick_start_keeps_runtime_surface_readiness_path() 
     assert "## Invocation Surfaces" not in quick_start
 
 
+def test_public_help_surfaces_keep_publication_workflows_visible_for_optional_add_ons() -> None:
+    repo_root = _repo_root()
+    help_command = (repo_root / "src/gpd/commands/help.md").read_text(encoding="utf-8")
+    help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
+
+    assert "**Publication:** write-paper → peer-review → respond-to-referees → arxiv-submission" in help_command
+    for content in (help_command, help_workflow):
+        assert "**`/gpd:write-paper [title or topic] [--from-phases 1,2,3]`**" in content
+        assert "**`/gpd:arxiv-submission`**" in content
+        assert "LaTeX validation and compilation check" in content
+
+
 def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     quick_start = _markdown_section(readme, "## Quick Start")
@@ -650,6 +662,19 @@ def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_rea
     assert (
         "If `gpd permissions status` reports `requires_relaunch`, exit and relaunch the runtime before unattended use."
     ) in quick_start
+
+
+def test_public_readme_and_bootstrap_surface_optional_workflow_add_on_guidance() -> None:
+    repo_root = _repo_root()
+    readme = (repo_root / "README.md").read_text(encoding="utf-8")
+    installer = (repo_root / "bin/install.js").read_text(encoding="utf-8")
+
+    assert "Optional workflow add-ons let you keep the base install narrow" in readme
+    assert "Optional workflow add-ons are workflow-specific extra capabilities." in readme
+    assert "The first supported add-on is paper/manuscript workflows;" in readme
+    assert "check LaTeX add-on readiness before relying on `write-paper`, `paper-build`, `peer-review`, or `arxiv-submission`" in readme
+    assert "Optional workflow add-ons: if you plan paper/manuscript workflows, rerun " in installer
+    assert "check `Optional Workflow Add-ons` plus `LaTeX Toolchain`." in installer
 
 
 def test_public_readme_recovery_surfaces_keep_runtime_pause_and_resume_roles_distinct() -> None:
