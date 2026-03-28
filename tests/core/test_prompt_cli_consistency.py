@@ -212,6 +212,7 @@ def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> N
         assert "gpd permissions status --runtime <runtime> --autonomy balanced" in content
         assert "gpd permissions sync --runtime <runtime> --autonomy balanced" in content
         assert "gpd doctor --runtime <runtime> --local|--global" in content
+        assert "gpd validate plan-preflight <PLAN.md>" in content
         assert "Workflow presets" in content
         assert "gpd presets show <preset>" in content
         assert "gpd presets apply <preset>" in content

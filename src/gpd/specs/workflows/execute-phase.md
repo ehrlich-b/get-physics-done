@@ -38,6 +38,7 @@ If `project_contract_validation.valid` is false, STOP and show the explicit `pro
 Treat `project_contract` as the authoritative machine-readable execution contract only when it is present and `project_contract_validation.valid` is true.
 Treat `effective_reference_intake` as the carry-forward anchor ledger for refs, baselines, prior outputs, and unresolved context gaps.
 Use `active_reference_context` and `reference_artifacts_content` to interpret that ledger, not to replace it with markdown-only guesses.
+Before launching any plan, require that the selected `PLAN.md` passes `gpd validate plan-preflight <PLAN.md>` when specialized tool requirements are declared.
 
 When `parallelization` is false, plans within a wave execute sequentially.
 

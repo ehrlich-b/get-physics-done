@@ -3100,6 +3100,79 @@ class TestReviewValidationCommands:
             for error in payload["errors"]
         )
 
+    def test_validate_plan_preflight_command_blocks_missing_required_wolfram(self, gpd_project: Path, monkeypatch) -> None:
+        phase_dir = gpd_project / "GPD" / "phases" / "01-benchmark"
+        phase_dir.mkdir(parents=True, exist_ok=True)
+        plan_path = phase_dir / "01-01-PLAN.md"
+        plan_path.write_text(
+            (FIXTURES_DIR / "plan_with_contract.md")
+            .read_text(encoding="utf-8")
+            .replace(
+                "interactive: false\n",
+                "interactive: false\n"
+                "tool_requirements:\n"
+                "  - id: wolfram-cas\n"
+                "    tool: wolfram\n"
+                "    purpose: Symbolic tensor reduction\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.setattr("gpd.core.tool_preflight.shutil.which", lambda binary: None)
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "plan-preflight", str(plan_path)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        assert payload["validation_passed"] is True
+        assert payload["passed"] is False
+        assert payload["requirements"][0]["tool"] == "wolfram"
+        assert payload["requirements"][0]["blocking"] is True
+
+    def test_validate_plan_preflight_command_allows_missing_optional_wolfram_with_fallback(
+        self,
+        gpd_project: Path,
+        monkeypatch,
+    ) -> None:
+        phase_dir = gpd_project / "GPD" / "phases" / "01-benchmark"
+        phase_dir.mkdir(parents=True, exist_ok=True)
+        plan_path = phase_dir / "01-01-PLAN.md"
+        plan_path.write_text(
+            (FIXTURES_DIR / "plan_with_contract.md")
+            .read_text(encoding="utf-8")
+            .replace(
+                "interactive: false\n",
+                "interactive: false\n"
+                "tool_requirements:\n"
+                "  - id: wolfram-cas\n"
+                "    tool: mathematica\n"
+                "    purpose: Symbolic tensor reduction\n"
+                "    required: false\n"
+                "    fallback: Use SymPy instead\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.setattr("gpd.core.tool_preflight.shutil.which", lambda binary: None)
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "plan-preflight", str(plan_path)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        assert payload["validation_passed"] is True
+        assert payload["passed"] is True
+        assert payload["requirements"][0]["tool"] == "wolfram"
+        assert payload["requirements"][0]["blocking"] is False
+        assert "license state are not proven" in payload["warnings"][0]
+
     def test_validate_summary_contract_command_rejects_unknown_contract_ids(self, gpd_project: Path) -> None:
         phase_dir = gpd_project / "GPD" / "phases" / "01-benchmark"
         phase_dir.mkdir(parents=True, exist_ok=True)

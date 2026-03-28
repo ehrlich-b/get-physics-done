@@ -39,6 +39,7 @@ from gpd.core.contract_validation import (
 )
 from gpd.core.errors import GPDError
 from gpd.core.observability import instrument_gpd_function, resolve_project_root
+from gpd.core.tool_preflight import PlanToolPreflightError, parse_plan_tool_requirements
 from gpd.core.utils import matching_phase_artifact_count, phase_artifact_display_name, phase_artifact_id, safe_read_file
 
 # ---------------------------------------------------------------------------
@@ -1174,6 +1175,12 @@ def validate_frontmatter(content: str, schema_name: str, source_path: Path | Non
     elif "contract" in meta:
         errors.append("contract: expected an object")
 
+    if schema_name == "plan" and "tool_requirements" in meta:
+        try:
+            parse_plan_tool_requirements(meta.get("tool_requirements"))
+        except PlanToolPreflightError as exc:
+            errors.append(f"tool_requirements: {exc}")
+
     if schema_name in {"summary", "verification"}:
         plan_contract_ref = meta.get("plan_contract_ref")
         plan_contract_ref_fragment_error: str | None = None
@@ -1532,6 +1539,12 @@ def verify_plan_structure(cwd: Path, file_path: Path) -> PlanValidation:
         errors.extend(f"Invalid contract: {issue}" for issue in resolution.errors)
     elif "contract" in meta:
         errors.append("Invalid contract: expected an object")
+
+    if "tool_requirements" in meta:
+        try:
+            parse_plan_tool_requirements(meta.get("tool_requirements"))
+        except PlanToolPreflightError as exc:
+            errors.append(f"Invalid tool_requirements: {exc}")
 
     # Parse task elements
     tasks: list[TaskInfo] = []

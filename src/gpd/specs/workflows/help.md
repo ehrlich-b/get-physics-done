@@ -122,6 +122,7 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 - Use `gpd permissions status --runtime <runtime> --autonomy balanced` and `gpd permissions sync --runtime <runtime> --autonomy balanced` to confirm and resync unattended readiness from your normal terminal.
 - `gpd doctor` checks the selected install target and runtime-local readiness signals; `gpd permissions ...` checks runtime-owned approval/alignment only.
 - If you need to validate whether a slash-command can run in the current workspace, use `gpd validate command-context gpd:<name>`.
+- If a plan declares specialized `tool_requirements`, use `gpd validate plan-preflight <PLAN.md>` from your normal terminal before execution.
 - For a normal-terminal, read-only recovery snapshot without launching the runtime, use `gpd resume`.
 - For a normal-terminal, read-only machine-local usage / cost summary, use `gpd cost`.
 

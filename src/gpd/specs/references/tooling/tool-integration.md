@@ -49,6 +49,8 @@ Mathematica excels at:
 - Computations involving special functions, hypergeometric identities, or combinatorics
 - Visualization of complex mathematical objects
 
+When a PLAN depends on this capability, declare it as `tool: wolfram` in `tool_requirements` so `gpd validate plan-preflight` can check availability before execution. Keep fallback paths explicit when SymPy or another standard tool can cover the same scientific goal.
+
 ---
 
 ## Julia

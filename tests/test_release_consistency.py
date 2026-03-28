@@ -698,6 +698,7 @@ def test_public_readme_and_bootstrap_surface_optional_workflow_add_on_guidance()
     assert "Missing preset tooling degrades that preset; it does not block the base GPD install." in readme
     assert "check runtime-local paper-toolchain readiness before relying on `write-paper`, `paper-build`, `peer-review`, or `arxiv-submission`" in readme
     assert "`write-paper` remains usable when readiness is degraded, but `paper-build` defines the manuscript build contract" in readme
+    assert "gpd validate plan-preflight <PLAN.md>" in readme
     assert "Workflow presets: if you plan paper/manuscript workflows, rerun " in installer
     assert "Use `gpd doctor` for install/readiness checks and `gpd permissions status` for runtime-owned permission alignment." in installer
     assert "check whether `Workflow Presets` is `ready` or `degraded`." in installer

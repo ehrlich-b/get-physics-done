@@ -129,17 +129,49 @@ Remaining friction after Step 2:
 - Wolfram/Mathematica integration still remains documentation- and prompt-level rather than machine-checkable.
 - Journal/class/package readiness is still rightly owned by `paper-build`, not by the generic machine-level `doctor` contract.
 
+### Step 3 Completed: Plan-Scoped Specialized-Tool Preflight
+
+Status: completed on March 27, 2026.
+
+What shipped:
+
+- Plans can now declare optional machine-checkable specialized tools in top-level `tool_requirements` frontmatter instead of hiding those assumptions in task prose.
+- `gpd validate plan-preflight <PLAN.md>` now validates plan frontmatter and checks declared specialized tools before execution.
+- The initial shared capability surface is runtime-agnostic:
+  - canonical tool keys such as `wolfram`
+  - generic `command` probing for non-catalog executable requirements
+  - no runtime-specific MCP branching in the user-facing plan schema
+- Planning/execution prompts now distinguish:
+  - `researcher_setup` for human credentials/manual setup
+  - `tool_requirements` for machine-checkable capability gates
+- Execution prompts now require plan preflight before substantive work starts when a plan declares specialized tool requirements.
+- Help/README/tooling docs now surface `gpd validate plan-preflight <PLAN.md>` as the local CLI gate for explicit specialized-tool requirements.
+
+Verification:
+
+- Focused Step 3 suites passed:
+  - `python -m compileall src/gpd/core/tool_preflight.py src/gpd/cli.py src/gpd/core/frontmatter.py`
+  - `uv run pytest -q tests/core/test_tool_preflight.py tests/core/test_frontmatter.py tests/core/test_cli.py tests/core/test_prompt_wiring.py tests/core/test_prompt_cli_consistency.py tests/test_release_consistency.py`
+  - `uv run pytest -q tests/test_cli_commands.py -k plan_preflight`
+- Result: `431 passed`
+
+Remaining friction after Step 3:
+
+- Specialized-tool preflight is still availability-oriented, not live-execution proof; for Wolfram it currently checks `wolframscript` presence, not license/session success.
+- The shared capability surface exists, but there is still no optional shared integration layer that can satisfy `tool_requirements.tool=wolfram` via a managed remote MCP provider.
+- The current tool catalog is intentionally narrow; richer provider resolution and additional canonical tools remain future work.
+
 ### Next Step
 
-Step 3 should add plan-scoped specialized-tool preflight with explicit optional requirements for tools like Mathematica/Wolfram while preserving Python/SymPy as the required baseline.
+Step 4 should add a shared optional Wolfram integration layer that can satisfy the existing runtime-agnostic `tool_requirements` surface across all supported runtimes.
 
 That step should:
 
-- let plans declare optional specialized tool requirements in a machine-checkable way
-- add a validation/preflight surface before execution begins
-- block only on tools the plan explicitly requires
-- require every Mathematica/Wolfram path to declare a valid fallback when feasible
-- stay runtime-agnostic so later Wolfram MCP support can plug into the same shared capability surface
+- keep the user-facing feature shared instead of Codex-only or runtime-specific
+- map the logical `wolfram` capability to each runtime adapter's native integration/config format
+- preserve the same plan/preflight semantics regardless of runtime
+- keep secrets in runtime config or environment variables, never in project state
+- avoid pretending that remote Wolfram capability is the same thing as a local Mathematica install
 
 ## Feedback Map
 

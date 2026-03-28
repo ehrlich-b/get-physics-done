@@ -109,6 +109,21 @@ Present plan identification, wait for confirmation.
 </if>
 </step>
 
+<step name="run_plan_tool_preflight">
+Before executing the selected plan, validate any machine-checkable specialized tool requirements declared in plan frontmatter:
+
+```bash
+PLAN_PREFLIGHT=$(gpd --raw validate plan-preflight "${PLAN_PATH}")
+if [ $? -ne 0 ]; then
+  echo "ERROR: plan specialized-tool preflight failed"
+  echo "$PLAN_PREFLIGHT"
+  exit 1
+fi
+```
+
+If the preflight reports warnings only, keep them visible during execution. If a required specialized tool is unavailable but the plan declares a fallback, use the fallback only when it preserves the plan's scientific intent and document the switch in `SUMMARY.md`.
+</step>
+
 <step name="record_start_time">
 ```bash
 PLAN_START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -217,7 +232,7 @@ grep -n "type=\"checkpoint" "${phase_dir}/${phase}-${plan}-PLAN.md"
 | Decision    | C (main)       | Execute entirely in main context                                                                       |
 | Auto-bounded | D (virtual checkpoints) | Segment automatically at first-result, task-cap, context-pressure, or pre-fanout review boundaries |
 
-**Pattern A:** init_agent_tracking -> spawn task(subagent_type="gpd-executor", model=executor_model, readonly=false) with prompt: execute plan at [path], all tasks + SUMMARY + structured return envelope, follow deviation/validation rules, **load conventions from `gpd convention list` before starting work**, `<autonomy_mode>{AUTONOMY}</autonomy_mode>`, `<review_cadence>{REVIEW_CADENCE}</review_cadence>`, `<bounded_execution>false</bounded_execution>` (only for genuinely low-risk short plans), return: plan name, tasks, SUMMARY path, commit hash, and state updates -> track agent_id -> wait -> update tracking -> report.
+**Pattern A:** init_agent_tracking -> spawn task(subagent_type="gpd-executor", model=executor_model, readonly=false) with prompt: execute plan at [path], all tasks + SUMMARY + structured return envelope, follow deviation/validation rules, **load conventions from `gpd convention list` before starting work and rerun `gpd validate plan-preflight <PLAN.md path>` before substantive execution**, `<autonomy_mode>{AUTONOMY}</autonomy_mode>`, `<review_cadence>{REVIEW_CADENCE}</review_cadence>`, `<bounded_execution>false</bounded_execution>` (only for genuinely low-risk short plans), return: plan name, tasks, SUMMARY path, commit hash, and state updates -> track agent_id -> wait -> update tracking -> report.
 
 **If the executor agent fails to spawn or returns an error (Pattern A):** Check if any work was committed (`git log --oneline -3`). If commits with the plan's work exist, the executor may have completed but failed to report — verify output files and proceed to post-execution checks. If no work was done, offer: 1) Retry executor spawn, 2) Fall back to Pattern C (execute in main context), 3) Abort. Update agent tracking status to "failed" with error details.
 

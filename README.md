@@ -598,6 +598,7 @@ The `gpd` CLI also includes machine-readable validation, observability, and trac
 | `gpd validate paper-quality <file.json>` | Score a structured paper-quality manifest and fail on blocking issues |
 | `gpd validate paper-quality --from-project .` | Build paper-quality input from project artifacts, then score it conservatively |
 | `gpd validate plan-contract <PLAN.md>` | Validate PLAN frontmatter, including the embedded contract block and ID cross-links |
+| `gpd validate plan-preflight <PLAN.md>` | Check optional machine-checkable specialized tool requirements declared by a plan before execution |
 | `gpd validate summary-contract <SUMMARY.md>` | Validate summary frontmatter plus contract-result / comparison alignment |
 | `gpd validate verification-contract <VERIFICATION.md>` | Validate verification frontmatter plus contract-result / comparison alignment |
 | `gpd validate review-ledger <file.json>` | Validate the final staged peer-review issue ledger |

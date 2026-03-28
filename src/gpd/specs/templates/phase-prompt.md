@@ -28,6 +28,7 @@ depends_on: []
 files_modified: []
 interactive: false
 researcher_setup: [] # Optional. Omit if empty.
+tool_requirements: [] # Optional machine-checkable specialized tools. Omit if empty.
 
 conventions:
   units: "natural"
@@ -192,6 +193,8 @@ For `plan depth: light`, keep the same frontmatter but reduce the body to:
 Do not omit the `contract`, conventions, or approximation validity just because the plan is light.
 The `contract` block is still required in light mode, including `context_intake` and any `links` needed to make downstream handoffs explicit.
 If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input instead of emitting a half-empty execution contract.
+
+When a plan genuinely depends on specialized tooling outside the guaranteed Python/SymPy baseline, declare it in `tool_requirements` instead of hiding it in task prose. Use canonical tool keys such as `wolfram` for Mathematica / Wolfram Language capability, include a stable `id`, keep `purpose` specific, and add a fallback when one exists.
 
 ---
 

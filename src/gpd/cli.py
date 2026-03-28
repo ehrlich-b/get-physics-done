@@ -5166,6 +5166,21 @@ def validate_plan_contract_cmd(
     _run_frontmatter_validation(input_path, "plan")
 
 
+@validate_app.command("plan-preflight")
+def validate_plan_preflight_cmd(
+    input_path: str = typer.Argument(..., help="Path to a PLAN.md file"),
+) -> None:
+    """Check optional specialized-tool requirements declared by a PLAN."""
+
+    from gpd.core.tool_preflight import build_plan_tool_preflight
+
+    file_path, _ = _load_text_document(input_path)
+    result = build_plan_tool_preflight(file_path)
+    _output(result)
+    if not result.passed:
+        raise typer.Exit(code=1)
+
+
 @validate_app.command("summary-contract")
 def validate_summary_contract_cmd(
     input_path: str = typer.Argument(..., help="Path to a SUMMARY.md file"),

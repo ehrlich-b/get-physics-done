@@ -916,6 +916,7 @@ def test_validate_help_surfaces_command_context_preflight_entrypoint() -> None:
     assert result.exit_code == 0
     assert "Validation checks" in result.output
     assert "command-context" in result.output
+    assert "plan-preflight" in result.output
     assert "review-preflight" in result.output
     assert "project-contract" in result.output
 
@@ -925,6 +926,85 @@ def test_validate_command_context_help_surfaces_registry_argument_name() -> None
     assert result.exit_code == 0
     assert "Run centralized command-context preflight based on command metadata." in result.output
     assert "Command registry key or gpd:name" in result.output
+
+
+def _plan_with_tool_requirements(tool_requirements_block: str) -> str:
+    fixture = (
+        Path(__file__).resolve().parents[1] / "fixtures" / "stage0" / "plan_with_contract.md"
+    ).read_text(encoding="utf-8")
+    return fixture.replace("interactive: false\n", f"interactive: false\n{tool_requirements_block}", 1)
+
+
+def test_validate_plan_preflight_passes_when_no_specialized_tools_are_declared(tmp_path: Path) -> None:
+    plan_path = tmp_path / "01-01-PLAN.md"
+    plan_path.write_text(
+        (Path(__file__).resolve().parents[1] / "fixtures" / "stage0" / "plan_with_contract.md").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["--raw", "validate", "plan-preflight", str(plan_path)])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["passed"] is True
+    assert payload["requirements"] == []
+    assert payload["guidance"] == "No machine-checkable specialized tool requirements declared."
+
+
+def test_validate_plan_preflight_blocks_on_missing_required_wolfram(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    plan_path = tmp_path / "01-01-PLAN.md"
+    plan_path.write_text(
+        _plan_with_tool_requirements(
+            "tool_requirements:\n"
+            "  - id: wolfram-cas\n"
+            "    tool: wolfram\n"
+            "    purpose: Symbolic tensor reduction\n"
+            "    required: true\n"
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("gpd.core.tool_preflight.shutil.which", lambda _binary: None)
+
+    result = runner.invoke(app, ["--raw", "validate", "plan-preflight", str(plan_path)])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload["passed"] is False
+    assert payload["requirements"][0]["tool"] == "wolfram"
+    assert payload["requirements"][0]["blocking"] is True
+    assert "wolframscript not found on PATH" in payload["blocking_conditions"][0]
+
+
+def test_validate_plan_preflight_allows_missing_optional_wolfram_with_fallback(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    plan_path = tmp_path / "01-01-PLAN.md"
+    plan_path.write_text(
+        _plan_with_tool_requirements(
+            "tool_requirements:\n"
+            "  - id: wolfram-cas\n"
+            "    tool: mathematica\n"
+            "    purpose: Symbolic tensor reduction\n"
+            "    required: false\n"
+            "    fallback: Use SymPy and record any simplification gaps\n"
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("gpd.core.tool_preflight.shutil.which", lambda _binary: None)
+
+    result = runner.invoke(app, ["--raw", "validate", "plan-preflight", str(plan_path)])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["passed"] is True
+    assert payload["requirements"][0]["tool"] == "wolfram"
+    assert payload["requirements"][0]["blocking"] is False
 
 
 def test_resolve_model_help_lists_supported_runtime_ids():

@@ -415,6 +415,24 @@ class TestValidateFrontmatter:
         assert result.valid is True
         assert result.missing == []
 
+    def test_plan_accepts_valid_tool_requirements(self):
+        content = _valid_plan_contract_frontmatter().replace(
+            "contract:\n",
+            "tool_requirements:\n"
+            "  - id: wolfram-cas\n"
+            "    tool: wolfram\n"
+            "    purpose: Symbolic tensor reduction\n"
+            "    required: true\n"
+            "    fallback: Use SymPy if unavailable\n"
+            "contract:\n",
+            1,
+        ) + "Body.\n"
+
+        result = validate_frontmatter(content, "plan")
+
+        assert result.valid is True
+        assert result.errors == []
+
     def test_plan_rejects_coercive_reference_must_surface_scalar(self):
         content = _valid_plan_contract_frontmatter().replace("must_surface: true", 'must_surface: "yes"', 1) + "Body.\n"
 
@@ -432,6 +450,22 @@ class TestValidateFrontmatter:
 
         assert result.valid is False
         assert "contract: schema_version must be the integer 1" in result.errors
+
+    def test_plan_rejects_invalid_tool_requirements(self):
+        content = _valid_plan_contract_frontmatter().replace(
+            "contract:\n",
+            "tool_requirements:\n"
+            "  - id: custom-main\n"
+            "    tool: command\n"
+            "    purpose: Run external solver\n"
+            "contract:\n",
+            1,
+        ) + "Body.\n"
+
+        result = validate_frontmatter(content, "plan")
+
+        assert result.valid is False
+        assert any("tool_requirements:" in error for error in result.errors)
 
     def test_plan_accepts_singleton_list_drift_in_contract(self):
         content = _valid_plan_contract_frontmatter(
@@ -504,6 +538,57 @@ class TestValidateFrontmatter:
 
         assert result.valid is True
         assert result.errors == []
+
+    def test_plan_accepts_valid_tool_requirements(self):
+        content = (
+            _valid_plan_contract_frontmatter()
+            .replace(
+                "conventions:\n"
+                "  units: natural\n"
+                "  metric: (+,-,-,-)\n"
+                "  coordinates: Cartesian\n",
+                "tool_requirements:\n"
+                "  - id: wolfram-cas\n"
+                "    tool: mathematica\n"
+                "    purpose: Symbolic tensor reduction\n"
+                "    required: false\n"
+                "    fallback: Use SymPy instead\n"
+                "conventions:\n"
+                "  units: natural\n"
+                "  metric: (+,-,-,-)\n"
+                "  coordinates: Cartesian\n",
+                1,
+            )
+            + "Body.\n"
+        )
+
+        result = validate_frontmatter(content, "plan")
+
+        assert result.valid is True
+        assert result.errors == []
+
+    def test_plan_rejects_empty_tool_requirements(self):
+        content = (
+            _valid_plan_contract_frontmatter()
+            .replace(
+                "conventions:\n"
+                "  units: natural\n"
+                "  metric: (+,-,-,-)\n"
+                "  coordinates: Cartesian\n",
+                "tool_requirements: []\n"
+                "conventions:\n"
+                "  units: natural\n"
+                "  metric: (+,-,-,-)\n"
+                "  coordinates: Cartesian\n",
+                1,
+            )
+            + "Body.\n"
+        )
+
+        result = validate_frontmatter(content, "plan")
+
+        assert result.valid is False
+        assert "tool_requirements: must not be empty when present" in result.errors
 
     def test_missing_fields(self):
         content = "---\nphase: 01-test\n---\n\nBody."

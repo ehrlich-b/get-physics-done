@@ -1063,6 +1063,39 @@ def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_led
     assert "weakest_anchors: [anchor-1]" in summary_template
     assert "disconfirming_observations: [observation-1]" in summary_template
     assert "omitting the corresponding `comparison_verdicts` entry makes the summary incomplete" in summary_template
+
+
+def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() -> None:
+    phase_prompt = (TEMPLATES_DIR / "phase-prompt.md").read_text(encoding="utf-8")
+    planner_agent = (AGENTS_DIR / "gpd-planner.md").read_text(encoding="utf-8")
+    plan_checker = (AGENTS_DIR / "gpd-plan-checker.md").read_text(encoding="utf-8")
+    executor_agent = (AGENTS_DIR / "gpd-executor.md").read_text(encoding="utf-8")
+    execute_plan = (WORKFLOWS_DIR / "execute-plan.md").read_text(encoding="utf-8")
+    execute_phase = (WORKFLOWS_DIR / "execute-phase.md").read_text(encoding="utf-8")
+    plan_phase = (WORKFLOWS_DIR / "plan-phase.md").read_text(encoding="utf-8")
+    tooling_ref = (REFERENCES_DIR / "tooling" / "tool-integration.md").read_text(encoding="utf-8")
+    summary_template = (TEMPLATES_DIR / "summary.md").read_text(encoding="utf-8")
+    verification_template = (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
+    contract_results_schema = (TEMPLATES_DIR / "contract-results-schema.md").read_text(encoding="utf-8")
+    research_verification = (TEMPLATES_DIR / "research-verification.md").read_text(encoding="utf-8")
+    verify_workflow = (WORKFLOWS_DIR / "verify-work.md").read_text(encoding="utf-8")
+    verify_phase = (WORKFLOWS_DIR / "verify-phase.md").read_text(encoding="utf-8")
+    verifier_agent = (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
+    compare_workflow = (WORKFLOWS_DIR / "compare-experiment.md").read_text(encoding="utf-8")
+    comparison_template = (TEMPLATES_DIR / "paper" / "experimental-comparison.md").read_text(encoding="utf-8")
+    verify_phase = (WORKFLOWS_DIR / "verify-phase.md").read_text(encoding="utf-8")
+    verifier_agent = (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
+
+    assert "tool_requirements: [] # Optional machine-checkable specialized tools. Omit if empty." in phase_prompt
+    assert "tool_requirements: [] # Machine-checkable specialized tools (omit if empty)" in planner_agent
+    assert "| `tool_requirements` | No       | Machine-checkable specialized tool requirements |" in planner_agent
+    assert "declare them in `tool_requirements`" in plan_checker
+    assert "Run `gpd validate plan-preflight <PLAN.md path>` from the local CLI." in executor_agent
+    assert 'PLAN_PREFLIGHT=$(gpd --raw validate plan-preflight "${PLAN_PATH}")' in execute_plan
+    assert "gpd validate plan-preflight <PLAN.md>" not in execute_plan
+    assert "require that the selected `PLAN.md` passes `gpd validate plan-preflight <PLAN.md>`" in execute_phase
+    assert "gpd validate plan-preflight <PLAN.md>" in plan_phase
+    assert "declare it as `tool: wolfram` in `tool_requirements`" in tooling_ref
     assert "verification_inputs" not in summary_template
     assert "contract_results" in verification_template
     assert "comparison_verdicts" in verification_template

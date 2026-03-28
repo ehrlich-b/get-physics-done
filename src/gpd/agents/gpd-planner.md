@@ -846,6 +846,7 @@ depends_on: [] # Plan IDs this plan requires
 files_modified: [] # Files this plan touches
 interactive: false # true if plan has checkpoints
 researcher_setup: [] # Human-required setup (omit if empty)
+tool_requirements: [] # Machine-checkable specialized tools (omit if empty)
 
 conventions: # Physics conventions for this plan
   units: "natural"
@@ -969,6 +970,7 @@ After completion, create `GPD/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 | `dimensional_check`| If any   | Expected dimensions of key results (e.g., `{E_0: '[energy]', sigma: '[area]'}`) — executor verifies at completion, verifier gets independent expectation |
 | `approximations`   | If any   | Active approximation schemes              |
 | `researcher_setup` | No       | Human-required setup items                |
+| `tool_requirements` | No       | Machine-checkable specialized tool requirements |
 
 Wave numbers are pre-computed during planning. Execute-phase reads `wave` directly from frontmatter.
 
@@ -1002,6 +1004,21 @@ researcher_setup:
 ```
 
 Only include what the assistant literally cannot do.
+
+## Tool Requirements Frontmatter
+
+Use `tool_requirements` when the plan depends on specialized tooling outside the guaranteed Python scientific baseline and the dependency should be machine-checkable before execution.
+
+```yaml
+tool_requirements:
+  - id: wolfram-cas
+    tool: wolfram
+    purpose: "Symbolic tensor reduction for Task 2"
+    required: true
+    fallback: "Use SymPy plus manual simplification if Wolfram is unavailable"
+```
+
+Keep `researcher_setup` for human credentials, licensed access, or manual environment work. Keep `tool_requirements` for the actual tool capability the executor must preflight. Do not hide specialized tool assumptions only in task prose.
 
 </plan_format>
 
@@ -2914,6 +2931,7 @@ Phase planning complete when:
 - [ ] PLAN file(s) exist with XML structure
 - [ ] Each plan: depends_on, files_modified, interactive, conventions, and contract in frontmatter
 - [ ] Each plan: researcher_setup declared if external resources involved
+- [ ] Each plan: tool_requirements declared when specialized tool availability should be machine-checkable before execution
 - [ ] Each plan: Objective, context, tasks, verification, success criteria, output
 - [ ] Each plan: 2-3 tasks (~50% context)
 - [ ] Each task: Type, Files (if auto), Action, Verify, Done
