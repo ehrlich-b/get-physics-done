@@ -16,7 +16,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from gpd.core.costs import build_cost_summary
 from gpd.core.observability import derive_execution_visibility, resolve_project_root
 from gpd.core.recent_projects import list_recent_projects
-from gpd.core.workflow_presets import list_workflow_presets, resolve_workflow_preset_readiness
+from gpd.core.workflow_presets import (
+    _normalize_latex_capability,
+    list_workflow_presets,
+    resolve_workflow_preset_readiness,
+)
 
 __all__ = [
     "RuntimeHintPayload",
@@ -109,13 +113,23 @@ def _recovery_next_actions(recovery: dict[str, object], current_project: dict[st
     return actions
 
 
-def _workflow_next_actions(details: dict[str, object], *, base_ready: bool, latex_available: bool | None) -> list[str]:
+def _workflow_next_actions(details: dict[str, object], *, base_ready: bool, latex_capability: dict[str, object]) -> list[str]:
     actions: list[str] = []
     if not base_ready:
         actions.append("Fix base runtime-readiness issues before relying on workflow presets.")
-    elif latex_available is False:
-        actions.append("Install or enable a LaTeX toolchain to unblock publication and manuscript presets.")
     else:
+        compiler_available = bool(latex_capability.get("compiler_available"))
+        bibtex_available = bool(latex_capability.get("bibtex_available"))
+        latexmk_available = latex_capability.get("latexmk_available")
+        kpsewhich_available = latex_capability.get("kpsewhich_available")
+        if not compiler_available:
+            actions.append("Install or enable a LaTeX compiler to unblock publication and manuscript presets.")
+        elif not bibtex_available:
+            actions.append("Install or enable BibTeX support to fully unblock publication and manuscript presets.")
+        if compiler_available and bibtex_available and latexmk_available is False:
+            actions.append("Install latexmk to speed up paper builds; manual multipass compilation is still available.")
+        if compiler_available and bibtex_available and kpsewhich_available is False:
+            actions.append("Install kpsewhich/TeX resource lookup support to improve journal and class checks.")
         ready_ids = [
             str(preset.get("id"))
             for preset in details.get("presets", [])
@@ -131,6 +145,7 @@ def build_runtime_hint_payload(
     *,
     data_root: Path | None = None,
     base_ready: bool = True,
+    latex_capability: object | None = None,
     latex_available: bool | None = None,
     recent_projects_last: int = 5,
     cost_last_sessions: int = 5,
@@ -173,8 +188,10 @@ def build_runtime_hint_payload(
     cost_summary = build_cost_summary(project_root, data_root=data_root, last_sessions=cost_last_sessions) if include_cost else None
     cost = (_model_dump(cost_summary) or {}) if cost_summary is not None else {}
 
+    normalized_latex_capability = _normalize_latex_capability(latex_capability, legacy_available=latex_available)
+
     workflow_presets = (
-        resolve_workflow_preset_readiness(base_ready=base_ready, latex_available=latex_available)
+        resolve_workflow_preset_readiness(base_ready=base_ready, latex_capability=normalized_latex_capability)
         if include_workflow_presets
         else {}
     )
@@ -188,7 +205,8 @@ def build_runtime_hint_payload(
         "active_runtime": cost_summary.active_runtime if cost_summary is not None else None,
         "model_profile": cost_summary.model_profile if cost_summary is not None else None,
         "base_ready": base_ready,
-        "latex_available": latex_available,
+        "latex_capability": normalized_latex_capability,
+        "latex_available": bool(normalized_latex_capability.get("compiler_available")),
         "recent_projects_last": max(recent_projects_last, 0),
         "cost_last_sessions": max(cost_last_sessions, 0),
         "include_recovery": include_recovery,
@@ -206,9 +224,7 @@ def build_runtime_hint_payload(
     if cost_summary is not None:
         next_action_parts.extend(cost_summary.guidance or [])
     if include_workflow_presets:
-        next_action_parts.extend(
-            _workflow_next_actions(workflow_presets, base_ready=base_ready, latex_available=latex_available)
-        )
+        next_action_parts.extend(_workflow_next_actions(workflow_presets, base_ready=base_ready, latex_capability=normalized_latex_capability))
     next_actions = _dedupe_text(next_action_parts)
 
     return RuntimeHintPayload(

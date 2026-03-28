@@ -7,6 +7,7 @@ doctor-backed readiness for the machine-local surface.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import copy
 from dataclasses import dataclass
 from typing import Any
@@ -23,6 +24,18 @@ __all__ = [
 ]
 
 _GUIDANCE_ONLY_PRESET_KEYS = frozenset({"model_cost_posture"})
+_LATEX_CAPABILITY_DEFAULTS: dict[str, object] = {
+    "available": True,
+    "compiler_available": True,
+    "compiler_path": None,
+    "distribution": None,
+    "bibtex_available": True,
+    "latexmk_available": True,
+    "kpsewhich_available": True,
+    "warnings": [],
+    "paper_build_ready": True,
+    "arxiv_submission_ready": True,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +52,77 @@ class WorkflowPreset:
     degraded_workflows: tuple[str, ...] = ()
     blocked_workflows: tuple[str, ...] = ()
     requires_extra_tooling: bool = False
+
+
+def _capability_value(source: object, *keys: str) -> object | None:
+    """Return the first non-``None`` capability field value from a mapping or object."""
+
+    if isinstance(source, Mapping):
+        for key in keys:
+            if key in source:
+                value = source[key]
+                if value is not None:
+                    return value
+        return None
+    for key in keys:
+        if hasattr(source, key):
+            value = getattr(source, key)
+            if value is not None:
+                return value
+    return None
+
+
+def _normalize_latex_capability(
+    latex_capability: object | None = None,
+    *,
+    legacy_available: bool | None = None,
+) -> dict[str, object]:
+    """Normalize legacy booleans and richer LaTeX capability payloads into one contract."""
+
+    if isinstance(latex_capability, bool):
+        legacy_available = latex_capability
+        latex_capability = None
+
+    if latex_capability is None and legacy_available is None:
+        return {**_LATEX_CAPABILITY_DEFAULTS, "warnings": []}
+
+    compiler_value = _capability_value(latex_capability, "compiler_available", "available", "latex_available")
+    if compiler_value is None:
+        compiler_available = bool(legacy_available) if legacy_available is not None else True
+    else:
+        compiler_available = bool(compiler_value)
+
+    bibtex_value = _capability_value(latex_capability, "bibtex_available", "bibtex", "bibliography_available")
+    if bibtex_value is None:
+        bibtex_available = compiler_available if legacy_available is None else bool(legacy_available)
+    else:
+        bibtex_available = bool(bibtex_value)
+
+    latexmk_value = _capability_value(latex_capability, "latexmk_available", "latexmk")
+    kpsewhich_value = _capability_value(latex_capability, "kpsewhich_available", "kpsewhich")
+    compiler_path = _capability_value(latex_capability, "compiler_path", "compiler")
+    distribution = _capability_value(latex_capability, "distribution")
+    warnings_value = _capability_value(latex_capability, "warnings")
+    if isinstance(warnings_value, str):
+        warnings = [warnings_value]
+    elif isinstance(warnings_value, (list, tuple)):
+        warnings = list(warnings_value)
+    else:
+        warnings = []
+
+    normalized = {
+        "available": compiler_available,
+        "compiler_available": compiler_available,
+        "compiler_path": compiler_path,
+        "distribution": distribution,
+        "bibtex_available": bibtex_available,
+        "latexmk_available": bool(latexmk_value) if latexmk_value is not None else None,
+        "kpsewhich_available": bool(kpsewhich_value) if kpsewhich_value is not None else None,
+        "warnings": warnings,
+        "paper_build_ready": compiler_available and bibtex_available,
+        "arxiv_submission_ready": compiler_available and bibtex_available,
+    }
+    return normalized
 
 
 WORKFLOW_PRESETS: tuple[WorkflowPreset, ...] = (
@@ -219,8 +303,19 @@ def get_workflow_preset(preset_id: str) -> WorkflowPreset | None:
     return WORKFLOW_PRESET_INDEX.get(normalized)
 
 
-def resolve_workflow_preset_readiness(*, base_ready: bool, latex_available: bool | None) -> dict[str, object]:
+def resolve_workflow_preset_readiness(
+    *,
+    base_ready: bool,
+    latex_capability: object | None = None,
+    latex_available: bool | None = None,
+) -> dict[str, object]:
     """Return doctor-facing preset readiness derived from explicit tool checks."""
+
+    capability = _normalize_latex_capability(latex_capability, legacy_available=latex_available)
+    compiler_ready = bool(capability["compiler_available"])
+    bibtex_ready = bool(capability["bibtex_available"])
+    latexmk_available = capability.get("latexmk_available")
+    kpsewhich_available = capability.get("kpsewhich_available")
 
     entries: list[dict[str, object]] = []
     ready = 0
@@ -237,10 +332,13 @@ def resolve_workflow_preset_readiness(*, base_ready: bool, latex_available: bool
             degraded_workflows: list[str] = []
             blocked_workflows = list(preset.blocked_workflows or preset.ready_workflows)
             depends_on = ["Base runtime readiness", *depends_on]
-        elif preset.requires_extra_tooling and latex_available is False:
+        elif preset.requires_extra_tooling and not (compiler_ready and bibtex_ready):
             status = "degraded"
             usable = True
-            summary = "degraded without LaTeX: draft/review remain usable, but build/submission stay blocked"
+            if not compiler_ready:
+                summary = "degraded without a LaTeX compiler: draft/review remain usable, but build/submission stay blocked"
+            else:
+                summary = "degraded without BibTeX support: draft/review remain usable, but build/submission stay blocked"
             ready_workflows = []
             degraded_workflows = list(preset.degraded_workflows)
             blocked_workflows = list(preset.blocked_workflows)
@@ -259,6 +357,21 @@ def resolve_workflow_preset_readiness(*, base_ready: bool, latex_available: bool
         else:
             blocked += 1
 
+        warnings: list[str] = []
+        if preset.requires_extra_tooling:
+            if not compiler_ready:
+                warnings.append(
+                    "No LaTeX compiler detected: draft/review workflows remain usable, but build/submission stay blocked."
+                )
+            elif not bibtex_ready:
+                warnings.append(
+                    "BibTeX support is missing: draft/review workflows remain usable, but build/submission stay blocked."
+                )
+            if latexmk_available is False:
+                warnings.append("latexmk is missing: paper builds will fall back to manual multipass compilation.")
+            if kpsewhich_available is False:
+                warnings.append("kpsewhich is missing: TeX resource checks are best-effort only.")
+
         entries.append(
             {
                 "id": preset.id,
@@ -273,6 +386,8 @@ def resolve_workflow_preset_readiness(*, base_ready: bool, latex_available: bool
                 "ready_workflows": ready_workflows,
                 "degraded_workflows": degraded_workflows,
                 "blocked_workflows": blocked_workflows,
+                "warnings": warnings,
+                "latex_capability": dict(capability),
             }
         )
 
@@ -281,5 +396,6 @@ def resolve_workflow_preset_readiness(*, base_ready: bool, latex_available: bool
         "ready": ready,
         "degraded": degraded,
         "blocked": blocked,
+        "latex_capability": dict(capability),
         "presets": entries,
     }

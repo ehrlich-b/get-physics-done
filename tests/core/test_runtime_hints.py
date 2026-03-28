@@ -74,6 +74,20 @@ def _write_usage_record(*, data_root: Path, project_root: Path, session_id: str)
     ledger_path.write_text(record.model_dump_json() + "\n", encoding="utf-8")
 
 
+def _latex_capability(**overrides: object) -> dict[str, object]:
+    capability = {
+        "compiler_available": True,
+        "compiler_path": "/usr/bin/pdflatex",
+        "distribution": "TeX Live",
+        "bibtex_available": True,
+        "latexmk_available": True,
+        "kpsewhich_available": True,
+        "warnings": [],
+    }
+    capability.update(overrides)
+    return capability
+
+
 def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path: Path) -> None:
     project = _bootstrap_project(tmp_path)
     data_root = tmp_path / "data"
@@ -102,7 +116,7 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
         project,
         data_root=data_root,
         base_ready=True,
-        latex_available=False,
+        latex_capability=_latex_capability(latexmk_available=False, kpsewhich_available=False),
         recent_projects_last=5,
         cost_last_sessions=5,
     )
@@ -112,7 +126,11 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert payload.source_meta["project_root"] == project.resolve(strict=False).as_posix()
     assert payload.source_meta["current_session_id"] == session_id
     assert payload.source_meta["base_ready"] is True
-    assert payload.source_meta["latex_available"] is False
+    assert payload.source_meta["latex_capability"]["compiler_available"] is True
+    assert payload.source_meta["latex_capability"]["bibtex_available"] is True
+    assert payload.source_meta["latex_capability"]["latexmk_available"] is False
+    assert payload.source_meta["latex_capability"]["kpsewhich_available"] is False
+    assert payload.source_meta["latex_available"] is True
 
     assert payload.execution is not None
     assert payload.execution["status_classification"] == "waiting"
@@ -127,14 +145,40 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert payload.cost["project"]["usage_status"] == "measured"
     assert any("pricing snapshot" in item for item in payload.cost["guidance"])
 
-    assert payload.workflow_presets["ready"] == 3
-    assert payload.workflow_presets["degraded"] == 2
+    assert payload.workflow_presets["ready"] == 5
+    assert payload.workflow_presets["degraded"] == 0
     assert payload.workflow_presets["blocked"] == 0
+    assert payload.workflow_presets["latex_capability"]["paper_build_ready"] is True
+    assert payload.workflow_presets["latex_capability"]["arxiv_submission_ready"] is True
 
     assert any("gpd resume" in action for action in payload.next_actions)
     assert any("pricing snapshot" in action for action in payload.next_actions)
-    assert any("LaTeX toolchain" in action for action in payload.next_actions)
+    assert any("latexmk" in action for action in payload.next_actions)
+    assert any("kpsewhich" in action for action in payload.next_actions)
+    assert any("Workflow presets ready" in action for action in payload.next_actions)
     assert len(payload.next_actions) == len(set(payload.next_actions))
+
+
+def test_build_runtime_hint_payload_reports_degraded_publication_presets_when_bibtex_is_missing(
+    tmp_path: Path,
+) -> None:
+    project = _bootstrap_project(tmp_path)
+    data_root = tmp_path / "data"
+
+    payload = build_runtime_hint_payload(
+        project,
+        data_root=data_root,
+        base_ready=True,
+        latex_capability=_latex_capability(bibtex_available=False),
+    )
+
+    assert payload.workflow_presets["ready"] == 3
+    assert payload.workflow_presets["degraded"] == 2
+    assert payload.workflow_presets["blocked"] == 0
+    assert payload.workflow_presets["latex_capability"]["paper_build_ready"] is False
+    assert any("BibTeX support" in action for action in payload.next_actions)
+    assert not any("latexmk" in action for action in payload.next_actions)
+    assert not any("kpsewhich" in action for action in payload.next_actions)
 
 
 def test_build_runtime_hint_payload_handles_absent_execution_snapshot(tmp_path: Path) -> None:
@@ -156,7 +200,7 @@ def test_build_runtime_hint_payload_handles_absent_execution_snapshot(tmp_path: 
         project,
         data_root=data_root,
         base_ready=False,
-        latex_available=True,
+        latex_capability=_latex_capability(),
     )
 
     assert payload.execution is not None
