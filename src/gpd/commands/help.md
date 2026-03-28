@@ -85,13 +85,11 @@ If `gpd observe execution` surfaces an alternative-path follow-up, route it thro
 Recommended unattended default: Balanced autonomy (`balanced`). Safest model starting point: `review` plus runtime defaults. Use posture first (`Max quality`, `Balanced`, `Budget-aware`), then pin runtime tier models only if you actually need explicit control. After runs, use `gpd cost` to inspect recorded local usage / cost and the current profile tier mix instead of treating posture labels as billing truth.
 
 **Workflow presets**
-1. `Paper/manuscript workflows` — First supported workflow preset for `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`; inspect it with `gpd presets list`, preview it with `gpd presets show <preset>`, and apply it from your normal terminal with `gpd presets apply <preset>` or through your runtime-specific `settings` command
-2. `gpd doctor --runtime <runtime> --local|--global` — Check runtime-local paper-toolchain readiness from your normal terminal before using that preset. Add `--live-executable-probes` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`. Failed preset rows degrade `write-paper`, but `paper-build` remains the build contract and `arxiv-submission` requires the built manuscript
+1. `Paper/manuscript workflows` — First supported workflow preset for `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`; use `gpd presets list` / `show` / `apply --dry-run` for the shared preview/apply flow, or choose the same preset through your runtime-specific `settings` command
+2. `gpd doctor --runtime <runtime> --local|--global` — Check runtime-local paper-toolchain readiness from your normal terminal before using that preset. Add `--live-executable-probes` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`
 3. `gpd presets list` — Inspect the local preset catalog; presets resolve to the existing config keys and do not add a separate persisted preset block
 4. `gpd presets show <preset>` — Preview one preset's bundle before applying it
 5. `gpd presets apply <preset> [--dry-run]` — Apply or preview one preset from your normal terminal without inventing a separate preset schema
-
-Workflow presets are bundles over the existing config keys only; they do not add a separate persisted preset block.
 
 Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment.
 

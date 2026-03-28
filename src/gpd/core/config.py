@@ -527,6 +527,12 @@ def effective_config_value(config: GPDProjectConfig, key: str) -> tuple[bool, ob
     return True, _EFFECTIVE_CONFIG_LEAVES[canonical_key](config)
 
 
+def effective_raw_config_value(raw: dict[str, object], key: str) -> tuple[bool, object]:
+    """Return a CLI-facing effective config value directly from a raw payload."""
+
+    return effective_config_value(_model_from_parsed_config(raw), key)
+
+
 def _set_dict_path(target: dict[str, object], path: tuple[str, ...], value: object) -> None:
     """Set a dotted path inside a nested dict, creating parents as needed."""
     current = target

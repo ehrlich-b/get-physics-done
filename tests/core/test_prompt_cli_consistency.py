@@ -8,7 +8,6 @@ from pathlib import Path
 from gpd.core.surface_phrases import (
     cost_summary_surface_note,
     recovery_ladder_note,
-    workflow_preset_storage_note,
 )
 from gpd.registry import VALID_CONTEXT_MODES, _parse_frontmatter
 
@@ -56,6 +55,14 @@ def _assert_wolfram_plan_boundary(content: str) -> None:
         or "does not mean a plan is ready to run" in content
         or "plan gate" in content
     )
+
+
+def _assert_shared_preset_surface_contract(content: str) -> None:
+    assert "gpd presets list" in content
+    assert "gpd presets show <preset>" in content
+    assert "gpd presets apply <preset>" in content
+    assert "existing config keys" in content or "bundles over the existing config keys only" in content
+    assert "separate persisted preset block" in content or "preset block" in content
 
 
 def _extract_between(content: str, start_marker: str, end_marker: str) -> str:
@@ -235,9 +242,7 @@ def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> N
     assert "**Workflow presets**" in quick_start
     assert "Paper/manuscript workflows" in quick_start
     assert DOCTOR_RUNTIME_SCOPE_RE.search(quick_start) is not None
-    assert "gpd presets list" in quick_start
-    assert "gpd presets show <preset>" in quick_start
-    assert "gpd presets apply <preset>" in quick_start
+    _assert_shared_preset_surface_contract(quick_start)
     assert "runtime-local paper-toolchain readiness" in quick_start
     for content in (help_command, help_workflow):
         assert "Use `gpd --help` to inspect the executable local install/readiness/permissions/diagnostics surface directly." in content
@@ -248,11 +253,9 @@ def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> N
         assert DOCTOR_RUNTIME_SCOPE_RE.search(content) is not None
         _assert_wolfram_plan_boundary(content)
         assert "Workflow presets" in content
-        assert "gpd presets show <preset>" in content
-        assert "gpd presets apply <preset>" in content
-        assert workflow_preset_storage_note() in content
-        assert "Check runtime-local paper-toolchain readiness from your normal terminal before using that preset" in content
-        assert "Failed preset rows degrade `write-paper`" in content
+        _assert_shared_preset_surface_contract(content)
+        assert "paper-toolchain readiness" in content
+        assert "degrade `write-paper`" in content
         assert "`paper-build` remains the build contract" in content
         assert "`arxiv-submission` requires the built manuscript" in content
         assert "Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment." in content
@@ -280,6 +283,7 @@ def test_prompt_docs_keep_wolfram_as_shared_capability_not_runtime_config_surfac
         _assert_wolfram_plan_boundary(content)
         assert "gpd integrations enable wolfram" in content
         assert "gpd integrations disable wolfram" in content
+        _assert_shared_preset_surface_contract(content)
 
     assert "Mathematica / Wolfram Language" in tooling_ref
     assert "declare it as `tool: wolfram` in `tool_requirements`" in tooling_ref
@@ -432,7 +436,10 @@ def test_settings_and_research_mode_docs_keep_tangent_branch_taxonomy_strict() -
 
     assert "Which starting workflow preset should GPD use for `GPD/config.json`?" in new_project
     assert "offer a preset choice before individual questions" in new_project
-    assert "preview the resolved knobs before writing `GPD/config.json`" in new_project
+    assert "preset bundle over the existing config knobs" in new_project
+    assert "preview" in new_project
+    assert "writing `GPD/config.json`" in new_project
+    assert "Do not persist a separate preset key." in new_project
     assert '"Core research (Recommended)"' in new_project
     assert '"Theory"' in new_project
     assert '"Numerics"' in new_project
@@ -448,7 +455,7 @@ def test_settings_and_research_mode_docs_keep_tangent_branch_taxonomy_strict() -
     assert "gpd presets show <preset>" in settings
     assert "gpd presets apply <preset> --dry-run" in settings
     assert "preview" in settings
-    assert "explicit apply/adjust choice" in settings
+    assert "explicit apply or customize choice" in settings
     assert "do **not** silently create git-backed hypothesis branches" in research_modes
     assert "only explicit tangent decisions become hypothesis branches or parallel plans" in research_modes
     assert "Flag complementary approaches as tangent candidates for optional parallel investigation" in research_modes
@@ -504,12 +511,9 @@ def test_help_prompt_surfaces_workflow_presets_on_the_local_cli_surface() -> Non
         assert "Paper/manuscript workflows" in content
         assert DOCTOR_RUNTIME_SCOPE_RE.search(content) is not None
         assert "executable probes" in content
-        assert "gpd presets list" in content
-        assert "gpd presets show <preset>" in content
-        assert "gpd presets apply <preset>" in content
-        assert workflow_preset_storage_note() in content
-        assert "Check runtime-local paper-toolchain readiness from your normal terminal before using that preset" in content
-        assert "Failed preset rows degrade `write-paper`" in content
+        _assert_shared_preset_surface_contract(content)
+        assert "paper-toolchain readiness" in content
+        assert "degrade `write-paper`" in content
         assert "`paper-build` remains the build contract" in content
         assert "`arxiv-submission` requires the built manuscript" in content
         assert "/gpd:settings" in content

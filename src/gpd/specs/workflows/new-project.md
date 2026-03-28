@@ -1022,7 +1022,7 @@ Run this step after scope approval and before the first project-artifact commit 
 
 Treat the selected setup as a workflow preset bundle over the existing config knobs, not a new persisted preset block. The workflow should only write `autonomy`, `research_mode`, `parallelization`, `planning.commit_docs`, `execution.review_cadence`, `model_profile`, and the workflow toggles that already exist.
 
-First surface a preset choice so the user can start from a bundle or jump straight to customization. If a preset is selected, preview the resolved knobs before writing `GPD/config.json`. Do not persist a separate preset key.
+First surface a preset choice so the user can start from a bundle or jump straight to customization. If a preset is selected, preview the changed knobs before writing `GPD/config.json`, then ask for explicit apply or customize. Do not persist a separate preset key.
 
 Use ask_user:
 
@@ -1036,7 +1036,7 @@ Use ask_user:
   - "Full research" — core research defaults plus publication readiness tracking for projects expected to end in a paper
   - "Customize settings" — choose `autonomy`, `research_mode`, `parallelization`, `planning.commit_docs`, `execution.review_cadence`, workflow agents, and `model_profile` individually
 
-**If a preset is selected:** Resolve the selected catalog preset into the existing config keys, show a one-line preview of the resolved knobs before writing config.json, and if the user wants to adjust the bundle, fall back to "Customize settings". For the recommended `core-research` preset, that preview should surface `autonomy=balanced`, `research_mode=balanced`, `parallelization=true`, `planning.commit_docs=true`, `execution.review_cadence=adaptive`, and `model_profile=review`. Example for `core-research`:
+**If a preset is selected:** Resolve the selected catalog preset into the existing config keys, show the changed knobs before writing config.json, and if the user wants to adjust the bundle, fall back to "Customize settings". For the recommended `core-research` preset, that preview should surface `autonomy=balanced`, `research_mode=balanced`, `parallelization=true`, `planning.commit_docs=true`, `execution.review_cadence=adaptive`, and `model_profile=review`. Example for `core-research`:
 
 ```json
 {

@@ -12,14 +12,22 @@ import copy
 from dataclasses import dataclass
 from typing import Any
 
-from gpd.core.config import apply_config_update, canonical_config_key, supported_config_keys
+from gpd.core.config import (
+    apply_config_update,
+    canonical_config_key,
+    effective_raw_config_value,
+    supported_config_keys,
+)
 
 __all__ = [
+    "WorkflowPresetApplicationPreview",
+    "WorkflowPresetConfigChange",
     "WorkflowPreset",
     "apply_workflow_preset_config",
     "get_workflow_preset",
     "get_workflow_preset_config_bundle",
     "list_workflow_presets",
+    "preview_workflow_preset_application",
     "resolve_workflow_preset_readiness",
 ]
 
@@ -36,6 +44,34 @@ _LATEX_CAPABILITY_DEFAULTS: dict[str, object] = {
     "paper_build_ready": True,
     "arxiv_submission_ready": True,
 }
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowPresetConfigChange:
+    """A single key-level change applied by a workflow preset."""
+
+    key: str
+    before: object
+    after: object
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowPresetApplicationPreview:
+    """Shared preview/apply contract for one workflow preset."""
+
+    preset_id: str
+    label: str
+    applied_keys: tuple[str, ...]
+    ignored_guidance_only_keys: tuple[str, ...]
+    changes: tuple[WorkflowPresetConfigChange, ...]
+    unchanged_keys: tuple[str, ...]
+    updated_config: dict[str, object]
+
+    @property
+    def changed_keys(self) -> tuple[str, ...]:
+        """Return the keys whose effective values change under this preset."""
+
+        return tuple(change.key for change in self.changes)
 
 
 @dataclass(frozen=True, slots=True)
@@ -255,6 +291,16 @@ def _preset_actionable_config_bundle(preset: WorkflowPreset) -> dict[str, Any]:
     return bundle
 
 
+def _preset_effective_value(raw_config: dict[str, object], key: str) -> object:
+    """Return the effective config value for one preset-controlled key."""
+
+    found, value = effective_raw_config_value(raw_config, key)
+    if not found:
+        msg = f"Unsupported preset preview key {key!r}"
+        raise ValueError(msg)
+    return copy.deepcopy(value)
+
+
 def get_workflow_preset_config_bundle(preset_id: str) -> dict[str, Any] | None:
     """Return the actionable config bundle for one preset.
 
@@ -269,12 +315,15 @@ def get_workflow_preset_config_bundle(preset_id: str) -> dict[str, Any] | None:
     return _preset_actionable_config_bundle(preset)
 
 
-def apply_workflow_preset_config(raw_config: dict[str, object], preset_id: str) -> tuple[dict[str, object], str]:
-    """Apply one preset bundle to a raw config payload atomically.
+def preview_workflow_preset_application(
+    raw_config: dict[str, object],
+    preset_id: str,
+) -> WorkflowPresetApplicationPreview:
+    """Preview one preset bundle against a raw config payload.
 
     The input payload is never mutated. The preset is expanded into the current
     config schema only, then validated once per key against the shared config
-    model so callers can write the returned payload directly.
+    model so callers can inspect the final payload or write it directly.
     """
 
     preset = get_workflow_preset(preset_id)
@@ -282,10 +331,55 @@ def apply_workflow_preset_config(raw_config: dict[str, object], preset_id: str) 
         supported = ", ".join(preset.id for preset in list_workflow_presets())
         raise ValueError(f"Unknown workflow preset {preset_id!r}. Supported: {supported}")
 
+    supported_keys = set(supported_config_keys())
     updated = copy.deepcopy(raw_config)
-    for key, value in _preset_actionable_config_bundle(preset).items():
+    applied_keys: list[str] = []
+    ignored_guidance_only_keys: list[str] = []
+    changes: list[WorkflowPresetConfigChange] = []
+    unchanged_keys: list[str] = []
+
+    for key, value in preset.recommended_config.items():
+        if key in _GUIDANCE_ONLY_PRESET_KEYS:
+            ignored_guidance_only_keys.append(key)
+            continue
+        if canonical_config_key(key) is None or key not in supported_keys:
+            supported = ", ".join(sorted(supported_keys))
+            raise ValueError(
+                f"Workflow preset {preset.id!r} contains unsupported config key {key!r}; "
+                f"expected one of: {supported}"
+            )
+
+        before = _preset_effective_value(raw_config, key)
         updated, _ = apply_config_update(updated, key, value)
-    return updated, preset.id
+        after = _preset_effective_value(updated, key)
+        applied_keys.append(key)
+        if before == after:
+            unchanged_keys.append(key)
+        else:
+            changes.append(
+                WorkflowPresetConfigChange(
+                    key=key,
+                    before=before,
+                    after=after,
+                )
+            )
+
+    return WorkflowPresetApplicationPreview(
+        preset_id=preset.id,
+        label=preset.label,
+        applied_keys=tuple(applied_keys),
+        ignored_guidance_only_keys=tuple(ignored_guidance_only_keys),
+        changes=tuple(changes),
+        unchanged_keys=tuple(unchanged_keys),
+        updated_config=updated,
+    )
+
+
+def apply_workflow_preset_config(raw_config: dict[str, object], preset_id: str) -> tuple[dict[str, object], str]:
+    """Apply one preset bundle to a raw config payload atomically."""
+
+    result = preview_workflow_preset_application(raw_config, preset_id)
+    return result.updated_config, result.preset_id
 
 
 def list_workflow_presets() -> tuple[WorkflowPreset, ...]:

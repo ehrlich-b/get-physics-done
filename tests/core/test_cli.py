@@ -180,7 +180,7 @@ def test_workflow_presets_help_surfaces_apply_command() -> None:
     assert result.exit_code == 0
     normalized_output = " ".join(result.output.split())
     assert "--dry-run" in normalized_output
-    assert "Show the merged config without writing it" in normalized_output
+    assert "Show a diff-oriented preview without writing it" in normalized_output
 
 
 def test_workflow_presets_surface_lists_catalog() -> None:
@@ -240,7 +240,7 @@ def test_workflow_preset_show_raw_outputs_central_contract() -> None:
     assert payload["summary"] == "Balanced default workflow for planning, execution, and verification."
 
 
-def test_workflow_preset_apply_dry_run_previews_merged_config(tmp_path: Path) -> None:
+def test_workflow_preset_apply_dry_run_previews_changed_knobs(tmp_path: Path) -> None:
     config_dir = tmp_path / "GPD"
     config_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_dir / "config.json"
@@ -277,21 +277,40 @@ def test_workflow_preset_apply_dry_run_previews_merged_config(tmp_path: Path) ->
         "workflow.plan_checker",
         "workflow.verifier",
     ]
+    assert payload["changed_keys"] == [
+        "autonomy",
+        "execution.review_cadence",
+        "parallelization",
+        "planning.commit_docs",
+        "workflow.research",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    ]
     assert payload["ignored_keys"] == ["model_cost_posture"]
-    preview = payload["preview_config"]
-    assert preview["autonomy"] == "balanced"
-    assert preview["research_mode"] == "balanced"
-    assert preview["model_profile"] == "review"
-    assert preview["parallelization"] is True
-    assert preview["commit_docs"] is True
-    assert preview["execution"]["review_cadence"] == "adaptive"
-    assert preview["execution"]["checkpoint_after_n_tasks"] == 7
-    assert preview["execution"]["checkpoint_before_downstream_dependent_tasks"] is False
-    assert preview["research"] is True
-    assert preview["plan_checker"] is True
-    assert preview["verifier"] is True
-    assert "planning" not in preview
-    assert "workflow" not in preview
+    assert payload["unchanged_keys"] == ["research_mode", "model_profile"]
+    assert payload["changes"] == [
+        {"key": "autonomy", "before": "supervised", "after": "balanced"},
+        {"key": "execution.review_cadence", "before": "sparse", "after": "adaptive"},
+        {"key": "parallelization", "before": False, "after": True},
+        {"key": "planning.commit_docs", "before": False, "after": True},
+        {"key": "workflow.research", "before": False, "after": True},
+        {"key": "workflow.plan_checker", "before": False, "after": True},
+        {"key": "workflow.verifier", "before": False, "after": True},
+    ]
+    resulting_config = payload["resulting_config"]
+    assert resulting_config["autonomy"] == "balanced"
+    assert resulting_config["research_mode"] == "balanced"
+    assert resulting_config["model_profile"] == "review"
+    assert resulting_config["parallelization"] is True
+    assert resulting_config["commit_docs"] is True
+    assert resulting_config["execution"]["review_cadence"] == "adaptive"
+    assert resulting_config["execution"]["checkpoint_after_n_tasks"] == 7
+    assert resulting_config["execution"]["checkpoint_before_downstream_dependent_tasks"] is False
+    assert resulting_config["research"] is True
+    assert resulting_config["plan_checker"] is True
+    assert resulting_config["verifier"] is True
+    assert "planning" not in resulting_config
+    assert "workflow" not in resulting_config
     assert json.loads(config_path.read_text(encoding="utf-8")) == original_config
 
 
@@ -334,6 +353,19 @@ def test_workflow_preset_apply_writes_merged_config(tmp_path: Path) -> None:
         "workflow.research",
         "workflow.plan_checker",
         "workflow.verifier",
+    ]
+    assert payload["changed_keys"] == [
+        "autonomy",
+        "research_mode",
+        "model_profile",
+        "workflow.research",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    ]
+    assert payload["unchanged_keys"] == [
+        "execution.review_cadence",
+        "parallelization",
+        "planning.commit_docs",
     ]
 
     written = json.loads(config_path.read_text(encoding="utf-8"))

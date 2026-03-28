@@ -58,10 +58,9 @@ from gpd.core.surface_phrases import (
     workflow_preset_surface_note,
 )
 from gpd.core.workflow_presets import (
-    apply_workflow_preset_config,
     get_workflow_preset,
-    get_workflow_preset_config_bundle,
     list_workflow_presets,
+    preview_workflow_preset_application,
 )
 from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use, normalize_runtime_name
 
@@ -3021,11 +3020,10 @@ def presets_show(
         return
     _print_workflow_preset_details(preset_name)
 
-
 @presets_app.command("apply")
 def presets_apply(
     preset_name: str = typer.Argument(..., help="Workflow preset name"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show the merged config without writing it"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show a diff-oriented preview without writing it"),
 ) -> None:
     """Apply a workflow preset to GPD/config.json."""
     from gpd.core.constants import ProjectLayout
@@ -3036,10 +3034,6 @@ def presets_apply(
         supported = ", ".join(preset.id for preset in list_workflow_presets())
         _error(f"Unknown workflow preset {preset_name!r}. Supported: {supported}")
 
-    bundle = get_workflow_preset_config_bundle(preset_name)
-    if bundle is None:
-        supported = ", ".join(preset.id for preset in list_workflow_presets())
-        _error(f"Unknown workflow preset {preset_name!r}. Supported: {supported}")
     config_path = ProjectLayout(_get_cwd()).config_json
     with file_lock(config_path):
         try:
@@ -3058,25 +3052,27 @@ def presets_apply(
             _error("config.json must be a JSON object")
 
         try:
-            updated_config, _ = apply_workflow_preset_config(raw, preset_name)
+            preview = preview_workflow_preset_application(raw, preset_name)
         except (ConfigError, ValueError) as exc:
             _error(str(exc))
 
         if not dry_run:
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(config_path, json.dumps(updated_config, indent=2) + "\n")
+            atomic_write(config_path, json.dumps(preview.updated_config, indent=2) + "\n")
 
-    ignored_keys = [key for key in preset.recommended_config if key not in bundle]
     result: dict[str, object] = {
-        "preset": preset.id,
-        "label": preset.label,
+        "preset": preview.preset_id,
+        "label": preview.label,
         "dry_run": dry_run,
         "config_path": str(config_path),
-        "applied_keys": list(bundle.keys()),
-        "ignored_keys": ignored_keys,
+        "applied_keys": list(preview.applied_keys),
+        "changed_keys": list(preview.changed_keys),
+        "unchanged_keys": list(preview.unchanged_keys),
+        "ignored_keys": list(preview.ignored_guidance_only_keys),
     }
     if dry_run:
-        result["preview_config"] = updated_config
+        result["changes"] = [dataclasses.asdict(change) for change in preview.changes]
+        result["resulting_config"] = preview.updated_config
     else:
         result["updated"] = True
     _output(result)
@@ -6390,7 +6386,6 @@ def _install_single_runtime(
         is_global=is_global,
         explicit_target=target_dir_override is not None,
     )
-
 
 def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None:
     """Print a rich summary table of install results."""

@@ -7,7 +7,9 @@ from gpd.core.workflow_presets import (
     get_workflow_preset,
     get_workflow_preset_config_bundle,
     list_workflow_presets,
+    preview_workflow_preset_application,
     resolve_workflow_preset_readiness,
+    WorkflowPresetConfigChange,
 )
 
 
@@ -57,6 +59,102 @@ def test_workflow_preset_config_bundle_contains_only_writable_config_keys() -> N
         "workflow.plan_checker": True,
         "workflow.verifier": True,
     }
+
+
+def test_preview_workflow_preset_application_reports_change_contract() -> None:
+    raw_config = {
+        "autonomy": "balanced",
+        "research_mode": "explore",
+        "model_profile": "review",
+        "parallelization": False,
+        "execution": {"review_cadence": "dense"},
+        "planning": {"commit_docs": True},
+        "workflow": {"research": True, "plan_checker": False, "verifier": False},
+    }
+
+    result = preview_workflow_preset_application(raw_config, "core-research")
+
+    assert result.preset_id == "core-research"
+    assert result.label == "Core research"
+    assert result.applied_keys == (
+        "autonomy",
+        "research_mode",
+        "model_profile",
+        "execution.review_cadence",
+        "parallelization",
+        "planning.commit_docs",
+        "workflow.research",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    )
+    assert result.ignored_guidance_only_keys == ("model_cost_posture",)
+    assert result.changed_keys == (
+        "research_mode",
+        "execution.review_cadence",
+        "parallelization",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    )
+    assert result.changes == (
+        WorkflowPresetConfigChange(key="research_mode", before="explore", after="balanced"),
+        WorkflowPresetConfigChange(key="execution.review_cadence", before="dense", after="adaptive"),
+        WorkflowPresetConfigChange(key="parallelization", before=False, after=True),
+        WorkflowPresetConfigChange(key="workflow.plan_checker", before=False, after=True),
+        WorkflowPresetConfigChange(key="workflow.verifier", before=False, after=True),
+    )
+    assert result.unchanged_keys == (
+        "autonomy",
+        "model_profile",
+        "planning.commit_docs",
+        "workflow.research",
+    )
+    assert raw_config == {
+        "autonomy": "balanced",
+        "research_mode": "explore",
+        "model_profile": "review",
+        "parallelization": False,
+        "execution": {"review_cadence": "dense"},
+        "planning": {"commit_docs": True},
+        "workflow": {"research": True, "plan_checker": False, "verifier": False},
+    }
+    assert result.updated_config["autonomy"] == "balanced"
+    assert result.updated_config["research_mode"] == "balanced"
+    assert result.updated_config["model_profile"] == "review"
+    assert result.updated_config["parallelization"] is True
+    assert result.updated_config["commit_docs"] is True
+    assert result.updated_config["research"] is True
+    assert result.updated_config["plan_checker"] is True
+    assert result.updated_config["verifier"] is True
+    assert "planning" not in result.updated_config
+    assert "workflow" not in result.updated_config
+
+
+def test_preview_workflow_preset_application_uses_effective_alias_and_default_values() -> None:
+    raw_config = {
+        "autonomy": "balanced",
+        "research_mode": "balanced",
+        "model_profile": "review",
+        "parallelization": True,
+        "review_cadence": "adaptive",
+        "workflow": {"research": True, "plan_checker": True, "verifier": True},
+    }
+
+    result = preview_workflow_preset_application(raw_config, "core-research")
+
+    assert result.changed_keys == ()
+    assert result.unchanged_keys == (
+        "autonomy",
+        "research_mode",
+        "model_profile",
+        "execution.review_cadence",
+        "parallelization",
+        "planning.commit_docs",
+        "workflow.research",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    )
+    assert result.updated_config["execution"]["review_cadence"] == "adaptive"
+    assert result.updated_config["commit_docs"] is True
 
 
 def test_apply_workflow_preset_config_is_atomic_and_does_not_mutate_input() -> None:

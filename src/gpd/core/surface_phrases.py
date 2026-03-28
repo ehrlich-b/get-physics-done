@@ -109,6 +109,6 @@ def workflow_preset_surface_note() -> str:
     return (
         "Use `gpd presets list` to inspect the workflow preset catalog "
         f"({preset_labels}), `gpd presets show <preset>` to preview one bundle, "
-        "and `gpd presets apply <preset> --dry-run` to preview the merged config "
-        "before writing it."
+        "and `gpd presets apply <preset> --dry-run` to preview the changed knobs "
+        "before writing them."
     )

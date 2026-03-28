@@ -38,13 +38,13 @@ The workflow handles all logic including:
 1. Config file creation with defaults if missing
 2. Current config reading
 3. Primary guided unattended-use settings presentation with pre-selection, covering:
-   - **Preset chooser**: preview a bundle first, then apply it explicitly or fall back to detailed customization
+   - **Preset chooser**: preview the changed knobs first, then apply it explicitly or fall back to detailed customization
    - **Autonomy**: supervised / balanced / yolo
    - **Balanced (Recommended)**: best default for most unattended runs because it keeps work moving but still pauses on important physics, scope, or blocker decisions
    - **Unattended budgets**: review bounded continuation limits such as per-plan and per-wave unattended minutes
    - **Runtime permission sync**: align runtime-owned approvals with the chosen autonomy level
    - **Research profile**: deep-theory / numerical / exploratory / review / paper-writing
-   - **Workflow presets**: bundle the existing config keys above; preview first, then apply explicitly or adjust further. Use `gpd presets list`, `gpd presets show <preset>`, or `gpd presets apply <preset> [--dry-run]` from your normal terminal
+   - **Workflow presets**: bundle the existing config keys above; preview the changed knobs first, then apply explicitly or customize further. Use `gpd presets list`, `gpd presets show <preset>`, or `gpd presets apply <preset> [--dry-run]` from your normal terminal
    - **Model cost posture**: Max quality / Balanced / Budget-aware; advisory only and not a persisted config key
    - **Tier models for the active runtime**: leave unchanged / use runtime defaults / configure explicit tier-1, tier-2, tier-3 model strings
    - **Plan researcher**: on / off

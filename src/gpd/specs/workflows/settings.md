@@ -103,16 +103,16 @@ Teach one coherent posture-to-inspection loop:
 - use `gpd cost` after runs to inspect recorded local usage / cost and the current profile tier mix instead of treating posture labels as billing truth
 - do not present posture labels or `gpd cost` as provider billing truth or spend enforcement
 
-If the user asks for a preset, map it onto the existing knobs above. Present the resolved bundle first, let the user preview it, then ask for an explicit apply/adjust choice. Do not add a new persisted config section or install step.
-Use `gpd presets list` to inspect the workflow preset catalog, `gpd presets show <preset>` to preview one bundle, and `gpd presets apply <preset> --dry-run` to preview the merged config before writing it. Use `gpd validate unattended-readiness --runtime <runtime> --autonomy <mode>` for the unattended or overnight verdict, `gpd doctor` for install and runtime-local readiness, and `gpd validate plan-preflight <PLAN.md>` for plan readiness. Add `--live-executable-probes` to `gpd doctor` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`, but that stays separate from the shared Wolfram integration config. For Wolfram capability, use `gpd integrations status wolfram` to inspect the shared optional integration config; that is separate from a local Mathematica install and does not mean a plan is ready to run.
+If the user asks for a preset, map it onto the existing knobs above. Preview the changed knobs first, then ask for an explicit apply or customize choice. Do not add a new persisted config section or install step.
+Use `gpd presets list` to inspect the workflow preset catalog, `gpd presets show <preset>` to preview one bundle, and `gpd presets apply <preset> --dry-run` to preview the changed knobs before writing them. Use `gpd validate unattended-readiness --runtime <runtime> --autonomy <mode>` for the unattended or overnight verdict, `gpd doctor` for install and runtime-local readiness, and `gpd validate plan-preflight <PLAN.md>` for plan readiness. Add `--live-executable-probes` to `gpd doctor` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`, but that stays separate from the shared Wolfram integration config. For Wolfram capability, use `gpd integrations status wolfram` to inspect the shared optional integration config; that is separate from a local Mathematica install and does not mean a plan is ready to run.
 
 Before the detailed question list, offer a compact preset chooser when the user wants a starter bundle:
 
-- Core research (Recommended): preview and apply the balanced default bundle over the existing knobs
-- Theory: preview and apply the derivation-heavy bundle over the existing knobs
-- Numerics: preview and apply the computation-heavy bundle over the existing knobs
-- Publication / manuscript: preview and apply the paper-writing bundle over the existing knobs
-- Full research: preview and apply the core-research-plus-publication-readiness bundle over the existing knobs
+- Core research (Recommended): preview the balanced default bundle over the existing knobs, then apply or customize
+- Theory: preview the derivation-heavy bundle over the existing knobs, then apply or customize
+- Numerics: preview the computation-heavy bundle over the existing knobs, then apply or customize
+- Publication / manuscript: preview the paper-writing bundle over the existing knobs, then apply or customize
+- Full research: preview the core-research-plus-publication-readiness bundle over the existing knobs, then apply or customize
 - Customize settings: skip the preset and proceed to the detailed questions below
 
 Use ask_user with current values pre-selected:

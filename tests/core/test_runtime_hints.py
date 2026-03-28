@@ -414,4 +414,5 @@ def test_workflow_preset_surface_note_is_command_oriented_and_preview_first() ->
     assert "gpd presets show <preset>" in note
     assert "gpd presets apply <preset> --dry-run" in note
     assert "preview" in note
-    assert "before writing it" in note
+    assert "before writing them" in note
+    assert "changed knobs" in note
