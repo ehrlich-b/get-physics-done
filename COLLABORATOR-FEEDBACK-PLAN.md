@@ -91,17 +91,55 @@ Remaining friction after Step 1:
 - LaTeX readiness is still narrower than a full paper-toolchain capability contract.
 - Mathematica/Wolfram preflight and optional cross-runtime Wolfram integration remain future work.
 
+### Step 2 Completed: Honest Paper-Toolchain Capability Across Doctor And Paper Workflows
+
+Status: completed on March 27, 2026.
+
+What shipped:
+
+- The paper compiler layer now exposes one shared paper-toolchain capability contract with:
+  - compiler presence
+  - `bibtex`
+  - `latexmk`
+  - `kpsewhich`
+  - compiler path and distribution
+  - summarized readiness and warnings
+- `gpd doctor` now reports LaTeX readiness from that shared capability model:
+  - `OK` only for the full paper stack
+  - `WARN` for partial, missing, or unknown toolchains
+- Workflow preset readiness and runtime hints now consume the richer capability model instead of a flat `latex_available` boolean, while preserving compatibility for older callers.
+- `gpd paper-build` now surfaces the same top-level `toolchain` contract in its output without changing build behavior.
+- Public workflow/docs language is now aligned:
+  - `write-paper` remains usable in degraded environments for drafting and scaffold generation
+  - `paper-build` is the manuscript build contract
+  - `arxiv-submission` requires a successful manuscript build before packaging
+
+Verification:
+
+- Focused Step 2 suites passed:
+  - `uv run pytest -q tests/test_latex_detection.py tests/test_paper_compiler_regressions.py tests/core/test_health.py tests/core/test_workflow_presets.py tests/core/test_runtime_hints.py tests/test_release_consistency.py tests/core/test_prompt_cli_consistency.py tests/core/test_prompt_wiring.py`
+  - `uv run pytest -q tests/core/test_cli.py -k paper_build`
+  - `uv run pytest -q tests/test_paper_e2e.py`
+- Result: `326 passed`
+
+Remaining friction after Step 2:
+
+- `doctor` still reports static capability only; it does not yet run harmless executable probes.
+- There is still no plan-scoped specialized-tool preflight for Mathematica/Wolfram or other optional heavy tools.
+- Wolfram/Mathematica integration still remains documentation- and prompt-level rather than machine-checkable.
+- Journal/class/package readiness is still rightly owned by `paper-build`, not by the generic machine-level `doctor` contract.
+
 ### Next Step
 
-Step 2 should normalize LaTeX/paper-toolchain readiness into one honest capability contract across:
+Step 3 should add plan-scoped specialized-tool preflight with explicit optional requirements for tools like Mathematica/Wolfram while preserving Python/SymPy as the required baseline.
 
-- `doctor`
-- workflow preset readiness
-- `write-paper`
-- `paper-build`
-- install/help docs
+That step should:
 
-That step should stay strictly about LaTeX/paper-toolchain capability and should not expand into Wolfram or plan-level specialized-tool preflight yet.
+- let plans declare optional specialized tool requirements in a machine-checkable way
+- add a validation/preflight surface before execution begins
+- block only on tools the plan explicitly requires
+- require every Mathematica/Wolfram path to declare a valid fallback when feasible
+- stay runtime-agnostic so later Wolfram MCP support can plug into the same shared capability surface
 
 ## Feedback Map
 
