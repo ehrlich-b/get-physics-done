@@ -285,16 +285,14 @@ def test_build_cost_summary_empty_workspace_guidance_tracks_runtime_capabilities
 def test_public_runtime_surfaces_stay_conservative_when_capabilities_differ() -> None:
     descriptors = iter_runtime_descriptors()
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    help_command = (REPO_ROOT / "src/gpd/commands/help.md").read_text(encoding="utf-8")
     help_workflow = (REPO_ROOT / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
     settings_workflow = (REPO_ROOT / "src/gpd/specs/workflows/settings.md").read_text(encoding="utf-8")
 
     if any(descriptor.capabilities.telemetry_completeness == "none" for descriptor in descriptors):
-        for content in (readme, help_command, help_workflow):
+        for content in (readme, help_workflow):
             assert "gpd cost" in content
             assert "recorded local telemetry" in content
         assert cost_summary_surface_note() in readme
-        assert "provider billing truth" in help_command
         assert "provider billing truth" in help_workflow
 
     if any(descriptor.capabilities.permissions_surface != "unsupported" for descriptor in descriptors):

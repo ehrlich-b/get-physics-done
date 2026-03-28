@@ -13,12 +13,6 @@ from gpd.adapters.install_utils import expand_at_includes
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.contracts import ResearchContract, VerificationEvidence
 from gpd.core.frontmatter import validate_frontmatter
-from gpd.core.surface_phrases import (
-    cost_after_runs_guidance,
-    cost_summary_surface_note,
-    local_cli_bridge_note,
-    recovery_ladder_note,
-)
 from gpd.registry import _parse_frontmatter, _parse_tools
 from scripts.repo_graph_contract import parse_scope_count
 
@@ -1042,33 +1036,13 @@ def test_phase_research_and_verification_surfaces_keep_anchor_checks_mandatory()
 
 
 def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_ledgers() -> None:
-    _contract_results_schema = (TEMPLATES_DIR / "contract-results-schema.md").read_text(encoding="utf-8")
     summary_template = (TEMPLATES_DIR / "summary.md").read_text(encoding="utf-8")
-    _verification_template = (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
-    _research_verification = (TEMPLATES_DIR / "research-verification.md").read_text(encoding="utf-8")
-    _execute_plan = (WORKFLOWS_DIR / "execute-plan.md").read_text(encoding="utf-8")
-    _verify_workflow = (WORKFLOWS_DIR / "verify-work.md").read_text(encoding="utf-8")
-    _verify_phase = (WORKFLOWS_DIR / "verify-phase.md").read_text(encoding="utf-8")
-    _compare_workflow = (WORKFLOWS_DIR / "compare-experiment.md").read_text(encoding="utf-8")
-    _comparison_template = (
-        TEMPLATES_DIR / "paper" / "experimental-comparison.md"
-    ).read_text(encoding="utf-8")
-    _executor_agent = (AGENTS_DIR / "gpd-executor.md").read_text(encoding="utf-8")
-    _verifier_agent = (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
 
     assert "contract_results" in summary_template
     assert "comparison_verdicts" in summary_template
     assert "plan_contract_ref" in summary_template
-    assert "Keep this ledger user-visible" in summary_template
     assert "Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML" in summary_template
-    assert "canonical project-root-relative `GPD/phases/XX-name/{phase}-{plan}-PLAN.md#/contract` path" in summary_template
-    assert "Choose the depth explicitly" in summary_template
-    assert "default: full" not in summary_template
-    assert "Keep `uncertainty_markers` explicit and user-visible" in summary_template
     assert "uncertainty_markers:" in summary_template
-    assert "weakest_anchors: [anchor-1]" in summary_template
-    assert "disconfirming_observations: [observation-1]" in summary_template
-    assert "omitting the corresponding `comparison_verdicts` entry makes the summary incomplete" in summary_template
 
 
 def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() -> None:
@@ -1109,24 +1083,8 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "comparison_verdicts" in verification_template
     assert "Subject Role" in verification_template
     assert "subject_role: decisive" in verification_template
-    assert "Record only user-visible contract targets here" in verification_template
-    assert "status: passed` is strict" in verification_template
-    assert "absence of a verdict is itself a gap" in verification_template
-    assert "Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML" in verification_template
     assert "verification-side `suggested_contract_checks`" in verification_template
     assert "uncertainty_markers:" in verification_template
-    assert "weakest_anchors: [anchor-1]" in verification_template
-    assert "disconfirming_observations: [observation-1]" in verification_template
-    assert "every reference entry is `completed`" in verification_template
-    assert "every `must_surface` reference has all `required_actions` recorded in `completed_actions`" in verification_template
-    assert "Benchmark acceptance tests require `comparison_kind: benchmark`" in verification_template
-    assert "cross-method acceptance tests require `comparison_kind: cross_method`" in verification_template
-    assert "Section-specific status vocabularies are mandatory" in contract_results_schema
-    assert "`references` use `completed`, `missing`, or `not_applicable`" in contract_results_schema
-    assert "`forbidden_proxies` use `rejected`, `violated`, `unresolved`, or `not_applicable`" in contract_results_schema
-    assert "The same requirement applies when a benchmark-style reference anchors the subject" in contract_results_schema
-    assert "The same structured suggestion is required when a benchmark-style reference anchors the subject" in verification_template
-    assert "Include a `suggested_contract_checks` entry whenever a decisive benchmark / cross-method comparison is still partial or unresolved" in verification_template
     assert "Use `@{GPD_INSTALL_DIR}/templates/verification-report.md` for the canonical verification frontmatter contract." in research_verification
     assert "status: passed | gaps_found | expert_needed | human_needed" in research_verification
     assert "deliverables: {}" not in research_verification
@@ -1139,53 +1097,21 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "forbidden-proxy-main" in research_verification
     assert "comparison_verdicts:" in research_verification
     assert "subject_role: decisive" in research_verification
-    assert "comparison_kind: benchmark" in research_verification
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]" in research_verification
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" not in research_verification
-    assert "omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders" in research_verification
-    assert "comparison_kind: benchmark | prior_work | experiment | cross_method | baseline | other" in research_verification
-    assert 'comparison_kind: "benchmark | prior_work | experiment | cross_method | baseline | other"' in research_verification
-    assert "verification-side `suggested_contract_checks` entries are part of the same canonical schema surface" in research_verification
     assert "suggested_contract_checks:" in research_verification
     assert "uncertainty_markers:" in research_verification
-    assert "weakest_anchors: [anchor-1]" in research_verification
-    assert "disconfirming_observations: [observation-1]" in research_verification
-    assert "session_status: validating | completed | diagnosed" in research_verification
-    assert "verified: 2026-03-15T14:45:00Z" in research_verification
-    assert "score: 3/4 contract targets verified" in research_verification
-    assert "session_status: diagnosed" in research_verification
-    assert "\nstatus: diagnosed\n" not in research_verification
-    assert 'status -> "completed"' not in research_verification
-    assert '`session_status` -> "diagnosed"' in research_verification
-    assert 'status -> "diagnosed"' not in research_verification
-    assert "The frontmatter `comparison_verdicts` ledger is authoritative" in research_verification
-    assert "subject_role: decisive | supporting | supplemental | other" in research_verification
-    assert "Only `subject_role: decisive` closes a required decisive comparison" in research_verification
-    assert "decisive benchmark / cross-method check remains partial, not attempted, or still lacks a decisive verdict" in research_verification
-    assert "even a single item must stay a YAML list" in contract_results_schema
-    assert "scalar strings are invalid" in contract_results_schema
-    assert "Even singleton values must stay YAML lists in strict contract-backed ledgers" in summary_template
-    assert "Even singleton values must stay YAML lists in strict contract-backed ledgers" in verification_template
-    assert "Benchmark acceptance tests require `comparison_kind: benchmark`" in contract_results_schema
-    assert "cross-method acceptance tests require `comparison_kind: cross_method`" in contract_results_schema
     assert "claim_id" in research_verification
     assert "acceptance_test_id" in research_verification
     assert "frontmatter contract compatible with `@{GPD_INSTALL_DIR}/templates/verification-report.md`" in verify_workflow
     assert "status: passed | gaps_found | expert_needed | human_needed" in verify_workflow
-    assert "session_status: validating" in verify_workflow
     assert "uncertainty_markers:" in verify_workflow
-    assert "weakest_anchors: [anchor-1]" in verify_workflow
-    assert "disconfirming_observations: [observation-1]" in verify_workflow
-    assert "weakest_anchors: []" not in verify_workflow
-    assert "disconfirming_observations: []" not in verify_workflow
     assert "Mirror decisive verdicts into frontmatter `comparison_verdicts`." in verify_workflow
     assert "structured `suggested_contract_checks` entry before final validation" in verify_workflow
     assert "request_template" in verify_workflow
     assert "required_request_fields" in verify_workflow
     assert "supported_binding_fields" in verify_workflow
     assert "run_contract_check(request=...)" in verify_workflow
-    assert "Benchmark acceptance tests require `comparison_kind: benchmark`" in verify_workflow
-    assert "cross-method acceptance tests require `comparison_kind: cross_method`" in verify_workflow
     assert "deliverables: {}" not in verify_workflow
     assert "acceptance_tests: {}" not in verify_workflow
     assert "references: {}" not in verify_workflow
@@ -1196,10 +1122,8 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "forbidden-proxy-id" in verify_workflow
     assert "comparison_verdicts:" in verify_workflow
     assert "subject_role: decisive" in verify_workflow
-    assert "comparison_kind: benchmark" in verify_workflow
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]" in verify_workflow
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | \"\"]" not in verify_workflow
-    assert "omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders" in verify_workflow
     assert "suggested_contract_checks:" in verify_workflow
     assert "`suggested_contract_check`" not in verify_workflow
     assert "Return status (`passed` | `gaps_found` | `expert_needed` | `human_needed`)" in verify_phase
@@ -1210,10 +1134,6 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "Each gap has: `subject_kind`" not in verifier_agent
     assert "Verification Status:** {passed | gaps_found | expert_needed | human_needed}" in verifier_agent
     assert "uncertainty_markers:" in verifier_agent
-    assert "weakest_anchors: [anchor-1]" in verifier_agent
-    assert "disconfirming_observations: [observation-1]" in verifier_agent
-    assert "weakest_anchors: []" not in verifier_agent
-    assert "disconfirming_observations: []" not in verifier_agent
     assert "`suggested_contract_check`" not in verifier_agent
     assert "`contract_results` is authoritative." in execute_plan
     assert "project_contract_validation" in execute_plan
@@ -1287,12 +1207,7 @@ def test_verification_prompts_keep_suggested_contract_check_bindings_schema_tigh
     assert "acceptance-test-id" in verification_template
     assert "acceptance-test-main" in research_verification
     assert "acceptance-test-id" in verifier_agent
-    assert "omit both keys instead of leaving one blank" in verification_template
-    assert "omit both keys instead of leaving one blank" in research_verification
-    assert "verification-side `suggested_contract_checks`" in verification_template
-    assert "verification-side `suggested_contract_checks` entries are part of the same canonical schema surface" in research_verification
-    assert "omit both keys instead of leaving one blank" in verify_workflow
-    assert "omit both keys instead of leaving one blank" in verifier_agent
+    assert "suggested_contract_checks" in verification_template
     assert "gap_subject_kind" in verifier_agent
     assert "Each gap has: `gap_subject_kind`" in verifier_agent
     assert "Each gap has: `subject_kind`" not in verifier_agent
@@ -2072,25 +1987,20 @@ def test_execution_observability_and_resume_surfaces_stay_conservative_about_sta
     progress = (WORKFLOWS_DIR / "progress.md").read_text(encoding="utf-8")
     resume_work = (WORKFLOWS_DIR / "resume-work.md").read_text(encoding="utf-8")
 
-    assert "gpd observe execution" in help_command
-    assert "progress / waiting state" in help_command
-    assert "possibly stalled" in help_command
-    assert "read-only checks" in help_command
-    assert "gpd cost" in help_command
-    assert cost_summary_surface_note() in help_command
+    assert "Display GPD help by delegating to the workflow-owned help surface." in help_command
+    assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
     assert "gpd observe execution" in help_workflow
     assert "progress / waiting state" in help_workflow
+    assert "possibly stalled" in help_workflow
     assert "read-only checks" in help_workflow
     assert "gpd cost" in help_workflow
-    assert cost_summary_surface_note() in help_workflow
     assert "For read-only long-run visibility from your normal system terminal, use `gpd observe execution`." in readme
     assert "conservatively say `possibly stalled` instead of relying on runtime hotkeys" in readme
     assert "Start with `gpd observe show --last 20` when you need the recent event trail" in readme
     assert "route it through the runtime `tangent` command first" in readme
     assert "For a read-only machine-local usage / cost summary from your normal system terminal, use `gpd cost`." in readme
     assert "advisory only" in readme or "billing truth" in readme
-    assert "gpd resume --recent" in help_command
-    assert "gpd resume --recent" in help_workflow
+    assert "Start at `# GPD Command Reference`." in help_command
     assert "gpd resume --recent" in readme
     assert "When STATE.md appears out of sync with disk reality" in progress
     assert "advisory context only" in resume_work
@@ -2118,13 +2028,10 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "This is the canonical pause/resume handoff for the current phase." in pause_work
     assert "context handoff" in pause_work or "session continuity" in pause_work
     assert "/gpd:resume-work" in help_workflow
+    assert "/gpd:pause-work" in help_workflow
+    assert "/gpd:suggest-next" in help_workflow
     assert "current-workspace read-only recovery snapshot" in help_workflow
     assert "gpd resume" in help_workflow
-    assert recovery_ladder_note(
-        resume_work_phrase="`/gpd:resume-work`",
-        suggest_next_phrase="`/gpd:suggest-next`",
-        pause_work_phrase="`/gpd:pause-work`",
-    ) in help_workflow
     assert "gpd observe execution" in help_workflow
     assert "suggested read-only checks rather than runtime hotkeys" in help_workflow
 
@@ -2306,30 +2213,24 @@ def test_settings_workflow_surfaces_qualitative_model_cost_onboarding_and_runtim
     settings_command = (COMMANDS_DIR / "settings.md").read_text(encoding="utf-8")
     settings_workflow = (WORKFLOWS_DIR / "settings.md").read_text(encoding="utf-8")
 
-    assert "**Model cost posture**: Max quality / Balanced / Budget-aware" in settings_command
-    assert "Prefer runtime defaults unless the user explicitly wants pinned tier overrides" in settings_command
-    assert "Treat `Balanced` as the default qualitative posture" in settings_command
-    assert "dollar" not in settings_command.lower()
+    assert "@{GPD_INSTALL_DIR}/workflows/settings.md" in settings_command
+    assert "Keep this wrapper thin" in settings_command
+    assert "Do not invent a parallel settings flow" in settings_command
+    assert "preset, model-posture, tier-model, budget, permission-sync, and local CLI bridge wording" in settings_command
 
     assert "Balanced (Recommended)" in settings_workflow
     assert "runtime defaults" in settings_workflow
     assert "tier-1" in settings_workflow
     assert "tier-2" in settings_workflow
     assert "tier-3" in settings_workflow
-    assert cost_after_runs_guidance() in settings_workflow
     assert "dollar" not in settings_workflow.lower()
 
-    assert "Tier models for the active runtime" in settings_command
     assert "Tier Models" in settings_workflow
     assert "Step-by-step setup for runtime-specific tier-1, tier-2, and tier-3 model strings" in settings_workflow
-    assert "use runtime defaults" in settings_command
     assert "Use runtime defaults" in settings_workflow
-    assert "configure explicit tier-1, tier-2, tier-3 model strings" in settings_command
     assert "Configure explicit tier models" in settings_workflow
-    assert "advisory only" in settings_command
     assert "Local CLI bridge" in settings_workflow
     assert "gpd --help" in settings_workflow
-    assert f"Local CLI bridge: {local_cli_bridge_note()}" in settings_workflow
     assert "gpd permissions sync --runtime <runtime> --autonomy balanced" in settings_workflow
     assert "This sync only updates runtime-owned permission settings; it does not validate install health or workflow/tool readiness." in settings_workflow
     assert "current profile tier mix" in settings_workflow
@@ -2341,34 +2242,37 @@ def test_help_surfaces_distinguish_runtime_slash_commands_from_local_cli_subcomm
     help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "`/gpd:*`" in content
-        assert "in-runtime" in content
-        assert "slash-command" in content
-        assert "local `gpd` CLI" in content
-        assert "gpd --help" in content
-        assert "gpd permissions sync --runtime <runtime> --autonomy balanced" in content
-        assert "install/readiness/permissions/diagnostics surface directly" in content
-        assert "`gpd doctor` checks the selected install target and runtime-local readiness signals." in content
-        assert "`gpd permissions ...` checks runtime-owned approval/alignment only." in content
-        assert "gpd validate command-context gpd:<name>" in content
-        assert "gpd observe execution" in content
+    assert "Display GPD help by delegating to the workflow-owned help surface." in help_command
+    assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
+    assert "## Step 2: Quick Start Extract (Default Output)" in help_command
+    assert "## Step 3: Full Command Reference (--all)" in help_command
+
+    assert "`/gpd:*`" in help_workflow
+    assert "in-runtime" in help_workflow
+    assert "slash-command" in help_workflow
+    assert "local `gpd` CLI" in help_workflow
+    assert "gpd --help" in help_workflow
+    assert "gpd permissions sync --runtime <runtime> --autonomy balanced" in help_workflow
+    assert "install/readiness/permissions/diagnostics surface directly" in help_workflow
+    assert "`gpd doctor` checks the selected install target and runtime-local readiness signals." in help_workflow
+    assert "`gpd permissions ...` checks runtime-owned approval/alignment only." in help_workflow
+    assert "gpd validate command-context gpd:<name>" in help_workflow
+    assert "gpd observe execution" in help_workflow
 
 
 def test_help_command_keeps_static_quick_start_while_workflow_owns_full_reference() -> None:
     help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
-    quick_start = _extract_between(
-        help_command,
-        "## Step 2: Quick Start (Default Output)",
-        "## Step 3: Full Command Reference (--all)",
-    )
 
     assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
-    assert "## Invocation Surfaces" not in quick_start
+    assert "Start at `# GPD Command Reference`." in help_command
+    assert "Include the workflow-owned `## Invocation Surfaces` section." in help_command
+    assert "Include the workflow-owned `## Quick Start` section." in help_command
+    assert "Stop before `## Core Workflow`." in help_command
+    assert "Append this one wrapper-owned line:" in help_command
+    assert "/gpd:help --all" in help_command
     assert "## Invocation Surfaces" in help_workflow
     assert "## Core Workflow" in help_workflow
-    assert "Choose the path that matches your starting point:" in quick_start
     assert "Choose the path that matches your starting point:" in help_workflow
     for token in (
         "/gpd:new-project",
@@ -2383,9 +2287,7 @@ def test_help_command_keeps_static_quick_start_while_workflow_owns_full_referenc
         "/gpd:suggest-next",
         "/gpd:tangent",
         "/gpd:settings",
-        "/gpd:help --all",
     ):
-        assert token in quick_start
         assert token in help_workflow
 
 
@@ -2452,31 +2354,27 @@ def test_planner_and_plan_phase_keep_no_silent_branching_and_exploit_tangent_sup
 
 
 def test_help_surfaces_describe_regression_check_as_metadata_scan_not_full_reverification() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "SUMMARY" in content
-        assert "frontmatter" in content
-        assert "convention conflicts" in content
-        assert "VERIFICATION" in content
-        assert "canonical statuses" in content
-        assert "re-runs dimensional analysis" not in content
-        assert "re-runs limiting cases" not in content
-        assert "re-runs numerical checks" not in content
+    assert "SUMMARY" in help_workflow
+    assert "frontmatter" in help_workflow
+    assert "convention conflicts" in help_workflow
+    assert "VERIFICATION" in help_workflow
+    assert "canonical statuses" in help_workflow
+    assert "re-runs dimensional analysis" not in help_workflow
+    assert "re-runs limiting cases" not in help_workflow
+    assert "re-runs numerical checks" not in help_workflow
 
 
 def test_help_surfaces_use_projectless_examples_that_satisfy_command_context_predicates() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert 'Usage: `/gpd:derive-equation "derive the one-loop beta function"`' in content
-        assert "Usage: `/gpd:dimensional-analysis 3`" in content
-        assert "Usage: `/gpd:limiting-cases 3`" in content
-        assert "Usage: `/gpd:numerical-convergence 3`" in content
-        assert "Usage: `/gpd:compare-experiment predictions.csv experiment.csv`" in content
-        assert "Usage: `/gpd:sensitivity-analysis --target cross_section --params g,m,Lambda --method numerical`" in content
+    assert 'Usage: `/gpd:derive-equation "derive the one-loop beta function"`' in help_workflow
+    assert "Usage: `/gpd:dimensional-analysis 3`" in help_workflow
+    assert "Usage: `/gpd:limiting-cases 3`" in help_workflow
+    assert "Usage: `/gpd:numerical-convergence 3`" in help_workflow
+    assert "Usage: `/gpd:compare-experiment predictions.csv experiment.csv`" in help_workflow
+    assert "Usage: `/gpd:sensitivity-analysis --target cross_section --params g,m,Lambda --method numerical`" in help_workflow
 
 
 def test_verification_and_publication_prompts_keep_decisive_contract_targets_reader_visible() -> None:

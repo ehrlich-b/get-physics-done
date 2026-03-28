@@ -9,32 +9,20 @@ from gpd.core.config import (
     ModelProfile,
     ResearchMode,
     ReviewCadence,
-    apply_config_update,
     load_config,
-    supported_config_keys,
 )
-from gpd.core.workflow_presets import list_workflow_presets
-
-
-def _apply_preset_bundle(raw: dict[str, object], bundle: dict[str, object]) -> tuple[dict[str, object], list[str]]:
-    """Apply a preset bundle as a sequence of atomic config-key updates."""
-    updated = copy.deepcopy(raw)
-    applied_keys: list[str] = []
-    allowed = set(supported_config_keys())
-
-    for key, value in bundle.items():
-        if key not in allowed:
-            continue
-        updated, canonical_key = apply_config_update(updated, key, value)
-        applied_keys.append(canonical_key)
-
-    return updated, applied_keys
+from gpd.core.workflow_presets import (
+    apply_workflow_preset_config,
+    get_workflow_preset,
+    preview_workflow_preset_application,
+)
 
 
 def test_preset_bundle_applies_atomic_supported_keys_and_preserves_unrelated_overrides(
     tmp_path: Path,
 ) -> None:
-    preset = next(preset for preset in list_workflow_presets() if preset.id == "publication-manuscript")
+    preset = get_workflow_preset("publication-manuscript")
+    assert preset is not None
     runtime_name = "codex"
     original_overrides = {
         runtime_name: {
@@ -66,32 +54,23 @@ def test_preset_bundle_applies_atomic_supported_keys_and_preserves_unrelated_ove
         "workflow": {"research": False, "plan_checker": False, "verifier": False},
     }
 
-    bundle = {
-        **preset.recommended_config,
-        "id": preset.id,
-        "label": preset.label,
-        "description": preset.description,
-        "summary": preset.summary,
-        "required_checks": list(preset.required_checks),
-        "ready_workflows": list(preset.ready_workflows),
-        "degraded_workflows": list(preset.degraded_workflows),
-        "blocked_workflows": list(preset.blocked_workflows),
-        "requires_extra_tooling": preset.requires_extra_tooling,
-    }
+    preview = preview_workflow_preset_application(raw, preset.id)
+    applied = preview.updated_config
 
-    applied, applied_keys = _apply_preset_bundle(raw, bundle)
-
-    assert applied_keys == [
+    assert preview.preset_id == "publication-manuscript"
+    assert preview.label == "Publication / manuscript"
+    assert preview.applied_keys == (
         "autonomy",
         "research_mode",
         "model_profile",
-        "review_cadence",
+        "execution.review_cadence",
         "parallelization",
-        "commit_docs",
-        "research",
-        "plan_checker",
-        "verifier",
-    ]
+        "planning.commit_docs",
+        "workflow.research",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    )
+    assert preview.ignored_guidance_only_keys == ("model_cost_posture",)
     assert applied["model_profile"] == "paper-writing"
     assert applied["autonomy"] == "balanced"
     assert applied["research_mode"] == "exploit"
@@ -109,8 +88,6 @@ def test_preset_bundle_applies_atomic_supported_keys_and_preserves_unrelated_ove
     assert "planning" not in applied
     assert "workflow" not in applied
     assert "review_cadence" not in applied
-    assert "id" not in applied
-    assert "label" not in applied
     assert "model_cost_posture" not in applied
 
     project = tmp_path / "project"
@@ -137,7 +114,8 @@ def test_preset_bundle_applies_atomic_supported_keys_and_preserves_unrelated_ove
 def test_atomic_application_preserves_existing_runtime_override_and_nested_config_sections(
     tmp_path: Path,
 ) -> None:
-    preset = next(preset for preset in list_workflow_presets() if preset.id == "core-research")
+    preset = get_workflow_preset("core-research")
+    assert preset is not None
     runtime_name = "codex"
     original_overrides = {
         runtime_name: {
@@ -155,26 +133,24 @@ def test_atomic_application_preserves_existing_runtime_override_and_nested_confi
         "workflow": {"research": False, "plan_checker": False, "verifier": False},
     }
 
-    bundle = {
-        **preset.recommended_config,
-        "label": preset.label,
-        "summary": preset.summary,
-        "requires_extra_tooling": preset.requires_extra_tooling,
-    }
+    original_raw = copy.deepcopy(raw)
+    preview = preview_workflow_preset_application(raw, preset.id)
+    applied, preset_id = apply_workflow_preset_config(raw, preset.id)
 
-    applied, applied_keys = _apply_preset_bundle(raw, bundle)
-
-    assert applied_keys == [
+    assert preset_id == "core-research"
+    assert raw == original_raw
+    assert applied == preview.updated_config
+    assert preview.applied_keys == (
         "autonomy",
         "research_mode",
         "model_profile",
-        "review_cadence",
+        "execution.review_cadence",
         "parallelization",
-        "commit_docs",
-        "research",
-        "plan_checker",
-        "verifier",
-    ]
+        "planning.commit_docs",
+        "workflow.research",
+        "workflow.plan_checker",
+        "workflow.verifier",
+    )
     assert applied["execution"]["review_cadence"] == ReviewCadence.ADAPTIVE.value
     assert applied["commit_docs"] is True
     assert applied["research"] is True
@@ -184,5 +160,4 @@ def test_atomic_application_preserves_existing_runtime_override_and_nested_confi
     assert "workflow" not in applied
     assert applied["model_overrides"] == original_overrides
     assert "review_cadence" not in applied
-    assert "label" not in applied
-    assert "summary" not in applied
+    assert preview.ignored_guidance_only_keys == ("model_cost_posture",)

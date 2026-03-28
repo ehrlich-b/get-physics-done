@@ -1265,9 +1265,10 @@ def test_bootstrap_prefers_preflighted_tag_git_candidate_when_tag_archive_is_ina
     ]
 
     assert managed_pip_targets == [PYPI_SPEC, TAG_HTTPS_GIT_SPEC]
-    assert "PyPI install failed. Falling back to GitHub source..." in result.stdout
-    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in result.stdout
-    assert f"Installing GPD from HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} into the managed environment..." in result.stdout
+    combined_output = result.stdout + result.stderr
+    assert "PyPI install failed. Falling back to GitHub source..." in combined_output
+    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in combined_output
+    assert f"Installing GPD from HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} into the managed environment..." in combined_output
 
 
 @pytest.mark.skipif(os.name == "nt", reason="bootstrap installer harness uses POSIX-style fake Python shims")
@@ -1303,11 +1304,12 @@ def test_bootstrap_release_install_fails_closed_without_falling_back_to_main_sou
         entry for entry in entries if entry["managed"] and entry["argv"][:4] == ["-m", "pip", "install", "--upgrade"]
     ]
 
+    combined_output = result.stdout + result.stderr
     assert len(managed_pip_installs) == 1  # PyPI attempted but failed
-    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in result.stdout
-    assert f"Detected that HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} is unavailable: tag v{PYTHON_PACKAGE_VERSION} is not published." in result.stdout
-    assert "No accessible tagged GitHub release source candidate was detected." in result.stdout
-    assert "main branch" not in result.stdout
+    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in combined_output
+    assert f"Detected that HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} is unavailable: tag v{PYTHON_PACKAGE_VERSION} is not published." in combined_output
+    assert "No accessible tagged GitHub release source candidate was detected." in combined_output
+    assert "main branch" not in combined_output
     assert f"Failed to install GPD v{PYTHON_PACKAGE_VERSION} from GitHub sources." in result.stderr
 
 
@@ -1344,11 +1346,12 @@ def test_bootstrap_fails_closed_when_probes_mark_all_public_sources_unavailable(
         entry for entry in entries if entry["managed"] and entry["argv"][:4] == ["-m", "pip", "install", "--upgrade"]
     ]
 
+    combined_output = result.stdout + result.stderr
     assert len(managed_pip_installs) == 1  # PyPI attempted but failed
-    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in result.stdout
-    assert f"Detected that HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} is unavailable: git exit 2." in result.stdout
-    assert "No accessible tagged GitHub release source candidate was detected." in result.stdout
-    assert "main branch" not in result.stdout
+    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in combined_output
+    assert f"Detected that HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} is unavailable: git exit 2." in combined_output
+    assert "No accessible tagged GitHub release source candidate was detected." in combined_output
+    assert "main branch" not in combined_output
     assert f"Failed to install GPD v{PYTHON_PACKAGE_VERSION}" in result.stderr
 
 

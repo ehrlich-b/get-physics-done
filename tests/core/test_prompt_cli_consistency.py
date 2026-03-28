@@ -11,6 +11,15 @@ from gpd.core.surface_phrases import (
     recovery_ladder_note,
 )
 from gpd.registry import VALID_CONTEXT_MODES, _parse_frontmatter
+from tests.doc_surface_contracts import (
+    DOCTOR_RUNTIME_SCOPE_RE,
+    PERMISSIONS_SYNC_SURFACE,
+    UNATTENDED_READINESS_SURFACE,
+    _assert_cost_advisory_guardrail,
+    _assert_shared_preset_surface_contract,
+    _assert_unattended_readiness_boundary,
+    _assert_wolfram_plan_boundary,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CLI_PATH = REPO_ROOT / "src/gpd/cli.py"
@@ -24,53 +33,12 @@ PROMPT_ROOTS = (
     REPO_ROOT / "src/gpd/specs/templates",
 )
 GRAPH_PATH = REPO_ROOT / "tests" / "README.md"
-
 ROOT_COMMAND_RE = re.compile(r"@app\.command\(\s*\"([a-z0-9-]+)\"(?:,|\))", re.MULTILINE)
 TYPER_GROUP_RE = re.compile(r"app\.add_typer\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*,\s*name=\"([a-z0-9-]+)\"", re.MULTILINE)
 GROUP_COMMAND_RE = re.compile(r"@{group}\.command\(\s*\"([a-z0-9-]+)\"(?:,|\))", re.MULTILINE)
 NON_CANONICAL_GPD_COMMAND_RE = re.compile(r"(?<![A-Za-z0-9_./}])(?:\$gpd-[A-Za-z0-9{}-]+|/gpd-[A-Za-z0-9{}-]+)(?!\.md)")
 RAW_AFTER_SUBCOMMAND_RE = re.compile(r"\bgpd\s+(?!--raw\b)[^`\n]*\s+--raw\b")
 SUMMARY_EXTRACT_FIELDS_RE = re.compile(r"\bgpd\s+summary-extract\b[^\n`]*\s--fields\b")
-DOCTOR_RUNTIME_SCOPE_RE = re.compile(r"gpd doctor --runtime <runtime> --local\|--global")
-UNATTENDED_READINESS_SURFACE = "gpd validate unattended-readiness"
-PERMISSIONS_SYNC_SURFACE = "gpd permissions sync --runtime <runtime> --autonomy balanced"
-PLAN_PREFLIGHT_SURFACE = "gpd validate plan-preflight <PLAN.md>"
-WOLFRAM_STATUS_SURFACE = "gpd integrations status wolfram"
-
-
-def _assert_unattended_readiness_boundary(content: str) -> None:
-    assert UNATTENDED_READINESS_SURFACE in content
-    assert PERMISSIONS_SYNC_SURFACE in content
-    assert "gpd doctor" in content
-    assert (
-        "runtime-owned approval/alignment only" in content
-        or "runtime-owned permission alignment" in content
-    )
-
-
-def _assert_wolfram_plan_boundary(content: str) -> None:
-    assert WOLFRAM_STATUS_SURFACE in content
-    assert PLAN_PREFLIGHT_SURFACE in content
-    assert (
-        "does not prove local Mathematica availability or plan readiness" in content
-        or "does not mean a plan is ready to run" in content
-        or "plan gate" in content
-    )
-
-
-def _assert_cost_advisory_guardrail(content: str) -> None:
-    assert "gpd cost" in content
-    assert "current profile tier mix" in content or "recorded local telemetry" in content
-    assert "advisory only" in content or "billing truth" in content
-    assert "partial or estimated rather than exact" in content or "estimated rather than exact" in content
-
-
-def _assert_shared_preset_surface_contract(content: str) -> None:
-    assert "gpd presets list" in content
-    assert "gpd presets show <preset>" in content
-    assert "gpd presets apply <preset>" in content
-    assert "existing config keys" in content or "bundles over the existing config keys only" in content
-    assert "separate persisted preset block" in content or "preset block" in content
 
 
 def _extract_between(content: str, start_marker: str, end_marker: str) -> str:
@@ -179,63 +147,39 @@ def test_prompt_sources_use_canonical_gpd_command_syntax() -> None:
     assert invalid == []
 
 
-def test_help_prompt_command_count_matches_live_inventory() -> None:
-    command_count = len(list(COMMANDS_DIR.glob("*.md")))
+def test_help_prompt_delegates_full_reference_to_workflow() -> None:
     help_prompt = (REPO_ROOT / "src/gpd/commands/help.md").read_text(encoding="utf-8")
 
-    assert f"Run `/gpd:help --all` for all {command_count} commands." in help_prompt
+    assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_prompt
+    assert "workflow-owned help surface" in help_prompt
+    assert "Output the complete `<reference>` block from the loaded workflow help file verbatim." in help_prompt
 
 
-def test_help_prompt_default_quick_start_stays_runtime_surface_focused() -> None:
+def test_help_prompt_default_quick_start_extracts_workflow_owned_sections() -> None:
     help_prompt = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
     quick_start = _extract_between(
         help_prompt,
-        "## Step 2: Quick Start (Default Output)",
+        "## Step 2: Quick Start Extract (Default Output)",
         "## Step 3: Full Command Reference (--all)",
     )
 
-    assert "# GPD Command Reference" in quick_start
-    assert "These `/gpd:*` entries are canonical in-runtime slash-command names" in quick_start
-    assert "## Quick Start" in quick_start
-    assert "Choose the path that matches your starting point:" in quick_start
-    for section in (
-        "**New work**",
-        "**Existing work**",
-        "**Returning work**",
-        "**Tangents**",
-        "**Local CLI bridge**",
-        "**Unattended / autonomy setup**",
-    ):
-        assert section in quick_start
-    for line in (
-        "/gpd:new-project",
-        "/gpd:new-project --minimal",
-        "/gpd:map-research",
-        "/gpd:resume-work",
-        "gpd resume --recent",
-        "gpd --help",
-        UNATTENDED_READINESS_SURFACE,
-        PERMISSIONS_SYNC_SURFACE,
-        "gpd observe execution",
-        "gpd cost",
-        "gpd presets list",
-        "gpd presets show <preset>",
-        "/gpd:progress",
-        "/gpd:suggest-next",
-        "/gpd:tangent",
-        "/gpd:settings",
-        "/gpd:help --all",
-    ):
-        assert line in quick_start
+    assert "workflow-owned reference" in quick_start
+    assert "Start at `# GPD Command Reference`." in quick_start
+    assert "Include the workflow-owned `## Invocation Surfaces` section." in quick_start
+    assert "Include the workflow-owned `## Quick Start` section." in quick_start
+    assert "Stop before `## Core Workflow`." in quick_start
+    assert "Run \\`/gpd:help --all\\` for the full command reference." in quick_start
     assert recovery_ladder_note(
         resume_work_phrase="`/gpd:resume-work`",
         suggest_next_phrase="`/gpd:suggest-next`",
         pause_work_phrase="`/gpd:pause-work`",
-    ) in quick_start
-    assert "Continue in-runtime from the selected project state" in quick_start
-    assert "**Core workflow:** new-project → discuss-phase → plan-phase → execute-phase → verify-work → repeat → complete-milestone" in quick_start
-    assert "**Publication:** write-paper → peer-review → respond-to-referees → arxiv-submission" in quick_start
-    assert "gpd init new-project" not in quick_start
+    ) in help_workflow
+    assert "Choose the path that matches your starting point:" in help_workflow
+    assert "Continue in-runtime from the selected project state" in help_workflow
+    assert "## Core Workflow" in help_workflow
+    assert "/gpd:new-project -> /gpd:discuss-phase -> /gpd:plan-phase -> /gpd:execute-phase -> /gpd:verify-work -> repeat" in help_workflow
+    assert "gpd init new-project" not in help_workflow
 
 
 def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> None:
@@ -243,30 +187,27 @@ def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> N
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
     quick_start = _extract_between(
         help_command,
-        "## Step 2: Quick Start (Default Output)",
+        "## Step 2: Quick Start Extract (Default Output)",
         "## Step 3: Full Command Reference (--all)",
     )
 
-    assert "**Workflow presets**" in quick_start
-    assert "Paper/manuscript workflows" in quick_start
-    assert DOCTOR_RUNTIME_SCOPE_RE.search(quick_start) is not None
-    _assert_shared_preset_surface_contract(quick_start)
-    assert "runtime-local paper-toolchain readiness" in quick_start
-    for content in (help_command, help_workflow):
-        assert "Use `gpd --help` to inspect the executable local install/readiness/permissions/diagnostics surface directly." in content
-        _assert_unattended_readiness_boundary(content)
-        assert "executable probes" in content
-        assert "pdflatex" in content
-        assert "wolframscript" in content
-        assert DOCTOR_RUNTIME_SCOPE_RE.search(content) is not None
-        _assert_wolfram_plan_boundary(content)
-        assert "Workflow presets" in content
-        _assert_shared_preset_surface_contract(content)
-        assert "paper-toolchain readiness" in content
-        assert "degrade `write-paper`" in content
-        assert "`paper-build` remains the build contract" in content
-        assert "`arxiv-submission` requires the built manuscript" in content
-        assert "Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment." in content
+    assert "Include the workflow-owned `## Invocation Surfaces` section." in quick_start
+    assert "Include the workflow-owned `## Quick Start` section." in quick_start
+    assert "Append this one wrapper-owned line" in quick_start
+    assert "Use `gpd --help` to inspect the executable local install/readiness/permissions/diagnostics surface directly." in help_workflow
+    _assert_unattended_readiness_boundary(help_workflow)
+    assert "executable probes" in help_workflow
+    assert "pdflatex" in help_workflow
+    assert "wolframscript" in help_workflow
+    assert DOCTOR_RUNTIME_SCOPE_RE.search(help_workflow) is not None
+    _assert_wolfram_plan_boundary(help_workflow)
+    assert "Workflow presets" in help_workflow
+    _assert_shared_preset_surface_contract(help_workflow)
+    assert "paper-toolchain readiness" in help_workflow
+    assert "degrade `write-paper`" in help_workflow
+    assert "`paper-build` remains the build contract" in help_workflow
+    assert "`arxiv-submission` requires the built manuscript" in help_workflow
+    assert "Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment." in help_workflow
 
 
 def test_prompt_docs_keep_wolfram_as_shared_capability_not_runtime_config_surface() -> None:
@@ -286,12 +227,12 @@ def test_prompt_docs_keep_wolfram_as_shared_capability_not_runtime_config_surfac
         for token in forbidden_tokens:
             assert token not in content
 
-    for content in (help_command, help_workflow):
-        _assert_unattended_readiness_boundary(content)
-        _assert_wolfram_plan_boundary(content)
-        assert "gpd integrations enable wolfram" in content
-        assert "gpd integrations disable wolfram" in content
-        _assert_shared_preset_surface_contract(content)
+    assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
+    _assert_unattended_readiness_boundary(help_workflow)
+    _assert_wolfram_plan_boundary(help_workflow)
+    assert "gpd integrations enable wolfram" in help_workflow
+    assert "gpd integrations disable wolfram" in help_workflow
+    _assert_shared_preset_surface_contract(help_workflow)
 
     assert "Mathematica / Wolfram Language" in tooling_ref
     assert "declare it as `tool: wolfram` in `tool_requirements`" in tooling_ref
@@ -427,12 +368,10 @@ def test_compare_branches_prompt_keeps_branch_summary_extraction_in_memory() -> 
 
 
 def test_help_prompts_surface_tangent_command_for_side_investigations() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "/gpd:tangent" in content
-        assert re.search(r"/gpd:tangent[^\n]*?(?:tangent|side investigation|alternative direction|parallel)", content, re.I)
+    assert "/gpd:tangent" in help_workflow
+    assert re.search(r"/gpd:tangent[^\n]*?(?:tangent|side investigation|alternative direction|parallel)", help_workflow, re.I)
 
 
 def test_settings_and_research_mode_docs_keep_tangent_branch_taxonomy_strict() -> None:
@@ -486,71 +425,63 @@ def test_verifier_prompt_does_not_claim_regression_check_spawns_verifier() -> No
 
 
 def test_help_prompt_workflow_modes_match_current_settings_vocabulary() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "Interactive Mode" not in content
-        assert "YOLO Mode" not in content
-        assert "Change anytime by editing `GPD/config.json`" not in content
-        assert "Supervised" in content
-        assert "Max quality" in content
-        assert "Balanced" in content
-        assert "Budget-aware" in content
-        assert "runtime defaults" in content
-        assert "tier-1" in content
-        assert "tier-2" in content
-        assert "tier-3" in content
-        assert "YOLO" in content
-        assert "/gpd:settings" in content
-        assert "/gpd:discuss-phase" in content
-        assert "execution.review_cadence" in content
-        assert "planning.commit_docs" in content
-        assert "git.branching_strategy" in content
-        assert "gpd observe execution" in content
-        _assert_cost_advisory_guardrail(content)
+    assert "Interactive Mode" not in help_workflow
+    assert "YOLO Mode" not in help_workflow
+    assert "Change anytime by editing `GPD/config.json`" not in help_workflow
+    assert "Supervised" in help_workflow
+    assert "Max quality" in help_workflow
+    assert "Balanced" in help_workflow
+    assert "Budget-aware" in help_workflow
+    assert "runtime defaults" in help_workflow
+    assert "tier-1" in help_workflow
+    assert "tier-2" in help_workflow
+    assert "tier-3" in help_workflow
+    assert "YOLO" in help_workflow
+    assert "/gpd:settings" in help_workflow
+    assert "/gpd:discuss-phase" in help_workflow
+    assert "execution.review_cadence" in help_workflow
+    assert "planning.commit_docs" in help_workflow
+    assert "git.branching_strategy" in help_workflow
+    assert "gpd observe execution" in help_workflow
+    _assert_cost_advisory_guardrail(help_workflow)
 
 
 def test_help_prompt_surfaces_workflow_presets_on_the_local_cli_surface() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "**Workflow presets**" in content
-        assert "Paper/manuscript workflows" in content
-        assert DOCTOR_RUNTIME_SCOPE_RE.search(content) is not None
-        assert "executable probes" in content
-        _assert_shared_preset_surface_contract(content)
-        assert "paper-toolchain readiness" in content
-        assert "degrade `write-paper`" in content
-        assert "`paper-build` remains the build contract" in content
-        assert "`arxiv-submission` requires the built manuscript" in content
-        assert "/gpd:settings" in content
-        assert "/gpd:set-profile" in content
+    assert "**Workflow presets**" in help_workflow
+    assert "Paper/manuscript workflows" in help_workflow
+    assert DOCTOR_RUNTIME_SCOPE_RE.search(help_workflow) is not None
+    assert "executable probes" in help_workflow
+    _assert_shared_preset_surface_contract(help_workflow)
+    assert "paper-toolchain readiness" in help_workflow
+    assert "degrade `write-paper`" in help_workflow
+    assert "`paper-build` remains the build contract" in help_workflow
+    assert "`arxiv-submission` requires the built manuscript" in help_workflow
+    assert "/gpd:settings" in help_workflow
+    assert "/gpd:set-profile" in help_workflow
 
 
 def test_help_prompt_keeps_cost_surface_on_local_cli_not_runtime_slash_command() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "gpd cost" in content
-        assert "/gpd:cost" not in content
-        assert cost_summary_surface_note() in content
+    assert "gpd cost" in help_workflow
+    assert "/gpd:cost" not in help_workflow
+    assert cost_summary_surface_note() in help_workflow
 
 
 def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_return() -> None:
-    help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
-    for content in (help_command, help_workflow):
-        assert "**`/gpd:resume-work`**" in content
-        assert "gpd resume" in content
-        assert "gpd resume --recent" in content
-        assert "**`/gpd:pause-work`**" in content
-        assert "selected project state" in content or "paused or interrupted work" in content
-        assert "context handoff" in content
-        assert ".continue-here" in content or "session continuity" in content
+    assert "**`/gpd:resume-work`**" in help_workflow
+    assert "gpd resume" in help_workflow
+    assert "gpd resume --recent" in help_workflow
+    assert "**`/gpd:pause-work`**" in help_workflow
+    assert "selected project state" in help_workflow or "paused or interrupted work" in help_workflow
+    assert "context handoff" in help_workflow
+    assert ".continue-here" in help_workflow or "session continuity" in help_workflow
 
 
 def test_new_project_prompt_surfaces_discuss_phase_before_planning() -> None:

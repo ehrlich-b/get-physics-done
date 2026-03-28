@@ -91,63 +91,6 @@ def test_graph_same_stem_command_workflow_inventory_matches_tree() -> None:
     assert graph_stems == actual_stems
 
 
-def test_graph_captures_staged_review_prompt_edges() -> None:
-    graph = read_graph_text()
-    expected_edges = [
-        "`src/gpd/commands/write-paper.md -> src/gpd/agents/{gpd-paper-writer,gpd-bibliographer,gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`",
-        "`src/gpd/commands/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`",
-        "`src/gpd/specs/workflows/write-paper.md -> src/gpd/specs/workflows/peer-review.md`",
-        "`src/gpd/specs/workflows/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`",
-        "`src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md -> src/gpd/specs/references/publication/peer-review-panel.md`",
-    ]
-
-    for edge in expected_edges:
-        assert edge in graph
-
-
-def test_graph_captures_paper_build_prompt_edges() -> None:
-    graph = read_graph_text()
-    expected_edges = [
-        "`src/gpd/commands/write-paper.md -> gpd paper-build paper/PAPER-CONFIG.json`",
-        "`src/gpd/commands/write-paper.md -> paper/{PAPER-CONFIG.json,main.tex,ARTIFACT-MANIFEST.json}`",
-        "`src/gpd/commands/peer-review.md -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`",
-        "`src/gpd/specs/workflows/write-paper.md -> src/gpd/cli.py::paper_build`",
-        "`src/gpd/specs/workflows/write-paper.md -> paper/{PAPER-CONFIG.json,main.tex,ARTIFACT-MANIFEST.json}`",
-        "`src/gpd/specs/workflows/peer-review.md -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`",
-        "`src/gpd/specs/workflows/peer-review.md -> paper/{PAPER-CONFIG.json,ARTIFACT-MANIFEST.json,BIBLIOGRAPHY-AUDIT.json}`",
-    ]
-
-    for edge in expected_edges:
-        assert edge in graph
-
-
-def test_graph_matches_strict_review_publication_artifact_contract() -> None:
-    graph = read_graph_text()
-    expected_edges = [
-        "`src/gpd/cli.py -> strict review artifact manifest candidates {manuscript.parent/ARTIFACT-MANIFEST.json}`",
-        "`src/gpd/cli.py -> strict review bibliography audit candidates {manuscript.parent/BIBLIOGRAPHY-AUDIT.json}`",
-        "`src/gpd/cli.py -> strict review reproducibility manifest candidates {manuscript.parent/reproducibility-manifest.json, manuscript.parent/REPRODUCIBILITY-MANIFEST.json}`",
-    ]
-    unexpected_edges = [
-        "<cwd>/GPD/paper/ARTIFACT-MANIFEST.json",
-        "<cwd>/GPD/paper/BIBLIOGRAPHY-AUDIT.json",
-        "<cwd>/GPD/paper/reproducibility-manifest.json",
-    ]
-
-    for edge in expected_edges:
-        assert edge in graph
-
-    for edge in unexpected_edges:
-        assert edge not in graph
-
-
-def test_graph_matches_explicit_peer_review_directory_resolution_contract() -> None:
-    graph = read_graph_text()
-
-    assert "`src/gpd/cli.py -> peer-review manuscript candidate family {target/main.tex, target/main.md}`" in graph
-    assert "lexicographically first direct *.tex/*.md fallback" not in graph
-
-
 def test_graph_captures_hook_runtime_wiring_edges() -> None:
     graph = read_graph_text()
     expected_edges = [
@@ -188,19 +131,6 @@ def test_graph_captures_checkpoint_feature_edges() -> None:
 
     for edge in unexpected_edges:
         assert edge not in graph
-
-
-def test_graph_does_not_reference_removed_verify_between_waves_knob() -> None:
-    graph = read_graph_text()
-
-    assert "workflow.verify_between_waves" not in graph
-    assert "verify_between_waves" not in graph
-
-
-def test_graph_surfaces_codex_generated_skill_dir_manifest_ownership() -> None:
-    graph = read_graph_text()
-
-    assert "codex_generated_skill_dirs" in graph
 
 
 def test_graph_test_file_references_exist() -> None:

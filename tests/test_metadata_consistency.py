@@ -307,10 +307,9 @@ def test_branching_strategy_docs_use_canonical_config_literals() -> None:
 
 def test_help_and_settings_surface_current_commit_docs_and_review_cadence_shapes() -> None:
     settings = _read("src/gpd/specs/workflows/settings.md")
-    help_command = _read("src/gpd/commands/help.md")
     help_workflow = _read("src/gpd/specs/workflows/help.md")
 
-    for content in (settings, help_command, help_workflow):
+    for content in (settings, help_workflow):
         assert "execution.review_cadence" in content
         assert "planning.commit_docs" in content
 
