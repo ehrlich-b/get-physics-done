@@ -2348,6 +2348,11 @@ class ObserveExecutionResult:
     blocked_reason: str | None
     blocked_reason_label: str | None
     review_reason: str | None
+    tangent_summary: str | None
+    tangent_decision: str | None
+    tangent_decision_label: str | None
+    tangent_pending: bool
+    tangent_follow_up: list[str]
     last_update_at: str | None
     last_update_age: str | None
     last_update_age_minutes: float | None
@@ -2377,6 +2382,33 @@ def _observe_execution_status_note(result: ObserveExecutionResult) -> str | None
     return None
 
 
+def _observe_execution_tangent_follow_up(
+    *,
+    tangent_summary: str | None,
+    tangent_decision: str | None,
+    tangent_pending: bool,
+) -> list[str]:
+    if not tangent_summary:
+        return []
+    if tangent_pending:
+        return [
+            "Use the runtime `tangent` command to choose stay / quick / defer / branch for this alternative path.",
+            "Use the runtime `branch-hypothesis` command only after that explicit choice.",
+        ]
+    if tangent_decision == "branch_later":
+        return [
+            "Use the runtime `tangent` command to keep the chooser explicit for this alternative path.",
+            "Use the runtime `branch-hypothesis` command only if you decide to open a git-backed alternative path after this bounded stop.",
+        ]
+    if tangent_decision == "defer":
+        return ["This tangent was classified as capture and defer. Keep the current run bounded unless you intentionally reopen it."]
+    if tangent_decision == "pursue_now":
+        return ["This tangent is approved to pursue now within the current bounded stop. Keep the side investigation explicit and limited."]
+    if tangent_decision == "ignore":
+        return ["This tangent was classified as stay on the main path. Keep the current run bounded."]
+    return []
+
+
 def _observe_execution_payload() -> ObserveExecutionResult:
     """Build the read-only execution snapshot for the local CLI surface."""
     from gpd.core.observability import derive_execution_visibility
@@ -2397,6 +2429,11 @@ def _observe_execution_payload() -> ObserveExecutionResult:
         if item.command.strip() and item.reason.strip()
     ]
     next_check = suggested_next_commands[0] if suggested_next_commands else None
+    tangent_follow_up = _observe_execution_tangent_follow_up(
+        tangent_summary=visibility.tangent_summary,
+        tangent_decision=visibility.tangent_decision,
+        tangent_pending=visibility.tangent_pending,
+    )
 
     return ObserveExecutionResult(
         found=visibility.has_live_execution,
@@ -2414,6 +2451,11 @@ def _observe_execution_payload() -> ObserveExecutionResult:
         blocked_reason=visibility.blocked_reason,
         blocked_reason_label=visibility.blocked_reason_label,
         review_reason=visibility.review_reason,
+        tangent_summary=visibility.tangent_summary,
+        tangent_decision=visibility.tangent_decision,
+        tangent_decision_label=visibility.tangent_decision_label,
+        tangent_pending=visibility.tangent_pending,
+        tangent_follow_up=tangent_follow_up,
         last_update_at=visibility.last_updated_at,
         last_update_age=visibility.last_updated_age_label,
         last_update_age_minutes=visibility.last_updated_age_minutes,
@@ -2445,6 +2487,9 @@ def _render_observe_execution(result: ObserveExecutionResult) -> None:
     summary.add_row("Waiting reason", result.waiting_reason_label or result.waiting_reason or "—")
     summary.add_row("Blocked reason", result.blocked_reason_label or result.blocked_reason or "—")
     summary.add_row("Review reason", result.review_reason or "—")
+    if result.tangent_summary:
+        summary.add_row("Tangent proposal", result.tangent_summary)
+        summary.add_row("Tangent decision", result.tangent_decision_label or "pending explicit choice")
     summary.add_row("Last update age", result.last_update_age or "unknown")
     if result.resume_file:
         summary.add_row("Resume file", _format_display_path(result.resume_file))
@@ -2465,6 +2510,12 @@ def _render_observe_execution(result: ObserveExecutionResult) -> None:
         console.print("[bold]Other read-only checks[/]")
         for suggestion in result.suggested_next_commands[1:]:
             console.print(f"- {suggestion.command} — {suggestion.reason}")
+
+    if result.tangent_follow_up:
+        console.print()
+        console.print("[bold]Tangent follow-up[/]")
+        for line in result.tangent_follow_up:
+            console.print(f"- {line}")
 
     if not result.found:
         console.print()

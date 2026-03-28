@@ -31,27 +31,28 @@ def _write_current_session(project: Path, *, session_id: str) -> None:
     )
 
 
-def _write_current_execution(project: Path, *, session_id: str) -> None:
+def _write_current_execution(project: Path, *, session_id: str, extra_execution: dict[str, object] | None = None) -> None:
     execution_path = project / "GPD" / "observability" / "current-execution.json"
+    payload = {
+        "session_id": session_id,
+        "workflow": "execute-phase",
+        "phase": "03",
+        "plan": "01",
+        "segment_status": "waiting_review",
+        "current_task": "Assemble benchmark",
+        "current_task_index": 2,
+        "current_task_total": 5,
+        "waiting_for_review": True,
+        "review_required": True,
+        "checkpoint_reason": "first_result",
+        "waiting_reason": "first_result_review_required",
+        "resume_file": "GPD/phases/03/.continue-here.md",
+        "updated_at": "2000-01-01T00:00:00+00:00",
+    }
+    if extra_execution:
+        payload.update(extra_execution)
     execution_path.write_text(
-        json.dumps(
-            {
-                "session_id": session_id,
-                "workflow": "execute-phase",
-                "phase": "03",
-                "plan": "01",
-                "segment_status": "waiting_review",
-                "current_task": "Assemble benchmark",
-                "current_task_index": 2,
-                "current_task_total": 5,
-                "waiting_for_review": True,
-                "review_required": True,
-                "checkpoint_reason": "first_result",
-                "waiting_reason": "first_result_review_required",
-                "resume_file": "GPD/phases/03/.continue-here.md",
-                "updated_at": "2000-01-01T00:00:00+00:00",
-            }
-        ),
+        json.dumps(payload),
         encoding="utf-8",
     )
 
@@ -212,3 +213,30 @@ def test_build_runtime_hint_payload_handles_absent_execution_snapshot(tmp_path: 
     assert payload.workflow_presets["blocked"] == 5
     assert any("resume --recent" in action for action in payload.next_actions)
     assert any("base runtime-readiness" in action for action in payload.next_actions)
+
+
+def test_build_runtime_hint_payload_surfaces_tangent_follow_up_from_execution_visibility(tmp_path: Path) -> None:
+    project = _bootstrap_project(tmp_path)
+    data_root = tmp_path / "data"
+    _write_current_execution(
+        project,
+        session_id="sess-009",
+        extra_execution={
+            "checkpoint_reason": "pre_fanout",
+            "tangent_summary": "Check whether the 2D case is degenerate",
+            "tangent_decision": "branch_later",
+        },
+    )
+
+    payload = build_runtime_hint_payload(
+        project,
+        data_root=data_root,
+        base_ready=True,
+        latex_capability=_latex_capability(),
+    )
+
+    assert payload.execution is not None
+    assert payload.execution["tangent_summary"] == "Check whether the 2D case is degenerate"
+    assert payload.execution["tangent_decision"] == "branch_later"
+    assert payload.execution["tangent_decision_label"] == "branch later"
+    assert any("runtime `tangent` command" in action for action in payload.next_actions)

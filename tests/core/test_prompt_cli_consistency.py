@@ -298,6 +298,7 @@ def test_tangent_prompt_routes_into_existing_workflows() -> None:
         "Run a bounded quick check now",
         "Capture and defer",
         "Open a hypothesis branch",
+        "live execution review stop surfaces a tangent proposal",
         "{GPD_INSTALL_DIR}/workflows/quick.md",
         "{GPD_INSTALL_DIR}/workflows/add-todo.md",
         "{GPD_INSTALL_DIR}/workflows/branch-hypothesis.md",

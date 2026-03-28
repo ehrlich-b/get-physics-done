@@ -123,6 +123,8 @@ Route immediately into the corresponding existing workflow.
 - Follow that workflow using `{description}` as if the researcher had run `/gpd:branch-hypothesis {description}`.
 
 This workflow must not invent a new tangent state machine or auto-spawn parallel work without the explicit choice above.
+
+It may be the explicit follow-up when a live execution review stop surfaces a tangent proposal or when `gpd observe execution` surfaces a tangent proposal or `branch later` recommendation, but it remains the chooser rather than a persistent execution-state workflow. Do not skip straight from that suggestion to `/gpd:branch-hypothesis`; branching stays optional until this chooser explicitly selects it.
 </step>
 
 <step name="guardrails">

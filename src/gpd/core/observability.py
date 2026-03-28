@@ -135,6 +135,8 @@ class CurrentExecutionState(BaseModel):
     skeptical_requestioning_summary: str | None = None
     weakest_unchecked_anchor: str | None = None
     disconfirming_observation: str | None = None
+    tangent_summary: str | None = None
+    tangent_decision: str | None = None
     last_result_id: str | None = None
     last_result_label: str | None = None
     last_artifact_path: str | None = None
@@ -157,6 +159,11 @@ class CurrentExecutionState(BaseModel):
     @classmethod
     def _normalize_checkpoint_reason_field(cls, value: object) -> object:
         return _normalized_checkpoint_reason(value)
+
+    @field_validator("tangent_decision", mode="before")
+    @classmethod
+    def _normalize_tangent_decision_field(cls, value: object) -> object:
+        return _normalized_tangent_decision(value)
 
 
 class ExecutionVisibilityState(BaseModel):
@@ -188,6 +195,10 @@ class ExecutionVisibilityState(BaseModel):
     blocked_reason: str | None = None
     blocked_reason_label: str | None = None
     review_reason: str | None = None
+    tangent_summary: str | None = None
+    tangent_decision: str | None = None
+    tangent_decision_label: str | None = None
+    tangent_pending: bool = False
     last_result_label: str | None = None
     last_artifact_path: str | None = None
     resume_file: str | None = None
@@ -495,6 +506,13 @@ _EXECUTION_REASON_LABELS = {
     "ready_to_continue": "ready to continue",
 }
 
+_TANGENT_DECISION_LABELS = {
+    "ignore": "stay on main path",
+    "defer": "capture and defer",
+    "branch_later": "branch later",
+    "pursue_now": "pursue now",
+}
+
 
 def humanize_execution_reason(reason: str | None) -> str | None:
     """Return one human-readable label for an execution checkpoint or wait reason."""
@@ -502,6 +520,42 @@ def humanize_execution_reason(reason: str | None) -> str | None:
     if normalized is None:
         return None
     return _EXECUTION_REASON_LABELS.get(normalized, normalized.replace("_", " "))
+
+
+def _humanize_tangent_decision(decision: str | None) -> str | None:
+    normalized = _normalized_tangent_decision(decision)
+    if normalized is None:
+        return None
+    return _TANGENT_DECISION_LABELS.get(normalized, normalized.replace("_", " "))
+
+
+def _execution_visibility_tangent_steps(snapshot: CurrentExecutionState | None) -> list[str]:
+    if snapshot is None:
+        return []
+
+    tangent_summary = _str_or_none(snapshot.tangent_summary)
+    if tangent_summary is None:
+        return []
+
+    decision = _normalized_tangent_decision(snapshot.tangent_decision)
+    decision_label = _humanize_tangent_decision(decision)
+    if decision is None:
+        return [
+            f"Tangent proposal pending at this review stop: {tangent_summary}.",
+            "Inside the runtime, use the `tangent` command to choose stay on the main path, run a bounded quick check, capture and defer, or open a hypothesis branch.",
+        ]
+    if decision == "branch_later":
+        return [
+            f"Tangent proposal recorded: {tangent_summary}. Recommendation: {decision_label}.",
+            "After the bounded stop, use the runtime `tangent` command to keep the chooser explicit; use `branch-hypothesis` only if you decide to open a git-backed alternative path.",
+        ]
+    if decision == "defer":
+        return [f"Tangent proposal recorded: {tangent_summary}. Recommendation: {decision_label}."]
+    if decision == "pursue_now":
+        return [
+            f"Tangent proposal recorded: {tangent_summary}. Recommendation: {decision_label} within the current bounded stop."
+        ]
+    return [f"Tangent proposal recorded: {tangent_summary}. Recommendation: {decision_label}."]
 
 
 def _execution_visibility_next_commands(
@@ -657,6 +711,7 @@ def derive_execution_visibility(cwd: Path | None = None) -> ExecutionVisibilityS
         snapshot=snapshot,
         possibly_stalled=possibly_stalled,
     )
+    tangent_steps = _execution_visibility_tangent_steps(snapshot)
 
     return ExecutionVisibilityState(
         workspace_root=str(layout.root),
@@ -683,12 +738,16 @@ def derive_execution_visibility(cwd: Path | None = None) -> ExecutionVisibilityS
         blocked_reason=snapshot.blocked_reason,
         blocked_reason_label=humanize_execution_reason(snapshot.blocked_reason),
         review_reason=_execution_visibility_review_reason(snapshot),
+        tangent_summary=snapshot.tangent_summary,
+        tangent_decision=snapshot.tangent_decision,
+        tangent_decision_label=_humanize_tangent_decision(snapshot.tangent_decision),
+        tangent_pending=bool(snapshot.tangent_summary) and not bool(snapshot.tangent_decision),
         last_result_label=snapshot.last_result_label,
         last_artifact_path=snapshot.last_artifact_path,
         resume_file=snapshot.resume_file,
         current_execution=snapshot.model_dump(mode="json"),
         suggested_next_commands=suggestions,
-        suggested_next_steps=_execution_visibility_next_steps(suggestions),
+        suggested_next_steps=[*_execution_visibility_next_steps(suggestions), *tangent_steps],
     )
 
 
@@ -716,6 +775,13 @@ def _normalized_checkpoint_reason(value: object) -> str | None:
     if reason is None:
         return None
     return reason.strip().replace("-", "_")
+
+
+def _normalized_tangent_decision(value: object) -> str | None:
+    decision = _str_or_none(value)
+    if decision is None:
+        return None
+    return decision.strip().replace("-", "_")
 
 
 _EXECUTION_REVIEW_REASONS = frozenset({"first_result", "pre_fanout", "skeptical_requestioning"})
@@ -750,6 +816,11 @@ def _clear_skeptical_review(current: dict[str, object]) -> None:
     current["disconfirming_observation"] = None
 
 
+def _clear_tangent_state(current: dict[str, object]) -> None:
+    current["tangent_summary"] = None
+    current["tangent_decision"] = None
+
+
 def _clear_execution_hold_state(current: dict[str, object], *, clear_first_result_ready: bool = False) -> None:
     """Clear transient waiting/review/blocked state from one execution snapshot."""
 
@@ -765,6 +836,7 @@ def _clear_execution_hold_state(current: dict[str, object], *, clear_first_resul
     if clear_first_result_ready:
         current["first_result_ready"] = False
     _clear_skeptical_review(current)
+    _clear_tangent_state(current)
 
 
 def _reset_execution_segment_state(current: dict[str, object]) -> None:
@@ -1033,6 +1105,7 @@ def _updated_execution_state(
         "skeptical_requestioning_summary",
         "weakest_unchecked_anchor",
         "disconfirming_observation",
+        "tangent_summary",
         "last_result_id",
         "last_result_label",
         "last_artifact_path",
@@ -1046,6 +1119,9 @@ def _updated_execution_state(
     checkpoint_reason = _normalized_checkpoint_reason(execution.get("checkpoint_reason"))
     if checkpoint_reason is not None:
         current["checkpoint_reason"] = checkpoint_reason
+    tangent_decision = _normalized_tangent_decision(execution.get("tangent_decision"))
+    if tangent_decision is not None:
+        current["tangent_decision"] = tangent_decision
 
     for key in ("current_task_index", "current_task_total"):
         value = _int_or_none(execution.get(key))
@@ -1118,14 +1194,20 @@ def _updated_execution_state(
             current["waiting_reason"] = None
             if "pre_fanout" not in clear_targets and not _review_gate_pending(current):
                 current["downstream_locked"] = False
+            if not _review_gate_pending(current):
+                current["waiting_for_review"] = False
+                current["review_required"] = False
             if current.get("segment_status") == "waiting_review" and not _review_gate_pending(current):
                 current["segment_status"] = "active"
+            if not _review_gate_pending(current):
+                _clear_tangent_state(current)
         elif not _review_gate_pending(current):
             current["waiting_for_review"] = False
             current["review_required"] = False
             current["waiting_reason"] = None
             if current.get("segment_status") == "waiting_review":
                 current["segment_status"] = "active"
+            _clear_tangent_state(current)
 
     if payload.name == "fanout" and payload.action == "lock":
         current["downstream_locked"] = True
@@ -1146,6 +1228,7 @@ def _updated_execution_state(
             current["review_required"] = False
             if current.get("segment_status") == "waiting_review":
                 current["segment_status"] = "active"
+            _clear_tangent_state(current)
 
     if payload.name == "result" and payload.action in {"produce", "log"}:
         if current.get("checkpoint_reason") == "first_result" or _bool_or_none(execution.get("load_bearing")):

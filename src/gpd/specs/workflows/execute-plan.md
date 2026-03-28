@@ -323,6 +323,11 @@ Deviations are normal -- handle via deviation rules in `execute-plan-validation.
        --data "{\"execution\":{\"checkpoint_reason\":\"first_result\",\"review_cadence\":\"${REVIEW_CADENCE}\",\"first_result_ready\":true,\"first_result_gate_pending\":true,\"current_task\":\"${TASK_DESCRIPTION}\"}}" 2>/dev/null || true
      ```
 
+     If this same bounded stop surfaces an unexpected but non-blocking alternative path, keep it in the same execution payload rather than inventing a new event family. Optional fields:
+
+     - `tangent_summary` — short description of the alternative path
+     - `tangent_decision` — `ignore | defer | branch_later | pursue_now` once classified
+
      When the first-result stop is accepted, record the matching clear before any dependent work resumes:
 
      ```bash
@@ -363,6 +368,8 @@ Deviations are normal -- handle via deviation rules in `execute-plan-validation.
      ```
 
      If the pre-fanout stop also carried skeptical re-questioning, clear that state explicitly before or alongside the pre-fanout clear; a `pre_fanout` clear must not wipe skeptical fields implicitly.
+
+     If the same stop also carried a tangent proposal, keep the optional `tangent_summary` / `tangent_decision` fields on the existing `execution` payload until that review stop is explicitly resolved. Do not auto-branch or create side work from telemetry alone.
 
      **Supervised mode post-task checkpoint:** If `AUTONOMY="supervised"`, insert a `checkpoint:human-verify` after EVERY completed task. Present the task result with all intermediate values and wait for user approval before proceeding to the next task.
    - `type="checkpoint:*"`: Route by autonomy mode:

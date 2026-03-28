@@ -142,6 +142,8 @@ Choose the path that matches your starting point:
 1. `/gpd:tangent` - Chooser for stay / quick / defer / branch when a side investigation appears
 2. `/gpd:branch-hypothesis` - Explicit git-backed alternative path with isolated `GPD/` state when the tangent needs to diverge cleanly
 
+If `gpd observe execution` surfaces an alternative-path follow-up, route it through `/gpd:tangent`; use `/gpd:branch-hypothesis` only after that choice.
+
 **Workflow presets**
 1. `Paper/manuscript workflows` - First supported workflow preset for `write-paper`, `paper-build`, `peer-review`, and `arxiv-submission`; inspect it with `gpd presets list`, preview it with `gpd presets show <preset>`, and apply it from your normal terminal with `gpd presets apply <preset>` or through your runtime-specific `settings` command
 2. `gpd doctor --runtime <runtime> --local|--global` - Check runtime-local paper-toolchain readiness from your normal terminal before using that preset. Add `--live-executable-probes` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`. Failed preset rows degrade `write-paper`, but `paper-build` remains the build contract and `arxiv-submission` requires the built manuscript
@@ -722,6 +724,7 @@ Choose what to do with a possible side investigation without immediately committ
 - Acts as the tangent chooser: stay on the current line, do a quick tangent, defer it, or escalate to a branch
 - Use when an interesting sub-question appears but you have not yet decided whether it deserves isolated branch state
 - Keeps hypothesis branching as an explicit follow-on decision rather than the default for every tangent
+- If `gpd observe execution` surfaces an alternative-path follow-up or `branch later` recommendation, run `/gpd:tangent` first rather than skipping straight to `/gpd:branch-hypothesis`
 
 Usage: `/gpd:tangent "Check whether the 2D case is degenerate before branching"`
 

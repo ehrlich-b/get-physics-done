@@ -473,6 +473,45 @@ class TestObserveExecution:
         assert parsed["suggested_next_commands"]
         assert _target_file_snapshot(gpd_project / "GPD") == snapshot_before
 
+    def test_observe_execution_raw_surfaces_tangent_branch_later_follow_up_without_mutating_state(
+        self, gpd_project: Path
+    ) -> None:
+        observability = gpd_project / "GPD" / "observability"
+        observability.mkdir(parents=True, exist_ok=True)
+        (observability / "current-execution.json").write_text(
+            json.dumps(
+                {
+                    "session_id": "sess-2",
+                    "phase": "01",
+                    "plan": "03",
+                    "segment_id": "seg-5",
+                    "segment_status": "waiting_review",
+                    "waiting_for_review": True,
+                    "checkpoint_reason": "pre_fanout",
+                    "tangent_summary": "Check whether the 2D case is degenerate",
+                    "tangent_decision": "branch_later",
+                    "updated_at": _iso_minutes_ago(5),
+                }
+            ),
+            encoding="utf-8",
+        )
+        snapshot_before = _target_file_snapshot(gpd_project / "GPD")
+
+        result = _invoke("--raw", "observe", "execution")
+        parsed = json.loads(result.output)
+
+        assert parsed["found"] is True
+        assert parsed["status_classification"] == "waiting"
+        assert parsed["tangent_summary"] == "Check whether the 2D case is degenerate"
+        assert parsed["tangent_decision"] == "branch_later"
+        assert parsed["tangent_decision_label"] == "branch later"
+        assert parsed["next_check_command"] == "gpd resume"
+        assert parsed["tangent_follow_up"] == [
+            "Use the runtime `tangent` command to keep the chooser explicit for this alternative path.",
+            "Use the runtime `branch-hypothesis` command only if you decide to open a git-backed alternative path after this bounded stop.",
+        ]
+        assert _target_file_snapshot(gpd_project / "GPD") == snapshot_before
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 2. slug

@@ -637,6 +637,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    - `last_result_label` or `last_artifact_path` for the first load-bearing output being reviewed
    - `skeptical_requestioning_required: true` when the first result still looks proxy-only, anchor-thin, or otherwise short of the decisive evidence the contract still owes
    - `skeptical_requestioning_summary`, `weakest_unchecked_anchor`, and `disconfirming_observation` whenever skeptical re-questioning is required
+   - optional `tangent_summary` and `tangent_decision` when the same bounded stop surfaced an unexpected but non-blocking alternative path that still needs explicit handling
 
    If the runtime or agent only emits a fanout-lock event, normalize it into the same live review stop: treat the lock as `checkpoint_reason=pre_fanout`, mark `waiting_for_review=true`, and keep downstream locked until the review is explicitly cleared.
 
@@ -650,6 +651,11 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    - `defer` — note it in outputs as future work and continue
    - `branch_later` — recommend an explicit `/gpd:tangent ...` or `/gpd:branch-hypothesis ...` follow-up after the bounded stop
    - `pursue_now` — only if the user explicitly asked for tangent exploration or the approved contract already covers it
+
+   **Machine-state bridge for tangent proposals:** when a tangent proposal is relevant at this stop, keep it inside the same live execution payload instead of inventing a new tangent state machine. Emit:
+
+   - `tangent_summary` — one short description of the alternative path
+   - `tangent_decision` — one of `ignore | defer | branch_later | pursue_now` once classified
 
    Do not create a new branch, child plan, or side subagent from executor initiative alone. In `research_mode=exploit`, treat optional tangent proposals as suppressed unless explicit request overrides that default.
 

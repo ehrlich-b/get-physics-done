@@ -257,6 +257,35 @@ def test_get_current_execution_normalizes_phase_plan_and_checkpoint_reason(tmp_p
     assert snapshot.checkpoint_reason == "pre_fanout"
 
 
+def test_get_current_execution_normalizes_tangent_decision(tmp_path: Path, monkeypatch) -> None:
+    project = _bootstrap_project(tmp_path)
+    monkeypatch.chdir(project)
+
+    observability_dir = project / "GPD" / "observability"
+    observability_dir.mkdir(parents=True, exist_ok=True)
+    (observability_dir / "current-execution.json").write_text(
+        json.dumps(
+            {
+                "session_id": "sess-raw",
+                "phase": "3",
+                "plan": "2",
+                "segment_status": "waiting_review",
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "tangent_decision": "branch-later",
+                "updated_at": "2026-03-14T12:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    from gpd.core.observability import get_current_execution
+
+    snapshot = get_current_execution(project)
+    assert snapshot is not None
+    assert snapshot.tangent_summary == "Check whether the 2D case is degenerate"
+    assert snapshot.tangent_decision == "branch_later"
+
+
 def test_derive_execution_visibility_marks_only_active_segments_possibly_stalled_after_30_minutes(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -292,6 +321,78 @@ def test_derive_execution_visibility_marks_only_active_segments_possibly_stalled
     assert "has stalled" in visibility.suggested_next_commands[0].reason
     assert any("before assuming the run has stalled" in step for step in visibility.suggested_next_steps)
     assert any("gpd observe show --session sess-active --last 20" in step for step in visibility.suggested_next_steps)
+
+
+def test_derive_execution_visibility_surfaces_pending_tangent_without_new_classification(
+    tmp_path: Path, monkeypatch
+) -> None:
+    project = _bootstrap_project(tmp_path)
+    monkeypatch.chdir(project)
+
+    observability_dir = project / "GPD" / "observability"
+    observability_dir.mkdir(parents=True, exist_ok=True)
+    (observability_dir / "current-execution.json").write_text(
+        json.dumps(
+            {
+                "session_id": "sess-tangent",
+                "phase": "03",
+                "plan": "01",
+                "segment_status": "waiting_review",
+                "waiting_for_review": True,
+                "checkpoint_reason": "pre_fanout",
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "updated_at": _iso_minutes_ago(5),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    from gpd.core.observability import derive_execution_visibility
+
+    visibility = derive_execution_visibility(project)
+    assert visibility is not None
+    assert visibility.status_classification == "waiting"
+    assert visibility.tangent_summary == "Check whether the 2D case is degenerate"
+    assert visibility.tangent_pending is True
+    assert visibility.tangent_decision is None
+    assert any("Tangent proposal pending" in step for step in visibility.suggested_next_steps)
+    assert any("runtime, use the `tangent` command" in step for step in visibility.suggested_next_steps)
+
+
+def test_derive_execution_visibility_surfaces_tangent_decision_label_without_changing_waiting_state(
+    tmp_path: Path, monkeypatch
+) -> None:
+    project = _bootstrap_project(tmp_path)
+    monkeypatch.chdir(project)
+
+    observability_dir = project / "GPD" / "observability"
+    observability_dir.mkdir(parents=True, exist_ok=True)
+    (observability_dir / "current-execution.json").write_text(
+        json.dumps(
+            {
+                "session_id": "sess-tangent",
+                "phase": "03",
+                "plan": "01",
+                "segment_status": "waiting_review",
+                "waiting_for_review": True,
+                "checkpoint_reason": "pre_fanout",
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "tangent_decision": "defer",
+                "updated_at": _iso_minutes_ago(5),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    from gpd.core.observability import derive_execution_visibility
+
+    visibility = derive_execution_visibility(project)
+    assert visibility is not None
+    assert visibility.status_classification == "waiting"
+    assert visibility.tangent_pending is False
+    assert visibility.tangent_decision == "defer"
+    assert visibility.tangent_decision_label == "capture and defer"
+    assert any("capture and defer" in step for step in visibility.suggested_next_steps)
 
 
 def test_derive_execution_visibility_keeps_recent_active_segments_active(tmp_path: Path, monkeypatch) -> None:
@@ -763,6 +864,8 @@ def test_new_segment_start_clears_stale_review_and_blocked_state(tmp_path: Path,
                 "first_result_gate_pending": True,
                 "waiting_for_review": True,
                 "downstream_locked": True,
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "tangent_decision": "branch_later",
                 "resume_file": "GPD/phases/04-test/.continue-here.md",
             }
         },
@@ -793,8 +896,61 @@ def test_new_segment_start_clears_stale_review_and_blocked_state(tmp_path: Path,
     assert snapshot.pre_fanout_review_pending is False
     assert snapshot.skeptical_requestioning_required is False
     assert snapshot.downstream_locked is False
+    assert snapshot.tangent_summary is None
+    assert snapshot.tangent_decision is None
     assert snapshot.resume_file is None
     assert snapshot.segment_started_at is not None
+
+
+def test_gate_clear_clears_tangent_state_when_review_stop_resolves(tmp_path: Path, monkeypatch) -> None:
+    project = _bootstrap_project(tmp_path)
+    monkeypatch.chdir(project)
+
+    from gpd.core.observability import ensure_session, get_current_execution, observe_event
+
+    session = ensure_session(project, source="cli", command="execute-phase")
+    assert session is not None
+
+    observe_event(
+        project,
+        category="execution",
+        name="gate",
+        action="enter",
+        status="ok",
+        command="execute-phase",
+        phase="04",
+        plan="02",
+        session_id=session.session_id,
+        data={
+            "execution": {
+                "segment_id": "seg-old",
+                "checkpoint_reason": "first_result",
+                "first_result_gate_pending": True,
+                "waiting_for_review": True,
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "tangent_decision": "defer",
+            }
+        },
+    )
+    observe_event(
+        project,
+        category="execution",
+        name="gate",
+        action="clear",
+        status="ok",
+        command="execute-phase",
+        phase="04",
+        plan="02",
+        session_id=session.session_id,
+        data={"execution": {"checkpoint_reason": "first_result"}},
+    )
+
+    snapshot = get_current_execution(project)
+    assert snapshot is not None
+    assert snapshot.segment_status == "active"
+    assert snapshot.waiting_for_review is False
+    assert snapshot.tangent_summary is None
+    assert snapshot.tangent_decision is None
 
 
 def test_segment_pause_forces_paused_status_and_keeps_resume_semantics(tmp_path: Path, monkeypatch) -> None:

@@ -2072,6 +2072,74 @@ def test_observe_execution_human_output_humanizes_budget_wait_reason(tmp_path: P
     assert "time budget exceeded" in result.output.lower()
 
 
+def test_observe_execution_raw_surfaces_tangent_proposal_without_replacing_primary_next_check(tmp_path: Path) -> None:
+    observability = tmp_path / "GPD" / "observability"
+    observability.mkdir(parents=True)
+    (observability / "current-execution.json").write_text(
+        json.dumps(
+            {
+                "session_id": "cli-session-3",
+                "phase": "03",
+                "plan": "04",
+                "segment_status": "waiting_review",
+                "waiting_for_review": True,
+                "checkpoint_reason": "pre_fanout",
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "tangent_decision": "branch_later",
+                "updated_at": "2000-01-01T00:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["--raw", "--cwd", str(tmp_path), "observe", "execution"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["status_classification"] == "waiting"
+    assert payload["tangent_summary"] == "Check whether the 2D case is degenerate"
+    assert payload["tangent_decision"] == "branch_later"
+    assert payload["tangent_decision_label"] == "branch later"
+    assert payload["tangent_pending"] is False
+    assert payload["next_check_command"] == "gpd resume"
+    assert payload["tangent_follow_up"] == [
+        "Use the runtime `tangent` command to keep the chooser explicit for this alternative path.",
+        "Use the runtime `branch-hypothesis` command only if you decide to open a git-backed alternative path after this bounded stop.",
+    ]
+
+
+def test_observe_execution_human_output_surfaces_branch_later_tangent_follow_up(tmp_path: Path) -> None:
+    observability = tmp_path / "GPD" / "observability"
+    observability.mkdir(parents=True)
+    (observability / "current-execution.json").write_text(
+        json.dumps(
+            {
+                "session_id": "cli-session-4",
+                "phase": "03",
+                "plan": "05",
+                "segment_status": "waiting_review",
+                "waiting_for_review": True,
+                "checkpoint_reason": "pre_fanout",
+                "tangent_summary": "Check whether the 2D case is degenerate",
+                "tangent_decision": "branch_later",
+                "updated_at": "2000-01-01T00:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["--cwd", str(tmp_path), "observe", "execution"])
+
+    assert result.exit_code == 0
+    assert "Tangent proposal" in result.output
+    assert "branch later" in result.output.lower()
+    assert "Tangent follow-up" in result.output
+    assert "runtime `tangent` command" in result.output
+    assert "runtime `branch-hypothesis` command" in result.output
+    assert "gpd resume" in result.output
+    assert "possibly stalled" not in result.output.lower()
+
+
 def test_observe_show_filters_events(tmp_path: Path) -> None:
     sessions_dir = tmp_path / "GPD" / "observability" / "sessions"
     sessions_dir.mkdir(parents=True)

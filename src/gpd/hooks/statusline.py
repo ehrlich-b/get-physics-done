@@ -499,6 +499,12 @@ def _execution_artifact_label(snapshot: dict[str, object]) -> str:
         weakest_anchor = _first_string(snapshot, "weakest_unchecked_anchor")
         if weakest_anchor:
             return weakest_anchor
+    tangent_summary = _first_string(snapshot, "tangent_summary")
+    if tangent_summary:
+        tangent_decision = _first_string(snapshot, "tangent_decision")
+        if tangent_decision:
+            return f"{tangent_decision.replace('_', ' ')}: {tangent_summary}"
+        return tangent_summary
     artifact = _first_string(snapshot, "last_artifact_path")
     if artifact:
         return Path(artifact).name

@@ -69,6 +69,8 @@ Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has 
 1. `/gpd:tangent` — Choose stay / quick / defer / branch when a side investigation appears
 2. `/gpd:branch-hypothesis` — Explicit git-backed alternative path when that tangent needs isolated branch state
 
+If `gpd observe execution` surfaces an alternative-path follow-up, route it through `/gpd:tangent`; use `/gpd:branch-hypothesis` only after that choice.
+
 **Local CLI bridge**
 1. `gpd --help` — inspect the local install/readiness/permissions/diagnostics surface directly
 2. `gpd validate unattended-readiness --runtime <runtime> --autonomy balanced` / `gpd permissions sync --runtime <runtime> --autonomy balanced` — check the unattended or overnight verdict from your normal terminal and resync runtime-owned permissions when needed
@@ -162,6 +164,8 @@ Before stepping away mid-phase, run `/gpd:pause-work` so `/gpd:resume-work` has 
 **Tangents**
 1. `/gpd:tangent` - Chooser for stay / quick / defer / branch when a side investigation appears
 2. `/gpd:branch-hypothesis` - Explicit git-backed alternative path with isolated `GPD/` state when the tangent needs to diverge cleanly
+
+If `gpd observe execution` surfaces an alternative-path follow-up or `branch later` recommendation, route it through `/gpd:tangent` first; use `/gpd:branch-hypothesis` only after that explicit choice.
 
 ## Core Workflow
 
@@ -692,6 +696,7 @@ Choose what to do with a possible side investigation without immediately committ
 - Acts as the tangent chooser: stay on the current line, do a quick tangent, defer it, or escalate to a branch
 - Use when an interesting sub-question appears but you have not yet decided whether it deserves isolated branch state
 - Keeps hypothesis branching as an explicit follow-on decision rather than the default for every tangent
+- If `gpd observe execution` surfaces an alternative-path follow-up or `branch later` recommendation, run `/gpd:tangent` first rather than skipping straight to `/gpd:branch-hypothesis`
 
 Usage: `/gpd:tangent "Check whether the 2D case is degenerate before branching"`
 

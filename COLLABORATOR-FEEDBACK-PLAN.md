@@ -434,6 +434,68 @@ If we continue, the next highest-value step is tangent / branch-state surfacing 
 
 That step should answer one user question directly: “Is this a tangent I should stay on, defer, or branch cleanly?”
 
+### Step 9 Completed: Tangent And Branch-State Surfacing During Execution
+
+Status: completed on March 28, 2026.
+
+What shipped:
+
+- Shared execution state and shared visibility now carry optional additive tangent metadata:
+  - `tangent_summary`
+  - `tangent_decision`
+- Tangent state stays orthogonal to the existing execution assessment:
+  - no new `status_classification`
+  - no new tangent state machine
+  - no dashboard expansion
+  - existing bounded review stops remain the control point
+- `gpd observe execution` now surfaces tangent proposals explicitly in both human and raw output:
+  - summary rows for tangent proposal / decision
+  - a secondary `Tangent follow-up` section for human output
+  - additive raw `tangent_follow_up` guidance for machine consumers
+  - the primary `Check next` command remains the normal recovery / inspection command
+- Runtime hints and statusline inherit the same narrow signal:
+  - runtime hints now carry tangent proposal / decision state plus shared follow-up text
+  - statusline uses the detail slot only; it does not introduce a new tangent badge or stronger status
+- Execution prompts/docs now define tangent proposals as optional fields on the existing live execution payload:
+  - `tangent_summary`
+  - `tangent_decision`
+  - no auto-branching from telemetry
+  - no separate tangent execution workflow
+- README/help/tangent docs now explicitly bridge from `gpd observe execution` to the runtime `tangent` chooser first, with `branch-hypothesis` remaining an explicit optional follow-on.
+
+Verification:
+
+- Focused Step 9 suites passed:
+  - `uv run pytest -q tests/core/test_observability.py tests/core/test_cli.py tests/test_cli_integration.py tests/core/test_runtime_hints.py tests/hooks/test_statusline.py tests/core/test_prompt_wiring.py tests/core/test_prompt_cli_consistency.py tests/test_release_consistency.py`
+  - `uv run ruff check README.md src/gpd/cli.py src/gpd/core/observability.py src/gpd/hooks/statusline.py src/gpd/commands/help.md src/gpd/specs/workflows/help.md src/gpd/specs/workflows/execute-phase.md src/gpd/specs/workflows/execute-plan.md src/gpd/specs/workflows/tangent.md tests/core/test_observability.py tests/core/test_cli.py tests/test_cli_integration.py tests/core/test_runtime_hints.py tests/hooks/test_statusline.py tests/core/test_prompt_wiring.py tests/core/test_prompt_cli_consistency.py tests/test_release_consistency.py`
+- Result:
+  - `554 passed`
+  - `ruff clean`
+
+Execution/review wave feedback:
+
+- All six execution/review lanes converged on the same narrow shipping scope: additive tangent metadata only, no new dashboard, and no new tangent control plane.
+- The concrete tightening that survived review was structural rather than expansive:
+  - raw `tangent_follow_up` for machine consumers
+  - stronger prompt/release guardrails around optional tangent payload fields
+  - repeated help/tangent doc bridges from `observe execution` into the runtime `tangent` chooser
+
+Remaining friction after Step 9:
+
+- Tangent handling is still advisory metadata layered on existing review stops; it does not enforce a full tangent decision lifecycle or preserve a separate tangent history.
+- `notify` still does not emit tangent-specific alerts; the read-only execution surfaces remain the intended place to see this state.
+- External consumers of `observe execution --raw` may need compatibility checks if they assumed a smaller schema before the additive tangent fields.
+
+### Next Step After Step 9
+
+If we continue, the next highest-value step is cost transparency and budget-oriented onboarding:
+
+- clearer explanation of model tiers and cost posture before unattended runs
+- better local spend / usage inspection surfaced from startup, help, and settings
+- stronger safe-default guidance without implying fake precision or invoice-level billing truth
+
+That step should answer one user question directly: “If I leave this running, how expensive is the chosen setup likely to be?”
+
 ## Feedback Map
 
 | Transcript theme | Current repo state | What should happen |

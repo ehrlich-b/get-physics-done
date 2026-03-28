@@ -1532,3 +1532,37 @@ class TestMain:
         output = captured.getvalue()
         assert "STALL?" in output
         assert "Todo task" not in output
+
+    def test_main_keeps_review_badge_and_surfaces_tangent_summary_in_detail_slot(self) -> None:
+        captured = io.StringIO()
+        with (
+            patch("sys.stdin", io.StringIO(json.dumps({}))),
+            patch("sys.stdout", captured),
+            patch(
+                "gpd.hooks.statusline._read_runtime_hints",
+                return_value=_runtime_hints_payload(
+                    _visibility_state(
+                        has_live_execution=True,
+                        status_classification="waiting",
+                        assessment="waiting",
+                        current_task="Review benchmark",
+                        current_execution={
+                            "segment_status": "waiting_review",
+                            "waiting_for_review": True,
+                            "tangent_summary": "Check whether the 2D case is degenerate",
+                            "tangent_decision": "branch_later",
+                            "updated_at": "2026-03-10T00:45:00+00:00",
+                        },
+                    )
+                ),
+            ),
+            patch("gpd.hooks.statusline._read_position", return_value=""),
+            patch("gpd.hooks.statusline._read_current_task", return_value="Todo task"),
+            patch("gpd.hooks.statusline._read_execution_state", return_value={}),
+            patch("gpd.hooks.statusline._check_update", return_value=""),
+        ):
+            main()
+
+        output = captured.getvalue().lower()
+        assert "review" in output
+        assert "branch later: check whether the 2d case is degenerate" in output

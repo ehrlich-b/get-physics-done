@@ -850,7 +850,9 @@ def test_public_readme_and_help_keep_tangent_vs_branch_taxonomy_explicit() -> No
     help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
 
     assert "Use the matching `branch-hypothesis` command only when you want the explicit git-backed alternative path" in readme
+    assert "route it through the runtime `tangent` command first" in readme
     for content in (help_command, help_workflow):
+        assert "If `gpd observe execution` surfaces an alternative-path follow-up" in content
         assert "Keeps hypothesis branching as an explicit follow-on decision rather than the default for every tangent" in content
         assert "Explicit git-backed alternative path" in content
 
@@ -930,6 +932,7 @@ def test_public_readme_observability_surface_keeps_execution_guidance_in_command
     assert "gpd observe execution" in readme
     assert "For read-only long-run visibility from your normal system terminal, use `gpd observe execution`." in readme
     assert "Start with `gpd observe show --last 20` when you need the recent event trail" in readme
+    assert "route it through the runtime `tangent` command first" in readme
     assert "gpd cost" in readme
     assert "For a read-only machine-local usage / cost summary from your normal system terminal, use `gpd cost`." in readme
 

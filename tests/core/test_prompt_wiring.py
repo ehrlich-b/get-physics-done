@@ -2083,6 +2083,7 @@ def test_execution_observability_and_resume_surfaces_stay_conservative_about_sta
     assert "For read-only long-run visibility from your normal system terminal, use `gpd observe execution`." in readme
     assert "conservatively say `possibly stalled` instead of relying on runtime hotkeys" in readme
     assert "Start with `gpd observe show --last 20` when you need the recent event trail" in readme
+    assert "route it through the runtime `tangent` command first" in readme
     assert "For a read-only machine-local usage / cost summary from your normal system terminal, use `gpd cost`." in readme
     assert "it does not invent provider pricing, promise invoice-level accuracy, or enforce budgets by itself" in readme
     assert "gpd resume --recent" in help_command
@@ -2392,6 +2393,7 @@ def test_help_and_execution_surfaces_wire_tangent_control_path() -> None:
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
     plan_phase = (WORKFLOWS_DIR / "plan-phase.md").read_text(encoding="utf-8")
     execute_phase = (WORKFLOWS_DIR / "execute-phase.md").read_text(encoding="utf-8")
+    execute_plan = (WORKFLOWS_DIR / "execute-plan.md").read_text(encoding="utf-8")
     tangent_workflow = (WORKFLOWS_DIR / "tangent.md").read_text(encoding="utf-8")
 
     assert "/gpd:tangent" in help_workflow
@@ -2400,6 +2402,18 @@ def test_help_and_execution_surfaces_wire_tangent_control_path() -> None:
     assert re.search(r"/gpd:tangent.*?(?:side|alternative|parallel|branch)", plan_phase, re.I | re.S)
     assert "/gpd:tangent" in execute_phase
     assert re.search(r"/gpd:tangent.*?(?:branch|follow-up|alternative)", execute_phase, re.I | re.S)
+    assert "tangent_summary" in execute_phase
+    assert "tangent_decision" in execute_phase
+    assert "optional `tangent_summary` and `tangent_decision`" in execute_phase
+    assert "keep it inside the same live execution payload instead of inventing a new tangent state machine" in execute_phase
+    assert "Do not create a new branch, child plan, or side subagent from executor initiative alone." in execute_phase
+    assert "tangent_summary" in execute_plan
+    assert "tangent_decision" in execute_plan
+    assert "keep it in the same execution payload rather than inventing a new event family. Optional fields:" in execute_plan
+    assert (
+        "keep the optional `tangent_summary` / `tangent_decision` fields on the existing `execution` payload until "
+        "that review stop is explicitly resolved. Do not auto-branch or create side work from telemetry alone."
+    ) in execute_plan
     assert "{GPD_INSTALL_DIR}/workflows/quick.md" in tangent_workflow
     assert "{GPD_INSTALL_DIR}/workflows/add-todo.md" in tangent_workflow
     assert "{GPD_INSTALL_DIR}/workflows/branch-hypothesis.md" in tangent_workflow
