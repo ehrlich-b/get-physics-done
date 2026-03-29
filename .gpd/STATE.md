@@ -2,21 +2,21 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-03-26)
+See: .gpd/PROJECT.md (updated 2026-03-29)
 
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** Planning next research stage
+**Current focus:** v8.0 Gap C Algebraic Closure via C*-Measurement Maps
 
 ## Current Position
 
 **Current Phase:** --
 **Current Phase Name:** --
 **Total Phases:** 27 (across v1.0-v7.0)
-**Status:** Between milestones
-**Last Activity:** 2026-03-26
-**Last Activity Description:** v7.0 milestone archived; Gap C narrowed (not closed)
+**Status:** Defining objectives
+**Last Activity:** 2026-03-29
+**Last Activity Description:** Started v8.0: Gap C algebraic closure via C*-measurement maps
 
-**Progress:** v7.0 complete. No active milestone.
+**Progress:** v8.0 milestone initialized. Defining objectives.
 
 ## Active Calculations
 
@@ -308,6 +308,7 @@ None yet.
 - [Phase 22, Plan 03]: Route 3 (GNS) NEGATIVE -- three independent obstructions (exceptional, parity, bottleneck)
 - [Phase 22, Plan 04]: Route 4 (tensor product) WEAK POSITIVE -- generic algebraic tautology, not h_3(O)-specific
 - [Phase 22, Plan 04]: Hanche-Olsen JC-algebra framework bypassed (V_{1/2} is module, not algebra; h_3(O) not JC)
+- [Phase 0]: Started milestone v8.0: Gap C Algebraic Closure via C*-Measurement Maps — New algebraic attack on Gap C using Paper 5 M_n(C)^sa theorem as external input through Peirce multiplication
 
 ### Active Approximations
 
