@@ -226,11 +226,31 @@ def test_start_prompt_delegates_routing_to_workflow_only() -> None:
     assert "not a parallel onboarding state machine" in start_workflow
 
 
+def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
+    tour_command = (COMMANDS_DIR / "tour.md").read_text(encoding="utf-8")
+    tour_workflow = (WORKFLOWS_DIR / "tour.md").read_text(encoding="utf-8")
+
+    assert "@{GPD_INSTALL_DIR}/workflows/tour.md" in tour_command
+    assert "beginner-friendly guided tour" in tour_workflow
+    assert "/gpd:start" in tour_workflow
+    assert "/gpd:new-project --minimal" in tour_workflow
+    assert "/gpd:map-research" in tour_workflow
+    assert "/gpd:resume-work" in tour_workflow
+    assert "/gpd:suggest-next" in tour_workflow
+    assert "/gpd:progress" in tour_workflow
+    assert "/gpd:explain" in tour_workflow
+    assert "/gpd:quick" in tour_workflow
+    assert "/gpd:help" in tour_workflow
+    assert "does not create project artifacts" in tour_workflow
+
+
 def test_help_workflow_surfaces_start_as_first_run_router() -> None:
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
     assert "/gpd:start" in help_workflow
     assert "Guided first-run router" in help_workflow
+    assert "/gpd:tour" in help_workflow
+    assert "guided tour" in help_workflow.lower()
 
 
 def test_prompt_docs_keep_wolfram_as_shared_capability_not_runtime_config_surface() -> None:

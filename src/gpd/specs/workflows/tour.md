@@ -1,7 +1,8 @@
 <purpose>
-Provide a gentle, read-only walkthrough of the core GPD command surface for
-new users. Teach what the main commands do and when to use them, without
-creating files or routing into other workflows.
+Provide a beginner-friendly guided tour of the core GPD command surface for
+new users. Teach what the main commands do and when to use them, and make clear
+that the tour does not create project artifacts, create files, or route into
+other workflows.
 </purpose>
 
 <required_reading>

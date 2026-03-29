@@ -517,6 +517,7 @@ def test_representative_commands_expose_expected_context_modes() -> None:
     assert registry.get_command("help").context_mode == "global"
     assert registry.get_command("health").context_mode == "projectless"
     assert registry.get_command("start").context_mode == "projectless"
+    assert registry.get_command("tour").context_mode == "projectless"
     assert registry.get_command("compare-results").context_mode == "project-aware"
     assert registry.get_command("map-research").context_mode == "projectless"
     assert registry.get_command("slides").context_mode == "projectless"

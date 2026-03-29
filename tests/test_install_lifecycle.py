@@ -145,6 +145,16 @@ class TestClaudeCodeLifecycle:
         start_md = target / "commands" / "gpd" / "start.md"
         assert start_md.exists()
 
+    def test_tour_command_installed(self, tmp_path: Path, gpd_root: Path) -> None:
+        adapter = get_adapter("claude-code")
+        target = tmp_path / ".claude"
+        target.mkdir()
+
+        _install_and_finalize(adapter, gpd_root, target, is_global=True)
+
+        tour_md = target / "commands" / "gpd" / "tour.md"
+        assert tour_md.exists()
+
     def test_uninstall_removes_gpd_artifacts(self, tmp_path: Path, gpd_root: Path) -> None:
         adapter = get_adapter("claude-code")
         target = tmp_path / ".claude"
@@ -282,6 +292,16 @@ class TestGeminiLifecycle:
 
         start_toml = target / "commands" / "gpd" / "start.toml"
         assert start_toml.exists()
+
+    def test_tour_command_installed(self, tmp_path: Path, gpd_root: Path) -> None:
+        adapter = get_adapter("gemini")
+        target = tmp_path / ".gemini"
+        target.mkdir()
+
+        _install_and_finalize(adapter, gpd_root, target, is_global=True)
+
+        tour_toml = target / "commands" / "gpd" / "tour.toml"
+        assert tour_toml.exists()
 
     def test_gemini_agents_have_tools_not_allowed_tools(self, tmp_path: Path, gpd_root: Path) -> None:
         """Gemini agents should use `tools:` not `allowed-tools:` in frontmatter."""
@@ -545,6 +565,18 @@ class TestCodexLifecycle:
         start_skill = skills_dir / "gpd-start" / "SKILL.md"
         assert start_skill.exists()
 
+    def test_tour_skill_installed(self, tmp_path: Path, gpd_root: Path) -> None:
+        adapter = get_adapter("codex")
+        target = tmp_path / ".codex"
+        target.mkdir()
+        skills_dir = tmp_path / ".agents" / "skills"
+        skills_dir.mkdir(parents=True)
+
+        _install_and_finalize(adapter, gpd_root, target, is_global=True, skills_dir=skills_dir)
+
+        tour_skill = skills_dir / "gpd-tour" / "SKILL.md"
+        assert tour_skill.exists()
+
     def test_slides_skill_installed(self, tmp_path: Path, gpd_root: Path) -> None:
         adapter = get_adapter("codex")
         target = tmp_path / ".codex"
@@ -638,6 +670,16 @@ class TestOpenCodeLifecycle:
 
         start_md = target / "command" / "gpd-start.md"
         assert start_md.exists()
+
+    def test_tour_command_installed(self, tmp_path: Path, gpd_root: Path) -> None:
+        adapter = get_adapter("opencode")
+        target = tmp_path / ".opencode"
+        target.mkdir()
+
+        _install_and_finalize(adapter, gpd_root, target)
+
+        tour_md = target / "command" / "gpd-tour.md"
+        assert tour_md.exists()
 
     def test_opencode_commands_are_flat(self, tmp_path: Path, gpd_root: Path) -> None:
         """OpenCode uses flat command structure: command/gpd-help.md not commands/gpd/help.md."""
