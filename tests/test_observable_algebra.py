@@ -36,6 +36,10 @@ from octonion_algebra import (
     compute_ju_anticommutation,
     compute_grade_decomposition,
     find_ju_depth,
+    express_ju_as_clifford_polynomial,
+    test_ju_uniqueness,
+    compute_gsm_commutant,
+    verify_spin10_branching,
 )
 
 ATOL = 1e-14
@@ -408,3 +412,221 @@ class TestPhase28Regression:
         result = check_ju_in_span(T_matrices, J_u)
         assert not result['in_span']
         assert result['residual'] > 0.1
+
+
+# ============================================================================
+# 8. J_u Clifford polynomial (Plan 02)
+# ============================================================================
+
+class TestJuPolynomial:
+    """Tests for J_u's explicit Clifford polynomial expression.
+    (acceptance test: test-ju-polynomial)
+    """
+
+    def test_polynomial_reconstruction(self, gamma_matrices, J_u):
+        """The explicit polynomial reconstructs J_u to machine precision."""
+        poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+        assert poly['reconstruction_error'] < 1e-13, (
+            f"Reconstruction error: {poly['reconstruction_error']}")
+
+    def test_polynomial_nonzero_count(self, gamma_matrices, J_u):
+        """J_u has exactly 8 nonzero Clifford terms (4 grade-2, 4 grade-3)."""
+        poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+        assert poly['n_nonzero'] == 8, (
+            f"Expected 8 nonzero terms, got {poly['n_nonzero']}")
+
+    def test_polynomial_grade_2_terms(self, gamma_matrices, J_u):
+        """Grade-2 terms: subsets {1,8},{2,4},{3,7},{5,6} each with coeff 0.25."""
+        poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+        g2 = poly['grade_2_terms']
+        assert len(g2) == 4
+        expected_subsets = {(1, 8), (2, 4), (3, 7), (5, 6)}
+        actual_subsets = {s for _, s in g2}
+        assert actual_subsets == expected_subsets, (
+            f"Grade-2 subsets: {actual_subsets} != {expected_subsets}")
+        for c, _ in g2:
+            assert abs(c - 0.25) < 1e-12, f"Grade-2 coefficient: {c} != 0.25"
+
+    def test_polynomial_grade_3_terms(self, gamma_matrices, J_u):
+        """Grade-3 terms: {0,1,8} with 0.75; {0,2,4},{0,3,7},{0,5,6} with -0.25."""
+        poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+        g3 = poly['grade_3_terms']
+        assert len(g3) == 4
+        g3_dict = {s: c for c, s in g3}
+        assert abs(g3_dict[(0, 1, 8)] - 0.75) < 1e-12
+        for subset in [(0, 2, 4), (0, 3, 7), (0, 5, 6)]:
+            assert abs(g3_dict[subset] - (-0.25)) < 1e-12
+
+    def test_polynomial_dominant_term(self, gamma_matrices, J_u):
+        """The dominant term is gamma_{018} with coefficient 0.75."""
+        poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+        c, s = poly['dominant_term']
+        assert s == (0, 1, 8), f"Dominant subset: {s} != (0,1,8)"
+        assert abs(c - 0.75) < 1e-12, f"Dominant coefficient: {c} != 0.75"
+
+    def test_polynomial_manual_reconstruction(self, gamma_matrices, J_u):
+        """Manually reconstruct J_u from the polynomial and verify."""
+        poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+        reconstruction = np.zeros((16, 16), dtype=np.float64)
+        for c, subset in poly['terms']:
+            M = np.eye(16, dtype=np.float64)
+            for i in subset:
+                M = M @ gamma_matrices[i]
+            reconstruction += c * M
+        err = np.max(np.abs(reconstruction - J_u))
+        assert err < 1e-13, f"Manual reconstruction error: {err}"
+
+
+# ============================================================================
+# 9. J_u uniqueness (Plan 02)
+# ============================================================================
+
+class TestJuUniqueness:
+    """Tests for J_u uniqueness analysis.
+    (acceptance test: test-uniqueness)
+    """
+
+    def test_uniqueness_norm_squared(self, gamma_matrices, J_u):
+        """J_u coefficients have unit norm (sum a_k^2 = 1)."""
+        result = test_ju_uniqueness(gamma_matrices, J_u)
+        assert abs(result['norm_squared'] - 1.0) < 1e-12, (
+            f"Norm squared: {result['norm_squared']} != 1.0")
+
+    def test_uniqueness_constraint_satisfied(self, gamma_matrices, J_u):
+        """The nonlinear constraint F(a) = 0 is satisfied at J_u."""
+        result = test_ju_uniqueness(gamma_matrices, J_u)
+        assert result['constraint_residual'] < 1e-12, (
+            f"Constraint residual: {result['constraint_residual']}")
+
+    def test_uniqueness_isolated(self, gamma_matrices, J_u):
+        """J_u is an isolated solution (tangent space dimension = 0).
+
+        Within the 8-dim subspace of Clifford monomials appearing in J_u's
+        polynomial, J_u is the unique (up to sign) element satisfying X^2 = -I.
+        (acceptance test: test-uniqueness)
+        """
+        result = test_ju_uniqueness(gamma_matrices, J_u)
+        assert result['is_isolated'], (
+            f"J_u is NOT isolated: tangent_dim = {result['tangent_dim_at_ju']}")
+
+    def test_uniqueness_monomial_count(self, gamma_matrices, J_u):
+        """J_u lives in an 8-dimensional monomial subspace."""
+        result = test_ju_uniqueness(gamma_matrices, J_u)
+        assert result['monomial_subspace_dim'] == 8
+
+    def test_stabilizer_dim_10(self, gamma_matrices, J_u):
+        """Stabilizer of J_u in spin(9) has dimension 10."""
+        result = test_ju_uniqueness(gamma_matrices, J_u)
+        assert result['stabilizer_dim_spin9'] == 10, (
+            f"Stabilizer dim: {result['stabilizer_dim_spin9']} != 10")
+
+
+# ============================================================================
+# 10. G_SM commutant (Plan 02)
+# ============================================================================
+
+class TestGsmCommutant:
+    """Tests for G_SM = Stab_{Spin(9)}(J_u) computation.
+    (acceptance test: test-gsm-commutant-dimension)
+    """
+
+    def test_commutant_dimension(self, gamma_matrices, J_u):
+        """Commutant of J_u in spin(9) has dimension 10 = su(3) + u(1)^2.
+
+        Krasnov predicts dim(G_SM) = 12 = su(3) + su(2) + u(1).
+        We find dim = 10. The discrepancy is documented.
+        """
+        result = compute_gsm_commutant(gamma_matrices, J_u)
+        assert result['commutant_dim'] == 10, (
+            f"Commutant dim: {result['commutant_dim']} != 10")
+
+    def test_commutant_is_lie_algebra(self, gamma_matrices, J_u):
+        """The commutant is closed under brackets (is a Lie subalgebra)."""
+        result = compute_gsm_commutant(gamma_matrices, J_u)
+        assert result['is_closed']
+
+    def test_semisimple_dim_8(self, gamma_matrices, J_u):
+        """The semisimple part has dimension 8 (= su(3))."""
+        result = compute_gsm_commutant(gamma_matrices, J_u)
+        assert result['semisimple_dim'] == 8, (
+            f"Semisimple dim: {result['semisimple_dim']} != 8")
+
+    def test_center_dim_2(self, gamma_matrices, J_u):
+        """The center has dimension 2 (= u(1) + u(1))."""
+        result = compute_gsm_commutant(gamma_matrices, J_u)
+        assert result['center_dim'] == 2, (
+            f"Center dim: {result['center_dim']} != 2")
+
+    def test_individual_commuting_generators(self, gamma_matrices, J_u):
+        """Exactly 4 individual gamma_i gamma_j commute with J_u."""
+        result = compute_gsm_commutant(gamma_matrices, J_u)
+        assert result['n_individual'] == 4
+        expected = [(1, 8), (2, 4), (3, 7), (5, 6)]
+        assert result['individual_commuting'] == expected
+
+    def test_casimir_decomposition(self, gamma_matrices, J_u):
+        """R^16 decomposes as 12-dim + 4-dim under the stabilizer."""
+        result = compute_gsm_commutant(gamma_matrices, J_u)
+        mults = result['casimir_multiplicities']
+        mult_values = [m for _, m in mults]
+        assert sorted(mult_values) == [4, 12], (
+            f"Casimir multiplicities: {mult_values} != [4, 12]")
+
+
+# ============================================================================
+# 11. Spin(10) branching (Plan 02)
+# ============================================================================
+
+class TestSpin10Branching:
+    """Tests for the Spin(9)->Spin(10) extension analysis.
+    (acceptance test: test-spin10-branching, test-all-10-anticommutation,
+     test-complexification-structure)
+    """
+
+    def test_case_b(self, gamma_matrices, J_u):
+        """J_u is Case B: does NOT anticommute with all gamma_i.
+        (acceptance test: test-all-10-anticommutation)
+        """
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert result['case'] == 'B'
+
+    def test_span_dim_45(self, gamma_matrices, J_u):
+        """span{spin(9), gamma_i J_u} has dimension 45."""
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert result['span_dim_45'] == 45, (
+            f"Span dim: {result['span_dim_45']} != 45")
+
+    def test_not_lie_algebra(self, gamma_matrices, J_u):
+        """The 45-dim space is NOT a Lie algebra (not closed under brackets)."""
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert not result['is_lie_algebra'], (
+            "Expected NOT a Lie algebra, but it is")
+
+    def test_generated_lie_dim_255(self, gamma_matrices, J_u):
+        """The generated Lie algebra has dim 255 = sl(16, R).
+
+        Since J_u is antisymmetric and gamma_i are symmetric, the products
+        gamma_i J_u are antisymmetric (= traceless). Their iterated commutators
+        generate sl(16, R), not the expected so(10) or spin(10).
+        """
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert result['generated_lie_dim'] == 255, (
+            f"Generated Lie dim: {result['generated_lie_dim']} != 255")
+        assert result['generated_lie_type'] == "sl(16, R)"
+
+    def test_complexification_valid(self, gamma_matrices, J_u):
+        """J_u defines a valid complex structure on R^16 (J_u^2 = -I).
+        (acceptance test: test-complexification-structure)
+        """
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert result['complexification_valid']
+
+    def test_j_linear_dim_10(self, gamma_matrices, J_u):
+        """The J_u-linear subalgebra of spin(9) has dim 10 = stab(J_u)."""
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert result['j_linear_dim'] == 10
+
+    def test_j_linear_is_subalgebra(self, gamma_matrices, J_u):
+        """The J_u-linear elements form a Lie subalgebra."""
+        result = verify_spin10_branching(gamma_matrices, J_u)
+        assert result['j_linear_is_subalgebra']
