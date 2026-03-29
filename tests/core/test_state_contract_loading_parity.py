@@ -220,13 +220,17 @@ def test_state_and_context_drop_integrity_invalid_backup_project_contract(tmp_pa
     ctx = init_progress(tmp_path)
     loaded = state_load(tmp_path)
 
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["claims"][1]["id"] == "claim-benchmark"
     assert ctx["project_contract_load_info"]["status"] == "blocked_integrity"
-    assert loaded.state["project_contract"] is None
-    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["project_contract"] is None
+    assert loaded.state["project_contract"] is not None
+    assert loaded.state["project_contract"]["claims"][1]["id"] == "claim-benchmark"
+    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["project_contract"]["claims"][1][
+        "id"
+    ] == "claim-benchmark"
 
 
-def test_state_and_context_hide_draft_invalid_primary_project_contract_after_state_load(tmp_path: Path) -> None:
+def test_state_and_context_surface_draft_invalid_primary_project_contract_after_state_load(tmp_path: Path) -> None:
     _setup_project(tmp_path)
     save_state_json(tmp_path, default_state_dict())
 
@@ -238,9 +242,11 @@ def test_state_and_context_hide_draft_invalid_primary_project_contract_after_sta
     loaded = state_load(tmp_path)
     ctx = init_progress(tmp_path)
 
-    assert loaded.state["project_contract"] is None
+    assert loaded.state["project_contract"] is not None
+    assert loaded.state["project_contract"]["claims"][0]["references"] == ["missing-ref"]
     assert any("unknown reference missing-ref" in issue for issue in loaded.integrity_issues)
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["claims"][0]["references"] == ["missing-ref"]
     assert ctx["project_contract_load_info"]["status"] == "blocked_integrity"
     assert any(
         "unknown reference missing-ref" in error

@@ -206,7 +206,12 @@ def test_contract_ledgers_surface_forbidden_proxy_bindings_and_action_vocabulary
     assert "disconfirming_observations: [observation-1]" in summary_template
     assert "uncertainty_markers.weakest_anchors" in state_schema
     assert "uncertainty_markers.disconfirming_observations" in state_schema
-    assert "`GPD/phases/.../*-SUMMARY.md` or `paper/main.tex`" in state_schema
+    assert (
+        "`must_include_prior_outputs[]` entries should be explicit project-artifact paths or filenames that already exist inside the current project root."
+        in state_schema
+    )
+    assert '"must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"]' in state_schema
+    assert "`GPD/phases/.../*-SUMMARY.md`" not in state_schema
     assert "`GPD/phases/.../SUMMARY.md`" not in state_schema
 
 

@@ -11,5 +11,5 @@ def test_state_json_schema_surfaces_hidden_grounding_requirements() -> None:
     ).read_text(encoding="utf-8")
 
     assert "at least three words" in schema
-    assert "already resolves inside the current project root" in schema
+    assert "already exists inside the current project root" in schema
     assert "already exists inside the current project root" in schema

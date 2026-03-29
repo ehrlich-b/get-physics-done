@@ -1739,7 +1739,7 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "in_scope:" in phase_prompt
     assert "context_intake:" in phase_prompt
     assert "non-empty `context_intake`" in phase_prompt
-    assert "must_include_prior_outputs: [\"Phase 00 benchmark table\"]" in phase_prompt
+    assert "must_include_prior_outputs: [\"GPD/phases/00-baseline/00-01-SUMMARY.md\"]" in phase_prompt
     assert "user_asserted_anchors: [\"Use the lattice normalization from the user notes\"]" in phase_prompt
     assert "claims:" in phase_prompt
     assert "observables: [obs-main]" in phase_prompt
@@ -1819,7 +1819,7 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "context_intake:" in plan_schema
     assert "`context_intake` is required and must be a non-empty object, not a string or list." in plan_schema
     assert "must_read_refs: [ref-main]" in plan_schema
-    assert "must_include_prior_outputs: [\"Phase 00 benchmark table\"]" in plan_schema
+    assert "must_include_prior_outputs: [\"GPD/phases/00-baseline/00-01-SUMMARY.md\"]" in plan_schema
     assert "user_asserted_anchors: [\"Use the lattice normalization from the user notes\"]" in plan_schema
     assert "known_good_baselines: [\"Published large-N curve from Smith et al.\"]" in plan_schema
     assert "context_gaps: [\"Comparison source still undecided before planning\"]" in plan_schema
@@ -1861,7 +1861,7 @@ def test_state_json_schema_surfaces_stdin_contract_persistence_and_model_normali
     assert 'printf \'%s\\n\' "$PROJECT_CONTRACT_JSON" | gpd state set-project-contract -' in state_schema
     assert "temporary file" in state_schema
     assert "`schema_version` must be `1`." in state_schema
-    assert "Approved project contracts must include at least one observable, claim, or deliverable." in state_schema
+    assert "Project contracts must include at least one observable, claim, or deliverable." in state_schema
     assert "`uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations` must both be non-empty." in state_schema
     assert "`scope.in_scope` must name at least one project boundary or objective." in state_schema
     assert (

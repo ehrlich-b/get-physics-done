@@ -23,7 +23,7 @@ from typer.testing import CliRunner
 from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors, list_runtime_names
 from gpd.cli import app
-from gpd.core.state import default_state_dict, generate_state_markdown
+from gpd.core.state import StateUpdateResult, default_state_dict, generate_state_markdown
 
 runner = CliRunner()
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "stage0"
@@ -537,13 +537,74 @@ class TestStateCommands:
             catch_exceptions=False,
         )
 
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 1, result.output
         payload = json.loads(result.output)
         assert payload["updated"] is False
         assert "context_intake.must_read_refs must be a list, not str" in payload["reason"]
         assert payload["warnings"] == []
         state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
         assert state["project_contract"] is None
+
+    def test_set_project_contract_exits_nonzero_on_hard_backend_rejection(
+        self,
+        gpd_project: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        contract_path = gpd_project / "contract.json"
+        contract_path.write_text(
+            (FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+
+        def _reject_contract(cwd: Path, contract_data: object) -> StateUpdateResult:
+            return StateUpdateResult(
+                updated=False,
+                reason="Backend rejected project contract: missing required anchor",
+            )
+
+        monkeypatch.setattr("gpd.core.state.state_set_project_contract", _reject_contract)
+
+        result = runner.invoke(
+            app,
+            ["--cwd", str(gpd_project), "--raw", "state", "set-project-contract", str(contract_path)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        assert payload["updated"] is False
+        assert payload["reason"] == "Backend rejected project contract: missing required anchor"
+
+    def test_set_project_contract_keeps_benign_noop_exit_zero(
+        self,
+        gpd_project: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        contract_path = gpd_project / "contract.json"
+        contract_path.write_text(
+            (FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+
+        def _noop_contract(cwd: Path, contract_data: object) -> StateUpdateResult:
+            return StateUpdateResult(
+                updated=False,
+                unchanged=True,
+                reason="Project contract already matches requested value",
+            )
+
+        monkeypatch.setattr("gpd.core.state.state_set_project_contract", _noop_contract)
+
+        result = runner.invoke(
+            app,
+            ["--cwd", str(gpd_project), "--raw", "state", "set-project-contract", str(contract_path)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        assert payload["updated"] is False
+        assert payload["reason"] == "Project contract already matches requested value"
 
     def test_set_project_contract_raw_accepts_schema_valid_contract_with_approval_blockers(
         self,

@@ -736,7 +736,7 @@ def state_set_project_contract_cmd(
 
     result = state_set_project_contract(_get_cwd(), contract_data)
     _output(result)
-    if not result.updated and result.reason and result.reason.startswith("Project contract failed scoping validation:"):
+    if not result.updated and not result.unchanged:
         raise typer.Exit(code=1)
 
 
