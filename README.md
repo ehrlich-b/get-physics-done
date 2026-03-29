@@ -64,7 +64,7 @@ We welcome contributions and feedback via GitHub issues or pull requests; if GPD
 
 ## Quick Start
 
-If you already know your runtime and are comfortable in a terminal, use the Quick Start path below. If not, go back to [Start Here](#start-here) and use the hub first.
+If you already know your runtime and are comfortable in a terminal, use this as the fast path. If not, go back to [Start Here](#start-here) and use the [Beginner Onboarding Hub](./docs/README.md) instead.
 
 Use this post-install order:
 
@@ -72,12 +72,11 @@ Use this post-install order:
 
 Run its help command first: Claude Code / Gemini CLI use `/gpd:help`. Codex uses `$gpd-help`, and OpenCode uses `/gpd-help`.
 
-1. From inside the folder where your project should live, run the matching install command from [Start Here](#start-here).
-2. Launch your runtime with `claude`, `codex`, `gemini`, or `opencode`.
-3. Run the matching GPD help command shown in [Supported Runtimes](#supported-runtimes).
-4. Run your runtime's `start` command if you are not sure what fits this folder yet.
-5. Run your runtime's `tour` command if you want a read-only overview before choosing.
-6. Then use `new-project --minimal` for new work, `map-research` for existing work, or `resume-work` when you return later.
+Expert fast path:
+
+- From inside the folder where your project should live, install GPD with the matching `npx -y get-physics-done ...` command from [Start Here](#start-here), then launch `claude`, `codex`, `gemini`, or `opencode`.
+- Run the matching GPD help command shown in [Supported Runtimes](#supported-runtimes).
+- Then use `start` if you are not sure what fits this folder, `tour` for a read-only walkthrough, `new-project --minimal` for new work, `map-research` for existing work, or `resume-work` when you return later.
 
 The bootstrap installer requires Node.js 20+, Python 3.11+ with `venv`, and one supported runtime (`claude`, `gemini`, `codex`, or `opencode`).
 
@@ -103,7 +102,9 @@ Use the runtime syntax above for the command names below.
 After resuming, the runtime `suggest-next` command is the fastest post-resume next command when you only need the next action.
 
 <details>
-<summary><strong>Clean-machine readiness and first-run verification</strong></summary>
+<summary><strong>Optional Terminal-Side Readiness And Troubleshooting Reference</strong></summary>
+
+Use this when you want to verify install health, unattended readiness, paper-toolchain prerequisites, or local CLI surfaces from your normal terminal. If you want the full beginner path, stay with the onboarding hub and your selected OS/runtime guides.
 
 **Bootstrap hard blockers**
 
@@ -151,8 +152,6 @@ If any of those fail, fix them before troubleshooting GPD itself. These are boot
 - If the runtime itself cannot launch or is not authenticated, fix the runtime/provider setup outside GPD before retrying the GPD install.
 
 </details>
-
-If you are starting from existing work, run your runtime's `map-research` command first to map the formalism, computations, conventions, validation status, and open questions before `new-project`.
 
 Typical new-project workflow:
 

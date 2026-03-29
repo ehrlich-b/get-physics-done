@@ -20,6 +20,7 @@ __all__ = [
     "PLAN_PREFLIGHT_SURFACE",
     "UNATTENDED_READINESS_SURFACE",
     "WOLFRAM_STATUS_SURFACE",
+    "assert_beginner_router_bridge_contract",
     "assert_optional_paper_workflow_guidance_contract",
     "assert_publication_toolchain_boundary_contract",
     "assert_recovery_ladder_contract",
@@ -209,6 +210,95 @@ def assert_beginner_startup_routing_contract(content: str) -> None:
     assert tour_index < new_project_index
     assert tour_index < map_research_index
     assert tour_index < resume_work_index
+
+
+def assert_beginner_router_bridge_contract(content: str) -> None:
+    assert "npx -y get-physics-done" in content
+    _assert_contains_any(
+        content,
+        (
+            "Use this post-install order:",
+            "Run its help command first:",
+            "Then choose the path that matches your starting point:",
+            "Open your runtime, run its help command first",
+        ),
+        label="beginner router framing",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "/gpd:help",
+            "$gpd-help",
+            "/gpd-help",
+            "help command",
+        ),
+        label="runtime help bridge",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`start`",
+            "/gpd:start",
+            "$gpd-start",
+            "/gpd-start",
+            "runtime's `start` command",
+            "use `start`",
+        ),
+        label="start routing surface",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`tour`",
+            "/gpd:tour",
+            "$gpd-tour",
+            "/gpd-tour",
+            "runtime's `tour` command",
+            "use `tour`",
+        ),
+        label="tour routing surface",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`new-project --minimal`",
+            "`new-project`",
+            "/gpd:new-project",
+            "$gpd-new-project",
+            "/gpd-new-project",
+        ),
+        label="new-project routing surface",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`map-research`",
+            "/gpd:map-research",
+            "$gpd-map-research",
+            "/gpd-map-research",
+        ),
+        label="map-research routing surface",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`resume-work`",
+            "/gpd:resume-work",
+            "$gpd-resume-work",
+            "/gpd-resume-work",
+        ),
+        label="resume-work routing surface",
+    )
+    assert "gpd --help" in content
+    _assert_contains_any(
+        content,
+        (
+            "Use your runtime-specific `settings` command",
+            "runtime's `settings` command",
+            "For post-startup configuration, use your runtime's `settings` command",
+        ),
+        label="post-startup settings bridge",
+    )
 
 
 def assert_recovery_ladder_contract(

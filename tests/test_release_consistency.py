@@ -39,6 +39,7 @@ from tests.doc_surface_contracts import (
     _assert_shared_preset_surface_contract,
     _assert_unattended_readiness_surface,
     _assert_wolfram_plan_boundary,
+    assert_beginner_router_bridge_contract,
     assert_beginner_startup_routing_contract,
     assert_execution_observability_surface_contract,
     assert_help_workflow_runtime_reference_contract,
@@ -613,12 +614,7 @@ def test_public_readme_quick_start_keeps_runtime_first_next_steps() -> None:
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     quick_start = _markdown_section(readme, "## Quick Start")
 
-    assert "npx -y get-physics-done" in quick_start
-    assert "The bootstrap installer requires Node.js 20+, Python 3.11+ with `venv`" in quick_start
-    assert_beginner_startup_routing_contract(quick_start)
-    assert "help command" in quick_start.lower()
-    for token in ("/gpd:help", "$gpd-help", "/gpd-help"):
-        assert token in quick_start
+    assert_beginner_router_bridge_contract(quick_start)
 
 
 def test_public_help_default_quick_start_keeps_runtime_surface_readiness_path() -> None:
@@ -663,10 +659,7 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     quick_start = _markdown_section(readme, "## Quick Start")
 
     assert "Then choose the path that matches your starting point:" in quick_start
-    assert_beginner_startup_routing_contract(quick_start)
-    assert "gpd resume" in quick_start
-    assert "gpd resume --recent" in quick_start
-    assert "gpd --help" in quick_start
+    assert_beginner_router_bridge_contract(quick_start)
 
 
 def test_public_readme_start_here_surfaces_beginner_hub_links_and_order() -> None:
@@ -695,7 +688,7 @@ def test_public_beginner_hub_keeps_top_level_and_help_surfaces_aligned() -> None
     quick_start = _markdown_section(readme, "## Quick Start")
 
     assert "[Beginner Onboarding Hub](./docs/README.md)" in start_here
-    assert_beginner_startup_routing_contract(quick_start)
+    assert_beginner_router_bridge_contract(quick_start)
 
     assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
     assert "beginner_onboarding_hub_url()" in cli_content
@@ -708,52 +701,29 @@ def test_public_beginner_hub_keeps_top_level_and_help_surfaces_aligned() -> None
     assert "Getting started:" in help_workflow
 
 
-def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_readiness_path() -> None:
+def test_public_readme_quick_start_routes_into_settings_and_local_cli_follow_up_surfaces() -> None:
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     quick_start = _markdown_section(readme, "## Quick Start")
 
-    _assert_unattended_readiness_surface(quick_start)
-    assert_runtime_readiness_handoff_contract(quick_start)
-    assert "executable probes" in quick_start
-    assert "pdflatex" in quick_start
-    assert "wolframscript" in quick_start
-    assert "gpd --help" in quick_start
-    assert "terminal-side diagnostics" in quick_start
-    assert UNATTENDED_READINESS_SURFACE in quick_start
-    assert "relaunch-required" in quick_start
+    assert_beginner_router_bridge_contract(quick_start)
 
 
 def test_public_readme_and_bootstrap_surface_optional_workflow_add_on_guidance() -> None:
     repo_root = _repo_root()
-    readme = (repo_root / "README.md").read_text(encoding="utf-8")
     installer = (repo_root / "bin/install.js").read_text(encoding="utf-8")
 
-    _assert_cost_advisory_contract(readme)
-    _assert_unattended_readiness_surface(readme)
-    _assert_wolfram_plan_boundary(readme)
-    assert "executable probes" in readme
-    _assert_shared_preset_surface_contract(readme)
-    assert_optional_paper_workflow_guidance_contract(readme)
-    assert "gpd doctor --runtime <runtime> --local|--global" in readme
-    assert "Use `gpd paper-build` to judge whether the manuscript scaffold is buildable." in readme
-    assert WOLFRAM_STATUS_SURFACE in readme
-    assert PLAN_PREFLIGHT_SURFACE in readme
     assert "Workflow presets: if you plan paper/manuscript workflows, rerun " in installer
     assert_runtime_readiness_handoff_contract(installer)
     assert_optional_paper_workflow_guidance_contract(installer)
     assert_publication_toolchain_boundary_contract(installer)
 
 
-def test_public_paper_toolchain_capability_model_stays_consistent_across_surfaces() -> None:
+def test_public_paper_toolchain_capability_model_stays_consistent_across_help_and_installer_surfaces() -> None:
     repo_root = _repo_root()
-    readme = (repo_root / "README.md").read_text(encoding="utf-8")
     help_command = (repo_root / "src/gpd/commands/help.md").read_text(encoding="utf-8")
     help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
     installer = (repo_root / "bin/install.js").read_text(encoding="utf-8")
 
-    _assert_unattended_readiness_surface(readme)
-    _assert_wolfram_plan_boundary(readme)
-    assert_optional_paper_workflow_guidance_contract(readme)
     assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
     _assert_unattended_readiness_surface(help_workflow)
     _assert_wolfram_plan_boundary(help_workflow)
@@ -762,45 +732,19 @@ def test_public_paper_toolchain_capability_model_stays_consistent_across_surface
     assert_runtime_readiness_handoff_contract(installer)
     assert_optional_paper_workflow_guidance_contract(installer)
     assert_publication_toolchain_boundary_contract(installer)
-    _assert_shared_preset_surface_contract(readme)
-    _assert_cost_advisory_contract(readme)
-    assert WOLFRAM_STATUS_SURFACE in readme
-    assert "shared Wolfram integration" in readme
     assert "Local Mathematica installs are separate from the shared optional Wolfram integration config." in help_workflow
     assert DOCTOR_RUNTIME_SCOPE_RE.search(help_workflow) is not None
     assert WOLFRAM_STATUS_SURFACE in help_workflow
     assert "Workflow presets: if you plan paper/manuscript workflows, rerun " in installer
 
 
-def test_public_readme_keeps_bootstrap_prerequisites_and_runtime_doctor_scopes_distinct() -> None:
+def test_public_readme_quick_start_stays_router_not_full_readiness_checklist_owner() -> None:
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     quick_start = _markdown_section(readme, "## Quick Start")
 
-    assert_beginner_startup_routing_contract(quick_start)
-    assert "The bootstrap installer requires Node.js 20+, Python 3.11+ with `venv`" in quick_start
-    assert "**Bootstrap hard blockers**" in quick_start
-    assert "These are bootstrap prerequisites for `npx -y get-physics-done`, not a claim that every local `gpd ...` command rechecks them." in quick_start
-    assert "Here, `gpd doctor --runtime ...` is a runtime-readiness check for the selected runtime target." in quick_start
-    _assert_unattended_readiness_surface(quick_start)
-    _assert_wolfram_plan_boundary(quick_start)
-    assert DOCTOR_RUNTIME_SCOPE_RE.search(quick_start) is not None
-    _assert_shared_preset_surface_contract(quick_start)
-    assert WOLFRAM_STATUS_SURFACE in quick_start
-    assert (
-        "If the bootstrap installer fails before `gpd doctor --runtime <runtime> --local|--global` can run, "
-        "fix Node / Python / `venv` bootstrap prerequisites first."
-    ) in quick_start
-    assert (
-        "If `gpd doctor --runtime <runtime> --local|--global` fails, fix the selected runtime's launcher / target / "
-        "runtime-readiness issue first."
-    ) in quick_start
-    assert (
-        "If `gpd doctor --runtime <runtime> --local|--global` only warns about `Workflow Presets` or `LaTeX Toolchain`, "
-        "the base install can still be fine; treat that as degraded readiness for `write-paper` and local smoke checks "
-        "rather than a full install blocker. If you pass `--live-executable-probes`, doctor may also report missing local tools "
-        "like `pdflatex` or `wolframscript`; that still stays separate from `gpd integrations status wolfram` and from "
-        "`gpd validate plan-preflight <PLAN.md>`. Use `gpd paper-build` to judge whether the manuscript scaffold is buildable."
-    ) in quick_start
+    assert_beginner_router_bridge_contract(quick_start)
+    assert "[Start Here](#start-here)" in quick_start
+    assert "[Beginner Onboarding Hub](./docs/README.md)" in quick_start
 
 
 def test_public_help_surface_keeps_start_tour_new_project_and_map_research_ordered() -> None:

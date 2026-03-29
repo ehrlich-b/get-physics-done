@@ -5,6 +5,24 @@ Use this page as the single first-stop for new users.
 Use it to pick one OS guide and one runtime guide. The exact install,
 startup, and return-to-work commands live in those guides.
 
+## Before you open the guides
+
+Make sure these are already true:
+
+- One supported runtime is already installed and can open from your normal terminal.
+- Node.js 20+ is available in that same terminal.
+- Python 3.11+ with the standard `venv` module is available there too.
+- Use `--local` while learning so GPD only affects the current folder.
+
+<details>
+<summary>What this hub does not do</summary>
+
+- GPD is not a standalone app. It installs commands into Claude Code, Codex, Gemini CLI, or OpenCode.
+- GPD does not install your runtime for you and does not include model access, billing, or API credits.
+- This hub is the beginner path, not the full reference. Use the OS guide, runtime guide, and later `help` / `gpd --help` for the exact commands and deeper diagnostics.
+
+</details>
+
 <details>
 <summary>Show the full beginner path on one page</summary>
 

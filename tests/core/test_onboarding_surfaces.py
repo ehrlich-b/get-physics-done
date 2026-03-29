@@ -20,6 +20,11 @@ def test_beginner_startup_ladder_stays_separate_from_deeper_recovery_follow_ups(
     assert startup_ladder.endswith("resume-work`")
     assert "suggest-next" not in startup_ladder
     assert "pause-work" not in startup_ladder
+    assert "Node" not in startup_ladder
+    assert "Python" not in startup_ladder
+    assert "--local" not in startup_ladder
+    assert "standalone" not in startup_ladder
+    assert "billing" not in startup_ladder
 
 
 def test_beginner_runtime_surfaces_follow_runtime_catalog() -> None:
