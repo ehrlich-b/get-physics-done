@@ -15,8 +15,8 @@ When a state-aware help view is requested, show guidance based on project state:
 **No project exists:**
 ```
 Getting started:
-  /gpd:tour               — Guided tour of the main commands and when to use them
   /gpd:start               — Guided router when you are not sure whether to create, map, resume, or just explain something
+  /gpd:tour               — Optional guided tour of the main commands and when to use them
   /gpd:new-project         — Start a new research project with full scoping
   /gpd:new-project --minimal — Faster one-question project bootstrap
   /gpd:map-research        — Map an existing research project
@@ -138,8 +138,8 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 Choose the path that matches your starting point:
 
 **New work**
-1. `/gpd:tour` - Read-only guided tour of the main commands and when to use them
-2. `/gpd:start` - Guided first-run router when you are not sure whether to create a new project, map existing work, resume, or ask a standalone explanation question
+1. `/gpd:start` - Guided first-run router when you are not sure whether to create a new project, map existing work, resume, or ask a standalone explanation question
+2. `/gpd:tour` - Optional read-only guided tour of the main commands and when to use them
 3. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
 4. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
 5. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions here
@@ -191,15 +191,6 @@ Recovery ladder: use `gpd resume` for the current-workspace read-only recovery s
 
 ### Project Initialization
 
-**`/gpd:tour`**
-Show a guided beginner tour of the core GPD commands without taking action.
-
-- Explains the main commands and when to use them
-- Stays read-only and does not create files or route into another workflow
-- Good first stop if you want a quick orientation before choosing a path
-
-Usage: `/gpd:tour`
-
 **`/gpd:start`**
 Guide a first-time user to the right GPD entry point for the current folder.
 
@@ -209,6 +200,15 @@ Guide a first-time user to the right GPD entry point for the current folder.
 - Does not create project artifacts itself; it is an onboarding router
 
 Usage: `/gpd:start`
+
+**`/gpd:tour`**
+Show a guided beginner tour of the core GPD commands without taking action.
+
+- Explains the main commands and when to use them
+- Stays read-only and does not create files or route into another workflow
+- Good optional first stop if you want a quick orientation before choosing a path
+
+Usage: `/gpd:tour`
 
 **`/gpd:new-project`**
 Initialize new research project through unified flow.
