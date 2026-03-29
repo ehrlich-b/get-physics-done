@@ -6,6 +6,9 @@
 # Phase 28, Plan 01: Octonion arithmetic, h_3(O) Jordan product, Peirce
 # projections, and L_{E_{11}} computation.
 #
+# ALGV-01 RESULT: L_{E_{11}} = (1/2)*I_{16} on V_{1/2} (exact, zero error).
+# Confirms V_1 = R*E_{11} bottleneck from v6.0 Phase 22 and derivation 11.
+#
 # References:
 #   Baez, "The Octonions," Bull. AMS 39 (2002), Sec. 3.4
 #   Alfsen-Shultz, State Spaces of Operator Algebras (2001), Ch. 8-9
