@@ -213,8 +213,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 30-01-PLAN.md -- Three impossibility theorems (no equivariant J, J_u not in spin(9), weakest sufficient condition) + computational verification
-- [ ] 30-02-PLAN.md -- Selection argument formalization (5 links, weakest link flagged, Gap C honest status)
+- [x] 30-01-PLAN.md -- Three impossibility theorems (no equivariant J, J_u not in spin(9), weakest sufficient condition) + computational verification -- completed 2026-03-29
+- [x] 30-02-PLAN.md -- Selection argument formalization (5 links, weakest link flagged, Gap C honest status) -- completed 2026-03-29
 
 ---
 
@@ -275,5 +275,5 @@ Plans:
 | ----- | --------- | -------------- | ------ | --------- |
 | 28. Peirce Verification + V_0 Channel | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 29. Observable Algebra + Rep Theory | v8.0 | 2/2 | Complete | 2026-03-29 |
-| 30. Impossibility/Algebraic Theorem | v8.0 | 0/TBD | Not started | - |
+| 30. Impossibility/Algebraic Theorem | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 31. Integration | v8.0 | 0/TBD | Not started | - |
