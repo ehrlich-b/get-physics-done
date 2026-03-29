@@ -148,8 +148,8 @@ See `.gpd/milestones/v7.0-ROADMAP.md` for full details.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 28-01-PLAN.md -- Build octonion arithmetic + h_3(O) infrastructure, confirm ALGV-01 (V_1 = R bottleneck)
-- [ ] 28-02-PLAN.md -- Compute 10 V_0 Peirce operators, exhaustive J^2=-Id search, Krasnov J_u membership (ALGV-02)
+- [x] 28-01-PLAN.md -- Build octonion arithmetic + h_3(O) infrastructure, confirm ALGV-01 (V_1 = R bottleneck) -- completed 2026-03-29
+- [x] 28-02-PLAN.md -- Compute 10 V_0 Peirce operators, exhaustive J^2=-Id search, Krasnov J_u membership (ALGV-02) -- completed 2026-03-29
 
 ---
 
@@ -265,7 +265,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 28. Peirce Verification + V_0 Channel | v8.0 | 0/2 | Planned | - |
+| 28. Peirce Verification + V_0 Channel | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 29. Observable Algebra + Rep Theory | v8.0 | 0/TBD | Not started | - |
 | 30. Impossibility/Algebraic Theorem | v8.0 | 0/TBD | Not started | - |
 | 31. Integration | v8.0 | 0/TBD | Not started | - |
