@@ -9,6 +9,7 @@
 # projections, and L_{E_{11}} computation.
 # Phase 28, Plan 02: V_0 channel operators, ALGV-02.
 # Phase 29, Plan 01: Associative closure, volume element, J_u diagnostics.
+# Phase 29, Plan 02: J_u polynomial, uniqueness, G_SM commutant, Spin(10).
 #
 # ALGV-01 RESULT: L_{E_{11}} = (1/2)*I_{16} on V_{1/2} (exact, zero error).
 # ALGV-02 RESULT: V_0 channel NEGATIVE (T_b symmetric, J_u antisymmetric).
@@ -1104,3 +1105,304 @@ def find_ju_depth(T_matrices, J_u=None):
         J_u = krasnov_J_u_matrix()
     result = compute_associative_closure(T_matrices, J_u=J_u)
     return result['ju_depth']
+
+
+# ============================================================================
+# Phase 29, Plan 02: J_u polynomial, uniqueness, G_SM commutant, Spin(10)
+# ============================================================================
+
+
+def express_ju_as_clifford_polynomial(gamma_matrices, J_u):
+    """Express J_u as an explicit polynomial in the Clifford generators.
+
+    Uses compute_grade_decomposition to expand J_u = sum_S c_S gamma_S
+    where gamma_S = ordered product of gamma_i for i in S, then extracts
+    the nonzero terms and formats them as a polynomial.
+
+    Parameters:
+        gamma_matrices: list of 9 numpy arrays (16x16)
+        J_u: 16x16 numpy array
+
+    Returns:
+        dict with keys:
+          'terms': list of (coefficient, sorted_subset_tuple) for |c_S| > 1e-10
+          'n_nonzero': int (number of nonzero terms)
+          'reconstruction_error': float
+          'grade_2_terms': list of (coefficient, subset) for grade-2 terms
+          'grade_3_terms': list of (coefficient, subset) for grade-3 terms
+          'dominant_term': (coefficient, subset) with largest |c_S|
+    """
+    grade_result = compute_grade_decomposition(J_u, gamma_matrices)
+    terms = []
+    for S, c in grade_result['coefficients'].items():
+        if abs(c) > 1e-10:
+            terms.append((c, tuple(sorted(S))))
+    terms.sort(key=lambda x: (len(x[1]), x[1]))
+
+    grade_2 = [(c, s) for c, s in terms if len(s) == 2]
+    grade_3 = [(c, s) for c, s in terms if len(s) == 3]
+    dominant = max(terms, key=lambda x: abs(x[0])) if terms else None
+
+    return {
+        'terms': terms,
+        'n_nonzero': len(terms),
+        'reconstruction_error': grade_result['reconstruction_error'],
+        'grade_2_terms': grade_2,
+        'grade_3_terms': grade_3,
+        'dominant_term': dominant,
+    }
+
+
+def test_ju_uniqueness(gamma_matrices, J_u):
+    """Test uniqueness of J_u among elements sharing its algebraic properties.
+
+    Finds all X in span{M_1,...,M_8} (the 8 Clifford monomials appearing
+    in J_u's polynomial) satisfying X^2 = -I. The monomials are orthogonal
+    under Tr(A^T B)/16 and all square to -I, but they do NOT mutually
+    anticommute. So the constraint X^2 = -I for X = sum a_k M_k is:
+
+      X^2 = -|a|^2 I + sum_{i<j} a_i a_j {M_i, M_j} = -I
+
+    This requires |a|^2 = 1 AND sum_{i<j} a_i a_j {M_i, M_j} = 0.
+
+    The Jacobian analysis at J_u's coefficients determines whether J_u
+    is locally isolated (0-dim tangent space) or part of a family.
+
+    Also computes the stabilizer of J_u in spin(9) = span{gamma_i gamma_j}.
+
+    Parameters:
+        gamma_matrices: list of 9 numpy arrays (16x16)
+        J_u: 16x16 numpy array
+
+    Returns:
+        dict with keys:
+          'monomial_subspace_dim': 8 (number of monomials in J_u's polynomial)
+          'tangent_dim_at_ju': int (local dimension of solution manifold)
+          'is_isolated': bool (True if tangent_dim = 0)
+          'ju_coefficients': array of 8 coefficients
+          'norm_squared': float (should be 1.0)
+          'constraint_residual': float (should be 0.0)
+          'stabilizer_dim_spin9': int (dim of centralizer of J_u in spin(9))
+    """
+    from itertools import combinations
+
+    # Build the 8 monomials from J_u's polynomial
+    poly = express_ju_as_clifford_polynomial(gamma_matrices, J_u)
+    terms = poly['terms']
+    monomials = []
+    coeffs_ju = []
+    for c, subset in terms:
+        M = np.eye(16, dtype=np.float64)
+        for i in subset:
+            M = M @ gamma_matrices[i]
+        monomials.append(M)
+        coeffs_ju.append(c)
+    n_mono = len(monomials)
+    a0 = np.array(coeffs_ju)
+
+    # Verify |a|^2 = 1
+    norm_sq = np.sum(a0**2)
+
+    # Verify constraint: sum_{i<j} a_i a_j {M_i, M_j} = 0
+    F_a0 = np.zeros((16, 16))
+    for i in range(n_mono):
+        for j in range(i + 1, n_mono):
+            ac = monomials[i] @ monomials[j] + monomials[j] @ monomials[i]
+            F_a0 += a0[i] * a0[j] * ac
+    constraint_residual = np.linalg.norm(F_a0, 'fro')
+
+    # Jacobian of the constraint at a0
+    # F_k(a) = sum_{j != k} a_j {M_k, M_j}  (256 conditions per k)
+    Jac = np.zeros((256, n_mono))
+    for k in range(n_mono):
+        deriv = np.zeros((16, 16))
+        for j in range(n_mono):
+            if j != k:
+                deriv += a0[j] * (monomials[k] @ monomials[j]
+                                  + monomials[j] @ monomials[k])
+        Jac[:, k] = deriv.flatten()
+
+    # Add unit sphere constraint: a . da = 0
+    Jac_full = np.vstack([Jac, 2 * a0.reshape(1, -1)])
+    rank_jac = np.linalg.matrix_rank(Jac_full, tol=1e-10)
+    tangent_dim = n_mono - rank_jac
+
+    # Stabilizer dimension in spin(9)
+    spin9_gens = []
+    for i in range(len(gamma_matrices)):
+        for j in range(i + 1, len(gamma_matrices)):
+            spin9_gens.append(gamma_matrices[i] @ gamma_matrices[j])
+
+    comm_action = np.zeros((256, len(spin9_gens)))
+    for k, L in enumerate(spin9_gens):
+        comm = J_u @ L - L @ J_u
+        comm_action[:, k] = comm.flatten()
+
+    _, s_comm, _ = np.linalg.svd(comm_action, full_matrices=False)
+    stab_dim = len(spin9_gens) - np.sum(s_comm > 1e-10)
+
+    return {
+        'monomial_subspace_dim': n_mono,
+        'tangent_dim_at_ju': tangent_dim,
+        'is_isolated': tangent_dim == 0,
+        'ju_coefficients': a0,
+        'norm_squared': norm_sq,
+        'constraint_residual': constraint_residual,
+        'stabilizer_dim_spin9': stab_dim,
+    }
+
+
+def compute_gsm_commutant(gamma_matrices, J_u):
+    """Compute the commutant of J_u in the Lie algebra spin(9).
+
+    spin(9) = span{gamma_i gamma_j : i < j}, dim = 36.
+    The commutant (centralizer) is {L in spin(9) : [J_u, L] = 0}.
+    This is the Lie algebra of G_SM = Stab_{Spin(9)}(J_u).
+
+    Parameters:
+        gamma_matrices: list of 9 numpy arrays (16x16)
+        J_u: 16x16 numpy array
+
+    Returns:
+        dict with keys:
+          'commutant_dim': int (dimension of the centralizer)
+          'individual_commuting': list of (i,j) pairs where gamma_i gamma_j
+                                   individually commutes with J_u
+          'n_individual': int (count of individually commuting generators)
+          'is_closed': bool (commutant is a Lie subalgebra)
+          'semisimple_dim': int (dim of semisimple part, from Killing form)
+          'center_dim': int (dim of center)
+          'casimir_eigenvalues': array (Casimir eigenvalues on R^16)
+          'casimir_multiplicities': list of (eigenvalue, multiplicity) pairs
+          'r16_decomposition': str (description of R^16 decomposition)
+    """
+    n = len(gamma_matrices)  # 9
+
+    # Build all 36 spin(9) generators
+    spin9_gens = []
+    spin9_labels = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            spin9_gens.append(gamma_matrices[i] @ gamma_matrices[j])
+            spin9_labels.append((i, j))
+
+    n_gens = len(spin9_gens)
+
+    # Find individual commuting generators
+    individual_comm = []
+    for k, (L, label) in enumerate(zip(spin9_gens, spin9_labels)):
+        comm = J_u @ L - L @ J_u
+        if np.linalg.norm(comm, 'fro') < 1e-12:
+            individual_comm.append(label)
+
+    # Compute full commutant via SVD
+    comm_action = np.zeros((256, n_gens))
+    for k, L in enumerate(spin9_gens):
+        comm = J_u @ L - L @ J_u
+        comm_action[:, k] = comm.flatten()
+
+    U_svd, s_svd, Vt_svd = np.linalg.svd(comm_action, full_matrices=True)
+    rank = np.sum(s_svd > 1e-10)
+    null_vecs = Vt_svd[rank:]  # (commutant_dim x n_gens)
+    commutant_dim = null_vecs.shape[0]
+
+    # Build commutant matrices
+    stab_mats = []
+    for idx in range(commutant_dim):
+        v = null_vecs[idx]
+        L = sum(v[k] * spin9_gens[k] for k in range(n_gens))
+        stab_mats.append(L)
+
+    stab_flat = np.array([L.flatten() for L in stab_mats]).T
+
+    # Check Lie algebra closure
+    is_closed = True
+    for a in range(commutant_dim):
+        for b in range(a + 1, commutant_dim):
+            bracket = stab_mats[a] @ stab_mats[b] - stab_mats[b] @ stab_mats[a]
+            coeffs, _, _, _ = np.linalg.lstsq(
+                stab_flat, bracket.flatten(), rcond=None)
+            resid = np.linalg.norm(bracket.flatten() - stab_flat @ coeffs)
+            if resid > 1e-10:
+                is_closed = False
+                break
+        if not is_closed:
+            break
+
+    # Structure constants and Killing form
+    ad_mats = np.zeros((commutant_dim, commutant_dim, commutant_dim))
+    for a in range(commutant_dim):
+        for b in range(commutant_dim):
+            bracket = (stab_mats[a] @ stab_mats[b]
+                       - stab_mats[b] @ stab_mats[a])
+            coeffs, _, _, _ = np.linalg.lstsq(
+                stab_flat, bracket.flatten(), rcond=None)
+            ad_mats[a, b] = coeffs
+
+    killing = np.zeros((commutant_dim, commutant_dim))
+    for a in range(commutant_dim):
+        for b in range(commutant_dim):
+            killing[a, b] = np.trace(ad_mats[a] @ ad_mats[b])
+
+    evals_k = np.sort(np.linalg.eigvalsh(killing))
+    semisimple_dim = int(np.sum(np.abs(evals_k) > 1e-6))
+    center_dim = commutant_dim - semisimple_dim
+
+    # Find center elements (commute with everything in the stabilizer)
+    evals_k_full, evecs_k = np.linalg.eigh(killing)
+    new_basis = []
+    for i in range(commutant_dim):
+        L = sum(evecs_k[j, i] * stab_mats[j] for j in range(commutant_dim))
+        new_basis.append(L)
+
+    center_idx = [i for i in range(commutant_dim)
+                  if np.abs(evals_k_full[i]) < 1e-6]
+    center_elements = []
+    for idx in center_idx:
+        max_bracket = 0
+        for s in range(commutant_dim):
+            bracket = new_basis[idx] @ new_basis[s] - new_basis[s] @ new_basis[idx]
+            max_bracket = max(max_bracket, np.linalg.norm(bracket, 'fro'))
+        if max_bracket < 1e-10:
+            center_elements.append(idx)
+
+    center_dim = len(center_elements)
+    semisimple_dim = commutant_dim - center_dim
+
+    # Casimir on R^16 (using orthonormal basis)
+    G_spin9 = np.zeros((n_gens, n_gens))
+    for i in range(n_gens):
+        for j in range(n_gens):
+            G_spin9[i, j] = np.trace(spin9_gens[i].T @ spin9_gens[j])
+    ip_stab = null_vecs @ G_spin9 @ null_vecs.T
+    evals_ip, evecs_ip = np.linalg.eigh(ip_stab)
+    ortho_coeffs = (evecs_ip @ np.diag(1.0 / np.sqrt(np.maximum(evals_ip, 1e-15)))
+                    @ evecs_ip.T @ null_vecs)
+    ortho_mats = []
+    for idx in range(commutant_dim):
+        v = ortho_coeffs[idx]
+        L = sum(v[k] * spin9_gens[k] for k in range(n_gens))
+        ortho_mats.append(L)
+
+    casimir = sum(L @ L for L in ortho_mats)
+    cas_evals = np.sort(np.linalg.eigvalsh(casimir))
+    unique_cas = np.unique(np.round(cas_evals, 4))
+    cas_mults = [(float(e), int(np.sum(np.abs(cas_evals - e) < 0.01)))
+                 for e in unique_cas]
+
+    # R^16 decomposition description
+    r16_desc = "; ".join(
+        [f"eigenvalue {e:.4f}, multiplicity {m}" for e, m in cas_mults])
+
+    return {
+        'commutant_dim': commutant_dim,
+        'individual_commuting': individual_comm,
+        'n_individual': len(individual_comm),
+        'is_closed': is_closed,
+        'semisimple_dim': semisimple_dim,
+        'center_dim': center_dim,
+        'killing_eigenvalues': evals_k,
+        'casimir_eigenvalues': cas_evals,
+        'casimir_multiplicities': cas_mults,
+        'r16_decomposition': r16_desc,
+    }
