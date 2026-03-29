@@ -4,6 +4,8 @@ Use this if you are a physics researcher and want GPD inside the OpenAI Codex CL
 
 This guide uses the simplest path to get started. OpenAI's official Codex docs may list additional install, auth, or platform-specific options.
 
+Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
+
 ## What Codex is here
 
 In this project, “Codex” means the Codex CLI runtime that GPD installs into. Once GPD is set up, you run GPD commands inside Codex with the `$gpd-...` syntax.

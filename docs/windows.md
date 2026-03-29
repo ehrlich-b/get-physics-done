@@ -4,6 +4,8 @@ GPD adds structured physics-research commands to Claude Code, Codex, Gemini CLI,
 
 In these docs, "runtime" means the AI terminal app you talk to.
 
+Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
+
 ## What you need first
 
 - Windows 10 or 11

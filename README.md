@@ -26,6 +26,9 @@ https://github.com/user-attachments/assets/e79f8153-c0bd-484f-b69e-da8f142649e0
 
 GPD is not a standalone app. It installs physics-research commands into Claude Code, Codex, Gemini CLI, or OpenCode.
 
+If you are new to terminals, start with the [Beginner Onboarding Hub](./docs/README.md).
+It lets you open only the OS and runtime guides you need, and it uses `--local` as the default beginner path.
+
 You need three things before GPD can work:
 
 - One supported runtime already installed and able to open from your normal system terminal
@@ -38,33 +41,6 @@ There are two places you type commands:
 
 - In your normal system terminal: `npx ...`, `gpd ...`, `claude`, `codex`, `gemini`, `opencode`
 - Inside your AI runtime: `/gpd:...`, `$gpd-...`, or `/gpd-...`
-
-If you are new to terminals, start with one OS guide and one runtime guide:
-
-<details>
-<summary><strong>Choose Your Operating System</strong></summary>
-
-- [macOS guide](./docs/macos.md)
-- [Linux guide](./docs/linux.md)
-- [Windows guide](./docs/windows.md)
-
-</details>
-
-<details>
-<summary><strong>Choose Your Runtime</strong></summary>
-
-| Runtime | Install command | Guide |
-|---------|-----------------|-------|
-| Claude Code | `npx -y get-physics-done --claude --local` | [Claude Code quickstart](./docs/claude-code.md) |
-| Codex | `npx -y get-physics-done --codex --local` | [Codex quickstart](./docs/codex.md) |
-| Gemini CLI | `npx -y get-physics-done --gemini --local` | [Gemini CLI quickstart](./docs/gemini-cli.md) |
-| OpenCode | `npx -y get-physics-done --opencode --local` | [OpenCode quickstart](./docs/opencode.md) |
-
-Most beginners should install GPD into one runtime at a time and use `--local`.
-
-Here, `--local` means "install GPD for this project or folder only," so run it from inside the folder where you want this research project to live.
-
-</details>
 
 <details>
 <summary><strong>What GPD Does Not Include</strong></summary>

@@ -659,6 +659,18 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     assert quick_start.index("| Want a guided command walkthrough | `tour` |") < quick_start.index("| New research project | `new-project --minimal` |")
 
 
+def test_public_readme_start_here_surfaces_beginner_hub_links_and_order() -> None:
+    readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
+    start_here = _markdown_section(readme, "## Start Here")
+
+    assert "[Beginner Onboarding Hub](./docs/README.md)" in start_here
+    assert "It lets you open only the OS and runtime guides you need" in start_here
+    assert "`--local` as the default beginner path" in start_here
+    assert "There are two places you type commands:" in start_here
+    assert "In your normal system terminal:" in start_here
+    assert "Inside your AI runtime:" in start_here
+
+
 def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_readiness_path() -> None:
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     quick_start = _markdown_section(readme, "## Quick Start")

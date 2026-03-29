@@ -4,6 +4,8 @@ Use this if you want to run GPD inside Claude Code.
 
 This guide shows the simplest path to get started. Anthropic's official Claude Code docs may list additional install and platform-specific options.
 
+Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
+
 ## What Claude Code is here
 
 Claude Code is the terminal app you talk to. GPD adds physics-research commands to it, so you can ask Claude to help scope, plan, derive, and verify work in a structured way.

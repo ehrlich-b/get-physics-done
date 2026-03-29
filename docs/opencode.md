@@ -4,6 +4,8 @@ OpenCode is the runtime where GPD adds its commands. In OpenCode, the GPD comman
 
 This guide uses the simplest path to get started. OpenCode's official docs may list additional install, auth, or platform-specific options.
 
+Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
+
 If you are on Windows, OpenCode's official docs recommend using WSL for the best experience.
 
 ## Before you start

@@ -19,6 +19,11 @@ def _assert_fragments(content: str, fragments: tuple[str, ...]) -> None:
         assert fragment in content
 
 
+def _assert_in_order(content: str, fragments: tuple[str, ...]) -> None:
+    positions = [content.index(fragment) for fragment in fragments]
+    assert positions == sorted(positions)
+
+
 def _markdown_section(content: str, heading: str) -> str:
     marker = f"{heading}\n"
     start = content.index(marker)
@@ -82,6 +87,8 @@ def test_runtime_quickstarts_surface_the_beginner_next_steps(
 ) -> None:
     content = _read(f"docs/{doc_name}")
     _assert_fragments(content, fragments)
+    _assert_in_order(content, fragments[:3])
+    assert "Back to the onboarding hub: [GPD Onboarding Hub](./README.md)." in content
 
 
 @pytest.mark.parametrize(
@@ -110,30 +117,68 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
             "resume-work",
         ),
     )
+    assert "Back to the onboarding hub: [GPD Onboarding Hub](./README.md)." in content
 
     for guide in ("claude-code.md", "codex.md", "gemini-cli.md", "opencode.md"):
         assert f"./{guide}" in content
 
 
-def test_shared_onboarding_readme_surfaces_help_start_and_tour() -> None:
-    content = _read("README.md")
-    quick_start = _markdown_section(content, "## Quick Start")
+def test_docs_onboarding_hub_links_os_and_runtime_guides() -> None:
+    content = _read("docs/README.md")
 
     _assert_fragments(
-        quick_start,
+        content,
         (
-            "`help`",
-            "`start`",
-            "`tour`",
-            "/gpd:help",
-            "/gpd:start",
-            "/gpd:tour",
-            "Guided first-run command",
-            "Guided walkthrough command",
+            "# GPD Onboarding Hub",
+            "Your **normal terminal**",
+            "Your **runtime**",
+            "`help -> start -> tour -> new-project / map-research -> resume-work`",
+            "Common beginner terms",
+            "**API credits**",
+            "**`--local`**",
+            "**`gpd resume`**",
+            "**`resume-work`**",
+            "./macos.md",
+            "./windows.md",
+            "./linux.md",
+            "./claude-code.md",
+            "./codex.md",
+            "./gemini-cli.md",
+            "./opencode.md",
+            "npx -y get-physics-done --claude --local",
+            "npx -y get-physics-done --codex --local",
+            "npx -y get-physics-done --gemini --local",
+            "npx -y get-physics-done --opencode --local",
+            "/gpd:...",
+            "$gpd-...",
+            "/gpd-...",
         ),
     )
-    assert quick_start.index("`help`") < quick_start.index("`start`")
-    assert quick_start.index("`start`") < quick_start.index("`tour`")
+    _assert_in_order(
+        content,
+        (
+            "`help -> start -> tour -> new-project / map-research -> resume-work`",
+            "`help` shows the command list.",
+            "## Choose your OS",
+            "## Choose your runtime",
+            "## How to use the guides",
+        ),
+    )
+
+
+def test_root_readme_start_here_links_to_docs_onboarding_hub() -> None:
+    content = _read("README.md")
+    start_here = _markdown_section(content, "## Start Here")
+
+    _assert_fragments(
+        start_here,
+        (
+            "[Beginner Onboarding Hub](./docs/README.md)",
+            "There are two places you type commands:",
+            "In your normal system terminal:",
+            "Inside your AI runtime:",
+        ),
+    )
 
 
 def test_runtime_quickstarts_keep_current_provider_specific_setup_notes() -> None:

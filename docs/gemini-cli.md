@@ -4,6 +4,8 @@ Gemini CLI is the terminal app where GPD runs for Gemini users. In this setup, y
 
 This guide uses the simplest path to get started. Google's official Gemini CLI docs may list additional install, auth, or platform-specific options.
 
+Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
+
 ## Before you start
 
 Open your normal terminal in the folder where you want this research project to live.
