@@ -10,6 +10,8 @@
 # Phase 28, Plan 02: V_0 channel operators, ALGV-02.
 # Phase 29, Plan 01: Associative closure, volume element, J_u diagnostics.
 # Phase 29, Plan 02: J_u polynomial, uniqueness, G_SM commutant, Spin(10).
+# Phase 30, Plan 01: Impossibility theorem verification (Schur commutant,
+#   grade-2 stabilizer comparison).
 #
 # ALGV-01 RESULT: L_{E_{11}} = (1/2)*I_{16} on V_{1/2} (exact, zero error).
 # ALGV-02 RESULT: V_0 channel NEGATIVE (T_b symmetric, J_u antisymmetric).
@@ -1569,4 +1571,187 @@ def verify_spin10_branching(gamma_matrices, J_u):
         'complexification_valid': True,  # J_u^2 = -I always valid
         'j_linear_dim': j_linear_dim,
         'j_linear_is_subalgebra': j_linear_sub,
+    }
+
+
+# ============================================================================
+# Phase 30, Plan 01: Impossibility theorem verification
+# ============================================================================
+
+
+def compute_spin9_commutant(gamma_matrices):
+    """Compute the commutant of the full Spin(9) action on R^16.
+
+    Finds all 16x16 matrices X satisfying [g, X] = 0 for every generator
+    g in spin(9) = span{gamma_i gamma_j : i < j}.
+
+    By Schur's lemma, since S_9 is an irreducible real-type representation
+    of Spin(9), this commutant should be 1-dimensional (= R * I_{16}).
+
+    ASSERT_CONVENTION: clifford_signature=Cl(9,0)_gamma_i_sq=+I
+
+    Parameters:
+        gamma_matrices: list of 9 numpy arrays (16x16), Clifford generators
+
+    Returns:
+        dict with keys:
+          'commutant_dim': int (should be 1)
+          'commutant_basis': list of 16x16 arrays (basis of commutant)
+          'is_scalar_multiple_of_identity': bool
+          'max_deviation_from_identity': float (max |X/trace(X)*16 - I|
+              for basis element X)
+    """
+    n = len(gamma_matrices)
+
+    # Build all 36 spin(9) generators: gamma_i gamma_j for i < j
+    spin9_gens = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            spin9_gens.append(gamma_matrices[i] @ gamma_matrices[j])
+
+    # For each of the 256 basis elements E_{ab} of M_16(R), compute
+    # the commutator [g, E_{ab}] for all spin(9) generators g.
+    # Stack these constraints and find the nullspace.
+    #
+    # More efficient: vectorize the commutator action.
+    # [A, X] = AX - XA.  In vectorized form (using Kronecker products):
+    # vec([A, X]) = (I kron A - A^T kron I) vec(X)
+    #
+    # Stack for all generators to get a constraint matrix.
+    n_gens = len(spin9_gens)
+    I16 = np.eye(16)
+
+    # Build the stacked commutator action matrix
+    # Each generator contributes 256 rows (constraints)
+    constraint_rows = []
+    for g in spin9_gens:
+        # [g, X] = gX - Xg
+        # vec(gX - Xg) = (I kron g - g^T kron I) vec(X)
+        action = np.kron(I16, g) - np.kron(g.T, I16)
+        constraint_rows.append(action)
+
+    constraint_matrix = np.vstack(constraint_rows)  # (36*256) x 256
+
+    # Find nullspace via SVD
+    U, s, Vt = np.linalg.svd(constraint_matrix, full_matrices=True)
+    rank = np.sum(s > 1e-10)
+    null_vecs = Vt[rank:]  # null space rows
+    commutant_dim = null_vecs.shape[0]
+
+    # Reshape to matrices
+    commutant_basis = []
+    for k in range(commutant_dim):
+        X = null_vecs[k].reshape(16, 16)
+        commutant_basis.append(X)
+
+    # Check if each basis element is a scalar multiple of identity
+    is_identity = True
+    max_dev = 0.0
+    for X in commutant_basis:
+        tr = np.trace(X)
+        if abs(tr) < 1e-14:
+            # X is traceless but commutes with everything -- shouldn't happen
+            # for a 1-dim commutant
+            is_identity = False
+            max_dev = max(max_dev, np.linalg.norm(X, 'fro'))
+        else:
+            normalized = X / (tr / 16.0)
+            dev = np.max(np.abs(normalized - I16))
+            max_dev = max(max_dev, dev)
+            if dev > 1e-10:
+                is_identity = False
+
+    return {
+        'commutant_dim': commutant_dim,
+        'commutant_basis': commutant_basis,
+        'is_scalar_multiple_of_identity': is_identity,
+        'max_deviation_from_identity': max_dev,
+    }
+
+
+def compute_grade2_stabilizer(gamma_matrices, target_gamma_ij):
+    """Compute the stabilizer of a grade-2 element gamma_i gamma_j in spin(9).
+
+    Parameters:
+        gamma_matrices: list of 9 numpy arrays (16x16)
+        target_gamma_ij: 16x16 numpy array (the grade-2 element gamma_i gamma_j)
+
+    Returns:
+        dict with keys:
+          'stabilizer_dim': int
+          'semisimple_dim': int
+          'center_dim': int
+    """
+    n = len(gamma_matrices)
+
+    # Build all 36 spin(9) generators
+    spin9_gens = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            spin9_gens.append(gamma_matrices[i] @ gamma_matrices[j])
+    n_gens = len(spin9_gens)
+
+    # Commutant of target in spin(9)
+    comm_action = np.zeros((256, n_gens))
+    for k, L in enumerate(spin9_gens):
+        comm = target_gamma_ij @ L - L @ target_gamma_ij
+        comm_action[:, k] = comm.flatten()
+
+    U, s, Vt = np.linalg.svd(comm_action, full_matrices=True)
+    rank = np.sum(s > 1e-10)
+    null_vecs = Vt[rank:]
+    stab_dim = null_vecs.shape[0]
+
+    # Build stabilizer matrices
+    stab_mats = []
+    for idx in range(stab_dim):
+        v = null_vecs[idx]
+        L = sum(v[k] * spin9_gens[k] for k in range(n_gens))
+        stab_mats.append(L)
+
+    if stab_dim == 0:
+        return {
+            'stabilizer_dim': 0,
+            'semisimple_dim': 0,
+            'center_dim': 0,
+        }
+
+    stab_flat = np.array([L.flatten() for L in stab_mats]).T
+
+    # Structure constants and Killing form
+    ad_mats = np.zeros((stab_dim, stab_dim, stab_dim))
+    for a in range(stab_dim):
+        for b in range(stab_dim):
+            bracket = stab_mats[a] @ stab_mats[b] - stab_mats[b] @ stab_mats[a]
+            coeffs, _, _, _ = np.linalg.lstsq(stab_flat, bracket.flatten(),
+                                               rcond=None)
+            ad_mats[a, b] = coeffs
+
+    killing = np.zeros((stab_dim, stab_dim))
+    for a in range(stab_dim):
+        for b in range(stab_dim):
+            killing[a, b] = np.trace(ad_mats[a] @ ad_mats[b])
+
+    evals_k_full, evecs_k = np.linalg.eigh(killing)
+
+    # Find center (Killing form zero eigenvalues that also commute with all)
+    new_basis = []
+    for i in range(stab_dim):
+        L = sum(evecs_k[j, i] * stab_mats[j] for j in range(stab_dim))
+        new_basis.append(L)
+
+    center_count = 0
+    for i in range(stab_dim):
+        if np.abs(evals_k_full[i]) < 1e-6:
+            max_bracket = 0
+            for s in range(stab_dim):
+                bracket = new_basis[i] @ new_basis[s] - new_basis[s] @ new_basis[i]
+                max_bracket = max(max_bracket, np.linalg.norm(bracket, 'fro'))
+            if max_bracket < 1e-10:
+                center_count += 1
+
+    return {
+        'stabilizer_dim': stab_dim,
+        'semisimple_dim': stab_dim - center_count,
+        'center_dim': center_count,
     }
