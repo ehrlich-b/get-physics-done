@@ -183,7 +183,6 @@ def test_graph_sync_repairs_stale_marked_blocks() -> None:
     original = read_graph_text()
     contract = load_contract()
     stale_contract = dict(contract)
-    stale_contract["generated_on"] = "2000-01-01"
     stale_contract["scope_counts"] = {
         label: int(value) + 1 for label, value in contract["scope_counts"].items()
     }
@@ -192,7 +191,7 @@ def test_graph_sync_repairs_stale_marked_blocks() -> None:
         original,
         GENERATED_ON_START,
         GENERATED_ON_END,
-        render_generated_on_block(stale_contract),
+        "\n".join((GENERATED_ON_START, "Generated from an outdated contract.", GENERATED_ON_END)),
     )
     stale = replace_marked_block(
         stale,

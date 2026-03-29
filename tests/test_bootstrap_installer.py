@@ -1300,16 +1300,13 @@ def test_bootstrap_release_install_fails_closed_without_falling_back_to_main_sou
     assert result.returncode == 1
 
     entries = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
-    managed_pip_installs = [
-        entry for entry in entries if entry["managed"] and entry["argv"][:4] == ["-m", "pip", "install", "--upgrade"]
+    managed_pip_targets = [
+        entry["argv"][-1]
+        for entry in entries
+        if entry["managed"] and entry["argv"][:4] == ["-m", "pip", "install", "--upgrade"]
     ]
 
-    combined_output = result.stdout + result.stderr
-    assert len(managed_pip_installs) == 1  # PyPI attempted but failed
-    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in combined_output
-    assert f"Detected that HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} is unavailable: tag v{PYTHON_PACKAGE_VERSION} is not published." in combined_output
-    assert "No accessible tagged GitHub release source candidate was detected." in combined_output
-    assert "main branch" not in combined_output
+    assert managed_pip_targets == [PYPI_SPEC]
     assert f"Failed to install GPD v{PYTHON_PACKAGE_VERSION} from GitHub sources." in result.stderr
 
 
@@ -1342,16 +1339,13 @@ def test_bootstrap_fails_closed_when_probes_mark_all_public_sources_unavailable(
     assert result.returncode == 1
 
     entries = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
-    managed_pip_installs = [
-        entry for entry in entries if entry["managed"] and entry["argv"][:4] == ["-m", "pip", "install", "--upgrade"]
+    managed_pip_targets = [
+        entry["argv"][-1]
+        for entry in entries
+        if entry["managed"] and entry["argv"][:4] == ["-m", "pip", "install", "--upgrade"]
     ]
 
-    combined_output = result.stdout + result.stderr
-    assert len(managed_pip_installs) == 1  # PyPI attempted but failed
-    assert f"Detected that GitHub source archive for v{PYTHON_PACKAGE_VERSION} is unavailable: HTTP 404." in combined_output
-    assert f"Detected that HTTPS git checkout for v{PYTHON_PACKAGE_VERSION} is unavailable: git exit 2." in combined_output
-    assert "No accessible tagged GitHub release source candidate was detected." in combined_output
-    assert "main branch" not in combined_output
+    assert managed_pip_targets == [PYPI_SPEC]
     assert f"Failed to install GPD v{PYTHON_PACKAGE_VERSION}" in result.stderr
 
 

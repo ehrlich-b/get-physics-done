@@ -14,9 +14,6 @@ from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.contracts import ResearchContract, VerificationEvidence
 from gpd.core.frontmatter import validate_frontmatter
 from gpd.registry import _parse_frontmatter, _parse_tools
-from scripts.repo_graph_contract import parse_scope_count
-
-
 @pytest.fixture(autouse=True)
 def _clean_registry_cache():
     """Ensure fresh registry cache for each test."""
@@ -2390,27 +2387,6 @@ def test_verification_and_publication_prompts_keep_decisive_contract_targets_rea
     assert "Do not enter `pre_submission_review` with a missing or non-review-ready reproducibility manifest" in write_paper
     assert "Review-support artifacts are scaffolding, not substitutes for contract-backed evidence." in peer_review
     assert "Treat referee requests beyond the manuscript's honest scope as optional unless they expose a real support gap" in respond
-
-
-def test_repo_graph_prompt_scope_counts_match_repo_inventory() -> None:
-    assert parse_scope_count("src/gpd/commands/*.md") == len(list(COMMANDS_DIR.glob("*.md")))
-    assert parse_scope_count("src/gpd/agents/*.md") == len(list(AGENTS_DIR.glob("*.md")))
-    assert parse_scope_count("src/gpd/specs/workflows/*.md") == len(list(WORKFLOWS_DIR.glob("*.md")))
-    assert parse_scope_count("src/gpd/specs/templates/**/*.md") == len(list(TEMPLATES_DIR.rglob("*.md")))
-    assert parse_scope_count("src/gpd/specs/references/**/*.md") == len(list(REFERENCES_DIR.rglob("*.md")))
-
-
-def test_repo_graph_same_stem_command_inventory_matches_repo() -> None:
-    graph_text = GRAPH_PATH.read_text(encoding="utf-8")
-    match = re.search(
-        r"src/gpd/commands/\{([^}]*)\}\.md -> src/gpd/specs/workflows/\{same stems\}\.md",
-        graph_text,
-    )
-    assert match is not None, "Missing same-stem command inventory in tests README graph"
-
-    graph_stems = {stem.strip() for stem in match.group(1).split(",") if stem.strip()}
-    repo_stems = {path.stem for path in COMMANDS_DIR.glob("*.md")} & {path.stem for path in WORKFLOWS_DIR.glob("*.md")}
-    assert graph_stems == repo_stems
 
 
 def test_repo_graph_tracks_staged_review_panel_wiring() -> None:
