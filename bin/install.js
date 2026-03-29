@@ -120,7 +120,7 @@ function loadSharedPublicSurfaceText() {
 }
 
 const SHARED_PUBLIC_SURFACE_TEXT = loadSharedPublicSurfaceText();
-const SETTINGS_COMMAND_PREFIX = "After startup, use the runtime `settings` command ";
+const SETTINGS_COMMAND_PREFIX = "After your first successful start or later, use the runtime `settings` command ";
 
 function settingsCommandTail() {
   const { settingsCommandSentence } = SHARED_PUBLIC_SURFACE_TEXT;
@@ -1178,9 +1178,10 @@ function printHelp() {
   console.log(` ${dim}# Recommended unattended configuration${reset}`);
   console.log(" Bootstrap preflight checks runtime launcher/target blockers only; configure unattended behavior after startup.");
   console.log(` Beginner Onboarding Hub: ${beginnerOnboardingHubUrl}`);
+  console.log(" If you are new to terminals or are not sure which runtime path fits you yet, open that hub first.");
   console.log(" Open your runtime, run its help command first, then use `start` if you are not sure what fits this folder. Use `tour` for a read-only walkthrough first. Then use your runtime's `new-project` command for new work or `map-research` for existing work.");
   console.log(` Recommended unattended default: Balanced autonomy (\`balanced\`). ${SHARED_PUBLIC_SURFACE_TEXT.settingsRecommendationSentence}`);
-  console.log(` Use the runtime-specific \`settings\` command after startup ${settingsCommandTail()}`);
+  console.log(` Use the runtime-specific \`settings\` command after your first successful start or later ${settingsCommandTail()}`);
   console.log(
     " For returning work, use `gpd resume` for the current-workspace read-only recovery snapshot. "
     + "If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside that workspace with your runtime-specific `resume-work` command. "

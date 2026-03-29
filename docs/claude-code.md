@@ -2,23 +2,29 @@
 
 Use this if you want to run GPD inside Claude Code.
 
-This guide shows the simplest path to get started. Anthropic's official Claude Code docs may list additional install and platform-specific options.
+This guide shows the simplest path to get started. Anthropic's official Claude
+Code docs may list additional install and platform-specific options.
 
 Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
 
-## What Claude Code is here
+## Choose this runtime if
 
-Claude Code is the terminal app you talk to. GPD adds physics-research commands to it, so you can ask Claude to help scope, plan, derive, and verify work in a structured way.
+Use Claude Code if you want GPD inside Claude's terminal app and prefer the
+direct `/gpd:...` command style.
 
-If you are on Windows, Claude Code's official docs say you need Git for Windows or WSL.
-If you are on Linux and `claude` is missing, Anthropic recommends the native installer `curl -fsSL https://claude.ai/install.sh | bash`. Anthropic's npm install path is now deprecated.
+If you are on Windows, Claude Code's official docs say you need Git for Windows
+or WSL. If you are on Linux and `claude` is missing, Anthropic recommends the
+native installer. Anthropic's npm install path is now deprecated.
 
-## Before you start
+## What must already be true
 
-Open your normal terminal in the folder where you want this research project to live.
-This guide uses `--local`, so GPD is installed only for the current folder.
+- You already have Claude Code installed and can launch `claude` from your
+  normal terminal.
+- Node.js 20+ and Python 3.11+ with `venv` are installed.
+- You are in the folder where you want this research project to live.
+- This guide uses `--local`, so GPD is installed only for the current folder.
 
-## 1) Check that `claude` works
+## 1) Confirm `claude` works
 
 From your normal terminal, run:
 
@@ -48,7 +54,7 @@ claude
 
 Claude Code requires a Pro, Max, Teams, Enterprise, or Console account. The free Claude.ai plan does not include Claude Code access.
 
-## 4) First commands inside Claude Code
+## 4) First launch / help / start / tour
 
 Type these inside Claude Code, not in your normal terminal:
 
@@ -64,7 +70,19 @@ Type these inside Claude Code, not in your normal terminal:
 If you are not sure what this folder is yet, start with `/gpd:start`.
 If you want a read-only walkthrough first, use `/gpd:tour`.
 
-Suggested order for beginners: `/gpd:help`, `/gpd:start`, `/gpd:tour`, then either `/gpd:new-project --minimal`, `/gpd:map-research`, or `/gpd:resume-work`.
+Suggested order for beginners: `/gpd:help`, `/gpd:start`, `/gpd:tour`, then
+either `/gpd:new-project --minimal`, `/gpd:map-research`, or
+`/gpd:resume-work`.
+
+## Return to work
+
+- Use `/gpd:resume-work` when this folder already has GPD state and you want to
+  continue.
+- If you are not sure whether this folder already has GPD state, use
+  `/gpd:start` first.
+- If you need to reopen the project from your normal terminal first, use
+  `gpd resume` or `gpd resume --recent`, then open the right folder and run
+  `/gpd:resume-work`.
 
 ## What success looks like
 

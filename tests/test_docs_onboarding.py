@@ -89,6 +89,9 @@ def test_runtime_quickstarts_surface_the_beginner_next_steps(
     _assert_fragments(content, fragments)
     _assert_in_order(content, fragments[:3])
     assert "Back to the onboarding hub: [GPD Onboarding Hub](./README.md)." in content
+    assert "## Choose this runtime if" in content
+    assert "## What must already be true" in content
+    assert "## Return to work" in content
 
 
 @pytest.mark.parametrize(
@@ -130,9 +133,13 @@ def test_docs_onboarding_hub_links_os_and_runtime_guides() -> None:
         content,
         (
             "# GPD Onboarding Hub",
+            "This is the shortest path for a non-coder to get started with GPD.",
+            "Use the runtime you can already open from your normal terminal. That is the",
+            "Pick one runtime only. Do not install all four just to start.",
+            "Quick runtime chooser",
+            "`help -> start -> tour -> new-project / map-research -> resume-work`",
             "Your **normal terminal**",
             "Your **runtime**",
-            "`help -> start -> tour -> new-project / map-research -> resume-work`",
             "Common beginner terms",
             "**API credits**",
             "**`--local`**",
@@ -157,11 +164,21 @@ def test_docs_onboarding_hub_links_os_and_runtime_guides() -> None:
     _assert_in_order(
         content,
         (
+            "## If you do not know which runtime to pick",
+            "## I installed GPD, now what?",
             "`help -> start -> tour -> new-project / map-research -> resume-work`",
-            "`help` shows the command list.",
+            "## First: terminal vs runtime",
             "## Choose your OS",
             "## Choose your runtime",
             "## How to use the guides",
+        ),
+    )
+    _assert_in_order(
+        content,
+        (
+            "`help -> start -> tour -> new-project / map-research -> resume-work`",
+            "## Choose your OS",
+            "## Choose your runtime",
         ),
     )
 

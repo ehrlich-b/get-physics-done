@@ -224,7 +224,12 @@ def test_start_prompt_delegates_routing_to_workflow_only() -> None:
     assert "Give a first-run chooser for people who may not know GPD yet." in start_workflow
     assert "Explain the folder state in plain English" in start_workflow
     assert "Reply with the number or the option name." in start_workflow
+    assert "I will show the safest next steps first and the broader options second." in start_workflow
+    assert "Recommended next steps:" in start_workflow
+    assert "Other useful options:" in start_workflow
     assert "official GPD terms visible in plain-English form" in start_workflow
+    assert "Resume this project (recommended)" in start_workflow
+    assert "Suggest the next best step" in start_workflow
     assert "/gpd:new-project --minimal" in start_workflow
     assert "/gpd:new-project" in start_workflow
     assert "/gpd:map-research" in start_workflow
@@ -244,6 +249,7 @@ def test_start_prompt_delegates_routing_to_workflow_only() -> None:
     assert "workflow-exempt command" in start_workflow
     assert "{GPD_INSTALL_DIR}/commands/suggest-next.md" not in start_workflow
     assert "not a parallel onboarding state machine" in start_workflow
+    assert "broader capability overview" in start_workflow
 
 
 def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
@@ -268,6 +274,10 @@ def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
     assert "/gpd:quick" in tour_workflow
     assert "/gpd:settings" in tour_workflow
     assert "/gpd:help" in tour_workflow
+    assert "What comes later after startup" in tour_workflow
+    assert "/gpd:discuss-phase" in tour_workflow
+    assert "/gpd:write-paper" in tour_workflow
+    assert "/gpd:tangent" in tour_workflow
     assert "This is a read-only tour of the main GPD commands." in tour_workflow
     assert "It will not change your files." in tour_workflow
     assert "$ARGUMENTS" in tour_workflow
@@ -276,6 +286,7 @@ def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
     assert "Normal terminal vs runtime" in tour_workflow
     assert "Use \\`gpd resume\\` first if you need to reopen the project before using \\`/gpd:resume-work\\`." in tour_workflow
     assert "Use `settings` when you want to change autonomy, permissions, or runtime" in tour_workflow
+    assert "after your first successful start or later" in tour_workflow
 
 
 def test_help_workflow_surfaces_start_as_first_run_router() -> None:

@@ -15,11 +15,11 @@ allowed-tools:
 <objective>
 Provide a beginner-friendly first-run entry point for GPD.
 
-Inspect the current folder, explain what GPD can do here in plain language, and
-route into the correct existing workflow. Keep the language novice-friendly, and
-explain advanced terms the first time they appear instead of assuming prior CLI,
-Git, or workflow knowledge. Do not invent a parallel onboarding state machine
-and do not silently assume the user already knows which command to run.
+Inspect the current folder, show the safest next step first, then explain the
+broader options in plain language. Keep the language novice-friendly, and
+explain official terms the first time they appear instead of assuming prior
+CLI, Git, or workflow knowledge. Do not invent a parallel onboarding state
+machine and do not silently assume the user already knows which command to run.
 </objective>
 
 <execution_context>

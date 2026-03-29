@@ -23,7 +23,7 @@
     "`src/gpd/specs/templates/**/*.md`": 71,
     "`src/gpd/specs/references/**/*.md`": 160,
     "`src/gpd/adapters/*.py`": 9,
-    "`src/gpd/hooks/*.py`": 9,
+    "`src/gpd/hooks/*.py`": 10,
     "`src/gpd/mcp/servers/*.py`": 8,
     "`infra/gpd-*.json`": 8
   }

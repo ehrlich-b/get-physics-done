@@ -6556,7 +6556,7 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 soft_wrap=True,
             )
             console.print(
-                f"7. After your first successful start or later, {post_start_settings_note().lower()} {post_start_settings_recommendation()}",
+                f"7. {post_start_settings_note()} {post_start_settings_recommendation()}",
                 soft_wrap=True,
             )
             console.print(
@@ -6596,7 +6596,7 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 soft_wrap=True,
             )
             console.print(
-                f"After your first successful start or later, {post_start_settings_note().lower()} {post_start_settings_recommendation()}",
+                f"{post_start_settings_note()} {post_start_settings_recommendation()}",
                 soft_wrap=True,
             )
             console.print(
@@ -6679,6 +6679,43 @@ def _print_workflow_preset_details(preset_name: str) -> None:
         _error(f"Unknown workflow preset {preset_name!r}. Supported: {supported}")
 
     _pretty_print(dataclasses.asdict(preset))
+
+
+def _doctor_blocker_messages(report: object) -> list[str]:
+    """Extract blocking doctor messages from a report-like object."""
+    messages: list[str] = []
+    seen: set[str] = set()
+
+    for check in getattr(report, "checks", []) or []:
+        status = getattr(check, "status", None)
+        issues = [str(issue) for issue in getattr(check, "issues", []) or [] if str(issue).strip()]
+        if str(status) != "fail":
+            continue
+        if not issues:
+            label = str(getattr(check, "label", "Runtime readiness")).strip() or "Runtime readiness"
+            issues = [f"{label}: readiness check failed."]
+        for issue in issues:
+            if issue not in seen:
+                seen.add(issue)
+                messages.append(issue)
+
+    return messages
+
+
+def _doctor_advisory_messages(report: object) -> list[str]:
+    """Extract advisory doctor warnings from a report-like object."""
+    messages: list[str] = []
+    seen: set[str] = set()
+
+    for check in getattr(report, "checks", []) or []:
+        warnings = [str(item) for item in getattr(check, "warnings", []) or [] if str(item).strip()]
+        for warning in warnings:
+            if warning not in seen:
+                seen.add(warning)
+                messages.append(warning)
+
+    return messages
+
 
 def _build_unattended_readiness(
     *,

@@ -59,6 +59,20 @@ Include these entries:
 Keep the examples short and concrete, such as `I just opened a folder and do not know what belongs here yet.`
 </step>
 
+<step name="show_broader_capabilities">
+Add one short section titled `What comes later after startup`.
+
+Explain that these are not the first commands most beginners need, but they are
+the main capability groups GPD supports once a project is underway:
+
+- project work: `/gpd:discuss-phase`, `/gpd:plan-phase`, `/gpd:execute-phase`, `/gpd:verify-work`
+- writing and review: `/gpd:write-paper`, `/gpd:peer-review`, `/gpd:respond-to-referees`, `/gpd:arxiv-submission`
+- side investigations and preferences: `/gpd:tangent`, `/gpd:branch-hypothesis`, `/gpd:set-profile`, `/gpd:settings`
+
+Keep this section high-level. Do not turn it into a second full command
+reference.
+</step>
+
 <step name="distinguish_terminal_and_runtime">
 Add a short section titled something like `Normal terminal vs runtime`.
 
@@ -73,7 +87,8 @@ Explain in plain language:
 - `resume-work` is the in-runtime continue command after you are back in the
   right project.
 - `settings` is the guided runtime command for changing autonomy,
-  permission-sync behavior, and other GPD preferences after install or later.
+  permission-sync behavior, and other GPD preferences after your first
+  successful start or later.
 - `tour` only explains; it does not run `start`, `new-project`, `map-research`,
   `resume-work`, or `settings` for you.
 
@@ -96,7 +111,8 @@ Call out beginner traps in a gentle, plain-English way:
   the right project from your normal terminal
 - Use `resume-work` only when the project already has GPD state
 - Use `settings` when you want to change autonomy, permissions, or runtime
-  preferences, not `help` or `doctor`
+  preferences after your first successful start or later, not `help` or
+  `doctor`
 - Use `help` when you want the command reference, not a setup wizard
 
 Keep the tone explanatory, not corrective.
@@ -123,7 +139,7 @@ End with a short wrap-up that says:
 
 - `If you are still unsure, run /gpd:start.`
 - `If you want the reference list again later, run /gpd:help.`
-- `If you want to change permissions, autonomy, or runtime preferences, run \`/gpd:settings\`.`
+- `If you want to change permissions, autonomy, or runtime preferences after your first successful start or later, run \`/gpd:settings\`.`
 - `If you need to reopen the project itself from your normal terminal, use \`gpd resume\` first and then \`/gpd:resume-work\` in the runtime.`
 - `If you already know your path, use the matching command from the table
   above.`
@@ -135,7 +151,7 @@ Do not ask the user to pick a branch and do not continue into another workflow.
 - [ ] The user sees that `tour` is read-only and non-destructive
 - [ ] The core GPD entry points are explained in beginner language
 - [ ] The difference between `start`, `new-project`, `map-research`, and `resume-work` is clear
-- [ ] The tour also surfaces `settings` as the guided configuration path after install or later
+- [ ] The tour also surfaces `settings` as the guided configuration path after the first successful start or later
 - [ ] The response does not silently route into another workflow
 - [ ] The response ends with simple next-step guidance
 </success_criteria>

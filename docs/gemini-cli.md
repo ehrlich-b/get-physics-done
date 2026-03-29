@@ -1,15 +1,22 @@
 # Gemini CLI Quickstart
 
-Gemini CLI is the terminal app where GPD runs for Gemini users. In this setup, you open `gemini`, then use GPD commands inside that session.
-
-This guide uses the simplest path to get started. Google's official Gemini CLI docs may list additional install, auth, or platform-specific options.
+This guide uses the simplest path to get started. Google's official Gemini CLI
+docs may list additional install, auth, or platform-specific options.
 
 Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
 
-## Before you start
+## Choose this runtime if
 
-Open your normal terminal in the folder where you want this research project to live.
-This guide uses `--local`, so GPD is installed only for the current folder.
+Use Gemini CLI if you want GPD inside Google's terminal app and prefer the
+`/gpd:...` command style.
+
+## What must already be true
+
+- You already have Gemini CLI installed and can launch `gemini` from your
+  normal terminal.
+- Node.js 20+ and Python 3.11+ with `venv` are installed.
+- You are in the folder where you want this research project to live.
+- This guide uses `--local`, so GPD is installed only for the current folder.
 
 ## 1) Check that `gemini` works
 
@@ -43,7 +50,7 @@ gemini
 If you are not signed in yet, choose **Sign in with Google** and finish the browser login flow.
 If you are using a paid Gemini Code Assist license from your organization, set `GOOGLE_CLOUD_PROJECT` before launching `gemini`. For Google Workspace accounts or other auth methods, use the official authentication guide linked below.
 
-## 4) First commands inside Gemini CLI
+## 4) First launch / help / start / tour
 
 Type these inside Gemini CLI, not in your normal terminal:
 
@@ -59,7 +66,19 @@ Type these inside Gemini CLI, not in your normal terminal:
 If you are not sure what this folder is yet, start with `/gpd:start`.
 If you want a read-only walkthrough first, use `/gpd:tour`.
 
-Suggested order for beginners: `/gpd:help`, `/gpd:start`, `/gpd:tour`, then either `/gpd:new-project --minimal`, `/gpd:map-research`, or `/gpd:resume-work`.
+Suggested order for beginners: `/gpd:help`, `/gpd:start`, `/gpd:tour`, then
+either `/gpd:new-project --minimal`, `/gpd:map-research`, or
+`/gpd:resume-work`.
+
+## Return to work
+
+- Use `/gpd:resume-work` when this folder already has GPD state and you want to
+  continue.
+- If you are not sure whether this folder already has GPD state, use
+  `/gpd:start` first.
+- If you need to reopen the project from your normal terminal first, use
+  `gpd resume` or `gpd resume --recent`, then open the right folder and run
+  `/gpd:resume-work`.
 
 ## 5) What success looks like
 

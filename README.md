@@ -29,6 +29,7 @@ GPD is not a standalone app. It installs physics-research commands into Claude C
 If you are new to terminals, start with the [Beginner Onboarding Hub](./docs/README.md).
 It lets you open only the OS and runtime guides you need, and it uses `--local` as the default beginner path.
 If you do not already have a preferred runtime, use the one you can already launch from your normal terminal.
+Most beginners should install GPD into one runtime at a time and use `--local`.
 
 You need three things before GPD can work:
 
@@ -63,8 +64,7 @@ We welcome contributions and feedback via GitHub issues or pull requests; if GPD
 
 ## Quick Start
 
-If you already know your runtime and are comfortable in a terminal:
-If not, go back to [Start Here](#start-here) and use the hub first.
+If you already know your runtime and are comfortable in a terminal, use the Quick Start path below. If not, go back to [Start Here](#start-here) and use the hub first.
 
 The intended first-pass order is `help`, then `start`, then `tour`, then `new-project` or `map-research`.
 
@@ -214,6 +214,7 @@ npx -y github:psi-oss/get-physics-done --upgrade
 ## Supported Runtimes
 
 GPD currently installs into four AI runtimes. To preselect one during install, use the matching `npx` flag, or use `--all` to install everything in one pass:
+
 If you do not already have a preferred runtime, the simplest default is the one you can already open from your normal terminal. Most beginners should install GPD into one runtime at a time and use `--local`.
 
 | Runtime | `npx` flag | Help command | New project command | Guided first-run command | Guided walkthrough command |

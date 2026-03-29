@@ -17,7 +17,7 @@
     "purpose_phrase": "the broader local diagnostics, readiness, recovery, visibility, cost, preset, and shared Wolfram integration surface"
   },
   "post_start_settings": {
-    "primary_sentence": "After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture.",
+    "primary_sentence": "After your first successful start or later, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture.",
     "default_sentence": "The safest starting point is `review` plus runtime defaults."
   }
 }

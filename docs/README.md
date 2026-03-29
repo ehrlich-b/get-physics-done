@@ -1,10 +1,53 @@
 # GPD Onboarding Hub
 
-This page is the shortest path for a non-coder to get started with GPD.
+This is the shortest path for a non-coder to get started with GPD.
 
-Use this hub to pick:
+Use this page to choose:
 - your operating system guide
 - your runtime guide
+- your safest first in-runtime command
+
+## If you do not know which runtime to pick
+
+Use the runtime you can already open from your normal terminal. That is the
+simplest default.
+
+If none are installed yet:
+
+1. Pick one runtime only. Do not install all four just to start.
+2. Use `--local` while learning, so GPD only affects the current folder.
+3. Follow that runtime guide through `help`, `start`, and `tour` before trying
+   another runtime.
+
+<details>
+<summary>Quick runtime chooser</summary>
+
+- **Claude Code**: use this if you already open `claude` and want `/gpd:...`
+  commands.
+- **Codex**: use this if you already open `codex` and want `$gpd-...`
+  commands.
+- **Gemini CLI**: use this if you already open `gemini` and want `/gpd:...`
+  commands.
+- **OpenCode**: use this if you already open `opencode` and want `/gpd-...`
+  commands.
+
+</details>
+
+## I installed GPD, now what?
+
+Use this one-line path:
+
+`help -> start -> tour -> new-project / map-research -> resume-work`
+
+1. Open your runtime from your normal terminal.
+2. Run `help` inside the runtime.
+3. If you are not sure what fits this folder yet, run `start`.
+4. If you want a read-only walkthrough first, run `tour`.
+5. Then choose `new-project`, `map-research`, or `resume-work`.
+
+If you later need to reopen the project from your normal terminal first, use
+`gpd resume` or `gpd resume --recent`, then come back into the runtime and use
+`resume-work`.
 
 ## First: terminal vs runtime
 
@@ -12,11 +55,6 @@ You will use two different places:
 
 - Your **normal terminal** is where you install GPD and check basic tools like Node and Python.
 - Your **runtime** is the AI app where you actually use GPD commands after install.
-
-If you only remember one order, use this:
-`help -> start -> tour -> new-project / map-research -> resume-work`
-
-`help` shows the command list. `start` helps you choose a path if you are unsure. `tour` is the read-only walkthrough. `new-project`, `map-research`, and `resume-work` are the main next steps after that.
 
 <details>
 <summary>Common beginner terms</summary>
@@ -102,7 +140,7 @@ Use this if you want GPD inside OpenCode. Inside the runtime, GPD commands use `
 
 ## How to use the guides
 
-1. Open your OS guide and make sure Node and Python are installed.
+1. Open your OS guide and follow the basic terminal setup there.
 2. Open your runtime guide and confirm the runtime starts from the normal terminal.
 3. Install GPD with the runtime-specific command in that guide.
 4. Inside the runtime, start with `help`, then `start`, then `tour`.

@@ -684,9 +684,18 @@ def test_public_beginner_hub_keeps_top_level_and_help_surfaces_aligned() -> None
     cli_content = (repo_root / "src" / "gpd" / "cli.py").read_text(encoding="utf-8")
     install_js = (repo_root / "bin" / "install.js").read_text(encoding="utf-8")
 
-    assert "Use this hub to pick:" in hub
-    assert "If you only remember one order, use this:" in hub
+    assert "This is the shortest path for a non-coder to get started with GPD." in hub
+    assert "Use this page to choose:" in hub
+    assert "Use the runtime you can already open from your normal terminal. That is the" in hub
+    assert "Pick one runtime only. Do not install all four just to start." in hub
+    assert "Quick runtime chooser" in hub
     assert "help -> start -> tour -> new-project / map-research -> resume-work" in hub
+    assert "Your **normal terminal**" in hub
+    assert "Your **runtime**" in hub
+    assert "## First: terminal vs runtime" in hub
+    assert "## Choose your OS" in hub
+    assert "## Choose your runtime" in hub
+    assert "## How to use the guides" in hub
     assert "[macOS guide](./macos.md)" in hub
     assert "[Claude Code quickstart](./claude-code.md)" in hub
     assert "[Codex quickstart](./codex.md)" in hub
@@ -708,6 +717,8 @@ def test_public_beginner_hub_keeps_top_level_and_help_surfaces_aligned() -> None
     assert "Beginner Onboarding Hub:" in install_js
     assert "/blob/main/docs/README.md" in install_js
     assert "repositoryBaseUrl(repository)" in install_js
+    assert "If you are new to terminals or are not sure which runtime path fits you yet" in install_js
+    assert "If you are new to terminals or are not sure which runtime path fits you yet" in cli_content
     assert "Getting started:" in help_workflow
     start_snippet = "/gpd:start               — Guided router when you are not sure whether to create, map, resume, or just explain something"
     tour_snippet = "/gpd:tour               — Optional guided tour of the main commands and when to use them"
@@ -847,6 +858,7 @@ def test_js_bootstrap_after_install_surface_keeps_beginner_order() -> None:
     install_js = (_repo_root() / "bin/install.js").read_text(encoding="utf-8")
 
     hub_line = "Beginner Onboarding Hub: ${beginnerOnboardingHubUrl}"
+    hub_followup = "If you are new to terminals or are not sure which runtime path fits you yet, open that hub first."
     onboarding_line = (
         "Open your runtime, run its help command first, then use `start` if you are not sure what fits this folder. "
         "Use `tour` for a read-only walkthrough first. Then use your runtime's `new-project` command for new work "
@@ -854,8 +866,10 @@ def test_js_bootstrap_after_install_surface_keeps_beginner_order() -> None:
     )
 
     assert hub_line in install_js
+    assert hub_followup in install_js
     assert onboarding_line in install_js
-    assert install_js.index(hub_line) < install_js.index(onboarding_line)
+    assert install_js.index(hub_line) < install_js.index(hub_followup)
+    assert install_js.index(hub_followup) < install_js.index(onboarding_line)
     assert install_js.index("help command first") < install_js.index("use `start`")
     assert install_js.index("use `start`") < install_js.index("Use `tour`")
     assert install_js.index("Use `tour`") < install_js.index("use your runtime's `new-project` command")
@@ -911,7 +925,11 @@ def test_public_help_surfaces_keep_settings_as_guided_post_startup_path() -> Non
     help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
 
     assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
-    assert "3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation" in help_workflow
+    assert "Safest beginner order: `/gpd:start` -> `/gpd:tour` -> `/gpd:new-project` or `/gpd:map-research` -> `/gpd:resume-work` when you return later." in help_workflow
+    assert "**Post-startup settings**" in help_workflow
+    assert (
+        "1. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; use this after your first successful start or later"
+    ) in help_workflow
     _assert_shared_preset_surface_contract(help_workflow)
     _assert_cost_surface_discoverability(help_workflow)
     assert "gpd --help" in help_workflow

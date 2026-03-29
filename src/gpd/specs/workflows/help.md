@@ -123,6 +123,7 @@ Project ─── the overall research goal
 This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 
 - If you are new to terminals or runtime setup, use the Beginner Onboarding Hub: https://github.com/psi-oss/get-physics-done/blob/main/docs/README.md
+- If you do not know which runtime to pick, the hub walks you through one runtime at a time and keeps `--local` as the default beginner path.
 - Use these names inside the installed agent/runtime command surface.
 - The bootstrap installer owns Node.js / Python / `venv` prerequisites. The local `gpd` CLI may expose different `gpd ...` subcommands and grouping. Use `gpd --help` to inspect the executable local install/readiness/permissions/diagnostics surface directly.
 - Use `gpd validate unattended-readiness --runtime <runtime> --autonomy balanced` for the unattended or overnight verdict, and `gpd permissions sync --runtime <runtime> --autonomy balanced` when runtime-owned permissions need realignment.
@@ -136,14 +137,31 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 
 ## Quick Start
 
+Safest beginner order: `/gpd:start` -> `/gpd:tour` -> `/gpd:new-project` or `/gpd:map-research` -> `/gpd:resume-work` when you return later.
+
 Choose the path that matches your starting point:
 
 **New work**
 1. `/gpd:start` - Guided first-run router when you are not sure whether to create a new project, map existing work, resume, or ask a standalone explanation question
 2. `/gpd:tour` - Optional read-only guided tour of the main commands and when to use them
-3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions here
-4. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
-5. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
+3. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
+4. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
+
+**Existing work**
+1. `/gpd:map-research` - Map an existing folder or project first
+2. `/gpd:new-project` - Convert that mapped context into a structured GPD project
+
+**Returning work**
+1. `gpd resume` - Current-workspace read-only recovery snapshot from your normal terminal
+2. `gpd resume --recent` - Find the workspace first when you need to reopen a different one
+3. `/gpd:resume-work` - Continue in-runtime from the selected project state
+4. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
+5. `/gpd:suggest-next` - Fastest post-resume next command when you only need the next action
+6. `gpd observe execution` - Read-only long-run visibility from your normal terminal; use this for progress / waiting state, conservative `possibly stalled` wording, and the next read-only checks
+7. `gpd cost` - Read-only machine-local usage / cost summary from your normal terminal
+
+**Post-startup settings**
+1. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; use this after your first successful start or later when you want to choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions
 
 **Tangents**
 1. `/gpd:tangent` - Chooser for stay / quick / defer / branch when a side investigation appears
@@ -168,19 +186,6 @@ Workflow presets are bundles over the existing config keys only; they do not add
 Local Mathematica installs are separate from the shared optional Wolfram integration config.
 
 Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment.
-
-**Existing work**
-1. `/gpd:map-research` - Map an existing folder or project first
-2. `/gpd:new-project` - Convert that mapped context into a structured GPD project
-
-**Returning work**
-1. `gpd resume` - Current-workspace read-only recovery snapshot from your normal terminal
-2. `gpd resume --recent` - Find the workspace first when you need to reopen a different one
-3. `/gpd:resume-work` - Continue in-runtime from the selected project state
-4. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
-5. `/gpd:suggest-next` - Fastest post-resume next command when you only need the next action
-6. `gpd observe execution` - Read-only long-run visibility from your normal terminal; use this for progress / waiting state, conservative `possibly stalled` wording, and the next read-only checks
-7. `gpd cost` - Read-only machine-local usage / cost summary from your normal terminal
 
 Recovery ladder: use `gpd resume` for the current-workspace read-only recovery snapshot. If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside that workspace with `/gpd:resume-work`. After resuming, `/gpd:suggest-next` is the fastest next command. Before stepping away mid-phase, run `/gpd:pause-work` so that ladder has an explicit handoff to restore.
 

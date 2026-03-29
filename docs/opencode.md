@@ -1,17 +1,25 @@
 # OpenCode Quickstart for GPD
 
-OpenCode is the runtime where GPD adds its commands. In OpenCode, the GPD commands use the `/gpd-...` form.
-
-This guide uses the simplest path to get started. OpenCode's official docs may list additional install, auth, or platform-specific options.
+This guide uses the simplest path to get started. OpenCode's official docs may
+list additional install, auth, or platform-specific options.
 
 Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
 
-If you are on Windows, OpenCode's official docs recommend using WSL for the best experience.
+## Choose this runtime if
 
-## Before you start
+Use OpenCode if you want GPD inside OpenCode and prefer the `/gpd-...` command
+style.
 
-Open your normal terminal in the folder where you want this research project to live.
-This guide uses `--local`, so GPD is installed only for the current folder.
+If you are on Windows, OpenCode's official docs recommend using WSL for the
+best experience.
+
+## What must already be true
+
+- You already have OpenCode installed and can launch `opencode` from your
+  normal terminal.
+- Node.js 20+ and Python 3.11+ with `venv` are installed.
+- You are in the folder where you want this research project to live.
+- This guide uses `--local`, so GPD is installed only for the current folder.
 
 ## 1) Confirm OpenCode works
 
@@ -46,7 +54,7 @@ opencode
 
 If you are not signed in yet, run `/connect` inside OpenCode, choose your provider, and finish that provider's API-key or billing setup.
 
-## 4) First commands inside OpenCode
+## 4) First launch / help / start / tour
 
 Type these inside OpenCode, not in your normal terminal:
 
@@ -62,7 +70,19 @@ Type these inside OpenCode, not in your normal terminal:
 If you are not sure what this folder is yet, start with `/gpd-start`.
 If you want a read-only walkthrough first, use `/gpd-tour`.
 
-Suggested order for beginners: `/gpd-help`, `/gpd-start`, `/gpd-tour`, then either `/gpd-new-project --minimal`, `/gpd-map-research`, or `/gpd-resume-work`.
+Suggested order for beginners: `/gpd-help`, `/gpd-start`, `/gpd-tour`, then
+either `/gpd-new-project --minimal`, `/gpd-map-research`, or
+`/gpd-resume-work`.
+
+## Return to work
+
+- Use `/gpd-resume-work` when this folder already has GPD state and you want to
+  continue.
+- If you are not sure whether this folder already has GPD state, use
+  `/gpd-start` first.
+- If you need to reopen the project from your normal terminal first, use
+  `gpd resume` or `gpd resume --recent`, then open the right folder and run
+  `/gpd-resume-work`.
 
 ## 5) What success looks like
 
