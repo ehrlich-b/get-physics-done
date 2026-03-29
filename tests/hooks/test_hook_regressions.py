@@ -204,46 +204,22 @@ def test_update_cache_helpers_prefer_runtime_tagged_candidate_over_runtimeless_f
     assert candidate is runtime_candidate
 
 
-def test_notify_latest_update_cache_uses_shared_cache_constants_for_self_owned_install(
+@pytest.mark.parametrize(
+    ("module_name", "function_name"),
+    [
+        ("gpd.hooks.notify", "_latest_update_cache"),
+        ("gpd.hooks.statusline", "_latest_update_cache"),
+    ],
+)
+def test_latest_update_cache_uses_shared_cache_constants_for_self_owned_install(
     tmp_path: Path,
+    module_name: str,
+    function_name: str,
 ) -> None:
-    from gpd.hooks import notify
     from gpd.hooks.install_context import SelfOwnedInstallContext
 
-    self_config_dir = tmp_path / "runtime"
-    self_install = SelfOwnedInstallContext(config_dir=self_config_dir, runtime="codex", install_scope="local")
-    cache_file = self_install.cache_file
-    cache_file.parent.mkdir(parents=True)
-    cache_file.write_text(json.dumps({"update_available": True, "checked": 10}), encoding="utf-8")
-    (self_config_dir / "gpd-file-manifest.json").write_text(
-        json.dumps(
-            {
-                "install_scope": "local",
-                "runtime": "codex",
-                "explicit_target": True,
-                "install_target_dir": str(self_config_dir),
-            }
-        ),
-        encoding="utf-8",
-    )
-
-    with (
-        patch("gpd.hooks.install_context.detect_self_owned_install", return_value=self_install),
-        patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value="unknown"),
-        patch("gpd.hooks.runtime_detect.get_update_cache_candidates", return_value=[]),
-    ):
-        cache, candidate = notify._latest_update_cache()
-
-    assert cache == {"update_available": True, "checked": 10}
-    assert candidate is not None
-    assert candidate.path == cache_file
-
-
-def test_notify_and_statusline_share_self_owned_update_cache_selection(
-    tmp_path: Path,
-) -> None:
-    from gpd.hooks import notify, statusline
-    from gpd.hooks.install_context import SelfOwnedInstallContext
+    module = __import__(module_name, fromlist=[function_name])
+    cache_reader = getattr(module, function_name)
 
     self_config_dir = tmp_path / "runtime"
     self_config_dir.mkdir(parents=True)
@@ -268,13 +244,11 @@ def test_notify_and_statusline_share_self_owned_update_cache_selection(
         patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value="unknown"),
         patch("gpd.hooks.runtime_detect.get_update_cache_candidates", return_value=[]),
     ):
-        notify_cache, notify_candidate = notify._latest_update_cache(str(tmp_path))
-        status_cache, status_candidate = statusline._latest_update_cache(str(tmp_path))
+        cache, candidate = cache_reader(str(tmp_path))
 
-    assert notify_cache == status_cache == {"update_available": True, "checked": 10}
-    assert notify_candidate is not None
-    assert status_candidate is not None
-    assert notify_candidate.path == status_candidate.path == cache_file
+    assert cache == {"update_available": True, "checked": 10}
+    assert candidate is not None
+    assert candidate.path == cache_file
 
 
 def test_installed_update_command_uses_manifest_runtime_metadata_for_custom_targets(tmp_path: Path) -> None:
