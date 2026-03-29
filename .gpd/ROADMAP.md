@@ -240,7 +240,11 @@ Plans:
 
 **Backtracking trigger:** If synthesis reveals logical gaps in the Phase 30 proof, return to Phase 30 for repair.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md -- Update Paper 7 (abstract, chain table, Remark 2.6, gap register, discussion) with Phase 30 impossibility + selection results
+- [ ] 31-02-PLAN.md -- Write v8.0 milestone synthesis document (what was tried, what worked, what failed, honest status)
 
 ## Phase Dependencies
 
