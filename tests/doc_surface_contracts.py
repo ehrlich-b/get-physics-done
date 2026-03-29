@@ -18,8 +18,10 @@ __all__ = [
     "UNATTENDED_READINESS_SURFACE",
     "WOLFRAM_STATUS_SURFACE",
     "assert_recovery_ladder_contract",
+    "_assert_cost_surface_discoverability",
     "_assert_cost_advisory_contract",
     "_assert_cost_advisory_guardrail",
+    "assert_cost_surface_discoverability",
     "_assert_shared_preset_surface_contract",
     "_assert_unattended_readiness_boundary",
     "_assert_unattended_readiness_surface",
@@ -55,6 +57,22 @@ def assert_unattended_readiness_contract(content: str) -> None:
 
 
 def assert_cost_advisory_contract(content: str) -> None:
+    assert_cost_surface_discoverability(content)
+    _assert_contains_any(
+        content,
+        (
+            "advisory only",
+            "partial or estimated rather than exact",
+            "partial or estimated when telemetry is missing",
+            "estimated rather than exact",
+            "not live budget enforcement",
+            "billing truth",
+        ),
+        label="non-authoritative cost wording",
+    )
+
+
+def assert_cost_surface_discoverability(content: str) -> None:
     assert "gpd cost" in content
     _assert_contains_any(
         content,
@@ -78,18 +96,6 @@ def assert_cost_advisory_contract(content: str) -> None:
             "recorded local usage/cost",
         ),
         label="machine-local usage/cost surface",
-    )
-    _assert_contains_any(
-        content,
-        (
-            "advisory only",
-            "partial or estimated rather than exact",
-            "partial or estimated when telemetry is missing",
-            "estimated rather than exact",
-            "not live budget enforcement",
-            "billing truth",
-        ),
-        label="non-authoritative cost wording",
     )
 
 
@@ -206,6 +212,7 @@ def assert_wolfram_plan_boundary_contract(content: str) -> None:
 assert_shared_preset_surface_contract = assert_workflow_preset_surface_contract
 assert_unattended_readiness_boundary = assert_unattended_readiness_contract
 assert_wolfram_plan_boundary = assert_wolfram_plan_boundary_contract
+_assert_cost_surface_discoverability = assert_cost_surface_discoverability
 _assert_cost_advisory_contract = assert_cost_advisory_contract
 _assert_cost_advisory_guardrail = assert_cost_advisory_contract
 _assert_shared_preset_surface_contract = assert_workflow_preset_surface_contract

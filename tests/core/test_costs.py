@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -127,8 +128,9 @@ def test_record_usage_writes_measured_records_and_builds_project_summary(
 
     records = list_usage_records(data_root)
     assert len(records) == 3
-    assert all(record.agent_scope == "main_agent" for record in records)
-    assert all(record.agent_attribution_source == "default-main" for record in records)
+    assert all(record.agent_scope == "unknown" for record in records)
+    assert all(record.agent_attribution_source == "unknown" for record in records)
+    assert all(record.agent_id is None for record in records)
 
     current_session["value"] = "sess-b"
     summary = build_cost_summary(project, data_root=data_root, last_sessions=5)
@@ -149,20 +151,39 @@ def test_record_usage_writes_measured_records_and_builds_project_summary(
     assert [row.session_id for row in summary.recent_sessions] == ["sess-c", "sess-b", "sess-a"]
 
 
-def test_record_usage_keeps_explicit_subagent_identity_from_payload(
+def test_record_usage_uses_contract_declared_payload_attribution_keys(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     data_root = tmp_path / "data"
     project = _bootstrap_project(tmp_path)
     monkeypatch.setattr(costs, "get_current_session_id", lambda _root: "sess-agent")
     monkeypatch.setattr(costs, "_now_iso", lambda: "2026-03-27T12:10:00+00:00")
+    codex_policy = costs.get_hook_payload_policy("codex")
+    monkeypatch.setattr(
+        costs,
+        "get_hook_payload_policy",
+        lambda runtime=None: (
+            replace(
+                codex_policy,
+                agent_id_keys=("agent_id",),
+                agent_name_keys=("agent_name",),
+                agent_scope_keys=("agent_scope",),
+            )
+            if runtime == "codex"
+            else codex_policy
+        ),
+    )
 
     record = record_usage_from_runtime_payload(
         _payload(
             input_tokens=120,
             output_tokens=30,
             cost_usd=0.02,
-            extra={"subagent": {"id": "agent-42", "name": "gpd-executor"}},
+            extra={
+                "agent_id": "agent-42",
+                "agent_name": "gpd-executor",
+                "agent_scope": "subagent",
+            },
         ),
         runtime="codex",
         cwd=project,
@@ -173,12 +194,14 @@ def test_record_usage_keeps_explicit_subagent_identity_from_payload(
     assert record.agent_id == "agent-42"
     assert record.agent_name == "gpd-executor"
     assert record.agent_kind == "subagent"
-    assert record.agent_id_source == "payload.subagent.id"
-    assert record.agent_name_source == "payload.subagent.name"
-    assert record.agent_kind_source == "payload.subagent"
+    assert record.agent_scope == "subagent"
+    assert record.agent_attribution_source == "payload"
+    assert record.agent_id_source == "payload.agent_id"
+    assert record.agent_name_source == "payload.agent_name"
+    assert record.agent_kind_source == "payload.agent_scope"
 
 
-def test_record_usage_prefers_explicit_payload_attribution_over_workspace_fallback(
+def test_record_usage_falls_back_to_workspace_state_when_payload_keys_are_undeclared(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     data_root = tmp_path / "data"
@@ -208,12 +231,11 @@ def test_record_usage_prefers_explicit_payload_attribution_over_workspace_fallba
     )
 
     assert record is not None
-    assert record.agent_id == "agent-explicit"
-    assert record.agent_name == "gpd-executor"
-    assert record.agent_kind == "subagent"
-    assert record.agent_id_source == "payload.subagent_id"
-    assert record.agent_name_source == "payload.subagent_type"
-    assert record.agent_kind_source == "payload.subagent_type"
+    assert record.agent_id == "agent-fallback"
+    assert record.agent_name is None
+    assert record.agent_scope == "subagent"
+    assert record.agent_attribution_source == "workspace-state"
+    assert record.agent_id_source == "workspace.current-agent-id"
 
 
 def test_record_usage_falls_back_to_current_agent_file_when_active_session_matches(
@@ -247,6 +269,8 @@ def test_record_usage_falls_back_to_current_agent_file_when_active_session_match
     assert record.agent_id_source == "workspace.current-agent-id"
     assert record.agent_name_source is None
     assert record.agent_kind_source is None
+    assert record.agent_scope == "subagent"
+    assert record.agent_attribution_source == "workspace-state"
 
 
 def test_record_usage_does_not_claim_workspace_agent_id_without_matching_active_session(
@@ -278,6 +302,47 @@ def test_record_usage_does_not_claim_workspace_agent_id_without_matching_active_
     assert record.agent_name is None
     assert record.agent_kind is None
     assert record.agent_id_source is None
+    assert record.agent_name_source is None
+    assert record.agent_kind_source is None
+    assert record.agent_scope == "unknown"
+    assert record.agent_attribution_source == "unknown"
+
+
+def test_record_usage_records_runtime_session_id_only_when_declared_by_policy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_root = tmp_path / "data"
+    project = _bootstrap_project(tmp_path)
+    monkeypatch.setattr(costs, "get_current_session_id", lambda _root: "sess-runtime")
+    monkeypatch.setattr(costs, "_now_iso", lambda: "2026-03-27T12:14:00+00:00")
+    codex_policy = costs.get_hook_payload_policy("codex")
+    monkeypatch.setattr(
+        costs,
+        "get_hook_payload_policy",
+        lambda runtime=None: (
+            replace(
+                codex_policy,
+                runtime_session_id_keys=("runtime_session_id",),
+            )
+            if runtime == "codex"
+            else codex_policy
+        ),
+    )
+
+    record = record_usage_from_runtime_payload(
+        _payload(
+            input_tokens=120,
+            output_tokens=30,
+            cost_usd=0.02,
+            extra={"runtime_session_id": "rt-123"},
+        ),
+        runtime="codex",
+        cwd=project,
+        data_root=data_root,
+    )
+
+    assert record is not None
+    assert record.runtime_session_id == "rt-123"
 
 
 def test_record_usage_skips_when_runtime_payload_has_no_usage_signal(

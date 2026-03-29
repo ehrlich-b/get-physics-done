@@ -100,6 +100,8 @@ def test_merged_hook_payload_policy_is_exact_ordered_union_of_runtime_contracts(
 def test_runtime_hook_payload_attribution_fields_stay_explicitly_opt_in() -> None:
     merged_policy = get_hook_payload_policy()
 
+    assert merged_policy.supports_runtime_session_payload_attribution is False
+    assert merged_policy.supports_agent_payload_attribution is False
     assert merged_policy.runtime_session_id_keys == ()
     assert merged_policy.agent_id_keys == ()
     assert merged_policy.agent_name_keys == ()
@@ -107,6 +109,8 @@ def test_runtime_hook_payload_attribution_fields_stay_explicitly_opt_in() -> Non
 
     for descriptor in iter_runtime_descriptors():
         policy = descriptor.hook_payload
+        assert policy.supports_runtime_session_payload_attribution is False
+        assert policy.supports_agent_payload_attribution is False
         assert policy.runtime_session_id_keys == ()
         assert policy.agent_id_keys == ()
         assert policy.agent_name_keys == ()
@@ -164,6 +168,7 @@ def test_runtime_capability_matrix_locks_telemetry_source_and_completeness() -> 
     assert best_effort_telemetry == {"codex"}
 
     for runtime_name, capabilities in capabilities_by_runtime.items():
+        policy = get_hook_payload_policy(runtime_name)
         if runtime_name == "codex":
             assert capabilities.telemetry_source == "notify-hook"
             assert capabilities.telemetry_completeness == "best-effort"
@@ -174,6 +179,10 @@ def test_runtime_capability_matrix_locks_telemetry_source_and_completeness() -> 
             assert capabilities.telemetry_completeness == "none"
             assert capabilities.supports_usage_tokens is False
             assert capabilities.supports_cost_usd is False
+
+        if policy.supports_runtime_session_payload_attribution or policy.supports_agent_payload_attribution:
+            assert capabilities.notify_surface == "explicit"
+            assert capabilities.telemetry_source == "notify-hook"
 
 
 @pytest.mark.parametrize(
@@ -250,6 +259,12 @@ def test_runtime_capabilities_gate_usage_recording(runtime_name: str, tmp_path: 
     assert record.cache_write_input_tokens == 5
     assert record.cost_usd == pytest.approx(0.42)
     assert record.cost_status == "measured"
+    assert record.runtime_session_id is None
+    assert record.agent_scope == "unknown"
+    assert record.agent_id is None
+    assert record.agent_name is None
+    assert record.agent_kind is None
+    assert record.agent_attribution_source == "unknown"
 
 
 @pytest.mark.parametrize(

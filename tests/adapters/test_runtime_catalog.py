@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
+import gpd.adapters.runtime_catalog as runtime_catalog
 from gpd.adapters.runtime_catalog import (
     get_hook_payload_policy,
     get_runtime_capabilities,
@@ -77,30 +79,52 @@ def test_hook_payload_policy_uses_runtime_specific_overrides_and_merged_fallback
     assert codex_policy.notify_event_types == ("agent-turn-complete",)
     assert "agent-turn-complete" in merged_policy.notify_event_types
     assert "cwd" in merged_policy.workspace_keys
-    assert codex_policy.runtime_session_id_keys == ()
-    assert codex_policy.agent_id_keys == ()
-    assert codex_policy.agent_name_keys == ()
-    assert codex_policy.agent_scope_keys == ()
-    assert merged_policy.runtime_session_id_keys == ()
-    assert merged_policy.agent_id_keys == ()
-    assert merged_policy.agent_name_keys == ()
-    assert merged_policy.agent_scope_keys == ()
+    assert codex_policy.supports_runtime_session_payload_attribution is False
+    assert codex_policy.supports_agent_payload_attribution is False
+    assert merged_policy.supports_runtime_session_payload_attribution is False
+    assert merged_policy.supports_agent_payload_attribution is False
+    assert isinstance(codex_policy.runtime_session_id_keys, tuple)
+    assert isinstance(codex_policy.agent_id_keys, tuple)
+    assert isinstance(codex_policy.agent_name_keys, tuple)
+    assert isinstance(codex_policy.agent_scope_keys, tuple)
+    assert isinstance(merged_policy.runtime_session_id_keys, tuple)
+    assert isinstance(merged_policy.agent_id_keys, tuple)
+    assert isinstance(merged_policy.agent_name_keys, tuple)
+    assert isinstance(merged_policy.agent_scope_keys, tuple)
 
 
-def test_hook_payload_policy_keeps_runtime_session_and_agent_attribution_opt_in() -> None:
+def test_hook_payload_policy_merges_declared_runtime_session_and_agent_attribution_keys(monkeypatch) -> None:
+    descriptors = iter_runtime_descriptors()
+    synthetic = (
+        replace(
+            descriptors[0],
+            hook_payload=replace(
+                descriptors[0].hook_payload,
+                runtime_session_id_keys=("session_id",),
+                agent_id_keys=("agent_id",),
+                agent_name_keys=("agent_name",),
+                agent_scope_keys=("agent_scope",),
+            ),
+        ),
+        *descriptors[1:],
+    )
+    monkeypatch.setattr(runtime_catalog, "iter_runtime_descriptors", lambda: synthetic)
+
+    runtime_policy = get_hook_payload_policy(synthetic[0].runtime_name)
     merged_policy = get_hook_payload_policy()
 
-    assert merged_policy.runtime_session_id_keys == ()
-    assert merged_policy.agent_id_keys == ()
-    assert merged_policy.agent_name_keys == ()
-    assert merged_policy.agent_scope_keys == ()
-
-    for runtime_name in list_runtime_names():
-        policy = get_hook_payload_policy(runtime_name)
-        assert policy.runtime_session_id_keys == ()
-        assert policy.agent_id_keys == ()
-        assert policy.agent_name_keys == ()
-        assert policy.agent_scope_keys == ()
+    assert runtime_policy.runtime_session_id_keys == ("session_id",)
+    assert runtime_policy.agent_id_keys == ("agent_id",)
+    assert runtime_policy.agent_name_keys == ("agent_name",)
+    assert runtime_policy.agent_scope_keys == ("agent_scope",)
+    assert runtime_policy.supports_runtime_session_payload_attribution is True
+    assert runtime_policy.supports_agent_payload_attribution is True
+    assert merged_policy.runtime_session_id_keys[0] == "session_id"
+    assert merged_policy.agent_id_keys[0] == "agent_id"
+    assert merged_policy.agent_name_keys[0] == "agent_name"
+    assert merged_policy.agent_scope_keys[0] == "agent_scope"
+    assert merged_policy.supports_runtime_session_payload_attribution is True
+    assert merged_policy.supports_agent_payload_attribution is True
 
 
 def test_runtime_capabilities_are_explicit_per_runtime() -> None:
@@ -122,6 +146,8 @@ def test_runtime_capabilities_are_explicit_per_runtime() -> None:
     assert claude.supports_usage_tokens is False
     assert claude.supports_cost_usd is False
     assert claude.telemetry_completeness == "none"
+    assert get_hook_payload_policy("claude-code").supports_runtime_session_payload_attribution is False
+    assert get_hook_payload_policy("claude-code").supports_agent_payload_attribution is False
 
     assert gemini.permissions_surface == "launch-wrapper"
     assert gemini.permission_surface_kind == "managed-launcher-wrapper"
@@ -136,6 +162,8 @@ def test_runtime_capabilities_are_explicit_per_runtime() -> None:
     assert gemini.supports_usage_tokens is False
     assert gemini.supports_cost_usd is False
     assert gemini.telemetry_completeness == "none"
+    assert get_hook_payload_policy("gemini").supports_runtime_session_payload_attribution is False
+    assert get_hook_payload_policy("gemini").supports_agent_payload_attribution is False
 
     assert codex.permissions_surface == "config-file"
     assert codex.permission_surface_kind == "config.toml:approval_policy+sandbox_mode"
@@ -151,6 +179,8 @@ def test_runtime_capabilities_are_explicit_per_runtime() -> None:
     assert codex.supports_context_meter is False
     assert codex.supports_usage_tokens is True
     assert codex.supports_cost_usd is True
+    assert get_hook_payload_policy("codex").supports_runtime_session_payload_attribution is False
+    assert get_hook_payload_policy("codex").supports_agent_payload_attribution is False
 
     assert opencode.permissions_surface == "config-file"
     assert opencode.permission_surface_kind == "opencode.json:permission"
@@ -165,6 +195,8 @@ def test_runtime_capabilities_are_explicit_per_runtime() -> None:
     assert opencode.supports_context_meter is False
     assert opencode.supports_usage_tokens is False
     assert opencode.supports_cost_usd is False
+    assert get_hook_payload_policy("opencode").supports_runtime_session_payload_attribution is False
+    assert get_hook_payload_policy("opencode").supports_agent_payload_attribution is False
 
 
 def test_runtime_capabilities_and_hook_payload_contract_stay_coherent() -> None:
@@ -200,6 +232,10 @@ def test_runtime_capabilities_and_hook_payload_contract_stay_coherent() -> None:
         assert isinstance(capabilities.supports_usage_tokens, bool)
         assert isinstance(capabilities.supports_cost_usd, bool)
         assert isinstance(capabilities.supports_context_meter, bool)
+        assert hook_payload.supports_runtime_session_payload_attribution == bool(hook_payload.runtime_session_id_keys)
+        assert hook_payload.supports_agent_payload_attribution == bool(
+            hook_payload.agent_id_keys or hook_payload.agent_name_keys or hook_payload.agent_scope_keys
+        )
 
         if capabilities.statusline_surface == "explicit":
             assert capabilities.statusline_config_surface != "none"
@@ -237,6 +273,10 @@ def test_runtime_capabilities_and_hook_payload_contract_stay_coherent() -> None:
             assert not hook_payload.input_tokens_keys
             assert not hook_payload.output_tokens_keys
             assert not hook_payload.cost_usd_keys
+
+        if hook_payload.supports_runtime_session_payload_attribution or hook_payload.supports_agent_payload_attribution:
+            assert capabilities.notify_surface == "explicit"
+            assert capabilities.telemetry_source == "notify-hook"
 
 
 def test_hook_payload_policy_exposes_usage_alias_fields_for_cost_telemetry() -> None:

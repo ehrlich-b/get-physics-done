@@ -41,6 +41,16 @@ class HookPayloadPolicy:
     context_window_size_keys: tuple[str, ...] = ()
     context_remaining_keys: tuple[str, ...] = ()
 
+    @property
+    def supports_runtime_session_payload_attribution(self) -> bool:
+        """Whether the runtime payload can expose a runtime-owned session id."""
+        return bool(self.runtime_session_id_keys)
+
+    @property
+    def supports_agent_payload_attribution(self) -> bool:
+        """Whether the runtime payload can expose agent/subagent attribution."""
+        return bool(self.agent_id_keys or self.agent_name_keys or self.agent_scope_keys)
+
 
 @dataclass(frozen=True, slots=True)
 class RuntimeCapabilityPolicy:

@@ -237,6 +237,20 @@ def _first_string_from_containers(containers: tuple[object, ...], *keys: str) ->
     return None
 
 
+def _first_string_with_source(
+    containers: tuple[tuple[object, str], ...], *keys: str
+) -> tuple[str | None, str | None]:
+    for container, label in containers:
+        candidate = _first_string(container, *keys)
+        if candidate is None:
+            continue
+        for key in keys:
+            if _first_string(container, key) == candidate:
+                return candidate, f"{label}.{key}"
+        return candidate, label
+    return None, None
+
+
 def _first_number(value: object, *keys: str) -> int | float | None:
     mapping = _mapping(value)
     for key in keys:
@@ -295,7 +309,7 @@ def _runtime_session_id_from_payload(
     return _first_string_from_containers(containers, *policy.runtime_session_id_keys)
 
 
-def _agent_scope_from_attribution(attribution: _UsageAttribution, *, project_root: Path | None) -> str:
+def _agent_scope_from_attribution(attribution: _UsageAttribution) -> str:
     normalized_kind = _normalize_agent_scope(attribution.agent_kind)
     if normalized_kind is not None:
         return normalized_kind
@@ -303,12 +317,10 @@ def _agent_scope_from_attribution(attribution: _UsageAttribution, *, project_roo
         return "subagent"
     if attribution.has_any():
         return "unknown"
-    if project_root is not None:
-        return "main_agent"
     return "unknown"
 
 
-def _agent_attribution_source(attribution: _UsageAttribution, *, project_root: Path | None) -> str:
+def _agent_attribution_source(attribution: _UsageAttribution) -> str:
     for candidate in (
         attribution.agent_id_source,
         attribution.agent_name_source,
@@ -318,8 +330,6 @@ def _agent_attribution_source(attribution: _UsageAttribution, *, project_root: P
             return "payload"
     if attribution.agent_id_source == "workspace.current-agent-id":
         return "workspace-state"
-    if project_root is not None:
-        return "default-main"
     return "unknown"
 
 
@@ -368,122 +378,49 @@ def _usage_container(payload: dict[str, object], usage_keys: tuple[str, ...]) ->
     return {}
 
 
-def _attribution_scopes(payload: dict[str, object]) -> tuple[tuple[dict[str, object], str], ...]:
-    scopes: list[tuple[dict[str, object], str]] = [(payload, "payload")]
-    for key in ("metadata", "data", "context", "event"):
-        candidate = _mapping(payload.get(key))
-        if candidate:
-            scopes.append((candidate, f"payload.{key}"))
-    return tuple(scopes)
-
-
-def _mapping_attribution(mapping: dict[str, object], *, prefix: str, key: str, kind: str) -> _UsageAttribution:
-    value = mapping.get(key)
-    if isinstance(value, str):
-        agent_name = _normalize_optional_text(value)
-        if agent_name is None:
-            return _UsageAttribution()
-        return _UsageAttribution(
-            agent_name=agent_name,
-            agent_kind=kind,
-            agent_name_source=f"{prefix}.{key}",
-            agent_kind_source=f"{prefix}.{key}",
-        )
-
-    candidate = _mapping(value)
-    if not candidate:
-        return _UsageAttribution()
-
-    agent_id_key = next(
-        (candidate_key for candidate_key in (f"{key}_id", "id") if _first_string(candidate, candidate_key) is not None),
-        None,
+def _payload_usage_attribution(
+    payload: dict[str, object],
+    *,
+    usage: object,
+    model_value: object,
+    policy,
+) -> _UsageAttribution:
+    containers: tuple[tuple[object, str], ...] = (
+        (payload, "payload"),
+        (payload.get("workspace"), "payload.workspace"),
+        (model_value, "payload.model"),
+        (usage, "payload.usage"),
     )
-    agent_name_key = next(
-        (
-            candidate_key
-            for candidate_key in (f"{key}_name", "name", f"{key}_type", "type")
-            if _first_string(candidate, candidate_key) is not None
-        ),
-        None,
-    )
-    agent_id = _first_string(candidate, *(agent_id_key,) if agent_id_key else ())
-    agent_name = _first_string(candidate, *(agent_name_key,) if agent_name_key else ())
-    explicit_kind_key = next(
-        (
-            candidate_key
-            for candidate_key in (f"{key}_kind", "kind")
-            if _first_string(candidate, candidate_key) is not None
-        ),
-        None,
-    )
-    agent_kind = _first_string(candidate, *(explicit_kind_key,) if explicit_kind_key else ()) or kind
-    if agent_id is None and agent_name is None:
+    agent_id, agent_id_source = _first_string_with_source(containers, *policy.agent_id_keys)
+    agent_name, agent_name_source = _first_string_with_source(containers, *policy.agent_name_keys)
+    agent_scope_raw, agent_kind_source = _first_string_with_source(containers, *policy.agent_scope_keys)
+    agent_kind = _normalize_agent_scope(agent_scope_raw)
+
+    if agent_id is None and agent_name is None and agent_kind is None:
         return _UsageAttribution()
 
     return _UsageAttribution(
         agent_id=agent_id,
         agent_name=agent_name,
         agent_kind=agent_kind,
-        agent_id_source=f"{prefix}.{key}.{agent_id_key}" if agent_id_key else None,
-        agent_name_source=f"{prefix}.{key}.{agent_name_key}" if agent_name_key else None,
-        agent_kind_source=f"{prefix}.{key}.{explicit_kind_key}" if explicit_kind_key else f"{prefix}.{key}",
+        agent_id_source=agent_id_source,
+        agent_name_source=agent_name_source,
+        agent_kind_source=agent_kind_source if agent_kind is not None else None,
     )
 
 
-def _payload_usage_attribution(payload: dict[str, object]) -> _UsageAttribution:
-    for mapping, prefix in _attribution_scopes(payload):
-        for key, kind in (
-            ("subagent", "subagent"),
-            ("assistant", "assistant"),
-            ("worker", "worker"),
-            ("agent", "agent"),
-        ):
-            attribution = _mapping_attribution(mapping, prefix=prefix, key=key, kind=kind)
-            if attribution.has_any():
-                return attribution
-
-        for kind, id_keys, name_keys in (
-            ("subagent", ("subagent_id",), ("subagent_name", "subagent_type")),
-            ("assistant", ("assistant_id",), ("assistant_name",)),
-            ("worker", ("worker_id",), ("worker_name",)),
-            ("agent", ("agent_id",), ("agent_name",)),
-        ):
-            agent_id_key = next(
-                (candidate_key for candidate_key in id_keys if _first_string(mapping, candidate_key) is not None), None
-            )
-            agent_name_key = next(
-                (candidate_key for candidate_key in name_keys if _first_string(mapping, candidate_key) is not None),
-                None,
-            )
-            agent_id = _first_string(mapping, *(agent_id_key,) if agent_id_key else ())
-            agent_name = _first_string(mapping, *(agent_name_key,) if agent_name_key else ())
-            if agent_id is None and agent_name is None:
-                continue
-            return _UsageAttribution(
-                agent_id=agent_id,
-                agent_name=agent_name,
-                agent_kind=kind,
-                agent_id_source=f"{prefix}.{agent_id_key}" if agent_id_key else None,
-                agent_name_source=f"{prefix}.{agent_name_key}" if agent_name_key else None,
-                agent_kind_source=f"{prefix}.{agent_name_key or agent_id_key}"
-                if (agent_name_key or agent_id_key)
-                else None,
-            )
-    return _UsageAttribution()
-
-
-def _workspace_usage_attribution(workspace_root: Path | None, *, session_id: str | None) -> _UsageAttribution:
-    if workspace_root is None or session_id is None:
+def _workspace_usage_attribution(project_root: Path | None, *, session_id: str | None) -> _UsageAttribution:
+    if project_root is None or session_id is None:
         return _UsageAttribution()
 
-    agent_id = _normalize_optional_text(safe_read_file(ProjectLayout(workspace_root).agent_id_file))
+    agent_id = _normalize_optional_text(safe_read_file(ProjectLayout(project_root).agent_id_file))
     if agent_id is None:
         return _UsageAttribution()
 
     try:
         from gpd.core.observability import get_current_execution
 
-        snapshot = get_current_execution(workspace_root)
+        snapshot = get_current_execution(project_root)
     except Exception:
         snapshot = None
 
@@ -502,12 +439,23 @@ def _workspace_usage_attribution(workspace_root: Path | None, *, session_id: str
 
 
 def _resolve_usage_attribution(
-    payload: dict[str, object], *, workspace_root: Path | None, session_id: str | None
+    payload: dict[str, object],
+    *,
+    usage: object,
+    model_value: object,
+    policy,
+    project_root: Path | None,
+    session_id: str | None,
 ) -> _UsageAttribution:
-    payload_attribution = _payload_usage_attribution(payload)
+    payload_attribution = _payload_usage_attribution(
+        payload,
+        usage=usage,
+        model_value=model_value,
+        policy=policy,
+    )
     if payload_attribution.has_any():
         return payload_attribution
-    return _workspace_usage_attribution(workspace_root, session_id=session_id)
+    return _workspace_usage_attribution(project_root, session_id=session_id)
 
 
 def _cost_root(explicit_data_dir: Path | None = None) -> Path:
@@ -676,17 +624,12 @@ def _fingerprint_from_payload(
     agent_scope: str,
     agent_id: str | None,
     agent_name: str | None,
-    agent_attribution_source: str,
     input_tokens: int | None,
     output_tokens: int | None,
     total_tokens: int | None,
     cached_input_tokens: int | None,
     cache_write_input_tokens: int | None,
     cost_usd: float | None,
-    agent_kind: str | None,
-    agent_id_source: str | None,
-    agent_name_source: str | None,
-    agent_kind_source: str | None,
 ) -> str:
     raw = json.dumps(
         {
@@ -699,17 +642,12 @@ def _fingerprint_from_payload(
             "agent_scope": agent_scope,
             "agent_id": agent_id,
             "agent_name": agent_name,
-            "agent_attribution_source": agent_attribution_source,
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
             "total_tokens": total_tokens,
             "cached_input_tokens": cached_input_tokens,
             "cache_write_input_tokens": cache_write_input_tokens,
             "cost_usd": cost_usd,
-            "agent_kind": agent_kind,
-            "agent_id_source": agent_id_source,
-            "agent_name_source": agent_name_source,
-            "agent_kind_source": agent_kind_source,
         },
         sort_keys=True,
         separators=(",", ":"),
@@ -809,11 +747,14 @@ def record_usage_from_runtime_payload(
     )
     attribution = _resolve_usage_attribution(
         payload,
-        workspace_root=resolved_project_root,
+        usage=usage,
+        model_value=model_value,
+        policy=policy,
+        project_root=resolved_project_root,
         session_id=session_id,
     )
-    agent_scope = _agent_scope_from_attribution(attribution, project_root=resolved_project_root)
-    agent_attribution_source = _agent_attribution_source(attribution, project_root=resolved_project_root)
+    agent_scope = _agent_scope_from_attribution(attribution)
+    agent_attribution_source = _agent_attribution_source(attribution)
 
     pricing_snapshot = load_pricing_snapshot(data_root)
     estimated_cost_usd, _matched_model = _estimated_cost_from_pricing(
@@ -880,17 +821,12 @@ def record_usage_from_runtime_payload(
             agent_scope=agent_scope,
             agent_id=attribution.agent_id,
             agent_name=attribution.agent_name,
-            agent_attribution_source=agent_attribution_source,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             total_tokens=total_tokens,
             cached_input_tokens=cached_input_tokens,
             cache_write_input_tokens=cache_write_input_tokens,
             cost_usd=cost_usd,
-            agent_kind=attribution.agent_kind,
-            agent_id_source=attribution.agent_id_source,
-            agent_name_source=attribution.agent_name_source,
-            agent_kind_source=attribution.agent_kind_source,
         ),
     )
     return _append_record(record, data_root=data_root)

@@ -31,6 +31,7 @@ from tests.doc_surface_contracts import (
     UNATTENDED_READINESS_SURFACE,
     WOLFRAM_STATUS_SURFACE,
     _assert_cost_advisory_contract,
+    _assert_cost_surface_discoverability,
     _assert_shared_preset_surface_contract,
     _assert_unattended_readiness_surface,
     _assert_wolfram_plan_boundary,
@@ -658,7 +659,7 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     assert "the matching `branch-hypothesis` command only when you want the explicit git-backed alternative path" in quick_start
     assert "For model choice, the safe default is `review` plus runtime defaults." in quick_start
     assert "Use your runtime-specific `settings` command to move toward `Max quality`, `Balanced`, or `Budget-aware`" in quick_start
-    _assert_cost_advisory_contract(quick_start)
+    _assert_cost_surface_discoverability(quick_start)
     assert "Use the exact runtime-specific command syntax below for your first command." in quick_start
     assert "If you are starting from existing work, run your runtime's `map-research` command first" in quick_start
     assert "/gpd:new-project --minimal" in quick_start
@@ -840,7 +841,7 @@ def test_public_help_surfaces_keep_settings_as_guided_post_startup_path() -> Non
     assert "3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation" in help_workflow
     assert "Paper/manuscript workflows" in help_workflow
     _assert_shared_preset_surface_contract(help_workflow)
-    _assert_cost_advisory_contract(help_workflow)
+    _assert_cost_surface_discoverability(help_workflow)
     assert "gpd --help" in help_workflow
     _assert_unattended_readiness_surface(help_workflow)
     assert "paper-toolchain readiness" in help_workflow

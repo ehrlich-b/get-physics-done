@@ -115,8 +115,9 @@ def _usage_recorder_kwargs(
 
     The notify hook keeps project-scoped helpers rooted at the resolved project,
     but usage attribution may also need the original workspace path from the
-    runtime payload. Forward those extra hints only when the active recorder
-    contract advertises matching parameters.
+    runtime payload. `workspace_root` here is that raw payload workspace path,
+    while `project_root` is the re-rooted project scope. Forward those extra
+    hints only when the active recorder contract advertises matching parameters.
     """
 
     candidate_kwargs: dict[str, object] = {
@@ -304,6 +305,7 @@ def _workspace_root_from_payload(
 
 
 def _workspace_from_payload(data: dict[str, object], *, cwd: str | None = None) -> str:
+    """Return the resolved project root for one notify payload workspace."""
     workspace_dir = _workspace_dir_from_payload(data, cwd=cwd)
     return _workspace_root_from_payload(data, workspace_dir, cwd=cwd)
 
@@ -424,15 +426,15 @@ def main() -> None:
 
     try:
         workspace_dir = _workspace_dir_from_payload(data)
-        cwd = _workspace_from_payload(data, cwd=workspace_dir)
-        hook_payload = _hook_payload_policy(cwd)
+        project_root = _workspace_from_payload(data, cwd=workspace_dir)
+        hook_payload = _hook_payload_policy(project_root)
         allowed_event_types = hook_payload.notify_event_types
         if allowed_event_types and data.get("type") not in (*allowed_event_types, None):
             return
-        _record_usage_telemetry(data, workspace_dir=workspace_dir, project_root=cwd)
-        _trigger_update_check(cwd)
-        _check_and_notify_update(cwd)
-        _emit_execution_notification(cwd)
+        _record_usage_telemetry(data, workspace_dir=workspace_dir, project_root=project_root)
+        _trigger_update_check(project_root)
+        _check_and_notify_update(project_root)
+        _emit_execution_notification(project_root)
     except Exception as exc:
         _debug(f"notify handler failed: {exc}")
 

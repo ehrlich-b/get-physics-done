@@ -723,6 +723,25 @@ def test_main_prefers_project_dir_root_over_nested_workspace_cwd(tmp_path: Path)
     mock_execution.assert_called_once_with(str(project))
 
 
+def test_main_prefers_top_level_project_dir_root_over_top_level_cwd(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    nested = project / "src" / "notes"
+    nested.mkdir(parents=True)
+
+    payload = {"type": "agent-turn-complete", "cwd": str(nested), "project_dir": str(project)}
+    with (
+        patch("sys.stdin", io.StringIO(json.dumps(payload))),
+        patch("gpd.hooks.notify._trigger_update_check") as mock_trigger,
+        patch("gpd.hooks.notify._check_and_notify_update") as mock_notify,
+        patch("gpd.hooks.notify._emit_execution_notification") as mock_execution,
+    ):
+        main()
+
+    mock_trigger.assert_called_once_with(str(project))
+    mock_notify.assert_called_once_with(str(project))
+    mock_execution.assert_called_once_with(str(project))
+
+
 def test_main_passes_workspace_and_project_roots_to_usage_recorder_when_supported(tmp_path: Path) -> None:
     project = tmp_path / "project"
     nested = project / "src" / "notes"
@@ -773,6 +792,27 @@ def test_main_passes_workspace_and_project_roots_to_usage_recorder_when_supporte
     assert captured["cwd"] == resolved_nested
     assert captured["workspace_root"] == resolved_nested
     assert captured["project_root"] == resolved_project
+
+
+def test_usage_recorder_kwargs_keep_legacy_cwd_contract_for_old_recorders(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    nested = project / "src"
+    nested.mkdir(parents=True)
+
+    def _legacy_recorder(payload_arg: dict[str, object], *, runtime: str | None, cwd: Path) -> None:
+        del payload_arg, runtime, cwd
+
+    kwargs = notify_module._usage_recorder_kwargs(
+        _legacy_recorder,
+        runtime="codex",
+        workspace_dir=str(nested),
+        project_root=str(project),
+    )
+
+    assert kwargs == {
+        "runtime": "codex",
+        "cwd": nested.resolve(strict=False),
+    }
 
 
 def test_main_expands_tilde_workspace_and_project_dir(tmp_path: Path) -> None:
@@ -862,8 +902,8 @@ def test_main_records_usage_telemetry_from_alias_fields(tmp_path: Path) -> None:
     assert row["cache_write_input_tokens"] == 5
     assert row["cost_usd"] == 0.42
     assert row["cost_status"] == "measured"
-    assert row["agent_scope"] == "main_agent"
-    assert row["agent_attribution_source"] == "default-main"
+    assert row["agent_scope"] == "unknown"
+    assert row["agent_attribution_source"] == "unknown"
 
 
 def test_main_records_workspace_state_subagent_attribution(tmp_path: Path) -> None:

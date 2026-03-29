@@ -11,6 +11,7 @@ from tests.doc_surface_contracts import (
     PERMISSIONS_SYNC_SURFACE,
     UNATTENDED_READINESS_SURFACE,
     _assert_cost_advisory_guardrail,
+    _assert_cost_surface_discoverability,
     _assert_shared_preset_surface_contract,
     _assert_unattended_readiness_boundary,
     _assert_wolfram_plan_boundary,
@@ -441,7 +442,7 @@ def test_help_prompt_workflow_modes_match_current_settings_vocabulary() -> None:
     assert "planning.commit_docs" in help_workflow
     assert "git.branching_strategy" in help_workflow
     assert "gpd observe execution" in help_workflow
-    _assert_cost_advisory_guardrail(help_workflow)
+    _assert_cost_surface_discoverability(help_workflow)
 
 
 def test_help_prompt_surfaces_workflow_presets_on_the_local_cli_surface() -> None:
