@@ -17,6 +17,7 @@ __all__ = [
     "PLAN_PREFLIGHT_SURFACE",
     "UNATTENDED_READINESS_SURFACE",
     "WOLFRAM_STATUS_SURFACE",
+    "assert_recovery_ladder_contract",
     "_assert_cost_advisory_contract",
     "_assert_cost_advisory_guardrail",
     "_assert_shared_preset_surface_contract",
@@ -87,6 +88,66 @@ def assert_cost_advisory_contract(content: str) -> None:
             "estimated rather than exact",
         ),
         label="partial telemetry caveat",
+    )
+
+
+def assert_recovery_ladder_contract(
+    content: str,
+    *,
+    resume_work_fragments: Iterable[str],
+    suggest_next_fragments: Iterable[str],
+    pause_work_fragments: Iterable[str],
+) -> None:
+    assert "gpd resume" in content
+    assert "gpd resume --recent" in content
+    _assert_contains_any(
+        content,
+        (
+            "current-workspace read-only recovery snapshot",
+            "current recovery snapshot for this workspace",
+        ),
+        label="current-workspace recovery snapshot wording",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "find the workspace first",
+            "wrong workspace",
+            "find the workspace you want to reopen",
+            "find the workspace you need to reopen",
+        ),
+        label="cross-workspace recovery discovery wording",
+    )
+    _assert_contains_any(content, tuple(resume_work_fragments), label="resume-work continuation surface")
+    _assert_contains_any(
+        content,
+        (
+            "continue from the selected project state",
+            "continue there",
+            "continue inside that workspace",
+            "continue paused work",
+        ),
+        label="resume continuation semantics",
+    )
+    _assert_contains_any(content, tuple(suggest_next_fragments), label="post-resume next-command surface")
+    _assert_contains_any(
+        content,
+        (
+            "fastest next command",
+            "fastest post-resume next command",
+            "fastest post-resume command when you only need the next action",
+        ),
+        label="fast post-resume next-command wording",
+    )
+    _assert_contains_any(content, tuple(pause_work_fragments), label="pause-work handoff surface")
+    _assert_contains_any(
+        content,
+        (
+            "explicit handoff to restore",
+            "context handoff",
+            "session continuity",
+        ),
+        label="pause/resume handoff semantics",
     )
 
 

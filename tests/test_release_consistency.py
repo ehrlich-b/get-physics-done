@@ -19,7 +19,6 @@ from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.core.surface_phrases import (
     cost_after_runs_guidance,
     local_cli_bridge_note,
-    recovery_ladder_note,
 )
 from scripts.release_workflow import (
     ReleaseError,
@@ -38,6 +37,7 @@ from tests.doc_surface_contracts import (
     _assert_shared_preset_surface_contract,
     _assert_unattended_readiness_surface,
     _assert_wolfram_plan_boundary,
+    assert_recovery_ladder_contract,
 )
 
 
@@ -668,13 +668,13 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     assert "/gpd:new-project --minimal" in quick_start
     assert "$gpd-resume-work" in quick_start
     assert "/gpd:map-research" in quick_start
-    assert recovery_ladder_note(
-        resume_work_phrase="the runtime `resume-work` command",
-        suggest_next_phrase="the runtime `suggest-next` command",
-        pause_work_phrase="your runtime-specific `pause-work` command",
-    ) in quick_start
+    assert_recovery_ladder_contract(
+        quick_start,
+        resume_work_fragments=("runtime `resume-work` command", "`/gpd:resume-work`"),
+        suggest_next_fragments=("runtime `suggest-next` command",),
+        pause_work_fragments=("runtime-specific `pause-work` command",),
+    )
     assert "| Continue in an existing GPD project | `/gpd:resume-work` |" in quick_start
-    assert "selected project state" in quick_start or "continue from" in quick_start
 
 
 def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_readiness_path() -> None:
@@ -800,13 +800,16 @@ def test_public_readme_recovery_surfaces_keep_runtime_pause_and_resume_roles_dis
     assert "| Continue in an existing GPD project | `/gpd:resume-work` |" in quick_start
     assert "| Returning to an existing GPD project | `pause-work` |" not in quick_start
     assert "use `gpd resume`" in quick_start
-    assert "gpd resume --recent" in quick_start
+    assert_recovery_ladder_contract(
+        readme,
+        resume_work_fragments=("runtime `resume-work` command", "`/gpd:resume-work`"),
+        suggest_next_fragments=("runtime `suggest-next` command", "`suggest-next`"),
+        pause_work_fragments=("runtime-specific `pause-work` command", "`/gpd:pause-work`"),
+    )
     assert "#### Session Management" in readme
     assert "`/gpd:resume-work`" in readme
     assert "`/gpd:pause-work`" in readme
     assert "full context restoration" in readme
-    assert "context handoff" in readme
-    assert "gpd resume --recent" in readme
 
 
 def test_public_readme_and_help_surfaces_keep_tangent_discoverable() -> None:

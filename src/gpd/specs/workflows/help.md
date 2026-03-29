@@ -29,7 +29,7 @@ Returning to work:
   gpd resume --recent    — Find the workspace first when you need to reopen a different one
   /gpd:resume-work         — Continue in-runtime from the selected project state
   /gpd:progress            — Review the broader project snapshot
-  /gpd:suggest-next        — Fastest post-resume next command
+  /gpd:suggest-next        — Fastest post-resume next command when you only need the next action
   gpd observe execution    — Read-only live status from your normal terminal; use this for progress / waiting state, then follow its suggested read-only checks rather than runtime hotkeys
   gpd cost                 — Read-only machine-local usage / cost summary from recorded local telemetry, optional USD budget guardrails, and the current profile tier mix; advisory only, not live budget enforcement or provider billing truth. If telemetry is missing, the USD view stays partial or estimated rather than exact.
   /gpd:tangent             — Choose stay / quick / defer / branch when a side investigation appears
@@ -128,7 +128,7 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 - If a plan declares specialized `tool_requirements`, use `gpd validate plan-preflight <PLAN.md>` from your normal terminal before execution.
 - For a normal-terminal, current-workspace read-only recovery snapshot without launching the runtime, use `gpd resume`.
 - For cross-project discovery from your normal terminal, use `gpd resume --recent` first, then open the selected project and continue there with the runtime `resume-work` command.
-- After resuming inside the runtime, use `/gpd:suggest-next` when you only need the next recommended command.
+- After resuming inside the runtime, use `/gpd:suggest-next` when you only need the next action.
 - For a normal-terminal, read-only machine-local usage / cost summary, use `gpd cost`.
 
 ## Quick Start
@@ -173,7 +173,7 @@ Workflow preset tooling is layered on top of the base install; it does not chang
 2. `gpd resume --recent` - Find the workspace first when you need to reopen a different one
 3. `/gpd:resume-work` - Continue in-runtime from the selected project state
 4. `/gpd:progress` - Secondary manual status check; use `--brief` when you only need a short snapshot
-5. `/gpd:suggest-next` - Fastest post-resume next command
+5. `/gpd:suggest-next` - Fastest post-resume next command when you only need the next action
 6. `gpd observe execution` - Read-only long-run visibility from your normal terminal; use this for progress / waiting state, conservative `possibly stalled` wording, and the next read-only checks
 7. `gpd cost` - Read-only machine-local usage / cost summary from recorded local telemetry, optional USD budget guardrails, and the current profile tier mix; advisory only, not live budget enforcement or provider billing truth. If telemetry is missing, the USD view stays partial or estimated rather than exact.
 
@@ -706,7 +706,7 @@ Suggest the most impactful next action based on current project state.
 - Produces a prioritized action list
 - Local CLI fallback: `gpd --raw suggest`
 - Fastest way to answer "what should I do next?" without reading through progress reports
-- Fastest post-resume command when you only want the next recommended command
+- Fastest post-resume command when you only need the next action
 
 Usage: `/gpd:suggest-next`
 
@@ -1048,9 +1048,9 @@ Example config:
 /gpd:pause-work        # Before leaving mid-phase, capture a handoff
 /clear
 gpd resume             # Current-workspace read-only recovery snapshot
-gpd resume --recent    # Find the workspace first if this is the wrong one
-/gpd:resume-work       # Continue the selected handoff
-/gpd:suggest-next      # Fastest post-resume next command
+gpd resume --recent    # Find the workspace first when you need to reopen a different one
+/gpd:resume-work       # Continue in-runtime from the selected project state
+/gpd:suggest-next      # Fastest post-resume next command when you only need the next action
 /gpd:progress --brief  # Short orientation snapshot if you need more context
 ```
 

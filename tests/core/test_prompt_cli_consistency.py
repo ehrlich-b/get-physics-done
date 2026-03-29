@@ -8,7 +8,6 @@ from pathlib import Path
 from gpd.core.surface_phrases import (
     cost_after_runs_guidance,
     cost_summary_surface_note,
-    recovery_ladder_note,
 )
 from gpd.registry import VALID_CONTEXT_MODES, _parse_frontmatter
 from tests.doc_surface_contracts import (
@@ -19,6 +18,7 @@ from tests.doc_surface_contracts import (
     _assert_shared_preset_surface_contract,
     _assert_unattended_readiness_boundary,
     _assert_wolfram_plan_boundary,
+    assert_recovery_ladder_contract,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -170,13 +170,13 @@ def test_help_prompt_default_quick_start_extracts_workflow_owned_sections() -> N
     assert "Include the workflow-owned `## Quick Start` section." in quick_start
     assert "Stop before `## Core Workflow`." in quick_start
     assert "Run \\`/gpd:help --all\\` for the full command reference." in quick_start
-    assert recovery_ladder_note(
-        resume_work_phrase="`/gpd:resume-work`",
-        suggest_next_phrase="`/gpd:suggest-next`",
-        pause_work_phrase="`/gpd:pause-work`",
-    ) in help_workflow
+    assert_recovery_ladder_contract(
+        help_workflow,
+        resume_work_fragments=("/gpd:resume-work",),
+        suggest_next_fragments=("/gpd:suggest-next",),
+        pause_work_fragments=("/gpd:pause-work",),
+    )
     assert "Choose the path that matches your starting point:" in help_workflow
-    assert "Continue in-runtime from the selected project state" in help_workflow
     assert "## Core Workflow" in help_workflow
     assert "/gpd:new-project -> /gpd:discuss-phase -> /gpd:plan-phase -> /gpd:execute-phase -> /gpd:verify-work -> repeat" in help_workflow
     assert "gpd init new-project" not in help_workflow
@@ -476,12 +476,13 @@ def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_r
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
     assert "**`/gpd:resume-work`**" in help_workflow
-    assert "gpd resume" in help_workflow
-    assert "gpd resume --recent" in help_workflow
     assert "**`/gpd:pause-work`**" in help_workflow
-    assert "selected project state" in help_workflow or "paused or interrupted work" in help_workflow
-    assert "context handoff" in help_workflow
-    assert ".continue-here" in help_workflow or "session continuity" in help_workflow
+    assert_recovery_ladder_contract(
+        help_workflow,
+        resume_work_fragments=("/gpd:resume-work",),
+        suggest_next_fragments=("/gpd:suggest-next",),
+        pause_work_fragments=("/gpd:pause-work",),
+    )
 
 
 def test_new_project_prompt_surfaces_discuss_phase_before_planning() -> None:

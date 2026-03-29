@@ -24,6 +24,7 @@ from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.cli import _format_install_header_lines, _render_install_option_line, app
 from gpd.core.health import CheckStatus, DoctorReport, HealthCheck, HealthSummary
+from gpd.core.surface_phrases import recovery_ladder_note
 
 runner = CliRunner()
 _INSTALL_TEST_DESCRIPTORS = iter_runtime_descriptors()
@@ -145,16 +146,15 @@ def _assert_single_runtime_next_steps(
 ) -> None:
     adapter = _install_adapter(descriptor)
     resume_work_command = adapter.format_command("resume-work")
+    suggest_next_command = adapter.format_command("suggest-next")
+    pause_work_command = adapter.format_command("pause-work")
     pattern = re.compile(
         rf"Next steps.*?"
         rf"Open .*?{re.escape(descriptor.display_name)}.*?{re.escape(adapter.launch_command)}.*?"
         rf"Run {re.escape(adapter.help_command)} for the command list\..*?"
         rf"Start with {re.escape(adapter.new_project_command)} for a new project or "
-        rf"{re.escape(adapter.map_research_command)} for existing work, or "
-        rf"{re.escape(resume_work_command)} to continue paused work(?:, and "
-        rf"{re.escape(adapter.format_command('suggest-next'))} for the fastest post-resume next action)?\..*?"
-        rf"If you need to find a different workspace first, use gpd resume --recent from your system terminal, "
-        rf"then continue there with the runtime resume command\..*?"
+        rf"{re.escape(adapter.map_research_command)} for existing work\. "
+        rf"{re.escape(recovery_ladder_note(resume_work_phrase=f'`{resume_work_command}`', suggest_next_phrase=f'`{suggest_next_command}`', pause_work_phrase=f'`{pause_work_command}`'))}.*?"
         rf"Fast bootstrap: use {re.escape(adapter.new_project_command)} --minimal.*?"
         rf"Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics\..*?"
         rf"Use {re.escape(adapter.help_command)} inside {re.escape(descriptor.display_name)} for workflow help\..*?"
@@ -399,7 +399,11 @@ def test_install_summary_surfaces_help_then_new_or_existing_entry_points(tmp_pat
     assert result.exit_code == 0
     _assert_single_runtime_next_steps(result.output)
     assert (
-        "If you need to find a different workspace first, use gpd resume --recent from your system terminal, then continue there with the runtime resume command."
+        recovery_ladder_note(
+            resume_work_phrase=f"`{_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR).format_command('resume-work')}`",
+            suggest_next_phrase=f"`{_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR).format_command('suggest-next')}`",
+            pause_work_phrase=f"`{_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR).format_command('pause-work')}`",
+        )
     ) in result.output
     assert (
         "After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture. "
@@ -448,7 +452,11 @@ def test_install_summary_lists_runtime_specific_help_for_multi_runtime_install(t
         _assert_multi_runtime_next_step_line(result.output, descriptor)
     assert "1. From your system terminal" not in result.output
     assert (
-        "If you need to find a different workspace first, use gpd resume --recent from your system terminal, then continue inside that workspace with the runtime `resume-work` command."
+        recovery_ladder_note(
+            resume_work_phrase="your runtime-specific `resume-work` command",
+            suggest_next_phrase="your runtime-specific `suggest-next` command",
+            pause_work_phrase="your runtime-specific `pause-work` command",
+        )
     ) in result.output
     assert (
         "After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture. "

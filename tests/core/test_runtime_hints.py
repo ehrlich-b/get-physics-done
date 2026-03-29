@@ -173,8 +173,8 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert any("latexmk" in action for action in payload.next_actions)
     assert any("kpsewhich" in action for action in payload.next_actions)
     assert any("Workflow presets ready" in action for action in payload.next_actions)
-    assert any("continues paused work inside this workspace" in action for action in payload.next_actions)
-    assert any("fastest post-resume command" in action for action in payload.next_actions)
+    assert any("continues in-runtime from the selected project state" in action for action in payload.next_actions)
+    assert any("fastest post-resume next command" in action for action in payload.next_actions)
     assert len(payload.next_actions) == len(set(payload.next_actions))
 
 
@@ -532,8 +532,8 @@ def test_build_runtime_hint_payload_formats_generic_runtime_follow_up_when_runti
 
     assert payload.orientation["continue_command"] == "runtime `resume-work`"
     assert payload.orientation["fast_next_command"] == "runtime `suggest-next`"
-    assert "runtime `resume-work` continues paused work inside this workspace." in payload.next_actions
-    assert "runtime `suggest-next` is the fastest post-resume command when you only need the next action." in payload.next_actions
+    assert "runtime `resume-work` continues in-runtime from the selected project state." in payload.next_actions
+    assert "runtime `suggest-next` is the fastest post-resume next command when you only need the next action." in payload.next_actions
     assert not any("`runtime `resume-work``" in action for action in payload.next_actions)
 
 

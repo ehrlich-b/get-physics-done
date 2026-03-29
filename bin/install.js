@@ -1148,6 +1148,12 @@ function printHelp() {
   console.log(" Use the runtime-specific `settings` command after startup to review autonomy, workflow defaults, and model-cost posture.");
   console.log(" Recommended unattended default: Balanced autonomy (`balanced`). The safest model starting point is `review` plus runtime defaults.");
   console.log(
+    " For returning work, use `gpd resume` for the current-workspace read-only recovery snapshot. "
+    + "If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside that workspace with your runtime-specific `resume-work` command. "
+    + "After resuming, your runtime-specific `suggest-next` command is the fastest next command. "
+    + "Before stepping away mid-phase, run your runtime-specific `pause-work` command so that ladder has an explicit handoff to restore."
+  );
+  console.log(
     " Workflow presets: if you plan paper/manuscript workflows, rerun `gpd doctor --runtime <runtime> --local|--global` "
     + "and check whether `Workflow Presets` is `ready` or `degraded`. Without LaTeX, the paper/manuscript and full research presets remain usable for `write-paper` and `peer-review`, "
     + "but `paper-build` and `arxiv-submission` require the `LaTeX Toolchain`."

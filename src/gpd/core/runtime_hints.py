@@ -20,10 +20,7 @@ from gpd.core.recent_projects import list_recent_projects
 from gpd.core.recovery_advice import RecoveryAdvice, build_recovery_advice
 from gpd.core.surface_phrases import (
     cost_inspect_action,
-    recovery_continue_action,
-    recovery_fast_next_action,
-    recovery_recent_action,
-    recovery_resume_action,
+    recovery_next_actions,
 )
 from gpd.core.surface_phrases import (
     workflow_preset_surface_note as _workflow_preset_surface_note_text,
@@ -124,28 +121,13 @@ def _resume_context(cwd: Path) -> dict[str, object]:
 
 
 def _recovery_next_actions(advice: RecoveryAdvice, *, existing_actions: list[str] | None = None) -> list[str]:
-    actions: list[str] = []
-    existing_actions = existing_actions or []
-    primary_command = advice.primary_command
-
-    if primary_command == "gpd resume":
-        if not any(action.startswith("Run `gpd resume`") for action in existing_actions):
-            actions.append(recovery_resume_action())
-    elif primary_command == "gpd resume --recent":
-        actions.append(recovery_recent_action())
-        return actions
-
-    if advice.mode != "current-workspace":
-        return actions
-
-    continue_command = advice.continue_command
-    fast_next_command = advice.fast_next_command
-    if isinstance(continue_command, str) and continue_command.strip():
-        actions.append(recovery_continue_action(mode=advice.mode, continue_command=continue_command.strip()))
-
-    if isinstance(fast_next_command, str) and fast_next_command.strip():
-        actions.append(recovery_fast_next_action(fast_next_command=fast_next_command.strip()))
-    return actions
+    return recovery_next_actions(
+        primary_command=advice.primary_command,
+        mode=advice.mode,
+        continue_command=advice.continue_command,
+        fast_next_command=advice.fast_next_command,
+        existing_actions=existing_actions or (),
+    )
 
 
 def _workflow_next_actions(details: dict[str, object], *, base_ready: bool, latex_capability: dict[str, object]) -> list[str]:

@@ -7,6 +7,8 @@ phrasing without dragging docs or CLI renderers into the dependency surface.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from gpd.core.workflow_presets import list_workflow_presets
 
 __all__ = [
@@ -21,6 +23,7 @@ __all__ = [
     "recovery_ladder_note",
     "recovery_continue_action",
     "recovery_fast_next_action",
+    "recovery_next_actions",
     "recovery_recent_action",
     "recovery_resume_action",
     "workflow_preset_storage_note",
@@ -28,24 +31,61 @@ __all__ = [
 ]
 
 
+def _command_phrase(command: str) -> str:
+    return command if command.startswith(("runtime `", "the runtime `", "`")) else f"`{command}`"
+
+
 def recovery_resume_action() -> str:
-    return "Run `gpd resume` to inspect the current recovery snapshot for this workspace."
+    return "Run `gpd resume` to inspect the current-workspace read-only recovery snapshot."
 
 
 def recovery_recent_action() -> str:
-    return "Run `gpd resume --recent` to find the workspace you want to reopen on this machine."
+    return "Run `gpd resume --recent` to find the workspace first when you need to reopen a different one."
 
 
 def recovery_continue_action(*, mode: str, continue_command: str) -> str:
-    continue_phrase = continue_command if continue_command.startswith("runtime `") else f"`{continue_command}`"
+    continue_phrase = _command_phrase(continue_command)
     if mode == "current-workspace":
-        return f"{continue_phrase} continues paused work inside this workspace."
-    return f"After selecting a workspace, use {continue_phrase} there to continue paused work."
+        return f"{continue_phrase} continues in-runtime from the selected project state."
+    return f"After selecting a workspace, use {continue_phrase} there to continue from the selected project state."
 
 
 def recovery_fast_next_action(*, fast_next_command: str) -> str:
-    fast_next_phrase = fast_next_command if fast_next_command.startswith("runtime `") else f"`{fast_next_command}`"
-    return f"{fast_next_phrase} is the fastest post-resume command when you only need the next action."
+    fast_next_phrase = _command_phrase(fast_next_command)
+    return f"{fast_next_phrase} is the fastest post-resume next command when you only need the next action."
+
+
+def recovery_next_actions(
+    *,
+    primary_command: str,
+    mode: str,
+    continue_command: str | None = None,
+    fast_next_command: str | None = None,
+    existing_actions: Iterable[str] = (),
+) -> list[str]:
+    existing = {action.strip() for action in existing_actions if action.strip()}
+    actions: list[str] = []
+
+    if primary_command == "gpd resume":
+        resume_action = recovery_resume_action()
+        if resume_action not in existing:
+            actions.append(resume_action)
+    elif primary_command == "gpd resume --recent":
+        recent_action = recovery_recent_action()
+        if recent_action not in existing:
+            actions.append(recent_action)
+        return actions
+
+    if mode != "current-workspace":
+        return actions
+
+    if isinstance(continue_command, str) and continue_command.strip():
+        actions.append(recovery_continue_action(mode=mode, continue_command=continue_command.strip()))
+
+    if isinstance(fast_next_command, str) and fast_next_command.strip():
+        actions.append(recovery_fast_next_action(fast_next_command=fast_next_command.strip()))
+
+    return actions
 
 
 def observe_execution_action() -> str:

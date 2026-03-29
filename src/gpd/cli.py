@@ -53,6 +53,7 @@ from gpd.core.errors import ConfigError, GPDError
 from gpd.core.surface_phrases import (
     recovery_continue_action,
     recovery_fast_next_action,
+    recovery_ladder_note,
     recovery_recent_action,
     recovery_resume_action,
     workflow_preset_surface_note,
@@ -6504,6 +6505,7 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
             ) = next_step_entries[0]
             resume_work_command = _get_adapter_or_error(single_runtime_name, action="install summary").format_command("resume-work")
             suggest_next_command = _get_adapter_or_error(single_runtime_name, action="install summary").format_command("suggest-next")
+            pause_work_command = _get_adapter_or_error(single_runtime_name, action="install summary").format_command("pause-work")
             target_value = single_result.get("target")
             doctor_scope = (
                 "global"
@@ -6523,12 +6525,8 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 "3. Start with "
                 f"[{_INSTALL_ACCENT_COLOR} bold]{new_project_command}[/] for a new project "
                 "or "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{map_research_command}[/] for existing work, "
-                "or "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{resume_work_command}[/] to continue paused work, "
-                "and "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{suggest_next_command}[/] for the fastest post-resume next action. "
-                "If you need to find a different workspace first, use [bold]gpd resume --recent[/] from your system terminal, then continue there with the runtime resume command.",
+                f"[{_INSTALL_ACCENT_COLOR} bold]{map_research_command}[/] for existing work. "
+                f"{recovery_ladder_note(resume_work_phrase=f'`{resume_work_command}`', suggest_next_phrase=f'`{suggest_next_command}`', pause_work_phrase=f'`{pause_work_command}`')}",
                 soft_wrap=True,
             )
             console.print()
@@ -6572,7 +6570,11 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                     soft_wrap=True,
                 )
             console.print(
-                "If you need to find a different workspace first, use [bold]gpd resume --recent[/] from your system terminal, then continue inside that workspace with the runtime `resume-work` command.",
+                recovery_ladder_note(
+                    resume_work_phrase="your runtime-specific `resume-work` command",
+                    suggest_next_phrase="your runtime-specific `suggest-next` command",
+                    pause_work_phrase="your runtime-specific `pause-work` command",
+                ),
                 soft_wrap=True,
             )
             console.print(

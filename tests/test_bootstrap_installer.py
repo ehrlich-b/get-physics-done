@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from gpd.adapters import get_adapter, iter_runtime_descriptors
+from gpd.core.surface_phrases import recovery_ladder_note
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_JSON = json.loads((REPO_ROOT / "package.json").read_text(encoding="utf-8"))
@@ -42,6 +43,7 @@ _RUNTIME_NEW_PROJECT_COMMANDS = {name: adapter.new_project_command for name, ada
 _RUNTIME_MAP_RESEARCH_COMMANDS = {name: adapter.map_research_command for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_RESUME_WORK_COMMANDS = {name: adapter.format_command("resume-work") for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_SUGGEST_NEXT_COMMANDS = {name: adapter.format_command("suggest-next") for name, adapter in _RUNTIME_ADAPTERS.items()}
+_RUNTIME_PAUSE_WORK_COMMANDS = {name: adapter.format_command("pause-work") for name, adapter in _RUNTIME_ADAPTERS.items()}
 _CODEX_RUNTIME_NAME = next(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if "skills/" in descriptor.manifest_file_prefixes)
 _CLAUDE_RUNTIME_NAME = next(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if descriptor.launch_command == "claude")
 _OPENCODE_RUNTIME_NAME = next(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if descriptor.launch_command == "opencode")
@@ -51,18 +53,32 @@ _CLAUDE_RUNTIME_ALIAS = _RUNTIME_ADAPTERS[_CLAUDE_RUNTIME_NAME].display_name.low
 _OPENCODE_RUNTIME_ALIAS = next(
     alias for alias in _RUNTIME_ADAPTERS[_OPENCODE_RUNTIME_NAME].selection_aliases if " " in alias
 )
+_GENERIC_RECOVERY_LADDER_NOTE = recovery_ladder_note(
+    resume_work_phrase="your runtime-specific `resume-work` command",
+    suggest_next_phrase="your runtime-specific `suggest-next` command",
+    pause_work_phrase="your runtime-specific `pause-work` command",
+)
+_RUNTIME_RECOVERY_LADDER_TEMPLATE = (
+    "Recovery ladder: use `gpd resume` for the current-workspace read-only recovery snapshot. "
+    "If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside "
+    "that workspace with {resume_work}. After resuming, {suggest_next} is the fastest next command. "
+    "Before stepping away mid-phase, run {pause_work} so that ladder has an explicit handoff to restore."
+)
 
 
 def _assert_single_runtime_next_steps(output: str, runtime: str) -> None:
+    recovery_note = recovery_ladder_note(
+        resume_work_phrase=f"`{_RUNTIME_RESUME_WORK_COMMANDS[runtime]}`",
+        suggest_next_phrase=f"`{_RUNTIME_SUGGEST_NEXT_COMMANDS[runtime]}`",
+        pause_work_phrase=f"`{_RUNTIME_ADAPTERS[runtime].format_command('pause-work')}`",
+    )
     pattern = re.compile(
         rf"Next steps.*?"
         rf"Open .*?{re.escape(_RUNTIME_DISPLAY_NAMES[runtime])}.*?{re.escape(_RUNTIME_LAUNCH_COMMANDS[runtime])}.*?"
         rf"Run {re.escape(_RUNTIME_HELP_COMMANDS[runtime])} for the command list\..*?"
         rf"Start with {re.escape(_RUNTIME_NEW_PROJECT_COMMANDS[runtime])} for a new project or "
-        rf"{re.escape(_RUNTIME_MAP_RESEARCH_COMMANDS[runtime])} for existing work, or "
-        rf"{re.escape(_RUNTIME_RESUME_WORK_COMMANDS[runtime])} to continue paused work(?:, and .*?suggest-next.*?)?\. "
-        rf"If you need to find a different workspace first, use gpd resume --recent from your system terminal, "
-        rf"then continue there with the runtime resume command\..*?"
+        rf"{re.escape(_RUNTIME_MAP_RESEARCH_COMMANDS[runtime])} for existing work\. "
+        rf"{re.escape(recovery_note)}.*?"
         rf"Fast bootstrap: use {re.escape(_RUNTIME_NEW_PROJECT_COMMANDS[runtime])} --minimal.*?"
         rf"Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics\..*?"
         rf"Use {re.escape(_RUNTIME_HELP_COMMANDS[runtime])} inside {re.escape(_RUNTIME_DISPLAY_NAMES[runtime])} for workflow help\..*?"
@@ -137,6 +153,7 @@ NEW_PROJECT_COMMANDS = {_RUNTIME_NEW_PROJECT_COMMANDS!r}
 MAP_RESEARCH_COMMANDS = {_RUNTIME_MAP_RESEARCH_COMMANDS!r}
 RESUME_WORK_COMMANDS = {_RUNTIME_RESUME_WORK_COMMANDS!r}
 SUGGEST_NEXT_COMMANDS = {_RUNTIME_SUGGEST_NEXT_COMMANDS!r}
+PAUSE_WORK_COMMANDS = {_RUNTIME_PAUSE_WORK_COMMANDS!r}
 ALL_RUNTIMES = {_RUNTIME_NAMES!r}
 
 
@@ -163,6 +180,14 @@ def selected_runtimes(argv: list[str]) -> list[str]:
 
 def selected_scope(argv: list[str]) -> str:
     return "global" if "--global" in argv else "local"
+
+
+def recovery_ladder_for_runtime(runtime: str) -> str:
+    return {_RUNTIME_RECOVERY_LADDER_TEMPLATE!r}.format(
+        resume_work=f"`{{RESUME_WORK_COMMANDS[runtime]}}`",
+        suggest_next=f"`{{SUGGEST_NEXT_COMMANDS[runtime]}}`",
+        pause_work=f"`{{PAUSE_WORK_COMMANDS[runtime]}}`",
+    )
 
 
 def option_value(argv: list[str], flag: str) -> str | None:
@@ -428,9 +453,8 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
         print(
             "3. Start with "
             f"{{NEW_PROJECT_COMMANDS[runtime]}} for a new project or "
-            f"{{MAP_RESEARCH_COMMANDS[runtime]}} for existing work, or "
-            f"{{RESUME_WORK_COMMANDS[runtime]}} to continue paused work, and {{SUGGEST_NEXT_COMMANDS[runtime]}} for the fastest post-resume next action. "
-            "If you need to find a different workspace first, use gpd resume --recent from your system terminal, then continue there with the runtime resume command."
+            f"{{MAP_RESEARCH_COMMANDS[runtime]}} for existing work. "
+            f"{{recovery_ladder_for_runtime(runtime)}}"
         )
         print("")
         print(
@@ -463,7 +487,7 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
                 f"{{NEW_PROJECT_COMMANDS[runtime]}} or {{MAP_RESEARCH_COMMANDS[runtime]}}. "
                 f"Quick bootstrap: {{NEW_PROJECT_COMMANDS[runtime]}} --minimal"
             )
-        print("If you need to find a different workspace first, use gpd resume --recent from your system terminal, then continue inside that workspace with the runtime `resume-work` command.")
+        print({_GENERIC_RECOVERY_LADDER_NOTE!r})
         print("Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics.")
         print("Run gpd doctor --runtime <runtime> --local|--global for a focused readiness check.")
         print(

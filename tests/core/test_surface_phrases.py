@@ -40,15 +40,15 @@ def test_recovery_surface_phrases_cover_current_and_cross_project_paths() -> Non
     assert "gpd resume --recent" in recovery_recent_action()
     assert (
         recovery_continue_action(mode="current-workspace", continue_command="codex-resume-work")
-        == "`codex-resume-work` continues paused work inside this workspace."
+        == "`codex-resume-work` continues in-runtime from the selected project state."
     )
     assert (
         recovery_continue_action(mode="recent-projects", continue_command="runtime `resume-work`")
-        == "After selecting a workspace, use runtime `resume-work` there to continue paused work."
+        == "After selecting a workspace, use runtime `resume-work` there to continue from the selected project state."
     )
     assert (
         recovery_fast_next_action(fast_next_command="/gpd:suggest-next")
-        == "`/gpd:suggest-next` is the fastest post-resume command when you only need the next action."
+        == "`/gpd:suggest-next` is the fastest post-resume next command when you only need the next action."
     )
     assert (
         recovery_ladder_note(
