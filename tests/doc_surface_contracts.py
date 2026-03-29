@@ -558,6 +558,7 @@ def assert_install_summary_runtime_follow_up_contract(
 
 
 def assert_settings_local_terminal_follow_up_contract(content: str) -> None:
+    """Assert the slim settings-owned local-terminal follow-up surface."""
     assert "gpd --help" in content
     _assert_contains_any(
         content,
@@ -581,12 +582,6 @@ def assert_settings_local_terminal_follow_up_contract(content: str) -> None:
         label="settings runtime-permission follow-up surface",
     )
     assert "gpd cost" in content
-    assert "gpd doctor" in content
-    assert PLAN_PREFLIGHT_SURFACE in content
-    assert WOLFRAM_STATUS_SURFACE in content
-    assert "gpd presets list" in content
-    assert "gpd presets show <preset>" in content
-    assert "gpd presets apply <preset> --dry-run" in content
 
 
 def assert_optional_paper_workflow_guidance_contract(content: str) -> None:

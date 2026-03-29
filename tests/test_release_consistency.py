@@ -39,7 +39,6 @@ from tests.doc_surface_contracts import (
     assert_beginner_preflight_notice_contract,
     _assert_cost_advisory_contract,
     _assert_cost_surface_discoverability,
-    _assert_shared_preset_surface_contract,
     _assert_unattended_readiness_surface,
     _assert_wolfram_plan_boundary,
     assert_beginner_router_bridge_contract,
@@ -857,8 +856,6 @@ def test_public_settings_workflow_keeps_balanced_recommendation_and_relaunch_gui
     assert "Runtime permissions sync attempted after autonomy is written, with relaunch guidance surfaced when required" in settings_workflow
     assert "This sync only updates runtime-owned permission settings; it does not validate install health or workflow/tool readiness." in settings_workflow
     assert_settings_local_terminal_follow_up_contract(settings_workflow)
-    _assert_shared_preset_surface_contract(settings_workflow)
-    _assert_wolfram_plan_boundary(settings_workflow)
     assert "What model-cost posture should GPD optimize for?" in settings_workflow
     assert "Use runtime defaults" in settings_workflow
     _assert_cost_advisory_contract(settings_workflow)

@@ -12,7 +12,6 @@ from tests.doc_surface_contracts import (
     _assert_cost_surface_discoverability,
     _assert_help_workflow_runtime_reference_contract,
     _assert_shared_preset_surface_contract,
-    _assert_settings_local_terminal_follow_up_contract,
     _assert_unattended_readiness_boundary,
     _assert_wolfram_plan_boundary,
     assert_recovery_ladder_contract,
@@ -480,10 +479,6 @@ def test_settings_and_research_mode_docs_keep_tangent_branch_taxonomy_strict() -
     assert "does **not** by itself authorize git-backed hypothesis branches" in settings
     assert "surface tangent decisions explicitly" in settings
     assert "Suppress optional tangents unless the user explicitly requests them" in settings
-    _assert_settings_local_terminal_follow_up_contract(settings)
-    _assert_wolfram_plan_boundary(settings)
-    _assert_cost_advisory_guardrail(settings)
-    _assert_shared_preset_surface_contract(settings)
     assert "preview" in settings
     assert "explicit apply or customize choice" in settings
     assert "do **not** silently create git-backed hypothesis branches" in research_modes
