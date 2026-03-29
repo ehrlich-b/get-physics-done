@@ -44,6 +44,8 @@ Open Claude Code from the terminal in the folder where you want to work:
 claude
 ```
 
+Claude Code requires a Pro, Max, Teams, Enterprise, or Console account. The free Claude.ai plan does not include Claude Code access.
+
 ## 4) First commands inside Claude Code
 
 Type these inside Claude Code, not in your normal terminal:
@@ -74,6 +76,7 @@ Suggested order for beginners: `/gpd:help`, `/gpd:start`, `/gpd:tour`, then eith
 ## Quick troubleshooting
 
 - `claude: command not found` means Claude Code is not installed or not on your `PATH`. Install Claude Code first, then try `claude --version` again.
+- If Claude Code opens but says your account does not have access, make sure you are using a Pro, Max, Teams, Enterprise, or Console account.
 - If Claude Code opens but asks you to sign in, finish the sign-in flow, then rerun `claude`.
 - If `/gpd:help` is not recognized, rerun `npx -y get-physics-done --claude --local` from your normal terminal, then reopen Claude Code.
 

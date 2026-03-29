@@ -107,6 +107,8 @@ Use the exact command for your runtime:
 | Map an existing folder | `/gpd:map-research` | `$gpd-map-research` | `/gpd-map-research` |
 | Reopen work from your normal terminal | `gpd resume` | `gpd resume` | `gpd resume` |
 
+Use `gpd resume` in your normal terminal first. After it points you to the right workspace, open your runtime there and use its `resume-work` command to continue inside the project.
+
 ## Official docs
 
 - Apple: [Get started with Terminal on Mac](https://support.apple.com/guide/terminal/get-started-pht23b129fed/mac)

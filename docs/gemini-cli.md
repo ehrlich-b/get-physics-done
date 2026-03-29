@@ -39,6 +39,7 @@ gemini
 ```
 
 If you are not signed in yet, choose **Sign in with Google** and finish the browser login flow.
+If you are using a paid Gemini Code Assist license from your organization, set `GOOGLE_CLOUD_PROJECT` before launching `gemini`. For Google Workspace accounts or other auth methods, use the official authentication guide linked below.
 
 ## 4) First commands inside Gemini CLI
 

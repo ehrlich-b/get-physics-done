@@ -19,6 +19,15 @@ def _assert_fragments(content: str, fragments: tuple[str, ...]) -> None:
         assert fragment in content
 
 
+def _markdown_section(content: str, heading: str) -> str:
+    marker = f"{heading}\n"
+    start = content.index(marker)
+    next_heading = content.find("\n## ", start + len(marker))
+    if next_heading == -1:
+        return content[start:]
+    return content[start:next_heading]
+
+
 @pytest.mark.parametrize(
     ("doc_name", "fragments"),
     [
@@ -89,9 +98,16 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
             "gpd --help",
             "Not sure which path fits this folder",
             "Want a guided overview",
+            "/gpd:start",
+            "$gpd-start",
+            "/gpd-start",
+            "/gpd:tour",
+            "$gpd-tour",
+            "/gpd-tour",
             "Start a new project",
             "Map an existing folder",
             "Reopen work from your normal terminal",
+            "resume-work",
         ),
     )
 
@@ -101,9 +117,10 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
 
 def test_shared_onboarding_readme_surfaces_help_start_and_tour() -> None:
     content = _read("README.md")
+    quick_start = _markdown_section(content, "## Quick Start")
 
     _assert_fragments(
-        content,
+        quick_start,
         (
             "`help`",
             "`start`",
@@ -111,9 +128,19 @@ def test_shared_onboarding_readme_surfaces_help_start_and_tour() -> None:
             "/gpd:help",
             "/gpd:start",
             "/gpd:tour",
-            "Guided first-run triage",
-            "guided walkthrough",
+            "Guided first-run command",
+            "Guided walkthrough command",
         ),
     )
-    assert content.index("`help`") < content.index("`start`")
-    assert content.index("`start`") < content.index("`tour`")
+    assert quick_start.index("`help`") < quick_start.index("`start`")
+    assert quick_start.index("`start`") < quick_start.index("`tour`")
+
+
+def test_runtime_quickstarts_keep_current_provider_specific_setup_notes() -> None:
+    claude = _read("docs/claude-code.md")
+    gemini = _read("docs/gemini-cli.md")
+    opencode = _read("docs/opencode.md")
+
+    assert "Pro, Max, Teams, Enterprise, or Console account" in claude
+    assert "GOOGLE_CLOUD_PROJECT" in gemini
+    assert "/connect" in opencode

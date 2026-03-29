@@ -641,37 +641,22 @@ def test_public_readme_quick_start_surfaces_step_one_entry_points() -> None:
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     quick_start = _markdown_section(readme, "## Quick Start")
 
-    assert "The table below uses the Claude Code / Gemini CLI form for in-runtime commands." in quick_start
-    assert "Codex and OpenCode use the equivalent prefixed forms" in quick_start
-    assert "`gpd ...` rows are local terminal commands." in quick_start
-    assert "| New research project | `/gpd:new-project` |" in quick_start
-    assert "| New research project, fast path | `/gpd:new-project --minimal` |" in quick_start
+    assert "Then choose the path that matches your starting point:" in quick_start
+    assert "Use the runtime syntax above for the command names below." in quick_start
+    assert "| Not sure which path fits this folder | `start` |" in quick_start
+    assert "| Want a guided command walkthrough | `tour` |" in quick_start
+    assert "| New research project | `new-project --minimal` |" in quick_start
     assert "| Current-workspace recovery snapshot | `gpd resume` |" in quick_start
-    assert "| Continue in an existing GPD project | `/gpd:resume-work` |" in quick_start
-    assert "| Existing research folder or codebase | `/gpd:map-research` |" in quick_start
+    assert "| Continue in an existing GPD project | `resume-work` |" in quick_start
+    assert "| Existing research folder or codebase | `map-research` |" in quick_start
     assert "gpd resume --recent" in quick_start
     assert "gpd --help" in quick_start
-    assert UNATTENDED_READINESS_SURFACE in quick_start
-    assert PERMISSIONS_SYNC_SURFACE in quick_start
-    assert "Guided unattended configuration path: use your runtime-specific `settings` command after startup" in quick_start
-    assert "use your runtime-specific `tangent` command when GPD surfaces an alternative path worth checking" in quick_start
-    assert "`tangent` is the lightweight chooser for stay / quick / defer / branch" in quick_start
-    assert "the matching `branch-hypothesis` command only when you want the explicit git-backed alternative path" in quick_start
-    assert "For model choice, the safe default is `review` plus runtime defaults." in quick_start
-    assert "Use your runtime-specific `settings` command to move toward `Max quality`, `Balanced`, or `Budget-aware`" in quick_start
-    _assert_cost_surface_discoverability(quick_start)
-    assert "Use the exact runtime-specific command syntax below for your first command." in quick_start
-    assert "If you are starting from existing work, run your runtime's `map-research` command first" in quick_start
-    assert "/gpd:new-project --minimal" in quick_start
-    assert "$gpd-resume-work" in quick_start
-    assert "/gpd:map-research" in quick_start
-    assert_recovery_ladder_contract(
-        quick_start,
-        resume_work_fragments=("runtime `resume-work` command", "`/gpd:resume-work`"),
-        suggest_next_fragments=("runtime `suggest-next` command",),
-        pause_work_fragments=("runtime-specific `pause-work` command",),
-    )
-    assert "| Continue in an existing GPD project | `/gpd:resume-work` |" in quick_start
+    assert "Typical next move after install:" in quick_start
+    assert "- Brand-new project: run your runtime's `new-project --minimal` command." in quick_start
+    assert "- Existing folder with papers, notes, or code: run your runtime's `map-research` command." in quick_start
+    assert "- Returning to a paused GPD project: use `gpd resume` in your normal terminal or your runtime's `resume-work` command." in quick_start
+    assert quick_start.index("| Not sure which path fits this folder | `start` |") < quick_start.index("| Want a guided command walkthrough | `tour` |")
+    assert quick_start.index("| Want a guided command walkthrough | `tour` |") < quick_start.index("| New research project | `new-project --minimal` |")
 
 
 def test_public_readme_quick_start_keeps_settings_guided_balanced_unattended_readiness_path() -> None:
@@ -771,6 +756,10 @@ def test_public_readme_keeps_bootstrap_prerequisites_and_runtime_doctor_scopes_d
     assert "If you are not sure what fits this folder yet, run your runtime's `start` command first." in quick_start
     assert "If you want a guided walkthrough of the main commands and when to use them, run your runtime's `tour` command." in quick_start
     assert "Otherwise start with `new-project --minimal` for new work, `map-research` for existing work, or `resume-work` for an existing GPD project using your runtime's command syntax." in quick_start
+    assert "| Claude Code | `/gpd:help` | `/gpd:start` | `/gpd:tour` | `/gpd:new-project --minimal` |" in quick_start
+    assert "| Codex | `$gpd-help` | `$gpd-start` | `$gpd-tour` | `$gpd-new-project --minimal` |" in quick_start
+    assert "| Gemini CLI | `/gpd:help` | `/gpd:start` | `/gpd:tour` | `/gpd:new-project --minimal` |" in quick_start
+    assert "| OpenCode | `/gpd-help` | `/gpd-start` | `/gpd-tour` | `/gpd-new-project --minimal` |" in quick_start
     assert quick_start.index("If you are not sure what fits this folder yet, run your runtime's `start` command first.") < quick_start.index("If you want a guided walkthrough of the main commands and when to use them, run your runtime's `tour` command.")
     assert quick_start.index("If you want a guided walkthrough of the main commands and when to use them, run your runtime's `tour` command.") < quick_start.index("Otherwise start with `new-project --minimal` for new work, `map-research` for existing work, or `resume-work` for an existing GPD project using your runtime's command syntax.")
     _assert_unattended_readiness_surface(quick_start)
@@ -812,6 +801,21 @@ def test_public_help_surface_keeps_start_tour_new_project_and_map_research_order
     assert help_workflow.index(start_snippet) < help_workflow.index(tour_snippet)
     assert help_workflow.index(tour_snippet) < help_workflow.index(new_project_snippet)
     assert help_workflow.index(new_project_snippet) < help_workflow.index(map_research_snippet)
+
+
+def test_js_bootstrap_after_install_surface_keeps_beginner_order() -> None:
+    install_js = (_repo_root() / "bin/install.js").read_text(encoding="utf-8")
+
+    onboarding_line = (
+        "Open your runtime, run its help command first, then use `start` if you are not sure what fits this folder. "
+        "Use `tour` for a read-only walkthrough first. Then use your runtime's `new-project` command for new work "
+        "or `map-research` for existing work."
+    )
+
+    assert onboarding_line in install_js
+    assert install_js.index("help command first") < install_js.index("use `start`")
+    assert install_js.index("use `start`") < install_js.index("Use `tour`")
+    assert install_js.index("Use `tour`") < install_js.index("use your runtime's `new-project` command")
 
 
 def test_public_readme_recovery_surfaces_keep_runtime_pause_and_resume_roles_distinct() -> None:

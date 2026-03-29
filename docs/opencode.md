@@ -42,7 +42,7 @@ From the same project folder:
 opencode
 ```
 
-If you are not signed in yet, run `opencode auth login` from your normal terminal and finish the provider setup.
+If you are not signed in yet, run `/connect` inside OpenCode, choose your provider, and finish that provider's API-key or billing setup.
 
 ## 4) First commands inside OpenCode
 
@@ -53,8 +53,8 @@ Type these inside OpenCode, not in your normal terminal:
 /gpd-start
 /gpd-tour
 /gpd-new-project --minimal
-/gpd-resume-work
 /gpd-map-research
+/gpd-resume-work
 ```
 
 If you are not sure what this folder is yet, start with `/gpd-start`.
@@ -69,15 +69,16 @@ Suggested order for beginners: `/gpd-help`, `/gpd-start`, `/gpd-tour`, then eith
 - Inside OpenCode, `/gpd-help` returns a GPD help screen.
 - `/gpd-start` routes a beginner to the right entry point.
 - `/gpd-tour` gives a read-only walkthrough of the main commands.
-- `/gpd-new-project --minimal`, `/gpd-resume-work`, or `/gpd-map-research` starts the right GPD flow for new work, an existing project, or an existing research folder.
+- `/gpd-new-project --minimal`, `/gpd-map-research`, or `/gpd-resume-work` starts the right GPD flow for new work, an existing research folder, or an existing project.
 
 ## 6) Quick troubleshooting
 
 - Missing `opencode`: install OpenCode first or add it to `PATH`, then reopen your terminal.
 - Missing `/gpd-...` commands: rerun the install command above, then restart OpenCode.
-- Not signed in: run `opencode auth login` or follow the in-app provider setup, then reopen OpenCode and try `/gpd-help` again.
+- Not signed in: start `opencode`, run `/connect`, finish the provider setup, then reopen OpenCode and try `/gpd-help` again.
 
 ## Official docs
 
 - OpenCode: [Intro and install](https://opencode.ai/docs/)
 - OpenCode: [CLI reference](https://opencode.ai/docs/cli/)
+- OpenCode: [Windows with WSL](https://opencode.ai/docs/windows-wsl/)
