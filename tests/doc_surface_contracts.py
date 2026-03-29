@@ -36,6 +36,7 @@ __all__ = [
     "assert_cost_advisory_contract",
     "assert_beginner_startup_routing_contract",
     "assert_execution_observability_surface_contract",
+    "assert_help_workflow_runtime_reference_contract",
     "assert_install_summary_runtime_follow_up_contract",
     "assert_shared_preset_surface_contract",
     "assert_unattended_readiness_boundary",
@@ -296,6 +297,63 @@ def assert_runtime_readiness_handoff_contract(content: str) -> None:
     )
 
 
+def assert_help_workflow_runtime_reference_contract(
+    content: str,
+    *,
+    resume_work_fragments: Iterable[str] = ("/gpd:resume-work",),
+    suggest_next_fragments: Iterable[str] = ("/gpd:suggest-next",),
+    pause_work_fragments: Iterable[str] = ("/gpd:pause-work",),
+) -> None:
+    _assert_contains_any(
+        content,
+        (
+            "## Invocation Surfaces",
+            "Invocation Surfaces",
+        ),
+        label="help workflow invocation surfaces section",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "## Quick Start",
+            "Quick Start",
+        ),
+        label="help workflow quick-start section",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`/gpd:*`",
+            "slash-command names",
+            "in-runtime slash-command",
+        ),
+        label="runtime command-surface framing",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "gpd --help",
+            "local `gpd` CLI",
+            "local CLI",
+        ),
+        label="local CLI bridge framing",
+    )
+    assert_beginner_startup_routing_contract(content)
+    assert_runtime_readiness_handoff_contract(content)
+    assert_recovery_ladder_contract(
+        content,
+        resume_work_fragments=resume_work_fragments,
+        suggest_next_fragments=suggest_next_fragments,
+        pause_work_fragments=pause_work_fragments,
+    )
+    assert_execution_observability_surface_contract(content)
+    assert_cost_surface_discoverability(content)
+    assert_workflow_preset_surface_contract(content)
+    assert_optional_paper_workflow_guidance_contract(content)
+    assert_publication_toolchain_boundary_contract(content)
+    assert_wolfram_plan_boundary_contract(content)
+
+
 def assert_install_summary_runtime_follow_up_contract(
     content: str,
     *,
@@ -496,6 +554,7 @@ assert_wolfram_plan_boundary = assert_wolfram_plan_boundary_contract
 _assert_cost_surface_discoverability = assert_cost_surface_discoverability
 _assert_cost_advisory_contract = assert_cost_advisory_contract
 _assert_cost_advisory_guardrail = assert_cost_advisory_contract
+_assert_help_workflow_runtime_reference_contract = assert_help_workflow_runtime_reference_contract
 _assert_shared_preset_surface_contract = assert_workflow_preset_surface_contract
 _assert_settings_local_terminal_follow_up_contract = assert_settings_local_terminal_follow_up_contract
 _assert_unattended_readiness_boundary = assert_unattended_readiness_contract

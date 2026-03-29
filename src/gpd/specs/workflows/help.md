@@ -148,13 +148,8 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 
 ## Quick Start
 
-If you just installed GPD, use this order first:
-
-1. Open your runtime and run `/gpd:help`.
-2. Run `/gpd:start` if you are not sure what fits this folder yet.
-3. Run `/gpd:tour` if you want a read-only overview of the broader command surface before choosing.
-4. Then use `/gpd:new-project` for new work or `/gpd:map-research` for existing work.
-5. When you return later, use `gpd resume` or `gpd resume --recent` first, then `/gpd:resume-work` inside the runtime.
+If you only remember one order, use this: `help -> start -> tour -> new-project / map-research -> resume-work`.
+In runtime terms, that means `/gpd:help`, then `/gpd:start`, then `/gpd:tour`, then `/gpd:new-project` or `/gpd:map-research`, and later `/gpd:resume-work` when you return.
 
 After that, choose the path that matches your current situation:
 
@@ -203,8 +198,6 @@ Workflow presets are bundles over the existing config keys only; they do not add
 Local Mathematica installs are separate from the shared optional Wolfram integration config.
 
 Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment.
-
-For recovery, start with `gpd resume` in the current workspace or `gpd resume --recent` when you need to find the workspace first, then continue in-runtime with `/gpd:resume-work`; `/gpd:suggest-next` is the fast post-resume follow-up, and `/gpd:pause-work` is the pre-break handoff.
 
 ## What comes later after startup
 

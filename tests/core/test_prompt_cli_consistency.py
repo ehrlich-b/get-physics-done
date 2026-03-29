@@ -10,6 +10,7 @@ from tests.doc_surface_contracts import (
     DOCTOR_RUNTIME_SCOPE_RE,
     _assert_cost_advisory_guardrail,
     _assert_cost_surface_discoverability,
+    _assert_help_workflow_runtime_reference_contract,
     _assert_shared_preset_surface_contract,
     _assert_settings_local_terminal_follow_up_contract,
     _assert_unattended_readiness_boundary,
@@ -166,22 +167,7 @@ def test_help_prompt_default_quick_start_extracts_workflow_owned_sections() -> N
     assert "Include the workflow-owned `## Quick Start` section." in quick_start
     assert "Stop before `## Core Workflow`." in quick_start
     assert "Run \\`/gpd:help --all\\` for the full command reference." in quick_start
-    assert "## Startup Checklist" in help_workflow
-    startup_checklist = _extract_between(help_workflow, "## Startup Checklist", "## Invocation Surfaces")
-    assert "/gpd:start" in startup_checklist
-    assert "/gpd:tour" in startup_checklist
-    assert "/gpd:new-project" in startup_checklist
-    assert "/gpd:map-research" in startup_checklist
-    assert "/gpd:resume-work" in startup_checklist
-    assert startup_checklist.index("/gpd:start") < startup_checklist.index("/gpd:tour")
-    assert startup_checklist.index("/gpd:tour") < startup_checklist.index("/gpd:new-project")
-    assert startup_checklist.index("/gpd:new-project") < startup_checklist.index("/gpd:resume-work")
-    assert_recovery_ladder_contract(
-        help_workflow,
-        resume_work_fragments=("/gpd:resume-work",),
-        suggest_next_fragments=("/gpd:suggest-next",),
-        pause_work_fragments=("/gpd:pause-work",),
-    )
+    _assert_help_workflow_runtime_reference_contract(help_workflow)
     quick_start_reference = _extract_between(help_workflow, "## Quick Start", "## Core Workflow")
     for section in ("**New work**", "**Existing work**", "**Returning work**", "**Post-startup settings**"):
         assert section in quick_start_reference
@@ -211,19 +197,13 @@ def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> N
     assert "Include the workflow-owned `## Invocation Surfaces` section." in quick_start
     assert "Include the workflow-owned `## Quick Start` section." in quick_start
     assert "Append this one wrapper-owned line" in quick_start
-    assert "Use `gpd --help` to inspect the executable local install/readiness/permissions/diagnostics surface directly." in help_workflow
-    _assert_unattended_readiness_boundary(help_workflow)
+    _assert_help_workflow_runtime_reference_contract(help_workflow)
     assert "executable probes" in help_workflow
     assert "pdflatex" in help_workflow
     assert "wolframscript" in help_workflow
     assert DOCTOR_RUNTIME_SCOPE_RE.search(help_workflow) is not None
     _assert_wolfram_plan_boundary(help_workflow)
-    assert "Workflow presets" in help_workflow
     _assert_shared_preset_surface_contract(help_workflow)
-    assert "paper-toolchain readiness" in help_workflow
-    assert "degrade `write-paper`" in help_workflow
-    assert "`paper-build` remains the build contract" in help_workflow
-    assert "`arxiv-submission` requires the built manuscript" in help_workflow
     assert "Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment." in help_workflow
 
 

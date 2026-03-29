@@ -17,6 +17,7 @@ from gpd.registry import _parse_frontmatter, _parse_tools
 from tests.doc_surface_contracts import (
     assert_cost_surface_discoverability,
     assert_execution_observability_surface_contract,
+    assert_help_workflow_runtime_reference_contract,
     assert_recovery_ladder_contract,
     assert_runtime_readiness_handoff_contract,
     assert_settings_local_terminal_follow_up_contract,
@@ -2247,14 +2248,8 @@ def test_help_surfaces_distinguish_runtime_slash_commands_from_local_cli_subcomm
     assert "## Step 2: Quick Start Extract (Default Output)" in help_command
     assert "## Step 3: Full Command Reference (--all)" in help_command
 
-    assert "`/gpd:*`" in help_workflow
-    assert "in-runtime" in help_workflow
-    assert "slash-command" in help_workflow
-    assert "local `gpd` CLI" in help_workflow
-    assert "gpd --help" in help_workflow
-    assert_runtime_readiness_handoff_contract(help_workflow)
+    assert_help_workflow_runtime_reference_contract(help_workflow)
     assert "gpd validate command-context gpd:<name>" in help_workflow
-    assert "gpd observe execution" in help_workflow
 
 
 def test_help_command_keeps_static_quick_start_while_workflow_owns_full_reference() -> None:
@@ -2268,25 +2263,17 @@ def test_help_command_keeps_static_quick_start_while_workflow_owns_full_referenc
     assert "Stop before `## Core Workflow`." in help_command
     assert "Append this one wrapper-owned line:" in help_command
     assert "/gpd:help --all" in help_command
-    assert "## Invocation Surfaces" in help_workflow
+    assert_help_workflow_runtime_reference_contract(help_workflow)
     assert "## Core Workflow" in help_workflow
-    for section in ("**New work**", "**Existing work**", "**Returning work**", "**Post-startup settings**"):
-        assert section in help_workflow
-    for token in (
-        "/gpd:new-project",
-        "/gpd:new-project --minimal",
-        "/gpd:map-research",
-        "/gpd:resume-work",
-        "gpd resume --recent",
-        "gpd --help",
-        "gpd permissions sync --runtime <runtime> --autonomy balanced",
-        "gpd presets show <preset>",
-        "gpd observe execution",
-        "/gpd:suggest-next",
-        "/gpd:tangent",
-        "/gpd:settings",
+    for section in (
+        "**New work**",
+        "**Existing work**",
+        "**Returning work**",
+        "**Post-startup settings**",
+        "**Tangents**",
+        "**Workflow presets**",
     ):
-        assert token in help_workflow
+        assert section in help_workflow
 
 
 def test_help_workflow_state_aware_variant_surfaces_paused_resume_branch() -> None:
