@@ -14,6 +14,14 @@ def test_beginner_onboarding_surface_contract_exposes_hub_and_ladder() -> None:
     assert beginner_startup_ladder_text() == "`help -> start -> tour -> new-project / map-research -> resume-work`"
 
 
+def test_beginner_startup_ladder_stays_separate_from_deeper_recovery_follow_ups() -> None:
+    startup_ladder = beginner_startup_ladder_text()
+
+    assert startup_ladder.endswith("resume-work`")
+    assert "suggest-next" not in startup_ladder
+    assert "pause-work" not in startup_ladder
+
+
 def test_beginner_runtime_surfaces_follow_runtime_catalog() -> None:
     surfaces = beginner_runtime_surfaces()
     descriptors = iter_runtime_descriptors()

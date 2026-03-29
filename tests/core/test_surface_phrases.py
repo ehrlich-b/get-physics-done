@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from gpd.core.public_surface_contract import recovery_ladder_note as public_recovery_ladder_note
 from gpd.core.surface_phrases import (
     command_follow_up_action,
     cost_after_run_action,
@@ -25,6 +26,7 @@ from gpd.core.surface_phrases import (
     workflow_preset_storage_note,
     workflow_preset_surface_note,
 )
+from tests.doc_surface_contracts import assert_recovery_ladder_contract
 
 
 def test_cost_surface_phrases_stay_conservative_and_advisory() -> None:
@@ -59,13 +61,22 @@ def test_recovery_surface_phrases_cover_current_and_cross_project_paths() -> Non
         recovery_fast_next_action(fast_next_command="/gpd:suggest-next")
         == "`/gpd:suggest-next` is the fastest post-resume next command when you only need the next action."
     )
-    assert (
-        recovery_ladder_note(
-            resume_work_phrase="`/gpd:resume-work`",
-            suggest_next_phrase="`/gpd:suggest-next`",
-            pause_work_phrase="`/gpd:pause-work`",
-        )
-        == "Recovery ladder: use `gpd resume` for the current-workspace read-only recovery snapshot. If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside that workspace with `/gpd:resume-work`. After resuming, `/gpd:suggest-next` is the fastest next command. Before stepping away mid-phase, run `/gpd:pause-work` so that ladder has an explicit handoff to restore."
+
+    ladder_note = recovery_ladder_note(
+        resume_work_phrase="`/gpd:resume-work`",
+        suggest_next_phrase="`/gpd:suggest-next`",
+        pause_work_phrase="`/gpd:pause-work`",
+    )
+    assert ladder_note == public_recovery_ladder_note(
+        resume_work_phrase="`/gpd:resume-work`",
+        suggest_next_phrase="`/gpd:suggest-next`",
+        pause_work_phrase="`/gpd:pause-work`",
+    )
+    assert_recovery_ladder_contract(
+        ladder_note,
+        resume_work_fragments=("`/gpd:resume-work`",),
+        suggest_next_fragments=("`/gpd:suggest-next`",),
+        pause_work_fragments=("`/gpd:pause-work`",),
     )
 
 

@@ -10,9 +10,11 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 
 from gpd.core.public_surface_contract import (
+    local_cli_bridge_commands as _public_local_cli_bridge_commands,
     local_cli_bridge_note as _public_local_cli_bridge_note,
     post_start_settings_note as _public_post_start_settings_note,
     post_start_settings_recommendation as _public_post_start_settings_recommendation,
+    recovery_ladder_note as _public_recovery_ladder_note,
 )
 from gpd.core.workflow_presets import list_workflow_presets
 
@@ -51,12 +53,26 @@ def command_follow_up_action(*, command: str, reason: str) -> str:
     return f"Run `{command}` to {reason}."
 
 
+def _public_recovery_command(command: str) -> str:
+    if command not in _public_local_cli_bridge_commands():
+        raise ValueError(f"recovery command {command!r} must remain part of the public local CLI bridge contract")
+    return command
+
+
+def _recovery_resume_command() -> str:
+    return _public_recovery_command("gpd resume")
+
+
+def _recovery_recent_command() -> str:
+    return _public_recovery_command("gpd resume --recent")
+
+
 def recovery_resume_action() -> str:
-    return "Run `gpd resume` to inspect the current-workspace read-only recovery snapshot."
+    return f"Run `{_recovery_resume_command()}` to inspect the current-workspace read-only recovery snapshot."
 
 
 def recovery_recent_action() -> str:
-    return "Run `gpd resume --recent` to find the workspace first when you need to reopen a different one."
+    return f"Run `{_recovery_recent_command()}` to find the workspace first when you need to reopen a different one."
 
 
 def recovery_continue_action(*, mode: str, continue_command: str) -> str:
@@ -106,9 +122,9 @@ def recovery_action_lines(
         if kind == "primary":
             if not include_primary:
                 continue
-            if command == "gpd resume":
+            if command == _recovery_resume_command():
                 line = recovery_resume_action()
-            elif command == "gpd resume --recent":
+            elif command == _recovery_recent_command():
                 line = recovery_recent_action()
         elif kind == "continue" and command is not None:
             line = recovery_continue_action(mode=mode, continue_command=command)
@@ -131,7 +147,7 @@ def recovery_next_actions(
     existing_actions: Iterable[str] = (),
 ) -> list[str]:
     structured_actions: list[dict[str, str]] = []
-    if primary_command in {"gpd resume", "gpd resume --recent"}:
+    if primary_command in {_recovery_resume_command(), _recovery_recent_command()}:
         structured_actions.append(
             {
                 "kind": "primary",
@@ -268,12 +284,10 @@ def recovery_ladder_note(
     suggest_next_phrase: str,
     pause_work_phrase: str,
 ) -> str:
-    return (
-        "Recovery ladder: use `gpd resume` for the current-workspace read-only recovery snapshot. If that is "
-        "the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside "
-        f"that workspace with {resume_work_phrase}. After resuming, {suggest_next_phrase} is the fastest next "
-        f"command. Before stepping away mid-phase, run {pause_work_phrase} so that ladder has an explicit "
-        "handoff to restore."
+    return _public_recovery_ladder_note(
+        resume_work_phrase=resume_work_phrase,
+        suggest_next_phrase=suggest_next_phrase,
+        pause_work_phrase=pause_work_phrase,
     )
 
 

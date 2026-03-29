@@ -1,4 +1,4 @@
-"""Structured public-surface contract for repeated local CLI boundary guidance."""
+"""Structured public-surface contract for repeated onboarding and local CLI guidance."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ __all__ = [
     "LocalCliBridgeContract",
     "PostStartSettingsContract",
     "PublicSurfaceContract",
+    "RecoveryLadderContract",
     "beginner_onboarding_contract",
     "beginner_onboarding_hub_url",
     "beginner_startup_ladder",
@@ -23,6 +24,8 @@ __all__ = [
     "post_start_settings_contract",
     "post_start_settings_note",
     "post_start_settings_recommendation",
+    "recovery_ladder_contract",
+    "recovery_ladder_note",
 ]
 
 
@@ -58,10 +61,38 @@ class PostStartSettingsContract:
 
 
 @dataclass(frozen=True, slots=True)
+class RecoveryLadderContract:
+    title: str
+    local_snapshot_command: str
+    local_snapshot_phrase: str
+    cross_workspace_command: str
+    cross_workspace_phrase: str
+    resume_phrase: str
+    next_phrase: str
+    pause_phrase: str
+
+    def render_note(
+        self,
+        *,
+        resume_work_phrase: str,
+        suggest_next_phrase: str,
+        pause_work_phrase: str,
+    ) -> str:
+        return (
+            f"{self.title}: use `{self.local_snapshot_command}` for {self.local_snapshot_phrase}. "
+            f"If that is the wrong workspace, use `{self.cross_workspace_command}` to {self.cross_workspace_phrase}, "
+            f"then {self.resume_phrase} with {resume_work_phrase}. After resuming, "
+            f"{suggest_next_phrase} is {self.next_phrase}. Before stepping away mid-phase, "
+            f"run {pause_work_phrase} so that ladder has {self.pause_phrase}."
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class PublicSurfaceContract:
     beginner_onboarding: BeginnerOnboardingContract
     local_cli_bridge: LocalCliBridgeContract
     post_start_settings: PostStartSettingsContract
+    recovery_ladder: RecoveryLadderContract
 
 
 def _join_backticked_commands(commands: tuple[str, ...]) -> str:
@@ -113,6 +144,7 @@ def load_public_surface_contract() -> PublicSurfaceContract:
     beginner_payload = _require_object(payload.get("beginner_onboarding"), label="beginner_onboarding")
     bridge_payload = _require_object(payload.get("local_cli_bridge"), label="local_cli_bridge")
     settings_payload = _require_object(payload.get("post_start_settings"), label="post_start_settings")
+    recovery_payload = _require_object(payload.get("recovery_ladder"), label="recovery_ladder")
 
     return PublicSurfaceContract(
         beginner_onboarding=BeginnerOnboardingContract(
@@ -134,6 +166,44 @@ def load_public_surface_contract() -> PublicSurfaceContract:
                 settings_payload,
                 "default_sentence",
                 label="post_start_settings",
+            ),
+        ),
+        recovery_ladder=RecoveryLadderContract(
+            title=_require_string(recovery_payload, "title", label="recovery_ladder"),
+            local_snapshot_command=_require_string(
+                recovery_payload,
+                "local_snapshot_command",
+                label="recovery_ladder",
+            ),
+            local_snapshot_phrase=_require_string(
+                recovery_payload,
+                "local_snapshot_phrase",
+                label="recovery_ladder",
+            ),
+            cross_workspace_command=_require_string(
+                recovery_payload,
+                "cross_workspace_command",
+                label="recovery_ladder",
+            ),
+            cross_workspace_phrase=_require_string(
+                recovery_payload,
+                "cross_workspace_phrase",
+                label="recovery_ladder",
+            ),
+            resume_phrase=_require_string(
+                recovery_payload,
+                "resume_phrase",
+                label="recovery_ladder",
+            ),
+            next_phrase=_require_string(
+                recovery_payload,
+                "next_phrase",
+                label="recovery_ladder",
+            ),
+            pause_phrase=_require_string(
+                recovery_payload,
+                "pause_phrase",
+                label="recovery_ladder",
             ),
         ),
     )
@@ -177,3 +247,20 @@ def post_start_settings_note() -> str:
 
 def post_start_settings_recommendation() -> str:
     return post_start_settings_contract().default_sentence
+
+
+def recovery_ladder_contract() -> RecoveryLadderContract:
+    return load_public_surface_contract().recovery_ladder
+
+
+def recovery_ladder_note(
+    *,
+    resume_work_phrase: str,
+    suggest_next_phrase: str,
+    pause_work_phrase: str,
+) -> str:
+    return recovery_ladder_contract().render_note(
+        resume_work_phrase=resume_work_phrase,
+        suggest_next_phrase=suggest_next_phrase,
+        pause_work_phrase=pause_work_phrase,
+    )

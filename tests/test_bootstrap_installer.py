@@ -73,12 +73,19 @@ _GENERIC_RECOVERY_LADDER_NOTE = recovery_ladder_note(
 )
 _POST_START_SETTINGS_NOTE = post_start_settings_note()
 _POST_START_SETTINGS_RECOMMENDATION = post_start_settings_recommendation()
-_RUNTIME_RECOVERY_LADDER_TEMPLATE = (
-    "Recovery ladder: use `gpd resume` for the current-workspace read-only recovery snapshot. "
-    "If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside "
-    "that workspace with {resume_work}. After resuming, {suggest_next} is the fastest next command. "
-    "Before stepping away mid-phase, run {pause_work} so that ladder has an explicit handoff to restore."
+_RUNTIME_RECOVERY_LADDER_TEMPLATE = recovery_ladder_note(
+    resume_work_phrase="{resume_work}",
+    suggest_next_phrase="{suggest_next}",
+    pause_work_phrase="{pause_work}",
 )
+
+
+def _render_runtime_recovery_ladder(runtime: str) -> str:
+    return _RUNTIME_RECOVERY_LADDER_TEMPLATE.format(
+        resume_work=f"`{_RUNTIME_RESUME_WORK_COMMANDS[runtime]}`",
+        suggest_next=f"`{_RUNTIME_SUGGEST_NEXT_COMMANDS[runtime]}`",
+        pause_work=f"`{_RUNTIME_PAUSE_WORK_COMMANDS[runtime]}`",
+    )
 
 
 def _assert_single_runtime_next_steps(output: str, runtime: str) -> None:
@@ -179,6 +186,23 @@ def _assert_install_summary_semantic_contract(
 def test_version_consistency():
     """Release metadata and the bootstrap's Python pin must match."""
     assert PACKAGE_VERSION == PYTHON_PACKAGE_VERSION == str(PYPROJECT["project"]["version"])
+
+
+def test_runtime_recovery_ladder_template_stays_in_sync_with_shared_surface_phrase() -> None:
+    for runtime in _RUNTIME_NAMES:
+        ladder_note = _render_runtime_recovery_ladder(runtime)
+
+        assert ladder_note == recovery_ladder_note(
+            resume_work_phrase=f"`{_RUNTIME_RESUME_WORK_COMMANDS[runtime]}`",
+            suggest_next_phrase=f"`{_RUNTIME_SUGGEST_NEXT_COMMANDS[runtime]}`",
+            pause_work_phrase=f"`{_RUNTIME_PAUSE_WORK_COMMANDS[runtime]}`",
+        )
+        assert_recovery_ladder_contract(
+            ladder_note,
+            resume_work_fragments=(f"`{_RUNTIME_RESUME_WORK_COMMANDS[runtime]}`",),
+            suggest_next_fragments=(f"`{_RUNTIME_SUGGEST_NEXT_COMMANDS[runtime]}`",),
+            pause_work_fragments=(f"`{_RUNTIME_PAUSE_WORK_COMMANDS[runtime]}`",),
+        )
 
 
 def _write_fake_launcher(script_path: Path, command_name: str) -> None:

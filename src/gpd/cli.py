@@ -56,6 +56,7 @@ from gpd.core.constants import (
 from gpd.core.errors import ConfigError, GPDError
 from gpd.core.recovery_advice import RecoveryAdvice, build_recovery_advice
 from gpd.core.surface_phrases import (
+    local_cli_bridge_note,
     post_start_settings_note,
     post_start_settings_recommendation,
     recovery_action_lines,
@@ -6558,7 +6559,7 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
             console.print()
             console.print("[bold]Secondary follow-up[/]")
             console.print(
-                "7. Use [bold]gpd --help[/] for local install, readiness, validation, permissions, observability, and diagnostics.",
+                f"7. {_install_summary_local_cli_bridge_line()}",
                 soft_wrap=True,
             )
             console.print(
@@ -6611,7 +6612,7 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
             console.print()
             console.print("[bold]Secondary follow-up[/]")
             console.print(
-                "Use [bold]gpd --help[/] for local install, readiness, validation, permissions, observability, and diagnostics.",
+                _install_summary_local_cli_bridge_line(),
                 soft_wrap=True,
             )
             console.print(
@@ -6669,6 +6670,14 @@ def _target_dir_matches_global(runtime_name: str, target_dir: str, *, action: st
 def _workflow_preset_surface_note() -> str:
     """Return the shared preset-surface note derived from the preset registry."""
     return workflow_preset_surface_note()
+
+
+def _install_summary_local_cli_bridge_line() -> str:
+    """Return the shared local-CLI bridge follow-up for install summaries."""
+    return (
+        "Use [bold]gpd --help[/] for local install, readiness, validation, permissions, observability, and diagnostics. "
+        f"Local CLI bridge: {local_cli_bridge_note()}"
+    )
 
 
 def _print_workflow_preset_list() -> None:

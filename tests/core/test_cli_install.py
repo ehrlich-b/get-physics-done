@@ -24,7 +24,12 @@ from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.cli import _format_install_header_lines, _render_install_option_line, app
 from gpd.core.health import CheckStatus, DoctorReport, HealthCheck, HealthSummary
-from gpd.core.surface_phrases import post_start_settings_note, post_start_settings_recommendation, recovery_ladder_note
+from gpd.core.surface_phrases import (
+    local_cli_bridge_note,
+    post_start_settings_note,
+    post_start_settings_recommendation,
+    recovery_ladder_note,
+)
 from tests.doc_surface_contracts import (
     assert_install_summary_runtime_follow_up_contract,
     assert_recovery_ladder_contract,
@@ -182,7 +187,10 @@ def _assert_single_runtime_next_steps(
             )
         ),
         re.escape("Secondary follow-up"),
-        re.escape("7. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics."),
+        re.escape(
+            "7. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics. "
+            f"Local CLI bridge: {local_cli_bridge_note()}"
+        ),
         re.escape("8. Run gpd doctor --runtime"),
         re.escape(f"9. {post_start_settings_note()} {post_start_settings_recommendation()}"),
         re.escape("10. If you plan to use paper/manuscript workflows, rerun"),

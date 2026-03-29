@@ -127,6 +127,57 @@ function loadSharedPublicSurfaceText() {
   if (!beginnerHubUrl || beginnerStartupLadder.length === 0) {
     throw new Error("public surface contract beginner_onboarding is incomplete");
   }
+  const localCliBridge = contract.local_cli_bridge;
+  if (!localCliBridge || typeof localCliBridge !== "object") {
+    throw new Error("public surface contract is missing local_cli_bridge");
+  }
+  const localCliBridgeCommands = Array.isArray(localCliBridge.commands)
+    ? localCliBridge.commands
+      .filter((item) => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean)
+    : [];
+  if (localCliBridgeCommands.length === 0) {
+    throw new Error("public surface contract local_cli_bridge is incomplete");
+  }
+  const recoveryLadder = contract.recovery_ladder;
+  if (!recoveryLadder || typeof recoveryLadder !== "object") {
+    throw new Error("public surface contract is missing recovery_ladder");
+  }
+  const recoveryTitle = typeof recoveryLadder.title === "string" ? recoveryLadder.title.trim() : "";
+  const recoveryLocalSnapshotCommand = typeof recoveryLadder.local_snapshot_command === "string"
+    ? recoveryLadder.local_snapshot_command.trim()
+    : "";
+  const recoveryLocalSnapshotPhrase = typeof recoveryLadder.local_snapshot_phrase === "string"
+    ? recoveryLadder.local_snapshot_phrase.trim()
+    : "";
+  const recoveryCrossWorkspaceCommand = typeof recoveryLadder.cross_workspace_command === "string"
+    ? recoveryLadder.cross_workspace_command.trim()
+    : "";
+  const recoveryCrossWorkspacePhrase = typeof recoveryLadder.cross_workspace_phrase === "string"
+    ? recoveryLadder.cross_workspace_phrase.trim()
+    : "";
+  const recoveryResumePhrase = typeof recoveryLadder.resume_phrase === "string"
+    ? recoveryLadder.resume_phrase.trim()
+    : "";
+  const recoveryNextPhrase = typeof recoveryLadder.next_phrase === "string"
+    ? recoveryLadder.next_phrase.trim()
+    : "";
+  const recoveryPausePhrase = typeof recoveryLadder.pause_phrase === "string"
+    ? recoveryLadder.pause_phrase.trim()
+    : "";
+  if (
+    !recoveryTitle
+    || !recoveryLocalSnapshotCommand
+    || !recoveryLocalSnapshotPhrase
+    || !recoveryCrossWorkspaceCommand
+    || !recoveryCrossWorkspacePhrase
+    || !recoveryResumePhrase
+    || !recoveryNextPhrase
+    || !recoveryPausePhrase
+  ) {
+    throw new Error("public surface contract recovery_ladder is incomplete");
+  }
   const payload = contract.post_start_settings;
   if (!payload || typeof payload !== "object") {
     throw new Error("public surface contract is missing post_start_settings");
@@ -139,6 +190,17 @@ function loadSharedPublicSurfaceText() {
   return {
     beginnerHubUrl,
     beginnerStartupLadder,
+    localCliBridgeCommands,
+    recoveryLadder: {
+      title: recoveryTitle,
+      localSnapshotCommand: recoveryLocalSnapshotCommand,
+      localSnapshotPhrase: recoveryLocalSnapshotPhrase,
+      crossWorkspaceCommand: recoveryCrossWorkspaceCommand,
+      crossWorkspacePhrase: recoveryCrossWorkspacePhrase,
+      resumePhrase: recoveryResumePhrase,
+      nextPhrase: recoveryNextPhrase,
+      pausePhrase: recoveryPausePhrase,
+    },
     settingsCommandSentence,
     settingsRecommendationSentence,
   };
@@ -157,6 +219,44 @@ function settingsCommandTail() {
     return settingsCommandSentence.slice(SETTINGS_COMMAND_PREFIX.length);
   }
   return "to review autonomy, workflow defaults, and model-cost posture.";
+}
+
+function sharedLocalCliCommand(prefix, fallback) {
+  const match = SHARED_PUBLIC_SURFACE_TEXT.localCliBridgeCommands.find((command) => command.startsWith(prefix));
+  return match || fallback;
+}
+
+function sharedLocalCliHelpCommand() {
+  return sharedLocalCliCommand("gpd --help", "gpd --help");
+}
+
+function sharedUnattendedReadinessCommand() {
+  return sharedLocalCliCommand(
+    "gpd validate unattended-readiness",
+    "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced"
+  );
+}
+
+function sharedPermissionsSyncCommand() {
+  return sharedLocalCliCommand(
+    "gpd permissions sync",
+    "gpd permissions sync --runtime <runtime> --autonomy balanced"
+  );
+}
+
+function localCliDiagnosticsFollowUpLine() {
+  return `Use \`${sharedLocalCliHelpCommand()}\` for local install, readiness, validation, permissions, observability, and diagnostics.`;
+}
+
+function recoveryLadderNote({ resumeWorkPhrase, suggestNextPhrase, pauseWorkPhrase }) {
+  const recovery = SHARED_PUBLIC_SURFACE_TEXT.recoveryLadder;
+  return (
+    `${recovery.title}: use \`${recovery.localSnapshotCommand}\` for ${recovery.localSnapshotPhrase}. `
+    + `If that is the wrong workspace, use \`${recovery.crossWorkspaceCommand}\` to ${recovery.crossWorkspacePhrase}, `
+    + `then ${recovery.resumePhrase} with ${resumeWorkPhrase}. After resuming, `
+    + `${suggestNextPhrase} is ${recovery.nextPhrase}. Before stepping away mid-phase, `
+    + `run ${pauseWorkPhrase} so that ladder has ${recovery.pausePhrase}.`
+  );
 }
 
 function log(msg) {
@@ -1067,7 +1167,11 @@ function runInstallReadinessPreflight(managedPython, runtimes, scope, targetDir 
   success(`Runtime launcher/target preflight passed for ${formatRuntimeList(runtimes)}.`);
   const doctorHints = runtimes.map((runtime) => `\`${runtimeDoctorHint(runtime, scope, targetDir)}\``).join(", ");
   log(`For the full runtime-target doctor report after install, use ${doctorHints}.`);
-  log("Use `gpd doctor` for install and runtime-local readiness, `gpd validate unattended-readiness` for the unattended or overnight verdict, and `gpd permissions ...` for runtime-owned permission alignment and sync.");
+  log(
+    `Use \`gpd doctor\` for install and runtime-local readiness, `
+    + `\`${sharedUnattendedReadinessCommand().replace(/\s+--runtime\b[\s\S]*$/u, "")}\` `
+    + "for the unattended or overnight verdict, and `gpd permissions ...` for runtime-owned permission alignment and sync."
+  );
   log(
     "Workflow presets: if you plan paper/manuscript workflows, rerun "
     + `${doctorHints} after install and check whether \`Workflow Presets\` is \`ready\` or \`degraded\`. `
@@ -1108,12 +1212,13 @@ function printUnattendedConfigurationReminder(runtimes, targetDir = null) {
     const pauseWorkCommand = runtimeSurfaceCommand(runtime, "pause-work");
     log(
       `6. When you return later, use \`${resumeWorkCommand}\` after reopening the right workspace. `
-      + `Recovery ladder: use \`gpd resume\` for the current-workspace read-only recovery snapshot. `
-      + `If that is the wrong workspace, use \`gpd resume --recent\` to find the workspace first, then continue inside that workspace with \`${resumeWorkCommand}\`. `
-      + `After resuming, \`${suggestNextCommand}\` is the fastest next command. `
-      + `Before stepping away mid-phase, run \`${pauseWorkCommand}\` so that ladder has an explicit handoff to restore.`
+      + recoveryLadderNote({
+        resumeWorkPhrase: `\`${resumeWorkCommand}\``,
+        suggestNextPhrase: `\`${suggestNextCommand}\``,
+        pauseWorkPhrase: `\`${pauseWorkCommand}\``,
+      })
     );
-    log("7. Use `gpd --help` for local install, readiness, validation, permissions, observability, and diagnostics.");
+    log(`7. ${localCliDiagnosticsFollowUpLine()}`);
   } else {
     log("For multiple runtimes, follow the same order in each one.");
     for (const runtime of runtimes) {
@@ -1131,12 +1236,13 @@ function printUnattendedConfigurationReminder(runtimes, targetDir = null) {
       `Fast bootstrap: use \`${runtimeSurfaceCommand(runtimes[0], "new-project")} --minimal\` for the shortest onboarding path.`
     );
     log(
-      `Recovery ladder: use \`gpd resume\` for the current-workspace read-only recovery snapshot. `
-      + `If that is the wrong workspace, use \`gpd resume --recent\` to find the workspace first, then continue inside that workspace with your runtime-specific \`resume-work\` command. `
-      + `After resuming, your runtime-specific \`suggest-next\` command is the fastest next command. `
-      + `Before stepping away mid-phase, run your runtime-specific \`pause-work\` command so that ladder has an explicit handoff to restore.`
+      recoveryLadderNote({
+        resumeWorkPhrase: "your runtime-specific `resume-work` command",
+        suggestNextPhrase: "your runtime-specific `suggest-next` command",
+        pauseWorkPhrase: "your runtime-specific `pause-work` command",
+      })
     );
-    log("Use `gpd --help` for local install, readiness, validation, permissions, observability, and diagnostics.");
+    log(localCliDiagnosticsFollowUpLine());
   }
   console.log("");
   console.log(` ${bold}${brandTitle}Secondary follow-up${reset}`);
@@ -1270,19 +1376,20 @@ function printHelp() {
   console.log(` Later, use the runtime-specific \`settings\` command after your first successful start or later ${settingsCommandTail()}`);
   console.log(` Recommended unattended default: Balanced autonomy (\`balanced\`). ${SHARED_PUBLIC_SURFACE_TEXT.settingsRecommendationSentence}`);
   console.log(
-    " For returning work, use `gpd resume` for the current-workspace read-only recovery snapshot. "
-    + "If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside that workspace with your runtime-specific `resume-work` command. "
-    + "After resuming, your runtime-specific `suggest-next` command is the fastest next command. "
-    + "Before stepping away mid-phase, run your runtime-specific `pause-work` command so that ladder has an explicit handoff to restore."
+    ` ${recoveryLadderNote({
+      resumeWorkPhrase: "your runtime-specific `resume-work` command",
+      suggestNextPhrase: "your runtime-specific `suggest-next` command",
+      pauseWorkPhrase: "your runtime-specific `pause-work` command",
+    })}`
   );
-  console.log(" Use `gpd --help` for local install, readiness, validation, permissions, observability, and diagnostics.");
+  console.log(` ${localCliDiagnosticsFollowUpLine()}`);
   console.log(
     " Workflow presets: if you plan paper/manuscript workflows, rerun `gpd doctor --runtime <runtime> --local|--global` "
     + "and check whether `Workflow Presets` is `ready` or `degraded`. Without LaTeX, the paper/manuscript and full research presets remain usable for `write-paper` and `peer-review`, "
     + "but `paper-build` and `arxiv-submission` require the `LaTeX Toolchain`."
   );
-  console.log(" Then run `gpd validate unattended-readiness --runtime <runtime> --autonomy balanced`.");
-  console.log(" If it reports `not-ready`, run `gpd permissions sync --runtime <runtime> --autonomy balanced`.");
+  console.log(` Then run \`${sharedUnattendedReadinessCommand()}\`.`);
+  console.log(` If it reports \`not-ready\`, run \`${sharedPermissionsSyncCommand()}\`.`);
   console.log(" If it reports `relaunch-required`, exit and relaunch the runtime before unattended use.");
   console.log("");
 }

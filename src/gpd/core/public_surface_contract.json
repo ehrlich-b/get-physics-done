@@ -29,5 +29,15 @@
   "post_start_settings": {
     "primary_sentence": "After your first successful start or later, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture.",
     "default_sentence": "The safest starting point is `review` plus runtime defaults."
+  },
+  "recovery_ladder": {
+    "title": "Recovery ladder",
+    "local_snapshot_command": "gpd resume",
+    "local_snapshot_phrase": "the current-workspace read-only recovery snapshot",
+    "cross_workspace_command": "gpd resume --recent",
+    "cross_workspace_phrase": "find the workspace first",
+    "resume_phrase": "continue inside that workspace",
+    "next_phrase": "the fastest next command",
+    "pause_phrase": "an explicit handoff to restore"
   }
 }
