@@ -15,6 +15,7 @@ When a state-aware help view is requested, show guidance based on project state:
 **No project exists:**
 ```
 Getting started:
+  /gpd:start               — Guided router when you are not sure whether to create, map, resume, or just explain something
   /gpd:new-project         — Start a new research project with full scoping
   /gpd:new-project --minimal — Faster one-question project bootstrap
   /gpd:map-research        — Map an existing research project
@@ -136,9 +137,10 @@ This reference lists canonical in-runtime slash-command names in `/gpd:*` form.
 Choose the path that matches your starting point:
 
 **New work**
-1. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
-2. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
-3. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions here
+1. `/gpd:start` - Guided first-run router when you are not sure whether to create a new project, map existing work, resume, or ask a standalone explanation question
+2. `/gpd:new-project` - Full project setup (deep questioning, literature survey, requirements, roadmap)
+3. `/gpd:new-project --minimal` - Fast path from a single description to a working GPD project
+4. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions here
 
 **Tangents**
 1. `/gpd:tangent` - Chooser for stay / quick / defer / branch when a side investigation appears
@@ -215,6 +217,16 @@ Creates all `GPD/` artifacts:
 Usage: `/gpd:new-project`
 Usage: `/gpd:new-project --minimal`
 Usage: `/gpd:new-project --minimal @plan.md`
+
+**`/gpd:start`**
+Guide a first-time user to the right GPD entry point for the current folder.
+
+- Detects whether the current folder is an existing GPD project, existing non-GPD research, or a new folder
+- Recommends the right entry point instead of forcing the user to guess
+- Routes into `/gpd:resume-work`, `/gpd:suggest-next`, `/gpd:progress`, `/gpd:map-research`, `/gpd:new-project`, `/gpd:new-project --minimal`, or `/gpd:explain`
+- Does not create project artifacts itself; it is an onboarding router
+
+Usage: `/gpd:start`
 
 **`/gpd:map-research`**
 Map an existing research project — theoretical framework, computations, conventions, and open questions.

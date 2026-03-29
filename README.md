@@ -91,14 +91,15 @@ If you already know your runtime and are comfortable in a terminal:
 1. From inside the folder where your project should live, run the matching install command from [Start Here](#start-here).
 2. Launch your runtime with `claude`, `codex`, `gemini`, or `opencode`.
 3. Run the matching GPD help command shown below.
-4. Start with `new-project --minimal`, `resume-work`, or `map-research` using your runtime's command syntax.
+4. If you are not sure what fits this folder yet, run your runtime's `start` command.
+5. Otherwise start with `new-project --minimal`, `resume-work`, or `map-research` using your runtime's command syntax.
 
-| Runtime | First help command | Fastest first project |
-|---------|--------------------|-----------------------|
-| Claude Code | `/gpd:help` | `/gpd:new-project --minimal` |
-| Codex | `$gpd-help` | `$gpd-new-project --minimal` |
-| Gemini CLI | `/gpd:help` | `/gpd:new-project --minimal` |
-| OpenCode | `/gpd-help` | `/gpd-new-project --minimal` |
+| Runtime | First help command | Guided first-run command | Fastest first project |
+|---------|--------------------|--------------------------|-----------------------|
+| Claude Code | `/gpd:help` | `/gpd:start` | `/gpd:new-project --minimal` |
+| Codex | `$gpd-help` | `$gpd-start` | `$gpd-new-project --minimal` |
+| Gemini CLI | `/gpd:help` | `/gpd:start` | `/gpd:new-project --minimal` |
+| OpenCode | `/gpd-help` | `/gpd-start` | `/gpd-new-project --minimal` |
 
 The bootstrap installer requires Node.js 20+, Python 3.11+ with `venv`, and one supported runtime (`claude`, `gemini`, `codex`, or `opencode`).
 
@@ -113,6 +114,7 @@ Use the runtime syntax above for the command names below.
 
 | Starting point | Command name | What it's for |
 |----------------|--------------|----------------|
+| Not sure which path fits this folder | `start` | Inspect the current folder and route you to the right first command. |
 | New research project | `new-project --minimal` | Start the fastest guided project bootstrap. |
 | Current-workspace recovery snapshot | `gpd resume` | Current-workspace read-only recovery snapshot from your normal system terminal. |
 | Find a workspace to reopen | `gpd resume --recent` | Find the workspace first when you need to reopen a different one, then continue there with the runtime `resume-work` command. |
@@ -208,12 +210,12 @@ npx -y github:psi-oss/get-physics-done --upgrade
 
 GPD currently installs into four AI runtimes. To preselect one during install, use the matching `npx` flag, or use `--all` to install everything in one pass:
 
-| Runtime | `npx` flag | Help command | Start command |
-|---------|------------|--------------|---------------|
-| Claude Code | `--claude` | `/gpd:help` | `/gpd:new-project` |
-| Codex | `--codex` | `$gpd-help` | `$gpd-new-project` |
-| Gemini CLI | `--gemini` | `/gpd:help` | `/gpd:new-project` |
-| OpenCode | `--opencode` | `/gpd-help` | `/gpd-new-project` |
+| Runtime | `npx` flag | Help command | Guided first-run command |
+|---------|------------|--------------|--------------------------|
+| Claude Code | `--claude` | `/gpd:help` | `/gpd:start` |
+| Codex | `--codex` | `$gpd-help` | `$gpd-start` |
+| Gemini CLI | `--gemini` | `/gpd:help` | `/gpd:start` |
+| OpenCode | `--opencode` | `/gpd-help` | `/gpd-start` |
 
 Each runtime uses its own command prefix, but the workflow is the same across all four. After installing GPD, open your chosen runtime normally from your system terminal and use the commands shown above.
 
@@ -221,6 +223,7 @@ Common first commands by runtime:
 
 | Goal | Claude Code / Gemini CLI | Codex | OpenCode |
 |------|---------------------------|-------|----------|
+| Guided first-run triage | `/gpd:start` | `$gpd-start` | `/gpd-start` |
 | Help | `/gpd:help` | `$gpd-help` | `/gpd-help` |
 | Full onboarding for a new project | `/gpd:new-project` | `$gpd-new-project` | `/gpd-new-project` |
 | Fast onboarding for a new project | `/gpd:new-project --minimal` | `$gpd-new-project --minimal` | `/gpd-new-project --minimal` |
@@ -338,6 +341,7 @@ These commands run inside your installed AI runtime after GPD has been installed
 
 | Command | What it does |
 |---------|--------------|
+| `start` | Guided first-run router when you are not sure whether to create, map, resume, or explain |
 | `map-research` | Map an existing research project before `new-project` |
 | `new-project` | Start a new research project with the full onboarding flow |
 | `new-project --minimal` | Fast path: initialize a new project from a compact description with lighter upfront setup |
@@ -370,7 +374,7 @@ Not every GPD command needs the same amount of project state.
 
 | Command type | Meaning | Examples |
 |--------------|---------|----------|
-| `Projectless` | Can run before `GPD/PROJECT.md` exists | `/gpd:new-project`, `/gpd:map-research`, `/gpd:add-todo` |
+| `Projectless` | Can run before `GPD/PROJECT.md` exists | `/gpd:start`, `/gpd:new-project`, `/gpd:map-research`, `/gpd:add-todo` |
 | `Project-aware` | Uses project context when present, but can also run from explicit standalone inputs | `/gpd:discover "finite-temperature RG flow"`, `/gpd:explain "Ward identity"`, `/gpd:literature-review "axion monodromy"` |
 | `Project-required` | Requires initialized GPD project state | `/gpd:progress`, `/gpd:plan-phase`, `/gpd:write-paper`, `/gpd:peer-review` |
 
@@ -379,12 +383,13 @@ Passing a manuscript path to a project-required command such as `/gpd:peer-revie
 The full command reference below uses Claude Code / Gemini CLI syntax. Codex uses `$gpd-...` and OpenCode uses `/gpd-...`.
 
 <details>
-<summary><strong>Full Command Reference (61 Commands)</strong></summary>
+<summary><strong>Full Command Reference (62 Commands)</strong></summary>
 
 #### Project Initialization
 
 | Command | What it does |
 |---------|--------------|
+| `/gpd:start` | Guide a first-time user to the right GPD entry point for the current folder |
 | `/gpd:new-project` | Initialize a new physics research project with deep context gathering and `PROJECT.md` |
 | `/gpd:map-research` | Map existing research project — theoretical framework, computations, conventions, and open questions |
 

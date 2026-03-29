@@ -44,7 +44,10 @@ Type these inside Gemini CLI, not in your normal terminal:
 
 ```text
 /gpd:help
+/gpd:start
 ```
+
+If you are not sure what this folder is yet, start with `/gpd:start`.
 
 If you want the fastest new-project start:
 
@@ -63,7 +66,7 @@ If you already have research in this folder:
 - `gemini --help` works.
 - `npx -y get-physics-done --gemini --local` finishes without errors.
 - `/gpd:help` shows GPD commands.
-- `/gpd:new-project --minimal` or `/gpd:map-research` starts the GPD workflow.
+- `/gpd:start`, `/gpd:new-project --minimal`, or `/gpd:map-research` starts the GPD workflow.
 
 ## 6) Quick troubleshooting
 

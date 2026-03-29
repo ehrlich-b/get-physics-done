@@ -207,6 +207,30 @@ def test_help_prompt_keeps_workflow_preset_readiness_on_local_cli_surface() -> N
     assert "Workflow preset tooling is layered on top of the base install; it does not change runtime permission alignment." in help_workflow
 
 
+def test_start_prompt_delegates_routing_to_workflow_only() -> None:
+    start_command = (COMMANDS_DIR / "start.md").read_text(encoding="utf-8")
+    start_workflow = (WORKFLOWS_DIR / "start.md").read_text(encoding="utf-8")
+
+    assert "@{GPD_INSTALL_DIR}/workflows/start.md" in start_command
+    assert "Provide a beginner-friendly first-run entry point for GPD." in start_workflow
+    assert "/gpd:new-project --minimal" in start_workflow
+    assert "/gpd:new-project" in start_workflow
+    assert "/gpd:map-research" in start_workflow
+    assert "/gpd:resume-work" in start_workflow
+    assert "/gpd:progress" in start_workflow
+    assert "/gpd:quick" in start_workflow
+    assert "/gpd:explain" in start_workflow
+    assert "/gpd:help" in start_workflow
+    assert "not a parallel onboarding state machine" in start_workflow
+
+
+def test_help_workflow_surfaces_start_as_first_run_router() -> None:
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+
+    assert "/gpd:start" in help_workflow
+    assert "Guided first-run router" in help_workflow
+
+
 def test_prompt_docs_keep_wolfram_as_shared_capability_not_runtime_config_surface() -> None:
     help_command = (COMMANDS_DIR / "help.md").read_text(encoding="utf-8")
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")

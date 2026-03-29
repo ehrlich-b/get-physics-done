@@ -48,6 +48,14 @@ Type these inside Claude Code, not in your normal terminal:
 
 ```text
 /gpd:help
+/gpd:start
+```
+
+If you are not sure what this folder is yet, start with `/gpd:start`.
+
+If you already know you want the fastest new-project path, use:
+
+```text
 /gpd:new-project --minimal
 ```
 
@@ -62,7 +70,7 @@ If you already have research in this folder, use:
 - `claude --version` prints a version.
 - `npx -y get-physics-done --claude --local` finishes without errors.
 - Inside Claude Code, `/gpd:help` shows the GPD commands.
-- `/gpd:new-project --minimal` or `/gpd:map-research` starts a guided physics workflow instead of saying the command is unknown.
+- `/gpd:start`, `/gpd:new-project --minimal`, or `/gpd:map-research` starts a guided GPD flow instead of saying the command is unknown.
 
 ## Quick troubleshooting
 

@@ -52,7 +52,10 @@ Type these inside Codex, not in your normal terminal:
 
 ```text
 $gpd-help
+$gpd-start
 ```
+
+If you are not sure what this folder is yet, start with `$gpd-start`.
 
 If you want the fastest new-project start:
 
@@ -73,7 +76,7 @@ You are in the right place when:
 - `codex --help` works.
 - `npx -y get-physics-done --codex --local` finishes without errors.
 - Inside Codex, `$gpd-help` shows the GPD command list.
-- `$gpd-new-project --minimal` or `$gpd-map-research` starts asking structured research questions instead of failing with “command not found.”
+- `$gpd-start`, `$gpd-new-project --minimal`, or `$gpd-map-research` starts asking structured research questions instead of failing with “command not found.”
 
 ## 6) Quick troubleshooting
 

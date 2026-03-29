@@ -48,8 +48,11 @@ Type these inside OpenCode, not in your normal terminal:
 
 ```text
 /gpd-help
+/gpd-start
 /gpd-new-project --minimal
 ```
+
+If you are not sure what this folder is yet, start with `/gpd-start`.
 
 If you already have a GPD project, use:
 
@@ -68,7 +71,7 @@ If you are bringing in an existing paper, notebook, or codebase, use:
 - `opencode --help` works.
 - GPD installation finishes without errors.
 - Inside OpenCode, `/gpd-help` returns a GPD help screen.
-- `/gpd-new-project --minimal`, `/gpd-resume-work`, or `/gpd-map-research` starts the expected workflow instead of saying the command is unknown.
+- `/gpd-start`, `/gpd-new-project --minimal`, `/gpd-resume-work`, or `/gpd-map-research` starts the expected workflow instead of saying the command is unknown.
 
 ## 6) Quick troubleshooting
 
