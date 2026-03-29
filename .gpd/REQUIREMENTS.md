@@ -70,19 +70,19 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| ALGV-01 | TBD | Pending |
-| ALGV-02 | TBD | Pending |
-| ALGV-03 | TBD | Pending |
-| REPR-01 | TBD | Pending |
-| REPR-02 | TBD | Pending |
-| IMPL-01 | TBD | Pending |
-| INTG-01 | TBD | Pending |
+| ALGV-01 | Phase 28 | Pending |
+| ALGV-02 | Phase 28 | Pending |
+| ALGV-03 | Phase 29 | Pending |
+| REPR-01 | Phase 29 | Pending |
+| REPR-02 | Phase 29 | Pending |
+| IMPL-01 | Phase 30 | Pending |
+| INTG-01 | Phase 31 | Pending |
 
 **Coverage:**
 
 - Primary requirements: 7 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 7
+- Mapped to phases: 7/7
+- Unmapped: 0
 
 ---
 
