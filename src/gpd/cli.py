@@ -6507,6 +6507,8 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                     adapter.display_name,
                     adapter.launch_command,
                     adapter.help_command,
+                    adapter.format_command("start"),
+                    adapter.format_command("tour"),
                     adapter.new_project_command,
                     adapter.map_research_command,
                 )
@@ -6520,6 +6522,8 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 display_name,
                 launch_command,
                 help_command,
+                start_command,
+                tour_command,
                 new_project_command,
                 map_research_command,
             ) = next_step_entries[0]
@@ -6542,7 +6546,14 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 soft_wrap=True,
             )
             console.print(
-                "3. Start with "
+                "3. If you're not sure what fits this folder yet, run "
+                f"[{_INSTALL_ACCENT_COLOR} bold]{start_command}[/]. "
+                "If you want a guided walkthrough first, run "
+                f"[{_INSTALL_ACCENT_COLOR} bold]{tour_command}[/].",
+                soft_wrap=True,
+            )
+            console.print(
+                "4. Start with "
                 f"[{_INSTALL_ACCENT_COLOR} bold]{new_project_command}[/] for a new project "
                 "or "
                 f"[{_INSTALL_ACCENT_COLOR} bold]{map_research_command}[/] for existing work. "
@@ -6557,33 +6568,35 @@ def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None
                 soft_wrap=True,
             )
             console.print(
-                "4. Use [bold]gpd --help[/] for local install, readiness, validation, permissions, observability, and diagnostics. "
+                "5. Use [bold]gpd --help[/] for local install, readiness, validation, permissions, observability, and diagnostics. "
                 f"Use [{_INSTALL_ACCENT_COLOR} bold]{help_command}[/] inside {display_name} for workflow help.",
                 soft_wrap=True,
             )
             console.print(
-                "5. Verify or troubleshoot this machine with "
+                "6. Verify or troubleshoot this machine with "
                 f"[bold]gpd doctor --runtime {single_runtime_name} --{doctor_scope}[/].",
                 soft_wrap=True,
             )
             console.print(
-                "6. After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture. "
+                "7. After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture. "
                 "The safest starting point is `review` plus runtime defaults.",
                 soft_wrap=True,
             )
             console.print(
-                "7. If you plan to use paper/manuscript workflows, rerun "
+                "8. If you plan to use paper/manuscript workflows, rerun "
                 f"[bold]gpd doctor --runtime {single_runtime_name} --{doctor_scope}[/] "
                 "and check the `Workflow Presets` and `LaTeX Toolchain` rows before publication work.",
                 soft_wrap=True,
             )
-            console.print(f"8. {_workflow_preset_surface_note()}", soft_wrap=True)
+            console.print(f"9. {_workflow_preset_surface_note()}", soft_wrap=True)
         else:
-            for display_name, launch_command, help_command, new_project_command, map_research_command in next_step_entries:
+            for display_name, launch_command, help_command, start_command, tour_command, new_project_command, map_research_command in next_step_entries:
                 console.print(
                     f"- {display_name} "
                     f"([{_INSTALL_ACCENT_COLOR} bold]{launch_command}[/]), then "
                     f"[{_INSTALL_ACCENT_COLOR} bold]{help_command}[/], then "
+                    f"[{_INSTALL_ACCENT_COLOR} bold]{start_command}[/] if you're unsure or "
+                    f"[{_INSTALL_ACCENT_COLOR} bold]{tour_command}[/] for orientation, then "
                     f"[{_INSTALL_ACCENT_COLOR} bold]{new_project_command}[/] "
                     f"or [{_INSTALL_ACCENT_COLOR} bold]{map_research_command}[/]. "
                     f"Quick bootstrap: [{_INSTALL_ACCENT_COLOR} bold]{new_project_command} --minimal[/]",

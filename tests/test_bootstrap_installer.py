@@ -39,6 +39,8 @@ _RUNTIME_DISPLAY_NAMES = {name: adapter.display_name for name, adapter in _RUNTI
 _RUNTIME_LAUNCH_COMMANDS = {name: adapter.launch_command for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_CONFIG_DIR_NAMES = {name: adapter.config_dir_name for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_HELP_COMMANDS = {name: adapter.help_command for name, adapter in _RUNTIME_ADAPTERS.items()}
+_RUNTIME_START_COMMANDS = {name: adapter.format_command("start") for name, adapter in _RUNTIME_ADAPTERS.items()}
+_RUNTIME_TOUR_COMMANDS = {name: adapter.format_command("tour") for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_NEW_PROJECT_COMMANDS = {name: adapter.new_project_command for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_MAP_RESEARCH_COMMANDS = {name: adapter.map_research_command for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_RESUME_WORK_COMMANDS = {name: adapter.format_command("resume-work") for name, adapter in _RUNTIME_ADAPTERS.items()}
@@ -76,6 +78,8 @@ def _assert_single_runtime_next_steps(output: str, runtime: str) -> None:
         rf"Next steps.*?"
         rf"Open .*?{re.escape(_RUNTIME_DISPLAY_NAMES[runtime])}.*?{re.escape(_RUNTIME_LAUNCH_COMMANDS[runtime])}.*?"
         rf"Run {re.escape(_RUNTIME_HELP_COMMANDS[runtime])} for the command list\..*?"
+        rf"If you're not sure what fits this folder yet, run {re.escape(_RUNTIME_START_COMMANDS[runtime])}\. "
+        rf"If you want a guided walkthrough first, run {re.escape(_RUNTIME_TOUR_COMMANDS[runtime])}\..*?"
         rf"Start with {re.escape(_RUNTIME_NEW_PROJECT_COMMANDS[runtime])} for a new project or "
         rf"{re.escape(_RUNTIME_MAP_RESEARCH_COMMANDS[runtime])} for existing work\. "
         rf"{re.escape(recovery_note)}.*?"
@@ -98,6 +102,8 @@ def _assert_multi_runtime_next_steps_line(output: str, runtime: str) -> None:
         rf"- {re.escape(_RUNTIME_DISPLAY_NAMES[runtime])}.*?"
         rf"{re.escape(_RUNTIME_LAUNCH_COMMANDS[runtime])}.*?"
         rf"{re.escape(_RUNTIME_HELP_COMMANDS[runtime])}.*?"
+        rf"{re.escape(_RUNTIME_START_COMMANDS[runtime])}.*?"
+        rf"{re.escape(_RUNTIME_TOUR_COMMANDS[runtime])}.*?"
         rf"{re.escape(_RUNTIME_NEW_PROJECT_COMMANDS[runtime])}.*?"
         rf"{re.escape(_RUNTIME_MAP_RESEARCH_COMMANDS[runtime])}.*?"
         rf"{re.escape(_RUNTIME_NEW_PROJECT_COMMANDS[runtime])} --minimal",
@@ -149,6 +155,8 @@ RUNTIME_LABELS = {_RUNTIME_DISPLAY_NAMES!r}
 LAUNCH_COMMANDS = {_RUNTIME_LAUNCH_COMMANDS!r}
 CONFIG_DIR_NAMES = {_RUNTIME_CONFIG_DIR_NAMES!r}
 HELP_COMMANDS = {_RUNTIME_HELP_COMMANDS!r}
+START_COMMANDS = {_RUNTIME_START_COMMANDS!r}
+TOUR_COMMANDS = {_RUNTIME_TOUR_COMMANDS!r}
 NEW_PROJECT_COMMANDS = {_RUNTIME_NEW_PROJECT_COMMANDS!r}
 MAP_RESEARCH_COMMANDS = {_RUNTIME_MAP_RESEARCH_COMMANDS!r}
 RESUME_WORK_COMMANDS = {_RUNTIME_RESUME_WORK_COMMANDS!r}
@@ -451,7 +459,12 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
         )
         print(f"2. Run {{HELP_COMMANDS[runtime]}} for the command list.")
         print(
-            "3. Start with "
+            "3. If you're not sure what fits this folder yet, run "
+            f"{{START_COMMANDS[runtime]}}. If you want a guided walkthrough first, run "
+            f"{{TOUR_COMMANDS[runtime]}}."
+        )
+        print(
+            "4. Start with "
             f"{{NEW_PROJECT_COMMANDS[runtime]}} for a new project or "
             f"{{MAP_RESEARCH_COMMANDS[runtime]}} for existing work. "
             f"{{recovery_ladder_for_runtime(runtime)}}"
@@ -462,21 +475,21 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
             f"{{NEW_PROJECT_COMMANDS[runtime]}} --minimal for the shortest onboarding path."
         )
         print(
-            f"4. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics. "
+            f"5. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics. "
             f"Use {{HELP_COMMANDS[runtime]}} inside {{RUNTIME_LABELS[runtime]}} for workflow help."
         )
-        print(f"5. Verify or troubleshoot this machine with gpd doctor --runtime {{runtime}} --{{scope}}.")
+        print(f"6. Verify or troubleshoot this machine with gpd doctor --runtime {{runtime}} --{{scope}}.")
         print(
-            "6. After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture. "
+            "7. After startup, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture. "
             "The safest starting point is `review` plus runtime defaults."
         )
         print(
-            "7. If you plan to use paper/manuscript workflows, rerun "
+            "8. If you plan to use paper/manuscript workflows, rerun "
             f"gpd doctor --runtime {{runtime}} --{{scope}} "
             "and check the `Workflow Presets` and `LaTeX Toolchain` rows before publication work."
         )
         print(
-            "8. Use `gpd presets list` to inspect the workflow preset surface: "
+            "9. Use `gpd presets list` to inspect the workflow preset surface: "
             "Core research, Theory, Numerics, Publication / manuscript, Full research."
         )
     else:
@@ -484,6 +497,8 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
             print(
                 f"- {{RUNTIME_LABELS[runtime]}} ({{LAUNCH_COMMANDS[runtime]}}), then "
                 f"{{HELP_COMMANDS[runtime]}}, then "
+                f"{{START_COMMANDS[runtime]}} if you're unsure or "
+                f"{{TOUR_COMMANDS[runtime]}} for orientation, then "
                 f"{{NEW_PROJECT_COMMANDS[runtime]}} or {{MAP_RESEARCH_COMMANDS[runtime]}}. "
                 f"Quick bootstrap: {{NEW_PROJECT_COMMANDS[runtime]}} --minimal"
             )
