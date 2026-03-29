@@ -179,8 +179,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 29-01-PLAN.md -- Iterative associative closure, volume element, J_u anticommutation + grade decomposition (ALGV-03 + REPR-01)
-- [ ] 29-02-PLAN.md -- J_u Clifford polynomial, uniqueness, G_SM commutant, Spin(10) branching, REPR-02 verdict
+- [x] 29-01-PLAN.md -- Iterative associative closure, volume element, J_u anticommutation + grade decomposition (ALGV-03 + REPR-01) -- completed 2026-03-29
+- [x] 29-02-PLAN.md -- J_u Clifford polynomial, uniqueness, G_SM commutant, Spin(10) branching, REPR-02 verdict -- completed 2026-03-29
 
 ---
 
@@ -270,6 +270,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 28. Peirce Verification + V_0 Channel | v8.0 | 2/2 | Complete | 2026-03-29 |
-| 29. Observable Algebra + Rep Theory | v8.0 | 0/TBD | Not started | - |
+| 29. Observable Algebra + Rep Theory | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 30. Impossibility/Algebraic Theorem | v8.0 | 0/TBD | Not started | - |
 | 31. Integration | v8.0 | 0/TBD | Not started | - |
