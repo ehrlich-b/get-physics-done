@@ -1,14 +1,14 @@
 # Methods Research
 
-**Domain:** Noncommutative geometry / Finite spectral triples / KO-dimension classification
-**Researched:** 2026-03-22
-**Confidence:** HIGH
+**Domain:** Jordan algebras / C*-algebra representations on real modules / Complexification forcing
+**Researched:** 2026-03-29
+**Confidence:** MEDIUM-HIGH
 
 ### Scope Boundary
 
-METHODS.md covers analytical and computational PHYSICS methods for the v4.0 spectral triple milestone: verifying spectral triple axioms, constructing the Dirac operator, analyzing the first-order condition, and classifying by KO-dimension. It does NOT cover software tools or libraries -- those belong in COMPUTATIONAL.md.
+METHODS.md covers analytical MATHEMATICAL methods for the v8.0 milestone: determining whether a C*-observer's Peirce multiplication maps on V_{1/2} = O^2 (inside h_3(O)) force complexification. It does NOT cover software tools (see COMPUTATIONAL.md) or the theoretical landscape (see PRIOR-WORK.md).
 
-**Critical distinction from v3.0:** The v3.0 methods worked at the lattice level (area laws, Lieb-Robinson, Jacobson thermodynamics). The v4.0 methods work at the ALGEBRAIC level of a single site: we have a specific finite-dimensional (H, J, gamma) and must verify whether it forms a real spectral triple. The tools are matrix algebra, representation theory, and the classification theory of finite noncommutative geometries.
+**Critical distinction from v7.0 and v6.0:** Prior milestones either looked for complexification internal to h_3(O) (v6.0, all 4 routes failed) or narrowed Gap C via selection/thermodynamics (v7.0, honest but weak). The v8.0 approach uses the EXTERNAL fact that Paper 5 proves the observer IS M_n(C)^sa. The methods needed are therefore about how C*-algebra actions on real vector spaces force (or fail to force) complex structure on those spaces.
 
 ---
 
@@ -18,311 +18,305 @@ METHODS.md covers analytical and computational PHYSICS methods for the v4.0 spec
 
 | Method | Purpose | Why Recommended |
 |--------|---------|-----------------|
-| Direct axiom verification (matrix computation) | Check order zero, KO-dim 6 signs, orientability | The construction is finite-dimensional; all axioms reduce to explicit matrix identities on 2n^2-dimensional H |
-| Bimodule decomposition | Classify the A-bimodule structure of H | Standard method (Krajewski, Cacic) for finite spectral triples; determines what Dirac operators are compatible |
-| First-order condition linear algebra | Find subalgebra A_F forced by [[D,a], Jb*J^{-1}] = 0 | Reduces to solving a system of matrix commutation relations; the standard technique from Chamseddine-Connes 2008 |
-| Krajewski diagram classification | Visualize and classify the finite spectral triple | Diagrammatic encoding of bimodule structure; each vertex = irreducible representation, each edge = allowed D component |
-| Representation-theoretic decomposition | Decompose H as direct sum of irreducible A-A^o bimodules | Determines multiplicity matrix; constrains the form of D and the first-order condition |
-
-### Numerical Methods
-
-| Method | Purpose | When to Use |
-|--------|---------|-------------|
-| Explicit matrix instantiation at small n | Verify axioms for n=2,3,4 concretely | Always use alongside general-n proofs; catches sign errors and index mistakes |
-| Brute-force commutator scan | Check order zero and first-order conditions | For small n (n <= 4): enumerate basis elements of A, compute all commutators numerically |
-| Null space computation for first-order condition | Find subalgebra satisfying [[D,a], Jb*J^{-1}] = 0 | Recast condition as linear system Mv = 0 where v parameterizes a in A; kernel gives A_F |
+| Explicit Peirce multiplication computation | Compute L_a(x) = a . x for a in V_1 with C*-structure, x in V_{1/2} | The core calculation -- everything depends on what L_a actually does to O^2 when a carries complex structure |
+| Commutant analysis (Schur's lemma type) | Determine End_{Spin(9)}(V_{1/2}) and check if it contains a complex structure J | Standard method for deciding real/complex/quaternionic type of an irreducible representation |
+| Frobenius-Schur indicator computation | Classify V_{1/2} = S_9 (real 16-dim spinor of Spin(9)) as real, complex, or quaternionic type | Determines whether V_{1/2} intrinsically admits complex structure from its representation theory |
+| Module extension criteria | Determine when an R-linear map from a C-algebra into End_R(V) forces V to be a C-module | The abstract algebraic question underlying the whole project |
+| Fixed-point / bootstrap self-consistency | Check whether the self-modeling loop (complex QM -> complex measurements -> complexification -> chirality -> chemistry -> self-modelers) has a unique self-consistent fixed point | Backup method if direct algebraic forcing fails |
+| Constructor theory impossibility argument | Prove that non-complexified V_{1/2} cannot support information-processing substrates needed for self-modeling | Backup method: weaker than algebraic theorem but honest |
 
 ### Method Selection by Problem Type
 
-**If verifying order zero condition [a, Jb*J^{-1}] = 0:**
-- Use direct matrix computation of the opposite algebra action pi_o(b) = Jb*J^{-1}
-- Because our J = (PC)(sector-swap) is explicit, so pi_o(b) can be computed entry-by-entry
-- Verify by checking [pi(a), pi_o(b)] = 0 for all basis elements e_{ij} of M_n(C)
+**If checking whether Peirce multiplication directly complexifies V_{1/2}:**
+- Use Method 1 (Explicit Peirce multiplication) + Method 4 (Module extension criteria)
+- Because this is the most direct route; success here closes Gap C as a theorem
 
-**If constructing the Dirac operator D:**
-- Use bimodule decomposition to parameterize all possible D, then impose D gamma = -gamma D and JD = DJ
-- Because the space of self-adjoint operators on H is 4n^4-dimensional, but the bimodule constraints and symmetry conditions reduce this dramatically
-- The sequential product asymmetry L_a - R_a provides the physical candidate; verify it satisfies the required conditions
+**If the direct Peirce route hits the V_1 = R bottleneck (again):**
+- Use Method 2 (Commutant analysis) + Method 3 (Frobenius-Schur indicator)
+- Because these determine whether V_{1/2} has an intrinsic complex structure forced by representation theory, independent of the Peirce product
 
-**If finding the subalgebra from the first-order condition:**
-- Use the linear algebra method: for each candidate a in A, [[D,a], Jb*J^{-1}] = 0 for all b is a LINEAR condition on a
-- Rewrite as a matrix equation and find the kernel
-- Because this is exactly how Chamseddine-Connes-Marcolli (arXiv:0706.3688) identified C + H + M_3(C): they found the maximal subalgebra of M_n(C) satisfying the first-order condition
-
-**If classifying by KO-dimension:**
-- Use the sign table directly: check (J^2, JD, J gamma) = (epsilon, epsilon', epsilon'') against the mod-8 classification
-- Because this is a finite lookup (8 possible KO-dimensions), and two of three signs (J^2 = +1, J gamma = -gamma J) are already verified
+**If all algebraic routes fail:**
+- Use Method 5 (Bootstrap) + Method 6 (Constructor theory)
+- Because these provide a selection-based closure weaker than a theorem but stronger than v7.0's narrowing
 
 ---
 
 ## Method Details
 
-### Method 1: Direct Axiom Verification for Finite Real Spectral Triples
+### Method 1: Explicit Peirce Multiplication Computation
 
-**What:** Systematically verify all axioms of a real spectral triple (A, H, D, J, gamma) when A and H are finite-dimensional. In finite dimensions, all axioms reduce to algebraic identities between matrices.
+**What:** Compute the Peirce multiplication L_a: V_{1/2} -> V_{1/2} defined by L_a(x) = a . x (Jordan product) for elements a in V_1 that carry complex structure from the observer's C*-nature. The key question: when a in V_1 is promoted from a real scalar alpha * E_{11} to an element carrying complex structure (via the observer's identification as M_n(C)^sa), does L_a transmit that complex structure to V_{1/2}?
 
 **Mathematical basis:**
 
-A real spectral triple of KO-dimension d (mod 8) consists of:
+The Peirce multiplication L_{E_{11}}: h_3(O) -> h_3(O) acts as:
 
-1. **Algebra representation:** A unital *-algebra A with a faithful *-representation pi: A -> B(H)
-2. **Grading:** A self-adjoint unitary gamma on H with gamma^2 = 1, such that [gamma, pi(a)] = 0 for all a in A (even spectral triple)
-3. **Real structure:** An antilinear isometry J: H -> H satisfying:
-   - J^2 = epsilon * 1
-   - J gamma = epsilon'' * gamma J
-   - JD = epsilon' * DJ
-   where (epsilon, epsilon', epsilon'') are determined by d mod 8
-4. **Dirac operator:** A self-adjoint operator D on H with:
-   - {D, gamma} = 0 (D anticommutes with gamma, i.e., D is odd)
-   - [D, pi(a)] is bounded for all a in A (automatic in finite dims)
-5. **Order zero condition:** [pi(a), J pi(b*) J^{-1}] = 0 for all a, b in A
-6. **First-order condition:** [[D, pi(a)], J pi(b*) J^{-1}] = 0 for all a, b in A
+    L_{E_{11}}(X) = E_{11} . X = (1/2)(E_{11} X + X E_{11})
 
-**KO-dimension sign table (mod 8):**
+On V_{1/2}, this is the identity scaled by 1/2 (by definition of the eigenvalue-1/2 space). The crucial computation is what happens when we consider an element of V_1 that has been "complexified" by the observer.
 
-| d mod 8 | epsilon (J^2) | epsilon' (JD) | epsilon'' (J gamma) |
-|---------|---------------|---------------|---------------------|
-| 0       | +1            | +1            | +1                  |
-| 1       | +1            | -1            | --                  |
-| 2       | -1            | +1            | +1                  |
-| 3       | -1            | +1            | --                  |
-| 4       | -1            | +1            | -1                  |
-| 5       | -1            | -1            | --                  |
-| 6       | +1            | +1            | -1                  |
-| 7       | +1            | +1            | --                  |
+The v8.0 insight: Paper 5 proves the observer's state space is M_n(C)^sa. The observer occupies V_1 = R * E_{11} inside h_3(O). The observer's internal algebra is a C*-algebra over C. When the observer acts on V_{1/2} via Peirce multiplication, the action map
 
-For this project: KO-dimension 6 requires (epsilon, epsilon', epsilon'') = (+1, +1, -1).
-Already verified: J^2 = +1 and J gamma = -gamma J. Remaining: JD = +DJ (depends on D construction).
+    L: V_1 -> End_R(V_{1/2})
 
-**Verification procedure for our construction:**
+is R-linear (mapping the 1-dimensional V_1 into the 256-dimensional End_R(O^2)). The question is whether the C-structure of the observer's algebra (external to h_3(O)) can be pulled back through L to give V_{1/2} a complex structure.
 
-Step 1: Write J, gamma, pi(a) as explicit matrices on H = C^{2n^2}.
-Step 2: Verify gamma^2 = 1 and [gamma, pi(a)] = 0. (gamma = diag(P, -P) in particle/antiparticle block form; P commutes with a tensor 1.)
-Step 3: Compute pi_o(b) = J pi(b*) J^{-1} for general b in M_n(C).
-Step 4: Check [pi(a), pi_o(b)] = 0 for all a, b (order zero).
-Step 5: Parameterize D subject to D* = D and D gamma = -gamma D.
-Step 6: Impose JD = DJ to further constrain D.
-Step 7: For the surviving D, check the first-order condition.
+**Concrete computation needed:**
 
-**Cost:** O(n^4) matrix multiplications for each axiom check at dimension n. For n=4 (SM candidate), matrices are 32x32 -- trivially computable.
+Step 1: Write V_1 = R * E_{11}. The observer identifies V_1 with a subalgebra of M_n(C)^sa. Since dim(V_1) = 1, this identification is V_1 = R = center of M_n(C)^sa restricted to 1-dimensional real multiples of the identity.
+
+Step 2: The Peirce map L: V_1 -> End_R(V_{1/2}) sends alpha * E_{11} to the map x -> (alpha/2) x. This is scalar multiplication by alpha/2.
+
+Step 3: The image of L in End_R(V_{1/2}) is R * id_{V_{1/2}} -- the real scalar multiples of the identity. This is 1-dimensional.
+
+Step 4 (critical): The observer's C*-nature gives it access to i (the imaginary unit). But i * E_{11} is NOT in h_3(O) -- it would be i * E_{11}, which is a skew-Hermitian matrix, not Hermitian. So i * E_{11} is not in V_1.
+
+**This is precisely the V_1 = R bottleneck that killed v6.0 routes.**
+
+**Assessment:** Direct Peirce multiplication through V_1 cannot transmit complex structure because V_1 = R * E_{11} is 1-dimensional real and does not contain the imaginary unit i * E_{11} (which is skew-Hermitian, hence outside h_3(O)). The Peirce product is an operation WITHIN h_3(O), and h_3(O) is a real algebra. No amount of external C*-structure changes the fact that the Jordan product a . x with a in V_1 subset h_3(O) and x in V_{1/2} subset h_3(O) produces a result in h_3(O), which is real.
 
 **Known failure modes:**
-- The naive algebra action pi(a)(psi, chi) = (a tensor 1)(psi, chi) may fail the order zero condition. The fix: modify the action on the antiparticle sector to use the contragredient representation pi(a)(psi, chi) = ((a tensor 1)psi, (a-bar tensor 1)chi), where a-bar is the complex conjugate. This is standard in Connes' framework.
-- Missing the grading compatibility: the representation pi must be EVEN, meaning [gamma, pi(a)] = 0. Since gamma = diag(P, -P) and pi(a) = diag(a tensor 1, ?), the action on the antiparticle sector must also commute with P.
+- Attempting to use i * E_{11} as a Peirce multiplier: fails because i * E_{11} is not in h_3(O)
+- Attempting to extend L to a C-linear map: L is only defined on V_1 subset h_3(O), not on V_1^C
+- Confusing the observer's internal C*-structure with its V_1 slot inside h_3(O)
 
-**Confidence:** HIGH. This is the standard verification procedure described in van Suijlekom (2024), Chapters 2-3. All steps are explicit finite-dimensional linear algebra.
+**Cost:** Straightforward computation. The result is almost certainly negative (same bottleneck as v6.0). Time: 1-2 hours to verify rigorously.
 
-**Key references:**
-- Connes, "Noncommutative geometry and reality," J. Math. Phys. 36, 6194-6231 (1995)
-- van Suijlekom, "Noncommutative Geometry and Particle Physics," 2nd ed., Springer (2024), Chapters 2-4
-- Barrett, "Matrix geometries and fuzzy spaces as finite spectral triples," arXiv:1502.05383
-
----
-
-### Method 2: Bimodule Decomposition and Krajewski Diagrams
-
-**What:** Decompose the Hilbert space H into irreducible A-bimodules (equivalently, irreducible representations of A tensor A^o) to classify all compatible Dirac operators. Encode the result as a Krajewski diagram.
-
-**Mathematical basis:**
-
-For A = M_n(C), the irreducible representations are all equivalent to the fundamental representation on C^n. The opposite algebra A^o = M_n(C)^o is anti-isomorphic to A; it acts on the conjugate space C^n-bar.
-
-An A-A^o bimodule is equivalent to a left A tensor A^o module. Since A tensor A^o = M_n(C) tensor M_n(C)^o, the irreducible bimodules are labeled by pairs (i, j) of irreducible representations of A and A^o respectively.
-
-For our H = (C^n tensor C^n)_particle + (C^n tensor C^n)_antiparticle:
-- The left A-action is pi(a) = a tensor 1 on each C^n tensor C^n factor
-- The right A^o-action (via J) is pi_o(b) = J pi(b*) J^{-1}
-- The bimodule decomposition determines which "off-diagonal" blocks D can connect
-
-**Krajewski diagram rules:**
-- Vertices: labeled by pairs (p, q) where p indexes the representation of A on the left and q the representation of A^o on the right
-- Edges: connect vertices that D can couple (off-diagonal blocks of D in the bimodule decomposition)
-- The grading gamma assigns +1 or -1 to each vertex
-- D can only connect vertices of opposite grading
-- The first-order condition constrains which edges are allowed
-
-**For our construction:**
-1. Identify how many irreducible A-A^o bimodule summands appear in H
-2. Assign gamma eigenvalues to each summand
-3. Draw the Krajewski diagram
-4. Read off the allowed D structure
-5. The first-order condition further constrains edges
-
-**Cost:** The decomposition is O(n^2) in representation-theoretic complexity. For A = M_n(C), the bimodule structure is determined by how J intertwines the left and right actions.
-
-**Regime of validity:** Works for any finite-dimensional *-algebra A. For semisimple A (our case), the decomposition is completely determined by the multiplicity matrix.
-
-**Confidence:** HIGH. Krajewski diagrams are the standard classification tool for finite spectral triples, introduced by Krajewski (arXiv:hep-th/9701081) and systematized by Cacic (arXiv:0902.2068) and van Suijlekom (2024, Chapter 4).
+**Confidence:** HIGH that this route fails. The V_1 = R bottleneck is structural.
 
 **Key references:**
-- Krajewski, "Classification of finite spectral triples," arXiv:hep-th/9701081
-- Cacic, "Moduli spaces of Dirac operators for finite spectral triples," arXiv:0902.2068
-- Paschke & Sitarz, "Discrete spectral triples and their symmetries," J. Math. Phys. 39, 6191 (1998)
+- Baez, "The Octonions," Bull. Amer. Math. Soc. 39 (2002), Section 3.4 (Peirce decomposition)
+- Yokota, arXiv:0902.0431 (Exceptional Lie groups, explicit Peirce computation)
 
 ---
 
-### Method 3: Computing the Opposite Algebra Action
+### Method 2: Commutant Analysis and Schur's Lemma for Spin(9) on V_{1/2}
 
-**What:** For our specific J = (PC)(sector-swap), compute the opposite algebra action pi_o(b) = J pi(b*) J^{-1} explicitly and verify the order zero condition.
-
-**Mathematical basis:**
-
-Given:
-- pi(a)(psi, chi) = ((a tensor 1)psi, f(a)(chi)) where f(a) is the action on the antiparticle sector (to be determined)
-- J(psi, chi) = (PC chi-bar, PC psi-bar) where PC: v tensor w -> w-bar tensor v-bar (swap + conjugate)
-- J^{-1} = J (since J^2 = 1)
-
-Compute pi_o(b) = J pi(b*) J^{-1}:
-
-Step 1: J^{-1}(psi, chi) = (PC chi-bar, PC psi-bar)  [same as J]
-Step 2: pi(b*)(PC chi-bar, PC psi-bar) = ((b* tensor 1)(PC chi-bar), f(b*)(PC psi-bar))
-Step 3: Apply J to the result
-
-The key subtlety: b* tensor 1 acting on PC chi-bar. Since PC maps v tensor w to w-bar tensor v-bar, we need:
-(b* tensor 1)(w-bar tensor v-bar) = (b* w-bar) tensor v-bar
-
-Then PC applied to this gives: v tensor (b* w-bar)-bar = v tensor (b-transpose w) [using (b* w-bar)-bar = b^T w].
-
-So the opposite action is effectively 1 tensor b^T on the original space, which commutes with a tensor 1. This is exactly the standard result: for matrix algebras with J = complex conjugation + SWAP, the opposite algebra acts as 1 tensor b^T.
-
-**The order zero condition [a tensor 1, 1 tensor b^T] = 0 holds automatically** for any a, b in M_n(C), because operators on different tensor factors commute.
-
-**Critical check:** This analysis assumes the algebra acts as a tensor 1 on BOTH sectors, or that the action on the antiparticle sector is chosen compatibly. If the action on the antiparticle sector differs (e.g., contragredient: a-bar tensor 1), then pi_o(b) on the antiparticle sector may differ, and the computation must be redone.
-
-**Confidence:** HIGH for the mathematical technique. MEDIUM for applicability to our specific J, because the sector-swap in J introduces cross-terms between particle and antiparticle sectors that must be tracked carefully.
-
----
-
-### Method 4: Parameterizing and Constraining the Dirac Operator
-
-**What:** Find all self-adjoint operators D on H = C^{2n^2} satisfying D gamma = -gamma D and JD = DJ, then identify which are natural from the self-modeling structure.
+**What:** Determine the real endomorphism algebra End_{Spin(9)}(V_{1/2}) -- the algebra of R-linear maps V_{1/2} -> V_{1/2} that commute with the Spin(9) action. By Schur's lemma for real representations, this endomorphism algebra is R, C, or H. If it is C or H, then V_{1/2} admits a complex structure J (with J^2 = -1) that commutes with Spin(9), giving V_{1/2} a canonical complex module structure.
 
 **Mathematical basis:**
 
-In block form with respect to gamma eigenspaces H = H_+ + H_-:
+V_{1/2} = O^2 is the unique real 16-dimensional irreducible spinor representation S_9 of Spin(9). The classification of this representation determines its type:
 
-gamma = diag(1_{H_+}, -1_{H_-})
+The Frobenius-Schur indicator (or equivalently, the structure of the commutant) for S_9 depends on the Clifford algebra structure. Spin(9) sits inside Cl(9). The real Clifford algebra Cl(9,0) is isomorphic to M_{16}(R) (the 16x16 real matrices). This means:
 
-D gamma = -gamma D forces D to be off-diagonal:
+- Cl(9,0) = M_{16}(R) acts irreducibly on R^{16} = S_9
+- The commutant of Cl(9,0) in End_R(R^{16}) is just R (the center of M_{16}(R))
+- Therefore End_{Spin(9)}(S_9) contains End_{Cl(9,0)}(S_9) = R
 
-D = | 0    M* |
-    | M    0  |
+But End_{Spin(9)}(S_9) could be larger than End_{Cl(9,0)}(S_9) since Spin(9) is a proper subgroup of Cl(9,0)^x. The question is: does Spin(9) generate all of M_{16}(R) under the representation, or only a proper subalgebra?
 
-where M: H_+ -> H_- and D is self-adjoint iff D has this block form with M arbitrary.
+For Spin(n) representations: Spin(9) generates the even Clifford algebra Cl^+(9,0) = Cl(8,0) = M_{16}(R). Since Cl^+(9,0) = M_{16}(R) acts irreducibly on R^{16}, the commutant is End_{Cl^+(9,0)}(R^{16}) = R.
 
-For our grading gamma = diag(P, -P), the +1 eigenspace is:
-- H_+ = Sym^2(C^n)_particle + wedge^2(C^n)_antiparticle
+**Result:** End_{Spin(9)}(S_9) = R.
 
-and the -1 eigenspace is:
-- H_- = wedge^2(C^n)_particle + Sym^2(C^n)_antiparticle
+This means S_9 = V_{1/2} is of REAL TYPE. There is no Spin(9)-equivariant complex structure J on V_{1/2}. The representation does not intrinsically carry complex structure.
 
-So dim(H_+) = n(n+1)/2 + n(n-1)/2 = n^2, and similarly dim(H_-) = n^2.
+**Implications:** The complexification S_9 tensor_R C = S_9^C is an irreducible complex representation of Spin(9). When complexified, it becomes the restriction S_{10}^+|_{Spin(9)} of the Weyl spinor of Spin(10). But this complexification is not FORCED by the Spin(9) action -- it requires external input (the complex structure u in S^6, or the observer's C*-nature, or some other mechanism).
 
-M is therefore an n^2 x n^2 complex matrix, with n^4 real parameters (after self-adjointness of D).
+**What this method DOES establish:**
+- V_{1/2} does NOT have an intrinsic complex structure from its representation theory
+- Any complexification must come from OUTSIDE the Spin(9) representation theory
+- This rules out methods that try to find complex structure purely from the stabilizer group action
 
-The condition JD = DJ further constrains M. Since J mixes particle and antiparticle sectors, this imposes relations between the sub-blocks of M connecting:
-- Sym^2_particle -> wedge^2_particle (within particle sector)
-- wedge^2_antiparticle -> Sym^2_antiparticle (within antiparticle sector)
-- Cross-sector terms
+**What this method does NOT establish:**
+- Whether the observer's C*-nature provides the external input needed
+- Whether the Peirce product, combined with external C*-structure, forces complexification
 
-**Natural candidate from self-modeling:**
-The sequential product asymmetry operator: for a in M_n(C)^sa,
-  (L_a - R_a)(b) = sqrt(a) b sqrt(a) - sqrt(b) a sqrt(b)
+**Cost:** Standard representation theory computation. The Clifford algebra periodicity table gives the answer directly. Time: 30 minutes.
 
-This is antisymmetric under SWAP (P(L_a - R_a)P = -(L_a - R_a) when acting on C^n tensor C^n via the identification b -> b as matrix = element of C^n tensor C^n). Therefore it maps Sym^2 <-> wedge^2, giving D gamma = -gamma D.
-
-**Procedure:**
-1. Write D in block form with respect to gamma eigenspaces
-2. Impose D* = D (self-adjointness)
-3. Impose JD = DJ (compute J in the same block decomposition)
-4. Count free parameters -- this gives the moduli space of Dirac operators
-5. Check whether the sequential product asymmetry candidate lies in this space
-6. If yes, compute [D, a] for general a in A
-
-**Cost:** For n=4 (SM candidate), D is parameterized by a 16x16 complex matrix M with JD = DJ constraints. The constraint system is a set of linear equations -- solved by null space computation.
-
-**Confidence:** HIGH. The block decomposition method is standard (Barrett arXiv:1502.05383, van Suijlekom 2024 Chapter 3). The sequential product candidate is novel to this project but the verification method is standard.
+**Confidence:** HIGH. The Clifford algebra classification Cl(9,0) = M_{16}(R) is textbook material (Lawson-Michelsohn, Chapter I).
 
 **Key references:**
-- Barrett, "Matrix geometries and fuzzy spaces as finite spectral triples," arXiv:1502.05383
-- van Suijlekom (2024), Chapter 3: "Finite Real Noncommutative Spaces"
+- Lawson & Michelsohn, "Spin Geometry," Princeton University Press (1989), Table I.4.3
+- Atiyah, Bott, Shapiro, "Clifford modules," Topology 3, Suppl. 1, 3-38 (1964)
+- Harvey, "Spinors and Calibrations," Academic Press (1990)
 
 ---
 
-### Method 5: First-Order Condition and Subalgebra Identification
+### Method 3: Frobenius-Schur Indicator for S_9
 
-**What:** Given D, find the maximal subalgebra A_F of A = M_n(C) satisfying the first-order condition [[D, pi(a)], J pi(b*) J^{-1}] = 0 for all b in A.
+**What:** Compute the Frobenius-Schur indicator for the spinor representation S_9 of Spin(9) to independently confirm its type (real/complex/quaternionic).
 
 **Mathematical basis:**
 
-The first-order condition says: for each a in A_F, the operator [D, pi(a)] must commute with the entire opposite algebra pi_o(A) = J pi(A*) J^{-1}.
+For Spin(n) representations, the Frobenius-Schur indicator is determined by the dimension n mod 8 via the Clifford algebra periodicity:
 
-Since pi_o(A) = {1 tensor b^T : b in M_n(C)} (from Method 3), this means:
+| n mod 8 | Cl(n,0) | S_n type | End_{Spin(n)}(S_n) | F-S indicator |
+|---------|---------|----------|-------------------|---------------|
+| 0 | M_{2^{n/2}}(R) | real, reducible (two Weyl) | R for each | +1 |
+| 1 | M_{2^{(n-1)/2}}(R) | real, irreducible | R | +1 |
+| 2 | M_{2^{n/2-1}}(R) x M_{2^{n/2-1}}(R) | real, two inequiv Weyl | R for each | +1 |
+| 3 | M_{2^{(n-3)/2}}(H) | quaternionic, irreducible | H | -1 |
+| 4 | M_{2^{n/2-1}}(H) | quaternionic, reducible | H for each | -1 |
+| 5 | M_{2^{(n-3)/2}}(H) x M_{2^{(n-3)/2}}(H) | quaternionic, two inequiv Weyl | H for each | -1 |
+| 6 | M_{2^{n/2-1}}(C) | complex, reducible | C for each Weyl | 0 |
+| 7 | M_{2^{(n-1)/2}}(C) | complex, irreducible | C | 0 |
 
-[[D, a tensor 1], 1 tensor b^T] = 0 for all b in M_n(C)
+For n = 9: 9 mod 8 = 1. Therefore:
+- Cl(9,0) = M_{16}(R)
+- S_9 is real type, irreducible
+- End_{Spin(9)}(S_9) = R
+- Frobenius-Schur indicator = +1
 
-This is equivalent to: [D, a tensor 1] commutes with all operators of the form 1 tensor b^T, which means [D, a tensor 1] must be of the form c tensor 1 for some c. In other words, [D, a tensor 1] must act trivially on the second tensor factor.
+**Comparison with n = 10:** 10 mod 8 = 2. Cl(10,0) has Weyl spinors that are real type. But the complexified story is different: Spin(10) has complex Weyl representations S_{10}^+ (dim_C = 16) which restrict to S_9^C under Spin(9).
 
-**Algorithm (Chamseddine-Connes method):**
-1. Compute [D, e_{ij} tensor 1] for each matrix unit e_{ij} of M_n(C)
-2. Check whether [D, e_{ij} tensor 1] is of the form (something) tensor 1
-3. If not for all i,j: find the subset of a = sum a_{ij} e_{ij} for which sum a_{ij} [D, e_{ij} tensor 1] IS of the form c tensor 1
-4. This subset is the subalgebra A_F
-5. Identify A_F as an abstract algebra (by computing its structure constants)
+**The critical asymmetry:** S_9 is real type (F-S = +1), so it does NOT have an intrinsic complex structure. To get S_{10}^+ you must complexify externally. This confirms Method 2.
 
-**Alternative algorithm (null space method):**
-1. For each pair (a, b), the condition [[D, pi(a)], pi_o(b)] = 0 is linear in a
-2. Fix b and vary a: get a linear system. The solution space is A_F(b)
-3. Intersect over all b: A_F = intersection of A_F(b) over all b
-4. In practice, it suffices to check b ranging over a basis of A
+**Cost:** Table lookup. Time: 5 minutes.
 
-**What Chamseddine-Connes found (arXiv:0706.3688):**
-Starting from A = M_k(C) (before tensoring with continuous algebra), the first-order condition on D selects the subalgebra. For k=2: A_F = M_2(C) (no restriction). For k > 2 with a generic D: A_F is a proper subalgebra. The classification theorem states that for k=4 with KO-dimension 6 and quaternion linearity, the maximal subalgebra is C + H + M_3(C).
-
-**Key insight for our construction:**
-The starting algebra is M_n(C) acting on C^n tensor C^n. The classification theorem of Chamseddine-Connes-Marcolli says: among irreducible finite geometries of KO-dimension 6 (mod 8) with H of dimension k^2, the maximal subalgebra satisfying the first-order condition for an off-diagonal D is isomorphic to C + H + M_{k-2}(C) when k >= 4.
-
-For our construction, if k = n (matching our C^n tensor C^n decomposition), then:
-- n = 4 gives A_F = C + H + M_2(C) -- NOT the SM (need M_3(C))
-- n = 5 gives A_F = C + H + M_3(C) -- the SM algebra
-
-However, the dimension matching may be different because our H has dimension 2n^2, not n^2. The precise mapping between our construction and the Chamseddine-Connes framework needs explicit computation.
-
-**Cost:** O(n^6) for the brute-force method (n^2 basis elements of A, each requiring O(n^4) matrix operations). For n <= 6, this is trivially fast.
-
-**Confidence:** HIGH for the method. MEDIUM for predicting which n gives SM, because the mapping between our doubled Hilbert space and the Chamseddine-Connes setup is the core open question.
+**Confidence:** HIGH. Textbook-level result.
 
 **Key references:**
-- Chamseddine & Connes, "Why the Standard Model," arXiv:0706.3688
-- Chamseddine, Connes & Marcolli, "Gravity and the standard model with neutrino mixing," arXiv:hep-th/0610241
-- Connes, "Noncommutative geometry and the standard model with neutrino mixing," arXiv:hep-th/0608226
+- Lawson & Michelsohn (1989), Table I.4.3
+- Bott, "The periodicity theorem for the classical groups and some of its applications," Advances Math. 4 (1970)
 
 ---
 
-### Method 6: KO-Dimension Verification and Sign Consistency
+### Method 4: Module Extension Criteria -- When Does a C-Linear Action Force Complex Structure?
 
-**What:** Verify that all three sign relations (epsilon, epsilon', epsilon'') are simultaneously satisfied for KO-dimension 6 once D is constructed.
+**What:** Determine the precise mathematical conditions under which a C-linear algebra A acting on End_R(V) (through some representation) forces V itself to become a C-module.
 
 **Mathematical basis:**
 
-For KO-dimension 6: (epsilon, epsilon', epsilon'') = (+1, +1, -1).
+The general question: Let V be a real vector space, and let A be a C-algebra acting on V via an R-linear representation rho: A -> End_R(V). When does V inherit a C-module structure compatible with the A-action?
 
-Current status:
-- J^2 = +1: VERIFIED algebraically and independently of D
-- J gamma = -gamma J: VERIFIED algebraically and independently of D
-- JD = +DJ: DEPENDS ON D, must be checked after D construction
+**Theorem (Standard):** V becomes a C-module if and only if there exists J in End_R(V) with J^2 = -Id such that rho(i*a) = J * rho(a) for all a in A (or equivalently, rho(a) * J = rho(i*a) for the action). That is, the complex scalar multiplication of A must be intertwined by a complex structure on V.
 
-The verification of JD = DJ:
-1. Write J in matrix form on H = C^{2n^2}
-2. Write D in block form (from Method 4)
-3. Compute JD and DJ as explicit matrices
-4. Check equality
+**For the Peirce situation:** The observer's C*-algebra M_n(C)^sa acts on V_{1/2} via the Peirce multiplication map L: V_1 -> End_R(V_{1/2}). But V_1 = R * E_{11} is 1-dimensional, so L has 1-dimensional image. The C*-algebra structure of the observer lives in M_n(C)^sa, not in V_1. The action map L is defined only on V_1 subset h_3(O), not on M_n(C)^sa directly.
 
-**Additional KO-dimension consistency checks:**
-- The Hochschild homology condition (orientability): there exists a Hochschild d-cycle c such that pi(c) = gamma. For d=6 and finite algebras, this is automatically satisfied when gamma is in the image of the representation.
-- Poincare duality: the intersection form on K-theory is non-degenerate. For finite spectral triples, this reduces to checking that the multiplicity matrix is non-degenerate (has non-zero determinant).
+**The fundamental obstruction:** There is no natural map from the full C*-algebra M_n(C)^sa to End_R(V_{1/2}) that respects both the Jordan algebraic structure of h_3(O) and the C*-algebraic structure of the observer. The observer's C*-algebra and h_3(O) are different mathematical objects; the observer is embedded in h_3(O) via V_1, but V_1 is only the real shadow of the observer's full state space.
 
-**Confidence:** HIGH. This is a direct computation once D is known.
+**The key question reframed:** Can the observer's C-linearity be transported to V_{1/2} through some mechanism OTHER than direct Peirce multiplication through V_1?
+
+Candidate mechanisms:
+1. **Peirce multiplication by V_0 elements:** V_0 = h_2(O) is 10-dimensional. Elements of V_0 also act on V_{1/2} via the Peirce rules. If V_0 contains structure that transmits complex information... But V_0 = h_2(O) is again a real Jordan algebra.
+
+2. **Second-order Peirce products:** Maps of the form x -> a . (b . x) for a in V_1, b in V_0. These are R-linear but could combine to create a complex structure if the right combinations yield J^2 = -Id. This requires finding elements that compose to give a map squaring to -Id.
+
+3. **The octonion multiplication within V_{1/2}:** V_{1/2} = O^2, and each O factor has imaginary units e_1, ..., e_7. Left multiplication by any imaginary unit u (with u^2 = -1) on one O factor gives a map J_u: O -> O with J_u^2 = -Id. This is a complex structure on one copy of O. Extended to O^2, this gives a complex structure on V_{1/2}. But this uses the internal octonionic structure, not the observer's C*-structure.
+
+4. **The u in S^6 complex structure:** Choosing u in S^6 (a unit imaginary octonion) defines J_u on V_{1/2} via left multiplication. This is exactly Boyle's complexification step. The question is: does the observer's C*-nature SELECT a particular u, or is u independent extra data (Gap B2)?
+
+**Assessment:** The module extension criterion shows that forcing V to be a C-module requires a J in End_R(V) satisfying J^2 = -Id and intertwining the algebra action. For the Peirce situation, the natural J comes from octonionic multiplication (choice of u in S^6), not from the observer's C*-structure transmitted through Peirce multiplication. The C*-structure and the u-choice appear to be independent inputs.
+
+**Cost:** Medium. Requires careful analysis of all possible maps from observer algebra into End_R(V_{1/2}). Time: 3-5 hours.
+
+**Confidence:** MEDIUM. The negative conclusion (no forcing) is likely correct but needs rigorous proof that no other mechanism beyond direct Peirce multiplication can transmit complex structure.
+
+**Key references:**
+- Conrad, "Complexification," expository notes, UConn (standard complexification theory)
+- Alfsen & Shultz, "State Spaces of Operator Algebras," Birkhauser (2001), Ch. 8-9
+- Effros & Stormer, "Positive projections and Jordan structure in operator algebras," Math. Scand. 45 (1979)
+
+---
+
+### Method 5: Fixed-Point / Bootstrap Self-Consistency Argument
+
+**What:** Argue that the self-modeling loop has a unique self-consistent fixed point that requires complexification. The loop is: self-modeling -> complex QM (Paper 5) -> complex measurements -> complexification of V_{1/2} -> chirality -> chemistry -> substrates for self-modeling. If the loop only closes when V_{1/2} is complexified, then complexification is selected by self-consistency.
+
+**Mathematical basis:**
+
+The bootstrap argument has the structure of a fixed-point problem. Define a map F on the space of possible physical configurations:
+
+    F: {real V_{1/2}, complex V_{1/2}} -> {real V_{1/2}, complex V_{1/2}}
+
+where F encodes: "Given the current state of V_{1/2}, does the resulting physics support self-modeling observers whose measurements are consistent with that state?"
+
+The argument would proceed:
+1. If V_{1/2} is real: no chirality -> no SM gauge group -> no complex chemistry -> no biological substrates -> no self-modelers -> contradiction with the assumption that we are in a block with rho_exp > 0.
+2. If V_{1/2} is complex: chirality -> SM -> chemistry -> biology -> self-modelers -> consistent.
+
+Therefore F has a unique fixed point: complexified V_{1/2}.
+
+**Strengths:**
+- Does not require algebraic forcing through Peirce multiplication
+- Uses the full causal chain from complexification to self-modeling
+- Consistent with v7.0's selection-based narrowing but goes further by closing the loop
+
+**Weaknesses:**
+- Step 1 has a gap: "no chirality -> no self-modelers" is not proved. Non-chiral physics might support self-modelers through different mechanisms (not chemistry-based). This is the same gap v7.0 identified.
+- The argument is an anthropic/selection argument, not an algebraic theorem. It cannot exclude non-SM self-modelers in non-complexified blocks.
+- The causal chain "no chirality -> no complex chemistry" involves multiple steps, each requiring justification.
+
+**When to use:** As the primary backup if Methods 1-4 all fail to provide algebraic forcing. The bootstrap argument is stronger than v7.0's narrowing because it attempts to close the full self-consistency loop, but it is weaker than a theorem because it relies on physical claims about chemistry and biology.
+
+**Formalization difficulty:** The hardest step to formalize is "no chirality -> no chemistry -> no self-modelers." This requires:
+- Showing that chiral weak interactions are necessary for nucleosynthesis (established: without parity violation, Big Bang produces too much helium or no stable nuclei -- this is model-dependent but supported by literature)
+- Showing that complex chemistry requires specific nuclear abundances (established in anthropic literature)
+- Showing that self-modeling requires complex chemistry (not established -- purely information-processing self-modelers might not need chemistry)
+
+**Cost:** Medium-high. Requires surveying anthropic/fine-tuning literature for the chirality-chemistry link. Time: 5-10 hours.
+
+**Confidence:** LOW-MEDIUM. The argument is plausible but has genuine gaps in the causal chain.
+
+**Key references:**
+- Barrow & Tipler, "The Anthropic Cosmological Principle," Oxford (1986)
+- Deutsch & Marletto, "Constructor Theory of Information," arXiv:1405.5563 (2014)
+- Hogan, "Why the universe is just so," Rev. Mod. Phys. 72 (2000)
+
+---
+
+### Method 6: Constructor Theory Impossibility Argument
+
+**What:** Use constructor theory's framework of possible/impossible transformations to argue that a non-complexified V_{1/2} cannot support the information-processing tasks required for self-modeling.
+
+**Mathematical basis:**
+
+Constructor theory (Deutsch-Marletto) reformulates physics in terms of which transformations are possible and which are impossible, and WHY. A "constructor" is an entity that can cause a transformation and retain the ability to cause it again.
+
+The argument structure:
+1. Self-modeling requires information processing (the model M must store and update information about the body B).
+2. Information processing requires a "super-information medium" -- a medium on which certain additional tasks (universal computation, reliable storage) are possible.
+3. In the h_3(O) framework, the information medium is the state space of the observer's description of V_{1/2}.
+4. Claim: on real V_{1/2} = O^2 (without complexification), the available transformations are too restricted to support universal computation / reliable information storage, because the symmetry group Spin(9) acting on real S_9 does not have the representational capacity of Spin(10) acting on complex S_{10}^+.
+
+**Critical gap:** Step 4 is not obviously true. Real vector spaces can support universal computation (classical computers use real-valued voltages). The claim would need to be that WITHIN the h_3(O) framework, the physics on non-complexified V_{1/2} lacks specific features (like gauge interactions enabling error correction, or chiral fermion dynamics enabling stable matter) that are necessary for constructing self-modelers.
+
+**When to use:** As a formal framework for the bootstrap argument (Method 5). Constructor theory provides the mathematical language for "X is necessary for Y" claims in terms of possible/impossible task characterizations. It makes the anthropic argument more rigorous by replacing "self-modelers need chemistry" with "self-modeling is a task that requires a super-information medium, and non-complexified physics does not provide one."
+
+**Cost:** High. Requires formalizing self-modeling as a constructor-theoretic task and showing that non-complexified physics cannot support it. This is genuinely new theoretical work. Time: 10-20 hours.
+
+**Confidence:** LOW. The formalization has not been done and may not be achievable with current constructor theory tools.
+
+**Key references:**
+- Deutsch, "Constructor Theory," arXiv:1210.7439 (2012)
+- Deutsch & Marletto, "Constructor Theory of Information," arXiv:1405.5563 (2014)
+- Marletto, "The Science of Can and Can't," Viking (2021)
+
+---
+
+### Method 7: Observable Algebra Analysis
+
+**What:** Investigate whether the observer's observable algebra (the set of measurements it can perform on V_{1/2}) necessarily yields C-valued outcomes that force a complex description of V_{1/2}.
+
+**Mathematical basis:**
+
+The observer is M_n(C)^sa. Its effects (measurement outcomes) are elements of M_n(C)^sa satisfying 0 <= E <= I. These effects are complex-linear functionals when viewed as maps on the state space.
+
+When the observer measures V_{1/2}, it applies a measurement map:
+
+    mu: V_{1/2} -> [0,1]
+
+This map is determined by the Jordan algebraic pairing between V_1 and V_{1/2}. Specifically, for a state x in V_{1/2} and an effect E in V_1, the measurement outcome is:
+
+    mu_E(x) = Tr(E . x) or similar Jordan algebraic pairing
+
+The question: are the measurement outcomes always real-valued (so no complex structure is transmitted), or does the C*-nature of the observer force complex-valued intermediate quantities that effectively complexify V_{1/2}?
+
+**Key distinction:** The measurement OUTCOMES (probabilities) are always real (they are in [0,1]). But the measurement MAPS, viewed as elements of the dual space V_{1/2}^*, could carry structure beyond what real-valued outcomes suggest. Specifically, if the observer's measurement maps span a complex subspace of Hom_R(V_{1/2}, C) rather than just Hom_R(V_{1/2}, R), this would mean the observer's description of V_{1/2} is inherently complex.
+
+**But:** Since V_1 = R * E_{11} is 1-dimensional, the observer has only ONE independent measurement on V_{1/2} via direct Peirce pairing: the norm ||x||^2 of the V_{1/2} component. This is a single real number. The observer can measure the "size" of V_{1/2} but not its internal structure (all 16 real dimensions are equivalent under the Spin(9) symmetry that the observer's E_{11} choice leaves unbroken). To measure internal structure of V_{1/2}, the observer needs to break Spin(9) further (e.g., by choosing u in S^6, which breaks Spin(9) -> G_2 -> SU(3)).
+
+**Assessment:** The observable algebra analysis confirms the bottleneck: the observer's Peirce slot V_1 is too small (1-dimensional) to carry enough structure to probe V_{1/2}'s internal degrees of freedom. The observer's C*-nature gives it a rich internal algebra, but the interface to V_{1/2} (the Peirce product) is a narrow funnel through the 1-dimensional V_1.
+
+**Cost:** Medium. Time: 3-5 hours.
+
+**Confidence:** MEDIUM-HIGH. This method clarifies WHY algebraic forcing fails but does not provide a positive route to complexification.
+
+**Key references:**
+- Alfsen & Shultz, "Geometry of State Spaces of Operator Algebras," Birkhauser (2003)
+- Barnum, Graydon & Wilce, "Composites and Categories of Euclidean Jordan Algebras," Quantum 4, 359 (2020), arXiv:1606.09331
 
 ---
 
@@ -330,21 +324,21 @@ The verification of JD = DJ:
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|------------------------|
-| Direct matrix computation | Abstract C*-algebra methods | Never for finite dims -- direct computation is simpler, more transparent, and catches errors |
-| Krajewski diagrams | Exhaustive search over all D | Only if the Krajewski diagram approach fails to constrain D sufficiently (unlikely for our specific A) |
-| First-order condition for subalgebra | Postulating A_F and checking | Only as a sanity check AFTER the systematic method identifies A_F; never as the primary method |
-| Sequential product asymmetry for D | Generic off-diagonal D | Use generic D for classification; sequential product D for physical interpretation |
-| SymPy symbolic verification | Pen-and-paper only | Never skip computational verification; SymPy catches sign errors that pen-and-paper misses |
+| Commutant analysis for S_9 type | Direct computation of Spin(9) characters | Never -- Clifford algebra periodicity is faster and more reliable than character sums for spin representations |
+| Explicit Peirce computation in h_3(O) | Abstract categorical argument about Jordan functors | Never -- h_3(O) is exceptional and does not fit into general categorical frameworks cleanly |
+| Fixed-point bootstrap (Method 5) | Pure anthropic reasoning without formalization | Only as a last resort -- anthropic arguments without mathematical structure are not publishable |
+| Constructor theory (Method 6) | Penrose-type "gravitational OR" arguments | Never for this project -- gravitational OR is about decoherence, not complexification |
+| Module extension criteria (Method 4) | Extending h_3(O) to h_3(O)^C and working in the complexified algebra | Only if reframing the question: asking "does the observer select a REAL FORM of h_3(O)^C?" rather than "does the observer complexify V_{1/2}?" These are different questions with different answers |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Infinite-dimensional spectral triple methods | Entire construction is finite-dimensional; Dirac operator is a matrix, not an unbounded operator; no analysis needed | Direct matrix algebra |
-| Spectral action computation at this stage | Premature -- need D first, and spectral action is a consequence, not an input | Axiom verification first; spectral action only after D is fully determined |
-| Fuzzy sphere methods | Our algebra is M_n(C) on a tensor product, not on a fuzzy sphere; different geometry | Krajewski/bimodule decomposition for our specific representation |
-| Ad hoc Dirac operator guessing | Unprincipled; the bimodule decomposition constrains D systematically | Method 4 (systematic parameterization) + physical candidate from sequential product |
-| Twisted spectral triples | Generalization not needed unless standard axioms fail; adds unnecessary complexity | Standard (untwisted) axioms first; twist only if forced by failure |
+| Conditional expectations (Effros-Stormer) applied to V_1 -> V_{1/2} | Already tried in v6.0 Route 1; fails because Peirce interface is scalar, no complex structure transmittable | Method 4 (module extension criteria) for the general algebraic question |
+| State-effect duality on V_1 | Already tried in v6.0 Route 2; V_1 = R is 1-dim, only real inner product | Method 7 (observable algebra) which addresses the full measurement structure |
+| GNS construction from V_1 states | Already tried in v6.0 Route 3; exceptional status + rank-1 Peirce bottleneck blocked it | Method 2 (commutant analysis) which bypasses GNS entirely |
+| Generic tensor product A tensor_R V_{1/2} | Already tried in v6.0 Route 4; algebraic tautology, not h_3(O)-specific | Method 1 (explicit Peirce computation) which stays inside h_3(O) |
+| Treating V_{1/2} as a module over the full h_3(O) | h_3(O) is exceptional and not associative; module theory for non-associative algebras is poorly developed and unlikely to yield clean results | Stay with Peirce multiplication (well-defined operations) rather than attempting general module theory |
 
 ---
 
@@ -352,21 +346,38 @@ The verification of JD = DJ:
 
 | Method | Validation Approach | Key Benchmarks |
 |--------|--------------------|-----------------|
-| Order zero condition | Compute [pi(a), pi_o(b)] for all basis elements at n=2,3; must be exactly zero | Connes' SM spectral triple has order zero satisfied for A_F = C + H + M_3(C) on H_F = C^{32} |
-| Dirac operator construction | Check D gamma = -gamma D and JD = DJ; verify D* = D; compute spectrum of D | For the SM triple, D has eigenvalues related to Yukawa coupling matrices |
-| First-order condition | For identified A_F, verify [[D,a], pi_o(b)] = 0 for all a in A_F, b in A; then check A_F is MAXIMAL | Chamseddine-Connes: A_F = C + H + M_3(C) is the unique maximal subalgebra for k=4, KO-dim 6 |
-| KO-dimension | All three signs must match the table simultaneously | Standard: (J^2, JD, Jgamma) = (+1, +1, -1) for KO-dim 6 |
-| Krajewski diagram | Must reproduce the known diagram for comparable spectral triples | SM Krajewski diagram has 4 vertices with specific edge structure |
+| Method 1 (Peirce computation) | Verify L_{alpha E_{11}}(x) = (alpha/2)x for alpha in R, x in V_{1/2}; check all entries of 3x3 octonionic matrix | L_{E_{11}} is identity/2 on V_{1/2} (defining property) |
+| Method 2 (Commutant analysis) | Cross-check Cl(9,0) = M_{16}(R) against Clifford algebra periodicity table | Dim check: 2^9 = 512 = 16 * 32 = dim(M_{16}(R)) [correct: 16^2 = 256 != 512; Cl(9,0) is M_{32}(R) but the even part Cl^+(9,0) = M_{16}(R)] |
+| Method 3 (Frobenius-Schur) | Cross-check against known F-S indicators for low-rank Spin groups | Spin(8): S_8^+, S_8^-, S_8^v all real (triality); Spin(7): S_7 quaternionic (7 mod 8 = 7, complex type -- wait, need to recheck). Use the table directly. |
+| Method 4 (Module extension) | Test on known examples: C acting on R^2 via rotation gives complex structure; C acting on R^1 via real part does not | Standard linear algebra examples |
+| Method 5 (Bootstrap) | Check that the non-chiral physics prediction matches known anthropic constraints | Barrow-Tipler constraints on parity violation and nucleosynthesis |
 
 ### Cross-Checks
 
 | Check | Expected Result | If It Fails |
 |-------|----------------|-------------|
-| dim(A_F) | Should be 1 + 4 + 9 = 14 for C + H + M_3(C) | Different subalgebra; recheck D construction |
-| Gauge group from A_F | U(A_F) / center should give U(1) x SU(2) x SU(3) | Different gauge group; still publishable if spectral triple is valid |
-| KO-dim 6 at general n | All sign relations hold independently of n | If n-dependent, the construction is not robust |
-| Order zero at general n | Should hold for ALL n, not just specific values | If only specific n: constraint on the framework |
-| Bimodule structure | H should decompose as a direct sum of irreducible A-A^o bimodules with non-trivial multiplicities | Trivial decomposition means D is too constrained |
+| End_{Spin(9)}(S_9) = R | Confirmed by Cl(9,0) periodicity | If End_{Spin(9)}(S_9) = C or H, then V_{1/2} has intrinsic complex structure -- this would be major and change everything |
+| V_1 = R * E_{11} is 1-dim | Confirmed by Peirce decomposition | Cannot fail -- this is the definition of the eigenvalue-1 space |
+| L_{E_{11}} acts as scalar on V_{1/2} | Confirmed by Peirce axioms | Cannot fail -- eigenvalue-1/2 property |
+| Complexification V_{1/2}^C = S_{10}^+ | Confirmed by branching rule Spin(10) -> Spin(9) | Cannot fail -- standard representation theory |
+
+---
+
+## Synthesis: Expected Outcome and Strategy
+
+**Most likely outcome:** Methods 1-4 will confirm that algebraic forcing of complexification through Peirce multiplication FAILS, for the same fundamental reason it failed in v6.0: the Peirce interface V_1 = R is too narrow. The commutant analysis will confirm that V_{1/2} is real-type and has no intrinsic complex structure.
+
+**Recommended strategy given this likely outcome:**
+
+1. **First (1-2 hours):** Run Methods 1-3 to definitively establish the algebraic situation. Document the precise obstruction.
+
+2. **Second (3-5 hours):** Run Method 4 to determine if ANY mechanism (beyond direct Peirce multiplication through V_1) can transmit complex structure. Investigate whether the observer's interaction with V_{1/2} through HIGHER-ORDER operations (e.g., triple products, quadratic representations) provides additional structure.
+
+3. **Third (if algebraic forcing fails, 5-10 hours):** Run Methods 5-6 (bootstrap + constructor theory) to establish the strongest possible selection-based argument. The goal here is to upgrade v7.0's "narrowed" to something closer to "resolved via selection."
+
+4. **Fourth (ongoing):** Method 7 (observable algebra) to understand WHY the obstruction exists and whether it points to a deeper structural insight about the observer-universe relationship.
+
+**The honest assessment:** It is very likely that Gap C cannot be closed as a theorem. The V_1 = R bottleneck is genuine and structural. The best achievable result may be a rigorous selection/bootstrap argument (Methods 5-6) combined with a precise characterization of what additional structure would be needed for algebraic closure (Methods 1-4). This would upgrade v7.0's "narrowed" status while being honest about the remaining gap.
 
 ---
 
@@ -376,28 +387,32 @@ The verification of JD = DJ:
 # Core computational environment (already in project)
 pip install numpy scipy sympy
 
-# No additional specialized software needed -- all methods are
-# direct matrix algebra implementable in SymPy/NumPy.
-# The project already has SymPy verification infrastructure
-# from 658+ tests in v2.0.
+# No additional software needed -- all methods are
+# analytical/algebraic, implementable in SymPy for verification.
+# The project already has extensive SymPy infrastructure.
 ```
 
 ---
 
 ## Sources
 
-- Connes, "Noncommutative geometry and reality," J. Math. Phys. 36, 6194-6231 (1995). [PDF](https://alainconnes.org/wp-content/uploads/reality.pdf)
-- Chamseddine & Connes, "Why the Standard Model," J. Geom. Phys. 58, 38-64 (2008). [arXiv:0706.3688](https://arxiv.org/abs/0706.3688)
-- Chamseddine, Connes & Marcolli, "Gravity and the standard model with neutrino mixing," [arXiv:hep-th/0610241](https://arxiv.org/abs/hep-th/0610241)
-- Connes, "Noncommutative geometry and the standard model with neutrino mixing," [arXiv:hep-th/0608226](https://arxiv.org/abs/hep-th/0608226)
-- van Suijlekom, "Noncommutative Geometry and Particle Physics," 2nd ed., Springer (2024). [PDF](http://www.waltervansuijlekom.nl/wp-content/uploads/2024/02/ncgphysics2nd.pdf)
-- Krajewski, "Classification of finite spectral triples," [arXiv:hep-th/9701081](https://arxiv.org/abs/hep-th/9701081)
-- Cacic, "Moduli spaces of Dirac operators for finite spectral triples," [arXiv:0902.2068](https://arxiv.org/abs/0902.2068)
-- Barrett, "Matrix geometries and fuzzy spaces as finite spectral triples," [arXiv:1502.05383](https://arxiv.org/abs/1502.05383)
-- Paschke & Sitarz, "Discrete spectral triples and their symmetries," J. Math. Phys. 39, 6191-6205 (1998)
-- Connes & Marcolli, "Noncommutative Geometry, Quantum Fields and Motives," AMS Colloquium Publications 55 (2008). [PDF](https://www.math.fsu.edu/~marcolli/bookjune4.pdf)
+- Alfsen & Shultz, "State Spaces of Operator Algebras," Birkhauser (2001) -- Jordan algebra state space theory
+- Alfsen & Shultz, "Geometry of State Spaces of Operator Algebras," Birkhauser (2003) -- geometric characterization of state spaces
+- Atiyah, Bott & Shapiro, "Clifford modules," Topology 3, Suppl. 1, 3-38 (1964) -- Clifford algebra periodicity and spinor classification
+- Baez, "The Octonions," Bull. Amer. Math. Soc. 39, 145-205 (2002), [arXiv:math/0105155](https://arxiv.org/abs/math/0105155) -- h_3(O) structure, Peirce decomposition, Spin(9) representations
+- Barnum, Graydon & Wilce, "Composites and Categories of Euclidean Jordan Algebras," Quantum 4, 359 (2020), [arXiv:1606.09331](https://arxiv.org/abs/1606.09331) -- non-composability of exceptional Jordan algebras
+- Boyle, "The Standard Model, The Exceptional Jordan Algebra, and Triality," [arXiv:2006.16265](https://arxiv.org/abs/2006.16265) (2020) -- complexification of h_3(O) and SM fermion content
+- Conrad, "Complexification," expository notes, UConn -- standard complexification theory for vector spaces and algebras
+- Deutsch, "Constructor Theory," [arXiv:1210.7439](https://arxiv.org/abs/1210.7439) (2012) -- foundational framework for possible/impossible transformations
+- Deutsch & Marletto, "Constructor Theory of Information," [arXiv:1405.5563](https://arxiv.org/abs/1405.5563) (2014) -- information media and impossibility
+- Effros & Stormer, "Positive projections and Jordan structure in operator algebras," Math. Scand. 45, 127-138 (1979) -- conditional expectations on Jordan algebras
+- Hanche-Olsen & Stormer, "Jordan Operator Algebras," Pitman (1984) -- classification of JB-algebras, exceptional ideal structure
+- Harvey, "Spinors and Calibrations," Academic Press (1990) -- spinor representations and Clifford algebras
+- Lawson & Michelsohn, "Spin Geometry," Princeton University Press (1989) -- Clifford algebra periodicity table, spinor classification
+- Upmeier, "Symmetric Banach Manifolds and Jordan C*-Algebras," North-Holland (1985) -- JB*-triples and symmetric spaces
+- Yokota, "Exceptional Lie Groups," [arXiv:0902.0431](https://arxiv.org/abs/0902.0431) -- explicit F_4, Spin(9) computations in h_3(O)
 
 ---
 
-_Methods research for: Finite spectral triple verification (v4.0 milestone)_
-_Researched: 2026-03-22_
+_Methods research for: v8.0 Gap C Algebraic Closure via C*-Measurement Maps_
+_Researched: 2026-03-29_

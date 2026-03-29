@@ -1,206 +1,281 @@
-# Computational Approaches: Spectral Triple Verification for Standard Model Extension
+# Computational Approaches: h_3(O) Peirce Multiplication and Complexification Verification
 
-**Surveyed:** 2026-03-22
-**Domain:** Noncommutative geometry / Finite spectral triples / Algebraic quantum field theory
-**Confidence:** MEDIUM-HIGH
+**Surveyed:** 2026-03-29
+**Domain:** Exceptional Jordan algebras / Octonion arithmetic / Spin(9)-Spin(10) representations
+**Confidence:** HIGH
 
 ### Scope Boundary
 
-COMPUTATIONAL.md covers computational TOOLS, libraries, algorithms, and infrastructure for verifying spectral triple axioms and constructing finite spectral triples on doubled Hilbert spaces H = C^{2n^2}. It does NOT cover the physics/mathematics of why these axioms matter (PRIOR-WORK.md) or the analytical proof strategies (METHODS.md).
+COMPUTATIONAL.md covers computational TOOLS, libraries, algorithms, and infrastructure for verifying whether C*-observer Peirce multiplication maps force complexification of V_{1/2} = O^2 in h_3(O). It does NOT cover the physics motivation (PRIOR-WORK.md) or the analytical proof strategy (METHODS.md).
 
-**Relationship to existing codebase:** The project already has a working Python/SymPy + NumPy/SciPy computational framework with 658+ tensor product tests and exact diagonalization up to N=20 spin chains. This document covers EXTENSIONS needed: symbolic commutator computation on doubled spaces, systematic axiom checking, and matrix representations of J/gamma/D operators.
+**Relationship to existing codebase:** The project has a working Python/SymPy + NumPy/SciPy framework with explicit 32x32 Cl(10)/Cl(6) matrices (test_cl6_sm.py, Phase 19) and first-order condition verification machinery (test_first_order.py, Phases 13-15). No octonion arithmetic or h_3(O) Jordan product code exists yet. This document covers the NEW computational layer needed: octonion multiplication, h_3(O) element representation, Jordan product computation, and Peirce multiplication operator extraction.
 
 ## Recommended Stack
 
-Use Python/SymPy for all symbolic spectral triple verification, with NumPy for explicit numerical checks at specific n. No dedicated noncommutative geometry software package exists in the Python ecosystem -- the field has no mature computational library. The correct approach is to build targeted verification routines on top of SymPy's symbolic matrix algebra and NumPy's dense linear algebra, which the project already uses.
+Build a self-contained Python module (~300 lines) implementing octonion arithmetic and h_3(O) Jordan products from scratch using NumPy. Do not use external octonion libraries. The reasons are:
 
-The key insight: for finite spectral triples on H = C^{2n^2}, every operator (D, J, gamma, pi(a), J pi(b*) J^{-1}) is an explicit matrix. The "axiom verification" problem reduces to matrix algebra: computing commutators of explicit matrices and checking they vanish. This is straightforward dense linear algebra, not a research-level computational challenge. The hard part is organizing the computation systematically, not the computation itself.
+1. **No mature library exists.** The Python octonion ecosystem consists of toy packages (hypercomplex, pyoctonion, Cayley-Dickson scripts) that implement basic multiplication but lack h_3(O) matrix operations, Peirce decomposition, or Jordan products. None have been used in published research computations.
 
-**Primary approach:** SymPy symbolic matrices for general-n proofs (parametric verification), NumPy explicit matrices for n=2,3,4 spot-checks. The project's existing SymPy patterns (Peirce decomposition, spectral extension) transfer directly.
+2. **The computation is small.** h_3(O) is 27-dimensional. Octonions are 8-dimensional. The Jordan product of two 3x3 octonionic Hermitian matrices involves ~54 octonion multiplications. This is microsecond-scale on a laptop.
+
+3. **Correctness is critical.** The central question -- whether L_{u*E_11}(x) acts as multiplication by i on V_{1/2} -- depends on exact octonion multiplication. A hand-rolled implementation with Fano-plane-based multiplication table is verifiable line-by-line. An opaque external library is not.
+
+4. **The existing Cl(10) code (test_cl6_sm.py) already follows this pattern.** It builds Clifford generators from scratch using Pauli tensor products rather than importing a library.
+
+**Primary stack:** NumPy for all numerical computation. SymPy only if parametric proofs over symbolic octonion components are needed (unlikely -- the key checks are numerical with exact rational arithmetic or machine-precision floating point).
 
 ## Numerical Algorithms
 
-### 1. Zero-Order Condition Verification: [pi(a), J pi(b*) J^{-1}] = 0
+### 1. Octonion Arithmetic
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Explicit commutator sweep | Check [pi(a), J pi(b*) J^{-1}] = 0 for all a,b in A | Exact (finite-dim) | O(dim(A)^2 * dim(H)^3) | O(dim(H)^2) | van Suijlekom, Ch. 3 |
-| Basis reduction | Check on basis elements {E_ij} only (linearity) | Exact | O(n^4 * (2n^2)^3) for A = M_n(C) | O((2n^2)^2) | Standard linear algebra |
+| Fano multiplication table | o1 * o2 for o1, o2 in O | Exact | O(64) flops (8x8 table) | 64 bytes (table) | Baez, Bull. AMS 39 (2002), Table 1 |
+| Cayley-Dickson recursion | o1 * o2 via quaternion pairs | Exact | O(32) flops | Negligible | Dray-Manogue, "Geometry of the Octonions" (2015) |
 
-#### Algorithm: Zero-Order Condition Check
+**Recommendation:** Use the Fano multiplication table. It is explicit, verifiable, and matches the project's existing convention (fano_e1e2=e4 from test_cl6_sm.py ASSERT_CONVENTION).
+
+#### Algorithm: Octonion Multiplication via Fano Table
 
 ```
-INPUT:  Algebra A = M_n(C) represented on H = C^{2n^2}
-        Representation pi: A -> End(H)
-        Real structure J: H -> H (antilinear isometry)
-OUTPUT: Boolean (zero-order condition satisfied or not)
+INPUT:  a = (a0, a1, ..., a7), b = (b0, b1, ..., b7) in R^8
+        Fano multiplication table FANO[i][j] = (sign, index) for e_i * e_j
+OUTPUT: c = a * b in R^8
 
-1. Choose basis {E_ij}_{i,j=1}^n for M_n(C)
-   - E_ij has 1 in position (i,j), 0 elsewhere
+Convention: O = R*1 + R*e_1 + ... + R*e_7
+  e_i * e_j = FANO[i][j] for i,j in {1,...,7}
+  e_i * 1 = 1 * e_i = e_i
+  1 * 1 = 1
 
-2. Construct opposite representation:
-   - pi_o(b) := J pi(b*) J^{-1} for each basis element b = E_ij
-   - b* = E_ji (adjoint = transpose for matrix units)
-   - Compute pi_o(E_ij) = J pi(E_ji) J^{-1} as explicit 2n^2 x 2n^2 matrix
+Table (e_i * e_j -> +/- e_k, following Baez with e1*e2 = e4):
+  e1*e2 = +e4    e2*e3 = +e5    e3*e4 = +e6    e4*e5 = +e7
+  e5*e6 = +e1    e6*e7 = +e2    e7*e1 = +e3
+  (plus cyclic shifts of each Fano line, plus antisymmetry e_j*e_i = -e_i*e_j)
 
-3. For each pair (i,j), (k,l) with 1 <= i,j,k,l <= n:
-   - Compute comm = pi(E_ij) @ pi_o(E_kl) - pi_o(E_kl) @ pi(E_ij)
-   - Check ||comm||_F < epsilon (Frobenius norm)
-   - If any pair fails: RETURN False, report failing pair
+1. c0 = a0*b0 - sum_{i=1}^{7} a_i*b_i     (real part: standard inner product)
+2. For k = 1,...,7:
+     c_k = a0*b_k + a_k*b0
+           + sum over Fano triples (i,j,k) with e_i*e_j = +e_k: a_i*b_j - a_j*b_i
+3. RETURN c
 
-4. RETURN True
-
-COMPLEXITY: n^4 commutator checks, each O((2n^2)^3) matrix multiply
-            Total: O(n^4 * n^6) = O(n^{10})
-            For n=2: ~1024 multiplies of 8x8 matrices -> microseconds
-            For n=3: ~6561 multiplies of 18x18 matrices -> milliseconds
-            For n=4: ~65536 multiplies of 32x32 matrices -> seconds
+VERIFICATION:
+  - e_i^2 = -1 for all i in {1,...,7}
+  - ||a*b|| = ||a|| * ||b|| (norm-preserving: composition algebra)
+  - NOT associative: check (e1*e2)*e3 != e1*(e2*e3) as a test
 ```
 
 #### Convergence Properties
 
-- **Exact for explicit matrices:** No convergence issue. The commutator is computed exactly (symbolic) or to machine precision (numerical).
-- **Basis sufficiency:** Because the commutator is bilinear, checking on all pairs of basis elements E_ij suffices. If [pi(E_ij), pi_o(E_kl)] = 0 for all i,j,k,l, then [pi(a), pi_o(b)] = 0 for all a,b by linearity.
-- **Known failure mode:** None for the computation itself. The mathematical question is whether a given J satisfies this condition for a given representation pi.
+- **Exact for floating point:** No iteration, no convergence issue. Single-pass formula.
+- **Known failure mode:** Sign errors in the Fano table. There are 480 valid octonion multiplication tables (corresponding to automorphisms of the Fano plane under G_2). The convention must be fixed once and checked against known identities.
+- **Validation:** Verify all 7 Fano lines independently, check e_i^2 = -1, check norm-multiplicativity on 100 random pairs.
 
-### 2. First-Order Condition Verification: [[D, pi(a)], J pi(b*) J^{-1}] = 0
+### 2. Octonion Conjugation and Norm
+
+```
+INPUT:  a = (a0, a1, ..., a7)
+OUTPUT: a_bar = (a0, -a1, ..., -a7)        (conjugation)
+        ||a||^2 = a0^2 + a1^2 + ... + a7^2  (squared norm)
+        Re(a) = a0                           (real part)
+
+Key identity: a * a_bar = a_bar * a = ||a||^2 * 1
+```
+
+### 3. h_3(O) Element Representation
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Double commutator sweep | Check [[D,a], Jb*J^{-1}] = 0 for all a,b | Exact | O(n^4 * (2n^2)^3) | O((2n^2)^2) | Cacic arXiv:0902.2068 |
-| Parametric D construction | Find D satisfying first-order condition | Linear system solve | O(dim(D-space)^2 * n^4) | O(dim(D-space) * (2n^2)^2) | Cacic arXiv:0902.2068 |
+| Component encoding | Represent X in h_3(O) as 27 real numbers | N/A | N/A | 27 floats | Albert (1934) |
 
-#### Algorithm: First-Order Condition as Linear Constraints on D
+#### Data Structure
 
 ```
-INPUT:  Algebra A = M_n(C), representation pi on H = C^{2n^2}
-        Real structure J, grading gamma
-        D is UNKNOWN: self-adjoint operator on H with D*gamma = -gamma*D, J*D = D*J
-OUTPUT: The vector space of Dirac operators satisfying first-order condition
+An element X in h_3(O) is stored as:
+  X = (alpha, beta, gamma, x1, x2, x3)
+where:
+  alpha, beta, gamma in R     (diagonal entries)
+  x1, x2, x3 in R^8           (octonion off-diagonal entries)
 
-1. Parametrize D:
-   - D is a self-adjoint 2n^2 x 2n^2 matrix: D = D^dagger
-   - Constraint D*gamma = -gamma*D: D is off-diagonal in the gamma eigenspaces
-   - Constraint J*D*J^{-1} = epsilon'*D (epsilon' from KO-dimension table)
-   - These are linear constraints reducing dim(D-space) from (2n^2)^2 to
-     a much smaller parameter space
+Total: 3 + 3*8 = 27 real parameters
 
-2. Write D = sum_alpha c_alpha * B_alpha where {B_alpha} is a basis
-   for the constrained space (self-adjoint, anti-commutes with gamma,
-   commutes or anti-commutes with J as required)
+Matrix form:
+  X = | alpha    x3_bar   x2    |
+      | x3       beta     x1_bar|
+      | x2_bar   x1       gamma |
 
-3. For each basis element E_ij of A and each E_kl of A:
-   - Compute [D, pi(E_ij)] = sum_alpha c_alpha * [B_alpha, pi(E_ij)]
-   - Compute [[D, pi(E_ij)], pi_o(E_kl)]
-     = sum_alpha c_alpha * [[B_alpha, pi(E_ij)], pi_o(E_kl)]
-   - Set equal to zero: this gives linear equations in {c_alpha}
-
-4. Collect all equations from step 3 into a matrix equation M * c = 0
-   where c = (c_1, ..., c_dim) is the parameter vector
-
-5. Solve: null space of M gives the moduli space of allowed Dirac operators
-   - Use SVD: M = U S V^T, null space = columns of V with singular value < epsilon
-   - Dimension of null space = number of free parameters in D
-
-COMPLEXITY: Step 3 generates n^4 constraints (one per pair E_ij, E_kl),
-            each involving dim(D-space) parameters
-            Matrix M has n^4 * (2n^2)^2 rows, dim(D-space) columns
-            SVD: O(min(rows, cols)^2 * max(rows, cols))
+Hermiticity: X_{ij} = X_{ji}_bar (octonion conjugate)
 ```
 
-**This is the core algorithm.** Cacic (arXiv:0902.2068) calls the output space D_0(A, H, P) -- the moduli space of Dirac operators for the finite spectral triple. Computing it is a finite-dimensional linear algebra problem.
-
-### 3. First-Order Condition Subalgebra
+### 4. h_3(O) Jordan Product
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Subalgebra extraction | Given D, find largest A_F subset A with [[D,a], Jb*J^{-1}] = 0 | Exact | O(n^6 * (2n^2)^3) | O(n^2 * (2n^2)^2) | Chamseddine-Connes arXiv:0706.3688 |
+| Explicit matrix multiply + symmetrize | A circ B = (1/2)(AB + BA) | Exact | O(3^3 * 64) ~ 1700 flops | 2 * 27 floats | Albert (1934), JvNW (1934) |
 
-#### Algorithm: First-Order Condition Subalgebra
+#### Algorithm: Jordan Product in h_3(O)
 
 ```
-INPUT:  Fixed Dirac operator D on H = C^{2n^2}
-        Algebra A = M_n(C), representation pi, real structure J
-OUTPUT: Maximal subalgebra A_F of A satisfying first-order condition
+INPUT:  A, B in h_3(O) (each represented as 27 reals)
+OUTPUT: C = A circ B = (1/2)(AB + BA) in h_3(O)
 
-1. For each basis element E_ij of A:
-   - Compute [D, pi(E_ij)] as a 2n^2 x 2n^2 matrix
-   - Store as matrix M_ij
+CRITICAL: The matrix product AB involves entries (AB)_{ij} = sum_k A_{ik} * B_{kj}
+where * is OCTONION multiplication. For 3x3 matrices, each entry involves
+3 octonion multiplications and 2 octonion additions.
 
-2. For each pair (E_ij, E_kl):
-   - Compute [M_ij, pi_o(E_kl)] = [M_ij, J pi(E_lk) J^{-1}]
-   - If nonzero: record that the pair (E_ij, E_kl) violates first-order
+SUBTLETY: Octonion multiplication is NOT associative, but the Jordan product
+of 3x3 Hermitian matrices over O is well-defined because:
+  - For Hermitian matrices, (AB)_{ij} = sum_k A_{ik} * B_{kj} involves
+    products of the form x * y_bar where x, y are off-diagonal octonion entries
+  - The sum AB + BA is always Hermitian when A, B are Hermitian
+  - The Artin theorem guarantees: any subalgebra of O generated by 2 elements
+    is associative. Each entry of AB involves sums of products of 2 octonion
+    elements at a time, so parenthesization does not matter term-by-term.
+  - For h_3(O) specifically: Jordan, von Neumann, and Wigner (1934) proved
+    the Jordan identity (A circ B) circ A^2 = A circ (B circ A^2) holds.
 
-3. Build violation graph:
-   - Vertices = basis elements {E_ij}
-   - Edge (E_ij, E_kl) if the double commutator [[D, E_ij], J E_kl* J^{-1}] != 0
+STEPS:
+1. Compute P = AB (formal 3x3 matrix product with octonion entries)
+   - 9 entries, each = sum of 3 octonion products
+   - P_{ij} = A_{i1}*B_{1j} + A_{i2}*B_{2j} + A_{i3}*B_{3j}
 
-4. Find maximal subalgebra:
-   - A_F must be closed under multiplication and adjoint
-   - A_F = span of {E_ij : for ALL E_kl in A_F, [[D, E_ij], J E_kl* J^{-1}] = 0
-                     AND for ALL E_kl in A_F, [[D, E_kl], J E_ij* J^{-1}] = 0}
-   - Start with A_F = A. Remove any generator that violates.
-     Iterate until stable. (Shrinking iteration always terminates for finite dim.)
+2. Compute Q = BA (same procedure)
 
-5. Identify structure of A_F:
-   - Compute its center, check if it decomposes as direct sum of matrix blocks
-   - For Standard Model: expect A_F = C + H + M_3(C) [Chamseddine-Connes]
+3. C_{ij} = (1/2)(P_{ij} + Q_{ij}) for each entry
 
-COMPLEXITY: Step 2 is O(n^4) double commutators of (2n^2)x(2n^2) matrices
-            Step 4 is iterative but terminates in at most n^2 steps
+4. VERIFY: C is Hermitian (C_{ij} = C_{ji}_bar to machine precision)
+
+COMPLEXITY: 54 octonion multiplications total (27 for AB, 27 for BA)
+            Each octonion multiplication: ~64 real multiplications
+            Total: ~3500 real multiplications -> microseconds
 ```
 
-**Physical significance:** The first-order condition subalgebra is what selects the Standard Model gauge group from the "input" algebra. Chamseddine-Connes showed that starting from A = M_2(H) + M_4(C) (or similar), the first-order condition on D forces the subalgebra to be C + H + M_3(C), which gives U(1) x SU(2) x SU(3) after unimodularity.
-
-### 4. Grading and Real Structure Construction
+### 5. Peirce Multiplication Operator L_e
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Grading enumeration | Find all gamma with gamma^2 = 1, gamma pi(a) = pi(a) gamma | Exact | O(n^2 * (2n^2)^3) | O((2n^2)^2) | van Suijlekom Ch. 3 |
-| J construction | Find antilinear J with J^2 = epsilon, JD = epsilon'DJ, J gamma = epsilon'' gamma J | Exact | O((2n^2)^3) per candidate | O((2n^2)^2) | Connes, Barrett |
+| Direct Jordan product | L_e(X) = e circ X for e = E_11 | Exact | Same as Jordan product | 27 floats | derivations/11-peirce-complexification.md |
+| Shortcut formula | L_{E_11}(X) directly from components | Exact | O(16) flops | 27 floats | Phase 18-01, Step 2 |
 
-#### Algorithm: Constructing J (Real Structure)
+#### Algorithm: Peirce Multiplication by E_11 (Shortcut)
 
 ```
-INPUT:  H = C^{2n^2}, representation pi: A -> End(H)
-        KO-dimension k (determines signs epsilon, epsilon', epsilon'')
-OUTPUT: Antilinear isometry J satisfying J^2 = epsilon * id,
-        J gamma = epsilon'' gamma J (if even),
-        and zero-order condition [pi(a), J pi(b*) J^{-1}] = 0
+INPUT:  X = (alpha, beta, gamma, x1, x2, x3) in h_3(O)
+OUTPUT: L_{E_11}(X) = E_11 circ X
 
-KO-dimension sign table (mod 8):
-  k:  0    1    2    3    4    5    6    7
-  e:  1    1   -1   -1   -1   -1    1    1
-  e': 1   -1    1    1    1   -1    1    1
-  e'': 1       -1         1        -1
+From Phase 18-01, the explicit formula is:
+  E_11 circ X = (alpha, 0, 0, 0, x2/2, x3/2)
 
-(e = epsilon = J^2, e' = epsilon' = JD vs DJ, e'' = epsilon'' = J*gamma vs gamma*J)
+That is:
+  - Diagonal: (alpha, 0, 0) -- eigenvalue 1 on alpha, eigenvalue 0 on beta, gamma
+  - Off-diagonal: (0, x2/2, x3/2) -- eigenvalue 1/2 on x2, x3; eigenvalue 0 on x1
 
-1. Represent J as J = C * K where C is a unitary matrix and K is
-   complex conjugation (K v = v* componentwise in chosen basis)
-   - J antilinear: J(alpha v) = alpha* J(v)
-   - J isometry: <Jv, Jw> = <w, v>
-   - Then C must be unitary: C^dagger C = I
+This confirms the Peirce decomposition:
+  V_1 = {alpha * E_11} (eigenvalue 1, dim 1)
+  V_{1/2} = {(0, 0, 0, 0, x2, x3)} (eigenvalue 1/2, dim 16)
+  V_0 = {(0, beta, gamma, x1, 0, 0)} (eigenvalue 0, dim 10)
 
-2. Constraint J^2 = epsilon:
-   - J^2 v = C K C K v = C C* v (since K C K = C*)
-   - So C C* = epsilon * I
-   - For epsilon = +1: C is symmetric unitary (C = C^T)
-   - For epsilon = -1: C is antisymmetric unitary (C = -C^T)
+NO OCTONION MULTIPLICATION NEEDED for L_{E_11}. It is a linear projection.
+```
 
-3. Zero-order condition [pi(a), J pi(b*) J^{-1}] = 0:
-   - J pi(b*) J^{-1} v = C (pi(b*))* C^{-1} v  (using J = CK)
-   - So pi_o(b) = C (overline{pi(b*)}) C^{-1}
-   - Zero-order: pi(a) commutes with C overline{pi(b*)} C^{-1} for all a,b
+### 6. KEY COMPUTATION: Peirce Multiplication by a in V_1
 
-4. Strategy: write C in the pi-adapted basis. If pi decomposes
-   H into irreducible components, C must intertwine them.
-   For A = M_n(C) on H = C^{2n^2}: pi is generically the sum of
-   the fundamental and its conjugate (or two copies of the fundamental),
-   and C swaps them.
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| General L_a on V_{1/2} | Compute L_a(x) for a in V_1, x in V_{1/2} | Exact | ~54 octonion mults | 27+27 floats | This investigation |
 
-5. Solve the linear system for the entries of C subject to all constraints.
-   This is finite-dimensional linear algebra.
+This is the CENTRAL computation. The question: for a = lambda * E_11 (the only elements of V_1, since V_1 = R * E_11), does L_a act on V_{1/2} in a way that could encode multiplication by i?
+
+#### Algorithm: L_{lambda*E_11} on V_{1/2}
+
+```
+INPUT:  a = lambda * E_11 (element of V_1, lambda in R)
+        x = (0, 0, 0, 0, x2, x3) (element of V_{1/2})
+OUTPUT: L_a(x) = a circ x
+
+COMPUTATION:
+  a circ x = (lambda * E_11) circ x = lambda * (E_11 circ x) = lambda * (x/2)
+           = (0, 0, 0, 0, lambda*x2/2, lambda*x3/2)
+
+RESULT: L_a acts as SCALAR MULTIPLICATION by lambda/2 on V_{1/2}.
+
+THIS IS THE V_1 = R BOTTLENECK identified in v6.0 Phase 22.
+Since V_1 = R * E_11 is 1-dimensional, the only Peirce multiplication
+operators from V_1 to V_{1/2} are real scalars. There is no room for
+an imaginary unit i to appear through this mechanism.
+```
+
+### 7. EXTENDED COMPUTATION: Peirce Multiplication by Elements NOT in V_1
+
+The v6.0 investigation exhausted the V_1 route. The new milestone must check whether elements from OUTSIDE V_1 -- specifically from h_3(O) itself or from the complexified algebra h_3^C(O) -- can produce an operator on V_{1/2} that acts as multiplication by i.
+
+#### Algorithm: General Peirce-Type Action on V_{1/2}
+
+```
+INPUT:  a = arbitrary element of h_3(O) (27 real parameters)
+        x = element of V_{1/2} (16 real parameters)
+OUTPUT: Pi_{1/2}(a circ x) = projection of (a circ x) onto V_{1/2}
+
+STEPS:
+1. Compute c = a circ x using Algorithm 4 (Jordan product)
+2. Extract V_{1/2} component of c:
+   Pi_{1/2}(c) = (0, 0, 0, 0, c.x2, c.x3)
+   (project out the V_1 and V_0 parts)
+3. The operator T_a: V_{1/2} -> V_{1/2} defined by T_a(x) = Pi_{1/2}(a circ x)
+   is a linear map on R^16.
+4. Represent T_a as a 16x16 real matrix by evaluating on a basis of V_{1/2}.
+
+QUESTION: Does there exist a in h_3(O) (or a in h_3^C(O)) such that
+(T_a)^2 = -Id on R^16?
+
+APPROACH:
+- For each of the 27 basis elements e_k of h_3(O), compute the 16x16
+  matrix (T_{e_k})
+- Check if any real linear combination sum_k c_k * T_{e_k} squares to -Id
+- This is a system of polynomial equations in 27 variables (the c_k)
+  with 256 equations (entries of T^2 + Id = 0)
+```
+
+### 8. Spin(9) -> Spin(10) Representation Matrices
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Spin(9) from Cl(9) | Build 16x16 Spin(9) generators on V_{1/2} | Exact | O(16^3) per generator | 36 * 256 floats | Parton-Piccinni, arXiv:1810.06288 |
+| Spin(10) embedding | Extend to 16x16 complex Spin(10) | Exact | O(16^3) per generator | 45 * 256 complex floats | Todorov, arXiv:2206.06912 |
+
+#### Algorithm: Spin(9) on V_{1/2} = O^2 via Octonionic Matrices
+
+```
+INPUT:  Fano multiplication table for O
+OUTPUT: 36 generators of spin(9) as 16x16 real matrices acting on V_{1/2}
+
+APPROACH 1 (from Clifford algebra):
+  Build Cl(9) on R^16 using the standard recursive tensor product construction:
+  - 4 sigma_3/sigma_1/sigma_2/I2 tensor products give 8 generators of Cl(8)
+    on R^16 = (R^2)^{tensor 4} [Cl(8) = R(16)]
+  - The 9th generator: Gamma_9 = product of all 8 generators (volume element
+    of Cl(8), which anti-commutes with all 8 in Cl(9))
+  - spin(9) generators: (1/4)[Gamma_A, Gamma_B] for A < B, giving 36 generators
+
+APPROACH 2 (octonionic model, Parton-Piccinni):
+  The 9 Cl(9) generators I_1, ..., I_9 are 16x16 real symmetric matrices
+  acting on R^16 = O^2. They are the octonionic analogues of Pauli matrices.
+  Explicit formulas in terms of left multiplication by octonion units:
+    I_k for k=1,...,7: related to L_{e_k} (left multiplication by e_k on O^2)
+    I_8, I_9: involving the octonionic "Pauli matrices" sigma_1^O, sigma_3^O
+
+  This approach directly uses the O^2 = V_{1/2} identification.
+
+RECOMMENDATION: Use Approach 1 (tensor product) for NUMERICAL verification
+because the existing test_cl6_sm.py code already implements this pattern.
+Use Approach 2 for CROSS-VALIDATION to confirm the two constructions give
+equivalent representations.
+
+SPIN(10) EXTENSION:
+  Complexify: R^16 -> C^16. The 9 real generators embed as Hermitian
+  matrices in M_16(C). The 10th generator comes from i * Gamma_chirality
+  (where Gamma_chirality = Gamma_1 * ... * Gamma_9 in Cl(9)).
+  This extends spin(9) to spin(10) inside M_16(C).
+  The 16-dim complex rep is S_{10}^+ (positive Weyl spinor of Spin(10)).
 ```
 
 ## Software Ecosystem
@@ -209,220 +284,139 @@ KO-dimension sign table (mod 8):
 
 | Tool | Version | Purpose | License | Maturity |
 |------|---------|---------|---------|----------|
-| NumPy | >= 1.26 | Explicit matrix construction and commutator computation for n=2,3,4 | BSD | Stable |
-| SciPy | >= 1.12 | SVD for null space computation (moduli space of D), sparse methods if needed | BSD | Stable |
-| SymPy | >= 1.13 | Symbolic/parametric verification at general n; commutator algebra; matrix symbols | BSD | Stable |
+| NumPy | 2.4.x | Dense matrix operations, octonion component storage | BSD | Stable |
+| Python | 3.14.x | Runtime | PSF | Stable |
+| pytest | 9.x | Test framework (existing project pattern) | MIT | Stable |
 
 ### Supporting Tools
 
 | Tool | Version | Purpose | When Needed |
 |------|---------|---------|-------------|
-| Matplotlib | >= 3.8 | Visualization of moduli space dimensions, constraint counts | For paper figures |
-| pytest | >= 8.0 | Test framework for axiom verification suite | Always (CI) |
+| SymPy | 1.13.x | Symbolic computation if parametric proofs needed | Only if numerical spot-checks suggest a general pattern worth proving symbolically |
+| SciPy | 1.17.x | SVD, eigendecomposition for operator analysis | Analyzing spectrum of T_a operators |
+| clifford (pygae) | 1.5.x | Cross-validation of Cl(9)/Cl(10) construction only | Optional: for verifying hand-built Clifford generators |
 
-### Why NOT Other Tools
+### Tools NOT to Use
 
-| Tool | Why Skip | What To Do Instead |
-|------|----------|-------------------|
-| Mathematica NCAlgebra | Noncommutative Groebner bases; overkill for explicit finite matrix commutators. Not Python-native. | Direct matrix computation in NumPy/SymPy |
-| SageMath g_algebra | Good for abstract noncommutative polynomial rings but our problem is EXPLICIT matrices, not abstract algebra | NumPy dense matrix arithmetic |
-| GAP | Strong for finite groups and Lie algebras, not for explicit matrix operator verification | NumPy for matrices; GAP irrelevant here |
-| No "NCG Python package" exists | Confirmed by search: no mature Python/SymPy/SageMath package for spectral triple computation exists as of 2026 | Build targeted routines (200-400 lines) |
-
-**Key finding from literature survey:** There is NO dedicated computational package for finite spectral triple verification in any language. The NCG community works with hand-constructed examples and pen-and-paper proofs. The closest computational work is:
-- Barrett (arXiv:2403.18428, 2024): fermion integrals for finite spectral triples -- computational but focused on path integrals, not axiom verification
-- Cacic (arXiv:0902.2068, 2009): moduli spaces of Dirac operators -- systematic framework but no published code
-- van Suijlekom textbook (2nd ed., 2024): explicit constructions but no accompanying software
-
-This means we build our own verification suite. The advantage: finite spectral triples on H = C^{2n^2} are small enough (8x8 for n=2, 18x18 for n=3, 32x32 for n=4) that brute-force matrix computation is fast and exact.
-
-### SymPy Features Directly Applicable
-
-| Feature | Module | Use Case |
-|---------|--------|----------|
-| `Matrix` | `sympy.matrices` | Symbolic matrices with exact arithmetic for general-n patterns |
-| `MatrixSymbol` | `sympy.matrices.expressions` | Parametric matrix expressions without specifying entries |
-| `commutative=False` symbols | `sympy.core` | Noncommutative symbolic algebra for abstract identities |
-| `Commutator` | `sympy.physics.quantum` | Formal commutator objects with algebraic expansion rules |
-| `TensorProduct` | `sympy.physics.quantum` | Tensor product of operators on composite Hilbert spaces |
-| `kronecker_product` | `sympy.matrices` | Explicit Kronecker product of matrices (numerical tensor product) |
-| `tensorproduct` | `sympy.tensor.array` | Array-level tensor products |
-
-**SymPy approach for general-n:** Use `sympy.Matrix` with symbolic entries to construct pi(E_ij), J, gamma, D at general n. The commutator [pi(a), J pi(b*) J^{-1}] is then a symbolic matrix whose entries must all vanish. SymPy can verify this symbolically for small n (n=2,3) and likely for general n if the representation structure is clean.
-
-**NumPy approach for specific n:** At n=2, all matrices are 8x8. At n=3, 18x18. At n=4, 32x32. Construct everything explicitly and compute commutators numerically. This provides independent verification of symbolic results.
+| Tool | Why Not | What Instead |
+|------|---------|-------------|
+| hypercomplex (PyPI) | Toy library, Cayley-Dickson only, no matrix operations, no tests against Fano conventions | Hand-rolled octonion class |
+| pyoctonion (PyPI) | Undocumented, no test suite, no maintenance | Hand-rolled octonion class |
+| SplitOct | Split octonions != division octonions (different algebra) | Hand-rolled for division octonions |
+| Mathematica | License cost, not in project stack, no automation | Python/NumPy |
+| Magma | Proprietary CAS, not in project stack | Python/NumPy |
+| galgebra | Symbolic GA, too slow for 16x16 numerical matrices, not designed for non-associative algebras | NumPy for numerical, SymPy for symbolic if needed |
 
 ## Data Flow
 
 ```
-Define algebra A = M_n(C), Hilbert space H = C^{2n^2}
-  Parameters: n (matrix algebra dimension), KO-dimension k
-  -> Construct representation pi: M_n(C) -> End(H)
-     (fundamental + conjugate, or left regular + right regular, etc.)
-  -> Construct grading gamma (diagonal in eigenspace decomposition)
-  -> Construct real structure J = C * K (complex conjugation + unitary)
-  -> Verify zero-order condition: [pi(a), J pi(b*) J^{-1}] = 0
-     for all basis pairs (E_ij, E_kl)
-
-  -> Parametrize Dirac operator D:
-     - Self-adjoint: D = D^dagger
-     - Anti-commutes with gamma: D gamma + gamma D = 0
-     - Commutation with J: J D J^{-1} = epsilon' D
-     -> Write D = sum c_alpha B_alpha (constrained basis)
-
-  -> First-order condition: [[D, pi(a)], J pi(b*) J^{-1}] = 0
-     -> Generates linear equations in {c_alpha}
-     -> Null space of constraint matrix = moduli space of D
-     -> Dimension = number of free parameters
-
-  -> If starting from general A (e.g., M_2(H) + M_4(C)):
-     -> Find subalgebra A_F satisfying first-order for given D
-     -> Identify gauge group from A_F
+Fano multiplication table (7 triples, fixed convention)
+  -> Octonion class (R^8, multiply, conjugate, norm)
+  -> h_3(O) element class (3 reals + 3 octonions = 27 reals)
+  -> Jordan product A circ B = (1/2)(AB + BA)
+  -> Peirce decomposition: V_1, V_{1/2}, V_0 projections
+  -> L_a operator: h_3(O) -> End(V_{1/2}) for any a in h_3(O)
+  -> 16x16 matrix representation of L_a|_{V_{1/2}}
+  -> Eigenvalue analysis: does L_a^2 = -Id for any a?
+  -> Spin(9)/Spin(10) generators for cross-check
 ```
 
 ## Computation Order and Dependencies
 
 | Step | Depends On | Produces | Can Parallelize? |
 |------|-----------|----------|-----------------|
-| 1. Choose representation of A on H | Algebra structure (input) | pi: A -> End(H) as explicit matrices | No |
-| 2. Construct gamma (grading) | Step 1 | gamma as diagonal matrix | No |
-| 3. Construct J (real structure) | Step 1, KO-dimension choice | J = C * K as explicit unitary C | No |
-| 4. Verify zero-order condition | Steps 1, 3 | Boolean + violation report | Yes (pairs independent) |
-| 5. Parametrize D (constrained space) | Steps 2, 3 | Basis {B_alpha} for allowed D | No |
-| 6. First-order condition constraints | Steps 1, 3, 5 | Constraint matrix M | Yes (pairs independent) |
-| 7. Solve null space of M | Step 6 | Moduli space D_0(A,H,P), dimension | No |
-| 8. Subalgebra extraction (if needed) | Steps 1, 3, specific D from Step 7 | A_F and its structure | No |
-
-**Critical path:** Steps 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7.
-Steps 4 and 6 are the computationally intensive parts but trivial in practice for n <= 4.
+| 1. Octonion arithmetic module | Fano convention from ASSERT_CONVENTION | Octonion class with multiply/conjugate/norm | Yes (independent) |
+| 2. h_3(O) element class | Step 1 | h_3(O) data structure with Jordan product | No (needs Step 1) |
+| 3. Peirce projections | Step 2 | V_1, V_{1/2}, V_0 extractors | No (needs Step 2) |
+| 4. L_a operator matrices | Steps 2, 3 | 16x16 real matrices for each basis element a | No (needs Steps 2-3) |
+| 5. Complex structure search | Step 4 | YES/NO: existence of a with T_a^2 = -Id | No (needs Step 4) |
+| 6. Cl(9) generators | None (tensor product construction) | 9 generators of Cl(9) on R^16 | Yes (independent of Steps 1-5) |
+| 7. Spin(9) on V_{1/2} cross-check | Steps 4, 6 | Confirm T_a matrices lie in spin(9) image | No (needs Steps 4, 6) |
+| 8. Spin(10) complexification | Steps 6, 7 | 10th generator, complex 16-dim rep | No (needs Steps 6-7) |
 
 ## Resource Estimates
 
 | Computation | Time (estimate) | Memory | Storage | Hardware |
 |-------------|-----------------|--------|---------|----------|
-| Zero-order check, n=2 (8x8 matrices) | < 1 ms | < 1 MB | Negligible | Local CPU |
-| Zero-order check, n=3 (18x18 matrices) | < 10 ms | < 1 MB | Negligible | Local CPU |
-| Zero-order check, n=4 (32x32 matrices) | < 100 ms | < 1 MB | Negligible | Local CPU |
-| Parametrize D space, n=2 | < 1 s | < 10 MB | Negligible | Local CPU |
-| Parametrize D space, n=3 | < 10 s | < 100 MB | Negligible | Local CPU |
-| Parametrize D space, n=4 | < 1 min | < 1 GB | Negligible | Local CPU |
-| First-order constraint matrix + SVD, n=2 | < 1 s | < 10 MB | Negligible | Local CPU |
-| First-order constraint matrix + SVD, n=3 | < 30 s | < 100 MB | Negligible | Local CPU |
-| First-order constraint matrix + SVD, n=4 | < 5 min | < 1 GB | Negligible | Local CPU |
-| Symbolic verification, general n (SymPy) | 1-30 min depending on pattern | < 4 GB | Negligible | Local CPU |
-| Full axiom suite, n=2 through n=4 | < 10 min total | < 1 GB peak | < 1 MB output | Local CPU |
+| Octonion module + tests | Minutes (coding) | < 1 MB | Negligible | Laptop CPU |
+| h_3(O) Jordan products | Microseconds per product | < 1 MB | Negligible | Laptop CPU |
+| All 27 T_a matrices (16x16) | Milliseconds total | < 1 MB | Negligible | Laptop CPU |
+| Complex structure search (polynomial system) | Seconds to minutes | < 10 MB | Negligible | Laptop CPU |
+| Cl(9)/Cl(10) on R^16/C^16 | Milliseconds | < 1 MB | Negligible | Laptop CPU |
 
-**Everything is laptop-scale.** No HPC, no GPU, no cluster needed. The bottleneck is human time organizing the computation, not compute time.
+This is a computationally trivial problem. The challenge is algebraic correctness, not computational cost.
 
 ## Integration with Existing Code
 
-The project already has:
-- **Python/SymPy framework** for algebraic verification (test_spectral_extension.py: Peirce decomposition, Luders product, functional equations)
-- **NumPy/SciPy** for exact diagonalization and eigendecomposition
-- **Test patterns** using random matrix construction, sweep over parameters, error threshold checking
-
-**Input formats:** Existing code uses `np.ndarray` for matrices and `np.linalg.eigh` for eigendecomposition. New spectral triple code uses the same.
-
-**Output formats:** Existing tests produce pass/fail with max error reports. New axiom checks follow the same pattern.
-
-**Interface points:**
-1. The Peirce decomposition code (`peirce_product`, `peirce_product_general_s`) from test_spectral_extension.py operates on the SAME M_n(C)^sa algebras. The spectral triple verification acts on the DOUBLED space where these algebras are represented.
-2. The `random_effect` and `random_effect_real` helper functions generalize directly to constructing test elements of M_n(C) for axiom checking.
-3. The test infrastructure (pytest, assertion patterns, error reporting) carries over unchanged.
-
-**New code estimate:** ~400-600 lines of Python:
-- ~100 lines: representation construction (pi, pi_o, J, gamma for given n and KO-dim)
-- ~100 lines: zero-order condition checker
-- ~150 lines: D parametrization and first-order constraint matrix builder
-- ~100 lines: subalgebra extraction
-- ~50-100 lines: test harness and validation
+- **Input formats:** The existing test_cl6_sm.py uses 32x32 complex NumPy matrices for Cl(10) generators. The new code works at the 16x16 real (or complex after complexification) level, which is a subspace of the 32-dim Dirac spinor.
+- **Output formats:** 16x16 real or complex matrices, consistent with NumPy ndarray format.
+- **Interface points:** The Cl(9) generators from Approach 1 (tensor product) can be compared entry-by-entry with the first 9 of the 10 generators from test_cl6_sm.py restricted to the appropriate 16-dim subspace.
+- **Convention bridge:** test_cl6_sm.py uses the convention fano_e1e2=e4 and complex_structure=u_equals_e7. The new octonion module must match this exactly.
 
 ## Open Questions
 
-Questions without consensus answers relevant to the computational approach.
-
 | Question | Why Open | Impact on Project | Approaches Being Tried |
 |----------|---------|-------------------|----------------------|
-| Which representation of M_n(C) on C^{2n^2} matches the self-modeling construction? | The doubling (H = C^n tensor C^n with L/R action, doubled by gamma) vs. the bimodule doubling (H = A tensor A^o) give different operator structures | Determines pi, hence all downstream computation | Try both; the self-modeling representation should be determined by the sequential product structure from Paper 5 |
-| What KO-dimension for the internal finite geometry? | Physical SM uses KO-dim 6 (mod 8) for the finite part. Self-modeling may prefer a different KO-dim. | Fixes epsilon, epsilon', epsilon'' signs, hence J^2 and JD relation | Start with KO-dim 6 (SM standard); verify which KO-dims are compatible with M_n(C) |
-| Does the first-order condition subalgebra depend continuously on D? | For a generic D, the subalgebra might jump discontinuously as parameters vary | Affects whether "the" subalgebra is well-defined or depends on fine-tuning | Compute subalgebra dimension as function of D parameters; look for stability |
+| Can any element of h_3^C(O) (not just h_3(O)) produce T_a^2 = -Id on V_{1/2}? | Complexified algebra has 27 complex = 54 real parameters; larger search space | If YES: complexification mechanism found. If NO: confirms v6.0 negative. | Compute all T_a matrices, form the polynomial system, solve |
+| Does the Spin(10) embedding naturally provide the complex structure on V_{1/2}? | The 10th generator of Cl(10) involves i, which may define the sought complex structure | Could bypass the Peirce route entirely | Build Cl(10), extract the 10th generator restricted to V_{1/2}, check if it squares to -Id on R^16 |
+| Is the Peirce multiplication L_{V_0}: V_{1/2} -> V_{1/2} richer than L_{V_1}? | V_0 = h_2(O) is 10-dimensional, giving a 10-parameter family of operators | May provide complex structure that V_1 cannot | Compute all T_a for a in V_0 basis elements |
 
 ## Anti-Approaches
 
-Approaches to explicitly NOT pursue.
-
 | Anti-Approach | Why Avoid | What to Do Instead |
 |---------------|-----------|-------------------|
-| Abstract noncommutative algebra packages (NCAlgebra, SageMath g_algebra) | Our problem is EXPLICIT finite matrices (8x8 to 32x32), not abstract polynomial manipulation. These tools solve a different problem. | Direct NumPy matrix arithmetic + SymPy symbolic matrices |
-| Krajewski diagram enumeration for general classification | Krajewski diagrams classify ALL possible finite spectral triples. We need to verify ONE specific triple (the self-modeling one). Classification is useful background but not our computational task. | Construct the specific triple from the self-modeling representation and verify it directly |
-| Infinite-dimensional spectral triple methods | Spectral truncations, Dirac operator spectral theory on manifolds -- all for continuous geometries. Our triple is finite-dimensional by construction. | Finite matrix algebra only |
-| GPU acceleration | Maximum matrix size is 32x32 (n=4). GPU overhead exceeds computation time. | CPU-only computation |
-| Sparse matrix methods | Maximum matrix size is 32x32. Dense is faster than sparse at this scale. | Dense numpy arrays |
+| Using external octonion libraries (hypercomplex, pyoctonion) | Untested against Fano conventions, no h_3(O) support, no correctness guarantees | Build from Fano table with project convention |
+| Symbolic computation of general Jordan product in SymPy | Too slow for 3x3 octonion matrices (expressions explode combinatorially), non-associativity not natively supported | Numerical computation with exact rational arithmetic or high-precision floats |
+| Searching for complex structure via optimization (gradient descent on ||T_a^2 + Id||) | Non-convex landscape, local minima, misses the algebraic structure | Direct algebraic approach: compute all T_a, check linear algebra conditions |
+| Building Spin(9) from F_4 generators | F_4 is 52-dimensional and hard to represent explicitly; Spin(9) from Cl(9) is simpler | Tensor product construction for Cl(9), then extract spin(9) |
 
 ## Logical Dependencies
 
 ```
-Self-modeling sequential product (Paper 5)
-  -> M_n(C)^sa at each site (established)
-  -> Doubled Hilbert space H = C^{2n^2} (bimodule structure)
-     -> Representation pi of M_n(C) on H
-        -> Zero-order condition check (J)
-        -> First-order condition (D)
-           -> Moduli space of D
-           -> Subalgebra A_F
-              -> Gauge group identification
-
-Convention: Peirce decomposition (Paper 5 S1-S7)
-  -> Compression maps C_{p_i} on M_n(C)^sa
-  -> These become building blocks for pi(a) on the doubled space
-
-KO-dimension choice (mod 8)
-  -> Signs epsilon, epsilon', epsilon''
-     -> Constraints on J and J-D relation
-        -> Constraints on D parametrization
+Fano convention -> Octonion multiplication -> h_3(O) Jordan product
+h_3(O) Jordan product -> Peirce decomposition (V_1, V_{1/2}, V_0)
+Peirce decomposition -> L_a operator extraction -> 16x16 matrices
+16x16 matrices -> Complex structure search (T_a^2 = -Id?)
+16x16 matrices -> Spin(9) identification (cross-check with Cl(9))
+Cl(9) tensor product construction -> Spin(9) generators (independent path)
+Spin(9) generators + complexification -> Spin(10) generators
+Spin(10) 10th generator -> Alternative complex structure source
 ```
 
 ## Recommended Investigation Scope
 
 Prioritize:
-1. **n=2 complete axiom verification** -- smallest nontrivial case, 8x8 matrices, all computations instantaneous. Establish the full pipeline: construct pi, J, gamma, parametrize D, compute moduli space, extract subalgebra. This is the proof-of-concept that validates the computational approach before scaling to n=3,4.
-2. **n=3 verification** -- 18x18 matrices, still fast. Physically relevant because M_3(C) is the color algebra of QCD.
-3. **General-n symbolic computation** -- use SymPy to verify whether patterns from n=2,3 extend to arbitrary n. This is the hardest computational step but the most valuable for the paper.
+1. **Octonion module + h_3(O) Jordan product** (foundation for everything)
+2. **All 27 T_a matrices on V_{1/2}** (the core computation answering the central question)
+3. **Cl(9)/Cl(10) generators and cross-check** (independent verification path)
 
 Defer:
-- **n >= 5:** Only needed if general-n pattern is not clear from n=2,3,4. Resource cost grows as n^{10} for brute-force, though structured computation should be much faster.
-- **Product algebras (e.g., M_2(H) + M_4(C)):** This is the SM-specific algebra choice. Only pursue after single-algebra verification is complete.
-- **Spectral action computation:** Computing Tr(f(D/Lambda)) for the finite spectral triple. Interesting but not needed for axiom verification.
+- **Symbolic proofs over general parameters:** Only pursue if numerical results suggest a clean algebraic pattern.
+- **F_4 orbit analysis:** Not needed for the computational verification; this is a representation-theoretic question.
+- **Generation structure (3 generations):** Out of scope for this milestone.
 
 ## Validation Strategy
 
 | Result | Validation Method | Benchmark | Source |
 |--------|------------------|-----------|--------|
-| Zero-order condition for standard SM triple | Reconstruct known SM result | Must hold for A = C + H + M_3(C) with standard J | van Suijlekom Ch. 11-13 |
-| First-order condition selects SM subalgebra | Start from M_2(H) + M_4(C), verify A_F = C + H + M_3(C) | Dimension of A_F = 1 + 4 + 9 = 14 | Chamseddine-Connes arXiv:0706.3688 |
-| Moduli space dimension for SM Dirac operator | Count free parameters in D | Should give SM Yukawa coupling count (Dirac masses + mixing matrices) | van Suijlekom Thm 13.12 |
-| n=2 M_2(C) self-adjoint part | Verify sequential product from Paper 5 embeds correctly | Peirce formula must reproduce Luders product on embedded effects | test_spectral_extension.py (existing) |
-| J^2 = epsilon, J gamma = epsilon'' gamma J | Direct matrix verification | Exact for any valid J, gamma | Axiom definition |
-| D self-adjoint, D gamma + gamma D = 0 | Direct matrix verification | Exact for any valid D | Axiom definition |
-
-## Key References
-
-- van Suijlekom, W.D. "Noncommutative Geometry and Particle Physics" 2nd ed. (2024), Springer. Chapters 2-4 (finite spectral triples), 11-13 (Standard Model). The primary textbook reference for explicit finite spectral triple construction. [DOI: 10.1007/978-3-031-59120-4](https://link.springer.com/book/10.1007/978-3-031-59120-4)
-- Cacic, B. "Moduli spaces of Dirac operators for finite spectral triples" (2009). [arXiv:0902.2068](https://arxiv.org/abs/0902.2068). Systematic framework for parametrizing the space of allowed Dirac operators; defines D_0(A,H,P) and works out the linear algebra structure.
-- Krajewski, T. "Classification of finite spectral triples" (1998). [arXiv:hep-th/9701081](https://arxiv.org/abs/hep-th/9701081). Krajewski diagrams for systematic enumeration of finite spectral triples. Background classification, not directly computational for our purposes.
-- Chamseddine, A.H. and Connes, A. "Why the Standard Model" (2007). [arXiv:0706.3688](https://arxiv.org/abs/0706.3688). The first-order condition subalgebra derivation that selects the Standard Model gauge group.
-- Barrett, J.W. "Fermion integrals for finite spectral triples" (2024). [arXiv:2403.18428](https://arxiv.org/abs/2403.18428). Recent computational work on finite spectral triples; confirms the field is still done by hand/pen-and-paper.
-- Paschke, M. and Sitarz, A. "Discrete spectral triples and their symmetries" (1998). [arXiv:q-alg/9612029](https://arxiv.org/abs/q-alg/9612029). Early structure theory for finite spectral triples.
-- Stephan, C.A. "Krajewski diagrams and the Standard Model" (2009). [arXiv:0809.5137](https://arxiv.org/abs/0809.5137). Application of Krajewski classification to the SM.
-- SymPy documentation: Matrix Expressions module, Quantum Commutator module. [https://docs.sympy.org/latest/modules/matrices/expressions.html](https://docs.sympy.org/latest/modules/matrices/expressions.html)
+| Octonion multiplication | e_i^2 = -1 for all i; norm multiplicativity on random pairs | Exact identity | Baez (2002) Table 1 |
+| Octonion non-associativity | (e1*e2)*e3 != e1*(e2*e3) but Artin theorem: (e_i*e_j)*e_j = e_i*(e_j*e_j) = -e_i | Exact comparison | Baez (2002), Sec. 2.1 |
+| h_3(O) Jordan identity | (A circ B) circ A^2 = A circ (B circ A^2) on random A, B | Machine precision | Jordan-von Neumann-Wigner (1934) |
+| Peirce eigenvalues | dim(V_1) = 1, dim(V_{1/2}) = 16, dim(V_0) = 10 | Exact dimensions | derivations/11-peirce-complexification.md |
+| Peirce multiplication rules | V_1 circ V_{1/2} subset V_{1/2}, V_0 circ V_{1/2} subset V_{1/2}, V_1 circ V_0 = 0 | Exact (zero entries) | Standard Peirce theory |
+| L_{E_11} on V_{1/2} | Acts as scalar 1/2 | Exact | Phase 18-01, Step 2 |
+| Cl(9) Clifford relations | {Gamma_A, Gamma_B} = 2*delta_{AB}*I_16 for all A,B in 1..9 | Machine precision | Clifford algebra definition |
+| Spin(9) on V_{1/2} | 36 generators of spin(9) match the 16x16 rep restricted from 32x32 Cl(10) | Matrix equality to machine precision | test_cl6_sm.py comparison |
 
 ## Sources
 
-- van Suijlekom (2024) -- primary reference for finite spectral triple construction algorithms and SM application
-- Cacic (2009) -- moduli space of Dirac operators framework
-- Barrett (2024) -- confirms no existing computational software in the field
-- Chamseddine-Connes (2007) -- first-order condition subalgebra derivation
-- SymPy 1.14 documentation -- verified current capabilities for noncommutative symbolic computation
-- NCAlgebra GitHub repository -- confirmed focus on abstract noncommutative algebra, not finite matrix spectral triples
-- SageMath documentation -- confirmed noncommutative algebra support but not spectral-triple-specific
-- GAP documentation -- confirmed focus on discrete algebra/group theory, not operator verification
+- Baez, "The Octonions," Bull. AMS 39 (2002), 145-205. arXiv:math/0105155 -- Octonion multiplication table, F_4 = Aut(h_3(O)), Spin(9) spinor rep
+- Dray and Manogue, "The Geometry of the Octonions" (2015), World Scientific -- Octonionic eigenvalue problem, explicit matrix computations
+- Dray and Manogue, "The Octonionic Eigenvalue Problem," Adv. Appl. Cliff. Alg. 8 (1998) 323-340. arXiv:math/9807126 -- Eigenvalues of 3x3 octonionic Hermitian matrices
+- Todorov, "Octonion Internal Space Algebra for the Standard Model," Universe 9 (2023) 222. arXiv:2206.06912 -- Cl(10) from octonionic left multiplication, Pati-Salam from Cl(6)
+- Parton and Piccinni, "The Role of Spin(9) in Octonionic Geometry," Axioms 7 (2018) 72. arXiv:1810.06288 -- Explicit Spin(9) matrices on R^16, canonical 8-form
+- Jordan, von Neumann, Wigner, "On an Algebraic Generalization of the Quantum Mechanical Formalism," Ann. Math. 35 (1934) 29-64 -- Classification of formally real Jordan algebras
+- Albert, "On a Certain Algebra of Quantum Mechanics," Ann. Math. 35 (1934) 65-73 -- Exceptional Jordan algebra h_3(O)
+- Boyle, "The Standard Model, the Exceptional Jordan Algebra, and Triality," arXiv:2006.16265 -- V_{1/2} = S_{10}^+, 27 -> 1+10+16 decomposition
+- Existing project code: tests/test_cl6_sm.py (32x32 Cl(10)/Cl(6) matrices, Witt operators, SM quantum numbers)
+- Existing derivation: derivations/11-peirce-complexification.md (Peirce decomposition, complexification argument)
