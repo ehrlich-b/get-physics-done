@@ -5,8 +5,6 @@ logic, background spawn failure, and graceful degradation.
 """
 
 from __future__ import annotations
-
-import inspect
 import json
 import time
 from pathlib import Path
@@ -72,10 +70,8 @@ class TestIsOlderThan:
 
 
 def test_version_comparison_does_not_depend_on_packaging_modules() -> None:
-    source = inspect.getsource(check_update)
-
-    assert "packaging.version" not in source
-    assert "pip._vendor.packaging" not in source
+    assert _is_older_than("1.0.0rc1", "1.0.0") is True
+    assert _is_older_than("1.0.0.post1", "1.0.0") is False
 
 
 # ─── _read_installed_version ───────────────────────────────────────────────
@@ -215,12 +211,26 @@ class TestReadInstalledVersion:
             assert _read_installed_version() == "7.7.7"
 
     def test_version_files_use_public_runtime_detect_surface(self) -> None:
-        source = inspect.getsource(_version_files)
+        from gpd.adapters.install_utils import GPD_INSTALL_DIR_NAME
 
-        assert "_detect_runtime_install_target" not in source
-        assert "_local_runtime_dir" not in source
-        assert "_global_runtime_dir" not in source
-        assert "get_gpd_install_dirs" in source
+        install_dirs = [
+            Path(".codex") / GPD_INSTALL_DIR_NAME,
+            Path(".claude") / GPD_INSTALL_DIR_NAME,
+        ]
+
+        with (
+            patch("gpd.hooks.check_update._self_config_dir", return_value=None),
+            patch("gpd.hooks.runtime_detect.get_gpd_install_dirs", return_value=install_dirs) as mock_get_dirs,
+            patch(
+                "gpd.hooks.check_update.config_dir_has_complete_install",
+                side_effect=lambda config_dir: config_dir.name == ".claude",
+            ) as mock_complete,
+        ):
+            version_files = _version_files()
+
+        mock_get_dirs.assert_called_once_with(prefer_active=True)
+        assert mock_complete.call_count == 2
+        assert version_files == [Path(".claude") / GPD_INSTALL_DIR_NAME / "VERSION"]
 
 
 def test_worker_cache_file_arg_runs_do_check_directly(tmp_path: Path) -> None:

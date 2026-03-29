@@ -63,6 +63,7 @@ Expert fast path:
 - From inside the folder where your project should live, install GPD with the matching `npx -y get-physics-done ...` command from [Start Here](#start-here), then launch `claude`, `codex`, `gemini`, or `opencode`.
 - Run the matching GPD help command shown in [Supported Runtimes](#supported-runtimes).
 - Then use `start` if you are not sure what fits this folder, `tour` for a read-only walkthrough, `new-project --minimal` for new work, `map-research` for existing work, or `resume-work` when you return later.
+- Treat the new-work choice as distinct from the existing-work choice; pick one, then follow it through.
 
 The bootstrap installer requires Node.js 20+, Python 3.11+ with `venv`, and one supported runtime (`claude`, `gemini`, `codex`, or `opencode`).
 
@@ -84,6 +85,8 @@ Use the runtime syntax above for the command names below.
 | Current-workspace recovery snapshot | `gpd resume` |
 | Find a workspace to reopen first | `gpd resume --recent`, then `resume-work` |
 | Continue in an existing GPD project | `resume-work` |
+
+`gpd resume` is the normal-terminal recovery step; `resume-work` is the in-runtime continue command after the right folder is open.
 
 After resuming, the runtime `suggest-next` command is the fastest post-resume next command when you only need the next action.
 
@@ -173,7 +176,7 @@ GPD currently installs into four AI runtimes. To preselect one during install, u
 | OpenCode | `--opencode` | `/gpd-help` | `/gpd-start` | `/gpd-tour` | `/gpd-new-project --minimal` | `/gpd-map-research` | `/gpd-resume-work` |
 
 Each runtime uses its own command prefix, but the workflow is the same across all four. After installing GPD, open your chosen runtime normally from your system terminal and use the commands shown above.
-For post-startup configuration, use your runtime's `settings` command after your first successful start or later.
+After your first successful start or later, use your runtime's `settings` command to review autonomy, workflow defaults, and model-cost posture.
 
 Notes:
 - Claude Code-specific note: GPD writes `.claude/settings.json` for hooks and statusline. MCP servers are added to project `.mcp.json` for local installs or `~/.claude.json` for global installs.

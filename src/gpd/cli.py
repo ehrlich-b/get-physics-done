@@ -57,6 +57,7 @@ from gpd.core.errors import ConfigError, GPDError
 from gpd.core.recovery_advice import RecoveryAdvice, build_recovery_advice
 from gpd.core.surface_phrases import (
     local_cli_bridge_note,
+    cost_inspect_action,
     post_start_settings_note,
     post_start_settings_recommendation,
     recovery_action_lines,
@@ -2685,10 +2686,30 @@ def _cost_summary_project_root(summary: object) -> str | None:
     project_root = getattr(project_rollup, "project_root", None)
     if isinstance(project_root, str) and project_root.strip():
         return project_root.strip()
-    workspace_root = getattr(summary, "workspace_root", None)
-    if isinstance(workspace_root, str) and workspace_root.strip():
-        return workspace_root.strip()
     return None
+
+
+def _cost_next_action(advisory: dict[str, object]) -> str | None:
+    state = str(advisory.get("state", "") or "").strip()
+    if state in {"at_or_over_budget", "near_budget", "mixed"}:
+        return cost_inspect_action()
+    return None
+
+
+def _cost_advisory(summary: object) -> dict[str, object] | None:
+    from gpd.core.costs import resolve_cost_advisory
+
+    structured_advisory = resolve_cost_advisory(summary)
+    if structured_advisory is None:
+        return None
+
+    advisory = structured_advisory.model_dump(mode="json")
+    if not isinstance(advisory, dict):
+        return None
+    next_action = _cost_next_action(advisory)
+    if next_action is not None:
+        advisory["next_action"] = next_action
+    return advisory
 
 
 def _cost_summary_payload(summary: object) -> dict[str, object]:
@@ -2700,7 +2721,9 @@ def _cost_summary_payload(summary: object) -> dict[str, object]:
     project_root = _cost_summary_project_root(summary)
     if project_root is not None:
         payload["project_root"] = project_root
-    payload.pop("workspace_root", None)
+    advisory = _cost_advisory(summary)
+    if advisory is not None:
+        payload["advisory"] = advisory
     return payload
 
 
@@ -2816,6 +2839,15 @@ def _render_cost_summary(summary: object, *, last_sessions: int) -> None:
     console.print()
 
     _render_budget_guardrails(summary)
+
+    advisory = _cost_advisory(summary)
+    if advisory is not None and advisory.get("scope") is None:
+        console.print("[bold]Advisory[/]")
+        console.print(f"[dim]{advisory['message']}[/]")
+        next_action = advisory.get("next_action")
+        if isinstance(next_action, str) and next_action.strip():
+            console.print(f"[dim]- {next_action.strip()}[/]")
+        console.print()
 
     project_rollup = summary.project
     _render_cost_rollup("Current project", project_rollup, project_root=project_rollup.project_root)

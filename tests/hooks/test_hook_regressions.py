@@ -66,24 +66,68 @@ def test_check_update_reexecs_current_script_with_cache_file_arg(tmp_path: Path)
 
 
 def test_check_update_uses_shared_update_resolution_candidates() -> None:
-    source = (Path(__file__).resolve().parents[2] / "src" / "gpd" / "hooks" / "check_update.py").read_text(
-        encoding="utf-8"
+    from gpd.hooks.check_update import main
+    from gpd.hooks.runtime_detect import UpdateCacheCandidate
+
+    candidate = UpdateCacheCandidate(path=Path("/tmp/shared-cache.json"), runtime="codex", scope="local")
+
+    with (
+        patch("gpd.hooks.check_update._self_config_dir", return_value=None),
+        patch(
+            "gpd.hooks.update_resolution.resolve_update_cache_inputs",
+            return_value=(Path("/tmp/workspace"), Path("/tmp/home"), "unknown", "codex"),
+        ) as mock_inputs,
+        patch("gpd.hooks.update_resolution.ordered_update_cache_candidates", return_value=[candidate]) as mock_candidates,
+        patch("gpd.hooks.update_resolution.primary_update_cache_file", return_value=candidate.path) as mock_primary,
+        patch("gpd.hooks.runtime_detect.get_update_cache_candidates", side_effect=AssertionError("unexpected direct cache lookup")),
+        patch(
+            "gpd.hooks.runtime_detect.should_consider_update_cache_candidate",
+            side_effect=AssertionError("unexpected direct cache filtering"),
+        ),
+        patch("gpd.hooks.check_update._has_fresh_inflight_marker", return_value=False),
+        patch("gpd.hooks.check_update._claim_inflight_marker", return_value=True),
+        patch("subprocess.Popen") as mock_popen,
+    ):
+        mock_popen.return_value = MagicMock()
+        main()
+
+    mock_inputs.assert_called_once()
+    mock_candidates.assert_called_once()
+    mock_primary.assert_called_once_with([candidate], home=Path("/tmp/home"))
+    mock_popen.assert_called_once()
+
+
+def test_statusline_current_task_uses_shared_todo_resolution_candidates(tmp_path: Path) -> None:
+    from gpd.hooks.statusline import _read_current_task
+
+    todos_dir = tmp_path / "todos"
+    todos_dir.mkdir(parents=True)
+    (todos_dir / "todo.json").write_text(
+        json.dumps(
+            [
+                {
+                    "status": "in_progress",
+                    "activeForm": "Investigating the current task",
+                }
+            ]
+        ),
+        encoding="utf-8",
     )
+    candidate = type("TodoCandidate", (), {"path": todos_dir})()
 
-    assert "ordered_update_cache_candidates" in source
-    assert "primary_update_cache_file" in source
-    assert "get_update_cache_candidates(" not in source
-    assert "should_consider_update_cache_candidate(" not in source
+    with (
+        patch("gpd.hooks.install_context.ordered_todo_lookup_candidates", return_value=[candidate]) as mock_candidates,
+        patch("gpd.hooks.runtime_detect.get_todo_candidates", side_effect=AssertionError("unexpected direct todo lookup")),
+        patch(
+            "gpd.hooks.runtime_detect.should_consider_todo_candidate",
+            side_effect=AssertionError("unexpected direct todo filtering"),
+        ),
+        patch("gpd.hooks.statusline._matching_todo_files", return_value=[(1.0, todos_dir / "todo.json")]),
+    ):
+        task = _read_current_task("session-1", str(tmp_path))
 
-
-def test_statusline_current_task_uses_shared_todo_resolution_candidates() -> None:
-    source = (Path(__file__).resolve().parents[2] / "src" / "gpd" / "hooks" / "statusline.py").read_text(
-        encoding="utf-8"
-    )
-
-    assert "ordered_todo_lookup_candidates" in source
-    assert "get_todo_candidates(" not in source
-    assert "should_consider_todo_candidate(" not in source
+    mock_candidates.assert_called_once()
+    assert task == "Investigating the current task"
 
 
 def test_check_update_ignores_rejected_preferred_runtime_cache_when_no_runtime_is_active(

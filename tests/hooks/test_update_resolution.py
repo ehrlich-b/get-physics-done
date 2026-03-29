@@ -12,6 +12,7 @@ from gpd.hooks.update_resolution import (
     latest_update_cache,
     ordered_update_cache_candidates,
     primary_update_cache_file,
+    resolve_update_cache_inputs,
     update_command_for_candidate,
 )
 from tests.hooks.helpers import mark_complete_install as _mark_complete_install
@@ -103,6 +104,47 @@ def test_ordered_update_cache_candidates_prefers_preferred_runtime_then_fallback
         )
 
     assert candidates == [preferred_candidate, fallback_candidate]
+
+
+def test_resolve_update_cache_inputs_uses_the_runtime_for_gpd_use_as_preference(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    home = tmp_path / "home"
+
+    with (
+        patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value="unknown"),
+        patch("gpd.hooks.runtime_detect.detect_runtime_for_gpd_use", return_value="codex"),
+    ):
+        workspace_path, resolved_home, active_runtime, preferred_runtime = resolve_update_cache_inputs(
+            cwd=workspace,
+            home=home,
+        )
+
+    assert workspace_path == workspace
+    assert resolved_home == home
+    assert active_runtime == "unknown"
+    assert preferred_runtime == "codex"
+
+
+def test_resolve_update_cache_inputs_uses_explicit_preference_without_runtime_lookup(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    home = tmp_path / "home"
+
+    with (
+        patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value="unknown"),
+        patch("gpd.hooks.runtime_detect.detect_runtime_for_gpd_use", side_effect=AssertionError("unexpected lookup")),
+    ):
+        workspace_path, resolved_home, active_runtime, preferred_runtime = resolve_update_cache_inputs(
+            cwd=workspace,
+            home=home,
+            preferred_runtime="codex",
+        )
+
+    assert workspace_path == workspace
+    assert resolved_home == home
+    assert active_runtime == "unknown"
+    assert preferred_runtime == "codex"
 
 
 def test_primary_update_cache_file_falls_back_to_home_gpd_cache(tmp_path: Path) -> None:

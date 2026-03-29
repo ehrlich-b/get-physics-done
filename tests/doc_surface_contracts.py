@@ -30,6 +30,7 @@ __all__ = [
     "assert_help_workflow_runtime_reference_contract",
     "assert_install_summary_runtime_follow_up_contract",
     "assert_optional_paper_workflow_guidance_contract",
+    "assert_post_start_settings_bridge_contract",
     "assert_publication_toolchain_boundary_contract",
     "assert_beginner_caveat_follow_up_contract",
     "assert_beginner_help_bridge_contract",
@@ -562,6 +563,18 @@ def assert_beginner_router_bridge_contract(content: str) -> None:
             "For post-startup configuration, use your runtime's `settings` command",
         ),
         label="post-startup settings bridge",
+    )
+
+
+def assert_post_start_settings_bridge_contract(content: str) -> None:
+    _assert_contains_any(
+        content,
+        (
+            post_start_settings_note(),
+            "After your first successful start or later, use your runtime's `settings` command",
+            "For post-startup configuration, use your runtime's `settings` command",
+        ),
+        label="post-start settings bridge",
     )
 
 

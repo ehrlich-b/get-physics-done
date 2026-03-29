@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field
 
 from gpd.adapters.runtime_catalog import get_hook_payload_policy, get_runtime_capabilities
 from gpd.core.constants import (
@@ -170,9 +170,9 @@ class CostProjectSummary(CostRollup):
 class CostSummary(BaseModel):
     """Read-only cost summary for the current project and recent sessions."""
 
-    model_config = ConfigDict(frozen=True, populate_by_name=True)
+    model_config = ConfigDict(frozen=True)
 
-    project_root: str = Field(validation_alias=AliasChoices("project_root", "workspace_root"))
+    project_root: str
     active_runtime: str | None = None
     active_runtime_capabilities: dict[str, str] = Field(default_factory=dict)
     model_profile: str | None = None
@@ -187,12 +187,6 @@ class CostSummary(BaseModel):
     pricing_snapshot_as_of: str | None = None
     budget_thresholds: list[CostBudgetThresholdSummary] = Field(default_factory=list)
     guidance: list[str] = Field(default_factory=list)
-
-    @computed_field
-    @property
-    def workspace_root(self) -> str:
-        """Backward-compatible alias for the project-scoped summary root."""
-        return self.project_root
 
 
 class CostBudgetThresholdSummary(BaseModel):
@@ -1167,20 +1161,6 @@ def build_cost_summary(
             guidance.append(
                 "No measured usage telemetry is recorded for this workspace yet. GPD records usage only when the runtime emits token or cost payloads."
             )
-    elif project_rollup.usage_status == "measured" and project_rollup.cost_status == "unavailable":
-        if pricing_snapshot.entries:
-            guidance.append(
-                "Measured tokens are available, but no pricing snapshot entry matched the recorded runtime/provider/model combination, so USD cost is unavailable."
-            )
-        else:
-            guidance.append(
-                "Measured tokens are available, but no pricing snapshot is configured at the machine-local cost root, so USD cost is unavailable."
-            )
-    elif project_rollup.cost_status == "mixed":
-        guidance.append(
-            "USD cost mixes measured runtime telemetry with pricing-snapshot estimates. Treat the total as advisory rather than invoice-level billing truth."
-        )
-
     if active_runtime and runtime_model_selection == "runtime defaults":
         guidance.append(
             f"Current model posture: profile `{model_profile or 'unknown'}` with {active_runtime} runtime defaults. Use the runtime `settings` command only if you want explicit tier-model overrides."

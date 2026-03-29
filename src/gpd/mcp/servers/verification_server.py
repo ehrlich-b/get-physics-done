@@ -21,13 +21,16 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 from pydantic import ValidationError as PydanticValidationError
 
-from gpd.contracts import ResearchContract, collect_contract_integrity_errors
+from gpd.contracts import (
+    ResearchContract,
+    collect_plan_contract_integrity_errors,
+    contract_has_explicit_context_intake,
+)
 from gpd.core.contract_validation import (
     _collect_list_shape_drift_errors,
     _sanitize_contract_scalars,
     _split_project_contract_schema_findings,
     salvage_project_contract,
-    validate_project_contract,
 )
 from gpd.core.observability import gpd_span
 from gpd.core.protocol_bundles import ResolvedProtocolBundle, get_protocol_bundle, render_protocol_bundle_context
@@ -628,7 +631,7 @@ _CONTRACT_PAYLOAD_INPUT_SCHEMA: dict[str, object] = _object_schema(
         },
         "uncertainty_markers": dict(_CONTRACT_UNCERTAINTY_MARKERS_INPUT_SCHEMA),
     },
-    required=("scope",),
+    required=("scope", "context_intake"),
     additional_properties=False,
 )
 
@@ -2462,12 +2465,19 @@ def _validate_contract_list_members(contract_raw: dict[str, object]) -> dict[str
     return _contract_payload_error(errors)
 
 
-def _validate_contract_integrity(contract: ResearchContract) -> dict[str, object] | None:
-    """Reject semantically ambiguous contracts after structural validation."""
+def _validate_contract_integrity(
+    contract: ResearchContract,
+    *,
+    contract_raw: dict[str, object],
+) -> dict[str, object] | None:
+    """Reject plan-contract semantic mismatches after structural validation."""
 
-    errors = collect_contract_integrity_errors(contract)
-    draft_validation = validate_project_contract(contract, mode="draft")
-    for error in draft_validation.errors:
+    errors: list[str] = []
+    if "context_intake" not in contract_raw:
+        errors.append("missing context_intake")
+    elif not contract_has_explicit_context_intake(contract):
+        errors.append("context_intake must not be empty")
+    for error in collect_plan_contract_integrity_errors(contract):
         if error not in errors:
             errors.append(error)
     if not errors:
@@ -2497,7 +2507,7 @@ def _parse_contract_payload(contract_raw: dict[str, object]) -> tuple[ResearchCo
     )
     if blocking:
         return None, [], _contract_payload_error(blocking)
-    integrity_error = _validate_contract_integrity(contract)
+    integrity_error = _validate_contract_integrity(contract, contract_raw=contract_raw)
     if integrity_error is not None:
         return None, [], integrity_error
     salvage_findings = list(dict.fromkeys([*recoverable, *list_shape_drift_errors]))
@@ -2807,7 +2817,7 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
     resolution ambiguous, and ``references[].carry_forward_to`` is only for
     workflow scope labels, never contract IDs. contract context must stay consistent with metadata defaults and explicit metadata
     fields, so benchmark anchors, regime labels, and family selections cannot
-    contradict the resolved binding. Limited recoverable structural drift may
+    contradict the resolved binding. For plan-style contract payloads, ``context_intake`` must be present and non-empty, and the contract must satisfy the same plan semantic requirements GPD enforces in plan frontmatter. Limited recoverable structural drift may
     still be salvaged, and any such recovery is surfaced back as structured
     salvage findings.
 
@@ -3273,7 +3283,7 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
     ``references[].carry_forward_to`` is only for workflow scope labels, never
     contract IDs. contract context must stay consistent with metadata defaults and explicit metadata fields, so benchmark anchors,
     regime labels, and family selections cannot contradict the resolved
-    binding. Limited recoverable structural drift may still be salvaged, and
+    binding. For plan-style contract payloads, ``context_intake`` must be present and non-empty, and the contract must satisfy the same plan semantic requirements GPD enforces in plan frontmatter. Limited recoverable structural drift may still be salvaged, and
     any such recovery is carried through the suggestion metadata.
 
     ``active_checks`` is optional and must be ``list[str]`` with non-empty

@@ -101,7 +101,7 @@ def _fake_cost_summary(workspace: Path, **overrides: object) -> SimpleNamespace:
         "model_profile": "review",
         "runtime_model_selection": "runtime defaults",
         "profile_tier_mix": {},
-        "workspace_root": workspace.resolve(strict=False).as_posix(),
+        "project_root": workspace.resolve(strict=False).as_posix(),
         "project": SimpleNamespace(record_count=0, usage_status="unavailable", cost_status="unavailable"),
         "current_session": None,
         "recent_sessions": [],
@@ -184,7 +184,8 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert payload.cost["project"]["usage_status"] == "measured"
     assert payload.cost["project"]["interpretation"] == "tokens measured; USD unavailable"
     assert payload.cost["profile_tier_mix"] == {"tier-1": 12, "tier-2": 10, "tier-3": 1}
-    assert any("pricing snapshot" in item for item in payload.cost["guidance"])
+    assert payload.cost["advisory"]["state"] == "unavailable"
+    assert "pricing snapshot" in payload.cost["advisory"]["message"]
 
     assert payload.workflow_presets["ready"] == 5
     assert payload.workflow_presets["degraded"] == 0

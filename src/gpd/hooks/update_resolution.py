@@ -28,6 +28,33 @@ def _read_update_cache(cache_file: Path, *, debug: DebugLogger) -> dict[str, obj
     return cache
 
 
+def resolve_update_cache_inputs(
+    *,
+    cwd: str | Path | None,
+    home: str | Path | None = None,
+    active_installed_runtime: str | None = None,
+    preferred_runtime: str | None = None,
+) -> tuple[Path | None, Path, str | None, str | None]:
+    """Return the shared runtime-preference inputs for update-cache lookup."""
+    from gpd.hooks.runtime_detect import detect_active_runtime_with_gpd_install, detect_runtime_for_gpd_use
+
+    workspace_path = resolve_project_root(cwd) if cwd else None
+    resolved_home = Path.home() if home is None else Path(home)
+    active_runtime = (
+        active_installed_runtime
+        if active_installed_runtime is not None
+        else detect_active_runtime_with_gpd_install(cwd=workspace_path, home=resolved_home)
+    )
+    resolved_preferred_runtime = (
+        preferred_runtime
+        if preferred_runtime is not None
+        else detect_runtime_for_gpd_use(cwd=workspace_path, home=resolved_home)
+        if workspace_path is not None
+        else None
+    )
+    return workspace_path, resolved_home, active_runtime, resolved_preferred_runtime
+
+
 def ordered_update_cache_candidates(
     *,
     cwd: str | Path | None,
@@ -39,22 +66,20 @@ def ordered_update_cache_candidates(
     from gpd.hooks.runtime_detect import (
         ALL_RUNTIMES,
         RUNTIME_UNKNOWN,
-        detect_active_runtime_with_gpd_install,
         get_update_cache_candidates,
         should_consider_update_cache_candidate,
     )
 
-    workspace_path = resolve_project_root(cwd) if cwd else None
-    resolved_home = Path.home() if home is None else Path(home)
-    active_runtime = (
-        active_installed_runtime
-        if active_installed_runtime is not None
-        else detect_active_runtime_with_gpd_install(cwd=workspace_path, home=resolved_home)
+    workspace_path, resolved_home, active_runtime, resolved_preferred_runtime = resolve_update_cache_inputs(
+        cwd=cwd,
+        home=home,
+        active_installed_runtime=active_installed_runtime,
+        preferred_runtime=preferred_runtime,
     )
     cache_candidates = get_update_cache_candidates(
         cwd=workspace_path,
         home=resolved_home,
-        preferred_runtime=preferred_runtime,
+        preferred_runtime=resolved_preferred_runtime,
     )
     relevant_candidates = [
         candidate
@@ -66,8 +91,10 @@ def ordered_update_cache_candidates(
             home=resolved_home,
         )
     ]
-    if active_runtime in (None, "", RUNTIME_UNKNOWN) and preferred_runtime in ALL_RUNTIMES:
-        preferred_candidates = [candidate for candidate in relevant_candidates if getattr(candidate, "runtime", None) == preferred_runtime]
+    if active_runtime in (None, "", RUNTIME_UNKNOWN) and resolved_preferred_runtime in ALL_RUNTIMES:
+        preferred_candidates = [
+            candidate for candidate in relevant_candidates if getattr(candidate, "runtime", None) == resolved_preferred_runtime
+        ]
         fallback_candidates = [candidate for candidate in relevant_candidates if getattr(candidate, "runtime", None) is None]
         if preferred_candidates:
             seen_paths: set[Path] = set()
@@ -82,7 +109,7 @@ def ordered_update_cache_candidates(
         relevant_candidates = [
             candidate
             for candidate in relevant_candidates
-            if getattr(candidate, "runtime", None) in (None, preferred_runtime)
+            if getattr(candidate, "runtime", None) in (None, resolved_preferred_runtime)
         ]
     return relevant_candidates
 
@@ -106,12 +133,10 @@ def latest_update_cache(
     """Return the highest-priority valid update cache and its candidate metadata."""
     from gpd.hooks.runtime_detect import (
         RUNTIME_UNKNOWN,
-        detect_active_runtime_with_gpd_install,
         detect_runtime_install_target,
     )
 
-    workspace_path = resolve_project_root(cwd) if cwd else None
-    active_installed_runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path)
+    workspace_path, _resolved_home, active_installed_runtime, preferred_runtime = resolve_update_cache_inputs(cwd=cwd)
     self_install = hook_layout.detect_self_owned_install(hook_file)
     active_install_target = (
         detect_runtime_install_target(active_installed_runtime, cwd=workspace_path)
@@ -128,12 +153,11 @@ def latest_update_cache(
             if cache is not None:
                 return cache, hook_layout.self_owned_update_cache_candidate(self_install)
 
-    preferred_runtime = active_installed_runtime if workspace_path is not None else None
     fallback_hit: tuple[dict[str, object], object] | None = None
     for candidate in ordered_update_cache_candidates(
         cwd=workspace_path,
-        active_installed_runtime=active_installed_runtime,
         preferred_runtime=preferred_runtime,
+        active_installed_runtime=active_installed_runtime,
     ):
         cache = _read_update_cache(candidate.path, debug=debug)
         if cache is None:

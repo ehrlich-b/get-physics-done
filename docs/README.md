@@ -32,6 +32,8 @@ Use this one-line path:
 
 `help -> start -> tour -> new-project / map-research -> resume-work`
 
+Treat the new-work choice as distinct from the existing-work choice; pick one of them, not both.
+
 Follow one linear path:
 
 1. Open the OS guide for your machine.
@@ -42,10 +44,10 @@ Follow one linear path:
 6. Run `tour` if you want a read-only overview of what GPD can do before choosing.
 7. Then choose `new-project`, `map-research`, or `resume-work`.
 
-If you already have a GPD project, `resume-work` is the in-runtime return path
-after you open the right folder. If you need to reopen from your normal
-terminal first, use `gpd resume` or `gpd resume --recent`, then come back into
-the runtime.
+If you already have a GPD project, `gpd resume` is the normal-terminal recovery
+step, and `resume-work` is the in-runtime continue command after you open the
+right folder. If you need to reopen a different workspace first, use
+`gpd resume --recent`, then come back into the runtime.
 
 </details>
 
@@ -64,6 +66,7 @@ You will use two different places:
 - **`--local`**: install GPD for just this project or folder.
 - **`gpd resume`**: the terminal-side recovery step.
 - **`resume-work`**: the in-runtime command you use after reopening the right workspace.
+- **`settings`**: the guided runtime command for changing autonomy, workflow defaults, and model-cost posture after your first successful start or later.
 
 </details>
 
@@ -148,4 +151,5 @@ Use this if you want GPD inside OpenCode. Inside the runtime, GPD commands use `
 1. Finish the OS and runtime guide you opened.
 2. Inside the runtime, use `help` for the command menu, `start` if you are not sure what fits this folder, or `tour` if you want a read-only orientation first.
 3. Then choose `new-project`, `map-research`, or `resume-work`.
-4. Come back to this hub only when you need a different OS guide or runtime guide.
+4. After your first successful start or later, use the runtime-specific `settings` command to review autonomy, workflow defaults, and model-cost posture.
+5. Come back to this hub only when you need a different OS guide or runtime guide.

@@ -149,7 +149,6 @@ def test_record_usage_writes_measured_records_and_builds_project_summary(
     summary = build_cost_summary(project, data_root=data_root, last_sessions=5)
 
     assert summary.project_root == project.resolve(strict=False).as_posix()
-    assert summary.workspace_root == summary.project_root
     assert summary.project.project_root == project.resolve(strict=False).as_posix()
     assert summary.project.record_count == 2
     assert summary.project.usage_status == "measured"
@@ -582,7 +581,6 @@ def test_record_usage_uses_project_root_for_workspace_state_attribution_and_summ
 
     summary = build_cost_summary(nested, data_root=data_root)
     assert summary.project_root == project.resolve(strict=False).as_posix()
-    assert summary.workspace_root == summary.project_root
     assert summary.current_session_id == "sess-parent"
     assert summary.project.project_root == project.resolve(strict=False).as_posix()
     assert summary.project.record_count == 1
@@ -592,7 +590,7 @@ def test_record_usage_uses_project_root_for_workspace_state_attribution_and_summ
     assert summary.current_session.total_tokens == 150
 
 
-def test_build_cost_summary_serializes_project_root_with_workspace_root_compat_alias(
+def test_build_cost_summary_serializes_project_root_without_workspace_root_alias(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     project = _bootstrap_project(tmp_path)
@@ -602,10 +600,10 @@ def test_build_cost_summary_serializes_project_root_with_workspace_root_compat_a
     payload = summary.model_dump(mode="json")
 
     assert summary.project_root == project.resolve(strict=False).as_posix()
-    assert summary.workspace_root == summary.project_root
     assert summary.project.project_root == summary.project_root
     assert payload["project_root"] == summary.project_root
-    assert payload["workspace_root"] == summary.project_root
+    assert "workspace_root" not in payload
+    assert not hasattr(summary, "workspace_root")
 
 
 def test_record_usage_dedup_keeps_distinct_nested_workspace_roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

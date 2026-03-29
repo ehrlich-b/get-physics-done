@@ -1821,6 +1821,8 @@ def test_cost_raw_keeps_tokens_measured_but_usd_unavailable_without_pricing_snap
     assert payload["project"]["interpretation"] == "tokens measured; USD unavailable"
     assert payload["project"]["total_tokens"] == 1500
     assert payload["project"]["cost_usd"] is None
+    assert payload["advisory"]["state"] == "unavailable"
+    assert "no pricing snapshot is configured" in payload["advisory"]["message"]
     assert payload["profile_tier_mix"] == {"tier-1": 12, "tier-2": 10, "tier-3": 1}
     assert payload["profile_tier_mix_interpretation"].startswith("Advisory only; counts profile-to-tier assignments")
     assert payload["budget_thresholds"] == []
@@ -1829,5 +1831,4 @@ def test_cost_raw_keeps_tokens_measured_but_usd_unavailable_without_pricing_snap
     assert payload["recent_sessions"][0]["cost_status"] == "unavailable"
     assert payload["recent_sessions"][0]["interpretation"] == "tokens measured; USD unavailable"
     assert payload["recent_sessions"][0]["cost_usd"] is None
-    assert any("no pricing snapshot is configured" in item for item in payload["guidance"])
     assert ledger_path.read_text(encoding="utf-8") == ledger_before

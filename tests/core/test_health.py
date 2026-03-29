@@ -11,7 +11,6 @@ from unittest.mock import patch
 
 import pytest
 
-from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.core.constants import ProjectLayout
 from gpd.core.contract_validation import validate_project_contract
 from gpd.core.errors import ValidationError
@@ -46,11 +45,12 @@ from gpd.core.health import (
 from gpd.core.state import default_state_dict, generate_state_markdown, save_state_json
 from gpd.core.storage_paths import ProjectStorageLayout
 from gpd.hooks.install_metadata import InstallTargetAssessment
+from tests.runtime_test_support import FOREIGN_RUNTIME, PRIMARY_RUNTIME, runtime_config_dir_name, runtime_launch_executable, runtime_target_dir
 
-_PRIMARY_RUNTIME = iter_runtime_descriptors()[0].runtime_name
-_PRIMARY_CONFIG_DIR = iter_runtime_descriptors()[0].config_dir_name
-_PRIMARY_TARGET_DIR = Path("/tmp/project") / _PRIMARY_CONFIG_DIR
-_PRIMARY_RELAUNCH_STEP = f"Exit and relaunch {_PRIMARY_RUNTIME} before treating unattended use as ready."
+_PRIMARY_CONFIG_DIR = runtime_config_dir_name(PRIMARY_RUNTIME)
+_PRIMARY_TARGET_DIR = runtime_target_dir(Path("/tmp/project"), PRIMARY_RUNTIME)
+_PRIMARY_LAUNCHER_PATH = f"/usr/bin/{runtime_launch_executable(PRIMARY_RUNTIME)}"
+_PRIMARY_RELAUNCH_STEP = f"Exit and relaunch {PRIMARY_RUNTIME} before treating unattended use as ready."
 
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
 
@@ -153,7 +153,7 @@ class TestHealthModels:
         )
 
         result = build_unattended_readiness_result(
-            runtime=_PRIMARY_RUNTIME,
+            runtime=PRIMARY_RUNTIME,
             autonomy=None,
             install_scope="local",
             target_dir=_PRIMARY_TARGET_DIR,
@@ -172,7 +172,7 @@ class TestHealthModels:
             validated_surface="public_runtime_command_surface",
         )
 
-        assert result.runtime == _PRIMARY_RUNTIME
+        assert result.runtime == PRIMARY_RUNTIME
         assert result.autonomy == "balanced"
         assert result.install_scope == "local"
         assert result.target == str(_PRIMARY_TARGET_DIR)
@@ -213,7 +213,7 @@ class TestHealthModels:
         )
 
         result = build_unattended_readiness_result(
-            runtime=_PRIMARY_RUNTIME,
+            runtime=PRIMARY_RUNTIME,
             autonomy="balanced",
             install_scope="local",
             target_dir=_PRIMARY_TARGET_DIR,
@@ -274,7 +274,7 @@ class TestHealthModels:
         )
 
         result = build_unattended_readiness_result(
-            runtime=_PRIMARY_RUNTIME,
+            runtime=PRIMARY_RUNTIME,
             autonomy="balanced",
             install_scope="local",
             target_dir=_PRIMARY_TARGET_DIR,
@@ -299,7 +299,7 @@ class TestHealthModels:
         assert result.current_session_verified is False
         assert result.validated_surface == "public_runtime_command_surface"
         assert result.next_step == (
-            f"Run `{runtime_doctor_hint(_PRIMARY_RUNTIME, install_scope='local', target_dir=_PRIMARY_TARGET_DIR)}` "
+            f"Run `{runtime_doctor_hint(PRIMARY_RUNTIME, install_scope='local', target_dir=_PRIMARY_TARGET_DIR)}` "
             "to inspect and clear the blocking runtime-readiness issues."
         )
         assert result.blocking_conditions == ["Runtime config target not writable"]
@@ -1030,13 +1030,13 @@ class TestRunDoctor:
         target_dir: Path | None = None,
     ) -> tuple[HealthReport, dict[str, HealthCheck]]:
         specs_dir = self._make_specs_dir(tmp_path)
-        selected_target = target_dir or (tmp_path / ".codex")
+        selected_target = target_dir or runtime_target_dir(tmp_path, PRIMARY_RUNTIME)
         if not selected_target.exists():
             selected_target.mkdir(parents=True, exist_ok=True)
 
         with (
             patch("gpd.core.health._doctor_active_virtualenv", return_value=True),
-            patch("gpd.core.health.shutil.which", return_value="/usr/bin/codex"),
+            patch("gpd.core.health.shutil.which", return_value=_PRIMARY_LAUNCHER_PATH),
             patch("gpd.core.health.os.access", return_value=True),
             patch(
                 "gpd.core.health._doctor_check_bootstrap_network_access",
@@ -1055,7 +1055,7 @@ class TestRunDoctor:
             report = run_doctor(
                 specs_dir=specs_dir,
                 version="0.1.0",
-                runtime=_PRIMARY_RUNTIME,
+                runtime=PRIMARY_RUNTIME,
                 install_scope="local",
                 target_dir=selected_target,
                 cwd=tmp_path,
@@ -1076,7 +1076,7 @@ class TestRunDoctor:
     ) -> InstallTargetAssessment:
         return InstallTargetAssessment(
             config_dir=target_dir.resolve(strict=False),
-            expected_runtime=_PRIMARY_RUNTIME,
+            expected_runtime=PRIMARY_RUNTIME,
             state=state,
             manifest_state=manifest_state,
             manifest_runtime=manifest_runtime,
@@ -1412,12 +1412,12 @@ trigger:
         assert "pdflatex probe failed: permission denied" in probe_check.warnings
 
     def test_runtime_mode_records_virtualenv_state_without_blocking(self, tmp_path: Path):
-        target_dir = tmp_path / ".codex"
+        target_dir = runtime_target_dir(tmp_path, PRIMARY_RUNTIME)
         specs_dir = self._make_specs_dir(tmp_path)
 
         with (
             patch("gpd.core.health._doctor_active_virtualenv", return_value=False),
-            patch("gpd.core.health.shutil.which", return_value="/usr/bin/codex"),
+            patch("gpd.core.health.shutil.which", return_value=_PRIMARY_LAUNCHER_PATH),
             patch(
                 "gpd.core.health._doctor_check_bootstrap_network_access",
                 return_value=HealthCheck(status=CheckStatus.OK, label="Bootstrap Network Access"),
@@ -1434,7 +1434,7 @@ trigger:
             report = run_doctor(
                 specs_dir=specs_dir,
                 version="0.1.0",
-                runtime="codex",
+                runtime=PRIMARY_RUNTIME,
                 install_scope="global",
                 target_dir=target_dir,
             )
@@ -1442,7 +1442,7 @@ trigger:
         checks = {check.label: check for check in report.checks}
 
         assert report.mode == "runtime-readiness"
-        assert report.runtime == "codex"
+        assert report.runtime == PRIMARY_RUNTIME
         assert report.install_scope == "global"
         assert report.target == str(target_dir.resolve(strict=False))
         assert checks["Python Runtime"].status in {CheckStatus.OK, CheckStatus.WARN}
@@ -1490,7 +1490,7 @@ trigger:
                 return_value=HealthCheck(status=CheckStatus.OK, label="LaTeX Toolchain"),
             ),
         ):
-            report = run_doctor(specs_dir=specs_dir, version="0.1.0", runtime=_PRIMARY_RUNTIME, install_scope="global")
+            report = run_doctor(specs_dir=specs_dir, version="0.1.0", runtime=PRIMARY_RUNTIME, install_scope="global")
 
         checks = {check.label: check for check in report.checks}
         launcher_check = next(check for check in report.checks if check.label == "Runtime Launcher")
@@ -1503,7 +1503,7 @@ trigger:
         specs_dir = self._make_specs_dir(tmp_path)
         blocked_parent = tmp_path / "blocked"
         blocked_parent.mkdir()
-        target_dir = blocked_parent / ".codex"
+        target_dir = blocked_parent / _PRIMARY_CONFIG_DIR
         blocked_parent_resolved = blocked_parent.resolve(strict=False)
 
         def _access(path: str | Path, mode: int) -> bool:
@@ -1514,7 +1514,7 @@ trigger:
 
         with (
             patch("gpd.core.health._doctor_active_virtualenv", return_value=True),
-            patch("gpd.core.health.shutil.which", return_value="/usr/bin/codex"),
+            patch("gpd.core.health.shutil.which", return_value=_PRIMARY_LAUNCHER_PATH),
             patch("gpd.core.health.os.access", side_effect=_access),
             patch(
                 "gpd.core.health._doctor_check_bootstrap_network_access",
@@ -1532,7 +1532,7 @@ trigger:
             report = run_doctor(
                 specs_dir=specs_dir,
                 version="0.1.0",
-                runtime="codex",
+                runtime=PRIMARY_RUNTIME,
                 install_scope="global",
                 target_dir=target_dir,
             )
@@ -1546,7 +1546,7 @@ trigger:
 
         with (
             patch("gpd.core.health._doctor_active_virtualenv", return_value=True),
-            patch("gpd.core.health.shutil.which", return_value="/usr/bin/codex"),
+            patch("gpd.core.health.shutil.which", return_value=_PRIMARY_LAUNCHER_PATH),
             patch(
                 "gpd.core.health._doctor_check_bootstrap_network_access",
                 return_value=HealthCheck(
@@ -1574,8 +1574,8 @@ trigger:
             patch(
                 "gpd.core.health.assess_install_target",
                 return_value=InstallTargetAssessment(
-                    config_dir=Path("/tmp/.codex"),
-                    expected_runtime="codex",
+                    config_dir=runtime_target_dir(Path("/tmp"), PRIMARY_RUNTIME),
+                    expected_runtime=PRIMARY_RUNTIME,
                     state="clean",
                     manifest_state="missing",
                     manifest_runtime=None,
@@ -1583,7 +1583,7 @@ trigger:
                 ),
             ),
         ):
-            report = run_doctor(specs_dir=specs_dir, version="0.1.0", runtime="codex", install_scope="global")
+            report = run_doctor(specs_dir=specs_dir, version="0.1.0", runtime=PRIMARY_RUNTIME, install_scope="global")
 
         checks = {check.label: check for check in report.checks}
 
@@ -1649,12 +1649,12 @@ trigger:
             report = run_doctor(
                 specs_dir=specs_dir,
                 version="0.1.0",
-                runtime=_PRIMARY_RUNTIME,
+                runtime=PRIMARY_RUNTIME,
                 target_dir=target_dir,
             )
 
         assert report.mode == "runtime-readiness"
-        assert report.runtime == _PRIMARY_RUNTIME
+        assert report.runtime == PRIMARY_RUNTIME
         assert report.install_scope is None
         assert report.target == str(target_dir.resolve(strict=False))
 
@@ -1662,13 +1662,13 @@ trigger:
         target_dir = tmp_path / ".runtime-config"
 
         context = resolve_doctor_runtime_readiness(
-            _PRIMARY_RUNTIME,
+            PRIMARY_RUNTIME,
             install_scope="local",
             target_dir=target_dir,
             cwd=tmp_path,
         )
 
-        assert context.runtime == _PRIMARY_RUNTIME
+        assert context.runtime == PRIMARY_RUNTIME
         assert context.install_scope == "local"
         assert context.target == target_dir.resolve(strict=False)
 
@@ -1677,13 +1677,13 @@ trigger:
         workspace.mkdir()
 
         context = resolve_doctor_runtime_readiness(
-            _PRIMARY_RUNTIME,
+            PRIMARY_RUNTIME,
             install_scope="local",
             target_dir="relative-target",
             cwd=workspace,
         )
 
-        assert context.runtime == _PRIMARY_RUNTIME
+        assert context.runtime == PRIMARY_RUNTIME
         assert context.install_scope == "local"
         assert context.target == (workspace / "relative-target").resolve(strict=False)
 
@@ -1711,7 +1711,7 @@ trigger:
             report = run_doctor(
                 specs_dir=specs_dir,
                 version="0.1.0",
-                runtime=_PRIMARY_RUNTIME,
+                runtime=PRIMARY_RUNTIME,
                 install_scope="local",
                 target_dir=target_dir,
                 cwd=tmp_path,
@@ -1748,7 +1748,7 @@ trigger:
             report = run_doctor(
                 specs_dir=specs_dir,
                 version="0.1.0",
-                runtime=_PRIMARY_RUNTIME,
+                runtime=PRIMARY_RUNTIME,
                 install_scope="local",
                 target_dir="relative-target",
                 cwd=workspace,
@@ -1781,14 +1781,14 @@ trigger:
         report = run_doctor(
             specs_dir=specs_dir,
             version="0.1.0",
-            runtime=_PRIMARY_RUNTIME,
+            runtime=PRIMARY_RUNTIME,
             install_scope="local",
             cwd=tmp_path,
         )
 
         checks = {check.label: check for check in report.checks}
         assert report.mode == "runtime-readiness"
-        assert report.runtime == _PRIMARY_RUNTIME
+        assert report.runtime == PRIMARY_RUNTIME
         assert report.install_scope == "local"
         assert report.target is not None
         for label in (
@@ -1832,8 +1832,8 @@ trigger:
             patch(
                 "gpd.core.health.assess_install_target",
                 return_value=InstallTargetAssessment(
-                    config_dir=(tmp_path / ".codex").resolve(strict=False),
-                    expected_runtime="codex",
+                    config_dir=runtime_target_dir(tmp_path, PRIMARY_RUNTIME).resolve(strict=False),
+                    expected_runtime=PRIMARY_RUNTIME,
                     state="clean",
                     manifest_state="missing",
                     manifest_runtime=None,
@@ -1861,7 +1861,7 @@ trigger:
                 ),
             ),
         ):
-            report = run_doctor(specs_dir=specs_dir, version="0.1.0", runtime="codex", install_scope="global")
+            report = run_doctor(specs_dir=specs_dir, version="0.1.0", runtime=PRIMARY_RUNTIME, install_scope="global")
 
         checks = {check.label: check for check in report.checks}
         publication = next(
@@ -1892,7 +1892,7 @@ trigger:
         report = run_doctor(
             specs_dir=specs_dir,
             version="0.1.0",
-            runtime=_PRIMARY_RUNTIME,
+            runtime=PRIMARY_RUNTIME,
             install_scope="local",
             cwd=tmp_path,
         )
@@ -1918,7 +1918,7 @@ trigger:
         report = run_doctor(
             specs_dir=specs_dir,
             version="0.1.0",
-            runtime=_PRIMARY_RUNTIME,
+            runtime=PRIMARY_RUNTIME,
             install_scope="local",
             cwd=tmp_path,
         )
@@ -1929,7 +1929,7 @@ trigger:
         assert any("not writable" in issue for issue in checks["Runtime Config Target"].issues)
 
     def test_runtime_readiness_marks_clean_target_ready(self, tmp_path: Path) -> None:
-        target_dir = tmp_path / ".codex"
+        target_dir = runtime_target_dir(tmp_path, PRIMARY_RUNTIME)
         assessment = self._assessment(
             state="clean",
             target_dir=target_dir,
@@ -1946,7 +1946,7 @@ trigger:
         assert checks["Runtime Config Target"].warnings == []
 
     def test_runtime_readiness_fails_when_target_has_owned_incomplete_install(self, tmp_path: Path) -> None:
-        target_dir = tmp_path / ".codex"
+        target_dir = runtime_target_dir(tmp_path, PRIMARY_RUNTIME)
         assessment = self._assessment(
             state="owned_incomplete",
             target_dir=target_dir,
@@ -1962,11 +1962,11 @@ trigger:
         assert any("missing artifacts" in issue for issue in checks["Runtime Config Target"].issues)
 
     def test_runtime_readiness_fails_when_target_belongs_to_foreign_runtime(self, tmp_path: Path) -> None:
-        target_dir = tmp_path / ".codex"
+        target_dir = runtime_target_dir(tmp_path, PRIMARY_RUNTIME)
         assessment = self._assessment(
             state="foreign_runtime",
             target_dir=target_dir,
-            manifest_runtime="claude-code",
+            manifest_runtime=FOREIGN_RUNTIME,
         )
 
         report, checks = self._run_runtime_doctor(tmp_path, assessment=assessment, target_dir=target_dir)
@@ -1977,7 +1977,7 @@ trigger:
         assert any("belongs to" in issue for issue in checks["Runtime Config Target"].issues)
 
     def test_runtime_readiness_fails_on_untrusted_manifest(self, tmp_path: Path) -> None:
-        target_dir = tmp_path / ".codex"
+        target_dir = runtime_target_dir(tmp_path, PRIMARY_RUNTIME)
         assessment = self._assessment(
             state="untrusted_manifest",
             target_dir=target_dir,

@@ -30,6 +30,10 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
             "question": "Which benchmark and asymptotic regime does each claim recover?",
             "in_scope": ["claim-specific benchmark recovery"],
         },
+        "context_intake": {
+            "must_read_refs": ["ref-a", "ref-b"],
+            "crucial_inputs": ["Use the claim-specific benchmark anchor and regime for each check."],
+        },
         "observables": [
             {
                 "id": "obs-a",
@@ -51,6 +55,7 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
                 "id": "claim-a",
                 "statement": "Recover benchmark A",
                 "observables": ["obs-a"],
+                "deliverables": ["deliv-a"],
                 "acceptance_tests": ["test-a"],
                 "references": ["ref-a"],
             },
@@ -58,11 +63,25 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
                 "id": "claim-b",
                 "statement": "Recover benchmark B",
                 "observables": ["obs-b"],
+                "deliverables": ["deliv-b"],
                 "acceptance_tests": ["test-b"],
                 "references": ["ref-b"],
             },
         ],
-        "deliverables": [],
+        "deliverables": [
+            {
+                "id": "deliv-a",
+                "description": "Benchmark A recovery note",
+                "kind": "report",
+                "must_contain": ["claim-a", "ref-a"],
+            },
+            {
+                "id": "deliv-b",
+                "description": "Benchmark B recovery note",
+                "kind": "report",
+                "must_contain": ["claim-b", "ref-b"],
+            },
+        ],
         "acceptance_tests": [
             {
                 "id": "test-a",
@@ -89,6 +108,8 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
                 "role": "benchmark",
                 "why_it_matters": "Claim A anchor",
                 "applies_to": ["claim-a"],
+                "must_surface": True,
+                "required_actions": ["compare"],
             },
             {
                 "id": "ref-b",
@@ -97,9 +118,24 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
                 "role": "benchmark",
                 "why_it_matters": "Claim B anchor",
                 "applies_to": ["claim-b"],
+                "must_surface": True,
+                "required_actions": ["compare"],
             },
         ],
-        "forbidden_proxies": [],
+        "forbidden_proxies": [
+            {
+                "id": "fp-a",
+                "subject": "claim-a",
+                "proxy": "qualitative agreement without benchmark anchoring",
+                "reason": "Claim A requires the explicit benchmark anchor.",
+            },
+            {
+                "id": "fp-b",
+                "subject": "claim-b",
+                "proxy": "qualitative agreement without benchmark anchoring",
+                "reason": "Claim B requires the explicit benchmark anchor.",
+            },
+        ],
         "links": [],
         "uncertainty_markers": {
             "weakest_anchors": ["Benchmark interpretation"],

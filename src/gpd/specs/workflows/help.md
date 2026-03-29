@@ -20,8 +20,6 @@ Getting started:
   /gpd:new-project         — Start a new research project with full scoping
   /gpd:new-project --minimal — Faster one-question project bootstrap
   /gpd:map-research        — Map an existing research project
-  gpd resume             — Current-workspace read-only recovery snapshot from your normal terminal
-  gpd resume --recent    — Find the workspace first when you need to reopen a different one
 ```
 
 **Project exists, paused or resumable:**
@@ -127,7 +125,7 @@ For the exact beginner-first startup order, use the shared onboarding surfaces i
 3. `/gpd:tour` - Get a read-only walkthrough before you choose.
 4. `/gpd:new-project` or `/gpd:map-research` - Begin the actual work path once you know the folder state.
 5. `/gpd:resume-work` - Continue later after you have an existing GPD project.
-6. `/gpd:settings` - Change autonomy, permissions, or runtime preferences after startup or later.
+6. `/gpd:settings` - Change autonomy, permissions, or runtime preferences after your first successful start or later.
 
 ## Invocation Surfaces
 
@@ -173,7 +171,7 @@ After that, choose the path that matches your current situation:
 7. `gpd cost` - Read-only machine-local usage / cost summary from your normal terminal
 
 **Post-startup settings**
-1. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; use this after your first successful start or later when you want to choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions
+1. `/gpd:settings` - Primary guided unattended/autonomy setup after your first successful start or later when you want to choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions
 
 **Tangents**
 1. `/gpd:tangent` - Chooser for stay / quick / defer / branch when a side investigation appears

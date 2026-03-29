@@ -202,9 +202,6 @@ def _cost_project_root(cost_summary: object) -> str | None:
     project_root = getattr(project_rollup, "project_root", None)
     if isinstance(project_root, str) and project_root.strip():
         return project_root.strip()
-    workspace_root = getattr(cost_summary, "workspace_root", None)
-    if isinstance(workspace_root, str) and workspace_root.strip():
-        return workspace_root.strip()
     return None
 
 
@@ -213,7 +210,6 @@ def _cost_payload(cost_summary: object) -> dict[str, object]:
     project_root = _cost_project_root(cost_summary)
     if project_root is not None:
         payload["project_root"] = project_root
-    payload.pop("workspace_root", None)
     return payload
 
 

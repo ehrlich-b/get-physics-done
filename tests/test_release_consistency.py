@@ -44,6 +44,7 @@ from tests.doc_surface_contracts import (
     assert_help_workflow_quick_start_taxonomy_contract,
     assert_help_workflow_runtime_reference_contract,
     assert_optional_paper_workflow_guidance_contract,
+    assert_post_start_settings_bridge_contract,
     assert_publication_toolchain_boundary_contract,
     assert_recovery_ladder_contract,
     assert_runtime_readiness_handoff_contract,
@@ -609,7 +610,7 @@ def test_public_supported_runtime_rows_follow_runtime_catalog_commands() -> None
         assert expected_row in supported_runtimes
 
     assert "Common first commands by runtime:" not in supported_runtimes
-    assert "For post-startup configuration, use your runtime's `settings` command" in supported_runtimes
+    assert_post_start_settings_bridge_contract(supported_runtimes)
 
 
 def test_public_readme_quick_start_keeps_runtime_first_next_steps() -> None:
@@ -816,9 +817,6 @@ def test_public_help_surfaces_keep_settings_as_guided_post_startup_path() -> Non
 
     assert "@{GPD_INSTALL_DIR}/workflows/help.md" in help_command
     assert "**Post-startup settings**" in help_workflow
-    assert (
-        "1. `/gpd:settings` - Primary guided unattended/autonomy setup after project creation; use this after your first successful start or later"
-    ) in help_workflow
     assert_help_workflow_runtime_reference_contract(help_workflow)
     assert "The bootstrap installer owns Node.js / Python / `venv` prerequisites." in help_workflow
 

@@ -23,6 +23,7 @@ from tests.doc_surface_contracts import (
     assert_install_summary_runtime_follow_up_contract,
     assert_recovery_ladder_contract,
 )
+from tests.runtime_test_support import PRIMARY_RUNTIME, runtime_install_flag, runtime_with_multiword_alias
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_JSON = json.loads((REPO_ROOT / "package.json").read_text(encoding="utf-8"))
@@ -55,16 +56,14 @@ _RUNTIME_MAP_RESEARCH_COMMANDS = {name: adapter.map_research_command for name, a
 _RUNTIME_RESUME_WORK_COMMANDS = {name: adapter.format_command("resume-work") for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_SUGGEST_NEXT_COMMANDS = {name: adapter.format_command("suggest-next") for name, adapter in _RUNTIME_ADAPTERS.items()}
 _RUNTIME_PAUSE_WORK_COMMANDS = {name: adapter.format_command("pause-work") for name, adapter in _RUNTIME_ADAPTERS.items()}
-_CODEX_RUNTIME_NAME = next(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if "skills/" in descriptor.manifest_file_prefixes)
-_CLAUDE_RUNTIME_NAME = next(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if descriptor.launch_command == "claude")
-_OPENCODE_RUNTIME_NAME = next(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if descriptor.launch_command == "opencode")
-_BEGINNER_ONBOARDING_HUB_URL = "https://github.com/psi-oss/get-physics-done/blob/main/docs/README.md"
-_CODEX_INSTALL_FLAG = _RUNTIME_ADAPTERS[_CODEX_RUNTIME_NAME].install_flag
-_CLAUDE_INSTALL_FLAG = _RUNTIME_ADAPTERS[_CLAUDE_RUNTIME_NAME].install_flag
-_CLAUDE_RUNTIME_ALIAS = _RUNTIME_ADAPTERS[_CLAUDE_RUNTIME_NAME].display_name.lower()
-_OPENCODE_RUNTIME_ALIAS = next(
-    alias for alias in _RUNTIME_ADAPTERS[_OPENCODE_RUNTIME_NAME].selection_aliases if " " in alias
+_CODEX_RUNTIME_NAME = PRIMARY_RUNTIME
+_CLAUDE_RUNTIME_NAME, _CLAUDE_RUNTIME_ALIAS = runtime_with_multiword_alias(exclude=(_CODEX_RUNTIME_NAME,))
+_OPENCODE_RUNTIME_NAME, _OPENCODE_RUNTIME_ALIAS = runtime_with_multiword_alias(
+    exclude=(_CODEX_RUNTIME_NAME, _CLAUDE_RUNTIME_NAME)
 )
+_BEGINNER_ONBOARDING_HUB_URL = "https://github.com/psi-oss/get-physics-done/blob/main/docs/README.md"
+_CODEX_INSTALL_FLAG = runtime_install_flag(_CODEX_RUNTIME_NAME)
+_CLAUDE_INSTALL_FLAG = runtime_install_flag(_CLAUDE_RUNTIME_NAME)
 _GENERIC_RECOVERY_LADDER_NOTE = recovery_ladder_note(
     resume_work_phrase="your runtime-specific `resume-work` command",
     suggest_next_phrase="your runtime-specific `suggest-next` command",

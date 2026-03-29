@@ -417,6 +417,20 @@ def test_contract_tools_reject_coercive_contract_scalars() -> None:
     assert suggest_result == expected
 
 
+def test_contract_tools_reject_missing_context_intake() -> None:
+    contract = _load_project_contract_fixture()
+    contract.pop("context_intake", None)
+
+    _assert_contract_tools_reject(contract, "missing context_intake")
+
+
+def test_contract_tools_reject_empty_context_intake() -> None:
+    contract = _load_project_contract_fixture()
+    contract["context_intake"] = {}
+
+    _assert_contract_tools_reject(contract, "context_intake must not be empty")
+
+
 @pytest.mark.parametrize("field_name", ["regime", "units"])
 def test_contract_tools_reject_blank_observable_regime_and_units(field_name: str) -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks

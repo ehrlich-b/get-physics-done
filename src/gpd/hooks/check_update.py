@@ -256,12 +256,13 @@ def main(argv: list[str] | None = None) -> None:
 
     from gpd.hooks.runtime_detect import (
         ALL_RUNTIMES,
-        RUNTIME_UNKNOWN,
         UpdateCacheCandidate,
-        detect_active_runtime_with_gpd_install,
-        detect_runtime_for_gpd_use,
     )
-    from gpd.hooks.update_resolution import ordered_update_cache_candidates, primary_update_cache_file
+    from gpd.hooks.update_resolution import (
+        ordered_update_cache_candidates,
+        primary_update_cache_file,
+        resolve_update_cache_inputs,
+    )
 
     resolved_cwd = Path.cwd()
     resolved_home = Path.home()
@@ -270,10 +271,12 @@ def main(argv: list[str] | None = None) -> None:
         cache_file = self_config_dir / CACHE_DIR_NAME / UPDATE_CACHE_FILENAME
         relevant_candidates = [UpdateCacheCandidate(path=cache_file)]
     else:
-        active_installed_runtime = detect_active_runtime_with_gpd_install(cwd=resolved_cwd, home=resolved_home)
-        preferred_runtime = detect_runtime_for_gpd_use(cwd=resolved_cwd, home=resolved_home)
-        relevant_candidates = ordered_update_cache_candidates(
+        workspace_path, resolved_home, active_installed_runtime, preferred_runtime = resolve_update_cache_inputs(
             cwd=resolved_cwd,
+            home=resolved_home,
+        )
+        relevant_candidates = ordered_update_cache_candidates(
+            cwd=workspace_path,
             home=resolved_home,
             active_installed_runtime=active_installed_runtime,
             preferred_runtime=preferred_runtime,

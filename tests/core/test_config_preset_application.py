@@ -16,6 +16,7 @@ from gpd.core.workflow_presets import (
     get_workflow_preset,
     preview_workflow_preset_application,
 )
+from tests.runtime_test_support import PRIMARY_RUNTIME
 
 
 def test_preset_bundle_applies_atomic_supported_keys_and_preserves_unrelated_overrides(
@@ -23,11 +24,11 @@ def test_preset_bundle_applies_atomic_supported_keys_and_preserves_unrelated_ove
 ) -> None:
     preset = get_workflow_preset("publication-manuscript")
     assert preset is not None
-    runtime_name = "codex"
+    runtime_name = PRIMARY_RUNTIME
     original_overrides = {
         runtime_name: {
-            "tier-1": "gpt-5.4",
-            "tier-2": "gpt-5.1",
+            "tier-1": "runtime-tier-1-model",
+            "tier-2": "runtime-tier-2-model",
         }
     }
 
@@ -116,11 +117,11 @@ def test_atomic_application_preserves_existing_runtime_override_and_nested_confi
 ) -> None:
     preset = get_workflow_preset("core-research")
     assert preset is not None
-    runtime_name = "codex"
+    runtime_name = PRIMARY_RUNTIME
     original_overrides = {
         runtime_name: {
-            "tier-1": "gpt-5.4",
-            "tier-2": "gpt-5.1",
+            "tier-1": "runtime-tier-1-model",
+            "tier-2": "runtime-tier-2-model",
         }
     }
 
