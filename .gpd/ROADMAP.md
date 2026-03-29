@@ -210,7 +210,11 @@ Plans:
 
 **Backtracking trigger:** If impossibility proof attempt reveals unexpected algebraic structure (new operators not considered in Phase 29), return to Phase 29 for expanded analysis.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 30-01-PLAN.md -- Three impossibility theorems (no equivariant J, J_u not in spin(9), weakest sufficient condition) + computational verification
+- [ ] 30-02-PLAN.md -- Selection argument formalization (5 links, weakest link flagged, Gap C honest status)
 
 ---
 
