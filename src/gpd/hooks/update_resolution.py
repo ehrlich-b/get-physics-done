@@ -6,6 +6,8 @@ from collections.abc import Callable
 import json
 from pathlib import Path
 
+from gpd.adapters.install_utils import CACHE_DIR_NAME, UPDATE_CACHE_FILENAME
+from gpd.core.constants import PLANNING_DIR_NAME
 import gpd.hooks.install_context as hook_layout
 from gpd.core.observability import resolve_project_root
 
@@ -26,6 +28,75 @@ def _read_update_cache(cache_file: Path, *, debug: DebugLogger) -> dict[str, obj
     return cache
 
 
+def ordered_update_cache_candidates(
+    *,
+    cwd: str | Path | None,
+    home: str | Path | None = None,
+    active_installed_runtime: str | None = None,
+    preferred_runtime: str | None = None,
+) -> list[object]:
+    """Return update-cache candidates in the shared precedence order."""
+    from gpd.hooks.runtime_detect import (
+        ALL_RUNTIMES,
+        RUNTIME_UNKNOWN,
+        detect_active_runtime_with_gpd_install,
+        get_update_cache_candidates,
+        should_consider_update_cache_candidate,
+    )
+
+    workspace_path = resolve_project_root(cwd) if cwd else None
+    resolved_home = Path.home() if home is None else Path(home)
+    active_runtime = (
+        active_installed_runtime
+        if active_installed_runtime is not None
+        else detect_active_runtime_with_gpd_install(cwd=workspace_path, home=resolved_home)
+    )
+    cache_candidates = get_update_cache_candidates(
+        cwd=workspace_path,
+        home=resolved_home,
+        preferred_runtime=preferred_runtime,
+    )
+    relevant_candidates = [
+        candidate
+        for candidate in cache_candidates
+        if should_consider_update_cache_candidate(
+            candidate,
+            active_installed_runtime=active_runtime,
+            cwd=workspace_path,
+            home=resolved_home,
+        )
+    ]
+    if active_runtime in (None, "", RUNTIME_UNKNOWN) and preferred_runtime in ALL_RUNTIMES:
+        preferred_candidates = [candidate for candidate in relevant_candidates if getattr(candidate, "runtime", None) == preferred_runtime]
+        fallback_candidates = [candidate for candidate in relevant_candidates if getattr(candidate, "runtime", None) is None]
+        if preferred_candidates:
+            seen_paths: set[Path] = set()
+            preferred_first: list[object] = []
+            for candidate in [*preferred_candidates, *fallback_candidates]:
+                candidate_path = getattr(candidate, "path", None)
+                if not isinstance(candidate_path, Path) or candidate_path in seen_paths:
+                    continue
+                seen_paths.add(candidate_path)
+                preferred_first.append(candidate)
+            relevant_candidates = preferred_first
+        relevant_candidates = [
+            candidate
+            for candidate in relevant_candidates
+            if getattr(candidate, "runtime", None) in (None, preferred_runtime)
+        ]
+    return relevant_candidates
+
+
+def primary_update_cache_file(candidates: list[object], *, home: str | Path | None = None) -> Path:
+    """Return the cache file that should receive the next background update result."""
+    if candidates:
+        candidate_path = getattr(candidates[0], "path", None)
+        if isinstance(candidate_path, Path):
+            return candidate_path
+    resolved_home = Path.home() if home is None else Path(home)
+    return resolved_home / PLANNING_DIR_NAME / CACHE_DIR_NAME / UPDATE_CACHE_FILENAME
+
+
 def latest_update_cache(
     *,
     hook_file: str | Path,
@@ -37,8 +108,6 @@ def latest_update_cache(
         RUNTIME_UNKNOWN,
         detect_active_runtime_with_gpd_install,
         detect_runtime_install_target,
-        get_update_cache_candidates,
-        should_consider_update_cache_candidate,
     )
 
     workspace_path = resolve_project_root(cwd) if cwd else None
@@ -61,13 +130,11 @@ def latest_update_cache(
 
     preferred_runtime = active_installed_runtime if workspace_path is not None else None
     fallback_hit: tuple[dict[str, object], object] | None = None
-    for candidate in get_update_cache_candidates(cwd=workspace_path, preferred_runtime=preferred_runtime):
-        if not should_consider_update_cache_candidate(
-            candidate,
-            active_installed_runtime=active_installed_runtime,
-            cwd=workspace_path,
-        ):
-            continue
+    for candidate in ordered_update_cache_candidates(
+        cwd=workspace_path,
+        active_installed_runtime=active_installed_runtime,
+        preferred_runtime=preferred_runtime,
+    ):
         cache = _read_update_cache(candidate.path, debug=debug)
         if cache is None:
             continue

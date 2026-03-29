@@ -65,6 +65,17 @@ def test_check_update_reexecs_current_script_with_cache_file_arg(tmp_path: Path)
     assert args[3] == str(cache_path)
 
 
+def test_check_update_uses_shared_update_resolution_candidates() -> None:
+    source = (Path(__file__).resolve().parents[2] / "src" / "gpd" / "hooks" / "check_update.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ordered_update_cache_candidates" in source
+    assert "primary_update_cache_file" in source
+    assert "get_update_cache_candidates(" not in source
+    assert "should_consider_update_cache_candidate(" not in source
+
+
 def test_check_update_ignores_rejected_preferred_runtime_cache_when_no_runtime_is_active(
     tmp_path: Path,
 ) -> None:

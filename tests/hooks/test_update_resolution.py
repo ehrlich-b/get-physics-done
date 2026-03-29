@@ -8,7 +8,12 @@ from unittest.mock import patch
 
 import pytest
 
-from gpd.hooks.update_resolution import latest_update_cache, update_command_for_candidate
+from gpd.hooks.update_resolution import (
+    latest_update_cache,
+    ordered_update_cache_candidates,
+    primary_update_cache_file,
+    update_command_for_candidate,
+)
 from tests.hooks.helpers import mark_complete_install as _mark_complete_install
 from tests.hooks.helpers import repair_command as _repair_command
 
@@ -73,6 +78,39 @@ def test_latest_update_cache_prefers_runtime_tagged_candidate_over_runtimeless_f
 
     assert cache == {"update_available": True, "checked": 20}
     assert candidate is runtime_candidate
+
+
+def test_ordered_update_cache_candidates_prefers_preferred_runtime_then_fallback_when_no_runtime_is_active(
+    tmp_path: Path,
+) -> None:
+    from types import SimpleNamespace
+
+    preferred_candidate = SimpleNamespace(path=tmp_path / "codex.json", runtime="codex", scope="local")
+    fallback_candidate = SimpleNamespace(path=tmp_path / "fallback.json", runtime=None, scope=None)
+    unrelated_candidate = SimpleNamespace(path=tmp_path / "claude.json", runtime="claude-code", scope="global")
+
+    with (
+        patch(
+            "gpd.hooks.runtime_detect.get_update_cache_candidates",
+            return_value=[unrelated_candidate, fallback_candidate, preferred_candidate],
+        ),
+        patch("gpd.hooks.runtime_detect.should_consider_update_cache_candidate", return_value=True),
+    ):
+        candidates = ordered_update_cache_candidates(
+            cwd=str(tmp_path),
+            active_installed_runtime="unknown",
+            preferred_runtime="codex",
+        )
+
+    assert candidates == [preferred_candidate, fallback_candidate]
+
+
+def test_primary_update_cache_file_falls_back_to_home_gpd_cache(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+
+    cache_file = primary_update_cache_file([], home=home)
+
+    assert cache_file == home / "GPD" / "cache" / "gpd-update-check.json"
 
 
 def test_latest_update_cache_uses_shared_cache_constants_for_self_owned_install(tmp_path: Path) -> None:
