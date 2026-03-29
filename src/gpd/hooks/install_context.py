@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from types import SimpleNamespace
 
 from gpd.adapters.install_utils import CACHE_DIR_NAME, UPDATE_CACHE_FILENAME
 from gpd.core.constants import TODOS_DIR_NAME
@@ -64,18 +63,22 @@ def should_prefer_self_owned_install(
     return not (workspace_path is not None and getattr(active_install_target, "install_scope", None) == "local")
 
 
-def self_owned_update_cache_candidate(self_install: SelfOwnedInstallContext) -> SimpleNamespace:
+def self_owned_update_cache_candidate(self_install: SelfOwnedInstallContext):
     """Return an update-cache candidate that points at a self-owned install."""
-    return SimpleNamespace(
+    from gpd.hooks.runtime_detect import UpdateCacheCandidate
+
+    return UpdateCacheCandidate(
         path=self_install.cache_file,
         runtime=self_install.runtime,
         scope=self_install.install_scope,
     )
 
 
-def self_owned_todo_candidate(self_install: SelfOwnedInstallContext) -> SimpleNamespace:
+def self_owned_todo_candidate(self_install: SelfOwnedInstallContext):
     """Return a todo candidate that points at a self-owned install."""
-    return SimpleNamespace(
+    from gpd.hooks.runtime_detect import TodoCandidate
+
+    return TodoCandidate(
         path=self_install.todo_dir,
         runtime=self_install.runtime,
         scope=self_install.install_scope,

@@ -18,6 +18,8 @@ from gpd.hooks.payload_policy import resolve_hook_payload_policy
 from gpd.hooks.payload_roots import project_root_from_payload as _shared_project_root_from_payload
 from gpd.hooks.payload_roots import resolve_payload_roots as _resolve_payload_roots
 from gpd.hooks.payload_roots import workspace_dir_from_payload as _shared_workspace_dir_from_payload
+from gpd.hooks.update_resolution import latest_update_cache as _shared_latest_update_cache
+from gpd.hooks.update_resolution import update_command_for_candidate as _shared_update_command_for_candidate
 
 # Context bar thresholds (percentage of scaled usage)
 _CONTEXT_REAL_LIMIT_PCT = 80
@@ -510,99 +512,20 @@ def _execution_artifact_label(snapshot: dict[str, object]) -> str:
 
 
 def _latest_update_cache(workspace_dir: str | None = None) -> tuple[dict[str, object] | None, object | None]:
-    """Return the highest-priority valid update cache and its candidate metadata."""
-    from gpd.hooks.runtime_detect import (
-        RUNTIME_UNKNOWN,
-        detect_active_runtime_with_gpd_install,
-        detect_runtime_install_target,
-        get_update_cache_candidates,
-        should_consider_update_cache_candidate,
-    )
-
-    workspace_path = resolve_project_root(workspace_dir) if workspace_dir else None
-    active_installed_runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path)
-    self_install = hook_layout.detect_self_owned_install(__file__)
-    active_install_target = (
-        detect_runtime_install_target(active_installed_runtime, cwd=workspace_path)
-        if active_installed_runtime not in (None, "", RUNTIME_UNKNOWN)
-        else None
-    )
-    if hook_layout.should_prefer_self_owned_install(
-        self_install,
-        active_install_target=active_install_target,
-        workspace_path=workspace_path,
-    ):
-        cache_file = self_install.cache_file
-        if cache_file.exists():
-            try:
-                cache = json.loads(cache_file.read_text(encoding="utf-8"))
-            except Exception as exc:
-                _debug(f"Failed to parse update cache {cache_file}: {exc}")
-            else:
-                if isinstance(cache, dict):
-                    candidate = hook_layout.self_owned_update_cache_candidate(self_install)
-                    return cache, candidate
-
-    preferred_runtime = active_installed_runtime if workspace_path is not None else None
-    fallback_hit: tuple[dict[str, object], object] | None = None
-    for candidate in get_update_cache_candidates(cwd=workspace_path, preferred_runtime=preferred_runtime):
-        cache_file = candidate.path
-        if not cache_file.exists():
-            continue
-        if not should_consider_update_cache_candidate(
-            candidate,
-            active_installed_runtime=active_installed_runtime,
-            cwd=workspace_path,
-        ):
-            continue
-        try:
-            cache = json.loads(cache_file.read_text(encoding="utf-8"))
-        except Exception as exc:
-            _debug(f"Failed to parse update cache {cache_file}: {exc}")
-            continue
-
-        if not isinstance(cache, dict):
-            _debug(f"Ignoring non-object update cache {cache_file}")
-            continue
-
-        if getattr(candidate, "runtime", None):
-            return cache, candidate
-        if fallback_hit is None:
-            fallback_hit = (cache, candidate)
-
-    return fallback_hit if fallback_hit is not None else (None, None)
+    return _shared_latest_update_cache(hook_file=__file__, cwd=workspace_dir, debug=_debug)
 
 
 def _check_update(workspace_dir: str | None = None) -> str:
     """Check GPD update cache files for available updates."""
     cache, cache_candidate = _latest_update_cache(workspace_dir)
     if cache and cache.get("update_available"):
-        self_install = hook_layout.detect_self_owned_install(__file__)
-        if self_install is not None and cache_candidate is not None and cache_candidate.path == self_install.cache_file:
-            command = self_install.update_command
-            if command is None:
-                return ""
-            return f"\x1b[33m\u2b06 {command}\x1b[0m \u2502 "
-
-        from gpd.hooks.runtime_detect import (
-            RUNTIME_UNKNOWN,
-            _runtime_dir_has_gpd_install,
-            detect_active_runtime_with_gpd_install,
-            detect_install_scope,
-            update_command_for_runtime,
+        command = _shared_update_command_for_candidate(
+            cache_candidate,
+            hook_file=__file__,
+            cwd=workspace_dir,
         )
-
-        workspace_path = resolve_project_root(workspace_dir) if workspace_dir else None
-        runtime = getattr(cache_candidate, "runtime", None) or RUNTIME_UNKNOWN
-        scope = getattr(cache_candidate, "scope", None)
-        if runtime != RUNTIME_UNKNOWN and not _runtime_dir_has_gpd_install(runtime, cwd=workspace_path):
-            runtime = RUNTIME_UNKNOWN
-            scope = None
-        if runtime == RUNTIME_UNKNOWN:
-            runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path)
-        if scope is None and runtime != RUNTIME_UNKNOWN:
-            scope = detect_install_scope(runtime, cwd=workspace_path)
-        command = update_command_for_runtime(runtime, scope=scope)
+        if command is None:
+            return ""
         return f"\x1b[33m\u2b06 {command}\x1b[0m \u2502 "
     return ""
 

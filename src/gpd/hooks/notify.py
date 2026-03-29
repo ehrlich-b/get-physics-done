@@ -16,6 +16,8 @@ from gpd.hooks.payload_policy import resolve_hook_payload_policy, resolve_hook_s
 from gpd.hooks.payload_roots import project_root_from_payload as _shared_project_root_from_payload
 from gpd.hooks.payload_roots import resolve_payload_roots as _resolve_payload_roots
 from gpd.hooks.payload_roots import workspace_dir_from_payload as _shared_workspace_dir_from_payload
+from gpd.hooks.update_resolution import latest_update_cache as _shared_latest_update_cache
+from gpd.hooks.update_resolution import update_command_for_candidate as _shared_update_command_for_candidate
 
 _PAUSED_SEGMENT_STATES = {"paused", "awaiting_user", "ready_to_continue"}
 _COMPLETED_SEGMENT_STATES = {"completed", "complete", "done", "finished"}
@@ -143,103 +145,19 @@ def _record_usage_telemetry(data: dict[str, object], *, workspace_dir: str, proj
 
 
 def _latest_update_cache(cwd: str | None = None) -> tuple[dict[str, object] | None, object | None]:
-    """Return the highest-priority valid update cache and its candidate metadata."""
-    from gpd.hooks.runtime_detect import (
-        RUNTIME_UNKNOWN,
-        detect_active_runtime_with_gpd_install,
-        detect_runtime_install_target,
-        get_update_cache_candidates,
-        should_consider_update_cache_candidate,
-    )
-
-    workspace_path = resolve_project_root(cwd) if cwd else None
-    active_installed_runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path)
-    self_install = hook_layout.detect_self_owned_install(__file__)
-    active_install_target = (
-        detect_runtime_install_target(active_installed_runtime, cwd=workspace_path)
-        if active_installed_runtime not in (None, "", RUNTIME_UNKNOWN)
-        else None
-    )
-    if hook_layout.should_prefer_self_owned_install(
-        self_install,
-        active_install_target=active_install_target,
-        workspace_path=workspace_path,
-    ):
-        cache_file = self_install.cache_file
-        if cache_file.exists():
-            try:
-                cache = json.loads(cache_file.read_text(encoding="utf-8"))
-            except Exception as exc:
-                _debug(f"Failed to parse cache {cache_file}: {exc}")
-            else:
-                if isinstance(cache, dict):
-                    candidate = hook_layout.self_owned_update_cache_candidate(self_install)
-                    return cache, candidate
-
-    preferred_runtime = active_installed_runtime if workspace_path is not None else None
-    fallback_hit: tuple[dict[str, object], object] | None = None
-    for candidate in get_update_cache_candidates(cwd=workspace_path, preferred_runtime=preferred_runtime):
-        if not should_consider_update_cache_candidate(
-            candidate,
-            active_installed_runtime=active_installed_runtime,
-            cwd=workspace_path,
-        ):
-            continue
-        cache_file = candidate.path
-        if not cache_file.exists():
-            continue
-        try:
-            cache = json.loads(cache_file.read_text(encoding="utf-8"))
-        except Exception as exc:
-            _debug(f"Failed to parse cache {cache_file}: {exc}")
-            continue
-
-        if not isinstance(cache, dict):
-            continue
-        if getattr(candidate, "runtime", None):
-            return cache, candidate
-        if fallback_hit is None:
-            fallback_hit = (cache, candidate)
-
-    return fallback_hit if fallback_hit is not None else (None, None)
+    return _shared_latest_update_cache(hook_file=__file__, cwd=cwd, debug=_debug)
 
 
 def _check_and_notify_update(cwd: str | None = None) -> None:
     """Read update cache and emit a notification to stderr if update available."""
-    from gpd.hooks.runtime_detect import (
-        RUNTIME_UNKNOWN,
-        detect_active_runtime_with_gpd_install,
-        detect_install_scope,
-        update_command_for_runtime,
-    )
-
-    workspace_path = resolve_project_root(cwd) if cwd else None
     latest_cache, latest_candidate = _latest_update_cache(cwd)
-    self_install = hook_layout.detect_self_owned_install(__file__)
 
     if latest_cache and latest_cache.get("update_available"):
+        cmd = _shared_update_command_for_candidate(latest_candidate, hook_file=__file__, cwd=cwd)
+        if cmd is None:
+            return
         installed = latest_cache.get("installed", "?")
         latest = latest_cache.get("latest", "?")
-        if self_install is not None and latest_candidate is not None and latest_candidate.path == self_install.cache_file:
-            cmd = self_install.update_command
-            if cmd is None:
-                return
-            sys.stderr.write(f"[GPD] Update available: v{installed} \u2192 v{latest}. Run: {cmd}\n")
-            return
-        runtime = latest_candidate.runtime if latest_candidate is not None else RUNTIME_UNKNOWN
-        scope = getattr(latest_candidate, "scope", None)
-        if runtime not in (None, RUNTIME_UNKNOWN):
-            installed_scope = detect_install_scope(runtime, cwd=workspace_path)
-            if installed_scope is None:
-                runtime = RUNTIME_UNKNOWN
-                scope = None
-            else:
-                scope = installed_scope
-        if runtime == RUNTIME_UNKNOWN or runtime is None:
-            runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path)
-        if scope is None and runtime != RUNTIME_UNKNOWN:
-            scope = detect_install_scope(runtime, cwd=workspace_path)
-        cmd = update_command_for_runtime(runtime, scope=scope)
         sys.stderr.write(f"[GPD] Update available: v{installed} \u2192 v{latest}. Run: {cmd}\n")
 
 

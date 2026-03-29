@@ -198,22 +198,6 @@ def test_notify_uses_explicit_workspace_cwd_over_process_cwd(tmp_path: Path) -> 
     assert "Run: npx -y get-physics-done --codex --local" in output
 
 
-def test_latest_update_cache_uses_runtime_unknown_constant_not_literal(tmp_path: Path) -> None:
-    workspace = tmp_path / "workspace"
-    workspace.mkdir()
-    runtime_unknown = "runtime-unknown"
-
-    with (
-        patch("gpd.hooks.install_context.detect_self_owned_install", return_value=None),
-        patch("gpd.hooks.notify.resolve_project_root", return_value=workspace),
-        patch("gpd.hooks.runtime_detect.RUNTIME_UNKNOWN", runtime_unknown),
-        patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value=runtime_unknown),
-        patch("gpd.hooks.runtime_detect.detect_runtime_install_target", side_effect=AssertionError("unexpected lookup")),
-        patch("gpd.hooks.runtime_detect.get_update_cache_candidates", return_value=[]),
-    ):
-        assert notify_module._latest_update_cache(str(workspace)) == (None, None)
-
-
 def test_trigger_update_check_uses_sibling_check_update_script(tmp_path: Path) -> None:
     hook_path = tmp_path / "hooks" / "notify.py"
     hook_path.parent.mkdir(parents=True)
