@@ -176,7 +176,11 @@ Plans:
 
 **Backtracking trigger:** If observable algebra characterization is inconclusive (cannot determine dimension or structure), return to Phase 28 for additional operator constructions (quadratic representations, higher compositions).
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 29-01-PLAN.md -- Iterative associative closure, volume element, J_u anticommutation + grade decomposition (ALGV-03 + REPR-01)
+- [ ] 29-02-PLAN.md -- J_u Clifford polynomial, uniqueness, G_SM commutant, Spin(10) branching, REPR-02 verdict
 
 ---
 
