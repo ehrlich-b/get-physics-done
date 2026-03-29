@@ -453,3 +453,297 @@ def Vhalf_basis_vectors():
     for k in range(8):
         basis.append(H3O(x3=Octonion.basis(k)))
     return basis
+
+
+# ============================================================================
+# V_0 = h_2(O) Peirce operators on V_{1/2}  [Plan 02, ALGV-02]
+# ============================================================================
+#
+# V_0 basis (Spin(9)-adapted, 10 elements):
+#   b_1 = (1/2)(E_{22} + E_{33})  -- trace element of h_2(O)
+#   b_2 = (1/2)(E_{22} - E_{33})  -- traceless diagonal
+#   b_{k+3} for k=0,...,7: x_1 = e_k, all else zero (off-diagonal)
+#
+# T_b: V_{1/2} -> V_{1/2} defined by T_b(v) = Pi_{1/2}(b . v)
+# where . is the Jordan product in h_3(O).
+
+
+def V0_basis_elements():
+    """Return the 10 Spin(9)-adapted basis elements of V_0 = h_2(O).
+
+    Returns list of 10 H3O elements:
+      b[0] = (1/2)(E_{22} + E_{33})  (trace)
+      b[1] = (1/2)(E_{22} - E_{33})  (traceless diagonal)
+      b[2..9] = x_1 = e_k for k=0,...,7  (off-diagonal)
+    """
+    basis = []
+    # b_1: trace element (1/2)(E22 + E33)
+    basis.append(H3O(beta=0.5, gamma=0.5))
+    # b_2: traceless diagonal (1/2)(E22 - E33)
+    basis.append(H3O(beta=0.5, gamma=-0.5))
+    # b_3 through b_10: off-diagonal x_1 = e_k
+    for k in range(8):
+        basis.append(H3O(x1=Octonion.basis(k)))
+    return basis
+
+
+def compute_T_b_matrix(b):
+    """Compute the 16x16 matrix of T_b: V_{1/2} -> V_{1/2}.
+
+    T_b(v) = Pi_{1/2}(b . v) where b is in V_0 and v in V_{1/2}.
+
+    Parameters:
+        b: H3O element in V_0
+
+    Returns:
+        16x16 numpy array M where M[:,j] is T_b(v_j) in V_{1/2} basis.
+    """
+    vhalf_basis = Vhalf_basis_vectors()
+    M = np.zeros((16, 16), dtype=np.float64)
+
+    for j, v_j in enumerate(vhalf_basis):
+        # Jordan product b . v_j
+        prod = jordan_product(b, v_j)
+        # Project onto V_{1/2}
+        prod_half = peirce_Vhalf(prod)
+        # Extract coordinates
+        M[:8, j] = prod_half.x2.c
+        M[8:, j] = prod_half.x3.c
+
+    return M
+
+
+def compute_T_b_matrices():
+    """Compute all 10 Peirce operator matrices T_{b_i}: V_{1/2} -> V_{1/2}.
+
+    Returns:
+        List of 10 numpy arrays, each 16x16.
+    """
+    return [compute_T_b_matrix(b) for b in V0_basis_elements()]
+
+
+def compute_T_b_full_products(b, vhalf_basis=None):
+    """Compute full Jordan products b . v_j (before projection).
+
+    Returns list of 16 H3O elements (the full products, not just V_{1/2} part).
+    Useful for checking Peirce rule: V_1 and V_0 components should be zero.
+    """
+    if vhalf_basis is None:
+        vhalf_basis = Vhalf_basis_vectors()
+    return [jordan_product(b, v_j) for v_j in vhalf_basis]
+
+
+def krasnov_J_u_matrix():
+    """Construct Krasnov's J_u as a 16x16 matrix on V_{1/2}.
+
+    J_u acts on V_{1/2} = O^2 by left multiplication by u = e_7:
+        J_u(x_2, x_3) = (e_7 * x_2, e_7 * x_3)
+
+    The matrix is expressed in the basis (x_2^0,...,x_2^7, x_3^0,...,x_3^7).
+
+    Returns:
+        16x16 numpy array.
+    """
+    e7 = Octonion.basis(7)
+    M = np.zeros((16, 16), dtype=np.float64)
+
+    for j in range(16):
+        if j < 8:
+            # Basis vector has x_2 = e_j, x_3 = 0
+            # J_u maps to (e_7 * e_j, 0)
+            result = e7 * Octonion.basis(j)
+            M[:8, j] = result.c
+        else:
+            # Basis vector has x_2 = 0, x_3 = e_{j-8}
+            # J_u maps to (0, e_7 * e_{j-8})
+            result = e7 * Octonion.basis(j - 8)
+            M[8:, j] = result.c
+
+    return M
+
+
+def search_j_squared_linear(T_matrices):
+    """Search for J^2 = -Id in the span of T_b operators.
+
+    The condition T(c)^2 = -Id becomes sum c_i c_j S_{ij} = -Id
+    where S_{ij} = (1/2)(T_i T_j + T_j T_i).
+
+    This function:
+    1. Computes all S_{ij} (symmetric products)
+    2. Checks the linear system feasibility
+    3. Returns analysis results
+
+    Parameters:
+        T_matrices: list of 10 numpy arrays (16x16)
+
+    Returns:
+        dict with keys:
+          'S_matrices': 10x10 array of 16x16 matrices
+          'linear_feasible': bool (does A @ q = b have a solution?)
+          'linear_residual': float (min ||A @ q - b||)
+          'linear_solution': array or None
+          'rank_A': int
+    """
+    n = len(T_matrices)
+    # Compute S_{ij} = (1/2)(T_i T_j + T_j T_i) for upper triangle
+    S = {}
+    for i in range(n):
+        for j in range(i, n):
+            S[(i, j)] = 0.5 * (T_matrices[i] @ T_matrices[j]
+                                + T_matrices[j] @ T_matrices[i])
+            if i != j:
+                S[(j, i)] = S[(i, j)]
+
+    # Build the linear system: sum c_i c_j S_{ij} = -I_{16}
+    # Flatten S_{ij} to 256-vectors.  Upper triangle indices for q.
+    # q has n*(n+1)/2 = 55 independent components.
+    n_upper = n * (n + 1) // 2
+    A = np.zeros((256, n_upper), dtype=np.float64)
+    col = 0
+    index_map = []  # maps column to (i,j)
+    for i in range(n):
+        for j in range(i, n):
+            # Coefficient: if i==j, c_i^2 contributes S_{ii};
+            # if i!=j, c_i*c_j contributes 2*S_{ij} (since q_{ij}=c_i c_j
+            # but we store only upper triangle with factor 2 for off-diag)
+            if i == j:
+                A[:, col] = S[(i, j)].flatten()
+            else:
+                A[:, col] = 2.0 * S[(i, j)].flatten()
+            index_map.append((i, j))
+            col += 1
+
+    b = -np.eye(16).flatten()
+
+    # Solve least-squares
+    result_lstsq = np.linalg.lstsq(A, b, rcond=None)
+    q_sol = result_lstsq[0]
+    residual_vec = A @ q_sol - b
+    residual = np.linalg.norm(residual_vec)
+    rank_A = result_lstsq[2]
+
+    return {
+        'S_matrices': S,
+        'linear_feasible': residual < 1e-10,
+        'linear_residual': residual,
+        'linear_solution': q_sol if residual < 1e-10 else None,
+        'rank_A': int(rank_A),
+        'A_matrix': A,
+        'b_vector': b,
+    }
+
+
+def search_j_squared_individual(T_matrices):
+    """Check if any individual T_{b_i}^2 = -Id.
+
+    Returns:
+        List of dicts, one per T_b, with eigenvalues of T_b^2.
+    """
+    results = []
+    for i, T in enumerate(T_matrices):
+        T_sq = T @ T
+        evals = np.linalg.eigvalsh(T_sq) if np.allclose(T_sq, T_sq.T) else np.linalg.eigvals(T_sq)
+        evals = np.sort(np.real(evals))
+        is_minus_id = np.allclose(T_sq, -np.eye(16), atol=1e-12)
+        results.append({
+            'index': i,
+            'eigenvalues_T_sq': evals,
+            'is_minus_id': is_minus_id,
+        })
+    return results
+
+
+def test_ju_in_span(T_matrices, J_u=None):
+    """Test if Krasnov's J_u lies in span({T_b}).
+
+    Solves min_c ||sum c_i T_i - J_u||_F via least-squares.
+
+    Returns:
+        dict with 'residual', 'coefficients', 'in_span' (bool)
+    """
+    if J_u is None:
+        J_u = krasnov_J_u_matrix()
+
+    # Flatten
+    n = len(T_matrices)
+    B = np.zeros((256, n), dtype=np.float64)
+    for i, T in enumerate(T_matrices):
+        B[:, i] = T.flatten()
+
+    ju_flat = J_u.flatten()
+    result = np.linalg.lstsq(B, ju_flat, rcond=None)
+    c = result[0]
+    residual_vec = B @ c - ju_flat
+    residual = np.linalg.norm(residual_vec)
+
+    return {
+        'residual': residual,
+        'coefficients': c,
+        'in_span': residual < 1e-12,
+    }
+
+
+def compute_commutator_algebra(T_matrices, max_iterations=5):
+    """Compute the Lie algebra generated by {T_b_i}.
+
+    Iteratively computes commutators until the space closes.
+
+    Returns:
+        dict with 'dimension', 'basis' (list of 16x16 matrices),
+        'closed' (bool), 'iterations' (int)
+    """
+    # Start with the T_b matrices themselves
+    basis = []
+    for T in T_matrices:
+        basis.append(T.flatten())
+
+    basis_matrix = np.array(basis).T  # 256 x n
+    dim = np.linalg.matrix_rank(basis_matrix, tol=1e-10)
+
+    # Orthonormalize
+    U, s, Vt = np.linalg.svd(basis_matrix, full_matrices=False)
+    current_basis = U[:, :dim]  # 256 x dim, orthonormal columns
+
+    for iteration in range(max_iterations):
+        new_elements = []
+        n_basis = current_basis.shape[1]
+
+        for i in range(n_basis):
+            for j in range(i + 1, n_basis):
+                Mi = current_basis[:, i].reshape(16, 16)
+                Mj = current_basis[:, j].reshape(16, 16)
+                comm = Mi @ Mj - Mj @ Mi
+                comm_flat = comm.flatten()
+                new_elements.append(comm_flat)
+
+        if not new_elements:
+            return {
+                'dimension': current_basis.shape[1],
+                'basis': current_basis,
+                'closed': True,
+                'iterations': iteration,
+            }
+
+        # Add new elements and re-check rank
+        new_matrix = np.column_stack([current_basis] + [np.array(new_elements).T])
+        new_dim = np.linalg.matrix_rank(new_matrix, tol=1e-10)
+
+        if new_dim == current_basis.shape[1]:
+            # Closed!
+            return {
+                'dimension': new_dim,
+                'basis': current_basis,
+                'closed': True,
+                'iterations': iteration + 1,
+            }
+
+        # Expand basis
+        U, s, Vt = np.linalg.svd(new_matrix, full_matrices=False)
+        current_basis = U[:, :new_dim]
+
+    return {
+        'dimension': current_basis.shape[1],
+        'basis': current_basis,
+        'closed': False,
+        'iterations': max_iterations,
+    }
