@@ -653,7 +653,7 @@ def search_j_squared_individual(T_matrices):
     return results
 
 
-def test_ju_in_span(T_matrices, J_u=None):
+def check_ju_in_span(T_matrices, J_u=None):
     """Test if Krasnov's J_u lies in span({T_b}).
 
     Solves min_c ||sum c_i T_i - J_u||_F via least-squares.
