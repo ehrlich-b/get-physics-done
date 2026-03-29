@@ -16,9 +16,10 @@ allowed-tools:
 Provide a beginner-friendly first-run entry point for GPD.
 
 Inspect the current folder, explain what GPD can do here in plain language, and
-route into the correct existing workflow. Do not invent a parallel onboarding
-state machine and do not silently assume the user already knows which command to
-run.
+route into the correct existing workflow. Keep the language novice-friendly, and
+explain advanced terms the first time they appear instead of assuming prior CLI,
+Git, or workflow knowledge. Do not invent a parallel onboarding state machine
+and do not silently assume the user already knows which command to run.
 </objective>
 
 <execution_context>
@@ -34,6 +35,7 @@ run.
 - `/gpd:resume-work` remains the in-runtime return path for an existing GPD project
 - `gpd resume --recent` remains the normal-terminal cross-project recovery path
 - `/gpd:suggest-next`, `/gpd:quick`, `/gpd:explain`, and `/gpd:help` remain separate downstream entry points
+- When you mention advanced terms such as workflow, router, project artifacts, or recovery path, explain them the first time they appear
 
 </inline_guidance>
 

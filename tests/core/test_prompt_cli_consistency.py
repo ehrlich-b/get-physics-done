@@ -217,8 +217,14 @@ def test_start_prompt_delegates_routing_to_workflow_only() -> None:
     start_workflow = (WORKFLOWS_DIR / "start.md").read_text(encoding="utf-8")
 
     assert "@{GPD_INSTALL_DIR}/workflows/start.md" in start_command
+    assert "first-stop chooser" in start_command
+    assert "read-only walkthrough when the user wants orientation before choosing a path" in start_command
+    assert "explain them the first time they appear" in start_command
     assert "/gpd:tour" in start_command
-    assert "Provide a beginner-friendly first-run entry point for GPD." in start_workflow
+    assert "Give a first-run chooser for people who may not know GPD yet." in start_workflow
+    assert "Explain the folder state in plain English" in start_workflow
+    assert "Reply with the number or the option name." in start_workflow
+    assert "official GPD terms visible in plain-English form" in start_workflow
     assert "/gpd:new-project --minimal" in start_workflow
     assert "/gpd:new-project" in start_workflow
     assert "/gpd:map-research" in start_workflow
@@ -228,7 +234,7 @@ def test_start_prompt_delegates_routing_to_workflow_only() -> None:
     assert "/gpd:explain" in start_workflow
     assert "/gpd:tour" in start_workflow
     assert "/gpd:help --all" in start_workflow
-    assert "Show full command reference" in start_workflow
+    assert "Ask for exactly one choice." in start_workflow
     assert "Follow the installed `/gpd:new-project --minimal` command contract directly" in start_workflow
     assert "Follow the installed `/gpd:new-project` command contract directly" in start_workflow
     assert "Follow the installed `/gpd:help --all` command contract directly" in start_workflow
@@ -245,8 +251,13 @@ def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
     tour_workflow = (WORKFLOWS_DIR / "tour.md").read_text(encoding="utf-8")
 
     assert "@{GPD_INSTALL_DIR}/workflows/tour.md" in tour_command
-    assert "beginner-friendly guided tour" in tour_workflow
-    assert "does not change your files" in tour_workflow
+    assert "teaching surface, not a chooser" in tour_command
+    assert "safe beginner walkthrough of the core GPD command paths" in tour_command
+    assert "/gpd:settings" in tour_command
+    assert "Provide a beginner-friendly, read-only tour of the core GPD command surface." in tour_workflow
+    assert "Teach what the main commands do, when to use them" in tour_workflow
+    assert "does not create files, change project" in tour_workflow
+    assert "state, or route into another workflow" in tour_workflow
     assert "/gpd:start" in tour_workflow
     assert "/gpd:new-project --minimal" in tour_workflow
     assert "/gpd:map-research" in tour_workflow
@@ -255,11 +266,15 @@ def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
     assert "/gpd:progress" in tour_workflow
     assert "/gpd:explain" in tour_workflow
     assert "/gpd:quick" in tour_workflow
+    assert "/gpd:settings" in tour_workflow
     assert "/gpd:help" in tour_workflow
-    assert "does not create project artifacts" in tour_workflow
-    assert "tour` does not execute those" in tour_workflow
+    assert "This is a read-only tour of the main GPD commands." in tour_workflow
+    assert "It will not change your files." in tour_workflow
     assert "$ARGUMENTS" in tour_workflow
-    assert "Do not narrow the command list or route based on it." in tour_workflow
+    assert "Do not narrow the command list, select a path, or route based on it." in tour_workflow
+    assert "Normal terminal vs runtime" in tour_workflow
+    assert "Use \\`gpd resume\\` first if you need to reopen the project before using \\`/gpd:resume-work\\`." in tour_workflow
+    assert "Use `settings` when you want to change autonomy, permissions, or runtime" in tour_workflow
 
 
 def test_help_workflow_surfaces_start_as_first_run_router() -> None:

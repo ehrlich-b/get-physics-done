@@ -1,8 +1,8 @@
 <purpose>
-Provide a beginner-friendly guided tour of the core GPD command surface for
-new users. Teach what the main commands do and when to use them, and make clear
-that the tour does not create project artifacts, create files, or route into
-other workflows.
+Provide a beginner-friendly, read-only tour of the core GPD command surface.
+Teach what the main commands do, when to use them, and how GPD behaves in plain
+language. Make clear that this tour does not create files, change project
+state, or route into another workflow.
 </purpose>
 
 <required_reading>
@@ -15,59 +15,107 @@ starting.
 <step name="orient_the_user">
 Open with one short sentence:
 
-`This is a guided tour of the main GPD commands. It does not change your files.`
+`This is a read-only tour of the main GPD commands. It will not change your files.`
 
 If `$ARGUMENTS` is non-empty, show it back as one short context line such as
-`You asked about: <goal>. I will use that as context for the tour.`
-Do not narrow the command list or route based on it.
+`You asked about: <goal>. I will use that only as context for the tour.`
+Do not narrow the command list, select a path, or route based on it.
 
-Then explain that GPD has two broad entry modes:
+Then explain the two places beginners will see GPD commands:
 
-- `start` for choosing the right first action in a folder
-- direct commands for when the user already knows what they want
+- the normal terminal, where you install GPD and run setup / status commands
+- the runtime, where you use `/gpd:...`, `$gpd-...`, or `/gpd-...` commands
+
+When you first use an official GPD term such as `runtime`, `read-only`, or
+`resume-work`, explain it in one short plain-English phrase.
+
+Close the opening with one sentence that says this tour explains the common
+commands without executing them.
 </step>
 
 <step name="explain_the_core_paths">
-Use a compact, beginner-facing table or bullet list with these entries:
+Use a compact table with four columns:
 
-- `/gpd:start` - Use when you are not sure what this folder should do yet
-- `/gpd:new-project --minimal` - Use for the fastest start on brand-new work
-- `/gpd:new-project` - Use when you want the full guided setup
-- `/gpd:map-research` - Use when you already have papers, notes, or code and want GPD to map them first
-- `/gpd:resume-work` - Use when an existing GPD project is already set up and you want to continue
-- `/gpd:progress` - Use when you want a broader status snapshot
-- `/gpd:suggest-next` - Use when you want the next best action after resuming
-- `/gpd:explain <topic>` - Use when you want a concept explained in plain language
-- `/gpd:quick` - Use for a small bounded task
-- `/gpd:help` - Use when you want the command reference
+- Command
+- Use this when
+- Do not use this when
+- Example
 
-For each entry, include one plain-English sentence about when it is the right
-choice and one sentence about when it is not the right choice.
+Include these entries:
+
+- `/gpd:start`
+- `/gpd:new-project --minimal`
+- `/gpd:new-project`
+- `/gpd:map-research`
+- `gpd resume`
+- `/gpd:resume-work`
+- `/gpd:progress`
+- `/gpd:suggest-next`
+- `/gpd:explain <topic>`
+- `/gpd:quick`
+- `/gpd:settings`
+- `/gpd:help`
+
+Keep the examples short and concrete, such as `I just opened a folder and do not know what belongs here yet.`
 </step>
 
-<step name="show_simple_distinctions">
-Summarize the most common command distinctions in plain language:
+<step name="distinguish_terminal_and_runtime">
+Add a short section titled something like `Normal terminal vs runtime`.
 
-- If you want GPD to inspect the current folder and tell you the right path, use `/gpd:start`
-- If you already know the work is brand-new, use `/gpd:new-project --minimal` or `/gpd:new-project`
-- If you already know the folder contains existing research material, use `/gpd:map-research`
-- If you already know the folder already has GPD state, use `/gpd:resume-work`
-- If you only want a concept explained, use `/gpd:explain <topic>`
-- If you only want the next step after resuming, use `/gpd:suggest-next`
+Explain in plain language:
 
-Keep this section short and explicitly note that `tour` does not execute those
-commands, inspect the folder for you, or continue into another workflow.
+- The normal terminal is where you install GPD, run `gpd --help`, and run
+  checks like `gpd doctor`.
+- The runtime is the AI terminal app where you use the runtime-specific GPD
+  commands.
+- `gpd resume` is the normal-terminal recovery step for reopening the right
+  workspace.
+- `resume-work` is the in-runtime continue command after you are back in the
+  right project.
+- `settings` is the guided runtime command for changing autonomy,
+  permission-sync behavior, and other GPD preferences after install or later.
+- `tour` only explains; it does not run `start`, `new-project`, `map-research`,
+  `resume-work`, or `settings` for you.
+
+Include one example sentence for each:
+
+- `In your normal terminal, you install GPD and verify it.`
+- `Inside your runtime, you ask GPD what to do next.`
+- `Use \`gpd resume\` first if you need to reopen the project before using \`/gpd:resume-work\`.`
 </step>
 
 <step name="highlight_common_mistakes">
-Call out the beginner traps to avoid:
+Call out beginner traps in a gentle, plain-English way:
 
-- Do not use `new-project` if you only want to look around
-- Do not use `resume-work` unless the project already has GPD state
-- Do not use `map-research` for a truly empty folder
-- Do not treat `help` as a setup wizard; it is the reference surface
+- Use `start` when you are still deciding, not `new-project`
+- Use `new-project` when the folder is genuinely new, not when you only want to
+  inspect it
+- Use `map-research` for an existing folder with papers, notes, or code, not an
+  empty folder
+- Use `gpd resume` before `resume-work` when you first need to find or reopen
+  the right project from your normal terminal
+- Use `resume-work` only when the project already has GPD state
+- Use `settings` when you want to change autonomy, permissions, or runtime
+  preferences, not `help` or `doctor`
+- Use `help` when you want the command reference, not a setup wizard
 
 Keep the tone explanatory, not corrective.
+</step>
+
+<step name="explain_advanced_terms">
+If useful, add a small section titled `A few terms in plain English`.
+
+Define only the terms that beginners are most likely to see:
+
+- `runtime` - the AI terminal app that receives GPD commands
+- `GPD project` - a folder where GPD already saved its own project files and state
+- `research map` - GPD's summary of an existing research folder before full project setup
+- `map-research` - examine an existing research folder before planning
+- `phase` - one chunk of the project plan that GPD will organize later
+- `resume-work` - continue an existing GPD project from where it left off
+- `read-only` - it explains things without making changes
+
+Keep each definition to one sentence.
 </step>
 
 <step name="close_with_next_steps">
@@ -75,7 +123,10 @@ End with a short wrap-up that says:
 
 - `If you are still unsure, run /gpd:start.`
 - `If you want the reference list again later, run /gpd:help.`
-- `If you want to practice on your current folder, choose one of the commands above only after you know which path fits; otherwise use /gpd:start to decide safely.`
+- `If you want to change permissions, autonomy, or runtime preferences, run \`/gpd:settings\`.`
+- `If you need to reopen the project itself from your normal terminal, use \`gpd resume\` first and then \`/gpd:resume-work\` in the runtime.`
+- `If you already know your path, use the matching command from the table
+  above.`
 
 Do not ask the user to pick a branch and do not continue into another workflow.
 </step>
@@ -84,6 +135,7 @@ Do not ask the user to pick a branch and do not continue into another workflow.
 - [ ] The user sees that `tour` is read-only and non-destructive
 - [ ] The core GPD entry points are explained in beginner language
 - [ ] The difference between `start`, `new-project`, `map-research`, and `resume-work` is clear
+- [ ] The tour also surfaces `settings` as the guided configuration path after install or later
 - [ ] The response does not silently route into another workflow
 - [ ] The response ends with simple next-step guidance
 </success_criteria>
