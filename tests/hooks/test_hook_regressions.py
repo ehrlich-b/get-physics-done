@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from gpd.adapters.runtime_catalog import get_hook_payload_policy, list_runtime_names
+from gpd.adapters.runtime_catalog import list_runtime_names
 
 
 @pytest.mark.parametrize(
@@ -277,38 +277,41 @@ def test_notify_and_statusline_share_self_owned_update_cache_selection(
     assert notify_candidate.path == status_candidate.path == cache_file
 
 
-def test_hook_payload_policy_resolution_is_shared_but_surface_aware(tmp_path: Path) -> None:
+def test_hook_payload_policy_wrappers_delegate_with_surface_specific_arguments(tmp_path: Path) -> None:
     from gpd.hooks import notify, statusline
-    from gpd.hooks.install_context import SelfOwnedInstallContext
 
     workspace = tmp_path / "workspace"
     workspace.mkdir()
-    self_config_dir = tmp_path / ".codex"
-    notify_hook = self_config_dir / "hooks" / "notify.py"
-    statusline_hook = self_config_dir / "hooks" / "statusline.py"
+    notify_hook = tmp_path / ".codex" / "hooks" / "notify.py"
+    statusline_hook = tmp_path / ".codex" / "hooks" / "statusline.py"
     notify_hook.parent.mkdir(parents=True)
     notify_hook.write_text("# notify hook\n", encoding="utf-8")
     statusline_hook.write_text("# statusline hook\n", encoding="utf-8")
-    self_install = SelfOwnedInstallContext(
-        config_dir=self_config_dir,
-        runtime="codex",
-        install_scope="local",
-    )
 
+    notify_policy = object()
+    statusline_policy = object()
     with (
         patch("gpd.hooks.notify.__file__", str(notify_hook)),
         patch("gpd.hooks.statusline.__file__", str(statusline_hook)),
-        patch("gpd.hooks.payload_policy.hook_layout.detect_self_owned_install", return_value=self_install),
+        patch("gpd.hooks.notify.resolve_hook_payload_policy", return_value=notify_policy) as mock_notify_policy,
         patch(
-            "gpd.hooks.payload_policy.detect_active_runtime_with_gpd_install",
-            return_value="claude-code",
-        ),
+            "gpd.hooks.statusline.resolve_hook_payload_policy",
+            return_value=statusline_policy,
+        ) as mock_statusline_policy,
     ):
-        notify_policy = notify._hook_payload_policy(str(workspace))
-        statusline_policy = statusline._hook_payload_policy(str(workspace))
+        assert notify._hook_payload_policy(str(workspace)) is notify_policy
+        assert statusline._hook_payload_policy(str(workspace)) is statusline_policy
 
-    assert notify_policy == get_hook_payload_policy("codex")
-    assert statusline_policy == get_hook_payload_policy("claude-code")
+    mock_notify_policy.assert_called_once_with(
+        hook_file=str(notify_hook),
+        cwd=str(workspace),
+        surface="notify",
+    )
+    mock_statusline_policy.assert_called_once_with(
+        hook_file=str(statusline_hook),
+        cwd=str(workspace),
+        surface="statusline",
+    )
 
 
 def test_installed_update_command_uses_manifest_runtime_metadata_for_custom_targets(tmp_path: Path) -> None:

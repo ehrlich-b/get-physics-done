@@ -50,3 +50,29 @@ def test_resolve_hook_payload_policy_uses_surface_runtime_resolution(tmp_path: P
 
     mock_runtime.assert_called_once_with(hook_file=hook_file, cwd=tmp_path / "workspace", surface="notify")
     assert policy == get_hook_payload_policy("codex")
+
+
+def test_resolve_hook_payload_policy_is_surface_aware_for_same_self_owned_install(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    hook_dir = tmp_path / ".codex" / "hooks"
+    notify_hook = hook_dir / "notify.py"
+    statusline_hook = hook_dir / "statusline.py"
+    self_install = SelfOwnedInstallContext(
+        config_dir=tmp_path / ".codex",
+        runtime="codex",
+        install_scope="local",
+    )
+
+    with (
+        patch("gpd.hooks.payload_policy.hook_layout.detect_self_owned_install", return_value=self_install),
+        patch("gpd.hooks.payload_policy.detect_active_runtime_with_gpd_install", return_value="claude-code"),
+    ):
+        notify_policy = resolve_hook_payload_policy(hook_file=notify_hook, cwd=workspace, surface="notify")
+        statusline_policy = resolve_hook_payload_policy(
+            hook_file=statusline_hook,
+            cwd=workspace,
+            surface="statusline",
+        )
+
+    assert notify_policy == get_hook_payload_policy("codex")
+    assert statusline_policy == get_hook_payload_policy("claude-code")
