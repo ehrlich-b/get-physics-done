@@ -4,127 +4,77 @@
 
 See: .gpd/PROJECT.md (updated 2026-03-29)
 
-**Machine-readable scoping contract:** `.gpd/state.json` field `project_contract` (stale v1.0 -- use v9.0 Scoping Contract Summary in PROJECT.md)
-
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 **Current focus:** v9.0 Continuum Limit from Finite-Dimensional Observer
 
 ## Current Position
 
-**Current Phase:** 32
-**Current Phase Name:** Fisher Geometry on Reduced States
+**Current Phase:** 33
+**Current Phase Name:** Correlation Structure and Effective Theory
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
-**Current Plan:** 02/02 complete
-**Total Plans in Phase:** 2
-**Status:** Phase 32 complete (FISH-01/02 pass, FISH-03 deferred to Phase 33 d>=2)
-**Last Activity:** 2026-03-30
-**Last Activity Description:** Phase 32 executed. FISH-01 (smoothness) and FISH-02 (positive-definiteness) established. FISH-03 (distance recovery) FAILS in 1D: g_bulk ~ N^{-2.75} -> 0.
+**Current Plan:** 03/03 complete
+**Total Plans in Phase:** 3
+**Status:** Phase 33 execution complete. All 3 plans passed. Awaiting verification.
+**Last Activity:** 2026-03-29
+**Last Activity Description:** Phase 33 complete. CORR-01: two-tier correlation decay. CORR-02: sigma model c_s=1.659Ja. 2D ED: m_s^2=0.233, Fisher g=4.76e-4. CORR-03: conditional Fisher smoothness theorem for d>=2 Neel.
 
-**Progress:** [██░░░░░░░░] 20% (v9.0)
 
 ## Active Calculations
 
-- Fisher metric g(x) on Heisenberg 1D OBC: g_bulk ~ 0.22 * N^{-2.75} for |Lambda|=2
-- Boundary decay: xi_corr matches Hastings-Koma xi_HK = v_LR/gamma within 3%
+- CORR-01: Two-tier correlation decay characterization -- COMPLETE (gapped: Hastings-Koma; Neel d>=2: algebraic LRO)
+- CORR-02: O(3) NL sigma model derivation -- COMPLETE (c_s = 1.659 Ja, rho_s = 0.181 J, g = 9.18)
+- 2D ED (4x4 OBC): m_s^2 = 0.233, Fisher g_plaq = 4.76e-4, sublattice TD = 0.114 -- COMPLETE
+- CORR-03: Fisher smoothness conditional theorem -- COMPLETE (g_F ~ O(m_s^2) > 0 for d>=2 Neel)
 
 ## Intermediate Results
 
-### Phase 32 Results (v9.0)
+### Phase 33 Results (v9.0)
 
-- **FISH-01 (Smoothness)**: rho_Lambda(x) smooth from Hastings-Koma exponential clustering; bound exp(-R(x)/xi) where R(x) = min(x, N-x-|Lambda|) (HIGH)
-- **FISH-02 (Positive-definiteness)**: g(x) > 0 at all interior points for N=8,12,16,20, |Lambda|=2,3. Z_2 symmetry zero at chain center for even N, |Lambda|=2. Bures fallback for rank-deficient case. (HIGH)
-- **FISH-03 (Distance recovery)**: FAILS in 1D. g_bulk ~ 0.22*N^{-2.75} (|Lambda|=2), 7.72*N^{-3.87} (|Lambda|=3). Root cause: 1D Heisenberg is gapless, bulk becomes translation-invariant. (HIGH)
-- **SLD-Bures cross-validation**: SLD = 4*Bures to rel_err < 7e-6 in infinitesimal limit (HIGH)
-- **TFI benchmark**: Critical enhancement at h/J=1 reproduces Zanardi 2007 (HIGH)
-- **PBC sanity**: g = 0 to machine precision on PBC (HIGH)
-- **Boundary decay**: xi_corr matches Hastings-Koma xi_HK within 3% at N=20 (HIGH)
-- **Three FISH-03 rescue paths**: (1) rescaled metric g*N^alpha, (2) 2D lattice with Neel order, (3) gapped variant (AKLT) (MEDIUM)
-- **14 tests passing**, code in code/fisher_metric.py, data in data/fisher/fisher_swap_1d.json
+- **CORR-01 (Two-tier decay)**: Gapped tier: Hastings-Koma rigorous exponential. Neel tier (d>=2): m_s > 0 (QMC-established), correlations = m_s^2 + transverse 1/r^{d-1} from Goldstone modes (HIGH/MEDIUM)
+- **CORR-02 (Sigma model)**: O(3) NL sigma model Eq. (33.11) with c_s = 1.659 Ja, rho_s = 0.181 J, chi_perp = 0.0657/J, g = 9.18 (d=2). QMC match to 0.3% (HIGH)
+- **2D ED (4x4 OBC)**: m_s^2 = 0.233 (strong Neel), Fisher g_plaq = 4.76e-4 via 2x2 plaquette (3.88x > 1D N=16), sublattice TD = 0.114 (HIGH for Neel, MEDIUM for Fisher -- single L=4 point)
+- **PBC benchmark**: E0/bond = -0.702, within 3.2% of QMC thermodynamic limit -0.6694 (HIGH)
+- **CORR-03 (Fisher smoothness)**: Conditional theorem -- g_F(x) = O(m_s^2) > 0 at interior for d>=2 Neel phase. d>=3: Goldstone integral convergent. d=2: O(ln L) correction. Hypotheses H1-H4 explicit. Three-regime: 1D FAILS / Neel RESCUED / Gapped PASSES (MEDIUM)
 
 ### v8.0 Results (archived)
 
-See MILESTONES.md for v8.0 details. Key results: observable algebra = M_16(R), three impossibility theorems, selection argument, 71 tests.
-
-### Phase 28 Results (v8.0)
-
-- **ALGV-01**: L_{E_{11}} = (1/2)*I_{16} on V_{1/2} (EXACT, zero error) -- numerical confirmation of v6.0 Phase 22 Route 1 (HIGH)
-- **ALGV-02**: V_0 channel NEGATIVE -- all 10 T_b are symmetric, J_u is antisymmetric, residual = 4.0 (HIGH)
-- **T_b Clifford structure**: 9 traceless T_b satisfy {T_a,T_b} = (1/2)*delta_{ab}*I -- they ARE Cl(9) generators on V_{1/2} (HIGH)
+- **ALGV-01**: L_{E_{11}} = (1/2)*I_{16} on V_{1/2} (EXACT, zero error) (HIGH)
+- **ALGV-02**: V_0 channel NEGATIVE -- T_b symmetric, J_u antisymmetric (HIGH)
+- **T_b Clifford structure**: 9 traceless T_b satisfy {T_a,T_b} = (1/2)*delta_{ab}*I (HIGH)
 - **Operator algebra**: 46-dim = 10 (Cl(9) vectors) + 36 (spin(9) from commutators) (HIGH)
-- **Key insight**: J_u lies in associative closure but NOT in linear span of T_b (HIGH)
-
-### Phase 29 Results
-
-- **ALGV-03**: Associative closure of {T_b} = M_16(R) (256-dim), dimension growth 10->46->130->256 (HIGH)
-- **Volume element**: omega = +I_{16} (P_+ factor of Cl(9,0)), all eigenvalues +1 (HIGH)
-- **J_u anticommutation**: J_u COMMUTES with gamma_1 (diagonal traceless), mixed with gamma_2..9 -- NOT a 10th Clifford generator (HIGH)
-- **J_u grade decomposition**: grade 2+3 mixed (4 grade-2 + 4 grade-3 terms), coefficients {0.25, 0.75} from Fano plane (HIGH)
-- **J_u depth**: enters at depth 2 (requires 3+ Peirce operator compositions) (HIGH)
-- **J_u uniqueness**: isolated in 8-monomial subspace (tangent dim=0, Jacobian rank=8) (HIGH)
-- **Stabilizer**: dim(Stab_{spin(9)}(J_u)) = 10 = su(3) + u(1)^2 for PEIRCE-derived spin(9) (HIGH)
-- **Krasnov resolution**: Peirce spin(9) != Krasnov spin(9) in M_16(R); combined rank 51 (not 36). Krasnov's spin(9) gives stab dim=12. Both correct for their embeddings (HIGH)
-- **Spin(10) extension**: FAILS -- span{spin(9), gamma_i J_u} = 45-dim but NOT a Lie algebra; closure = sl(16,R) (255-dim) (HIGH)
-- **REPR-02 verdict**: J_u is algebraically distinguished but containment in M_16(R) is vacuous; Gap C cannot close purely algebraically (HIGH)
-
-### Phase 30 Results
-
-- **Theorem 1 (No equivariant J)**: End_{Spin(9)}(S_9) = R (commutant dim=1 by SVD). No Spin(9)-equivariant J with J^2=-Id exists. Schur's lemma + Bott periodicity (9 mod 8 = 1 = real type). (HIGH)
-- **Theorem 2 (J_u not in spin(9))**: J_u grade-3 norm = 0.866, spin(9) is grade-2 only. Projection residual = 0.866. (HIGH)
-- **Theorem 2 distinguishing**: All 36 grade-2 complex structures (gamma_{ij}) have stabilizer dim=22, not 10. J_u's su(3)+u(1)^2 structure is unique to grade 2+3 elements. (HIGH)
-- **Theorem 3 (Weakest condition)**: Minimal input = u in S^6 = Gap B2. Given u, J_u uniquely determined (Jacobian rank 8). Stabilizer dim=10. (HIGH)
-- **Selection chain**: L1-L5 independently justified, no circular Gap C reference. L4 ("no chirality -> no self-modelers") = weakest link, flagged as "argued, not proved". (HIGH for structure, MEDIUM for L4)
-- **Gap C honest status**: Algebraic impossibility (theorem) + selection-conditional (argued). NOT "closed" or "proved". (HIGH)
-- **Test suite**: 17 new tests + 54 Phase 29 regression = 71 total, all passing. (HIGH)
-
-### v8.0 Carry-Forward (from v5.0, v6.0, v7.0)
-
-- **Peirce decomposition**: h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10) under E_11 (HIGH)
-- **V_{1/2} = O^2 = S_9** (real Spin(9) spinor, dim_R = 16) (HIGH)
-- **V_1 = R*E_11** is 1-dimensional -- ALL 4 v6.0 Peirce-mediated routes failed at this bottleneck (HIGH)
-- **S_9 is REAL type** (Frobenius-Schur = +1, End_{Spin(9)}(S_9) = R) (HIGH)
-- **G_SM = Stab_{Spin(9)}(J_u)** where J_u is left-mult by u on O^2 (Krasnov 2019) (HIGH)
-- **Extension of scalars** V_{1/2}^C = S_{10}^+ valid but generic (not h_3(O)-specific) (HIGH)
-- **v7.0 selection**: non-complexified blocks have rho = 0 for SM-like observers (MEDIUM)
-- **V_0 = h_2(O)** channel UNEXPLORED in v6.0 -- this is the novel v8.0 algebraic route (HIGH)
-
-### Prior Milestones (condensed)
-
-- Paper 5: M_n(C)^sa from self-modeling via S1-S7 + local tomography + type exclusion (HIGH)
-- Paper 6: Einstein equations from self-modeling lattice via Jacobson + area law (HIGH)
-- Paper 7: 9-link chain L1-L9 from self-modeling to chiral SM, conditional on gaps A, B1, B2, C (HIGH)
-- v4.0: Simple M_n(C) cannot produce SM gauge group -- structural obstruction (HIGH)
 
 ## Open Questions
 
-- **RESOLVED (NO):** Does the Fisher information metric on SWAP ground state reduced states recover lattice distance at leading order? -> g_bulk -> 0 as N -> inf in 1D.
-- Can d_Fisher/d_lattice be rescued by rescaling (g*N^alpha), 2D lattice (Neel order), or gapped variant (AKLT)?
-- Does the 2D Heisenberg AFM Fisher metric give non-vanishing g_bulk due to Neel long-range order?
-- Does the Heisenberg AFM (n=2) on d>=2 lattice have a rigorous spectral gap proof?
-- Does isotropy + LR finite speed + Fisher smoothness uniquely determine Lorentz invariance?
-- Does the effective theory from Fisher geometry satisfy Wightman axioms sufficient for BW?
-- Is the Fisher metric Riemannian or can it give Lorentzian signature?
-- Carry-forward from v8.0: two distinct spin(9) embeddings in M_16(R), physical significance unclear
+- ~~Does any element of the operator algebra generated by {T_b : b in V_0 = h_2(O)} on V_{1/2} satisfy J^2 = -Id?~~ ANSWERED: NO (structural impossibility -- T_b symmetric, J needs antisymmetric)
+- ~~Is the full observable algebra on V_{1/2} (all Peirce multiplication COMPOSITIONS) large enough to contain J_u?~~ ANSWERED: YES trivially (closure = M_16(R) = all 16x16 matrices), but containment is vacuous
+- ~~Does V_0 = h_2(O), being a JC-algebra, provide richer structure transmission than V_1 = R?~~ ANSWERED: Yes (10-dim vs 1-dim), but still insufficient for J (wrong symmetry class)
+- ~~If algebraic forcing fails, is "no chirality -> no self-modelers" rigorous enough for a theorem?~~ ANSWERED: No -- it's "argued, not proved" (L4 weakest link). Gap C = selection-conditional.
+- ~~What is the physical meaning of needing operator compositions (iterated measurements) rather than single Peirce multiplication to reach J_u?~~ ANSWERED: J_u enters at depth 2 (compositions of 3 Peirce operators), but this is vacuous since closure is everything
+- NEW: Why does the Peirce-derived spin(9) differ from Krasnov's spin(9)? What is the physical significance of having two distinct spin(9) subalgebras of M_16(R)?
+- NEW: Can the choice of u in S^6 be derived from the self-modeling framework, or is it necessarily external input?
+- NEW: Is the reduced stabilizer (dim 10 = su(3)+u(1)^2) or Krasnov's (dim 12 = su(3)+su(2)+u(1)) the physically correct one?
 
 ## Performance Metrics
 
 | Label | Duration | Tasks | Files |
 | ----- | -------- | ----- | ----- |
-| 28-01 | ~5min | 2 | 2 |
-| 28-02 | ~8min | 2 | 2 |
-| 29-01 | ~12min | 2 | 2 |
-| 29-02 | ~15min | 2 | 2 |
-| 30-01 | ~12min | 2 | 3 |
-| 30-02 | ~8min | 1 | 1 |
+| 28-01 | ~5min | 2 tasks | 2 files |
+| 28-02 | ~8min | 2 tasks | 2 files |
+| 29-01 | ~12min | 2 tasks | 2 files |
+| 29-02 | ~15min | 2 tasks | 2 files |
+| 30-01 | ~12min | 2 tasks | 3 files |
+| 30-02 | ~8min | 1 tasks | 1 files |
+| 33-01 | ~7min | 2 tasks | 1 files |
+| 33-02 | ~8min | 2 tasks | 3 files |
+| 33-03 | ~6min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Full log: `.gpd/DECISIONS.md`
-
-**Recent high-impact:**
-- [Phase 32, Plan 01]: FISH-02 passed (g>0 at all interior points). FISH-03 FAILS: d_Fisher/d_lattice -> 0 as N -> inf. g_bulk ~ N^{-2.75}. 1D Heisenberg bulk is translation-invariant.
-- [Phase 32, Plan 02]: Three FISH theorems proved. Smoothness from Hastings-Koma (corrected bound). PD from SLD structure. Distance recovery fails honestly. Three rescue paths identified.
+- [Phase 33, Plan 03]: CORR-03 conditional theorem (H1-H4). Sublattice alternation gives g_F ~ O(m_s^2) > 0. d>=3 clean, d=2 logarithmic.
+- [Phase 33, Plan 02]: 2D Heisenberg 4x4 OBC: m_s^2=0.233 (Neel), g_plaq=4.76e-4 (3.88x > 1D). Neel rescue supported at L=4.
+- [Phase 33, Plan 01]: Two-tier correlation decay (gapped + Neel). O(3) sigma model with c_s=1.659Ja (QMC to 0.3%). S=1/2 d=2 Neel is QMC-established, not rigorous.
 - [Phase 30, Plan 01]: Three impossibility theorems proved -- Schur commutant dim=1, J_u grade-3 separation, u in S^6 = Gap B2. 71 tests pass.
 - [Phase 30, Plan 02]: Gap C = algebraic impossibility (theorem) + selection-conditional (argued). L4 = weakest link.
 - [Phase 29, Plan 02]: REPR-02 verdict -- J_u is distinguished (isolated, grade 2+3) but NOT a 10th Clifford generator. Spin(10) extension fails. Gap C cannot close purely algebraically.
@@ -136,20 +86,40 @@ Full log: `.gpd/DECISIONS.md`
 
 ### Active Approximations
 
-None (algebraic, exact computation).
+None yet.
 
 **Convention Lock:**
 
-- Jordan product: a o b = (1/2)(ab + ba)
-- Peirce eigenvalues: {0, 1/2, 1}
-- Octonion convention: Fano e_1 e_2 = e_4 (matches Paper 7)
-- Complex structure: u = e_7 by default (any u in S^6 equivalent under G_2)
-- Clifford signature: Cl(9,0) (positive definite, NOT Cl(0,9))
-- All other convention fields: see `.gpd/CONVENTIONS.md`
+- Metric signature: (+,+,...,+) Riemannian Fisher metric
+- Fourier convention: N/A (lattice spin chain)
+- Natural units: hbar=1, k_B=1, lattice spacing a=1
+- Gauge choice: N/A (lattice spin chain)
+- Regularization scheme: N/A (lattice spin chain)
+- Renormalization scheme: N/A (lattice spin chain)
+- Coordinate system: N/A (lattice spin chain)
+- Spin basis: standard S^z eigenbasis
+- State normalization: density matrices trace 1
+- Coupling convention: J > 0 antiferromagnetic
+- Index positioning: N/A (lattice spin chain)
+- Time ordering: N/A (lattice spin chain)
+- Commutation convention: N/A (lattice spin chain)
+- Levi-Civita sign: N/A (lattice spin chain)
+- Generator normalization: N/A (lattice spin chain)
+- Covariant derivative sign: N/A (lattice spin chain)
+- Gamma matrix convention: N/A (lattice spin chain)
+- Creation/annihilation order: N/A (lattice spin chain)
+
+*Custom conventions:*
+- Jordan Product: a o b = (1/2)(ab + ba)
+- Peirce Eigenvalues: {0, 1/2, 1}
+- Octonion Convention: Fano e_1 e_2 = e_4 (matches Paper 7)
+- Complex Structure: u = e_7 by default (any u in S^6 equivalent under G_2)
+- Clifford Signature: Cl(9,0) (positive definite, NOT Cl(0,9))
+- All Other Convention Fields: see `.gpd/CONVENTIONS.md`
 
 ### Propagated Uncertainties
 
-None (algebraic, exact).
+None yet.
 
 ### Pending Todos
 
@@ -157,13 +127,15 @@ None yet.
 
 ### Blockers/Concerns
 
-- **FISH-03 failure in 1D**: g_bulk -> 0 as N -> inf. Distance recovery requires 2D (Neel order) or gapped system or rescaled metric. This impacts Phases 34 (emergent Lorentz) and 36 (assembly).
-- Fisher metric signature: Riemannian (positive-definite) not Lorentzian -- need causal structure from LR bounds separately
-- Exponential decay for general n: may not have rigorous proof; n=2 is the rigorous target
-- BW theorem requires Wightman axioms in the effective theory -- need to check these hold
+- ~~V_0 channel is genuinely unexplored~~ RESOLVED: V_0 channel fully characterized in Phase 28-29
+- ~~Observable algebra dimension unknown~~ RESOLVED: closure = M_16(R) = 256-dim (full matrix algebra)
+- ~~REPR-02 confirmed Path A (algebraic forcing fails): Phase 30 must formalize impossibility + selection argument~~ RESOLVED: Phase 30 complete -- 3 theorems + selection argument
+- Two distinct spin(9) embeddings in M_16(R) -- physical significance unclear, noted in Krasnov discrepancy
+- Phase 31 (Integration) must update Paper 7 gap register with Phase 30 results
+- Krasnov stabilizer dim discrepancy (10 vs 12) needs interpretation: which spin(9) is physically relevant?
 
 ## Session Continuity
 
-**Last session:** 2026-03-30
-**Stopped at:** Phase 32 execution complete. FISH-01/02 pass, FISH-03 fails. Awaiting verification.
+**Last session:** 2026-03-29
+**Stopped at:** Phase 33 execution complete. All 3 plans passed. Verification pending.
 **Resume file:** --

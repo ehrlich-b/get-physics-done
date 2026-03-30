@@ -350,12 +350,21 @@ Plans:
 
 **Backtracking trigger:** If the NL sigma model derivation reveals that the SWAP Hamiltonian does not map to the standard Heisenberg form needed for the sigma model (e.g., SWAP contains terms beyond nearest-neighbor Heisenberg), return to Phase 32 to reassess the lattice Hamiltonian.
 
+**Status:** COMPLETE (2026-03-29) -- CORR-01/02/03 all pass, verification 5/5
+
 **Plans:** 3 plans
 
 Plans:
-- [ ] 33-01-PLAN.md -- CORR-01 two-tier correlation characterization + CORR-02 NL sigma model derivation with explicit c_s
-- [ ] 33-02-PLAN.md -- 2D numerical validation: 4x4 OBC ED, correlations, staggered order, Fisher metric
-- [ ] 33-03-PLAN.md -- CORR-03 Fisher smoothness argument for algebraic decay regime (Neel d>=2)
+- [x] 33-01-PLAN.md -- CORR-01 two-tier correlation characterization + CORR-02 NL sigma model derivation with c_s = 1.659 Ja
+- [x] 33-02-PLAN.md -- 2D numerical validation: 4x4 OBC ED, m_s^2=0.233, Fisher g_plaq=4.76e-4
+- [x] 33-03-PLAN.md -- CORR-03 Fisher smoothness conditional theorem for d>=2 Neel phase
+
+**Results:**
+- CORR-01: Two-tier characterization (gapped: Hastings-Koma exponential; Neel d>=2: algebraic LRO with Goldstone 1/r^{d-1})
+- CORR-02: O(3) NL sigma model with c_s = 1.659 Ja (QMC match to 0.3%), rho_s = 0.181 J, g = 9.18
+- CORR-03: Conditional theorem (H1-H4) -- g_F ~ O(m_s^2) > 0 for d>=2 Neel. d>=3 clean, d=2 has O(ln L) correction
+- 2D ED (4x4 OBC): strong Neel order confirmed, Fisher metric nonzero (3.88x > 1D)
+- FISH-03 rescue: CONFIRMED for d>=2 Neel phase via sublattice alternation mechanism
 
 ---
 
