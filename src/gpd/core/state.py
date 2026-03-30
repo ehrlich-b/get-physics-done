@@ -3489,7 +3489,7 @@ def state_carry_forward_continuation_last_result_id(
         return StateUpdateResult(updated=False, reason="last_result_id must be a non-empty string when provided")
 
     def _apply(loaded_state_obj: dict[str, object]) -> StateUpdateResult:
-        if not _state_has_canonical_result_id(state_obj, requested_last_result_id):
+        if not _state_has_canonical_result_id(loaded_state_obj, requested_last_result_id):
             return StateUpdateResult(
                 updated=False,
                 reason=(
