@@ -2511,6 +2511,85 @@ def result_deps(
     _output(result_deps(_load_state_dict(), result_id))
 
 
+def _print_result_show_dependencies(
+    title: str,
+    dependencies: list[object],
+    *,
+    empty_message: str,
+) -> None:
+    """Render a dependency chain for the result inspection surface."""
+    console.print()
+    console.print(Text(title, style=f"bold {_INSTALL_ACCENT_COLOR}"))
+    if not dependencies:
+        console.print(Text(empty_message, style="dim"))
+        return
+
+    table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
+    table.add_column("ID", style="bold")
+    table.add_column("Type")
+    table.add_column("Phase")
+    table.add_column("Verified")
+    table.add_column("Summary", overflow="fold")
+
+    for dependency in dependencies:
+        if getattr(dependency, "missing", False):
+            table.add_row(
+                str(getattr(dependency, "id", "—")),
+                "missing",
+                "—",
+                "—",
+                "dependency not found",
+            )
+            continue
+
+        equation = getattr(dependency, "equation", None)
+        description = getattr(dependency, "description", None)
+        summary_parts = [part for part in (equation, description) if part]
+        summary = " | ".join(summary_parts) if summary_parts else "—"
+        table.add_row(
+            str(getattr(dependency, "id", "—")),
+            "result",
+            str(getattr(dependency, "phase", None) or "—"),
+            "yes" if getattr(dependency, "verified", False) else "no",
+            summary,
+        )
+
+    console.print(table)
+
+
+def _print_result_show(result_deps: object) -> None:
+    """Render one canonical result with direct and transitive dependencies."""
+    result = getattr(result_deps, "result", None)
+    if result is None:
+        console.print(Text("Result unavailable", style="bold red"))
+        return
+
+    console.rule(f"Result {result.id}")
+
+    summary = Table(show_header=False, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
+    summary.add_column("Field", style=f"bold {_INSTALL_ACCENT_COLOR}")
+    summary.add_column("Value", overflow="fold")
+    summary.add_row("Equation", result.equation or "—")
+    summary.add_row("Description", result.description or "—")
+    summary.add_row("Units", result.units or "—")
+    summary.add_row("Validity", result.validity or "—")
+    summary.add_row("Phase", result.phase or "—")
+    summary.add_row("Verified", "yes" if result.verified else "no")
+    summary.add_row("Declared deps", ", ".join(result.depends_on) if result.depends_on else "—")
+    console.print(summary)
+
+    _print_result_show_dependencies(
+        "Direct dependencies",
+        list(getattr(result_deps, "direct_deps", []) or []),
+        empty_message="No direct dependencies",
+    )
+    _print_result_show_dependencies(
+        "Transitive dependencies",
+        list(getattr(result_deps, "transitive_deps", []) or []),
+        empty_message="No transitive dependencies",
+    )
+
+
 @result_app.command("search")
 def result_search(
     id: str | None = typer.Option(None, "--id", help="Exact result ID"),
@@ -2543,6 +2622,25 @@ def result_search(
             unverified=unverified if unverified else None,
         )
     )
+
+
+@result_app.command("show")
+def result_show(
+    result_id: str = typer.Argument(..., help="Canonical result ID"),
+) -> None:
+    """Show a canonical result and its direct/transitive dependency chain."""
+    from gpd.core.results import result_deps
+
+    try:
+        deps = result_deps(_load_state_dict(), result_id)
+    except GPDError as exc:
+        _error(str(exc))
+
+    if _raw:
+        console.print_json(json.dumps(deps.model_dump(mode="json", by_alias=True), default=str))
+        return
+
+    _print_result_show(deps)
 
 
 @result_app.command("upsert")
