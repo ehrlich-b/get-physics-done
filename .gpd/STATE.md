@@ -14,19 +14,32 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 **Current Phase:** 32
 **Current Phase Name:** Fisher Geometry on Reduced States
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
-**Current Plan:** --
-**Total Plans in Phase:** TBD
-**Status:** Ready to plan
-**Last Activity:** 2026-03-29
-**Last Activity Description:** v9.0 roadmap created. 5 phases (32-36): Fisher Geometry -> Correlation Structure -> Emergent Lorentz -> BW + Equilibrium -> Assembly + Gap Scoring.
+**Current Plan:** 02/02 complete
+**Total Plans in Phase:** 2
+**Status:** Phase 32 execution complete, awaiting verification
+**Last Activity:** 2026-03-30
+**Last Activity Description:** Phase 32 executed. FISH-01 (smoothness) and FISH-02 (positive-definiteness) established. FISH-03 (distance recovery) FAILS in 1D: g_bulk ~ N^{-2.75} -> 0.
 
-**Progress:** [░░░░░░░░░░] 0% (v9.0)
+**Progress:** [██░░░░░░░░] 20% (v9.0)
 
 ## Active Calculations
 
-(None yet -- awaiting phase planning for Phase 32)
+- Fisher metric g(x) on Heisenberg 1D OBC: g_bulk ~ 0.22 * N^{-2.75} for |Lambda|=2
+- Boundary decay: xi_corr matches Hastings-Koma xi_HK = v_LR/gamma within 3%
 
 ## Intermediate Results
+
+### Phase 32 Results (v9.0)
+
+- **FISH-01 (Smoothness)**: rho_Lambda(x) smooth from Hastings-Koma exponential clustering; bound exp(-R(x)/xi) where R(x) = min(x, N-x-|Lambda|) (HIGH)
+- **FISH-02 (Positive-definiteness)**: g(x) > 0 at all interior points for N=8,12,16,20, |Lambda|=2,3. Z_2 symmetry zero at chain center for even N, |Lambda|=2. Bures fallback for rank-deficient case. (HIGH)
+- **FISH-03 (Distance recovery)**: FAILS in 1D. g_bulk ~ 0.22*N^{-2.75} (|Lambda|=2), 7.72*N^{-3.87} (|Lambda|=3). Root cause: 1D Heisenberg is gapless, bulk becomes translation-invariant. (HIGH)
+- **SLD-Bures cross-validation**: SLD = 4*Bures to rel_err < 7e-6 in infinitesimal limit (HIGH)
+- **TFI benchmark**: Critical enhancement at h/J=1 reproduces Zanardi 2007 (HIGH)
+- **PBC sanity**: g = 0 to machine precision on PBC (HIGH)
+- **Boundary decay**: xi_corr matches Hastings-Koma xi_HK within 3% at N=20 (HIGH)
+- **Three FISH-03 rescue paths**: (1) rescaled metric g*N^alpha, (2) 2D lattice with Neel order, (3) gapped variant (AKLT) (MEDIUM)
+- **14 tests passing**, code in code/fisher_metric.py, data in data/fisher/fisher_swap_1d.json
 
 ### v8.0 Results (archived)
 
@@ -83,7 +96,9 @@ See MILESTONES.md for v8.0 details. Key results: observable algebra = M_16(R), t
 
 ## Open Questions
 
-- Does the Fisher information metric on SWAP ground state reduced states recover lattice distance at leading order?
+- **RESOLVED (NO):** Does the Fisher information metric on SWAP ground state reduced states recover lattice distance at leading order? -> g_bulk -> 0 as N -> inf in 1D.
+- Can d_Fisher/d_lattice be rescued by rescaling (g*N^alpha), 2D lattice (Neel order), or gapped variant (AKLT)?
+- Does the 2D Heisenberg AFM Fisher metric give non-vanishing g_bulk due to Neel long-range order?
 - Does the Heisenberg AFM (n=2) on d>=2 lattice have a rigorous spectral gap proof?
 - Does isotropy + LR finite speed + Fisher smoothness uniquely determine Lorentz invariance?
 - Does the effective theory from Fisher geometry satisfy Wightman axioms sufficient for BW?
@@ -108,6 +123,8 @@ See MILESTONES.md for v8.0 details. Key results: observable algebra = M_16(R), t
 Full log: `.gpd/DECISIONS.md`
 
 **Recent high-impact:**
+- [Phase 32, Plan 01]: FISH-02 passed (g>0 at all interior points). FISH-03 FAILS: d_Fisher/d_lattice -> 0 as N -> inf. g_bulk ~ N^{-2.75}. 1D Heisenberg bulk is translation-invariant.
+- [Phase 32, Plan 02]: Three FISH theorems proved. Smoothness from Hastings-Koma (corrected bound). PD from SLD structure. Distance recovery fails honestly. Three rescue paths identified.
 - [Phase 30, Plan 01]: Three impossibility theorems proved -- Schur commutant dim=1, J_u grade-3 separation, u in S^6 = Gap B2. 71 tests pass.
 - [Phase 30, Plan 02]: Gap C = algebraic impossibility (theorem) + selection-conditional (argued). L4 = weakest link.
 - [Phase 29, Plan 02]: REPR-02 verdict -- J_u is distinguished (isolated, grade 2+3) but NOT a 10th Clifford generator. Spin(10) extension fails. Gap C cannot close purely algebraically.
@@ -140,12 +157,13 @@ None yet.
 
 ### Blockers/Concerns
 
+- **FISH-03 failure in 1D**: g_bulk -> 0 as N -> inf. Distance recovery requires 2D (Neel order) or gapped system or rescaled metric. This impacts Phases 34 (emergent Lorentz) and 36 (assembly).
 - Fisher metric signature: Riemannian (positive-definite) not Lorentzian -- need causal structure from LR bounds separately
 - Exponential decay for general n: may not have rigorous proof; n=2 is the rigorous target
 - BW theorem requires Wightman axioms in the effective theory -- need to check these hold
 
 ## Session Continuity
 
-**Last session:** 2026-03-29
-**Stopped at:** v9.0 roadmap created; Phase 32 ready to plan
+**Last session:** 2026-03-30
+**Stopped at:** Phase 32 execution complete. FISH-01/02 pass, FISH-03 fails. Awaiting verification.
 **Resume file:** --
