@@ -540,6 +540,245 @@ def frame_stabilizer_analysis(eigenvalues, eigenvectors, T_matrices):
     }
 
 
+def lattice_integral(d, method='analytical'):
+    """Compute the lattice Green's function integral I_d.
+
+    I_d = (1/(2pi)^d) int_{[-pi,pi]^d} dk / E(k)
+    where E(k) = sum_{mu=1}^{d} (1 - cos k_mu).
+
+    NORMALIZATION: E(k) = sum_mu (1 - cos k_mu), NOT 2*sum.
+    With this normalization, I_3 = Watson integral W_3.
+
+    For d=3, the analytical value is (Watson 1939):
+    W_3 = sqrt(6)/(96 pi^3) * Gamma(1/24)*Gamma(5/24)*Gamma(7/24)*Gamma(11/24)
+        ~ 0.5054620197
+
+    Parameters:
+        d: spatial dimension (integer >= 1)
+        method: 'analytical' (exact for d=3), 'numerical' (nquad for any d)
+
+    Returns:
+        (value, error_estimate) tuple.
+        For analytical: error_estimate = 0.
+        For numerical: error_estimate from scipy.
+    """
+    from scipy.special import gamma as Gamma
+    import scipy.integrate as integrate
+
+    if d == 3 and method == 'analytical':
+        W_3 = (np.sqrt(6) / (96 * np.pi**3)
+               * Gamma(1/24) * Gamma(5/24)
+               * Gamma(7/24) * Gamma(11/24))
+        return W_3, 0.0
+
+    if d <= 2:
+        return float('inf'), 0.0
+
+    def integrand(*k_args):
+        E = sum(1 - np.cos(k) for k in k_args)
+        if E < 1e-15:
+            return 0.0
+        return 1.0 / E
+
+    ranges = [(-np.pi, np.pi)] * d
+    result, error = integrate.nquad(
+        integrand, ranges,
+        opts={'limit': 100, 'epsabs': 1e-8, 'epsrel': 1e-8}
+    )
+    I_d = result / (2 * np.pi)**d
+    err = error / (2 * np.pi)**d
+    return I_d, err
+
+
+def compute_s_eff(T_matrices):
+    """Compute the effective spin parameter S_eff for BCS analysis.
+
+    S_eff = max_{|psi|=1} |<T>| where <T>_a = <psi|T_a|psi>.
+    |<T>| = sqrt(sum_a <T_a>^2).
+
+    For Clifford generators {T_a, T_b} = (1/2)*delta*I:
+    - Each T_a has eigenvalues +/- 1/2
+    - If |psi> is an eigenvector of T_a with eigenvalue 1/2,
+      then <psi|T_b|psi> = 0 for b != a (Clifford anticommutation)
+    - Therefore S_eff = 1/2 (exactly)
+
+    Parameters:
+        T_matrices: list of 9 traceless 16x16 matrices with
+                    {T_a, T_b} = (1/2)*delta*I.
+
+    Returns:
+        dict with:
+          's_eff': float (= 1/2)
+          'max_spin_sq': float (= 1/4)
+          'analytical_proof': str
+          'numerical_verification': float (from optimization)
+    """
+    from scipy.optimize import minimize
+
+    # Analytical result
+    s_eff_analytical = 0.5
+
+    # Numerical verification via optimization
+    def neg_spin_sq(psi_flat):
+        psi = psi_flat / np.linalg.norm(psi_flat)
+        return -sum(np.dot(psi, T @ psi)**2 for T in T_matrices)
+
+    best_val = 0
+    np.random.seed(42)
+    for _ in range(50):
+        psi0 = np.random.randn(16)
+        psi0 /= np.linalg.norm(psi0)
+        res = minimize(neg_spin_sq, psi0, method='Nelder-Mead',
+                       options={'maxiter': 5000, 'xatol': 1e-12,
+                                'fatol': 1e-12})
+        val = -res.fun
+        if val > best_val:
+            best_val = val
+
+    # Verify with T_0 eigenvector (known maximum)
+    evals, evecs = np.linalg.eigh(T_matrices[0])
+    idx = np.argmax(evals)
+    psi_max = evecs[:, idx]
+    exact_val = sum(np.dot(psi_max, T @ psi_max)**2 for T in T_matrices)
+
+    proof = (
+        "For Cl(9,0) generators T_a with {T_a,T_b} = (1/2)*delta*I: "
+        "each T_a has eigenvalues +/- 1/2. If |psi> is eigenvector of "
+        "T_0 with eigenvalue +1/2, then T_a|psi> (a!=0) lies in the "
+        "-1/2 eigenspace of T_0 (by anticommutation), so <psi|T_a|psi>=0. "
+        "Therefore max sum_a <T_a>^2 = (1/2)^2 = 1/4, giving S_eff = 1/2."
+    )
+
+    return {
+        's_eff': s_eff_analytical,
+        'max_spin_sq': s_eff_analytical**2,
+        'analytical_proof': proof,
+        'numerical_verification': np.sqrt(best_val),
+        'eigenvector_verification': np.sqrt(exact_val),
+    }
+
+
+def bcs_condition(beta_c, s_eff):
+    """Check whether BCS quantum-classical reduction applies.
+
+    The BCS (Biskup-Chayes-Starr) framework requires S_eff >> 1
+    for quantum fluctuations to be perturbatively small compared
+    to the classical order parameter.
+
+    The standard condition is beta_c << sqrt(S_eff), which ensures
+    the classical critical temperature is reached before quantum
+    corrections become O(1).
+
+    Parameters:
+        beta_c: classical critical inverse temperature (beta_c * J)
+        s_eff: effective spin parameter
+
+    Returns:
+        dict with:
+          'satisfied': bool
+          'beta_c': float
+          's_eff': float
+          'sqrt_s_eff': float
+          'ratio': float (beta_c / sqrt(s_eff))
+          'assessment': str
+    """
+    sqrt_s = np.sqrt(s_eff)
+    ratio = beta_c / sqrt_s
+
+    if ratio < 0.1:
+        satisfied = True
+        assessment = 'BCS condition strongly satisfied (ratio << 1)'
+    elif ratio < 1.0:
+        satisfied = True
+        assessment = 'BCS condition marginally satisfied (ratio < 1)'
+    else:
+        satisfied = False
+        assessment = (
+            f'BCS condition NOT satisfied: beta_c/sqrt(S_eff) = {ratio:.2f} >> 1. '
+            f'Quantum fluctuations are O(1), not perturbatively small. '
+            f'Standard BCS reduction does not apply for S_eff = {s_eff}.'
+        )
+
+    return {
+        'satisfied': satisfied,
+        'beta_c': beta_c,
+        's_eff': s_eff,
+        'sqrt_s_eff': sqrt_s,
+        'ratio': ratio,
+        'assessment': assessment,
+    }
+
+
+def ssb_summary(d=3):
+    """Generate complete SSB analysis summary for dimension d.
+
+    Combines classical FSS proof, S_eff computation, BCS analysis,
+    and lattice integral verification.
+
+    Parameters:
+        d: spatial dimension (default 3).
+
+    Returns:
+        dict with full SSB analysis results.
+    """
+    T_matrices = get_traceless_generators()
+
+    # Lattice integral
+    I_d, I_d_err = lattice_integral(d)
+
+    # Critical temperature (classical)
+    N = 9  # number of spin components (S^8 in R^9)
+    beta_c_J = (N / 2.0) * I_d  # beta_c * J
+    T_c_over_J = 1.0 / beta_c_J if beta_c_J > 0 else float('inf')
+
+    # S_eff
+    s_eff_result = compute_s_eff(T_matrices)
+
+    # BCS check
+    bcs = bcs_condition(beta_c_J, s_eff_result['s_eff'])
+
+    # SSB pattern
+    pattern = {
+        'explicit': 'F_4 -> Spin(9) (by Peirce projection in H_eff)',
+        'spontaneous': 'Spin(9) -> Spin(8) (by ground state selection)',
+        'goldstone_manifold': 'S^8 = Spin(9)/Spin(8)',
+        'goldstone_dim': 8,
+        'broken_generators': 8,
+    }
+
+    # Classical SSB status
+    if d >= 3 and np.isfinite(I_d):
+        classical_ssb = 'PROVED (FSS infrared bounds)'
+    else:
+        classical_ssb = 'NOT POSSIBLE (Mermin-Wagner, d <= 2)'
+
+    # Quantum SSB status
+    if bcs['satisfied']:
+        quantum_ssb = 'PROVED (classical FSS + BCS reduction)'
+    else:
+        quantum_ssb = (
+            'CONDITIONAL: Classical SSB proved, but BCS quantum-classical '
+            'reduction fails (S_eff = 1/2 too small). Quantum SSB requires '
+            'either (a) direct quantum infrared bounds (blocked by Speer RP '
+            'failure for quantum ferromagnets), (b) quantum Monte Carlo '
+            'evidence, or (c) a modified BCS argument for small S_eff.'
+        )
+
+    return {
+        'd': d,
+        'I_d': I_d,
+        'I_d_err': I_d_err,
+        'beta_c_J': beta_c_J,
+        'T_c_over_J': T_c_over_J,
+        'N_components': N,
+        's_eff': s_eff_result,
+        'bcs': bcs,
+        'pattern': pattern,
+        'classical_ssb': classical_ssb,
+        'quantum_ssb': quantum_ssb,
+    }
+
+
 if __name__ == '__main__':
     import sys
     sys.path.insert(0, '/Users/ehrlich/scratch/get-physics-done/code')
@@ -565,3 +804,26 @@ if __name__ == '__main__':
     print()
     print("Algebraic argument:")
     print(fs['algebraic_argument'])
+
+    # Run SSB analysis
+    ssb = ssb_summary(d=3)
+    print()
+    print("=" * 60)
+    print("SSB ANALYSIS (d=3)")
+    print("=" * 60)
+    print(f"SSB pattern:")
+    print(f"  Explicit: {ssb['pattern']['explicit']}")
+    print(f"  Spontaneous: {ssb['pattern']['spontaneous']}")
+    print(f"  Goldstone manifold: {ssb['pattern']['goldstone_manifold']}")
+    print(f"  Broken generators: {ssb['pattern']['broken_generators']}")
+    print()
+    print(f"Lattice integral I_3 = {ssb['I_d']:.10f}")
+    print(f"beta_c * J = {ssb['beta_c_J']:.6f}")
+    print(f"T_c / J = {ssb['T_c_over_J']:.6f}")
+    print(f"S_eff = {ssb['s_eff']['s_eff']}")
+    print(f"S_eff (numerical) = {ssb['s_eff']['numerical_verification']:.10f}")
+    print()
+    print(f"BCS condition: {ssb['bcs']['assessment']}")
+    print()
+    print(f"Classical SSB: {ssb['classical_ssb']}")
+    print(f"Quantum SSB: {ssb['quantum_ssb']}")

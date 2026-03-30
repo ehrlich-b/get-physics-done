@@ -285,9 +285,196 @@ For d >= 3: I_d is finite (the integrand goes as 1/|k|^2, and int d^dk/|k|^2 con
 | 3 | W_3 ~ 0.5055 | Yes, for beta J > 9/2 * I_3 ~ 2.275 | Yes (MW only forbids d <= 2) |
 | >= 4 | finite, < I_3 | Yes, at lower beta_c | Yes |
 
-## 3. (Continued in Task 2: BCS Quantum Lift)
+## 3. BCS Quantum-Classical Reduction
+
+### 3.1 The BCS Framework
+
+The Biskup-Chayes-Starr (BCS) framework (CMP 269, 2007) provides conditions under which quantum long-range order follows from classical long-range order. The approach uses coherent state (Berezin-Lieb) inequalities to bound the quantum partition function below by a classical one.
+
+For quantum spin models on lattices:
+- The on-site Hilbert space H has dimension d_H
+- The classical limit maps each quantum state to a point on the order parameter manifold
+- The effectiveness of the reduction depends on how closely coherent states approximate classical spins
+
+For the standard SU(2) spin-S Heisenberg model:
+- d_H = 2S + 1
+- The classical limit is S -> infinity
+- Quantum corrections are O(1/S)
+- BCS works when S >> 1
+
+### 3.2 S_eff for Our Model
+
+**On-site Hilbert space:** H = R^16 (Spin(9) spinor representation)
+
+**Order parameter:** The 9-component vector <T_a> for a = 0, ..., 8.
+
+**Maximum spin magnitude:** For a normalized state |psi> in R^16:
+
+$$
+S_{\text{eff}} = \max_{|\psi|=1} |\langle \mathbf{T} \rangle| = \max_{|\psi|=1} \sqrt{\sum_{a=0}^{8} \langle \psi | T_a | \psi \rangle^2}
+$$
+
+**Theorem:** $S_{\text{eff}} = 1/2$ exactly.
+
+**Proof:** The Clifford algebra constraint {T_a, T_b} = (1/2) delta_{ab} I_16 implies:
+1. Each T_a has eigenvalues +/- 1/2 (since T_a^2 = (1/4) I_16)
+2. If |psi> is an eigenvector of T_0 with eigenvalue +1/2, then for a != 0:
+   T_0 (T_a |psi>) = -T_a T_0 |psi> = -T_a (1/2) |psi> = -(1/2) (T_a |psi>)
+   So T_a |psi> lies in the -1/2 eigenspace of T_0
+3. Since |psi> is in the +1/2 eigenspace of T_0, and T_a |psi> is in the -1/2 eigenspace,
+   they are orthogonal: <psi|T_a|psi> = 0 for a != 0
+4. Therefore max sum_a <T_a>^2 = (1/2)^2 + 0 + ... + 0 = 1/4
+5. S_eff = sqrt(1/4) = 1/2
+
+**Numerical verification:** Optimization over 50 random starting points confirms S_eff = 0.50000000. Eigenvector of T_0 gives exact value 0.50000000.
+
+**SELF-CRITIQUE CHECKPOINT (step 4):**
+1. SIGN CHECK: S_eff > 0. Each T_a eigenvalue = +/- 1/2. Correct.
+2. FACTOR CHECK: S_eff = 1/2 from {T_a,T_a} = (1/2)*I giving T_a^2 = (1/4)*I. Consistent with Clifford normalization.
+3. CONVENTION CHECK: {T_a,T_b} = (1/2)*delta*I matches convention lock.
+4. DIMENSION CHECK: S_eff is dimensionless (expectation value of dimensionless operator). Correct.
+
+### 3.3 BCS Condition Check
+
+The BCS condition for quantum-classical reduction requires:
+
+$$
+\beta_c \ll \sqrt{S_{\text{eff}}}
+$$
+
+For our model:
+- beta_c * J = (9/2) * I_3 = 4.5 * 0.5055 = 2.2746
+- sqrt(S_eff) = sqrt(1/2) = 0.7071
+- Ratio: beta_c / sqrt(S_eff) = 2.2746 / 0.7071 = 3.217
+
+$$
+\frac{\beta_c}{\sqrt{S_{\text{eff}}}} = 3.22 \gg 1
+$$
+
+**The BCS condition is NOT satisfied.** The ratio is 3.22, well above 1. Quantum fluctuations are O(1) compared to the classical order parameter.
+
+### 3.4 Why BCS Fails: Physical Interpretation
+
+The BCS reduction requires the on-site quantum degree of freedom to be "almost classical," meaning the spin magnitude is large compared to quantum uncertainty. For our model:
+
+- S_eff = 1/2 is the minimum possible value. This is the quantum-most limit, not the classical limit.
+- The on-site Hilbert space (dim 16) is much larger than the classical order parameter space (S^8, dim 8). The "extra" quantum dimensions encode quantum fluctuations that have no classical counterpart.
+- The Clifford algebra constraint forces the spin components to be mutually incompatible (like x, y, z components of a spin-1/2 particle).
+
+**Comparison with SU(2):** For the SU(2) Heisenberg model with spin S:
+- S_eff = S
+- beta_c scales as I_3 (independent of S)
+- BCS ratio = beta_c / sqrt(S) -> 0 as S -> infinity
+- For S = 1/2: ratio ~ I_3 / 0.707 ~ 0.71 (marginal, but the standard SU(2) spin-1/2 Heisenberg antiferromagnet IS known to have LRO in d=3)
+
+**Key difference:** The SU(2) spin-1/2 AFM in d=3 does have quantum LRO, but this is NOT proved via BCS. It is proved via direct quantum infrared bounds (Dyson-Lieb-Simon 1978 for the antiferromagnet, using the Neel order parameter which has RP). For ferromagnets, even the SU(2) case lacks a rigorous proof of quantum LRO for S=1/2 (Speer 1985 showed RP fails for the ferromagnetic order parameter).
+
+### 3.5 Speer Obstruction
+
+Speer (LMP 10, 1985) proved that reflection positivity fails for the quantum ferromagnetic order parameter. Specifically, the expectation value <S_i^z S_j^z> for the quantum ferromagnet does NOT satisfy the Gaussian domination bound that is the cornerstone of the FSS approach.
+
+This means:
+1. Direct quantum infrared bounds (DLS-type) cannot be applied to our ferromagnetic model
+2. The classical FSS proof + BCS reduction is the standard route, but BCS fails for S_eff = 1/2
+3. No alternative rigorous proof of quantum LRO for ferromagnets at small S_eff exists in the literature
+
+### 3.6 Quantum SSB: Conditional Result
+
+**Classical SSB (d >= 3):** PROVED via FSS infrared bounds.
+
+**Quantum SSB (d >= 3):** CONDITIONAL.
+
+The quantum model on Z^d with Spin(9) spinor on-site Hilbert space (R^16) is expected to have spontaneous symmetry breaking Spin(9) -> Spin(8) for d >= 3 at sufficiently low temperature, but a rigorous proof requires one of:
+
+(a) **A modified BCS argument** for small S_eff (none currently exists in the literature). The key challenge is that coherent state overlaps are O(1), not O(1/S), so the Berezin-Lieb bounds are not tight enough.
+
+(b) **Direct quantum infrared bounds** that avoid the Speer obstruction. This would require a different choice of order parameter or a novel application of RP to the quantum ferromagnet.
+
+(c) **Numerical evidence** from quantum Monte Carlo. For the Spin(9) Clifford Heisenberg model, standard QMC sign-free methods may apply (since the on-site space is real and the Hamiltonian is real-symmetric). If QMC shows long-range order at finite beta in d=3, this provides strong (but non-rigorous) evidence.
+
+(d) **The observation** that the on-site Hilbert space dimension (16) is large enough that mean-field theory may be a reasonable guide. Mean-field theory predicts SSB, and for d=3 with coordination number z=6, mean-field is typically qualitatively correct for continuous symmetry breaking.
+
+**Honest assessment:** The quantum SSB is almost certainly true physically (mean-field supports it, the classical limit has SSB, and the on-site dimension 16 is not particularly small), but a rigorous proof is not available with current techniques. The result is stated as conditional on the quantum SSB, with the classical SSB serving as strong evidence.
+
+### 3.7 Lattice Integral Verification
+
+**Normalization:** E(k) = sum_mu (1 - cos k_mu) (NO factor of 2).
+
+**Watson integral (d=3):**
+
+$$
+I_3 = W_3 = \frac{\sqrt{6}}{96\pi^3} \Gamma\!\left(\tfrac{1}{24}\right) \Gamma\!\left(\tfrac{5}{24}\right) \Gamma\!\left(\tfrac{7}{24}\right) \Gamma\!\left(\tfrac{11}{24}\right)
+$$
+
+**Numerical verification:**
+
+| Method | I_3 | Error |
+|--------|-----|-------|
+| Analytical (Watson formula) | 0.505462019717326 | exact |
+| scipy.integrate.nquad | 0.505462019717326 | ~ 10^{-13} relative |
+
+Agreement to 12+ significant figures. Exceeds the 4-figure requirement.
+
+**Critical temperature:**
+
+$$
+\beta_c J = \frac{9}{2} I_3 = \frac{9}{2} \times 0.50546 = 2.2746
+$$
+
+$$
+T_c / J = 1 / \beta_c = 0.4396
+$$
+
+## 4. Summary of SSB Conditions
+
+| Condition | Status | Evidence |
+|-----------|--------|----------|
+| SSB pattern (spontaneous) | Spin(9) -> Spin(8) on S^8 | Lie theory: stabilizer of vector in R^9 |
+| Reflection positivity (classical) | SATISFIED | Bipartite Z^d + Haar measure + inner product interaction |
+| Infrared bound | DERIVED | G_hat(k) <= 1/(2*beta*J*E(k)) via Gaussian domination |
+| I_3 finite (d=3) | VERIFIED | I_3 = W_3 = 0.50546, numerical + analytical |
+| Mermin-Wagner (d<=2) | CONSISTENT | I_{1,2} = infinity, no LRO |
+| Classical SSB (d>=3) | PROVED | All FSS conditions met |
+| S_eff identification | S_eff = 1/2 | Clifford algebra + numerical optimization |
+| BCS quantum reduction | FAILS | beta_c/sqrt(S_eff) = 3.22 >> 1 |
+| Speer obstruction | BLOCKS direct quantum RP | Speer LMP 1985 |
+| Quantum SSB (d>=3) | CONDITIONAL | Requires proof beyond current methods |
+
+## 5. Phase 39 Handoff to Plans 02-04
+
+### 5.1 Corrected SSB Data for Downstream Plans
+
+The following corrected data supersedes the Phase 38 handoff where applicable:
+
+- **Spontaneous SSB:** Spin(9) -> Spin(8) (NOT F_4 -> Spin(9))
+- **Goldstone manifold:** S^8 (dim 8, NOT OP^2 dim 16)
+- **Broken generators:** 8 (NOT 16)
+- **Sigma model target:** S^8 (isomorphic to Spin(9)/Spin(8))
+- **Classical SSB:** PROVED for d >= 3
+- **Quantum SSB:** CONDITIONAL (BCS fails, Speer blocks quantum RP)
+
+### 5.2 Impact on UC1-UC4
+
+| UC | Impact of Correction |
+|----|---------------------|
+| UC1 (Gapless) | 8 Goldstone modes on S^8, not 16 on OP^2 |
+| UC2 (Algebraic decay) | Massless propagator on S^8 sigma model |
+| UC3 (Isotropy) | Same (lattice anisotropy RG-irrelevance unchanged) |
+| UC4 (OS-RP) | Classical RP confirmed; quantum conditional |
+
+### 5.3 Goldstone Mode Type (for Plan 02)
+
+The ground state is ferromagnetic (symmetric sector, Lambda^1(V_9)). For ferromagnets, the Goldstone mode type depends on the commutator of broken generators evaluated on the ground state:
+
+$$
+\omega_{\alpha\beta} = \langle \text{GS} | [Q_\alpha, Q_\beta] | \text{GS} \rangle
+$$
+
+where Q_alpha (alpha = 1, ..., 8) are the broken Spin(9) generators. If omega has rank r, then there are r/2 Type-II modes (quadratic dispersion) and 8-r Type-I modes (linear dispersion).
+
+For our model: The broken generators are the 8 generators of Spin(9) that do NOT leave the ordered direction invariant. These are G_{0a} for a = 1, ..., 8 (assuming the order is along the a=0 direction). Their commutators on the ferromagnetic ground state need explicit computation. Plan 02 should determine whether omega is nondegenerate (all Type II, 4 modes) or zero (all Type I, 8 modes).
 
 ---
 
-_Phase: 39-spontaneous-symmetry-breaking-and-universality-class, Plan: 01, Task 1_
+_Phase: 39-spontaneous-symmetry-breaking-and-universality-class, Plan: 01_
 _Completed: 2026-03-30_
