@@ -159,7 +159,7 @@ $$
 At the first lattice site ($x_\perp = 1$):
 
 $$
-\beta_{\text{eff}}(1) = \frac{2\pi}{c_s} = \frac{2\pi}{1.659 \, J} = \frac{3.786}{J}
+\beta_{\text{eff}}(1) = \frac{2\pi}{c_s} = \frac{2\pi}{1.659 \, J} = \frac{3.787}{J}
 $$
 
 This is the lattice analog of the Unruh temperature varying with distance from the horizon: sites closer to the entanglement cut ($x_\perp \to 0$) experience higher effective temperature ($\beta \to 0$, $T \to \infty$), while sites far from the cut ($x_\perp \to \infty$) experience low effective temperature ($T \to 0$). This spatial variation of the effective temperature is a hallmark of the Unruh effect.
