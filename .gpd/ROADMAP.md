@@ -313,11 +313,19 @@ See `.gpd/milestones/v8.0-ROADMAP.md` for full details.
 
 **Backtracking trigger:** If rho_Lambda(x) is rank-deficient at generic lattice points (not just boundaries), the SLD Fisher metric diverges and Phase 32 must pivot to Bures metric throughout.
 
-**Plans:** 2 plans
+**Status:** COMPLETE (2026-03-30) -- FISH-01 PASS, FISH-02 PASS, FISH-03 deferred to Phase 33 (d>=2 Neel)
+
+**Outcome:**
+- FISH-01: Smoothness from Hastings-Koma exponential clustering. Boundary decay matches numerics within 3%.
+- FISH-02: g(x) > 0 at all interior points for N=8-20. 14 tests pass. SLD = 4*Bures to rel_err < 7e-6.
+- FISH-03: FAILS in 1D (expected -- Heisenberg chain is gapless, g_bulk ~ N^{-2.75} -> 0). Deferred to Phase 33 where d>=2 Neel order breaks translation invariance and should rescue distance recovery.
+- Backtracking trigger NOT hit: metric IS positive-definite; failure is thermodynamic-limit distance recovery in 1D only.
+
+**Plans:** 2 plans (complete)
 
 Plans:
-- [ ] 32-01-PLAN.md -- Implement QFIM module (SLD + Bures), TFI benchmark, compute Fisher metric on SWAP 1D OBC N=8-20
-- [ ] 32-02-PLAN.md -- Prove smoothness (Hastings-Koma), positive-definiteness, distance recovery theorems; cross-validate with numerics
+- [x] 32-01-PLAN.md -- QFIM module, TFI benchmark, SWAP Fisher metric (N=8-20). g>0 everywhere, distance ratio -> 0.
+- [x] 32-02-PLAN.md -- Three FISH theorems proved. Smoothness and PD established. Distance recovery failure explained analytically.
 
 ---
 

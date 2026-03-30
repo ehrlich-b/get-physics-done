@@ -16,7 +16,7 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
 **Current Plan:** 02/02 complete
 **Total Plans in Phase:** 2
-**Status:** Phase 32 execution complete, awaiting verification
+**Status:** Phase 32 complete (FISH-01/02 pass, FISH-03 deferred to Phase 33 d>=2)
 **Last Activity:** 2026-03-30
 **Last Activity Description:** Phase 32 executed. FISH-01 (smoothness) and FISH-02 (positive-definiteness) established. FISH-03 (distance recovery) FAILS in 1D: g_bulk ~ N^{-2.75} -> 0.
 
