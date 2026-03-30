@@ -2,11 +2,22 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 addresses the continuum limit: finite-dimensional C*-observer (Paper 5) as natural UV cutoff, Fisher information geometry on reduced states, emergent Lorentz invariance via von Ignatowsky, closing all four Paper 6 gaps via one mechanism. The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
+
+## Current Milestone: v10.0 Universality Class of Self-Modeler Network and Full Gap Closure
+
+**Goal:** Prove the self-modeler network in h_3(O) is in the right universality class, then close all four v9.0 gaps unconditionally.
+
+**Target results:**
+
+- Gap dependency theorem: (UC1)-(UC4) -> all four Paper 6 gaps close
+- Effective Hamiltonian H_eff computed from Peirce multiplication of h_3(O)
+- Spontaneous F_4 symmetry breaking proved via DLS/infrared bounds framework
+- Complete chain from self-modeling axiom to Einstein equations on the real algebra (not toy model)
 
 ## v9.0 Summary (complete 2026-03-30)
 
@@ -151,7 +162,10 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-(No active questions -- milestone planning will define next questions)
+- [ ] Is the self-modeler network in h_3(O) in the right universality class (gapless, algebraic decay, isotropic, reflection positive)?
+- [ ] Do all four Paper 6 gaps close once the universality class is established?
+- [ ] What is the effective Hamiltonian H_eff for self-modelers interacting via the Jordan product of h_3(O)?
+- [ ] Does H_eff exhibit spontaneous F_4 breaking via DLS/infrared bounds?
 
 ### Answered in v9.0
 
@@ -347,4 +361,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-03-29 after v9.0 milestone initialization_
+_Last updated: 2026-03-30 after v10.0 milestone initialization_
