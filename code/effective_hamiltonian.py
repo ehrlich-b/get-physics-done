@@ -779,6 +779,185 @@ def ssb_summary(d=3):
     }
 
 
+def broken_generators_spin9_to_spin8(T_matrices, ordered_direction=8):
+    """Construct the 8 broken generators for Spin(9) -> Spin(8) SSB.
+
+    The SSB pattern is Spin(9) -> Spin(8) where the ordered state selects
+    direction `ordered_direction` in S^8.  The broken generators are
+    Q_a = [T_a, T_d] for a != d, where d = ordered_direction.
+
+    Using {T_a, T_d} = 0 (for a != d):
+        [T_a, T_d] = T_a T_d - T_d T_a = 2 T_a T_d
+
+    Parameters:
+        T_matrices: list of 9 traceless 16x16 real symmetric matrices
+                    with {T_a, T_b} = (1/2)*delta_{ab}*I.
+        ordered_direction: index of the ordered direction (default 8).
+
+    Returns:
+        list of 8 tuples (a, Q_a) where Q_a = [T_a, T_d] is 16x16 real
+        antisymmetric.
+    """
+    d = ordered_direction
+    T_d = T_matrices[d]
+    broken = []
+    for a in range(9):
+        if a == d:
+            continue
+        Q_a = T_matrices[a] @ T_d - T_d @ T_matrices[a]
+        broken.append((a, Q_a))
+    return broken
+
+
+def rho_ab_matrix(T_matrices, ground_state=None, ordered_direction=8):
+    """Compute the Watanabe-Murayama order parameter matrix rho_ab.
+
+    rho_ab = <GS| [Q_a, Q_b] |GS>
+
+    where Q_a are the 8 broken generators of Spin(9)/Spin(8).
+
+    KEY RESULT: [Q_a, Q_b] = -[T_a, T_b] (proved analytically).
+    Since [T_a, T_b] is real antisymmetric and |GS> is a real vector,
+    <GS|[T_a,T_b]|GS> = 0 identically.  Therefore rho_ab = 0.
+
+    Parameters:
+        T_matrices: list of 9 traceless 16x16 real symmetric matrices.
+        ground_state: 16-component real vector in T_d = +1/2 eigenspace.
+                      If None, uses the first eigenvector of T_d with
+                      eigenvalue +1/2.
+        ordered_direction: index of the ordered direction (default 8).
+
+    Returns:
+        dict with:
+          'rho': 8x8 numpy array (the rho_ab matrix)
+          'rank': int
+          'eigenvalues': sorted eigenvalues of i*rho (real for antisymmetric)
+          'broken_generators': list of (index, matrix) tuples
+          'ground_state': the |GS> vector used
+          'commutator_of_broken': list of [Q_a, Q_b] matrices
+          'analytical_argument': str
+    """
+    d = ordered_direction
+    T_d = T_matrices[d]
+
+    # Get ground state: eigenvector of T_d with eigenvalue +1/2
+    if ground_state is None:
+        evals, evecs = np.linalg.eigh(T_d)
+        # T_d^2 = (1/4)I so eigenvalues are +/- 1/2
+        plus_idx = np.where(np.abs(evals - 0.5) < 1e-10)[0]
+        if len(plus_idx) == 0:
+            raise ValueError("No +1/2 eigenvalue found for T_d")
+        ground_state = evecs[:, plus_idx[0]]
+
+    # Verify ground state is in +1/2 eigenspace
+    T_d_psi = T_d @ ground_state
+    if not np.allclose(T_d_psi, 0.5 * ground_state, atol=1e-12):
+        raise ValueError("Ground state not in T_d = +1/2 eigenspace")
+
+    # Construct broken generators
+    broken = broken_generators_spin9_to_spin8(T_matrices, d)
+
+    # Compute rho_ab = <psi|[Q_a, Q_b]|psi>
+    n_broken = len(broken)
+    rho = np.zeros((n_broken, n_broken))
+    comm_matrices = {}
+
+    for i, (a, Q_a) in enumerate(broken):
+        for j, (b, Q_b) in enumerate(broken):
+            comm = Q_a @ Q_b - Q_b @ Q_a
+            comm_matrices[(i, j)] = comm
+            rho[i, j] = ground_state @ comm @ ground_state
+
+    # Compute rank via eigenvalues of rho
+    # rho is real antisymmetric, so its eigenvalues are purely imaginary
+    # (come in +/- i*lambda pairs).  rank = number of nonzero pairs.
+    eig_vals = np.linalg.eigvals(rho)
+    imag_parts = np.sort(np.abs(eig_vals.imag))[::-1]
+    rank = np.sum(imag_parts > 1e-10)
+
+    analytical_argument = (
+        "rho_ab = <GS|[Q_a,Q_b]|GS> where Q_a = [T_a,T_8] = 2*T_a*T_8. "
+        "Expanding: [Q_a,Q_b] = 4*(T_a*T_8*T_b*T_8 - T_b*T_8*T_a*T_8). "
+        "Using T_8*T_b = -T_b*T_8 (anticommutation, b!=8): "
+        "T_a*T_8*T_b*T_8 = -T_a*T_b*T_8^2 = -(1/4)*T_a*T_b. "
+        "Similarly T_b*T_8*T_a*T_8 = -(1/4)*T_b*T_a. "
+        "So [Q_a,Q_b] = 4*(-(1/4)*T_a*T_b + (1/4)*T_b*T_a) = -[T_a,T_b]. "
+        "[T_a,T_b] is REAL ANTISYMMETRIC (since T_a,T_b are real symmetric). "
+        "For any real vector v and real antisymmetric matrix A: v^T*A*v = 0 "
+        "(since v^T*A*v = (v^T*A*v)^T = v^T*A^T*v = -v^T*A*v). "
+        "The ground state |GS> is a real vector (T_8 eigenvector in R^16). "
+        "Therefore rho_ab = -<GS|[T_a,T_b]|GS> = 0 for ALL a,b. "
+        "rank(rho) = 0."
+    )
+
+    return {
+        'rho': rho,
+        'rank': rank,
+        'eigenvalues': imag_parts,
+        'broken_generators': broken,
+        'ground_state': ground_state,
+        'analytical_argument': analytical_argument,
+    }
+
+
+def goldstone_type(rho_result):
+    """Determine Goldstone mode type from rho_ab matrix.
+
+    Watanabe-Murayama counting:
+        n_BG = 8 (broken generators from Spin(9)/Spin(8))
+        n_B = (1/2) * rank(rho_ab)
+        n_A = n_BG - 2 * n_B
+
+    Type-A: linear dispersion omega ~ c_s |k|  (relativistic)
+    Type-B: quadratic dispersion omega ~ D k^2  (non-relativistic)
+
+    Parameters:
+        rho_result: dict from rho_ab_matrix()
+
+    Returns:
+        dict with Goldstone mode classification.
+    """
+    n_BG = 8
+    rank = rho_result['rank']
+    n_B = rank // 2
+    n_A = n_BG - 2 * n_B
+
+    if n_B == 0:
+        dispersion = 'omega_a(k) = c_s |k| + O(k^2) for all 8 modes'
+        lorentz_impact = (
+            'ALL 8 Goldstone modes are Type-A (linear dispersion). '
+            'The low-energy sigma model has relativistic dispersion '
+            'omega = c_s |k|, consistent with emergent Lorentz invariance. '
+            'The speed c_s sets the emergent speed of light.'
+        )
+    elif n_B == 4:
+        dispersion = 'omega_b(k) = D k^2 + O(k^3) for all 4 Type-B modes'
+        lorentz_impact = (
+            'ALL modes are Type-B (quadratic dispersion). '
+            'The sigma model has Galilean, not Lorentzian, dynamics. '
+            'Emergent Lorentz invariance FAILS.'
+        )
+    else:
+        dispersion = (
+            f'{n_A} Type-A modes: omega ~ c_s |k|; '
+            f'{n_B} Type-B modes: omega ~ D k^2'
+        )
+        lorentz_impact = (
+            f'Mixed spectrum: {n_A} relativistic + {n_B} non-relativistic. '
+            f'Partial Lorentz invariance in the Type-A sector only.'
+        )
+
+    return {
+        'n_BG': n_BG,
+        'n_A': n_A,
+        'n_B': n_B,
+        'rank_rho': rank,
+        'wm_sum_rule': f'n_A + 2*n_B = {n_A} + {2*n_B} = {n_A + 2*n_B} = {n_BG}',
+        'dispersion': dispersion,
+        'lorentz_impact': lorentz_impact,
+    }
+
+
 if __name__ == '__main__':
     import sys
     sys.path.insert(0, '/Users/ehrlich/scratch/get-physics-done/code')
