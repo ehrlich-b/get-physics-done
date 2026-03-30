@@ -9,22 +9,33 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 
 ## Current Position
 
-**Current Phase:** 35
-**Current Phase Name:** BW Theorem and Local Equilibrium
+**Current Phase:** 36
+**Current Phase Name:** Assembly and Gap Scoring
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
 **Current Plan:** 02/02 complete
 **Total Plans in Phase:** 2
-**Status:** Phase 35 execution complete. All 2 plans passed. Awaiting verification.
+**Status:** Phase 36 execution complete. All 2 plans passed. Awaiting verification.
 **Last Activity:** 2026-03-30
-**Last Activity Description:** Phase 35 complete. BWEQ-01: BW prerequisites + lattice-BW Eq. (35.1). BWEQ-02: KMS from BW (beta=2pi), T_U=a/(2pi), theta=sigma=0 at bifurcation. Jacobson inputs J1-J3 packaged for Phase 36.
+**Last Activity Description:** Phase 36 complete. ASBL-01: Six-link chain assembled with equation-level citations, J1-J8 mapped. ASBL-02: Four gaps scored individually (A: NARROWED d>=3, B: CLOSED d=1 Route A only, C: CONDITIONAL, D: CONDITIONAL). v9.0 verdict: conditionally complete for d>=3.
 
 
 ## Active Calculations
 
-- BWEQ-01: BW prerequisites + lattice-BW -- COMPLETE (W1-W4 satisfied, lattice-BW Eq. (35.1), SRF=0.9993)
-- BWEQ-02: KMS + local equilibrium -- COMPLETE (beta=2pi from BW, T_U=a/(2pi), theta=sigma=0, Jacobson J1-J3)
+- ASBL-01: Chain assembly -- COMPLETE (six links (a)-(f), J1-J8 mapped, dimension table, assumption register)
+- ASBL-02: Gap scoring -- COMPLETE (A: NARROWED d>=3/CONDITIONAL d=2/OPEN d=1; B: CLOSED d=1 Route A/OPEN d>=2; C: CONDITIONAL; D: CONDITIONAL)
 
 ## Intermediate Results
+
+### Phase 36 Results (v9.0)
+
+- **ASBL-01 (Chain assembly)**: Six-link chain (a)-(f) from finite-dim observer to Einstein equations. Every link cites Phase 32-35 equations. No re-derivation. Rigor taxonomy applied: RIGOROUS/CONDITIONAL/PHYSICAL ARGUMENT/ASSUMED. (HIGH)
+- **ASBL-01 (J1-J8 mapping)**: All 8 Jacobson 2016 inputs mapped to chain sources with status. J1-J3 from Phase 35, J4 from Phases 32-34, J5 from Paper 6, J6-J7 standard, J8 Route B only. (HIGH)
+- **ASBL-01 (Dimension table)**: Chain status dimension-dependent: d=1 FAILS (FISH-03 + trivial Einstein), d=2 CONDITIONAL (log corrections, Neel QMC only), d>=3 CONDITIONAL (strongest case). (HIGH)
+- **ASBL-02 (Gap A)**: Continuum Limit -- NARROWED (d>=3), CONDITIONAL (d=2), OPEN (d=1). Key: CORR-03 conditional theorem narrowed from vague gap to 4 explicit hypotheses. (HIGH)
+- **ASBL-02 (Gap B)**: Conformal Approx -- CLOSED (d=1 Route A, exact CFT), OPEN (d>=2 Route A), N/A (Route B via Lovelock). Routes A/B complementary. (HIGH)
+- **ASBL-02 (Gap C)**: Tensoriality -- CONDITIONAL (Route B only, physically motivated). (MEDIUM-HIGH)
+- **ASBL-02 (Gap D)**: MVEH -- CONDITIONAL (structural identification via Connes-Rovelli, Sorce 2024 caveat). (MEDIUM-HIGH)
+- **ASBL-02 (Overall verdict)**: v9.0 chain ASSEMBLED and CONDITIONALLY COMPLETE for d>=3. No prior work has comparable chain from finite-dim starting point. (HIGH)
 
 ### Phase 35 Results (v9.0)
 
@@ -86,11 +97,15 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 | 34-02 | ~3min | 2 tasks | 1 files |
 | 35-01 | ~3min | 2 tasks | 1 files |
 | 35-02 | ~6min | 2 tasks | 1 files |
+| 36-01 | ~7min | 2 tasks | 2 files |
+| 36-02 | ~4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 36, Plan 02]: Gap A NARROWED for d>=3 (CORR-03 conditional theorem H1-H4). Gap B CLOSED only for d=1 Route A (exact CFT). Gaps C,D CONDITIONAL. MVEH = structural identification (never 'derived'). FISH-03 d=1 failure honestly stated. Sorce 2024 caveat cited. Overall: conditionally complete, not proved.
+- [Phase 36, Plan 01]: Chain assembled with six links (a)-(f), every result cited by equation number. Rigor taxonomy: RIGOROUS/CONDITIONAL/PHYSICAL ARGUMENT/ASSUMED. Route A and Route B complementary. Chain status dimension-dependent: d>=3 CONDITIONAL, d=2 CONDITIONAL with caveats, d=1 FAILS.
 - [Phase 35, Plan 02]: KMS derived (not assumed) from BW + Tomita-Takesaki. theta=sigma=0 exact from Killing equation. T_U=a/(2pi) with 2pi traced end-to-end. Jacobson inputs J1-J3 ready for Phase 36.
 - [Phase 35, Plan 01]: BWEQ-01: Lattice-BW route (Giudici et al.) as primary. W6 open (constructive QFT gap). Type I/III gap honestly stated.
 - [Phase 34, Plan 02]: c_eff = c_s = 1.659 Ja (four arguments: dispersion, EFT, universality, Hamma). Metric assembly ds^2 = -c_s^2 dt^2 + g_ij dx^i dx^j schematic. v_LR/c_s = 7.63 is 1D-specific.

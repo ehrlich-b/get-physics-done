@@ -451,8 +451,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 36-01-PLAN.md -- Assemble six-link derivation chain with equation-level citations (ASBL-01)
-- [ ] 36-02-PLAN.md -- Score four Paper 6 gaps individually with evidence (ASBL-02)
+- [x] 36-01-PLAN.md -- Assemble six-link derivation chain with equation-level citations (ASBL-01) (completed 2026-03-30)
+- [x] 36-02-PLAN.md -- Score four Paper 6 gaps individually with evidence (ASBL-02) (completed 2026-03-30)
 
 **Backtracking trigger:** If assembly reveals that a prior phase result was weaker than assumed (e.g., Phase 33 smoothness was conditional but Phase 34 treated it as proved), return to the offending phase for clarification.
 
