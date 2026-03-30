@@ -219,6 +219,7 @@ def test_result_upsert_adds_new_result_when_no_match_exists():
 
     assert isinstance(result, ResultUpsertResult)
     assert result.action == "added"
+    assert result.matched_by is None
     assert result.result.equation == "E = mc^2"
     assert len(state["intermediate_results"]) == 1
 
@@ -236,6 +237,7 @@ def test_result_upsert_updates_existing_result_by_explicit_id():
     )
 
     assert result.action == "updated"
+    assert result.matched_by == "id"
     assert set(result.updated_fields) == {"equation", "description", "validity"}
     assert result.result.description == "Updated description"
     assert result.result.validity == "rest frame"
@@ -255,6 +257,7 @@ def test_result_upsert_reuses_unique_equation_match_when_preferred_id_is_new():
     )
 
     assert result.action == "updated"
+    assert result.matched_by == "equation"
     assert result.result.id == "R-01"
     assert result.result.description == "Canonical description"
     assert len(state["intermediate_results"]) == 1
@@ -297,6 +300,33 @@ def test_result_upsert_phase_filter_disambiguates_equation_match():
     assert result.result.id == "R-02"
     assert result.result.description == "updated two"
     assert len(state["intermediate_results"]) == 2
+
+
+def test_result_upsert_updates_existing_result_by_description_match():
+    state: dict = {}
+    result_add(state, result_id="R-01", description="critical coupling", phase="1")
+
+    result = result_upsert(
+        state,
+        description="Critical coupling",
+        validity="g << 1",
+        phase="1",
+    )
+
+    assert result.action == "updated"
+    assert result.matched_by == "description"
+    assert result.result.id == "R-01"
+    assert result.result.validity == "g << 1"
+    assert len(state["intermediate_results"]) == 1
+
+
+def test_result_upsert_raises_for_ambiguous_description_match():
+    state: dict = {}
+    result_add(state, result_id="R-01", description="critical coupling", phase="1")
+    result_add(state, result_id="R-02", description="Critical coupling", phase="2")
+
+    with pytest.raises(ResultError, match="Multiple existing results match this description"):
+        result_upsert(state, description="critical coupling")
 
 
 def test_result_search_normalizes_phase_filters():

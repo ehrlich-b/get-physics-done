@@ -83,6 +83,7 @@ class ResultUpsertResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     action: str
+    matched_by: str | None = None
     result: IntermediateResult
     updated_fields: list[str] = Field(default_factory=list)
 
@@ -235,6 +236,38 @@ def _normalized_identifier_matches(identifier: str, value: object) -> bool:
 def _normalize_equation_for_match(value: str | None) -> str:
     """Return an equation token normalized only for whitespace-insensitive equality."""
     return re.sub(r"\s+", "", str(value or ""))
+
+
+def _collect_upsert_updates(
+    *,
+    equation: str | None,
+    description: str | None,
+    units: str | None,
+    validity: str | None,
+    phase: str | None,
+    depends_on: list[str] | str | None,
+    verified: bool | None,
+    verification_records: list[VerificationEvidence | dict[str, object]] | None,
+) -> dict[str, object]:
+    """Collect only the fields explicitly supplied for an upsert update."""
+    updates: dict[str, object] = {}
+    if equation is not None:
+        updates["equation"] = equation
+    if description is not None:
+        updates["description"] = description
+    if units is not None:
+        updates["units"] = units
+    if validity is not None:
+        updates["validity"] = validity
+    if phase is not None:
+        updates["phase"] = phase
+    if depends_on is not None:
+        updates["depends_on"] = depends_on
+    if verified is not None:
+        updates["verified"] = verified
+    if verification_records is not None:
+        updates["verification_records"] = verification_records
+    return updates
 
 
 # --- Functions ---
@@ -425,29 +458,23 @@ def result_upsert(
     Matching precedence:
     1. Explicit ``result_id`` if it already exists.
     2. Exact equation match after whitespace normalization, optionally narrowed by phase.
-    3. Otherwise add a new result.
+    3. Exact normalized description match, optionally narrowed by phase.
+    4. Otherwise add a new result.
     """
     results = state.get("intermediate_results", [])
     if result_id is not None and _find_result_index(results, result_id) != -1:
-        updates: dict[str, object] = {}
-        if equation is not None:
-            updates["equation"] = equation
-        if description is not None:
-            updates["description"] = description
-        if units is not None:
-            updates["units"] = units
-        if validity is not None:
-            updates["validity"] = validity
-        if phase is not None:
-            updates["phase"] = phase
-        if depends_on is not None:
-            updates["depends_on"] = depends_on
-        if verified is not None:
-            updates["verified"] = verified
-        if verification_records is not None:
-            updates["verification_records"] = verification_records
+        updates = _collect_upsert_updates(
+            equation=equation,
+            description=description,
+            units=units,
+            validity=validity,
+            phase=phase,
+            depends_on=depends_on,
+            verified=verified,
+            verification_records=verification_records,
+        )
         updated_fields, updated = result_update(state, result_id, updates)
-        return ResultUpsertResult(action="updated", result=updated, updated_fields=updated_fields)
+        return ResultUpsertResult(action="updated", matched_by="id", result=updated, updated_fields=updated_fields)
 
     normalized_equation = _normalize_equation_for_match(equation)
     if normalized_equation:
@@ -462,23 +489,54 @@ def result_upsert(
             )
         if len(equation_matches) == 1:
             matched = equation_matches[0]
-            updates: dict[str, object] = {"equation": equation}
-            if description is not None:
-                updates["description"] = description
-            if units is not None:
-                updates["units"] = units
-            if validity is not None:
-                updates["validity"] = validity
-            if phase is not None:
-                updates["phase"] = phase
-            if depends_on is not None:
-                updates["depends_on"] = depends_on
-            if verified is not None:
-                updates["verified"] = verified
-            if verification_records is not None:
-                updates["verification_records"] = verification_records
+            updates = _collect_upsert_updates(
+                equation=equation,
+                description=description,
+                units=units,
+                validity=validity,
+                phase=phase,
+                depends_on=depends_on,
+                verified=verified,
+                verification_records=verification_records,
+            )
             updated_fields, updated = result_update(state, matched.id, updates)
-            return ResultUpsertResult(action="updated", result=updated, updated_fields=updated_fields)
+            return ResultUpsertResult(
+                action="updated",
+                matched_by="equation",
+                result=updated,
+                updated_fields=updated_fields,
+            )
+
+    normalized_description = _normalize_identifier(description)
+    if normalized_description:
+        description_matches = [
+            result
+            for result in result_list(state, phase=phase)
+            if _normalize_identifier(result.description) == normalized_description
+        ]
+        if len(description_matches) > 1:
+            raise ResultError(
+                "Multiple existing results match this description. Provide an explicit result_id or phase to disambiguate."
+            )
+        if len(description_matches) == 1:
+            matched = description_matches[0]
+            updates = _collect_upsert_updates(
+                equation=equation,
+                description=description,
+                units=units,
+                validity=validity,
+                phase=phase,
+                depends_on=depends_on,
+                verified=verified,
+                verification_records=verification_records,
+            )
+            updated_fields, updated = result_update(state, matched.id, updates)
+            return ResultUpsertResult(
+                action="updated",
+                matched_by="description",
+                result=updated,
+                updated_fields=updated_fields,
+            )
 
     added = result_add(
         state,
