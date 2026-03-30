@@ -131,7 +131,7 @@ See `.gpd/milestones/v9.0-ROADMAP.md` for full details.
 
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
-| Gap dependency theorem: (UC1)-(UC4) -> four gaps close | Phase 37 | Planned |
+| Gap dependency theorem: (UC1)-(UC4) -> four gaps close | Phase 37 | Complete |
 | Explicit H_eff matrix elements from T_b operators | Phase 38 | Planned |
 | Lattice geometry + bipartiteness determination | Phase 38 | Planned |
 | F_4 frame stabilizer identification | Phase 38 | Planned |
@@ -171,8 +171,8 @@ See `.gpd/milestones/v9.0-ROADMAP.md` for full details.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 37-01-PLAN.md -- Gap C and Gap D closure chains (BW -> Lovelock, BW -> Gibbs -> MVEH)
-- [ ] 37-02-PLAN.md -- Formal theorem statement, dependency matrix, upgrade assessment
+- [x] 37-01-PLAN.md -- Gap C and Gap D closure chains (BW -> Lovelock, BW -> Gibbs -> MVEH)
+- [x] 37-02-PLAN.md -- Formal theorem statement, dependency matrix, upgrade assessment
 
 ---
 
@@ -293,7 +293,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 37. Gap Dependency Theorem | v10.0 | 0/2 | Planned | - |
+| 37. Gap Dependency Theorem | v10.0 | 2/2 | Complete | 2026-03-30 |
 | 38. Effective Hamiltonian | v10.0 | 0/TBD | Not started | - |
 | 39. SSB + Universality Class | v10.0 | 0/TBD | Not started | - |
 | 40. Assembly | v10.0 | 0/TBD | Not started | - |

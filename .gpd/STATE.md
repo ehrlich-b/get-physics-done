@@ -11,22 +11,28 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 
 ## Current Position
 
-**Current Phase:** 37
-**Current Phase Name:** Gap Dependency Theorem
+**Current Phase:** 38
+**Current Phase Name:** Effective Hamiltonian from Peirce Multiplication
 **Total Phases:** 40 (36 prior + 4 new in v10.0)
 **Current Plan:** 0/0
 **Total Plans in Phase:** 0
 **Status:** Ready to plan
 **Last Activity:** 2026-03-30
-**Last Activity Description:** Roadmap created for v10.0 (Phases 37-40)
+**Last Activity Description:** Phase 37 complete: gap dependency theorem established (verified, consistent)
 
-**Progress:** [##############################..........] 90% (36/40 phases complete)
+**Progress:** [###############################.........] 92.5% (37/40 phases complete)
 
 ## Active Calculations
 
-(None yet -- Phase 37 planning will define first calculations)
+(None -- Phase 38 planning will define first calculations)
 
 ## Intermediate Results
+
+### v10.0 Phase 37 Results
+
+- **Gap C chain (37-01)**: Tensoriality DERIVED in 5 steps (BW -> K_B local -> first law -> Raychaudhuri -> Lovelock -> Einstein in d+1=4). Assumptions: UC5, UC6, UC8, UC9, UC10 + Gap A cross-dependency. (HIGH)
+- **Gap D chain (37-01)**: MVEH mathematical content DERIVED in 5 steps (BW -> TT KMS -> Gibbs/relative entropy -> entanglement equilibrium -> MVEH). Two-tier Sorce analysis: conformal strong / non-conformal algebraic (SRF=0.9993). Assumptions: UC5, CS, TL. (HIGH)
+- **Gap Dependency Theorem (37-02)**: Formal theorem with 15 independent assumptions, 18x6 dependency matrix (108 entries). Gap C: CONDITIONAL -> CONDITIONAL-DERIVED. Gap D: CONDITIONAL -> CONDITIONAL-THEOREM. Gaps A,B unchanged. Phase 39 handoff: verify UC1-UC4 for H_eff. (HIGH)
 
 ### v9.0 Results (carry-forward for v10.0)
 
@@ -73,11 +79,15 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 | 35-02 | ~6min | 2 | 1 |
 | 36-01 | ~7min | 2 | 2 |
 | 36-02 | ~4min | 2 | 1 |
+| 37-01 | ~5min | 2 | 2 |
+| 37-02 | ~5min | 2 | 1 |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 37, Plan 02]: Gap C upgraded CONDITIONAL -> CONDITIONAL-DERIVED. Gap D upgraded CONDITIONAL -> CONDITIONAL-THEOREM. Dependency matrix 18x6 with no circular dependencies. Phase 39 handoff: UC1-UC4.
+- [Phase 37, Plan 01]: Gap C tensoriality DERIVED from BW + Raychaudhuri + Lovelock (5-step chain). Gap D MVEH math content DERIVED from BW + TT + Gibbs (5-step chain). Sorce two-tier analysis.
 - [Phase 0]: Started milestone v10.0: Universality Class of Self-Modeler Network and Full Gap Closure
 - [Phase 36, Plan 02]: Gap A NARROWED for d>=3. Gap B CLOSED only for d=1 Route A. Gaps C,D CONDITIONAL. Overall: conditionally complete, not proved.
 - [Phase 36, Plan 01]: Chain assembled with six links (a)-(f). Rigor taxonomy applied. Chain status dimension-dependent: d>=3 CONDITIONAL, d=1 FAILS.
@@ -124,5 +134,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-30
-**Stopped at:** v10.0 roadmap created, Phase 37 ready to plan
+**Stopped at:** Phase 37 complete, Phase 38 ready to plan
 **Resume file:** --
