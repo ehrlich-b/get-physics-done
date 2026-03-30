@@ -10,6 +10,7 @@
 - **v6.0 Gap C -- Complexification from C*-Measurement Maps** -- Phase 22 (closed 2026-03-24, negative result)
 - **v7.0 Arrow of Time, Complexification, and Evolutionary Selection** -- Phases 23-27 (completed 2026-03-24)
 - **v8.0 Gap C Algebraic Closure via C*-Measurement Maps** -- Phases 28-31 (completed 2026-03-29)
+- **v9.0 Continuum Limit from Finite-Dimensional Observer** -- Phases 32-36 (completed 2026-03-30)
 
 ## Phases
 
@@ -268,231 +269,25 @@ See `.gpd/milestones/v8.0-ROADMAP.md` for full details.
 
 </details>
 
-### Active: v9.0 Continuum Limit from Finite-Dimensional Observer (Phases 32-36)
+<details>
+<summary>v9.0 Continuum Limit from Finite-Dimensional Observer (Phases 32-36) -- COMPLETED 2026-03-30</summary>
 
-**Milestone Goal:** Close all four Paper 6 gaps by showing finite-dimensional C*-observer necessarily sees smooth effective geometry. Derivation chain: finite-dim observer + SWAP lattice + correlation structure -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein.
-
-## Contract Overview
-
-| Contract Item | Advanced By Phase(s) | Status |
-| ------------- | -------------------- | ------ |
-| claim-continuum (smooth effective geometry from finite-dim observer) | 32, 33, 36 | Planned |
-| claim-fisher (Fisher metric smooth, positive-definite, recovers lattice distance) | 32 | Planned |
-| claim-decay (correlation structure characterized: gapless Neel for n=2 d>=2) | 33 | Planned |
-| claim-lorentz (emergent Lorentz via NL sigma model or von Ignatowsky) | 34 | Planned |
-| BW + local equilibrium (Lorentz -> modular Hamiltonian -> Jacobson input) | 35 | Planned |
-| Acceptance signal (complete derivation chain, all gaps scored individually) | 36 | Planned |
-| ref-braunstein-caves1994 | 32 | Planned |
-| ref-zanardi2007 | 32 | Planned |
-| ref-hastings2004 | 33 | Planned |
-| ref-nachtergaele-sims2006 | 33, 34 | Planned |
-| ref-vonignatowsky1911 | 34 | Planned |
-| ref-paper5 | 32, 36 | Planned |
-| ref-paper6 | 33, 36 | Planned |
-
-## Phase Details
-
-### Phase 32: Fisher Geometry on Reduced States
-
-**Goal:** The quantum Fisher information metric on the manifold of reduced states {rho_Lambda(x)} is proved smooth and positive-definite (OBC), and geodesic distance recovers lattice distance at leading order
-
-**Depends on:** Nothing (entry point for v9.0)
-**Requirements:** FISH-01, FISH-02, FISH-03
-**Contract Coverage:**
-- Advances: claim-fisher (central deliverable), claim-continuum (spatial geometry foundation)
-- Deliverables: Smoothness theorem for rho_Lambda(x) on OBC lattice; positive-definiteness proof of SLD Fisher metric; asymptotic geodesic distance formula d_Fisher ~ d_lattice
-- Anchor coverage: ref-braunstein-caves1994 (Fisher metric definition, operational meaning), ref-zanardi2007 (Fisher metric on state manifolds, QPT benchmark), Provost-Vallee 1980 (Riemannian structure on quantum state manifolds), ref-paper5 (finite-dim observer = UV cutoff)
-- Forbidden proxies: Smoothness proved only for product states; trivial metric (scalar multiple of delta_ij without structure); distance recovery only for nearest neighbors; using PBC (gives g=0)
-- Stop/rethink: If Fisher metric fails to be positive-definite on reduced states for ANY non-degenerate ground state, the entire geometric approach fails
-
-**Success Criteria:**
-1. Reduced density matrix rho_Lambda(x) on OBC lattice is a smooth (C^infty) function of position x when correlations decay sufficiently fast; explicit smoothness condition stated in terms of correlation length and subsystem size
-2. SLD quantum Fisher information metric g_ij(x) is positive-definite for non-degenerate ground states with full-rank reduced density matrices; proof handles rank-deficient states via Bures fallback
-3. Fisher geodesic distance satisfies d_Fisher(x,y) / d_lattice(x,y) -> const > 0 as |x-y| >> xi (correlation length), with the constant expressed in terms of Hamiltonian parameters
-4. All terms in the metric have correct dimensions ([length]^{-2} in lattice units) and g_ij transforms as a rank-2 covariant tensor under lattice diffeomorphisms
-
-**Backtracking trigger:** If rho_Lambda(x) is rank-deficient at generic lattice points (not just boundaries), the SLD Fisher metric diverges and Phase 32 must pivot to Bures metric throughout.
-
-**Status:** COMPLETE (2026-03-30) -- FISH-01 PASS, FISH-02 PASS, FISH-03 deferred to Phase 33 (d>=2 Neel)
-
-**Outcome:**
-- FISH-01: Smoothness from Hastings-Koma exponential clustering. Boundary decay matches numerics within 3%.
-- FISH-02: g(x) > 0 at all interior points for N=8-20. 14 tests pass. SLD = 4*Bures to rel_err < 7e-6.
-- FISH-03: FAILS in 1D (expected -- Heisenberg chain is gapless, g_bulk ~ N^{-2.75} -> 0). Deferred to Phase 33 where d>=2 Neel order breaks translation invariance and should rescue distance recovery.
-- Backtracking trigger NOT hit: metric IS positive-definite; failure is thermodynamic-limit distance recovery in 1D only.
-
-**Plans:** 2 plans (complete)
-
-Plans:
-- [x] 32-01-PLAN.md -- QFIM module, TFI benchmark, SWAP Fisher metric (N=8-20). g>0 everywhere, distance ratio -> 0.
-- [x] 32-02-PLAN.md -- Three FISH theorems proved. Smoothness and PD established. Distance recovery failure explained analytically.
-
----
-
-### Phase 33: Correlation Structure and Effective Theory
-
-**Goal:** The correlation decay of the SWAP/Heisenberg ground state is rigorously characterized for both gapped and gapless cases, the NL sigma model effective theory is derived for n=2 d>=2, and Fisher geometry smoothness is established in the sigma model regime
-
-**Depends on:** Phase 32 (Fisher metric needed to test response to algebraic vs exponential decay)
-**Requirements:** CORR-01, CORR-02, CORR-03
-**Contract Coverage:**
-- Advances: claim-decay (central deliverable), claim-continuum (correlation structure determines whether Fisher manifold survives thermodynamic limit)
-- Deliverables: Rigorous correlation decay characterization (two-tier: exponential for gapped, algebraic for n=2 d>=2 Neel); NL sigma model derivation with explicit spin-wave velocity c_s; Fisher smoothness theorem or conditional argument for algebraic decay regime
-- Anchor coverage: ref-hastings2004 (gap -> exponential decay), Dyson-Lieb-Simon 1978 (Neel order d>=2), Nachtergaele-Sims 2006 (clustering theorems), Haldane/Chakravarty-Halperin-Nelson (NL sigma model), ref-paper6 (SWAP lattice, correlation data from Phase 11 ED)
-- Forbidden proxies: Assuming spectral gap without proof for n=2; claiming exponential decay for gapless Neel phase; generic sigma model without SWAP-specific c_s formula; assuming Fisher smoothness without argument for algebraic correlations
-- Stop/rethink: If Fisher geometry provably fails with algebraic decay (positive theorem that algebraic correlations destroy metric regularity), the d>=2 chain is conditional
-
-**Success Criteria:**
-1. Heisenberg AFM (n=2, d>=2) characterized: Neel long-range order established (citing DLS 1978), gapless Goldstone modes identified, correlation decay shown to be algebraic |<S_i . S_j>| ~ |i-j|^{-alpha} with exponent alpha identified from spin-wave theory
-2. NL sigma model O(3) derived as low-energy effective theory for Neel phase with explicit spin-wave velocity c_s = 2sqrt(2) J S a (or the n=2, S=1/2 analog); dimensional analysis verified ([c_s] = [length/time])
-3. Fisher metric smoothness argued in the NL sigma model regime: either rigorous proof that algebraic decay with alpha > d preserves metric regularity, or conditional argument with explicit assumptions stated
-4. Gapped regime (AKLT, easy-axis, n>=3 candidates) handled rigorously via Hastings-Koma: exponential decay xi = O(v_LR/gamma) implies Fisher metric is smooth with explicit bounds
-
-**Backtracking trigger:** If the NL sigma model derivation reveals that the SWAP Hamiltonian does not map to the standard Heisenberg form needed for the sigma model (e.g., SWAP contains terms beyond nearest-neighbor Heisenberg), return to Phase 32 to reassess the lattice Hamiltonian.
-
-**Status:** COMPLETE (2026-03-29) -- CORR-01/02/03 all pass, verification 5/5
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 33-01-PLAN.md -- CORR-01 two-tier correlation characterization + CORR-02 NL sigma model derivation with c_s = 1.659 Ja
-- [x] 33-02-PLAN.md -- 2D numerical validation: 4x4 OBC ED, m_s^2=0.233, Fisher g_plaq=4.76e-4
-- [x] 33-03-PLAN.md -- CORR-03 Fisher smoothness conditional theorem for d>=2 Neel phase
-
-**Results:**
-- CORR-01: Two-tier characterization (gapped: Hastings-Koma exponential; Neel d>=2: algebraic LRO with Goldstone 1/r^{d-1})
-- CORR-02: O(3) NL sigma model with c_s = 1.659 Ja (QMC match to 0.3%), rho_s = 0.181 J, g = 9.18
-- CORR-03: Conditional theorem (H1-H4) -- g_F ~ O(m_s^2) > 0 for d>=2 Neel. d>=3 clean, d=2 has O(ln L) correction
-- 2D ED (4x4 OBC): strong Neel order confirmed, Fisher metric nonzero (3.88x > 1D)
-- FISH-03 rescue: CONFIRMED for d>=2 Neel phase via sublattice alternation mechanism
-
----
-
-### Phase 34: Emergent Lorentz Invariance
-
-**Goal:** Emergent Lorentz invariance is derived from the NL sigma model effective theory or via von Ignatowsky's theorem after establishing emergent isotropy, with the relationship between v_LR, c_s, and the effective speed of light clarified
-
-**Depends on:** Phase 33 (NL sigma model and correlation structure required)
-**Requirements:** LRNZ-01, LRNZ-02, LRNZ-03
-**Contract Coverage:**
-- Advances: claim-lorentz (central deliverable), claim-continuum (Lorentzian structure on the Fisher manifold)
-- Deliverables: Isotropy restoration argument with explicit anisotropy bounds; Lorentz invariance derivation (NL sigma model route or von Ignatowsky); causal structure analysis separating v_LR, c_s, and emergent speed of light
-- Anchor coverage: ref-vonignatowsky1911 (isotropy + finite speed -> Lorentz), ref-nachtergaele-sims2006 (LR velocity), Hamma et al. 2009 (LR and emergent Lorentz on lattices), Paper 6 v_LR = 8eJ/(e-1)
-- Forbidden proxies: Assuming Lorentz by fiat; citing von Ignatowsky without verifying isotropy premise; conflating Fisher metric (Riemannian) with causal structure (Lorentzian); treating v_LR as the speed of light (it is an upper bound, not the physical speed)
-- Stop/rethink: If emergent isotropy cannot be established (v_LR anisotropy does not vanish in continuum limit), von Ignatowsky fails and must rely solely on NL sigma model route
-
-**Success Criteria:**
-1. Emergent isotropy established: lattice anisotropy corrections shown to vanish as O(a^k/L^k) for k>=2 via universality argument, with the relevant universality class (O(3) Wilson-Fisher or NL sigma model) identified
-2. Lorentz invariance derived via at least one route: (a) NL sigma model has built-in Lorentz-invariant dispersion omega = c_s |k| identifying c_s as invariant speed, or (b) von Ignatowsky applied to emergent isotropy + LR finite speed
-3. Relationship clarified: v_LR (rigorous LR bound) >= c_s (physical spin-wave velocity) = c_eff (emergent speed of light); Fisher metric g_ij is spatial (Riemannian), causal structure comes from LR bounds / sigma model propagation separately
-4. All velocities have correct dimensions ([lattice sites]/[time]) and the identification c_eff = c_s is physically justified (not just dimensional)
-
-**Backtracking trigger:** If neither route to Lorentz succeeds (sigma model not Lorentz-invariant for some reason, AND isotropy fails for von Ignatowsky), fall back to emergent diffeomorphism invariance only and flag Lorentz as an additional assumption.
-
-**Plans:** 2 plans
-
-Plans:
-- [x] 34-01-PLAN.md -- Isotropy restoration (LRNZ-01) + Lorentz derivation via sigma model + von Ignatowsky (LRNZ-02)
-- [x] 34-02-PLAN.md -- Velocity hierarchy v_LR > c_s = c_eff, causal structure, emergent metric assembly (LRNZ-03)
-
-**Status:** Complete (2026-03-29). Verified: 5/5 contract targets, 13/13 physics checks. HIGH confidence.
-
----
-
-### Phase 35: BW Theorem and Local Equilibrium
-
-**Goal:** The effective theory from Phases 32-34 satisfies sufficient axioms for the Bisognano-Wichmann theorem, and local equilibrium at the bifurcation surface is derived from the KMS property
-
-**Depends on:** Phase 34 (Lorentz invariance required BEFORE BW -- no circularity)
-**Requirements:** BWEQ-01, BWEQ-02
-**Contract Coverage:**
-- Advances: BW + local equilibrium (central deliverable), claim-continuum (thermal structure needed for Jacobson)
-- Deliverables: Verification that effective theory satisfies OS reflection positivity or equivalent lattice BW conditions; KMS equilibrium derivation at bifurcation surface; modular Hamiltonian identification with boost generator
-- Anchor coverage: Bisognano-Wichmann 1975/1976, Haag-Hugenholtz-Winnink 1967 (KMS states), Giudici et al. 2018 (lattice BW), Paper 6 Phase 11 SRF results (SRF=0.9993)
-- Forbidden proxies: Applying BW before Lorentz is established (circularity); assuming equilibrium without KMS derivation; claiming Wightman axioms without checking each one; applying type III modular theory to type I (finite-dim) lattice algebra without justification
-- Stop/rethink: If the effective theory fails OS reflection positivity, BW cannot be applied rigorously and this link becomes conditional
-
-**Success Criteria:**
-1. Sufficient axioms for BW identified (OS reflection positivity, or equivalent lattice conditions from Giudici et al.) and verified for the Lorentz-invariant effective theory from Phase 34
-2. Local equilibrium (theta = sigma = 0) at the bifurcation surface derived from the KMS property of the ground state restricted to a half-space, consistent with Paper 6 Phase 11 SRF = 0.9993
-3. Modular Hamiltonian K_A identified with the Lorentz boost generator in the wedge region, providing the thermal/Unruh temperature T_U = a/(2 pi) needed for Jacobson's argument
-
-**Backtracking trigger:** If OS reflection positivity fails for the NL sigma model effective theory, check whether a lattice BW result (without full Wightman axioms) suffices for the Jacobson argument.
-
-**Plans:** 2 plans
-
-Plans:
-- [x] 35-01-PLAN.md -- BW prerequisites (Wightman axiom checklist) + lattice-BW entanglement Hamiltonian construction + SRF validation (BWEQ-01) (completed 2026-03-30)
-- [x] 35-02-PLAN.md -- KMS derivation from BW modular flow + local equilibrium at bifurcation surface + Jacobson input specification (BWEQ-02) (completed 2026-03-30)
-
-**Status:** Complete (2026-03-30). Verified 6/6 contract targets, 11/11 physics checks passed.
-
----
-
-### Phase 36: Assembly and Gap Scoring
-
-**Goal:** The complete derivation chain from finite-dim observer to Einstein equations is assembled with all steps explicit, and each of the four Paper 6 gaps is scored individually
-
-**Depends on:** Phase 35 (all prior phases feed into assembly)
-**Requirements:** ASBL-01, ASBL-02
-**Contract Coverage:**
-- Advances: Acceptance signal (central deliverable -- the chain is complete or honestly scored), claim-continuum (final verdict)
-- Deliverables: Complete derivation chain document: finite-dim observer (Paper 5) + SWAP lattice (Paper 6 L2) + correlation structure (Phase 33) -> smooth Fisher manifold (Phase 32) -> emergent Lorentz (Phase 34) -> BW + equilibrium (Phase 35) -> Jacobson 1995 -> Einstein equations; individual scoring of four Paper 6 gaps
-- Anchor coverage: ref-paper5 (starting point), ref-paper6 (gaps to close), all prior phase results
-- Forbidden proxies: Claiming all gaps closed when some are conditional; lumping all gaps together in one score; claiming constructive continuum limit when the result is effective smoothness; ignoring conditional steps
-- Stop/rethink: N/A (assembly phase -- honest framing regardless of outcome)
-
-**Success Criteria:**
-1. Complete derivation chain assembled with each link explicitly stated: (a) finite-dim observer (Paper 5), (b) SWAP lattice (Paper 6), (c) correlation structure -> Fisher manifold, (d) emergent Lorentz, (e) BW + equilibrium, (f) Jacobson -> Einstein; no missing logical steps
-2. Each of the four Paper 6 gaps scored individually with one of: CLOSED (rigorous proof), NARROWED (conditional on stated assumption), CONDITIONAL (physical argument, not rigorous), OPEN (not addressed); scoring justified by specific phase results
-3. All conditional steps identified with their assumptions stated precisely; the reader can see exactly which inputs are proved, which are argued, and which are assumed
-4. Derivation chain document is self-contained: a reader familiar with Papers 5-6 can follow the argument without re-deriving prior results
-
-**Plans:** 2 plans
-
-Plans:
-- [x] 36-01-PLAN.md -- Assemble six-link derivation chain with equation-level citations (ASBL-01) (completed 2026-03-30)
-- [x] 36-02-PLAN.md -- Score four Paper 6 gaps individually with evidence (ASBL-02) (completed 2026-03-30)
-
-**Backtracking trigger:** If assembly reveals that a prior phase result was weaker than assumed (e.g., Phase 33 smoothness was conditional but Phase 34 treated it as proved), return to the offending phase for clarification.
-
-## Phase Dependencies
-
-| Phase | Depends On | Enables | Critical Path? |
-|-------|-----------|---------|:-:|
-| 32 - Fisher Geometry | -- | 33 | Yes |
-| 33 - Correlation Structure | 32 | 34 | Yes |
-| 34 - Emergent Lorentz | 33 | 35 | Yes |
-| 35 - BW + Equilibrium | 34 | 36 | Yes |
-| 36 - Assembly + Gap Scoring | 35 | -- | Yes |
-
-**Critical path:** 32 -> 33 -> 34 -> 35 -> 36 (5 phases, linear)
-**Parallelism note:** Phase 32 (Fisher metric computation) and the literature/theory component of Phase 33 (correlation decay characterization) can overlap in practice, since the numerical Fisher metric and correlation function computations are independent. But Phase 33's success criterion 3 (Fisher smoothness in sigma model regime) depends on Phase 32.
-
-## Risk Register
-
-| Phase | Top Risk | Probability | Impact | Mitigation |
-|-------|---------|:-:|:-:|-----------|
-| 32 | Fisher metric rank-deficient at generic points (sublattice alternation in Neel phase) | MEDIUM | HIGH | Coarse-grain over unit cells; Bures metric as fallback at singular points |
-| 33 | Fisher geometry fails with algebraic decay (d>=2 gapless case) | HIGH | HIGH | Two-tier strategy: rigorous for gapped, conditional for gapless; frame d>=2 isotropic SU(2) as conditional if needed |
-| 34 | Emergent isotropy not achieved (lattice anisotropy persists) | MEDIUM | MEDIUM | NL sigma model route bypasses von Ignatowsky isotropy requirement |
-| 35 | Effective theory fails OS reflection positivity | LOW | MEDIUM | Lattice BW (Giudici et al.) as fallback; conditional if neither works |
-| 36 | Overclaiming gap closure when results are conditional | LOW | HIGH | Honest individual scoring; each gap rated independently |
-
-## Backtracking Triggers
-
-- Phase 32: If Fisher metric is identically zero or degenerate at generic points, pivot to Bures metric or reassess OBC strategy
-- Phase 33: If NL sigma model does not apply to SWAP Hamiltonian, return to Phase 32 to verify Hamiltonian structure
-- Phase 34: If neither Lorentz route succeeds, fall back to diffeomorphism invariance only
-- Phase 35: If BW fails, check whether Jacobson can proceed with weaker thermal input
-- Phase 36: If assembly reveals prior phase weaknesses, return to affected phase
-
-## Progress
+- [x] Phase 32: Fisher Geometry on Reduced States (2/2 plans) -- completed 2026-03-30
+- [x] Phase 33: Correlation Structure and Effective Theory (3/3 plans) -- completed 2026-03-30
+- [x] Phase 34: Emergent Lorentz Invariance (2/2 plans) -- completed 2026-03-30
+- [x] Phase 35: BW Theorem and Local Equilibrium (2/2 plans) -- completed 2026-03-30
+- [x] Phase 36: Assembly and Gap Scoring (2/2 plans) -- completed 2026-03-30
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 32. Fisher Geometry | v9.0 | 0/2 | Planned | -- |
-| 33. Correlation Structure | v9.0 | 0/TBD | Not started | -- |
-| 34. Emergent Lorentz | v9.0 | 0/TBD | Not started | -- |
-| 35. BW + Equilibrium | v9.0 | 0/TBD | Not started | -- |
-| 36. Assembly + Gap Scoring | v9.0 | 0/TBD | Not started | -- |
+| 32. Fisher Geometry | v9.0 | 2/2 | Complete | 2026-03-30 |
+| 33. Correlation Structure | v9.0 | 3/3 | Complete | 2026-03-30 |
+| 34. Emergent Lorentz | v9.0 | 2/2 | Complete | 2026-03-30 |
+| 35. BW + Equilibrium | v9.0 | 2/2 | Complete | 2026-03-30 |
+| 36. Assembly + Gap Scoring | v9.0 | 2/2 | Complete | 2026-03-30 |
+
+See `.gpd/milestones/v9.0-ROADMAP.md` for full details.
+
+</details>
+
+(v9.0 detailed content archived to `.gpd/milestones/v9.0-ROADMAP.md`)

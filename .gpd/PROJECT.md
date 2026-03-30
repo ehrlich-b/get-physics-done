@@ -8,18 +8,9 @@ Deriving the fundamental laws of physics from the algebraic structure of self-mo
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Current Milestone: v9.0 Continuum Limit from Finite-Dimensional Observer
+## v9.0 Summary (complete 2026-03-30)
 
-**Goal:** Close all four Paper 6 gaps simultaneously by showing that a finite-dimensional C*-observer necessarily sees smooth effective geometry.
-
-**Target results:**
-
-- Fisher information metric on reduced states is smooth (OBC), positive-definite, and recovers lattice distance
-- Correlation structure characterized: gapless Neel phase (n=2, d>=2) handled via NL sigma model effective theory; gapped cases rigorous via Hastings-Koma
-- Emergent Lorentz invariance via NL sigma model route (bypasses von Ignatowsky isotropy difficulty) or von Ignatowsky on effective theory after establishing emergent isotropy
-- BW theorem and local equilibrium in the effective theory (after Lorentz established)
-- Complete derivation chain: finite-dim observer + SWAP lattice + correlation structure -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
-- Honest scoring of each of the four Paper 6 gaps individually
+Continuum limit from finite-dimensional observer. Six-link derivation chain assembled from finite-dim observer (Paper 5) to Einstein equations (Jacobson 2016). Fisher metric smooth and positive-definite at finite N (FISH-01/02); distance recovery fails in 1D (FISH-03) but rescued for d>=2 by Neel LRO (CORR-03 conditional theorem). Sigma model c_s = 1.659 Ja (QMC 0.3%). Emergent Lorentz via RG irrelevance + DLS. BW/KMS derived (not assumed), Jacobson inputs J1-J3 packaged. Four Paper 6 gaps scored individually: Gap A NARROWED (d>=3), Gap B CLOSED (d=1 Route A only), Gaps C,D CONDITIONAL. Chain conditionally complete for d>=3.
 
 ## v8.0 Summary (complete 2026-03-29)
 
@@ -160,11 +151,15 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-- [ ] Does the Fisher information metric on reduced states of the SWAP ground state recover lattice distance at leading order?
-- [ ] Does the Heisenberg AFM (n=2) on d>=2 lattice have a spectral gap with exponential correlation decay?
-- [ ] Does isotropy + LR finite speed + Fisher smoothness uniquely determine Lorentz invariance on the effective manifold?
-- [ ] Does the effective theory from Fisher geometry satisfy Wightman axioms sufficient for BW theorem?
-- [ ] Does the complete chain (finite-dim observer -> Fisher -> Lorentz -> BW -> Jacobson) close all four Paper 6 gaps?
+(No active questions -- milestone planning will define next questions)
+
+### Answered in v9.0
+
+- [x] Does the Fisher information metric on reduced states of the SWAP ground state recover lattice distance at leading order? -- **NO in 1D** (FISH-03: g_bulk ~ N^{-2.75}), **CONDITIONAL YES in d>=2** (CORR-03: g_F = O(m_s^2) > 0 under H1-H4). Distance recovery fails in 1D but rescued by Neel LRO for d>=2. -- v9.0
+- [x] Does the Heisenberg AFM (n=2) on d>=2 lattice have a spectral gap with exponential correlation decay? -- **NO spectral gap; YES algebraic LRO.** Neel order gives m_s > 0 (QMC-established for S=1/2 d=2); correlations = m_s^2 + transverse 1/r^{d-1} from Goldstone modes. Gapped tier has exponential decay (rigorous). -- v9.0
+- [x] Does isotropy + LR finite speed + Fisher smoothness uniquely determine Lorentz invariance on the effective manifold? -- **YES via sigma model route.** Isotropy from RG irrelevance (rho~2), O(d+1) rescaling + DLS reflection positivity. c_eff = c_s = 1.659 Ja. Von Ignatowsky supporting route. -- v9.0
+- [x] Does the effective theory from Fisher geometry satisfy Wightman axioms sufficient for BW theorem? -- **CONDITIONAL.** W1-W4 satisfied for NL sigma model EFT; W5 conditional on mass gap; W6 open. Lattice-BW (Giudici et al.) bypasses W6, SRF=0.9993. -- v9.0
+- [x] Does the complete chain (finite-dim observer -> Fisher -> Lorentz -> BW -> Jacobson) close all four Paper 6 gaps? -- **CONDITIONALLY for d>=3.** Gap A NARROWED, Gap B CLOSED (d=1 Route A only) / OPEN (d>=2), Gap C CONDITIONAL, Gap D CONDITIONAL. Chain assembled with all links explicit. No gap fully CLOSED for d>=3. -- v9.0
 
 ### Answered in v7.0
 

@@ -14,9 +14,9 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
 **Current Plan:** 02/02 complete
 **Total Plans in Phase:** 2
-**Status:** Phase 36 execution complete. All 2 plans passed. Awaiting verification.
+**Status:** Milestone complete
 **Last Activity:** 2026-03-30
-**Last Activity Description:** Phase 36 complete. ASBL-01: Six-link chain assembled with equation-level citations, J1-J8 mapped. ASBL-02: Four gaps scored individually (A: NARROWED d>=3, B: CLOSED d=1 Route A only, C: CONDITIONAL, D: CONDITIONAL). v9.0 verdict: conditionally complete for d>=3.
+**Last Activity Description:** v9.0 milestone completed and archived
 
 
 ## Active Calculations
