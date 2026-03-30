@@ -64,9 +64,68 @@ class TestRecentProjectsIndexPersistence:
         loaded = load_recent_projects_index(store_root)
 
         assert updated.project_root == project_root.resolve(strict=False).as_posix()
+        assert set(stored) == {"rows"}
+        assert stored["rows"][0]["schema_version"] == 1
         assert stored["rows"][0]["stopped_at"] == "Phase 03 Plan 2"
         assert loaded.rows[0].resume_file == "GPD/phases/03/.continue-here.md"
         assert loaded.rows[0].last_session_at == "2026-03-26T12:00:00+00:00"
+        assert loaded.rows[0].schema_version == 1
+
+    def test_load_accepts_legacy_projects_container_and_aliases(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("GPD_DATA_DIR", raising=False)
+        store_root = tmp_path / "cache"
+        project_root = tmp_path / "project"
+        handoff_file = project_root / "GPD" / "phases" / "03" / ".continue-here.md"
+        project_root.mkdir()
+        handoff_file.parent.mkdir(parents=True, exist_ok=True)
+        handoff_file.write_text("resume\n", encoding="utf-8")
+
+        index_path = recent_projects_index_path(store_root)
+        index_path.parent.mkdir(parents=True, exist_ok=True)
+        index_path.write_text(
+            json.dumps(
+                {
+                    "projects": [
+                        {
+                            "cwd": project_root.resolve(strict=False).as_posix(),
+                            "last_session_at": "2026-03-26T12:00:00+00:00",
+                            "stopped_at": "Phase 3",
+                            "resume_file": "GPD/phases/03/.continue-here.md",
+                            "hostname": "builder-01",
+                            "platform": "Linux 6.1 x86_64",
+                            "source_kind": "segment.pause",
+                            "source_session_id": "session-123",
+                            "source_segment_id": "segment-7",
+                            "source_transition_id": "transition-9",
+                            "source_event_id": "event-11",
+                            "source_recorded_at": "2026-03-26T12:34:56+00:00",
+                            "recovery_phase": "Phase 03",
+                            "recovery_plan": "Plan 2",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = load_recent_projects_index(store_root)
+
+        assert len(loaded.rows) == 1
+        row = loaded.rows[0]
+        assert row.project_root == project_root.resolve(strict=False).as_posix()
+        assert row.schema_version == 1
+        assert row.source_kind == "segment.pause"
+        assert row.source_session_id == "session-123"
+        assert row.source_segment_id == "segment-7"
+        assert row.source_transition_id == "transition-9"
+        assert row.source_event_id == "event-11"
+        assert row.source_recorded_at == "2026-03-26T12:34:56+00:00"
+        assert row.recovery_phase == "Phase 03"
+        assert row.recovery_plan == "Plan 2"
+        assert row.resume_file_available is True
+        assert row.resumable is True
 
     def test_load_rejects_malformed_index(self, tmp_path: Path) -> None:
         store_root = tmp_path / "cache"

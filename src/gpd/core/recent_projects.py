@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from gpd.core.constants import (
     ENV_DATA_DIR,
@@ -38,9 +38,10 @@ class RecentProjectsError(ValueError):
 class RecentProjectEntry(BaseModel):
     """One machine-local recent-project record."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="ignore")
 
-    project_root: str
+    schema_version: int = Field(default=1, ge=1)
+    project_root: str = Field(validation_alias=AliasChoices("project_root", "workspace_root", "cwd", "path"))
     last_session_at: str | None = None
     last_seen_at: str | None = None
     stopped_at: str | None = None
@@ -49,17 +50,65 @@ class RecentProjectEntry(BaseModel):
     resume_file_reason: str | None = None
     hostname: str | None = None
     platform: str | None = None
+    source_kind: str | None = None
+    source_session_id: str | None = None
+    source_segment_id: str | None = None
+    source_transition_id: str | None = None
+    source_event_id: str | None = None
+    source_recorded_at: str | None = None
+    recovery_phase: str | None = None
+    recovery_plan: str | None = None
     resumable: bool = False
     available: bool = True
     availability_reason: str | None = None
+
+    @field_validator(
+        "last_session_at",
+        "last_seen_at",
+        "stopped_at",
+        "resume_file",
+        "resume_file_reason",
+        "hostname",
+        "platform",
+        "source_kind",
+        "source_session_id",
+        "source_segment_id",
+        "source_transition_id",
+        "source_event_id",
+        "source_recorded_at",
+        "recovery_phase",
+        "recovery_plan",
+        "availability_reason",
+        mode="before",
+    )
+    @classmethod
+    def _normalize_optional_text(cls, value: object) -> str | None:
+        return _normalize_recent_text(value)
+
+    @field_validator("project_root", mode="before")
+    @classmethod
+    def _normalize_project_root(cls, value: object) -> str:
+        normalized = _normalize_recent_text(value)
+        if normalized is None:
+            raise ValueError("project_root is required")
+        return Path(normalized).expanduser().resolve(strict=False).as_posix()
 
 
 class RecentProjectIndex(BaseModel):
     """Persisted recent-project advisory index."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="ignore")
 
     rows: list[RecentProjectEntry] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_payload(cls, value: object) -> object:
+        if value is None:
+            return {"rows": []}
+        if isinstance(value, dict) and not value:
+            return {"rows": []}
+        return {"rows": _extract_recent_project_rows(value)}
 
 
 def recent_projects_root(explicit_data_dir: Path | None = None) -> Path:
@@ -85,12 +134,24 @@ def recent_projects_index_path(data_root: Path | None = None) -> Path:
 def _sort_rows(rows: list[RecentProjectEntry]) -> list[RecentProjectEntry]:
     return sorted(
         rows,
-        key=lambda row: (
-            row.last_session_at or row.last_seen_at or "",
-            row.project_root,
-        ),
+        key=lambda row: (_recent_project_sort_stamp(row), row.project_root),
         reverse=True,
     )
+
+
+def _dedupe_rows(rows: list[RecentProjectEntry]) -> list[RecentProjectEntry]:
+    unique_rows: list[RecentProjectEntry] = []
+    seen_roots: set[str] = set()
+    for row in rows:
+        if row.project_root in seen_roots:
+            continue
+        seen_roots.add(row.project_root)
+        unique_rows.append(row)
+    return unique_rows
+
+
+def _recent_project_sort_stamp(row: RecentProjectEntry) -> str:
+    return row.last_session_at or row.last_seen_at or row.source_recorded_at or ""
 
 
 def _availability_for(project_root: str) -> tuple[bool, str | None]:
@@ -127,13 +188,47 @@ def _resume_file_availability(project_root: str, resume_file: str | None) -> tup
     return True, None
 
 
-def _normalize_optional_text(value: object) -> str | None:
-    if not isinstance(value, str):
+def _normalize_recent_text(value: object) -> str | None:
+    if isinstance(value, Path):
+        value = value.as_posix()
+    elif not isinstance(value, str):
         return None
     stripped = value.strip()
     if not stripped or stripped in {"—", "[Not set]"} or stripped.casefold() in {"none", "null"}:
         return None
     return stripped
+
+
+def _extract_recent_project_rows(value: object) -> list[object]:
+    if isinstance(value, list):
+        return value
+    if not isinstance(value, dict):
+        raise ValueError("recent-project index must be a mapping or list of rows")
+
+    for key in ("rows", "projects"):
+        if key in value:
+            return _extract_recent_project_rows(value[key])
+
+    if any(key in value for key in ("project_root", "workspace_root", "cwd", "path")):
+        return [value]
+
+    raise ValueError("recent-project index payload does not contain rows")
+
+
+def _session_text(session_data: dict[str, object], *keys: str) -> str | None:
+    for key in keys:
+        if key in session_data:
+            return _normalize_recent_text(session_data.get(key))
+    return None
+
+
+def _updated_text(
+    session_data: dict[str, object],
+    existing_value: str | None,
+    *keys: str,
+) -> str | None:
+    updated = _session_text(session_data, *keys)
+    return updated if updated is not None or any(key in session_data for key in keys) else existing_value
 
 
 def _annotate_availability(entry: RecentProjectEntry) -> RecentProjectEntry:
@@ -145,7 +240,7 @@ def _annotate_availability(entry: RecentProjectEntry) -> RecentProjectEntry:
             "availability_reason": reason,
             "resume_file_available": resume_file_available,
             "resume_file_reason": resume_file_reason,
-            "resumable": bool(entry.resume_file) and available and resume_file_available is not False,
+            "resumable": bool(entry.resume_file) and available and resume_file_available is True,
         }
     )
 
@@ -179,18 +274,77 @@ def record_recent_project(
     data_root = store_root
     current = load_recent_projects_index(data_root)
     existing = next((row for row in current.rows if row.project_root == resolved_root.as_posix()), None)
-    last_session_at = _normalize_optional_text(session_data.get("last_date"))
-    normalized_resume_file = _normalize_optional_text(session_data.get("resume_file"))
-    normalized_hostname = _normalize_optional_text(session_data.get("hostname"))
-    normalized_platform = _normalize_optional_text(session_data.get("platform"))
+    last_session_at = _updated_text(session_data, existing.last_session_at if existing is not None else None, "last_date", "last_session_at")
+    last_seen_at = _updated_text(
+        session_data,
+        existing.last_seen_at if existing is not None else last_session_at,
+        "last_seen_at",
+        "last_date",
+        "last_session_at",
+    )
+    normalized_resume_file = _updated_text(session_data, existing.resume_file if existing is not None else None, "resume_file")
+    normalized_hostname = _updated_text(session_data, existing.hostname if existing is not None else None, "hostname")
+    normalized_platform = _updated_text(session_data, existing.platform if existing is not None else None, "platform")
+    source_kind = _updated_text(session_data, existing.source_kind if existing is not None else None, "source_kind", "provenance_kind")
+    source_session_id = _updated_text(
+        session_data,
+        existing.source_session_id if existing is not None else None,
+        "source_session_id",
+        "session_id",
+    )
+    source_segment_id = _updated_text(
+        session_data,
+        existing.source_segment_id if existing is not None else None,
+        "source_segment_id",
+        "segment_id",
+    )
+    source_transition_id = _updated_text(
+        session_data,
+        existing.source_transition_id if existing is not None else None,
+        "source_transition_id",
+        "transition_id",
+    )
+    source_event_id = _updated_text(
+        session_data,
+        existing.source_event_id if existing is not None else None,
+        "source_event_id",
+        "event_id",
+    )
+    source_recorded_at = _updated_text(
+        session_data,
+        existing.source_recorded_at if existing is not None else None,
+        "source_recorded_at",
+        "recorded_at",
+        "timestamp",
+    )
+    recovery_phase = _updated_text(
+        session_data,
+        existing.recovery_phase if existing is not None else None,
+        "recovery_phase",
+        "phase",
+    )
+    recovery_plan = _updated_text(
+        session_data,
+        existing.recovery_plan if existing is not None else None,
+        "recovery_plan",
+        "plan",
+    )
     updated_entry = RecentProjectEntry(
         project_root=resolved_root.as_posix(),
         last_session_at=last_session_at,
-        last_seen_at=last_session_at,
-        stopped_at=_normalize_optional_text(session_data.get("stopped_at")),
-        resume_file=normalized_resume_file if normalized_resume_file is not None else (existing.resume_file if existing is not None else None),
-        hostname=normalized_hostname if normalized_hostname is not None else (existing.hostname if existing is not None else None),
-        platform=normalized_platform if normalized_platform is not None else (existing.platform if existing is not None else None),
+        last_seen_at=last_seen_at,
+        stopped_at=_updated_text(session_data, existing.stopped_at if existing is not None else None, "stopped_at"),
+        resume_file=normalized_resume_file,
+        hostname=normalized_hostname,
+        platform=normalized_platform,
+        source_kind=source_kind,
+        source_session_id=source_session_id,
+        source_segment_id=source_segment_id,
+        source_transition_id=source_transition_id,
+        source_event_id=source_event_id,
+        source_recorded_at=source_recorded_at,
+        recovery_phase=recovery_phase,
+        recovery_plan=recovery_plan,
     )
 
     rows: list[RecentProjectEntry] = []
@@ -204,14 +358,14 @@ def record_recent_project(
     if not replaced:
         rows.append(updated_entry)
 
-    _save_index(data_root, RecentProjectIndex(rows=_sort_rows(rows)))
+    _save_index(data_root, RecentProjectIndex(rows=_dedupe_rows(_sort_rows(rows))))
     return _annotate_availability(updated_entry)
 
 
 def list_recent_projects(store_root: Path | None = None, *, last: int | None = None) -> list[RecentProjectEntry]:
     """Return recent-project rows sorted newest-first with availability annotations."""
     current = load_recent_projects_index(store_root)
-    rows = [_annotate_availability(entry) for entry in _sort_rows(list(current.rows))]
+    rows = [_annotate_availability(entry) for entry in _dedupe_rows(_sort_rows(list(current.rows)))]
     if last is not None and last > 0:
         rows = rows[:last]
     return rows
