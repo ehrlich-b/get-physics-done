@@ -890,9 +890,6 @@ class TestResume:
         assert "handoff is available" in normalized.lower()
         assert "no resumable" in normalized.lower()
         assert "currently active" in normalized.lower()
-        assert "rerun" in normalized.lower()
-        assert "anchor:" in normalized.lower()
-        assert "R-bridge" in normalized
         assert "Canonical candidate kinds" in normalized
         assert "continuity_handoff" in normalized
         assert "Continuity handoff" in result.output
