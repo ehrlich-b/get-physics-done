@@ -27,6 +27,7 @@ class CitationSource(BaseModel):
 
     source_type: Literal["paper", "tool", "data", "website"]
     reference_id: str | None = None
+    bibtex_key: str | None = None
     title: str
     authors: list[str] = []
     year: str = ""
@@ -74,12 +75,24 @@ class BibliographyAudit(BaseModel):
 # ---- BibTeX entry creation ----
 
 
+def _preferred_bibtex_key(source: CitationSource) -> str | None:
+    """Return the preferred BibTeX key when one is provided."""
+    if source.bibtex_key is None:
+        return None
+
+    preferred = source.bibtex_key.strip()
+    return preferred or None
+
+
 def _create_bib_key(source: CitationSource, existing_keys: set[str]) -> str:
-    """Generate a BibTeX key from first author last name + year.
+    """Generate a BibTeX key from a preferred key or first author last name + year.
 
     Deduplicates by appending a/b/c suffix.
     """
-    if source.authors:
+    preferred_key = _preferred_bibtex_key(source)
+    if preferred_key:
+        base_key = preferred_key
+    elif source.authors:
         # Extract last name from first author (handle "First Last" and "Last, First")
         first_author = source.authors[0]
         if "," in first_author:
@@ -87,15 +100,12 @@ def _create_bib_key(source: CitationSource, existing_keys: set[str]) -> str:
         else:
             parts = first_author.strip().split()
             last_name = parts[-1] if parts else "unknown"
+        base_key = re.sub(r"[^a-zA-Z]", "", last_name).lower() or "unknown"
     else:
-        last_name = "unknown"
+        base_key = "unknown"
 
-    # Normalize: lowercase, remove non-alphanumeric
-    last_name = re.sub(r"[^a-zA-Z]", "", last_name).lower()
-    if not last_name:
-        last_name = "unknown"
-
-    base_key = f"{last_name}{source.year}"
+    if not preferred_key:
+        base_key = f"{base_key}{source.year}"
 
     if base_key not in existing_keys:
         return base_key

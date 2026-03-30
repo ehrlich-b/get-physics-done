@@ -54,6 +54,43 @@ class TestBibtexCreation:
         assert len(keys) == 2
         assert keys[0] != keys[1]
 
+    def test_preferred_bibtex_key_is_used_when_available(self):
+        sources = [
+            CitationSource(
+                source_type="paper",
+                title="Relativity",
+                authors=["A. Einstein"],
+                year="1905",
+                bibtex_key="einstein-relativity",
+            )
+        ]
+
+        bib = create_bibliography(sources)
+
+        assert list(bib.entries.keys()) == ["einstein-relativity"]
+
+    def test_preferred_bibtex_key_dedups_predictably(self):
+        sources = [
+            CitationSource(
+                source_type="paper",
+                title="Paper 1",
+                authors=["A. Einstein"],
+                year="1905",
+                bibtex_key="shared-key",
+            ),
+            CitationSource(
+                source_type="paper",
+                title="Paper 2",
+                authors=["A. Bohr"],
+                year="1913",
+                bibtex_key="shared-key",
+            ),
+        ]
+
+        bib = create_bibliography(sources)
+
+        assert list(bib.entries.keys()) == ["shared-key", "shared-keya"]
+
     def test_citation_keys_match_bibliography_emission(self):
         sources = [
             CitationSource(source_type="paper", title="Paper 1", authors=["Einstein, Albert"], year="1905"),
@@ -222,6 +259,53 @@ class TestBibliographyAudit:
         assert audit.total_sources == 1
         assert audit.entries[0].reference_id == "anchor-ref"
         assert audit.entries[0].key.startswith("smith2024")
+
+    def test_build_bibliography_with_audit_uses_preferred_bibtex_key(self):
+        sources = [
+            CitationSource(
+                source_type="paper",
+                reference_id="anchor-ref",
+                bibtex_key="anchor-key",
+                title="A Paper",
+                authors=["J. Smith"],
+                year="2024",
+                doi="10.1234/example",
+            )
+        ]
+
+        bib, audit = build_bibliography_with_audit(sources, enrich=False)
+
+        assert list(bib.entries.keys()) == ["anchor-key"]
+        assert audit.entries[0].reference_id == "anchor-ref"
+        assert audit.entries[0].key == "anchor-key"
+
+    def test_build_bibliography_with_audit_dedups_preferred_bibtex_key(self):
+        sources = [
+            CitationSource(
+                source_type="paper",
+                reference_id="anchor-ref-1",
+                bibtex_key="shared-key",
+                title="A Paper",
+                authors=["J. Smith"],
+                year="2024",
+                doi="10.1234/example",
+            ),
+            CitationSource(
+                source_type="paper",
+                reference_id="anchor-ref-2",
+                bibtex_key="shared-key",
+                title="B Paper",
+                authors=["A. Bohr"],
+                year="1913",
+                doi="10.5678/example",
+            ),
+        ]
+
+        bib, audit = build_bibliography_with_audit(sources, enrich=False)
+
+        assert list(bib.entries.keys()) == ["shared-key", "shared-keya"]
+        assert [entry.key for entry in audit.entries] == ["shared-key", "shared-keya"]
+        assert [entry.reference_id for entry in audit.entries] == ["anchor-ref-1", "anchor-ref-2"]
 
     def test_build_bibliography_with_audit_records_successful_enrichment(self):
         from datetime import datetime
