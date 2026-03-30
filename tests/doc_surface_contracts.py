@@ -816,7 +816,12 @@ def assert_recovery_ladder_contract(
     )
 
 
-def assert_runtime_reset_rediscovery_contract(content: str) -> None:
+def assert_runtime_reset_rediscovery_contract(
+    content: str,
+    *,
+    extra_reset_fragments: Iterable[str] = (),
+    extra_reset_not_recovery_fragments: Iterable[str] = (),
+) -> None:
     assert "/clear" in content
     assert "gpd resume" in content
     assert "gpd resume --recent" in content
@@ -828,6 +833,7 @@ def assert_runtime_reset_rediscovery_contract(content: str) -> None:
             "reset the runtime window",
             "reset the runtime to a fresh context window",
             "`/clear` first, then run `{next command}`",
+            *tuple(extra_reset_fragments),
         ),
         label="runtime reset wording",
     )
@@ -845,6 +851,7 @@ def assert_runtime_reset_rediscovery_contract(content: str) -> None:
         (
             "not as a recovery step",
             "instead of implying that `/clear` performs recovery",
+            *tuple(extra_reset_not_recovery_fragments),
         ),
         label="reset-not-recovery wording",
     )

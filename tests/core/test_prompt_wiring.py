@@ -2336,15 +2336,13 @@ def test_help_command_keeps_static_quick_start_while_workflow_owns_full_referenc
 def test_help_workflow_state_aware_variant_surfaces_paused_resume_branch() -> None:
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
+    assert_runtime_reset_rediscovery_contract(
+        help_workflow,
+        extra_reset_fragments=("then run gpd resume in your normal terminal",),
+        extra_reset_not_recovery_fragments=("then run gpd resume in your normal terminal",),
+    )
     assert "## Contextual Help (State-Aware Variant)" in help_workflow
     assert "Returning to work:" in help_workflow
-    assert "/clear                 # then run gpd resume in your normal terminal for the current workspace" in help_workflow
-    assert "gpd resume             # Current-workspace read-only recovery snapshot from your normal terminal" in help_workflow
-    assert "gpd resume --recent" in help_workflow
-    assert (
-        "gpd resume --recent    # Find the workspace first in your normal terminal when you need to reopen a different one"
-        in help_workflow
-    )
     assert "/gpd:resume-work" in help_workflow
     assert "/gpd:resume-work       # Continue in-runtime from the selected project state after reopening that workspace" in help_workflow
     assert help_workflow.index("gpd resume --recent") < help_workflow.index("/gpd:resume-work")

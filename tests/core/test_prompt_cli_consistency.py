@@ -540,6 +540,11 @@ def test_help_prompt_keeps_cost_surface_on_local_cli_not_runtime_slash_command()
 def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_return() -> None:
     help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
 
+    assert_runtime_reset_rediscovery_contract(
+        help_workflow,
+        extra_reset_fragments=("then run gpd resume in your normal terminal",),
+        extra_reset_not_recovery_fragments=("then run gpd resume in your normal terminal",),
+    )
     assert "**`/gpd:resume-work`**" in help_workflow
     assert "**`/gpd:pause-work`**" in help_workflow
     assert_resume_authority_contract(
