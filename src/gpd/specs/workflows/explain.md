@@ -55,6 +55,7 @@ Use the init payload to extract:
 - Any structured citation-source catalog fields such as `citation_source_files`, `citation_source_count`, and `derived_citation_sources`
 - Any manuscript-local reference status surfaced as `derived_manuscript_reference_status` when the explanation is about the active paper or manuscript
 - Any canonical result metadata you can recover through `gpd result search` when the concept maps to a derived equation, result, or quantity already stored in `intermediate_results`
+- Any upstream dependency context you can recover through `gpd result deps "{result_id}"` once a canonical result has been identified and the explanation needs to show where it comes from
 
 Search the local workspace for relevant mentions of the requested concept:
 
@@ -71,6 +72,7 @@ Also check for nearby high-value context when present:
 - Existing `GPD/literature/*-CITATION-SOURCES.json`
 - Existing manuscript-local `BIBLIOGRAPHY-AUDIT.json` when available
 - Existing canonical result entries surfaced by `gpd result search --text "{concept}"` or `gpd result search --equation "{concept}"`
+- The recorded dependency chain from `gpd result deps "{result_id}"` when a canonical stored result is central to the explanation
 
 If no project context exists, gather only the user request plus any relevant local files in the current working directory.
 

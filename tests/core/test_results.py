@@ -541,12 +541,12 @@ def test_result_search_rejects_conflicting_verification_filters():
         result_search({}, verified=True, unverified=True)
 
 
-def test_result_search_matches_depends_on_exact_identifiers():
+def test_result_search_matches_transitive_depends_on_identifiers():
     state: dict = {
         "intermediate_results": [
             {"id": "R-01", "equation": "A", "phase": "1", "depends_on": []},
             {"id": "R-02", "equation": "B", "phase": "2", "depends_on": ["R-01"]},
-            {"id": "R-03", "equation": "C", "phase": "3", "depends_on": ["R-01", "R-02"]},
+            {"id": "R-03", "equation": "C", "phase": "3", "depends_on": ["R-02"]},
         ]
     }
 
@@ -554,6 +554,22 @@ def test_result_search_matches_depends_on_exact_identifiers():
 
     assert [result.id for result in matches.matches] == ["R-02", "R-03"]
     assert matches.total == 2
+
+
+def test_result_search_matches_transitive_depends_on_across_phase_filter():
+    state: dict = {
+        "intermediate_results": [
+            {"id": "R-01", "equation": "A", "phase": "1", "depends_on": []},
+            {"id": "R-02", "equation": "B", "phase": "2", "depends_on": ["R-01"]},
+            {"id": "R-03", "equation": "C", "phase": "3", "depends_on": ["R-02"]},
+            {"id": "R-04", "equation": "D", "phase": "4", "depends_on": ["R-03"]},
+        ]
+    }
+
+    matches = result_search(state, depends_on="R-01", phase="3")
+
+    assert [result.id for result in matches.matches] == ["R-03"]
+    assert matches.total == 1
 
 
 def test_result_search_preserves_registry_order():

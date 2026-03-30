@@ -2446,7 +2446,7 @@ def result_persist_derived(
         )
         res = _result_upsert_derived(
             state,
-            result_id=id,
+            result_id=resolved_id,
             derivation_slug=derivation_slug,
             equation=equation,
             description=description,
@@ -2517,7 +2517,11 @@ def result_search(
     text: str | None = typer.Option(None, "--text", help="Search id, equation, and description"),
     equation: str | None = typer.Option(None, "--equation", help="Search by equation"),
     phase: str | None = typer.Option(None, "--phase", help="Filter by phase"),
-    depends_on: str | None = typer.Option(None, "--depends-on", help="Match results that depend on this result ID"),
+    depends_on: str | None = typer.Option(
+        None,
+        "--depends-on",
+        help="Match results that depend on this result ID directly or transitively",
+    ),
     verified: bool = typer.Option(False, "--verified", help="Show only verified"),
     unverified: bool = typer.Option(False, "--unverified", help="Show only unverified"),
 ) -> None:

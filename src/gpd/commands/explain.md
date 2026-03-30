@@ -25,7 +25,7 @@ Produce a rigorous, well-scoped explanation of a concept, method, notation, resu
 
 **Why subagent:** A good explanation has to hold together local project state, notation, nearby derivations, and literature context. Fresh context lets the explainer stay rigorous without dropping the active process.
 When available, the explainer should also use the derived citation-source catalog so literature guides can prefer stable `reference_id` anchors and openable URLs instead of reconstructing papers from prose.
-If the topic is already represented in `intermediate_results`, use `gpd result search` to recover the canonical result before explaining it so the explanation can anchor to the stored equation, description, phase, and verification state.
+If the topic is already represented in `intermediate_results`, use `gpd result search` to recover the canonical result before explaining it so the explanation can anchor to the stored equation, description, phase, and verification state. When the explanation also needs the upstream derivation path, run `gpd result deps "{result_id}"` after the search so the explanation can reuse the recorded dependency chain instead of reconstructing it from prose.
 </objective>
 
 <execution_context>
@@ -61,7 +61,7 @@ Extract the target concept from `$ARGUMENTS`.
 
 - If the request is materially ambiguous and the active project does not disambiguate it, ask one focused clarification question.
 - Otherwise infer the intended scope from the current phase, manuscript work, notation, and nearby project files.
-- If the concept looks like a derived equation or stored quantity, search the result registry first with `gpd result search` before falling back to prose-only context.
+- If the concept looks like a derived equation or stored quantity, search the result registry first with `gpd result search` before falling back to prose-only context. If you find a canonical `result_id`, use `gpd result deps` when the explanation needs upstream context.
 
 ## 2. Gather Context
 

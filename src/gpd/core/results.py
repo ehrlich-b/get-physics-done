@@ -240,6 +240,35 @@ def _normalize_equation_for_match(value: str | None) -> str:
     return re.sub(r"\s+", "", str(value or ""))
 
 
+def _result_has_upstream_dependency(
+    result: IntermediateResult,
+    depends_on: str,
+    *,
+    results_by_normalized_id: dict[str, IntermediateResult],
+) -> bool:
+    """Return whether ``result`` depends on ``depends_on`` directly or transitively."""
+    target_id = _normalize_identifier(depends_on)
+    if not target_id:
+        return False
+
+    queue: deque[str] = deque(result.depends_on)
+    visited: set[str] = set()
+
+    while queue:
+        dependency = queue.popleft()
+        normalized_dependency = _normalize_identifier(dependency)
+        if not normalized_dependency or normalized_dependency in visited:
+            continue
+        if normalized_dependency == target_id:
+            return True
+        visited.add(normalized_dependency)
+        upstream_result = results_by_normalized_id.get(normalized_dependency)
+        if upstream_result is not None:
+            queue.extend(upstream_result.depends_on)
+
+    return False
+
+
 def _normalize_ascii_slug(value: object) -> str:
     """Return an ASCII-safe slug token for stable identifier construction."""
     normalized = unicodedata.normalize("NFKD", str(value or "").strip().casefold())
@@ -440,6 +469,12 @@ def result_search(
     depends_on = _normalize_term(depends_on)
 
     candidates = result_list(state, phase=phase, verified=verified, unverified=unverified)
+    all_results = result_list(state)
+    results_by_normalized_id = {
+        _normalize_identifier(result.id): result
+        for result in all_results
+        if _normalize_identifier(result.id)
+    }
     matches: list[IntermediateResult] = []
 
     for result in candidates:
@@ -449,8 +484,10 @@ def result_search(
         if equation is not None and not term_matches(equation, result.equation or ""):
             continue
 
-        if depends_on is not None and not any(
-            _normalized_identifier_matches(depends_on, dependency) for dependency in result.depends_on
+        if depends_on is not None and not _result_has_upstream_dependency(
+            result,
+            depends_on,
+            results_by_normalized_id=results_by_normalized_id,
         ):
             continue
 
