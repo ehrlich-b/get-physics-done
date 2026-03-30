@@ -9,26 +9,31 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 
 ## Current Position
 
-**Current Phase:** 34
-**Current Phase Name:** Emergent Lorentz Invariance
+**Current Phase:** 35
+**Current Phase Name:** BW Theorem and Local Equilibrium
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
 **Current Plan:** 02/02 complete
 **Total Plans in Phase:** 2
-**Status:** Phase 34 execution complete. All 2 plans passed. Awaiting verification.
-**Last Activity:** 2026-03-29
-**Last Activity Description:** Phase 34 complete. LRNZ-01: isotropy restoration (cubic anisotropy irrelevant, rho~2). LRNZ-02: Lorentz from sigma model rescaling + Wick rotation (c_s=1.659Ja). Von Ignatowsky supporting route. LRNZ-03: v_LR/c_s=7.63, c_eff=c_s, metric assembly ds^2=-c_s^2 dt^2+g_ij dx^i dx^j.
+**Status:** Phase 35 execution complete. All 2 plans passed. Awaiting verification.
+**Last Activity:** 2026-03-30
+**Last Activity Description:** Phase 35 complete. BWEQ-01: BW prerequisites + lattice-BW Eq. (35.1). BWEQ-02: KMS from BW (beta=2pi), T_U=a/(2pi), theta=sigma=0 at bifurcation. Jacobson inputs J1-J3 packaged for Phase 36.
 
 
 ## Active Calculations
 
-- LRNZ-01: Emergent isotropy restoration -- COMPLETE (cubic anisotropy irrelevant, rho~2 Hasenbusch, O(a^2/L^2) corrections)
-- LRNZ-02: Lorentz invariance derivation -- COMPLETE (O(d+1) rescaling + Wick rotation, ds^2=-c_s^2 dt^2+dx^2, DLS reflection positivity)
-- LRNZ-02b: Von Ignatowsky supporting route -- COMPLETE (all 4 premises mapped, finite c_s selects Lorentz)
-- LRNZ-03: Velocity hierarchy and causal structure -- COMPLETE (v_LR/c_s=7.63, c_eff=c_s, two-tier causal, metric assembly)
-- 2D ED (4x4 OBC): m_s^2 = 0.233, Fisher g_plaq = 4.76e-4, sublattice TD = 0.114 -- COMPLETE
-- CORR-03: Fisher smoothness conditional theorem -- COMPLETE (g_F ~ O(m_s^2) > 0 for d>=2 Neel)
+- BWEQ-01: BW prerequisites + lattice-BW -- COMPLETE (W1-W4 satisfied, lattice-BW Eq. (35.1), SRF=0.9993)
+- BWEQ-02: KMS + local equilibrium -- COMPLETE (beta=2pi from BW, T_U=a/(2pi), theta=sigma=0, Jacobson J1-J3)
 
 ## Intermediate Results
+
+### Phase 35 Results (v9.0)
+
+- **BWEQ-01 (BW prerequisites)**: Wightman axioms W1-W4 satisfied for NL sigma model EFT. W5 (cluster) conditional on mass gap. W6 (constructive) open -- lattice-BW bypasses. OS reflection positivity from DLS 1978. (HIGH)
+- **BWEQ-01 (Lattice-BW)**: H_ent^{BW} = (2pi/c_s) sum x_perp h_x, Eq. (35.1). SRF = 0.9993 validates BW locality fingerprint. Type I (lattice) vs type III_1 (continuum) gap honestly stated. (HIGH)
+- **BWEQ-02 (KMS)**: KMS at beta=2pi derived (not assumed) from BW modular flow via Tomita-Takesaki. Modular flow sigma_t = boost by 2pi*t. (HIGH)
+- **BWEQ-02 (Unruh)**: T_U = a/(2pi) from modular-to-proper time conversion. 2pi traced end-to-end from K_A = 2pi K_boost. (HIGH)
+- **BWEQ-02 (Local equilibrium)**: theta = sigma = 0 at bifurcation surface from Killing equation -- exact geometric identity. (HIGH)
+- **BWEQ-02 (Jacobson inputs)**: J1 (K_A=2pi K_boost), J2 (theta=sigma=0), J3 (T_U=a/(2pi)) packaged for Phase 36. (MEDIUM-HIGH)
 
 ### Phase 34 Results (v9.0)
 
@@ -79,11 +84,15 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 | 33-03 | ~6min | 2 tasks | 1 files |
 | 34-01 | ~6min | 2 tasks | 1 files |
 | 34-02 | ~3min | 2 tasks | 1 files |
+| 35-01 | ~3min | 2 tasks | 1 files |
+| 35-02 | ~6min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 35, Plan 02]: KMS derived (not assumed) from BW + Tomita-Takesaki. theta=sigma=0 exact from Killing equation. T_U=a/(2pi) with 2pi traced end-to-end. Jacobson inputs J1-J3 ready for Phase 36.
+- [Phase 35, Plan 01]: BWEQ-01: Lattice-BW route (Giudici et al.) as primary. W6 open (constructive QFT gap). Type I/III gap honestly stated.
 - [Phase 34, Plan 02]: c_eff = c_s = 1.659 Ja (four arguments: dispersion, EFT, universality, Hamma). Metric assembly ds^2 = -c_s^2 dt^2 + g_ij dx^i dx^j schematic. v_LR/c_s = 7.63 is 1D-specific.
 - [Phase 34, Plan 01]: Isotropy via RG irrelevance (Hasenbusch rho~2), not numerical simulation. Wick rotation justified by DLS 1978 reflection positivity on bipartite lattices. Fisher metric != Lorentzian metric (forbidden proxy respected).
 - [Phase 33, Plan 03]: CORR-03 conditional theorem (H1-H4). Sublattice alternation gives g_F ~ O(m_s^2) > 0. d>=3 clean, d=2 logarithmic.
