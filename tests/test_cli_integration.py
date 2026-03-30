@@ -1170,6 +1170,69 @@ class TestSuggest:
         assert parsed["context"]["completed_phases"] == 0
         assert parsed["context"]["missing_conventions"] == []
 
+    def test_suggest_raw_prioritizes_resume_over_execute_phase_for_paused_project(
+        self, tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project_root = tmp_path_factory.mktemp("suggest-ranked-project")
+        fake_home = project_root / "fake-home"
+        fake_home.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr("gpd.hooks.runtime_detect.Path.home", lambda: fake_home)
+
+        planning = project_root / "GPD"
+        planning.mkdir()
+        state = default_state_dict()
+        state["position"].update(
+            {
+                "current_phase": "01",
+                "current_phase_name": "Test Phase",
+                "status": "Paused",
+                "paused_at": "Paused after task 2",
+            }
+        )
+        state["convention_lock"].update(
+            {
+                "metric_signature": "(-,+,+,+)",
+                "natural_units": "c=hbar=1",
+                "coordinate_system": "Cartesian",
+            }
+        )
+        (planning / "state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
+        (planning / "STATE.md").write_text(generate_state_markdown(state), encoding="utf-8")
+        (planning / "PROJECT.md").write_text("# Ranked Suggest Project\n", encoding="utf-8")
+        (planning / "ROADMAP.md").write_text(
+            "# Roadmap\n\n## Phase 1: Test Phase\nGoal: Test\nRequirements: REQ-01\n",
+            encoding="utf-8",
+        )
+        phase_dir = planning / "phases" / "01-test-phase"
+        phase_dir.mkdir(parents=True, exist_ok=True)
+        (phase_dir / "01-PLAN.md").write_text(
+            "---\nphase: '01'\nplan: '01'\nwave: 1\n---\n\n# Plan\n",
+            encoding="utf-8",
+        )
+
+        nested_cwd = project_root / "work" / "nested"
+        nested_cwd.mkdir(parents=True, exist_ok=True)
+
+        result = _invoke("--raw", "--cwd", str(nested_cwd), "suggest")
+        parsed = json.loads(result.output)
+
+        assert parsed["total_suggestions"] == 2
+        assert parsed["suggestion_count"] == 2
+        assert parsed["suggestion_count"] == len(parsed["suggestions"])
+        assert parsed["top_action"]["action"] == "resume"
+        assert parsed["top_action"]["command"] == "gpd resume"
+        assert parsed["top_action"]["priority"] == 1
+        assert parsed["top_action"] == parsed["suggestions"][0]
+        assert parsed["suggestions"][1]["action"] == "execute-phase"
+        assert parsed["suggestions"][1]["command"] == "gpd init execute-phase 01"
+        assert parsed["suggestions"][1]["priority"] == 3
+        assert parsed["suggestions"][1]["phase"] == "01"
+        assert parsed["context"]["current_phase"] == "01"
+        assert parsed["context"]["status"] == "Paused"
+        assert parsed["context"]["paused_at"] == "Paused after task 2"
+        assert parsed["context"]["active_blockers"] == 0
+        assert parsed["context"]["missing_conventions"] == []
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 2. slug
