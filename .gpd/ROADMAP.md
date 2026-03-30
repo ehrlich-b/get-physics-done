@@ -313,7 +313,11 @@ See `.gpd/milestones/v8.0-ROADMAP.md` for full details.
 
 **Backtracking trigger:** If rho_Lambda(x) is rank-deficient at generic lattice points (not just boundaries), the SLD Fisher metric diverges and Phase 32 must pivot to Bures metric throughout.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 32-01-PLAN.md -- Implement QFIM module (SLD + Bures), TFI benchmark, compute Fisher metric on SWAP 1D OBC N=8-20
+- [ ] 32-02-PLAN.md -- Prove smoothness (Hastings-Koma), positive-definiteness, distance recovery theorems; cross-validate with numerics
 
 ---
 
@@ -441,7 +445,7 @@ See `.gpd/milestones/v8.0-ROADMAP.md` for full details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 32. Fisher Geometry | v9.0 | 0/TBD | Not started | -- |
+| 32. Fisher Geometry | v9.0 | 0/2 | Planned | -- |
 | 33. Correlation Structure | v9.0 | 0/TBD | Not started | -- |
 | 34. Emergent Lorentz | v9.0 | 0/TBD | Not started | -- |
 | 35. BW + Equilibrium | v9.0 | 0/TBD | Not started | -- |
