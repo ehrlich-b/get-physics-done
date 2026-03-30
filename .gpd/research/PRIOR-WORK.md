@@ -1,291 +1,331 @@
-# Prior Work: Information-Geometric Continuum Limit from Finite-Dimensional Observer
+# Prior Work: Universality Class of Self-Modeler Network in h_3(O)
 
-**Surveyed:** 2026-03-29
-**Domain:** Quantum information geometry / Quantum lattice systems / Emergent spacetime
-**Confidence:** MEDIUM
+**Surveyed:** 2026-03-30
+**Domain:** Exceptional Jordan algebras / Quantum lattice systems / SSB with continuous symmetry / Nonlinear sigma models
+**Confidence:** MEDIUM (established results for SU(2)/O(3); novel territory for F_4 lattice systems)
 
-This document covers prior work relevant to closing Paper 6 Gap 1 (continuum limit) via the chain: finite-dim observer + SWAP lattice + exponential decay -> smooth Fisher manifold -> emergent Lorentz -> BW + equilibrium -> Jacobson -> Einstein. It does NOT re-cover established results from Papers 5-6 (self-modeling forces M_n(C)^sa, SWAP lattice, area law, Jacobson route) or v3.0 (Nachtergaele-Sims LR bound, ED benchmarks). Those are treated as validated inputs.
+This document covers prior work relevant to proving the universality class of the self-modeler network (whose algebra is h_3(O) with F_4 automorphism symmetry) supports the v9.0 mechanism chain. It does NOT re-cover v9.0 results (Fisher geometry -> sigma model -> Lorentz -> BW -> KMS -> Jacobson -> Einstein for the Heisenberg toy model) or v5.0/v8.0 results (h_3(O) Peirce decomposition, Cl(6) chirality, M_16(R) observable algebra). Those are validated inputs.
 
----
-
-## Key Results
-
-| Result | Expression / Value | Conditions | Source | Year | Confidence |
-|--------|-------------------|------------|--------|------|------------|
-| Hastings-Koma exponential clustering | Spectral gap gamma > 0 implies \|<A B> - <A><B>\| <= C \|A\| \|B\| exp(-d(A,B)/xi), xi = O(v_LR/gamma) | Short-range interactions, any d, wide class of lattices | Hastings-Koma, arXiv:math-ph/0507008 | 2006 | HIGH |
-| Nachtergaele-Sims LR bound (general) | \|[A(t),B]\| <= C min(\|A\|,\|B\|) exp(-a(d(X,Y) - v_LR\|t\|)) | Finite-range or exponentially decaying interactions | Nachtergaele-Sims, arXiv:math-ph/0506030 | 2006 | HIGH |
-| QFI = 4 x Bures metric (regular case) | g_ij^F(theta) = 4 g_ij^Bures(theta) for full-rank rho(theta) | rho(theta) full rank; breaks at rank changes | Zhou-Jiang, arXiv:1910.08473; Safranek arXiv:1612.04581 | 2017-2019 | HIGH |
-| Morozova-Cencov-Petz classification | Quantum monotone metrics form a family parametrized by operator monotone functions f; not unique unlike classical case | Finite-dim quantum systems, CPTP contractivity | Petz, J. Math. Phys. 37 (1996); Morozova-Cencov (1991) | 1991-1996 | HIGH |
-| Zanardi-Giorda-Cozzini: Fisher metric singularities = QPTs | Scalar curvature of Fisher metric on coupling-constant manifold diverges at quantum phase transitions | Ground state fidelity, finite systems, parameter manifold | Zanardi et al., arXiv:quant-ph/0701061 | 2007 | HIGH |
-| BW theorem: modular Hamiltonian = boost generator | Delta^{it} = exp(2 pi i K t) where K is the Lorentz boost generator for wedge region | Wightman axioms satisfied, vacuum state, wedge region | Bisognano-Wichmann, J. Math. Phys. 16 (1975), 17 (1976) | 1975-76 | HIGH |
-| Lattice BW: quantitative accuracy for Lorentz-invariant continuum limits | H_ent ~ sum_x x_perp h_x reproduces lattice entanglement spectra to within a few percent | Low-energy description is Lorentz-invariant QFT | Giudici et al., arXiv:1807.01322 | 2018 | HIGH |
-| DLS: Neel order for d >= 3, S >= 1 | Spontaneous SU(2) -> U(1) breaking in ground state | Hypercubic lattice, T = 0, spin S >= 1 in d >= 3 or S >= 3/2 in d = 2 | Dyson-Lieb-Simon, J. Stat. Phys. 18 (1978) | 1978 | HIGH |
-| SU(N) square lattice: Neel to VBS transition at N_c ~ 4.57 | Direct continuous QPT between Neel and VBS | Square lattice, singlet projector QMC | Kawashima-Tanabe, arXiv:0803.1529; Beach et al. PRB 80 (2009) | 2009 | MEDIUM-HIGH |
-| von Ignatowsky: relativity principle alone -> Galilean or Lorentzian | Homogeneity + isotropy + relativity principle => either v_max = infinity (Galilean) or finite v_max (Lorentzian) | No light postulate needed; need group structure of boosts | Ignatowsky (1910); modern: Pal, arXiv:physics/0302045; Levy-Leblond (1976) | 1910/1976 | HIGH |
-| Cao-Carroll-Michalakis: geometry from entanglement | Mutual information defines graph distance; MDS extracts spatial dimension and metric | Redundancy-constrained states with area-law entropy | Cao-Carroll-Michalakis, arXiv:1606.08444 | 2016 | MEDIUM-HIGH |
-| AKLT: rigorous gap for VBS ground states | Spectral gap proven for spin-1 chain; exponential decay of correlations | AKLT point of spin-1 Heisenberg, 1D | Affleck-Kennedy-Lieb-Tasaki, CMP 115 (1988) | 1988 | HIGH |
-| Jacobson: entanglement equilibrium -> Einstein equation | delta S_UV + delta S_mat = 0 at MSS vacuum implies G_ab + Lambda g_ab = 8 pi G T_ab | Smooth geometry assumed, conformal modular Hamiltonian, small geodesic ball | Jacobson, arXiv:1505.04753 | 2016 | HIGH |
-| Connes-Rovelli thermal time | Modular flow of a faithful state defines a preferred time flow on the algebra | Type III von Neumann algebra, faithful normal state | Connes-Rovelli, CQG 11 (1994) | 1994 | HIGH |
+**Central question:** Does the REAL self-modeler system (sites carrying h_3(O) degrees of freedom with F_4 symmetry) fall into a universality class where the v9.0 chain fires?
 
 ---
 
-## Foundational Work
+## Theoretical Framework
 
-### Hastings-Koma (2006) - Spectral Gap and Exponential Decay of Correlations
+### Governing Theory
 
-**Key contribution:** Proved rigorously that a nonvanishing spectral gap above the ground state implies exponential decay of connected correlation functions for quantum spin and fermion systems on a wide class of lattices in arbitrary spatial dimension. The correlation length is bounded as xi = O(v_LR / gamma) where v_LR is the Lieb-Robinson velocity and gamma is the spectral gap.
+| Framework | Scope | Key Equations | Regime of Validity |
+|-----------|-------|---------------|-------------------|
+| Exceptional Jordan algebra h_3(O) | 27-dim self-adjoint octonionic 3x3 matrices | a o b = (1/2)(ab + ba), Aut(h_3(O)) = F_4 | Exact algebraic structure |
+| DLS infrared bounds | SSB proof for quantum lattice systems with continuous symmetry | Infrared bound: S(k) <= C/E(k), E(k) ~ k^2 for AFM | Bipartite lattice, reflection positive, d >= 3 |
+| Nonlinear sigma model on G/H | Low-energy effective theory of SSB system | L = (1/2g^2) Tr(d_mu U^{-1} d^mu U), U in G/H | Below SSB scale, above lattice UV cutoff |
+| FSS infrared bounds (classical) | Phase transitions with continuous symmetry | Gaussian domination + RP -> infrared bound | d >= 3, NN ferromagnetic, reflection positive |
 
-**Method:** Combined Fourier analysis with Lieb-Robinson bounds to control the propagation of correlations. For observables that anticommute at large distance, the bare correlation decays exponentially. For commuting observables, the connected correlation decays exponentially. For vector observables under U(1) symmetry, the bare correlation decays on lattices with self-similarity in D < 2.
+### Mathematical Prerequisites
 
-**Limitations:** (1) Requires a spectral gap to exist -- does not prove the gap, only consequences of it. The SU(n) Heisenberg antiferromagnet on Z^d for d >= 2 is NOT known to be gapped (it almost certainly is NOT gapped due to Neel order and Goldstone modes). (2) The bound xi = O(v_LR/gamma) may not be tight. (3) Does not apply to gapless systems like the d=1 Heisenberg chain (which is in the SU(2)_1 WZW universality class).
+| Topic | Why Needed | Key Results | References |
+|-------|-----------|-------------|-----------|
+| F_4 Lie algebra (dim 52, rank 4) | Symmetry group of h_3(O) | F_4 = Aut(h_3(O)); maximal subgroups: Spin(9), SU(3)xSU(3), Sp(3)xSU(2) | Todorov-Drenska arXiv:1805.06739 |
+| Octonionic projective plane OP^2 | Target space of effective sigma model | OP^2 = F_4/Spin(9), dim = 16, compact symmetric space | Parton-Picken, Axioms 7(4):72 (2018) |
+| Reflection positivity on lattices | Technical condition for infrared bounds | RP holds for bipartite lattices with NN interactions | Froehlich-Simon-Spencer, CMP 50 (1976) |
+| Peirce decomposition of h_3(O) | Defines the lattice site algebra | h_3(O) = V_1 + V_{1/2} + V_0 (dims 1+16+10) | Validated in v5.0/v8.0 |
+| Spectral triples on Jordan backgrounds | Alternative approach via NCG | Farnsworth: F_4 x F_4 gauge theory from n-point Jordan geometries | arXiv:2503.10744, arXiv:2506.21496 |
 
-**Critical implication for v9.0:** This theorem is the bridge between "spectral gap" and "smooth Fisher manifold." IF the relevant lattice system has a spectral gap, then correlations of reduced density matrices decay exponentially, which gives the Fisher metric on the space of reduced states a well-defined, smooth structure in the thermodynamic limit. The catch: the Heisenberg AFM in d >= 2 breaks SU(n), producing Goldstone modes and closing the gap. The v9.0 chain must either (a) work in a gapped phase (AKLT-like deformation or disordered phase at finite T), (b) show the Fisher manifold is smooth despite gaplessness (the Goldstone modes produce power-law decay but may still give a well-defined Fisher metric), or (c) use a different route to smoothness.
+### Symmetries and Conservation Laws
 
-**Reference:** Hastings-Koma, "Spectral Gap and Exponential Decay of Correlations," CMP 265 (2006) 781-804, arXiv:math-ph/0507008
+| Symmetry | Conserved Quantity | Implications for Methods |
+|----------|-------------------|------------------------|
+| F_4 (automorphism of h_3(O)) | 52-dim Noether currents in continuum | Goldstone theorem: SSB of F_4 -> H produces dim(F_4/H) Goldstone modes |
+| Spin(9) (stabilizer of idempotent) | 36-dim charges | If F_4 -> Spin(9): 52-36 = 16 Goldstone modes on OP^2 |
+| G_2 (automorphism of octonions) | 14-dim charges | If F_4 -> G_2: 52-14 = 38 Goldstone modes |
+| Lattice translation | Crystal momentum | Dispersion relation of Goldstone modes determines spin-wave velocity |
+| Lattice point group | Discrete rotation symmetry | Must restore to full SO(d) in continuum limit for von Ignatowsky |
 
-### Nachtergaele-Sims-Young (2019) - Quasi-Locality Bounds for Quantum Lattice Systems
+### Unit System and Conventions
 
-**Key contribution:** Comprehensive framework unifying Lieb-Robinson bounds, quasi-local maps, and spectral flow automorphisms for quantum lattice systems. Provides the most modern and general formulation of LR bounds applicable to the SWAP Hamiltonian.
+- **Unit system:** hbar = 1, k_B = 1, lattice spacing a = 1
+- **Jordan product:** a o b = (1/2)(ab + ba)
+- **Peirce eigenvalues:** {0, 1/2, 1}
+- **Octonion convention:** Fano e_1 e_2 = e_4 (matches Paper 7)
+- **Clifford signature:** Cl(9,0) (positive definite)
 
-**Method:** Developed quasi-locality properties of general classes of maps on the algebra of local observables. Extended LR bounds to lattice fermion systems via conditional expectations onto CAR subalgebras. Established stability of gapped ground state phases for frustration-free models with Local Topological Quantum Order.
+### Known Limiting Cases
 
-**Limitations:** The stability results apply to frustration-free models (LTQO). The SU(n) Heisenberg model on general lattices is NOT frustration-free (the SWAP Hamiltonian is, but only for the ferromagnetic sign; the antiferromagnetic sign is frustrated on non-bipartite lattices).
-
-**Critical implication for v9.0:** Provides the mathematical infrastructure (LR bounds, quasi-local maps) needed to rigorously control the continuum limit. The LR velocity v_LR sets the "emergent speed of light." The v3.0 validated result v_LR = 8eJ/(e-1) for SWAP on Z^1 fits into this framework.
-
-**Reference:** Nachtergaele-Sims-Young, J. Math. Phys. 60 (2019) 061101, arXiv:1810.02428
-
-### Zanardi-Giorda-Cozzini (2007) - Information-Geometric Approach to Quantum Phase Transitions
-
-**Key contribution:** Established that the Riemannian metric induced by quantum state fidelity on the manifold of coupling constants (the "fidelity susceptibility" or "quantum geometric tensor") has singularities precisely at quantum phase transitions. This is the foundational result connecting Fisher information geometry to quantum lattice physics.
-
-**Method:** For a family of Hamiltonians H(lambda) parametrized by coupling constants lambda, the ground state |psi(lambda)> traces out a manifold. The pullback of the Fubini-Study metric to the parameter space gives the quantum Fisher information metric g_ij(lambda) = Re[<d_i psi | (1 - |psi><psi|) | d_j psi>]. The scalar curvature of this metric diverges at QPTs.
-
-**Limitations:** (1) Applies to pure states (ground states). Extension to thermal/mixed states requires the Bures/SLD Fisher metric, which is more complex. (2) For gapless systems, the fidelity susceptibility diverges as a power law, not a simple singularity -- the metric is still defined but its curvature diverges. (3) Does not directly address the reduced density matrix manifold for a subregion.
-
-**Critical implication for v9.0:** This is the closest prior work to the v9.0 approach. The v9.0 chain needs the Fisher metric on the manifold of REDUCED density matrices rho_A(x) as the lattice site x varies, not on the full parameter manifold. The reduced-state Fisher metric inherits smoothness from the exponential clustering property. Zanardi et al. provide the conceptual framework; v9.0 must extend it from parameter space to physical (lattice-position) space.
-
-**Reference:** Zanardi-Giorda-Cozzini, Phys. Rev. Lett. 99 (2007) 100603, arXiv:quant-ph/0701061
-
-### Bisognano-Wichmann (1975-76) - Modular Hamiltonian and Lorentz Boosts
-
-**Key contribution:** In Wightman-axiomatic QFT, the Tomita-Takesaki modular operator Delta of the vacuum state restricted to a wedge-shaped region equals the unitary group generated by the Lorentz boost preserving that wedge: Delta^{it} = exp(2 pi i K t), where K is the boost generator. Equivalently, the modular Hamiltonian H_mod = -ln(rho_wedge) is proportional to the boost generator.
-
-**Method:** Applies Tomita-Takesaki modular theory to the von Neumann algebra associated with a Rindler wedge. Uses the PCT theorem and spectral condition to identify modular conjugation J with the CRT operator and the modular flow with Lorentz boosts.
-
-**Limitations:** (1) Requires Wightman axioms (Lorentz invariance is an INPUT, not derived). (2) Exact only for the vacuum in a wedge region; for other regions (balls, half-spaces) the modular Hamiltonian is typically non-local. (3) Does not apply to lattice systems directly -- it is a continuum QFT result.
-
-**Critical implication for v9.0:** The BW theorem is the bridge between "emergent Lorentz invariance" and the Jacobson argument. If the lattice Fisher manifold is smooth and the continuum limit is Lorentz-invariant, then BW identifies the modular Hamiltonian with the boost generator, giving the thermal/Unruh temperature T = 1/(2 pi) needed for Jacobson's thermodynamic derivation of Einstein equations. The key question is whether BW-like structure emerges from the lattice without assuming Lorentz invariance as input.
-
-**Reference:** Bisognano-Wichmann, J. Math. Phys. 16 (1975) 985; J. Math. Phys. 17 (1976) 303
-
-### Giudici-Mendes-Santos-Dalmonte (2018) - Lattice BW Entanglement Hamiltonians
-
-**Key contribution:** Demonstrated numerically that the Bisognano-Wichmann form of the entanglement Hamiltonian (H_ent ~ sum_x x_perp h_x, linearly weighted by distance from entangling surface) provides a quantitatively accurate description of lattice entanglement Hamiltonians whenever the low-energy physics is captured by a Lorentz-invariant QFT.
-
-**Method:** Computed exact lattice entanglement Hamiltonians using DMRG, ED, and QMC for Ising, Potts, and Luttinger liquid models in 1D and 2D. Compared eigenvalues, eigenvectors, and correlation functions with the BW prediction.
-
-**Limitations:** (1) Accuracy degrades when Lorentz invariance is not a good description (massive phases far from criticality). (2) Edge effects and finite-size corrections can be significant. (3) Does not constitute a proof that BW emerges -- it is numerical evidence.
-
-**Critical implication for v9.0:** Provides strong numerical evidence that BW structure can emerge on the lattice without being assumed. If the SWAP lattice's continuum limit is Lorentz-invariant (which v9.0 aims to show via Fisher geometry + von Ignatowsky), the lattice BW result would apply. The 2025 QMC study (arXiv:2511.00950) extends this to show BW accuracy even beyond strict Lorentz invariance in some cases.
-
-**Reference:** Giudici et al., Phys. Rev. B 98 (2018) 134403, arXiv:1807.01322
-
-### Ignatowsky (1910) / Levy-Leblond (1976) - Relativity Without Light
-
-**Key contribution:** Demonstrated that the principle of relativity (equivalence of inertial frames) combined with spatial isotropy, homogeneity, and group structure of boosts uniquely determines the transformation law to be either Galilean (v_max = infinity) or Lorentzian (finite v_max). No postulate about light is needed. The invariant speed v_max is a free parameter that must be determined empirically or from additional physics.
-
-**Method:** Assumes boosts form a one-parameter group, spatial isotropy, and reciprocity (if S' moves at v relative to S, then S moves at -v relative to S'). Derives that the composition law must be either additive (Galilean) or the Lorentz addition formula with an undetermined parameter 1/V^2 where V is the invariant speed.
-
-**Limitations:** (1) Does not determine the VALUE of the invariant speed -- only that one exists. (2) Requires the transformation to be continuous and to form a group. (3) Does not address the microscopic origin of why boosts should form a group at all.
-
-**Critical implication for v9.0:** This is the key theorem connecting "emergent finite signal speed" (from Lieb-Robinson) to "emergent Lorentz symmetry." The v9.0 argument is: (a) LR bounds give finite v_LR, (b) the continuum limit inherits a finite maximum signal speed, (c) if the continuum limit also has spatial isotropy and translational invariance (from lattice symmetries), then von Ignatowsky forces the symmetry group to be either Galilean or Lorentzian, (d) the Galilean option is excluded because v_max < infinity, (e) therefore Lorentz symmetry. The gap in this argument is step (c) -- spatial isotropy of the continuum limit is not guaranteed from a cubic lattice (which has only discrete rotational symmetry).
-
-**References:**
-- Ignatowsky, Phys. Z. 11 (1910) 972; Arch. Math. Phys. 17 (1911) 1
-- Levy-Leblond, Am. J. Phys. 44 (1976) 271
-- Pal, Eur. J. Phys. 24 (2003) 315, arXiv:physics/0302045
-- Pelissetto-Testa, Am. J. Phys. 83 (2015) 338, arXiv:1504.02423
-
-### Jacobson (2016) - Entanglement Equilibrium and the Einstein Equation
-
-**Key contribution:** Showed that if the vacuum is a state of maximal entanglement entropy for small geodesic balls at fixed volume (the "maximal vacuum entanglement hypothesis" or MVEH), and the entanglement first law delta S = delta <K> holds, then the semiclassical Einstein equation G_ab + Lambda g_ab = 8 pi G T_ab follows.
-
-**Method:** Decomposes entanglement entropy as S = S_UV + S_mat where S_UV = eta * Area is the area-proportional UV contribution. The MVEH condition delta S = 0 combined with the Raychaudhuri equation for delta Area and the entanglement first law for delta S_mat yields Einstein's equation. In the conformal case, the modular Hamiltonian is the Casini-Huerta-Myers conformal Hamiltonian, making the derivation explicit.
-
-**Limitations:** (1) Assumes smooth geometry exists (this IS Gap 1). (2) Uses conformal modular Hamiltonian (Route A) or tensoriality assumption (Route B via Lovelock). (3) Does not derive MVEH -- treats it as a hypothesis (though Paper 6 reframes it via Connes-Rovelli thermal time).
-
-**Critical implication for v9.0:** This is the ENDPOINT of the v9.0 chain. Everything upstream (Fisher manifold, Lorentz, BW) is aimed at establishing the preconditions for Jacobson's argument. Once smooth geometry + Lorentz invariance + BW are established, Jacobson's argument runs exactly as in Paper 6.
-
-**Reference:** Jacobson, Phys. Rev. Lett. 116 (2016) 201101, arXiv:1505.04753
-
-### Dyson-Lieb-Simon (1978) - Neel Order in Quantum Antiferromagnets
-
-**Key contribution:** Proved rigorously that the SU(2) Heisenberg antiferromagnet exhibits spontaneous symmetry breaking (Neel order) for spin S >= 1 in d >= 3 and S >= 3/2 in d = 2 at zero temperature. Extended by subsequent work: S = 1/2 in d = 2 (Kennedy-Lieb-Shastry 1988, not rigorous but strong numerical evidence).
-
-**Method:** Infrared bounds via reflection positivity. Bounded the two-point spin correlation function from below, showing it cannot decay fast enough to prevent long-range order.
-
-**Limitations:** (1) Does not determine the spectrum above the Neel ground state (spectral gap vs. gapless Goldstone modes). (2) The existence of Neel order means the SU(n) symmetry is spontaneously broken, producing (n^2 - 1) Goldstone modes (for SU(n)), which are gapless. (3) The resulting low-energy theory is a nonlinear sigma model, not a CFT.
-
-**Critical implication for v9.0:** This is the OBSTACLE. In d >= 2, the Heisenberg AFM breaks SU(n) spontaneously, producing Goldstone bosons and closing the spectral gap. The Hastings-Koma theorem (which requires a gap) does not directly apply. However: (a) the nonlinear sigma model has well-defined propagating modes with finite velocity (the spin-wave velocity c_s), (b) correlations decay as power laws (not exponentially) but the Fisher metric may still be well-defined (it encodes local geometric information, not long-range correlations), (c) at finite temperature, Mermin-Wagner prevents true long-range order in d = 2, restoring a finite correlation length.
-
-**Reference:** Dyson-Lieb-Simon, J. Stat. Phys. 18 (1978) 335
-
-### Cao-Carroll-Michalakis (2016) - Space from Hilbert Space
-
-**Key contribution:** Showed how to reconstruct spatial geometry from the entanglement structure of a quantum state. Used mutual information I(A:B) between subsystems as a distance measure on a graph, then applied classical multidimensional scaling (MDS) to extract the emergent spatial dimension and metric.
-
-**Method:** Factorize Hilbert space H = tensor product of H_i. Define graph distance d(i,j) from mutual information. Apply MDS to extract embedding dimension and coordinates. For "redundancy-constrained" states (area-law entanglement), this produces a well-defined Riemannian geometry.
-
-**Limitations:** (1) Mutual information is NOT the same as the Fisher information metric -- MI measures total correlations, Fisher metric measures distinguishability. (2) The MDS procedure is a classical statistical technique with no guarantee of uniqueness. (3) Produces spatial geometry only, not spacetime. (4) Does not explain why the state should have area-law entanglement.
-
-**Critical implication for v9.0:** The CCM approach uses mutual information; v9.0 proposes to use the Fisher information metric instead. The Fisher metric has the advantage of being a true Riemannian metric (by Cencov/Petz theory) with natural monotonicity properties, and it directly encodes the local distinguishability of reduced states. The v9.0 approach is conceptually cleaner: the Fisher metric on the space of reduced density matrices {rho_A(x)} as x varies over lattice sites IS the emergent spatial metric, without needing MDS or ad hoc distance definitions.
-
-**Reference:** Cao-Carroll-Michalakis, Phys. Rev. D 95 (2017) 024031, arXiv:1606.08444
-
-### Petz (1996) / Morozova-Cencov (1991) - Classification of Quantum Fisher Metrics
-
-**Key contribution:** Classified all Riemannian metrics on quantum state space that are monotone under completely positive trace-preserving (CPTP) maps. Unlike the classical case (Cencov's theorem: the Fisher-Rao metric is unique up to a constant), the quantum case admits a one-parameter family of monotone metrics, each determined by an operator monotone function f: (0,infinity) -> (0,infinity) with f(t) = t f(1/t).
-
-**Method:** Characterized monotone metrics via the formula g_f(A, B) = Tr(A c_f(L_rho, R_rho)^{-1}(B)) where c_f is the mean associated with f, and L_rho, R_rho are left and right multiplication superoperators. The SLD (symmetric logarithmic derivative) Fisher information corresponds to f(t) = (1+t)/2 and gives the largest monotone metric (= 4 x Bures metric). The RLD metric corresponds to f(t) = t and gives the smallest.
-
-**Limitations:** (1) The non-uniqueness of the quantum Fisher metric means one must choose which metric to use. (2) The SLD Fisher metric has discontinuities when the rank of rho changes (Safranek 2017). (3) All metrics agree on pure states (reducing to the Fubini-Study metric) but differ on mixed states.
-
-**Critical implication for v9.0:** Must specify WHICH quantum Fisher metric defines the emergent geometry. The SLD Fisher metric (= 4 x Bures) is the natural choice because: (a) it is the largest monotone metric, giving the most sensitive geometry, (b) it equals the Cramer-Rao bound for parameter estimation, giving it operational meaning, (c) for the reduced density matrices of interest (which are generically full-rank for thermal/ground states of lattice systems), all monotone metrics give qualitatively similar results. The choice must be stated explicitly and consistently.
-
-**Reference:** Petz, Lin. Alg. Appl. 244 (1996) 81; Morozova-Cencov, "Markov invariant geometry on manifolds of states," J. Soviet Math. 56 (1991) 2648
+| Limit | Parameter Regime | Expected Behavior | Reference |
+|-------|-----------------|-------------------|-----------|
+| SU(2) Heisenberg | Restrict h_3(O) to h_2(C) | Neel order d >= 3; O(3) sigma model; v9.0 chain fires | DLS 1978; v9.0 |
+| Free field (g -> 0) | Sigma model weak coupling | Asymptotic freedom in 2D; perturbative in d >= 3 | Friedan, Ann. Phys. 163 (1985) |
+| Large-N O(N) | N -> infinity with g^2 N fixed | Solvable sigma model; mass gap in 2D | Brezin-Zinn-Justin, PRB 14 (1976) |
+| Classical limit S -> infinity | Quantum -> classical lattice model | FSS theorem applies directly | Biskup-Chayes-Starr, CMP 269 (2007) |
 
 ---
 
-## Recent Developments
+## Key Parameters and Constants
 
-| Paper | Authors | Year | Advance | Impact on Our Work |
-|-------|---------|------|---------|-------------------|
-| Emergent Spacetime in Quantum Lattice Models | Jahn et al. | 2022 | Showed how graphene-like lattice models produce emergent curved spacetime in continuum limit with identifiable lattice observables | Validates the general program of lattice -> continuum geometry; different mechanism than Fisher metric |
-| Fisher Curvature Scaling at Critical Points | (recent arXiv) | 2025 | Exact information-geometric exponent for scalar curvature of Fisher metric at criticality with periodic BCs | Confirms Fisher metric geometry is singular at QPTs; relevant to understanding what happens at phase boundaries |
-| QFI Density in Extended Ising Model | (EPJB 2025) | 2025 | QFI density from all two-qubit RDMs detects topological QPTs in 1D extended Ising | Demonstrates QFI from reduced density matrices detects phase structure; directly relevant technology |
-| Lattice BW via QMC | (arXiv 2511.00950) | 2025 | Extended lattice BW entanglement Hamiltonian studies; BW accuracy even beyond strict Lorentz invariance | Strengthens the case that BW structure emerges robustly from lattice systems |
-| Information Geometry of Quantum Stochastic Thermodynamics | (PRE 2025) | 2025 | Decomposed any QFI into metric-independent incoherent part + metric-dependent coherent contribution | Clarifies the structure of QFI decomposition; relevant to understanding which part of Fisher geometry carries geometric information |
-| Stability of Gapped Phases (AKLT, decorated) | Nachtergaele-Sims-Young | 2023 | First rigorous proof of stable gapped phase for non-commuting 2D interaction (decorated AKLT) | Progress toward rigorous gap proofs in d >= 2, though not for undecorated Heisenberg |
-| Farnsworth n-point Exceptional Universe | Farnsworth | 2025 | Spectral triples from non-simple exceptional Jordan algebras with F_4 x F_4 gauge theory | Different approach to exceptional geometry; cross-validates the Jordan algebra route of Papers 5-7 |
-
----
-
-## Known Limiting Cases
-
-| Limit | Known Result | Source | Verified By |
-|-------|-------------|--------|-------------|
-| d=1, SU(2), S=1/2 AFM | SU(2)_1 WZW CFT with c=1; Calabrese-Cardy S(L) = (c/3) ln(L/a) + const | Calabrese-Cardy, JSTAT P06002 (2004) | Paper 6 Section III; extensive DMRG literature |
-| d=1, AKLT (S=1) | Gapped, VBS ground state, exponential decay xi ~ 1/ln(3), exact MPS with bond dim 2 | Affleck-Kennedy-Lieb-Tasaki, CMP 115 (1988) | Exact diagonalization, DMRG; Haldane gap confirmed numerically |
-| d >= 3, SU(2), S >= 1 | Neel order (rigorous), Goldstone modes, NL sigma model description | Dyson-Lieb-Simon (1978) | QMC, spin-wave theory |
-| d = 2, SU(2), S = 1/2 | Neel order (strong numerical evidence, not fully rigorous for S=1/2), spin-wave velocity c_s well-determined | Kennedy-Lieb-Shastry (1988); extensive QMC | QMC: Sandvik et al.; spin-wave: Zheng et al. |
-| T > 0, d = 2, SU(2) | Mermin-Wagner: no long-range order, finite correlation length xi(T) ~ exp(2 pi rho_s / T) | Mermin-Wagner (1966); Hasenbusch-Nishimori (1990) | QMC |
-| Bures metric, pure states | g_Bures = (1/4) g_FS (Fubini-Study metric) | Standard QI textbooks | Mathematical identity |
-| Fisher metric, i.i.d. limit | QFI is additive: F(rho^{tensor n}) = n F(rho) | Petz (1996) | Standard result |
+| Parameter | Value | Source | Notes |
+|-----------|-------|--------|-------|
+| dim h_3(O) | 27 | Algebraic | Site Hilbert space dimension (per self-modeler) |
+| dim F_4 | 52 | Algebraic | Number of continuous symmetry generators |
+| rank F_4 | 4 | Algebraic | Number of independent Casimirs |
+| dim OP^2 = F_4/Spin(9) | 16 | Algebraic | Goldstone manifold dimension if F_4 -> Spin(9) |
+| dim Spin(9) | 36 | Algebraic | Stabilizer of a primitive idempotent in h_3(O) |
+| Ricci curvature of OP^2 | Positive (Einstein manifold) | Differential geometry | Ensures asymptotic freedom of 2D sigma model |
 
 ---
 
-## Open Questions
+## Established Results to Build On
 
-1. **Does the SU(n) Heisenberg AFM in d >= 2 have a spectral gap for any n?** -- For the fundamental (spin-1/2 analog) representation, the answer is almost certainly NO due to Neel order and Goldstone modes. For higher representations or SU(n) with large n, the situation is more complex. The SU(N) model on the square lattice has a Neel-to-VBS transition at N_c ~ 4.57 (Beach et al. 2009); for N > N_c the VBS phase may be gapped. This is an open question in condensed matter theory.
+### Result 1: Froehlich-Simon-Spencer (FSS) Infrared Bounds for Classical Systems
 
-2. **Is the Fisher metric on the manifold of reduced density matrices {rho_A(x)} smooth for gapless systems?** -- For gapped systems, exponential decay of correlations guarantees smoothness. For gapless systems with power-law correlations (Goldstone modes), the Fisher metric is still defined but may have power-law divergences or singularities. The d=1 CFT case is well-understood (the Fisher metric is smooth and conformally flat); the d >= 2 Neel-ordered case is not.
+**Statement:** For classical lattice spin models on Z^d (d >= 3) with compact continuous symmetry group G, nearest-neighbor ferromagnetic interactions, and reflection positivity, the Fourier transform of the two-point function satisfies S(k) <= C/E(k) where E(k) is the lattice Laplacian spectrum. This infrared bound implies long-range order (SSB of G) at sufficiently low temperature.
 
-3. **Does the lattice BW structure emerge without assuming Lorentz invariance?** -- The numerical evidence (Giudici et al. 2018, arXiv:2511.00950) is encouraging but not a proof. A rigorous derivation of BW-like modular flow from lattice dynamics alone does not exist.
+**Proven/Conjectured:** PROVEN (1976)
 
-4. **Can the von Ignatowsky argument be made rigorous starting from lattice symmetries?** -- The argument requires continuous spatial isotropy, but a lattice has only discrete rotational symmetry (e.g., C_4v for a square lattice). In the continuum limit, one expects the full rotation group to be restored if the lattice spacing goes to zero, but making this rigorous requires control of lattice artifacts.
+**Reference:** Froehlich-Simon-Spencer, CMP 50 (1976) 79-95
 
-5. **What is the role of the spin-wave velocity c_s?** -- In the Neel-ordered phase, the spin-wave velocity c_s = Ja sqrt(2Zd) (in spin-wave theory) sets the ratio of spatial to temporal scales. This should become the emergent speed of light in the von Ignatowsky argument. The precise relationship between c_s and the LR velocity v_LR (which is typically larger, since v_LR is a rigorous upper bound) needs clarification.
+**Relevance:** This is the foundational method. Originally proved for O(N) models and phi^4 theories. The key insight: the infrared bound S(k) <= C/k^2 prevents correlations from decaying too fast, forcing long-range order in d >= 3. The method requires TWO technical conditions: (1) reflection positivity of the measure, and (2) a Gaussian domination inequality. For the CLASSICAL F_4 lattice model (which exists in the classical limit S -> infinity of the quantum model), FSS applies IF the interaction is reflection positive. NN interactions on bipartite lattices satisfy RP.
+
+**Confidence:** HIGH for O(N)/SU(N) models; MEDIUM for F_4 (conditions met in principle, but never explicitly verified for exceptional groups)
+
+### Result 2: Dyson-Lieb-Simon (DLS) Neel Order for Quantum Heisenberg
+
+**Statement:** The quantum SU(2) Heisenberg antiferromagnet on Z^d exhibits spontaneous symmetry breaking (Neel order) at T = 0 for: (a) S >= 1, d >= 3; (b) S >= 3/2, d >= 2; and at T > 0 for S >= 1, d >= 3. Extended by Kennedy-Lieb-Shastry (1988) to S = 1/2, d >= 3.
+
+**Proven/Conjectured:** PROVEN
+
+**Reference:** Dyson-Lieb-Simon, J. Stat. Phys. 18 (1978) 335; Kennedy-Lieb-Shastry, J. Stat. Phys. 53 (1988) 1019
+
+**Relevance:** The benchmark result. DLS proves SSB for quantum spins with SU(2) symmetry. The METHOD (reflection positivity + infrared bounds) is what matters for v10.0: can it be extended to F_4 symmetry? DLS used properties specific to SU(2) spin operators, but the underlying framework (RP + infrared bounds) is more general. Nachtergaele's review (arXiv:math-ph/0603017) surveys the landscape of extensions.
+
+**Confidence:** HIGH
+
+### Result 3: Biskup-Chayes-Starr Quantum-to-Classical Reduction
+
+**Statement:** For quantum spin systems with reflection positivity and a meaningful classical limit (spin magnitude S -> infinity), whenever chessboard estimates prove a phase transition in the classical model, the quantum model has a similar phase transition provided beta << sqrt(S). This reduces the quantum SSB problem to the classical one for large enough spin.
+
+**Proven/Conjectured:** PROVEN
+
+**Reference:** Biskup-Chayes-Starr, CMP 269 (2007) 611-657; arXiv:math-ph/0509017
+
+**Relevance:** This is a CRITICAL result for v10.0. It says: if we can establish SSB for the CLASSICAL F_4 lattice model (which is the FSS problem), then the QUANTUM version also has SSB for large enough effective spin. The h_3(O) site algebra is 27-dimensional, so the "spin" is large (analogous to large S). The condition beta << sqrt(S) with S ~ 27 is not particularly restrictive. The catch: must verify the quantum model is reflection positive and has a well-defined classical limit.
+
+**Confidence:** HIGH for the general theorem; MEDIUM for applicability to h_3(O) (need to verify RP and classical limit)
+
+### Result 4: Sigma Model One-Loop Beta Function = Ricci Tensor
+
+**Statement:** For a 2D nonlinear sigma model with target manifold (M, g), the one-loop RG beta function is beta^{(1)}_{ab} = (1/2pi) R_{ab} where R_{ab} is the Ricci tensor of the target manifold. For compact symmetric spaces G/H, the Ricci tensor is proportional to the metric: R_{ab} = (1/2d_G/H) g_{ab} where the proportionality depends on the geometry. Positive Ricci curvature implies asymptotic freedom.
+
+**Proven/Conjectured:** PROVEN (perturbatively)
+
+**Reference:** Friedan, Ann. Phys. 163 (1985) 318; Polyakov, Phys. Lett. B 59 (1975) 79
+
+**Relevance:** The octonionic projective plane OP^2 = F_4/Spin(9) is a compact symmetric Einstein manifold with positive Ricci curvature. Therefore a 2D sigma model on OP^2 is asymptotically free, just like the O(3) sigma model that describes the Heisenberg antiferromagnet. This is the effective field theory statement: IF the F_4 lattice model breaks F_4 -> Spin(9) spontaneously, the Goldstone sector is described by a sigma model on OP^2 that is asymptotically free in 2D and has massive excitations (spin waves) in d >= 3 with a well-defined propagation velocity.
+
+**Confidence:** HIGH for the general result; MEDIUM for applicability to the specific F_4 -> Spin(9) breaking pattern (which has not been established)
+
+### Result 5: F_4 Subgroup Structure and Borel-de Siebenthal Classification
+
+**Statement:** The maximal subgroups of F_4 (compact form) include: (a) Spin(9) (dim 36) -- stabilizer of a primitive idempotent in h_3(O); coset F_4/Spin(9) = OP^2 (dim 16). (b) SU(3) x SU(3) / Z_3 (dim 16) -- preserves the decomposition of h_3(O) into 3x3 block structure. (c) Sp(3) x SU(2) (dim 24) -- related to quaternionic substructure. The intersection of (a) and (b) yields the Standard Model gauge group (Todorov).
+
+**Proven/Conjectured:** PROVEN (classification theory)
+
+**Reference:** Todorov-Drenska, Adv. Appl. Cliff. Alg. 28:82 (2018), arXiv:1805.06739
+
+**Relevance:** Determines the possible SSB patterns. If the lattice model breaks F_4 completely, the Goldstone manifold is F_4 itself (dim 52 modes). If it breaks F_4 -> Spin(9), the Goldstone manifold is OP^2 (16 modes). The PHYSICAL question is which subgroup H is preserved, which depends on the specific Hamiltonian. For self-modeler dynamics, Spin(9) is the most natural stabilizer because it is the automorphism group that preserves a chosen idempotent (= a chosen "observer" state in h_3(O)).
+
+**Confidence:** HIGH for the group theory; LOW for which pattern is realized dynamically
+
+### Result 6: Farnsworth Spectral Geometry with Exceptional Jordan Algebras
+
+**Statement:** Finite-dimensional discrete spectral geometries can be constructed from non-simple exceptional Jordan algebras as coordinate algebras. The 2-point geometry yields an F_4 x F_4 gauge theory; the 1-point geometry yields G_2 x G_2. Scalar content is restricted by novel conditions from the associative properties of the coordinate algebra.
+
+**Proven/Conjectured:** PROVEN (constructive)
+
+**Reference:** Farnsworth, arXiv:2503.10744 (2025); arXiv:2506.21496 (2025)
+
+**Relevance:** Independent confirmation that the exceptional Jordan algebra route to gauge theories is viable. Farnsworth's approach is via noncommutative geometry / spectral triples, different from the self-modeling route of Papers 5-7. The F_4 x F_4 gauge group from the 2-point geometry is larger than what emerges from the self-modeling framework, but the underlying algebraic structure is the same h_3(O). This cross-validates the general approach without duplicating it.
+
+**Confidence:** MEDIUM (very recent, not yet widely cited)
+
+### Result 7: Bjornberg-Ueltschi Review of RP and Infrared Bounds for Quantum Spins
+
+**Statement:** Comprehensive review of the method of reflection positivity and infrared bounds applied to quantum spin systems. Covers the DLS approach, random loop representations, and extensions to SU(2)-invariant systems including spin-1 bilinear-biquadratic models.
+
+**Proven/Conjectured:** REVIEW
+
+**Reference:** Bjornberg-Ueltschi, arXiv:2204.12896 (2022)
+
+**Relevance:** Most recent comprehensive survey of the RP/infrared bound technology. Clarifies what symmetry groups and lattice structures the method handles. The method works for systems where: (i) the Hamiltonian is reflection positive across a lattice hyperplane, (ii) Gaussian domination can be established, and (iii) the infrared bound S(k) <= C/E(k) can be proven. The SU(2) case is fully worked out; extensions to SU(N) and other groups require case-by-case verification.
+
+**Confidence:** HIGH
 
 ---
 
-## Notation Conventions in the Literature
+## Open Problems Relevant to This Project
 
-| Quantity | Standard Symbol(s) | Variations | Our Choice | Reason |
-|----------|-------------------|------------|------------|--------|
-| Spectral gap | gamma, Delta | Gap, E_gap, Delta E | gamma | Consistent with Hastings-Koma |
-| Lieb-Robinson velocity | v_LR, c_LR | v, c_s (NOT spin-wave velocity) | v_LR | Distinguish from spin-wave velocity c_s |
-| Quantum Fisher information | F, H, I_F, g_F | QFI, J (Helstrom) | F or g_F | F for scalar, g_F for metric tensor |
-| Bures metric | d_B, g_B | d_Bures, ds^2_B | g_B | Petz convention |
-| Modular Hamiltonian | K, H_mod | K_A, H_E, h_ent | K_A | Consistent with Paper 6 |
-| Correlation length | xi | l_c, lambda_c | xi | Standard condensed matter |
-| Lattice spacing | a | epsilon, delta, l | a | Consistent with Paper 6 |
-| Spin-wave velocity | c_s, c_sw | v_s, v_sw | c_s | Standard spin-wave theory |
-| Entanglement entropy | S, S_E, S_vN | S_A, S_ent | S(A) | Consistent with Paper 6 |
+### Open Problem 1: Existence of SSB for Lattice Models with Exceptional Symmetry
+
+**Statement:** Does a quantum lattice system on Z^d (d >= 3) with F_4-symmetric nearest-neighbor interactions exhibit spontaneous symmetry breaking at low temperature?
+
+**Why it matters:** This is THE central question for v10.0. If SSB occurs, the Goldstone sector provides the sigma model needed for the rest of the v9.0 chain. If SSB does not occur (which would be surprising in d >= 3 for a compact continuous symmetry with large enough representation), the mechanism fails.
+
+**Current status:** No published work addresses this specific question. However, the general theory strongly suggests YES for the following reasons:
+
+1. The classical limit (FSS 1976): A classical F_4 lattice model on Z^d, d >= 3 with NN ferromagnetic interaction is expected to break F_4 spontaneously, by the same FSS infrared bound argument that works for O(N). The FSS method requires only reflection positivity (satisfied for NN bipartite) and Gaussian domination (which follows from the convexity structure of the interaction). The key technical step is verifying that the F_4 Haar measure provides the needed estimates. For ANY compact group G, the NN Heisenberg model on Z^d with spins in a G-representation has a classical RP measure, and FSS-type arguments go through in d >= 3 for large enough representation dimension. This is essentially the content of the Biskup-Chayes-Starr framework.
+
+2. The quantum regime (DLS-type): For quantum spins with F_4 symmetry and site Hilbert space dim 27, the Biskup-Chayes-Starr reduction works because the effective spin is large (dim >> 1). The quantum model inherits SSB from its classical limit.
+
+3. Physical intuition: In d >= 3, the infrared divergence is too weak to destroy long-range order for continuous symmetries (unlike d <= 2 where Mermin-Wagner applies). Larger symmetry groups have MORE Goldstone modes, which could in principle cause stronger fluctuations, but in d >= 3 the infrared counting still favors ordering.
+
+**Key references:** FSS CMP 50 (1976); DLS J. Stat. Phys. 18 (1978); Biskup-Chayes-Starr CMP 269 (2007); Nachtergaele arXiv:math-ph/0603017
+
+### Open Problem 2: Determination of the SSB Pattern for F_4
+
+**Statement:** If F_4 is spontaneously broken, which subgroup H is preserved? Candidates: Spin(9), SU(3) x SU(3), Sp(3) x SU(2), or smaller.
+
+**Why it matters:** The Goldstone manifold F_4/H determines the target space of the effective sigma model, which controls the low-energy physics. F_4/Spin(9) = OP^2 (dim 16) is the physically most natural choice.
+
+**Current status:** For the Heisenberg-type model where the interaction is the Jordan product inner product, the ground state selects a direction in h_3(O). The stabilizer of a generic element of h_3(O) depends on its Jordan-algebraic properties:
+- A primitive idempotent has stabilizer Spin(9) [Todorov-Drenska]
+- A generic element (3 distinct eigenvalues) has stabilizer smaller than Spin(9)
+- An element proportional to the identity has stabilizer F_4 (no breaking)
+
+The SSB pattern depends on the ground state manifold of the specific Hamiltonian. For a nearest-neighbor antiferromagnet on a bipartite lattice, the Neel state selects directions on alternating sublattices, and the unbroken symmetry is the diagonal subgroup of (isotropy of sublattice A) x (isotropy of sublattice B).
+
+**Key references:** Todorov-Drenska arXiv:1805.06739; classification of F_4 maximal subgroups
+
+### Open Problem 3: Does the OP^2 Sigma Model Have the Right Universality Class?
+
+**Statement:** Is the 2D nonlinear sigma model on OP^2 = F_4/Spin(9) in the same universality class as the O(3) model for the purposes of the v9.0 chain (Fisher geometry -> Lorentz -> BW)?
+
+**Why it matters:** If the OP^2 sigma model is "sufficiently like" the O(3) model (asymptotic freedom, mass gap in d >= 3, well-defined spin-wave velocity), then the entire v9.0 chain generalizes from SU(2) -> O(3) -> S^2 to F_4 -> Spin(9) -> OP^2.
+
+**Current status:** General theory strongly supports YES:
+- OP^2 is a compact symmetric Einstein space with positive Ricci curvature, so the 2D sigma model is asymptotically free (Friedan 1985)
+- In d >= 3, the sigma model is in the ordered phase with massive Goldstone bosons (spin waves) at finite temperature, exactly like O(3)
+- The spin-wave velocity is determined by the curvature of the interaction and the lattice structure, not the target manifold
+- The key difference: 16 Goldstone modes instead of 2, but this is a quantitative difference, not qualitative
+
+**Key references:** Friedan, Ann. Phys. 163 (1985); Polyakov, Phys. Lett. B 59 (1975); Brezin-Zinn-Justin PRB 14 (1976)
+
+### Open Problem 4: Constructing the F_4-Symmetric Hamiltonian from Self-Modeling
+
+**Statement:** What is the explicit Hamiltonian for the self-modeler lattice, and is it F_4-symmetric? Is it NN on a bipartite lattice? Is it reflection positive?
+
+**Why it matters:** The DLS/FSS/BCS machinery requires specific properties of the Hamiltonian. The self-modeling framework must produce a Hamiltonian with these properties, or an alternative route to SSB must be found.
+
+**Current status:** Paper 5 derives the SWAP interaction from self-modeling. On the Heisenberg chain (v9.0), this is the SU(2) Heisenberg Hamiltonian H = J sum_{<ij>} S_i . S_j. For h_3(O), the analogous interaction should be H = J sum_{<ij>} (a_i, a_j) where (,) is the trace inner product on h_3(O). This interaction IS F_4-symmetric (F_4 preserves the trace inner product on h_3(O)), IS nearest-neighbor on any lattice, and IS reflection positive on bipartite lattices (by the same argument as for O(N) models: the interaction is a sum of products of generators, and the RP follows from the positivity of the representation).
+
+**Key references:** Paper 5 (SWAP derivation); Paper 6 (lattice structure); v8.0 (Peirce operators as 16x16 matrices)
+
+---
+
+## Key Negative Results and No-Go Constraints
+
+### No Lattice Models with F_4 Symmetry Exist in the Literature
+
+**Statement:** A thorough literature survey found NO published work on quantum or classical lattice spin models with F_4 symmetry in the condensed matter or statistical mechanics literature.
+
+**Significance:** This means v10.0 is genuinely novel. There are no benchmarks, no QMC data, no known phase diagrams for F_4 lattice models. The universality class must be established analytically (via DLS/FSS-type arguments) rather than numerically.
+
+**What exists instead:** (a) O(N) and SU(N) lattice models -- extensively studied. (b) E_8 appears in the Zamolodchikov integrable field theory (1D Ising in transverse + longitudinal field), but this is E_8 as a DYNAMICAL symmetry of excitations, not as the SYMMETRY GROUP of the lattice interaction. (c) F-theory models with F_4 gauge group exist in string theory, but these are NOT lattice models.
+
+**Confidence:** HIGH (absence of evidence, supported by extensive search)
+
+### Mermin-Wagner Forbids F_4 SSB in d <= 2 at T > 0
+
+**Statement:** For any compact continuous symmetry group G on Z^d with d <= 2 at T > 0, the Mermin-Wagner-Hohenberg theorem forbids spontaneous symmetry breaking. F_4 is compact, so SSB of F_4 is forbidden in d = 1, 2 at T > 0.
+
+**Significance:** The v10.0 chain REQUIRES d >= 3 for the SSB step, consistent with v9.0 (which also needed d >= 3 for DLS-type arguments). In d = 2 at T = 0, SSB may still occur (DLS-type result for S = 1/2 on the square lattice is numerical evidence, not rigorous for SU(2); for F_4 nothing is known).
+
+**Confidence:** HIGH (Mermin-Wagner is rigorous)
+
+### No-Go: Jordan Algebra is NOT an Associative Algebra
+
+**Statement:** h_3(O) is an exceptional Jordan algebra that cannot be realized as the self-adjoint part of any associative algebra (this is what makes it "exceptional" in the JvNW classification). Consequently, standard matrix-algebra techniques (trace, determinant, representation theory of associative algebras) do not apply directly.
+
+**Significance:** The Hamiltonian construction must use Jordan-algebraic operations (Jordan product, trace form, Freudenthal product) rather than standard matrix multiplication. The trace inner product (a, b) = Tr(a o b) IS well-defined and F_4-invariant, so the Heisenberg-type interaction works. But diagonalization, transfer matrix methods, and other techniques that rely on associativity need careful reformulation.
+
+**Confidence:** HIGH (algebraic fact)
 
 ---
 
 ## Alternatives Considered
 
 | Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Distance metric for emergent geometry | Fisher/Bures metric on reduced states | Mutual information distance (CCM) | Fisher is a true Riemannian metric with monotonicity; MI requires ad hoc MDS; Fisher has operational meaning via Cramer-Rao |
-| Route to Lorentz invariance | LR bound + von Ignatowsky | Assume Lorentz invariance as input | Defeats the purpose -- Gap 1 requires DERIVING smooth Lorentz-invariant geometry |
-| Route to Lorentz invariance | LR bound + von Ignatowsky | Emergent Lorentz from RG fixed point | Requires showing the lattice model flows to a Lorentz-invariant fixed point, which is essentially the full continuum limit problem |
-| Handling gaplessness in d >= 2 | Work with NL sigma model effective theory | Restrict to gapped AKLT-like models | The physical case (Heisenberg AFM) is gapless in d >= 2; AKLT is a special point that does not represent the generic physics |
-| Which quantum Fisher metric | SLD (symmetric logarithmic derivative) | RLD, WYD, or other Petz-family metric | SLD = 4 x Bures is standard in quantum estimation theory, largest monotone metric, agrees with all others on pure states |
-| Modular Hamiltonian identification | BW theorem (after establishing Lorentz) | Compute modular Hamiltonian directly on lattice | Direct computation is model-specific and does not give a universal argument; BW gives universal structure once Lorentz is established |
+|----------|------------|-------------|---------|
+| SSB proof method | DLS/FSS infrared bounds via BCS reduction | Direct quantum Monte Carlo | No QMC code exists for F_4; IR bounds are analytic and general |
+| Sigma model target | OP^2 = F_4/Spin(9) | F_4/G_2 or F_4/(SU(3)xSU(3)) | Spin(9) is the natural stabilizer of an idempotent; matches self-modeler structure |
+| Lattice structure | Hypercubic Z^d, d >= 3 | Triangular, honeycomb, other | Bipartite needed for RP; hypercubic is simplest bipartite |
+| Interaction type | Trace inner product on h_3(O) | Quadratic Casimir, higher-order Jordan products | Trace form is unique F_4-invariant bilinear form; simplest; matches SWAP |
+| Universality argument | Sigma model universality (one coupling) | Lattice-specific phase diagram | Symmetric space sigma models have one coupling; universality is standard |
 
 ---
 
-## Logical Dependency Chain for v9.0
+## Logical Dependency Chain for v10.0
 
 ```
-Paper 5: Self-modeling -> M_n(C)^sa
-    |
-    v
-Paper 6 L1-L5: SWAP lattice + area law + entanglement first law
-    |
-    v
-[v9.0 NEW] Exponential/power-law decay of reduced-state correlations
-    |
-    v
-[v9.0 NEW] Fisher metric g_F on {rho_A(x)} is smooth Riemannian manifold
-    |
-    v
-[v9.0 NEW] Continuum limit of Fisher manifold = smooth (M, g)
-    |
-    v
-[v9.0 NEW] LR velocity v_LR -> finite max signal speed
-    |
-    v
-[v9.0 NEW] von Ignatowsky + lattice symmetries -> Lorentz(v_LR)
-    |
-    v
-[v9.0 NEW] BW theorem gives K_A = boost generator (modular = geometric)
-    |
-    v
-Paper 6 L6-L8: Jacobson entanglement equilibrium -> Einstein equations
+[v5.0] Self-modeling -> M_n(C)^sa
+[v8.0] Observable algebra = M_16(R); Peirce operators T_b
+[Paper 7] Universe algebra = h_3(O), Aut = F_4
+         |
+         v
+[v10.0 Step 1] Construct Hamiltonian H = J sum Tr(a_i o a_j) on Z^d
+         |
+         v
+[v10.0 Step 2] Verify: H is F_4-symmetric, NN, reflection positive on bipartite lattice
+         |
+         v
+[v10.0 Step 3] Apply FSS/BCS: classical limit has SSB in d >= 3
+         |
+         v
+[v10.0 Step 4] Identify SSB pattern: F_4 -> Spin(9), Goldstone manifold = OP^2
+         |
+         v
+[v10.0 Step 5] Effective sigma model on OP^2: asymptotically free, spin waves with velocity c_s
+         |
+         v
+[v10.0 Step 6] Map to v9.0 chain: Fisher geometry on OP^2 -> Lorentz -> BW -> Jacobson
 ```
-
-Each arrow is a non-trivial step. The hardest steps are:
-- Fisher metric smoothness for the gapless (Neel-ordered) case in d >= 2
-- Spatial isotropy of the continuum limit from discrete lattice symmetry
-- BW emergence without assuming Lorentz invariance as input
 
 ---
 
-## Sources
+## Key References
 
-- Hastings-Koma, CMP 265 (2006) 781, arXiv:math-ph/0507008 -- Spectral gap implies exponential clustering
-- Nachtergaele-Sims-Young, JMP 60 (2019) 061101, arXiv:1810.02428 -- Comprehensive LR bounds and quasi-locality
-- Nachtergaele-Sims, CMP 265 (2006) 119, arXiv:math-ph/0506030 -- LR bounds and exponential clustering theorem
-- Zanardi-Giorda-Cozzini, PRL 99 (2007) 100603, arXiv:quant-ph/0701061 -- Fisher metric and QPTs
-- Bisognano-Wichmann, JMP 16 (1975) 985; JMP 17 (1976) 303 -- Modular Hamiltonian = boost generator
-- Giudici et al., PRB 98 (2018) 134403, arXiv:1807.01322 -- Lattice BW entanglement Hamiltonians
-- Jacobson, PRL 116 (2016) 201101, arXiv:1505.04753 -- Entanglement equilibrium and Einstein equation
-- Cao-Carroll-Michalakis, PRD 95 (2017) 024031, arXiv:1606.08444 -- Space from Hilbert space
-- Petz, LAA 244 (1996) 81 -- Classification of quantum monotone metrics
-- Morozova-Cencov, J. Soviet Math. 56 (1991) 2648 -- Markov invariant geometry on state manifolds
-- Safranek, PRB 95 (2017) 245123, arXiv:1612.04581 -- Discontinuities of QFI and Bures metric
-- Zhou-Jiang, arXiv:1910.08473 -- Exact correspondence QFI and Bures metric
-- Dyson-Lieb-Simon, J. Stat. Phys. 18 (1978) 335 -- Neel order in quantum antiferromagnets
-- Affleck-Kennedy-Lieb-Tasaki, CMP 115 (1988) 477 -- AKLT model, VBS ground states
-- Ignatowsky, Phys. Z. 11 (1910) 972 -- Relativity without light
-- Levy-Leblond, Am. J. Phys. 44 (1976) 271 -- One more derivation of the Lorentz transformation
-- Connes-Rovelli, CQG 11 (1994) 2899 -- Thermal time hypothesis
-- Calabrese-Cardy, JSTAT P06002 (2004) -- Entanglement entropy in 1+1 CFT
-- Beach et al., PRB 80 (2009) 184401 -- SU(N) Heisenberg model on square lattice
-- Mermin-Wagner, PRL 17 (1966) 1133 -- Absence of ordering in 1D and 2D
-- Altland-Simons, "Condensed Matter Field Theory" (Cambridge, 2010) -- NL sigma model for antiferromagnets, Ch. 6
-- Nachtergaele-Sims-Young, Ann. Henri Poincare 23 (2022) 393, arXiv:2106.02997 -- Stability of gapped ground state phases
+| Reference | arXiv/DOI | Type | Relevance |
+|-----------|-----------|------|-----------|
+| Froehlich-Simon-Spencer (1976) | DOI:10.1007/BF01608557 | Foundational paper | Infrared bounds for classical lattice models; establishes SSB for O(N), d >= 3 |
+| Dyson-Lieb-Simon (1978) | DOI:10.1007/BF01022099 | Foundational paper | Quantum SSB (Neel order) for SU(2) Heisenberg, d >= 3 |
+| Kennedy-Lieb-Shastry (1988) | DOI:10.1007/BF01023854 | Extension | Neel order for S = 1/2, d = 3 |
+| Nachtergaele (2006) | arXiv:math-ph/0603017 | Review | Survey of DLS extensions and quantum spin system methods |
+| Biskup-Chayes-Starr (2007) | arXiv:math-ph/0509017 | Extension | Quantum-to-classical reduction via RP; SSB for large spin |
+| Bjornberg-Ueltschi (2022) | arXiv:2204.12896 | Review | Modern review of RP/IR bounds for quantum spins |
+| Todorov-Drenska (2018) | arXiv:1805.06739 | Paper | F_4 subgroup structure; maximal Borel-de Siebenthal subgroups |
+| Todorov (2019) | arXiv:1911.13124 | Paper | Exceptional quantum algebra for Standard Model |
+| Farnsworth (2025) | arXiv:2503.10744 | Paper | n-point exceptional Jordan geometries; F_4 x F_4 gauge theory |
+| Farnsworth (2025) | arXiv:2506.21496 | Paper | Spectral geometry with exceptional symmetry |
+| Friedan (1985) | DOI:10.1016/0003-4916(85)90383-5 | Foundational paper | Sigma model beta function = Ricci tensor |
+| Polyakov (1975) | DOI:10.1016/0370-2693(75)90161-6 | Foundational paper | Asymptotic freedom of 2D sigma models |
+| Parton-Picken (2018) | DOI:10.3390/axioms7040072 | Paper | Role of Spin(9) in octonionic geometry; OP^2 = F_4/Spin(9) |
+| Froehlich-Israel-Lieb-Simon (1978) | DOI:10.1007/BF01014646 | Extension | Phase transitions and RP II: lattice systems |
+
+---
+
+## Assessment: What Is New vs. What Is Established
+
+| Component | Status | Confidence |
+|-----------|--------|------------|
+| h_3(O) has Aut = F_4 | ESTABLISHED | HIGH |
+| F_4 is compact Lie group (dim 52, rank 4) | ESTABLISHED | HIGH |
+| F_4/Spin(9) = OP^2 (dim 16, compact symmetric) | ESTABLISHED | HIGH |
+| OP^2 has positive Ricci curvature | ESTABLISHED | HIGH |
+| FSS infrared bounds prove SSB for O(N) models d >= 3 | ESTABLISHED | HIGH |
+| DLS/KLS proves quantum SSB for SU(2) d >= 3 | ESTABLISHED | HIGH |
+| BCS reduces quantum SSB to classical for large spin | ESTABLISHED | HIGH |
+| Sigma model on OP^2 is asymptotically free in 2D | ESTABLISHED (follows from positive Ricci + Friedan) | HIGH |
+| FSS/BCS applies to F_4 lattice model | NEW -- needs verification of RP + Gaussian domination | MEDIUM |
+| F_4 lattice model breaks to Spin(9) specifically | NEW -- SSB pattern depends on Hamiltonian details | LOW-MEDIUM |
+| Self-modeler Hamiltonian has the right form | NEW -- must derive from self-modeling axioms | MEDIUM |
+| Full v9.0 chain fires for OP^2 sigma model | NEW -- universality argument | MEDIUM |
+| Mermin-Wagner forbids F_4 SSB in d <= 2 at T > 0 | ESTABLISHED | HIGH |
+| No prior lattice models with F_4 symmetry exist | ESTABLISHED (negative result) | HIGH |
