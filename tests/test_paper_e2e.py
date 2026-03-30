@@ -7,6 +7,7 @@ import json
 import pytest
 from PIL import Image
 from pybtex.database import BibliographyData, Entry
+from pydantic import ConfigDict
 
 from gpd.mcp.paper.bibliography import CitationSource
 from gpd.mcp.paper.compiler import CompilationResult, _get_tlmgr_package, check_class_file
@@ -16,6 +17,13 @@ from gpd.mcp.paper.models import Author, FigureRef, PaperConfig, Section
 def _allow_journal_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep happy-path build tests focused on build orchestration, not TeX setup."""
     monkeypatch.setattr("gpd.mcp.paper.compiler.check_journal_dependencies", lambda spec: (True, []))
+
+
+class CitationSourceWithReferenceId(CitationSource):
+    """Test helper that carries a stable project reference ID through the pipeline."""
+
+    model_config = ConfigDict(extra="allow")
+    reference_id: str | None = None
 
 
 # ---- Compiler wrapper tests ----
@@ -231,6 +239,60 @@ class TestBuildPaper:
         assert "audit-bibliography" in manifest_ids
         bib_artifact = next(artifact for artifact in output.manifest.artifacts if artifact.artifact_id == "bib-references")
         assert bib_artifact.metadata["entry_source"] == "citation_sources"
+
+    @pytest.mark.asyncio
+    async def test_build_paper_preserves_stable_reference_ids_in_bibliography_hook(
+        self, tmp_path, monkeypatch
+    ):
+        from gpd.mcp.paper import compiler as paper_compiler
+        from gpd.mcp.paper.compiler import build_paper
+
+        config = PaperConfig(
+            title="Reference ID Paper",
+            authors=[Author(name="A. Einstein", affiliation="ETH Zurich")],
+            abstract="A test abstract.",
+            sections=[Section(title="Introduction", content="Hello world.")],
+        )
+
+        source = CitationSourceWithReferenceId(
+            source_type="paper",
+            title="Relativity",
+            authors=["A. Einstein"],
+            year="1905",
+            doi="10.1002/andp.19053221004",
+            reference_id="lit-ref-einstein-1905",
+        )
+
+        pdf_path = tmp_path / "main.pdf"
+        mock_result = CompilationResult(success=True, pdf_path=pdf_path)
+        pdf_path.write_bytes(b"%PDF-fake")
+
+        async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
+            return mock_result
+
+        observed_reference_ids: list[str | None] = []
+        real_build_bibliography_with_audit = paper_compiler.build_bibliography_with_audit
+
+        def spy_build_bibliography_with_audit(sources, enrich, reserved_bib_keys=None):
+            observed_reference_ids.extend(getattr(item, "reference_id", None) for item in sources)
+            return real_build_bibliography_with_audit(sources, enrich, reserved_bib_keys)
+
+        _allow_journal_dependencies(monkeypatch)
+        monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
+        monkeypatch.setattr("gpd.mcp.paper.compiler.build_bibliography_with_audit", spy_build_bibliography_with_audit)
+
+        output = await build_paper(
+            config,
+            tmp_path,
+            citation_sources=[source],
+            enrich_bibliography=False,
+        )
+
+        assert output.success is True
+        assert observed_reference_ids == ["lit-ref-einstein-1905"]
+        assert output.bibliography_audit is not None
+        assert output.bibliography_audit.entries[0].key == "einstein1905"
+        assert "einstein1905" in (tmp_path / "references.bib").read_text(encoding="utf-8")
 
     @pytest.mark.asyncio
     async def test_build_paper_manifest_keeps_figure_source_alignment_when_some_figures_are_skipped(
