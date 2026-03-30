@@ -2490,12 +2490,74 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
 
     mock_upsert_derived.assert_called_once()
     _, kwargs = mock_upsert_derived.call_args
-    assert kwargs["result_id"] is None
+    assert kwargs["result_id"] == "R-02-effective-mass"
     assert kwargs["derivation_slug"] == "effective-mass"
     assert kwargs["equation"] == "a = b + c"
     assert kwargs["description"] == "Canonical quantity"
     assert kwargs["phase"] == "2"
     assert kwargs["depends_on"] == ["R-01"]
+
+
+def test_result_persist_derived_uses_resolved_result_id_for_real_state_write(
+    tmp_path: Path,
+    state_project_factory,
+) -> None:
+    cwd = state_project_factory(tmp_path, current_phase="02", status="Executing")
+
+    first = runner.invoke(
+        app,
+        [
+            "--raw",
+            "--cwd",
+            str(cwd),
+            "result",
+            "persist-derived",
+            "--equation",
+            "a = b + c",
+            "--description",
+            "Canonical quantity",
+            "--phase",
+            "2",
+            "--derivation-slug",
+            "effective-mass",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert first.exit_code == 0, first.output
+    first_payload = json.loads(first.output)
+    assert first_payload["requested_result_id"] == "R-02-effective-mass"
+    assert first_payload["result_id"] == "R-02-effective-mass"
+    assert first_payload["result"]["id"] == "R-02-effective-mass"
+
+    second = runner.invoke(
+        app,
+        [
+            "--raw",
+            "--cwd",
+            str(cwd),
+            "result",
+            "persist-derived",
+            "--equation",
+            "a = b + c",
+            "--description",
+            "Canonical quantity",
+            "--phase",
+            "2",
+            "--derivation-slug",
+            "effective-mass",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert second.exit_code == 0, second.output
+    second_payload = json.loads(second.output)
+    assert second_payload["requested_result_id"] == "R-02-effective-mass"
+    assert second_payload["result_id"] == "R-02-effective-mass"
+    assert second_payload["result"]["id"] == "R-02-effective-mass"
+
+    state = json.loads((cwd / "GPD" / "state.json").read_text(encoding="utf-8"))
+    assert [item["id"] for item in state["intermediate_results"]] == ["R-02-effective-mass"]
 
 
 def test_result_persist_derived_raw_skips_cleanly_without_project_state(tmp_path: Path) -> None:
