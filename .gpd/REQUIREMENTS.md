@@ -1,0 +1,120 @@
+# Requirements: Continuum Limit from Finite-Dimensional Observer
+
+**Defined:** 2026-03-29
+**Core Research Question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
+**Milestone:** v9.0 — Close all four Paper 6 gaps via finite-dimensional C*-observer as natural UV cutoff
+
+## Primary Requirements
+
+### Fisher Geometry
+
+- [ ] **FISH-01**: Prove that the reduced density matrix rho_Lambda(x) on a ball of radius R centered at lattice site x is a smooth function of x (OBC lattice) when correlations decay sufficiently fast (exponential or algebraic with sufficient falloff)
+- [ ] **FISH-02**: Compute the SLD quantum Fisher information metric g_ij(x) = (1/4) * QFIM_ij on the manifold of reduced states {rho_Lambda(x) : x in lattice}; prove positive-definiteness for non-degenerate ground states
+- [ ] **FISH-03**: Show the Fisher geodesic distance recovers lattice distance at leading order: d_Fisher(x,y) ~ d_lattice(x,y) for |x-y| >> correlation length xi
+
+### Correlation Structure
+
+- [ ] **CORR-01**: Characterize correlation decay for the SWAP/Heisenberg Hamiltonian ground state in d>=2: establish that n=2 (SU(2) AFM) has Neel order with gapless Goldstone modes and algebraic (power-law) correlation decay
+- [ ] **CORR-02**: Derive the nonlinear sigma model (NL sigma model) as the effective low-energy theory for the Neel phase; identify propagating spin-wave modes with velocity c_s; show c_s is determined by the lattice Hamiltonian parameters
+- [ ] **CORR-03**: Prove that Fisher geometry (FISH-01 through FISH-03) remains smooth in the NL sigma model regime where correlations are algebraic rather than exponential
+
+### Emergent Lorentz
+
+- [ ] **LRNZ-01**: Establish that emergent continuous rotation symmetry (isotropy) is restored from discrete lattice symmetry at long wavelengths, with anisotropy corrections O(a^k/L^k) for some k >= 2
+- [ ] **LRNZ-02**: Derive emergent Lorentz invariance from the NL sigma model effective theory (which has spin-wave velocity c_s as built-in finite propagation speed) or via von Ignatowsky's theorem after isotropy is established
+- [ ] **LRNZ-03**: Show the Lieb-Robinson velocity v_LR provides causal structure (light cone) separate from the Riemannian Fisher metric; clarify the relationship between v_LR, c_s, and the effective speed of light
+
+### BW and Equilibrium
+
+- [ ] **BWEQ-01**: Show the effective theory from Phases A-C satisfies sufficient axioms for the Bisognano-Wichmann theorem: Osterwalder-Schrader reflection positivity, or equivalent lattice conditions
+- [ ] **BWEQ-02**: Derive local equilibrium (theta = sigma = 0) at the bifurcation surface from the KMS property of the ground state restricted to a half-space
+
+### Assembly
+
+- [ ] **ASBL-01**: Assemble the complete derivation chain: finite-dim observer (Paper 5) + SWAP lattice (Paper 6 L2) + correlation structure (Phase B) -> smooth Fisher manifold (Phase A) -> emergent Lorentz (Phase C) -> BW + equilibrium (Phase D) -> Jacobson 1995 -> Einstein equations
+- [ ] **ASBL-02**: Score each of the four Paper 6 gaps individually (continuum limit, conformal approximation, tensoriality, MVEH) with honest calibration: closed / narrowed / conditional / open
+
+## Follow-up Requirements
+
+### Numerical Validation (deferred)
+
+- **FISH-04**: Numerical computation of Fisher metric on N=8-20 OBC lattices for n=2, d=1,2
+- **CORR-04**: Identify gapped models where Hastings-Koma gives rigorous exponential decay
+- **CORR-05**: Numerical verification of correlation decay profiles and Fisher metric smoothness
+- **LRNZ-04**: Numerical computation of v_LR anisotropy on small lattices; verify scaling
+- **BWEQ-03**: Numerical verification of lattice BW structure (SRF convergence)
+
+## Out of Scope
+
+| Topic | Reason |
+| ----- | ------ |
+| Constructive continuum limit (convergence of lattice correlators to continuum QFT) | Open mathematical problem; v9.0 shows observer sees smooth geometry, not that the limit exists mathematically |
+| Spectral action computation | Beyond Paper 6 scope; separate milestone |
+| Gap C / Gaps A, B1, B2 | Separate milestones (v5.0-v8.0 addressed these) |
+| New paper writing | Derivation document only; Paper 6 revision deferred |
+| Quantum Monte Carlo or DMRG for large lattices | Computational infrastructure not in scope; ED on N=8-20 sufficient for essential objectives |
+
+## Accuracy and Validation Criteria
+
+| Requirement | Accuracy Target | Validation Method |
+| ----------- | --------------- | ----------------- |
+| FISH-01 | Exact analytic result (smooth = infinitely differentiable in appropriate sense) | Check limiting cases: 2-site exact, product states, maximally entangled |
+| FISH-02 | Positive-definiteness proved analytically | Eigenvalue computation on specific examples; compare with Bures metric |
+| FISH-03 | Leading order asymptotic: d_Fisher/d_lattice -> const as separation -> infinity | Exact computation on 2-site and 3-site chains as benchmarks |
+| CORR-01 | Literature compilation with rigorous references | Cross-check Dyson-Lieb-Simon 1978, spin-wave theory, and known results |
+| CORR-02 | Standard NL sigma model derivation with explicit c_s formula | Compare c_s with spin-wave theory value; check dimensional analysis |
+| CORR-03 | Analytic argument (may be conditional on NL sigma model validity) | Verify Fisher metric regularity conditions in sigma model formalism |
+| LRNZ-01 | Universality argument with explicit error estimate | Check anisotropy in specific lattice geometries (square, triangular) |
+| LRNZ-02 | Theorem or conditional theorem | Verify all premises of von Ignatowsky or NL sigma model Lorentz derivation |
+| LRNZ-03 | Clear conceptual separation with explicit formulas | Dimensional analysis; check v_LR vs c_s relationship |
+| BWEQ-01 | Identify precise axioms needed and verify | Check OS positivity conditions on lattice transfer matrix |
+| BWEQ-02 | Standard KMS argument applied to half-space | Verify consistency with Paper 6 Phase 11 SRF results |
+| ASBL-01 | Complete logical chain with no gaps | Each step verified independently; chain composition checked |
+| ASBL-02 | Honest scoring with explicit justification | Each gap scored against specific evidence |
+
+## Contract Coverage
+
+| Requirement | Decisive Output / Deliverable | Anchor / Benchmark / Reference | Prior Inputs / Baselines | False Progress To Reject |
+| ----------- | ----------------------------- | ------------------------------ | ------------------------ | ------------------------ |
+| FISH-01 | Smoothness theorem for rho_Lambda(x) | Braunstein-Caves 1994, Zanardi 2007 | Paper 6 ED data | Smoothness only for product states |
+| FISH-02 | QFI metric positive-definiteness proof | Morozova-Cencov-Petz classification | None | Trivial metric (scalar multiple of delta_ij) |
+| FISH-03 | Asymptotic distance recovery | Provost-Vallee 1980 | Paper 6 lattice distances | Recovery only for nearest neighbors |
+| CORR-01 | Correlation decay characterization | Dyson-Lieb-Simon 1978, Hastings 2004 | Paper 6 correlation data | Assuming gap without proof |
+| CORR-02 | NL sigma model derivation with c_s | Haldane 1983, Chakravarty-Halperin-Nelson 1989 | None | Generic sigma model without SWAP-specific c_s |
+| CORR-03 | Fisher smoothness in sigma model | New result | CORR-01, CORR-02 | Assuming exponential decay |
+| LRNZ-01 | Isotropy restoration argument | Lattice universality literature | None | Assuming isotropy without argument |
+| LRNZ-02 | Lorentz invariance derivation | von Ignatowsky 1911, NL sigma model | CORR-02, LRNZ-01 | Lorentz by fiat |
+| LRNZ-03 | v_LR / c_s / causal structure | Nachtergaele-Sims 2006 | Paper 6 v_LR computation | Conflating Fisher metric with causal structure |
+| BWEQ-01 | OS axiom verification | Bisognano-Wichmann 1976 | LRNZ-02 | Applying BW before Lorentz |
+| BWEQ-02 | KMS equilibrium derivation | Haag-Hugenholtz-Winnink 1967 | BWEQ-01 | Equilibrium by assumption |
+| ASBL-01 | Complete derivation chain document | Papers 5, 6 | All prior phases | Claiming all gaps closed when some are conditional |
+| ASBL-02 | Individual gap scoring | Paper 6 gap register | Phase results | Lumping all gaps together |
+
+## Traceability
+
+| Requirement | Phase | Status |
+| ----------- | ----- | ------ |
+| FISH-01 | TBD (roadmap) | Pending |
+| FISH-02 | TBD | Pending |
+| FISH-03 | TBD | Pending |
+| CORR-01 | TBD | Pending |
+| CORR-02 | TBD | Pending |
+| CORR-03 | TBD | Pending |
+| LRNZ-01 | TBD | Pending |
+| LRNZ-02 | TBD | Pending |
+| LRNZ-03 | TBD | Pending |
+| BWEQ-01 | TBD | Pending |
+| BWEQ-02 | TBD | Pending |
+| ASBL-01 | TBD | Pending |
+| ASBL-02 | TBD | Pending |
+
+**Coverage:**
+
+- Primary requirements: 13 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 13
+
+---
+
+_Requirements defined: 2026-03-29_
+_Last updated: 2026-03-29 after initial definition_

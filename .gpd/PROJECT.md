@@ -14,11 +14,12 @@ Can the Standard Model + GR be derived from the requirement that a composite sys
 
 **Target results:**
 
-- Fisher information metric on reduced states is smooth, positive-definite, and recovers lattice distance
-- Exponential decay of correlations for SWAP Hamiltonian proved rigorously for n=2 (general n flagged as conjecture)
-- Emergent Lorentz invariance from isotropy + LR finite speed via von Ignatowsky
-- BW theorem and local equilibrium in the effective theory
-- Complete derivation chain: finite-dim observer + SWAP lattice + exponential decay -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
+- Fisher information metric on reduced states is smooth (OBC), positive-definite, and recovers lattice distance
+- Correlation structure characterized: gapless Neel phase (n=2, d>=2) handled via NL sigma model effective theory; gapped cases rigorous via Hastings-Koma
+- Emergent Lorentz invariance via NL sigma model route (bypasses von Ignatowsky isotropy difficulty) or von Ignatowsky on effective theory after establishing emergent isotropy
+- BW theorem and local equilibrium in the effective theory (after Lorentz established)
+- Complete derivation chain: finite-dim observer + SWAP lattice + correlation structure -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
+- Honest scoring of each of the four Paper 6 gaps individually
 
 ## v8.0 Summary (complete 2026-03-29)
 
@@ -40,7 +41,7 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 - **Continuum limit (claim-continuum):** Show that a finite-dimensional C*-observer on the SWAP lattice necessarily sees smooth effective geometry, closing all four Paper 6 gaps
 - **Fisher geometry (claim-fisher):** Reduced states rho_Lambda(x) form a smooth manifold with positive-definite Fisher information metric recovering lattice distance
-- **Exponential decay (claim-decay):** SWAP Hamiltonian ground state has exponential correlation decay -- proved rigorously for n=2 (Heisenberg AFM), general n as conjecture
+- **Correlation structure (claim-decay):** Characterize correlation decay for SWAP Hamiltonian ground state. Heisenberg AFM (n=2) in d>=2 is GAPLESS with algebraic decay (Neel order, Goldstone modes). Two-tier approach: rigorous for gapped models, NL sigma model effective theory argument for n=2
 - **Emergent Lorentz (claim-lorentz):** Isotropy + LR finite speed + Fisher smoothness -> Lorentz invariance via von Ignatowsky
 - **Acceptance signal:** Complete derivation chain from finite-dim observer to Einstein equations with all steps rigorous (or honestly flagged as conditional)
 - **False progress to reject:** Claiming constructive continuum limit in mathematical sense; assuming exponential decay without proof/citation for n=2; citing Lorentz invariance without connecting to the specific Fisher metric; treating BW as automatic without checking Wightman axioms in effective theory
@@ -49,7 +50,7 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 - **User-stated observables:** Fisher information metric g_ij(x) on reduced states; correlation decay rate xi; LR velocity as effective speed of light; SRF convergence for BW
 - **User-stated deliverables:** Derivation chain document: finite-dim observer + SWAP + decay -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
-- **User-stated phases:** (A) Fisher geometry, (B) Exponential decay (prove n=2, flag n>2), (C) Emergent Lorentz, (D) BW/equilibrium, (E) Assembly
+- **User-stated phases:** (A) Fisher geometry, (B) Correlation structure (gapless for n=2 d>=2; two-tier strategy), (C) Emergent Lorentz, (D) BW/equilibrium, (E) Assembly
 - **Must-have references:** Braunstein-Caves 1994, Zanardi et al. 2007, Provost-Vallee 1980, Hastings 2004/2007, Nachtergaele-Sims 2006, von Ignatowsky 1911, Hamma et al. 2009, Dyson-Lieb-Simon 1978, Papers 5-6
 - **Stop / rethink conditions:** If Fisher metric fails to be positive-definite on reduced states; if exponential decay cannot be established even for n=2 in d>=2; if the effective theory doesn't satisfy Wightman axioms needed for BW
 - **Strategy on failure:** If exponential decay fails for all n, the chain is conditional (like MVEH in Paper 6 v3.0). If Fisher geometry fails, the entire approach is wrong. If Lorentz fails, fall back to emergent diffeomorphism invariance only.
@@ -119,7 +120,7 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Skeptical Review
 
-- **Weakest anchor:** Exponential decay for SWAP Hamiltonian in d>=2 at general n. For n=2 (Heisenberg AFM) in d=3, Neel order with magnon gap is well-supported but a fully rigorous proof may rely on spin-wave approximation.
+- **Weakest anchor:** Heisenberg AFM (n=2) in d>=2 is gapless with algebraic (not exponential) correlation decay due to Neel order and Goldstone modes. Fisher geometry smoothness with algebraic decay is an open question -- no rigorous resolution exists in the literature.
 - **Unvalidated assumptions:** That the Fisher metric on reduced states is non-degenerate (it should be, but needs proof); that lattice symmetry group gives sufficient isotropy for von Ignatowsky; that the effective theory satisfies Wightman axioms needed for BW
 - **Competing explanation:** Continuum limit might require genuinely new mathematics beyond the observer-as-cutoff picture. The information-geometric approach might give smoothness but not the right symmetry group.
 - **Disconfirming observation:** Fisher metric degenerate at some lattice points; exponential decay fails for SWAP (gapless ground state); LR velocity direction-dependent at long wavelengths (breaking isotropy)
