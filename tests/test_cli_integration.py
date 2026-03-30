@@ -464,6 +464,41 @@ def test_result_persist_derived_bridge_surfaces_persisted_result_in_init_progres
     assert [entry["id"] for entry in init_payload["derived_intermediate_results"]] == ["R-bridge-01"]
 
 
+def test_state_record_session_persists_last_result_id_in_session_and_handoff(gpd_project: Path) -> None:
+    handoff = gpd_project / "GPD" / "phases" / "01-test-phase" / ".continue-here.md"
+    handoff.parent.mkdir(parents=True, exist_ok=True)
+    handoff.write_text("resume\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "--raw",
+            "--cwd",
+            str(gpd_project),
+            "state",
+            "record-session",
+            "--stopped-at",
+            "Paused at task 2/5",
+            "--resume-file",
+            "GPD/phases/01-test-phase/.continue-here.md",
+            "--last-result-id",
+            "R-bridge-01",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["recorded"] is True
+
+    state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
+    assert state["session"]["last_result_id"] == "R-bridge-01"
+    assert state["continuation"]["handoff"]["last_result_id"] == "R-bridge-01"
+
+    state_md = (gpd_project / "GPD" / "STATE.md").read_text(encoding="utf-8")
+    assert "**Last result ID:** R-bridge-01" in state_md
+
+
 @pytest.fixture(autouse=True)
 def _chdir(gpd_project: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """All tests run from the project directory."""
@@ -871,7 +906,6 @@ class TestResume:
 
         beta_marker = "Beta stop"
         alpha_marker = "Alpha stop"
-
         assert beta_marker in result.output
         assert alpha_marker in result.output
         assert result.output.index(beta_marker) < result.output.index(alpha_marker)

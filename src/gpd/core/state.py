@@ -412,6 +412,7 @@ class SessionInfo(BaseModel):
     platform: str | None = None
     stopped_at: str | None = None
     resume_file: str | None = None
+    last_result_id: str | None = None
 
 
 class ResearchState(BaseModel):
@@ -992,6 +993,7 @@ def _session_from_continuation_payload(continuation: object) -> dict[str, str | 
     if isinstance(handoff, dict):
         session["stopped_at"] = _optional_state_text(handoff.get("stopped_at"))
         session["resume_file"] = _optional_state_text(handoff.get("resume_file"))
+        session["last_result_id"] = _optional_state_text(handoff.get("last_result_id"))
     if isinstance(machine, dict):
         session["hostname"] = _optional_state_text(machine.get("hostname"))
         session["platform"] = _optional_state_text(machine.get("platform"))
@@ -1017,6 +1019,7 @@ def _continuation_from_session_payload(
             "recorded_at": recorded_at,
             "stopped_at": _optional_state_text(session.get("stopped_at")),
             "resume_file": _optional_state_text(session.get("resume_file")),
+            "last_result_id": _optional_state_text(session.get("last_result_id")),
         }
         for key, value in updates.items():
             if only_missing and handoff.get(key) is not None:
@@ -1411,7 +1414,14 @@ def parse_state_md(content: str) -> dict:
                 blockers.append(text)
 
     # Session
-    session = {"last_date": None, "hostname": None, "platform": None, "stopped_at": None, "resume_file": None}
+    session = {
+        "last_date": None,
+        "hostname": None,
+        "platform": None,
+        "stopped_at": None,
+        "resume_file": None,
+        "last_result_id": None,
+    }
     session_match = re.search(
         r"##\s*Session Continuity\s*\n([\s\S]*?)(?=\n##|$)",
         content,
@@ -1424,6 +1434,7 @@ def parse_state_md(content: str) -> dict:
         pf = re.search(r"\*\*Platform:\*\*\s*(.+)", sec)
         sa = re.search(r"\*\*Stopped at:\*\*\s*(.+)", sec)
         rf = re.search(r"\*\*Resume file:\*\*\s*(.+)", sec)
+        lr = re.search(r"\*\*Last result ID:\*\*\s*(.+)", sec)
         if ld:
             session["last_date"] = ld.group(1).strip()
         if hn:
@@ -1434,6 +1445,8 @@ def parse_state_md(content: str) -> dict:
             session["stopped_at"] = sa.group(1).strip()
         if rf:
             session["resume_file"] = rf.group(1).strip()
+        if lr:
+            session["last_result_id"] = lr.group(1).strip()
 
     # Performance metrics table
     metrics: list[dict] = []
@@ -2070,7 +2083,7 @@ _STATE_MD_MIRRORED_FIELDS: dict[str, tuple[str, ...] | None] = {
         "progress_percent",
         "paused_at",
     ),
-    "session": ("last_date", "hostname", "platform", "stopped_at", "resume_file"),
+    "session": ("last_date", "hostname", "platform", "stopped_at", "resume_file", "last_result_id"),
     "decisions": None,
     "blockers": None,
     "performance_metrics": ("rows",),
@@ -2357,6 +2370,7 @@ def generate_state_markdown(raw: dict) -> str:
     p(f"**Last session:** {sess.get('last_date') or EM_DASH}")
     p(f"**Stopped at:** {sess.get('stopped_at') or EM_DASH}")
     p(f"**Resume file:** {sess.get('resume_file') or EM_DASH}")
+    p(f"**Last result ID:** {sess.get('last_result_id') or EM_DASH}")
     p(f"**Hostname:** {sess.get('hostname') or EM_DASH}")
     p(f"**Platform:** {sess.get('platform') or EM_DASH}")
     p("")
@@ -3756,6 +3770,7 @@ def _session_continuity_section(session: dict[str, object]) -> str:
             f"**Last session:** {session.get('last_date') or EM_DASH}",
             f"**Stopped at:** {session.get('stopped_at') or EM_DASH}",
             f"**Resume file:** {session.get('resume_file') or EM_DASH}",
+            f"**Last result ID:** {session.get('last_result_id') or EM_DASH}",
             f"**Hostname:** {session.get('hostname') or EM_DASH}",
             f"**Platform:** {session.get('platform') or EM_DASH}",
             "",
@@ -3793,6 +3808,7 @@ def state_record_session(
     *,
     stopped_at: str | None = None,
     resume_file: str | None = None,
+    last_result_id: str | None = None,
 ) -> RecordSessionResult:
     """Record session continuity through canonical continuation state."""
     md_path = _state_md_path(cwd)
@@ -3805,6 +3821,7 @@ def state_record_session(
                 cwd=str(cwd),
                 stopped_at=stopped_at or "",
                 resume_file=resume_file or EM_DASH,
+                last_result_id=last_result_id or EM_DASH,
             ):
                 pass
             return RecordSessionResult(recorded=False, error="STATE.md not found")
@@ -3836,10 +3853,15 @@ def state_record_session(
         if machine["platform"] != existing_machine.platform:
             updated.append("Platform")
         desired_stopped_at = stopped_at if stopped_at is not None else existing_handoff.stopped_at
+        desired_last_result_id = (
+            _optional_state_text(last_result_id) if last_result_id is not None else _optional_state_text(existing_handoff.last_result_id)
+        )
         if desired_stopped_at != existing_handoff.stopped_at:
             updated.append("Stopped at")
         if (normalized_resume_file or EM_DASH) != (existing_handoff.resume_file or EM_DASH):
             updated.append("Resume file")
+        if (desired_last_result_id or EM_DASH) != (existing_handoff.last_result_id or EM_DASH):
+            updated.append("Last result ID")
 
         if updated:
             updated_continuation = current_continuation.model_copy(
@@ -3849,6 +3871,7 @@ def state_record_session(
                             "recorded_at": now,
                             "stopped_at": desired_stopped_at,
                             "resume_file": normalized_resume_file,
+                            "last_result_id": desired_last_result_id,
                             "recorded_by": "state_record_session",
                         }
                     ),
@@ -3870,6 +3893,7 @@ def state_record_session(
                 updated_fields=",".join(updated),
                 stopped_at=desired_stopped_at or "",
                 resume_file=normalized_resume_file or EM_DASH,
+                last_result_id=desired_last_result_id or EM_DASH,
                 hostname=machine["hostname"] or EM_DASH,
                 platform=machine["platform"] or EM_DASH,
             ):
@@ -3881,6 +3905,7 @@ def state_record_session(
             cwd=str(cwd),
             stopped_at=stopped_at or "",
             resume_file=normalized_resume_file or EM_DASH,
+            last_result_id=desired_last_result_id or EM_DASH,
             hostname=machine["hostname"] or EM_DASH,
             platform=machine["platform"] or EM_DASH,
         ):

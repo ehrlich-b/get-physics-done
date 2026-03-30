@@ -841,11 +841,19 @@ def state_resolve_blocker(
 def state_record_session(
     stopped_at: str | None = typer.Option(None, "--stopped-at", help="Stop timestamp"),
     resume_file: str | None = typer.Option(None, "--resume-file", help="Resume context file"),
+    last_result_id: str | None = typer.Option(None, "--last-result-id", help="Latest canonical result ID to carry forward"),
 ) -> None:
     """Record a session boundary for context tracking."""
     from gpd.core.state import state_record_session
 
-    _output(state_record_session(_get_cwd(), stopped_at=stopped_at, resume_file=resume_file))
+    _output(
+        state_record_session(
+            _get_cwd(),
+            stopped_at=stopped_at,
+            resume_file=resume_file,
+            last_result_id=last_result_id,
+        )
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════

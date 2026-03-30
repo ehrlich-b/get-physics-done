@@ -99,17 +99,18 @@ class ContinuationHandoff(BaseModel):
 
     resume_file: str | None = None
     stopped_at: str | None = None
+    last_result_id: str | None = None
     recorded_at: str | None = None
     recorded_by: str | None = None
 
-    @field_validator("resume_file", "stopped_at", "recorded_at", "recorded_by", mode="before")
+    @field_validator("resume_file", "stopped_at", "last_result_id", "recorded_at", "recorded_by", mode="before")
     @classmethod
     def _normalize_text_fields(cls, value: object) -> str | None:
         return _normalize_optional_text(value)
 
     @property
     def is_empty(self) -> bool:
-        return not any((self.resume_file, self.stopped_at, self.recorded_at, self.recorded_by))
+        return not any((self.resume_file, self.stopped_at, self.last_result_id, self.recorded_at, self.recorded_by))
 
 
 class ContinuationMachine(BaseModel):

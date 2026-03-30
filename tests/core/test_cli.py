@@ -1876,6 +1876,34 @@ def test_state_update(mock_update):
     mock_update.assert_called_once()
 
 
+@patch("gpd.core.state.state_record_session")
+def test_state_record_session_forwards_last_result_id(mock_record_session):
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {"recorded": True, "updated": ["Last result ID"]}
+    mock_record_session.return_value = mock_result
+
+    result = runner.invoke(
+        app,
+        [
+            "state",
+            "record-session",
+            "--stopped-at",
+            "Paused at task 2/5",
+            "--resume-file",
+            "GPD/phases/01-test-phase/.continue-here.md",
+            "--last-result-id",
+            "R-bridge-01",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_record_session.assert_called_once()
+    _, kwargs = mock_record_session.call_args
+    assert kwargs["stopped_at"] == "Paused at task 2/5"
+    assert kwargs["resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
+    assert kwargs["last_result_id"] == "R-bridge-01"
+
+
 @patch("gpd.core.state.state_validate")
 def test_state_validate_pass(mock_validate):
     mock_result = MagicMock()
@@ -2332,7 +2360,11 @@ def test_result_upsert_without_explicit_id(mock_upsert, tmp_path: Path):
 
 @patch("gpd.cli._resolve_derived_result_id")
 @patch("gpd.core.results.result_upsert_derived", create=True)
-def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(mock_upsert_derived, mock_resolve):
+def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
+    mock_upsert_derived,
+    mock_resolve,
+    tmp_path: Path,
+):
     mock_result = MagicMock()
     mock_result.model_dump.return_value = {
         "status": "persisted",
@@ -2348,10 +2380,15 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(mock
     }
     mock_upsert_derived.return_value = mock_result
     mock_resolve.return_value = "R-02-effective-mass"
+    planning = tmp_path / "GPD"
+    planning.mkdir()
+    (planning / "state.json").write_text("{}", encoding="utf-8")
 
     result = runner.invoke(
         app,
         [
+            "--cwd",
+            str(tmp_path),
             "result",
             "persist-derived",
             "--equation",
