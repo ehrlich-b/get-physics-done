@@ -132,9 +132,9 @@ See `.gpd/milestones/v9.0-ROADMAP.md` for full details.
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
 | Gap dependency theorem: (UC1)-(UC4) -> four gaps close | Phase 37 | Complete |
-| Explicit H_eff matrix elements from T_b operators | Phase 38 | Planned |
-| Lattice geometry + bipartiteness determination | Phase 38 | Planned |
-| F_4 frame stabilizer identification | Phase 38 | Planned |
+| Explicit H_eff matrix elements from T_b operators | Phase 38 | Complete |
+| Lattice geometry + bipartiteness determination | Phase 38 | Complete |
+| F_4 frame stabilizer identification | Phase 38 | Complete |
 | SSB proof via DLS/BCS or alternative | Phase 39 | Planned |
 | Goldstone mode count + type (Watanabe-Murayama) | Phase 39 | Planned |
 | NL sigma model on F_4/H + beta function | Phase 39 | Planned |
@@ -203,8 +203,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 38-01-PLAN.md -- Construct 2-site H_eff, diagonalize, verify Spin(9) symmetry, determine ferro/antiferro
-- [ ] 38-02-PLAN.md -- Frame stabilizer identification (F_4 vs Spin(9)), lattice structure (Z^d bipartite), cubic det(A) assessment, Phase 39 handoff
+- [x] 38-01-PLAN.md -- Construct 2-site H_eff, diagonalize, verify Spin(9) symmetry, determine ferro/antiferro
+- [x] 38-02-PLAN.md -- Frame stabilizer identification (F_4 vs Spin(9)), lattice structure (Z^d bipartite), cubic det(A) assessment, Phase 39 handoff
 
 ---
 
@@ -298,6 +298,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 37. Gap Dependency Theorem | v10.0 | 2/2 | Complete | 2026-03-30 |
-| 38. Effective Hamiltonian | v10.0 | 0/2 | Planned | - |
+| 38. Effective Hamiltonian | v10.0 | 2/2 | Complete | 2026-03-30 |
 | 39. SSB + Universality Class | v10.0 | 0/TBD | Not started | - |
 | 40. Assembly | v10.0 | 0/TBD | Not started | - |

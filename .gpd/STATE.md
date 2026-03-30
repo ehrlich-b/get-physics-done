@@ -14,19 +14,29 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 **Current Phase:** 38
 **Current Phase Name:** Effective Hamiltonian from Peirce Multiplication
 **Total Phases:** 40 (36 prior + 4 new in v10.0)
-**Current Plan:** 0/0
-**Total Plans in Phase:** 0
-**Status:** Ready to plan
+**Current Plan:** 2/2
+**Total Plans in Phase:** 2
+**Status:** Phase 38 complete
 **Last Activity:** 2026-03-30
-**Last Activity Description:** Phase 37 complete: gap dependency theorem established (verified, consistent)
+**Last Activity Description:** Phase 38 complete: frame stabilizer Spin(9), Z^d bipartite, cubic det=0 on OP^2
 
-**Progress:** [###############################.........] 92.5% (37/40 phases complete)
+**Progress:** [################################........] 95% (38/40 phases complete)
 
 ## Active Calculations
 
-(None -- Phase 38 planning will define first calculations)
+- H_2 = J * sum_{a=1}^{9} T_a^(1) T_a^(2) on R^{256}, J=1 (lattice units)
 
 ## Intermediate Results
+
+### v10.0 Phase 38 Results (in progress)
+
+- **2-site spectrum (38-01)**: H_2 = J*sum T_a^(1)T_a^(2), 5 Spin(9) irreps: E/J = {-7/4, -3/4, 1/4, 5/4, 9/4}, mult = {9, 84, 126, 36, 1}, CG = {Lambda^1, Lambda^3, Lambda^4, Lambda^2, Lambda^0}. (HIGH)
+- **Ground state (38-01)**: Lambda^1(V_9), dim 9, symmetric sector. FERROMAGNETIC. Gap = J. (HIGH)
+- **Spin(9) symmetry (38-01)**: H_2 commutes with all 36 Spin(9) generators to machine precision. (HIGH)
+- **Frame stabilizer (38-02)**: Spin(9) (dim 36). SSB: F_4 -> Spin(9). Target: OP^2 (dim 16). ||[H_2,J_u]|| = 24.0. (HIGH)
+- **Lattice (38-02)**: Z^d bipartite (checkerboard). K_3 on-site. DLS applicable. (HIGH)
+- **Cubic (38-02)**: det = 0 on OP^2 identically (rank-1 projections). Bilinear H_eff sufficient. (HIGH)
+- **Goldstone (38-02)**: 16 broken generators. Type I (16 modes) vs Type II (8 modes) TBD Phase 39. (MEDIUM)
 
 ### v10.0 Phase 37 Results
 
@@ -56,9 +66,11 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 - NEW: Why does the Peirce-derived spin(9) differ from Krasnov's spin(9)? Physical significance of two distinct spin(9) subalgebras of M_16(R)?
 - NEW: Can the choice of u in S^6 be derived from the self-modeling framework, or is it necessarily external input?
 - NEW: Is the reduced stabilizer (dim 10 = su(3)+u(1)^2) or Krasnov's (dim 12 = su(3)+su(2)+u(1)) the physically correct one?
-- v10.0: What is the macroscopic lattice structure? How does h_3(O) on-site algebra map to Z^d?
-- v10.0: What is the SSB pattern (F_4 -> Spin(9) vs Spin(8) vs G_2 vs other)?
-- v10.0: Is the cubic det(A) invariant RG-relevant in d=3?
+- RESOLVED (38-02): Macroscopic lattice = Z^d with h_3(O) per site. K_3 is on-site algebraic structure.
+- RESOLVED (38-02): SSB pattern = F_4 -> Spin(9). Target space = OP^2 (dim 16).
+- RESOLVED (38-02): Cubic det(A) is formally RG-relevant (dim 3/2 in d=3) but coefficient = 0 exactly on OP^2.
+- v10.0: Are the 16 Goldstone modes Type I (linear dispersion) or Type II (quadratic)? Requires symplectic form rank analysis (Phase 39).
+- v10.0: Does ferromagnetic ordering threaten Lorentz emergence? Type II Goldstones give quadratic dispersion, not linear.
 
 ## Performance Metrics
 
@@ -81,11 +93,15 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 | 36-02 | ~4min | 2 | 1 |
 | 37-01 | ~5min | 2 | 2 |
 | 37-02 | ~5min | 2 | 1 |
+| 38-01 | ~10min | 2 | 3 |
+| 38-02 | ~9min | 2 | 3 |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 38, Plan 02]: Frame stabilizer = Spin(9) (not F_4). Cubic det(A) = 0 on OP^2 (geometric, not Z_2). Ferro ground state -> Type I/II Goldstone TBD.
+- [Phase 38, Plan 01]: Rescaled T_b to uniform Clifford normalization T_a = (1/2)*gamma_a. 2-site spectrum: 5 levels Lambda^k(V_9). Ground state Lambda^1 (vector rep, dim 9), FERROMAGNETIC.
 - [Phase 37, Plan 02]: Gap C upgraded CONDITIONAL -> CONDITIONAL-DERIVED. Gap D upgraded CONDITIONAL -> CONDITIONAL-THEOREM. Dependency matrix 18x6 with no circular dependencies. Phase 39 handoff: UC1-UC4.
 - [Phase 37, Plan 01]: Gap C tensoriality DERIVED from BW + Raychaudhuri + Lovelock (5-step chain). Gap D MVEH math content DERIVED from BW + TT + Gibbs (5-step chain). Sorce two-tier analysis.
 - [Phase 0]: Started milestone v10.0: Universality Class of Self-Modeler Network and Full Gap Closure
@@ -98,7 +114,8 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 
 ### Active Approximations
 
-None yet (will be populated when Phase 38 constructs H_eff).
+- Bilinear truncation: cubic det(A) ignored in H_eff (separate F_4 invariant)
+- Nearest-neighbor only: NNN coupling k_2/k_1 = 1/2 (subleading)
 
 **Convention Lock:**
 
@@ -128,8 +145,9 @@ None yet.
 
 - Two distinct spin(9) embeddings in M_16(R) -- physical significance unclear, noted in Krasnov discrepancy
 - Krasnov stabilizer dim discrepancy (10 vs 12) needs interpretation: which spin(9) is physically relevant?
-- K_3 bipartiteness issue must be resolved in Phase 38 (on-site vs lattice geometry clarification)
-- Frame stabilizer uncertainty (Spin(9) vs Spin(8) vs G_2) blocks Phase 39 sigma model construction
+- RESOLVED (38-02): K_3 bipartiteness -- K_3 is on-site, physical lattice Z^d is bipartite
+- RESOLVED (38-02): Frame stabilizer = Spin(9) (dim 36), confirmed by 3 independent methods
+- NEW: Ferromagnetic ground state may produce Type-II Goldstone modes threatening Lorentz emergence (Phase 39 critical)
 
 ## Session Continuity
 
