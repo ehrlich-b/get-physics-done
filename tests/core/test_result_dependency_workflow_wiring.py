@@ -18,14 +18,17 @@ def test_compare_experiment_workflow_uses_dependency_aware_result_search() -> No
     text = COMPARE_EXPERIMENT.read_text(encoding="utf-8")
 
     assert 'gpd result search --depends-on "{upstream_result_id}"' in text
+    assert 'gpd result show "{result_id}"' in text
     assert 'gpd result deps "{result_id}"' in text
 
 
 def test_error_propagation_workflow_prefers_result_deps_before_manual_tree_rebuild() -> None:
     text = ERROR_PROPAGATION.read_text(encoding="utf-8")
 
-    assert 'prefer `gpd result deps "{result_id}"` to recover the recorded dependency tree' in text
-    assert 'run `gpd result deps "{result_id}"` first' in text
+    assert 'use `gpd result show "{result_id}"` for the direct stored-result view' in text
+    assert 'before `gpd result deps "{result_id}"` to recover the recorded dependency tree' in text
+    assert 'run `gpd result show "{result_id}"` first' in text
+    assert 'then run `gpd result deps "{result_id}"`' in text
 
 
 def test_explain_surfaces_result_deps_for_upstream_context() -> None:
@@ -42,6 +45,7 @@ def test_sensitivity_analysis_prompts_for_result_deps_after_canonical_lookup() -
     text = SENSITIVITY_ANALYSIS.read_text(encoding="utf-8")
 
     assert 'gpd result search' in text
+    assert 'gpd result show "{result_id}"' in text
     assert 'gpd result deps "{result_id}"' in text
 
 
@@ -50,5 +54,7 @@ def test_agent_infrastructure_separates_phase_and_result_dependency_commands() -
 
     assert 'gpd query deps <identifier>' in text
     assert 'Trace a specific phase/frontmatter dependency across phases' in text
+    assert 'gpd result show <identifier>' in text
+    assert 'Inspect one canonical result directly' in text
     assert 'gpd result deps <identifier>' in text
     assert 'Trace dependencies for a canonical result identifier' in text
