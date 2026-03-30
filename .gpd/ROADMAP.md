@@ -419,6 +419,12 @@ Plans:
 
 **Backtracking trigger:** If OS reflection positivity fails for the NL sigma model effective theory, check whether a lattice BW result (without full Wightman axioms) suffices for the Jacobson argument.
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 35-01-PLAN.md -- BW prerequisites (Wightman axiom checklist) + lattice-BW entanglement Hamiltonian construction + SRF validation (BWEQ-01)
+- [ ] 35-02-PLAN.md -- KMS derivation from BW modular flow + local equilibrium at bifurcation surface + Jacobson input specification (BWEQ-02)
+
 ---
 
 ### Phase 36: Assembly and Gap Scoring
