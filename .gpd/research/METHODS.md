@@ -1,14 +1,14 @@
 # Methods Research
 
-**Domain:** Jordan algebras / C*-algebra representations on real modules / Complexification forcing
+**Domain:** Information geometry on quantum lattice states / Continuum limit from finite-dimensional observer
 **Researched:** 2026-03-29
-**Confidence:** MEDIUM-HIGH
+**Confidence:** MEDIUM
 
 ### Scope Boundary
 
-METHODS.md covers analytical MATHEMATICAL methods for the v8.0 milestone: determining whether a C*-observer's Peirce multiplication maps on V_{1/2} = O^2 (inside h_3(O)) force complexification. It does NOT cover software tools (see COMPUTATIONAL.md) or the theoretical landscape (see PRIOR-WORK.md).
+METHODS.md covers analytical and numerical PHYSICS methods for v9.0: closing Paper 6 gaps via information-geometric continuum limit. It does NOT cover software tools (see COMPUTATIONAL.md) or the theoretical landscape (see PRIOR-WORK.md).
 
-**Critical distinction from v7.0 and v6.0:** Prior milestones either looked for complexification internal to h_3(O) (v6.0, all 4 routes failed) or narrowed Gap C via selection/thermodynamics (v7.0, honest but weak). The v8.0 approach uses the EXTERNAL fact that Paper 5 proves the observer IS M_n(C)^sa. The methods needed are therefore about how C*-algebra actions on real vector spaces force (or fail to force) complex structure on those spaces.
+**What is NEW vs v8.0:** v8.0 addressed Gap C (algebraic complexification forcing). v9.0 addresses the remaining Paper 6 gaps: (1) continuum limit, (2) exponential decay/spectral gap in d>=2, (3) Fisher information geometry on lattice states, (4) Lorentzian signature emergence, (5) connection to Wightman axioms. The existing ED infrastructure (N=8-20, code/ed_entanglement.py) and Lieb-Robinson bounds are inputs, not deliverables.
 
 ---
 
@@ -18,305 +18,402 @@ METHODS.md covers analytical MATHEMATICAL methods for the v8.0 milestone: determ
 
 | Method | Purpose | Why Recommended |
 |--------|---------|-----------------|
-| Explicit Peirce multiplication computation | Compute L_a(x) = a . x for a in V_1 with C*-structure, x in V_{1/2} | The core calculation -- everything depends on what L_a actually does to O^2 when a carries complex structure |
-| Commutant analysis (Schur's lemma type) | Determine End_{Spin(9)}(V_{1/2}) and check if it contains a complex structure J | Standard method for deciding real/complex/quaternionic type of an irreducible representation |
-| Frobenius-Schur indicator computation | Classify V_{1/2} = S_9 (real 16-dim spinor of Spin(9)) as real, complex, or quaternionic type | Determines whether V_{1/2} intrinsically admits complex structure from its representation theory |
-| Module extension criteria | Determine when an R-linear map from a C-algebra into End_R(V) forces V to be a C-module | The abstract algebraic question underlying the whole project |
-| Fixed-point / bootstrap self-consistency | Check whether the self-modeling loop (complex QM -> complex measurements -> complexification -> chirality -> chemistry -> self-modelers) has a unique self-consistent fixed point | Backup method if direct algebraic forcing fails |
-| Constructor theory impossibility argument | Prove that non-complexified V_{1/2} cannot support information-processing substrates needed for self-modeling | Backup method: weaker than algebraic theorem but honest |
+| Quantum Fisher information metric on reduced density matrices | Extract Riemannian geometry from lattice ground states parametrized by subsystem position | Directly addresses Gap 1: provides the geometric object (metric tensor) that must converge in the continuum limit |
+| Nachtergaele-Sims exponential clustering theorem | Prove spectral gap implies exponential decay of correlations for Heisenberg AFM | Standard rigorous method; already cited in Paper 6; extends the Lieb-Robinson framework already in the project |
+| Reflection positivity + infrared bounds (Dyson-Lieb-Simon / Kennedy-Lieb-Shastry) | Prove Neel order / long-range order for d>=2 Heisenberg AFM | The ONLY rigorous method for establishing symmetry breaking in quantum spin systems; needed to close the d>=2 gap |
+| Osterwalder-Schrader reconstruction | Convert Euclidean lattice correlators to Lorentzian Wightman functions | Standard path from lattice to QFT axioms; well-developed for constructive field theory |
+| Modular flow / Connes-Rovelli thermal time | Extract Lorentzian causal structure from the Fisher-Riemannian geometry | Already used in Paper 6 for MVEH identification; extends naturally to the Lorentzian signature question |
 
-### Method Selection by Problem Type
+### Numerical Methods
 
-**If checking whether Peirce multiplication directly complexifies V_{1/2}:**
-- Use Method 1 (Explicit Peirce multiplication) + Method 4 (Module extension criteria)
-- Because this is the most direct route; success here closes Gap C as a theorem
+| Method | Purpose | Convergence | Cost Scaling | Implementation |
+|--------|---------|-------------|-------------|----------------|
+| Exact diagonalization + QFI extraction | Compute Fisher metric components on N=8-20 lattice | Finite-size scaling ~ O(1/N) corrections | O(2^N) per state, O(d^3) per QFIM entry | Extend existing code/ed_entanglement.py |
+| Symmetric logarithmic derivative (SLD) method | Compute quantum Fisher information matrix for mixed states | Exact for given density matrix | O(d^3) where d = dim(rho_A) | From scratch (straightforward linear algebra) |
+| DMRG with Uhlmann gauge | Extend Fisher metric computation to N~100-1000 | Exponential in bond dimension chi | O(N chi^3 d^2) | Requires ITensor or TeNPy + custom gauge layer |
+| Finite-difference position derivative of rho_A | Numerically estimate d(rho_A)/dx for Fisher metric | O(h^2) for central differences | O(2^N) per shift | Trivial extension of ED |
+| Finite-size scaling extrapolation | Extract continuum-limit Fisher metric from sequence of lattice sizes | Power-law in 1/N | Negligible (post-processing) | Standard curve fitting |
 
-**If the direct Peirce route hits the V_1 = R bottleneck (again):**
-- Use Method 2 (Commutant analysis) + Method 3 (Frobenius-Schur indicator)
-- Because these determine whether V_{1/2} has an intrinsic complex structure forced by representation theory, independent of the Peirce product
+### Computational Tools
 
-**If all algebraic routes fail:**
-- Use Method 5 (Bootstrap) + Method 6 (Constructor theory)
-- Because these provide a selection-based closure weaker than a theorem but stronger than v7.0's narrowing
+| Tool | Version | Purpose | Why |
+|------|---------|---------|-----|
+| NumPy/SciPy | >=1.20/>=1.10 | ED infrastructure, eigensolvers, linear algebra | Already in project; Lanczos eigsh for sparse Hamiltonians |
+| SymPy | latest | Symbolic verification of Fisher metric identities | Already in project |
+| ITensor (Julia) or TeNPy (Python) | ITensor v0.6+ / TeNPy 1.0+ | DMRG for N>20 | Standard tensor network libraries for 1D spin chains |
 
 ---
 
 ## Method Details
 
-### Method 1: Explicit Peirce Multiplication Computation
+### Method 1: Quantum Fisher Information Metric on Reduced Density Matrices
 
-**What:** Compute the Peirce multiplication L_a: V_{1/2} -> V_{1/2} defined by L_a(x) = a . x (Jordan product) for elements a in V_1 that carry complex structure from the observer's C*-nature. The key question: when a in V_1 is promoted from a real scalar alpha * E_{11} to an element carrying complex structure (via the observer's identification as M_n(C)^sa), does L_a transmit that complex structure to V_{1/2}?
+**What:** For a lattice ground state |psi>, define the family of reduced density matrices rho_A(x) parametrized by the position x of subsystem A on the lattice. The quantum Fisher information metric (QFIM) g_{mu nu}(x) on this parameter space defines a Riemannian metric that encodes the information-geometric structure of the ground state. In the continuum limit, this metric must reproduce (or relate to) the emergent spacetime metric.
 
 **Mathematical basis:**
 
-The Peirce multiplication L_{E_{11}}: h_3(O) -> h_3(O) acts as:
+The quantum Fisher information for a parametrized family rho(theta) is:
 
-    L_{E_{11}}(X) = E_{11} . X = (1/2)(E_{11} X + X E_{11})
+    g_{mu nu}(theta) = (1/2) Tr[ rho(theta) {L_mu, L_nu} ]
 
-On V_{1/2}, this is the identity scaled by 1/2 (by definition of the eigenvalue-1/2 space). The crucial computation is what happens when we consider an element of V_1 that has been "complexified" by the observer.
+where L_mu is the symmetric logarithmic derivative (SLD) defined by:
 
-The v8.0 insight: Paper 5 proves the observer's state space is M_n(C)^sa. The observer occupies V_1 = R * E_{11} inside h_3(O). The observer's internal algebra is a C*-algebra over C. When the observer acts on V_{1/2} via Peirce multiplication, the action map
+    d(rho)/d(theta^mu) = (1/2) (rho L_mu + L_mu rho)
 
-    L: V_1 -> End_R(V_{1/2})
+This is a Lyapunov equation for L_mu. For a density matrix with spectral decomposition rho = sum_k p_k |k><k|, the SLD matrix elements are:
 
-is R-linear (mapping the 1-dimensional V_1 into the 256-dimensional End_R(O^2)). The question is whether the C-structure of the observer's algebra (external to h_3(O)) can be pulled back through L to give V_{1/2} a complex structure.
+    <m| L_mu |n> = 2 <m| d(rho)/d(theta^mu) |n> / (p_m + p_n)    [when p_m + p_n > 0]
 
-**Concrete computation needed:**
+The QFIM equals 4 times the Bures metric: g_{mu nu} = 4 * g^{Bures}_{mu nu}.
 
-Step 1: Write V_1 = R * E_{11}. The observer identifies V_1 with a subalgebra of M_n(C)^sa. Since dim(V_1) = 1, this identification is V_1 = R = center of M_n(C)^sa restricted to 1-dimensional real multiples of the identity.
+For the lattice application, the parameter theta^mu = x^mu labels the lattice position of the subsystem A. On a d-dimensional lattice with spacing a, the derivative d(rho_A)/d(x^mu) is approximated by the finite difference:
 
-Step 2: The Peirce map L: V_1 -> End_R(V_{1/2}) sends alpha * E_{11} to the map x -> (alpha/2) x. This is scalar multiplication by alpha/2.
+    d(rho_A)/d(x^mu) ~ [rho_A(x + a e_mu) - rho_A(x - a e_mu)] / (2a)
 
-Step 3: The image of L in End_R(V_{1/2}) is R * id_{V_{1/2}} -- the real scalar multiples of the identity. This is 1-dimensional.
+where e_mu is the unit vector in direction mu. Each shifted rho_A comes from tracing out the complement of a spatially shifted subsystem in the same global ground state.
 
-Step 4 (critical): The observer's C*-nature gives it access to i (the imaginary unit). But i * E_{11} is NOT in h_3(O) -- it would be i * E_{11}, which is a skew-Hermitian matrix, not Hermitian. So i * E_{11} is not in V_1.
-
-**This is precisely the V_1 = R bottleneck that killed v6.0 routes.**
-
-**Assessment:** Direct Peirce multiplication through V_1 cannot transmit complex structure because V_1 = R * E_{11} is 1-dimensional real and does not contain the imaginary unit i * E_{11} (which is skew-Hermitian, hence outside h_3(O)). The Peirce product is an operation WITHIN h_3(O), and h_3(O) is a real algebra. No amount of external C*-structure changes the fact that the Jordan product a . x with a in V_1 subset h_3(O) and x in V_{1/2} subset h_3(O) produces a result in h_3(O), which is real.
+**Convergence:** The SLD computation is exact for a given rho_A. The finite-difference derivative has O(a^2) discretization error. The leading finite-size correction to the Fisher metric on a 1D chain scales as O(1/N) from Calabrese-Cardy type corrections. In d>=2, finite-size corrections depend on whether the system is gapped (exponential convergence) or gapless (power-law).
 
 **Known failure modes:**
-- Attempting to use i * E_{11} as a Peirce multiplier: fails because i * E_{11} is not in h_3(O)
-- Attempting to extend L to a C-linear map: L is only defined on V_1 subset h_3(O), not on V_1^C
-- Confusing the observer's internal C*-structure with its V_1 slot inside h_3(O)
+- Rank changes in rho_A: When eigenvalues of rho_A cross zero as x varies, the QFIM diverges (Seveso et al., PRA 95, 052320, 2017). On a gapped system this should not happen for small shifts, but near quantum phase transitions the Fisher metric can diverge.
+- Translation invariance on PBC: With periodic boundary conditions and a translation-invariant ground state, rho_A(x) is x-independent and the Fisher metric is identically zero. Must use OBC or break translation invariance (e.g., by choosing a fixed reference region and varying a probe region).
+- SLD ill-conditioning: When p_m + p_n is very small, the SLD matrix element (2 <m|drho|n>)/(p_m + p_n) is numerically unstable. Regularize by setting elements to zero when p_m + p_n < epsilon (typically 1e-12).
 
-**Cost:** Straightforward computation. The result is almost certainly negative (same bottleneck as v6.0). Time: 1-2 hours to verify rigorously.
+**Benchmarks:** The Fisher metric for the transverse-field Ising model at criticality has been computed and shown to diverge at the critical point (Zanardi et al., PRA 76, 032311, 2007). For 1D CFTs, the Fisher metric on reduced states should reproduce the Zamolodchikov metric on the conformal manifold, providing a benchmark.
 
-**Confidence:** HIGH that this route fails. The V_1 = R bottleneck is structural.
+**Implementation notes:**
+
+```python
+def compute_qfi_metric(rho_A_list, directions, spacing):
+    """
+    Compute QFIM g_{mu nu} from a list of rho_A at shifted positions.
+
+    rho_A_list: dict mapping direction -> (rho_plus, rho_minus)
+    directions: list of spatial direction indices
+    spacing: lattice spacing a
+
+    Returns: g_{mu nu} as a dxd array
+    """
+    # 1. Compute drho/dx^mu via central difference
+    # 2. Diagonalize rho_A at central position: rho = sum p_k |k><k|
+    # 3. For each mu, solve Lyapunov eqn for L_mu
+    # 4. g_{mu nu} = (1/2) Tr[rho {L_mu, L_nu}]
+    # Regularize: skip matrix elements with p_m + p_n < eps
+```
+
+**Cost:** For N-site lattice: O(2^N) for ground state, O(2^|A|)^3 for SLD per direction. For |A|=4 on N=16, the SLD step is negligible (16x16 matrices). For |A|=8 on N=20, SLD is 256x256 -- still fast. The bottleneck is ground state computation.
+
+**Confidence:** MEDIUM-HIGH for the method itself; MEDIUM for whether it converges to a smooth metric in the continuum limit.
 
 **Key references:**
-- Baez, "The Octonions," Bull. Amer. Math. Soc. 39 (2002), Section 3.4 (Peirce decomposition)
-- Yokota, arXiv:0902.0431 (Exceptional Lie groups, explicit Peirce computation)
+- Zanardi, Giorda, Cozzini, "Information-theoretic differential geometry of quantum phase transitions," PRL 99, 100603 (2007), arXiv:quant-ph/0701061
+- Matsueda, "Emergent General Relativity from Fisher Information Metric," arXiv:1310.1831 (2013)
+- Liu, Peng, Yuan, "Quantum Fisher information matrix and multiparameter estimation," J. Phys. A 53, 023001 (2020), arXiv:1907.08037
 
 ---
 
-### Method 2: Commutant Analysis and Schur's Lemma for Spin(9) on V_{1/2}
+### Method 2: Exponential Clustering via Nachtergaele-Sims Framework
 
-**What:** Determine the real endomorphism algebra End_{Spin(9)}(V_{1/2}) -- the algebra of R-linear maps V_{1/2} -> V_{1/2} that commute with the Spin(9) action. By Schur's lemma for real representations, this endomorphism algebra is R, C, or H. If it is C or H, then V_{1/2} admits a complex structure J (with J^2 = -1) that commutes with Spin(9), giving V_{1/2} a canonical complex module structure.
+**What:** Prove that for the Heisenberg AFM in d>=2, a nonvanishing spectral gap above the ground state implies exponential decay of connected correlation functions. Combined with known or conjectured results on the spectral gap, this establishes the exponential clustering needed for a smooth continuum limit.
 
 **Mathematical basis:**
 
-V_{1/2} = O^2 is the unique real 16-dimensional irreducible spinor representation S_9 of Spin(9). The classification of this representation determines its type:
+The Nachtergaele-Sims theorem (CMP 265, 119, 2006) states:
 
-The Frobenius-Schur indicator (or equivalently, the structure of the commutant) for S_9 depends on the Clifford algebra structure. Spin(9) sits inside Cl(9). The real Clifford algebra Cl(9,0) is isomorphic to M_{16}(R) (the 16x16 real matrices). This means:
+**Theorem:** Let H be a local Hamiltonian on a lattice with Lieb-Robinson velocity v_LR and spectral gap Delta > 0 above the ground state. Then for any local observables A, B supported on regions X, Y:
 
-- Cl(9,0) = M_{16}(R) acts irreducibly on R^{16} = S_9
-- The commutant of Cl(9,0) in End_R(R^{16}) is just R (the center of M_{16}(R))
-- Therefore End_{Spin(9)}(S_9) contains End_{Cl(9,0)}(S_9) = R
+    |<psi_0| A B |psi_0> - <psi_0|A|psi_0> <psi_0|B|psi_0>|
+        <= C ||A|| ||B|| min(|X|, |Y|) exp(-mu * dist(X,Y))
 
-But End_{Spin(9)}(S_9) could be larger than End_{Cl(9,0)}(S_9) since Spin(9) is a proper subgroup of Cl(9,0)^x. The question is: does Spin(9) generate all of M_{16}(R) under the representation, or only a proper subalgebra?
+where mu = Delta / (2 v_LR) and C is a constant depending on the lattice geometry.
 
-For Spin(n) representations: Spin(9) generates the even Clifford algebra Cl^+(9,0) = Cl(8,0) = M_{16}(R). Since Cl^+(9,0) = M_{16}(R) acts irreducibly on R^{16}, the commutant is End_{Cl^+(9,0)}(R^{16}) = R.
+The key chain of logic for d>=2 Heisenberg AFM:
 
-**Result:** End_{Spin(9)}(S_9) = R.
+1. **Neel order exists** (Dyson-Lieb-Simon 1978 for S>=1 d>=3; Kennedy-Lieb-Shastry 1988 for S=1/2 d=3, partial for d=2 S>=3/2): The ground state breaks SU(2) symmetry spontaneously in d>=2 (rigorously proved for S>=3/2 in d=2).
 
-This means S_9 = V_{1/2} is of REAL TYPE. There is no Spin(9)-equivariant complex structure J on V_{1/2}. The representation does not intrinsically carry complex structure.
+2. **Spectral gap above Neel ground state:** The broken-symmetry ground state is separated from the magnon excitations by a gap. For the anisotropic (easy-axis) Heisenberg model in d>=2, the gap is rigorously established. For the isotropic SU(2) model, there are gapless Goldstone modes (spin waves) in the infinite-volume limit, but the finite-lattice ground state has a gap that scales as ~ 1/N^{1/d} (tower of states).
 
-**Implications:** The complexification S_9 tensor_R C = S_9^C is an irreducible complex representation of Spin(9). When complexified, it becomes the restriction S_{10}^+|_{Spin(9)} of the Weyl spinor of Spin(10). But this complexification is not FORCED by the Spin(9) action -- it requires external input (the complex structure u in S^6, or the observer's C*-nature, or some other mechanism).
+3. **SU(2) complication for n=2:** The isotropic spin-1/2 Heisenberg AFM in d=2 is the critical case. Neel order is believed to exist based on QMC evidence (Sandvik, PRL 104, 137201, 2010) and spin-wave theory, but a rigorous proof for S=1/2 in d=2 remains open. Kennedy-Lieb-Shastry provided sufficient conditions (infrared bounds) but did not fully close the proof.
 
-**What this method DOES establish:**
-- V_{1/2} does NOT have an intrinsic complex structure from its representation theory
-- Any complexification must come from OUTSIDE the Spin(9) representation theory
-- This rules out methods that try to find complex structure purely from the stabilizer group action
+**The honest status for d=2, n=2 (SU(2)):**
+- Neel order: STRONG numerical evidence, no rigorous proof for S=1/2
+- Spectral gap: NO in the thermodynamic limit (Goldstone modes), YES on any finite lattice
+- Exponential clustering: YES on any finite lattice (finite gap -> exponential decay), but the clustering length diverges as system size -> infinity
+- For the continuum limit argument: need clustering on length scales a << xi << L where xi is the correlation length and L is the system size. This is satisfied as long as Neel order exists, because xi remains finite even though the true gap vanishes
 
-**What this method does NOT establish:**
-- Whether the observer's C*-nature provides the external input needed
-- Whether the Peirce product, combined with external C*-structure, forces complexification
+**What can be rigorously proved:**
+- For n>=3 (SU(n>=3)): Haldane gap exists in d=1, strict area law, exponential clustering. In d>=2, stronger results available.
+- For n=2 in d>=2: On any finite lattice, exponential clustering holds with clustering length ~ v_LR / gap ~ N^{1/d}. In the thermodynamic limit, algebraic decay replaces exponential for the transverse correlations (Goldstone modes), but the longitudinal correlations remain short-ranged.
+- For n=2 in d>=3: Full Neel order is rigorously proved (KLS 1988). Combined with the broken-symmetry gap (above Goldstone modes), exponential clustering holds for connected correlations of order-parameter-aligned observables.
 
-**Cost:** Standard representation theory computation. The Clifford algebra periodicity table gives the answer directly. Time: 30 minutes.
+**Recommended approach:** Proceed in two tiers:
+1. **Rigorous tier:** State the result for n>=3 (gapped, exponential clustering, textbook). For n=2 d>=3, state KLS + Nachtergaele-Sims.
+2. **Physical-argument tier:** For n=2 d=2, state the numerical evidence for Neel order (QMC, series expansions, DMRG) and argue that exponential clustering of connected correlations follows from the staggered magnetization being nonzero, even though the exact gap vanishes. This is standard condensed matter reasoning but not rigorous.
 
-**Confidence:** HIGH. The Clifford algebra classification Cl(9,0) = M_{16}(R) is textbook material (Lawson-Michelsohn, Chapter I).
+**Cost:** No computation needed -- this is a literature assembly problem. Time: 5-10 hours to write the rigorous statements carefully.
+
+**Confidence:** HIGH for n>=3 and n=2 d>=3 (textbook/proved). MEDIUM for n=2 d=2 (strong numerical evidence, no proof).
 
 **Key references:**
-- Lawson & Michelsohn, "Spin Geometry," Princeton University Press (1989), Table I.4.3
-- Atiyah, Bott, Shapiro, "Clifford modules," Topology 3, Suppl. 1, 3-38 (1964)
-- Harvey, "Spinors and Calibrations," Academic Press (1990)
+- Nachtergaele & Sims, "Lieb-Robinson bounds and the exponential clustering theorem," CMP 265, 119 (2006), arXiv:math-ph/0506030
+- Hastings, "Spectral gap and exponential decay of correlations," CMP 265, 781 (2006), arXiv:math-ph/0604015
+- Kennedy, Lieb & Shastry, "Existence of Neel order in some spin-1/2 Heisenberg antiferromagnets," J. Stat. Phys. 53, 1019 (1988)
+- Dyson, Lieb & Simon, "Phase transitions in quantum spin systems with isotropic and nonisotropic interactions," J. Stat. Phys. 18, 335 (1978)
+- Affleck, Kennedy, Lieb & Tasaki, "Valence bond ground states in isotropic quantum antiferromagnets," CMP 115, 477 (1988)
 
 ---
 
-### Method 3: Frobenius-Schur Indicator for S_9
+### Method 3: Smoothness of Reduced States as a Function of Position
 
-**What:** Compute the Frobenius-Schur indicator for the spinor representation S_9 of Spin(9) to independently confirm its type (real/complex/quaternionic).
+**What:** Establish that rho_A(x) depends smoothly on the lattice position x (after embedding the lattice in R^d), so that the Fisher information metric is well-defined and smooth.
 
 **Mathematical basis:**
 
-For Spin(n) representations, the Frobenius-Schur indicator is determined by the dimension n mod 8 via the Clifford algebra periodicity:
+On a translation-invariant lattice with OBC or in the bulk of a PBC lattice, smoothness of rho_A(x) follows from exponential clustering:
 
-| n mod 8 | Cl(n,0) | S_n type | End_{Spin(n)}(S_n) | F-S indicator |
-|---------|---------|----------|-------------------|---------------|
-| 0 | M_{2^{n/2}}(R) | real, reducible (two Weyl) | R for each | +1 |
-| 1 | M_{2^{(n-1)/2}}(R) | real, irreducible | R | +1 |
-| 2 | M_{2^{n/2-1}}(R) x M_{2^{n/2-1}}(R) | real, two inequiv Weyl | R for each | +1 |
-| 3 | M_{2^{(n-3)/2}}(H) | quaternionic, irreducible | H | -1 |
-| 4 | M_{2^{n/2-1}}(H) | quaternionic, reducible | H for each | -1 |
-| 5 | M_{2^{(n-3)/2}}(H) x M_{2^{(n-3)/2}}(H) | quaternionic, two inequiv Weyl | H for each | -1 |
-| 6 | M_{2^{n/2-1}}(C) | complex, reducible | C for each Weyl | 0 |
-| 7 | M_{2^{(n-1)/2}}(C) | complex, irreducible | C | 0 |
+**Lemma (smoothness from exponential clustering):** Let |psi> be the ground state of a gapped local Hamiltonian on a lattice of spacing a. Let A(x) denote a subsystem of fixed shape centered at position x. Then:
 
-For n = 9: 9 mod 8 = 1. Therefore:
-- Cl(9,0) = M_{16}(R)
-- S_9 is real type, irreducible
-- End_{Spin(9)}(S_9) = R
-- Frobenius-Schur indicator = +1
+    || rho_A(x + delta) - rho_A(x) || <= C |delta|/a * exp(-dist(boundary shift) / xi)
 
-**Comparison with n = 10:** 10 mod 8 = 2. Cl(10,0) has Weyl spinors that are real type. But the complexified story is different: Spin(10) has complex Weyl representations S_{10}^+ (dim_C = 16) which restrict to S_9^C under Spin(9).
+where xi is the correlation length and || . || is the trace norm. The bound follows because shifting A by delta changes which boundary bonds are cut, and the sensitivity to distant bonds is exponentially suppressed by clustering.
 
-**The critical asymmetry:** S_9 is real type (F-S = +1), so it does NOT have an intrinsic complex structure. To get S_{10}^+ you must complexify externally. This confirms Method 2.
+More precisely, for a gapped Hamiltonian with exponential clustering at rate mu:
+1. rho_A(x) as a function of discrete lattice position x is well-defined
+2. Finite differences Delta rho_A / Delta x^mu are bounded by C * exp(-mu * dist_min) where dist_min is the minimum distance from the changed boundary to the nearest site
+3. After embedding the lattice in R^d and interpolating (or working with the discrete Fisher metric), the resulting g_{mu nu} is a positive semidefinite matrix at each lattice point
 
-**Cost:** Table lookup. Time: 5 minutes.
+**For gapless systems (n=2, d=1):** The 1D Heisenberg chain is gapless with algebraic correlations. The reduced state still varies smoothly with position -- the correlation functions are C^infty as functions of position even for algebraic decay -- but the Fisher metric will have different scaling properties (logarithmic corrections from the CFT). The Calabrese-Cardy formula provides the explicit form.
 
-**Confidence:** HIGH. Textbook-level result.
+**For gapless systems (n=2, d=2):** If Neel order exists, the transverse correlations decay algebraically (Goldstone modes) while the longitudinal correlations are short-ranged. The reduced state rho_A(x) still varies smoothly with x because the algebraic decay is still infinitely differentiable as a function of distance. The Fisher metric components will be finite because the variation of rho_A with position is controlled by the boundary correlations, which are finite even when the bulk correlations are algebraic.
+
+**Numerical check protocol:**
+1. Compute rho_A(x) for x = 0, 1, 2, ..., N-|A| on a 1D chain
+2. Compute || rho_A(x+1) - rho_A(x) ||_trace for each x
+3. Fit to exponential decay vs x near boundaries, constant in bulk
+4. Compute second differences || rho_A(x+1) - 2 rho_A(x) + rho_A(x-1) ||_trace
+5. Verify these are O(a^2) times the first differences (smoothness check)
+
+**Cost:** Negligible beyond existing ED computation. Each rho_A is already available from the ground state.
+
+**Confidence:** HIGH for gapped systems (rigorous exponential clustering -> smoothness). MEDIUM for n=2 d=1 (gapless but CFT controls everything). MEDIUM for n=2 d=2 (conditional on Neel order).
 
 **Key references:**
-- Lawson & Michelsohn (1989), Table I.4.3
-- Bott, "The periodicity theorem for the classical groups and some of its applications," Advances Math. 4 (1970)
+- Hastings & Koma, "Spectral gap and exponential decay of correlations," CMP 265, 781 (2006)
+- Calabrese & Cardy, "Entanglement entropy and quantum field theory," J. Stat. Mech. P06002 (2004), arXiv:hep-th/0405152
 
 ---
 
-### Method 4: Module Extension Criteria -- When Does a C-Linear Action Force Complex Structure?
+### Method 4: From Fisher-Riemannian to Lorentzian Structure
 
-**What:** Determine the precise mathematical conditions under which a C-linear algebra A acting on End_R(V) (through some representation) forces V itself to become a C-module.
+**What:** The Fisher information metric is inherently Riemannian (positive definite). To connect to spacetime physics, we need Lorentzian signature. This method establishes the connection.
 
 **Mathematical basis:**
 
-The general question: Let V be a real vector space, and let A be a C-algebra acting on V via an R-linear representation rho: A -> End_R(V). When does V inherit a C-module structure compatible with the A-action?
+There are three complementary approaches, in order of rigor:
 
-**Theorem (Standard):** V becomes a C-module if and only if there exists J in End_R(V) with J^2 = -Id such that rho(i*a) = J * rho(a) for all a in A (or equivalently, rho(a) * J = rho(i*a) for the action). That is, the complex scalar multiplication of A must be intertwined by a complex structure on V.
+**Approach A: Modular flow defines the time direction (recommended)**
 
-**For the Peirce situation:** The observer's C*-algebra M_n(C)^sa acts on V_{1/2} via the Peirce multiplication map L: V_1 -> End_R(V_{1/2}). But V_1 = R * E_{11} is 1-dimensional, so L has 1-dimensional image. The C*-algebra structure of the observer lives in M_n(C)^sa, not in V_1. The action map L is defined only on V_1 subset h_3(O), not on M_n(C)^sa directly.
+The Connes-Rovelli thermal time hypothesis (already used in Paper 6 for MVEH) identifies physical time with the modular flow of the equilibrium state. The modular Hamiltonian K_A = -ln(rho_A) generates a one-parameter automorphism group sigma_t that acts as "time evolution" relative to the subsystem A.
 
-**The fundamental obstruction:** There is no natural map from the full C*-algebra M_n(C)^sa to End_R(V_{1/2}) that respects both the Jordan algebraic structure of h_3(O) and the C*-algebraic structure of the observer. The observer's C*-algebra and h_3(O) are different mathematical objects; the observer is embedded in h_3(O) via V_1, but V_1 is only the real shadow of the observer's full state space.
+The key insight: the Fisher metric g_{mu nu} gives the SPATIAL part of the emergent metric. The TIME direction is identified with the modular flow. The resulting spacetime metric has the form:
 
-**The key question reframed:** Can the observer's C-linearity be transported to V_{1/2} through some mechanism OTHER than direct Peirce multiplication through V_1?
+    ds^2 = -N^2 dt^2 + g_{mu nu} dx^mu dx^nu
 
-Candidate mechanisms:
-1. **Peirce multiplication by V_0 elements:** V_0 = h_2(O) is 10-dimensional. Elements of V_0 also act on V_{1/2} via the Peirce rules. If V_0 contains structure that transmits complex information... But V_0 = h_2(O) is again a real Jordan algebra.
+where N is the lapse function determined by the modular Hamiltonian normalization, and dt is the modular time parameter. This naturally produces Lorentzian signature because the time direction is DISTINGUISHED by the modular flow, not derived from the Fisher metric.
 
-2. **Second-order Peirce products:** Maps of the form x -> a . (b . x) for a in V_1, b in V_0. These are R-linear but could combine to create a complex structure if the right combinations yield J^2 = -Id. This requires finding elements that compose to give a map squaring to -Id.
+This is the approach Paper 6 already uses implicitly. Making it explicit with the Fisher metric fills the gap.
 
-3. **The octonion multiplication within V_{1/2}:** V_{1/2} = O^2, and each O factor has imaginary units e_1, ..., e_7. Left multiplication by any imaginary unit u (with u^2 = -1) on one O factor gives a map J_u: O -> O with J_u^2 = -Id. This is a complex structure on one copy of O. Extended to O^2, this gives a complex structure on V_{1/2}. But this uses the internal octonionic structure, not the observer's C*-structure.
+**Approach B: Wick rotation of Euclidean correlators**
 
-4. **The u in S^6 complex structure:** Choosing u in S^6 (a unit imaginary octonion) defines J_u on V_{1/2} via left multiplication. This is exactly Boyle's complexification step. The question is: does the observer's C*-nature SELECT a particular u, or is u independent extra data (Gap B2)?
+If lattice correlators satisfy reflection positivity (Osterwalder-Schrader axiom), they can be analytically continued to Lorentzian signature via Wick rotation t -> -i*tau. The reconstructed Wightman functions define the Lorentzian theory.
 
-**Assessment:** The module extension criterion shows that forcing V to be a C-module requires a J in End_R(V) satisfying J^2 = -Id and intertwining the algebra action. For the Peirce situation, the natural J comes from octonionic multiplication (choice of u in S^6), not from the observer's C*-structure transmitted through Peirce multiplication. The C*-structure and the u-choice appear to be independent inputs.
+For the Heisenberg model: the transfer matrix formalism provides Euclidean time correlators. Reflection positivity holds for the Heisenberg model on a bipartite lattice (the interaction is antiferromagnetic, and the Hamiltonian is reflection-positive after a spin-flip transformation on one sublattice).
 
-**Cost:** Medium. Requires careful analysis of all possible maps from observer algebra into End_R(V_{1/2}). Time: 3-5 hours.
+**Approach C: Emergent Lorentzian signature from noncommutative geometry**
 
-**Confidence:** MEDIUM. The negative conclusion (no forcing) is likely correct but needs rigorous proof that no other mechanism beyond direct Peirce multiplication can transmit complex structure.
+Recent work (arXiv:2512.15450, 2024) shows that extending a spectral triple with almost-commutative structure induces emergence of pseudo-Riemannian (Lorentzian) signature from a Riemannian background. This connects to the Connes approach and provides a mathematical framework for signature emergence.
+
+Also relevant: Baldazzi et al. (PRD 87, 065020, 2013) show that Lorentzian signature can emerge as a dynamical property from a fundamentally Euclidean system, with the signature determined by the dynamics rather than put in by hand.
+
+**Recommended approach:** Use Approach A (modular flow) as the primary method because it is already consistent with Paper 6's framework. Use Approach B (OS reconstruction) as the rigorous verification path. Approach C is the most mathematically sophisticated but requires noncommutative geometry machinery not yet in the project.
+
+**What must be shown:**
+1. The Fisher metric g_{mu nu}(x) on the lattice converges to a smooth Riemannian metric in the continuum limit (Method 1 + Method 3)
+2. The modular flow sigma_t defines a timelike direction that is everywhere transverse to the spatial Fisher geometry
+3. The combined (modular time, Fisher space) metric has Lorentzian signature
+4. The resulting spacetime satisfies Einstein's equations (Paper 6 already does this, given the metric)
+
+**Cost:** Approach A is conceptual/derivation work, not computational. Time: 10-20 hours. Approach B requires verifying reflection positivity numerically for the self-modeling Hamiltonian, then computing Euclidean correlators and analytically continuing. Time: 20-40 hours. Approach C is a literature study. Time: 5-10 hours.
+
+**Confidence:** MEDIUM for Approach A (conceptually clear but new formal work needed). MEDIUM-HIGH for Approach B (standard constructive QFT, but tedious). LOW for Approach C (frontier mathematics).
 
 **Key references:**
-- Conrad, "Complexification," expository notes, UConn (standard complexification theory)
-- Alfsen & Shultz, "State Spaces of Operator Algebras," Birkhauser (2001), Ch. 8-9
-- Effros & Stormer, "Positive projections and Jordan structure in operator algebras," Math. Scand. 45 (1979)
+- Connes & Rovelli, "Von Neumann algebra automorphisms and time-thermodynamics relation in general covariant quantum theories," CMP 8, 1 (1994), arXiv:gr-qc/9406019
+- Jacobson, "Entanglement equilibrium and the Einstein equation," PRL 116, 201101 (2016), arXiv:1505.04753
+- Matsueda, "Emergent General Relativity from Fisher Information Metric," arXiv:1310.1831 (2013)
+- Osterwalder & Schrader, "Axioms for Euclidean Green's functions," CMP 31, 83 (1973); CMP 42, 281 (1975)
 
 ---
 
-### Method 5: Fixed-Point / Bootstrap Self-Consistency Argument
+### Method 5: Verification of Wightman Axioms for the Effective Theory
 
-**What:** Argue that the self-modeling loop has a unique self-consistent fixed point that requires complexification. The loop is: self-modeling -> complex QM (Paper 5) -> complex measurements -> complexification of V_{1/2} -> chirality -> chemistry -> substrates for self-modeling. If the loop only closes when V_{1/2} is complexified, then complexification is selected by self-consistency.
+**What:** Check whether the effective QFT emerging from the lattice continuum limit satisfies the Wightman axioms (or the equivalent Osterwalder-Schrader axioms in Euclidean signature). This is the gold standard for a well-defined QFT.
 
 **Mathematical basis:**
 
-The bootstrap argument has the structure of a fixed-point problem. Define a map F on the space of possible physical configurations:
+The Wightman axioms require:
+- W0: Relativistic quantum theory (Hilbert space, Poincare covariance)
+- W1: Spectral condition (energy-momentum in forward light cone)
+- W2: Existence of a unique Poincare-invariant vacuum
+- W3: Domain and continuity of field operators
+- W4: Local commutativity (spacelike separated fields commute/anticommute)
+- W5: Completeness (fields generate the full Hilbert space from the vacuum)
 
-    F: {real V_{1/2}, complex V_{1/2}} -> {real V_{1/2}, complex V_{1/2}}
+The Osterwalder-Schrader (OS) approach is more tractable from the lattice:
+- OS0: Temperedness of Schwinger functions
+- OS1: Euclidean covariance
+- OS2: Reflection positivity
+- OS3: Permutation symmetry
+- OS4: Cluster property
 
-where F encodes: "Given the current state of V_{1/2}, does the resulting physics support self-modeling observers whose measurements are consistent with that state?"
+**Strategy for the self-modeling lattice:**
 
-The argument would proceed:
-1. If V_{1/2} is real: no chirality -> no SM gauge group -> no complex chemistry -> no biological substrates -> no self-modelers -> contradiction with the assumption that we are in a block with rho_exp > 0.
-2. If V_{1/2} is complex: chirality -> SM -> chemistry -> biology -> self-modelers -> consistent.
+1. **OS2 (Reflection positivity):** This is the key axiom. For the Heisenberg model on a bipartite lattice, the transfer matrix T = exp(-a H) is a positive operator. After the sublattice spin-flip trick (Dyson-Lieb-Simon), the model has a reflection-positive transfer matrix. This gives OS2.
 
-Therefore F has a unique fixed point: complexified V_{1/2}.
+2. **OS4 (Cluster property):** This follows from exponential clustering (Method 2) or from a mass gap.
 
-**Strengths:**
-- Does not require algebraic forcing through Peirce multiplication
-- Uses the full causal chain from complexification to self-modeling
-- Consistent with v7.0's selection-based narrowing but goes further by closing the loop
+3. **OS1 (Euclidean covariance):** This requires rotational invariance, which the lattice breaks. In the continuum limit, the lattice artifacts must be irrelevant. For the Heisenberg model in d=1, the WZW CFT has full conformal covariance, so OS1 holds in the continuum limit. For d>=2, the Neel-ordered phase has a mass gap (above Goldstone modes) and the IR effective theory is a nonlinear sigma model, which is Euclidean-covariant.
 
-**Weaknesses:**
-- Step 1 has a gap: "no chirality -> no self-modelers" is not proved. Non-chiral physics might support self-modelers through different mechanisms (not chemistry-based). This is the same gap v7.0 identified.
-- The argument is an anthropic/selection argument, not an algebraic theorem. It cannot exclude non-SM self-modelers in non-complexified blocks.
-- The causal chain "no chirality -> no complex chemistry" involves multiple steps, each requiring justification.
+4. **OS reconstruction:** If OS0-OS4 hold, the Osterwalder-Schrader reconstruction theorem gives a Wightman QFT.
 
-**When to use:** As the primary backup if Methods 1-4 all fail to provide algebraic forcing. The bootstrap argument is stronger than v7.0's narrowing because it attempts to close the full self-consistency loop, but it is weaker than a theorem because it relies on physical claims about chemistry and biology.
+**Honest assessment:** Full verification of the OS axioms for the d>=2 Heisenberg model continuum limit is an OPEN PROBLEM in constructive field theory. The d=1 case (WZW CFT) is under much better control. For d>=2, the effective theory is the O(3) nonlinear sigma model, and constructing this as a rigorous QFT in d=2+1 is one of the open Clay Millennium problems (Yang-Mills mass gap is related but different).
 
-**Formalization difficulty:** The hardest step to formalize is "no chirality -> no chemistry -> no self-modelers." This requires:
-- Showing that chiral weak interactions are necessary for nucleosynthesis (established: without parity violation, Big Bang produces too much helium or no stable nuclei -- this is model-dependent but supported by literature)
-- Showing that complex chemistry requires specific nuclear abundances (established in anthropic literature)
-- Showing that self-modeling requires complex chemistry (not established -- purely information-processing self-modelers might not need chemistry)
+**What IS achievable for this project:**
+- Verify reflection positivity numerically for the self-modeling Hamiltonian on small lattices
+- Verify the cluster property from exponential clustering
+- State the continuum limit conjecture precisely and identify the effective theory
+- Verify Wightman axioms for the FREE field limit (non-interacting approximation)
+- Provide numerical evidence for convergence of lattice correlators to continuum form
 
-**Cost:** Medium-high. Requires surveying anthropic/fine-tuning literature for the chirality-chemistry link. Time: 5-10 hours.
+**Cost:** Numerical verification of OS2 and OS4: 5-10 hours. Statement of the continuum limit conjecture: 5-10 hours. Full OS verification: INTRACTABLE (open problem in mathematical physics).
 
-**Confidence:** LOW-MEDIUM. The argument is plausible but has genuine gaps in the causal chain.
+**Confidence:** HIGH for the lattice OS checks (finite lattice, computable). LOW for the full continuum limit OS verification (open problem).
 
 **Key references:**
-- Barrow & Tipler, "The Anthropic Cosmological Principle," Oxford (1986)
-- Deutsch & Marletto, "Constructor Theory of Information," arXiv:1405.5563 (2014)
-- Hogan, "Why the universe is just so," Rev. Mod. Phys. 72 (2000)
+- Osterwalder & Schrader, CMP 31, 83 (1973); CMP 42, 281 (1975)
+- Glimm & Jaffe, "Quantum Physics: A Functional Integral Point of View," Springer (1987)
+- Rivasseau, "From Perturbative to Constructive Renormalization," Princeton (1991)
 
 ---
 
-### Method 6: Constructor Theory Impossibility Argument
+### Method 6: Numerical Computation of Fisher Metric on Small Lattices
 
-**What:** Use constructor theory's framework of possible/impossible transformations to argue that a non-complexified V_{1/2} cannot support the information-processing tasks required for self-modeling.
-
-**Mathematical basis:**
-
-Constructor theory (Deutsch-Marletto) reformulates physics in terms of which transformations are possible and which are impossible, and WHY. A "constructor" is an entity that can cause a transformation and retain the ability to cause it again.
-
-The argument structure:
-1. Self-modeling requires information processing (the model M must store and update information about the body B).
-2. Information processing requires a "super-information medium" -- a medium on which certain additional tasks (universal computation, reliable storage) are possible.
-3. In the h_3(O) framework, the information medium is the state space of the observer's description of V_{1/2}.
-4. Claim: on real V_{1/2} = O^2 (without complexification), the available transformations are too restricted to support universal computation / reliable information storage, because the symmetry group Spin(9) acting on real S_9 does not have the representational capacity of Spin(10) acting on complex S_{10}^+.
-
-**Critical gap:** Step 4 is not obviously true. Real vector spaces can support universal computation (classical computers use real-valued voltages). The claim would need to be that WITHIN the h_3(O) framework, the physics on non-complexified V_{1/2} lacks specific features (like gauge interactions enabling error correction, or chiral fermion dynamics enabling stable matter) that are necessary for constructing self-modelers.
-
-**When to use:** As a formal framework for the bootstrap argument (Method 5). Constructor theory provides the mathematical language for "X is necessary for Y" claims in terms of possible/impossible task characterizations. It makes the anthropic argument more rigorous by replacing "self-modelers need chemistry" with "self-modeling is a task that requires a super-information medium, and non-complexified physics does not provide one."
-
-**Cost:** High. Requires formalizing self-modeling as a constructor-theoretic task and showing that non-complexified physics cannot support it. This is genuinely new theoretical work. Time: 10-20 hours.
-
-**Confidence:** LOW. The formalization has not been done and may not be achievable with current constructor theory tools.
-
-**Key references:**
-- Deutsch, "Constructor Theory," arXiv:1210.7439 (2012)
-- Deutsch & Marletto, "Constructor Theory of Information," arXiv:1405.5563 (2014)
-- Marletto, "The Science of Can and Can't," Viking (2021)
-
----
-
-### Method 7: Observable Algebra Analysis
-
-**What:** Investigate whether the observer's observable algebra (the set of measurements it can perform on V_{1/2}) necessarily yields C-valued outcomes that force a complex description of V_{1/2}.
+**What:** Concrete numerical protocol to compute the quantum Fisher information metric g_{mu nu} on N=8-20 lattice ground states, extending the existing ED infrastructure.
 
 **Mathematical basis:**
 
-The observer is M_n(C)^sa. Its effects (measurement outcomes) are elements of M_n(C)^sa satisfying 0 <= E <= I. These effects are complex-linear functionals when viewed as maps on the state space.
+Given the ground state |psi> of the Heisenberg AFM on a d-dimensional lattice:
 
-When the observer measures V_{1/2}, it applies a measurement map:
+Step 1: Fix a subsystem shape (e.g., contiguous block of |A| sites in 1D, or square region in 2D).
 
-    mu: V_{1/2} -> [0,1]
+Step 2: For each lattice position x of the subsystem, compute:
+    rho_A(x) = Tr_{complement(A(x))} |psi><psi|
 
-This map is determined by the Jordan algebraic pairing between V_1 and V_{1/2}. Specifically, for a state x in V_{1/2} and an effect E in V_1, the measurement outcome is:
+Step 3: For each spatial direction mu, compute the derivative via central differences:
+    delta_mu rho_A(x) = [rho_A(x + e_mu) - rho_A(x - e_mu)] / (2a)
 
-    mu_E(x) = Tr(E . x) or similar Jordan algebraic pairing
+Step 4: Solve the SLD equation at the central position:
+    delta_mu rho = (1/2)(rho L_mu + L_mu rho)
 
-The question: are the measurement outcomes always real-valued (so no complex structure is transmitted), or does the C*-nature of the observer force complex-valued intermediate quantities that effectively complexify V_{1/2}?
+In the eigenbasis rho = sum_k p_k |k><k|:
+    <m|L_mu|n> = 2 <m|delta_mu rho|n> / (p_m + p_n)  [for p_m + p_n > epsilon]
+    <m|L_mu|n> = 0  [for p_m + p_n < epsilon]
 
-**Key distinction:** The measurement OUTCOMES (probabilities) are always real (they are in [0,1]). But the measurement MAPS, viewed as elements of the dual space V_{1/2}^*, could carry structure beyond what real-valued outcomes suggest. Specifically, if the observer's measurement maps span a complex subspace of Hom_R(V_{1/2}, C) rather than just Hom_R(V_{1/2}, R), this would mean the observer's description of V_{1/2} is inherently complex.
+Step 5: Compute the metric:
+    g_{mu nu}(x) = (1/2) Tr[rho {L_mu, L_nu}]
+    = sum_{m,n} (p_m * <m|L_mu|n> * <n|L_nu|m> + p_m * <m|L_nu|n> * <n|L_mu|m>) / 2
+    = Re[ sum_{m,n} p_m <m|L_mu|n> <n|L_nu|m> ]  [using Hermiticity of L]
 
-**But:** Since V_1 = R * E_{11} is 1-dimensional, the observer has only ONE independent measurement on V_{1/2} via direct Peirce pairing: the norm ||x||^2 of the V_{1/2} component. This is a single real number. The observer can measure the "size" of V_{1/2} but not its internal structure (all 16 real dimensions are equivalent under the Spin(9) symmetry that the observer's E_{11} choice leaves unbroken). To measure internal structure of V_{1/2}, the observer needs to break Spin(9) further (e.g., by choosing u in S^6, which breaks Spin(9) -> G_2 -> SU(3)).
+Step 6: Repeat for all positions x in the bulk (away from boundaries).
 
-**Assessment:** The observable algebra analysis confirms the bottleneck: the observer's Peirce slot V_1 is too small (1-dimensional) to carry enough structure to probe V_{1/2}'s internal degrees of freedom. The observer's C*-nature gives it a rich internal algebra, but the interface to V_{1/2} (the Peirce product) is a narrow funnel through the 1-dimensional V_1.
+Step 7: Extract:
+- Spatial profile g_{mu nu}(x) -- should be approximately constant in the bulk
+- Finite-size dependence g_{mu nu}(N) -- should converge as N -> infinity
+- Isotropy check: g_{xx} = g_{yy} in 2D (Heisenberg SU(2) symmetry implies rotational invariance)
 
-**Cost:** Medium. Time: 3-5 hours.
+**Implementation plan:**
 
-**Confidence:** MEDIUM-HIGH. This method clarifies WHY algebraic forcing fails but does not provide a positive route to complexification.
+```python
+def fisher_metric_1d(N, J, A_size, boundary='OBC'):
+    """
+    Compute Fisher metric on 1D Heisenberg chain.
 
-**Key references:**
-- Alfsen & Shultz, "Geometry of State Spaces of Operator Algebras," Birkhauser (2003)
-- Barnum, Graydon & Wilce, "Composites and Categories of Euclidean Jordan Algebras," Quantum 4, 359 (2020), arXiv:1606.09331
+    Returns g(x) for each valid position x of subsystem A.
+    In 1D there is only one spatial direction, so g is a scalar.
+    """
+    # 1. Build Hamiltonian and find ground state
+    H = build_heisenberg_1d(N, J, boundary)
+    E0, psi0 = eigsh(H, k=1, which='SA')
+
+    # 2. For each position x (with x-1, x, x+1 valid):
+    for x in range(1, N - A_size):
+        rho_center = partial_trace(psi0, sites=range(x, x+A_size))
+        rho_plus   = partial_trace(psi0, sites=range(x+1, x+1+A_size))
+        rho_minus  = partial_trace(psi0, sites=range(x-1, x-1+A_size))
+        drho = (rho_plus - rho_minus) / 2.0  # a=1 lattice units
+
+        # 3. Diagonalize rho_center
+        p, U = eigh(rho_center)
+
+        # 4. Compute SLD in eigenbasis
+        drho_eig = U.T.conj() @ drho @ U
+        L_eig = np.zeros_like(drho_eig)
+        for m in range(len(p)):
+            for n in range(len(p)):
+                denom = p[m] + p[n]
+                if denom > 1e-12:
+                    L_eig[m, n] = 2 * drho_eig[m, n] / denom
+        L = U @ L_eig @ U.T.conj()
+
+        # 5. Fisher metric: g = (1/2) Tr[rho {L, L}] = Tr[rho L^2]
+        g_xx = np.real(np.trace(rho_center @ L @ L))
+        # Store g_xx for position x
+
+def fisher_metric_2d(Lx, Ly, J, A_shape, boundary='PBC'):
+    """
+    Compute Fisher metric tensor on 2D Heisenberg lattice.
+
+    Returns g_{mu nu}(x,y) for each valid position.
+    g is a 2x2 matrix at each point.
+    """
+    # Similar to 1D but with two shift directions.
+    # For 4x4 lattice: 2^16 = 65536 states -- feasible.
+    # For 6x6 lattice: 2^36 -- infeasible with full ED.
+    # Use symmetry sectors (total S_z = 0) to reduce.
+```
+
+**Expected results:**
+- 1D gapless (n=2): g(x) ~ constant in bulk, with O(1/N) corrections and logarithmic boundary effects
+- 2D gapped (n=2, if Neel ordered): g_{mu nu}(x) ~ eta * delta_{mu nu} in bulk (isotropic), converging exponentially fast in N
+- The proportionality constant eta encodes the entanglement entropy density and should relate to 1/(4 G_N) as in Paper 6
+
+**Critical numerical checks:**
+1. g_{mu nu} is positive semidefinite at every point (physicality)
+2. g_{xx}(x) is approximately translation-invariant in the bulk (homogeneity)
+3. g_{xx} ~ g_{yy} in 2D (isotropy from SU(2) symmetry)
+4. g(N) converges as N increases (continuum limit evidence)
+5. The continuum-limit value of g matches the entanglement entropy density eta from Paper 6
+
+**Cost per lattice:**
+- N=12 1D PBC: ~1 sec (already computed in existing code)
+- N=16 1D PBC: ~5 sec
+- N=20 1D PBC: ~2 min
+- 4x4 2D PBC: ~30 min (with S_z sector restriction)
+- 5x5 2D PBC: infeasible with full ED
+
+Total for the Fisher metric study: ~2-4 hours of computation.
+
+**Confidence:** HIGH for the computation itself. MEDIUM for whether the results will show clear convergence to a smooth metric (finite-size effects may be large at N=16-20).
 
 ---
 
@@ -324,60 +421,42 @@ The question: are the measurement outcomes always real-valued (so no complex str
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|------------------------|
-| Commutant analysis for S_9 type | Direct computation of Spin(9) characters | Never -- Clifford algebra periodicity is faster and more reliable than character sums for spin representations |
-| Explicit Peirce computation in h_3(O) | Abstract categorical argument about Jordan functors | Never -- h_3(O) is exceptional and does not fit into general categorical frameworks cleanly |
-| Fixed-point bootstrap (Method 5) | Pure anthropic reasoning without formalization | Only as a last resort -- anthropic arguments without mathematical structure are not publishable |
-| Constructor theory (Method 6) | Penrose-type "gravitational OR" arguments | Never for this project -- gravitational OR is about decoherence, not complexification |
-| Module extension criteria (Method 4) | Extending h_3(O) to h_3(O)^C and working in the complexified algebra | Only if reframing the question: asking "does the observer select a REAL FORM of h_3(O)^C?" rather than "does the observer complexify V_{1/2}?" These are different questions with different answers |
+| SLD-based QFI metric | Bures distance d_B(rho, sigma) computed directly | Only for very small systems (|A|<=3) where d_B is cheaper than SLD; for larger systems SLD is more numerically stable |
+| Central finite differences for drho/dx | Forward differences | Never -- central differences have O(a^2) vs O(a) error for negligible extra cost |
+| Modular flow for time direction (Approach A) | Full OS reconstruction (Approach B) | When rigorous axiomatic QFT verification is the goal, not just establishing Lorentzian metric |
+| Nachtergaele-Sims for exponential clustering | Hastings' independent proof | Either works; NS has tighter constants and connects more directly to Lieb-Robinson already in the project |
+| ED for N<=20 | DMRG for N<=1000 | When finite-size effects at N=20 are too large to extrapolate; DMRG requires additional library setup |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Conditional expectations (Effros-Stormer) applied to V_1 -> V_{1/2} | Already tried in v6.0 Route 1; fails because Peirce interface is scalar, no complex structure transmittable | Method 4 (module extension criteria) for the general algebraic question |
-| State-effect duality on V_1 | Already tried in v6.0 Route 2; V_1 = R is 1-dim, only real inner product | Method 7 (observable algebra) which addresses the full measurement structure |
-| GNS construction from V_1 states | Already tried in v6.0 Route 3; exceptional status + rank-1 Peirce bottleneck blocked it | Method 2 (commutant analysis) which bypasses GNS entirely |
-| Generic tensor product A tensor_R V_{1/2} | Already tried in v6.0 Route 4; algebraic tautology, not h_3(O)-specific | Method 1 (explicit Peirce computation) which stays inside h_3(O) |
-| Treating V_{1/2} as a module over the full h_3(O) | h_3(O) is exceptional and not associative; module theory for non-associative algebras is poorly developed and unlikely to yield clean results | Stay with Peirce multiplication (well-defined operations) rather than attempting general module theory |
+| Classical Fisher information (on measurement outcomes) | We need the QUANTUM Fisher information on density matrices, not the classical version on probability distributions; the quantum version captures coherence information that classical misses | Quantum Fisher information via SLD |
+| Fubini-Study metric on pure states | The full lattice state |psi> is pure, but the relevant geometric object is the metric on REDUCED states rho_A(x) which are mixed; Fubini-Study applies only to pure states | Bures/SLD metric on mixed states |
+| Perturbative QFT for Wightman axiom verification | The lattice theory is strongly coupled (Heisenberg model is not weakly interacting); perturbation theory gives the wrong effective theory | Constructive/non-perturbative methods (OS reconstruction, ED verification) |
+| Monte Carlo for Fisher metric | QMC has a sign problem for frustrated systems and cannot directly compute off-diagonal density matrix elements needed for SLD | ED for small systems, DMRG for larger 1D systems |
+| Numerical analytic continuation for Lorentzian correlators | Notorious ill-conditioning; Bayesian methods (MaxEnt) have uncontrolled systematic errors | Direct OS reconstruction or modular flow identification |
 
 ---
 
 ## Validation Strategy by Method
 
 | Method | Validation Approach | Key Benchmarks |
-|--------|--------------------|-----------------|
-| Method 1 (Peirce computation) | Verify L_{alpha E_{11}}(x) = (alpha/2)x for alpha in R, x in V_{1/2}; check all entries of 3x3 octonionic matrix | L_{E_{11}} is identity/2 on V_{1/2} (defining property) |
-| Method 2 (Commutant analysis) | Cross-check Cl(9,0) = M_{16}(R) against Clifford algebra periodicity table | Dim check: 2^9 = 512 = 16 * 32 = dim(M_{16}(R)) [correct: 16^2 = 256 != 512; Cl(9,0) is M_{32}(R) but the even part Cl^+(9,0) = M_{16}(R)] |
-| Method 3 (Frobenius-Schur) | Cross-check against known F-S indicators for low-rank Spin groups | Spin(8): S_8^+, S_8^-, S_8^v all real (triality); Spin(7): S_7 quaternionic (7 mod 8 = 7, complex type -- wait, need to recheck). Use the table directly. |
-| Method 4 (Module extension) | Test on known examples: C acting on R^2 via rotation gives complex structure; C acting on R^1 via real part does not | Standard linear algebra examples |
-| Method 5 (Bootstrap) | Check that the non-chiral physics prediction matches known anthropic constraints | Barrow-Tipler constraints on parity violation and nucleosynthesis |
+|--------|---------------------|----------------|
+| Fisher metric (Method 1) | Check g_{mu nu} >= 0, isotropy g_{xx}=g_{yy}, translation invariance in bulk | TFI at criticality: g diverges at h/J=1 (Zanardi et al. 2007) |
+| Exponential clustering (Method 2) | Compute correlation functions and fit decay rate; compare mu with Delta/(2 v_LR) | Heisenberg chain n=2: algebraic decay at rate from WZW CFT (c=1). Gapped TFI: exponential decay |
+| Smoothness (Method 3) | Second-difference test: ||Delta^2 rho|| / ||Delta rho|| = O(a) | Constant ratio in the bulk for gapped systems; logarithmic corrections for gapless |
+| Lorentzian (Method 4) | Modular Hamiltonian locality (already checked in Paper 6: SRF=0.9993) | Bisognano-Wichmann: modular Hamiltonian = boost generator in Rindler wedge |
+| Wightman axioms (Method 5) | Reflection positivity of transfer matrix; cluster property from exponential decay | phi^4_2 constructive QFT results (Glimm-Jaffe): known to satisfy all OS axioms |
+| Numerical Fisher metric (Method 6) | Cross-check: g from SLD vs g from Bures distance for small |A| | Both must agree to machine precision (they differ only at singular points where rank changes) |
 
-### Cross-Checks
+### Critical Cross-Check
 
-| Check | Expected Result | If It Fails |
-|-------|----------------|-------------|
-| End_{Spin(9)}(S_9) = R | Confirmed by Cl(9,0) periodicity | If End_{Spin(9)}(S_9) = C or H, then V_{1/2} has intrinsic complex structure -- this would be major and change everything |
-| V_1 = R * E_{11} is 1-dim | Confirmed by Peirce decomposition | Cannot fail -- this is the definition of the eigenvalue-1 space |
-| L_{E_{11}} acts as scalar on V_{1/2} | Confirmed by Peirce axioms | Cannot fail -- eigenvalue-1/2 property |
-| Complexification V_{1/2}^C = S_{10}^+ | Confirmed by branching rule Spin(10) -> Spin(9) | Cannot fail -- standard representation theory |
+The Fisher metric g_{mu nu} derived from Method 1/6 must be consistent with the entanglement entropy eta from Paper 6. Specifically:
 
----
+    g_{mu nu} ~ eta * delta_{mu nu} / a^{d-1}
 
-## Synthesis: Expected Outcome and Strategy
-
-**Most likely outcome:** Methods 1-4 will confirm that algebraic forcing of complexification through Peirce multiplication FAILS, for the same fundamental reason it failed in v6.0: the Peirce interface V_1 = R is too narrow. The commutant analysis will confirm that V_{1/2} is real-type and has no intrinsic complex structure.
-
-**Recommended strategy given this likely outcome:**
-
-1. **First (1-2 hours):** Run Methods 1-3 to definitively establish the algebraic situation. Document the precise obstruction.
-
-2. **Second (3-5 hours):** Run Method 4 to determine if ANY mechanism (beyond direct Peirce multiplication through V_1) can transmit complex structure. Investigate whether the observer's interaction with V_{1/2} through HIGHER-ORDER operations (e.g., triple products, quadratic representations) provides additional structure.
-
-3. **Third (if algebraic forcing fails, 5-10 hours):** Run Methods 5-6 (bootstrap + constructor theory) to establish the strongest possible selection-based argument. The goal here is to upgrade v7.0's "narrowed" to something closer to "resolved via selection."
-
-4. **Fourth (ongoing):** Method 7 (observable algebra) to understand WHY the obstruction exists and whether it points to a deeper structural insight about the observer-universe relationship.
-
-**The honest assessment:** It is very likely that Gap C cannot be closed as a theorem. The V_1 = R bottleneck is genuine and structural. The best achievable result may be a rigorous selection/bootstrap argument (Methods 5-6) combined with a precise characterization of what additional structure would be needed for algebraic closure (Methods 1-4). This would upgrade v7.0's "narrowed" status while being honest about the remaining gap.
+where eta = S(A) / |partial A| is the entanglement entropy per unit boundary area and a is the lattice spacing. Since Paper 6 identifies eta = 1/(4 G_N), the Fisher metric provides an independent path to Newton's constant. These two determinations MUST agree; disagreement would indicate an error in the framework.
 
 ---
 
@@ -385,34 +464,39 @@ The question: are the measurement outcomes always real-valued (so no complex str
 
 ```bash
 # Core computational environment (already in project)
-pip install numpy scipy sympy
+pip install numpy scipy sympy matplotlib
 
-# No additional software needed -- all methods are
-# analytical/algebraic, implementable in SymPy for verification.
-# The project already has extensive SymPy infrastructure.
+# For DMRG extension (N>20, optional, requires user approval):
+# pip install physics-tenpy  # TeNPy for Python DMRG
+# OR
+# Julia + ITensors.jl for Julia DMRG
+
+# No additional software needed for ED-based Fisher metric computation.
+# All methods build on existing code/ed_entanglement.py infrastructure.
 ```
 
 ---
 
 ## Sources
 
-- Alfsen & Shultz, "State Spaces of Operator Algebras," Birkhauser (2001) -- Jordan algebra state space theory
-- Alfsen & Shultz, "Geometry of State Spaces of Operator Algebras," Birkhauser (2003) -- geometric characterization of state spaces
-- Atiyah, Bott & Shapiro, "Clifford modules," Topology 3, Suppl. 1, 3-38 (1964) -- Clifford algebra periodicity and spinor classification
-- Baez, "The Octonions," Bull. Amer. Math. Soc. 39, 145-205 (2002), [arXiv:math/0105155](https://arxiv.org/abs/math/0105155) -- h_3(O) structure, Peirce decomposition, Spin(9) representations
-- Barnum, Graydon & Wilce, "Composites and Categories of Euclidean Jordan Algebras," Quantum 4, 359 (2020), [arXiv:1606.09331](https://arxiv.org/abs/1606.09331) -- non-composability of exceptional Jordan algebras
-- Boyle, "The Standard Model, The Exceptional Jordan Algebra, and Triality," [arXiv:2006.16265](https://arxiv.org/abs/2006.16265) (2020) -- complexification of h_3(O) and SM fermion content
-- Conrad, "Complexification," expository notes, UConn -- standard complexification theory for vector spaces and algebras
-- Deutsch, "Constructor Theory," [arXiv:1210.7439](https://arxiv.org/abs/1210.7439) (2012) -- foundational framework for possible/impossible transformations
-- Deutsch & Marletto, "Constructor Theory of Information," [arXiv:1405.5563](https://arxiv.org/abs/1405.5563) (2014) -- information media and impossibility
-- Effros & Stormer, "Positive projections and Jordan structure in operator algebras," Math. Scand. 45, 127-138 (1979) -- conditional expectations on Jordan algebras
-- Hanche-Olsen & Stormer, "Jordan Operator Algebras," Pitman (1984) -- classification of JB-algebras, exceptional ideal structure
-- Harvey, "Spinors and Calibrations," Academic Press (1990) -- spinor representations and Clifford algebras
-- Lawson & Michelsohn, "Spin Geometry," Princeton University Press (1989) -- Clifford algebra periodicity table, spinor classification
-- Upmeier, "Symmetric Banach Manifolds and Jordan C*-Algebras," North-Holland (1985) -- JB*-triples and symmetric spaces
-- Yokota, "Exceptional Lie Groups," [arXiv:0902.0431](https://arxiv.org/abs/0902.0431) -- explicit F_4, Spin(9) computations in h_3(O)
+- Zanardi, Giorda & Cozzini, "Information-theoretic differential geometry of quantum phase transitions," PRL 99, 100603 (2007), [arXiv:quant-ph/0701061](https://arxiv.org/abs/quant-ph/0701061) -- Fisher metric and quantum phase transitions
+- Liu, Peng & Yuan, "Quantum Fisher information matrix and multiparameter estimation," J. Phys. A 53, 023001 (2020), [arXiv:1907.08037](https://arxiv.org/abs/1907.08037) -- Comprehensive review of QFIM computation methods
+- Matsueda, "Emergent General Relativity from Fisher Information Metric," [arXiv:1310.1831](https://arxiv.org/abs/1310.1831) (2013) -- Fisher metric -> Einstein tensor on lattice states
+- Nachtergaele & Sims, "Lieb-Robinson bounds and the exponential clustering theorem," CMP 265, 119 (2006), [arXiv:math-ph/0506030](https://arxiv.org/abs/math-ph/0506030) -- Spectral gap implies exponential clustering
+- Hastings, "Spectral gap and exponential decay of correlations," CMP 265, 781 (2006), [arXiv:math-ph/0604015](https://arxiv.org/abs/math-ph/0604015) -- Independent proof of exponential clustering
+- Kennedy, Lieb & Shastry, "Existence of Neel order in some spin-1/2 Heisenberg antiferromagnets," J. Stat. Phys. 53, 1019 (1988) -- Rigorous Neel order for spin-1/2 in d>=3
+- Dyson, Lieb & Simon, "Phase transitions in quantum spin systems with isotropic and nonisotropic interactions," J. Stat. Phys. 18, 335 (1978) -- Foundation for infrared bounds and long-range order
+- Calabrese & Cardy, "Entanglement entropy and quantum field theory," J. Stat. Mech. P06002 (2004), [arXiv:hep-th/0405152](https://arxiv.org/abs/hep-th/0405152) -- CFT entanglement entropy formula
+- Connes & Rovelli, "Von Neumann algebra automorphisms and time-thermodynamics relation," CMP 8, 1 (1994), [arXiv:gr-qc/9406019](https://arxiv.org/abs/gr-qc/9406019) -- Thermal time hypothesis
+- Osterwalder & Schrader, "Axioms for Euclidean Green's functions," CMP 31, 83 (1973); CMP 42, 281 (1975) -- OS axioms for Euclidean QFT
+- Glimm & Jaffe, "Quantum Physics: A Functional Integral Point of View," Springer (1987) -- Constructive QFT textbook
+- Seveso, Albarelli, Genoni & Paris, "Discontinuities of the quantum Fisher information and the Bures metric," PRA 95, 052320 (2017), [arXiv:1612.04581](https://arxiv.org/abs/1612.04581) -- QFI discontinuities at rank changes
+- Zhou & Jiang, "An exact correspondence between the quantum Fisher information and the Bures metric," [arXiv:1910.08473](https://arxiv.org/abs/1910.08473) (2019) -- QFI = 4 * Bures metric
+- Uhlmann gauge + DMRG: "Quantum Information Geometry Meets DMRG," [arXiv:2505.11514](https://arxiv.org/abs/2505.11514) (2025) -- DMRG with Bures metric gauge for spin chains
+- Affleck, Kennedy, Lieb & Tasaki, "Valence bond ground states in isotropic quantum antiferromagnets," CMP 115, 477 (1988) -- AKLT model, exact gap, exponential clustering
+- Nachtergaele, Sims & Young, "Quasi-locality bounds for quantum lattice systems. Part I," [arXiv:1810.02428](https://arxiv.org/abs/1810.02428) (2019) -- Modern comprehensive treatment of Lieb-Robinson bounds
 
 ---
 
-_Methods research for: v8.0 Gap C Algebraic Closure via C*-Measurement Maps_
+_Methods research for: v9.0 Information-Geometric Continuum Limit from Finite-Dimensional Observer_
 _Researched: 2026-03-29_

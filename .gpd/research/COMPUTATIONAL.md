@@ -1,282 +1,350 @@
-# Computational Approaches: h_3(O) Peirce Multiplication and Complexification Verification
+# Computational Approaches: Fisher Information Geometry on SWAP Lattice Reduced States
 
 **Surveyed:** 2026-03-29
-**Domain:** Exceptional Jordan algebras / Octonion arithmetic / Spin(9)-Spin(10) representations
+**Domain:** Quantum information geometry / Exact diagonalization / Riemannian geometry on state manifolds
 **Confidence:** HIGH
 
 ### Scope Boundary
 
-COMPUTATIONAL.md covers computational TOOLS, libraries, algorithms, and infrastructure for verifying whether C*-observer Peirce multiplication maps force complexification of V_{1/2} = O^2 in h_3(O). It does NOT cover the physics motivation (PRIOR-WORK.md) or the analytical proof strategy (METHODS.md).
+COMPUTATIONAL.md covers computational TOOLS, libraries, algorithms, and infrastructure for computing the Fisher information metric on reduced density matrices of the SWAP Hamiltonian ground state, verifying smoothness and positive-definiteness, computing geodesics, and checking lattice distance recovery. It does NOT cover the physics motivation (PRIOR-WORK.md) or the analytical proof strategy (METHODS.md).
 
-**Relationship to existing codebase:** The project has a working Python/SymPy + NumPy/SciPy framework with explicit 32x32 Cl(10)/Cl(6) matrices (test_cl6_sm.py, Phase 19) and first-order condition verification machinery (test_first_order.py, Phases 13-15). No octonion arithmetic or h_3(O) Jordan product code exists yet. This document covers the NEW computational layer needed: octonion multiplication, h_3(O) element representation, Jordan product computation, and Peirce multiplication operator extraction.
+**Relationship to existing codebase:** The project has a working Python/NumPy/SciPy exact diagonalization framework in `code/ed_entanglement.py` (Phase 11) with sparse Hamiltonian construction (Heisenberg 1D/2D, self-modeling/SWAP, TFI), Lanczos ground state solver, partial trace, and von Neumann entropy. The `code/area_law_verification.py` extends this to area-law fits. This document covers the NEW computational layer needed: Fisher metric tensor extraction from families of reduced density matrices parametrized by lattice position, numerical differentiation and regularization for rank-deficient states, positive-definiteness verification, geodesic computation, and lattice distance comparison.
 
 ## Recommended Stack
 
-Build a self-contained Python module (~300 lines) implementing octonion arithmetic and h_3(O) Jordan products from scratch using NumPy. Do not use external octonion libraries. The reasons are:
+Extend the existing `code/ed_entanglement.py` framework with a new module (~400 lines) implementing Fisher metric computation on reduced density matrices. Use the eigendecomposition-based formula for the quantum Fisher information metric (QFIM), which avoids matrix logarithm derivatives entirely and handles rank-deficient states naturally. Do not use external quantum metrology packages.
 
-1. **No mature library exists.** The Python octonion ecosystem consists of toy packages (hypercomplex, pyoctonion, Cayley-Dickson scripts) that implement basic multiplication but lack h_3(O) matrix operations, Peirce decomposition, or Jordan products. None have been used in published research computations.
+The reasons:
 
-2. **The computation is small.** h_3(O) is 27-dimensional. Octonions are 8-dimensional. The Jordan product of two 3x3 octonionic Hermitian matrices involves ~54 octonion multiplications. This is microsecond-scale on a laptop.
+1. **The eigendecomposition formula is the standard.** For a parametrized family of density matrices rho(theta), the QFIM components are computed from eigenvalues and eigenvectors of rho directly. The formula has explicit handling of zero eigenvalues (those matrix elements are dropped). This is numerically stable and well-understood.
 
-3. **Correctness is critical.** The central question -- whether L_{u*E_11}(x) acts as multiplication by i on V_{1/2} -- depends on exact octonion multiplication. A hand-rolled implementation with Fano-plane-based multiplication table is verifiable line-by-line. An opaque external library is not.
+2. **The computation is small.** For N=8 lattice sites (n=2), Hilbert space dimension is 2^8 = 256. Reduced density matrices on Lambda sites with |Lambda| = 2-4 have dimension 4-16. Eigendecomposition of a 16x16 matrix is microsecond-scale. Even N=20 gives 2^20 ~ 10^6 dimensional Hilbert space, manageable for Lanczos, and reduced density matrices remain small.
 
-4. **The existing Cl(10) code (test_cl6_sm.py) already follows this pattern.** It builds Clifford generators from scratch using Pauli tensor products rather than importing a library.
+3. **Integration with existing code is seamless.** The existing `partial_trace` function already produces reduced density matrices. The new code adds Fisher metric computation as a downstream consumer of those matrices.
 
-**Primary stack:** NumPy for all numerical computation. SymPy only if parametric proofs over symbolic octonion components are needed (unlikely -- the key checks are numerical with exact rational arithmetic or machine-precision floating point).
+4. **External packages add complexity without value.** QuanEstimation (Python/Julia hybrid, focused on parameter estimation optimization) and qutip (general-purpose quantum toolbox) could compute QFIM but introduce heavy dependencies for what amounts to a 50-line eigendecomposition calculation. The project pattern is self-contained numerical verification.
+
+**Primary stack:** NumPy + SciPy (already in project). No new dependencies needed.
 
 ## Numerical Algorithms
 
-### 1. Octonion Arithmetic
+### 1. Quantum Fisher Information Metric via Eigendecomposition
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Fano multiplication table | o1 * o2 for o1, o2 in O | Exact | O(64) flops (8x8 table) | 64 bytes (table) | Baez, Bull. AMS 39 (2002), Table 1 |
-| Cayley-Dickson recursion | o1 * o2 via quaternion pairs | Exact | O(32) flops | Negligible | Dray-Manogue, "Geometry of the Octonions" (2015) |
+| Eigendecomposition QFIM | g_ij(x) from rho(x) family | Exact (given eigensystem) | O(d^3) for d x d rho | O(d^2) | Braunstein-Caves PRL 72 (1994) |
 
-**Recommendation:** Use the Fano multiplication table. It is explicit, verifiable, and matches the project's existing convention (fano_e1e2=e4 from test_cl6_sm.py ASSERT_CONVENTION).
-
-#### Algorithm: Octonion Multiplication via Fano Table
+This is the CENTRAL algorithm. The quantum Fisher information metric (also called the Bures metric or fidelity susceptibility) on a manifold of density matrices parametrized by theta = (theta^1, ..., theta^k) is:
 
 ```
-INPUT:  a = (a0, a1, ..., a7), b = (b0, b1, ..., b7) in R^8
-        Fano multiplication table FANO[i][j] = (sign, index) for e_i * e_j
-OUTPUT: c = a * b in R^8
+g_{ij}(theta) = (1/2) Tr[rho(theta) {L_i, L_j}]
+```
 
-Convention: O = R*1 + R*e_1 + ... + R*e_7
-  e_i * e_j = FANO[i][j] for i,j in {1,...,7}
-  e_i * 1 = 1 * e_i = e_i
-  1 * 1 = 1
+where L_i is the symmetric logarithmic derivative (SLD) satisfying:
 
-Table (e_i * e_j -> +/- e_k, following Baez with e1*e2 = e4):
-  e1*e2 = +e4    e2*e3 = +e5    e3*e4 = +e6    e4*e5 = +e7
-  e5*e6 = +e1    e6*e7 = +e2    e7*e1 = +e3
-  (plus cyclic shifts of each Fano line, plus antisymmetry e_j*e_i = -e_i*e_j)
+```
+d rho / d theta^i = (1/2)(rho L_i + L_i rho)
+```
 
-1. c0 = a0*b0 - sum_{i=1}^{7} a_i*b_i     (real part: standard inner product)
-2. For k = 1,...,7:
-     c_k = a0*b_k + a_k*b0
-           + sum over Fano triples (i,j,k) with e_i*e_j = +e_k: a_i*b_j - a_j*b_i
-3. RETURN c
+#### Algorithm: QFIM via Eigendecomposition
 
-VERIFICATION:
-  - e_i^2 = -1 for all i in {1,...,7}
-  - ||a*b|| = ||a|| * ||b|| (norm-preserving: composition algebra)
-  - NOT associative: check (e1*e2)*e3 != e1*(e2*e3) as a test
+```
+INPUT:  Family of density matrices rho(theta) with theta in R^k
+        Point theta_0 at which to evaluate the metric
+        Finite difference step size epsilon
+OUTPUT: k x k metric tensor g_{ij}(theta_0)
+
+STEP 1: Eigendecompose rho_0 = rho(theta_0)
+  rho_0 = sum_m lambda_m |m><m|
+  Discard eigenvalues lambda_m < threshold (e.g., 1e-14)
+  Record: eigenvalues {lambda_m}, eigenvectors {|m>}, active set S = {m : lambda_m > threshold}
+
+STEP 2: For each parameter direction i = 1, ..., k:
+  Compute d_rho_i = d rho / d theta^i via finite differences:
+    d_rho_i = (rho(theta_0 + epsilon * e_i) - rho(theta_0 - epsilon * e_i)) / (2 * epsilon)
+  where e_i is the i-th unit vector.
+
+  CRITICAL: Each rho(theta_0 +/- epsilon * e_i) must be computed from a SEPARATE
+  partial trace of the ground state. For lattice position parametrization, this means
+  shifting which sites form the subsystem.
+
+STEP 3: Compute metric components using the closed-form SLD formula:
+  g_{ij} = sum_{m,n in S} (2 / (lambda_m + lambda_n)) * Re[<m|d_rho_i|n> * <n|d_rho_j|m>]
+
+  where the sum runs over pairs (m,n) with lambda_m + lambda_n > 0.
+
+  DERIVATION: The SLD equation rho L + L rho = 2 d_rho has matrix elements
+    (lambda_m + lambda_n) <m|L|n> = 2 <m|d_rho|n>
+  so <m|L_i|n> = 2 <m|d_rho_i|n> / (lambda_m + lambda_n) when the denominator is nonzero.
+  Then g_{ij} = (1/2) Tr[rho {L_i, L_j}] = sum_{m,n} [lambda_m * <m|L_i|n><n|L_j|m>]
+  which simplifies to the formula above.
+
+STEP 4: Verify g is a real symmetric matrix (to machine precision).
+  Check: g_{ij} = g_{ji} to tolerance 1e-12.
+  Check: all eigenvalues of g are non-negative (positive semi-definite).
+
+COMPLEXITY:
+  - Eigendecomposition: O(d^3) where d = dim(rho) = 2^|Lambda|
+  - Finite differences: 2k ground state computations (if varying Hamiltonian parameters)
+    OR 2k partial traces (if varying subsystem position, ground state fixed)
+  - Metric assembly: O(d^2 * k^2) per point
+  - For |Lambda| = 2 (d=4), k = lattice dimension (1D: k=1, 2D: k=2): trivial
+  - For |Lambda| = 4 (d=16), k = 2: still trivial
 ```
 
 #### Convergence Properties
 
-- **Exact for floating point:** No iteration, no convergence issue. Single-pass formula.
-- **Known failure mode:** Sign errors in the Fano table. There are 480 valid octonion multiplication tables (corresponding to automorphisms of the Fano plane under G_2). The convention must be fixed once and checked against known identities.
-- **Validation:** Verify all 7 Fano lines independently, check e_i^2 = -1, check norm-multiplicativity on 100 random pairs.
+- **Finite difference convergence:** Central differences give O(epsilon^2) error in d_rho. Optimal epsilon ~ sqrt(machine_epsilon) * scale ~ 1e-8 for double precision when the parameter is a lattice position measured in lattice spacings.
+- **Eigenvalue threshold:** Setting threshold = 1e-14 excludes numerically zero eigenvalues without introducing bias. This is the same threshold used in `ed_entanglement.py` for von Neumann entropy.
+- **Known failure mode:** When two eigenvalues lambda_m, lambda_n are both very small but nonzero, the ratio 2/(lambda_m + lambda_n) amplifies noise in <m|d_rho|n>. Mitigation: use threshold on lambda_m + lambda_n directly (e.g., 1e-10), not just on individual eigenvalues.
 
-### 2. Octonion Conjugation and Norm
+#### Why NOT matrix logarithm derivatives
 
-```
-INPUT:  a = (a0, a1, ..., a7)
-OUTPUT: a_bar = (a0, -a1, ..., -a7)        (conjugation)
-        ||a||^2 = a0^2 + a1^2 + ... + a7^2  (squared norm)
-        Re(a) = a0                           (real part)
+The naive approach -- compute g_{ij} = Tr[d_i(log rho) d_j(rho)] -- requires the matrix logarithm and its derivatives. This fails catastrophically for rank-deficient states because log(rho) has -infinity eigenvalues at zero eigenvalues of rho. The eigendecomposition formula above avoids this entirely by working in the eigenbasis and explicitly excluding zero eigenvalues.
 
-Key identity: a * a_bar = a_bar * a = ||a||^2 * 1
-```
+Do NOT use `scipy.linalg.logm` for Fisher metric computation. It uses the Al-Mohy/Higham (2012) algorithm which is designed for well-conditioned invertible matrices and will produce garbage for near-singular density matrices.
 
-### 3. h_3(O) Element Representation
+### 2. Parametrization of Reduced Density Matrices by Lattice Position
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Component encoding | Represent X in h_3(O) as 27 real numbers | N/A | N/A | 27 floats | Albert (1934) |
+| Subsystem sliding window | rho_Lambda(x) for varying x | N/A (exact) | O(2^N * 2^{2|Lambda|}) | O(2^{2|Lambda|}) | Standard partial trace |
 
-#### Data Structure
+For the SWAP lattice, the natural parametrization of reduced density matrices is by lattice position: fix a subsystem shape Lambda (e.g., a block of 2 or 4 adjacent sites), and vary its position x on the lattice. The family {rho_Lambda(x)} parametrizes a manifold whose Fisher metric we want to compute.
+
+#### Algorithm: Lattice Position Parametrization
 
 ```
-An element X in h_3(O) is stored as:
-  X = (alpha, beta, gamma, x1, x2, x3)
-where:
-  alpha, beta, gamma in R     (diagonal entries)
-  x1, x2, x3 in R^8           (octonion off-diagonal entries)
+INPUT:  Ground state |psi> of SWAP Hamiltonian on N sites
+        Subsystem shape Lambda (e.g., {0, 1} for two adjacent sites)
+        Lattice translation vector e_mu (e.g., e_1 = (1,0) in 2D)
+OUTPUT: Family rho_Lambda(x) for x = 0, 1, 2, ..., L-1
 
-Total: 3 + 3*8 = 27 real parameters
+For 1D PBC lattice with N sites:
+  rho_Lambda(x) = Tr_{complement of {x, x+1, ..., x+|Lambda|-1 mod N}} |psi><psi|
 
-Matrix form:
-  X = | alpha    x3_bar   x2    |
-      | x3       beta     x1_bar|
-      | x2_bar   x1       gamma |
+CRITICAL SUBTLETY (PBC): On a periodic lattice, translation symmetry means
+all rho_Lambda(x) are related by a unitary permutation of sites. The Fisher
+metric should be the SAME at every x (by symmetry). The test is whether the
+metric is constant along the lattice -- non-constant metric on a PBC lattice
+signals a bug.
 
-Hermiticity: X_{ij} = X_{ji}_bar (octonion conjugate)
+For 1D OBC lattice:
+  rho_Lambda(x) varies nontrivially with x due to boundary effects.
+  The Fisher metric SHOULD vary near boundaries and be approximately constant
+  in the bulk. Use OBC for the actual physics (boundary-to-bulk transition
+  reveals the emergent geometry).
+
+For 2D lattice (Lx x Ly):
+  rho_Lambda(x,y) with x,y the position of the subsystem's corner.
+  Metric tensor is 2x2 (or dxd in d dimensions).
 ```
 
-### 4. h_3(O) Jordan Product
+### 3. Alternative: Fidelity-Based Fisher Metric (Bures Metric)
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Explicit matrix multiply + symmetrize | A circ B = (1/2)(AB + BA) | Exact | O(3^3 * 64) ~ 1700 flops | 2 * 27 floats | Albert (1934), JvNW (1934) |
+| Fidelity susceptibility | g_ij from F(rho(x), rho(x+dx)) | O(epsilon^2) | O(d^3) for fidelity | O(d^2) | Zanardi et al. PRA 76 (2007) |
 
-#### Algorithm: Jordan Product in h_3(O)
+The Bures metric is equivalent to the quantum Fisher metric (up to a factor of 4). It can be computed from the quantum fidelity:
 
 ```
-INPUT:  A, B in h_3(O) (each represented as 27 reals)
-OUTPUT: C = A circ B = (1/2)(AB + BA) in h_3(O)
+F(rho, sigma) = [Tr sqrt(sqrt(rho) sigma sqrt(rho))]^2
 
-CRITICAL: The matrix product AB involves entries (AB)_{ij} = sum_k A_{ik} * B_{kj}
-where * is OCTONION multiplication. For 3x3 matrices, each entry involves
-3 octonion multiplications and 2 octonion additions.
+ds^2_Bures = 2(1 - sqrt(F(rho(x), rho(x+dx))))
 
-SUBTLETY: Octonion multiplication is NOT associative, but the Jordan product
-of 3x3 Hermitian matrices over O is well-defined because:
-  - For Hermitian matrices, (AB)_{ij} = sum_k A_{ik} * B_{kj} involves
-    products of the form x * y_bar where x, y are off-diagonal octonion entries
-  - The sum AB + BA is always Hermitian when A, B are Hermitian
-  - The Artin theorem guarantees: any subalgebra of O generated by 2 elements
-    is associative. Each entry of AB involves sums of products of 2 octonion
-    elements at a time, so parenthesization does not matter term-by-term.
-  - For h_3(O) specifically: Jordan, von Neumann, and Wigner (1934) proved
-    the Jordan identity (A circ B) circ A^2 = A circ (B circ A^2) holds.
-
-STEPS:
-1. Compute P = AB (formal 3x3 matrix product with octonion entries)
-   - 9 entries, each = sum of 3 octonion products
-   - P_{ij} = A_{i1}*B_{1j} + A_{i2}*B_{2j} + A_{i3}*B_{3j}
-
-2. Compute Q = BA (same procedure)
-
-3. C_{ij} = (1/2)(P_{ij} + Q_{ij}) for each entry
-
-4. VERIFY: C is Hermitian (C_{ij} = C_{ji}_bar to machine precision)
-
-COMPLEXITY: 54 octonion multiplications total (27 for AB, 27 for BA)
-            Each octonion multiplication: ~64 real multiplications
-            Total: ~3500 real multiplications -> microseconds
+g_{ij}^{Bures} = -(1/2) d^2 F / d theta^i d theta^j |_{theta=theta_0}
+               = (1/4) g_{ij}^{Fisher}
 ```
 
-### 5. Peirce Multiplication Operator L_e
+#### Algorithm: Fidelity-Based Metric
+
+```
+INPUT:  rho_0 = rho(theta_0), rho_{+i} = rho(theta_0 + epsilon * e_i) for each i
+OUTPUT: g_{ij}^{Bures}
+
+STEP 1: For each pair (i, j):
+  If i == j:
+    g_{ii} = (2/epsilon^2)(1 - sqrt(F(rho_0, rho_{+i})))
+  If i != j:
+    Use the polarization identity:
+    g_{ij} = (1/2)[g(e_i+e_j, e_i+e_j) - g(e_i, e_i) - g(e_j, e_j)]
+    This requires computing F(rho_0, rho_{+i+j}) where theta_{+i+j} = theta_0 + epsilon*(e_i + e_j).
+
+STEP 2: Compute fidelity via eigendecomposition:
+  F(rho, sigma) = [Tr sqrt(sqrt(rho) sigma sqrt(rho))]^2
+  = [sum_k sqrt(mu_k)]^2 where mu_k are eigenvalues of sqrt(rho) sigma sqrt(rho).
+
+  OR equivalently: F(rho, sigma) = ||sqrt(rho) sqrt(sigma)||_1^2
+  where ||A||_1 = Tr sqrt(A^dagger A) is the trace norm.
+
+  Numerically: compute sqrt(rho) via eigendecomposition, form M = sqrt(rho) sigma sqrt(rho),
+  eigendecompose M, take sqrt of eigenvalues, sum and square.
+
+RECOMMENDATION: Use fidelity-based metric as CROSS-VALIDATION of the SLD eigendecomposition
+method. They must agree to machine precision (up to the factor of 4). The SLD method is
+preferred as primary because it gives the SLD operators L_i directly, which are useful for
+other checks.
+```
+
+### 4. Correlation Function Computation
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Direct Jordan product | L_e(X) = e circ X for e = E_11 | Exact | Same as Jordan product | 27 floats | derivations/11-peirce-complexification.md |
-| Shortcut formula | L_{E_11}(X) directly from components | Exact | O(16) flops | 27 floats | Phase 18-01, Step 2 |
+| Two-point correlator from ground state | <sigma_i^a sigma_j^b> | Exact (given |psi>) | O(2^N * N) for all pairs | O(2^N) | Standard quantum mechanics |
 
-#### Algorithm: Peirce Multiplication by E_11 (Shortcut)
+#### Algorithm: Two-Point Correlation Functions
 
 ```
-INPUT:  X = (alpha, beta, gamma, x1, x2, x3) in h_3(O)
-OUTPUT: L_{E_11}(X) = E_11 circ X
+INPUT:  Ground state |psi> of SWAP Hamiltonian on N sites
+        Operator O_i at site i (e.g., sigma_z)
+OUTPUT: C(r) = <psi|O_i O_{i+r}|psi> - <psi|O_i|psi><psi|O_{i+r}|psi>
 
-From Phase 18-01, the explicit formula is:
-  E_11 circ X = (alpha, 0, 0, 0, x2/2, x3/2)
+STEP 1: For each pair of sites (i, j) with j = i + r:
+  Compute <O_i O_j> = <psi| (O_i tensor O_j tensor I_{rest}) |psi>
 
-That is:
-  - Diagonal: (alpha, 0, 0) -- eigenvalue 1 on alpha, eigenvalue 0 on beta, gamma
-  - Off-diagonal: (0, x2/2, x3/2) -- eigenvalue 1/2 on x2, x3; eigenvalue 0 on x1
+  EFFICIENT METHOD: Build the sparse operator O_i tensor O_j acting on full 2^N space.
+  For sigma_z^i sigma_z^j, this is diagonal:
+    (sigma_z^i sigma_z^j)|s> = spin(s,i) * spin(s,j) |s>
+  So <sigma_z^i sigma_z^j> = sum_s |psi_s|^2 * spin(s,i) * spin(s,j)
+  This is O(2^N) per pair, no matrix multiplication needed.
 
-This confirms the Peirce decomposition:
-  V_1 = {alpha * E_11} (eigenvalue 1, dim 1)
-  V_{1/2} = {(0, 0, 0, 0, x2, x3)} (eigenvalue 1/2, dim 16)
-  V_0 = {(0, beta, gamma, x1, 0, 0)} (eigenvalue 0, dim 10)
+  For sigma_+^i sigma_-^j (needed for full correlator):
+    This flips spins at sites i,j: only contributes when i is up and j is down.
+    <psi| sigma_+^i sigma_-^j |psi> = sum_{s: i down, j up} conj(psi_{s with i up, j down}) * psi_s
 
-NO OCTONION MULTIPLICATION NEEDED for L_{E_11}. It is a linear projection.
+STEP 2: Average over translates (for PBC) to reduce noise:
+  C(r) = (1/N) sum_{i=0}^{N-1} [<O_i O_{i+r}> - <O_i><O_{i+r}>]
+
+STEP 3: Fit exponential decay:
+  |C(r)| ~ A * exp(-r/xi)
+  where xi is the correlation length.
+
+  Fit via least-squares on log|C(r)| vs r (linear regression in log space).
+  Exclude r = 0 (self-correlation) and r close to N/2 (PBC finite-size effects).
+
+CONVERGENCE: Exact for given |psi>. The only approximation is Lanczos convergence
+for the ground state itself (already validated in Phase 11 at 1e-12 accuracy).
+
+KNOWN ISSUE (1D AFM Heisenberg, n=2): The spin-1/2 Heisenberg chain is GAPLESS
+(Bethe ansatz exact solution). Correlations decay as a POWER LAW, not exponentially:
+  C(r) ~ (-1)^r / r^eta  with eta = 1
+This is critical: the 1D case does NOT give exponential decay. Must use d >= 2
+(where the Heisenberg AFM has long-range Neel order and a magnon gap in d=3)
+or use n > 2 (where the SWAP Hamiltonian may have a gap even in 1D).
 ```
 
-### 6. KEY COMPUTATION: Peirce Multiplication by a in V_1
+### 5. Positive-Definiteness and Smoothness Verification
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| General L_a on V_{1/2} | Compute L_a(x) for a in V_1, x in V_{1/2} | Exact | ~54 octonion mults | 27+27 floats | This investigation |
+| Eigenvalue check | g > 0 at each point | Exact | O(k^3) for k x k metric | O(k^2) | Standard linear algebra |
+| Numerical gradient | smoothness of g_{ij}(x) | O(h^2) finite diff | O(k^2) per point | O(k^2 * N_points) | Standard numerical analysis |
 
-This is the CENTRAL computation. The question: for a = lambda * E_11 (the only elements of V_1, since V_1 = R * E_11), does L_a act on V_{1/2} in a way that could encode multiplication by i?
-
-#### Algorithm: L_{lambda*E_11} on V_{1/2}
-
-```
-INPUT:  a = lambda * E_11 (element of V_1, lambda in R)
-        x = (0, 0, 0, 0, x2, x3) (element of V_{1/2})
-OUTPUT: L_a(x) = a circ x
-
-COMPUTATION:
-  a circ x = (lambda * E_11) circ x = lambda * (E_11 circ x) = lambda * (x/2)
-           = (0, 0, 0, 0, lambda*x2/2, lambda*x3/2)
-
-RESULT: L_a acts as SCALAR MULTIPLICATION by lambda/2 on V_{1/2}.
-
-THIS IS THE V_1 = R BOTTLENECK identified in v6.0 Phase 22.
-Since V_1 = R * E_11 is 1-dimensional, the only Peirce multiplication
-operators from V_1 to V_{1/2} are real scalars. There is no room for
-an imaginary unit i to appear through this mechanism.
-```
-
-### 7. EXTENDED COMPUTATION: Peirce Multiplication by Elements NOT in V_1
-
-The v6.0 investigation exhausted the V_1 route. The new milestone must check whether elements from OUTSIDE V_1 -- specifically from h_3(O) itself or from the complexified algebra h_3^C(O) -- can produce an operator on V_{1/2} that acts as multiplication by i.
-
-#### Algorithm: General Peirce-Type Action on V_{1/2}
+#### Algorithm: Positive-Definiteness Check
 
 ```
-INPUT:  a = arbitrary element of h_3(O) (27 real parameters)
-        x = element of V_{1/2} (16 real parameters)
-OUTPUT: Pi_{1/2}(a circ x) = projection of (a circ x) onto V_{1/2}
+INPUT:  Metric tensor g_{ij}(x) at lattice points x = 0, 1, ..., L-1
+OUTPUT: Boolean: is g positive-definite at all interior points?
+        Minimum eigenvalue across all points
+        Condition number at each point
 
-STEPS:
-1. Compute c = a circ x using Algorithm 4 (Jordan product)
-2. Extract V_{1/2} component of c:
-   Pi_{1/2}(c) = (0, 0, 0, 0, c.x2, c.x3)
-   (project out the V_1 and V_0 parts)
-3. The operator T_a: V_{1/2} -> V_{1/2} defined by T_a(x) = Pi_{1/2}(a circ x)
-   is a linear map on R^16.
-4. Represent T_a as a 16x16 real matrix by evaluating on a basis of V_{1/2}.
+STEP 1: At each lattice point x:
+  Compute eigenvalues of g(x): lambda_1 >= lambda_2 >= ... >= lambda_k
+  Record lambda_min(x) = lambda_k
+  Record condition number kappa(x) = lambda_1 / lambda_k
 
-QUESTION: Does there exist a in h_3(O) (or a in h_3^C(O)) such that
-(T_a)^2 = -Id on R^16?
+STEP 2: Check:
+  - lambda_min(x) > 0 for all x in the bulk (away from boundaries if OBC)
+  - kappa(x) is bounded (not growing with system size)
+  - lambda_min(x) is bounded away from zero by a margin that grows (or at least
+    does not shrink) with system size
 
-APPROACH:
-- For each of the 27 basis elements e_k of h_3(O), compute the 16x16
-  matrix (T_{e_k})
-- Check if any real linear combination sum_k c_k * T_{e_k} squares to -Id
-- This is a system of polynomial equations in 27 variables (the c_k)
-  with 256 equations (entries of T^2 + Id = 0)
+POSITIVE-DEFINITENESS FAILURE MODES:
+  - If rho_Lambda(x) has the same spectrum for all x (e.g., PBC with exact
+    translation symmetry), then d_rho = 0 and g = 0. This happens on PBC lattices
+    where rho(x) is truly translation-invariant. SOLUTION: use OBC, or parametrize
+    by subsystem size rather than position, or add a weak boundary/impurity.
+  - If Lambda is too large relative to N, the reduced state becomes nearly pure
+    (rho ~ |psi><psi|), and the metric degenerates. Keep |Lambda| < N/3.
 ```
 
-### 8. Spin(9) -> Spin(10) Representation Matrices
+#### Algorithm: Smoothness Verification
+
+```
+INPUT:  g_{ij}(x) sampled at all integer lattice points x = 0, 1, ..., L-1
+OUTPUT: Smoothness measure (discrete second derivative bound)
+
+STEP 1: Compute discrete second derivative at each interior point:
+  Delta^2 g_{ij}(x) = g_{ij}(x+1) - 2*g_{ij}(x) + g_{ij}(x-1)
+
+STEP 2: Check:
+  max_x |Delta^2 g_{ij}(x)| / max_x |g_{ij}(x)| << 1
+  This ratio being small means g varies slowly on the lattice scale.
+
+STEP 3: Fit g_{ij}(x) to a smooth function (polynomial or constant for bulk).
+  For PBC: g should be exactly constant (symmetry). Deviation is a bug.
+  For OBC: g should be approximately constant in the bulk, varying near boundaries.
+  Fit residual should decrease with system size (finite-size effects shrinking).
+```
+
+### 6. Geodesic Distance Computation
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Spin(9) from Cl(9) | Build 16x16 Spin(9) generators on V_{1/2} | Exact | O(16^3) per generator | 36 * 256 floats | Parton-Piccinni, arXiv:1810.06288 |
-| Spin(10) embedding | Extend to 16x16 complex Spin(10) | Exact | O(16^3) per generator | 45 * 256 complex floats | Todorov, arXiv:2206.06912 |
+| Discrete geodesic via Dijkstra | Shortest path on metric graph | Exact (on graph) | O(N^2 log N) | O(N^2) | Standard graph algorithm |
+| ODE integration | Geodesic equation on manifold | O(h^4) RK4 | O(k^3) per step | O(k) | Standard Riemannian geometry |
 
-#### Algorithm: Spin(9) on V_{1/2} = O^2 via Octonionic Matrices
+#### Algorithm: Discrete Geodesic on Lattice
 
 ```
-INPUT:  Fano multiplication table for O
-OUTPUT: 36 generators of spin(9) as 16x16 real matrices acting on V_{1/2}
+INPUT:  Metric tensor g_{ij}(x) at each lattice point x
+        Start point x_A, end point x_B
+OUTPUT: Geodesic distance d_g(x_A, x_B) on the Fisher manifold
 
-APPROACH 1 (from Clifford algebra):
-  Build Cl(9) on R^16 using the standard recursive tensor product construction:
-  - 4 sigma_3/sigma_1/sigma_2/I2 tensor products give 8 generators of Cl(8)
-    on R^16 = (R^2)^{tensor 4} [Cl(8) = R(16)]
-  - The 9th generator: Gamma_9 = product of all 8 generators (volume element
-    of Cl(8), which anti-commutes with all 8 in Cl(9))
-  - spin(9) generators: (1/4)[Gamma_A, Gamma_B] for A < B, giving 36 generators
+METHOD 1: Weighted graph shortest path (RECOMMENDED for lattice)
+  Build graph: nodes = lattice sites, edges = nearest-neighbor bonds.
+  Edge weight w(x, x+e_mu) = sqrt(g_{mu mu}(x)) * (lattice spacing)
+  (For diagonal metric; for full metric: w = sqrt(e_mu^T g(x) e_mu).)
+  Run Dijkstra from x_A to x_B.
 
-APPROACH 2 (octonionic model, Parton-Piccinni):
-  The 9 Cl(9) generators I_1, ..., I_9 are 16x16 real symmetric matrices
-  acting on R^16 = O^2. They are the octonionic analogues of Pauli matrices.
-  Explicit formulas in terms of left multiplication by octonion units:
-    I_k for k=1,...,7: related to L_{e_k} (left multiplication by e_k on O^2)
-    I_8, I_9: involving the octonionic "Pauli matrices" sigma_1^O, sigma_3^O
+  This is the natural discrete geodesic for a lattice system.
 
-  This approach directly uses the O^2 = V_{1/2} identification.
+METHOD 2: Geodesic ODE integration (for smooth interpolation)
+  The geodesic equation is:
+    d^2 x^mu / dt^2 + Gamma^mu_{alpha beta} (dx^alpha/dt)(dx^beta/dt) = 0
+  where Gamma^mu_{alpha beta} = (1/2) g^{mu nu}(partial_alpha g_{nu beta}
+    + partial_beta g_{nu alpha} - partial_nu g_{alpha beta})
+  are the Christoffel symbols.
 
-RECOMMENDATION: Use Approach 1 (tensor product) for NUMERICAL verification
-because the existing test_cl6_sm.py code already implements this pattern.
-Use Approach 2 for CROSS-VALIDATION to confirm the two constructions give
-equivalent representations.
+  For our lattice: Christoffel symbols from finite differences of g_{ij}(x).
+  Integrate with RK4 or scipy.integrate.solve_ivp.
 
-SPIN(10) EXTENSION:
-  Complexify: R^16 -> C^16. The 9 real generators embed as Hermitian
-  matrices in M_16(C). The 10th generator comes from i * Gamma_chirality
-  (where Gamma_chirality = Gamma_1 * ... * Gamma_9 in Cl(9)).
-  This extends spin(9) to spin(10) inside M_16(C).
-  The 16-dim complex rep is S_{10}^+ (positive Weyl spinor of Spin(10)).
+  WHEN TO USE: Only if smooth interpolation between lattice points is needed.
+  For lattice distance comparison, Method 1 is sufficient.
+
+COMPARISON WITH LATTICE DISTANCE:
+  The key test: does d_g(x_A, x_B) ~ c * d_lattice(x_A, x_B) for a constant c?
+
+  Compute:
+    ratio(x_A, x_B) = d_g(x_A, x_B) / d_lattice(x_A, x_B)
+
+  If ratio is approximately constant (within finite-size corrections), the Fisher
+  metric recovers the lattice geometry. Report:
+    - mean(ratio), std(ratio) over all pairs
+    - max deviation from mean
+    - scaling with system size (does std shrink?)
 ```
+
+### 7. Ground State Computation (Existing, Extended)
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Lanczos (scipy eigsh) | Ground state of H | Exponential in Krylov dim | O(nnz * k) per iter | O(2^N * k) | Lanczos 1950, scipy docs |
+
+The existing `code/ed_entanglement.py` provides `ground_state(H, k=1)` using `scipy.sparse.linalg.eigsh` with `which='SA'` (smallest algebraic). No modification needed for N=8-16. For N=20 (2^20 ~ 10^6 dimensional Hilbert space), Lanczos converges in O(100) iterations for gapped systems. Memory requirement: O(2^N * k) complex doubles = O(8 MB * k) for N=20.
+
+**Extension needed:** For 2D lattices at N=16 (4x4), the Hilbert space is 2^16 = 65536, which is manageable. For N=20 in 2D (e.g., 4x5 or 5x4), 2^20 ~ 10^6, still feasible with sparse methods. The existing `construct_heisenberg_2d` handles this.
 
 ## Software Ecosystem
 
@@ -284,139 +352,201 @@ SPIN(10) EXTENSION:
 
 | Tool | Version | Purpose | License | Maturity |
 |------|---------|---------|---------|----------|
-| NumPy | 2.4.x | Dense matrix operations, octonion component storage | BSD | Stable |
-| Python | 3.14.x | Runtime | PSF | Stable |
-| pytest | 9.x | Test framework (existing project pattern) | MIT | Stable |
+| NumPy | >= 2.0 | Dense matrix operations, eigendecomposition, partial trace | BSD | Stable |
+| SciPy | >= 1.10 | Sparse Hamiltonian construction, Lanczos (eigsh), matrix functions | BSD | Stable |
+| Python | >= 3.11 | Runtime | PSF | Stable |
+| pytest | >= 9.0 | Test framework (existing project pattern) | MIT | Stable |
+| matplotlib | >= 3.0 | Visualization of Fisher metric, correlation functions, geodesics | BSD | Stable |
 
 ### Supporting Tools
 
 | Tool | Version | Purpose | When Needed |
 |------|---------|---------|-------------|
-| SymPy | 1.13.x | Symbolic computation if parametric proofs needed | Only if numerical spot-checks suggest a general pattern worth proving symbolically |
-| SciPy | 1.17.x | SVD, eigendecomposition for operator analysis | Analyzing spectrum of T_a operators |
-| clifford (pygae) | 1.5.x | Cross-validation of Cl(9)/Cl(10) construction only | Optional: for verifying hand-built Clifford generators |
+| SymPy | >= 1.13 | Symbolic verification of small-case Fisher metric formulas | Only for N=4 (2-site) analytic checks |
+| networkx | >= 3.0 | Graph shortest path for geodesic computation | Only if Dijkstra needed on non-trivial graph topologies |
 
 ### Tools NOT to Use
 
 | Tool | Why Not | What Instead |
 |------|---------|-------------|
-| hypercomplex (PyPI) | Toy library, Cayley-Dickson only, no matrix operations, no tests against Fano conventions | Hand-rolled octonion class |
-| pyoctonion (PyPI) | Undocumented, no test suite, no maintenance | Hand-rolled octonion class |
-| SplitOct | Split octonions != division octonions (different algebra) | Hand-rolled for division octonions |
-| Mathematica | License cost, not in project stack, no automation | Python/NumPy |
-| Magma | Proprietary CAS, not in project stack | Python/NumPy |
-| galgebra | Symbolic GA, too slow for 16x16 numerical matrices, not designed for non-associative algebras | NumPy for numerical, SymPy for symbolic if needed |
+| QuanEstimation | Python/Julia hybrid; heavy dependency for a 50-line calculation; focused on parameter optimization, not metric extraction | Direct eigendecomposition formula |
+| qutip | General-purpose quantum toolbox; adds large dependency tree; Fisher metric not a primary feature | Direct NumPy computation |
+| scipy.linalg.logm | Catastrophically fails for rank-deficient density matrices (log of zero eigenvalue); completely wrong approach | Eigendecomposition-based SLD formula |
+| jax / autograd | Automatic differentiation could compute d_rho exactly, but adds complexity for a problem where finite differences suffice at our precision needs | Central finite differences on partial traces |
+| pennylane / cirq | Quantum computing frameworks; designed for circuit simulation, not lattice Hamiltonian ground states | Existing ED framework |
 
 ## Data Flow
 
 ```
-Fano multiplication table (7 triples, fixed convention)
-  -> Octonion class (R^8, multiply, conjugate, norm)
-  -> h_3(O) element class (3 reals + 3 octonions = 27 reals)
-  -> Jordan product A circ B = (1/2)(AB + BA)
-  -> Peirce decomposition: V_1, V_{1/2}, V_0 projections
-  -> L_a operator: h_3(O) -> End(V_{1/2}) for any a in h_3(O)
-  -> 16x16 matrix representation of L_a|_{V_{1/2}}
-  -> Eigenvalue analysis: does L_a^2 = -Id for any a?
-  -> Spin(9)/Spin(10) generators for cross-check
+SWAP Hamiltonian H (from construct_self_modeling_1d / construct_heisenberg_2d)
+  -> Lanczos ground state |psi> (from ground_state)
+  -> For each lattice position x:
+       -> partial_trace(psi, N, sites_Lambda(x)) -> rho_Lambda(x)
+  -> For each pair of nearby positions (x, x+dx):
+       -> Eigendecompose rho_Lambda(x) and rho_Lambda(x+dx)
+       -> Compute d_rho via finite differences
+       -> Compute QFIM g_{ij}(x) via SLD eigendecomposition formula
+  -> Collect g_{ij}(x) at all lattice points
+  -> Check positive-definiteness (eigenvalues of g)
+  -> Check smoothness (discrete second derivatives)
+  -> Compute geodesic distances (Dijkstra on weighted graph)
+  -> Compare to lattice distances (ratio analysis)
+  -> Cross-validate with fidelity-based Bures metric
+
+PARALLEL BRANCH (correlation functions):
+  -> For each pair of sites (i, j):
+       -> Compute <O_i O_j> directly from |psi>
+  -> Average over translates (PBC) or position (OBC)
+  -> Fit exponential decay: C(r) ~ exp(-r/xi)
+  -> Extract correlation length xi
+  -> Compare xi to Fisher metric scale
 ```
 
 ## Computation Order and Dependencies
 
 | Step | Depends On | Produces | Can Parallelize? |
 |------|-----------|----------|-----------------|
-| 1. Octonion arithmetic module | Fano convention from ASSERT_CONVENTION | Octonion class with multiply/conjugate/norm | Yes (independent) |
-| 2. h_3(O) element class | Step 1 | h_3(O) data structure with Jordan product | No (needs Step 1) |
-| 3. Peirce projections | Step 2 | V_1, V_{1/2}, V_0 extractors | No (needs Step 2) |
-| 4. L_a operator matrices | Steps 2, 3 | 16x16 real matrices for each basis element a | No (needs Steps 2-3) |
-| 5. Complex structure search | Step 4 | YES/NO: existence of a with T_a^2 = -Id | No (needs Step 4) |
-| 6. Cl(9) generators | None (tensor product construction) | 9 generators of Cl(9) on R^16 | Yes (independent of Steps 1-5) |
-| 7. Spin(9) on V_{1/2} cross-check | Steps 4, 6 | Confirm T_a matrices lie in spin(9) image | No (needs Steps 4, 6) |
-| 8. Spin(10) complexification | Steps 6, 7 | 10th generator, complex 16-dim rep | No (needs Steps 6-7) |
+| 1. Construct SWAP Hamiltonian | Existing ed_entanglement.py | Sparse H | Yes (across N values) |
+| 2. Compute ground state | Step 1 | |psi> | No (one Lanczos per N) |
+| 3. Compute all rho_Lambda(x) | Step 2 | Family of density matrices | Yes (across x) |
+| 4. Compute two-point correlators | Step 2 | C(r) for all r | Yes (across pairs) |
+| 5. Eigendecompose each rho_Lambda(x) | Step 3 | Eigenvalues, eigenvectors | Yes (across x) |
+| 6. Compute d_rho via finite differences | Steps 3, 5 | Derivative matrices | Yes (across x, i) |
+| 7. Assemble QFIM g_{ij}(x) | Steps 5, 6 | Metric tensor at each x | Yes (across x) |
+| 8. Cross-validate with fidelity metric | Step 3 | Bures metric (must match Step 7) | Yes (parallel to Step 7) |
+| 9. Positive-definiteness check | Step 7 | Pass/fail + eigenvalue report | No (needs all g) |
+| 10. Smoothness check | Step 7 | Second derivative bounds | No (needs all g) |
+| 11. Geodesic distances | Step 7 | d_g(x_A, x_B) for all pairs | No (needs all g) |
+| 12. Lattice distance comparison | Step 11 | Ratio analysis | No (needs Step 11) |
+| 13. Correlation length extraction | Step 4 | xi from exponential fit | No (needs all C(r)) |
 
 ## Resource Estimates
 
 | Computation | Time (estimate) | Memory | Storage | Hardware |
 |-------------|-----------------|--------|---------|----------|
-| Octonion module + tests | Minutes (coding) | < 1 MB | Negligible | Laptop CPU |
-| h_3(O) Jordan products | Microseconds per product | < 1 MB | Negligible | Laptop CPU |
-| All 27 T_a matrices (16x16) | Milliseconds total | < 1 MB | Negligible | Laptop CPU |
-| Complex structure search (polynomial system) | Seconds to minutes | < 10 MB | Negligible | Laptop CPU |
-| Cl(9)/Cl(10) on R^16/C^16 | Milliseconds | < 1 MB | Negligible | Laptop CPU |
+| Ground state N=8 (1D, PBC) | < 1 sec | < 10 MB | Negligible | Laptop CPU |
+| Ground state N=12 (1D, PBC) | < 1 sec | < 50 MB | Negligible | Laptop CPU |
+| Ground state N=16 (1D, PBC) | ~ 5 sec | ~ 500 MB | Negligible | Laptop CPU |
+| Ground state N=20 (1D, PBC) | ~ 1-5 min | ~ 8 GB | Negligible | Laptop CPU |
+| Ground state 4x4 2D (PBC) | ~ 5 sec | ~ 500 MB | Negligible | Laptop CPU |
+| All rho_Lambda(x) for N=16 | < 1 sec | < 10 MB | Negligible | Laptop CPU |
+| All QFIM g_{ij}(x) for N=16 | < 1 sec | < 1 MB | Negligible | Laptop CPU |
+| Correlation functions N=16 | < 1 sec | < 10 MB | Negligible | Laptop CPU |
+| Full pipeline N=20 (1D) | ~ 5-10 min | ~ 8 GB | < 100 MB JSON | Laptop CPU, 16 GB RAM |
+| Full pipeline 4x4 (2D) | ~ 1 min | ~ 500 MB | < 100 MB JSON | Laptop CPU |
 
-This is a computationally trivial problem. The challenge is algebraic correctness, not computational cost.
+The bottleneck is Lanczos for the ground state at N=20. Everything downstream (partial traces, eigendecomposition of small reduced density matrices, metric computation) is trivially fast.
+
+**Hard limit:** N=22 requires 2^22 ~ 4 x 10^6 dimensional Hilbert space, needing ~32 GB for the state vector alone. N=24 is ~256 GB, impractical on a laptop. For N > 20, use symmetry sectors (total S_z conservation halves the space) to reach N=22-24.
+
+### System Size Requirements for Reliable Fisher Metric Estimates
+
+| System Size (N) | Hilbert Dim | Subsystem |Lambda| | rho Dim | Finite-Size Quality | Use Case |
+|-----------------|-------------|----------------------|---------|---------------------|----------|
+| 8 | 256 | 2 | 4 | Heavy finite-size effects | Algorithm validation only |
+| 12 | 4096 | 2-3 | 4-8 | Moderate finite-size effects | Preliminary checks |
+| 16 | 65536 | 2-4 | 4-16 | Acceptable for bulk metrics | Primary workhorse for 1D |
+| 20 | 1048576 | 2-4 | 4-16 | Good (bulk well-separated from boundaries) | Best 1D case without symmetries |
+| 4x4 (16) | 65536 | 2x2 (4 sites) | 16 | Acceptable for 2D | Primary workhorse for 2D |
+
+**Recommendation:** Use N=16 as the primary test case for algorithm development and validation. Use N=20 for final quantitative results. Use N=8 only for debugging. Report all three sizes to demonstrate finite-size scaling.
+
+**Subsystem size guidance:** |Lambda| = 2 sites gives a 4x4 reduced density matrix (cheap, but may miss spatial structure). |Lambda| = 4 sites gives 16x16 (captures more structure, still cheap). Do NOT use |Lambda| > N/3: the reduced state becomes nearly pure and the Fisher metric degenerates.
 
 ## Integration with Existing Code
 
-- **Input formats:** The existing test_cl6_sm.py uses 32x32 complex NumPy matrices for Cl(10) generators. The new code works at the 16x16 real (or complex after complexification) level, which is a subspace of the 32-dim Dirac spinor.
-- **Output formats:** 16x16 real or complex matrices, consistent with NumPy ndarray format.
-- **Interface points:** The Cl(9) generators from Approach 1 (tensor product) can be compared entry-by-entry with the first 9 of the 10 generators from test_cl6_sm.py restricted to the appropriate 16-dim subspace.
-- **Convention bridge:** test_cl6_sm.py uses the convention fano_e1e2=e4 and complex_structure=u_equals_e7. The new octonion module must match this exactly.
+- **Input formats:** The existing `ed_entanglement.py` produces the ground state as a complex NumPy array of shape (2^N,). Hamiltonian is a `scipy.sparse.csr_matrix`. These are the inputs to the new Fisher metric code.
+- **Output formats:** Metric tensor g_{ij}(x) as a NumPy array of shape (N_points, k, k). Correlation functions C(r) as a 1D NumPy array. Results serialized as JSON with metadata (matching the existing `area_law_verification.py` output pattern).
+- **Interface points:**
+  - `ground_state(H)` from `ed_entanglement.py` -- unchanged, used as-is
+  - `partial_trace(psi, N, sites_A)` from `ed_entanglement.py` -- unchanged, used as-is
+  - NEW: `fisher_metric(psi, N, Lambda_sites, direction, epsilon)` -- computes one component of g
+  - NEW: `fisher_metric_tensor(psi, N, Lambda_shape, x)` -- computes full g_{ij} at position x
+  - NEW: `correlation_function(psi, N, operator, r_max)` -- computes C(r) for given operator
+  - NEW: `geodesic_distance(g_tensor, x_A, x_B)` -- shortest path on metric graph
+- **Convention bridge:** The existing code uses `coupling_convention=H_sum_hxy` for the Heisenberg model. The SWAP Hamiltonian is H_SWAP = H_Heisenberg + constant (same ground state). Fisher metric depends only on the ground state, so the constant shift is irrelevant.
 
 ## Open Questions
 
 | Question | Why Open | Impact on Project | Approaches Being Tried |
 |----------|---------|-------------------|----------------------|
-| Can any element of h_3^C(O) (not just h_3(O)) produce T_a^2 = -Id on V_{1/2}? | Complexified algebra has 27 complex = 54 real parameters; larger search space | If YES: complexification mechanism found. If NO: confirms v6.0 negative. | Compute all T_a matrices, form the polynomial system, solve |
-| Does the Spin(10) embedding naturally provide the complex structure on V_{1/2}? | The 10th generator of Cl(10) involves i, which may define the sought complex structure | Could bypass the Peirce route entirely | Build Cl(10), extract the 10th generator restricted to V_{1/2}, check if it squares to -Id on R^16 |
-| Is the Peirce multiplication L_{V_0}: V_{1/2} -> V_{1/2} richer than L_{V_1}? | V_0 = h_2(O) is 10-dimensional, giving a 10-parameter family of operators | May provide complex structure that V_1 cannot | Compute all T_a for a in V_0 basis elements |
+| Does PBC translation symmetry make g = 0? | On PBC lattice, rho_Lambda(x) is x-independent by symmetry | If yes, must use OBC or alternative parametrization | Use OBC; alternative: parametrize by subsystem size instead of position |
+| What is the optimal subsystem size |Lambda| for Fisher metric extraction? | Too small: insufficient spatial resolution; too large: rho nearly pure | Determines phase structure (what |Lambda| to test) | Systematic scan |Lambda| = 2, 3, 4 for N = 16, 20 |
+| Does the n=2 (Heisenberg) SWAP lattice have exponential decay in d >= 2? | Critical for the chain: exponential decay needed for well-defined correlation length | If power-law in d=2, Fisher metric analysis still works but Lorentz argument weakens | d=3 Heisenberg AFM is gapped (Neel ordered); d=2 is marginal (ordered at T=0 but with algebraic corrections) |
+| How do finite-size effects in the Fisher metric scale with N? | Need g(N) -> g(infinity) reliably | Determines whether N=16-20 suffices | Compute g at N=8, 12, 16, 20 and extrapolate |
 
 ## Anti-Approaches
 
 | Anti-Approach | Why Avoid | What to Do Instead |
 |---------------|-----------|-------------------|
-| Using external octonion libraries (hypercomplex, pyoctonion) | Untested against Fano conventions, no h_3(O) support, no correctness guarantees | Build from Fano table with project convention |
-| Symbolic computation of general Jordan product in SymPy | Too slow for 3x3 octonion matrices (expressions explode combinatorially), non-associativity not natively supported | Numerical computation with exact rational arithmetic or high-precision floats |
-| Searching for complex structure via optimization (gradient descent on ||T_a^2 + Id||) | Non-convex landscape, local minima, misses the algebraic structure | Direct algebraic approach: compute all T_a, check linear algebra conditions |
-| Building Spin(9) from F_4 generators | F_4 is 52-dimensional and hard to represent explicitly; Spin(9) from Cl(9) is simpler | Tensor product construction for Cl(9), then extract spin(9) |
+| Using scipy.linalg.logm for Fisher metric | Fails for rank-deficient rho; produces -inf eigenvalues; numerically catastrophic | Eigendecomposition-based SLD formula (Algorithm 1) |
+| Automatic differentiation of rho(theta) | Over-engineering for a problem where theta is a discrete lattice index and finite differences are exact to O(epsilon^2) | Central finite differences on partial traces |
+| Monte Carlo sampling for correlations | ED gives exact correlators; MC introduces statistical noise for no benefit at N <= 20 | Direct computation from |psi> |
+| Computing Fisher metric on FULL state rho (not reduced) | Full state is pure (|psi><psi|), so its Fisher metric is the Fubini-Study metric on projective Hilbert space -- not what we want. We need the REDUCED state metric. | Always work with partial-traced rho_Lambda |
+| Using very large |Lambda| (|Lambda| > N/2) | Reduced state approaches purity; Fisher metric degenerates; purification has trivial geometry | Keep |Lambda| <= N/3; primary analysis at |Lambda| = 2-4 |
+| Ignoring the PBC/OBC distinction | PBC gives trivially constant metric (by translation symmetry); OBC boundary effects contaminate small systems | Use OBC for physics, PBC as a symmetry check; report both |
 
 ## Logical Dependencies
 
 ```
-Fano convention -> Octonion multiplication -> h_3(O) Jordan product
-h_3(O) Jordan product -> Peirce decomposition (V_1, V_{1/2}, V_0)
-Peirce decomposition -> L_a operator extraction -> 16x16 matrices
-16x16 matrices -> Complex structure search (T_a^2 = -Id?)
-16x16 matrices -> Spin(9) identification (cross-check with Cl(9))
-Cl(9) tensor product construction -> Spin(9) generators (independent path)
-Spin(9) generators + complexification -> Spin(10) generators
-Spin(10) 10th generator -> Alternative complex structure source
+Existing ED infrastructure (ed_entanglement.py)
+  -> Ground state |psi> of SWAP/Heisenberg Hamiltonian
+  -> partial_trace -> family of reduced density matrices rho_Lambda(x)
+
+rho_Lambda(x) family -> eigendecomposition -> {lambda_m, |m>} at each x
+  -> finite differences of rho -> d_rho_i
+  -> SLD formula -> QFIM g_{ij}(x) at each x
+
+g_{ij}(x) at all lattice points
+  -> eigenvalue check -> positive-definiteness verification
+  -> discrete second derivatives -> smoothness verification
+  -> Dijkstra on weighted graph -> geodesic distances
+  -> comparison with lattice distances -> distance recovery test
+
+Ground state |psi> -> two-point correlators -> C(r)
+  -> exponential fit -> correlation length xi
+  -> comparison with Fisher metric length scale
+
+CROSS-VALIDATION:
+  SLD-based g_{ij} must equal (4x) fidelity-based Bures metric g_{ij}^B
+  This is an internal consistency check with no approximation.
 ```
 
 ## Recommended Investigation Scope
 
 Prioritize:
-1. **Octonion module + h_3(O) Jordan product** (foundation for everything)
-2. **All 27 T_a matrices on V_{1/2}** (the core computation answering the central question)
-3. **Cl(9)/Cl(10) generators and cross-check** (independent verification path)
+1. **Fisher metric computation module** (Algorithm 1 + integration with existing ED code) -- this is the core deliverable enabling all downstream analyses
+2. **Correlation function computation** (Algorithm 4) -- needed independently for exponential decay verification
+3. **Positive-definiteness and distance recovery** (Algorithms 5, 6) -- the two key claims to validate numerically
 
 Defer:
-- **Symbolic proofs over general parameters:** Only pursue if numerical results suggest a clean algebraic pattern.
-- **F_4 orbit analysis:** Not needed for the computational verification; this is a representation-theoretic question.
-- **Generation structure (3 generations):** Out of scope for this milestone.
+- **2D geodesics:** First establish the method in 1D. 2D adds complexity (2x2 metric, Christoffel symbols) without new algorithmic challenges.
+- **N=20 runs:** Develop and validate at N=8-16 first. N=20 is a final confirmation, not a development platform.
+- **Smooth interpolation of g between lattice points:** Not needed unless the lattice-distance comparison fails at leading order.
 
 ## Validation Strategy
 
 | Result | Validation Method | Benchmark | Source |
 |--------|------------------|-----------|--------|
-| Octonion multiplication | e_i^2 = -1 for all i; norm multiplicativity on random pairs | Exact identity | Baez (2002) Table 1 |
-| Octonion non-associativity | (e1*e2)*e3 != e1*(e2*e3) but Artin theorem: (e_i*e_j)*e_j = e_i*(e_j*e_j) = -e_i | Exact comparison | Baez (2002), Sec. 2.1 |
-| h_3(O) Jordan identity | (A circ B) circ A^2 = A circ (B circ A^2) on random A, B | Machine precision | Jordan-von Neumann-Wigner (1934) |
-| Peirce eigenvalues | dim(V_1) = 1, dim(V_{1/2}) = 16, dim(V_0) = 10 | Exact dimensions | derivations/11-peirce-complexification.md |
-| Peirce multiplication rules | V_1 circ V_{1/2} subset V_{1/2}, V_0 circ V_{1/2} subset V_{1/2}, V_1 circ V_0 = 0 | Exact (zero entries) | Standard Peirce theory |
-| L_{E_11} on V_{1/2} | Acts as scalar 1/2 | Exact | Phase 18-01, Step 2 |
-| Cl(9) Clifford relations | {Gamma_A, Gamma_B} = 2*delta_{AB}*I_16 for all A,B in 1..9 | Machine precision | Clifford algebra definition |
-| Spin(9) on V_{1/2} | 36 generators of spin(9) match the 16x16 rep restricted from 32x32 Cl(10) | Matrix equality to machine precision | test_cl6_sm.py comparison |
+| QFIM eigendecomposition formula | Compare with fidelity-based Bures metric | g^{SLD} = 4 * g^{Bures} to machine precision | Braunstein-Caves (1994), Zanardi et al. (2007) |
+| QFIM on pure state | Reduce to Fubini-Study metric | For pure rho = |psi><psi|, g_{ij} = 4(Re<d_i psi|d_j psi> - <d_i psi|psi><psi|d_j psi>) | Provost-Vallee CMP 76 (1980) |
+| PBC translation invariance | g_{ij}(x) constant for all x on PBC lattice | std(g) / mean(g) < 1e-10 | Translation symmetry |
+| Two-site (N=4) analytic check | Compute Fisher metric analytically for 2-site Heisenberg, compare to numerics | Exact agreement to machine precision | Direct calculation |
+| Correlation function (1D Heisenberg) | Compare C(r) to Bethe ansatz exact results for N -> infinity | Power-law C(r) ~ (-1)^r / r (no exponential) | Bethe ansatz, Korepin et al. |
+| Geodesic distance proportional to lattice distance | ratio = d_g / d_lattice approximately constant in bulk | std(ratio)/mean(ratio) < 0.1 for N >= 16 | This is the CLAIM to verify |
+| Positive-definiteness | All eigenvalues of g > 0 in bulk | lambda_min > 0 by a margin independent of N | This is the CLAIM to verify |
 
 ## Sources
 
-- Baez, "The Octonions," Bull. AMS 39 (2002), 145-205. arXiv:math/0105155 -- Octonion multiplication table, F_4 = Aut(h_3(O)), Spin(9) spinor rep
-- Dray and Manogue, "The Geometry of the Octonions" (2015), World Scientific -- Octonionic eigenvalue problem, explicit matrix computations
-- Dray and Manogue, "The Octonionic Eigenvalue Problem," Adv. Appl. Cliff. Alg. 8 (1998) 323-340. arXiv:math/9807126 -- Eigenvalues of 3x3 octonionic Hermitian matrices
-- Todorov, "Octonion Internal Space Algebra for the Standard Model," Universe 9 (2023) 222. arXiv:2206.06912 -- Cl(10) from octonionic left multiplication, Pati-Salam from Cl(6)
-- Parton and Piccinni, "The Role of Spin(9) in Octonionic Geometry," Axioms 7 (2018) 72. arXiv:1810.06288 -- Explicit Spin(9) matrices on R^16, canonical 8-form
-- Jordan, von Neumann, Wigner, "On an Algebraic Generalization of the Quantum Mechanical Formalism," Ann. Math. 35 (1934) 29-64 -- Classification of formally real Jordan algebras
-- Albert, "On a Certain Algebra of Quantum Mechanics," Ann. Math. 35 (1934) 65-73 -- Exceptional Jordan algebra h_3(O)
-- Boyle, "The Standard Model, the Exceptional Jordan Algebra, and Triality," arXiv:2006.16265 -- V_{1/2} = S_{10}^+, 27 -> 1+10+16 decomposition
-- Existing project code: tests/test_cl6_sm.py (32x32 Cl(10)/Cl(6) matrices, Witt operators, SM quantum numbers)
-- Existing derivation: derivations/11-peirce-complexification.md (Peirce decomposition, complexification argument)
+- Braunstein and Caves, "Statistical Distance and the Geometry of Quantum States," PRL 72, 3439 (1994) -- Foundation for quantum Fisher metric on state manifolds
+- Zanardi, Giorda, Cozzini, "Information-Theoretic Differential Geometry of Quantum Phase Transitions," PRL 99, 100603 (2007). arXiv:quant-ph/0701061 -- Fisher/Bures metric on Hamiltonian parameter manifolds; fidelity susceptibility at QPTs
+- Zanardi, Campos Venuti, Giorda, "Bures metric over thermal state manifolds and quantum criticality," PRA 76, 062318 (2007) -- Bures metric tensor for thermal states; analytical results for quantum Ising model
+- Provost and Vallee, "Riemannian Structure on Manifolds of Quantum States," CMP 76, 289 (1980) -- Original definition of the quantum metric tensor (real part = Provost-Vallee metric)
+- Liu, Jing, Yuan, "Quantum Fisher information matrix and multiparameter estimation," J. Phys. A 53, 023001 (2020). arXiv:1907.08037 -- Comprehensive review of QFIM computation methods including eigendecomposition, Lyapunov equation, and connections to fidelity
+- Gu, "Fidelity approach to quantum phase transitions," Int. J. Mod. Phys. B 24, 4371 (2010). arXiv:0811.3127 -- Review of fidelity susceptibility as a probe of quantum phase transitions with numerical methods
+- Albuquerque et al., "Quantum critical scaling of fidelity susceptibility," PRB 81, 064418 (2010). arXiv:0912.2689 -- Finite-size scaling of fidelity susceptibility in lattice models with QMC
+- Zhang et al., "QuanEstimation: An open-source toolkit for quantum parameter estimation," Phys. Rev. Research 4, 043057 (2022). arXiv:2205.15588 -- Reference implementation of QFIM computation (Python/Julia); useful for cross-validation if needed
+- Al-Mohy and Higham, "Improved Inverse Scaling and Squaring Algorithms for the Matrix Logarithm," SIAM J. Sci. Comput. 34, C153 (2012) -- Algorithm behind scipy.linalg.logm (explains why it fails for singular matrices)
+- Existing project code: `code/ed_entanglement.py` (Hamiltonian construction, Lanczos, partial trace, entropy)
+- Existing project code: `code/area_law_verification.py` (area-law fits, 1D/2D, output format)
+- Existing project code: `code/self_modeling_hamiltonian.py` (SWAP operator construction, verification)
