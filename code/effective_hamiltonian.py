@@ -399,7 +399,169 @@ def run_all_checks():
     return results
 
 
+def test_f4_beyond_spin9(H_2, T_matrices):
+    """Test whether H_2 commutes with F_4 generators beyond Spin(9).
+
+    Uses Krasnov's J_u matrix (grade-3 element of Cl(9,0), outside spin(9))
+    as a representative of the 16 extra F_4 generators.
+
+    The algebraic argument:
+    - F_4 = Aut(h_3(O)) has dim 52
+    - Spin(9) = Stab(E_11) in F_4 has dim 36
+    - The 16 extra generators of F_4/Spin(9) mix V_0 with V_{1/2}
+    - J_u is antisymmetric, satisfies J_u^2 = -I, and is NOT in spin(9)
+      (it lives at Cl(9,0) grade 3, while spin(9) = grade 2)
+    - If [H_2, J_u^{total}] != 0, then H_2 breaks F_4 down to Spin(9)
+
+    Parameters:
+        H_2: 256x256 numpy array (2-site Hamiltonian)
+        T_matrices: list of 9 traceless 16x16 generators
+
+    Returns:
+        dict with:
+          'j_u': 16x16 J_u matrix
+          'j_u_antisymmetric': bool
+          'j_u_squared_minus_id': bool
+          'j_u_in_spin9': bool
+          'j_u_spin9_residual': float
+          'commutator_norm': float
+          'commutator_relative': float
+          'stabilizer': str
+          'stabilizer_dim': int
+    """
+    from octonion_algebra import krasnov_J_u_matrix
+
+    J_u = krasnov_J_u_matrix()
+    I16 = np.eye(16)
+
+    # Verify J_u properties
+    j_u_antisym = np.allclose(J_u, -J_u.T, atol=1e-14)
+    j_u_sq = np.allclose(J_u @ J_u, -I16, atol=1e-14)
+
+    # Check J_u is NOT in spin(9)
+    generators = compute_spin9_generators(T_matrices)
+    spin9_basis = np.array([G.flatten() for (_, G) in generators]).T
+    J_u_flat = J_u.flatten()
+    coeffs, _, _, _ = np.linalg.lstsq(spin9_basis, J_u_flat, rcond=None)
+    spin9_residual = np.linalg.norm(J_u_flat - spin9_basis @ coeffs)
+    j_u_in_spin9 = spin9_residual < 1e-10
+
+    # Compute [H_2, J_u^{total}]
+    J_u_total = np.kron(J_u, I16) + np.kron(I16, J_u)
+    comm = H_2 @ J_u_total - J_u_total @ H_2
+    comm_norm = np.linalg.norm(comm, 'fro')
+    h_norm = np.linalg.norm(H_2, 'fro')
+    comm_relative = comm_norm / h_norm if h_norm > 0 else 0.0
+
+    if comm_norm > 1e-10:
+        stabilizer = 'Spin(9)'
+        stabilizer_dim = 36
+    else:
+        stabilizer = 'unknown (>= Spin(9))'
+        stabilizer_dim = -1
+
+    return {
+        'j_u': J_u,
+        'j_u_antisymmetric': j_u_antisym,
+        'j_u_squared_minus_id': j_u_sq,
+        'j_u_in_spin9': j_u_in_spin9,
+        'j_u_spin9_residual': spin9_residual,
+        'commutator_norm': comm_norm,
+        'commutator_relative': comm_relative,
+        'stabilizer': stabilizer,
+        'stabilizer_dim': stabilizer_dim,
+    }
+
+
+def frame_stabilizer_analysis(eigenvalues, eigenvectors, T_matrices):
+    """Full frame stabilizer analysis combining algebraic and spectral methods.
+
+    Approach A (algebraic): The projection V_0 -> V_{1/2} that defines T_b
+    is Spin(9)-invariant but NOT F_4-invariant (F_4 mixes V_0 with V_{1/2}).
+    Therefore H_eff = sum T_a^(1) T_a^(2) is Spin(9)-invariant, not F_4.
+
+    Approach B (computational): Direct commutator test with J_u (grade-3
+    Clifford element outside spin(9)).
+
+    Approach C (spectral): Check whether 2-site spectrum degeneracies
+    match Spin(9) irreps exclusively, or combine into F_4 irreps.
+
+    Parameters:
+        eigenvalues: 256-length sorted array
+        eigenvectors: 256x256 array
+        T_matrices: list of 9 traceless generators
+
+    Returns:
+        dict with full analysis results.
+    """
+    from effective_hamiltonian import analyze_spectrum
+
+    H_2 = construct_2site_hamiltonian(T_matrices, J=1.0)
+
+    # Approach B: J_u commutator
+    f4_test = test_f4_beyond_spin9(H_2, T_matrices)
+
+    # Approach C: spectrum analysis
+    levels = analyze_spectrum(eigenvalues)
+    from math import comb
+    spin9_dims = {comb(9, k) for k in range(5)}
+    all_match_spin9 = all(m in spin9_dims for _, m in levels)
+
+    # Check if any pair of multiplicities sums to an F_4 irrep dim
+    f4_low_dims = {1, 26, 52, 273, 324, 1053, 1274, 2652, 4096}
+    mults = [m for _, m in levels]
+    f4_enhancement = False
+    for i in range(len(mults)):
+        for j in range(i + 1, len(mults)):
+            if mults[i] + mults[j] in f4_low_dims:
+                f4_enhancement = True
+
+    # Approach A: algebraic argument summary
+    algebraic_argument = (
+        "V_0 = h_2(O) under Spin(9) decomposes as 1 + 9 (trace + vector). "
+        "Under full F_4, V_0 is NOT an invariant subspace (F_4 mixes "
+        "V_0 with V_{1/2} via the 16 generators of OP^2). The projection "
+        "Pi_{1/2}: h_3(O) -> V_{1/2} that defines T_b operators is "
+        "Spin(9)-covariant but NOT F_4-covariant. Therefore H_eff = "
+        "sum T_a^(i) T_a^(j), which uses only V_0-projected operators, "
+        "has Spin(9) symmetry but NOT full F_4 symmetry."
+    )
+
+    return {
+        'algebraic_argument': algebraic_argument,
+        'f4_commutator_test': f4_test,
+        'spectrum_all_spin9': all_match_spin9,
+        'spectrum_f4_enhancement': f4_enhancement,
+        'stabilizer': f4_test['stabilizer'],
+        'stabilizer_dim': f4_test['stabilizer_dim'],
+        'ssb_pattern': 'F_4 -> Spin(9)' if f4_test['stabilizer'] == 'Spin(9)' else 'undetermined',
+        'target_space': 'F_4/Spin(9) = OP^2 (dim 16)' if f4_test['stabilizer'] == 'Spin(9)' else 'undetermined',
+        'goldstone_count': 52 - 36 if f4_test['stabilizer'] == 'Spin(9)' else -1,
+    }
+
+
 if __name__ == '__main__':
     import sys
     sys.path.insert(0, '/Users/ehrlich/scratch/get-physics-done/code')
     results = run_all_checks()
+
+    # Run frame stabilizer analysis
+    T_matrices = get_traceless_generators()
+    H = construct_2site_hamiltonian(T_matrices, J=1.0)
+    eigenvalues, eigenvectors = diagonalize_2site(H)
+    fs = frame_stabilizer_analysis(eigenvalues, eigenvectors, T_matrices)
+    print()
+    print("=" * 60)
+    print("FRAME STABILIZER ANALYSIS")
+    print("=" * 60)
+    print(f"Stabilizer: {fs['stabilizer']} (dim {fs['stabilizer_dim']})")
+    print(f"SSB pattern: {fs['ssb_pattern']}")
+    print(f"Target space: {fs['target_space']}")
+    print(f"Goldstone modes: {fs['goldstone_count']}")
+    print(f"J_u commutator norm: {fs['f4_commutator_test']['commutator_norm']:.4f}")
+    print(f"J_u in spin(9): {fs['f4_commutator_test']['j_u_in_spin9']}")
+    print(f"All multiplicities match Spin(9): {fs['spectrum_all_spin9']}")
+    print(f"F_4 enhancement possible: {fs['spectrum_f4_enhancement']}")
+    print()
+    print("Algebraic argument:")
+    print(fs['algebraic_argument'])
