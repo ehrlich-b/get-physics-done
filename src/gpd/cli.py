@@ -1019,9 +1019,9 @@ def _resume_status_message(payload: dict[str, object], *, recovery_advice: Recov
     if recovery_advice.status == "interrupted-agent":
         return "An interrupted agent marker is present, but no bounded resume segment is active."
     if recovery_advice.status == "session-handoff":
-        return "A recorded session handoff is available, but no resumable live execution snapshot is currently active."
+        return "A projected continuity handoff is available, but no resumable bounded segment is currently active."
     if recovery_advice.status == "missing-handoff":
-        return "Session continuity metadata exists, but the recorded handoff file is missing."
+        return "Canonical recovery metadata exists, but the projected handoff file is missing."
     if recovery_advice.status == "live-execution":
         return "A live execution snapshot exists, but it is advisory only and does not expose a portable resume target."
     if recovery_advice.status == "workspace-recovery" and recovery_advice.machine_change_notice:
@@ -1638,7 +1638,7 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     missing_session_resume_file = payload.get("missing_session_resume_file")
     if isinstance(missing_session_resume_file, str) and missing_session_resume_file.strip():
         notices.append(
-            "Recorded session handoff is missing: "
+            "Projected continuity handoff is missing: "
             f"{_format_display_path(missing_session_resume_file.strip())}."
         )
 
@@ -1672,7 +1672,7 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
         console.print(table)
     else:
         console.print(
-            "[dim]No resumable execution segment, session handoff, or interrupted-agent marker is currently recorded.[/]"
+            "[dim]No resumable execution segment, projected continuity handoff, or interrupted-agent marker is currently recorded.[/]"
         )
 
     console.print()

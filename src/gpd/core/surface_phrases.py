@@ -108,9 +108,9 @@ def recovery_primary_reason(
     if has_interrupted_agent:
         return "Current workspace has an interrupted-agent marker to inspect."
     if has_session_resume_file:
-        return "Current workspace has a recorded session handoff."
+        return "Current workspace has a continuity handoff projected from canonical continuation."
     if missing_session_resume_file:
-        return "Current workspace has recorded recovery state, but the last handoff file is missing."
+        return "Current workspace has canonical recovery state, but the last projected handoff file is missing."
     if has_live_execution:
         return "Current workspace has a live execution snapshot that should be inspected first."
     if machine_change_notice:

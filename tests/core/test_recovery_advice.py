@@ -236,7 +236,7 @@ def test_build_recovery_advice_prefers_session_handoff_over_advisory_live_execut
     assert advice.decision_source == "current-workspace"
     assert advice.primary_command == "gpd resume"
     assert advice.current_workspace_has_resume_file is True
-    assert advice.primary_reason == "Current workspace has a recorded session handoff."
+    assert advice.primary_reason == "Current workspace has a continuity handoff projected from canonical continuation."
 
 
 def test_build_recovery_advice_recovers_session_handoff_from_candidate_only_payload(tmp_path: Path) -> None:
@@ -300,7 +300,7 @@ def test_build_recovery_advice_prefers_missing_handoff_over_advisory_live_execut
     assert advice.primary_command == "gpd resume"
     assert advice.current_workspace_has_resume_file is False
     assert advice.has_local_recovery_target is False
-    assert advice.primary_reason == "Current workspace has recorded recovery state, but the last handoff file is missing."
+    assert advice.primary_reason == "Current workspace has canonical recovery state, but the last projected handoff file is missing."
 
 
 def test_build_recovery_advice_keeps_machine_change_notice_in_current_workspace_priority(tmp_path: Path) -> None:

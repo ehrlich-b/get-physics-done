@@ -1207,6 +1207,8 @@ def test_execute_phase_and_execute_plan_surface_required_reference_and_state_own
     assert "applies returned shared-state updates after each successfully completed plan" in execute_command
     assert "STATE.md is updated after each wave completes" not in execute_command
     assert "By the time the wave-complete report is emitted" in execute_workflow
+    assert "continuation_update" in execute_plan
+    assert "session_update" not in execute_plan
 
 
 def test_verification_prompts_keep_suggested_contract_check_bindings_schema_tight() -> None:

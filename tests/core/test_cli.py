@@ -1224,8 +1224,8 @@ def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, mon
 
     assert result.exit_code == 0
     normalized = " ".join(result.output.split())
-    assert "A recorded session handoff is available" in normalized
-    assert "no resumable live execution snapshot is currently active." in normalized
+    assert "A projected continuity handoff is available" in normalized
+    assert "no resumable bounded segment is currently active." in normalized
     assert "Recovery context is available, but no live bounded segment is currently resumable." not in result.output
 
 
@@ -1407,7 +1407,7 @@ def test_resume_plain_output_keeps_machine_change_notice_when_session_handoff_is
 
     assert result.exit_code == 0
     normalized = " ".join(result.output.split())
-    assert "A recorded session handoff is available" in normalized
+    assert "A projected continuity handoff is available" in normalized
     assert "Rerun the installer" in normalized
     assert "resume-work" in result.output
     assert "suggest-next" in result.output
@@ -1480,8 +1480,8 @@ def test_resume_plain_output_surfaces_missing_handoff_status(tmp_path: Path, mon
 
     assert result.exit_code == 0
     normalized = " ".join(result.output.split())
-    assert "Session continuity metadata exists" in normalized
-    assert "the recorded handoff file is missing." in normalized
+    assert "Canonical recovery metadata exists" in normalized
+    assert "the projected handoff file is missing." in normalized
     assert "resume-work" not in result.output
     assert "suggest-next" not in result.output
 

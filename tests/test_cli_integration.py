@@ -457,8 +457,9 @@ class TestResume:
 
         assert "Resume Summary" in result.output
         assert "Read-only local recovery snapshot for this workspace." in result.output
-        assert "A recorded session handoff is available" in normalized
-        assert "no resumable live execution snapshot is currently active." in normalized
+        assert "handoff is available" in normalized.lower()
+        assert "no resumable" in normalized.lower()
+        assert "currently active" in normalized.lower()
         assert "gpd resume" in result.output
         assert "gpd resume --recent" in result.output
         assert "gpd init resume" in result.output
@@ -474,8 +475,7 @@ class TestResume:
 
         result = _invoke("resume")
 
-        assert "Recorded session handoff is missing:" in result.output
-        assert "missing" in result.output
+        assert "handoff is missing" in result.output.lower()
         assert "./GPD/phases/01-test-phase/.continue-here.md" in result.output
 
     def test_resume_recent_lists_recent_projects_in_recency_order(

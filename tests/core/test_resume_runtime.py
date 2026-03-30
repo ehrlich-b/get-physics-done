@@ -148,6 +148,65 @@ def test_init_resume_surfaces_machine_change_and_session_resume_candidate(
     ]
 
 
+def test_init_resume_uses_canonical_continuation_when_legacy_session_conflicts(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    cwd = state_project_factory(tmp_path)
+    canonical_resume = cwd / "GPD" / "phases" / "03-analysis" / ".continue-here.md"
+    canonical_resume.parent.mkdir(parents=True, exist_ok=True)
+    canonical_resume.write_text("resume\n", encoding="utf-8")
+    legacy_resume = cwd / "GPD" / "phases" / "03-analysis" / "legacy.md"
+    legacy_resume.write_text("resume\n", encoding="utf-8")
+
+    state_path = cwd / "GPD" / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["session"].update(
+        {
+            "last_date": "2026-03-02T12:00:00+00:00",
+            "hostname": "legacy-host",
+            "platform": "LegacyOS",
+            "stopped_at": "Legacy stop",
+            "resume_file": "GPD/phases/03-analysis/legacy.md",
+        }
+    )
+    state["continuation"] = {
+        "schema_version": 1,
+        "handoff": {
+            "recorded_at": "2026-03-04T09:15:00+00:00",
+            "stopped_at": "Canonical stop",
+            "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+        },
+        "bounded_segment": None,
+        "machine": {
+            "recorded_at": "2026-03-04T09:15:00+00:00",
+            "hostname": "canonical-host",
+            "platform": "CanonicalOS",
+        },
+    }
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    monkeypatch.setattr(
+        context_module,
+        "_current_machine_identity",
+        lambda: {"hostname": "canonical-host", "platform": "CanonicalOS"},
+    )
+
+    ctx = init_resume(cwd)
+
+    assert ctx["session_hostname"] == "canonical-host"
+    assert ctx["session_platform"] == "CanonicalOS"
+    assert ctx["session_resume_file"] == "GPD/phases/03-analysis/.continue-here.md"
+    assert ctx["execution_resume_file_source"] == "session_resume_file"
+    assert ctx["execution_resume_file"] == "GPD/phases/03-analysis/.continue-here.md"
+    assert ctx["segment_candidates"] == [
+        {
+            "source": "session_resume_file",
+            "status": "handoff",
+            "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+            "resumable": False,
+        }
+    ]
+
+
 def test_init_resume_auto_selects_unique_recoverable_recent_project(tmp_path: Path, state_project_factory, monkeypatch) -> None:
     project_parent = tmp_path / "project-root"
     project_parent.mkdir()
