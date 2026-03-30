@@ -350,6 +350,13 @@ Plans:
 
 **Backtracking trigger:** If the NL sigma model derivation reveals that the SWAP Hamiltonian does not map to the standard Heisenberg form needed for the sigma model (e.g., SWAP contains terms beyond nearest-neighbor Heisenberg), return to Phase 32 to reassess the lattice Hamiltonian.
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 33-01-PLAN.md -- CORR-01 two-tier correlation characterization + CORR-02 NL sigma model derivation with explicit c_s
+- [ ] 33-02-PLAN.md -- 2D numerical validation: 4x4 OBC ED, correlations, staggered order, Fisher metric
+- [ ] 33-03-PLAN.md -- CORR-03 Fisher smoothness argument for algebraic decay regime (Neel d>=2)
+
 ---
 
 ### Phase 34: Emergent Lorentz Invariance
