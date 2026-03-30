@@ -201,6 +201,27 @@ def determine_magnetic_character(eigenvectors, ground_indices, dim_site=16):
     }
 
 
+def identify_spin9_irreps(levels):
+    """Identify which Lambda^k(V_9) irrep each energy level belongs to.
+
+    For Spin(9), S_9 x S_9 = sum_{k=0}^{4} Lambda^k(V_9) with dims
+    C(9,k) = 1, 9, 36, 84, 126. The Casimir relation
+    E_R = J/2 * (c_total(R) - 9/2) determines the mapping.
+
+    Returns:
+        dict mapping multiplicity to Lambda^k label.
+    """
+    from math import comb
+    lambda_dims = {comb(9, k): k for k in range(5)}
+    irrep_map = {}
+    for energy, mult in levels:
+        if mult in lambda_dims:
+            irrep_map[mult] = f"Lambda^{lambda_dims[mult]}(V_9)"
+        else:
+            irrep_map[mult] = f"unknown(dim={mult})"
+    return irrep_map
+
+
 def print_spectrum_summary(eigenvalues, eigenvectors, T_matrices, J=1.0):
     """Print full spectrum summary with Spin(9) analysis.
 
@@ -219,6 +240,7 @@ def print_spectrum_summary(eigenvalues, eigenvectors, T_matrices, J=1.0):
         gap = 0.0
 
     mag = determine_magnetic_character(eigenvectors, ground_indices)
+    irrep_map = identify_spin9_irreps(levels)
 
     P = construct_swap_operator(16)
     level_info = []
@@ -239,10 +261,13 @@ def print_spectrum_summary(eigenvalues, eigenvectors, T_matrices, J=1.0):
             sector = 'antisym'
         else:
             sector = f'mixed({sym_count}s+{antisym_count}a)'
+        c_total = 2 * energy / J + 9.0 / 2.0
         level_info.append({
             'energy': energy,
             'multiplicity': mult,
             'sector': sector,
+            'irrep': irrep_map.get(mult, '?'),
+            'c_total': c_total,
         })
         idx += mult
 
@@ -252,17 +277,22 @@ def print_spectrum_summary(eigenvalues, eigenvectors, T_matrices, J=1.0):
     print(f"Total states: {total_states}")
     print(f"Distinct energy levels: {len(levels)}")
     print(f"Coupling J = {J}")
+    print(f"Decomposition: S_9 x S_9 = Lambda^0 + Lambda^1 + Lambda^2 "
+          f"+ Lambda^3 + Lambda^4")
     print()
-    print(f"{'Level':>5} {'Energy/J':>12} {'Mult':>6} {'Sector':>12}")
-    print("-" * 40)
+    print(f"{'Level':>5} {'Energy/J':>10} {'Mult':>5} {'Sector':>9} "
+          f"{'c_total':>8} {'Irrep':>16}")
+    print("-" * 60)
     for i, info in enumerate(level_info):
-        print(f"{i:>5} {info['energy']/J:>12.6f} {info['multiplicity']:>6} {info['sector']:>12}")
+        print(f"{i:>5} {info['energy']/J:>10.4f} {info['multiplicity']:>5} "
+              f"{info['sector']:>9} {info['c_total']:>8.2f} "
+              f"{info['irrep']:>16}")
     print()
-    print(f"Ground state energy: {ground_energy/J:.6f} J")
-    print(f"Ground state multiplicity: {ground_mult}")
+    print(f"Ground state: E = {ground_energy/J:.4f} J, mult = {ground_mult}, "
+          f"irrep = {irrep_map.get(ground_mult, '?')}")
     print(f"Ground state sector: {mag['sector']}")
-    print(f"Energy gap: {gap/J:.6f} J")
-    print(f"Magnetic character: {mag['verdict']}")
+    print(f"Energy gap: Delta = {gap/J:.4f} J")
+    print(f"Magnetic character: {mag['verdict'].upper()}")
     print("=" * 60)
 
     return {
