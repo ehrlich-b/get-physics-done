@@ -9,24 +9,34 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 
 ## Current Position
 
-**Current Phase:** 33
-**Current Phase Name:** Correlation Structure and Effective Theory
+**Current Phase:** 34
+**Current Phase Name:** Emergent Lorentz Invariance
 **Total Phases:** 36 (31 prior + 5 new in v9.0)
-**Current Plan:** 03/03 complete
-**Total Plans in Phase:** 3
-**Status:** Phase 33 execution complete. All 3 plans passed. Awaiting verification.
+**Current Plan:** 02/02 complete
+**Total Plans in Phase:** 2
+**Status:** Phase 34 execution complete. All 2 plans passed. Awaiting verification.
 **Last Activity:** 2026-03-29
-**Last Activity Description:** Phase 33 complete. CORR-01: two-tier correlation decay. CORR-02: sigma model c_s=1.659Ja. 2D ED: m_s^2=0.233, Fisher g=4.76e-4. CORR-03: conditional Fisher smoothness theorem for d>=2 Neel.
+**Last Activity Description:** Phase 34 complete. LRNZ-01: isotropy restoration (cubic anisotropy irrelevant, rho~2). LRNZ-02: Lorentz from sigma model rescaling + Wick rotation (c_s=1.659Ja). Von Ignatowsky supporting route. LRNZ-03: v_LR/c_s=7.63, c_eff=c_s, metric assembly ds^2=-c_s^2 dt^2+g_ij dx^i dx^j.
 
 
 ## Active Calculations
 
-- CORR-01: Two-tier correlation decay characterization -- COMPLETE (gapped: Hastings-Koma; Neel d>=2: algebraic LRO)
-- CORR-02: O(3) NL sigma model derivation -- COMPLETE (c_s = 1.659 Ja, rho_s = 0.181 J, g = 9.18)
+- LRNZ-01: Emergent isotropy restoration -- COMPLETE (cubic anisotropy irrelevant, rho~2 Hasenbusch, O(a^2/L^2) corrections)
+- LRNZ-02: Lorentz invariance derivation -- COMPLETE (O(d+1) rescaling + Wick rotation, ds^2=-c_s^2 dt^2+dx^2, DLS reflection positivity)
+- LRNZ-02b: Von Ignatowsky supporting route -- COMPLETE (all 4 premises mapped, finite c_s selects Lorentz)
+- LRNZ-03: Velocity hierarchy and causal structure -- COMPLETE (v_LR/c_s=7.63, c_eff=c_s, two-tier causal, metric assembly)
 - 2D ED (4x4 OBC): m_s^2 = 0.233, Fisher g_plaq = 4.76e-4, sublattice TD = 0.114 -- COMPLETE
 - CORR-03: Fisher smoothness conditional theorem -- COMPLETE (g_F ~ O(m_s^2) > 0 for d>=2 Neel)
 
 ## Intermediate Results
+
+### Phase 34 Results (v9.0)
+
+- **LRNZ-01 (Isotropy)**: Cubic anisotropy alpha_4 = -1/96 at lattice scale, RG irrelevant with exponent rho ~ 2 (Hasenbusch 2021), corrections O(a^2/L^2). Continuous SO(d) restored at long wavelengths. (HIGH)
+- **LRNZ-02 (Lorentz)**: Sigma model rescaling tau' = c_s*tau gives O(d+1)-symmetric Eq. (34.16). Wick rotation yields ds^2 = -c_s^2 dt^2 + dx^2 with c_s = 1.659 Ja. DLS 1978 reflection positivity justifies on bipartite lattice. (HIGH)
+- **LRNZ-02b (von Ignatowsky)**: All 4 premises (relativity, homogeneity, isotropy, group structure) mapped to emergent theory. Finite c_s selects Lorentz over Galileo. (MEDIUM -- supporting, not primary)
+- **LRNZ-03 (Velocity hierarchy)**: v_LR = 12.66 J, c_s = 1.659 J (a=1), v_LR/c_s = 7.63. Four arguments for c_eff = c_s. Hamma et al. 2009 precedent (v_LR/c_photon = 3.84 for toric code). (HIGH)
+- **LRNZ-03 (Metric assembly)**: ds^2 = -c_s^2 dt^2 + g_ij dx^i dx^j. Fisher (spatial, Phase 32) + sigma model (temporal). Two-tier causal: LR cone (v_LR, exact) contains Lorentzian cone (c_s, EFT). (MEDIUM -- schematic, not theorem)
 
 ### Phase 33 Results (v9.0)
 
@@ -67,11 +77,15 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 | 33-01 | ~7min | 2 tasks | 1 files |
 | 33-02 | ~8min | 2 tasks | 3 files |
 | 33-03 | ~6min | 2 tasks | 1 files |
+| 34-01 | ~6min | 2 tasks | 1 files |
+| 34-02 | ~3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 34, Plan 02]: c_eff = c_s = 1.659 Ja (four arguments: dispersion, EFT, universality, Hamma). Metric assembly ds^2 = -c_s^2 dt^2 + g_ij dx^i dx^j schematic. v_LR/c_s = 7.63 is 1D-specific.
+- [Phase 34, Plan 01]: Isotropy via RG irrelevance (Hasenbusch rho~2), not numerical simulation. Wick rotation justified by DLS 1978 reflection positivity on bipartite lattices. Fisher metric != Lorentzian metric (forbidden proxy respected).
 - [Phase 33, Plan 03]: CORR-03 conditional theorem (H1-H4). Sublattice alternation gives g_F ~ O(m_s^2) > 0. d>=3 clean, d=2 logarithmic.
 - [Phase 33, Plan 02]: 2D Heisenberg 4x4 OBC: m_s^2=0.233 (Neel), g_plaq=4.76e-4 (3.88x > 1D). Neel rescue supported at L=4.
 - [Phase 33, Plan 01]: Two-tier correlation decay (gapped + Neel). O(3) sigma model with c_s=1.659Ja (QMC to 0.3%). S=1/2 d=2 Neel is QMC-established, not rigorous.
@@ -137,5 +151,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-29
-**Stopped at:** Phase 33 execution complete. All 3 plans passed. Verification pending.
+**Stopped at:** Phase 34 execution complete. All 2 plans passed. Verification pending.
 **Resume file:** --

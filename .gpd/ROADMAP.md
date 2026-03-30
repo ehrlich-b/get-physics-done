@@ -392,8 +392,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 34-01-PLAN.md -- Isotropy restoration (LRNZ-01) + Lorentz derivation via sigma model + von Ignatowsky (LRNZ-02)
-- [ ] 34-02-PLAN.md -- Velocity hierarchy v_LR > c_s = c_eff, causal structure, emergent metric assembly (LRNZ-03)
+- [x] 34-01-PLAN.md -- Isotropy restoration (LRNZ-01) + Lorentz derivation via sigma model + von Ignatowsky (LRNZ-02)
+- [x] 34-02-PLAN.md -- Velocity hierarchy v_LR > c_s = c_eff, causal structure, emergent metric assembly (LRNZ-03)
+
+**Status:** Complete (2026-03-29). Verified: 5/5 contract targets, 13/13 physics checks. HIGH confidence.
 
 ---
 
