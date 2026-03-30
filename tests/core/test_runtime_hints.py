@@ -234,7 +234,7 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert payload.orientation["fast_next_reason"] == recovery_fast_next_reason()
     assert "resume_mode" not in payload.orientation
     assert payload.orientation["active_resume_kind"] == "bounded_segment"
-    assert payload.orientation["active_resume_origin"] == "derived_execution_head"
+    assert payload.orientation["active_resume_origin"] == "compat.current_execution"
     assert payload.orientation["active_resume_pointer"] == "GPD/phases/03/.continue-here.md"
     assert "execution_resume_file" not in payload.orientation
     assert "execution_resume_file_source" not in payload.orientation
@@ -740,7 +740,7 @@ def test_build_runtime_hint_payload_uses_shared_resume_contract_without_recent_p
     assert payload.orientation["mode"] == "current-workspace"
     assert payload.orientation["primary_command"] == "gpd resume"
     assert payload.orientation["active_resume_kind"] == "bounded_segment"
-    assert payload.orientation["active_resume_origin"] == "derived_execution_head"
+    assert payload.orientation["active_resume_origin"] == "compat.current_execution"
     assert payload.orientation["active_resume_pointer"] == "GPD/phases/05/.continue-here.md"
     assert payload.orientation["execution_resumable"] is True
     assert "compat_resume_surface" not in payload.orientation
@@ -939,7 +939,7 @@ def test_build_runtime_hint_payload_uses_canonical_bounded_segment_without_curre
     assert payload.orientation["mode"] == "current-workspace"
     assert payload.orientation["status"] == "bounded-segment"
     assert payload.orientation["active_resume_kind"] == "bounded_segment"
-    assert payload.orientation["active_resume_origin"] == "canonical_continuation"
+    assert payload.orientation["active_resume_origin"] == "continuation.bounded_segment"
     assert payload.orientation["active_resume_pointer"] == resume_file
     assert "compat_resume_surface" not in payload.orientation
     assert "resume_mode" not in payload.orientation
@@ -984,7 +984,7 @@ def test_build_runtime_hint_payload_prefers_canonical_bounded_segment_over_confl
     )
 
     assert payload.orientation["active_resume_kind"] == "bounded_segment"
-    assert payload.orientation["active_resume_origin"] == "canonical_continuation"
+    assert payload.orientation["active_resume_origin"] == "continuation.bounded_segment"
     assert payload.orientation["active_resume_pointer"] == canonical_resume_file
     assert payload.orientation["status"] == "bounded-segment"
     assert "compat_resume_surface" not in payload.orientation

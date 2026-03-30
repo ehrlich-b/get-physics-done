@@ -141,7 +141,8 @@ def test_resume_docs_use_canonical_paths_and_no_legacy_resume_command() -> None:
     assert "**Core research question:** [Current core research question from PROJECT.md]" in transition_doc
     assert 'grep \'^\\*\\*Current Phase:\\*\\*\'' in transition_doc
     assert "GPD/state.json GPD/PROJECT.md" in transition_doc
-    assert "continuation_update:" in execute_plan_doc or "session_update:" in execute_plan_doc
+    assert "continuation_update:" in execute_plan_doc
+    assert "session_update:" not in execute_plan_doc
     assert "resume_file: null" in execute_plan_doc
     assert "bounded_segment: null" in execute_plan_doc
     assert '--resume-file "—"' in execute_plan_doc
@@ -208,7 +209,7 @@ def test_generate_state_markdown_surfaces_machine_readable_contract_line() -> No
     assert "**Machine-readable scoping contract:** `GPD/state.json` field `project_contract`" in markdown
 
 
-def test_init_resume_surfaces_machine_change_and_session_resume_candidate(
+def test_init_resume_surfaces_machine_change_and_continuity_handoff_candidate(
     tmp_path: Path, monkeypatch
 ) -> None:
     _setup_project(tmp_path)
@@ -245,7 +246,7 @@ def test_init_resume_surfaces_machine_change_and_session_resume_candidate(
     ctx = init_resume(tmp_path)
 
     assert ctx["active_resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
-    assert ctx["active_resume_origin"] == "canonical_continuation"
+    assert ctx["active_resume_origin"] == "continuation.handoff"
     assert ctx["execution_paused_at"] is None
     assert "resume_mode" not in ctx
     assert "segment_candidates" not in ctx

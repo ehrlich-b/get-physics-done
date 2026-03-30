@@ -1133,10 +1133,10 @@ def _bounded_segment_resume_origin(resume_projection: object) -> str:
     segment = getattr(continuation, "bounded_segment", None)
     recorded_by = getattr(segment, "recorded_by", None)
     if isinstance(recorded_by, str) and recorded_by.strip() == "legacy_current_execution":
-        return "derived_execution_head"
+        return "compat.current_execution"
     if _resume_projection_source_name(resume_projection) == "legacy":
-        return "derived_execution_head"
-    return "canonical_continuation"
+        return "compat.current_execution"
+    return "continuation.bounded_segment"
 
 
 def _handoff_resume_origin(resume_projection: object) -> str:
@@ -1144,10 +1144,14 @@ def _handoff_resume_origin(resume_projection: object) -> str:
     handoff = getattr(continuation, "handoff", None)
     recorded_by = getattr(handoff, "recorded_by", None)
     if isinstance(recorded_by, str) and recorded_by.strip() == "legacy_session":
-        return "legacy_session"
+        return "compat.session_resume_file"
     if _resume_projection_source_name(resume_projection) == "legacy":
-        return "legacy_session"
-    return "canonical_continuation"
+        return "compat.session_resume_file"
+    return "continuation.handoff"
+
+
+def _interrupted_agent_resume_origin() -> str:
+    return "interrupted_agent_marker"
 
 
 def _resume_candidate_from_segment(segment: dict[str, object]) -> dict[str, object]:
@@ -1184,6 +1188,7 @@ def _canonical_resume_candidate(
     resume_pointer: str | None = None,
 ) -> dict[str, object]:
     payload = dict(candidate)
+    payload.pop("source", None)
     payload["kind"] = kind
     payload["origin"] = origin
     payload["resume_pointer"] = resume_pointer
@@ -1253,7 +1258,7 @@ def _build_legacy_resume_state(
             _canonical_resume_candidate(
                 current_candidate,
                 kind="bounded_segment",
-                origin="derived_execution_head",
+                origin="compat.current_execution",
                 resume_pointer=current_candidate.get("resume_file")
                 if isinstance(current_candidate.get("resume_file"), str)
                 else None,
@@ -1276,8 +1281,8 @@ def _build_legacy_resume_state(
             resume_candidates.append(
                 _canonical_resume_candidate(
                     session_candidate,
-                    kind="handoff",
-                    origin="legacy_session",
+                    kind="continuity_handoff",
+                    origin="compat.session_resume_file",
                     resume_pointer=session_resume_file,
                 )
             )
@@ -1300,8 +1305,8 @@ def _build_legacy_resume_state(
             resume_candidates.append(
                 _canonical_resume_candidate(
                     missing_session_candidate,
-                    kind="missing_handoff",
-                    origin="legacy_session",
+                    kind="continuity_handoff",
+                    origin="compat.session_resume_file",
                     resume_pointer=missing_session_resume_file,
                 )
             )
@@ -1317,7 +1322,7 @@ def _build_legacy_resume_state(
             _canonical_resume_candidate(
                 interrupted_candidate,
                 kind="interrupted_agent",
-                origin="interrupted_agent",
+                origin="interrupted_agent_marker",
                 resume_pointer=interrupted_agent_id,
             )
         )
@@ -1331,15 +1336,15 @@ def _build_legacy_resume_state(
 
     if execution_context.get("execution_resumable") and isinstance(current_execution, dict):
         active_resume_kind = "bounded_segment"
-        active_resume_origin = "derived_execution_head"
+        active_resume_origin = "compat.current_execution"
         active_resume_pointer = current_execution.get("resume_file")
     elif isinstance(session_resume_file, str) and session_resume_file:
-        active_resume_kind = "handoff"
-        active_resume_origin = "legacy_session"
+        active_resume_kind = "continuity_handoff"
+        active_resume_origin = "compat.session_resume_file"
         active_resume_pointer = session_resume_file
     elif interrupted_agent_id is not None:
         active_resume_kind = "interrupted_agent"
-        active_resume_origin = "interrupted_agent"
+        active_resume_origin = "interrupted_agent_marker"
         active_resume_pointer = interrupted_agent_id
     else:
         active_resume_kind = None
@@ -1428,7 +1433,7 @@ def _build_resume_read_state(
                 resume_candidates.append(
                     _canonical_resume_candidate(
                         candidate,
-                        kind="handoff",
+                        kind="continuity_handoff",
                         origin=handoff_origin,
                         resume_pointer=resume_projection.handoff_resume_file,
                     )
@@ -1451,7 +1456,7 @@ def _build_resume_read_state(
                 resume_candidates.append(
                     _canonical_resume_candidate(
                         candidate,
-                        kind="missing_handoff",
+                        kind="continuity_handoff",
                         origin=handoff_origin,
                         resume_pointer=resume_projection.missing_handoff_resume_file,
                     )
@@ -1477,7 +1482,7 @@ def _build_resume_read_state(
                     _canonical_resume_candidate(
                         candidate,
                         kind="interrupted_agent",
-                        origin="interrupted_agent",
+                        origin=_interrupted_agent_resume_origin(),
                         resume_pointer=interrupted_agent_id,
                     )
                 )
@@ -1494,12 +1499,12 @@ def _build_resume_read_state(
             active_resume_origin = bounded_segment_origin
             active_resume_pointer = resume_projection.active_resume_file
         elif resume_projection.active_resume_source == ContinuationResumeSource.HANDOFF:
-            active_resume_kind = "handoff"
+            active_resume_kind = "continuity_handoff"
             active_resume_origin = handoff_origin
             active_resume_pointer = resume_projection.active_resume_file
         elif interrupted_agent_id is not None:
             active_resume_kind = "interrupted_agent"
-            active_resume_origin = "interrupted_agent"
+            active_resume_origin = _interrupted_agent_resume_origin()
             active_resume_pointer = interrupted_agent_id
         else:
             active_resume_kind = None
@@ -1546,7 +1551,7 @@ def _build_resume_read_state(
             "has_continuity_handoff": False,
             "resume_candidates": [],
             "active_resume_kind": "interrupted_agent" if interrupted_agent_id is not None else None,
-            "active_resume_origin": "interrupted_agent" if interrupted_agent_id is not None else None,
+            "active_resume_origin": _interrupted_agent_resume_origin() if interrupted_agent_id is not None else None,
             "active_resume_pointer": interrupted_agent_id,
             "active_execution_segment": execution_context.get("current_execution")
             if isinstance(execution_context.get("current_execution"), dict)

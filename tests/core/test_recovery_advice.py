@@ -31,6 +31,8 @@ def test_build_recovery_advice_prefers_current_workspace_recovery_state(tmp_path
     assert advice.decision_source == "current-workspace"
     assert advice.project_reentry_mode == "current-workspace"
     assert advice.primary_command == "gpd resume"
+    assert advice.active_resume_kind == "bounded_segment"
+    assert advice.active_resume_origin == "compat.current_execution"
     assert advice.current_workspace_has_recovery is True
     assert advice.current_workspace_resumable is True
     assert [action.availability for action in advice.actions] == ["now", "now", "now"]
@@ -160,6 +162,8 @@ def test_build_recovery_advice_marks_auto_selected_recent_project_recovery(
     assert advice.project_root_auto_selected is True
     assert advice.primary_command == "gpd resume --recent"
     assert advice.project_reentry_reason == "GPD found the only recoverable recent project on this machine and selected it automatically."
+    assert advice.active_resume_kind == "bounded_segment"
+    assert advice.active_resume_origin == "compat.current_execution"
     assert advice.current_workspace_has_recovery is True
     assert advice.actions[0].availability == "now"
     assert advice.actions[1].availability == "now"
@@ -290,6 +294,8 @@ def test_build_recovery_advice_prefers_continuity_handoff_over_advisory_live_exe
     assert advice.status == "session-handoff"
     assert advice.decision_source == "current-workspace"
     assert advice.primary_command == "gpd resume"
+    assert advice.active_resume_kind == "continuity_handoff"
+    assert advice.active_resume_origin == "continuation.handoff"
     assert advice.current_workspace_has_resume_file is True
     assert advice.primary_reason == "Current workspace has a continuity handoff projected from canonical continuation."
 
@@ -406,6 +412,8 @@ def test_build_recovery_advice_recovers_continuity_handoff_from_candidate_only_p
     assert advice.mode == "current-workspace"
     assert advice.status == "session-handoff"
     assert advice.decision_source == "current-workspace"
+    assert advice.active_resume_kind == "continuity_handoff"
+    assert advice.active_resume_origin == "compat.session_resume_file"
     assert advice.has_continuity_handoff is True
     assert advice.current_workspace_has_resume_file is True
 
@@ -425,6 +433,8 @@ def test_build_recovery_advice_keeps_missing_handoff_without_false_resume_file(t
     assert advice.status == "missing-handoff"
     assert advice.decision_source == "current-workspace"
     assert advice.primary_command == "gpd resume"
+    assert advice.active_resume_kind == "continuity_handoff"
+    assert advice.active_resume_origin == "continuation.handoff"
     assert advice.current_workspace_has_recovery is True
     assert advice.current_workspace_has_resume_file is False
     assert advice.has_local_recovery_target is False
@@ -445,6 +455,8 @@ def test_build_recovery_advice_prefers_missing_handoff_over_advisory_live_execut
     assert advice.mode == "current-workspace"
     assert advice.status == "missing-handoff"
     assert advice.primary_command == "gpd resume"
+    assert advice.active_resume_kind == "continuity_handoff"
+    assert advice.active_resume_origin == "continuation.handoff"
     assert advice.current_workspace_has_resume_file is False
     assert advice.has_local_recovery_target is False
     assert advice.primary_reason == "Current workspace has canonical recovery state, but the last projected handoff file is missing."

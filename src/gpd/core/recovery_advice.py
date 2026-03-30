@@ -369,6 +369,7 @@ def _derive_active_resume_kind(
     resume_mode: str | None,
     active_resume_pointer: str | None,
     continuity_handoff_file: str | None,
+    missing_continuity_handoff_file: str | None,
     resume_candidates: Sequence[Mapping[str, object]],
 ) -> str | None:
     explicit = _canonical_text_field(payload, compat_surface, "active_resume_kind")
@@ -381,6 +382,12 @@ def _derive_active_resume_kind(
         return "bounded_segment"
     if explicit_origin in {"continuation.handoff", "compat.session_resume_file"}:
         return "continuity_handoff"
+    if missing_continuity_handoff_file is not None:
+        return "continuity_handoff"
+    if _has_candidate(resume_candidates, kind="continuity_handoff", status="missing"):
+        return "continuity_handoff"
+    if _has_candidate(resume_candidates, kind="bounded_segment"):
+        return "bounded_segment"
     if resume_mode == "bounded_segment":
         return "bounded_segment"
     if active_resume_pointer is not None and _legacy_text_field(
@@ -406,6 +413,7 @@ def _derive_active_resume_origin(
     continuity_handoff_file: str | None,
     recorded_continuity_handoff_file: str | None,
     missing_continuity_handoff_file: str | None,
+    resume_candidates: Sequence[Mapping[str, object]],
 ) -> str | None:
     explicit = _canonical_text_field(payload, compat_surface, "active_resume_origin")
     if explicit is not None:
@@ -421,6 +429,10 @@ def _derive_active_resume_origin(
             "current_execution",
         ) is not None:
             return "compat.current_execution"
+        if _has_candidate(resume_candidates, origin="compat.current_execution", kind="bounded_segment"):
+            return "compat.current_execution"
+        if _has_candidate(resume_candidates, origin="continuation.bounded_segment", kind="bounded_segment"):
+            return "continuation.bounded_segment"
         if legacy_source == "current_execution":
             return "compat.current_execution"
         if _legacy_mapping_field(payload, compat_surface, "active_execution_segment") is not None:
@@ -438,7 +450,13 @@ def _derive_active_resume_origin(
             return "continuation.handoff"
         if any(value is not None for value in (continuity_handoff_file, recorded_continuity_handoff_file, missing_continuity_handoff_file)):
             return "continuation.handoff"
+        if _has_candidate(resume_candidates, origin="compat.session_resume_file", kind="continuity_handoff"):
+            return "compat.session_resume_file"
+        if _has_candidate(resume_candidates, origin="continuation.handoff", kind="continuity_handoff"):
+            return "continuation.handoff"
         if legacy_source == "session_resume_file":
+            return "compat.session_resume_file"
+        if missing_continuity_handoff_file is not None:
             return "compat.session_resume_file"
         return "continuation.handoff"
     if active_resume_kind == "interrupted_agent":
@@ -668,6 +686,7 @@ def build_recovery_advice(
         resume_mode=resume_mode,
         active_resume_pointer=active_resume_pointer,
         continuity_handoff_file=continuity_handoff_file,
+        missing_continuity_handoff_file=missing_continuity_handoff_file,
         resume_candidates=segment_candidates,
     )
     active_resume_origin = _derive_active_resume_origin(
@@ -677,6 +696,7 @@ def build_recovery_advice(
         continuity_handoff_file=continuity_handoff_file,
         recorded_continuity_handoff_file=recorded_continuity_handoff_file,
         missing_continuity_handoff_file=missing_continuity_handoff_file,
+        resume_candidates=segment_candidates,
     )
     workspace_root = _text_field(payload, "workspace_root")
     project_root = _text_field(payload, "project_root")

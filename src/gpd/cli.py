@@ -1127,22 +1127,35 @@ def _resume_candidate_source_label(source: object) -> str:
     return labels.get(source_text, source_text or "Unknown")
 
 
-def _resume_candidate_kind_label(candidate: dict[str, object]) -> str:
-    """Map one resume candidate to a user-facing kind label."""
+def _resume_candidate_canonical_kind(candidate: dict[str, object]) -> str:
+    """Return the canonical family name for one resume candidate."""
     kind = candidate.get("kind")
-    labels = {
-        "bounded_segment": "Bounded segment",
-        "handoff": "Continuity handoff",
-        "continuity_handoff": "Continuity handoff",
-        "missing_handoff": "Missing continuity handoff",
-        "missing_continuity_handoff": "Missing continuity handoff",
-        "interrupted_agent": "Interrupted agent",
-    }
     if isinstance(kind, str):
         kind_text = kind.strip()
-        if kind_text:
-            return labels.get(kind_text, kind_text.replace("_", " "))
-    return _resume_candidate_source_label(candidate.get("source"))
+        if kind_text in {"handoff", "continuity_handoff", "missing_handoff", "missing_continuity_handoff"}:
+            return "continuity_handoff"
+        if kind_text in {"bounded_segment", "interrupted_agent"}:
+            return kind_text
+
+    source = str(candidate.get("source") or "").strip()
+    if source == "current_execution":
+        return "bounded_segment"
+    if source == "session_resume_file":
+        return "continuity_handoff"
+    if source == "interrupted_agent":
+        return "interrupted_agent"
+    return "unknown"
+
+
+def _resume_candidate_kind_label(candidate: dict[str, object]) -> str:
+    """Map one resume candidate to a user-facing kind label."""
+    kind = _resume_candidate_canonical_kind(candidate)
+    labels = {
+        "bounded_segment": "Bounded segment",
+        "continuity_handoff": "Continuity handoff",
+        "interrupted_agent": "Interrupted agent",
+    }
+    return labels.get(kind, kind.replace("_", " ") if kind else "unknown")
 
 
 def _resume_candidate_kind(source: object, *, status: object) -> str:
@@ -1152,8 +1165,6 @@ def _resume_candidate_kind(source: object, *, status: object) -> str:
     if source_text == "current_execution":
         return "bounded_segment"
     if source_text == "session_resume_file":
-        if status_text == "missing":
-            return "missing_continuity_handoff"
         return "continuity_handoff"
     if source_text == "interrupted_agent":
         return "interrupted_agent"
@@ -1252,6 +1263,10 @@ def _resume_candidate_origin(
     origin = candidate.get("origin")
     if isinstance(origin, str) and origin.strip():
         origin_text = origin.strip()
+        if origin_text in {"legacy_session", "continuation_metadata"}:
+            return "canonical_continuation", "canonical continuity metadata"
+        if origin_text == "compatibility_snapshot":
+            return "derived_execution_head", "derived execution compatibility snapshot"
         return origin_text, _resume_origin_label(origin_text)
     source = str(candidate.get("source") or "").strip()
     status = str(candidate.get("status") or "").strip()
@@ -1274,12 +1289,12 @@ def _resume_candidate_origin(
                 )
             return ("canonical_continuation", "canonical bounded segment")
         if isinstance(current_execution, dict):
-            return ("compatibility_snapshot", "derived execution compatibility snapshot")
-        return ("unknown", "bounded-segment candidate")
+            return ("derived_execution_head", "derived execution compatibility snapshot")
+        return ("derived_execution_head", "derived execution head")
     if source == "session_resume_file":
         if status == "missing":
-            return ("continuation_metadata", "canonical continuity metadata; handoff file missing")
-        return ("continuation_metadata", "canonical continuity metadata")
+            return ("canonical_continuation", "canonical continuity metadata; handoff file missing")
+        return ("canonical_continuation", "canonical continuity metadata")
     if source == "interrupted_agent":
         return ("interrupted_agent", "interrupted-agent marker")
     return ("unknown", "unknown origin")
@@ -1402,13 +1417,13 @@ def _resume_candidate_notes(
             notes.append(f"updated {updated_at.strip()}")
 
     if not notes:
-        source = str(candidate.get("source") or "").strip()
+        kind = _resume_candidate_canonical_kind(candidate)
         status = str(candidate.get("status") or "").strip()
-        if source == "session_resume_file" and status == "missing":
+        if kind == "continuity_handoff" and status == "missing":
             return "Recorded in canonical continuity metadata, but the handoff file is missing from this workspace."
-        if source == "session_resume_file":
+        if kind == "continuity_handoff":
             return "Recorded in canonical continuity metadata."
-        if source == "interrupted_agent":
+        if kind == "interrupted_agent":
             return "Interrupted agent marker only; inspect agent output before continuing."
         return "No additional resume notes recorded."
     return "; ".join(notes[:5])
@@ -1427,8 +1442,8 @@ def _resume_candidate_projection(
         current_execution=current_execution,
     )
     status = str(candidate.get("status") or "unknown").strip() or "unknown"
-    kind = candidate.get("kind")
-    if not isinstance(kind, str) or not kind.strip():
+    kind = _resume_candidate_canonical_kind(candidate)
+    if kind == "unknown":
         kind = _resume_candidate_kind(candidate.get("source"), status=status)
     return {
         "kind": kind,
@@ -1784,12 +1799,19 @@ def _resume_augmented_payload(payload: dict[str, object], *, cwd: Path | None = 
     active_execution = active_execution_raw if isinstance(active_execution_raw, dict) else None
     current_execution_raw = _resume_surface_value(public_payload, compat_surface, "current_execution")
     current_execution = current_execution_raw if isinstance(current_execution_raw, dict) else None
+    active_resume_kind = public_payload.get("active_resume_kind")
+    if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
+        active_resume_kind = _resume_surface_value(public_payload, compat_surface, "resume_mode")
+    if isinstance(active_resume_kind, str) and active_resume_kind.strip():
+        active_resume_kind = _resume_candidate_canonical_kind({"kind": active_resume_kind})
     segment_candidates = _resume_visible_candidates(public_payload, compat_surface)
     projected_candidates = [
         _resume_candidate_projection(
             candidate,
-            active_execution=active_execution if candidate.get("source") == "current_execution" else None,
-            current_execution=current_execution if candidate.get("source") == "current_execution" else None,
+            active_execution=active_execution
+            if _resume_candidate_canonical_kind(candidate) == "bounded_segment"
+            else None,
+            current_execution=current_execution if _resume_candidate_canonical_kind(candidate) == "bounded_segment" else None,
         )
         for candidate in segment_candidates
     ]
@@ -1798,9 +1820,6 @@ def _resume_augmented_payload(payload: dict[str, object], *, cwd: Path | None = 
     augmented["recovery_status"] = recovery_advice.status
     augmented["recovery_status_label"] = _resume_status_label(recovery_advice.status)
     augmented["recovery_summary"] = _resume_status_message(public_payload, recovery_advice=recovery_advice)
-    active_resume_kind = public_payload.get("active_resume_kind")
-    if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
-        active_resume_kind = _resume_surface_value(public_payload, compat_surface, "resume_mode")
     augmented["active_resume_kind_label"] = _resume_mode_label(active_resume_kind)
     augmented["recovery_advice"] = recovery_advice.model_dump(mode="json")
     augmented["recovery_candidates"] = projected_candidates
@@ -1863,7 +1882,6 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     """Render a read-only local recovery summary for humans."""
     public_payload = canonicalize_resume_public_payload(payload)
     compat_surface = _resume_compat_surface(public_payload)
-    segment_candidates = _resume_visible_candidates(public_payload, compat_surface)
     active_execution_raw = _resume_surface_value(public_payload, compat_surface, "active_bounded_segment")
     if not isinstance(active_execution_raw, dict):
         active_execution_raw = _resume_surface_value(public_payload, compat_surface, "derived_execution_head")
@@ -1873,6 +1891,7 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     current_execution_raw = _resume_surface_value(public_payload, compat_surface, "current_execution")
     current_execution = current_execution_raw if isinstance(current_execution_raw, dict) else None
     recovery_advice = _resume_recovery_advice(resume_payload=public_payload, recent_rows=[])
+    segment_candidates = _resume_visible_candidates(public_payload, compat_surface)
 
     console.print("[bold]Resume Summary[/]")
     console.print("[dim]Read-only local recovery snapshot for this workspace.[/]")
@@ -1907,6 +1926,8 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     active_resume_kind = public_payload.get("active_resume_kind")
     if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
         active_resume_kind = _resume_surface_value(public_payload, compat_surface, "resume_mode")
+    if isinstance(active_resume_kind, str) and active_resume_kind.strip():
+        active_resume_kind = _resume_candidate_canonical_kind({"kind": active_resume_kind})
     summary.add_row("Primary resume kind", _resume_mode_label(active_resume_kind))
     summary.add_row("Candidates", str(len(segment_candidates)))
     summary.add_row("Live execution", "yes" if bool(public_payload.get("has_live_execution")) else "no")
@@ -1959,6 +1980,7 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
 
     console.print()
     console.print("[bold]Resume Candidates[/]")
+    console.print("[dim]Canonical candidate kinds: bounded_segment, continuity_handoff, interrupted_agent.[/]")
     if segment_candidates:
         table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
         table.add_column("#", justify="right", no_wrap=True)
@@ -1969,31 +1991,24 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
         table.add_column("Origin")
         table.add_column("Notes")
         for idx, candidate in enumerate(segment_candidates, start=1):
-            candidate_active_execution = active_execution if candidate.get("source") == "current_execution" else None
-            candidate_current_execution = current_execution if candidate.get("source") == "current_execution" else None
-            origin_label = _resume_candidate_origin(
+            projected_candidate = _resume_candidate_projection(
                 candidate,
-                active_execution=candidate_active_execution,
-                current_execution=candidate_current_execution,
-            )[1]
-            status = str(candidate.get("status") or "unknown").strip().replace("_", " ")
+                active_execution=active_execution if _resume_candidate_canonical_kind(candidate) == "bounded_segment" else None,
+                current_execution=current_execution if _resume_candidate_canonical_kind(candidate) == "bounded_segment" else None,
+            )
             table.add_row(
                 str(idx),
-                _resume_candidate_kind_label(candidate),
-                status or "unknown",
-                _resume_candidate_phase_plan(candidate),
-                _resume_candidate_target(candidate),
-                origin_label,
-                _resume_candidate_notes(
-                    candidate,
-                    active_execution=candidate_active_execution,
-                    current_execution=candidate_current_execution,
-                ),
+                str(projected_candidate["kind"]),
+                str(projected_candidate["status"]),
+                str(projected_candidate["phase_plan"]),
+                str(projected_candidate["target"]),
+                str(projected_candidate["origin"]),
+                str(projected_candidate["notes"]),
             )
         console.print(table)
     else:
         console.print(
-            "[dim]No bounded segment, continuity handoff, or interrupted-agent marker is currently recorded.[/]"
+            "[dim]No bounded_segment, continuity_handoff, or interrupted_agent candidate is currently recorded.[/]"
         )
 
     console.print()

@@ -1223,18 +1223,19 @@ class TestInitResume:
         assert ctx["has_interrupted_agent"] is True
         assert ctx["interrupted_agent_id"] == "agent-123"
         assert ctx["active_resume_kind"] == "interrupted_agent"
-        assert ctx["active_resume_origin"] == "interrupted_agent"
+        assert ctx["active_resume_origin"] == "interrupted_agent_marker"
         assert ctx["active_resume_pointer"] == "agent-123"
         assert ctx["resume_candidates"] == [
             {
-                "source": "interrupted_agent",
                 "status": "interrupted",
                 "agent_id": "agent-123",
                 "kind": "interrupted_agent",
-                "origin": "interrupted_agent",
+                "origin": "interrupted_agent_marker",
                 "resume_pointer": "agent-123",
             }
         ]
+        assert "source" not in ctx["resume_candidates"][0]
+        assert ctx["compat_resume_surface"]["segment_candidates"][0]["source"] == "interrupted_agent"
 
     def test_json_only_state_counts_as_existing(self, tmp_path: Path) -> None:
         from gpd.core.state import default_state_dict
@@ -1266,7 +1267,7 @@ class TestInitResume:
         assert ctx["resume_surface_schema_version"] == 1
         assert "resume_mode" not in ctx
         assert ctx["active_resume_kind"] == "bounded_segment"
-        assert ctx["active_resume_origin"] == "derived_execution_head"
+        assert ctx["active_resume_origin"] == "compat.current_execution"
         assert ctx["active_resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
         assert ctx["active_bounded_segment"]["segment_id"] == "seg-4"
         assert ctx["derived_execution_head"]["segment_id"] == "seg-4"
@@ -1288,8 +1289,9 @@ class TestInitResume:
             assert key not in ctx
         assert "segment_candidates" not in ctx
         assert ctx["resume_candidates"][0]["kind"] == "bounded_segment"
-        assert ctx["resume_candidates"][0]["origin"] == "derived_execution_head"
+        assert ctx["resume_candidates"][0]["origin"] == "compat.current_execution"
         assert ctx["resume_candidates"][0]["resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
+        assert "source" not in ctx["resume_candidates"][0]
 
     def test_normalizes_live_execution_phase_plan_and_checkpoint_reason(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1317,6 +1319,8 @@ class TestInitResume:
         assert candidate["phase"] == "03"
         assert candidate["plan"] == "02"
         assert candidate["checkpoint_reason"] == "pre_fanout"
+        assert candidate["origin"] == "compat.current_execution"
+        assert "source" not in candidate
 
     def test_resume_candidate_carries_pre_fanout_and_skeptical_review_fields(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1353,6 +1357,8 @@ class TestInitResume:
         assert candidate["weakest_unchecked_anchor"] == "Ref-01 benchmark figure"
         assert candidate["disconfirming_observation"] == "Direct observable misses the literature band."
         assert candidate["downstream_locked"] is True
+        assert candidate["origin"] == "compat.current_execution"
+        assert "source" not in candidate
 
     def test_resume_candidate_keeps_clear_without_unlock_as_bounded_segment_state(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1381,6 +1387,8 @@ class TestInitResume:
         assert ctx["active_bounded_segment"]["pre_fanout_review_cleared"] is True
         assert ctx["resume_candidates"][0]["checkpoint_reason"] == "pre_fanout"
         assert ctx["resume_candidates"][0]["pre_fanout_review_cleared"] is True
+        assert ctx["resume_candidates"][0]["origin"] == "compat.current_execution"
+        assert "source" not in ctx["resume_candidates"][0]
 
     def test_non_resumable_live_execution_does_not_create_resume_candidate(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1421,6 +1429,41 @@ class TestInitResume:
         assert "segment_candidates" not in ctx
         assert ctx["resume_candidates"] == []
         assert "active_execution_segment" not in ctx
+
+    def test_with_legacy_session_resume_file_uses_canonical_handoff_kind(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        from gpd.core.state import default_state_dict
+
+        state = default_state_dict()
+        state["session"]["resume_file"] = "GPD/phases/03-analysis/.continue-here.md"
+        state["session"]["stopped_at"] = "2026-03-10T12:00:00+00:00"
+        state["session"]["hostname"] = "legacy-host"
+        state["session"]["platform"] = "legacy-platform"
+        resume_path = tmp_path / "GPD" / "phases" / "03-analysis" / ".continue-here.md"
+        resume_path.parent.mkdir(parents=True, exist_ok=True)
+        resume_path.write_text("resume\n", encoding="utf-8")
+        (tmp_path / "GPD" / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+        ctx = init_resume(tmp_path)
+
+        assert ctx["active_resume_kind"] == "continuity_handoff"
+        assert ctx["active_resume_origin"] == "continuation.handoff"
+        assert ctx["active_resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
+        assert ctx["continuity_handoff_file"] == "GPD/phases/03-analysis/.continue-here.md"
+        assert ctx["recorded_continuity_handoff_file"] == "GPD/phases/03-analysis/.continue-here.md"
+        assert ctx["resume_candidates"] == [
+            {
+                "status": "handoff",
+                "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+                "resumable": False,
+                "kind": "continuity_handoff",
+                "origin": "continuation.handoff",
+                "resume_pointer": "GPD/phases/03-analysis/.continue-here.md",
+            }
+        ]
+        assert "source" not in ctx["resume_candidates"][0]
+        assert ctx["compat_resume_surface"]["segment_candidates"][0]["source"] == "session_resume_file"
+        assert ctx["compat_resume_surface"]["execution_resume_file_source"] == "session_resume_file"
 
 # ─── init_verify_work ─────────────────────────────────────────────────────────
 

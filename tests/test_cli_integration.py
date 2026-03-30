@@ -340,17 +340,17 @@ class TestResume:
         result = _invoke("--raw", "resume")
         parsed = json.loads(result.output)
 
-        assert parsed["active_resume_kind"] == "handoff"
-        assert parsed["active_resume_origin"] == "canonical_continuation"
+        assert parsed["active_resume_kind"] == "continuity_handoff"
+        assert parsed["active_resume_origin"] == "continuation.handoff"
         assert parsed["active_resume_pointer"] == "GPD/phases/01-test-phase/.continue-here.md"
         assert parsed["execution_resumable"] is False
         assert parsed["has_live_execution"] is False
         assert parsed["recovery_status"] == "session-handoff"
         assert parsed["recovery_status_label"] == "Continuity handoff"
-        assert parsed["resume_candidates"][0]["kind"] == "handoff"
-        assert parsed["resume_candidates"][0]["origin"] == "canonical_continuation"
-        assert parsed["recovery_candidates"][0]["kind"] == "handoff"
-        assert parsed["recovery_candidates"][0]["origin"] == "canonical_continuation"
+        assert parsed["resume_candidates"][0]["kind"] == "continuity_handoff"
+        assert parsed["resume_candidates"][0]["origin"] == "continuation.handoff"
+        assert parsed["recovery_candidates"][0]["kind"] == "continuity_handoff"
+        assert parsed["recovery_candidates"][0]["origin"] == "continuation.handoff"
         for key in (
             "resume_mode",
             "execution_resume_file",
@@ -403,16 +403,16 @@ class TestResume:
         assert parsed["active_bounded_segment"]["resume_file"] == canonical_resume_file
         assert parsed["active_bounded_segment"]["segment_id"] == "seg-canonical"
         assert parsed["active_resume_kind"] == "bounded_segment"
-        assert parsed["active_resume_origin"] == "canonical_continuation"
+        assert parsed["active_resume_origin"] == "continuation.bounded_segment"
         assert parsed["active_resume_pointer"] == canonical_resume_file
         assert parsed["execution_resumable"] is True
         assert parsed["has_live_execution"] is False
         assert parsed["resume_candidates"][0]["kind"] == "bounded_segment"
-        assert parsed["resume_candidates"][0]["origin"] == "canonical_continuation"
+        assert parsed["resume_candidates"][0]["origin"] == "continuation.bounded_segment"
         assert parsed["recovery_status"] == "bounded-segment"
         assert parsed["recovery_status_label"] == "Bounded segment"
         assert parsed["primary_recovery_target"]["kind"] == "bounded_segment"
-        assert parsed["primary_recovery_target"]["origin"] == "canonical_continuation"
+        assert parsed["primary_recovery_target"]["origin"] == "continuation.bounded_segment"
         for key in (
             "resume_mode",
             "execution_resume_file",
@@ -489,13 +489,13 @@ class TestResume:
 
         assert parsed["active_bounded_segment"]["resume_file"] == canonical_resume_file
         assert parsed["active_resume_kind"] == "bounded_segment"
-        assert parsed["active_resume_origin"] == "canonical_continuation"
+        assert parsed["active_resume_origin"] == "continuation.bounded_segment"
         assert parsed["active_resume_pointer"] == canonical_resume_file
         assert parsed["derived_execution_head"]["resume_file"] == overlay_resume_file
         assert parsed["execution_resumable"] is True
         assert parsed["has_live_execution"] is True
         assert parsed["resume_candidates"][0]["resume_file"] == canonical_resume_file
-        assert parsed["resume_candidates"][0]["origin"] == "canonical_continuation"
+        assert parsed["resume_candidates"][0]["origin"] == "continuation.bounded_segment"
         for key in (
             "current_execution",
             "active_execution_segment",
@@ -537,6 +537,8 @@ class TestResume:
         assert "handoff is available" in normalized.lower()
         assert "no resumable" in normalized.lower()
         assert "currently active" in normalized.lower()
+        assert "Canonical candidate kinds" in normalized
+        assert "continuity_handoff" in normalized
         assert "Continuity handoff" in result.output
         assert "gpd resume" in result.output
         assert "gpd resume --recent" in result.output
@@ -555,6 +557,8 @@ class TestResume:
         result = _invoke("resume")
 
         assert "handoff is missing" in result.output.lower()
+        assert "Canonical candidate kinds" in result.output
+        assert "continuity_handoff" in result.output
         assert "./GPD/phases/01-test-phase/.continue-here.md" in result.output
 
     def test_resume_recent_lists_recent_projects_in_recency_order(
@@ -959,19 +963,19 @@ class TestInitIncludeParsing:
         assert payload["active_bounded_segment"]["segment_id"] == "seg-4"
         assert payload["derived_execution_head"]["resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
         assert payload["active_resume_kind"] == "bounded_segment"
-        assert payload["active_resume_origin"] == "derived_execution_head"
+        assert payload["active_resume_origin"] == "compat.current_execution"
         assert payload["active_resume_pointer"] == "GPD/phases/01-test-phase/.continue-here.md"
         assert payload["execution_resumable"] is True
         assert payload["has_live_execution"] is True
         assert payload["has_interrupted_agent"] is True
         assert [candidate["kind"] for candidate in payload["resume_candidates"]] == [
             "bounded_segment",
-            "handoff",
+            "continuity_handoff",
             "interrupted_agent",
         ]
-        assert payload["resume_candidates"][0]["origin"] == "derived_execution_head"
-        assert payload["resume_candidates"][1]["origin"] == "canonical_continuation"
-        assert payload["resume_candidates"][2]["origin"] == "interrupted_agent"
+        assert payload["resume_candidates"][0]["origin"] == "compat.current_execution"
+        assert payload["resume_candidates"][1]["origin"] == "continuation.handoff"
+        assert payload["resume_candidates"][2]["origin"] == "interrupted_agent_marker"
         assert payload["compat_resume_surface"]["session_resume_file"] == "GPD/phases/01-test-phase/alternate.md"
         assert payload["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
         assert payload["compat_resume_surface"]["execution_resume_file_source"] == "current_execution"

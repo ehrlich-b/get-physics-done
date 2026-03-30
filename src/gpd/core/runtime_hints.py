@@ -278,8 +278,6 @@ def _hydrate_resume_context_from_recent_project(
     else:
         hydrated["resume_candidates"] = [candidate]
     return hydrated
-
-
 def _recovery_next_actions(
     advice: RecoveryAdvice,
     *,

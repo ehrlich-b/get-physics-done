@@ -919,7 +919,7 @@ def test_resume_recovery_advice_uses_resolved_runtime_commands(monkeypatch: pyte
         resume_payload={
             "resume_candidates": [
                 {
-                    "kind": "handoff",
+                    "kind": "continuity_handoff",
                     "source": "session_resume_file",
                     "status": "handoff",
                     "resume_file": "GPD/phases/01/.continue-here.md",
@@ -927,7 +927,7 @@ def test_resume_recovery_advice_uses_resolved_runtime_commands(monkeypatch: pyte
                     "origin": "canonical_continuation",
                 }
             ],
-            "active_resume_kind": "handoff",
+            "active_resume_kind": "continuity_handoff",
             "active_resume_origin": "canonical_continuation",
             "active_resume_pointer": "GPD/phases/01/.continue-here.md",
             "continuity_handoff_file": "GPD/phases/01/.continue-here.md",
@@ -1263,7 +1263,7 @@ def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, mon
             "project_exists": True,
             "resume_candidates": [
                 {
-                    "kind": "handoff",
+                    "kind": "continuity_handoff",
                     "source": "session_resume_file",
                     "status": "handoff",
                     "resume_file": "GPD/phases/01/.continue-here.md",
@@ -1272,7 +1272,7 @@ def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, mon
                 }
             ],
             "continuity_handoff_file": "GPD/phases/01/.continue-here.md",
-            "active_resume_kind": "handoff",
+            "active_resume_kind": "continuity_handoff",
             "active_resume_origin": "canonical_continuation",
             "active_resume_pointer": "GPD/phases/01/.continue-here.md",
             "has_live_execution": False,
@@ -1287,6 +1287,7 @@ def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, mon
     assert result.exit_code == 0
     normalized = " ".join(result.output.split())
     assert "A continuity handoff is available" in normalized
+    assert "continuity_handoff" in result.output
     assert "no resumable bounded segment is currently active." in normalized
     assert "Recovery context is available, but no live bounded segment is currently resumable." not in result.output
 
@@ -1474,7 +1475,7 @@ def test_resume_plain_output_keeps_machine_change_notice_when_session_handoff_is
             "project_exists": True,
             "resume_candidates": [
                 {
-                    "kind": "handoff",
+                    "kind": "continuity_handoff",
                     "source": "session_resume_file",
                     "status": "handoff",
                     "resume_file": "GPD/phases/04/.continue-here.md",
@@ -1483,7 +1484,7 @@ def test_resume_plain_output_keeps_machine_change_notice_when_session_handoff_is
                 }
             ],
             "continuity_handoff_file": "GPD/phases/04/.continue-here.md",
-            "active_resume_kind": "handoff",
+            "active_resume_kind": "continuity_handoff",
             "active_resume_origin": "canonical_continuation",
             "active_resume_pointer": "GPD/phases/04/.continue-here.md",
             "has_live_execution": False,
@@ -1503,6 +1504,7 @@ def test_resume_plain_output_keeps_machine_change_notice_when_session_handoff_is
     assert result.exit_code == 0
     normalized = " ".join(result.output.split())
     assert "A continuity handoff is available" in normalized
+    assert "continuity_handoff" in result.output
     assert "Rerun the installer" in normalized
     assert "resume-work" in result.output
     assert "suggest-next" in result.output
@@ -1552,7 +1554,7 @@ def test_resume_plain_output_surfaces_missing_handoff_status(tmp_path: Path, mon
             "project_exists": True,
             "resume_candidates": [
                 {
-                    "kind": "missing_continuity_handoff",
+                    "kind": "continuity_handoff",
                     "source": "session_resume_file",
                     "status": "missing",
                     "resume_file": "GPD/phases/04/.continue-here.md",
@@ -1574,6 +1576,7 @@ def test_resume_plain_output_surfaces_missing_handoff_status(tmp_path: Path, mon
     assert result.exit_code == 0
     normalized = " ".join(result.output.split())
     assert "Canonical recovery metadata exists" in normalized
+    assert "continuity_handoff" in result.output
     assert "the continuity handoff file is missing." in normalized
     assert "resume-work" not in result.output
     assert "suggest-next" not in result.output
@@ -1615,7 +1618,7 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
                     "status": "handoff",
                     "resume_file": resume_file,
                     "resumable": False,
-                    "kind": "handoff",
+                    "kind": "continuity_handoff",
                     "origin": "canonical_continuation",
                     "resume_pointer": resume_file,
                 }
@@ -1624,7 +1627,7 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
             "compatibility_resume_surface": legacy_resume_surface,
             "compat_resume_surface": compat_resume_surface,
             "has_live_execution": False,
-            "active_resume_kind": "handoff",
+            "active_resume_kind": "continuity_handoff",
             "active_resume_origin": "canonical_continuation",
             "active_resume_pointer": resume_file,
             "resume_mode": None,
@@ -1641,7 +1644,7 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
 
     assert result.exit_code == 0
     payload = json.loads(result.output)
-    assert payload["active_resume_kind"] == "handoff"
+    assert payload["active_resume_kind"] == "continuity_handoff"
     assert payload["active_resume_origin"] == "canonical_continuation"
     assert payload["active_resume_pointer"] == resume_file
     assert payload["recovery_status"] == "session-handoff"
@@ -1657,7 +1660,7 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
     assert payload["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/01/.continue-here.md"
     assert payload["compat_resume_surface"]["execution_resume_file_source"] == "session_resume_file"
     assert payload["compat_resume_surface"]["segment_candidates"][0]["source"] == "session_resume_file"
-    assert payload["recovery_candidates"][0]["kind"] == "handoff"
+    assert payload["recovery_candidates"][0]["kind"] == "continuity_handoff"
     assert payload["recovery_candidates"][0]["kind_label"] == "Continuity handoff"
     assert payload["recovery_candidates"][0]["origin"] == "canonical_continuation"
     assert payload["primary_recovery_target"]["target"] == "./GPD/phases/01/.continue-here.md"

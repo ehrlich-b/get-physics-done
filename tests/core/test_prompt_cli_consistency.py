@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from gpd.core.public_surface_contract import resume_authority_fields
 from gpd.registry import VALID_CONTEXT_MODES, _parse_frontmatter
 from tests.doc_surface_contracts import (
     DOCTOR_RUNTIME_SCOPE_RE,
@@ -520,8 +521,17 @@ def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_r
         allow_explicit_alias_examples=False,
         require_generic_compatibility_note=True,
     )
-    assert "`state.json.continuation` is the durable authority" in help_workflow
-    assert "`session.resume_file` remains the compatibility mirror" in help_workflow
+    assert "`state.json.continuation.handoff.resume_file` is canonical" in help_workflow
+    assert "The raw compatibility fields remain intake names only under `compat_resume_surface`" in help_workflow
+    assert resume_authority_fields() == (
+        "active_resume_kind",
+        "active_resume_origin",
+        "active_resume_pointer",
+        "continuity_handoff_file",
+        "recorded_continuity_handoff_file",
+        "missing_continuity_handoff_file",
+        "resume_candidates",
+    )
     assert_recovery_ladder_contract(
         help_workflow,
         resume_work_fragments=("/gpd:resume-work",),
