@@ -46,6 +46,10 @@ def test_resume_docs_use_canonical_paths_and_no_legacy_resume_command() -> None:
     assert "resume_candidates" in portability_doc
     assert "machine_change_detected" in resume_doc
     assert "Compatibility-only raw envelope cues:" in resume_doc
+    assert "The canonical fields above are the public resume surface." in resume_doc
+    assert "The canonical fields above are the public resume surface." in portability_doc
+    assert "nested compatibility-only cues inside `segment_candidates`" in resume_doc
+    assert "nested compatibility-only cues inside `segment_candidates`" in portability_doc
     assert "missing_session_resume_file" in resume_doc
     assert "session_resume_file" in resume_doc
     assert "Compatibility note: the current raw envelope still uses legacy candidate/source labels" in resume_doc
@@ -64,6 +68,7 @@ def test_resume_docs_use_canonical_paths_and_no_legacy_resume_command() -> None:
     assert "advisory continuity context only" in portability_doc
     assert "does not create a resumable bounded-segment candidate" in portability_doc
     assert "current raw compatibility label for that candidate family remains `current_execution`" in portability_doc
+    assert "it appears only as a nested compatibility cue" in portability_doc
     assert 'set `active_resume_kind="bounded_segment"`' in portability_doc
     assert "The canonical public resume surface centers on `active_resume_kind`, `active_resume_origin`, `active_resume_pointer`" in portability_doc
     assert "The current continuation architecture separates execution provenance from bounded-resume authority." in portability_doc
