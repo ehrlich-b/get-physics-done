@@ -587,7 +587,7 @@ fi
 
 **4. Append a phase-transition session block:**
 
-Append a `## Session:` block (same format as pause-work) capturing the phase's key results:
+Append a `## Session:` block (same format as pause-work) capturing the phase's key results. If the phase has already established a canonical derivation `result_id`, carry it into the session block so reruns can recover the same anchor directly:
 
 ```bash
 timestamp=$(gpd --raw timestamp full)
@@ -605,7 +605,7 @@ cat >> GPD/DERIVATION-STATE.md << EOF
 [Fill from SUMMARY conventions frontmatter: convention choices active in this phase]
 
 ### Intermediate Results
-[Fill from SUMMARY provides frontmatter: result IDs with brief descriptions]
+[Fill from SUMMARY provides frontmatter: result IDs with brief descriptions, including the canonical derivation `result_id` / `last_result_id` when one is known]
 [Mark Verified: yes if VERIFICATION.md exists with status passed, otherwise pending]
 
 ### Approximations Used

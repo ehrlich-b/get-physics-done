@@ -460,7 +460,7 @@ This bridge updates the existing canonical entry when `result_id` is already pre
 
 If `gpd result upsert` reports multiple matches for the same equation or description, STOP and disambiguate with an explicit `result_id` or narrower `phase`. Do not guess which registry entry should be canonical.
 
-  4. Carry the resulting `result_id` forward in the derivation workflow context so later reruns can target the same canonical registry entry.
+  4. Carry the resulting `result_id` forward in the derivation workflow context and any downstream handoff metadata (`last_result_id` in pause/resume surfaces) so later reruns can target the same canonical registry entry without rediscovering it from prose.
   5. Keep `verified=false` unless the derivation also produced verification evidence that should be recorded separately.
 - If `state_exists` is false:
   - Skip registry write-back entirely.
@@ -509,7 +509,7 @@ This keeps standalone derivations safe while making project-mode derivations reu
 - [ ] Regime of validity stated
 - [ ] All relevant limiting cases verified
 - [ ] Connection to known results documented
-- [ ] Final derived equation persisted through the executable `gpd result upsert` bridge in project mode, with the chosen `result_id` retained for later reruns
+- [ ] Final derived equation persisted through the executable `gpd result upsert` bridge in project mode, with the chosen `result_id` retained for later reruns and carried into handoff/resume continuity
 - [ ] Standalone mode skipped registry write-back and stayed self-contained
 - [ ] Complete derivation document written
 

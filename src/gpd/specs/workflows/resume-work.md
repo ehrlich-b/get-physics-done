@@ -174,10 +174,11 @@ fi
 
 This is the same cap enforcement logic used by pause-work.md. It keeps the 5 most recent `## Session:` blocks and archives older entries via git history.
 
-1. **Read the full file** to reconstruct the complete equation/convention/result history across all sessions.
+1. **Read the full file** to reconstruct the complete equation/convention/result history across all sessions. If the latest handoff or session continuity metadata already carries a canonical `last_result_id`, prefer that value as the rerun anchor before rediscovering the target from prose or older summaries.
 2. **Cross-reference against state.json intermediate_results** to find any gaps:
    - Are there result IDs in DERIVATION-STATE.md that are missing from state.json? (suggests state.json was reset or corrupted)
    - Are there intermediate_results in state.json that are NOT in DERIVATION-STATE.md? (suggests a session did not properly pause)
+   - Does the newest handoff/session record expose a `last_result_id` that should be reused on rerun instead of searching again? If so, surface it as the preferred continuity anchor.
 3. **Count and summarize** what was restored:
    - Total equations established across all sessions
    - Total conventions locked in
