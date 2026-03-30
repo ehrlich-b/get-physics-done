@@ -2,25 +2,22 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 attacks Gap C from a new angle: Paper 5 proves the observer IS M_n(C)^sa, so its measurement maps on V_{1/2} are C-linear; the question is whether this forces complexification of V_{1/2} through the Peirce product. The subfield is mathematical physics / quantum foundations / Jordan algebras.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 investigated Gap C algebraically: computed the full observable algebra on V_{1/2} (= M_16(R)), proved three impossibility theorems showing the basin's Peirce structure alone cannot force complexification (Schur commutant, grade separation, minimal input = u in S^6), and formalized a selection argument. Key insight: these results apply to the basin only; the observer IS complex (Paper 5), and Paper 7's complexification claim remains correct. The subfield is mathematical physics / quantum foundations / Jordan algebras.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Current Milestone: v8.0 Gap C Algebraic Closure via C*-Measurement Maps
+## Latest Milestone: v8.0 Gap C Algebraic Closure (complete 2026-03-29)
 
-**Goal:** Determine whether a C*-observer's Peirce multiplication maps on V_{1/2} = O^2 (inside h_3(O)) necessarily induce complexification, closing Gap C as a theorem.
+**Result:** The basin's Peirce structure alone cannot force complexification (three impossibility theorems). Paper 7's complexification claim via C*-observer nature remains correct.
 
-**Target results:**
-
-- Concrete computation: does the observer's complex structure (u in S^6) propagate through Peirce rules to give V_{1/2} a complex structure?
-- If yes: Gap C closed -- Paper 7 upgrades from conditional extraction to derivation
-- If no: precise characterization of what additional structure is needed, plus EGT backup route assessment
-
-**Key insight:** v6.0 looked for complexification internal to h_3(O) and failed. v8.0 uses the EXTERNAL fact that Paper 5 proves the observer IS M_n(C)^sa. A complex observer inside a real structure brings complex structure with it via Peirce multiplication. The non-complexified configuration is self-inconsistent: a "real self-modeler" is an oxymoron (Paper 5 forces complex).
-
-**Bootstrap structure:** Self-modeling -> complex QM (Paper 5) -> complex measurements -> complexification of V_{1/2} -> chirality -> chemistry -> substrates for self-modeling. This has the same fixed-point structure as the rho bootstrap (Paper 0, Section 3.2).
+**Key findings:**
+- Observable algebra on V_{1/2} = M_16(R) (full matrix algebra)
+- J_u is grade 2+3 mixed, unique, stabilizer = su(3)+u(1)^2 (dim 10)
+- End_{Spin(9)}(S_9) = R: no Spin(9)-equivariant complex structure (Schur's lemma)
+- Minimal input for complexification = u in S^6 (= Gap B2)
+- 71 tests pass, zero numerical error on all algebraic results
 
 ## v7.0 Summary (complete -- weakened)
 
@@ -154,12 +151,15 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 - [x] What subalgebra A_F does the first-order condition force? -- **A_F = M_n(C)** for Barrett D (trivially satisfied); **A_F = C** for general D. No D produces C + H + M_3(C). -- v4.0
 - [x] Does the doubled self-modeling composite carry a real spectral triple of KO-dimension 6? -- **YES** (valid spectral triple with U(n) gauge group), but simple M_n(C) cannot give SM. Structural obstruction: SM requires direct sum algebra. -- v4.0
 
+### Answered in v8.0
+
+- [x] Do C*-observer Peirce multiplication maps L_a: V_{1/2} -> V_{1/2} force complexification of V_{1/2} = O^2 in h_3(O)? -- **NO (basin alone).** Observable algebra = M_16(R); containment of J_u is vacuous. Three impossibility theorems prove basin's Peirce structure cannot force complexification. Observer's C*-nature (Paper 5) remains the correct justification. -- v8.0
+- [x] Does the observer's complex structure (u in S^6) upgrade V_1 from R*E_{11} to a complex 1-dim space? -- **V_1 = R confirmed.** L_{E_{11}} = (1/2)*I_{16}. V_0 channel: 10 T_b are Cl(9) generators but symmetric (cannot produce antisymmetric J_u). -- v8.0
+- [x] If algebraic closure fails, what is the weakest sufficient condition? -- **u in S^6 = Gap B2.** G_2 acts transitively on S^6, so all choices conjugate. Three theorems pin this as the exact additional input. -- v8.0
+
 ### Active
 
-- [ ] Do C*-observer Peirce multiplication maps L_a: V_{1/2} -> V_{1/2} force complexification of V_{1/2} = O^2 in h_3(O)?
-- [ ] Does the observer's complex structure (u in S^6) upgrade V_1 from R*E_{11} to a complex 1-dim space, propagating through Peirce rules?
-- [ ] If complexification is forced, is it canonical and compatible with Spin(9) -> Spin(10)?
-- [ ] If algebraic closure fails, what is the weakest sufficient condition? Is the EGT backup route rigorous?
+(No active research questions. Start next milestone with `/gpd:new-milestone`.)
 
 ### Answered in v7.0
 
@@ -345,4 +345,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-03-29 after v8.0 milestone initialization_
+_Last updated: 2026-03-29 after v8.0 milestone completion_

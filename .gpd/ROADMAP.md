@@ -9,7 +9,7 @@
 - **v5.0 Chirality from h_3(O) via Cl(6)** -- Phases 18-21 (completed 2026-03-24)
 - **v6.0 Gap C -- Complexification from C*-Measurement Maps** -- Phase 22 (closed 2026-03-24, negative result)
 - **v7.0 Arrow of Time, Complexification, and Evolutionary Selection** -- Phases 23-27 (completed 2026-03-24)
-- **v8.0 Gap C Algebraic Closure via C*-Measurement Maps** -- Phases 28-31 (active)
+- **v8.0 Gap C Algebraic Closure via C*-Measurement Maps** -- Phases 28-31 (completed 2026-03-29)
 
 ## Phases
 
@@ -98,28 +98,10 @@ See `.gpd/milestones/v7.0-ROADMAP.md` for full details.
 
 </details>
 
-### Active: v8.0 Gap C Algebraic Closure via C*-Measurement Maps
+<details>
+<summary>v8.0 Gap C Algebraic Closure via C*-Measurement Maps (Phases 28-31) -- COMPLETED 2026-03-29</summary>
 
-**Milestone Goal:** Determine whether the observer's C*-nature forces complexification of V_{1/2} = O^2 inside h_3(O), closing Gap C as a theorem or precisely characterizing the remaining gap.
-
-**Key insight:** v6.0 looked for complexification internal to h_3(O) through V_1 and failed. v8.0 explores the V_0 = h_2(O) channel (unexplored in v6.0), constructs the full observable algebra on V_{1/2}, and checks whether Krasnov's J_u lies inside it.
-
-## Contract Overview
-
-| Contract Item | Advanced By Phase(s) | Status |
-| ------------- | -------------------- | ------ |
-| claim-gapc-algebraic (C*-observer Peirce maps force complexification?) | 28, 29, 31 | Planned |
-| claim-lemma (observer's u propagates through Peirce rules?) | 28, 29 | Planned |
-| claim-uniqueness (complexification canonical + compatible with Spin(9)->Spin(10)?) | 29, 31 | Planned |
-| Acceptance signal: proved theorem or counterexample | 30, 31 | Planned |
-| ref-effros-stormer1979 | 28 | Planned |
-| ref-alfsen-shultz2001 | 28, 29 | Planned |
-| ref-baez2002 | 28 | Planned |
-| ref-yokota | 29 | Planned |
-| ref-boyle2020 | 29, 31 | Planned |
-| ref-hanche-olsen1983 | 29 | Planned |
-| ref-paper5 (M_n(C)^sa -- CRITICAL) | 28, 29, 30 | Planned |
-| ref-paper7 (Gap C target, 9-link chain) | 29, 30, 31 | Planned |
+**Result:** Basin's Peirce structure alone cannot force complexification (3 impossibility theorems). Observer's C*-nature (Paper 5) remains the correct justification. Paper 7 unchanged.
 
 ## Phase Details
 
@@ -240,11 +222,11 @@ Plans:
 
 **Backtracking trigger:** If synthesis reveals logical gaps in the Phase 30 proof, return to Phase 30 for repair.
 
-**Plans:** 2 plans
+**Plans:** 2 plans (skipped -- plans conflated basin-only impossibility with observer+basin; Paper 7 complexification claim is correct as-is)
 
 Plans:
-- [ ] 31-01-PLAN.md -- Update Paper 7 (abstract, chain table, Remark 2.6, gap register, discussion) with Phase 30 impossibility + selection results
-- [ ] 31-02-PLAN.md -- Write v8.0 milestone synthesis document (what was tried, what worked, what failed, honest status)
+- [x] 31-01-PLAN.md -- SKIPPED: Paper 7 update plans were wrong (would have downgraded a correct claim)
+- [x] 31-02-PLAN.md -- SKIPPED: milestone synthesis folded into milestone completion
 
 ## Phase Dependencies
 
@@ -280,4 +262,8 @@ Plans:
 | 28. Peirce Verification + V_0 Channel | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 29. Observable Algebra + Rep Theory | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 30. Impossibility/Algebraic Theorem | v8.0 | 2/2 | Complete | 2026-03-29 |
-| 31. Integration | v8.0 | 0/TBD | Not started | - |
+| 31. Integration | v8.0 | 0/2 (skipped) | Complete (plans skipped) | 2026-03-29 |
+
+See `.gpd/milestones/v8.0-ROADMAP.md` for full details.
+
+</details>

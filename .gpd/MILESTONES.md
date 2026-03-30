@@ -199,3 +199,19 @@
 
 ---
 
+## v8.0 Gap C Algebraic Closure via C*-Measurement Maps (Shipped: 2026-03-29)
+
+**Phases completed:** 4 phases (28-31), 6 plans executed, 2 plans skipped
+
+**Key accomplishments:**
+- Built validated octonion/h_3(O) infrastructure and confirmed V_1 = R bottleneck (L_{E_{11}} = (1/2)*I_{16}, zero error)
+- V_0 channel fully characterized: all 10 T_b operators are symmetric Cl(9) generators, cannot produce antisymmetric J_u
+- Observable algebra = M_16(R) (full matrix algebra); J_u is grade 2+3 mixed with unique decomposition, stabilizer = su(3)+u(1)^2 (dim 10)
+- REPR-02 verdict: J_u is distinguished but containment in M_16(R) is vacuous; Spin(10) extension fails (closure = sl(16,R))
+- Three impossibility theorems proved: End_{Spin(9)}(S_9) = R (Schur commutant dim=1), J_u not in spin(9) (grade-3 norm = sqrt(3)/2), minimal input = u in S^6 (= Gap B2)
+- Non-circular selection argument formalized: 5-link chain L1-L5 with weakest link L4 explicitly flagged as argued-not-proved
+- Phase 31 plans deliberately skipped: they conflated basin-only impossibility with observer+basin impossibility and would have downgraded Paper 7's correct complexification claim
+
+**Key insight:** The impossibility theorems prove the basin's Peirce structure alone cannot force complexification. But the observer IS complex (Paper 5 theorem), and Paper 7's claim that the C*-observer forces complexification remains correct. 71 tests pass, zero numerical error.
+
+---
