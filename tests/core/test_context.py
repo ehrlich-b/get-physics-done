@@ -898,10 +898,11 @@ class TestInitNewProject:
 
         assert ctx["project_contract"] is not None
         assert ctx["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
-        assert ctx["project_contract_load_info"]["status"] in {"loaded", "loaded_with_approval_blockers"}
+        assert ctx["project_contract_load_info"]["status"] == "loaded"
         assert ctx["project_contract_load_info"]["source_path"].endswith("state.json")
         assert ctx["project_contract_validation"] is not None
-        assert "valid" in ctx["project_contract_validation"]
+        assert ctx["project_contract_validation"]["valid"] is True
+        assert ctx["project_contract_gate"]["authoritative"] is True
 
 
 # ─── init_new_milestone ───────────────────────────────────────────────────────
@@ -1324,12 +1325,12 @@ class TestInitMilestoneOp:
 
         assert ctx["project_contract"] is not None
         assert ctx["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
-        assert ctx["project_contract_load_info"]["status"] in {"loaded", "loaded_with_approval_blockers"}
+        assert ctx["project_contract_load_info"]["status"] == "loaded"
         assert ctx["project_contract_validation"] is not None
         assert ctx["project_contract_gate"]["visible"] is True
         assert ctx["project_contract_gate"]["status"] == ctx["project_contract_load_info"]["status"]
-        assert ctx["project_contract_gate"]["authoritative"] == ctx["project_contract_validation"]["valid"]
-        assert "valid" in ctx["project_contract_validation"]
+        assert ctx["project_contract_gate"]["authoritative"] is True
+        assert ctx["project_contract_validation"]["valid"] is True
         assert "[ref-benchmark]" in ctx["active_reference_context"]
 
 
@@ -1603,7 +1604,7 @@ class TestInitProgress:
         }
         assert ctx["project_contract_load_info"]["source_path"].endswith("state.json")
 
-    def test_load_project_contract_accepts_list_shape_drift_from_raw_state(self, tmp_path: Path) -> None:
+    def test_load_project_contract_accepts_list_shape_drift_from_raw_state_as_loaded(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
 
         from gpd.core.state import default_state_dict
@@ -1617,7 +1618,7 @@ class TestInitProgress:
         loaded, load_info = _load_project_contract(tmp_path)
 
         assert loaded is not None
-        assert load_info["status"] in {"loaded", "loaded_with_approval_blockers"}
+        assert load_info["status"] == "loaded"
         assert load_info["errors"] == []
 
     def test_load_project_contract_fallback_salvages_nested_metadata_must_surface(
@@ -1633,8 +1634,8 @@ class TestInitProgress:
         from gpd.core.state import ensure_state_schema
 
         normalized_state = ensure_state_schema({"project_contract": contract})
-        monkeypatch.setattr("gpd.core.context._peek_state_json", lambda cwd: (normalized_state, [], "state.json"))
-        monkeypatch.setattr("gpd.core.context._load_raw_project_contract_payload", lambda cwd: None)
+        monkeypatch.setattr("gpd.core.state.peek_state_json", lambda cwd: (normalized_state, [], "state.json"))
+        monkeypatch.setattr("gpd.core.state._load_raw_project_contract_payload", lambda cwd: None)
 
         loaded, load_info = _load_project_contract(tmp_path)
 
@@ -1643,7 +1644,9 @@ class TestInitProgress:
         assert loaded.references[0].id == "ref-benchmark"
         assert loaded.references[0].must_surface is True
 
-    def test_load_project_contract_rejects_duplicate_contract_ids_from_raw_state(self, tmp_path: Path) -> None:
+    def test_load_project_contract_surfaces_duplicate_contract_ids_as_visible_blocked_integrity(
+        self, tmp_path: Path
+    ) -> None:
         _setup_project(tmp_path)
 
         from gpd.core.state import default_state_dict

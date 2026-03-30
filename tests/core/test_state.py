@@ -1133,6 +1133,55 @@ def test_load_state_json_recovers_backup_continuation_when_primary_json_is_corru
     )
 
 
+def test_load_state_json_recovers_backup_continuation_when_primary_continuation_section_is_invalid(tmp_path: Path) -> None:
+    primary_state = default_state_dict()
+    primary_state["session"]["last_date"] = "2026-03-29T12:00:00+00:00"
+    primary_state["session"]["stopped_at"] = "Legacy stop"
+    primary_state["session"]["resume_file"] = "legacy.md"
+    primary_state["continuation"] = []
+
+    backup_state = default_state_dict()
+    backup_state["continuation"]["handoff"].update(
+        {
+            "recorded_at": "2026-03-29T12:00:00+00:00",
+            "stopped_at": "Phase 03 Plan 2",
+            "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+        }
+    )
+    backup_state["continuation"]["machine"].update(
+        {
+            "recorded_at": "2026-03-29T12:00:00+00:00",
+            "hostname": "builder-01",
+            "platform": "Linux 6.1 x86_64",
+        }
+    )
+    backup_state["continuation"]["bounded_segment"] = {
+        "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+        "phase": "03",
+        "plan": "02",
+        "segment_id": "segment-03-02",
+        "segment_status": "paused",
+    }
+    layout = _write_backup_only_state(tmp_path, primary_state, backup_state=backup_state)
+    layout.state_json.write_text(json.dumps(primary_state, indent=2) + "\n", encoding="utf-8")
+
+    loaded = load_state_json(tmp_path)
+
+    assert loaded is not None
+    assert loaded["continuation"]["handoff"]["stopped_at"] == "Phase 03 Plan 2"
+    assert loaded["continuation"]["bounded_segment"]["segment_id"] == "segment-03-02"
+    assert loaded["session"] == {
+        "last_date": "2026-03-29T12:00:00+00:00",
+        "stopped_at": "Phase 03 Plan 2",
+        "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+        "hostname": "builder-01",
+        "platform": "Linux 6.1 x86_64",
+    }
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert persisted["continuation"]["bounded_segment"]["segment_id"] == "segment-03-02"
+    assert persisted["session"]["resume_file"] == "GPD/phases/03-analysis/.continue-here.md"
+
+
 def test_load_state_json_primary_file_preserves_project_contract_when_singleton_list_drift_is_salvageable(
     tmp_path: Path,
 ):
@@ -1207,7 +1256,13 @@ def test_state_load_matches_context_progress_for_recoverably_normalized_project_
 
     assert loaded.state["project_contract"] == ctx["project_contract"]
     assert loaded.project_contract_gate == ctx["project_contract_gate"]
-    assert loaded.project_contract_load_info == ctx["project_contract_load_info"]
+    assert loaded.project_contract_load_info["status"] == "loaded"
+    assert ctx["project_contract_load_info"]["status"] == "loaded"
+    assert loaded.project_contract_load_info["source_path"] == ctx["project_contract_load_info"]["source_path"]
+    assert {
+        *loaded.project_contract_load_info["warnings"],
+        *ctx["project_contract_load_info"]["warnings"],
+    } == {"claims.0.notes: Extra inputs are not permitted"}
     assert loaded.project_contract_validation == ctx["project_contract_validation"]
     assert "notes" not in loaded.state["project_contract"]["claims"][0]
 
@@ -1316,6 +1371,122 @@ def test_ensure_state_schema_backfills_session_from_canonical_continuation():
         }
     })
 
+    assert result["session"] == {
+        "last_date": "2026-03-02T12:00:00+00:00",
+        "stopped_at": "Phase 4 P1",
+        "resume_file": "continue.md",
+        "hostname": "builder-02",
+        "platform": "macOS arm64",
+    }
+
+
+def test_ensure_state_schema_backfills_missing_canonical_machine_fields_from_session():
+    result = ensure_state_schema(
+        {
+            "session": {
+                "last_date": "2026-03-02T12:00:00+00:00",
+                "stopped_at": "Legacy stop",
+                "resume_file": "legacy.md",
+                "hostname": "builder-03",
+                "platform": "Linux arm64",
+            },
+            "continuation": {
+                "schema_version": 1,
+                "handoff": {
+                    "recorded_at": "2026-03-04T09:15:00+00:00",
+                    "stopped_at": "Canonical stop",
+                    "resume_file": "canonical.md",
+                },
+                "machine": {},
+            },
+        }
+    )
+
+    assert result["continuation"]["handoff"] == {
+        "recorded_at": "2026-03-04T09:15:00+00:00",
+        "stopped_at": "Canonical stop",
+        "resume_file": "canonical.md",
+        "recorded_by": None,
+    }
+    assert result["continuation"]["machine"] == {
+        "recorded_at": "2026-03-02T12:00:00+00:00",
+        "hostname": "builder-03",
+        "platform": "Linux arm64",
+    }
+    assert result["session"] == {
+        "last_date": "2026-03-04T09:15:00+00:00",
+        "stopped_at": "Canonical stop",
+        "resume_file": "canonical.md",
+        "hostname": "builder-03",
+        "platform": "Linux arm64",
+    }
+
+
+def test_ensure_state_schema_does_not_let_session_override_canonical_continuation():
+    result = ensure_state_schema(
+        {
+            "session": {
+                "last_date": "2026-03-02T12:00:00+00:00",
+                "stopped_at": "Legacy stop",
+                "resume_file": "legacy.md",
+                "hostname": "legacy-host",
+                "platform": "LegacyOS",
+            },
+            "continuation": {
+                "schema_version": 1,
+                "handoff": {
+                    "recorded_at": "2026-03-04T09:15:00+00:00",
+                    "stopped_at": "Canonical stop",
+                    "resume_file": "canonical.md",
+                },
+                "machine": {
+                    "recorded_at": "2026-03-04T09:15:00+00:00",
+                    "hostname": "canonical-host",
+                    "platform": "CanonicalOS",
+                },
+            },
+        }
+    )
+
+    assert result["continuation"]["handoff"]["resume_file"] == "canonical.md"
+    assert result["continuation"]["machine"]["hostname"] == "canonical-host"
+    assert result["session"] == {
+        "last_date": "2026-03-04T09:15:00+00:00",
+        "stopped_at": "Canonical stop",
+        "resume_file": "canonical.md",
+        "hostname": "canonical-host",
+        "platform": "CanonicalOS",
+    }
+
+
+def test_ensure_state_schema_prefers_canonical_continuation_over_conflicting_session():
+    result = ensure_state_schema(
+        {
+            "session": {
+                "last_date": "2026-03-01T09:00:00+00:00",
+                "stopped_at": "Legacy stop",
+                "resume_file": "legacy.md",
+                "hostname": "legacy-host",
+                "platform": "Legacy OS",
+            },
+            "continuation": {
+                "schema_version": 1,
+                "handoff": {
+                    "recorded_at": "2026-03-02T12:00:00+00:00",
+                    "stopped_at": "Phase 4 P1",
+                    "resume_file": "continue.md",
+                },
+                "machine": {
+                    "recorded_at": "2026-03-02T12:00:00+00:00",
+                    "hostname": "builder-02",
+                    "platform": "macOS arm64",
+                },
+            },
+        }
+    )
+
+    assert result["continuation"]["handoff"]["resume_file"] == "continue.md"
+    assert result["continuation"]["machine"]["hostname"] == "builder-02"
     assert result["session"] == {
         "last_date": "2026-03-02T12:00:00+00:00",
         "stopped_at": "Phase 4 P1",
@@ -1738,6 +1909,11 @@ def test_state_validate_standard_warns_for_project_contract_approval_blockers(tm
         "project_contract: references must include at least one must_surface=true anchor" in warning
         for warning in result.warnings
     )
+    assert any(
+        "project_contract: approved project contract requires at least one concrete anchor/reference/prior-output/baseline"
+        in warning
+        for warning in result.warnings
+    )
 
 
 def test_state_validate_review_blocks_project_contract_without_non_reference_grounding(tmp_path):
@@ -1762,6 +1938,11 @@ def test_state_validate_review_blocks_project_contract_without_non_reference_gro
     assert result.integrity_status == "blocked"
     assert any(
         "project_contract: references must include at least one must_surface=true anchor" in issue
+        for issue in result.issues
+    )
+    assert any(
+        "project_contract: approved project contract requires at least one concrete anchor/reference/prior-output/baseline"
+        in issue
         for issue in result.issues
     )
 
@@ -2290,6 +2471,35 @@ def test_state_record_session_updates_recent_project_index(
     assert row.available is True
 
 
+def test_save_state_markdown_backfills_missing_canonical_machine_from_session_surface(tmp_path: Path) -> None:
+    baseline = default_state_dict()
+    baseline["position"]["status"] = "Executing"
+    baseline["continuation"]["handoff"].update(
+        {
+            "recorded_at": "2026-03-29T12:00:00+00:00",
+            "stopped_at": "Phase 03 Plan 2",
+            "resume_file": "resume.md",
+            "recorded_by": "state_record_session",
+        }
+    )
+    save_state_json(tmp_path, baseline)
+
+    md_content = (tmp_path / "GPD" / "STATE.md").read_text(encoding="utf-8")
+    md_content = md_content.replace("**Hostname:** —", "**Hostname:** builder-02")
+    md_content = md_content.replace("**Platform:** —", "**Platform:** Linux x86_64")
+
+    result = save_state_markdown(tmp_path, md_content)
+
+    assert result["session"]["stopped_at"] == "Phase 03 Plan 2"
+    assert result["session"]["resume_file"] == "resume.md"
+    assert result["session"]["hostname"] == "builder-02"
+    assert result["session"]["platform"] == "Linux x86_64"
+    assert result["continuation"]["handoff"]["stopped_at"] == "Phase 03 Plan 2"
+    assert result["continuation"]["handoff"]["resume_file"] == "resume.md"
+    assert result["continuation"]["machine"]["hostname"] == "builder-02"
+    assert result["continuation"]["machine"]["platform"] == "Linux x86_64"
+
+
 def test_save_state_json_projects_recent_project_resume_file_from_canonical_continuation(
     tmp_path: Path, state_project_factory, monkeypatch
 ) -> None:
@@ -2334,13 +2544,76 @@ def test_save_state_json_projects_recent_project_resume_file_from_canonical_cont
     assert index.rows[0].resume_file_available is True
     assert index.rows[0].resumable is True
 
+
+def test_save_state_json_preserves_canonical_continuation_when_session_conflicts(
+    tmp_path: Path, state_project_factory
+) -> None:
+    cwd = state_project_factory(tmp_path)
+    state = json.loads((cwd / "GPD" / "state.json").read_text(encoding="utf-8"))
+    state["session"].update(
+        {
+            "last_date": "2026-03-29T12:00:00+00:00",
+            "stopped_at": "Legacy session stop",
+            "resume_file": "legacy-session.md",
+        }
+    )
+    state["continuation"]["handoff"].update(
+        {
+            "recorded_at": "2026-03-30T09:15:00+00:00",
+            "stopped_at": "Canonical handoff stop",
+            "resume_file": "canonical-handoff.md",
+            "recorded_by": "test",
+        }
+    )
+
+    save_state_json(cwd, state)
+
+    stored = load_state_json(cwd)
+    assert stored is not None
+    assert stored["continuation"]["handoff"]["resume_file"] == "canonical-handoff.md"
+    assert stored["continuation"]["handoff"]["stopped_at"] == "Canonical handoff stop"
+    assert stored["session"]["resume_file"] == "canonical-handoff.md"
+    assert stored["session"]["stopped_at"] == "Canonical handoff stop"
+
+
+def test_save_state_markdown_does_not_override_canonical_continuation_session_mirror(
+    tmp_path: Path, state_project_factory, monkeypatch
+) -> None:
+    monkeypatch.setenv("GPD_DATA_DIR", str(tmp_path / "gpd-data"))
+    cwd = state_project_factory(tmp_path)
+    state = json.loads((cwd / "GPD" / "state.json").read_text(encoding="utf-8"))
+    state["continuation"]["handoff"].update(
+        {
+            "recorded_at": "2026-03-30T09:15:00+00:00",
+            "stopped_at": "Canonical handoff stop",
+            "resume_file": "canonical-handoff.md",
+            "recorded_by": "test",
+        }
+    )
+    save_state_json(cwd, state)
+
+    markdown = (cwd / "GPD" / "STATE.md").read_text(encoding="utf-8")
+    edited_markdown = (
+        markdown.replace("**Stopped at:** Canonical handoff stop", "**Stopped at:** Edited in markdown", 1)
+        .replace("**Resume file:** canonical-handoff.md", "**Resume file:** edited-in-markdown.md", 1)
+    )
+
+    save_state_markdown(cwd, edited_markdown)
+
+    stored = load_state_json(cwd)
+    assert stored is not None
+    assert stored["continuation"]["handoff"]["resume_file"] == "canonical-handoff.md"
+    assert stored["continuation"]["handoff"]["stopped_at"] == "Canonical handoff stop"
+    assert stored["session"]["resume_file"] == "canonical-handoff.md"
+    assert stored["session"]["stopped_at"] == "Canonical handoff stop"
+
     cleared_state = json.loads((cwd / "GPD" / "state.json").read_text(encoding="utf-8"))
     cleared_state["session"]["resume_file"] = None
     cleared_state["continuation"]["handoff"]["resume_file"] = None
     cleared_state["continuation"]["bounded_segment"] = None
     save_state_json(cwd, cleared_state)
 
-    cleared_index = _load_recent_projects_index()
+    cleared_index = _load_recent_projects_index(tmp_path / "gpd-data")
     assert len(cleared_index.rows) == 1
     assert cleared_index.rows[0].project_root == cwd.resolve(strict=False).as_posix()
     assert cleared_index.rows[0].resume_file is None

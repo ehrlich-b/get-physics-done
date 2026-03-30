@@ -19,6 +19,7 @@ from pydantic import ValidationError as PydanticValidationError
 from gpd.adapters.install_utils import AGENTS_DIR_NAME, FLAT_COMMANDS_DIR_NAME, GPD_INSTALL_DIR_NAME, HOOKS_DIR_NAME
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.contracts import ResearchContract
+from gpd.core import state as _state_module
 from gpd.core.config import GPDProjectConfig
 from gpd.core.config import load_config as _load_config_structured
 from gpd.core.config import resolve_model as _resolve_model_canonical
@@ -53,12 +54,8 @@ from gpd.core.protocol_bundles import render_protocol_bundle_context, select_pro
 from gpd.core.reference_ingestion import ingest_reference_artifacts
 from gpd.core.state import (
     EM_DASH,
-    _classify_project_contract_payload,
     _current_machine_identity,
     _finalize_project_contract_gate,
-    _load_state_json_with_integrity_issues,
-    _project_contract_load_payload,
-    _project_contract_source_path,
 )
 from gpd.core.state import peek_state_json as _peek_state_json
 from gpd.core.utils import (
@@ -234,90 +231,9 @@ def _extract_frontmatter_field(content: str, field: str) -> str | None:
     return val or None
 
 
-def _load_raw_project_contract_payload(cwd: Path) -> tuple[Path, object] | None:
-    """Return the raw project_contract payload from state storage."""
-    layout = ProjectLayout(cwd)
-
-    def _backup_project_contract(reason: str) -> tuple[Path, object] | None:
-        try:
-            raw_backup = json.loads(layout.state_json_backup.read_text(encoding="utf-8"))
-        except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
-            return None
-        if not isinstance(raw_backup, dict):
-            return None
-        logger.warning(
-            "Using project_contract from %s because %s",
-            layout.state_json_backup,
-            reason,
-        )
-        return layout.state_json_backup, raw_backup.get("project_contract")
-
-    def _read_state_payload(path: Path) -> object:
-        try:
-            return json.loads(path.read_text(encoding="utf-8"))
-        except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
-            return None
-
-    if layout.state_intent.exists():
-        _load_state_json_with_integrity_issues(cwd, persist_recovery=True)
-
-    raw_state = _read_state_payload(layout.state_json)
-    source_path = layout.state_json
-
-    if raw_state is None:
-        logger.warning(
-            "Using project_contract from %s because the primary state.json was unavailable or unreadable",
-            layout.state_json_backup,
-        )
-        backup_payload = _backup_project_contract("the primary state.json was unavailable or unreadable")
-        if backup_payload is not None:
-            return backup_payload
-        return None
-
-    if not isinstance(raw_state, dict):
-        backup_payload = _backup_project_contract("the primary state.json content was not a JSON object")
-        if backup_payload is not None:
-            return backup_payload
-        return None
-
-    raw_contract = raw_state.get("project_contract")
-    if raw_contract is None:
-        return source_path, None
-    if not isinstance(raw_contract, dict):
-        return source_path, raw_contract
-    return source_path, raw_contract
-
-
 def _load_project_contract(cwd: Path) -> tuple[ResearchContract | None, dict[str, object]]:
     """Load the canonical project contract and return load diagnostics."""
-    layout = ProjectLayout(cwd)
-    raw_payload = _load_raw_project_contract_payload(cwd)
-    if raw_payload is not None:
-        source_path, raw_contract = raw_payload
-        contract, load_info = _classify_project_contract_payload(
-            cwd=cwd,
-            source_path=source_path,
-            raw_contract=raw_contract,
-        )
-    else:
-        state, _state_issues, state_source = _peek_state_json(cwd)
-        default_source = _project_contract_source_path(cwd, layout.state_json)
-        if not isinstance(state, dict):
-            return None, _project_contract_load_payload(status="missing", source_path=default_source)
-
-        source_path = (
-            layout.state_json
-            if state_source in (None, "state.json")
-            else layout.state_json_backup
-            if state_source == "state.json.bak"
-            else layout.state_md
-        )
-        contract, load_info = _classify_project_contract_payload(
-            cwd=cwd,
-            source_path=source_path,
-            raw_contract=state.get("project_contract"),
-        )
-    return contract, load_info
+    return _state_module._load_project_contract_for_runtime_context(cwd)
 
 
 def _sorted_markdown_files(directory: Path) -> list[Path]:
