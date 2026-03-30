@@ -389,6 +389,12 @@ Plans:
 
 **Backtracking trigger:** If neither route to Lorentz succeeds (sigma model not Lorentz-invariant for some reason, AND isotropy fails for von Ignatowsky), fall back to emergent diffeomorphism invariance only and flag Lorentz as an additional assumption.
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 34-01-PLAN.md -- Isotropy restoration (LRNZ-01) + Lorentz derivation via sigma model + von Ignatowsky (LRNZ-02)
+- [ ] 34-02-PLAN.md -- Velocity hierarchy v_LR > c_s = c_eff, causal structure, emergent metric assembly (LRNZ-03)
+
 ---
 
 ### Phase 35: BW Theorem and Local Equilibrium
