@@ -4,18 +4,18 @@ How GPD project state travels between machines, survives session interruptions, 
 
 ## Continuation Surface Contract
 
-Phase 5 splits execution provenance from bounded-resume authority. The portable execution story now has an append-only lineage record plus a derived execution head, while `gpd init resume` still computes the canonical continuation view by reading `state.json.continuation` first and only consulting compatibility surfaces when the canonical bounded segment is missing or incomplete:
+Phase 5 splits execution provenance from bounded-resume authority. The portable execution story now has an append-only lineage record plus a derived execution head, while `gpd init resume` still computes the canonical continuation view by reading `state.json.continuation` first and only consulting compatibility surfaces when the canonical bounded segment is missing or incomplete. `session`, `.continue-here.md`, and `DERIVATION-STATE.md` are supporting projections only; they may mirror canonical continuation or provenance, but they do not compete with it:
 
 | Surface | Current Role | Authority |
 |---------|--------------|-----------|
 | `GPD/state.json` | Storage authority for machine-readable project state and canonical continuation hierarchy | Authoritative |
 | `GPD/state.json.bak` | Recovery backup for `state.json` | Recovery fallback |
 | `GPD/STATE.md` | Editable human-readable mirror of state; reconstruction input when the recovery ladder falls back to text | Mirror / reconstruction surface |
-| `GPD/phases/.../.continue-here.md` | Temporary handoff artifact written by `/gpd:pause-work`; only meaningful through the canonical continuation hierarchy | Non-authoritative continuity artifact |
+| `GPD/phases/.../.continue-here.md` | Temporary handoff artifact written by `/gpd:pause-work`; only meaningful through the canonical continuation hierarchy and written as a projection of it | Non-authoritative continuity artifact |
 | Execution lineage | Append-only execution provenance | Authoritative for history only |
 | Derived execution head / `GPD/observability/current-execution.json` | Compatibility mirror showing the latest execution snapshot | Advisory unless canonical `continuation.bounded_segment` is absent |
 
-The resolver is `gpd init resume`. No single handoff file, lineage row, or execution snapshot is, by itself, the canonical continuation state. Canonical state in `state.json.continuation` wins first; the derived execution head only fills compatibility gaps in the recovery ladder.
+The resolver is `gpd init resume`. No single handoff file, lineage row, or execution snapshot is, by itself, the canonical continuation state. Canonical state in `state.json.continuation` wins first; the derived execution head only fills compatibility gaps in the recovery ladder. Legacy `session` fields can still backfill missing canonical continuity during explicit migration or recovery, but they never outrank canonical continuation once that state exists.
 
 ## What Is Portable
 
@@ -32,7 +32,7 @@ Portable contents include:
 - Append-only execution lineage and its derived head projection
 - Session telemetry and agent history
 
-Portable references should stay anchored at the repository root. `state_record_session()` normalizes project-local absolute `resume_file` paths back to relative form before persisting them; any external absolute path that survives in state is advisory-only continuity metadata rather than a portable contract. The current canonical continuation view is therefore repo-root-relative even though it may be assembled from multiple surfaces. When `state.json.continuation.bounded_segment` exists, that durable bounded-segment state is authoritative; the derived execution head and `GPD/observability/current-execution.json` are compatibility projections, not the source of bounded-resume authority.
+Portable references should stay anchored at the repository root. `state_record_session()` normalizes project-local absolute `resume_file` paths back to relative form before persisting them; any external absolute path that survives in state is advisory-only continuity metadata rather than a portable contract. The current canonical continuation view is therefore repo-root-relative even though it may be assembled from multiple surfaces. When `state.json.continuation.bounded_segment` exists, that durable bounded-segment state is authoritative; the derived execution head and `GPD/observability/current-execution.json` are compatibility projections, not the source of bounded-resume authority. `DERIVATION-STATE.md` stays supporting context for derivation history, not a competing store for resume ranking or project position.
 
 Resume and progress surfaces treat state as present only when it can actually be recovered from `state.json`, `state.json.bak`, or `STATE.md`. A lone unreadable file path does not count as portable recoverable state.
 
@@ -43,7 +43,7 @@ The following are **primarily machine-local** across machines and should be rege
 - **Managed virtual environment**: Python version, compiled extensions, and platform-specific binaries. Re-created by `npx get-physics-done` or equivalent install command.
 - **Runtime configuration**: Installed prompt mirrors, MCP server registrations, and editor-specific hooks are written to runtime-local directories (e.g., project-local config directories managed by the active coding assistant). These are regenerated by `gpd install`.
 - **MCP descriptor files** (`infra/gpd-*.json`): Paths inside these may reference the local venv or system Python.
-- **Observability streams** (`GPD/observability/`): Session telemetry remains primarily machine-local. The execution lineage and derived head are portable project history, but `GPD/observability/current-execution.json` is only a compatibility mirror of that head. It contributes to the portable bounded-segment resume state only when canonical `state.json.continuation.bounded_segment` is absent and its `resume_file` still resolves to a repo-local path on the current machine. If a live execution snapshot's `resume_file` is non-project, missing, or otherwise unusable, the snapshot remains advisory continuity context only: it stays visible as live execution state but does not create a resumable `current_execution` candidate or set `resume_mode="bounded_segment"`. A recorded `session.resume_file` is handled separately.
+- **Observability streams** (`GPD/observability/`): Session telemetry remains primarily machine-local. The execution lineage and derived head are portable project history, but `GPD/observability/current-execution.json` is only a compatibility mirror of that head. It contributes to the portable bounded-segment resume state only when canonical `state.json.continuation.bounded_segment` is absent and its `resume_file` still resolves to a repo-local path on the current machine. If a live execution snapshot's `resume_file` is non-project, missing, or otherwise unusable, the snapshot remains advisory continuity context only: it stays visible as live execution state but does not create a resumable `current_execution` candidate or set `resume_mode="bounded_segment"`. A recorded `session.resume_file` is handled separately, and the human-readable `STATE.md` / `.continue-here.md` surfaces stay subordinate to canonical continuation and lineage.
 - **Recent-project discovery index** (`~/.gpd` or `GPD_DATA_DIR`): the machine-local cache that powers `gpd resume --recent` is advisory discovery metadata only. It is not portable project state and should not be committed with a repository.
 
 `state.json` does store the last session hostname and platform as advisory continuity metadata. Resume uses them only to surface a non-blocking machine-change notice and to remind the user that runtime-local install output may need regeneration. They do not change the portable project state itself.

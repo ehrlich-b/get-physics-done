@@ -1,6 +1,7 @@
 # Continuation Format
 
 Standard format for presenting next steps after completing a research command or workflow.
+This format is a presentation layer only: the displayed next step is derived from canonical continuation and recovery state, and it does not establish project authority by itself.
 
 ## Core Structure
 
@@ -32,6 +33,7 @@ Standard format for presenting next steps after completing a research command or
 4. **`/clear` explanation** -- always include, and pair it with the next command instead of leaving it as a dead-end
 5. **"Also available" not "Other options"** -- sounds more app-like
 6. **Visual separators** -- `---` above and below to make it stand out
+7. **Derived, not authoritative** -- the message is a projection of the current recovery decision, not a competing source of truth
 
 ## Variants
 

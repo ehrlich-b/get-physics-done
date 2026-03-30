@@ -6,11 +6,11 @@ template_version: 1
 
 Template for `GPD/DERIVATION-STATE.md` — cumulative record of equations, conventions, and intermediate results across all sessions.
 
-**Purpose:** Survive context resets. Each session appends its key equations, conventions, and results here via the pause-work workflow. This file is append-only (except pruning) and is read by resume-work to restore derivation context.
+**Purpose:** Survive context resets. Each session appends its key equations, conventions, and results here via the pause-work workflow. This file is append-only (except pruning) and is read by resume-work to restore derivation context. It is supporting context for canonical continuation, not a competing authority for project position or resume ranking.
 
 **Relationship to other files:**
 
-- `continue-here.md` is ephemeral (deleted on resume) — its `<persistent_state>` section is extracted and appended here
+- `continue-here.md` is ephemeral (deleted on resume) — its `<persistent_state>` section is extracted and appended here as a projection
 - `STATE.md` tracks position and accumulated context — DERIVATION-STATE.md tracks equations and derivation progress
 - `CONVENTIONS.md` is the authoritative convention catalog — DERIVATION-STATE.md records which conventions were active per session
 
@@ -28,7 +28,7 @@ total_equations: 0
 # Derivation State
 
 Cumulative record of equations, conventions, and intermediate results across all sessions.
-This file is append-only. Pruning rules apply (see bottom).
+This file is append-only. Pruning rules apply (see bottom). It is a human- and tooling-readable projection of derivation lineage, not the source of truth for resume authority.
 
 ---
 
@@ -112,6 +112,6 @@ This file is append-only. Pruning rules apply (see bottom).
 
 **Why this matters:**
 
-Physics derivations are stateful — you cannot "rerun" them like code. An equation derived in session 1 is needed in session 5, but the context window between sessions is empty. This file is the bridge.
+Physics derivations are stateful — you cannot "rerun" them like code. An equation derived in session 1 is needed in session 5, but the context window between sessions is empty. This file is the bridge. Canonical continuation and execution lineage still own the actual resumable state; this file only preserves derivation context.
 
 </guidelines>
