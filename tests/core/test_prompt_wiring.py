@@ -1991,6 +1991,8 @@ def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
     assert "current_platform" in resume_work
     assert "session_hostname" in resume_work
     assert "session_platform" in resume_work
+    assert "The recent-project list is advisory and machine-local" in resume_work
+    assert "reloads that project's canonical state" in resume_work
     assert "only when `project_contract_load_info` is clean and `project_contract_validation` passes" in resume_work
     assert "records whether that contract loaded cleanly and what blocked it if not." in resume_work
     assert "approval gate for treating the structured contract as authoritative" in resume_work
@@ -2026,6 +2028,8 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "guided runtime path" in resume_work
     assert "public local read-only summary" in resume_work
     assert "cross-project discovery surface" in resume_work
+    assert "advisory and machine-local" in resume_work
+    assert "reloads that project's canonical state" in resume_work
     assert "machine-readable intake" in resume_work
     assert "segment_candidates" in resume_work
     assert "Do NOT invent additional candidates from plan files without summaries, auto-checkpoints, or other ad hoc checkpoints." in resume_work

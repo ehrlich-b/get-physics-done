@@ -59,7 +59,7 @@ If `project_exists` is false (no `GPD/` directory):
 ```
 No planning structure found.
 
-If you are trying to reopen existing work, use `gpd resume --recent` first so you can rediscover the project explicitly, then continue in that workspace with `/gpd:resume-work`.
+If you are trying to reopen existing work, use `gpd resume --recent` first so you can rediscover the project explicitly. The recent-project picker is advisory: choose the workspace there, then continue in that workspace with `/gpd:resume-work`, which reloads canonical state for that project.
 
 Run /gpd:new-project to start a new research project.
 ```
