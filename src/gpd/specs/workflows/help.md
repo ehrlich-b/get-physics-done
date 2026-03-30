@@ -1094,10 +1094,10 @@ Example config:
 
 ```
 /gpd:pause-work        # Before leaving mid-phase, capture a continuation handoff artifact
-/clear                 # then run gpd resume to reopen the current workspace
-gpd resume             # Current-workspace read-only recovery snapshot
-gpd resume --recent    # Find the workspace first when you need to reopen a different one
-/gpd:resume-work       # Continue in-runtime from the selected project state
+/clear                 # then run gpd resume in your normal terminal for the current workspace
+gpd resume             # Current-workspace read-only recovery snapshot from your normal terminal
+gpd resume --recent    # Find the workspace first in your normal terminal when you need to reopen a different one
+/gpd:resume-work       # Continue in-runtime from the selected project state after reopening that workspace
 /gpd:suggest-next      # Fastest post-resume next command when you only need the next action
 /gpd:progress --brief  # Short orientation snapshot if you need more context
 ```

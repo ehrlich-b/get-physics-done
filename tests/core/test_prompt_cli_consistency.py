@@ -214,6 +214,16 @@ def test_start_prompt_delegates_routing_to_workflow_only() -> None:
     assert "explain them the first time they appear" in start_command
     assert "/gpd:tour" in start_command
     assert_start_workflow_router_contract(start_workflow)
+    assert "gpd resume --recent" in start_workflow
+    assert "in your normal terminal to find the project first" in start_workflow
+    assert "The recent-project picker is advisory; choose the workspace there" in start_workflow
+    assert "reloads canonical state for that project." in start_workflow
+    assert "GPD may auto-select it" in start_workflow
+    assert "recent-project picker" in start_workflow
+    assert "Then open that project folder in the runtime and run" in start_workflow
+    assert "`/gpd:resume-work`." in start_workflow
+    assert "the in-runtime continuation step once the recovery ladder has identified the right project" in start_workflow
+    assert "reopened its workspace" in start_workflow
     assert "Read `{GPD_INSTALL_DIR}/workflows/new-project.md` with the file-read tool." not in start_workflow
     assert "Read `{GPD_INSTALL_DIR}/workflows/help.md` with the file-read tool." not in start_workflow
     assert "Read `{GPD_INSTALL_DIR}/workflows/tour.md` with the file-read tool." not in start_workflow
