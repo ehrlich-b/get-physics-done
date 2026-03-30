@@ -463,9 +463,9 @@ If `gpd result persist-derived` reports multiple matches for the same equation o
   4. Read the bridge output carefully:
      - `requested_result_id` is the stable derivation-oriented ID the workflow asked for.
      - `result_id` is the actual canonical registry entry that was persisted or reused.
-     - `requested_result_redirected=true` means the requested derivation-oriented ID was redirected to an existing canonical entry; in that case `result_id` is the continuity anchor to carry forward.
-     If the bridge reused an existing canonical entry, `result_id` may differ from `requested_result_id`; carry the actual `result_id` forward for later reruns and handoff continuity.
-  5. Carry the resulting `result_id` forward in the derivation workflow context and any downstream handoff metadata (`last_result_id` in pause/resume surfaces) so later reruns can target the same canonical registry entry without rediscovering it from prose.
+     - `requested_result_redirected=true` means the requested derivation-oriented ID was redirected to an existing canonical entry; in that case `result_id` is the canonical anchor.
+     If the bridge reused an existing canonical entry, `result_id` may differ from `requested_result_id`; carry the actual `result_id` forward for later reruns and canonical continuity.
+  5. If an active continuation context exists, the canonical path seeds continuity automatically from the actual `result_id` so later reruns can target the same registry entry without rediscovering it from prose.
   6. Keep `verified=false` unless the derivation also produced verification evidence that should be recorded separately.
 - If `state_exists` is false:
   - Skip registry write-back entirely.
@@ -516,7 +516,7 @@ This keeps standalone derivations safe while making project-mode derivations reu
 - [ ] Regime of validity stated
 - [ ] All relevant limiting cases verified
 - [ ] Connection to known results documented
-- [ ] Final derived equation persisted through the executable `gpd result persist-derived` bridge in project mode, with the actual persisted canonical `result_id` retained for later reruns and carried into handoff/resume continuity
+- [ ] Final derived equation persisted through the executable `gpd result persist-derived` bridge in project mode, with the actual persisted canonical `result_id` retained for later reruns and carried into canonical continuation for later pause/resume continuity
 - [ ] Standalone mode skipped registry write-back and stayed self-contained
 - [ ] Complete derivation document written
 

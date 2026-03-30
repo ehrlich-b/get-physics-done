@@ -34,7 +34,7 @@ If no active phase detected, ask user which phase they're pausing work on.
 10. **Blockers/issues**: Anything stuck (divergence encountered, numerical instability, missing input data)
 11. **Mental context**: The theoretical approach, next steps, "vibe" of where this is going
 12. **Files modified**: What's changed but not committed (scripts, notebooks, LaTeX, data files)
-13. **Result continuity**: If a canonical derived result was just persisted, capture its `result_id` as the active `last_result_id` rerun anchor.
+13. **Result continuity**: If a canonical derived result was just persisted, capture its `result_id` as the active `last_result_id` rerun anchor. Treat an explicit `--last-result-id` override as a manual repair path when the inherited continuity anchor needs correction.
 
 Ask user for clarifications if needed via conversational questions.
 </step>
@@ -211,6 +211,8 @@ gpd state record-session \
   --resume-file "GPD/phases/[{phase_slug}]/.continue-here.md" \
   [--last-result-id "{result_id}"]
 if [ $? -ne 0 ]; then echo "WARNING: state record-session failed — resume info may be lost"; fi
+
+If the active bounded-segment continuity already carries a canonical `last_result_id`, omit `--last-result-id` and let the automatic continuity path supply it. Pass `--last-result-id` only when you are manually overriding or repairing the carried anchor.
 
 # Set status to Paused so resume-work detects it. This updates the session
 # handoff surface; the bounded continuation record is managed separately.

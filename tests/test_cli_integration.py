@@ -442,6 +442,89 @@ def test_result_persist_derived_bridge_reuses_unique_equation_match_when_preferr
     assert reloaded["intermediate_results"][0]["description"] == "Canonical description"
 
 
+def test_result_persist_derived_bridge_seeds_canonical_continuity_for_later_record_session(
+    gpd_project: Path,
+) -> None:
+    planning = gpd_project / "GPD"
+    state_path = planning / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["intermediate_results"] = [
+        {
+            "id": "R-01",
+            "equation": "E = mc^2",
+            "description": "Original description",
+            "phase": "01",
+            "depends_on": [],
+            "verified": False,
+            "verification_records": [],
+        }
+    ]
+    state["continuation"]["bounded_segment"] = {
+        "resume_file": "GPD/phases/01-test-phase/.continue-here.md",
+        "phase": "01",
+        "plan": "01",
+        "segment_id": "seg-test",
+        "segment_status": "paused",
+    }
+    state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    segment_resume = planning / "phases" / "01-test-phase" / ".continue-here.md"
+    segment_resume.parent.mkdir(parents=True, exist_ok=True)
+    segment_resume.write_text("resume\n", encoding="utf-8")
+
+    result = _invoke_result_persist_derived_bridge(
+        gpd_project,
+        "--id",
+        "R-new",
+        "--equation",
+        "E=mc^2",
+        "--description",
+        "Canonical description",
+        "--phase",
+        "01",
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["requested_result_id"] == "R-new"
+    assert payload["result_id"] == "R-01"
+    assert payload["requested_result_redirected"] is True
+    assert payload["continuity_last_result_id"] == "R-01"
+    assert payload["continuity_recorded"] is True
+
+    reloaded = json.loads(state_path.read_text(encoding="utf-8"))
+    assert reloaded["intermediate_results"][0]["id"] == "R-01"
+    assert reloaded["intermediate_results"][0]["description"] == "Canonical description"
+    assert reloaded["continuation"]["bounded_segment"]["last_result_id"] == "R-01"
+    assert reloaded["session"]["last_result_id"] == "R-01"
+    assert reloaded["continuation"]["handoff"]["last_result_id"] == "R-01"
+
+    record_session_result = runner.invoke(
+        app,
+        [
+            "--raw",
+            "--cwd",
+            str(gpd_project),
+            "state",
+            "record-session",
+            "--stopped-at",
+            "Paused at task 2/5",
+            "--resume-file",
+            "GPD/phases/01-test-phase/.continue-here.md",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert record_session_result.exit_code == 0, record_session_result.output
+    record_session_payload = json.loads(record_session_result.output)
+    assert record_session_payload["recorded"] is True
+
+    reread = json.loads(state_path.read_text(encoding="utf-8"))
+    assert reread["session"]["last_result_id"] == "R-01"
+    assert reread["continuation"]["handoff"]["last_result_id"] == "R-01"
+    state_md = (planning / "STATE.md").read_text(encoding="utf-8")
+    assert "**Last result ID:** R-01" in state_md
+
+
 def test_result_persist_derived_bridge_surfaces_persisted_result_in_init_progress(gpd_project: Path) -> None:
     planning = gpd_project / "GPD"
     state_path = planning / "state.json"
@@ -496,6 +579,8 @@ def test_result_persist_derived_bridge_reports_requested_result_id_from_slug(gpd
     assert payload["requested_result_id"] == "R-01-effective-mass"
     assert payload["result_id"] == "R-01-effective-mass"
     assert payload["requested_result_redirected"] is False
+    assert payload["continuity_last_result_id"] == "R-01-effective-mass"
+    assert payload["continuity_recorded"] is False
     assert payload["result"]["id"] == "R-01-effective-mass"
 
 

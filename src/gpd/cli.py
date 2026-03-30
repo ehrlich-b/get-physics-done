@@ -2409,7 +2409,11 @@ def result_persist_derived(
 
     from gpd.core.constants import ProjectLayout
     from gpd.core.results import result_upsert_derived as _result_upsert_derived
-    from gpd.core.state import peek_state_json, save_state_json_locked
+    from gpd.core.state import (
+        peek_state_json,
+        save_state_json_locked,
+        state_carry_forward_continuation_last_result_id as _state_carry_forward_continuation_last_result_id,
+    )
     from gpd.core.utils import file_lock
 
     cwd = _get_cwd()
@@ -2458,16 +2462,24 @@ def result_persist_derived(
             depends_on=_split_depends_on_option(depends_on),
             verified=verified,
         )
+        payload = res.model_dump(mode="json")
+        actual_result_id = payload["result"]["id"]
+        continuity_result = _state_carry_forward_continuation_last_result_id(
+            cwd,
+            actual_result_id,
+            state_obj=state,
+        )
+        continuity_recorded = bool(getattr(continuity_result, "updated", False))
         save_state_json_locked(cwd, state)
 
-    payload = res.model_dump(mode="json")
-    actual_result_id = payload["result"]["id"]
     _output(
         {
             "status": "persisted",
             "requested_result_id": resolved_id,
             "result_id": actual_result_id,
             "requested_result_redirected": resolved_id is not None and actual_result_id != resolved_id,
+            "continuity_last_result_id": actual_result_id,
+            "continuity_recorded": continuity_recorded,
             **payload,
         }
     )

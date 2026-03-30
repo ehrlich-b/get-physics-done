@@ -2485,9 +2485,11 @@ def test_result_upsert_without_explicit_id(mock_upsert, tmp_path: Path):
 
 
 @patch("gpd.cli._resolve_derived_result_id")
+@patch("gpd.core.state.state_carry_forward_continuation_last_result_id")
 @patch("gpd.core.results.result_upsert_derived", create=True)
 def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
     mock_upsert_derived,
+    mock_carry_forward,
     mock_resolve,
     tmp_path: Path,
 ):
@@ -2505,6 +2507,7 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
         "updated_fields": ["equation", "description"],
     }
     mock_upsert_derived.return_value = mock_result
+    mock_carry_forward.return_value = MagicMock(updated=False)
     mock_resolve.return_value = "R-02-effective-mass"
     planning = tmp_path / "GPD"
     planning.mkdir()
@@ -2548,6 +2551,72 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
     assert kwargs["description"] == "Canonical quantity"
     assert kwargs["phase"] == "2"
     assert kwargs["depends_on"] == ["R-01"]
+    mock_carry_forward.assert_called_once()
+    carry_args, carry_kwargs = mock_carry_forward.call_args
+    assert carry_args[1] == "R-02"
+    assert carry_kwargs["state_obj"] is not None
+
+
+@patch("gpd.cli._resolve_derived_result_id")
+@patch("gpd.core.state.state_carry_forward_continuation_last_result_id")
+@patch("gpd.core.results.result_upsert_derived", create=True)
+def test_result_persist_derived_auto_seeds_continuity_anchor_from_actual_result_id(
+    mock_upsert_derived,
+    mock_carry_forward,
+    mock_resolve,
+    tmp_path: Path,
+):
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {
+        "status": "persisted",
+        "result": {
+            "id": "R-01",
+            "equation": "a = b + c",
+            "description": "Canonical quantity",
+            "phase": "2",
+            "depends_on": ["R-01"],
+            "verified": False,
+        },
+        "updated_fields": ["equation", "description"],
+    }
+    mock_upsert_derived.return_value = mock_result
+    mock_carry_forward.return_value = MagicMock(updated=True)
+    mock_resolve.return_value = "R-02-effective-mass"
+    planning = tmp_path / "GPD"
+    planning.mkdir()
+    (planning / "state.json").write_text("{}", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "--raw",
+            "--cwd",
+            str(tmp_path),
+            "result",
+            "persist-derived",
+            "--equation",
+            "a = b + c",
+            "--description",
+            "Canonical quantity",
+            "--phase",
+            "2",
+            "--derivation-slug",
+            "effective-mass",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["requested_result_id"] == "R-02-effective-mass"
+    assert payload["result_id"] == "R-01"
+    assert payload["requested_result_redirected"] is True
+    assert payload["continuity_last_result_id"] == "R-01"
+    assert payload["continuity_recorded"] is True
+    mock_carry_forward.assert_called_once()
+    carry_args, carry_kwargs = mock_carry_forward.call_args
+    assert carry_args[1] == "R-01"
+    assert carry_kwargs["state_obj"] is not None
 
 
 def test_result_persist_derived_uses_resolved_result_id_for_real_state_write(
@@ -2608,10 +2677,14 @@ def test_result_persist_derived_uses_resolved_result_id_for_real_state_write(
     assert second_payload["requested_result_id"] == "R-02-effective-mass"
     assert second_payload["result_id"] == "R-02-effective-mass"
     assert second_payload["requested_result_redirected"] is False
+    assert second_payload["continuity_last_result_id"] == "R-02-effective-mass"
+    assert second_payload["continuity_recorded"] is False
     assert second_payload["result"]["id"] == "R-02-effective-mass"
 
     state = json.loads((cwd / "GPD" / "state.json").read_text(encoding="utf-8"))
     assert [item["id"] for item in state["intermediate_results"]] == ["R-02-effective-mass"]
+    assert state["session"]["last_result_id"] is None
+    assert state["continuation"]["handoff"]["last_result_id"] is None
 
 
 def test_result_persist_derived_raw_skips_cleanly_without_project_state(tmp_path: Path) -> None:

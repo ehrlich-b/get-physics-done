@@ -1345,6 +1345,47 @@ class TestInitResume:
         assert ctx["resume_candidates"][0]["resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
         assert "source" not in ctx["resume_candidates"][0]
 
+    def test_canonical_bounded_segment_carries_last_result_id_and_hydrates_result(
+        self, tmp_path: Path
+    ) -> None:
+        _setup_project(tmp_path)
+        from gpd.core.state import default_state_dict
+
+        state = default_state_dict()
+        state["continuation"]["bounded_segment"] = {
+            "resume_file": "GPD/phases/03-analysis/.continue-here.md",
+            "phase": "03",
+            "plan": "02",
+            "segment_id": "seg-canonical",
+            "segment_status": "paused",
+            "last_result_id": "result-canonical",
+        }
+        state["intermediate_results"] = [
+            {
+                "id": "result-canonical",
+                "equation": "R = A + B",
+                "description": "Canonical bridge result",
+                "phase": "03",
+                "depends_on": [],
+                "verified": True,
+                "verification_records": [],
+            }
+        ]
+        (tmp_path / "GPD" / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        resume_path = tmp_path / "GPD" / "phases" / "03-analysis" / ".continue-here.md"
+        resume_path.parent.mkdir(parents=True, exist_ok=True)
+        resume_path.write_text("resume\n", encoding="utf-8")
+
+        ctx = init_resume(tmp_path)
+
+        assert ctx["active_resume_kind"] == "bounded_segment"
+        assert ctx["active_resume_origin"] == "continuation.bounded_segment"
+        assert ctx["active_bounded_segment"]["last_result_id"] == "result-canonical"
+        assert ctx["resume_candidates"][0]["last_result_id"] == "result-canonical"
+        assert ctx["resume_candidates"][0]["last_result"]["id"] == "result-canonical"
+        assert ctx["active_resume_result"]["id"] == "result-canonical"
+        assert ctx["compat_resume_surface"]["active_execution_segment"]["last_result_id"] == "result-canonical"
+
     def test_normalizes_live_execution_phase_plan_and_checkpoint_reason(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
         _write_current_execution(

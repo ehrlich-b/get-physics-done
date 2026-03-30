@@ -2095,7 +2095,8 @@ def test_pause_resume_and_derivation_templates_preserve_result_id_continuity() -
     assert "Every intermediate result added to state.json (with result IDs)" in pause_work
     assert "The `<persistent_state>` and `<intermediate_results>` sections in `.continue-here.md` are filled (documenting what was appended to DERIVATION-STATE.md)" in pause_work
     assert 'gpd state record-session \\' in pause_work
-    assert '[--last-result-id "{result_id}"]' in pause_work
+    assert "Treat an explicit `--last-result-id` override as a manual repair path" in pause_work
+    assert "If the active bounded-segment continuity already carries a canonical `last_result_id`, omit `--last-result-id`" in pause_work
     assert "canonical `last_result_id`" in resume_work
     assert "preferred continuity anchor" in resume_work
     assert "Reference the result IDs added to state.json this session" in continue_here
