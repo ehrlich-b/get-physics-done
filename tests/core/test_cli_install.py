@@ -36,7 +36,20 @@ from tests.doc_surface_contracts import (
     assert_recovery_ladder_contract,
 )
 
-runner = CliRunner()
+
+class _StableCliRunner(CliRunner):
+    def invoke(self, *args, **kwargs):
+        kwargs.setdefault("color", False)
+        return super().invoke(*args, **kwargs)
+
+
+runner = _StableCliRunner()
+
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+
+def _normalize_cli_output(text: str) -> str:
+    return " ".join(_ANSI_ESCAPE_RE.sub("", text).split())
 _INSTALL_TEST_DESCRIPTORS = iter_runtime_descriptors()
 _PRIMARY_INSTALL_DESCRIPTOR = _INSTALL_TEST_DESCRIPTORS[0]
 _SECONDARY_INSTALL_DESCRIPTOR = _INSTALL_TEST_DESCRIPTORS[1]
@@ -512,7 +525,7 @@ def test_install_summary_lists_runtime_specific_help_for_multi_runtime_install(t
 def test_install_help_surfaces_interactive_batch_and_targeting_guidance() -> None:
     """Install help should keep local/global targeting and interactive guidance visible."""
     result = runner.invoke(app, ["install", "--help"])
-    normalized_output = " ".join(result.output.split())
+    normalized_output = _normalize_cli_output(result.output)
 
     assert result.exit_code == 0
     assert "Install GPD skills, agents, and hooks into runtime config directories." in normalized_output
@@ -520,9 +533,9 @@ def test_install_help_surfaces_interactive_batch_and_targeting_guidance() -> Non
     assert "Specify runtime name(s) or --all for batch mode." in normalized_output
     assert "gpd install --all --global" in normalized_output
     assert "Runtime(s) to install. Omit for interactive" in normalized_output
-    assert "--local" in result.output
-    assert "--global" in result.output
-    assert "--target-dir" in result.output
+    assert "--local" in normalized_output
+    assert "--global" in normalized_output
+    assert "--target-dir" in normalized_output
 
 
 # ─── 4. Uninstall without manifest ──────────────────────────────────────────

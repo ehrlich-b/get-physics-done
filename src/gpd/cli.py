@@ -104,11 +104,16 @@ _cwd: Path = Path(".")
 _DEFAULT_PROJECT_REENTRY_COMMANDS = frozenset({"gpd:progress", "gpd:resume-work"})
 
 
+def _emit_raw_json(data: object, *, err: bool = False) -> None:
+    """Emit literal JSON without Rich syntax styling."""
+    typer.echo(json.dumps(data, default=str, indent=2), err=err)
+
+
 def _output(data: object) -> None:
     """Print result — JSON when --raw, rich text otherwise."""
     if _raw:
         if data is None:
-            console.print_json(json.dumps({"result": None}))
+            _emit_raw_json({"result": None})
         elif isinstance(data, (list, tuple)):
             items = [
                 item.model_dump(mode="json", by_alias=True) if hasattr(item, "model_dump") else
@@ -116,15 +121,15 @@ def _output(data: object) -> None:
                 item
                 for item in data
             ]
-            console.print_json(json.dumps(items, default=str))
+            _emit_raw_json(items)
         elif hasattr(data, "model_dump"):
-            console.print_json(json.dumps(data.model_dump(mode="json", by_alias=True), default=str))
+            _emit_raw_json(data.model_dump(mode="json", by_alias=True))
         elif dataclasses.is_dataclass(data) and not isinstance(data, type):
-            console.print_json(json.dumps(dataclasses.asdict(data), default=str))
+            _emit_raw_json(dataclasses.asdict(data))
         elif isinstance(data, dict):
-            console.print_json(json.dumps(data, default=str))
+            _emit_raw_json(data)
         else:
-            console.print_json(json.dumps({"result": str(data)}, default=str))
+            _emit_raw_json({"result": str(data)})
     else:
         if data is None:
             return  # nothing to display
@@ -138,7 +143,7 @@ def _output(data: object) -> None:
         elif isinstance(data, dict):
             _pretty_print(data)
         else:
-            console.print(str(data))
+            console.print(str(data), highlight=False)
 
 
 def _pretty_print(d: dict) -> None:
@@ -155,7 +160,7 @@ def _pretty_print(d: dict) -> None:
 def _error(msg: str) -> NoReturn:
     """Print error and exit — JSON when --raw, rich text otherwise."""
     if _raw:
-        err_console.print_json(json.dumps({"error": str(msg)}))
+        _emit_raw_json({"error": str(msg)}, err=True)
     else:
         err_console.print(f"[bold red]Error:[/] {msg}", highlight=False)
     raise typer.Exit(code=1)
@@ -414,9 +419,9 @@ def _print_version(*, ctx: typer.Context | None = None) -> None:
     if not raw_requested:
         raw_requested = _raw
     if raw_requested:
-        console.print_json(json.dumps({"result": value}))
+        _emit_raw_json({"result": value})
     else:
-        console.print(value)
+        console.print(value, highlight=False)
 
 
 def _raw_option_callback(ctx: typer.Context, _: typer.CallbackParam, value: bool) -> bool:
@@ -438,7 +443,7 @@ def _version_option_callback(ctx: typer.Context, _: typer.CallbackParam, value: 
 def _json_cli_output(data: object) -> None:
     """Emit literal JSON for the lightweight JSON subcommands."""
     if _raw:
-        console.print_json(json.dumps(data, default=str))
+        _emit_raw_json(data)
     else:
         console.print(data, highlight=False)
 
@@ -603,19 +608,19 @@ class _GPDTyper(typer.Typer):
         except KeyError as exc:
             msg = f"Internal error (missing key): {exc}"
             if _raw:
-                err_console.print_json(json.dumps({"error": msg}))
+                _emit_raw_json({"error": msg}, err=True)
             else:
                 err_console.print(f"[bold red]Error:[/] {msg}", highlight=False)
             raise SystemExit(1) from None
         except GPDError as exc:
             if _raw:
-                err_console.print_json(json.dumps({"error": str(exc)}))
+                _emit_raw_json({"error": str(exc)}, err=True)
             else:
                 err_console.print(f"[bold red]Error:[/] {exc}", highlight=False)
             raise SystemExit(1) from None
         except TimeoutError as exc:
             if _raw:
-                err_console.print_json(json.dumps({"error": str(exc)}))
+                _emit_raw_json({"error": str(exc)}, err=True)
             else:
                 err_console.print(f"[bold red]Error:[/] {exc}", highlight=False)
             raise SystemExit(1) from None
@@ -2673,7 +2678,7 @@ def result_show(
         _error(str(exc))
 
     if _raw:
-        console.print_json(json.dumps(deps.model_dump(mode="json", by_alias=True), default=str))
+        _emit_raw_json(deps.model_dump(mode="json", by_alias=True))
         return
 
     _print_result_show(deps)

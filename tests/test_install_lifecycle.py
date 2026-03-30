@@ -31,7 +31,15 @@ _CLAUDE_MANIFEST_RUNTIME_COMPAT_VALUES = tuple(
     for value in (_CLAUDE_CODE_DESCRIPTOR.display_name, *_CLAUDE_CODE_DESCRIPTOR.selection_aliases)
     if value != _CLAUDE_CODE_DESCRIPTOR.runtime_name
 )
-runner = CliRunner()
+
+
+class _StableCliRunner(CliRunner):
+    def invoke(self, *args, **kwargs):
+        kwargs.setdefault("color", False)
+        return super().invoke(*args, **kwargs)
+
+
+runner = _StableCliRunner()
 
 
 def _install_kwargs_for_runtime(tmp_path: Path, runtime: str, *, is_global: bool, explicit_target: bool = False) -> dict[str, object]:
@@ -928,7 +936,10 @@ class TestManifestConsistency:
         fake_home = tmp_path / "_fake_home"
         fake_home.mkdir()
 
-        with patch("pathlib.Path.home", return_value=fake_home):
+        with (
+            patch("pathlib.Path.home", return_value=fake_home),
+            patch("gpd.cli._run_install_readiness_preflight", return_value=([], {})),
+        ):
             target_dir = adapter.resolve_target_dir(True, tmp_path)
             result = runner.invoke(
                 app,

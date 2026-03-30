@@ -10,6 +10,7 @@ from __future__ import annotations
 import builtins
 import json
 import os
+import re
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import ANY, AsyncMock, MagicMock, call, patch
@@ -41,7 +42,20 @@ from tests.runtime_test_support import (
     runtime_with_permissions_surface,
 )
 
-runner = CliRunner()
+
+class _StableCliRunner(CliRunner):
+    def invoke(self, *args, **kwargs):
+        kwargs.setdefault("color", False)
+        return super().invoke(*args, **kwargs)
+
+
+runner = _StableCliRunner()
+
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+
+def _normalize_cli_output(text: str) -> str:
+    return " ".join(_ANSI_ESCAPE_RE.sub("", text).split())
 
 _COST_TEST_RUNTIME = "runtime-under-test"
 _COST_TEST_MODEL = "model-under-test"
@@ -189,7 +203,7 @@ def test_help_surfaces_local_setup_and_preflight_commands() -> None:
 def test_help_surfaces_permissions_readiness_commands() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    normalized_output = " ".join(result.output.split())
+    normalized_output = _normalize_cli_output(result.output)
     assert "permissions" in normalized_output
     assert "Runtime permission readiness and sync" in normalized_output
     assert "gpd doctor --runtime <runtime> --local" in normalized_output
@@ -218,7 +232,7 @@ def test_help_surfaces_integrations_surface() -> None:
 def test_workflow_presets_help_surfaces_apply_command() -> None:
     result = runner.invoke(app, ["presets", "apply", "--help"])
     assert result.exit_code == 0
-    normalized_output = " ".join(result.output.split())
+    normalized_output = _normalize_cli_output(result.output)
     assert "--dry-run" in normalized_output
     assert "Show a diff-oriented preview without writing it" in normalized_output
 
@@ -506,9 +520,9 @@ def _assert_cost_posture_semantics(output: str) -> None:
 def test_cost_help_surfaces_machine_local_advisory_role() -> None:
     result = runner.invoke(app, ["cost", "--help"])
     assert result.exit_code == 0
-    normalized_output = " ".join(result.output.split())
+    normalized_output = _normalize_cli_output(result.output)
     assert "Show machine-local usage and cost summaries" in normalized_output
-    assert "--last-sessions" in result.output
+    assert "--last-sessions" in normalized_output
     assert "Show the most recent N recorded usage" in normalized_output
     assert "[default: 5]" in normalized_output
 
@@ -619,14 +633,15 @@ def test_observe_help_surfaces_read_only_execution_snapshot_command() -> None:
 
 def test_doctor_help_surfaces_runtime_readiness_mode() -> None:
     result = runner.invoke(app, ["doctor", "--help"])
+    normalized_output = _normalize_cli_output(result.output)
     assert result.exit_code == 0
-    assert "Check GPD installation and environment health" in result.output
-    assert "inspect runtime readiness" in result.output
-    assert "--live-executable-probes" in result.output
-    assert "--runtime" in result.output
-    assert "--local" in result.output
-    assert "--global" in result.output
-    assert "--target-dir" in result.output
+    assert "Check GPD installation and environment health" in normalized_output
+    assert "inspect runtime readiness" in normalized_output
+    assert "--live-executable-probes" in normalized_output
+    assert "--runtime" in normalized_output
+    assert "--local" in normalized_output
+    assert "--global" in normalized_output
+    assert "--target-dir" in normalized_output
 
 
 def test_permissions_help_surfaces_status_and_sync_roles() -> None:
@@ -641,22 +656,24 @@ def test_permissions_help_surfaces_status_and_sync_roles() -> None:
 
 def test_permissions_status_help_surfaces_readiness_options() -> None:
     result = runner.invoke(app, ["permissions", "status", "--help"])
+    normalized_output = _normalize_cli_output(result.output)
     assert result.exit_code == 0
-    assert "ready for unattended use" in result.output
-    assert "requested autonomy" in result.output
-    assert "--runtime" in result.output
-    assert "--autonomy" in result.output
-    assert "--target-dir" in result.output
+    assert "ready for unattended use" in normalized_output
+    assert "requested autonomy" in normalized_output
+    assert "--runtime" in normalized_output
+    assert "--autonomy" in normalized_output
+    assert "--target-dir" in normalized_output
 
 
 def test_permissions_sync_help_surfaces_guided_runtime_changes() -> None:
     result = runner.invoke(app, ["permissions", "sync", "--help"])
+    normalized_output = _normalize_cli_output(result.output)
     assert result.exit_code == 0
-    assert "persist runtime-owned permission settings" in result.output
-    assert "gpd:settings" in result.output
-    assert "--runtime" in result.output
-    assert "--autonomy" in result.output
-    assert "--target-dir" in result.output
+    assert "persist runtime-owned permission settings" in normalized_output
+    assert "gpd:settings" in normalized_output
+    assert "--runtime" in normalized_output
+    assert "--autonomy" in normalized_output
+    assert "--target-dir" in normalized_output
 
 
 def test_permissions_status_surfaces_runtime_capabilities_and_config_scope() -> None:
@@ -913,7 +930,7 @@ def test_init_help_surfaces_local_onboarding_entrypoints() -> None:
 def test_resume_help_surfaces_read_only_local_recovery_role() -> None:
     result = runner.invoke(app, ["resume", "--help"])
     assert result.exit_code == 0
-    normalized = " ".join(result.output.split())
+    normalized = _normalize_cli_output(result.output)
     assert "--recent" in normalized
     assert "Summarize local recovery state or list machine-local recent projects." in normalized
 
@@ -2385,7 +2402,7 @@ def test_result_show_help_surfaces_required_result_id_argument() -> None:
     result = runner.invoke(app, ["result", "show", "--help"])
 
     assert result.exit_code == 0
-    normalized_output = " ".join(result.output.split())
+    normalized_output = _normalize_cli_output(result.output)
     assert "Show a canonical result and its direct/transitive dependency chain." in normalized_output
     assert "RESULT_ID" in normalized_output
     assert "Canonical result ID [required]" in normalized_output
@@ -3122,7 +3139,7 @@ def test_validate_unattended_readiness_requires_runtime() -> None:
     result = runner.invoke(app, ["validate", "unattended-readiness"])
 
     assert result.exit_code != 0
-    assert "--runtime" in result.output
+    assert "--runtime" in _normalize_cli_output(result.output)
 
 
 def test_validate_unattended_readiness_wires_local_runtime_scope_through_health_builder(
@@ -4034,8 +4051,9 @@ def test_init_resume_help_surfaces_recovery_snapshot_entrypoint() -> None:
     result = runner.invoke(app, ["init", "resume", "--help"])
 
     assert result.exit_code == 0
-    assert "Usage: gpd init resume" in result.output
-    assert "Assemble context for resuming previous work." in result.output
+    normalized_output = _normalize_cli_output(result.output)
+    assert "Usage: gpd init resume" in normalized_output
+    assert "Assemble context for resuming previous work." in normalized_output
 
 
 @patch("gpd.core.context.init_resume")
