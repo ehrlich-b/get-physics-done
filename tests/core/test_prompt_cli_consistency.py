@@ -291,12 +291,21 @@ def test_suggest_next_prompt_uses_real_cli_subcommand() -> None:
     assert "Uses `gpd --raw suggest`" in suggest_prompt
     assert "Local CLI fallback: `gpd --raw suggest`" in suggest_prompt
     assert (
-        "If you still need to rediscover the project first, use `gpd resume` for the current workspace or `gpd resume --recent` for the explicit multi-project picker before re-entering the runtime."
+        "If you still need to rediscover the project first, do that in your normal terminal with `gpd resume` for the current workspace or `gpd resume --recent` for the explicit multi-project picker before reopening the runtime."
         in suggest_prompt
     )
-    assert "`/clear` first -> fresh context window, then `{command}`" in suggest_prompt
+    assert "Keep `/clear` as a fresh-context reset, not as a recovery step." in suggest_prompt
+    assert "`/clear` first -> fresh context window, then `{command}`." in suggest_prompt
+    assert (
+        "If you still need to rediscover the project first, do that in your normal terminal with `gpd resume` for the current workspace or `gpd resume --recent` for a different project before reopening the runtime."
+        in suggest_prompt
+    )
     assert "gpd resume --recent" in suggest_prompt
     assert "before reopening the runtime" in suggest_prompt
+    assert (
+        "`/clear` first -> fresh context window, then `{command}`; if you still need to rediscover the project, use `gpd resume --recent` before reopening the runtime"
+        not in suggest_prompt
+    )
     assert "gpd suggest-next to scan" not in suggest_prompt
 
 
