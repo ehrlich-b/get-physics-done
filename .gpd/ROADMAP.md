@@ -200,7 +200,11 @@ Plans:
 
 **Backtracking trigger:** If the lattice structure turns out to be genuinely frustrated at the physical lattice level (not just the on-site K_3), return to literature for alternative SSB proof strategies (frustrated magnets, spin liquids). If H_eff is ferromagnetic, the Goldstone mode analysis in Phase 39 must use Type-II counting.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 38-01-PLAN.md -- Construct 2-site H_eff, diagonalize, verify Spin(9) symmetry, determine ferro/antiferro
+- [ ] 38-02-PLAN.md -- Frame stabilizer identification (F_4 vs Spin(9)), lattice structure (Z^d bipartite), cubic det(A) assessment, Phase 39 handoff
 
 ---
 
@@ -294,6 +298,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 37. Gap Dependency Theorem | v10.0 | 2/2 | Complete | 2026-03-30 |
-| 38. Effective Hamiltonian | v10.0 | 0/TBD | Not started | - |
+| 38. Effective Hamiltonian | v10.0 | 0/2 | Planned | - |
 | 39. SSB + Universality Class | v10.0 | 0/TBD | Not started | - |
 | 40. Assembly | v10.0 | 0/TBD | Not started | - |
