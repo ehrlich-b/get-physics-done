@@ -1537,13 +1537,14 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
 
     assert result.exit_code == 0
     payload = json.loads(result.output)
-    assert payload["execution_resume_file"] == "GPD/phases/01/.continue-here.md"
+    assert payload["active_resume_pointer"] == "GPD/phases/01/.continue-here.md"
     assert payload["recovery_status"] == "session-handoff"
     assert payload["recovery_status_label"] == "Continuity handoff"
     assert payload["recovery_summary"] == (
         "A continuity handoff is available, but no resumable bounded segment is currently active."
     )
     assert payload["resume_mode_label"] == "none"
+    assert "execution_resume_file" not in payload
     assert payload["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/01/.continue-here.md"
     assert payload["compat_resume_surface"]["execution_resume_file_source"] == "session_resume_file"
     assert payload["compat_resume_surface"]["segment_candidates"][0]["source"] == "session_resume_file"

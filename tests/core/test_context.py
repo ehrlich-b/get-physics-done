@@ -1075,20 +1075,17 @@ class TestInitResume:
         ctx = init_resume(tmp_path)
 
         assert ctx["resume_surface_schema_version"] == 1
-        assert ctx["resume_mode"] == "bounded_segment"
+        assert "resume_mode" not in ctx
         assert ctx["active_resume_kind"] == "bounded_segment"
         assert ctx["active_resume_origin"] == "derived_execution_head"
         assert ctx["active_resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
         assert ctx["active_bounded_segment"]["segment_id"] == "seg-4"
         assert ctx["derived_execution_head"]["segment_id"] == "seg-4"
-        assert ctx["active_execution_segment"]["segment_id"] == "seg-4"
         assert ctx["compat_resume_surface"]["execution_resume_file_source"] == "current_execution"
         assert ctx["compat_resume_surface"]["active_execution_segment"]["segment_id"] == "seg-4"
         assert ctx["compat_resume_surface"]["segment_candidates"][0]["source"] == "current_execution"
         assert ctx["compat_resume_surface"]["resume_mode"] == "bounded_segment"
-        assert ctx["segment_candidates"][0]["source"] == "current_execution"
-        assert "kind" not in ctx["segment_candidates"][0]
-        assert "origin" not in ctx["segment_candidates"][0]
+        assert "segment_candidates" not in ctx
         assert ctx["resume_candidates"][0]["kind"] == "bounded_segment"
         assert ctx["resume_candidates"][0]["origin"] == "derived_execution_head"
         assert ctx["resume_candidates"][0]["resume_pointer"] == "GPD/phases/03-analysis/.continue-here.md"
@@ -1112,10 +1109,10 @@ class TestInitResume:
 
         ctx = init_resume(tmp_path)
 
-        assert ctx["active_execution_segment"]["phase"] == "03"
-        assert ctx["active_execution_segment"]["plan"] == "02"
-        assert ctx["active_execution_segment"]["checkpoint_reason"] == "pre_fanout"
-        candidate = ctx["segment_candidates"][0]
+        assert ctx["active_bounded_segment"]["phase"] == "03"
+        assert ctx["active_bounded_segment"]["plan"] == "02"
+        assert ctx["active_bounded_segment"]["checkpoint_reason"] == "pre_fanout"
+        candidate = ctx["resume_candidates"][0]
         assert candidate["phase"] == "03"
         assert candidate["plan"] == "02"
         assert candidate["checkpoint_reason"] == "pre_fanout"
@@ -1145,10 +1142,10 @@ class TestInitResume:
 
         ctx = init_resume(tmp_path)
 
-        assert ctx["resume_mode"] == "bounded_segment"
+        assert "resume_mode" not in ctx
         assert ctx["execution_pre_fanout_review_pending"] is True
         assert ctx["execution_skeptical_requestioning_required"] is True
-        candidate = ctx["segment_candidates"][0]
+        candidate = ctx["resume_candidates"][0]
         assert candidate["checkpoint_reason"] == "pre_fanout"
         assert candidate["pre_fanout_review_pending"] is True
         assert candidate["skeptical_requestioning_required"] is True
@@ -1177,12 +1174,12 @@ class TestInitResume:
 
         ctx = init_resume(tmp_path)
 
-        assert ctx["resume_mode"] == "bounded_segment"
+        assert "resume_mode" not in ctx
         assert ctx["execution_pre_fanout_review_pending"] is True
         assert ctx["execution_downstream_locked"] is True
-        assert ctx["active_execution_segment"]["pre_fanout_review_cleared"] is True
-        assert ctx["segment_candidates"][0]["checkpoint_reason"] == "pre_fanout"
-        assert ctx["segment_candidates"][0]["pre_fanout_review_cleared"] is True
+        assert ctx["active_bounded_segment"]["pre_fanout_review_cleared"] is True
+        assert ctx["resume_candidates"][0]["checkpoint_reason"] == "pre_fanout"
+        assert ctx["resume_candidates"][0]["pre_fanout_review_cleared"] is True
 
     def test_non_resumable_live_execution_does_not_create_resume_candidate(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1201,16 +1198,16 @@ class TestInitResume:
 
         ctx = init_resume(tmp_path)
 
-        assert ctx["resume_mode"] is None
+        assert "resume_mode" not in ctx
         assert ctx["active_bounded_segment"] is None
         assert ctx["derived_execution_head"]["segment_id"] == "seg-4"
         assert ctx["active_resume_kind"] is None
         assert ctx["compat_resume_surface"]["active_execution_segment"]["segment_id"] == "seg-4"
         assert ctx["compat_resume_surface"]["segment_candidates"] == []
         assert ctx["compat_resume_surface"]["resume_mode"] is None
-        assert ctx["segment_candidates"] == []
+        assert "segment_candidates" not in ctx
         assert ctx["resume_candidates"] == []
-        assert ctx["active_execution_segment"]["segment_id"] == "seg-4"
+        assert "active_execution_segment" not in ctx
 
 # ─── init_verify_work ─────────────────────────────────────────────────────────
 

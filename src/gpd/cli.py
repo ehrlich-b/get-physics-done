@@ -60,6 +60,10 @@ from gpd.core.project_reentry import (
     resolve_project_reentry,
 )
 from gpd.core.recovery_advice import RecoveryAdvice, build_recovery_advice
+from gpd.core.resume_surface import (
+    build_resume_compat_surface,
+    canonicalize_resume_public_payload,
+)
 from gpd.core.surface_phrases import (
     local_cli_bridge_note,
     cost_inspect_action,
@@ -1183,42 +1187,9 @@ def _resume_candidate_phase_plan(candidate: dict[str, object]) -> str:
     return "—"
 
 
-_RESUME_COMPATIBILITY_KEYS = (
-    "active_execution_segment",
-    "current_execution",
-    "current_execution_resume_file",
-    "execution_resume_file",
-    "execution_resume_file_source",
-    "missing_session_resume_file",
-    "recorded_session_resume_file",
-    "resume_mode",
-    "segment_candidates",
-    "session_resume_file",
-)
-
-
 def _resume_compat_surface(payload: dict[str, object]) -> dict[str, object] | None:
     """Return the nested compatibility resume block when it exists or can be synthesized."""
-    compat_surface = payload.get("compat_resume_surface")
-    if isinstance(compat_surface, dict):
-        compat_surface = dict(compat_surface)
-    else:
-        for alias in ("legacy_resume_surface", "compatibility_resume_surface"):
-            alias_surface = payload.get(alias)
-            if isinstance(alias_surface, dict):
-                compat_surface = dict(alias_surface)
-                break
-        else:
-            compat_surface = {}
-
-    for key in _RESUME_COMPATIBILITY_KEYS:
-        if key in compat_surface:
-            continue
-        value = payload.get(key)
-        if value is not None:
-            compat_surface[key] = value
-
-    return compat_surface or None
+    return build_resume_compat_surface(payload)
 
 
 def _resume_surface_value(
@@ -1795,16 +1766,19 @@ def _resume_follow_up_actions(recovery_advice: RecoveryAdvice) -> list[str]:
 
 def _resume_augmented_payload(payload: dict[str, object], *, cwd: Path | None = None) -> dict[str, object]:
     """Augment the raw resume payload with canonical recovery projections."""
-    recovery_advice = _resume_recovery_advice(resume_payload=payload, recent_rows=[], cwd=cwd)
-    augmented = dict(payload)
-    compat_surface = _resume_compat_surface(payload)
-    active_bounded_segment = _resume_surface_value(payload, compat_surface, "active_bounded_segment")
-    derived_execution_head = _resume_surface_value(payload, compat_surface, "derived_execution_head")
-    active_execution_raw = active_bounded_segment or derived_execution_head or _resume_surface_value(payload, compat_surface, "active_execution_segment")
+    public_payload = canonicalize_resume_public_payload(payload)
+    for key in ("legacy_resume_surface", "compatibility_resume_surface"):
+        public_payload.pop(key, None)
+
+    recovery_advice = _resume_recovery_advice(resume_payload=public_payload, recent_rows=[], cwd=cwd)
+    compat_surface = _resume_compat_surface(public_payload)
+    active_bounded_segment = _resume_surface_value(public_payload, compat_surface, "active_bounded_segment")
+    derived_execution_head = _resume_surface_value(public_payload, compat_surface, "derived_execution_head")
+    active_execution_raw = active_bounded_segment or derived_execution_head or _resume_surface_value(public_payload, compat_surface, "active_execution_segment")
     active_execution = active_execution_raw if isinstance(active_execution_raw, dict) else None
-    current_execution_raw = _resume_surface_value(payload, compat_surface, "current_execution")
+    current_execution_raw = _resume_surface_value(public_payload, compat_surface, "current_execution")
     current_execution = current_execution_raw if isinstance(current_execution_raw, dict) else None
-    segment_candidates = _resume_visible_candidates(payload, compat_surface)
+    segment_candidates = _resume_visible_candidates(public_payload, compat_surface)
     projected_candidates = [
         _resume_candidate_projection(
             candidate,
@@ -1813,16 +1787,21 @@ def _resume_augmented_payload(payload: dict[str, object], *, cwd: Path | None = 
         )
         for candidate in segment_candidates
     ]
+    augmented = dict(public_payload)
+    compat_resume_surface = augmented.pop("compat_resume_surface", None)
     augmented["recovery_status"] = recovery_advice.status
     augmented["recovery_status_label"] = _resume_status_label(recovery_advice.status)
-    augmented["recovery_summary"] = _resume_status_message(payload, recovery_advice=recovery_advice)
-    augmented["resume_mode_label"] = _resume_mode_label(_resume_surface_value(payload, compat_surface, "resume_mode"))
+    augmented["recovery_summary"] = _resume_status_message(public_payload, recovery_advice=recovery_advice)
+    active_resume_kind = public_payload.get("active_resume_kind")
+    if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
+        active_resume_kind = _resume_surface_value(public_payload, compat_surface, "resume_mode")
+    augmented["active_resume_kind_label"] = _resume_mode_label(active_resume_kind)
     augmented["recovery_advice"] = recovery_advice.model_dump(mode="json")
     augmented["recovery_candidates"] = projected_candidates
-    if compat_surface is not None:
-        augmented["compat_resume_surface"] = compat_surface
     if projected_candidates:
         augmented["primary_recovery_target"] = projected_candidates[0]
+    if compat_resume_surface is not None:
+        augmented["compat_resume_surface"] = compat_resume_surface
     return augmented
 
 
@@ -1918,7 +1897,10 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
         )
     summary.add_row("Status", _resume_status_message(payload, recovery_advice=recovery_advice))
     summary.add_row("Recovery", _resume_status_label(recovery_advice.status))
-    summary.add_row("Resume mode", _resume_mode_label(_resume_surface_value(payload, compat_surface, "resume_mode")))
+    active_resume_kind = payload.get("active_resume_kind")
+    if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
+        active_resume_kind = _resume_surface_value(payload, compat_surface, "resume_mode")
+    summary.add_row("Primary resume kind", _resume_mode_label(active_resume_kind))
     summary.add_row("Candidates", str(len(segment_candidates)))
     summary.add_row("Live execution", "yes" if bool(payload.get("has_live_execution")) else "no")
     summary.add_row("Autonomy", str(payload.get("autonomy") or "unknown"))

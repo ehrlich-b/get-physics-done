@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -51,6 +52,10 @@ from gpd.core.phases import _milestone_completion_snapshot
 from gpd.core.project_reentry import resolve_project_reentry
 from gpd.core.protocol_bundles import render_protocol_bundle_context, select_protocol_bundles
 from gpd.core.reference_ingestion import ingest_reference_artifacts
+from gpd.core.resume_surface import (
+    canonicalize_resume_public_payload,
+    build_resume_compat_surface,
+)
 from gpd.core.state import (
     EM_DASH,
     _current_machine_identity,
@@ -1118,29 +1123,46 @@ def _has_resume_candidate(
     return False
 
 
-def _build_resume_compat_surface(payload: dict[str, object]) -> dict[str, object]:
-    """Return the legacy resume envelope grouped under a compatibility block."""
+_RESUME_COMPAT_SURFACE_FIELDS = (
+    "current_execution",
+    "current_execution_resume_file",
+    "session_resume_file",
+    "recorded_session_resume_file",
+    "missing_session_resume_file",
+    "execution_resume_file",
+    "execution_resume_file_source",
+    "execution_resumable",
+    "execution_paused_at",
+    "execution_review_pending",
+    "execution_pre_fanout_review_pending",
+    "execution_skeptical_requestioning_required",
+    "execution_downstream_locked",
+    "execution_blocked",
+    "active_execution_segment",
+    "segment_candidates",
+    "resume_mode",
+    "has_interrupted_agent",
+    "interrupted_agent_id",
+    "has_live_execution",
+)
+
+_EXECUTION_RUNTIME_RESUME_ALIAS_FIELDS = (
+    "current_execution",
+    "current_execution_resume_file",
+    "session_resume_file",
+    "recorded_session_resume_file",
+    "missing_session_resume_file",
+    "execution_resume_file",
+    "execution_resume_file_source",
+)
+
+
+def _public_execution_runtime_context(execution_context: Mapping[str, object]) -> dict[str, object]:
+    """Filter execution runtime context down to the non-compat public fields."""
     return {
-        "current_execution": payload.get("current_execution"),
-        "current_execution_resume_file": payload.get("current_execution_resume_file"),
-        "session_resume_file": payload.get("session_resume_file"),
-        "recorded_session_resume_file": payload.get("recorded_session_resume_file"),
-        "missing_session_resume_file": payload.get("missing_session_resume_file"),
-        "execution_resume_file": payload.get("execution_resume_file"),
-        "execution_resume_file_source": payload.get("execution_resume_file_source"),
-        "execution_resumable": payload.get("execution_resumable"),
-        "execution_paused_at": payload.get("execution_paused_at"),
-        "execution_review_pending": payload.get("execution_review_pending"),
-        "execution_pre_fanout_review_pending": payload.get("execution_pre_fanout_review_pending"),
-        "execution_skeptical_requestioning_required": payload.get("execution_skeptical_requestioning_required"),
-        "execution_downstream_locked": payload.get("execution_downstream_locked"),
-        "execution_blocked": payload.get("execution_blocked"),
-        "active_execution_segment": payload.get("active_execution_segment"),
-        "segment_candidates": payload.get("segment_candidates"),
-        "resume_mode": payload.get("resume_mode"),
-        "has_interrupted_agent": payload.get("has_interrupted_agent"),
-        "interrupted_agent_id": payload.get("interrupted_agent_id"),
-        "has_live_execution": payload.get("has_live_execution"),
+        key: value
+        for key, value in execution_context.items()
+        if key != "resume_projection" and key not in _EXECUTION_RUNTIME_RESUME_ALIAS_FIELDS
     }
 
 
@@ -1280,7 +1302,7 @@ def _build_legacy_resume_state(
         "has_interrupted_agent": interrupted_agent_id is not None,
         "interrupted_agent_id": interrupted_agent_id,
     }
-    result["compat_resume_surface"] = _build_resume_compat_surface(result)
+    result["compat_resume_surface"] = build_resume_compat_surface(result, fields=_RESUME_COMPAT_SURFACE_FIELDS)
     return result
 
 
@@ -1431,7 +1453,7 @@ def _build_resume_read_state(
             "has_interrupted_agent": interrupted_agent_id is not None,
             "interrupted_agent_id": interrupted_agent_id,
         }
-        result["compat_resume_surface"] = _build_resume_compat_surface(result)
+        result["compat_resume_surface"] = build_resume_compat_surface(result, fields=_RESUME_COMPAT_SURFACE_FIELDS)
         return result
 
     try:
@@ -1463,7 +1485,7 @@ def _build_resume_read_state(
             "has_interrupted_agent": interrupted_agent_id is not None,
             "interrupted_agent_id": interrupted_agent_id,
         }
-        result["compat_resume_surface"] = _build_resume_compat_surface(result)
+        result["compat_resume_surface"] = build_resume_compat_surface(result, fields=_RESUME_COMPAT_SURFACE_FIELDS)
         return result
 
 
@@ -1935,16 +1957,9 @@ def init_resume(cwd: Path, *, data_root: Path | None = None) -> dict:
         execution_context,
         interrupted_agent_id=interrupted_agent_id,
     )
-    current_execution = continuation_state.get("active_execution_segment")
-    segment_candidates = continuation_state.get("segment_candidates")
-    if not isinstance(segment_candidates, list):
-        segment_candidates = []
     active_bounded_segment = continuation_state.get("active_bounded_segment")
     if not isinstance(active_bounded_segment, dict):
         active_bounded_segment = None
-    resume_mode = continuation_state.get("resume_mode")
-    if not isinstance(resume_mode, str) or not resume_mode.strip():
-        resume_mode = None
     has_interrupted_agent = bool(continuation_state.get("has_interrupted_agent"))
     normalized_interrupted_agent_id = continuation_state.get("interrupted_agent_id")
     if not isinstance(normalized_interrupted_agent_id, str) or not normalized_interrupted_agent_id.strip():
@@ -1964,7 +1979,7 @@ def init_resume(cwd: Path, *, data_root: Path | None = None) -> dict:
         derived_execution_head = execution_context.get("current_execution") if isinstance(execution_context.get("current_execution"), dict) else None
     resume_candidates = continuation_state.get("resume_candidates")
     if not isinstance(resume_candidates, list):
-        resume_candidates = segment_candidates
+        resume_candidates = []
     active_resume_kind = continuation_state.get("active_resume_kind")
     if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
         active_resume_kind = None
@@ -2015,19 +2030,19 @@ def init_resume(cwd: Path, *, data_root: Path | None = None) -> dict:
         "active_resume_origin": active_resume_origin,
         "active_resume_pointer": active_resume_pointer,
         "resume_candidates": resume_candidates,
-        "active_execution_segment": current_execution,
-        "segment_candidates": segment_candidates,
-        "resume_mode": resume_mode,
         # Platform
         "platform": _detect_platform(effective_cwd),
     }
     result.update(_build_reference_runtime_context(effective_cwd))
-    execution_public = {
-        key: value for key, value in execution_context.items() if key != "resume_projection"
-    }
+    execution_public = _public_execution_runtime_context(execution_context)
     result.update(execution_public)
-    result["compat_resume_surface"] = _build_resume_compat_surface(result)
-    return result
+    result["compat_resume_surface"] = build_resume_compat_surface(
+        result,
+        continuation_state,
+        execution_context,
+        fields=_RESUME_COMPAT_SURFACE_FIELDS,
+    )
+    return canonicalize_resume_public_payload(result, compat_fields=_RESUME_COMPAT_SURFACE_FIELDS)
 
 
 def init_verify_work(cwd: Path, phase: str | None) -> dict:
