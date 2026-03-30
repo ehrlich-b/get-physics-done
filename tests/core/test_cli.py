@@ -12,7 +12,7 @@ import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, call, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -2486,9 +2486,11 @@ def test_result_upsert_without_explicit_id(mock_upsert, tmp_path: Path):
 
 @patch("gpd.cli._resolve_derived_result_id")
 @patch("gpd.core.state.state_carry_forward_continuation_last_result_id")
+@patch("gpd.core.observability.sync_execution_visibility_from_canonical_continuation", create=True)
 @patch("gpd.core.results.result_upsert_derived", create=True)
 def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
     mock_upsert_derived,
+    mock_sync_visibility,
     mock_carry_forward,
     mock_resolve,
     tmp_path: Path,
@@ -2509,6 +2511,9 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
     mock_upsert_derived.return_value = mock_result
     mock_carry_forward.return_value = MagicMock(updated=False)
     mock_resolve.return_value = "R-02-effective-mass"
+    ordered_calls = MagicMock()
+    ordered_calls.attach_mock(mock_carry_forward, "carry")
+    ordered_calls.attach_mock(mock_sync_visibility, "sync")
     planning = tmp_path / "GPD"
     planning.mkdir()
     (planning / "state.json").write_text("{}", encoding="utf-8")
@@ -2555,13 +2560,23 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(
     carry_args, carry_kwargs = mock_carry_forward.call_args
     assert carry_args[1] == "R-02"
     assert carry_kwargs["state_obj"] is not None
+    mock_sync_visibility.assert_called_once()
+    sync_args, sync_kwargs = mock_sync_visibility.call_args
+    assert sync_args[0] == tmp_path
+    assert sync_kwargs["state_obj"] is not None
+    assert ordered_calls.mock_calls == [
+        call.carry(ANY, "R-02", state_obj=ANY),
+        call.sync(ANY, state_obj=ANY),
+    ]
 
 
 @patch("gpd.cli._resolve_derived_result_id")
 @patch("gpd.core.state.state_carry_forward_continuation_last_result_id")
+@patch("gpd.core.observability.sync_execution_visibility_from_canonical_continuation", create=True)
 @patch("gpd.core.results.result_upsert_derived", create=True)
 def test_result_persist_derived_auto_seeds_continuity_anchor_from_actual_result_id(
     mock_upsert_derived,
+    mock_sync_visibility,
     mock_carry_forward,
     mock_resolve,
     tmp_path: Path,
@@ -2613,10 +2628,15 @@ def test_result_persist_derived_auto_seeds_continuity_anchor_from_actual_result_
     assert payload["requested_result_redirected"] is True
     assert payload["continuity_last_result_id"] == "R-01"
     assert payload["continuity_recorded"] is True
+    assert "observability_synced" not in payload
     mock_carry_forward.assert_called_once()
     carry_args, carry_kwargs = mock_carry_forward.call_args
     assert carry_args[1] == "R-01"
     assert carry_kwargs["state_obj"] is not None
+    mock_sync_visibility.assert_called_once()
+    sync_args, sync_kwargs = mock_sync_visibility.call_args
+    assert sync_args[0] == tmp_path
+    assert sync_kwargs["state_obj"] is not None
 
 
 def test_result_persist_derived_uses_resolved_result_id_for_real_state_write(

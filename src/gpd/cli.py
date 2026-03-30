@@ -2343,6 +2343,91 @@ def _resolve_derived_result_id(
     return f"R-{phase_normalize(str(resolved_phase)).replace('.', '_')}-{slug[:48]}"
 
 
+def _sync_execution_visibility_projection(cwd: Path, *, state_obj: dict[str, object]) -> None:
+    """Best-effort observability projection that never invents new execution state."""
+    from gpd.core import observability as _observability
+
+    for helper_name in (
+        "sync_execution_visibility_from_canonical_continuation",
+        "sync_execution_visibility_from_continuation",
+        "sync_live_execution_visibility_from_continuation",
+    ):
+        helper = getattr(_observability, helper_name, None)
+        if callable(helper):
+            try:
+                helper(cwd, state_obj=state_obj)
+            except Exception:
+                pass
+            else:
+                return
+
+    from gpd.core.constants import ProjectLayout
+    from gpd.core.execution_lineage import load_execution_lineage_head, write_execution_lineage_head
+    from gpd.core.observability import _existing_current_execution_snapshot, _save_current_execution
+
+    layout = ProjectLayout(cwd)
+    if not layout.current_observability_execution.exists() and not layout.execution_lineage_head.exists():
+        return
+
+    live_execution = _existing_current_execution_snapshot(layout)
+    if live_execution is None:
+        return
+
+    continuation = state_obj.get("continuation")
+    bounded_segment = continuation.get("bounded_segment") if isinstance(continuation, dict) else None
+    if not isinstance(bounded_segment, dict):
+        return
+
+    for key in ("resume_file", "segment_id", "phase", "plan", "transition_id"):
+        canonical_value = bounded_segment.get(key)
+        live_value = getattr(live_execution, key, None)
+        if canonical_value is not None and live_value is not None and canonical_value != live_value:
+            return
+
+    last_result_id = bounded_segment.get("last_result_id")
+    if not isinstance(last_result_id, str) or not last_result_id.strip():
+        return
+    last_result_id = last_result_id.strip()
+
+    result_label: str | None = None
+    intermediate_results = state_obj.get("intermediate_results")
+    if isinstance(intermediate_results, list):
+        for result in intermediate_results:
+            if not isinstance(result, dict):
+                continue
+            if result.get("id") != last_result_id:
+                continue
+            description = result.get("description")
+            if isinstance(description, str) and description.strip():
+                result_label = description.strip()
+            else:
+                equation = result.get("equation")
+                if isinstance(equation, str) and equation.strip():
+                    result_label = equation.strip()
+            break
+
+    updated_execution = live_execution.model_copy(
+        update={"last_result_id": last_result_id, "last_result_label": result_label}
+    )
+    if layout.current_observability_execution.exists():
+        _save_current_execution(layout, updated_execution)
+
+    if not layout.execution_lineage_head.exists():
+        return
+    head = load_execution_lineage_head(cwd)
+    if head is None:
+        return
+    write_execution_lineage_head(
+        cwd,
+        head.model_copy(
+            update={
+                "execution": updated_execution.model_dump(mode="json"),
+                "bounded_segment": bounded_segment,
+            }
+        ),
+    )
+
+
 @result_app.command("add")
 def result_add(
     id: str | None = typer.Option(None, "--id", help="Result ID"),
@@ -2471,6 +2556,8 @@ def result_persist_derived(
         )
         continuity_recorded = bool(getattr(continuity_result, "updated", False))
         save_state_json_locked(cwd, state)
+
+    _sync_execution_visibility_projection(cwd, state_obj=state)
 
     _output(
         {
