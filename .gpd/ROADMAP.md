@@ -168,7 +168,11 @@ See `.gpd/milestones/v9.0-ROADMAP.md` for full details.
 
 **Backtracking trigger:** If the logical chain for Gap C or Gap D contains an irreducible assumption that cannot be derived from any universality class property, document precisely what additional input is needed and whether it can be obtained from H_eff properties.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 37-01-PLAN.md -- Gap C and Gap D closure chains (BW -> Lovelock, BW -> Gibbs -> MVEH)
+- [ ] 37-02-PLAN.md -- Formal theorem statement, dependency matrix, upgrade assessment
 
 ---
 
@@ -289,7 +293,7 @@ See `.gpd/milestones/v9.0-ROADMAP.md` for full details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 37. Gap Dependency Theorem | v10.0 | 0/TBD | Not started | - |
+| 37. Gap Dependency Theorem | v10.0 | 0/2 | Planned | - |
 | 38. Effective Hamiltonian | v10.0 | 0/TBD | Not started | - |
 | 39. SSB + Universality Class | v10.0 | 0/TBD | Not started | - |
 | 40. Assembly | v10.0 | 0/TBD | Not started | - |
