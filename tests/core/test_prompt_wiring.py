@@ -972,6 +972,10 @@ def test_reference_workflows_require_anchor_registry_propagation() -> None:
     assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in literature_workflow
     assert "Active Anchor Registry" in literature_command
     assert "active_anchors" in literature_agent
+    assert "GPD/literature/{slug}-CITATION-SOURCES.json" in literature_agent
+    assert "compatible with the `CitationSource` shape" in literature_agent
+    assert "gpd paper-build --citation-sources" in literature_agent
+    assert "reference_id" in literature_agent
     assert "project_contract_load_info" in compare_workflow
     assert "project_contract_validation" in compare_workflow
     assert "active_reference_context" in compare_workflow
@@ -1986,7 +1990,13 @@ def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
     assert "active_resume_kind" in resume_work
     assert "resume_candidates" in resume_work
     assert "Compatibility-only raw envelope cues:" in resume_work
+    assert "Canonical continuation and recovery authority:" in resume_work
+    assert "nested legacy labels" in resume_work
     assert "session_resume_file" in resume_work
+    assert "current_execution" in resume_work
+    assert "continuity_handoff_file" in resume_work
+    assert "recorded_continuity_handoff_file" in resume_work
+    assert "missing_continuity_handoff_file" in resume_work
     assert "machine_change_detected" in resume_work
     assert "machine_change_notice" in resume_work
     assert "current_hostname" in resume_work
@@ -2035,12 +2045,15 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "machine-readable intake" in resume_work
     assert "resume_candidates" in resume_work
     assert "legacy candidate/source labels" in resume_work
+    assert "nested compatibility-only aliases" in resume_work
     assert "Do NOT invent additional candidates from plan files without summaries, auto-checkpoints, or other ad hoc checkpoints." in resume_work
     assert "/gpd:resume-work" in pause_work
     assert "gpd resume" in pause_work
     assert "gpd resume --recent" in pause_work
     assert "This is the canonical recorded handoff artifact for the current phase." in pause_work
     assert "continuation handoff artifact" in pause_work or "session continuity" in pause_work
+    assert "Public resume vocabulary centers on" in help_workflow
+    assert "nested compatibility-only cues" in help_workflow
     assert_recovery_ladder_contract(
         help_workflow,
         resume_work_fragments=("/gpd:resume-work",),
