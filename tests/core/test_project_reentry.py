@@ -120,6 +120,72 @@ def test_resolve_project_reentry_auto_selects_unique_recoverable_recent_project(
     assert resolution.candidates[0].recoverable is True
 
 
+def test_resolve_project_reentry_prefers_unique_strong_recent_candidate_over_weak_recent_candidate(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    strong = _make_gpd_workspace(tmp_path / "recent-strong", project=True)
+    weak = _make_gpd_workspace(tmp_path / "recent-weak", project=True)
+
+    resolution = resolve_project_reentry(
+        workspace,
+        recent_rows=[
+            {
+                **_recent_row(weak, last_session_at="2026-03-28T14:00:00+00:00"),
+                "resume_file": None,
+                "resume_file_available": False,
+                "resumable": False,
+            },
+            _recent_row(
+                strong,
+                last_session_at="2026-03-28T15:00:00+00:00",
+            ),
+        ],
+    )
+
+    assert resolution.mode == "auto-recent-project"
+    assert resolution.source == "recent_project"
+    assert resolution.auto_selected is True
+    assert resolution.requires_user_selection is False
+    assert resolution.project_root == strong.resolve(strict=False).as_posix()
+    assert resolution.candidates[0].project_root == strong.resolve(strict=False).as_posix()
+    assert resolution.candidates[0].auto_selectable is True
+    assert resolution.candidates[0].confidence == "high"
+    assert resolution.candidates[1].project_root == weak.resolve(strict=False).as_posix()
+    assert resolution.candidates[1].auto_selectable is False
+    assert resolution.candidates[1].confidence == "medium"
+
+
+def test_resolve_project_reentry_keeps_sole_weak_recent_project_explicit(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    weak = _make_gpd_workspace(tmp_path / "recent-weak", project=True)
+
+    resolution = resolve_project_reentry(
+        workspace,
+        recent_rows=[
+            {
+                **_recent_row(weak, last_session_at="2026-03-28T15:00:00+00:00"),
+                "resume_file": None,
+                "resume_file_available": False,
+                "resumable": False,
+            }
+        ],
+    )
+
+    assert resolution.mode == "recent-projects"
+    assert resolution.source is None
+    assert resolution.auto_selected is False
+    assert resolution.requires_user_selection is False
+    assert resolution.project_root is None
+    assert resolution.recoverable_candidates_count == 1
+    assert len(resolution.candidates) == 1
+    assert resolution.candidates[0].project_root == weak.resolve(strict=False).as_posix()
+    assert resolution.candidates[0].auto_selectable is False
+    assert resolution.candidates[0].confidence == "medium"
+
+
 def test_resolve_project_reentry_requires_user_selection_for_ambiguous_recent_projects(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -143,6 +209,30 @@ def test_resolve_project_reentry_requires_user_selection_for_ambiguous_recent_pr
     assert len(resolution.candidates) == 2
     assert all(candidate.source == "recent_project" for candidate in resolution.candidates)
     assert all(candidate.auto_selectable is False for candidate in resolution.candidates)
+    assert resolution.candidates[0].last_session_at == "2026-03-28T13:00:00+00:00"
+    assert resolution.candidates[1].last_session_at == "2026-03-28T12:00:00+00:00"
+
+
+def test_resolve_project_reentry_prefers_current_workspace_over_recent_project(tmp_path: Path) -> None:
+    workspace = _make_gpd_workspace(tmp_path / "workspace", project=True)
+    strong_recent = _make_gpd_workspace(tmp_path / "recent-strong", project=True)
+
+    resolution = resolve_project_reentry(
+        workspace,
+        recent_rows=[
+            _recent_row(strong_recent, last_session_at="2026-03-28T15:00:00+00:00"),
+        ],
+    )
+
+    assert resolution.mode == "current-workspace"
+    assert resolution.source == "current_workspace"
+    assert resolution.auto_selected is False
+    assert resolution.requires_user_selection is False
+    assert resolution.project_root == workspace.resolve(strict=False).as_posix()
+    assert resolution.candidates[0].source == "current_workspace"
+    assert resolution.candidates[0].project_root == workspace.resolve(strict=False).as_posix()
+    assert resolution.candidates[1].source == "recent_project"
+    assert resolution.candidates[1].project_root == strong_recent.resolve(strict=False).as_posix()
 
 
 def test_resolve_project_reentry_dedupes_current_workspace_and_recent_project_rows(tmp_path: Path) -> None:
