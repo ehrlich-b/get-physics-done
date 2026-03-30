@@ -432,5 +432,27 @@ At T = T_c (beta_c J = 2.2746 for d = 3): g^2_c = 8/(2.2746) ~ 3.52. This is not
 
 ---
 
+## Section 8: Logical Chain Closure
+
+The v10.0 logical chain from H_eff to Einstein equation is:
+
+$$
+H_{\text{eff}} \xrightarrow{\text{Phase 38}} \text{Spin(9) symmetry on } Z^d \xrightarrow{\text{Phase 39 Plan 01}} \text{SSB: Spin(9)} \to \text{Spin(8)}
+$$
+
+$$
+\xrightarrow{\text{Plan 02}} \text{8 Type-A Goldstone} \xrightarrow{\text{Plan 03}} \text{O(9) NL}\sigma\text{ on } S^8 \xrightarrow{\text{Plan 04}} \text{UC1-UC4}
+$$
+
+$$
+\xrightarrow{\text{Phase 37}} \text{Gap Dependency} \xrightarrow{\text{+UC5-UC10}} \text{Gaps A-D close} \to \text{Einstein equation}
+$$
+
+**What Phase 39 closes:** The UC1-UC4 verification was the specific handoff from Phase 37 (gap dependency theorem). Phase 37 proved that UC1-UC4 + other assumptions imply gap closure. Phase 39 verified UC1-UC4 for the specific H_eff system. This completes the lattice-to-continuum bridge.
+
+**What remains for Phase 40:** Assembly of the full chain, assessment of the remaining 7 assumed conditions (UC5-UC10, H3-H4, TL), and honest accounting of what is proved, what is conditional, and what is assumed.
+
+---
+
 _Phase: 39-spontaneous-symmetry-breaking-and-universality-class, Plan 04_
 _Completed: 2026-03-30_
