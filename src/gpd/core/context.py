@@ -856,6 +856,63 @@ def _build_reference_runtime_context(cwd: Path) -> dict[str, object]:
     }
 
 
+def _is_populated_state_value(value: object) -> bool:
+    """Return whether one state value should count as meaningfully set."""
+    if value is None:
+        return False
+    if isinstance(value, str):
+        stripped = value.strip()
+        return bool(stripped) and stripped.lower() not in {"none", "null", "undefined"}
+    if isinstance(value, (list, dict, set, tuple)):
+        return bool(value)
+    return True
+
+
+def _build_structured_state_runtime_context(cwd: Path) -> dict[str, object]:
+    """Expose authoritative structured state fields for workflows that need them."""
+    state, _state_issues, _state_source = _peek_state_json(cwd)
+    if not isinstance(state, dict):
+        return {
+            "convention_lock": {},
+            "convention_lock_set_count": 0,
+            "approximations": [],
+            "approximation_count": 0,
+            "intermediate_results": [],
+            "intermediate_result_count": 0,
+        }
+
+    convention_lock = state.get("convention_lock")
+    if not isinstance(convention_lock, dict):
+        convention_lock = {}
+    custom_conventions = (
+        convention_lock.get("custom_conventions")
+        if isinstance(convention_lock.get("custom_conventions"), dict)
+        else {}
+    )
+    convention_lock_set_count = sum(
+        1
+        for key, value in convention_lock.items()
+        if key != "custom_conventions" and _is_populated_state_value(value)
+    ) + sum(1 for value in custom_conventions.values() if _is_populated_state_value(value))
+
+    approximations = state.get("approximations")
+    if not isinstance(approximations, list):
+        approximations = []
+
+    intermediate_results = state.get("intermediate_results")
+    if not isinstance(intermediate_results, list):
+        intermediate_results = []
+
+    return {
+        "convention_lock": convention_lock,
+        "convention_lock_set_count": convention_lock_set_count,
+        "approximations": approximations,
+        "approximation_count": len(approximations),
+        "intermediate_results": intermediate_results,
+        "intermediate_result_count": len(intermediate_results),
+    }
+
+
 def _build_execution_runtime_context(cwd: Path) -> dict[str, object]:
     """Build shared live execution-state context for orchestration surfaces."""
     from gpd.core.observability import get_current_execution
@@ -1651,6 +1708,7 @@ def init_execute_phase(cwd: Path, phase: str | None, includes: set[str] | None =
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_structured_state_runtime_context(cwd))
     result.update(_build_execution_runtime_context(cwd))
 
     # Include file contents if requested
@@ -2075,6 +2133,7 @@ def init_phase_op(cwd: Path, phase: str | None = None, includes: set[str] | None
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_structured_state_runtime_context(cwd))
     result.update(_build_execution_runtime_context(cwd))
 
     planning = cwd / PLANNING_DIR_NAME
@@ -2344,6 +2403,7 @@ def init_progress(cwd: Path, includes: set[str] | None = None, *, data_root: Pat
         "platform": _detect_platform(effective_cwd),
     }
     result.update(_build_reference_runtime_context(effective_cwd))
+    result.update(_build_structured_state_runtime_context(effective_cwd))
     result.update(_build_execution_runtime_context(effective_cwd))
     if result.get("execution_paused_at"):
         result["paused_at"] = result["execution_paused_at"]
