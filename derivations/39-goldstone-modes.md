@@ -167,7 +167,156 @@ The difference is fundamental: SU(2) spin representations are COMPLEX, so the co
 - Complex representation: rho != 0, Type-B (quadratic dispersion)
 - Real representation: rho = 0, Type-A (linear dispersion)
 
+## 3. Watanabe-Murayama Counting
+
+### 3.1 The Counting Rule
+
+The Watanabe-Murayama counting rule (PRL 108, 251602, 2012; Ann. Rev. Cond. Mat. Phys. 11, 2020) states:
+
+$$
+n_A + 2 n_B = n_{BG}
+$$
+
+where:
+- $n_{BG}$ = number of broken generators = 8 (from Spin(9)/Spin(8))
+- $n_B$ = (1/2) rank($\rho_{ab}$) = number of Type-B Goldstone modes
+- $n_A$ = number of Type-A Goldstone modes
+
+### 3.2 Application to Spin(9)/Spin(8)
+
+From Section 2: rank($\rho_{ab}$) = 0.
+
+$$
+n_B = \tfrac{1}{2} \times 0 = 0
+$$
+
+$$
+n_A = n_{BG} - 2 n_B = 8 - 0 = 8
+$$
+
+**Verification of sum rule:** $n_A + 2 n_B = 8 + 0 = 8 = n_{BG}$. Exact.
+
+### 3.3 Goldstone Mode Classification
+
+$$
+\boxed{n_A = 8, \quad n_B = 0}
+$$
+
+All 8 Goldstone modes are **Type-A** (linear dispersion).
+
+## 4. Dispersion Relations
+
+### 4.1 Type-A Dispersion
+
+For the 8 Type-A Goldstone modes, the low-energy dispersion relation is:
+
+$$
+\omega_a(\mathbf{k}) = c_s |\mathbf{k}| + O(k^2), \quad a = 1, \ldots, 8
+$$
+
+where $c_s$ is the spin-wave velocity.
+
+**Dimensional check:** $[\omega] = [\text{energy}]$, $[k] = [1/\text{length}]$, $[c_s] = [\text{length} \times \text{energy}] = [\text{velocity}]$ (in natural units with hbar = 1). Consistent.
+
+### 4.2 Spin-Wave Velocity
+
+For the O(N) sigma model on Z^d with N = 9:
+
+$$
+c_s = \sqrt{\frac{2 J \rho_s}{\chi_\perp}}
+$$
+
+where $\rho_s$ is the spin stiffness and $\chi_\perp$ is the transverse susceptibility. Both depend on temperature and can be computed from quantum Monte Carlo or spin-wave theory.
+
+At leading spin-wave order for the O(9) model: $c_s = J a \sqrt{2/N} = J a \sqrt{2/9}$ where $a$ is the lattice spacing (= 1 in our units). With the QMC-calibrated value from Phase 34 (for O(3)): $c_s \approx 1.659 J a$. The O(9) value will differ but has the same scaling.
+
+### 4.3 Absence of Type-B Modes
+
+There are NO Type-B modes. The dispersion does NOT contain any quadratic branches $\omega \sim k^2$. The entire low-energy spectrum is relativistic.
+
+## 5. Impact on Lorentz Emergence
+
+### 5.1 The Critical Question
+
+The central question of Plan 02 was: do the Goldstone modes of the Spin(9) -> Spin(8) breaking have linear (Type-A) or quadratic (Type-B) dispersion?
+
+**Answer:** ALL 8 modes are Type-A with linear dispersion $\omega = c_s |k|$.
+
+### 5.2 Consequences for Lorentz Invariance
+
+The sigma model on S^8 = Spin(9)/Spin(8) has action:
+
+$$
+S_\sigma = \frac{\rho_s}{2} \int d^d x \, \partial_\mu \mathbf{n} \cdot \partial_\mu \mathbf{n}, \quad \mathbf{n} \in S^8
+$$
+
+with relativistic dispersion $\omega = c_s |k|$. After Wick rotation and rescaling $x_0 = c_s \tau$, this becomes the O(9)-invariant Euclidean action:
+
+$$
+S_E = \frac{\rho_s}{2 c_s} \int d^{d+1} x \, \partial_\mu \mathbf{n} \cdot \partial_\mu \mathbf{n}
+$$
+
+which has full O(d+1) rotational invariance. In the physical $d = 3$ case, O(4) Euclidean rotation symmetry $\to$ SO(3,1) Lorentz symmetry upon continuation back to Minkowski signature.
+
+**Verdict:** Lorentz emergence is CONSISTENT with the Goldstone mode spectrum. The speed $c_s$ becomes the emergent speed of light.
+
+### 5.3 Comparison with What Could Have Gone Wrong
+
+If rho_ab had been nonzero (as expected for a "generic" ferromagnet with complex representation):
+- rank(rho) = 8 would give n_B = 4, n_A = 0: all modes Type-B, Lorentz fails completely
+- rank(rho) = 4 would give n_B = 2, n_A = 4: mixed spectrum, partial Lorentz
+- rank(rho) = 2 would give n_B = 1, n_A = 6: mostly Type-A but not fully relativistic
+
+The fact that rank(rho) = 0 is the BEST CASE for Lorentz emergence. It is not fine-tuned -- it is a structural consequence of the representation being real.
+
+## 6. Benchmark: O(3) Heisenberg Ferromagnet
+
+### 6.1 SU(2) Spin-1/2 (Complex Representation)
+
+The standard Heisenberg ferromagnet has SU(2) symmetry with generators S_x, S_y, S_z that are COMPLEX Hermitian matrices ($S_x = (1/2)\sigma_x$, etc.). The SSB pattern is SU(2) -> U(1), with broken generators S_x, S_y.
+
+$$
+\rho_{12} = \langle \uparrow | [S_x, S_y] | \uparrow \rangle = \langle \uparrow | i S_z | \uparrow \rangle = i/2 \neq 0
+$$
+
+rank(rho) = 2 (full rank for the 2x2 case), so n_B = 1, n_A = 0. The single Goldstone mode is Type-B with $\omega \sim k^2$. This is the standard ferromagnetic magnon.
+
+### 6.2 O(3) Vector Model (Real Representation)
+
+The O(3) nonlinear sigma model has generators L_x, L_y, L_z as 3x3 real antisymmetric matrices acting on R^3. The SSB pattern is O(3) -> O(2), ordered along z.
+
+For a REAL vector $\mathbf{e}_3 = (0,0,1)^T$ and the REAL ANTISYMMETRIC generator $L_z$:
+
+$$
+\rho_{12} = \mathbf{e}_3^T [L_x, L_y] \mathbf{e}_3 = \mathbf{e}_3^T L_z \mathbf{e}_3 = 0
+$$
+
+(since $L_z$ is antisymmetric and $\mathbf{e}_3$ is real). rank(rho) = 0, n_A = 2, n_B = 0. Both Goldstone modes are Type-A with $\omega = c_s |k|$.
+
+### 6.3 The Pattern
+
+| Model | Representation | rho_ab | rank | Type | Dispersion |
+|-------|---------------|--------|------|------|------------|
+| SU(2) spin-1/2 ferromagnet | Complex | != 0 | 2 | B | omega ~ k^2 |
+| O(3) vector model | Real | = 0 | 0 | A | omega ~ \|k\| |
+| O(9) Clifford model (ours) | Real | = 0 | 0 | A | omega ~ \|k\| |
+
+Our model falls in the same class as the O(N) vector model with real representation, NOT the SU(2) spin model with complex representation.
+
+## 7. Summary Table
+
+| Quantity | Value | Confidence |
+|----------|-------|------------|
+| Broken generators | n_BG = 8 | HIGH (exact: dim(Spin(9)) - dim(Spin(8))) |
+| rho_ab matrix | 0 (identically) | HIGH (exact: real antisymmetric bilinear form) |
+| rank(rho_ab) | 0 | HIGH (exact + numerical verification) |
+| Type-A modes | n_A = 8 | HIGH (from WM counting + rank = 0) |
+| Type-B modes | n_B = 0 | HIGH (from WM counting + rank = 0) |
+| WM sum rule | 8 + 0 = 8 | Exact |
+| Dispersion | omega = c_s \|k\| + O(k^2) | HIGH (Type-A, all 8 modes) |
+| Lorentz emergence | CONSISTENT | HIGH (all modes relativistic) |
+
 ---
 
 _Phase: 39-spontaneous-symmetry-breaking-and-universality-class, Plan: 02_
-_In progress: 2026-03-30_
+_Completed: 2026-03-30_
