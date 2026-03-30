@@ -483,6 +483,26 @@ $$
 \pi_k(S^8) = 0 \text{ for } k = 1, ..., 7 \quad \Rightarrow \quad \text{no theta, WZW, or Skyrmions for } d \leq 7
 $$
 
+## 8. Homotopy Verification
+
+### 8.1 Verification of pi_k(S^8)
+
+| k | pi_k(S^8) | Verification Method | Status |
+|---|-----------|---------------------|--------|
+| 1-7 | 0 | S^8 is (n-1)=7-connected (standard connectivity of spheres) | VERIFIED |
+| 8 | Z | Hurewicz theorem: first nontrivial homotopy = first nontrivial homology | VERIFIED |
+| 9 | Z_2 | Freudenthal: pi_{n+1}(S^n) = Z_2 for n >= 3 (stable stem pi_1^s = Z_2) | VERIFIED |
+| 15 | Z + Z_120 | Z from octonionic Hopf fibration S^7 -> S^15 -> S^8; Z_120 from stable/unstable contribution [UNVERIFIED - training data] | NOTED |
+
+Note: pi_15(S^8) = Z + Z_120 is stated from standard homotopy tables (Toda). The Z factor is well-established (octonionic Hopf invariant one). The Z_120 factor is from training data and should be confirmed against Toda's tables if a precise value is needed. For our physics, only pi_k for k <= 7 matters (all trivial), so the exact value of pi_15 is irrelevant.
+
+### 8.2 No Topological Terms: Verification Summary
+
+- d = 2: No theta term (pi_2 = 0), no WZW (H^3(S^8) = 0). VERIFIED.
+- d = 3: No instantons (pi_3 = 0), no WZW (H^4(S^8) = 0), no Skyrmions (pi_3 = 0). VERIFIED.
+- d = 4: No topological terms (pi_4 = 0). VERIFIED.
+- Physical conclusion: O(9) sigma model on S^8 is topologically clean in all physical dimensions.
+
 ---
 
 _Phase: 39-spontaneous-symmetry-breaking-and-universality-class, Plan: 03_
