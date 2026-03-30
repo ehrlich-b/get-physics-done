@@ -2,22 +2,27 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 investigated Gap C algebraically: computed the full observable algebra on V_{1/2} (= M_16(R)), proved three impossibility theorems showing the basin's Peirce structure alone cannot force complexification (Schur commutant, grade separation, minimal input = u in S^6), and formalized a selection argument. Key insight: these results apply to the basin only; the observer IS complex (Paper 5), and Paper 7's complexification claim remains correct. The subfield is mathematical physics / quantum foundations / Jordan algebras.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 addresses the continuum limit: finite-dimensional C*-observer (Paper 5) as natural UV cutoff, Fisher information geometry on reduced states, emergent Lorentz invariance via von Ignatowsky, closing all four Paper 6 gaps via one mechanism. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Latest Milestone: v8.0 Gap C Algebraic Closure (complete 2026-03-29)
+## Current Milestone: v9.0 Continuum Limit from Finite-Dimensional Observer
 
-**Result:** The basin's Peirce structure alone cannot force complexification (three impossibility theorems). Paper 7's complexification claim via C*-observer nature remains correct.
+**Goal:** Close all four Paper 6 gaps simultaneously by showing that a finite-dimensional C*-observer necessarily sees smooth effective geometry.
 
-**Key findings:**
-- Observable algebra on V_{1/2} = M_16(R) (full matrix algebra)
-- J_u is grade 2+3 mixed, unique, stabilizer = su(3)+u(1)^2 (dim 10)
-- End_{Spin(9)}(S_9) = R: no Spin(9)-equivariant complex structure (Schur's lemma)
-- Minimal input for complexification = u in S^6 (= Gap B2)
-- 71 tests pass, zero numerical error on all algebraic results
+**Target results:**
+
+- Fisher information metric on reduced states is smooth, positive-definite, and recovers lattice distance
+- Exponential decay of correlations for SWAP Hamiltonian proved rigorously for n=2 (general n flagged as conjecture)
+- Emergent Lorentz invariance from isotropy + LR finite speed via von Ignatowsky
+- BW theorem and local equilibrium in the effective theory
+- Complete derivation chain: finite-dim observer + SWAP lattice + exponential decay -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
+
+## v8.0 Summary (complete 2026-03-29)
+
+Basin impossibility proved, Paper 7 complexification claim correct. Observable algebra = M_16(R), three impossibility theorems (Schur commutant, grade separation, minimal input = u in S^6). 71 tests, zero error.
 
 ## v7.0 Summary (complete -- weakened)
 
@@ -33,104 +38,99 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Contract Coverage
 
-- **Gap C algebraic closure (claim-gapc-algebraic):** Determine whether C*-observer Peirce multiplication maps L_a: V_{1/2} -> V_{1/2} force complexification of V_{1/2} = O^2
-- **Specific lemma (claim-lemma):** Does the observer's complex structure (u in S^6) propagate through Peirce rules to give V_{1/2} a complex 8-dim module structure?
-- **Uniqueness (claim-uniqueness):** If complexification is forced, verify it is canonical (no choices beyond u) and compatible with Spin(9) -> Spin(10) extension
-- **Acceptance signal:** A proved theorem or a counterexample with precise characterization of what's missing
-- **False progress to reject:** Proving complexification for a generic Jordan module without using h_3(O)-specific structure; proving V_{1/2} tensor_R C exists (trivially true) without showing the observer forces this; handwaving C-linearity without rigorous Peirce computation
+- **Continuum limit (claim-continuum):** Show that a finite-dimensional C*-observer on the SWAP lattice necessarily sees smooth effective geometry, closing all four Paper 6 gaps
+- **Fisher geometry (claim-fisher):** Reduced states rho_Lambda(x) form a smooth manifold with positive-definite Fisher information metric recovering lattice distance
+- **Exponential decay (claim-decay):** SWAP Hamiltonian ground state has exponential correlation decay -- proved rigorously for n=2 (Heisenberg AFM), general n as conjecture
+- **Emergent Lorentz (claim-lorentz):** Isotropy + LR finite speed + Fisher smoothness -> Lorentz invariance via von Ignatowsky
+- **Acceptance signal:** Complete derivation chain from finite-dim observer to Einstein equations with all steps rigorous (or honestly flagged as conditional)
+- **False progress to reject:** Claiming constructive continuum limit in mathematical sense; assuming exponential decay without proof/citation for n=2; citing Lorentz invariance without connecting to the specific Fisher metric; treating BW as automatic without checking Wightman axioms in effective theory
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Whether L_a inheriting C-linearity from observer's C*-nature forces V_{1/2} to acquire complex structure; whether V_1 upgrades from R to C under observer's complex structure
-- **User-stated deliverables:** Proved theorem or counterexample for Gap C closure; precise identification of what's missing if closure fails; EGT backup assessment
-- **User-stated phases:** (0) Test specific lemma via concrete Peirce computation, (1) Four routes if lemma fails, (2) Uniqueness/canonicity, (3) Observable algebra, (4) Formalize result
-- **Must-have references:** Effros-Stormer 1979, Alfsen-Shultz 2001, Baez 2002 Section 3.4, Yokota arXiv:0902.0431, Boyle arXiv:2006.16265, Barnum-Graydon-Wilce 2020, Hanche-Olsen 1983, Upmeier 1987, Papers 5-7
-- **Stop / rethink conditions:** If V_1 = R*E_{11} remains 1-dimensional even under observer's C*-structure (same bottleneck as v6.0); if Peirce multiplication by complex elements of V_1 annihilates rather than complexifies V_{1/2}
-- **Strategy on failure:** If algebraic lemma fails, EGT backup: no complexification -> no chirality -> no chemistry -> no self-modelers (constructor theory). Weaker than theorem but honest floor.
+- **User-stated observables:** Fisher information metric g_ij(x) on reduced states; correlation decay rate xi; LR velocity as effective speed of light; SRF convergence for BW
+- **User-stated deliverables:** Derivation chain document: finite-dim observer + SWAP + decay -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
+- **User-stated phases:** (A) Fisher geometry, (B) Exponential decay (prove n=2, flag n>2), (C) Emergent Lorentz, (D) BW/equilibrium, (E) Assembly
+- **Must-have references:** Braunstein-Caves 1994, Zanardi et al. 2007, Provost-Vallee 1980, Hastings 2004/2007, Nachtergaele-Sims 2006, von Ignatowsky 1911, Hamma et al. 2009, Dyson-Lieb-Simon 1978, Papers 5-6
+- **Stop / rethink conditions:** If Fisher metric fails to be positive-definite on reduced states; if exponential decay cannot be established even for n=2 in d>=2; if the effective theory doesn't satisfy Wightman axioms needed for BW
+- **Strategy on failure:** If exponential decay fails for all n, the chain is conditional (like MVEH in Paper 6 v3.0). If Fisher geometry fails, the entire approach is wrong. If Lorentz fails, fall back to emergent diffeomorphism invariance only.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Peirce multiplication maps L_a: V_{1/2} -> V_{1/2} for a in V_1 with C*-structure
-- Concrete computation of L_{u*E_{11}} (or correct complex-structure element) acting on V_{1/2}
-- Four formalization routes: conditional expectations, state-effect duality, GNS, tensor product
-- Uniqueness and canonicity of complexification
-- Observable algebra investigation (why THIS situation differs from generic complex-describes-real)
-- EGT/constructor theory backup route if algebraic closure fails
+- Fisher information geometry on manifold of reduced states rho_Lambda(x)
+- Exponential correlation decay for SWAP Hamiltonian (prove n=2, conjecture general n)
+- Emergent Lorentz invariance via von Ignatowsky (isotropy + finite speed)
+- BW theorem and local equilibrium in effective theory
+- Assembly of complete derivation chain closing Paper 6 gaps
+- Numerical verification on small lattices (N=8-20)
 
 **Out of scope**
 
-- Re-deriving QM, GR, or chirality (Papers 5-7 established)
-- Thermodynamic approach to Gap C (v7.0, already done)
-- Gaps A, B1, B2 (independent of Gap C)
+- Constructive continuum limit in mathematical sense (convergence of correlators to continuum QFT)
+- Re-deriving Papers 5, 6, 7 results
+- Gap C, Gaps A/B1/B2 (separate milestones)
 - Spectral action computation
-- Paper writing (defer to separate milestone if Gap C closes)
+- New paper writing (derivation document only; paper revision deferred)
 
 ### Active Anchor Registry
 
-- **ref-effros-stormer1979:** Effros-Stormer -- Positive projections and Jordan structure (Math. Scand. 45, 1979)
-  - Why it matters: Conditional expectations on Jordan algebras; Peirce projections
+- **ref-braunstein-caves1994:** Braunstein-Caves -- Statistical distance and the geometry of quantum states (PRL 72, 1994)
+  - Why it matters: Fisher information metric on quantum state manifolds; foundation for Phase A
+  - Carry forward: planning, execution, verification
+  - Required action: read, cite
+
+- **ref-hastings2004:** Hastings -- Spectral gap and exponential decay of correlations (CMP 265, 2006)
+  - Why it matters: Gap -> exponential decay theorem; foundation for Phase B
+  - Carry forward: execution, verification
+  - Required action: read, cite
+
+- **ref-nachtergaele-sims2006:** Nachtergaele-Sims -- Lieb-Robinson bounds (CMP 265, 2006)
+  - Why it matters: LR bounds for lattice systems; provides finite speed for Phase C
+  - Carry forward: execution, verification
+  - Required action: read, cite
+
+- **ref-vonignatowsky1911:** von Ignatowsky -- Das Relativitatsprinzip (Archiv der Mathematik und Physik 17, 1911)
+  - Why it matters: Isotropy + finite max speed -> Lorentz; key theorem for Phase C
+  - Carry forward: execution
+  - Required action: read, cite
+
+- **ref-zanardi2007:** Zanardi et al. -- Information-geometric differential equations (PRA 76, 2007)
+  - Why it matters: Information geometry of quantum phase transitions; Fisher metric on state manifolds
   - Carry forward: planning, execution
   - Required action: read, cite
 
-- **ref-alfsen-shultz2001:** Alfsen-Shultz -- State Spaces of Operator Algebras (2001), Ch. 8-9
-  - Why it matters: Peirce decomposition theory, conditional expectations, Jordan module structure
-  - Carry forward: planning, execution, verification
-  - Required action: read, cite
-
-- **ref-baez2002:** Baez -- The Octonions (Bull. AMS 39, 2002), Section 3.4
-  - Why it matters: h_3(O) structure, Peirce decomposition, F_4 automorphisms
-  - Carry forward: execution, verification
-  - Required action: read, cite
-
-- **ref-yokota:** Yokota -- Exceptional Lie Groups (arXiv:0902.0431), Ch. 3
-  - Why it matters: F_4, Spin(9) action on O^2, stabilizer computations
-  - Carry forward: execution
-  - Required action: read, cite
-
-- **ref-boyle2020:** Boyle -- arXiv:2006.16265, Section 2
-  - Why it matters: Complexification S_9 -> S_{10}^+, E_6 upgrade, branching rules
-  - Carry forward: execution, verification
-  - Required action: read, cite
-
-- **ref-hanche-olsen1983:** Hanche-Olsen -- JC-algebra structure and tensor products (Can. J. Math. 35, 1983)
-  - Why it matters: JC-algebra structure theory; C*-envelope of Jordan algebras
-  - Carry forward: execution
-  - Required action: read, cite
-
 - **ref-paper5:** Paper 5 (v2.0) -- QM from self-modeling
-  - Why it matters: CRITICAL -- proves every self-modeler is M_n(C)^sa; the theorem that drives v8.0
+  - Why it matters: CRITICAL -- M_n(C)^sa finite-dimensional; the observer IS the UV cutoff
   - Carry forward: planning, execution, verification
   - Required action: read, cite
 
-- **ref-paper7:** Paper 7 (v5.0) -- Chirality from h_3(O)
-  - Why it matters: Gap C target; 9-link chain; complexification step L4 is what we're proving
-  - Carry forward: execution, verification, writing
+- **ref-paper6:** Paper 6 (v3.0) -- GR from self-modeling
+  - Why it matters: SWAP lattice, area law, Jacobson route; the four gaps this milestone closes
+  - Carry forward: planning, execution, verification, writing
   - Required action: read, cite, update
 
 ### Carry-Forward Inputs
 
-- Paper 5: M_n(C)^sa with Luders product a & b = sqrt(a) b sqrt(a) -- the observer IS complex (CRITICAL for v8.0)
-- Paper 7: Peirce decomposition h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10); chirality from Cl(6); Gap C at Link 4
-- v5.0: S_9 -> S_{10}^+ complexification via extension of scalars; branching S_{10}^+|_{Spin(9)} = S_9^C multiplicity-free
-- v6.0 Phase 22: All 4 algebraic routes FAILED when looking for complexification INTERNAL to h_3(O); V_1 = R*E_{11} bottleneck
-- v7.0: Three-consequence theorem (u determines gauge + chirality + time); thermodynamic route narrowed Gap C but didn't close it
+- Paper 5: M_n(C)^sa with dim n^2 -- observer's finite dimension is the UV cutoff mechanism
+- Paper 6: SWAP lattice H = sum J*SWAP, area law, Jacobson route, four gaps (continuum limit, conformal, tensoriality, MVEH)
+- Paper 6 Phase 11: ED benchmarks N=8-20, area-law scaling, K_A locality (SRF=0.9993), MVEH support
+- v3.0: Nachtergaele-Sims LR bound v_LR = 8eJ/(e-1) computed for SWAP on Z^1
 
 ### Skeptical Review
 
-- **Weakest anchor:** The claim that V_1's C*-structure propagates through Peirce multiplication to V_{1/2}. v6.0 found V_1 = R*E_{11} (1-dim over R). If the observer's C*-nature cannot upgrade V_1 beyond its 1-dim Peirce slot, the same bottleneck returns.
-- **Unvalidated assumptions:** That the observer's M_n(C)^sa structure embeds into V_1 in a way that gives V_1 a complex structure (V_1 is 1-dim over R in h_3(O)); that Peirce multiplication L_a for complex a acts non-trivially on V_{1/2}
-- **Competing explanation:** Complexification might genuinely require an additional physical input beyond self-modeling (e.g., dynamical selection, cosmological boundary conditions). The algebraic structure of h_3(O) might be too rigid to allow C*-propagation.
-- **Disconfirming observation:** V_1 remains stubbornly 1-dim over R even under C*-structure; L_{u*E_{11}} acts as zero or scalar on V_{1/2} rather than as multiplication by i
-- **False progress to reject:** Proving V_{1/2} tensor_R C exists (trivially true for any real vector space); proving complexification for generic Jordan modules without h_3(O)-specific computation; citing v6.0 Route 4 as sufficient (it was generic, not forced)
+- **Weakest anchor:** Exponential decay for SWAP Hamiltonian in d>=2 at general n. For n=2 (Heisenberg AFM) in d=3, Neel order with magnon gap is well-supported but a fully rigorous proof may rely on spin-wave approximation.
+- **Unvalidated assumptions:** That the Fisher metric on reduced states is non-degenerate (it should be, but needs proof); that lattice symmetry group gives sufficient isotropy for von Ignatowsky; that the effective theory satisfies Wightman axioms needed for BW
+- **Competing explanation:** Continuum limit might require genuinely new mathematics beyond the observer-as-cutoff picture. The information-geometric approach might give smoothness but not the right symmetry group.
+- **Disconfirming observation:** Fisher metric degenerate at some lattice points; exponential decay fails for SWAP (gapless ground state); LR velocity direction-dependent at long wavelengths (breaking isotropy)
+- **False progress to reject:** Numerics on small lattices showing "smooth" behavior that's actually finite-size artifact; citing von Ignatowsky without verifying his premises hold in the lattice setting; treating BW as automatic without checking axioms
 
 ### Open Contract Questions
 
-- Does the observer's M_n(C)^sa identity (Paper 5) embed into V_1 in a way that upgrades V_1 from R to C?
-- What is n for the observer in V_1? (V_1 = R*E_{11} suggests n=1, but M_1(C)^sa = R is real)
-- Does L_a for a = u*E_{11} (complex-structure element) act as multiplication by i on V_{1/2}, or does it annihilate/scalar-multiply?
-- If the algebraic route fails, is the EGT backup (no complexification -> no chemistry -> no self-modelers) rigorous enough for a theorem?
+- Does the Fisher metric on reduced states have the right signature for Lorentzian geometry (or only Riemannian)?
+- Is the connection from Fisher metric to spacetime metric unique, or are there ambiguities?
+- Does the SWAP Hamiltonian in d=3 have a spectral gap for all n, or only certain n values?
+- Can the BW theorem be applied to the effective theory, or do we need a lattice version?
 
 ## Research Questions
 
@@ -159,7 +159,11 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-(No active research questions. Start next milestone with `/gpd:new-milestone`.)
+- [ ] Does the Fisher information metric on reduced states of the SWAP ground state recover lattice distance at leading order?
+- [ ] Does the Heisenberg AFM (n=2) on d>=2 lattice have a spectral gap with exponential correlation decay?
+- [ ] Does isotropy + LR finite speed + Fisher smoothness uniquely determine Lorentz invariance on the effective manifold?
+- [ ] Does the effective theory from Fisher geometry satisfy Wightman axioms sufficient for BW theorem?
+- [ ] Does the complete chain (finite-dim observer -> Fisher -> Lorentz -> BW -> Jacobson) close all four Paper 6 gaps?
 
 ### Answered in v7.0
 
@@ -249,15 +253,17 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-- Effros-Stormer (1979), Math. Scand. 45 -- Positive projections and Jordan structure
-- Alfsen-Shultz (2001), State Spaces of Operator Algebras, Ch. 8-9 -- Peirce decomposition, conditional expectations
-- Baez (2002), Bull. AMS 39 -- The Octonions, Section 3.4 (h_3(O) structure)
-- Upmeier (1987), Jordan Algebras in Analysis, Operator Theory, and QM -- Jordan-C* connections
-- Hanche-Olsen (1983), Can. J. Math. 35 -- JC-algebra structure and tensor products
-- Boyle (2020), arXiv:2006.16265 -- Complexification, E_6
-- Barnum-Graydon-Wilce (2020), Quantum 4, 359 -- Non-composability of h_3(O)
-- Paper 5 (this project, v2.0) -- QM from self-modeling (C*-observer)
-- Paper 7 (this project, v5.0) -- Chirality from h_3(O) via Cl(6) (Gap C target)
+- Braunstein-Caves (1994), PRL 72 -- Statistical distance and geometry of quantum states (Fisher metric)
+- Zanardi et al. (2007), PRA 76 -- Information geometry of quantum phase transitions
+- Provost-Vallee (1980), CMP 76 -- Riemannian structure on manifolds of quantum states
+- Hastings (2004/2006), CMP 265 -- Spectral gap implies exponential decay of correlations
+- Hastings (2007), JSTAT -- Area law in 1D from spectral gap
+- Nachtergaele-Sims (2006), CMP 265 -- Lieb-Robinson bounds for lattice systems
+- von Ignatowsky (1911), Archiv Math. Phys. 17 -- Lorentz group from isotropy + finite speed
+- Hamma et al. (2009) -- Lieb-Robinson and Lorentz invariance on lattices
+- Dyson-Lieb-Simon (1978) -- Phase transitions in quantum Heisenberg models
+- Paper 5 (this project, v2.0) -- QM from self-modeling; M_n(C)^sa finite-dimensional
+- Paper 6 (this project, v3.0) -- GR from self-modeling; SWAP lattice, four gaps to close
 
 ## Constraints
 
@@ -345,4 +351,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-03-29 after v8.0 milestone completion_
+_Last updated: 2026-03-29 after v9.0 milestone initialization_
