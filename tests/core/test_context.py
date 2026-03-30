@@ -157,7 +157,7 @@ def _write_structured_state_payload(tmp_path: Path) -> None:
 
 def _assert_structured_state_context(ctx: dict[str, object], tmp_path: Path) -> None:
     """Assert the shared structured-state init payload contract."""
-    assert ctx["state_load_source"] == (tmp_path / "GPD" / "state.json").as_posix()
+    assert ctx["state_load_source"] == "state.json"
     assert ctx["state_integrity_issues"] == []
     assert ctx["convention_lock"]["metric_signature"] == "(-,+,+,+)"
     assert ctx["convention_lock"]["fourier_convention"] == "physics"

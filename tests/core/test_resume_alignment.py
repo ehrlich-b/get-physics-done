@@ -9,6 +9,7 @@ from pathlib import Path
 from gpd.core import context as context_module
 from gpd.core.context import init_resume
 from gpd.core.state import default_state_dict, generate_state_markdown
+from tests.doc_surface_contracts import assert_resume_authority_contract
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -40,19 +41,22 @@ def test_resume_docs_use_canonical_paths_and_no_legacy_resume_command() -> None:
         assert "auto_checkpoint" not in doc
 
     assert "/gpd:resume-work" in portability_doc
-    assert "active_resume_kind" in resume_doc
-    assert "resume_candidates" in resume_doc
+    assert_resume_authority_contract(
+        resume_doc,
+        allow_explicit_alias_examples=True,
+        require_generic_compatibility_note=True,
+    )
+    assert_resume_authority_contract(
+        portability_doc,
+        allow_explicit_alias_examples=True,
+        require_generic_compatibility_note=True,
+    )
     assert "Canonical continuation and recovery authority:" in resume_doc
-    assert "nested compatibility-only aliases" in resume_doc
-    assert "active_resume_kind" in portability_doc
-    assert "resume_candidates" in portability_doc
+    assert "Compatibility-only raw intake:" in resume_doc
+    assert "compat_resume_surface" in resume_doc
     assert "machine_change_detected" in resume_doc
-    assert "Compatibility-only raw envelope cues:" in resume_doc
-    assert "nested legacy labels" in resume_doc
-    assert resume_doc.index("active_resume_kind") < resume_doc.index("session_resume_file")
-    assert "missing_session_resume_file" in resume_doc
-    assert "session_resume_file" in resume_doc
-    assert "Compatibility note: the current raw envelope still uses legacy candidate/source labels" in resume_doc
+    assert "Legacy raw-intake aliases stay nested under compatibility mirrors only" in resume_doc
+    assert resume_doc.index("active_resume_kind") < resume_doc.index("compat_resume_surface")
     assert "Recorded handoff artifact is missing" in resume_doc
     assert "stopped-at continuation point" in resume_doc
     assert "previous hostname/platform" in resume_doc
@@ -67,12 +71,12 @@ def test_resume_docs_use_canonical_paths_and_no_legacy_resume_command() -> None:
     assert "bounded-segment resume state" in portability_doc
     assert "advisory continuity context only" in portability_doc
     assert "does not create a resumable bounded-segment candidate" in portability_doc
-    assert "current raw compatibility label for that candidate family remains `current_execution`" in portability_doc
-    assert portability_doc.index("active_resume_kind") < portability_doc.index("session_resume_file")
+    assert "stays nested and advisory only" in portability_doc
+    assert portability_doc.index("active_resume_kind") < portability_doc.index("compat_resume_surface")
     assert 'set `active_resume_kind="bounded_segment"`' in portability_doc
     assert "The canonical public resume surface centers on `active_resume_kind`, `active_resume_origin`, `active_resume_pointer`" in portability_doc
     assert "nested compatibility-only cues" in portability_doc
-    assert "Legacy alias names stay nested as compatibility-only cues" in portability_doc
+    assert "public top-level resume vocabulary" in portability_doc
     assert "The current continuation architecture separates execution provenance from bounded-resume authority." in portability_doc
     assert "Execution lineage" in portability_doc
     assert "Compatibility mirror showing the latest execution snapshot" in portability_doc
@@ -154,12 +158,12 @@ def test_resume_docs_use_canonical_paths_and_no_legacy_resume_command() -> None:
     assert "Platform" in state_doc
     assert "normalizes project-local absolute paths back to that form" in schema_doc
     assert "recommends rerunning the installer when runtime-local config may be stale" in schema_doc
-    assert "Durable canonical continuation payload; `bounded_segment` stores the authoritative bounded-segment state" in schema_doc
+    assert "Durable canonical continuation authority; compatibility mirrors derive from it" in schema_doc
     assert "canonical object first and only falls back to the derived execution head compatibility mirror when the canonical continuation is missing or incomplete" in schema_doc
     assert "That backend treats `continuation` as primary" in schema_doc
     assert schema_doc.index("| `continuation`") < schema_doc.index("| `session`")
-    assert "nested compatibility-only cues" in schema_doc
-    assert "Legacy alias names remain nested compatibility-only cues" in schema_doc
+    assert "Raw compatibility cues remain nested under `compat_resume_surface` rather than primary resume fields." in schema_doc
+    assert "Raw compatibility cues remain nested under `compat_resume_surface` rather than primary resume fields." in schema_doc
     assert "state.json.continuation.bounded_segment" in schema_doc
     assert "An append-only execution lineage records what happened." in state_machine_doc
     assert (

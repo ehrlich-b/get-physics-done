@@ -13,6 +13,7 @@ __all__ = [
     "PostStartSettingsContract",
     "PublicSurfaceContract",
     "RecoveryLadderContract",
+    "ResumeAuthorityContract",
     "beginner_onboarding_contract",
     "beginner_onboarding_caveats",
     "beginner_onboarding_hub_url",
@@ -28,6 +29,8 @@ __all__ = [
     "post_start_settings_recommendation",
     "recovery_ladder_contract",
     "recovery_ladder_note",
+    "resume_authority_contract",
+    "resume_authority_fields",
 ]
 
 
@@ -65,6 +68,18 @@ class PostStartSettingsContract:
 
 
 @dataclass(frozen=True, slots=True)
+class ResumeAuthorityContract:
+    durable_authority_phrase: str
+    public_vocabulary_intro: str
+    public_fields: tuple[str, ...]
+    compatibility_phrase: str
+    top_level_boundary_phrase: str
+
+    def render_public_field_list(self) -> str:
+        return ", ".join(f"`{field}`" for field in self.public_fields)
+
+
+@dataclass(frozen=True, slots=True)
 class RecoveryLadderContract:
     title: str
     local_snapshot_command: str
@@ -96,6 +111,7 @@ class PublicSurfaceContract:
     beginner_onboarding: BeginnerOnboardingContract
     local_cli_bridge: LocalCliBridgeContract
     post_start_settings: PostStartSettingsContract
+    resume_authority: ResumeAuthorityContract
     recovery_ladder: RecoveryLadderContract
 
 
@@ -127,12 +143,58 @@ def _require_string_list(payload: dict[str, object], key: str, *, label: str) ->
     value = payload.get(key)
     if not isinstance(value, list) or not value:
         raise ValueError(f"{label}.{key} must be a non-empty list")
-    commands: list[str] = []
+    items: list[str] = []
     for item in value:
         if not isinstance(item, str) or not item.strip():
             raise ValueError(f"{label}.{key} entries must be non-empty strings")
-        commands.append(item)
-    return tuple(commands)
+        items.append(item)
+    return tuple(items)
+
+
+def _require_string_alias(
+    payload: dict[str, object],
+    key: str,
+    *,
+    label: str,
+    aliases: tuple[str, ...] = (),
+) -> str:
+    for candidate in (key, *aliases):
+        value = payload.get(candidate)
+        if isinstance(value, str) and value.strip():
+            return value
+    raise ValueError(f"{label}.{key} must be a non-empty string")
+
+
+def _require_string_list_alias(
+    payload: dict[str, object],
+    key: str,
+    *,
+    label: str,
+    aliases: tuple[str, ...] = (),
+) -> tuple[str, ...]:
+    for candidate in (key, *aliases):
+        value = payload.get(candidate)
+        if isinstance(value, list) and value:
+            items: list[str] = []
+            for item in value:
+                if not isinstance(item, str) or not item.strip():
+                    raise ValueError(f"{label}.{candidate} entries must be non-empty strings")
+                items.append(item)
+            return tuple(items)
+    raise ValueError(f"{label}.{key} must be a non-empty list")
+
+
+def _render_public_vocabulary_intro(fields: tuple[str, ...]) -> str:
+    if not fields:
+        raise ValueError("resume_authority.public_fields must be a non-empty list")
+    rendered_fields = tuple(f"`{field}`" for field in fields)
+    if len(rendered_fields) == 1:
+        rendered = rendered_fields[0]
+    elif len(rendered_fields) == 2:
+        rendered = f"{rendered_fields[0]} and {rendered_fields[1]}"
+    else:
+        rendered = ", ".join(rendered_fields[:-1]) + f", and {rendered_fields[-1]}"
+    return f"Public resume vocabulary centers on {rendered}"
 
 
 @lru_cache(maxsize=1)
@@ -148,7 +210,23 @@ def load_public_surface_contract() -> PublicSurfaceContract:
     beginner_payload = _require_object(payload.get("beginner_onboarding"), label="beginner_onboarding")
     bridge_payload = _require_object(payload.get("local_cli_bridge"), label="local_cli_bridge")
     settings_payload = _require_object(payload.get("post_start_settings"), label="post_start_settings")
+    resume_authority_payload = _require_object(payload.get("resume_authority"), label="resume_authority")
     recovery_payload = _require_object(payload.get("recovery_ladder"), label="recovery_ladder")
+    resume_authority_public_fields = _require_string_list_alias(
+        resume_authority_payload,
+        "public_fields",
+        label="resume_authority",
+        aliases=("canonical_fields",),
+    )
+    resume_authority_public_vocabulary_intro = (
+        _require_string_alias(
+            resume_authority_payload,
+            "public_vocabulary_intro",
+            label="resume_authority",
+        )
+        if "public_vocabulary_intro" in resume_authority_payload
+        else _render_public_vocabulary_intro(resume_authority_public_fields)
+    )
 
     return PublicSurfaceContract(
         beginner_onboarding=BeginnerOnboardingContract(
@@ -176,6 +254,27 @@ def load_public_surface_contract() -> PublicSurfaceContract:
                 settings_payload,
                 "default_sentence",
                 label="post_start_settings",
+            ),
+        ),
+        resume_authority=ResumeAuthorityContract(
+            durable_authority_phrase=_require_string_alias(
+                resume_authority_payload,
+                "durable_authority_phrase",
+                label="resume_authority",
+                aliases=("durable_authority",),
+            ),
+            public_fields=resume_authority_public_fields,
+            public_vocabulary_intro=resume_authority_public_vocabulary_intro,
+            compatibility_phrase=_require_string_alias(
+                resume_authority_payload,
+                "compatibility_phrase",
+                label="resume_authority",
+            ),
+            top_level_boundary_phrase=_require_string_alias(
+                resume_authority_payload,
+                "top_level_boundary_phrase",
+                label="resume_authority",
+                aliases=("top_level_phrase",),
             ),
         ),
         recovery_ladder=RecoveryLadderContract(
@@ -265,6 +364,14 @@ def post_start_settings_note() -> str:
 
 def post_start_settings_recommendation() -> str:
     return post_start_settings_contract().default_sentence
+
+
+def resume_authority_contract() -> ResumeAuthorityContract:
+    return load_public_surface_contract().resume_authority
+
+
+def resume_authority_fields() -> tuple[str, ...]:
+    return resume_authority_contract().public_fields
 
 
 def recovery_ladder_contract() -> RecoveryLadderContract:

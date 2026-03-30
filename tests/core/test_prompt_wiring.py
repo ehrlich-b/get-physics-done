@@ -21,6 +21,7 @@ from tests.doc_surface_contracts import (
     assert_help_workflow_quick_start_taxonomy_contract,
     assert_help_workflow_runtime_reference_contract,
     assert_recovery_ladder_contract,
+    assert_resume_authority_contract,
 )
 
 
@@ -1936,7 +1937,7 @@ def test_stage5_execution_surfaces_use_bounded_review_cadence_and_first_result_g
     assert "What decisive evidence is still owed before downstream work is trustworthy?" in resume_work
     assert "Pattern D: Auto-bounded" in executor_agent
     assert "compat_resume_surface" in resume_work
-    assert "active_execution_segment" in resume_work
+    assert "Public resume vocabulary centers on" in resume_work
     assert "execution_segment" in continuation
     assert "Required Checkpoint Payload" in checkpoints
     assert "rollback primitive" in checkpoint_flow
@@ -1988,14 +1989,17 @@ def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
     assert "@{GPD_INSTALL_DIR}/templates/state-json-schema.md" in resume_work
     assert "project_contract_validation" in resume_work
     assert "project_contract_load_info" in resume_work
-    assert "active_resume_kind" in resume_work
-    assert "resume_candidates" in resume_work
-    assert "Compatibility-only raw envelope cues:" in resume_work
+    assert_resume_authority_contract(
+        resume_work,
+        allow_explicit_alias_examples=True,
+        require_generic_compatibility_note=True,
+    )
+    assert "Compatibility-only raw intake:" in resume_work
     assert "Canonical continuation and recovery authority:" in resume_work
-    assert "compat_resume_surface" in resume_work
-    assert "nested legacy labels" in resume_work
-    assert "session_resume_file" in resume_work
-    assert "current_execution" in resume_work
+    assert "Legacy raw-intake aliases stay nested under compatibility mirrors only" in resume_work
+    assert resume_work.index("Canonical continuation and recovery authority:") < resume_work.index(
+        "Compatibility-only raw intake:"
+    )
     assert "continuity_handoff_file" in resume_work
     assert "recorded_continuity_handoff_file" in resume_work
     assert "missing_continuity_handoff_file" in resume_work
@@ -2047,7 +2051,7 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "machine-readable intake" in resume_work
     assert "resume_candidates" in resume_work
     assert "legacy candidate/source labels" in resume_work
-    assert "nested compatibility-only aliases" in resume_work
+    assert "nested compatibility cues" in resume_work
     assert "Do NOT invent additional candidates from plan files without summaries, auto-checkpoints, or other ad hoc checkpoints." in resume_work
     assert "/gpd:resume-work" in pause_work
     assert "gpd resume" in pause_work
@@ -2055,7 +2059,7 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "This is the canonical recorded handoff artifact for the current phase." in pause_work
     assert "continuation handoff artifact" in pause_work or "session continuity" in pause_work
     assert "Public resume vocabulary centers on" in help_workflow
-    assert "nested compatibility-only cues" in help_workflow
+    assert "Legacy raw-intake aliases stay nested under compatibility mirrors only" in help_workflow
     assert_recovery_ladder_contract(
         help_workflow,
         resume_work_fragments=("/gpd:resume-work",),

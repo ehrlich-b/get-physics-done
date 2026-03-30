@@ -916,7 +916,22 @@ def test_resume_recovery_advice_uses_resolved_runtime_commands(monkeypatch: pyte
     )
 
     advice = cli_module._resume_recovery_advice(
-        resume_payload={"segment_candidates": [{"source": "session_resume_file"}]},
+        resume_payload={
+            "resume_candidates": [
+                {
+                    "kind": "handoff",
+                    "source": "session_resume_file",
+                    "status": "handoff",
+                    "resume_file": "GPD/phases/01/.continue-here.md",
+                    "resumable": False,
+                    "origin": "canonical_continuation",
+                }
+            ],
+            "active_resume_kind": "handoff",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/01/.continue-here.md",
+            "continuity_handoff_file": "GPD/phases/01/.continue-here.md",
+        },
         recent_rows=[],
         cwd=Path("/tmp/runtime-advice"),
     )
@@ -1129,15 +1144,41 @@ def test_resume_plain_output_surfaces_auto_selected_recent_project(tmp_path: Pat
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [
+                {
+                    "kind": "bounded_segment",
+                    "source": "current_execution",
+                    "status": "paused",
+                    "phase": "03",
+                    "plan": "01",
+                    "segment_id": "seg-3",
+                    "resume_file": "GPD/phases/03/.continue-here.md",
+                    "resumable": True,
+                    "origin": "canonical_continuation",
+                }
+            ],
+            "active_bounded_segment": {
+                "phase": "03",
+                "plan": "01",
+                "segment_id": "seg-3",
+                "segment_status": "waiting_review",
+                "resume_file": "GPD/phases/03/.continue-here.md",
+            },
+            "derived_execution_head": {
+                "phase": "03",
+                "plan": "01",
+                "segment_id": "seg-3",
+                "segment_status": "waiting_review",
+                "resume_file": "GPD/phases/03/.continue-here.md",
+            },
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/03/.continue-here.md",
             "has_live_execution": True,
-            "resume_mode": "bounded_segment",
-            "execution_resume_file": "GPD/phases/03/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
+            "execution_resumable": True,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
         },
     )
 
@@ -1172,15 +1213,34 @@ def test_resume_plain_output_keeps_recent_project_selection_explicit_when_not_au
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [
+                {
+                    "kind": "bounded_segment",
+                    "source": "current_execution",
+                    "status": "paused",
+                    "phase": "03",
+                    "plan": "01",
+                    "segment_id": "seg-3",
+                    "resume_file": "GPD/phases/03/.continue-here.md",
+                    "resumable": True,
+                    "origin": "canonical_continuation",
+                }
+            ],
+            "active_bounded_segment": {
+                "phase": "03",
+                "plan": "01",
+                "segment_id": "seg-3",
+                "segment_status": "waiting_review",
+                "resume_file": "GPD/phases/03/.continue-here.md",
+            },
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/03/.continue-here.md",
             "has_live_execution": True,
-            "resume_mode": "bounded_segment",
-            "execution_resume_file": "GPD/phases/03/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
+            "execution_resumable": True,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
         },
     )
 
@@ -1201,22 +1261,24 @@ def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, mon
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [
+            "resume_candidates": [
                 {
+                    "kind": "handoff",
                     "source": "session_resume_file",
                     "status": "handoff",
                     "resume_file": "GPD/phases/01/.continue-here.md",
                     "resumable": False,
+                    "origin": "canonical_continuation",
                 }
             ],
+            "continuity_handoff_file": "GPD/phases/01/.continue-here.md",
+            "active_resume_kind": "handoff",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/01/.continue-here.md",
             "has_live_execution": False,
-            "resume_mode": None,
-            "execution_resume_file": "GPD/phases/01/.continue-here.md",
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
-            "execution_resume_file_source": "session_resume_file",
         },
     )
 
@@ -1240,19 +1302,34 @@ def test_resume_plain_output_surfaces_bounded_segment_status_from_canonical_resu
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [
+                {
+                    "kind": "bounded_segment",
+                    "source": "current_execution",
+                    "status": "paused",
+                    "phase": "03",
+                    "plan": "01",
+                    "segment_id": "seg-4",
+                    "resume_file": "GPD/phases/03/.continue-here.md",
+                    "resumable": True,
+                    "origin": "canonical_continuation",
+                }
+            ],
+            "active_bounded_segment": {
+                "phase": "03",
+                "plan": "01",
+                "segment_id": "seg-4",
+                "segment_status": "waiting_review",
+                "resume_file": "GPD/phases/03/.continue-here.md",
+            },
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/03/.continue-here.md",
             "has_live_execution": True,
-            "resume_mode": "bounded_segment",
-            "execution_resume_file": "GPD/phases/03/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
+            "execution_resumable": True,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": {
-                "phase": "03",
-                "plan": "01",
-                "segment_status": "waiting_review",
-            },
         },
     )
 
@@ -1276,15 +1353,34 @@ def test_resume_plain_output_surfaces_canonical_bounded_segment_without_live_sna
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [
+                {
+                    "kind": "bounded_segment",
+                    "source": "current_execution",
+                    "status": "paused",
+                    "phase": "06",
+                    "plan": "01",
+                    "segment_id": "seg-6",
+                    "resume_file": "GPD/phases/06/.continue-here.md",
+                    "resumable": True,
+                    "origin": "canonical_continuation",
+                }
+            ],
+            "active_bounded_segment": {
+                "phase": "06",
+                "plan": "01",
+                "segment_id": "seg-6",
+                "segment_status": "paused",
+                "resume_file": "GPD/phases/06/.continue-here.md",
+            },
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/06/.continue-here.md",
             "has_live_execution": False,
-            "resume_mode": "bounded_segment",
-            "execution_resume_file": "GPD/phases/06/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
+            "execution_resumable": True,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
         },
     )
 
@@ -1306,20 +1402,20 @@ def test_resume_plain_output_surfaces_interrupted_agent_status_from_candidate(tm
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [
+            "resume_candidates": [
                 {
+                    "kind": "interrupted_agent",
                     "source": "interrupted_agent",
                     "status": "interrupted",
                     "agent_id": "agent-123",
+                    "origin": "interrupted_agent",
                 }
             ],
+            "has_interrupted_agent": True,
             "has_live_execution": False,
-            "resume_mode": None,
-            "execution_resume_file": None,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
         },
     )
 
@@ -1339,14 +1435,11 @@ def test_resume_plain_output_surfaces_machine_change_as_advisory_status(tmp_path
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [],
             "has_live_execution": False,
-            "resume_mode": None,
-            "execution_resume_file": None,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
             "machine_change_notice": (
                 "Machine change detected: last active on old-host (Linux 5.15 x86_64); "
                 "current machine new-host (Linux 6.1 x86_64). The project state is portable and does not require repair. "
@@ -1370,6 +1463,7 @@ def test_resume_plain_output_surfaces_machine_change_as_advisory_status(tmp_path
 def test_resume_plain_output_keeps_machine_change_notice_when_session_handoff_is_primary(
     tmp_path: Path, monkeypatch
 ) -> None:
+    # Compatibility-only guard: this still exercises the legacy session mirror while the public surface ages out.
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
         "gpd.core.context.init_resume",
@@ -1378,23 +1472,24 @@ def test_resume_plain_output_keeps_machine_change_notice_when_session_handoff_is
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [
+            "resume_candidates": [
                 {
+                    "kind": "handoff",
                     "source": "session_resume_file",
                     "status": "handoff",
                     "resume_file": "GPD/phases/04/.continue-here.md",
                     "resumable": False,
+                    "origin": "canonical_continuation",
                 }
             ],
-            "session_resume_file": "GPD/phases/04/.continue-here.md",
-            "execution_resume_file": "GPD/phases/04/.continue-here.md",
-            "execution_resume_file_source": "session_resume_file",
+            "continuity_handoff_file": "GPD/phases/04/.continue-here.md",
+            "active_resume_kind": "handoff",
+            "active_resume_origin": "canonical_continuation",
+            "active_resume_pointer": "GPD/phases/04/.continue-here.md",
             "has_live_execution": False,
-            "resume_mode": None,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
             "machine_change_notice": (
                 "Machine change detected: last active on old-host (Linux 5.15 x86_64); "
                 "current machine new-host (Linux 6.1 x86_64). The project state is portable and does not require repair. "
@@ -1422,18 +1517,17 @@ def test_resume_plain_output_surfaces_advisory_live_execution_status(tmp_path: P
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [],
             "has_live_execution": True,
-            "resume_mode": None,
-            "execution_resume_file": None,
+            "derived_execution_head": {
+                "phase": "03",
+                "plan": "01",
+                "segment_id": "seg-3",
+                "segment_status": "active",
+            },
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": {
-                "phase": "03",
-                "plan": "01",
-                "segment_status": "active",
-            },
         },
     )
 
@@ -1456,23 +1550,22 @@ def test_resume_plain_output_surfaces_missing_handoff_status(tmp_path: Path, mon
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [
+            "resume_candidates": [
                 {
+                    "kind": "missing_continuity_handoff",
                     "source": "session_resume_file",
                     "status": "missing",
                     "resume_file": "GPD/phases/04/.continue-here.md",
                     "resumable": False,
                     "advisory": True,
+                    "origin": "canonical_continuation",
                 }
             ],
+            "missing_continuity_handoff_file": "GPD/phases/04/.continue-here.md",
             "has_live_execution": False,
-            "resume_mode": None,
-            "execution_resume_file": None,
             "execution_paused_at": None,
             "autonomy": None,
             "research_mode": None,
-            "active_execution_segment": None,
-            "missing_session_resume_file": "GPD/phases/04/.continue-here.md",
         },
     )
 

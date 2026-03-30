@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Iterable
+from functools import lru_cache
+from pathlib import Path
 
-from gpd.core.onboarding_surfaces import beginner_startup_ladder_text
-from gpd.core.public_surface_contract import beginner_onboarding_caveats, beginner_preflight_requirements
 from gpd.core.surface_phrases import post_start_settings_note, post_start_settings_recommendation
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PUBLIC_SURFACE_CONTRACT_PATH = REPO_ROOT / "src/gpd/core/public_surface_contract.json"
 
 DOCTOR_RUNTIME_SCOPE_RE = re.compile(r"gpd doctor --runtime <runtime> --local\|--global")
 UNATTENDED_READINESS_SURFACE = "gpd validate unattended-readiness"
@@ -39,6 +43,7 @@ __all__ = [
     "assert_beginner_router_bridge_contract",
     "assert_beginner_startup_routing_contract",
     "assert_recovery_ladder_contract",
+    "assert_resume_authority_contract",
     "assert_runtime_readiness_handoff_contract",
     "assert_settings_local_terminal_follow_up_contract",
     "assert_start_workflow_router_contract",
@@ -84,6 +89,66 @@ def _first_index_of_any(content: str, fragments: Iterable[str], *, label: str) -
     positions = [content.index(fragment) for fragment in options if fragment in content]
     assert positions, f"expected {label}; wanted one of {options!r}"
     return min(positions)
+
+
+@lru_cache(maxsize=1)
+def _public_surface_contract_payload() -> dict[str, object]:
+    payload = json.loads(PUBLIC_SURFACE_CONTRACT_PATH.read_text(encoding="utf-8"))
+    assert isinstance(payload, dict), "public surface contract must be a JSON object"
+    return payload
+
+
+def _contract_section(name: str) -> dict[str, object]:
+    section = _public_surface_contract_payload()[name]
+    assert isinstance(section, dict), f"{name} must be a JSON object"
+    return section
+
+
+def _contract_string(section: dict[str, object], key: str, *, label: str) -> str:
+    value = section[key]
+    assert isinstance(value, str) and value.strip(), f"{label}.{key} must be a non-empty string"
+    return value
+
+
+def _contract_string_list(section: dict[str, object], key: str, *, label: str) -> tuple[str, ...]:
+    value = section[key]
+    assert isinstance(value, list) and value, f"{label}.{key} must be a non-empty list"
+    items: list[str] = []
+    for item in value:
+        assert isinstance(item, str) and item.strip(), f"{label}.{key} entries must be non-empty strings"
+        items.append(item)
+    return tuple(items)
+
+
+def beginner_preflight_requirements() -> tuple[str, ...]:
+    section = _contract_section("beginner_onboarding")
+    return _contract_string_list(section, "preflight_requirements", label="beginner_onboarding")
+
+
+def beginner_onboarding_caveats() -> tuple[str, ...]:
+    section = _contract_section("beginner_onboarding")
+    return _contract_string_list(section, "caveats", label="beginner_onboarding")
+
+
+def beginner_startup_ladder() -> tuple[str, ...]:
+    section = _contract_section("beginner_onboarding")
+    return _contract_string_list(section, "startup_ladder", label="beginner_onboarding")
+
+
+def beginner_startup_ladder_text() -> str:
+    return "`" + " -> ".join(beginner_startup_ladder()) + "`"
+
+
+def _resume_authority_contract() -> dict[str, object]:
+    section = _contract_section("resume_authority")
+    _contract_string(section, "durable_authority_phrase", label="resume_authority")
+    _contract_string(section, "public_vocabulary_intro", label="resume_authority")
+    _contract_string_list(section, "public_fields", label="resume_authority")
+    _contract_string(section, "compat_surface", label="resume_authority")
+    _contract_string(section, "session_mirror", label="resume_authority")
+    _contract_string(section, "compatibility_phrase", label="resume_authority")
+    _contract_string(section, "top_level_boundary_phrase", label="resume_authority")
+    return section
 
 
 def assert_unattended_readiness_contract(content: str) -> None:
@@ -742,6 +807,65 @@ def assert_recovery_ladder_contract(
         ),
         label="pause/resume handoff semantics",
     )
+
+
+def assert_resume_authority_contract(
+    content: str,
+    *,
+    allow_explicit_alias_examples: bool,
+    require_generic_compatibility_note: bool = False,
+) -> None:
+    contract = _resume_authority_contract()
+    assert _contract_string(contract, "durable_authority_phrase", label="resume_authority") in content
+    assert "Public resume vocabulary centers on" in content
+    for field in _contract_string_list(contract, "public_fields", label="resume_authority"):
+        assert f"`{field}`" in content
+    _assert_contains_any(
+        content,
+        (
+            "legacy resume fields remain compatibility mirrors in the raw intake",
+            "Legacy raw-intake aliases stay nested under compatibility mirrors only",
+        ),
+        label="resume compatibility phrase",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "they are not part of the public top-level resume vocabulary",
+            "They are not part of the public top-level resume vocabulary.",
+        ),
+        label="resume top-level boundary",
+    )
+    if allow_explicit_alias_examples:
+        _assert_contains_any(
+            content,
+            (
+                "session_resume_file",
+                "current_execution",
+                "interrupted_agent",
+            ),
+            label="compatibility alias examples",
+        )
+    else:
+        for alias in (
+            "session_resume_file",
+            "missing_session_resume_file",
+            "current_execution",
+            "execution_resume_file",
+            "execution_resume_file_source",
+            "resume_mode",
+            "segment_candidates",
+        ):
+            assert alias not in content
+    if require_generic_compatibility_note:
+        _assert_contains_any(
+            content,
+            (
+                "Legacy raw-intake aliases stay nested under compatibility mirrors only",
+                "The raw compatibility fields remain intake names only under `compat_resume_surface`",
+            ),
+            label="generic compatibility note",
+        )
 
 
 def assert_runtime_readiness_handoff_contract(content: str) -> None:

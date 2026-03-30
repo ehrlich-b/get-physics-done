@@ -491,12 +491,12 @@ Resume research from previous session with full context restoration.
 
 - Restores canonical continuation state, recent progress, and recorded handoff context; `state.json.continuation` is the durable authority and the legacy resume fields remain compatibility mirrors in the raw intake
   - Public resume vocabulary centers on `active_resume_kind`, `active_resume_origin`, `active_resume_pointer`, `continuity_handoff_file`, `recorded_continuity_handoff_file`, `missing_continuity_handoff_file`, and `resume_candidates`
-  - Legacy names such as `session.resume_file`, `session_resume_file`, `missing_session_resume_file`, and `current_execution` stay nested compatibility-only cues
+  - Legacy raw-intake aliases stay nested under compatibility mirrors only; they are not part of the public top-level resume vocabulary
 - Uses the recovery ladder (`gpd resume` -> `gpd resume --recent` when needed -> `/gpd:resume-work`) to pick up where you left off
 - Best first in-runtime command when returning to paused or interrupted work
 - This is the in-runtime continue path; for a current-workspace read-only recovery snapshot, use `gpd resume`
 - If you need to find the workspace first, use `gpd resume --recent`, then continue inside that workspace with `/gpd:resume-work`
-- The raw `session_*` fields and nested `segment_candidates` labels remain compatibility intake names only under `compat_resume_surface`
+- The raw compatibility fields remain intake names only under `compat_resume_surface`
 
 Usage: `/gpd:resume-work`
 

@@ -1729,15 +1729,21 @@ def _recent_project_recovery_view(row: dict[str, object]) -> dict[str, str] | No
     except Exception:
         return None
 
+    public_payload = canonicalize_resume_public_payload(payload)
     view: dict[str, str] = {
         "recovery_status": advice.status,
         "recovery_status_label": _resume_status_label(advice.status),
-        "recovery_note": _resume_status_message(payload, recovery_advice=advice),
+        "recovery_note": _resume_status_message(public_payload, recovery_advice=advice),
     }
-    primary_resume_file = payload.get("active_resume_pointer") or payload.get("execution_resume_file")
+    compat_surface = _resume_compat_surface(public_payload)
+    primary_resume_file = _resume_surface_value(public_payload, compat_surface, "active_resume_pointer")
+    if not isinstance(primary_resume_file, str) or not primary_resume_file.strip():
+        primary_resume_file = _resume_surface_value(public_payload, compat_surface, "execution_resume_file")
     if isinstance(primary_resume_file, str) and primary_resume_file.strip():
         view["recovery_target"] = _format_display_path(primary_resume_file.strip())
-    execution_source = payload.get("active_resume_origin") or payload.get("execution_resume_file_source")
+    execution_source = _resume_surface_value(public_payload, compat_surface, "active_resume_origin")
+    if not isinstance(execution_source, str) or not execution_source.strip():
+        execution_source = _resume_surface_value(public_payload, compat_surface, "execution_resume_file_source")
     if isinstance(execution_source, str) and execution_source.strip():
         view["recovery_origin"] = execution_source.strip()
     return view
@@ -1855,17 +1861,18 @@ def _render_recent_resume_summary(rows: list[dict[str, object]]) -> None:
 
 def _render_resume_summary(payload: dict[str, object]) -> None:
     """Render a read-only local recovery summary for humans."""
-    compat_surface = _resume_compat_surface(payload)
-    segment_candidates = _resume_visible_candidates(payload, compat_surface)
-    active_execution_raw = _resume_surface_value(payload, compat_surface, "active_bounded_segment")
+    public_payload = canonicalize_resume_public_payload(payload)
+    compat_surface = _resume_compat_surface(public_payload)
+    segment_candidates = _resume_visible_candidates(public_payload, compat_surface)
+    active_execution_raw = _resume_surface_value(public_payload, compat_surface, "active_bounded_segment")
     if not isinstance(active_execution_raw, dict):
-        active_execution_raw = _resume_surface_value(payload, compat_surface, "derived_execution_head")
+        active_execution_raw = _resume_surface_value(public_payload, compat_surface, "derived_execution_head")
     if not isinstance(active_execution_raw, dict):
-        active_execution_raw = _resume_surface_value(payload, compat_surface, "active_execution_segment")
+        active_execution_raw = _resume_surface_value(public_payload, compat_surface, "active_execution_segment")
     active_execution = active_execution_raw if isinstance(active_execution_raw, dict) else None
-    current_execution_raw = _resume_surface_value(payload, compat_surface, "current_execution")
+    current_execution_raw = _resume_surface_value(public_payload, compat_surface, "current_execution")
     current_execution = current_execution_raw if isinstance(current_execution_raw, dict) else None
-    recovery_advice = _resume_recovery_advice(resume_payload=payload, recent_rows=[])
+    recovery_advice = _resume_recovery_advice(resume_payload=public_payload, recent_rows=[])
 
     console.print("[bold]Resume Summary[/]")
     console.print("[dim]Read-only local recovery snapshot for this workspace.[/]")
@@ -1874,10 +1881,10 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     summary = Table.grid(padding=(0, 2))
     summary.add_column(style=f"bold {_INSTALL_ACCENT_COLOR}")
     summary.add_column()
-    workspace_root = payload.get("workspace_root")
-    project_root = payload.get("project_root")
-    project_label = _recent_project_text(payload, "project_label", "project_title", "project_name")
-    project_summary = _recent_project_text(payload, "project_summary", "summary", "description")
+    workspace_root = public_payload.get("workspace_root")
+    project_root = public_payload.get("project_root")
+    project_label = _recent_project_text(public_payload, "project_label", "project_title", "project_name")
+    project_summary = _recent_project_text(public_payload, "project_summary", "summary", "description")
     summary.add_row("Workspace", _format_display_path(str(workspace_root or _get_cwd())))
     if isinstance(project_root, str) and project_root.strip():
         summary.add_row("Project", _format_display_path(project_root.strip()))
@@ -1885,40 +1892,40 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
         summary.add_row("Project label", project_label.strip())
     if isinstance(project_summary, str) and project_summary.strip():
         summary.add_row("Project summary", project_summary.strip())
-    if bool(payload.get("project_root_auto_selected")):
+    if bool(public_payload.get("project_root_auto_selected")):
         summary.add_row(
             "Re-entry",
-            _project_root_source_label(payload.get("project_root_source"), auto_selected=True),
+            _project_root_source_label(public_payload.get("project_root_source"), auto_selected=True),
         )
-    elif isinstance(payload.get("project_root_source"), str) and str(payload.get("project_root_source")).strip():
+    elif isinstance(public_payload.get("project_root_source"), str) and str(public_payload.get("project_root_source")).strip():
         summary.add_row(
             "Re-entry",
-            _project_root_source_label(payload.get("project_root_source"), auto_selected=False),
+            _project_root_source_label(public_payload.get("project_root_source"), auto_selected=False),
         )
-    summary.add_row("Status", _resume_status_message(payload, recovery_advice=recovery_advice))
+    summary.add_row("Status", _resume_status_message(public_payload, recovery_advice=recovery_advice))
     summary.add_row("Recovery", _resume_status_label(recovery_advice.status))
-    active_resume_kind = payload.get("active_resume_kind")
+    active_resume_kind = public_payload.get("active_resume_kind")
     if not isinstance(active_resume_kind, str) or not active_resume_kind.strip():
-        active_resume_kind = _resume_surface_value(payload, compat_surface, "resume_mode")
+        active_resume_kind = _resume_surface_value(public_payload, compat_surface, "resume_mode")
     summary.add_row("Primary resume kind", _resume_mode_label(active_resume_kind))
     summary.add_row("Candidates", str(len(segment_candidates)))
-    summary.add_row("Live execution", "yes" if bool(payload.get("has_live_execution")) else "no")
-    summary.add_row("Autonomy", str(payload.get("autonomy") or "unknown"))
-    summary.add_row("Research mode", str(payload.get("research_mode") or "unknown"))
+    summary.add_row("Live execution", "yes" if bool(public_payload.get("has_live_execution")) else "no")
+    summary.add_row("Autonomy", str(public_payload.get("autonomy") or "unknown"))
+    summary.add_row("Research mode", str(public_payload.get("research_mode") or "unknown"))
 
-    paused_at = payload.get("execution_paused_at")
+    paused_at = public_payload.get("execution_paused_at")
     if isinstance(paused_at, str) and paused_at.strip():
         summary.add_row("Paused at", paused_at.strip())
 
-    primary_resume_file = _resume_surface_value(payload, compat_surface, "active_resume_pointer")
+    primary_resume_file = _resume_surface_value(public_payload, compat_surface, "active_resume_pointer")
     if not isinstance(primary_resume_file, str) or not primary_resume_file.strip():
-        primary_resume_file = _resume_surface_value(payload, compat_surface, "execution_resume_file")
+        primary_resume_file = _resume_surface_value(public_payload, compat_surface, "execution_resume_file")
     if isinstance(primary_resume_file, str) and primary_resume_file.strip():
         summary.add_row("Primary pointer", _format_display_path(primary_resume_file.strip()))
 
     console.print(summary)
 
-    machine_change_notice = payload.get("machine_change_notice")
+    machine_change_notice = public_payload.get("machine_change_notice")
     notices: list[str] = []
     if isinstance(machine_change_notice, str) and machine_change_notice.strip():
         notices.append(machine_change_notice.strip())
@@ -1926,22 +1933,22 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     if active_execution is not None:
         if bool(active_execution.get("waiting_for_review")):
             notices.append("Execution is currently waiting for review before continuation.")
-        if bool(payload.get("execution_pre_fanout_review_pending")):
+        if bool(public_payload.get("execution_pre_fanout_review_pending")):
             notices.append("Pre-fanout review is still pending.")
-        if bool(payload.get("execution_skeptical_requestioning_required")):
+        if bool(public_payload.get("execution_skeptical_requestioning_required")):
             notices.append("Skeptical re-questioning is required before downstream work.")
-        if bool(payload.get("execution_downstream_locked")):
+        if bool(public_payload.get("execution_downstream_locked")):
             notices.append("Downstream work remains locked by the current execution snapshot.")
         blocked_reason = active_execution.get("blocked_reason")
         if isinstance(blocked_reason, str) and blocked_reason.strip():
             notices.append(f"Execution is blocked: {blocked_reason.strip()}")
-    missing_session_resume_file = _resume_surface_value(payload, compat_surface, "missing_continuity_handoff_file")
-    if not isinstance(missing_session_resume_file, str) or not missing_session_resume_file.strip():
-        missing_session_resume_file = _resume_surface_value(payload, compat_surface, "missing_session_resume_file")
-    if isinstance(missing_session_resume_file, str) and missing_session_resume_file.strip():
+    missing_continuity_handoff = _resume_surface_value(public_payload, compat_surface, "missing_continuity_handoff_file")
+    if not isinstance(missing_continuity_handoff, str) or not missing_continuity_handoff.strip():
+        missing_continuity_handoff = _resume_surface_value(public_payload, compat_surface, "missing_session_resume_file")
+    if isinstance(missing_continuity_handoff, str) and missing_continuity_handoff.strip():
         notices.append(
             "Projected continuity handoff is missing: "
-            f"{_format_display_path(missing_session_resume_file.strip())}."
+            f"{_format_display_path(missing_continuity_handoff.strip())}."
         )
 
     if notices:
@@ -1994,7 +2001,7 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     console.print(f"- {recovery_resume_action()}")
     console.print(f"- {recovery_recent_action()}")
     console.print("- `gpd init resume` remains the machine-readable backend used by runtime resume workflows.")
-    hint = _resume_recent_hint(payload)
+    hint = _resume_recent_hint(public_payload)
     if hint is not None:
         console.print(f"- {hint}")
 
@@ -2271,6 +2278,7 @@ def result_search(
             unverified=unverified if unverified else None,
         )
     )
+
 
 @result_app.command("verify")
 def result_verify(

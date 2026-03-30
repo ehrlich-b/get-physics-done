@@ -41,6 +41,23 @@
     "primary_sentence": "After your first successful start or later, use the runtime `settings` command to review autonomy, workflow defaults, and model-cost posture.",
     "default_sentence": "The safest starting point is `review` plus runtime defaults."
   },
+  "resume_authority": {
+    "durable_authority_phrase": "`state.json.continuation` is the durable authority",
+    "public_vocabulary_intro": "`state.json.continuation` is the durable authority",
+    "public_fields": [
+      "active_resume_kind",
+      "active_resume_origin",
+      "active_resume_pointer",
+      "continuity_handoff_file",
+      "recorded_continuity_handoff_file",
+      "missing_continuity_handoff_file",
+      "resume_candidates"
+    ],
+    "compat_surface": "compat_resume_surface",
+    "session_mirror": "session",
+    "compatibility_phrase": "`compat_resume_surface`",
+    "top_level_boundary_phrase": "public top-level resume vocabulary"
+  },
   "recovery_ladder": {
     "title": "Recovery ladder",
     "local_snapshot_command": "gpd resume",

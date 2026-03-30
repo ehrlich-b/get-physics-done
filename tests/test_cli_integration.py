@@ -328,7 +328,13 @@ class TestResume:
         state_path = gpd_project / "GPD" / "state.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         state["position"]["status"] = "Paused"
-        state["session"]["resume_file"] = "GPD/phases/01-test-phase/.continue-here.md"
+        state["continuation"] = {
+            "schema_version": 1,
+            "handoff": {
+                "resume_file": "GPD/phases/01-test-phase/.continue-here.md",
+                "stopped_at": "Paused in phase 01",
+            },
+        }
         state_path.write_text(json.dumps(state), encoding="utf-8")
 
         result = _invoke("--raw", "resume")
@@ -514,7 +520,13 @@ class TestResume:
         state_path = gpd_project / "GPD" / "state.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         state["position"]["status"] = "Paused"
-        state["session"]["resume_file"] = "GPD/phases/01-test-phase/.continue-here.md"
+        state["continuation"] = {
+            "schema_version": 1,
+            "handoff": {
+                "resume_file": "GPD/phases/01-test-phase/.continue-here.md",
+                "stopped_at": "Paused in phase 01",
+            },
+        }
         state_path.write_text(json.dumps(state), encoding="utf-8")
 
         result = _invoke("resume")
@@ -533,6 +545,7 @@ class TestResume:
         assert "suggest-next" in result.output
 
     def test_resume_human_output_marks_missing_session_handoff_as_advisory(self, gpd_project: Path) -> None:
+        # Compatibility-only regression: keep the legacy session mirror callable until it fully ages out.
         state_path = gpd_project / "GPD" / "state.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         state["position"]["status"] = "Paused"

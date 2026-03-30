@@ -34,10 +34,7 @@ _COMPAT_SOURCE_TO_CANONICAL_ORIGIN = {
     "interrupted_agent": "interrupted_agent_marker",
 }
 _CANONICAL_ORIGIN_TO_COMPAT_SOURCE = {
-    "continuation.bounded_segment": "current_execution",
-    "compat.current_execution": "current_execution",
-    "continuation.handoff": "session_resume_file",
-    "compat.session_resume_file": "session_resume_file",
+    value: key for key, value in _COMPAT_SOURCE_TO_CANONICAL_ORIGIN.items()
 }
 
 
@@ -77,28 +74,52 @@ class RecoveryAdvice(BaseModel):
     current_workspace_has_recovery: bool = False
     current_workspace_has_resume_file: bool = False
     current_workspace_candidate_count: int = 0
-    resume_mode: str | None = None
     active_resume_kind: str | None = None
     active_resume_origin: str | None = None
     active_resume_pointer: str | None = None
-    execution_resume_file: str | None = None
-    execution_resume_file_source: str | None = None
     continuity_handoff_file: str | None = None
     recorded_continuity_handoff_file: str | None = None
     missing_continuity_handoff_file: str | None = None
     has_continuity_handoff: bool = False
+    missing_continuity_handoff: bool = False
     has_local_recovery_target: bool = False
-    segment_candidates_count: int = 0
+    resume_candidates_count: int = 0
     has_live_execution: bool = False
     execution_resumable: bool = False
-    has_session_resume_file: bool = False
-    missing_session_resume_file: bool = False
     has_interrupted_agent: bool = False
     recent_projects_count: int = 0
     resumable_projects_count: int = 0
     available_projects_count: int = 0
     machine_change_notice: str | None = None
     actions: list[RecoveryAdviceAction] = Field(default_factory=list)
+
+    @property
+    def resume_mode(self) -> str | None:
+        if self.active_resume_kind in {"bounded_segment", "interrupted_agent"}:
+            return self.active_resume_kind
+        return None
+
+    @property
+    def execution_resume_file(self) -> str | None:
+        return self.active_resume_pointer
+
+    @property
+    def execution_resume_file_source(self) -> str | None:
+        if self.active_resume_origin is None:
+            return None
+        return _CANONICAL_ORIGIN_TO_COMPAT_SOURCE.get(self.active_resume_origin)
+
+    @property
+    def has_session_resume_file(self) -> bool:
+        return self.has_continuity_handoff
+
+    @property
+    def missing_session_resume_file(self) -> bool:
+        return self.missing_continuity_handoff
+
+    @property
+    def segment_candidates_count(self) -> int:
+        return self.resume_candidates_count
 
 
 def _row_value(row: object, field: str, default: object = None) -> object:
@@ -341,12 +362,6 @@ def _has_usable_candidate_resume_file(segment_candidates: Sequence[Mapping[str, 
     return False
 
 
-def _resume_file_source_for_origin(origin: str | None) -> str | None:
-    if origin is None:
-        return None
-    return _CANONICAL_ORIGIN_TO_COMPAT_SOURCE.get(origin)
-
-
 def _derive_active_resume_kind(
     *,
     payload: Mapping[str, object],
@@ -467,8 +482,9 @@ def serialize_recovery_orientation(advice: RecoveryAdvice) -> dict[str, object]:
         "recorded_continuity_handoff_file": advice.recorded_continuity_handoff_file,
         "missing_continuity_handoff_file": advice.missing_continuity_handoff_file,
         "has_continuity_handoff": advice.has_continuity_handoff,
+        "missing_continuity_handoff": advice.missing_continuity_handoff,
         "has_local_recovery_target": advice.has_local_recovery_target,
-        "resume_candidates_count": advice.segment_candidates_count,
+        "resume_candidates_count": advice.resume_candidates_count,
         "has_live_execution": advice.has_live_execution,
         "execution_resumable": advice.execution_resumable,
         "has_interrupted_agent": advice.has_interrupted_agent,
@@ -484,8 +500,8 @@ def _status(
     execution_resumable: bool,
     has_interrupted_agent: bool,
     has_live_execution: bool,
-    has_session_resume_file: bool,
-    missing_session_resume_file: bool,
+    has_continuity_handoff: bool,
+    missing_continuity_handoff: bool,
     current_workspace_has_recovery: bool,
     recent_projects_count: int,
 ) -> str:
@@ -493,9 +509,9 @@ def _status(
         return "bounded-segment"
     if has_interrupted_agent:
         return "interrupted-agent"
-    if has_session_resume_file:
+    if has_continuity_handoff:
         return "session-handoff"
-    if missing_session_resume_file:
+    if missing_continuity_handoff:
         return "missing-handoff"
     if has_live_execution:
         return "live-execution"
@@ -662,12 +678,6 @@ def build_recovery_advice(
         recorded_continuity_handoff_file=recorded_continuity_handoff_file,
         missing_continuity_handoff_file=missing_continuity_handoff_file,
     )
-    execution_resume_file = active_resume_pointer
-    execution_resume_file_source = _resume_file_source_for_origin(active_resume_origin) or _legacy_text_field(
-        payload,
-        compat_resume_surface,
-        "execution_resume_file_source",
-    )
     workspace_root = _text_field(payload, "workspace_root")
     project_root = _text_field(payload, "project_root")
     project_root_source = _text_field(payload, "project_root_source")
@@ -693,7 +703,7 @@ def build_recovery_advice(
         execution_resumable_flag = _bool_field(payload, "execution_resumable")
     if active_resume_kind == "bounded_segment":
         execution_resumable = bool(
-            execution_resume_file
+            active_resume_pointer
             or has_bounded_segment_candidate
             or execution_resumable_flag
             or resume_mode == "bounded_segment"
@@ -735,7 +745,7 @@ def build_recovery_advice(
         continuity_handoff_file is not None
         or (
             active_resume_kind == "continuity_handoff"
-            and execution_resume_file is not None
+            and active_resume_pointer is not None
         )
         or _has_candidate(
             segment_candidates,
@@ -756,10 +766,8 @@ def build_recovery_advice(
             and not has_continuity_handoff
         )
     )
-    has_session_resume_file = has_continuity_handoff
-    missing_session_resume_file = missing_continuity_handoff
     current_workspace_has_resume_file = (
-        execution_resume_file is not None
+        active_resume_pointer is not None
         or continuity_handoff_file is not None
         or _has_usable_candidate_resume_file(segment_candidates)
     )
@@ -774,7 +782,7 @@ def build_recovery_advice(
         or has_live_execution
         or machine_change_notice is not None
         or recorded_continuity_handoff_file is not None
-        or execution_resume_file is not None
+        or active_resume_pointer is not None
     )
     has_local_recovery_target = bool(
         execution_resumable
@@ -800,8 +808,8 @@ def build_recovery_advice(
         execution_resumable=execution_resumable,
         has_interrupted_agent=has_interrupted_agent,
         has_live_execution=has_live_execution,
-        has_session_resume_file=has_continuity_handoff,
-        missing_session_resume_file=missing_continuity_handoff,
+        has_continuity_handoff=has_continuity_handoff,
+        missing_continuity_handoff=missing_continuity_handoff,
         current_workspace_has_recovery=current_workspace_has_recovery,
         recent_projects_count=recent_projects_count,
     )
@@ -860,8 +868,8 @@ def build_recovery_advice(
         execution_resumable=execution_resumable,
         has_interrupted_agent=has_interrupted_agent,
         has_live_execution=has_live_execution,
-        has_session_resume_file=has_session_resume_file,
-        missing_session_resume_file=missing_session_resume_file,
+        has_continuity_handoff=has_continuity_handoff,
+        missing_continuity_handoff=missing_continuity_handoff,
         machine_change_notice=machine_change_notice,
     )
     if project_reentry_reason is not None:
@@ -889,22 +897,18 @@ def build_recovery_advice(
         current_workspace_has_recovery=current_workspace_has_recovery,
         current_workspace_has_resume_file=current_workspace_has_resume_file,
         current_workspace_candidate_count=len(segment_candidates),
-        resume_mode=resume_mode,
         active_resume_kind=active_resume_kind,
         active_resume_origin=active_resume_origin,
         active_resume_pointer=active_resume_pointer,
-        execution_resume_file=execution_resume_file,
-        execution_resume_file_source=execution_resume_file_source,
         continuity_handoff_file=continuity_handoff_file,
         recorded_continuity_handoff_file=recorded_continuity_handoff_file,
         missing_continuity_handoff_file=missing_continuity_handoff_file,
         has_continuity_handoff=has_continuity_handoff,
+        missing_continuity_handoff=missing_continuity_handoff,
         has_local_recovery_target=has_local_recovery_target,
-        segment_candidates_count=len(segment_candidates),
+        resume_candidates_count=len(segment_candidates),
         has_live_execution=has_live_execution,
         execution_resumable=execution_resumable,
-        has_session_resume_file=has_session_resume_file,
-        missing_session_resume_file=missing_session_resume_file,
         has_interrupted_agent=has_interrupted_agent,
         recent_projects_count=recent_projects_count,
         resumable_projects_count=resumable_projects_count,

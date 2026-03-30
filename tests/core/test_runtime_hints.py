@@ -763,10 +763,10 @@ def test_build_runtime_hint_payload_uses_canonical_bounded_resume_mode_without_l
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
-            "resume_mode": "bounded_segment",
-            "execution_resume_file": "GPD/phases/06/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "compat.current_execution",
+            "active_resume_pointer": "GPD/phases/06/.continue-here.md",
+            "resume_candidates": [],
             "has_live_execution": True,
         },
     )
@@ -1091,7 +1091,7 @@ def test_build_runtime_hint_payload_machine_change_only_keeps_local_resume_witho
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [],
+            "resume_candidates": [],
             "has_live_execution": False,
             "machine_change_notice": (
                 "Machine change detected: last active on old-host (Linux 5.15 x86_64); "
@@ -1128,13 +1128,12 @@ def test_build_runtime_hint_payload_missing_handoff_keeps_local_resume_without_i
             "state_exists": True,
             "roadmap_exists": True,
             "project_exists": True,
-            "segment_candidates": [
+            "resume_candidates": [
                 {
-                    "source": "session_resume_file",
+                    "kind": "continuity_handoff",
+                    "origin": "continuation.handoff",
                     "status": "missing",
                     "resume_file": "GPD/phases/04/.continue-here.md",
-                    "resumable": False,
-                    "advisory": True,
                 }
             ],
             "has_live_execution": False,

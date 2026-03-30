@@ -45,13 +45,12 @@ def test_build_recovery_advice_treats_canonical_bounded_segment_as_authoritative
         project,
         recent_rows=[],
         resume_payload={
-            "active_execution_segment": None,
-            "execution_resume_file": "GPD/phases/06/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "compat.current_execution",
+            "active_resume_pointer": "GPD/phases/06/.continue-here.md",
             "execution_resumable": True,
             "has_live_execution": False,
-            "resume_mode": "bounded_segment",
-            "segment_candidates": [],
+            "resume_candidates": [],
         },
     )
 
@@ -66,8 +65,7 @@ def test_build_recovery_advice_treats_canonical_bounded_segment_as_authoritative
     assert advice.active_resume_kind == "bounded_segment"
     assert advice.active_resume_origin == "compat.current_execution"
     assert advice.active_resume_pointer == "GPD/phases/06/.continue-here.md"
-    assert advice.execution_resume_file == "GPD/phases/06/.continue-here.md"
-    assert advice.execution_resume_file_source == "current_execution"
+    assert advice.resume_candidates_count == 0
 
 
 def test_serialize_recovery_orientation_is_canonical_first_and_omits_legacy_resume_aliases(
@@ -79,16 +77,17 @@ def test_serialize_recovery_orientation_is_canonical_first_and_omits_legacy_resu
         project,
         recent_rows=[],
         resume_payload={
-            "resume_mode": "bounded_segment",
-            "segment_candidates": [
+            "resume_candidates": [
                 {
-                    "source": "current_execution",
+                    "kind": "bounded_segment",
+                    "origin": "compat.current_execution",
                     "resume_file": "GPD/phases/06/.continue-here.md",
                 }
             ],
+            "active_resume_kind": "bounded_segment",
+            "active_resume_origin": "compat.current_execution",
+            "active_resume_pointer": "GPD/phases/06/.continue-here.md",
             "execution_resumable": True,
-            "execution_resume_file": "GPD/phases/06/.continue-here.md",
-            "execution_resume_file_source": "current_execution",
             "has_live_execution": True,
         },
     )
@@ -110,6 +109,8 @@ def test_serialize_recovery_orientation_is_canonical_first_and_omits_legacy_resu
     assert orientation["active_resume_kind"] == "bounded_segment"
     assert orientation["active_resume_origin"] == "compat.current_execution"
     assert orientation["active_resume_pointer"] == "GPD/phases/06/.continue-here.md"
+    assert orientation["missing_continuity_handoff"] is False
+    assert orientation["resume_candidates_count"] == 1
     assert "resume_mode" not in orientation
     assert "execution_resume_file" not in orientation
     assert "execution_resume_file_source" not in orientation
@@ -244,7 +245,7 @@ def test_build_recovery_advice_keeps_missing_handoff_in_current_workspace_priori
     assert advice.status == "missing-handoff"
     assert advice.decision_source == "current-workspace"
     assert advice.primary_command == "gpd resume"
-    assert advice.missing_session_resume_file is True
+    assert advice.missing_continuity_handoff is True
     assert advice.recent_projects_count == 1
 
 
@@ -266,7 +267,7 @@ def test_build_recovery_advice_keeps_interrupted_agent_in_current_workspace_mode
     assert advice.has_interrupted_agent is True
 
 
-def test_build_recovery_advice_prefers_session_handoff_over_advisory_live_execution(tmp_path: Path) -> None:
+def test_build_recovery_advice_prefers_continuity_handoff_over_advisory_live_execution(tmp_path: Path) -> None:
     project = _project(tmp_path)
     handoff = project / "GPD" / "phases" / "07" / ".continue-here.md"
     handoff.parent.mkdir(parents=True, exist_ok=True)
@@ -277,7 +278,11 @@ def test_build_recovery_advice_prefers_session_handoff_over_advisory_live_execut
         recent_rows=[{"project_root": "/tmp/other", "available": True, "resumable": True}],
         resume_payload={
             "has_live_execution": True,
-            "session_resume_file": "GPD/phases/07/.continue-here.md",
+            "active_resume_kind": "continuity_handoff",
+            "active_resume_origin": "continuation.handoff",
+            "active_resume_pointer": "GPD/phases/07/.continue-here.md",
+            "continuity_handoff_file": "GPD/phases/07/.continue-here.md",
+            "recorded_continuity_handoff_file": "GPD/phases/07/.continue-here.md",
         },
     )
 
@@ -328,9 +333,7 @@ def test_build_recovery_advice_prefers_canonical_continuity_fields_over_conflict
     assert advice.active_resume_pointer == "GPD/phases/09/.continue-here.md"
     assert advice.continuity_handoff_file == "GPD/phases/09/.continue-here.md"
     assert advice.has_continuity_handoff is True
-    assert advice.execution_resume_file == "GPD/phases/09/.continue-here.md"
-    assert advice.execution_resume_file_source == "session_resume_file"
-    assert advice.has_session_resume_file is True
+    assert advice.current_workspace_has_resume_file is True
     assert advice.has_local_recovery_target is True
 
 
@@ -378,14 +381,12 @@ def test_build_recovery_advice_prefers_nested_compat_resume_surface_over_legacy_
     assert advice.active_resume_origin == "continuation.handoff"
     assert advice.active_resume_pointer == "GPD/phases/10/.continue-here.md"
     assert advice.continuity_handoff_file == "GPD/phases/10/.continue-here.md"
-    assert advice.execution_resume_file == "GPD/phases/10/.continue-here.md"
-    assert advice.execution_resume_file_source == "session_resume_file"
     assert advice.execution_resumable is False
     assert advice.current_workspace_has_resume_file is True
-    assert advice.has_session_resume_file is True
+    assert advice.has_continuity_handoff is True
 
 
-def test_build_recovery_advice_recovers_session_handoff_from_candidate_only_payload(tmp_path: Path) -> None:
+def test_build_recovery_advice_recovers_continuity_handoff_from_candidate_only_payload(tmp_path: Path) -> None:
     project = _project(tmp_path)
 
     advice = build_recovery_advice(
@@ -405,7 +406,7 @@ def test_build_recovery_advice_recovers_session_handoff_from_candidate_only_payl
     assert advice.mode == "current-workspace"
     assert advice.status == "session-handoff"
     assert advice.decision_source == "current-workspace"
-    assert advice.has_session_resume_file is True
+    assert advice.has_continuity_handoff is True
     assert advice.current_workspace_has_resume_file is True
 
 
