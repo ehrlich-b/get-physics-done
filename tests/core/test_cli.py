@@ -2331,8 +2331,8 @@ def test_result_upsert_without_explicit_id(mock_upsert, tmp_path: Path):
 
 
 @patch("gpd.cli._resolve_derived_result_id")
-@patch("gpd.core.results.result_upsert", create=True)
-def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(mock_upsert, mock_resolve):
+@patch("gpd.core.results.result_upsert_derived", create=True)
+def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(mock_upsert_derived, mock_resolve):
     mock_result = MagicMock()
     mock_result.model_dump.return_value = {
         "status": "persisted",
@@ -2346,7 +2346,7 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(mock
         },
         "updated_fields": ["equation", "description"],
     }
-    mock_upsert.return_value = mock_result
+    mock_upsert_derived.return_value = mock_result
     mock_resolve.return_value = "R-02-effective-mass"
 
     result = runner.invoke(
@@ -2377,9 +2377,10 @@ def test_result_persist_derived_forwards_parsed_options_and_derivation_slug(mock
     assert resolve_kwargs["description"] == "Canonical quantity"
     assert resolve_kwargs["phase"] == "2"
 
-    mock_upsert.assert_called_once()
-    _, kwargs = mock_upsert.call_args
-    assert kwargs["result_id"] == "R-02-effective-mass"
+    mock_upsert_derived.assert_called_once()
+    _, kwargs = mock_upsert_derived.call_args
+    assert kwargs["result_id"] is None
+    assert kwargs["derivation_slug"] == "effective-mass"
     assert kwargs["equation"] == "a = b + c"
     assert kwargs["description"] == "Canonical quantity"
     assert kwargs["phase"] == "2"

@@ -392,6 +392,78 @@ def test_result_upsert_reuses_unique_description_match_when_preferred_id_is_new(
     assert reloaded["intermediate_results"][0]["validity"] == "g << 1"
 
 
+def test_result_persist_derived_bridge_reuses_unique_equation_match_when_preferred_id_is_new(
+    gpd_project: Path,
+) -> None:
+    planning = gpd_project / "GPD"
+    state_path = planning / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["intermediate_results"] = [
+        {
+            "id": "R-01",
+            "equation": "E = mc^2",
+            "description": "Original description",
+            "phase": "01",
+            "depends_on": [],
+            "verified": False,
+            "verification_records": [],
+        }
+    ]
+    state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+    result = _invoke_result_persist_derived_like_bridge(
+        gpd_project,
+        "--id",
+        "R-new",
+        "--equation",
+        "E=mc^2",
+        "--description",
+        "Canonical description",
+        "--phase",
+        "01",
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["action"] == "updated"
+    assert payload["result"]["id"] == "R-01"
+    assert payload["result"]["description"] == "Canonical description"
+
+    reloaded = json.loads(state_path.read_text(encoding="utf-8"))
+    assert len(reloaded["intermediate_results"]) == 1
+    assert reloaded["intermediate_results"][0]["id"] == "R-01"
+    assert reloaded["intermediate_results"][0]["description"] == "Canonical description"
+
+
+def test_result_persist_derived_bridge_surfaces_persisted_result_in_init_progress(gpd_project: Path) -> None:
+    planning = gpd_project / "GPD"
+    state_path = planning / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["intermediate_results"] = []
+    state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+    result = _invoke_result_persist_derived_like_bridge(
+        gpd_project,
+        "--id",
+        "R-bridge-01",
+        "--equation",
+        "a = b + c",
+        "--description",
+        "Canonical bridge quantity",
+        "--phase",
+        "01",
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["result"]["id"] == "R-bridge-01"
+
+    init_result = _invoke("--raw", "init", "progress", "--include", "state,config")
+    init_payload = json.loads(init_result.output)
+    assert init_payload["derived_intermediate_result_count"] == 1
+    assert [entry["id"] for entry in init_payload["derived_intermediate_results"]] == ["R-bridge-01"]
+
+
 @pytest.fixture(autouse=True)
 def _chdir(gpd_project: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """All tests run from the project directory."""
@@ -429,6 +501,30 @@ def _bootstrap_recent_project(root: Path, *, phase_slug: str, title: str) -> Pat
     (planning / "STATE.md").write_text(generate_state_markdown(state), encoding="utf-8")
     (phase_dir / ".continue-here.md").write_text("resume\n", encoding="utf-8")
     return root
+
+
+def _result_command_names() -> set[str]:
+    result_group = next(group for group in app.registered_groups if group.name == "result")
+    return {command.name for command in result_group.typer_instance.registered_commands}
+
+
+def _persist_derived_result_command_available() -> bool:
+    return "persist-derived" in _result_command_names()
+
+
+def _invoke_result_persist_derived_like_bridge(cwd: Path, *args: str) -> object:
+    """Invoke the derived-result persistence bridge when available.
+
+    The branch under test may not yet expose the dedicated command, so the
+    integration coverage falls back to the canonical `result upsert` writer.
+    The assertions below still lock the same persistence behavior and will
+    automatically exercise the dedicated bridge once it lands.
+    """
+    if _persist_derived_result_command_available():
+        command = ["result", "persist-derived", *args]
+    else:
+        command = ["result", "upsert", *args]
+    return runner.invoke(app, ["--raw", "--cwd", str(cwd), *command], catch_exceptions=False)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

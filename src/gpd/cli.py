@@ -2201,7 +2201,7 @@ def _resolve_derived_result_id(
     if resolved_phase is None:
         resolved_phase = "0"
 
-    return f"R-{phase_normalize(str(resolved_phase))}-{slug[:48]}"
+    return f"R-{phase_normalize(str(resolved_phase)).replace('.', '_')}-{slug[:48]}"
 
 
 @result_app.command("add")
@@ -2269,7 +2269,7 @@ def result_persist_derived(
     import json as _json
 
     from gpd.core.constants import ProjectLayout
-    from gpd.core.results import result_upsert as _result_upsert
+    from gpd.core.results import result_upsert_derived as _result_upsert_derived
     from gpd.core.state import peek_state_json, save_state_json_locked
     from gpd.core.utils import file_lock
 
@@ -2307,9 +2307,10 @@ def result_persist_derived(
             equation=equation,
             description=description,
         )
-        res = _result_upsert(
+        res = _result_upsert_derived(
             state,
-            result_id=resolved_id,
+            result_id=id,
+            derivation_slug=derivation_slug,
             equation=equation,
             description=description,
             units=units,
