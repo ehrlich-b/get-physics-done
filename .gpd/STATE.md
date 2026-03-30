@@ -11,20 +11,20 @@ See: .gpd/PROJECT.md (updated 2026-03-29)
 
 ## Current Position
 
-**Current Phase:** -- (awaiting roadmap)
-**Current Phase Name:** --
-**Total Phases:** 31 (v1.0-v8.0) + v9.0 phases TBD
+**Current Phase:** 32
+**Current Phase Name:** Fisher Geometry on Reduced States
+**Total Phases:** 36 (31 prior + 5 new in v9.0)
 **Current Plan:** --
-**Total Plans in Phase:** --
-**Status:** Defining objectives for v9.0. Close all four Paper 6 gaps via finite-dim observer as UV cutoff.
+**Total Plans in Phase:** TBD
+**Status:** Ready to plan
 **Last Activity:** 2026-03-29
-**Last Activity Description:** v9.0 milestone initialized. Fisher geometry + exponential decay + emergent Lorentz -> BW -> Jacobson -> Einstein.
+**Last Activity Description:** v9.0 roadmap created. 5 phases (32-36): Fisher Geometry -> Correlation Structure -> Emergent Lorentz -> BW + Equilibrium -> Assembly + Gap Scoring.
 
-**Progress:** ░░░░░░░░░░ 0% (v9.0)
+**Progress:** [░░░░░░░░░░] 0% (v9.0)
 
 ## Active Calculations
 
-(None yet -- awaiting roadmap and phase planning for v9.0)
+(None yet -- awaiting phase planning for Phase 32)
 
 ## Intermediate Results
 
@@ -147,5 +147,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-29
-**Stopped at:** v9.0 milestone initialization -- defining objectives
+**Stopped at:** v9.0 roadmap created; Phase 32 ready to plan
 **Resume file:** --

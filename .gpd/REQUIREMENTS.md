@@ -94,27 +94,27 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| FISH-01 | TBD (roadmap) | Pending |
-| FISH-02 | TBD | Pending |
-| FISH-03 | TBD | Pending |
-| CORR-01 | TBD | Pending |
-| CORR-02 | TBD | Pending |
-| CORR-03 | TBD | Pending |
-| LRNZ-01 | TBD | Pending |
-| LRNZ-02 | TBD | Pending |
-| LRNZ-03 | TBD | Pending |
-| BWEQ-01 | TBD | Pending |
-| BWEQ-02 | TBD | Pending |
-| ASBL-01 | TBD | Pending |
-| ASBL-02 | TBD | Pending |
+| FISH-01 | Phase 32 | Pending |
+| FISH-02 | Phase 32 | Pending |
+| FISH-03 | Phase 32 | Pending |
+| CORR-01 | Phase 33 | Pending |
+| CORR-02 | Phase 33 | Pending |
+| CORR-03 | Phase 33 | Pending |
+| LRNZ-01 | Phase 34 | Pending |
+| LRNZ-02 | Phase 34 | Pending |
+| LRNZ-03 | Phase 34 | Pending |
+| BWEQ-01 | Phase 35 | Pending |
+| BWEQ-02 | Phase 35 | Pending |
+| ASBL-01 | Phase 36 | Pending |
+| ASBL-02 | Phase 36 | Pending |
 
 **Coverage:**
 
 - Primary requirements: 13 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 13
+- Mapped to phases: 13/13
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-03-29_
-_Last updated: 2026-03-29 after initial definition_
+_Last updated: 2026-03-29 after roadmap creation_
