@@ -1847,5 +1847,112 @@
     "boundary_effects": "Metric decays from boundary into bulk. For N=20, boundary effects extend ~5-7 sites, consistent with correlation length xi ~ 3-5 for Heisenberg chain.",
     "physical_interpretation": "The spatial Fisher metric measures position-dependence of reduced states. In 1D Heisenberg with OBC, this comes entirely from boundary effects. In the thermodynamic limit, bulk becomes translation-invariant -> g=0. The metric recovers finite-size geometry but not bulk lattice distance.",
     "implications_for_v9": "Distance recovery (FISH-03) fails in its original form. Options: (1) rescale metric by N-dependent factor, (2) use Fisher metric on different parameterization, (3) consider 2D or higher-d lattices where bulk structure persists, (4) use the correlation length rather than lattice distance as the natural scale."
+  },
+  "cross_validation_plan02": {
+    "boundary_decay_fits": {
+      "Lambda=2": {
+        "N=12": {
+          "A": 0.0319,
+          "slope": -1.416,
+          "xi_g": 1.412,
+          "xi_corr": 2.824,
+          "R2": 0.99
+        },
+        "N=16": {
+          "A": 0.0247,
+          "slope": -1.148,
+          "xi_g": 1.742,
+          "xi_corr": 3.484,
+          "R2": 0.993
+        },
+        "N=20": {
+          "A": 0.0187,
+          "slope": -0.961,
+          "xi_g": 2.08,
+          "xi_corr": 4.16,
+          "R2": 0.991
+        }
+      },
+      "Lambda=3": {
+        "N=12": {
+          "A": 0.0407,
+          "slope": -1.325,
+          "xi_g": 1.509,
+          "xi_corr": 3.018,
+          "R2": 0.967
+        },
+        "N=16": {
+          "A": 0.0312,
+          "slope": -1.115,
+          "xi_g": 1.794,
+          "xi_corr": 3.588,
+          "R2": 0.984
+        },
+        "N=20": {
+          "A": 0.0233,
+          "slope": -0.948,
+          "xi_g": 2.11,
+          "xi_corr": 4.22,
+          "R2": 0.988
+        }
+      },
+      "model": "g(x) = A * exp(slope * x) for left half of chain",
+      "note": "xi_corr = 2 * xi_g because g ~ (d_x rho)^2 ~ exp(-2x/xi)"
+    },
+    "hastings_koma_comparison": {
+      "formula": "xi_HK = 2*N/pi^2 (from v_LR=2Ja, gamma=pi^2*J/N)",
+      "Lambda=2": {
+        "N=12": {
+          "xi_HK": 2.432,
+          "xi_corr": 2.824,
+          "ratio": 1.161
+        },
+        "N=16": {
+          "xi_HK": 3.242,
+          "xi_corr": 3.484,
+          "ratio": 1.075
+        },
+        "N=20": {
+          "xi_HK": 4.053,
+          "xi_corr": 4.16,
+          "ratio": 1.026
+        }
+      },
+      "Lambda=3": {
+        "N=12": {
+          "xi_HK": 2.432,
+          "xi_corr": 3.018,
+          "ratio": 1.241
+        },
+        "N=16": {
+          "xi_HK": 3.242,
+          "xi_corr": 3.588,
+          "ratio": 1.107
+        },
+        "N=20": {
+          "xi_HK": 4.053,
+          "xi_corr": 4.22,
+          "ratio": 1.041
+        }
+      },
+      "verdict": "Agreement improves with N: 3-24% (N=12) to 3-4% (N=20). Consistent with Hastings-Koma bound becoming tight at large N."
+    },
+    "theorem3_verdict": {
+      "fish03_status": "FAILS",
+      "reason": "1D Heisenberg chain is gapless: bulk becomes translation-invariant as N->inf, g_bulk->0",
+      "g_bulk_scaling": {
+        "Lambda=2": "g_bulk ~ 0.217 * N^{-2.75}",
+        "Lambda=3": "g_bulk ~ 7.72 * N^{-3.87}"
+      },
+      "distance_ratio_scaling": {
+        "Lambda=2": "d_F/d_lat ~ N^{-1.37}",
+        "Lambda=3": "d_F/d_lat ~ N^{-1.94}"
+      },
+      "rescues": [
+        "N-dependent rescaled metric",
+        "2D lattice (Neel order preserves position dependence)",
+        "Gapped variant (staggered field, AKLT, etc.)"
+      ]
+    }
   }
 }

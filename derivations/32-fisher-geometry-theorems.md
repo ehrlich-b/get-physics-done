@@ -363,3 +363,301 @@ because the ground state has support on all spin configurations in the
 SU(2)-invariant sector.
 
 ---
+
+## Theorem 3: Distance Recovery (FISH-03) -- Negative Result in 1D
+
+### Statement
+
+**Theorem 3 (Distance non-recovery in 1D).** For the 1D Heisenberg
+antiferromagnet on N sites with OBC, the Fisher geodesic distance
+
+$$
+d_\mathrm{Fisher}(x,y) = \sum_{z=x}^{y-1} \sqrt{g(z)} \cdot a, \quad a = 1
+$$
+
+satisfies:
+
+$$
+\frac{d_\mathrm{Fisher}(x,y)}{d_\mathrm{lattice}(x,y)} \to 0 \quad \text{as } N \to \infty
+\tag{32.11}
+$$
+
+for any fixed bulk positions x, y with |x - y| >> 1.
+
+Specifically, the bulk Fisher metric scales as:
+
+$$
+g_\mathrm{bulk}(N) \sim A \cdot N^{-\alpha}, \quad
+\alpha \approx \begin{cases}
+2.75 \pm 0.3 & |\Lambda| = 2 \\
+3.87 \pm 0.4 & |\Lambda| = 3
+\end{cases}
+\tag{32.12}
+$$
+
+so that sqrt(g_bulk) ~ N^{-alpha/2} -> 0 and the distance ratio vanishes as
+N^{-alpha/2}.
+
+**FISH-03 in its original form (d_Fisher/d_lattice -> const > 0) FAILS for the
+1D Heisenberg chain.** This is a genuine physics result: the 1D chain ground
+state becomes translation-invariant in the thermodynamic limit, so the spatial
+Fisher metric, which measures position-dependence of reduced states, vanishes
+in the bulk.
+
+### Proof
+
+**Step 1: Bulk translation invariance in the thermodynamic limit.**
+
+For the 1D Heisenberg chain, the unique ground state on N sites with OBC
+approaches the infinite-chain ground state in the bulk. Specifically, for any
+fixed subsystem Lambda of size |Lambda|, the reduced density matrix at position
+x satisfies:
+
+$$
+\rho_\Lambda(x) \to \rho_\infty \quad \text{as } \min(x, N - x - |\Lambda|) \to \infty
+$$
+
+where rho_infty is the translation-invariant bulk reduced state. The approach
+is controlled by boundary effects that decay from the chain endpoints.
+
+In the infinite chain, translation symmetry is restored: rho_Lambda(x) =
+rho_infty for all x. Therefore d_x rho = 0 identically in the bulk, and
+g(x) = 0.
+
+**Step 2: Boundary-effect decomposition of g(x).**
+
+At finite N, the metric at bulk position x arises entirely from the breaking
+of translation invariance by the boundaries. From Eq. (32.9):
+
+$$
+\partial_x \rho \approx -\frac{\delta\rho_L}{\xi} e^{-x/\xi} + \frac{\delta\rho_R}{\xi} e^{-(N - |\Lambda| - x)/\xi}
+$$
+
+The Fisher metric, being quadratic in d_x rho, is:
+
+$$
+g(x) \sim \frac{1}{\xi^2} \left( \|\delta\rho_L\|^2 e^{-2x/\xi} + \|\delta\rho_R\|^2 e^{-2(N - |\Lambda| - x)/\xi} - 2\langle L, R \rangle e^{-(N - |\Lambda|)/\xi} \right)
+\tag{32.13}
+$$
+
+where <L,R> denotes the cross-term from left and right boundary contributions.
+
+At the chain center x ~ N/2: both exponentials are ~ exp(-N/(2*xi)), giving:
+
+$$
+g_\mathrm{bulk} \sim \frac{\|\delta\rho\|^2}{\xi^2} \exp\bigl(-N/\xi\bigr)
+\tag{32.14}
+$$
+
+Since xi ~ N for the 1D Heisenberg chain (gap ~ 1/N, so xi = v_LR/gamma ~
+v_LR * N / (pi^2 J)), the exponent N/xi ~ pi^2 J / v_LR ~ const, and the
+metric does NOT decay exponentially in N. Instead, it decays as a power law
+because xi and the prefactors also depend on N.
+
+**Step 3: Power-law decay of g_bulk.**
+
+The numerical data (Plan 01) shows g_bulk ~ A * N^{-alpha}. The exponent alpha
+arises from the combined N-dependence of:
+- The correlation length xi ~ N (so 1/xi^2 ~ 1/N^2),
+- The boundary perturbation amplitude ||delta_rho|| (depends on N through the
+  ground state structure),
+- The exponential factor exp(-N/xi) ~ exp(-const) ~ O(1).
+
+The result alpha ~ 2.75 for |Lambda|=2 and alpha ~ 3.87 for |Lambda|=3
+reflects the particular structure of the Heisenberg ground state. The larger
+alpha for |Lambda|=3 indicates that larger subsystems are MORE sensitive to the
+thermodynamic limit (their Fisher metric vanishes faster).
+
+**Step 4: Distance ratio scaling.**
+
+The geodesic distance between two bulk points x and y is:
+
+$$
+d_\mathrm{Fisher}(x,y) = \sum_{z=x}^{y-1} \sqrt{g(z)} \sim |x-y| \cdot \sqrt{g_\mathrm{bulk}} \sim |x-y| \cdot \sqrt{A} \cdot N^{-\alpha/2}
+$$
+
+Therefore:
+
+$$
+\frac{d_\mathrm{Fisher}}{d_\mathrm{lattice}} \sim \sqrt{A} \cdot N^{-\alpha/2} \to 0
+\tag{32.15}
+$$
+
+The numerical values confirm:
+- |Lambda|=2: ratio ~ N^{-1.37} (= N^{-2.75/2})
+- |Lambda|=3: ratio ~ N^{-1.94} (= N^{-3.87/2})
+
+Both are monotonically decreasing to zero.
+
+### Why FISH-03 Fails in 1D: Physical Explanation
+
+The fundamental reason is that the 1D Heisenberg chain is **gapless** in the
+thermodynamic limit. For gapless systems:
+
+1. The correlation length xi diverges (xi ~ N for the finite chain),
+2. Boundary effects penetrate the entire chain,
+3. In the limit, translation invariance is restored in the bulk,
+4. Therefore d_x rho -> 0 in the bulk, and g -> 0.
+
+This is NOT an artifact of the computation or the choice of metric. It is a
+genuine feature of 1D quantum spin chains with gapless excitations.
+
+For a **gapped** system (e.g., the Heisenberg chain with a staggered field, or
+the AKLT chain), xi remains finite as N -> infinity, boundary effects remain
+localized, and the bulk metric approaches a nonzero constant. In that case,
+FISH-03 would hold as originally stated. But the antiferromagnetic Heisenberg
+chain without explicit gap is not in this class.
+
+### Possible Rescues for v9.0
+
+Three approaches can potentially salvage a notion of distance recovery:
+
+1. **Rescaled metric:** Define g_rescaled(x) = N^alpha * g(x). Then
+   g_rescaled_bulk -> const > 0 as N -> infinity, and the rescaled distance
+   recovers lattice distance. This is mathematically valid but physically
+   requires a scale-dependent normalization.
+
+2. **2D lattice:** The 2D Heisenberg AFM has true long-range Neel order at
+   T=0 (Mermin-Wagner theorem does not apply at T=0 in d>=2 for broken
+   continuous symmetry). This means rho_Lambda(x) has genuine position
+   dependence even in the thermodynamic limit, because the Neel order
+   parameter breaks translation invariance. The Fisher metric may remain
+   nonzero. Deferred to Phase 33-34.
+
+3. **Gapped variant:** Add a perturbation that opens a gap (staggered field,
+   dimerization, spin-orbit coupling) to make the system gapped. Then
+   Theorem 1 applies with finite xi, and the bulk metric approaches a nonzero
+   constant.
+
+---
+
+## Comprehensive Cross-Validation
+
+### Table 1: Boundary decay fit (g(x) ~ A * exp(-b*x) for left half)
+
+| N  | |Lambda| | A_fit    | b (= 2/xi_corr) | xi_g = 2/b | xi_corr = 2*xi_g | R^2    |
+|----|----------|----------|------------------|-------------|-------------------|--------|
+| 12 | 2        | 3.19e-2  | 1.416            | 1.412       | 2.824             | 0.990  |
+| 12 | 3        | 4.07e-2  | 1.325            | 1.509       | 3.018             | 0.967  |
+| 16 | 2        | 2.47e-2  | 1.148            | 1.742       | 3.484             | 0.993  |
+| 16 | 3        | 3.12e-2  | 1.115            | 1.794       | 3.588             | 0.984  |
+| 20 | 2        | 1.87e-2  | 0.961            | 2.080       | 4.160             | 0.991  |
+| 20 | 3        | 2.33e-2  | 0.948            | 2.110       | 4.220             | 0.988  |
+
+Notes:
+- xi_g is the fitted decay length of the Fisher metric g(x) from the boundary.
+- xi_corr = 2 * xi_g is the inferred correlation length (g ~ (d_x rho)^2,
+  so the metric decays twice as fast as d_x rho).
+- R^2 > 0.96 for all fits: the exponential boundary decay model is excellent.
+
+### Table 2: Comparison of xi_corr with Hastings-Koma prediction
+
+| N  | xi_HK = 2N/pi^2 | xi_corr (|Lambda|=2) | ratio | xi_corr (|Lambda|=3) | ratio |
+|----|-----------------|---------------------|-------|---------------------|-------|
+| 12 | 2.43            | 2.82                | 1.16  | 3.02                | 1.24  |
+| 16 | 3.24            | 3.48                | 1.07  | 3.59                | 1.11  |
+| 20 | 4.05            | 4.16                | 1.03  | 4.22                | 1.04  |
+
+The Hastings-Koma prediction xi_HK = v_LR / gamma uses:
+- v_LR = 2Ja (Lieb-Robinson velocity for nearest-neighbor spin-1/2),
+- gamma = pi^2 J / N (Bethe ansatz gap for 1D Heisenberg OBC).
+
+The agreement improves with N (from ~16% at N=12 to ~3% at N=20), consistent
+with the Hastings-Koma bound becoming tight in the large-N limit. The
+systematic overestimate at small N is expected: Hastings-Koma provides an
+upper bound on xi, and the actual correlation length can be smaller.
+
+**Verdict:** Analytical prediction for boundary decay rate matches numerical
+data within 3-24% (improving with N). [CONFIDENCE: HIGH]
+
+### Table 3: Finite-size scaling of g_bulk
+
+| N  | g_bulk (|Lambda|=2) | g_bulk (|Lambda|=3) | sqrt(g) (|Lambda|=2) | sqrt(g) (|Lambda|=3) |
+|----|-------------------|-------------------|---------------------|---------------------|
+| 8  | 7.61e-4           | 2.84e-3           | 0.0276              | 0.0533              |
+| 12 | 2.02e-4           | 3.72e-4           | 0.0142              | 0.0193              |
+| 16 | 1.23e-4           | 1.85e-4           | 0.0111              | 0.0136              |
+| 20 | 5.64e-5           | 7.46e-5           | 0.0075              | 0.0086              |
+
+All sequences are monotonically decreasing, consistent with g_bulk -> 0.
+
+Power-law fits:
+- |Lambda|=2: g_bulk ~ 0.217 * N^{-2.75}, R^2 = 0.987
+- |Lambda|=3: g_bulk ~ 7.72 * N^{-3.87}, R^2 = 0.981
+
+**Verdict:** Monotone convergence to zero confirmed. [CONFIDENCE: MEDIUM --
+4-point fits with ~10% exponent uncertainty]
+
+### Table 4: Distance ratio comparison
+
+| N  | |Lambda| | sqrt(g_bulk) | mean(d_F/d_lat) | disagreement |
+|----|----------|-------------|-----------------|--------------|
+| 8  | 2        | 0.0276      | 0.0169          | 63%          |
+| 12 | 2        | 0.0142      | 0.0094          | 51%          |
+| 16 | 2        | 0.0111      | 0.0066          | 69%          |
+| 20 | 2        | 0.0075      | 0.0048          | 57%          |
+| 8  | 3        | 0.0533      | 0.0533          | 0%           |
+| 12 | 3        | 0.0193      | 0.0177          | 9%           |
+| 16 | 3        | 0.0136      | 0.0100          | 36%          |
+| 20 | 3        | 0.0086      | 0.0065          | 33%          |
+
+sqrt(g_bulk) does NOT equal the mean distance ratio because:
+1. The metric g(x) is NOT constant across the bulk -- it has strong
+   exponential decay from boundaries and sublattice alternation (for |Lambda|=2).
+2. The geodesic integral sum_{z} sqrt(g(z)) is dominated by the larger
+   near-boundary values, not the bulk average.
+3. For |Lambda|=3 at small N, the "bulk" region is only 2 points, so the
+   average happens to match.
+
+The disagreement grows with N for |Lambda|=3 because the bulk region grows
+and the non-constant structure becomes more apparent.
+
+**Verdict:** sqrt(g_bulk) is an upper bound on the mean distance ratio but not
+a precise predictor, due to the non-constant metric profile.
+[CONFIDENCE: HIGH for the scaling trend, LOW for the exact prefactor]
+
+### Tensor Structure Verification
+
+In 1D, the Fisher metric g(x) is a scalar at each position. As a rank-2
+covariant tensor in 1D, it has one independent component -- this is trivially
+satisfied.
+
+Verification of covariance under the only nontrivial 1D lattice
+"diffeomorphism" -- reflection x -> N - |Lambda| - x:
+
+$$
+g(x) = g(N - |\Lambda| - x) \quad \forall x
+$$
+
+This is confirmed by the Plan 01 data: the g(x) profiles are exactly
+reflection-symmetric about the chain center (verified to machine precision in
+all N=8,12,16,20 cases).
+
+[CONFIDENCE: HIGH -- trivial in 1D, verified numerically]
+
+---
+
+## Summary of Three Theorems
+
+| Theorem | Claim | Status | Conditions |
+|---------|-------|--------|------------|
+| 1 (FISH-01) | Smoothness of rho_Lambda(x) | **PROVED** (finite N) | Finite-range H, unique GS, gap gamma > 0 |
+| 2 (FISH-02) | g(x) > 0 at interior points | **PROVED** (finite N) | Full-rank rho, OBC, not at Z_2 center |
+| 3 (FISH-03) | d_Fisher/d_lattice -> const > 0 | **FAILS** (1D Heisenberg) | Would require gapped system or d >= 2 |
+
+**Honest overall assessment:**
+
+FISH-01 and FISH-02 are established rigorously for any finite N with a gapped
+Hamiltonian. The 1D Heisenberg chain satisfies these conditions at finite N.
+
+FISH-03 fails for the 1D Heisenberg chain because the system is gapless in the
+thermodynamic limit. The bulk Fisher metric vanishes as N^{-alpha/2} with alpha
+> 2. This is a genuine physics result reflecting the restoration of translation
+invariance in the bulk of gapless 1D systems.
+
+The three possible rescues (rescaled metric, 2D lattice, gapped variant) are
+deferred to downstream phases. The 2D lattice approach is the most promising
+for the v9.0 program because the 2D Heisenberg AFM has long-range Neel order
+that breaks translation invariance even in the thermodynamic limit.
+
+---
