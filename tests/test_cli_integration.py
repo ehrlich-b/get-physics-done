@@ -1114,6 +1114,39 @@ class TestObserveExecution:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 1b. suggest
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestSuggest:
+    def test_suggest_raw_from_nested_paused_project_surfaces_public_resume_command(
+        self, gpd_project: Path
+    ) -> None:
+        state_path = gpd_project / "GPD" / "state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["position"]["status"] = "Paused"
+        state["position"]["paused_at"] = "Paused after task 2"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+
+        nested_cwd = gpd_project / "workspace" / "nested"
+        nested_cwd.mkdir(parents=True, exist_ok=True)
+
+        result = _invoke("--raw", "--cwd", str(nested_cwd), "suggest")
+        parsed = json.loads(result.output)
+
+        assert parsed["top_action"]["action"] == "resume"
+        assert parsed["top_action"]["command"] == "gpd resume"
+        assert parsed["top_action"]["priority"] == 1
+        assert "Work was paused" in parsed["top_action"]["reason"]
+        assert "resume to restore context" in parsed["top_action"]["reason"]
+        assert parsed["suggestion_count"] == len(parsed["suggestions"])
+        assert parsed["top_action"] == parsed["suggestions"][0]
+        assert parsed["context"]["current_phase"] == "01"
+        assert parsed["context"]["status"] == "Paused"
+        assert parsed["context"]["paused_at"] == "Paused after task 2"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # 2. slug
 # ═══════════════════════════════════════════════════════════════════════════
 
