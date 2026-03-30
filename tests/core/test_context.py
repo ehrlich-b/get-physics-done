@@ -110,6 +110,67 @@ def _write_recoverable_project_contract_state(tmp_path: Path) -> None:
     (tmp_path / "GPD" / "state.json").write_text(json.dumps(state), encoding="utf-8")
 
 
+def _write_structured_state_payload(tmp_path: Path) -> None:
+    """Persist a representative structured state payload into state.json."""
+    from gpd.core.state import default_state_dict
+
+    state = default_state_dict()
+    state["convention_lock"].update(
+        {
+            "metric_signature": "(-,+,+,+)",
+            "fourier_convention": "physics",
+            "natural_units": "SI",
+        }
+    )
+    state["intermediate_results"] = [
+        {
+            "id": "R-01",
+            "equation": "E = mc^2",
+            "description": "Rest energy",
+            "phase": "01",
+            "depends_on": [],
+            "verified": True,
+            "verification_records": [{"verifier": "auditor", "method": "manual", "confidence": "high"}],
+        },
+        "legacy markdown bullet",
+    ]
+    state["approximations"] = [
+        {
+            "name": "weak coupling",
+            "validity_range": "g << 1",
+            "controlling_param": "g",
+            "current_value": "0.1",
+            "status": "valid",
+        }
+    ]
+    state["propagated_uncertainties"] = [
+        {
+            "quantity": "m_eff",
+            "value": "1.2",
+            "uncertainty": "0.1",
+            "phase": "03",
+            "method": "bootstrap",
+        }
+    ]
+    (tmp_path / "GPD" / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+
+def _assert_structured_state_context(ctx: dict[str, object], tmp_path: Path) -> None:
+    """Assert the shared structured-state init payload contract."""
+    assert ctx["state_load_source"] == (tmp_path / "GPD" / "state.json").as_posix()
+    assert ctx["state_integrity_issues"] == []
+    assert ctx["convention_lock"]["metric_signature"] == "(-,+,+,+)"
+    assert ctx["convention_lock"]["fourier_convention"] == "physics"
+    assert ctx["convention_lock"]["natural_units"] == "SI"
+    assert ctx["intermediate_result_count"] == 1
+    assert ctx["intermediate_results"][0]["id"] == "R-01"
+    assert ctx["intermediate_results"][0]["verified"] is True
+    assert ctx["approximation_count"] == 1
+    assert ctx["approximations"][0]["name"] == "weak coupling"
+    assert ctx["propagated_uncertainty_count"] == 1
+    assert ctx["propagated_uncertainties"][0]["quantity"] == "m_eff"
+
+
 def _write_stat_mech_project(tmp_path: Path) -> None:
     project = tmp_path / "GPD" / "PROJECT.md"
     project.write_text(
@@ -291,6 +352,40 @@ def _write_numerical_relativity_contract_state(tmp_path: Path) -> None:
             "disconfirming_observations": ["Constraint growth or waveform phase drift relative to the benchmark"],
         },
     }
+    (tmp_path / "GPD" / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+
+def _write_structured_state_memory(tmp_path: Path) -> None:
+    """Persist conventions, canonical results, and approximations into state.json."""
+    from gpd.core.state import default_state_dict
+
+    state = default_state_dict()
+    state["convention_lock"].update(
+        {
+            "metric_signature": "mostly-plus",
+            "coordinate_system": "Cartesian",
+        }
+    )
+    state["intermediate_results"] = [
+        {
+            "id": "R-01",
+            "equation": "E = mc^2",
+            "description": "Mass-energy relation",
+            "phase": "1",
+            "depends_on": [],
+            "verified": True,
+            "verification_records": [],
+        }
+    ]
+    state["approximations"] = [
+        {
+            "name": "weak coupling",
+            "validity_range": "g << 1",
+            "controlling_param": "g",
+            "current_value": "0.1",
+            "status": "valid",
+        }
+    ]
     (tmp_path / "GPD" / "state.json").write_text(json.dumps(state), encoding="utf-8")
 
 
@@ -518,6 +613,15 @@ class TestInitExecutePhase:
         ctx = init_execute_phase(tmp_path, "1", includes={"state"})
         assert ctx["state_content"] == "# State\nstuff"
 
+    def test_includes_structured_state_context(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-setup")
+        _write_structured_state_payload(tmp_path)
+
+        ctx = init_execute_phase(tmp_path, "1", includes={"state"})
+
+        _assert_structured_state_context(ctx, tmp_path)
+
     def test_json_only_state_counts_as_existing(self, tmp_path: Path) -> None:
         from gpd.core.state import default_state_dict
 
@@ -529,6 +633,23 @@ class TestInitExecutePhase:
         ctx = init_execute_phase(tmp_path, "1")
 
         assert ctx["state_exists"] is True
+
+    def test_surfaces_derived_state_memory(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        phase_dir = _create_phase_dir(tmp_path, "01-setup")
+        (phase_dir / "a-PLAN.md").write_text("plan")
+        _write_structured_state_memory(tmp_path)
+
+        ctx = init_execute_phase(tmp_path, "1")
+
+        assert ctx["derived_convention_lock"]["metric_signature"] == "mostly-plus"
+        assert ctx["derived_convention_lock"]["coordinate_system"] == "Cartesian"
+        assert ctx["derived_convention_lock_count"] == 2
+        assert ctx["derived_intermediate_result_count"] == 1
+        assert ctx["derived_intermediate_results"][0]["id"] == "R-01"
+        assert ctx["derived_intermediate_results"][0]["equation"] == "E = mc^2"
+        assert ctx["derived_approximation_count"] == 1
+        assert ctx["derived_approximations"][0]["name"] == "weak coupling"
 
     def test_state_exists_uses_recoverable_backup_without_persisting_repair(
         self,
@@ -695,6 +816,15 @@ class TestInitPlanPhase:
         ctx = init_plan_phase(tmp_path, "2", includes={"research"})
         assert ctx["research_content"] == "findings here"
 
+    def test_includes_structured_state_context_when_state_is_requested(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "02-analysis")
+        _write_structured_state_payload(tmp_path)
+
+        ctx = init_plan_phase(tmp_path, "2", includes={"state"})
+
+        _assert_structured_state_context(ctx, tmp_path)
+
     def test_surfaces_active_reference_context_and_reference_artifacts(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
         _create_phase_dir(tmp_path, "02-analysis")
@@ -740,6 +870,20 @@ class TestInitPlanPhase:
         assert "GPD/literature/benchmark-CITATION-SOURCES.json" not in ctx["reference_artifact_files"]
         assert "Benchmark Survey" in ctx["reference_artifacts_content"]
         assert "Active Anchor Registry" in ctx["reference_artifacts_content"]
+
+    def test_surfaces_derived_state_memory_without_including_state_markdown(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "02-analysis")
+        _write_structured_state_memory(tmp_path)
+
+        ctx = init_plan_phase(tmp_path, "2")
+
+        assert "state_content" not in ctx
+        assert ctx["derived_convention_lock"]["metric_signature"] == "mostly-plus"
+        assert ctx["derived_intermediate_result_count"] == 1
+        assert ctx["derived_intermediate_results"][0]["description"] == "Mass-energy relation"
+        assert ctx["derived_approximation_count"] == 1
+        assert ctx["derived_approximations"][0]["controlling_param"] == "g"
 
     def test_merges_contract_and_artifact_reference_intake(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1588,6 +1732,14 @@ class TestInitProgress:
         ctx = init_progress(tmp_path, includes={"project"})
         assert ctx["project_content"] == "# My Project"
 
+    def test_progress_includes_structured_state_context_when_state_is_requested(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _write_structured_state_payload(tmp_path)
+
+        ctx = init_progress(tmp_path, includes={"state"})
+
+        _assert_structured_state_context(ctx, tmp_path)
+
     def test_progress_exposes_reference_registry(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
         _write_project_contract_state(tmp_path)
@@ -1596,6 +1748,20 @@ class TestInitProgress:
 
         assert ctx["project_contract"]["references"][0]["must_surface"] is True
         assert "Recover known limiting behavior" in ctx["active_reference_context"]
+
+    def test_progress_surfaces_derived_state_memory(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _write_structured_state_memory(tmp_path)
+
+        ctx = init_progress(tmp_path)
+
+        assert ctx["state_exists"] is True
+        assert ctx["derived_convention_lock"]["metric_signature"] == "mostly-plus"
+        assert ctx["derived_convention_lock_count"] == 2
+        assert ctx["derived_intermediate_result_count"] == 1
+        assert ctx["derived_intermediate_results"][0]["verified"] is True
+        assert ctx["derived_approximation_count"] == 1
+        assert ctx["derived_approximations"][0]["status"] == "valid"
 
     def test_progress_hides_project_contract_when_raw_state_requires_contract_scalar_normalization(
         self, tmp_path: Path
@@ -1854,3 +2020,15 @@ class TestInitPhaseOp:
         # Phase should be found since we created the directory
         if result.get("phase_found"):
             assert "01" in str(result.get("phase_number", ""))
+
+    def test_includes_structured_state_context_when_state_is_requested(self, tmp_path):
+        """init_phase_op should surface canonical state slices when state is included."""
+        from gpd.core.context import init_phase_op
+
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-test")
+        _write_structured_state_payload(tmp_path)
+
+        result = init_phase_op(tmp_path, phase="1", includes={"state"})
+
+        _assert_structured_state_context(result, tmp_path)

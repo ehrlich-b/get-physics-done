@@ -18,7 +18,7 @@ from pydantic import ValidationError as PydanticValidationError
 
 from gpd.adapters.install_utils import AGENTS_DIR_NAME, FLAT_COMMANDS_DIR_NAME, GPD_INSTALL_DIR_NAME, HOOKS_DIR_NAME
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
-from gpd.contracts import ResearchContract
+from gpd.contracts import ConventionLock, ResearchContract
 from gpd.core import state as _state_module
 from gpd.core.config import GPDProjectConfig
 from gpd.core.config import load_config as _load_config_structured
@@ -48,10 +48,12 @@ from gpd.core.constants import (
 )
 from gpd.core.continuation import ContinuationResumeSource, resolve_continuation
 from gpd.core.errors import ValidationError
+from gpd.core.extras import approximation_list
 from gpd.core.phases import _milestone_completion_snapshot
 from gpd.core.project_reentry import resolve_project_reentry
 from gpd.core.protocol_bundles import render_protocol_bundle_context, select_protocol_bundles
 from gpd.core.reference_ingestion import ingest_reference_artifacts
+from gpd.core.results import result_list
 from gpd.core.resume_surface import (
     build_resume_compat_surface as _build_resume_compat_surface_shared,
 )
@@ -158,6 +160,51 @@ def _state_exists(cwd: Path) -> bool:
     """Return whether the project has recoverable state from JSON or STATE.md."""
     state, _state_issues, _state_source = _peek_state_json(cwd)
     return isinstance(state, dict)
+
+
+def _structured_state_objects(value: object) -> list[dict[str, object]]:
+    """Return only structured mapping entries from a state section."""
+    if not isinstance(value, list):
+        return []
+    structured: list[dict[str, object]] = []
+    for item in value:
+        if isinstance(item, Mapping):
+            structured.append(dict(item))
+    return structured
+
+
+def _build_structured_state_runtime_context(cwd: Path) -> dict[str, object]:
+    """Build structured canonical state slices for init payloads."""
+    state, state_issues, state_source = _peek_state_json(cwd)
+    source = state_source.as_posix() if isinstance(state_source, Path) else str(state_source) if state_source else None
+    if not isinstance(state, dict):
+        return {
+            "state_load_source": source,
+            "state_integrity_issues": list(state_issues or []),
+            "convention_lock": {},
+            "intermediate_results": [],
+            "intermediate_result_count": 0,
+            "approximations": [],
+            "approximation_count": 0,
+            "propagated_uncertainties": [],
+            "propagated_uncertainty_count": 0,
+        }
+
+    convention_lock = state.get("convention_lock")
+    intermediate_results = _structured_state_objects(state.get("intermediate_results"))
+    approximations = _structured_state_objects(state.get("approximations"))
+    propagated_uncertainties = _structured_state_objects(state.get("propagated_uncertainties"))
+    return {
+        "state_load_source": source,
+        "state_integrity_issues": list(state_issues or []),
+        "convention_lock": dict(convention_lock) if isinstance(convention_lock, Mapping) else {},
+        "intermediate_results": intermediate_results,
+        "intermediate_result_count": len(intermediate_results),
+        "approximations": approximations,
+        "approximation_count": len(approximations),
+        "propagated_uncertainties": propagated_uncertainties,
+        "propagated_uncertainty_count": len(propagated_uncertainties),
+    }
 
 
 def _resolve_reentry_context(cwd: Path, *, data_root: Path | None = None) -> tuple[Path, dict[str, object]]:
@@ -866,6 +913,54 @@ def _build_reference_runtime_context(cwd: Path) -> dict[str, object]:
             project_contract_load_info,
         ),
         **artifact_payload,
+    }
+
+
+def _has_structured_state_value(value: object) -> bool:
+    """Return whether a derived state value should be surfaced."""
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, tuple, set, dict)):
+        return bool(value)
+    return True
+
+
+def _build_state_memory_runtime_context(cwd: Path) -> dict[str, object]:
+    """Build shared structured state-memory context for init surfaces."""
+    state, _state_issues, _state_source = _peek_state_json(cwd)
+    if not isinstance(state, dict):
+        return {
+            "derived_convention_lock": {},
+            "derived_convention_lock_count": 0,
+            "derived_intermediate_results": [],
+            "derived_intermediate_result_count": 0,
+            "derived_approximations": [],
+            "derived_approximation_count": 0,
+        }
+
+    raw_lock = state.get("convention_lock")
+    derived_convention_lock: dict[str, object] = {}
+    if isinstance(raw_lock, Mapping):
+        try:
+            normalized_lock = ConventionLock(**raw_lock).model_dump(mode="json", exclude_none=True)
+        except PydanticValidationError:
+            normalized_lock = {}
+        derived_convention_lock = {
+            key: value for key, value in normalized_lock.items() if _has_structured_state_value(value)
+        }
+
+    derived_results = [result.model_dump(mode="json") for result in result_list(state)]
+    derived_approximations = [approx.model_dump(mode="json") for approx in approximation_list(state)]
+
+    return {
+        "derived_convention_lock": derived_convention_lock,
+        "derived_convention_lock_count": len(derived_convention_lock),
+        "derived_intermediate_results": derived_results,
+        "derived_intermediate_result_count": len(derived_results),
+        "derived_approximations": derived_approximations,
+        "derived_approximation_count": len(derived_approximations),
     }
 
 
@@ -1681,12 +1776,14 @@ def init_execute_phase(cwd: Path, phase: str | None, includes: set[str] | None =
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_state_memory_runtime_context(cwd))
     result.update(_build_execution_runtime_context(cwd))
 
     # Include file contents if requested
     planning = cwd / PLANNING_DIR_NAME
     if "state" in includes:
         result["state_content"] = _safe_read_file_truncated(planning / STATE_MD_FILENAME)
+        result.update(_build_structured_state_runtime_context(cwd))
     if "config" in includes:
         result["config_content"] = _safe_read_file_truncated(planning / CONFIG_FILENAME)
     if "roadmap" in includes:
@@ -1744,11 +1841,13 @@ def init_plan_phase(cwd: Path, phase: str | None, includes: set[str] | None = No
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_state_memory_runtime_context(cwd))
 
     # Include file contents
     planning = cwd / PLANNING_DIR_NAME
     if "state" in includes:
         result["state_content"] = _safe_read_file_truncated(planning / STATE_MD_FILENAME)
+        result.update(_build_structured_state_runtime_context(cwd))
     if "roadmap" in includes:
         result["roadmap_content"] = _safe_read_file_truncated(planning / ROADMAP_FILENAME)
     if "requirements" in includes:
@@ -1858,6 +1957,7 @@ def init_new_milestone(cwd: Path) -> dict:
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_state_memory_runtime_context(cwd))
     return result
 
 
@@ -1911,6 +2011,7 @@ def init_quick(cwd: Path, description: str | None = None) -> dict:
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_state_memory_runtime_context(cwd))
     return result
 
 
@@ -2106,11 +2207,13 @@ def init_phase_op(cwd: Path, phase: str | None = None, includes: set[str] | None
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_state_memory_runtime_context(cwd))
     result.update(_build_execution_runtime_context(cwd))
 
     planning = cwd / PLANNING_DIR_NAME
     if "state" in includes:
         result["state_content"] = _safe_read_file_truncated(planning / STATE_MD_FILENAME)
+        result.update(_build_structured_state_runtime_context(cwd))
     if "config" in includes:
         result["config_content"] = _safe_read_file_truncated(planning / CONFIG_FILENAME)
     if "roadmap" in includes:
@@ -2375,6 +2478,7 @@ def init_progress(cwd: Path, includes: set[str] | None = None, *, data_root: Pat
         "platform": _detect_platform(effective_cwd),
     }
     result.update(_build_reference_runtime_context(effective_cwd))
+    result.update(_build_state_memory_runtime_context(effective_cwd))
     result.update(_build_execution_runtime_context(effective_cwd))
     if result.get("execution_paused_at"):
         result["paused_at"] = result["execution_paused_at"]
@@ -2396,6 +2500,7 @@ def init_progress(cwd: Path, includes: set[str] | None = None, *, data_root: Pat
     planning = effective_cwd / PLANNING_DIR_NAME
     if "state" in includes:
         result["state_content"] = _safe_read_file_truncated(planning / STATE_MD_FILENAME)
+        result.update(_build_structured_state_runtime_context(effective_cwd))
     if "roadmap" in includes:
         result["roadmap_content"] = _safe_read_file_truncated(planning / ROADMAP_FILENAME)
     if "project" in includes:

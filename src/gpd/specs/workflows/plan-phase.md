@@ -27,7 +27,9 @@ fi
 
 Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `commit_docs`, `autonomy`, `research_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`, `project_contract`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `protocol_bundle_verifier_extensions`, `active_reference_context`, `reference_artifacts_content`.
 
-**File contents (from --include):** `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`, `validation_content`, plus reference-artifact fields from init JSON. These are null if files don't exist.
+**Structured state fields (always surfaced when recoverable):** `derived_convention_lock`, `derived_convention_lock_count`, `derived_intermediate_results`, `derived_intermediate_result_count`, `derived_approximations`, `derived_approximation_count`, plus reference-artifact fields from init JSON.
+
+**File contents (from --include):** `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`, `validation_content`. These are null if files don't exist.
 
 **Mode-aware behavior:**
 - `autonomy=supervised`: Present the written draft plans for user review before treating them as approved or moving on to execution. Do not weaken the contract gate just because the draft is human-reviewed.
