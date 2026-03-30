@@ -374,5 +374,91 @@ Once UC1--UC4 are established for $H_{\text{eff}}$, the Gap Dependency Theorem a
 
 ---
 
-_Phase: 37-gap-dependency-theorem, Plan 02, Task 1_
+## Verification Summary (Task 2)
+
+### Check 1: Assumption Completeness
+
+Every chain step's assumptions traced to the Section 1 assumption list:
+
+| Chain Step | Assumptions Used | In Section 1 List? |
+|------------|-----------------|---------------------|
+| Gap C Step 1 (BW) | UC5 | YES |
+| Gap C Step 2 (K_B local) | UC5, UC9 | YES |
+| Gap C Step 3 (first law) | none new (exact identity) | YES (no additions needed) |
+| Gap C Step 4 (area deficit) | UC8, UC9, UC10 | YES |
+| Gap C Step 5 (Lovelock) | UC6 | YES |
+| Gap D Step 1 (BW) | UC5 | YES |
+| Gap D Step 2 (TT KMS) | CS | YES |
+| Gap D Step 3 (beta=2pi) | none new (combines 1-2) | YES (no additions needed) |
+| Gap D Step 4 (Gibbs) | TL | YES |
+| Gap D Step 5 (MVEH) | none new (defines conclusion) | YES (no additions needed) |
+| Gap A (CORR-03) | UC1, UC2, UC3, UC4, H1-H4, UC9 | YES |
+| Gap B Route A | UC5, conformal symmetry | YES |
+
+**Result: PASS.** No orphan assumptions (all listed assumptions used in at least one chain). No hidden assumptions (all chain steps' inputs appear in Section 1).
+
+### Check 2: No Circular Dependencies
+
+| Dependency | Direction | Circular? |
+|-----------|-----------|----------|
+| Gap C requires Gap A (UC9) | One-directional: C depends on A | NO |
+| Gap A does NOT depend on C | Confirmed: Section 4 does not reference Gap C | NO |
+| Gap D uses Gap A (TL) | One-directional: D depends on A | NO |
+| Gap A does NOT depend on D | Confirmed: Section 4 does not reference Gap D | NO |
+| Gap B Route B requires Gap C | One-directional: B(Route B) depends on C | NO |
+| No gap requires another to be CLOSED | C needs A NARROWED; B(Route B) needs C DERIVED | NO |
+
+**Result: PASS.** Dependency graph is a DAG with no cycles.
+
+### Check 3: Dependency Matrix Consistency
+
+Spot-checked all REQUIRED entries against chain steps and all UNUSED entries against chain content. Specific verifications:
+
+- UC1 REQUIRED for Gap A: sigma model (Goldstone). CORRECT.
+- UC5 REQUIRED for Gap C Steps 1-2: BW + CHM. CORRECT.
+- UC6 REQUIRED for Gap C Step 5: Lovelock uniqueness. CORRECT.
+- UC8 REQUIRED for Gap C Step 4: area-entropy. CORRECT.
+- CS REQUIRED for Gap D Step 2: Tomita-Takesaki. CORRECT.
+- TL REQUIRED for Gap D Step 4: Gibbs. CORRECT.
+- UC1 UNUSED for Gap C: no chain step references gapless. CORRECT.
+- UC6 UNUSED for Gap D: no chain step references d+1=4. CORRECT.
+- UC8 UNUSED for Gap D: no chain step references area-entropy. CORRECT.
+
+**Result: PASS.** No discrepancies between matrix entries and chain assumption lists.
+
+### Check 4: Convention Consistency
+
+| Convention | Value | Consistent Across Documents? |
+|-----------|-------|------------------------------|
+| Metric signature | $(-,+,+,+)$ Lorentzian | YES (theorem doc, Gap C chain, Gap D chain, Phase 35, Phase 36) |
+| $K_A$ | $-\ln \rho_A$ (positive operator) | YES (all documents) |
+| $\beta$ | $2\pi$ (modular) | YES (all documents) |
+| Area deficit sign | $\delta A < 0$ when $R > 0$ | YES (Eq. (37.4): negative sign explicit) |
+| Coupling | $J > 0$ antiferromagnetic | YES (convention lock and all documents) |
+| Gap scoring | CLOSED / NARROWED / CONDITIONAL / OPEN | YES (consistent rubric throughout) |
+
+**Result: PASS.** No convention mismatches detected.
+
+### Check 5: Honesty Audit
+
+| Criterion | Status |
+|----------|--------|
+| No gap scored CLOSED (except Gap B Route A d=1, unchanged from v9.0) | PASS |
+| MVEH math content distinguished from physical interpretation | PASS (Section 6 explicit) |
+| Sorce caveat present in Gap D assessment | PASS (Theorem part (iv), Section 6) |
+| $d+1 = 4$ restriction present in Gap C assessment | PASS (Theorem part (iii), Caveat 1) |
+| Gap A cross-dependency present in both Gap C and Gap D | PASS (matrix, DAG, Sections 4-6) |
+| "DERIVED" $\neq$ "PROVED unconditionally" stated | PASS (Honesty Check 5, Section 6) |
+
+**Result: PASS.** All honesty criteria satisfied.
+
+### Overall Verification
+
+**All 5 checks: PASS.**
+
+No discrepancies found. No circular dependencies. No hidden assumptions. No convention mismatches. No overclaiming.
+
+---
+
+_Phase: 37-gap-dependency-theorem, Plan 02, Tasks 1--2_
 _Completed: 2026-03-30_
