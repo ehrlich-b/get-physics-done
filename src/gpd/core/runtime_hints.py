@@ -454,13 +454,6 @@ def build_runtime_hint_payload(
     # Keep the public orientation surface canonical-first: legacy resume aliases
     # stay available, but only inside the nested compat block.
     orientation = canonicalize_resume_public_payload(orientation)
-    has_session_resume_file = orientation.pop("has_session_resume_file", None)
-    if has_session_resume_file is not None:
-        compat_surface = orientation.get("compat_resume_surface")
-        if not isinstance(compat_surface, dict):
-            compat_surface = {}
-        compat_surface["has_session_resume_file"] = has_session_resume_file
-        orientation["compat_resume_surface"] = compat_surface
 
     cost_summary = build_cost_summary(project_root, data_root=data_root, last_sessions=cost_last_sessions) if include_cost else None
     cost = _cost_payload(cost_summary) if cost_summary is not None else {}

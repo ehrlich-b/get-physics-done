@@ -110,11 +110,68 @@ def test_serialize_recovery_orientation_is_canonical_first_and_omits_legacy_resu
     assert orientation["active_resume_kind"] == "bounded_segment"
     assert orientation["active_resume_origin"] == "compat.current_execution"
     assert orientation["active_resume_pointer"] == "GPD/phases/06/.continue-here.md"
+    assert orientation["segment_candidates_count"] == 1
+    assert orientation["compat_resume_surface"]["resume_mode"] == "bounded_segment"
+    assert orientation["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/06/.continue-here.md"
+    assert orientation["compat_resume_surface"]["execution_resume_file_source"] == "current_execution"
+    assert orientation["compat_resume_surface"]["current_execution_resume_file"] == "GPD/phases/06/.continue-here.md"
+    assert orientation["compat_resume_surface"]["has_session_resume_file"] is False
     assert "resume_mode" not in orientation
     assert "execution_resume_file" not in orientation
     assert "execution_resume_file_source" not in orientation
     assert "has_session_resume_file" not in orientation
     assert "missing_session_resume_file" not in orientation
+
+
+def test_serialize_recovery_orientation_keeps_legacy_handoff_aliases_nested_under_compat_block(
+    tmp_path: Path,
+) -> None:
+    project = _project(tmp_path)
+    handoff = project / "GPD" / "phases" / "09" / ".continue-here.md"
+    handoff.parent.mkdir(parents=True, exist_ok=True)
+    handoff.write_text("resume\n", encoding="utf-8")
+
+    advice = build_recovery_advice(
+        project,
+        recent_rows=[],
+        resume_payload={
+            "active_resume_kind": "continuity_handoff",
+            "active_resume_origin": "continuation.handoff",
+            "active_resume_pointer": "GPD/phases/09/.continue-here.md",
+            "continuity_handoff_file": "GPD/phases/09/.continue-here.md",
+            "recorded_continuity_handoff_file": "GPD/phases/09/.continue-here.md",
+            "resume_candidates": [
+                {
+                    "kind": "continuity_handoff",
+                    "origin": "continuation.handoff",
+                    "status": "handoff",
+                    "resume_file": "GPD/phases/09/.continue-here.md",
+                }
+            ],
+            "execution_resumable": True,
+            "execution_resume_file": "GPD/phases/09/legacy-live.md",
+            "execution_resume_file_source": "current_execution",
+            "has_live_execution": True,
+        },
+    )
+
+    orientation = serialize_recovery_orientation(advice)
+
+    assert orientation["active_resume_kind"] == "continuity_handoff"
+    assert orientation["active_resume_origin"] == "continuation.handoff"
+    assert orientation["active_resume_pointer"] == "GPD/phases/09/.continue-here.md"
+    assert orientation["continuity_handoff_file"] == "GPD/phases/09/.continue-here.md"
+    assert orientation["has_continuity_handoff"] is True
+    assert orientation["compat_resume_surface"]["resume_mode"] == "bounded_segment"
+    assert orientation["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/09/.continue-here.md"
+    assert orientation["compat_resume_surface"]["execution_resume_file_source"] == "session_resume_file"
+    assert orientation["compat_resume_surface"]["session_resume_file"] == "GPD/phases/09/.continue-here.md"
+    assert orientation["compat_resume_surface"]["recorded_session_resume_file"] == "GPD/phases/09/.continue-here.md"
+    assert orientation["compat_resume_surface"]["has_session_resume_file"] is True
+    assert "resume_mode" not in orientation
+    assert "execution_resume_file" not in orientation
+    assert "execution_resume_file_source" not in orientation
+    assert "session_resume_file" not in orientation
 
 
 def test_build_recovery_advice_marks_auto_selected_recent_project_recovery(

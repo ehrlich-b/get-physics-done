@@ -13,6 +13,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 
 from gpd.core.context import init_resume
+from gpd.core.resume_surface import canonicalize_resume_public_payload
 from gpd.core.recent_projects import list_recent_projects
 from gpd.core.surface_phrases import (
     recovery_continue_reason,
@@ -435,10 +436,41 @@ def _derive_active_resume_origin(
     return None
 
 
+def _compat_resume_mode(advice: RecoveryAdvice) -> str | None:
+    if advice.resume_mode is not None:
+        return advice.resume_mode
+    if advice.execution_resume_file is not None:
+        return "bounded_segment"
+    if advice.active_resume_kind == "interrupted_agent" or advice.has_interrupted_agent:
+        return "interrupted_agent"
+    return None
+
+
+def _serialized_compat_resume_surface(advice: RecoveryAdvice) -> dict[str, object] | None:
+    compat_payload = canonicalize_resume_public_payload(
+        {
+            "resume_mode": _compat_resume_mode(advice),
+            "current_execution_resume_file": (
+                advice.execution_resume_file if advice.execution_resume_file_source == "current_execution" else None
+            ),
+            "execution_resume_file": advice.execution_resume_file,
+            "execution_resume_file_source": advice.execution_resume_file_source,
+            "session_resume_file": advice.continuity_handoff_file,
+            "recorded_session_resume_file": advice.recorded_continuity_handoff_file,
+            "missing_session_resume_file": advice.missing_continuity_handoff_file,
+        }
+    )
+    compat_surface = compat_payload.get("compat_resume_surface")
+    if not isinstance(compat_surface, dict):
+        return None
+    compat_surface["has_session_resume_file"] = advice.execution_resume_file_source == "session_resume_file"
+    return compat_surface
+
+
 def serialize_recovery_orientation(advice: RecoveryAdvice) -> dict[str, object]:
     """Return the explicit public orientation surface for runtime hints."""
 
-    return {
+    orientation = {
         "resume_surface_schema_version": RESUME_SURFACE_SCHEMA_VERSION,
         "mode": advice.mode,
         "status": advice.status,
@@ -468,7 +500,7 @@ def serialize_recovery_orientation(advice: RecoveryAdvice) -> dict[str, object]:
         "missing_continuity_handoff_file": advice.missing_continuity_handoff_file,
         "has_continuity_handoff": advice.has_continuity_handoff,
         "has_local_recovery_target": advice.has_local_recovery_target,
-        "resume_candidates_count": advice.segment_candidates_count,
+        "segment_candidates_count": advice.segment_candidates_count,
         "has_live_execution": advice.has_live_execution,
         "execution_resumable": advice.execution_resumable,
         "has_interrupted_agent": advice.has_interrupted_agent,
@@ -477,6 +509,10 @@ def serialize_recovery_orientation(advice: RecoveryAdvice) -> dict[str, object]:
         "available_projects_count": advice.available_projects_count,
         "machine_change_notice": advice.machine_change_notice,
     }
+    compat_resume_surface = _serialized_compat_resume_surface(advice)
+    if compat_resume_surface is not None:
+        orientation["compat_resume_surface"] = compat_resume_surface
+    return orientation
 
 
 def _status(
