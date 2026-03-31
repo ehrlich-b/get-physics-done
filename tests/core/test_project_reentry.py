@@ -486,3 +486,28 @@ def test_resolve_project_reentry_dedupes_current_workspace_and_recent_project_ro
     assert resolution.recoverable_candidates_count == 1
     assert len(resolution.candidates) == 1
     assert resolution.candidates[0].source == "current_workspace"
+
+
+def test_resolve_project_reentry_ignores_alias_only_recent_rows(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    resolution = resolve_project_reentry(
+        workspace,
+        recent_rows=[
+            {
+                "workspace_root": (tmp_path / "recent-project").resolve(strict=False).as_posix(),
+                "cwd": (tmp_path / "recent-project").resolve(strict=False).as_posix(),
+                "path": (tmp_path / "recent-project").resolve(strict=False).as_posix(),
+                "state": "recent",
+                "can_resume": True,
+                "last_event_at": "2026-03-28T12:00:00+00:00",
+                "resume_file": "GPD/phases/02/.continue-here.md",
+            }
+        ],
+    )
+
+    assert resolution.mode == "no-recovery"
+    assert resolution.source is None
+    assert resolution.project_root is None
+    assert resolution.candidates == []

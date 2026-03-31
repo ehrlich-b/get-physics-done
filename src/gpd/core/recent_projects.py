@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from gpd.core.constants import (
     ENV_DATA_DIR,
@@ -42,10 +42,10 @@ class RecentProjectsError(ValueError):
 class RecentProjectEntry(BaseModel):
     """One machine-local recent-project record."""
 
-    model_config = ConfigDict(frozen=True, extra="ignore")
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
     schema_version: int = Field(default=1, ge=1)
-    project_root: str = Field(validation_alias=AliasChoices("project_root", "workspace_root", "cwd", "path"))
+    project_root: str
     last_session_at: str | None = None
     last_seen_at: str | None = None
     stopped_at: str | None = None
@@ -163,7 +163,7 @@ class RecentProjectRecoveryClassification(BaseModel):
 class RecentProjectIndex(BaseModel):
     """Persisted recent-project advisory index."""
 
-    model_config = ConfigDict(frozen=True, extra="ignore")
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
     rows: list[RecentProjectEntry] = Field(default_factory=list)
 
@@ -172,9 +172,18 @@ class RecentProjectIndex(BaseModel):
     def _normalize_payload(cls, value: object) -> object:
         if value is None:
             return {"rows": []}
-        if isinstance(value, dict) and not value:
+        if not isinstance(value, dict):
+            raise ValueError("recent-project index must be a JSON object with only rows")
+        if not value:
             return {"rows": []}
-        return {"rows": _extract_recent_project_rows(value)}
+        if set(value) != {"rows"}:
+            raise ValueError("recent-project index must contain only rows")
+        rows = value.get("rows")
+        if rows is None:
+            return {"rows": []}
+        if not isinstance(rows, list):
+            raise ValueError("recent-project index rows must be a list")
+        return {"rows": rows}
 
 
 def recent_projects_root(explicit_data_dir: Path | None = None) -> Path:
@@ -328,22 +337,6 @@ def infer_recent_project_resume_target_kind(row: object) -> str | None:
     if explicit is not None:
         return explicit
     return _legacy_recent_project_resume_target_kind(row)
-
-
-def _extract_recent_project_rows(value: object) -> list[object]:
-    if isinstance(value, list):
-        return value
-    if not isinstance(value, dict):
-        raise ValueError("recent-project index must be a mapping or list of rows")
-
-    for key in ("rows", "projects"):
-        if key in value:
-            return _extract_recent_project_rows(value[key])
-
-    if any(key in value for key in ("project_root", "workspace_root", "cwd", "path")):
-        return [value]
-
-    raise ValueError("recent-project index payload does not contain rows")
 
 
 def _session_text(session_data: dict[str, object], *keys: str) -> str | None:

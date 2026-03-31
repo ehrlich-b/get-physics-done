@@ -1281,6 +1281,54 @@ def test_resume_plain_output_keeps_recent_project_selection_explicit_when_not_au
     assert "recent project selected explicitly" in result.output
 
 
+def test_load_recent_projects_rows_returns_canonical_display_rows(tmp_path: Path, monkeypatch) -> None:
+    project_root = tmp_path / "recent-project"
+    project_root.mkdir()
+
+    canonical_row = SimpleNamespace(
+        model_dump=lambda mode="json": {
+            "schema_version": 1,
+            "project_root": project_root.resolve(strict=False).as_posix(),
+            "last_session_at": "2026-03-28T12:00:00+00:00",
+            "last_seen_at": "2026-03-28T12:00:00+00:00",
+            "stopped_at": "Phase 02",
+            "resume_file": "GPD/phases/02/.continue-here.md",
+            "resumable": True,
+        }
+    )
+    monkeypatch.setattr("gpd.core.recent_projects.list_recent_projects", lambda store_root=None, last=None: [canonical_row])
+
+    rows = cli_module._load_recent_projects_rows()
+
+    assert len(rows) == 1
+    assert rows[0]["project_root"] == project_root.resolve(strict=False).as_posix()
+    assert rows[0]["last_session_at"] == "2026-03-28T12:00:00+00:00"
+    assert rows[0]["last_seen_at"] == "2026-03-28T12:00:00+00:00"
+    assert "workspace_root" not in rows[0]
+    assert "cwd" not in rows[0]
+    assert "path" not in rows[0]
+    assert "state" not in rows[0]
+    assert "can_resume" not in rows[0]
+    assert "last_event_at" not in rows[0]
+
+
+def test_load_recent_projects_rows_rejects_malformed_helper_rows(tmp_path: Path, monkeypatch) -> None:
+    canonical_row = SimpleNamespace(
+        model_dump=lambda mode="json": {
+            "workspace_root": (tmp_path / "recent-project").resolve(strict=False).as_posix(),
+            "cwd": (tmp_path / "recent-project").resolve(strict=False).as_posix(),
+            "path": (tmp_path / "recent-project").resolve(strict=False).as_posix(),
+            "resume_file": "GPD/phases/02/.continue-here.md",
+            "can_resume": True,
+            "last_event_at": "2026-03-28T12:00:00+00:00",
+        }
+    )
+    monkeypatch.setattr("gpd.core.recent_projects.list_recent_projects", lambda store_root=None, last=None: [canonical_row])
+
+    with pytest.raises(cli_module.GPDError, match="unexpected field"):
+        cli_module._load_recent_projects_rows()
+
+
 def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(

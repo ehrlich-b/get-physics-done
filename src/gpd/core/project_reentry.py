@@ -230,7 +230,7 @@ def _recent_project_summary(row: Mapping[str, object]) -> str | None:
 
 
 def _candidate_from_recent_row(row: Mapping[str, object]) -> ProjectReentryCandidate | None:
-    project_root_text = _normalize_recent_text(row, "project_root", "workspace_root", "cwd", "path")
+    project_root_text = _normalize_recent_text(row, "project_root")
     if project_root_text is None:
         return None
 
@@ -265,7 +265,7 @@ def _candidate_from_recent_row(row: Mapping[str, object]) -> ProjectReentryCandi
         hostname=_normalize_recent_text(row, "hostname"),
         platform=_normalize_recent_text(row, "platform"),
         availability_reason=_normalize_recent_text(row, "availability_reason"),
-        last_session_at=_normalize_recent_text(row, "last_session_at", "last_seen_at", "last_event_at"),
+        last_session_at=_normalize_recent_text(row, "last_session_at", "last_seen_at"),
         stopped_at=_normalize_recent_text(row, "stopped_at"),
         source_kind=_normalize_recent_text(row, "source_kind"),
         source_session_id=_normalize_recent_text(row, "source_session_id"),
@@ -309,7 +309,7 @@ def _enrich_candidate_from_recent_row(
             "hostname": _normalize_recent_text(row, "hostname"),
             "platform": _normalize_recent_text(row, "platform"),
             "availability_reason": _normalize_recent_text(row, "availability_reason"),
-            "last_session_at": _normalize_recent_text(row, "last_session_at", "last_seen_at", "last_event_at"),
+            "last_session_at": _normalize_recent_text(row, "last_session_at", "last_seen_at"),
             "stopped_at": _normalize_recent_text(row, "stopped_at"),
             "source_kind": _normalize_recent_text(row, "source_kind"),
             "source_session_id": _normalize_recent_text(row, "source_session_id"),

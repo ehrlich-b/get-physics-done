@@ -68,13 +68,73 @@ class TestRecentProjectsIndexPersistence:
         assert set(stored) == {"rows"}
         assert stored["rows"][0]["schema_version"] == 1
         assert stored["rows"][0]["stopped_at"] == "Phase 03 Plan 2"
+        assert "projects" not in stored
+        assert "entries" not in stored
+        assert "workspace_root" not in stored["rows"][0]
+        assert "cwd" not in stored["rows"][0]
+        assert "path" not in stored["rows"][0]
+        assert "state" not in stored["rows"][0]
+        assert "can_resume" not in stored["rows"][0]
         assert loaded.rows[0].resume_file == "GPD/phases/03/.continue-here.md"
         assert loaded.rows[0].resume_target_kind == "handoff"
         assert loaded.rows[0].resume_target_recorded_at == "2026-03-26T12:00:00+00:00"
         assert loaded.rows[0].last_session_at == "2026-03-26T12:00:00+00:00"
         assert loaded.rows[0].schema_version == 1
 
-    def test_load_accepts_legacy_projects_container_and_aliases(
+    def test_load_rejects_legacy_projects_container(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("GPD_DATA_DIR", raising=False)
+        store_root = tmp_path / "cache"
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        index_path = recent_projects_index_path(store_root)
+        index_path.parent.mkdir(parents=True, exist_ok=True)
+        index_path.write_text(
+            json.dumps(
+                {
+                    "projects": [
+                        {
+                            "project_root": project_root.resolve(strict=False).as_posix(),
+                            "last_session_at": "2026-03-26T12:00:00+00:00",
+                            "stopped_at": "Phase 3",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with pytest.raises(RecentProjectsError, match="recent-project index must contain only rows"):
+            load_recent_projects_index(store_root)
+
+    def test_load_rejects_alias_row_keys(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("GPD_DATA_DIR", raising=False)
+        store_root = tmp_path / "cache"
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        index_path = recent_projects_index_path(store_root)
+        index_path.parent.mkdir(parents=True, exist_ok=True)
+        index_path.write_text(
+            json.dumps(
+                {
+                    "rows": [
+                        {
+                            "project_root": project_root.resolve(strict=False).as_posix(),
+                            "workspace_root": project_root.resolve(strict=False).as_posix(),
+                            "last_session_at": "2026-03-26T12:00:00+00:00",
+                            "resume_file": "GPD/phases/03/.continue-here.md",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with pytest.raises(RecentProjectsError, match="workspace_root"):
+            load_recent_projects_index(store_root)
+
+    def test_load_round_trip_keeps_canonical_rows_only(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("GPD_DATA_DIR", raising=False)
@@ -90,10 +150,11 @@ class TestRecentProjectsIndexPersistence:
         index_path.write_text(
             json.dumps(
                 {
-                    "projects": [
+                    "rows": [
                         {
-                            "cwd": project_root.resolve(strict=False).as_posix(),
+                            "project_root": project_root.resolve(strict=False).as_posix(),
                             "last_session_at": "2026-03-26T12:00:00+00:00",
+                            "last_seen_at": "2026-03-26T12:00:00+00:00",
                             "stopped_at": "Phase 3",
                             "resume_file": "GPD/phases/03/.continue-here.md",
                             "hostname": "builder-01",
@@ -119,6 +180,8 @@ class TestRecentProjectsIndexPersistence:
         row = loaded.rows[0]
         assert row.project_root == project_root.resolve(strict=False).as_posix()
         assert row.schema_version == 1
+        assert row.last_session_at == "2026-03-26T12:00:00+00:00"
+        assert row.last_seen_at == "2026-03-26T12:00:00+00:00"
         assert row.source_kind == "segment.pause"
         assert row.source_session_id == "session-123"
         assert row.source_segment_id == "segment-7"
@@ -131,6 +194,8 @@ class TestRecentProjectsIndexPersistence:
         assert row.resume_target_recorded_at == "2026-03-26T12:34:56+00:00"
         assert row.resume_file_available is True
         assert row.resumable is True
+        assert "projects" not in json.loads(index_path.read_text(encoding="utf-8"))
+        assert "entries" not in json.loads(index_path.read_text(encoding="utf-8"))
 
     def test_load_rejects_malformed_index(self, tmp_path: Path) -> None:
         store_root = tmp_path / "cache"
