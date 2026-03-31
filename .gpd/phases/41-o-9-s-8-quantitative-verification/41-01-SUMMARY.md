@@ -10,7 +10,7 @@ requires:
   - phase: 39-spontaneous-symmetry-breaking-and-universality-class
     provides: [rho_s = J/8, chi_perp = 1/(2Jz), 8 Type-A Goldstones, Lorentz invariance of sigma model]
   - phase: 38-effective-hamiltonian-from-peirce-multiplication
-    provides: [2-site spectrum E/J = {-7/4,...,9/4}, ||h_ij|| = 9J/4]
+    provides: ["2-site spectrum E/J = {-7/4,...,9/4}", "||h_ij|| = 9J/4"]
   - phase: 34-emergent-lorentz-invariance
     provides: [velocity hierarchy template, 4 arguments for c_eff = c_s]
   - phase: 33-fisher-metric-and-smoothness

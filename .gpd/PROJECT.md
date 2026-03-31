@@ -8,16 +8,19 @@ Deriving the fundamental laws of physics from the algebraic structure of self-mo
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Current Milestone: v10.0 Universality Class of Self-Modeler Network and Full Gap Closure
+## Current State (after v10.0)
 
-**Goal:** Prove the self-modeler network in h_3(O) is in the right universality class, then close all four v9.0 gaps unconditionally.
+The derivation chain from self-modeling to Einstein equations now runs on the real algebra h_3(O), not a toy model. Key established results:
 
-**Target results:**
+- **Algebraic segment (unconditional):** Self-modeling -> h_3(O) -> Peirce -> Cl(9,0) -> H_eff = J*sum T_a T_a -> Z^d bipartite lattice
+- **SSB segment (classical proved):** Spin(9)->Spin(8) on S^8 via FSS infrared bounds (d>=3); 8 Type-A Goldstone modes; O(9) NL sigma model asymptotically free
+- **Gravity segment (conditional):** Fisher geometry -> Lorentz -> BW/KMS -> Jacobson -> Einstein, with O(9)-specific values (c_s=J*sqrt(3/2), v_LR=27eJ)
+- **Gap status:** A NARROWED (d>=3), B CLOSED/OPEN, C CONDITIONAL-DERIVED (tensoriality derived via Lovelock), D CONDITIONAL-THEOREM (MVEH proved via Gibbs)
+- **Single remaining conditionality:** Quantum SSB at S_eff=1/2 (BCS fails, Speer blocks quantum RP)
 
-- Gap dependency theorem: (UC1)-(UC4) -> all four Paper 6 gaps close
-- Effective Hamiltonian H_eff computed from Peirce multiplication of h_3(O)
-- Spontaneous F_4 symmetry breaking proved via DLS/infrared bounds framework
-- Complete chain from self-modeling axiom to Einstein equations on the real algebra (not toy model)
+## v10.0 Summary (complete 2026-03-31)
+
+Universality class of self-modeler network and full gap closure. Effective Hamiltonian H_eff computed from Peirce multiplication: 256x256 Clifford-Heisenberg model with Spin(9) symmetry, ferromagnetic ground state. Classical SSB Spin(9)->Spin(8) proved via FSS (d>=3). 8 Type-A Goldstone modes (rho_ab=0, real Clifford). O(9) sigma model on S^8, asymptotically free (Ric=7g). UC1-UC4 all classical-verified. Gap C upgraded CONDITIONAL-DERIVED, Gap D upgraded CONDITIONAL-THEOREM. Complete 12-link chain (a')-(l) on h_3(O) with O(9)-specific values. Conditionally complete for d>=3; quantum SSB (S_eff=1/2) is single remaining conditionality.
 
 ## v9.0 Summary (complete 2026-03-30)
 
@@ -160,12 +163,16 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 - [x] Does the observer's complex structure (u in S^6) upgrade V_1 from R*E_{11} to a complex 1-dim space? -- **V_1 = R confirmed.** L_{E_{11}} = (1/2)*I_{16}. V_0 channel: 10 T_b are Cl(9) generators but symmetric (cannot produce antisymmetric J_u). -- v8.0
 - [x] If algebraic closure fails, what is the weakest sufficient condition? -- **u in S^6 = Gap B2.** G_2 acts transitively on S^6, so all choices conjugate. Three theorems pin this as the exact additional input. -- v8.0
 
+### Answered in v10.0
+
+- [x] Is the self-modeler network in h_3(O) in the right universality class? -- **YES (classical).** UC1-UC4 all verified for O(9) sigma model on S^8. Quantum UC1/UC4 conditional (S_eff=1/2). -- v10.0
+- [x] Do all four Paper 6 gaps close once the universality class is established? -- **CONDITIONALLY.** Gap C upgraded CONDITIONAL-DERIVED (tensoriality derived via Lovelock). Gap D upgraded CONDITIONAL-THEOREM (MVEH proved via Gibbs). Gaps A,B unchanged. 15 assumptions: 8 resolved, 7 assumed. -- v10.0
+- [x] What is the effective Hamiltonian H_eff for self-modelers interacting via the Jordan product of h_3(O)? -- **H_eff = J*sum T_a^(1)T_a^(2)** on R^256. 5-level Spin(9) spectrum. Ferromagnetic ground state Lambda^1(V_9). -- v10.0
+- [x] Does H_eff exhibit spontaneous F_4 breaking via DLS/infrared bounds? -- **SSB is Spin(9)->Spin(8) on S^8** (not F_4->Spin(9) on OP^2). Classical proved via FSS (d>=3). Quantum conditional. 8 Type-A Goldstone modes. -- v10.0
+
 ### Active
 
-- [ ] Is the self-modeler network in h_3(O) in the right universality class (gapless, algebraic decay, isotropic, reflection positive)?
-- [ ] Do all four Paper 6 gaps close once the universality class is established?
-- [ ] What is the effective Hamiltonian H_eff for self-modelers interacting via the Jordan product of h_3(O)?
-- [ ] Does H_eff exhibit spontaneous F_4 breaking via DLS/infrared bounds?
+(No active research questions -- awaiting next milestone)
 
 ### Answered in v9.0
 
@@ -361,4 +368,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-03-30 after v10.0 milestone initialization_
+_Last updated: 2026-03-31 after v10.0 milestone_

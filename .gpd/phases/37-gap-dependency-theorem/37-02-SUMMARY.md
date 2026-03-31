@@ -16,7 +16,7 @@ provides:
   - Formal gap dependency theorem with complete numbered assumption list (15 independent assumptions)
   - Dependency matrix (18 rows x 6 columns, 108 entries, all filled)
   - Gap A and Gap B mapping to UC properties
-  - Upgrade assessment (C: CONDITIONAL-DERIVED, D: CONDITIONAL-THEOREM)
+  - "Upgrade assessment (C: CONDITIONAL-DERIVED, D: CONDITIONAL-THEOREM)"
   - Phase 39 handoff (UC1-UC4 must-verify list)
   - Completeness verification (5 checks, all PASS)
 affects: [paper7 gap discussion, Phase 38 H_eff construction, Phase 39 UC verification]
