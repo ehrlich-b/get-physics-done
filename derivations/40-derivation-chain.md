@@ -24,7 +24,10 @@ The v9.0 chain (derivations/36-derivation-chain.md) had 6 links (a)--(f) based o
 | SSB pattern | $O(3) \to O(2)$ | $\text{Spin}(9) \to \text{Spin}(8)$ |
 | Sigma model target | $S^2$ (dim 2) | $S^8$ (dim 8) |
 | Goldstone modes | 2 (Type-A) | 8 (Type-A) |
-| Sigma model | $O(3)$ NL sigma, $\rho_s = 0.181J$ | $O(9)$ NL sigma, $\rho_s = J/8$ |
+| Spin-wave velocity | $c_s = 1.659\,Ja$ (QMC, $\mathbb{Z}^2$) | $c_s = J\sqrt{3/2} = 1.225\,Ja$ (classical, $\mathbb{Z}^3$) |
+| Sigma model | $O(3)$ NL sigma, $\rho_s = 0.181J$ | $O(9)$ NL sigma, $\rho_s = J/8 = 0.125J$ |
+| LR velocity ratio | $v_{LR}/c_s = 7.63$ ($\mathbb{Z}^1$) | $v_{LR}/c_s \approx 60$ ($\mathbb{Z}^3$) |
+| SRF | $0.9993$ (computed, Heisenberg) | $\approx 1$ (universality argument, not computed) |
 | UC verification | Assumed (well-known for O(3)) | Explicitly verified: UC1--UC4 (Phase 39) |
 
 ---
@@ -34,17 +37,17 @@ The v9.0 chain (derivations/36-derivation-chain.md) had 6 links (a)--(f) based o
 | Link | Description | Source | Equation | Rigor | Conditions |
 |------|------------|--------|----------|-------|------------|
 | **(a')** | Self-modeling $\to$ composite observer | Paper 5 | published result | ASSUMED (axiom) | Unconditional |
-| **(b')** | $M_n(\mathbb{C})^{\text{sa}}$ uniqueness $\to$ $\mathfrak{h}_3(\mathbb{O})$ | Paper 7 | published result | RIGOROUS | Unconditional |
+| **(b')** | $M_n(\mathbb{C})^{\text{sa}}$ uniqueness $\to$ $\mathfrak{h}_3(\mathbb{O})$ | Paper 7 | published result | STRUCTURAL (JvNW classification is rigorous; non-composability argument is structural) | Non-composability premise: universe's algebra is non-special |
 | **(c')** | Peirce decomposition: $V_1 + V_{1/2} + V_0$, $T_b$ operators | Paper 7 / Phase 28 | $\{T_a, T_b\} = \tfrac{1}{2}\delta_{ab}I_{16}$ | RIGOROUS | Unconditional |
 | **(d')** | $H_{\text{eff}} = J\sum T_a^{(i)}T_a^{(j)}$ on Cl(9,0) spinors | Phase 38 | Section 1.1 (boxed: Frame stabilizer = Spin(9)) | RIGOROUS | Unconditional |
 | **(e')** | Frame stabilizer Spin(9), $\mathbb{Z}^d$ bipartite, $\det = 0$ on $\mathbb{OP}^2$ | Phase 38 | Sections 1.6, 2.3, 3.3 (boxed results) | RIGOROUS | Unconditional |
 | **(f')** | SSB: Spin(9) $\to$ Spin(8) on $S^8$, 8 Type-A Goldstones | Phase 39 | Plans 01--02 (boxed: $G = \text{Spin}(9) \to H = \text{Spin}(8)$; $n_A = 8, n_B = 0$) | RIGOROUS classical / CONDITIONAL quantum | Classical: unconditional ($d \geq 3$). Quantum: conditional ($S_{\text{eff}} = 1/2$, Speer obstruction) |
 | **(g')** | O(9) NL sigma model on $S^8$, Friedan beta, AF | Phase 39 | Plan 03 (boxed: sigma action; Eq. 39.8: beta function) | RIGOROUS | Unconditional (kinematic: follows from SSB pattern) |
 | **(h')** | UC1--UC4 verified (classical) | Phase 39 | Plan 04 (derivations/39-universality-class.md Sections 1--4) | RIGOROUS classical / CONDITIONAL quantum | Classical: UC1--UC4 all verified. Quantum: UC1, UC4 conditional on quantum SSB |
-| **(i)** | Fisher manifold from sigma model correlations | Phases 32--33 | CORR-03, Eq. (33.19); FISH-01 Eq. (32.8) | CONDITIONAL | H1--H4 (Neel order, Goldstone stability, full-rank $\rho$, OBC) |
-| **(j)** | Emergent Lorentz from sigma model rescaling | Phase 34 | Eq. (34.9): $ds^2 = -c_s^2 dt^2 + g_{ij}dx^i dx^j$ | PHYSICAL ARGUMENT | Sigma model universality; DLS RP for Wick rotation |
-| **(k)** | BW + KMS: $K_A = 2\pi K_{\text{boost}}$, $\beta = 2\pi$ | Phase 35 | Eqs. (35.0a), (35.8), (35.3) | CONDITIONAL | UC5 (Wightman / lattice-BW with SRF = 0.9993) |
-| **(l)** | Jacobson $\to$ Einstein: $G_{ab} + \Lambda g_{ab} = 8\pi G_N T_{ab}$ | Phase 37 | Eq. (37.6) (Gap C); Eq. (37.12) (Gap D) | CONDITIONAL-DERIVED (C) / CONDITIONAL-THEOREM (D) | Gap C: UC5, UC6, UC8, UC9, UC10. Gap D: UC5, CS, TL. |
+| **(i)** | Fisher manifold from sigma model correlations | Phases 32--33, 41 | CORR-03, Eq. (33.19); FISH-01 Eq. (32.8); O(9): Eqs. (41.19, 41.22--23) | CONDITIONAL | H1--H4 (H1 SATISFIED $d \geq 3$, conditional quantum SSB; H2--H4 SATISFIED) |
+| **(j)** | Emergent Lorentz from sigma model rescaling | Phases 34, 41 | Eq. (34.9); O(9): $c_s = J\sqrt{3/2}$ (Eq. 41.6), $v_{LR}/c_s \approx 60$ (Eq. 41.12) | PHYSICAL ARGUMENT | Sigma model universality; DLS RP; classical $c_s$ only |
+| **(k)** | BW + KMS: $K_A = 2\pi K_{\text{boost}}$, $\beta = 2\pi$ | Phases 35, 41 | Eqs. (35.0a), (35.8), (35.3); O(9) BW: Eq. (41.17) | CONDITIONAL | UC5 (Wightman / lattice-BW by universality; SRF $\approx 1$, not computed numerically for O(9)) |
+| **(l)** | Jacobson $\to$ Einstein: $G_{ab} + \Lambda g_{ab} = 8\pi G_N T_{ab}$ | Phase 37 | Eq. (37.6) (Gap C); Eq. (37.12) (Gap D) | CONDITIONAL-DERIVED (C) / CONDITIONAL-THEOREM (D) | Gap C: UC5, UC6, UC8, UC9, UC10. Gap D: UC5, CS, TL. $G_N$ inherits O(9) value via $c_s$. |
 
 ---
 
@@ -63,9 +66,11 @@ The v9.0 chain (derivations/36-derivation-chain.md) had 6 links (a)--(f) based o
 
 **What it establishes:** The self-adjoint part of the observable algebra $M_n(\mathbb{C})^{\text{sa}}$ is a formally real Jordan algebra. Among the exceptional Jordan algebras, $\mathfrak{h}_3(\mathbb{O})$ (27-dimensional, over the octonions) is the maximal one: it is the largest simple formally real Jordan algebra that is not a special Jordan algebra (i.e., not embeddable in an associative algebra).
 
+The identification of $\mathfrak{h}_3(\mathbb{O})$ as the arena rests on the non-composability argument: (1) self-modeling $\to$ Jordan algebra [proved, Paper 5], (2) the universe cannot be a subsystem of a larger composite [structural premise], (3) every special Jordan algebra embeds in an associative algebra and therefore admits tensor products [BGW theorem], (4) contrapositive: the universe's algebra is non-special = exceptional = $\mathfrak{h}_3(\mathbb{O})$ [JvNW classification].
+
 **Source:** Paper 7 (published result). The Jordan-von Neumann-Wigner classification (1934) provides the mathematical foundation.
-**Rigor:** RIGOROUS. The classification of formally real Jordan algebras is a mathematical theorem.
-**Conditions:** Unconditional.
+**Rigor:** STRUCTURAL. The JvNW classification is a mathematical theorem. The non-composability argument (step 2: "the universe cannot be a subsystem") is a structural premise, not a theorem. It is well-motivated (the universe by definition has no exterior to compose with) but not proved from the self-modeling axiom alone.
+**Conditions:** Non-composability premise.
 **Classical/quantum status:** N/A (algebraic classification).
 
 ### Link (c'): Peirce Decomposition and $T_b$ Operators
@@ -183,6 +188,17 @@ Homotopy: $\pi_k(S^8) = 0$ for $k = 1, \ldots, 7$. No topological terms (theta, 
 **Conditions:** Classical: all four verified. Quantum: UC1, UC4 conditional on quantum SSB.
 **Classical/quantum status:** Classical: COMPLETE. Quantum: CONDITIONAL.
 
+### Historical Note: Links (i)--(l) Model-Specific Numbers
+
+**Note:** Links (i)--(l) were originally derived in Phases 32--35 for the Heisenberg model (v9.0). Phase 41 recomputed all model-specific numbers for the O(9)/$S^8$ sigma model. The structural arguments are model-independent; only the quantitative values have been updated. See derivations/41-o9-quantitative-results.md for the full computation.
+
+| Aspect | Structural (model-independent) | Quantitative (updated to O(9) in Phase 41) |
+|--------|-------------------------------|-------------------------------------------|
+| Fisher metric from correlations | CORR-03 theorem applies to any sigma model with LRO | $\rho_s = J/8$, $C(r) = 16/(\pi J r)$ in $d = 3$ (Eq. 41.22--41.23) |
+| Emergent Lorentz | Sigma model rescaling + DLS RP | $c_s = J\sqrt{3/2} = 1.225\,Ja$ (classical), $v_{LR}/c_s \approx 60$ (Eq. 41.6, 41.12) |
+| BW + KMS | BW theorem + Tomita-Takesaki (model-independent) | $H_{\text{ent}} = (2\pi/c_s(\text{O}(9)))\sum x_\perp h_{\mathbf{x}}$ with O(9) $c_s$ and $h_{\mathbf{x}}$ (Eq. 41.17); SRF $\approx 1$ by universality (not computed numerically) |
+| Jacobson $\to$ Einstein | Argument is model-independent | $G_N$ inherits O(9)-specific value via $c_s$; structural result unchanged |
+
 ### Link (i): Fisher Manifold from Sigma Model Correlations
 
 **What it establishes:** A smooth, positive-definite spatial Riemannian metric $g_F(x)$ on the reduced states $\rho_\Lambda(x)$:
@@ -191,12 +207,26 @@ $$
 g_F(x) = O(m_s^2) > 0 \quad \text{at interior points}
 $$
 
-conditional on hypotheses H1--H4 (CORR-03 theorem). For gapped systems, FISH-01 gives exponential smoothness (Eq. (32.8)). For the gapless Neel phase ($d \geq 2$), CORR-03 provides the conditional result.
+conditional on hypotheses H1--H4 (CORR-03 theorem, verified for O(9) in Phase 41). For gapped systems, FISH-01 gives exponential smoothness (Eq. (32.8)). For the gapless ordered phase ($d \geq 3$), CORR-03 provides the conditional result.
 
-**Source:** derivations/32-fisher-geometry-theorems.md, Eq. (32.8) (FISH-01); derivations/33-fisher-smoothness-algebraic-decay.md, Eq. (33.19) (CORR-03).
-**Rigor:** CONDITIONAL on H1--H4.
-**Conditions:** H1 (Neel LRO: rigorous $d \geq 3$, QMC-only $d = 2$), H2 (Goldstone stability: convergent $d \geq 3$), H3 (full-rank $\rho_\Lambda$), H4 (OBC).
-**Classical/quantum status:** N/A (carries over from v9.0 unchanged).
+**O(9) correlation function (Phase 41, Eq. 41.22):** The total connected order-parameter correlator for $O(9)/S^8$ with $N - 1 = 8$ Goldstone modes and $\rho_s = J/8$:
+
+$$
+C(r) = \frac{8\,\Gamma(d/2 - 1)}{4\pi^{d/2}\,(J/8)\,r^{d-2}} = \frac{64\,\Gamma(d/2 - 1)}{4\pi^{d/2}\,J\,r^{d-2}}
+$$
+
+In $d = 3$: $C(r) = 16/(\pi J r)$ (Eq. 41.23).
+
+**CORR-03 hypothesis status for O(9) (Phase 41, Part E):**
+- **H1 (LRO):** SATISFIED for $d \geq 3$ -- classical SSB $\text{Spin}(9) \to \text{Spin}(8)$ proved via FSS (Phase 39). Quantum SSB conditional ($S_{\text{eff}} = 1/2$).
+- **H2 (Goldstone stability):** SATISFIED -- 8 Type-A modes with stable $\omega = c_s|\mathbf{k}|$, $c_s > 0$ (Phase 39).
+- **H3 (full-rank $\rho_\Lambda$):** SATISFIED -- generic property of finite subsystems.
+- **H4 (OBC):** SATISFIED -- applies to bounded subregions of $\mathbb{Z}^d$.
+
+**Source:** derivations/32-fisher-geometry-theorems.md, Eq. (32.8) (FISH-01); derivations/33-fisher-smoothness-algebraic-decay.md, Eq. (33.19) (CORR-03). Phase 41 derivation: derivations/41-o9-quantitative-results.md, Part E.
+**Rigor:** CONDITIONAL on H1--H4 (H1 now SATISFIED for O(9), $d \geq 3$, conditional on quantum SSB).
+**Conditions:** H1 (LRO: SATISFIED classical $d \geq 3$, conditional quantum), H2 (Goldstone stability: SATISFIED), H3 (full-rank $\rho_\Lambda$: SATISFIED), H4 (OBC: SATISFIED).
+**Classical/quantum status:** All four hypotheses verified for O(9) in Phase 41. H1 conditional on quantum SSB.
 
 ### Link (j): Emergent Lorentz Invariance
 
@@ -206,12 +236,34 @@ $$
 ds^2 = -c_s^2\,dt^2 + g_{ij}(x)\,dx^i dx^j
 $$
 
-where the spatial part comes from the Fisher metric (Phases 32--33) and the temporal part from the sigma model dynamics + Wick rotation (Phase 34). The emergent speed is $c_s$ (spin-wave velocity). DLS reflection positivity on bipartite $\mathbb{Z}^d$ justifies the Wick rotation from Euclidean to Lorentzian.
+where the spatial part comes from the Fisher metric (Phases 32--33, verified for O(9) in Phase 41) and the temporal part from the sigma model dynamics + Wick rotation (Phase 34). The emergent speed is $c_s$ (spin-wave velocity). DLS reflection positivity on bipartite $\mathbb{Z}^d$ justifies the Wick rotation from Euclidean to Lorentzian.
 
-**Source:** derivations/34-emergent-lorentz-invariance.md, Eq. (34.9).
+**O(9) emergent speed (Phase 41, Eq. 41.6):**
+
+$$
+c_s(\text{O}(9), \mathbb{Z}^3) = J\sqrt{\tfrac{3}{2}} = 1.225\,Ja \quad (\text{classical})
+$$
+
+derived from the hydrodynamic formula $c_s^2 = \rho_s/\chi_\perp$ with $\rho_s = J/8$ (Phase 39) and $\chi_\perp = 1/(12J)$ (classical O(9) on $\mathbb{Z}^3$).
+
+**Quantum correction caveat:** $c_s = 1.225\,Ja$ is the classical value; quantum corrections (unknown for O(9)) may reduce this by $\sim 20\%$ (O(3) analogy: classical $c_s = 2Ja$ vs QMC $c_s = 1.659\,Ja$, a 17% reduction).
+
+**Velocity hierarchy (Phase 41, Eqs. 41.9, 41.12):**
+
+$$
+v_{LR}(\text{O}(9), \mathbb{Z}^3) = 27eJ = 73.4\,J, \quad v_{LR}/c_s \approx 60
+$$
+
+The four arguments for $c_{\text{eff}} = c_s$ (not $v_{LR}$) carry over from Phase 34 verbatim:
+1. **Dispersion:** 8 Goldstone modes with $\omega = c_s|\mathbf{k}|$ -- no low-energy excitation propagates faster.
+2. **EFT:** O(9) NL sigma model (Phase 39, Eq. 39.6) is Lorentz-invariant with speed $c_s$; $v_{LR}$ does not appear.
+3. **Universality:** $c_s = \sqrt{\rho_s/\chi_\perp}$ is the universal IR quantity; $v_{LR} = 2e\|h_{ij}\|z$ is UV-dependent.
+4. **Hamma et al. precedent:** Toric code $v_{LR}/c_{\text{photon}} = 3.84$ (PRL 102, 017204, 2009).
+
+**Source:** derivations/34-emergent-lorentz-invariance.md, Eq. (34.9). Phase 41 derivation: derivations/41-o9-quantitative-results.md, Parts A, C, F.
 **Rigor:** PHYSICAL ARGUMENT. The sigma model universality and Wick rotation arguments are physically motivated, not rigorous.
-**Conditions:** Sigma model universality; DLS RP for Wick rotation (UC4).
-**Classical/quantum status:** N/A (carries over from v9.0 unchanged).
+**Conditions:** Sigma model universality; DLS RP for Wick rotation (UC4). Classical $c_s$ only -- quantum corrections unknown for O(9).
+**Classical/quantum status:** O(9) quantitative values computed (classical). Structural argument model-independent.
 
 ### Link (k): Bisognano-Wichmann and KMS Equilibrium
 
@@ -223,10 +275,20 @@ where the spatial part comes from the Fisher metric (Phases 32--33) and the temp
 
 The vacuum state restricted to a Rindler wedge IS a thermal (KMS) state with respect to modular flow. KMS is DERIVED from BW + Tomita-Takesaki, not assumed.
 
-**Source:** derivations/35-kms-equilibrium-and-modular-hamiltonian.md, Eqs. (35.0a), (35.8), (35.3).
-**Rigor:** CONDITIONAL. BW theorem requires Wightman axioms W1--W6 (UC5). On the lattice, lattice-BW (SRF = 0.9993) is numerical, not a theorem.
-**Conditions:** UC5 (Wightman axioms or lattice-BW equivalent).
-**Classical/quantum status:** N/A (carries over from v9.0 unchanged).
+**O(9) lattice-BW ansatz (Phase 41, Eq. 41.17):** The BW ansatz applies to the O(9) model by universality (Giudici et al. 2018): the O(9) NL sigma model is Lorentz-invariant (Phase 39). The entanglement Hamiltonian for a half-space is:
+
+$$
+H_{\text{ent}}(\text{O}(9)) = \frac{2\pi}{c_s(\text{O}(9))} \sum_{\mathbf{x}} x_\perp \, h_{\mathbf{x}}(\text{O}(9))
+$$
+
+with $c_s(\text{O}(9)) = J\sqrt{3/2}$ (Eq. 41.6) and local Hamiltonian density $h_{\mathbf{x}} = J\sum_\delta\sum_{a=0}^{8} T_a^{(\mathbf{x})}T_a^{(\mathbf{x}+\delta)}$ (Eq. 41.16).
+
+**SRF status:** The SRF for O(9) has not been computed numerically; no QMC or DMRG study exists for the O(9) lattice model. The universality argument predicts SRF close to 1, with lattice corrections at $O(a^2/L^2)$ from irrelevant operators (Eq. 41.18). The Heisenberg value SRF $= 0.9993$ is not carried forward as an O(9) result.
+
+**Source:** derivations/35-kms-equilibrium-and-modular-hamiltonian.md, Eqs. (35.0a), (35.8), (35.3). Phase 41 derivation: derivations/41-o9-quantitative-results.md, Part D.
+**Rigor:** CONDITIONAL. BW theorem requires Wightman axioms W1--W6 (UC5). On the lattice, lattice-BW applies by universality (Lorentz invariance established for O(9), Phase 39). SRF not computed numerically for O(9).
+**Conditions:** UC5 (Wightman axioms or lattice-BW equivalent). Classical $c_s$ only -- quantum corrections unknown for O(9).
+**Classical/quantum status:** Structural argument model-independent; O(9) lattice-BW ansatz written with O(9)-specific $c_s$ and $h_{\mathbf{x}}$.
 
 ### Link (l): Jacobson Argument to Einstein Equations
 
@@ -250,21 +312,23 @@ $$
 \delta S = 0 \quad \text{at first order, at fixed } \langle K_A \rangle
 $$
 
+**O(9) note (Phase 41):** This link is structurally model-independent -- it depends on BW + KMS (link (k)), not on the sigma model directly. Numerical prefactors ($G_N$, $\Lambda$) depend on UV data including $c_s$. With the O(9) spin-wave velocity $c_s = J\sqrt{3/2}$ (Eq. 41.6), the Newton constant $G_N$ inherits an O(9)-specific value, but the STRUCTURAL result $G_{ab} + \Lambda g_{ab} = 8\pi G_N T_{ab}$ is unchanged.
+
 **Source:** derivations/37-gap-c-closure-chain.md, Eq. (37.6); derivations/37-gap-d-closure-chain.md, Eq. (37.12).
 **Rigor:** Gap C: CONDITIONAL-DERIVED. Gap D: CONDITIONAL-THEOREM.
-**Conditions:** Gap C: UC5, UC6 ($d+1=4$), UC8, UC9, UC10 + Gap A NARROWED. Gap D: UC5, CS, TL. Sorce caveat: geometric form exact for $d = 1$ (conformal), approximate for $d \geq 2$ (SRF = 0.9993).
-**Classical/quantum status:** The link itself does not depend on SSB directly, but it requires the upstream links (i)--(k) which do.
+**Conditions:** Gap C: UC5, UC6 ($d+1=4$), UC8, UC9, UC10 + Gap A NARROWED. Gap D: UC5, CS, TL. Sorce caveat: geometric form exact for $d = 1$ (conformal), approximate for $d \geq 2$ (SRF $\approx 1$ by universality for O(9), not computed numerically).
+**Classical/quantum status:** The link itself does not depend on SSB directly, but it requires the upstream links (i)--(k) which do. $G_N$ inherits O(9)-specific value via $c_s$.
 
 ---
 
 ## Conditionality Summary
 
-### Unconditional Links (no remaining assumptions)
+### Unconditional Links (no remaining assumptions beyond framework premises)
 
 | Link | What | Why unconditional |
 |------|------|-------------------|
 | (a') | Self-modeling axiom | Framework axiom |
-| (b') | $\mathfrak{h}_3(\mathbb{O})$ uniqueness | Mathematical classification theorem |
+| (b') | $\mathfrak{h}_3(\mathbb{O})$ as arena | JvNW classification (rigorous) + non-composability premise (structural) |
 | (c') | Peirce decomposition, Clifford structure | Jordan algebra theorem + computational verification |
 | (d') | $H_{\text{eff}}$ construction and spectrum | Exact diagonalization |
 | (e') | Frame stabilizer, lattice structure, cubic | Algebraic and computational results |
@@ -281,10 +345,10 @@ $$
 
 | Link | Conditions |
 |------|------------|
-| (i) | H1--H4 (Neel LRO, Goldstone stability, full-rank, OBC) |
-| (j) | Sigma model universality; DLS RP |
-| (k) | UC5 (Wightman axioms or lattice-BW) |
-| (l) | Gap C: UC5, UC6, UC8, UC9, UC10. Gap D: UC5, CS, TL |
+| (i) | H1--H4 (H1 SATISFIED for O(9) $d \geq 3$, conditional on quantum SSB; H2--H4 SATISFIED). Phase 41 verified all hypotheses. |
+| (j) | Sigma model universality; DLS RP. Classical $c_s = J\sqrt{3/2}$ only; quantum corrections unknown for O(9). |
+| (k) | UC5 (Wightman axioms or lattice-BW by universality; SRF not computed numerically for O(9)). Classical $c_s$ in BW ansatz. |
+| (l) | Gap C: UC5, UC6, UC8, UC9, UC10. Gap D: UC5, CS, TL. $G_N$ inherits O(9)-specific value. |
 
 ### Dimension Dependence
 
@@ -305,7 +369,9 @@ $$
 The chain naturally divides into three segments:
 1. **Algebraic segment (a')--(e'):** Unconditional. Establishes the mathematical structure from self-modeling to the lattice Hamiltonian. All results are rigorous.
 2. **SSB segment (f')--(h'):** Classical-proved, quantum-conditional. Establishes the symmetry breaking pattern, sigma model, and universality class. Classical SSB is a theorem; quantum SSB is conditional.
-3. **Gravity segment (i)--(l):** Conditional. Establishes emergent geometry and Einstein equations. Requires Gap A hypotheses, BW, and Jacobson inputs.
+3. **Gravity segment (i)--(l):** Conditional. Establishes emergent geometry and Einstein equations. Phase 41 updated all model-specific numbers to O(9). Requires Gap A hypotheses, BW, and Jacobson inputs.
+
+**Uncertainty markers for links (j)--(k):** The O(9) spin-wave velocity $c_s = J\sqrt{3/2}$ is a classical value. Quantum corrections (unknown for O(9)) may modify $c_s$ by $\sim 20\%$ based on O(3) analogy. This propagates into the emergent metric (link (j)) and the BW ansatz prefactor $2\pi/c_s$ (link (k)). The structural content of both links is unaffected.
 
 ---
 
