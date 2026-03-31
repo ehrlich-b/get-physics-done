@@ -240,6 +240,16 @@ Plans:
 - [x] 39-03-PLAN.md -- NL sigma model on S^8, Friedan beta function, asymptotic freedom, homotopy groups
 - [x] 39-04-PLAN.md -- UC1-UC4 systematic verification and Phase 37/40 connection
 
+### Phase 41: O(9)/S^8 Quantitative Verification
+
+**Goal:** Recompute all model-specific numbers (c_s, v_LR, SRF, Fisher metric, emergent metric) for O(9)/S^8 sigma model and update derivation chain links (i)-(l), replacing all Heisenberg S=1/2 carry-forward numbers
+**Depends on:** Phase 40, Phase 39 (sigma model), Phase 38 (2-site spectrum)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 41-01-PLAN.md -- Compute c_s, v_LR, velocity hierarchy, lattice-BW universality, Fisher metric for O(9)/S^8
+- [ ] 41-02-PLAN.md -- Update derivation chain links (i)-(l) with O(9) numbers, remove carry-forward caveat
+
 ---
 
 ### Phase 40: Assembly -- All Gaps Closed
