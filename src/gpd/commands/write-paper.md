@@ -7,16 +7,16 @@ review-contract:
   review_mode: publication
   schema_version: 1
   required_outputs:
-    - paper/main.tex
+    - "${PAPER_DIR}/main.tex"
     - "GPD/REFEREE-REPORT{round_suffix}.md"
     - "GPD/REFEREE-REPORT{round_suffix}.tex"
   required_evidence:
     - manuscript scaffold target (existing draft or bootstrap target)
     - phase summaries or milestone digest
     - verification reports
-    - bibliography audit
-    - artifact manifest
-    - reproducibility manifest
+    - manuscript-root bibliography audit
+    - manuscript-root artifact manifest
+    - manuscript-root reproducibility manifest
   blocking_conditions:
     - missing project state
     - missing roadmap
@@ -81,7 +81,7 @@ Check for existing drafts:
 
 ```bash
 ls paper/ manuscript/ draft/ 2>/dev/null
-ls GPD/paper/*.md 2>/dev/null
+ls paper/*.md manuscript/*.md draft/*.md 2>/dev/null
 find . -name "*.tex" -maxdepth 2 2>/dev/null | head -10
 ```
 
@@ -98,7 +98,7 @@ cat GPD/research-map/FORMALISM.md 2>/dev/null
 <process>
 **Follow the write-paper workflow** from `@{GPD_INSTALL_DIR}/workflows/write-paper.md`.
 
-When the workflow asks for constrained artifacts such as `${PAPER_DIR}/PAPER-CONFIG.json`, `GPD/paper/FIGURE_TRACKER.md`, or `${PAPER_DIR}/reproducibility-manifest.json`, use the canonical schema/template surfaces it loads there rather than inventing keys from memory.
+When the workflow asks for constrained artifacts such as `${PAPER_DIR}/PAPER-CONFIG.json`, `${PAPER_DIR}/ARTIFACT-MANIFEST.json`, `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json`, `${PAPER_DIR}/reproducibility-manifest.json`, or `${PAPER_DIR}/FIGURE_TRACKER.md`, use the canonical schema/template surfaces it loads there rather than inventing keys from memory.
 
 The workflow handles all logic including:
 
@@ -108,7 +108,7 @@ The workflow handles all logic including:
 4. **Catalog artifacts** — Gather derivations, numerical results, figures, literature, verification results from phases
 5. **Paper-readiness audit** — 5 checks (SUMMARY completeness, convention consistency, numerical stability, figure readiness, citation readiness) with gate decision (0 critical gaps to proceed, or user approval)
 6. **Create outline** — Detailed per-section outline (purpose, key content, equations, figures, citations, dependencies) adapted to journal format. Present for approval.
-7. **Generate files** — Create `${PAPER_DIR}/PAPER-CONFIG.json` using `@{GPD_INSTALL_DIR}/templates/paper/paper-config-schema.md`, then materialize the canonical manuscript scaffold with `gpd paper-build` (emits `${PAPER_DIR}/main.tex`, bibliography artifacts, and `${PAPER_DIR}/ARTIFACT-MANIFEST.json`; local compiler runs are smoke checks only)
+7. **Generate files** — Create `${PAPER_DIR}/PAPER-CONFIG.json` using `@{GPD_INSTALL_DIR}/templates/paper/paper-config-schema.md`, then materialize the canonical manuscript scaffold with `gpd paper-build` (emits `${PAPER_DIR}/main.tex`, `${PAPER_DIR}/ARTIFACT-MANIFEST.json`, and `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json`; local compiler runs are smoke checks only)
 8. **Generate figures** — Generate matplotlib scripts from phase data, execute to `${PAPER_DIR}/figures/`, update FIGURE_TRACKER.md
 9. **Draft sections** — Wave-parallelized spawning of gpd-paper-writer agents:
    - Wave 1: Results + Methods (no dependency)
@@ -138,6 +138,7 @@ For a standalone rerun of the referee stage after the manuscript already exists,
 - [ ] Every equation numbered, defined, and contextualized
 - [ ] Every figure captioned and discussed in text
 - [ ] Citations verified via gpd-bibliographer (no hallucinated references)
+- [ ] Manuscript-root review artifacts refreshed (`${PAPER_DIR}/ARTIFACT-MANIFEST.json`, `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json`, `${PAPER_DIR}/reproducibility-manifest.json`)
 - [ ] Pre-submission staged peer review completed with final gpd-referee adjudication
 - [ ] Internal consistency verified (notation, cross-references, conventions)
 - [ ] Paper directory created with buildable LaTeX structure

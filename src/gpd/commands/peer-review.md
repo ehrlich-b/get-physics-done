@@ -23,10 +23,10 @@ review-contract:
     - "existing manuscript"
     - "phase summaries or milestone digest"
     - "verification reports"
-    - "bibliography audit"
-    - "artifact manifest"
-    - "reproducibility manifest"
-    - "stage review artifacts"
+    - "manuscript-root bibliography audit"
+    - "manuscript-root artifact manifest"
+    - "manuscript-root reproducibility manifest"
+    - "manuscript-root publication artifacts"
   blocking_conditions:
     - "missing project state"
     - "missing roadmap"
@@ -80,7 +80,7 @@ Conduct a skeptical peer review of a completed manuscript and its supporting res
 
 This command promotes manuscript review to a first-class workflow instead of hiding it inside `write-paper`. It now runs a staged six-agent panel instead of a single all-purpose referee pass: full-manuscript reader, literature reviewer, mathematical-soundness reviewer, physical-soundness reviewer, significance reviewer, and final adjudicating referee.
 
-**Orchestrator role:** Locate the manuscript, validate review prerequisites, gather supporting artifacts, spawn the staged review panel with fresh context between stages, and present actionable outcomes based on the final recommendation.
+**Orchestrator role:** Locate the manuscript, validate review prerequisites, gather supporting artifacts, spawn the staged review panel with fresh context between stages, and present actionable outcomes based on the final recommendation. The review-stage outputs are produced by this run; they are not pre-existing prerequisites.
 
 Peer review is not the same as verification. Verification asks whether a derivation or computation checks out. Peer review asks whether the claimed contribution is correct, complete, clear, well-situated in the literature, reproducible, and publishable.
 </objective>

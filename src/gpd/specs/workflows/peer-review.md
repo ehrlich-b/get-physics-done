@@ -47,7 +47,7 @@ fi
 1. If `$ARGUMENTS` names a directory, use it as the candidate paper directory.
 2. If `$ARGUMENTS` names a `.tex` or `.md` file, use that file and its parent directory as the review root.
 3. Otherwise search, in order:
-   - `paper/main.tex`
+   - the resolved manuscript main file
    - `manuscript/main.tex`
    - `draft/main.tex`
 
@@ -87,7 +87,7 @@ fi
 Use `protocol_bundle_context` from init JSON as additive review guidance.
 
 - If `selected_protocol_bundle_ids` is non-empty, treat the bundle summary as a quick map of which decisive artifacts, benchmark anchors, estimator caveats, or specialized comparisons the manuscript should make visible.
-- Use bundle guidance to sharpen skepticism about missing evidence; do **not** use it to invent claims, waive missing comparisons, or overrule the manuscript, `project_contract`, `GPD/comparisons/*-COMPARISON.md`, `GPD/paper/FIGURE_TRACKER.md`, or phase summary / verification evidence (`GPD/phases/*/*SUMMARY.md`, `GPD/phases/*/*-VERIFICATION.md`).
+- Use bundle guidance to sharpen skepticism about missing evidence; do **not** use it to invent claims, waive missing comparisons, or overrule the manuscript, `project_contract`, `GPD/comparisons/*-COMPARISON.md`, `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md`, or phase summary / verification evidence (`GPD/phases/*/*SUMMARY.md`, `GPD/phases/*/*-VERIFICATION.md`).
 - Judge the paper by reader-visible claims and surfaced evidence first. Review-support artifacts are scaffolding, not substitutes for contract-backed evidence.
 - Read `@{GPD_INSTALL_DIR}/references/publication/peer-review-reliability.md` for the canonical failure-recovery and round-suffix conventions that keep this workflow fail-closed without falling back to legacy recovery paths.
 - If no bundle is selected, run the same review pipeline against the manuscript and contract-backed artifacts without any specialized overlay.
@@ -118,7 +118,7 @@ Load the following files:
 - All summary artifacts matching `GPD/phases/*/*SUMMARY.md`
 - All `GPD/phases/*/*-VERIFICATION.md` files
 - `GPD/comparisons/*-COMPARISON.md` if present
-- `GPD/paper/FIGURE_TRACKER.md` if present
+- `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md` if present
 - `${ARTIFACT_MANIFEST_PATH}` if present
 - `${BIBLIOGRAPHY_AUDIT_PATH}` if present
 - `${REPRODUCIBILITY_MANIFEST_PATH}` if present
@@ -166,7 +166,7 @@ Stage artifacts for revision rounds should use the same suffix:
 Use the same `-R2` / `-R3` suffix convention for downstream response artifacts:
 
 - `GPD/AUTHOR-RESPONSE{ROUND_SUFFIX}.md`
-- `GPD/paper/REFEREE_RESPONSE{ROUND_SUFFIX}.md`
+- `${MANUSCRIPT_ROOT}/REFEREE_RESPONSE{ROUND_SUFFIX}.md`
 
 </step>
 
@@ -292,7 +292,7 @@ Files to read:
 - `GPD/review/CLAIMS{round_suffix}.json`
 - `GPD/review/STAGE-reader{round_suffix}.json`
 - `GPD/comparisons/*-COMPARISON.md` if present
-- `GPD/paper/FIGURE_TRACKER.md` if present
+- `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md` if present
 - `${BIBLIOGRAPHY_AUDIT_PATH}` if present
 - All `*.bib` files under `${MANUSCRIPT_ROOT}`, plus `references/references.bib` if present
 
@@ -425,7 +425,7 @@ Files to read:
 - Summary artifacts matching `GPD/phases/*/*SUMMARY.md`
 - `GPD/phases/*/*-VERIFICATION.md`
 - `GPD/comparisons/*-COMPARISON.md` if present
-- `GPD/paper/FIGURE_TRACKER.md` if present
+- `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md` if present
 
 Focus on:
 1. Regime of validity
@@ -590,7 +590,7 @@ Files to read:
 - `GPD/review/STAGE-physics{round_suffix}.json`
 - `GPD/review/STAGE-interestingness{round_suffix}.json`
 - `GPD/comparisons/*-COMPARISON.md` if present
-- `GPD/paper/FIGURE_TRACKER.md` if present
+- `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md` if present
 - `${ARTIFACT_MANIFEST_PATH}` if present
 - `${BIBLIOGRAPHY_AUDIT_PATH}` if present
 - `${REPRODUCIBILITY_MANIFEST_PATH}` if present

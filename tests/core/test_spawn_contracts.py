@@ -162,7 +162,7 @@ def test_quick_and_write_paper_gate_handoffs_on_expected_artifacts() -> None:
     assert "Verify summary exists at `${QUICK_DIR}/${next_num}-SUMMARY.md`" in quick
     assert "Do not trust the runtime handoff status by itself." in quick
     assert "check for the expected .tex output files before spawning writer agents" in write_paper
-    assert "Check if the expected .tex file was written to `paper/`" in write_paper
+    assert "Check if the expected .tex file was written to `${PAPER_DIR}/`" in write_paper
     assert "If the file exists, proceed to the next section." in write_paper
 
 

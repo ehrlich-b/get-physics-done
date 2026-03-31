@@ -483,8 +483,8 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert write_paper.review_contract is not None
     assert write_paper.review_contract.review_mode == "publication"
     assert "manuscript scaffold target (existing draft or bootstrap target)" in write_paper.review_contract.required_evidence
-    assert "artifact manifest" in write_paper.review_contract.required_evidence
-    assert "reproducibility manifest" in write_paper.review_contract.required_evidence
+    assert "manuscript-root artifact manifest" in write_paper.review_contract.required_evidence
+    assert "manuscript-root reproducibility manifest" in write_paper.review_contract.required_evidence
     assert "GPD/REFEREE-REPORT{round_suffix}.md" in write_paper.review_contract.required_outputs
     assert "GPD/REFEREE-REPORT{round_suffix}.tex" in write_paper.review_contract.required_outputs
     assert "manuscript" in write_paper.review_contract.preflight_checks
@@ -666,7 +666,7 @@ def test_write_paper_and_arxiv_submission_keep_the_build_boundary_explicit() -> 
     arxiv = (WORKFLOWS_DIR / "arxiv-submission.md").read_text(encoding="utf-8")
 
     assert 'gpd paper-build "${PAPER_DIR}/PAPER-CONFIG.json" --output-dir "${PAPER_DIR}"' in write_paper
-    assert "This emits `${PAPER_DIR}/main.tex`, writes the artifact manifest" in write_paper
+    assert "This emits `${PAPER_DIR}/main.tex`, writes the manuscript-root artifact manifest" in write_paper
     assert (
         "The workflow continues without local compilation smoke checks — .tex file generation does not require "
         "pdflatex, and `gpd paper-build` remains the canonical manuscript scaffold contract."
@@ -1481,12 +1481,18 @@ def test_contract_schema_references_stay_wired_into_templates_and_review_docs() 
     assert "templates/paper/paper-config-schema.md" in write_paper
     assert "templates/paper/figure-tracker.md" in write_paper
     assert "templates/paper/reproducibility-manifest.md" in write_paper
-    assert "gpd paper-build paper/PAPER-CONFIG.json" in paper_config_schema
-    assert "paper/reproducibility-manifest.json" in write_paper
-    assert "gpd --raw validate reproducibility-manifest paper/reproducibility-manifest.json --strict" in write_paper
+    assert 'gpd paper-build "${PAPER_DIR}/PAPER-CONFIG.json"' in paper_config_schema
+    assert "${PAPER_DIR}/reproducibility-manifest.json" in write_paper
+    assert 'gpd --raw validate reproducibility-manifest "${PAPER_DIR}/reproducibility-manifest.json" --strict' in write_paper
     assert "gpd validate summary-contract" in execute_plan
     assert "gpd validate verification-contract" in verify_work
     assert "gpd validate plan-contract" in plan_phase
+    assert "Validator gate before planning:" in plan_phase
+    assert "`contract.context_intake` is required and must be a non-empty object." in plan_phase
+    assert "Non-scoping plans keep `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` non-empty." in plan_phase
+    assert "Include `references[]` only when the plan relies on external grounding" in plan_phase
+    assert "Light mode changes the body only." in plan_phase
+    assert "Keep the full canonical frontmatter, including `wave`, `depends_on`, `files_modified`, `interactive`, `conventions`, and `contract`." in plan_phase
     assert "Contract Intake:" in plan_phase
     assert "Effective Reference Intake:" in plan_phase
     assert "Contract Intake:" in verify_work
@@ -1538,7 +1544,7 @@ def test_review_and_verification_prompts_explicitly_surface_schema_sources_and_c
     assert "references/publication/peer-review-panel.md" in peer_review
     assert "templates/verification-report.md" in verify_command
     assert "templates/contract-results-schema.md" in verify_command
-    assert "Canonical schema for `paper/reproducibility-manifest.json`:" in write_paper
+    assert "Canonical schema for `${PAPER_DIR}/reproducibility-manifest.json`:" in write_paper
     assert "Canonical reconciliation contract:" in sync_state
     assert "state-json-schema.md` itself" in sync_state
     assert "save_state_markdown" in sync_state
@@ -1759,7 +1765,7 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "schema_version: 1" in phase_prompt
     assert "in_scope:" in phase_prompt
     assert "context_intake:" in phase_prompt
-    assert "non-empty `context_intake`" in phase_prompt
+    assert "non-empty `contract.context_intake`" in phase_prompt
     assert "must_include_prior_outputs: [\"GPD/phases/00-baseline/00-01-SUMMARY.md\"]" in phase_prompt
     assert "user_asserted_anchors: [\"Use the lattice normalization from the user notes\"]" in phase_prompt
     assert "claims:" in phase_prompt
@@ -1767,7 +1773,7 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "### `forbidden_proxies[]`" in phase_prompt
     assert "### `links[]`" in phase_prompt
     assert "# PLAN Contract Schema" in planner_prompt
-    assert "non-empty `context_intake` object" in planner_prompt
+    assert "non-empty `contract.context_intake` object" in planner_prompt
     assert "Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended" in planner_prompt
     assert "scope.unresolved_questions" in planner_prompt
     assert "Every claim must declare a stable `id`." in planner_prompt
@@ -1838,7 +1844,7 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "in_scope: [\"[Optional boundary or objective]\"]" in plan_schema
     assert "unresolved_questions: [\"[Optional open question that still blocks planning]\"]" in plan_schema
     assert "context_intake:" in plan_schema
-    assert "`context_intake` is required and must be a non-empty object, not a string or list." in plan_schema
+    assert "`contract.context_intake` is required and must be a non-empty object, not a string or list." in plan_schema
     assert "must_read_refs: [ref-main]" in plan_schema
     assert "must_include_prior_outputs: [\"GPD/phases/00-baseline/00-01-SUMMARY.md\"]" in plan_schema
     assert "user_asserted_anchors: [\"Use the lattice normalization from the user notes\"]" in plan_schema
@@ -1909,7 +1915,7 @@ def test_phase_prompt_surfaces_validation_critical_plan_contract_rules() -> None
     phase_prompt = (TEMPLATES_DIR / "phase-prompt.md").read_text(encoding="utf-8")
 
     assert "the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies" in phase_prompt
-    assert "If references are present, at least one must set `must_surface: true`." in phase_prompt
+    assert "references must be present and at least one must set `must_surface: true`" in phase_prompt
     assert "Semantic enum fields with schema defaults may be omitted when `other` is actually intended." in phase_prompt
     assert "If the plan is intentionally scoping-only" in phase_prompt
 
@@ -2209,7 +2215,7 @@ def test_stage8_surfaces_decisive_comparisons_paper_quality_artifacts_and_profil
     assert "role: smoking_gun|benchmark|comparison|sanity_check|publication_polish|other" in figure_tracker
     assert "canonical schema source of truth" in figure_tracker
     assert "validate paper-quality --from-project ." in write_paper
-    assert "Before reading or updating `GPD/paper/FIGURE_TRACKER.md`, load" in write_paper
+    assert "Before reading or updating `${PAPER_DIR}/FIGURE_TRACKER.md`, load" in write_paper
     assert '"review_cadence": "adaptive"' in new_project
     assert "Adaptive review cadence" in new_project
     assert "prior decisive `contract_results`, decisive `comparison_verdicts`, or an explicit approach lock" in execute_phase
@@ -2238,7 +2244,7 @@ def test_publication_workflows_refresh_bibliography_audit_after_bibliography_cha
     assert "the derived `reference_id -> bibtex_key` bridge" in write_paper
     assert "Prefer the `reference_id -> bibtex_key` mapping surfaced by `gpd paper-build` over reconstructing manuscript keys manually from prose or source ordering" in write_paper
     assert "Rerun it whenever the bibliography or citation set changes before strict review." in write_paper
-    assert "For the default bootstrap path, this means: rerun `paper-build` so `paper/BIBLIOGRAPHY-AUDIT.json` reflects the current bibliography before strict review." in write_paper
+    assert "For the default bootstrap path, this means: rerun `paper-build` so `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` reflects the current bibliography before strict review." in write_paper
     assert "refresh `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` before generating the response letter or proceeding to final review" in respond
     assert "`gpd paper-build` is the step that regenerates `BIBLIOGRAPHY-AUDIT.json` for the current bibliography; rerun it before proceeding whenever the manuscript bibliography or citation set has changed." in peer_review
     assert "absent, stale, or not review-ready" in peer_review

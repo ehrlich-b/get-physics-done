@@ -540,8 +540,8 @@ class TestStateCommands:
 
         assert result.exit_code == 1, result.output
         payload = json.loads(result.output)
-        assert payload["updated"] is False
-        assert "context_intake.must_read_refs must be a list, not str" in payload["reason"]
+        assert payload["valid"] is False
+        assert "context_intake.must_read_refs must be a list, not str" in payload["errors"]
         assert payload["warnings"] == []
         state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
         assert state["project_contract"] is None
@@ -617,7 +617,7 @@ class TestStateCommands:
             "must_include_prior_outputs": [],
             "user_asserted_anchors": [],
             "known_good_baselines": [],
-            "context_gaps": [],
+            "context_gaps": ["Need a concrete must-surface anchor before approval."],
             "crucial_inputs": [],
         }
         contract["references"][0]["role"] = "background"
@@ -829,7 +829,7 @@ review_summary:
             "must_include_prior_outputs": [],
             "user_asserted_anchors": [],
             "known_good_baselines": [],
-            "context_gaps": [],
+            "context_gaps": ["Need a concrete must-surface anchor before approval."],
             "crucial_inputs": [],
         }
         contract["references"][0]["role"] = "background"
@@ -857,7 +857,7 @@ review_summary:
             "must_include_prior_outputs": [],
             "user_asserted_anchors": [],
             "known_good_baselines": [],
-            "context_gaps": [],
+            "context_gaps": ["Need a concrete must-surface anchor before approval."],
             "crucial_inputs": [],
         }
         contract["references"][0]["role"] = "background"
@@ -1089,9 +1089,9 @@ class TestReviewValidationCommands:
         assert "manuscript scaffold target (existing draft or bootstrap target)" in payload["review_contract"]["required_evidence"]
         assert "phase summaries or milestone digest" in payload["review_contract"]["required_evidence"]
         assert "verification reports" in payload["review_contract"]["required_evidence"]
-        assert "bibliography audit" in payload["review_contract"]["required_evidence"]
-        assert "artifact manifest" in payload["review_contract"]["required_evidence"]
-        assert "reproducibility manifest" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root bibliography audit" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root artifact manifest" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root reproducibility manifest" in payload["review_contract"]["required_evidence"]
 
     def test_review_contract_peer_review_uses_typed_registry_surface(self) -> None:
         result = runner.invoke(
@@ -1121,10 +1121,10 @@ class TestReviewValidationCommands:
         assert "existing manuscript" in payload["review_contract"]["required_evidence"]
         assert "phase summaries or milestone digest" in payload["review_contract"]["required_evidence"]
         assert "verification reports" in payload["review_contract"]["required_evidence"]
-        assert "bibliography audit" in payload["review_contract"]["required_evidence"]
-        assert "artifact manifest" in payload["review_contract"]["required_evidence"]
-        assert "reproducibility manifest" in payload["review_contract"]["required_evidence"]
-        assert "stage review artifacts" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root bibliography audit" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root artifact manifest" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root reproducibility manifest" in payload["review_contract"]["required_evidence"]
+        assert "manuscript-root publication artifacts" in payload["review_contract"]["required_evidence"]
         assert payload["review_contract"]["stage_ids"] == [
             "reader",
             "literature",
@@ -2368,6 +2368,39 @@ class TestReviewValidationCommands:
         assert checks["artifact_manifest"]["passed"] is False
         assert checks["bibliography_audit"]["passed"] is False
         assert checks["compiled_manuscript"]["passed"] is True
+
+    def test_review_preflight_arxiv_submission_strict_blocks_semantically_dirty_bibliography_audit(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        paper_dir = gpd_project / "paper"
+        (paper_dir / "BIBLIOGRAPHY-AUDIT.json").write_text(
+            json.dumps(
+                {
+                    "generated_at": "2026-03-10T00:00:00+00:00",
+                    "total_sources": 2,
+                    "resolved_sources": 1,
+                    "partial_sources": 1,
+                    "unverified_sources": 0,
+                    "failed_sources": 0,
+                    "entries": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "arxiv-submission", "--strict"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert checks["bibliography_audit"]["passed"] is True
+        assert checks["bibliography_audit_clean"]["passed"] is False
+        assert "bibliography audit still has unresolved" in checks["bibliography_audit_clean"]["detail"]
 
     def test_review_preflight_arxiv_submission_strict_blocks_publication_blockers(self, gpd_project: Path) -> None:
         planning = gpd_project / "GPD"
