@@ -14,6 +14,7 @@
     "capabilities": {
       "permissions_surface": "config-file",
       "permission_surface_kind": "settings.json:permissions.defaultMode",
+      "prompt_free_mode_value": "bypassPermissions",
       "supports_runtime_permission_sync": true,
       "supports_prompt_free_mode": true,
       "prompt_free_requires_relaunch": true,
@@ -69,6 +70,7 @@
     "capabilities": {
       "permissions_surface": "launch-wrapper",
       "permission_surface_kind": "managed-launcher-wrapper",
+      "prompt_free_mode_value": "yolo",
       "supports_runtime_permission_sync": true,
       "supports_prompt_free_mode": true,
       "prompt_free_requires_relaunch": true,
@@ -124,6 +126,7 @@
     "capabilities": {
       "permissions_surface": "config-file",
       "permission_surface_kind": "config.toml:approval_policy+sandbox_mode",
+      "prompt_free_mode_value": "yolo",
       "supports_runtime_permission_sync": true,
       "supports_prompt_free_mode": true,
       "prompt_free_requires_relaunch": true,
@@ -180,6 +183,7 @@
     "capabilities": {
       "permissions_surface": "config-file",
       "permission_surface_kind": "opencode.json:permission",
+      "prompt_free_mode_value": "yolo",
       "supports_runtime_permission_sync": true,
       "supports_prompt_free_mode": true,
       "prompt_free_requires_relaunch": true,

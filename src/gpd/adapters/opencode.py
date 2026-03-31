@@ -759,7 +759,7 @@ def copy_with_path_replacement(
 # ---------------------------------------------------------------------------
 
 
-def uninstall_opencode(target_dir: Path, *, config_dir: Path) -> dict[str, int]:
+def uninstall_opencode(target_dir: Path, *, config_dir: Path, allow_empty_config_removal: bool) -> dict[str, int]:
     """Uninstall GPD from an OpenCode config directory.
 
     Removes GPD-specific files/directories, preserves user content.
@@ -885,7 +885,8 @@ def uninstall_opencode(target_dir: Path, *, config_dir: Path) -> dict[str, int]:
         if modified:
             oc_config_path.write_text(json.dumps(oc_config, indent=2) + "\n", encoding="utf-8")
             counts["permissions"] += 1
-        remove_empty_json_object_file(oc_config_path)
+        if allow_empty_config_removal:
+            remove_empty_json_object_file(oc_config_path)
 
     for path in (
         target_dir / "command",
@@ -1244,7 +1245,11 @@ class OpenCodeAdapter(RuntimeAdapter):
 
         with gpd_span("adapter.uninstall", runtime=self.runtime_name, target=str(target_dir)) as span:
             self._validate_target_runtime(target_dir, action="uninstall from")
-            result = uninstall_opencode(target_dir, config_dir=target_dir)
+            result = uninstall_opencode(
+                target_dir,
+                config_dir=target_dir,
+                allow_empty_config_removal=self._has_authoritative_install_manifest(target_dir),
+            )
             removed: list[str] = []
             if result["commands"]:
                 removed.append(f"{result['commands']} GPD commands")

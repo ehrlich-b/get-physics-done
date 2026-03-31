@@ -45,25 +45,52 @@ from gpd.registry import AgentDef, load_agents_from_dir
 logger = logging.getLogger(__name__)
 
 
-def _normalize_manifest_runtime(runtime: object) -> str | None:
-    """Return the canonical runtime name for manifest/runtime metadata when possible."""
-    if not isinstance(runtime, str):
-        return None
+def _has_only_agent_residue(target_dir: Path) -> bool:
+    """Return whether *target_dir* contains only agent-surface residue.
 
-    normalized = runtime.strip()
-    if not normalized:
-        return None
+    Agent installs are replaced in place and stale ``gpd-*`` agent files are
+    removed during install, so an explicit target that only contains an
+    ``agents/`` directory is still safe to repair without a trusted manifest.
+    Richer managed surfaces such as hooks, commands, or bundled content remain
+    blocked until ownership is established by a valid manifest.
+    """
 
-    from gpd.hooks.runtime_detect import normalize_runtime_name
+    if not target_dir.exists() or not target_dir.is_dir():
+        return False
 
-    return normalize_runtime_name(normalized)
+    for entry in target_dir.iterdir():
+        if entry.name != AGENTS_DIR_NAME:
+            return False
+        if not entry.is_dir():
+            return False
+
+    return (target_dir / AGENTS_DIR_NAME).is_dir()
 
 
-def _paths_equal(left: Path, right: Path) -> bool:
-    try:
-        return left.expanduser().resolve() == right.expanduser().resolve()
-    except OSError:
-        return left.expanduser() == right.expanduser()
+def _has_blocking_manifestless_install_surface(target_dir: Path) -> bool:
+    """Return whether *target_dir* contains managed surfaces that require ownership.
+
+    Bundled prompt content and command directories are not safe to remove or
+    overwrite blindly when the authoritative manifest is missing. Agent, hook,
+    cache, and local-patch residue is handled by narrower cleanup code and may
+    be repaired without a manifest.
+    """
+
+    blocking_paths = (
+        target_dir / GPD_INSTALL_DIR_NAME,
+        target_dir / COMMANDS_DIR_NAME / "gpd",
+        target_dir / FLAT_COMMANDS_DIR_NAME,
+    )
+    if any(path.exists() for path in blocking_paths):
+        return True
+
+    agents_dir = target_dir / AGENTS_DIR_NAME
+    has_managed_agents = agents_dir.is_dir() and any(
+        entry.is_file() and entry.name.startswith("gpd-") and entry.suffix in {".md", ".toml"}
+        for entry in agents_dir.iterdir()
+    )
+    has_managed_hooks = any((target_dir / rel_path).is_file() for rel_path in managed_hook_paths(target_dir))
+    return has_managed_agents and has_managed_hooks
 
 
 class RuntimeAdapter(abc.ABC):
@@ -285,52 +312,30 @@ class RuntimeAdapter(abc.ABC):
         """Return whether *target_dir* satisfies the shared install contract."""
         return not self.missing_install_artifacts(target_dir)
 
-    def _installed_manifest_runtime(self, target_dir: Path) -> str | None:
-        """Return the manifest runtime for *target_dir* when present."""
-        manifest_path = target_dir / MANIFEST_NAME
-        try:
-            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (FileNotFoundError, OSError, json.JSONDecodeError):
-            return None
-        if not isinstance(payload, dict):
-            return None
-        return _normalize_manifest_runtime(payload.get("runtime"))
-
     def validate_target_runtime(self, target_dir: Path, *, action: str) -> None:
         """Validate that an explicit target belongs to this runtime's install surface."""
         self._validate_target_runtime(target_dir, action=action)
 
+    def _has_authoritative_install_manifest(self, target_dir: Path) -> bool:
+        """Return whether *target_dir* has a trusted manifest for this runtime."""
+        from gpd.hooks.install_metadata import assess_install_target
+
+        assessment = assess_install_target(target_dir, expected_runtime=self.runtime_name)
+        return assessment.manifest_state == "ok" and assessment.state in {"owned_complete", "owned_incomplete"}
+
     def _validate_target_runtime(self, target_dir: Path, *, action: str) -> None:
         """Internal runtime-ownership validation behind the public adapter contract."""
-        from gpd.hooks.install_metadata import (
-            load_install_manifest_state,
-        )
+        from gpd.hooks.install_metadata import assess_install_target
 
-        manifest_state, manifest = load_install_manifest_state(target_dir)
+        assessment = assess_install_target(target_dir, expected_runtime=self.runtime_name)
         explicit_target = getattr(self, "_install_explicit_target", False)
-        if explicit_target and manifest_state in {"corrupt", "invalid"}:
+        if explicit_target and assessment.manifest_state in {"corrupt", "invalid"}:
             raise RuntimeError(
                 f"Refusing to {action} `{target_dir}` because its GPD manifest cannot be trusted.\n"
                 "Ownership cannot be determined safely."
             )
-
-        has_gpd_markers = any(
-            (
-                (target_dir / COMMANDS_DIR_NAME / "gpd").exists(),
-                (target_dir / FLAT_COMMANDS_DIR_NAME).exists(),
-                (target_dir / GPD_INSTALL_DIR_NAME).exists(),
-            )
-        )
-        if manifest_state == "ok" and isinstance(manifest, dict):
-            normalized_manifest_runtime = _normalize_manifest_runtime(manifest.get("runtime"))
-            if normalized_manifest_runtime is None:
-                raise RuntimeError(
-                    f"Refusing to {action} `{target_dir}` because its GPD manifest cannot be trusted.\n"
-                    "Ownership cannot be determined safely."
-                )
-            if normalized_manifest_runtime == self.runtime_name:
-                return
-            other_runtime = normalized_manifest_runtime or "unknown"
+        if assessment.state == "foreign_runtime":
+            other_runtime = assessment.manifest_runtime or "unknown"
             try:
                 other_runtime_label = get_runtime_descriptor(other_runtime).display_name
             except KeyError:
@@ -341,15 +346,27 @@ class RuntimeAdapter(abc.ABC):
                 f"not {self.display_name} (`{self.runtime_name}`)."
             )
 
-        if manifest_state in {"corrupt", "invalid"}:
+        if assessment.state == "untrusted_manifest":
+            if (
+                action.startswith("uninstall")
+                and assessment.manifest_state == "missing"
+                and not _has_blocking_manifestless_install_surface(target_dir)
+            ):
+                return
+            if action.startswith("install") and _has_only_agent_residue(target_dir):
+                return
+            if assessment.manifest_state != "missing":
+                raise RuntimeError(
+                    f"Refusing to {action} `{target_dir}` because its GPD manifest cannot be trusted.\n"
+                    "Ownership cannot be determined safely."
+                )
+            if assessment.has_managed_markers:
+                raise RuntimeError(
+                    f"Refusing to {action} `{target_dir}` because it already contains GPD artifacts but no manifest to establish ownership."
+                )
             raise RuntimeError(
                 f"Refusing to {action} `{target_dir}` because its GPD manifest cannot be trusted.\n"
                 "Ownership cannot be determined safely."
-            )
-
-        if manifest_state == "missing" and has_gpd_markers:
-            raise RuntimeError(
-                f"Refusing to {action} `{target_dir}` because it already contains GPD artifacts but no manifest to establish ownership."
             )
 
     def runtime_cli_bridge_command(self, target_dir: Path) -> str:
@@ -620,8 +637,10 @@ class RuntimeAdapter(abc.ABC):
         import shutil
 
         from gpd.core.observability import gpd_span
+        from gpd.hooks.install_metadata import assess_install_target
 
         with gpd_span("adapter.uninstall", runtime=self.runtime_name, target=str(target_dir)) as span:
+            assessment = assess_install_target(target_dir, expected_runtime=self.runtime_name)
             self._validate_target_runtime(target_dir, action="uninstall from")
             removed: list[str] = []
 
@@ -680,7 +699,8 @@ class RuntimeAdapter(abc.ABC):
             if removed_cache:
                 removed.append(f"{CACHE_DIR_NAME}/{UPDATE_CACHE_FILENAME}")
 
-            removed.extend(self._cleanup_runtime_config(target_dir))
+            if assessment.manifest_state == "ok":
+                removed.extend(self._cleanup_runtime_config(target_dir))
 
             # Remove file manifest
             manifest = target_dir / "gpd-file-manifest.json"

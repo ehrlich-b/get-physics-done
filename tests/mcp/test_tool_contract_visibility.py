@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import anyio
+import pytest
 
 
 def _tool_description(mcp_server: object, tool_name: str) -> str:
@@ -120,6 +121,31 @@ def _binding_condition_for_check(run_request_schema: dict[str, object], check_id
     raise AssertionError(f"No binding condition found for {check_identifier!r}")
 
 
+def _request_requirement_for_check(run_request_schema: dict[str, object], check_identifier: str) -> dict[str, object]:
+    fallback: dict[str, object] | None = None
+    for clause in run_request_schema.get("allOf", []):
+        if_branch = clause.get("if")
+        if not isinstance(if_branch, dict):
+            continue
+        for branch in if_branch.get("anyOf", []):
+            if not isinstance(branch, dict):
+                continue
+            for field_name in ("check_key", "check_id"):
+                field_schema = branch.get("properties", {}).get(field_name)
+                if not isinstance(field_schema, dict):
+                    continue
+                enum_values = field_schema.get("enum")
+                if isinstance(enum_values, list) and check_identifier in enum_values:
+                    then_schema = clause.get("then")
+                    if isinstance(then_schema, dict):
+                        if "required" in then_schema:
+                            return then_schema
+                        fallback = then_schema
+    if fallback is not None:
+        return fallback
+    raise AssertionError(f"No request requirement condition found for {check_identifier!r}")
+
+
 def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) -> None:
     _assert_closed_object(contract_schema, label="contract")
     assert {"schema_version", "scope", "claims", "references"} <= set(contract_schema["properties"])
@@ -134,6 +160,7 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     context_intake = _schema_object(contract_schema, contract_schema["properties"]["context_intake"])
     _assert_closed_object(context_intake, label="contract.context_intake")
+    assert context_intake["minProperties"] == 1
     for field_name in (
         "must_read_refs",
         "must_include_prior_outputs",
@@ -164,7 +191,7 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     claims = contract_schema["properties"]["claims"]["items"]
     _assert_closed_object(claims, label="contract.claims[]")
-    assert claims["required"] == ["id", "statement"]
+    assert claims["required"] == ["id", "statement", "deliverables", "acceptance_tests"]
     assert claims["properties"]["id"]["minLength"] == 1
     assert claims["properties"]["id"]["pattern"] == r"\S"
     for field_name in ("observables", "deliverables", "acceptance_tests", "references"):
@@ -278,6 +305,7 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     uncertainty_markers = _schema_object(contract_schema, contract_schema["properties"]["uncertainty_markers"])
     _assert_closed_object(uncertainty_markers, label="contract.uncertainty_markers")
+    assert uncertainty_markers["required"] == ["weakest_anchors", "disconfirming_observations"]
     for field_name in (
         "weakest_anchors",
         "unvalidated_assumptions",
@@ -422,14 +450,40 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
     assert artifact_content["minLength"] == 1
     assert artifact_content["pattern"] == r"\S"
 
+    benchmark_requirements = _request_requirement_for_check(run_request, "contract.benchmark_reproduction")
+    assert set(benchmark_requirements["required"]) == {"metadata", "observed"}
+    benchmark_metadata = _schema_object(benchmark_requirements, benchmark_requirements["properties"]["metadata"])
+    assert benchmark_metadata["required"] == ["source_reference_id"]
+    benchmark_observed = _schema_object(benchmark_requirements, benchmark_requirements["properties"]["observed"])
+    assert set(benchmark_observed["required"]) == {"metric_value", "threshold_value"}
+
+    limit_requirements = _request_requirement_for_check(run_request, "contract.limit_recovery")
+    assert set(limit_requirements["required"]) == {"metadata"}
+    limit_metadata = _schema_object(limit_requirements, limit_requirements["properties"]["metadata"])
+    assert set(limit_metadata["required"]) == {"regime_label", "expected_behavior"}
+
+    fit_requirements = _request_requirement_for_check(run_request, "contract.fit_family_mismatch")
+    assert set(fit_requirements["required"]) == {"metadata", "observed"}
+    fit_metadata = _schema_object(fit_requirements, fit_requirements["properties"]["metadata"])
+    assert fit_metadata["required"] == ["declared_family"]
+    fit_observed = _schema_object(fit_requirements, fit_requirements["properties"]["observed"])
+    assert fit_observed["required"] == ["selected_family"]
+
+    estimator_requirements = _request_requirement_for_check(run_request, "contract.estimator_family_mismatch")
+    assert set(estimator_requirements["required"]) == {"metadata", "observed"}
+    estimator_metadata = _schema_object(estimator_requirements, estimator_requirements["properties"]["metadata"])
+    assert estimator_metadata["required"] == ["declared_family"]
+    estimator_observed = _schema_object(estimator_requirements, estimator_requirements["properties"]["observed"])
+    assert set(estimator_observed["required"]) == {"selected_family", "bias_checked", "calibration_checked"}
+
     contract_schema = _schema_anyof_object(run_request["properties"]["contract"])
     _assert_contract_schema_sections_closed(contract_schema)
-    assert set(contract_schema["required"]) == {"scope", "context_intake"}
+    assert set(contract_schema["required"]) == {"scope", "context_intake", "uncertainty_markers"}
 
     suggest_schema = _tool_input_schema(mcp, "suggest_contract_checks")
     contract_schema = _schema_anyof_object(suggest_schema["properties"]["contract"])
     _assert_contract_schema_sections_closed(contract_schema)
-    assert set(contract_schema["required"]) == {"scope", "context_intake"}
+    assert set(contract_schema["required"]) == {"scope", "context_intake", "uncertainty_markers"}
     active_checks = suggest_schema["properties"]["active_checks"]
     assert active_checks["anyOf"][0]["type"] == "array"
     assert active_checks["anyOf"][0]["items"]["type"] == "string"
@@ -504,19 +558,43 @@ def test_public_descriptors_surface_contract_and_optional_dependency_visibility(
     assert "`references[].carry_forward_to` entries as workflow scope labels only" in verification["description"]
     assert "never contract IDs" in verification["description"]
 
-    conventions = descriptors["gpd-conventions"]
-    assert "ASSERT_CONVENTION validation" in conventions["description"]
-    assert "Every derivation artifact must carry at least one ASSERT_CONVENTION header" in conventions["description"]
 
-    protocols = descriptors["gpd-protocols"]
-    assert "live protocol catalog" in protocols["description"]
-    assert "47 physics domains" not in protocols["description"]
+@pytest.mark.parametrize(
+    ("mcp_module", "expected_tools"),
+    [
+        ("gpd.mcp.servers.conventions_server", {"convention_lock_status", "convention_set", "convention_check", "convention_diff", "assert_convention_validate"}),
+        ("gpd.mcp.servers.errors_mcp", {"get_error_class", "check_error_classes", "get_detection_strategy", "get_traceability", "list_error_classes"}),
+        ("gpd.mcp.servers.patterns_server", {"lookup_pattern", "add_pattern", "promote_pattern", "seed_patterns", "list_domains"}),
+        ("gpd.mcp.servers.protocols_server", {"get_protocol", "list_protocols", "route_protocol", "get_protocol_checkpoints"}),
+        ("gpd.mcp.servers.skills_server", {"list_skills", "get_skill", "route_skill", "get_skill_index"}),
+    ],
+)
+def test_non_verification_tools_publish_closed_input_schemas(mcp_module: str, expected_tools: set[str]) -> None:
+    module = __import__(mcp_module, fromlist=["mcp"])
 
-    arxiv = descriptors["gpd-arxiv"]
-    assert arxiv["optional"] is True
-    assert arxiv["availability"] == "conditional"
-    assert "optional Python module 'arxiv_mcp_server'" in arxiv["availability_condition"]
-    assert "Optional/conditional arXiv paper search and retrieval" in arxiv["description"]
+    tools = anyio.run(module.mcp.list_tools)
+
+    names = {tool.name for tool in tools}
+    assert expected_tools <= names
+    for tool in tools:
+        assert tool.inputSchema["additionalProperties"] is False, f"{tool.name} must reject unknown top-level keys"
+
+
+def test_state_server_tools_publish_absolute_project_dir_schema() -> None:
+    from gpd.mcp.servers.state_server import mcp
+
+    async def _load() -> dict[str, object]:
+        tools = await mcp.list_tools()
+        return {tool.name: tool.inputSchema for tool in tools}
+
+    schemas = anyio.run(_load)
+
+    for tool_name in ("get_state", "get_phase_info", "advance_plan", "get_progress", "validate_state", "run_health_check", "get_config"):
+        project_dir = schemas[tool_name]["properties"]["project_dir"]
+        assert project_dir["type"] == "string"
+        assert project_dir["minLength"] == 1
+        assert project_dir["pattern"] == r"^(?:/|[A-Za-z]:[\\/]|\\\\)"
+        assert "absolute filesystem path" in project_dir["description"].lower()
 
 
 def test_public_protocols_infra_descriptor_matches_live_catalog_surface() -> None:

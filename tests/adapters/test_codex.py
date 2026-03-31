@@ -190,9 +190,11 @@ class TestConvertToCodexSkill:
         )
 
         result = _convert_to_codex_skill(content, "gpd-test")
+        section = result[result.index("## Review Contract") :]
 
         assert "## Review Contract" in result
-        assert "review-contract:" in result
+        assert "review_contract:" in section
+        assert "review-contract:" not in section
         assert "review_mode: publication" in result
         assert result.index("## Review Contract") < result.index("Prompt body")
 

@@ -5,9 +5,9 @@ type: paper-config-schema
 
 # Paper Config Schema
 
-Canonical source of truth for `paper/PAPER-CONFIG.json`, the machine-readable paper build spec consumed by `gpd paper-build`.
+Canonical source of truth for `${PAPER_DIR}/PAPER-CONFIG.json`, the machine-readable paper build spec consumed by `gpd paper-build`.
 
-Create this JSON before asking the builder to emit `paper/main.tex` when no tested paper config already exists. Do not invent extra top-level keys or replace arrays with prose.
+Create this JSON before asking the builder to emit `${PAPER_DIR}/main.tex` when no tested paper config already exists. Do not invent extra top-level keys or replace arrays with prose.
 
 ---
 
@@ -123,7 +123,7 @@ Choose one supported key exactly. Do not use freeform journal names here.
 
 Artifact manifests emitted by the builder should use the same supported keys. If an
 artifact manifest carries an unsupported journal value, the builder ignores it in
-favor of a supported `paper/PAPER-CONFIG.json` journal instead of letting it win.
+favor of a supported `${PAPER_DIR}/PAPER-CONFIG.json` journal instead of letting it win.
 
 ## Validation Rules
 
@@ -136,7 +136,7 @@ favor of a supported `paper/PAPER-CONFIG.json` journal instead of letting it win
 ## Build Command
 
 ```bash
-gpd paper-build paper/PAPER-CONFIG.json
+gpd paper-build "${PAPER_DIR}/PAPER-CONFIG.json"
 ```
 
 This validates the JSON against the typed `PaperConfig` contract, resolves figure paths, and emits the canonical manuscript scaffold plus paper artifacts.

@@ -49,6 +49,7 @@ from gpd.adapters.install_utils import (
     verify_installed,
     write_manifest,
 )
+from gpd.adapters.runtime_catalog import get_runtime_descriptor
 from gpd.adapters.tool_names import build_runtime_alias_map, reference_translation_map, translate_for_runtime
 from gpd.core.observability import gpd_span
 from gpd.registry import AgentDef, load_agents_from_dir
@@ -111,6 +112,11 @@ def _read_codex_runtime_config(config_path: Path) -> tuple[dict[str, object] | N
     if not isinstance(parsed, dict):
         return None, "malformed"
     return parsed, None
+
+
+def _codex_config_dir_name() -> str:
+    """Return the descriptor-backed Codex config dir name."""
+    return get_runtime_descriptor("codex").config_dir_name
 
 
 _TOOL_REFERENCE_MAP = reference_translation_map(
@@ -1051,6 +1057,7 @@ class CodexAdapter(RuntimeAdapter):
         """
         with gpd_span("adapter.uninstall", runtime=self.runtime_name, target=str(target_dir)) as span:
             self._validate_target_runtime(target_dir, action="uninstall from")
+            has_authoritative_manifest = self._has_authoritative_install_manifest(target_dir)
             if skills_dir is None:
                 skills_dir = _resolve_codex_uninstall_skills_dir(
                     target_dir,
@@ -1149,7 +1156,7 @@ class CodexAdapter(RuntimeAdapter):
                 if cleaned != toml_content:
                     config_toml.write_text(cleaned, encoding="utf-8")
                     removed.append("config.toml GPD entries")
-                if remove_empty_text_file(config_toml):
+                if has_authoritative_manifest and remove_empty_text_file(config_toml):
                     removed.append("config.toml")
 
             for path in (
@@ -2066,7 +2073,7 @@ def _configure_config_toml(
     if is_global or explicit_target:
         desired_path = str(target_dir / "hooks" / notify_hook).replace("\\", "/")
     else:
-        desired_path = f".codex/hooks/{notify_hook}"
+        desired_path = f"{_codex_config_dir_name()}/hooks/{notify_hook}"
     configured = _install_gpd_notify_config(
         toml_content,
         desired_path=desired_path,
@@ -2124,7 +2131,7 @@ def _build_notify_wrapper_line(existing_notify: list[str], desired_path: str) ->
 
 
 def _managed_notify_paths(target_dir: Path | None = None) -> set[str]:
-    paths = {".codex/hooks/notify.py"}
+    paths = {f"{_codex_config_dir_name()}/hooks/notify.py"}
     if target_dir is not None:
         paths.add(str(target_dir / "hooks" / HOOK_SCRIPTS["notify"]).replace("\\", "/"))
     return paths

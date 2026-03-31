@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import anyio
 import pytest
 
 
@@ -149,6 +151,91 @@ def test_lookup_pattern_returns_error_for_backend_failures(side_effect: Exceptio
         result = lookup_pattern(domain="qft")
 
     assert "error" in result
+
+
+def _call_mcp_tool(mcp_server: object, tool_name: str, arguments: dict[str, object]) -> dict[str, object]:
+    async def _call() -> dict[str, object]:
+        result = await mcp_server.call_tool(tool_name, arguments)
+        if isinstance(result, dict):
+            return result
+        if (
+            isinstance(result, tuple)
+            and len(result) == 2
+            and isinstance(result[1], dict)
+        ):
+            return result[1]
+        if (
+            isinstance(result, list)
+            and len(result) == 1
+            and hasattr(result[0], "text")
+            and isinstance(result[0].text, str)
+        ):
+            return json.loads(result[0].text)
+        raise AssertionError(f"Unexpected MCP call result: {result!r}")
+
+    return anyio.run(_call)
+
+
+@pytest.mark.parametrize(
+    ("module_name", "tool_name", "arguments"),
+    [
+        ("gpd.mcp.servers.conventions_server", "convention_check", {"lock": {}, "unexpected": True}),
+        ("gpd.mcp.servers.errors_mcp", "list_error_classes", {"unexpected": True}),
+        ("gpd.mcp.servers.patterns_server", "seed_patterns", {"unexpected": True}),
+        ("gpd.mcp.servers.protocols_server", "list_protocols", {"unexpected": True}),
+        ("gpd.mcp.servers.skills_server", "get_skill_index", {"unexpected": True}),
+    ],
+)
+def test_non_verification_mcp_tools_reject_unknown_arguments(module_name: str, tool_name: str, arguments: dict[str, object]) -> None:
+    module = __import__(module_name, fromlist=["mcp"])
+
+    result = _call_mcp_tool(module.mcp, tool_name, arguments)
+
+    assert result == {"error": "Unsupported arguments: unexpected", "schema_version": 1}
+
+
+def test_state_mcp_tools_reject_unknown_arguments_and_preserve_absolute_path_enforcement(tmp_path: Path) -> None:
+    from gpd.core.state import default_state_dict
+    from gpd.mcp.servers.state_server import mcp
+
+    planning = tmp_path / "GPD"
+    planning.mkdir()
+    (planning / "state.json").write_text(json.dumps(default_state_dict(), indent=2), encoding="utf-8")
+
+    result = _call_mcp_tool(mcp, "get_state", {"project_dir": str(tmp_path), "unexpected": True})
+
+    assert result == {"error": "Unsupported arguments: unexpected", "schema_version": 1}
+
+
+@pytest.mark.parametrize(
+    ("tool_name", "arguments"),
+    [
+        ("get_checklist", {"domain": "qft", "unexpected": True}),
+        ("dimensional_check", {"expressions": ["[M] = [M]"], "unexpected": True}),
+        ("run_contract_check", {"request": {"check_key": "contract.limit_recovery"}, "unexpected": True}),
+        (
+            "suggest_contract_checks",
+            {
+                "contract": {
+                    "scope": {"question": "Q?"},
+                    "context_intake": {"crucial_inputs": ["Use prior derivation"]},
+                    "uncertainty_markers": {
+                        "weakest_anchors": ["Missing benchmark"],
+                        "disconfirming_observations": ["Fails sanity check"],
+                    },
+                },
+                "unexpected": True,
+            },
+        ),
+        ("get_verification_coverage", {"error_class_ids": [1], "active_checks": ["5.1"], "unexpected": True}),
+    ],
+)
+def test_verification_mcp_tools_reject_unknown_arguments(tool_name: str, arguments: dict[str, object]) -> None:
+    from gpd.mcp.servers.verification_server import mcp
+
+    result = _call_mcp_tool(mcp, tool_name, arguments)
+
+    assert result == {"error": "Unsupported arguments: unexpected", "schema_version": 1}
 
 
 def test_patterns_server_exposes_classical_mechanics_domain() -> None:

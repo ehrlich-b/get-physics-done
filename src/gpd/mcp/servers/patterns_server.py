@@ -15,7 +15,8 @@ from pathlib import Path
 from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import WithJsonSchema
+from pydantic import ConfigDict, WithJsonSchema, create_model
+from pydantic import ValidationError as PydanticValidationError
 
 from gpd.core.errors import PatternError
 from gpd.core.observability import gpd_span
@@ -72,6 +73,37 @@ def _get_patterns_root() -> Path:
     if _DEFAULT_PATTERNS_ROOT is None:
         _DEFAULT_PATTERNS_ROOT = patterns_root()
     return _DEFAULT_PATTERNS_ROOT
+
+
+def _tighten_registered_tool_contracts() -> None:
+    def _build_strict_call(original_call, allowed_keys):
+        async def _strict_call_fn_with_arg_validation(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly):
+            unknown_keys = sorted(str(key) for key in arguments_to_validate if key not in allowed_keys)
+            if unknown_keys:
+                return stable_mcp_error(f"Unsupported arguments: {', '.join(unknown_keys)}")
+            try:
+                return await original_call(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly)
+            except PydanticValidationError as exc:
+                return stable_mcp_error(exc)
+
+        return _strict_call_fn_with_arg_validation
+
+    for tool in mcp._tool_manager.list_tools():  # type: ignore[attr-defined]
+        arg_model = tool.fn_metadata.arg_model
+        strict_model = create_model(
+            f"{arg_model.__name__}Strict",
+            __base__=arg_model,
+            __config__=ConfigDict(extra="forbid", arbitrary_types_allowed=True),
+        )
+        tool.parameters = strict_model.model_json_schema(by_alias=True)
+        allowed_keys = {
+            key
+            for field_name, field_info in arg_model.model_fields.items()
+            for key in (field_name, field_info.alias)
+            if key is not None
+        }
+        original_call = tool.fn_metadata.call_fn_with_arg_validation
+        object.__setattr__(tool.fn_metadata, "call_fn_with_arg_validation", _build_strict_call(original_call, allowed_keys))
 
 
 @mcp.tool()
@@ -240,6 +272,9 @@ def main() -> None:
     from gpd.mcp.servers import run_mcp_server
 
     run_mcp_server(mcp, "GPD Patterns MCP Server")
+
+
+_tighten_registered_tool_contracts()
 
 
 if __name__ == "__main__":

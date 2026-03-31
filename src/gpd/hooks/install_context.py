@@ -170,16 +170,16 @@ def ordered_todo_lookup_candidates(
     ):
         if self_install is not None:
             self_candidate = self_owned_todo_candidate(self_install)
-            if all(candidate.path != self_candidate.path for candidate in todo_candidates):
-                todo_candidates = [self_candidate, *todo_candidates]
+            todo_candidates = [candidate for candidate in todo_candidates if candidate.path != self_candidate.path]
+            todo_candidates = [self_candidate, *todo_candidates]
 
     return [
-            candidate
-            for candidate in todo_candidates
-            if should_consider_todo_candidate(
-                candidate,
-                active_installed_runtime=lookup.active_runtime,
-                cwd=lookup.lookup_cwd,
-                home=lookup.resolved_home,
-            )
-        ]
+        candidate
+        for candidate in todo_candidates
+        if should_consider_todo_candidate(
+            candidate,
+            active_installed_runtime=lookup.active_runtime,
+            cwd=lookup.lookup_cwd,
+            home=lookup.resolved_home,
+        )
+    ]

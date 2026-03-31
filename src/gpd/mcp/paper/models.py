@@ -316,14 +316,14 @@ class PaperToolchainCapability(BaseModel):
     def paper_build_ready(self) -> bool:
         """Whether the basic paper build toolchain is usable."""
 
-        return self.compiler_available
+        return self.compiler_available and self.bibtex_available
 
     @computed_field
     @property
     def arxiv_submission_ready(self) -> bool:
         """Whether the build environment can produce bibliography-resolved PDFs."""
 
-        return self.compiler_available and self.bibtex_available
+        return self.compiler_available and self.bibtex_available and self.kpsewhich_available
 
 
 class PaperConfig(BaseModel):

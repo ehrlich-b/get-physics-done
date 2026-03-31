@@ -90,6 +90,100 @@ def _normalize_string_list(value: object) -> object:
     return normalized
 
 
+_STRICT_PROJECT_CONTRACT_SCOPE_LIST_FIELDS = ("in_scope", "out_of_scope", "unresolved_questions")
+_STRICT_PROJECT_CONTRACT_CONTEXT_INTAKE_LIST_FIELDS = (
+    "must_read_refs",
+    "must_include_prior_outputs",
+    "user_asserted_anchors",
+    "known_good_baselines",
+    "context_gaps",
+    "crucial_inputs",
+)
+_STRICT_PROJECT_CONTRACT_APPROACH_POLICY_LIST_FIELDS = (
+    "formulations",
+    "allowed_estimator_families",
+    "forbidden_estimator_families",
+    "allowed_fit_families",
+    "forbidden_fit_families",
+    "stop_and_rethink_conditions",
+)
+_STRICT_PROJECT_CONTRACT_CLAIM_LIST_FIELDS = ("observables", "deliverables", "acceptance_tests", "references")
+_STRICT_PROJECT_CONTRACT_DELIVERABLE_LIST_FIELDS = ("must_contain",)
+_STRICT_PROJECT_CONTRACT_ACCEPTANCE_TEST_LIST_FIELDS = ("evidence_required",)
+_STRICT_PROJECT_CONTRACT_REFERENCE_LIST_FIELDS = ("aliases", "applies_to", "carry_forward_to", "required_actions")
+_STRICT_PROJECT_CONTRACT_LINK_LIST_FIELDS = ("verified_by",)
+_STRICT_PROJECT_CONTRACT_UNCERTAINTY_MARKER_LIST_FIELDS = (
+    "weakest_anchors",
+    "unvalidated_assumptions",
+    "competing_explanations",
+    "disconfirming_observations",
+)
+
+
+def _collect_strict_project_contract_list_member_errors(data: object) -> list[str]:
+    """Reject blank or duplicate list members before model normalization."""
+
+    if not isinstance(data, dict):
+        return []
+
+    errors: list[str] = []
+
+    def _check_string_list(value: object, *, path: str) -> None:
+        if not isinstance(value, list):
+            return
+        seen: set[str] = set()
+        for index, item in enumerate(value):
+            if not isinstance(item, str):
+                continue
+            stripped = item.strip()
+            if not stripped:
+                errors.append(f"{path}.{index} must not be blank")
+                continue
+            if stripped in seen:
+                errors.append(f"{path}.{index} is a duplicate")
+                continue
+            seen.add(stripped)
+
+    def _check_mapping_lists(mapping: object, *, path_prefix: str, field_names: tuple[str, ...]) -> None:
+        if not isinstance(mapping, dict):
+            return
+        for field_name in field_names:
+            if field_name in mapping:
+                _check_string_list(mapping[field_name], path=f"{path_prefix}.{field_name}")
+
+    def _check_collection_item_lists(collection_name: str, field_names: tuple[str, ...]) -> None:
+        raw_collection = data.get(collection_name)
+        if not isinstance(raw_collection, list):
+            return
+        for index, item in enumerate(raw_collection):
+            if isinstance(item, dict):
+                _check_mapping_lists(item, path_prefix=f"{collection_name}.{index}", field_names=field_names)
+
+    _check_mapping_lists(data.get("scope"), path_prefix="scope", field_names=_STRICT_PROJECT_CONTRACT_SCOPE_LIST_FIELDS)
+    _check_mapping_lists(
+        data.get("context_intake"),
+        path_prefix="context_intake",
+        field_names=_STRICT_PROJECT_CONTRACT_CONTEXT_INTAKE_LIST_FIELDS,
+    )
+    _check_mapping_lists(
+        data.get("approach_policy"),
+        path_prefix="approach_policy",
+        field_names=_STRICT_PROJECT_CONTRACT_APPROACH_POLICY_LIST_FIELDS,
+    )
+    _check_collection_item_lists("claims", _STRICT_PROJECT_CONTRACT_CLAIM_LIST_FIELDS)
+    _check_collection_item_lists("deliverables", _STRICT_PROJECT_CONTRACT_DELIVERABLE_LIST_FIELDS)
+    _check_collection_item_lists("acceptance_tests", _STRICT_PROJECT_CONTRACT_ACCEPTANCE_TEST_LIST_FIELDS)
+    _check_collection_item_lists("references", _STRICT_PROJECT_CONTRACT_REFERENCE_LIST_FIELDS)
+    _check_collection_item_lists("links", _STRICT_PROJECT_CONTRACT_LINK_LIST_FIELDS)
+    _check_mapping_lists(
+        data.get("uncertainty_markers"),
+        path_prefix="uncertainty_markers",
+        field_names=_STRICT_PROJECT_CONTRACT_UNCERTAINTY_MARKER_LIST_FIELDS,
+    )
+
+    return errors
+
+
 class _StrictContractResultsInput(dict[str, object]):
     """Marker mapping for strict contract-results validation contexts."""
 
@@ -1097,6 +1191,7 @@ def parse_project_contract_data_strict(data: object) -> ProjectContractParseResu
     )
 
     list_shape_drift_errors = _collect_list_shape_drift_errors(data)
+    strict_list_member_errors = _collect_strict_project_contract_list_member_errors(data)
     contract, schema_findings = salvage_project_contract(data)
     schema_warnings, schema_errors = _split_project_contract_schema_findings(
         schema_findings,
@@ -1104,7 +1199,7 @@ def parse_project_contract_data_strict(data: object) -> ProjectContractParseResu
     )
 
     errors: list[str] = []
-    for error in (*schema_errors, *schema_warnings, *list_shape_drift_errors):
+    for error in (*schema_errors, *schema_warnings, *list_shape_drift_errors, *strict_list_member_errors):
         if error not in errors:
             errors.append(error)
 
@@ -1146,19 +1241,21 @@ def contract_from_data(
     if not isinstance(data, dict):
         return None
     from gpd.core.contract_validation import (
+        _collect_list_shape_drift_errors,
         _split_project_contract_schema_findings,
         salvage_project_contract,
         validate_project_contract,
     )
 
     contract, schema_findings = salvage_project_contract(data)
+    list_shape_drift_errors = _collect_list_shape_drift_errors(data)
     _schema_warnings, schema_errors = _split_project_contract_schema_findings(
         schema_findings,
         allow_singleton_defaults=False,
     )
     if schema_errors or contract is None:
         return None
-    if not allow_recoverable_warnings and _schema_warnings:
+    if not allow_recoverable_warnings and (_schema_warnings or list_shape_drift_errors):
         return None
     if collect_contract_integrity_errors(contract):
         return None

@@ -1047,10 +1047,10 @@ def test_runtime_cli_rejects_manifestless_torn_managed_surface_before_dispatch(
 
     captured = capsys.readouterr()
     assert exit_code == 127
-    assert "GPD runtime bridge rejected missing install manifest" in captured.err
-    assert str(config_dir) in captured.err
-    assert str(nested_cwd / descriptor.config_dir_name) not in captured.err
-    assert "GPD runtime bridge rejected incomplete install manifest" not in captured.err
+    assert "GPD runtime install incomplete" in captured.err
+    assert descriptor.display_name in captured.err
+    assert str(nested_cwd / descriptor.config_dir_name) in captured.err
+    assert "GPD runtime bridge rejected missing install manifest" not in captured.err
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)

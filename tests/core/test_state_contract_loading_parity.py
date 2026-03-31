@@ -315,7 +315,7 @@ def test_state_contract_remains_visible_in_runtime_context_with_approval_blocker
         "must_include_prior_outputs": [],
         "user_asserted_anchors": [],
         "known_good_baselines": [],
-        "context_gaps": [],
+        "context_gaps": ["Need a concrete must-surface anchor before approval."],
         "crucial_inputs": [],
     }
     contract["references"][0]["role"] = "background"

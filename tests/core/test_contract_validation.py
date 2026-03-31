@@ -94,6 +94,13 @@ def test_contract_from_data_rejects_blank_scalar_to_list_drift() -> None:
     assert contract_from_data(contract) is None
 
 
+def test_contract_from_data_rejects_singleton_list_drift_when_recoverable_warnings_are_disabled() -> None:
+    contract = _load_contract_fixture()
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+
+    assert contract_from_data(contract, allow_recoverable_warnings=False) is None
+
+
 def test_parse_project_contract_data_strict_rejects_singleton_list_drift() -> None:
     contract = _load_contract_fixture()
     contract["context_intake"]["must_read_refs"] = "ref-benchmark"
@@ -102,6 +109,26 @@ def test_parse_project_contract_data_strict_rejects_singleton_list_drift() -> No
 
     assert result.contract is None
     assert result.errors == ["context_intake.must_read_refs must be a list, not str"]
+
+
+def test_parse_project_contract_data_strict_rejects_blank_list_members() -> None:
+    contract = _load_contract_fixture()
+    contract["scope"]["in_scope"] = ["benchmarking", " "]
+
+    result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
+
+    assert result.contract is None
+    assert "scope.in_scope.1 must not be blank" in result.errors
+
+
+def test_parse_project_contract_data_strict_rejects_duplicate_list_members() -> None:
+    contract = _load_contract_fixture()
+    contract["context_intake"]["must_read_refs"] = ["ref-benchmark", "ref-benchmark"]
+
+    result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
+
+    assert result.contract is None
+    assert "context_intake.must_read_refs.1 is a duplicate" in result.errors
 
 
 def test_parse_project_contract_data_strict_rejects_recoverable_nested_extra_keys() -> None:
@@ -146,9 +173,9 @@ def test_validate_project_contract_warns_when_user_guidance_signals_are_missing(
 
     result = validate_project_contract(contract, mode="draft")
 
-    assert result.valid is True
+    assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert any("no user guidance signals recorded yet" in warning for warning in result.warnings)
+    assert "context_intake must not be empty" in result.errors
 
 
 def test_validate_project_contract_approved_mode_requires_concrete_anchor_grounding() -> None:
@@ -223,6 +250,7 @@ def test_validate_project_contract_approved_mode_rejects_anchor_unknown_in_weake
         "Benchmark reference not yet selected; still to identify the decisive anchor"
     ]
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-anchor"]
 
     result = validate_project_contract(contract, mode="approved")
 
@@ -279,6 +307,7 @@ def test_validate_project_contract_approved_mode_accepts_concrete_reference_loca
         }
     ]
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-anchor"]
 
     result = validate_project_contract(contract, mode="approved")
 
@@ -307,6 +336,7 @@ def test_validate_project_contract_approved_mode_accepts_project_local_prior_art
         }
     ]
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-anchor"]
 
     result = validate_project_contract(contract, mode="approved", project_root=tmp_path)
 
@@ -344,6 +374,7 @@ def test_validate_project_contract_approved_mode_rejects_placeholder_must_surfac
         },
     ]
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-anchor"]
 
     result = validate_project_contract(contract, mode="approved")
 
@@ -369,6 +400,7 @@ def test_validate_project_contract_approved_mode_accepts_concrete_must_surface_r
         }
     ]
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["context_gaps"] = ["Need a concrete must-surface anchor before approval."]
 
     result = validate_project_contract(contract, mode="approved")
 
@@ -397,6 +429,7 @@ def test_validate_project_contract_approved_mode_rejects_vague_reference_locator
         }
     ]
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["context_gaps"] = ["Need a concrete must-surface anchor before approval."]
 
     result = validate_project_contract(contract, mode="approved")
 
@@ -588,7 +621,6 @@ def test_validate_project_contract_approved_mode_rejects_carry_forward_contract_
         "reference ref-background carry_forward_to must name workflow scope, not contract id claim-benchmark"
         in result.errors
     )
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
 
 
 def test_validate_project_contract_rejects_unknown_must_read_ref() -> None:
@@ -678,10 +710,11 @@ def test_validate_project_contract_normalizes_reference_required_actions_whitesp
     result = validate_project_contract(contract)
 
     assert parsed.references[0].required_actions == ["read", "compare", "cite"]
-    assert result.valid is True
+    assert result.valid is False
+    assert "references.0.required_actions.3 must not be blank" in result.errors
 
 
-def test_validate_project_contract_accepts_singleton_list_string_drift_at_validation_boundary() -> None:
+def test_validate_project_contract_rejects_singleton_list_string_drift_at_validation_boundary() -> None:
     contract = _load_contract_fixture()
     contract["context_intake"]["must_include_prior_outputs"] = "GPD/phases/00-baseline/00-01-SUMMARY.md"
     contract["references"][0]["role"] = "Benchmark"
@@ -693,8 +726,8 @@ def test_validate_project_contract_accepts_singleton_list_string_drift_at_valida
     assert parsed.context_intake.must_include_prior_outputs == ["GPD/phases/00-baseline/00-01-SUMMARY.md"]
     assert parsed.references[0].role == "benchmark"
     assert parsed.references[0].required_actions == ["read", "compare", "cite"]
-    assert result.valid is True
-    assert result.errors == []
+    assert result.valid is False
+    assert "context_intake.must_include_prior_outputs must be a list, not str" in result.errors
 
 
 @pytest.mark.parametrize(
@@ -814,38 +847,36 @@ def test_validate_project_contract_propagates_schema_errors() -> None:
     assert "project contract must include at least one observable, claim, or deliverable" in result.errors
 
 
-def test_validate_project_contract_accepts_reference_aliases_list_shape_drift_at_validation_boundary() -> None:
+def test_validate_project_contract_rejects_reference_aliases_list_shape_drift_at_validation_boundary() -> None:
     contract = _load_contract_fixture()
     contract["references"][0]["aliases"] = "not-a-list"
 
     parsed = ResearchContract.model_validate(contract)
     result = validate_project_contract(contract)
 
-    assert result.valid is True
+    assert result.valid is False
     assert parsed.references[0].aliases == ["not-a-list"]
-    assert result.errors == []
+    assert "references.0.aliases must be a list, not str" in result.errors
 
 
-def test_validate_project_contract_accepts_nested_claim_reference_list_shape_drift() -> None:
+def test_validate_project_contract_rejects_nested_claim_reference_list_shape_drift() -> None:
     contract = _load_contract_fixture()
     contract["claims"][0]["references"] = "ref-benchmark"
 
     result = validate_project_contract(contract)
 
-    assert result.valid is True
-    assert result.errors == []
+    assert result.valid is False
+    assert "claims.0.references must be a list, not str" in result.errors
 
 
-def test_validate_project_contract_reports_extra_item_keys_without_dropping_semantic_counts() -> None:
+def test_validate_project_contract_rejects_extra_item_keys_without_dropping_semantic_counts() -> None:
     contract = _load_contract_fixture()
     contract["claims"][0]["notes"] = "harmless"
 
     result = validate_project_contract(contract)
 
-    assert result.valid is True
-    assert "claims.0.notes: Extra inputs are not permitted" in result.warnings
-    assert result.question == "What benchmark must the project recover?"
-    assert result.decisive_target_count > 0
+    assert result.valid is False
+    assert "claims.0.notes: Extra inputs are not permitted" in result.errors
 
 
 def test_validate_project_contract_rejects_top_level_extra_keys() -> None:
@@ -864,8 +895,8 @@ def test_validate_project_contract_ignores_nested_metadata_must_surface_without_
 
     result = validate_project_contract(contract)
 
-    assert result.valid is True
-    assert "references.0.metadata: Extra inputs are not permitted" in result.warnings
+    assert result.valid is False
+    assert "references.0.metadata: Extra inputs are not permitted" in result.errors
     assert not any(
         "references.0.metadata.must_surface must be a boolean" in issue for issue in result.errors + result.warnings
     )
@@ -898,6 +929,7 @@ def test_validate_project_contract_approved_mode_accepts_real_reference_anchor()
     contract = _load_contract_fixture()
     _remove_incidental_grounding(contract)
     contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-benchmark"]
 
     result = validate_project_contract(contract, mode="approved")
 

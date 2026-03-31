@@ -9,6 +9,7 @@ from gpd.mcp.paper.compiler import (
     find_latex_compiler,
     get_latex_install_guidance,
 )
+from gpd.mcp.paper.models import PaperToolchainCapability
 
 
 class TestFindLatexCompiler:
@@ -131,10 +132,28 @@ class TestDetectLatexToolchain:
         assert status.latexmk_available is False
         assert status.kpsewhich_available is False
         assert status.readiness_state == "degraded"
-        assert status.paper_build_ready is True
+        assert status.paper_build_ready is False
         assert status.arxiv_submission_ready is False
         assert "BibTeX missing" in status.message
         assert status.warnings
+
+
+class TestPaperToolchainCapability:
+    def test_paper_build_requires_bibtex_and_arxiv_submission_requires_kpsewhich(self) -> None:
+        status = PaperToolchainCapability(
+            compiler_available=True,
+            bibtex_available=False,
+            latexmk_available=True,
+            kpsewhich_available=True,
+        )
+
+        assert status.paper_build_ready is False
+        assert status.arxiv_submission_ready is False
+
+        readiness = status.model_copy(update={"bibtex_available": True, "kpsewhich_available": False})
+
+        assert readiness.paper_build_ready is True
+        assert readiness.arxiv_submission_ready is False
 
     def test_blocks_when_compiler_is_missing_even_if_helpers_are_present(
         self, monkeypatch: pytest.MonkeyPatch

@@ -264,6 +264,45 @@ class TestHealthModels:
             },
         ]
 
+    def test_build_unattended_readiness_result_marks_prompt_free_permissions_as_more_permissive(
+        self,
+    ):
+        report = DoctorReport(
+            overall=CheckStatus.OK,
+            version="0.1.0",
+            summary=HealthSummary(ok=2, warn=0, fail=0, total=2),
+            checks=[
+                HealthCheck(status=CheckStatus.OK, label="Runtime Launcher"),
+                HealthCheck(status=CheckStatus.OK, label="Runtime Config Target"),
+            ],
+        )
+
+        result = build_unattended_readiness_result(
+            runtime=PRIMARY_RUNTIME,
+            autonomy="balanced",
+            install_scope="local",
+            target_dir=_PRIMARY_TARGET_DIR,
+            doctor_report=report,
+            permissions_payload={
+                "runtime": PRIMARY_RUNTIME,
+                "autonomy": "balanced",
+                "target": str(_PRIMARY_TARGET_DIR),
+                "desired_mode": "default",
+                "configured_mode": "bypassPermissions",
+                "config_aligned": True,
+                "requires_relaunch": False,
+            },
+            live_executable_probes=False,
+            validated_surface="public_runtime_command_surface",
+        )
+
+        assert result.readiness == "not-ready"
+        assert result.ready is False
+        assert result.passed is False
+        assert result.blocking_conditions == [
+            "Runtime permissions are more permissive than the requested autonomy, so unattended readiness is not confirmed."
+        ]
+
     def test_build_unattended_readiness_result_falls_back_to_doctor_hint_for_blockers(self):
         report = DoctorReport(
             overall=CheckStatus.FAIL,
@@ -803,7 +842,7 @@ class TestCheckStateValidityProjectContract:
         assert not any(issue.startswith("project_contract: ") for issue in result.issues)
         assert not any(warning.startswith("project_contract: ") for warning in result.warnings)
 
-    def test_draft_invalid_project_contract_is_hidden_before_health_approval_checks(self, tmp_path: Path) -> None:
+    def test_draft_invalid_project_contract_is_promoted_during_health_approval_checks(self, tmp_path: Path) -> None:
         cwd = _bootstrap_health_project(tmp_path)
         state = default_state_dict()
         state["project_contract"] = _draft_invalid_project_contract()
@@ -813,8 +852,12 @@ class TestCheckStateValidityProjectContract:
 
         result = check_state_validity(cwd)
 
-        assert not any("unknown reference missing-ref" in issue for issue in result.issues)
-        assert any("project_contract: claim claim-benchmark references unknown reference missing-ref" in warning for warning in result.warnings)
+        assert result.status == CheckStatus.FAIL
+        assert any("project_contract: claim claim-benchmark references unknown reference missing-ref" in issue for issue in result.issues)
+        assert not any(
+            "project_contract: claim claim-benchmark references unknown reference missing-ref" in warning
+            for warning in result.warnings
+        )
         assert any(
             'schema normalization: dropped "project_contract" because contract failed draft scoping validation'
             in warning

@@ -30,7 +30,6 @@ from gpd.contracts import (
     ResearchContract,
     VerificationEvidence,
     collect_contract_integrity_errors,
-    contract_from_data,
     parse_project_contract_data_strict,
 )
 from gpd.core.constants import (
@@ -2545,6 +2544,12 @@ def _build_state_from_markdown(cwd: Path, md_content: str, *, recover_intent: bo
             existing["continuation"] = _blank_continuation_payload()
 
     if existing and isinstance(existing, dict):
+        project_contract = existing.get("project_contract")
+        if project_contract is not None:
+            strict_result = parse_project_contract_data_strict(project_contract)
+            if strict_result.contract is None or strict_result.errors:
+                existing = copy.deepcopy(existing)
+                existing["project_contract"] = None
         merged = {**existing}
         merged["_version"] = parsed["_version"]
         merged["_synced_at"] = parsed["_synced_at"]
@@ -2692,6 +2697,19 @@ def _write_state_pair_locked(
 def _write_state_markdown_locked(cwd: Path, content: str) -> dict:
     """Write STATE.md and sync state.json while holding the canonical state lock."""
     return save_state_markdown_locked(cwd, content)
+
+
+def _raw_persisted_project_contract(cwd: Path) -> object | None:
+    """Return the raw persisted project-contract payload from state.json."""
+
+    layout = ProjectLayout(cwd)
+    try:
+        raw_state = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return None
+    if not isinstance(raw_state, dict):
+        return None
+    return raw_state.get("project_contract")
 
 
 def sync_state_json_core(cwd: Path, md_content: str) -> dict:
@@ -2914,6 +2932,7 @@ def peek_state_json(
     integrity_mode: str = "standard",
     *,
     recover_intent: bool = True,
+    surface_blocked_project_contract: bool = False,
 ) -> tuple[dict | None, list[str], str | None]:
     """Load state without persisting recovery writes."""
     return _load_state_json_with_integrity_issues(
@@ -2921,7 +2940,7 @@ def peek_state_json(
         integrity_mode=integrity_mode,
         persist_recovery=False,
         recover_intent=recover_intent,
-        surface_blocked_project_contract=False,
+        surface_blocked_project_contract=surface_blocked_project_contract,
     )
 
 
@@ -3097,12 +3116,19 @@ def save_state_json_locked(cwd: Path, state_obj: dict) -> None:
 
 
 def _preserved_project_contract_for_markdown_save(cwd: Path) -> dict[str, object] | None:
-    """Return the canonical project contract to carry through a markdown save.
+    """Return a strict canonical project contract to carry through a markdown save.
 
-    Primary ``state.json`` remains authoritative when it is readable. The backup
-    is consulted only when the primary file is unavailable or unreadable, so a
-    stale backup cannot override an explicit primary drop/block.
+    Markdown-only saves should not salvage malformed project-contract payloads.
+    A readable primary ``state.json`` must already contain a strict-safe
+    contract to be preserved. The backup is consulted only when the primary
+    file is unavailable or unreadable.
     """
+
+    def _strict_contract_payload(raw_contract: object) -> dict[str, object] | None:
+        strict_result = parse_project_contract_data_strict(raw_contract)
+        if strict_result.contract is None or strict_result.errors:
+            return None
+        return strict_result.contract.model_dump(mode="python")
 
     layout = ProjectLayout(cwd)
     primary_unreadable = False
@@ -3118,9 +3144,7 @@ def _preserved_project_contract_for_markdown_save(cwd: Path) -> dict[str, object
             primary_unreadable = True
 
     if isinstance(existing, dict):
-        project_contract = existing.get("project_contract")
-        contract = contract_from_data(project_contract, require_draft_validity=True, project_root=cwd)
-        return contract.model_dump(mode="python") if contract is not None else None
+        return _strict_contract_payload(existing.get("project_contract"))
 
     if not primary_unreadable:
         return None
@@ -3132,9 +3156,7 @@ def _preserved_project_contract_for_markdown_save(cwd: Path) -> dict[str, object
     if not isinstance(backup, dict):
         return None
 
-    project_contract = backup.get("project_contract")
-    contract = contract_from_data(project_contract, require_draft_validity=True, project_root=cwd)
-    return contract.model_dump(mode="python") if contract is not None else None
+    return _strict_contract_payload(backup.get("project_contract"))
 
 
 def save_state_markdown_locked(cwd: Path, md_content: str) -> dict:
@@ -3394,15 +3416,16 @@ def state_set_project_contract(cwd: Path, contract_data: dict[str, object] | Res
         if error not in warning_messages:
             warning_messages.append(error)
 
-    state_obj = load_state_json(cwd) or default_state_dict()
     contract_payload = parsed.model_dump()
-    if state_obj.get("project_contract") == contract_payload:
+    if _raw_persisted_project_contract(cwd) == contract_payload:
         return StateUpdateResult(
             updated=False,
             unchanged=True,
             reason="Project contract already matches requested value",
             warnings=warning_messages,
         )
+
+    state_obj = load_state_json(cwd) or default_state_dict()
 
     state_obj["project_contract"] = contract_payload
 

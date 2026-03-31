@@ -61,15 +61,12 @@ def test_validate_project_contract_command_warns_when_user_guidance_is_missing(t
 
     result = runner.invoke(app, ["--raw", "validate", "project-contract", str(contract_path)], catch_exceptions=False)
 
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 1, result.output
     payload = json.loads(result.output)
-    assert payload["valid"] is True
+    assert payload["valid"] is False
     assert payload["guidance_signal_count"] == 0
     assert payload["reference_count"] > 0
-    assert (
-        "no user guidance signals recorded yet (must_read_refs, prior outputs, anchors, baselines, gaps, or crucial inputs)"
-        in payload["warnings"]
-    )
+    assert "context_intake must not be empty" in payload["errors"]
 
 
 def test_validate_project_contract_command_blocks_missing_skeptical_fields(tmp_path: Path) -> None:

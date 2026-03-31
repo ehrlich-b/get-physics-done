@@ -492,6 +492,36 @@ class TestReadCurrentTask:
         with patch("gpd.hooks.install_context.ordered_todo_lookup_candidates", return_value=_todo_candidates(todo_dir)):
             assert _read_current_task("session-1") == "Correct task"
 
+    def test_self_owned_todo_candidate_moves_to_front_when_already_present(self, tmp_path: Path) -> None:
+        from gpd.hooks.install_context import HookLookupContext, SelfOwnedInstallContext, ordered_todo_lookup_candidates
+
+        hook_file = tmp_path / ".codex" / "hooks" / "statusline.py"
+        self_install = SelfOwnedInstallContext(
+            config_dir=tmp_path / ".codex",
+            runtime="codex",
+            install_scope="local",
+        )
+        self_candidate = TodoCandidate(path=tmp_path / ".codex" / "todos", runtime="codex", scope="local")
+        other_candidate = TodoCandidate(path=tmp_path / "other" / "todos", runtime="claude-code", scope="global")
+
+        with (
+            patch(
+                "gpd.hooks.install_context.resolve_hook_lookup_context",
+                return_value=HookLookupContext(
+                    lookup_cwd=tmp_path,
+                    resolved_home=tmp_path / "home",
+                    active_runtime=None,
+                    preferred_runtime="codex",
+                ),
+            ),
+            patch("gpd.hooks.install_context.detect_self_owned_install", return_value=self_install),
+            patch("gpd.hooks.runtime_detect.get_todo_candidates", return_value=[other_candidate, self_candidate]),
+            patch("gpd.hooks.runtime_detect.should_consider_todo_candidate", return_value=True),
+        ):
+            candidates = ordered_todo_lookup_candidates(hook_file=hook_file, cwd=tmp_path)
+
+        assert candidates[0] == self_candidate
+
 
 # ─── _check_update edge cases ──────────────────────────────────────────────
 

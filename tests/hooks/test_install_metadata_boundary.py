@@ -77,6 +77,18 @@ def test_config_dir_has_managed_install_markers_detects_install_surfaces(tmp_pat
     assert config_dir_has_managed_install_markers(config_dir) is True
 
 
+def test_config_dir_has_managed_install_markers_ignores_user_agents_and_hooks(tmp_path: Path) -> None:
+    config_dir = tmp_path / ".codex"
+    hooks_dir = config_dir / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    (hooks_dir / "statusline.py").write_text("# third-party hook\n", encoding="utf-8")
+    agents_dir = config_dir / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    (agents_dir / "my-custom-agent.md").write_text("custom\n", encoding="utf-8")
+
+    assert config_dir_has_managed_install_markers(config_dir) is False
+
+
 def test_assess_install_target_distinguishes_absent_and_clean_targets(tmp_path: Path) -> None:
     absent = tmp_path / ".codex"
     clean = tmp_path / ".codex-clean"

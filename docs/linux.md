@@ -131,6 +131,7 @@ Use the exact command for your runtime:
 | Reopen work from your normal terminal | `gpd resume` | `gpd resume` | `gpd resume` |
 
 Use `gpd resume` in your normal terminal first. After it points you to the right workspace, open your runtime there and use its `resume-work` command to continue inside the project.
+Use `gpd resume --recent` when you need to jump to a different recent workspace before opening the runtime again.
 
 ## Official docs
 

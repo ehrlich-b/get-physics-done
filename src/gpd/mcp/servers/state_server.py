@@ -13,8 +13,11 @@ Usage:
 import logging
 import sys
 from pathlib import Path
+from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import ConfigDict, WithJsonSchema, create_model
+from pydantic import ValidationError as PydanticValidationError
 
 from gpd.core.config import load_config
 from gpd.core.errors import GPDError
@@ -34,6 +37,46 @@ logger = logging.getLogger("gpd-state")
 
 mcp = FastMCP("gpd-state")
 
+_ABSOLUTE_PROJECT_DIR_SCHEMA = {
+    "type": "string",
+    "minLength": 1,
+    "pattern": r"^(?:/|[A-Za-z]:[\\/]|\\\\)",
+    "description": "Absolute filesystem path to the project root directory.",
+}
+
+AbsoluteProjectDirInput = Annotated[str, WithJsonSchema(_ABSOLUTE_PROJECT_DIR_SCHEMA)]
+
+
+def _tighten_registered_tool_contracts() -> None:
+    def _build_strict_call(original_call, allowed_keys):
+        async def _strict_call_fn_with_arg_validation(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly):
+            unknown_keys = sorted(str(key) for key in arguments_to_validate if key not in allowed_keys)
+            if unknown_keys:
+                return stable_mcp_error(f"Unsupported arguments: {', '.join(unknown_keys)}")
+            try:
+                return await original_call(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly)
+            except PydanticValidationError as exc:
+                return stable_mcp_error(exc)
+
+        return _strict_call_fn_with_arg_validation
+
+    for tool in mcp._tool_manager.list_tools():  # type: ignore[attr-defined]
+        arg_model = tool.fn_metadata.arg_model
+        strict_model = create_model(
+            f"{arg_model.__name__}Strict",
+            __base__=arg_model,
+            __config__=ConfigDict(extra="forbid", arbitrary_types_allowed=True),
+        )
+        tool.parameters = strict_model.model_json_schema(by_alias=True)
+        allowed_keys = {
+            key
+            for field_name, field_info in arg_model.model_fields.items()
+            for key in (field_name, field_info.alias)
+            if key is not None
+        }
+        original_call = tool.fn_metadata.call_fn_with_arg_validation
+        object.__setattr__(tool.fn_metadata, "call_fn_with_arg_validation", _build_strict_call(original_call, allowed_keys))
+
 
 def _resolve_project_dir(project_dir: str) -> Path | None:
     """Return an absolute project root path or ``None`` when the contract is violated."""
@@ -44,7 +87,7 @@ def _resolve_project_dir(project_dir: str) -> Path | None:
 
 
 @mcp.tool()
-def get_state(project_dir: str) -> dict:
+def get_state(project_dir: AbsoluteProjectDirInput) -> dict:
     """Get the current project state.
 
     Returns the structured project state from `state.json`.
@@ -68,7 +111,7 @@ def get_state(project_dir: str) -> dict:
 
 
 @mcp.tool()
-def get_phase_info(project_dir: str, phase: str) -> dict:
+def get_phase_info(project_dir: AbsoluteProjectDirInput, phase: str) -> dict:
     """Get detailed information about a specific phase.
 
     Args:
@@ -105,7 +148,7 @@ def get_phase_info(project_dir: str, phase: str) -> dict:
 
 
 @mcp.tool()
-def advance_plan(project_dir: str) -> dict:
+def advance_plan(project_dir: AbsoluteProjectDirInput) -> dict:
     """Advance the project state to the next plan.
 
     Updates the current plan counter and related state fields.
@@ -126,7 +169,7 @@ def advance_plan(project_dir: str) -> dict:
 
 
 @mcp.tool()
-def get_progress(project_dir: str) -> dict:
+def get_progress(project_dir: AbsoluteProjectDirInput) -> dict:
     """Get overall project progress summary.
 
     Returns the computed progress summary without surfacing checkpoint shelf
@@ -148,7 +191,7 @@ def get_progress(project_dir: str) -> dict:
 
 
 @mcp.tool()
-def validate_state(project_dir: str) -> dict:
+def validate_state(project_dir: AbsoluteProjectDirInput) -> dict:
     """Run comprehensive state validation checks.
 
     Validates state.json against STATE.md, checks schema completeness,
@@ -171,7 +214,7 @@ def validate_state(project_dir: str) -> dict:
 
 
 @mcp.tool()
-def run_health_check(project_dir: str, fix: bool = False) -> dict:
+def run_health_check(project_dir: AbsoluteProjectDirInput, fix: bool = False) -> dict:
     """Run the full project health dashboard.
 
     Checks environment, project structure, storage-path policy, state validity,
@@ -196,7 +239,7 @@ def run_health_check(project_dir: str, fix: bool = False) -> dict:
 
 
 @mcp.tool()
-def get_config(project_dir: str) -> dict:
+def get_config(project_dir: AbsoluteProjectDirInput) -> dict:
     """Get the project GPD configuration.
 
     Returns the resolved config including model profile, autonomy mode,
@@ -228,6 +271,9 @@ def main() -> None:
     from gpd.mcp.servers import run_mcp_server
 
     run_mcp_server(mcp, "GPD State MCP Server")
+
+
+_tighten_registered_tool_contracts()
 
 
 if __name__ == "__main__":

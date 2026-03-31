@@ -84,6 +84,41 @@ def test_notify_uses_latest_local_cache_and_scoped_codex_install_command(tmp_pat
     assert f"Run: {expected}" in output
 
 
+def test_notify_dedupes_repeated_update_notices(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    home = tmp_path / "home"
+
+    local_runtime_dir = workspace / ".codex"
+    local_cache = local_runtime_dir / "cache"
+    local_cache.mkdir(parents=True)
+    _mark_complete_install(local_runtime_dir, runtime="codex")
+    (local_cache / "gpd-update-check.json").write_text(
+        json.dumps(
+            {
+                "update_available": True,
+                "installed": "1.2.3",
+                "latest": "1.3.0",
+                "checked": 20,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    stderr = io.StringIO()
+    with (
+        patch("gpd.hooks.runtime_detect.Path.home", return_value=home),
+        patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value="codex"),
+        patch("gpd.hooks.runtime_detect.detect_runtime_for_gpd_use", return_value="codex"),
+        patch("sys.stderr", stderr),
+    ):
+        _check_and_notify_update(str(workspace))
+        _check_and_notify_update(str(workspace))
+
+    output = stderr.getvalue()
+    assert output.count("Update available: v1.2.3") == 1
+
+
 def test_notify_prefers_active_runtime_cache_over_newer_unrelated_runtime_cache(tmp_path: Path) -> None:
     home = tmp_path / "home"
 
@@ -458,6 +493,31 @@ def test_notify_runtime_directory_without_install_emits_no_update_command(tmp_pa
         _check_and_notify_update(str(workspace))
 
     assert stderr.getvalue() == ""
+
+
+def test_notify_skips_closed_contract_payload_without_event_type(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    payload = json.dumps({"workspace": {"cwd": str(workspace)}})
+
+    with (
+        patch("sys.stdin", io.StringIO(payload)),
+        patch(
+            "gpd.hooks.notify._resolve_payload_roots",
+            return_value=SimpleNamespace(workspace_dir=str(workspace), project_root=str(workspace)),
+        ),
+        patch("gpd.hooks.notify._hook_payload_policy", return_value=SimpleNamespace(notify_event_types=("agent-turn-complete",))),
+        patch("gpd.hooks.notify._record_usage_telemetry") as mock_telemetry,
+        patch("gpd.hooks.notify._trigger_update_check") as mock_update,
+        patch("gpd.hooks.notify._check_and_notify_update") as mock_notify,
+        patch("gpd.hooks.notify._emit_execution_notification") as mock_exec,
+    ):
+        main()
+
+    mock_telemetry.assert_not_called()
+    mock_update.assert_not_called()
+    mock_notify.assert_not_called()
+    mock_exec.assert_not_called()
 
 
 def test_notify_unknown_runtime_falls_back_to_runtime_neutral_update_command(tmp_path: Path) -> None:
@@ -874,6 +934,30 @@ def test_main_accepts_string_workspace_payload() -> None:
 
     mock_trigger.assert_called_once_with(expected)
     mock_notify.assert_called_once_with(expected)
+
+
+def test_main_defaults_project_root_to_workspace_dir_when_project_dir_is_missing(tmp_path: Path) -> None:
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+
+    with (
+        patch("sys.stdin", io.StringIO(json.dumps({"type": "agent-turn-complete", "workspace": str(workspace)}))),
+        patch(
+            "gpd.hooks.notify._resolve_payload_roots",
+            return_value=SimpleNamespace(workspace_dir=str(workspace.resolve(strict=False)), project_root=str(workspace.parent.resolve(strict=False))),
+        ),
+        patch("gpd.hooks.notify._hook_payload_policy", return_value=SimpleNamespace(project_dir_keys=("project_dir",), notify_event_types=())),
+        patch("gpd.hooks.notify._trigger_update_check") as mock_trigger,
+        patch("gpd.hooks.notify._check_and_notify_update") as mock_notify,
+        patch("gpd.hooks.notify._emit_execution_notification") as mock_exec,
+        patch("gpd.hooks.notify._record_usage_telemetry") as mock_telemetry,
+    ):
+        main()
+
+    mock_telemetry.assert_called_once()
+    mock_trigger.assert_called_once_with(str(workspace.resolve(strict=False)))
+    mock_notify.assert_called_once_with(str(workspace.resolve(strict=False)))
+    mock_exec.assert_called_once_with(str(workspace.resolve(strict=False)))
 
 
 def test_main_records_usage_telemetry_from_alias_fields(tmp_path: Path) -> None:

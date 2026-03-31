@@ -1314,3 +1314,11 @@ def test_stamp_publish_date_reports_no_changes_when_release_date_already_matches
     metadata = stamp_publish_date(tmp_path, release_date="2026-03-15")
 
     assert metadata.changed_files == ()
+
+
+def test_stamp_publish_date_rejects_full_datetime_release_inputs(tmp_path: Path) -> None:
+    repo_root = _repo_root()
+    _copy_release_surfaces(repo_root, tmp_path)
+
+    with pytest.raises(ReleaseError, match="YYYY-MM-DD"):
+        stamp_publish_date(tmp_path, release_date="2026-03-15T12:34:56Z")

@@ -3047,6 +3047,11 @@ def doctor(
         if target_dir and _target_dir_matches_global(normalized_runtime, target_dir, action="doctor")
         else "local"
     )
+    if target_dir is None and not global_install and not local_install:
+        detected_target, detected_scope = _resolve_detected_runtime_target(normalized_runtime)
+        if detected_target is not None and detected_scope is not None:
+            resolved_target = detected_target
+            install_scope = detected_scope
     _output(
         run_doctor(
             specs_dir=SPECS_DIR,
@@ -5065,6 +5070,42 @@ def _resolve_review_preflight_publication_artifacts(manuscript: Path) -> Manuscr
     )
 
 
+def _validate_bibliography_audit_semantics(bibliography_audit: Path) -> tuple[bool, str]:
+    """Validate bibliography-audit structure and publication semantics."""
+    from gpd.mcp.paper.bibliography import BibliographyAudit
+
+    try:
+        audit_payload = json.loads(bibliography_audit.read_text(encoding="utf-8"))
+    except OSError as exc:
+        return False, f"could not read bibliography audit: {exc}"
+    except json.JSONDecodeError as exc:
+        return False, f"could not parse bibliography audit: {exc}"
+
+    try:
+        audit = BibliographyAudit.model_validate(audit_payload)
+    except PydanticValidationError as exc:
+        return (
+            False,
+            "bibliography audit is invalid: "
+            + "; ".join(_format_pydantic_schema_error(error, root_label="bibliography_audit") for error in exc.errors()[:3]),
+        )
+
+    clean = (
+        audit.resolved_sources == audit.total_sources
+        and audit.partial_sources == 0
+        and audit.unverified_sources == 0
+        and audit.failed_sources == 0
+    )
+    return (
+        clean,
+        (
+            "all bibliography sources resolved and verified"
+            if clean
+            else "bibliography audit still has unresolved, partial, unverified, or failed sources"
+        ),
+    )
+
+
 _REVIEW_LEDGER_FILENAME_RE = re.compile(r"^REVIEW-LEDGER(?P<round_suffix>-R(?P<round>\d+))?\.json$")
 _REFEREE_DECISION_FILENAME_RE = re.compile(r"^REFEREE-DECISION(?P<round_suffix>-R(?P<round>\d+))?\.json$")
 
@@ -5557,6 +5598,7 @@ def _paper_build_toolchain_payload() -> dict[str, object]:
         warnings.append("kpsewhich not found; TeX resource checks may be best-effort only.")
 
     compiler_available = bool(latex_status.available)
+    paper_build_ready = compiler_available and bibtex_available
     return {
         "compiler_available": compiler_available,
         "compiler_path": latex_status.compiler_path,
@@ -5565,8 +5607,8 @@ def _paper_build_toolchain_payload() -> dict[str, object]:
         "bibtex_available": bibtex_available,
         "kpsewhich_available": kpsewhich_available,
         "compile_checks_available": compiler_available,
-        "paper_build_ready": compiler_available,
-        "arxiv_submission_ready": compiler_available and bibtex_available,
+        "paper_build_ready": paper_build_ready,
+        "arxiv_submission_ready": paper_build_ready and kpsewhich_available,
         "warnings": warnings,
     }
 
@@ -6365,37 +6407,9 @@ def _build_review_preflight(
                         else "no reproducibility manifest found near the manuscript"
                     ),
                 )
-            if strict and command.name == "gpd:peer-review" and bibliography_audit is not None:
-                from gpd.mcp.paper.bibliography import BibliographyAudit
-
-                try:
-                    audit_payload = json.loads(bibliography_audit.read_text(encoding="utf-8"))
-                    audit = BibliographyAudit.model_validate(audit_payload)
-                except (OSError, json.JSONDecodeError) as exc:
-                    add_check("bibliography_audit_clean", False, f"could not parse bibliography audit: {exc}")
-                except PydanticValidationError as exc:
-                    add_check(
-                        "bibliography_audit_clean",
-                        False,
-                        "bibliography audit is invalid: "
-                        + "; ".join(_format_pydantic_schema_error(error, root_label="bibliography_audit") for error in exc.errors()[:3]),
-                    )
-                else:
-                    clean = (
-                        audit.resolved_sources == audit.total_sources
-                        and audit.partial_sources == 0
-                        and audit.unverified_sources == 0
-                        and audit.failed_sources == 0
-                    )
-                    add_check(
-                        "bibliography_audit_clean",
-                        clean,
-                        (
-                            "all bibliography sources resolved and verified"
-                            if clean
-                            else "bibliography audit still has unresolved, partial, unverified, or failed sources"
-                        ),
-                    )
+            if strict and command.name in {"gpd:peer-review", "gpd:write-paper", "gpd:arxiv-submission"} and bibliography_audit is not None:
+                clean, detail = _validate_bibliography_audit_semantics(bibliography_audit)
+                add_check("bibliography_audit_clean", clean, detail, blocking=True)
             if (
                 strict
                 and command.name in {"gpd:peer-review", "gpd:write-paper"}
@@ -7712,6 +7726,24 @@ def _target_dir_matches_global(runtime_name: str, target_dir: str, *, action: st
     return resolved_target == canonical_global_target.expanduser().resolve(strict=False)
 
 
+def _resolve_detected_runtime_target(runtime_name: str) -> tuple[Path | None, str | None]:
+    """Return the concrete installed runtime target when one can be detected."""
+    from gpd.hooks.runtime_detect import detect_install_scope, detect_runtime_install_target
+
+    install_target = detect_runtime_install_target(runtime_name, cwd=_get_cwd())
+    if install_target is not None:
+        return install_target.config_dir, install_target.install_scope
+
+    install_scope = detect_install_scope(runtime_name, cwd=_get_cwd())
+    if install_scope == "global":
+        adapter = _get_adapter_or_error(runtime_name, action="inspect runtime readiness")
+        return adapter.resolve_target_dir(True, _get_cwd()), "global"
+    if install_scope == "local":
+        adapter = _get_adapter_or_error(runtime_name, action="inspect runtime readiness")
+        return adapter.resolve_target_dir(False, _get_cwd()), "local"
+    return None, None
+
+
 def _workflow_preset_surface_note() -> str:
     """Return the shared preset-surface note derived from the preset registry."""
     return workflow_preset_surface_note()
@@ -7821,6 +7853,11 @@ def _build_unattended_readiness(
         if target_dir and _target_dir_matches_global(normalized_runtime, target_dir, action="validate unattended-readiness")
         else "local"
     )
+    if target_dir is None and not global_install and not local_install:
+        detected_target, detected_scope = _resolve_detected_runtime_target(normalized_runtime)
+        if detected_target is not None and detected_scope is not None:
+            resolved_target = detected_target
+            install_scope = detected_scope
 
     if resolved_target is not None:
         permissions_target = str(resolved_target)

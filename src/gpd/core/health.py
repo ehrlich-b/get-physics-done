@@ -24,7 +24,6 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as PydanticValidationError
 
-from gpd.contracts import contract_from_data
 from gpd.core.config import GPDProjectConfig, load_config
 from gpd.core.constants import (
     DECISION_THRESHOLD,
@@ -197,18 +196,19 @@ def check_storage_paths(cwd: Path) -> HealthCheck:
 
 
 def _peek_normalized_state_for_health(cwd: Path) -> tuple[dict[str, object] | None, str | None]:
-    """Load normalized state for inspection without mutating on-disk files."""
-    state_obj, _integrity_issues, state_source = peek_state_json(cwd, recover_intent=True)
+    """Load normalized state for inspection without mutating on-disk files.
+
+    Health checks need visibility into structurally parseable blocked
+    ``project_contract`` payloads so approval blockers are reported as failures
+    instead of being hidden by draft-scoping normalization.
+    """
+    state_obj, _integrity_issues, state_source = peek_state_json(
+        cwd,
+        recover_intent=True,
+        surface_blocked_project_contract=True,
+    )
     if not isinstance(state_obj, dict):
         return None, state_source
-
-    project_contract = state_obj.get("project_contract")
-    if (
-        project_contract is not None
-        and contract_from_data(project_contract, require_draft_validity=True, project_root=cwd) is None
-    ):
-        state_obj = dict(state_obj)
-        state_obj["project_contract"] = None
     return state_obj, state_source
 
 
@@ -1051,6 +1051,11 @@ def _permissions_capability_payload(runtime_name: object) -> dict[str, object]:
             return {
                 "contract_source": "runtime-catalog",
                 "permissions_surface": capabilities.permissions_surface,
+                "permission_surface_kind": capabilities.permission_surface_kind,
+                "prompt_free_mode_value": capabilities.prompt_free_mode_value,
+                "supports_runtime_permission_sync": capabilities.supports_runtime_permission_sync,
+                "supports_prompt_free_mode": capabilities.supports_prompt_free_mode,
+                "prompt_free_requires_relaunch": capabilities.prompt_free_requires_relaunch,
                 "statusline_surface": capabilities.statusline_surface,
                 "notify_surface": capabilities.notify_surface,
                 "telemetry_source": capabilities.telemetry_source,
@@ -1059,6 +1064,11 @@ def _permissions_capability_payload(runtime_name: object) -> dict[str, object]:
     return {
         "contract_source": "generic-fallback",
         "permissions_surface": "adapter-defined",
+        "permission_surface_kind": "unknown",
+        "prompt_free_mode_value": None,
+        "supports_runtime_permission_sync": False,
+        "supports_prompt_free_mode": False,
+        "prompt_free_requires_relaunch": False,
         "statusline_surface": "unknown",
         "notify_surface": "unknown",
         "telemetry_source": "unknown",
@@ -1104,13 +1114,18 @@ def _permissions_more_permissive_than_requested(payload: dict[str, object]) -> b
     if not isinstance(capabilities, dict) or capabilities.get("permissions_surface") != "config-file":
         return False
 
-    configured_mode = payload.get("configured_mode")
-    if configured_mode in {"yolo", "bypassPermissions"}:
-        return True
+    if not bool(capabilities.get("supports_prompt_free_mode", False)):
+        return False
 
-    approval_policy = payload.get("approval_policy")
-    sandbox_mode = payload.get("sandbox_mode")
-    return approval_policy == "never" and sandbox_mode == "danger-full-access"
+    prompt_free_mode_value = capabilities.get("prompt_free_mode_value")
+    if not isinstance(prompt_free_mode_value, str) or not prompt_free_mode_value.strip():
+        return False
+
+    configured_mode = payload.get("configured_mode")
+    if not isinstance(configured_mode, str):
+        return False
+
+    return configured_mode.strip() == prompt_free_mode_value.strip()
 
 
 def annotate_permissions_payload(
@@ -1625,8 +1640,8 @@ def _doctor_check_workflow_presets(*, latex_check: HealthCheck, base_ready: bool
         legacy_available = latex_capability.get("paper_build_ready")
         if legacy_available is None:
             legacy_available = latex_capability.get("available")
-        if legacy_available is None:
-            legacy_available = latex_check.status == CheckStatus.OK
+        if legacy_available is None and latex_check.status == CheckStatus.OK:
+            legacy_available = True
         legacy_available_bool = bool(legacy_available)
         latex_capability.setdefault("available", legacy_available_bool)
         latex_capability.setdefault("compiler_available", legacy_available_bool)
@@ -1634,21 +1649,27 @@ def _doctor_check_workflow_presets(*, latex_check: HealthCheck, base_ready: bool
         latex_capability.setdefault("paper_build_ready", legacy_available_bool)
         latex_capability.setdefault("arxiv_submission_ready", legacy_available_bool)
         latex_capability.setdefault("latexmk_available", None)
-        latex_capability.setdefault("kpsewhich_available", None)
+        latex_capability.setdefault("kpsewhich_available", legacy_available_bool)
         latex_capability.setdefault("warnings", list(latex_check.warnings))
 
-    latex_available = bool(
-        latex_capability.get("paper_build_ready", latex_capability.get("available", latex_check.status == CheckStatus.OK))
-    )
-
     details = resolve_workflow_preset_readiness(base_ready=base_ready, latex_capability=latex_capability)
+    capability_details = details.get("latex_capability")
+    paper_build_ready = bool(capability_details.get("paper_build_ready", False)) if isinstance(capability_details, dict) else False
+    arxiv_submission_ready = (
+        bool(capability_details.get("arxiv_submission_ready", False)) if isinstance(capability_details, dict) else False
+    )
     warnings: list[str] = []
     if not base_ready:
         warnings.append("Workflow preset readiness is blocked until the base runtime-readiness failures are fixed.")
-    elif not latex_available:
+    elif not paper_build_ready:
         warnings.append(
             "Publication / manuscript and full research presets are degraded without a paper-build-ready LaTeX toolchain: "
             "`write-paper` and `peer-review` remain usable, but `paper-build` and `arxiv-submission` need compiler and bibliography support."
+        )
+    elif not arxiv_submission_ready:
+        warnings.append(
+            "Publication / manuscript and full research presets are degraded without arxiv-submission support: "
+            "`paper-build` remains usable, but `arxiv-submission` stays blocked until TeX resource checks pass."
         )
 
     status = CheckStatus.OK if details["degraded"] == 0 and details["blocked"] == 0 else CheckStatus.WARN

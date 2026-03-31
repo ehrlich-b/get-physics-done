@@ -32,16 +32,16 @@ __all__ = [
 
 _GUIDANCE_ONLY_PRESET_KEYS = frozenset({"model_cost_posture"})
 _LATEX_CAPABILITY_DEFAULTS: dict[str, object] = {
-    "available": True,
-    "compiler_available": True,
+    "available": False,
+    "compiler_available": False,
     "compiler_path": None,
     "distribution": None,
-    "bibtex_available": True,
-    "latexmk_available": True,
-    "kpsewhich_available": True,
+    "bibtex_available": False,
+    "latexmk_available": None,
+    "kpsewhich_available": None,
     "warnings": [],
-    "paper_build_ready": True,
-    "arxiv_submission_ready": True,
+    "paper_build_ready": False,
+    "arxiv_submission_ready": False,
 }
 
 
@@ -123,13 +123,13 @@ def _normalize_latex_capability(
 
     compiler_value = _capability_value(latex_capability, "compiler_available", "available", "latex_available")
     if compiler_value is None:
-        compiler_available = bool(legacy_available) if legacy_available is not None else True
+        compiler_available = bool(legacy_available) if legacy_available is not None else False
     else:
         compiler_available = bool(compiler_value)
 
     bibtex_value = _capability_value(latex_capability, "bibtex_available", "bibtex", "bibliography_available")
     if bibtex_value is None:
-        bibtex_available = compiler_available if legacy_available is None else bool(legacy_available)
+        bibtex_available = False
     else:
         bibtex_available = bool(bibtex_value)
 
@@ -155,7 +155,9 @@ def _normalize_latex_capability(
         "kpsewhich_available": bool(kpsewhich_value) if kpsewhich_value is not None else None,
         "warnings": warnings,
         "paper_build_ready": compiler_available and bibtex_available,
-        "arxiv_submission_ready": compiler_available and bibtex_available,
+        "arxiv_submission_ready": compiler_available and bibtex_available and bool(kpsewhich_value)
+        if kpsewhich_value is not None
+        else False,
     }
     return normalized
 
@@ -409,6 +411,8 @@ def resolve_workflow_preset_readiness(
     bibtex_ready = bool(capability["bibtex_available"])
     latexmk_available = capability.get("latexmk_available")
     kpsewhich_available = capability.get("kpsewhich_available")
+    paper_build_ready = bool(capability["paper_build_ready"])
+    arxiv_submission_ready = bool(capability["arxiv_submission_ready"])
 
     entries: list[dict[str, object]] = []
     ready = 0
@@ -425,7 +429,7 @@ def resolve_workflow_preset_readiness(
             degraded_workflows: list[str] = []
             blocked_workflows = list(preset.blocked_workflows or preset.ready_workflows)
             depends_on = ["Base runtime readiness", *depends_on]
-        elif preset.requires_extra_tooling and not (compiler_ready and bibtex_ready):
+        elif preset.requires_extra_tooling and not paper_build_ready:
             status = "degraded"
             usable = True
             if not compiler_ready:
@@ -435,6 +439,13 @@ def resolve_workflow_preset_readiness(
             ready_workflows = []
             degraded_workflows = list(preset.degraded_workflows)
             blocked_workflows = list(preset.blocked_workflows)
+        elif preset.requires_extra_tooling and not arxiv_submission_ready:
+            status = "degraded"
+            usable = True
+            summary = "degraded without arxiv-submission support: paper-build remains usable, but arxiv-submission stays blocked"
+            ready_workflows = [workflow for workflow in preset.ready_workflows if workflow != "arxiv-submission"]
+            degraded_workflows = []
+            blocked_workflows = ["arxiv-submission"]
         else:
             status = "ready"
             usable = True
@@ -459,6 +470,10 @@ def resolve_workflow_preset_readiness(
             elif not bibtex_ready:
                 warnings.append(
                     "BibTeX support is missing: draft/review workflows remain usable, but build/submission stay blocked."
+                )
+            elif not arxiv_submission_ready:
+                warnings.append(
+                    "kpsewhich is missing: paper-build remains usable, but arxiv-submission stays blocked."
                 )
             if latexmk_available is False:
                 warnings.append("latexmk is missing: paper builds will fall back to manual multipass compilation.")

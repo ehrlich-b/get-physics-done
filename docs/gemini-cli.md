@@ -80,6 +80,11 @@ either `/gpd:new-project --minimal`, `/gpd:map-research`, or
   `gpd resume` or `gpd resume --recent`, then open the right folder and run
   `/gpd:resume-work`.
 
+## Settings
+
+After your first successful start or later, use `/gpd:settings` to review
+autonomy, workflow defaults, and model-cost posture.
+
 ## 5) What success looks like
 
 - `gemini --help` works.

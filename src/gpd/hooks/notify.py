@@ -123,6 +123,9 @@ def _check_and_notify_update(cwd: str | None = None) -> None:
         cmd = _shared_update_command_for_candidate(latest_candidate, hook_file=__file__, cwd=cwd)
         if cmd is None:
             return
+        fingerprint = _update_notification_fingerprint(latest_cache, cmd)
+        if not _claim_last_notification(cwd or str(Path.cwd()), fingerprint):
+            return
         installed = latest_cache.get("installed", "?")
         latest = latest_cache.get("latest", "?")
         sys.stderr.write(f"[GPD] Update available: v{installed} \u2192 v{latest}. Run: {cmd}\n")
@@ -153,11 +156,20 @@ def _project_root_from_payload(
 
 def _resolved_project_root_from_payload(data: dict[str, object], *, cwd: str | None = None) -> str:
     """Return the resolved project root for one notify payload workspace."""
-    return _resolve_payload_roots(
+    roots = _resolve_payload_roots(
         data,
         policy_getter=_root_resolution_policy,
         cwd=cwd,
-    ).project_root
+    )
+    hook_payload = _hook_payload_policy(roots.project_root)
+    workspace_value = data.get("workspace")
+    explicit_project_dir = _first_string(workspace_value, *hook_payload.project_dir_keys) or _first_string(
+        data,
+        *hook_payload.project_dir_keys,
+    )
+    if explicit_project_dir:
+        return roots.project_root
+    return roots.workspace_dir
 
 
 def _notification_state_path(cwd: str) -> Path:
@@ -183,6 +195,13 @@ def _claim_last_notification(cwd: str, fingerprint: str) -> bool:
             return False
         atomic_write(path, json.dumps({"fingerprint": fingerprint}, indent=2))
         return True
+
+
+def _update_notification_fingerprint(latest_cache: dict[str, object], cmd: str) -> str:
+    """Return the dedupe fingerprint for one update notice payload."""
+    installed = str(latest_cache.get("installed", "?")).strip() or "?"
+    latest = str(latest_cache.get("latest", "?")).strip() or "?"
+    return f"update:{installed}:{latest}:{cmd}"
 
 
 def _execution_notification_message(cwd: str) -> tuple[str | None, str | None]:
@@ -283,8 +302,23 @@ def main() -> None:
         workspace_dir = roots.workspace_dir
         project_root = roots.project_root
         hook_payload = _hook_payload_policy(project_root)
+        workspace_value = data.get("workspace")
+        explicit_project_dir = _first_string(workspace_value, *hook_payload.project_dir_keys) or _first_string(
+            data,
+            *hook_payload.project_dir_keys,
+        )
+        if not explicit_project_dir:
+            try:
+                resolved_workspace = Path(workspace_dir).expanduser().resolve(strict=False)
+                resolved_project_root = Path(project_root).expanduser().resolve(strict=False)
+                relative_workspace = resolved_workspace.relative_to(resolved_project_root)
+            except (OSError, ValueError):
+                relative_workspace = None
+            if relative_workspace is not None and len(relative_workspace.parts) == 1:
+                project_root = workspace_dir
         allowed_event_types = hook_payload.notify_event_types
-        if allowed_event_types and data.get("type") not in (*allowed_event_types, None):
+        event_type = data.get("type")
+        if allowed_event_types and event_type not in allowed_event_types:
             return
         _record_usage_telemetry(data, workspace_dir=workspace_dir, project_root=project_root)
         _trigger_update_check(project_root)

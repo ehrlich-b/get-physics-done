@@ -20,10 +20,10 @@ The PLAN `contract` value must be a YAML object with these top-level sections:
 - `context_intake`
 - `claims`
 - `deliverables`
-- `references`
 - `acceptance_tests`
 - `forbidden_proxies`
 - `uncertainty_markers`
+- `references` when the plan does not already carry explicit grounding through `context_intake`, `approach_policy`, or preserved scoping inputs
 
 Optional sections:
 
@@ -100,7 +100,7 @@ context_intake:
 
 Rules:
 
-- `context_intake` is required and must be a non-empty object, not a string or list.
+- `contract.context_intake` is required and must be a non-empty object, not a string or list.
 - Every field above is optional inside the object, but the object itself must not be empty.
 - `must_read_refs[]` may only reference declared `references[].id`.
 - Use `context_gaps`, `scope.unresolved_questions`, or `uncertainty_markers.weakest_anchors` for unresolved anchors; do not invent placeholder references.
@@ -256,6 +256,7 @@ Rules:
 - If the plan will execute, verify, or publish a concrete result, use the full non-scoping shape.
 - A reduced contract still needs a real decision surface: preserve at least one target, open question, or carry-forward input instead of emitting a hollow scaffold.
 - If you are unsure, classify the plan as non-scoping and use the full shape.
+- `references[]` are mandatory only when the contract does not already expose enough grounding through `context_intake`, `approach_policy`, or preserved scoping inputs. When that grounding already exists, omit `references[]` rather than padding the contract with decorative anchors.
 - The schema still exposes the semantic fields `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`; their default is `other`. Omit them only when `other` is genuinely intended, and set the specific value explicitly when the semantics are already known.
 - For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required.
 - The defaultable semantic fields above do not relax the hard requirements on `context_intake` or `uncertainty_markers`, and they do not replace required contract targets for non-scoping plans.

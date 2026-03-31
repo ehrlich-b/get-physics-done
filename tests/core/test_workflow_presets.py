@@ -200,7 +200,7 @@ def test_publication_and_full_presets_are_the_only_verified_tooling_presets() ->
     assert presets["numerics"].required_checks == ()
 
 
-def test_workflow_preset_readiness_is_ready_when_compiler_and_bibtex_are_present() -> None:
+def test_workflow_preset_readiness_degrades_publication_family_when_arxiv_submission_support_is_missing() -> None:
     readiness = resolve_workflow_preset_readiness(
         base_ready=True,
         latex_capability=_latex_capability(latexmk_available=False, kpsewhich_available=False),
@@ -208,17 +208,20 @@ def test_workflow_preset_readiness_is_ready_when_compiler_and_bibtex_are_present
     statuses = {preset["id"]: preset["status"] for preset in readiness["presets"]}
     publication = next(preset for preset in readiness["presets"] if preset["id"] == "publication-manuscript")
 
-    assert readiness["ready"] == 5
-    assert readiness["degraded"] == 0
+    assert readiness["ready"] == 3
+    assert readiness["degraded"] == 2
     assert readiness["blocked"] == 0
     assert readiness["latex_capability"]["paper_build_ready"] is True
-    assert readiness["latex_capability"]["arxiv_submission_ready"] is True
+    assert readiness["latex_capability"]["arxiv_submission_ready"] is False
     assert statuses["core-research"] == "ready"
     assert statuses["theory"] == "ready"
     assert statuses["numerics"] == "ready"
-    assert statuses["publication-manuscript"] == "ready"
-    assert statuses["full-research"] == "ready"
-    assert "latexmk is missing" in publication["warnings"][0]
+    assert statuses["publication-manuscript"] == "degraded"
+    assert statuses["full-research"] == "degraded"
+    assert publication["ready_workflows"] == ["write-paper", "peer-review", "paper-build"]
+    assert publication["degraded_workflows"] == []
+    assert publication["blocked_workflows"] == ["arxiv-submission"]
+    assert any("latexmk is missing" in warning for warning in publication["warnings"])
     assert any("kpsewhich is missing" in warning for warning in publication["warnings"])
 
 
@@ -241,6 +244,19 @@ def test_workflow_preset_readiness_degrades_publication_family_when_bibtex_is_mi
     assert publication["degraded_workflows"] == ["write-paper", "peer-review"]
     assert publication["blocked_workflows"] == ["paper-build", "arxiv-submission"]
     assert any("BibTeX support is missing" in warning for warning in publication["warnings"])
+
+
+def test_workflow_preset_readiness_does_not_backfill_legacy_paper_build_flag_to_ready() -> None:
+    readiness = resolve_workflow_preset_readiness(base_ready=True, latex_capability={"paper_build_ready": True})
+    publication = next(preset for preset in readiness["presets"] if preset["id"] == "publication-manuscript")
+
+    assert readiness["ready"] == 3
+    assert readiness["degraded"] == 2
+    assert readiness["latex_capability"]["paper_build_ready"] is False
+    assert readiness["latex_capability"]["arxiv_submission_ready"] is False
+    assert publication["status"] == "degraded"
+    assert publication["ready_workflows"] == []
+    assert publication["blocked_workflows"] == ["paper-build", "arxiv-submission"]
 
 
 def test_workflow_preset_readiness_degrades_publication_family_when_compiler_is_missing() -> None:

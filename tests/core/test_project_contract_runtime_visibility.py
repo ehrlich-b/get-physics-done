@@ -33,7 +33,7 @@ def _write_draft_project_contract_state(tmp_path: Path) -> dict[str, object]:
         "must_include_prior_outputs": [],
         "user_asserted_anchors": [],
         "known_good_baselines": [],
-        "context_gaps": [],
+        "context_gaps": ["Need a concrete must-surface anchor before approval."],
         "crucial_inputs": [],
     }
     state = default_state_dict()

@@ -51,6 +51,7 @@ def test_runtime_quickstarts_surface_the_beginner_next_steps(surface) -> None:
         surface.new_project_minimal_command,
         surface.map_research_command,
         surface.resume_work_command,
+        surface.settings_command,
     )
     _assert_fragments(content, fragments)
     _assert_in_order(content, fragments[:3])
@@ -83,6 +84,7 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
             "Start a new project",
             "Map an existing folder",
             "Reopen work from your normal terminal",
+            "gpd resume --recent",
             "resume-work",
         ),
     )

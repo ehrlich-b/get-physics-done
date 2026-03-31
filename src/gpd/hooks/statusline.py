@@ -530,6 +530,20 @@ def main() -> None:
         workspace_dir = roots.workspace_dir
         project_root = roots.project_root
         hook_payload = _hook_payload_policy(project_root)
+        workspace_value = data.get("workspace")
+        explicit_project_dir = _first_string(workspace_value, *hook_payload.project_dir_keys) or _first_string(
+            data,
+            *hook_payload.project_dir_keys,
+        )
+        if not explicit_project_dir:
+            try:
+                resolved_workspace = Path(workspace_dir).expanduser().resolve(strict=False)
+                resolved_project_root = Path(project_root).expanduser().resolve(strict=False)
+                relative_workspace = resolved_workspace.relative_to(resolved_project_root)
+            except (OSError, ValueError):
+                relative_workspace = None
+            if relative_workspace is not None and len(relative_workspace.parts) == 1:
+                project_root = workspace_dir
 
         session_value = data.get("session_id")
         session_id = session_value if isinstance(session_value, str) else ""

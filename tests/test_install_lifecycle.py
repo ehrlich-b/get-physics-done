@@ -751,7 +751,7 @@ class TestOpenCodeLifecycle:
         # For uninstall, we need to make the opencode.json accessible within the target
         from gpd.adapters.opencode import uninstall_opencode
 
-        uninstall_opencode(target, config_dir=target)
+        uninstall_opencode(target, config_dir=target, allow_empty_config_removal=True)
 
         # Flat commands removed
         command_dir = target / "command"
@@ -782,7 +782,7 @@ class TestOpenCodeLifecycle:
 
         from gpd.adapters.opencode import uninstall_opencode
 
-        uninstall_opencode(target, config_dir=target)
+        uninstall_opencode(target, config_dir=target, allow_empty_config_removal=True)
 
         result = _install_and_finalize(adapter, gpd_root, target)
 
@@ -1198,7 +1198,7 @@ class TestUninstallWhenNotInstalled:
         target = tmp_path / ".opencode"
         target.mkdir()
 
-        result = uninstall_opencode(target, config_dir=target)
+        result = uninstall_opencode(target, config_dir=target, allow_empty_config_removal=False)
         assert result["commands"] == 0
         assert result["agents"] == 0
         assert result["hooks"] == 0
@@ -1282,7 +1282,7 @@ class TestUninstallCorruptedConfigs:
         (target / "settings.json").write_text("{{{not valid json!!!", encoding="utf-8")
 
         # Uninstall should still succeed
-        uninstall_opencode(target, config_dir=target)
+        uninstall_opencode(target, config_dir=target, allow_empty_config_removal=True)
         assert not (target / "get-physics-done").exists()
         # Commands should be cleaned
         command_dir = target / "command"
@@ -1303,7 +1303,7 @@ class TestUninstallCorruptedConfigs:
         (target / "opencode.json").write_text("NOT JSON AT ALL", encoding="utf-8")
 
         # Uninstall should still succeed
-        uninstall_opencode(target, config_dir=target)
+        uninstall_opencode(target, config_dir=target, allow_empty_config_removal=True)
         assert not (target / "get-physics-done").exists()
 
     def test_gemini_corrupted_settings_json(self, tmp_path: Path, gpd_root: Path) -> None:

@@ -418,6 +418,7 @@ class ClaudeCodeAdapter(RuntimeAdapter):
         """Remove GPD from Claude Code config and clean the matching MCP config."""
         manifest = read_settings(target_dir / "gpd-file-manifest.json")
         install_scope = manifest.get("install_scope")
+        has_authoritative_manifest = self._has_authoritative_install_manifest(target_dir)
         result = super().uninstall(target_dir)
 
         if install_scope == "global":
@@ -485,7 +486,7 @@ class ClaudeCodeAdapter(RuntimeAdapter):
 
             if modified:
                 write_settings(settings_path, settings)
-            if remove_empty_json_object_file(settings_path):
+            if has_authoritative_manifest and remove_empty_json_object_file(settings_path):
                 result["removed"].append(settings_path.name)
 
         if not is_global_target:
@@ -508,7 +509,7 @@ class ClaudeCodeAdapter(RuntimeAdapter):
                             del mcp_config["mcpServers"]
                         mcp_config_path.write_text(_json.dumps(mcp_config, indent=2) + "\n", encoding="utf-8")
                         result["removed"].append(f"MCP servers from {mcp_config_path.name}")
-                if remove_empty_json_object_file(mcp_config_path):
+                if has_authoritative_manifest and remove_empty_json_object_file(mcp_config_path):
                     result["removed"].append(mcp_config_path.name)
             for path in (
                 target_dir / "commands",

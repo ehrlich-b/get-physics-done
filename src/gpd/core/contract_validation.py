@@ -25,6 +25,7 @@ from gpd.contracts import (
     ContractUncertaintyMarkers,
     ResearchContract,
     collect_contract_integrity_errors,
+    parse_project_contract_data_strict,
 )
 
 __all__ = ["ProjectContractValidationResult", "salvage_project_contract", "validate_project_contract"]
@@ -869,24 +870,14 @@ def validate_project_contract(
         schema_warnings: list[str] = []
         schema_errors: list[str] = []
     else:
-        if not isinstance(contract, dict):
-            return ProjectContractValidationResult(
-                valid=False,
-                errors=["project contract must be a JSON object"],
-                mode=mode,
-            )
-        list_shape_drift_errors = _collect_list_shape_drift_errors(contract)
-        parsed, schema_findings = salvage_project_contract(contract)
-        schema_warnings, schema_errors = _split_project_contract_schema_findings(
-            schema_findings,
-            allow_singleton_defaults=False,
-        )
-        schema_warnings = _dedupe_findings([*schema_warnings, *list_shape_drift_errors])
-        schema_errors = _dedupe_findings(schema_errors)
+        strict_result = parse_project_contract_data_strict(contract)
+        parsed = strict_result.contract
+        schema_warnings = []
+        schema_errors = _dedupe_findings(list(strict_result.errors))
         if parsed is None:
             return ProjectContractValidationResult(
                 valid=False,
-                errors=schema_errors or schema_warnings or ["project contract could not be normalized"],
+                errors=schema_errors or ["project contract could not be normalized"],
                 mode=mode,
             )
     errors: list[str] = list(schema_errors)
@@ -943,9 +934,7 @@ def validate_project_contract(
     if not parsed.forbidden_proxies:
         warnings.append("no forbidden_proxies recorded yet")
     if guidance_signal_count == 0:
-        warnings.append(
-            "no user guidance signals recorded yet (must_read_refs, prior outputs, anchors, baselines, gaps, or crucial inputs)"
-        )
+        errors.append("context_intake must not be empty")
 
     return ProjectContractValidationResult(
         valid=not errors,

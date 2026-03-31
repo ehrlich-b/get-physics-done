@@ -617,6 +617,33 @@ def test_state_set_project_contract_persists_contract_and_unresolved_questions(t
     assert "Which diagnostic artifact should be primary?" in saved["open_questions"]
 
 
+def test_state_set_project_contract_repairs_raw_blocked_payload_even_when_visible_state_matches(
+    tmp_path: Path,
+) -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    save_state_json(tmp_path, default_state_dict())
+
+    layout = ProjectLayout(tmp_path)
+    raw_state = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    blocked_contract = json.loads(json.dumps(contract))
+    blocked_contract["claims"][0]["notes"] = "legacy drift"
+    raw_state["project_contract"] = blocked_contract
+    layout.state_json.write_text(json.dumps(raw_state, indent=2) + "\n", encoding="utf-8")
+
+    loaded_before = load_state_json(tmp_path)
+    assert loaded_before is not None
+    visible_contract = loaded_before["project_contract"]
+    assert isinstance(visible_contract, dict)
+    assert visible_contract != blocked_contract
+
+    result = state_set_project_contract(tmp_path, visible_contract)
+
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert result.updated is True
+    assert persisted["project_contract"] == visible_contract
+    assert "notes" not in persisted["project_contract"]["claims"][0]
+
+
 def test_state_set_project_contract_rejects_invalid_contract(tmp_path: Path):
     save_state_json(tmp_path, default_state_dict())
 
@@ -746,7 +773,7 @@ def test_state_set_project_contract_accepts_schema_valid_draft_with_approval_blo
         "must_include_prior_outputs": [],
         "user_asserted_anchors": [],
         "known_good_baselines": [],
-        "context_gaps": [],
+        "context_gaps": ["Need a concrete must-surface anchor before approval."],
         "crucial_inputs": [],
     }
     contract["references"][0]["role"] = "background"
@@ -890,7 +917,7 @@ def test_load_state_json_preserves_draft_invalid_project_contract_visibility(tmp
     ] == ["missing-ref"]
 
 
-def test_save_state_markdown_preserves_project_contract_when_singleton_list_drift_is_salvageable(
+def test_save_state_markdown_drops_malformed_project_contract_when_primary_contract_has_singleton_list_drift(
     tmp_path: Path,
 ):
     state = default_state_dict()
@@ -909,15 +936,15 @@ def test_save_state_markdown_preserves_project_contract_when_singleton_list_drif
     md_content = layout.state_md.read_text(encoding="utf-8").replace("**Status:** Executing", "**Status:** Paused", 1)
     result = save_state_markdown(tmp_path, md_content)
 
-    assert result["project_contract"] is not None
-    assert result["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+    assert result["project_contract"] is None
     persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
-    assert persisted["project_contract"] is not None
-    assert persisted["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+    assert persisted["project_contract"] is None
+    backup = json.loads(layout.state_json_backup.read_text(encoding="utf-8"))
+    assert backup["project_contract"] is None
     assert persisted["position"]["status"] == "Paused"
 
 
-def test_save_state_markdown_preserves_last_valid_backup_project_contract_when_primary_contract_is_salvaged(
+def test_save_state_markdown_drops_malformed_project_contract_when_primary_contract_contains_recoverable_schema_drift(
     tmp_path: Path,
 ):
     valid_contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
@@ -936,14 +963,14 @@ def test_save_state_markdown_preserves_last_valid_backup_project_contract_when_p
 
     backup = json.loads((layout.gpd / STATE_JSON_BACKUP_FILENAME).read_text(encoding="utf-8"))
 
-    assert result["project_contract"] is not None
-    assert result["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+    assert result["project_contract"] is None
     assert backup["position"]["status"] == "Paused"
-    assert backup["project_contract"] is not None
-    assert backup["project_contract"]["references"][0]["id"] == "ref-benchmark"
+    assert backup["project_contract"] is None
 
 
-def test_save_state_markdown_preserves_backup_project_contract_in_canonical_form(tmp_path: Path) -> None:
+def test_save_state_markdown_drops_malformed_primary_project_contract_with_extra_keys(
+    tmp_path: Path,
+) -> None:
     state = default_state_dict()
     state["position"]["status"] = "Executing"
     save_state_json(tmp_path, state)
@@ -959,9 +986,8 @@ def test_save_state_markdown_preserves_backup_project_contract_in_canonical_form
     result = save_state_markdown(tmp_path, md_content)
 
     saved = json.loads(layout.state_json.read_text(encoding="utf-8"))
-    assert result["project_contract"] is not None
-    assert saved["project_contract"] is not None
-    assert "notes" not in saved["project_contract"]["claims"][0]
+    assert result["project_contract"] is None
+    assert saved["project_contract"] is None
 
 
 def test_save_state_markdown_preserves_backup_project_contract_when_primary_json_is_unreadable(
@@ -1900,7 +1926,7 @@ def test_state_validate_standard_warns_for_project_contract_approval_blockers(tm
         "must_include_prior_outputs": [],
         "user_asserted_anchors": [],
         "known_good_baselines": [],
-        "context_gaps": [],
+        "context_gaps": ["Need a concrete must-surface anchor before approval."],
         "crucial_inputs": [],
     }
     contract["references"][0]["must_surface"] = False
@@ -1931,7 +1957,7 @@ def test_state_validate_review_blocks_project_contract_without_non_reference_gro
         "must_include_prior_outputs": [],
         "user_asserted_anchors": [],
         "known_good_baselines": [],
-        "context_gaps": [],
+        "context_gaps": ["Need a concrete must-surface anchor before approval."],
         "crucial_inputs": [],
     }
     contract["references"][0]["must_surface"] = False

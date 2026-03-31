@@ -698,6 +698,7 @@ class TestSkillsServerIntegration:
         assert result["project_reentry_capable"] is False
         assert "## Review Contract" in result["content"]
         assert "review_contract:" in result["content"]
+        assert "review-contract:" not in result["content"]
         assert "inject `review_contract` alongside `content`" in result["loading_hint"]
 
     def test_get_skill_resume_work_surfaces_project_reentry_metadata(self):

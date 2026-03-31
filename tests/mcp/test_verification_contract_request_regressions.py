@@ -75,6 +75,14 @@ def test_run_contract_check_accepts_semantically_equivalent_check_key_and_check_
     ("request_payload", "expected_error"),
     [
         (
+            {"check_key": ""},
+            {"error": "check_key must be a non-empty string", "schema_version": 1},
+        ),
+        (
+            {"check_id": ""},
+            {"error": "check_id must be a non-empty string", "schema_version": 1},
+        ),
+        (
             {"check_key": " contract.benchmark_reproduction "},
             {"error": "check_key must not include leading or trailing whitespace", "schema_version": 1},
         ),

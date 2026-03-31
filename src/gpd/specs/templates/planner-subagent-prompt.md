@@ -18,7 +18,7 @@ Template for spawning `gpd-planner`. The planner agent owns the planning logic; 
 **Research mode:** {research_mode}
 **Autonomy:** {autonomy}
 
-Planning requires an approved scoping contract. That contract must include a non-empty `context_intake`. If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of inferring scope from roadmap text alone.
+Planning requires an approved scoping contract. That contract must include a non-empty `contract.context_intake`. If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of inferring scope from roadmap text alone.
 The contract still exposes defaultable semantic fields: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other` and may be omitted only when that generic category is actually intended.
 
 **Project State:** {state_content}
@@ -53,10 +53,10 @@ Each plan MUST include:
 - **Order-of-magnitude estimates:** Before any detailed calculation, estimate the expected scale of the answer
 - **Error budget:** For numerical work, specify target precision and identify dominant error sources
 - **Consistency checks:** Cross-checks between independent methods or approaches where possible
-- **Contract completeness:** Every plan must carry decisive claims, deliverables, references, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter
+- **Contract completeness:** Every plan must carry decisive claims, deliverables, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter. Include `references[]` only when the contract does not already carry explicit grounding through `context_intake`, `approach_policy`, or preserved scoping inputs.
 - **Semantic defaults:** Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended; otherwise set the more specific value explicitly
 - **Defaulted semantic fields:** `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation` all exist in the contract and default to `other`
-- **Context intake:** Every plan must carry a non-empty `context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs the executor needs before planning
+- **Context intake:** Every plan must carry a non-empty `contract.context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs the executor needs before planning
 - **Anchor discipline:** If a benchmark, paper, dataset, baseline, or prior artifact is contract-critical, surface it in the plan instead of treating it as optional background
 - **Protocol bundle coverage:** If specialized protocol bundles are selected, carry their anchor prompts, estimator policies, decisive artifact guidance, and verification extensions into the plan rather than leaving them implicit
 </physics_planning_requirements>
@@ -65,8 +65,8 @@ Each plan MUST include:
 Planning requires `project_contract`:
 
 - If `project_contract` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of writing a weak or guessed plan.
-- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, references, acceptance tests, and forbidden proxies.
-- Every PLAN.md must include a non-empty `context_intake` frontmatter block with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs needed to execute the plan.
+- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, acceptance tests, and forbidden proxies. Include `references[]` only when the contract lacks explicit grounding elsewhere.
+- Every PLAN.md must include a non-empty `contract.context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs needed to execute the plan.
 - Every PLAN.md must carry forward required context from the contract: must-read refs, prior outputs, baselines, and user anchors when execution depends on them.
 - Treat `effective_reference_intake` as the machine-readable carry-forward ledger. Use `active_reference_context` to interpret it, not to replace it.
 - Every PLAN.md must include uncertainty markers from the contract when they constrain interpretation or verification.
@@ -75,7 +75,7 @@ Planning requires `project_contract`:
 </contract_completion_requirements>
 
 <light_mode_instructions>
-**If plan depth is `light`:** Keep the full canonical frontmatter, including `wave`, `depends_on`, `files_modified`, `interactive`, `conventions`, `contract`, and `context_intake`.
+**If plan depth is `light`:** Keep the full canonical frontmatter, including `wave`, `depends_on`, `files_modified`, `interactive`, `conventions`, `contract`, and `contract.context_intake`.
 
 Simplify only the body:
 

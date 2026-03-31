@@ -284,11 +284,11 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert payload.cost["advisory"]["state"] == "unavailable"
     assert "pricing snapshot" in payload.cost["advisory"]["message"]
 
-    assert payload.workflow_presets["ready"] == 5
-    assert payload.workflow_presets["degraded"] == 0
+    assert payload.workflow_presets["ready"] == 3
+    assert payload.workflow_presets["degraded"] == 2
     assert payload.workflow_presets["blocked"] == 0
     assert payload.workflow_presets["latex_capability"]["paper_build_ready"] is True
-    assert payload.workflow_presets["latex_capability"]["arxiv_submission_ready"] is True
+    assert payload.workflow_presets["latex_capability"]["arxiv_submission_ready"] is False
 
     assert payload.cost["advisory"]["state"] == "unavailable"
     assert "next_action" not in payload.cost["advisory"]

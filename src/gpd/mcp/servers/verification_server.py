@@ -18,7 +18,7 @@ from collections.abc import Iterable
 from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
+from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema, create_model
 from pydantic import ValidationError as PydanticValidationError
 
 from gpd.contracts import (
@@ -47,6 +47,37 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(le
 logger = logging.getLogger("gpd-verification")
 
 mcp = FastMCP("gpd-verification")
+
+
+def _tighten_registered_tool_contracts() -> None:
+    def _build_strict_call(original_call, allowed_keys):
+        async def _strict_call_fn_with_arg_validation(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly):
+            unknown_keys = sorted(str(key) for key in arguments_to_validate if key not in allowed_keys)
+            if unknown_keys:
+                return stable_mcp_error(f"Unsupported arguments: {', '.join(unknown_keys)}")
+            try:
+                return await original_call(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly)
+            except PydanticValidationError as exc:
+                return stable_mcp_error(exc)
+
+        return _strict_call_fn_with_arg_validation
+
+    for tool in mcp._tool_manager.list_tools():  # type: ignore[attr-defined]
+        arg_model = tool.fn_metadata.arg_model
+        strict_model = create_model(
+            f"{arg_model.__name__}Strict",
+            __base__=arg_model,
+            __config__=ConfigDict(extra="forbid", arbitrary_types_allowed=True),
+        )
+        tool.parameters = strict_model.model_json_schema(by_alias=True)
+        allowed_keys = {
+            key
+            for field_name, field_info in arg_model.model_fields.items()
+            for key in (field_name, field_info.alias)
+            if key is not None
+        }
+        original_call = tool.fn_metadata.call_fn_with_arg_validation
+        object.__setattr__(tool.fn_metadata, "call_fn_with_arg_validation", _build_strict_call(original_call, allowed_keys))
 
 _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
     "contract.limit_recovery": {
@@ -130,13 +161,16 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
         },
     },
     "contract.estimator_family_mismatch": {
-        "required_request_fields": ["metadata.declared_family", "observed.selected_family"],
+        "required_request_fields": [
+            "metadata.declared_family",
+            "observed.selected_family",
+            "observed.bias_checked",
+            "observed.calibration_checked",
+        ],
         "optional_request_fields": [
             "binding.*",
             "metadata.allowed_families[]",
             "metadata.forbidden_families[]",
-            "observed.bias_checked",
-            "observed.calibration_checked",
             "artifact_content",
         ],
         "request_template": {
@@ -158,7 +192,7 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
 
 
 class _ContractRequestBase(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
 
 class ContractBindingRequest(_ContractRequestBase):
@@ -481,15 +515,27 @@ _CONTRACT_SCOPE_INPUT_SCHEMA: dict[str, object] = _object_schema(
 )
 _CONTRACT_CONTEXT_INTAKE_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
-        "must_read_refs": _string_or_string_list_schema(),
-        "must_include_prior_outputs": _string_or_string_list_schema(),
-        "user_asserted_anchors": _string_or_string_list_schema(),
-        "known_good_baselines": _string_or_string_list_schema(),
-        "context_gaps": _string_or_string_list_schema(),
-        "crucial_inputs": _string_or_string_list_schema(),
+        "must_read_refs": _string_or_string_list_schema(min_items=1),
+        "must_include_prior_outputs": _string_or_string_list_schema(min_items=1),
+        "user_asserted_anchors": _string_or_string_list_schema(min_items=1),
+        "known_good_baselines": _string_or_string_list_schema(min_items=1),
+        "context_gaps": _string_or_string_list_schema(min_items=1),
+        "crucial_inputs": _string_or_string_list_schema(min_items=1),
     },
     additional_properties=False,
 )
+_CONTRACT_CONTEXT_INTAKE_INPUT_SCHEMA["minProperties"] = 1
+_CONTRACT_CONTEXT_INTAKE_INPUT_SCHEMA["anyOf"] = [
+    {"required": [field_name]}
+    for field_name in (
+        "must_read_refs",
+        "must_include_prior_outputs",
+        "user_asserted_anchors",
+        "known_good_baselines",
+        "context_gaps",
+        "crucial_inputs",
+    )
+]
 _CONTRACT_APPROACH_POLICY_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "formulations": _string_or_string_list_schema(),
@@ -518,11 +564,11 @@ _CONTRACT_CLAIM_INPUT_SCHEMA: dict[str, object] = _object_schema(
         "id": _non_empty_string_schema(),
         "statement": _non_empty_string_schema(),
         "observables": _string_or_string_list_schema(),
-        "deliverables": _string_or_string_list_schema(),
-        "acceptance_tests": _string_or_string_list_schema(),
+        "deliverables": _string_or_string_list_schema(min_items=1),
+        "acceptance_tests": _string_or_string_list_schema(min_items=1),
         "references": _string_or_string_list_schema(),
     },
-    required=("id", "statement"),
+    required=("id", "statement", "deliverables", "acceptance_tests"),
     additional_properties=False,
 )
 _CONTRACT_DELIVERABLE_INPUT_SCHEMA: dict[str, object] = _object_schema(
@@ -588,11 +634,12 @@ _CONTRACT_LINK_INPUT_SCHEMA: dict[str, object] = _object_schema(
 )
 _CONTRACT_UNCERTAINTY_MARKERS_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
-        "weakest_anchors": _string_or_string_list_schema(),
+        "weakest_anchors": _string_or_string_list_schema(min_items=1),
         "unvalidated_assumptions": _string_or_string_list_schema(),
         "competing_explanations": _string_or_string_list_schema(),
-        "disconfirming_observations": _string_or_string_list_schema(),
+        "disconfirming_observations": _string_or_string_list_schema(min_items=1),
     },
+    required=("weakest_anchors", "disconfirming_observations"),
     additional_properties=False,
 )
 _CONTRACT_PAYLOAD_INPUT_SCHEMA: dict[str, object] = _object_schema(
@@ -607,33 +654,52 @@ _CONTRACT_PAYLOAD_INPUT_SCHEMA: dict[str, object] = _object_schema(
         },
         "claims": {
             "type": "array",
+            "minItems": 1,
             "items": dict(_CONTRACT_CLAIM_INPUT_SCHEMA),
         },
         "deliverables": {
             "type": "array",
+            "minItems": 1,
             "items": dict(_CONTRACT_DELIVERABLE_INPUT_SCHEMA),
         },
         "acceptance_tests": {
             "type": "array",
+            "minItems": 1,
             "items": dict(_CONTRACT_ACCEPTANCE_TEST_INPUT_SCHEMA),
         },
         "references": {
             "type": "array",
+            "minItems": 1,
             "items": dict(_CONTRACT_REFERENCE_INPUT_SCHEMA),
         },
         "forbidden_proxies": {
             "type": "array",
+            "minItems": 1,
             "items": dict(_CONTRACT_FORBIDDEN_PROXY_INPUT_SCHEMA),
         },
         "links": {
             "type": "array",
+            "minItems": 1,
             "items": dict(_CONTRACT_LINK_INPUT_SCHEMA),
         },
         "uncertainty_markers": dict(_CONTRACT_UNCERTAINTY_MARKERS_INPUT_SCHEMA),
     },
-    required=("scope", "context_intake"),
+    required=("scope", "context_intake", "uncertainty_markers"),
     additional_properties=False,
 )
+_CONTRACT_PAYLOAD_INPUT_SCHEMA["description"] = (
+    "schema_version defaults to 1 when omitted. context_intake must contain at least one non-empty grounding field. "
+    "uncertainty_markers must include weakest_anchors and disconfirming_observations. "
+    "Each claim must name deliverables and acceptance_tests. When claims are present, top-level deliverables and "
+    "acceptance_tests must also be present. Additional semantic integrity rules still apply at runtime for scoping, "
+    "grounding, references, forbidden_proxies, and id resolution."
+)
+_CONTRACT_PAYLOAD_INPUT_SCHEMA["allOf"] = [
+    {
+        "if": {"required": ["claims"], "properties": {"claims": {"type": "array", "minItems": 1}}},
+        "then": {"required": ["deliverables", "acceptance_tests"]},
+    }
+]
 
 
 def _run_contract_binding_condition_schema() -> list[dict[str, object]]:
@@ -690,8 +756,91 @@ def _run_contract_identifier_pairing_condition_schema() -> dict[str, object] | N
     }
 
 
+def _request_section_required_schema(section_schema: dict[str, object], required_fields: Iterable[str]) -> dict[str, object]:
+    required_list = [field for field in required_fields if field]
+    schema = dict(section_schema)
+    if required_list:
+        schema["required"] = required_list
+    return schema
+
+
+def _run_contract_request_requirement_condition_schema(check_key: str, hint: dict[str, object]) -> dict[str, object] | None:
+    check_meta = get_verification_check(check_key)
+    if check_meta is None:
+        return None
+    identifiers = _check_identifier_values({"check_key": check_meta.check_key, "check_id": check_meta.check_id})
+    if not identifiers:
+        return None
+
+    section_requirements: dict[str, list[str]] = {}
+    top_level_required: list[str] = []
+    for field_path in hint.get("required_request_fields", []):
+        if not isinstance(field_path, str) or not field_path:
+            continue
+        section, separator, nested_field = field_path.partition(".")
+        if not separator:
+            if section not in top_level_required:
+                top_level_required.append(section)
+            continue
+        section_requirements.setdefault(section, [])
+        if nested_field not in section_requirements[section]:
+            section_requirements[section].append(nested_field)
+
+    if not top_level_required and not section_requirements:
+        return None
+
+    then_schema: dict[str, object] = {}
+    required_top_level = list(dict.fromkeys([*top_level_required, *section_requirements.keys()]))
+    if required_top_level:
+        then_schema["required"] = required_top_level
+
+    section_schemas: dict[str, object] = {}
+    if "metadata" in section_requirements:
+        section_schemas["metadata"] = _request_section_required_schema(
+            _CONTRACT_METADATA_INPUT_SCHEMA,
+            section_requirements["metadata"],
+        )
+    if "observed" in section_requirements:
+        section_schemas["observed"] = _request_section_required_schema(
+            _CONTRACT_OBSERVED_INPUT_SCHEMA,
+            section_requirements["observed"],
+        )
+    if "binding" in section_requirements:
+        section_schemas["binding"] = _request_section_required_schema(
+            _CONTRACT_BINDING_INPUT_SCHEMA,
+            section_requirements["binding"],
+        )
+    if "contract" in section_requirements:
+        section_schemas["contract"] = _request_section_required_schema(
+            _CONTRACT_PAYLOAD_INPUT_SCHEMA,
+            section_requirements["contract"],
+        )
+    if "artifact_content" in top_level_required:
+        section_schemas["artifact_content"] = _non_empty_string_or_null_schema()
+    if section_schemas:
+        then_schema["properties"] = section_schemas
+
+    if not then_schema:
+        return None
+
+    return {
+        "if": {
+            "anyOf": [
+                {"required": ["check_key"], "properties": {"check_key": {"enum": list(identifiers)}}},
+                {"required": ["check_id"], "properties": {"check_id": {"enum": list(identifiers)}}},
+            ]
+        },
+        "then": then_schema,
+    }
+
+
 _RUN_CONTRACT_CHECK_BINDING_CONDITIONS = _run_contract_binding_condition_schema()
 _RUN_CONTRACT_CHECK_IDENTIFIER_PAIRING_CONDITION = _run_contract_identifier_pairing_condition_schema()
+_RUN_CONTRACT_CHECK_REQUIRED_FIELD_CONDITIONS = [
+    condition
+    for check_key, hint in _CONTRACT_CHECK_REQUEST_HINTS.items()
+    if (condition := _run_contract_request_requirement_condition_schema(check_key, hint)) is not None
+]
 _RUN_CONTRACT_CHECK_REQUEST_SCHEMA: dict[str, object] = {
     "type": "object",
     "additionalProperties": False,
@@ -714,6 +863,7 @@ if _RUN_CONTRACT_CHECK_BINDING_CONDITIONS:
     all_of_conditions.extend(_RUN_CONTRACT_CHECK_BINDING_CONDITIONS)
 if _RUN_CONTRACT_CHECK_IDENTIFIER_PAIRING_CONDITION is not None:
     all_of_conditions.append(_RUN_CONTRACT_CHECK_IDENTIFIER_PAIRING_CONDITION)
+all_of_conditions.extend(_RUN_CONTRACT_CHECK_REQUIRED_FIELD_CONDITIONS)
 if all_of_conditions:
     _RUN_CONTRACT_CHECK_REQUEST_SCHEMA["allOf"] = all_of_conditions
 
@@ -1296,7 +1446,7 @@ def _validate_check_identifier(value: object, *, field_name: str) -> tuple[str |
     if not isinstance(value, str):
         return None, _error_result(f"{field_name} must be a string")
     if not value:
-        return None, None
+        return None, _error_result(f"{field_name} must be a non-empty string")
     if not value.strip():
         return None, _error_result(f"{field_name} must be a non-empty string")
     if value != value.strip():
@@ -3824,6 +3974,9 @@ def main() -> None:
     from gpd.mcp.servers import run_mcp_server
 
     run_mcp_server(mcp, "GPD Verification MCP Server")
+
+
+_tighten_registered_tool_contracts()
 
 
 if __name__ == "__main__":

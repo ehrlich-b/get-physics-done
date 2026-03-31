@@ -56,6 +56,7 @@ class HookPayloadPolicy:
 class RuntimeCapabilityPolicy:
     permissions_surface: str = "unsupported"
     permission_surface_kind: str = "none"
+    prompt_free_mode_value: str | None = None
     supports_runtime_permission_sync: bool = False
     supports_prompt_free_mode: bool = False
     prompt_free_requires_relaunch: bool = False
@@ -126,6 +127,7 @@ def _load_catalog() -> tuple[RuntimeDescriptor, ...]:
                 capabilities=RuntimeCapabilityPolicy(
                     permissions_surface=str(capability_entry.get("permissions_surface", "unsupported")),
                     permission_surface_kind=str(capability_entry.get("permission_surface_kind", "none")),
+                    prompt_free_mode_value=_optional_str(capability_entry.get("prompt_free_mode_value")),
                     supports_runtime_permission_sync=bool(
                         capability_entry.get("supports_runtime_permission_sync", False)
                     ),

@@ -3121,6 +3121,36 @@ def test_doctor_target_dir_stays_local_when_target_is_not_global(mock_doctor, tm
     )
 
 
+@patch("gpd.core.health.run_doctor")
+def test_doctor_runtime_mode_uses_detected_installed_target_when_scope_is_unspecified(
+    mock_doctor, tmp_path: Path
+) -> None:
+    from gpd.specs import SPECS_DIR
+
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {"mode": "runtime-readiness", "overall": "ok"}
+    mock_doctor.return_value = mock_result
+    runtime_name = list_runtimes()[0]
+    detected_target = tmp_path / "runtime-global-target"
+
+    with patch(
+        "gpd.hooks.runtime_detect.detect_runtime_install_target",
+        return_value=SimpleNamespace(config_dir=detected_target, install_scope="global"),
+    ):
+        result = runner.invoke(app, ["--cwd", str(tmp_path), "--raw", "doctor", "--runtime", runtime_name])
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {"mode": "runtime-readiness", "overall": "ok"}
+    mock_doctor.assert_called_once_with(
+        specs_dir=SPECS_DIR,
+        runtime=runtime_name,
+        install_scope="global",
+        target_dir=detected_target,
+        cwd=tmp_path,
+        live_executable_probes=False,
+    )
+
+
 def test_doctor_rejects_scope_without_runtime() -> None:
     result = runner.invoke(app, ["doctor", "--global"])
 
@@ -3286,6 +3316,164 @@ def test_validate_unattended_readiness_wires_local_runtime_scope_through_health_
         "autonomy": None,
         "install_scope": "local",
         "target_dir": None,
+        "doctor_report": doctor_report,
+        "permissions_payload": permissions_payload,
+        "live_executable_probes": False,
+        "validated_surface": "runtime-surface-test",
+    }
+
+
+def test_validate_unattended_readiness_uses_detected_installed_target_when_scope_is_unspecified(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from gpd.specs import SPECS_DIR
+
+    runtime_name = list_runtimes()[0]
+    detected_target = tmp_path / "runtime-global-target"
+    doctor_report = DoctorReport(
+        overall=CheckStatus.OK,
+        version="0.1.0",
+        runtime=runtime_name,
+        install_scope="global",
+        target=str(detected_target),
+        summary=HealthSummary(ok=2, warn=0, fail=0, total=2),
+        checks=[
+            HealthCheck(status=CheckStatus.OK, label="Runtime Launcher"),
+            HealthCheck(status=CheckStatus.OK, label="Runtime Config Target"),
+        ],
+    )
+    permissions_payload = {
+        "runtime": runtime_name,
+        "target": str(detected_target),
+        "autonomy": "balanced",
+        "readiness": "ready",
+        "ready": True,
+        "readiness_message": "Runtime permissions are ready for unattended use.",
+        "next_step": "",
+        "status_scope": "config-only",
+        "current_session_verified": False,
+    }
+    expected_result = UnattendedReadinessResult(
+        runtime=runtime_name,
+        autonomy="balanced",
+        install_scope="global",
+        target=str(detected_target),
+        readiness="ready",
+        ready=True,
+        passed=True,
+        readiness_message="Runtime permissions are ready for unattended use.",
+        live_executable_probes=False,
+        checks=[
+            UnattendedReadinessCheck(
+                name="permissions",
+                passed=True,
+                blocking=False,
+                detail="Runtime permissions are ready for unattended use.",
+            )
+        ],
+        blocking_conditions=[],
+        warnings=[],
+        next_step="",
+        status_scope="config-only",
+        current_session_verified=False,
+        validated_surface="runtime-surface-test",
+    )
+
+    captured: dict[str, object] = {}
+
+    def fake_run_doctor(
+        *,
+        specs_dir: Path | None = None,
+        version: str | None = None,
+        runtime: str | None = None,
+        install_scope: str | None = None,
+        target_dir: str | Path | None = None,
+        cwd: Path | None = None,
+        live_executable_probes: bool = False,
+    ) -> MagicMock:
+        captured["doctor_kwargs"] = {
+            "specs_dir": specs_dir,
+            "version": version,
+            "runtime": runtime,
+            "install_scope": install_scope,
+            "target_dir": target_dir,
+            "cwd": cwd,
+            "live_executable_probes": live_executable_probes,
+        }
+        return doctor_report
+
+    def fake_permissions_status_payload(*, runtime: str | None, autonomy: str | None, target_dir: str | None) -> dict[str, object]:
+        captured["permissions_kwargs"] = {
+            "runtime": runtime,
+            "autonomy": autonomy,
+            "target_dir": target_dir,
+        }
+        return permissions_payload
+
+    def fake_build_unattended_readiness_result(**kwargs) -> UnattendedReadinessResult:
+        captured["builder_kwargs"] = kwargs
+        return expected_result
+
+    monkeypatch.setattr("gpd.core.health.run_doctor", fake_run_doctor)
+    monkeypatch.setattr("gpd.core.health.build_unattended_readiness_result", fake_build_unattended_readiness_result)
+    monkeypatch.setattr(cli_module, "_permissions_status_payload", fake_permissions_status_payload)
+    monkeypatch.setattr(cli_module, "_validated_runtime_surface", lambda cwd=None: "runtime-surface-test")
+
+    with patch(
+        "gpd.hooks.runtime_detect.detect_runtime_install_target",
+        return_value=SimpleNamespace(config_dir=detected_target, install_scope="global"),
+    ):
+        result = runner.invoke(
+            app,
+            ["--cwd", str(tmp_path), "--raw", "validate", "unattended-readiness", "--runtime", runtime_name],
+        )
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "runtime": runtime_name,
+        "autonomy": "balanced",
+        "install_scope": "global",
+        "target": str(detected_target),
+        "readiness": "ready",
+        "ready": True,
+        "passed": True,
+        "readiness_message": "Runtime permissions are ready for unattended use.",
+        "live_executable_probes": False,
+        "checks": [
+            {
+                "name": "permissions",
+                "passed": True,
+                "blocking": False,
+                "detail": "Runtime permissions are ready for unattended use.",
+            }
+        ],
+        "blocking_conditions": [],
+        "warnings": [],
+        "next_step": "",
+        "status_scope": "config-only",
+        "current_session_verified": False,
+        "validated_surface": "runtime-surface-test",
+    }
+    assert captured["doctor_kwargs"] == {
+        "specs_dir": SPECS_DIR,
+        "version": None,
+        "runtime": runtime_name,
+        "install_scope": "global",
+        "target_dir": detected_target,
+        "cwd": tmp_path,
+        "live_executable_probes": False,
+    }
+    assert captured["permissions_kwargs"] == {
+        "runtime": runtime_name,
+        "autonomy": None,
+        "target_dir": str(detected_target),
+    }
+    assert captured["builder_kwargs"] == {
+        "runtime": runtime_name,
+        "autonomy": None,
+        "install_scope": "global",
+        "target_dir": detected_target,
         "doctor_report": doctor_report,
         "permissions_payload": permissions_payload,
         "live_executable_probes": False,

@@ -1342,6 +1342,7 @@ class GeminiAdapter(RuntimeAdapter):
         Extends base uninstall with Gemini-specific settings.json cleanup.
         """
         manifest = read_settings(target_dir / MANIFEST_NAME)
+        has_authoritative_manifest = self._has_authoritative_install_manifest(target_dir)
         managed_config = manifest.get("managed_config")
         managed_runtime_files = manifest.get("managed_runtime_files")
         remove_managed_enable_agents = (
@@ -1447,20 +1448,21 @@ class GeminiAdapter(RuntimeAdapter):
             if modified:
                 write_settings(settings_path, settings)
                 logger.info("Cleaned up Gemini settings.json (statusline, hooks, experimental, MCP)")
-            if remove_empty_json_object_file(settings_path):
+            if has_authoritative_manifest and remove_empty_json_object_file(settings_path):
                 result.setdefault("removed", []).append(settings_path.name)
 
-        policy_files = _normalize_string_list(managed_runtime_files)
-        if not policy_files:
-            policy_files = [str(_managed_gemini_policy_path(target_dir).relative_to(target_dir))]
-        for rel_path in policy_files:
-            candidate = target_dir / rel_path
-            if candidate.exists():
-                candidate.unlink()
-                result.setdefault("removed", []).append(rel_path)
         policy_dir = _managed_gemini_policy_path(target_dir).parent
-        if policy_dir.is_dir() and not any(policy_dir.iterdir()):
-            policy_dir.rmdir()
+        if has_authoritative_manifest:
+            policy_files = _normalize_string_list(managed_runtime_files)
+            if not policy_files:
+                policy_files = [str(_managed_gemini_policy_path(target_dir).relative_to(target_dir))]
+            for rel_path in policy_files:
+                candidate = target_dir / rel_path
+                if candidate.exists():
+                    candidate.unlink()
+                    result.setdefault("removed", []).append(rel_path)
+            if policy_dir.is_dir() and not any(policy_dir.iterdir()):
+                policy_dir.rmdir()
 
         for path in (
             target_dir / "commands",

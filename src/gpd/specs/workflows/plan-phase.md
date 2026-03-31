@@ -554,6 +554,13 @@ Planning requires an approved project contract. If `{project_contract}` is empty
 
 Use `templates/plan-contract-schema.md` as the canonical contract schema reference.
 
+**Validator gate before planning:**
+- `contract.context_intake` is required and must be a non-empty object. Do not start planning until the contract carries the required carry-forward inputs from the schema.
+- For ordinary execution plans, the contract surface must include `scope`, `contract.context_intake`, `claims`, `deliverables`, `acceptance_tests`, `forbidden_proxies`, and `uncertainty_markers`; include `references` only when explicit grounding is not already carried elsewhere in the contract.
+- Non-scoping plans keep `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` non-empty. Include `references[]` only when the plan relies on external grounding that is not already explicit in `contract.context_intake`, `approach_policy`, or preserved scoping inputs. Do not downgrade these to prose or placeholder text.
+- Light mode changes the body only. Keep the full canonical frontmatter, including `wave`, `depends_on`, `files_modified`, `interactive`, `conventions`, and `contract`.
+- If the contract is scoping-only, preserve at least one target, open question, or carry-forward input instead of emitting a hollow scaffold.
+
 **Phase Context:**
 IMPORTANT: If context exists below, it contains USER DECISIONS from /gpd:discuss-phase.
 
@@ -596,8 +603,8 @@ Each plan MUST include:
 Planning requires `project_contract`:
 
 - If `project_contract` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of writing a weak or guessed plan.
-- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, references, acceptance tests, and forbidden proxies.
-- Every PLAN.md must carry forward required context from the contract: must-read refs, prior outputs, baselines, and user anchors when execution depends on them.
+- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, acceptance tests, and forbidden proxies. Include `references` only when the plan needs explicit external grounding.
+- Every PLAN.md must carry forward required context from the contract: must-read refs, prior outputs, baselines, and user anchors when execution depends on them. That context lives under `contract.context_intake`, not as a separate top-level block.
 - Every PLAN.md must include uncertainty markers from the contract when they constrain interpretation or verification.
 - Every PLAN.md should express result wiring through `contract.links` or explicit task/verification handoffs, not through a second ad hoc success schema.
 - Validate each finished plan with `gpd validate plan-contract <PLAN.md>` before treating it as approved.

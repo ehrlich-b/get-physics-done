@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
 
 from gpd import registry
+from gpd.core.review_contract_prompt import render_review_contract_prompt
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COMMANDS_DIR = REPO_ROOT / "src/gpd/commands"
@@ -46,12 +48,15 @@ def test_review_grade_commands_prepend_model_visible_review_contract_to_registry
         contract = command.review_contract
 
         assert contract is not None
+        expected_section = render_review_contract_prompt(dataclasses.asdict(contract))
+        assert command.content.startswith(expected_section)
         assert command.content.startswith("## Review Contract\n")
         assert "## Review Contract" in command.content
         assert "review_contract:" in command.content
-        assert f"review_mode: {contract.review_mode}" in command.content
+        assert f"review_mode: {contract.review_mode}" in expected_section
+        assert expected_section == command.content[: len(expected_section)]
         for output in contract.required_outputs:
-            assert output in command.content
+            assert output in expected_section
 
 
 def test_verify_work_review_contract_uses_phase_scoped_output_path() -> None:
@@ -79,12 +84,21 @@ def test_write_paper_review_contract_uses_round_suffixed_referee_outputs() -> No
 
     assert contract is not None
     assert contract.required_outputs == [
-        "paper/main.tex",
+        "${PAPER_DIR}/main.tex",
         "GPD/REFEREE-REPORT{round_suffix}.md",
         "GPD/REFEREE-REPORT{round_suffix}.tex",
     ]
     assert "GPD/REFEREE-REPORT{round_suffix}.md" in _read_command("write-paper")
     assert "GPD/REFEREE-REPORT{round_suffix}.tex" in _read_command("write-paper")
+
+
+def test_write_paper_review_contract_surfaces_manuscript_root_review_dependencies() -> None:
+    source = _read_command("write-paper")
+
+    assert "${PAPER_DIR}/ARTIFACT-MANIFEST.json" in source
+    assert "${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json" in source
+    assert "${PAPER_DIR}/reproducibility-manifest.json" in source
+    assert "stage review artifacts" not in source
 
 
 def test_summary_template_surfaces_plan_contract_ref_rule_for_contract_ledgers() -> None:

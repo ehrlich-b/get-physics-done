@@ -271,6 +271,44 @@ class TestNonGpdFilesPreserved:
         assert len(gpd_agents) == 0
         assert (target / "agents" / "my-custom-agent.md").exists()
 
+    def test_install_allows_user_agents_and_empty_runtime_config_without_manifest(self, tmp_path: Path) -> None:
+        gpd_root = _make_gpd_root(tmp_path)
+        adapter = get_adapter("claude-code")
+        target = tmp_path / ".claude"
+        agents_dir = target / "agents"
+        agents_dir.mkdir(parents=True)
+        (agents_dir / "my-custom-agent.md").write_text("custom agent\n", encoding="utf-8")
+        (target / "settings.json").write_text("{}", encoding="utf-8")
+
+        adapter.install(gpd_root, target, is_global=True)
+
+        assert (target / "settings.json").exists()
+        assert (agents_dir / "my-custom-agent.md").exists()
+        assert any(path.name.startswith("gpd-") for path in agents_dir.iterdir())
+
+    @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+    def test_uninstall_preserves_empty_runtime_config_without_manifest(
+        self,
+        tmp_path: Path,
+        descriptor,
+    ) -> None:
+        adapter = get_adapter(descriptor.runtime_name)
+        target = tmp_path / adapter.config_dir_name
+        agents_dir = target / "agents"
+        agents_dir.mkdir(parents=True)
+        (agents_dir / "my-custom-agent.md").write_text("custom agent\n", encoding="utf-8")
+        config_filename = "config.toml" if descriptor.runtime_name == "codex" else (
+            "opencode.json" if descriptor.runtime_name == "opencode" else "settings.json"
+        )
+        config_content = "" if descriptor.runtime_name == "codex" else "{}"
+        (target / config_filename).write_text(config_content, encoding="utf-8")
+
+        result = adapter.uninstall(target)
+
+        assert result["removed"] == []
+        assert (target / config_filename).exists()
+        assert (agents_dir / "my-custom-agent.md").exists()
+
     def test_install_preserves_unmanaged_hook_with_matching_gpd_basename(self, tmp_path: Path) -> None:
         gpd_root = _make_gpd_root(tmp_path)
         adapter = get_adapter("claude-code")

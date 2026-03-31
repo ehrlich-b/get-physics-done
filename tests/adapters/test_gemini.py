@@ -259,9 +259,11 @@ class TestConvertToGeminiToml:
         )
 
         result = _convert_to_gemini_toml(content)
+        section = result[result.index("## Review Contract") :]
 
         assert "## Review Contract" in result
-        assert "review-contract:" in result
+        assert "review_contract:" in section
+        assert "review-contract:" not in section
         assert "review_mode: publication" in result
         assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in result
         assert result.index("## Review Contract") < result.index("Prompt body")

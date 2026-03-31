@@ -19,7 +19,7 @@ from pathlib import Path, PurePosixPath
 from gpd.adapters.runtime_catalog import get_runtime_descriptor, resolve_global_config_dir
 from gpd.adapters.tool_names import CONTEXTUAL_TOOL_REFERENCE_NAMES
 from gpd.core.constants import HOME_DATA_DIR_NAME
-from gpd.core.review_contract_prompt import extract_frontmatter_block, prepend_review_contract_prompt
+from gpd.core.review_contract_prompt import extract_frontmatter_block, render_review_contract_prompt
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -450,11 +450,14 @@ def _inject_review_contract_prompt_from_frontmatter(content: str) -> str:
         return content
     if body.lstrip().startswith("## Review Contract"):
         return content
+    section = render_review_contract_prompt(extract_frontmatter_block(frontmatter, "review-contract"))
+    if not section:
+        return content
     return render_markdown_frontmatter(
         preamble,
         frontmatter,
         separator,
-        prepend_review_contract_prompt(body, extract_frontmatter_block(frontmatter, "review-contract")),
+        f"{section}\n\n{body}" if body else section,
     )
 
 
@@ -1666,29 +1669,15 @@ def copy_hook_scripts(gpd_root: Path, target_dir: Path) -> list[str]:
     if not hooks_src.is_dir():
         return []
 
-    manifest_path = target_dir / MANIFEST_NAME
-    tracked_hook_paths: set[str] = set()
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (FileNotFoundError, OSError, json.JSONDecodeError):
-        manifest = {}
-    if isinstance(manifest, dict):
-        raw_files = manifest.get("files")
-        if isinstance(raw_files, dict):
-            tracked_hook_paths = {str(path) for path in raw_files if str(path).startswith("hooks/")}
-
     hooks_dest = target_dir / "hooks"
     hooks_dest.mkdir(parents=True, exist_ok=True)
+    managed_paths = managed_hook_paths(target_dir)
     for hook_file in hooks_src.iterdir():
         if hook_file.is_file() and not hook_file.name.startswith("__"):
             dest = hooks_dest / hook_file.name
             rel_path = f"hooks/{hook_file.name}"
-            if dest.exists():
-                managed_by_manifest = rel_path in tracked_hook_paths
-                managed_by_hash = file_hash(dest) == file_hash(hook_file)
-                if not (managed_by_manifest or managed_by_hash):
-                    _install_logger.warning("Preserving unmanaged hook file during install: %s", dest)
-                    continue
+            if dest.exists() and rel_path not in managed_paths:
+                continue
             _shutil.copy2(hook_file, dest)
 
     if verify_installed(hooks_dest, "hooks"):

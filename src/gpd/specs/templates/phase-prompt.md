@@ -10,9 +10,9 @@ Before authoring or revising the `contract:` block, use the canonical schema bel
 
 @{GPD_INSTALL_DIR}/templates/plan-contract-schema.md
 
-The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `context_intake`, plus non-empty `uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations`. If references are present, at least one must set `must_surface: true`.
+The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `contract.context_intake`, plus non-empty `uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations`. If the contract does not already carry explicit grounding elsewhere, references must be present and at least one must set `must_surface: true`.
 Semantic enum fields with schema defaults may be omitted when `other` is actually intended. Use explicit `kind`, `role`, and `relation` values when the plan already knows the more specific semantics.
-The defaultable semantic fields still exist in the contract surface: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other`, but the more specific value remains mandatory when the plan already knows it.
+The defaultable semantic fields still exist in the contract surface: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other`, but the more specific value remains mandatory when the plan already knows it. `references[]` are only required when the contract does not already carry explicit grounding through `contract.context_intake`, `approach_policy`, or preserved scoping inputs.
 
 ---
 
@@ -196,14 +196,14 @@ For `plan depth: light`, keep the same frontmatter but reduce the body to:
 - `<success_criteria>`
 
 Do not omit the `contract`, conventions, or approximation validity just because the plan is light.
-The `contract` block is still required in light mode, including `context_intake` and any `links` needed to make downstream handoffs explicit.
+The `contract` block is still required in light mode, including `contract.context_intake` and any `links` needed to make downstream handoffs explicit.
 If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input instead of emitting a half-empty execution contract.
 
 ## Contract Shape Classifier
 
 - Reduced contract: legal only when the plan is explicitly scoping or exploratory.
 - Full contract: required when the plan will execute, verify, or publish a concrete result.
-- A reduced contract still needs `scope`, `context_intake`, and `uncertainty_markers` explicit, plus at least one target, open question, or carry-forward input.
+- A reduced contract still needs `scope`, `contract.context_intake`, and `uncertainty_markers` explicit, plus at least one target, open question, or carry-forward input.
 - Light mode changes the body only; it does not change the contract classifier above.
 
 When a plan genuinely depends on specialized tooling outside the guaranteed Python/SymPy baseline, declare it in `tool_requirements` instead of hiding it in task prose. Use canonical tool keys such as `wolfram` for Mathematica / Wolfram Language capability, include a stable `id`, keep `purpose` specific, and add a fallback when one exists.

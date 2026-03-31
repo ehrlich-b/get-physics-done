@@ -571,6 +571,41 @@ Done.
     assert result.citations.citation_keys_resolve.total == 1
 
 
+def test_build_paper_quality_input_uses_active_manuscript_root_and_lowercase_config(tmp_path: Path) -> None:
+    (tmp_path / "paper").mkdir()
+    _write(
+        tmp_path / "manuscript" / "main.tex",
+        r"""
+\documentclass{article}
+\begin{document}
+\begin{abstract}
+Active manuscript root test.
+\end{abstract}
+\section{Introduction}
+See \cite{bench2026}.
+\section{Conclusion}
+Done.
+\end{document}
+""".strip()
+        + "\n",
+    )
+    _write(
+        tmp_path / "manuscript" / "paper-config.json",
+        json.dumps({"title": "Lowercase Config Title", "journal": "jhep"}),
+    )
+    _write(
+        tmp_path / "manuscript" / "refs.bib",
+        "@article{bench2026,\n  title={Benchmark},\n  author={Doe, Jane},\n  year={2026}\n}\n",
+    )
+
+    result = build_paper_quality_input(tmp_path)
+
+    assert result.title == "Lowercase Config Title"
+    assert result.journal == "jhep"
+    assert result.citations.citation_keys_resolve.satisfied == 1
+    assert result.citations.citation_keys_resolve.total == 1
+
+
 def test_build_paper_quality_input_surfaces_current_manuscript_reference_status(tmp_path: Path) -> None:
     _write(
         tmp_path / "paper" / "main.tex",

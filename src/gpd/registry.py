@@ -491,13 +491,7 @@ def render_review_contract_section(review_contract: ReviewCommandContract | None
 
     if review_contract is None:
         return ""
-    return render_review_contract_prompt(
-        yaml.safe_dump(
-            {"review_contract": _review_contract_payload(review_contract)},
-            sort_keys=False,
-            allow_unicode=False,
-        )
-    )
+    return render_review_contract_prompt(_review_contract_payload(review_contract))
 
 
 def _command_model_content(body: str, review_contract: ReviewCommandContract | None) -> str:

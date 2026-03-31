@@ -1031,6 +1031,7 @@ class TestSkillsServer:
         assert result["review_contract"]["review_mode"] == "publication"
         assert "## Review Contract" in result["content"]
         assert "review_contract:" in result["content"]
+        assert "review-contract:" not in result["content"]
         assert all(not entry["path"].startswith("/") for entry in result["schema_documents"])
         assert all(not entry["path"].startswith("/") for entry in result["contract_documents"])
 

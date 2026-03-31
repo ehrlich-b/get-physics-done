@@ -27,10 +27,16 @@ from gpd.adapters.install_utils import (
 from gpd.adapters.opencode import OpenCodeAdapter
 from gpd.adapters.runtime_catalog import resolve_global_config_dir
 from gpd.adapters.tool_names import build_canonical_alias_map
-from gpd.registry import load_agents_from_dir
+from gpd.registry import get_command, load_agents_from_dir
 
 REPO_GPD_ROOT = Path(__file__).resolve().parents[2] / "src" / "gpd"
 RUNTIME_ALIAS_MAP = build_canonical_alias_map(adapter.tool_name_map for adapter in iter_adapters())
+
+
+def _review_contract_section(content: str) -> str:
+    match = re.search(r"## Review Contract\n\n.*?\n```\n", content, flags=re.DOTALL)
+    assert match is not None
+    return match.group(0)
 
 
 def expected_opencode_bridge(target: Path, *, is_global: bool = False, explicit_target: bool = False) -> str:
@@ -985,7 +991,11 @@ def test_real_installed_contract_and_review_surfaces_keep_required_schema_bodies
     assert "\nsubject_kind: [claim | deliverable | acceptance_test | reference | forbidden_proxy | suggested_contract_check]" not in verify_work
     assert "check_subject_kind: [claim | deliverable | acceptance_test | reference | forbidden_proxy | suggested_contract_check]" not in verify_work
     assert "# state.json Schema" in sync_state
-    assert "## Review Contract" in write_paper
+    write_paper_section = _review_contract_section(write_paper)
+    registry_write_paper_section = _review_contract_section(get_command("write-paper").content)
+    assert write_paper_section == registry_write_paper_section
+    assert "review_contract:" in write_paper_section
+    assert "review-contract:" not in write_paper_section
     assert write_paper.index("## Review Contract") < write_paper.index("Reproducibility Manifest Template")
     assert "Reproducibility Manifest Template" in write_paper
     assert "Peer Review Panel Protocol" in review_literature

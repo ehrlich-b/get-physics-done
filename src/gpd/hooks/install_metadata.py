@@ -12,7 +12,6 @@ from gpd.adapters.install_utils import (
     COMMANDS_DIR_NAME,
     FLAT_COMMANDS_DIR_NAME,
     GPD_INSTALL_DIR_NAME,
-    HOOKS_DIR_NAME,
     MANIFEST_NAME,
     build_runtime_install_repair_command,
 )
@@ -42,14 +41,22 @@ def _load_manifest_payload(config_dir: Path) -> dict[str, object] | None:
 
 def config_dir_has_managed_install_markers(config_dir: Path) -> bool:
     """Return whether *config_dir* carries any managed GPD install markers."""
-    return any(
+    if any(
         (
             (config_dir / GPD_INSTALL_DIR_NAME).exists(),
             (config_dir / COMMANDS_DIR_NAME / "gpd").exists(),
             (config_dir / FLAT_COMMANDS_DIR_NAME).exists(),
-            (config_dir / AGENTS_DIR_NAME).exists(),
-            (config_dir / HOOKS_DIR_NAME).exists(),
         )
+    ):
+        return True
+
+    agents_dir = config_dir / AGENTS_DIR_NAME
+    if not agents_dir.is_dir():
+        return False
+
+    return any(
+        entry.is_file() and entry.name.startswith("gpd-") and entry.suffix in {".md", ".toml"}
+        for entry in agents_dir.iterdir()
     )
 
 
