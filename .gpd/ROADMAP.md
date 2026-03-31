@@ -247,8 +247,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 41-01-PLAN.md -- Compute c_s, v_LR, velocity hierarchy, lattice-BW universality, Fisher metric for O(9)/S^8
-- [ ] 41-02-PLAN.md -- Update derivation chain links (i)-(l) with O(9) numbers, remove carry-forward caveat
+- [x] 41-01-PLAN.md -- Compute c_s, v_LR, velocity hierarchy, lattice-BW universality, Fisher metric for O(9)/S^8
+- [x] 41-02-PLAN.md -- Update derivation chain links (i)-(l) with O(9) numbers, remove carry-forward caveat
 
 ---
 
@@ -321,3 +321,4 @@ Plans:
 | 38. Effective Hamiltonian | v10.0 | 2/2 | Complete | 2026-03-30 |
 | 39. SSB + Universality Class | v10.0 | 4/4 | Complete | 2026-03-30 |
 | 40. Assembly | v10.0 | 2/2 | Complete | 2026-03-30 |
+| 41. O(9)/S^8 Quantitative Verification | v10.0 | 2/2 | Complete | 2026-03-30 |

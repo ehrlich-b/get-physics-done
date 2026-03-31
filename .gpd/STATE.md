@@ -11,22 +11,27 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 
 ## Current Position
 
-**Current Phase:** 40
-**Current Phase Name:** Assembly: All Gaps Closed
-**Total Phases:** 40 (36 prior + 4 new in v10.0)
+**Current Phase:** 41
+**Current Phase Name:** O(9)/S^8 Quantitative Verification
+**Total Phases:** 6 (36 prior + 4 v10.0 + 1 patch)
 **Current Plan:** 2/2
 **Total Plans in Phase:** 2
-**Status:** Phase 40 execution complete -- both plans executed, pending verification
+**Status:** Phase 41 execution complete -- both plans executed, pending verification
 **Last Activity:** 2026-03-30
-**Last Activity Description:** v10.0 derivation chain (12 links) + gap scorecards + v10/v9 comparison assembled
+**Last Activity Description:** O(9) quantitative results computed (41-01) and derivation chain updated (41-02)
 
-**Progress:** [########################################] 100% (40/40 phases complete)
+**Progress:** [#########################################] 100% (41/41 phases complete)
 
 ## Active Calculations
 
 - H_2 = J * sum_{a=1}^{9} T_a^(1) T_a^(2) on R^{256}, J=1 (lattice units)
 
 ## Intermediate Results
+
+### Phase 41 Results
+
+- **O(9) quantitative (41-01)**: c_s(O(9),Z^3) = J*sqrt(3/2) = 1.225 Ja (classical), v_LR = 27eJ = 73.4 J, ratio 59.9, BW universality (no SRF number), C(r) = 16/(pi*J*r) d=3. All Heisenberg carry-forward values replaced. Quantum correction ~20% unknown. (MEDIUM-HIGH)
+- **Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Carry-forward caveat removed. Internal consistency verified. Chain fully self-consistent on O(9)/S^8. (HIGH)
 
 ### v10.0 Phase 40 Results
 
@@ -116,11 +121,15 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 | 39-04 | ~4min | 2 | 2 |
 | 40-01 | ~9min | 2 | 3 |
 | 40-02 | ~4min | 1 | 2 |
+| 41-01 | ~7min | 2 | 1 |
+| 41-02 | ~6min | 1 | 1 |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 41, Plan 02]: Derivation chain carry-forward caveat replaced with historical note. All Heisenberg numbers in links (i)-(l) replaced with O(9) values. Classical c_s caveat added as uncertainty marker. SRF stated as universality argument only. No rigor levels changed.
+- [Phase 41, Plan 01]: All 5 O(9)-specific quantities computed. c_s = J*sqrt(3/2) (classical). v_LR = 27eJ (NS). Ratio 59.9. BW by universality (no SRF number). CORR-03 with N-1=8. All Heisenberg carry-forward values replaced. Classical-only precision with honest caveats.
 - [Phase 40, Plan 02]: v10.0 vs v9.0 comparison produced. 13 structural differences. 2 gaps UPGRADED (C: CONDITIONAL-DERIVED, D: CONDITIONAL-THEOREM), 7 UNCHANGED, 0 regressions. Quantum SSB = new insight not regression. Status: conditionally complete for d>=3.
 - [Phase 40, Plan 01]: v10.0 chain assembled with 12 links (a')-(l). Gap C upgraded CONDITIONAL -> CONDITIONAL-DERIVED (Eq. 37.6). Gap D upgraded CONDITIONAL -> CONDITIONAL-THEOREM (Eq. 37.12). 15 assumptions: 4 verified + 2 derived + 2 prior-verified + 7 assumed = 15. Quantum SSB conditionality documented throughout.
 - [Phase 39, Plan 04]: UC1-UC4 all classical-verified, UC1/UC4 quantum-conditional (shared root: S_eff=1/2, Speer). 8/15 gap dependency assumptions resolved. Type-A Goldstone => Lorentz chain consistent.
@@ -138,6 +147,7 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 - [Phase 34, Plan 01]: Isotropy via RG irrelevance (Hasenbusch rho~2). Wick rotation justified by DLS reflection positivity.
 - [Phase 30, Plan 01]: Three impossibility theorems proved. 71 tests pass.
 - [Phase 29, Plan 01]: Associative closure = M_16(R) (256-dim). Clifford rescaling established.
+- [Phase 41]: Added Phase 41: O(9)/S^8 Quantitative Verification — Patch phase to recompute model-specific numbers for O(9)/S^8, replacing Heisenberg carry-forward values in links (i)-(l)
 
 ### Active Approximations
 
@@ -180,5 +190,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-30
-**Stopped at:** Phase 40 execution complete, pending verification
+**Stopped at:** Phase 41 execution complete, pending verification
 **Resume file:** --
