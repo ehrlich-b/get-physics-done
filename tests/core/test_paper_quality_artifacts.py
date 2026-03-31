@@ -978,7 +978,7 @@ def test_publication_review_surfaces_keep_protocol_bundle_guidance_additive() ->
     assert "Treat paper-support artifacts as scaffolding, not as proof that a claim is established." in write_paper
 
     assert "protocol_bundle_context" in peer_review
-    assert "GPD/paper/FIGURE_TRACKER.md" in peer_review
+    assert "${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md" in peer_review
     assert "GPD/comparisons/*-COMPARISON.md" in peer_review
     assert "Treat bundle guidance as additive skepticism only." in peer_review
     assert "Review-support artifacts are scaffolding, not substitutes for contract-backed evidence." in peer_review

@@ -15,7 +15,7 @@ def test_write_paper_workflow_runs_centralized_review_preflight() -> None:
 
     assert "gpd validate review-preflight write-paper --strict" in workflow
     assert "Run the centralized review preflight before continuing:" in workflow
-    assert "Do not satisfy that gate with legacy `GPD/paper/` publication artifacts" in workflow
+    assert "Do not satisfy that gate with legacy publication artifacts from a different manuscript directory" in workflow
     assert "Strict review for that resume path uses `${PAPER_DIR}/ARTIFACT-MANIFEST.json`" in workflow
     assert "missing manuscript" not in workflow
     assert 'PAPER_DIR="$DIR"' in workflow

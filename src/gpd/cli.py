@@ -5191,16 +5191,16 @@ _REVIEW_PRECHECK_BLOCKING_CONDITIONS: dict[str, tuple[str, ...]] = {
 _REVIEW_PRECHECK_REQUIRED_EVIDENCE: dict[str, tuple[str, ...]] = {
     "research_artifacts": ("phase summaries or milestone digest",),
     "verification_reports": ("verification reports",),
-    "artifact_manifest": ("artifact manifest",),
-    "bibliography_audit": ("bibliography audit",),
-    "bibliography_audit_clean": ("bibliography audit",),
+    "artifact_manifest": ("artifact manifest", "manuscript-root artifact manifest"),
+    "bibliography_audit": ("bibliography audit", "manuscript-root bibliography audit"),
+    "bibliography_audit_clean": ("bibliography audit", "manuscript-root bibliography audit"),
     "review_ledger": ("peer-review review ledger when available",),
     "review_ledger_valid": ("peer-review review ledger when available",),
     "referee_decision": ("peer-review referee decision when available",),
     "referee_decision_valid": ("peer-review referee decision when available",),
     "referee_report_source": ("referee report source when provided as a path",),
-    "reproducibility_manifest": ("reproducibility manifest",),
-    "reproducibility_ready": ("reproducibility manifest",),
+    "reproducibility_manifest": ("reproducibility manifest", "manuscript-root reproducibility manifest"),
+    "reproducibility_ready": ("reproducibility manifest", "manuscript-root reproducibility manifest"),
 }
 
 _PHASE_EXECUTED_STATUSES = {

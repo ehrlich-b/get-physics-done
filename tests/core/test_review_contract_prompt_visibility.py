@@ -162,7 +162,7 @@ def test_write_paper_prompt_loads_figure_tracker_schema_before_updating_tracker(
     source = _read_command("write-paper")
 
     assert "@{GPD_INSTALL_DIR}/templates/paper/figure-tracker.md" in source
-    assert "GPD/paper/FIGURE_TRACKER.md" in source
+    assert "${PAPER_DIR}/FIGURE_TRACKER.md" in source
     assert "canonical schema/template surfaces it loads there" in source
 
 

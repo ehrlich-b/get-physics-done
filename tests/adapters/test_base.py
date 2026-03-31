@@ -222,7 +222,7 @@ class TestInstallValidationAndHooks:
 
         adapter.validate_target_runtime(target, action="install into")
 
-    def test_copy_hook_scripts_overwrites_stale_managed_filename(self, tmp_path: Path) -> None:
+    def test_copy_hook_scripts_preserves_unmanaged_matching_filename(self, tmp_path: Path) -> None:
         gpd_root = Path(__file__).resolve().parents[2] / "src" / "gpd"
         target = tmp_path / ".claude"
         hooks = target / "hooks"
@@ -233,7 +233,8 @@ class TestInstallValidationAndHooks:
         failures = copy_hook_scripts(gpd_root, target)
 
         assert failures == []
-        assert stale_hook.read_text(encoding="utf-8") != "# stale non-gpd hook\n"
+        assert stale_hook.read_text(encoding="utf-8") == "# stale non-gpd hook\n"
+        assert (hooks / "check_update.py").exists()
 
     def test_codex_notify_path_comes_from_descriptor_config_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from gpd.adapters import codex as codex_module
