@@ -16,6 +16,9 @@ def test_new_project_prompt_surfaces_the_canonical_state_schema_for_project_cont
     assert "templates/state-json-schema.md" in new_project_text
     assert "Before you ask for approval, build the raw contract as a literal JSON object that follows `templates/state-json-schema.md` exactly:" in new_project_text
     assert "Do not approve a scoping contract that strips decisive outputs, anchors, prior outputs, or review/stop triggers down to generic placeholders." in new_project_text
+    assert "the contract schema is closed: do not add invented top-level or nested keys" in new_project_text
+    assert "list fields must stay lists even for single-item values" in new_project_text
+    assert "blank or duplicate list entries are invalid after trimming whitespace" in new_project_text
     assert "project_contract_load_info" in new_project_text
     assert "project_contract_validation" in new_project_text
     assert "Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `autonomy`, `research_mode`, `project_exists`, `has_research_map`, `planning_exists`, `has_research_files`, `has_project_manifest`, `has_existing_project`, `needs_research_map`, `has_git`, `project_contract`, `project_contract_load_info`, `project_contract_validation`." in new_project_text
@@ -55,6 +58,9 @@ def test_new_project_and_questioning_gate_do_not_treat_missing_anchor_notes_as_a
     assert "At least one concrete anchor, reference, prior-output constraint, or baseline" in new_project_text
     assert "If the decisive anchor is still unknown, keep that blocker explicit" in new_project_text
     assert "Missing-anchor notes preserve uncertainty, but they do not satisfy approval on their own." in new_project_text
+    assert "do not invent extra keys or collapse list fields into scalars" in questioning_text
+    assert "Array fields stay arrays, even for singletons" in questioning_text
+    assert "blank or duplicate list items are invalid after trimming whitespace" in questioning_text
     assert "at least one concrete anchor, reference, prior output, or baseline" in questioning_text
     assert "if the decisive anchor is still unknown, an explicit missing-anchor note" in questioning_text
     assert "do not replace the requirement for at least one concrete reference, prior output, baseline" in questioning_text

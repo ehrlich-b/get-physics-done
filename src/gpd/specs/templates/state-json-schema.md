@@ -187,6 +187,14 @@ Canonical IDs and other required string fields are trimmed before validation. Bl
 
 `scope.in_scope` must name at least one project boundary or objective.
 
+#### Closed Schema And List Shape
+
+The `project_contract` schema is closed. Do not invent extra keys at the top level or inside nested objects. Only the fields defined here are valid.
+
+List-shaped fields must stay lists, even when they contain one item. Do not collapse `scope.in_scope`, `scope.out_of_scope`, `scope.unresolved_questions`, `context_intake.*`, or any nested `[]` field to a scalar string.
+
+Blank list entries are invalid. Duplicate list entries are also invalid after trimming whitespace, even if the duplicates only differ by surrounding spaces.
+
 The following fields always store arrays of objects, never arrays of plain strings:
 
 - `observables[]` — `{ "id", "name", "kind", "definition", "regime?", "units?" }`

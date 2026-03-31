@@ -105,92 +105,182 @@ function runtimeLaunchCommand(runtime) {
   return runtimeRecord(runtime).launch_command;
 }
 
-function loadSharedPublicSurfaceText() {
-  const contract = PUBLIC_SURFACE_CONTRACT && typeof PUBLIC_SURFACE_CONTRACT === "object"
-    ? PUBLIC_SURFACE_CONTRACT
-    : null;
-  if (!contract) {
-    throw new Error("public surface contract payload is missing");
+const PUBLIC_SURFACE_CONTRACT_KEYS = [
+  "schema_version",
+  "beginner_onboarding",
+  "local_cli_bridge",
+  "post_start_settings",
+  "resume_authority",
+  "recovery_ladder",
+];
+const PUBLIC_SURFACE_CONTRACT_SECTION_KEYS = {
+  beginner_onboarding: ["hub_url", "preflight_requirements", "caveats", "startup_ladder"],
+  local_cli_bridge: ["commands", "terminal_phrase", "purpose_phrase"],
+  post_start_settings: ["primary_sentence", "default_sentence"],
+  resume_authority: [
+    "durable_authority_phrase",
+    "public_vocabulary_intro",
+    "public_fields",
+    "compat_surface",
+    "session_mirror",
+    "compatibility_phrase",
+    "top_level_boundary_phrase",
+  ],
+  recovery_ladder: [
+    "title",
+    "local_snapshot_command",
+    "local_snapshot_phrase",
+    "cross_workspace_command",
+    "cross_workspace_phrase",
+    "resume_phrase",
+    "next_phrase",
+    "pause_phrase",
+  ],
+};
+
+function requireJsonObject(payload, label) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error(`${label} must be a JSON object`);
   }
-  const beginnerPayload = contract.beginner_onboarding;
-  if (!beginnerPayload || typeof beginnerPayload !== "object") {
-    throw new Error("public surface contract is missing beginner_onboarding");
+  return payload;
+}
+
+function requireExactKeys(payload, keys, label) {
+  const actualKeys = Object.keys(payload);
+  const expectedKeys = [...keys];
+  const missing = expectedKeys.filter((key) => !Object.prototype.hasOwnProperty.call(payload, key));
+  const extra = actualKeys.filter((key) => !expectedKeys.includes(key));
+  if (missing.length === 0 && extra.length === 0) {
+    return;
   }
-  const beginnerHubUrl = typeof beginnerPayload.hub_url === "string" ? beginnerPayload.hub_url.trim() : "";
-  const beginnerStartupLadder = Array.isArray(beginnerPayload.startup_ladder)
-    ? beginnerPayload
-      .startup_ladder
-      .filter((item) => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean)
-    : [];
-  if (!beginnerHubUrl || beginnerStartupLadder.length === 0) {
-    throw new Error("public surface contract beginner_onboarding is incomplete");
+  const details = [];
+  if (missing.length > 0) {
+    details.push(`missing keys: ${missing.join(", ")}`);
   }
-  const localCliBridge = contract.local_cli_bridge;
-  if (!localCliBridge || typeof localCliBridge !== "object") {
-    throw new Error("public surface contract is missing local_cli_bridge");
+  if (extra.length > 0) {
+    details.push(`unexpected keys: ${extra.join(", ")}`);
   }
-  const localCliBridgeCommands = Array.isArray(localCliBridge.commands)
-    ? localCliBridge.commands
-      .filter((item) => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean)
-    : [];
-  if (localCliBridgeCommands.length === 0) {
-    throw new Error("public surface contract local_cli_bridge is incomplete");
+  throw new Error(`${label} must contain exactly ${keys.join(", ")} (${details.join("; ")})`);
+}
+
+function requireNonEmptyString(payload, key, label) {
+  const value = payload[key];
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`${label}.${key} must be a non-empty string`);
   }
-  const recoveryLadder = contract.recovery_ladder;
-  if (!recoveryLadder || typeof recoveryLadder !== "object") {
-    throw new Error("public surface contract is missing recovery_ladder");
+  return value;
+}
+
+function requireNonEmptyStringList(payload, key, label) {
+  const value = payload[key];
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${label}.${key} must be a non-empty list`);
   }
-  const recoveryTitle = typeof recoveryLadder.title === "string" ? recoveryLadder.title.trim() : "";
-  const recoveryLocalSnapshotCommand = typeof recoveryLadder.local_snapshot_command === "string"
-    ? recoveryLadder.local_snapshot_command.trim()
-    : "";
-  const recoveryLocalSnapshotPhrase = typeof recoveryLadder.local_snapshot_phrase === "string"
-    ? recoveryLadder.local_snapshot_phrase.trim()
-    : "";
-  const recoveryCrossWorkspaceCommand = typeof recoveryLadder.cross_workspace_command === "string"
-    ? recoveryLadder.cross_workspace_command.trim()
-    : "";
-  const recoveryCrossWorkspacePhrase = typeof recoveryLadder.cross_workspace_phrase === "string"
-    ? recoveryLadder.cross_workspace_phrase.trim()
-    : "";
-  const recoveryResumePhrase = typeof recoveryLadder.resume_phrase === "string"
-    ? recoveryLadder.resume_phrase.trim()
-    : "";
-  const recoveryNextPhrase = typeof recoveryLadder.next_phrase === "string"
-    ? recoveryLadder.next_phrase.trim()
-    : "";
-  const recoveryPausePhrase = typeof recoveryLadder.pause_phrase === "string"
-    ? recoveryLadder.pause_phrase.trim()
-    : "";
-  if (
-    !recoveryTitle
-    || !recoveryLocalSnapshotCommand
-    || !recoveryLocalSnapshotPhrase
-    || !recoveryCrossWorkspaceCommand
-    || !recoveryCrossWorkspacePhrase
-    || !recoveryResumePhrase
-    || !recoveryNextPhrase
-    || !recoveryPausePhrase
-  ) {
-    throw new Error("public surface contract recovery_ladder is incomplete");
+  const items = [];
+  for (const item of value) {
+    if (typeof item !== "string" || !item.trim()) {
+      throw new Error(`${label}.${key} entries must be non-empty strings`);
+    }
+    items.push(item);
   }
-  const payload = contract.post_start_settings;
-  if (!payload || typeof payload !== "object") {
-    throw new Error("public surface contract is missing post_start_settings");
+  return items;
+}
+
+function validateSharedPublicSurfaceContract(contractPayload) {
+  const contract = requireJsonObject(contractPayload, "public surface contract");
+  requireExactKeys(contract, PUBLIC_SURFACE_CONTRACT_KEYS, "public surface contract");
+  if (contract.schema_version !== 1) {
+    throw new Error(`Unsupported public surface contract schema_version: ${JSON.stringify(contract.schema_version)}`);
   }
-  const settingsCommandSentence = typeof payload.primary_sentence === "string" ? payload.primary_sentence.trim() : "";
-  const settingsRecommendationSentence = typeof payload.default_sentence === "string" ? payload.default_sentence.trim() : "";
-  if (!settingsCommandSentence || !settingsRecommendationSentence) {
-    throw new Error("public surface contract post_start_settings is incomplete");
-  }
+
+  const beginnerPayload = requireJsonObject(contract.beginner_onboarding, "beginner_onboarding");
+  requireExactKeys(beginnerPayload, PUBLIC_SURFACE_CONTRACT_SECTION_KEYS.beginner_onboarding, "beginner_onboarding");
+  const localCliBridge = requireJsonObject(contract.local_cli_bridge, "local_cli_bridge");
+  requireExactKeys(localCliBridge, PUBLIC_SURFACE_CONTRACT_SECTION_KEYS.local_cli_bridge, "local_cli_bridge");
+  const postStartSettings = requireJsonObject(contract.post_start_settings, "post_start_settings");
+  requireExactKeys(postStartSettings, PUBLIC_SURFACE_CONTRACT_SECTION_KEYS.post_start_settings, "post_start_settings");
+  const resumeAuthority = requireJsonObject(contract.resume_authority, "resume_authority");
+  requireExactKeys(resumeAuthority, PUBLIC_SURFACE_CONTRACT_SECTION_KEYS.resume_authority, "resume_authority");
+  const recoveryLadder = requireJsonObject(contract.recovery_ladder, "recovery_ladder");
+  requireExactKeys(recoveryLadder, PUBLIC_SURFACE_CONTRACT_SECTION_KEYS.recovery_ladder, "recovery_ladder");
+
+  const beginnerHubUrl = requireNonEmptyString(beginnerPayload, "hub_url", "beginner_onboarding");
+  const beginnerPreflightRequirements = requireNonEmptyStringList(
+    beginnerPayload,
+    "preflight_requirements",
+    "beginner_onboarding"
+  );
+  const beginnerCaveats = requireNonEmptyStringList(beginnerPayload, "caveats", "beginner_onboarding");
+  const beginnerStartupLadder = requireNonEmptyStringList(beginnerPayload, "startup_ladder", "beginner_onboarding");
+  const localCliBridgeCommands = requireNonEmptyStringList(localCliBridge, "commands", "local_cli_bridge");
+  const terminalPhrase = requireNonEmptyString(localCliBridge, "terminal_phrase", "local_cli_bridge");
+  const purposePhrase = requireNonEmptyString(localCliBridge, "purpose_phrase", "local_cli_bridge");
+  const settingsCommandSentence = requireNonEmptyString(postStartSettings, "primary_sentence", "post_start_settings");
+  const settingsRecommendationSentence = requireNonEmptyString(
+    postStartSettings,
+    "default_sentence",
+    "post_start_settings"
+  );
+  const durableAuthorityPhrase = requireNonEmptyString(
+    resumeAuthority,
+    "durable_authority_phrase",
+    "resume_authority"
+  );
+  const publicVocabularyIntro = requireNonEmptyString(resumeAuthority, "public_vocabulary_intro", "resume_authority");
+  const publicFields = requireNonEmptyStringList(resumeAuthority, "public_fields", "resume_authority");
+  const compatSurface = requireNonEmptyString(resumeAuthority, "compat_surface", "resume_authority");
+  const sessionMirror = requireNonEmptyString(resumeAuthority, "session_mirror", "resume_authority");
+  const compatibilityPhrase = requireNonEmptyString(resumeAuthority, "compatibility_phrase", "resume_authority");
+  const topLevelBoundaryPhrase = requireNonEmptyString(
+    resumeAuthority,
+    "top_level_boundary_phrase",
+    "resume_authority"
+  );
+  const recoveryTitle = requireNonEmptyString(recoveryLadder, "title", "recovery_ladder");
+  const recoveryLocalSnapshotCommand = requireNonEmptyString(
+    recoveryLadder,
+    "local_snapshot_command",
+    "recovery_ladder"
+  );
+  const recoveryLocalSnapshotPhrase = requireNonEmptyString(
+    recoveryLadder,
+    "local_snapshot_phrase",
+    "recovery_ladder"
+  );
+  const recoveryCrossWorkspaceCommand = requireNonEmptyString(
+    recoveryLadder,
+    "cross_workspace_command",
+    "recovery_ladder"
+  );
+  const recoveryCrossWorkspacePhrase = requireNonEmptyString(
+    recoveryLadder,
+    "cross_workspace_phrase",
+    "recovery_ladder"
+  );
+  const recoveryResumePhrase = requireNonEmptyString(recoveryLadder, "resume_phrase", "recovery_ladder");
+  const recoveryNextPhrase = requireNonEmptyString(recoveryLadder, "next_phrase", "recovery_ladder");
+  const recoveryPausePhrase = requireNonEmptyString(recoveryLadder, "pause_phrase", "recovery_ladder");
+
   return {
     beginnerHubUrl,
+    beginnerPreflightRequirements,
+    beginnerCaveats,
     beginnerStartupLadder,
     localCliBridgeCommands,
+    localCliBridge: {
+      terminalPhrase,
+      purposePhrase,
+    },
+    schemaVersion: 1,
+    resumeAuthority: {
+      durableAuthorityPhrase,
+      publicVocabularyIntro,
+      publicFields,
+      compatSurface,
+      sessionMirror,
+      compatibilityPhrase,
+      topLevelBoundaryPhrase,
+    },
     recoveryLadder: {
       title: recoveryTitle,
       localSnapshotCommand: recoveryLocalSnapshotCommand,
@@ -203,6 +293,21 @@ function loadSharedPublicSurfaceText() {
     },
     settingsCommandSentence,
     settingsRecommendationSentence,
+  };
+}
+
+function loadSharedPublicSurfaceText() {
+  const contract = validateSharedPublicSurfaceContract(PUBLIC_SURFACE_CONTRACT);
+  return {
+    schemaVersion: contract.schemaVersion,
+    beginnerHubUrl: contract.beginnerHubUrl,
+    beginnerPreflightRequirements: contract.beginnerPreflightRequirements,
+    beginnerCaveats: contract.beginnerCaveats,
+    beginnerStartupLadder: contract.beginnerStartupLadder,
+    localCliBridgeCommands: contract.localCliBridgeCommands,
+    recoveryLadder: contract.recoveryLadder,
+    settingsCommandSentence: contract.settingsCommandSentence,
+    settingsRecommendationSentence: contract.settingsRecommendationSentence,
   };
 }
 
@@ -1727,7 +1832,14 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  error(err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    error(err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  loadSharedPublicSurfaceText,
+  validateSharedPublicSurfaceContract,
+};

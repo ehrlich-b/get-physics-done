@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+import copy
+import json
+from pathlib import Path
+
+import pytest
+
 from gpd.adapters import get_adapter, iter_runtime_descriptors
 from gpd.core.onboarding_surfaces import (
     beginner_onboarding_hub_url,
@@ -7,7 +13,12 @@ from gpd.core.onboarding_surfaces import (
     beginner_runtime_surfaces,
     beginner_startup_ladder_text,
 )
-from gpd.core.public_surface_contract import beginner_onboarding_caveats, beginner_preflight_requirements
+from gpd.core import public_surface_contract as public_surface_contract_module
+from gpd.core.public_surface_contract import (
+    beginner_onboarding_caveats,
+    beginner_preflight_requirements,
+    load_public_surface_contract,
+)
 
 
 def test_beginner_onboarding_surface_contract_exposes_hub_and_ladder() -> None:
@@ -64,3 +75,36 @@ def test_beginner_runtime_surfaces_follow_runtime_catalog() -> None:
 def test_beginner_runtime_surface_single_lookup_matches_bulk_surface() -> None:
     for surface in beginner_runtime_surfaces():
         assert beginner_runtime_surface(surface.runtime_name) == surface
+
+
+def test_public_surface_contract_loader_rejects_shape_drift(monkeypatch, tmp_path: Path) -> None:
+    canonical_path = Path(__file__).resolve().parents[2] / "src" / "gpd" / "core" / "public_surface_contract.json"
+    canonical_payload = json.loads(canonical_path.read_text(encoding="utf-8"))
+
+    class _FakeFiles:
+        def __init__(self, contract_path: Path) -> None:
+            self._contract_path = contract_path
+
+        def joinpath(self, name: str) -> Path:
+            assert name == "public_surface_contract.json"
+            return self._contract_path
+
+    def _load_with_payload(payload: dict[str, object]) -> None:
+        contract_path = tmp_path / "public_surface_contract.json"
+        contract_path.write_text(json.dumps(payload), encoding="utf-8")
+        monkeypatch.setattr(public_surface_contract_module, "files", lambda package: _FakeFiles(contract_path))
+        load_public_surface_contract.cache_clear()
+
+    drifted_payload = copy.deepcopy(canonical_payload)
+    drifted_payload["resume_authority"]["session_mirror"] = ""
+    _load_with_payload(drifted_payload)
+    with pytest.raises(ValueError, match=r"resume_authority\.session_mirror must be a non-empty string"):
+        load_public_surface_contract()
+
+    unknown_key_payload = copy.deepcopy(canonical_payload)
+    unknown_key_payload["resume_authority"]["legacy_note"] = "unexpected"
+    _load_with_payload(unknown_key_payload)
+    with pytest.raises(ValueError, match=r"resume_authority must contain exactly"):
+        load_public_surface_contract()
+
+    load_public_surface_contract.cache_clear()

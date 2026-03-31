@@ -160,8 +160,10 @@ Before you show the approval gate, build the raw contract as a literal JSON obje
   - `references[].kind`: `paper | dataset | prior_artifact | spec | user_anchor | other`
   - `references[].role`: `definition | benchmark | method | must_consider | background | other`
   - `links[].relation`: `supports | computes | visualizes | benchmarks | depends_on | evaluated_by | other`
-  - `references[].carry_forward_to[]` is free-text workflow scope such as `planning`, `execution`, `verification`, or `writing`; it is not an enum and must not be reused for IDs or relation names
+- `references[].carry_forward_to[]` is free-text workflow scope such as `planning`, `execution`, `verification`, or `writing`; it is not an enum and must not be reused for IDs or relation names
 - do **not** invent near-miss enum values such as `anchor`, `manual`, `content-check`, `benchmark-record`, or `anchors`; rewrite them to the exact schema term before approval
+- the contract schema is closed: do not add invented top-level or nested keys, and do not use scalar shortcuts for list fields
+- list fields must stay lists even for single-item values, and blank or duplicate list entries are invalid after trimming whitespace
 - if the user chooses "Review raw contract", show the exact JSON object that will be validated and persisted
 
 Then present a concise scoping summary and require explicit approval:

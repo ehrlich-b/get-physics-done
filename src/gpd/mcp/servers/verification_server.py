@@ -22,15 +22,13 @@ from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema, create_model
 from pydantic import ValidationError as PydanticValidationError
 
 from gpd.contracts import (
+    PROJECT_CONTRACT_COLLECTION_LIST_FIELDS,
+    PROJECT_CONTRACT_MAPPING_LIST_FIELDS,
     ResearchContract,
     collect_plan_contract_integrity_errors,
     contract_has_explicit_context_intake,
-)
-from gpd.core.contract_validation import (
-    _collect_list_shape_drift_errors,
-    _sanitize_contract_scalars,
-    _split_project_contract_schema_findings,
-    salvage_project_contract,
+    parse_project_contract_data_strict,
+    parse_project_contract_data_salvage,
 )
 from gpd.core.observability import gpd_span
 from gpd.core.protocol_bundles import ResolvedProtocolBundle, get_protocol_bundle, render_protocol_bundle_context
@@ -47,6 +45,33 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(le
 logger = logging.getLogger("gpd-verification")
 
 mcp = FastMCP("gpd-verification")
+
+_CONTRACT_ERROR_PATH_RE = re.compile(
+    r"^(schema_version|[A-Za-z_][A-Za-z0-9_]*(?:\.\d+|\.[A-Za-z_][A-Za-z0-9_]*|\[\d+\])*)(?:: | )"
+)
+_AUTHORITATIVE_CONTRACT_PARSE_ERROR_PATTERNS = (
+    re.compile(r"^schema_version must be the integer 1$"),
+    re.compile(r"^schema_version: Input should be 1$"),
+    re.compile(r"^references\.\d+\.must_surface must be a boolean$"),
+)
+_DEFAULTABLE_SINGLETON_CONTRACT_ERROR_PATTERNS = (
+    re.compile(r"^(context_intake|approach_policy|uncertainty_markers) must be an object, not .+$"),
+)
+_REFERENCE_ACTIONS = frozenset({"read", "use", "compare", "cite", "avoid"})
+_CONTRACT_ERROR_FIELD_ORDER = {
+    "schema_version": 0,
+    "scope": 1,
+    "context_intake": 2,
+    "approach_policy": 3,
+    "observables": 4,
+    "claims": 5,
+    "deliverables": 6,
+    "acceptance_tests": 7,
+    "references": 8,
+    "forbidden_proxies": 9,
+    "links": 10,
+    "uncertainty_markers": 11,
+}
 
 
 def _tighten_registered_tool_contracts() -> None:
@@ -2484,8 +2509,76 @@ def _summarize_contract_salvage_errors(errors: list[str]) -> str:
     return summary
 
 
+def _contract_error_path(error: str) -> str | None:
+    match = _CONTRACT_ERROR_PATH_RE.match(error)
+    if match is None:
+        return None
+    return match.group(1)
+
+
+def _contract_path_tokens(path: str) -> list[str | int]:
+    tokens: list[str | int] = []
+    for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*|\d+", path):
+        tokens.append(int(token) if token.isdigit() else token)
+    return tokens
+
+
+def _contract_value_at_path(contract_raw: dict[str, object], path: str) -> object | None:
+    current: object = contract_raw
+    for token in _contract_path_tokens(path):
+        if isinstance(token, int):
+            if not isinstance(current, list) or token >= len(current):
+                return None
+            current = current[token]
+            continue
+        if not isinstance(current, dict) or token not in current:
+            return None
+        current = current[token]
+    return current
+
+
+def _normalize_contract_parse_error(error: str, *, contract_raw: dict[str, object]) -> str:
+    if error == "schema_version: Input should be 1":
+        return "schema_version must be 1"
+
+    path = _contract_error_path(error)
+    if path is None:
+        return error
+
+    tokens = _contract_path_tokens(path)
+    if not tokens or not isinstance(tokens[-1], int):
+        return error
+
+    value = _contract_value_at_path(contract_raw, path)
+    if isinstance(value, str) and value.strip() and " is a duplicate" in error:
+        return error
+    if isinstance(value, str) and value.strip() and "must not be blank" not in error and ": Input should" not in error:
+        return error
+
+    parent = ".".join(str(token) for token in tokens[:-1])
+    return f"{parent}[{tokens[-1]}] must be a non-empty string"
+
+
+def _contract_error_sort_key(error: str) -> tuple[object, ...]:
+    path = _contract_error_path(error)
+    if path is None:
+        return (1, error)
+    tokens = _contract_path_tokens(path)
+    if not tokens or not isinstance(tokens[0], str):
+        return (1, error)
+
+    order = _CONTRACT_ERROR_FIELD_ORDER.get(tokens[0], len(_CONTRACT_ERROR_FIELD_ORDER))
+    parts: list[tuple[int, object]] = []
+    for token in tokens[1:]:
+        if isinstance(token, int):
+            parts.append((0, token))
+        else:
+            parts.append((1, token))
+    return (0, order, tuple(parts), error)
+
+
 def _contract_payload_error(errors: list[str]) -> dict[str, object]:
-    details = list(dict.fromkeys(errors))
+    details = sorted(dict.fromkeys(errors), key=_contract_error_sort_key)
     if not details:
         return _error_result("Invalid contract payload")
     message = f"Invalid contract payload: {_summarize_contract_salvage_errors(details)}"
@@ -2494,125 +2587,75 @@ def _contract_payload_error(errors: list[str]) -> dict[str, object]:
     return stable_mcp_response({"contract_error_details": details}, error=message)
 
 
-def _validate_contract_schema_version(raw: object) -> dict[str, object] | None:
-    """Reject unsupported contract schema versions without coercing or salvaging them."""
-
-    if raw is None:
-        return None
-    if isinstance(raw, bool) or not isinstance(raw, int):
-        return _error_result("Invalid contract payload: schema_version must be the integer 1")
-    if raw != VERIFICATION_SCHEMA_VERSION:
-        return _error_result(f"Invalid contract payload: schema_version must be {VERIFICATION_SCHEMA_VERSION}")
-    return None
+def _is_authoritative_contract_parse_error(error: str) -> bool:
+    return any(pattern.fullmatch(error) for pattern in _AUTHORITATIVE_CONTRACT_PARSE_ERROR_PATTERNS)
 
 
-def _validate_contract_scalar_fields(contract_raw: dict[str, object]) -> dict[str, object] | None:
-    """Reject coercive scalar contract fields before Pydantic can canonicalize them."""
-
-    errors: list[str] = []
-    _sanitize_contract_scalars(contract_raw, errors=errors)
-    errors = list(dict.fromkeys(errors))
-    if not errors:
-        return None
-    return _contract_payload_error(errors)
-
-
-def _validate_contract_list_members(contract_raw: dict[str, object]) -> dict[str, object] | None:
-    """Reject blank or malformed string-list members before contract salvage can hide them."""
-
-    errors: list[str] = []
-
-    def _validate_scalar_list_drift(container: object, field_name: str) -> None:
-        if isinstance(container, str) and not container.strip():
-            errors.append(f"{field_name} must not be blank")
-
-    def _validate_list_field(container: object, field_name: str) -> None:
-        _validate_scalar_list_drift(container, field_name)
-        error = _validate_string_list_members(container, field_name=field_name)
-        if error is not None:
-            errors.append(error)
-
-    def _validate_object_lists(container: object, prefix: str, fields: Iterable[str]) -> None:
-        if not isinstance(container, dict):
-            return
-        for field_name in fields:
-            if field_name in container:
-                _validate_list_field(container[field_name], f"{prefix}.{field_name}")
-
-    _validate_object_lists(contract_raw.get("scope"), "scope", ("in_scope", "out_of_scope", "unresolved_questions"))
-    _validate_object_lists(
-        contract_raw.get("context_intake"),
-        "context_intake",
-        (
-            "must_read_refs",
-            "must_include_prior_outputs",
-            "user_asserted_anchors",
-            "known_good_baselines",
-            "context_gaps",
-            "crucial_inputs",
-        ),
-    )
-    _validate_object_lists(
-        contract_raw.get("approach_policy"),
-        "approach_policy",
-        (
-            "formulations",
-            "allowed_estimator_families",
-            "forbidden_estimator_families",
-            "allowed_fit_families",
-            "forbidden_fit_families",
-            "stop_and_rethink_conditions",
-        ),
+def _is_nested_extra_input_contract_error(error: str) -> bool:
+    path = _contract_error_path(error)
+    return (
+        error.endswith(": Extra inputs are not permitted")
+        and path is not None
+        and "." in path
     )
 
-    claims = contract_raw.get("claims")
-    if isinstance(claims, list):
-        for index, claim in enumerate(claims):
-            _validate_object_lists(
-                claim,
-                f"claims.{index}",
-                ("observables", "deliverables", "acceptance_tests", "references"),
-            )
 
-    deliverables = contract_raw.get("deliverables")
-    if isinstance(deliverables, list):
-        for index, deliverable in enumerate(deliverables):
-            _validate_object_lists(deliverable, f"deliverables.{index}", ("must_contain",))
+def _is_defaultable_singleton_contract_error(error: str) -> bool:
+    return any(pattern.fullmatch(error) for pattern in _DEFAULTABLE_SINGLETON_CONTRACT_ERROR_PATTERNS)
 
-    acceptance_tests = contract_raw.get("acceptance_tests")
-    if isinstance(acceptance_tests, list):
-        for index, acceptance_test in enumerate(acceptance_tests):
-            _validate_object_lists(acceptance_test, f"acceptance_tests.{index}", ("evidence_required",))
 
-    references = contract_raw.get("references")
-    if isinstance(references, list):
-        for index, reference in enumerate(references):
-            _validate_object_lists(
-                reference,
-                f"references.{index}",
-                ("aliases", "applies_to", "carry_forward_to", "required_actions"),
-            )
+def _recoverable_collection_list_shape_error(error: str, *, contract_raw: dict[str, object]) -> bool:
+    if " must be a list, not str" not in error:
+        return False
+    path = error.removesuffix(" must be a list, not str")
+    tokens = _contract_path_tokens(path)
+    if len(tokens) != 3:
+        return False
+    collection_name, index, field_name = tokens
+    if (
+        not isinstance(collection_name, str)
+        or not isinstance(index, int)
+        or not isinstance(field_name, str)
+        or field_name not in PROJECT_CONTRACT_COLLECTION_LIST_FIELDS.get(collection_name, ())
+    ):
+        return False
 
-    links = contract_raw.get("links")
-    if isinstance(links, list):
-        for index, link in enumerate(links):
-            _validate_object_lists(link, f"links.{index}", ("verified_by",))
+    raw_value = _contract_value_at_path(contract_raw, path)
+    if not isinstance(raw_value, str) or not raw_value.strip():
+        return False
+    if collection_name == "references" and field_name == "required_actions":
+        return raw_value.strip().casefold() in _REFERENCE_ACTIONS
+    return True
 
-    uncertainty_markers = contract_raw.get("uncertainty_markers")
-    _validate_object_lists(
-        uncertainty_markers,
-        "uncertainty_markers",
+
+def _recoverable_mapping_list_shape_error(error: str, *, contract_raw: dict[str, object]) -> bool:
+    if " must be a list, not str" not in error:
+        return False
+    path = error.removesuffix(" must be a list, not str")
+    tokens = _contract_path_tokens(path)
+    if len(tokens) != 2:
+        return False
+    section_name, field_name = tokens
+    if (
+        not isinstance(section_name, str)
+        or not isinstance(field_name, str)
+        or field_name not in PROJECT_CONTRACT_MAPPING_LIST_FIELDS.get(section_name, ())
+    ):
+        return False
+
+    raw_value = _contract_value_at_path(contract_raw, path)
+    return isinstance(raw_value, str) and bool(raw_value.strip())
+
+
+def _is_recoverable_contract_parse_error(error: str, *, contract_raw: dict[str, object]) -> bool:
+    return any(
         (
-            "weakest_anchors",
-            "unvalidated_assumptions",
-            "competing_explanations",
-            "disconfirming_observations",
-        ),
+            _is_nested_extra_input_contract_error(error),
+            _is_defaultable_singleton_contract_error(error),
+            _recoverable_collection_list_shape_error(error, contract_raw=contract_raw),
+            _recoverable_mapping_list_shape_error(error, contract_raw=contract_raw),
+        )
     )
-
-    if not errors:
-        return None
-    return _contract_payload_error(errors)
 
 
 def _validate_contract_integrity(
@@ -2636,32 +2679,50 @@ def _validate_contract_integrity(
 
 
 def _parse_contract_payload(contract_raw: dict[str, object]) -> tuple[ResearchContract | None, list[str], dict | None]:
-    schema_error = _validate_contract_schema_version(contract_raw.get("schema_version"))
-    if schema_error is not None:
-        return None, [], schema_error
-    scalar_error = _validate_contract_scalar_fields(contract_raw)
-    if scalar_error is not None:
-        return None, [], scalar_error
-    list_member_error = _validate_contract_list_members(contract_raw)
-    if list_member_error is not None:
-        return None, [], list_member_error
-    list_shape_drift_errors = _collect_list_shape_drift_errors(contract_raw)
-    contract, salvage_errors = salvage_project_contract(contract_raw)
-    if contract is None:
-        if salvage_errors:
-            return None, [], _contract_payload_error(salvage_errors)
-        return None, [], _error_result("Invalid contract payload")
-    recoverable, blocking = _split_project_contract_schema_findings(
-        salvage_errors,
-        allow_singleton_defaults=False,
-    )
-    if blocking:
-        return None, [], _contract_payload_error(blocking)
+    strict_result = parse_project_contract_data_strict(contract_raw)
+    salvage_result = parse_project_contract_data_salvage(contract_raw)
+    normalized_strict_errors = [
+        _normalize_contract_parse_error(error, contract_raw=contract_raw)
+        for error in strict_result.errors
+    ]
+    authoritative_errors = [
+        error
+        for error in normalized_strict_errors
+        if _is_authoritative_contract_parse_error(error)
+    ]
+    if authoritative_errors:
+        return None, [], _contract_payload_error(authoritative_errors)
+    if strict_result.contract is None:
+        recoverable = [
+            error
+            for error in normalized_strict_errors
+            if _is_recoverable_contract_parse_error(error, contract_raw=contract_raw)
+        ]
+        blocking = [error for error in normalized_strict_errors if error not in recoverable]
+        if blocking:
+            return None, [], _contract_payload_error(blocking)
+        contract = salvage_result.contract
+        if contract is None or salvage_result.blocking_errors:
+            salvage_errors = [
+                _normalize_contract_parse_error(error, contract_raw=contract_raw)
+                for error in salvage_result.blocking_errors
+            ]
+            combined_errors = salvage_errors or normalized_strict_errors
+            return None, [], _contract_payload_error(combined_errors)
+        recoverable = [
+            *recoverable,
+            *(
+                _normalize_contract_parse_error(error, contract_raw=contract_raw)
+                for error in salvage_result.recoverable_errors
+            ),
+        ]
+    else:
+        contract = strict_result.contract
+        recoverable = []
     integrity_error = _validate_contract_integrity(contract, contract_raw=contract_raw)
     if integrity_error is not None:
         return None, [], integrity_error
-    salvage_findings = list(dict.fromkeys([*recoverable, *list_shape_drift_errors]))
-    return contract, salvage_findings, None
+    return contract, sorted(dict.fromkeys(recoverable), key=_contract_error_sort_key), None
 
 
 def _validate_benchmark_reference_binding(

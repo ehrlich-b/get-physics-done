@@ -132,6 +132,22 @@ def _require_object(payload: object, *, label: str) -> dict[str, object]:
     return payload
 
 
+def _require_exact_keys(payload: dict[str, object], *, label: str, keys: tuple[str, ...]) -> None:
+    expected = set(keys)
+    actual = set(payload)
+    missing = sorted(expected - actual)
+    extra = sorted(actual - expected)
+    if not missing and not extra:
+        return
+
+    problems: list[str] = []
+    if missing:
+        problems.append(f"missing keys: {', '.join(missing)}")
+    if extra:
+        problems.append(f"unexpected keys: {', '.join(extra)}")
+    raise ValueError(f"{label} must contain exactly {', '.join(keys)} ({'; '.join(problems)})")
+
+
 def _require_string(payload: dict[str, object], key: str, *, label: str) -> str:
     value = payload.get(key)
     if not isinstance(value, str) or not value.strip():
@@ -151,82 +167,87 @@ def _require_string_list(payload: dict[str, object], key: str, *, label: str) ->
     return tuple(items)
 
 
-def _require_string_alias(
-    payload: dict[str, object],
-    key: str,
-    *,
-    label: str,
-    aliases: tuple[str, ...] = (),
-) -> str:
-    for candidate in (key, *aliases):
-        value = payload.get(candidate)
-        if isinstance(value, str) and value.strip():
-            return value
-    raise ValueError(f"{label}.{key} must be a non-empty string")
-
-
-def _require_string_list_alias(
-    payload: dict[str, object],
-    key: str,
-    *,
-    label: str,
-    aliases: tuple[str, ...] = (),
-) -> tuple[str, ...]:
-    for candidate in (key, *aliases):
-        value = payload.get(candidate)
-        if isinstance(value, list) and value:
-            items: list[str] = []
-            for item in value:
-                if not isinstance(item, str) or not item.strip():
-                    raise ValueError(f"{label}.{candidate} entries must be non-empty strings")
-                items.append(item)
-            return tuple(items)
-    raise ValueError(f"{label}.{key} must be a non-empty list")
-
-
-def _render_public_vocabulary_intro(fields: tuple[str, ...]) -> str:
-    if not fields:
-        raise ValueError("resume_authority.public_fields must be a non-empty list")
-    rendered_fields = tuple(f"`{field}`" for field in fields)
-    if len(rendered_fields) == 1:
-        rendered = rendered_fields[0]
-    elif len(rendered_fields) == 2:
-        rendered = f"{rendered_fields[0]} and {rendered_fields[1]}"
-    else:
-        rendered = ", ".join(rendered_fields[:-1]) + f", and {rendered_fields[-1]}"
-    return f"Public resume vocabulary centers on {rendered}"
-
-
 @lru_cache(maxsize=1)
 def load_public_surface_contract() -> PublicSurfaceContract:
     contract_path = files("gpd.core").joinpath("public_surface_contract.json")
     raw_payload = json.loads(contract_path.read_text(encoding="utf-8"))
     payload = _require_object(raw_payload, label="public_surface_contract")
+    _require_exact_keys(
+        payload,
+        label="public_surface_contract",
+        keys=(
+            "schema_version",
+            "beginner_onboarding",
+            "local_cli_bridge",
+            "post_start_settings",
+            "resume_authority",
+            "recovery_ladder",
+        ),
+    )
 
     schema_version = payload.get("schema_version")
     if schema_version != 1:
         raise ValueError(f"Unsupported public surface contract schema_version: {schema_version!r}")
 
     beginner_payload = _require_object(payload.get("beginner_onboarding"), label="beginner_onboarding")
+    _require_exact_keys(
+        beginner_payload,
+        label="beginner_onboarding",
+        keys=("hub_url", "preflight_requirements", "caveats", "startup_ladder"),
+    )
     bridge_payload = _require_object(payload.get("local_cli_bridge"), label="local_cli_bridge")
+    _require_exact_keys(
+        bridge_payload,
+        label="local_cli_bridge",
+        keys=("commands", "terminal_phrase", "purpose_phrase"),
+    )
     settings_payload = _require_object(payload.get("post_start_settings"), label="post_start_settings")
+    _require_exact_keys(
+        settings_payload,
+        label="post_start_settings",
+        keys=("primary_sentence", "default_sentence"),
+    )
     resume_authority_payload = _require_object(payload.get("resume_authority"), label="resume_authority")
+    _require_exact_keys(
+        resume_authority_payload,
+        label="resume_authority",
+        keys=(
+            "durable_authority_phrase",
+            "public_vocabulary_intro",
+            "public_fields",
+            "compat_surface",
+            "session_mirror",
+            "compatibility_phrase",
+            "top_level_boundary_phrase",
+        ),
+    )
     recovery_payload = _require_object(payload.get("recovery_ladder"), label="recovery_ladder")
-    resume_authority_public_fields = _require_string_list_alias(
+    _require_exact_keys(
+        recovery_payload,
+        label="recovery_ladder",
+        keys=(
+            "title",
+            "local_snapshot_command",
+            "local_snapshot_phrase",
+            "cross_workspace_command",
+            "cross_workspace_phrase",
+            "resume_phrase",
+            "next_phrase",
+            "pause_phrase",
+        ),
+    )
+    resume_authority_public_fields = _require_string_list(
         resume_authority_payload,
         "public_fields",
         label="resume_authority",
-        aliases=("canonical_fields",),
     )
-    resume_authority_public_vocabulary_intro = (
-        _require_string_alias(
-            resume_authority_payload,
-            "public_vocabulary_intro",
-            label="resume_authority",
-        )
-        if "public_vocabulary_intro" in resume_authority_payload
-        else _render_public_vocabulary_intro(resume_authority_public_fields)
+    resume_authority_public_vocabulary_intro = _require_string(
+        resume_authority_payload,
+        "public_vocabulary_intro",
+        label="resume_authority",
     )
+    _require_string(resume_authority_payload, "compat_surface", label="resume_authority")
+    _require_string(resume_authority_payload, "session_mirror", label="resume_authority")
 
     return PublicSurfaceContract(
         beginner_onboarding=BeginnerOnboardingContract(
@@ -257,24 +278,22 @@ def load_public_surface_contract() -> PublicSurfaceContract:
             ),
         ),
         resume_authority=ResumeAuthorityContract(
-            durable_authority_phrase=_require_string_alias(
+            durable_authority_phrase=_require_string(
                 resume_authority_payload,
                 "durable_authority_phrase",
                 label="resume_authority",
-                aliases=("durable_authority",),
             ),
             public_fields=resume_authority_public_fields,
             public_vocabulary_intro=resume_authority_public_vocabulary_intro,
-            compatibility_phrase=_require_string_alias(
+            compatibility_phrase=_require_string(
                 resume_authority_payload,
                 "compatibility_phrase",
                 label="resume_authority",
             ),
-            top_level_boundary_phrase=_require_string_alias(
+            top_level_boundary_phrase=_require_string(
                 resume_authority_payload,
                 "top_level_boundary_phrase",
                 label="resume_authority",
-                aliases=("top_level_phrase",),
             ),
         ),
         recovery_ladder=RecoveryLadderContract(

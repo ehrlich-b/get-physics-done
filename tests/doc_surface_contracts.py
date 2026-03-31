@@ -98,6 +98,15 @@ def _first_index_of_any(content: str, fragments: Iterable[str], *, label: str) -
 def _public_surface_contract_payload() -> dict[str, object]:
     payload = json.loads(PUBLIC_SURFACE_CONTRACT_PATH.read_text(encoding="utf-8"))
     assert isinstance(payload, dict), "public surface contract must be a JSON object"
+    assert set(payload) == {
+        "schema_version",
+        "beginner_onboarding",
+        "local_cli_bridge",
+        "post_start_settings",
+        "resume_authority",
+        "recovery_ladder",
+    }
+    assert payload["schema_version"] == 1
     return payload
 
 
@@ -144,6 +153,15 @@ def beginner_startup_ladder_text() -> str:
 
 def _resume_authority_contract() -> dict[str, object]:
     section = _contract_section("resume_authority")
+    assert set(section) == {
+        "durable_authority_phrase",
+        "public_vocabulary_intro",
+        "public_fields",
+        "compat_surface",
+        "session_mirror",
+        "compatibility_phrase",
+        "top_level_boundary_phrase",
+    }
     _contract_string(section, "durable_authority_phrase", label="resume_authority")
     _contract_string(section, "public_vocabulary_intro", label="resume_authority")
     _contract_string_list(section, "public_fields", label="resume_authority")

@@ -42,3 +42,11 @@ def test_wolfram_descriptor_uses_env_vars_for_configuration(monkeypatch) -> None
     assert descriptor.resolved_endpoint({WOLFRAM_MCP_ENDPOINT_ENV_VAR: "https://example.invalid"}) == (
         "https://example.invalid"
     )
+
+
+def test_get_managed_integration_rejects_malformed_ids() -> None:
+    assert get_managed_integration(None) is None
+    assert get_managed_integration(0) is None
+    assert get_managed_integration("") is None
+    assert get_managed_integration("   ") is None
+    assert get_managed_integration(" WOLFRAM ") is not None

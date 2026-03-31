@@ -76,10 +76,14 @@ MANAGED_INTEGRATIONS: dict[str, ManagedIntegrationDescriptor] = {
 }
 
 
-def get_managed_integration(integration_id: str) -> ManagedIntegrationDescriptor | None:
+def get_managed_integration(integration_id: object) -> ManagedIntegrationDescriptor | None:
     """Return a managed integration descriptor by canonical id."""
 
+    if not isinstance(integration_id, str):
+        return None
     normalized = integration_id.strip().lower()
+    if not normalized:
+        return None
     return MANAGED_INTEGRATIONS.get(normalized)
 
 
@@ -87,4 +91,3 @@ def list_managed_integrations() -> dict[str, ManagedIntegrationDescriptor]:
     """Return the canonical managed integration registry."""
 
     return dict(MANAGED_INTEGRATIONS)
-

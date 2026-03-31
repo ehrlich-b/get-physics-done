@@ -1383,7 +1383,7 @@ class TestResume:
         _assert_resume_compat_surface_inventory(compat)
         assert compat["execution_resume_file"] == "GPD/phases/01-test-phase/.continue-here.md"
         assert compat["execution_resume_file_source"] == "session_resume_file"
-        assert compat.get("resume_mode") is None
+        assert compat["resume_mode"] == "continuity_handoff"
         assert len(compat["segment_candidates"]) == 1
         assert compat["segment_candidates"][0]["source"] == "session_resume_file"
         assert compat["segment_candidates"][0]["status"] == "handoff"

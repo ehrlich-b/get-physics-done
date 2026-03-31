@@ -690,6 +690,48 @@ def _run_bootstrap_with_fake_python(
     return result, home, log_path
 
 
+def _run_node_contract_validation(script: str) -> subprocess.CompletedProcess[str]:
+    node_path = shutil.which("node")
+    if node_path is None:
+        raise RuntimeError("node is required for bootstrap installer tests")
+
+    return subprocess.run(
+        [node_path, "-e", script],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_bootstrap_public_surface_contract_validator_matches_canonical_shape() -> None:
+    result = _run_node_contract_validation(
+        r"""
+const assert = require("node:assert/strict");
+const { validateSharedPublicSurfaceContract } = require("./bin/install.js");
+const payload = require("./src/gpd/core/public_surface_contract.json");
+
+assert.doesNotThrow(() => validateSharedPublicSurfaceContract(payload));
+
+const blankSessionMirror = JSON.parse(JSON.stringify(payload));
+blankSessionMirror.resume_authority.session_mirror = "";
+assert.throws(
+  () => validateSharedPublicSurfaceContract(blankSessionMirror),
+  /resume_authority\.session_mirror must be a non-empty string/
+);
+
+const extraResumeKey = JSON.parse(JSON.stringify(payload));
+extraResumeKey.resume_authority.legacy_note = "unexpected";
+assert.throws(
+  () => validateSharedPublicSurfaceContract(extraResumeKey),
+  /resume_authority must contain exactly/
+);
+"""
+    )
+
+    assert result.returncode == 0, f"{result.stdout}\n{result.stderr}"
+
+
 @pytest.mark.skipif(os.name == "nt", reason="bootstrap installer harness uses POSIX-style fake Python shims")
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is required for bootstrap installer tests")
 def test_bootstrap_uses_managed_virtualenv_and_skips_host_pip(tmp_path: Path) -> None:

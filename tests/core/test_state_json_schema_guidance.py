@@ -10,6 +10,11 @@ def test_state_json_schema_surfaces_hidden_grounding_requirements() -> None:
         Path(__file__).resolve().parents[2] / "src" / "gpd" / "specs" / "templates" / "state-json-schema.md"
     ).read_text(encoding="utf-8")
 
+    assert "The `project_contract` schema is closed." in schema
+    assert "Do not invent extra keys at the top level or inside nested objects." in schema
+    assert "List-shaped fields must stay lists, even when they contain one item." in schema
+    assert "Blank list entries are invalid." in schema
+    assert "Duplicate list entries are also invalid after trimming whitespace" in schema
     assert "at least three words" in schema
     assert "already exists inside the current project root" in schema
     assert "already exists inside the current project root" in schema
