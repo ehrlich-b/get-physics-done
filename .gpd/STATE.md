@@ -11,22 +11,28 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 
 ## Current Position
 
-**Current Phase:** 39
-**Current Phase Name:** Spontaneous Symmetry Breaking and Universality Class
+**Current Phase:** 40
+**Current Phase Name:** Assembly: All Gaps Closed
 **Total Phases:** 40 (36 prior + 4 new in v10.0)
-**Current Plan:** 4/4
-**Total Plans in Phase:** 4
-**Status:** Phase 39 complete -- all 4 plans executed
+**Current Plan:** 2/2
+**Total Plans in Phase:** 2
+**Status:** Phase 40 execution complete -- both plans executed, pending verification
 **Last Activity:** 2026-03-30
-**Last Activity Description:** UC1-UC4 verified for O(9) model on S^8, Phase 37 gap dependency handoff complete
+**Last Activity Description:** v10.0 derivation chain (12 links) + gap scorecards + v10/v9 comparison assembled
 
-**Progress:** [################################........] 95% (38/40 phases complete)
+**Progress:** [########################################] 100% (40/40 phases complete)
 
 ## Active Calculations
 
 - H_2 = J * sum_{a=1}^{9} T_a^(1) T_a^(2) on R^{256}, J=1 (lattice units)
 
 ## Intermediate Results
+
+### v10.0 Phase 40 Results
+
+- **Derivation chain (40-01)**: Complete 12-link v10.0 chain (a')-(l) from self-modeling to Einstein on h_3(O). Every link cites specific equation numbers from Phases 37-39 derivation files. Rigor taxonomy applied. (HIGH)
+- **Gap scorecards (40-01)**: Gap C upgraded CONDITIONAL -> CONDITIONAL-DERIVED (Eq. 37.6, tensoriality derived via BW+Raychaudhuri+Lovelock). Gap D upgraded CONDITIONAL -> CONDITIONAL-THEOREM (Eq. 37.12, MVEH math content proved). 15 assumptions: 8 resolved, 7 assumed. Quantum SSB conditionality documented. (HIGH)
+- **v10/v9 comparison (40-02)**: 13 structural differences documented. 2 gaps UPGRADED, 7 UNCHANGED, 0 regressions. Quantum SSB framed as new v10.0 insight (not regression). Status: conditionally complete for d>=3. (HIGH)
 
 ### v10.0 Phase 39 Results
 
@@ -108,11 +114,15 @@ See: .gpd/PROJECT.md (updated 2026-03-30)
 | 39-02 | ~5min | 2 | 2 |
 | 39-03 | ~6min | 2 | 2 |
 | 39-04 | ~4min | 2 | 2 |
+| 40-01 | ~9min | 2 | 3 |
+| 40-02 | ~4min | 1 | 2 |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 40, Plan 02]: v10.0 vs v9.0 comparison produced. 13 structural differences. 2 gaps UPGRADED (C: CONDITIONAL-DERIVED, D: CONDITIONAL-THEOREM), 7 UNCHANGED, 0 regressions. Quantum SSB = new insight not regression. Status: conditionally complete for d>=3.
+- [Phase 40, Plan 01]: v10.0 chain assembled with 12 links (a')-(l). Gap C upgraded CONDITIONAL -> CONDITIONAL-DERIVED (Eq. 37.6). Gap D upgraded CONDITIONAL -> CONDITIONAL-THEOREM (Eq. 37.12). 15 assumptions: 4 verified + 2 derived + 2 prior-verified + 7 assumed = 15. Quantum SSB conditionality documented throughout.
 - [Phase 39, Plan 04]: UC1-UC4 all classical-verified, UC1/UC4 quantum-conditional (shared root: S_eff=1/2, Speer). 8/15 gap dependency assumptions resolved. Type-A Goldstone => Lorentz chain consistent.
 - [Phase 39, Plan 03]: Sigma model target = S^8 (from Spin(9)->Spin(8) SSB). Ric(S^8) = 7g. Beta = -(d-2)g^2 + (7/2pi)g^4. AF in d=2. No topological terms in d<=7.
 - [Phase 39, Plan 02]: rho_ab = 0 exactly (real antisymmetric identity). All 8 Goldstone modes Type-A. Lorentz emergence consistent. Real rep is the mechanism.
@@ -170,5 +180,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-03-30
-**Stopped at:** Phase 39 complete, Phase 40 ready to plan
+**Stopped at:** Phase 40 execution complete, pending verification
 **Resume file:** --

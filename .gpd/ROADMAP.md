@@ -268,8 +268,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 40-01-PLAN.md -- Complete derivation chain (12 links) + updated gap scorecards with theorem citations
-- [ ] 40-02-PLAN.md -- v10.0 vs v9.0 side-by-side comparison table
+- [x] 40-01-PLAN.md -- Complete derivation chain (12 links) + updated gap scorecards with theorem citations
+- [x] 40-02-PLAN.md -- v10.0 vs v9.0 side-by-side comparison table
 
 ## Phase Dependencies
 
@@ -310,4 +310,4 @@ Plans:
 | 37. Gap Dependency Theorem | v10.0 | 2/2 | Complete | 2026-03-30 |
 | 38. Effective Hamiltonian | v10.0 | 2/2 | Complete | 2026-03-30 |
 | 39. SSB + Universality Class | v10.0 | 4/4 | Complete | 2026-03-30 |
-| 40. Assembly | v10.0 | 0/2 | Planned | - |
+| 40. Assembly | v10.0 | 2/2 | Complete | 2026-03-30 |
