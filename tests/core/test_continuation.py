@@ -274,6 +274,32 @@ def test_synthesize_legacy_continuation_uses_portable_current_execution_and_sess
     assert projection.resumable is True
 
 
+def test_synthesize_legacy_continuation_preserves_session_last_result_id(tmp_path: Path) -> None:
+    continuation = synthesize_legacy_continuation(
+        tmp_path,
+        session={
+            "last_date": "2026-03-29T12:00:00+00:00",
+            "last_result_id": "result-03",
+        },
+    )
+
+    assert continuation.handoff.last_result_id == "result-03"
+    assert continuation.handoff.recorded_by == "legacy_session"
+
+    projection = resolve_continuation(
+        tmp_path,
+        state={
+            "session": {
+                "last_date": "2026-03-29T12:00:00+00:00",
+                "last_result_id": "result-03",
+            }
+        },
+    )
+
+    assert projection.source == ContinuationSource.LEGACY
+    assert projection.continuation.handoff.last_result_id == "result-03"
+
+
 def test_synthesize_legacy_continuation_ignores_nonportable_or_missing_live_snapshot(tmp_path: Path) -> None:
     _write_resume(tmp_path, "GPD/phases/03-analysis/handoff.md")
     external_root = tmp_path.parent / f"{tmp_path.name}-external"

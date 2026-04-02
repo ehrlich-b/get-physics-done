@@ -1247,12 +1247,14 @@ def _parse_project_contract_data(
         allow_singleton_defaults=True,
     )
     recoverable_errors = [*schema_warnings, *list_shape_drift_errors, *_collect_project_contract_list_member_errors(data)]
+    blocking_errors = [*schema_errors]
     if contract is None:
-        blocking_errors = [*schema_errors]
         if not blocking_errors and schema_findings:
             blocking_errors = list(schema_findings)
         if not blocking_errors:
             blocking_errors = ["project contract could not be normalized"]
+        blocking_error_set = set(blocking_errors)
+        recoverable_errors = [error for error in recoverable_errors if error not in blocking_error_set]
         return _project_contract_parse_result(
             blocking_errors=blocking_errors,
             recoverable_errors=recoverable_errors,
@@ -1260,8 +1262,13 @@ def _parse_project_contract_data(
 
     integrity_errors = collect_contract_integrity_errors(contract)
     if integrity_errors:
+        blocking_errors.extend(integrity_errors)
+    if blocking_errors:
+        blocking_error_set = set(blocking_errors)
+        recoverable_errors = [error for error in recoverable_errors if error not in blocking_error_set]
         return _project_contract_parse_result(
-            blocking_errors=integrity_errors,
+            contract=contract,
+            blocking_errors=blocking_errors,
             recoverable_errors=recoverable_errors,
         )
     return _project_contract_parse_result(contract=contract, recoverable_errors=recoverable_errors)

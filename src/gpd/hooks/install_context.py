@@ -161,6 +161,8 @@ def resolve_hook_lookup_context(
         if preferred_runtime is not None
         else detect_runtime_for_gpd_use(cwd=lookup_cwd, home=resolved_home)
     )
+    if active_runtime in (None, "", RUNTIME_UNKNOWN) and active_runtime_hint not in (None, "", RUNTIME_UNKNOWN):
+        active_runtime = prioritized_runtime
     return HookLookupContext(
         lookup_cwd=lookup_cwd,
         resolved_home=resolved_home,

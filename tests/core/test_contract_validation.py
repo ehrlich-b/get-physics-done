@@ -125,6 +125,34 @@ def test_parse_project_contract_data_salvage_reports_recoverable_findings() -> N
     assert result.errors == result.recoverable_errors
 
 
+def test_parse_project_contract_data_salvage_preserves_blocking_errors_for_missing_required_collection_item_field() -> None:
+    contract = _load_contract_fixture()
+    del contract["claims"][0]["statement"]
+
+    result: ProjectContractParseResult = parse_project_contract_data_salvage(contract)
+
+    assert result.contract is not None
+    assert "claims.0.statement is required" in result.blocking_errors
+    assert contract_from_data_salvage(contract) is None
+
+
+def test_parse_project_contract_data_salvage_preserves_blocking_errors_for_wrong_collection_type() -> None:
+    contract = _load_contract_fixture()
+    contract["claims"] = {"claim-1": contract["claims"][0]}
+
+    result: ProjectContractParseResult = parse_project_contract_data_salvage(contract)
+
+    assert result.contract is not None
+    assert "claims must be a list, not dict" in result.blocking_errors
+
+
+def test_contract_from_data_salvage_rejects_blocking_salvage_errors() -> None:
+    contract = _load_contract_fixture()
+    contract["claims"] = {"claim-1": contract["claims"][0]}
+
+    assert contract_from_data_salvage(contract) is None
+
+
 def test_parse_project_contract_data_salvage_preserves_contract_with_top_level_extra_keys() -> None:
     contract = _load_contract_fixture()
     contract["legacy_notes"] = "forwarded from a prior schema revision"

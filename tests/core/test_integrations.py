@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from gpd.mcp.managed_integrations import (
@@ -78,6 +80,39 @@ def test_wolfram_descriptor_respects_project_local_disable_and_endpoint_override
     assert descriptor.is_configured(env, cwd=tmp_path) is False
     assert descriptor.resolved_endpoint(env, cwd=tmp_path) == "https://project.invalid/api/mcp"
     assert descriptor.config_summary(env, cwd=tmp_path)["enabled"] is False
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"wolfram": {"enabled": False, "api_key_env_var": "legacy"}},  # unknown nested key
+        {"wolfram": {"enabled": False}, "legacy_notes": "ignored before strict mode"},  # unknown top-level key
+    ],
+)
+def test_wolfram_descriptor_strict_parsing_rejects_unknown_keys(tmp_path, payload: dict[str, object]) -> None:
+    descriptor = get_managed_integration("wolfram")
+    assert descriptor is not None
+
+    config_path = tmp_path / "GPD" / "integrations.json"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="unsupported keys"):
+        descriptor.project_record(tmp_path, strict=True)
+
+
+def test_wolfram_descriptor_strict_parsing_allows_legacy_api_key_env_field(tmp_path) -> None:
+    descriptor = get_managed_integration("wolfram")
+    assert descriptor is not None
+
+    config_path = tmp_path / "GPD" / "integrations.json"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text(
+        json.dumps({"wolfram": {"enabled": True, "api_key_env": "WOLFRAM_MCP_SERVICE_API_KEY"}}),
+        encoding="utf-8",
+    )
+
+    assert descriptor.project_record(tmp_path, strict=True) == {"enabled": True}
 
 
 def test_wolfram_descriptor_resolves_project_local_config_from_nested_workspace(tmp_path) -> None:

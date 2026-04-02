@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib
+import logging
 import json
 import os
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -208,6 +211,58 @@ def test_non_verification_mcp_tools_reject_unknown_arguments(module_name: str, t
     result = _call_mcp_tool(module.mcp, tool_name, arguments)
 
     assert result == {"error": "Unsupported arguments: unexpected", "schema_version": 1}
+
+
+@pytest.mark.parametrize(
+    "module_name",
+    [
+        "gpd.mcp.servers.conventions_server",
+        "gpd.mcp.servers.errors_mcp",
+        "gpd.mcp.servers.patterns_server",
+        "gpd.mcp.servers.protocols_server",
+        "gpd.mcp.servers.skills_server",
+        "gpd.mcp.servers.state_server",
+        "gpd.mcp.servers.verification_server",
+    ],
+)
+def test_built_in_mcp_servers_honor_log_level_environment(module_name: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    module = importlib.import_module(module_name)
+    original_level = module.logger.level
+    monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+
+    try:
+        reloaded = importlib.reload(module)
+        assert reloaded.logger.level == logging.DEBUG
+    finally:
+        module.logger.setLevel(original_level)
+
+
+def test_configure_mcp_logging_forces_stderr_and_disables_root_propagation() -> None:
+    from gpd.mcp.servers import configure_mcp_logging
+
+    logger = logging.getLogger("gpd-test-configure-mcp-logging")
+    configured = logger
+    original_handlers = list(logger.handlers)
+    original_level = logger.level
+    original_propagate = logger.propagate
+    root_logger = logging.getLogger()
+    root_handler = logging.StreamHandler(sys.stdout)
+    root_logger.addHandler(root_handler)
+
+    try:
+        configured = configure_mcp_logging("gpd-test-configure-mcp-logging")
+        assert configured.propagate is False
+        assert configured.handlers
+        assert all(
+            isinstance(handler, logging.StreamHandler) and handler.stream is sys.stderr
+            for handler in configured.handlers
+        )
+    finally:
+        configured.handlers.clear()
+        logger.handlers[:] = original_handlers
+        logger.setLevel(original_level)
+        logger.propagate = original_propagate
+        root_logger.removeHandler(root_handler)
 
 
 def test_state_mcp_tools_reject_unknown_arguments_and_preserve_absolute_path_enforcement(tmp_path: Path) -> None:
@@ -546,7 +601,7 @@ def test_protocol_store_rejects_boolean_manifest_schema_version(tmp_path: Path, 
 def test_protocol_store_skips_malformed_frontmatter_with_warning(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     from gpd.mcp.servers.protocols_server import ProtocolStore, _load_protocol_domain_manifest
 
@@ -563,12 +618,12 @@ def test_protocol_store_skips_malformed_frontmatter_with_warning(
     monkeypatch.setattr("gpd.mcp.servers.protocols_server.PROTOCOL_DOMAINS_MANIFEST", domain_manifest)
     _load_protocol_domain_manifest.cache_clear()
     try:
-        with caplog.at_level("WARNING", logger="gpd-protocols"):
-            store = ProtocolStore(protocols_dir)
+        store = ProtocolStore(protocols_dir)
     finally:
         _load_protocol_domain_manifest.cache_clear()
 
+    stderr = capsys.readouterr().err
     assert store.get("good") is not None
     assert store.get("bad") is None
-    assert "Skipping protocol" in caplog.text
-    assert "malformed frontmatter" in caplog.text
+    assert "Skipping protocol" in stderr
+    assert "malformed frontmatter" in stderr

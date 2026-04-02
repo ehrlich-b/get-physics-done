@@ -110,6 +110,77 @@ def test_validate_reproducibility_manifest_valid():
     assert result.issues == []
 
 
+def test_validate_reproducibility_manifest_rejects_string_booleans():
+    manifest = _manifest().model_dump()
+    manifest["execution_steps"][1]["stochastic"] = "true"
+    manifest["output_files"][0]["approximate_checksum"] = "false"
+
+    result = validate_reproducibility_manifest(manifest)
+
+    assert result.valid is False
+    fields = {issue.field for issue in result.issues}
+    assert "execution_steps.1.stochastic" in fields
+    assert "output_files.0.approximate_checksum" in fields
+    assert any("boolean" in issue.message.lower() for issue in result.issues)
+
+
+def test_validate_reproducibility_manifest_rejects_string_numerics():
+    manifest = _manifest().model_dump()
+    manifest["resource_requirements"][0]["cpu_cores"] = "4"
+    manifest["resource_requirements"][0]["memory_gb"] = "8.0"
+
+    result = validate_reproducibility_manifest(manifest)
+
+    assert result.valid is False
+    fields = {issue.field for issue in result.issues}
+    assert "resource_requirements.0.cpu_cores" in fields
+    assert "resource_requirements.0.memory_gb" in fields
+    assert any("integer" in issue.message.lower() for issue in result.issues)
+    assert any("number" in issue.message.lower() for issue in result.issues)
+
+
+def test_validate_reproducibility_manifest_rejects_integer_memory_gb():
+    manifest = _manifest().model_dump()
+    manifest["resource_requirements"][0]["memory_gb"] = 8
+
+    result = validate_reproducibility_manifest(manifest)
+
+    assert result.valid is False
+    assert any(issue.field == "resource_requirements.0.memory_gb" for issue in result.issues)
+    assert any("number" in issue.message.lower() for issue in result.issues)
+
+
+def test_validate_reproducibility_manifest_rejects_unknown_fields():
+    manifest = _manifest().model_dump()
+    manifest["unexpected"] = "legacy"
+    manifest["execution_steps"][0]["legacy_flag"] = True
+
+    result = validate_reproducibility_manifest(manifest)
+
+    assert result.valid is False
+    fields = {issue.field for issue in result.issues}
+    assert "unexpected" in fields
+    assert "execution_steps.0.legacy_flag" in fields
+    assert any("extra inputs are not permitted" in issue.message.lower() for issue in result.issues)
+
+
+def test_validate_reproducibility_manifest_rejects_seed_records_for_non_stochastic_steps():
+    manifest = _manifest().model_dump()
+    manifest["random_seeds"].append(
+        {
+            "computation": "prepare",
+            "seed": "7",
+            "purpose": "stale seed record for deterministic step",
+        }
+    )
+
+    result = validate_reproducibility_manifest(manifest)
+
+    assert result.valid is False
+    assert any(issue.field == "random_seeds" for issue in result.issues)
+    assert any("non-stochastic or unknown execution steps" in issue.message for issue in result.issues)
+
+
 def test_build_reproducibility_kernel_verdict_is_stably_content_addressed():
     manifest = _manifest()
 

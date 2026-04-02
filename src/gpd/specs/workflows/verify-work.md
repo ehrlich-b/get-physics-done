@@ -960,6 +960,8 @@ task(
 **Active References:** {active_reference_context}
 **Reference Artifacts:** {reference_artifacts_content}
 
+If the downstream fix plan will need specialized tooling or any other machine-checkable hard validation requirement, surface it in PLAN frontmatter `tool_requirements` before drafting task prose. Keep those dependencies visible on the plan surface so the checker can preflight them from the authored output instead of discovering them buried in body text.
+
 ## Canonical PLAN Contract Schema
 
 Use `templates/plan-contract-schema.md` as the canonical contract schema reference.
@@ -1073,6 +1075,8 @@ task(
 **Protocol Bundles:** {protocol_bundle_context}
 **Active References:** {active_reference_context}
 **Reference Artifacts:** {reference_artifacts_content}
+
+If the revised fix plan still needs specialized tooling or any other machine-checkable hard validation requirement, keep it in PLAN frontmatter `tool_requirements` before rewriting task prose. Do not bury those requirements in the body where the checker cannot see them early.
 
 ## Canonical PLAN Contract Schema
 

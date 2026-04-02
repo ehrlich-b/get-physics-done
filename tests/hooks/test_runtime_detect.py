@@ -336,6 +336,22 @@ class TestResolveEffectiveRuntime:
 
         assert result.runtime == RUNTIME_UNKNOWN
 
+    def test_require_gpd_install_does_not_fall_through_to_another_installed_runtime(
+        self, tmp_path: Path
+    ) -> None:
+        _mark_gpd_install(tmp_path / ".codex")
+
+        env = _clean_runtime_env()
+        env["CLAUDE_CODE_SESSION"] = "1"
+        with (
+            patch.dict(os.environ, env, clear=True),
+            patch("gpd.hooks.runtime_detect.Path.home", return_value=tmp_path),
+            patch("gpd.hooks.runtime_detect.Path.cwd", return_value=tmp_path),
+        ):
+            result = resolve_effective_runtime(require_gpd_install=True)
+
+        assert result.runtime == RUNTIME_UNKNOWN
+
 
 class TestNormalizeRuntimeName:
     """Tests for the shared runtime-name normalizer."""
@@ -378,17 +394,19 @@ class TestDetectActiveRuntimeWithInstall:
         ):
             assert detect_active_runtime_with_gpd_install() == RUNTIME_CODEX
 
-    def test_higher_priority_runtime_without_install_does_not_mask_lower_installed_runtime(self, tmp_path: Path) -> None:
-        (tmp_path / ".claude").mkdir()
+    def test_active_runtime_without_install_returns_unknown_in_install_aware_resolution(
+        self, tmp_path: Path
+    ) -> None:
         _mark_gpd_install(tmp_path / ".codex")
 
         env = _clean_runtime_env()
+        env["CLAUDE_CODE_SESSION"] = "1"
         with (
             patch.dict(os.environ, env, clear=True),
             patch("gpd.hooks.runtime_detect.Path.home", return_value=tmp_path),
             patch("gpd.hooks.runtime_detect.Path.cwd", return_value=tmp_path),
         ):
-            assert detect_active_runtime_with_gpd_install() == RUNTIME_CODEX
+            assert detect_active_runtime_with_gpd_install() == RUNTIME_UNKNOWN
 
     def test_corrupted_opencode_global_manifest_fails_closed_for_installed_runtime(self, tmp_path: Path) -> None:
         home = tmp_path / "home"
@@ -615,10 +633,10 @@ class TestDetectRuntimeForGpdUse:
     """Tests for the install-aware runtime selection used by GPD-owned surfaces."""
 
     def test_prefers_installed_runtime_over_uninstalled_higher_priority_runtime(self, tmp_path: Path) -> None:
-        (tmp_path / ".claude").mkdir()
         _mark_gpd_install(tmp_path / ".codex")
 
         env = _clean_runtime_env()
+        env["CLAUDE_CODE_SESSION"] = "1"
         with (
             patch.dict(os.environ, env, clear=True),
             patch("gpd.hooks.runtime_detect.Path.home", return_value=tmp_path),
@@ -627,15 +645,14 @@ class TestDetectRuntimeForGpdUse:
             assert detect_runtime_for_gpd_use() == RUNTIME_CODEX
 
     def test_falls_back_to_plain_active_runtime_when_no_install_is_found(self, tmp_path: Path) -> None:
-        (tmp_path / ".gemini").mkdir()
-
         env = _clean_runtime_env()
+        env["GEMINI_CLI"] = "1"
         with (
             patch.dict(os.environ, env, clear=True),
             patch("gpd.hooks.runtime_detect.Path.home", return_value=tmp_path / "home"),
             patch("gpd.hooks.runtime_detect.Path.cwd", return_value=tmp_path),
         ):
-            assert detect_runtime_for_gpd_use() == RUNTIME_UNKNOWN
+            assert detect_runtime_for_gpd_use() == RUNTIME_GEMINI
 
     def test_explicit_target_install_is_detected_for_gpd_surfaces(self, tmp_path: Path) -> None:
         workspace = tmp_path / "workspace"

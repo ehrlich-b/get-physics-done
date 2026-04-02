@@ -456,11 +456,8 @@ def get_runtime_descriptor(runtime: str) -> RuntimeDescriptor:
 
 
 def get_hook_payload_policy(runtime: str | None = None) -> HookPayloadPolicy:
-    if runtime:
-        try:
-            return get_runtime_descriptor(runtime).hook_payload
-        except KeyError:
-            pass
+    if runtime is not None:
+        return get_runtime_descriptor(runtime).hook_payload
 
     descriptors = iter_runtime_descriptors()
     return HookPayloadPolicy(

@@ -970,6 +970,7 @@ After completion, create `GPD/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 | `depends_on`       | Yes      | Plan IDs this plan requires               |
 | `files_modified`   | Yes      | Files this plan touches                   |
 | `interactive`      | Yes      | `true` if the plan contains checkpoints   |
+| `gap_closure`      | No       | `true` only for verification repair plans |
 | `conventions`      | Yes      | Physics conventions in effect             |
 | `contract`         | Yes      | Canonical machine-readable plan contract  |
 | `dimensional_check`| If any   | Expected dimensions of key results (e.g., `{E_0: '[energy]', sigma: '[area]'}`) — executor verifies at completion, verifier gets independent expectation |
@@ -1021,9 +1022,14 @@ tool_requirements:
     purpose: "Symbolic tensor reduction for Task 2"
     required: true
     fallback: "Use SymPy plus manual simplification if Wolfram is unavailable"
+  - id: latex-compiler
+    tool: command
+    command: "pdflatex --version"
+    purpose: "Verify a local LaTeX compiler exists before a paper-build plan depends on it"
+    fallback: "Switch to a text-only deliverable if LaTeX is unavailable"
 ```
 
-Keep `researcher_setup` for human credentials, licensed access, or manual environment work. Keep `tool_requirements` for the actual tool capability the executor must preflight. Do not hide specialized tool assumptions only in task prose.
+Use only the closed tool vocabulary the validator accepts: `wolfram` and `command` (plus Wolfram aliases that normalize to `wolfram`). For `tool: command`, the `command` field is required; for non-`command` tools it must be omitted. `required` defaults to `true` when omitted, and a fallback does not make a missing required tool non-blocking. Keep `researcher_setup` for human credentials, licensed access, or manual environment work. Keep `tool_requirements` for the actual tool capability the executor must preflight. Do not hide specialized tool assumptions only in task prose.
 
 </plan_format>
 
@@ -1760,6 +1766,8 @@ grep -l "status: diagnosed" "$phase_dir"/*-REVIEW.md 2>/dev/null
 
 **7. Write PLAN.md files:**
 
+Gap-closure plans keep `type: execute`; the repair marker is `gap_closure: true`, not a third `type` enum.
+
 ```yaml
 ---
 phase: XX-name
@@ -1771,6 +1779,37 @@ files_modified: [...]
 interactive: false
 gap_closure: true # Flag for tracking
 conventions: {} # Inherit from phase
+contract:
+  scope:
+    question: "[Which failed verification or gap does this plan repair?]"
+  context_intake:
+    must_include_prior_outputs: ["GPD/phases/XX-name/XX-NN-SUMMARY.md"]
+    crucial_inputs: ["Exact failed verification and affected artifact"]
+  claims:
+    - id: "claim-gap-fix"
+      statement: "[What repaired result must now hold]"
+      deliverables: ["deliv-gap-fix"]
+      acceptance_tests: ["test-gap-fix"]
+  deliverables:
+    - id: "deliv-gap-fix"
+      kind: "report"
+      path: "GPD/phases/XX-name/XX-NN-SUMMARY.md"
+      description: "[Artifact proving the repair]"
+  acceptance_tests:
+    - id: "test-gap-fix"
+      subject: "claim-gap-fix"
+      kind: "other"
+      procedure: "[Re-run the failed check]"
+      pass_condition: "[Exact verification condition that must now pass]"
+      evidence_required: ["deliv-gap-fix"]
+  forbidden_proxies:
+    - id: "fp-gap-fix"
+      subject: "claim-gap-fix"
+      proxy: "[What would look fixed but would not count]"
+      reason: "[Why that would still be false progress]"
+  uncertainty_markers:
+    weakest_anchors: ["[What still makes the repair fragile]"]
+    disconfirming_observations: ["[What would show the fix did not actually hold]"]
 ---
 ```
 

@@ -12,9 +12,7 @@ Usage:
 """
 
 import dataclasses
-import logging
 import re
-import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -27,10 +25,9 @@ from gpd.adapters.tool_names import canonical
 from gpd.command_labels import rewrite_runtime_command_surfaces
 from gpd.core.errors import GPDError
 from gpd.core.observability import gpd_span
-from gpd.mcp.servers import parse_frontmatter_safe, stable_mcp_error, stable_mcp_response
+from gpd.mcp.servers import configure_mcp_logging, parse_frontmatter_safe, stable_mcp_error, stable_mcp_response
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
-logger = logging.getLogger("gpd-skills")
+logger = configure_mcp_logging("gpd-skills")
 
 mcp = FastMCP("gpd-skills")
 

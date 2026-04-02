@@ -451,12 +451,16 @@ def synthesize_legacy_continuation(
     last_seen_at = _normalize_optional_text(session_payload.get("last_date"))
     handoff_resume_file = normalize_continuation_reference(project_root, session_payload.get("resume_file"))
     handoff_stopped_at = _normalize_optional_text(session_payload.get("stopped_at"))
+    handoff_last_result_id = _normalize_optional_text(session_payload.get("last_result_id"))
     handoff_recorded_by = (
-        "legacy_session" if any((handoff_resume_file, handoff_stopped_at, last_seen_at)) else None
+        "legacy_session"
+        if any((handoff_resume_file, handoff_stopped_at, last_seen_at, handoff_last_result_id))
+        else None
     )
     normalized_handoff = ContinuationHandoff(
         resume_file=handoff_resume_file,
         stopped_at=handoff_stopped_at,
+        last_result_id=handoff_last_result_id,
         recorded_at=last_seen_at,
         recorded_by=handoff_recorded_by,
     )

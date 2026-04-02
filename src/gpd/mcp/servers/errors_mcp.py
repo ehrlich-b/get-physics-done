@@ -8,9 +8,7 @@ Entry point: python -m gpd.mcp.servers.errors_mcp
 Console script: gpd-mcp-errors
 """
 
-import logging
 import re
-import sys
 import threading
 from pathlib import Path
 
@@ -21,15 +19,14 @@ from pydantic import ValidationError as PydanticValidationError
 from gpd.core.observability import gpd_span
 from gpd.mcp.servers import (
     parse_frontmatter_safe,
+    configure_mcp_logging,
     run_mcp_server,
     stable_mcp_error,
     stable_mcp_response,
 )
 from gpd.specs import SPECS_DIR
 
-# MCP stdio uses stdout for JSON-RPC — redirect logging to stderr
-logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
-logger = logging.getLogger("gpd-errors")
+logger = configure_mcp_logging("gpd-errors")
 
 REFERENCES_DIR = SPECS_DIR / "references"
 

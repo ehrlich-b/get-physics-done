@@ -10,8 +10,6 @@ Usage:
     gpd-mcp-state
 """
 
-import logging
-import sys
 from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
@@ -31,13 +29,13 @@ from gpd.core.state import (
 from gpd.core.utils import is_phase_complete
 from gpd.mcp.servers import (
     ABSOLUTE_PROJECT_DIR_SCHEMA,
+    configure_mcp_logging,
     resolve_absolute_project_dir,
     stable_mcp_error,
     stable_mcp_response,
 )
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
-logger = logging.getLogger("gpd-state")
+logger = configure_mcp_logging("gpd-state")
 
 mcp = FastMCP("gpd-state")
 

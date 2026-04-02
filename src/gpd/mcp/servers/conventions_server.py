@@ -10,9 +10,7 @@ Usage:
 """
 
 import json
-import logging
 import re
-import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, TypeVar
@@ -44,6 +42,7 @@ from gpd.core.errors import ConventionError
 from gpd.core.observability import gpd_span
 from gpd.mcp.servers import (
     ABSOLUTE_PROJECT_DIR_SCHEMA,
+    configure_mcp_logging,
     resolve_absolute_project_dir,
     stable_mcp_error,
     stable_mcp_response,
@@ -51,9 +50,7 @@ from gpd.mcp.servers import (
 
 T = TypeVar("T")
 
-# MCP stdio uses stdout for JSON-RPC — redirect logging to stderr
-logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
-logger = logging.getLogger("gpd-conventions")
+logger = configure_mcp_logging("gpd-conventions")
 
 mcp = FastMCP("gpd-conventions")
 

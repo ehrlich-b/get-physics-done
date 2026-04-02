@@ -48,6 +48,16 @@ def test_planner_prompt_surfaces_default_salvage_and_specific_semantics() -> Non
 def test_phase_prompt_surfaces_default_salvage_and_hard_plan_requirements() -> None:
     phase_prompt = _read_template("phase-prompt.md")
 
+    assert "Surface any hard validation requirements up front" in phase_prompt
+    assert "declare it in frontmatter `tool_requirements` before drafting task prose" in phase_prompt
+    assert "visible on the plan surface before the body is written" in phase_prompt
+    assert "Gap-closure plans still use `type: execute`." in phase_prompt
+    assert "Mark verification-repair plans with `gap_closure: true`" in phase_prompt
+    assert "type: execute | tdd" in phase_prompt
+    assert "# gap_closure: true # Optional. Use only for verification repair plans." in phase_prompt
+    assert "The validator accepts a closed tool vocabulary today: `wolfram` and `command`" in phase_prompt
+    assert "For `tool: command`, a non-empty `command` field is mandatory" in phase_prompt
+    assert "`required` defaults to `true` when omitted" in phase_prompt
     assert "The defaultable semantic fields still exist in the contract surface" in phase_prompt
     assert "observables[].kind" in phase_prompt
     assert "deliverables[].kind" in phase_prompt
@@ -58,3 +68,14 @@ def test_phase_prompt_surfaces_default_salvage_and_hard_plan_requirements() -> N
     assert "They default to `other`, but the more specific value remains mandatory when the plan already knows it." in phase_prompt
     assert "The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `contract.context_intake`" in phase_prompt
     assert "If the contract does not already carry explicit grounding elsewhere, references must be present and at least one must set `must_surface: true`." in phase_prompt
+
+
+def test_planner_gap_closure_example_keeps_execute_type_and_required_contract_block() -> None:
+    planner_prompt = (REPO_ROOT / "src/gpd/agents/gpd-planner.md").read_text(encoding="utf-8")
+
+    assert "Gap-closure plans keep `type: execute`; the repair marker is `gap_closure: true`" in planner_prompt
+    assert "| `gap_closure`      | No       | `true` only for verification repair plans |" in planner_prompt
+    assert "gap_closure: true # Flag for tracking" in planner_prompt
+    assert "contract:" in planner_prompt
+    assert "question: \"[Which failed verification or gap does this plan repair?]\"" in planner_prompt
+    assert "must_include_prior_outputs: [\"GPD/phases/XX-name/XX-NN-SUMMARY.md\"]" in planner_prompt

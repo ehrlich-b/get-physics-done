@@ -23,12 +23,19 @@ WOLFRAM_MCP_API_KEY_ENV_VAR = "GPD_WOLFRAM_MCP_API_KEY"
 WOLFRAM_MCP_ENDPOINT_ENV_VAR = "GPD_WOLFRAM_MCP_ENDPOINT"
 WOLFRAM_MCP_DEFAULT_ENDPOINT = "https://services.wolfram.com/api/mcp"
 INTEGRATIONS_CONFIG_FILENAME = "integrations.json"
+_LEGACY_RECORD_KEYS = frozenset({"api_key_env"})
 
 
 def _project_integrations_config_path(cwd: Path) -> Path:
     workspace_cwd = cwd.expanduser().resolve(strict=False)
     project_root = resolve_project_root(workspace_cwd, require_layout=True)
     return ProjectLayout(project_root or workspace_cwd).gpd / INTEGRATIONS_CONFIG_FILENAME
+
+
+def _strict_unknown_keys_error(*, section: str, unknown_keys: list[str], supported_keys: list[str]) -> RuntimeError:
+    joined_unknown = ", ".join(unknown_keys)
+    joined_supported = ", ".join(supported_keys)
+    return RuntimeError(f"{section} contains unsupported keys: {joined_unknown}; supported keys are {joined_supported}")
 
 
 def _load_project_integrations_payload(cwd: Path, *, strict: bool) -> dict[str, object]:
@@ -52,6 +59,14 @@ def _load_project_integrations_payload(cwd: Path, *, strict: bool) -> dict[str, 
         if strict:
             raise RuntimeError("integrations config must be a JSON object")
         return {}
+    if strict:
+        unknown_keys = sorted(str(key) for key in payload if str(key) not in MANAGED_INTEGRATIONS)
+        if unknown_keys:
+            raise _strict_unknown_keys_error(
+                section="integrations config",
+                unknown_keys=unknown_keys,
+                supported_keys=sorted(MANAGED_INTEGRATIONS),
+            )
     return payload
 
 
@@ -93,6 +108,18 @@ class ManagedIntegrationDescriptor:
             if strict:
                 raise RuntimeError(f"integrations.{self.integration_id} must be a JSON object")
             return None
+        if strict:
+            unknown_keys = sorted(str(key) for key in raw if str(key) not in {"enabled", "endpoint", *_LEGACY_RECORD_KEYS})
+            if unknown_keys:
+                raise _strict_unknown_keys_error(
+                    section=f"integrations.{self.integration_id}",
+                    unknown_keys=unknown_keys,
+                    supported_keys=["enabled", "endpoint", "api_key_env (legacy ignored)"],
+                )
+            if "api_key_env" in raw:
+                legacy_api_key_env = raw.get("api_key_env")
+                if not isinstance(legacy_api_key_env, str) or not legacy_api_key_env.strip():
+                    raise RuntimeError(f"integrations.{self.integration_id}.api_key_env must be a non-empty string")
 
         record: dict[str, object] = {}
         if "enabled" in raw:

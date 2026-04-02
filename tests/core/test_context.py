@@ -1599,6 +1599,19 @@ class TestInitVerifyWork:
         assert "stat-mech-simulation" in ctx["selected_protocol_bundle_ids"]
         assert "Verifier extensions:" in ctx["protocol_bundle_context"]
 
+    def test_surfaces_convention_lock_fields(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-setup")
+        _write_structured_state_payload(tmp_path)
+
+        ctx = init_verify_work(tmp_path, "1")
+
+        assert ctx["state_load_source"] == "state.json"
+        assert ctx["convention_lock"]["metric_signature"] == "(-,+,+,+)"
+        assert ctx["convention_lock"]["fourier_convention"] == "physics"
+        assert ctx["convention_lock_count"] >= ctx["derived_convention_lock_count"] >= 1
+        assert ctx["derived_convention_lock"]["metric_signature"] == "(-,+,+,+)"
+
 
 # ─── init_todos ───────────────────────────────────────────────────────────────
 

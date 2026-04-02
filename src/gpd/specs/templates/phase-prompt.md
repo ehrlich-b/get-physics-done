@@ -10,6 +10,9 @@ Before authoring or revising the `contract:` block, use the canonical schema bel
 
 @{GPD_INSTALL_DIR}/templates/plan-contract-schema.md
 
+Surface any hard validation requirements up front: if the plan depends on specialized tooling or another machine-checkable prerequisite, declare it in frontmatter `tool_requirements` before drafting task prose. Keep human-only setup in `researcher_setup`; keep executable validation dependencies in `tool_requirements` so they are visible on the plan surface before the body is written.
+Gap-closure plans still use `type: execute`. Mark verification-repair plans with `gap_closure: true` instead of inventing a third plan type.
+
 The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `contract.context_intake`, plus non-empty `uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations`. If the contract does not already carry explicit grounding elsewhere, references must be present and at least one must set `must_surface: true`.
 Semantic enum fields with schema defaults may be omitted when `other` is actually intended. Use explicit `kind`, `role`, and `relation` values when the plan already knows the more specific semantics.
 The defaultable semantic fields still exist in the contract surface: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other`, but the more specific value remains mandatory when the plan already knows it. `references[]` are only required when the contract does not already carry explicit grounding through `contract.context_intake`, `approach_policy`, or preserved scoping inputs.
@@ -22,11 +25,12 @@ The defaultable semantic fields still exist in the contract surface: `observable
 ---
 phase: XX-name
 plan: NN
-type: execute | tdd | gap_closure
+type: execute | tdd
 wave: N
 depends_on: []
 files_modified: []
 interactive: false
+# gap_closure: true # Optional. Use only for verification repair plans.
 researcher_setup: [] # Optional. Omit if empty.
 # tool_requirements: # Optional machine-checkable specialized tools. Omit entirely if none.
 #   - id: "wolfram-cas"
@@ -34,6 +38,12 @@ researcher_setup: [] # Optional. Omit if empty.
 #     purpose: "[Why this specialized tool is needed]"
 #     required: false
 #     fallback: "[Standard-tool fallback when feasible]"
+#   - id: "latex-compiler"
+#     tool: "command"
+#     command: "pdflatex --version"
+#     purpose: "[Executable probe when a specific local command must exist]"
+#     # `required` defaults to true when omitted.
+#     # A fallback does not make a missing required tool non-blocking.
 
 conventions:
   units: "natural"
@@ -206,7 +216,7 @@ If the plan is intentionally scoping-only, keep that limited shape explicit and 
 - A reduced contract still needs `scope`, `contract.context_intake`, and `uncertainty_markers` explicit, plus at least one target, open question, or carry-forward input.
 - Light mode changes the body only; it does not change the contract classifier above.
 
-When a plan genuinely depends on specialized tooling outside the guaranteed Python/SymPy baseline, declare it in `tool_requirements` instead of hiding it in task prose. Use canonical tool keys such as `wolfram` for Mathematica / Wolfram Language capability, include a stable `id`, keep `purpose` specific, and add a fallback when one exists.
+When a plan genuinely depends on specialized tooling outside the guaranteed Python/SymPy baseline, declare it in frontmatter `tool_requirements` before the body is authored instead of hiding it in task prose. The validator accepts a closed tool vocabulary today: `wolfram` and `command` (plus documented Wolfram aliases that normalize back to `wolfram`). For `tool: command`, a non-empty `command` field is mandatory; for non-`command` tools, `command` must be omitted. `required` defaults to `true` when omitted, and a declared `fallback` does not turn a missing required tool into a non-blocking preflight check.
 
 ---
 

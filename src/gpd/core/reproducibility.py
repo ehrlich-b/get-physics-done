@@ -13,6 +13,10 @@ from pydantic import (
     ConfigDict,
     Field,
     field_validator,
+    ValidationInfo,
+    StrictBool,
+    StrictFloat,
+    StrictInt,
 )
 from pydantic import (
     ValidationError as PydanticValidationError,
@@ -45,10 +49,11 @@ __all__ = [
 ]
 
 _CHECKSUM_RE = re.compile(r"^[0-9a-f]{64}$")
+_STRICT_FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid")
 
 
 class RequiredPackage(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     package: str
     version: str
@@ -56,7 +61,7 @@ class RequiredPackage(BaseModel):
 
 
 class SystemRequirements(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     operating_systems: list[str] = Field(default_factory=list)
     architectures: list[str] = Field(default_factory=list)
@@ -65,7 +70,7 @@ class SystemRequirements(BaseModel):
 
 
 class InputDataset(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     name: str
     source: str
@@ -77,7 +82,7 @@ class InputDataset(BaseModel):
 
 
 class GeneratedDataset(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     name: str
     script: str
@@ -87,7 +92,7 @@ class GeneratedDataset(BaseModel):
 
 
 class ExternalDependency(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     resource: str
     access_method: str
@@ -95,18 +100,18 @@ class ExternalDependency(BaseModel):
 
 
 class ExecutionStep(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     name: str
     command: str
     outputs: list[str] = Field(default_factory=list)
-    stochastic: bool = False
+    stochastic: StrictBool = False
     expected_wall_time: str = ""
     parallel_group: str = ""
 
 
 class ExpectedNumericalResult(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     quantity: str
     expected_value: str
@@ -116,28 +121,35 @@ class ExpectedNumericalResult(BaseModel):
 
 
 class OutputFileExpectation(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     path: str
     description: str = ""
     approximate_size: str = ""
     checksum_sha256: str = ""
-    approximate_checksum: bool = False
+    approximate_checksum: StrictBool = False
 
 
 class ResourceRequirement(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     step: str
-    cpu_cores: int
-    memory_gb: float
+    cpu_cores: StrictInt
+    memory_gb: StrictFloat
     gpu: str = ""
     wall_time: str = ""
     notes: str = ""
 
+    @field_validator("memory_gb", mode="before")
+    @classmethod
+    def _reject_integer_memory_gb(cls, value: object) -> object:
+        if isinstance(value, bool) or isinstance(value, int):
+            raise ValueError("Input should be a valid number")
+        return value
+
 
 class RandomSeedRecord(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     computation: str
     seed: str
@@ -145,7 +157,7 @@ class RandomSeedRecord(BaseModel):
 
 
 class PlatformDifference(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     platform: str
     issue: str
@@ -153,7 +165,7 @@ class PlatformDifference(BaseModel):
 
 
 class EnvironmentSpecification(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     python_version: str
     package_manager: str
@@ -164,7 +176,7 @@ class EnvironmentSpecification(BaseModel):
 
 
 class ReproducibilityManifest(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     paper_title: str
     date: str
@@ -194,9 +206,36 @@ class ReproducibilityManifest(BaseModel):
             raise ValueError("field cannot be empty")
         return value
 
+    @field_validator("random_seeds")
+    @classmethod
+    def _seed_records_reference_stochastic_steps(
+        cls,
+        value: list[RandomSeedRecord],
+        info: ValidationInfo,
+    ) -> list[RandomSeedRecord]:
+        execution_steps = info.data.get("execution_steps", [])
+        stochastic_steps = {
+            step.name
+            for step in execution_steps
+            if isinstance(step, ExecutionStep) and step.stochastic
+        }
+        unknown_seed_targets = sorted(
+            {
+                seed.computation
+                for seed in value
+                if seed.computation not in stochastic_steps
+            }
+        )
+        if unknown_seed_targets:
+            formatted = ", ".join(f"'{step_name}'" for step_name in unknown_seed_targets)
+            raise ValueError(
+                f"seed records reference non-stochastic or unknown execution steps: {formatted}"
+            )
+        return value
+
 
 class ReproducibilityIssue(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     severity: str
     field: str
@@ -204,7 +243,7 @@ class ReproducibilityIssue(BaseModel):
 
 
 class ReproducibilityValidationResult(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = _STRICT_FROZEN_MODEL_CONFIG
 
     valid: bool
     issues: list[ReproducibilityIssue] = Field(default_factory=list)

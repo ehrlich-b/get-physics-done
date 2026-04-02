@@ -7,7 +7,7 @@ env-var activation signals, and config-directory layout.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from gpd.adapters import get_adapter, list_runtimes
@@ -53,7 +53,7 @@ class TodoCandidate:
 
 @dataclass(frozen=True, slots=True)
 class EffectiveRuntimeResolution:
-    runtime: str = RUNTIME_UNKNOWN
+    runtime: str = field(default_factory=lambda: RUNTIME_UNKNOWN)
     source: str = SOURCE_UNKNOWN
     has_gpd_install: bool = False
     install_scope: str | None = None
@@ -251,6 +251,7 @@ def resolve_effective_runtime(
                 has_gpd_install=True,
                 install_scope=install_target.install_scope,
             )
+        return EffectiveRuntimeResolution()
 
     if not require_gpd_install:
         for runtime in ordered_runtimes:
@@ -268,27 +269,42 @@ def resolve_effective_runtime(
                         install_scope=install_scope,
                     )
 
-    for runtime in ordered_runtimes:
-        local_dir = _local_runtime_dir(runtime, resolved_cwd)
-        if _has_gpd_install(local_dir, cwd=resolved_cwd, home=resolved_home):
-            return EffectiveRuntimeResolution(
-                runtime=runtime,
-                source=SOURCE_LOCAL,
-                has_gpd_install=True,
-                install_scope=install_scope_from_manifest(local_dir) or SCOPE_LOCAL,
-            )
+        for runtime in ordered_runtimes:
+            local_dir = _local_runtime_dir(runtime, resolved_cwd)
+            if _has_gpd_install(local_dir, cwd=resolved_cwd, home=resolved_home):
+                return EffectiveRuntimeResolution(
+                    runtime=runtime,
+                    source=SOURCE_LOCAL,
+                    has_gpd_install=True,
+                    install_scope=install_scope_from_manifest(local_dir) or SCOPE_LOCAL,
+                )
 
-        global_dir = _global_runtime_dir(runtime, home=resolved_home)
-        if _has_gpd_install(global_dir, cwd=resolved_cwd, home=resolved_home):
-            return EffectiveRuntimeResolution(
-                runtime=runtime,
-                source=SOURCE_GLOBAL,
-                has_gpd_install=True,
-                install_scope=install_scope_from_manifest(global_dir) or SCOPE_GLOBAL,
-            )
+            global_dir = _global_runtime_dir(runtime, home=resolved_home)
+            if _has_gpd_install(global_dir, cwd=resolved_cwd, home=resolved_home):
+                return EffectiveRuntimeResolution(
+                    runtime=runtime,
+                    source=SOURCE_GLOBAL,
+                    has_gpd_install=True,
+                    install_scope=install_scope_from_manifest(global_dir) or SCOPE_GLOBAL,
+                )
 
-    if require_gpd_install:
         return EffectiveRuntimeResolution()
+
+    active_runtime = detect_active_runtime(cwd=resolved_cwd, home=resolved_home)
+    if active_runtime in ALL_RUNTIMES:
+        install_target = _detect_runtime_install_target(active_runtime, cwd=resolved_cwd, home=resolved_home)
+        if install_target is not None:
+            install_source = (
+                SOURCE_LOCAL
+                if install_target.config_dir == _local_runtime_dir(active_runtime, resolved_cwd)
+                else SOURCE_GLOBAL
+            )
+            return EffectiveRuntimeResolution(
+                runtime=active_runtime,
+                source=install_source,
+                has_gpd_install=True,
+                install_scope=install_target.install_scope,
+            )
 
     return EffectiveRuntimeResolution()
 
@@ -300,13 +316,7 @@ def detect_active_runtime(*, cwd: Path | None = None, home: Path | None = None) 
 
 def detect_active_runtime_with_gpd_install(*, cwd: Path | None = None, home: Path | None = None) -> str:
     """Detect the active runtime only when that runtime also has a GPD install."""
-    preferred_runtime = detect_active_runtime(cwd=cwd, home=home)
-    return resolve_effective_runtime(
-        cwd=cwd,
-        home=home,
-        preferred_runtime=preferred_runtime,
-        require_gpd_install=True,
-    ).runtime
+    return resolve_effective_runtime(cwd=cwd, home=home, require_gpd_install=True).runtime
 
 
 def detect_runtime_for_gpd_use(*, cwd: Path | None = None, home: Path | None = None) -> str:
@@ -317,10 +327,18 @@ def detect_runtime_for_gpd_use(*, cwd: Path | None = None, home: Path | None = N
     can be identified so lookup surfaces can still prioritize the active
     runtime's cache and todo paths.
     """
-    installed_runtime = detect_active_runtime_with_gpd_install(cwd=cwd, home=home)
+    resolved_cwd = cwd or Path.cwd()
+    resolved_home = home or Path.home()
+
+    installed_runtime = detect_active_runtime_with_gpd_install(cwd=resolved_cwd, home=resolved_home)
     if installed_runtime != RUNTIME_UNKNOWN:
         return installed_runtime
-    return detect_active_runtime(cwd=cwd, home=home)
+
+    active_runtime = detect_active_runtime(cwd=resolved_cwd, home=resolved_home)
+    for runtime in _prioritized_runtimes(active_runtime if active_runtime in ALL_RUNTIMES else None):
+        if _detect_runtime_install_target(runtime, cwd=resolved_cwd, home=resolved_home) is not None:
+            return runtime
+    return active_runtime
 
 
 def detect_runtime_install_target(

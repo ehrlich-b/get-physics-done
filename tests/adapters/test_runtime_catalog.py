@@ -145,6 +145,11 @@ def test_hook_payload_policy_uses_runtime_specific_overrides_and_merged_fallback
     assert isinstance(merged_policy.agent_scope_keys, tuple)
 
 
+def test_hook_payload_policy_rejects_explicit_unknown_runtime() -> None:
+    with pytest.raises(KeyError, match=r"Unknown runtime 'not-a-runtime'"):
+        get_hook_payload_policy("not-a-runtime")
+
+
 def test_hook_payload_policy_merges_declared_runtime_session_and_agent_attribution_keys(monkeypatch) -> None:
     descriptors = iter_runtime_descriptors()
     synthetic = (

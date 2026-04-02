@@ -11,9 +11,7 @@ Usage:
 """
 
 import copy
-import logging
 import re
-import sys
 from collections.abc import Iterable
 from typing import Annotated
 
@@ -38,11 +36,9 @@ from gpd.core.verification_checks import (
     get_verification_check,
     list_verification_checks,
 )
-from gpd.mcp.servers import stable_mcp_error, stable_mcp_response
+from gpd.mcp.servers import configure_mcp_logging, stable_mcp_error, stable_mcp_response
 
-# MCP stdio uses stdout for JSON-RPC — redirect logging to stderr
-logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
-logger = logging.getLogger("gpd-verification")
+logger = configure_mcp_logging("gpd-verification")
 
 mcp = FastMCP("gpd-verification")
 
@@ -106,8 +102,17 @@ def _tighten_registered_tool_contracts() -> None:
 
 _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
     "contract.limit_recovery": {
-        "required_request_fields": ["metadata.regime_label", "metadata.expected_behavior"],
-        "optional_request_fields": ["binding.*", "observed.limit_passed", "observed.observed_limit", "artifact_content"],
+        "required_request_fields": [
+            "metadata.regime_label",
+            "metadata.expected_behavior",
+        ],
+        "schema_required_request_fields": [],
+        "optional_request_fields": [
+            "binding.*",
+            "observed.limit_passed",
+            "observed.observed_limit",
+            "artifact_content",
+        ],
         "request_template": {
             "binding": {},
             "metadata": {
@@ -127,7 +132,11 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
             "observed.metric_value",
             "observed.threshold_value",
         ],
-        "optional_request_fields": ["binding.*", "artifact_content"],
+        "schema_required_request_fields": [
+            "observed.metric_value",
+            "observed.threshold_value",
+        ],
+        "optional_request_fields": ["metadata.source_reference_id", "binding.*", "artifact_content"],
         "request_template": {
             "binding": {},
             "metadata": {
@@ -164,6 +173,7 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
     },
     "contract.fit_family_mismatch": {
         "required_request_fields": ["metadata.declared_family", "observed.selected_family"],
+        "schema_required_request_fields": ["observed.selected_family"],
         "optional_request_fields": [
             "binding.*",
             "metadata.allowed_families[]",
@@ -188,6 +198,11 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
     "contract.estimator_family_mismatch": {
         "required_request_fields": [
             "metadata.declared_family",
+            "observed.selected_family",
+            "observed.bias_checked",
+            "observed.calibration_checked",
+        ],
+        "schema_required_request_fields": [
             "observed.selected_family",
             "observed.bias_checked",
             "observed.calibration_checked",
@@ -349,7 +364,7 @@ def _trimmed_non_empty_string_or_null_schema() -> dict[str, object]:
 
 
 def _string_list_schema(*, min_items: int | None = None) -> dict[str, object]:
-    schema: dict[str, object] = {"type": "array", "items": _non_empty_string_schema()}
+    schema: dict[str, object] = {"type": "array", "items": _non_empty_string_schema(), "uniqueItems": True}
     if min_items is not None:
         schema["minItems"] = min_items
     return schema
@@ -375,7 +390,7 @@ def _string_or_string_list_schema(*, min_items: int | None = None) -> dict[str, 
 
 
 def _enum_string_list_schema(values: Iterable[str], *, min_items: int | None = None) -> dict[str, object]:
-    schema: dict[str, object] = {"type": "array", "items": _enum_string_schema(values)}
+    schema: dict[str, object] = {"type": "array", "items": _enum_string_schema(values), "uniqueItems": True}
     if min_items is not None:
         schema["minItems"] = min_items
     return schema
@@ -823,7 +838,7 @@ def _run_contract_request_requirement_condition_schema(check_key: str, hint: dic
 
     section_requirements: dict[str, list[str]] = {}
     top_level_required: list[str] = []
-    for field_path in hint.get("required_request_fields", []):
+    for field_path in hint.get("schema_required_request_fields", hint.get("required_request_fields", [])):
         if not isinstance(field_path, str) or not field_path:
             continue
         section, separator, nested_field = field_path.partition(".")
@@ -944,19 +959,28 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
     request_template = copy.deepcopy(hint.get("request_template", {}))
     if check_key:
         request_template["check_key"] = check_key
-    enriched_hint = {
-        "required_request_fields": list(hint.get("required_request_fields", [])),
-        "optional_request_fields": [
-            *supported_binding_fields,
-            *[
-                field
-                for field in hint.get("optional_request_fields", [])
-                if field != "binding.*"
-            ],
+    required_request_fields = list(hint.get("required_request_fields", []))
+    optional_request_fields = [
+        *supported_binding_fields,
+        *[
+            field
+            for field in hint.get("optional_request_fields", [])
+            if field != "binding.*"
         ],
+    ]
+    enriched_hint = {
+        "required_request_fields": required_request_fields,
+        "optional_request_fields": [field for field in optional_request_fields if field not in required_request_fields],
         "supported_binding_fields": supported_binding_fields,
         "request_template": request_template,
     }
+
+    def _demote_required_field(field_name: str) -> None:
+        enriched_hint["required_request_fields"] = [
+            field for field in enriched_hint["required_request_fields"] if field != field_name
+        ]
+        if field_name not in enriched_hint["optional_request_fields"]:
+            enriched_hint["optional_request_fields"].append(field_name)
 
     if contract is None:
         return enriched_hint
@@ -986,9 +1010,7 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
                     "reference_ids",
                     [reference_id for reference_id in benchmark_test.evidence_required if reference_id in benchmark_reference_ids],
                 )
-            enriched_hint["required_request_fields"] = [
-                field for field in enriched_hint["required_request_fields"] if field != "metadata.source_reference_id"
-            ]
+            _demote_required_field("metadata.source_reference_id")
 
     elif check_key == "contract.limit_recovery":
         limit_tests = _matching_acceptance_tests(
@@ -1019,15 +1041,9 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
                 limit_test = _resolve_single_limit_acceptance_test(contract, binding_ids)
             if limit_test is not None and limit_test.pass_condition:
                 metadata["expected_behavior"] = limit_test.pass_condition
-            enriched_hint["required_request_fields"] = [
-                field for field in enriched_hint["required_request_fields"] if field != "metadata.regime_label"
-            ]
+            _demote_required_field("metadata.regime_label")
             if limit_test is not None and limit_test.pass_condition:
-                enriched_hint["required_request_fields"] = [
-                    field
-                    for field in enriched_hint["required_request_fields"]
-                    if field != "metadata.expected_behavior"
-                ]
+                _demote_required_field("metadata.expected_behavior")
 
     elif check_key == "contract.direct_proxy_consistency":
         forbidden_proxy_candidates, _ = _direct_proxy_candidates(
@@ -1066,6 +1082,7 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
             metadata["forbidden_families"] = forbidden_families
         if len(allowed_families) == 1:
             metadata["declared_family"] = allowed_families[0]
+            _demote_required_field("metadata.declared_family")
         fit_tests = _matching_acceptance_tests(
             contract,
             keywords=("fit", "residual", "extrapolat", "ansatz"),
@@ -1086,6 +1103,7 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
             metadata["forbidden_families"] = forbidden_families
         if len(allowed_families) == 1:
             metadata["declared_family"] = allowed_families[0]
+            _demote_required_field("metadata.declared_family")
         estimator_tests = _matching_acceptance_tests(
             contract,
             keywords=("estimator", "bootstrap", "jackknife", "posterior", "bias", "variance"),

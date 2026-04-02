@@ -185,6 +185,7 @@ def _build_structured_state_runtime_context(cwd: Path) -> dict[str, object]:
             "state_load_source": source,
             "state_integrity_issues": list(state_issues or []),
             "convention_lock": {},
+            "convention_lock_count": 0,
             "intermediate_results": [],
             "intermediate_result_count": 0,
             "approximations": [],
@@ -197,10 +198,12 @@ def _build_structured_state_runtime_context(cwd: Path) -> dict[str, object]:
     intermediate_results = _structured_state_objects(state.get("intermediate_results"))
     approximations = _structured_state_objects(state.get("approximations"))
     propagated_uncertainties = _structured_state_objects(state.get("propagated_uncertainties"))
+    structured_convention_lock = dict(convention_lock) if isinstance(convention_lock, Mapping) else {}
     return {
         "state_load_source": source,
         "state_integrity_issues": list(state_issues or []),
-        "convention_lock": dict(convention_lock) if isinstance(convention_lock, Mapping) else {},
+        "convention_lock": structured_convention_lock,
+        "convention_lock_count": len(structured_convention_lock),
         "intermediate_results": intermediate_results,
         "intermediate_result_count": len(intermediate_results),
         "approximations": approximations,
@@ -2395,6 +2398,8 @@ def init_verify_work(cwd: Path, phase: str | None) -> dict:
         "platform": _detect_platform(cwd),
     }
     result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_structured_state_runtime_context(cwd))
+    result.update(_build_state_memory_runtime_context(cwd))
     return result
 
 

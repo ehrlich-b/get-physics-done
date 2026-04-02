@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -21,6 +23,14 @@ ABSOLUTE_PROJECT_DIR_SCHEMA = {
 
 class StableMCPEnvelope(dict[str, object]):
     """Schema-versioned MCP envelope for all server responses."""
+
+
+class _DynamicStderrHandler(logging.StreamHandler):
+    """Stream handler that always emits to the current ``sys.stderr``."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.setStream(sys.stderr)
+        super().emit(record)
 
 
 def stable_mcp_response(
@@ -43,6 +53,29 @@ def stable_mcp_error(error: object) -> StableMCPEnvelope:
     """Return a stable MCP error envelope."""
 
     return stable_mcp_response(error=error)
+
+
+def configure_mcp_logging(logger_name: str) -> logging.Logger:
+    """Configure a built-in MCP server logger from the advertised LOG_LEVEL env var."""
+
+    raw_level = os.environ.get("LOG_LEVEL", "WARNING")
+    level_name = raw_level.strip().upper() if isinstance(raw_level, str) else "WARNING"
+    level = getattr(logging, level_name, None)
+    if not isinstance(level, int):
+        try:
+            level = int(str(raw_level).strip())
+        except (TypeError, ValueError):
+            level = logging.WARNING
+
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(level)
+    logger.handlers.clear()
+    handler = _DynamicStderrHandler(sys.stderr)
+    handler.setLevel(level)
+    handler.setFormatter(logging.Formatter("%(name)s %(levelname)s: %(message)s"))
+    logger.addHandler(handler)
+    logger.propagate = False
+    return logger
 
 
 def resolve_absolute_project_dir(project_dir: str) -> Path | None:
@@ -99,6 +132,7 @@ __all__ = [
     "ABSOLUTE_PROJECT_DIR_SCHEMA",
     "MCP_SCHEMA_VERSION",
     "StableMCPEnvelope",
+    "configure_mcp_logging",
     "parse_frontmatter_safe",
     "parse_frontmatter_with_error",
     "resolve_absolute_project_dir",

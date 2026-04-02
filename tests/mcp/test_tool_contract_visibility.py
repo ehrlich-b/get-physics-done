@@ -76,6 +76,7 @@ def _assert_string_or_string_list_schema(schema_fragment: dict[str, object], *, 
     assert array_branch["items"]["type"] == "string"
     assert array_branch["items"]["minLength"] == 1
     assert array_branch["items"]["pattern"] == r"\S"
+    assert array_branch["uniqueItems"] is True
 
 
 def _assert_enum_string_or_string_list_schema(
@@ -95,6 +96,7 @@ def _assert_enum_string_or_string_list_schema(
     )
     assert array_branch["items"]["type"] == "string"
     assert array_branch["items"]["enum"] == enum_values
+    assert array_branch["uniqueItems"] is True
 
 
 def _assert_closed_object(schema_fragment: dict[str, object], *, label: str) -> None:
@@ -471,28 +473,24 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
     assert artifact_content["pattern"] == r"\S"
 
     benchmark_requirements = _request_requirement_for_check(run_request, "contract.benchmark_reproduction")
-    assert set(benchmark_requirements["required"]) == {"metadata", "observed"}
-    benchmark_metadata = _schema_object(benchmark_requirements, benchmark_requirements["properties"]["metadata"])
-    assert benchmark_metadata["required"] == ["source_reference_id"]
+    assert set(benchmark_requirements["required"]) == {"observed"}
+    assert "metadata" not in benchmark_requirements.get("properties", {})
     benchmark_observed = _schema_object(benchmark_requirements, benchmark_requirements["properties"]["observed"])
     assert set(benchmark_observed["required"]) == {"metric_value", "threshold_value"}
 
     limit_requirements = _request_requirement_for_check(run_request, "contract.limit_recovery")
-    assert set(limit_requirements["required"]) == {"metadata"}
-    limit_metadata = _schema_object(limit_requirements, limit_requirements["properties"]["metadata"])
-    assert set(limit_metadata["required"]) == {"regime_label", "expected_behavior"}
+    assert "metadata" not in limit_requirements.get("required", [])
+    assert "metadata" not in limit_requirements.get("properties", {})
 
     fit_requirements = _request_requirement_for_check(run_request, "contract.fit_family_mismatch")
-    assert set(fit_requirements["required"]) == {"metadata", "observed"}
-    fit_metadata = _schema_object(fit_requirements, fit_requirements["properties"]["metadata"])
-    assert fit_metadata["required"] == ["declared_family"]
+    assert set(fit_requirements["required"]) == {"observed"}
+    assert "metadata" not in fit_requirements.get("properties", {})
     fit_observed = _schema_object(fit_requirements, fit_requirements["properties"]["observed"])
     assert fit_observed["required"] == ["selected_family"]
 
     estimator_requirements = _request_requirement_for_check(run_request, "contract.estimator_family_mismatch")
-    assert set(estimator_requirements["required"]) == {"metadata", "observed"}
-    estimator_metadata = _schema_object(estimator_requirements, estimator_requirements["properties"]["metadata"])
-    assert estimator_metadata["required"] == ["declared_family"]
+    assert set(estimator_requirements["required"]) == {"observed"}
+    assert "metadata" not in estimator_requirements.get("properties", {})
     estimator_observed = _schema_object(estimator_requirements, estimator_requirements["properties"]["observed"])
     assert set(estimator_observed["required"]) == {"selected_family", "bias_checked", "calibration_checked"}
 

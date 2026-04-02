@@ -1106,7 +1106,15 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     verifier_agent = (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
 
     assert "# tool_requirements: # Optional machine-checkable specialized tools. Omit entirely if none." in phase_prompt
+    assert '#     tool: "command"' in phase_prompt
+    assert '#     command: "pdflatex --version"' in phase_prompt
+    assert "`required` defaults to true when omitted" in phase_prompt
+    assert "fallback does not make a missing required tool non-blocking" in phase_prompt
+    assert "Surface any hard validation requirements up front" in phase_prompt
+    assert "visible on the plan surface before the body is written" in phase_prompt
     assert "# tool_requirements: # Machine-checkable specialized tools (omit entirely if none)" in planner_agent
+    assert "tool: command" in planner_agent
+    assert "Use only the closed tool vocabulary the validator accepts" in planner_agent
     assert "| `tool_requirements` | No       | Machine-checkable specialized tool requirements |" in planner_agent
     assert "declare them in `tool_requirements`" in plan_checker
     assert "Run `gpd validate plan-preflight <PLAN.md path>` from the local CLI." in executor_agent
@@ -1133,6 +1141,8 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "deliverable-main" in research_verification
     assert "acceptance-test-main" in research_verification
     assert "reference-main" in research_verification
+    assert "surface it in PLAN frontmatter `tool_requirements` before drafting task prose" in verify_workflow
+    assert "keep it in PLAN frontmatter `tool_requirements` before rewriting task prose" in verify_workflow
     assert "forbidden-proxy-main" in research_verification
     assert "comparison_verdicts:" in research_verification
     assert "subject_role: decisive" in research_verification

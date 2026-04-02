@@ -642,6 +642,7 @@ def test_suggest_contract_checks_omits_contract_derived_metadata_from_required_f
     direct_proxy = checks["contract.direct_proxy_consistency"]
 
     assert "metadata.source_reference_id" not in benchmark["required_request_fields"]
+    assert "metadata.source_reference_id" in benchmark["optional_request_fields"]
     assert benchmark["request_template"]["metadata"]["source_reference_id"] == "ref-benchmark"
 
     assert "metadata.regime_label" not in limit["required_request_fields"]
@@ -899,16 +900,19 @@ def test_suggest_contract_checks_leaves_ambiguous_metadata_placeholders_unresolv
     result = suggest_contract_checks(_ambiguous_request_template_contract())
     checks = {entry["check_key"]: entry for entry in result["suggested_checks"]}
 
-    benchmark = checks["contract.benchmark_reproduction"]["request_template"]
-    limit = checks["contract.limit_recovery"]["request_template"]
-    fit = checks["contract.fit_family_mismatch"]["request_template"]
-    estimator = checks["contract.estimator_family_mismatch"]["request_template"]
+    benchmark = checks["contract.benchmark_reproduction"]
+    limit = checks["contract.limit_recovery"]
+    fit = checks["contract.fit_family_mismatch"]
+    estimator = checks["contract.estimator_family_mismatch"]
 
-    assert benchmark["metadata"]["source_reference_id"] is None
-    assert limit["metadata"]["regime_label"] is None
-    assert limit["metadata"]["expected_behavior"] is None
-    assert fit["metadata"]["declared_family"] is None
-    assert estimator["metadata"]["declared_family"] is None
+    assert "metadata.source_reference_id" in benchmark["required_request_fields"]
+    assert benchmark["request_template"]["metadata"]["source_reference_id"] is None
+    assert limit["request_template"]["metadata"]["regime_label"] is None
+    assert limit["request_template"]["metadata"]["expected_behavior"] is None
+    assert "metadata.declared_family" in fit["required_request_fields"]
+    assert fit["request_template"]["metadata"]["declared_family"] is None
+    assert "metadata.declared_family" in estimator["required_request_fields"]
+    assert estimator["request_template"]["metadata"]["declared_family"] is None
 
 
 def test_suggest_contract_checks_leaves_ambiguous_subject_bindings_unresolved() -> None:
@@ -916,9 +920,10 @@ def test_suggest_contract_checks_leaves_ambiguous_subject_bindings_unresolved() 
 
     benchmark_result = suggest_contract_checks(_ambiguous_benchmark_binding_contract())
     benchmark_checks = {entry["check_key"]: entry for entry in benchmark_result["suggested_checks"]}
-    benchmark = benchmark_checks["contract.benchmark_reproduction"]["request_template"]
-    assert benchmark["binding"] == {}
-    assert benchmark["metadata"]["source_reference_id"] is None
+    benchmark = benchmark_checks["contract.benchmark_reproduction"]
+    assert "metadata.source_reference_id" in benchmark["required_request_fields"]
+    assert benchmark["request_template"]["binding"] == {}
+    assert benchmark["request_template"]["metadata"]["source_reference_id"] is None
 
     limit_result = suggest_contract_checks(_ambiguous_limit_binding_contract())
     limit_checks = {entry["check_key"]: entry for entry in limit_result["suggested_checks"]}
@@ -946,6 +951,80 @@ def test_suggest_contract_checks_request_templates_validate_against_advertised_r
     nullable_alias_request["check_key"] = None
     nullable_alias_request["check_id"] = result["suggested_checks"][0]["check_key"]
     assert list(validator.iter_errors({"request": nullable_alias_request})) == []
+
+
+def test_run_contract_check_schema_allows_benchmark_requests_without_source_reference_id() -> None:
+    from jsonschema import Draft202012Validator
+
+    schema = _run_contract_check_input_schema()
+    validator = Draft202012Validator(schema)
+
+    request = {
+        "request": {
+            "check_key": "contract.benchmark_reproduction",
+            "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+        }
+    }
+
+    assert list(validator.iter_errors(request)) == []
+
+
+def test_run_contract_check_schema_allows_contract_derived_limit_and_family_metadata() -> None:
+    from jsonschema import Draft202012Validator
+
+    schema = _run_contract_check_input_schema()
+    validator = Draft202012Validator(schema)
+
+    requests = (
+        {
+            "request": {
+                "check_key": "contract.limit_recovery",
+                "observed": {"limit_passed": True, "observed_limit": "large-k"},
+            }
+        },
+        {
+            "request": {
+                "check_key": "contract.fit_family_mismatch",
+                "observed": {"selected_family": "power_law"},
+            }
+        },
+        {
+            "request": {
+                "check_key": "contract.estimator_family_mismatch",
+                "observed": {
+                    "selected_family": "bootstrap",
+                    "bias_checked": True,
+                    "calibration_checked": True,
+                },
+            }
+        },
+    )
+
+    for request in requests:
+        assert list(validator.iter_errors(request)) == []
+
+
+def test_run_contract_check_schema_surfaces_duplicate_contract_string_list_rejection() -> None:
+    from jsonschema import Draft202012Validator
+
+    schema = _run_contract_check_input_schema()
+    validator = Draft202012Validator(schema)
+
+    request = {
+        "request": {
+            "check_key": "contract.limit_recovery",
+            "contract": {
+                "scope": {"question": "What is the large-k limit?"},
+                "context_intake": {"must_read_refs": ["ref-main", "ref-main"]},
+                "uncertainty_markers": {
+                    "weakest_anchors": ["Benchmark still tentative"],
+                    "disconfirming_observations": ["Limit fails against the published asymptote"],
+                },
+            },
+        }
+    }
+
+    assert list(validator.iter_errors(request)) != []
 
 
 def test_run_contract_check_schema_requires_one_trimmed_identifier() -> None:
