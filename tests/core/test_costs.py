@@ -383,7 +383,7 @@ def test_record_usage_skips_runtime_without_declared_telemetry_collection_path(
 ) -> None:
     data_root = tmp_path / "data"
     project = _bootstrap_project(tmp_path)
-    monkeypatch.setattr(costs, "get_current_session_id", lambda _root: "sess-claude")
+    monkeypatch.setattr(costs, "get_current_session_id", lambda _root: "sess-runtime")
     no_telemetry_runtime = runtime_without_telemetry()
 
     record = record_usage_from_runtime_payload(

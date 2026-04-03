@@ -64,6 +64,13 @@ def test_runtime_quickstarts_surface_the_beginner_next_steps(surface) -> None:
 )
 def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str) -> None:
     content = _read(f"docs/{doc_name}")
+    runtime_commands = tuple(
+        dict.fromkeys(
+            command
+            for surface in beginner_runtime_surfaces()
+            for command in (surface.start_command, surface.tour_command)
+        )
+    )
 
     _assert_fragments(
         content,
@@ -72,17 +79,12 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
             "gpd --help",
             "Not sure which path fits this folder",
             "Want a guided overview",
-            "/gpd:start",
-            "$gpd-start",
-            "/gpd-start",
-            "/gpd:tour",
-            "$gpd-tour",
-            "/gpd-tour",
             "Start a new project",
             "Map an existing folder",
             "Reopen work from your normal terminal",
             "gpd resume --recent",
             "resume-work",
+            *runtime_commands,
         ),
     )
     assert "Back to the onboarding hub: [GPD Onboarding Hub](./README.md)." in content

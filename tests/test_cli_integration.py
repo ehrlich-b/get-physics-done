@@ -39,12 +39,12 @@ from tests.runtime_install_helpers import seed_complete_runtime_install
 runner = CliRunner()
 _RUNTIME_DESCRIPTORS = iter_runtime_descriptors()
 _DOLLAR_COMMAND_DESCRIPTOR = next(
-    descriptor for descriptor in _RUNTIME_DESCRIPTORS if descriptor.validated_command_surface == "public_runtime_dollar_command"
+    descriptor for descriptor in _RUNTIME_DESCRIPTORS if descriptor.public_command_surface_prefix.startswith("$")
 )
 _SLASH_COMMAND_DESCRIPTOR = next(
     descriptor
     for descriptor in _RUNTIME_DESCRIPTORS
-    if descriptor.validated_command_surface == "public_runtime_slash_command"
+    if descriptor.public_command_surface_prefix.startswith("/")
     and descriptor.runtime_name != _DOLLAR_COMMAND_DESCRIPTOR.runtime_name
 )
 _ENV_OVERRIDE_DESCRIPTOR = next(
@@ -75,17 +75,17 @@ def _assert_resume_compat_surface_inventory(compat_surface: dict[str, object]) -
 
 
 @pytest.fixture()
-def codex_command_prefix(monkeypatch: pytest.MonkeyPatch) -> str:
-    """Force the integration preflight surface to resolve the Codex runtime."""
+def dollar_command_prefix(monkeypatch: pytest.MonkeyPatch) -> str:
+    """Force the integration preflight surface to resolve the dollar-command runtime."""
     monkeypatch.setattr("gpd.cli.detect_runtime_for_gpd_use", lambda cwd=None: _DOLLAR_COMMAND_DESCRIPTOR.runtime_name)
-    return get_adapter(_DOLLAR_COMMAND_DESCRIPTOR.runtime_name).command_prefix
+    return get_adapter(_DOLLAR_COMMAND_DESCRIPTOR.runtime_name).runtime_descriptor.public_command_surface_prefix
 
 
 @pytest.fixture()
-def claude_code_command_prefix(monkeypatch: pytest.MonkeyPatch) -> str:
-    """Force the integration preflight surface to resolve the Claude Code runtime."""
+def slash_command_prefix(monkeypatch: pytest.MonkeyPatch) -> str:
+    """Force the integration preflight surface to resolve the slash-command runtime."""
     monkeypatch.setattr("gpd.cli.detect_runtime_for_gpd_use", lambda cwd=None: _SLASH_COMMAND_DESCRIPTOR.runtime_name)
-    return get_adapter(_SLASH_COMMAND_DESCRIPTOR.runtime_name).command_prefix
+    return get_adapter(_SLASH_COMMAND_DESCRIPTOR.runtime_name).runtime_descriptor.public_command_surface_prefix
 
 def _runtime_env_prefixes() -> tuple[str, ...]:
     prefixes: set[str] = set()
@@ -2423,30 +2423,30 @@ class TestInitIncludeParsing:
 class TestCommandContextSurface:
     @pytest.mark.parametrize("command_name", ["gpd:settings", "gpd:set-tier-models"])
     def test_validate_command_context_reports_runtime_command_surface(
-        self, codex_command_prefix: str, command_name: str
+        self, dollar_command_prefix: str, command_name: str
     ) -> None:
         result = _invoke("--raw", "validate", "command-context", command_name)
         payload = json.loads(result.output)
 
         assert payload["command"] == command_name
-        assert payload["validated_surface"] == "public_runtime_dollar_command"
-        assert payload["public_runtime_command_prefix"] == "$gpd-"
+        assert payload["validated_surface"] == _DOLLAR_COMMAND_DESCRIPTOR.validated_command_surface
+        assert payload["public_runtime_command_prefix"] == _DOLLAR_COMMAND_DESCRIPTOR.public_command_surface_prefix
         assert payload["local_cli_equivalence_guaranteed"] is False
-        assert f"public command surface rooted at `{codex_command_prefix}`" in payload["dispatch_note"]
+        assert f"public command surface rooted at `{dollar_command_prefix}`" in payload["dispatch_note"]
         assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
 
     @pytest.mark.parametrize("command_name", ["gpd:settings", "gpd:set-tier-models"])
     def test_validate_command_context_reports_slash_runtime_surface(
-        self, claude_code_command_prefix: str, command_name: str
+        self, slash_command_prefix: str, command_name: str
     ) -> None:
         result = _invoke("--raw", "validate", "command-context", command_name)
         payload = json.loads(result.output)
 
         assert payload["command"] == command_name
-        assert payload["validated_surface"] == "public_runtime_slash_command"
-        assert payload["public_runtime_command_prefix"] == "/gpd:"
+        assert payload["validated_surface"] == _SLASH_COMMAND_DESCRIPTOR.validated_command_surface
+        assert payload["public_runtime_command_prefix"] == _SLASH_COMMAND_DESCRIPTOR.public_command_surface_prefix
         assert payload["local_cli_equivalence_guaranteed"] is False
-        assert f"public command surface rooted at `{claude_code_command_prefix}`" in payload["dispatch_note"]
+        assert f"public command surface rooted at `{slash_command_prefix}`" in payload["dispatch_note"]
         assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
 
     @pytest.mark.parametrize("command_name", ["gpd:settings", "gpd:set-tier-models"])
@@ -3360,6 +3360,7 @@ def test_cost_human_output_without_usage_ledger_stays_read_only_and_advisory(
     assert not ledger_path.exists()
     assert config_path.read_text(encoding="utf-8") == config_before
 
+
 def test_cost_raw_keeps_tokens_measured_but_usd_unavailable_without_pricing_snapshot(
     gpd_project: Path,
     tmp_path: Path,
@@ -3373,9 +3374,9 @@ def test_cost_raw_keeps_tokens_measured_but_usd_unavailable_without_pricing_snap
     record = UsageRecord(
         record_id="usage-1",
         recorded_at="2026-03-27T00:00:00+00:00",
-        runtime="codex",
-        provider="openai",
-        model="gpt-5.4",
+        runtime=_DOLLAR_COMMAND_DESCRIPTOR.runtime_name,
+        provider="provider-under-test",
+        model="model-under-test",
         session_id="session-1",
         workspace_root=workspace_root,
         project_root=workspace_root,

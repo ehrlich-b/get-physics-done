@@ -187,6 +187,7 @@ _SHARED_GENERIC_PROVIDER_MODEL_TEST_PATHS = (
     REPO_ROOT / "tests/core/test_runtime_hints.py",
     REPO_ROOT / "tests/core/test_costs.py",
     REPO_ROOT / "tests/core/test_cli.py",
+    REPO_ROOT / "tests/test_cli_integration.py",
     REPO_ROOT / "tests/hooks/test_notify.py",
     REPO_ROOT / "tests/hooks/test_statusline.py",
 )
