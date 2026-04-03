@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import warnings
 from pathlib import Path
+
+import pytest
 
 from gpd.contracts import ResearchContract
 from gpd.core import state as state_module
@@ -922,6 +925,33 @@ def test_save_state_json_preserves_recoverable_warning_only_project_contract_dri
     persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
     assert persisted["project_contract"] is not None
     assert "notes" not in persisted["project_contract"]["claims"][0]
+
+
+def test_save_state_json_reports_duplicate_and_blank_project_contract_list_members(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = ["ref-benchmark", "ref-benchmark", " "]
+    contract["references"][0]["required_actions"] = ["read", "read", " "]
+
+    state = default_state_dict()
+    state["position"]["current_phase"] = "2"
+    state["position"]["status"] = "Executing"
+    state["project_contract"] = contract
+
+    with caplog.at_level(logging.WARNING, logger="gpd.core.state"):
+        save_state_json(tmp_path, state)
+
+    layout = ProjectLayout(tmp_path)
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert persisted["project_contract"] is not None
+    assert persisted["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+    assert persisted["project_contract"]["references"][0]["required_actions"] == ["read"]
+    assert any("must_read_refs.1 is a duplicate" in record.message for record in caplog.records)
+    assert any("must_read_refs.2 must not be blank" in record.message for record in caplog.records)
+    assert any("required_actions.1 is a duplicate" in record.message for record in caplog.records)
+    assert any("required_actions.2 must not be blank" in record.message for record in caplog.records)
 
 
 def test_save_state_json_drops_project_contract_that_fails_draft_scoping_validation(tmp_path: Path) -> None:

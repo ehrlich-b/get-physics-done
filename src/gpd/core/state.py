@@ -29,6 +29,7 @@ from gpd.contracts import (
     ProjectContractParseResult,
     ResearchContract,
     VerificationEvidence,
+    _collect_project_contract_list_member_errors,
     collect_contract_integrity_errors,
     parse_project_contract_data_strict,
 )
@@ -808,12 +809,13 @@ def _classify_project_contract_payload(
         )
 
     list_shape_drift_errors = _collect_list_shape_drift_errors(raw_contract)
+    list_member_errors = _collect_project_contract_list_member_errors(raw_contract)
     normalized_contract, schema_findings = salvage_project_contract(raw_contract)
     schema_warnings, schema_errors = _split_project_contract_schema_findings(
         schema_findings,
         allow_singleton_defaults=False,
     )
-    schema_warnings = list(dict.fromkeys([*schema_warnings, *list_shape_drift_errors]))
+    schema_warnings = list(dict.fromkeys([*schema_warnings, *list_shape_drift_errors, *list_member_errors]))
     if schema_errors or normalized_contract is None:
         logger.warning(
             "Skipping project_contract from %s because blocking schema normalization would be required: %s",
@@ -1874,11 +1876,14 @@ def _normalize_project_contract_section(
         return value
 
     list_shape_drift_errors = _collect_list_shape_drift_errors(value)
+    list_member_errors = _collect_project_contract_list_member_errors(value)
     normalized_contract, errors = salvage_project_contract(value)
     combined_errors = list(dict.fromkeys(errors))
     normalized_contract_dump = normalized_contract.model_dump() if normalized_contract is not None else None
     if list_shape_drift_errors:
         integrity_issues.extend(_integrity_issue_from_contract_error(error) for error in list_shape_drift_errors)
+    if list_member_errors:
+        integrity_issues.extend(_integrity_issue_from_contract_error(error) for error in list_member_errors)
     if normalized_contract is None:
         return None
     if combined_errors:
@@ -2016,10 +2021,12 @@ def ensure_state_schema(raw: dict | None) -> dict:
 
 def _normalize_state_for_persistence(raw: dict | None) -> dict:
     """Normalize state for writes without silently salvaging malformed contracts."""
-    normalized, _issues = _normalize_state_schema(
+    normalized, integrity_issues = _normalize_state_schema(
         raw,
         allow_project_contract_salvage=False,
     )
+    if any("project_contract" in issue for issue in integrity_issues):
+        logger.warning("state.json persistence normalized project_contract with issue(s): %s", "; ".join(integrity_issues))
     return normalized
 
 

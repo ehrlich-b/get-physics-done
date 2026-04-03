@@ -441,3 +441,36 @@ def test_state_and_context_canonicalize_reference_aliases_before_final_contract_
     assert loaded.project_contract_gate["status"] == "loaded"
     assert loaded.project_contract_gate["authoritative"] is True
     assert ctx["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+
+
+def test_state_and_context_surface_duplicate_and_blank_project_contract_list_members(
+    tmp_path: Path,
+) -> None:
+    _setup_project(tmp_path)
+    save_state_json(tmp_path, default_state_dict())
+
+    layout = ProjectLayout(tmp_path)
+    raw_state = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = ["ref-benchmark", "ref-benchmark", " "]
+    contract["references"][0]["required_actions"] = ["read", "read", " "]
+    raw_state["project_contract"] = contract
+    layout.state_json.write_text(json.dumps(raw_state, indent=2) + "\n", encoding="utf-8")
+
+    loaded = state_load(tmp_path)
+    ctx = init_progress(tmp_path)
+
+    assert loaded.state["project_contract"] is not None
+    assert loaded.state["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+    assert loaded.state["project_contract"]["references"][0]["required_actions"] == ["read"]
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+    assert ctx["project_contract"]["references"][0]["required_actions"] == ["read"]
+    assert ctx["project_contract_load_info"]["status"] == "loaded_with_schema_normalization"
+    assert loaded.project_contract_gate["status"] == "loaded_with_schema_normalization"
+    assert loaded.project_contract_gate["visible"] is True
+    assert loaded.project_contract_gate["repair_required"] is True
+    assert any("must_read_refs.1 is a duplicate" in warning for warning in ctx["project_contract_load_info"]["warnings"])
+    assert any("must_read_refs.2 must not be blank" in warning for warning in ctx["project_contract_load_info"]["warnings"])
+    assert any("required_actions.1 is a duplicate" in warning for warning in ctx["project_contract_load_info"]["warnings"])
+    assert any("required_actions.2 must not be blank" in warning for warning in ctx["project_contract_load_info"]["warnings"])
