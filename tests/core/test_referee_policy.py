@@ -105,6 +105,8 @@ def test_minor_revision_allowed_only_for_minor_follow_up():
             target_journal="prd",
             final_recommendation=ReviewRecommendation.minor_revision,
             stage_artifacts=[f"GPD/review/STAGE-{name}.json" for name in ("reader", "literature", "math", "physics", "interestingness")],
+            proof_audit_coverage_complete=True,
+            theorem_proof_alignment_adequate=True,
             unresolved_minor_issues=2,
             novelty=ReviewAdequacy.adequate,
             significance=ReviewAdequacy.adequate,

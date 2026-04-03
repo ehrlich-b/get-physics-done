@@ -28,21 +28,9 @@ def _write_json(path: Path, payload: dict[str, object]) -> None:
 
 
 def _observability_sync_helper():
-    import gpd.core.observability as observability
+    from gpd.core.observability import sync_execution_visibility_from_canonical_continuation
 
-    for helper_name in (
-        "sync_execution_visibility_from_canonical_continuation",
-        "sync_current_execution_from_canonical_continuation",
-        "sync_current_execution_visibility_from_canonical_continuation",
-        "sync_live_execution_visibility_from_canonical_continuation",
-        "sync_execution_visibility_cache_from_continuation",
-        "sync_execution_cache_from_canonical_continuation",
-        "_sync_execution_visibility_from_canonical_continuation",
-    ):
-        helper = getattr(observability, helper_name, None)
-        if callable(helper):
-            return helper
-    raise AssertionError("Expected a canonical-continuation observability sync helper to be available")
+    return sync_execution_visibility_from_canonical_continuation
 
 
 def _iso_minutes_ago(minutes: int) -> str:

@@ -1818,12 +1818,6 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
         "segment_candidates": segment_candidates,
         "resume_mode": "continuity_handoff",
     }
-    legacy_resume_surface = {
-        "execution_resume_file": resume_file,
-        "execution_resume_file_source": "session_resume_file",
-        "session_resume_file": resume_file,
-        "segment_candidates": segment_candidates,
-    }
     monkeypatch.setattr(
         "gpd.core.context.init_resume",
         lambda _cwd: {
@@ -1842,8 +1836,6 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
                     "resume_pointer": resume_file,
                 }
             ],
-            "legacy_resume_surface": legacy_resume_surface,
-            "compatibility_resume_surface": legacy_resume_surface,
             "compat_resume_surface": compat_resume_surface,
             "has_live_execution": False,
             "active_resume_kind": "continuity_handoff",
@@ -1874,8 +1866,6 @@ def test_resume_raw_adds_canonical_recovery_projection_fields(tmp_path: Path, mo
     )
     assert payload.get("resume_mode_label", "none") == "none"
     _assert_resume_compat_surface_inventory(payload["compat_resume_surface"])
-    assert "legacy_resume_surface" not in payload
-    assert "compatibility_resume_surface" not in payload
     assert payload["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/01/.continue-here.md"
     assert payload["compat_resume_surface"]["execution_resume_file_source"] == "session_resume_file"
     assert payload["compat_resume_surface"]["resume_mode"] == "continuity_handoff"

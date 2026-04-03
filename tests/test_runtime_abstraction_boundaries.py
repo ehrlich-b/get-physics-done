@@ -18,11 +18,12 @@ import subprocess
 from pathlib import Path
 
 from gpd.adapters import iter_adapters
-from gpd.adapters.runtime_catalog import iter_runtime_descriptors
+from gpd.adapters.runtime_catalog import get_shared_install_metadata, iter_runtime_descriptors
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 _RUNTIME_DESCRIPTORS = iter_runtime_descriptors()
+_SHARED_INSTALL = get_shared_install_metadata()
 
 
 def _runtime_env_prefix_patterns() -> list[str]:
@@ -414,6 +415,33 @@ def test_shared_builtin_server_descriptors_do_not_hardcode_bootstrap_commands() 
 
     assert leaks == [], (
         "Shared built-in MCP descriptors should not hardcode runtime-specific bootstrap commands:\n"
+        f"{_format_failures(leaks)}"
+    )
+
+
+def test_shared_runtime_docs_do_not_rebuild_install_metadata_literals() -> None:
+    doc_paths = (
+        REPO_ROOT / "src/gpd/specs/workflows/update.md",
+        REPO_ROOT / "src/gpd/specs/workflows/reapply-patches.md",
+        REPO_ROOT / "src/gpd/specs/references/tooling/runtime-config-guide.md",
+    )
+    disallowed_literals = (
+        _SHARED_INSTALL.bootstrap_command,
+        _SHARED_INSTALL.latest_release_url,
+        _SHARED_INSTALL.releases_api_url,
+        _SHARED_INSTALL.releases_page_url,
+        _SHARED_INSTALL.patches_dir_name,
+    )
+
+    leaks: list[tuple[Path, int, str]] = []
+    for path in doc_paths:
+        rel_path = path.relative_to(REPO_ROOT)
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if any(literal in line for literal in disallowed_literals):
+                leaks.append((rel_path, line_no, line))
+
+    assert leaks == [], (
+        "Shared runtime-facing docs should consume install metadata placeholders instead of hardcoded literals:\n"
         f"{_format_failures(leaks)}"
     )
 

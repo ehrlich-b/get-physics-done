@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from gpd.adapters.runtime_catalog import get_shared_install_metadata
 from gpd.hooks.check_update import (
     UPDATE_CHECK_TTL_SECONDS,
     _do_check,
@@ -21,6 +22,8 @@ from gpd.hooks.check_update import (
 )
 from gpd.hooks.runtime_detect import UpdateCacheCandidate
 from tests.hooks.helpers import mark_complete_install as _mark_complete_install
+
+_SHARED_INSTALL = get_shared_install_metadata()
 
 
 def _cache_candidate(path: Path) -> UpdateCacheCandidate:
@@ -285,7 +288,7 @@ class TestDoCheck:
         cache = json.loads(cache_file.read_text())
         assert cache["update_available"] is True
         assert cache["latest"] == "2.0.0"
-        assert mock_urlopen.call_args.args[0] == "https://registry.npmjs.org/get-physics-done/latest"
+        assert mock_urlopen.call_args.args[0] == _SHARED_INSTALL.latest_release_url
 
     def test_registry_returns_same_version(self, tmp_path: Path) -> None:
         """When the npm registry returns the same version, update_available=False."""

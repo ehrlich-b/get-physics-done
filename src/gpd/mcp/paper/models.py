@@ -10,8 +10,8 @@ from typing import Annotated, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
-from gpd.mcp.paper.bibliography import BibliographyAudit
 from gpd.contracts import statement_looks_theorem_like
+from gpd.mcp.paper.bibliography import BibliographyAudit
 
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 ClaimId = Annotated[str, Field(pattern=r"^CLM-[A-Za-z0-9][A-Za-z0-9_-]*$")]

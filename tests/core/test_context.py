@@ -29,6 +29,7 @@ from gpd.core.context import (
     load_config,
 )
 from gpd.core.errors import ConfigError, ValidationError
+from gpd.core.reproducibility import compute_sha256
 from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_KEYS
 
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
@@ -58,6 +59,150 @@ def _create_config(tmp_path: Path, config: dict) -> Path:
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config))
     return config_path
+
+
+def _write_manuscript_proof_review_artifacts(tmp_path: Path) -> Path:
+    return _write_manuscript_proof_review_artifacts_with_proof_path(tmp_path, proof_artifact_path="paper/main.tex")
+
+
+def _write_manuscript_proof_review_artifacts_with_proof_path(
+    tmp_path: Path,
+    *,
+    proof_artifact_path: str,
+) -> Path:
+    manuscript_path = tmp_path / "paper" / "main.tex"
+    manuscript_path.parent.mkdir(parents=True, exist_ok=True)
+    manuscript_path.write_text(
+        "\\documentclass{article}\n\\begin{document}\n\\begin{theorem}For every r_0 > 0, the orbit intersects the target annulus.\\end{theorem}\n\\end{document}\n",
+        encoding="utf-8",
+    )
+    proof_artifact = tmp_path / proof_artifact_path
+    proof_artifact.parent.mkdir(parents=True, exist_ok=True)
+    if proof_artifact != manuscript_path:
+        proof_artifact.write_text(
+            "\\documentclass{article}\n\\begin{document}\n\\begin{theorem}External theorem proof.\\end{theorem}\n\\end{document}\n",
+            encoding="utf-8",
+        )
+    proof_redteam_artifact_paths = f"  - {proof_artifact_path}\n"
+    if proof_artifact_path != "paper/main.tex":
+        proof_redteam_artifact_paths += "  - paper/main.tex\n"
+    review_dir = tmp_path / "GPD" / "review"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    manuscript_sha256 = compute_sha256(manuscript_path)
+    (review_dir / "CLAIMS.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "manuscript_path": "paper/main.tex",
+                "manuscript_sha256": manuscript_sha256,
+                "claims": [
+                    {
+                        "claim_id": "CLM-001",
+                        "claim_type": "main_result",
+                        "claim_kind": "theorem",
+                        "text": "For every r_0 > 0, the orbit intersects the target annulus.",
+                        "artifact_path": proof_artifact_path,
+                        "section": "Main Result",
+                        "equation_refs": [],
+                        "figure_refs": [],
+                        "supporting_artifacts": [],
+                        "theorem_assumptions": ["chi > 0"],
+                        "theorem_parameters": ["r_0"],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (review_dir / "STAGE-math.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "round": 1,
+                "stage_id": "math",
+                "stage_kind": "math",
+                "manuscript_path": "paper/main.tex",
+                "manuscript_sha256": manuscript_sha256,
+                "claims_reviewed": ["CLM-001"],
+                "summary": "math review",
+                "strengths": ["checked proof"],
+                "findings": [],
+                "proof_audits": [
+                    {
+                        "claim_id": "CLM-001",
+                        "theorem_assumptions_checked": ["chi > 0"],
+                        "theorem_parameters_checked": ["r_0"],
+                        "proof_locations": [f"{proof_artifact_path}:1"],
+                        "uncovered_assumptions": [],
+                        "uncovered_parameters": [],
+                        "coverage_gaps": [],
+                        "alignment_status": "aligned",
+                        "notes": "Complete coverage.",
+                    }
+                ],
+                "confidence": "high",
+                "recommendation_ceiling": "minor_revision",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (review_dir / "PROOF-REDTEAM.md").write_text(
+        (
+            "---\n"
+                "status: passed\n"
+                "reviewer: gpd-check-proof\n"
+                "claim_ids:\n"
+                "  - CLM-001\n"
+                "proof_artifact_paths:\n"
+                f"{proof_redteam_artifact_paths}"
+                "manuscript_path: paper/main.tex\n"
+                f"manuscript_sha256: {manuscript_sha256}\n"
+                "round: 1\n"
+                "---\n\n"
+                "# Proof Redteam\n"
+            "## Proof Inventory\n"
+            "- Exact claim / theorem text: For every r_0 > 0, the orbit intersects the target annulus.\n"
+            "- Claim / theorem target: Annulus intersection for every target radius.\n"
+            "- Named parameters:\n"
+            "  - `r_0`: target radius\n"
+            "- Hypotheses:\n"
+                "  - `H1`: chi > 0\n"
+                "- Quantifier / domain obligations:\n"
+                "  - for every r_0 > 0\n"
+                "- Conclusion clauses:\n"
+                "  - annulus intersection holds\n"
+                "## Coverage Ledger\n"
+            "### Named-Parameter Coverage\n"
+                "| Parameter | Role / Domain | Proof Location | Status | Notes |\n"
+                "| --- | --- | --- | --- | --- |\n"
+                f"| `r_0` | target radius | {proof_artifact_path}:1 | covered | Carried through the argument. |\n"
+                "### Hypothesis Coverage\n"
+                "| Hypothesis | Proof Location | Status | Notes |\n"
+                "| --- | --- | --- | --- |\n"
+                f"| `H1` | {proof_artifact_path}:1 | covered | Used in the positivity step. |\n"
+                "### Quantifier / Domain Coverage\n"
+                "| Obligation | Proof Location | Status | Notes |\n"
+                "| --- | --- | --- | --- |\n"
+                f"| `for every r_0 > 0` | {proof_artifact_path}:1 | covered | No specialization introduced. |\n"
+                "### Conclusion-Clause Coverage\n"
+                "| Clause | Proof Location | Status | Notes |\n"
+                "| --- | --- | --- | --- |\n"
+                f"| annulus intersection holds | {proof_artifact_path}:1 | covered | Final sentence states it. |\n"
+            "## Adversarial Probe\n"
+            "- Probe type: dropped-parameter test\n"
+            "- Result: The proof still references r_0, so the theorem remains global in the target radius.\n"
+            "## Verdict\n"
+            "- Scope status: `matched`\n"
+            "- Quantifier status: `matched`\n"
+            "- Counterexample status: `none_found`\n"
+            "- Blocking gaps:\n"
+            "  - None.\n"
+            "## Required Follow-Up\n"
+            "- None.\n"
+        ),
+        encoding="utf-8",
+    )
+    return tmp_path / "paper" / "references.bib"
 
 
 def _create_roadmap(tmp_path: Path, content: str) -> Path:
@@ -693,6 +838,19 @@ class TestInitExecutePhase:
         assert ctx["derived_approximation_count"] == 1
         assert ctx["derived_approximations"][0]["name"] == "weak coupling"
 
+    def test_does_not_bootstrap_manuscript_proof_review_manifest(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        phase_dir = _create_phase_dir(tmp_path, "01-setup")
+        (phase_dir / "a-PLAN.md").write_text("plan")
+        _write_manuscript_proof_review_artifacts(tmp_path)
+
+        ctx = init_execute_phase(tmp_path, "1")
+
+        status = ctx["derived_manuscript_proof_review_status"]
+        assert status["state"] == "fresh"
+        assert status["manifest_bootstrapped"] is False
+        assert not (tmp_path / "paper" / "PROOF-REVIEW-MANIFEST.json").exists()
+
     def test_state_exists_uses_recoverable_backup_without_persisting_repair(
         self,
         tmp_path: Path,
@@ -890,6 +1048,18 @@ class TestInitPlanPhase:
         assert "GPD/research-map/VALIDATION.md" in ctx["reference_artifact_files"]
         assert "benchmark details" in ctx["reference_artifacts_content"]
         assert "anchor registry" in ctx["reference_artifacts_content"]
+
+    def test_does_not_bootstrap_manuscript_proof_review_manifest(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "02-analysis")
+        _write_manuscript_proof_review_artifacts(tmp_path)
+
+        ctx = init_plan_phase(tmp_path, "2")
+
+        status = ctx["derived_manuscript_proof_review_status"]
+        assert status["state"] == "fresh"
+        assert status["manifest_bootstrapped"] is False
+        assert not (tmp_path / "paper" / "PROOF-REVIEW-MANIFEST.json").exists()
 
     def test_surfaces_derived_citation_sources_without_changing_reference_artifact_fields(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -1184,6 +1354,18 @@ class TestInitNewMilestone:
         assert "GPD/phases/01-test-phase/01-SUMMARY.md" in ctx["effective_reference_intake"]["must_include_prior_outputs"]
         assert "Benchmark Ref 2024" in ctx["active_reference_context"]
         assert "GPD/research-map/REFERENCES.md" in ctx["reference_artifact_files"]
+
+    def test_does_not_bootstrap_manuscript_proof_review_manifest(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_roadmap(tmp_path, "## Milestone v1.0: Setup Phase\n")
+        _write_manuscript_proof_review_artifacts(tmp_path)
+
+        ctx = init_new_milestone(tmp_path)
+
+        status = ctx["derived_manuscript_proof_review_status"]
+        assert status["state"] == "fresh"
+        assert status["manifest_bootstrapped"] is False
+        assert not (tmp_path / "paper" / "PROOF-REVIEW-MANIFEST.json").exists()
 
     def test_surfaces_project_contract_load_and_validation_gates_when_contract_is_not_authoritative(
         self, tmp_path: Path
@@ -1640,6 +1822,65 @@ class TestInitVerifyWork:
 
         assert ctx["phase_proof_review_status"]["state"] == "stale"
         assert ctx["phase_proof_review_status"]["can_rely_on_prior_review"] is False
+
+    def test_exposes_manuscript_proof_review_status(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-setup")
+        _write_manuscript_proof_review_artifacts(tmp_path)
+
+        ctx = init_verify_work(tmp_path, "1")
+
+        status = ctx["derived_manuscript_proof_review_status"]
+        assert status["state"] == "fresh"
+        assert status["can_rely_on_prior_review"] is True
+        assert status["manifest_bootstrapped"] is True
+        assert status["manifest_path"] == "paper/PROOF-REVIEW-MANIFEST.json"
+        assert status["anchor_artifact"] == "GPD/review/PROOF-REDTEAM.md"
+        assert status["watched_file_count"] >= 3
+        assert status["changed_file_count"] == 0
+
+    def test_reports_stale_manuscript_proof_review_after_bibliography_edit(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-setup")
+        bibliography_path = _write_manuscript_proof_review_artifacts(tmp_path)
+
+        initial = init_verify_work(tmp_path, "1")
+        assert initial["derived_manuscript_proof_review_status"]["state"] == "fresh"
+
+        bibliography_path.write_text("@article{demo,title={Updated Demo}}\n", encoding="utf-8")
+
+        ctx = init_verify_work(tmp_path, "1")
+
+        status = ctx["derived_manuscript_proof_review_status"]
+        assert status["state"] == "stale"
+        assert status["can_rely_on_prior_review"] is False
+        assert status["changed_file_count"] >= 1
+        assert "paper/references.bib" in status["changed_files"]
+
+    def test_reports_stale_manuscript_proof_review_after_external_proof_edit(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-setup")
+        _write_manuscript_proof_review_artifacts_with_proof_path(
+            tmp_path,
+            proof_artifact_path="proofs/external-proof.tex",
+        )
+        external_proof_path = tmp_path / "proofs" / "external-proof.tex"
+
+        initial = init_verify_work(tmp_path, "1")
+        assert initial["derived_manuscript_proof_review_status"]["state"] == "fresh"
+        assert external_proof_path.as_posix().removeprefix(f"{tmp_path.as_posix()}/") in initial["derived_manuscript_proof_review_status"]["watched_files"]
+
+        external_proof_path.write_text(
+            "\\documentclass{article}\n\\begin{document}\nRevised external proof.\n\\end{document}\n",
+            encoding="utf-8",
+        )
+
+        ctx = init_verify_work(tmp_path, "1")
+
+        status = ctx["derived_manuscript_proof_review_status"]
+        assert status["state"] == "stale"
+        assert status["can_rely_on_prior_review"] is False
+        assert external_proof_path.as_posix().removeprefix(f"{tmp_path.as_posix()}/") in status["changed_files"]
 
 
 # ─── init_todos ───────────────────────────────────────────────────────────────

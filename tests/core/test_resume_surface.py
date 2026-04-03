@@ -16,7 +16,7 @@ from gpd.core.resume_surface import (
     resolve_resume_compat_surface,
     resume_candidate_kind,
     resume_candidate_origin,
-    resume_payload_has_local_target,
+    resume_payload_has_local_recovery_target,
     resume_source_from_origin,
 )
 
@@ -79,24 +79,6 @@ def test_build_resume_compat_surface_extracts_canonical_compat_surface() -> None
     assert compat["resume_mode"] == "continuity_handoff"
     assert compat["segment_candidates"] == [{"source": "session_resume_file", "status": "handoff"}]
     assert compat["session_resume_file"] == "GPD/phases/04/.continue-here.md"
-
-
-@pytest.mark.parametrize(
-    "wrapper_key",
-    ["legacy_resume_surface", "compatibility_resume_surface", "resume_surface", "resume_surface_compat"],
-)
-def test_build_resume_compat_surface_ignores_legacy_wrapper_aliases(wrapper_key: str) -> None:
-    payload = {
-        wrapper_key: {
-            "execution_resume_file": "GPD/phases/04/.continue-here.md",
-            "execution_resume_file_source": "session_resume_file",
-            "resume_mode": "continuity_handoff",
-            "segment_candidates": [{"source": "session_resume_file", "status": "handoff"}],
-            "session_resume_file": "GPD/phases/04/.continue-here.md",
-        }
-    }
-
-    assert build_resume_compat_surface(payload) is None
 
 
 def test_build_resume_compat_surface_merges_sources_with_explicit_precedence() -> None:
@@ -214,7 +196,7 @@ def test_resume_candidate_helpers_normalize_legacy_and_canonical_shapes() -> Non
     assert resume_source_from_origin("continuation.handoff") is None
 
 
-def test_resume_payload_has_local_target_recognizes_bounded_segment_handoff_and_interrupted_agent() -> None:
+def test_resume_payload_has_local_recovery_target_recognizes_bounded_segment_handoff_and_interrupted_agent() -> None:
     bounded_payload = {
         "active_resume_kind": "bounded_segment",
         "active_resume_pointer": "GPD/phases/03/.continue-here.md",
@@ -242,12 +224,12 @@ def test_resume_payload_has_local_target_recognizes_bounded_segment_handoff_and_
         ],
     }
 
-    assert resume_payload_has_local_target(bounded_payload) is True
-    assert resume_payload_has_local_target(handoff_payload) is True
-    assert resume_payload_has_local_target(interrupted_payload) is True
+    assert resume_payload_has_local_recovery_target(bounded_payload) is True
+    assert resume_payload_has_local_recovery_target(handoff_payload) is True
+    assert resume_payload_has_local_recovery_target(interrupted_payload) is True
 
 
-def test_resume_payload_has_local_target_rejects_missing_handoff_only_state() -> None:
+def test_resume_payload_has_local_recovery_target_rejects_missing_handoff_only_state() -> None:
     payload = {
         "has_continuity_handoff": True,
         "recorded_continuity_handoff_file": "GPD/phases/05/.continue-here.md",
@@ -262,7 +244,7 @@ def test_resume_payload_has_local_target_rejects_missing_handoff_only_state() ->
         ],
     }
 
-    assert resume_payload_has_local_target(payload) is False
+    assert resume_payload_has_local_recovery_target(payload) is False
 
 
 @pytest.mark.parametrize(
@@ -319,11 +301,11 @@ def test_resume_payload_has_local_target_rejects_missing_handoff_only_state() ->
         ),
     ],
 )
-def test_resume_payload_has_local_target_classifies_supported_resume_families(
+def test_resume_payload_has_local_recovery_target_classifies_supported_resume_families(
     resume_payload: dict[str, object],
     expected: bool,
 ) -> None:
-    assert resume_payload_has_local_target(resume_payload) is expected
+    assert resume_payload_has_local_recovery_target(resume_payload) is expected
 
 
 def test_build_resume_segment_candidate_projects_segment_fields_into_raw_resume_shape() -> None:
@@ -408,7 +390,7 @@ def test_canonicalize_resume_public_payload_keeps_candidate_continuity_nested_wi
     assert "session_resume_file" not in canonical
 
 
-def test_canonicalize_resume_public_payload_removes_legacy_top_level_aliases_and_preserves_canonical_fields() -> None:
+def test_canonicalize_resume_public_payload_preserves_canonical_fields_and_compacts_compat_inventory() -> None:
     payload = {
         "active_resume_kind": "bounded_segment",
         "active_resume_origin": "compat.current_execution",
@@ -426,18 +408,11 @@ def test_canonicalize_resume_public_payload_removes_legacy_top_level_aliases_and
         "resume_mode": "bounded_segment",
         "segment_candidates": [{"source": "current_execution"}],
         "session_resume_file": "GPD/phases/03/legacy.md",
-        "resume_surface": {
-            "recorded_session_resume_file": "GPD/phases/03/legacy.md",
-        },
         "compat_resume_surface": {
             "recorded_session_resume_file": "GPD/phases/03/legacy.md",
             "session_resume_file": "GPD/phases/03/legacy.md",
             "resume_mode": "bounded_segment",
             "segment_candidates": [{"source": "current_execution"}],
-            "resume_surface": {
-                "session_resume_file": "GPD/phases/03/nested-legacy.md",
-                "resume_mode": "continuity_handoff",
-            },
         },
     }
 
@@ -459,7 +434,6 @@ def test_canonicalize_resume_public_payload_removes_legacy_top_level_aliases_and
     assert "resume_mode" not in canonical
     assert "segment_candidates" not in canonical
     assert "session_resume_file" not in canonical
-    assert "resume_surface" not in canonical
     assert canonical["compat_resume_surface"]["execution_resume_file"] == "GPD/phases/03/.continue-here.md"
     assert canonical["compat_resume_surface"]["execution_resume_file_source"] == "current_execution"
     assert canonical["compat_resume_surface"]["resume_mode"] == "bounded_segment"
@@ -467,7 +441,6 @@ def test_canonicalize_resume_public_payload_removes_legacy_top_level_aliases_and
     assert canonical["compat_resume_surface"]["session_resume_file"] == "GPD/phases/03/legacy.md"
     assert canonical["compat_resume_surface"]["recorded_session_resume_file"] == "GPD/phases/03/legacy.md"
     assert canonical["compat_resume_surface"]["missing_session_resume_file"] is None
-    assert "resume_surface" not in canonical["compat_resume_surface"]
 
 
 def test_canonicalize_resume_public_payload_is_idempotent_on_already_canonical_payload() -> None:

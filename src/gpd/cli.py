@@ -34,6 +34,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
+from gpd.adapters.runtime_catalog import normalize_runtime_name
 from gpd.command_labels import canonical_command_label
 from gpd.core.cli_args import (
     normalize_root_global_cli_options as _normalize_root_global_cli_options,
@@ -61,6 +62,7 @@ from gpd.core.project_reentry import (
     resolve_project_reentry,
 )
 from gpd.core.proof_review import (
+    manuscript_has_theorem_bearing_review_anchor,
     resolve_manuscript_proof_review_status,
     resolve_phase_proof_review_status,
 )
@@ -91,7 +93,7 @@ from gpd.core.workflow_presets import (
     list_workflow_presets,
     preview_workflow_preset_application,
 )
-from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use, normalize_runtime_name
+from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use
 from gpd.mcp.managed_integrations import WOLFRAM_MANAGED_INTEGRATION
 
 if TYPE_CHECKING:
@@ -5058,6 +5060,7 @@ def _validate_bibliography_audit_semantics(bibliography_audit: Path) -> tuple[bo
 
 _REVIEW_LEDGER_FILENAME_RE = re.compile(r"^REVIEW-LEDGER(?P<round_suffix>-R(?P<round>\d+))?\.json$")
 _REFEREE_DECISION_FILENAME_RE = re.compile(r"^REFEREE-DECISION(?P<round_suffix>-R(?P<round>\d+))?\.json$")
+_CLAIMS_FILENAME_RE = re.compile(r"^CLAIMS(?P<round_suffix>-R(?P<round>\d+))?\.json$")
 
 
 def _review_artifact_round(path: Path, *, pattern: re.Pattern[str]) -> tuple[int, str] | None:
@@ -5104,6 +5107,40 @@ def _normalize_review_path_label(value: str) -> str:
     return posixpath.normpath(normalized)
 
 
+def _manuscript_has_theorem_bearing_claim_inventory(project_cwd: Path, manuscript: Path) -> bool:
+    """Return whether the latest matching Stage 1 claim inventory is theorem-bearing."""
+
+    review_dir = project_cwd / "GPD" / "review"
+    if not review_dir.is_dir():
+        return False
+
+    try:
+        manuscript_label = manuscript.relative_to(project_cwd).as_posix()
+    except ValueError:
+        manuscript_label = manuscript.as_posix()
+    normalized_manuscript_label = _normalize_review_path_label(manuscript_label)
+
+    from gpd.mcp.paper.review_artifacts import read_claim_index
+
+    matches: list[tuple[int, bool]] = []
+    for path in sorted(review_dir.glob("CLAIMS*.json")):
+        details = _review_artifact_round(path, pattern=_CLAIMS_FILENAME_RE)
+        if details is None:
+            continue
+        try:
+            claim_index = read_claim_index(path)
+        except (OSError, json.JSONDecodeError, PydanticValidationError):
+            continue
+        if _normalize_review_path_label(claim_index.manuscript_path) != normalized_manuscript_label:
+            continue
+        matches.append((details[0], any(claim.theorem_bearing for claim in claim_index.claims)))
+
+    if not matches:
+        return False
+    _, theorem_bearing = max(matches, key=lambda item: item[0])
+    return theorem_bearing
+
+
 def _manuscript_matches_review_artifact_path(artifact_path: str, manuscript: Path, *, cwd: Path) -> bool:
     normalized_artifact_path = _normalize_review_path_label(artifact_path)
     if not normalized_artifact_path:
@@ -5135,6 +5172,7 @@ _REVIEW_PRECHECK_BLOCKING_CONDITIONS: dict[str, tuple[str, ...]] = {
     "referee_report_source": ("missing referee report source when provided as a path",),
     "phase_lookup": ("missing phase artifacts",),
     "phase_summaries": ("missing phase artifacts",),
+    "publication_blockers": ("unresolved publication blockers",),
     "publication_review_outcome": (
         "peer-review recommendation blocks submission",
         "peer-review recommendation blocks submission when staged review artifacts are present",
@@ -5166,6 +5204,7 @@ _REVIEW_PRECHECK_REQUIRED_EVIDENCE: dict[str, tuple[str, ...]] = {
     "referee_report_source": ("referee report source when provided as a path",),
     "reproducibility_manifest": ("reproducibility manifest", "manuscript-root reproducibility manifest"),
     "reproducibility_ready": ("reproducibility manifest", "manuscript-root reproducibility manifest"),
+    "manuscript_proof_review": ("cleared manuscript proof review for theorem-bearing manuscripts",),
 }
 
 _PHASE_EXECUTED_STATUSES = {
@@ -5181,26 +5220,108 @@ def _normalized_contract_entries(values: list[str]) -> set[str]:
     return {value.strip().lower() for value in values if value and value.strip()}
 
 
-def _normalized_conditional_contract_entries(contract: object, field_name: str) -> set[str]:
+def _normalized_conditional_contract_entries(
+    contract: object,
+    field_name: str,
+    *,
+    active_condition_whens: set[str] | None = None,
+) -> set[str]:
     """Return normalized entries from nested conditional review-contract clauses."""
     normalized: set[str] = set()
     for requirement in getattr(contract, "conditional_requirements", []):
+        when = str(getattr(requirement, "when", "") or "").strip()
+        if active_condition_whens is not None and when not in active_condition_whens:
+            continue
         normalized.update(
             _normalized_contract_entries(list(getattr(requirement, field_name, []) or []))
         )
     return normalized
 
 
-def _review_preflight_check_is_blocking(contract: object, check_name: str) -> bool:
-    """Return True when the typed review contract marks a check as hard-blocking."""
+def _review_contract_condition_is_active(
+    when: str,
+    *,
+    project_cwd: Path,
+    manuscript: Path | None,
+) -> bool:
+    """Return whether one typed conditional review-contract clause is active."""
+
+    normalized_when = when.strip()
+    if normalized_when in {
+        "theorem-bearing claims are present",
+        "theorem-bearing manuscripts are present",
+    }:
+        return manuscript is not None and (
+            manuscript_has_theorem_bearing_review_anchor(project_cwd, manuscript)
+            or _manuscript_has_theorem_bearing_claim_inventory(project_cwd, manuscript)
+        )
+    return False
+
+
+def _active_review_contract_condition_whens(
+    contract: object,
+    *,
+    project_cwd: Path,
+    manuscript: Path | None,
+) -> set[str]:
+    """Return the set of typed conditional review-contract clauses that currently apply."""
+
+    active: set[str] = set()
+    for requirement in getattr(contract, "conditional_requirements", []):
+        when = str(getattr(requirement, "when", "") or "").strip()
+        if when and _review_contract_condition_is_active(when, project_cwd=project_cwd, manuscript=manuscript):
+            active.add(when)
+    return active
+
+
+def _review_contract_requests_check(
+    contract: object,
+    check_name: str,
+    *,
+    active_condition_whens: set[str] | None = None,
+) -> bool:
+    """Return whether the review contract asks the CLI to execute one check."""
+
+    if check_name in list(getattr(contract, "preflight_checks", []) or []):
+        return True
     blocking_conditions = _normalized_contract_entries(getattr(contract, "blocking_conditions", []))
-    blocking_conditions.update(_normalized_conditional_contract_entries(contract, "blocking_conditions"))
+    blocking_conditions.update(
+        _normalized_conditional_contract_entries(
+            contract,
+            "blocking_conditions",
+            active_condition_whens=active_condition_whens,
+        )
+    )
     required_evidence = _normalized_contract_entries(getattr(contract, "required_evidence", []))
-    required_evidence.update(_normalized_conditional_contract_entries(contract, "required_evidence"))
+    required_evidence.update(
+        _normalized_conditional_contract_entries(
+            contract,
+            "required_evidence",
+            active_condition_whens=active_condition_whens,
+        )
+    )
 
     return (
         any(alias in blocking_conditions for alias in _REVIEW_PRECHECK_BLOCKING_CONDITIONS.get(check_name, ()))
         or any(alias in required_evidence for alias in _REVIEW_PRECHECK_REQUIRED_EVIDENCE.get(check_name, ()))
+    )
+
+
+def _review_preflight_check_is_blocking(
+    contract: object,
+    check_name: str,
+    *,
+    active_condition_whens: set[str] | None = None,
+) -> bool:
+    """Return True when the typed review contract marks a check as hard-blocking."""
+
+    return (
+        check_name in list(getattr(contract, "preflight_checks", []) or [])
+        or _review_contract_requests_check(
+            contract,
+            check_name,
+            active_condition_whens=active_condition_whens,
+        )
     )
 
 
@@ -6169,6 +6290,7 @@ def _build_review_preflight(
         raise GPDError(f"Command {public_command_name} does not expose a review contract")
 
     checks: list[ReviewPreflightCheck] = []
+    active_condition_whens: set[str] = set()
     phase_subject = subject
     if phase_subject is None and "phase_artifacts" in contract.preflight_checks:
         phase_subject = _current_review_phase_subject(project_cwd)
@@ -6180,7 +6302,15 @@ def _build_review_preflight(
                 name=name,
                 passed=passed,
                 detail=detail,
-                blocking=_review_preflight_check_is_blocking(contract, name) if blocking is None else blocking,
+                blocking=(
+                    _review_preflight_check_is_blocking(
+                        contract,
+                        name,
+                        active_condition_whens=active_condition_whens,
+                    )
+                    if blocking is None
+                    else blocking
+                ),
             )
         )
 
@@ -6250,14 +6380,19 @@ def _build_review_preflight(
                 if not summary_failures
                 else "; ".join(summary_failures[:3]),
             )
-        if strict:
+        verification_reports_requested = _review_contract_requests_check(
+            contract,
+            "verification_reports",
+            active_condition_whens=active_condition_whens,
+        )
+        if verification_reports_requested:
             verification_exists = layout.phases_dir.exists() and any(layout.phases_dir.rglob("*VERIFICATION.md"))
             add_check(
                 "verification_reports",
                 verification_exists,
                 "verification reports present" if verification_exists else "no verification reports found",
             )
-            if verification_exists:
+            if strict and verification_exists:
                 verification_failures = _validate_phase_artifacts(layout.phases_dir, "verification")
                 add_check(
                     "verification_frontmatter",
@@ -6315,294 +6450,377 @@ def _build_review_preflight(
                     else f"missing {_format_display_path(report_path)}"
                 ),
             )
-        if strict and manuscript is not None and command.name in {
+        if manuscript is not None:
+            active_condition_whens = _active_review_contract_condition_whens(
+                contract,
+                project_cwd=project_cwd,
+                manuscript=manuscript,
+            )
+        if manuscript is not None and command.name in {
             "gpd:peer-review",
             "gpd:write-paper",
             "gpd:arxiv-submission",
         }:
-            publication_artifacts = _resolve_review_preflight_publication_artifacts(manuscript)
-            artifact_manifest = publication_artifacts.artifact_manifest
-            bibliography_audit = publication_artifacts.bibliography_audit
-            reproducibility_manifest = publication_artifacts.reproducibility_manifest
-            artifact_manifest_detail = "no ARTIFACT-MANIFEST.json found near the manuscript"
-            artifact_manifest_passed = artifact_manifest is not None
-            if artifact_manifest is not None:
-                artifact_manifest_detail = f"{_format_display_path(artifact_manifest)} present"
-                if strict:
-                    from gpd.mcp.paper.models import ArtifactManifest
+            requested_publication_checks = {
+                check_name
+                for check_name in (
+                    "artifact_manifest",
+                    "bibliography_audit",
+                    "compiled_manuscript",
+                    "publication_blockers",
+                    "review_ledger",
+                    "review_ledger_valid",
+                    "referee_decision",
+                    "referee_decision_valid",
+                    "publication_review_outcome",
+                    "reproducibility_manifest",
+                    "manuscript_proof_review",
+                )
+                if _review_contract_requests_check(
+                    contract,
+                    check_name,
+                    active_condition_whens=active_condition_whens,
+                )
+            }
+            if requested_publication_checks:
+                publication_artifacts = _resolve_review_preflight_publication_artifacts(manuscript)
+                artifact_manifest = publication_artifacts.artifact_manifest
+                bibliography_audit = publication_artifacts.bibliography_audit
+                reproducibility_manifest = publication_artifacts.reproducibility_manifest
+
+                if "artifact_manifest" in requested_publication_checks:
+                    artifact_manifest_detail = "no ARTIFACT-MANIFEST.json found near the manuscript"
+                    artifact_manifest_passed = artifact_manifest is not None
+                    if artifact_manifest is not None:
+                        artifact_manifest_detail = f"{_format_display_path(artifact_manifest)} present"
+                        from gpd.mcp.paper.models import ArtifactManifest
+
+                        try:
+                            artifact_manifest_payload = json.loads(artifact_manifest.read_text(encoding="utf-8"))
+                            ArtifactManifest.model_validate(artifact_manifest_payload)
+                        except OSError as exc:
+                            artifact_manifest_passed = False
+                            artifact_manifest_detail = f"could not read artifact manifest: {exc}"
+                        except json.JSONDecodeError as exc:
+                            artifact_manifest_passed = False
+                            artifact_manifest_detail = f"could not parse artifact manifest: {exc}"
+                        except PydanticValidationError as exc:
+                            artifact_manifest_passed = False
+                            artifact_manifest_detail = (
+                                "artifact manifest is invalid: "
+                                + "; ".join(
+                                    _format_pydantic_schema_error(error, root_label="artifact_manifest")
+                                    for error in exc.errors()[:3]
+                                )
+                            )
+                    add_check("artifact_manifest", artifact_manifest_passed, artifact_manifest_detail)
+
+                if "bibliography_audit" in requested_publication_checks:
+                    add_check(
+                        "bibliography_audit",
+                        bibliography_audit is not None,
+                        (
+                            f"{_format_display_path(bibliography_audit)} present"
+                            if bibliography_audit is not None
+                            else "no BIBLIOGRAPHY-AUDIT.json found near the manuscript"
+                        ),
+                    )
+
+                if "compiled_manuscript" in requested_publication_checks:
+                    compiled_manuscript = manuscript.with_suffix(".pdf")
+                    add_check(
+                        "compiled_manuscript",
+                        compiled_manuscript.exists(),
+                        (
+                            f"{_format_display_path(compiled_manuscript)} present"
+                            if compiled_manuscript.exists()
+                            else f"missing compiled manuscript {_format_display_path(compiled_manuscript)}"
+                        ),
+                        blocking=True,
+                    )
+
+                if "publication_blockers" in requested_publication_checks:
+                    publication_blockers = _current_publication_blockers(project_cwd)
+                    add_check(
+                        "publication_blockers",
+                        not publication_blockers,
+                        (
+                            "no unresolved publication blockers"
+                            if not publication_blockers
+                            else f"{len(publication_blockers)} unresolved publication blocker(s): "
+                            + "; ".join(publication_blockers[:3])
+                        ),
+                        blocking=True,
+                    )
+
+                review_ledger = None
+                review_checks_requested = requested_publication_checks.intersection(
+                    {
+                        "review_ledger",
+                        "review_ledger_valid",
+                        "referee_decision",
+                        "referee_decision_valid",
+                        "publication_review_outcome",
+                    }
+                )
+                if review_checks_requested:
+                    latest_review_artifacts = _latest_publication_review_artifacts(layout.gpd / "review")
+                    if latest_review_artifacts is None:
+                        if "review_ledger" in review_checks_requested:
+                            add_check(
+                                "review_ledger",
+                                False,
+                                "missing REVIEW-LEDGER{round_suffix}.json for the required staged publication review",
+                                blocking=True,
+                            )
+                        if "referee_decision" in review_checks_requested:
+                            add_check(
+                                "referee_decision",
+                                False,
+                                "missing REFEREE-DECISION{round_suffix}.json for the required staged publication review",
+                                blocking=True,
+                            )
+                    else:
+                        ledger_path = latest_review_artifacts.review_ledger
+                        decision_path = latest_review_artifacts.referee_decision
+                        round_label = (
+                            f"round {latest_review_artifacts.round_number}"
+                            if latest_review_artifacts.round_number > 1
+                            else "round 1"
+                        )
+                        if "review_ledger" in review_checks_requested:
+                            add_check(
+                                "review_ledger",
+                                ledger_path is not None,
+                                (
+                                    f"{_format_display_path(ledger_path)} present for latest staged review {round_label}"
+                                    if ledger_path is not None
+                                    else f"missing REVIEW-LEDGER{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
+                                ),
+                                blocking=True,
+                            )
+                        if "referee_decision" in review_checks_requested:
+                            add_check(
+                                "referee_decision",
+                                decision_path is not None,
+                                (
+                                    f"{_format_display_path(decision_path)} present for latest staged review {round_label}"
+                                    if decision_path is not None
+                                    else f"missing REFEREE-DECISION{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
+                                ),
+                                blocking=True,
+                            )
+
+                        if ledger_path is not None and review_checks_requested.intersection(
+                            {"review_ledger_valid", "referee_decision_valid", "publication_review_outcome"}
+                        ):
+                            from gpd.mcp.paper.review_artifacts import read_review_ledger
+
+                            try:
+                                review_ledger = read_review_ledger(ledger_path)
+                            except (OSError, json.JSONDecodeError) as exc:
+                                if "review_ledger_valid" in review_checks_requested:
+                                    add_check("review_ledger_valid", False, f"could not parse review ledger: {exc}")
+                            except PydanticValidationError as exc:
+                                if "review_ledger_valid" in review_checks_requested:
+                                    add_check(
+                                        "review_ledger_valid",
+                                        False,
+                                        "review ledger is invalid: "
+                                        + "; ".join(
+                                            _format_pydantic_schema_error(error, root_label="review_ledger")
+                                            for error in exc.errors()[:3]
+                                        ),
+                                    )
+                            else:
+                                review_ledger_valid = _manuscript_matches_review_artifact_path(
+                                    review_ledger.manuscript_path,
+                                    manuscript,
+                                    cwd=project_cwd,
+                                )
+                                if "review_ledger_valid" in review_checks_requested:
+                                    add_check(
+                                        "review_ledger_valid",
+                                        review_ledger_valid,
+                                        (
+                                            "review ledger manuscript_path matches the active submission manuscript"
+                                            if review_ledger_valid
+                                            else "review ledger manuscript_path does not match the active submission manuscript"
+                                        ),
+                                        blocking=True,
+                                    )
+
+                        if decision_path is not None and review_checks_requested.intersection(
+                            {"referee_decision_valid", "publication_review_outcome"}
+                        ):
+                            from gpd.core.referee_policy import evaluate_referee_decision
+                            from gpd.mcp.paper.models import ReviewRecommendation
+                            from gpd.mcp.paper.review_artifacts import read_referee_decision
+
+                            try:
+                                decision = read_referee_decision(decision_path)
+                            except (OSError, json.JSONDecodeError) as exc:
+                                if "referee_decision_valid" in review_checks_requested:
+                                    add_check(
+                                        "referee_decision_valid",
+                                        False,
+                                        f"could not parse referee decision: {exc}",
+                                    )
+                            except PydanticValidationError as exc:
+                                if "referee_decision_valid" in review_checks_requested:
+                                    add_check(
+                                        "referee_decision_valid",
+                                        False,
+                                        "referee decision is invalid: "
+                                        + "; ".join(
+                                            _format_pydantic_schema_error(error, root_label="referee_decision")
+                                            for error in exc.errors()[:3]
+                                        ),
+                                    )
+                            else:
+                                decision_reasons: list[str] = []
+                                if review_ledger is None:
+                                    decision_reasons.append(
+                                        "referee decision cannot be validated without the matching review ledger"
+                                    )
+                                else:
+                                    report = evaluate_referee_decision(
+                                        decision,
+                                        strict=True,
+                                        require_explicit_inputs=True,
+                                        review_ledger=review_ledger,
+                                        project_root=project_cwd,
+                                    )
+                                    decision_reasons.extend(report.reasons)
+                                if not _manuscript_matches_review_artifact_path(
+                                    decision.manuscript_path,
+                                    manuscript,
+                                    cwd=project_cwd,
+                                ):
+                                    decision_reasons.append(
+                                        "referee decision manuscript_path does not match the active submission manuscript"
+                                    )
+
+                                decision_valid = not decision_reasons
+                                if "referee_decision_valid" in review_checks_requested:
+                                    add_check(
+                                        "referee_decision_valid",
+                                        decision_valid,
+                                        (
+                                            "referee decision is valid for the active submission manuscript"
+                                            if decision_valid
+                                            else "; ".join(decision_reasons[:3])
+                                        ),
+                                        blocking=True,
+                                    )
+                                if decision_valid and "publication_review_outcome" in review_checks_requested:
+                                    submission_ready = (
+                                        decision.final_recommendation
+                                        in {ReviewRecommendation.accept, ReviewRecommendation.minor_revision}
+                                        and not decision.blocking_issue_ids
+                                    )
+                                    add_check(
+                                        "publication_review_outcome",
+                                        submission_ready,
+                                        (
+                                            "latest staged peer-review recommendation clears submission packaging"
+                                            if submission_ready
+                                            else (
+                                                "latest staged peer-review recommendation requires more revision: "
+                                                f"{decision.final_recommendation.value}"
+                                                + (
+                                                    f"; unresolved blocking issues: {', '.join(decision.blocking_issue_ids)}"
+                                                    if decision.blocking_issue_ids
+                                                    else ""
+                                                )
+                                            )
+                                        ),
+                                        blocking=True,
+                                    )
+
+                if "reproducibility_manifest" in requested_publication_checks:
+                    add_check(
+                        "reproducibility_manifest",
+                        reproducibility_manifest is not None,
+                        (
+                            f"{_format_display_path(reproducibility_manifest)} present"
+                            if reproducibility_manifest is not None
+                            else "no reproducibility manifest found near the manuscript"
+                        ),
+                    )
+
+                if "manuscript_proof_review" in requested_publication_checks:
+                    manuscript_proof_review = resolve_manuscript_proof_review_status(
+                        project_cwd,
+                        manuscript,
+                        persist_manifest=True,
+                    )
+                    manuscript_proof_review_blocking_states = {
+                        "stale",
+                        "invalid_manifest",
+                        "missing_required_artifact",
+                        "invalid_required_artifact",
+                        "open_required_artifact",
+                    }
+                    manuscript_proof_review_passed = (
+                        manuscript_proof_review.can_rely_on_prior_review
+                        or manuscript_proof_review.state == "not_reviewed"
+                    )
+                    manuscript_proof_review_blocking = False
+                    manuscript_proof_review_detail = manuscript_proof_review.detail
+                    if command.name == "gpd:arxiv-submission":
+                        theorem_bearing_review_required = "theorem-bearing manuscripts are present" in active_condition_whens
+                        if theorem_bearing_review_required:
+                            manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
+                            manuscript_proof_review_blocking = True
+                        else:
+                            manuscript_proof_review_passed = True
+                            manuscript_proof_review_detail = (
+                                "no theorem-bearing claims were detected in the latest matching staged claim inventory "
+                                "or staged math review; manuscript proof review is not required for submission"
+                            )
+                    elif (
+                        command.name == "gpd:write-paper"
+                        and manuscript_proof_review.state in manuscript_proof_review_blocking_states
+                    ):
+                        manuscript_proof_review_blocking = True
+                    add_check(
+                        "manuscript_proof_review",
+                        manuscript_proof_review_passed,
+                        manuscript_proof_review_detail,
+                        blocking=manuscript_proof_review_blocking,
+                    )
+
+                if strict and bibliography_audit is not None and "bibliography_audit" in requested_publication_checks:
+                    clean, detail = _validate_bibliography_audit_semantics(bibliography_audit)
+                    add_check("bibliography_audit_clean", clean, detail, blocking=True)
+                if (
+                    strict
+                    and reproducibility_manifest is not None
+                    and "reproducibility_manifest" in requested_publication_checks
+                ):
+                    from gpd.core.reproducibility import validate_reproducibility_manifest
 
                     try:
-                        artifact_manifest_payload = json.loads(artifact_manifest.read_text(encoding="utf-8"))
-                        ArtifactManifest.model_validate(artifact_manifest_payload)
-                    except OSError as exc:
-                        artifact_manifest_passed = False
-                        artifact_manifest_detail = f"could not read artifact manifest: {exc}"
-                    except json.JSONDecodeError as exc:
-                        artifact_manifest_passed = False
-                        artifact_manifest_detail = f"could not parse artifact manifest: {exc}"
-                    except PydanticValidationError as exc:
-                        artifact_manifest_passed = False
-                        artifact_manifest_detail = (
-                            "artifact manifest is invalid: "
-                            + "; ".join(_format_pydantic_schema_error(error, root_label="artifact_manifest") for error in exc.errors()[:3])
+                        repro_payload = json.loads(reproducibility_manifest.read_text(encoding="utf-8"))
+                        repro_validation = validate_reproducibility_manifest(repro_payload)
+                    except Exception as exc:  # pragma: no cover - defensive parsing guard
+                        add_check("reproducibility_ready", False, f"could not validate reproducibility manifest: {exc}")
+                    else:
+                        ready = (
+                            repro_validation.valid
+                            and repro_validation.ready_for_review
+                            and not repro_validation.warnings
                         )
-            add_check(
-                "artifact_manifest",
-                artifact_manifest_passed,
-                artifact_manifest_detail,
-            )
-            add_check(
-                "bibliography_audit",
-                bibliography_audit is not None,
-                (
-                    f"{_format_display_path(bibliography_audit)} present"
-                    if bibliography_audit is not None
-                    else "no BIBLIOGRAPHY-AUDIT.json found near the manuscript"
-                ),
-            )
-            if command.name == "gpd:arxiv-submission":
-                compiled_manuscript = manuscript.with_suffix(".pdf")
-                add_check(
-                    "compiled_manuscript",
-                    compiled_manuscript.exists(),
-                    (
-                        f"{_format_display_path(compiled_manuscript)} present"
-                        if compiled_manuscript.exists()
-                        else f"missing compiled manuscript {_format_display_path(compiled_manuscript)}"
-                    ),
-                    blocking=True,
-                )
-                publication_blockers = _current_publication_blockers(project_cwd)
-                add_check(
-                    "publication_blockers",
-                    not publication_blockers,
-                    (
-                        "no unresolved publication blockers"
-                        if not publication_blockers
-                        else f"{len(publication_blockers)} unresolved publication blocker(s): "
-                        + "; ".join(publication_blockers[:3])
-                    ),
-                    blocking=True,
-                )
-                latest_review_artifacts = _latest_publication_review_artifacts(layout.gpd / "review")
-                if latest_review_artifacts is None:
-                    add_check(
-                        "review_ledger",
-                        False,
-                        "missing REVIEW-LEDGER{round_suffix}.json for the required staged publication review",
-                        blocking=True,
-                    )
-                    add_check(
-                        "referee_decision",
-                        False,
-                        "missing REFEREE-DECISION{round_suffix}.json for the required staged publication review",
-                        blocking=True,
-                    )
-                else:
-                    ledger_path = latest_review_artifacts.review_ledger
-                    decision_path = latest_review_artifacts.referee_decision
-                    round_label = (
-                        f"round {latest_review_artifacts.round_number}"
-                        if latest_review_artifacts.round_number > 1
-                        else "round 1"
-                    )
-                    add_check(
-                        "review_ledger",
-                        ledger_path is not None,
-                        (
-                            f"{_format_display_path(ledger_path)} present for latest staged review {round_label}"
-                            if ledger_path is not None
-                            else f"missing REVIEW-LEDGER{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
-                        ),
-                        blocking=True,
-                    )
-                    add_check(
-                        "referee_decision",
-                        decision_path is not None,
-                        (
-                            f"{_format_display_path(decision_path)} present for latest staged review {round_label}"
-                            if decision_path is not None
-                            else f"missing REFEREE-DECISION{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
-                        ),
-                        blocking=True,
-                    )
-
-                    review_ledger = None
-                    if ledger_path is not None:
-                        from gpd.mcp.paper.review_artifacts import read_review_ledger
-
-                        try:
-                            review_ledger = read_review_ledger(ledger_path)
-                        except (OSError, json.JSONDecodeError) as exc:
-                            add_check("review_ledger_valid", False, f"could not parse review ledger: {exc}")
-                        except PydanticValidationError as exc:
-                            add_check(
-                                "review_ledger_valid",
-                                False,
-                                "review ledger is invalid: "
-                                + "; ".join(
-                                    _format_pydantic_schema_error(error, root_label="review_ledger")
-                                    for error in exc.errors()[:3]
-                                ),
+                        detail = (
+                            "reproducibility manifest is review-ready"
+                            if ready
+                            else (
+                                f"valid={repro_validation.valid}, ready_for_review={repro_validation.ready_for_review}, "
+                                f"warnings={len(repro_validation.warnings)}, issues={len(repro_validation.issues)}"
                             )
-                        else:
-                            review_ledger_valid = _manuscript_matches_review_artifact_path(
-                                review_ledger.manuscript_path,
-                                manuscript,
-                                cwd=project_cwd,
-                            )
-                            add_check(
-                                "review_ledger_valid",
-                                review_ledger_valid,
-                                (
-                                    "review ledger manuscript_path matches the active submission manuscript"
-                                    if review_ledger_valid
-                                    else "review ledger manuscript_path does not match the active submission manuscript"
-                                ),
-                                blocking=True,
-                            )
-
-                    if decision_path is not None:
-                        from gpd.core.referee_policy import evaluate_referee_decision
-                        from gpd.mcp.paper.models import ReviewRecommendation
-                        from gpd.mcp.paper.review_artifacts import read_referee_decision
-
-                        try:
-                            decision = read_referee_decision(decision_path)
-                        except (OSError, json.JSONDecodeError) as exc:
-                            add_check("referee_decision_valid", False, f"could not parse referee decision: {exc}")
-                        except PydanticValidationError as exc:
-                            add_check(
-                                "referee_decision_valid",
-                                False,
-                                "referee decision is invalid: "
-                                + "; ".join(
-                                    _format_pydantic_schema_error(error, root_label="referee_decision")
-                                    for error in exc.errors()[:3]
-                                ),
-                            )
-                        else:
-                            decision_reasons: list[str] = []
-                            if review_ledger is None:
-                                decision_reasons.append(
-                                    "referee decision cannot be validated without the matching review ledger"
-                                )
-                            else:
-                                report = evaluate_referee_decision(
-                                    decision,
-                                    strict=True,
-                                    require_explicit_inputs=True,
-                                    review_ledger=review_ledger,
-                                    project_root=project_cwd,
-                                )
-                                decision_reasons.extend(report.reasons)
-                            if not _manuscript_matches_review_artifact_path(
-                                decision.manuscript_path,
-                                manuscript,
-                                cwd=project_cwd,
-                            ):
-                                decision_reasons.append(
-                                    "referee decision manuscript_path does not match the active submission manuscript"
-                                )
-
-                            decision_valid = not decision_reasons
-                            add_check(
-                                "referee_decision_valid",
-                                decision_valid,
-                                (
-                                    "referee decision is valid for the active submission manuscript"
-                                    if decision_valid
-                                    else "; ".join(decision_reasons[:3])
-                                ),
-                                blocking=True,
-                            )
-                            if decision_valid:
-                                submission_ready = (
-                                    decision.final_recommendation
-                                    in {ReviewRecommendation.accept, ReviewRecommendation.minor_revision}
-                                    and not decision.blocking_issue_ids
-                                )
-                                add_check(
-                                    "publication_review_outcome",
-                                    submission_ready,
-                                    (
-                                        "latest staged peer-review recommendation clears submission packaging"
-                                        if submission_ready
-                                        else (
-                                            "latest staged peer-review recommendation requires more revision: "
-                                            f"{decision.final_recommendation.value}"
-                                            + (
-                                                f"; unresolved blocking issues: {', '.join(decision.blocking_issue_ids)}"
-                                                if decision.blocking_issue_ids
-                                                else ""
-                                            )
-                                        )
-                                    ),
-                                    blocking=True,
-                                )
-            if command.name in {"gpd:peer-review", "gpd:write-paper"}:
-                add_check(
-                    "reproducibility_manifest",
-                    reproducibility_manifest is not None,
-                    (
-                        f"{_format_display_path(reproducibility_manifest)} present"
-                        if reproducibility_manifest is not None
-                        else "no reproducibility manifest found near the manuscript"
-                    ),
-                )
-            manuscript_proof_review = resolve_manuscript_proof_review_status(
-                project_cwd,
-                manuscript,
-                persist_manifest=True,
-            )
-            manuscript_proof_review_blocking_states = {
-                "stale",
-                "invalid_manifest",
-                "missing_required_artifact",
-                "invalid_required_artifact",
-                "open_required_artifact",
-            }
-            manuscript_proof_review_passed = (
-                manuscript_proof_review.can_rely_on_prior_review or manuscript_proof_review.state == "not_reviewed"
-            )
-            manuscript_proof_review_blocking = False
-            if command.name == "gpd:arxiv-submission":
-                manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
-                manuscript_proof_review_blocking = True
-            elif command.name == "gpd:write-paper" and manuscript_proof_review.state in manuscript_proof_review_blocking_states:
-                manuscript_proof_review_blocking = True
-            add_check(
-                "manuscript_proof_review",
-                manuscript_proof_review_passed,
-                manuscript_proof_review.detail,
-                blocking=manuscript_proof_review_blocking,
-            )
-            if strict and command.name in {"gpd:peer-review", "gpd:write-paper", "gpd:arxiv-submission"} and bibliography_audit is not None:
-                clean, detail = _validate_bibliography_audit_semantics(bibliography_audit)
-                add_check("bibliography_audit_clean", clean, detail, blocking=True)
-            if (
-                strict
-                and command.name in {"gpd:peer-review", "gpd:write-paper"}
-                and reproducibility_manifest is not None
-            ):
-                from gpd.core.reproducibility import validate_reproducibility_manifest
-
-                try:
-                    repro_payload = json.loads(reproducibility_manifest.read_text(encoding="utf-8"))
-                    repro_validation = validate_reproducibility_manifest(repro_payload)
-                except Exception as exc:  # pragma: no cover - defensive parsing guard
-                    add_check("reproducibility_ready", False, f"could not validate reproducibility manifest: {exc}")
-                else:
-                    ready = repro_validation.valid and repro_validation.ready_for_review and not repro_validation.warnings
-                    detail = (
-                        "reproducibility manifest is review-ready"
-                        if ready
-                        else (
-                            f"valid={repro_validation.valid}, ready_for_review={repro_validation.ready_for_review}, "
-                            f"warnings={len(repro_validation.warnings)}, issues={len(repro_validation.issues)}"
                         )
-                    )
-                    add_check("reproducibility_ready", ready, detail)
+                        add_check("reproducibility_ready", ready, detail)
 
     if "phase_artifacts" in contract.preflight_checks:
         if subject:

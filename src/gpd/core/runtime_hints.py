@@ -34,7 +34,7 @@ from gpd.core.resume_surface import (
     RESUME_CANDIDATE_ORIGIN_CONTINUATION_HANDOFF,
     build_resume_candidate,
     build_resume_static_candidate,
-    resume_payload_has_local_target,
+    resume_payload_has_local_recovery_target,
 )
 from gpd.core.root_resolution import normalize_workspace_hint, resolve_project_roots
 from gpd.core.surface_phrases import (
@@ -278,7 +278,7 @@ def _recent_project_resume_family(
 
 def _resume_context_has_local_target(payload: dict[str, object]) -> bool:
     """Return whether one resume payload already exposes a local recovery target."""
-    return resume_payload_has_local_target(payload)
+    return resume_payload_has_local_recovery_target(payload)
 
 
 def _hydrate_resume_context_from_recent_project(

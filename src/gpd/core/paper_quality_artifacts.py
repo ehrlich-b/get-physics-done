@@ -14,7 +14,7 @@ from gpd.contracts import (
     ContractResults,
     ConventionLock,
     ResearchContract,
-    normalize_contract_results_input,
+    parse_contract_results_data_strict,
 )
 from gpd.core.conventions import check_assertions, convention_check
 from gpd.core.frontmatter import (
@@ -157,13 +157,15 @@ def _load_convention_lock(project_root: Path) -> ConventionLock | None:
         return None
 
 
-def _extract_meta(path: Path) -> dict[str, object]:
+def _extract_meta(path: Path, *, parse_errors: list[str] | None = None) -> dict[str, object]:
     content = _read_text(path)
     if content is None:
         return {}
     try:
         meta, _ = extract_frontmatter(content)
-    except FrontmatterParseError:
+    except FrontmatterParseError as exc:
+        if parse_errors is not None:
+            parse_errors.append(f"{path.name}: {exc}")
         return {}
     return meta
 
@@ -385,7 +387,7 @@ def _collect_comparison_verdicts(project_root: Path) -> tuple[list[ComparisonVer
         if not root.exists():
             continue
         for path in sorted(root.rglob("*.md")):
-            meta = _extract_meta(path)
+            meta = _extract_meta(path, parse_errors=parse_errors)
             for verdict in _parse_comparison_verdict_entries(meta.get("comparison_verdicts"), errors=parse_errors):
                 key = _comparison_verdict_key(verdict)
                 existing = verdicts_by_key.get(key)
@@ -426,13 +428,17 @@ def _collect_contract_coverage(project_root: Path) -> _ContractCoverage:
     contract_results_seen = False
     contract_results_parse_ok = True
     contract_results_alignment_ok = True
+    frontmatter_parse_errors = False
 
     phases_root = project_root / "GPD" / "phases"
     if not phases_root.exists():
         return _ContractCoverage()
 
     for path in sorted(phases_root.rglob("*.md")):
-        meta = _extract_meta(path)
+        parse_errors: list[str] = []
+        meta = _extract_meta(path, parse_errors=parse_errors)
+        if parse_errors:
+            frontmatter_parse_errors = True
         plan_contract = _plan_contract_for_artifact(path, meta)
         if plan_contract is not None:
             total_claims.update(claim.id for claim in plan_contract.claims)
@@ -449,16 +455,17 @@ def _collect_contract_coverage(project_root: Path) -> _ContractCoverage:
         raw_results = meta.get("contract_results")
         contract_alignment_errors: list[str] = []
         contract_results: ContractResults | None = None
-        if raw_results is not None:
+        if "contract_results" in meta or parse_errors:
             contract_results_seen = True
-            if not isinstance(raw_results, dict):
+            if parse_errors:
+                contract_results_parse_ok = False
+                contract_results_alignment_ok = False
+            elif not isinstance(raw_results, dict):
                 contract_results_parse_ok = False
                 contract_results_alignment_ok = False
             else:
                 try:
-                    contract_results = ContractResults.model_validate(
-                        normalize_contract_results_input(raw_results, strict=True)
-                    )
+                    contract_results = parse_contract_results_data_strict(raw_results)
                 except (PydanticValidationError, TypeError, ValueError):
                     contract_results = None
                     contract_results_parse_ok = False
@@ -538,7 +545,7 @@ def _collect_contract_coverage(project_root: Path) -> _ContractCoverage:
         confidences=confidences,
         latest_report_passed=latest_report_passed,
         requires_decisive_comparison=requires_decisive_comparison,
-        comparison_verdicts_valid=comparison_verdicts_valid,
+        comparison_verdicts_valid=comparison_verdicts_valid and not frontmatter_parse_errors,
         contract_results_seen=contract_results_seen,
         contract_results_parse_ok=contract_results_parse_ok,
         contract_results_alignment_ok=contract_results_alignment_ok,

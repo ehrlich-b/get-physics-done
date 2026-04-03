@@ -400,6 +400,9 @@ def _write_publication_review_outcome(
     round_number: int = 1,
     blocking_issue_ids: list[str] | None = None,
     manuscript_path: str = "paper/main.tex",
+    proof_bearing: bool = False,
+    write_proof_redteam: bool = False,
+    proof_redteam_status: str = "passed",
 ) -> None:
     review_dir = project_root / "GPD" / "review"
     review_dir.mkdir(parents=True, exist_ok=True)
@@ -414,6 +417,9 @@ def _write_publication_review_outcome(
             f"STAGE-interestingness{round_suffix}.json",
         ),
         manuscript_path=manuscript_path,
+        proof_bearing=proof_bearing,
+        write_proof_redteam=write_proof_redteam,
+        proof_redteam_status=proof_redteam_status,
     )
     unresolved_blocking_issue_ids = blocking_issue_ids or []
     (review_dir / f"REVIEW-LEDGER{round_suffix}.json").write_text(
@@ -1272,14 +1278,10 @@ class TestReviewValidationCommands:
         assert payload["command"] == "gpd:respond-to-referees"
         assert payload["context_mode"] == "project-required"
         assert payload["review_contract"]["review_mode"] == "publication"
-        assert "GPD/paper/REFEREE_RESPONSE{round_suffix}.md" in payload["review_contract"]["required_outputs"]
+        assert "GPD/review/REFEREE_RESPONSE{round_suffix}.md" in payload["review_contract"]["required_outputs"]
         assert "GPD/AUTHOR-RESPONSE{round_suffix}.md" in payload["review_contract"]["required_outputs"]
         assert "existing manuscript" in payload["review_contract"]["required_evidence"]
-        assert "structured referee issues" in payload["review_contract"]["required_evidence"]
         assert "referee report source when provided as a path" in payload["review_contract"]["required_evidence"]
-        assert "peer-review review ledger when available" in payload["review_contract"]["required_evidence"]
-        assert "peer-review decision artifacts when available" in payload["review_contract"]["required_evidence"]
-        assert "revision verification evidence" in payload["review_contract"]["required_evidence"]
         assert "missing referee report source when provided as a path" in payload["review_contract"]["blocking_conditions"]
         assert "referee_report_source" in payload["review_contract"]["preflight_checks"]
 
@@ -1800,6 +1802,11 @@ class TestReviewValidationCommands:
         ]
         checks = {check["name"]: check for check in payload["checks"]}
         assert "same-name local `gpd` subcommand" in checks["command_context"]["detail"]
+        assert checks["artifact_manifest"]["passed"] is True
+        assert checks["bibliography_audit"]["passed"] is True
+        assert checks["reproducibility_manifest"]["passed"] is True
+        assert checks["verification_reports"]["passed"] is True
+        assert checks["manuscript_proof_review"]["passed"] is True
 
     def test_review_preflight_falls_back_when_runtime_resolution_fails(
         self, monkeypatch: pytest.MonkeyPatch
@@ -1946,6 +1953,30 @@ class TestReviewValidationCommands:
         checks = {check["name"]: check for check in payload["checks"]}
         assert checks["manuscript_proof_review"]["passed"] is True
         assert (gpd_project / "paper" / "PROOF-REVIEW-MANIFEST.json").exists()
+
+    def test_review_preflight_write_paper_enforces_theorem_bearing_proof_review_without_strict(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        _write_review_stage_artifacts(
+            gpd_project,
+            artifact_names=("STAGE-math.json",),
+            proof_bearing=True,
+            write_proof_redteam=False,
+        )
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "write-paper"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert checks["manuscript_proof_review"]["passed"] is False
+        assert checks["manuscript_proof_review"]["blocking"] is True
+        assert "PROOF-REDTEAM.md" in checks["manuscript_proof_review"]["detail"]
 
     def test_review_preflight_write_paper_blocks_stale_manuscript_proof_review(
         self,
@@ -2766,6 +2797,125 @@ class TestReviewValidationCommands:
         assert checks["artifact_manifest"]["passed"] is False
         assert checks["bibliography_audit"]["passed"] is False
         assert checks["compiled_manuscript"]["passed"] is True
+
+    def test_review_preflight_arxiv_submission_enforces_theorem_bearing_proof_review_without_strict(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        _write_publication_review_outcome(
+            gpd_project,
+            final_recommendation="accept",
+            proof_bearing=True,
+            write_proof_redteam=False,
+        )
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "arxiv-submission"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert checks["artifact_manifest"]["passed"] is True
+        assert checks["bibliography_audit"]["passed"] is True
+        assert checks["review_ledger"]["passed"] is True
+        assert checks["referee_decision"]["passed"] is True
+        assert checks["manuscript_proof_review"]["passed"] is False
+        assert checks["manuscript_proof_review"]["blocking"] is True
+        assert "PROOF-REDTEAM.md" in checks["manuscript_proof_review"]["detail"]
+
+    def test_review_preflight_arxiv_submission_bypasses_auxiliary_proof_review_for_non_theorem_manuscripts(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        _write_publication_review_outcome(
+            gpd_project,
+            final_recommendation="accept",
+            proof_bearing=False,
+            write_proof_redteam=False,
+        )
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "arxiv-submission"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert checks["manuscript_proof_review"]["passed"] is True
+        assert checks["manuscript_proof_review"]["blocking"] is False
+        assert "PROOF-REDTEAM" not in checks["manuscript_proof_review"]["detail"]
+
+    def test_review_preflight_arxiv_submission_uses_theorem_bearing_claim_inventory_when_math_anchor_is_not_theorem_bearing(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        _write_publication_review_outcome(
+            gpd_project,
+            final_recommendation="accept",
+            proof_bearing=False,
+            write_proof_redteam=False,
+        )
+        claims_path = gpd_project / "GPD" / "review" / "CLAIMS.json"
+        claims_payload = json.loads(claims_path.read_text(encoding="utf-8"))
+        claims_payload["claims"][0]["claim_kind"] = "theorem"
+        claims_payload["claims"][0]["text"] = "For every r_0 > 0, the orbit intersects the target annulus."
+        claims_payload["claims"][0]["theorem_assumptions"] = ["chi > 0"]
+        claims_payload["claims"][0]["theorem_parameters"] = ["r_0"]
+        claims_path.write_text(json.dumps(claims_payload), encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "arxiv-submission"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert checks["review_ledger"]["passed"] is True
+        assert checks["referee_decision"]["passed"] is True
+        assert checks["manuscript_proof_review"]["passed"] is False
+        assert checks["manuscript_proof_review"]["blocking"] is True
+        assert "not required" not in checks["manuscript_proof_review"]["detail"]
+
+    def test_review_preflight_arxiv_submission_uses_latest_round_specific_theorem_proof_review(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        _write_publication_review_outcome(
+            gpd_project,
+            final_recommendation="accept",
+            round_number=1,
+            proof_bearing=True,
+            write_proof_redteam=True,
+        )
+        _write_publication_review_outcome(
+            gpd_project,
+            final_recommendation="accept",
+            round_number=2,
+            proof_bearing=True,
+            write_proof_redteam=False,
+        )
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "arxiv-submission"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert "round 2" in checks["review_ledger"]["detail"]
+        assert "round 2" in checks["referee_decision"]["detail"]
+        assert checks["manuscript_proof_review"]["passed"] is False
+        assert checks["manuscript_proof_review"]["blocking"] is True
+        assert "PROOF-REDTEAM-R2.md" in checks["manuscript_proof_review"]["detail"]
 
     def test_review_preflight_arxiv_submission_strict_blocks_semantically_dirty_bibliography_audit(
         self,

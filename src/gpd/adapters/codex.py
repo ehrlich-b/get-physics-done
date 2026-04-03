@@ -675,6 +675,7 @@ class CodexAdapter(RuntimeAdapter):
             gpd_root / "specs",
             self._current_install_scope_flag(),
             launcher=launcher,
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
         self._generated_skill_dirs = tuple(sorted(generated_skill_dirs))
         if verify_installed(self._skills_dir, "command skills"):
@@ -707,6 +708,7 @@ class CodexAdapter(RuntimeAdapter):
                 self.runtime_name,
                 install_scope=self._current_install_scope_flag(),
                 markdown_transform=_translate,
+                explicit_target=getattr(self, "_install_explicit_target", False),
             )
         )
 
@@ -1217,6 +1219,7 @@ def _copy_commands_as_skills(
     install_scope: str | None = None,
     *,
     launcher: str,
+    explicit_target: bool = False,
 ) -> set[str]:
     """Copy commands as Codex skill directories.
 
@@ -1256,6 +1259,7 @@ def _copy_commands_as_skills(
             gpd_src_root,
             install_scope,
             launcher=launcher,
+            explicit_target=explicit_target,
         )
 
         if skills_dir.exists():
@@ -1313,6 +1317,7 @@ def _render_commands_as_skills(
     install_scope: str | None = None,
     *,
     launcher: str,
+    explicit_target: bool = False,
 ) -> set[str]:
     """Render command markdown into a skills directory without mutating the live tree."""
     generated_skill_dirs: set[str] = set()
@@ -1328,6 +1333,7 @@ def _render_commands_as_skills(
                     gpd_src_root,
                     install_scope,
                     launcher=launcher,
+                    explicit_target=explicit_target,
                 )
             )
         elif entry.suffix == ".md":
@@ -1344,6 +1350,7 @@ def _render_commands_as_skills(
                 install_scope=install_scope,
                 src_root=gpd_src_root,
                 workflow_target_dir=workflow_target_dir,
+                explicit_target=explicit_target,
             )
             content = _convert_to_codex_skill(content, skill_name)
             content = convert_tool_references_in_body(content, _TOOL_REFERENCE_MAP)

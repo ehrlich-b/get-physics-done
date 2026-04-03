@@ -151,7 +151,9 @@ When proof-bearing review is active:
 
 - spawn the auxiliary proof-critique agent `gpd-check-proof`
 - `gpd-check-proof` must write the auxiliary audit artifact `GPD/review/PROOF-REDTEAM{round_suffix}.md`
+- the `gpd-check-proof` task must carry the active `manuscript_path`, `manuscript_sha256`, `round`, theorem-bearing `claim_ids`, and `proof_artifact_paths`, and the emitted frontmatter must echo those values exactly
 - later stages must read that artifact alongside the normal staged-review JSON files
+- the Stage 3 math artifact must emit exactly one `proof_audits[]` entry for each reviewed theorem-bearing claim, and every `proof_audits[].claim_id` must also appear in `claims_reviewed`
 - missing or malformed proof-redteam artifacts are hard blockers
 - a proof-redteam artifact with `status: gaps_found` or `status: human_needed` remains a blocking major concern and prevents a favorable final recommendation
 - do not bypass this gate because the manuscript looks polished, the algebra appears locally correct, or the user asks to "just review everything else"
@@ -406,6 +408,13 @@ Reference Artifacts Content:
 {reference_artifacts_content}
 Write to: `GPD/review/PROOF-REDTEAM{round_suffix}.md`
 
+Before writing frontmatter, bind these fields exactly from the active round artifacts rather than approximating them:
+- `manuscript_path`: copy exactly from `GPD/review/CLAIMS{round_suffix}.json`
+- `manuscript_sha256`: copy exactly from `GPD/review/CLAIMS{round_suffix}.json`
+- `round`: use the active review round number for `{round_suffix}`
+- `claim_ids`: copy exactly the theorem-bearing Stage 1 `claim_id` values that are under review in the active round
+- `proof_artifact_paths`: copy exactly the theorem-bearing proof artifact paths under review, plus the manuscript entrypoint if it is not already listed
+
 Files to read:
 - Resolved manuscript main file and all nearby section .tex files
 - `GPD/review/CLAIMS{round_suffix}.json`
@@ -439,6 +448,7 @@ If proof-bearing review is active, also require `GPD/review/PROOF-REDTEAM{round_
 
 - top-level `status: passed | gaps_found | human_needed`
 - top-level `reviewer: gpd-check-proof`
+- theorem-binding frontmatter (`claim_ids` and non-empty `proof_artifact_paths`)
 - manuscript-binding frontmatter (`manuscript_path`, `manuscript_sha256`, and `round`)
 - the canonical sections `# Proof Redteam`, `## Proof Inventory`, `## Coverage Ledger`, `## Adversarial Probe`, `## Verdict`, and `## Required Follow-Up`
 

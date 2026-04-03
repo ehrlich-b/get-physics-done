@@ -4,7 +4,7 @@ Guidance for configuring host runtime environments when running GPD. This refere
 
 ## Recommended Minimal Configuration
 
-After installation (`npx get-physics-done`), GPD writes managed entries into the host runtime's configuration directory. These managed entries include:
+After installation (`{GPD_BOOTSTRAP_COMMAND}`), GPD writes managed entries into the host runtime's configuration directory. These managed entries include:
 
 - **Status line or notification hooks** -- GPD status display in the runtime UI
 - **Update check hooks** -- check for GPD updates on session start
@@ -30,7 +30,7 @@ GPD installs its commands and agents into the runtime's command/agent directorie
 
 1. **Override GPD command names** -- GPD uses the `gpd:` prefix (or runtime-equivalent). Any other extension using the same prefix will conflict.
 2. **Modify GPD-managed hooks** -- Status line and update hooks are GPD-managed. Other hooks with different names are fine.
-3. **Remove the `get-physics-done/` directory** -- GPD stores all installed content under the runtime's config directory in `get-physics-done/`. Do not remove this directory while a project is active.
+3. **Remove the `{GPD_INSTALL_ROOT_DIR_NAME}/` directory** -- GPD stores all installed content under the runtime's config directory in `{GPD_INSTALL_ROOT_DIR_NAME}/`. Do not remove this directory while a project is active.
 
 ### Known-Safe Combinations
 
@@ -53,15 +53,15 @@ GPD generates paths relative to the runtime config directory during install. If 
 
 - Use `~/` prefix instead of `/Users/username/` or `/home/username/`
 - Use `$HOME` in shell hook commands
-- Avoid hardcoding Python interpreter paths; use `python3` or the managed venv at `~/.gpd/venv/bin/python`
+- Avoid hardcoding Python interpreter paths; use `python3` or the managed GPD Python environment created by the installer
 
 ### Multi-Machine Setup
 
 When syncing a GPD project across machines (via git, cloud storage, etc.):
 
 1. The `GPD/` project directory is portable -- it uses relative paths internally
-2. Runtime-specific configuration is machine-local -- re-run `npx get-physics-done` on each machine
-3. The managed venv at `~/.gpd/venv/` is machine-local -- the installer recreates it automatically
+2. Runtime-specific configuration is machine-local -- re-run `{GPD_BOOTSTRAP_COMMAND}` on each machine
+3. The managed GPD Python environment is machine-local -- the installer recreates it automatically
 4. MCP server config is machine-local -- re-install regenerates it
 
 ### Low-Resource Environments
@@ -69,16 +69,16 @@ When syncing a GPD project across machines (via git, cloud storage, etc.):
 - GPD requires Python 3.11+ and Node.js for installation
 - The managed venv uses approximately 200MB of disk for dependencies
 - The host runtime requires network access to its provider's API
-- If disk space is limited, use `npx get-physics-done --skip-mcp` to skip MCP server installation (paper tools will be unavailable but core workflow commands work)
+- If disk space is limited, use `{GPD_BOOTSTRAP_COMMAND} --skip-mcp` to skip MCP server installation (paper tools will be unavailable but core workflow commands work)
 - On ARM devices, ensure the Python interpreter matches the architecture
 
 ## Troubleshooting
 
 ### GPD Commands Not Appearing
 
-1. Verify the install completed: check for `get-physics-done/` in the runtime config directory
-2. Check the managed manifest file named `gpd-file-manifest.json` inside `<config-dir>`
-3. Re-install if needed: `npx get-physics-done`
+1. Verify the install completed: check for `{GPD_INSTALL_ROOT_DIR_NAME}/` in the runtime config directory
+2. Check the managed manifest file inside `<config-dir>`
+3. Re-install if needed: `{GPD_BOOTSTRAP_COMMAND}`
 
 ### Permission Prompts Interrupting Workflow
 
@@ -90,11 +90,11 @@ When syncing a GPD project across machines (via git, cloud storage, etc.):
 ### Hooks Not Running
 
 1. Check the runtime settings file for GPD-managed hook entries
-2. Verify hook scripts exist in the `get-physics-done/hooks/` subdirectory
-3. Re-install to regenerate: `npx get-physics-done`
+2. Verify hook scripts exist in the `{GPD_INSTALL_ROOT_DIR_NAME}/hooks/` subdirectory
+3. Re-install to regenerate: `{GPD_BOOTSTRAP_COMMAND}`
 
 ### MCP Servers Not Connecting
 
 1. Check the runtime's MCP configuration file
-2. Verify the managed Python has dependencies: `~/.gpd/venv/bin/python -c "import gpd"`
-3. Re-install to regenerate MCP config: `npx get-physics-done`
+2. Verify the managed Python environment has dependencies with the environment created by the installer
+3. Re-install to regenerate MCP config: `{GPD_BOOTSTRAP_COMMAND}`

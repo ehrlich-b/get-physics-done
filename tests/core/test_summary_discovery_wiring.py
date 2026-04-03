@@ -114,7 +114,7 @@ def test_respond_to_referees_prefers_canonical_markdown_report_path() -> None:
 
     assert "Use `GPD/REFEREE-REPORT{round_suffix}.md` as the canonical issue-ID source" in workflow_text
     assert "use canonical `GPD/REFEREE-REPORT{round_suffix}.md` only" in workflow_text
-    assert "`GPD/paper/REFEREE_RESPONSE{round_suffix}.md`" in workflow_text
+    assert "`GPD/review/REFEREE_RESPONSE{round_suffix}.md`" in workflow_text
     assert "`GPD/AUTHOR-RESPONSE{round_suffix}.md`" in workflow_text
-    assert "Read the completed `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/paper/REFEREE_RESPONSE{round_suffix}.md`" in workflow_text
+    assert "Read the completed `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/review/REFEREE_RESPONSE{round_suffix}.md`" in workflow_text
     assert "`GPD/paper/referee-report-*.md` or `paper/referee-reports/*.md`" not in workflow_text

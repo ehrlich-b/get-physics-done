@@ -7,11 +7,11 @@ from dataclasses import dataclass
 from importlib import import_module
 from pathlib import Path
 
-AGENTS_DIR_NAME = "agents"
-COMMANDS_DIR_NAME = "commands"
-FLAT_COMMANDS_DIR_NAME = "command"
-GPD_INSTALL_DIR_NAME = "get-physics-done"
-MANIFEST_NAME = "gpd-file-manifest.json"
+from gpd.adapters.runtime_catalog import get_managed_install_surface_policy, get_shared_install_metadata
+
+_SHARED_INSTALL_METADATA = get_shared_install_metadata()
+GPD_INSTALL_DIR_NAME = _SHARED_INSTALL_METADATA.install_root_dir_name
+MANIFEST_NAME = _SHARED_INSTALL_METADATA.manifest_name
 
 
 def get_adapter(runtime: str):
@@ -110,26 +110,27 @@ def _dir_contains_files(path: Path) -> bool:
         return True
 
 
+def _glob_contains_files(config_dir: Path, patterns: tuple[str, ...]) -> bool:
+    """Return whether any configured managed-surface glob materializes files."""
+
+    for pattern in patterns:
+        for match in config_dir.glob(pattern):
+            if match.is_file():
+                return True
+            if match.is_dir() and _dir_contains_files(match):
+                return True
+    return False
+
+
 def inspect_managed_install_surface(config_dir: Path) -> ManagedInstallSurface:
     """Return the managed install surfaces currently materialized in *config_dir*."""
-
-    flat_commands_dir = config_dir / FLAT_COMMANDS_DIR_NAME
-    has_flat_commands = flat_commands_dir.is_dir() and any(
-        entry.is_file() and entry.name.startswith("gpd-") and entry.suffix == ".md"
-        for entry in flat_commands_dir.iterdir()
-    )
-
-    agents_dir = config_dir / AGENTS_DIR_NAME
-    has_managed_agents = agents_dir.is_dir() and any(
-        entry.is_file() and entry.name.startswith("gpd-") and entry.suffix in {".md", ".toml"}
-        for entry in agents_dir.iterdir()
-    )
+    policy = get_managed_install_surface_policy()
 
     return ManagedInstallSurface(
-        has_gpd_content=_dir_contains_files(config_dir / GPD_INSTALL_DIR_NAME),
-        has_nested_commands=_dir_contains_files(config_dir / COMMANDS_DIR_NAME / "gpd"),
-        has_flat_commands=has_flat_commands,
-        has_managed_agents=has_managed_agents,
+        has_gpd_content=_glob_contains_files(config_dir, policy.gpd_content_globs),
+        has_nested_commands=_glob_contains_files(config_dir, policy.nested_command_globs),
+        has_flat_commands=_glob_contains_files(config_dir, policy.flat_command_globs),
+        has_managed_agents=_glob_contains_files(config_dir, policy.managed_agent_globs),
     )
 
 

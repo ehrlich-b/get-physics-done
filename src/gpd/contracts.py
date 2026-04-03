@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 import hashlib
+from collections import defaultdict
 from pathlib import Path
 from typing import Literal
 
@@ -25,6 +25,7 @@ __all__ = [
     "ContractForbiddenProxyStatus",
     "ContractForbiddenProxyResult",
     "ContractResults",
+    "parse_contract_results_data_strict",
     "SuggestedContractCheck",
     "ComparisonVerdict",
     "PROJECT_CONTRACT_MAPPING_LIST_FIELDS",
@@ -839,6 +840,14 @@ class ContractResults(BaseModel):
     @classmethod
     def _normalize_mapping_sections(cls, value: object) -> object:
         return value
+
+
+def parse_contract_results_data_strict(value: object) -> ContractResults:
+    """Return strict contract-results data for runtime and artifact boundaries."""
+
+    if not isinstance(value, dict):
+        raise ValueError("contract_results must be an object")
+    return ContractResults.model_validate(normalize_contract_results_input(value, strict=True))
 
 
 class SuggestedContractCheck(BaseModel):

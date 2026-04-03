@@ -593,10 +593,16 @@ def test_ensure_state_schema_strips_claim_extra_keys_without_dropping_claim():
         {
             "id": "claim-benchmark",
             "statement": "Recover the benchmark value within tolerance",
+            "claim_kind": "other",
             "observables": ["obs-benchmark"],
             "deliverables": ["deliv-figure"],
             "acceptance_tests": ["test-benchmark"],
             "references": ["ref-benchmark"],
+            "parameters": [],
+            "hypotheses": [],
+            "quantifiers": [],
+            "conclusion_clauses": [],
+            "proof_deliverables": [],
         }
     ]
 

@@ -621,17 +621,14 @@ def _sync_execution_visibility_anchors_from_canonical_continuation(
     return wrote
 
 
-def _sync_execution_visibility_from_canonical_continuation(
+def sync_execution_visibility_from_canonical_continuation(
     layout: ProjectLayout | Path,
     *,
     state_obj: dict[str, object] | None = None,
 ) -> bool:
-    """Compatibility alias for the canonical-continuation visibility sync helper."""
+    """Sync live execution visibility caches from canonical continuation state."""
 
     return _sync_execution_visibility_anchors_from_canonical_continuation(layout, state_obj=state_obj)
-
-
-sync_execution_visibility_from_canonical_continuation = _sync_execution_visibility_from_canonical_continuation
 
 
 def _bounded_segment_helper() -> Callable | None:

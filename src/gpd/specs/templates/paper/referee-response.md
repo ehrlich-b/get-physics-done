@@ -6,7 +6,7 @@ template_version: 1
 
 # Referee Response Template
 
-Template for `GPD/paper/REFEREE_RESPONSE{round_suffix}.md` — tracks referee comments, responses, and manuscript changes for peer review.
+Template for `GPD/review/REFEREE_RESPONSE{round_suffix}.md` — tracks referee comments, responses, and manuscript changes for peer review.
 
 ---
 
@@ -194,7 +194,7 @@ Sincerely,
 **When to create this file:**
 
 - Immediately upon receiving referee reports
-- One file per round of review (create `GPD/paper/REFEREE_RESPONSE-R2.md` for second round)
+- One file per round of review (create `GPD/review/REFEREE_RESPONSE-R2.md` for second round)
 - Keep every `REF-*` issue ID exactly aligned with `REFEREE-REPORT{round_suffix}.md`
 
 **Comment categories:**

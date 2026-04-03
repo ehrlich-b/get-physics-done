@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from gpd.adapters.install_utils import build_runtime_cli_bridge_command, compile_markdown_for_runtime
+from gpd.adapters.install_utils import build_runtime_cli_bridge_command
 from gpd.adapters.opencode import (
     OpenCodeAdapter,
     configure_opencode_permissions,
@@ -17,6 +17,10 @@ from gpd.adapters.opencode import (
     convert_tool_name,
     copy_agents_as_agent_files,
     copy_flattened_commands,
+)
+from tests.adapters.review_contract_test_utils import (
+    assert_review_contract_prompt_surface,
+    compile_review_contract_fixture_for_runtime,
 )
 
 
@@ -141,36 +145,11 @@ class TestConvertFrontmatter:
         assert result.rstrip().endswith("Body")
 
     def test_review_contract_is_prepended_to_prompt_body(self) -> None:
-        content = compile_markdown_for_runtime(
-            (
-                "---\n"
-                "description: D\n"
-                "review-contract:\n"
-                "  review_mode: publication\n"
-                "  schema_version: 1\n"
-                "  required_outputs:\n"
-                "    - GPD/review/REFEREE-DECISION{round_suffix}.json\n"
-                "  conditional_requirements:\n"
-                "    - when: theorem-bearing claims are present\n"
-                "      required_outputs:\n"
-                "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
-                "---\n"
-                "Prompt body"
-            ),
-            runtime="opencode",
-            path_prefix="/prefix/",
-        )
+        content = compile_review_contract_fixture_for_runtime("opencode")
 
         result = convert_claude_to_opencode_frontmatter(content)
-        section = result[result.index("## Review Contract") :]
 
-        assert "## Review Contract" in result
-        assert "review_contract:" in section
-        assert "review-contract:" not in section
-        assert "review_mode: publication" in result
-        assert "conditional_requirements:" in result
-        assert "when: theorem-bearing claims are present" in result
-        assert result.index("## Review Contract") < result.index("Prompt body")
+        assert_review_contract_prompt_surface(result)
 
 
 class TestCopyFlattenedCommands:

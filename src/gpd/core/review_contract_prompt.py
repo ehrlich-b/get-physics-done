@@ -1,4 +1,4 @@
-"""Helpers for surfacing review contracts inside model-visible prompt bodies."""
+"""Helpers for normalizing and surfacing review contracts inside model-visible prompts."""
 
 from __future__ import annotations
 
@@ -57,44 +57,6 @@ REVIEW_CONTRACT_WRAPPER_KEYS = (REVIEW_CONTRACT_PROMPT_WRAPPER_KEY, REVIEW_CONTR
 REVIEW_CONTRACT_KEYS = frozenset(REVIEW_CONTRACT_FIELD_ORDER)
 REVIEW_CONTRACT_CONDITIONAL_KEYS = frozenset(REVIEW_CONTRACT_CONDITIONAL_FIELD_ORDER)
 
-
-def extract_frontmatter_block(frontmatter: str, field_name: str) -> str:
-    """Return one top-level YAML frontmatter block, preserving raw formatting."""
-
-    lines = frontmatter.split("\n")
-    prefix = f"{field_name}:"
-    collected: list[str] = []
-    collecting = False
-
-    for line in lines:
-        stripped = line.strip()
-        is_top_level = line == line.lstrip()
-        if not collecting:
-            if is_top_level and stripped.startswith(prefix):
-                collected.append(line.rstrip())
-                collecting = True
-            continue
-        if is_top_level and stripped:
-            break
-        collected.append(line.rstrip())
-
-    while collected and not collected[-1]:
-        collected.pop()
-    return "\n".join(collected)
-
-
-def extract_review_contract_frontmatter_block(frontmatter: str) -> str:
-    """Return the canonical review-contract frontmatter block."""
-
-    canonical_block = extract_frontmatter_block(frontmatter, REVIEW_CONTRACT_FRONTMATTER_KEY)
-    legacy_block = extract_frontmatter_block(frontmatter, "review_contract")
-    if canonical_block and legacy_block:
-        raise ValueError("review contract frontmatter must use only one frontmatter key")
-    if legacy_block:
-        raise ValueError("review contract frontmatter must use the canonical frontmatter key 'review-contract'")
-    return canonical_block
-
-
 def _load_review_contract_payload(review_contract: object) -> tuple[dict[str, object], bool]:
     """Return a strict review-contract mapping and whether it was wrapped."""
 
@@ -121,6 +83,10 @@ def _load_review_contract_payload(review_contract: object) -> tuple[dict[str, ob
 
     wrapped_key = wrapped_key_matches[0] if wrapped_key_matches else None
     wrapped_candidate = loaded.get(wrapped_key) if wrapped_key is not None else None
+    if wrapped_key is not None and wrapped_candidate is None:
+        return {}, True
+    if wrapped_key is not None and not isinstance(wrapped_candidate, Mapping):
+        raise ValueError("review contract must parse to a mapping")
     wrapped = dict(wrapped_candidate) if isinstance(wrapped_candidate, Mapping) else None
 
     if wrapped is not None:
@@ -164,8 +130,10 @@ def _normalize_review_contract_optional_str(value: object, *, field_name: str, d
 def _normalize_review_contract_string_list(value: object, *, field_name: str) -> list[str]:
     if value is None:
         return []
+    if isinstance(value, str):
+        return [_normalize_review_contract_required_str(value, field_name=field_name)]
     if not isinstance(value, list):
-        raise ValueError(f"{field_name} must be a list of strings")
+        raise ValueError(f"{field_name} must be a string or list of strings")
 
     normalized: list[str] = []
     for item in value:
@@ -206,7 +174,7 @@ def _normalize_review_contract_bool(value: object, *, field_name: str, default: 
     if isinstance(value, str):
         normalized = value.strip().lower()
         if not normalized:
-            return default
+            raise ValueError(f"{field_name} must be a boolean")
         if normalized in {"true", "1", "yes", "y", "on"}:
             return True
         if normalized in {"false", "0", "no", "n", "off"}:
@@ -222,7 +190,7 @@ def _normalize_review_contract_non_negative_int(value: object, *, field_name: st
     if isinstance(value, str):
         stripped = value.strip()
         if not stripped:
-            return default
+            raise ValueError(f"{field_name} must be an integer")
         try:
             normalized = int(stripped)
         except ValueError as exc:
@@ -299,16 +267,26 @@ def normalize_review_contract_payload(review_contract: object) -> dict[str, obje
             raise ValueError("review contract must set schema_version, review_mode")
         return {}
 
+    if "schema_version" in loaded:
+        schema_version = loaded.get("schema_version")
+        if isinstance(schema_version, bool) or not isinstance(schema_version, int):
+            raise ValueError("schema_version must be the integer 1")
+        if schema_version != 1:
+            raise ValueError("schema_version must be 1")
+
+    if "review_mode" in loaded:
+        _normalize_review_contract_choice(
+            loaded.get("review_mode"),
+            field_name="review_mode",
+            valid_values=VALID_REVIEW_MODES,
+        )
+
     if "schema_version" not in loaded or "review_mode" not in loaded:
         missing = [field for field in ("schema_version", "review_mode") if field not in loaded]
         formatted = ", ".join(missing)
         raise ValueError(f"review contract must set {formatted}")
 
     schema_version = loaded.get("schema_version")
-    if isinstance(schema_version, bool) or not isinstance(schema_version, int):
-        raise ValueError("schema_version must be the integer 1")
-    if schema_version != 1:
-        raise ValueError("schema_version must be 1")
 
     required_state_raw = loaded.get("required_state")
     required_state = _normalize_review_contract_optional_str(

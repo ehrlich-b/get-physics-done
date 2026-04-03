@@ -25,12 +25,13 @@ from gpd.adapters.install_utils import (
     translate_frontmatter_tool_names,
 )
 from gpd.adapters.opencode import OpenCodeAdapter
-from gpd.adapters.runtime_catalog import resolve_global_config_dir
+from gpd.adapters.runtime_catalog import get_shared_install_metadata, resolve_global_config_dir
 from gpd.adapters.tool_names import build_canonical_alias_map
 from gpd.registry import get_command, load_agents_from_dir
 
 REPO_GPD_ROOT = Path(__file__).resolve().parents[2] / "src" / "gpd"
 RUNTIME_ALIAS_MAP = build_canonical_alias_map(adapter.tool_name_map for adapter in iter_adapters())
+_SHARED_INSTALL = get_shared_install_metadata()
 
 
 def _review_contract_section(content: str) -> str:
@@ -94,7 +95,7 @@ def _install_real_repo_for_runtime(tmp_path: Path, runtime: str) -> Path:
         target.mkdir()
         skills = tmp_path / "skills"
         skills.mkdir()
-        CodexAdapter().install(REPO_GPD_ROOT, target, skills_dir=skills)
+        CodexAdapter().install(REPO_GPD_ROOT, target, is_global=False, skills_dir=skills)
         return target
 
     if runtime == "gemini":
@@ -255,7 +256,12 @@ def test_update_surface_materializes_workflow_paths_in_compiled_artifacts(
     else:
         assert f'GPD_CONFIG_DIR="{target.as_posix()}"' in content
         assert f'GPD_GLOBAL_CONFIG_DIR="{canonical_global_dir.as_posix()}"' in content
-        assert "TARGET_DIR_ARG=$(" in content
+        update_command = f"{adapter.update_command} --local"
+        assert f'UPDATE_COMMAND="{update_command}"' in content
+        assert (
+            f'PATCH_META="{target.as_posix()}/{_SHARED_INSTALL.patches_dir_name}/backup-meta.json"' in content
+        )
+        assert "TARGET_DIR_ARG=$(" not in content
 
 # ---------------------------------------------------------------------------
 # Claude Code: install → read back → compare
@@ -520,7 +526,7 @@ class TestCodexRoundtrip:
         target.mkdir()
         skills = tmp_path / "skills"
         skills.mkdir()
-        CodexAdapter().install(gpd_root, target, skills_dir=skills)
+        CodexAdapter().install(gpd_root, target, is_global=False, skills_dir=skills)
         return target, skills
 
     def test_commands_become_skill_dirs(self, installed: tuple[Path, Path]) -> None:
@@ -837,7 +843,7 @@ class TestInstallUninstallCycle:
         skills = tmp_path / "skills"
         skills.mkdir()
 
-        adapter.install(gpd_root, target, skills_dir=skills)
+        adapter.install(gpd_root, target, is_global=False, skills_dir=skills)
         assert any(d.name.startswith("gpd-") for d in skills.iterdir() if d.is_dir())
         assert (target / "get-physics-done").is_dir()
 
@@ -898,7 +904,7 @@ class TestSerializationRoundtrip:
         target.mkdir()
         skills = tmp_path / "skills"
         skills.mkdir()
-        CodexAdapter().install(gpd_root, target, skills_dir=skills)
+        CodexAdapter().install(gpd_root, target, is_global=False, skills_dir=skills)
 
         skill_md = skills / "gpd-help" / "SKILL.md"
         content = skill_md.read_text(encoding="utf-8")
@@ -933,7 +939,7 @@ class TestSerializationRoundtrip:
         codex_target.mkdir(parents=True)
         codex_skills = tmp_path / "codex" / "skills"
         codex_skills.mkdir(parents=True)
-        CodexAdapter().install(gpd_root, codex_target, skills_dir=codex_skills)
+        CodexAdapter().install(gpd_root, codex_target, is_global=False, skills_dir=codex_skills)
         assert (codex_skills / "gpd-sub-deep" / "SKILL.md").exists()
 
         # OpenCode: command/gpd-sub-deep.md

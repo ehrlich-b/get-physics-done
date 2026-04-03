@@ -39,10 +39,11 @@ from gpd.adapters.install_utils import (
     write_manifest,
     write_settings,
 )
-from gpd.adapters.runtime_catalog import iter_runtime_descriptors
+from gpd.adapters.runtime_catalog import get_shared_install_metadata, iter_runtime_descriptors
 from gpd.core.constants import HOME_DATA_DIR_NAME
 
 _RUNTIME_DESCRIPTORS = tuple(iter_runtime_descriptors())
+_SHARED_INSTALL = get_shared_install_metadata()
 _DOLLAR_TEMPLATE_RUNTIMES = tuple(
     descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS if descriptor.agent_prompt_uses_dollar_templates
 )
@@ -68,6 +69,26 @@ def test_get_global_dir_unknown_runtime_raises_keyerror() -> None:
 def test_replace_placeholders_unknown_runtime_raises_keyerror() -> None:
     with pytest.raises(KeyError, match="Unknown runtime"):
         replace_placeholders("{GPD_RUNTIME_FLAG}", "/custom/", "bogus-runtime")
+
+
+def test_replace_placeholders_materializes_shared_install_metadata_placeholders() -> None:
+    content = (
+        "{GPD_BOOTSTRAP_COMMAND}\n"
+        "{GPD_RELEASE_LATEST_URL}\n"
+        "{GPD_RELEASES_API_URL}\n"
+        "{GPD_RELEASES_PAGE_URL}\n"
+        "{GPD_INSTALL_ROOT_DIR_NAME}\n"
+        "{GPD_PATCHES_DIR_NAME}\n"
+    )
+
+    replaced = replace_placeholders(content, "/custom/", "codex", "--local")
+
+    assert _SHARED_INSTALL.bootstrap_command in replaced
+    assert _SHARED_INSTALL.latest_release_url in replaced
+    assert _SHARED_INSTALL.releases_api_url in replaced
+    assert _SHARED_INSTALL.releases_page_url in replaced
+    assert _SHARED_INSTALL.install_root_dir_name in replaced
+    assert _SHARED_INSTALL.patches_dir_name in replaced
 
 
 class TestExpandAtIncludes:
@@ -485,7 +506,7 @@ class TestReviewContractInjection:
             "Prompt body.\n"
         )
 
-        with pytest.raises(ValueError, match="schema_version .* must be the integer 1"):
+        with pytest.raises(ValueError, match="schema_version must be the integer 1"):
             compile_markdown_for_runtime(
                 content,
                 runtime="codex",

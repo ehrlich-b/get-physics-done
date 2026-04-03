@@ -18,7 +18,11 @@ from gpd.adapters.gemini import (
     _render_gemini_policy_toml,
     _rewrite_gpd_cli_invocations,
 )
-from gpd.adapters.install_utils import build_runtime_cli_bridge_command, compile_markdown_for_runtime
+from gpd.adapters.install_utils import build_runtime_cli_bridge_command
+from tests.adapters.review_contract_test_utils import (
+    assert_review_contract_prompt_surface,
+    compile_review_contract_fixture_for_runtime,
+)
 
 
 def expected_gemini_bridge(target: Path) -> str:
@@ -242,37 +246,11 @@ class TestConvertToGeminiToml:
         assert "project_reentry_capable =" not in result
 
     def test_prepends_review_contract_to_prompt(self) -> None:
-        content = compile_markdown_for_runtime(
-            (
-                "---\n"
-                "name: gpd:peer-review\n"
-                "review-contract:\n"
-                "  review_mode: publication\n"
-                "  schema_version: 1\n"
-                "  required_outputs:\n"
-                "    - GPD/review/REFEREE-DECISION{round_suffix}.json\n"
-                "  conditional_requirements:\n"
-                "    - when: theorem-bearing claims are present\n"
-                "      required_outputs:\n"
-                "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
-                "---\n"
-                "Prompt body"
-            ),
-            runtime="gemini",
-            path_prefix="/prefix/",
-        )
+        content = compile_review_contract_fixture_for_runtime("gemini")
 
         result = _convert_to_gemini_toml(content)
-        section = result[result.index("## Review Contract") :]
 
-        assert "## Review Contract" in result
-        assert "review_contract:" in section
-        assert "review-contract:" not in section
-        assert "review_mode: publication" in result
-        assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in result
-        assert "conditional_requirements:" in result
-        assert "when: theorem-bearing claims are present" in result
-        assert result.index("## Review Contract") < result.index("Prompt body")
+        assert_review_contract_prompt_surface(result)
 
     def test_uses_multiline_literal_string(self) -> None:
         content = "---\ndescription: D\n---\nMultiline\nprompt"

@@ -18,18 +18,32 @@ def _write_proof_bearing_manuscript_review_artifacts(
     proof_redteam_status: str | None,
     proof_redteam_reviewer: str = "gpd-check-proof",
     proof_redteam_sha256: str | None = None,
+    round_number: int = 1,
+    proof_artifact_path: str = "paper/main.tex",
 ) -> Path:
     manuscript_path = project_root / "paper" / "main.tex"
-    manuscript_path.parent.mkdir(parents=True)
+    manuscript_path.parent.mkdir(parents=True, exist_ok=True)
     manuscript_path.write_text(
         "\\documentclass{article}\n\\begin{document}\nProof.\n\\end{document}\n",
         encoding="utf-8",
     )
 
+    proof_artifact = project_root / proof_artifact_path
+    proof_artifact.parent.mkdir(parents=True, exist_ok=True)
+    if proof_artifact != manuscript_path:
+        proof_artifact.write_text(
+            "\\documentclass{article}\n\\begin{document}\nExternal proof.\n\\end{document}\n",
+            encoding="utf-8",
+        )
+    proof_redteam_artifact_paths = f"  - {proof_artifact_path}\n"
+    if proof_artifact_path != "paper/main.tex":
+        proof_redteam_artifact_paths += "  - paper/main.tex\n"
+
     review_dir = project_root / "GPD" / "review"
-    review_dir.mkdir(parents=True)
+    review_dir.mkdir(parents=True, exist_ok=True)
     manuscript_sha256 = compute_sha256(manuscript_path)
-    (review_dir / "CLAIMS.json").write_text(
+    round_suffix = "" if round_number <= 1 else f"-R{round_number}"
+    (review_dir / f"CLAIMS{round_suffix}.json").write_text(
         json.dumps(
             {
                 "version": 1,
@@ -40,7 +54,7 @@ def _write_proof_bearing_manuscript_review_artifacts(
                         "claim_id": "CLM-001",
                         "claim_type": "main_result",
                         "text": "For every r_0 > 0, the orbit intersects the target annulus.",
-                        "artifact_path": "paper/main.tex",
+                        "artifact_path": proof_artifact_path,
                         "section": "Main Result",
                         "theorem_assumptions": ["chi > 0"],
                         "theorem_parameters": ["r_0"],
@@ -50,11 +64,11 @@ def _write_proof_bearing_manuscript_review_artifacts(
         ),
         encoding="utf-8",
     )
-    (review_dir / "STAGE-math.json").write_text(
+    (review_dir / f"STAGE-math{round_suffix}.json").write_text(
         json.dumps(
             {
                 "version": 1,
-                "round": 1,
+                "round": round_number,
                 "stage_id": "math",
                 "stage_kind": "math",
                 "manuscript_path": "paper/main.tex",
@@ -68,7 +82,7 @@ def _write_proof_bearing_manuscript_review_artifacts(
                         "claim_id": "CLM-001",
                         "theorem_assumptions_checked": ["chi > 0"],
                         "theorem_parameters_checked": ["r_0"],
-                        "proof_locations": ["paper/main.tex:3"],
+                        "proof_locations": [f"{proof_artifact_path}:1"],
                         "uncovered_assumptions": [],
                         "uncovered_parameters": [],
                         "coverage_gaps": [],
@@ -83,7 +97,7 @@ def _write_proof_bearing_manuscript_review_artifacts(
         encoding="utf-8",
     )
     if proof_redteam_status is not None:
-        (review_dir / "PROOF-REDTEAM.md").write_text(
+        (review_dir / f"PROOF-REDTEAM{round_suffix}.md").write_text(
             (
                 "---\n"
                 f"status: {proof_redteam_status}\n"
@@ -91,10 +105,10 @@ def _write_proof_bearing_manuscript_review_artifacts(
                 "claim_ids:\n"
                 "  - CLM-001\n"
                 "proof_artifact_paths:\n"
-                "  - paper/main.tex\n"
+                f"{proof_redteam_artifact_paths}"
                 "manuscript_path: paper/main.tex\n"
                 f"manuscript_sha256: {proof_redteam_sha256 or manuscript_sha256}\n"
-                "round: 1\n"
+                f"round: {round_number}\n"
                 "---\n\n"
                 "# Proof Redteam\n"
                 "## Proof Inventory\n"
@@ -112,19 +126,19 @@ def _write_proof_bearing_manuscript_review_artifacts(
                 "### Named-Parameter Coverage\n"
                 "| Parameter | Role / Domain | Proof Location | Status | Notes |\n"
                 "| --- | --- | --- | --- | --- |\n"
-                "| `r_0` | target radius | paper/main.tex:3 | covered | Carried through the argument. |\n"
+                f"| `r_0` | target radius | {proof_artifact_path}:1 | covered | Carried through the argument. |\n"
                 "### Hypothesis Coverage\n"
                 "| Hypothesis | Proof Location | Status | Notes |\n"
                 "| --- | --- | --- | --- |\n"
-                "| `H1` | paper/main.tex:3 | covered | Used in the positivity step. |\n"
+                f"| `H1` | {proof_artifact_path}:1 | covered | Used in the positivity step. |\n"
                 "### Quantifier / Domain Coverage\n"
                 "| Obligation | Proof Location | Status | Notes |\n"
                 "| --- | --- | --- | --- |\n"
-                "| `for every r_0 > 0` | paper/main.tex:3 | covered | No specialization introduced. |\n"
+                f"| `for every r_0 > 0` | {proof_artifact_path}:1 | covered | No specialization introduced. |\n"
                 "### Conclusion-Clause Coverage\n"
                 "| Clause | Proof Location | Status | Notes |\n"
                 "| --- | --- | --- | --- |\n"
-                "| annulus intersection holds | paper/main.tex:3 | covered | Final sentence states it. |\n"
+                f"| annulus intersection holds | {proof_artifact_path}:1 | covered | Final sentence states it. |\n"
                 "## Adversarial Probe\n"
                 "- Probe type: dropped-parameter test\n"
                 "- Result: The proof still references r_0, so the theorem remains global in the target radius.\n"
@@ -302,3 +316,102 @@ def test_manuscript_proof_review_anchors_to_passed_proof_redteam_artifact(tmp_pa
     assert status.can_rely_on_prior_review is True
     assert status.anchor_artifact == tmp_path / "GPD" / "review" / "PROOF-REDTEAM.md"
     assert manuscript_proof_review_manifest_path(manuscript_path).exists()
+
+
+def test_manuscript_proof_review_uses_latest_matching_round_specific_proof_redteam(tmp_path: Path) -> None:
+    manuscript_path = _write_proof_bearing_manuscript_review_artifacts(
+        tmp_path,
+        proof_redteam_status="passed",
+        round_number=1,
+    )
+    _write_proof_bearing_manuscript_review_artifacts(
+        tmp_path,
+        proof_redteam_status=None,
+        round_number=2,
+    )
+
+    status = resolve_manuscript_proof_review_status(tmp_path, manuscript_path)
+
+    assert status.state == "missing_required_artifact"
+    assert status.can_rely_on_prior_review is False
+    assert status.anchor_artifact == tmp_path / "GPD" / "review" / "PROOF-REDTEAM-R2.md"
+
+
+def test_manuscript_proof_review_rejects_invalid_latest_round_anchor_without_falling_back(tmp_path: Path) -> None:
+    manuscript_path = _write_proof_bearing_manuscript_review_artifacts(
+        tmp_path,
+        proof_redteam_status="passed",
+        round_number=1,
+    )
+    _write_proof_bearing_manuscript_review_artifacts(
+        tmp_path,
+        proof_redteam_status="passed",
+        round_number=2,
+    )
+    (tmp_path / "GPD" / "review" / "CLAIMS-R2.json").write_text("{}", encoding="utf-8")
+
+    status = resolve_manuscript_proof_review_status(tmp_path, manuscript_path)
+
+    assert status.state == "invalid_required_artifact"
+    assert status.can_rely_on_prior_review is False
+    assert status.anchor_artifact == tmp_path / "GPD" / "review" / "STAGE-math-R2.json"
+    assert "STAGE-math-R2.json" in status.detail
+
+
+def test_manuscript_proof_review_turns_stale_after_bibliography_edit(tmp_path: Path) -> None:
+    manuscript_path = _write_proof_bearing_manuscript_review_artifacts(tmp_path, proof_redteam_status="passed")
+    bibliography_path = tmp_path / "paper" / "references.bib"
+
+    fresh = resolve_manuscript_proof_review_status(tmp_path, manuscript_path, persist_manifest=True)
+
+    assert fresh.state == "fresh"
+
+    bibliography_path.write_text("@article{demo,title={Updated Demo}}\n", encoding="utf-8")
+
+    stale = resolve_manuscript_proof_review_status(tmp_path, manuscript_path)
+
+    assert stale.state == "stale"
+    assert stale.can_rely_on_prior_review is False
+    assert bibliography_path in stale.changed_files
+
+
+def test_manuscript_proof_review_turns_stale_after_proof_redteam_edit(tmp_path: Path) -> None:
+    manuscript_path = _write_proof_bearing_manuscript_review_artifacts(tmp_path, proof_redteam_status="passed")
+    proof_redteam_path = tmp_path / "GPD" / "review" / "PROOF-REDTEAM.md"
+
+    fresh = resolve_manuscript_proof_review_status(tmp_path, manuscript_path, persist_manifest=True)
+
+    assert fresh.state == "fresh"
+
+    proof_redteam_path.write_text(proof_redteam_path.read_text(encoding="utf-8") + "\n<!-- drift -->\n", encoding="utf-8")
+
+    stale = resolve_manuscript_proof_review_status(tmp_path, manuscript_path)
+
+    assert stale.state == "stale"
+    assert stale.can_rely_on_prior_review is False
+    assert proof_redteam_path in stale.changed_files
+
+
+def test_manuscript_proof_review_turns_stale_after_external_proof_artifact_edit(tmp_path: Path) -> None:
+    manuscript_path = _write_proof_bearing_manuscript_review_artifacts(
+        tmp_path,
+        proof_redteam_status="passed",
+        proof_artifact_path="proofs/external-proof.tex",
+    )
+    external_proof_path = tmp_path / "proofs" / "external-proof.tex"
+
+    fresh = resolve_manuscript_proof_review_status(tmp_path, manuscript_path, persist_manifest=True)
+
+    assert fresh.state == "fresh"
+    assert external_proof_path in fresh.watched_files
+
+    external_proof_path.write_text(
+        "\\documentclass{article}\n\\begin{document}\nRevised external proof.\n\\end{document}\n",
+        encoding="utf-8",
+    )
+
+    stale = resolve_manuscript_proof_review_status(tmp_path, manuscript_path)
+
+    assert stale.state == "stale"
+    assert stale.can_rely_on_prior_review is False
+    assert external_proof_path in stale.changed_files

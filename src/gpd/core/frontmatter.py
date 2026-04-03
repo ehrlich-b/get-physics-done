@@ -19,16 +19,16 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as PydanticValidationError
 
 from gpd.contracts import (
+    PROOF_ACCEPTANCE_TEST_KINDS,
     ComparisonVerdict,
     ContractResults,
-    PROOF_ACCEPTANCE_TEST_KINDS,
     ProjectContractParseResult,
     ResearchContract,
     SuggestedContractCheck,
-    collect_proof_audit_alignment_errors,
     collect_plan_contract_integrity_errors,
+    collect_proof_audit_alignment_errors,
     contract_has_explicit_context_intake,
-    normalize_contract_results_input,
+    parse_contract_results_data_strict,
     parse_project_contract_data_strict,
     statement_looks_theorem_like,
 )
@@ -38,9 +38,7 @@ from gpd.core.constants import (
     STANDALONE_SUMMARY,
     SUMMARY_SUFFIX,
 )
-from gpd.core.contract_validation import (
-    _format_schema_error,
-)
+from gpd.core.contract_validation import _format_schema_error
 from gpd.core.errors import GPDError
 from gpd.core.observability import instrument_gpd_function
 from gpd.core.root_resolution import resolve_project_root
@@ -105,6 +103,7 @@ class FrontmatterValidationError(GPDError, ValueError):
 
 _FRONTMATTER_RE = re.compile(r"^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)")
 _EMPTY_FRONTMATTER_RE = re.compile(r"^---[ \t]*\r?\n---[ \t]*(?:\r?\n|$)")
+_LEADING_BLANK_LINES_BEFORE_FRONTMATTER_RE = re.compile(r"^(?:[ \t]*\r?\n)+(?=---[ \t]*\r?\n)")
 
 # Matches the full frontmatter block (including empty) for replacement operations.
 # Uses a lookahead so the trailing newline is preserved for the caller to reattach.
@@ -123,11 +122,12 @@ def extract_frontmatter(content: str) -> tuple[dict, str]:
         FrontmatterParseError: If the YAML inside the ``---`` block is malformed.
     """
     clean = content.lstrip("\ufeff")  # strip BOM
+    frontmatter_candidate = _LEADING_BLANK_LINES_BEFORE_FRONTMATTER_RE.sub("", clean, count=1)
 
-    match = _FRONTMATTER_RE.match(clean)
+    match = _FRONTMATTER_RE.match(frontmatter_candidate)
     if match:
         yaml_str = match.group(1)
-        body = clean[match.end() :]
+        body = frontmatter_candidate[match.end() :]
         try:
             meta = yaml.safe_load(yaml_str)
             if meta is None:
@@ -139,9 +139,9 @@ def extract_frontmatter(content: str) -> tuple[dict, str]:
         return meta, body
 
     # Empty frontmatter (---\n---)
-    match = _EMPTY_FRONTMATTER_RE.match(clean)
+    match = _EMPTY_FRONTMATTER_RE.match(frontmatter_candidate)
     if match:
-        return {}, clean[match.end() :]
+        return {}, frontmatter_candidate[match.end() :]
 
     # No frontmatter at all
     return {}, clean
@@ -422,10 +422,10 @@ def _collect_plan_contract_explicit_field_errors(contract_data: dict[str, object
 
 def _parse_contract_results(meta: dict) -> ContractResults | None:
     """Parse a summary contract-results block when present."""
-    raw = meta.get("contract_results")
-    if raw is None:
+    if "contract_results" not in meta:
         return None
-    return ContractResults.model_validate(normalize_contract_results_input(raw, strict=True))
+    raw = meta.get("contract_results")
+    return parse_contract_results_data_strict(raw)
 
 
 def _parse_comparison_verdicts(meta: dict) -> list[ComparisonVerdict]:

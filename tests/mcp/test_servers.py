@@ -1163,6 +1163,7 @@ class TestSkillsServer:
         assert all(not entry["path"].startswith("/") for entry in result["schema_documents"])
         assert all(not entry["path"].startswith("/") for entry in result["contract_documents"])
 
+
     def test_get_skill_resume_work_surfaces_project_reentry_metadata(self):
         from gpd.mcp.servers.skills_server import get_skill
         from gpd.registry import CommandDef, SkillDef

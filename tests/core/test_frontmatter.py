@@ -144,6 +144,12 @@ class TestExtractFrontmatter:
         assert meta == {}
         assert body == content
 
+    def test_leading_blank_lines_before_frontmatter(self):
+        content = "\n\n---\ntitle: Hello\n---\n\nBody text here."
+        meta, body = extract_frontmatter(content)
+        assert meta == {"title": "Hello"}
+        assert body == "\nBody text here."
+
     def test_empty_frontmatter(self):
         content = "---\n---\n\nBody after empty block."
         meta, body = extract_frontmatter(content)
@@ -676,6 +682,22 @@ class TestValidateFrontmatter:
         result = validate_frontmatter(content, "summary")
         assert result.valid is False
         assert any("claims" in error for error in result.errors)
+
+    def test_summary_rejects_explicit_null_contract_results_block(self):
+        content = (
+            "---\n"
+            "phase: 01\n"
+            "plan: 01\n"
+            "depth: standard\n"
+            "provides: []\n"
+            "completed: 2025-01-01\n"
+            "plan_contract_ref: GPD/phases/01-test/01-01-PLAN.md#/contract\n"
+            "contract_results:\n"
+            "---\n\nBody."
+        )
+        result = validate_frontmatter(content, "summary")
+        assert result.valid is False
+        assert any("contract_results:" in error for error in result.errors)
 
     def test_summary_rejects_missing_uncertainty_markers_for_contract_backed_summary(self):
         content = (STAGE4_FIXTURES_DIR / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(

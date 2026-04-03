@@ -10,6 +10,7 @@ from gpd import registry
 from gpd.registry import (
     AgentDef,
     CommandDef,
+    ReviewContractConditionalRequirement,
     SkillDef,
     _parse_agent_file,
     _parse_command_file,
@@ -537,6 +538,32 @@ class TestParseCommandFile:
         with pytest.raises(ValueError, match=rf"Invalid review-contract in .*{field_name}-invalid-scalar\.md.*{field_name}"):
             _parse_command_file(f, source="commands")
 
+    def test_command_review_contract_accepts_singleton_string_list_fields(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "singleton-string-list-fields.md",
+            "  required_outputs: GPD/output.md\n"
+            "  preflight_checks: manuscript\n"
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs: GPD/review/PROOF-REDTEAM{round_suffix}.md\n",
+        )
+
+        cmd = _parse_command_file(f, source="commands")
+
+        assert cmd.review_contract is not None
+        assert cmd.review_contract.required_outputs == ["GPD/output.md"]
+        assert cmd.review_contract.preflight_checks == ["manuscript"]
+        assert cmd.review_contract.conditional_requirements == [
+            ReviewContractConditionalRequirement(
+                when="theorem-bearing claims are present",
+                required_outputs=["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                required_evidence=[],
+                blocking_conditions=[],
+                stage_artifacts=[],
+            )
+        ]
+
     @pytest.mark.parametrize(
         "field_name",
         [
@@ -562,6 +589,29 @@ class TestParseCommandFile:
             match=rf"Invalid review-contract in .*{field_name}-blank-member\.md.*{field_name}",
         ):
             _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_list_fields_accept_singleton_string_scalars(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "singleton-list-scalars.md",
+            "  required_outputs: GPD/REFEREE-REPORT{round_suffix}.md\n"
+            "  preflight_checks: manuscript\n"
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs: GPD/review/PROOF-REDTEAM{round_suffix}.md\n",
+        )
+
+        cmd = _parse_command_file(f, source="commands")
+
+        assert cmd.review_contract is not None
+        assert cmd.review_contract.required_outputs == ["GPD/REFEREE-REPORT{round_suffix}.md"]
+        assert cmd.review_contract.preflight_checks == ["manuscript"]
+        assert cmd.review_contract.conditional_requirements == [
+            registry.ReviewContractConditionalRequirement(
+                when="theorem-bearing claims are present",
+                required_outputs=["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            )
+        ]
 
     def test_command_review_contract_parses_conditional_requirements(self, tmp_path: Path) -> None:
         f = _write_review_contract_command(
@@ -823,6 +873,23 @@ class TestParseCommandFile:
         with pytest.raises(
             ValueError,
             match=r"Invalid review-contract in .*missing-schema-version\.md.*must set schema_version",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_rejects_explicit_null_block(self, tmp_path: Path) -> None:
+        f = tmp_path / "null-review-contract.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:null-review-contract\n"
+            "review-contract:\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*null-review-contract\.md.*must set schema_version, review_mode",
         ):
             _parse_command_file(f, source="commands")
 

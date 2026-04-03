@@ -10,7 +10,7 @@ wrapper aliases.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 
 __all__ = [
     "RESUME_COMPATIBILITY_ALIAS_FIELDS",
@@ -43,7 +43,6 @@ __all__ = [
     "resume_origin_for_handoff",
     "resume_origin_for_interrupted_agent",
     "resume_source_from_origin",
-    "resume_payload_has_local_target",
     "resume_payload_has_local_recovery_target",
     "resolve_resume_compat_surface",
 ]
@@ -124,6 +123,33 @@ def _resolve_resume_surface_mapping(
     return None
 
 
+def _lookup_resume_surface_field(
+    payload: Mapping[str, object] | None,
+    key: str,
+    *,
+    compat_surface: Mapping[str, object] | None = None,
+    compat_key: str | None = None,
+    compat_keys: Sequence[str] = (),
+    prefer_compat: bool = False,
+    accept: Callable[[object], object | None],
+) -> object | None:
+    lookup_order = (
+        ((compat_surface, (compat_key, *compat_keys)), (payload, (key,)))
+        if prefer_compat
+        else ((payload, (key,)), (compat_surface, (compat_key, *compat_keys)))
+    )
+    for source, source_keys in lookup_order:
+        if not isinstance(source, Mapping):
+            continue
+        for source_key in source_keys:
+            if source_key is None or source_key not in source:
+                continue
+            accepted = accept(source[source_key])
+            if accepted is not None:
+                return accepted
+    return None
+
+
 def resolve_resume_compat_surface(
     *sources: Mapping[str, object] | None,
     fields: Sequence[str] = RESUME_COMPATIBILITY_ALIAS_FIELDS,
@@ -173,20 +199,15 @@ def lookup_resume_surface_text(
     prefer_compat: bool = False,
 ) -> str | None:
     """Return the first non-blank text value for a canonical or compat field."""
-    lookup_order = ((compat_surface, (compat_key, *compat_keys)), (payload, (key,))) if prefer_compat else (
-        (payload, (key,)),
-        (compat_surface, (compat_key, *compat_keys)),
+    return _lookup_resume_surface_field(
+        payload,
+        key,
+        compat_surface=compat_surface,
+        compat_key=compat_key,
+        compat_keys=compat_keys,
+        prefer_compat=prefer_compat,
+        accept=lambda value: value if isinstance(value, str) and value.strip() else None,
     )
-    for source, source_keys in lookup_order:
-        if not isinstance(source, Mapping):
-            continue
-        for source_key in source_keys:
-            if source_key is None:
-                continue
-            value = source.get(source_key)
-            if isinstance(value, str) and value.strip():
-                return value
-    return None
 
 
 def lookup_resume_surface_value(
@@ -199,23 +220,17 @@ def lookup_resume_surface_value(
     prefer_compat: bool = False,
 ) -> object | None:
     """Return the first non-empty canonical or compat value for one field."""
-    lookup_order = ((compat_surface, (compat_key, *compat_keys)), (payload, (key,))) if prefer_compat else (
-        (payload, (key,)),
-        (compat_surface, (compat_key, *compat_keys)),
+    return _lookup_resume_surface_field(
+        payload,
+        key,
+        compat_surface=compat_surface,
+        compat_key=compat_key,
+        compat_keys=compat_keys,
+        prefer_compat=prefer_compat,
+        accept=lambda value: None
+        if value is None or (isinstance(value, str) and not value.strip())
+        else value,
     )
-    for source, source_keys in lookup_order:
-        if not isinstance(source, Mapping):
-            continue
-        for source_key in source_keys:
-            if source_key is None or source_key not in source:
-                continue
-            value = source[source_key]
-            if value is None:
-                continue
-            if isinstance(value, str) and not value.strip():
-                continue
-            return value
-    return None
 
 
 def lookup_resume_surface_mapping(
@@ -228,20 +243,16 @@ def lookup_resume_surface_mapping(
     prefer_compat: bool = False,
 ) -> dict[str, object] | None:
     """Return the first mapping value for a canonical or compat field."""
-    lookup_order = ((compat_surface, (compat_key, *compat_keys)), (payload, (key,))) if prefer_compat else (
-        (payload, (key,)),
-        (compat_surface, (compat_key, *compat_keys)),
+    result = _lookup_resume_surface_field(
+        payload,
+        key,
+        compat_surface=compat_surface,
+        compat_key=compat_key,
+        compat_keys=compat_keys,
+        prefer_compat=prefer_compat,
+        accept=lambda value: dict(value) if isinstance(value, Mapping) else None,
     )
-    for source, source_keys in lookup_order:
-        if not isinstance(source, Mapping):
-            continue
-        for source_key in source_keys:
-            if source_key is None:
-                continue
-            value = source.get(source_key)
-            if isinstance(value, Mapping):
-                return dict(value)
-    return None
+    return result if isinstance(result, dict) else None
 
 
 def lookup_resume_surface_list(
@@ -254,20 +265,16 @@ def lookup_resume_surface_list(
     prefer_compat: bool = False,
 ) -> list[object] | None:
     """Return the first list value for a canonical or compat field."""
-    lookup_order = ((compat_surface, (compat_key, *compat_keys)), (payload, (key,))) if prefer_compat else (
-        (payload, (key,)),
-        (compat_surface, (compat_key, *compat_keys)),
+    result = _lookup_resume_surface_field(
+        payload,
+        key,
+        compat_surface=compat_surface,
+        compat_key=compat_key,
+        compat_keys=compat_keys,
+        prefer_compat=prefer_compat,
+        accept=lambda value: list(value) if isinstance(value, list) else None,
     )
-    for source, source_keys in lookup_order:
-        if not isinstance(source, Mapping):
-            continue
-        for source_key in source_keys:
-            if source_key is None:
-                continue
-            value = source.get(source_key)
-            if isinstance(value, list):
-                return list(value)
-    return None
+    return result if isinstance(result, list) else None
 
 
 def build_resume_segment_candidate(
@@ -561,19 +568,6 @@ def resume_payload_has_local_recovery_target(
         for candidate in candidates
     )
 
-
-def resume_payload_has_local_target(
-    payload: Mapping[str, object] | None,
-    *,
-    compat_surface: Mapping[str, object] | None = None,
-) -> bool:
-    """Backward-compatible alias for the shared local-target predicate."""
-    return resume_payload_has_local_recovery_target(
-        payload,
-        compat_surface=compat_surface,
-    )
-
-
 def canonicalize_resume_public_payload(
     payload: Mapping[str, object],
     *,
@@ -587,10 +581,6 @@ def canonicalize_resume_public_payload(
         canonical.pop(key, None)
     for key in RESUME_COMPATIBILITY_WRAPPER_ALIASES:
         canonical.pop(key, None)
-    canonical.pop("resume_surface", None)
-    canonical.pop("resume_surface_compat", None)
-    canonical.pop("legacy_resume_surface", None)
-    canonical.pop("compatibility_resume_surface", None)
 
     if compat is not None:
         canonical["compat_resume_surface"] = compat

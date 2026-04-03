@@ -893,6 +893,91 @@ def test_build_paper_quality_input_marks_invalid_contract_results_ledger_parse_f
     assert result.journal_extra_checks["contract_results_alignment_ok"] is False
 
 
+def test_build_paper_quality_input_marks_malformed_contract_results_frontmatter_failure(
+    tmp_path: Path,
+) -> None:
+    plan_dir = tmp_path / "GPD" / "phases" / "01-benchmark"
+    _write(plan_dir / "01-01-PLAN.md", (STAGE0_FIXTURES_DIR / "plan_with_contract.md").read_text(encoding="utf-8"))
+
+    summary = (
+        "---\n"
+        "phase: 01-benchmark\n"
+        "plan: 01\n"
+        "depth: full\n"
+        "provides: [benchmark comparison]\n"
+        "completed: 2026-03-15\n"
+        "plan_contract_ref: GPD/phases/01-benchmark/01-01-PLAN.md#/contract\n"
+        "contract_results:\n"
+        "  claims:\n"
+        "    claim-benchmark: [unterminated\n"
+        "---\n\n"
+        "# Summary\n"
+    )
+    _write(plan_dir / "01-SUMMARY.md", summary)
+
+    result = build_paper_quality_input(tmp_path)
+
+    assert result.journal_extra_checks["contract_results_parse_ok"] is False
+    assert result.journal_extra_checks["contract_results_alignment_ok"] is False
+
+
+def test_build_paper_quality_input_marks_explicit_null_contract_results_ledger_parse_failure(
+    tmp_path: Path,
+) -> None:
+    plan_dir = tmp_path / "GPD" / "phases" / "01-benchmark"
+    _write(plan_dir / "01-01-PLAN.md", (STAGE0_FIXTURES_DIR / "plan_with_contract.md").read_text(encoding="utf-8"))
+
+    summary = (FIXTURES_DIR / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(
+        "contract_results:\n"
+        "  claims:\n"
+        "    claim-benchmark:\n"
+        "      status: passed\n"
+        "      summary: Benchmark claim verified against the decisive anchor.\n"
+        "      linked_ids: [deliv-figure, test-benchmark, ref-benchmark]\n"
+        "      evidence:\n"
+        "        - verifier: gpd-verifier\n"
+        "          method: benchmark reproduction\n"
+        "          confidence: high\n"
+        "          claim_id: claim-benchmark\n"
+        "          deliverable_id: deliv-figure\n"
+        "          acceptance_test_id: test-benchmark\n"
+        "          reference_id: ref-benchmark\n"
+        "          evidence_path: GPD/phases/01-benchmark/01-VERIFICATION.md\n"
+        "  deliverables:\n"
+        "    deliv-figure:\n"
+        "      status: passed\n"
+        "      path: figures/benchmark.png\n"
+        "      summary: Figure produced with uncertainty band and benchmark overlay.\n"
+        "      linked_ids: [claim-benchmark, test-benchmark]\n"
+        "  acceptance_tests:\n"
+        "    test-benchmark:\n"
+        "      status: passed\n"
+        "      summary: Benchmark reproduced within the contracted tolerance.\n"
+        "      linked_ids: [claim-benchmark, deliv-figure, ref-benchmark]\n"
+        "  references:\n"
+        "    ref-benchmark:\n"
+        "      status: completed\n"
+        "      completed_actions: [read, compare, cite]\n"
+        "      missing_actions: []\n"
+        "      summary: Benchmark anchor surfaced in the comparison figure and manuscript text.\n"
+        "  forbidden_proxies:\n"
+        "    fp-benchmark:\n"
+        "      status: rejected\n"
+        "      notes: Qualitative trend agreement was not accepted without the numerical benchmark check.\n"
+        "  uncertainty_markers:\n"
+        "    weakest_anchors: [Reference tolerance interpretation]\n"
+        "    disconfirming_observations: [Benchmark agreement disappears once normalization is fixed]\n",
+        "contract_results:\n",
+        1,
+    )
+    _write(plan_dir / "01-SUMMARY.md", summary)
+
+    result = build_paper_quality_input(tmp_path)
+
+    assert result.journal_extra_checks["contract_results_parse_ok"] is False
+    assert result.journal_extra_checks["contract_results_alignment_ok"] is False
+
+
 def test_build_paper_quality_input_ignores_mixed_comparison_verdict_ledger_for_coverage_and_confidence(
     tmp_path: Path,
 ) -> None:
@@ -923,6 +1008,35 @@ def test_build_paper_quality_input_ignores_mixed_comparison_verdict_ledger_for_c
     assert result.verification.contract_targets_verified.satisfied == 0
     assert result.verification.contract_targets_verified.total == 3
     assert result.verification.key_result_confidences == []
+    assert result.journal_extra_checks["comparison_verdicts_valid"] is False
+
+
+def test_build_paper_quality_input_marks_malformed_comparison_frontmatter_failure(
+    tmp_path: Path,
+) -> None:
+    plan_dir = tmp_path / "GPD" / "phases" / "01-benchmark"
+    _write(plan_dir / "01-01-PLAN.md", (STAGE0_FIXTURES_DIR / "plan_with_contract.md").read_text(encoding="utf-8"))
+    _write(
+        tmp_path / "GPD" / "comparisons" / "benchmark-COMPARISON.md",
+        """---
+comparison_verdicts:
+  - subject_id: claim-benchmark
+    subject_kind: claim
+    subject_role: decisive
+    reference_id: ref-benchmark
+    comparison_kind: benchmark
+    metric: relative_error
+    threshold: "<= 0.01"
+    verdict: pass
+    notes: [unterminated
+---
+
+# Internal Comparison
+""",
+    )
+
+    result = build_paper_quality_input(tmp_path)
+
     assert result.journal_extra_checks["comparison_verdicts_valid"] is False
 
 

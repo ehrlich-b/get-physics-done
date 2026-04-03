@@ -164,114 +164,11 @@ def _candidate_text(candidate: Mapping[str, object], field: str) -> str | None:
     return stripped or None
 
 
-def _compat_resume_surface(payload: Mapping[str, object]) -> Mapping[str, object] | None:
-    return resolve_resume_compat_surface(payload)
-
-
-def _canonical_text_field(
-    payload: Mapping[str, object],
-    compat_surface: Mapping[str, object] | None,
-    field: str,
-    *,
-    compat_fields: Sequence[str] = (),
-) -> str | None:
-    return lookup_resume_surface_text(
-        payload,
-        field,
-        compat_surface=compat_surface,
-        compat_key=field,
-        compat_keys=compat_fields,
-    )
-
-
-def _legacy_text_field(
-    payload: Mapping[str, object],
-    compat_surface: Mapping[str, object] | None,
-    field: str,
-    *,
-    compat_fields: Sequence[str] = (),
-) -> str | None:
-    return lookup_resume_surface_text(
-        payload,
-        field,
-        compat_surface=compat_surface,
-        compat_key=field,
-        compat_keys=compat_fields,
-        prefer_compat=True,
-    )
-
-
-def _canonical_mapping_field(
-    payload: Mapping[str, object],
-    compat_surface: Mapping[str, object] | None,
-    field: str,
-    *,
-    compat_fields: Sequence[str] = (),
-) -> Mapping[str, object] | None:
-    return lookup_resume_surface_mapping(
-        payload,
-        field,
-        compat_surface=compat_surface,
-        compat_key=field,
-        compat_keys=compat_fields,
-    )
-
-
-def _legacy_mapping_field(
-    payload: Mapping[str, object],
-    compat_surface: Mapping[str, object] | None,
-    field: str,
-    *,
-    compat_fields: Sequence[str] = (),
-) -> Mapping[str, object] | None:
-    return lookup_resume_surface_mapping(
-        payload,
-        field,
-        compat_surface=compat_surface,
-        compat_key=field,
-        compat_keys=compat_fields,
-        prefer_compat=True,
-    )
-
-
-def _canonical_list_field(
-    payload: Mapping[str, object],
-    compat_surface: Mapping[str, object] | None,
-    field: str,
-    *,
-    compat_fields: Sequence[str] = (),
-) -> list[object] | None:
-    return lookup_resume_surface_list(
-        payload,
-        field,
-        compat_surface=compat_surface,
-        compat_key=field,
-        compat_keys=compat_fields,
-    )
-
-
-def _legacy_list_field(
-    payload: Mapping[str, object],
-    compat_surface: Mapping[str, object] | None,
-    field: str,
-    *,
-    compat_fields: Sequence[str] = (),
-) -> list[object] | None:
-    return lookup_resume_surface_list(
-        payload,
-        field,
-        compat_surface=compat_surface,
-        compat_key=field,
-        compat_keys=compat_fields,
-        prefer_compat=True,
-    )
-
-
-def _canonical_project_reentry_candidates(
+def _project_reentry_candidates(
     payload: Mapping[str, object],
     compat_surface: Mapping[str, object] | None,
 ) -> list[Mapping[str, object]] | None:
-    candidates = _canonical_list_field(payload, compat_surface, "project_reentry_candidates")
+    candidates = lookup_resume_surface_list(payload, "project_reentry_candidates", compat_surface=compat_surface)
     if candidates is None:
         return None
     return [candidate for candidate in candidates if isinstance(candidate, Mapping)]
@@ -282,7 +179,11 @@ def _selected_project_reentry_candidate(
     candidates: Sequence[Mapping[str, object]] | None,
     compat_surface: Mapping[str, object] | None,
 ) -> Mapping[str, object] | None:
-    selected_candidate = _canonical_mapping_field(payload, compat_surface, "project_reentry_selected_candidate")
+    selected_candidate = lookup_resume_surface_mapping(
+        payload,
+        "project_reentry_selected_candidate",
+        compat_surface=compat_surface,
+    )
     if selected_candidate is not None:
         return selected_candidate
 
@@ -381,10 +282,10 @@ def _derive_active_resume_kind(
     missing_continuity_handoff_file: str | None,
     resume_candidates: Sequence[Mapping[str, object]],
 ) -> str | None:
-    explicit = _canonical_text_field(payload, compat_surface, "active_resume_kind")
+    explicit = lookup_resume_surface_text(payload, "active_resume_kind", compat_surface=compat_surface)
     if explicit is not None:
         return explicit
-    explicit_origin = _canonical_text_field(payload, compat_surface, "active_resume_origin")
+    explicit_origin = lookup_resume_surface_text(payload, "active_resume_origin", compat_surface=compat_surface)
     if explicit_origin == "interrupted_agent_marker":
         return "interrupted_agent"
     if explicit_origin in {"continuation.bounded_segment", "compat.current_execution"}:
@@ -399,10 +300,11 @@ def _derive_active_resume_kind(
         return "bounded_segment"
     if resume_mode == "bounded_segment":
         return "bounded_segment"
-    if active_resume_pointer is not None and _legacy_text_field(
+    if active_resume_pointer is not None and lookup_resume_surface_text(
         payload,
-        compat_surface,
         "execution_resume_file_source",
+        compat_surface=compat_surface,
+        prefer_compat=True,
     ) == "session_resume_file":
         return "continuity_handoff"
     if continuity_handoff_file is not None:
@@ -424,18 +326,24 @@ def _derive_active_resume_origin(
     missing_continuity_handoff_file: str | None,
     resume_candidates: Sequence[Mapping[str, object]],
 ) -> str | None:
-    explicit = _canonical_text_field(payload, compat_surface, "active_resume_origin")
+    explicit = lookup_resume_surface_text(payload, "active_resume_origin", compat_surface=compat_surface)
     if explicit is not None:
         return explicit
 
-    legacy_source = _legacy_text_field(payload, compat_surface, "execution_resume_file_source")
+    legacy_source = lookup_resume_surface_text(
+        payload,
+        "execution_resume_file_source",
+        compat_surface=compat_surface,
+        prefer_compat=True,
+    )
     if active_resume_kind == "bounded_segment":
-        if _canonical_mapping_field(payload, compat_surface, "active_bounded_segment") is not None:
+        if lookup_resume_surface_mapping(payload, "active_bounded_segment", compat_surface=compat_surface) is not None:
             return "continuation.bounded_segment"
-        if _canonical_mapping_field(payload, compat_surface, "derived_execution_head") is not None or _legacy_mapping_field(
+        if lookup_resume_surface_mapping(payload, "derived_execution_head", compat_surface=compat_surface) is not None or lookup_resume_surface_mapping(
             payload,
-            compat_surface,
             "current_execution",
+            compat_surface=compat_surface,
+            prefer_compat=True,
         ) is not None:
             return "compat.current_execution"
         if _has_candidate(resume_candidates, origin="compat.current_execution", kind="bounded_segment"):
@@ -444,16 +352,21 @@ def _derive_active_resume_origin(
             return "continuation.bounded_segment"
         if legacy_source == "current_execution":
             return "compat.current_execution"
-        if _legacy_mapping_field(payload, compat_surface, "active_execution_segment") is not None:
+        if lookup_resume_surface_mapping(
+            payload,
+            "active_execution_segment",
+            compat_surface=compat_surface,
+            prefer_compat=True,
+        ) is not None:
             return "continuation.bounded_segment"
         return "continuation.bounded_segment"
     if active_resume_kind == "continuity_handoff":
         if any(
             value is not None
             for value in (
-                _canonical_text_field(payload, compat_surface, "continuity_handoff_file"),
-                _canonical_text_field(payload, compat_surface, "recorded_continuity_handoff_file"),
-                _canonical_text_field(payload, compat_surface, "missing_continuity_handoff_file"),
+                lookup_resume_surface_text(payload, "continuity_handoff_file", compat_surface=compat_surface),
+                lookup_resume_surface_text(payload, "recorded_continuity_handoff_file", compat_surface=compat_surface),
+                lookup_resume_surface_text(payload, "missing_continuity_handoff_file", compat_surface=compat_surface),
             )
         ):
             return "continuation.handoff"
@@ -639,9 +552,9 @@ def build_recovery_advice(
 
     normalized_cwd = cwd.expanduser().resolve(strict=False)
     payload = dict(resume_payload) if resume_payload is not None else init_resume(normalized_cwd)
-    compat_resume_surface = _compat_resume_surface(payload)
+    compat_resume_surface = resolve_resume_compat_surface(payload)
     rows = list(recent_rows) if recent_rows is not None else list_recent_projects(data_root, last=recent_projects_last)
-    project_reentry_candidates = _canonical_project_reentry_candidates(payload, compat_resume_surface)
+    project_reentry_candidates = _project_reentry_candidates(payload, compat_resume_surface)
     selected_project_reentry_candidate = _selected_project_reentry_candidate(
         payload,
         project_reentry_candidates,
@@ -657,49 +570,79 @@ def build_recovery_advice(
     resumable_projects_count = sum(1 for row in recent_project_rows if bool(_row_value(row, "resumable", False)))
     available_projects_count = sum(1 for row in recent_project_rows if bool(_row_value(row, "available", False)))
 
-    segment_candidates_raw = _canonical_list_field(
+    segment_candidates_raw = lookup_resume_surface_list(
         payload,
-        compat_resume_surface,
         "resume_candidates",
-        compat_fields=("segment_candidates",),
+        compat_surface=compat_resume_surface,
+        compat_keys=("segment_candidates",),
     )
     if segment_candidates_raw is None:
-        segment_candidates_raw = _legacy_list_field(payload, compat_resume_surface, "segment_candidates")
+        segment_candidates_raw = lookup_resume_surface_list(
+            payload,
+            "segment_candidates",
+            compat_surface=compat_resume_surface,
+            prefer_compat=True,
+        )
     segment_candidates = [item for item in segment_candidates_raw if isinstance(item, Mapping)] if isinstance(segment_candidates_raw, list) else []
 
-    resume_mode = _legacy_text_field(payload, compat_resume_surface, "resume_mode")
-    continuity_handoff_file = _canonical_text_field(
+    resume_mode = lookup_resume_surface_text(
         payload,
-        compat_resume_surface,
+        "resume_mode",
+        compat_surface=compat_resume_surface,
+        prefer_compat=True,
+    )
+    continuity_handoff_file = lookup_resume_surface_text(
+        payload,
         "continuity_handoff_file",
-        compat_fields=("session_resume_file",),
+        compat_surface=compat_resume_surface,
+        compat_keys=("session_resume_file",),
     )
     if continuity_handoff_file is None:
-        continuity_handoff_file = _legacy_text_field(payload, compat_resume_surface, "session_resume_file")
-    recorded_continuity_handoff_file = _canonical_text_field(
+        continuity_handoff_file = lookup_resume_surface_text(
+            payload,
+            "session_resume_file",
+            compat_surface=compat_resume_surface,
+            prefer_compat=True,
+        )
+    recorded_continuity_handoff_file = lookup_resume_surface_text(
         payload,
-        compat_resume_surface,
         "recorded_continuity_handoff_file",
-        compat_fields=("recorded_session_resume_file",),
+        compat_surface=compat_resume_surface,
+        compat_keys=("recorded_session_resume_file",),
     )
     if recorded_continuity_handoff_file is None:
-        recorded_continuity_handoff_file = _legacy_text_field(payload, compat_resume_surface, "recorded_session_resume_file")
-    missing_continuity_handoff_file = _canonical_text_field(
+        recorded_continuity_handoff_file = lookup_resume_surface_text(
+            payload,
+            "recorded_session_resume_file",
+            compat_surface=compat_resume_surface,
+            prefer_compat=True,
+        )
+    missing_continuity_handoff_file = lookup_resume_surface_text(
         payload,
-        compat_resume_surface,
         "missing_continuity_handoff_file",
-        compat_fields=("missing_session_resume_file",),
+        compat_surface=compat_resume_surface,
+        compat_keys=("missing_session_resume_file",),
     )
     if missing_continuity_handoff_file is None:
-        missing_continuity_handoff_file = _legacy_text_field(payload, compat_resume_surface, "missing_session_resume_file")
-    active_resume_pointer = _canonical_text_field(
+        missing_continuity_handoff_file = lookup_resume_surface_text(
+            payload,
+            "missing_session_resume_file",
+            compat_surface=compat_resume_surface,
+            prefer_compat=True,
+        )
+    active_resume_pointer = lookup_resume_surface_text(
         payload,
-        compat_resume_surface,
         "active_resume_pointer",
-        compat_fields=("execution_resume_file",),
+        compat_surface=compat_resume_surface,
+        compat_keys=("execution_resume_file",),
     )
     if active_resume_pointer is None:
-        active_resume_pointer = _legacy_text_field(payload, compat_resume_surface, "execution_resume_file")
+        active_resume_pointer = lookup_resume_surface_text(
+            payload,
+            "execution_resume_file",
+            compat_surface=compat_resume_surface,
+            prefer_compat=True,
+        )
     active_resume_kind = _derive_active_resume_kind(
         payload=payload,
         compat_surface=compat_resume_surface,
@@ -736,13 +679,31 @@ def build_recovery_advice(
     workspace_matches_project_root = workspace_root_resolved is None or workspace_root_resolved == (
         project_root_resolved or normalized_cwd.as_posix()
     )
-    active_bounded_segment = _canonical_mapping_field(payload, compat_resume_surface, "active_bounded_segment")
-    legacy_active_execution_segment = _legacy_mapping_field(payload, compat_resume_surface, "active_execution_segment")
+    active_bounded_segment = lookup_resume_surface_mapping(
+        payload,
+        "active_bounded_segment",
+        compat_surface=compat_resume_surface,
+    )
+    legacy_active_execution_segment = lookup_resume_surface_mapping(
+        payload,
+        "active_execution_segment",
+        compat_surface=compat_resume_surface,
+        prefer_compat=True,
+    )
     if active_bounded_segment is None and active_resume_kind == "bounded_segment" and legacy_active_execution_segment is not None:
         active_bounded_segment = legacy_active_execution_segment
-    derived_execution_head = _canonical_mapping_field(payload, compat_resume_surface, "derived_execution_head")
+    derived_execution_head = lookup_resume_surface_mapping(
+        payload,
+        "derived_execution_head",
+        compat_surface=compat_resume_surface,
+    )
     if derived_execution_head is None:
-        derived_execution_head = _legacy_mapping_field(payload, compat_resume_surface, "current_execution")
+        derived_execution_head = lookup_resume_surface_mapping(
+            payload,
+            "current_execution",
+            compat_surface=compat_resume_surface,
+            prefer_compat=True,
+        )
 
     has_bounded_segment_candidate = _has_usable_candidate(segment_candidates, kind="bounded_segment")
     execution_resumable_flag = _bool_field(payload, "execution_resumable")

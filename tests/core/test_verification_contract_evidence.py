@@ -443,7 +443,7 @@ def test_validate_frontmatter_verification_rejects_passed_proof_claim_with_stale
 ) -> None:
     phase_dir, _ = _write_proof_contract_phase(tmp_path)
     verification_path = phase_dir / "01-VERIFICATION.md"
-    stale_statement_sha = hashlib.sha256("For all x > 0, F(x, 0) >= 0.".encode("utf-8")).hexdigest()
+    stale_statement_sha = hashlib.sha256(b"For all x > 0, F(x, 0) >= 0.").hexdigest()
     verification_path.write_text(
         _proof_verification_content(
             proof_audit_block=_proof_audit_block(

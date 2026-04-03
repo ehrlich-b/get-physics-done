@@ -17,6 +17,7 @@ from gpd.contracts import (
     contract_from_data,
     contract_from_data_salvage,
     normalize_contract_results_input,
+    parse_contract_results_data_strict,
     parse_project_contract_data_salvage,
     parse_project_contract_data_strict,
 )
@@ -1259,6 +1260,38 @@ def test_contract_results_strict_mode_rejects_scalar_proof_audit_string_lists() 
         match=re.escape("claims.claim-main.proof_audit.covered_parameter_symbols must be a list, not str"),
     ):
         ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
+
+
+def test_parse_contract_results_data_strict_matches_contract_results_model_validation() -> None:
+    payload = {
+        "claims": {
+            "claim-main": {
+                "status": "passed",
+                "linked_ids": ["deliv-main"],
+            }
+        },
+        "references": {
+            "ref-main": {
+                "status": "completed",
+                "completed_actions": ["read", "compare"],
+                "missing_actions": [],
+            }
+        },
+        "uncertainty_markers": {
+            "weakest_anchors": ["anchor-main"],
+            "disconfirming_observations": ["observation-main"],
+        },
+    }
+
+    parsed = parse_contract_results_data_strict(payload)
+    baseline = ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
+
+    assert parsed.model_dump() == baseline.model_dump()
+
+
+def test_parse_contract_results_data_strict_rejects_non_mapping_input() -> None:
+    with pytest.raises(ValueError, match="contract_results must be an object"):
+        parse_contract_results_data_strict("not-a-dict")
 
 
 def test_contract_results_non_strict_mode_is_rejected() -> None:

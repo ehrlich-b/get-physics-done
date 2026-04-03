@@ -710,6 +710,7 @@ class TestSkillsServerIntegration:
         assert "review-contract:" not in result["content"]
         assert "inject `review_contract` alongside `content`" in result["loading_hint"]
 
+
     def test_get_skill_resume_work_surfaces_project_reentry_metadata(self):
         from gpd.mcp.servers.skills_server import get_skill
 

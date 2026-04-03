@@ -16,7 +16,11 @@ import sys
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
 
-from gpd.adapters.runtime_catalog import get_runtime_descriptor, resolve_global_config_dir
+from gpd.adapters.runtime_catalog import (
+    get_runtime_descriptor,
+    get_shared_install_metadata,
+    resolve_global_config_dir,
+)
 from gpd.adapters.tool_names import CONTEXTUAL_TOOL_REFERENCE_NAMES
 from gpd.core.constants import HOME_DATA_DIR_NAME
 from gpd.registry import render_review_contract_section_from_frontmatter
@@ -25,14 +29,16 @@ from gpd.registry import render_review_contract_section_from_frontmatter
 # Constants
 # ---------------------------------------------------------------------------
 
-PATCHES_DIR_NAME = "gpd-local-patches"
-MANIFEST_NAME = "gpd-file-manifest.json"
+_SHARED_INSTALL_METADATA = get_shared_install_metadata()
+
+PATCHES_DIR_NAME = _SHARED_INSTALL_METADATA.patches_dir_name
+MANIFEST_NAME = _SHARED_INSTALL_METADATA.manifest_name
 MAX_INCLUDE_EXPANSION_DEPTH = 10
 COMMANDS_DIR_NAME = "commands"
 FLAT_COMMANDS_DIR_NAME = "command"
 AGENTS_DIR_NAME = "agents"
 HOOKS_DIR_NAME = "hooks"
-GPD_INSTALL_DIR_NAME = "get-physics-done"
+GPD_INSTALL_DIR_NAME = _SHARED_INSTALL_METADATA.install_root_dir_name
 CACHE_DIR_NAME = "cache"
 UPDATE_CACHE_FILENAME = "gpd-update-check.json"
 
@@ -226,7 +232,7 @@ def build_runtime_install_repair_command(
     """Return the public reinstall/update command for one runtime install."""
     from gpd.adapters import get_adapter
 
-    base = "npx -y get-physics-done"
+    base = get_shared_install_metadata().bootstrap_command
     try:
         command = get_adapter(runtime).update_command
     except KeyError:
@@ -247,6 +253,14 @@ def _replace_runtime_placeholders(
     install_scope: str | None = None,
 ) -> str:
     """Replace runtime-specific placeholders in installed prompt content."""
+    shared_install = get_shared_install_metadata()
+    content = content.replace("{GPD_BOOTSTRAP_COMMAND}", shared_install.bootstrap_command)
+    content = content.replace("{GPD_RELEASE_LATEST_URL}", shared_install.latest_release_url)
+    content = content.replace("{GPD_RELEASES_API_URL}", shared_install.releases_api_url)
+    content = content.replace("{GPD_RELEASES_PAGE_URL}", shared_install.releases_page_url)
+    content = content.replace("{GPD_INSTALL_ROOT_DIR_NAME}", shared_install.install_root_dir_name)
+    content = content.replace("{GPD_PATCHES_DIR_NAME}", shared_install.patches_dir_name)
+
     scope_flag = _normalize_install_scope_flag(install_scope)
     if scope_flag:
         content = content.replace("{GPD_INSTALL_SCOPE_FLAG}", scope_flag)
@@ -283,8 +297,8 @@ def replace_placeholders(
 
     Used by all adapters during install to rewrite .md file references.
     """
-    content = content.replace("{GPD_INSTALL_DIR}", path_prefix + "get-physics-done")
-    content = content.replace("{GPD_AGENTS_DIR}", path_prefix + "agents")
+    content = content.replace("{GPD_INSTALL_DIR}", path_prefix + GPD_INSTALL_DIR_NAME)
+    content = content.replace("{GPD_AGENTS_DIR}", path_prefix + AGENTS_DIR_NAME)
     return _replace_runtime_placeholders(content, path_prefix, runtime, install_scope)
 
 
@@ -294,6 +308,7 @@ def _materialize_workflow_paths(
     target_dir: Path,
     runtime: str,
     install_scope: str | None,
+    explicit_target: bool = False,
 ) -> str:
     """Rewrite workflow bootstrap variables to authoritative absolute paths."""
     resolved_target = target_dir.expanduser().resolve(strict=False)
@@ -305,15 +320,27 @@ def _materialize_workflow_paths(
     descriptor = get_runtime_descriptor(runtime)
     global_config_dir = resolve_global_config_dir(descriptor, home=Path.home()).as_posix()
     relative_config_prefix = f"./{descriptor.config_dir_name}/"
+    update_command = build_runtime_install_repair_command(
+        runtime,
+        install_scope=install_scope,
+        target_dir=resolved_target,
+        explicit_target=explicit_target,
+    )
+    patch_meta = f"{config_dir}/{PATCHES_DIR_NAME}/backup-meta.json"
 
     replacements = {
         "GPD_INSTALL_DIR": install_dir,
         "GPD_CONFIG_DIR": config_dir,
         "GPD_GLOBAL_CONFIG_DIR": global_config_dir,
-        "PATCHES_DIR": f"{config_dir}/gpd-local-patches",
-        "GLOBAL_PATCHES_DIR": f"{global_config_dir}/gpd-local-patches",
+        "GPD_UPDATE_COMMAND": update_command,
+        "GPD_PATCH_META": patch_meta,
+        "GPD_PATCHES_DIR": f"{config_dir}/{PATCHES_DIR_NAME}",
+        "GPD_GLOBAL_PATCHES_DIR": f"{global_config_dir}/{PATCHES_DIR_NAME}",
+        "PATCHES_DIR": f"{config_dir}/{PATCHES_DIR_NAME}",
+        "GLOBAL_PATCHES_DIR": f"{global_config_dir}/{PATCHES_DIR_NAME}",
     }
     for var, value in replacements.items():
+        content = content.replace(f"{{{var}}}", value)
         content = re.sub(
             rf"(?m)^(?P<indent>\s*){re.escape(var)}=\"[^\"]*\"$",
             lambda match, replacement=value, name=var: f'{match.group("indent")}{name}="{replacement}"',
@@ -872,6 +899,7 @@ def compile_markdown_for_runtime(
     install_scope: str | None = None,
     src_root: str | Path | None = None,
     workflow_target_dir: Path | None = None,
+    explicit_target: bool = False,
     protect_agent_prompt_body: bool = False,
 ) -> str:
     """Compile canonical markdown into a runtime-specific installed form.
@@ -906,6 +934,7 @@ def compile_markdown_for_runtime(
             target_dir=workflow_target_dir,
             runtime=runtime,
             install_scope=install_scope,
+            explicit_target=explicit_target,
         )
 
     return _inject_review_contract_prompt_from_frontmatter(content)
@@ -1107,6 +1136,7 @@ def copy_with_path_replacement(
     *,
     workflow_paths: bool = False,
     workflow_target_dir: Path | None = None,
+    explicit_target: bool = False,
 ) -> None:
     """Safely copy *src_dir* to *dest_dir* with path replacement in ``.md`` files.
 
@@ -1147,6 +1177,7 @@ def copy_with_path_replacement(
             markdown_transform=markdown_transform,
             workflow_paths=workflow_paths,
             workflow_target_dir=workflow_target_dir,
+            explicit_target=explicit_target,
         )
 
         # Swap into place
@@ -1183,6 +1214,7 @@ def _copy_dir_contents(
     *,
     workflow_paths: bool = False,
     workflow_target_dir: Path | None = None,
+    explicit_target: bool = False,
 ) -> None:
     """Recursively copy directory contents with runtime translation in .md files.
 
@@ -1205,6 +1237,7 @@ def _copy_dir_contents(
                 markdown_transform=markdown_transform,
                 workflow_paths=workflow_paths,
                 workflow_target_dir=workflow_target_dir,
+                explicit_target=explicit_target,
             )
         elif entry.suffix == ".md":
             content = entry.read_text(encoding="utf-8")
@@ -1216,6 +1249,7 @@ def _copy_dir_contents(
                     target_dir=workflow_target_dir or target_dir,
                     runtime=runtime,
                     install_scope=install_scope,
+                    explicit_target=explicit_target,
                 )
             content = _inject_review_contract_prompt_from_frontmatter(content)
             dest.write_text(content, encoding="utf-8")
@@ -1289,7 +1323,7 @@ def write_manifest(
     Returns the manifest dict.
     """
     config_dir = Path(config_dir)
-    gpd_dir = config_dir / "get-physics-done"
+    gpd_dir = config_dir / GPD_INSTALL_DIR_NAME
     commands_dir = config_dir / "commands" / "gpd"
     agents_dir = config_dir / "agents"
     hooks_dir = config_dir / "hooks"
@@ -1315,9 +1349,9 @@ def write_manifest(
             manifest["explicit_target"] = not _paths_equal(config_dir, default_target)
     files: dict[str, str] = {}
 
-    # get-physics-done/
+    # Managed install root
     for rel, h in generate_manifest(gpd_dir).items():
-        files["get-physics-done/" + rel] = h
+        files[f"{GPD_INSTALL_DIR_NAME}/" + rel] = h
 
     # commands/gpd/
     if commands_dir.exists():
@@ -1421,9 +1455,9 @@ def _managed_install_paths(
     """Return the current managed install paths when a manifest cannot be trusted."""
     managed_paths: list[str] = []
 
-    gpd_dir = config_dir / "get-physics-done"
+    gpd_dir = config_dir / GPD_INSTALL_DIR_NAME
     for rel in generate_manifest(gpd_dir).keys():
-        managed_paths.append(f"get-physics-done/{rel}")
+        managed_paths.append(f"{GPD_INSTALL_DIR_NAME}/{rel}")
 
     commands_dir = config_dir / "commands" / "gpd"
     for rel in generate_manifest(commands_dir).keys():
@@ -1470,7 +1504,7 @@ def save_local_patches(
     """Detect user-modified GPD files and back them up before overwriting.
 
     Compares current files against the install manifest.  Modified files are
-    copied to ``gpd-local-patches/`` with backup metadata.
+    copied to the managed patches directory with backup metadata.
 
     Returns a list of relative paths that were backed up.
     """
@@ -1617,7 +1651,8 @@ def validate_package_integrity(gpd_root: Path) -> None:
     for required in ("commands", "agents", "hooks", "specs"):
         if not (gpd_root / required).is_dir():
             raise FileNotFoundError(
-                f"Package integrity check failed: missing {required}/. Try reinstalling: npx -y get-physics-done"
+                "Package integrity check failed: "
+                f"missing {required}/. Try reinstalling: {get_shared_install_metadata().bootstrap_command}"
             )
 
 
@@ -1643,7 +1678,7 @@ def pre_install_cleanup(
 
     save_local_patches(target_dir, skills_dir=skills_dir)
 
-    gpd_dir = target_dir / "get-physics-done"
+    gpd_dir = target_dir / GPD_INSTALL_DIR_NAME
     if gpd_dir.exists():
         _shutil.rmtree(gpd_dir)
 
@@ -1660,13 +1695,15 @@ def install_gpd_content(
     runtime: str,
     install_scope: str | None = None,
     markdown_transform: Callable[[str, str, str | None], str] | None = None,
+    *,
+    explicit_target: bool = False,
 ) -> list[str]:
-    """Install get-physics-done/ content from specs/ subdirectories.
+    """Install the managed GPD content tree from specs/ subdirectories.
 
     Copies references/, templates/, workflows/ with path replacement.
     Returns list of failure descriptions (empty on success).
     """
-    gpd_dest = target_dir / "get-physics-done"
+    gpd_dest = target_dir / GPD_INSTALL_DIR_NAME
     gpd_dest.mkdir(parents=True, exist_ok=True)
 
     for subdir_name in GPD_CONTENT_DIRS:
@@ -1681,9 +1718,10 @@ def install_gpd_content(
                 markdown_transform=markdown_transform,
                 workflow_paths=subdir_name == "workflows",
                 workflow_target_dir=target_dir,
+                explicit_target=explicit_target,
             )
 
-    if verify_installed(gpd_dest, "get-physics-done"):
+    if verify_installed(gpd_dest, GPD_INSTALL_DIR_NAME):
         subdir_info = []
         for subdir in GPD_CONTENT_DIRS:
             subdir_path = gpd_dest / subdir
@@ -1695,10 +1733,10 @@ def install_gpd_content(
             protocol_count = sum(1 for f in protocols_path.rglob("*") if f.is_file())
             if protocol_count:
                 subdir_info.append(f"protocols: {protocol_count}")
-        _install_logger.info("Installed get-physics-done (%s)", ", ".join(subdir_info))
+        _install_logger.info("Installed %s (%s)", GPD_INSTALL_DIR_NAME, ", ".join(subdir_info))
         return []
 
-    return ["get-physics-done"]
+    return [GPD_INSTALL_DIR_NAME]
 
 
 def write_version_file(gpd_dest: Path, version: str) -> list[str]:

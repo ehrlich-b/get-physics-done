@@ -1020,6 +1020,7 @@ def _install_commands_as_toml(
     install_scope: str | None = None,
     *,
     bridge_command: str,
+    explicit_target: bool = False,
 ) -> None:
     """Install commands as .toml files in nested ``commands/gpd/`` structure.
 
@@ -1042,6 +1043,7 @@ def _install_commands_as_toml(
         gpd_src_root,
         install_scope,
         bridge_command=bridge_command,
+        explicit_target=explicit_target,
     )
 
 
@@ -1055,6 +1057,7 @@ def _copy_commands_recursive(
     install_scope: str | None = None,
     *,
     bridge_command: str,
+    explicit_target: bool = False,
 ) -> None:
     """Recursively copy commands, converting .md to .toml for Gemini."""
     for entry in sorted(src_dir.iterdir()):
@@ -1070,6 +1073,7 @@ def _copy_commands_recursive(
                 gpd_src_root,
                 install_scope,
                 bridge_command=bridge_command,
+                explicit_target=explicit_target,
             )
         elif entry.suffix == ".md":
             content = compile_markdown_for_runtime(
@@ -1079,6 +1083,7 @@ def _copy_commands_recursive(
                 install_scope=install_scope,
                 src_root=gpd_src_root,
                 workflow_target_dir=workflow_target_dir,
+                explicit_target=explicit_target,
             )
             content = process_attribution(content, attribution)
             content = strip_sub_tags(content)
@@ -1162,6 +1167,7 @@ class GeminiAdapter(RuntimeAdapter):
             attribution=self.get_commit_attribution(),
             install_scope=self._current_install_scope_flag(),
             bridge_command=bridge_command,
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
         if verify_installed(commands_dest, "commands/gpd"):
             logger.info("Installed commands/gpd (TOML format)")
@@ -1211,6 +1217,7 @@ class GeminiAdapter(RuntimeAdapter):
                 self.runtime_name,
                 install_scope=self._current_install_scope_flag(),
                 markdown_transform=_translate,
+                explicit_target=getattr(self, "_install_explicit_target", False),
             )
         )
 

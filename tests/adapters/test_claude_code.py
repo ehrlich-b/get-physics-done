@@ -11,6 +11,10 @@ import pytest
 from gpd.adapters.claude_code import ClaudeCodeAdapter
 from gpd.adapters.install_utils import build_runtime_cli_bridge_command
 from gpd.version import __version__, version_for_gpd_root
+from tests.adapters.review_contract_test_utils import (
+    assert_review_contract_prompt_surface,
+    compile_review_contract_fixture_for_runtime,
+)
 
 WOLFRAM_MANAGED_SERVER_KEY = "gpd-wolfram"
 WOLFRAM_MCP_API_KEY_ENV_VAR = "GPD_WOLFRAM_MCP_API_KEY"
@@ -92,6 +96,11 @@ class TestProperties:
 
 class TestInstall:
     """Test full install flow."""
+
+    def test_compile_markdown_prepends_review_contract_to_prompt(self) -> None:
+        content = compile_review_contract_fixture_for_runtime("claude-code")
+
+        assert_review_contract_prompt_surface(content)
 
     def test_install_creates_all_dirs(self, adapter: ClaudeCodeAdapter, gpd_root: Path, tmp_path: Path) -> None:
         target = tmp_path / "target" / ".claude"

@@ -577,11 +577,12 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "phase_artifacts" in verify_work.review_contract.preflight_checks
 
     assert respond_to_referees.review_contract is not None
-    assert "GPD/paper/REFEREE_RESPONSE{round_suffix}.md" in respond_to_referees.review_contract.required_outputs
+    assert "GPD/review/REFEREE_RESPONSE{round_suffix}.md" in respond_to_referees.review_contract.required_outputs
     assert "GPD/AUTHOR-RESPONSE{round_suffix}.md" in respond_to_referees.review_contract.required_outputs
-    assert "structured referee issues" in respond_to_referees.review_contract.required_evidence
-    assert "peer-review review ledger when available" in respond_to_referees.review_contract.required_evidence
-    assert "peer-review decision artifacts when available" in respond_to_referees.review_contract.required_evidence
+    assert respond_to_referees.review_contract.required_evidence == [
+        "existing manuscript",
+        "referee report source when provided as a path",
+    ]
     assert "gpd:peer-review" in registry.list_review_commands()
     assert "gpd:write-paper" in registry.list_review_commands()
     assert "gpd:respond-to-referees" in registry.list_review_commands()
@@ -714,7 +715,7 @@ def test_review_workflows_keep_round_suffix_artifacts_visible_and_anchor_respons
     assert "${PAPER_DIR}/{section}.tex" in respond
     assert "${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json" in respond
     assert "${PAPER_DIR}/response-letter.tex" in respond
-    assert "GPD/paper/REFEREE_RESPONSE{round_suffix}.md" in respond
+    assert "GPD/review/REFEREE_RESPONSE{round_suffix}.md" in respond
     assert "GPD/AUTHOR-RESPONSE{round_suffix}.md" in respond
 
     assert "CLAIMS{round_suffix}.json" in write_paper
@@ -745,6 +746,36 @@ def test_publication_commands_accept_documented_manuscript_layouts() -> None:
     assert "manuscript proof-review status before packaging begins" in arxiv
     assert "resolve only from `paper/`, `manuscript/`, or `draft/`" in arxiv
     assert 'find . -name "main.tex"' not in arxiv
+
+
+def test_proof_contract_prompts_surface_explicit_theorem_fields_and_review_bindings() -> None:
+    plan_phase = (WORKFLOWS_DIR / "plan-phase.md").read_text(encoding="utf-8")
+    peer_review = (WORKFLOWS_DIR / "peer-review.md").read_text(encoding="utf-8")
+    check_proof = (AGENTS_DIR / "gpd-check-proof.md").read_text(encoding="utf-8")
+
+    assert "claims[].claim_kind" in plan_phase
+    assert "claims[].parameters[]" in plan_phase
+    assert "claims[].hypotheses[]" in plan_phase
+    assert "claims[].quantifiers[]" in plan_phase
+    assert "claims[].conclusion_clauses[]" in plan_phase
+    assert "claims[].proof_deliverables[]" in plan_phase
+    assert "proof_hypothesis_coverage" in plan_phase
+    assert "proof_parameter_coverage" in plan_phase
+    assert "proof_quantifier_domain" in plan_phase
+    assert "claim_to_proof_alignment" in plan_phase
+    assert "lemma_dependency_closure" in plan_phase
+    assert "counterexample_search" in plan_phase
+    assert "schema lacks dedicated theorem fields" not in plan_phase
+
+    assert "the `gpd-check-proof` task must carry the active `manuscript_path`, `manuscript_sha256`, `round`, theorem-bearing `claim_ids`, and `proof_artifact_paths`" in peer_review
+    assert "copy exactly from `GPD/review/CLAIMS{round_suffix}.json`" in peer_review
+    assert "theorem-binding frontmatter (`claim_ids` and non-empty `proof_artifact_paths`)" in peer_review
+    assert "the Stage 3 math artifact must emit exactly one `proof_audits[]` entry for each reviewed theorem-bearing claim" in peer_review
+    assert "every `proof_audits[].claim_id` must also appear in `claims_reviewed`" in peer_review
+
+    assert "must exactly match the active theorem-bearing Stage 1 claim IDs under review" in check_proof
+    assert "must be non-empty, every entry must resolve to a readable proof artifact" in check_proof
+    assert "must exactly bind to the active review context supplied by the orchestrator" in check_proof
 
 
 def test_write_paper_and_arxiv_submission_keep_the_build_boundary_explicit() -> None:
@@ -1120,7 +1151,7 @@ def test_revision_and_audit_workflows_verify_artifacts_before_trusting_success_t
     assert "Use `**Evidence:**` blocks for rebuttals" in respond
     assert "verify the promised artifacts before trusting the handoff text" in respond
     assert "If the agent claimed success but the files did not change, treat that section as failed" in respond
-    assert "Re-open `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/paper/REFEREE_RESPONSE{round_suffix}.md`" in respond
+    assert "Re-open `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/review/REFEREE_RESPONSE{round_suffix}.md`" in respond
 
     assert "Verify the promised referee artifacts before trusting the handoff text" in audit
     assert "Confirm `GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.md` exists" in audit

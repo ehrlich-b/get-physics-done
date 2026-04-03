@@ -374,6 +374,8 @@ def copy_flattened_commands(
     gpd_src_root: Path | None = None,
     install_scope: str | None = None,
     bridge_command: str | None = None,
+    *,
+    explicit_target: bool = False,
 ) -> int:
     """Copy commands to a flat structure for OpenCode.
 
@@ -405,6 +407,7 @@ def copy_flattened_commands(
                 gpd_src_root,
                 install_scope,
                 bridge_command,
+                explicit_target=explicit_target,
             )
         elif entry.name.endswith(".md"):
             base_name = entry.stem
@@ -418,6 +421,7 @@ def copy_flattened_commands(
                 install_scope=install_scope,
                 src_root=gpd_src_root,
                 workflow_target_dir=workflow_target_dir,
+                explicit_target=explicit_target,
             )
             if bridge_command:
                 content = _rewrite_gpd_cli_invocations(content, bridge_command)
@@ -1029,6 +1033,7 @@ class OpenCodeAdapter(RuntimeAdapter):
             gpd_root / "specs",
             self._current_install_scope_flag(),
             bridge_command,
+            explicit_target=getattr(self, "_install_explicit_target", False),
         )
 
     def _install_content(self, gpd_root: Path, target_dir: Path, path_prefix: str, failures: list[str]) -> None:
@@ -1050,6 +1055,7 @@ class OpenCodeAdapter(RuntimeAdapter):
                 self.runtime_name,
                 install_scope=self._current_install_scope_flag(),
                 markdown_transform=_translate,
+                explicit_target=getattr(self, "_install_explicit_target", False),
             )
         )
         skill_dest = target_dir / "get-physics-done"

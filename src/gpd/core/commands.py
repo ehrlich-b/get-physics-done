@@ -15,7 +15,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from gpd.contracts import ComparisonVerdict, ContractResults, normalize_contract_results_input
+from gpd.contracts import ComparisonVerdict, ContractResults, parse_contract_results_data_strict
 from gpd.core.constants import (
     PHASES_DIR_NAME,
     PLAN_SUFFIX,
@@ -306,12 +306,10 @@ def _extract_key_files(value: object) -> tuple[list[str], list[str], list[str]]:
 
 def _parse_contract_results(value: object, summary_path: str) -> ContractResults | None:
     """Validate the optional contract-results block in a summary."""
-    if value is None:
+    if value is _MISSING:
         return None
-    if not isinstance(value, dict):
-        raise ValidationError(f"Invalid contract_results in {summary_path}: expected an object")
     try:
-        return ContractResults.model_validate(normalize_contract_results_input(value, strict=True))
+        return parse_contract_results_data_strict(value)
     except Exception as exc:  # pragma: no cover - pydantic version specifics
         raise ValidationError(f"Invalid contract_results in {summary_path}: {exc}") from exc
 
@@ -375,7 +373,7 @@ def cmd_summary_extract(
     raw_key_files = fm.get("key-files")
     key_files, key_files_created, key_files_modified = _extract_key_files(raw_key_files)
     contract_results = _parse_contract_results(
-        fm.get("contract_results"),
+        fm["contract_results"] if "contract_results" in fm else _MISSING,
         summary_path,
     )
     comparison_verdicts = _parse_comparison_verdicts(fm.get("comparison_verdicts"), summary_path)
@@ -829,3 +827,4 @@ def cmd_validate_return(file_path: Path) -> ValidateReturnResult:
         fields=fields,
         warning_count=len(warnings),
     )
+_MISSING = object()

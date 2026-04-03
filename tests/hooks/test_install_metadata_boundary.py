@@ -292,3 +292,5 @@ def test_install_metadata_keeps_manifest_boundary_free_of_install_utils_imports(
     source = inspect.getsource(install_metadata)
 
     assert "from gpd.adapters.install_utils import" not in source
+    assert "get_managed_install_surface_policy" in source
+    assert "get_shared_install_metadata" in source

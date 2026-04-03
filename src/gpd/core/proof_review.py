@@ -9,15 +9,16 @@ from pathlib import Path
 
 from pydantic import ValidationError as PydanticValidationError
 
-from gpd.core.referee_policy import validate_stage_review_artifact_alignment
 from gpd.core.frontmatter import FrontmatterParseError, extract_frontmatter
 from gpd.core.manuscript_artifacts import resolve_current_manuscript_entrypoint
+from gpd.core.referee_policy import validate_stage_review_artifact_alignment
 from gpd.core.reproducibility import compute_sha256
 from gpd.mcp.paper.review_artifacts import read_claim_index, read_stage_review_report
 
 __all__ = [
     "MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME",
     "ProofReviewStatus",
+    "manuscript_has_theorem_bearing_review_anchor",
     "manuscript_proof_review_manifest_path",
     "phase_proof_review_manifest_path",
     "resolve_manuscript_proof_review_status",
@@ -114,6 +115,25 @@ def manuscript_proof_review_manifest_path(manuscript_entrypoint: Path) -> Path:
     return manuscript_entrypoint.parent / MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME
 
 
+def manuscript_has_theorem_bearing_review_anchor(
+    project_root: Path,
+    manuscript_entrypoint: Path | None = None,
+) -> bool:
+    """Return whether the latest matching staged math review marks the manuscript as theorem-bearing."""
+
+    entrypoint = manuscript_entrypoint or resolve_current_manuscript_entrypoint(project_root, allow_markdown=True)
+    if entrypoint is None:
+        return False
+    anchor = _latest_matching_math_review_anchor(project_root, entrypoint)
+    return bool(anchor and anchor.proof_bearing)
+
+
+def _resolve_review_artifacts(project_root: Path, artifact_paths: tuple[str, ...]) -> tuple[Path, ...]:
+    """Resolve review artifact paths against the project root."""
+
+    return tuple(_resolve_review_manuscript_path(project_root, path) for path in artifact_paths if path.strip())
+
+
 def resolve_phase_proof_review_status(
     project_root: Path,
     phase_dir: Path | None,
@@ -204,6 +224,10 @@ def resolve_manuscript_proof_review_status(
         watched_files,
         review_anchor.stage_artifact,
         review_anchor.claim_index_artifact,
+    )
+    watched_files = _with_extra_watched_files(
+        watched_files,
+        _resolve_review_artifacts(project_root, review_anchor.proof_artifact_paths),
     )
     if review_anchor.proof_bearing:
         proof_redteam_path = project_root / "GPD" / "review" / f"PROOF-REDTEAM{review_anchor.round_suffix}.md"

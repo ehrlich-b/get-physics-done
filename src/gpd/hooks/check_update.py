@@ -10,14 +10,16 @@ import time
 from pathlib import Path
 
 from gpd.adapters.install_utils import CACHE_DIR_NAME, GPD_INSTALL_DIR_NAME, UPDATE_CACHE_FILENAME
+from gpd.adapters.runtime_catalog import get_shared_install_metadata
 from gpd.core.constants import ENV_GPD_DEBUG
 from gpd.hooks.install_metadata import config_dir_has_complete_install
 
+_SHARED_INSTALL_METADATA = get_shared_install_metadata()
 SECONDS_PER_HOUR = 3600
 UPDATE_CHECK_TTL_SECONDS = 12 * SECONDS_PER_HOUR
 UPDATE_CHECK_INFLIGHT_TTL_SECONDS = 5 * 60
-NPM_PACKAGE_NAME = "get-physics-done"
-NPM_LATEST_RELEASE_URL = f"https://registry.npmjs.org/{NPM_PACKAGE_NAME}/latest"
+NPM_PACKAGE_NAME = _SHARED_INSTALL_METADATA.bootstrap_package_name
+NPM_LATEST_RELEASE_URL = _SHARED_INSTALL_METADATA.latest_release_url
 _VERSION_RELEASE_RE = re.compile(r"^\s*v?(?P<release>\d+(?:\.\d+)*)(?P<suffix>.*)$")
 
 

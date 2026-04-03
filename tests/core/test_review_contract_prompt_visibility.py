@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
+import re
 from pathlib import Path
 
 import pytest
 
 from gpd import registry
 from gpd.core.review_contract_prompt import (
-    extract_review_contract_frontmatter_block,
+    normalize_review_contract_payload,
     render_review_contract_prompt,
 )
 
@@ -166,35 +167,81 @@ def test_review_contract_renderer_rejects_conflicting_wrapper_aliases_when_secon
         )
 
 
-def test_review_contract_frontmatter_extractor_rejects_underscore_alias() -> None:
-    frontmatter = (
-        "name: gpd:test\n"
-        "review_contract:\n"
-        "  schema_version: 1\n"
-        "  review_mode: review\n"
+def test_review_contract_normalizer_accepts_singleton_string_list_fields() -> None:
+    payload = normalize_review_contract_payload(
+        {
+            "schema_version": 1,
+            "review_mode": "publication",
+            "required_outputs": "GPD/review/PROOF-REDTEAM{round_suffix}.md",
+            "preflight_checks": "manuscript",
+            "conditional_requirements": [
+                {
+                    "when": "theorem-bearing claims are present",
+                    "required_outputs": "GPD/review/PROOF-REDTEAM{round_suffix}.md",
+                }
+            ],
+        }
     )
 
-    with pytest.raises(ValueError, match="must use the canonical frontmatter key 'review-contract'"):
-        extract_review_contract_frontmatter_block(frontmatter)
+    assert payload["required_outputs"] == ["GPD/review/PROOF-REDTEAM{round_suffix}.md"]
+    assert payload["preflight_checks"] == ["manuscript"]
+    assert payload["conditional_requirements"] == [
+        {
+            "when": "theorem-bearing claims are present",
+            "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            "required_evidence": [],
+            "blocking_conditions": [],
+            "stage_artifacts": [],
+        }
+    ]
 
 
-def test_review_contract_frontmatter_extractor_preserves_nested_conditional_requirements() -> None:
-    frontmatter = (
-        "name: gpd:test\n"
-        "review-contract:\n"
-        "  schema_version: 1\n"
-        "  review_mode: publication\n"
-        "  conditional_requirements:\n"
-        "    - when: theorem-bearing claims are present\n"
-        "      required_outputs:\n"
-        "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
-    )
+def test_review_contract_prompt_and_registry_share_singleton_string_list_normalization() -> None:
+    payload = {
+        "schema_version": 1,
+        "review_mode": "publication",
+        "required_outputs": "GPD/REFEREE-REPORT{round_suffix}.md",
+        "preflight_checks": "manuscript",
+        "conditional_requirements": [
+            {
+                "when": "theorem-bearing claims are present",
+                "required_outputs": "GPD/review/PROOF-REDTEAM{round_suffix}.md",
+            }
+        ],
+    }
 
-    block = extract_review_contract_frontmatter_block(frontmatter)
+    normalized = normalize_review_contract_payload(payload)
+    parsed = registry._parse_review_contract(payload, "gpd:test")
 
-    assert "conditional_requirements:" in block
-    assert "when: theorem-bearing claims are present" in block
-    assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in block
+    assert parsed is not None
+    assert dataclasses.asdict(parsed) == normalized
+
+
+@pytest.mark.parametrize(
+    ("payload", "error_fragment"),
+    [
+        (
+            {"schema_version": 1, "review_mode": "publication", "preflight_checks": ["legacy_gate"]},
+            "preflight_checks",
+        ),
+        (
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": [{"when": "proof-bearing work is present"}],
+            },
+            "conditional_requirements[0].when",
+        ),
+    ],
+)
+def test_review_contract_prompt_and_registry_reject_the_same_invalid_payloads(
+    payload: dict[str, object], error_fragment: str
+) -> None:
+    with pytest.raises(ValueError, match=re.escape(error_fragment)):
+        normalize_review_contract_payload(payload)
+
+    with pytest.raises(ValueError, match=re.escape(error_fragment)):
+        registry._parse_review_contract(payload, "gpd:test")
 
 
 def test_review_contract_renderer_rejects_incomplete_payloads() -> None:
@@ -205,6 +252,11 @@ def test_review_contract_renderer_rejects_incomplete_payloads() -> None:
 def test_review_contract_renderer_rejects_empty_wrapped_payloads() -> None:
     with pytest.raises(ValueError, match="review contract must set schema_version, review_mode"):
         render_review_contract_prompt({"review_contract": {}})
+
+
+def test_review_contract_renderer_rejects_explicit_null_wrapped_payloads() -> None:
+    with pytest.raises(ValueError, match="review contract must set schema_version, review_mode"):
+        render_review_contract_prompt({"review_contract": None})
 
 
 def test_review_contract_renderer_rejects_non_integer_schema_version() -> None:
@@ -260,6 +312,28 @@ def test_review_contract_renderer_accepts_common_bool_and_int_string_forms() -> 
 
     assert "requires_fresh_context_per_stage: false" in section
     assert "max_review_rounds: 2" in section
+
+
+@pytest.mark.parametrize(
+    ("field_name", "value", "message"),
+    [
+        ("requires_fresh_context_per_stage", "   ", "requires_fresh_context_per_stage must be a boolean"),
+        ("max_review_rounds", "   ", "max_review_rounds must be an integer"),
+    ],
+)
+def test_review_contract_renderer_rejects_blank_explicit_optional_scalars(
+    field_name: str,
+    value: str,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "review",
+                field_name: value,
+            }
+        )
 
 
 def test_review_contract_renderer_rejects_float_max_review_rounds() -> None:
@@ -360,10 +434,10 @@ def test_respond_to_referees_review_contract_uses_round_suffixed_output_paths() 
 
     assert contract is not None
     assert contract.required_outputs == [
-        "GPD/paper/REFEREE_RESPONSE{round_suffix}.md",
+        "GPD/review/REFEREE_RESPONSE{round_suffix}.md",
         "GPD/AUTHOR-RESPONSE{round_suffix}.md",
     ]
-    assert "GPD/paper/REFEREE_RESPONSE{round_suffix}.md" in _read_command("respond-to-referees")
+    assert "GPD/review/REFEREE_RESPONSE{round_suffix}.md" in _read_command("respond-to-referees")
     assert "GPD/AUTHOR-RESPONSE{round_suffix}.md" in _read_command("respond-to-referees")
 
 

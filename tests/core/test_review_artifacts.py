@@ -155,6 +155,8 @@ def test_proof_audit_rejects_aligned_status_with_coverage_gaps() -> None:
     ):
         ProofAuditRecord(
             claim_id="CLM-001",
+            theorem_parameters_checked=["r_0"],
+            proof_locations=["paper/main.tex:3"],
             uncovered_parameters=["r_0"],
             alignment_status=ProofAuditStatus.aligned,
         )

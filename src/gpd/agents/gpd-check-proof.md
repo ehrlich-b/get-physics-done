@@ -49,11 +49,13 @@ Required frontmatter:
 - `status: passed | gaps_found | human_needed`
 - `reviewer: gpd-check-proof`
 - `claim_ids: [claim-id, ...]` when claim IDs are available; otherwise `claim_ids: []`
+- For manuscript-scoped review artifacts, `claim_ids` must exactly match the active theorem-bearing Stage 1 claim IDs under review
 - `proof_artifact_paths: [path, ...]`
+- For manuscript-scoped review artifacts, `proof_artifact_paths` must be non-empty, every entry must resolve to a readable proof artifact, and together the entries must cover every active proof artifact under review
 - For manuscript-scoped review artifacts, also require:
-  - `manuscript_path: path/to/manuscript.tex`
-  - `manuscript_sha256: <lowercase 64-hex digest>`
-  - `round: <review round number>`
+  - `manuscript_path: path/to/manuscript.tex` and it must exactly match the active manuscript snapshot under review
+  - `manuscript_sha256: <lowercase 64-hex digest>` and it must exactly match that active manuscript snapshot
+  - `round: <review round number>` and it must exactly match the active review round
 
 Required body sections:
 
@@ -115,6 +117,8 @@ Required interpretation rules:
 - If the proof establishes only a narrower special case than the stated theorem, set `status: gaps_found`.
 - If the proof needs an unstated regularity, positivity, compactness, or genericity assumption, record that assumption explicitly as a blocker rather than silently repairing it.
 - For manuscript-scoped artifacts, do not omit `manuscript_path`, `manuscript_sha256`, or `round`; the audit must bind to the exact manuscript snapshot it reviewed.
+- For manuscript-scoped artifacts, do not recycle prior-round or approximate metadata. `claim_ids`, `proof_artifact_paths`, `manuscript_path`, `manuscript_sha256`, and `round` must exactly bind to the active review context supplied by the orchestrator.
+- If you cannot bind those manuscript-scoped metadata fields exactly, fail closed instead of approximating from stale or nearby artifacts.
 - Do not mark `status: passed` when any coverage entry is missing, any adversarial probe exposes a narrowed claim, or any conclusion clause is not actually established.
 </artifact_format>
 

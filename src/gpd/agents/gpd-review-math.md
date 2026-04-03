@@ -49,12 +49,15 @@ Required schema for `STAGE-math{round_suffix}.json` (`StageReviewReport`, mirror
 - `manuscript_sha256` must exactly match the sibling `CLAIMS{round_suffix}.json`
 - Each `findings[]` entry is a `ReviewFinding` with: `issue_id`, `claim_ids`, `severity`, `summary`, `rationale`, `evidence_refs`, `manuscript_locations`, `support_status`, `blocking`, `required_action`
 - Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
-- For every reviewed theorem-bearing claim from Stage 1, emit a `proof_audits[]` entry. Treat a claim as theorem-bearing when its Stage 1 `ClaimRecord` marks a theorem-style `claim_kind` (`theorem`, `lemma`, `corollary`, `proposition`, `claim`) or when the indexed statement is theorem-like even if the extraction arrays are incomplete. Use an empty `proof_audits` array only when no reviewed claim is theorem-bearing.
+- For every reviewed theorem-bearing claim from Stage 1, emit exactly one `proof_audits[]` entry whose `claim_id` is also present in `claims_reviewed`. Do not emit proof audits for unreviewed claims, and do not repeat `claim_id` values. Treat a claim as theorem-bearing when its Stage 1 `ClaimRecord` marks a theorem-style `claim_kind` (`theorem`, `lemma`, `corollary`, `proposition`, `claim`) or when the indexed statement is theorem-like even if the extraction arrays are incomplete. Use an empty `proof_audits` array only when no reviewed claim is theorem-bearing.
 - `theorem_assumptions_checked` and `theorem_parameters_checked` should list what the proof actually uses, not what the theorem merely states.
 - `uncovered_assumptions` and `uncovered_parameters` should list any statement items that never become active in the proof, are silently specialized away, or are otherwise unsupported by the derivation.
 - `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`
+- For theorem-bearing claims, never use `alignment_status: not_applicable`; theorem-bearing proof audits must resolve to `aligned`, `partially_aligned`, or `misaligned`
+- `alignment_status: aligned` is a strict state. Aligned theorem-bearing audits must include non-empty `proof_locations`, must record at least one checked assumption or checked parameter, and must leave `uncovered_assumptions`, `uncovered_parameters`, and `coverage_gaps` empty
 - Reuse Stage 1 claim IDs like `CLM-001` in `claim_ids`; use `REF-...` issue IDs in `issue_id`
 - `claim_ids` must reuse Stage 1 `CLM-...` claim IDs; `issue_id` must use `REF-...`
+- `issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`
 - `severity` must use exactly: `critical`, `major`, `minor`, `suggestion`
 - `support_status` must use exactly: `supported`, `partially_supported`, `unsupported`, `unclear`
 - `confidence` must use exactly: `high`, `medium`, `low`

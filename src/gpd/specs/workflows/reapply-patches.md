@@ -11,8 +11,8 @@ Called from /gpd:reapply-patches command. In the physics research context, "patc
 Check for local patches directory:
 
 ```bash
-PATCHES_DIR="{GPD_CONFIG_DIR}/gpd-local-patches"
-GLOBAL_PATCHES_DIR="{GPD_GLOBAL_CONFIG_DIR}/gpd-local-patches"
+PATCHES_DIR="{GPD_PATCHES_DIR}"
+GLOBAL_PATCHES_DIR="{GPD_GLOBAL_PATCHES_DIR}"
 
 if [ ! -d "$PATCHES_DIR" ] && [ "$PATCHES_DIR" != "$GLOBAL_PATCHES_DIR" ]; then
   PATCHES_DIR="$GLOBAL_PATCHES_DIR"
@@ -51,7 +51,7 @@ Exit.
 
 For each file in `backup-meta.json`:
 
-1. **Read the backed-up version** (user's modified copy from `gpd-local-patches/`)
+1. **Read the backed-up version** (user's modified copy from `{GPD_PATCHES_DIR_NAME}/`)
 2. **Read the newly installed version** (current file after update)
 3. **Compare and merge:**
 
@@ -85,8 +85,8 @@ After reapplying, regenerate the file manifest so future updates correctly detec
 
 Ask user:
 
-- "Keep patch backups for reference?" -> preserve `gpd-local-patches/`
-- "Clean up patch backups?" -> remove `gpd-local-patches/` directory
+- "Keep patch backups for reference?" -> preserve `{GPD_PATCHES_DIR_NAME}/`
+- "Clean up patch backups?" -> remove `{GPD_PATCHES_DIR_NAME}/` directory
 
 ## Step 6: Report
 

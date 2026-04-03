@@ -89,6 +89,7 @@ def test_review_reader_prompt_surfaces_full_claim_index_schema() -> None:
     assert "do not omit them" in claims_schema
     assert "must be non-empty" in claims_schema
     assert "lowercase 64-hex digest" in claims_schema
+    assert "CLM-[A-Za-z0-9][A-Za-z0-9_-]*" in claims_schema
     assert "theorem-bearing" in claims_schema
     assert "Do not silently drop statement parameters" in claims_schema
     assert "CLAIMS.json" not in claims_schema
@@ -122,6 +123,7 @@ def test_peer_review_panel_reference_surfaces_stage1_claim_index_schema() -> Non
     assert "do not invent extra keys" in claims_schema
     assert "required `ClaimIndex` metadata" in claims_schema
     assert "lowercase 64-hex digest" in claims_schema
+    assert "CLM-[A-Za-z0-9][A-Za-z0-9_-]*" in claims_schema
     assert "Stage 1 `CLAIMS.json` must follow this compact `ClaimIndex` shape:" not in panel
 
 
@@ -185,9 +187,15 @@ def test_review_math_prompt_requires_theorem_to_proof_audits() -> None:
     review_math = (AGENTS_DIR / "gpd-review-math.md").read_text(encoding="utf-8")
 
     assert "audit theorem-to-proof alignment explicitly" in review_math
-    assert "For every reviewed theorem-bearing claim from Stage 1, emit a `proof_audits[]` entry." in review_math
+    assert "emit exactly one `proof_audits[]` entry" in review_math
+    assert "`claim_id` is also present in `claims_reviewed`" in review_math
+    assert "Do not emit proof audits for unreviewed claims" in review_math
+    assert "do not repeat `claim_id` values" in review_math
     assert "The 3-5-step sampling rule does not waive full theorem inventory coverage" in review_math
     assert "silently specialized proof" in review_math
+    assert "never use `alignment_status: not_applicable`" in review_math
+    assert "Aligned theorem-bearing audits must include non-empty `proof_locations`" in review_math
+    assert "`issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`" in review_math
 
 
 def test_check_proof_prompt_requires_fail_closed_proof_inventory_and_adversarial_probe() -> None:
@@ -198,6 +206,10 @@ def test_check_proof_prompt_requires_fail_closed_proof_inventory_and_adversarial
     assert "`manuscript_path: path/to/manuscript.tex`" in check_proof
     assert "`manuscript_sha256: <lowercase 64-hex digest>`" in check_proof
     assert "`round: <review round number>`" in check_proof
+    assert "must exactly match the active theorem-bearing Stage 1 claim IDs under review" in check_proof
+    assert "must be non-empty, every entry must resolve to a readable proof artifact" in check_proof
+    assert "must exactly match the active manuscript snapshot under review" in check_proof
+    assert "must exactly match the active review round" in check_proof
     assert "## Proof Inventory" in check_proof
     assert "## Coverage Ledger" in check_proof
     assert "### Named-Parameter Coverage" in check_proof
@@ -208,6 +220,8 @@ def test_check_proof_prompt_requires_fail_closed_proof_inventory_and_adversarial
     assert "Exact claim / theorem text" in check_proof
     assert "If a named parameter from the statement never appears in the proof logic, mark it as uncovered and fail closed." in check_proof
     assert "For manuscript-scoped artifacts, do not omit `manuscript_path`, `manuscript_sha256`, or `round`" in check_proof
+    assert "must exactly bind to the active review context supplied by the orchestrator" in check_proof
+    assert "fail closed instead of approximating" in check_proof
     assert "Do not rewrite the theorem into the special case that was actually proved." in check_proof
 
 
@@ -221,4 +235,7 @@ def test_referee_and_panel_prompts_require_mandatory_theorem_bearing_proof_artif
 
     assert "When theorem-bearing claims exist, `PROOF-REDTEAM{round_suffix}.md` is mandatory Stage 6 input" in panel
     assert "missing, invalid, or non-passing `PROOF-REDTEAM{round_suffix}.md` artifact is itself a blocking stage-integrity failure" in panel
-    assert "every reviewed theorem-bearing Stage 1 claim must receive a `proof_audits[]` entry" in panel
+    assert "every reviewed theorem-bearing Stage 1 claim must receive exactly one `proof_audits[]` entry" in panel
+    assert "must also appear in `claims_reviewed`" in panel
+    assert "theorem-bearing audits must resolve to `aligned`, `partially_aligned`, or `misaligned`" in panel
+    assert "Every nested `ReviewFinding.issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`." in panel

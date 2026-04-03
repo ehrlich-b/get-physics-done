@@ -45,6 +45,7 @@ Required schema for `CLAIMS{round_suffix}.json` (`ClaimIndex`):
 - `manuscript_path` must be non-empty and must name the exact manuscript snapshot under review
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review
 - Each entry in `claims` is a `ClaimRecord` with: `claim_id`, `claim_type`, `claim_kind`, `text`, `artifact_path`, `section`, `equation_refs`, `figure_refs`, `supporting_artifacts`, `theorem_assumptions`, `theorem_parameters`
+- `claim_id` must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*` exactly
 - `claim_type` must use exactly: `main_result`, `novelty`, `significance`, `physical_interpretation`, `generality`, `method`
 - `claim_kind` must use exactly: `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `other`
 - Use `section` as an empty string and the reference/artifact arrays as empty lists when a field is not applicable; do not invent locations or evidence

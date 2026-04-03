@@ -22,7 +22,7 @@ Then verify each level against the actual research artifacts — **by doing phys
 
 **Fundamental rule: every verification check must involve decisive evidence, not just text search.**
 
-For most research targets that means actual computation. For proof-bearing or `proof_obligation` targets it means a theorem-to-proof audit plus an adversarial special-case or counterexample probe. Plain grep never suffices.
+For most research targets that means actual computation. For proof-bearing or `proof_obligation` targets it means a theorem-to-proof audit plus an adversarial special-case or counterexample probe. Plain text search never suffices.
 
 | Verification theater (NEVER DO)               | Real verification (ALWAYS DO)                                |
 | --------------------------------------------- | ------------------------------------------------------------ |

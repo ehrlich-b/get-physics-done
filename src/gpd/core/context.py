@@ -18,7 +18,7 @@ from pydantic import ValidationError as PydanticValidationError
 
 from gpd.adapters.install_utils import AGENTS_DIR_NAME, FLAT_COMMANDS_DIR_NAME, GPD_INSTALL_DIR_NAME, HOOKS_DIR_NAME
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
-from gpd.contracts import ConventionLock, ResearchContract
+from gpd.contracts import ConventionLock, ResearchContract, parse_project_contract_data_salvage
 from gpd.core import state as _state_module
 from gpd.core.config import GPDProjectConfig
 from gpd.core.config import load_config as _load_config_structured
@@ -691,21 +691,28 @@ def _canonicalize_project_contract(
         merged_references.append(merged)
     payload["references"] = merged_references
     try:
-        return ResearchContract.model_validate(payload), []
-    except PydanticValidationError as exc:
-        validation_errors = [
-            f"{'.'.join(str(part) for part in error.get('loc', ())) or 'project_contract'}: {str(error.get('msg', 'validation failed')).strip() or 'validation failed'}"
-            for error in exc.errors()
-        ]
+        parsed = parse_project_contract_data_salvage(payload)
+    except Exception as exc:
+        warning = f"canonical project_contract merge failed unexpectedly; keeping original contract: {exc}"
+        logger.warning(warning)
+        return contract, [warning]
+
+    if parsed.contract is None or parsed.blocking_errors:
+        validation_errors = parsed.blocking_errors or ["project contract could not be normalized"]
         warning = "canonical project_contract merge failed validation; keeping original contract: " + "; ".join(
             validation_errors
         )
         logger.warning(warning)
         return contract, [warning]
-    except Exception as exc:
-        warning = f"canonical project_contract merge failed unexpectedly; keeping original contract: {exc}"
+
+    warnings: list[str] = []
+    if parsed.recoverable_errors:
+        warning = "canonical project_contract merge required salvage; keeping canonicalized contract: " + "; ".join(
+            parsed.recoverable_errors
+        )
         logger.warning(warning)
-        return contract, [warning]
+        warnings.append(warning)
+    return parsed.contract, warnings
 
 
 def _render_active_reference_context(
@@ -853,7 +860,11 @@ def _reference_artifact_payload(cwd: Path) -> dict[str, object]:
     }
 
 
-def _build_reference_runtime_context(cwd: Path) -> dict[str, object]:
+def _build_reference_runtime_context(
+    cwd: Path,
+    *,
+    persist_manuscript_proof_review_manifest: bool = False,
+) -> dict[str, object]:
     """Build shared reference/anchor context for workflow init payloads."""
     contract, project_contract_load_info = _load_project_contract(cwd)
     artifact_payload = _reference_artifact_payload(cwd)
@@ -863,7 +874,10 @@ def _build_reference_runtime_context(cwd: Path) -> dict[str, object]:
         research_map_reference_files=list(artifact_payload["research_map_reference_files"]),
     )
     manuscript_reference_status = ingest_manuscript_reference_status(cwd)
-    manuscript_proof_review_status = resolve_manuscript_proof_review_status(cwd)
+    manuscript_proof_review_status = resolve_manuscript_proof_review_status(
+        cwd,
+        persist_manifest=persist_manuscript_proof_review_manifest,
+    )
     derived_references = [ref.to_context_dict() for ref in artifact_ingestion.references]
     derived_citation_sources = [item.to_context_dict() for item in artifact_ingestion.citation_sources]
     derived_manuscript_reference_status = {
@@ -2421,7 +2435,7 @@ def init_verify_work(cwd: Path, phase: str | None) -> dict:
         # Platform
         "platform": _detect_platform(cwd),
     }
-    result.update(_build_reference_runtime_context(cwd))
+    result.update(_build_reference_runtime_context(cwd, persist_manuscript_proof_review_manifest=True))
     result.update(_build_structured_state_runtime_context(cwd))
     result.update(_build_state_memory_runtime_context(cwd))
     return result

@@ -103,6 +103,56 @@ def test_summary_extract_rejects_placeholder_contract_results_section_shapes(
         cmd_summary_extract(tmp_path, "broken-SUMMARY.md")
 
 
+def test_summary_extract_rejects_explicit_null_contract_results_block(tmp_path: Path) -> None:
+    summary_text = (FIXTURES_DIR / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(
+        "contract_results:\n"
+        "  claims:\n"
+        "    claim-benchmark:\n"
+        "      status: passed\n"
+        "      summary: Benchmark claim verified against the decisive anchor.\n"
+        "      linked_ids: [deliv-figure, test-benchmark, ref-benchmark]\n"
+        "      evidence:\n"
+        "        - verifier: gpd-verifier\n"
+        "          method: benchmark reproduction\n"
+        "          confidence: high\n"
+        "          claim_id: claim-benchmark\n"
+        "          deliverable_id: deliv-figure\n"
+        "          acceptance_test_id: test-benchmark\n"
+        "          reference_id: ref-benchmark\n"
+        "          evidence_path: GPD/phases/01-benchmark/01-VERIFICATION.md\n"
+        "  deliverables:\n"
+        "    deliv-figure:\n"
+        "      status: passed\n"
+        "      path: figures/benchmark.png\n"
+        "      summary: Figure produced with uncertainty band and benchmark overlay.\n"
+        "      linked_ids: [claim-benchmark, test-benchmark]\n"
+        "  acceptance_tests:\n"
+        "    test-benchmark:\n"
+        "      status: passed\n"
+        "      summary: Benchmark reproduced within the contracted tolerance.\n"
+        "      linked_ids: [claim-benchmark, deliv-figure, ref-benchmark]\n"
+        "  references:\n"
+        "    ref-benchmark:\n"
+        "      status: completed\n"
+        "      completed_actions: [read, compare, cite]\n"
+        "      missing_actions: []\n"
+        "      summary: Benchmark anchor surfaced in the comparison figure and manuscript text.\n"
+        "  forbidden_proxies:\n"
+        "    fp-benchmark:\n"
+        "      status: rejected\n"
+        "      notes: Qualitative trend agreement was not accepted without the numerical benchmark check.\n"
+        "  uncertainty_markers:\n"
+        "    weakest_anchors: [Reference tolerance interpretation]\n"
+        "    disconfirming_observations: [Benchmark agreement disappears once normalization is fixed]\n",
+        "contract_results:\n",
+        1,
+    )
+    _write_contract_backed_summary(tmp_path, summary_text, filename="broken-SUMMARY.md")
+
+    with pytest.raises(ValidationError, match="contract_results"):
+        cmd_summary_extract(tmp_path, "broken-SUMMARY.md")
+
+
 def test_summary_extract_requires_explicit_uncertainty_markers(tmp_path: Path) -> None:
     summary_text = (FIXTURES_DIR / "summary_with_contract_results.md").read_text(encoding="utf-8").replace(
         "  uncertainty_markers:\n"

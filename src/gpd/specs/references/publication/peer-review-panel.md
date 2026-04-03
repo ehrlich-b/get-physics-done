@@ -189,14 +189,18 @@ Additionally:
 - `StageReviewReport`, nested `ReviewFinding`, and nested `ProofAuditRecord` entries use a closed schema; do not invent extra keys beyond those shown here.
 - `manuscript_path` must be non-empty and must name the exact manuscript snapshot under review.
 - `claims_reviewed` and every nested `claim_ids` list must use Stage 1 `CLM-...` claim IDs, not free-form labels.
-- Every nested `proof_audits[].claim_id` must reuse a Stage 1 `CLM-...` claim ID and should also appear in `claims_reviewed`.
+- Every nested `proof_audits[].claim_id` must reuse a Stage 1 `CLM-...` claim ID and must also appear in `claims_reviewed`.
+- In Stage 3, `proof_audits[]` coverage is exact rather than best-effort: emit exactly one proof audit for each reviewed theorem-bearing claim, emit none for unreviewed claims, and do not repeat `claim_id` values.
 - `proof_audits[].alignment_status` must be one of: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`.
+- For theorem-bearing claims, `proof_audits[].alignment_status` must never be `not_applicable`; theorem-bearing audits must resolve to `aligned`, `partially_aligned`, or `misaligned`.
+- `alignment_status: aligned` is strict: it requires non-empty `proof_locations`, at least one checked theorem assumption or checked parameter, and empty `uncovered_assumptions`, `uncovered_parameters`, and `coverage_gaps`.
 - For stages other than math, keep `proof_audits` as an empty array unless the workflow explicitly asks that stage to perform a theorem-proof audit.
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review.
 - The filename `STAGE-<stage_id>{round_suffix}.json` and the JSON `round` field must agree: unsuffixed first-round artifacts use `round: 1`, and `-R<round>` filenames must use that same integer in `round`.
 - For Stages 2-5, `manuscript_path` and `manuscript_sha256` must exactly match the sibling `CLAIMS{round_suffix}.json` claim index for the same round.
-- In Stage 3, every reviewed theorem-bearing Stage 1 claim must receive a `proof_audits[]` entry. Treat theorem-bearing status from the full Stage 1 claim record, not only from non-empty `theorem_assumptions` / `theorem_parameters` arrays: theorem-style `claim_kind` values and theorem-like statement text still require proof audits even when extraction is incomplete. Missing proof audits are a contract failure, not a soft omission.
+- In Stage 3, every reviewed theorem-bearing Stage 1 claim must receive exactly one `proof_audits[]` entry. Treat theorem-bearing status from the full Stage 1 claim record, not only from non-empty `theorem_assumptions` / `theorem_parameters` arrays: theorem-style `claim_kind` values and theorem-like statement text still require proof audits even when extraction is incomplete. Missing proof audits, extra audits for unreviewed claims, or repeated `claim_id` values are contract failures, not soft omissions.
 - In Stage 3, any uncovered theorem assumption, uncovered theorem parameter, or explicit theorem-to-proof mismatch caps `recommendation_ceiling` at `major_revision` or `reject`.
+- Every nested `ReviewFinding.issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`.
 
 The runtime artifact path is `CLAIMS{round_suffix}.json`; use the same compact schema on later rounds, preserving the shared optional `-R<round>` suffix across all staged-review artifacts.
 
@@ -229,6 +233,7 @@ Stage 1 `CLAIMS{round_suffix}.json` must follow this compact `ClaimIndex` shape:
 - `manuscript_path` must be non-empty and must name the exact manuscript snapshot under review.
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review.
 - `ClaimIndex` and every nested `ClaimRecord` use a closed schema; do not invent extra keys beyond those shown here.
+- `claim_id` must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*`.
 - `claim_kind` must use exactly: `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `other`.
 - Keep `section` as an empty string and `equation_refs`, `figure_refs`, `supporting_artifacts` as empty lists when unavailable.
 - Keep `theorem_assumptions` and `theorem_parameters` as arrays even when unavailable.

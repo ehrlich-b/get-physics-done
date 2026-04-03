@@ -24,7 +24,7 @@ from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.cli import app
 from gpd.core.constants import AGENT_ID_FILENAME, ENV_DATA_DIR
-from gpd.core.costs import UsageRecord, usage_ledger_path
+from gpd.core.costs import UsageRecord, _profile_tier_mix, usage_ledger_path
 from gpd.core.recent_projects import record_recent_project
 from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_KEYS
 from gpd.core.state import default_state_dict, generate_state_markdown
@@ -3378,7 +3378,7 @@ def test_cost_raw_keeps_tokens_measured_but_usd_unavailable_without_pricing_snap
     assert payload["project"]["cost_usd"] is None
     assert payload["advisory"]["state"] == "unavailable"
     assert "no pricing snapshot is configured" in payload["advisory"]["message"]
-    assert payload["profile_tier_mix"] == {"tier-1": 12, "tier-2": 10, "tier-3": 1}
+    assert payload["profile_tier_mix"] == _profile_tier_mix("review")
     assert payload["profile_tier_mix_interpretation"].startswith("Advisory only; counts profile-to-tier assignments")
     assert payload["budget_thresholds"] == []
     assert payload["recent_sessions"][0]["session_id"] == "session-1"

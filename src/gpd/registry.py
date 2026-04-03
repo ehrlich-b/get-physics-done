@@ -16,11 +16,7 @@ import yaml
 
 from gpd.command_labels import canonical_command_label, canonical_skill_label, command_slug_from_label
 from gpd.core.review_contract_prompt import (
-    VALID_REVIEW_CONDITIONAL_WHENS,
-    VALID_REVIEW_MODES,
-    VALID_REVIEW_PREFLIGHT_CHECKS,
-    VALID_REVIEW_REQUIRED_STATES,
-    _load_review_contract_payload,
+    normalize_review_contract_payload,
     render_review_contract_prompt,
 )
 
@@ -239,42 +235,6 @@ def _parse_allowed_tools(raw: object, *, command_name: str) -> list[str]:
     return values
 
 
-def _parse_str_list(raw: object, *, field_name: str, command_name: str) -> list[str]:
-    """Normalize review-contract string list fields with explicit validation."""
-    if raw is None:
-        return []
-    if isinstance(raw, str):
-        return [_parse_required_str_field(raw, field_name=field_name, command_name=command_name)]
-    if not isinstance(raw, list):
-        raise ValueError(f"{field_name} for {command_name} must be a string or list of strings")
-
-    values: list[str] = []
-    for item in raw:
-        if not isinstance(item, str):
-            raise ValueError(f"{field_name} for {command_name} must contain only strings")
-        values.append(_parse_required_str_field(item, field_name=field_name, command_name=command_name))
-    return values
-
-
-def _parse_required_str_field(raw: object, *, field_name: str, command_name: str) -> str:
-    """Normalize required review-contract string fields with explicit validation."""
-    if not isinstance(raw, str):
-        raise ValueError(f"{field_name} for {command_name} must be a string")
-    value = raw.strip()
-    if not value:
-        raise ValueError(f"{field_name} for {command_name} must be a non-empty string")
-    return value
-
-
-def _parse_optional_str_field(raw: object, *, field_name: str, command_name: str) -> str:
-    """Normalize optional review-contract string fields without coercing other types."""
-    if raw is None:
-        return ""
-    if not isinstance(raw, str):
-        raise ValueError(f"{field_name} for {command_name} must be a string")
-    return raw.strip()
-
-
 def _parse_bool_field(raw: object, *, field_name: str, command_name: str, default: bool = False) -> bool:
     """Normalize booleans from YAML, including common quoted string spellings."""
     if raw is None:
@@ -309,29 +269,6 @@ def _parse_project_reentry_capable(raw: object, *, command_name: str, context_mo
     return value
 
 
-def _parse_non_negative_int_field(raw: object, *, field_name: str, command_name: str, default: int = 0) -> int:
-    """Normalize integer-like review-contract fields with explicit validation."""
-    if raw is None:
-        return default
-    if isinstance(raw, bool):
-        raise ValueError(f"{field_name} for {command_name} must be an integer")
-    if isinstance(raw, str):
-        stripped = raw.strip()
-        if not stripped:
-            return default
-        try:
-            value = int(stripped)
-        except ValueError as exc:
-            raise ValueError(f"{field_name} for {command_name} must be an integer") from exc
-    elif isinstance(raw, int):
-        value = raw
-    else:
-        raise ValueError(f"{field_name} for {command_name} must be an integer")
-    if value < 0:
-        raise ValueError(f"{field_name} for {command_name} must be >= 0")
-    return value
-
-
 VALID_CONTEXT_MODES: tuple[str, ...] = ("global", "projectless", "project-aware", "project-required")
 VALID_AGENT_COMMIT_AUTHORITIES: tuple[str, ...] = ("direct", "orchestrator")
 VALID_AGENT_SURFACES: tuple[str, ...] = ("public", "internal")
@@ -345,7 +282,9 @@ def _review_contract_frontmatter_value(meta: dict[str, object], *, command_name:
         raise ValueError(
             f"review-contract for {command_name} must use the canonical frontmatter key 'review-contract'"
         )
-    return meta.get("review-contract")
+    if "review-contract" not in meta:
+        return None
+    return {"review-contract": meta.get("review-contract")}
 
 
 def _parse_context_mode(raw: object, *, command_name: str) -> str:
@@ -401,68 +340,6 @@ def _parse_agent_metadata_enum(
         valid = ", ".join(valid_values)
         raise ValueError(f"Invalid {field_name} {value!r} for {agent_name}; expected one of: {valid}")
     return value
-
-
-def _parse_review_contract_enum_field(
-    raw: object,
-    *,
-    field_name: str,
-    command_name: str,
-    valid_values: tuple[str, ...],
-) -> str:
-    """Normalize review-contract enum fields without coercing unsupported values."""
-    value = _parse_required_str_field(raw, field_name=field_name, command_name=command_name)
-    if value not in valid_values:
-        valid = ", ".join(valid_values)
-        raise ValueError(f"{field_name} for {command_name} must be one of: {valid}; got {value!r}")
-    return value
-
-
-def _parse_review_contract_enum_list(
-    raw: object,
-    *,
-    field_name: str,
-    command_name: str,
-    valid_values: tuple[str, ...],
-) -> list[str]:
-    """Normalize review-contract enum lists without accepting unknown runtime checks."""
-    values = [
-        _parse_required_str_field(value, field_name=field_name, command_name=command_name)
-        for value in _parse_str_list(raw, field_name=field_name, command_name=command_name)
-    ]
-    invalid_values = [value for value in values if value not in valid_values]
-    if invalid_values:
-        valid = ", ".join(valid_values)
-        formatted = ", ".join(repr(value) for value in invalid_values)
-        raise ValueError(f"{field_name} for {command_name} must contain only: {valid}; got {formatted}")
-    return values
-
-
-def _parse_review_contract_required_state(raw: object, *, command_name: str) -> str:
-    """Normalize optional required_state values to the states the CLI evaluates."""
-    if raw is None:
-        return ""
-    if not isinstance(raw, str):
-        raise ValueError(f"required_state for {command_name} must be a string")
-
-    value = raw.strip()
-    if not value:
-        return ""
-    if value not in VALID_REVIEW_REQUIRED_STATES:
-        valid = ", ".join(VALID_REVIEW_REQUIRED_STATES)
-        raise ValueError(f"required_state for {command_name} must be one of: {valid}; got {value!r}")
-    return value
-
-
-def _parse_review_contract_schema_version(raw: object, *, command_name: str) -> int:
-    """Validate explicit review-contract schema_version without coercing unsupported values."""
-    if raw is None:
-        raise ValueError(f"review-contract for {command_name} must set schema_version")
-    if isinstance(raw, bool) or not isinstance(raw, int):
-        raise ValueError(f"schema_version for {command_name} must be the integer 1")
-    if raw != 1:
-        raise ValueError(f"schema_version for {command_name} must be 1")
-    return raw
 
 
 def _review_contract_payload(review_contract: ReviewCommandContract) -> dict[str, object]:
@@ -533,158 +410,39 @@ def _command_model_content(body: str, review_contract: ReviewCommandContract | N
 
 
 def _parse_review_contract(raw: object, command_name: str) -> ReviewCommandContract | None:
-    """Parse review-contract frontmatter into a typed contract with no hidden defaults."""
-    if raw is not None and not isinstance(raw, dict):
-        raise ValueError(f"review-contract for {command_name} must be a mapping")
-    if raw is None:
-        return None
-
+    """Parse review-contract frontmatter through the canonical shared normalizer."""
     try:
-        merged, wrapped = _load_review_contract_payload(raw)
+        payload = normalize_review_contract_payload(raw)
     except ValueError as exc:
-        message = str(exc)
-        if message.startswith("Unknown review-contract field(s): "):
-            fields = message.removeprefix("Unknown review-contract field(s): ")
-            raise ValueError(f"Unknown review-contract field(s) for {command_name}: {fields}") from exc
-        raise ValueError(f"review-contract for {command_name}: {message}") from exc
-    if not merged:
-        if wrapped:
-            raise ValueError(f"review-contract for {command_name} must set schema_version, review_mode")
-        return None
+        raise ValueError(f"review-contract for {command_name}: {exc}") from exc
 
-    raw_review_mode = merged.get("review_mode")
-    if raw_review_mode is None:
-        raise ValueError(f"review-contract for {command_name} must set review_mode")
-    review_mode = _parse_review_contract_enum_field(
-        raw_review_mode,
-        field_name="review_mode",
-        command_name=command_name,
-        valid_values=VALID_REVIEW_MODES,
-    )
-    schema_version = _parse_review_contract_schema_version(merged.get("schema_version"), command_name=command_name)
-    required_state = _parse_review_contract_required_state(merged.get("required_state"), command_name=command_name)
+    if not payload:
+        return None
 
     return ReviewCommandContract(
-        review_mode=review_mode,
-        required_outputs=_parse_str_list(
-            merged.get("required_outputs"),
-            field_name="required_outputs",
-            command_name=command_name,
-        ),
-        required_evidence=_parse_str_list(
-            merged.get("required_evidence"),
-            field_name="required_evidence",
-            command_name=command_name,
-        ),
-        blocking_conditions=_parse_str_list(
-            merged.get("blocking_conditions"),
-            field_name="blocking_conditions",
-            command_name=command_name,
-        ),
-        preflight_checks=_parse_review_contract_enum_list(
-            merged.get("preflight_checks"),
-            field_name="preflight_checks",
-            command_name=command_name,
-            valid_values=VALID_REVIEW_PREFLIGHT_CHECKS,
-        ),
-        stage_ids=_parse_str_list(
-            merged.get("stage_ids"),
-            field_name="stage_ids",
-            command_name=command_name,
-        ),
-        stage_artifacts=_parse_str_list(
-            merged.get("stage_artifacts"),
-            field_name="stage_artifacts",
-            command_name=command_name,
-        ),
-        conditional_requirements=_parse_review_contract_conditional_requirements(
-            merged.get("conditional_requirements"),
-            command_name=command_name,
-        ),
-        final_decision_output=_parse_optional_str_field(
-            merged.get("final_decision_output"),
-            field_name="final_decision_output",
-            command_name=command_name,
-        ),
-        requires_fresh_context_per_stage=_parse_bool_field(
-            merged.get("requires_fresh_context_per_stage"),
-            field_name="requires_fresh_context_per_stage",
-            command_name=command_name,
-        ),
-        max_review_rounds=_parse_non_negative_int_field(
-            merged.get("max_review_rounds"),
-            field_name="max_review_rounds",
-            command_name=command_name,
-        ),
-        required_state=required_state,
-        schema_version=schema_version,
-    )
-
-
-def _parse_review_contract_conditional_requirements(
-    raw: object,
-    *,
-    command_name: str,
-) -> list[ReviewContractConditionalRequirement]:
-    """Parse conditional review-contract requirements without hidden coercion."""
-    if raw is None:
-        return []
-    if not isinstance(raw, list):
-        raise ValueError(f"conditional_requirements for {command_name} must be a list of mappings")
-
-    parsed: list[ReviewContractConditionalRequirement] = []
-    for index, item in enumerate(raw):
-        field_label = f"conditional_requirements[{index}]"
-        if not isinstance(item, dict):
-            raise ValueError(f"{field_label} for {command_name} must be a mapping")
-        unknown_fields = sorted(
-            str(key)
-            for key in item
-            if str(key) not in {"when", "required_outputs", "required_evidence", "blocking_conditions", "stage_artifacts"}
-        )
-        if unknown_fields:
-            raise ValueError(
-                f"{field_label} for {command_name} contains unknown field(s): {', '.join(unknown_fields)}"
-            )
-        when = _parse_required_str_field(item.get("when"), field_name=f"{field_label}.when", command_name=command_name)
-        if when not in VALID_REVIEW_CONDITIONAL_WHENS:
-            valid = ", ".join(VALID_REVIEW_CONDITIONAL_WHENS)
-            raise ValueError(f"{field_label}.when for {command_name} must be one of: {valid}; got {when!r}")
-        required_outputs = _parse_str_list(
-            item.get("required_outputs"),
-            field_name=f"{field_label}.required_outputs",
-            command_name=command_name,
-        )
-        required_evidence = _parse_str_list(
-            item.get("required_evidence"),
-            field_name=f"{field_label}.required_evidence",
-            command_name=command_name,
-        )
-        blocking_conditions = _parse_str_list(
-            item.get("blocking_conditions"),
-            field_name=f"{field_label}.blocking_conditions",
-            command_name=command_name,
-        )
-        stage_artifacts = _parse_str_list(
-            item.get("stage_artifacts"),
-            field_name=f"{field_label}.stage_artifacts",
-            command_name=command_name,
-        )
-        if not any((required_outputs, required_evidence, blocking_conditions, stage_artifacts)):
-            raise ValueError(
-                f"{field_label} for {command_name} must declare at least one of: "
-                "required_outputs, required_evidence, blocking_conditions, stage_artifacts"
-            )
-        parsed.append(
+        review_mode=str(payload["review_mode"]),
+        required_outputs=list(payload["required_outputs"]),
+        required_evidence=list(payload["required_evidence"]),
+        blocking_conditions=list(payload["blocking_conditions"]),
+        preflight_checks=list(payload["preflight_checks"]),
+        stage_ids=list(payload["stage_ids"]),
+        stage_artifacts=list(payload["stage_artifacts"]),
+        conditional_requirements=[
             ReviewContractConditionalRequirement(
-                when=when,
-                required_outputs=required_outputs,
-                required_evidence=required_evidence,
-                blocking_conditions=blocking_conditions,
-                stage_artifacts=stage_artifacts,
+                when=str(requirement["when"]),
+                required_outputs=list(requirement.get("required_outputs", [])),
+                required_evidence=list(requirement.get("required_evidence", [])),
+                blocking_conditions=list(requirement.get("blocking_conditions", [])),
+                stage_artifacts=list(requirement.get("stage_artifacts", [])),
             )
-        )
-    return parsed
+            for requirement in payload["conditional_requirements"]
+        ],
+        final_decision_output=str(payload["final_decision_output"]),
+        requires_fresh_context_per_stage=bool(payload["requires_fresh_context_per_stage"]),
+        max_review_rounds=int(payload["max_review_rounds"]),
+        required_state=str(payload["required_state"]),
+        schema_version=int(payload["schema_version"]),
+    )
 
 
 def _parse_agent_file(path: Path, source: str) -> AgentDef:

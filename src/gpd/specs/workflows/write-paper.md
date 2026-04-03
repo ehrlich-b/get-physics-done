@@ -1042,7 +1042,7 @@ When revising a paper in response to referee reports:
 
    The `GPD/AUTHOR-RESPONSE{round_suffix}.md` tracker uses REF-xxx issue IDs matching the referee report, with classifications (fixed/rebutted/acknowledged) and specific change locations. When present, `REVIEW-LEDGER{round_suffix}.json` and `REFEREE-DECISION{round_suffix}.json` provide the blocking-issue and recommendation-floor context that the response must resolve. See the gpd-paper-writer's `<author_response>` section for the full format.
 
-   Also create `${PAPER_DIR}/REFEREE_RESPONSE{round_suffix}.md` (the human-readable response letter source) using the `templates/paper/referee-response.md` template for the actual journal submission cover letter.
+   Also create `GPD/review/REFEREE_RESPONSE{round_suffix}.md` (the human-readable response letter source) using the `templates/paper/referee-response.md` template for the actual journal submission cover letter.
 
 3. **Spawn section revision agents:** For each major concern requiring manuscript changes, spawn a paper-writer agent with:
    - The specific referee point

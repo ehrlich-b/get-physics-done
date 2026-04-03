@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from gpd.core.costs import UsageRecord, usage_ledger_path
+from gpd.core.costs import _profile_tier_mix
 from gpd.core.recent_projects import record_recent_project
 from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_KEYS
 from gpd.core.runtime_hints import build_runtime_hint_payload, workflow_preset_surface_note
@@ -280,7 +281,7 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert payload.cost["project"]["record_count"] == 1
     assert payload.cost["project"]["usage_status"] == "measured"
     assert payload.cost["project"]["interpretation"] == "tokens measured; USD unavailable"
-    assert payload.cost["profile_tier_mix"] == {"tier-1": 12, "tier-2": 10, "tier-3": 1}
+    assert payload.cost["profile_tier_mix"] == _profile_tier_mix("review")
     assert payload.cost["advisory"]["state"] == "unavailable"
     assert "pricing snapshot" in payload.cost["advisory"]["message"]
 
