@@ -83,7 +83,8 @@ either `/gpd:new-project --minimal`, `/gpd:map-research`, or
 ## Settings
 
 After your first successful start or later, use `/gpd:settings` to review
-autonomy, workflow defaults, and model-cost posture.
+autonomy, workflow defaults, and model-cost posture. Use `/gpd:set-tier-models`
+when you only want to pin concrete `tier-1`, `tier-2`, and `tier-3` model ids.
 
 ## 5) What success looks like
 

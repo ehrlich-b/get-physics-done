@@ -68,6 +68,7 @@ You will use two different places:
 - **`gpd resume`**: the terminal-side recovery step.
 - **`resume-work`**: the in-runtime command you use after reopening the right workspace.
 - **`settings`**: the guided runtime command for changing autonomy, workflow defaults, and model-cost posture after your first successful start or later.
+- **`set-tier-models`**: the direct runtime command for pinning concrete `tier-1`, `tier-2`, and `tier-3` model ids.
 
 </details>
 
@@ -152,5 +153,5 @@ Use this if you want GPD inside OpenCode. Inside the runtime, GPD commands use `
 1. Finish the OS and runtime guide you opened.
 2. Inside the runtime, use `help` for the command menu, `start` if you are not sure what fits this folder, or `tour` if you want a read-only orientation first.
 3. Then choose `new-project`, `map-research`, or `resume-work`.
-4. After your first successful start or later, use the runtime-specific `settings` command to review autonomy, workflow defaults, and model-cost posture.
+4. After your first successful start or later, use the runtime-specific `settings` command to review autonomy, workflow defaults, and model-cost posture. If you only want to pin concrete `tier-1`, `tier-2`, and `tier-3` model ids, use the runtime-specific `set-tier-models` command instead.
 5. Come back to this hub only when you need a different OS guide or runtime guide.

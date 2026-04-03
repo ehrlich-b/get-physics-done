@@ -320,7 +320,7 @@ Most research actions run inside your installed AI runtime after GPD has been in
 | Leave or return after a break | `gpd resume`, `gpd resume --recent`, `resume-work`, `pause-work`, `suggest-next` |
 | Run the research loop | `discuss-phase N`, `plan-phase N`, `execute-phase N`, `verify-work`, `progress`, `quick` |
 | Write and review | `write-paper`, `peer-review`, `respond-to-referees`, `arxiv-submission` |
-| Configure or branch | `settings`, `set-profile`, `tangent`, `branch-hypothesis` |
+| Configure or branch | `settings`, `set-profile`, `set-tier-models`, `tangent`, `branch-hypothesis` |
 
 Typical research loop: `/gpd:new-project -> /gpd:discuss-phase 1 -> /gpd:plan-phase 1 -> /gpd:execute-phase 1 -> /gpd:verify-work -> repeat -> /gpd:complete-milestone`
 
@@ -378,6 +378,8 @@ If you are choosing a posture for the first time:
 
 Use posture as the starting heuristic, not as a pricing promise. If you need the detailed recorded usage / cost view and advisory USD budget comparison for the workspace, use `gpd cost`.
 
+If you want the simplest direct path for concrete tier ids, use your runtime's `set-tier-models` command. Use `set-profile` for abstract behavior changes, and `settings` for the broader unattended/configuration bundle.
+
 | Tier | Meaning |
 |------|---------|
 | `tier-1` | Highest capability |
@@ -386,11 +388,11 @@ Use posture as the starting heuristic, not as a pricing promise. If you need the
 
 Available profiles are `deep-theory`, `numerical`, `exploratory`, `review`, and `paper-writing`.
 
-| Runtime | Set profile | Open settings |
-|---------|-------------|---------------|
-| Claude Code / Gemini CLI | `/gpd:set-profile review` | `/gpd:settings` |
-| Codex | `$gpd-set-profile review` | `$gpd-settings` |
-| OpenCode | `/gpd-set-profile review` | `/gpd-settings` |
+| Runtime | Set profile | Set tier models | Open settings |
+|---------|-------------|-----------------|---------------|
+| Claude Code / Gemini CLI | `/gpd:set-profile review` | `/gpd:set-tier-models` | `/gpd:settings` |
+| Codex | `$gpd-set-profile review` | `$gpd-set-tier-models` | `$gpd-settings` |
+| OpenCode | `/gpd-set-profile review` | `/gpd-set-tier-models` | `/gpd-settings` |
 
 <details>
 <summary><strong>Runtime-specific model string examples</strong></summary>

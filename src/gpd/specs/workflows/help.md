@@ -126,6 +126,7 @@ For the exact beginner-first startup order, use the shared onboarding surfaces i
 4. `/gpd:new-project` or `/gpd:map-research` - Begin the actual work path once you know the folder state.
 5. `/gpd:resume-work` - Continue later after you have an existing GPD project.
 6. `/gpd:settings` - Change autonomy, permissions, or runtime preferences after your first successful start or later.
+7. `/gpd:set-tier-models` - Directly pin concrete `tier-1`, `tier-2`, and `tier-3` model ids for the active runtime.
 
 ## Invocation Surfaces
 
@@ -172,6 +173,7 @@ After that, choose the path that matches your current situation:
 
 **Post-startup settings**
 1. `/gpd:settings` - Primary guided unattended/autonomy setup after your first successful start or later when you want to choose posture, decide whether to keep runtime defaults or pin tiers, review advisory limits, and sync runtime permissions
+2. `/gpd:set-tier-models` - Direct concrete tier-model path when you only want to pin `tier-1`, `tier-2`, and `tier-3` model ids for the active runtime without changing the broader settings bundle
 
 **Tangents**
 1. `/gpd:tangent` - Chooser for stay / quick / defer / branch when a side investigation appears
@@ -203,7 +205,7 @@ These are the main capability groups GPD supports once a project is underway:
 
 - Project work: `/gpd:discuss-phase`, `/gpd:plan-phase`, `/gpd:execute-phase`, `/gpd:verify-work`
 - Writing and review: `/gpd:write-paper`, `/gpd:peer-review`, `/gpd:respond-to-referees`, `/gpd:arxiv-submission`
-- Side investigations and preferences: `/gpd:tangent`, `/gpd:branch-hypothesis`, `/gpd:set-profile`, `/gpd:settings`
+- Side investigations and preferences: `/gpd:tangent`, `/gpd:branch-hypothesis`, `/gpd:set-profile`, `/gpd:set-tier-models`, `/gpd:settings`
 
 ## Core Workflow
 
@@ -924,8 +926,21 @@ Primary guided setup for autonomy, unattended execution budgets, runtime permiss
 
 Usage: `/gpd:settings`
 
+**`/gpd:set-tier-models`**
+Direct concrete model-id setup for `tier-1`, `tier-2`, and `tier-3` on the active runtime.
+
+- `tier-1` — highest capability, usually highest cost
+- `tier-2` — balanced default
+- `tier-3` — fastest / most economical
+- Clears or writes only `model_overrides.<runtime>` in `GPD/config.json`
+- Leaves `model_profile`, autonomy, `execution.review_cadence`, budgets, and workflow toggles unchanged
+- Use runtime defaults if you are unsure; pin exact ids only when you want explicit control
+- Use `gpd cost` after runs for the read-only recorded local usage / cost view
+
+Usage: `/gpd:set-tier-models`
+
 **`/gpd:set-profile <profile>`**
-Quick switch model profile for GPD agents. Use `/gpd:settings` to pin concrete runtime model IDs per tier only if you need explicit control.
+Quick switch model profile for GPD agents. Use `/gpd:set-tier-models` for the direct concrete tier-id path, or `/gpd:settings` when you want broader unattended/configuration changes too.
 
 - `deep-theory` — tier-1 (highest capability) for all reasoning-intensive agents (formal derivations, proofs)
 - `numerical` — tier-1 for planning/verification, tier-2 for execution (simulations, numerics)

@@ -58,6 +58,7 @@ Include these entries:
 - `/gpd:suggest-next`
 - `/gpd:explain <topic>`
 - `/gpd:quick`
+- `/gpd:set-tier-models`
 - `/gpd:settings`
 - `/gpd:help`
 
@@ -74,7 +75,7 @@ the main capability groups GPD supports once a project is underway:
 
 - project work: `/gpd:discuss-phase`, `/gpd:plan-phase`, `/gpd:execute-phase`, `/gpd:verify-work`
 - writing and review: `/gpd:write-paper`, `/gpd:peer-review`, `/gpd:respond-to-referees`, `/gpd:arxiv-submission`
-- side investigations and preferences: `/gpd:tangent`, `/gpd:branch-hypothesis`, `/gpd:set-profile`, `/gpd:settings`
+- side investigations and preferences: `/gpd:tangent`, `/gpd:branch-hypothesis`, `/gpd:set-profile`, `/gpd:set-tier-models`, `/gpd:settings`
 
 Keep this section high-level. Do not turn it into a second full command
 reference. Keep `settings` visibly in the post-startup group, not in the
@@ -97,8 +98,11 @@ Explain in plain language:
 - `settings` is the guided runtime command for changing autonomy,
   permission-sync behavior, and other GPD preferences after your first
   successful start or later.
+- `set-tier-models` is the direct runtime command for pinning concrete
+  `tier-1`, `tier-2`, and `tier-3` model ids without changing the broader
+  settings bundle.
 - `tour` only explains; it does not run `start`, `new-project`, `map-research`,
-  `resume-work`, or `settings` for you.
+  `resume-work`, `set-tier-models`, or `settings` for you.
 - `Use \`gpd resume\` first if you need to reopen the project before using \`/gpd:resume-work\`.`
 </step>
 
@@ -111,6 +115,8 @@ Call out beginner traps in a gentle, plain-English way:
 - Use `map-research` for an existing folder with papers, notes, or code, not an
   empty folder
 - Use `resume-work` only when the project already has GPD state
+- Use `set-tier-models` when you want to pin concrete runtime model ids only
+- Use `set-profile` when you want to change the abstract research profile
 - Use `settings` when you want to change autonomy, permissions, or runtime
   preferences after your first successful start or later
 - Use `help` when you want the command reference, not a setup wizard
@@ -139,6 +145,7 @@ End with a short wrap-up that says:
 
 - `If you are still unsure, run /gpd:start.`
 - `If you want the reference list again later, run /gpd:help.`
+- `If you want to pin concrete tier-1, tier-2, and tier-3 model ids, run \`/gpd:set-tier-models\`.`
 - `If you want to change permissions, autonomy, or runtime preferences after your first successful start or later, run \`/gpd:settings\`.`
 - `If you already know your path, use the matching command from the table
   above.`
@@ -150,7 +157,7 @@ Do not ask the user to pick a branch and do not continue into another workflow.
 - [ ] The user sees that `tour` is read-only and non-destructive
 - [ ] The core GPD entry points are explained in beginner language
 - [ ] The difference between `start`, `new-project`, `map-research`, and `resume-work` is clear
-- [ ] The tour also surfaces `settings` as the guided configuration path after the first successful start or later
+- [ ] The tour also surfaces `set-tier-models` as the direct model-tier path and `settings` as the broader configuration path after the first successful start or later
 - [ ] The response does not silently route into another workflow
 - [ ] The response ends with simple next-step guidance
 </success_criteria>

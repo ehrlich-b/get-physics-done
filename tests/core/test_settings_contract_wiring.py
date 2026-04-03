@@ -45,6 +45,7 @@ def test_settings_model_cost_onboarding_stays_qualitative_and_runtime_default_fi
 
     assert "Balanced (Recommended)" in settings_workflow
     assert "runtime defaults" in settings_workflow
+    assert "/gpd:set-tier-models" in settings_workflow
     assert "Use runtime defaults" in settings_workflow
     assert "Configure explicit tier models" in settings_workflow
     assert "tier-1" in settings_workflow
@@ -66,6 +67,7 @@ def test_settings_workflow_surfaces_optional_usd_budget_guardrails_as_advisory_o
 def test_settings_workflow_preset_contract_keeps_runtime_default_tier_model_path_explicit() -> None:
     settings_workflow = (WORKFLOWS_DIR / "settings.md").read_text(encoding="utf-8")
 
+    assert "/gpd:set-tier-models" in settings_workflow
     assert "How should GPD handle concrete tier models for the active runtime?" in settings_workflow
     assert "Leave current setting unchanged" in settings_workflow
     assert "Use runtime defaults" in settings_workflow

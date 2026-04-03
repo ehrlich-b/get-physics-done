@@ -32,7 +32,7 @@ and do not silently route into another workflow.
 - `/gpd:new-project` and `/gpd:new-project --minimal` are for creating a new project
 - `/gpd:map-research` is for bringing an existing folder into GPD
 - `/gpd:resume-work` is for returning to an existing GPD project
-- `/gpd:progress`, `/gpd:suggest-next`, `/gpd:explain`, `/gpd:quick`, `/gpd:settings`, and `/gpd:help` are the common follow-up commands
+- `/gpd:progress`, `/gpd:suggest-next`, `/gpd:explain`, `/gpd:quick`, `/gpd:set-tier-models`, `/gpd:settings`, and `/gpd:help` are the common follow-up commands
 - When you mention advanced terms such as workflow, router, project artifacts, or recovery path, explain them the first time they appear
 
 </inline_guidance>

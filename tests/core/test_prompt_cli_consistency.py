@@ -179,7 +179,7 @@ def test_help_prompt_default_quick_start_extracts_workflow_owned_sections() -> N
     assert "/gpd:new-project -> /gpd:discuss-phase -> /gpd:plan-phase -> /gpd:execute-phase -> /gpd:verify-work -> repeat" in help_workflow
     assert "gpd init new-project" not in help_workflow
     later_capabilities = help_workflow.split("## What comes later after startup", 1)[1]
-    for token in ("/gpd:discuss-phase", "/gpd:write-paper", "/gpd:tangent", "/gpd:settings"):
+    for token in ("/gpd:discuss-phase", "/gpd:write-paper", "/gpd:tangent", "/gpd:set-tier-models", "/gpd:settings"):
         assert token in later_capabilities
 
 
@@ -238,6 +238,7 @@ def test_tour_prompt_delegates_routing_to_workflow_only() -> None:
     assert "@{GPD_INSTALL_DIR}/workflows/tour.md" in tour_command
     assert "teaching surface, not a chooser" in tour_command
     assert "safe beginner walkthrough of the core GPD command paths" in tour_command
+    assert "/gpd:set-tier-models" in tour_command
     assert "/gpd:settings" in tour_command
     assert_tour_command_surface_contract(tour_workflow)
     assert "$ARGUMENTS" in tour_workflow
@@ -513,6 +514,7 @@ def test_help_prompt_workflow_modes_match_current_settings_vocabulary() -> None:
     assert "tier-2" in help_workflow
     assert "tier-3" in help_workflow
     assert "YOLO" in help_workflow
+    assert "/gpd:set-tier-models" in help_workflow
     assert "/gpd:settings" in help_workflow
     assert "/gpd:discuss-phase" in help_workflow
     assert "execution.review_cadence" in help_workflow
@@ -534,6 +536,7 @@ def test_help_prompt_surfaces_workflow_presets_on_the_local_cli_surface() -> Non
     assert "degrade `write-paper`" in help_workflow
     assert "`paper-build` remains the build contract" in help_workflow
     assert "`arxiv-submission` requires the built manuscript" in help_workflow
+    assert "/gpd:set-tier-models" in help_workflow
     assert "/gpd:settings" in help_workflow
     assert "/gpd:set-profile" in help_workflow
 

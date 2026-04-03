@@ -899,8 +899,20 @@ def test_public_settings_workflow_keeps_balanced_recommendation_and_relaunch_gui
     assert "This sync only updates runtime-owned permission settings; it does not validate install health or workflow/tool readiness." in settings_workflow
     assert_settings_local_terminal_follow_up_contract(settings_workflow)
     assert "What model-cost posture should GPD optimize for?" in settings_workflow
+    assert "/gpd:set-tier-models" in settings_workflow
     assert "Use runtime defaults" in settings_workflow
     assert_cost_advisory_contract(settings_workflow)
+
+
+def test_public_readme_and_help_surfaces_expose_direct_tier_model_command() -> None:
+    repo_root = _repo_root()
+    readme = (repo_root / "README.md").read_text(encoding="utf-8")
+    help_workflow = (repo_root / "src/gpd/specs/workflows/help.md").read_text(encoding="utf-8")
+
+    assert "If you want the simplest direct path for concrete tier ids" in readme
+    assert "Set tier models" in readme
+    assert "/gpd:set-tier-models" in help_workflow
+    assert "Direct concrete model-id setup for `tier-1`, `tier-2`, and `tier-3` on the active runtime." in help_workflow
 
 
 def test_public_bootstrap_help_examples_cover_install_and_readiness_handoff() -> None:

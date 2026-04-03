@@ -1,5 +1,5 @@
 <purpose>
-Interactive configuration of autonomy, unattended execution budgets, GPD workflow agents (research, plan_checker, verifier), research profile selection, qualitative model-cost posture, runtime-specific tier model overrides, `execution.review_cadence`, git branching, and runtime-permission sync guidance. `/gpd:settings` is the primary guided entrypoint for unattended-use setup. Recommend `Balanced` unless the user explicitly wants tighter supervision or YOLO-style speed. Updates `GPD/config.json` with user preferences including model profile, optional `model_overrides`, workflow toggles, execution cadence, and branching strategy.
+Interactive configuration of autonomy, unattended execution budgets, GPD workflow agents (research, plan_checker, verifier), research profile selection, qualitative model-cost posture, runtime-specific tier model overrides, `execution.review_cadence`, git branching, and runtime-permission sync guidance. `/gpd:settings` is the primary guided entrypoint for unattended-use setup. Recommend `Balanced` unless the user explicitly wants tighter supervision or YOLO-style speed. Use `/gpd:set-tier-models` when the user only wants the narrow direct path for `tier-1` / `tier-2` / `tier-3` model ids. Updates `GPD/config.json` with user preferences including model profile, optional `model_overrides`, workflow toggles, execution cadence, and branching strategy.
 </purpose>
 
 <preset_guidance>
@@ -416,6 +416,7 @@ Project conventions still live in `GPD/CONVENTIONS.md` and `GPD/state.json` (`co
 
 Quick commands:
 - /gpd:set-profile <profile> -- switch research profile
+- /gpd:set-tier-models -- direct concrete `tier-1` / `tier-2` / `tier-3` model-id setup
 - /gpd:settings -- revisit interactive model/tier setup
 - /gpd:validate-conventions -- verify convention consistency across the project
 - gpd convention set <key> <value> -- update the locked project conventions directly
