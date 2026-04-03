@@ -199,6 +199,7 @@ def test_paper_build_surfaces_reference_bibtex_bridge(tmp_path: Path) -> None:
     result_payload.bibliography_audit = SimpleNamespace(
         entries=[SimpleNamespace(key="einstein1905", reference_id="lit-ref-einstein-1905")]
     )
+    result_payload.tex_path = paper_dir / "main.tex"
     result_payload.pdf_path = paper_dir / "main.pdf"
     result_payload.success = True
     result_payload.errors = []

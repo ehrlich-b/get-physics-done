@@ -506,7 +506,7 @@ class TestReviewContractInjection:
             "Prompt body.\n"
         )
 
-        with pytest.raises(ValueError, match="schema_version must be the integer 1"):
+        with pytest.raises(ValueError, match="schema_version(?: .*?)? must be the integer 1"):
             compile_markdown_for_runtime(
                 content,
                 runtime="codex",

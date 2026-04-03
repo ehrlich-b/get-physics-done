@@ -2443,7 +2443,7 @@ def _intent_path(cwd: Path) -> Path:
     return ProjectLayout(cwd).state_intent
 
 
-_STATE_LOCK_TIMEOUT_SECONDS = 15.0
+_STATE_LOCK_TIMEOUT_SECONDS = 30.0
 
 
 def _state_lock(cwd: Path, timeout: float = _STATE_LOCK_TIMEOUT_SECONDS):
