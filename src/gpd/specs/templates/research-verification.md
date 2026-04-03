@@ -10,6 +10,7 @@ A conversational walkthrough of research results, checking derivation logic, phy
 Use `@{GPD_INSTALL_DIR}/templates/verification-report.md` for the canonical verification frontmatter contract. This template adds the researcher-session body scaffold (`Current Check`, conversational logs, and diagnosis flow) on top of that same verification ledger.
 The verification-side `suggested_contract_checks` entries are part of the same canonical schema surface, so the body scaffold must stay aligned with the frontmatter contract rather than inventing a parallel checklist format.
 The contract-backed frontmatter example below keeps `uncertainty_markers` explicit and non-empty so the strict contract-results validator sees unresolved anchors before the report is written.
+For theorem/proof claims, keep the claim at `partial` or `blocked` until the same `contract_results.claims.<claim-id>` entry carries `proof_audit.completeness: complete` and the proof-specific acceptance test has actually passed.
 If the project has an active convention lock, include a machine-readable `ASSERT_CONVENTION` comment immediately after the YAML frontmatter using canonical lock keys and exact lock values. Changed phase verification artifacts now fail `gpd pre-commit-check` if this required header is missing or mismatched.
 
 ---
@@ -29,6 +30,25 @@ contract_results:
       status: not_attempted
       summary: "[verification not started yet]"
       linked_ids: [deliverable-main, acceptance-test-main, reference-main]
+      proof_audit:
+        completeness: incomplete
+        reviewed_at: null
+        reviewer: gpd-check-proof
+        proof_artifact_path: derivations/main-proof.tex
+        proof_artifact_sha256: null
+        audit_artifact_path: GPD/phases/XX-name/{phase}-{plan}-PROOF-REDTEAM.md
+        audit_artifact_sha256: null
+        claim_statement_sha256: null
+        covered_hypothesis_ids: []
+        missing_hypothesis_ids: []
+        covered_parameter_symbols: []
+        missing_parameter_symbols: []
+        uncovered_quantifiers: []
+        uncovered_conclusion_clause_ids: []
+        quantifier_status: unclear
+        scope_status: unclear
+        counterexample_status: not_attempted
+        stale: false
       evidence:
         - verifier: gpd-verifier
           method: benchmark reproduction

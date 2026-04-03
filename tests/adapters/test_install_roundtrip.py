@@ -49,6 +49,39 @@ def expected_opencode_bridge(target: Path, *, is_global: bool = False, explicit_
     )
 
 
+def _make_checkout_stub(tmp_path: Path) -> tuple[Path, Path]:
+    """Create a minimal checkout root with a local virtualenv interpreter."""
+    checkout_root = tmp_path / "checkout"
+    src_root = checkout_root / "src" / "gpd"
+    for subdir in ("commands", "agents", "hooks", "specs"):
+        (src_root / subdir).mkdir(parents=True, exist_ok=True)
+    (checkout_root / "package.json").write_text(
+        json.dumps({"name": "get-physics-done", "version": "9.9.9", "gpdPythonVersion": "9.9.9"}),
+        encoding="utf-8",
+    )
+    (checkout_root / "pyproject.toml").write_text(
+        '[project]\nname = "get-physics-done"\nversion = "9.9.9"\n',
+        encoding="utf-8",
+    )
+    checkout_python = checkout_root / ".venv" / "bin" / "python"
+    checkout_python.parent.mkdir(parents=True, exist_ok=True)
+    checkout_python.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+    return checkout_root, checkout_python
+
+
+def _collect_textual_artifacts(root: Path) -> str:
+    """Return concatenated text from readable installed artifacts under *root*."""
+    chunks: list[str] = []
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        try:
+            chunks.append(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError):
+            continue
+    return "\n".join(chunks)
+
+
 def _install_real_repo_for_runtime(tmp_path: Path, runtime: str) -> Path:
     if runtime == "claude-code":
         target = tmp_path / ".claude"
@@ -181,6 +214,29 @@ def _read_runtime_agent_prompt(target: Path, runtime: str, agent_name: str) -> s
     if runtime in {"claude-code", "codex", "gemini", "opencode"}:
         return (target / "agents" / f"{agent_name}.md").read_text(encoding="utf-8")
     raise AssertionError(f"Unsupported runtime {runtime}")
+
+
+@pytest.mark.parametrize("runtime", ["claude-code", "codex", "gemini", "opencode"])
+def test_install_artifacts_pin_checkout_python_when_running_from_checkout(
+    tmp_path: Path,
+    runtime: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    checkout_root, checkout_python = _make_checkout_stub(tmp_path)
+    stale_managed_python = "/managed/gpd/venv/bin/python"
+
+    monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: checkout_root)
+    monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", stale_managed_python)
+
+    target = _install_real_repo_for_runtime(tmp_path, runtime)
+    artifact_roots = [target]
+    if runtime == "codex":
+        artifact_roots.append(tmp_path / "skills")
+
+    installed_text = "\n".join(_collect_textual_artifacts(root) for root in artifact_roots)
+
+    assert str(checkout_python) in installed_text
+    assert stale_managed_python not in installed_text
 
 
 @pytest.mark.parametrize("runtime", ["claude-code", "codex", "gemini", "opencode"])
@@ -1005,6 +1061,11 @@ def test_real_installed_contract_and_review_surfaces_keep_required_schema_bodies
         assert installed_section == registry_section
         assert installed_content.count("## Review Contract") == 1
         assert installed_section.count("## Review Contract") == 1
+    peer_review_section = _review_contract_section(
+        _read_runtime_command_prompt(tmp_path, target, runtime, "peer-review")
+    )
+    assert "conditional_requirements:" in peer_review_section
+    assert "when: theorem-bearing claims are present" in peer_review_section
     assert "Peer Review Panel Protocol" in review_literature
     assert '"stage_id": "reader | literature | math | physics | interestingness"' in review_literature
     assert '"stage_kind": "reader | literature | math | physics | interestingness"' in review_literature

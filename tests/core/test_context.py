@@ -1612,6 +1612,35 @@ class TestInitVerifyWork:
         assert ctx["convention_lock_count"] >= ctx["derived_convention_lock_count"] >= 1
         assert ctx["derived_convention_lock"]["metric_signature"] == "(-,+,+,+)"
 
+    def test_bootstraps_phase_proof_review_manifest(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        phase_dir = _create_phase_dir(tmp_path, "01-setup")
+        (phase_dir / "01-SUMMARY.md").write_text("# Summary\n", encoding="utf-8")
+        (phase_dir / "01-VERIFICATION.md").write_text("# Verification\n", encoding="utf-8")
+
+        ctx = init_verify_work(tmp_path, "1")
+
+        assert ctx["phase_proof_review_status"]["state"] == "fresh"
+        assert ctx["phase_proof_review_status"]["manifest_bootstrapped"] is True
+        assert (tmp_path / "GPD" / "phases" / "01-setup" / "01-PROOF-REVIEW-MANIFEST.json").exists()
+
+    def test_reports_stale_phase_proof_review_after_phase_edit(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        phase_dir = _create_phase_dir(tmp_path, "01-setup")
+        summary_path = phase_dir / "01-SUMMARY.md"
+        summary_path.write_text("# Summary\n", encoding="utf-8")
+        (phase_dir / "01-VERIFICATION.md").write_text("# Verification\n", encoding="utf-8")
+
+        initial = init_verify_work(tmp_path, "1")
+        assert initial["phase_proof_review_status"]["state"] == "fresh"
+
+        summary_path.write_text("# Summary\n\nUpdated derivation.\n", encoding="utf-8")
+
+        ctx = init_verify_work(tmp_path, "1")
+
+        assert ctx["phase_proof_review_status"]["state"] == "stale"
+        assert ctx["phase_proof_review_status"]["can_rely_on_prior_review"] is False
+
 
 # ─── init_todos ───────────────────────────────────────────────────────────────
 

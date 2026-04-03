@@ -16,6 +16,7 @@ import yaml
 
 from gpd.command_labels import canonical_command_label, canonical_skill_label, command_slug_from_label
 from gpd.core.review_contract_prompt import (
+    VALID_REVIEW_CONDITIONAL_WHENS,
     VALID_REVIEW_MODES,
     VALID_REVIEW_PREFLIGHT_CHECKS,
     VALID_REVIEW_REQUIRED_STATES,
@@ -75,6 +76,17 @@ class CommandDef:
 
 
 @dataclass(frozen=True, slots=True)
+class ReviewContractConditionalRequirement:
+    """Condition-scoped review-contract requirements."""
+
+    when: str
+    required_outputs: list[str] = field(default_factory=list)
+    required_evidence: list[str] = field(default_factory=list)
+    blocking_conditions: list[str] = field(default_factory=list)
+    stage_artifacts: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
 class ReviewCommandContract:
     """Typed orchestration contract for review-grade commands."""
 
@@ -85,6 +97,7 @@ class ReviewCommandContract:
     preflight_checks: list[str]
     stage_ids: list[str] = field(default_factory=list)
     stage_artifacts: list[str] = field(default_factory=list)
+    conditional_requirements: list[ReviewContractConditionalRequirement] = field(default_factory=list)
     final_decision_output: str = ""
     requires_fresh_context_per_stage: bool = False
     max_review_rounds: int = 0
@@ -306,11 +319,14 @@ def _parse_non_negative_int_field(raw: object, *, field_name: str, command_name:
         stripped = raw.strip()
         if not stripped:
             return default
-        raw = stripped
-    try:
-        value = int(raw)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field_name} for {command_name} must be an integer") from exc
+        try:
+            value = int(stripped)
+        except ValueError as exc:
+            raise ValueError(f"{field_name} for {command_name} must be an integer") from exc
+    elif isinstance(raw, int):
+        value = raw
+    else:
+        raise ValueError(f"{field_name} for {command_name} must be an integer")
     if value < 0:
         raise ValueError(f"{field_name} for {command_name} must be >= 0")
     return value
@@ -461,6 +477,16 @@ def _review_contract_payload(review_contract: ReviewCommandContract) -> dict[str
         "preflight_checks": list(review_contract.preflight_checks),
         "stage_ids": list(review_contract.stage_ids),
         "stage_artifacts": list(review_contract.stage_artifacts),
+        "conditional_requirements": [
+            {
+                "when": requirement.when,
+                "required_outputs": list(requirement.required_outputs),
+                "required_evidence": list(requirement.required_evidence),
+                "blocking_conditions": list(requirement.blocking_conditions),
+                "stage_artifacts": list(requirement.stage_artifacts),
+            }
+            for requirement in review_contract.conditional_requirements
+        ],
         "final_decision_output": review_contract.final_decision_output,
         "requires_fresh_context_per_stage": review_contract.requires_fresh_context_per_stage,
         "max_review_rounds": review_contract.max_review_rounds,
@@ -571,6 +597,10 @@ def _parse_review_contract(raw: object, command_name: str) -> ReviewCommandContr
             field_name="stage_artifacts",
             command_name=command_name,
         ),
+        conditional_requirements=_parse_review_contract_conditional_requirements(
+            merged.get("conditional_requirements"),
+            command_name=command_name,
+        ),
         final_decision_output=_parse_optional_str_field(
             merged.get("final_decision_output"),
             field_name="final_decision_output",
@@ -589,6 +619,72 @@ def _parse_review_contract(raw: object, command_name: str) -> ReviewCommandContr
         required_state=required_state,
         schema_version=schema_version,
     )
+
+
+def _parse_review_contract_conditional_requirements(
+    raw: object,
+    *,
+    command_name: str,
+) -> list[ReviewContractConditionalRequirement]:
+    """Parse conditional review-contract requirements without hidden coercion."""
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        raise ValueError(f"conditional_requirements for {command_name} must be a list of mappings")
+
+    parsed: list[ReviewContractConditionalRequirement] = []
+    for index, item in enumerate(raw):
+        field_label = f"conditional_requirements[{index}]"
+        if not isinstance(item, dict):
+            raise ValueError(f"{field_label} for {command_name} must be a mapping")
+        unknown_fields = sorted(
+            str(key)
+            for key in item
+            if str(key) not in {"when", "required_outputs", "required_evidence", "blocking_conditions", "stage_artifacts"}
+        )
+        if unknown_fields:
+            raise ValueError(
+                f"{field_label} for {command_name} contains unknown field(s): {', '.join(unknown_fields)}"
+            )
+        when = _parse_required_str_field(item.get("when"), field_name=f"{field_label}.when", command_name=command_name)
+        if when not in VALID_REVIEW_CONDITIONAL_WHENS:
+            valid = ", ".join(VALID_REVIEW_CONDITIONAL_WHENS)
+            raise ValueError(f"{field_label}.when for {command_name} must be one of: {valid}; got {when!r}")
+        required_outputs = _parse_str_list(
+            item.get("required_outputs"),
+            field_name=f"{field_label}.required_outputs",
+            command_name=command_name,
+        )
+        required_evidence = _parse_str_list(
+            item.get("required_evidence"),
+            field_name=f"{field_label}.required_evidence",
+            command_name=command_name,
+        )
+        blocking_conditions = _parse_str_list(
+            item.get("blocking_conditions"),
+            field_name=f"{field_label}.blocking_conditions",
+            command_name=command_name,
+        )
+        stage_artifacts = _parse_str_list(
+            item.get("stage_artifacts"),
+            field_name=f"{field_label}.stage_artifacts",
+            command_name=command_name,
+        )
+        if not any((required_outputs, required_evidence, blocking_conditions, stage_artifacts)):
+            raise ValueError(
+                f"{field_label} for {command_name} must declare at least one of: "
+                "required_outputs, required_evidence, blocking_conditions, stage_artifacts"
+            )
+        parsed.append(
+            ReviewContractConditionalRequirement(
+                when=when,
+                required_outputs=required_outputs,
+                required_evidence=required_evidence,
+                blocking_conditions=blocking_conditions,
+                stage_artifacts=stage_artifacts,
+            )
+        )
+    return parsed
 
 
 def _parse_agent_file(path: Path, source: str) -> AgentDef:
@@ -1020,6 +1116,7 @@ __all__ = [
     "AgentDef",
     "COMMANDS_DIR",
     "CommandDef",
+    "ReviewContractConditionalRequirement",
     "ReviewCommandContract",
     "SkillDef",
     "SPECS_DIR",

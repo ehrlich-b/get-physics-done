@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import get_args
 
 from gpd.adapters.install_utils import expand_at_includes
 from gpd.mcp.paper.models import (
     ClaimIndex,
     ClaimRecord,
     ClaimType,
+    ProofAuditRecord,
+    ProofAuditStatus,
     ReviewConfidence,
     ReviewFinding,
     ReviewIssueSeverity,
@@ -36,11 +39,15 @@ def _assert_schema_tokens_visible(text: str) -> None:
         assert f"`{token}`" in text or f'"{token}"' in text, f"Missing schema token: {token}"
     for claim_type in ClaimType:
         assert claim_type.value in text, f"Missing claim type: {claim_type.value}"
+    for claim_kind in get_args(ClaimRecord.model_fields["claim_kind"].annotation):
+        assert claim_kind in text, f"Missing claim kind: {claim_kind}"
 
 
 def _assert_stage_review_schema_tokens_visible(text: str) -> None:
     for token in (*StageReviewReport.model_fields, *ReviewFinding.model_fields):
         assert f"`{token}`" in text or f'"{token}"' in text, f"Missing schema token: {token}"
+    for token in ProofAuditRecord.model_fields:
+        assert f"`{token}`" in text or f'"{token}"' in text, f"Missing proof-audit schema token: {token}"
     for severity in ReviewIssueSeverity:
         assert severity.value in text, f"Missing severity: {severity.value}"
     for support_status in ReviewSupportStatus:
@@ -49,6 +56,8 @@ def _assert_stage_review_schema_tokens_visible(text: str) -> None:
         assert confidence.value in text, f"Missing confidence: {confidence.value}"
     for recommendation in ReviewRecommendation:
         assert recommendation.value in text, f"Missing recommendation: {recommendation.value}"
+    for status in ProofAuditStatus:
+        assert status.value in text, f"Missing proof-audit status: {status.value}"
 
 
 def _assert_stage_review_contract_visible(text: str, stage_kind: str) -> None:
@@ -80,6 +89,8 @@ def test_review_reader_prompt_surfaces_full_claim_index_schema() -> None:
     assert "do not omit them" in claims_schema
     assert "must be non-empty" in claims_schema
     assert "lowercase 64-hex digest" in claims_schema
+    assert "theorem-bearing" in claims_schema
+    assert "Do not silently drop statement parameters" in claims_schema
     assert "CLAIMS.json" not in claims_schema
     assert "round-specific variant when instructed" not in claims_schema
 
@@ -168,3 +179,46 @@ def test_stage_review_agents_surface_compact_stage_review_schema() -> None:
         assert "do not collapse them to prose or scalars" in schema
         assert "{round_suffix}.json" in expanded
         assert "round-specific variant" not in expanded
+
+
+def test_review_math_prompt_requires_theorem_to_proof_audits() -> None:
+    review_math = (AGENTS_DIR / "gpd-review-math.md").read_text(encoding="utf-8")
+
+    assert "audit theorem-to-proof alignment explicitly" in review_math
+    assert "For every reviewed theorem-bearing claim from Stage 1, emit a `proof_audits[]` entry." in review_math
+    assert "The 3-5-step sampling rule does not waive full theorem inventory coverage" in review_math
+    assert "silently specialized proof" in review_math
+
+
+def test_check_proof_prompt_requires_fail_closed_proof_inventory_and_adversarial_probe() -> None:
+    check_proof = (AGENTS_DIR / "gpd-check-proof.md").read_text(encoding="utf-8")
+
+    assert "You are the proof-critique specialist for theorem-bearing work." in check_proof
+    assert "`reviewer: gpd-check-proof`" in check_proof
+    assert "`manuscript_path: path/to/manuscript.tex`" in check_proof
+    assert "`manuscript_sha256: <lowercase 64-hex digest>`" in check_proof
+    assert "`round: <review round number>`" in check_proof
+    assert "## Proof Inventory" in check_proof
+    assert "## Coverage Ledger" in check_proof
+    assert "### Named-Parameter Coverage" in check_proof
+    assert "### Hypothesis Coverage" in check_proof
+    assert "### Quantifier / Domain Coverage" in check_proof
+    assert "### Conclusion-Clause Coverage" in check_proof
+    assert "## Adversarial Probe" in check_proof
+    assert "Exact claim / theorem text" in check_proof
+    assert "If a named parameter from the statement never appears in the proof logic, mark it as uncovered and fail closed." in check_proof
+    assert "For manuscript-scoped artifacts, do not omit `manuscript_path`, `manuscript_sha256`, or `round`" in check_proof
+    assert "Do not rewrite the theorem into the special case that was actually proved." in check_proof
+
+
+def test_referee_and_panel_prompts_require_mandatory_theorem_bearing_proof_artifacts() -> None:
+    referee = (AGENTS_DIR / "gpd-referee.md").read_text(encoding="utf-8")
+    panel = (REFERENCES_DIR / "publication" / "peer-review-panel.md").read_text(encoding="utf-8")
+
+    assert "Treat theorem-bearing status from the full Stage 1 claim record" in referee
+    assert "central theorem-bearing claim" in referee
+    assert "matching passed `PROOF-REDTEAM{round_suffix}.md` artifact" in referee
+
+    assert "When theorem-bearing claims exist, `PROOF-REDTEAM{round_suffix}.md` is mandatory Stage 6 input" in panel
+    assert "missing, invalid, or non-passing `PROOF-REDTEAM{round_suffix}.md` artifact is itself a blocking stage-integrity failure" in panel
+    assert "every reviewed theorem-bearing Stage 1 claim must receive a `proof_audits[]` entry" in panel

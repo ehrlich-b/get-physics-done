@@ -27,7 +27,7 @@ This graph therefore includes:
 <!-- repo-graph-scope:start -->
 
 - `src/gpd/commands/*.md`: `65`
-- `src/gpd/agents/*.md`: `23`
+- `src/gpd/agents/*.md`: `24`
 - `src/gpd/specs/workflows/*.md`: `66`
 - `src/gpd/specs/templates/**/*.md`: `71`
 - `src/gpd/specs/references/**/*.md`: `163`
@@ -519,7 +519,7 @@ flowchart TD
   `generated-output`
   The command explicitly creates the paper config and requires the canonical manuscript scaffold before drafting continues.
 
-- `src/gpd/commands/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
+- `src/gpd/commands/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
   `spawn`
 
 - `src/gpd/commands/peer-review.md -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`
@@ -616,25 +616,25 @@ flowchart TD
 - `src/gpd/agents/{gpd-bibliographer,gpd-consistency-checker,gpd-debugger,gpd-executor,gpd-experiment-designer,gpd-literature-reviewer,gpd-notation-coordinator,gpd-paper-writer,gpd-phase-researcher,gpd-plan-checker,gpd-planner,gpd-project-researcher,gpd-referee,gpd-research-synthesizer,gpd-roadmapper,gpd-research-mapper,gpd-verifier}.md -> src/gpd/specs/references/shared/shared-protocols.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance}.md -> src/gpd/specs/references/shared/shared-protocols.md`
+- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance}.md -> src/gpd/specs/references/shared/shared-protocols.md`
   `include`
 
 - `src/gpd/agents/{gpd-bibliographer,gpd-consistency-checker,gpd-debugger,gpd-executor,gpd-experiment-designer,gpd-explainer,gpd-literature-reviewer,gpd-notation-coordinator,gpd-paper-writer,gpd-phase-researcher,gpd-plan-checker,gpd-planner,gpd-project-researcher,gpd-referee,gpd-research-synthesizer,gpd-roadmapper,gpd-research-mapper}.md -> src/gpd/specs/references/orchestration/agent-infrastructure.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-significance}.md -> src/gpd/specs/references/orchestration/agent-infrastructure.md`
+- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-check-proof,gpd-review-significance}.md -> src/gpd/specs/references/orchestration/agent-infrastructure.md`
   `include`
 
 - `src/gpd/agents/{gpd-bibliographer,gpd-consistency-checker,gpd-debugger,gpd-executor,gpd-explainer,gpd-phase-researcher,gpd-plan-checker,gpd-planner,gpd-referee,gpd-research-mapper,gpd-verifier}.md -> src/gpd/specs/references/physics-subfields.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-math,gpd-review-physics}.md -> src/gpd/specs/references/physics-subfields.md`
+- `src/gpd/agents/{gpd-review-math,gpd-check-proof,gpd-review-physics}.md -> src/gpd/specs/references/physics-subfields.md`
   `include`
 
 - `src/gpd/agents/{gpd-consistency-checker,gpd-debugger,gpd-plan-checker,gpd-planner,gpd-referee,gpd-verifier}.md -> src/gpd/specs/references/verification/core/verification-core.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-math,gpd-review-physics}.md -> src/gpd/specs/references/verification/core/verification-core.md`
+- `src/gpd/agents/{gpd-review-math,gpd-check-proof,gpd-review-physics}.md -> src/gpd/specs/references/verification/core/verification-core.md`
   `include`
 
 - `src/gpd/agents/{gpd-bibliographer,gpd-paper-writer,gpd-referee}.md -> src/gpd/specs/references/publication/publication-pipeline-modes.md`
@@ -643,7 +643,7 @@ flowchart TD
 - `src/gpd/agents/{gpd-review-literature,gpd-review-significance}.md -> src/gpd/specs/references/publication/publication-pipeline-modes.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md -> src/gpd/specs/references/publication/peer-review-panel.md`
+- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md -> src/gpd/specs/references/publication/peer-review-panel.md`
   `include`
 
 - `src/gpd/agents/{gpd-phase-researcher,gpd-project-researcher,gpd-verifier}.md -> src/gpd/specs/references/research/research-modes.md`
@@ -800,7 +800,7 @@ flowchart TD
 - `src/gpd/specs/workflows/write-paper.md -> src/gpd/agents/gpd-referee.md`
   `spawn`
 
-- `src/gpd/specs/workflows/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
+- `src/gpd/specs/workflows/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
   `spawn`
 
 - `src/gpd/specs/workflows/peer-review.md -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`

@@ -251,6 +251,10 @@ class TestConvertToGeminiToml:
                 "  schema_version: 1\n"
                 "  required_outputs:\n"
                 "    - GPD/review/REFEREE-DECISION{round_suffix}.json\n"
+                "  conditional_requirements:\n"
+                "    - when: theorem-bearing claims are present\n"
+                "      required_outputs:\n"
+                "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
                 "---\n"
                 "Prompt body"
             ),
@@ -266,6 +270,8 @@ class TestConvertToGeminiToml:
         assert "review-contract:" not in section
         assert "review_mode: publication" in result
         assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in result
+        assert "conditional_requirements:" in result
+        assert "when: theorem-bearing claims are present" in result
         assert result.index("## Review Contract") < result.index("Prompt body")
 
     def test_uses_multiline_literal_string(self) -> None:
@@ -418,7 +424,10 @@ class TestInstall:
             '{\n  // keep user settings\n  "theme": "solarized",\n}\n',
             encoding="utf-8",
         )
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         result = adapter.install(gpd_root, target)
         adapter.finish_install(
@@ -479,7 +488,10 @@ class TestInstall:
             ),
             encoding="utf-8",
         )
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         result = adapter.install(gpd_root, target)
         adapter.finalize_install(result)

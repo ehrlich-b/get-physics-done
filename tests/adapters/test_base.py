@@ -109,6 +109,23 @@ class TestUninstallBase:
         with pytest.raises(RuntimeError, match="GPD artifacts but no manifest"):
             adapter.uninstall(target)
 
+    def test_uninstall_allows_manifestless_hook_residue_with_empty_managed_dirs(self, tmp_path: Path) -> None:
+        adapter = get_adapter("claude-code")
+        target = tmp_path / ".claude"
+        (target / "commands" / "gpd").mkdir(parents=True)
+        (target / "get-physics-done").mkdir(parents=True)
+        hooks = target / "hooks"
+        hooks.mkdir(parents=True)
+        bundled_hooks = Path(__file__).resolve().parents[2] / "src" / "gpd" / "hooks"
+        (hooks / "statusline.py").write_text((bundled_hooks / "statusline.py").read_text(encoding="utf-8"), encoding="utf-8")
+
+        result = adapter.uninstall(target)
+
+        assert "1 GPD hooks" in result["removed"]
+        assert not (hooks / "statusline.py").exists()
+        assert not (target / "commands" / "gpd").exists()
+        assert not (target / "get-physics-done").exists()
+
     def test_removes_manifest_tracked_gpd_hooks(self, tmp_path: Path) -> None:
         adapter = get_adapter("claude-code")
         target = tmp_path / ".claude"
@@ -219,6 +236,17 @@ class TestInstallValidationAndHooks:
         agents.mkdir(parents=True)
         (agents / "gpd-verifier.md").write_text("agent\n", encoding="utf-8")
         (agents / "custom-agent.md").write_text("custom\n", encoding="utf-8")
+
+        adapter.validate_target_runtime(target, action="install into")
+
+    def test_validate_target_runtime_allows_manifestless_agent_surface_with_empty_dirs(self, tmp_path: Path) -> None:
+        adapter = get_adapter("claude-code")
+        target = tmp_path / ".claude"
+        agents = target / "agents"
+        agents.mkdir(parents=True)
+        (agents / "gpd-verifier.md").write_text("agent\n", encoding="utf-8")
+        (target / "commands" / "gpd").mkdir(parents=True)
+        (target / "get-physics-done").mkdir(parents=True)
 
         adapter.validate_target_runtime(target, action="install into")
 

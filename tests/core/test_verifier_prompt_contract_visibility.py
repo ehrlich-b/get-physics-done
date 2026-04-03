@@ -4,10 +4,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENTS_DIR = REPO_ROOT / "src/gpd/agents"
+TEMPLATES_DIR = REPO_ROOT / "src/gpd/specs/templates"
 
 
 def _read_verifier_prompt() -> str:
     return (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
+
+
+def _read_verification_template() -> str:
+    return (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
 
 
 def test_verifier_prompt_points_to_canonical_verification_schema_sources() -> None:
@@ -55,3 +60,26 @@ def test_verifier_prompt_frontmatter_example_includes_contract_ledgers() -> None
     assert "<!-- ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly-minus, fourier_convention=physics -->" in verifier
     assert "weakest_anchors: []" not in verifier
     assert "disconfirming_observations: []" not in verifier
+
+
+def test_verifier_prompt_surfaces_missing_parameter_proof_audit_and_stale_review_gate() -> None:
+    verifier = _read_verifier_prompt()
+    verification_template = _read_verification_template()
+
+    assert "[] Proof structure" in verifier
+    assert (
+        "Every named theorem parameter or hypothesis is used or explicitly discharged; no theorem symbol may "
+        "disappear without explanation"
+    ) in verifier
+    assert (
+        "If the proof only establishes a narrower subcase than the stated theorem, downgrade the claim and "
+        "name the missing hypothesis/parameter coverage"
+    ) in verifier
+    assert (
+        "If the theorem statement or proof artifact changed after the last proof audit, treat the prior proof "
+        "audit as stale and rerun before marking the target passed"
+    ) in verifier
+
+    assert "Proof-backed claims are stricter still" in verification_template
+    assert "proof artifact, or proof-audit deliverable changed after the last adversarial proof review" in verification_template
+    assert "A stale proof audit is never compatible with `status: passed`." in verification_template

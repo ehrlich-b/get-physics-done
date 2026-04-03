@@ -563,6 +563,131 @@ class TestParseCommandFile:
         ):
             _parse_command_file(f, source="commands")
 
+    def test_command_review_contract_parses_conditional_requirements(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements.md",
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
+            "      stage_artifacts:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n",
+        )
+
+        cmd = _parse_command_file(f, source="commands")
+
+        assert cmd.review_contract is not None
+        assert len(cmd.review_contract.conditional_requirements) == 1
+        requirement = cmd.review_contract.conditional_requirements[0]
+        assert requirement.when == "theorem-bearing claims are present"
+        assert requirement.required_outputs == ["GPD/review/PROOF-REDTEAM{round_suffix}.md"]
+        assert requirement.required_evidence == []
+        assert requirement.blocking_conditions == []
+        assert requirement.stage_artifacts == ["GPD/review/PROOF-REDTEAM{round_suffix}.md"]
+
+    def test_command_review_contract_conditional_requirements_reject_non_list(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-non-list.md",
+            "  conditional_requirements: true\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-non-list\.md.*conditional_requirements",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_conditional_requirements_reject_non_mapping_items(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-non-mapping-item.md",
+            "  conditional_requirements:\n"
+            "    - oops\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-non-mapping-item\.md.*conditional_requirements\[0\]",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_conditional_requirements_reject_unknown_nested_fields(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-unknown-field.md",
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      legacy_note: stale\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-unknown-field\.md.*conditional_requirements\[0\].*legacy_note",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_conditional_requirements_reject_blank_when(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-blank-when.md",
+            '  conditional_requirements:\n    - when: "   "\n',
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-blank-when\.md.*conditional_requirements\[0\]\.when",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_conditional_requirements_reject_unsupported_when(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-invalid-when.md",
+            "  conditional_requirements:\n"
+            "    - when: proof-bearing work is present\n"
+            "      required_outputs:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-invalid-when\.md.*conditional_requirements\[0\]\.when",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_conditional_requirements_reject_non_string_members(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-non-string-member.md",
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
+            "        - true\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-non-string-member\.md.*conditional_requirements\[0\]\.required_outputs",
+        ):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_conditional_requirements_reject_empty_requirement(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "conditional-requirements-empty.md",
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=r"Invalid review-contract in .*conditional-requirements-empty\.md.*conditional_requirements\[0\]",
+        ):
+            _parse_command_file(f, source="commands")
+
     def test_command_review_contract_bool_max_rounds_is_rejected(self, tmp_path: Path) -> None:
         f = _write_review_contract_command(
             tmp_path,
@@ -571,6 +696,16 @@ class TestParseCommandFile:
         )
 
         with pytest.raises(ValueError, match=r"Invalid review-contract in .*review-rounds-bool\.md.*max_review_rounds"):
+            _parse_command_file(f, source="commands")
+
+    def test_command_review_contract_float_max_rounds_is_rejected(self, tmp_path: Path) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "review-rounds-float.md",
+            "  max_review_rounds: 1.5\n",
+        )
+
+        with pytest.raises(ValueError, match=r"Invalid review-contract in .*review-rounds-float\.md.*max_review_rounds"):
             _parse_command_file(f, source="commands")
 
     @pytest.mark.parametrize("raw_value", ["7", "true"])

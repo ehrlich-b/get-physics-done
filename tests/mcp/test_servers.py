@@ -144,6 +144,119 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
     }
 
 
+def _proof_contract_fixture() -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "scope": {
+            "question": "Does the proof establish the theorem for all r_0 > 0?",
+            "in_scope": ["proof-obligation audit"],
+        },
+        "context_intake": {
+            "must_read_refs": ["ref-proof"],
+            "crucial_inputs": ["Track every theorem parameter and conclusion clause through the proof."],
+        },
+        "observables": [
+            {
+                "id": "obs-proof",
+                "name": "main theorem proof obligation",
+                "kind": "proof_obligation",
+                "definition": "Formal proof obligation for the main theorem",
+            }
+        ],
+        "claims": [
+            {
+                "id": "claim-theorem",
+                "statement": "For all r_0 > 0, the full theorem holds.",
+                "claim_kind": "theorem",
+                "observables": ["obs-proof"],
+                "deliverables": ["deliv-summary"],
+                "acceptance_tests": [
+                    "test-proof-param",
+                    "test-proof-align",
+                    "test-proof-counterexample",
+                ],
+                "references": ["ref-proof"],
+                "parameters": [
+                    {"symbol": "r_0", "domain_or_type": "positive real", "aliases": ["r0"], "required_in_proof": True},
+                    {"symbol": "n", "domain_or_type": "integer", "required_in_proof": True},
+                ],
+                "hypotheses": [{"id": "hyp-main", "text": "r_0 > 0", "required_in_proof": True}],
+                "quantifiers": ["for all r_0 > 0"],
+                "conclusion_clauses": [{"id": "conclusion-main", "text": "the theorem holds"}],
+                "proof_deliverables": ["deliv-proof"],
+            }
+        ],
+        "deliverables": [
+            {
+                "id": "deliv-summary",
+                "kind": "report",
+                "description": "Theorem summary note",
+                "must_contain": ["theorem statement"],
+            },
+            {
+                "id": "deliv-proof",
+                "kind": "derivation",
+                "description": "Formal theorem proof",
+                "must_contain": ["proof audit"],
+            },
+        ],
+        "acceptance_tests": [
+            {
+                "id": "test-proof-param",
+                "subject": "claim-theorem",
+                "kind": "proof_parameter_coverage",
+                "procedure": "Audit theorem parameters against the proof body.",
+                "pass_condition": "All theorem parameters remain present in the proof.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-align",
+                "subject": "claim-theorem",
+                "kind": "claim_to_proof_alignment",
+                "procedure": "Audit the theorem statement against the proof conclusion.",
+                "pass_condition": "The proof establishes the theorem exactly as stated.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-counterexample",
+                "subject": "claim-theorem",
+                "kind": "counterexample_search",
+                "procedure": "Attempt an adversarial counterexample search.",
+                "pass_condition": "No counterexample or narrowed claim is found.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+        ],
+        "references": [
+            {
+                "id": "ref-proof",
+                "kind": "paper",
+                "locator": "doi:10.1000/proof",
+                "role": "definition",
+                "why_it_matters": "Defines the theorem statement and notation.",
+                "applies_to": ["claim-theorem"],
+                "must_surface": True,
+                "required_actions": ["read"],
+            }
+        ],
+        "forbidden_proxies": [
+            {
+                "id": "fp-proof",
+                "subject": "claim-theorem",
+                "proxy": "Algebraic consistency without theorem alignment",
+                "reason": "The theorem still requires statement-to-proof alignment.",
+            }
+        ],
+        "links": [],
+        "uncertainty_markers": {
+            "weakest_anchors": ["A theorem parameter could disappear from the proof body."],
+            "disconfirming_observations": ["The proof only covers the r_0 = 0 special case."],
+        },
+    }
+
+
 def _tool_description_and_schema(tool_name: str) -> tuple[str, dict[str, object]]:
     async def _load() -> tuple[str, dict[str, object]]:
         from gpd.mcp.servers.conventions_server import mcp
@@ -935,6 +1048,12 @@ class TestSkillsServer:
             "review-contract:\n"
             "  review_mode: publication\n"
             "  schema_version: 1\n"
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
+            "      stage_artifacts:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
             "---\n"
             "\n"
             "Canonical peer review command.\n"
@@ -1029,6 +1148,15 @@ class TestSkillsServer:
         assert result["project_reentry_capable"] is False
         assert result["review_contract"] is not None
         assert result["review_contract"]["review_mode"] == "publication"
+        assert result["review_contract"]["conditional_requirements"] == [
+            {
+                "when": "theorem-bearing claims are present",
+                "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                "required_evidence": [],
+                "blocking_conditions": [],
+                "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            }
+        ]
         assert "## Review Contract" in result["content"]
         assert "review_contract:" in result["content"]
         assert "review-contract:" not in result["content"]
@@ -1793,6 +1921,35 @@ class TestVerificationServer:
         assert result["check_id"] == "5.16"
         assert result["binding"]["claim_ids"] == ["claim-benchmark"]
 
+    def test_run_contract_check_proof_parameter_coverage_flags_missing_theorem_parameter(self):
+        from gpd.mcp.servers.verification_server import run_contract_check
+
+        result = run_contract_check(
+            {
+                "check_key": "contract.proof_parameter_coverage",
+                "contract": _proof_contract_fixture(),
+                "observed": {"covered_parameter_symbols": ["n"]},
+            }
+        )
+
+        assert result["status"] == "fail"
+        assert result["check_id"] == "5.21"
+        assert result["metrics"]["missing_parameter_symbols"] == ["r_0"]
+
+    def test_run_contract_check_claim_to_proof_alignment_requires_clause_audit(self):
+        from gpd.mcp.servers.verification_server import run_contract_check
+
+        result = run_contract_check(
+            {
+                "check_key": "contract.claim_to_proof_alignment",
+                "contract": _proof_contract_fixture(),
+                "observed": {"scope_status": "matched"},
+            }
+        )
+
+        assert result["status"] == "insufficient_evidence"
+        assert "observed.uncovered_conclusion_clause_ids" in result["missing_inputs"]
+
     def test_run_contract_check_requires_identifier(self):
         from gpd.mcp.servers.verification_server import run_contract_check
 
@@ -2313,6 +2470,21 @@ class TestVerificationServer:
         assert benchmark["request_template"]["observed"]["threshold_value"] is None
         assert benchmark["request_template"]["artifact_content"] is None
 
+    def test_suggest_contract_checks_from_proof_contract(self):
+        from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+        result = suggest_contract_checks(_proof_contract_fixture())
+        suggested = {entry["check_key"] for entry in result["suggested_checks"]}
+
+        assert "contract.proof_parameter_coverage" in suggested
+        assert "contract.claim_to_proof_alignment" in suggested
+        assert "contract.counterexample_search" in suggested
+        parameter = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.proof_parameter_coverage")
+        assert parameter["binding_targets"] == ["observable", "claim", "deliverable", "acceptance_test"]
+        assert parameter["request_template"]["binding"]["claim_ids"] == ["claim-theorem"]
+        assert parameter["request_template"]["metadata"]["theorem_parameter_symbols"] == ["r_0", "n"]
+        assert parameter["request_template"]["observed"]["covered_parameter_symbols"] is None
+
     def test_suggest_contract_checks_returns_deep_copied_request_templates(self):
         import json
         from pathlib import Path
@@ -2364,13 +2536,17 @@ class TestVerificationServer:
         assert result["found"] is True
         assert result["schema_version"] == 1
         assert result["domain_check_count"] > 0
-        assert result["universal_check_count"] == 19
+        assert result["universal_check_count"] == 24
         assert result["universal_checks"][0]["check_id"] == "5.1"
         assert "evidence_kind" in result["universal_checks"][0]
         contract_check = next(entry for entry in result["universal_checks"] if entry["check_key"] == "contract.limit_recovery")
         assert contract_check["required_request_fields"] == ["metadata.regime_label", "metadata.expected_behavior"]
         assert contract_check["request_template"]["metadata"]["regime_label"] is None
         assert contract_check["request_template"]["metadata"]["expected_behavior"] is None
+        proof_check = next(
+            entry for entry in result["universal_checks"] if entry["check_key"] == "contract.proof_parameter_coverage"
+        )
+        assert proof_check["request_template"]["metadata"]["theorem_parameter_symbols"] is None
 
     def test_get_checklist_unknown_domain(self):
         from gpd.mcp.servers.verification_server import get_checklist

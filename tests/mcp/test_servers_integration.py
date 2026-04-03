@@ -694,6 +694,15 @@ class TestSkillsServerIntegration:
         assert any(path.endswith("referee-decision-schema.md") for path in result["schema_references"])
         assert result["review_contract"] is not None
         assert result["review_contract"]["review_mode"] == "publication"
+        assert result["review_contract"]["conditional_requirements"] == [
+            {
+                "when": "theorem-bearing claims are present",
+                "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                "required_evidence": [],
+                "blocking_conditions": [],
+                "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            }
+        ]
         assert result["context_mode"] == "project-required"
         assert result["project_reentry_capable"] is False
         assert "## Review Contract" in result["content"]

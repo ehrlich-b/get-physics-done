@@ -150,6 +150,10 @@ class TestConvertFrontmatter:
                 "  schema_version: 1\n"
                 "  required_outputs:\n"
                 "    - GPD/review/REFEREE-DECISION{round_suffix}.json\n"
+                "  conditional_requirements:\n"
+                "    - when: theorem-bearing claims are present\n"
+                "      required_outputs:\n"
+                "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
                 "---\n"
                 "Prompt body"
             ),
@@ -164,6 +168,8 @@ class TestConvertFrontmatter:
         assert "review_contract:" in section
         assert "review-contract:" not in section
         assert "review_mode: publication" in result
+        assert "conditional_requirements:" in result
+        assert "when: theorem-bearing claims are present" in result
         assert result.index("## Review Contract") < result.index("Prompt body")
 
 
@@ -874,6 +880,29 @@ class TestUninstall:
         target.mkdir()
         result = adapter.uninstall(target)
         assert result["removed"] == []
+
+    def test_uninstall_allows_manifestless_hook_residue_with_empty_flat_command_dir(
+        self,
+        adapter: OpenCodeAdapter,
+        tmp_path: Path,
+    ) -> None:
+        target = tmp_path / ".opencode"
+        (target / "command").mkdir(parents=True)
+        (target / "agents").mkdir(parents=True)
+        hooks = target / "hooks"
+        hooks.mkdir(parents=True)
+        bundled_hooks = Path(__file__).resolve().parents[2] / "src" / "gpd" / "hooks"
+        (hooks / "install_metadata.py").write_text(
+            (bundled_hooks / "install_metadata.py").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+
+        result = adapter.uninstall(target)
+
+        assert "1 GPD hooks" in result["removed"]
+        assert not (hooks / "install_metadata.py").exists()
+        assert not (target / "command").exists()
+        assert not (target / "agents").exists()
 
     def test_uninstall_restores_permissions_after_gpd_managed_yolo(
         self,

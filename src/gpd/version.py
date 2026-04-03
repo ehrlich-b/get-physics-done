@@ -9,6 +9,7 @@ stale managed-environment package contents.
 
 from __future__ import annotations
 
+import os
 import tomllib
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -68,6 +69,42 @@ def checkout_root(start: Path | None = None) -> Path | None:
     return _find_checkout_root(Path(__file__).resolve())
 
 
+def _checkout_python_candidates(root: Path) -> tuple[Path, ...]:
+    """Return plausible checkout-local Python interpreter paths."""
+    if os.name == "nt":
+        relpaths = (
+            Path(".venv") / "Scripts" / "python.exe",
+            Path("venv") / "Scripts" / "python.exe",
+        )
+    else:
+        relpaths = (
+            Path(".venv") / "bin" / "python",
+            Path(".venv") / "bin" / "python3",
+            Path("venv") / "bin" / "python",
+            Path("venv") / "bin" / "python3",
+        )
+    return tuple(root / relpath for relpath in relpaths)
+
+
+def resolve_checkout_python(start: Path | None = None, *, fallback: str | None = None) -> str | None:
+    """Return the preferred Python interpreter for the active checkout.
+
+    When a source checkout is available, installed runtime artifacts should
+    point at the checkout's own virtualenv if present so copied hook scripts,
+    MCP servers, and runtime bridges all import the same live source tree.
+    Fall back to *fallback* when no checkout-local interpreter exists.
+    """
+    root = checkout_root(start)
+    if root is None:
+        return None
+
+    for candidate in _checkout_python_candidates(root):
+        if candidate.is_file():
+            return str(candidate)
+
+    return fallback
+
+
 def resolve_install_gpd_root(start: Path | None = None) -> Path:
     """Return the GPD source tree to use for installs.
 
@@ -108,6 +145,7 @@ except PackageNotFoundError:
 __all__ = [
     "__version__",
     "checkout_root",
+    "resolve_checkout_python",
     "resolve_active_version",
     "resolve_install_gpd_root",
     "version_for_gpd_root",

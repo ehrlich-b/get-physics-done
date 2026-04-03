@@ -97,6 +97,7 @@ gpd validate review-preflight write-paper --strict
 
 If review preflight exits nonzero because of missing project state, missing roadmap, degraded review integrity, missing research artifacts, or non-review-ready reproducibility coverage, STOP and show the blocking issues before drafting. Keep the current `project_contract`, `project_contract_load_info`, `project_contract_validation`, and `active_reference_context` visible throughout the staged review; they are authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes.
 For any resumed manuscript, strict preflight reads `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`, and `reproducibility-manifest.json` from the resolved manuscript directory itself. Do not satisfy that gate with legacy publication artifacts from a different manuscript directory when the active manuscript lives elsewhere.
+If the manuscript depends on any theorem-style or `proof_obligation` result, treat passed proof-redteam artifacts from the source phases as mandatory review inputs. Missing or open proof audits are CRITICAL blockers, not polish issues.
 
 **Locate paper directory (if resuming):**
 
@@ -432,6 +433,27 @@ Check that the manuscript can surface the decisive evidence, not just supporting
 **Decisive comparison missing for a central claim** → CRITICAL gap.
 **Bundle guidance suggests a decisive comparison that is absent, but the manuscript narrows the claim honestly** → WARNING, not blocker.
 
+### Check 7: Proof-obligation coverage
+
+Check whether any contributing phase or manuscript section makes theorem-style claims.
+
+Treat a manuscript claim as proof-bearing when:
+
+1. the supporting phase contract includes `proof_obligation`
+2. the manuscript uses theorem-style language (`theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `we prove`, `show that`)
+3. the draft strengthens a formal result beyond the audited scope of a source derivation
+
+For each such claim:
+
+1. locate the source `*-PROOF-REDTEAM.md` artifact in the contributing phase, or the manuscript-round `GPD/review/PROOF-REDTEAM{round_suffix}.md` artifact when it already exists
+2. confirm the audit reports `status: passed`
+3. confirm the audit closed parameter, hypothesis, quantifier/domain, and conclusion-clause coverage
+4. confirm the manuscript wording does not overstate what the passed audit actually established
+
+**Missing proof-redteam artifact for a theorem-style claim** → CRITICAL gap.
+**Proof-redteam artifact present but `status != passed`** → CRITICAL gap.
+**Manuscript strengthens the claim beyond the audited theorem statement** → CRITICAL gap.
+
 ### Audit Report
 
 Present results as a readiness report:
@@ -448,9 +470,10 @@ Phases audited: {N}
 	  SUMMARY completeness      {P/F}     {details}
 	  Convention consistency     {P/F}     {details}
 	  Numerical stability        {P/F}     {details}
-	  Figure readiness           {P/F}     {details}
-	  Citation readiness         {P/F}     {details}
-	  Decisive comparisons       {P/F}     {details}
+		  Figure readiness           {P/F}     {details}
+		  Citation readiness         {P/F}     {details}
+		  Decisive comparisons       {P/F}     {details}
+		  Proof obligations          {P/F}     {details}
 
   CRITICAL gaps: {count}
   Warnings:      {count}
@@ -656,8 +679,11 @@ Default bootstrap wording: `Check if the expected .tex file was written to `${PA
 - Narrative continuity (how preceding section ends, what following section needs)
 - Research artifacts (file paths to read for content)
 - Active decisive-comparison artifacts (`GPD/comparisons/*-COMPARISON.md`) and relevant `FIGURE_TRACKER.md` entries for any contract-critical figure or table
+- Passed proof-redteam artifacts (`*-PROOF-REDTEAM.md`, `GPD/review/PROOF-REDTEAM{round_suffix}.md`) for any theorem-style claim surfaced in the section
 - `protocol_bundle_context` and `selected_protocol_bundle_ids` as additive specialized guidance only; they help decide which decisive anchors, estimator caveats, and benchmark comparisons must stay visible, but they do not replace the contract-backed evidence ledger
 - Writing principles (see command file)
+
+Writer agents must not strengthen, generalize, or rhetorically smooth theorem-style claims beyond what the proof-redteam artifacts actually passed. If the section brief implies a stronger theorem than the available audit supports, STOP and route the claim back for proof review instead of writing around the gap.
 
 **What makes good physics writing:**
 
@@ -923,6 +949,8 @@ If validation fails, stop and fix the manifest now. Do not enter `pre_submission
 <step name="pre_submission_review">
 Before finalizing, run the same staged peer-review panel used by `/gpd:peer-review`. Do not fall back to a single generalist referee pass here, because that is precisely the failure mode this workflow is meant to avoid.
 
+For theorem-style or `proof_obligation` claims, this stage also carries the mandatory auxiliary proof-redteam gate from `peer-review.md`. Missing or open proof-redteam artifacts are fail-closed blockers even if the rest of the manuscript review looks clean.
+
 **Standalone entrypoint:** `/gpd:peer-review` is the first-class command for re-running this stage outside the write-paper pipeline. This embedded step must stay behaviorally aligned with that command and use the same six-agent panel:
 
 1. `gpd-review-reader`
@@ -974,7 +1002,7 @@ The score should be artifact-driven, not manually estimated. Use:
 
 Treat paper-support artifacts as scaffolding, not as proof that a claim is established. Missing decisive comparison evidence still blocks a strong submission recommendation even if manifests and audits are complete.
 
-Present the quality score report. If score < journal minimum, list specific items to fix before submission. If score >= minimum, recommend proceeding to `/gpd:arxiv-submission`.
+Present the quality score report. If score < journal minimum, list specific items to fix before submission. If score >= minimum but no submission-clearing staged review exists yet, recommend `/gpd:peer-review`. Recommend `/gpd:arxiv-submission` only when the latest staged review already clears submission packaging.
 
 Present summary to user with build instructions, quality score, and next steps.
 </step>

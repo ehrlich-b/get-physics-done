@@ -51,6 +51,10 @@ from gpd.core.errors import ValidationError
 from gpd.core.extras import approximation_list
 from gpd.core.phases import _milestone_completion_snapshot
 from gpd.core.project_reentry import resolve_project_reentry
+from gpd.core.proof_review import (
+    resolve_manuscript_proof_review_status,
+    resolve_phase_proof_review_status,
+)
 from gpd.core.protocol_bundles import render_protocol_bundle_context, select_protocol_bundles
 from gpd.core.reference_ingestion import ingest_manuscript_reference_status, ingest_reference_artifacts
 from gpd.core.results import result_list
@@ -859,6 +863,7 @@ def _build_reference_runtime_context(cwd: Path) -> dict[str, object]:
         research_map_reference_files=list(artifact_payload["research_map_reference_files"]),
     )
     manuscript_reference_status = ingest_manuscript_reference_status(cwd)
+    manuscript_proof_review_status = resolve_manuscript_proof_review_status(cwd)
     derived_references = [ref.to_context_dict() for ref in artifact_ingestion.references]
     derived_citation_sources = [item.to_context_dict() for item in artifact_ingestion.citation_sources]
     derived_manuscript_reference_status = {
@@ -916,6 +921,7 @@ def _build_reference_runtime_context(cwd: Path) -> dict[str, object]:
         "derived_citation_source_count": len(derived_citation_sources),
         "derived_manuscript_reference_status": derived_manuscript_reference_status,
         "derived_manuscript_reference_status_count": len(derived_manuscript_reference_status),
+        "derived_manuscript_proof_review_status": manuscript_proof_review_status.to_context_dict(cwd),
         "active_references": active_references,
         "active_reference_count": len(active_references),
         "selected_protocol_bundle_ids": [bundle.bundle_id for bundle in selected_protocol_bundles],
@@ -1919,7 +1925,19 @@ def _detect_platform(cwd: Path | None = None) -> str:
                 )
             except Exception:
                 continue
-            if install_target is not None:
+            if install_target is not None and getattr(install_target, "install_scope", None) == "local":
+                return descriptor.runtime_name
+
+        for descriptor in iter_runtime_descriptors():
+            try:
+                install_target = detect_runtime_install_target(
+                    descriptor.runtime_name,
+                    cwd=resolved_cwd,
+                    home=resolved_home,
+                )
+            except Exception:
+                continue
+            if install_target is not None and getattr(install_target, "install_scope", None) == "global":
                 return descriptor.runtime_name
     except Exception:
         pass
@@ -2376,6 +2394,11 @@ def init_verify_work(cwd: Path, phase: str | None) -> dict:
 
     config = load_config(cwd)
     phase_info = _try_find_phase(cwd, phase)
+    phase_proof_review_status = resolve_phase_proof_review_status(
+        cwd,
+        cwd / phase_info["directory"] if phase_info else None,
+        persist_manifest=True,
+    )
 
     result = {
         # Models
@@ -2394,6 +2417,7 @@ def init_verify_work(cwd: Path, phase: str | None) -> dict:
         # Existing artifacts
         "has_verification": phase_info.get("has_verification", False) if phase_info else False,
         "has_validation": phase_info.get("has_validation", False) if phase_info else False,
+        "phase_proof_review_status": phase_proof_review_status.to_context_dict(cwd),
         # Platform
         "platform": _detect_platform(cwd),
     }

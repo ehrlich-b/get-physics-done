@@ -63,6 +63,27 @@ class InstallTargetAssessment:
     missing_install_artifacts: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True, slots=True)
+class ManagedInstallSurface:
+    """Observed managed install surfaces under a runtime config directory."""
+
+    has_gpd_content: bool
+    has_nested_commands: bool
+    has_flat_commands: bool
+    has_managed_agents: bool
+
+    @property
+    def has_managed_markers(self) -> bool:
+        return any(
+            (
+                self.has_gpd_content,
+                self.has_nested_commands,
+                self.has_flat_commands,
+                self.has_managed_agents,
+            )
+        )
+
+
 def _load_manifest_payload(config_dir: Path) -> dict[str, object] | None:
     """Return the parsed manifest payload when it is a mapping."""
 
@@ -72,25 +93,49 @@ def _load_manifest_payload(config_dir: Path) -> dict[str, object] | None:
     return payload
 
 
-def config_dir_has_managed_install_markers(config_dir: Path) -> bool:
-    """Return whether *config_dir* carries any managed GPD install markers."""
-    if any(
-        (
-            (config_dir / GPD_INSTALL_DIR_NAME).exists(),
-            (config_dir / COMMANDS_DIR_NAME / "gpd").exists(),
-            (config_dir / FLAT_COMMANDS_DIR_NAME).exists(),
-        )
-    ):
-        return True
+def _dir_contains_files(path: Path) -> bool:
+    """Return whether *path* contains at least one regular file.
 
-    agents_dir = config_dir / AGENTS_DIR_NAME
-    if not agents_dir.is_dir():
+    Empty leftover directories are not strong enough ownership evidence for
+    install/update/uninstall decisions, so marker detection keys off real files.
+    Read errors fail closed and count as managed content.
+    """
+
+    if not path.is_dir():
         return False
 
-    return any(
+    try:
+        return any(entry.is_file() for entry in path.rglob("*"))
+    except OSError:
+        return True
+
+
+def inspect_managed_install_surface(config_dir: Path) -> ManagedInstallSurface:
+    """Return the managed install surfaces currently materialized in *config_dir*."""
+
+    flat_commands_dir = config_dir / FLAT_COMMANDS_DIR_NAME
+    has_flat_commands = flat_commands_dir.is_dir() and any(
+        entry.is_file() and entry.name.startswith("gpd-") and entry.suffix == ".md"
+        for entry in flat_commands_dir.iterdir()
+    )
+
+    agents_dir = config_dir / AGENTS_DIR_NAME
+    has_managed_agents = agents_dir.is_dir() and any(
         entry.is_file() and entry.name.startswith("gpd-") and entry.suffix in {".md", ".toml"}
         for entry in agents_dir.iterdir()
     )
+
+    return ManagedInstallSurface(
+        has_gpd_content=_dir_contains_files(config_dir / GPD_INSTALL_DIR_NAME),
+        has_nested_commands=_dir_contains_files(config_dir / COMMANDS_DIR_NAME / "gpd"),
+        has_flat_commands=has_flat_commands,
+        has_managed_agents=has_managed_agents,
+    )
+
+
+def config_dir_has_managed_install_markers(config_dir: Path) -> bool:
+    """Return whether *config_dir* carries any managed GPD install markers."""
+    return inspect_managed_install_surface(config_dir).has_managed_markers
 
 
 def load_install_manifest_state(config_dir: Path) -> tuple[str, dict[str, object]]:

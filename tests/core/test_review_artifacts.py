@@ -11,6 +11,8 @@ from gpd.mcp.paper.models import (
     ClaimIndex,
     ClaimRecord,
     ClaimType,
+    ProofAuditRecord,
+    ProofAuditStatus,
     ReviewConfidence,
     ReviewFinding,
     ReviewIssue,
@@ -44,6 +46,8 @@ def test_review_artifact_round_trip(tmp_path: Path) -> None:
                 text="The result has broad impact.",
                 artifact_path="paper/main.tex",
                 section="Conclusion",
+                theorem_assumptions=["N is compact"],
+                theorem_parameters=["r_0"],
             )
         ],
     )
@@ -65,6 +69,18 @@ def test_review_artifact_round_trip(tmp_path: Path) -> None:
                 support_status=ReviewSupportStatus.unsupported,
                 blocking=True,
                 required_action="Narrow the significance claim to the demonstrated regime.",
+            )
+        ],
+        proof_audits=[
+            ProofAuditRecord(
+                claim_id="CLM-001",
+                theorem_assumptions_checked=["N is compact"],
+                theorem_parameters_checked=[],
+                proof_locations=["paper/main.tex:42"],
+                uncovered_parameters=["r_0"],
+                coverage_gaps=["Proof establishes only the centered case."],
+                alignment_status=ProofAuditStatus.misaligned,
+                notes="The proof does not cover the quantified parameter.",
             )
         ],
         confidence=ReviewConfidence.high,
@@ -110,6 +126,38 @@ def test_review_artifact_round_trip(tmp_path: Path) -> None:
     assert read_stage_review_report(stage_path) == stage_report
     assert read_review_ledger(ledger_path) == ledger
     assert read_referee_decision(decision_path) == decision
+
+
+def test_stage_review_report_rejects_duplicate_proof_audit_claim_ids() -> None:
+    with pytest.raises(ValidationError, match="proof_audits must not repeat claim_id values"):
+        StageReviewReport(
+            stage_id="math",
+            stage_kind=ReviewStageKind.math,
+            manuscript_path="paper/main.tex",
+            manuscript_sha256="a" * 64,
+            claims_reviewed=["CLM-001"],
+            summary="Summary",
+            strengths=[],
+            findings=[],
+            proof_audits=[
+                ProofAuditRecord(claim_id="CLM-001"),
+                ProofAuditRecord(claim_id="CLM-001"),
+            ],
+            confidence=ReviewConfidence.medium,
+            recommendation_ceiling=ReviewRecommendation.major_revision,
+        )
+
+
+def test_proof_audit_rejects_aligned_status_with_coverage_gaps() -> None:
+    with pytest.raises(
+        ValidationError,
+        match="aligned proof_audits cannot list uncovered assumptions, uncovered parameters, or coverage gaps",
+    ):
+        ProofAuditRecord(
+            claim_id="CLM-001",
+            uncovered_parameters=["r_0"],
+            alignment_status=ProofAuditStatus.aligned,
+        )
 
 
 def test_claim_index_rejects_invalid_sha256(tmp_path: Path) -> None:

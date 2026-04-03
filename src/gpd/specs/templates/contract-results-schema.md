@@ -47,6 +47,26 @@ contract_results:
       status: passed|partial|failed|blocked|not_attempted
       summary: "[what was actually established]"
       linked_ids: [deliv-main, test-main, ref-main]
+      proof_audit:
+        completeness: complete|incomplete
+        reviewed_at: "2026-04-02T12:00:00Z"
+        reviewer: gpd-check-proof
+        summary: "[what the adversarial proof review concluded]"
+        proof_artifact_path: derivations/main-proof.tex
+        proof_artifact_sha256: "[optional artifact sha256 for stale-audit detection]"
+        audit_artifact_path: GPD/phases/01-proof/01-01-PROOF-REDTEAM.md
+        audit_artifact_sha256: "[sha256 of the canonical proof-redteam artifact]"
+        claim_statement_sha256: "[required when a proof-bearing claim passes]"
+        covered_hypothesis_ids: [hyp-main]
+        missing_hypothesis_ids: []
+        covered_parameter_symbols: [r_0]
+        missing_parameter_symbols: []
+        uncovered_quantifiers: []
+        uncovered_conclusion_clause_ids: []
+        quantifier_status: matched|narrowed|mismatched|unclear
+        scope_status: matched|narrower_than_claim|mismatched|unclear
+        counterexample_status: none_found|counterexample_found|not_attempted|narrowed_claim
+        stale: false
       evidence:
         - verifier: gpd-verifier
           method: benchmark reproduction
@@ -98,6 +118,11 @@ Rules:
   - `forbidden_proxies` use `rejected`, `violated`, `unresolved`, or `not_applicable`.
 - Do not silently omit unfinished work. Use the section-specific open-work status explicitly when a contract ID is still open.
 - `linked_ids` and evidence sub-IDs (`claim_id`, `deliverable_id`, `acceptance_test_id`, `reference_id`, `forbidden_proxy_id`) must point to declared contract IDs.
+- `proof_audit` belongs on `contract_results.claims.<claim-id>` for theorem/proof claims. Do not move it to `deliverables` or `acceptance_tests`.
+- If a proof-bearing claim is marked `status: passed`, `proof_audit` is mandatory and `proof_audit.completeness` must be explicit.
+- `proof_audit.completeness: complete` is only valid when the audit has `reviewer: gpd-check-proof`, a non-empty `reviewed_at`, no missing hypotheses, no missing parameter symbols, no uncovered quantifiers, no uncovered conclusion clauses, `scope_status: matched`, `counterexample_status: none_found`, and `stale: false`.
+- A passed proof-bearing claim must carry `proof_artifact_sha256`, `audit_artifact_path`, `audit_artifact_sha256`, and a `claim_statement_sha256` that matches the current claim statement so stale theorem text or stale proof-redteam artifacts cannot inherit an old proof audit silently.
+- A passed proof-bearing claim must also have at least one passed proof-specific acceptance test such as `claim_to_proof_alignment`, `proof_hypothesis_coverage`, `proof_parameter_coverage`, `proof_quantifier_domain`, `lemma_dependency_closure`, or `counterexample_search`.
 - If a PLAN reference has `must_surface: true`, the ledger must include a matching `contract_results.references.<reference-id>` entry.
 - For `must_surface` references, `completed_actions` must cover every `required_actions` item; do not mark the anchor as handled while leaving required actions only in prose.
 - `required_actions`, `completed_actions`, and `missing_actions` use the same closed action vocabulary: `read`, `use`, `compare`, `cite`, `avoid`.
@@ -107,6 +132,7 @@ Rules:
   `status: not_applicable` requires both `completed_actions` and `missing_actions` to stay empty.
   `completed_actions` and `missing_actions` must not overlap.
 - For decisive acceptance tests, benchmark requirements must close with `comparison_kind: benchmark` and cross-method requirements must close with `comparison_kind: cross_method`; `prior_work`, `experiment`, `baseline`, and `other` do not satisfy those decisive mappings on their own.
+- For list-typed proof-audit fields (`covered_hypothesis_ids`, `missing_hypothesis_ids`, `covered_parameter_symbols`, `missing_parameter_symbols`, `uncovered_quantifiers`, `uncovered_conclusion_clause_ids`), even a single item must stay a YAML list. Scalar strings are invalid.
 
 ---
 

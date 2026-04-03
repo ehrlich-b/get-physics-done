@@ -8,6 +8,7 @@ Core operations:
 
 from __future__ import annotations
 
+import hashlib
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -20,13 +21,16 @@ from pydantic import ValidationError as PydanticValidationError
 from gpd.contracts import (
     ComparisonVerdict,
     ContractResults,
+    PROOF_ACCEPTANCE_TEST_KINDS,
     ProjectContractParseResult,
     ResearchContract,
     SuggestedContractCheck,
+    collect_proof_audit_alignment_errors,
     collect_plan_contract_integrity_errors,
     contract_has_explicit_context_intake,
     normalize_contract_results_input,
     parse_project_contract_data_strict,
+    statement_looks_theorem_like,
 )
 from gpd.core.constants import (
     PLAN_SUFFIX,
@@ -335,10 +339,49 @@ _DECISIVE_ACCEPTANCE_TEST_COMPARISON_KINDS: dict[str, frozenset[str]] = {
     "benchmark": frozenset({"benchmark"}),
     "cross_method": frozenset({"cross_method"}),
 }
+_THEOREM_CLAIM_KINDS = frozenset({"theorem", "lemma", "corollary", "proposition", "claim"})
 # Plan contracts can omit collection fields that already have safe closed-vocabulary
 # defaults in the schema models; downstream validation should stabilize them rather
 # than reject otherwise valid model output for restating "other".
 _PLAN_CONTRACT_EXPLICIT_COLLECTION_FIELDS: tuple[tuple[str, str], ...] = ()
+
+
+def _claim_requires_proof_audit(claim: object, observable_kind_by_id: dict[str, str]) -> bool:
+    observables = getattr(claim, "observables", [])
+    return (
+        getattr(claim, "claim_kind", "other") in _THEOREM_CLAIM_KINDS
+        or statement_looks_theorem_like(getattr(claim, "statement", None))
+        or bool(getattr(claim, "parameters", []))
+        or bool(getattr(claim, "hypotheses", []))
+        or bool(getattr(claim, "quantifiers", []))
+        or bool(getattr(claim, "conclusion_clauses", []))
+        or bool(getattr(claim, "proof_deliverables", []))
+        or any(observable_kind_by_id.get(observable_id) == "proof_obligation" for observable_id in observables)
+    )
+
+
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _resolve_contract_artifact_path(
+    *,
+    project_root: Path | None,
+    artifact_dir: Path | None,
+    path_text: str,
+) -> Path:
+    artifact_path = Path(path_text)
+    if artifact_path.is_absolute():
+        return artifact_path
+    if artifact_dir is not None:
+        candidate = artifact_dir / artifact_path
+        if candidate.exists():
+            return candidate
+    if project_root is not None:
+        return project_root / artifact_path
+    if artifact_dir is not None:
+        return artifact_dir / artifact_path
+    return artifact_path
 
 
 class FrontmatterValidation(BaseModel):
@@ -469,6 +512,109 @@ def _plan_contract_ref_path_error(plan_contract_ref: str) -> str | None:
     return None
 
 
+def _proof_specific_acceptance_test_ids(
+    *,
+    claim_acceptance_tests: list[str],
+    acceptance_test_kind_by_id: dict[str, str],
+) -> list[str]:
+    return [
+        test_id
+        for test_id in claim_acceptance_tests
+        if acceptance_test_kind_by_id.get(test_id) in PROOF_ACCEPTANCE_TEST_KINDS
+    ]
+
+
+def _claim_pass_proof_audit_errors(
+    contract: ResearchContract,
+    *,
+    claim_id: str,
+    claim_result,
+    contract_results: ContractResults,
+    acceptance_test_kind_by_id: dict[str, str],
+    deliverable_path_by_id: dict[str, str | None],
+) -> list[str]:
+    claim_by_id = {claim.id: claim for claim in contract.claims}
+    observable_kind_by_id = {observable.id: observable.kind for observable in contract.observables}
+    claim = claim_by_id.get(claim_id)
+    if claim is None or not _claim_requires_proof_audit(claim, observable_kind_by_id):
+        return []
+    if claim_result.status != "passed":
+        return []
+
+    audit = claim_result.proof_audit
+    if audit is None:
+        return [f"claim {claim_id} status=passed requires proof_audit for proof-bearing claim"]
+
+    errors: list[str] = []
+
+    proof_test_ids = _proof_specific_acceptance_test_ids(
+        claim_acceptance_tests=claim.acceptance_tests,
+        acceptance_test_kind_by_id=acceptance_test_kind_by_id,
+    )
+    if not proof_test_ids:
+        errors.append(f"claim {claim_id} status=passed requires at least one proof-specific acceptance_test")
+    else:
+        nonpassing_proof_test_ids = sorted(
+            test_id
+            for test_id in proof_test_ids
+            if contract_results.acceptance_tests.get(test_id) is None
+            or contract_results.acceptance_tests[test_id].status != "passed"
+        )
+        if nonpassing_proof_test_ids:
+            errors.append(
+                "claim "
+                f"{claim_id} status=passed requires all declared proof-specific acceptance_tests to pass: "
+                + ", ".join(nonpassing_proof_test_ids)
+            )
+        elif not any(
+            contract_results.acceptance_tests.get(test_id) is not None
+            and contract_results.acceptance_tests[test_id].status == "passed"
+            for test_id in proof_test_ids
+        ):
+            errors.append(
+                f"claim {claim_id} status=passed requires a passed proof-specific acceptance_test: {', '.join(sorted(proof_test_ids))}"
+            )
+
+    if audit.completeness != "complete":
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.completeness=complete")
+    if audit.reviewer != "gpd-check-proof":
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.reviewer=gpd-check-proof")
+    if not audit.reviewed_at:
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.reviewed_at")
+    if audit.stale:
+        errors.append(f"claim {claim_id} status=passed is incompatible with proof_audit.stale=true")
+    if claim.quantifiers and audit.quantifier_status != "matched":
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.quantifier_status=matched")
+    if audit.scope_status != "matched":
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.scope_status=matched")
+    if audit.counterexample_status != "none_found":
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.counterexample_status=none_found")
+    if not audit.proof_artifact_sha256:
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.proof_artifact_sha256")
+    if not audit.audit_artifact_path:
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.audit_artifact_path")
+    if not audit.audit_artifact_sha256:
+        errors.append(f"claim {claim_id} status=passed requires proof_audit.audit_artifact_sha256")
+
+    expected_statement_sha256 = _sha256_text(claim.statement)
+    if audit.claim_statement_sha256 != expected_statement_sha256:
+        errors.append(
+            f"claim {claim_id} status=passed requires proof_audit.claim_statement_sha256 to match the current claim statement"
+        )
+
+    allowed_proof_paths = {
+        path
+        for deliverable_id in claim.proof_deliverables
+        if (path := deliverable_path_by_id.get(deliverable_id))
+    }
+    if allowed_proof_paths and audit.proof_artifact_path not in allowed_proof_paths:
+        errors.append(
+            f"claim {claim_id} status=passed requires proof_audit.proof_artifact_path to match a declared proof_deliverables path"
+        )
+
+    return errors
+
+
 def _matches_decisive_acceptance_test_verdict(
     verdict: ComparisonVerdict,
     *,
@@ -499,14 +645,111 @@ def _matches_decisive_reference_verdict(
     )
 
 
+def _proof_audit_errors(
+    contract: ResearchContract,
+    contract_results: ContractResults,
+    *,
+    project_root: Path | None = None,
+    artifact_dir: Path | None = None,
+) -> list[str]:
+    errors: list[str] = []
+    observable_kind_by_id = {observable.id: observable.kind for observable in contract.observables}
+    acceptance_test_kind_by_id = {test.id: test.kind for test in contract.acceptance_tests}
+    deliverable_path_by_id = {
+        deliverable.id: deliverable.path
+        for deliverable in contract.deliverables
+    }
+
+    for claim in contract.claims:
+        if not _claim_requires_proof_audit(claim, observable_kind_by_id):
+            continue
+
+        result = contract_results.claims.get(claim.id)
+        if result is None:
+            continue
+
+        proof_audit = result.proof_audit
+        if proof_audit is None:
+            if result.status == "passed":
+                errors.append(f"claim {claim.id} passed without proof_audit")
+            continue
+
+        errors.extend(
+            collect_proof_audit_alignment_errors(
+                claim,
+                proof_audit,
+                deliverable_path_by_id=deliverable_path_by_id,
+            )
+        )
+
+        if proof_audit.proof_artifact_path:
+            if proof_audit.proof_artifact_sha256:
+                resolved_artifact = _resolve_contract_artifact_path(
+                    project_root=project_root,
+                    artifact_dir=artifact_dir,
+                    path_text=proof_audit.proof_artifact_path,
+                )
+                try:
+                    actual_sha = hashlib.sha256(resolved_artifact.read_bytes()).hexdigest()
+                except OSError:
+                    actual_sha = None
+                if actual_sha is None:
+                    errors.append(
+                        f"claim {claim.id} proof_audit proof_artifact_path does not resolve to a readable file"
+                    )
+                elif actual_sha != proof_audit.proof_artifact_sha256:
+                    errors.append(f"claim {claim.id} proof_audit proof_artifact_sha256 is stale")
+
+        if proof_audit.audit_artifact_path and proof_audit.audit_artifact_sha256:
+            resolved_audit_artifact = _resolve_contract_artifact_path(
+                project_root=project_root,
+                artifact_dir=artifact_dir,
+                path_text=proof_audit.audit_artifact_path,
+            )
+            try:
+                actual_audit_sha = hashlib.sha256(resolved_audit_artifact.read_bytes()).hexdigest()
+            except OSError:
+                actual_audit_sha = None
+            if actual_audit_sha is None:
+                errors.append(
+                    f"claim {claim.id} proof_audit audit_artifact_path does not resolve to a readable file"
+                )
+            elif actual_audit_sha != proof_audit.audit_artifact_sha256:
+                errors.append(f"claim {claim.id} proof_audit audit_artifact_sha256 is stale")
+
+        if result.status != "passed":
+            continue
+
+        errors.extend(
+            _claim_pass_proof_audit_errors(
+                contract,
+                claim_id=claim.id,
+                claim_result=result,
+                contract_results=contract_results,
+                acceptance_test_kind_by_id=acceptance_test_kind_by_id,
+                deliverable_path_by_id=deliverable_path_by_id,
+            )
+        )
+
+    return errors
+
+
 def _summary_contract_errors(
     contract: ResearchContract,
     contract_results: ContractResults,
     comparison_verdicts: list[ComparisonVerdict],
+    *,
+    project_root: Path | None = None,
+    artifact_dir: Path | None = None,
 ) -> list[str]:
     """Return summary-to-contract alignment issues for a contract-backed plan."""
 
-    errors: list[str] = []
+    errors = _proof_audit_errors(
+        contract,
+        contract_results,
+        project_root=project_root,
+        artifact_dir=artifact_dir,
+    )
 
     claim_ids = {claim.id for claim in contract.claims}
     deliverable_ids = {deliverable.id for deliverable in contract.deliverables}
@@ -703,10 +946,19 @@ def _verification_contract_errors(
     contract_results: ContractResults,
     comparison_verdicts: list[ComparisonVerdict],
     suggested_contract_checks: list[SuggestedContractCheck],
+    *,
+    project_root: Path | None = None,
+    artifact_dir: Path | None = None,
 ) -> list[str]:
     """Return verification-specific alignment issues for contract-backed plans."""
 
-    errors = _summary_contract_errors(contract, contract_results, comparison_verdicts)
+    errors = _summary_contract_errors(
+        contract,
+        contract_results,
+        comparison_verdicts,
+        project_root=project_root,
+        artifact_dir=artifact_dir,
+    )
 
     decisive_incomplete = False
     for test in contract.acceptance_tests:
@@ -1043,7 +1295,9 @@ def validate_frontmatter(content: str, schema_name: str, source_path: Path | Non
                 errors.extend(_prefixed_validation_errors("suggested_contract_checks", exc))
 
         if source_path is not None:
-            plan_contract_resolution = _find_matching_plan_contract(Path(source_path).parent, meta)
+            artifact_dir = Path(source_path).parent
+            project_root = resolve_project_root(artifact_dir, require_layout=False)
+            plan_contract_resolution = _find_matching_plan_contract(artifact_dir, meta)
             plan_contract = plan_contract_resolution.contract
             errors.extend(f"plan_contract_ref: {issue}" for issue in plan_contract_resolution.errors)
             if (
@@ -1066,6 +1320,8 @@ def validate_frontmatter(content: str, schema_name: str, source_path: Path | Non
                             contract_results,
                             comparison_verdicts,
                             suggested_contract_checks,
+                            project_root=project_root,
+                            artifact_dir=artifact_dir,
                         )
                         errors.extend(verification_errors)
                         errors.extend(
@@ -1076,7 +1332,15 @@ def validate_frontmatter(content: str, schema_name: str, source_path: Path | Non
                             )
                         )
                     else:
-                        errors.extend(_summary_contract_errors(plan_contract, contract_results, comparison_verdicts))
+                        errors.extend(
+                            _summary_contract_errors(
+                                plan_contract,
+                                contract_results,
+                                comparison_verdicts,
+                                project_root=project_root,
+                                artifact_dir=artifact_dir,
+                            )
+                        )
 
     return FrontmatterValidation(
         valid=len(missing) == 0 and not errors,

@@ -45,6 +45,24 @@ from gpd.registry import AgentDef, load_agents_from_dir
 logger = logging.getLogger(__name__)
 
 
+def _managed_install_surface(target_dir: Path):
+    """Return the shared managed-surface snapshot for *target_dir*."""
+    from gpd.hooks.install_metadata import inspect_managed_install_surface
+
+    return inspect_managed_install_surface(target_dir)
+
+
+def _dir_contains_files(path: Path) -> bool:
+    """Return whether *path* contains at least one regular file."""
+    if not path.is_dir():
+        return False
+
+    try:
+        return any(entry.is_file() for entry in path.rglob("*"))
+    except OSError:
+        return True
+
+
 def _has_only_agent_residue(target_dir: Path) -> bool:
     """Return whether *target_dir* contains only agent-surface residue.
 
@@ -58,9 +76,24 @@ def _has_only_agent_residue(target_dir: Path) -> bool:
     if not target_dir.exists() or not target_dir.is_dir():
         return False
 
+    surface = _managed_install_surface(target_dir)
+    has_managed_hooks = any((target_dir / rel_path).is_file() for rel_path in managed_hook_paths(target_dir))
+    if (
+        not surface.has_managed_agents
+        or surface.has_gpd_content
+        or surface.has_nested_commands
+        or surface.has_flat_commands
+        or has_managed_hooks
+    ):
+        return False
+
     for entry in target_dir.iterdir():
         if entry.name != AGENTS_DIR_NAME:
-            return False
+            if not entry.is_dir():
+                return False
+            if _dir_contains_files(entry):
+                return False
+            continue
         if not entry.is_dir():
             return False
 
@@ -76,21 +109,12 @@ def _has_blocking_manifestless_install_surface(target_dir: Path) -> bool:
     be repaired without a manifest.
     """
 
-    blocking_paths = (
-        target_dir / GPD_INSTALL_DIR_NAME,
-        target_dir / COMMANDS_DIR_NAME / "gpd",
-        target_dir / FLAT_COMMANDS_DIR_NAME,
-    )
-    if any(path.exists() for path in blocking_paths):
+    surface = _managed_install_surface(target_dir)
+    if surface.has_gpd_content or surface.has_nested_commands or surface.has_flat_commands:
         return True
 
-    agents_dir = target_dir / AGENTS_DIR_NAME
-    has_managed_agents = agents_dir.is_dir() and any(
-        entry.is_file() and entry.name.startswith("gpd-") and entry.suffix in {".md", ".toml"}
-        for entry in agents_dir.iterdir()
-    )
     has_managed_hooks = any((target_dir / rel_path).is_file() for rel_path in managed_hook_paths(target_dir))
-    return has_managed_agents and has_managed_hooks
+    return surface.has_managed_agents and has_managed_hooks
 
 
 class RuntimeAdapter(abc.ABC):

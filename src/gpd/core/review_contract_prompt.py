@@ -14,10 +14,20 @@ VALID_REVIEW_PREFLIGHT_CHECKS = (
     "research_artifacts",
     "manuscript",
     "compiled_manuscript",
+    "review_ledger",
+    "review_ledger_valid",
+    "referee_decision",
+    "referee_decision_valid",
+    "publication_review_outcome",
+    "manuscript_proof_review",
     "referee_report_source",
     "phase_artifacts",
 )
 VALID_REVIEW_REQUIRED_STATES = ("phase_executed",)
+VALID_REVIEW_CONDITIONAL_WHENS = (
+    "theorem-bearing claims are present",
+    "theorem-bearing manuscripts are present",
+)
 
 REVIEW_CONTRACT_FIELD_ORDER = (
     "schema_version",
@@ -28,15 +38,24 @@ REVIEW_CONTRACT_FIELD_ORDER = (
     "preflight_checks",
     "stage_ids",
     "stage_artifacts",
+    "conditional_requirements",
     "final_decision_output",
     "requires_fresh_context_per_stage",
     "max_review_rounds",
     "required_state",
 )
+REVIEW_CONTRACT_CONDITIONAL_FIELD_ORDER = (
+    "when",
+    "required_outputs",
+    "required_evidence",
+    "blocking_conditions",
+    "stage_artifacts",
+)
 REVIEW_CONTRACT_FRONTMATTER_KEY = "review-contract"
 REVIEW_CONTRACT_PROMPT_WRAPPER_KEY = "review_contract"
 REVIEW_CONTRACT_WRAPPER_KEYS = (REVIEW_CONTRACT_PROMPT_WRAPPER_KEY, REVIEW_CONTRACT_FRONTMATTER_KEY)
 REVIEW_CONTRACT_KEYS = frozenset(REVIEW_CONTRACT_FIELD_ORDER)
+REVIEW_CONTRACT_CONDITIONAL_KEYS = frozenset(REVIEW_CONTRACT_CONDITIONAL_FIELD_ORDER)
 
 
 def extract_frontmatter_block(frontmatter: str, field_name: str) -> str:
@@ -182,17 +201,92 @@ def _normalize_review_contract_bool(value: object, *, field_name: str, default: 
         return default
     if isinstance(value, bool):
         return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if not normalized:
+            return default
+        if normalized in {"true", "1", "yes", "y", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "n", "off"}:
+            return False
     raise ValueError(f"{field_name} must be a boolean")
 
 
 def _normalize_review_contract_non_negative_int(value: object, *, field_name: str, default: int = 0) -> int:
     if value is None:
         return default
-    if isinstance(value, bool) or not isinstance(value, int):
+    if isinstance(value, bool):
         raise ValueError(f"{field_name} must be an integer")
-    normalized = value
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return default
+        try:
+            normalized = int(stripped)
+        except ValueError as exc:
+            raise ValueError(f"{field_name} must be an integer") from exc
+    elif isinstance(value, int):
+        normalized = value
+    else:
+        raise ValueError(f"{field_name} must be an integer")
     if normalized < 0:
         raise ValueError(f"{field_name} must be >= 0")
+    return normalized
+
+
+def _normalize_review_contract_conditional_when(value: object, *, field_name: str) -> str:
+    return _normalize_review_contract_choice(
+        value,
+        field_name=field_name,
+        valid_values=VALID_REVIEW_CONDITIONAL_WHENS,
+    )
+
+
+def _normalize_review_contract_conditional_requirements(value: object) -> list[dict[str, object]]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ValueError("conditional_requirements must be a list of mappings")
+
+    normalized: list[dict[str, object]] = []
+    for index, item in enumerate(value):
+        field_name = f"conditional_requirements[{index}]"
+        if not isinstance(item, Mapping):
+            raise ValueError(f"{field_name} must be a mapping")
+        unknown_keys = sorted(str(key) for key in item if str(key) not in REVIEW_CONTRACT_CONDITIONAL_KEYS)
+        if unknown_keys:
+            formatted = ", ".join(unknown_keys)
+            raise ValueError(f"Unknown review-contract field(s): {field_name}.{formatted}")
+        normalized_item = {
+            "when": _normalize_review_contract_conditional_when(item.get("when"), field_name=f"{field_name}.when"),
+            "required_outputs": _normalize_review_contract_string_list(
+                item.get("required_outputs"),
+                field_name=f"{field_name}.required_outputs",
+            ),
+            "required_evidence": _normalize_review_contract_string_list(
+                item.get("required_evidence"),
+                field_name=f"{field_name}.required_evidence",
+            ),
+            "blocking_conditions": _normalize_review_contract_string_list(
+                item.get("blocking_conditions"),
+                field_name=f"{field_name}.blocking_conditions",
+            ),
+            "stage_artifacts": _normalize_review_contract_string_list(
+                item.get("stage_artifacts"),
+                field_name=f"{field_name}.stage_artifacts",
+            ),
+        }
+        if not any(
+            normalized_item[key]
+            for key in ("required_outputs", "required_evidence", "blocking_conditions", "stage_artifacts")
+        ):
+            raise ValueError(
+                f"{field_name} must declare at least one of: "
+                "required_outputs, required_evidence, blocking_conditions, stage_artifacts"
+            )
+        normalized.append(normalized_item)
     return normalized
 
 
@@ -256,6 +350,9 @@ def normalize_review_contract_payload(review_contract: object) -> dict[str, obje
         "stage_artifacts": _normalize_review_contract_string_list(
             loaded.get("stage_artifacts"),
             field_name="stage_artifacts",
+        ),
+        "conditional_requirements": _normalize_review_contract_conditional_requirements(
+            loaded.get("conditional_requirements")
         ),
         "final_decision_output": _normalize_review_contract_optional_str(
             loaded.get("final_decision_output"),

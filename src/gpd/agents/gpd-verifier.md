@@ -1217,6 +1217,9 @@ Subfield-specific verification checklists for the GPD verifier agent. Load ONLY 
   - CHECK: All hypotheses explicitly stated; boundary/edge cases verified
   - CHECK: Each step follows from previous steps and stated hypotheses (no gaps)
   - CHECK: Quantifiers correct (for-all vs there-exists)
+  - CHECK: Every named theorem parameter or hypothesis is used or explicitly discharged; no theorem symbol may disappear without explanation
+  - CHECK: If the proof only establishes a narrower subcase than the stated theorem, downgrade the claim and name the missing hypothesis/parameter coverage
+  - CHECK: If the theorem statement or proof artifact changed after the last proof audit, treat the prior proof audit as stale and rerun before marking the target passed
 
 [] Analytic structure
   - COMPUTE: Verify monodromy: going around branch point returns to correct Riemann sheet

@@ -10,4 +10,6 @@ def test_verification_report_strict_pass_mentions_required_reference_coverage() 
     assert "every reference entry is `completed`" in verification_report
     assert "every `must_surface` reference has all `required_actions` recorded in `completed_actions`" in verification_report
     assert "every forbidden_proxy is `rejected` or `not_applicable`" in verification_report
+    assert "`proof_audit.completeness: complete`" in verification_report
+    assert "passed proof-specific acceptance test" in verification_report
     assert "If any contract target is `partial`, `failed`, `blocked`, `missing`, or `unresolved`, use `gaps_found`, `expert_needed`, or `human_needed` instead of `passed`." in verification_report

@@ -38,6 +38,7 @@ If no override is configured for the active runtime, `gpd resolve-model` returns
 | gpd-review-reader        | tier-2        | tier-2      | tier-2        | tier-2   | tier-2          |
 | gpd-review-literature    | tier-1        | tier-2      | tier-1        | tier-1   | tier-2          |
 | gpd-review-math          | tier-1        | tier-1      | tier-2        | tier-1   | tier-1          |
+| gpd-check-proof          | tier-1        | tier-1      | tier-2        | tier-1   | tier-1          |
 | gpd-review-physics       | tier-1        | tier-1      | tier-2        | tier-1   | tier-1          |
 | gpd-review-significance  | tier-2        | tier-2      | tier-2        | tier-1   | tier-1          |
 | gpd-referee              | tier-1        | tier-2      | tier-2        | tier-1   | tier-1          |

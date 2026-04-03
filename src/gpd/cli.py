@@ -60,6 +60,10 @@ from gpd.core.project_reentry import (
     recoverable_project_context,
     resolve_project_reentry,
 )
+from gpd.core.proof_review import (
+    resolve_manuscript_proof_review_status,
+    resolve_phase_proof_review_status,
+)
 from gpd.core.recovery_advice import RecoveryAdvice, build_recovery_advice
 from gpd.core.resume_surface import (
     canonicalize_resume_public_payload,
@@ -94,6 +98,7 @@ if TYPE_CHECKING:
     from gpd.core.health import UnattendedReadinessResult
     from gpd.mcp.paper.bibliography import CitationSource
     from gpd.mcp.paper.models import PaperConfig
+    from gpd.registry import ReviewContractConditionalRequirement
 
 # ─── Output helpers ─────────────────────────────────────────────────────────
 
@@ -218,7 +223,7 @@ def _resolve_cli_cwd_from_argv(argv: list[str]) -> Path:
 
 def _maybe_reexec_from_checkout(argv: list[str] | None = None) -> None:
     """Re-exec through the nearest checkout when launched from an installed package."""
-    from gpd.version import checkout_root
+    from gpd.version import checkout_root, resolve_checkout_python
 
     if os.environ.get(ENV_GPD_DISABLE_CHECKOUT_REEXEC) == "1":
         return
@@ -239,7 +244,8 @@ def _maybe_reexec_from_checkout(argv: list[str] | None = None) -> None:
     if checkout_src not in existing_pythonpath:
         env["PYTHONPATH"] = os.pathsep.join([checkout_src, *existing_pythonpath]) if existing_pythonpath else checkout_src
     env[ENV_GPD_DISABLE_CHECKOUT_REEXEC] = "1"
-    os.execve(sys.executable, [sys.executable, "-m", "gpd.cli", *effective_argv], env)
+    checkout_python = resolve_checkout_python(root, fallback=sys.executable or "python3") or (sys.executable or "python3")
+    os.execve(checkout_python, [checkout_python, "-m", "gpd.cli", *effective_argv], env)
 
 
 def _format_display_path(target: str | Path | None) -> str:
@@ -298,6 +304,7 @@ class ReviewPreflightResult:
     required_outputs: list[str]
     required_evidence: list[str]
     blocking_conditions: list[str]
+    conditional_requirements: list[ReviewContractConditionalRequirement]
     validated_surface: str = "public_runtime_command_surface"
     local_cli_equivalence_guaranteed: bool = False
     dispatch_note: str = ""
@@ -3747,6 +3754,14 @@ def _render_cost_summary(summary: object, *, last_sessions: int) -> None:
     )
     console.print()
 
+    project_rollup = getattr(summary, "project", None)
+    if int(getattr(project_rollup, "record_count", 0) or 0) == 0:
+        console.print(
+            "[dim]No measured usage telemetry is recorded for this workspace yet. "
+            "GPD records usage only when the runtime emits token or cost payloads.[/]"
+        )
+        console.print()
+
     model_table = Table.grid(padding=(0, 2))
     model_table.add_column(style=f"bold {_INSTALL_ACCENT_COLOR}")
     model_table.add_column()
@@ -4925,8 +4940,16 @@ def _resolve_review_preflight_manuscript(
     subject: str | None,
     *,
     allow_markdown: bool = True,
+    restrict_to_supported_roots: bool = False,
 ) -> tuple[Path | None, str]:
     """Resolve a review-preflight manuscript target from an explicit subject or defaults."""
+    def _supported_explicit_manuscript_target(target: Path) -> bool:
+        try:
+            relative = target.resolve(strict=False).relative_to(cwd.resolve(strict=False))
+        except ValueError:
+            return False
+        return bool(relative.parts) and relative.parts[0] in {"paper", "manuscript", "draft"}
+
     if subject:
         target = Path(subject)
         if not target.is_absolute():
@@ -4934,6 +4957,11 @@ def _resolve_review_preflight_manuscript(
 
         if not target.exists():
             return None, f"missing explicit manuscript target {_format_display_path(target)}"
+        if restrict_to_supported_roots and not _supported_explicit_manuscript_target(target):
+            return (
+                None,
+                "explicit manuscript target must stay under `paper/`, `manuscript/`, or `draft/` inside the current project",
+            )
 
         if target.is_file():
             if target.suffix == ".tex" or (allow_markdown and target.suffix == ".md"):
@@ -4954,7 +4982,7 @@ def _resolve_review_preflight_manuscript(
                     None,
                     f"expected main.tex under {_format_display_path(target)} for LaTeX-only submission "
                     f"(found {_format_display_path(target / 'main.md')})",
-            )
+                )
             return None, f"no manuscript entry point found under {_format_display_path(target)}"
 
     manuscript = resolve_current_manuscript_entrypoint(cwd, allow_markdown=allow_markdown)
@@ -5107,7 +5135,12 @@ _REVIEW_PRECHECK_BLOCKING_CONDITIONS: dict[str, tuple[str, ...]] = {
     "referee_report_source": ("missing referee report source when provided as a path",),
     "phase_lookup": ("missing phase artifacts",),
     "phase_summaries": ("missing phase artifacts",),
-    "publication_review_outcome": ("peer-review recommendation blocks submission when staged review artifacts are present",),
+    "publication_review_outcome": (
+        "peer-review recommendation blocks submission",
+        "peer-review recommendation blocks submission when staged review artifacts are present",
+        "latest staged peer-review recommendation blocks submission packaging",
+    ),
+    "manuscript_proof_review": ("missing or stale manuscript proof review for theorem-bearing manuscripts",),
 }
 
 _REVIEW_PRECHECK_REQUIRED_EVIDENCE: dict[str, tuple[str, ...]] = {
@@ -5116,10 +5149,20 @@ _REVIEW_PRECHECK_REQUIRED_EVIDENCE: dict[str, tuple[str, ...]] = {
     "artifact_manifest": ("artifact manifest", "manuscript-root artifact manifest"),
     "bibliography_audit": ("bibliography audit", "manuscript-root bibliography audit"),
     "bibliography_audit_clean": ("bibliography audit", "manuscript-root bibliography audit"),
-    "review_ledger": ("peer-review review ledger when available",),
-    "review_ledger_valid": ("peer-review review ledger when available",),
-    "referee_decision": ("peer-review referee decision when available",),
-    "referee_decision_valid": ("peer-review referee decision when available",),
+    "review_ledger": ("peer-review review ledger", "peer-review review ledger when available"),
+    "review_ledger_valid": ("peer-review review ledger", "peer-review review ledger when available"),
+    "referee_decision": (
+        "peer-review referee decision",
+        "latest peer-review referee decision",
+        "peer-review referee decision when available",
+        "peer-review decision artifacts when available",
+    ),
+    "referee_decision_valid": (
+        "peer-review referee decision",
+        "latest peer-review referee decision",
+        "peer-review referee decision when available",
+        "peer-review decision artifacts when available",
+    ),
     "referee_report_source": ("referee report source when provided as a path",),
     "reproducibility_manifest": ("reproducibility manifest", "manuscript-root reproducibility manifest"),
     "reproducibility_ready": ("reproducibility manifest", "manuscript-root reproducibility manifest"),
@@ -5138,10 +5181,22 @@ def _normalized_contract_entries(values: list[str]) -> set[str]:
     return {value.strip().lower() for value in values if value and value.strip()}
 
 
+def _normalized_conditional_contract_entries(contract: object, field_name: str) -> set[str]:
+    """Return normalized entries from nested conditional review-contract clauses."""
+    normalized: set[str] = set()
+    for requirement in getattr(contract, "conditional_requirements", []):
+        normalized.update(
+            _normalized_contract_entries(list(getattr(requirement, field_name, []) or []))
+        )
+    return normalized
+
+
 def _review_preflight_check_is_blocking(contract: object, check_name: str) -> bool:
     """Return True when the typed review contract marks a check as hard-blocking."""
     blocking_conditions = _normalized_contract_entries(getattr(contract, "blocking_conditions", []))
+    blocking_conditions.update(_normalized_conditional_contract_entries(contract, "blocking_conditions"))
     required_evidence = _normalized_contract_entries(getattr(contract, "required_evidence", []))
+    required_evidence.update(_normalized_conditional_contract_entries(contract, "required_evidence"))
 
     return (
         any(alias in blocking_conditions for alias in _REVIEW_PRECHECK_BLOCKING_CONDITIONS.get(check_name, ()))
@@ -6218,6 +6273,7 @@ def _build_review_preflight(
                 project_cwd,
                 subject,
                 allow_markdown=command.name != "gpd:arxiv-submission",
+                restrict_to_supported_roots=command.name == "gpd:arxiv-submission",
             )
         elif command.name in {"gpd:write-paper", "gpd:respond-to-referees"}:
             manuscript, manuscript_detail = _resolve_review_preflight_manuscript(project_cwd, None, allow_markdown=True)
@@ -6329,7 +6385,20 @@ def _build_review_preflight(
                     blocking=True,
                 )
                 latest_review_artifacts = _latest_publication_review_artifacts(layout.gpd / "review")
-                if latest_review_artifacts is not None:
+                if latest_review_artifacts is None:
+                    add_check(
+                        "review_ledger",
+                        False,
+                        "missing REVIEW-LEDGER{round_suffix}.json for the required staged publication review",
+                        blocking=True,
+                    )
+                    add_check(
+                        "referee_decision",
+                        False,
+                        "missing REFEREE-DECISION{round_suffix}.json for the required staged publication review",
+                        blocking=True,
+                    )
+                else:
                     ledger_path = latest_review_artifacts.review_ledger
                     decision_path = latest_review_artifacts.referee_decision
                     round_label = (
@@ -6345,6 +6414,7 @@ def _build_review_preflight(
                             if ledger_path is not None
                             else f"missing REVIEW-LEDGER{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
                         ),
+                        blocking=True,
                     )
                     add_check(
                         "referee_decision",
@@ -6354,6 +6424,7 @@ def _build_review_preflight(
                             if decision_path is not None
                             else f"missing REFEREE-DECISION{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
                         ),
+                        blocking=True,
                     )
 
                     review_ledger = None
@@ -6388,6 +6459,7 @@ def _build_review_preflight(
                                     if review_ledger_valid
                                     else "review ledger manuscript_path does not match the active submission manuscript"
                                 ),
+                                blocking=True,
                             )
 
                     if decision_path is not None:
@@ -6442,6 +6514,7 @@ def _build_review_preflight(
                                     if decision_valid
                                     else "; ".join(decision_reasons[:3])
                                 ),
+                                blocking=True,
                             )
                             if decision_valid:
                                 submission_ready = (
@@ -6465,6 +6538,7 @@ def _build_review_preflight(
                                             )
                                         )
                                     ),
+                                    blocking=True,
                                 )
             if command.name in {"gpd:peer-review", "gpd:write-paper"}:
                 add_check(
@@ -6476,6 +6550,33 @@ def _build_review_preflight(
                         else "no reproducibility manifest found near the manuscript"
                     ),
                 )
+            manuscript_proof_review = resolve_manuscript_proof_review_status(
+                project_cwd,
+                manuscript,
+                persist_manifest=True,
+            )
+            manuscript_proof_review_blocking_states = {
+                "stale",
+                "invalid_manifest",
+                "missing_required_artifact",
+                "invalid_required_artifact",
+                "open_required_artifact",
+            }
+            manuscript_proof_review_passed = (
+                manuscript_proof_review.can_rely_on_prior_review or manuscript_proof_review.state == "not_reviewed"
+            )
+            manuscript_proof_review_blocking = False
+            if command.name == "gpd:arxiv-submission":
+                manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
+                manuscript_proof_review_blocking = True
+            elif command.name == "gpd:write-paper" and manuscript_proof_review.state in manuscript_proof_review_blocking_states:
+                manuscript_proof_review_blocking = True
+            add_check(
+                "manuscript_proof_review",
+                manuscript_proof_review_passed,
+                manuscript_proof_review.detail,
+                blocking=manuscript_proof_review_blocking,
+            )
             if strict and command.name in {"gpd:peer-review", "gpd:write-paper", "gpd:arxiv-submission"} and bibliography_audit is not None:
                 clean, detail = _validate_bibliography_audit_semantics(bibliography_audit)
                 add_check("bibliography_audit_clean", clean, detail, blocking=True)
@@ -6541,6 +6642,17 @@ def _build_review_preflight(
                     )
                 ),
             )
+        if command.name == "gpd:verify-work" and phase_info is not None:
+            phase_proof_review = resolve_phase_proof_review_status(
+                project_cwd,
+                project_cwd / phase_info.directory,
+            )
+            add_check(
+                "phase_proof_review",
+                phase_proof_review.can_rely_on_prior_review or phase_proof_review.state == "not_reviewed",
+                phase_proof_review.detail,
+                blocking=False,
+            )
 
     required_state_check = _evaluate_review_required_state(contract, cwd=cwd, subject=subject, phase_info=phase_info)
     if required_state_check is not None:
@@ -6556,6 +6668,7 @@ def _build_review_preflight(
         required_outputs=contract.required_outputs,
         required_evidence=contract.required_evidence,
         blocking_conditions=contract.blocking_conditions,
+        conditional_requirements=list(contract.conditional_requirements),
         validated_surface=context_preflight.validated_surface,
         local_cli_equivalence_guaranteed=context_preflight.local_cli_equivalence_guaranteed,
         dispatch_note=context_preflight.dispatch_note,
@@ -6685,7 +6798,7 @@ def validate_project_contract_cmd(
     input_path: str = typer.Argument(..., help="Path to a project contract JSON file, or '-' for stdin"),
     mode: str = typer.Option("approved", "--mode", help="Validation mode: approved or draft"),
 ) -> None:
-    """Validate a project-scoping contract before downstream artifact generation."""
+    """Validate a project-scoping contract before downstream artifact generation, including proof-obligation observables."""
     from gpd.core.contract_validation import validate_project_contract
 
     normalized_mode = mode.strip().lower()
@@ -6737,7 +6850,7 @@ def validate_summary_contract_cmd(
 def validate_verification_contract_cmd(
     input_path: str = typer.Argument(..., help="Path to a VERIFICATION.md file"),
 ) -> None:
-    """Validate VERIFICATION frontmatter and contract-result alignment."""
+    """Validate VERIFICATION frontmatter and contract-result alignment, including stale proof-audit blockers when recorded."""
 
     _run_frontmatter_validation(input_path, "verification")
 

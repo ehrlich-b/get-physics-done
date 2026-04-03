@@ -72,9 +72,20 @@ def test_load_install_manifest_state_classifies_manifest_payloads(
 def test_config_dir_has_managed_install_markers_detects_install_surfaces(tmp_path: Path) -> None:
     config_dir = tmp_path / ".codex"
     config_dir.mkdir(parents=True, exist_ok=True)
-    (config_dir / "get-physics-done").mkdir(parents=True, exist_ok=True)
+    version_path = config_dir / "get-physics-done" / "VERSION"
+    version_path.parent.mkdir(parents=True, exist_ok=True)
+    version_path.write_text("1.0.0\n", encoding="utf-8")
 
     assert config_dir_has_managed_install_markers(config_dir) is True
+
+
+def test_config_dir_has_managed_install_markers_ignores_empty_managed_dirs(tmp_path: Path) -> None:
+    config_dir = tmp_path / ".codex"
+    (config_dir / "get-physics-done").mkdir(parents=True, exist_ok=True)
+    (config_dir / "commands" / "gpd").mkdir(parents=True, exist_ok=True)
+    (config_dir / "command").mkdir(parents=True, exist_ok=True)
+
+    assert config_dir_has_managed_install_markers(config_dir) is False
 
 
 def test_config_dir_has_managed_install_markers_ignores_user_agents_and_hooks(tmp_path: Path) -> None:

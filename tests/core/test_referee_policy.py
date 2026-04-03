@@ -54,6 +54,50 @@ def test_fixable_overclaim_caps_standard_venue_at_major_revision():
     assert report.most_positive_allowed_recommendation == ReviewRecommendation.major_revision
 
 
+def test_missing_proof_audit_coverage_caps_recommendation_at_major_revision() -> None:
+    report = evaluate_referee_decision(
+        RefereeDecisionInput(
+            manuscript_path="paper/main.tex",
+            target_journal="jhep",
+            final_recommendation=ReviewRecommendation.minor_revision,
+            stage_artifacts=[f"GPD/review/STAGE-{name}.json" for name in ("reader", "literature", "math", "physics", "interestingness")],
+            proof_audit_coverage_complete=False,
+            theorem_proof_alignment_adequate=True,
+            novelty=ReviewAdequacy.adequate,
+            significance=ReviewAdequacy.adequate,
+            venue_fit=ReviewAdequacy.adequate,
+        ),
+        strict=True,
+    )
+
+    assert report.valid is False
+    assert report.most_positive_allowed_recommendation == ReviewRecommendation.major_revision
+    assert any("proof-audit coverage" in reason for reason in report.reasons)
+
+
+def test_central_theorem_proof_misalignment_requires_reject_when_not_salvageable() -> None:
+    report = evaluate_referee_decision(
+        RefereeDecisionInput(
+            manuscript_path="paper/main.tex",
+            target_journal="jhep",
+            final_recommendation=ReviewRecommendation.major_revision,
+            stage_artifacts=[f"GPD/review/STAGE-{name}.json" for name in ("reader", "literature", "math", "physics", "interestingness")],
+            central_claims_supported=False,
+            theorem_proof_alignment_adequate=False,
+            unsupported_claims_are_central=True,
+            reframing_possible_without_new_results=False,
+            novelty=ReviewAdequacy.adequate,
+            significance=ReviewAdequacy.adequate,
+            venue_fit=ReviewAdequacy.adequate,
+        ),
+        strict=True,
+    )
+
+    assert report.valid is False
+    assert report.most_positive_allowed_recommendation == ReviewRecommendation.reject
+    assert any("Theorem statements and proofs are misaligned" in reason for reason in report.reasons)
+
+
 def test_minor_revision_allowed_only_for_minor_follow_up():
     report = evaluate_referee_decision(
         RefereeDecisionInput(

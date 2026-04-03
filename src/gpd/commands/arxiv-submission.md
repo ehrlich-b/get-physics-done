@@ -14,21 +14,34 @@ review-contract:
     - compiled manuscript
     - bibliography audit
     - artifact manifest
-    - peer-review review ledger when available
-    - peer-review referee decision when available
+    - latest peer-review review ledger
+    - latest peer-review referee decision
   blocking_conditions:
     - missing project state
     - missing manuscript
     - missing compiled manuscript
     - missing conventions
+    - missing latest staged peer-review decision evidence
     - unresolved publication blockers
-    - peer-review recommendation blocks submission when staged review artifacts are present
+    - latest staged peer-review recommendation blocks submission packaging
     - degraded review integrity
   preflight_checks:
     - project_state
     - manuscript
     - compiled_manuscript
     - conventions
+    - review_ledger
+    - review_ledger_valid
+    - referee_decision
+    - referee_decision_valid
+    - publication_review_outcome
+    - manuscript_proof_review
+  conditional_requirements:
+    - when: theorem-bearing manuscripts are present
+      required_evidence:
+        - cleared manuscript proof review for theorem-bearing manuscripts
+      blocking_conditions:
+        - missing or stale manuscript proof review for theorem-bearing manuscripts
 allowed-tools:
   - file_read
   - file_write
@@ -49,7 +62,7 @@ Prepare a completed paper for arXiv submission. Handles the full submission pipe
 
 Output: A submission-ready tarball and checklist of manual steps remaining.
 
-The workflow's preflight gate checks the explicit paper target, the compiled manuscript, unresolved publication blockers, and, when staged review artifacts exist, the latest `REVIEW-LEDGER{round_suffix}.json` / `REFEREE-DECISION{round_suffix}.json` outcome before packaging begins.
+The workflow's preflight gate checks the explicit paper target, the compiled manuscript, unresolved publication blockers, the latest staged review decision, and for theorem-bearing manuscripts a cleared manuscript proof-review status before packaging begins.
 </objective>
 
 <execution_context>

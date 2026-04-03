@@ -398,6 +398,26 @@ class TestReviewContractInjection:
         assert "review_contract:" in result
         assert "review-contract:" not in result[result.index("## Review Contract") :]
 
+    def test_review_contract_injection_preserves_conditional_requirements(self) -> None:
+        content = (
+            "---\n"
+            "review-contract:\n"
+            "  schema_version: 1\n"
+            "  review_mode: publication\n"
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
+            "---\n"
+            "Body.\n"
+        )
+
+        result = _inject_review_contract_prompt_from_frontmatter(content)
+
+        assert "conditional_requirements:" in result
+        assert "when: theorem-bearing claims are present" in result
+        assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in result
+
     def test_review_contract_injection_preserves_crlf_line_endings(self) -> None:
         content = (
             "---\r\n"
@@ -613,7 +633,10 @@ class TestBuildHookCommand:
     """Tests for build_hook_command: shared interpreter selection."""
 
     def test_defaults_to_current_python_interpreter(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         command = build_hook_command(
             tmp_path,
@@ -625,7 +648,10 @@ class TestBuildHookCommand:
         assert command == "/custom/venv/bin/python .claude/hooks/statusline.py"
 
     def test_explicit_target_uses_absolute_hook_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         command = build_hook_command(
             tmp_path,
@@ -670,7 +696,7 @@ class TestBuildHookCommand:
 
         assert hook_python_interpreter() == str(managed_python)
 
-    def test_checkout_prefers_active_python_even_when_managed_env_exists(
+    def test_checkout_prefers_checkout_virtualenv_python_over_stale_managed_env(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
@@ -682,10 +708,31 @@ class TestBuildHookCommand:
 
         monkeypatch.delenv("GPD_PYTHON", raising=False)
         monkeypatch.setenv("GPD_HOME", str(managed_home))
-        monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/repo/.venv/bin/python")
-        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: Path("/repo"))
+        checkout_root = tmp_path / "repo"
+        checkout_python = checkout_root / ".venv" / "bin" / "python"
+        checkout_python.parent.mkdir(parents=True)
+        checkout_python.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+        monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/managed/gpd/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: checkout_root)
 
-        assert hook_python_interpreter() == "/repo/.venv/bin/python"
+        assert hook_python_interpreter() == str(checkout_python)
+
+    def test_checkout_falls_back_to_active_python_when_checkout_virtualenv_is_missing(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        managed_home = tmp_path / "managed-home"
+        managed_python = managed_home / "venv" / "bin" / "python"
+        managed_python.parent.mkdir(parents=True)
+        managed_python.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(managed_home))
+        monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/ambient/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: tmp_path / "repo")
+
+        assert hook_python_interpreter() == "/ambient/python"
 
 
 class TestFinishInstall:

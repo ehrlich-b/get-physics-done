@@ -70,6 +70,27 @@ def test_phase_prompt_surfaces_default_salvage_and_hard_plan_requirements() -> N
     assert "If the contract does not already carry explicit grounding elsewhere, references must be present and at least one must set `must_surface: true`." in phase_prompt
 
 
+def test_proof_obligation_planning_surfaces_require_claim_audit_and_stale_review_gate() -> None:
+    plan_schema = _read_template("plan-contract-schema.md")
+    planner_prompt = _read_template("planner-subagent-prompt.md")
+    phase_prompt = _read_template("phase-prompt.md")
+
+    assert "kind: scalar|curve|map|classification|proof_obligation|other" in plan_schema
+    assert (
+        "When `kind: proof_obligation`, make `definition` name the theorem/result plus the hypotheses or "
+        "parameter regime the proof must cover."
+    ) in plan_schema
+
+    assert "**Proof claim audit:** For theorem/proof work, enumerate hypotheses, quantified variables, and named parameters explicitly enough" in planner_prompt
+    assert "silently narrowed subcases or dropped assumptions" in planner_prompt
+    assert "**Stale proof review gate:** If a proof-backed deliverable or theorem statement changes after review" in planner_prompt
+
+    assert "For `observables[].kind: proof_obligation`, name the theorem or claim plus the hypotheses/parameter regime explicitly" in phase_prompt
+    assert "silently specialized parameters" in phase_prompt
+    assert "If a proof or theorem statement changes after a proof audit, treat that audit as stale" in phase_prompt
+    assert "before `status: passed` is possible for the affected target." in phase_prompt
+
+
 def test_planner_gap_closure_example_keeps_execute_type_and_required_contract_block() -> None:
     planner_prompt = (REPO_ROOT / "src/gpd/agents/gpd-planner.md").read_text(encoding="utf-8")
 

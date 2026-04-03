@@ -243,10 +243,13 @@ def _project_reentry_summary(
 def _runtime_command(action: str, *, cwd: Path) -> str | None:
     try:
         from gpd.adapters import get_adapter
-        from gpd.hooks.runtime_detect import detect_active_runtime_with_gpd_install
+        from gpd.hooks.runtime_detect import (
+            RUNTIME_UNKNOWN,
+            detect_local_runtime_with_gpd_install,
+        )
 
-        runtime_name = detect_active_runtime_with_gpd_install(cwd=cwd)
-        if not isinstance(runtime_name, str) or not runtime_name.strip() or runtime_name == "unknown":
+        runtime_name = detect_local_runtime_with_gpd_install(cwd=cwd)
+        if not isinstance(runtime_name, str) or not runtime_name.strip() or runtime_name == RUNTIME_UNKNOWN:
             return None
         return str(get_adapter(runtime_name).format_command(action)).strip()
     except Exception:

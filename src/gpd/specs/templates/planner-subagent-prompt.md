@@ -49,10 +49,12 @@ IMPORTANT: If context exists below, it contains USER DECISIONS from /gpd:discuss
 Each plan MUST include:
 
 - **Mathematical rigor checkpoints:** Points where derivations must be verified for dimensional consistency, symmetry preservation, and correct tensor structure
+- **Proof claim audit:** For theorem/proof work, enumerate hypotheses, quantified variables, and named parameters explicitly enough that a red-team reviewer can detect silently narrowed subcases or dropped assumptions
 - **Limiting case validation:** Explicit checks that results reduce correctly in all known limits (classical, non-relativistic, weak-coupling, thermodynamic, etc.)
 - **Order-of-magnitude estimates:** Before any detailed calculation, estimate the expected scale of the answer
 - **Error budget:** For numerical work, specify target precision and identify dominant error sources
 - **Consistency checks:** Cross-checks between independent methods or approaches where possible
+- **Stale proof review gate:** If a proof-backed deliverable or theorem statement changes after review, plan a fresh proof audit before allowing the affected claim to pass
 - **Contract completeness:** Every plan must carry decisive claims, deliverables, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter. Include `references[]` only when the contract does not already carry explicit grounding through `context_intake`, `approach_policy`, or preserved scoping inputs.
 - **Semantic defaults:** Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended; otherwise set the more specific value explicitly
 - **Defaulted semantic fields:** `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation` all exist in the contract and default to `other`

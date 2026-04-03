@@ -365,6 +365,7 @@ Perform a rigorous physics derivation with systematic verification at each step.
 - Performs step-by-step derivation with dimensional analysis at each stage
 - Verifies intermediate results against known limits and symmetry properties
 - Justifies and bounds all approximations with error estimates
+- For theorem-bearing work, spawns `gpd-check-proof` and blocks completion until the proof audit passes
 - Produces a complete, self-contained derivation document with boxed final result
 
 Usage: `/gpd:derive-equation "derive the one-loop beta function"`
@@ -702,7 +703,7 @@ Run skeptical peer review on an existing manuscript within the current GPD proje
 
 - Runs strict review preflight checks against project state, manuscript, artifacts, and reproducibility support
 - Loads manuscript files, phase summaries, verification reports, bibliography audit, and artifact manifest
-- Spawns a six-agent review panel: reader, literature, math, physics, significance, and final gpd-referee adjudicator
+- Spawns a six-agent review panel plus the auxiliary `gpd-check-proof` critic when theorem-bearing claims are present
 - Produces stage artifacts under `GPD/review/` plus `GPD/REFEREE-REPORT{round_suffix}.md` and `GPD/REFEREE-REPORT{round_suffix}.tex`
 - Routes the result to `/gpd:respond-to-referees` or `/gpd:arxiv-submission`
 - Requires an initialized `GPD/PROJECT.md` workspace; manuscript paths do not bypass project preflight

@@ -723,16 +723,21 @@ def test_runtime_cli_reexecs_from_installed_package_using_forwarded_cli_cwd(
     checkout_root = tmp_path / "checkout"
     checkout_src = checkout_root / "src"
     (checkout_src / "gpd").mkdir(parents=True)
+    checkout_python = checkout_root / ".venv" / "bin" / "python"
+    checkout_python.parent.mkdir(parents=True)
+    checkout_python.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
     forwarded_cwd = checkout_root / "workspace" / "nested"
     forwarded_cwd.mkdir(parents=True)
     installed_gpd = tmp_path / "site-packages" / "gpd"
     installed_gpd.mkdir(parents=True)
 
-    observed: dict[str, object] = {}
+    observed: dict[str, object] = {"checkout_calls": []}
 
     def fake_checkout_root(start=None):
-        observed["checkout_start"] = start
-        if start == forwarded_cwd.resolve(strict=False):
+        checkout_calls = observed["checkout_calls"]
+        assert isinstance(checkout_calls, list)
+        checkout_calls.append(start)
+        if start in {forwarded_cwd.resolve(strict=False), checkout_root}:
             return checkout_root
         return None
 
@@ -765,10 +770,10 @@ def test_runtime_cli_reexecs_from_installed_package_using_forwarded_cli_cwd(
             ]
         )
 
-    assert observed["checkout_start"] == forwarded_cwd.resolve(strict=False)
-    assert observed["execve_executable"] == sys.executable
+    assert observed["checkout_calls"] == [forwarded_cwd.resolve(strict=False), checkout_root]
+    assert observed["execve_executable"] == str(checkout_python)
     assert observed["execve_argv"] == [
-        sys.executable,
+        str(checkout_python),
         "-m",
         "gpd.runtime_cli",
         "--runtime",

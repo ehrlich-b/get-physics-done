@@ -248,6 +248,7 @@ def test_peer_review_stages_use_fresh_context_and_stage_artifacts() -> None:
     reader = _find_single_task(path, "gpd-review-reader")
     literature = _find_single_task(path, "gpd-review-literature")
     math = _find_single_task(path, "gpd-review-math")
+    check_proof = _find_single_task(path, "gpd-check-proof")
     physics = _find_single_task(path, "gpd-review-physics")
     significance = _find_single_task(path, "gpd-review-significance")
     referee = _find_single_task(path, "gpd-referee")
@@ -256,6 +257,7 @@ def test_peer_review_stages_use_fresh_context_and_stage_artifacts() -> None:
     assert "This stage must start nearly fresh and remain manuscript-first." in reader.text
     assert "fresh context" in literature.text
     assert "fresh context" in math.text
+    assert "fresh context" in check_proof.text
     assert "fresh context" in physics.text
     assert "fresh context" in significance.text
     assert "GPD/review/CLAIMS{round_suffix}.json" in referee.text
@@ -266,6 +268,7 @@ def test_peer_review_stages_use_fresh_context_and_stage_artifacts() -> None:
     assert "GPD/review/STAGE-interestingness{round_suffix}.json" in significance.text
     assert "GPD/review/STAGE-literature{round_suffix}.json" in referee.text
     assert "GPD/review/STAGE-math{round_suffix}.json" in referee.text
+    assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in check_proof.text
     assert "GPD/review/STAGE-physics{round_suffix}.json" in referee.text
     assert "GPD/review/STAGE-interestingness{round_suffix}.json" in referee.text
     assert "GPD/review/REVIEW-LEDGER{round_suffix}.json" in referee.text

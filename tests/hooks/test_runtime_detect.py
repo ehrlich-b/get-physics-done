@@ -585,7 +585,9 @@ class TestDetectActiveRuntimeWithInstall:
     ) -> None:
         adapter = get_adapter(RUNTIME_CODEX)
         target_dir = tmp_path / "custom-codex"
-        (target_dir / "get-physics-done").mkdir(parents=True)
+        version_path = target_dir / "get-physics-done" / "VERSION"
+        version_path.parent.mkdir(parents=True)
+        version_path.write_text("1.0.0\n", encoding="utf-8")
 
         monkeypatch.setattr(adapter, "_install_explicit_target", True, raising=False)
         monkeypatch.setenv("CODEX_CONFIG_DIR", str(target_dir))
@@ -600,7 +602,9 @@ class TestDetectActiveRuntimeWithInstall:
         workspace = tmp_path / "workspace"
         workspace.mkdir()
         target_dir = tmp_path / "custom" / ".codex"
-        (target_dir / "get-physics-done").mkdir(parents=True)
+        version_path = target_dir / "get-physics-done" / "VERSION"
+        version_path.parent.mkdir(parents=True)
+        version_path.write_text("1.0.0\n", encoding="utf-8")
 
         monkeypatch.setattr(adapter, "_install_explicit_target", True, raising=False)
 

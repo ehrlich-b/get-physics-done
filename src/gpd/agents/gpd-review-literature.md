@@ -41,15 +41,18 @@ Before writing the JSON artifact, read `@{GPD_INSTALL_DIR}/references/publicatio
 
 Required schema for `STAGE-literature{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):
 
-- Top-level keys: `version`, `round`, `stage_id`, `stage_kind`, `manuscript_path`, `manuscript_sha256`, `claims_reviewed`, `summary`, `strengths`, `findings`, `confidence`, `recommendation_ceiling`
+- Top-level keys: `version`, `round`, `stage_id`, `stage_kind`, `manuscript_path`, `manuscript_sha256`, `claims_reviewed`, `summary`, `strengths`, `findings`, `proof_audits`, `confidence`, `recommendation_ceiling`
 - `stage_id` and `stage_kind` must both be `literature`
 - The filename `STAGE-literature{round_suffix}.json` and the JSON `round` field must agree: unsuffixed first-round artifacts use `round: 1`, and `-R<round>` filenames must use that same integer in `round`
 - `manuscript_path` must be non-empty and must exactly match the sibling `CLAIMS{round_suffix}.json`
 - `claims_reviewed` must be an array of Stage 1 `CLM-...` claim IDs; use an empty array only when no indexed claim was actually reviewed
 - `manuscript_sha256` must exactly match the sibling `CLAIMS{round_suffix}.json`
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review
-- `claims_reviewed`, `strengths`, and `findings` are arrays even when empty; do not collapse them to prose or scalars
+- `claims_reviewed`, `strengths`, `findings`, and `proof_audits` are arrays even when empty; do not collapse them to prose or scalars
 - Each `findings[]` entry is a `ReviewFinding` with: `issue_id`, `claim_ids`, `severity`, `summary`, `rationale`, `evidence_refs`, `manuscript_locations`, `support_status`, `blocking`, `required_action`
+- Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
+- Keep `proof_audits` as an empty array in the literature stage; theorem-to-proof audits belong in Stage 3 unless the invoking workflow explicitly asks otherwise
+- `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`
 - `issue_id` must use `REF-...`; `claim_ids` must reuse Stage 1 `CLM-...` claim IDs
 - `severity` must use exactly: `critical`, `major`, `minor`, `suggestion`
 - `support_status` must use exactly: `supported`, `partially_supported`, `unsupported`, `unclear`

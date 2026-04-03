@@ -61,6 +61,7 @@ _COST_TEST_RUNTIME = "runtime-under-test"
 _COST_TEST_MODEL = "model-under-test"
 _CONFIG_FILE_RUNTIME = runtime_with_permissions_surface("config-file")
 _LAUNCH_WRAPPER_RUNTIME = runtime_with_permissions_surface("launch-wrapper")
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
 
 
 def _assert_no_top_level_resume_aliases(payload: dict[str, object]) -> None:
@@ -142,6 +143,9 @@ def test_raw_version_subcommand_outputs_json():
 
 def test_entrypoint_reexecs_from_checkout_when_running_outside_checkout(tmp_path: Path, monkeypatch) -> None:
     checkout = _make_checkout(tmp_path, "9.9.9")
+    checkout_python = checkout / ".venv" / "bin" / "python"
+    checkout_python.parent.mkdir(parents=True)
+    checkout_python.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
     managed_cli = tmp_path / "managed" / "site-packages" / "gpd" / "cli.py"
     managed_cli.parent.mkdir(parents=True, exist_ok=True)
     managed_cli.write_text("# managed copy placeholder\n", encoding="utf-8")
@@ -167,7 +171,8 @@ def test_entrypoint_reexecs_from_checkout_when_running_outside_checkout(tmp_path
             except SystemExit as exc:
                 assert exc.code == 0
 
-    assert captured["argv"] == [cli_module.sys.executable, "-m", "gpd.cli", "version"]
+    assert captured["executable"] == str(checkout_python)
+    assert captured["argv"] == [str(checkout_python), "-m", "gpd.cli", "version"]
     env = captured["env"]
     assert isinstance(env, dict)
     assert env["GPD_DISABLE_CHECKOUT_REEXEC"] == "1"
@@ -1929,6 +1934,24 @@ def test_validate_help_surfaces_command_context_preflight_entrypoint() -> None:
     assert "project-contract" in result.output
 
 
+def test_validate_project_contract_help_surfaces_proof_obligation_visibility() -> None:
+    result = runner.invoke(app, ["validate", "project-contract", "--help"])
+
+    assert result.exit_code == 0
+    normalized_output = _normalize_cli_output(result.output)
+    assert "Validate a project-scoping contract before downstream artifact generation" in normalized_output
+    assert "proof-obligation observables" in normalized_output
+
+
+def test_validate_verification_contract_help_surfaces_stale_proof_gate_visibility() -> None:
+    result = runner.invoke(app, ["validate", "verification-contract", "--help"])
+
+    assert result.exit_code == 0
+    normalized_output = _normalize_cli_output(result.output)
+    assert "Validate VERIFICATION frontmatter and contract-result alignment" in normalized_output
+    assert "stale proof-audit blockers when recorded" in normalized_output
+
+
 def test_validate_command_context_help_surfaces_registry_argument_name() -> None:
     result = runner.invoke(app, ["validate", "command-context", "--help"])
     assert result.exit_code == 0
@@ -1963,6 +1986,61 @@ def test_validate_project_contract_uses_ancestor_project_root_from_nested_cwd(
     _, validate_kwargs = mock_validate_contract.call_args
     assert validate_kwargs["project_root"] == project_root.resolve()
     assert validate_kwargs["mode"] == "approved"
+
+
+def test_validate_project_contract_accepts_proof_obligation_observable_fixture(tmp_path: Path) -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["scope"]["question"] = "Does the reviewed proof establish the theorem for every named parameter, including r_0?"
+    contract["observables"][0] = {
+        "id": "obs-proof",
+        "name": "full theorem proof obligation",
+        "kind": "proof_obligation",
+        "definition": "Prove the theorem for the full stated hypothesis set and every named parameter, including r_0.",
+        "regime": "all stated parameter regimes",
+    }
+    contract["claims"][0]["statement"] = "The theorem is proved for all stated hypotheses and named parameters, including nonzero r_0."
+    contract["claims"][0]["observables"] = ["obs-proof"]
+    contract["deliverables"][0]["kind"] = "derivation"
+    contract["deliverables"][0]["path"] = "proofs/full-theorem-proof.tex"
+    contract["deliverables"][0]["description"] = "Formal proof artifact for the theorem claim audit"
+    contract["deliverables"][0]["must_contain"] = [
+        "theorem statement with hypotheses",
+        "explicit use or discharge of r_0",
+        "red-team proof audit notes",
+    ]
+    contract["acceptance_tests"][0]["kind"] = "human_review"
+    contract["acceptance_tests"][0]["procedure"] = (
+        "Adversarially review the theorem proof against every named hypothesis and parameter, including r_0."
+    )
+    contract["acceptance_tests"][0]["pass_condition"] = (
+        "Proof covers the full stated theorem rather than a silently narrowed subcase."
+    )
+    contract["acceptance_tests"][0]["automation"] = "hybrid"
+    contract["references"][0]["role"] = "definition"
+    contract["references"][0]["why_it_matters"] = "Anchors the theorem statement and parameterization being audited."
+    contract["uncertainty_markers"]["weakest_anchors"] = [
+        "A named theorem parameter could disappear from the proof without being noticed."
+    ]
+    contract["uncertainty_markers"]["disconfirming_observations"] = [
+        "The derivation only proves the r_0 = 0 subcase while claiming the full theorem."
+    ]
+
+    contract_path = tmp_path / "proof-project-contract.json"
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["--cwd", str(tmp_path), "--raw", "validate", "project-contract", str(contract_path), "--mode", "approved"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["valid"] is True
+    assert payload["question"] == contract["scope"]["question"]
+    assert payload["mode"] == "approved"
+    assert payload["decisive_target_count"] > 0
+    assert payload["guidance_signal_count"] > 0
 
 
 def _plan_with_tool_requirements(tool_requirements_block: str) -> str:

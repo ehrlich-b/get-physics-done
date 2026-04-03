@@ -196,8 +196,25 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
     assert claims["required"] == ["id", "statement", "deliverables", "acceptance_tests"]
     assert claims["properties"]["id"]["minLength"] == 1
     assert claims["properties"]["id"]["pattern"] == r"\S"
-    for field_name in ("observables", "deliverables", "acceptance_tests", "references"):
+    assert claims["properties"]["claim_kind"]["enum"] == [
+        "theorem",
+        "lemma",
+        "corollary",
+        "proposition",
+        "result",
+        "claim",
+        "other",
+    ]
+    for field_name in ("observables", "deliverables", "acceptance_tests", "references", "quantifiers", "proof_deliverables"):
         _assert_string_or_string_list_schema(claims["properties"][field_name], label=f"contract.claims[].{field_name}")
+    parameters = claims["properties"]["parameters"]["items"]
+    _assert_closed_object(parameters, label="contract.claims[].parameters[]")
+    _assert_string_or_string_list_schema(parameters["properties"]["aliases"], label="contract.claims[].parameters[].aliases")
+    hypotheses = claims["properties"]["hypotheses"]["items"]
+    _assert_closed_object(hypotheses, label="contract.claims[].hypotheses[]")
+    _assert_string_or_string_list_schema(hypotheses["properties"]["symbols"], label="contract.claims[].hypotheses[].symbols")
+    conclusion_clauses = claims["properties"]["conclusion_clauses"]["items"]
+    _assert_closed_object(conclusion_clauses, label="contract.claims[].conclusion_clauses[]")
 
     observables = contract_schema["properties"]["observables"]["items"]
     _assert_closed_object(observables, label="contract.observables[]")
@@ -250,6 +267,12 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
         "oracle",
         "proxy",
         "reproducibility",
+        "proof_hypothesis_coverage",
+        "proof_parameter_coverage",
+        "proof_quantifier_domain",
+        "claim_to_proof_alignment",
+        "lemma_dependency_closure",
+        "counterexample_search",
         "human_review",
         "other",
     ]
@@ -298,6 +321,9 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
         "benchmarks",
         "depends_on",
         "evaluated_by",
+        "proves",
+        "uses_hypothesis",
+        "depends_on_lemma",
         "other",
     ]
     _assert_string_or_string_list_schema(links["properties"]["verified_by"], label="contract.links[].verified_by")
@@ -454,19 +480,65 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
     )
     assert "forbidden_proxy_ids" not in benchmark_binding["properties"]
 
+    proof_binding = _binding_condition_for_check(run_request, "contract.proof_parameter_coverage")
+    assert {"observable_ids", "claim_ids", "deliverable_ids", "acceptance_test_ids"} <= set(
+        proof_binding["properties"]
+    )
+    assert "reference_ids" not in proof_binding["properties"]
+    assert "forbidden_proxy_ids" not in proof_binding["properties"]
+
     metadata = _schema_anyof_object(run_request["properties"]["metadata"])
-    assert {"source_reference_id", "allowed_families", "forbidden_families"} <= set(metadata["properties"])
+    assert {
+        "source_reference_id",
+        "allowed_families",
+        "forbidden_families",
+        "theorem_parameter_symbols",
+        "hypothesis_ids",
+        "quantifiers",
+        "conclusion_clause_ids",
+        "claim_statement",
+    } <= set(metadata["properties"])
     assert metadata["properties"]["allowed_families"]["type"] == "array"
     assert metadata["properties"]["allowed_families"]["items"]["type"] == "string"
     assert metadata["properties"]["allowed_families"]["items"]["minLength"] == 1
     assert metadata["properties"]["allowed_families"]["items"]["pattern"] == r"\S"
 
     observed = _schema_anyof_object(run_request["properties"]["observed"])
-    assert {"metric_value", "threshold_value", "selected_family", "bias_checked"} <= set(observed["properties"])
+    assert {
+        "metric_value",
+        "threshold_value",
+        "selected_family",
+        "bias_checked",
+        "covered_hypothesis_ids",
+        "missing_hypothesis_ids",
+        "covered_parameter_symbols",
+        "missing_parameter_symbols",
+        "uncovered_quantifiers",
+        "uncovered_conclusion_clause_ids",
+        "quantifier_status",
+        "scope_status",
+        "counterexample_status",
+    } <= set(observed["properties"])
     for field_name in ("observed_limit", "selected_family"):
         field_schema = _schema_anyof_string(observed["properties"][field_name])
         assert field_schema["minLength"] == 1
         assert field_schema["pattern"] == r"\S"
+    for field_name in (
+        "covered_hypothesis_ids",
+        "missing_hypothesis_ids",
+        "covered_parameter_symbols",
+        "missing_parameter_symbols",
+        "uncovered_quantifiers",
+        "uncovered_conclusion_clause_ids",
+    ):
+        field_schema = observed["properties"][field_name]
+        array_branch = next(
+            branch for branch in field_schema["anyOf"] if isinstance(branch, dict) and branch.get("type") == "array"
+        )
+        assert array_branch["items"]["type"] == "string"
+        assert array_branch["items"]["minLength"] == 1
+        assert array_branch["items"]["pattern"] == r"\S"
+        assert any(branch.get("type") == "null" for branch in field_schema["anyOf"] if isinstance(branch, dict))
 
     artifact_content = _schema_anyof_string(run_request["properties"]["artifact_content"])
     assert artifact_content["minLength"] == 1
@@ -494,6 +566,16 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
     estimator_observed = _schema_object(estimator_requirements, estimator_requirements["properties"]["observed"])
     assert set(estimator_observed["required"]) == {"selected_family", "bias_checked", "calibration_checked"}
 
+    proof_parameter_requirements = _request_requirement_for_check(run_request, "contract.proof_parameter_coverage")
+    assert set(proof_parameter_requirements["required"]) == {"observed"}
+    proof_parameter_observed = _schema_object(proof_parameter_requirements, proof_parameter_requirements["properties"]["observed"])
+    assert proof_parameter_observed["required"] == ["covered_parameter_symbols"]
+
+    proof_alignment_requirements = _request_requirement_for_check(run_request, "contract.claim_to_proof_alignment")
+    assert set(proof_alignment_requirements["required"]) == {"observed"}
+    proof_alignment_observed = _schema_object(proof_alignment_requirements, proof_alignment_requirements["properties"]["observed"])
+    assert set(proof_alignment_observed["required"]) == {"scope_status", "uncovered_conclusion_clause_ids"}
+
     contract_schema = _schema_anyof_object(run_request["properties"]["contract"])
     _assert_contract_schema_sections_closed(contract_schema)
     assert set(contract_schema["required"]) == {"scope", "context_intake", "uncertainty_markers"}
@@ -508,10 +590,22 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
     assert active_checks["anyOf"][0]["items"]["minLength"] == 1
     assert active_checks["anyOf"][0]["items"]["pattern"] == r"\S"
 
-    for field_name in ("source_reference_id", "regime_label", "expected_behavior", "declared_family"):
+    for field_name in ("source_reference_id", "regime_label", "expected_behavior", "declared_family", "claim_statement"):
         field_schema = _schema_anyof_string(metadata["properties"][field_name])
         assert field_schema["minLength"] == 1
         assert field_schema["pattern"] == r"\S"
+
+    for field_name, expected_values in (
+        ("quantifier_status", ["matched", "narrowed", "mismatched", "unclear"]),
+        ("scope_status", ["matched", "narrower_than_claim", "mismatched", "unclear"]),
+        ("counterexample_status", ["none_found", "counterexample_found", "not_attempted", "narrowed_claim"]),
+    ):
+        field_schema = observed["properties"][field_name]
+        enum_branch = next(
+            branch for branch in field_schema["anyOf"] if isinstance(branch, dict) and branch.get("type") == "string"
+        )
+        assert enum_branch["enum"] == expected_values
+        assert any(branch.get("type") == "null" for branch in field_schema["anyOf"] if isinstance(branch, dict))
 
     benchmark_identity = _identity_condition_for_check(run_request, "contract.benchmark_reproduction")
     assert benchmark_identity == [
@@ -523,6 +617,12 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
     assert limit_identity == [
         ("check_key", ["contract.limit_recovery", "5.15"]),
         ("check_id", ["contract.limit_recovery", "5.15"]),
+    ]
+
+    proof_identity = _identity_condition_for_check(run_request, "contract.proof_parameter_coverage")
+    assert proof_identity == [
+        ("check_key", ["contract.proof_parameter_coverage", "5.21"]),
+        ("check_id", ["contract.proof_parameter_coverage", "5.21"]),
     ]
 
 
@@ -646,7 +746,7 @@ def test_get_checklist_tool_description_mentions_full_live_registry() -> None:
 
     description = _tool_description(mcp, "get_checklist")
 
-    assert "currently 5.1-5.19" in description
+    assert "currently 5.1-5.24" in description
     assert "5.1-5.14" not in description
 
 

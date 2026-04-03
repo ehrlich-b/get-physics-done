@@ -16,6 +16,8 @@ Gap-closure plans still use `type: execute`. Mark verification-repair plans with
 The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `contract.context_intake`, plus non-empty `uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations`. If the contract does not already carry explicit grounding elsewhere, references must be present and at least one must set `must_surface: true`.
 Semantic enum fields with schema defaults may be omitted when `other` is actually intended. Use explicit `kind`, `role`, and `relation` values when the plan already knows the more specific semantics.
 The defaultable semantic fields still exist in the contract surface: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other`, but the more specific value remains mandatory when the plan already knows it. `references[]` are only required when the contract does not already carry explicit grounding through `contract.context_intake`, `approach_policy`, or preserved scoping inputs.
+For `observables[].kind: proof_obligation`, name the theorem or claim plus the hypotheses/parameter regime explicitly, and make the plan auditable for dropped assumptions or silently specialized parameters.
+If a proof or theorem statement changes after a proof audit, treat that audit as stale and rerun it before `status: passed` is possible for the affected target.
 
 ---
 

@@ -51,6 +51,7 @@ When `parallelization` is false, plans within a wave execute sequentially.
 - `research_mode=adaptive`: Start with explore-style coverage, then narrow only after prior decisive `contract_results`, decisive `comparison_verdicts`, or an explicit approach lock show that the method family is stable. Do NOT narrow just because a wave advanced or one proxy passed.
 - Model profile and research mode may change depth, task granularity, or prose volume. They do NOT waive first-result, skeptical, or pre-fanout review gates.
 - `review_cadence`: Controls when bounded review gates appear. `autonomy` controls who must approve or inspect those gates. These are separate axes.
+- `workflow.verifier=false`, sparse cadence, yolo autonomy, or any manual "skip verification" request do NOT disable mandatory proof red-teaming for proof-bearing or `proof_obligation` work.
 </step>
 
 <step name="handle_branching">
@@ -249,6 +250,30 @@ Hint meanings:
 From init JSON: `phase_dir`, `plan_count`, `incomplete_count`.
 
 Report: "Found {plan_count} plans in {phase_dir} ({incomplete_count} incomplete)"
+</step>
+
+<step name="detect_proof_obligation_work">
+Classify whether any selected plan is proof-bearing before execution and before honoring verifier-disabled or sparse-review settings.
+
+Treat a plan as proof-bearing when any of the following are true:
+
+- the approved contract or plan contract names an observable or claim with kind `proof_obligation`
+- the phase goal, plan objective, or task text mentions `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `prove`, `show that`, `existence`, or `uniqueness`
+- the result is a formal derivation whose acceptance depends on named hypotheses, parameters, quantifiers, or conclusion clauses being covered explicitly
+
+If classification is ambiguous, default to proof-bearing.
+
+For each proof-bearing plan, require a sibling proof audit artifact named `{plan_id}-PROOF-REDTEAM.md`. This audit is mandatory and fail-closed. It must:
+
+1. inventory the theorem or claim text being established
+2. enumerate named parameters, hypotheses, quantifier/domain obligations, and conclusion clauses
+3. map those obligations to concrete proof locations or proof-step references
+4. flag any missing parameter or hypothesis coverage immediately
+5. attempt an adversarial special-case or counterexample probe so a proof of a narrower case is not mistaken for the full claim
+6. set canonical audit `status: passed | gaps_found | human_needed`
+
+Never treat a clean `SUMMARY.md`, correct algebra in a subset of cases, or "human will inspect later" as a substitute for this artifact.
+When runtime delegation is available, `gpd-check-proof` is the canonical owner of this sibling artifact. The executor may draft the proof and theorem inventory, but it must not self-certify theorem-proof alignment as its own independent redteam.
 </step>
 
 <step name="structural_validation">
@@ -503,6 +528,12 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        <first_result_gate>{FIRST_RESULT_GATE_REQUIRED}</first_result_gate>
        <checkpoint_before_downstream>{CHECKPOINT_BEFORE_DOWNSTREAM}</checkpoint_before_downstream>
        <bounded_execution>{true}</bounded_execution>
+       <proof_redteam_gate>
+       If this plan is proof-bearing, you must leave behind the proof artifact, theorem inventory, and enough supporting context for the orchestrator to spawn `gpd-check-proof`.
+       Do NOT self-certify the sibling `{plan_id}-PROOF-REDTEAM.md` artifact as your own independent proof critic when a fresh `gpd-check-proof` subagent is available.
+       If any named parameter, hypothesis, or quantifier is missing from the proof, surface that gap immediately and do NOT claim the theorem is established.
+       Do not bypass this gate because the algebra looks clean, because the result reduces correctly in one special case, or because verification is disabled elsewhere.
+       </proof_redteam_gate>
        <tangent_control>
        Proposal-first. If an unexpected but non-blocking alternative path appears, classify it as `ignore`, `defer`, `branch_later`, or `pursue_now`.
        Do not silently pursue optional tangents.
@@ -521,17 +552,54 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        - Config: GPD/config.json (if exists)
        </files_to_read>
 
-       <success_criteria>
-       - [ ] All tasks executed with mathematical rigor
-       - [ ] Each task committed individually
-       - [ ] Dimensional consistency verified at each step
-       - [ ] Limiting cases checked where specified in plan
-       - [ ] SUMMARY.md created in plan directory
-       - [ ] State updates returned (NOT written to STATE.md directly)
-       </success_criteria>
+	       <success_criteria>
+	       - [ ] All tasks executed with mathematical rigor
+	       - [ ] Each task committed individually
+	       - [ ] Dimensional consistency verified at each step
+	       - [ ] Limiting cases checked where specified in plan
+	       - [ ] Proof-bearing plans leave enough artifact context for the orchestrator to run `gpd-check-proof`
+	       - [ ] Proof-bearing plans receive `{plan_id}-PROOF-REDTEAM.md` with `status: passed` before completion is claimed
+	       - [ ] SUMMARY.md created in plan directory
+	       - [ ] State updates returned (NOT written to STATE.md directly)
+	     </success_criteria>
      "
    )
    ```
+
+5a. **For proof-bearing plans, spawn the independent proof critic before accepting the result.**
+
+   Resolve the proof-critic model once per wave when any selected plan is proof-bearing:
+
+   ```bash
+   CHECK_PROOF_MODEL=$(gpd resolve-model gpd-check-proof)
+   ```
+
+   After a proof-bearing executor has written its proof artifact(s) and `SUMMARY.md`, but before the wave-level spot-check accepts the plan, spawn `gpd-check-proof` in a fresh context:
+
+   ```
+   task(
+     subagent_type="gpd-check-proof",
+     model="{check_proof_model}",
+     readonly=false,
+     prompt="First, read {GPD_AGENTS_DIR}/gpd-check-proof.md for your role and instructions.
+
+       Operate in proof-redteam mode with a fresh context.
+
+       Write to: {phase_dir}/{plan_id}-PROOF-REDTEAM.md
+
+       Files to read:
+       - {phase_dir}/{plan_file}
+       - {phase_dir}/{plan_id}-SUMMARY.md
+       - Proof / derivation artifacts produced by the executor
+       - Supporting verification or summary artifacts referenced by the plan
+
+       Reconstruct the theorem inventory explicitly before judging the proof.
+       Fail closed on missing parameter coverage, missing hypotheses, narrowed quantifiers, or special-case proofs sold as general claims.",
+     description="Proof redteam for phase {phase_number} plan {plan_id}"
+   )
+   ```
+
+   If `gpd-check-proof` cannot be spawned, returns malformed output, or reports `status != passed`, route the plan to `wave_failure_handling`. Do not treat executor self-review as an acceptable substitute.
 
 5. **Wait for all agents in wave to complete.**
 
@@ -551,10 +619,11 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    For each SUMMARY.md:
 
    - Verify first 2 files from `key-files.created` exist on disk
-   - Check `git log --oneline --grep="{phase}-{plan}"` returns >=1 commit
-   - Check for `## Self-Check: FAILED` marker
-   - Check for `## Validation: FAILED` marker (physics-specific)
-   - Validate the gpd_return envelope:
+	   - Check `git log --oneline --grep="{phase}-{plan}"` returns >=1 commit
+	   - Check for `## Self-Check: FAILED` marker
+	   - Check for `## Validation: FAILED` marker (physics-specific)
+	   - For proof-bearing plans, verify the sibling `{plan_id}-PROOF-REDTEAM.md` artifact exists and has `status: passed`
+	   - Validate the gpd_return envelope:
 
      ```bash
      RETURN_CHECK=$(gpd --raw validate-return "${SUMMARY_FILE}")
@@ -564,7 +633,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
      fi
      ```
 
-   If ANY spot-check fails: report which plan failed, route to `wave_failure_handling` -- do NOT silently continue.
+	   If ANY spot-check fails, including a missing or non-passing proof-redteam artifact for proof-bearing work: report which plan failed, route to `wave_failure_handling` -- do NOT silently continue.
 
    **IMPORTANT: Executor subagents MUST NOT write STATE.md directly.** Return state updates (position, decisions, metrics) in the structured return envelope. The orchestrator applies them sequentially after each agent completes. This prevents parallel write conflicts where multiple agents overwrite each other's STATE.md changes.
 
@@ -621,21 +690,23 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    Before unlocking downstream dependent waves, confirm that risky-wave plans passed the first meaningful review point:
 
-   - the first load-bearing result exists
-   - the result is tied to a contract-relevant output, not only a proxy
-   - one quick sanity/benchmark/convention check passed
-   - decisive anchors still missing were explicitly named and re-questioned if necessary
-   - if the contract owed a decisive comparison, either that comparison now has a pass verdict or the downstream work was explicitly scoped so it does not rely on that unresolved claim
+	   - the first load-bearing result exists
+	   - the result is tied to a contract-relevant output, not only a proxy
+	   - one quick sanity/benchmark/convention check passed
+	   - if the plan is proof-bearing, `{plan_id}-PROOF-REDTEAM.md` exists and reports `status: passed`
+	   - decisive anchors still missing were explicitly named and re-questioned if necessary
+	   - if the contract owed a decisive comparison, either that comparison now has a pass verdict or the downstream work was explicitly scoped so it does not rely on that unresolved claim
 
    If this gate fails: STOP — do not let wrong early assumptions scale out.
 
    **Machine-state requirement for risky fanout gates:** when this review point pauses execution, record it as live execution state, not only prose. Emit an execution gate event with:
 
-   - `checkpoint_reason: pre_fanout`
-   - `pre_fanout_review_pending: true`
-   - `downstream_locked: true`
-   - `last_result_label` or `last_artifact_path` for the first load-bearing output being reviewed
-   - `skeptical_requestioning_required: true` when the first result still looks proxy-only, anchor-thin, or otherwise short of the decisive evidence the contract still owes
+	   - `checkpoint_reason: pre_fanout`
+	   - `pre_fanout_review_pending: true`
+	   - `downstream_locked: true`
+	   - `last_result_label` or `last_artifact_path` for the first load-bearing output being reviewed
+	   - `proof_redteam_required: true` and `proof_redteam_status` when the reviewed output is proof-bearing
+	   - `skeptical_requestioning_required: true` when the first result still looks proxy-only, anchor-thin, or otherwise short of the decisive evidence the contract still owes
    - `skeptical_requestioning_summary`, `weakest_unchecked_anchor`, and `disconfirming_observation` whenever skeptical re-questioning is required
    - optional `tangent_summary` and `tangent_decision` when the same bounded stop surfaced an unexpected but non-blocking alternative path that still needs explicit handling
 
@@ -669,7 +740,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    - if `review_cadence == adaptive`: enable it when the completed wave established or challenged a decisive evidence path, introduced a new baseline/estimator that later waves depend on, or left any skeptical or pre-fanout state unresolved
    - if `review_cadence == sparse`: skip the routine gate unless the just-completed wave triggered a failed sanity check, anchor gap, or pre-fanout dependency warning
 
-   **If enabled:**
+	   **If enabled:**
 
    First, collect the SUMMARY.md files produced by the just-completed wave:
 
@@ -768,7 +839,9 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    Flag any LaTeX errors as WARNING — they should be fixed before the next wave adds more content.
 
-   **If any check fails:**
+	   For proof-bearing waves, treat the proof-redteam artifact as part of this inter-wave gate even when the cadence would otherwise skip routine checks. Missing or open proof audits keep downstream work locked.
+
+	   **If any check fails:**
 
    ```
    ---
@@ -1237,7 +1310,7 @@ gpd commit \
 </step>
 
 <step name="verify_phase_goal">
-**If `verifier_enabled` is false** (from init JSON config / `workflow.verifier` in config.json): Skip phase verification entirely. Log: "Verification skipped (disabled in config)." Proceed directly to phase transition (update_roadmap step).
+**If `verifier_enabled` is false** (from init JSON config / `workflow.verifier` in config.json): Skip only the generic post-execution verifier for non-proof phases. If any executed plan is proof-bearing, proof verification still runs and missing/open `*-PROOF-REDTEAM.md` artifacts keep the phase fail-closed. Log the distinction explicitly instead of treating verifier-disabled config as a blanket bypass.
 
 Verify phase achieved its GOAL, not just completed tasks.
 
@@ -1422,23 +1495,24 @@ Re-verify Phase {PHASE_NUMBER} after gap closure.
 
 <phase_class>{PHASE_CLASSES}</phase_class>
 
-<files_to_read>
-Read these files using the file_read tool:
-- Verification: {phase_dir}/{phase}-VERIFICATION.md
-- All SUMMARY.md files in {phase_dir}/
-- State: GPD/STATE.md
-- Roadmap: GPD/ROADMAP.md
-</files_to_read>
+	<files_to_read>
+	Read these files using the file_read tool:
+	- Verification: {phase_dir}/{phase}-VERIFICATION.md
+	- All SUMMARY.md files in {phase_dir}/
+	- All `*-PROOF-REDTEAM.md` files in {phase_dir}/
+	- State: GPD/STATE.md
+	- Roadmap: GPD/ROADMAP.md
+	</files_to_read>
 
-Focus on the gaps that were previously marked failed, partial, blocked, or otherwise unresolved in the previous verification. If the prior report carries `session_status: diagnosed`, use the recorded root causes and missing actions as the starting point for re-verification.
-Check whether the gap closure plans have resolved each issue.
-Update VERIFICATION.md with new status for each gap.
-Return verification status: passed | gaps_found.",
+	Focus on the gaps that were previously marked failed, partial, blocked, or otherwise unresolved in the previous verification. If the prior report carries `session_status: diagnosed`, use the recorded root causes and missing actions as the starting point for re-verification. For proof-bearing work, re-check every required `*-PROOF-REDTEAM.md` artifact and keep the phase blocked until those audits report `status: passed`.
+	Check whether the gap closure plans have resolved each issue.
+	Update VERIFICATION.md with new status for each gap.
+	Return verification status: passed | gaps_found.",
   description="Re-verify Phase {PHASE_NUMBER} after gap closure"
 )
 ```
 
-**If the verifier agent fails to spawn or returns an error:** Proceed without automated re-verification. Note in the phase status that post-gap-closure verification was skipped. The user should run `/gpd:verify-work` separately to confirm gaps are closed.
+**If the verifier agent fails to spawn or returns an error:** Proceed without automated re-verification. Note in the phase status that post-gap-closure verification was skipped. The user should run `/gpd:verify-work` separately to confirm gaps are closed. If the phase is proof-bearing, do NOT mark it complete on this path; proof-obligation work remains blocked until re-verification and proof-redteam audits actually clear.
 
 | Re-verification Result | Action |
 | ---------------------- | ------ |

@@ -1986,31 +1986,29 @@ def _managed_gpd_python() -> str | None:
     return None
 
 
-def _running_from_checkout() -> bool:
-    """Return whether the active install is executing from a source checkout."""
-    try:
-        from gpd.version import checkout_root
-
-        return checkout_root() is not None
-    except Exception:
-        return False
-
-
 def hook_python_interpreter() -> str:
     """Return the interpreter that should run installed GPD hook scripts.
 
     Hook scripts import ``gpd.*`` modules, so they need the same interpreter
-    used for the active install process. Source checkouts keep using the active
-    interpreter so local live-testing stays pinned to the worktree. Managed
-    installs prefer the shared ``~/.gpd/venv`` interpreter when available so
-    hooks and MCP servers do not inherit an unrelated ambient Python.
+    lineage as the active install source. Source checkouts prefer their local
+    virtualenv so copied hooks, runtime bridges, and MCP servers all import the
+    live checkout rather than a stale managed package at the same version.
+    Managed installs prefer the shared ``~/.gpd/venv`` interpreter when
+    available so hooks and MCP servers do not inherit an unrelated ambient
+    Python.
     """
     override = expand_tilde(os.environ.get("GPD_PYTHON", "").strip())
     if override:
         return override
 
-    if _running_from_checkout():
-        return sys.executable or "python3"
+    try:
+        from gpd.version import resolve_checkout_python
+
+        checkout_python = resolve_checkout_python(fallback=sys.executable or "python3")
+    except Exception:
+        checkout_python = None
+    if checkout_python:
+        return checkout_python
 
     managed_python = _managed_gpd_python()
     if managed_python:

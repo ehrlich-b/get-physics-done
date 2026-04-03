@@ -225,6 +225,10 @@ class TestConvertToCodexSkill:
                 "  schema_version: 1\n"
                 "  required_outputs:\n"
                 "    - GPD/review/REFEREE-DECISION{round_suffix}.json\n"
+                "  conditional_requirements:\n"
+                "    - when: theorem-bearing claims are present\n"
+                "      required_outputs:\n"
+                "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
                 "---\n"
                 "Prompt body"
             ),
@@ -239,6 +243,8 @@ class TestConvertToCodexSkill:
         assert "review_contract:" in section
         assert "review-contract:" not in section
         assert "review_mode: publication" in result
+        assert "conditional_requirements:" in result
+        assert "when: theorem-bearing claims are present" in result
         assert result.index("## Review Contract") < result.index("Prompt body")
 
 
@@ -960,7 +966,10 @@ class TestRuntimePermissions:
         )
         shared_skills = tmp_path / "shared-skills"
         monkeypatch.setenv("CODEX_SKILLS_DIR", str(shared_skills))
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         adapter.install(gpd_root, target, is_global=False)
 

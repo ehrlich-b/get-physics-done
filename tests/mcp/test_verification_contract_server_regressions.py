@@ -269,6 +269,412 @@ def _mismatched_direct_proxy_template_contract() -> dict[str, object]:
     return contract
 
 
+def _proof_obligation_contract() -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "scope": {"question": "Does the proof cover every named parameter and hypothesis?"},
+        "context_intake": {
+            "must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"],
+        },
+        "observables": [
+            {
+                "id": "obs-proof",
+                "name": "Theorem proof obligation",
+                "kind": "proof_obligation",
+                "definition": "Prove the theorem for every declared parameter and regime.",
+            }
+        ],
+        "claims": [
+            {
+                "id": "claim-proof",
+                "statement": "For every r_0 >= 0 and chi > 0, the profile remains bounded.",
+                "claim_kind": "theorem",
+                "observables": ["obs-proof"],
+                "deliverables": ["deliv-proof"],
+                "acceptance_tests": [
+                    "test-proof-params",
+                    "test-proof-hypotheses",
+                    "test-proof-alignment",
+                    "test-proof-counterexample",
+                ],
+                "references": [],
+                "parameters": [
+                    {"symbol": "r_0", "domain_or_type": "nonnegative real"},
+                    {"symbol": "chi", "domain_or_type": "positive real"},
+                ],
+                "hypotheses": [
+                    {
+                        "id": "hyp-chi",
+                        "text": "chi > 0",
+                        "symbols": ["chi"],
+                        "category": "assumption",
+                    }
+                ],
+                "quantifiers": ["for every r_0 >= 0", "for every chi > 0"],
+                "conclusion_clauses": [
+                    {"id": "concl-main", "text": "The profile remains bounded."},
+                    {"id": "concl-uniform", "text": "The bound is uniform in r_0."},
+                ],
+                "proof_deliverables": ["deliv-proof"],
+            }
+        ],
+        "deliverables": [
+            {
+                "id": "deliv-proof",
+                "kind": "derivation",
+                "path": "derivations/theorem-proof.tex",
+                "description": "Full theorem proof",
+            }
+        ],
+        "acceptance_tests": [
+            {
+                "id": "test-proof-params",
+                "subject": "claim-proof",
+                "kind": "proof_parameter_coverage",
+                "procedure": "Audit every declared theorem parameter.",
+                "pass_condition": "Every named theorem parameter is covered explicitly.",
+                "evidence_required": ["deliv-proof"],
+            },
+            {
+                "id": "test-proof-hypotheses",
+                "subject": "claim-proof",
+                "kind": "proof_hypothesis_coverage",
+                "procedure": "Audit every declared theorem hypothesis.",
+                "pass_condition": "Every named theorem hypothesis is covered explicitly.",
+                "evidence_required": ["deliv-proof"],
+            },
+            {
+                "id": "test-proof-alignment",
+                "subject": "claim-proof",
+                "kind": "claim_to_proof_alignment",
+                "procedure": "Check the proof against every conclusion clause.",
+                "pass_condition": "The proof establishes the theorem exactly as stated.",
+                "evidence_required": ["deliv-proof"],
+            },
+            {
+                "id": "test-proof-counterexample",
+                "subject": "claim-proof",
+                "kind": "counterexample_search",
+                "procedure": "Search for special cases that escape the theorem scope.",
+                "pass_condition": "No counterexample or narrowed subcase survives scrutiny.",
+                "evidence_required": ["deliv-proof"],
+            },
+        ],
+        "forbidden_proxies": [
+            {
+                "id": "fp-proof",
+                "subject": "claim-proof",
+                "proxy": "Centered special case only",
+                "reason": "A centered proof would silently drop r_0 from the theorem.",
+            }
+        ],
+        "uncertainty_markers": {
+            "weakest_anchors": ["The proof audit must stay aligned with the current theorem statement."],
+            "disconfirming_observations": ["A proof that drops r_0 or narrows the claim invalidates the theorem."],
+        },
+    }
+
+
+def _proof_contract() -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "scope": {
+            "question": "Does the theorem proof establish the full claimed classification for all r_0 > 0?",
+            "in_scope": ["proof-obligation auditing", "theorem statement alignment"],
+        },
+        "context_intake": {
+            "must_read_refs": ["ref-proof"],
+            "crucial_inputs": ["Track every theorem parameter, hypothesis, quantifier, and conclusion clause."],
+        },
+        "observables": [
+            {
+                "id": "obs-proof",
+                "name": "main theorem proof obligation",
+                "kind": "proof_obligation",
+                "definition": "Formal proof obligation for the main classification theorem",
+            }
+        ],
+        "claims": [
+            {
+                "id": "claim-theorem",
+                "statement": "For all r_0 > 0 and every admissible solution obeying hyp-positive and hyp-decay, the full classification theorem holds.",
+                "claim_kind": "theorem",
+                "observables": ["obs-proof"],
+                "deliverables": ["deliv-summary"],
+                "acceptance_tests": [
+                    "test-proof-hyp",
+                    "test-proof-param",
+                    "test-proof-quant",
+                    "test-proof-align",
+                    "test-proof-counterexample",
+                ],
+                "references": ["ref-proof"],
+                "parameters": [
+                    {
+                        "symbol": "r_0",
+                        "domain_or_type": "positive real",
+                        "aliases": ["r0"],
+                        "required_in_proof": True,
+                    },
+                    {
+                        "symbol": "n",
+                        "domain_or_type": "integer",
+                        "required_in_proof": True,
+                    },
+                ],
+                "hypotheses": [
+                    {
+                        "id": "hyp-positive",
+                        "text": "r_0 > 0",
+                        "symbols": ["r_0"],
+                        "category": "assumption",
+                        "required_in_proof": True,
+                    },
+                    {
+                        "id": "hyp-decay",
+                        "text": "the solution decays at infinity",
+                        "category": "regime",
+                        "required_in_proof": True,
+                    },
+                ],
+                "quantifiers": ["for all r_0 > 0", "for every admissible solution"],
+                "conclusion_clauses": [
+                    {
+                        "id": "conclusion-classification",
+                        "text": "the full classification theorem holds",
+                    },
+                    {
+                        "id": "conclusion-uniqueness",
+                        "text": "the solution is unique",
+                    },
+                ],
+                "proof_deliverables": ["deliv-proof"],
+            }
+        ],
+        "deliverables": [
+            {
+                "id": "deliv-summary",
+                "kind": "report",
+                "description": "Summary note for the theorem statement",
+                "must_contain": ["theorem statement"],
+            },
+            {
+                "id": "deliv-proof",
+                "kind": "derivation",
+                "path": "proofs/main-theorem.tex",
+                "description": "Formal proof for the main theorem",
+                "must_contain": ["proof audit"],
+            },
+        ],
+        "acceptance_tests": [
+            {
+                "id": "test-proof-hyp",
+                "subject": "claim-theorem",
+                "kind": "proof_hypothesis_coverage",
+                "procedure": "Audit every named hypothesis against the proof body.",
+                "pass_condition": "All required hypotheses are explicitly covered.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-param",
+                "subject": "claim-theorem",
+                "kind": "proof_parameter_coverage",
+                "procedure": "Audit every theorem parameter against the proof body.",
+                "pass_condition": "All required theorem parameters remain present in the proof.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-quant",
+                "subject": "claim-theorem",
+                "kind": "proof_quantifier_domain",
+                "procedure": "Check that all quantifiers and domains survive to the proof conclusion.",
+                "pass_condition": "No quantifier or domain narrowing occurs.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-align",
+                "subject": "claim-theorem",
+                "kind": "claim_to_proof_alignment",
+                "procedure": "Audit the theorem statement against the proof conclusion clause-by-clause.",
+                "pass_condition": "The proof establishes the theorem exactly as stated.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-counterexample",
+                "subject": "claim-theorem",
+                "kind": "counterexample_search",
+                "procedure": "Attempt an adversarial counterexample search across dropped assumptions and parameter edges.",
+                "pass_condition": "No counterexample or narrowed claim is found.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+        ],
+        "references": [
+            {
+                "id": "ref-proof",
+                "kind": "paper",
+                "locator": "doi:10.1000/proof",
+                "role": "definition",
+                "why_it_matters": "Defines the theorem statement and notation for the proof audit.",
+                "applies_to": ["claim-theorem"],
+                "must_surface": True,
+                "required_actions": ["read", "cite"],
+            }
+        ],
+        "forbidden_proxies": [
+            {
+                "id": "fp-proof",
+                "subject": "claim-theorem",
+                "proxy": "Algebraic consistency without statement-to-proof alignment",
+                "reason": "A locally consistent proof is not enough if the theorem statement is narrower or misaligned.",
+            }
+        ],
+        "links": [],
+        "uncertainty_markers": {
+            "weakest_anchors": ["A hidden parameter drop could still survive a superficial audit."],
+            "disconfirming_observations": ["A theorem parameter such as r_0 disappears from the proof body."],
+        },
+    }
+
+
+def _ambiguous_proof_contract() -> dict[str, object]:
+    contract = _proof_contract()
+    contract["observables"].append(
+        {
+            "id": "obs-proof-2",
+            "name": "secondary theorem proof obligation",
+            "kind": "proof_obligation",
+            "definition": "Formal proof obligation for a second theorem",
+        }
+    )
+    contract["claims"].append(
+        {
+            "id": "claim-theorem-2",
+            "statement": "For all s > 0 and every admissible branch obeying hyp-branch and hyp-regular, the auxiliary theorem holds.",
+            "claim_kind": "theorem",
+            "observables": ["obs-proof-2"],
+            "deliverables": ["deliv-summary-2"],
+            "acceptance_tests": [
+                "test-proof-hyp-2",
+                "test-proof-param-2",
+                "test-proof-quant-2",
+                "test-proof-align-2",
+                "test-proof-counterexample-2",
+            ],
+            "references": ["ref-proof-2"],
+            "parameters": [{"symbol": "s", "domain_or_type": "positive real", "required_in_proof": True}],
+            "hypotheses": [
+                {
+                    "id": "hyp-branch",
+                    "text": "the admissible branch is selected",
+                    "category": "assumption",
+                    "required_in_proof": True,
+                },
+                {
+                    "id": "hyp-regular",
+                    "text": "the branch remains regular",
+                    "category": "regime",
+                    "required_in_proof": True,
+                },
+            ],
+            "quantifiers": ["for all s > 0"],
+            "conclusion_clauses": [{"id": "conclusion-aux", "text": "the auxiliary theorem holds"}],
+            "proof_deliverables": ["deliv-proof-2"],
+        }
+    )
+    contract["deliverables"].extend(
+        [
+            {
+                "id": "deliv-summary-2",
+                "kind": "report",
+                "description": "Summary note for the auxiliary theorem",
+                "must_contain": ["auxiliary theorem statement"],
+            },
+            {
+                "id": "deliv-proof-2",
+                "kind": "derivation",
+                "path": "proofs/aux-theorem.tex",
+                "description": "Formal proof for the auxiliary theorem",
+                "must_contain": ["proof audit"],
+            },
+        ]
+    )
+    contract["acceptance_tests"].extend(
+        [
+            {
+                "id": "test-proof-hyp-2",
+                "subject": "claim-theorem-2",
+                "kind": "proof_hypothesis_coverage",
+                "procedure": "Audit every named auxiliary hypothesis against the proof body.",
+                "pass_condition": "All required auxiliary hypotheses are explicitly covered.",
+                "evidence_required": ["deliv-proof-2"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-param-2",
+                "subject": "claim-theorem-2",
+                "kind": "proof_parameter_coverage",
+                "procedure": "Audit every auxiliary theorem parameter against the proof body.",
+                "pass_condition": "All required auxiliary theorem parameters remain present in the proof.",
+                "evidence_required": ["deliv-proof-2"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-quant-2",
+                "subject": "claim-theorem-2",
+                "kind": "proof_quantifier_domain",
+                "procedure": "Check that all auxiliary quantifiers and domains survive to the proof conclusion.",
+                "pass_condition": "No auxiliary quantifier or domain narrowing occurs.",
+                "evidence_required": ["deliv-proof-2"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-align-2",
+                "subject": "claim-theorem-2",
+                "kind": "claim_to_proof_alignment",
+                "procedure": "Audit the auxiliary theorem statement against the proof conclusion clause-by-clause.",
+                "pass_condition": "The proof establishes the auxiliary theorem exactly as stated.",
+                "evidence_required": ["deliv-proof-2"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-counterexample-2",
+                "subject": "claim-theorem-2",
+                "kind": "counterexample_search",
+                "procedure": "Attempt an adversarial counterexample search for the auxiliary theorem.",
+                "pass_condition": "No auxiliary counterexample or narrowed claim is found.",
+                "evidence_required": ["deliv-proof-2"],
+                "automation": "hybrid",
+            },
+        ]
+    )
+    contract["references"].append(
+        {
+            "id": "ref-proof-2",
+            "kind": "paper",
+            "locator": "doi:10.1000/proof-2",
+            "role": "definition",
+            "why_it_matters": "Defines the auxiliary theorem statement and notation.",
+            "applies_to": ["claim-theorem-2"],
+            "must_surface": True,
+            "required_actions": ["read"],
+        }
+    )
+    contract["forbidden_proxies"].append(
+        {
+            "id": "fp-proof-2",
+            "subject": "claim-theorem-2",
+            "proxy": "Algebraic consistency without theorem alignment",
+            "reason": "The auxiliary theorem still requires statement-to-proof alignment.",
+        }
+    )
+    return contract
+
+
 def _assert_contract_tools_reject(contract: dict[str, object], expected_error: str) -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 
@@ -631,6 +1037,75 @@ def test_suggest_contract_checks_derives_request_templates_from_contract() -> No
     ]
 
 
+def test_suggest_contract_checks_derives_proof_request_templates_from_unique_proof_contract() -> None:
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    result = suggest_contract_checks(_proof_contract())
+    checks = {entry["check_key"]: entry for entry in result["suggested_checks"]}
+
+    hypothesis = checks["contract.proof_hypothesis_coverage"]
+    assert hypothesis["binding_targets"] == ["observable", "claim", "deliverable", "acceptance_test"]
+    assert hypothesis["required_request_fields"] == ["observed.covered_hypothesis_ids[]"]
+    assert hypothesis["request_template"]["binding"]["claim_ids"] == ["claim-theorem"]
+    assert hypothesis["request_template"]["binding"]["deliverable_ids"] == ["deliv-proof"]
+    assert hypothesis["request_template"]["binding"]["acceptance_test_ids"] == ["test-proof-hyp"]
+    assert hypothesis["request_template"]["binding"]["observable_ids"] == ["obs-proof"]
+    assert hypothesis["request_template"]["metadata"]["hypothesis_ids"] == ["hyp-positive", "hyp-decay"]
+    assert hypothesis["request_template"]["observed"]["covered_hypothesis_ids"] is None
+    assert hypothesis["request_template"]["observed"]["missing_hypothesis_ids"] is None
+
+    parameter = checks["contract.proof_parameter_coverage"]
+    assert parameter["required_request_fields"] == ["observed.covered_parameter_symbols[]"]
+    assert parameter["request_template"]["binding"]["acceptance_test_ids"] == ["test-proof-param"]
+    assert parameter["request_template"]["metadata"]["theorem_parameter_symbols"] == ["r_0", "n"]
+    assert parameter["request_template"]["observed"]["covered_parameter_symbols"] is None
+
+    quantifier = checks["contract.proof_quantifier_domain"]
+    assert quantifier["request_template"]["binding"]["acceptance_test_ids"] == ["test-proof-quant"]
+    assert quantifier["request_template"]["metadata"]["quantifiers"] == [
+        "for all r_0 > 0",
+        "for every admissible solution",
+    ]
+    assert quantifier["request_template"]["observed"]["quantifier_status"] is None
+    assert quantifier["request_template"]["observed"]["scope_status"] is None
+
+    alignment = checks["contract.claim_to_proof_alignment"]
+    assert alignment["required_request_fields"] == [
+        "observed.scope_status",
+        "observed.uncovered_conclusion_clause_ids[]",
+    ]
+    assert alignment["request_template"]["binding"]["acceptance_test_ids"] == ["test-proof-align"]
+    assert alignment["request_template"]["metadata"]["claim_statement"].startswith("For all r_0 > 0")
+    assert alignment["request_template"]["metadata"]["conclusion_clause_ids"] == [
+        "conclusion-classification",
+        "conclusion-uniqueness",
+    ]
+    assert alignment["request_template"]["observed"]["uncovered_conclusion_clause_ids"] is None
+
+    counterexample = checks["contract.counterexample_search"]
+    assert counterexample["request_template"]["binding"]["acceptance_test_ids"] == ["test-proof-counterexample"]
+    assert counterexample["request_template"]["metadata"]["claim_statement"].startswith("For all r_0 > 0")
+    assert counterexample["request_template"]["observed"]["counterexample_status"] is None
+
+
+def test_suggest_contract_checks_requires_proof_claim_binding_when_proof_contract_is_ambiguous() -> None:
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    result = suggest_contract_checks(_ambiguous_proof_contract())
+    checks = {entry["check_key"]: entry for entry in result["suggested_checks"]}
+
+    parameter = checks["contract.proof_parameter_coverage"]
+    alignment = checks["contract.claim_to_proof_alignment"]
+
+    assert "binding.claim_ids" in parameter["required_request_fields"]
+    assert parameter["request_template"]["binding"] == {}
+    assert parameter["request_template"]["metadata"]["theorem_parameter_symbols"] is None
+
+    assert "binding.claim_ids" in alignment["required_request_fields"]
+    assert alignment["request_template"]["binding"] == {}
+    assert alignment["request_template"]["metadata"]["claim_statement"] is None
+
+
 def test_suggest_contract_checks_omits_contract_derived_metadata_from_required_fields() -> None:
     from gpd.mcp.servers.verification_server import suggest_contract_checks
 
@@ -712,6 +1187,27 @@ def test_suggest_contract_checks_templates_do_not_pass_when_reused_unchanged() -
         assert run_result["status"] == "insufficient_evidence", entry["check_key"]
 
 
+def test_suggest_contract_checks_proof_templates_do_not_pass_when_reused_unchanged() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    contract = _proof_contract()
+    result = suggest_contract_checks(contract)
+
+    for entry in result["suggested_checks"]:
+        if not entry["check_key"].startswith("contract.proof_") and entry["check_key"] not in {
+            "contract.claim_to_proof_alignment",
+            "contract.counterexample_search",
+        }:
+            continue
+        request = {
+            "check_key": entry["check_key"],
+            "contract": contract,
+            **copy.deepcopy(entry["request_template"]),
+        }
+        run_result = run_contract_check(request)
+        assert run_result["status"] == "insufficient_evidence", entry["check_key"]
+
+
 def test_run_contract_check_reuses_contract_derived_limit_and_family_defaults() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check
 
@@ -746,6 +1242,113 @@ def test_run_contract_check_reuses_contract_derived_limit_and_family_defaults() 
     assert limit["status"] == "pass"
     assert fit["status"] == "pass"
     assert estimator["status"] == "pass"
+
+
+def test_run_contract_check_proof_parameter_coverage_accepts_contract_aliases() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.proof_parameter_coverage",
+            "contract": _proof_contract(),
+            "observed": {
+                "covered_parameter_symbols": ["r0", "n"],
+            },
+        }
+    )
+
+    assert result["status"] == "pass"
+    assert result["metrics"]["proof_claim_id"] == "claim-theorem"
+    assert result["metrics"]["missing_parameter_symbols"] == []
+
+
+def test_run_contract_check_proof_parameter_coverage_fails_when_theorem_parameter_disappears() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.proof_parameter_coverage",
+            "contract": _proof_contract(),
+            "observed": {
+                "covered_parameter_symbols": ["n"],
+            },
+        }
+    )
+
+    assert result["status"] == "fail"
+    assert "Proof audit reports missing theorem parameters" in result["automated_issues"]
+    assert result["metrics"]["missing_parameter_symbols"] == ["r_0"]
+
+
+def test_run_contract_check_proof_hypothesis_coverage_fails_when_hypothesis_is_missing() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.proof_hypothesis_coverage",
+            "contract": _proof_contract(),
+            "observed": {
+                "covered_hypothesis_ids": ["hyp-positive"],
+            },
+        }
+    )
+
+    assert result["status"] == "fail"
+    assert result["metrics"]["missing_hypothesis_ids"] == ["hyp-decay"]
+
+
+def test_run_contract_check_proof_quantifier_domain_fails_on_scope_narrowing() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.proof_quantifier_domain",
+            "contract": _proof_contract(),
+            "observed": {
+                "quantifier_status": "narrowed",
+                "scope_status": "narrower_than_claim",
+                "uncovered_quantifiers": ["for all r_0 > 0"],
+            },
+        }
+    )
+
+    assert result["status"] == "fail"
+    assert "quantifiers/domains" in " ".join(result["automated_issues"]).lower()
+
+
+def test_run_contract_check_claim_to_proof_alignment_fails_on_uncovered_clause() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.claim_to_proof_alignment",
+            "contract": _proof_contract(),
+            "observed": {
+                "scope_status": "matched",
+                "uncovered_conclusion_clause_ids": ["conclusion-uniqueness"],
+            },
+        }
+    )
+
+    assert result["status"] == "fail"
+    assert result["metrics"]["claim_statement"].startswith("For all r_0 > 0")
+
+
+def test_run_contract_check_counterexample_search_fails_when_counterexample_is_found() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.counterexample_search",
+            "contract": _proof_contract(),
+            "observed": {
+                "counterexample_status": "counterexample_found",
+            },
+        }
+    )
+
+    assert result["status"] == "fail"
+    assert "counterexample" in " ".join(result["automated_issues"]).lower()
 
 
 def test_run_contract_check_backfills_contract_impacts_for_decisive_passes_without_explicit_binding() -> None:
@@ -951,6 +1554,21 @@ def test_suggest_contract_checks_request_templates_validate_against_advertised_r
     nullable_alias_request["check_key"] = None
     nullable_alias_request["check_id"] = result["suggested_checks"][0]["check_key"]
     assert list(validator.iter_errors({"request": nullable_alias_request})) == []
+
+
+def test_suggest_contract_checks_proof_request_templates_validate_against_advertised_run_contract_schema() -> None:
+    from jsonschema import Draft202012Validator
+
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    schema = _run_contract_check_input_schema()
+    validator = Draft202012Validator(schema)
+
+    result = suggest_contract_checks(_proof_contract())
+
+    for entry in result["suggested_checks"]:
+        request = {"request": entry["request_template"]}
+        assert list(validator.iter_errors(request)) == []
 
 
 def test_run_contract_check_schema_allows_benchmark_requests_without_source_reference_id() -> None:
@@ -2006,6 +2624,64 @@ def test_run_contract_check_surfaces_unknown_nested_contract_field_salvage_metad
     assert result["status"] == "pass"
     assert result["contract_salvaged"] is True
     assert "claims.0.notes: Extra inputs are not permitted" in result["contract_salvage_findings"]
+
+
+def test_suggest_contract_checks_includes_proof_redteam_checks_for_proof_obligations() -> None:
+    result = _call_verification_tool("suggest_contract_checks", {"contract": _proof_obligation_contract()})
+
+    suggested = {entry["check_key"] for entry in result["suggested_checks"]}
+
+    assert {
+        "contract.proof_hypothesis_coverage",
+        "contract.proof_parameter_coverage",
+        "contract.proof_quantifier_domain",
+        "contract.claim_to_proof_alignment",
+        "contract.counterexample_search",
+    } <= suggested
+
+
+def test_run_contract_check_proof_parameter_coverage_fails_when_r0_disappears_from_the_proof() -> None:
+    result = _call_verification_tool(
+        "run_contract_check",
+        {
+            "request": {
+                "check_key": "contract.proof_parameter_coverage",
+                "contract": _proof_obligation_contract(),
+                "binding": {"claim_ids": ["claim-proof"]},
+                "metadata": {"theorem_parameter_symbols": ["r_0", "chi"]},
+                "observed": {
+                    "covered_parameter_symbols": ["chi"],
+                    "missing_parameter_symbols": [],
+                },
+            }
+        },
+    )
+
+    assert result["status"] == "fail"
+    assert "Proof audit reports missing theorem parameters" in result["automated_issues"]
+    assert result["metrics"]["missing_parameter_symbols"] == ["r_0"]
+
+
+def test_run_contract_check_claim_to_proof_alignment_fails_for_narrower_theorem_subcases() -> None:
+    result = _call_verification_tool(
+        "run_contract_check",
+        {
+            "request": {
+                "check_key": "contract.claim_to_proof_alignment",
+                "contract": _proof_obligation_contract(),
+                "binding": {"claim_ids": ["claim-proof"]},
+                "metadata": {"conclusion_clause_ids": ["concl-main", "concl-uniform"]},
+                "observed": {
+                    "uncovered_conclusion_clause_ids": ["concl-uniform"],
+                    "scope_status": "narrower_than_claim",
+                },
+            }
+        },
+    )
+
+    assert result["status"] == "fail"
+    assert "Proof establishes a narrower claim or leaves conclusion clauses uncovered" in result["automated_issues"]
+    assert result["metrics"]["uncovered_conclusion_clause_ids"] == ["concl-uniform"]
 
 
 def test_verification_server_pure_success_tools_return_stable_envelopes() -> None:

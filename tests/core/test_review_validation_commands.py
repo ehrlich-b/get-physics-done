@@ -11,6 +11,8 @@ from gpd.mcp.paper.models import (
     ClaimIndex,
     ClaimRecord,
     ClaimType,
+    ProofAuditRecord,
+    ProofAuditStatus,
     ReviewConfidence,
     ReviewFinding,
     ReviewIssueSeverity,
@@ -216,6 +218,96 @@ def test_validate_review_stage_report_accepts_canonical_payload(tmp_path: Path) 
     assert payload["stage_id"] == "reader"
     assert payload["stage_kind"] == "reader"
     assert payload["recommendation_ceiling"] == "major_revision"
+
+
+def test_validate_review_stage_report_rejects_missing_math_proof_audit_for_theorem_claim(tmp_path: Path) -> None:
+    stage_report_path = tmp_path / "STAGE-math.json"
+    claim_index = ClaimIndex(
+        manuscript_path="paper/main.tex",
+        manuscript_sha256="a" * 64,
+        claims=[
+            ClaimRecord(
+                claim_id="CLM-001",
+                claim_type=ClaimType.main_result,
+                text="For every r_0 > 0, the orbit intersects the target annulus.",
+                artifact_path="paper/main.tex",
+                section="Main Result",
+                theorem_assumptions=["N is compact"],
+                theorem_parameters=["r_0"],
+            )
+        ],
+    )
+    _write_json(tmp_path / "CLAIMS.json", claim_index.model_dump(mode="json"))
+    stage_report = StageReviewReport(
+        version=1,
+        round=1,
+        stage_id=ReviewStageKind.math.value,
+        stage_kind=ReviewStageKind.math,
+        manuscript_path="paper/main.tex",
+        manuscript_sha256="a" * 64,
+        claims_reviewed=["CLM-001"],
+        summary="The proof sketch looks plausible.",
+        strengths=[],
+        findings=[],
+        proof_audits=[],
+        confidence=ReviewConfidence.medium,
+        recommendation_ceiling=ReviewRecommendation.major_revision,
+    )
+    _write_json(stage_report_path, stage_report.model_dump(mode="json"))
+
+    result = runner.invoke(app, ["--raw", "validate", "review-stage-report", str(stage_report_path)], catch_exceptions=False)
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.output)
+    assert "reviewed theorem-bearing claims must have proof_audits" in payload["error"]
+
+
+def test_validate_review_stage_report_rejects_proof_audit_claim_not_in_claims_reviewed(tmp_path: Path) -> None:
+    stage_report_path = tmp_path / "STAGE-math.json"
+    claim_index = ClaimIndex(
+        manuscript_path="paper/main.tex",
+        manuscript_sha256="a" * 64,
+        claims=[
+            ClaimRecord(
+                claim_id="CLM-001",
+                claim_type=ClaimType.main_result,
+                text="The manuscript makes one theorem claim.",
+                artifact_path="paper/main.tex",
+                section="Result",
+                theorem_parameters=["r_0"],
+            )
+        ],
+    )
+    _write_json(tmp_path / "CLAIMS.json", claim_index.model_dump(mode="json"))
+    stage_report = StageReviewReport(
+        version=1,
+        round=1,
+        stage_id=ReviewStageKind.math.value,
+        stage_kind=ReviewStageKind.math,
+        manuscript_path="paper/main.tex",
+        manuscript_sha256="a" * 64,
+        claims_reviewed=[],
+        summary="The proof is checked.",
+        strengths=[],
+        findings=[],
+        proof_audits=[
+            ProofAuditRecord(
+                claim_id="CLM-001",
+                theorem_parameters_checked=["r_0"],
+                proof_locations=["paper/main.tex:99"],
+                alignment_status=ProofAuditStatus.aligned,
+            )
+        ],
+        confidence=ReviewConfidence.medium,
+        recommendation_ceiling=ReviewRecommendation.major_revision,
+    )
+    _write_json(stage_report_path, stage_report.model_dump(mode="json"))
+
+    result = runner.invoke(app, ["--raw", "validate", "review-stage-report", str(stage_report_path)], catch_exceptions=False)
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.output)
+    assert "proof_audits must only reference claims_reviewed entries" in payload["error"]
 
 
 def test_validate_review_stage_report_rejects_noncanonical_filename(tmp_path: Path) -> None:
@@ -729,6 +821,8 @@ def test_evaluate_referee_decision_strict_rejects_omitted_defaults_in_model_cons
         "central_claims_supported": True,
         "claim_scope_proportionate_to_evidence": True,
         "physical_assumptions_justified": True,
+        "proof_audit_coverage_complete": True,
+        "theorem_proof_alignment_adequate": True,
         "unsupported_claims_are_central": False,
         "reframing_possible_without_new_results": True,
         "mathematical_correctness": ReviewAdequacy.adequate,
@@ -762,6 +856,8 @@ def test_evaluate_referee_decision_strict_rejects_omitted_defaults_for_standard_
         "central_claims_supported": True,
         "claim_scope_proportionate_to_evidence": True,
         "physical_assumptions_justified": True,
+        "proof_audit_coverage_complete": True,
+        "theorem_proof_alignment_adequate": True,
         "unsupported_claims_are_central": False,
         "reframing_possible_without_new_results": True,
         "mathematical_correctness": ReviewAdequacy.adequate,

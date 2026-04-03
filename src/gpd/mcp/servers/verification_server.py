@@ -27,6 +27,7 @@ from gpd.contracts import (
     contract_has_explicit_context_intake,
     parse_project_contract_data_salvage,
     parse_project_contract_data_strict,
+    statement_looks_theorem_like,
 )
 from gpd.core.observability import gpd_span
 from gpd.core.protocol_bundles import ResolvedProtocolBundle, get_protocol_bundle, render_protocol_bundle_context
@@ -228,6 +229,115 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
             "artifact_content": None,
         },
     },
+    "contract.proof_hypothesis_coverage": {
+        "required_request_fields": [
+            "metadata.hypothesis_ids[]",
+            "observed.covered_hypothesis_ids[]",
+        ],
+        "schema_required_request_fields": [
+            "observed.covered_hypothesis_ids",
+        ],
+        "optional_request_fields": ["binding.*", "artifact_content"],
+        "request_template": {
+            "binding": {},
+            "metadata": {
+                "hypothesis_ids": None,
+            },
+            "observed": {
+                "covered_hypothesis_ids": None,
+                "missing_hypothesis_ids": None,
+            },
+            "artifact_content": None,
+        },
+    },
+    "contract.proof_parameter_coverage": {
+        "required_request_fields": [
+            "metadata.theorem_parameter_symbols[]",
+            "observed.covered_parameter_symbols[]",
+        ],
+        "schema_required_request_fields": [
+            "observed.covered_parameter_symbols",
+        ],
+        "optional_request_fields": ["binding.*", "artifact_content"],
+        "request_template": {
+            "binding": {},
+            "metadata": {
+                "theorem_parameter_symbols": None,
+            },
+            "observed": {
+                "covered_parameter_symbols": None,
+                "missing_parameter_symbols": None,
+            },
+            "artifact_content": None,
+        },
+    },
+    "contract.proof_quantifier_domain": {
+        "required_request_fields": [
+            "observed.quantifier_status",
+            "observed.scope_status",
+        ],
+        "schema_required_request_fields": [
+            "observed.quantifier_status",
+            "observed.scope_status",
+        ],
+        "optional_request_fields": ["binding.*", "metadata.quantifiers[]", "observed.uncovered_quantifiers[]", "artifact_content"],
+        "request_template": {
+            "binding": {},
+            "metadata": {
+                "quantifiers": None,
+            },
+            "observed": {
+                "uncovered_quantifiers": None,
+                "quantifier_status": None,
+                "scope_status": None,
+            },
+            "artifact_content": None,
+        },
+    },
+    "contract.claim_to_proof_alignment": {
+        "required_request_fields": [
+            "observed.scope_status",
+            "observed.uncovered_conclusion_clause_ids[]",
+        ],
+        "schema_required_request_fields": [
+            "observed.scope_status",
+            "observed.uncovered_conclusion_clause_ids",
+        ],
+        "optional_request_fields": [
+            "binding.*",
+            "metadata.claim_statement",
+            "metadata.conclusion_clause_ids[]",
+            "observed.uncovered_conclusion_clause_ids[]",
+            "artifact_content",
+        ],
+        "request_template": {
+            "binding": {},
+            "metadata": {
+                "claim_statement": None,
+                "conclusion_clause_ids": None,
+            },
+            "observed": {
+                "uncovered_conclusion_clause_ids": None,
+                "scope_status": None,
+            },
+            "artifact_content": None,
+        },
+    },
+    "contract.counterexample_search": {
+        "required_request_fields": ["observed.counterexample_status"],
+        "schema_required_request_fields": ["observed.counterexample_status"],
+        "optional_request_fields": ["binding.*", "metadata.claim_statement", "artifact_content"],
+        "request_template": {
+            "binding": {},
+            "metadata": {
+                "claim_statement": None,
+            },
+            "observed": {
+                "counterexample_status": None,
+            },
+            "artifact_content": None,
+        },
+    },
 }
 
 
@@ -293,6 +403,11 @@ class ContractMetadataRequest(_ContractRequestBase):
     declared_family: str | None = None
     allowed_families: list[str] | None = None
     forbidden_families: list[str] | None = None
+    theorem_parameter_symbols: list[str] | None = None
+    hypothesis_ids: list[str] | None = None
+    quantifiers: list[str] | None = None
+    conclusion_clause_ids: list[str] | None = None
+    claim_statement: str | None = None
 
 
 class ContractObservedRequest(_ContractRequestBase):
@@ -308,6 +423,15 @@ class ContractObservedRequest(_ContractRequestBase):
     competing_family_checked: bool | None = None
     bias_checked: bool | None = None
     calibration_checked: bool | None = None
+    covered_hypothesis_ids: list[str] | None = None
+    missing_hypothesis_ids: list[str] | None = None
+    covered_parameter_symbols: list[str] | None = None
+    missing_parameter_symbols: list[str] | None = None
+    uncovered_quantifiers: list[str] | None = None
+    uncovered_conclusion_clause_ids: list[str] | None = None
+    quantifier_status: str | None = None
+    scope_status: str | None = None
+    counterexample_status: str | None = None
 
 
 class RunContractCheckRequest(_ContractRequestBase):
@@ -370,6 +494,15 @@ def _string_list_schema(*, min_items: int | None = None) -> dict[str, object]:
     return schema
 
 
+def _string_list_or_null_schema(*, min_items: int | None = None) -> dict[str, object]:
+    return {
+        "anyOf": [
+            _string_list_schema(min_items=min_items),
+            {"type": "null"},
+        ]
+    }
+
+
 def _string_or_string_list_or_null_schema(*, min_items: int | None = None) -> dict[str, object]:
     return {
         "anyOf": [
@@ -401,6 +534,15 @@ def _enum_string_or_string_list_schema(values: Iterable[str], *, min_items: int 
         "anyOf": [
             _enum_string_schema(values),
             _enum_string_list_schema(values, min_items=min_items),
+        ]
+    }
+
+
+def _enum_string_or_null_schema(values: Iterable[str]) -> dict[str, object]:
+    return {
+        "anyOf": [
+            _enum_string_schema(values),
+            {"type": "null"},
         ]
     }
 
@@ -477,6 +619,12 @@ _CONTRACT_ACCEPTANCE_TEST_KIND_VALUES = (
     "oracle",
     "proxy",
     "reproducibility",
+    "proof_hypothesis_coverage",
+    "proof_parameter_coverage",
+    "proof_quantifier_domain",
+    "claim_to_proof_alignment",
+    "lemma_dependency_closure",
+    "counterexample_search",
     "human_review",
     "other",
 )
@@ -491,6 +639,9 @@ _CONTRACT_LINK_RELATION_VALUES = (
     "benchmarks",
     "depends_on",
     "evaluated_by",
+    "proves",
+    "uses_hypothesis",
+    "depends_on_lemma",
     "other",
 )
 _CONTRACT_BINDING_TARGETS: tuple[str, ...] = (
@@ -501,6 +652,26 @@ _CONTRACT_BINDING_TARGETS: tuple[str, ...] = (
     "reference",
     "forbidden_proxy",
 )
+_PROOF_CLAIM_KIND_VALUES = ("theorem", "lemma", "corollary", "proposition", "claim")
+_PROOF_ACCEPTANCE_TEST_KIND_VALUES = (
+    "proof_hypothesis_coverage",
+    "proof_parameter_coverage",
+    "proof_quantifier_domain",
+    "claim_to_proof_alignment",
+    "lemma_dependency_closure",
+    "counterexample_search",
+)
+_PROOF_CHECK_TO_ACCEPTANCE_KIND = {
+    "contract.proof_hypothesis_coverage": "proof_hypothesis_coverage",
+    "contract.proof_parameter_coverage": "proof_parameter_coverage",
+    "contract.proof_quantifier_domain": "proof_quantifier_domain",
+    "contract.claim_to_proof_alignment": "claim_to_proof_alignment",
+    "contract.counterexample_search": "counterexample_search",
+}
+_PROOF_CHECK_KEYS = frozenset(_PROOF_CHECK_TO_ACCEPTANCE_KIND)
+_QUANTIFIER_STATUS_VALUES = ("matched", "narrowed", "mismatched", "unclear")
+_SCOPE_STATUS_VALUES = ("matched", "narrower_than_claim", "mismatched", "unclear")
+_COUNTEREXAMPLE_STATUS_VALUES = ("none_found", "counterexample_found", "not_attempted", "narrowed_claim")
 _CONTRACT_AWARE_CHECK_ENTRIES: tuple[dict[str, object], ...] = tuple(
     entry for entry in list_verification_checks() if bool(entry.get("contract_aware"))
 )
@@ -541,6 +712,11 @@ _CONTRACT_METADATA_INPUT_SCHEMA: dict[str, object] = _object_schema(
         "declared_family": _non_empty_string_or_null_schema(),
         "allowed_families": _string_list_schema(),
         "forbidden_families": _string_list_schema(),
+        "theorem_parameter_symbols": _string_list_or_null_schema(),
+        "hypothesis_ids": _string_list_or_null_schema(),
+        "quantifiers": _string_list_or_null_schema(),
+        "conclusion_clause_ids": _string_list_or_null_schema(),
+        "claim_statement": _non_empty_string_or_null_schema(),
     },
     additional_properties=False,
 )
@@ -558,6 +734,15 @@ _CONTRACT_OBSERVED_INPUT_SCHEMA: dict[str, object] = _object_schema(
         "competing_family_checked": _boolean_or_null_schema(),
         "bias_checked": _boolean_or_null_schema(),
         "calibration_checked": _boolean_or_null_schema(),
+        "covered_hypothesis_ids": _string_list_or_null_schema(),
+        "missing_hypothesis_ids": _string_list_or_null_schema(),
+        "covered_parameter_symbols": _string_list_or_null_schema(),
+        "missing_parameter_symbols": _string_list_or_null_schema(),
+        "uncovered_quantifiers": _string_list_or_null_schema(),
+        "uncovered_conclusion_clause_ids": _string_list_or_null_schema(),
+        "quantifier_status": _enum_string_or_null_schema(_QUANTIFIER_STATUS_VALUES),
+        "scope_status": _enum_string_or_null_schema(_SCOPE_STATUS_VALUES),
+        "counterexample_status": _enum_string_or_null_schema(_COUNTEREXAMPLE_STATUS_VALUES),
     },
     additional_properties=False,
 )
@@ -617,14 +802,50 @@ _CONTRACT_OBSERVABLE_INPUT_SCHEMA: dict[str, object] = _object_schema(
     required=("id", "name", "definition"),
     additional_properties=False,
 )
+_CONTRACT_PROOF_PARAMETER_INPUT_SCHEMA: dict[str, object] = _object_schema(
+    {
+        "symbol": _non_empty_string_schema(),
+        "domain_or_type": _string_schema(),
+        "aliases": _string_or_string_list_schema(),
+        "required_in_proof": {"type": "boolean"},
+        "notes": _non_empty_string_or_null_schema(),
+    },
+    required=("symbol",),
+    additional_properties=False,
+)
+_CONTRACT_PROOF_HYPOTHESIS_INPUT_SCHEMA: dict[str, object] = _object_schema(
+    {
+        "id": _non_empty_string_schema(),
+        "text": _non_empty_string_schema(),
+        "symbols": _string_or_string_list_schema(),
+        "category": _enum_string_schema(("assumption", "precondition", "regime", "definition", "lemma", "other")),
+        "required_in_proof": {"type": "boolean"},
+    },
+    required=("id", "text"),
+    additional_properties=False,
+)
+_CONTRACT_PROOF_CONCLUSION_INPUT_SCHEMA: dict[str, object] = _object_schema(
+    {
+        "id": _non_empty_string_schema(),
+        "text": _non_empty_string_schema(),
+    },
+    required=("id", "text"),
+    additional_properties=False,
+)
 _CONTRACT_CLAIM_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
         "statement": _non_empty_string_schema(),
+        "claim_kind": _enum_string_schema(("theorem", "lemma", "corollary", "proposition", "result", "claim", "other")),
         "observables": _string_or_string_list_schema(),
         "deliverables": _string_or_string_list_schema(min_items=1),
         "acceptance_tests": _string_or_string_list_schema(min_items=1),
         "references": _string_or_string_list_schema(),
+        "parameters": {"type": "array", "items": dict(_CONTRACT_PROOF_PARAMETER_INPUT_SCHEMA)},
+        "hypotheses": {"type": "array", "items": dict(_CONTRACT_PROOF_HYPOTHESIS_INPUT_SCHEMA)},
+        "quantifiers": _string_or_string_list_schema(),
+        "conclusion_clauses": {"type": "array", "items": dict(_CONTRACT_PROOF_CONCLUSION_INPUT_SCHEMA)},
+        "proof_deliverables": _string_or_string_list_schema(),
     },
     required=("id", "statement", "deliverables", "acceptance_tests"),
     additional_properties=False,
@@ -1115,6 +1336,47 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
             include_observable_binding=True,
         )
 
+    elif check_key in _PROOF_CHECK_KEYS:
+        proof_claim_candidates, proof_claim_issue = _proof_claim_candidates(
+            contract,
+            {},
+            binding_supplied=False,
+        )
+        if proof_claim_issue is None and len(proof_claim_candidates) == 1:
+            proof_claim_id = proof_claim_candidates[0]
+            claim = _proof_claim_for_id(contract, proof_claim_id)
+            if claim is not None:
+                binding["claim_ids"] = [proof_claim_id]
+                _set_single_binding_value(
+                    binding,
+                    "deliverable_ids",
+                    claim.proof_deliverables or claim.deliverables,
+                )
+                _set_single_binding_value(
+                    binding,
+                    "observable_ids",
+                    _proof_observable_ids_for_claim(contract, proof_claim_id),
+                )
+                _apply_single_acceptance_test_binding_if_consistent(
+                    binding,
+                    contract,
+                    _proof_acceptance_tests_for_claim(contract, proof_claim_id, check_key=check_key),
+                )
+                for field_name, value in _proof_metadata_defaults_for_claim(check_key, claim).items():
+                    if value in (None, [], ""):
+                        continue
+                    metadata[field_name] = copy.deepcopy(value)
+                    if field_name == "hypothesis_ids":
+                        _demote_required_field("metadata.hypothesis_ids[]")
+                    elif field_name == "theorem_parameter_symbols":
+                        _demote_required_field("metadata.theorem_parameter_symbols[]")
+        elif len(_proof_claim_ids(contract)) > 1 or proof_claim_issue is not None:
+            if "binding.claim_ids" not in enriched_hint["required_request_fields"]:
+                enriched_hint["required_request_fields"].insert(0, "binding.claim_ids")
+            for field_name in ("metadata.hypothesis_ids[]", "metadata.theorem_parameter_symbols[]"):
+                if field_name in enriched_hint["required_request_fields"]:
+                    _demote_required_field(field_name)
+
     return enriched_hint
 
 
@@ -1180,6 +1442,17 @@ def _subject_binding_requirement(
                 "binding.forbidden_proxy_ids"
             ], "Ambiguous direct/proxy context requires an explicit forbidden proxy binding"
 
+    if check_key in _PROOF_CHECK_KEYS:
+        proof_claim_candidates, proof_claim_issue = _proof_claim_candidates(
+            contract,
+            binding_ids,
+            binding_supplied=bool(binding_ids),
+        )
+        if proof_claim_issue is not None:
+            return ["binding.claim_ids"], proof_claim_issue
+        if len(proof_claim_candidates) > 1 or (not binding_ids and len(_proof_claim_ids(contract)) > 1):
+            return ["binding.claim_ids"], "Ambiguous proof context requires an explicit proof claim binding"
+
     return [], None
 
 
@@ -1227,6 +1500,21 @@ def _validate_optional_string(value: object, *, field_name: str) -> tuple[str | 
     return stripped, None
 
 
+def _validate_optional_enum_string(
+    value: object,
+    *,
+    field_name: str,
+    allowed_values: Iterable[str],
+) -> tuple[str | None, str | None]:
+    normalized, error = _validate_optional_string(value, field_name=field_name)
+    if error is not None or normalized is None:
+        return normalized, error
+    allowed = tuple(allowed_values)
+    if normalized not in allowed:
+        return None, f"{field_name} must be one of {', '.join(allowed)}"
+    return normalized, None
+
+
 def _normalize_string_list(value: object) -> object:
     if not isinstance(value, list):
         return value
@@ -1253,6 +1541,20 @@ def _validate_string_list_field(value: object, *, field_name: str) -> str | None
     if not isinstance(value, list):
         return f"{field_name} must be a list of strings"
     return _validate_string_list_members(value, field_name=field_name)
+
+
+def _validate_optional_string_list(
+    value: object,
+    *,
+    field_name: str,
+) -> tuple[list[str] | None, str | None]:
+    if value is None:
+        return None, None
+    error = _validate_string_list_field(value, field_name=field_name)
+    if error is not None:
+        return None, error
+    normalized = _normalize_string_list(value)
+    return list(normalized) if isinstance(normalized, list) else None, None
 
 
 def _validate_binding_field_value(value: object, *, field_name: str) -> str | None:
@@ -1323,13 +1625,20 @@ def _validate_binding_payload(binding: dict[str, object], *, allowed_targets: It
 
 def _normalize_contract_metadata(metadata: dict[str, object]) -> tuple[dict[str, object], str | None]:
     normalized = dict(metadata)
-    for key in ("regime_label", "expected_behavior", "source_reference_id", "declared_family"):
+    for key in ("regime_label", "expected_behavior", "source_reference_id", "declared_family", "claim_statement"):
         if key in normalized:
             normalized_value, error = _validate_optional_string(normalized[key], field_name=f"metadata.{key}")
             if error is not None:
                 return {}, error
             normalized[key] = normalized_value
-    for key in ("allowed_families", "forbidden_families"):
+    for key in (
+        "allowed_families",
+        "forbidden_families",
+        "theorem_parameter_symbols",
+        "hypothesis_ids",
+        "quantifiers",
+        "conclusion_clause_ids",
+    ):
         if key in normalized:
             error = _validate_string_list_field(normalized[key], field_name=f"metadata.{key}")
             if error is not None:
@@ -1704,6 +2013,30 @@ def run_check(check_id: str, domain: str, artifact_content: str) -> dict:
                 ):
                     issues.append("Estimator family is present without bias/variance or calibration diagnostics")
 
+            elif check_meta.check_id == "5.20":
+                proof_keywords = ["hypothesis", "assumption", "suppose", "regime", "under the conditions"]
+                if not any(kw in artifact_lower for kw in proof_keywords):
+                    issues.append("No explicit hypothesis coverage ledger found for the proof-bearing claim")
+
+            elif check_meta.check_id == "5.21":
+                if not any(kw in artifact_lower for kw in ["parameter", "symbol", "for all", "r_0", "r0"]):
+                    issues.append("No explicit theorem-parameter coverage audit found in the proof artifact")
+
+            elif check_meta.check_id == "5.22":
+                quantifier_keywords = ["for all", "exists", "domain", "regime", "scope", "quantifier"]
+                if not any(kw in artifact_lower for kw in quantifier_keywords):
+                    issues.append("No explicit quantifier/domain fidelity audit found in the proof artifact")
+
+            elif check_meta.check_id == "5.23":
+                alignment_keywords = ["claim", "theorem", "conclusion", "therefore", "thus", "proved"]
+                if not any(kw in artifact_lower for kw in alignment_keywords):
+                    issues.append("No explicit claim-to-proof alignment evidence found in the artifact")
+
+            elif check_meta.check_id == "5.24":
+                counterexample_keywords = ["counterexample", "adversarial", "red-team", "narrowed claim", "edge case"]
+                if not any(kw in artifact_lower for kw in counterexample_keywords):
+                    issues.append("No explicit counterexample or adversarial search evidence found in the artifact")
+
             result = _serialize_verification_check_entry(check_meta.model_dump())
             result.update(
                 {
@@ -2024,6 +2357,28 @@ def _decisive_contract_impacts(
         if selected_family:
             return [selected_family]
 
+    if check_key in _PROOF_CHECK_KEYS:
+        candidates, issue = _proof_claim_candidates(
+            contract,
+            binding_ids,
+            binding_supplied=binding_supplied,
+        )
+        if issue is None and len(candidates) == 1:
+            claim = _proof_claim_for_id(contract, candidates[0])
+            if claim is not None:
+                impacts = [claim.id, *claim.proof_deliverables, *binding_ids.get("acceptance_test", [])]
+                proof_observable_ids = _proof_observable_ids_for_claim(contract, claim.id)
+                if len(proof_observable_ids) == 1:
+                    impacts.extend(proof_observable_ids)
+                return _unique_strings(impacts)
+        impacts = [
+            *binding_ids.get("observable", []),
+            *binding_ids.get("claim", []),
+            *binding_ids.get("acceptance_test", []),
+            *binding_ids.get("deliverable", []),
+        ]
+        return _unique_strings(impacts)
+
     return []
 
 
@@ -2043,6 +2398,8 @@ def _claim_ids_by_deliverable(contract: ResearchContract) -> dict[str, list[str]
     for claim in contract.claims:
         for deliverable_id in claim.deliverables:
             mapping.setdefault(deliverable_id, []).append(claim.id)
+        for deliverable_id in claim.proof_deliverables:
+            mapping.setdefault(deliverable_id, []).append(claim.id)
     return mapping
 
 
@@ -2057,6 +2414,227 @@ def _claim_ids_for_subject(
         claim_ids.append(subject_id)
     claim_ids.extend(claims_by_deliverable.get(subject_id, []))
     return _unique_strings(claim_ids)
+
+
+def _proof_claim_ids(contract: ResearchContract) -> list[str]:
+    observables_by_id = {observable.id: observable for observable in contract.observables}
+    acceptance_test_kind_by_id = {test.id: test.kind for test in contract.acceptance_tests}
+    proof_claim_ids: list[str] = []
+    for claim in contract.claims:
+        if claim.claim_kind in _PROOF_CLAIM_KIND_VALUES:
+            proof_claim_ids.append(claim.id)
+            continue
+        if statement_looks_theorem_like(claim.statement):
+            proof_claim_ids.append(claim.id)
+            continue
+        if any(
+            (
+                claim.parameters,
+                claim.hypotheses,
+                claim.quantifiers,
+                claim.conclusion_clauses,
+                claim.proof_deliverables,
+            )
+        ):
+            proof_claim_ids.append(claim.id)
+            continue
+        if any(
+            observables_by_id.get(observable_id) is not None
+            and observables_by_id[observable_id].kind == "proof_obligation"
+            for observable_id in claim.observables
+        ):
+            proof_claim_ids.append(claim.id)
+            continue
+        if any(
+            acceptance_test_kind_by_id.get(test_id) in _PROOF_ACCEPTANCE_TEST_KIND_VALUES
+            for test_id in claim.acceptance_tests
+        ):
+            proof_claim_ids.append(claim.id)
+    return _unique_strings(proof_claim_ids)
+
+
+def _proof_claim_for_id(contract: ResearchContract, claim_id: str) -> object | None:
+    return next((claim for claim in contract.claims if claim.id == claim_id), None)
+
+
+def _proof_observable_ids_for_claim(contract: ResearchContract, claim_id: str) -> list[str]:
+    claim = _proof_claim_for_id(contract, claim_id)
+    if claim is None:
+        return []
+    observables_by_id = {observable.id: observable for observable in contract.observables}
+    return [
+        observable_id
+        for observable_id in claim.observables
+        if observables_by_id.get(observable_id) is not None
+        and observables_by_id[observable_id].kind == "proof_obligation"
+    ]
+
+
+def _proof_acceptance_tests_for_claim(
+    contract: ResearchContract,
+    claim_id: str,
+    *,
+    check_key: str,
+) -> list[object]:
+    claim = _proof_claim_for_id(contract, claim_id)
+    if claim is None:
+        return []
+    tests_by_id = {test.id: test for test in contract.acceptance_tests}
+    claim_tests = [tests_by_id[test_id] for test_id in claim.acceptance_tests if test_id in tests_by_id]
+    expected_kind = _PROOF_CHECK_TO_ACCEPTANCE_KIND.get(check_key)
+    if expected_kind is None:
+        return []
+    return [test for test in claim_tests if test.kind == expected_kind]
+
+
+def _proof_claim_candidates(
+    contract: ResearchContract,
+    binding_ids: dict[str, list[str]],
+    *,
+    binding_supplied: bool,
+) -> tuple[list[str], str | None]:
+    proof_claim_id_set = set(_proof_claim_ids(contract))
+    if not proof_claim_id_set:
+        return [], None
+
+    claims_by_id = {claim.id: claim for claim in contract.claims}
+    tests_by_id = {test.id: test for test in contract.acceptance_tests}
+    claims_by_deliverable = _claim_ids_by_deliverable(contract)
+
+    context_candidates: dict[str, list[str]] = {}
+
+    claim_candidates = [claim_id for claim_id in binding_ids.get("claim", []) if claim_id in proof_claim_id_set]
+    if claim_candidates:
+        context_candidates["claim"] = _unique_strings(claim_candidates)
+
+    deliverable_candidates = [
+        claim_id
+        for deliverable_id in binding_ids.get("deliverable", [])
+        for claim_id in claims_by_deliverable.get(deliverable_id, [])
+        if claim_id in proof_claim_id_set
+    ]
+    if deliverable_candidates:
+        context_candidates["deliverable"] = _unique_strings(deliverable_candidates)
+
+    acceptance_test_candidates: list[str] = []
+    for acceptance_test_id in binding_ids.get("acceptance_test", []):
+        test = tests_by_id.get(acceptance_test_id)
+        if test is None:
+            continue
+        acceptance_test_candidates.extend(
+            claim_id
+            for claim_id in _claim_ids_for_subject(
+                test.subject,
+                claims_by_id=claims_by_id,
+                claims_by_deliverable=claims_by_deliverable,
+            )
+            if claim_id in proof_claim_id_set
+        )
+    if acceptance_test_candidates:
+        context_candidates["acceptance_test"] = _unique_strings(acceptance_test_candidates)
+
+    observable_candidates = [
+        claim.id
+        for claim in contract.claims
+        if claim.id in proof_claim_id_set and set(claim.observables).intersection(binding_ids.get("observable", []))
+    ]
+    if observable_candidates:
+        context_candidates["observable"] = _unique_strings(observable_candidates)
+
+    candidates, issue = _resolve_binding_candidates(
+        label="proof claim candidates",
+        context_candidates=context_candidates,
+    )
+    if candidates or issue:
+        return candidates, issue
+
+    if binding_supplied and any(binding_ids.get(target) for target in ("observable", "claim", "deliverable", "acceptance_test")):
+        return [], "binding does not resolve to a proof-bearing claim"
+
+    if not binding_supplied and not binding_ids and len(proof_claim_id_set) == 1:
+        return list(proof_claim_id_set), None
+
+    return [], None
+
+
+def _proof_metadata_defaults_for_claim(check_key: str, claim: object) -> dict[str, object]:
+    if check_key == "contract.proof_hypothesis_coverage":
+        return {
+            "hypothesis_ids": [
+                hypothesis.id
+                for hypothesis in claim.hypotheses
+                if getattr(hypothesis, "required_in_proof", True)
+            ]
+        }
+    if check_key == "contract.proof_parameter_coverage":
+        return {
+            "theorem_parameter_symbols": [
+                parameter.symbol
+                for parameter in claim.parameters
+                if getattr(parameter, "required_in_proof", True)
+            ]
+        }
+    if check_key == "contract.proof_quantifier_domain":
+        return {
+            "quantifiers": list(claim.quantifiers),
+        }
+    if check_key == "contract.claim_to_proof_alignment":
+        return {
+            "claim_statement": claim.statement,
+            "conclusion_clause_ids": [clause.id for clause in claim.conclusion_clauses],
+        }
+    if check_key == "contract.counterexample_search":
+        return {
+            "claim_statement": claim.statement,
+        }
+    return {}
+
+
+def _normalized_unique_strings(values: object) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    seen: set[str] = set()
+    normalized: list[str] = []
+    for value in values:
+        if not isinstance(value, str):
+            continue
+        stripped = value.strip()
+        if not stripped or stripped in seen:
+            continue
+        seen.add(stripped)
+        normalized.append(stripped)
+    return normalized
+
+
+def _proof_metadata_contract_mismatch_errors(
+    check_key: str,
+    *,
+    contract: ResearchContract | None,
+    proof_claim_id: str | None,
+    supplied_metadata: dict[str, object],
+) -> list[str]:
+    if contract is None or proof_claim_id is None:
+        return []
+    claim = _proof_claim_for_id(contract, proof_claim_id)
+    if claim is None:
+        return []
+    defaults = _proof_metadata_defaults_for_claim(check_key, claim)
+    errors: list[str] = []
+    for field_name, expected_value in defaults.items():
+        if field_name not in supplied_metadata:
+            continue
+        supplied_value = supplied_metadata.get(field_name)
+        if isinstance(expected_value, list):
+            if set(_normalized_unique_strings(supplied_value)) != set(_normalized_unique_strings(expected_value)):
+                errors.append(
+                    f"metadata.{field_name} does not match the resolved theorem inventory for {proof_claim_id}"
+                )
+        elif isinstance(expected_value, str):
+            if not isinstance(supplied_value, str) or supplied_value.strip() != expected_value:
+                errors.append(
+                    f"metadata.{field_name} does not match the resolved theorem inventory for {proof_claim_id}"
+                )
+    return errors
 
 
 def _resolve_binding_candidates(
@@ -2434,7 +3012,7 @@ def _deliverable_ids_for_subject(
 ) -> list[str]:
     claim = claims_by_id.get(subject_id)
     if claim is not None:
-        return _unique_strings(claim.deliverables)
+        return _unique_strings([*claim.deliverables, *claim.proof_deliverables])
     if subject_id in claims_by_deliverable:
         return [subject_id]
     return []
@@ -2903,6 +3481,19 @@ def _with_contract_policy_defaults(
             if limit_test is not None and limit_test.pass_condition:
                 enriched["expected_behavior"] = limit_test.pass_condition
 
+    if check_key in _PROOF_CHECK_KEYS:
+        proof_claim_candidates, proof_claim_issue = _proof_claim_candidates(
+            contract,
+            binding_ids,
+            binding_supplied=binding_supplied,
+        )
+        if proof_claim_issue is None and len(proof_claim_candidates) == 1:
+            claim = _proof_claim_for_id(contract, proof_claim_candidates[0])
+            if claim is not None:
+                for field_name, value in _proof_metadata_defaults_for_claim(check_key, claim).items():
+                    if field_name not in enriched or enriched.get(field_name) in (None, [], ""):
+                        enriched[field_name] = copy.deepcopy(value)
+
     return enriched
 
 
@@ -3170,6 +3761,7 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
             metadata, metadata_error = _normalize_contract_metadata(metadata_raw or {})
             if metadata_error is not None:
                 return _error_result(metadata_error)
+            supplied_metadata = dict(metadata)
             observed = observed_raw or {}
             artifact_content_raw = request.get("artifact_content")
             artifact_content, artifact_content_error = _validate_optional_string(
@@ -3202,6 +3794,26 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                 binding_supplied=binding_supplied,
                 metadata=metadata,
             )
+            proof_claim_id: str | None = None
+            if contract is not None and check_meta.check_key in _PROOF_CHECK_KEYS:
+                proof_claim_candidates, proof_claim_issue = _proof_claim_candidates(
+                    contract,
+                    binding_ids,
+                    binding_supplied=binding_supplied,
+                )
+                if proof_claim_issue is None and len(proof_claim_candidates) == 1:
+                    proof_claim_id = proof_claim_candidates[0]
+            if check_meta.check_key in _PROOF_CHECK_KEYS and contract is None:
+                return _error_result("Proof checks require an authoritative contract payload")
+            if check_meta.check_key in _PROOF_CHECK_KEYS:
+                proof_metadata_errors = _proof_metadata_contract_mismatch_errors(
+                    check_meta.check_key,
+                    contract=contract,
+                    proof_claim_id=proof_claim_id,
+                    supplied_metadata=supplied_metadata,
+                )
+                if proof_metadata_errors:
+                    return _error_result("; ".join(proof_metadata_errors))
 
             missing_inputs: list[str] = []
             automated_issues: list[str] = []
@@ -3469,11 +4081,267 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                 ):
                     status = "pass"
 
+            elif check_meta.check_key == "contract.proof_hypothesis_coverage":
+                declared_hypothesis_ids, error_message = _validate_optional_string_list(
+                    metadata.get("hypothesis_ids"),
+                    field_name="metadata.hypothesis_ids",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                covered_hypothesis_ids, error_message = _validate_optional_string_list(
+                    observed.get("covered_hypothesis_ids"),
+                    field_name="observed.covered_hypothesis_ids",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                explicit_missing_hypothesis_ids, error_message = _validate_optional_string_list(
+                    observed.get("missing_hypothesis_ids"),
+                    field_name="observed.missing_hypothesis_ids",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                declared = set(declared_hypothesis_ids or [])
+                covered = set(covered_hypothesis_ids or [])
+                explicit_missing = set(explicit_missing_hypothesis_ids or [])
+                missing = set(explicit_missing)
+                if declared and covered_hypothesis_ids is not None:
+                    missing.update(declared - covered)
+                metrics.update(
+                    {
+                        "proof_claim_id": proof_claim_id,
+                        "declared_hypothesis_ids": sorted(declared),
+                        "covered_hypothesis_ids": sorted(covered),
+                        "missing_hypothesis_ids": sorted(missing),
+                    }
+                )
+                evidence_directness = "direct"
+                if not declared:
+                    missing_inputs.append("metadata.hypothesis_ids")
+                if covered_hypothesis_ids is None:
+                    missing_inputs.append("observed.covered_hypothesis_ids")
+                if explicit_missing.intersection(covered):
+                    automated_issues.append("Proof hypothesis coverage marks the same hypothesis as both covered and missing")
+                    status = "insufficient_evidence"
+                elif missing and not missing_inputs:
+                    automated_issues.append("Proof audit reports missing hypotheses")
+                    status = "fail"
+                elif declared and not missing_inputs:
+                    status = "pass"
+
+            elif check_meta.check_key == "contract.proof_parameter_coverage":
+                declared_parameter_symbols, error_message = _validate_optional_string_list(
+                    metadata.get("theorem_parameter_symbols"),
+                    field_name="metadata.theorem_parameter_symbols",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                covered_parameter_symbols, error_message = _validate_optional_string_list(
+                    observed.get("covered_parameter_symbols"),
+                    field_name="observed.covered_parameter_symbols",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                explicit_missing_parameter_symbols, error_message = _validate_optional_string_list(
+                    observed.get("missing_parameter_symbols"),
+                    field_name="observed.missing_parameter_symbols",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                declared_symbols = list(declared_parameter_symbols or [])
+                covered = set(covered_parameter_symbols or [])
+                explicit_missing = set(explicit_missing_parameter_symbols or [])
+                alias_groups: dict[str, set[str]] = {symbol: {symbol} for symbol in declared_symbols}
+                if proof_claim_id is not None and contract is not None:
+                    claim = _proof_claim_for_id(contract, proof_claim_id)
+                    if claim is not None:
+                        alias_groups = {
+                            parameter.symbol: {parameter.symbol, *parameter.aliases}
+                            for parameter in claim.parameters
+                            if getattr(parameter, "required_in_proof", True)
+                        } or alias_groups
+                missing: set[str] = set()
+                for symbol in declared_symbols:
+                    aliases = alias_groups.get(symbol, {symbol})
+                    if not covered.intersection(aliases):
+                        missing.add(symbol)
+                for symbol in explicit_missing:
+                    canonical = next(
+                        (candidate for candidate, aliases in alias_groups.items() if symbol in aliases),
+                        symbol,
+                    )
+                    if canonical in declared_symbols:
+                        missing.add(canonical)
+                metrics.update(
+                    {
+                        "proof_claim_id": proof_claim_id,
+                        "declared_parameter_symbols": declared_symbols,
+                        "covered_parameter_symbols": sorted(covered),
+                        "missing_parameter_symbols": sorted(missing),
+                    }
+                )
+                evidence_directness = "direct"
+                if not declared_symbols:
+                    missing_inputs.append("metadata.theorem_parameter_symbols")
+                if covered_parameter_symbols is None:
+                    missing_inputs.append("observed.covered_parameter_symbols")
+                if explicit_missing.intersection(covered):
+                    automated_issues.append("Proof parameter coverage marks the same parameter as both covered and missing")
+                    status = "insufficient_evidence"
+                elif missing and not missing_inputs:
+                    automated_issues.append("Proof audit reports missing theorem parameters")
+                    status = "fail"
+                elif declared_symbols and not missing_inputs:
+                    status = "pass"
+
+            elif check_meta.check_key == "contract.proof_quantifier_domain":
+                quantifiers, error_message = _validate_optional_string_list(
+                    metadata.get("quantifiers"),
+                    field_name="metadata.quantifiers",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                uncovered_quantifiers, error_message = _validate_optional_string_list(
+                    observed.get("uncovered_quantifiers"),
+                    field_name="observed.uncovered_quantifiers",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                quantifier_status, error_message = _validate_optional_enum_string(
+                    observed.get("quantifier_status"),
+                    field_name="observed.quantifier_status",
+                    allowed_values=_QUANTIFIER_STATUS_VALUES,
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                scope_status, error_message = _validate_optional_enum_string(
+                    observed.get("scope_status"),
+                    field_name="observed.scope_status",
+                    allowed_values=_SCOPE_STATUS_VALUES,
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                metrics.update(
+                    {
+                        "proof_claim_id": proof_claim_id,
+                        "declared_quantifiers": sorted(quantifiers or []),
+                        "uncovered_quantifiers": sorted(uncovered_quantifiers or []),
+                        "quantifier_status": quantifier_status,
+                        "scope_status": scope_status,
+                    }
+                )
+                evidence_directness = "direct"
+                if quantifier_status is None:
+                    missing_inputs.append("observed.quantifier_status")
+                if scope_status is None:
+                    missing_inputs.append("observed.scope_status")
+                if (
+                    quantifier_status == "matched"
+                    and scope_status == "matched"
+                    and not (uncovered_quantifiers or [])
+                    and not missing_inputs
+                ):
+                    status = "pass"
+                elif (
+                    quantifier_status in {"narrowed", "mismatched"}
+                    or scope_status in {"narrower_than_claim", "mismatched"}
+                    or bool(uncovered_quantifiers)
+                ) and not missing_inputs:
+                    automated_issues.append("Proof audit reports narrowed or uncovered quantifiers/domains")
+                    status = "fail"
+                elif not missing_inputs and (quantifier_status == "unclear" or scope_status == "unclear"):
+                    automated_issues.append("Proof audit could not establish quantifier/domain fidelity decisively")
+                    status = "warning"
+
+            elif check_meta.check_key == "contract.claim_to_proof_alignment":
+                claim_statement, error_message = _validate_optional_string(
+                    metadata.get("claim_statement"),
+                    field_name="metadata.claim_statement",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                conclusion_clause_ids, error_message = _validate_optional_string_list(
+                    metadata.get("conclusion_clause_ids"),
+                    field_name="metadata.conclusion_clause_ids",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                uncovered_conclusion_clause_ids, error_message = _validate_optional_string_list(
+                    observed.get("uncovered_conclusion_clause_ids"),
+                    field_name="observed.uncovered_conclusion_clause_ids",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                scope_status, error_message = _validate_optional_enum_string(
+                    observed.get("scope_status"),
+                    field_name="observed.scope_status",
+                    allowed_values=_SCOPE_STATUS_VALUES,
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                metrics.update(
+                    {
+                        "proof_claim_id": proof_claim_id,
+                        "claim_statement": claim_statement,
+                        "declared_conclusion_clause_ids": sorted(conclusion_clause_ids or []),
+                        "uncovered_conclusion_clause_ids": sorted(uncovered_conclusion_clause_ids or []),
+                        "scope_status": scope_status,
+                    }
+                )
+                evidence_directness = "direct"
+                if not claim_statement and not conclusion_clause_ids:
+                    missing_inputs.append("metadata.claim_statement")
+                if scope_status is None:
+                    missing_inputs.append("observed.scope_status")
+                if conclusion_clause_ids and uncovered_conclusion_clause_ids is None:
+                    missing_inputs.append("observed.uncovered_conclusion_clause_ids")
+                if scope_status == "matched" and not (uncovered_conclusion_clause_ids or []) and not missing_inputs:
+                    status = "pass"
+                elif (
+                    scope_status in {"narrower_than_claim", "mismatched"}
+                    or bool(uncovered_conclusion_clause_ids)
+                ) and not missing_inputs:
+                    automated_issues.append("Proof establishes a narrower claim or leaves conclusion clauses uncovered")
+                    status = "fail"
+                elif not missing_inputs and scope_status == "unclear":
+                    automated_issues.append("Proof-to-claim alignment remains unclear")
+                    status = "warning"
+
+            elif check_meta.check_key == "contract.counterexample_search":
+                counterexample_status, error_message = _validate_optional_enum_string(
+                    observed.get("counterexample_status"),
+                    field_name="observed.counterexample_status",
+                    allowed_values=_COUNTEREXAMPLE_STATUS_VALUES,
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                claim_statement, error_message = _validate_optional_string(
+                    metadata.get("claim_statement"),
+                    field_name="metadata.claim_statement",
+                )
+                if error_message is not None:
+                    return _error_result(error_message)
+                metrics["proof_claim_id"] = proof_claim_id
+                metrics["claim_statement"] = claim_statement
+                metrics["counterexample_status"] = counterexample_status
+                evidence_directness = "direct"
+                if counterexample_status is None:
+                    missing_inputs.append("observed.counterexample_status")
+                elif counterexample_status == "none_found":
+                    status = "pass"
+                elif counterexample_status in {"counterexample_found", "narrowed_claim"}:
+                    automated_issues.append("Adversarial proof review found a counterexample or narrowed claim")
+                    status = "fail"
+                else:
+                    automated_issues.append("No adversarial counterexample attempt was recorded")
+                    status = "insufficient_evidence"
+
             resolved_subject: str | None = None
             if check_meta.check_key == "contract.benchmark_reproduction":
                 resolved_subject = source_reference_id
             elif check_meta.check_key == "contract.limit_recovery":
                 resolved_subject = regime_label
+            elif check_meta.check_key in _PROOF_CHECK_KEYS:
+                resolved_subject = proof_claim_id
 
             binding_requirement_missing_inputs, binding_requirement_issue = _subject_binding_requirement(
                 check_meta.check_key,
@@ -3633,6 +4501,34 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
                     "Acceptance tests mention estimator-family assumptions",
                 )
 
+            proof_bearing_claims = _proof_claim_ids(parsed)
+            proof_test_kinds = {test.kind for test in parsed.acceptance_tests}
+            if proof_bearing_claims or "proof_hypothesis_coverage" in proof_test_kinds:
+                _add(
+                    "contract.proof_hypothesis_coverage",
+                    "Proof-bearing claims require explicit hypothesis coverage",
+                )
+            if proof_bearing_claims or "proof_parameter_coverage" in proof_test_kinds:
+                _add(
+                    "contract.proof_parameter_coverage",
+                    "Proof-bearing claims require parameter/symbol coverage",
+                )
+            if proof_bearing_claims or "proof_quantifier_domain" in proof_test_kinds:
+                _add(
+                    "contract.proof_quantifier_domain",
+                    "Proof-bearing claims require quantifier and domain fidelity checks",
+                )
+            if proof_bearing_claims or "claim_to_proof_alignment" in proof_test_kinds:
+                _add(
+                    "contract.claim_to_proof_alignment",
+                    "Proof-bearing claims require theorem-to-proof alignment checks",
+                )
+            if proof_bearing_claims or "counterexample_search" in proof_test_kinds:
+                _add(
+                    "contract.counterexample_search",
+                    "Proof-bearing claims require adversarial counterexample attempts",
+                )
+
             response = {
                 "suggested_checks": suggestions,
                 "suggested_count": len(suggestions),
@@ -3656,7 +4552,7 @@ def get_checklist(domain: str) -> dict:
     """Return the domain-specific verification checklist.
 
     Provides the complete list of checks recommended for a physics domain,
-    including which live verifier-registry checks (currently 5.1-5.19) each maps to.
+    including which live verifier-registry checks (currently 5.1-5.24) each maps to.
     """
     with gpd_span("mcp.verification.checklist", domain=domain):
         try:

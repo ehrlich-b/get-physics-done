@@ -71,10 +71,28 @@ Rules:
 ```yaml
 - id: claim-main
   statement: "[Physics statement this plan must establish]"
+  claim_kind: theorem | lemma | corollary | proposition | result | claim | other
   observables: [obs-main]
   deliverables: [deliv-main]
   acceptance_tests: [test-main]
   references: [ref-main]
+  parameters:
+    - symbol: r_0
+      domain_or_type: "nonnegative real"
+      aliases: [r0]
+      required_in_proof: true
+      notes: "Parameter that must stay visible through the proof"
+  hypotheses:
+    - id: hyp-r0
+      text: "r_0 >= 0"
+      symbols: [r_0]
+      category: assumption | precondition | regime | definition | lemma | other
+      required_in_proof: true
+  quantifiers: ["for all x > 0", "for all r_0 >= 0"]
+  conclusion_clauses:
+    - id: concl-main
+      text: "[Conclusion clause the proof must establish]"
+  proof_deliverables: [deliv-proof]
 ```
 
 Rules:
@@ -86,6 +104,10 @@ Rules:
 - `deliverables[]` may only reference declared `deliverables[].id`.
 - `acceptance_tests[]` may only reference declared `acceptance_tests[].id`.
 - `references[]` may only reference declared `references[].id`.
+- `claim_kind` is optional and defaults to `other`; set it explicitly for theorem-bearing claims.
+- For theorem/proof work, enumerate `parameters[]`, `hypotheses[]`, `quantifiers[]`, `conclusion_clauses[]`, and `proof_deliverables[]` so the proof audit can detect dropped assumptions, silently specialized parameters, and narrowed conclusions.
+- `proof_deliverables[]` may only reference declared `deliverables[].id`.
+- When a claim is theorem-bearing or references an `observables[].kind: proof_obligation`, the contract must declare at least one proof-specific acceptance test in `acceptance_tests[]`.
 
 ### `context_intake`
 
@@ -139,6 +161,7 @@ Rules:
 
 - Every observable must declare `id`, `name`, and `definition`.
 - `kind` is optional and defaults to `other`; set it when the plan knows a more specific semantic category.
+- When `kind: proof_obligation`, make `definition` name the theorem/result plus the hypotheses or parameter regime the proof must cover. Do not hide proof scope in body prose alone.
 - `regime` and `units` are optional strings; omit them instead of fabricating placeholders.
 - Claims may only reference observables that appear in `observables[]`.
 
@@ -204,7 +227,7 @@ Rules:
 ```yaml
 - id: test-main
   subject: claim-main
-  kind: existence | schema | benchmark | consistency | cross_method | limiting_case | symmetry | dimensional_analysis | convergence | oracle | proxy | reproducibility | human_review | other
+  kind: existence | schema | benchmark | consistency | cross_method | limiting_case | symmetry | dimensional_analysis | convergence | oracle | proxy | reproducibility | proof_hypothesis_coverage | proof_parameter_coverage | proof_quantifier_domain | claim_to_proof_alignment | lemma_dependency_closure | counterexample_search | human_review | other
   procedure: "[How this plan will check the claim]"
   pass_condition: "[Concrete decisive pass condition]"
   evidence_required: [deliv-main, ref-main]
@@ -217,6 +240,7 @@ Rules:
 - `subject` must reference a declared claim or deliverable ID.
 - `evidence_required[]` may only reference declared claim, deliverable, acceptance-test, or reference IDs.
 - `automation` is optional and defaults to `hybrid`, but if present it must be `automated`, `hybrid`, or `human`.
+- Use the proof-specific kinds to force explicit theorem coverage checks rather than burying them in prose. In particular, theorem-bearing claims should include at least one of `claim_to_proof_alignment`, `proof_hypothesis_coverage`, `proof_parameter_coverage`, `proof_quantifier_domain`, `lemma_dependency_closure`, or `counterexample_search`.
 
 ### `links[]`
 
@@ -224,7 +248,7 @@ Rules:
 - id: link-main
   source: claim-main
   target: deliv-main
-  relation: supports | computes | visualizes | benchmarks | depends_on | evaluated_by | other
+  relation: supports | computes | visualizes | benchmarks | depends_on | evaluated_by | proves | uses_hypothesis | depends_on_lemma | other
   verified_by: [test-main]
 ```
 

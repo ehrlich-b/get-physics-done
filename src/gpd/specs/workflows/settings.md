@@ -62,7 +62,7 @@ Parse current values (default to `true` / first option if not present):
 - `model_overrides` -- optional runtime-scoped concrete model mapping for `tier-1`, `tier-2`, `tier-3`
 - `workflow.research` -- spawn researcher during plan-phase
 - `workflow.plan_checker` -- spawn plan checker during plan-phase
-- `workflow.verifier` -- spawn verifier during execute-phase
+- `workflow.verifier` -- spawn verifier during execute-phase (this does NOT disable mandatory proof red-teaming for `proof_obligation` work)
 - `execution.review_cadence` -- execution review density: `"dense"`, `"adaptive"` (default), `"sparse"`
 - `execution.max_unattended_minutes_per_plan` -- wall-clock budget before a bounded continuation should be created
 - `execution.project_usd_budget` -- optional advisory USD budget for the whole current workspace / project
@@ -79,7 +79,7 @@ Parse current values (default to `true` / first option if not present):
 
 `git.branching_strategy` is separate from tangent handling. It controls the normal git branch naming policy for approved phase/milestone work, not whether GPD may silently create hypothesis branches.
 
-`execution.review_cadence` is independent of `model_profile` and `research_mode`: it controls bounded review stop density, not agent tiering or verification rigor.
+`execution.review_cadence` is independent of `model_profile` and `research_mode`: it controls bounded review stop density, not agent tiering or verification rigor. Sparse cadence does not waive proof red-teaming for proof-bearing work.
 
 Project conventions do **not** live in `GPD/config.json`. Do not invent or preserve a `physics` section here. Unit systems, metric signatures, Fourier conventions, and other notation choices belong in `GPD/CONVENTIONS.md` and `GPD/state.json` via `gpd convention set`.
   </step>
@@ -201,25 +201,25 @@ ask_user([
       { label: "No", description: "Skip plan verification" }
     ]
   },
-  {
-    question: "Spawn Execution Verifier? (verifies phase completion)",
-    header: "Verifier",
-    multiSelect: false,
-    options: [
-      { label: "Yes", description: "Verify contract targets after execution" },
-      { label: "No", description: "Skip post-execution verification" }
-    ]
-  },
+	{
+	    question: "Spawn Execution Verifier? (verifies phase completion)",
+	    header: "Verifier",
+	    multiSelect: false,
+	    options: [
+	      { label: "Yes", description: "Verify contract targets after execution" },
+	      { label: "No", description: "Skip only the generic post-execution verifier. Mandatory proof red-teaming for proof-bearing or `proof_obligation` work still runs." }
+	    ]
+	  },
   {
     question: "How aggressively should execution inject review gates?",
     header: "Cadence",
     multiSelect: false,
     options: [
-      { label: "Adaptive (Recommended)", description: "Inject first-result and risky-fanout gates automatically while letting clean segments continue. Independent of profile choice." },
-      { label: "Dense", description: "Frequent bounded review points for high-risk or high-touch work." },
-      { label: "Sparse", description: "Fewest review stops, but required correctness gates still run." }
-    ]
-  },
+	      { label: "Adaptive (Recommended)", description: "Inject first-result and risky-fanout gates automatically while letting clean segments continue. Independent of profile choice. Mandatory proof red-teaming still runs when proof obligations exist." },
+	      { label: "Dense", description: "Frequent bounded review points for high-risk or high-touch work." },
+	      { label: "Sparse", description: "Fewest review stops, but required correctness gates still run. Sparse mode does not waive proof red-teaming for proof-bearing work." }
+	    ]
+	  },
   {
     question: "Should planning artifacts be committed to git?",
     header: "Planning Commit Docs",

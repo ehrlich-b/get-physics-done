@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import hashlib
 from pathlib import Path
 from typing import Literal
 
@@ -11,6 +12,11 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validat
 __all__ = [
     "ConventionLock",
     "VerificationEvidence",
+    "ContractProofParameter",
+    "ContractProofHypothesis",
+    "ContractProofConclusionClause",
+    "ContractProofAudit",
+    "PROOF_ACCEPTANCE_TEST_KINDS",
     "ContractEvidenceStatus",
     "ContractEvidenceEntry",
     "ContractResultEntry",
@@ -38,6 +44,9 @@ __all__ = [
     "ResearchContract",
     "collect_plan_contract_integrity_errors",
     "contract_has_explicit_context_intake",
+    "claim_requires_proof_audit",
+    "statement_looks_theorem_like",
+    "collect_proof_audit_alignment_errors",
     "ProjectContractParseResult",
     "parse_project_contract_data_strict",
     "parse_project_contract_data_salvage",
@@ -45,6 +54,23 @@ __all__ = [
     "contract_from_data",
     "contract_from_data_salvage",
 ]
+
+
+_THEOREM_STYLE_STATEMENT_HINTS: tuple[str, ...] = (
+    "theorem",
+    "lemma",
+    "corollary",
+    "proposition",
+    "proof",
+    "prove",
+    "show that",
+    "for all",
+    "for every",
+    "exists",
+    "existence",
+    "unique",
+    "uniqueness",
+)
 
 def _normalize_optional_str(value: object) -> object:
     if isinstance(value, str):
@@ -73,6 +99,16 @@ def _normalize_required_str(value: object) -> object:
     return value
 
 
+def _normalize_optional_sha256(value: object) -> object:
+    normalized = _normalize_optional_str(value)
+    if normalized is None:
+        return None
+    lowered = str(normalized).lower()
+    if len(lowered) != 64 or any(ch not in "0123456789abcdef" for ch in lowered):
+        raise ValueError("must be a lowercase 64-hex digest")
+    return lowered
+
+
 def _normalize_string_list(value: object) -> object:
     if isinstance(value, str):
         stripped = value.strip()
@@ -93,6 +129,39 @@ def _normalize_string_list(value: object) -> object:
         seen.add(stripped)
         normalized.append(stripped)
     return normalized
+
+
+def _normalize_strict_string_list(value: object) -> object:
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("must not be blank")
+        return [stripped]
+    if not isinstance(value, list):
+        return value
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        if not isinstance(item, str):
+            normalized.append(item)
+            continue
+        stripped = item.strip()
+        if not stripped:
+            raise ValueError("must not contain blank entries")
+        if stripped in seen:
+            raise ValueError(f"duplicate entry not allowed: {stripped}")
+        seen.add(stripped)
+        normalized.append(stripped)
+    return normalized
+
+
+def statement_looks_theorem_like(statement: str | None) -> bool:
+    if not isinstance(statement, str):
+        return False
+    normalized = " ".join(statement.lower().split())
+    if not normalized:
+        return False
+    return any(hint in normalized for hint in _THEOREM_STYLE_STATEMENT_HINTS)
 
 
 PROJECT_CONTRACT_MAPPING_LIST_FIELDS: dict[str, tuple[str, ...]] = {
@@ -130,7 +199,7 @@ PROJECT_CONTRACT_TOP_LEVEL_LIST_FIELDS: tuple[str, ...] = (
     "links",
 )
 PROJECT_CONTRACT_COLLECTION_LIST_FIELDS: dict[str, tuple[str, ...]] = {
-    "claims": ("observables", "deliverables", "acceptance_tests", "references"),
+    "claims": ("observables", "deliverables", "acceptance_tests", "references", "quantifiers", "proof_deliverables"),
     "deliverables": ("must_contain",),
     "acceptance_tests": ("evidence_required",),
     "references": ("aliases", "applies_to", "carry_forward_to", "required_actions"),
@@ -195,6 +264,14 @@ _STRICT_CONTRACT_RESULTS_STRING_LIST_FIELDS: dict[str, tuple[str, ...]] = {
     "acceptance_tests": ("linked_ids",),
     "references": ("completed_actions", "missing_actions"),
 }
+_STRICT_PROOF_AUDIT_STRING_LIST_FIELDS: tuple[str, ...] = (
+    "covered_hypothesis_ids",
+    "missing_hypothesis_ids",
+    "covered_parameter_symbols",
+    "missing_parameter_symbols",
+    "uncovered_quantifiers",
+    "uncovered_conclusion_clause_ids",
+)
 
 
 def _normalize_literal_choice(value: object, choices: tuple[str, ...]) -> object:
@@ -273,6 +350,16 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
             for field_name in field_names:
                 if isinstance(entry.get(field_name), str):
                     errors.append(f"{section_name}.{entry_id}.{field_name} must be a list, not str")
+            proof_audit = entry.get("proof_audit")
+            if not isinstance(proof_audit, dict):
+                continue
+            if "completeness" not in proof_audit:
+                errors.append(
+                    f"{section_name}.{entry_id}.proof_audit.completeness must be explicit in contract-backed contract_results"
+                )
+            for field_name in _STRICT_PROOF_AUDIT_STRING_LIST_FIELDS:
+                if isinstance(proof_audit.get(field_name), str):
+                    errors.append(f"{section_name}.{entry_id}.proof_audit.{field_name} must be a list, not str")
 
     markers = value.get("uncertainty_markers")
     if isinstance(markers, dict):
@@ -338,6 +425,17 @@ class VerificationEvidence(BaseModel):
     acceptance_test_id: str | None = None
     reference_id: str | None = None
     forbidden_proxy_id: str | None = None
+    proof_claim_id: str | None = None
+    covered_hypothesis_ids: list[str] = Field(default_factory=list)
+    missing_hypothesis_ids: list[str] = Field(default_factory=list)
+    covered_parameter_symbols: list[str] = Field(default_factory=list)
+    missing_parameter_symbols: list[str] = Field(default_factory=list)
+    uncovered_conclusion_clause_ids: list[str] = Field(default_factory=list)
+    quantifier_status: Literal["matched", "narrowed", "mismatched", "unclear"] | None = None
+    counterexample_status: Literal["none_found", "counterexample_found", "not_attempted", "narrowed_claim"] | None = None
+    proof_artifact_path: str | None = None
+    proof_artifact_sha256: str | None = None
+    claim_statement_sha256: str | None = None
 
     @field_validator(
         "claim_id",
@@ -345,20 +443,271 @@ class VerificationEvidence(BaseModel):
         "acceptance_test_id",
         "reference_id",
         "forbidden_proxy_id",
+        "proof_claim_id",
         mode="before",
     )
     @classmethod
     def _normalize_optional_contract_id(cls, value: object) -> object:
         return _normalize_optional_str(value)
 
+    @field_validator(
+        "covered_hypothesis_ids",
+        "missing_hypothesis_ids",
+        "covered_parameter_symbols",
+        "missing_parameter_symbols",
+        "uncovered_conclusion_clause_ids",
+        mode="before",
+    )
+    @classmethod
+    def _normalize_optional_string_lists(cls, value: object) -> object:
+        return _normalize_string_list(value)
+
     @field_validator("confidence", mode="before")
     @classmethod
     def _normalize_confidence(cls, value: object) -> object:
         return _normalize_literal_choice(value, ("high", "medium", "low", "unreliable"))
 
+    @field_validator("quantifier_status", mode="before")
+    @classmethod
+    def _normalize_quantifier_status(cls, value: object) -> object:
+        return _normalize_literal_choice(_normalize_optional_str(value), ("matched", "narrowed", "mismatched", "unclear"))
+
+    @field_validator("counterexample_status", mode="before")
+    @classmethod
+    def _normalize_counterexample_status(cls, value: object) -> object:
+        return _normalize_literal_choice(
+            _normalize_optional_str(value),
+            ("none_found", "counterexample_found", "not_attempted", "narrowed_claim"),
+        )
+
+    @field_validator("proof_artifact_path", "proof_artifact_sha256", "claim_statement_sha256", mode="before")
+    @classmethod
+    def _normalize_optional_proof_fields(cls, value: object) -> object:
+        return _normalize_optional_str(value)
+
+
+class ContractProofParameter(BaseModel):
+    """A quantified or free parameter that a proof-bearing claim depends on."""
+
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
+
+    symbol: str
+    domain_or_type: str = ""
+    aliases: list[str] = Field(default_factory=list)
+    required_in_proof: bool = True
+    notes: str | None = None
+
+    @field_validator("symbol", mode="before")
+    @classmethod
+    def _normalize_symbol(cls, value: object) -> object:
+        return _normalize_required_str(value)
+
+    @field_validator("domain_or_type", mode="before")
+    @classmethod
+    def _normalize_domain_or_type(cls, value: object) -> object:
+        if value is None:
+            return ""
+        return _normalize_required_str(value)
+
+    @field_validator("aliases", mode="before")
+    @classmethod
+    def _normalize_aliases(cls, value: object) -> object:
+        return _normalize_string_list(value)
+
+    @field_validator("notes", mode="before")
+    @classmethod
+    def _normalize_notes(cls, value: object) -> object:
+        return _normalize_optional_str(value)
+
+
+class ContractProofHypothesis(BaseModel):
+    """A named hypothesis or regime restriction for a proof-bearing claim."""
+
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
+
+    id: str
+    text: str
+    symbols: list[str] = Field(default_factory=list)
+    category: Literal["assumption", "precondition", "regime", "definition", "lemma", "other"] = "assumption"
+    required_in_proof: bool = True
+
+    @field_validator("id", "text", mode="before")
+    @classmethod
+    def _normalize_required_fields(cls, value: object) -> object:
+        return _normalize_required_str(value)
+
+    @field_validator("symbols", mode="before")
+    @classmethod
+    def _normalize_symbols(cls, value: object) -> object:
+        return _normalize_string_list(value)
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def _normalize_category(cls, value: object) -> object:
+        return _normalize_literal_choice(
+            _normalize_required_str(value),
+            ("assumption", "precondition", "regime", "definition", "lemma", "other"),
+        )
+
+
+class ContractProofConclusionClause(BaseModel):
+    """One conclusion clause that the proof must establish."""
+
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
+
+    id: str
+    text: str
+
+    @field_validator("id", "text", mode="before")
+    @classmethod
+    def _normalize_required_fields(cls, value: object) -> object:
+        return _normalize_required_str(value)
+
+
+class ContractProofAudit(BaseModel):
+    """Machine-readable proof-obligation audit for theorem-bearing claims."""
+
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
+
+    completeness: Literal["complete", "incomplete"] = "incomplete"
+    reviewed_at: str | None = None
+    reviewer: str | None = None
+    summary: str | None = None
+    proof_artifact_path: str | None = None
+    proof_artifact_sha256: str | None = None
+    audit_artifact_path: str | None = None
+    audit_artifact_sha256: str | None = None
+    claim_statement_sha256: str | None = None
+    covered_hypothesis_ids: list[str] = Field(default_factory=list)
+    missing_hypothesis_ids: list[str] = Field(default_factory=list)
+    covered_parameter_symbols: list[str] = Field(default_factory=list)
+    missing_parameter_symbols: list[str] = Field(default_factory=list)
+    uncovered_quantifiers: list[str] = Field(default_factory=list)
+    uncovered_conclusion_clause_ids: list[str] = Field(default_factory=list)
+    quantifier_status: Literal["matched", "narrowed", "mismatched", "unclear"] = "unclear"
+    scope_status: Literal["matched", "narrower_than_claim", "mismatched", "unclear"] = "unclear"
+    counterexample_status: Literal["none_found", "counterexample_found", "not_attempted", "narrowed_claim"] = "not_attempted"
+    stale: bool = False
+
+    @field_validator(
+        "reviewed_at",
+        "reviewer",
+        "summary",
+        "proof_artifact_path",
+        "audit_artifact_path",
+        mode="before",
+    )
+    @classmethod
+    def _normalize_optional_fields(cls, value: object) -> object:
+        return _normalize_optional_str(value)
+
+    @field_validator(
+        "proof_artifact_sha256",
+        "audit_artifact_sha256",
+        "claim_statement_sha256",
+        mode="before",
+    )
+    @classmethod
+    def _normalize_sha256_fields(cls, value: object) -> object:
+        return _normalize_optional_sha256(value)
+
+    @field_validator(
+        "covered_hypothesis_ids",
+        "missing_hypothesis_ids",
+        "covered_parameter_symbols",
+        "missing_parameter_symbols",
+        "uncovered_quantifiers",
+        "uncovered_conclusion_clause_ids",
+        mode="before",
+    )
+    @classmethod
+    def _normalize_list_fields(cls, value: object) -> object:
+        return _normalize_strict_string_list(value)
+
+    @field_validator("completeness", mode="before")
+    @classmethod
+    def _normalize_completeness(cls, value: object) -> object:
+        return _normalize_literal_choice(_normalize_required_str(value), ("complete", "incomplete"))
+
+    @field_validator("quantifier_status", mode="before")
+    @classmethod
+    def _normalize_quantifier_status(cls, value: object) -> object:
+        return _normalize_literal_choice(_normalize_required_str(value), ("matched", "narrowed", "mismatched", "unclear"))
+
+    @field_validator("scope_status", mode="before")
+    @classmethod
+    def _normalize_scope_status(cls, value: object) -> object:
+        return _normalize_literal_choice(
+            _normalize_required_str(value),
+            ("matched", "narrower_than_claim", "mismatched", "unclear"),
+        )
+
+    @field_validator("counterexample_status", mode="before")
+    @classmethod
+    def _normalize_counterexample_status(cls, value: object) -> object:
+        return _normalize_literal_choice(
+            _normalize_required_str(value),
+            ("none_found", "counterexample_found", "not_attempted", "narrowed_claim"),
+        )
+
+    @field_validator("reviewer")
+    @classmethod
+    def _validate_reviewer(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if value != "gpd-check-proof":
+            raise ValueError("reviewer must be gpd-check-proof")
+        return value
+
+    @model_validator(mode="after")
+    def _validate_complete_audit(self) -> ContractProofAudit:
+        if self.completeness != "complete":
+            return self
+
+        if not self.reviewed_at:
+            raise ValueError("completeness=complete requires reviewed_at")
+        if self.reviewer != "gpd-check-proof":
+            raise ValueError("completeness=complete requires reviewer=gpd-check-proof")
+        if not self.proof_artifact_path:
+            raise ValueError("completeness=complete requires proof_artifact_path")
+        if not self.proof_artifact_sha256:
+            raise ValueError("completeness=complete requires proof_artifact_sha256")
+        if not self.audit_artifact_path:
+            raise ValueError("completeness=complete requires audit_artifact_path")
+        if not self.audit_artifact_sha256:
+            raise ValueError("completeness=complete requires audit_artifact_sha256")
+        if not self.claim_statement_sha256:
+            raise ValueError("completeness=complete requires claim_statement_sha256")
+        if self.stale:
+            raise ValueError("completeness=complete requires stale=false")
+        if self.missing_hypothesis_ids:
+            raise ValueError("completeness=complete requires missing_hypothesis_ids to be empty")
+        if self.missing_parameter_symbols:
+            raise ValueError("completeness=complete requires missing_parameter_symbols to be empty")
+        if self.uncovered_quantifiers:
+            raise ValueError("completeness=complete requires uncovered_quantifiers to be empty")
+        if self.uncovered_conclusion_clause_ids:
+            raise ValueError("completeness=complete requires uncovered_conclusion_clause_ids to be empty")
+        if self.quantifier_status == "mismatched":
+            raise ValueError("completeness=complete is incompatible with quantifier_status=mismatched")
+        if self.scope_status != "matched":
+            raise ValueError("completeness=complete requires scope_status=matched")
+        if self.counterexample_status != "none_found":
+            raise ValueError("completeness=complete requires counterexample_status=none_found")
+        return self
+
 
 ContractEvidenceStatus = Literal["passed", "partial", "failed", "blocked", "not_attempted"]
 ContractReferenceAction = Literal["read", "use", "compare", "cite", "avoid"]
+PROOF_ACCEPTANCE_TEST_KINDS: tuple[str, ...] = (
+    "proof_hypothesis_coverage",
+    "proof_parameter_coverage",
+    "proof_quantifier_domain",
+    "claim_to_proof_alignment",
+    "lemma_dependency_closure",
+    "counterexample_search",
+)
+_THEOREM_CLAIM_KINDS: tuple[str, ...] = ("theorem", "lemma", "corollary", "proposition", "claim")
 
 
 class ContractEvidenceEntry(BaseModel):
@@ -377,6 +726,7 @@ class ContractResultEntry(ContractEvidenceEntry):
     status: ContractEvidenceStatus = "not_attempted"
     linked_ids: list[str] = Field(default_factory=list)
     path: str | None = None
+    proof_audit: ContractProofAudit | None = None
 
     @field_validator("linked_ids", mode="before")
     @classmethod
@@ -687,20 +1037,42 @@ class ContractClaim(BaseModel):
 
     id: str
     statement: str
+    claim_kind: Literal["theorem", "lemma", "corollary", "proposition", "result", "claim", "other"] = "other"
     observables: list[str] = Field(default_factory=list)
     deliverables: list[str] = Field(default_factory=list)
     acceptance_tests: list[str] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)
+    parameters: list[ContractProofParameter] = Field(default_factory=list)
+    hypotheses: list[ContractProofHypothesis] = Field(default_factory=list)
+    quantifiers: list[str] = Field(default_factory=list)
+    conclusion_clauses: list[ContractProofConclusionClause] = Field(default_factory=list)
+    proof_deliverables: list[str] = Field(default_factory=list)
 
     @field_validator("id", "statement", mode="before")
     @classmethod
     def _normalize_required_fields(cls, value: object) -> object:
         return _normalize_required_str(value)
 
-    @field_validator("observables", "deliverables", "acceptance_tests", "references", mode="before")
+    @field_validator(
+        "observables",
+        "deliverables",
+        "acceptance_tests",
+        "references",
+        "quantifiers",
+        "proof_deliverables",
+        mode="before",
+    )
     @classmethod
     def _normalize_id_lists(cls, value: object) -> object:
         return _normalize_string_list(value)
+
+    @field_validator("claim_kind", mode="before")
+    @classmethod
+    def _normalize_claim_kind(cls, value: object) -> object:
+        return _normalize_literal_choice(
+            _normalize_required_str(value),
+            ("theorem", "lemma", "corollary", "proposition", "result", "claim", "other"),
+        )
 
 
 class ContractDeliverable(BaseModel):
@@ -758,6 +1130,12 @@ class ContractAcceptanceTest(BaseModel):
         "oracle",
         "proxy",
         "reproducibility",
+        "proof_hypothesis_coverage",
+        "proof_parameter_coverage",
+        "proof_quantifier_domain",
+        "claim_to_proof_alignment",
+        "lemma_dependency_closure",
+        "counterexample_search",
         "human_review",
         "other",
     ] = "other"
@@ -789,6 +1167,12 @@ class ContractAcceptanceTest(BaseModel):
                 "oracle",
                 "proxy",
                 "reproducibility",
+                "proof_hypothesis_coverage",
+                "proof_parameter_coverage",
+                "proof_quantifier_domain",
+                "claim_to_proof_alignment",
+                "lemma_dependency_closure",
+                "counterexample_search",
                 "human_review",
                 "other",
             ),
@@ -875,7 +1259,18 @@ class ContractLink(BaseModel):
     id: str
     source: str
     target: str
-    relation: Literal["supports", "computes", "visualizes", "benchmarks", "depends_on", "evaluated_by", "other"] = "other"
+    relation: Literal[
+        "supports",
+        "computes",
+        "visualizes",
+        "benchmarks",
+        "depends_on",
+        "evaluated_by",
+        "proves",
+        "uses_hypothesis",
+        "depends_on_lemma",
+        "other",
+    ] = "other"
     verified_by: list[str] = Field(default_factory=list)
 
     @field_validator("id", "source", "target", mode="before")
@@ -888,7 +1283,18 @@ class ContractLink(BaseModel):
     def _normalize_relation(cls, value: object) -> object:
         return _normalize_literal_choice(
             _normalize_required_str(value),
-            ("supports", "computes", "visualizes", "benchmarks", "depends_on", "evaluated_by", "other"),
+            (
+                "supports",
+                "computes",
+                "visualizes",
+                "benchmarks",
+                "depends_on",
+                "evaluated_by",
+                "proves",
+                "uses_hypothesis",
+                "depends_on_lemma",
+                "other",
+            ),
         )
 
     @field_validator("verified_by", mode="before")
@@ -955,6 +1361,105 @@ def _contract_ids_by_kind(contract: ResearchContract) -> dict[str, set[str]]:
         kind: {item.id for item in getattr(contract, field_name)}
         for kind, field_name in _CONTRACT_ID_GROUPS
     }
+
+
+def claim_requires_proof_audit(claim: ContractClaim, observable_kind_by_id: dict[str, str]) -> bool:
+    return (
+        claim.claim_kind in _THEOREM_CLAIM_KINDS
+        or statement_looks_theorem_like(claim.statement)
+        or bool(claim.parameters)
+        or bool(claim.hypotheses)
+        or bool(claim.quantifiers)
+        or bool(claim.conclusion_clauses)
+        or bool(claim.proof_deliverables)
+        or any(observable_kind_by_id.get(observable_id) == "proof_obligation" for observable_id in claim.observables)
+    )
+
+
+def collect_proof_audit_alignment_errors(
+    claim: ContractClaim,
+    audit: ContractProofAudit,
+    *,
+    deliverable_path_by_id: dict[str, str | None] | None = None,
+) -> list[str]:
+    """Return proof-audit mismatches against the declared theorem/proof contract."""
+
+    errors: list[str] = []
+
+    hypothesis_ids = {hypothesis.id for hypothesis in claim.hypotheses}
+    parameter_symbols = {parameter.symbol for parameter in claim.parameters}
+    conclusion_clause_ids = {clause.id for clause in claim.conclusion_clauses}
+    required_hypothesis_ids = {hypothesis.id for hypothesis in claim.hypotheses if hypothesis.required_in_proof}
+    required_parameter_symbols = {parameter.symbol for parameter in claim.parameters if parameter.required_in_proof}
+
+    unknown_hypothesis_ids = set(audit.covered_hypothesis_ids).union(audit.missing_hypothesis_ids) - hypothesis_ids
+    if unknown_hypothesis_ids:
+        errors.append(
+            f"claim {claim.id} proof_audit references unknown hypothesis ids: {', '.join(sorted(unknown_hypothesis_ids))}"
+        )
+
+    unknown_parameter_symbols = (
+        set(audit.covered_parameter_symbols).union(audit.missing_parameter_symbols) - parameter_symbols
+    )
+    if unknown_parameter_symbols:
+        errors.append(
+            "claim "
+            f"{claim.id} proof_audit references unknown parameter symbols: {', '.join(sorted(unknown_parameter_symbols))}"
+        )
+
+    unknown_conclusion_clause_ids = set(audit.uncovered_conclusion_clause_ids) - conclusion_clause_ids
+    if unknown_conclusion_clause_ids:
+        errors.append(
+            "claim "
+            f"{claim.id} proof_audit references unknown conclusion clause ids: {', '.join(sorted(unknown_conclusion_clause_ids))}"
+        )
+
+    missing_required_hypothesis_ids = required_hypothesis_ids - set(audit.covered_hypothesis_ids)
+    if missing_required_hypothesis_ids:
+        errors.append(
+            "claim "
+            f"{claim.id} proof_audit does not cover required hypothesis ids: {', '.join(sorted(missing_required_hypothesis_ids))}"
+        )
+
+    missing_required_parameter_symbols = required_parameter_symbols - set(audit.covered_parameter_symbols)
+    if missing_required_parameter_symbols:
+        errors.append(
+            "claim "
+            f"{claim.id} proof_audit does not cover required parameter symbols: {', '.join(sorted(missing_required_parameter_symbols))}"
+        )
+
+    if set(audit.missing_hypothesis_ids).intersection(required_hypothesis_ids):
+        errors.append(f"claim {claim.id} proof_audit leaves required hypotheses marked missing")
+    if set(audit.missing_parameter_symbols).intersection(required_parameter_symbols):
+        errors.append(f"claim {claim.id} proof_audit leaves required parameter symbols marked missing")
+    if claim.quantifiers and audit.quantifier_status == "unclear":
+        errors.append(f"claim {claim.id} proof_audit quantifier_status must be explicit for quantified claims")
+
+    if audit.claim_statement_sha256:
+        statement_sha256 = hashlib.sha256(claim.statement.encode("utf-8")).hexdigest()
+        if audit.claim_statement_sha256 != statement_sha256:
+            errors.append(f"claim {claim.id} proof_audit.claim_statement_sha256 does not match the current claim statement")
+
+    if audit.reviewer and audit.reviewer != "gpd-check-proof":
+        errors.append(f"claim {claim.id} proof_audit.reviewer must be gpd-check-proof")
+
+    if deliverable_path_by_id:
+        allowed_paths = {
+            path
+            for deliverable_id in claim.proof_deliverables
+            if (path := deliverable_path_by_id.get(deliverable_id))
+        }
+        if audit.proof_artifact_path and allowed_paths and audit.proof_artifact_path not in allowed_paths:
+            errors.append(
+                f"claim {claim.id} proof_audit.proof_artifact_path must match a declared proof_deliverables path"
+            )
+
+    if audit.audit_artifact_path and "proof-redteam" not in Path(audit.audit_artifact_path).name.lower():
+        errors.append(
+            f"claim {claim.id} proof_audit.audit_artifact_path must point to a proof-redteam artifact"
+        )
+
+    return errors
 
 
 def collect_contract_integrity_errors(contract: ResearchContract) -> list[str]:
@@ -1097,9 +1602,11 @@ def collect_plan_contract_integrity_errors(contract: ResearchContract) -> list[s
         issues.append("scoping contracts must preserve at least one target, open question, or carry-forward input")
 
     observable_ids = {observable.id for observable in contract.observables}
+    observable_kind_by_id = {observable.id: observable.kind for observable in contract.observables}
     claim_ids = {claim.id for claim in contract.claims}
     deliverable_ids = {deliverable.id for deliverable in contract.deliverables}
     acceptance_test_ids = {test.id for test in contract.acceptance_tests}
+    acceptance_test_kind_by_id = {test.id: test.kind for test in contract.acceptance_tests}
     reference_ids = {reference.id for reference in contract.references}
     known_ids = claim_ids | deliverable_ids | acceptance_test_ids | reference_ids
 
@@ -1126,6 +1633,33 @@ def collect_plan_contract_integrity_errors(contract: ResearchContract) -> list[s
         for reference_id in claim.references:
             if reference_id not in reference_ids:
                 issues.append(f"claim {claim.id} references unknown reference {reference_id}")
+        for proof_deliverable_id in claim.proof_deliverables:
+            if proof_deliverable_id not in deliverable_ids:
+                issues.append(f"claim {claim.id} references unknown proof deliverable {proof_deliverable_id}")
+
+        if len({parameter.symbol for parameter in claim.parameters}) != len(claim.parameters):
+            issues.append(f"claim {claim.id} has duplicate proof parameter symbols")
+        if len({hypothesis.id for hypothesis in claim.hypotheses}) != len(claim.hypotheses):
+            issues.append(f"claim {claim.id} has duplicate proof hypothesis ids")
+        if len({clause.id for clause in claim.conclusion_clauses}) != len(claim.conclusion_clauses):
+            issues.append(f"claim {claim.id} has duplicate conclusion clause ids")
+
+        if claim_requires_proof_audit(claim, observable_kind_by_id):
+            if claim.claim_kind == "other":
+                issues.append(f"claim {claim.id} missing claim_kind for proof-bearing claim")
+            if not claim.proof_deliverables:
+                issues.append(f"claim {claim.id} missing proof_deliverables")
+            if not claim.parameters:
+                issues.append(f"claim {claim.id} missing parameters for proof-bearing claim")
+            if not claim.hypotheses:
+                issues.append(f"claim {claim.id} missing hypotheses for proof-bearing claim")
+            if not claim.conclusion_clauses:
+                issues.append(f"claim {claim.id} missing conclusion_clauses for proof-bearing claim")
+            if not any(
+                acceptance_test_kind_by_id.get(test_id) in PROOF_ACCEPTANCE_TEST_KINDS
+                for test_id in claim.acceptance_tests
+            ):
+                issues.append(f"claim {claim.id} missing proof-specific acceptance_tests")
 
     for test in contract.acceptance_tests:
         if test.subject not in claim_ids and test.subject not in deliverable_ids:

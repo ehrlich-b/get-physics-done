@@ -324,7 +324,10 @@ class TestInstall:
             '{\n  // keep user settings\n  "theme": "solarized",\n}\n',
             encoding="utf-8",
         )
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         result = adapter.install(gpd_root, target)
         adapter.finish_install(
@@ -363,7 +366,10 @@ class TestInstall:
             ),
             encoding="utf-8",
         )
+        monkeypatch.delenv("GPD_PYTHON", raising=False)
+        monkeypatch.setenv("GPD_HOME", str(tmp_path / "managed-home"))
         monkeypatch.setattr("gpd.adapters.install_utils.sys.executable", "/custom/venv/bin/python")
+        monkeypatch.setattr("gpd.version.checkout_root", lambda start=None: None)
 
         result = adapter.install(gpd_root, target)
         adapter.finish_install(

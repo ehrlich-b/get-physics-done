@@ -1,0 +1,727 @@
+"""Proof-review freshness helpers for phase verification and manuscript math review."""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
+
+from pydantic import ValidationError as PydanticValidationError
+
+from gpd.core.referee_policy import validate_stage_review_artifact_alignment
+from gpd.core.frontmatter import FrontmatterParseError, extract_frontmatter
+from gpd.core.manuscript_artifacts import resolve_current_manuscript_entrypoint
+from gpd.core.reproducibility import compute_sha256
+from gpd.mcp.paper.review_artifacts import read_claim_index, read_stage_review_report
+
+__all__ = [
+    "MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME",
+    "ProofReviewStatus",
+    "manuscript_proof_review_manifest_path",
+    "phase_proof_review_manifest_path",
+    "resolve_manuscript_proof_review_status",
+    "resolve_phase_proof_review_status",
+]
+
+MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME = "PROOF-REVIEW-MANIFEST.json"
+_PHASE_PROOF_REVIEW_MANIFEST_SUFFIX = "-PROOF-REVIEW-MANIFEST.json"
+_PHASE_PROOF_AFFECTING_EXTENSIONS = frozenset(
+    {
+        ".md",
+        ".tex",
+        ".txt",
+        ".py",
+        ".ipynb",
+        ".jl",
+        ".f90",
+        ".m",
+        ".wl",
+        ".wls",
+        ".nb",
+        ".yaml",
+        ".yml",
+        ".bib",
+    }
+)
+_MANUSCRIPT_PROOF_AFFECTING_EXTENSIONS = frozenset(
+    {
+        ".tex",
+        ".md",
+        ".bib",
+        ".bst",
+        ".sty",
+        ".cls",
+        ".txt",
+    }
+)
+
+
+@dataclass(frozen=True, slots=True)
+class _MathReviewAnchor:
+    stage_artifact: Path
+    claim_index_artifact: Path
+    round_number: int
+    round_suffix: str
+    proof_bearing: bool
+    theorem_claim_ids: tuple[str, ...]
+    proof_artifact_paths: tuple[str, ...]
+    validation_errors: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ProofReviewStatus:
+    """Freshness status for prior proof review over a file set."""
+
+    scope: str
+    state: str
+    can_rely_on_prior_review: bool
+    detail: str
+    manifest_path: Path | None = None
+    anchor_artifact: Path | None = None
+    watched_files: tuple[Path, ...] = ()
+    changed_files: tuple[Path, ...] = ()
+    manifest_bootstrapped: bool = False
+
+    def to_context_dict(self, project_root: Path) -> dict[str, object]:
+        return {
+            "scope": self.scope,
+            "state": self.state,
+            "can_rely_on_prior_review": self.can_rely_on_prior_review,
+            "detail": self.detail,
+            "manifest_path": _relative_path(project_root, self.manifest_path),
+            "anchor_artifact": _relative_path(project_root, self.anchor_artifact),
+            "watched_files": [_relative_path(project_root, path) for path in self.watched_files],
+            "watched_file_count": len(self.watched_files),
+            "changed_files": [_relative_path(project_root, path) for path in self.changed_files],
+            "changed_file_count": len(self.changed_files),
+            "manifest_bootstrapped": self.manifest_bootstrapped,
+        }
+
+
+def phase_proof_review_manifest_path(verification_path: Path) -> Path:
+    """Return the canonical proof-review manifest path for a phase verification artifact."""
+
+    if verification_path.name.endswith("-VERIFICATION.md"):
+        stem = verification_path.name[: -len("-VERIFICATION.md")]
+        return verification_path.with_name(f"{stem}{_PHASE_PROOF_REVIEW_MANIFEST_SUFFIX}")
+    return verification_path.with_name(MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME)
+
+
+def manuscript_proof_review_manifest_path(manuscript_entrypoint: Path) -> Path:
+    """Return the manuscript-local proof-review manifest path."""
+
+    return manuscript_entrypoint.parent / MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME
+
+
+def resolve_phase_proof_review_status(
+    project_root: Path,
+    phase_dir: Path | None,
+    *,
+    persist_manifest: bool = False,
+) -> ProofReviewStatus:
+    """Resolve freshness for a phase-scoped proof review."""
+
+    if phase_dir is None or not phase_dir.exists():
+        return ProofReviewStatus(
+            scope="phase",
+            state="not_reviewed",
+            can_rely_on_prior_review=False,
+            detail="phase directory not found; no prior proof review artifact is available",
+        )
+
+    verification_path = _latest_phase_verification_artifact(phase_dir)
+    if verification_path is None:
+        return ProofReviewStatus(
+            scope="phase",
+            state="not_reviewed",
+            can_rely_on_prior_review=False,
+            detail="no prior phase verification artifact is available to anchor proof review freshness",
+        )
+
+    manifest_path = phase_proof_review_manifest_path(verification_path)
+    watched_files = _collect_phase_watched_files(phase_dir, verification_path, manifest_path)
+    return _resolve_status(
+        project_root,
+        scope="phase",
+        anchor_artifact=verification_path,
+        manifest_path=manifest_path,
+        watched_files=watched_files,
+        persist_manifest=persist_manifest,
+    )
+
+
+def resolve_manuscript_proof_review_status(
+    project_root: Path,
+    manuscript_entrypoint: Path | None = None,
+    *,
+    persist_manifest: bool = False,
+) -> ProofReviewStatus:
+    """Resolve freshness for manuscript-scoped proof review."""
+
+    entrypoint = manuscript_entrypoint or resolve_current_manuscript_entrypoint(project_root, allow_markdown=True)
+    if entrypoint is None:
+        return ProofReviewStatus(
+            scope="manuscript",
+            state="not_reviewed",
+            can_rely_on_prior_review=False,
+            detail="no manuscript entrypoint is available to anchor proof review freshness",
+        )
+
+    review_anchor = _latest_matching_math_review_anchor(project_root, entrypoint)
+    actual_manuscript_sha256 = compute_sha256(entrypoint)
+    watched_files = _collect_manuscript_watched_files(entrypoint.parent)
+    manifest_path = manuscript_proof_review_manifest_path(entrypoint)
+    if review_anchor is None:
+        return ProofReviewStatus(
+            scope="manuscript",
+            state="not_reviewed",
+            can_rely_on_prior_review=False,
+            detail="no prior staged math review artifact matches the active manuscript",
+            manifest_path=manifest_path,
+            watched_files=watched_files,
+        )
+    if review_anchor.validation_errors:
+        return ProofReviewStatus(
+            scope="manuscript",
+            state="invalid_required_artifact",
+            can_rely_on_prior_review=False,
+            detail=(
+                f"{_relative_path(project_root, review_anchor.stage_artifact)} is not a valid proof-review anchor: "
+                + "; ".join(review_anchor.validation_errors[:3])
+            ),
+            manifest_path=manifest_path,
+            anchor_artifact=review_anchor.stage_artifact,
+            watched_files=_with_extra_watched_files(
+                watched_files,
+                review_anchor.stage_artifact,
+                review_anchor.claim_index_artifact,
+            ),
+        )
+
+    anchor_artifact = review_anchor.stage_artifact
+    watched_files = _with_extra_watched_files(
+        watched_files,
+        review_anchor.stage_artifact,
+        review_anchor.claim_index_artifact,
+    )
+    if review_anchor.proof_bearing:
+        proof_redteam_path = project_root / "GPD" / "review" / f"PROOF-REDTEAM{review_anchor.round_suffix}.md"
+        watched_files = _with_extra_watched_files(watched_files, proof_redteam_path)
+        if not proof_redteam_path.exists():
+            return ProofReviewStatus(
+                scope="manuscript",
+                state="missing_required_artifact",
+                can_rely_on_prior_review=False,
+                detail=(
+                    "proof-bearing manuscript review requires "
+                    f"{_relative_path(project_root, proof_redteam_path)} to exist with `status: passed`"
+                ),
+                manifest_path=manifest_path,
+                anchor_artifact=proof_redteam_path,
+                watched_files=watched_files,
+            )
+        proof_redteam_status, proof_redteam_error = _read_proof_redteam_status(
+            proof_redteam_path,
+            project_root=project_root,
+            expected_manuscript_path=_relative_path(project_root, entrypoint),
+            expected_manuscript_sha256=actual_manuscript_sha256,
+            expected_round=review_anchor.round_number,
+            expected_claim_ids=review_anchor.theorem_claim_ids,
+            expected_proof_artifact_paths=review_anchor.proof_artifact_paths,
+        )
+        if proof_redteam_error is not None:
+            return ProofReviewStatus(
+                scope="manuscript",
+                state="invalid_required_artifact",
+                can_rely_on_prior_review=False,
+                detail=f"{_relative_path(project_root, proof_redteam_path)} is invalid: {proof_redteam_error}",
+                manifest_path=manifest_path,
+                anchor_artifact=proof_redteam_path,
+                watched_files=watched_files,
+            )
+        if proof_redteam_status != "passed":
+            return ProofReviewStatus(
+                scope="manuscript",
+                state="open_required_artifact",
+                can_rely_on_prior_review=False,
+                detail=(
+                    f"{_relative_path(project_root, proof_redteam_path)} reports status `{proof_redteam_status}`; "
+                    "proof-bearing manuscript review requires `status: passed`"
+                ),
+                manifest_path=manifest_path,
+                anchor_artifact=proof_redteam_path,
+                watched_files=watched_files,
+            )
+        anchor_artifact = proof_redteam_path
+
+    return _resolve_status(
+        project_root,
+        scope="manuscript",
+        anchor_artifact=anchor_artifact,
+        manifest_path=manifest_path,
+        watched_files=watched_files,
+        persist_manifest=persist_manifest,
+    )
+
+
+def _resolve_status(
+    project_root: Path,
+    *,
+    scope: str,
+    anchor_artifact: Path,
+    manifest_path: Path,
+    watched_files: tuple[Path, ...],
+    persist_manifest: bool,
+) -> ProofReviewStatus:
+    current_hashes = {_relative_path(project_root, path): compute_sha256(path) for path in watched_files}
+
+    if manifest_path.exists():
+        try:
+            manifest_payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest_records = _manifest_records(manifest_payload, scope=scope)
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            return ProofReviewStatus(
+                scope=scope,
+                state="invalid_manifest",
+                can_rely_on_prior_review=False,
+                detail=f"proof-review manifest is invalid: {exc}",
+                manifest_path=manifest_path,
+                anchor_artifact=anchor_artifact,
+                watched_files=watched_files,
+            )
+
+        expected_hashes = manifest_records["hashes"]
+        changed_labels = sorted(
+            path for path in expected_hashes.keys() & current_hashes.keys() if expected_hashes[path] != current_hashes[path]
+        )
+        missing_labels = sorted(path for path in expected_hashes.keys() - current_hashes.keys())
+        unexpected_labels = sorted(path for path in current_hashes.keys() - expected_hashes.keys())
+        changed_files = tuple(project_root / path for path in [*changed_labels, *missing_labels, *unexpected_labels])
+
+        if changed_files:
+            return ProofReviewStatus(
+                scope=scope,
+                state="stale",
+                can_rely_on_prior_review=False,
+                detail=(
+                    f"proof-review manifest is stale: {', '.join([*changed_labels, *missing_labels, *unexpected_labels][:3])}"
+                ),
+                manifest_path=manifest_path,
+                anchor_artifact=anchor_artifact,
+                watched_files=watched_files,
+                changed_files=changed_files,
+            )
+
+        return ProofReviewStatus(
+            scope=scope,
+            state="fresh",
+            can_rely_on_prior_review=True,
+            detail=(
+                f"{_relative_path(project_root, manifest_path)} matches {len(watched_files)} proof-affecting file(s)"
+            ),
+            manifest_path=manifest_path,
+            anchor_artifact=anchor_artifact,
+            watched_files=watched_files,
+        )
+
+    anchor_mtime = anchor_artifact.stat().st_mtime_ns
+    changed_files = tuple(path for path in watched_files if path.stat().st_mtime_ns > anchor_mtime)
+    if changed_files:
+        return ProofReviewStatus(
+            scope=scope,
+            state="stale",
+            can_rely_on_prior_review=False,
+            detail=(
+                f"{len(changed_files)} proof-affecting file(s) changed after {_relative_path(project_root, anchor_artifact)}: "
+                + ", ".join(_relative_path(project_root, path) for path in changed_files[:3])
+            ),
+            manifest_path=manifest_path,
+            anchor_artifact=anchor_artifact,
+            watched_files=watched_files,
+            changed_files=changed_files,
+        )
+
+    manifest_bootstrapped = False
+    if persist_manifest:
+        _write_manifest(
+            manifest_path,
+            scope=scope,
+            anchor_artifact=anchor_artifact,
+            watched_files=current_hashes,
+        )
+        manifest_bootstrapped = True
+
+    detail = (
+        f"{_relative_path(project_root, manifest_path)} bootstrapped from {_relative_path(project_root, anchor_artifact)}"
+        if manifest_bootstrapped
+        else (
+            f"no proof-review manifest yet, but {len(watched_files)} proof-affecting file(s) are not newer than "
+            f"{_relative_path(project_root, anchor_artifact)}"
+        )
+    )
+    return ProofReviewStatus(
+        scope=scope,
+        state="fresh",
+        can_rely_on_prior_review=True,
+        detail=detail,
+        manifest_path=manifest_path,
+        anchor_artifact=anchor_artifact,
+        watched_files=watched_files,
+        manifest_bootstrapped=manifest_bootstrapped,
+    )
+
+
+def _write_manifest(
+    manifest_path: Path,
+    *,
+    scope: str,
+    anchor_artifact: Path,
+    watched_files: dict[str, str],
+) -> None:
+    manifest_payload = {
+        "version": 1,
+        "scope": scope,
+        "created_at": datetime.now(UTC).isoformat(),
+        "anchor_artifact": anchor_artifact.as_posix(),
+        "watched_files": [{"path": path, "sha256": sha256} for path, sha256 in sorted(watched_files.items())],
+    }
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest_payload, indent=2) + "\n", encoding="utf-8")
+
+
+def _manifest_records(payload: object, *, scope: str) -> dict[str, dict[str, str]]:
+    if not isinstance(payload, dict):
+        raise ValueError("manifest payload must be a JSON object")
+    if payload.get("version") != 1:
+        raise ValueError("manifest version must be 1")
+    if payload.get("scope") != scope:
+        raise ValueError(f'manifest scope must be "{scope}"')
+    watched_files = payload.get("watched_files")
+    if not isinstance(watched_files, list):
+        raise ValueError("manifest watched_files must be a list")
+
+    hashes: dict[str, str] = {}
+    for record in watched_files:
+        if not isinstance(record, dict):
+            raise ValueError("manifest watched_files entries must be objects")
+        rel_path = str(record.get("path") or "").strip()
+        sha256 = str(record.get("sha256") or "").strip().lower()
+        if not rel_path:
+            raise ValueError("manifest watched_files entries must include a non-empty path")
+        if len(sha256) != 64:
+            raise ValueError(f"manifest watched_files entry for {rel_path} is missing a valid sha256")
+        hashes[rel_path] = sha256
+    return {"hashes": hashes}
+
+
+def _latest_phase_verification_artifact(phase_dir: Path) -> Path | None:
+    candidates = sorted(path for path in phase_dir.glob("*VERIFICATION.md") if path.is_file())
+    if not candidates:
+        return None
+    return max(candidates, key=lambda path: (path.stat().st_mtime_ns, path.name))
+
+
+def _collect_phase_watched_files(phase_dir: Path, verification_path: Path, manifest_path: Path) -> tuple[Path, ...]:
+    files: list[Path] = []
+    for path in sorted(phase_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        if path == verification_path or path == manifest_path:
+            continue
+        if path.name.startswith("."):
+            continue
+        if path.name.endswith("-VERIFICATION.md") or path.name.endswith("-VALIDATION.md"):
+            continue
+        if path.suffix.lower() not in _PHASE_PROOF_AFFECTING_EXTENSIONS:
+            continue
+        files.append(path)
+    return tuple(files)
+
+
+def _collect_manuscript_watched_files(manuscript_root: Path) -> tuple[Path, ...]:
+    files: list[Path] = []
+    for path in sorted(manuscript_root.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.name == MANUSCRIPT_PROOF_REVIEW_MANIFEST_NAME or path.name.startswith("."):
+            continue
+        if path.suffix.lower() not in _MANUSCRIPT_PROOF_AFFECTING_EXTENSIONS:
+            continue
+        files.append(path)
+    return tuple(files)
+
+
+def _with_extra_watched_files(*groups: tuple[Path, ...] | Path) -> tuple[Path, ...]:
+    seen: set[Path] = set()
+    ordered: list[Path] = []
+    for group in groups:
+        if isinstance(group, Path):
+            candidates = (group,)
+        else:
+            candidates = group
+        for path in candidates:
+            if not path.is_file() or path in seen:
+                continue
+            seen.add(path)
+            ordered.append(path)
+    return tuple(ordered)
+
+
+def _latest_matching_math_review_anchor(project_root: Path, manuscript_entrypoint: Path) -> _MathReviewAnchor | None:
+    review_dir = project_root / "GPD" / "review"
+    if not review_dir.exists():
+        return None
+
+    matches: list[tuple[int, int, _MathReviewAnchor]] = []
+    resolved_manuscript = _resolve_review_manuscript_path(project_root, manuscript_entrypoint.as_posix())
+    for path in sorted(review_dir.glob("STAGE-math*.json")):
+        try:
+            report = read_stage_review_report(path)
+        except (OSError, json.JSONDecodeError, PydanticValidationError):
+            continue
+        if _resolve_review_manuscript_path(project_root, report.manuscript_path) != resolved_manuscript:
+            continue
+        round_number = int(report.round)
+        round_suffix = "" if round_number <= 1 else f"-R{round_number}"
+        claim_index_path = review_dir / f"CLAIMS{round_suffix}.json"
+        theorem_claim_ids: list[str] = []
+        proof_artifact_paths: list[str] = []
+        validation_errors: list[str] = []
+        claim_index = None
+        try:
+            claim_index = read_claim_index(claim_index_path)
+        except (OSError, json.JSONDecodeError, PydanticValidationError) as exc:
+            validation_errors.append(f"{claim_index_path.name} could not be loaded: {exc}")
+        if claim_index is not None:
+            validation_errors.extend(
+                validate_stage_review_artifact_alignment(
+                    report,
+                    artifact_path=path,
+                    claim_index=claim_index,
+                    expected_manuscript_path=_relative_path(project_root, manuscript_entrypoint),
+                )
+            )
+            theorem_claim_ids = sorted(
+                claim.claim_id
+                for claim in claim_index.claims
+                if claim.claim_id in set(report.claims_reviewed) and claim.theorem_bearing
+            )
+            proof_artifact_paths = sorted(
+                {
+                    claim.artifact_path
+                    for claim in claim_index.claims
+                    if claim.claim_id in theorem_claim_ids and claim.artifact_path.strip()
+                }
+            )
+            if _relative_path(project_root, manuscript_entrypoint) not in proof_artifact_paths:
+                proof_artifact_paths.append(_relative_path(project_root, manuscript_entrypoint))
+        proof_bearing = bool(report.proof_audits) or bool(theorem_claim_ids)
+        matches.append(
+            (
+                round_number,
+                path.stat().st_mtime_ns,
+                _MathReviewAnchor(
+                    stage_artifact=path,
+                    claim_index_artifact=claim_index_path,
+                    round_number=round_number,
+                    round_suffix=round_suffix,
+                    proof_bearing=proof_bearing,
+                    theorem_claim_ids=tuple(theorem_claim_ids),
+                    proof_artifact_paths=tuple(path_text for path_text in proof_artifact_paths if path_text),
+                    validation_errors=tuple(validation_errors),
+                ),
+            )
+        )
+
+    if not matches:
+        return None
+    _, _, latest = max(matches)
+    return latest
+
+
+def _read_proof_redteam_status(
+    path: Path,
+    *,
+    project_root: Path,
+    expected_manuscript_path: str | None = None,
+    expected_manuscript_sha256: str | None = None,
+    expected_round: int | None = None,
+    expected_claim_ids: tuple[str, ...] = (),
+    expected_proof_artifact_paths: tuple[str, ...] = (),
+) -> tuple[str | None, str | None]:
+    try:
+        meta, body = extract_frontmatter(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        return None, str(exc)
+    except FrontmatterParseError as exc:
+        return None, str(exc)
+
+    raw_status = meta.get("status")
+    if not isinstance(raw_status, str) or not raw_status.strip():
+        return None, "top-level frontmatter `status` is missing"
+
+    reviewer = meta.get("reviewer")
+    if reviewer != "gpd-check-proof":
+        return None, "top-level frontmatter `reviewer` must be `gpd-check-proof`"
+
+    claim_ids = meta.get("claim_ids")
+    if not isinstance(claim_ids, list) or any(not isinstance(item, str) or not item.strip() for item in claim_ids):
+        return None, "top-level frontmatter `claim_ids` must be a list of strings"
+    normalized_claim_ids = tuple(dict.fromkeys(item.strip() for item in claim_ids))
+    if expected_claim_ids and set(normalized_claim_ids) != set(expected_claim_ids):
+        return None, "top-level frontmatter `claim_ids` does not match the theorem-bearing claims under review"
+
+    proof_artifact_paths = meta.get("proof_artifact_paths")
+    if (
+        not isinstance(proof_artifact_paths, list)
+        or not proof_artifact_paths
+        or any(not isinstance(item, str) or not item.strip() for item in proof_artifact_paths)
+    ):
+        return None, "top-level frontmatter `proof_artifact_paths` must be a non-empty list of strings"
+    normalized_proof_artifact_paths = tuple(dict.fromkeys(item.strip() for item in proof_artifact_paths))
+    for proof_artifact_path in normalized_proof_artifact_paths:
+        resolved_proof_artifact_path = _resolve_review_manuscript_path(project_root, proof_artifact_path)
+        if not resolved_proof_artifact_path.exists() or not resolved_proof_artifact_path.is_file():
+            return None, f"proof_artifact_paths entry does not resolve to a readable file: {proof_artifact_path}"
+    if expected_proof_artifact_paths:
+        missing_expected_paths = sorted(
+            expected_path
+            for expected_path in expected_proof_artifact_paths
+            if expected_path not in normalized_proof_artifact_paths
+        )
+        if missing_expected_paths:
+            return None, "proof_artifact_paths does not cover the expected proof artifacts under review"
+
+    if expected_manuscript_path is not None:
+        raw_manuscript_path = meta.get("manuscript_path")
+        if not isinstance(raw_manuscript_path, str) or not raw_manuscript_path.strip():
+            return None, "top-level frontmatter `manuscript_path` is missing"
+        resolved_artifact_path = _resolve_review_manuscript_path(project_root, raw_manuscript_path.strip())
+        resolved_expected_path = _resolve_review_manuscript_path(project_root, expected_manuscript_path)
+        if resolved_artifact_path != resolved_expected_path:
+            return None, "top-level frontmatter `manuscript_path` does not match the active manuscript"
+
+    if expected_manuscript_sha256 is not None:
+        raw_manuscript_sha256 = meta.get("manuscript_sha256")
+        if not isinstance(raw_manuscript_sha256, str) or len(raw_manuscript_sha256.strip()) != 64:
+            return None, "top-level frontmatter `manuscript_sha256` must be a lowercase 64-hex digest"
+        if raw_manuscript_sha256.strip().lower() != expected_manuscript_sha256.lower():
+            return None, "top-level frontmatter `manuscript_sha256` does not match the active manuscript"
+
+    if expected_round is not None:
+        raw_round = meta.get("round")
+        try:
+            round_number = int(raw_round)
+        except (TypeError, ValueError):
+            return None, "top-level frontmatter `round` must be an integer"
+        if round_number != expected_round:
+            return None, "top-level frontmatter `round` does not match the active review round"
+
+    required_sections = (
+        "# Proof Redteam",
+        "## Proof Inventory",
+        "## Coverage Ledger",
+        "## Adversarial Probe",
+        "## Verdict",
+        "## Required Follow-Up",
+    )
+    missing_sections = [section for section in required_sections if section not in body]
+    if missing_sections:
+        return None, f"proof-redteam body is missing required sections: {', '.join(missing_sections)}"
+
+    exact_claim_line = _first_meaningful_line(_section_body(body, "## Proof Inventory"))
+    if exact_claim_line is None or not exact_claim_line.lower().startswith("- exact claim / theorem text:"):
+        return None, "proof-redteam Proof Inventory must start with the exact claim / theorem text"
+    if exact_claim_line.rstrip().endswith(":"):
+        return None, "proof-redteam exact claim / theorem text must not be blank"
+
+    required_subsections = (
+        "### Named-Parameter Coverage",
+        "### Hypothesis Coverage",
+        "### Quantifier / Domain Coverage",
+        "### Conclusion-Clause Coverage",
+    )
+    for subsection in required_subsections:
+        if not _section_has_substantive_content(body, subsection):
+            return None, f"proof-redteam coverage subsection is empty: {subsection}"
+
+    adversarial_probe_body = _section_body(body, "## Adversarial Probe")
+    if "Probe type:" not in adversarial_probe_body or "Result:" not in adversarial_probe_body:
+        return None, "proof-redteam Adversarial Probe must record both probe type and result"
+
+    verdict_body = _section_body(body, "## Verdict")
+    if "Scope status:" not in verdict_body or "Quantifier status:" not in verdict_body or "Counterexample status:" not in verdict_body:
+        return None, "proof-redteam Verdict must include scope, quantifier, and counterexample status lines"
+
+    status = raw_status.strip().lower()
+    verdict_lower = verdict_body.lower()
+    if status == "passed":
+        fail_closed_markers = (
+            "| missing |",
+            "| uncovered |",
+            "scope status: `narrower_than_claim`",
+            "scope status: `mismatched`",
+            "quantifier status: `narrowed`",
+            "quantifier status: `mismatched`",
+            "counterexample status: `counterexample_found`",
+            "counterexample status: `narrowed_claim`",
+            "counterexample status: `not_attempted`",
+        )
+        if any(marker in verdict_lower or marker in body.lower() for marker in fail_closed_markers):
+            return None, "proof-redteam `status: passed` is inconsistent with uncovered coverage or a failed adversarial verdict"
+
+    return status, None
+
+
+def _section_body(body: str, heading: str) -> str:
+    start = body.find(heading)
+    if start < 0:
+        return ""
+    start += len(heading)
+    remaining = body[start:]
+    next_heading_offsets = [offset for marker in ("\n## ", "\n### ", "\n# ") if (offset := remaining.find(marker)) >= 0]
+    if not next_heading_offsets:
+        return remaining
+    return remaining[: min(next_heading_offsets)]
+
+
+def _first_meaningful_line(section_body: str) -> str | None:
+    for raw_line in section_body.splitlines():
+        line = raw_line.strip()
+        if line:
+            return line
+    return None
+
+
+def _section_has_substantive_content(body: str, heading: str) -> bool:
+    section_body = _section_body(body, heading)
+    pipe_lines = 0
+    for raw_line in section_body.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line in {"| --- | --- | --- | --- |", "| --- | --- | --- | --- | --- |"}:
+            continue
+        if line.startswith("|"):
+            pipe_lines += 1
+            continue
+        if line.startswith("-"):
+            return True
+    return pipe_lines >= 2
+
+
+def _resolve_review_manuscript_path(project_root: Path, manuscript_path: str) -> Path:
+    artifact_path = Path(manuscript_path).expanduser()
+    if not artifact_path.is_absolute():
+        artifact_path = project_root / artifact_path
+    return artifact_path.resolve(strict=False)
+
+
+def _relative_path(project_root: Path, path: Path | None) -> str | None:
+    if path is None:
+        return None
+    try:
+        return path.relative_to(project_root).as_posix()
+    except ValueError:
+        return path.as_posix()

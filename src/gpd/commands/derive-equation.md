@@ -26,6 +26,7 @@ Provide the equation or topic to derive as an argument (e.g., `/gpd:derive-equat
 - Performs step-by-step derivation with dimensional analysis at each stage
 - Verifies intermediate results against known limits and symmetry properties
 - Justifies and bounds all approximations with error estimates
+- For theorem-bearing derivations, spawns `gpd-check-proof` as a separate proof critic and fails closed without its audit
 - Produces a complete, self-contained derivation document with boxed final result
   </objective>
 

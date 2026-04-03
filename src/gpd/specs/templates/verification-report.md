@@ -15,6 +15,7 @@ Template for `GPD/phases/XX-name/{phase}-VERIFICATION.md` -- physics verificatio
 **Standard Verification:** All applicable sections for your project type (default).
 
 `status: passed` is strict: use it only when every claim, deliverable, and acceptance_test entry in `contract_results` is `passed`, every reference entry is `completed`, every `must_surface` reference has all `required_actions` recorded in `completed_actions`, every forbidden_proxy is `rejected` or `not_applicable`, every required decisive comparison has a decisive verdict, and `suggested_contract_checks` is empty. If any contract target is `partial`, `failed`, `blocked`, `missing`, or `unresolved`, use `gaps_found`, `expert_needed`, or `human_needed` instead of `passed`.
+Proof-backed claims are stricter still: `contract_results.claims.<claim-id>.status: passed` is invalid unless that same entry carries `proof_audit.completeness: complete`, `reviewer: gpd-check-proof`, a current `claim_statement_sha256`, current `proof_artifact_sha256`, current `audit_artifact_sha256`, and a passed proof-specific acceptance test. If the theorem statement, proof artifact, or proof-audit deliverable changed after the last adversarial proof review, keep the affected target at `partial` or `blocked` until the proof audit is rerun. A stale proof audit is never compatible with `status: passed`.
 
 ---
 
@@ -73,6 +74,25 @@ contract_results:
       status: passed|partial|failed|blocked|not_attempted
       summary: "[verification verdict for this claim]"
       linked_ids: [deliverable-id, acceptance-test-id, reference-id]
+      proof_audit:
+        completeness: complete|incomplete
+        reviewed_at: "2026-04-02T12:00:00Z"
+        reviewer: gpd-check-proof
+        proof_artifact_path: derivations/main-proof.tex
+        proof_artifact_sha256: "[required when a proof-bearing claim passes]"
+        audit_artifact_path: GPD/phases/01-proof/01-01-PROOF-REDTEAM.md
+        audit_artifact_sha256: "[required when a proof-bearing claim passes]"
+        claim_statement_sha256: "[required when a proof-bearing claim passes]"
+        covered_hypothesis_ids: [hyp-main]
+        missing_hypothesis_ids: []
+        covered_parameter_symbols: [r_0]
+        missing_parameter_symbols: []
+        uncovered_quantifiers: []
+        uncovered_conclusion_clause_ids: []
+        quantifier_status: matched|narrowed|mismatched|unclear
+        scope_status: matched|narrower_than_claim|mismatched|unclear
+        counterexample_status: none_found|counterexample_found|not_attempted|narrowed_claim
+        stale: false
       evidence:
         - verifier: gpd-verifier
           method: benchmark reproduction

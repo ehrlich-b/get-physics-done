@@ -22,7 +22,7 @@ def _read_command(name: str) -> str:
 
 
 def test_review_grade_commands_surface_registry_contract_requirements_in_source() -> None:
-    command_names = ("write-paper", "respond-to-referees", "verify-work", "arxiv-submission")
+    command_names = ("write-paper", "respond-to-referees", "verify-work", "arxiv-submission", "peer-review")
 
     for command_name in command_names:
         source = _read_command(command_name)
@@ -40,6 +40,18 @@ def test_review_grade_commands_surface_registry_contract_requirements_in_source(
             assert blocker in source
         for check in contract.preflight_checks:
             assert check in source
+        for artifact in contract.stage_artifacts:
+            assert artifact in source
+        for conditional in contract.conditional_requirements:
+            assert conditional.when in source
+            for output in conditional.required_outputs:
+                assert output in source
+            for evidence in conditional.required_evidence:
+                assert evidence in source
+            for blocker in conditional.blocking_conditions:
+                assert blocker in source
+            for artifact in conditional.stage_artifacts:
+                assert artifact in source
 
         if contract.required_state:
             assert f"required_state: {contract.required_state}" in source
@@ -62,6 +74,18 @@ def test_review_grade_commands_prepend_model_visible_review_contract_to_registry
         assert expected_section == command.content[: len(expected_section)]
         for output in contract.required_outputs:
             assert output in expected_section
+        for artifact in contract.stage_artifacts:
+            assert artifact in expected_section
+        for conditional in contract.conditional_requirements:
+            assert conditional.when in expected_section
+            for output in conditional.required_outputs:
+                assert output in expected_section
+            for evidence in conditional.required_evidence:
+                assert evidence in expected_section
+            for blocker in conditional.blocking_conditions:
+                assert blocker in expected_section
+            for artifact in conditional.stage_artifacts:
+                assert artifact in expected_section
 
 
 def test_review_contract_renderer_rejects_unknown_keys() -> None:
@@ -81,6 +105,50 @@ def test_review_contract_renderer_rejects_unknown_keys_inside_wrapped_payload() 
                     "review_mode": "review",
                     "legacy_note": "stale",
                 }
+            }
+        )
+
+
+def test_review_contract_renderer_rejects_unknown_nested_conditional_keys() -> None:
+    with pytest.raises(ValueError, match=r"Unknown review-contract field\(s\): conditional_requirements\[0\]\.legacy_note"):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": [
+                    {
+                        "when": "theorem-bearing claims are present",
+                        "legacy_note": "stale",
+                    }
+                ],
+            }
+        )
+
+
+def test_review_contract_renderer_rejects_invalid_conditional_when_and_empty_payload() -> None:
+    with pytest.raises(ValueError, match=r"conditional_requirements\[0\]\.when must be one of:"):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": [
+                    {
+                        "when": "proof-bearing work is present",
+                        "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                    }
+                ],
+            }
+        )
+
+    with pytest.raises(
+        ValueError,
+        match=r"conditional_requirements\[0\] must declare at least one of:",
+    ):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": [{"when": "theorem-bearing claims are present"}],
             }
         )
 
@@ -108,6 +176,25 @@ def test_review_contract_frontmatter_extractor_rejects_underscore_alias() -> Non
 
     with pytest.raises(ValueError, match="must use the canonical frontmatter key 'review-contract'"):
         extract_review_contract_frontmatter_block(frontmatter)
+
+
+def test_review_contract_frontmatter_extractor_preserves_nested_conditional_requirements() -> None:
+    frontmatter = (
+        "name: gpd:test\n"
+        "review-contract:\n"
+        "  schema_version: 1\n"
+        "  review_mode: publication\n"
+        "  conditional_requirements:\n"
+        "    - when: theorem-bearing claims are present\n"
+        "      required_outputs:\n"
+        "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
+    )
+
+    block = extract_review_contract_frontmatter_block(frontmatter)
+
+    assert "conditional_requirements:" in block
+    assert "when: theorem-bearing claims are present" in block
+    assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in block
 
 
 def test_review_contract_renderer_rejects_incomplete_payloads() -> None:
@@ -161,6 +248,51 @@ def test_review_contract_renderer_rejects_invalid_bool_and_required_state_fields
         )
 
 
+def test_review_contract_renderer_accepts_common_bool_and_int_string_forms() -> None:
+    section = render_review_contract_prompt(
+        {
+            "schema_version": 1,
+            "review_mode": "review",
+            "requires_fresh_context_per_stage": "false",
+            "max_review_rounds": "2",
+        }
+    )
+
+    assert "requires_fresh_context_per_stage: false" in section
+    assert "max_review_rounds: 2" in section
+
+
+def test_review_contract_renderer_rejects_float_max_review_rounds() -> None:
+    with pytest.raises(ValueError, match="max_review_rounds must be an integer"):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "review",
+                "max_review_rounds": 1.5,
+            }
+        )
+
+
+def test_review_contract_renderer_rejects_non_list_and_non_mapping_conditional_shapes() -> None:
+    with pytest.raises(ValueError, match="conditional_requirements must be a list of mappings"):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": True,
+            }
+        )
+
+    with pytest.raises(ValueError, match=r"conditional_requirements\[0\] must be a mapping"):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": ["oops"],
+            }
+        )
+
+
 def test_review_contract_renderer_fills_canonical_defaults_for_minimal_payload() -> None:
     section = render_review_contract_prompt({"schema_version": 1, "review_mode": "review"})
 
@@ -170,10 +302,49 @@ def test_review_contract_renderer_fills_canonical_defaults_for_minimal_payload()
     assert "preflight_checks: []" in section
     assert "stage_ids: []" in section
     assert "stage_artifacts: []" in section
+    assert "conditional_requirements: []" in section
     assert "final_decision_output: ''" in section
     assert "requires_fresh_context_per_stage: false" in section
     assert "max_review_rounds: 0" in section
     assert "required_state: ''" in section
+
+
+def test_review_contract_renderer_renders_conditional_requirements() -> None:
+    section = render_review_contract_prompt(
+        {
+            "schema_version": 1,
+            "review_mode": "publication",
+            "conditional_requirements": [
+                {
+                    "when": "theorem-bearing claims are present",
+                    "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                    "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                }
+            ],
+        }
+    )
+
+    assert "conditional_requirements:" in section
+    assert "- when: theorem-bearing claims are present" in section
+    assert "required_outputs:" in section
+    assert "stage_artifacts:" in section
+    assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in section
+
+
+def test_peer_review_contract_surfaces_typed_conditional_proof_requirements() -> None:
+    contract = registry.get_command("peer-review").review_contract
+
+    assert contract is not None
+    assert contract.conditional_requirements == [
+        registry.ReviewContractConditionalRequirement(
+            when="theorem-bearing claims are present",
+            required_outputs=["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            stage_artifacts=["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+        )
+    ]
+    source = _read_command("peer-review")
+    assert "conditional_requirements:" in source
+    assert "when: theorem-bearing claims are present" in source
 
 
 def test_verify_work_review_contract_uses_phase_scoped_output_path() -> None:
@@ -357,11 +528,16 @@ def test_referee_schema_and_panel_surface_strict_stage_artifact_naming_and_round
     assert "STAGE-(reader|literature|math|physics|interestingness)(-R<round>)?.json" in referee_schema
     assert "same optional `-R<round>` suffix" in referee_schema
     assert "`{round_suffix}` in path examples means empty for initial review and `-R<round>`" in referee_schema
+    assert "proof_audit_coverage_complete" in referee_schema
+    assert "theorem_proof_alignment_adequate" in referee_schema
     assert "GPD/review/REVIEW-LEDGER{round_suffix}.json" in review_ledger_schema
     assert "`manuscript_path` must be non-empty" in review_ledger_schema
     assert "REFEREE-DECISION{round_suffix}.json" in review_ledger_schema
     assert "GPD/review/CLAIMS{round_suffix}.json" in panel
     assert "GPD/review/STAGE-reader{round_suffix}.json" in panel
+    assert "proof_audits" in panel
+    assert "theorem_assumptions" in panel
+    assert "theorem_parameters" in panel
     assert "Strict-stage specialist artifacts must use canonical names `STAGE-reader`, `STAGE-literature`, `STAGE-math`, `STAGE-physics`, `STAGE-interestingness`." in panel
     assert "all five must share the same optional `-R<round>` suffix." in panel
 

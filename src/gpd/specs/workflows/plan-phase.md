@@ -61,6 +61,24 @@ RESEARCH_MODE=$(echo "$INIT" | gpd json get .research_mode --default balanced)
 
 Treat `effective_reference_intake` as the machine-readable carry-forward anchor ledger for this phase. Do not rely only on the rendered `active_reference_context` prose when deciding what must stay visible.
 
+## 1.5 Proof-Obligation Planning Gate
+
+Before honoring `--skip-verify`, `--light`, or checker-disabled config, classify whether this phase includes proof-bearing work. Treat the phase as proof-bearing when any of the following are true:
+
+- the approved contract or contract intake names an observable or claim with kind `proof_obligation`
+- the phase goal, requirements, or existing plan objectives mention `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `prove`, `show that`, `existence`, or `uniqueness`
+- the intended deliverable is a formal derivation whose acceptance depends on named hypotheses, parameters, or quantifiers being covered in a proof
+
+If classification is ambiguous, default to proof-bearing.
+
+For proof-bearing work:
+
+- `--skip-verify` does NOT waive checker review, theorem-coverage planning, or downstream proof red-teaming
+- light mode may shorten prose, but it may not remove theorem inventories, proof-obligation acceptance tests, or blocking review steps
+- every proof-bearing plan must reserve a sibling audit artifact named `{plan_id}-PROOF-REDTEAM.md`
+- every proof-bearing plan must surface the theorem statement, named parameters, hypotheses, quantifier/domain obligations, and intended conclusion clauses visibly enough that a later audit can detect missing coverage
+- never treat "we will tidy the proof later", "browser review later", or "human can inspect manually" as an acceptable substitute for an explicit proof-redteam task and fail-closed gate
+
 ## 2. Parse and Normalize Arguments
 
 Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--light`, `--inline-discuss`).
@@ -558,6 +576,7 @@ Use `templates/plan-contract-schema.md` as the canonical contract schema referen
 - `contract.context_intake` is required and must be a non-empty object. Do not start planning until the contract carries the required carry-forward inputs from the schema.
 - For ordinary execution plans, the contract surface must include `scope`, `contract.context_intake`, `claims`, `deliverables`, `acceptance_tests`, `forbidden_proxies`, and `uncertainty_markers`; include `references` only when explicit grounding is not already carried elsewhere in the contract.
 - Non-scoping plans keep `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` non-empty. Include `references[]` only when the plan relies on external grounding that is not already explicit in `contract.context_intake`, `approach_policy`, or preserved scoping inputs. Do not downgrade these to prose or placeholder text.
+- If the phase is proof-bearing, the plan must additionally expose a theorem inventory in the task/verification surface: theorem or claim target, named parameters, hypotheses, quantifier/domain obligations, and the sibling `{plan_id}-PROOF-REDTEAM.md` artifact path. Do not hide proof obligations inside narrative prose.
 - Light mode changes the body only. Keep the full canonical frontmatter, including `wave`, `depends_on`, `files_modified`, `interactive`, `conventions`, and `contract`.
 - If the contract is scoping-only, preserve at least one target, open question, or carry-forward input instead of emitting a hollow scaffold.
 
@@ -593,6 +612,7 @@ Each plan MUST include:
 - **Order-of-magnitude estimates:** Before any detailed calculation, estimate the expected scale of the answer
 - **Error budget:** For numerical work, specify target precision and identify dominant error sources
 - **Consistency checks:** Cross-checks between independent methods or approaches where possible
+- **Proof-obligation audit path:** Any theorem-style or `proof_obligation` result must name the proof artifact, the sibling `{plan_id}-PROOF-REDTEAM.md` audit artifact, and the blocking condition that keeps execution/verification closed until the audit passes
 - **Tangent discipline:** Independent alternatives and optional side questions require an explicit tangent decision before they become separate workstreams
 - **Anchor discipline:** If a benchmark, paper, dataset, or prior artifact is contract-critical, surface it in the plan instead of treating it as optional background
 - **Contract completeness:** Every plan must include claims, deliverables, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter, plus `references[]` whenever explicit grounding is not already carried elsewhere in the contract
@@ -607,6 +627,8 @@ Planning requires `project_contract`:
 - Every PLAN.md must carry forward required context from the contract: must-read refs, prior outputs, baselines, and user anchors when execution depends on them. That context lives under `contract.context_intake`, not as a separate top-level block.
 - Every PLAN.md must include uncertainty markers from the contract when they constrain interpretation or verification.
 - Every PLAN.md should express result wiring through `contract.links` or explicit task/verification handoffs, not through a second ad hoc success schema.
+- For proof-bearing plans, the contract-complete surface must make theorem parameters, hypotheses, and conclusion targets auditable even if the current schema lacks dedicated theorem fields. Put them in explicit task, verification, and acceptance-test text rather than implicit prose.
+- For proof-bearing plans, reserve at least one acceptance test or blocking review task that produces `{plan_id}-PROOF-REDTEAM.md` and rejects any proof that silently drops a named parameter, hypothesis, or quantifier.
 - Validate each finished plan with `gpd validate plan-contract <PLAN.md>` before treating it as approved.
 - When a plan declares `tool_requirements`, validate executable specialized-tool readiness with `gpd validate plan-preflight <PLAN.md>` before treating it as execution-ready.
 - Autonomy mode and model profile may change cadence or detail, but they do NOT relax contract completeness.
@@ -640,6 +662,7 @@ Output consumed by /gpd:execute-phase. Plans need:
 - Verification criteria with mathematical rigor requirements
 - contract-complete frontmatter before execution starts
 - contract links or explicit task-level dependency wiring for critical handoffs, including limiting-case checks
+- proof-bearing plans to hand off an explicit proof artifact and sibling `{plan_id}-PROOF-REDTEAM.md` audit artifact before any theorem claim can be treated as closed
 - protocol-bundle guidance reflected in task structure, verification, and decisive artifact selection when applicable
 </downstream_consumer>
 
@@ -659,6 +682,7 @@ Output consumed by /gpd:execute-phase. Plans need:
 - [ ] Forbidden proxies are rejected explicitly in `<done>` or `<success_criteria>`
 - [ ] Dimensional analysis check specified for each quantitative result
 - [ ] Validation checkpoints placed after each major derivation step
+- [ ] Every proof-bearing plan names a theorem/proof target, exposes named parameters and hypotheses, and reserves `{plan_id}-PROOF-REDTEAM.md` as a mandatory fail-closed artifact
 </quality_gate>
 ```
 
@@ -676,7 +700,7 @@ task(
 
 **If the planner agent fails to spawn or returns an error:** Check if any PLAN.md files were written to the phase directory (agents write files first). If plans exist, proceed as if PLANNING COMPLETE. If no plans, offer: 1) Retry planner, 2) Create plans in the main context, 3) Abort.
 
-- **`## PLANNING COMPLETE`:** Display plan count. If `AUTONOMY=supervised`, show the written draft plans and get user confirmation before advancing to checker or next-step output. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13. Otherwise: step 10.
+- **`## PLANNING COMPLETE`:** Display plan count. If `AUTONOMY=supervised`, show the written draft plans and get user confirmation before advancing to checker or next-step output. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13 only when no proof-bearing plans were written. Proof-bearing plans still require checker review or an equivalent main-context audit before planning is considered complete. Otherwise: step 10.
 - **`## CHECKPOINT REACHED`:** Present to user, get response, spawn continuation (step 12)
 - **`## PLANNING INCONCLUSIVE`:** Show attempts, offer: Add context / Retry / Manual
 
@@ -737,6 +761,8 @@ In addition to structural checks, verify:
 - [ ] **Acceptance tests:** Every decisive claim or deliverable has at least one executable or reviewable test
 - [ ] **Disconfirming path:** Risky plans name the observation or comparison that would force a rethink
 - [ ] **Forbidden proxies:** Proxy-only success conditions are rejected explicitly
+- [ ] **Proof-obligation audit path:** Proof-bearing plans expose theorem targets, named parameters/hypotheses/quantifiers, and a sibling `{plan_id}-PROOF-REDTEAM.md` review artifact
+- [ ] **Anti-bypass language:** Plans do not rely on `--skip-verify`, sparse cadence, or later human inspection to waive proof red-teaming
 </physics_verification_criteria>
 
 <expected_output>
@@ -759,7 +785,7 @@ task(
 
 ## 11. Handle Checker Return
 
-**If the plan-checker agent fails to spawn or returns an error:** Proceed without plan verification. Plans are still executable. Note that verification was skipped and recommend the user review the plans manually before executing.
+**If the plan-checker agent fails to spawn or returns an error:** Proceed without plan verification. Plans are still executable. Note that verification was skipped and recommend the user review the plans manually before executing. If any plan is proof-bearing, do NOT waive this gate: run an equivalent main-context proof-plan audit against the checker criteria above or STOP and report that proof-obligation planning could not be cleared safely.
 
 - **`## VERIFICATION PASSED`:** Display iteration-aware confirmation and proceed to step 13:
 
@@ -847,6 +873,8 @@ Pay special attention to:
 - Approximation validity bounds
 - Missing decisive outputs or deliverables
 - Missing acceptance tests, anchor refs, or forbidden-proxy handling
+- Missing proof-obligation audit steps, theorem inventories, or `{plan_id}-PROOF-REDTEAM.md` handoff artifacts
+- Missing parameter / hypothesis / quantifier coverage that would let a proof silently collapse to a special case
 - Missing protocol-bundle-driven estimator guards, decisive artifacts, or verifier extensions
 - Missing disconfirming paths
 Return what changed.

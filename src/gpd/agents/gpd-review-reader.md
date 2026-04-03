@@ -29,8 +29,9 @@ You are not the final referee. Do not issue the panel's final recommendation for
 2. State the main claim in one sentence.
 3. Extract the supporting subclaims, promised deliverables, and main evidence chain.
 4. Flag any place where the title, abstract, introduction, or conclusion appears stronger than the actual evidence.
-5. Write `GPD/review/CLAIMS{round_suffix}.json` as a compact `ClaimIndex`.
-6. Write `GPD/review/STAGE-reader{round_suffix}.json` as a compact `StageReviewReport`.
+5. For any theorem-, proposition-, claim-, lemma-, or corollary-like statement, extract its theorem kind, every explicit hypothesis, and every free target parameter or regime variable into structured claim fields.
+6. Write `GPD/review/CLAIMS{round_suffix}.json` as a compact `ClaimIndex`.
+7. Write `GPD/review/STAGE-reader{round_suffix}.json` as a compact `StageReviewReport`.
 </process>
 
 <artifact_format>
@@ -43,13 +44,17 @@ Required schema for `CLAIMS{round_suffix}.json` (`ClaimIndex`):
 - `manuscript_path` and `manuscript_sha256` are required metadata for the exact manuscript snapshot under review; do not omit them
 - `manuscript_path` must be non-empty and must name the exact manuscript snapshot under review
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review
-- Each entry in `claims` is a `ClaimRecord` with: `claim_id`, `claim_type`, `text`, `artifact_path`, `section`, `equation_refs`, `figure_refs`, `supporting_artifacts`
+- Each entry in `claims` is a `ClaimRecord` with: `claim_id`, `claim_type`, `claim_kind`, `text`, `artifact_path`, `section`, `equation_refs`, `figure_refs`, `supporting_artifacts`, `theorem_assumptions`, `theorem_parameters`
 - `claim_type` must use exactly: `main_result`, `novelty`, `significance`, `physical_interpretation`, `generality`, `method`
+- `claim_kind` must use exactly: `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `other`
 - Use `section` as an empty string and the reference/artifact arrays as empty lists when a field is not applicable; do not invent locations or evidence
+- Keep `theorem_assumptions` and `theorem_parameters` as arrays even when empty
+- When a claim is theorem-bearing, set `claim_kind` explicitly instead of leaving it at `other`; `theorem_assumptions` must list each explicit theorem hypothesis or regime assumption, and `theorem_parameters` must list each explicit target parameter or quantified free variable that the proof must cover
+- Do not silently drop statement parameters just because the prose focuses on the algebra; if the theorem says “for any `r_0`” then `r_0` belongs in `theorem_parameters`
 
 Required schema for `STAGE-reader{round_suffix}.json` (`StageReviewReport`, mirroring the staged-review contract):
 
-- Top-level keys: `version`, `round`, `stage_id`, `stage_kind`, `manuscript_path`, `manuscript_sha256`, `claims_reviewed`, `summary`, `strengths`, `findings`, `confidence`, `recommendation_ceiling`
+- Top-level keys: `version`, `round`, `stage_id`, `stage_kind`, `manuscript_path`, `manuscript_sha256`, `claims_reviewed`, `summary`, `strengths`, `findings`, `proof_audits`, `confidence`, `recommendation_ceiling`
 - `stage_id` and `stage_kind` must both be `reader`
 - The filename `STAGE-reader{round_suffix}.json` and the JSON `round` field must agree: unsuffixed first-round artifacts use `round: 1`, and `-R<round>` filenames must use that same integer in `round`
 - `manuscript_path` must be non-empty and must exactly match the sibling `CLAIMS{round_suffix}.json`
@@ -58,8 +63,11 @@ Required schema for `STAGE-reader{round_suffix}.json` (`StageReviewReport`, mirr
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review
 - `summary` should capture the main claim, paper logic, and strongest suspected narrative weakness
 - `findings` should include overclaims, missing promised deliverables, or claim-structure blockers
-- `claims_reviewed`, `strengths`, and `findings` are arrays even when empty; do not collapse them to prose or scalars
+- `claims_reviewed`, `strengths`, `findings`, and `proof_audits` are arrays even when empty; do not collapse them to prose or scalars
 - Each `findings[]` entry is a `ReviewFinding` with: `issue_id`, `claim_ids`, `severity`, `summary`, `rationale`, `evidence_refs`, `manuscript_locations`, `support_status`, `blocking`, `required_action`
+- Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
+- `proof_audits` should be an empty array in the reader stage; do not invent theorem-proof audit results before the math stage
+- `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`
 - `issue_id` must use `REF-...`; `claim_ids` must reuse Stage 1 `CLM-...` claim IDs
 - `severity` must use exactly: `critical`, `major`, `minor`, `suggestion`
 - `support_status` must use exactly: `supported`, `partially_supported`, `unsupported`, `unclear`
@@ -75,4 +83,5 @@ Required schema for `STAGE-reader{round_suffix}.json` (`StageReviewReport`, mirr
 - Do not perform literature search here.
 - Do not spend your budget re-deriving equations.
 - Do not excuse overclaiming as a later presentation issue if it appears central to the paper's framing.
+- Do not collapse theorem hypotheses or free parameters into vague prose. If a theorem statement names them, index them explicitly.
 </anti_patterns>

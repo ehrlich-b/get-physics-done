@@ -136,6 +136,27 @@ mkdir -p GPD/review
 ```
 </step>
 
+<step name="detect_proof_bearing_manuscript">
+Classify whether the manuscript contains theorem-style or `proof_obligation` claims before the staged panel proceeds.
+
+Treat the review target as proof-bearing when any of the following are true:
+
+- the approved project contract includes a claim or observable with kind `proof_obligation`
+- the manuscript text uses theorem-style language (`theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `we prove`, `show that`)
+- a core claim depends on a formal derivation whose validity turns on named hypotheses, parameters, or quantifiers
+
+If ambiguous, default to proof-bearing.
+
+When proof-bearing review is active:
+
+- spawn the auxiliary proof-critique agent `gpd-check-proof`
+- `gpd-check-proof` must write the auxiliary audit artifact `GPD/review/PROOF-REDTEAM{round_suffix}.md`
+- later stages must read that artifact alongside the normal staged-review JSON files
+- missing or malformed proof-redteam artifacts are hard blockers
+- a proof-redteam artifact with `status: gaps_found` or `status: human_needed` remains a blocking major concern and prevents a favorable final recommendation
+- do not bypass this gate because the manuscript looks polished, the algebra appears locally correct, or the user asks to "just review everything else"
+</step>
+
 <step name="round_detection">
 **Detect whether this is an initial review or a revision round:**
 
@@ -175,7 +196,7 @@ Use the same `-R2` / `-R3` suffix convention for downstream response artifacts:
 
 Use one short sentence that names each stage's job, for example:
 
-`Launching the six-stage review panel: Stage 1 maps the paper's claims; Stages 2-3 check prior work and mathematical soundness in parallel; Stage 4 checks whether the physical interpretation is supported; Stage 5 judges significance and venue fit; Stage 6 synthesizes everything into the final recommendation.`
+`Launching the six-stage review panel: Stage 1 maps the paper's claims; Stages 2-3 check prior work and mathematical soundness in parallel; theorem-style claims also trigger the auxiliary gpd-check-proof audit; Stage 4 checks whether the physical interpretation is supported; Stage 5 judges significance and venue fit; Stage 6 synthesizes everything into the final recommendation.`
 </step>
 
 <step name="stage_1_read">
@@ -250,6 +271,7 @@ Resolve models:
 ```bash
 LITERATURE_MODEL=$(gpd resolve-model gpd-review-literature)
 MATH_MODEL=$(gpd resolve-model gpd-review-math)
+CHECK_PROOF_MODEL=$(gpd resolve-model gpd-check-proof)
 ```
 
 Stage 2 prompt:
@@ -335,6 +357,55 @@ Reference Artifacts Content:
 {reference_artifacts_content}
 Output path: `GPD/review/STAGE-math{round_suffix}.json`
 
+	Files to read:
+	- Resolved manuscript main file and all nearby section .tex files
+	- `GPD/review/CLAIMS{round_suffix}.json`
+	- `GPD/review/STAGE-reader{round_suffix}.json`
+- Summary artifacts matching `GPD/phases/*/*SUMMARY.md`
+- `GPD/phases/*/*-VERIFICATION.md`
+	- `${ARTIFACT_MANIFEST_PATH}` if present
+	- `${REPRODUCIBILITY_MANIFEST_PATH}` if present
+
+	Focus on key equations, limits, internal consistency, and approximation validity.
+	If theorem-bearing claims are present, expect a sibling `GPD/review/PROOF-REDTEAM{round_suffix}.md` artifact from `gpd-check-proof` and keep the math-stage findings aligned with it rather than writing a second proof-audit file yourself.
+	Treat `project_contract_load_info` and `project_contract_validation` as the authoritative contract gate state. Treat `project_contract` and `contract_intake` as approved evidence only when that gate is clean and passing. Treat `effective_reference_intake`, `reference_artifacts_content`, and `active_reference_context` as binding carry-forward evidence even when the contract gate is blocked. If that gate is blocked, keep `project_contract` and `contract_intake` visible as context but do not rely on them as approved scope.
+	Return STAGE 3 COMPLETE with assessment, blocker count, and major concern count.",
+  description="Peer review stage 3: mathematical soundness"
+)
+```
+
+Conditional proof-critique prompt when theorem-bearing claims are present:
+
+```
+task(
+  subagent_type="gpd-check-proof",
+  model="{check_proof_model}",
+  readonly=false,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-check-proof.md for your role and instructions.
+Then read {GPD_INSTALL_DIR}/references/publication/peer-review-panel.md before writing any proof audit artifact.
+
+Operate in adversarial proof-critique mode with a fresh context.
+
+Target journal: {target_journal}
+Round: {round}
+Project Contract:
+{project_contract}
+Project Contract Load Info:
+{project_contract_load_info}
+Project Contract Validation:
+{project_contract_validation}
+Active References:
+{active_reference_context}
+Derived Manuscript Reference Status:
+{derived_manuscript_reference_status}
+Contract Intake:
+{contract_intake}
+Effective Reference Intake:
+{effective_reference_intake}
+Reference Artifacts Content:
+{reference_artifacts_content}
+Write to: `GPD/review/PROOF-REDTEAM{round_suffix}.md`
+
 Files to read:
 - Resolved manuscript main file and all nearby section .tex files
 - `GPD/review/CLAIMS{round_suffix}.json`
@@ -344,16 +415,14 @@ Files to read:
 - `${ARTIFACT_MANIFEST_PATH}` if present
 - `${REPRODUCIBILITY_MANIFEST_PATH}` if present
 
-Focus on key equations, limits, internal consistency, and approximation validity.
-Treat `project_contract_load_info` and `project_contract_validation` as the authoritative contract gate state. Treat `project_contract` and `contract_intake` as approved evidence only when that gate is clean and passing. Treat `effective_reference_intake`, `reference_artifacts_content`, and `active_reference_context` as binding carry-forward evidence even when the contract gate is blocked. If that gate is blocked, keep `project_contract` and `contract_intake` visible as context but do not rely on them as approved scope.
-Return STAGE 3 COMPLETE with assessment, blocker count, and major concern count.",
-  description="Peer review stage 3: mathematical soundness"
+Reconstruct the theorem / proof inventory explicitly before judging the proof. If any named parameter, hypothesis, quantifier, or conclusion clause disappears from the proof, set `status: gaps_found`. Do not silently accept a proof of a narrower special case. Run at least one adversarial probe against scope, quantifier coverage, or hidden assumptions before you pass the proof.",
+  description="Peer review auxiliary proof critique"
 )
 ```
 
-If the runtime supports parallel subagent execution, run Stage 2 and Stage 3 in parallel. Otherwise run Stage 2 first, then Stage 3.
+If the runtime supports parallel subagent execution, run Stage 2, Stage 3, and the conditional proof-critique pass in parallel when theorem-bearing claims are present. Otherwise run Stage 2 first, then Stage 3, then the conditional proof-critique pass.
 
-If either stage fails, STOP and report the failure.
+If literature, math, or the conditional proof-critique stage fails, STOP and report the failure.
 </step>
 
 <step name="stage_recovery_2_3">
@@ -366,12 +435,23 @@ gpd validate review-stage-report GPD/review/STAGE-literature{round_suffix}.json
 gpd validate review-stage-report GPD/review/STAGE-math{round_suffix}.json
 ```
 
+If proof-bearing review is active, also require `GPD/review/PROOF-REDTEAM{round_suffix}.md`. It must contain:
+
+- top-level `status: passed | gaps_found | human_needed`
+- top-level `reviewer: gpd-check-proof`
+- manuscript-binding frontmatter (`manuscript_path`, `manuscript_sha256`, and `round`)
+- the canonical sections `# Proof Redteam`, `## Proof Inventory`, `## Coverage Ledger`, `## Adversarial Probe`, `## Verdict`, and `## Required Follow-Up`
+
+Missing file, missing frontmatter, or missing required sections is a hard failure. `gaps_found` or `human_needed` may continue as a recorded blocker only if the panel is collecting a fuller diagnosis, but the proof issue remains fail-closed for the final recommendation.
+
 If validation fails for either stage:
 
 1. **Retry once.** Re-run only the failed stage subagent with the same inputs and an explicit reminder to match the `StageReviewReport` JSON schema from `peer-review-panel.md`, then rerun `gpd validate review-stage-report`.
 2. **If the retry also fails,** STOP the pipeline and report the failure: stage name, missing or malformed fields, and any partial output. Do not proceed to Stage 4.
 
 Max retries per stage: **1**.
+
+If the proof-redteam artifact is missing, malformed, lacks the canonical frontmatter, or omits required sections, retry `gpd-check-proof` once with the same inputs and an explicit reminder to emit the full canonical proof-audit artifact. If the retry also fails, STOP the pipeline and report that proof review could not be completed.
 </step>
 
 <step name="stage_4_physics">
@@ -418,12 +498,13 @@ Output path: `GPD/review/STAGE-physics{round_suffix}.json`
 
 Files to read:
 - Resolved manuscript main file and all nearby section .tex files
-- `GPD/review/CLAIMS{round_suffix}.json`
-- `GPD/review/STAGE-reader{round_suffix}.json`
-- `GPD/review/STAGE-math{round_suffix}.json`
-- `GPD/review/STAGE-literature{round_suffix}.json`
-- Summary artifacts matching `GPD/phases/*/*SUMMARY.md`
-- `GPD/phases/*/*-VERIFICATION.md`
+	- `GPD/review/CLAIMS{round_suffix}.json`
+	- `GPD/review/STAGE-reader{round_suffix}.json`
+	- `GPD/review/STAGE-math{round_suffix}.json`
+	- `GPD/review/PROOF-REDTEAM{round_suffix}.md` if proof-bearing review is active
+	- `GPD/review/STAGE-literature{round_suffix}.json`
+	- Summary artifacts matching `GPD/phases/*/*SUMMARY.md`
+	- `GPD/phases/*/*-VERIFICATION.md`
 - `GPD/comparisons/*-COMPARISON.md` if present
 - `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md` if present
 
@@ -503,10 +584,11 @@ Output path: `GPD/review/STAGE-interestingness{round_suffix}.json`
 Files to read:
 - Resolved manuscript main file and all nearby section .tex files
 - `GPD/review/CLAIMS{round_suffix}.json`
-- `GPD/review/STAGE-reader{round_suffix}.json`
-- `GPD/review/STAGE-literature{round_suffix}.json`
-- `GPD/review/STAGE-physics{round_suffix}.json`
-- `${PAPER_CONFIG_PATH}` if present
+	- `GPD/review/STAGE-reader{round_suffix}.json`
+	- `GPD/review/STAGE-literature{round_suffix}.json`
+	- `GPD/review/STAGE-physics{round_suffix}.json`
+	- `GPD/review/PROOF-REDTEAM{round_suffix}.md` if proof-bearing review is active
+	- `${PAPER_CONFIG_PATH}` if present
 
 You must explicitly decide whether the paper is:
 1. Scientifically interesting enough for the venue
@@ -584,11 +666,12 @@ Reference Artifacts Content:
 Files to read:
 - Resolved manuscript main file and all nearby section .tex files
 - `GPD/review/CLAIMS{round_suffix}.json`
-- `GPD/review/STAGE-reader{round_suffix}.json`
-- `GPD/review/STAGE-literature{round_suffix}.json`
-- `GPD/review/STAGE-math{round_suffix}.json`
-- `GPD/review/STAGE-physics{round_suffix}.json`
-- `GPD/review/STAGE-interestingness{round_suffix}.json`
+	- `GPD/review/STAGE-reader{round_suffix}.json`
+	- `GPD/review/STAGE-literature{round_suffix}.json`
+	- `GPD/review/STAGE-math{round_suffix}.json`
+	- `GPD/review/PROOF-REDTEAM{round_suffix}.md` if proof-bearing review is active
+	- `GPD/review/STAGE-physics{round_suffix}.json`
+	- `GPD/review/STAGE-interestingness{round_suffix}.json`
 - `GPD/comparisons/*-COMPARISON.md` if present
 - `${MANUSCRIPT_ROOT}/FIGURE_TRACKER.md` if present
 - `${ARTIFACT_MANIFEST_PATH}` if present
@@ -603,16 +686,17 @@ If this is a revision round, also read the latest `REFEREE-REPORT*.md` and match
 
 If any required staged-review artifact is missing, malformed, or uses the wrong round suffix, STOP and report that failure instead of falling back to standalone review.
 
-Recommendation guardrails:
-1. Do not issue minor revision if novelty, physical support, or significance remain materially doubtful.
-2. A mathematically coherent but physically weak or scientifically mediocre paper can require major revision or rejection.
-3. Evaluate venue fit explicitly using the panel artifacts and spot-check the manuscript where the artifacts are under-evidenced.
-4. Treat protocol bundle guidance as additive context only. It can increase concern when decisive comparisons or benchmark anchors are missing, but it cannot rescue missing evidence or override the manuscript's actual artifact trail.
-5. Write `GPD/review/REVIEW-LEDGER{round_suffix}.json` and `GPD/review/REFEREE-DECISION{round_suffix}.json`.
-6. Keep `manuscript_path` non-empty and identical across `GPD/review/REVIEW-LEDGER{round_suffix}.json`, `GPD/review/REFEREE-DECISION{round_suffix}.json`, and the staged-review artifacts for this round.
-7. Run `gpd validate review-ledger GPD/review/REVIEW-LEDGER{round_suffix}.json`.
-8. Run `gpd validate referee-decision GPD/review/REFEREE-DECISION{round_suffix}.json --strict --ledger GPD/review/REVIEW-LEDGER{round_suffix}.json` before trusting any final recommendation.
-9. If either validator fails, STOP and fix the JSON artifacts before presenting or relying on the final recommendation.
+	Recommendation guardrails:
+	1. Do not issue minor revision if novelty, physical support, or significance remain materially doubtful.
+	2. A mathematically coherent but physically weak or scientifically mediocre paper can require major revision or rejection.
+	3. Evaluate venue fit explicitly using the panel artifacts and spot-check the manuscript where the artifacts are under-evidenced.
+	4. Treat protocol bundle guidance as additive context only. It can increase concern when decisive comparisons or benchmark anchors are missing, but it cannot rescue missing evidence or override the manuscript's actual artifact trail.
+	5. For proof-bearing claims, a missing, malformed, or non-passing `GPD/review/PROOF-REDTEAM{round_suffix}.md` artifact prevents any favorable recommendation. Recommendation floor: `major_revision` or `reject`.
+	6. Write `GPD/review/REVIEW-LEDGER{round_suffix}.json` and `GPD/review/REFEREE-DECISION{round_suffix}.json`.
+	7. Keep `manuscript_path` non-empty and identical across `GPD/review/REVIEW-LEDGER{round_suffix}.json`, `GPD/review/REFEREE-DECISION{round_suffix}.json`, and the staged-review artifacts for this round.
+	8. Run `gpd validate review-ledger GPD/review/REVIEW-LEDGER{round_suffix}.json`.
+	9. Run `gpd validate referee-decision GPD/review/REFEREE-DECISION{round_suffix}.json --strict --ledger GPD/review/REVIEW-LEDGER{round_suffix}.json` before trusting any final recommendation.
+	10. If either validator fails, STOP and fix the JSON artifacts before presenting or relying on the final recommendation.
 
 Treat `project_contract_load_info` and `project_contract_validation` as the authoritative contract gate state. Treat `project_contract` and `contract_intake` as approved evidence only when that gate is clean and passing. Treat `effective_reference_intake`, `reference_artifacts_content`, and `active_reference_context` as binding carry-forward evidence even when the contract gate is blocked. If that gate is blocked, keep `project_contract` and `contract_intake` visible as context but do not rely on them as approved scope.
 
@@ -717,6 +801,7 @@ If this was a revision round, state the round number and whether the referee con
 - [ ] Stage 2 literature-context artifact written
 - [ ] Stage 3 mathematical-soundness artifact written
 - [ ] Stages 2-3 outputs validated (JSON schema check passed or retry succeeded)
+- [ ] Proof-bearing manuscripts also produce `GPD/review/PROOF-REDTEAM{round_suffix}.md`
 - [ ] Stage 4 physical-soundness artifact written
 - [ ] Stage 4 output validated (JSON schema check passed or retry succeeded)
 - [ ] Stage 5 interestingness artifact written

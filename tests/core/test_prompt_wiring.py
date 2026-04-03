@@ -67,6 +67,7 @@ COMMAND_SPAWN_TOKENS = {
         "gpd-review-reader",
         "gpd-review-literature",
         "gpd-review-math",
+        "gpd-check-proof",
         "gpd-review-physics",
         "gpd-review-significance",
         "gpd-referee",
@@ -74,22 +75,25 @@ COMMAND_SPAWN_TOKENS = {
 }
 
 WORKFLOW_SPAWN_TOKENS = {
+    "derive-equation.md": ["gpd-check-proof"],
     "explain.md": ["gpd-explainer", "gpd-bibliographer"],
     "plan-phase.md": ["gpd-phase-researcher", "gpd-planner", "gpd-plan-checker", "gpd-experiment-designer"],
     "execute-phase.md": [
         "gpd-executor",
+        "gpd-check-proof",
         "gpd-debugger",
         "gpd-verifier",
         "gpd-consistency-checker",
         "gpd-notation-coordinator",
         "gpd-experiment-designer",
     ],
-    "verify-work.md": ["gpd-planner", "gpd-plan-checker"],
+    "verify-work.md": ["gpd-check-proof", "gpd-planner", "gpd-plan-checker"],
     "write-paper.md": ["gpd-paper-writer", "gpd-bibliographer", "gpd-referee"],
     "peer-review.md": [
         "gpd-review-reader",
         "gpd-review-literature",
         "gpd-review-math",
+        "gpd-check-proof",
         "gpd-review-physics",
         "gpd-review-significance",
         "gpd-referee",
@@ -191,6 +195,13 @@ AGENT_REFERENCE_TOKENS = {
     ],
     "gpd-review-math.md": [
         "references/shared/shared-protocols.md",
+        "references/physics-subfields.md",
+        "references/verification/core/verification-core.md",
+        "references/publication/peer-review-panel.md",
+    ],
+    "gpd-check-proof.md": [
+        "references/shared/shared-protocols.md",
+        "references/orchestration/agent-infrastructure.md",
         "references/physics-subfields.md",
         "references/verification/core/verification-core.md",
         "references/publication/peer-review-panel.md",
@@ -477,6 +488,7 @@ def test_agents_reference_expected_shared_specs() -> None:
 def test_review_commands_expose_typed_contracts() -> None:
     write_paper = registry.get_command("gpd:write-paper")
     peer_review = registry.get_command("peer-review")
+    arxiv_submission = registry.get_command("arxiv-submission")
     verify_work = registry.get_command("verify-work")
     respond_to_referees = registry.get_command("respond-to-referees")
 
@@ -488,6 +500,7 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "GPD/REFEREE-REPORT{round_suffix}.md" in write_paper.review_contract.required_outputs
     assert "GPD/REFEREE-REPORT{round_suffix}.tex" in write_paper.review_contract.required_outputs
     assert "manuscript" in write_paper.review_contract.preflight_checks
+    assert "manuscript_proof_review" in write_paper.review_contract.preflight_checks
 
     assert peer_review.review_contract is not None
     assert peer_review.review_contract.review_mode == "publication"
@@ -497,6 +510,7 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "GPD/review/STAGE-interestingness{round_suffix}.json" in peer_review.review_contract.required_outputs
     assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in peer_review.review_contract.required_outputs
     assert "manuscript" in peer_review.review_contract.preflight_checks
+    assert "manuscript_proof_review" in peer_review.review_contract.preflight_checks
     assert peer_review.review_contract.stage_ids == [
         "reader",
         "literature",
@@ -516,7 +530,47 @@ def test_review_commands_expose_typed_contracts() -> None:
         "GPD/review/REVIEW-LEDGER{round_suffix}.json",
         "GPD/review/REFEREE-DECISION{round_suffix}.json",
     ]
+    assert [
+        {
+            "when": requirement.when,
+            "required_outputs": list(requirement.required_outputs),
+            "required_evidence": list(requirement.required_evidence),
+            "blocking_conditions": list(requirement.blocking_conditions),
+            "stage_artifacts": list(requirement.stage_artifacts),
+        }
+        for requirement in peer_review.review_contract.conditional_requirements
+    ] == [
+        {
+            "when": "theorem-bearing claims are present",
+            "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            "required_evidence": [],
+            "blocking_conditions": [],
+            "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+        }
+    ]
     assert peer_review.review_contract.final_decision_output == "GPD/review/REFEREE-DECISION{round_suffix}.json"
+
+    assert arxiv_submission.review_contract is not None
+    assert arxiv_submission.review_contract.review_mode == "publication"
+    assert "manuscript_proof_review" in arxiv_submission.review_contract.preflight_checks
+    assert [
+        {
+            "when": requirement.when,
+            "required_outputs": list(requirement.required_outputs),
+            "required_evidence": list(requirement.required_evidence),
+            "blocking_conditions": list(requirement.blocking_conditions),
+            "stage_artifacts": list(requirement.stage_artifacts),
+        }
+        for requirement in arxiv_submission.review_contract.conditional_requirements
+    ] == [
+        {
+            "when": "theorem-bearing manuscripts are present",
+            "required_outputs": [],
+            "required_evidence": ["cleared manuscript proof review for theorem-bearing manuscripts"],
+            "blocking_conditions": ["missing or stale manuscript proof review for theorem-bearing manuscripts"],
+            "stage_artifacts": [],
+        }
+    ]
 
     assert verify_work.review_contract is not None
     assert verify_work.review_contract.required_state == "phase_executed"
@@ -532,6 +586,29 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "gpd:write-paper" in registry.list_review_commands()
     assert "gpd:respond-to-referees" in registry.list_review_commands()
     assert "gpd:verify-work" in registry.list_review_commands()
+
+
+def test_conditional_review_contract_requirements_do_not_hide_runtime_blockers() -> None:
+    peer_review = registry.get_command("peer-review").review_contract
+    arxiv_submission = registry.get_command("arxiv-submission").review_contract
+
+    assert peer_review is not None
+    assert arxiv_submission is not None
+    assert peer_review.conditional_requirements == [
+        registry.ReviewContractConditionalRequirement(
+            when="theorem-bearing claims are present",
+            required_outputs=["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            stage_artifacts=["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+        )
+    ]
+    assert arxiv_submission.conditional_requirements == [
+        registry.ReviewContractConditionalRequirement(
+            when="theorem-bearing manuscripts are present",
+            required_evidence=["cleared manuscript proof review for theorem-bearing manuscripts"],
+            blocking_conditions=["missing or stale manuscript proof review for theorem-bearing manuscripts"],
+        )
+    ]
+    assert "manuscript_proof_review" in arxiv_submission.preflight_checks
 
 
 def test_representative_commands_expose_expected_context_modes() -> None:
@@ -655,9 +732,17 @@ def test_publication_commands_accept_documented_manuscript_layouts() -> None:
         assert 'files: ["paper/*.tex", "paper/*.md", "manuscript/*.tex", "manuscript/*.md", "draft/*.tex", "draft/*.md"]' in content
     assert 'files: ["paper/*.tex", "manuscript/*.tex", "draft/*.tex"]' in arxiv
 
-    assert "peer-review review ledger when available" in arxiv
-    assert "peer-review referee decision when available" in arxiv
-    assert "latest `REVIEW-LEDGER{round_suffix}.json` / `REFEREE-DECISION{round_suffix}.json` outcome" in arxiv
+    assert "conditional_requirements:" in peer_review
+    assert "when: theorem-bearing claims are present" in peer_review
+    assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in peer_review
+    assert "gpd-check-proof" in peer_review
+    assert "conditional_requirements:" in arxiv
+    assert "when: theorem-bearing manuscripts are present" in arxiv
+    assert "cleared manuscript proof review for theorem-bearing manuscripts" in arxiv
+    assert "latest peer-review review ledger" in arxiv
+    assert "latest peer-review referee decision" in arxiv
+    assert "latest staged review decision" in arxiv
+    assert "manuscript proof-review status before packaging begins" in arxiv
     assert "resolve only from `paper/`, `manuscript/`, or `draft/`" in arxiv
     assert 'find . -name "main.tex"' not in arxiv
 

@@ -13,6 +13,7 @@ from gpd.contracts import (
     ContractResults,
     ProjectContractParseResult,
     ResearchContract,
+    collect_plan_contract_integrity_errors,
     contract_from_data,
     contract_from_data_salvage,
     normalize_contract_results_input,
@@ -1210,6 +1211,56 @@ def test_contract_results_strict_mode_rejects_scalar_string_list_drift(
         ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
 
 
+def test_contract_results_strict_mode_rejects_proof_audit_without_explicit_completeness() -> None:
+    payload = {
+        "claims": {
+            "claim-main": {
+                "status": "passed",
+                "proof_audit": {
+                    "covered_hypothesis_ids": [],
+                    "missing_hypothesis_ids": [],
+                },
+            }
+        },
+        "uncertainty_markers": {
+            "weakest_anchors": ["anchor-main"],
+            "disconfirming_observations": ["observation-main"],
+        },
+    }
+
+    with pytest.raises(
+        ValidationError,
+        match=re.escape(
+            "claims.claim-main.proof_audit.completeness must be explicit in contract-backed contract_results"
+        ),
+    ):
+        ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
+
+
+def test_contract_results_strict_mode_rejects_scalar_proof_audit_string_lists() -> None:
+    payload = {
+        "claims": {
+            "claim-main": {
+                "status": "passed",
+                "proof_audit": {
+                    "completeness": "incomplete",
+                    "covered_parameter_symbols": "r_0",
+                },
+            }
+        },
+        "uncertainty_markers": {
+            "weakest_anchors": ["anchor-main"],
+            "disconfirming_observations": ["observation-main"],
+        },
+    }
+
+    with pytest.raises(
+        ValidationError,
+        match=re.escape("claims.claim-main.proof_audit.covered_parameter_symbols must be a list, not str"),
+    ):
+        ContractResults.model_validate(normalize_contract_results_input(payload, strict=True))
+
+
 def test_contract_results_non_strict_mode_is_rejected() -> None:
     payload = {
         "claims": {
@@ -1240,12 +1291,144 @@ def test_plan_contract_schema_uses_supported_contract_enum_values() -> None:
     assert "kind: paper | dataset | prior_artifact | spec | user_anchor | other" in schema_text
     assert "role: definition | benchmark | method | must_consider | background | other" in schema_text
     assert (
-        "kind: existence | schema | benchmark | consistency | cross_method | limiting_case | symmetry | dimensional_analysis | convergence | oracle | proxy | reproducibility | human_review | other"
+        "kind: existence | schema | benchmark | consistency | cross_method | limiting_case | symmetry | dimensional_analysis | convergence | oracle | proxy | reproducibility | proof_hypothesis_coverage | proof_parameter_coverage | proof_quantifier_domain | claim_to_proof_alignment | lemma_dependency_closure | counterexample_search | human_review | other"
         in schema_text
     )
-    assert "relation: supports | computes | visualizes | benchmarks | depends_on | evaluated_by | other" in schema_text
+    assert (
+        "relation: supports | computes | visualizes | benchmarks | depends_on | evaluated_by | proves | uses_hypothesis | depends_on_lemma | other"
+        in schema_text
+    )
     assert "prior_phase" not in schema_text
     assert "method_anchor" not in schema_text
+
+
+def test_collect_plan_contract_integrity_errors_requires_proof_specific_acceptance_tests() -> None:
+    contract = ResearchContract.model_validate(
+        {
+            "scope": {"question": "Prove the r_0 theorem"},
+            "context_intake": {
+                "must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"],
+            },
+            "observables": [
+                {
+                    "id": "obs-proof",
+                    "name": "r_0 theorem obligation",
+                    "kind": "proof_obligation",
+                    "definition": "Prove the theorem for all r_0 >= 0 and x > 0",
+                }
+            ],
+            "claims": [
+                {
+                    "id": "claim-proof",
+                    "statement": "For all x > 0 and r_0 >= 0, F(x, r_0) >= 0.",
+                    "claim_kind": "theorem",
+                    "observables": ["obs-proof"],
+                    "deliverables": ["deliv-proof"],
+                    "acceptance_tests": ["test-existence"],
+                    "parameters": [{"symbol": "r_0", "domain_or_type": "nonnegative real"}],
+                    "hypotheses": [{"id": "hyp-r0", "text": "r_0 >= 0", "symbols": ["r_0"]}],
+                    "conclusion_clauses": [{"id": "concl-main", "text": "F(x, r_0) >= 0"}],
+                    "proof_deliverables": ["deliv-proof"],
+                }
+            ],
+            "deliverables": [
+                {
+                    "id": "deliv-proof",
+                    "kind": "derivation",
+                    "path": "derivations/theorem-proof.tex",
+                    "description": "Detailed proof artifact",
+                }
+            ],
+            "acceptance_tests": [
+                {
+                    "id": "test-existence",
+                    "subject": "claim-proof",
+                    "kind": "existence",
+                    "procedure": "Check that the proof file exists",
+                    "pass_condition": "The proof file is present",
+                }
+            ],
+            "forbidden_proxies": [
+                {
+                    "id": "fp-proof",
+                    "subject": "claim-proof",
+                    "proxy": "Numerical spot checks instead of a proof",
+                    "reason": "Would miss dropped parameters or assumptions",
+                }
+            ],
+            "uncertainty_markers": {
+                "weakest_anchors": ["The proof audit still needs full coverage"],
+                "disconfirming_observations": ["A counterexample at r_0 > 0 invalidates the theorem"],
+            },
+        }
+    )
+
+    errors = collect_plan_contract_integrity_errors(contract)
+
+    assert "claim claim-proof missing proof-specific acceptance_tests" in errors
+
+
+def test_collect_plan_contract_integrity_errors_requires_theorem_inventory_for_proof_bearing_claims() -> None:
+    contract = ResearchContract.model_validate(
+        {
+            "scope": {"question": "Can the theorem be proved as stated?"},
+            "context_intake": {"must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"]},
+            "observables": [
+                {
+                    "id": "obs-proof",
+                    "name": "proof obligation",
+                    "kind": "proof_obligation",
+                    "definition": "Prove the theorem for every named parameter",
+                }
+            ],
+            "claims": [
+                {
+                    "id": "claim-proof",
+                    "statement": "For all r_0 >= 0, F(r_0) >= 0.",
+                    "claim_kind": "theorem",
+                    "observables": ["obs-proof"],
+                    "deliverables": ["deliv-proof"],
+                    "acceptance_tests": ["test-proof-align"],
+                    "proof_deliverables": ["deliv-proof"],
+                }
+            ],
+            "deliverables": [
+                {
+                    "id": "deliv-proof",
+                    "kind": "derivation",
+                    "path": "derivations/theorem-proof.tex",
+                    "description": "Detailed theorem proof",
+                }
+            ],
+            "acceptance_tests": [
+                {
+                    "id": "test-proof-align",
+                    "subject": "claim-proof",
+                    "kind": "claim_to_proof_alignment",
+                    "procedure": "Audit the theorem against the proof",
+                    "pass_condition": "No theorem parameter or hypothesis is silently dropped",
+                }
+            ],
+            "forbidden_proxies": [
+                {
+                    "id": "fp-proof",
+                    "subject": "claim-proof",
+                    "proxy": "Centered subcase only",
+                    "reason": "Would silently specialize away r_0",
+                }
+            ],
+            "uncertainty_markers": {
+                "weakest_anchors": ["The theorem inventory is still incomplete."],
+                "disconfirming_observations": ["A proof that drops r_0 invalidates the claim."],
+            },
+        }
+    )
+
+    errors = collect_plan_contract_integrity_errors(contract)
+
+    assert "claim claim-proof missing parameters for proof-bearing claim" in errors
+    assert "claim claim-proof missing hypotheses for proof-bearing claim" in errors
+    assert "claim claim-proof missing conclusion_clauses for proof-bearing claim" in errors
 
 
 def test_plan_contract_schema_example_values_validate_against_research_contract_model() -> None:
@@ -1318,6 +1501,97 @@ def test_plan_contract_schema_example_values_validate_against_research_contract_
     assert parsed.references[0].role == "benchmark"
     assert parsed.acceptance_tests[0].kind == "benchmark"
     assert parsed.links[0].relation == "supports"
+
+
+def test_research_contract_accepts_structured_theorem_claim_fields() -> None:
+    contract = {
+        "scope": {"question": "Prove the full r_0 theorem without silently dropping parameters"},
+        "context_intake": {
+            "must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"],
+        },
+        "observables": [
+            {
+                "id": "obs-proof",
+                "name": "Theorem proof obligation",
+                "kind": "proof_obligation",
+                "definition": "Establish the theorem for all r_0 >= 0 and x > 0",
+            }
+        ],
+        "claims": [
+            {
+                "id": "claim-proof",
+                "statement": "For all x > 0 and r_0 >= 0, F(x, r_0) >= 0.",
+                "claim_kind": "theorem",
+                "observables": ["obs-proof"],
+                "deliverables": ["deliv-proof"],
+                "acceptance_tests": ["test-proof-alignment", "test-counterexample"],
+                "parameters": [
+                    {"symbol": "r_0", "domain_or_type": "nonnegative real", "aliases": ["r0"]},
+                    {"symbol": "x", "domain_or_type": "positive real"},
+                ],
+                "hypotheses": [
+                    {"id": "hyp-r0", "text": "r_0 >= 0", "symbols": ["r_0"]},
+                    {"id": "hyp-x", "text": "x > 0", "symbols": ["x"]},
+                ],
+                "quantifiers": ["for all x > 0", "for all r_0 >= 0"],
+                "conclusion_clauses": [{"id": "concl-main", "text": "F(x, r_0) >= 0"}],
+                "proof_deliverables": ["deliv-proof"],
+            }
+        ],
+        "deliverables": [
+            {
+                "id": "deliv-proof",
+                "kind": "derivation",
+                "path": "derivations/theorem-proof.tex",
+                "description": "Detailed theorem proof artifact",
+            }
+        ],
+        "acceptance_tests": [
+            {
+                "id": "test-proof-alignment",
+                "subject": "claim-proof",
+                "kind": "claim_to_proof_alignment",
+                "procedure": "Red-team the theorem statement against the proof body",
+                "pass_condition": "Every hypothesis, parameter, and conclusion clause is accounted for",
+            },
+            {
+                "id": "test-counterexample",
+                "subject": "claim-proof",
+                "kind": "counterexample_search",
+                "procedure": "Search for counterexamples over the stated parameter regime",
+                "pass_condition": "No counterexample is found over the stated domain",
+            },
+        ],
+        "forbidden_proxies": [
+            {
+                "id": "fp-proof",
+                "subject": "claim-proof",
+                "proxy": "Proving only the r_0 = 0 subcase and claiming the full theorem",
+                "reason": "Would silently drop a named theorem parameter",
+            }
+        ],
+        "links": [
+            {
+                "id": "link-proof",
+                "source": "deliv-proof",
+                "target": "claim-proof",
+                "relation": "proves",
+                "verified_by": ["test-proof-alignment"],
+            }
+        ],
+        "uncertainty_markers": {
+            "weakest_anchors": ["Counterexample search coverage is only as strong as the explored regime"],
+            "disconfirming_observations": ["A valid counterexample at r_0 > 0 invalidates the theorem"],
+        },
+    }
+
+    parsed = ResearchContract.model_validate(contract)
+
+    assert parsed.claims[0].claim_kind == "theorem"
+    assert parsed.claims[0].parameters[0].symbol == "r_0"
+    assert parsed.claims[0].hypotheses[0].id == "hyp-r0"
+    assert parsed.acceptance_tests[0].kind == "claim_to_proof_alignment"
+    assert parsed.links[0].relation == "proves"
 
 
 def test_state_json_schema_project_contract_example_is_validator_compatible() -> None:

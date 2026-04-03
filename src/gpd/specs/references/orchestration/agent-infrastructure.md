@@ -196,6 +196,7 @@ Canonical ownership matrix:
 | gpd-research-synthesizer | `orchestrator` | Returns `files_written`; orchestrator commits |
 | gpd-review-literature | `orchestrator` | Returns `files_written`; orchestrator commits |
 | gpd-review-math | `orchestrator` | Returns `files_written`; orchestrator commits |
+| gpd-check-proof | `orchestrator` | Returns `files_written`; orchestrator commits |
 | gpd-review-physics | `orchestrator` | Returns `files_written`; orchestrator commits |
 | gpd-review-reader | `orchestrator` | Returns `files_written`; orchestrator commits |
 | gpd-review-significance | `orchestrator` | Returns `files_written`; orchestrator commits |

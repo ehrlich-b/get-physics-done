@@ -1,5 +1,5 @@
 <purpose>
-Execute small, ad-hoc physics tasks with GPD guarantees (atomic commits and durable state updates) while skipping optional agents (literature search, plan-checker, verifier). Quick mode spawns gpd-planner (quick mode) + gpd-executor(s), tracks artifacts in `GPD/quick/`, and records completion through the structured state commands plus the quick-task summary files. Typical quick tasks include: quick derivation, dimensional check, order-of-magnitude estimate, limiting case verification, and bibliography lookup.
+Execute small, ad-hoc physics tasks with GPD guarantees (atomic commits and durable state updates) while skipping optional agents (literature search, plan-checker, verifier). Quick mode spawns gpd-planner (quick mode) + gpd-executor(s), tracks artifacts in `GPD/quick/`, and records completion through the structured state commands plus the quick-task summary files. Typical quick tasks include: quick derivation, dimensional check, order-of-magnitude estimate, limiting case verification, and bibliography lookup. Quick mode is NOT authorized to close theorem-style or `proof_obligation` work.
 </purpose>
 
 <required_reading>
@@ -54,6 +54,12 @@ Parse JSON for: `planner_model`, `executor_model`, `commit_docs`, `autonomy`, `n
 Quick tasks can run mid-phase and do NOT require ROADMAP.md. They only need `GPD/` to exist for directory structure.
 Quick mode still inherits the approved `project_contract` only when `project_contract_load_info` is clean and `project_contract_validation` passes, and it still inherits the active reference ledger. Do not bypass required anchors, baselines, or forbidden-proxy constraints just because the task is small.
 Before planning, also load `{GPD_INSTALL_DIR}/templates/planner-subagent-prompt.md`, `{GPD_INSTALL_DIR}/templates/phase-prompt.md`, and `{GPD_INSTALL_DIR}/templates/plan-contract-schema.md` so the canonical PLAN structure and contract rules are visible to the planner before it writes anything.
+
+**Proof-obligation command block:** If the description or inherited contract indicates theorem-style work (`proof_obligation`, `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `prove`, `show that`, `existence`, `uniqueness`), STOP instead of using quick mode. Do not bypass this by asking for a "quick sketch", "light proof", or "just the main idea". Route explicitly to:
+
+- `/gpd:plan-phase <phase>` when this belongs in planned phase work
+- `/gpd:derive-equation "<goal>"` when you need a derivation/proof draft
+- `/gpd:verify-work <phase>` only after a canonical proof-redteam artifact exists
 
 ---
 
@@ -110,6 +116,7 @@ Read the file at GPD/STATE.md
 - Quick tasks should be atomic and self-contained
 - No literature review phase, no checker phase
 - If `project_contract_load_info.status` starts with `blocked` or `project_contract_validation.valid` is false, return `## CHECKPOINT REACHED` instead of drafting a plan from guessed scope.
+- If the task is theorem-style or proof-bearing, return `## CHECKPOINT REACHED` and tell the user quick mode is blocked pending the full proof-redteam workflow.
 - Target ~30% context usage (simple, focused)
 </constraints>
 
@@ -162,6 +169,7 @@ Reference artifacts: {reference_artifacts_content}
 - Commit each task atomically
 - Create summary at: ${QUICK_DIR}/${next_num}-SUMMARY.md
 - Do NOT update ROADMAP.md (quick tasks are separate from planned phases)
+- If proof-bearing work slipped through planning, STOP and return the reroute instead of executing. Quick mode must not produce a proof result without the mandatory proof-redteam gate.
 </constraints>
 ",
   subagent_type="gpd-executor",

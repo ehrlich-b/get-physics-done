@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Literal, get_args
@@ -10,6 +11,7 @@ from typing import Annotated, Literal, get_args
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
 from gpd.mcp.paper.bibliography import BibliographyAudit
+from gpd.contracts import statement_looks_theorem_like
 
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 ClaimId = Annotated[str, Field(pattern=r"^CLM-[A-Za-z0-9][A-Za-z0-9_-]*$")]
@@ -144,6 +146,47 @@ class ReviewIssueStatus(StrEnum):
     resolved = "resolved"
 
 
+class ProofAuditStatus(StrEnum):
+    """Whether a theorem statement and its proof actually line up."""
+
+    aligned = "aligned"
+    partially_aligned = "partially_aligned"
+    misaligned = "misaligned"
+    not_applicable = "not_applicable"
+
+
+class ProofAuditRecord(BaseModel):
+    """Structured theorem-to-proof audit emitted by the math review stage."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    claim_id: ClaimId
+    theorem_assumptions_checked: list[str] = Field(default_factory=list)
+    theorem_parameters_checked: list[str] = Field(default_factory=list)
+    proof_locations: list[str] = Field(default_factory=list)
+    uncovered_assumptions: list[str] = Field(default_factory=list)
+    uncovered_parameters: list[str] = Field(default_factory=list)
+    coverage_gaps: list[str] = Field(default_factory=list)
+    alignment_status: ProofAuditStatus = ProofAuditStatus.not_applicable
+    notes: str = ""
+
+    @model_validator(mode="after")
+    def _aligned_audits_cannot_report_gaps(self) -> ProofAuditRecord:
+        if self.alignment_status != ProofAuditStatus.aligned:
+            return self
+        if not self.proof_locations:
+            raise ValueError("aligned proof_audits must include proof_locations")
+        if not self.theorem_assumptions_checked and not self.theorem_parameters_checked:
+            raise ValueError(
+                "aligned proof_audits must record at least one checked assumption or checked parameter"
+            )
+        if self.uncovered_assumptions or self.uncovered_parameters or self.coverage_gaps:
+            raise ValueError(
+                "aligned proof_audits cannot list uncovered assumptions, uncovered parameters, or coverage gaps"
+            )
+        return self
+
+
 class ClaimRecord(BaseModel):
     """Compact claim index emitted before specialist review passes."""
 
@@ -151,12 +194,24 @@ class ClaimRecord(BaseModel):
 
     claim_id: ClaimId
     claim_type: ClaimType
+    claim_kind: Literal["theorem", "lemma", "corollary", "proposition", "claim", "other"] = "other"
     text: str
     artifact_path: str
     section: str = ""
     equation_refs: list[str] = Field(default_factory=list)
     figure_refs: list[str] = Field(default_factory=list)
     supporting_artifacts: list[str] = Field(default_factory=list)
+    theorem_assumptions: list[str] = Field(default_factory=list)
+    theorem_parameters: list[str] = Field(default_factory=list)
+
+    @property
+    def theorem_bearing(self) -> bool:
+        return (
+            self.claim_kind in {"theorem", "lemma", "corollary", "proposition", "claim"}
+            or bool(self.theorem_assumptions)
+            or bool(self.theorem_parameters)
+            or statement_looks_theorem_like(self.text)
+        )
 
 
 class ClaimIndex(BaseModel):
@@ -210,6 +265,7 @@ class StageReviewReport(BaseModel):
     summary: str
     strengths: list[str] = Field(default_factory=list)
     findings: list[ReviewFinding] = Field(default_factory=list)
+    proof_audits: list[ProofAuditRecord] = Field(default_factory=list)
     confidence: ReviewConfidence
     recommendation_ceiling: ReviewRecommendation
 
@@ -226,6 +282,16 @@ class StageReviewReport(BaseModel):
         expected_stage_id = self.stage_kind.value
         if self.stage_id != expected_stage_id:
             raise ValueError(f"stage_id must equal stage_kind ({expected_stage_id})")
+        return self
+
+    @model_validator(mode="after")
+    def _proof_audit_claim_ids_must_be_unique(self) -> StageReviewReport:
+        proof_audit_claim_ids = [audit.claim_id for audit in self.proof_audits]
+        duplicates = sorted(
+            claim_id for claim_id, count in Counter(proof_audit_claim_ids).items() if count > 1
+        )
+        if duplicates:
+            raise ValueError("proof_audits must not repeat claim_id values: " + ", ".join(duplicates))
         return self
 
 

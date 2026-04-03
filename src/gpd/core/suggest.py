@@ -227,10 +227,10 @@ def _format_command(action: str, *, cwd: Path | None = None) -> str:
         from gpd.adapters import get_adapter
         from gpd.hooks.runtime_detect import (
             RUNTIME_UNKNOWN,
-            detect_active_runtime_with_gpd_install,
+            detect_local_runtime_with_gpd_install,
         )
 
-        runtime = detect_active_runtime_with_gpd_install(cwd=cwd)
+        runtime = detect_local_runtime_with_gpd_install(cwd=cwd)
         if runtime == RUNTIME_UNKNOWN:
             return _format_local_cli_command(action)
         return get_adapter(runtime).format_command(action)
@@ -410,6 +410,41 @@ def _latest_referee_decision_recommendation(cwd: Path) -> str | None:
         return None
     normalized = recommendation.strip().lower()
     return normalized or None
+
+
+def _latest_referee_decision_allows_submission(cwd: Path) -> bool:
+    review_dir = _planning_dir(cwd) / "review"
+    if not review_dir.is_dir():
+        return False
+
+    decision_by_round: dict[int, Path] = {}
+    for path in sorted(review_dir.glob("REFEREE-DECISION*.json")):
+        details = _review_artifact_round(path, pattern=_REFEREE_DECISION_FILENAME_RE)
+        if details is not None:
+            decision_by_round[details[0]] = path
+
+    if not decision_by_round:
+        return False
+
+    latest_round = max(decision_by_round)
+    try:
+        payload = json.loads(decision_by_round[latest_round].read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+
+    recommendation = payload.get("final_recommendation")
+    if not isinstance(recommendation, str):
+        return False
+    normalized = recommendation.strip().lower()
+    if normalized not in {"accept", "minor_revision"}:
+        return False
+
+    blocking_issue_ids = payload.get("blocking_issue_ids")
+    if blocking_issue_ids is None:
+        return True
+    if not isinstance(blocking_issue_ids, list):
+        return False
+    return not any(isinstance(issue_id, str) and issue_id.strip() for issue_id in blocking_issue_ids)
 
 
 def _has_referee_report(cwd: Path) -> bool:
@@ -772,6 +807,7 @@ def suggest_next(cwd: Path, *, limit: int = 5) -> SuggestResult:
     has_latex_manuscript = manuscript_entrypoint is not None and manuscript_entrypoint.suffix == ".tex"
     has_lit_review = _has_literature_review(cwd)
     has_referee = _has_referee_report(cwd)
+    submission_ready_review = _latest_referee_decision_allows_submission(cwd)
 
     ctx_kwargs["has_paper"] = has_paper_flag
     ctx_kwargs["has_literature_review"] = has_lit_review
@@ -803,7 +839,18 @@ def suggest_next(cwd: Path, *, limit: int = 5) -> SuggestResult:
 
     # 13b. Paper exists → suggest submission or referee response
     if has_paper_flag:
-        if has_referee:
+        if submission_ready_review and has_latex_manuscript:
+            suggestions.append(
+                _MutableRecommendation(
+                    action="arxiv-submission",
+                    priority=3,
+                    command=format_command("arxiv-submission"),
+                    reason=(
+                        "Latest peer-review decision clears submission packaging — prepare the LaTeX manuscript for arXiv"
+                    ),
+                )
+            )
+        elif has_referee:
             suggestions.append(
                 _MutableRecommendation(
                     action="respond-to-referees",
@@ -821,18 +868,6 @@ def suggest_next(cwd: Path, *, limit: int = 5) -> SuggestResult:
                     reason="Paper draft exists — run standalone peer review before submission packaging",
                 )
             )
-            if has_latex_manuscript:
-                suggestions.append(
-                    _MutableRecommendation(
-                        action="arxiv-submission",
-                        priority=5,
-                        command=format_command("arxiv-submission"),
-                        reason=(
-                            "LaTeX paper draft exists — prepare for arXiv submission "
-                            "(validates LaTeX, flattens bibliography, packages)"
-                        ),
-                    )
-                )
 
     # ── 14. No phases at all → need to plan ─────────────────────────────
     if not phase_analysis and roadmap_exists:

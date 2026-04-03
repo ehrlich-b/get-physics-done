@@ -501,7 +501,7 @@ def test_markdown_manuscript_is_not_treated_as_new_project(tmp_path: Path) -> No
 
 
 def test_paper_exists_suggests_peer_review_before_submission(tmp_path: Path) -> None:
-    """Paper draft suggests peer review before arXiv submission."""
+    """Paper draft suggests peer review and does not suggest arXiv before review clears."""
     root = _setup_project(tmp_path)
     _create_roadmap(root)
     (root / "paper").mkdir()
@@ -509,10 +509,7 @@ def test_paper_exists_suggests_peer_review_before_submission(tmp_path: Path) -> 
     result = suggest_next(root)
     actions = [s.action for s in result.suggestions]
     assert "peer-review" in actions
-    assert "arxiv-submission" in actions
-    peer_review = next(s for s in result.suggestions if s.action == "peer-review")
-    arxiv_submission = next(s for s in result.suggestions if s.action == "arxiv-submission")
-    assert peer_review.priority < arxiv_submission.priority
+    assert "arxiv-submission" not in actions
     assert result.context.has_paper is True
 
 
@@ -574,7 +571,48 @@ def test_author_response_and_accepted_decision_clear_referee_response_suggestion
     actions = [s.action for s in result.suggestions]
 
     assert "respond-to-referees" not in actions
+    assert "peer-review" not in actions
+    assert "arxiv-submission" in actions
+
+
+def test_blocking_accepted_decision_does_not_suggest_arxiv_submission(tmp_path: Path) -> None:
+    root = _setup_project(tmp_path)
+    _create_roadmap(root)
+    (root / "paper").mkdir()
+    (root / "paper" / "main.tex").write_text("\\documentclass{article}\n", encoding="utf-8")
+    (root / "GPD" / "AUTHOR-RESPONSE.md").write_text("Responses incorporated.\n", encoding="utf-8")
+    review_dir = root / "GPD" / "review"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    (review_dir / "REFEREE-DECISION.json").write_text(
+        '{"final_recommendation":"accept","blocking_issue_ids":["REF-001"]}\n',
+        encoding="utf-8",
+    )
+
+    result = suggest_next(root)
+    actions = [s.action for s in result.suggestions]
+
+    assert "arxiv-submission" not in actions
     assert "peer-review" in actions
+
+
+def test_accepted_review_decision_overrides_referee_response_with_submission(tmp_path: Path) -> None:
+    root = _setup_project(tmp_path)
+    _create_roadmap(root)
+    (root / "paper").mkdir()
+    (root / "paper" / "main.tex").write_text("\\documentclass{article}\n", encoding="utf-8")
+    (root / "GPD" / "REFEREE-REPORT.md").write_text("Accepted.\n", encoding="utf-8")
+    review_dir = root / "GPD" / "review"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    (review_dir / "REFEREE-DECISION.json").write_text(
+        '{"final_recommendation":"accept","blocking_issue_ids":[]}\n',
+        encoding="utf-8",
+    )
+
+    result = suggest_next(root)
+    actions = [s.action for s in result.suggestions]
+
+    assert "respond-to-referees" not in actions
+    assert "peer-review" not in actions
     assert "arxiv-submission" in actions
 
 

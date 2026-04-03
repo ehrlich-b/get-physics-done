@@ -319,6 +319,19 @@ def detect_active_runtime_with_gpd_install(*, cwd: Path | None = None, home: Pat
     return resolve_effective_runtime(cwd=cwd, home=home, require_gpd_install=True).runtime
 
 
+def detect_local_runtime_with_gpd_install(*, cwd: Path | None = None, home: Path | None = None) -> str:
+    """Detect a workspace-local runtime install without falling back to globals."""
+    resolved_cwd = cwd or Path.cwd()
+    resolved_home = home or Path.home()
+    active_runtime = detect_active_runtime(cwd=resolved_cwd, home=resolved_home)
+
+    for runtime in _prioritized_runtimes(active_runtime if active_runtime in ALL_RUNTIMES else None):
+        local_dir = _local_runtime_dir(runtime, resolved_cwd)
+        if _has_gpd_install(local_dir, cwd=resolved_cwd, home=resolved_home):
+            return runtime
+    return RUNTIME_UNKNOWN
+
+
 def detect_runtime_for_gpd_use(*, cwd: Path | None = None, home: Path | None = None) -> str:
     """Return the runtime GPD should target for installed surfaces.
 
@@ -720,6 +733,7 @@ __all__ = [
     "detect_install_scope",
     "detect_active_runtime",
     "detect_active_runtime_with_gpd_install",
+    "detect_local_runtime_with_gpd_install",
     "detect_runtime_for_gpd_use",
     "detect_runtime_install_target",
     "get_cache_dirs",

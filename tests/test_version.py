@@ -66,3 +66,22 @@ def test_resolve_active_version_prefers_cwd_checkout_version(tmp_path: Path) -> 
     nested.mkdir(parents=True)
 
     assert gpd_version.resolve_active_version(nested) == "9.9.9"
+
+
+def test_resolve_checkout_python_prefers_checkout_local_virtualenv(tmp_path: Path) -> None:
+    repo_root = _make_checkout(tmp_path, "9.9.9")
+    nested = repo_root / "research" / "project"
+    nested.mkdir(parents=True)
+    checkout_python = repo_root / ".venv" / "bin" / "python"
+    checkout_python.parent.mkdir(parents=True)
+    checkout_python.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+
+    assert gpd_version.resolve_checkout_python(nested, fallback="/managed/python") == str(checkout_python)
+
+
+def test_resolve_checkout_python_falls_back_when_checkout_has_no_local_virtualenv(tmp_path: Path) -> None:
+    repo_root = _make_checkout(tmp_path, "9.9.9")
+    nested = repo_root / "research" / "project"
+    nested.mkdir(parents=True)
+
+    assert gpd_version.resolve_checkout_python(nested, fallback="/managed/python") == "/managed/python"

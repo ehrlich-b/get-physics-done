@@ -254,7 +254,8 @@ def test_contract_tools_reject_blank_scalar_to_list_drift() -> None:
                 "error": (
                     "metadata contains unsupported keys: unexpected; supported keys are "
                     "regime_label, expected_behavior, source_reference_id, declared_family, allowed_families, "
-                    "forbidden_families"
+                    "forbidden_families, theorem_parameter_symbols, hypothesis_ids, quantifiers, "
+                    "conclusion_clause_ids, claim_statement"
                 ),
                 "schema_version": 1,
             },
@@ -270,7 +271,9 @@ def test_contract_tools_reject_blank_scalar_to_list_drift() -> None:
                     "observed contains unsupported keys: unexpected; supported keys are "
                     "limit_passed, observed_limit, metric_value, threshold_value, proxy_only, direct_available, "
                     "proxy_available, consistency_passed, selected_family, competing_family_checked, bias_checked, "
-                    "calibration_checked"
+                    "calibration_checked, covered_hypothesis_ids, missing_hypothesis_ids, "
+                    "covered_parameter_symbols, missing_parameter_symbols, uncovered_quantifiers, "
+                    "uncovered_conclusion_clause_ids, quantifier_status, scope_status, counterexample_status"
                 ),
                 "schema_version": 1,
             },

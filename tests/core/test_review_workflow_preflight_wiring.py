@@ -40,8 +40,9 @@ def test_arxiv_submission_workflow_runs_centralized_review_preflight() -> None:
     assert "gpd validate review-preflight arxiv-submission --strict" in workflow
     assert "Strict preflight also requires `ARTIFACT-MANIFEST.json` and `BIBLIOGRAPHY-AUDIT.json` beside the resolved manuscript entry point." in workflow
     assert "not from legacy `GPD/paper/` copies or some other manuscript directory" in workflow
-    assert "strict preflight treats the latest round-specific pair as authoritative submission-gate input" in workflow
+    assert "Strict preflight also requires the latest round-specific `GPD/review/REVIEW-LEDGER*.json` / `GPD/review/REFEREE-DECISION*.json` pair as authoritative submission-gate input." in workflow
     assert "latest recommendation is `accept` or `minor_revision` with no unresolved blocking issues" in workflow
+    assert "`manuscript_proof_review` must also already be cleared" in workflow
     assert "The same resolved manuscript root is also the strict preflight source of truth for `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`, and the compiled PDF." in workflow
     assert "If `$ARGUMENTS` specifies a `.tex` file, set `resolved_main_tex` to that file" in workflow
     assert "main.tex` under that directory" in workflow

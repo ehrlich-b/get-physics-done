@@ -45,6 +45,8 @@ Parse `$ARGUMENTS` for specific check flags:
 - `--all` or no flags — Run full verification suite
 
 This allows targeted verification without running the full suite.
+
+Targeted flags narrow the optional check mix only. They do NOT waive mandatory proof red-teaming for proof-bearing or `proof_obligation` work.
 </step>
 
 <step name="initialize" priority="first">
@@ -100,6 +102,55 @@ If review preflight exits nonzero because the project state is missing or not ye
 If `project_contract_load_info.status` starts with `blocked`, STOP and show the surfaced `project_contract_load_info.errors` / `warnings` before verification. Do not infer contract intent from prose-only artifacts when the stored contract payload could not be loaded cleanly.
 
 If `project_contract_validation.valid` is false, STOP and show `project_contract_validation.errors` before verification. A visible-but-blocked contract must be repaired before it is used as authoritative verification scope.
+</step>
+
+<step name="proof_obligation_gate">
+Detect whether the selected phase contains proof-bearing work before finalizing the check inventory.
+
+Treat the phase as proof-bearing when any of the following are true:
+
+- the approved contract or plan contract includes an observable or claim with kind `proof_obligation`
+- the phase goal, plan contract, or artifacts mention `theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `prove`, `show that`, `existence`, or `uniqueness`
+- a derivation artifact is being used as a formal proof whose correctness depends on explicit coverage of named hypotheses, parameters, or quantifiers
+
+If ambiguous, default to proof-bearing.
+
+For proof-bearing work:
+
+- require a canonical `*-PROOF-REDTEAM.md` artifact for each proof-bearing plan or derivation
+- read that artifact before presenting any researcher-facing "passed" outcome
+- confirm it inventories theorem text, named parameters, hypotheses, quantifier/domain obligations, conclusion clauses, and at least one adversarial special-case or counterexample probe
+- treat missing artifact, missing coverage inventory, or `status != passed` as a blocking gap
+- do not let `--dimensional`, `--limits`, `--convergence`, exploratory mode, or manual urgency waive this gate
+
+When runtime delegation is available and a required proof-redteam artifact is missing, malformed, or stale, spawn `gpd-check-proof` once before finalizing the gap ledger:
+
+```bash
+CHECK_PROOF_MODEL=$(gpd resolve-model gpd-check-proof)
+```
+
+```
+task(
+  subagent_type="gpd-check-proof",
+  model="{check_proof_model}",
+  readonly=false,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-check-proof.md for your role and instructions.
+
+Operate in proof-redteam remediation mode with a fresh context.
+
+Write to the missing or stale sibling `*-PROOF-REDTEAM.md` artifact for the proof-bearing target under review.
+
+Files to read:
+- The proof-bearing plan or derivation artifact
+- The current verification artifact
+- Supporting summary / verification / contract artifacts for this phase
+
+Reconstruct the exact theorem inventory before judging the proof. Do not self-repair missing assumptions or narrowed scope silently.",
+  description="Proof redteam remediation for phase {phase_number}"
+)
+```
+
+If `gpd-check-proof` still cannot produce a passed audit, keep the verification status fail-closed.
 </step>
 
 <step name="load_anchor_context">
@@ -201,6 +252,7 @@ Parse for:
 4. **Reference actions** - Must-read anchors that require read / compare / cite / reproduce actions
 5. **Forbidden proxies** - Outputs that would look like progress but do not establish success
 6. **Suggested contract checks** - Decisive checks the verifier thinks should exist if the contract is incomplete
+7. **Proof-redteam evidence** - Required `*-PROOF-REDTEAM.md` artifacts for theorem-style or `proof_obligation` work
 
 Focus on VERIFIABLE RESEARCH OUTCOMES the researcher can recognize in the phase promise, not implementation details. Use contract IDs (`claim_id`, `deliverable_id`, `acceptance_test_id`, `reference_id`, `forbidden_proxy_id`) as canonical names throughout the verification file.
 If a contract item is only meaningful as an internal process milestone, do not make it a researcher-facing check; map it to the user-visible claim or deliverable it was supposed to establish, or drop it from validation.
@@ -222,6 +274,7 @@ Rules:
 - If the contract lacks an obvious decisive check, create a structured `suggested_contract_checks` entry with a short rationale instead of silently dropping the concern.
 - Only create `suggested_contract_checks` entries for obvious decisive gaps on user-visible targets, not for paperwork preferences or generic workflow niceties.
 - Each `suggested_contract_checks` entry must stay structured: `check`, `reason`, optional paired `suggested_subject_kind` + `suggested_subject_id` when the gap can be bound to a known contract target, and `evidence_path`. If no target is known yet, omit both keys instead of leaving one blank.
+- For proof-bearing checks, create explicit validation records for theorem statement coverage, parameter coverage, hypothesis coverage, quantifier/domain coverage, conclusion-clause coverage, and special-case / counterexample probes. A theorem parameter that never appears in the proof is a failure, not a style issue.
 
 **Examples with computational verification:**
 
@@ -258,6 +311,8 @@ Skip internal/non-observable items (code refactors, file reorganization, checkli
 **Code output requirement:** The final verification artifact must contain at least one fenced code block showing actual execution output. A verification report with only text analysis and zero computational evidence is INCOMPLETE. If the pre-computation step produces no code outputs, flag the verification as incomplete before presenting to the researcher.
 
 These 3 minimum checks must be among the checks presented to the researcher, even when the exploratory profile reduces the total check count.
+
+For proof-bearing or `proof_obligation` work, an additional mandatory floor applies: every required `*-PROOF-REDTEAM.md` artifact must exist, must include theorem-coverage tables plus an adversarial probe, and must report `status: passed` before the verification session may end at `status: passed`.
 </step>
 
 <step name="precompute_checks">
@@ -314,6 +369,7 @@ If no existing verification artifact exists, create a new one from scratch.
 Build check list from extracted contract-backed checks, including computational test specifications.
 Checks with non-empty `comparison_kind` are decisive and must end with either a recorded `comparison_verdict` or a recorded gap before the file can finish. Exploratory or partial verification is allowed to end at `inconclusive` or `tension`; it is not allowed to imply a pass from suggestive but non-decisive evidence.
 If a decisive benchmark / cross-method check remains `partial`, `not_attempted`, or still lacks a decisive verdict, add a structured `suggested_contract_checks` entry before final validation. Do not replace that ledger with prose.
+If proof-bearing work is present, mirror missing or open proof-redteam audits into the verification gaps. Never let the frontmatter `status` be `passed` while any required `*-PROOF-REDTEAM.md` artifact is missing, malformed, or reports `gaps_found` / `human_needed`.
 
 If the PLAN has a `contract`, every body check in this file must carry the relevant `check_subject_kind`, `subject_id`, `claim_id`, `deliverable_id`, `acceptance_test_id`, `reference_ids`, and `forbidden_proxy_id` when applicable.
 Mirror decisive verdicts into frontmatter `comparison_verdicts`. The body `## Comparison Verdicts` section is a readable summary, not a substitute for the frontmatter ledger consumed by validation and downstream publication tooling.

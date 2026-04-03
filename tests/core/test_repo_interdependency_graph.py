@@ -143,16 +143,16 @@ def test_graph_captures_staged_review_panel_wiring() -> None:
 
     assert graph_has_edge(
         "src/gpd/commands/peer-review.md",
-        "src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md",
+        "src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md",
         graph,
     )
     assert graph_has_edge(
         "src/gpd/specs/workflows/peer-review.md",
-        "src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md",
+        "src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md",
         graph,
     )
     assert graph_has_edge(
-        "src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md",
+        "src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md",
         "src/gpd/specs/references/publication/peer-review-panel.md",
         graph,
     )
