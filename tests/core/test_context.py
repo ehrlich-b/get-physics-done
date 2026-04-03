@@ -1310,6 +1310,41 @@ class TestInitNewProject:
         ctx = init_new_project(tmp_path)
         assert ctx["has_project_manifest"] is True
 
+    def test_detects_topic_stem_manuscript_entrypoint_without_main_tex(self, tmp_path: Path) -> None:
+        manuscript_dir = tmp_path / "paper"
+        manuscript_dir.mkdir()
+        (manuscript_dir / "curvature_flow_bounds.tex").write_text(
+            "\\documentclass{article}\\begin{document}Hi\\end{document}\n",
+            encoding="utf-8",
+        )
+        (manuscript_dir / "ARTIFACT-MANIFEST.json").write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "paper_title": "Curvature Flow Bounds",
+                    "journal": "jhep",
+                    "created_at": "2026-04-02T00:00:00+00:00",
+                    "artifacts": [
+                        {
+                            "artifact_id": "tex-paper",
+                            "category": "tex",
+                            "path": "curvature_flow_bounds.tex",
+                            "sha256": "0" * 64,
+                            "produced_by": "test",
+                            "sources": [],
+                            "metadata": {},
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        ctx = init_new_project(tmp_path)
+
+        assert ctx["has_project_manifest"] is True
+        assert ctx["has_existing_project"] is True
+
     def test_surfaces_project_contract_state_and_validation(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
         _write_project_contract_state(tmp_path)

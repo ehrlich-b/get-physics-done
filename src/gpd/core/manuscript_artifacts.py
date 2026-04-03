@@ -21,8 +21,6 @@ __all__ = [
 
 
 _MANUSCRIPT_ROOTS = ("paper", "manuscript", "draft")
-_LEGACY_MANUSCRIPT_TEXT_BASENAMES = ("main.tex",)
-_LEGACY_MANUSCRIPT_MARKDOWN_BASENAMES = ("main.md",)
 _REPRODUCIBILITY_MANIFEST_FILENAMES = (
     "reproducibility-manifest.json",
     "REPRODUCIBILITY-MANIFEST.json",
@@ -88,16 +86,6 @@ def _configured_manuscript_entrypoint(manuscript_root: Path, *, allow_markdown: 
     return None
 
 
-def _legacy_manuscript_entrypoint(manuscript_root: Path, *, allow_markdown: bool) -> Path | None:
-    candidates = [manuscript_root / basename for basename in _LEGACY_MANUSCRIPT_TEXT_BASENAMES]
-    if allow_markdown:
-        candidates.extend(manuscript_root / basename for basename in _LEGACY_MANUSCRIPT_MARKDOWN_BASENAMES)
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return None
-
-
 def resolve_manuscript_entrypoint_from_root(manuscript_root: Path, *, allow_markdown: bool = True) -> Path | None:
     """Resolve the manuscript entrypoint within one manuscript root directory."""
 
@@ -106,7 +94,6 @@ def resolve_manuscript_entrypoint_from_root(manuscript_root: Path, *, allow_mark
     return (
         _manifest_manuscript_entrypoint(manuscript_root, allow_markdown=allow_markdown)
         or _configured_manuscript_entrypoint(manuscript_root, allow_markdown=allow_markdown)
-        or _legacy_manuscript_entrypoint(manuscript_root, allow_markdown=allow_markdown)
     )
 
 

@@ -25,7 +25,7 @@ from gpd.core.frontmatter import (
     _validate_contract_mapping,
     extract_frontmatter,
 )
-from gpd.core.manuscript_artifacts import resolve_current_manuscript_root
+from gpd.core.manuscript_artifacts import resolve_current_manuscript_artifacts
 from gpd.core.paper_quality import (
     BinaryCheck,
     CitationsQualityInput,
@@ -126,7 +126,9 @@ def _load_json(path: Path) -> dict[str, object]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _load_artifact_manifest(path: Path) -> ArtifactManifest | None:
+def _load_artifact_manifest(path: Path | None) -> ArtifactManifest | None:
+    if path is None or not path.exists():
+        return None
     payload = _load_json(path)
     if not payload:
         return None
@@ -136,7 +138,9 @@ def _load_artifact_manifest(path: Path) -> ArtifactManifest | None:
         return None
 
 
-def _load_bibliography_audit(path: Path) -> BibliographyAudit | None:
+def _load_bibliography_audit(path: Path | None) -> BibliographyAudit | None:
+    if path is None or not path.exists():
+        return None
     payload = _load_json(path)
     if not payload:
         return None
@@ -189,17 +193,6 @@ def _collect_tex_content(paper_dir: Path) -> tuple[list[Path], str]:
     return tex_files, "\n".join(bodies)
 
 
-def _resolve_manuscript_dir(project_root: Path) -> Path:
-    active_manuscript_root = resolve_current_manuscript_root(project_root, allow_markdown=True)
-    if active_manuscript_root is not None:
-        return active_manuscript_root
-    for name in ("paper", "manuscript", "draft"):
-        candidate = project_root / name
-        if candidate.exists():
-            return candidate
-    return project_root / "paper"
-
-
 def _first_existing_path(*candidates: Path) -> Path | None:
     for candidate in candidates:
         if candidate.exists():
@@ -210,14 +203,6 @@ def _first_existing_path(*candidates: Path) -> Path | None:
 def _load_manuscript_config(manuscript_dir: Path) -> dict[str, object]:
     config_path = _first_existing_path(manuscript_dir / "PAPER-CONFIG.json", manuscript_dir / "paper-config.json")
     return _load_json(config_path) if config_path is not None else {}
-
-
-def _resolve_manuscript_publication_artifacts(project_root: Path) -> tuple[Path, ArtifactManifest | None, BibliographyAudit | None, dict[str, object]]:
-    manuscript_dir = _resolve_manuscript_dir(project_root)
-    artifact_manifest = _load_artifact_manifest(manuscript_dir / "ARTIFACT-MANIFEST.json")
-    paper_config = _load_manuscript_config(manuscript_dir)
-    bibliography_audit = _load_bibliography_audit(manuscript_dir / "BIBLIOGRAPHY-AUDIT.json")
-    return manuscript_dir, artifact_manifest, bibliography_audit, paper_config
 
 
 def _derivation_artifacts(project_root: Path) -> list[Path]:
@@ -681,7 +666,11 @@ def build_paper_quality_input(project_root: Path) -> PaperQualityInput:
     """Build a conservative :class:`PaperQualityInput` from project artifacts."""
 
     root = Path(project_root)
-    paper_dir, artifact_manifest, bibliography_audit, paper_config = _resolve_manuscript_publication_artifacts(root)
+    manuscript_artifacts = resolve_current_manuscript_artifacts(root, allow_markdown=True)
+    paper_dir = manuscript_artifacts.manuscript_root or root / "paper"
+    artifact_manifest = _load_artifact_manifest(manuscript_artifacts.artifact_manifest)
+    bibliography_audit = _load_bibliography_audit(manuscript_artifacts.bibliography_audit)
+    paper_config = _load_manuscript_config(paper_dir)
 
     tex_files, tex_content = _collect_tex_content(paper_dir)
     title = (

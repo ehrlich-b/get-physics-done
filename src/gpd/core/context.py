@@ -49,6 +49,7 @@ from gpd.core.constants import (
 from gpd.core.continuation import ContinuationResumeSource, resolve_continuation
 from gpd.core.errors import ValidationError
 from gpd.core.extras import approximation_list
+from gpd.core.manuscript_artifacts import resolve_current_manuscript_entrypoint
 from gpd.core.phases import _milestone_completion_snapshot
 from gpd.core.project_reentry import resolve_project_reentry
 from gpd.core.proof_review import (
@@ -2157,7 +2158,7 @@ def init_new_project(cwd: Path) -> dict:
         _path_exists(cwd, "requirements.txt")
         or _path_exists(cwd, "pyproject.toml")
         or _path_exists(cwd, "Makefile")
-        or _path_exists(cwd, "main.tex")
+        or resolve_current_manuscript_entrypoint(cwd) is not None
     )
 
     return {

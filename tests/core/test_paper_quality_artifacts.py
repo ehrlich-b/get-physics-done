@@ -38,9 +38,22 @@ def _full_convention_lock() -> dict[str, str]:
     }
 
 
+def _paper_config_payload(title: str, journal: str, *, output_filename: str | None = None) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "title": title,
+        "authors": [{"name": "A. Researcher"}],
+        "abstract": f"{title} abstract.",
+        "sections": [{"heading": "Introduction", "content": "Intro."}],
+        "journal": journal,
+    }
+    if output_filename is not None:
+        payload["output_filename"] = output_filename
+    return payload
+
+
 def test_build_paper_quality_input_reads_contract_and_comparison_artifacts(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "benchmark_paper.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -63,7 +76,17 @@ The benchmark was recovered within tolerance.
                 "paper_title": "Benchmark Paper",
                 "journal": "jhep",
                 "created_at": "2026-03-13T00:00:00+00:00",
-                "artifacts": [],
+                "artifacts": [
+                    {
+                        "artifact_id": "tex-paper",
+                        "category": "tex",
+                        "path": "benchmark_paper.tex",
+                        "sha256": "0" * 64,
+                        "produced_by": "test",
+                        "sources": [],
+                        "metadata": {},
+                    }
+                ],
             }
         ),
     )
@@ -88,6 +111,10 @@ The benchmark was recovered within tolerance.
                 ],
             }
         ),
+    )
+    _write(
+        tmp_path / "paper" / "PAPER-CONFIG.json",
+        json.dumps(_paper_config_payload("Benchmark Paper", "jhep")),
     )
     _write(
         tmp_path / "paper" / "FIGURE_TRACKER.md",
@@ -174,12 +201,12 @@ def test_build_paper_quality_input_falls_back_to_supported_config_journal_when_m
     tmp_path: Path,
 ) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "config_fallback_title.tex",
         "\\documentclass{article}\\begin{document}\\begin{abstract}Fallback test.\\end{abstract}\\section{Introduction}Intro.\\section{Conclusion}Done.\\end{document}\n",
     )
     _write(
         tmp_path / "paper" / "PAPER-CONFIG.json",
-        json.dumps({"title": "Config Fallback Title", "journal": "jhep"}),
+        json.dumps(_paper_config_payload("Config Fallback Title", "jhep")),
     )
     _write(
         tmp_path / "paper" / "ARTIFACT-MANIFEST.json",
@@ -308,7 +335,7 @@ contract_results:
 
 def test_build_paper_quality_input_is_conservative_when_artifacts_are_missing(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "curvature_flow_bounds.tex",
         "\\documentclass{article}\\begin{document}\\section{Introduction}Only intro.\\end{document}\n",
     )
 
@@ -329,7 +356,7 @@ def test_build_paper_quality_input_surfaces_convention_lock_and_derivation_asser
     tmp_path: Path,
 ) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "curvature_flow_bounds.tex",
         "\\documentclass{article}\\begin{document}\\section{Introduction}Intro.\\section{Conclusion}Done.\\end{document}\n",
     )
     _write(
@@ -356,7 +383,7 @@ def test_build_paper_quality_input_counts_only_matching_derivation_assertions(
     tmp_path: Path,
 ) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "curvature_flow_bounds.tex",
         "\\documentclass{article}\\begin{document}\\section{Introduction}Intro.\\section{Conclusion}Done.\\end{document}\n",
     )
     _write(
@@ -387,7 +414,7 @@ def test_build_paper_quality_input_counts_python_and_tex_derivation_artifacts(
     tmp_path: Path,
 ) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "curvature_flow_bounds.tex",
         "\\documentclass{article}\\begin{document}\\section{Introduction}Intro.\\section{Conclusion}Done.\\end{document}\n",
     )
     _write(
@@ -416,7 +443,7 @@ def test_build_paper_quality_input_counts_python_and_tex_derivation_artifacts(
 
 def test_build_paper_quality_input_ignores_invalid_artifact_manifest_and_falls_back_to_config(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "curvature_flow_bounds.tex",
         "\\documentclass{article}\\begin{document}\\section{Introduction}Intro.\\section{Conclusion}Done.\\end{document}\n",
     )
     _write(
@@ -444,7 +471,7 @@ def test_build_paper_quality_input_ignores_invalid_artifact_manifest_and_falls_b
 
 def test_build_paper_quality_input_ignores_invalid_bibliography_audit(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "curvature_flow_bounds.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -539,7 +566,7 @@ comparison_verdicts:
 
 def test_build_paper_quality_input_reads_manuscript_dir_and_config_title(tmp_path: Path) -> None:
     _write(
-        tmp_path / "manuscript" / "main.tex",
+        tmp_path / "manuscript" / "config_title.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -556,7 +583,7 @@ Done.
     )
     _write(
         tmp_path / "manuscript" / "PAPER-CONFIG.json",
-        json.dumps({"title": "Config Title", "journal": "jhep"}),
+        json.dumps(_paper_config_payload("Config Title", "jhep")),
     )
     _write(
         tmp_path / "manuscript" / "refs.bib",
@@ -574,7 +601,7 @@ Done.
 def test_build_paper_quality_input_uses_active_manuscript_root_and_lowercase_config(tmp_path: Path) -> None:
     (tmp_path / "paper").mkdir()
     _write(
-        tmp_path / "manuscript" / "main.tex",
+        tmp_path / "manuscript" / "lowercase_config_title.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -591,7 +618,7 @@ Done.
     )
     _write(
         tmp_path / "manuscript" / "paper-config.json",
-        json.dumps({"title": "Lowercase Config Title", "journal": "jhep"}),
+        json.dumps(_paper_config_payload("Lowercase Config Title", "jhep")),
     )
     _write(
         tmp_path / "manuscript" / "refs.bib",
@@ -630,7 +657,7 @@ figure_registry:
 
 def test_build_paper_quality_input_surfaces_current_manuscript_reference_status(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "reference_bridge_test.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -644,6 +671,10 @@ Done.
 \end{document}
 """.strip()
         + "\n",
+    )
+    _write(
+        tmp_path / "paper" / "PAPER-CONFIG.json",
+        json.dumps(_paper_config_payload("Reference Bridge Test", "jhep")),
     )
     _write(
         tmp_path / "paper" / "BIBLIOGRAPHY-AUDIT.json",
@@ -680,7 +711,7 @@ Done.
 
 def test_build_paper_quality_input_checks_cited_keys_against_available_bibliography(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "benchmark_result.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -694,6 +725,10 @@ Done.
 \end{document}
 """.strip()
         + "\n",
+    )
+    _write(
+        tmp_path / "paper" / "PAPER-CONFIG.json",
+        json.dumps(_paper_config_payload("Benchmark Result", "jhep")),
     )
     _write(
         tmp_path / "paper" / "BIBLIOGRAPHY-AUDIT.json",
@@ -726,7 +761,7 @@ Done.
 
 def test_build_paper_quality_input_merges_comparison_artifact_scope_details(tmp_path: Path) -> None:
     _write(
-        tmp_path / "paper" / "main.tex",
+        tmp_path / "paper" / "comparison_summary.tex",
         r"""
 \documentclass{article}
 \begin{document}
@@ -740,6 +775,10 @@ The benchmark remains under active tension.
 \end{document}
 """.strip()
         + "\n",
+    )
+    _write(
+        tmp_path / "paper" / "PAPER-CONFIG.json",
+        json.dumps(_paper_config_payload("Comparison Summary", "jhep")),
     )
     _write(
         tmp_path / "paper" / "FIGURE_TRACKER.md",

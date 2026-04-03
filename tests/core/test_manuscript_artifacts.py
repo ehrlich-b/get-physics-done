@@ -95,10 +95,42 @@ def test_locate_publication_artifact_accepts_named_entrypoint_path(tmp_path: Pat
     assert locate_publication_artifact(manuscript, "ARTIFACT-MANIFEST.json") == tmp_path / "draft" / "ARTIFACT-MANIFEST.json"
 
 
-def test_resolve_current_manuscript_artifacts_falls_back_to_legacy_main_entrypoint(tmp_path: Path) -> None:
+def test_resolve_current_manuscript_artifacts_does_not_fall_back_to_legacy_main_entrypoint(
+    tmp_path: Path,
+) -> None:
     _write(tmp_path / "draft" / "main.tex", "\\documentclass{article}\\begin{document}Hi\\end{document}\n")
 
-    assert resolve_current_manuscript_entrypoint(tmp_path) == tmp_path / "draft" / "main.tex"
+    assert resolve_current_manuscript_entrypoint(tmp_path) is None
+
+
+def test_resolve_current_manuscript_artifacts_requires_manifest_or_config_for_topic_stem_entrypoint(
+    tmp_path: Path,
+) -> None:
+    _write(tmp_path / "draft" / "curvature_flow_bounds.tex", "\\documentclass{article}\\begin{document}Hi\\end{document}\n")
+    _write(
+        tmp_path / "draft" / "ARTIFACT-MANIFEST.json",
+        json.dumps(
+            {
+                "version": 1,
+                "paper_title": "Curvature Flow Bounds",
+                "journal": "jhep",
+                "created_at": "2026-04-02T00:00:00+00:00",
+                "artifacts": [
+                    {
+                        "artifact_id": "tex-draft",
+                        "category": "tex",
+                        "path": "curvature_flow_bounds.tex",
+                        "sha256": "0" * 64,
+                        "produced_by": "test",
+                        "sources": [],
+                        "metadata": {},
+                    }
+                ],
+            }
+        ),
+    )
+
+    assert resolve_current_manuscript_entrypoint(tmp_path) == tmp_path / "draft" / "curvature_flow_bounds.tex"
 
 
 def test_resolve_current_manuscript_artifacts_returns_none_when_missing(tmp_path: Path) -> None:
