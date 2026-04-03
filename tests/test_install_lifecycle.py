@@ -22,6 +22,7 @@ from typer.testing import CliRunner
 from gpd.adapters import get_adapter, iter_runtime_descriptors
 from gpd.adapters.install_utils import MANIFEST_NAME, build_runtime_cli_bridge_command, file_hash
 from gpd.cli import app
+from tests.runtime_test_support import runtime_primary_config_filename
 
 _RUNTIME_DESCRIPTORS = iter_runtime_descriptors()
 _ALL_RUNTIMES = tuple(descriptor.runtime_name for descriptor in _RUNTIME_DESCRIPTORS)
@@ -961,7 +962,7 @@ def test_clean_local_uninstall_removes_gpd_owned_runtime_artifacts(tmp_path: Pat
     install_kwargs = _install_kwargs_for_runtime(tmp_path, runtime, is_global=False)
     _install_and_finalize(adapter, gpd_root, target, **install_kwargs)
 
-    if runtime == "codex":
+    if "skills/" in adapter.runtime_descriptor.manifest_file_prefixes:
         adapter.uninstall(target, skills_dir=install_kwargs["skills_dir"])
         skills_dir = Path(str(install_kwargs["skills_dir"]))
         assert not skills_dir.exists()
@@ -979,14 +980,9 @@ def test_clean_local_uninstall_removes_gpd_owned_runtime_artifacts(tmp_path: Pat
     assert not (target / "hooks").exists()
     assert not (target / "cache").exists()
     assert not (target / "get-physics-done").exists()
-
+    assert not (target / runtime_primary_config_filename(runtime)).exists()
     if runtime == "claude-code":
-        assert not (target / "settings.json").exists()
         assert not (tmp_path / ".mcp.json").exists()
-    elif runtime == "gemini":
-        assert not (target / "settings.json").exists()
-    elif runtime == "opencode":
-        assert not (target / "opencode.json").exists()
 
     assert not target.exists()
 

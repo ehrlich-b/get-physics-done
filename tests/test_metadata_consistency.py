@@ -313,6 +313,8 @@ def test_help_and_settings_surface_current_commit_docs_and_review_cadence_shapes
         assert "execution.review_cadence" in content
         assert "planning.commit_docs" in content
 
+    assert "needs-calculation" in help_workflow
+
 
 def test_execute_phase_docs_use_review_cadence_not_removed_verify_between_waves_knob() -> None:
     execute_command = _read("src/gpd/commands/execute-phase.md")
@@ -374,6 +376,8 @@ def test_referee_response_round_suffix_convention_is_consistent() -> None:
     assert 'ROUND_SUFFIX="-R3"' in peer_review
     assert "REFEREE_RESPONSE-R2.md" in respond
     assert "AUTHOR-RESPONSE-R2.md" in respond
+    assert "GPD/paper" not in respond
+    assert "needs-calculation" in respond
     assert "issues_needing_calculation" in author_response
     assert "needs-calculation" in author_response
     assert "templates/paper/author-response.md" in template
@@ -381,6 +385,8 @@ def test_referee_response_round_suffix_convention_is_consistent() -> None:
     assert "REFEREE_RESPONSE_R2.md" not in respond
     assert "REFEREE_RESPONSE_R2.md" not in template
     assert "paper/referee-reports" not in respond
+    assert "GPD/review/REFEREE_RESPONSE{ROUND_SUFFIX}.md" in peer_review
+    assert "${MANUSCRIPT_ROOT}/REFEREE_RESPONSE" not in peer_review
 
 
 def test_bibliography_template_tracks_live_references_bib_path() -> None:

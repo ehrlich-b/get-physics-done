@@ -664,6 +664,19 @@ def test_contract_ledgers_surface_forbidden_proxy_bindings_and_action_vocabulary
     assert "`GPD/phases/.../SUMMARY.md`" not in state_schema
 
 
+def test_prompt_visible_contracts_surface_literal_boolean_requirements() -> None:
+    plan_schema = (TEMPLATES_DIR / "plan-contract-schema.md").read_text(encoding="utf-8")
+    review_reader = (AGENTS_DIR / "gpd-review-reader.md").read_text(encoding="utf-8")
+    panel = (REFERENCES_DIR / "publication" / "peer-review-panel.md").read_text(encoding="utf-8")
+
+    assert "`required_in_proof` must be a literal JSON boolean (`true` or `false`)" in plan_schema
+    assert "not a quoted string or synonym such as `\"yes\"` / `\"no\"`" in plan_schema
+    assert "`blocking` must be a literal JSON boolean (`true` or `false`)" in review_reader
+    assert "not a quoted string or synonym such as `\"yes\"` / `\"no\"`" in review_reader
+    assert "`blocking` in each finding must be a literal JSON boolean (`true` or `false`)" in panel
+    assert "not a quoted string or synonym such as `\"yes\"` / `\"no\"`" in panel
+
+
 def test_referee_schema_and_panel_surface_strict_stage_artifact_naming_and_round_suffix_rules() -> None:
     referee_schema = (TEMPLATES_DIR / "paper" / "referee-decision-schema.md").read_text(encoding="utf-8")
     review_ledger_schema = (TEMPLATES_DIR / "paper" / "review-ledger-schema.md").read_text(encoding="utf-8")

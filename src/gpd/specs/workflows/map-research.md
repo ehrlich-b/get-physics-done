@@ -64,7 +64,7 @@ RESEARCH_MODE=$(gpd --raw config get research_mode 2>/dev/null | gpd json get .v
 - Use `reference_artifacts_content` when the existing literature/research-map artifacts already contain stable citations, prior-output paths, or benchmark wording that should be preserved verbatim.
 - Preserve stable anchor identity when you rewrite or merge references: every durable anchor in `REFERENCES.md` should carry a reusable `Anchor ID` and a concrete `Source / Locator`.
 - Keep workflow carry-forward scope separate from canonical contract subject linkage. `Carry Forward To` names workflow stages; if exact claim/deliverable IDs are known, record them in a dedicated `Contract Subject IDs` field instead of overloading the stage field.
-- Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes. If either gate is blocked, keep the contract visible as context but do not treat it as approved mapping truth.
+- Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. If the gate is blocked, keep the contract visible as context but do not treat it as approved mapping truth.
 </step>
 
 <step name="check_existing">
@@ -160,7 +160,7 @@ Project contract load info:
 Project contract validation:
 {project_contract_validation}
 
-If `project_contract` is present and `project_contract_load_info` is clean and `project_contract_validation` passes, use its existing IDs as the preferred canonical names for anchors and contract subject references:
+If `project_contract` is present and `project_contract_gate.authoritative` is true, use its existing IDs as the preferred canonical names for anchors and contract subject references:
 {project_contract}
 
 If the contract is blocked or not approved, keep it visible as context only and do not treat its IDs as authoritative mapping truth.

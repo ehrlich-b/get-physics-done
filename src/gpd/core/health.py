@@ -1230,13 +1230,13 @@ def normalize_permissions_readiness_payload(
             ):
                 if permissions_surface == "launch-wrapper":
                     next_step = (
-                        "Use `gpd:settings` inside the runtime for guided changes, or run "
+                        f"Use `{_doctor_active_runtime_settings_command()}` inside the runtime for guided changes, or run "
                         f"`gpd permissions sync --runtime {runtime_name} --autonomy {autonomy_value}` "
                         "from your normal system terminal to generate the launcher needed for the next session."
                     )
                 else:
                     next_step = (
-                        "Use `gpd:settings` inside the runtime for guided changes, or run "
+                        f"Use `{_doctor_active_runtime_settings_command()}` inside the runtime for guided changes, or run "
                         f"`gpd permissions sync --runtime {runtime_name} --autonomy {autonomy_value}` "
                         "from your normal system terminal."
                     )
@@ -1462,6 +1462,18 @@ def _doctor_check_runtime_launcher(runtime: str) -> HealthCheck:
         issues=issues,
         warnings=[] if launch_path else [f"Install or expose {descriptor.display_name} before running GPD there."],
     )
+
+
+def _doctor_active_runtime_settings_command(*, cwd: Path | None = None) -> str:
+    """Return the active runtime settings command, or the canonical local fallback."""
+    from gpd.adapters import get_adapter
+    from gpd.hooks.runtime_detect import detect_runtime_for_gpd_use
+
+    try:
+        runtime_name = detect_runtime_for_gpd_use(cwd=cwd)
+        return get_adapter(runtime_name).format_command("settings")
+    except Exception:
+        return "gpd:settings"
 
 
 def _doctor_runtime_install_issue(assessment: InstallTargetAssessment, runtime: str | None) -> str | None:

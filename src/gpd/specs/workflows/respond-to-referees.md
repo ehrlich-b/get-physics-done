@@ -234,10 +234,6 @@ Populate `GPD/AUTHOR-RESPONSE{round_suffix}.md` with:
 
 For later rounds, use the round-specific variants (for example `REFEREE_RESPONSE-R2.md` and `AUTHOR-RESPONSE-R2.md`).
 
-```bash
-mkdir -p GPD/paper
-```
-
 Commit the initial response file:
 
 ```bash

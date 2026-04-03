@@ -75,7 +75,7 @@ RESEARCH_MODE=$(gpd --raw config get research_mode 2>/dev/null | gpd json get .v
 - **If `state_exists` is false** (standalone usage): Proceed — the user will specify the topic directly.
 - Treat `effective_reference_intake` as the machine-readable carry-forward ledger for anchors, prior outputs, baselines, user-mandated context, and unresolved gaps. Re-surface those items in the review even if the broader search expands beyond them.
 - Use `reference_artifacts_content` as supporting evidence when existing literature/research-map artifacts already pin down benchmark values, prior outputs, or anchor wording that should remain stable.
-- Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes. If either gate is blocked, keep the contract visible as context but do not promote it to approved review truth.
+- Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. If the gate is blocked, keep the contract visible as context but do not promote it to approved review truth.
 
 Project context helps focus the review on conventions and methods relevant to the current research.
 </step>

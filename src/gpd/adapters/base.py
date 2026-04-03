@@ -236,12 +236,27 @@ class RuntimeAdapter(abc.ABC):
             content = strip_sub_tags(content)
         return convert_tool_references_in_body(content, self.tool_reference_translation_map())
 
+    def commit_attribution_config_path(self, *, explicit_config_dir: str | None = None) -> Path | None:
+        """Return the runtime-owned config file that stores commit attribution.
+
+        Runtimes expose this through their own install contract instead of a
+        shared filename assumption, so the lookup stays adapter-driven.
+        """
+        config_dir = self.resolve_global_config_dir()
+        if explicit_config_dir:
+            config_dir = Path(explicit_config_dir).expanduser()
+        for relpath in self.runtime_install_required_relpaths():
+            relpath_path = Path(relpath)
+            if relpath_path.suffix in {".json", ".jsonc", ".toml", ".yaml", ".yml"}:
+                return config_dir / relpath_path
+        return None
+
     def get_commit_attribution(self, *, explicit_config_dir: str | None = None) -> str | None:
         """Return commit attribution override for this runtime."""
-        settings_path = self.resolve_global_config_dir() / "settings.json"
-        if explicit_config_dir:
-            settings_path = Path(explicit_config_dir).expanduser() / "settings.json"
-        return process_settings_commit_attribution(settings_path)
+        config_path = self.commit_attribution_config_path(explicit_config_dir=explicit_config_dir)
+        if config_path is None:
+            return None
+        return process_settings_commit_attribution(config_path)
 
     @property
     def runtime_descriptor(self):

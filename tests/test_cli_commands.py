@@ -20,7 +20,6 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors, list_runtime_names
 from gpd.cli import app
 from gpd.core.recent_projects import record_recent_project
@@ -62,14 +61,14 @@ _SLASH_COMMAND_DESCRIPTOR = next(
 def codex_command_prefix(monkeypatch: pytest.MonkeyPatch) -> str:
     """Force the CLI preflight helpers to resolve the Codex runtime."""
     monkeypatch.setattr("gpd.cli.detect_runtime_for_gpd_use", lambda cwd=None: _DOLLAR_COMMAND_DESCRIPTOR.runtime_name)
-    return get_adapter(_DOLLAR_COMMAND_DESCRIPTOR.runtime_name).command_prefix
+    return _DOLLAR_COMMAND_DESCRIPTOR.public_command_surface_prefix
 
 
 @pytest.fixture()
 def claude_code_command_prefix(monkeypatch: pytest.MonkeyPatch) -> str:
     """Force the CLI preflight helpers to resolve the Claude Code runtime."""
     monkeypatch.setattr("gpd.cli.detect_runtime_for_gpd_use", lambda cwd=None: _SLASH_COMMAND_DESCRIPTOR.runtime_name)
-    return get_adapter(_SLASH_COMMAND_DESCRIPTOR.runtime_name).command_prefix
+    return _SLASH_COMMAND_DESCRIPTOR.public_command_surface_prefix
 
 
 @pytest.fixture()
@@ -1759,7 +1758,7 @@ class TestReviewValidationCommands:
         assert payload["command"] == "gpd:map-research"
         assert payload["context_mode"] == "projectless"
         assert payload["passed"] is True
-        assert payload["public_runtime_command_prefix"] == "$gpd-"
+        assert payload["public_runtime_command_prefix"] == codex_command_prefix
         assert f"public command surface rooted at `{codex_command_prefix}`" in payload["dispatch_note"]
 
     def test_command_context_start_passes_without_project(
@@ -1778,7 +1777,7 @@ class TestReviewValidationCommands:
         assert payload["command"] == "gpd:start"
         assert payload["context_mode"] == "projectless"
         assert payload["passed"] is True
-        assert payload["public_runtime_command_prefix"] == "$gpd-"
+        assert payload["public_runtime_command_prefix"] == codex_command_prefix
         assert f"public command surface rooted at `{codex_command_prefix}`" in payload["dispatch_note"]
 
     def test_command_context_tour_passes_without_project(
@@ -1797,7 +1796,7 @@ class TestReviewValidationCommands:
         assert payload["command"] == "gpd:tour"
         assert payload["context_mode"] == "projectless"
         assert payload["passed"] is True
-        assert payload["public_runtime_command_prefix"] == "$gpd-"
+        assert payload["public_runtime_command_prefix"] == codex_command_prefix
         assert f"public command surface rooted at `{codex_command_prefix}`" in payload["dispatch_note"]
 
     @pytest.mark.parametrize("command_name", ["health", "suggest-next"])
@@ -1832,7 +1831,7 @@ class TestReviewValidationCommands:
         payload = json.loads(result.output)
         assert payload["command"] == command_name
         assert payload["validated_surface"] == "public_runtime_dollar_command"
-        assert payload["public_runtime_command_prefix"] == "$gpd-"
+        assert payload["public_runtime_command_prefix"] == codex_command_prefix
         assert payload["local_cli_equivalence_guaranteed"] is False
         assert f"public command surface rooted at `{codex_command_prefix}`" in payload["dispatch_note"]
         assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
@@ -1853,7 +1852,7 @@ class TestReviewValidationCommands:
         payload = json.loads(result.output)
         assert payload["command"] == command_name
         assert payload["validated_surface"] == "public_runtime_slash_command"
-        assert payload["public_runtime_command_prefix"] == "/gpd:"
+        assert payload["public_runtime_command_prefix"] == claude_code_command_prefix
         assert payload["local_cli_equivalence_guaranteed"] is False
         assert f"public command surface rooted at `{claude_code_command_prefix}`" in payload["dispatch_note"]
         assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
@@ -1881,6 +1880,23 @@ class TestReviewValidationCommands:
         assert payload["local_cli_equivalence_guaranteed"] is False
         assert "the active runtime command surface" in payload["dispatch_note"]
         assert "same-name local `gpd` subcommand" in payload["dispatch_note"]
+
+    def test_config_set_autonomy_guided_path_uses_runtime_command_helper(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, codex_command_prefix: str
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+
+        result = runner.invoke(
+            app,
+            ["--raw", "config", "set", "autonomy", '"balanced"'],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        assert payload["guided_path"] == (
+            f"Use `{codex_command_prefix}settings` inside the runtime for guided autonomy changes."
+        )
 
     def test_command_context_slides_passes_without_project(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -1935,7 +1951,7 @@ class TestReviewValidationCommands:
         assert result.exit_code == 0, result.output
         payload = json.loads(result.output)
         assert payload["validated_surface"] == "public_runtime_dollar_command"
-        assert payload["public_runtime_command_prefix"] == "$gpd-"
+        assert payload["public_runtime_command_prefix"] == codex_command_prefix
         assert payload["local_cli_equivalence_guaranteed"] is False
         assert f"public command surface rooted at `{codex_command_prefix}`" in payload["dispatch_note"]
         assert payload["conditional_requirements"] == [

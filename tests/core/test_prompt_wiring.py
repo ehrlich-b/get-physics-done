@@ -1029,7 +1029,7 @@ def test_progress_workflow_surfaces_contract_load_and_validation_state() -> None
 
     assert "project_contract_validation" in workflow_text
     assert "project_contract_load_info" in workflow_text
-    assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in workflow_text
+    assert "authoritative only when `project_contract_gate.authoritative` is true" in workflow_text
     assert "structured load status, warnings, and blockers for the contract" in workflow_text
     status_scan = 'grep -l -E "^(status: (gaps_found|human_needed|expert_needed)|session_status: diagnosed)$"'
     assert status_scan in workflow_text
@@ -1133,7 +1133,7 @@ def test_reference_workflows_require_anchor_registry_propagation() -> None:
     assert "contract-critical anchors" in literature_workflow
     assert "project_contract_load_info" in literature_workflow
     assert "project_contract_validation" in literature_workflow
-    assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in literature_workflow
+    assert "authoritative only when `project_contract_gate.authoritative` is true" in literature_workflow
     assert "include `bibtex_key` only when it is already known and verified" in literature_workflow
     assert "Active Anchor Registry" in literature_command
     assert "active_anchors" in literature_agent
@@ -1147,13 +1147,13 @@ def test_reference_workflows_require_anchor_registry_propagation() -> None:
     assert "project_contract_load_info" in compare_workflow
     assert "project_contract_validation" in compare_workflow
     assert "active_reference_context" in compare_workflow
-    assert "Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes." in compare_workflow
+    assert "Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true." in compare_workflow
     assert "active_reference_context" in map_workflow
     assert "effective_reference_intake" in map_workflow
     assert "project_contract_load_info" in map_workflow
     assert "project_contract_validation" in map_workflow
     assert "reference_artifacts_content" in map_workflow
-    assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in map_workflow
+    assert "authoritative only when `project_contract_gate.authoritative` is true" in map_workflow
     assert "Contract-critical anchors, decisive benchmarks, prior artifacts" in map_command
     assert "REFERENCES.md is an anchor registry" in mapper_agent
 
@@ -1196,7 +1196,7 @@ def test_audit_milestone_surfaces_contract_gate_and_milestone_review_namespace()
     assert "project_contract_load_info" in audit
     assert "project_contract_validation" in audit
     assert "active_reference_context" in audit
-    assert "Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes." in audit
+    assert "Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true." in audit
     assert "skip mock peer review and note that the contract gate must be repaired before milestone publishability review" in audit
     assert "GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.md" in audit
     assert "GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.tex" in audit
@@ -1350,7 +1350,7 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "comparison_verdicts" in compare_workflow
     assert "project_contract_load_info" in compare_workflow
     assert "project_contract_validation" in compare_workflow
-    assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in compare_workflow
+    assert "authoritative only when `project_contract_gate.authoritative` is true" in compare_workflow
     assert "selected_protocol_bundle_ids" in compare_workflow
     assert "protocol_bundle_context" in compare_workflow
     assert "active_reference_context" in compare_workflow
@@ -2241,9 +2241,9 @@ def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
     assert "session_platform" in resume_work
     assert "The recent-project list is advisory and machine-local" in resume_work
     assert "reloads that project's canonical state" in resume_work
-    assert "only when `project_contract_load_info` is clean and `project_contract_validation` passes" in resume_work
-    assert "records whether that contract loaded cleanly and what blocked it if not." in resume_work
-    assert "approval gate for treating the structured contract as authoritative" in resume_work
+    assert "only when `project_contract_gate.authoritative` is true" in resume_work
+    assert "remain visible gate inputs and diagnostics" in resume_work
+    assert "the structured contract stays visible for context, but it is not approved execution scope" in resume_work
     assert "Contract repair required:" in resume_work
     assert "Repair the blocked contract or state-integrity issue before planning or execution" in resume_work
 
@@ -2383,7 +2383,7 @@ def test_stage7_runtime_parity_docs_use_canonical_model_resolution_and_generic_h
     assert "project_contract_validation.valid" in quick
     assert "project_contract_validation" in quick
     assert "project_contract_load_info" in quick
-    assert "Quick mode still inherits the approved `project_contract` only when `project_contract_load_info` is clean and `project_contract_validation` passes" in quick
+    assert "Quick mode still inherits the approved `project_contract` only when `project_contract_gate.authoritative` is true" in quick
     assert "**Project Contract Load Info:** {project_contract_load_info}" in quick
     assert "**Project Contract Validation:** {project_contract_validation}" in quick
     assert "## CHECKPOINT REACHED" in quick
@@ -2508,9 +2508,7 @@ def test_stage9_adaptive_mode_and_review_cadence_docs_stay_aligned() -> None:
     assert "prior milestones already provide decisive evidence or an explicit approach lock" in new_milestone
     assert "project_contract_validation" in new_milestone
     assert "project_contract_load_info" in new_milestone
-    assert "project_contract_load_info.status" in new_milestone
-    assert "project_contract_validation.valid" in new_milestone
-    assert "only when `project_contract_load_info` is clean and `project_contract_validation.valid` is true" in new_milestone
+    assert "only when `project_contract_gate.authoritative` is true" in new_milestone
     assert "checkpoint with the user and repair the stored contract before using it for milestone scope" in new_milestone
     assert "same contract-critical floor at all times" in verify_work
     assert "phase 1-2" not in plan_phase

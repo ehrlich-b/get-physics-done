@@ -51,7 +51,7 @@ If `project_contract_load_info.status` starts with `blocked`, STOP and repair th
 
 If `project_contract_validation.valid` is false, STOP and repair the contract before executing. A visible-but-blocked contract is still not an approved execution contract.
 
-Treat `project_contract` as authoritative machine-readable scope only when present and `project_contract_validation.valid` is true. Do not execute from PLAN markdown alone if the contract or active-anchor ledger says a decisive reference, prior output, or forbidden proxy still constrains the work.
+Treat `project_contract` as authoritative machine-readable scope only when `project_contract_gate.authoritative` is true. Do not execute from PLAN markdown alone if the contract or active-anchor ledger says a decisive reference, prior output, or forbidden proxy still constrains the work.
 
 Treat `effective_reference_intake` as the structured carry-forward ledger for must-read refs, baselines, prior outputs, user anchors, and context gaps. Use `active_reference_context` and `reference_artifacts_content` to interpret that ledger quickly, not to replace it with prose-only reconstruction.
 </step>

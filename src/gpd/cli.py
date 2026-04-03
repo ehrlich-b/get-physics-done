@@ -4806,13 +4806,19 @@ def permissions_status(
     _output(_permissions_status_payload(runtime=runtime, autonomy=autonomy, target_dir=target_dir))
 
 
-@permissions_app.command("sync")
+@permissions_app.command(
+    "sync",
+    help=(
+        "Advanced: persist runtime-owned permission settings for the requested autonomy. "
+        "Use the runtime settings command for guided changes."
+    ),
+)
 def permissions_sync(
     runtime: str | None = typer.Option(None, "--runtime", help="Runtime name to update"),
     autonomy: str | None = typer.Option(None, "--autonomy", help="Autonomy to apply"),
     target_dir: str | None = typer.Option(None, "--target-dir", help="Explicit runtime config directory"),
 ) -> None:
-    """Advanced: persist runtime-owned permission settings for the requested autonomy. Use `gpd:settings` for guided changes."""
+    """Advanced: persist runtime-owned permission settings for the requested autonomy."""
     _output(
         _runtime_permissions_payload(
             runtime=runtime,
@@ -4879,7 +4885,9 @@ def config_set(
     _found, effective_value = effective_config_value(config, key)
     result: dict[str, object] = {"key": key, "canonical_key": canonical_key, "value": effective_value, "updated": True}
     if canonical_key == "autonomy":
-        result["guided_path"] = "Use `gpd:settings` inside the runtime for guided autonomy changes."
+        result["guided_path"] = (
+            f"Use `{_active_runtime_settings_command(cwd=_get_cwd())}` inside the runtime for guided autonomy changes."
+        )
         result["runtime_permissions"] = _runtime_permissions_payload(
             runtime=None,
             autonomy=str(effective_value),
@@ -5817,7 +5825,7 @@ def _active_runtime_command_prefix(*, cwd: Path | None = None) -> str | None:
 
     try:
         runtime_name = detect_runtime_for_gpd_use(cwd=cwd or _get_cwd())
-        return get_adapter(runtime_name).command_prefix
+        return get_adapter(runtime_name).runtime_descriptor.public_command_surface_prefix
     except Exception:
         return None
 
@@ -5842,6 +5850,11 @@ def _active_runtime_formatted_command(action: str, *, cwd: Path | None = None) -
         return get_adapter(runtime_name).format_command(action)
     except Exception:
         return None
+
+
+def _active_runtime_settings_command(*, cwd: Path | None = None) -> str:
+    """Return the active runtime's settings command, or the canonical local fallback."""
+    return _active_runtime_formatted_command("settings", cwd=cwd) or "gpd:settings"
 
 
 def _command_required_file_patterns(command: object) -> list[str]:

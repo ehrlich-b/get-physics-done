@@ -25,6 +25,7 @@ import pytest
 
 from gpd import registry
 from gpd.adapters import get_adapter, iter_runtime_descriptors
+from gpd.adapters.base import RuntimeAdapter
 from gpd.adapters.install_utils import (
     MANIFEST_NAME,
     expand_at_includes,
@@ -108,6 +109,24 @@ def _install_gemini_for_tests(gpd_root: Path, target: Path) -> None:
     adapter = get_adapter("gemini")
     result = adapter.install(gpd_root, target, is_global=True)
     adapter.finalize_install(result)
+
+
+class _CommitAttributionProbeAdapter(RuntimeAdapter):
+    @property
+    def runtime_name(self) -> str:
+        return "claude-code"
+
+    def runtime_install_required_relpaths(self) -> tuple[str, ...]:
+        return ("custom-config.json",)
+
+
+class _NoCommitAttributionProbeAdapter(RuntimeAdapter):
+    @property
+    def runtime_name(self) -> str:
+        return "claude-code"
+
+    def runtime_install_required_relpaths(self) -> tuple[str, ...]:
+        return ()
 
 _FOREIGN_RUNTIME_BY_RUNTIME = {
     descriptor.runtime_name: _ALL_RUNTIMES[(index + 1) % len(_ALL_RUNTIMES)]
@@ -541,6 +560,26 @@ class TestGpdModelEnvVar:
             result = adapter.install(gpd_root, target, is_global=True)
 
         assert result["runtime"] == PRIMARY_RUNTIME
+
+
+class TestCommitAttributionLookup:
+    def test_base_commit_attribution_uses_runtime_required_config_path(self, tmp_path: Path) -> None:
+        config_dir = tmp_path / "runtime-config"
+        config_dir.mkdir()
+        (config_dir / "custom-config.json").write_text(
+            json.dumps({"attribution": {"commit": "Custom Commit"}}),
+            encoding="utf-8",
+        )
+
+        adapter = _CommitAttributionProbeAdapter()
+
+        assert adapter.get_commit_attribution(explicit_config_dir=str(config_dir)) == "Custom Commit"
+        assert adapter.get_commit_attribution(explicit_config_dir=str(tmp_path / "missing")) == ""
+
+    def test_base_commit_attribution_returns_none_without_runtime_config_surface(self, tmp_path: Path) -> None:
+        adapter = _NoCommitAttributionProbeAdapter()
+
+        assert adapter.get_commit_attribution(explicit_config_dir=str(tmp_path / "missing")) is None
 
 
 # =========================================================================

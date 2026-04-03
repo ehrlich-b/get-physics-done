@@ -66,6 +66,7 @@ Required schema for `STAGE-reader{round_suffix}.json` (`StageReviewReport`, mirr
 - `findings` should include overclaims, missing promised deliverables, or claim-structure blockers
 - `claims_reviewed`, `strengths`, `findings`, and `proof_audits` are arrays even when empty; do not collapse them to prose or scalars
 - Each `findings[]` entry is a `ReviewFinding` with: `issue_id`, `claim_ids`, `severity`, `summary`, `rationale`, `evidence_refs`, `manuscript_locations`, `support_status`, `blocking`, `required_action`
+- `blocking` must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`
 - Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
 - `proof_audits` should be an empty array in the reader stage; do not invent theorem-proof audit results before the math stage
 - `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`

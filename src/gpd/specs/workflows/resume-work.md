@@ -105,14 +105,13 @@ cat GPD/PROJECT.md
 
 **Machine-readable carry-forward context from INIT JSON:**
 
-- `project_contract` is the authoritative structured scoping and anchor contract only when `project_contract_load_info` is clean and `project_contract_validation` passes.
-- `project_contract_load_info` records whether that contract loaded cleanly and what blocked it if not.
-- `project_contract_validation` is the approval gate for treating the structured contract as authoritative.
+- `project_contract` is the authoritative structured scoping and anchor contract only when `project_contract_gate.authoritative` is true.
+- `project_contract_load_info` and `project_contract_validation` remain visible gate inputs and diagnostics; they explain why the gate is blocked, but they are not the authority themselves.
 - `effective_reference_intake` is the authoritative carry-forward ledger for must-read refs, prior outputs, baselines, user anchors, and context gaps.
 - `active_reference_context` and `reference_artifacts_content` are readability aids for that ledger, not substitutes for it.
 - Do not reconstruct contract-critical anchors only from `STATE.md` / `PROJECT.md` prose when INIT already provided the structured ledger.
 - If the current readable `state.json` carries a malformed `project_contract`, surface that primary-state block. Do not silently promote `state.json.bak` as the current authoritative contract while the live state file is still readable.
-- If `project_contract_load_info.status` starts with `blocked` or `project_contract_validation.valid` is false, present that contract as visible-but-blocked and route the next action to contract repair before planning or execution.
+- If `project_contract_gate.authoritative` is false, present that contract as visible-but-blocked and route the next action to contract repair before planning or execution.
 
 </step>
 
@@ -316,7 +315,7 @@ Present complete research project status to user:
     - Current machine: [current_hostname] ([current_platform])
     - Action: rerun the installer if runtime-local config may be stale
 
-[If `project_contract_load_info.status` starts with `blocked` or `project_contract_validation.valid` is false:]
+[If `project_contract_gate.authoritative` is false:]
 >> Contract repair required:
     - Load status: [project_contract_load_info.status]
     - Blocking detail: [first blocker or validation error]
@@ -373,7 +372,7 @@ Based on project state, determine the most logical next action:
 -> Primary: Treat the live snapshot as advisory continuity context only and prefer a valid recorded handoff or repair action
 -> Option: Inspect the live gate state without claiming the bounded segment is directly resumable
 
-**If `project_contract_load_info.status` starts with `blocked` or `project_contract_validation.valid` is false:**
+**If `project_contract_gate.authoritative` is false:**
 -> Primary: Repair the blocked contract or state-integrity issue before planning or execution
 -> Option: Inspect the blocked contract context and supporting diagnostics without resuming downstream work
 

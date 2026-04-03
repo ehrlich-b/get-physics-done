@@ -47,14 +47,14 @@ fi
 
 ## 1. Identify What to Compare
 
-If the project is contract-backed, first resolve the comparison target against the approved contract only when `project_contract_load_info` is clean and `project_contract_validation` passes:
+If the project is contract-backed, first resolve the comparison target against the approved contract only when `project_contract_gate.authoritative` is true:
 - `subject_id`
 - `subject_kind` (`claim`, `deliverable`, `acceptance_test`, or `reference`)
 - `subject_role` (`decisive`, `supporting`, `supplemental`, or `other`)
 - `reference_id` for the benchmark / prior-work / data anchor
 - the pass condition or tolerance that makes this comparison decisive
 
-Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes. If either gate is blocked, keep the contract visible for context but do not treat it as approved comparison scope.
+Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. If the gate is blocked, keep the contract visible for context but do not treat it as approved comparison scope.
 
 Do not write a generic comparison report without this mapping when a decisive comparison target exists.
 If the comparison is about a concrete file or plot, map it to the deliverable or reference ID that owns it instead of inventing an `artifact` subject kind.

@@ -52,6 +52,20 @@ _DEDUP_WINDOW_SECONDS = 10.0
 _COMPLETED_SEGMENT_STATES = {"completed", "complete", "done", "finished"}
 
 
+def _active_runtime_tier_models_command(*, cwd: Path | None = None) -> str:
+    """Return the active runtime tier-model command, or the canonical local fallback."""
+    from gpd.adapters import get_adapter
+    from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, detect_runtime_for_gpd_use
+
+    try:
+        detected_runtime = detect_runtime_for_gpd_use(cwd=cwd)
+        if detected_runtime == RUNTIME_UNKNOWN:
+            return "gpd:set-tier-models"
+        return get_adapter(detected_runtime).format_command("set-tier-models")
+    except Exception:
+        return "gpd:set-tier-models"
+
+
 class UsageRecord(BaseModel):
     """One machine-local usage/cost ledger entry."""
 
@@ -1162,7 +1176,7 @@ def build_cost_summary(
             )
     if active_runtime and runtime_model_selection == "runtime defaults":
         guidance.append(
-            f"Current model posture: profile `{model_profile or 'unknown'}` with {active_runtime} runtime defaults. Use `gpd:set-tier-models` to pin explicit tier-1, tier-2, and tier-3 model IDs."
+            f"Current model posture: profile `{model_profile or 'unknown'}` with {active_runtime} runtime defaults. Use `{_active_runtime_tier_models_command(cwd=resolved_project_root)}` to pin explicit tier-1, tier-2, and tier-3 model IDs."
         )
 
     return CostSummary(

@@ -101,7 +101,7 @@ All file contents are already loaded via `--include` in init_context step:
 - `roadmap_content` — phase structure and objectives
 - `project_content` — current state (Research Question, Framework, Answered Questions)
 - `config_content` — settings (model_profile, workflow toggles)
-- `project_contract` — machine-readable scoping and anchor contract, authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes
+- `project_contract` — machine-readable scoping and anchor contract, authoritative only when `project_contract_gate.authoritative` is true
 - `project_contract_load_info` — structured load status, warnings, and blockers for the contract
 - `project_contract_validation` — contract approval gate for authoritative use
 - `effective_reference_intake` — structured carry-forward ledger for refs, baselines, prior outputs, and context gaps

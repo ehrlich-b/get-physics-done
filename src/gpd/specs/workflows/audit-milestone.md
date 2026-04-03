@@ -24,7 +24,7 @@ Extract from init JSON: `milestone_version`, `milestone_name`, `phase_count`, `c
 
 Keep `project_contract`, `project_contract_load_info`, `project_contract_validation`, and `active_reference_context` visible while auditing:
 
-- Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes.
+- Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true.
 - If that contract gate is blocked, keep the contract visible as context but record contract repair as a blocker in the audit instead of silently substituting prose-only scope.
 - If contract repair is still pending, do not mark the milestone `passed` and do not trust mock peer-review publishability judgments as approval to submit.
 
@@ -252,7 +252,7 @@ Evaluate across all 10 dimensions:
 9. Presentation quality -- organization, figures
 10. Publishability -- overall assessment
 
-Treat `project_contract` as approved milestone scope only when `project_contract_load_info` is clean and `project_contract_validation` passes. If the contract gate is blocked, keep it visible as context but call out the blocker explicitly instead of relying on it as approved scope.
+Treat `project_contract` as approved milestone scope only when `project_contract_gate.authoritative` is true. If the contract gate is blocked, keep it visible as context but call out the blocker explicitly instead of relying on it as approved scope.
 
 Write `GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.md` and the matching `GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.tex` companion.
 

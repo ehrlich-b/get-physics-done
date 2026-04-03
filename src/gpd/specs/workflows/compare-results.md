@@ -28,7 +28,7 @@ If the relevant phase or artifact is contract-backed, resolve:
 - any linked `reference_id`
 - the decisive threshold or pass condition
 
-Treat `project_contract` as authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes.
+Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true.
 If `active_reference_context` is non-empty, keep that anchor ledger visible while resolving `subject_id`, `reference_id`, thresholds, and comparison linkage.
 If `derived_convention_lock` is non-empty, keep that canonical lock visible while checking shared conventions and normalization between Source A, Source B, and the verdict threshold.
 

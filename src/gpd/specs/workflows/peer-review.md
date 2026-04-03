@@ -190,7 +190,7 @@ Stage artifacts for revision rounds should use the same suffix:
 Use the same `-R2` / `-R3` suffix convention for downstream response artifacts:
 
 - `GPD/AUTHOR-RESPONSE{ROUND_SUFFIX}.md`
-- `${MANUSCRIPT_ROOT}/REFEREE_RESPONSE{ROUND_SUFFIX}.md`
+- `GPD/review/REFEREE_RESPONSE{ROUND_SUFFIX}.md`
 
 </step>
 

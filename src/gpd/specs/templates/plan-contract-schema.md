@@ -108,6 +108,7 @@ Rules:
 - For theorem/proof work, enumerate `parameters[]`, `hypotheses[]`, `quantifiers[]`, `conclusion_clauses[]`, and `proof_deliverables[]` so the proof audit can detect dropped assumptions, silently specialized parameters, and narrowed conclusions.
 - `proof_deliverables[]` may only reference declared `deliverables[].id`.
 - When a claim is theorem-bearing or references an `observables[].kind: proof_obligation`, the contract must declare at least one proof-specific acceptance test in `acceptance_tests[]`.
+- `required_in_proof` must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`.
 
 ### `context_intake`
 

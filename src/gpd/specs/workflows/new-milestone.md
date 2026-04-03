@@ -42,7 +42,7 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-Treat `project_contract` as the authoritative machine-readable project contract only when `project_contract_load_info` is clean and `project_contract_validation.valid` is true. Treat `active_reference_context` and `effective_reference_intake` as binding carry-forward context even when `project_contract` is empty or blocked.
+Treat `project_contract` as the authoritative machine-readable project contract only when `project_contract_gate.authoritative` is true. Keep `project_contract_load_info` and `project_contract_validation` visible as gate inputs, and treat `project_contract` as visible-but-non-authoritative when the gate is blocked. Treat `active_reference_context` and `effective_reference_intake` as binding carry-forward context even when `project_contract` is empty or blocked.
 
 Before defining scope, inspect these carry-forward inputs and keep them visible through milestone planning:
 - `effective_reference_intake.must_read_refs`
@@ -61,10 +61,9 @@ Load project files:
 - Read STATE.md (if `state_exists` — pending items, blockers)
 - Check for MILESTONE-CONTEXT.md (from milestone discussion)
 - If `reference_artifact_files` is non-empty, read the listed reference artifacts or use `reference_artifacts_content` as a compact fallback
-- Keep `project_contract_load_info` and `project_contract_validation` visible while gathering goals, determining milestone version, and reviewing roadmap coverage; do not assume `project_contract` is authoritative unless those gates are clean.
+- Keep `project_contract_load_info` and `project_contract_validation` visible while gathering goals, determining milestone version, and reviewing roadmap coverage; do not assume `project_contract` is authoritative unless `project_contract_gate.authoritative` is true.
 - Keep `active_reference_context` available while gathering goals, defining objectives, and reviewing roadmap coverage
-- If `project_contract_load_info.status` starts with `blocked`, checkpoint with the user and repair the stored contract before using it for milestone scope.
-- If `project_contract_validation.valid` is false, checkpoint with the user and repair the stored contract before using it for milestone scope.
+- If `project_contract_gate.authoritative` is false, checkpoint with the user and repair the stored contract before using it for milestone scope.
 
 ## 2. Gather Milestone Goals
 

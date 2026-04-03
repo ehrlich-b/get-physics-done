@@ -130,6 +130,7 @@ Do not pass the entire orchestration transcript into later stages. The stage art
 - Stage 5 should read Stages 1, 2, and 4.
 - Stage 6 reads all prior stage artifacts and spot-checks the manuscript as needed. When theorem-bearing claims exist, `PROOF-REDTEAM{round_suffix}.md` is mandatory Stage 6 input rather than optional context.
 - For theorem-bearing review, a missing, invalid, or non-passing `PROOF-REDTEAM{round_suffix}.md` artifact is itself a blocking stage-integrity failure.
+- `blocking` in each finding must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`.
 
 ## Stage Artifact Contract
 
