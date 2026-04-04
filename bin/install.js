@@ -163,6 +163,7 @@ const RUNTIME_CATALOG_ENTRY_KEYS = {
     "agent_prompt_uses_dollar_templates",
     "installer_help_example_scope",
     "validated_command_surface",
+    "public_command_surface_prefix",
   ],
 };
 const RUNTIME_CATALOG_ALLOWED_KEYS = new Set([
@@ -448,6 +449,17 @@ function validateRuntimeCatalogHookPayload(hookPayload, label) {
   };
 }
 
+function parsePublicCommandSurfacePrefix(value, label, commandPrefix) {
+  if (value === undefined || value === null) {
+    return commandPrefix;
+  }
+  const prefix = requireStrictString(value, label);
+  if (prefix !== commandPrefix) {
+    throw new Error(`${label} must match command_prefix`);
+  }
+  return prefix;
+}
+
 function validateRuntimeCatalogEntry(entry, index) {
   const label = `runtime catalog entry ${index}`;
   const payload = requireJsonObject(entry, label);
@@ -513,6 +525,13 @@ function validateRuntimeCatalogEntry(entry, index) {
           return surface;
         })()
       : "public_runtime_command_surface",
+    public_command_surface_prefix: parsePublicCommandSurfacePrefix(
+      Object.prototype.hasOwnProperty.call(payload, "public_command_surface_prefix")
+        ? payload.public_command_surface_prefix
+        : undefined,
+      `${label}.public_command_surface_prefix`,
+      requireStrictString(payload.command_prefix, `${label}.command_prefix`)
+    ),
   };
 }
 

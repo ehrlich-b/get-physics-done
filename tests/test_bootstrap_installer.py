@@ -748,6 +748,14 @@ assert.equal(catalog.find((runtime) => runtime.runtime_name === "codex").install
 assert.equal(catalog.find((runtime) => runtime.runtime_name === "claude-code").validated_command_surface, "public_runtime_slash_command");
 assert.equal(catalog.find((runtime) => runtime.runtime_name === "codex").validated_command_surface, "public_runtime_dollar_command");
 
+const explicitSurfaceCatalog = JSON.parse(JSON.stringify(catalog));
+explicitSurfaceCatalog[0].public_command_surface_prefix = explicitSurfaceCatalog[0].command_prefix;
+const validatedSurfaceCatalog = validateRuntimeCatalog(explicitSurfaceCatalog);
+assert.equal(
+  validatedSurfaceCatalog[0].public_command_surface_prefix,
+  explicitSurfaceCatalog[0].command_prefix
+);
+
 const unknownKeyCatalog = JSON.parse(JSON.stringify(catalog));
 unknownKeyCatalog[0].legacy_note = "unexpected";
 assert.throws(
@@ -781,6 +789,13 @@ badSurfaceCatalog[0].validated_command_surface = "hex-command";
 assert.throws(
   () => validateRuntimeCatalog(badSurfaceCatalog),
   /runtime catalog entry 0\.validated_command_surface must be one of: public_runtime_command_surface, public_runtime_dollar_command, public_runtime_slash_command/
+);
+
+const mismatchedSurfaceCatalog = JSON.parse(JSON.stringify(catalog));
+mismatchedSurfaceCatalog[0].public_command_surface_prefix = `${mismatchedSurfaceCatalog[0].command_prefix}x`;
+assert.throws(
+  () => validateRuntimeCatalog(mismatchedSurfaceCatalog),
+  /runtime catalog entry 0\.public_command_surface_prefix must match command_prefix/
 );
 """
     )
