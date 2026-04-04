@@ -5,7 +5,6 @@ argument-hint: <version>
 context_mode: project-required
 requires:
   files: ["GPD/ROADMAP.md"]
-  recommended: ["audit-milestone"]
 allowed-tools:
   - file_read
   - file_write

@@ -291,7 +291,7 @@ class TestParseCommandFile:
         f = tmp_path / "debug.md"
         f.write_text(
             "---\nname: gpd:debug\ndescription: Debug command\n"
-            "argument-hint: <error>\nrequires:\n  project: true\n"
+            "argument-hint: <error>\nrequires:\n  files:\n    - GPD/ROADMAP.md\n"
             "allowed-tools:\n  - file_read\n  - shell\n---\nCommand body.",
             encoding="utf-8",
         )
@@ -301,9 +301,43 @@ class TestParseCommandFile:
         assert cmd.argument_hint == "<error>"
         assert cmd.context_mode == "project-required"
         assert cmd.project_reentry_capable is False
-        assert cmd.requires == {"project": True}
+        assert cmd.requires == {"files": ["GPD/ROADMAP.md"]}
         assert cmd.allowed_tools == ["file_read", "shell"]
-        assert cmd.content == "Command body."
+        assert cmd.content.startswith("## Command Requirements\n\n")
+        assert "GPD/ROADMAP.md" in cmd.content
+        assert cmd.content.endswith("Command body.")
+
+    def test_command_file_with_requires_and_review_contract_renders_requirements_first(
+        self, tmp_path: Path
+    ) -> None:
+        f = tmp_path / "review.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:review\n"
+            "description: Review command\n"
+            "argument-hint: <phase>\n"
+            "requires:\n"
+            "  files:\n"
+            "    - GPD/ROADMAP.md\n"
+            "review-contract:\n"
+            "  review_mode: review\n"
+            "  schema_version: 1\n"
+            "  required_outputs:\n"
+            "    - GPD/review/REPORT.md\n"
+            "  required_evidence:\n"
+            "    - phase artifacts\n"
+            "  preflight_checks:\n"
+            "    - project_state\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        cmd = _parse_command_file(f, source="commands")
+
+        assert cmd.content.startswith("## Command Requirements\n\n")
+        assert cmd.content.index("## Review Contract") > cmd.content.index("## Command Requirements")
+        assert cmd.content.endswith("Body.")
 
     def test_command_file_no_frontmatter(self, tmp_path: Path) -> None:
         f = tmp_path / "bare.md"
@@ -322,6 +356,27 @@ class TestParseCommandFile:
         f.write_text("---\nname: bad\nrequires: not-a-dict\n---\nBody.", encoding="utf-8")
 
         with pytest.raises(ValueError, match="requires for bad must be a mapping"):
+            _parse_command_file(f, source="commands")
+
+    def test_command_requires_files_rejects_non_string_members(self, tmp_path: Path) -> None:
+        f = tmp_path / "bad-requires-files-members.md"
+        f.write_text(
+            "---\nname: bad\nrequires:\n  files:\n    - GPD/ROADMAP.md\n    - true\n---\nBody.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match="files for bad must contain only strings"):
+            _parse_command_file(f, source="commands")
+
+    @pytest.mark.parametrize("field_name", ["state", "recommended"])
+    def test_command_requires_rejects_unknown_keys(self, tmp_path: Path, field_name: str) -> None:
+        f = tmp_path / f"bad-requires-{field_name}.md"
+        f.write_text(
+            f"---\nname: bad\nrequires:\n  {field_name}: phase_planned\n---\nBody.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match=rf"requires for bad only supports files; got {field_name}"):
             _parse_command_file(f, source="commands")
 
     def test_command_allowed_tools_non_list_raises(self, tmp_path: Path) -> None:
@@ -785,13 +840,11 @@ class TestParseCommandFile:
         ):
             _parse_command_file(f, source="commands")
 
-    def test_command_review_contract_does_not_infer_required_state_from_requires_state(
-        self, tmp_path: Path
-    ) -> None:
-        f = tmp_path / "required-state-from-requires.md"
+    def test_command_review_contract_does_not_accept_dead_requires_state_metadata(self, tmp_path: Path) -> None:
+        f = tmp_path / "dead-requires-state.md"
         f.write_text(
             "---\n"
-            "name: gpd:required-state-from-requires\n"
+            "name: gpd:dead-requires-state\n"
             "requires:\n"
             "  state: phase_executed\n"
             "review-contract:\n"
@@ -802,10 +855,8 @@ class TestParseCommandFile:
             encoding="utf-8",
         )
 
-        cmd = _parse_command_file(f, source="commands")
-
-        assert cmd.review_contract is not None
-        assert cmd.review_contract.required_state == ""
+        with pytest.raises(ValueError, match="requires for gpd:dead-requires-state only supports files; got state"):
+            _parse_command_file(f, source="commands")
 
     def test_command_review_contract_requires_explicit_schema_version(self, tmp_path: Path) -> None:
         f = tmp_path / "missing-schema-version.md"

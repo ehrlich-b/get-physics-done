@@ -5,7 +5,6 @@ argument-hint: "<phase-number> [--gaps-only]"
 context_mode: project-required
 requires:
   files: ["GPD/ROADMAP.md"]
-  state: "phase_planned"
 allowed-tools:
   - file_read
   - file_write

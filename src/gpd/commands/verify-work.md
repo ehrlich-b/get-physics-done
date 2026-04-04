@@ -5,7 +5,6 @@ argument-hint: "[phase] [--dimensional] [--limits] [--convergence] [--regression
 context_mode: project-required
 requires:
   files: ["GPD/ROADMAP.md"]
-  state: "phase_executed"
 review-contract:
   review_mode: review
   schema_version: 1

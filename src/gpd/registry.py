@@ -219,7 +219,32 @@ def _parse_requires(raw: object, *, command_name: str) -> dict[str, object]:
         return {}
     if not isinstance(raw, dict):
         raise ValueError(f"requires for {command_name} must be a mapping")
-    return raw
+    unsupported_keys = sorted(str(key) for key in raw if str(key) != "files")
+    if unsupported_keys:
+        formatted = ", ".join(unsupported_keys)
+        raise ValueError(f"requires for {command_name} only supports files; got {formatted}")
+    files = raw.get("files")
+    if files is None:
+        return {}
+    normalized_files: list[str] = []
+    seen: set[str] = set()
+    if isinstance(files, str):
+        candidates = [files]
+    elif isinstance(files, list):
+        candidates = files
+    else:
+        raise ValueError(f"files for {command_name} must be a string or list of strings")
+    for item in candidates:
+        if not isinstance(item, str):
+            raise ValueError(f"files for {command_name} must contain only strings")
+        normalized = item.strip()
+        if not normalized:
+            raise ValueError(f"files for {command_name} must not contain blank entries")
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        normalized_files.append(normalized)
+    return {"files": normalized_files}
 
 
 def _parse_allowed_tools(raw: object, *, command_name: str) -> list[str]:
@@ -400,8 +425,27 @@ def render_command_requires_section(requires: dict[str, object]) -> str:
     )
 
 
-def render_review_contract_section_from_frontmatter(frontmatter: str, *, command_name: str) -> str:
-    """Render a canonical review-contract section from raw command frontmatter."""
+def render_command_visibility_sections(
+    *,
+    requires: dict[str, object],
+    review_contract: ReviewCommandContract | None,
+) -> str:
+    """Render model-visible command constraints in canonical prompt order."""
+
+    sections: list[str] = []
+    requires_section = render_command_requires_section(requires)
+    if requires_section:
+        sections.append(requires_section)
+
+    review_section = render_review_contract_section(review_contract)
+    if review_section:
+        sections.append(review_section)
+
+    return "\n\n".join(sections)
+
+
+def render_command_visibility_sections_from_frontmatter(frontmatter: str, *, command_name: str) -> str:
+    """Render canonical model-visible command constraints from raw frontmatter."""
 
     try:
         meta = yaml.safe_load(frontmatter) if frontmatter.strip() else {}
@@ -412,24 +456,21 @@ def render_review_contract_section_from_frontmatter(frontmatter: str, *, command
     if not isinstance(meta, dict):
         raise ValueError(f"Frontmatter for {command_name} must parse to a mapping")
 
+    requires = _parse_requires(meta.get("requires"), command_name=command_name)
     review_contract = _parse_review_contract(
         _review_contract_frontmatter_value(meta, command_name=command_name),
         command_name=command_name,
     )
-    return render_review_contract_section(review_contract)
+    return render_command_visibility_sections(requires=requires, review_contract=review_contract)
 
 
 def _command_model_content(body: str, review_contract: ReviewCommandContract | None, requires: dict[str, object]) -> str:
-    """Return the model-visible command body, including enforced review contracts."""
+    """Return the model-visible command body, including enforced command constraints."""
 
     sections: list[str] = []
-    if review_contract is not None:
-        requires_section = render_command_requires_section(requires)
-        if requires_section:
-            sections.append(requires_section)
-    review_section = render_review_contract_section(review_contract)
-    if review_section:
-        sections.append(review_section)
+    visibility_sections = render_command_visibility_sections(requires=requires, review_contract=review_contract)
+    if visibility_sections:
+        sections.append(visibility_sections)
     if body:
         sections.append(body)
     return "\n\n".join(sections)
@@ -916,5 +957,7 @@ __all__ = [
     "list_commands",
     "list_review_commands",
     "list_skills",
+    "render_command_visibility_sections",
+    "render_command_visibility_sections_from_frontmatter",
     "render_review_contract_section",
 ]
