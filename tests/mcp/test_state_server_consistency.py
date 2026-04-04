@@ -38,7 +38,7 @@ def test_state_server_exposes_expected_tool_names() -> None:
         "validate_state",
         "run_health_check",
         "get_config",
-    } <= set(names)
+    } == set(names)
 
 
 @pytest.mark.parametrize(

@@ -13,8 +13,7 @@ Usage:
 from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import ConfigDict, WithJsonSchema, create_model
-from pydantic import ValidationError as PydanticValidationError
+from pydantic import WithJsonSchema
 
 from gpd.core.config import load_config
 from gpd.core.errors import GPDError
@@ -33,6 +32,7 @@ from gpd.mcp.servers import (
     resolve_absolute_project_dir,
     stable_mcp_error,
     stable_mcp_response,
+    tighten_registered_tool_contracts,
 )
 
 logger = configure_mcp_logging("gpd-state")
@@ -40,37 +40,6 @@ logger = configure_mcp_logging("gpd-state")
 mcp = FastMCP("gpd-state")
 
 AbsoluteProjectDirInput = Annotated[str, WithJsonSchema(ABSOLUTE_PROJECT_DIR_SCHEMA)]
-
-
-def _tighten_registered_tool_contracts() -> None:
-    def _build_strict_call(original_call, allowed_keys):
-        async def _strict_call_fn_with_arg_validation(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly):
-            unknown_keys = sorted(str(key) for key in arguments_to_validate if key not in allowed_keys)
-            if unknown_keys:
-                return stable_mcp_error(f"Unsupported arguments: {', '.join(unknown_keys)}")
-            try:
-                return await original_call(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly)
-            except PydanticValidationError as exc:
-                return stable_mcp_error(exc)
-
-        return _strict_call_fn_with_arg_validation
-
-    for tool in mcp._tool_manager.list_tools():  # type: ignore[attr-defined]
-        arg_model = tool.fn_metadata.arg_model
-        strict_model = create_model(
-            f"{arg_model.__name__}Strict",
-            __base__=arg_model,
-            __config__=ConfigDict(extra="forbid", arbitrary_types_allowed=True),
-        )
-        tool.parameters = strict_model.model_json_schema(by_alias=True)
-        allowed_keys = {
-            key
-            for field_name, field_info in arg_model.model_fields.items()
-            for key in (field_name, field_info.alias)
-            if key is not None
-        }
-        original_call = tool.fn_metadata.call_fn_with_arg_validation
-        object.__setattr__(tool.fn_metadata, "call_fn_with_arg_validation", _build_strict_call(original_call, allowed_keys))
 
 
 @mcp.tool()
@@ -248,64 +217,6 @@ def get_config(project_dir: AbsoluteProjectDirInput) -> dict:
             return stable_mcp_error(exc)
 
 
-@mcp.tool()
-def emit_phase_event(
-    project_dir: AbsoluteProjectDirInput,
-    event_type: str,
-    phase: str,
-    agent_type: str = "",
-    details: str = "",
-) -> dict:
-    """Emit a phase lifecycle event for frontend navigation.
-
-    Call this tool at phase boundaries during pipeline execution to help
-    the frontend build a navigable outline of the research session.
-
-    Event types:
-    - "phase.started": A new pipeline phase has begun (e.g., planning, execution)
-    - "phase.completed": A pipeline phase has finished successfully
-    - "phase.failed": A pipeline phase encountered an error
-    - "agent.started": A subagent has been spawned for a specific task
-    - "agent.completed": A subagent has finished its work
-    - "checkpoint": A significant milestone within a phase
-
-    Args:
-        project_dir: Absolute path to the project root directory.
-        event_type: One of "phase.started", "phase.completed", "phase.failed",
-                    "agent.started", "agent.completed", "checkpoint".
-        phase: Phase identifier (e.g., "formulate", "plan", "execute", "verify",
-               "write", "review", or a phase number like "1", "2.1").
-        agent_type: For agent events, the subagent type (e.g., "phase-researcher",
-                    "planner", "plan-checker", "executor", "verifier").
-        details: Optional human-readable description of the event.
-    """
-    from datetime import UTC, datetime
-
-    cwd = resolve_absolute_project_dir(project_dir)
-    if cwd is None:
-        return stable_mcp_error("project_dir must be an absolute path")
-
-    valid_types = {
-        "phase.started", "phase.completed", "phase.failed",
-        "agent.started", "agent.completed", "checkpoint",
-    }
-    if event_type not in valid_types:
-        return stable_mcp_error(
-            f"Invalid event_type: {event_type}. Must be one of: {', '.join(sorted(valid_types))}"
-        )
-
-    timestamp = datetime.now(tz=UTC).isoformat()
-
-    return stable_mcp_response({
-        "event_type": event_type,
-        "phase": phase,
-        "agent_type": agent_type or None,
-        "details": details or None,
-        "timestamp": timestamp,
-        "project_dir": str(cwd),
-    })
-
-
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
@@ -318,7 +229,7 @@ def main() -> None:
     run_mcp_server(mcp, "GPD State MCP Server")
 
 
-_tighten_registered_tool_contracts()
+tighten_registered_tool_contracts(mcp)
 
 
 if __name__ == "__main__":

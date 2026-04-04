@@ -722,6 +722,18 @@ def test_state_server_tools_publish_absolute_project_dir_schema() -> None:
             assert project_dir[key] == value
 
 
+def test_state_workflow_docs_do_not_reference_dead_emit_phase_event_surface() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+
+    for rel_path in (
+        "src/gpd/specs/workflows/plan-phase.md",
+        "src/gpd/specs/workflows/execute-phase.md",
+    ):
+        text = (repo_root / rel_path).read_text(encoding="utf-8")
+        assert "gpd-state_emit_phase_event" not in text
+        assert "Phase Lifecycle Events" not in text
+
+
 def test_conventions_server_tools_publish_same_absolute_project_dir_schema_as_state_server() -> None:
     from gpd.mcp.servers.conventions_server import mcp as conventions_mcp
     from gpd.mcp.servers.state_server import mcp as state_mcp
