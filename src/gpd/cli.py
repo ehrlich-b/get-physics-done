@@ -7213,6 +7213,8 @@ def validate_project_contract_cmd(
     payload = _load_json_document(input_path)
     if input_path == "-":
         project_root = _state_command_cwd()
+        if not (project_root / "GPD").is_dir():
+            project_root = None
     else:
         project_root = _project_root_for_json_input(input_path)
         if not (project_root / "GPD").is_dir():
