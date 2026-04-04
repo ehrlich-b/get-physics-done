@@ -1702,6 +1702,7 @@ def test_review_and_verification_prompts_explicitly_surface_schema_sources_and_c
     referee = (AGENTS_DIR / "gpd-referee.md").read_text(encoding="utf-8")
 
     assert "Project Contract:\n{project_contract}" in peer_review
+    assert "Project Contract Gate:\n{project_contract_gate}" in peer_review
     assert "Project Contract Load Info:\n{project_contract_load_info}" in peer_review
     assert "Project Contract Validation:\n{project_contract_validation}" in peer_review
     assert "Active References:\n{active_reference_context}" in peer_review
@@ -1710,24 +1711,24 @@ def test_review_and_verification_prompts_explicitly_surface_schema_sources_and_c
     assert "Reference Artifacts Content:\n{reference_artifacts_content}" in peer_review
     assert "project_contract_validation" in peer_review
     assert "project_contract_load_info" in peer_review
+    assert "Treat `project_contract_gate` as the authoritative contract gate state." in peer_review
+    assert "project_contract_gate.authoritative" in peer_review
     assert (
-        "Treat `project_contract_load_info` and `project_contract_validation` as the authoritative contract gate state."
-        in peer_review
-    )
-    assert (
-        "Treat `project_contract` and `contract_intake` as approved evidence only when that gate is clean and passing."
+        "Treat `project_contract` and `contract_intake` as approved evidence only when `project_contract_gate.authoritative` is true."
         in peer_review
     )
     assert (
         "Treat `effective_reference_intake`, `reference_artifacts_content`, and `active_reference_context` as binding carry-forward evidence even when the contract gate is blocked."
         in peer_review
     )
+    assert "project_contract_gate" in write_paper
     assert "project_contract_load_info" in write_paper
     assert "project_contract_validation" in write_paper
-    assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in write_paper
+    assert "authoritative only when `project_contract_gate.authoritative` is true" in write_paper
+    assert "project_contract_gate" in respond_to_referees
     assert "project_contract_load_info" in respond_to_referees
     assert "project_contract_validation" in respond_to_referees
-    assert "authoritative only when `project_contract_load_info` is clean and `project_contract_validation` passes" in respond_to_referees
+    assert "authoritative only when `project_contract_gate.authoritative` is true" in respond_to_referees
     assert "templates/paper/review-ledger-schema.md" in peer_review
     assert "templates/paper/referee-decision-schema.md" in peer_review
     assert "references/publication/peer-review-panel.md" in peer_review
@@ -1739,18 +1740,25 @@ def test_review_and_verification_prompts_explicitly_surface_schema_sources_and_c
     assert "save_state_markdown" in sync_state
     assert "gpd --raw state snapshot" not in sync_state
     assert (
-        "Keep the current `project_contract`, `project_contract_load_info`, `project_contract_validation`, "
+        "Keep the current `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, "
         "and `active_reference_context` visible throughout the staged review"
         in write_paper
     )
     assert peer_review.count("Project Contract:\n{project_contract}") >= 5
+    assert peer_review.count("Project Contract Gate:\n{project_contract_gate}") >= 5
     assert peer_review.count("Project Contract Load Info:\n{project_contract_load_info}") >= 5
     assert peer_review.count("Project Contract Validation:\n{project_contract_validation}") >= 5
     assert peer_review.count("Active References:\n{active_reference_context}") >= 5
     assert peer_review.count("Contract Intake:\n{contract_intake}") >= 5
     assert peer_review.count("Effective Reference Intake:\n{effective_reference_intake}") >= 5
     assert peer_review.count("Reference Artifacts Content:\n{reference_artifacts_content}") >= 5
-    assert peer_review.count("Treat `project_contract` and `contract_intake` as approved evidence only when that gate is clean and passing.") >= 5
+    assert peer_review.count("Treat `project_contract_gate` as the authoritative contract gate state.") >= 5
+    assert (
+        peer_review.count(
+            "Treat `project_contract` and `contract_intake` as approved evidence only when `project_contract_gate.authoritative` is true."
+        )
+        >= 5
+    )
     assert (
         peer_review.count(
             "Treat `effective_reference_intake`, `reference_artifacts_content`, and `active_reference_context` as binding carry-forward evidence even when the contract gate is blocked."
@@ -2166,8 +2174,10 @@ def test_stage5_execution_surfaces_use_bounded_review_cadence_and_first_result_g
     assert "Do NOT narrow just because a wave advanced or one proxy passed." in execute_phase
     assert "What decisive evidence is still owed before downstream work is trustworthy?" in resume_work
     assert "Pattern D: Auto-bounded" in executor_agent
-    assert "compat_resume_surface" in resume_work
-    assert "Public resume vocabulary centers on" in resume_work
+    assert "Public resume vocabulary centers on canonical continuation fields" in resume_work
+    assert "public top-level resume vocabulary only" in resume_work
+    assert "compat_resume_surface" not in resume_work
+    assert "gpd init resume" not in resume_work
     assert "execution_segment" in continuation
     assert "Required Checkpoint Payload" in checkpoints
     assert "rollback primitive" in checkpoint_flow
@@ -2221,15 +2231,12 @@ def test_resume_workflow_surfaces_contract_load_and_validation_state() -> None:
     assert "project_contract_load_info" in resume_work
     assert_resume_authority_contract(
         resume_work,
-        allow_explicit_alias_examples=True,
-        require_generic_compatibility_note=True,
+        allow_explicit_alias_examples=False,
+        require_generic_compatibility_note=False,
     )
-    assert "Compatibility-only raw intake:" in resume_work
     assert "Canonical continuation and recovery authority:" in resume_work
-    assert "Legacy raw-intake aliases stay nested under compatibility mirrors only" in resume_work
-    assert resume_work.index("Canonical continuation and recovery authority:") < resume_work.index(
-        "Compatibility-only raw intake:"
-    )
+    assert "Public resume vocabulary centers on canonical continuation fields" in resume_work
+    assert "The public resume vocabulary stays canonical and top-level." in resume_work
     assert "continuity_handoff_file" in resume_work
     assert "recorded_continuity_handoff_file" in resume_work
     assert "missing_continuity_handoff_file" in resume_work
@@ -2272,16 +2279,16 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "/gpd:resume-work" in resume_work
     assert "gpd resume" in resume_work
     assert "gpd resume --recent" in resume_work
-    assert "`gpd init resume`" in resume_work
+    assert "gpd init resume" not in resume_work
     assert "guided runtime path" in resume_work
     assert "public local read-only summary" in resume_work
     assert "cross-project discovery surface" in resume_work
     assert "advisory and machine-local" in resume_work
     assert "reloads that project's canonical state" in resume_work
-    assert "machine-readable intake" in resume_work
+    assert "canonical continuation fields" in resume_work
     assert "resume_candidates" in resume_work
-    assert "Legacy raw-envelope names stay nested as compatibility-only cues and do not define the public vocabulary." in resume_work
-    assert "nested compatibility cues" in resume_work
+    assert "compat_resume_surface" not in resume_work
+    assert "Public resume vocabulary centers on canonical continuation fields" in resume_work
     assert "Do NOT invent additional candidates from plan files without summaries, auto-checkpoints, or other ad hoc checkpoints." in resume_work
     assert "/gpd:resume-work" in pause_work
     assert "gpd resume" in pause_work
@@ -2289,7 +2296,7 @@ def test_pause_resume_and_help_wiring_keep_runtime_handoff_and_local_snapshot_bo
     assert "This is the canonical recorded handoff artifact for the current phase." in pause_work
     assert "continuation handoff artifact" in pause_work or "session continuity" in pause_work
     assert "Public resume vocabulary centers on" in help_workflow
-    assert "Legacy raw-intake aliases stay nested under compatibility mirrors only" in help_workflow
+    assert "Compatibility-only intake fields stay internal" in help_workflow
     assert_recovery_ladder_contract(
         help_workflow,
         resume_work_fragments=("/gpd:resume-work",),

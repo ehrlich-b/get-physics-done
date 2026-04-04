@@ -8,7 +8,6 @@ from collections.abc import Iterable
 from functools import lru_cache
 from pathlib import Path
 
-from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_KEYS
 from gpd.core.surface_phrases import post_start_settings_note, post_start_settings_recommendation
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -157,23 +156,17 @@ def _resume_authority_contract() -> dict[str, object]:
         "durable_authority_phrase",
         "public_vocabulary_intro",
         "public_fields",
-        "compat_surface",
-        "session_mirror",
-        "compatibility_phrase",
         "top_level_boundary_phrase",
     }
     _contract_string(section, "durable_authority_phrase", label="resume_authority")
     _contract_string(section, "public_vocabulary_intro", label="resume_authority")
     _contract_string_list(section, "public_fields", label="resume_authority")
-    _contract_string(section, "compat_surface", label="resume_authority")
-    _contract_string(section, "session_mirror", label="resume_authority")
-    _contract_string(section, "compatibility_phrase", label="resume_authority")
     _contract_string(section, "top_level_boundary_phrase", label="resume_authority")
     return section
 
 
 def resume_compat_alias_fields() -> tuple[str, ...]:
-    return RESUME_COMPATIBILITY_ALIAS_KEYS
+    return ()
 
 
 def assert_unattended_readiness_contract(content: str) -> None:
@@ -883,44 +876,41 @@ def assert_resume_authority_contract(
 ) -> None:
     contract = _resume_authority_contract()
     assert _contract_string(contract, "durable_authority_phrase", label="resume_authority") in content
-    assert "Public resume vocabulary centers on" in content
+    _assert_contains_any(
+        content,
+        (
+            _contract_string(contract, "public_vocabulary_intro", label="resume_authority"),
+            "Public resume vocabulary centers on",
+        ),
+        label="resume vocabulary intro",
+    )
     for field in _contract_string_list(contract, "public_fields", label="resume_authority"):
         assert f"`{field}`" in content
     _assert_contains_any(
         content,
         (
-            "legacy resume fields remain compatibility mirrors in the raw intake",
-            "Legacy raw-intake aliases stay nested under compatibility mirrors only",
+            "public top-level resume vocabulary only",
+            "public top-level resume vocabulary",
         ),
-        label="resume compatibility phrase",
+        label="resume top-level boundary",
     )
     _assert_contains_any(
         content,
         (
-            "Legacy raw-intake aliases stay nested under compatibility mirrors only; they are not part of the public top-level resume vocabulary",
-            "Those legacy raw-intake aliases are not part of the public top-level resume vocabulary.",
+            "canonical continuation fields",
+            "canonical resume vocabulary",
+            "canonical continuation view",
+            "Public resume vocabulary centers on",
         ),
-        label="resume top-level boundary",
+        label="resume canonical vocabulary framing",
     )
-    if allow_explicit_alias_examples:
-        _assert_contains_any(
-            content,
-            (
-                "session_resume_file",
-                "current_execution",
-                "interrupted_agent",
-            ),
-            label="compatibility alias examples",
-        )
-    else:
-        for alias in resume_compat_alias_fields():
-            assert alias not in content
     if require_generic_compatibility_note:
         _assert_contains_any(
             content,
             (
-                "Legacy raw-intake aliases stay nested under compatibility mirrors only",
-                "The raw compatibility fields remain intake names only under `compat_resume_surface`",
+                "canonical continuation view",
+                "canonical continuation state",
+                "public top-level resume vocabulary",
             ),
             label="generic compatibility note",
         )

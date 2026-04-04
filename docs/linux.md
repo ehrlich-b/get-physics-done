@@ -128,10 +128,10 @@ Use the exact command for your runtime:
 | Want a guided overview | `/gpd:tour` | `$gpd-tour` | `/gpd-tour` |
 | Start a new project | `/gpd:new-project --minimal` | `$gpd-new-project --minimal` | `/gpd-new-project --minimal` |
 | Map an existing folder | `/gpd:map-research` | `$gpd-map-research` | `/gpd-map-research` |
-| Reopen work from your normal terminal | `gpd resume` | `gpd resume` | `gpd resume` |
+| Rediscover the workspace in your normal terminal | `gpd resume` | `gpd resume` | `gpd resume` |
+| Continue in the reopened runtime | `/gpd:resume-work` | `$gpd-resume-work` | `/gpd-resume-work` |
 
-Use `gpd resume` in your normal terminal first. After it points you to the right workspace, open your runtime there and use its `resume-work` command to continue inside the project.
-Use `gpd resume --recent` when you need to jump to a different recent workspace before opening the runtime again.
+Use `gpd resume` in your normal terminal first. Use `gpd resume --recent` when you need to jump to a different recent workspace before reopening the runtime. After the terminal points you to the right workspace, open your runtime there and use its `resume-work` command to continue inside the project.
 
 ## Official docs
 

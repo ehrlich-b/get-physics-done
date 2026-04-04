@@ -68,7 +68,7 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
         dict.fromkeys(
             command
             for surface in beginner_runtime_surfaces()
-            for command in (surface.start_command, surface.tour_command)
+            for command in (surface.start_command, surface.tour_command, surface.resume_work_command)
         )
     )
 
@@ -81,7 +81,9 @@ def test_os_quickstarts_link_runtime_guides_and_post_install_help(doc_name: str)
             "Want a guided overview",
             "Start a new project",
             "Map an existing folder",
-            "Reopen work from your normal terminal",
+            "Rediscover the workspace in your normal terminal",
+            "Continue in the reopened runtime",
+            "gpd resume",
             "gpd resume --recent",
             "resume-work",
             *runtime_commands,

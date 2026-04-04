@@ -19,6 +19,7 @@ from gpd.core.public_surface_contract import (
     beginner_preflight_requirements,
     load_public_surface_contract,
     resume_authority_contract,
+    resume_authority_fields,
 )
 
 
@@ -81,8 +82,12 @@ def test_beginner_runtime_surface_single_lookup_matches_bulk_surface() -> None:
 def test_resume_authority_contract_exposes_full_validated_surface() -> None:
     contract = resume_authority_contract()
 
-    assert contract.compat_surface == "compat_resume_surface"
-    assert contract.session_mirror == "legacy session mirror nested under compat_resume_surface"
+    assert contract.public_vocabulary_intro == "Public resume vocabulary centers on canonical continuation fields"
+    assert contract.public_fields == resume_authority_fields()
+    assert contract.top_level_boundary_phrase == "public top-level resume vocabulary only"
+    assert not hasattr(contract, "compat_surface")
+    assert not hasattr(contract, "session_mirror")
+    assert not hasattr(contract, "compatibility_phrase")
 
 
 def test_public_surface_contract_loader_rejects_shape_drift(monkeypatch, tmp_path: Path) -> None:
@@ -104,9 +109,9 @@ def test_public_surface_contract_loader_rejects_shape_drift(monkeypatch, tmp_pat
         load_public_surface_contract.cache_clear()
 
     drifted_payload = copy.deepcopy(canonical_payload)
-    drifted_payload["resume_authority"]["session_mirror"] = ""
+    drifted_payload["resume_authority"]["public_fields"] = []
     _load_with_payload(drifted_payload)
-    with pytest.raises(ValueError, match=r"resume_authority\.session_mirror must be a non-empty string"):
+    with pytest.raises(ValueError, match=r"resume_authority\.public_fields must be a non-empty list"):
         load_public_surface_contract()
 
     unknown_key_payload = copy.deepcopy(canonical_payload)
