@@ -206,6 +206,7 @@ def test_review_contract_normalizer_accepts_singleton_string_list_fields() -> No
             "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
             "required_evidence": [],
             "blocking_conditions": [],
+            "blocking_preflight_checks": [],
             "stage_artifacts": [],
         }
     ]
@@ -307,12 +308,37 @@ def test_review_contract_renderer_rejects_unknown_preflight_checks() -> None:
         )
 
 
+def test_review_contract_renderer_rejects_conditional_blocking_preflight_checks_not_declared_top_level() -> None:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"conditional_requirements\[0\]\.blocking_preflight_checks must also appear in preflight_checks: "
+            r"manuscript_proof_review"
+        ),
+    ):
+        render_review_contract_prompt(
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "preflight_checks": ["manuscript"],
+                "conditional_requirements": [
+                    {
+                        "when": "theorem-bearing manuscripts are present",
+                        "blocking_preflight_checks": ["manuscript_proof_review"],
+                    }
+                ],
+            }
+        )
+
+
 def test_review_contract_renderer_accepts_publication_artifact_preflight_checks() -> None:
     section = render_review_contract_prompt(
         {
             "schema_version": 1,
             "review_mode": "publication",
             "preflight_checks": [
+                "command_context",
+                "verification_reports",
                 "artifact_manifest",
                 "bibliography_audit",
                 "bibliography_audit_clean",
@@ -323,6 +349,8 @@ def test_review_contract_renderer_accepts_publication_artifact_preflight_checks(
         }
     )
 
+    assert "command_context" in section
+    assert "verification_reports" in section
     assert "artifact_manifest" in section
     assert "bibliography_audit" in section
     assert "bibliography_audit_clean" in section
@@ -448,10 +476,12 @@ def test_review_contract_renderer_renders_conditional_requirements() -> None:
         {
             "schema_version": 1,
             "review_mode": "publication",
+            "preflight_checks": ["manuscript_proof_review"],
             "conditional_requirements": [
                 {
                     "when": "theorem-bearing claims are present",
                     "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                    "blocking_preflight_checks": ["manuscript_proof_review"],
                     "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
                 }
             ],
@@ -461,6 +491,7 @@ def test_review_contract_renderer_renders_conditional_requirements() -> None:
     assert "conditional_requirements:" in section
     assert "- when: theorem-bearing claims are present" in section
     assert "required_outputs:" in section
+    assert "blocking_preflight_checks:" in section
     assert "stage_artifacts:" in section
     assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in section
 

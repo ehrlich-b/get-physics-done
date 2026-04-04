@@ -24,10 +24,12 @@ review-contract:
     - no research artifacts
     - degraded review integrity
   preflight_checks:
+    - command_context
     - project_state
     - roadmap
     - conventions
     - research_artifacts
+    - verification_reports
     - manuscript
     - artifact_manifest
     - bibliography_audit

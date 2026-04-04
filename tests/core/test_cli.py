@@ -5783,6 +5783,104 @@ def test_resolve_review_preflight_manuscript_uses_workspace_cwd_for_relative_tar
     assert detail == f"{manuscript} present"
 
 
+def test_resolve_review_preflight_manuscript_nested_supported_directory_resolves_via_supported_root(
+    tmp_path: Path,
+) -> None:
+    manuscript_dir = tmp_path / "paper"
+    sections_dir = manuscript_dir / "sections"
+    sections_dir.mkdir(parents=True)
+    manuscript = sections_dir / "curvature_flow_bounds.tex"
+    manuscript.write_text("\\documentclass{article}\\begin{document}Hello\\end{document}", encoding="utf-8")
+    (manuscript_dir / "ARTIFACT-MANIFEST.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "paper_title": "Curvature Flow Bounds",
+                "journal": "prl",
+                "created_at": "2026-04-02T00:00:00+00:00",
+                "artifacts": [
+                    {
+                        "artifact_id": "tex-paper",
+                        "category": "tex",
+                        "path": "sections/curvature_flow_bounds.tex",
+                        "sha256": "0" * 64,
+                        "produced_by": "test",
+                        "sources": [],
+                        "metadata": {},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    resolved, detail = cli_module._resolve_review_preflight_manuscript(
+        tmp_path,
+        "paper/sections",
+        allow_markdown=True,
+        restrict_to_supported_roots=True,
+    )
+
+    assert resolved == manuscript
+    assert detail.endswith("/paper/sections resolved to " + str(manuscript))
+
+
+def test_resolve_review_preflight_manuscript_rejects_nested_supported_directory_when_entrypoint_lives_elsewhere(
+    tmp_path: Path,
+) -> None:
+    manuscript_dir = tmp_path / "paper"
+    sections_dir = manuscript_dir / "sections"
+    sections_dir.mkdir(parents=True)
+    manuscript = manuscript_dir / "main.tex"
+    manuscript.write_text("\\documentclass{article}\\begin{document}Hello\\end{document}", encoding="utf-8")
+    (manuscript_dir / "ARTIFACT-MANIFEST.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "paper_title": "Curvature Flow Bounds",
+                "journal": "prl",
+                "created_at": "2026-04-02T00:00:00+00:00",
+                "artifacts": [
+                    {
+                        "artifact_id": "tex-paper",
+                        "category": "tex",
+                        "path": "main.tex",
+                        "sha256": "0" * 64,
+                        "produced_by": "test",
+                        "sources": [],
+                        "metadata": {},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    resolved, detail = cli_module._resolve_review_preflight_manuscript(
+        tmp_path,
+        "paper/sections",
+        allow_markdown=True,
+        restrict_to_supported_roots=True,
+    )
+
+    assert resolved is None
+    assert "does not contain the resolved manuscript entrypoint" in detail
+
+
+def test_resolve_review_preflight_manuscript_rejects_missing_out_of_root_target_before_existence_check(
+    tmp_path: Path,
+) -> None:
+    resolved, detail = cli_module._resolve_review_preflight_manuscript(
+        tmp_path,
+        "submission/missing.tex",
+        allow_markdown=True,
+        restrict_to_supported_roots=True,
+    )
+
+    assert resolved is None
+    assert detail == "explicit manuscript target must stay under `paper/`, `manuscript/`, or `draft/` inside the current project"
+
+
 def test_resolve_review_preflight_manuscript_reports_inconsistent_project_state(tmp_path: Path) -> None:
     manuscript_dir = tmp_path / "paper"
     manuscript_dir.mkdir()

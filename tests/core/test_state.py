@@ -1222,13 +1222,13 @@ def test_load_state_json_recovers_backup_continuation_when_primary_json_is_corru
     loaded = load_state_json(tmp_path)
 
     assert loaded is not None
-    assert loaded["session"]["resume_file"] == "resume.md"
+    assert loaded["session"]["resume_file"] is None
     assert loaded["continuation"]["handoff"]["stopped_at"] == "Phase 03 Plan 2"
     assert loaded["continuation"]["bounded_segment"]["segment_id"] == "segment-03-02"
     assert loaded["continuation"]["bounded_segment"]["resume_file"] == "GPD/phases/03-analysis/.continue-here.md"
-    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["continuation"]["bounded_segment"]["segment_id"] == (
-        "segment-03-02"
-    )
+    persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
+    assert persisted["continuation"]["bounded_segment"]["segment_id"] == "segment-03-02"
+    assert persisted["session"]["resume_file"] is None
 
 
 def test_load_state_json_recovers_backup_continuation_when_primary_continuation_section_is_invalid(tmp_path: Path) -> None:
@@ -1478,7 +1478,7 @@ def test_ensure_state_schema_list_for_session():
     assert isinstance(result["session"], dict)
 
 
-def test_ensure_state_schema_mirrors_session_into_canonical_continuation():
+def test_ensure_state_schema_keeps_legacy_session_read_only_when_canonical_continuation_is_missing():
     result = ensure_state_schema({
         "session": {
             "last_date": "2026-03-02T12:00:00+00:00",
@@ -1490,16 +1490,24 @@ def test_ensure_state_schema_mirrors_session_into_canonical_continuation():
     })
 
     assert result["continuation"]["handoff"] == {
-        "recorded_at": "2026-03-02T12:00:00+00:00",
-        "stopped_at": "Phase 3 P2",
-        "resume_file": "resume.md",
+        "recorded_at": None,
+        "stopped_at": None,
+        "resume_file": None,
         "recorded_by": None,
         "last_result_id": None,
     }
     assert result["continuation"]["machine"] == {
-        "recorded_at": "2026-03-02T12:00:00+00:00",
+        "recorded_at": None,
+        "hostname": None,
+        "platform": None,
+    }
+    assert result["session"] == {
+        "last_date": "2026-03-02T12:00:00+00:00",
+        "stopped_at": "Phase 3 P2",
+        "resume_file": "resume.md",
         "hostname": "builder-01",
         "platform": "Linux x86_64",
+        "last_result_id": None,
     }
 
 
@@ -1530,7 +1538,7 @@ def test_ensure_state_schema_backfills_session_from_canonical_continuation():
     }
 
 
-def test_ensure_state_schema_backfills_missing_canonical_machine_fields_from_session():
+def test_ensure_state_schema_does_not_backfill_canonical_machine_fields_from_legacy_session():
     result = ensure_state_schema(
         {
             "session": {
@@ -1560,16 +1568,16 @@ def test_ensure_state_schema_backfills_missing_canonical_machine_fields_from_ses
         "last_result_id": None,
     }
     assert result["continuation"]["machine"] == {
-        "recorded_at": "2026-03-02T12:00:00+00:00",
-        "hostname": "builder-03",
-        "platform": "Linux arm64",
+        "recorded_at": None,
+        "hostname": None,
+        "platform": None,
     }
     assert result["session"] == {
         "last_date": "2026-03-04T09:15:00+00:00",
         "stopped_at": "Canonical stop",
         "resume_file": "canonical.md",
-        "hostname": "builder-03",
-        "platform": "Linux arm64",
+        "hostname": None,
+        "platform": None,
         "last_result_id": None,
     }
 

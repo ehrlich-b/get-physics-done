@@ -66,6 +66,22 @@ def _runtime_literal_patterns() -> list[str]:
     return sorted(patterns)
 
 
+def _runtime_capability_surface_patterns() -> list[str]:
+    patterns: set[str] = set()
+    for descriptor in _RUNTIME_DESCRIPTORS:
+        capabilities = descriptor.capabilities
+        for value in (
+            capabilities.permission_surface_kind,
+            capabilities.statusline_config_surface,
+            capabilities.notify_config_surface,
+        ):
+            if value and value not in {"none", "managed-launcher-wrapper"}:
+                patterns.add(re.escape(value))
+        if capabilities.permission_surface_kind == "managed-launcher-wrapper":
+            patterns.add(re.escape(capabilities.permission_surface_kind))
+    return sorted(patterns)
+
+
 def _runtime_command_prefix_patterns() -> list[str]:
     return sorted({re.escape(descriptor.command_prefix) for descriptor in _RUNTIME_DESCRIPTORS if descriptor.command_prefix})
 
@@ -96,6 +112,7 @@ _RUNTIME_PATTERN = (
     + "|".join(
         [
             *_runtime_literal_patterns(),
+            *_runtime_capability_surface_patterns(),
             *_runtime_env_prefix_patterns(),
         ]
     )
@@ -332,6 +349,19 @@ def test_runtime_fixture_literal_findings_flags_single_runtime_literal_block() -
     findings = _runtime_fixture_literal_findings(f'(["{runtime_literal}"])', minimum_matches=1)
 
     assert findings == [f'(["{runtime_literal}"])']
+
+
+def test_runtime_pattern_includes_capability_surface_literals() -> None:
+    capability_literals = (
+        "settings.json:permissions.defaultMode",
+        "settings.json:statusLine",
+        "config.toml:approval_policy+sandbox_mode",
+        "config.toml:notify",
+        "opencode.json:permission",
+    )
+
+    for literal in capability_literals:
+        assert re.search(_RUNTIME_PATTERN, literal) is not None
 
 
 def _readme_optional_terminal_reference() -> str:

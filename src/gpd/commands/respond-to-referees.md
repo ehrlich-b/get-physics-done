@@ -21,6 +21,7 @@ review-contract:
     - missing conventions
     - degraded review integrity
   preflight_checks:
+    - command_context
     - project_state
     - manuscript
     - referee_report_source

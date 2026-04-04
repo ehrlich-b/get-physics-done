@@ -510,6 +510,8 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "manuscript-root reproducibility manifest" in write_paper.review_contract.required_evidence
     assert "GPD/REFEREE-REPORT{round_suffix}.md" in write_paper.review_contract.required_outputs
     assert "GPD/REFEREE-REPORT{round_suffix}.tex" in write_paper.review_contract.required_outputs
+    assert "command_context" in write_paper.review_contract.preflight_checks
+    assert "verification_reports" in write_paper.review_contract.preflight_checks
     assert "manuscript" in write_paper.review_contract.preflight_checks
     assert "artifact_manifest" in write_paper.review_contract.preflight_checks
     assert "bibliography_audit" in write_paper.review_contract.preflight_checks
@@ -525,6 +527,8 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "GPD/review/CLAIMS{round_suffix}.json" in peer_review.review_contract.required_outputs
     assert "GPD/review/STAGE-interestingness{round_suffix}.json" in peer_review.review_contract.required_outputs
     assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in peer_review.review_contract.required_outputs
+    assert "command_context" in peer_review.review_contract.preflight_checks
+    assert "verification_reports" in peer_review.review_contract.preflight_checks
     assert "manuscript" in peer_review.review_contract.preflight_checks
     assert "artifact_manifest" in peer_review.review_contract.preflight_checks
     assert "bibliography_audit" in peer_review.review_contract.preflight_checks
@@ -557,6 +561,7 @@ def test_review_commands_expose_typed_contracts() -> None:
             "required_outputs": list(requirement.required_outputs),
             "required_evidence": list(requirement.required_evidence),
             "blocking_conditions": list(requirement.blocking_conditions),
+            "blocking_preflight_checks": list(requirement.blocking_preflight_checks),
             "stage_artifacts": list(requirement.stage_artifacts),
         }
         for requirement in peer_review.review_contract.conditional_requirements
@@ -566,6 +571,7 @@ def test_review_commands_expose_typed_contracts() -> None:
             "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
             "required_evidence": [],
             "blocking_conditions": [],
+            "blocking_preflight_checks": [],
             "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
         }
     ]
@@ -573,6 +579,7 @@ def test_review_commands_expose_typed_contracts() -> None:
 
     assert arxiv_submission.review_contract is not None
     assert arxiv_submission.review_contract.review_mode == "publication"
+    assert "command_context" in arxiv_submission.review_contract.preflight_checks
     assert "artifact_manifest" in arxiv_submission.review_contract.preflight_checks
     assert "bibliography_audit" in arxiv_submission.review_contract.preflight_checks
     assert "bibliography_audit_clean" in arxiv_submission.review_contract.preflight_checks
@@ -584,6 +591,7 @@ def test_review_commands_expose_typed_contracts() -> None:
             "required_outputs": list(requirement.required_outputs),
             "required_evidence": list(requirement.required_evidence),
             "blocking_conditions": list(requirement.blocking_conditions),
+            "blocking_preflight_checks": list(requirement.blocking_preflight_checks),
             "stage_artifacts": list(requirement.stage_artifacts),
         }
         for requirement in arxiv_submission.review_contract.conditional_requirements
@@ -593,17 +601,20 @@ def test_review_commands_expose_typed_contracts() -> None:
             "required_outputs": [],
             "required_evidence": ["cleared manuscript proof review for theorem-bearing manuscripts"],
             "blocking_conditions": ["missing or stale manuscript proof review for theorem-bearing manuscripts"],
+            "blocking_preflight_checks": ["manuscript_proof_review"],
             "stage_artifacts": [],
         }
     ]
 
     assert verify_work.review_contract is not None
     assert verify_work.review_contract.required_state == "phase_executed"
+    assert "command_context" in verify_work.review_contract.preflight_checks
     assert "phase_artifacts" in verify_work.review_contract.preflight_checks
 
     assert respond_to_referees.review_contract is not None
     assert "GPD/review/REFEREE_RESPONSE{round_suffix}.md" in respond_to_referees.review_contract.required_outputs
     assert "GPD/AUTHOR-RESPONSE{round_suffix}.md" in respond_to_referees.review_contract.required_outputs
+    assert "command_context" in respond_to_referees.review_contract.preflight_checks
     assert respond_to_referees.review_contract.required_evidence == [
         "existing manuscript",
         "referee report source when provided as a path",
@@ -632,6 +643,7 @@ def test_conditional_review_contract_requirements_do_not_hide_runtime_blockers()
             when="theorem-bearing manuscripts are present",
             required_evidence=["cleared manuscript proof review for theorem-bearing manuscripts"],
             blocking_conditions=["missing or stale manuscript proof review for theorem-bearing manuscripts"],
+            blocking_preflight_checks=["manuscript_proof_review"],
         )
     ]
     assert "manuscript_proof_review" in arxiv_submission.preflight_checks

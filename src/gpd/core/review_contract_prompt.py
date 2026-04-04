@@ -8,10 +8,12 @@ import yaml
 
 VALID_REVIEW_MODES = ("publication", "review")
 VALID_REVIEW_PREFLIGHT_CHECKS = (
+    "command_context",
     "project_state",
     "roadmap",
     "conventions",
     "research_artifacts",
+    "verification_reports",
     "manuscript",
     "artifact_manifest",
     "bibliography_audit",
@@ -55,6 +57,7 @@ REVIEW_CONTRACT_CONDITIONAL_FIELD_ORDER = (
     "required_outputs",
     "required_evidence",
     "blocking_conditions",
+    "blocking_preflight_checks",
     "stage_artifacts",
 )
 REVIEW_CONTRACT_FRONTMATTER_KEY = "review-contract"
@@ -238,6 +241,11 @@ def _normalize_review_contract_conditional_requirements(value: object) -> list[d
                 item.get("blocking_conditions"),
                 field_name=f"{field_name}.blocking_conditions",
             ),
+            "blocking_preflight_checks": _normalize_review_contract_choice_list(
+                item.get("blocking_preflight_checks"),
+                field_name=f"{field_name}.blocking_preflight_checks",
+                valid_values=VALID_REVIEW_PREFLIGHT_CHECKS,
+            ),
             "stage_artifacts": _normalize_review_contract_string_list(
                 item.get("stage_artifacts"),
                 field_name=f"{field_name}.stage_artifacts",
@@ -245,11 +253,18 @@ def _normalize_review_contract_conditional_requirements(value: object) -> list[d
         }
         if not any(
             normalized_item[key]
-            for key in ("required_outputs", "required_evidence", "blocking_conditions", "stage_artifacts")
+            for key in (
+                "required_outputs",
+                "required_evidence",
+                "blocking_conditions",
+                "blocking_preflight_checks",
+                "stage_artifacts",
+            )
         ):
             raise ValueError(
                 f"{field_name} must declare at least one of: "
-                "required_outputs, required_evidence, blocking_conditions, stage_artifacts"
+                "required_outputs, required_evidence, blocking_conditions, "
+                "blocking_preflight_checks, stage_artifacts"
             )
         normalized.append(normalized_item)
     return normalized
@@ -299,6 +314,28 @@ def _normalize_review_contract_payload(
         valid = ", ".join(VALID_REVIEW_REQUIRED_STATES)
         raise ValueError(f"required_state must be one of: {valid}; got {required_state!r}")
 
+    preflight_checks = _normalize_review_contract_choice_list(
+        loaded.get("preflight_checks"),
+        field_name="preflight_checks",
+        valid_values=VALID_REVIEW_PREFLIGHT_CHECKS,
+    )
+    conditional_requirements = _normalize_review_contract_conditional_requirements(
+        loaded.get("conditional_requirements")
+    )
+    declared_preflight_checks = set(preflight_checks)
+    for index, requirement in enumerate(conditional_requirements):
+        missing_checks = [
+            check_name
+            for check_name in requirement["blocking_preflight_checks"]
+            if check_name not in declared_preflight_checks
+        ]
+        if missing_checks:
+            formatted = ", ".join(missing_checks)
+            raise ValueError(
+                f"conditional_requirements[{index}].blocking_preflight_checks must also appear in preflight_checks: "
+                f"{formatted}"
+            )
+
     return {
         "schema_version": schema_version,
         "review_mode": _normalize_review_contract_choice(
@@ -318,11 +355,7 @@ def _normalize_review_contract_payload(
             loaded.get("blocking_conditions"),
             field_name="blocking_conditions",
         ),
-        "preflight_checks": _normalize_review_contract_choice_list(
-            loaded.get("preflight_checks"),
-            field_name="preflight_checks",
-            valid_values=VALID_REVIEW_PREFLIGHT_CHECKS,
-        ),
+        "preflight_checks": preflight_checks,
         "stage_ids": _normalize_review_contract_string_list(
             loaded.get("stage_ids"),
             field_name="stage_ids",
@@ -331,9 +364,7 @@ def _normalize_review_contract_payload(
             loaded.get("stage_artifacts"),
             field_name="stage_artifacts",
         ),
-        "conditional_requirements": _normalize_review_contract_conditional_requirements(
-            loaded.get("conditional_requirements")
-        ),
+        "conditional_requirements": conditional_requirements,
         "final_decision_output": _normalize_review_contract_optional_str(
             loaded.get("final_decision_output"),
             field_name="final_decision_output",

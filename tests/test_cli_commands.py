@@ -1358,10 +1358,12 @@ class TestReviewValidationCommands:
         assert "GPD/REFEREE-REPORT{round_suffix}.md" in payload["review_contract"]["required_outputs"]
         assert "GPD/REFEREE-REPORT{round_suffix}.tex" in payload["review_contract"]["required_outputs"]
         assert payload["review_contract"]["preflight_checks"] == [
+            "command_context",
             "project_state",
             "roadmap",
             "conventions",
             "research_artifacts",
+            "verification_reports",
             "manuscript",
             "artifact_manifest",
             "bibliography_audit",
@@ -1396,10 +1398,12 @@ class TestReviewValidationCommands:
         assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in payload["review_contract"]["required_outputs"]
         assert "GPD/CONSISTENCY-REPORT.md" not in payload["review_contract"]["required_outputs"]
         assert payload["review_contract"]["preflight_checks"] == [
+            "command_context",
             "project_state",
             "roadmap",
             "conventions",
             "research_artifacts",
+            "verification_reports",
             "manuscript",
             "artifact_manifest",
             "bibliography_audit",
@@ -1439,6 +1443,7 @@ class TestReviewValidationCommands:
                 "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
                 "required_evidence": [],
                 "blocking_conditions": [],
+                "blocking_preflight_checks": [],
                 "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
             }
         ]
@@ -1474,6 +1479,7 @@ class TestReviewValidationCommands:
         assert "existing manuscript" in payload["review_contract"]["required_evidence"]
         assert "referee report source when provided as a path" in payload["review_contract"]["required_evidence"]
         assert "missing referee report source when provided as a path" in payload["review_contract"]["blocking_conditions"]
+        assert "command_context" in payload["review_contract"]["preflight_checks"]
         assert "referee_report_source" in payload["review_contract"]["preflight_checks"]
 
     def test_review_contract_arxiv_submission_surfaces_latest_review_outcome_gate(self) -> None:
@@ -1496,6 +1502,7 @@ class TestReviewValidationCommands:
         assert "missing latest staged peer-review decision evidence" in payload["review_contract"]["blocking_conditions"]
         assert "latest staged peer-review recommendation blocks submission packaging" in payload["review_contract"]["blocking_conditions"]
         assert payload["review_contract"]["preflight_checks"] == [
+            "command_context",
             "project_state",
             "manuscript",
             "artifact_manifest",
@@ -1517,6 +1524,7 @@ class TestReviewValidationCommands:
                 "required_outputs": [],
                 "required_evidence": ["cleared manuscript proof review for theorem-bearing manuscripts"],
                 "blocking_conditions": ["missing or stale manuscript proof review for theorem-bearing manuscripts"],
+                "blocking_preflight_checks": ["manuscript_proof_review"],
                 "stage_artifacts": [],
             }
         ]
@@ -2025,6 +2033,7 @@ class TestReviewValidationCommands:
                 "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
                 "required_evidence": [],
                 "blocking_conditions": [],
+                "blocking_preflight_checks": [],
                 "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
             }
         ]
@@ -3942,6 +3951,26 @@ class TestReviewValidationCommands:
         checks = {check["name"]: check for check in payload["checks"]}
         assert checks["manuscript"]["passed"] is False
         assert "must stay under `paper/`, `manuscript/`, or `draft/`" in checks["manuscript"]["detail"]
+
+    def test_review_preflight_arxiv_submission_default_markdown_only_project_fails_manuscript_check(
+        self,
+        gpd_project: Path,
+    ) -> None:
+        paper_dir = gpd_project / "paper"
+        (paper_dir / _CANONICAL_MANUSCRIPT_BASENAME).unlink()
+        (paper_dir / _CANONICAL_MARKDOWN_BASENAME).write_text("# Markdown manuscript\n", encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "review-preflight", "arxiv-submission", "--strict"],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1, result.output
+        payload = json.loads(result.output)
+        checks = {check["name"]: check for check in payload["checks"]}
+        assert checks["manuscript"]["passed"] is False
+        assert "no LaTeX manuscript entrypoint found under paper/, manuscript/, or draft/" in checks["manuscript"]["detail"]
 
     def test_validate_paper_quality_command(self, gpd_project: Path) -> None:
         quality_path = gpd_project / "paper-quality.json"

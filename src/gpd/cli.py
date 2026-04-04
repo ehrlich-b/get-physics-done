@@ -5062,8 +5062,6 @@ def _resolve_review_preflight_manuscript(
         if not target.is_absolute():
             target = subject_base / target
 
-        if not target.exists():
-            return None, f"missing explicit manuscript target {_format_display_path(target)}"
         target = target.resolve(strict=False)
         target_is_supported_root = _supported_explicit_manuscript_target(target)
         if restrict_to_supported_roots and not target_is_supported_root:
@@ -5071,6 +5069,8 @@ def _resolve_review_preflight_manuscript(
                 None,
                 "explicit manuscript target must stay under `paper/`, `manuscript/`, or `draft/` inside the current project",
             )
+        if not target.exists():
+            return None, f"missing explicit manuscript target {_format_display_path(target)}"
         if target.is_file():
             if target.suffix == ".tex" or (allow_markdown and target.suffix == ".md"):
                 manuscript_root, root_resolution = _supported_root_resolution_for_target(target)
@@ -5095,8 +5095,26 @@ def _resolve_review_preflight_manuscript(
             return None, f"explicit manuscript target must be a .tex or .md file: {_format_display_path(target)}"
 
         if target.is_dir():
-            resolution = resolve_manuscript_entrypoint_from_root_resolution(target, allow_markdown=allow_markdown)
+            manuscript_root, root_resolution = _supported_root_resolution_for_target(target)
+            resolution = (
+                root_resolution
+                if manuscript_root is not None and root_resolution is not None
+                else resolve_manuscript_entrypoint_from_root_resolution(target, allow_markdown=allow_markdown)
+            )
             if resolution.status == "resolved" and resolution.manuscript_entrypoint is not None:
+                if manuscript_root is not None and manuscript_root != target:
+                    resolved_entrypoint = resolution.manuscript_entrypoint.resolve(strict=False)
+                    try:
+                        resolved_entrypoint.relative_to(target)
+                    except ValueError:
+                        return (
+                            None,
+                            (
+                                f"{_format_display_path(target)} does not contain the resolved manuscript entrypoint "
+                                f"{_format_display_path(resolution.manuscript_entrypoint)} under "
+                                f"{_format_display_path(manuscript_root)}"
+                            ),
+                        )
                 return resolution.manuscript_entrypoint, f"{_format_display_path(target)} resolved to {_format_display_path(resolution.manuscript_entrypoint)}"
             if resolution.status == "missing":
                 return None, f"no manuscript entry point found under {_format_display_path(target)}"
@@ -5271,20 +5289,30 @@ def _review_contract_requests_check(contract: object, check_name: str) -> bool:
     return check_name in list(getattr(contract, "preflight_checks", []) or [])
 
 
-def _review_contract_requires_evidence(contract: object, evidence_text: str) -> bool:
-    """Return whether one exact required-evidence item is present in the typed review contract."""
-
-    return evidence_text in {
-        str(item).strip()
-        for item in list(getattr(contract, "required_evidence", []) or [])
-        if isinstance(item, str) and item.strip()
-    }
-
-
 def _review_preflight_check_is_blocking(contract: object, check_name: str) -> bool:
     """Return True when the typed review contract marks a check as hard-blocking."""
 
     return check_name in list(getattr(contract, "preflight_checks", []) or [])
+
+
+def _review_contract_active_conditional_requirements(
+    contract: object,
+    *,
+    project_cwd: Path,
+    manuscript: Path | None,
+) -> list[object]:
+    """Return conditionals whose trigger is active for the current manuscript."""
+
+    active_requirements: list[object] = []
+    for requirement in list(getattr(contract, "conditional_requirements", []) or []):
+        when = str(getattr(requirement, "when", "") or "").strip()
+        if when in {
+            "theorem-bearing claims are present",
+            "theorem-bearing manuscripts are present",
+        }:
+            if _requires_theorem_bearing_manuscript_review(project_cwd, manuscript):
+                active_requirements.append(requirement)
+    return active_requirements
 
 
 def _evaluate_review_required_state(
@@ -6445,7 +6473,7 @@ def _build_review_preflight(
         "command_context",
         context_preflight.passed,
         context_detail,
-        blocking=True,
+        blocking=_review_preflight_check_is_blocking(contract, "command_context"),
     )
 
     if "project_state" in contract.preflight_checks:
@@ -6504,10 +6532,7 @@ def _build_review_preflight(
                 else "; ".join(summary_failures[:3]),
                 blocking=True,
             )
-        verification_reports_requested = _review_contract_requests_check(
-            contract,
-            "verification_reports",
-        ) or _review_contract_requires_evidence(contract, "verification reports")
+        verification_reports_requested = _review_contract_requests_check(contract, "verification_reports")
         if verification_reports_requested:
             verification_exists = layout.phases_dir.exists() and any(layout.phases_dir.rglob("*VERIFICATION.md"))
             add_check(
@@ -6546,6 +6571,8 @@ def _build_review_preflight(
                 "fresh bootstrap is allowed and will scaffold a topic-specific manuscript stem under ./paper/"
             )
             manuscript_passed = True
+        elif command.name == "gpd:arxiv-submission":
+            manuscript_passed = manuscript is not None
         elif subject is None:
             manuscript_passed = resolution.status == "resolved"
         else:
@@ -6573,6 +6600,16 @@ def _build_review_preflight(
             "gpd:write-paper",
             "gpd:arxiv-submission",
         }:
+            active_conditional_requirements = _review_contract_active_conditional_requirements(
+                contract,
+                project_cwd=project_cwd,
+                manuscript=manuscript,
+            )
+            conditional_blocking_preflight_checks = {
+                check_name
+                for requirement in active_conditional_requirements
+                for check_name in list(getattr(requirement, "blocking_preflight_checks", []) or [])
+            }
             requested_publication_checks = {
                 check_name
                 for check_name in (
@@ -6883,7 +6920,7 @@ def _build_review_preflight(
                     manuscript_proof_review_blocking = False
                     manuscript_proof_review_detail = manuscript_proof_review.detail
                     if command.name == "gpd:arxiv-submission":
-                        if theorem_bearing_review_required:
+                        if "manuscript_proof_review" in conditional_blocking_preflight_checks:
                             manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
                             manuscript_proof_review_blocking = True
                         else:

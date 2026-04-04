@@ -803,13 +803,13 @@ def test_build_runtime_hint_payload_preserves_existing_local_target_over_recent_
             "roadmap_exists": True,
             "project_exists": True,
             "active_resume_kind": "bounded_segment",
-            "active_resume_origin": "compat.current_execution",
+            "active_resume_origin": "continuation.bounded_segment",
             "active_resume_pointer": "GPD/phases/08/.continue-here.md",
             "execution_resumable": True,
             "resume_candidates": [
                 {
                     "kind": "bounded_segment",
-                    "origin": "compat.current_execution",
+                    "origin": "continuation.bounded_segment",
                     "status": "paused",
                     "resume_file": "GPD/phases/08/.continue-here.md",
                     "resume_pointer": "GPD/phases/08/.continue-here.md",
@@ -1225,7 +1225,7 @@ def test_build_runtime_hint_payload_uses_canonical_bounded_resume_mode_without_l
             "roadmap_exists": True,
             "project_exists": True,
             "active_resume_kind": "bounded_segment",
-            "active_resume_origin": "compat.current_execution",
+            "active_resume_origin": "continuation.bounded_segment",
             "active_resume_pointer": "GPD/phases/06/.continue-here.md",
             "resume_candidates": [],
             "has_live_execution": True,
@@ -1379,21 +1379,8 @@ def test_build_runtime_hint_payload_prefers_canonical_resume_fields_over_legacy_
             "active_resume_kind": "continuity_handoff",
             "active_resume_origin": "continuation.handoff",
             "active_resume_pointer": "GPD/phases/10/.continue-here.md",
-            "compat_resume_surface": {
-                "session_resume_file": "GPD/phases/10/.continue-here.md",
-                "recorded_session_resume_file": "GPD/phases/10/.continue-here.md",
-                "resume_candidates": [
-                    {
-                        "kind": "continuity_handoff",
-                        "origin": "continuation.handoff",
-                        "status": "handoff",
-                        "resume_file": "GPD/phases/10/.continue-here.md",
-                    }
-                ],
-                "resume_mode": "continuity_handoff",
-                "execution_resume_file": "GPD/phases/10/.continue-here.md",
-                "execution_resume_file_source": "session_resume_file",
-            },
+            "continuity_handoff_file": "GPD/phases/10/.continue-here.md",
+            "recorded_continuity_handoff_file": "GPD/phases/10/.continue-here.md",
             "resume_mode": "bounded_segment",
             "execution_resumable": True,
             "execution_resume_file": "GPD/phases/10/legacy-live.md",

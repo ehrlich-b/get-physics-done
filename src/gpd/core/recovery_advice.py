@@ -136,7 +136,6 @@ def _candidate_text(candidate: Mapping[str, object], field: str) -> str | None:
     stripped = value.strip()
     return stripped or None
 
-
 def _project_reentry_candidates(
     payload: Mapping[str, object],
 ) -> list[Mapping[str, object]] | None:
@@ -191,10 +190,6 @@ def _candidate_origin(candidate: Mapping[str, object]) -> str | None:
 
 
 def _canonical_resume_origin(origin: str | None) -> str | None:
-    if origin in {"compat.current_execution", "current_execution"}:
-        return "continuation.bounded_segment"
-    if origin in {"compat.session_resume_file", "session_resume_file"}:
-        return "continuation.handoff"
     return origin
 
 
@@ -247,10 +242,21 @@ def _has_usable_candidate_resume_file(segment_candidates: Sequence[Mapping[str, 
     return False
 
 
+def _has_usable_interrupted_agent_candidate(segment_candidates: Sequence[Mapping[str, object]]) -> bool:
+    for candidate in segment_candidates:
+        if _candidate_kind(candidate) != "interrupted_agent":
+            continue
+        if _candidate_text(candidate, "status") != "interrupted":
+            continue
+        if _candidate_text(candidate, "agent_id") is None:
+            continue
+        return True
+    return False
+
+
 def _derive_active_resume_kind(
     *,
     payload: Mapping[str, object],
-    resume_mode: str | None,
     active_resume_pointer: str | None,
     continuity_handoff_file: str | None,
     missing_continuity_handoff_file: str | None,
@@ -262,17 +268,15 @@ def _derive_active_resume_kind(
     explicit_origin = _text_field(payload, "active_resume_origin")
     if explicit_origin == "interrupted_agent_marker":
         return "interrupted_agent"
-    if explicit_origin in {"continuation.bounded_segment", "compat.current_execution", "current_execution"}:
+    if explicit_origin == "continuation.bounded_segment":
         return "bounded_segment"
-    if explicit_origin in {"continuation.handoff", "compat.session_resume_file", "session_resume_file"}:
+    if explicit_origin == "continuation.handoff":
         return "continuity_handoff"
     if missing_continuity_handoff_file is not None:
         return "continuity_handoff"
     if _has_candidate(resume_candidates, kind="continuity_handoff", status="missing"):
         return "continuity_handoff"
     if _has_candidate(resume_candidates, kind="bounded_segment"):
-        return "bounded_segment"
-    if resume_mode == "bounded_segment" and active_resume_pointer is not None:
         return "bounded_segment"
     if continuity_handoff_file is not None:
         return "continuity_handoff"
@@ -287,10 +291,6 @@ def _derive_active_resume_origin(
     *,
     payload: Mapping[str, object],
     active_resume_kind: str | None,
-    continuity_handoff_file: str | None,
-    recorded_continuity_handoff_file: str | None,
-    missing_continuity_handoff_file: str | None,
-    resume_candidates: Sequence[Mapping[str, object]],
 ) -> str | None:
     explicit = _text_field(payload, "active_resume_origin")
     if explicit is not None:
@@ -498,18 +498,27 @@ def build_recovery_advice(
     recent_projects_count = len(recent_project_rows)
     resumable_projects_count = sum(1 for row in recent_project_rows if bool(_row_value(row, "resumable", False)))
     available_projects_count = sum(1 for row in recent_project_rows if bool(_row_value(row, "available", False)))
-
-    segment_candidates_raw = lookup_resume_surface_list(payload, "resume_candidates")
+    segment_candidates_raw = lookup_resume_surface_list(
+        payload,
+        "resume_candidates",
+    )
     segment_candidates = [item for item in segment_candidates_raw if isinstance(item, Mapping)] if isinstance(segment_candidates_raw, list) else []
 
-    resume_mode = None
-    continuity_handoff_file = lookup_resume_surface_text(payload, "continuity_handoff_file")
-    recorded_continuity_handoff_file = lookup_resume_surface_text(payload, "recorded_continuity_handoff_file")
-    missing_continuity_handoff_file = lookup_resume_surface_text(payload, "missing_continuity_handoff_file")
+    continuity_handoff_file = lookup_resume_surface_text(
+        payload,
+        "continuity_handoff_file",
+    )
+    recorded_continuity_handoff_file = lookup_resume_surface_text(
+        payload,
+        "recorded_continuity_handoff_file",
+    )
+    missing_continuity_handoff_file = lookup_resume_surface_text(
+        payload,
+        "missing_continuity_handoff_file",
+    )
     active_resume_pointer = _text_field(payload, "active_resume_pointer")
     active_resume_kind = _derive_active_resume_kind(
         payload=payload,
-        resume_mode=resume_mode,
         active_resume_pointer=active_resume_pointer,
         continuity_handoff_file=continuity_handoff_file,
         missing_continuity_handoff_file=missing_continuity_handoff_file,
@@ -518,10 +527,6 @@ def build_recovery_advice(
     active_resume_origin = _derive_active_resume_origin(
         payload=payload,
         active_resume_kind=active_resume_kind,
-        continuity_handoff_file=continuity_handoff_file,
-        recorded_continuity_handoff_file=recorded_continuity_handoff_file,
-        missing_continuity_handoff_file=missing_continuity_handoff_file,
-        resume_candidates=segment_candidates,
     )
     selected_recent_project_resume_kind, selected_recent_project_resume_origin = _selected_recent_project_resume_family(
         selected_project_reentry_candidate
@@ -555,12 +560,15 @@ def build_recovery_advice(
     has_interrupted_agent = (
         interrupted_agent_flag
         or active_resume_kind == "interrupted_agent"
-        or resume_mode == "interrupted_agent"
         or _has_candidate(
             segment_candidates,
             kind="interrupted_agent",
             status="interrupted",
         )
+    )
+    has_interrupted_agent_target = (
+        (active_resume_kind == "interrupted_agent" and active_resume_pointer is not None)
+        or _has_usable_interrupted_agent_candidate(segment_candidates)
     )
     live_execution_flag = _bool_field(payload, "has_live_execution")
     has_live_execution = (
@@ -608,7 +616,7 @@ def build_recovery_advice(
         or has_live_execution
         or machine_change_notice is not None
         or recorded_continuity_handoff_file is not None
-        or active_resume_pointer is not None
+        or (active_resume_pointer is not None and active_resume_kind is not None)
     )
     if not workspace_matches_project_root:
         current_workspace_has_recovery = False
@@ -617,7 +625,7 @@ def build_recovery_advice(
     current_workspace_candidate_count = len(segment_candidates) if workspace_matches_project_root else 0
     has_local_recovery_target = bool(
         execution_resumable
-        or has_interrupted_agent
+        or has_interrupted_agent_target
         or has_continuity_handoff
     )
     inferred_reentry_mode = project_reentry_mode or (

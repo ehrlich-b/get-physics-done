@@ -12,7 +12,6 @@ from collections.abc import Callable, Mapping, Sequence
 
 __all__ = [
     "RESUME_COMPATIBILITY_ALIAS_FIELDS",
-    "RESUME_COMPATIBILITY_SCHEMA",
     "RESUME_COMPATIBILITY_WRAPPER_ALIASES",
     "RESUME_COMPATIBILITY_ALIAS_KEYS",
     "RESUME_CANDIDATE_KIND_BOUNDED_SEGMENT",
@@ -21,7 +20,6 @@ __all__ = [
     "RESUME_CANDIDATE_ORIGIN_CONTINUATION_BOUNDED_SEGMENT",
     "RESUME_CANDIDATE_ORIGIN_CONTINUATION_HANDOFF",
     "RESUME_CANDIDATE_ORIGIN_INTERRUPTED_AGENT_MARKER",
-    "build_resume_compat_surface",
     "build_resume_candidate",
     "build_resume_segment_candidate",
     "build_resume_static_candidate",
@@ -38,7 +36,6 @@ __all__ = [
     "resume_origin_for_handoff",
     "resume_origin_for_interrupted_agent",
     "resume_payload_has_local_recovery_target",
-    "resolve_resume_compat_surface",
 ]
 
 
@@ -56,12 +53,6 @@ RESUME_COMPATIBILITY_ALIAS_FIELDS: tuple[str, ...] = (
 )
 
 RESUME_COMPATIBILITY_WRAPPER_ALIASES: tuple[str, ...] = ("compat_resume_surface",)
-
-RESUME_COMPATIBILITY_SCHEMA: dict[str, tuple[str, ...] | str] = {
-    "surface_key": "compat_resume_surface",
-    "alias_fields": RESUME_COMPATIBILITY_ALIAS_FIELDS,
-    "wrapper_aliases": RESUME_COMPATIBILITY_WRAPPER_ALIASES,
-}
 
 RESUME_COMPATIBILITY_ALIAS_KEYS: tuple[str, ...] = RESUME_COMPATIBILITY_ALIAS_FIELDS
 
@@ -96,18 +87,6 @@ _RESUME_CANDIDATE_SEGMENT_FIELDS: tuple[str, ...] = (
 )
 
 
-def _resolve_resume_surface_mapping(
-    source: Mapping[str, object],
-    *,
-    aliases: Sequence[str],
-) -> Mapping[str, object] | None:
-    for key in aliases:
-        value = source.get(key)
-        if isinstance(value, Mapping):
-            return value
-    return None
-
-
 def _lookup_resume_surface_field(
     payload: Mapping[str, object] | None,
     key: str,
@@ -133,49 +112,6 @@ def _lookup_resume_surface_field(
             if accepted is not None:
                 return accepted
     return None
-
-
-def resolve_resume_compat_surface(
-    *sources: Mapping[str, object] | None,
-    fields: Sequence[str] = RESUME_COMPATIBILITY_ALIAS_FIELDS,
-    wrapper_aliases: Sequence[str] = RESUME_COMPATIBILITY_WRAPPER_ALIASES,
-) -> dict[str, object] | None:
-    """Return the nested compatibility resume block for one payload."""
-    compat: dict[str, object] = dict.fromkeys(fields)
-    found_alias_data = False
-
-    for source in sources:
-        if not isinstance(source, Mapping):
-            continue
-        value = _resolve_resume_surface_mapping(source, aliases=wrapper_aliases)
-        if isinstance(value, Mapping):
-            for field in fields:
-                if field in value:
-                    candidate = value.get(field)
-                    if candidate is not None:
-                        compat[field] = candidate
-                    found_alias_data = True
-        for field in fields:
-            if field not in source:
-                continue
-            candidate = source.get(field)
-            if candidate is not None:
-                compat[field] = candidate
-            found_alias_data = True
-
-    return compat if found_alias_data else None
-
-
-def build_resume_compat_surface(
-    *sources: Mapping[str, object] | None,
-    fields: Sequence[str] = RESUME_COMPATIBILITY_ALIAS_FIELDS,
-) -> dict[str, object] | None:
-    """Return the nested compatibility resume block for one payload."""
-    return resolve_resume_compat_surface(
-        *sources,
-        fields=fields,
-        wrapper_aliases=RESUME_COMPATIBILITY_WRAPPER_ALIASES,
-    )
 
 
 def lookup_resume_surface_text(
@@ -455,17 +391,14 @@ def resume_payload_has_local_recovery_target(
     """Return whether one resume payload already exposes a local recovery target."""
     if not isinstance(payload, Mapping):
         return False
-    compat_surface = compat_surface if isinstance(compat_surface, Mapping) else resolve_resume_compat_surface(payload)
+    _ = compat_surface
     active_resume_kind = lookup_resume_surface_text(
         payload,
         "active_resume_kind",
-        compat_surface=compat_surface,
     )
     active_resume_pointer = lookup_resume_surface_text(
         payload,
         "active_resume_pointer",
-        compat_surface=compat_surface,
-        compat_key="execution_resume_file",
     )
     if (
         active_resume_kind in {RESUME_CANDIDATE_KIND_BOUNDED_SEGMENT, RESUME_CANDIDATE_KIND_INTERRUPTED_AGENT}
@@ -475,17 +408,10 @@ def resume_payload_has_local_recovery_target(
     if lookup_resume_surface_text(
         payload,
         "continuity_handoff_file",
-        compat_surface=compat_surface,
-        compat_key="session_resume_file",
     ) is not None:
         return True
 
-    candidates = lookup_resume_surface_list(
-        payload,
-        "resume_candidates",
-        compat_surface=compat_surface,
-        compat_key="segment_candidates",
-    )
+    candidates = lookup_resume_surface_list(payload, "resume_candidates")
     if not isinstance(candidates, list):
         return False
     return any(

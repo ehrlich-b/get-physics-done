@@ -21,6 +21,7 @@ review-contract:
     - missing phase artifacts
     - degraded review integrity
   preflight_checks:
+    - command_context
     - project_state
     - roadmap
     - phase_artifacts

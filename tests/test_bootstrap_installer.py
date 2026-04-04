@@ -838,6 +838,13 @@ assert.throws(
   /runtime catalog contains duplicate runtime selection token/
 );
 
+const duplicateInstallFlagCatalog = JSON.parse(JSON.stringify(catalog));
+duplicateInstallFlagCatalog[1].install_flag = duplicateInstallFlagCatalog[0].install_flag;
+assert.throws(
+  () => validateRuntimeCatalog(duplicateInstallFlagCatalog),
+  /runtime catalog contains duplicate install_flag/
+);
+
 const badTelemetryCatalog = JSON.parse(JSON.stringify(catalog));
 badTelemetryCatalog[0].capabilities.telemetry_source = "webhook";
 assert.throws(
@@ -845,11 +852,29 @@ assert.throws(
   /runtime catalog entry 0\.capabilities\.telemetry_source must be one of: none, notify-hook/
 );
 
+const futureConfigSurfaceCatalog = JSON.parse(JSON.stringify(catalog));
+futureConfigSurfaceCatalog[0].capabilities.permission_surface_kind = "future.json:permissions.mode";
+futureConfigSurfaceCatalog[0].capabilities.statusline_config_surface = "future.json:statusLine";
+futureConfigSurfaceCatalog[0].capabilities.notify_config_surface = "future.json:notify";
+const validatedConfigSurfaceCatalog = validateRuntimeCatalog(futureConfigSurfaceCatalog);
+assert.equal(
+  validatedConfigSurfaceCatalog[0].capabilities.permission_surface_kind,
+  "future.json:permissions.mode"
+);
+assert.equal(
+  validatedConfigSurfaceCatalog[0].capabilities.statusline_config_surface,
+  "future.json:statusLine"
+);
+assert.equal(
+  validatedConfigSurfaceCatalog[0].capabilities.notify_config_surface,
+  "future.json:notify"
+);
+
 const badPermissionKindCatalog = JSON.parse(JSON.stringify(catalog));
 badPermissionKindCatalog[0].capabilities.permission_surface_kind = "approval-toggle";
 assert.throws(
   () => validateRuntimeCatalog(badPermissionKindCatalog),
-  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be "none", "managed-launcher-wrapper", or a config surface label like file:key/
+  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be "none", a bundled special surface kind, or a config surface label like file:key/
 );
 
 const badStatuslineCatalog = JSON.parse(JSON.stringify(catalog));
@@ -857,6 +882,47 @@ badStatuslineCatalog[0].capabilities.statusline_surface = "implicit";
 assert.throws(
   () => validateRuntimeCatalog(badStatuslineCatalog),
   /runtime catalog entry 0\.capabilities\.statusline_surface must be one of: explicit, none/
+);
+
+const badStatuslineConfigCatalog = JSON.parse(JSON.stringify(catalog));
+badStatuslineConfigCatalog[0].capabilities.statusline_config_surface = "statusLine-toggle";
+assert.throws(
+  () => validateRuntimeCatalog(badStatuslineConfigCatalog),
+  /runtime catalog entry 0\.capabilities\.statusline_config_surface must be "none" or a config surface label like file:key/
+);
+
+const badNotifyConfigCatalog = JSON.parse(JSON.stringify(catalog));
+badNotifyConfigCatalog[0].capabilities.notify_config_surface = "notify-toggle";
+assert.throws(
+  () => validateRuntimeCatalog(badNotifyConfigCatalog),
+  /runtime catalog entry 0\.capabilities\.notify_config_surface must be "none" or a config surface label like file:key/
+);
+
+const badConfigFilePermissionContractCatalog = JSON.parse(JSON.stringify(catalog));
+badConfigFilePermissionContractCatalog[0].capabilities.permissions_surface = "config-file";
+badConfigFilePermissionContractCatalog[0].capabilities.permission_surface_kind = "none";
+assert.throws(
+  () => validateRuntimeCatalog(badConfigFilePermissionContractCatalog),
+  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be a config surface label when permissions_surface=config-file/
+);
+
+const badLaunchWrapperPermissionContractCatalog = JSON.parse(JSON.stringify(catalog));
+badLaunchWrapperPermissionContractCatalog[0].capabilities.permissions_surface = "launch-wrapper";
+badLaunchWrapperPermissionContractCatalog[0].capabilities.permission_surface_kind = "future.json:permissions.mode";
+assert.throws(
+  () => validateRuntimeCatalog(badLaunchWrapperPermissionContractCatalog),
+  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be a bundled special surface kind when permissions_surface=launch-wrapper/
+);
+
+const badUnsupportedPermissionContractCatalog = JSON.parse(JSON.stringify(catalog));
+badUnsupportedPermissionContractCatalog[0].capabilities.permissions_surface = "unsupported";
+badUnsupportedPermissionContractCatalog[0].capabilities.permission_surface_kind = "future.json:permissions.mode";
+badUnsupportedPermissionContractCatalog[0].capabilities.supports_runtime_permission_sync = true;
+badUnsupportedPermissionContractCatalog[0].capabilities.supports_prompt_free_mode = false;
+badUnsupportedPermissionContractCatalog[0].capabilities.prompt_free_requires_relaunch = false;
+assert.throws(
+  () => validateRuntimeCatalog(badUnsupportedPermissionContractCatalog),
+  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be "none" when permissions_surface=unsupported/
 );
 
 const mismatchedSurfaceCatalog = JSON.parse(JSON.stringify(catalog));

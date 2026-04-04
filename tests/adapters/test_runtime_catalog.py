@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -24,6 +25,7 @@ from gpd.adapters.runtime_catalog import (
 )
 
 _RUNTIME_CATALOG_PATH = Path(__file__).resolve().parents[2] / "src" / "gpd" / "adapters" / "runtime_catalog.json"
+_RUNTIME_CONFIG_SURFACE_LABEL_RE = re.compile(r"^[A-Za-z0-9._-]+:[A-Za-z0-9+._-]+$")
 
 
 def _iter_runtime_descriptors_from_payload(
@@ -217,6 +219,105 @@ def test_runtime_catalog_rejects_invalid_capability_enum_values(
         _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
 
 
+def test_runtime_catalog_accepts_future_config_surface_labels(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    payload[0]["capabilities"]["permission_surface_kind"] = "future.json:permissions.mode"
+    payload[0]["capabilities"]["statusline_config_surface"] = "future.json:statusLine"
+    payload[0]["capabilities"]["notify_config_surface"] = "future.json:notify"
+
+    descriptors = _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+    assert descriptors[0].capabilities.permission_surface_kind == "future.json:permissions.mode"
+    assert descriptors[0].capabilities.statusline_config_surface == "future.json:statusLine"
+    assert descriptors[0].capabilities.notify_config_surface == "future.json:notify"
+
+
+def test_runtime_catalog_rejects_malformed_config_surface_labels(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    payload[0]["capabilities"]["statusline_config_surface"] = "statusLine-toggle"
+
+    with pytest.raises(
+        ValueError,
+        match=r'runtime catalog entry 0\.capabilities\.statusline_config_surface must be "none" or a config surface label like file:key',
+    ):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
+def test_runtime_catalog_rejects_duplicate_runtime_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    payload[1]["runtime_name"] = payload[0]["runtime_name"]
+
+    with pytest.raises(ValueError, match=r"runtime catalog contains duplicate runtime_name"):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
+def test_runtime_catalog_rejects_duplicate_runtime_selection_token(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    payload[1]["selection_aliases"] = [payload[0]["selection_aliases"][0]]
+
+    with pytest.raises(ValueError, match=r"runtime catalog contains duplicate runtime selection token"):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
+def test_runtime_catalog_rejects_duplicate_install_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    payload[1]["install_flag"] = payload[0]["install_flag"]
+
+    with pytest.raises(ValueError, match=r"runtime catalog contains duplicate install_flag"):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
+@pytest.mark.parametrize(
+    ("mutator", "match"),
+    [
+        (
+            lambda capabilities: capabilities.update(
+                permissions_surface="config-file",
+                permission_surface_kind="none",
+            ),
+            r"runtime catalog entry 0\.capabilities\.permission_surface_kind must be a config surface label when permissions_surface=config-file",
+        ),
+        (
+            lambda capabilities: capabilities.update(
+                permissions_surface="launch-wrapper",
+                permission_surface_kind="future.json:permissions.mode",
+            ),
+            r'runtime catalog entry 0\.capabilities\.permission_surface_kind must be "managed-launcher-wrapper" when permissions_surface=launch-wrapper',
+        ),
+        (
+            lambda capabilities: capabilities.update(
+                permissions_surface="unsupported",
+                permission_surface_kind="future.json:permissions.mode",
+                supports_runtime_permission_sync=True,
+                supports_prompt_free_mode=False,
+                prompt_free_requires_relaunch=False,
+            ),
+            r'runtime catalog entry 0\.capabilities\.permission_surface_kind must be "none" when permissions_surface=unsupported',
+        ),
+    ],
+)
+def test_runtime_catalog_rejects_incoherent_permission_surface_contract(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutator,
+    match: str,
+) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    mutator(payload[0]["capabilities"])
+
+    with pytest.raises(ValueError, match=match):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
 def test_hook_payload_policy_uses_runtime_specific_overrides_and_merged_fallback() -> None:
     codex_policy = get_hook_payload_policy("codex")
     merged_policy = get_hook_payload_policy()
@@ -351,16 +452,7 @@ def test_runtime_capabilities_are_explicit_per_runtime() -> None:
 
 def test_runtime_capabilities_and_hook_payload_contract_stay_coherent() -> None:
     allowed_permissions_surfaces = {"config-file", "launch-wrapper", "unsupported"}
-    allowed_permission_surface_kinds = {
-        "settings.json:permissions.defaultMode",
-        "managed-launcher-wrapper",
-        "config.toml:approval_policy+sandbox_mode",
-        "opencode.json:permission",
-        "none",
-    }
     allowed_hook_surfaces = {"explicit", "none"}
-    allowed_statusline_config_surfaces = {"settings.json:statusLine", "none"}
-    allowed_notify_config_surfaces = {"config.toml:notify", "none"}
     allowed_telemetry_sources = {"notify-hook", "none"}
     allowed_telemetry_completeness = {"best-effort", "none"}
 
@@ -369,14 +461,24 @@ def test_runtime_capabilities_and_hook_payload_contract_stay_coherent() -> None:
         hook_payload = get_hook_payload_policy(runtime_name)
 
         assert capabilities.permissions_surface in allowed_permissions_surfaces
-        assert capabilities.permission_surface_kind in allowed_permission_surface_kinds
+        assert (
+            capabilities.permission_surface_kind == "managed-launcher-wrapper"
+            or capabilities.permission_surface_kind == "none"
+            or _RUNTIME_CONFIG_SURFACE_LABEL_RE.fullmatch(capabilities.permission_surface_kind) is not None
+        )
         assert isinstance(capabilities.supports_runtime_permission_sync, bool)
         assert isinstance(capabilities.supports_prompt_free_mode, bool)
         assert isinstance(capabilities.prompt_free_requires_relaunch, bool)
         assert capabilities.statusline_surface in allowed_hook_surfaces
-        assert capabilities.statusline_config_surface in allowed_statusline_config_surfaces
+        assert (
+            capabilities.statusline_config_surface == "none"
+            or _RUNTIME_CONFIG_SURFACE_LABEL_RE.fullmatch(capabilities.statusline_config_surface) is not None
+        )
         assert capabilities.notify_surface in allowed_hook_surfaces
-        assert capabilities.notify_config_surface in allowed_notify_config_surfaces
+        assert (
+            capabilities.notify_config_surface == "none"
+            or _RUNTIME_CONFIG_SURFACE_LABEL_RE.fullmatch(capabilities.notify_config_surface) is not None
+        )
         assert capabilities.telemetry_source in allowed_telemetry_sources
         assert capabilities.telemetry_completeness in allowed_telemetry_completeness
         assert isinstance(capabilities.supports_usage_tokens, bool)

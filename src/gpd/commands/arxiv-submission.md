@@ -28,6 +28,7 @@ review-contract:
     - latest staged peer-review recommendation blocks submission packaging
     - degraded review integrity
   preflight_checks:
+    - command_context
     - project_state
     - manuscript
     - artifact_manifest
@@ -48,6 +49,8 @@ review-contract:
         - cleared manuscript proof review for theorem-bearing manuscripts
       blocking_conditions:
         - missing or stale manuscript proof review for theorem-bearing manuscripts
+      blocking_preflight_checks:
+        - manuscript_proof_review
 allowed-tools:
   - file_read
   - file_write

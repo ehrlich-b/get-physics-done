@@ -221,17 +221,6 @@ def _resolve_manuscript_entrypoint_from_root_resolution(
         detail=f"{manuscript_root} does not contain manuscript metadata",
     )
 
-
-def _manifest_manuscript_entrypoint(manuscript_root: Path, *, allow_markdown: bool) -> Path | None:
-    candidates = _manifest_entrypoints(manuscript_root, allow_markdown=allow_markdown)
-    return candidates[0] if len(candidates) == 1 else None
-
-
-def _configured_manuscript_entrypoint(manuscript_root: Path, *, allow_markdown: bool) -> Path | None:
-    candidates = _configured_entrypoints(manuscript_root, allow_markdown=allow_markdown)
-    return candidates[0] if len(candidates) == 1 else None
-
-
 def resolve_manuscript_entrypoint_from_root(manuscript_root: Path, *, allow_markdown: bool = True) -> Path | None:
     """Resolve the manuscript entrypoint within one manuscript root directory."""
 

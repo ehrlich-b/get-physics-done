@@ -48,7 +48,7 @@ from gpd.core.constants import (
     VERIFICATION_SUFFIX,
     ProjectLayout,
 )
-from gpd.core.continuation import ContinuationResumeSource, resolve_continuation
+from gpd.core.continuation import ContinuationResumeSource, ContinuationSource, resolve_continuation
 from gpd.core.errors import ValidationError
 from gpd.core.extras import approximation_list
 from gpd.core.manuscript_artifacts import resolve_current_manuscript_entrypoint
@@ -1277,25 +1277,41 @@ def _build_resume_read_state(
     current_execution_raw = execution_context.get("current_execution")
     current_execution = current_execution_raw if isinstance(current_execution_raw, dict) else None
     bounded_segment = getattr(resume_projection.continuation, "bounded_segment", None)
+    active_resume_source = resume_projection.active_resume_source
+    bounded_segment_resume_file = resume_projection.bounded_segment_resume_file
+    handoff_resume_file = resume_projection.handoff_resume_file
+    handoff_primary = bool(
+        resume_projection.source != ContinuationSource.CANONICAL
+        and isinstance(handoff_resume_file, str)
+        and handoff_resume_file
+    )
     bounded_segment_origin = _bounded_segment_resume_origin(resume_projection)
     handoff_origin = _handoff_resume_origin(resume_projection)
     handoff_last_result_id = _handoff_last_result_id(resume_projection)
     active_bounded_segment = None
-    if bounded_segment is not None:
+    if (
+        bounded_segment is not None
+        and active_resume_source == ContinuationResumeSource.BOUNDED_SEGMENT
+        and not handoff_primary
+    ):
         active_bounded_segment = bounded_segment.model_dump(mode="json")
 
     resume_candidates: list[dict[str, object]] = []
-    active_resume_segment = active_bounded_segment if isinstance(active_bounded_segment, dict) else current_execution
-    if resume_projection.resumable and isinstance(active_resume_segment, dict):
-        candidate_payload = dict(active_resume_segment)
-        candidate_payload["resume_file"] = resume_projection.bounded_segment_resume_file
+    if (
+        resume_projection.resumable
+        and bounded_segment is not None
+        and active_resume_source == ContinuationResumeSource.BOUNDED_SEGMENT
+        and not handoff_primary
+    ):
+        candidate_payload = bounded_segment.model_dump(mode="json")
+        candidate_payload["resume_file"] = bounded_segment_resume_file
         candidate = _resume_candidate_from_segment(candidate_payload)
         resume_candidates.append(
             _canonical_resume_candidate(
                 candidate,
                 kind="bounded_segment",
                 origin=bounded_segment_origin,
-                resume_pointer=resume_projection.bounded_segment_resume_file,
+                resume_pointer=bounded_segment_resume_file,
             )
         )
 
@@ -1371,11 +1387,15 @@ def _build_resume_read_state(
 
     hydrated_resume_candidates = [_hydrate_resume_result(candidate, result_lookup_by_id) for candidate in resume_candidates]
 
-    if resume_projection.active_resume_source == ContinuationResumeSource.BOUNDED_SEGMENT:
+    if handoff_primary:
+        active_resume_kind = "continuity_handoff"
+        active_resume_origin = handoff_origin
+        active_resume_pointer = handoff_resume_file
+    elif active_resume_source == ContinuationResumeSource.BOUNDED_SEGMENT:
         active_resume_kind = "bounded_segment"
         active_resume_origin = bounded_segment_origin
         active_resume_pointer = resume_projection.active_resume_file
-    elif resume_projection.active_resume_source == ContinuationResumeSource.HANDOFF:
+    elif active_resume_source == ContinuationResumeSource.HANDOFF:
         active_resume_kind = "continuity_handoff"
         active_resume_origin = handoff_origin
         active_resume_pointer = resume_projection.active_resume_file

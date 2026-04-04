@@ -162,21 +162,11 @@ _RUNTIME_ENTRY_ALLOWED_KEYS = _RUNTIME_ENTRY_REQUIRED_KEYS | _RUNTIME_ENTRY_OPTI
 _RUNTIME_GLOBAL_CONFIG_STRATEGIES = frozenset({"env_or_home", "xdg_app"})
 _RUNTIME_INSTALL_HELP_EXAMPLE_SCOPES = frozenset({"global", "local"})
 _RUNTIME_VALIDATED_COMMAND_SURFACE_RE = re.compile(r"^public_runtime_[a-z0-9_]+_command$")
+_RUNTIME_CONFIG_SURFACE_LABEL_RE = re.compile(r"^[A-Za-z0-9._-]+:[A-Za-z0-9+._-]+$")
 _RUNTIME_CAPABILITY_ENUMS = {
     "permissions_surface": frozenset({"config-file", "launch-wrapper", "unsupported"}),
-    "permission_surface_kind": frozenset(
-        {
-            "settings.json:permissions.defaultMode",
-            "managed-launcher-wrapper",
-            "config.toml:approval_policy+sandbox_mode",
-            "opencode.json:permission",
-            "none",
-        }
-    ),
     "statusline_surface": frozenset({"explicit", "none"}),
-    "statusline_config_surface": frozenset({"settings.json:statusLine", "none"}),
     "notify_surface": frozenset({"explicit", "none"}),
-    "notify_config_surface": frozenset({"config.toml:notify", "none"}),
     "telemetry_source": frozenset({"notify-hook", "none"}),
     "telemetry_completeness": frozenset({"best-effort", "none"}),
 }
@@ -261,6 +251,26 @@ def _require_string(value: object, *, label: str) -> str:
     return value
 
 
+def _require_runtime_surface_label(
+    value: object,
+    *,
+    label: str,
+    allow_managed_wrapper: bool = False,
+) -> str:
+    normalized = _require_string(value, label=label)
+    if normalized == "none":
+        return normalized
+    if allow_managed_wrapper and normalized == "managed-launcher-wrapper":
+        return normalized
+    if _RUNTIME_CONFIG_SURFACE_LABEL_RE.fullmatch(normalized) is None:
+        if allow_managed_wrapper:
+            raise ValueError(
+                f'{label} must be "none", "managed-launcher-wrapper", or a config surface label like file:key'
+            )
+        raise ValueError(f'{label} must be "none" or a config surface label like file:key')
+    return normalized
+
+
 def _require_bool(value: object, *, label: str) -> bool:
     if type(value) is not bool:
         raise ValueError(f"{label} must be a boolean")
@@ -334,10 +344,12 @@ def _parse_capabilities(entry: object, *, label: str) -> RuntimeCapabilityPolicy
             raise ValueError(f"{label}.{field_name} must be one of: {allowed}")
 
     prompt_free_mode_value = _require_string(payload.get("prompt_free_mode_value"), label=f"{label}.prompt_free_mode_value")
-    return RuntimeCapabilityPolicy(
+    policy = RuntimeCapabilityPolicy(
         permissions_surface=_require_string(payload.get("permissions_surface"), label=f"{label}.permissions_surface"),
-        permission_surface_kind=_require_string(
-            payload.get("permission_surface_kind"), label=f"{label}.permission_surface_kind"
+        permission_surface_kind=_require_runtime_surface_label(
+            payload.get("permission_surface_kind"),
+            label=f"{label}.permission_surface_kind",
+            allow_managed_wrapper=True,
         ),
         prompt_free_mode_value=prompt_free_mode_value,
         supports_runtime_permission_sync=_require_bool(
@@ -353,12 +365,14 @@ def _parse_capabilities(entry: object, *, label: str) -> RuntimeCapabilityPolicy
             label=f"{label}.prompt_free_requires_relaunch",
         ),
         statusline_surface=_require_string(payload.get("statusline_surface"), label=f"{label}.statusline_surface"),
-        statusline_config_surface=_require_string(
-            payload.get("statusline_config_surface"), label=f"{label}.statusline_config_surface"
+        statusline_config_surface=_require_runtime_surface_label(
+            payload.get("statusline_config_surface"),
+            label=f"{label}.statusline_config_surface",
         ),
         notify_surface=_require_string(payload.get("notify_surface"), label=f"{label}.notify_surface"),
-        notify_config_surface=_require_string(
-            payload.get("notify_config_surface"), label=f"{label}.notify_config_surface"
+        notify_config_surface=_require_runtime_surface_label(
+            payload.get("notify_config_surface"),
+            label=f"{label}.notify_config_surface",
         ),
         telemetry_source=_require_string(payload.get("telemetry_source"), label=f"{label}.telemetry_source"),
         telemetry_completeness=_require_string(
@@ -370,6 +384,76 @@ def _parse_capabilities(entry: object, *, label: str) -> RuntimeCapabilityPolicy
             payload.get("supports_context_meter"), label=f"{label}.supports_context_meter"
         ),
     )
+    if policy.permissions_surface == "config-file":
+        if policy.permission_surface_kind in {"none", "managed-launcher-wrapper"}:
+            raise ValueError(f"{label}.permission_surface_kind must be a config surface label when permissions_surface=config-file")
+        if not policy.supports_runtime_permission_sync:
+            raise ValueError(f"{label}.supports_runtime_permission_sync must be true when permissions_surface=config-file")
+    elif policy.permissions_surface == "launch-wrapper":
+        if policy.permission_surface_kind != "managed-launcher-wrapper":
+            raise ValueError(
+                f'{label}.permission_surface_kind must be "managed-launcher-wrapper" when permissions_surface=launch-wrapper'
+            )
+        if not policy.supports_runtime_permission_sync:
+            raise ValueError(f"{label}.supports_runtime_permission_sync must be true when permissions_surface=launch-wrapper")
+    else:
+        if policy.permission_surface_kind != "none":
+            raise ValueError(f'{label}.permission_surface_kind must be "none" when permissions_surface=unsupported')
+        if policy.supports_runtime_permission_sync:
+            raise ValueError(f"{label}.supports_runtime_permission_sync must be false when permissions_surface=unsupported")
+        if policy.supports_prompt_free_mode:
+            raise ValueError(f"{label}.supports_prompt_free_mode must be false when permissions_surface=unsupported")
+        if policy.prompt_free_requires_relaunch:
+            raise ValueError(f"{label}.prompt_free_requires_relaunch must be false when permissions_surface=unsupported")
+    if not policy.supports_prompt_free_mode and policy.prompt_free_requires_relaunch:
+        raise ValueError(f"{label}.prompt_free_requires_relaunch requires supports_prompt_free_mode=true")
+    return policy
+
+
+def _validate_runtime_catalog_uniqueness(descriptors: list[RuntimeDescriptor]) -> None:
+    runtime_names: dict[str, str] = {}
+    install_flags: dict[str, str] = {}
+    selection_flags: dict[str, str] = {}
+    selection_tokens: dict[str, str] = {}
+
+    for descriptor in descriptors:
+        if descriptor.runtime_name in runtime_names:
+            raise ValueError(f"runtime catalog contains duplicate runtime_name {descriptor.runtime_name!r}")
+        runtime_names[descriptor.runtime_name] = descriptor.runtime_name
+
+        existing_install_flag_runtime = install_flags.get(descriptor.install_flag)
+        if existing_install_flag_runtime is not None:
+            raise ValueError(
+                f"runtime catalog contains duplicate install_flag {descriptor.install_flag!r} for "
+                f"{existing_install_flag_runtime!r} and {descriptor.runtime_name!r}"
+            )
+        install_flags[descriptor.install_flag] = descriptor.runtime_name
+
+        for flag in descriptor.selection_flags:
+            existing_flag_runtime = selection_flags.get(flag)
+            if existing_flag_runtime is not None:
+                raise ValueError(
+                    f"runtime catalog contains duplicate selection flag {flag!r} for "
+                    f"{existing_flag_runtime!r} and {descriptor.runtime_name!r}"
+                )
+            selection_flags[flag] = descriptor.runtime_name
+
+        selection_tokens_for_descriptor = {
+            descriptor.runtime_name,
+            descriptor.display_name,
+            *descriptor.selection_aliases,
+            *(flag.removeprefix("--") for flag in descriptor.selection_flags),
+            descriptor.install_flag.removeprefix("--"),
+        }
+        for token in selection_tokens_for_descriptor:
+            normalized_token = token.casefold()
+            existing_token_runtime = selection_tokens.get(normalized_token)
+            if existing_token_runtime is not None and existing_token_runtime != descriptor.runtime_name:
+                raise ValueError(
+                    f"runtime catalog contains duplicate runtime selection token {token!r} for "
+                    f"{existing_token_runtime!r} and {descriptor.runtime_name!r}"
+                )
+            selection_tokens[normalized_token] = descriptor.runtime_name
 
 
 def _parse_install_help_example_scope(value: object, *, label: str) -> str | None:
@@ -511,6 +595,7 @@ def _load_catalog() -> tuple[RuntimeDescriptor, ...]:
             )
         )
     descriptors.sort(key=lambda descriptor: (descriptor.priority, descriptor.runtime_name))
+    _validate_runtime_catalog_uniqueness(descriptors)
     return tuple(descriptors)
 
 

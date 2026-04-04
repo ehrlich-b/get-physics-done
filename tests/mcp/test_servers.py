@@ -1200,6 +1200,7 @@ class TestSkillsServer:
                 "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
                 "required_evidence": [],
                 "blocking_conditions": [],
+                "blocking_preflight_checks": [],
                 "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
             }
         ]

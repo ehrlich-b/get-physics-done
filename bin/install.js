@@ -25,6 +25,7 @@ const {
   gpdPythonVersion: rawPythonPackageVersion,
 } = require("../package.json");
 const PUBLIC_SURFACE_CONTRACT = require("../src/gpd/core/public_surface_contract.json");
+const BUNDLED_RUNTIME_CATALOG_PAYLOAD = require("../src/gpd/adapters/runtime_catalog.json");
 
 const pythonPackageVersion = typeof rawPythonPackageVersion === "string" ? rawPythonPackageVersion.trim() : "";
 const GPD_HOME_ENV = "GPD_HOME";
@@ -191,9 +192,7 @@ const RUNTIME_CATALOG_CAPABILITY_KEYS = new Set([
 const RUNTIME_CATALOG_CAPABILITY_ENUMS = {
   permissions_surface: new Set(["config-file", "launch-wrapper", "unsupported"]),
   statusline_surface: new Set(["explicit", "none"]),
-  statusline_config_surface: new Set(["settings.json:statusLine", "none"]),
   notify_surface: new Set(["explicit", "none"]),
-  notify_config_surface: new Set(["config.toml:notify", "none"]),
   telemetry_source: new Set(["notify-hook", "none"]),
   telemetry_completeness: new Set(["best-effort", "none"]),
 };
@@ -217,6 +216,22 @@ const RUNTIME_CATALOG_HOOK_PAYLOAD_KEYS = new Set([
   "context_window_size_keys",
   "context_remaining_keys",
 ]);
+const RUNTIME_CONFIG_SURFACE_LABEL_RE = /^[A-Za-z0-9._-]+:[A-Za-z0-9+._-]+$/;
+const BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES = new Set(
+  BUNDLED_RUNTIME_CATALOG_PAYLOAD.map((runtime) => {
+    if (!runtime || typeof runtime !== "object") {
+      return null;
+    }
+    const capabilities = runtime.capabilities;
+    if (!capabilities || typeof capabilities !== "object") {
+      return null;
+    }
+    return capabilities.permission_surface_kind;
+  }).filter(
+    (value) =>
+      typeof value === "string" && value !== "none" && !RUNTIME_CONFIG_SURFACE_LABEL_RE.test(value)
+  )
+);
 
 function requireJsonObject(payload, label) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
@@ -284,17 +299,21 @@ function requireStrictInteger(value, label) {
   return value;
 }
 
-function requireRuntimeSurfaceLabel(value, label) {
+function requireRuntimeSurfaceLabel(value, label, { allowSpecialValues = new Set() } = {}) {
   const normalized = requireStrictString(value, label);
-  if (normalized === "none" || normalized === "managed-launcher-wrapper") {
+  if (
+    normalized === "none" ||
+    allowSpecialValues.has(normalized) ||
+    RUNTIME_CONFIG_SURFACE_LABEL_RE.test(normalized)
+  ) {
     return normalized;
   }
-  if (!/^[A-Za-z0-9._-]+:[A-Za-z0-9+._-]+$/.test(normalized)) {
+  if (allowSpecialValues.size > 0) {
     throw new Error(
-      `${label} must be "none", "managed-launcher-wrapper", or a config surface label like file:key`
+      `${label} must be "none", a bundled special surface kind, or a config surface label like file:key`
     );
   }
-  return normalized;
+  throw new Error(`${label} must be "none" or a config surface label like file:key`);
 }
 
 function requireKnownKeys(payload, allowedKeys, label) {
@@ -365,7 +384,7 @@ function validateRuntimeCatalogCapabilities(capabilities, label) {
   requireKnownKeys(payload, RUNTIME_CATALOG_CAPABILITY_KEYS, label);
   requirePresentKeys(payload, RUNTIME_CATALOG_CAPABILITY_KEYS, label);
 
-  return {
+  const validated = {
     permissions_surface: requireStrictEnumString(
       payload.permissions_surface,
       `${label}.permissions_surface`,
@@ -373,7 +392,8 @@ function validateRuntimeCatalogCapabilities(capabilities, label) {
     ),
     permission_surface_kind: requireRuntimeSurfaceLabel(
       payload.permission_surface_kind,
-      `${label}.permission_surface_kind`
+      `${label}.permission_surface_kind`,
+      { allowSpecialValues: BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES }
     ),
     prompt_free_mode_value: requireStrictString(payload.prompt_free_mode_value, `${label}.prompt_free_mode_value`),
     supports_runtime_permission_sync: requireStrictBoolean(
@@ -393,20 +413,18 @@ function validateRuntimeCatalogCapabilities(capabilities, label) {
       `${label}.statusline_surface`,
       RUNTIME_CATALOG_CAPABILITY_ENUMS.statusline_surface
     ),
-    statusline_config_surface: requireStrictEnumString(
+    statusline_config_surface: requireRuntimeSurfaceLabel(
       payload.statusline_config_surface,
-      `${label}.statusline_config_surface`,
-      RUNTIME_CATALOG_CAPABILITY_ENUMS.statusline_config_surface
+      `${label}.statusline_config_surface`
     ),
     notify_surface: requireStrictEnumString(
       payload.notify_surface,
       `${label}.notify_surface`,
       RUNTIME_CATALOG_CAPABILITY_ENUMS.notify_surface
     ),
-    notify_config_surface: requireStrictEnumString(
+    notify_config_surface: requireRuntimeSurfaceLabel(
       payload.notify_config_surface,
-      `${label}.notify_config_surface`,
-      RUNTIME_CATALOG_CAPABILITY_ENUMS.notify_config_surface
+      `${label}.notify_config_surface`
     ),
     telemetry_source: requireStrictEnumString(
       payload.telemetry_source,
@@ -422,6 +440,45 @@ function validateRuntimeCatalogCapabilities(capabilities, label) {
     supports_cost_usd: requireStrictBoolean(payload.supports_cost_usd, `${label}.supports_cost_usd`),
     supports_context_meter: requireStrictBoolean(payload.supports_context_meter, `${label}.supports_context_meter`),
   };
+  if (validated.permissions_surface === "config-file") {
+    if (
+      validated.permission_surface_kind === "none" ||
+      BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES.has(validated.permission_surface_kind)
+    ) {
+      throw new Error(
+        `${label}.permission_surface_kind must be a config surface label when permissions_surface=config-file`
+      );
+    }
+    if (!validated.supports_runtime_permission_sync) {
+      throw new Error(`${label}.supports_runtime_permission_sync must be true when permissions_surface=config-file`);
+    }
+  } else if (validated.permissions_surface === "launch-wrapper") {
+    if (!BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES.has(validated.permission_surface_kind)) {
+      throw new Error(
+        `${label}.permission_surface_kind must be a bundled special surface kind when permissions_surface=launch-wrapper`
+      );
+    }
+    if (!validated.supports_runtime_permission_sync) {
+      throw new Error(`${label}.supports_runtime_permission_sync must be true when permissions_surface=launch-wrapper`);
+    }
+  } else {
+    if (validated.permission_surface_kind !== "none") {
+      throw new Error(`${label}.permission_surface_kind must be "none" when permissions_surface=unsupported`);
+    }
+    if (validated.supports_runtime_permission_sync) {
+      throw new Error(`${label}.supports_runtime_permission_sync must be false when permissions_surface=unsupported`);
+    }
+    if (validated.supports_prompt_free_mode) {
+      throw new Error(`${label}.supports_prompt_free_mode must be false when permissions_surface=unsupported`);
+    }
+    if (validated.prompt_free_requires_relaunch) {
+      throw new Error(`${label}.prompt_free_requires_relaunch must be false when permissions_surface=unsupported`);
+    }
+  }
+  if (!validated.supports_prompt_free_mode && validated.prompt_free_requires_relaunch) {
+    throw new Error(`${label}.prompt_free_requires_relaunch requires supports_prompt_free_mode=true`);
+  }
+  return validated;
 }
 
 function validateRuntimeCatalogHookPayload(hookPayload, label) {
@@ -576,6 +633,7 @@ function validateRuntimeCatalog(catalogPayload) {
   });
 
   const runtimeNames = new Map();
+  const installFlags = new Map();
   const selectionFlags = new Map();
   const selectionTokens = new Map();
   for (const entry of entries) {
@@ -585,6 +643,14 @@ function validateRuntimeCatalog(catalogPayload) {
       );
     }
     runtimeNames.set(entry.runtime_name, entry.runtime_name);
+
+    const existingInstallFlagRuntime = installFlags.get(entry.install_flag);
+    if (existingInstallFlagRuntime && existingInstallFlagRuntime !== entry.runtime_name) {
+      throw new Error(
+        `runtime catalog contains duplicate install_flag ${JSON.stringify(entry.install_flag)} for ${JSON.stringify(existingInstallFlagRuntime)} and ${JSON.stringify(entry.runtime_name)}`
+      );
+    }
+    installFlags.set(entry.install_flag, entry.runtime_name);
 
     for (const flag of entry.selection_flags) {
       const existingRuntime = selectionFlags.get(flag);
@@ -601,6 +667,7 @@ function validateRuntimeCatalog(catalogPayload) {
       entry.display_name.toLowerCase(),
       ...entry.selection_aliases,
       ...entry.selection_flags.map((flag) => flag.replace(/^--/, "")),
+      entry.install_flag.replace(/^--/, ""),
     ]);
     for (const token of tokens) {
       const normalizedToken = token.toLowerCase();
@@ -617,7 +684,7 @@ function validateRuntimeCatalog(catalogPayload) {
   return entries;
 }
 
-RUNTIME_CATALOG = validateRuntimeCatalog(require("../src/gpd/adapters/runtime_catalog.json"));
+RUNTIME_CATALOG = validateRuntimeCatalog(BUNDLED_RUNTIME_CATALOG_PAYLOAD);
 ALL_RUNTIMES = RUNTIME_CATALOG.map((runtime) => runtime.runtime_name);
 RUNTIME_BY_NAME = Object.fromEntries(RUNTIME_CATALOG.map((runtime) => [runtime.runtime_name, runtime]));
 

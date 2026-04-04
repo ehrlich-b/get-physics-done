@@ -701,10 +701,6 @@ def _blank_session_payload() -> dict[str, str | None]:
     return SessionInfo().model_dump()
 
 
-def _blank_continuation_payload() -> dict[str, object]:
-    return ContinuationState().model_dump(mode="python")
-
-
 def _project_contract_source_path(cwd: Path, source_path: Path) -> str:
     """Return a stable display path for project-contract diagnostics."""
 
@@ -1129,13 +1125,12 @@ def _continuation_from_session_payload(
     return continuation
 
 
-def _mirror_continuation_state(raw: dict[str, object], *, allow_session_seed: bool = True) -> dict[str, object]:
+def _mirror_continuation_state(raw: dict[str, object]) -> dict[str, object]:
     """Project canonical continuation into the legacy ``session`` mirror.
 
-    Legacy ``session`` payloads are only allowed to hydrate continuation when a
-    canonical continuation payload is absent. Once ``continuation`` exists, it
-    remains authoritative and the markdown-compatible ``session`` view is
-    rederived from it.
+    Canonical ``continuation`` stays authoritative. Historical ``session``
+    payloads remain readable when no canonical continuation exists, but they do
+    not hydrate execution state.
     """
 
     mirrored = copy.deepcopy(raw)
@@ -1146,18 +1141,12 @@ def _mirror_continuation_state(raw: dict[str, object], *, allow_session_seed: bo
         session_payload = {**_blank_session_payload(), **session_payload}
 
     continuation_payload = _normalize_continuation_payload(mirrored.get("continuation"))
-    if allow_session_seed and _session_payload_has_values(session_payload):
-        continuation_payload = _continuation_from_session_payload(
-            session_payload,
-            base_continuation=continuation_payload,
-            only_missing=True,
-        )
-
     derived_session = _session_from_continuation_payload(continuation_payload)
-    session_payload = {
-        **_blank_session_payload(),
-        **{key: value for key, value in derived_session.items() if value is not None},
-    }
+    if _continuation_payload_has_values(continuation_payload):
+        session_payload = {
+            **_blank_session_payload(),
+            **{key: value for key, value in derived_session.items() if value is not None},
+        }
 
     mirrored["session"] = session_payload
     mirrored["continuation"] = continuation_payload
@@ -1768,8 +1757,7 @@ def _normalize_state_schema(
 
     try:
         validated = ResearchState.model_validate(normalized).model_dump()
-        continuation_had_issues = any("continuation" in issue and issue.startswith("schema normalization:") for issue in integrity_issues)
-        return _mirror_continuation_state(validated, allow_session_seed=not continuation_had_issues), integrity_issues
+        return _mirror_continuation_state(validated), integrity_issues
     except PydanticValidationError as exc:
         bad_keys: set[str] = set()
         for err in exc.errors():
@@ -1786,8 +1774,7 @@ def _normalize_state_schema(
                 normalized.pop(bad_key, None)
             try:
                 validated = ResearchState.model_validate(normalized).model_dump()
-                continuation_had_issues = any("continuation" in issue and issue.startswith("schema normalization:") for issue in integrity_issues)
-                return _mirror_continuation_state(validated, allow_session_seed=not continuation_had_issues), integrity_issues
+                return _mirror_continuation_state(validated), integrity_issues
             except PydanticValidationError:
                 pass
 
@@ -1797,8 +1784,7 @@ def _normalize_state_schema(
         for key, value in normalized.items():
             if key not in result:
                 result[key] = value
-        continuation_had_issues = any("continuation" in issue and issue.startswith("schema normalization:") for issue in integrity_issues)
-        return _mirror_continuation_state(result, allow_session_seed=not continuation_had_issues), integrity_issues
+        return _mirror_continuation_state(result), integrity_issues
 
 
 def _normalize_state_schema_with_backup_project_contract(
@@ -1897,8 +1883,7 @@ def _normalize_state_schema_with_backup_project_contract(
             integrity_issues = [issue for issue in integrity_issues if issue not in primary_session_issues]
             recovered_session_from_backup = True
 
-    continuation_had_issues = any("continuation" in issue and issue.startswith("schema normalization:") for issue in integrity_issues)
-    normalized = _mirror_continuation_state(normalized, allow_session_seed=not continuation_had_issues)
+    normalized = _mirror_continuation_state(normalized)
     return (
         normalized,
         integrity_issues,
@@ -2115,8 +2100,16 @@ def ensure_state_schema(raw: dict | None) -> dict:
 
 def _normalize_state_for_persistence(raw: dict | None, *, project_root: Path | None = None) -> dict:
     """Normalize state for writes without silently salvaging malformed contracts."""
+    persistence_payload = raw
+    if isinstance(raw, dict):
+        persistence_payload = copy.deepcopy(raw)
+        persistence_payload["continuation"] = _continuation_from_session_payload(
+            persistence_payload.get("session"),
+            base_continuation=persistence_payload.get("continuation"),
+            only_missing=True,
+        )
     normalized, integrity_issues = _normalize_state_schema(
-        raw,
+        persistence_payload,
         allow_project_contract_salvage=False,
         project_root=project_root,
     )
@@ -3678,7 +3671,11 @@ def state_set_continuation_bounded_segment(
     with _state_lock(cwd):
         _recover_intent_locked(cwd)
         state_obj = _load_state_snapshot_for_mutation(cwd, recover_intent=False)
-        current_continuation = _normalize_continuation_payload(state_obj.get("continuation"))
+        current_continuation = _continuation_from_session_payload(
+            state_obj.get("session"),
+            base_continuation=state_obj.get("continuation"),
+            only_missing=True,
+        )
         desired_continuation = normalize_continuation(
             cwd,
             {
@@ -3693,7 +3690,6 @@ def state_set_continuation_bounded_segment(
             return StateUpdateResult(updated=False, reason="Continuation bounded_segment already matches requested value")
 
         state_obj["continuation"] = desired_continuation
-        state_obj["session"] = _session_from_continuation_payload(desired_continuation)
         save_state_json_locked(cwd, state_obj)
         return StateUpdateResult(updated=True)
 
@@ -3721,7 +3717,11 @@ def state_carry_forward_continuation_last_result_id(
                 ),
             )
 
-        current_continuation = _normalize_continuation_payload(loaded_state_obj.get("continuation"))
+        current_continuation = _continuation_from_session_payload(
+            loaded_state_obj.get("session"),
+            base_continuation=loaded_state_obj.get("continuation"),
+            only_missing=True,
+        )
         current_handoff = current_continuation.get("handoff")
         current_bounded_segment = current_continuation.get("bounded_segment")
         if not isinstance(current_handoff, dict):
@@ -3773,7 +3773,11 @@ def state_clear_continuation_bounded_segment(cwd: Path) -> StateUpdateResult:
     with _state_lock(cwd):
         _recover_intent_locked(cwd)
         state_obj = _load_state_snapshot_for_mutation(cwd, recover_intent=False)
-        current_continuation = _normalize_continuation_payload(state_obj.get("continuation"))
+        current_continuation = _continuation_from_session_payload(
+            state_obj.get("session"),
+            base_continuation=state_obj.get("continuation"),
+            only_missing=True,
+        )
 
         if current_continuation.get("bounded_segment") is None:
             return StateUpdateResult(updated=False, reason="Continuation bounded_segment already clear")
@@ -4064,24 +4068,6 @@ def state_resolve_blocker(cwd: Path, text: str) -> ResolveBlockerResult:
             return ResolveBlockerResult(resolved=True, blocker=text)
 
         return ResolveBlockerResult(resolved=False, blocker=text, reason="no match found")
-
-
-def _session_continuity_section(session: dict[str, object]) -> str:
-    """Render the Session Continuity section block."""
-    return "\n".join(
-        [
-            "## Session Continuity",
-            "",
-            f"**Last session:** {session.get('last_date') or EM_DASH}",
-            f"**Stopped at:** {session.get('stopped_at') or EM_DASH}",
-            f"**Resume file:** {session.get('resume_file') or EM_DASH}",
-            f"**Last result ID:** {session.get('last_result_id') or EM_DASH}",
-            f"**Hostname:** {session.get('hostname') or EM_DASH}",
-            f"**Platform:** {session.get('platform') or EM_DASH}",
-            "",
-        ]
-    )
-
 
 def _normalize_session_resume_file(cwd: Path, resume_file: str | None) -> str | None:
     """Normalize project-local absolute resume pointers back to repo-relative form."""
