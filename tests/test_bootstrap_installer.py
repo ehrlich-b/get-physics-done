@@ -670,7 +670,11 @@ def _run_bootstrap_with_fake_python(
         for name in ("python", "python3"):
             _write_fake_python(managed_bin / name, log_path, precreate_managed_version)
 
-    env = os.environ.copy()
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith("FAKE_PIP_")
+    }
     env["HOME"] = str(home)
     env["GPD_HOME"] = str(home / "GPD")
     env["GPD_BOOTSTRAP_DISABLE_NETWORK_PROBES"] = "1"
@@ -890,6 +894,19 @@ def test_bootstrap_uses_managed_virtualenv_and_skips_host_pip(tmp_path: Path) ->
     _assert_single_runtime_next_steps(result.stdout, _CODEX_RUNTIME_NAME)
     assert f"Installing GPD for {_RUNTIME_DISPLAY_NAMES[_CODEX_RUNTIME_NAME]} (local)..." not in result.stdout
     assert f"Installed GPD for {_RUNTIME_DISPLAY_NAMES[_CODEX_RUNTIME_NAME]} (local)." not in result.stdout
+
+
+@pytest.mark.skipif(os.name == "nt", reason="bootstrap installer harness uses POSIX-style fake Python shims")
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required for bootstrap installer tests")
+def test_bootstrap_fake_python_harness_ignores_ambient_fake_pip_flags(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FAKE_PIP_FAIL_PYPI", "1")
+
+    result, _home, _log_path = _run_bootstrap_with_fake_python(tmp_path)
+
+    assert result.returncode == 0, f"{result.stdout}\n{result.stderr}"
 
 
 @pytest.mark.skipif(os.name == "nt", reason="bootstrap installer harness uses POSIX-style fake Python shims")

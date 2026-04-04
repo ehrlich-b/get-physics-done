@@ -82,6 +82,33 @@ def _project_dir_from_payload(data: dict[str, object], *, hook_payload: object) 
     )
 
 
+def payload_uses_alias_only_workspace_mapping(
+    data: dict[str, object],
+    *,
+    hook_payload: object,
+) -> bool:
+    """Return whether the payload used only non-primary workspace aliases.
+
+    Hook payload root extraction accepts `project_dir` / `project_root` hints
+    from either `data["workspace"]` or the top level. Keep the trust downgrade
+    aligned with that same contract so alias-only workspace mappings cannot
+    accidentally leave an unrelated top-level project hint authoritative.
+    """
+
+    workspace_value = data.get("workspace")
+    if not isinstance(workspace_value, dict):
+        return False
+    workspace_keys = tuple(getattr(hook_payload, "workspace_keys", ()) or ())
+    project_dir_keys = tuple(getattr(hook_payload, "project_dir_keys", ()) or ())
+    if not workspace_keys or not project_dir_keys:
+        return False
+    return bool(
+        _first_string(workspace_value, *workspace_keys)
+        and _project_dir_from_payload(data, hook_payload=hook_payload)
+        and not _first_string(workspace_value, workspace_keys[0])
+    )
+
+
 def _workspace_is_within_project_dir(workspace_dir: str, project_dir: str) -> bool:
     if not workspace_dir or not project_dir:
         return False

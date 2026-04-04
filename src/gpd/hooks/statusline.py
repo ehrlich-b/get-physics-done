@@ -10,6 +10,7 @@ import math
 import os
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import gpd.hooks.install_context as hook_layout
 from gpd.adapters.runtime_catalog import get_hook_payload_policy
@@ -17,6 +18,7 @@ from gpd.core.constants import ENV_GPD_DEBUG
 from gpd.core.root_resolution import resolve_project_root
 from gpd.core.state import load_state_json
 from gpd.hooks.payload_policy import resolve_hook_payload_policy, resolve_hook_surface_runtime
+from gpd.hooks.payload_roots import payload_uses_alias_only_workspace_mapping
 from gpd.hooks.payload_roots import resolve_payload_roots as _resolve_payload_roots
 from gpd.hooks.runtime_detect import SCOPE_LOCAL, detect_runtime_install_target
 from gpd.hooks.runtime_lookup import resolve_runtime_lookup_context_from_payload_roots
@@ -99,19 +101,7 @@ def _workspace_mapping_prefers_local_statusline_lookup(
     hook_payload: object,
 ) -> bool:
     """Keep alias-only workspace mappings anchored to the runtime-owned workspace."""
-
-    workspace_value = data.get("workspace")
-    if not isinstance(workspace_value, dict):
-        return False
-    workspace_keys = tuple(getattr(hook_payload, "workspace_keys", ()) or ())
-    project_dir_keys = tuple(getattr(hook_payload, "project_dir_keys", ()) or ())
-    if not workspace_keys or not project_dir_keys:
-        return False
-    return bool(
-        _first_string(workspace_value, *workspace_keys)
-        and _first_string(workspace_value, *project_dir_keys)
-        and not _first_string(workspace_value, workspace_keys[0])
-    )
+    return payload_uses_alias_only_workspace_mapping(data, hook_payload=hook_payload)
 
 
 def _compact_age_label(value: object) -> str:
@@ -368,15 +358,7 @@ def _project_state_dir(
     if _workspace_mapping_prefers_local_statusline_lookup(data, hook_payload=hook_payload):
         return runtime_lookup_dir
 
-    raw_project_dir = _first_string(data.get("workspace"), *hook_payload.project_dir_keys) or _first_string(
-        data,
-        *hook_payload.project_dir_keys,
-    )
     normalized_project_root = str(Path(project_root).expanduser().resolve(strict=False))
-    if raw_project_dir:
-        normalized_project_dir = str(Path(raw_project_dir).expanduser().resolve(strict=False))
-        if normalized_project_dir != normalized_project_root:
-            return runtime_lookup_dir
 
     if isinstance(active_runtime, str) and active_runtime:
         install_target = detect_runtime_install_target(
@@ -571,8 +553,44 @@ def main() -> None:
         roots = _resolve_payload_roots(data, policy_getter=_root_resolution_policy)
         workspace_dir = roots.workspace_dir
         project_root = roots.project_root
+        project_dir_present = next(
+            (
+                value
+                for value in (
+                    getattr(roots, "project_dir_present", None),
+                    getattr(roots, "explicit_project_dir", None),
+                )
+                if isinstance(value, bool)
+            ),
+            False,
+        )
+        project_dir_trusted = next(
+            (
+                value
+                for value in (
+                    getattr(roots, "project_dir_trusted", None),
+                    getattr(roots, "trusted_project_dir", None),
+                    getattr(roots, "project_dir_is_authoritative", None),
+                    getattr(roots, "project_dir_authoritative", None),
+                )
+                if isinstance(value, bool)
+            ),
+            None,
+        )
+        payload_policy = _hook_payload_policy(workspace_dir)
+        if project_dir_trusted is True and _workspace_mapping_prefers_local_statusline_lookup(
+            data,
+            hook_payload=payload_policy,
+        ):
+            project_dir_trusted = False
+        runtime_roots = SimpleNamespace(
+            workspace_dir=workspace_dir,
+            project_root=project_root,
+            project_dir_present=project_dir_present,
+            project_dir_trusted=project_dir_trusted,
+        )
         runtime_lookup = resolve_runtime_lookup_context_from_payload_roots(
-            roots,
+            runtime_roots,
             runtime_resolver=_payload_runtime,
         )
         runtime_lookup_dir = runtime_lookup.lookup_dir

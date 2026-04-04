@@ -399,7 +399,7 @@ def test_latest_update_cache_does_not_fallback_to_workspace_cache_when_preferred
     assert candidate.path == self_install.cache_file
 
 
-def test_latest_update_cache_keeps_self_owned_precedence_over_different_runtime_workspace_install(
+def test_latest_update_cache_prefers_workspace_runtime_over_different_self_owned_install(
     tmp_path: Path,
 ) -> None:
     from types import SimpleNamespace
@@ -426,9 +426,8 @@ def test_latest_update_cache_keeps_self_owned_precedence_over_different_runtime_
     ):
         cache, candidate = latest_update_cache(hook_file=__file__, cwd=str(workspace), debug=_noop_debug)
 
-    assert cache is None
-    assert candidate is not None
-    assert candidate.path == self_install.cache_file
+    assert cache == {"update_available": True, "checked": 10}
+    assert candidate is workspace_candidate
 
 
 def test_latest_update_cache_uses_runtime_unknown_constant_not_literal(tmp_path: Path) -> None:

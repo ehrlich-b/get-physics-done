@@ -1820,6 +1820,12 @@ def _normalize_state_schema_with_backup_project_contract(
         recovered_root_from_backup = True
         logger.warning("Recovered state.json from state.json.bak after primary state.json required normalization")
     else:
+        primary_position_issues = [
+            issue
+            for issue in integrity_issues
+            if issue.startswith('schema normalization: dropped "position" because expected object, got ')
+            or issue == 'schema normalization: removed invalid top-level sections "position"'
+        ]
         primary_continuation_issues = [
             issue
             for issue in integrity_issues
@@ -1837,6 +1843,20 @@ def _normalize_state_schema_with_backup_project_contract(
         if (
             isinstance(raw, dict)
             and backup_normalized is not None
+            and primary_position_issues
+        ):
+            normalized = backup_normalized
+            integrity_issues = [
+                issue
+                for issue in integrity_issues
+                if issue not in primary_position_issues
+            ]
+            recovered_root_from_backup = True
+            logger.warning("Recovered state.json from state.json.bak after primary position state required normalization")
+        if (
+            isinstance(raw, dict)
+            and backup_normalized is not None
+            and not recovered_root_from_backup
             and primary_continuation_issues
             and _continuation_payload_has_values(backup_normalized.get("continuation"))
         ):
@@ -1847,6 +1867,7 @@ def _normalize_state_schema_with_backup_project_contract(
         if (
             isinstance(raw, dict)
             and backup_normalized is not None
+            and not recovered_root_from_backup
             and primary_session_issues
             and isinstance(backup_normalized.get("session"), dict)
             and any(value is not None for value in backup_normalized["session"].values())

@@ -99,7 +99,7 @@ def test_ordered_todo_lookup_candidates_does_not_prepend_unrelated_self_install_
     assert candidates == [workspace_candidate]
 
 
-def test_ordered_todo_lookup_candidates_preserves_self_owned_candidate_when_workspace_runtime_differs(
+def test_ordered_todo_lookup_candidates_prefers_workspace_runtime_over_different_self_owned_install(
     tmp_path: Path,
 ) -> None:
     workspace = tmp_path / "workspace"
@@ -119,12 +119,6 @@ def test_ordered_todo_lookup_candidates_preserves_self_owned_candidate_when_work
         runtime="codex",
         scope="local",
     )
-    self_candidate = TodoCandidate(
-        self_runtime_dir / "todos",
-        runtime="claude-code",
-        scope="local",
-    )
-
     with (
         patch("gpd.hooks.install_context.detect_self_owned_install", return_value=self_install),
         patch("gpd.hooks.runtime_detect.detect_active_runtime_with_gpd_install", return_value="codex"),
@@ -148,7 +142,7 @@ def test_ordered_todo_lookup_candidates_preserves_self_owned_candidate_when_work
             cwd=str(workspace),
         )
 
-    assert candidates == [self_candidate, workspace_candidate]
+    assert candidates == [workspace_candidate]
 
 
 def test_ordered_todo_lookup_candidates_uses_runtime_unknown_constant_not_literal(

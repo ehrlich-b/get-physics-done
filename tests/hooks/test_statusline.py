@@ -114,6 +114,27 @@ def test_project_state_dir_keeps_workspace_lookup_for_policy_alias_only_workspac
 
     assert result == str(nested)
 
+
+def test_project_state_dir_ignores_stale_raw_project_hint_when_resolved_project_root_is_authoritative(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    nested = project / "src" / "notes"
+    stale = tmp_path / "stale-project"
+    nested.mkdir(parents=True)
+
+    result = _project_state_dir(
+        {"workspace": {"cwd": str(nested), "project_dir": str(stale)}},
+        workspace_dir=str(nested),
+        project_root=str(project),
+        runtime_lookup_dir=str(nested),
+        active_runtime=None,
+        hook_payload=SimpleNamespace(
+            workspace_keys=("cwd", "current_dir"),
+            project_dir_keys=("project_dir", "project_root"),
+        ),
+    )
+
+    assert result == str(project)
+
 # ─── _context_bar edge cases ───────────────────────────────────────────────
 
 
@@ -1179,6 +1200,17 @@ class TestMain:
 
         assert _workspace_mapping_prefers_local_statusline_lookup(
             {"workspace": {"current_dir": "/tmp/project/src/notes", "project_root": "/tmp/project"}},
+            hook_payload=hook_payload,
+        )
+
+    def test_workspace_mapping_prefers_local_lookup_for_top_level_project_root_alias(self) -> None:
+        hook_payload = SimpleNamespace(
+            workspace_keys=("cwd", "current_dir"),
+            project_dir_keys=("project_dir", "project_root"),
+        )
+
+        assert _workspace_mapping_prefers_local_statusline_lookup(
+            {"workspace": {"current_dir": "/tmp/project/src/notes"}, "project_root": "/tmp/project"},
             hook_payload=hook_payload,
         )
 

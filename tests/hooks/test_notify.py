@@ -1215,6 +1215,66 @@ def test_main_treats_policy_alias_only_workspace_mapping_as_local_runtime_lookup
     mock_execution.assert_called_once_with(str(nested))
 
 
+def test_main_treats_top_level_project_root_alias_with_alias_only_workspace_mapping_as_local_runtime_lookup(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    nested = project / "src" / "notes"
+    nested.mkdir(parents=True)
+    _mark_complete_install(nested / ".codex", runtime="codex")
+
+    payload = {
+        "type": "agent-turn-complete",
+        "workspace": {"current_dir": str(nested)},
+        "project_root": str(project),
+    }
+    hook_payload = SimpleNamespace(
+        workspace_keys=("cwd", "current_dir"),
+        project_dir_keys=("project_dir", "project_root"),
+        notify_event_types=("agent-turn-complete",),
+    )
+    captured: dict[str, object] = {}
+
+    def _resolve_runtime_lookup(roots, runtime_resolver):
+        captured["project_dir_trusted"] = roots.project_dir_trusted
+        return SimpleNamespace(lookup_dir=str(nested), active_runtime="codex")
+
+    with (
+        patch("sys.stdin", io.StringIO(json.dumps(payload))),
+        patch(
+            "gpd.hooks.notify._resolve_payload_roots",
+            return_value=SimpleNamespace(
+                workspace_dir=str(nested),
+                project_root=str(project),
+                project_dir_present=True,
+                project_dir_trusted=True,
+            ),
+        ),
+        patch(
+            "gpd.hooks.notify.resolve_runtime_lookup_context_from_payload_roots",
+            side_effect=_resolve_runtime_lookup,
+        ),
+        patch("gpd.hooks.notify._hook_payload_policy", return_value=hook_payload) as mock_policy,
+        patch("gpd.hooks.notify._record_usage_telemetry") as mock_usage,
+        patch("gpd.hooks.notify._trigger_update_check") as mock_trigger,
+        patch("gpd.hooks.notify._check_and_notify_update") as mock_notify,
+        patch("gpd.hooks.notify._emit_execution_notification") as mock_execution,
+    ):
+        main()
+
+    assert captured["project_dir_trusted"] is False
+    assert mock_policy.call_args_list == [call(str(nested)), call(str(nested))]
+    mock_usage.assert_called_once_with(
+        payload,
+        workspace_dir=str(nested),
+        project_root=str(project),
+        active_runtime="codex",
+    )
+    mock_trigger.assert_called_once_with(str(nested))
+    mock_notify.assert_called_once_with(str(nested))
+    mock_execution.assert_called_once_with(str(nested))
+
+
 def test_main_uses_runtime_lookup_provenance_over_raw_project_dir_string(tmp_path: Path) -> None:
     project = tmp_path / "project"
     nested = project / "src" / "notes"

@@ -12,7 +12,7 @@ import pytest
 
 from gpd.contracts import ResearchContract
 from gpd.core import state as state_module
-from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, ProjectLayout
+from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, STATE_JSON_FILENAME, ProjectLayout
 from gpd.core.state import (
     VALID_STATUSES,
     ResearchState,
@@ -1425,7 +1425,7 @@ def test_state_load_and_runtime_context_use_project_contract_from_recovered_back
     assert loaded.state["project_contract"]["scope"]["question"] == "recovered backup contract"
     assert ctx["project_contract"]["scope"]["question"] == "recovered backup contract"
     assert loaded.project_contract_load_info["source_path"].endswith(STATE_JSON_BACKUP_FILENAME)
-    assert ctx["project_contract_load_info"]["source_path"].endswith(STATE_JSON_BACKUP_FILENAME)
+    assert ctx["project_contract_load_info"]["source_path"].endswith(STATE_JSON_FILENAME)
 
 
 def test_state_load_reports_state_exists_false_when_only_unrecoverable_state_file_is_present(tmp_path: Path) -> None:

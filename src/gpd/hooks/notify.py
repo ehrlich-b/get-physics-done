@@ -22,6 +22,7 @@ from gpd.core.root_resolution import resolve_project_root
 from gpd.core.utils import atomic_write, file_lock
 from gpd.hooks.install_context import detect_self_owned_install
 from gpd.hooks.payload_policy import resolve_hook_payload_policy, resolve_hook_surface_runtime
+from gpd.hooks.payload_roots import payload_uses_alias_only_workspace_mapping
 from gpd.hooks.payload_roots import resolve_payload_roots as _resolve_payload_roots
 from gpd.hooks.runtime_lookup import resolve_runtime_lookup_context_from_payload_roots
 from gpd.hooks.update_resolution import latest_update_cache as _shared_latest_update_cache
@@ -62,19 +63,7 @@ def _workspace_mapping_prefers_local_notify_lookup(
     hook_payload: object,
 ) -> bool:
     """Keep notify lookup anchored to the workspace when only non-primary aliases were populated."""
-
-    workspace_value = data.get("workspace")
-    if not isinstance(workspace_value, dict):
-        return False
-    workspace_keys = tuple(getattr(hook_payload, "workspace_keys", ()) or ())
-    project_dir_keys = tuple(getattr(hook_payload, "project_dir_keys", ()) or ())
-    if not workspace_keys or not project_dir_keys:
-        return False
-    return bool(
-        _first_string(workspace_value, *workspace_keys)
-        and _first_string(workspace_value, *project_dir_keys)
-        and not _first_string(workspace_value, workspace_keys[0])
-    )
+    return payload_uses_alias_only_workspace_mapping(data, hook_payload=hook_payload)
 
 
 def _trigger_update_check(cwd: str) -> None:
