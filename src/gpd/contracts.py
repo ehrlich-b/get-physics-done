@@ -1831,7 +1831,10 @@ def _parse_project_contract_data(
     contract, schema_findings = salvage_project_contract(data)
     list_shape_drift_errors = _collect_list_shape_drift_errors(data)
     if strict:
-        from gpd.core.contract_validation import _split_project_contract_schema_findings
+        from gpd.core.contract_validation import (
+            _project_contract_schema_version_missing_error,
+            _split_project_contract_schema_findings,
+        )
 
         schema_warnings, schema_errors = _split_project_contract_schema_findings(
             schema_findings,
@@ -1843,6 +1846,9 @@ def _parse_project_contract_data(
             *list_shape_drift_errors,
             *_collect_project_contract_list_member_errors(data),
         ]
+        schema_version_error = _project_contract_schema_version_missing_error(data)
+        if schema_version_error is not None:
+            blocking_errors = [schema_version_error, *blocking_errors]
         if contract is None:
             if not blocking_errors and schema_findings:
                 blocking_errors = list(schema_findings)

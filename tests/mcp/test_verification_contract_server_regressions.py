@@ -808,6 +808,29 @@ def test_contract_tools_reject_invalid_schema_versions(schema_version: object, e
     assert suggest_result == {"error": expected_error, "schema_version": 1}
 
 
+def test_contract_tools_reject_missing_schema_version() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    contract = _load_project_contract_fixture()
+    contract.pop("schema_version")
+
+    run_result = run_contract_check(
+        {
+            "check_key": "contract.benchmark_reproduction",
+            "contract": contract,
+            "binding": {"claim_ids": ["claim-benchmark"]},
+            "metadata": {"source_reference_id": "ref-benchmark"},
+            "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+        }
+    )
+
+    suggest_result = suggest_contract_checks(contract)
+
+    expected = {"error": "Invalid contract payload: schema_version is required", "schema_version": 1}
+    assert run_result == expected
+    assert suggest_result == expected
+
+
 def test_contract_tools_reject_coercive_contract_scalars() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 
@@ -835,30 +858,57 @@ def test_contract_tools_reject_coercive_contract_scalars() -> None:
 
 
 @pytest.mark.parametrize(
-    ("field_name", "expected_error"),
+    ("field_name", "expected_error", "expected_salvage_success"),
     [
         (
             "context_intake",
-            "context_intake must be an object, not NoneType",
+            "Invalid contract payload: context_intake must not be empty",
+            False,
         ),
         (
             "approach_policy",
-            "approach_policy must be an object, not NoneType",
+            None,
+            True,
         ),
         (
             "uncertainty_markers",
-            "uncertainty_markers must be an object, not NoneType",
+            "Invalid contract payload: missing uncertainty_markers.disconfirming_observations; missing uncertainty_markers.weakest_anchors",
+            False,
         ),
     ],
 )
-def test_contract_tools_reject_lossy_singleton_section_salvage(
+def test_contract_tools_salvage_lossy_singleton_section(
     field_name: str,
-    expected_error: str,
+    expected_error: str | None,
+    expected_salvage_success: bool,
 ) -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
     contract = _load_project_contract_fixture()
     contract[field_name] = []
 
-    _assert_contract_tools_reject(contract, expected_error)
+    run_result = run_contract_check(
+        {
+            "check_key": "contract.benchmark_reproduction",
+            "contract": contract,
+            "binding": {"claim_ids": ["claim-benchmark"]},
+            "metadata": {"source_reference_id": "ref-benchmark"},
+            "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+        }
+    )
+    suggest_result = suggest_contract_checks(contract)
+
+    if expected_salvage_success:
+        assert run_result["status"] == "pass"
+        assert run_result["contract_salvaged"] is True
+        assert "approach_policy must be an object, not list" in run_result["contract_salvage_findings"]
+        assert suggest_result["contract_salvaged"] is True
+        assert any("approach_policy must be an object, not list" in warning for warning in suggest_result["contract_warnings"])
+        return
+
+    for result in (run_result, suggest_result):
+        assert result["schema_version"] == 1
+        assert result["error"] == expected_error
 
 
 def test_contract_tools_reject_missing_context_intake() -> None:

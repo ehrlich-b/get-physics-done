@@ -118,14 +118,14 @@ def test_contract_from_data_salvage_accepts_recoverable_list_drift() -> None:
 
 
 @pytest.mark.parametrize("section_name", ["context_intake", "approach_policy", "uncertainty_markers"])
-def test_contract_from_data_salvage_rejects_whole_singleton_section_corruption(section_name: str) -> None:
+def test_contract_from_data_salvage_accepts_whole_singleton_section_corruption(section_name: str) -> None:
     contract = _load_contract_fixture()
     contract[section_name] = []
 
     parsed = parse_project_contract_data_salvage(contract)
 
-    assert parsed.contract is None
-    assert contract_from_data_salvage(contract) is None
+    assert parsed.contract is not None
+    assert contract_from_data_salvage(contract) is not None
     assert any(f"{section_name} must be an object, not list" in error for error in parsed.errors)
 
 
@@ -219,6 +219,16 @@ def test_parse_project_contract_data_strict_rejects_recoverable_nested_extra_key
 
     assert result.contract is None
     assert result.errors == ["scope.legacy_notes: Extra inputs are not permitted"]
+
+
+def test_parse_project_contract_data_strict_rejects_missing_schema_version() -> None:
+    contract = _load_contract_fixture()
+    contract.pop("schema_version")
+
+    result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
+
+    assert result.contract is None
+    assert result.errors == ["schema_version is required"]
 
 
 def test_validate_project_contract_rejects_missing_decisive_targets_and_skepticism() -> None:
@@ -1086,11 +1096,11 @@ def test_validate_project_contract_normalizes_reference_required_actions_whitesp
     result = validate_project_contract(contract)
 
     assert parsed.references[0].required_actions == ["read", "compare", "cite"]
-    assert result.valid is False
-    assert "references.0.required_actions.3 must not be blank" in result.errors
+    assert result.valid is True
+    assert "references.0.required_actions.3 must not be blank" in result.warnings
 
 
-def test_validate_project_contract_rejects_singleton_list_string_drift_at_validation_boundary() -> None:
+def test_validate_project_contract_salvages_singleton_list_string_drift_at_validation_boundary() -> None:
     contract = _load_contract_fixture()
     contract["context_intake"]["must_include_prior_outputs"] = "GPD/phases/00-baseline/00-01-SUMMARY.md"
     contract["references"][0]["role"] = "Benchmark"
@@ -1102,34 +1112,44 @@ def test_validate_project_contract_rejects_singleton_list_string_drift_at_valida
     assert parsed.context_intake.must_include_prior_outputs == ["GPD/phases/00-baseline/00-01-SUMMARY.md"]
     assert parsed.references[0].role == "benchmark"
     assert parsed.references[0].required_actions == ["read", "compare", "cite"]
-    assert result.valid is False
-    assert "context_intake.must_include_prior_outputs must be a list, not str" in result.errors
+    assert result.valid is True
+    assert "context_intake.must_include_prior_outputs must be a list, not str" in result.warnings
 
 
 @pytest.mark.parametrize(
-    ("mutator", "expected_error"),
+    ("mutator", "expected_valid", "expected_error", "expected_warning"),
     [
         (
             lambda contract: contract["claims"][0].__setitem__("references", "   "),
+            True,
+            None,
             "claims.0.references must not be blank",
         ),
         (
             lambda contract: contract["scope"].__setitem__("in_scope", "   "),
+            False,
+            "scope.in_scope must name at least one project boundary or objective",
             "scope.in_scope must not be blank",
         ),
     ],
 )
 def test_validate_project_contract_rejects_blank_scalar_to_list_drift(
     mutator,
-    expected_error: str,
+    expected_valid: bool,
+    expected_error: str | None,
+    expected_warning: str,
 ) -> None:
     contract = _load_contract_fixture()
     mutator(contract)
 
     result = validate_project_contract(contract)
 
-    assert result.valid is False
-    assert expected_error in result.errors
+    assert result.valid is expected_valid
+    assert expected_warning in result.warnings
+    if expected_error is None:
+        assert result.errors == []
+    else:
+        assert expected_error in result.errors
 
 
 @pytest.mark.parametrize(
@@ -1188,6 +1208,16 @@ def test_validate_project_contract_rejects_coercive_schema_version_scalar() -> N
 
     assert result.valid is False
     assert "schema_version must be the integer 1" in result.errors
+
+
+def test_validate_project_contract_rejects_missing_schema_version() -> None:
+    contract = _load_contract_fixture()
+    contract.pop("schema_version")
+
+    result = validate_project_contract(contract)
+
+    assert result.valid is False
+    assert "schema_version is required" in result.errors
 
 
 def test_validate_project_contract_rejects_must_surface_reference_without_applies_to() -> None:
@@ -1268,9 +1298,9 @@ def test_validate_project_contract_rejects_reference_aliases_list_shape_drift_at
     parsed = ResearchContract.model_validate(contract)
     result = validate_project_contract(contract)
 
-    assert result.valid is False
+    assert result.valid is True
     assert parsed.references[0].aliases == ["not-a-list"]
-    assert "references.0.aliases must be a list, not str" in result.errors
+    assert "references.0.aliases must be a list, not str" in result.warnings
 
 
 def test_validate_project_contract_rejects_nested_claim_reference_list_shape_drift() -> None:
@@ -1279,8 +1309,8 @@ def test_validate_project_contract_rejects_nested_claim_reference_list_shape_dri
 
     result = validate_project_contract(contract)
 
-    assert result.valid is False
-    assert "claims.0.references must be a list, not str" in result.errors
+    assert result.valid is True
+    assert "claims.0.references must be a list, not str" in result.warnings
 
 
 def test_validate_project_contract_rejects_extra_item_keys_without_dropping_semantic_counts() -> None:
@@ -1289,8 +1319,8 @@ def test_validate_project_contract_rejects_extra_item_keys_without_dropping_sema
 
     result = validate_project_contract(contract)
 
-    assert result.valid is False
-    assert "claims.0.notes: Extra inputs are not permitted" in result.errors
+    assert result.valid is True
+    assert "claims.0.notes: Extra inputs are not permitted" in result.warnings
 
 
 def test_validate_project_contract_rejects_top_level_extra_keys() -> None:
@@ -1299,8 +1329,8 @@ def test_validate_project_contract_rejects_top_level_extra_keys() -> None:
 
     result = validate_project_contract(contract)
 
-    assert result.valid is False
-    assert "legacy_notes: Extra inputs are not permitted" in result.errors
+    assert result.valid is True
+    assert "legacy_notes: Extra inputs are not permitted" in result.warnings
 
 
 def test_validate_project_contract_ignores_nested_metadata_must_surface_without_false_boolean_error() -> None:
@@ -1309,8 +1339,8 @@ def test_validate_project_contract_ignores_nested_metadata_must_surface_without_
 
     result = validate_project_contract(contract)
 
-    assert result.valid is False
-    assert "references.0.metadata: Extra inputs are not permitted" in result.errors
+    assert result.valid is True
+    assert "references.0.metadata: Extra inputs are not permitted" in result.warnings
     assert not any(
         "references.0.metadata.must_surface must be a boolean" in issue for issue in result.errors + result.warnings
     )
@@ -1401,7 +1431,8 @@ def test_validate_project_contract_revalidates_typed_research_contract_instances
 
     assert result.valid is False
     assert result.mode == "approved"
-    assert "context_intake must be an object, not str" in result.errors
+    assert "context_intake must be an object, not str" in result.warnings
+    assert "context_intake must not be empty" in result.errors
 
 
 @pytest.mark.parametrize(
@@ -1440,16 +1471,37 @@ def test_validate_project_contract_warns_when_optional_sections_are_missing_but_
 
 
 @pytest.mark.parametrize("mode", ["draft", "approved"])
-def test_validate_project_contract_rejects_whole_singleton_defaulting(mode: str) -> None:
-    for field_name in ("context_intake", "approach_policy", "uncertainty_markers"):
+def test_validate_project_contract_salvages_whole_singleton_defaulting(mode: str) -> None:
+    cases = {
+        "context_intake": (
+            False,
+            ["context_intake must not be empty"],
+        ),
+        "approach_policy": (
+            True,
+            [],
+        ),
+        "uncertainty_markers": (
+            False,
+            [
+                "uncertainty_markers.weakest_anchors must identify what is least certain",
+                "uncertainty_markers.disconfirming_observations must identify what would force a rethink",
+            ],
+        ),
+    }
+    for field_name, (expected_valid, expected_errors) in cases.items():
         contract = _load_contract_fixture()
         contract[field_name] = "not-a-dict"
 
         result = validate_project_contract(contract, mode=mode)
 
-        assert result.valid is False
+        assert result.valid is expected_valid
         assert result.mode == mode
-        assert f"{field_name} must be an object, not str" in result.errors
+        assert f"{field_name} must be an object, not str" in result.warnings
+        for expected_error in expected_errors:
+            assert expected_error in result.errors
+        if not expected_errors:
+            assert result.errors == []
 
 
 def test_contract_results_strict_mode_requires_explicit_uncertainty_markers() -> None:

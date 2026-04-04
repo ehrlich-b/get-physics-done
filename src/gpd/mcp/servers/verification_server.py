@@ -52,6 +52,7 @@ _CONTRACT_ERROR_PATH_RE = re.compile(
     r"^(schema_version|[A-Za-z_][A-Za-z0-9_]*(?:\.\d+|\.[A-Za-z_][A-Za-z0-9_]*|\[\d+\])*)(?:: | )"
 )
 _AUTHORITATIVE_CONTRACT_PARSE_ERROR_PATTERNS = (
+    re.compile(r"^schema_version is required$"),
     re.compile(r"^schema_version must be the integer 1$"),
     re.compile(r"^schema_version must be 1$"),
     re.compile(r"^schema_version: Input should be 1$"),
@@ -938,11 +939,11 @@ _CONTRACT_PAYLOAD_INPUT_SCHEMA: dict[str, object] = _object_schema(
         },
         "uncertainty_markers": dict(_CONTRACT_UNCERTAINTY_MARKERS_INPUT_SCHEMA),
     },
-    required=("scope", "context_intake", "uncertainty_markers"),
+    required=("schema_version", "scope", "context_intake", "uncertainty_markers"),
     additional_properties=False,
 )
 _CONTRACT_PAYLOAD_INPUT_SCHEMA["description"] = (
-    "schema_version defaults to 1 when omitted. context_intake must contain at least one non-empty grounding field. "
+    "schema_version is required and must equal 1. context_intake must contain at least one non-empty grounding field. "
     "uncertainty_markers must include weakest_anchors and disconfirming_observations. "
     "Each claim must name deliverables and acceptance_tests. When claims are present, top-level deliverables and "
     "acceptance_tests must also be present. Additional semantic integrity rules still apply at runtime for scoping, "
@@ -3228,6 +3229,7 @@ def _is_recoverable_contract_parse_error(error: str, *, contract_raw: dict[str, 
         (
             _recoverable_collection_list_shape_error(error, contract_raw=contract_raw),
             _recoverable_mapping_list_shape_error(error, contract_raw=contract_raw),
+            _is_lossy_singleton_contract_error(error),
         )
     )
 
@@ -3284,11 +3286,6 @@ def _parse_contract_payload(contract_raw: dict[str, object]) -> tuple[ResearchCo
     if authoritative_errors:
         return None, [], _contract_payload_error(authoritative_errors)
     if strict_result.contract is None:
-        lossy_singleton_errors = [
-            error for error in normalized_strict_errors if _is_lossy_singleton_contract_error(error)
-        ]
-        if lossy_singleton_errors:
-            return None, [], _contract_payload_error(lossy_singleton_errors)
         blocking = [
             error
             for error in [*normalized_strict_errors, *normalized_salvage_recoverable_errors]
@@ -3622,9 +3619,9 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
     ``contract.limit_recovery`` or ``contract.benchmark_reproduction``.
 
     ``request.contract`` is optional, but when supplied it must be a project or
-    phase contract object. ``schema_version`` defaults to ``1`` when omitted
-    and must equal ``1`` when provided. The payload is treated as a hard schema
-    boundary for authoritative fields: unknown top-level keys, non-object sections,
+    phase contract object. ``schema_version`` is required and must equal ``1``.
+    The payload is treated as a hard schema boundary for authoritative fields:
+    unknown top-level keys, non-object sections,
     coercive scalars, blank strings, and malformed list members are rejected
     instead of being guessed. Recoverable scalar-to-list drift is normalized by
     the shared contract parser before verification, and benchmark prose may
@@ -4359,8 +4356,7 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
     """Suggest contract-aware checks from a schema-validated project or phase ``contract``.
 
     ``contract`` must be an object with the normal GPD contract structure.
-    ``schema_version`` defaults to ``1`` when omitted and must equal ``1`` when
-    provided. The tool keeps authoritative fields strict: non-object
+    ``schema_version`` is required and must equal ``1``. The tool keeps authoritative fields strict: non-object
     payloads, unknown top-level keys, coercive scalars, and malformed list
     members are rejected rather than inferred. Recoverable scalar-to-list drift
     is normalized by the shared contract parser before verification.

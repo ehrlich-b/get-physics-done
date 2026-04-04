@@ -376,7 +376,7 @@ def test_run_contract_check_tool_description_surfaces_request_requirements() -> 
     assert "without leading or trailing" in description
     assert "whitespace" in description
     assert "``request.contract`` is optional" in description
-    assert "``schema_version`` defaults to ``1`` when omitted" in description
+    assert "``schema_version`` is required and must equal ``1``" in description
     assert "unknown top-level keys" in description
     assert "same-kind IDs must be unique" in description
     assert "contract context must stay consistent with metadata defaults" in description
@@ -402,7 +402,7 @@ def test_suggest_contract_checks_tool_description_surfaces_contract_requirements
 
     description = _tool_description(mcp, "suggest_contract_checks")
 
-    assert "``schema_version`` defaults to ``1`` when omitted" in description
+    assert "``schema_version`` is required and must equal ``1``" in description
     assert "same-kind IDs must be unique" in description
     assert "contract context must stay" in description
     assert "consistent with metadata defaults and explicit metadata fields" in description
@@ -586,12 +586,12 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
 
     contract_schema = _schema_anyof_object(run_request["properties"]["contract"])
     _assert_contract_schema_sections_closed(contract_schema)
-    assert set(contract_schema["required"]) == {"scope", "context_intake", "uncertainty_markers"}
+    assert set(contract_schema["required"]) == {"schema_version", "scope", "context_intake", "uncertainty_markers"}
 
     suggest_schema = _tool_input_schema(mcp, "suggest_contract_checks")
     contract_schema = _schema_anyof_object(suggest_schema["properties"]["contract"])
     _assert_contract_schema_sections_closed(contract_schema)
-    assert set(contract_schema["required"]) == {"scope", "context_intake", "uncertainty_markers"}
+    assert set(contract_schema["required"]) == {"schema_version", "scope", "context_intake", "uncertainty_markers"}
     active_checks = suggest_schema["properties"]["active_checks"]
     assert active_checks["anyOf"][0]["type"] == "array"
     assert active_checks["anyOf"][0]["items"]["type"] == "string"

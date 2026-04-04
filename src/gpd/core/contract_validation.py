@@ -28,7 +28,7 @@ from gpd.contracts import (
     ContractUncertaintyMarkers,
     ResearchContract,
     collect_contract_integrity_errors,
-    parse_project_contract_data_strict,
+    parse_project_contract_data_salvage,
 )
 
 __all__ = ["ProjectContractValidationResult", "salvage_project_contract", "validate_project_contract"]
@@ -116,6 +116,16 @@ _AUTHORITATIVE_SCALAR_FINDING_PATTERNS = (
     re.compile(r"^schema_version: Input should be 1$"),
     re.compile(r"^.+\.must_surface must be a boolean$"),
 )
+
+_SCHEMA_VERSION_REQUIRED_ERROR = "schema_version is required"
+
+
+def _project_contract_schema_version_missing_error(contract_payload: object) -> str | None:
+    if isinstance(contract_payload, dict) and "schema_version" not in contract_payload:
+        return _SCHEMA_VERSION_REQUIRED_ERROR
+    return None
+
+
 class ProjectContractValidationResult(BaseModel):
     """Executable validation result for a project-scoping contract."""
 
@@ -272,7 +282,7 @@ def _salvage_model_mapping(
     if not isinstance(value, dict):
         actual_type = type(value).__name__
         errors.append(f"{path_prefix} must be an object, not {actual_type}")
-        return None
+        return copy.deepcopy(default_value) if default_value is not None else None
 
     cleaned = _strip_unknown_model_keys(value, path_prefix=path_prefix, model=model, errors=errors)
     while True:
@@ -994,10 +1004,13 @@ def validate_project_contract(
     else:
         contract_payload = contract
 
-    strict_result = parse_project_contract_data_strict(contract_payload)
-    parsed = strict_result.contract
-    schema_warnings: list[str] = []
-    schema_errors = _dedupe_findings(list(strict_result.errors))
+    salvage_result = parse_project_contract_data_salvage(contract_payload)
+    parsed = salvage_result.contract
+    schema_warnings = _dedupe_findings(list(salvage_result.recoverable_errors))
+    schema_errors = _dedupe_findings(list(salvage_result.blocking_errors))
+    schema_version_error = _project_contract_schema_version_missing_error(contract_payload)
+    if schema_version_error is not None:
+        schema_errors = _dedupe_findings([schema_version_error, *schema_errors])
     if parsed is None:
         return ProjectContractValidationResult(
             valid=False,
