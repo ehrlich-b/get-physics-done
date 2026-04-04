@@ -6,10 +6,12 @@ under the resolved GPD data root and helps users find likely repos to reopen.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import ValidationError as PydanticValidationError
 
 from gpd.core.constants import (
     ENV_DATA_DIR,
@@ -39,12 +41,29 @@ class RecentProjectsError(ValueError):
     """Raised when the recent-project advisory cache cannot be parsed."""
 
 
+def _normalize_recent_projects_index_payload(value: object) -> dict[str, object]:
+    if value is None:
+        return {"rows": []}
+    if not isinstance(value, dict):
+        raise ValueError("recent-project index must be a JSON object with only rows")
+    if not value:
+        return {"rows": []}
+    if set(value) != {"rows"}:
+        raise ValueError("recent-project index must contain only rows")
+    rows = value.get("rows")
+    if rows is None:
+        return {"rows": []}
+    if not isinstance(rows, list):
+        raise ValueError("recent-project index rows must be a list")
+    return {"rows": rows}
+
+
 class RecentProjectEntry(BaseModel):
     """One machine-local recent-project record."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: int = Field(default=1, ge=1)
+    schema_version: int = Field(default=1)
     project_root: str
     last_session_at: str | None = None
     last_seen_at: str | None = None
@@ -101,6 +120,15 @@ class RecentProjectEntry(BaseModel):
         if normalized is None:
             raise ValueError("project_root is required")
         return Path(normalized).expanduser().resolve(strict=False).as_posix()
+
+    @field_validator("schema_version", mode="before")
+    @classmethod
+    def _normalize_schema_version(cls, value: object) -> int:
+        if value is None:
+            return 1
+        if type(value) is not int or value != 1:
+            raise ValueError("schema_version must be the integer 1")
+        return value
 
     @field_validator("resume_target_kind", mode="before")
     @classmethod
@@ -170,20 +198,7 @@ class RecentProjectIndex(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _normalize_payload(cls, value: object) -> object:
-        if value is None:
-            return {"rows": []}
-        if not isinstance(value, dict):
-            raise ValueError("recent-project index must be a JSON object with only rows")
-        if not value:
-            return {"rows": []}
-        if set(value) != {"rows"}:
-            raise ValueError("recent-project index must contain only rows")
-        rows = value.get("rows")
-        if rows is None:
-            return {"rows": []}
-        if not isinstance(rows, list):
-            raise ValueError("recent-project index rows must be a list")
-        return {"rows": rows}
+        return _normalize_recent_projects_index_payload(value)
 
 
 def recent_projects_root(explicit_data_dir: Path | None = None) -> Path:
@@ -394,6 +409,16 @@ def _annotate_availability(entry: RecentProjectEntry) -> RecentProjectEntry:
     )
 
 
+def _parse_recent_project_rows(raw_rows: list[object]) -> list[RecentProjectEntry]:
+    parsed_rows: list[RecentProjectEntry] = []
+    for raw_row in raw_rows:
+        try:
+            parsed_rows.append(RecentProjectEntry.model_validate(raw_row))
+        except PydanticValidationError:
+            continue
+    return parsed_rows
+
+
 def load_recent_projects_index(data_root: Path | None = None) -> RecentProjectIndex:
     index_path = recent_projects_index_path(data_root)
     return _load_recent_projects_index_from_path(index_path)
@@ -404,10 +429,13 @@ def _load_recent_projects_index_from_path(index_path: Path) -> RecentProjectInde
     if content is None:
         return RecentProjectIndex()
     try:
-        index = RecentProjectIndex.model_validate_json(content)
-    except ValueError as exc:
+        raw_payload = json.loads(content)
+        normalized_payload = _normalize_recent_projects_index_payload(raw_payload)
+    except (ValueError, json.JSONDecodeError) as exc:
         raise RecentProjectsError(f"Malformed recent-project index at {index_path}: {exc}") from exc
-    return index.model_copy(update={"rows": [_annotate_availability(row) for row in _sort_rows(list(index.rows))]})
+    rows = _parse_recent_project_rows(list(normalized_payload["rows"]))
+    annotated_rows = [_annotate_availability(row) for row in _dedupe_rows(_sort_rows(rows))]
+    return RecentProjectIndex(rows=annotated_rows)
 
 def record_recent_project(
     project_root: Path,

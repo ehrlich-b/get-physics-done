@@ -88,6 +88,15 @@ def _write_manifest(target: Path, *, runtime: str, install_scope: str = "local",
     )
 
 
+def _legacy_gpd_hook_body() -> str:
+    return (
+        "#!/usr/bin/env python3\n"
+        '"""Legacy GPD hook residue."""\n'
+        "from gpd.hooks.install_context import detect_self_owned_install\n"
+        "LEGACY = detect_self_owned_install\n"
+    )
+
+
 def _seed_ambiguous_install_target(target: Path, *, manifest_state: str) -> None:
     """Create a target that looks like an install but lacks trustworthy ownership data."""
     (target / "commands" / "gpd").mkdir(parents=True, exist_ok=True)
@@ -348,6 +357,30 @@ class TestNonGpdFilesPreserved:
 
         assert unmanaged_hook.read_text(encoding="utf-8") == "# third-party statusline hook\n"
         assert (target / "hooks" / "check_update.py").exists()
+
+    def test_install_replaces_manifestless_gpd_hook_residue_with_matching_basename(self, tmp_path: Path) -> None:
+        gpd_root = _make_gpd_root(tmp_path)
+        adapter = get_adapter(PRIMARY_RUNTIME)
+        target = tmp_path / adapter.config_dir_name
+        stale_hook = target / "hooks" / "statusline.py"
+        stale_hook.parent.mkdir(parents=True)
+        stale_hook.write_text(_legacy_gpd_hook_body(), encoding="utf-8")
+
+        adapter.install(gpd_root, target, is_global=True)
+
+        assert stale_hook.read_text(encoding="utf-8") == "print('ok')\n"
+
+    def test_uninstall_removes_manifestless_gpd_hook_residue_with_matching_basename(self, tmp_path: Path) -> None:
+        adapter = get_adapter(PRIMARY_RUNTIME)
+        target = tmp_path / adapter.config_dir_name
+        stale_hook = target / "hooks" / "statusline.py"
+        stale_hook.parent.mkdir(parents=True)
+        stale_hook.write_text(_legacy_gpd_hook_body(), encoding="utf-8")
+
+        result = adapter.uninstall(target)
+
+        assert "1 GPD hooks" in result["removed"]
+        assert not stale_hook.exists()
 
 
 # =========================================================================

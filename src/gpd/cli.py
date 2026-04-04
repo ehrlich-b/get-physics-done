@@ -4612,9 +4612,18 @@ def _raise_permissions_resolution_error(message: str, *, strict: bool) -> None:
     raise _PermissionsResolutionError(message)
 
 
-def _resolve_permissions_runtime_name(runtime: str | None, *, strict: bool = True) -> str:
+def _resolve_permissions_runtime_name(
+    runtime: str | None,
+    *,
+    strict: bool = True,
+    prefer_installed_runtime: bool = False,
+) -> str:
     """Resolve the runtime to use for permission status/sync commands."""
-    from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, detect_active_runtime
+    from gpd.hooks.runtime_detect import (
+        RUNTIME_UNKNOWN,
+        detect_active_runtime,
+        detect_runtime_for_gpd_use,
+    )
 
     supported = _supported_runtime_names()
     if runtime is not None:
@@ -4626,7 +4635,11 @@ def _resolve_permissions_runtime_name(runtime: str | None, *, strict: bool = Tru
             )
         return normalized
 
-    detected = detect_active_runtime(cwd=_get_cwd())
+    detected = (
+        detect_runtime_for_gpd_use(cwd=_get_cwd())
+        if prefer_installed_runtime
+        else detect_active_runtime(cwd=_get_cwd())
+    )
     if detected == RUNTIME_UNKNOWN:
         _raise_permissions_resolution_error("No active runtime was detected. Pass --runtime explicitly.", strict=strict)
     return detected
@@ -4776,13 +4789,18 @@ def _runtime_permissions_payload(
     target_dir: str | None,
     apply_sync: bool,
     strict: bool,
+    prefer_installed_runtime: bool = False,
 ) -> dict[str, object]:
     """Return runtime-permissions status or sync payload for the selected runtime."""
     from gpd.adapters import get_adapter
     from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN
 
     try:
-        runtime_name = _resolve_permissions_runtime_name(runtime, strict=strict)
+        runtime_name = _resolve_permissions_runtime_name(
+            runtime,
+            strict=strict,
+            prefer_installed_runtime=prefer_installed_runtime,
+        )
     except _PermissionsResolutionError as exc:
         return _annotate_permissions_payload(
             {
@@ -4858,6 +4876,7 @@ def _permissions_status_payload(
         target_dir=target_dir,
         apply_sync=False,
         strict=True,
+        prefer_installed_runtime=True,
     )
     return normalize_permissions_readiness_payload(
         payload,
@@ -4902,6 +4921,7 @@ def permissions_sync(
             target_dir=target_dir,
             apply_sync=True,
             strict=True,
+            prefer_installed_runtime=True,
         )
     )
 
@@ -5537,7 +5557,7 @@ def _project_root_for_json_input(input_path: str) -> Path:
     for base in (resolved.parent, *resolved.parent.parents):
         if (base / "GPD").is_dir():
             return base
-    return cwd
+    return resolved.parent
 
 
 def _resolve_existing_input_path(input_path: str | None, *, candidates: tuple[str, ...], label: str) -> Path:
@@ -7191,7 +7211,12 @@ def validate_project_contract_cmd(
         raise GPDError(f"Invalid --mode {mode!r}. Expected 'draft' or 'approved'.")
 
     payload = _load_json_document(input_path)
-    project_root = _state_command_cwd() if input_path == "-" else _project_root_for_json_input(input_path)
+    if input_path == "-":
+        project_root = _state_command_cwd()
+    else:
+        project_root = _project_root_for_json_input(input_path)
+        if not (project_root / "GPD").is_dir():
+            project_root = None
     result = validate_project_contract(payload, mode=normalized_mode, project_root=project_root)
     _output(result)
     if not result.valid:

@@ -1438,32 +1438,6 @@ def _normalize_optional_scalar_str(value: object) -> object:
     return stripped or None
 
 
-def _schema_branch_for_value(schema_fragment: dict[str, object], value: object) -> dict[str, object]:
-    any_of = schema_fragment.get("anyOf")
-    if not isinstance(any_of, list):
-        return schema_fragment
-
-    for branch in any_of:
-        if not isinstance(branch, dict):
-            continue
-        branch_type = branch.get("type")
-        if branch_type == "object" and isinstance(value, dict):
-            return branch
-        if branch_type == "array" and isinstance(value, list):
-            return branch
-        if branch_type == "string" and isinstance(value, str):
-            return branch
-        if branch_type == "null" and value is None:
-            return branch
-        if branch_type == "boolean" and isinstance(value, bool):
-            return branch
-        if branch_type == "integer" and isinstance(value, int) and not isinstance(value, bool):
-            return branch
-        if branch_type == "number" and isinstance(value, (int, float)) and not isinstance(value, bool):
-            return branch
-    return schema_fragment
-
-
 def _validate_optional_string(value: object, *, field_name: str) -> tuple[str | None, str | None]:
     if value is None:
         return None, None
@@ -2029,10 +2003,6 @@ def run_check(check_id: str, domain: str, artifact_content: str) -> dict:
             return stable_mcp_response(result)
         except Exception as exc:  # pragma: no cover - defensive envelope
             return _error_result(exc)
-
-
-def _truthy(value: object) -> bool:
-    return value in (True, "true", "True", 1, "1", "yes", "YES")
 
 
 _BINDING_TARGETS: tuple[str, ...] = (

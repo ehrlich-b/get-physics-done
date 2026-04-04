@@ -75,6 +75,19 @@ def _extract_steps_and_checkpoints(body: str) -> tuple[list[str], list[str]]:
     return steps, checkpoints
 
 
+def _load_authoritative_protocol_parts(path: Path) -> tuple[dict[str, object], str]:
+    """Read one authoritative protocol document or fail closed."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise OSError(f"Failed to read {path}: {exc}") from exc
+
+    meta, body, parse_error = parse_frontmatter_with_error(text)
+    if parse_error is not None:
+        raise ValueError(f"Malformed frontmatter in {path}: {parse_error}")
+    return meta, body
+
+
 @lru_cache(maxsize=1)
 def _load_protocol_domain_manifest() -> dict[str, str]:
     """Load the authoritative protocol-domain manifest."""
@@ -193,23 +206,15 @@ class ProtocolStore:
 
     def _do_load(self, protocols_dir: Path) -> None:
         if not protocols_dir.is_dir():
-            logger.warning("Protocols directory not found: %s", protocols_dir)
-            return
+            raise OSError(f"Protocols directory not found: {protocols_dir}")
         domain_manifest = _load_protocol_domain_manifest()
         protocol_files = sorted(protocols_dir.glob("*.md"))
+        if not protocol_files:
+            raise ValueError(f"No protocol files found in {protocols_dir}")
         protocol_names = {path.stem for path in protocol_files}
         for path in protocol_files:
             name = path.stem
-            try:
-                text = path.read_text(encoding="utf-8")
-            except OSError as exc:
-                logger.warning("Failed to read %s: %s", path, exc)
-                continue
-
-            meta, body, parse_error = parse_frontmatter_with_error(text)
-            if parse_error is not None:
-                logger.warning("Skipping protocol %s: malformed frontmatter (%s)", path, parse_error)
-                continue
+            meta, body = _load_authoritative_protocol_parts(path)
             load_when = _normalize_protocol_load_when(meta.get("load_when", []), protocol_name=name)
             tier = _normalize_protocol_tier(meta.get("tier", 2), protocol_name=name)
             context_cost = _normalize_protocol_context_cost(meta.get("context_cost", "medium"), protocol_name=name)

@@ -79,6 +79,67 @@ def test_errors_mcp_returns_error_dict_on_store_os_error() -> None:
     assert "cannot read catalog" in result["error"]
 
 
+def test_error_store_rejects_missing_authoritative_catalog(tmp_path: Path) -> None:
+    from gpd.mcp.servers.errors_mcp import ErrorStore
+
+    with patch("gpd.mcp.servers.errors_mcp.ERROR_CATALOG_FILES", ["verification/errors/missing.md"]):
+        with pytest.raises(OSError, match="Error catalog not found"):
+            ErrorStore(tmp_path)
+
+
+def test_error_store_rejects_duplicate_error_ids(tmp_path: Path) -> None:
+    from gpd.mcp.servers.errors_mcp import ErrorStore
+
+    errors_dir = tmp_path / "verification" / "errors"
+    errors_dir.mkdir(parents=True)
+    (errors_dir / "catalog-a.md").write_text(
+        "| # | Error Class | Description | Detection Strategy | Example |\n"
+        "|---|---|---|---|---|\n"
+        "| 1 | Foo | First description | Detect A | Example A |\n",
+        encoding="utf-8",
+    )
+    (errors_dir / "catalog-b.md").write_text(
+        "| # | Error Class | Description | Detection Strategy | Example |\n"
+        "|---|---|---|---|---|\n"
+        "| 1 | Bar | Second description | Detect B | Example B |\n",
+        encoding="utf-8",
+    )
+
+    with patch(
+        "gpd.mcp.servers.errors_mcp.ERROR_CATALOG_FILES",
+        ["verification/errors/catalog-a.md", "verification/errors/catalog-b.md"],
+    ), patch("gpd.mcp.servers.errors_mcp.TRACEABILITY_FILE", "verification/errors/traceability.md"):
+        with pytest.raises(ValueError, match="Duplicate error class id 1"):
+            ErrorStore(tmp_path)
+
+
+def test_error_store_rejects_duplicate_traceability_rows(tmp_path: Path) -> None:
+    from gpd.mcp.servers.errors_mcp import ErrorStore
+
+    errors_dir = tmp_path / "verification" / "errors"
+    errors_dir.mkdir(parents=True)
+    (errors_dir / "catalog.md").write_text(
+        "| # | Error Class | Description | Detection Strategy | Example |\n"
+        "|---|---|---|---|---|\n"
+        "| 1 | Foo | First description | Detect A | Example A |\n",
+        encoding="utf-8",
+    )
+    (errors_dir / "traceability.md").write_text(
+        "| Error Class | Dimensional Analysis |\n"
+        "|---|---|\n"
+        "| 1. Foo | direct |\n"
+        "| 1. Foo | mixed |\n",
+        encoding="utf-8",
+    )
+
+    with patch("gpd.mcp.servers.errors_mcp.ERROR_CATALOG_FILES", ["verification/errors/catalog.md"]), patch(
+        "gpd.mcp.servers.errors_mcp.TRACEABILITY_FILE",
+        "verification/errors/traceability.md",
+    ):
+        with pytest.raises(ValueError, match="Duplicate traceability row for error class 1"):
+            ErrorStore(tmp_path)
+
+
 def test_convention_handlers_return_error_for_invalid_lock_data() -> None:
     from gpd.mcp.servers.conventions_server import (
         assert_convention_validate,
@@ -598,10 +659,16 @@ def test_protocol_store_rejects_boolean_manifest_schema_version(tmp_path: Path, 
         _load_protocol_domain_manifest.cache_clear()
 
 
-def test_protocol_store_skips_malformed_frontmatter_with_warning(
+def test_protocol_store_rejects_missing_protocol_directory(tmp_path: Path) -> None:
+    from gpd.mcp.servers.protocols_server import ProtocolStore
+
+    with pytest.raises(OSError, match="Protocols directory not found"):
+        ProtocolStore(tmp_path / "missing")
+
+
+def test_protocol_store_rejects_malformed_frontmatter(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     from gpd.mcp.servers.protocols_server import ProtocolStore, _load_protocol_domain_manifest
 
@@ -618,12 +685,7 @@ def test_protocol_store_skips_malformed_frontmatter_with_warning(
     monkeypatch.setattr("gpd.mcp.servers.protocols_server.PROTOCOL_DOMAINS_MANIFEST", domain_manifest)
     _load_protocol_domain_manifest.cache_clear()
     try:
-        store = ProtocolStore(protocols_dir)
+        with pytest.raises(ValueError, match="Malformed frontmatter"):
+            ProtocolStore(protocols_dir)
     finally:
         _load_protocol_domain_manifest.cache_clear()
-
-    stderr = capsys.readouterr().err
-    assert store.get("good") is not None
-    assert store.get("bad") is None
-    assert "Skipping protocol" in stderr
-    assert "malformed frontmatter" in stderr

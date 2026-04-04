@@ -85,8 +85,8 @@ class TestModels:
             title="Full Paper",
             authors=[Author(name="A", email="a@b.com", affiliation="MIT")],
             abstract="Abstract.",
-            sections=[Section(title="Intro", content="Hello.", label="sec:intro")],
-            figures=[FigureRef(path=Path("fig.png"), caption="Caption", label="fig:fig1")],
+            sections=[Section(title="Intro", content="Hello.", label="intro")],
+            figures=[FigureRef(path=Path("fig.png"), caption="Caption", label="fig1")],
             acknowledgments="Thanks.",
             bib_file="refs",
             journal="apj",
@@ -183,7 +183,7 @@ class TestModels:
                 r"caption[\s\S]*non-empty string",
             ),
             (
-                {"path": Path("fig.pdf"), "caption": "Cap", "label": "fig:"},
+                {"path": Path("fig.pdf"), "caption": "Cap", "label": "   "},
                 r"label[\s\S]*non-empty string",
             ),
         ],
@@ -195,6 +195,30 @@ class TestModels:
     ) -> None:
         with pytest.raises(ValidationError, match=expected_fragment):
             FigureRef.model_validate(payload)
+
+    @pytest.mark.parametrize(
+        ("model_cls", "payload", "expected_fragment"),
+        [
+            (
+                Section,
+                {"heading": "Intro", "content": "Hello.", "label": "sec:intro"},
+                r"label[\s\S]*omit the legacy 'sec:' prefix",
+            ),
+            (
+                FigureRef,
+                {"path": Path("fig.pdf"), "caption": "Cap", "label": "fig:velocity"},
+                r"label[\s\S]*omit the legacy 'fig:' prefix",
+            ),
+        ],
+    )
+    def test_paper_models_reject_legacy_label_prefixes(
+        self,
+        model_cls: type[Section] | type[FigureRef],
+        payload: dict[str, object],
+        expected_fragment: str,
+    ) -> None:
+        with pytest.raises(ValidationError, match=expected_fragment):
+            model_cls.model_validate(payload)
 
     def test_journal_spec_fields(self):
         spec = JournalSpec(
@@ -280,7 +304,7 @@ class TestTemplates:
             title="Test Paper",
             authors=[Author(name="Test Author", email="test@test.com", affiliation="Test Univ")],
             abstract="This is a test abstract.",
-            sections=[Section(title="Introduction", content="Hello world.", label="sec:introduction")],
+            sections=[Section(title="Introduction", content="Hello world.", label="introduction")],
         )
         tex = render_paper(config)
         assert r"\documentclass" in tex
@@ -361,7 +385,7 @@ class TestTemplates:
             authors=[Author(name="B")],
             abstract="Abstract.",
             sections=[Section(title="Intro", content="See figure.")],
-            figures=[FigureRef(path=Path("figures/fig01.pdf"), caption="Velocity field.", label="fig:velocity")],
+            figures=[FigureRef(path=Path("figures/fig01.pdf"), caption="Velocity field.", label="velocity")],
         )
         tex = render_paper(config)
         assert r"\includegraphics" in tex

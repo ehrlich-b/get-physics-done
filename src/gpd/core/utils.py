@@ -46,6 +46,7 @@ __all__ = [
     "phase_sort_key",
     "phase_unpad",
     "safe_parse_int",
+    "strict_parse_int",
     "safe_read_file",
     "safe_read_file_truncated",
 ]
@@ -185,7 +186,9 @@ def safe_parse_int(value: object, default: int | None = 0) -> int | None:
     """Parse an integer safely, returning *default* if invalid.
 
     Unlike int(), never raises on bad input.  When *default* is ``None``
-    the caller can distinguish "not a number" from a real zero.
+    the caller can distinguish "not a number" from a real zero. This helper is
+    intentionally permissive for non-authoritative inputs such as env vars and
+    best-effort CLI formatting.
     """
     if value is None:
         return default
@@ -196,6 +199,32 @@ def safe_parse_int(value: object, default: int | None = 0) -> int | None:
     try:
         return int(str(value))
     except (ValueError, TypeError):
+        return default
+
+
+_STRICT_INT_RE = re.compile(r"^[+-]?\d+$")
+
+
+def strict_parse_int(value: object, default: int | None = 0) -> int | None:
+    """Parse an integer without coercing booleans, floats, or decimal strings.
+
+    This helper is for authoritative contract/state/frontmatter boundaries where
+    silent coercion is more harmful than a rejected field.
+    """
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value
+    if not isinstance(value, str):
+        return default
+    normalized = value.strip()
+    if not normalized or not _STRICT_INT_RE.fullmatch(normalized):
+        return default
+    try:
+        return int(normalized)
+    except ValueError:
         return default
 
 

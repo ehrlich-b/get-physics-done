@@ -771,6 +771,29 @@ def test_active_runtime_settings_command_falls_back_to_runtime_neutral_reference
     assert cli_module._active_runtime_settings_command(cwd=Path("/tmp")) == "the active runtime's `settings` command"
 
 
+def test_permissions_runtime_resolution_prefers_installed_runtime_selector_when_requested(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    workspace = Path("/tmp/permissions-runtime-resolution")
+
+    monkeypatch.setattr(cli_module, "_get_cwd", lambda: workspace)
+    monkeypatch.setattr(
+        "gpd.hooks.runtime_detect.detect_active_runtime",
+        lambda cwd=None: (_ for _ in ()).throw(AssertionError("active runtime selector should not be used")),
+    )
+    monkeypatch.setattr(
+        "gpd.hooks.runtime_detect.detect_runtime_for_gpd_use",
+        lambda cwd=None: FOREIGN_RUNTIME,
+    )
+
+    resolved = cli_module._resolve_permissions_runtime_name(
+        None,
+        prefer_installed_runtime=True,
+    )
+
+    assert resolved == FOREIGN_RUNTIME
+
+
 def test_permissions_status_surfaces_runtime_capabilities_and_config_scope() -> None:
     runtime = _CONFIG_FILE_RUNTIME
     target_dir = runtime_target_dir(Path("/tmp"), runtime)

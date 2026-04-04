@@ -397,6 +397,7 @@ _UNRESOLVED_INCLUDE_MARKERS = (
     "@ include depth limit reached:",
 )
 _TEXT_INSTALL_ARTIFACT_SUFFIXES = frozenset({".md", ".toml"})
+_GPD_HOOK_IMPORT_RE = re.compile(r"(?m)^\s*(?:from|import)\s+gpd(?:\.|\b)")
 
 
 def protect_runtime_agent_prompt(content: str, runtime: str) -> str:
@@ -1406,8 +1407,32 @@ def tracked_hook_paths_from_manifest(config_dir: Path) -> set[str]:
     return {str(path) for path in raw_files if str(path).startswith("hooks/")}
 
 
+def _looks_like_manifestless_gpd_hook_residue(hook_path: Path) -> bool:
+    """Return whether *hook_path* looks like a legacy GPD-managed hook.
+
+    Manifestless installs from older versions can leave behind bundled hook
+    filenames with modified contents, so hash matching alone is not sufficient.
+    Keep the heuristic narrow: only claim reserved hook slots when the file
+    still imports the ``gpd`` package.
+    """
+    if not hook_path.is_file():
+        return False
+
+    try:
+        content = hook_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    return _GPD_HOOK_IMPORT_RE.search(content) is not None
+
+
 def managed_hook_paths(config_dir: Path) -> set[str]:
-    """Return bundled hook paths that are manifest-tracked or hash-matched."""
+    """Return bundled hook paths that are safe to treat as GPD-managed.
+
+    Besides manifest-tracked and exact hash-matched files, this also claims
+    manifestless legacy hook residue when a reserved bundled hook filename still
+    imports the ``gpd`` package. That keeps install/uninstall repair flows from
+    leaving stale GPD hook code active indefinitely.
+    """
     tracked = tracked_hook_paths_from_manifest(config_dir)
     managed: set[str] = set()
 
@@ -1424,8 +1449,11 @@ def managed_hook_paths(config_dir: Path) -> set[str]:
         try:
             if file_hash(installed_hook) == file_hash(bundled_hook):
                 managed.add(rel_path)
+                continue
         except (FileNotFoundError, OSError):
-            continue
+            pass
+        if _looks_like_manifestless_gpd_hook_residue(installed_hook):
+            managed.add(rel_path)
 
     return managed
 

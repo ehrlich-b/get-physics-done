@@ -30,15 +30,17 @@ def _require_nonempty_text(value: str, *, field_name: str) -> str:
     return normalized
 
 
-def _strip_legacy_label_prefixes(value: str) -> str:
+def _normalize_label_id(value: str, *, allow_blank: bool) -> str:
     normalized = value.strip()
-    while normalized:
-        for prefix in _LEGACY_LABEL_PREFIXES:
-            if normalized.startswith(prefix):
-                normalized = normalized[len(prefix) :].strip()
-                break
-        else:
-            return normalized
+    if not normalized:
+        if allow_blank:
+            return ""
+        raise ValueError("label must be a non-empty string")
+    for prefix in _LEGACY_LABEL_PREFIXES:
+        if normalized.startswith(prefix):
+            raise ValueError(
+                f"label must omit the legacy {prefix!r} prefix; use the bare identifier because the renderer adds it"
+            )
     return normalized
 
 
@@ -69,7 +71,7 @@ class Section(BaseModel):
     @field_validator("label")
     @classmethod
     def _normalize_label(cls, value: str) -> str:
-        return _strip_legacy_label_prefixes(value)
+        return _normalize_label_id(value, allow_blank=True)
 
 
 class FigureRef(BaseModel):
@@ -91,10 +93,7 @@ class FigureRef(BaseModel):
     @field_validator("label")
     @classmethod
     def _normalize_label(cls, value: str) -> str:
-        normalized = _strip_legacy_label_prefixes(value)
-        if not normalized:
-            raise ValueError("label must be a non-empty string")
-        return normalized
+        return _normalize_label_id(value, allow_blank=False)
 
 
 class ArtifactSourceRef(BaseModel):

@@ -183,9 +183,9 @@ _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
         ],
         "registry_prefix": "gpd_state",
         "health_check": {
-            "tool": "get_config",
-            "input": {"project_dir": "/tmp/test"},
-            "expect": "contains model_profile",
+            "tool": "get_state",
+            "input": {},
+            "expect": "returns a stable validation error envelope for missing required project_dir",
         },
     },
     "gpd-verification": {

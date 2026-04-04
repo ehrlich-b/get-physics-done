@@ -21,11 +21,9 @@
     "Install GPD before enabling built-in MCP servers."
   ],
   "health_check": {
-    "tool": "get_config",
-    "input": {
-      "project_dir": "/tmp/test"
-    },
-    "expect": "contains model_profile"
+    "tool": "get_state",
+    "input": {},
+    "expect": "returns a stable validation error envelope for missing required project_dir"
   },
   "alternatives": {
     "python_module": {

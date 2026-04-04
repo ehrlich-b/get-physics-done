@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from gpd.hooks.install_context import resolve_hook_lookup_context
 from gpd.hooks.payload_roots import PayloadRoots
 from gpd.hooks.runtime_lookup import (
     resolve_runtime_lookup_active_runtime,
@@ -28,6 +29,25 @@ def test_resolve_runtime_lookup_dir_prefers_same_runtime_nested_install_for_expl
         project_root=str(project_root),
         explicit_project_dir=True,
         active_runtime="codex",
+    )
+
+    assert resolved == str(workspace)
+
+
+def test_resolve_runtime_lookup_dir_normalizes_runtime_alias_for_explicit_project_dir(
+    tmp_path: Path,
+) -> None:
+    project_root = tmp_path / "project"
+    workspace = project_root / "src" / "analysis"
+    workspace.mkdir(parents=True)
+
+    _mark_complete_install(workspace / ".claude", runtime="claude-code")
+
+    resolved = resolve_runtime_lookup_dir(
+        workspace_dir=str(workspace),
+        project_root=str(project_root),
+        explicit_project_dir=True,
+        active_runtime="claude",
     )
 
     assert resolved == str(workspace)
@@ -94,6 +114,28 @@ def test_resolve_runtime_lookup_active_runtime_prefers_project_runtime_for_expli
 
     assert resolved == "codex"
     assert calls == ["/tmp/project"]
+
+
+def test_resolve_runtime_lookup_active_runtime_ignores_unknown_project_runtime_and_falls_back() -> None:
+    calls: list[str | None] = []
+
+    def _runtime_resolver(cwd: str | None) -> str | None:
+        calls.append(cwd)
+        if cwd == "/tmp/project":
+            return "unknown"
+        if cwd == "/tmp/project/src/analysis":
+            return "codex"
+        return None
+
+    resolved = resolve_runtime_lookup_active_runtime(
+        workspace_dir="/tmp/project/src/analysis",
+        project_root="/tmp/project",
+        explicit_project_dir=True,
+        runtime_resolver=_runtime_resolver,
+    )
+
+    assert resolved == "codex"
+    assert calls == ["/tmp/project", "/tmp/project/src/analysis"]
 
 
 def test_resolve_runtime_lookup_context_falls_back_to_workspace_runtime_when_project_runtime_missing(
@@ -182,3 +224,23 @@ def test_resolve_runtime_lookup_context_from_payload_roots_uses_workspace_when_p
     assert resolved.active_runtime == "claude-code"
     assert resolved.lookup_dir == expected_workspace
     assert calls == ["/tmp/project/src/analysis"]
+
+
+def test_resolve_hook_lookup_context_normalizes_unknown_and_alias_runtime_hints(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    home = tmp_path / "home"
+    workspace.mkdir()
+    home.mkdir()
+
+    _mark_complete_install(workspace / ".claude", runtime="claude-code")
+
+    resolved = resolve_hook_lookup_context(
+        cwd=workspace,
+        home=home,
+        active_installed_runtime="unknown",
+        preferred_runtime="claude",
+    )
+
+    assert resolved.lookup_cwd == workspace
+    assert resolved.active_runtime == "claude-code"
+    assert resolved.preferred_runtime == "claude-code"

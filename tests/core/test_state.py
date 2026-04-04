@@ -654,7 +654,11 @@ def test_state_set_project_contract_persists_contract_and_unresolved_questions(t
     result = state_set_project_contract(tmp_path, contract)
 
     assert result.updated is True
-    assert result.warnings == []
+    assert any(
+        "context_intake.must_include_prior_outputs entry does not resolve to a project-local artifact"
+        in warning
+        for warning in result.warnings
+    )
     saved = load_state_json(tmp_path)
     assert saved is not None
     assert saved["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"

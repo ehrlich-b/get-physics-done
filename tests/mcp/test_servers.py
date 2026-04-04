@@ -309,6 +309,42 @@ class TestBuiltinServerDescriptors:
         ]
         assert "emit_phase_event" not in descriptor["capabilities"]
 
+    def test_state_public_descriptor_health_check_is_executable_without_fake_project_path(self):
+        from gpd.mcp.builtin_servers import build_public_descriptors
+        from gpd.mcp.servers.state_server import mcp
+
+        descriptor = build_public_descriptors()["gpd-state"]
+        health_check = descriptor["health_check"]
+
+        async def _call() -> dict[str, object]:
+            result = await mcp.call_tool(str(health_check["tool"]), dict(health_check["input"]))
+            if isinstance(result, dict):
+                return result
+            if (
+                isinstance(result, tuple)
+                and len(result) == 2
+                and isinstance(result[1], dict)
+            ):
+                return result[1]
+            if (
+                isinstance(result, list)
+                and len(result) == 1
+                and hasattr(result[0], "text")
+                and isinstance(result[0].text, str)
+            ):
+                return json.loads(result[0].text)
+            raise AssertionError(f"Unexpected MCP call result: {result!r}")
+
+        result = anyio.run(_call)
+
+        assert health_check["tool"] == "get_state"
+        assert health_check["input"] == {}
+        assert "missing required project_dir" in str(health_check["expect"])
+        assert "/tmp/test" not in json.dumps(health_check)
+        assert result["schema_version"] == 1
+        assert "error" in result
+        assert "project_dir" in result["error"]
+
     def test_build_mcp_servers_dict_checks_optional_modules_in_target_interpreter(self, monkeypatch):
         from gpd.mcp import builtin_servers
 

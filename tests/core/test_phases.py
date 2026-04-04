@@ -1511,6 +1511,28 @@ def test_validate_phase_waves_reports_malformed_frontmatter(tmp_path: Path) -> N
     assert any("a-PLAN.md" in error for error in result.validation.errors)
 
 
+def test_validate_phase_waves_rejects_coercive_wave_values(tmp_path: Path) -> None:
+    _setup_project(tmp_path)
+    phase_dir = _create_phase_dir(tmp_path, "01-setup")
+    (phase_dir / "a-PLAN.md").write_text("---\nwave: true\n---\n## Task 1\nDo stuff")
+
+    result = validate_phase_waves(tmp_path, "1")
+
+    assert result.validation.valid is False
+    assert any("wave must be an integer" in error for error in result.validation.errors)
+
+
+def test_phase_plan_index_rejects_coercive_wave_values(tmp_path: Path) -> None:
+    _setup_project(tmp_path)
+    phase_dir = _create_phase_dir(tmp_path, "01-setup")
+    (phase_dir / "a-PLAN.md").write_text("---\nwave: 1.5\n---\n## Task 1\nDo stuff")
+
+    result = phase_plan_index(tmp_path, "1")
+
+    assert result.validation.valid is False
+    assert any("wave must be an integer" in error for error in result.validation.errors)
+
+
 def test_phase_plan_index_not_found(tmp_path: Path) -> None:
     _setup_project(tmp_path)
     result = phase_plan_index(tmp_path, "99")

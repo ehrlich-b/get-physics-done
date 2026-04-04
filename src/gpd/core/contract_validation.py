@@ -81,6 +81,9 @@ _USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS = (
     re.compile(r"\bplaceholder\b"),
     re.compile(r"\bto be determined\b"),
 )
+_PLACEHOLDER_ONLY_GUIDANCE_PATTERNS = (
+    re.compile(r"^\s*(?:tbd|todo|unknown|unclear|none|n/?a|placeholder)\s*$"),
+)
 _REFERENCE_LOCATOR_PLACEHOLDER_PATTERNS = (
     re.compile(r"^\s*(?:tbd|todo|unknown|unclear|none|n/?a|placeholder)\s*$"),
     re.compile(r"\btbd\b"),
@@ -668,6 +671,24 @@ def _is_project_artifact_path(value: str, *, project_root: Path | None = None) -
     return _resolve_project_artifact_path(candidate, project_root=project_root) is not None
 
 
+def _looks_like_project_artifact_path(value: str) -> bool:
+    """Return whether *value* looks like a project-local artifact path."""
+
+    candidate = value.strip()
+    if not candidate:
+        return False
+    return any(pattern.search(candidate) for pattern in _PROJECT_ARTIFACT_PATH_PATTERNS)
+
+
+def _is_placeholder_only_guidance_text(value: str) -> bool:
+    """Return whether *value* is only a placeholder and not actionable guidance."""
+
+    lowered = value.casefold().strip()
+    if not lowered:
+        return True
+    return any(pattern.fullmatch(lowered) for pattern in _PLACEHOLDER_ONLY_GUIDANCE_PATTERNS)
+
+
 def _is_concrete_text_grounding(
     value: str,
     *,
@@ -834,6 +855,123 @@ def _has_non_reference_grounding_signal(
     )
 
 
+def _prior_output_counts_as_guidance(
+    value: str,
+    *,
+    project_root: Path | None = None,
+) -> bool:
+    """Return whether *value* is durable prior-output guidance."""
+
+    if project_root is not None:
+        return _is_project_artifact_path(value, project_root=project_root)
+    return _looks_like_project_artifact_path(value)
+
+
+def _has_meaningful_guidance_text(values: list[str]) -> bool:
+    """Return whether *values* contain non-placeholder textual guidance."""
+
+    return any(not _is_placeholder_only_guidance_text(value) for value in values)
+
+
+def _guidance_signal_flags(
+    contract: ResearchContract,
+    *,
+    project_root: Path | None = None,
+) -> dict[str, bool]:
+    """Return per-field guidance presence using semantic, not merely non-empty, signals."""
+
+    reference_ids = {reference.id for reference in contract.references}
+    return {
+        "must_read_refs": any(reference_id in reference_ids for reference_id in contract.context_intake.must_read_refs),
+        "must_include_prior_outputs": any(
+            _prior_output_counts_as_guidance(value, project_root=project_root)
+            for value in contract.context_intake.must_include_prior_outputs
+        ),
+        "user_asserted_anchors": any(
+            _is_concrete_text_grounding(value, project_root=project_root)
+            for value in contract.context_intake.user_asserted_anchors
+        ),
+        "known_good_baselines": any(
+            _is_concrete_text_grounding(value, project_root=project_root)
+            for value in contract.context_intake.known_good_baselines
+        ),
+        "context_gaps": _has_meaningful_guidance_text(contract.context_intake.context_gaps),
+        "crucial_inputs": _has_meaningful_guidance_text(contract.context_intake.crucial_inputs),
+    }
+
+
+def _context_intake_guidance_warnings(
+    contract: ResearchContract,
+    *,
+    project_root: Path | None = None,
+) -> list[str]:
+    """Return targeted warnings for non-durable context-intake guidance entries."""
+
+    warnings: list[str] = []
+
+    for value in contract.context_intake.must_include_prior_outputs:
+        if _prior_output_counts_as_guidance(value, project_root=project_root):
+            continue
+        if project_root is not None:
+            warnings.append(
+                f"context_intake.must_include_prior_outputs entry does not resolve to a project-local artifact: {value}"
+            )
+            continue
+        warnings.append(
+            f"context_intake.must_include_prior_outputs entry is not an explicit project artifact path: {value}"
+        )
+
+    for field_name, values in (
+        ("user_asserted_anchors", contract.context_intake.user_asserted_anchors),
+        ("known_good_baselines", contract.context_intake.known_good_baselines),
+    ):
+        for value in values:
+            if _is_concrete_text_grounding(value, project_root=project_root):
+                continue
+            lowered = value.casefold().strip()
+            if not any(pattern.search(lowered) for pattern in _USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS):
+                continue
+            warnings.append(
+                f"context_intake.{field_name} entry is not concrete enough to preserve as durable guidance: {value}"
+            )
+
+    for field_name, values in (
+        ("context_gaps", contract.context_intake.context_gaps),
+        ("crucial_inputs", contract.context_intake.crucial_inputs),
+    ):
+        for value in values:
+            if not _is_placeholder_only_guidance_text(value):
+                continue
+            warnings.append(
+                f"context_intake.{field_name} entry is only a placeholder and does not preserve actionable guidance: {value}"
+            )
+
+    return warnings
+
+
+def _must_surface_locator_warnings(
+    contract: ResearchContract,
+    *,
+    project_root: Path | None = None,
+) -> list[str]:
+    """Return targeted warnings for non-concrete must-surface reference locators."""
+
+    warnings: list[str] = []
+    for reference in contract.references:
+        if not reference.must_surface:
+            continue
+        if _is_concrete_reference_locator(
+            reference.locator,
+            reference_kind=reference.kind,
+            project_root=project_root,
+        ):
+            continue
+        warnings.append(
+            f"reference {reference.id} is must_surface but locator is not concrete enough to ground validation"
+        )
+    return warnings
+
+
 def validate_project_contract(
     contract: ResearchContract | dict[str, object],
     *,
@@ -852,36 +990,26 @@ def validate_project_contract(
     """
 
     if isinstance(contract, ResearchContract):
-        parsed = contract
-        schema_warnings: list[str] = []
-        schema_errors: list[str] = []
+        contract_payload: object = contract.model_dump(mode="python", warnings=False)
     else:
-        strict_result = parse_project_contract_data_strict(contract)
-        parsed = strict_result.contract
-        schema_warnings = []
-        schema_errors = _dedupe_findings(list(strict_result.errors))
-        if parsed is None:
-            return ProjectContractValidationResult(
-                valid=False,
-                errors=schema_errors or ["project contract could not be normalized"],
-                mode=mode,
-            )
+        contract_payload = contract
+
+    strict_result = parse_project_contract_data_strict(contract_payload)
+    parsed = strict_result.contract
+    schema_warnings: list[str] = []
+    schema_errors = _dedupe_findings(list(strict_result.errors))
+    if parsed is None:
+        return ProjectContractValidationResult(
+            valid=False,
+            errors=schema_errors or ["project contract could not be normalized"],
+            mode=mode,
+        )
     errors: list[str] = list(schema_errors)
     warnings: list[str] = list(schema_warnings)
 
     question = parsed.scope.question.strip()
     decisive_target_count = len(parsed.observables) + len(parsed.claims) + len(parsed.deliverables)
-    guidance_signal_count = sum(
-        bool(items)
-        for items in (
-            parsed.context_intake.must_read_refs,
-            parsed.context_intake.must_include_prior_outputs,
-            parsed.context_intake.user_asserted_anchors,
-            parsed.context_intake.known_good_baselines,
-            parsed.context_intake.context_gaps,
-            parsed.context_intake.crucial_inputs,
-        )
-    )
+    guidance_signal_count = sum(_guidance_signal_flags(parsed, project_root=project_root).values())
 
     if not question:
         errors.append("scope.question is required")
@@ -895,6 +1023,8 @@ def validate_project_contract(
         errors.append("uncertainty_markers.disconfirming_observations must identify what would force a rethink")
 
     errors.extend(_light_contract_consistency_errors(parsed))
+    warnings.extend(_context_intake_guidance_warnings(parsed, project_root=project_root))
+    warnings.extend(_must_surface_locator_warnings(parsed, project_root=project_root))
 
     has_non_reference_grounding = _has_non_reference_grounding_signal(parsed, project_root=project_root)
 

@@ -258,6 +258,50 @@ def test_validate_project_contract_warns_when_user_guidance_signals_are_missing(
     assert "context_intake must not be empty" in result.errors
 
 
+def test_validate_project_contract_rejects_placeholder_only_anchor_guidance() -> None:
+    contract = _load_contract_fixture()
+    contract["context_intake"] = {
+        "must_read_refs": [],
+        "must_include_prior_outputs": [],
+        "user_asserted_anchors": ["TBD"],
+        "known_good_baselines": [],
+        "context_gaps": [],
+        "crucial_inputs": [],
+    }
+
+    result = validate_project_contract(contract, mode="draft")
+
+    assert result.valid is False
+    assert result.guidance_signal_count == 0
+    assert "context_intake must not be empty" in result.errors
+    assert (
+        "context_intake.user_asserted_anchors entry is not concrete enough to preserve as durable guidance: TBD"
+        in result.warnings
+    )
+
+
+def test_validate_project_contract_rejects_missing_prior_output_only_guidance(tmp_path: Path) -> None:
+    contract = _load_contract_fixture()
+    contract["context_intake"] = {
+        "must_read_refs": [],
+        "must_include_prior_outputs": ["missing/path.md"],
+        "user_asserted_anchors": [],
+        "known_good_baselines": [],
+        "context_gaps": [],
+        "crucial_inputs": [],
+    }
+
+    result = validate_project_contract(contract, mode="draft", project_root=tmp_path)
+
+    assert result.valid is False
+    assert result.guidance_signal_count == 0
+    assert "context_intake must not be empty" in result.errors
+    assert (
+        "context_intake.must_include_prior_outputs entry does not resolve to a project-local artifact: missing/path.md"
+        in result.warnings
+    )
+
+
 def test_validate_project_contract_approved_mode_requires_concrete_anchor_grounding() -> None:
     contract = _load_contract_fixture()
     contract["references"] = []
@@ -610,6 +654,44 @@ def test_validate_project_contract_approved_mode_accepts_concrete_must_surface_r
 
     assert result.valid is True
     assert result.mode == "approved"
+
+
+def test_validate_project_contract_warns_for_invalid_grounding_entries_with_concrete_anchor_present(
+    tmp_path: Path,
+) -> None:
+    contract = _load_contract_fixture()
+    contract["context_intake"]["must_include_prior_outputs"] = ["fake/path"]
+    contract["context_intake"]["user_asserted_anchors"] = ["TBD"]
+    contract["references"].append(
+        {
+            "id": "ref-placeholder",
+            "kind": "paper",
+            "locator": "TBD",
+            "aliases": [],
+            "role": "benchmark",
+            "why_it_matters": "Placeholder must-surface anchor should still be surfaced as a warning.",
+            "applies_to": ["claim-benchmark"],
+            "carry_forward_to": [],
+            "must_surface": True,
+            "required_actions": ["read"],
+        }
+    )
+
+    result = validate_project_contract(contract, mode="approved", project_root=tmp_path)
+
+    assert result.valid is True
+    assert (
+        "context_intake.must_include_prior_outputs entry does not resolve to a project-local artifact: fake/path"
+        in result.warnings
+    )
+    assert (
+        "context_intake.user_asserted_anchors entry is not concrete enough to preserve as durable guidance: TBD"
+        in result.warnings
+    )
+    assert (
+        "reference ref-placeholder is must_surface but locator is not concrete enough to ground validation"
+        in result.warnings
+    )
 
 
 @pytest.mark.parametrize(
@@ -1309,6 +1391,17 @@ def test_validate_project_contract_preserves_requested_mode_for_non_object_input
     assert result.valid is False
     assert result.mode == "approved"
     assert result.errors == ["project contract must be a JSON object"]
+
+
+def test_validate_project_contract_revalidates_typed_research_contract_instances() -> None:
+    contract = ResearchContract.model_validate(_load_contract_fixture())
+    object.__setattr__(contract, "context_intake", "not-a-dict")
+
+    result = validate_project_contract(contract, mode="approved")
+
+    assert result.valid is False
+    assert result.mode == "approved"
+    assert "context_intake must be an object, not str" in result.errors
 
 
 @pytest.mark.parametrize(

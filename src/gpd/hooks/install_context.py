@@ -135,39 +135,51 @@ def resolve_hook_lookup_context(
         detect_active_runtime_with_gpd_install,
         detect_local_runtime_with_gpd_install,
         detect_runtime_for_gpd_use,
+        normalize_runtime_name,
     )
+
+    def _normalize_runtime_hint(runtime: str | None) -> str | None:
+        if runtime is None:
+            return None
+        normalized = normalize_runtime_name(runtime) or runtime.strip() or None
+        if normalized in (None, RUNTIME_UNKNOWN):
+            return None
+        return normalized
 
     resolved_cwd = Path(cwd).expanduser().resolve(strict=False) if cwd is not None else None
     resolved_home = Path.home() if home is None else Path(home).expanduser().resolve(strict=False)
-    active_runtime_hint = (
+    raw_active_runtime_hint = (
         active_installed_runtime
         if active_installed_runtime is not None
         else detect_active_runtime(cwd=resolved_cwd, home=resolved_home)
     )
-    runtime_hint = active_runtime_hint if active_runtime_hint not in (None, "", RUNTIME_UNKNOWN) else preferred_runtime
+    active_runtime_hint = _normalize_runtime_hint(raw_active_runtime_hint)
+    normalized_preferred_runtime = _normalize_runtime_hint(preferred_runtime)
+    runtime_hint = active_runtime_hint or normalized_preferred_runtime
     lookup_cwd = _prefer_runtime_lookup_cwd(
         resolved_cwd=resolved_cwd,
         resolved_home=resolved_home,
         runtime_hint=runtime_hint,
     )
-    active_runtime = (
-        active_installed_runtime
+    raw_active_runtime = (
+        raw_active_runtime_hint
         if active_installed_runtime is not None
         else detect_active_runtime_with_gpd_install(cwd=lookup_cwd, home=resolved_home)
     )
+    active_runtime = _normalize_runtime_hint(raw_active_runtime)
     prioritized_runtime = (
-        preferred_runtime
+        normalized_preferred_runtime
         if preferred_runtime is not None
-        else detect_runtime_for_gpd_use(cwd=lookup_cwd, home=resolved_home)
+        else _normalize_runtime_hint(detect_runtime_for_gpd_use(cwd=lookup_cwd, home=resolved_home))
     )
-    if active_runtime in (None, "", RUNTIME_UNKNOWN):
-        local_runtime = detect_local_runtime_with_gpd_install(cwd=lookup_cwd, home=resolved_home)
-        if local_runtime not in (None, "", RUNTIME_UNKNOWN):
+    if active_runtime is None:
+        local_runtime = _normalize_runtime_hint(detect_local_runtime_with_gpd_install(cwd=lookup_cwd, home=resolved_home))
+        if local_runtime is not None:
             active_runtime = local_runtime
     return HookLookupContext(
         lookup_cwd=lookup_cwd,
         resolved_home=resolved_home,
-        active_runtime=active_runtime,
+        active_runtime=active_runtime or raw_active_runtime,
         preferred_runtime=prioritized_runtime,
     )
 

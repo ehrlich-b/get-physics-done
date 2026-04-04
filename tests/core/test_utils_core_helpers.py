@@ -16,6 +16,7 @@ from gpd.core.utils import (
     safe_parse_int,
     safe_read_file,
     safe_read_file_truncated,
+    strict_parse_int,
 )
 
 
@@ -100,6 +101,25 @@ def test_phase_round_trip(raw: str, canonical: str) -> None:
 )
 def test_safe_parse_int(value: object, default: int | None, expected: int | None) -> None:
     assert safe_parse_int(value, default=default) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "default", "expected"),
+    [
+        ("42", 0, 42),
+        (" 7 ", 0, 7),
+        (7, 0, 7),
+        (True, 9, 9),
+        (3.9, None, None),
+        ("3.14", None, None),
+        ("", None, None),
+        (None, -1, -1),
+    ],
+)
+def test_strict_parse_int_rejects_coercive_numeric_shapes(
+    value: object, default: int | None, expected: int | None
+) -> None:
+    assert strict_parse_int(value, default=default) == expected
 
 
 def test_safe_read_file_reads_existing_text_file(tmp_path: Path) -> None:

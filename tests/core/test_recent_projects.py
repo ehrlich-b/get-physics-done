@@ -108,7 +108,7 @@ class TestRecentProjectsIndexPersistence:
         with pytest.raises(RecentProjectsError, match="recent-project index must contain only rows"):
             load_recent_projects_index(store_root)
 
-    def test_load_rejects_alias_row_keys(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_load_skips_alias_row_keys_in_advisory_cache(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("GPD_DATA_DIR", raising=False)
         store_root = tmp_path / "cache"
         project_root = tmp_path / "project"
@@ -132,8 +132,44 @@ class TestRecentProjectsIndexPersistence:
             encoding="utf-8",
         )
 
-        with pytest.raises(RecentProjectsError, match="workspace_root"):
-            load_recent_projects_index(store_root)
+        loaded = load_recent_projects_index(store_root)
+
+        assert loaded.rows == []
+
+    def test_load_skips_rows_with_unsupported_schema_versions(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("GPD_DATA_DIR", raising=False)
+        store_root = tmp_path / "cache"
+        good_project_root = tmp_path / "good-project"
+        bad_project_root = tmp_path / "bad-project"
+        good_project_root.mkdir()
+        bad_project_root.mkdir()
+
+        index_path = recent_projects_index_path(store_root)
+        index_path.parent.mkdir(parents=True, exist_ok=True)
+        index_path.write_text(
+            json.dumps(
+                {
+                    "rows": [
+                        {
+                            "schema_version": 2,
+                            "project_root": bad_project_root.resolve(strict=False).as_posix(),
+                            "last_session_at": "2026-03-26T12:00:00+00:00",
+                        },
+                        {
+                            "project_root": good_project_root.resolve(strict=False).as_posix(),
+                            "last_session_at": "2026-03-27T12:00:00+00:00",
+                        },
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = load_recent_projects_index(store_root)
+
+        assert len(loaded.rows) == 1
+        assert loaded.rows[0].project_root == good_project_root.resolve(strict=False).as_posix()
+        assert loaded.rows[0].schema_version == 1
 
     def test_load_round_trip_keeps_canonical_rows_only(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

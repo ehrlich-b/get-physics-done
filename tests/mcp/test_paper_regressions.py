@@ -205,8 +205,8 @@ def test_build_artifact_manifest_preserves_absolute_source_paths(tmp_path) -> No
         tex_path=tex_path,
         figure_source_pairs=[
             (
-                FigureRef(path=original_path, caption="Source", label="fig:source"),
-                FigureRef(path=Path("figures/prepared-figure.pdf"), caption="Prepared", label="fig:prepared"),
+                FigureRef(path=original_path, caption="Source", label="source"),
+                FigureRef(path=Path("figures/prepared-figure.pdf"), caption="Prepared", label="prepared"),
             )
         ],
     )

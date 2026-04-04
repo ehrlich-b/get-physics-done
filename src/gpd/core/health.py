@@ -56,8 +56,8 @@ from gpd.core.utils import (
     atomic_write,
     phase_normalize,
     phase_sort_key,
-    safe_parse_int,
     safe_read_file,
+    strict_parse_int,
 )
 from gpd.core.workflow_presets import resolve_workflow_preset_readiness
 from gpd.hooks.install_metadata import InstallTargetAssessment, assess_install_target
@@ -579,7 +579,7 @@ def check_latest_return(cwd: Path) -> HealthCheck:
 
     for numeric_field in ("tasks_completed", "tasks_total"):
         val = fields.get(numeric_field)
-        if val is not None and safe_parse_int(val, None) is None:
+        if val is not None and strict_parse_int(val, None) is None:
             issues.append(f"{summary_name}: {numeric_field} not a number")
 
     status = CheckStatus.FAIL if issues else (CheckStatus.WARN if warnings else CheckStatus.OK)

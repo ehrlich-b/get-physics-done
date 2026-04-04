@@ -56,8 +56,8 @@ from gpd.core.utils import (
     phase_artifact_id,
     phase_normalize,
     phase_unpad,
-    safe_parse_int,
     safe_read_file,
+    strict_parse_int,
 )
 from gpd.core.utils import phase_sort_key as _phase_sort_key
 
@@ -178,6 +178,16 @@ def _save_state_markdown_locked(cwd: Path, state_content: str) -> None:
     from gpd.core.state import save_state_markdown_locked
 
     save_state_markdown_locked(cwd, state_content)
+
+
+def _parse_plan_wave(value: object) -> int:
+    """Return a canonical wave number from frontmatter without coercive drift."""
+    if value is None:
+        return 1
+    wave = strict_parse_int(value, None)
+    if wave is None:
+        raise PhaseValidationError(f"wave must be an integer, got {value!r}")
+    return wave
 
 
 def _update_state_markdown_locked(cwd: Path, update_state_content: Callable[[str], str]) -> bool:
@@ -1120,11 +1130,10 @@ def validate_phase_waves(cwd: Path, phase: str) -> PhaseWaveValidationResult:
                 fm = _extract_frontmatter(content)
                 files_modified = _ensure_list(fm.get("files_modified"), field_name="files_modified")
                 depends_on = _ensure_list(fm.get("depends_on"), field_name="depends_on")
+                wave = _parse_plan_wave(fm.get("wave"))
             except (FrontmatterParseError, PhaseValidationError, OSError, UnicodeDecodeError) as exc:
                 errors.append(f"{plan_file}: {exc}")
                 continue
-
-            wave = safe_parse_int(fm.get("wave"), 1)
 
             plans.append(PlanEntry(id=plan_id, wave=wave, depends_on=depends_on, files_modified=files_modified))
 
@@ -1164,6 +1173,7 @@ def phase_plan_index(cwd: Path, phase: str) -> PhasePlanIndex:
                 fm = _extract_frontmatter(content)
                 files_modified = _ensure_list(fm.get("files_modified"), field_name="files_modified")
                 depends_on = _ensure_list(fm.get("depends_on"), field_name="depends_on")
+                wave = _parse_plan_wave(fm.get("wave"))
             except (FrontmatterParseError, PhaseValidationError, OSError, UnicodeDecodeError) as exc:
                 validation_errors.append(f"{plan_file}: {exc}")
                 continue
@@ -1171,7 +1181,6 @@ def phase_plan_index(cwd: Path, phase: str) -> PhasePlanIndex:
             task_count = len(re.findall(r"##\s*Task\s*\d+", content, re.IGNORECASE))
             if task_count == 0:
                 task_count = len(re.findall(r"<task\b", content, re.IGNORECASE))
-            wave = safe_parse_int(fm.get("wave"), 1)
 
             interactive = False
             if "interactive" in fm:

@@ -7,7 +7,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from gpd.hooks.payload_roots import PayloadRoots
-from gpd.hooks.runtime_detect import ALL_RUNTIMES, SCOPE_LOCAL, detect_runtime_install_target
+from gpd.hooks.runtime_detect import (
+    ALL_RUNTIMES,
+    RUNTIME_UNKNOWN,
+    SCOPE_LOCAL,
+    detect_runtime_install_target,
+    normalize_runtime_name,
+)
 
 
 @dataclass(frozen=True)
@@ -22,6 +28,15 @@ def _project_dir_is_trusted(explicit_project_dir: bool, project_dir_trusted: boo
     return project_dir_trusted if project_dir_trusted is not None else explicit_project_dir
 
 
+def _normalized_runtime_hint(runtime: str | None) -> str | None:
+    if runtime is None:
+        return None
+    normalized = normalize_runtime_name(runtime) or runtime.strip() or None
+    if normalized in (None, RUNTIME_UNKNOWN):
+        return None
+    return normalized if normalized in ALL_RUNTIMES else None
+
+
 def resolve_runtime_lookup_active_runtime(
     *,
     workspace_dir: str,
@@ -32,12 +47,12 @@ def resolve_runtime_lookup_active_runtime(
 ) -> str | None:
     """Resolve the active runtime without letting nested installs hijack explicit project roots."""
     if _project_dir_is_trusted(explicit_project_dir, project_dir_trusted):
-        project_runtime = runtime_resolver(project_root)
+        project_runtime = _normalized_runtime_hint(runtime_resolver(project_root))
         if project_runtime or workspace_dir == project_root:
             return project_runtime
-        return runtime_resolver(workspace_dir)
+        return _normalized_runtime_hint(runtime_resolver(workspace_dir))
 
-    return runtime_resolver(workspace_dir)
+    return _normalized_runtime_hint(runtime_resolver(workspace_dir))
 
 
 def resolve_runtime_lookup_dir(
@@ -49,10 +64,11 @@ def resolve_runtime_lookup_dir(
     active_runtime: str | None = None,
 ) -> str:
     """Return the cwd hook surfaces should use for runtime-owned lookups."""
+    normalized_runtime = _normalized_runtime_hint(active_runtime)
     if _project_dir_is_trusted(explicit_project_dir, project_dir_trusted):
-        if isinstance(active_runtime, str) and active_runtime in ALL_RUNTIMES:
+        if normalized_runtime is not None:
             resolved_workspace = Path(workspace_dir).expanduser().resolve(strict=False)
-            install_target = detect_runtime_install_target(active_runtime, cwd=resolved_workspace)
+            install_target = detect_runtime_install_target(normalized_runtime, cwd=resolved_workspace)
             if install_target is not None and install_target.install_scope == SCOPE_LOCAL:
                 return workspace_dir
         return project_root

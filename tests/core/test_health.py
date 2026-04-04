@@ -906,6 +906,14 @@ class TestCheckStateValidityProjectContract:
         contract["references"][0]["must_surface"] = True
         contract["references"][0]["applies_to"] = ["claim-benchmark"]
         contract["references"][0]["required_actions"] = ["compare"]
+        contract["context_intake"] = {
+            "must_read_refs": [],
+            "must_include_prior_outputs": [],
+            "user_asserted_anchors": [],
+            "known_good_baselines": [],
+            "context_gaps": [],
+            "crucial_inputs": [],
+        }
 
         state = default_state_dict()
         state["project_contract"] = contract
@@ -2218,3 +2226,27 @@ class TestCheckLatestReturn:
 
         assert result.status == CheckStatus.WARN
         assert result.warnings
+
+    def test_summary_with_coercive_numeric_return_counts_fails(self, tmp_path: Path) -> None:
+        cwd = _bootstrap_health_project(tmp_path)
+        phase_dir = cwd / "GPD" / "phases" / "01-setup"
+        phase_dir.mkdir(parents=True)
+        (phase_dir / "01-setup-01-SUMMARY.md").write_text(
+            "# Summary\n\n"
+            "```yaml\n"
+            "gpd_return:\n"
+            "  status: completed\n"
+            "  files_written: [src/main.py]\n"
+            "  issues: []\n"
+            "  next_actions: [/gpd:verify-work 02]\n"
+            "  tasks_completed: true\n"
+            "  tasks_total: 2.0\n"
+            "```\n",
+            encoding="utf-8",
+        )
+
+        result = check_latest_return(cwd)
+
+        assert result.status == CheckStatus.FAIL
+        assert "tasks_completed not a number" in result.issues[0] or "tasks_completed not a number" in " ".join(result.issues)
+        assert "tasks_total not a number" in " ".join(result.issues)

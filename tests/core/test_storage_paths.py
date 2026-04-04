@@ -320,6 +320,12 @@ def test_audit_storage_warnings_flags_hidden_results_and_scratch_outputs(tmp_pat
     project_scratch_output = layout.root / "tmp" / "final.csv"
     project_scratch_output.parent.mkdir(parents=True, exist_ok=True)
     project_scratch_output.write_text("x,y\n", encoding="utf-8")
+    nested_project_scratch_output = layout.root / "notes" / "tmp" / "final.csv"
+    nested_project_scratch_output.parent.mkdir(parents=True, exist_ok=True)
+    nested_project_scratch_output.write_text("x,y\n", encoding="utf-8")
+    user_durable_scratch_output = layout.root / "artifacts" / "tmp" / "final.csv"
+    user_durable_scratch_output.parent.mkdir(parents=True, exist_ok=True)
+    user_durable_scratch_output.write_text("x,y\n", encoding="utf-8")
 
     warnings = layout.audit_storage_warnings()
 
@@ -327,6 +333,8 @@ def test_audit_storage_warnings_flags_hidden_results_and_scratch_outputs(tmp_pat
     assert any("GPD/paper/curvature_flow_bounds.tex" in warning for warning in warnings)
     assert any("GPD/tmp/final.csv" in warning for warning in warnings)
     assert any("tmp/final.csv" in warning for warning in warnings)
+    assert any("notes/tmp/final.csv" in warning for warning in warnings)
+    assert any("artifacts/tmp/final.csv" in warning for warning in warnings)
 
 
 def test_resolve_anchors_relative_paths_at_project_root(tmp_path: Path) -> None:

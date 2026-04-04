@@ -2992,27 +2992,26 @@ class TestConfigCommands:
         assert parsed["runtime_permissions"]["sync_applied"] is True
         assert status["config_aligned"] is True
 
-    def test_permissions_sync_prefers_active_runtime_over_other_installed_runtime(
+    def test_permissions_sync_prefers_installed_runtime_over_stale_active_runtime(
         self,
         gpd_project: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        _, target = _install_runtime(gpd_project, _SECONDARY_PERMISSIONS_DESCRIPTOR)
+        adapter, target = _install_runtime(gpd_project, _SECONDARY_PERMISSIONS_DESCRIPTOR)
         fake_home = gpd_project / "_fake_home_permissions"
         fake_home.mkdir()
         _activate_runtime(monkeypatch, _ENV_OVERRIDE_DESCRIPTOR)
-        snapshot_before = _target_file_snapshot(target)
 
         with patch("pathlib.Path.home", return_value=fake_home):
-            result = _invoke("--raw", "permissions", "sync", "--autonomy", "yolo", expect_ok=False)
+            result = _invoke("--raw", "permissions", "sync", "--autonomy", "yolo")
 
         parsed = json.loads(result.output)
+        status = adapter.runtime_permissions_status(target, autonomy="yolo")
 
-        assert parsed["error"] == (
-            f"No GPD install found for runtime '{_ENV_OVERRIDE_DESCRIPTOR.runtime_name}'. "
-            f"Run `gpd install {_ENV_OVERRIDE_DESCRIPTOR.runtime_name}` first."
-        )
-        assert _target_file_snapshot(target) == snapshot_before
+        assert parsed["runtime"] == _SECONDARY_PERMISSIONS_DESCRIPTOR.runtime_name
+        assert parsed["target"] == str(target)
+        assert parsed["sync_applied"] is True
+        assert status["config_aligned"] is True
 
     def test_config_set_autonomy_does_not_sync_other_installed_runtime(
         self,
