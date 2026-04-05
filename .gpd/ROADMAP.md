@@ -247,7 +247,11 @@ Plans:
 
 **Backtracking:** If the theorem chain breaks at any step (e.g., Spin(10) extension doesn't follow from Cl(9,C), or E_6 extension requires additional input beyond Spin(10)), isolate the break point and determine if it can be repaired before declaring the phase incomplete.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 44-01-PLAN.md -- Assemble Gap C closure theorem as single 7-step citation chain
+- [ ] 44-02-PLAN.md -- L1-L9 link-by-link verification + gap register update
 
 ### Phase 45: Contingency
 
