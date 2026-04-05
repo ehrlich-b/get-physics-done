@@ -120,7 +120,7 @@ const PUBLIC_SURFACE_CONTRACT_KEYS = [
 ];
 const PUBLIC_SURFACE_CONTRACT_SECTION_KEYS = {
   beginner_onboarding: ["hub_url", "preflight_requirements", "caveats", "startup_ladder"],
-  local_cli_bridge: ["commands", "terminal_phrase", "purpose_phrase"],
+  local_cli_bridge: ["commands", "named_commands", "terminal_phrase", "purpose_phrase"],
   post_start_settings: ["primary_sentence", "default_sentence"],
   resume_authority: [
     "durable_authority_phrase",
@@ -143,12 +143,19 @@ const PUBLIC_SURFACE_CONTRACT_ALLOWED_KEYS = new Set(PUBLIC_SURFACE_CONTRACT_KEY
 const PUBLIC_SURFACE_CONTRACT_SECTION_ALLOWED_KEYS = Object.fromEntries(
   Object.entries(PUBLIC_SURFACE_CONTRACT_SECTION_KEYS).map(([section, keys]) => [section, new Set(keys)])
 );
-const PUBLIC_SURFACE_LOCAL_CLI_HELP_COMMAND = "gpd --help";
-const PUBLIC_SURFACE_LOCAL_CLI_DOCTOR_COMMAND = "gpd doctor";
-const PUBLIC_SURFACE_LOCAL_CLI_UNATTENDED_READINESS_COMMAND =
-  "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced";
-const PUBLIC_SURFACE_LOCAL_CLI_PERMISSIONS_SYNC_COMMAND =
-  "gpd permissions sync --runtime <runtime> --autonomy balanced";
+const PUBLIC_SURFACE_LOCAL_CLI_NAMED_COMMAND_KEYS = [
+  "help",
+  "doctor",
+  "unattended_readiness",
+  "permissions_status",
+  "permissions_sync",
+  "resume",
+  "resume_recent",
+  "observe_execution",
+  "cost",
+  "presets_list",
+  "integrations_status_wolfram",
+];
 const RUNTIME_CATALOG_ENTRY_KEYS = {
   required: [
     "runtime_name",
@@ -733,6 +740,17 @@ function validateSharedPublicSurfaceContract(contractPayload) {
     "local_cli_bridge"
   );
   requirePresentKeys(localCliBridge, PUBLIC_SURFACE_CONTRACT_SECTION_KEYS.local_cli_bridge, "local_cli_bridge");
+  const localCliNamedCommands = requireJsonObject(localCliBridge.named_commands, "local_cli_bridge.named_commands");
+  requireKnownKeys(
+    localCliNamedCommands,
+    new Set(PUBLIC_SURFACE_LOCAL_CLI_NAMED_COMMAND_KEYS),
+    "local_cli_bridge.named_commands"
+  );
+  requirePresentKeys(
+    localCliNamedCommands,
+    PUBLIC_SURFACE_LOCAL_CLI_NAMED_COMMAND_KEYS,
+    "local_cli_bridge.named_commands"
+  );
   const postStartSettings = requireJsonObject(contract.post_start_settings, "post_start_settings");
   requireKnownKeys(
     postStartSettings,
@@ -764,37 +782,23 @@ function validateSharedPublicSurfaceContract(contractPayload) {
   const beginnerCaveats = requireNonEmptyStringList(beginnerPayload, "caveats", "beginner_onboarding");
   const beginnerStartupLadder = requireNonEmptyStringList(beginnerPayload, "startup_ladder", "beginner_onboarding");
   const localCliBridgeCommands = requireNonEmptyStringList(localCliBridge, "commands", "local_cli_bridge");
-  const helpCommand = requireListedCommand(
-    localCliBridgeCommands,
-    "local_cli_bridge",
-    PUBLIC_SURFACE_LOCAL_CLI_HELP_COMMAND
+  const namedCommands = Object.fromEntries(
+    PUBLIC_SURFACE_LOCAL_CLI_NAMED_COMMAND_KEYS.map((key) => [
+      key,
+      requireNonEmptyString(localCliNamedCommands, key, "local_cli_bridge.named_commands"),
+    ])
   );
-  const doctorCommand = requireListedCommand(
-    localCliBridgeCommands,
-    "local_cli_bridge",
-    PUBLIC_SURFACE_LOCAL_CLI_DOCTOR_COMMAND
+  const orderedNamedCommands = PUBLIC_SURFACE_LOCAL_CLI_NAMED_COMMAND_KEYS.map((key) =>
+    requireListedCommand(localCliBridgeCommands, "local_cli_bridge", namedCommands[key])
   );
-  const unattendedReadinessCommand = requireListedCommand(
-    localCliBridgeCommands,
-    "local_cli_bridge",
-    PUBLIC_SURFACE_LOCAL_CLI_UNATTENDED_READINESS_COMMAND
-  );
-  const permissionsSyncCommand = requireListedCommand(
-    localCliBridgeCommands,
-    "local_cli_bridge",
-    PUBLIC_SURFACE_LOCAL_CLI_PERMISSIONS_SYNC_COMMAND
-  );
-  requireListedCommand(
-    localCliBridgeCommands,
-    "local_cli_bridge",
-    "gpd permissions status --runtime <runtime> --autonomy balanced"
-  );
-  requireListedCommand(localCliBridgeCommands, "local_cli_bridge", "gpd resume");
-  requireListedCommand(localCliBridgeCommands, "local_cli_bridge", "gpd resume --recent");
-  requireListedCommand(localCliBridgeCommands, "local_cli_bridge", "gpd observe execution");
-  requireListedCommand(localCliBridgeCommands, "local_cli_bridge", "gpd cost");
-  requireListedCommand(localCliBridgeCommands, "local_cli_bridge", "gpd presets list");
-  requireListedCommand(localCliBridgeCommands, "local_cli_bridge", "gpd integrations status wolfram");
+  if (
+    localCliBridgeCommands.length !== orderedNamedCommands.length
+    || localCliBridgeCommands.some((command, index) => command !== orderedNamedCommands[index])
+  ) {
+    throw new Error(
+      "local_cli_bridge.commands must exactly match local_cli_bridge.named_commands in canonical order"
+    );
+  }
   const terminalPhrase = requireNonEmptyString(localCliBridge, "terminal_phrase", "local_cli_bridge");
   const purposePhrase = requireNonEmptyString(localCliBridge, "purpose_phrase", "local_cli_bridge");
   const settingsCommandSentence = requireNonEmptyString(postStartSettings, "primary_sentence", "post_start_settings");
@@ -839,6 +843,16 @@ function validateSharedPublicSurfaceContract(contractPayload) {
       "recovery_ladder"
     )
   );
+  if (recoveryLocalSnapshotCommand !== namedCommands.resume) {
+    throw new Error(
+      "recovery_ladder.local_snapshot_command must equal local_cli_bridge.named_commands.resume"
+    );
+  }
+  if (recoveryCrossWorkspaceCommand !== namedCommands.resume_recent) {
+    throw new Error(
+      "recovery_ladder.cross_workspace_command must equal local_cli_bridge.named_commands.resume_recent"
+    );
+  }
   const recoveryCrossWorkspacePhrase = requireNonEmptyString(
     recoveryLadder,
     "cross_workspace_phrase",
@@ -855,12 +869,19 @@ function validateSharedPublicSurfaceContract(contractPayload) {
     beginnerStartupLadder,
     localCliBridgeCommands,
     localCliBridge: {
-      doctorCommand,
-      helpCommand,
-      permissionsSyncCommand,
+      doctorCommand: namedCommands.doctor,
+      helpCommand: namedCommands.help,
+      permissionsStatusCommand: namedCommands.permissions_status,
+      permissionsSyncCommand: namedCommands.permissions_sync,
+      resumeCommand: namedCommands.resume,
+      resumeRecentCommand: namedCommands.resume_recent,
+      observeExecutionCommand: namedCommands.observe_execution,
+      costCommand: namedCommands.cost,
+      presetsListCommand: namedCommands.presets_list,
+      integrationsStatusWolframCommand: namedCommands.integrations_status_wolfram,
       terminalPhrase,
       purposePhrase,
-      unattendedReadinessCommand,
+      unattendedReadinessCommand: namedCommands.unattended_readiness,
     },
     schemaVersion: 1,
     resumeAuthority: {

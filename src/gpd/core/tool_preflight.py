@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shlex
 import shutil
 from dataclasses import dataclass
@@ -130,6 +131,7 @@ _TOOL_SPECS: dict[str, _ToolSpec] = {
 }
 
 _WOLFRAM_CAVEAT = "Availability is config-level only; live execution and license state are not proven."
+_ENV_ASSIGNMENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=.*$")
 
 
 def _format_validation_error(exc: PydanticValidationError) -> str:
@@ -156,14 +158,33 @@ def parse_plan_tool_requirements(raw: object) -> list[PlanToolRequirement]:
         raise PlanToolPreflightError(str(exc)) from exc
 
 
+def _command_executable(command: str) -> tuple[str | None, str | None]:
+    """Return the executable token from a shell command requirement.
+
+    The probe only needs the launched binary. This helper keeps the parsing
+    stable for quoted executables, Windows paths with spaces, and shell-style
+    leading env assignments such as ``FOO=bar mycmd --version``.
+    """
+
+    try:
+        argv = shlex.split(command, posix=True) if command else []
+    except ValueError as exc:
+        return None, f"could not parse command requirement: {exc}"
+
+    while argv and _ENV_ASSIGNMENT_RE.fullmatch(argv[0]):
+        argv.pop(0)
+
+    if not argv:
+        return None, "command requirement must include an executable"
+    return argv[0], None
+
+
 def _probe_tool(requirement: PlanToolRequirement, *, cwd: Path | None = None) -> tuple[bool, str, str, list[str]]:
     if requirement.tool == "command":
         command = requirement.command or ""
-        try:
-            argv = shlex.split(command) if command else []
-        except ValueError as exc:
-            return False, f"could not parse command requirement: {exc}", "command", []
-        executable = argv[0] if argv else ""
+        executable, parse_error = _command_executable(command)
+        if parse_error is not None:
+            return False, parse_error, "command", []
         path = shutil.which(executable) if executable else None
         if path:
             return True, f"{executable} found at {Path(path).resolve(strict=False)}", "command", []

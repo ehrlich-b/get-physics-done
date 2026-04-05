@@ -541,7 +541,7 @@ class TestDetectActiveRuntimeWithInstall:
         ):
             assert _runtime_from_manifest_or_path(candidate, cwd=workspace, home=tmp_path / "home") is None
 
-    def test_runtime_from_manifest_or_path_recognizes_manifestless_env_global_dir(self, tmp_path: Path) -> None:
+    def test_runtime_from_manifest_or_path_rejects_manifestless_env_global_dir(self, tmp_path: Path) -> None:
         home = tmp_path / "home"
         custom_dir = tmp_path / "custom-codex"
         _mark_gpd_install(custom_dir, runtime=RUNTIME_CODEX, install_scope=SCOPE_GLOBAL)
@@ -553,7 +553,7 @@ class TestDetectActiveRuntimeWithInstall:
             patch.dict(os.environ, env, clear=True),
             patch("gpd.hooks.runtime_detect.Path.home", return_value=home),
         ):
-            assert _runtime_from_manifest_or_path(custom_dir, home=home) == RUNTIME_CODEX
+            assert _runtime_from_manifest_or_path(custom_dir, home=home) is None
 
     def test_installed_runtime_fails_closed_for_runtime_less_manifest_without_prefix_evidence(
         self, tmp_path: Path

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+import anyio
+
 from gpd.registry import SkillDef
 
 
@@ -17,6 +19,25 @@ def _skill(name: str, *, category: str, registry_name: str) -> SkillDef:
         source_kind="command",
         registry_name=registry_name,
     )
+
+
+def _route_skill_tool_schema() -> dict[str, object]:
+    from gpd.mcp.servers.skills_server import mcp
+
+    async def _load() -> dict[str, object]:
+        tools = await mcp.list_tools()
+        tool = next(tool for tool in tools if tool.name == "route_skill")
+        return tool.inputSchema
+
+    return anyio.run(_load)
+
+
+def test_route_skill_rejects_blank_queries_up_front() -> None:
+    from gpd.mcp.servers.skills_server import route_skill
+
+    result = route_skill("")
+
+    assert result == {"error": "task_description must be a non-empty string", "schema_version": 1}
 
 
 def test_route_skill_does_not_route_generic_project_planning_to_new_project() -> None:
@@ -49,3 +70,13 @@ def test_route_skill_still_matches_real_new_project_lifecycle_intent() -> None:
 
     assert result["suggestion"] == "gpd-new-project"
     assert result["confidence"] > 0.1
+
+
+def test_route_skill_publishes_non_blank_contract_in_tool_schema() -> None:
+    schema = _route_skill_tool_schema()
+    task_description = schema["properties"]["task_description"]
+
+    assert task_description["type"] == "string"
+    assert task_description["minLength"] == 1
+    assert task_description["pattern"] == r"\S"
+    assert schema["required"] == ["task_description"]

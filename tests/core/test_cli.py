@@ -219,10 +219,22 @@ def test_help_surfaces_permissions_readiness_commands() -> None:
     normalized_output = _normalize_cli_output(result.output)
     assert "permissions" in normalized_output
     assert "Runtime permission readiness and sync" in normalized_output
-    assert "gpd doctor --runtime <runtime> --local" in normalized_output
+    assert "gpd doctor" in normalized_output
+    assert "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced" in normalized_output
     assert "gpd permissions status --runtime <runtime> --autonomy balanced" in normalized_output
     assert "gpd observe execution" in normalized_output
     assert "gpd resume --recent" in normalized_output
+
+
+def test_help_surfaces_authoritative_local_cli_bridge_inventory() -> None:
+    from gpd.core.public_surface_contract import local_cli_bridge_commands
+
+    result = runner.invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    normalized_output = _normalize_cli_output(result.output)
+    for command in local_cli_bridge_commands():
+        assert command in normalized_output
 
 
 def test_help_surfaces_workflow_presets_surface() -> None:

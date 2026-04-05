@@ -717,10 +717,20 @@ const payload = require("./src/gpd/core/public_surface_contract.json");
 
 assert.doesNotThrow(() => validateSharedPublicSurfaceContract(payload));
 const sharedText = loadSharedPublicSurfaceText();
-assert.equal(sharedText.localCliBridge.helpCommand, "gpd --help");
-assert.equal(sharedText.localCliBridge.doctorCommand, "gpd doctor");
-assert.equal(sharedText.localCliBridge.unattendedReadinessCommand, payload.local_cli_bridge.commands[2]);
-assert.equal(sharedText.localCliBridge.permissionsSyncCommand, payload.local_cli_bridge.commands[4]);
+assert.equal(sharedText.localCliBridge.helpCommand, payload.local_cli_bridge.named_commands.help);
+assert.equal(sharedText.localCliBridge.doctorCommand, payload.local_cli_bridge.named_commands.doctor);
+assert.equal(sharedText.localCliBridge.unattendedReadinessCommand, payload.local_cli_bridge.named_commands.unattended_readiness);
+assert.equal(sharedText.localCliBridge.permissionsStatusCommand, payload.local_cli_bridge.named_commands.permissions_status);
+assert.equal(sharedText.localCliBridge.permissionsSyncCommand, payload.local_cli_bridge.named_commands.permissions_sync);
+assert.equal(sharedText.localCliBridge.resumeCommand, payload.local_cli_bridge.named_commands.resume);
+assert.equal(sharedText.localCliBridge.resumeRecentCommand, payload.local_cli_bridge.named_commands.resume_recent);
+assert.equal(sharedText.localCliBridge.observeExecutionCommand, payload.local_cli_bridge.named_commands.observe_execution);
+assert.equal(sharedText.localCliBridge.costCommand, payload.local_cli_bridge.named_commands.cost);
+assert.equal(sharedText.localCliBridge.presetsListCommand, payload.local_cli_bridge.named_commands.presets_list);
+assert.equal(
+  sharedText.localCliBridge.integrationsStatusWolframCommand,
+  payload.local_cli_bridge.named_commands.integrations_status_wolfram
+);
 assert.equal(sharedText.resumeAuthority.publicVocabularyIntro, payload.resume_authority.public_vocabulary_intro);
 assert.deepEqual(sharedText.resumeAuthority.publicFields, payload.resume_authority.public_fields);
 assert.equal(sharedText.resumeAuthority.topLevelBoundaryPhrase, payload.resume_authority.top_level_boundary_phrase);
@@ -762,6 +772,20 @@ invalidRequiredPayload.resume_authority.public_fields = "unexpected";
 assert.throws(
   () => validateSharedPublicSurfaceContract(invalidRequiredPayload),
   /resume_authority\.public_fields must be a non-empty list/
+);
+
+const driftedRecoveryPayload = JSON.parse(JSON.stringify(payload));
+driftedRecoveryPayload.recovery_ladder.local_snapshot_command = driftedRecoveryPayload.local_cli_bridge.named_commands.help;
+assert.throws(
+  () => validateSharedPublicSurfaceContract(driftedRecoveryPayload),
+  /recovery_ladder\.local_snapshot_command must equal local_cli_bridge\.named_commands\.resume/
+);
+
+const driftedRecentRecoveryPayload = JSON.parse(JSON.stringify(payload));
+driftedRecentRecoveryPayload.recovery_ladder.cross_workspace_command = driftedRecentRecoveryPayload.local_cli_bridge.named_commands.doctor;
+assert.throws(
+  () => validateSharedPublicSurfaceContract(driftedRecentRecoveryPayload),
+  /recovery_ladder\.cross_workspace_command must equal local_cli_bridge\.named_commands\.resume_recent/
 );
 """
     )
@@ -807,6 +831,7 @@ noisyPayload.local_cli_bridge.commands = [
   `  ${payload.local_cli_bridge.commands[0]}  `,
   ...payload.local_cli_bridge.commands.slice(1),
 ];
+noisyPayload.local_cli_bridge.named_commands.doctor = `  ${payload.local_cli_bridge.named_commands.doctor}  `;
 noisyPayload.post_start_settings.primary_sentence = `  ${payload.post_start_settings.primary_sentence}  `;
 noisyPayload.resume_authority.public_fields = [
   payload.resume_authority.public_fields[0],
@@ -820,6 +845,7 @@ const normalized = validateSharedPublicSurfaceContract(noisyPayload);
 assert.equal(normalized.beginnerHubUrl, payload.beginner_onboarding.hub_url);
 assert.deepEqual(normalized.beginnerStartupLadder, payload.beginner_onboarding.startup_ladder);
 assert.deepEqual(normalized.localCliBridgeCommands, payload.local_cli_bridge.commands);
+assert.equal(normalized.localCliBridge.doctorCommand, payload.local_cli_bridge.named_commands.doctor);
 assert.equal(normalized.settingsCommandSentence, payload.post_start_settings.primary_sentence);
 assert.deepEqual(normalized.resumeAuthority.publicFields, payload.resume_authority.public_fields);
 assert.equal(normalized.recoveryLadder.title, payload.recovery_ladder.title);

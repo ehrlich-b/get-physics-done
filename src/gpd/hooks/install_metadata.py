@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from importlib import import_module
 from pathlib import Path
@@ -12,6 +13,7 @@ from gpd.adapters.runtime_catalog import get_managed_install_surface_policy, get
 _SHARED_INSTALL_METADATA = get_shared_install_metadata()
 GPD_INSTALL_DIR_NAME = _SHARED_INSTALL_METADATA.install_root_dir_name
 MANIFEST_NAME = _SHARED_INSTALL_METADATA.manifest_name
+_UPDATE_COMMAND_RE = re.compile(r'(?m)^UPDATE_COMMAND="([^"\n]+)"$')
 
 
 def get_adapter(runtime: str):
@@ -27,22 +29,68 @@ def _paths_equal(left: Path, right: Path) -> bool:
         return left.expanduser() == right.expanduser()
 
 
-def _infer_missing_explicit_target(runtime: str, *, install_scope: str, config_dir: Path) -> bool | None:
-    """Best-effort fallback for legacy manifests that omit ``explicit_target``."""
+def _infer_missing_explicit_target(
+    runtime: str,
+    *,
+    install_scope: str,
+    config_dir: Path,
+    recorded_target_dir: Path | None = None,
+) -> bool:
+    """Best-effort fallback for legacy manifests that omit ``explicit_target``.
+
+    Prefer the implicit default command shape unless the live path or recorded
+    target proves this install was custom-targeted. That keeps legacy guidance
+    stable for canonical installs while still rebuilding live ``--target-dir``
+    commands for moved or clearly explicit installs.
+    """
+    adapter = get_adapter(runtime)
     if install_scope == "local":
-        return True
+        default_dir_name = adapter.local_config_dir_name
+        if recorded_target_dir is not None and not _paths_equal(recorded_target_dir, config_dir):
+            return True
+        if recorded_target_dir is not None and recorded_target_dir.name != default_dir_name:
+            return True
+        return config_dir.name != default_dir_name
     if install_scope != "global":
-        return None
+        return False
 
     runtime_catalog = import_module("gpd.adapters.runtime_catalog")
-    adapter = get_adapter(runtime)
     global_config_dirs = runtime_catalog.resolve_global_config_dir_candidates(
         adapter.runtime_descriptor,
         home=Path.home(),
     )
     if any(_paths_equal(config_dir, global_dir) for global_dir in global_config_dirs):
-        return None
+        return False
     return True
+
+
+def _embedded_update_command(config_dir: Path, *, runtime: str, install_scope: str) -> str | None:
+    """Return the installed workflow's update command when it matches runtime metadata."""
+
+    update_workflow = config_dir / GPD_INSTALL_DIR_NAME / "workflows" / "update.md"
+    try:
+        content = update_workflow.read_text(encoding="utf-8")
+    except (FileNotFoundError, OSError, UnicodeDecodeError):
+        return None
+
+    match = _UPDATE_COMMAND_RE.search(content)
+    if match is None:
+        return None
+
+    command = match.group(1).strip()
+    if not command:
+        return None
+
+    adapter = get_adapter(runtime)
+    expected_prefix = adapter.update_command
+    expected_scope_flag = f"--{install_scope}"
+    if not command.startswith(expected_prefix):
+        return None
+    if expected_scope_flag not in command.split():
+        return None
+    if "--target-dir" in command.split():
+        return None
+    return command
 
 
 def build_runtime_install_repair_command(
@@ -321,11 +369,23 @@ def installed_update_command(config_dir: Path) -> str | None:
     except KeyError:
         return None
 
+    recorded_target_dir = manifest.get("install_target_dir")
+    manifest_target_dir = (
+        Path(recorded_target_dir).expanduser().resolve(strict=False)
+        if isinstance(recorded_target_dir, str) and recorded_target_dir.strip()
+        else None
+    )
     explicit_target = manifest.get("explicit_target")
     if not isinstance(explicit_target, bool):
-        explicit_target = _infer_missing_explicit_target(runtime, install_scope=scope, config_dir=config_dir)
-        if explicit_target is None:
-            return None
+        embedded_command = _embedded_update_command(config_dir, runtime=runtime, install_scope=scope)
+        if embedded_command is not None:
+            return embedded_command
+        explicit_target = _infer_missing_explicit_target(
+            runtime,
+            install_scope=scope,
+            config_dir=config_dir,
+            recorded_target_dir=manifest_target_dir,
+        )
 
     return build_runtime_install_repair_command(
         runtime,

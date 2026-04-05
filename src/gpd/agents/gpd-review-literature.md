@@ -50,10 +50,12 @@ Required schema for `STAGE-literature{round_suffix}.json` (`StageReviewReport`, 
 - `manuscript_sha256` must be the lowercase 64-hex digest for the exact manuscript snapshot under review
 - `claims_reviewed`, `strengths`, `findings`, and `proof_audits` are arrays even when empty; do not collapse them to prose or scalars
 - Each `findings[]` entry is a `ReviewFinding` with: `issue_id`, `claim_ids`, `severity`, `summary`, `rationale`, `evidence_refs`, `manuscript_locations`, `support_status`, `blocking`, `required_action`
+- `blocking` must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`
 - Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
 - Keep `proof_audits` as an empty array in the literature stage; theorem-to-proof audits belong in Stage 3 unless the invoking workflow explicitly asks otherwise
 - `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`
-- `issue_id` must use `REF-...`; `claim_ids` must reuse Stage 1 `CLM-...` claim IDs
+- `issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`
+- Every `claim_ids[]` entry must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*` and reuse a Stage 1 claim ID from `CLAIMS{round_suffix}.json`
 - `severity` must use exactly: `critical`, `major`, `minor`, `suggestion`
 - `support_status` must use exactly: `supported`, `partially_supported`, `unsupported`, `unclear`
 - `confidence` must use exactly: `high`, `medium`, `low`

@@ -35,6 +35,19 @@
       "gpd presets list",
       "gpd integrations status wolfram"
     ],
+    "named_commands": {
+      "help": "gpd --help",
+      "doctor": "gpd doctor",
+      "unattended_readiness": "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced",
+      "permissions_status": "gpd permissions status --runtime <runtime> --autonomy balanced",
+      "permissions_sync": "gpd permissions sync --runtime <runtime> --autonomy balanced",
+      "resume": "gpd resume",
+      "resume_recent": "gpd resume --recent",
+      "observe_execution": "gpd observe execution",
+      "cost": "gpd cost",
+      "presets_list": "gpd presets list",
+      "integrations_status_wolfram": "gpd integrations status wolfram"
+    },
     "terminal_phrase": "from your normal terminal",
     "purpose_phrase": "the broader local diagnostics, readiness, recovery, visibility, cost, preset, and shared Wolfram integration surface"
   },

@@ -323,13 +323,20 @@ FRONTMATTER_SCHEMAS: dict[str, dict[str, list[str]]] = {
 UNSUPPORTED_FRONTMATTER_FIELDS: dict[str, dict[str, str]] = {
     "plan": {
         "must_haves": "must_haves is not part of the contract-first plan schema; encode verification targets in contract claims, deliverables, links, references, and acceptance_tests",
+        "verification_inputs": "verification_inputs is not part of the contract-first plan schema; capture execution inputs in the contract block instead",
+        "contract_evidence": "contract_evidence is not part of the contract-first plan schema; plans must declare claims, deliverables, and acceptance tests instead",
+        "contract_results": "contract_results is summary/verification output, not plan input; keep plans contract-first",
+        "comparison_verdicts": "comparison_verdicts belong to completed summaries, not plans",
+        "suggested_contract_checks": "suggested_contract_checks is verification-only; plans must define acceptance_tests in the contract instead",
     },
     "summary": {
+        "must_haves": "must_haves is not part of the contract-first summary schema; use contract_results and comparison_verdicts instead",
         "verification_inputs": "verification_inputs is not part of the contract-first summary schema; use contract_results and comparison_verdicts instead",
         "contract_evidence": "contract_evidence is not part of the contract-first summary schema; use contract_results instead",
         "suggested_contract_checks": "suggested_contract_checks is verification-only; summaries use contract_results and comparison_verdicts instead",
     },
     "verification": {
+        "must_haves": "must_haves is not part of the contract-first verification schema; use contract_results and comparison_verdicts instead",
         "verification_inputs": "verification_inputs is not part of the contract-first verification schema; use contract_results and comparison_verdicts instead",
         "contract_evidence": "contract_evidence is not part of the contract-first verification schema; use contract_results instead",
         "independently_confirmed": "independently_confirmed is not part of the contract-first verification schema; keep aggregate confirmation counts in body prose instead",
@@ -463,6 +470,19 @@ def _unsupported_frontmatter_errors(schema_name: str, meta: dict[str, object]) -
         for unsupported_field, message in UNSUPPORTED_FRONTMATTER_FIELDS.get(schema_name, {}).items()
         if unsupported_field in meta
     ]
+
+
+def _validate_non_empty_string_list_field(meta: dict[str, object], field_name: str, errors: list[str]) -> None:
+    """Append validation errors when a field is not a list of non-empty strings."""
+    if field_name not in meta:
+        return
+    value = meta.get(field_name)
+    if not isinstance(value, list):
+        errors.append(f"{field_name}: expected a list")
+        return
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            errors.append(f"{field_name}: entry {index} must be a non-empty string")
 
 
 def _plan_contract_ref_fragment_error(plan_contract_ref: str) -> str | None:
@@ -1236,6 +1256,8 @@ def validate_frontmatter(content: str, schema_name: str, source_path: Path | Non
             errors.append(f"tool_requirements: {exc}")
 
     if schema_name in {"summary", "verification"}:
+        if schema_name == "summary":
+            _validate_non_empty_string_list_field(meta, "provides", errors)
         plan_contract_ref = meta.get("plan_contract_ref")
         plan_contract_ref_fragment_error: str | None = None
         plan_contract_ref_path_error: str | None = None
@@ -1437,6 +1459,7 @@ _FILE_MENTION_VERB = re.compile(
     r"(?:Created|Modified|Added|Updated|Edited):\s*`?([^\s`]+\.[a-zA-Z][a-zA-Z0-9]*)`?",
     re.IGNORECASE,
 )
+_FILE_REFERENCE_SUFFIX = re.compile(r"\.[a-zA-Z][a-zA-Z0-9]*$")
 
 # Commit hash patterns: `abc1234` or "commit abc1234"
 _COMMIT_HASH_RE = re.compile(
@@ -1448,6 +1471,35 @@ _COMMIT_HASH_RE = re.compile(
 _SELF_CHECK_HEADING = re.compile(r"##\s*(?:Self[- ]?Check|Verification|Quality Check)", re.IGNORECASE)
 _SELF_CHECK_PASS = re.compile(r"\b(?:(?:all\s+)?pass(?:ed)?|complete[d]?|succeeded)\b", re.IGNORECASE)
 _SELF_CHECK_FAIL = re.compile(r"\b(?:fail(?:ed)?|incomplete|blocked)\b", re.IGNORECASE)
+
+
+def _looks_like_local_file_reference(value: str, *, allow_bare_filename: bool) -> bool:
+    """Return whether *value* looks like a local file path worth spot-checking."""
+    candidate = value.strip()
+    if not candidate or candidate.startswith(("http://", "https://")):
+        return False
+    if "/" in candidate:
+        return True
+    if not allow_bare_filename:
+        return False
+    return _FILE_REFERENCE_SUFFIX.search(Path(candidate).name) is not None
+
+
+def _append_ordered_file_reference(
+    mentioned: list[str],
+    seen: set[str],
+    value: object,
+    *,
+    allow_bare_filename: bool,
+) -> None:
+    """Record one file reference while preserving declaration order."""
+    if not isinstance(value, str):
+        return
+    candidate = value.strip()
+    if not _looks_like_local_file_reference(candidate, allow_bare_filename=allow_bare_filename) or candidate in seen:
+        return
+    seen.add(candidate)
+    mentioned.append(candidate)
 
 
 @instrument_gpd_function("frontmatter.verify_summary")
@@ -1488,26 +1540,24 @@ def verify_summary(
     errors.extend(f"{field} is required" for field in schema_validation.missing)
 
     # --- Spot-check files mentioned in summary ---
-    mentioned: set[str] = set()
+    mentioned: list[str] = []
+    seen_mentions: set[str] = set()
     raw_key_files = meta.get("key-files")
     if isinstance(raw_key_files, dict):
         for key in ("created", "modified"):
             value = raw_key_files.get(key)
             if isinstance(value, list):
                 for item in value:
-                    if isinstance(item, str) and "/" in item:
-                        mentioned.add(item)
+                    _append_ordered_file_reference(mentioned, seen_mentions, item, allow_bare_filename=True)
     elif isinstance(raw_key_files, list):
         for item in raw_key_files:
-            if isinstance(item, str) and "/" in item:
-                mentioned.add(item)
-    for pattern in (_FILE_MENTION_BACKTICK, _FILE_MENTION_VERB):
-        for m in pattern.finditer(content):
-            fp = m.group(1)
-            if fp and not fp.startswith("http") and "/" in fp:
-                mentioned.add(fp)
+            _append_ordered_file_reference(mentioned, seen_mentions, item, allow_bare_filename=True)
+    for m in _FILE_MENTION_BACKTICK.finditer(content):
+        _append_ordered_file_reference(mentioned, seen_mentions, m.group(1), allow_bare_filename=False)
+    for m in _FILE_MENTION_VERB.finditer(content):
+        _append_ordered_file_reference(mentioned, seen_mentions, m.group(1), allow_bare_filename=True)
 
-    files_to_check = list(mentioned)[:check_file_count]
+    files_to_check = mentioned[:check_file_count]
     missing_files = [f for f in files_to_check if not (cwd / f).exists()]
 
     # --- Commit hashes ---

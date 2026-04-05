@@ -1201,7 +1201,8 @@ class TestSkillsServer:
         from gpd.mcp.servers.skills_server import list_skills
 
         result = list_skills(category="nonexistent")
-        assert result["count"] == 0
+        assert result["error"] == "Unknown category 'nonexistent'"
+        assert "categories" in result
 
     def test_get_skill_found(self):
         from gpd.mcp.servers.skills_server import get_skill

@@ -69,10 +69,11 @@ def _assert_stage_review_contract_visible(text: str, stage_kind: str) -> None:
     assert "`claims_reviewed` must be an array of Stage 1 `CLM-...` claim IDs" in text
     assert "`manuscript_sha256` must exactly match the sibling `CLAIMS{round_suffix}.json`" in text
     assert "`manuscript_sha256` must be the lowercase 64-hex digest" in text
+    assert "`blocking` must be a literal JSON boolean (`true` or `false`)" in text
     assert "closed schema" in text
     assert "do not invent extra keys" in text
-    assert "`claim_ids` must reuse Stage 1 `CLM-...` claim IDs" in text
-    assert "`issue_id` must use `REF-...`" in text
+    assert "`issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`" in text
+    assert "Every `claim_ids[]` entry must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*`" in text
 
 
 def test_review_reader_prompt_surfaces_full_claim_index_schema() -> None:

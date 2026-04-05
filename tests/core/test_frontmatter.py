@@ -762,6 +762,54 @@ class TestValidateFrontmatter:
         assert result.valid is False
         assert any(error.startswith("suggested_contract_checks:") for error in result.errors)
 
+    @pytest.mark.parametrize("schema_name", ["summary", "verification"])
+    def test_summary_and_verification_reject_legacy_must_haves(self, schema_name: str):
+        if schema_name == "summary":
+            content = (
+                "---\n"
+                "phase: 01\n"
+                "plan: 01\n"
+                "depth: standard\n"
+                "provides: []\n"
+                "completed: 2025-01-01\n"
+                "must_haves:\n"
+                "  truths: [Obsolete block]\n"
+                "---\n\nBody."
+            )
+        else:
+            content = (
+                "---\n"
+                "phase: 01\n"
+                "verified: 2025-01-01T00:00:00Z\n"
+                "status: passed\n"
+                "score: 0/0 contract targets verified\n"
+                "must_haves:\n"
+                "  truths: [Obsolete block]\n"
+                "---\n\nBody."
+            )
+
+        result = validate_frontmatter(content, schema_name)
+
+        assert result.valid is False
+        assert any(error.startswith("must_haves:") for error in result.errors)
+
+    def test_summary_rejects_non_string_provides_entries(self):
+        content = (
+            "---\n"
+            "phase: 01\n"
+            "plan: 01\n"
+            "depth: standard\n"
+            "provides:\n"
+            "  - solver\n"
+            "  - 12\n"
+            "completed: 2025-01-01\n"
+            "---\n\nBody."
+        )
+        result = validate_frontmatter(content, "summary")
+
+        assert result.valid is False
+        assert "provides: entry 1 must be a non-empty string" in result.errors
+
     def test_verification_rejects_noncanonical_independently_confirmed_field(self):
         content = (
             "---\n"
@@ -813,11 +861,77 @@ class TestValidateFrontmatter:
         assert "provides is required" in result.errors
         assert "completed is required" in result.errors
 
+    def test_verify_summary_checks_root_level_key_files_in_declared_order(self, tmp_path: Path):
+        summary_path = tmp_path / "01-01-SUMMARY.md"
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "existing.py").write_text("print('ok')\n", encoding="utf-8")
+        content = (
+            "---\n"
+            "phase: 01\n"
+            "plan: 01\n"
+            "depth: standard\n"
+            "provides: []\n"
+            "completed: 2025-01-01\n"
+            "one-liner: Checked summary evidence ordering\n"
+            "key-files:\n"
+            "  - README.md\n"
+            "  - src/existing.py\n"
+            "---\n\nBody.\n"
+        )
+        summary_path.write_text(content, encoding="utf-8")
+
+        result = verify_summary(tmp_path, summary_path, check_file_count=1)
+
+        assert result.summary_exists is True
+        assert result.passed is False
+        assert result.files_created.checked == 1
+        assert result.files_created.missing == ["README.md"]
+        assert "Missing files: README.md" in result.errors
+
+    def test_verify_summary_does_not_treat_backticked_hostnames_as_files(self, tmp_path: Path):
+        summary_path = tmp_path / "01-01-SUMMARY.md"
+        content = (
+            "---\n"
+            "phase: 01\n"
+            "plan: 01\n"
+            "depth: standard\n"
+            "provides: []\n"
+            "completed: 2025-01-01\n"
+            "one-liner: Mention external reference hostname\n"
+            "---\n\nBody cites `example.com` for comparison.\n"
+        )
+        summary_path.write_text(content, encoding="utf-8")
+
+        result = verify_summary(tmp_path, summary_path)
+
+        assert result.summary_exists is True
+        assert result.passed is True
+        assert not any("example.com" in error for error in result.errors)
+
     def test_valid_plan_with_contract_only(self):
         content = _add_plan_conventions((FIXTURES_DIR / "plan_with_contract.md").read_text(encoding="utf-8"))
         result = validate_frontmatter(content, "plan")
         assert result.valid is True
         assert result.errors == []
+
+    @pytest.mark.parametrize(
+        ("field_block", "field_name"),
+        [
+            ("verification_inputs:\n  truths: []\n", "verification_inputs"),
+            ("contract_evidence: []\n", "contract_evidence"),
+            ("contract_results:\n  claims: []\n", "contract_results"),
+            ("comparison_verdicts: []\n", "comparison_verdicts"),
+            ("suggested_contract_checks: []\n", "suggested_contract_checks"),
+        ],
+    )
+    def test_plan_rejects_summary_or_verification_only_fields(self, field_block: str, field_name: str):
+        content = _valid_plan_contract_frontmatter().replace("---\n\n", f"{field_block}---\n\n", 1) + "Body.\n"
+
+        result = validate_frontmatter(content, "plan")
+
+        assert result.valid is False
+        assert any(error.startswith(f"{field_name}:") for error in result.errors)
 
     def test_plan_without_contract_is_invalid(self):
         content = (

@@ -22,9 +22,6 @@ from gpd.adapters.runtime_catalog import (
 from gpd.adapters.runtime_catalog import (
     normalize_runtime_name as _normalize_runtime_name,
 )
-from gpd.adapters.runtime_catalog import (
-    resolve_global_config_dir_candidates as _resolve_global_config_dir_candidates,
-)
 from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, PLANNING_DIR_NAME, TODOS_DIR_NAME
 from gpd.hooks.install_metadata import install_scope_from_manifest, load_install_manifest_runtime_status
 
@@ -80,13 +77,6 @@ def normalize_runtime_name(value: str | None) -> str | None:
     return _normalize_runtime_name(value)
 
 
-def _paths_equal(left: Path, right: Path) -> bool:
-    try:
-        return left.expanduser().resolve() == right.expanduser().resolve()
-    except OSError:
-        return left.expanduser() == right.expanduser()
-
-
 def _explicit_runtime_override() -> str | None:
     """Return an explicit runtime override supplied by GPD-owned shell surfaces."""
     return normalize_runtime_name(os.environ.get(ENV_GPD_ACTIVE_RUNTIME))
@@ -127,23 +117,15 @@ def _runtime_from_manifest_or_path(
     cwd: Path | None = None,
     home: Path | None = None,
 ) -> str | None:
-    """Infer the owning runtime for *config_dir* from its manifest or path."""
+    """Infer the owning runtime for *config_dir* from its manifest.
+
+    Managed surfaces fail closed without an authoritative manifest. Path shape
+    alone is not strong enough ownership evidence because runtime defaults and
+    env-resolved global dirs can overlap with foreign or torn installs.
+    """
     manifest_state, manifest_runtime = _manifest_runtime_status(config_dir)
     if manifest_state == "ok":
         return manifest_runtime or RUNTIME_UNKNOWN
-    if manifest_state != "missing":
-        return None
-
-    resolved_home = home or Path.home()
-    for runtime in ALL_RUNTIMES:
-        adapter = _adapter(runtime)
-        if adapter is None:
-            continue
-        # Explicit config-dir ownership should remain stable even when the
-        # current process carries unrelated runtime/XDG override env vars.
-        global_config_dirs = _resolve_global_config_dir_candidates(adapter.runtime_descriptor, home=resolved_home)
-        if any(_paths_equal(config_dir, global_dir) for global_dir in global_config_dirs):
-            return runtime
     return None
 
 

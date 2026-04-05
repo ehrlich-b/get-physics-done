@@ -49,11 +49,13 @@ Required schema for `STAGE-physics{round_suffix}.json` (`StageReviewReport`, mir
 - `claims_reviewed` must be an array of Stage 1 `CLM-...` claim IDs; use an empty array only when no indexed claim was actually reviewed
 - `manuscript_sha256` must exactly match the sibling `CLAIMS{round_suffix}.json`
 - Each `findings[]` entry is a `ReviewFinding` with: `issue_id`, `claim_ids`, `severity`, `summary`, `rationale`, `evidence_refs`, `manuscript_locations`, `support_status`, `blocking`, `required_action`
+- `blocking` must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`
 - Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
 - Keep `proof_audits` as an empty array in the physics stage unless the workflow explicitly asks for a theorem-to-proof spot check
 - `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`
 - Reuse Stage 1 claim IDs like `CLM-001` in `claim_ids`; use `REF-...` issue IDs in `issue_id`
-- `claim_ids` must reuse Stage 1 `CLM-...` claim IDs; `issue_id` must use `REF-...`
+- `issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`
+- Every `claim_ids[]` entry must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*` and reuse a Stage 1 claim ID from `CLAIMS{round_suffix}.json`
 - `severity` must use exactly: `critical`, `major`, `minor`, `suggestion`
 - `support_status` must use exactly: `supported`, `partially_supported`, `unsupported`, `unclear`
 - `confidence` must use exactly: `high`, `medium`, `low`

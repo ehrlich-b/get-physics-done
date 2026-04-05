@@ -1955,7 +1955,11 @@ def _dims_equal(a: dict[str, int], b: dict[str, int]) -> bool:
 
 
 @mcp.tool()
-def run_check(check_id: str, domain: str, artifact_content: str) -> dict:
+def run_check(
+    check_id: Annotated[str, Field(min_length=1, pattern=r"\S")],
+    domain: Annotated[str, Field(min_length=1, pattern=r"\S")],
+    artifact_content: Annotated[str, Field(min_length=1, pattern=r"\S")],
+) -> dict:
     """Run a specific verification check on an artifact.
 
     Returns the check result with evidence and confidence.
@@ -1975,6 +1979,13 @@ def run_check(check_id: str, domain: str, artifact_content: str) -> dict:
         domain: Physics domain for domain-specific guidance
         artifact_content: The content to verify (derivation, code, etc.)
     """
+    if not isinstance(check_id, str) or not check_id.strip():
+        return _error_result("check_id must be a non-empty string")
+    if not isinstance(domain, str) or not domain.strip():
+        return _error_result("domain must be a non-empty string")
+    if not isinstance(artifact_content, str) or not artifact_content.strip():
+        return _error_result("artifact_content must be a non-empty string")
+
     with gpd_span("mcp.verification.run_check", check_type=check_id, domain=domain):
         try:
             check_meta = get_verification_check(check_id)
@@ -4602,12 +4613,15 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
 
 
 @mcp.tool()
-def get_checklist(domain: str) -> dict:
+def get_checklist(domain: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
     """Return the domain-specific verification checklist.
 
     Provides the complete list of checks recommended for a physics domain,
     including which live verifier-registry checks (currently 5.1-5.24) each maps to.
     """
+    if not isinstance(domain, str) or not domain.strip():
+        return _error_result("domain must be a non-empty string")
+
     with gpd_span("mcp.verification.checklist", domain=domain):
         try:
             checklist = DOMAIN_CHECKLISTS.get(domain)

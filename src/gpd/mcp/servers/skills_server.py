@@ -16,8 +16,10 @@ import dataclasses
 import re
 from collections.abc import Callable
 from pathlib import Path
+from typing import Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from gpd import registry as content_registry
 from gpd.adapters.tool_names import canonical
@@ -77,6 +79,10 @@ _MARKDOWN_REFERENCE_RE = re.compile(
 def _load_skill_index() -> list[content_registry.SkillDef]:
     """Load the canonical registry/MCP skill index from shared commands and agents."""
     return [content_registry.get_skill(name) for name in content_registry.list_skills()]
+
+
+_SKILL_CATEGORIES = tuple(sorted({skill.category for skill in _load_skill_index()}))
+SkillCategoryFilter = Literal[*_SKILL_CATEGORIES]
 
 
 def _resolve_skill(name: str) -> content_registry.SkillDef | None:
@@ -395,7 +401,9 @@ def _expanded_reference_documents(
 
 
 @mcp.tool()
-def list_skills(category: str | None = None) -> dict:
+def list_skills(
+    category: Annotated[SkillCategoryFilter, Field(min_length=1, pattern=r"\S")] | None = None,
+) -> dict:
     """List canonical GPD skills with optional category filter.
 
     Skills are organized by category: execution, planning, verification,
@@ -404,10 +412,18 @@ def list_skills(category: str | None = None) -> dict:
     Args:
         category: Optional category to filter by.
     """
+    if category is not None and (not isinstance(category, str) or not category.strip()):
+        return stable_mcp_response(error="category must be a non-empty string when provided")
+
     with gpd_span("mcp.skills.list", category=category or ""):
         try:
             skills = [_public_skill(skill) for skill in _load_skill_index()]
             all_categories = sorted({s["category"] for s in skills})
+            if category is not None and category not in all_categories:
+                return stable_mcp_response(
+                    {"categories": all_categories},
+                    error=f"Unknown category {category!r}",
+                )
             if category:
                 skills = [s for s in skills if s["category"] == category]
 
@@ -426,7 +442,7 @@ def list_skills(category: str | None = None) -> dict:
 
 
 @mcp.tool()
-def get_skill(name: str) -> dict:
+def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
     """Get the full content of a canonical skill definition.
 
     Returns the skill prompt and metadata for injection into agent context.
@@ -434,6 +450,9 @@ def get_skill(name: str) -> dict:
     Args:
         name: Skill name (e.g., "gpd-execute-phase", "gpd-plan-phase").
     """
+    if not isinstance(name, str) or not name.strip():
+        return stable_mcp_response(error="name must be a non-empty string")
+
     with gpd_span("mcp.skills.get", skill_name=name):
         try:
             skill = _resolve_skill(name)
@@ -522,7 +541,9 @@ def get_skill(name: str) -> dict:
 
 
 @mcp.tool()
-def route_skill(task_description: str) -> dict:
+def route_skill(
+    task_description: Annotated[str, Field(min_length=1, pattern=r"\S")],
+) -> dict:
     """Auto-select the best GPD skill for a given task description.
 
     Uses keyword matching to suggest the most relevant skill(s) for
@@ -533,6 +554,8 @@ def route_skill(task_description: str) -> dict:
     """
     with gpd_span("mcp.skills.route"):
         try:
+            if not isinstance(task_description, str) or not task_description.strip():
+                return stable_mcp_response(error="task_description must be a non-empty string")
             skills = _load_skill_index()
             if not skills:
                 return stable_mcp_response({"suggestion": None}, error="No skills available")

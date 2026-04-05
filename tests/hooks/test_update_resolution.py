@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
+from gpd.adapters.runtime_catalog import get_shared_install_metadata, iter_runtime_descriptors
 from gpd.hooks.update_resolution import (
     latest_update_cache,
     ordered_update_cache_candidates,
@@ -15,6 +19,10 @@ from gpd.hooks.update_resolution import (
 )
 from tests.hooks.helpers import mark_complete_install as _mark_complete_install
 from tests.hooks.helpers import repair_command as _repair_command
+from tests.runtime_install_helpers import seed_complete_runtime_install
+
+_RUNTIME_DESCRIPTORS = iter_runtime_descriptors()
+_SHARED_INSTALL = get_shared_install_metadata()
 
 
 def _noop_debug(_message: str) -> None:
@@ -514,3 +522,49 @@ def test_update_command_for_candidate_uses_cache_runtime_when_install_exists(tmp
 
     expected = _repair_command("codex", install_scope="local", target_dir=local_runtime_dir, explicit_target=False)
     assert command == expected
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_update_command_for_candidate_uses_live_target_dir_when_moved_self_owned_manifest_omits_explicit_target(
+    tmp_path: Path,
+    descriptor,
+) -> None:
+    from gpd.hooks.install_context import SelfOwnedInstallContext
+
+    original_target = tmp_path / "original-self-owned" / descriptor.config_dir_name
+    seed_complete_runtime_install(
+        original_target,
+        runtime=descriptor.runtime_name,
+        install_scope="local",
+        explicit_target=True,
+    )
+
+    relocated_target = tmp_path / "relocated-self-owned" / descriptor.config_dir_name
+    shutil.copytree(original_target, relocated_target)
+    manifest_path = relocated_target / _SHARED_INSTALL.manifest_name
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("explicit_target", None)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    self_install = SelfOwnedInstallContext(
+        config_dir=relocated_target,
+        runtime=descriptor.runtime_name,
+        install_scope="local",
+    )
+    candidate = type(
+        "Candidate",
+        (),
+        {"path": self_install.cache_file, "runtime": descriptor.runtime_name, "scope": "local"},
+    )()
+
+    with patch("gpd.hooks.install_context.detect_self_owned_install", return_value=self_install):
+        command = update_command_for_candidate(candidate, hook_file=__file__, cwd=str(tmp_path))
+
+    expected = _repair_command(
+        descriptor.runtime_name,
+        install_scope="local",
+        target_dir=relocated_target,
+        explicit_target=True,
+    )
+    assert command == expected
+    assert str(original_target) not in (command or "")

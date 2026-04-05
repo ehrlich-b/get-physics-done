@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -134,6 +135,96 @@ def test_legacy_local_install_without_install_scope_keeps_local_update_scope(
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
     assert installed_update_command(target) is None
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_legacy_default_local_install_without_explicit_target_reuses_embedded_update_command(
+    tmp_path: Path,
+    descriptor,
+) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    target = tmp_path / "workspace" / descriptor.config_dir_name
+    target.mkdir(parents=True)
+
+    install_kwargs: dict[str, object] = {"is_global": False}
+    if "skills/" in descriptor.manifest_file_prefixes:
+        skills_dir = tmp_path / "workspace" / "skills"
+        skills_dir.mkdir(parents=True)
+        install_kwargs["skills_dir"] = skills_dir
+
+    _install_and_finalize(adapter, GPD_ROOT, target, **install_kwargs)
+
+    manifest_path = target / MANIFEST_NAME
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("explicit_target", None)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    command = installed_update_command(target)
+
+    assert command == f"{adapter.update_command} --local"
+    assert "--target-dir" not in command
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_moved_explicit_target_local_install_without_explicit_target_uses_live_target_dir(
+    tmp_path: Path,
+    descriptor,
+) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    original_target = tmp_path / "original-explicit-target" / descriptor.config_dir_name
+    original_target.mkdir(parents=True)
+
+    install_kwargs: dict[str, object] = {"is_global": False, "explicit_target": True}
+    if "skills/" in descriptor.manifest_file_prefixes:
+        skills_dir = tmp_path / "original-explicit-target" / "skills"
+        skills_dir.mkdir(parents=True)
+        install_kwargs["skills_dir"] = skills_dir
+
+    _install_and_finalize(adapter, GPD_ROOT, original_target, **install_kwargs)
+
+    relocated_target = tmp_path / "moved-explicit-target" / descriptor.config_dir_name
+    shutil.copytree(original_target, relocated_target)
+    manifest_path = relocated_target / MANIFEST_NAME
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("explicit_target", None)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    command = installed_update_command(relocated_target)
+
+    assert command is not None
+    assert "--local" in command
+    assert "--target-dir" in command
+    assert str(relocated_target) in command
+    assert str(original_target) not in command
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_legacy_default_local_install_without_explicit_target_and_missing_workflow_keeps_implicit_local_command(
+    tmp_path: Path,
+    descriptor,
+) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    target = tmp_path / "workspace" / descriptor.config_dir_name
+    target.mkdir(parents=True)
+
+    install_kwargs: dict[str, object] = {"is_global": False}
+    if "skills/" in descriptor.manifest_file_prefixes:
+        skills_dir = tmp_path / "workspace" / "skills"
+        skills_dir.mkdir(parents=True)
+        install_kwargs["skills_dir"] = skills_dir
+
+    _install_and_finalize(adapter, GPD_ROOT, target, **install_kwargs)
+
+    manifest_path = target / MANIFEST_NAME
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("explicit_target", None)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (target / INSTALL_ROOT_DIR_NAME / "workflows" / "update.md").unlink()
+
+    command = installed_update_command(target)
+
+    assert command == f"{adapter.update_command} --local"
+    assert "--target-dir" not in command
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
@@ -286,7 +377,8 @@ def test_legacy_global_install_without_explicit_target_ignores_current_env_overr
         ctx.setattr("gpd.hooks.install_metadata.Path.home", lambda: home_dir)
         command = installed_update_command(canonical_target)
 
-    assert command is None
+    assert command == f"{adapter.update_command} --global"
+    assert "--target-dir" not in command
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
@@ -344,7 +436,8 @@ def test_legacy_env_resolved_global_install_without_explicit_target_keeps_global
         ctx.setattr("gpd.hooks.install_metadata.Path.home", lambda: home_dir)
         command = installed_update_command(override_target)
 
-    assert command is None
+    assert command == f"{adapter.update_command} --global"
+    assert "--target-dir" not in command
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
@@ -434,7 +527,8 @@ def test_legacy_global_install_without_explicit_target_ignores_env_leak_captured
         ctx.setattr("gpd.hooks.install_metadata.Path.home", lambda: home_dir)
         command = installed_update_command(canonical_target)
 
-    assert command is None
+    assert command == f"{adapter.update_command} --global"
+    assert "--target-dir" not in command
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)

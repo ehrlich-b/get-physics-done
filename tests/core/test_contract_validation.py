@@ -20,6 +20,7 @@ from gpd.contracts import (
     contract_from_data,
     contract_from_data_salvage,
     normalize_contract_results_input,
+    parse_contract_results_data_artifact,
     parse_contract_results_data_strict,
     parse_project_contract_data_salvage,
     parse_project_contract_data_strict,
@@ -285,6 +286,68 @@ def test_parse_contract_results_data_strict_rejects_evidence_scalar_and_case_dri
                 },
                 "uncertainty_markers": {
                     "weakest_anchors": ["anchor-1"],
+                    "unvalidated_assumptions": [],
+                    "competing_explanations": [],
+                    "disconfirming_observations": ["obs-1"],
+                },
+            }
+        )
+
+
+def test_parse_contract_results_data_artifact_rejects_evidence_scalar_and_case_drift() -> None:
+    with pytest.raises(ValueError, match=r"claims\.claim-main\.status must use exact literal 'passed'"):
+        parse_contract_results_data_artifact(
+            {
+                "claims": {
+                    "claim-main": {
+                        "status": "Passed",
+                        "evidence": [
+                            {
+                                "confidence": "High",
+                                "covered_hypothesis_ids": "hyp-main",
+                            }
+                        ],
+                    }
+                },
+                "uncertainty_markers": {
+                    "weakest_anchors": ["anchor-1"],
+                    "unvalidated_assumptions": [],
+                    "competing_explanations": [],
+                    "disconfirming_observations": ["obs-1"],
+                },
+            }
+        )
+
+
+def test_parse_contract_results_data_artifact_rejects_blank_and_duplicate_list_members() -> None:
+    with pytest.raises(ValueError, match=r"claims\.claim-main\.linked_ids\.2 is a duplicate"):
+        parse_contract_results_data_artifact(
+            {
+                "claims": {
+                    "claim-main": {
+                        "status": "passed",
+                        "linked_ids": ["deliv-main", " ", "deliv-main"],
+                        "proof_audit": {
+                            "completeness": "complete",
+                            "covered_hypothesis_ids": ["hyp-main", " ", "hyp-main"],
+                        },
+                        "evidence": [
+                            {
+                                "confidence": "high",
+                                "covered_hypothesis_ids": ["hyp-main", " ", "hyp-main"],
+                            }
+                        ],
+                    }
+                },
+                "references": {
+                    "ref-main": {
+                        "status": "completed",
+                        "completed_actions": ["read", " ", "read"],
+                        "missing_actions": [],
+                    }
+                },
+                "uncertainty_markers": {
+                    "weakest_anchors": ["anchor-1", " ", "anchor-1"],
                     "unvalidated_assumptions": [],
                     "competing_explanations": [],
                     "disconfirming_observations": ["obs-1"],
@@ -1971,7 +2034,8 @@ def test_contract_results_strict_mode_rejects_duplicate_linked_ids_and_actions()
 
     message = str(excinfo.value)
     assert "claims.claim-main.linked_ids" in message
-    assert "duplicate entry not allowed: read" in message
+    assert "references.ref-main.completed_actions.0 must use exact literal 'read'" in message
+    assert "references.ref-main.completed_actions.1 is a duplicate" in message
 
 
 def test_contract_results_strict_mode_rejects_proof_audit_blank_and_duplicate_list_members() -> None:
@@ -1996,7 +2060,8 @@ def test_contract_results_strict_mode_rejects_proof_audit_blank_and_duplicate_li
 
     message = str(excinfo.value)
     assert "claims.claim-main.proof_audit.covered_parameter_symbols" in message
-    assert "must not contain blank entries" in message
+    assert "covered_parameter_symbols.1 must not be blank" in message
+    assert "covered_parameter_symbols.2 is a duplicate" in message
 
 
 def test_research_contract_rejects_string_required_in_proof_booleans() -> None:

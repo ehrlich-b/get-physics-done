@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import hashlib
 import re
 from collections import defaultdict
@@ -504,6 +503,40 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
                 errors.append(f"{path} must use exact literal {choice!r}")
                 return
 
+    def _check_string_list_entries(
+        raw_value: object,
+        *,
+        path: str,
+        literal_choices: tuple[str, ...] | None = None,
+    ) -> None:
+        if not isinstance(raw_value, list):
+            return
+
+        seen: set[str] = set()
+        for index, item in enumerate(raw_value):
+            if not isinstance(item, str):
+                continue
+            stripped = item.strip()
+            if not stripped:
+                errors.append(f"{path}.{index} must not be blank")
+                continue
+
+            normalized = stripped
+            if literal_choices is not None:
+                matched_choice = next(
+                    (choice for choice in literal_choices if stripped.casefold() == choice.casefold()),
+                    None,
+                )
+                if matched_choice is not None:
+                    if item != matched_choice:
+                        errors.append(f"{path}.{index} must use exact literal {matched_choice!r}")
+                    normalized = matched_choice
+
+            if normalized in seen:
+                errors.append(f"{path}.{index} is a duplicate")
+                continue
+            seen.add(normalized)
+
     def _check_evidence_items(entries: object, *, path_prefix: str) -> None:
         if not isinstance(entries, list):
             return
@@ -519,6 +552,10 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
             ):
                 if isinstance(item.get(field_name), str):
                     errors.append(f"{path_prefix}.{index}.{field_name} must be a list, not str")
+                _check_string_list_entries(
+                    item.get(field_name),
+                    path=f"{path_prefix}.{index}.{field_name}",
+                )
             _require_exact_literal(
                 item.get("confidence"),
                 path=f"{path_prefix}.{index}.confidence",
@@ -575,6 +612,11 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
             for field_name in field_names:
                 if isinstance(entry.get(field_name), str):
                     errors.append(f"{section_name}.{entry_id}.{field_name} must be a list, not str")
+                _check_string_list_entries(
+                    entry.get(field_name),
+                    path=f"{section_name}.{entry_id}.{field_name}",
+                    literal_choices=CONTRACT_REFERENCE_ACTION_VALUES if section_name == "references" else None,
+                )
             proof_audit = entry.get("proof_audit")
             if not isinstance(proof_audit, dict):
                 continue
@@ -590,6 +632,10 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
             for field_name in _STRICT_PROOF_AUDIT_STRING_LIST_FIELDS:
                 if isinstance(proof_audit.get(field_name), str):
                     errors.append(f"{section_name}.{entry_id}.proof_audit.{field_name} must be a list, not str")
+                _check_string_list_entries(
+                    proof_audit.get(field_name),
+                    path=f"{section_name}.{entry_id}.proof_audit.{field_name}",
+                )
 
     markers = value.get("uncertainty_markers")
     if isinstance(markers, dict):
@@ -601,6 +647,10 @@ def _collect_strict_contract_results_errors(value: _StrictContractResultsInput) 
         ):
             if isinstance(markers.get(field_name), str):
                 errors.append(f"uncertainty_markers.{field_name} must be a list, not str")
+            _check_string_list_entries(
+                markers.get(field_name),
+                path=f"uncertainty_markers.{field_name}",
+            )
         if not markers.get("weakest_anchors"):
             errors.append(
                 "uncertainty_markers.weakest_anchors must be non-empty in contract-backed contract_results"
@@ -1091,159 +1141,10 @@ def parse_contract_results_data_strict(value: object) -> ContractResults:
     return ContractResults.model_validate(normalize_contract_results_input(value, strict=True))
 
 
-def _normalize_contract_results_artifact_input(value: object) -> object:
-    """Normalize artifact ledgers without relaxing scalar/list shape checks."""
-
-    if not isinstance(value, dict):
-        return value
-
-    normalized = copy.deepcopy(value)
-
-    status_choices_by_section: dict[str, tuple[str, ...]] = {
-        "claims": ("passed", "partial", "failed", "blocked", "not_attempted"),
-        "deliverables": ("passed", "partial", "failed", "blocked", "not_attempted"),
-        "acceptance_tests": ("passed", "partial", "failed", "blocked", "not_attempted"),
-        "references": ("completed", "missing", "not_applicable"),
-        "forbidden_proxies": ("rejected", "violated", "unresolved", "not_applicable"),
-    }
-
-    for section_name, status_choices in status_choices_by_section.items():
-        section = normalized.get(section_name)
-        if not isinstance(section, dict):
-            continue
-        for entry in section.values():
-            if not isinstance(entry, dict):
-                continue
-            if "status" in entry:
-                entry["status"] = _normalize_literal_choice(entry.get("status"), status_choices)
-
-            if section_name in {"claims", "deliverables", "acceptance_tests"}:
-                if isinstance(entry.get("linked_ids"), list):
-                    entry["linked_ids"] = _normalize_string_list(entry.get("linked_ids"))
-                proof_audit = entry.get("proof_audit")
-                if isinstance(proof_audit, dict):
-                    if "completeness" in proof_audit:
-                        proof_audit["completeness"] = _normalize_literal_choice(
-                            proof_audit.get("completeness"),
-                            ("complete", "incomplete"),
-                        )
-                    if "quantifier_status" in proof_audit:
-                        proof_audit["quantifier_status"] = _normalize_literal_choice(
-                            proof_audit.get("quantifier_status"),
-                            ("matched", "narrowed", "mismatched", "unclear"),
-                        )
-                    if "scope_status" in proof_audit:
-                        proof_audit["scope_status"] = _normalize_literal_choice(
-                            proof_audit.get("scope_status"),
-                            ("matched", "narrower_than_claim", "mismatched", "unclear"),
-                        )
-                    if "counterexample_status" in proof_audit:
-                        proof_audit["counterexample_status"] = _normalize_literal_choice(
-                            proof_audit.get("counterexample_status"),
-                            ("none_found", "counterexample_found", "not_attempted", "narrowed_claim"),
-                        )
-                    for field_name in _STRICT_PROOF_AUDIT_STRING_LIST_FIELDS:
-                        if isinstance(proof_audit.get(field_name), list):
-                            proof_audit[field_name] = _normalize_string_list(proof_audit.get(field_name))
-            elif section_name == "references":
-                for field_name in ("completed_actions", "missing_actions"):
-                    if isinstance(entry.get(field_name), list):
-                        entry[field_name] = _normalize_literal_choice_list(
-                            entry.get(field_name),
-                            CONTRACT_REFERENCE_ACTION_VALUES,
-                        )
-
-    markers = normalized.get("uncertainty_markers")
-    if isinstance(markers, dict):
-        for field_name in (
-            "weakest_anchors",
-            "unvalidated_assumptions",
-            "competing_explanations",
-            "disconfirming_observations",
-        ):
-            if isinstance(markers.get(field_name), list):
-                markers[field_name] = _normalize_string_list(markers.get(field_name))
-
-    return normalized
-
-
-def _collect_contract_results_artifact_errors(value: object) -> list[str]:
-    """Return artifact-boundary shape errors before model validation."""
-
-    if not isinstance(value, dict):
-        return []
-
-    errors: list[str] = []
-    if "uncertainty_markers" not in value:
-        errors.append("uncertainty_markers must be explicit in contract-backed contract_results")
-
-    for section_name in ("claims", "deliverables", "acceptance_tests", "references", "forbidden_proxies"):
-        section = value.get(section_name)
-        if not isinstance(section, dict):
-            continue
-        for entry_id, entry in section.items():
-            if isinstance(entry, dict) and "status" not in entry:
-                errors.append(
-                    f"{section_name}.{entry_id}.status must be explicit in contract-backed contract_results"
-                )
-            if not isinstance(entry, dict):
-                continue
-            if section_name in {"claims", "deliverables", "acceptance_tests"}:
-                if isinstance(entry.get("linked_ids"), str):
-                    errors.append(f"{section_name}.{entry_id}.linked_ids must be a list, not str")
-            elif section_name == "references":
-                for field_name in ("completed_actions", "missing_actions"):
-                    if isinstance(entry.get(field_name), str):
-                        errors.append(f"{section_name}.{entry_id}.{field_name} must be a list, not str")
-
-            proof_audit = entry.get("proof_audit")
-            if not isinstance(proof_audit, dict):
-                continue
-            if "completeness" not in proof_audit:
-                errors.append(
-                    f"{section_name}.{entry_id}.proof_audit.completeness must be explicit in contract-backed contract_results"
-                )
-            for field_name in _STRICT_PROOF_AUDIT_STRING_LIST_FIELDS:
-                if isinstance(proof_audit.get(field_name), str):
-                    errors.append(f"{section_name}.{entry_id}.proof_audit.{field_name} must be a list, not str")
-
-    markers = value.get("uncertainty_markers")
-    if isinstance(markers, dict):
-        for field_name in (
-            "weakest_anchors",
-            "unvalidated_assumptions",
-            "competing_explanations",
-            "disconfirming_observations",
-        ):
-            if isinstance(markers.get(field_name), str):
-                errors.append(f"uncertainty_markers.{field_name} must be a list, not str")
-        if not markers.get("weakest_anchors"):
-            errors.append(
-                "uncertainty_markers.weakest_anchors must be non-empty in contract-backed contract_results"
-            )
-        if not markers.get("disconfirming_observations"):
-            errors.append(
-                "uncertainty_markers.disconfirming_observations must be non-empty in contract-backed contract_results"
-            )
-
-    return errors
-
-
 def parse_contract_results_data_artifact(value: object) -> ContractResults:
     """Parse contract-results data for SUMMARY / VERIFICATION frontmatter."""
 
-    if not isinstance(value, dict):
-        raise ValueError("contract_results must be an object")
-
-    normalized = _normalize_contract_results_artifact_input(value)
-    artifact_errors = _collect_contract_results_artifact_errors(normalized)
-    if artifact_errors:
-        raise ValueError("; ".join(dict.fromkeys(artifact_errors)))
-
-    try:
-        return ContractResults.model_validate(normalized)
-    except PydanticValidationError as exc:
-        raise ValueError("; ".join(_format_pydantic_validation_errors(exc))) from exc
+    return parse_contract_results_data_strict(value)
 
 
 def _format_pydantic_validation_errors(exc: PydanticValidationError) -> list[str]:

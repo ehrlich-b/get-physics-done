@@ -70,6 +70,7 @@ from gpd.core.proof_review import (
     resolve_manuscript_proof_review_status,
     resolve_phase_proof_review_status,
 )
+from gpd.core.public_surface_contract import local_cli_bridge_commands, local_cli_help_command
 from gpd.core.publication_review_paths import (
     manuscript_matches_review_artifact_path,
     review_artifact_round,
@@ -711,14 +712,8 @@ app = _GPDTyper(
         "Use the local CLI for install, readiness checks, permissions, observability, validation, and diagnostics.\n"
         "Examples:\n"
         "  gpd install <runtime> --local\n"
-        "  gpd doctor --runtime <runtime> --local\n"
-        "  gpd permissions status --runtime <runtime> --autonomy balanced\n"
-        "  gpd observe execution\n"
-        "  gpd cost\n"
-        "  gpd resume --recent\n"
-        "  gpd presets list\n"
-        "  gpd integrations status wolfram\n"
-        "  gpd validate command-context gpd:new-project"
+        + "".join(f"  {command}\n" for command in local_cli_bridge_commands())
+        + "  gpd validate command-context gpd:new-project"
     ),
 )
 
@@ -8363,7 +8358,7 @@ def _workflow_preset_surface_note() -> str:
 def _install_summary_local_cli_bridge_line() -> str:
     """Return the shared local-CLI bridge follow-up for install summaries."""
     return (
-        "Use [bold]gpd --help[/] for local install, readiness, validation, permissions, observability, and diagnostics. "
+        f"Use [bold]{local_cli_help_command()}[/] for local install, readiness, validation, permissions, observability, and diagnostics. "
         f"Local CLI bridge: {local_cli_bridge_note()}"
     )
 

@@ -34,9 +34,46 @@ from gpd.hooks.install_metadata import (
 )
 
 
+class _BridgeArgumentError(ValueError):
+    """Raised when the runtime bridge arguments are malformed."""
+
+
+class _BridgeArgumentParser(argparse.ArgumentParser):
+    """Argument parser that raises instead of exiting on malformed bridge input."""
+
+    def error(self, message: str) -> None:
+        raise _BridgeArgumentError(message)
+
+    def exit(self, status: int = 0, message: str | None = None) -> None:
+        raise _BridgeArgumentError(message or "malformed bridge invocation")
+
+
+def _validate_passthrough_root_flags(gpd_args: list[str]) -> None:
+    """Reject unknown root-level GPD flags before the downstream command token."""
+    index = 0
+    while index < len(gpd_args):
+        arg = str(gpd_args[index])
+        if arg == "--":
+            return
+        if not arg.startswith("-"):
+            return
+        if arg in {"--raw", "--version"}:
+            index += 1
+            continue
+        if arg == "--cwd":
+            if index + 1 >= len(gpd_args):
+                raise _BridgeArgumentError("argument --cwd: expected one argument")
+            index += 2
+            continue
+        if arg.startswith("--cwd="):
+            index += 1
+            continue
+        raise _BridgeArgumentError(f"unrecognized forwarded gpd root flag: {arg}")
+
+
 def _parse_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     """Parse bridge arguments and return the remaining GPD CLI args."""
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = _BridgeArgumentParser(add_help=False, allow_abbrev=False)
     parser.add_argument("--runtime", required=True)
     parser.add_argument("--config-dir", required=True)
     parser.add_argument("--install-scope", choices=("local", "global"), required=True)
@@ -65,7 +102,13 @@ def _parse_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     gpd_args = argv[index:]
     if gpd_args[:1] == ["--"]:
         gpd_args = gpd_args[1:]
+    _validate_passthrough_root_flags(gpd_args)
     return options, gpd_args
+
+
+def _bridge_argument_error_message(message: str) -> str:
+    """Return a stable user-facing message for malformed bridge invocations."""
+    return f"GPD runtime bridge rejected malformed bridge invocation.\n{message}"
 
 
 def _runtime_display_name(runtime: str) -> str:
@@ -398,7 +441,11 @@ def _untrusted_manifest_error_message(
 def main(argv: list[str] | None = None) -> int:
     """Validate the install contract, then dispatch into ``gpd.cli``."""
     raw_argv = list(sys.argv[1:] if argv is None else argv)
-    options, gpd_args = _parse_args(raw_argv)
+    try:
+        options, gpd_args = _parse_args(raw_argv)
+    except _BridgeArgumentError as exc:
+        sys.stderr.write(_bridge_argument_error_message(str(exc)) + "\n")
+        return 127
     runtime = _canonical_runtime_name(options.runtime)
     cli_cwd = _resolve_cli_cwd_from_argv(gpd_args)
     _maybe_reexec_from_checkout(raw_argv, cli_cwd=cli_cwd)

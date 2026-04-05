@@ -885,7 +885,7 @@ def test_validate_frontmatter_summary_with_source_path_rejects_unknown_forbidden
     )
 
 
-def test_validate_frontmatter_summary_with_source_path_ignores_blank_optional_links_and_evidence_ids(
+def test_validate_frontmatter_summary_with_source_path_rejects_blank_optional_links_and_evidence_ids(
     tmp_path: Path,
 ) -> None:
     phase_dir = tmp_path / "GPD" / "phases" / "01-benchmark"
@@ -901,7 +901,7 @@ def test_validate_frontmatter_summary_with_source_path_ignores_blank_optional_li
             .read_text(encoding="utf-8")
             .replace(
                 "linked_ids: [deliv-figure, test-benchmark, ref-benchmark]",
-                'linked_ids: [deliv-figure, "", test-benchmark, "  ", deliv-figure]',
+                'linked_ids: [deliv-figure, "", test-benchmark, "  ", ref-benchmark]',
                 1,
             )
             .replace(
@@ -915,8 +915,8 @@ def test_validate_frontmatter_summary_with_source_path_ignores_blank_optional_li
 
     result = validate_frontmatter(summary_path.read_text(encoding="utf-8"), "summary", source_path=summary_path)
 
-    assert result.valid is True
-    assert result.errors == []
+    assert result.valid is False
+    assert any("linked_ids.1 must not be blank" in error for error in result.errors)
 
 
 def test_validate_frontmatter_summary_with_source_path_reports_unresolved_plan_contract_ref(tmp_path: Path) -> None:

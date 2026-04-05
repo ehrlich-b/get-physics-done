@@ -10,6 +10,7 @@ from importlib.resources import files
 __all__ = [
     "BeginnerOnboardingContract",
     "LocalCliBridgeContract",
+    "LocalCliNamedCommandsContract",
     "PostStartSettingsContract",
     "PublicSurfaceContract",
     "RecoveryLadderContract",
@@ -59,8 +60,39 @@ class BeginnerOnboardingContract:
 
 
 @dataclass(frozen=True, slots=True)
+class LocalCliNamedCommandsContract:
+    help: str
+    doctor: str
+    unattended_readiness: str
+    permissions_status: str
+    permissions_sync: str
+    resume: str
+    resume_recent: str
+    observe_execution: str
+    cost: str
+    presets_list: str
+    integrations_status_wolfram: str
+
+    def ordered(self) -> tuple[str, ...]:
+        return (
+            self.help,
+            self.doctor,
+            self.unattended_readiness,
+            self.permissions_status,
+            self.permissions_sync,
+            self.resume,
+            self.resume_recent,
+            self.observe_execution,
+            self.cost,
+            self.presets_list,
+            self.integrations_status_wolfram,
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class LocalCliBridgeContract:
     commands: tuple[str, ...]
+    named_commands: LocalCliNamedCommandsContract
     terminal_phrase: str
     purpose_phrase: str
 
@@ -137,7 +169,7 @@ _PUBLIC_SURFACE_CONTRACT_KEYS = (
 )
 _PUBLIC_SURFACE_SECTION_KEYS = {
     "beginner_onboarding": ("hub_url", "preflight_requirements", "caveats", "startup_ladder"),
-    "local_cli_bridge": ("commands", "terminal_phrase", "purpose_phrase"),
+    "local_cli_bridge": ("commands", "named_commands", "terminal_phrase", "purpose_phrase"),
     "post_start_settings": ("primary_sentence", "default_sentence"),
     "resume_authority": (
         "durable_authority_phrase",
@@ -156,29 +188,18 @@ _PUBLIC_SURFACE_SECTION_KEYS = {
         "pause_phrase",
     ),
 }
-_LOCAL_CLI_HELP_COMMAND = "gpd --help"
-_LOCAL_CLI_DOCTOR_COMMAND = "gpd doctor"
-_LOCAL_CLI_UNATTENDED_READINESS_COMMAND = "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced"
-_LOCAL_CLI_PERMISSIONS_STATUS_COMMAND = "gpd permissions status --runtime <runtime> --autonomy balanced"
-_LOCAL_CLI_PERMISSIONS_SYNC_COMMAND = "gpd permissions sync --runtime <runtime> --autonomy balanced"
-_LOCAL_CLI_RESUME_COMMAND = "gpd resume"
-_LOCAL_CLI_RESUME_RECENT_COMMAND = "gpd resume --recent"
-_LOCAL_CLI_OBSERVE_EXECUTION_COMMAND = "gpd observe execution"
-_LOCAL_CLI_COST_COMMAND = "gpd cost"
-_LOCAL_CLI_PRESETS_LIST_COMMAND = "gpd presets list"
-_LOCAL_CLI_INTEGRATIONS_STATUS_WOLFRAM_COMMAND = "gpd integrations status wolfram"
-_REQUIRED_LOCAL_CLI_BRIDGE_COMMANDS = (
-    _LOCAL_CLI_HELP_COMMAND,
-    _LOCAL_CLI_DOCTOR_COMMAND,
-    _LOCAL_CLI_UNATTENDED_READINESS_COMMAND,
-    _LOCAL_CLI_PERMISSIONS_STATUS_COMMAND,
-    _LOCAL_CLI_PERMISSIONS_SYNC_COMMAND,
-    _LOCAL_CLI_RESUME_COMMAND,
-    _LOCAL_CLI_RESUME_RECENT_COMMAND,
-    _LOCAL_CLI_OBSERVE_EXECUTION_COMMAND,
-    _LOCAL_CLI_COST_COMMAND,
-    _LOCAL_CLI_PRESETS_LIST_COMMAND,
-    _LOCAL_CLI_INTEGRATIONS_STATUS_WOLFRAM_COMMAND,
+_LOCAL_CLI_NAMED_COMMAND_KEYS = (
+    "help",
+    "doctor",
+    "unattended_readiness",
+    "permissions_status",
+    "permissions_sync",
+    "resume",
+    "resume_recent",
+    "observe_execution",
+    "cost",
+    "presets_list",
+    "integrations_status_wolfram",
 )
 
 
@@ -245,6 +266,62 @@ def _require_exact_command(commands: tuple[str, ...], *, label: str, command: st
 
 def _local_cli_bridge_command(command: str) -> str:
     return _require_exact_command(local_cli_bridge_commands(), label="local_cli_bridge", command=command)
+
+
+def _require_local_cli_named_commands(
+    payload: dict[str, object],
+    *,
+    bridge_commands: tuple[str, ...],
+) -> LocalCliNamedCommandsContract:
+    named_payload = _require_object(payload.get("named_commands"), label="local_cli_bridge.named_commands")
+    _require_present_keys(
+        named_payload,
+        label="local_cli_bridge.named_commands",
+        keys=_LOCAL_CLI_NAMED_COMMAND_KEYS,
+    )
+    _require_allowed_keys(
+        named_payload,
+        label="local_cli_bridge.named_commands",
+        keys=_LOCAL_CLI_NAMED_COMMAND_KEYS,
+    )
+    named_commands = LocalCliNamedCommandsContract(
+        help=_require_string(named_payload, "help", label="local_cli_bridge.named_commands"),
+        doctor=_require_string(named_payload, "doctor", label="local_cli_bridge.named_commands"),
+        unattended_readiness=_require_string(
+            named_payload,
+            "unattended_readiness",
+            label="local_cli_bridge.named_commands",
+        ),
+        permissions_status=_require_string(
+            named_payload,
+            "permissions_status",
+            label="local_cli_bridge.named_commands",
+        ),
+        permissions_sync=_require_string(
+            named_payload,
+            "permissions_sync",
+            label="local_cli_bridge.named_commands",
+        ),
+        resume=_require_string(named_payload, "resume", label="local_cli_bridge.named_commands"),
+        resume_recent=_require_string(named_payload, "resume_recent", label="local_cli_bridge.named_commands"),
+        observe_execution=_require_string(
+            named_payload,
+            "observe_execution",
+            label="local_cli_bridge.named_commands",
+        ),
+        cost=_require_string(named_payload, "cost", label="local_cli_bridge.named_commands"),
+        presets_list=_require_string(named_payload, "presets_list", label="local_cli_bridge.named_commands"),
+        integrations_status_wolfram=_require_string(
+            named_payload,
+            "integrations_status_wolfram",
+            label="local_cli_bridge.named_commands",
+        ),
+    )
+    for command in named_commands.ordered():
+        _require_exact_command(bridge_commands, label="local_cli_bridge", command=command)
+    if bridge_commands != named_commands.ordered():
+        raise ValueError("local_cli_bridge.commands must exactly match local_cli_bridge.named_commands in canonical order")
+    return named_commands
 
 
 @lru_cache(maxsize=1)
@@ -319,8 +396,7 @@ def load_public_surface_contract() -> PublicSurfaceContract:
         keys=_PUBLIC_SURFACE_SECTION_KEYS["recovery_ladder"],
     )
     bridge_commands = _require_string_list(bridge_payload, "commands", label="local_cli_bridge")
-    for command in _REQUIRED_LOCAL_CLI_BRIDGE_COMMANDS:
-        _require_exact_command(bridge_commands, label="local_cli_bridge", command=command)
+    named_commands = _require_local_cli_named_commands(bridge_payload, bridge_commands=bridge_commands)
     recovery_local_snapshot_command = _require_string(
         recovery_payload,
         "local_snapshot_command",
@@ -333,6 +409,14 @@ def load_public_surface_contract() -> PublicSurfaceContract:
     )
     _require_exact_command(bridge_commands, label="local_cli_bridge", command=recovery_local_snapshot_command)
     _require_exact_command(bridge_commands, label="local_cli_bridge", command=recovery_cross_workspace_command)
+    if recovery_local_snapshot_command != named_commands.resume:
+        raise ValueError(
+            "recovery_ladder.local_snapshot_command must equal local_cli_bridge.named_commands.resume"
+        )
+    if recovery_cross_workspace_command != named_commands.resume_recent:
+        raise ValueError(
+            "recovery_ladder.cross_workspace_command must equal local_cli_bridge.named_commands.resume_recent"
+        )
     resume_authority_public_fields = _require_string_list(
         resume_authority_payload,
         "public_fields",
@@ -357,6 +441,7 @@ def load_public_surface_contract() -> PublicSurfaceContract:
         ),
         local_cli_bridge=LocalCliBridgeContract(
             commands=bridge_commands,
+            named_commands=named_commands,
             terminal_phrase=_require_string(bridge_payload, "terminal_phrase", label="local_cli_bridge"),
             purpose_phrase=_require_string(bridge_payload, "purpose_phrase", label="local_cli_bridge"),
         ),
@@ -452,47 +537,47 @@ def local_cli_bridge_commands() -> tuple[str, ...]:
 
 
 def local_cli_help_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_HELP_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.help)
 
 
 def local_cli_doctor_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_DOCTOR_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.doctor)
 
 
 def local_cli_unattended_readiness_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_UNATTENDED_READINESS_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.unattended_readiness)
 
 
 def local_cli_permissions_status_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_PERMISSIONS_STATUS_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.permissions_status)
 
 
 def local_cli_permissions_sync_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_PERMISSIONS_SYNC_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.permissions_sync)
 
 
 def local_cli_resume_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_RESUME_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.resume)
 
 
 def local_cli_resume_recent_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_RESUME_RECENT_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.resume_recent)
 
 
 def local_cli_observe_execution_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_OBSERVE_EXECUTION_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.observe_execution)
 
 
 def local_cli_cost_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_COST_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.cost)
 
 
 def local_cli_presets_list_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_PRESETS_LIST_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.presets_list)
 
 
 def local_cli_integrations_status_wolfram_command() -> str:
-    return _local_cli_bridge_command(_LOCAL_CLI_INTEGRATIONS_STATUS_WOLFRAM_COMMAND)
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.integrations_status_wolfram)
 
 
 def local_cli_bridge_note() -> str:

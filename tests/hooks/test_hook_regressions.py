@@ -372,7 +372,7 @@ def test_installed_update_command_treats_scope_less_explicit_local_named_target_
     assert command is None
 
 
-def test_installed_update_command_falls_back_to_authoritative_target_dir_when_manifest_omits_explicit_target(
+def test_installed_update_command_keeps_implicit_local_scope_when_manifest_omits_explicit_target_and_workflow_is_incomplete(
     tmp_path: Path,
 ) -> None:
     from gpd.hooks.install_metadata import installed_update_command
@@ -404,9 +404,8 @@ def test_installed_update_command_falls_back_to_authoritative_target_dir_when_ma
     )
 
     command = installed_update_command(explicit_target)
-    assert command is not None
-    assert "--target-dir" in command
-    assert str(explicit_target) in command
+    assert command == "npx -y get-physics-done --codex --local"
+    assert "--target-dir" not in command
 
 
 @pytest.mark.parametrize(

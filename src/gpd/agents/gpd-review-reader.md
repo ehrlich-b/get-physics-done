@@ -70,7 +70,8 @@ Required schema for `STAGE-reader{round_suffix}.json` (`StageReviewReport`, mirr
 - Each `proof_audits[]` entry is a `ProofAuditRecord` with: `claim_id`, `theorem_assumptions_checked`, `theorem_parameters_checked`, `proof_locations`, `uncovered_assumptions`, `uncovered_parameters`, `coverage_gaps`, `alignment_status`, `notes`
 - `proof_audits` should be an empty array in the reader stage; do not invent theorem-proof audit results before the math stage
 - `alignment_status` must use exactly: `aligned`, `partially_aligned`, `misaligned`, `not_applicable`
-- `issue_id` must use `REF-...`; `claim_ids` must reuse Stage 1 `CLM-...` claim IDs
+- `issue_id` must match `REF-[A-Za-z0-9][A-Za-z0-9_-]*`
+- Every `claim_ids[]` entry must match `CLM-[A-Za-z0-9][A-Za-z0-9_-]*` and reuse a Stage 1 claim ID from `CLAIMS{round_suffix}.json`
 - `severity` must use exactly: `critical`, `major`, `minor`, `suggestion`
 - `support_status` must use exactly: `supported`, `partially_supported`, `unsupported`, `unclear`
 - `confidence` must use exactly: `high`, `medium`, `low`

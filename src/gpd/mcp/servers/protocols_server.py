@@ -12,8 +12,10 @@ import re
 import threading
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from gpd.core.observability import gpd_span
 from gpd.mcp.servers import (
@@ -135,6 +137,10 @@ def _protocol_domain(name: str) -> str:
         raise ValueError(f"Protocol {name!r} is missing domain metadata in {PROTOCOL_DOMAINS_MANIFEST.name}") from exc
 
 
+_PROTOCOL_FILTER_DOMAINS = tuple(sorted(set(_load_protocol_domain_manifest().values())))
+ProtocolDomainFilter = Literal[*_PROTOCOL_FILTER_DOMAINS]
+
+
 def _normalize_protocol_tier(raw: object, *, protocol_name: str) -> int:
     """Return an integer tier for protocol sorting and ranking."""
     if isinstance(raw, bool) or not isinstance(raw, int):
@@ -179,6 +185,55 @@ def _normalize_protocol_context_cost(raw: object, *, protocol_name: str) -> str:
             f"Protocol {protocol_name!r} has invalid frontmatter: context_cost must be a non-empty string"
         )
     return stripped
+
+
+def _tokenize_route_text(text: str) -> list[str]:
+    """Return lower-cased alphanumeric tokens for routing comparisons."""
+    return [_normalize_route_token(token) for token in re.findall(r"[a-z0-9]+", text.casefold())]
+
+
+def _normalize_route_token(token: str) -> str:
+    """Normalize morphology-heavy routing tokens to a stable lexical stem."""
+    for suffix in ("ization", "isation", "ative", "ation", "ments", "ment", "ing", "ed", "es", "s"):
+        if token.endswith(suffix) and len(token) - len(suffix) >= 4:
+            return token[: -len(suffix)]
+    return token
+
+
+def _contains_token_sequence(haystack: list[str], needle: list[str]) -> bool:
+    """Return whether ``needle`` appears as a contiguous token sequence in ``haystack``."""
+    if not needle or len(needle) > len(haystack):
+        return False
+    sequence_length = len(needle)
+    return any(haystack[index : index + sequence_length] == needle for index in range(len(haystack) - sequence_length + 1))
+
+
+def _route_keyword_score(keyword: str, query_tokens: list[str]) -> int:
+    """Return a score for one routing keyword against tokenized query text."""
+    keyword_tokens = _tokenize_route_text(keyword)
+    if not keyword_tokens:
+        return 0
+    if len(keyword_tokens) == 1:
+        return 10 if keyword_tokens[0] in query_tokens else 0
+    if _contains_token_sequence(query_tokens, keyword_tokens):
+        return 10 + len(keyword_tokens)
+    if any(token in query_tokens and len(token) >= 7 for token in keyword_tokens):
+        return 4
+    return 0
+
+
+def _route_name_score(name: str, query_tokens: list[str]) -> int:
+    """Return a score for one protocol name against tokenized query text."""
+    name_tokens = _tokenize_route_text(name.replace("-", " "))
+    if not name_tokens:
+        return 0
+    if len(name_tokens) == 1:
+        return 5 if name_tokens[0] in query_tokens else 0
+    if _contains_token_sequence(query_tokens, name_tokens):
+        return 5 + len(name_tokens)
+    if any(token in query_tokens and len(token) >= 7 for token in name_tokens):
+        return 2
+    return 0
 
 
 # ---------------------------------------------------------------------------
@@ -266,28 +321,22 @@ class ProtocolStore:
     def route(self, computation_type: str) -> list[dict[str, object]]:
         """Find protocols matching a computation type description.
 
-        Matches against load_when keywords using case-insensitive substring matching.
+        Matches against load_when keywords and protocol names using exact token or
+        contiguous token-sequence matching. This avoids short acronym substrings
+        from leaking into unrelated queries.
         """
-        query = computation_type.lower()
+        query_tokens = _tokenize_route_text(computation_type)
         scored: list[tuple[int, dict[str, object]]] = []
 
         for p in self._protocols.values():
             score = 0
-            # Check load_when keywords
             for keyword in p["load_when"]:
-                if isinstance(keyword, str) and keyword.lower() in query:
-                    score += 10
-                elif isinstance(keyword, str) and any(w in query for w in keyword.lower().split()):
-                    score += 3
+                if isinstance(keyword, str):
+                    score += _route_keyword_score(keyword, query_tokens)
 
-            # Check protocol name
-            name_words = str(p["name"]).replace("-", " ").split()
-            for w in name_words:
-                if w.lower() in query:
-                    score += 5
+            score += _route_name_score(str(p["name"]), query_tokens)
 
-            # Tier 1 protocols get a bonus
-            if p["tier"] == 1:
+            if score > 0 and p["tier"] == 1:
                 score += 2
 
             if score > 0:
@@ -337,7 +386,7 @@ mcp = FastMCP("gpd-protocols")
 
 
 @mcp.tool()
-def get_protocol(name: str) -> dict[str, object]:
+def get_protocol(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict[str, object]:
     """Get a physics computation protocol by name.
 
     Returns the full protocol content including steps, checkpoints,
@@ -347,6 +396,9 @@ def get_protocol(name: str) -> dict[str, object]:
         name: Protocol name (e.g., "perturbation-theory", "renormalization-group").
               Use the stem of the .md filename without extension.
     """
+    if not isinstance(name, str) or not name.strip():
+        return stable_mcp_response(error="name must be a non-empty string")
+
     with gpd_span("mcp.protocols.get", protocol_name=name):
         try:
             store = _get_store()
@@ -372,7 +424,9 @@ def get_protocol(name: str) -> dict[str, object]:
 
 
 @mcp.tool()
-def list_protocols(domain: str | None = None) -> dict[str, object]:
+def list_protocols(
+    domain: Annotated[ProtocolDomainFilter, Field(min_length=1, pattern=r"\S")] | None = None,
+) -> dict[str, object]:
     """List available physics computation protocols.
 
     Args:
@@ -383,6 +437,9 @@ def list_protocols(domain: str | None = None) -> dict[str, object]:
                 "quantum_info", "condensed_matter", "nuclear_particle",
                 "general".
     """
+    if domain is not None and (not isinstance(domain, str) or not domain.strip()):
+        return stable_mcp_response(error="domain must be a non-empty string when provided")
+
     with gpd_span("mcp.protocols.list", domain=domain or "all"):
         try:
             store = _get_store()
@@ -399,7 +456,9 @@ def list_protocols(domain: str | None = None) -> dict[str, object]:
 
 
 @mcp.tool()
-def route_protocol(computation_type: str) -> dict[str, object]:
+def route_protocol(
+    computation_type: Annotated[str, Field(min_length=1, pattern=r"\S")],
+) -> dict[str, object]:
     """Auto-select the best protocols for a computation type.
 
     Given a description of the computation being performed, finds the most
@@ -409,6 +468,9 @@ def route_protocol(computation_type: str) -> dict[str, object]:
         computation_type: Description of the computation (e.g., "perturbative QCD
                          calculation of vacuum polarization at one loop").
     """
+    if not isinstance(computation_type, str) or not computation_type.strip():
+        return stable_mcp_response(error="computation_type must be a non-empty string")
+
     with gpd_span("mcp.protocols.route"):
         try:
             store = _get_store()
@@ -425,7 +487,7 @@ def route_protocol(computation_type: str) -> dict[str, object]:
 
 
 @mcp.tool()
-def get_protocol_checkpoints(name: str) -> dict[str, object]:
+def get_protocol_checkpoints(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict[str, object]:
     """Get verification checkpoints for a specific protocol.
 
     Returns the list of checkpoint/verification steps that should be performed
@@ -434,6 +496,9 @@ def get_protocol_checkpoints(name: str) -> dict[str, object]:
     Args:
         name: Protocol name (e.g., "perturbation-theory").
     """
+    if not isinstance(name, str) or not name.strip():
+        return stable_mcp_response(error="name must be a non-empty string")
+
     with gpd_span("mcp.protocols.checkpoints", protocol_name=name):
         try:
             store = _get_store()

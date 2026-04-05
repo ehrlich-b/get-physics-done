@@ -104,6 +104,19 @@ def _public_surface_contract_payload() -> dict[str, object]:
         },
         "local_cli_bridge": {
             "commands": list(contract.local_cli_bridge.commands),
+            "named_commands": {
+                "help": contract.local_cli_bridge.named_commands.help,
+                "doctor": contract.local_cli_bridge.named_commands.doctor,
+                "unattended_readiness": contract.local_cli_bridge.named_commands.unattended_readiness,
+                "permissions_status": contract.local_cli_bridge.named_commands.permissions_status,
+                "permissions_sync": contract.local_cli_bridge.named_commands.permissions_sync,
+                "resume": contract.local_cli_bridge.named_commands.resume,
+                "resume_recent": contract.local_cli_bridge.named_commands.resume_recent,
+                "observe_execution": contract.local_cli_bridge.named_commands.observe_execution,
+                "cost": contract.local_cli_bridge.named_commands.cost,
+                "presets_list": contract.local_cli_bridge.named_commands.presets_list,
+                "integrations_status_wolfram": contract.local_cli_bridge.named_commands.integrations_status_wolfram,
+            },
             "terminal_phrase": contract.local_cli_bridge.terminal_phrase,
             "purpose_phrase": contract.local_cli_bridge.purpose_phrase,
         },
@@ -985,8 +998,24 @@ def assert_resume_authority_contract(
 
 
 def assert_runtime_readiness_handoff_contract(content: str) -> None:
-    assert "gpd doctor" in content
-    assert UNATTENDED_READINESS_SURFACE in content
+    _assert_contains_any(
+        content,
+        (
+            "gpd doctor",
+            "sharedDoctorCommand()",
+            "localCliBridge.doctorCommand",
+        ),
+        label="doctor surface",
+    )
+    _assert_contains_any(
+        content,
+        (
+            UNATTENDED_READINESS_SURFACE,
+            "sharedUnattendedReadinessCommand()",
+            "localCliBridge.unattendedReadinessCommand",
+        ),
+        label="unattended readiness surface",
+    )
     _assert_contains_any(
         content,
         (
@@ -1003,6 +1032,8 @@ def assert_runtime_readiness_handoff_contract(content: str) -> None:
         (
             "gpd permissions ...",
             PERMISSIONS_SYNC_SURFACE,
+            "sharedPermissionsSyncCommand()",
+            "localCliBridge.permissionsSyncCommand",
             "runtime-owned permission alignment and sync",
             "runtime-owned permission alignment",
             "mirrored from canonical continuation",

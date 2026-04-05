@@ -167,7 +167,7 @@ def test_summary_extract_requires_explicit_uncertainty_markers(tmp_path: Path) -
         cmd_summary_extract(tmp_path, "broken-SUMMARY.md")
 
 
-def test_summary_extract_normalizes_reference_action_ledgers(tmp_path: Path) -> None:
+def test_summary_extract_rejects_reference_action_ledgers_with_blank_and_duplicate_entries(tmp_path: Path) -> None:
     _write_contract_backed_summary(
         tmp_path,
         _summary_with_reference_usage(
@@ -178,11 +178,12 @@ def test_summary_extract_normalizes_reference_action_ledgers(tmp_path: Path) -> 
         required_actions=["read"],
     )
 
-    result = cmd_summary_extract(tmp_path, "01-SUMMARY.md")
+    with pytest.raises(ValidationError) as excinfo:
+        cmd_summary_extract(tmp_path, "01-SUMMARY.md")
 
-    assert result.contract_results is not None
-    assert result.contract_results.references["ref-benchmark"].completed_actions == ["read", "compare", "cite"]
-    assert result.contract_results.references["ref-benchmark"].missing_actions == []
+    message = str(excinfo.value)
+    assert "completed_actions.3 must not be blank" in message
+    assert "completed_actions.4 is a duplicate" in message
 
 
 def test_summary_extract_rejects_scalar_reference_action_ledgers_for_contract_backed_summary(
@@ -205,36 +206,26 @@ def test_summary_extract_rejects_scalar_reference_action_ledgers_for_contract_ba
     assert "completed_actions must be a list, not str" in message
 
 
-@pytest.mark.parametrize(
-    ("status", "completed_actions", "missing_actions", "expected_completed", "expected_missing"),
-    [
-        ("completed", '[" read ", READ, "read"]', "[]", ["read"], []),
-    ],
-)
-def test_summary_extract_normalizes_case_variant_reference_action_ledgers(
+def test_summary_extract_rejects_case_variant_reference_action_ledgers(
     tmp_path: Path,
-    status: str,
-    completed_actions: str,
-    missing_actions: str,
-    expected_completed: list[str],
-    expected_missing: list[str],
 ) -> None:
     _write_contract_backed_summary(
         tmp_path,
         _summary_with_reference_usage(
-            status=status,
-            completed_actions=completed_actions,
-            missing_actions=missing_actions,
+            status="completed",
+            completed_actions='[" read ", READ, "read"]',
+            missing_actions="[]",
         ),
         required_actions=["read"],
     )
 
-    result = cmd_summary_extract(tmp_path, "01-SUMMARY.md")
+    with pytest.raises(ValidationError) as excinfo:
+        cmd_summary_extract(tmp_path, "01-SUMMARY.md")
 
-    assert result.contract_results is not None
-    assert result.contract_results.references["ref-benchmark"].status == status.casefold()
-    assert result.contract_results.references["ref-benchmark"].completed_actions == expected_completed
-    assert result.contract_results.references["ref-benchmark"].missing_actions == expected_missing
+    message = str(excinfo.value)
+    assert "completed_actions.0 must use exact literal 'read'" in message
+    assert "completed_actions.1 must use exact literal 'read'" in message
+    assert "completed_actions.2 is a duplicate" in message
 
 
 @pytest.mark.parametrize(

@@ -20,6 +20,10 @@ from gpd.core.onboarding_surfaces import (
     beginner_runtime_surfaces,
     beginner_startup_ladder_text,
 )
+from gpd.core.public_surface_contract import (
+    local_cli_bridge_commands,
+    local_cli_help_command,
+)
 from scripts.release_workflow import (
     ReleaseError,
     bump_version,
@@ -967,9 +971,9 @@ def test_public_local_cli_help_and_install_summary_keep_readiness_diagnostics_em
     assert "local install, readiness, validation, permissions, observability, and diagnostics CLI" in cli
     assert "Use the local CLI for install, readiness checks, permissions, observability, validation, and diagnostics." in cli
     assert "gpd doctor --runtime <runtime> --local" in cli
-    assert "gpd observe execution" in cli
-    assert "gpd cost" in cli
-    assert "gpd resume --recent" in cli
+    assert "local_cli_bridge_commands()" in cli
+    assert "local_cli_help_command()" in cli
+    assert local_cli_help_command() in local_cli_bridge_commands()
     assert "post_start_settings_note()" in cli
     assert "post_start_settings_recommendation()" in cli
 

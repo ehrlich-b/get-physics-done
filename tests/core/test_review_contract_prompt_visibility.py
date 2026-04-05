@@ -601,6 +601,19 @@ def test_author_response_template_is_canonical_and_mentions_new_calculation_trac
     assert "needs-calculation" in writer
 
 
+def test_referee_response_template_reuses_canonical_issue_fields_in_worked_sections() -> None:
+    referee_response = (TEMPLATES_DIR / "paper" / "referee-response.md").read_text(encoding="utf-8")
+    ref_002 = referee_response.split("### REF-002", 1)[1].split("### REF-003", 1)[0]
+    ref_101 = referee_response.split("### REF-101", 1)[1].split("### REF-102", 1)[0]
+
+    for section in (ref_002, ref_101):
+        assert "**Classification:**" in section
+        assert "**Blocking issue:**" in section
+        assert "**Decision-artifact context:**" in section
+        assert "**Source phase for new work:**" in section
+        assert "**Category:**" not in section
+
+
 def test_write_paper_review_contract_surfaces_manuscript_root_review_dependencies() -> None:
     source = _read_command("write-paper")
 
@@ -629,6 +642,14 @@ def test_summary_template_surfaces_plan_contract_ref_rule_for_contract_ledgers()
     assert "If a decisive external anchor was used, include `reference_id`" in summary_template
     assert "Do not invent extra keys in `contract_results` or `comparison_verdicts`" in summary_template
     assert "`suggested_contract_checks` is verification-only and does not belong in summaries." in summary_template
+
+
+def test_verification_template_forbids_placeholder_uncertainty_fillers() -> None:
+    verification_template = (TEMPLATES_DIR / "verification-report.md").read_text(encoding="utf-8")
+
+    assert "concrete non-blank entries in `weakest_anchors` and `disconfirming_observations`" in verification_template
+    assert "Do not use filler placeholders." in verification_template
+    assert "non-empty placeholder anchors" not in verification_template
 
 
 def test_verification_template_surfaces_strict_passed_and_blocked_semantics() -> None:

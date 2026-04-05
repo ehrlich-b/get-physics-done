@@ -79,6 +79,21 @@ def test_beginner_startup_ladder_stays_separate_from_deeper_recovery_follow_ups(
     assert "billing" not in startup_ladder
 
 
+def test_public_surface_contract_rejects_recovery_ladder_command_drift(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    payload = json.loads(Path(public_surface_contract_module.__file__).with_name("public_surface_contract.json").read_text())
+    payload["recovery_ladder"]["local_snapshot_command"] = payload["local_cli_bridge"]["named_commands"]["help"]
+    _load_public_surface_contract_with_payload(monkeypatch, tmp_path, payload)
+
+    with pytest.raises(
+        ValueError,
+        match="recovery_ladder\\.local_snapshot_command must equal local_cli_bridge\\.named_commands\\.resume",
+    ):
+        load_public_surface_contract()
+
+
 def test_beginner_runtime_surfaces_follow_runtime_catalog() -> None:
     surfaces = beginner_runtime_surfaces()
     descriptors = iter_runtime_descriptors()
@@ -231,6 +246,9 @@ def test_public_surface_contract_loader_normalizes_whitespace(
         f"  {canonical_payload['local_cli_bridge']['commands'][0]}  ",
         *canonical_payload["local_cli_bridge"]["commands"][1:],
     ]
+    noisy_payload["local_cli_bridge"]["named_commands"]["doctor"] = (
+        f"  {canonical_payload['local_cli_bridge']['named_commands']['doctor']}  "
+    )
     noisy_payload["post_start_settings"]["primary_sentence"] = (
         f"  {canonical_payload['post_start_settings']['primary_sentence']}  "
     )
@@ -247,6 +265,7 @@ def test_public_surface_contract_loader_normalizes_whitespace(
     assert contract.beginner_onboarding.hub_url == canonical_payload["beginner_onboarding"]["hub_url"]
     assert contract.beginner_onboarding.startup_ladder == tuple(canonical_payload["beginner_onboarding"]["startup_ladder"])
     assert contract.local_cli_bridge.commands == tuple(canonical_payload["local_cli_bridge"]["commands"])
+    assert contract.local_cli_bridge.named_commands.doctor == canonical_payload["local_cli_bridge"]["named_commands"]["doctor"]
     assert contract.post_start_settings.primary_sentence == canonical_payload["post_start_settings"]["primary_sentence"]
     assert contract.resume_authority.public_fields == tuple(canonical_payload["resume_authority"]["public_fields"])
     assert contract.recovery_ladder.title == canonical_payload["recovery_ladder"]["title"]
@@ -323,9 +342,27 @@ def test_doc_surface_contract_helpers_read_runtime_normalized_contract(
                 "gpd --help",
                 "gpd doctor",
                 "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced",
+                "gpd permissions status --runtime <runtime> --autonomy balanced",
                 "gpd permissions sync --runtime <runtime> --autonomy balanced",
                 "gpd resume",
                 "gpd resume --recent",
+                "gpd observe execution",
+                "gpd cost",
+                "gpd presets list",
+                "gpd integrations status wolfram",
+            ),
+            named_commands=public_surface_contract_module.LocalCliNamedCommandsContract(
+                help="gpd --help",
+                doctor="gpd doctor",
+                unattended_readiness="gpd validate unattended-readiness --runtime <runtime> --autonomy balanced",
+                permissions_status="gpd permissions status --runtime <runtime> --autonomy balanced",
+                permissions_sync="gpd permissions sync --runtime <runtime> --autonomy balanced",
+                resume="gpd resume",
+                resume_recent="gpd resume --recent",
+                observe_execution="gpd observe execution",
+                cost="gpd cost",
+                presets_list="gpd presets list",
+                integrations_status_wolfram="gpd integrations status wolfram",
             ),
             terminal_phrase="in your normal terminal",
             purpose_phrase="workspace diagnostics",
