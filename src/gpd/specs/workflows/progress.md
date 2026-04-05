@@ -35,10 +35,10 @@ Continue to full report below. With `--full`, also include detailed per-phase ar
 When STATE.md appears out of sync with disk reality (e.g., a plan was completed but state not updated, or a phase was manually modified), reconcile by comparing disk artifacts against STATE.md.
 
 ```bash
-# Get the structured current position instead of scraping STATE.md with regexes
-PROGRESS_JSON=$(gpd --raw progress)
-STATE_PHASE=$(echo "$PROGRESS_JSON" | gpd json get .current_phase.number --default "")
-STATE_PLAN=$(echo "$PROGRESS_JSON" | gpd json get .current_execution.plan --default "")
+# Get the structured current position from the state snapshot instead of scraping STATE.md with regexes
+STATE_JSON=$(gpd --raw state snapshot)
+STATE_PHASE=$(echo "$STATE_JSON" | gpd json get .current_phase --default "")
+STATE_PLAN=$(echo "$STATE_JSON" | gpd json get .current_plan --default "")
 
 # Count actual disk state from the canonical roadmap inventory
 ROADMAP=$(gpd --raw roadmap analyze)
@@ -155,7 +155,7 @@ Use this instead of manually reading/parsing ROADMAP.md.
 - Use `current_phase` and `next_phase` from roadmap analyze
 - Use phase-level `has_context` and `has_research` flags from analyze
 - Note `paused_at` if work was paused (from init context)
-- Count pending items: use `init todos` or `list-todos`
+- Count pending items: use `gpd init todos`
 - Check for active debug sessions: `ls GPD/debug/*.md 2>/dev/null | grep -v resolved | wc -l`
 - Check state compaction health: `gpd state compact 2>&1` — if output contains `"warn": true`, STATE.md is growing large. Note this for the report.
   </step>

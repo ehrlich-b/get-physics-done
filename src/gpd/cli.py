@@ -5560,10 +5560,27 @@ def _project_root_for_json_input(input_path: str) -> Path:
         return cwd
 
     target = Path(input_path)
-    resolved = target.expanduser().resolve(strict=False) if target.is_absolute() else (cwd / target).resolve(strict=False)
-    for base in (resolved.parent, *resolved.parent.parents):
-        if (base / "GPD").is_dir():
-            return base
+    if not target.is_absolute():
+        resolved = (cwd / target).resolve(strict=False)
+        for base in (resolved.parent, *resolved.parent.parents):
+            if (base / "GPD").is_dir():
+                return base
+        return resolved.parent
+
+    resolved = target.expanduser().resolve(strict=False)
+    immediate_parent = resolved.parent
+    if (immediate_parent / "GPD").is_dir():
+        return immediate_parent
+
+    for base in immediate_parent.parents:
+        gpd_dir = (base / "GPD").resolve(strict=False)
+        if not gpd_dir.is_dir():
+            continue
+        try:
+            resolved.relative_to(gpd_dir)
+        except ValueError:
+            continue
+        return base
     return resolved.parent
 
 
@@ -7237,13 +7254,11 @@ def validate_project_contract_cmd(
 
     payload = _load_json_document(input_path)
     if input_path == "-":
-        project_root = _state_command_cwd()
-        if not (project_root / "GPD").is_dir():
-            project_root = None
+        anchored_project_root = _state_command_cwd()
+        prefer_filesystem_anchor = False
     else:
-        project_root = _project_root_for_json_input(input_path)
-        if not (project_root / "GPD").is_dir():
-            project_root = None
+        anchored_project_root = _project_root_for_json_input(input_path)
+        prefer_filesystem_anchor = (anchored_project_root / "GPD").is_dir()
     strict_result = parse_project_contract_data_strict(payload)
     if strict_result.contract is None or strict_result.errors:
         result = ProjectContractValidationResult(
@@ -7253,7 +7268,20 @@ def validate_project_contract_cmd(
             mode=normalized_mode,
         )
     else:
-        result = validate_project_contract(strict_result.contract, mode=normalized_mode, project_root=project_root)
+        if prefer_filesystem_anchor:
+            result = validate_project_contract(
+                strict_result.contract,
+                mode=normalized_mode,
+                project_root=anchored_project_root,
+            )
+        else:
+            unanchored_result = validate_project_contract(strict_result.contract, mode=normalized_mode, project_root=None)
+            anchored_result = validate_project_contract(
+                strict_result.contract,
+                mode=normalized_mode,
+                project_root=anchored_project_root,
+            )
+            result = anchored_result if anchored_result.valid != unanchored_result.valid else unanchored_result
     if not result.valid:
         if _raw:
             _emit_raw_json(_model_dump_with_schema_reference(result, schema_reference="templates/state-json-schema.md"), err=True)

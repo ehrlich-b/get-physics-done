@@ -811,10 +811,13 @@ def _has_concrete_grounding_entries(
     *,
     field_name: str,
     project_root: Path | None = None,
+    require_existing_project_artifacts: bool = False,
 ) -> bool:
     """Return whether any grounding entry is concrete for the requested field."""
 
     if field_name == "must_include_prior_outputs":
+        if require_existing_project_artifacts and project_root is None:
+            return False
         return any(_shared_is_project_artifact_path(value, project_root=project_root) for value in values)
     if field_name in {"user_asserted_anchors", "known_good_baselines"}:
         return any(_is_concrete_text_grounding(value, project_root=project_root) for value in values)
@@ -876,6 +879,7 @@ def _has_approved_grounding_signal(
                 contract.context_intake.must_include_prior_outputs,
                 field_name="must_include_prior_outputs",
                 project_root=project_root,
+                require_existing_project_artifacts=True,
             ),
             _has_concrete_grounding_entries(
                 contract.context_intake.user_asserted_anchors,
@@ -904,6 +908,7 @@ def _has_non_reference_grounding_signal(
                 contract.context_intake.must_include_prior_outputs,
                 field_name="must_include_prior_outputs",
                 project_root=project_root,
+                require_existing_project_artifacts=True,
             ),
             _has_concrete_grounding_entries(
                 contract.context_intake.user_asserted_anchors,

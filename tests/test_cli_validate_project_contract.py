@@ -42,6 +42,7 @@ def test_validate_project_contract_command_accepts_valid_fixture_via_stdin() -> 
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output)
     assert payload["valid"] is True
+    assert payload["warnings"] == []
     assert payload["question"] == "What benchmark must the project recover?"
     assert payload["reference_count"] > 0
 
@@ -283,6 +284,48 @@ def test_validate_project_contract_command_blocks_nonexistent_prior_output_in_ap
         ["--raw", "validate", "project-contract", str(contract_path), "--mode", "approved"],
         catch_exceptions=False,
     )
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.output)
+    assert payload["valid"] is False
+    assert payload["mode"] == "approved"
+    assert any("approved project contract requires at least one concrete anchor" in error for error in payload["errors"])
+
+
+def test_validate_project_contract_command_does_not_borrow_unrelated_ancestor_project_root() -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["references"] = []
+    contract["context_intake"] = {
+        "must_read_refs": [],
+        "must_include_prior_outputs": ["fake/path"],
+        "user_asserted_anchors": [],
+        "known_good_baselines": [],
+        "context_gaps": [],
+        "crucial_inputs": [],
+    }
+    for claim in contract.get("claims", []):
+        claim["references"] = []
+    for target in contract.get("acceptance_tests", []):
+        target["evidence_required"] = [item for item in target.get("evidence_required", []) if item != "ref-benchmark"]
+    contract["scope"]["unresolved_questions"] = []
+
+    with runner.isolated_filesystem():
+        ancestor_project = Path("workspace")
+        (ancestor_project / "GPD").mkdir(parents=True)
+        misleading_prior_output = ancestor_project / "fake" / "path"
+        misleading_prior_output.parent.mkdir(parents=True)
+        misleading_prior_output.write_text("not this project\n", encoding="utf-8")
+
+        unrelated_dir = ancestor_project / "nested"
+        unrelated_dir.mkdir()
+        contract_path = unrelated_dir / "project-contract.json"
+        contract_path.write_text(json.dumps(contract), encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            ["--raw", "validate", "project-contract", str(contract_path.resolve()), "--mode", "approved"],
+            catch_exceptions=False,
+        )
 
     assert result.exit_code == 1, result.output
     payload = json.loads(result.output)

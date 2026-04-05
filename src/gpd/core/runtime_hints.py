@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from gpd.core.context import init_resume
 from gpd.core.costs import build_cost_summary, resolve_cost_advisory
-from gpd.core.observability import derive_execution_visibility
+from gpd.core.observability import derive_execution_visibility, get_current_session_id
 from gpd.core.project_reentry import (
     project_reentry_candidate_summary,
     recoverable_project_context,
@@ -246,6 +246,16 @@ def _project_reentry_summary(
 def _runtime_command(action: str, *, cwd: Path) -> str | None:
     try:
         from gpd.adapters import get_adapter
+        runtime_name = _installed_runtime_for_surface(cwd)
+        if runtime_name is None:
+            return None
+        return str(get_adapter(runtime_name).format_command(action)).strip()
+    except Exception:
+        return None
+
+
+def _installed_runtime_for_surface(cwd: Path) -> str | None:
+    try:
         from gpd.hooks.runtime_detect import (
             RUNTIME_UNKNOWN,
             detect_runtime_for_gpd_use,
@@ -260,9 +270,19 @@ def _runtime_command(action: str, *, cwd: Path) -> str | None:
             or detect_runtime_install_target(runtime_name, cwd=cwd) is None
         ):
             return None
-        return str(get_adapter(runtime_name).format_command(action)).strip()
+        return runtime_name
     except Exception:
         return None
+
+
+def _current_session_id_for_surface(project_root: Path) -> str | None:
+    try:
+        session_id = get_current_session_id(project_root)
+    except Exception:
+        return None
+    if not isinstance(session_id, str) or not session_id.strip():
+        return None
+    return session_id
 
 
 def _resume_context(cwd: Path, *, data_root: Path | None = None) -> dict[str, object]:
@@ -573,6 +593,9 @@ def build_runtime_hint_payload(
     if cost_advisory is not None:
         cost["advisory"] = cost_advisory
 
+    surface_runtime = _installed_runtime_for_surface(project_root)
+    surface_session_id = _current_session_id_for_surface(project_root)
+
     normalized_latex_capability = _normalize_latex_capability(latex_capability)
 
     workflow_presets = (
@@ -586,8 +609,10 @@ def build_runtime_hint_payload(
         "workspace_root": workspace_hint.as_posix(),
         "project_root": project_root.as_posix(),
         "data_root": _path_text(data_root.expanduser().resolve(strict=False) if data_root is not None else None),
-        "current_session_id": cost_summary.current_session_id if cost_summary is not None else None,
-        "active_runtime": cost_summary.active_runtime if cost_summary is not None else None,
+        "current_session_id": (
+            surface_session_id if surface_session_id is not None else cost_summary.current_session_id if cost_summary is not None else None
+        ),
+        "active_runtime": surface_runtime if surface_runtime is not None else cost_summary.active_runtime if cost_summary is not None else None,
         "model_profile": cost_summary.model_profile if cost_summary is not None else None,
         "base_ready": base_ready,
         "latex_capability": normalized_latex_capability,

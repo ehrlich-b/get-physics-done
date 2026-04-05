@@ -2063,13 +2063,94 @@ class TestInitTodos:
         pending = tmp_path / "GPD" / "todos" / "pending"
         pending.mkdir(parents=True)
         (pending / "check-convergence.md").write_text(
-            'title: "Check convergence"\narea: numerical\ncreated: 2026-03-01'
+            'title: "Check convergence"\narea: numerical\ncreated: 2026-03-01\n\n'
+            'The body may mention area: theory and created: 2024-01-01, but those lines must be ignored.'
         )
 
         ctx = init_todos(tmp_path)
         assert ctx["todo_count"] == 1
         assert ctx["todos"][0]["title"] == "Check convergence"
         assert ctx["todos"][0]["area"] == "numerical"
+        assert ctx["todos"][0]["created"] == "2026-03-01"
+
+    def test_body_metadata_like_lines_do_not_override_missing_header_fields(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        pending = tmp_path / "GPD" / "todos" / "pending"
+        pending.mkdir(parents=True)
+        (pending / "check-convergence.md").write_text(
+            'title: "Check convergence"\n\n'
+            'The body may mention area: numerical and created: 2026-03-01.\n'
+            'Those lines must not be treated as todo metadata.'
+        )
+
+        ctx = init_todos(tmp_path)
+        assert ctx["todo_count"] == 1
+        assert ctx["todos"][0]["title"] == "Check convergence"
+        assert ctx["todos"][0]["area"] == "general"
+        assert ctx["todos"][0]["created"] == "unknown"
+
+    def test_skips_todo_with_malformed_yaml_frontmatter(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        pending = tmp_path / "GPD" / "todos" / "pending"
+        pending.mkdir(parents=True)
+        (pending / "good.md").write_text(
+            "---\n"
+            "title: Good todo\n"
+            "area: numerical\n"
+            "created: 2026-03-01\n"
+            "---\n"
+            "Body\n",
+            encoding="utf-8",
+        )
+        (pending / "bad.md").write_text(
+            "---\n"
+            "title: Broken todo\n"
+            "area: [unterminated\n"
+            "Body without a closing delimiter\n",
+            encoding="utf-8",
+        )
+
+        ctx = init_todos(tmp_path)
+
+        assert ctx["todo_count"] == 1
+        assert [todo["file"] for todo in ctx["todos"]] == ["good.md"]
+
+    def test_preserves_yaml_created_date_scalar(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        pending = tmp_path / "GPD" / "todos" / "pending"
+        pending.mkdir(parents=True)
+        (pending / "check-convergence.md").write_text(
+            "---\n"
+            "title: Check convergence\n"
+            "area: numerical\n"
+            "created: 2026-03-01\n"
+            "---\n"
+            "Body\n",
+            encoding="utf-8",
+        )
+
+        ctx = init_todos(tmp_path)
+
+        assert ctx["todo_count"] == 1
+        assert ctx["todos"][0]["created"] == "2026-03-01"
+
+    def test_todo_body_starting_with_horizontal_rule_is_not_skipped(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        pending = tmp_path / "GPD" / "todos" / "pending"
+        pending.mkdir(parents=True)
+        (pending / "note.md").write_text(
+            "---\n"
+            "Body starts with a rule, not metadata.\n",
+            encoding="utf-8",
+        )
+
+        ctx = init_todos(tmp_path)
+
+        assert ctx["todo_count"] == 1
+        assert ctx["todos"][0]["file"] == "note.md"
+        assert ctx["todos"][0]["title"] == "Untitled"
+        assert ctx["todos"][0]["area"] == "general"
+        assert ctx["todos"][0]["created"] == "unknown"
 
     def test_area_filter(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -2659,6 +2740,19 @@ class TestExtractFrontmatterField:
 
         content = 'title: "Quoted Title"\narea: theory'
         assert _extract_frontmatter_field(content, "title") == "Quoted Title"
+
+    def test_body_lines_do_not_override_leading_metadata_block(self, tmp_path: Path) -> None:
+        from gpd.core.context import _extract_frontmatter_field
+
+        content = (
+            'title: "Check convergence"\n'
+            "\n"
+            "area: numerical\n"
+            "created: 2026-03-01\n"
+        )
+        assert _extract_frontmatter_field(content, "title") == "Check convergence"
+        assert _extract_frontmatter_field(content, "area") is None
+        assert _extract_frontmatter_field(content, "created") is None
 
 
 # ─── init_phase_op ────────────────────────────────────────────────────────────

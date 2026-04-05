@@ -5,10 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from gpd.core.cli_args import (
     normalize_root_global_cli_options,
     resolve_root_global_cli_cwd_from_argv,
     split_root_global_cli_options,
+    validate_root_global_cli_passthrough,
 )
 
 
@@ -83,3 +86,19 @@ def test_resolve_root_global_cli_cwd_from_argv_uses_last_pre_passthrough_cwd(tmp
         resolved = resolve_root_global_cli_cwd_from_argv(argv)
 
     assert resolved == second.resolve(strict=False)
+
+
+def test_validate_root_global_cli_passthrough_accepts_shared_root_flags() -> None:
+    validate_root_global_cli_passthrough(
+        ["--raw", "--cwd", "workspace", "--help", "-v", "--version", "resume"]
+    )
+
+
+def test_validate_root_global_cli_passthrough_rejects_unknown_root_flags() -> None:
+    with pytest.raises(ValueError, match=r"unrecognized forwarded gpd root flag: --bogus"):
+        validate_root_global_cli_passthrough(["--bogus", "resume"])
+
+
+def test_validate_root_global_cli_passthrough_rejects_missing_cwd_value() -> None:
+    with pytest.raises(ValueError, match=r"argument --cwd: expected one argument"):
+        validate_root_global_cli_passthrough(["--cwd"])

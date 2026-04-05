@@ -1884,6 +1884,55 @@ def test_build_runtime_hint_payload_uses_global_runtime_commands_when_global_ins
     assert "runtime `suggest-next`" not in payload.orientation["fast_next_command"]
 
 
+def test_build_runtime_hint_payload_surfaces_runtime_metadata_without_cost_summary_when_installed_runtime_is_effective(
+    tmp_path: Path,
+) -> None:
+    project = _bootstrap_project(tmp_path)
+    data_root = tmp_path / "data"
+    runtime = _RUNTIME_NAMES[0]
+    adapter = get_adapter(runtime)
+    home_dir = tmp_path / "home"
+    global_config_dir = adapter.resolve_global_config_dir(home=home_dir)
+
+    seed_complete_runtime_install(global_config_dir, runtime=runtime, install_scope="global", home=home_dir)
+
+    resume_file = project / "GPD" / "phases" / "02" / ".continue-here.md"
+    resume_file.parent.mkdir(parents=True, exist_ok=True)
+    resume_file.write_text("resume\n", encoding="utf-8")
+    _write_current_session(project, session_id="sess-runtime-only")
+    _write_current_execution(
+        project,
+        session_id="sess-runtime-only",
+        extra_execution={
+            "phase": "02",
+            "plan": "01",
+            "resume_file": "GPD/phases/02/.continue-here.md",
+        },
+    )
+    record_recent_project(
+        project,
+        session_data={
+            "last_date": "2026-03-27T12:05:00+00:00",
+            "stopped_at": "Phase 02",
+            "resume_file": "GPD/phases/02/.continue-here.md",
+        },
+        store_root=data_root,
+    )
+
+    payload = build_runtime_hint_payload(
+        project,
+        data_root=data_root,
+        include_cost=False,
+        include_workflow_presets=False,
+    )
+
+    assert payload.cost == {}
+    assert payload.source_meta["active_runtime"] == runtime
+    assert payload.source_meta["current_session_id"] == "sess-runtime-only"
+    assert payload.orientation["continue_command"] == adapter.format_command("resume-work")
+    assert payload.orientation["fast_next_command"] == adapter.format_command("suggest-next")
+
+
 def test_build_runtime_hint_payload_machine_change_only_keeps_local_resume_without_in_runtime_followups(
     tmp_path: Path, monkeypatch
 ) -> None:

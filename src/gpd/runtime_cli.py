@@ -26,7 +26,12 @@ from gpd.adapters.runtime_catalog import (
     normalize_runtime_name,
     resolve_global_config_dir_candidates,
 )
-from gpd.core.cli_args import resolve_root_global_cli_cwd_from_argv as _resolve_cli_cwd_from_argv
+from gpd.core.cli_args import (
+    resolve_root_global_cli_cwd_from_argv as _resolve_cli_cwd_from_argv,
+)
+from gpd.core.cli_args import (
+    validate_root_global_cli_passthrough as _validate_root_global_cli_passthrough,
+)
 from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, ENV_GPD_DISABLE_CHECKOUT_REEXEC
 from gpd.hooks.install_metadata import (
     config_dir_has_managed_install_markers,
@@ -46,29 +51,6 @@ class _BridgeArgumentParser(argparse.ArgumentParser):
 
     def exit(self, status: int = 0, message: str | None = None) -> None:
         raise _BridgeArgumentError(message or "malformed bridge invocation")
-
-
-def _validate_passthrough_root_flags(gpd_args: list[str]) -> None:
-    """Reject unknown root-level GPD flags before the downstream command token."""
-    index = 0
-    while index < len(gpd_args):
-        arg = str(gpd_args[index])
-        if arg == "--":
-            return
-        if not arg.startswith("-"):
-            return
-        if arg in {"--help", "--raw", "--version", "-v"}:
-            index += 1
-            continue
-        if arg == "--cwd":
-            if index + 1 >= len(gpd_args):
-                raise _BridgeArgumentError("argument --cwd: expected one argument")
-            index += 2
-            continue
-        if arg.startswith("--cwd="):
-            index += 1
-            continue
-        raise _BridgeArgumentError(f"unrecognized forwarded gpd root flag: {arg}")
 
 
 def _parse_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
@@ -102,7 +84,10 @@ def _parse_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     gpd_args = argv[index:]
     if gpd_args[:1] == ["--"]:
         gpd_args = gpd_args[1:]
-    _validate_passthrough_root_flags(gpd_args)
+    try:
+        _validate_root_global_cli_passthrough(gpd_args)
+    except ValueError as exc:
+        raise _BridgeArgumentError(str(exc)) from exc
     return options, gpd_args
 
 

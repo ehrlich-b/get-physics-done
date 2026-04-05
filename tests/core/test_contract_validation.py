@@ -1291,6 +1291,19 @@ def test_validate_project_contract_approved_mode_rejects_nonexistent_prior_outpu
     assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
 
 
+def test_validate_project_contract_approved_mode_rejects_unresolved_prior_output_without_project_root() -> None:
+    contract = _load_contract_fixture()
+    contract["references"] = []
+    _remove_incidental_grounding(contract)
+    contract["context_intake"]["must_include_prior_outputs"] = ["./RESULTS.md"]
+    contract["scope"]["unresolved_questions"] = []
+
+    result = validate_project_contract(contract, mode="approved")
+
+    assert result.valid is False
+    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+
+
 @pytest.mark.parametrize("field_name", ["must_include_prior_outputs", "known_good_baselines"])
 def test_validate_project_contract_approved_mode_rejects_placeholder_non_reference_grounding(field_name: str) -> None:
     contract = _load_contract_fixture()

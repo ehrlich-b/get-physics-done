@@ -51,9 +51,6 @@ RESUME_COMPATIBILITY_ALIAS_FIELDS: tuple[str, ...] = (
     "session_resume_file",
 )
 
-# Legacy direct-import compatibility for older tests and callers.
-RESUME_COMPATIBILITY_ALIAS_KEYS: tuple[str, ...] = RESUME_COMPATIBILITY_ALIAS_FIELDS
-
 _RESUME_LEGACY_WRAPPER_KEYS: frozenset[str] = frozenset({"compat_resume_surface", "resume_surface"})
 
 RESUME_CANDIDATE_KIND_BOUNDED_SEGMENT = "bounded_segment"

@@ -134,7 +134,7 @@ Use this instead of manually reading/parsing ROADMAP.md.
 - Use `current_phase` and `next_phase` from roadmap analyze
 - Use phase-level `has_context` and `has_research` flags from analyze
 - Note `paused_at` if work was paused (from init context)
-- Count pending tasks: use `init todos` or `list-todos`
+- Count pending tasks: use `gpd init todos`
 - Check for active debug sessions: `ls GPD/debug/*.md 2>/dev/null | grep -v resolved | wc -l`
 
 ## Step 6: Report

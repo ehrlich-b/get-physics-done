@@ -354,6 +354,23 @@ class TestResolveEffectiveRuntime:
 
         assert result.runtime == RUNTIME_UNKNOWN
 
+    def test_require_gpd_install_reports_local_source_for_explicit_target_install(self, tmp_path: Path) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        home = tmp_path / "home"
+        custom_dir = tmp_path / "custom-codex"
+        _mark_gpd_install(custom_dir, runtime=RUNTIME_CODEX, install_scope=SCOPE_LOCAL)
+
+        env = _clean_runtime_env()
+        env["CODEX_CONFIG_DIR"] = str(custom_dir)
+        with patch.dict(os.environ, env, clear=True):
+            result = resolve_effective_runtime(cwd=workspace, home=home, require_gpd_install=True)
+
+        assert result.runtime == RUNTIME_CODEX
+        assert result.source == SOURCE_LOCAL
+        assert result.has_gpd_install is True
+        assert result.install_scope == SCOPE_LOCAL
+
 
 class TestNormalizeRuntimeName:
     """Tests for the shared runtime-name normalizer."""
@@ -539,7 +556,7 @@ class TestDetectActiveRuntimeWithInstall:
             patch("gpd.hooks.runtime_detect.Path.cwd", return_value=workspace),
             patch("gpd.hooks.runtime_detect.Path.home", return_value=tmp_path / "home"),
         ):
-            assert _runtime_from_manifest_or_path(candidate, cwd=workspace, home=tmp_path / "home") is None
+            assert _runtime_from_manifest_or_path(candidate) is None
 
     def test_runtime_from_manifest_or_path_rejects_manifestless_env_global_dir(self, tmp_path: Path) -> None:
         home = tmp_path / "home"
@@ -553,7 +570,7 @@ class TestDetectActiveRuntimeWithInstall:
             patch.dict(os.environ, env, clear=True),
             patch("gpd.hooks.runtime_detect.Path.home", return_value=home),
         ):
-            assert _runtime_from_manifest_or_path(custom_dir, home=home) is None
+            assert _runtime_from_manifest_or_path(custom_dir) is None
 
     def test_installed_runtime_fails_closed_for_runtime_less_manifest_without_prefix_evidence(
         self, tmp_path: Path
