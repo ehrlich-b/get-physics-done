@@ -65,21 +65,21 @@
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| SEQP-01 | TBD | Pending |
-| SEQP-02 | TBD | Pending |
-| SEQP-03 | TBD | Pending |
-| GAPC-01 | TBD | Pending |
-| GAPC-02 | TBD | Pending |
-| CONT-01 | TBD | Pending |
-| CONT-02 | TBD | Pending |
+| SEQP-01 | Phase 42 | Pending |
+| SEQP-02 | Phase 43 | Pending |
+| SEQP-03 | Phase 43 | Pending |
+| GAPC-01 | Phase 44 | Pending |
+| GAPC-02 | Phase 44 | Pending |
+| CONT-01 | Phase 45 (conditional) | Pending |
+| CONT-02 | Phase 45 (conditional) | Pending |
 
 **Coverage:**
 
 - Primary requirements: 7 total
-- Mapped to phases: 0 (awaiting roadmap)
-- Unmapped: 7
+- Mapped to phases: 7/7
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-04-04_
-_Last updated: 2026-04-04 after initial definition_
+_Last updated: 2026-04-04 after roadmap creation (Phases 42-45)_
