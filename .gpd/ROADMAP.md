@@ -163,7 +163,7 @@ See `.gpd/milestones/v10.0-ROADMAP.md` for full details.
 - Krasnov (2021) -- SO(9) characterization of SM gauge group
 
 - [x] **Phase 42: Computational Verification** -- GO/NO-GO gate: verify sequential product of indefinite Peirce operators exits M_16(R) (completed 2026-04-05, GO)
-- [ ] **Phase 43: Observer-Induced Complexification Theorem** -- prove complex FC on indefinite operators is physically mandated; show C-linear closure = Cl(9,C)
+- [x] **Phase 43: Observer-Induced Complexification Theorem** -- prove complex FC on indefinite operators is physically mandated; show C-linear closure = Cl(9,C) (completed 2026-04-05)
 - [ ] **Phase 44: Gap C Theorem Assembly** -- state and prove single Gap C closure theorem; verify Paper 7 chain compatibility
 - [ ] **Phase 45: Contingency** -- (conditional: only if Phase 43 fails) evaluate alternative routes, characterize obstruction
 
@@ -222,8 +222,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 43-01-PLAN.md -- Observer-Induced Complexification Theorem: prove complex FC on indefinite Peirce operators is physically mandated; bridge Gudder-Greechie domain gap
-- [ ] 43-02-PLAN.md -- C-linear closure = M_16(C), Cl(9,C) identification, spinor extension S_9 -> S_{10}^+
+- [x] 43-01-PLAN.md -- Observer-Induced Complexification Theorem: prove complex FC on indefinite Peirce operators is physically mandated; bridge Gudder-Greechie domain gap (completed 2026-04-05)
+- [x] 43-02-PLAN.md -- C-linear closure = M_16(C), Cl(9,C) identification, spinor extension S_9 -> S_{10}^+ (completed 2026-04-05)
 
 ### Phase 44: Gap C Theorem Assembly
 
@@ -299,6 +299,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 42. Computational Verification | v11.0 | 1/1 | Complete (GO) | 2026-04-05 |
-| 43. Complexification Theorem | v11.0 | 0/TBD | Not started | - |
+| 43. Complexification Theorem | v11.0 | 2/2 | Complete (verified) | 2026-04-05 |
 | 44. Gap C Theorem Assembly | v11.0 | 0/TBD | Not started | - |
 | 45. Contingency | v11.0 | 0/TBD | Not started (conditional) | - |
