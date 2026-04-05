@@ -219,7 +219,11 @@ Plans:
 
 **Backtracking:** If no physically justified argument for complex FC on indefinite operators can be found (both the direct route via self-modeling axioms AND the Alfsen-Shultz dynamical correspondence route fail), proceed to Phase 45 (Contingency). Do NOT declare failure until both routes are exhausted.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 43-01-PLAN.md -- Observer-Induced Complexification Theorem: prove complex FC on indefinite Peirce operators is physically mandated; bridge Gudder-Greechie domain gap
+- [ ] 43-02-PLAN.md -- C-linear closure = M_16(C), Cl(9,C) identification, spinor extension S_9 -> S_{10}^+
 
 ### Phase 44: Gap C Theorem Assembly
 
