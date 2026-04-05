@@ -162,7 +162,7 @@ See `.gpd/milestones/v10.0-ROADMAP.md` for full details.
 - Alfsen-Shultz (1998) -- dynamical correspondence, JB -> C* lifting
 - Krasnov (2021) -- SO(9) characterization of SM gauge group
 
-- [ ] **Phase 42: Computational Verification** -- GO/NO-GO gate: verify sequential product of indefinite Peirce operators exits M_16(R)
+- [x] **Phase 42: Computational Verification** -- GO/NO-GO gate: verify sequential product of indefinite Peirce operators exits M_16(R) (completed 2026-04-05, GO)
 - [ ] **Phase 43: Observer-Induced Complexification Theorem** -- prove complex FC on indefinite operators is physically mandated; show C-linear closure = Cl(9,C)
 - [ ] **Phase 44: Gap C Theorem Assembly** -- state and prove single Gap C closure theorem; verify Paper 7 chain compatibility
 - [ ] **Phase 45: Contingency** -- (conditional: only if Phase 43 fails) evaluate alternative routes, characterize obstruction
@@ -195,7 +195,7 @@ See `.gpd/milestones/v10.0-ROADMAP.md` for full details.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 42-01-PLAN.md -- Verify sequential product identity for all 153 pairs (72 off-diagonal + 9 diagonal + 72 effect) with SymPy exact + NumPy numerical
+- [x] 42-01-PLAN.md -- Verify sequential product identity for all 153 pairs (72 off-diagonal + 9 diagonal + 72 effect) with SymPy exact + NumPy numerical (completed 2026-04-05)
 
 ### Phase 43: Observer-Induced Complexification Theorem
 
@@ -294,7 +294,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 42. Computational Verification | v11.0 | 0/TBD | Not started | - |
+| 42. Computational Verification | v11.0 | 1/1 | Complete (GO) | 2026-04-05 |
 | 43. Complexification Theorem | v11.0 | 0/TBD | Not started | - |
 | 44. Gap C Theorem Assembly | v11.0 | 0/TBD | Not started | - |
 | 45. Contingency | v11.0 | 0/TBD | Not started (conditional) | - |
