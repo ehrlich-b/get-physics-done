@@ -192,7 +192,10 @@ See `.gpd/milestones/v10.0-ROADMAP.md` for full details.
 
 **Backtracking:** If computation reveals sqrt(T_a) is real (which would contradict the research survey's pre-verification), revisit the closed-form formula and check eigenvalue signs of T_a.
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 42-01-PLAN.md -- Verify sequential product identity for all 153 pairs (72 off-diagonal + 9 diagonal + 72 effect) with SymPy exact + NumPy numerical
 
 ### Phase 43: Observer-Induced Complexification Theorem
 
