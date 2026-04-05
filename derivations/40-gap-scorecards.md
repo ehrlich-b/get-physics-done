@@ -313,7 +313,102 @@ At the quantum level, the improvement is conditional on quantum SSB. If quantum 
 
 **Honest summary:** v10.0 on $\mathfrak{h}_3(\mathbb{O})$ achieves conditional progress toward a derivation of Einstein's equations from a self-modeling axiom. The chain is structurally complete (12 links from axiom to Einstein), the algebra is the physically motivated one (exceptional Jordan), and two gaps are upgraded. But it is not a proof. The quantum SSB conditionality and 7 assumed conditions are honestly documented.
 
+**v9.0 carry-forward caveat:** Links (i)--(l) were quantitatively verified for the Heisenberg $S = 1/2$ model (Phases 32--35). The structural arguments (CORR-03 theorem, sigma model rescaling, BW/KMS, Jacobson) carry over to $O(9)/S^8$ by universality class reasoning, but specific numerical values ($c_s$, $\rho_s$, lattice-BW SRF) are Heisenberg-specific and need recomputation for the $O(9)$ model. Until this is done, the gap scores for links (i)--(l) rest on universality class equivalence, not direct verification on $\mathfrak{h}_3(\mathbb{O})$.
+
 ---
 
 _Phase: 40-assembly-all-gaps-closed, Plan 01, Task 2_
 _Completed: 2026-03-30_
+
+---
+
+## v11.0 Update: Paper 7 Gap C (Complexification)
+
+**Phase:** 44-gap-c-theorem-assembly, Plan 02, Task 2
+**Date:** 2026-04-05
+
+**CRITICAL DISAMBIGUATION:** There are two distinct gaps labeled "Gap C" in this project:
+
+| Label | Full Name | Scope | Prior Score | Phase 44 Effect |
+|-------|-----------|-------|-------------|-----------------|
+| **v10.0 Gap C** | Tensoriality (BW + Raychaudhuri + Lovelock) | Paper 6 gravity chain: symmetric 2-tensor, $\leq 2$ derivatives, divergence-free | CONDITIONAL-DERIVED | **UNCHANGED** |
+| **Paper 7 Gap C** | Complexification ($V_{1/2} \otimes_\mathbb{R} \mathbb{C} = S_{10}^+$) | Paper 7 algebraic chain: C\*-observer forces complexification of Peirce half-space | Argued (MEDIUM severity) | **UPGRADED to PROVED (given Paper 5)** |
+
+Phase 44 addresses **Paper 7 Gap C only**. The v10.0 Gap C (tensoriality) is entirely unaffected.
+
+### Paper 7 Gap C: Status Change
+
+**BEFORE (Paper 7, gaps.tex, Table 2):**
+- **Description:** The argument that a C\*-observer forces complexification of $V_{1/2}$ is physical reasoning, not a formal proof. The step from "observer's internal scalar field is $\mathbb{C}$" to "observer's probe of $V_{1/2}$ extends scalars" needs a precise theorem about measurement maps.
+- **Severity:** MEDIUM
+- **Status:** Argued (L4 in Paper 7 Table 1)
+- **What would close it:** A theorem: C\*-algebra measurement maps on a real Jordan module necessarily extend to $\mathbb{C}$.
+
+**AFTER (Phase 44, derivations/44-gap-c-closure-theorem.md):**
+- **Status:** **PROVED (given Paper 5 axioms)** via observer-induced complexification
+- **Severity:** **RESOLVED (conditional on Paper 5)**
+- **Evidence:** Observer-induced complexification theorem (derivations/44-gap-c-closure-theorem.md), 7-step proof chain
+
+**Key equation (derivations/43-complexification-theorem.md, Section 4):**
+
+$$
+\sqrt{T_a}\; T_b\; \sqrt{T_a} = \frac{i}{2}\,T_b \quad (a \ne b,\; \{T_a, T_b\} = 0)
+$$
+
+This is the mechanism by which the C\*-observer's sequential product introduces the factor of $i$ into the real Clifford algebra, forcing complexification. Verified computationally for all 72 anticommuting pairs (Phase 42: NumPy max error $2.23 \times 10^{-16}$; SymPy exact zero residual).
+
+**Proof chain (derivations/44-gap-c-closure-theorem.md, Steps 1-7):**
+
+| Step | Result | Source |
+|------|--------|--------|
+| 1 | C\*-observer has complex functional calculus on all self-adjoint elements | Paper 5 + derivations/43-complexification-theorem.md, Sec. 3 |
+| 2 | $\sqrt{T_a}\,T_b\,\sqrt{T_a} = (i/2)\,T_b$ for all 72 anticommuting pairs | derivations/43-complexification-theorem.md, Sec. 4; Phase 42 |
+| 3 | C-linear closure = $M_{16}(\mathbb{C})$ = $\hat\omega = +1$ summand of $\mathrm{Cl}(9,\mathbb{C})$ | derivations/43-clinear-closure.md, Secs. 1-2 |
+| 4 | $V_{1/2}^\mathbb{C} = S_9 \otimes_\mathbb{R} \mathbb{C} \cong S_{10}^+$ | derivations/43-clinear-closure.md, Sec. 3 |
+| 5 | $\mathrm{Spin}(9) \to \mathrm{Spin}(10)$ by multiplicity-free branching | Paper 7, Remark 2.6; Lawson-Michelsohn |
+| 6 | $F_4 \to E_6$; $\mathbf{27} \to \mathbf{1} \oplus \mathbf{10} \oplus \mathbf{16}$ | Paper 7, Eqs. 2.17-2.18; Baez 2002 |
+| 7 | $\mathrm{Cl}(6)$ chirality -> Pati-Salam LEFT embedding (given Gap B2 input $u \in S^6$) | Paper 7, Proposition 3.3, Eq. 3.12 |
+
+### Impact on Paper 7 Chain Table (tab:chain)
+
+L4 status changes from "Argued" to "Proved (given L1)":
+
+| Link | Before Phase 44 | After Phase 44 | Change |
+|------|-----------------|----------------|--------|
+| L4 | Argued | Proved (given Paper 5) | UPGRADED |
+| L5 | Proved (given L4) | Proved (given L1) | STRENGTHENED |
+| L7 | Proved (given L4, L6) | Proved (given L1, L6) | STRENGTHENED |
+| L9 | Proved (given L4, L6) | Proved (given L1, L6) | STRENGTHENED |
+
+Full verification: derivations/44-l1-l9-verification.md (zero regressions).
+
+### Impact on Paper 7 Gap Register (tab:gaps)
+
+Gap C can be downgraded from MEDIUM to RESOLVED (conditional on Paper 5):
+
+| Gap | Before Phase 44 | After Phase 44 |
+|-----|-----------------|----------------|
+| Gap C (complexification) | MEDIUM severity, Argued | **RESOLVED (conditional on Paper 5)** |
+| Gap A, B1, B2, Gen, SA | Unchanged | Unchanged |
+
+### v10.0 Gap C (Tensoriality): UNCHANGED
+
+The v10.0 Gap C (tensoriality of the emergent spacetime geometry via the BW + Raychaudhuri + Lovelock chain, Phases 37-40) is **UNCHANGED** at **CONDITIONAL-DERIVED**. Phase 44 does not address, modify, or depend on the tensoriality argument. The two "Gap C" labels refer to entirely different physical questions:
+
+- v10.0 Gap C: "Is the effective stress-energy tensor a symmetric divergence-free 2-tensor with at most 2 derivatives?" (gravity chain)
+- Paper 7 Gap C: "Does the C\*-observer force complexification of the Peirce half-space?" (algebraic chain)
+
+### Remaining Conditionality
+
+The Paper 7 Gap C closure is **conditional on Paper 5 axioms**: the self-modeling theorem (Paper 5, Theorem 3.1) that forces observer = $M_n(\mathbb{C})^{sa}$ with Luders product. This is hypothesis H3 of the Gap C closure theorem. If Paper 5's axioms are accepted, the complexification follows as a theorem.
+
+Additionally:
+- Gap A (non-composability -> $\mathfrak{h}_3(\mathbb{O})$) remains HIGH severity, argued
+- Gap B1 (idempotent selection) remains HIGH severity, input
+- Gap B2 ($u \in S^6$ selection) remains HIGH severity, input
+- These are upstream conditions that the complexification result does not address
+
+---
+
+_Phase: 44-gap-c-theorem-assembly, Plan 02, Task 2_
+_Completed: 2026-04-05_
