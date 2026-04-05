@@ -1155,27 +1155,13 @@ def _continuation_from_session_payload(
 def _mirror_continuation_state(raw: dict[str, object]) -> dict[str, object]:
     """Project canonical continuation into the legacy ``session`` mirror.
 
-    Canonical ``continuation`` stays authoritative. Historical ``session``
-    payloads remain readable when no canonical continuation exists, but they do
-    not hydrate execution state.
+    Canonical ``continuation`` stays authoritative. The ``session`` payload is
+    a pure mirror and is blank when no canonical continuation exists.
     """
 
     mirrored = copy.deepcopy(raw)
-    session_payload = mirrored.get("session")
-    if not isinstance(session_payload, dict):
-        session_payload = _blank_session_payload()
-    else:
-        session_payload = {**_blank_session_payload(), **session_payload}
-
     continuation_payload = _normalize_continuation_payload(mirrored.get("continuation"))
-    derived_session = _session_from_continuation_payload(continuation_payload)
-    if _continuation_payload_has_values(continuation_payload):
-        session_payload = {
-            **_blank_session_payload(),
-            **{key: value for key, value in derived_session.items() if value is not None},
-        }
-
-    mirrored["session"] = session_payload
+    mirrored["session"] = _session_from_continuation_payload(continuation_payload)
     mirrored["continuation"] = continuation_payload
     return mirrored
 
@@ -2711,11 +2697,17 @@ def _recover_intent_locked(cwd: Path) -> None:
         pass
 
 
-def _build_state_from_markdown(cwd: Path, md_content: str, *, recover_intent: bool = True) -> dict:
+def _build_state_from_markdown(
+    cwd: Path,
+    md_content: str,
+    *,
+    recover_intent: bool = True,
+    recover_continuation_from_session_mirror: bool = False,
+) -> dict:
     """Merge markdown-derived state into the existing JSON state."""
     json_path = _state_json_path(cwd)
     backup_path = json_path.parent / STATE_JSON_BACKUP_FILENAME
-    parsed = parse_state_to_json(md_content, import_legacy_session=False)
+    parsed = parse_state_to_json(md_content, import_legacy_session=recover_continuation_from_session_mirror)
     has_convention_lock = _has_bold_block(md_content, "Convention Lock")
     has_approximations = _has_subsection(md_content, "Active Approximations")
     has_uncertainties = _has_subsection(md_content, "Propagated Uncertainties")
@@ -3127,7 +3119,12 @@ def _load_state_json_with_integrity_issues(
                 logger.warning("STATE.md fallback is disabled in review integrity mode")
                 return None, [], None
             content = md_path.read_text(encoding="utf-8")
-            state_from_md = _build_state_from_markdown(cwd, content, recover_intent=recover_intent)
+            state_from_md = _build_state_from_markdown(
+                cwd,
+                content,
+                recover_intent=recover_intent,
+                recover_continuation_from_session_mirror=True,
+            )
             integrity_issues = ["state.json root was recovered from STATE.md after primary state.json was unavailable or unreadable"]
             if parse_issue is not None:
                 integrity_issues.insert(0, parse_issue)

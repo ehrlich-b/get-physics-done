@@ -17,6 +17,7 @@ from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, STATE_JSON_FILENAME, 
 from gpd.core.state import (
     VALID_STATUSES,
     ResearchState,
+    _blank_session_payload,
     _load_recent_projects_index,
     _load_state_snapshot_for_mutation,
     _normalize_state_schema,
@@ -1667,7 +1668,7 @@ def test_ensure_state_schema_list_for_session():
     assert isinstance(result["session"], dict)
 
 
-def test_ensure_state_schema_keeps_legacy_session_read_only_when_canonical_continuation_is_missing():
+def test_ensure_state_schema_clears_session_when_canonical_continuation_is_missing():
     result = ensure_state_schema({
         "session": {
             "last_date": "2026-03-02T12:00:00+00:00",
@@ -1690,14 +1691,7 @@ def test_ensure_state_schema_keeps_legacy_session_read_only_when_canonical_conti
         "hostname": None,
         "platform": None,
     }
-    assert result["session"] == {
-        "last_date": "2026-03-02T12:00:00+00:00",
-        "stopped_at": "Phase 3 P2",
-        "resume_file": "resume.md",
-        "hostname": "builder-01",
-        "platform": "Linux x86_64",
-        "last_result_id": None,
-    }
+    assert result["session"] == _blank_session_payload()
 
 
 def test_ensure_state_schema_backfills_session_from_canonical_continuation():

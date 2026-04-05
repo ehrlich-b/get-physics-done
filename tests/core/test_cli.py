@@ -3308,7 +3308,8 @@ def test_result_upsert_recovers_from_malformed_primary_state(mock_upsert, tmp_pa
     mock_upsert.assert_called_once()
     state_arg = mock_upsert.call_args.args[0]
     assert state_arg["position"]["current_phase"] == "07"
-    assert state_arg["session"]["last_result_id"] == "R-backup"
+    assert state_arg["continuation"]["handoff"]["last_result_id"] is None
+    assert state_arg["session"]["last_result_id"] is None
 
 
 @patch("gpd.core.state.save_state_json_locked")
@@ -3838,7 +3839,8 @@ def test_result_add_recovers_from_malformed_primary_state(mock_result_add, tmp_p
     mock_result_add.assert_called_once()
     state_arg = mock_result_add.call_args.args[0]
     assert state_arg["position"]["current_phase"] == "10"
-    assert state_arg["session"]["last_result_id"] == "R-recovered"
+    assert state_arg["continuation"]["handoff"]["last_result_id"] is None
+    assert state_arg["session"]["last_result_id"] is None
 
 
 @pytest.mark.parametrize(
@@ -3883,7 +3885,8 @@ def test_auxiliary_mutation_commands_recover_from_malformed_primary_state(
     state_arg = captured["state"]
     assert isinstance(state_arg, dict)
     assert state_arg["position"]["current_phase"] == "10"
-    assert state_arg["session"]["last_result_id"] == "R-recovered"
+    assert state_arg["continuation"]["handoff"]["last_result_id"] is None
+    assert state_arg["session"]["last_result_id"] is None
 
 
 @patch("gpd.core.state.save_state_json_locked")
