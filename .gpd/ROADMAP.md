@@ -164,7 +164,7 @@ See `.gpd/milestones/v10.0-ROADMAP.md` for full details.
 
 - [x] **Phase 42: Computational Verification** -- GO/NO-GO gate: verify sequential product of indefinite Peirce operators exits M_16(R) (completed 2026-04-05, GO)
 - [x] **Phase 43: Observer-Induced Complexification Theorem** -- prove complex FC on indefinite operators is physically mandated; show C-linear closure = Cl(9,C) (completed 2026-04-05)
-- [ ] **Phase 44: Gap C Theorem Assembly** -- state and prove single Gap C closure theorem; verify Paper 7 chain compatibility
+- [x] **Phase 44: Gap C Theorem Assembly** -- state and prove single Gap C closure theorem; verify Paper 7 chain compatibility (completed 2026-04-05)
 - [ ] **Phase 45: Contingency** -- (conditional: only if Phase 43 fails) evaluate alternative routes, characterize obstruction
 
 ## Phase Details
@@ -250,8 +250,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 44-01-PLAN.md -- Assemble Gap C closure theorem as single 7-step citation chain
-- [ ] 44-02-PLAN.md -- L1-L9 link-by-link verification + gap register update
+- [x] 44-01-PLAN.md -- Assemble Gap C closure theorem as single 7-step citation chain (completed 2026-04-05)
+- [x] 44-02-PLAN.md -- L1-L9 link-by-link verification + gap register update (completed 2026-04-05)
 
 ### Phase 45: Contingency
 
@@ -304,5 +304,5 @@ Plans:
 | ----- | --------- | -------------- | ------ | --------- |
 | 42. Computational Verification | v11.0 | 1/1 | Complete (GO) | 2026-04-05 |
 | 43. Complexification Theorem | v11.0 | 2/2 | Complete (verified) | 2026-04-05 |
-| 44. Gap C Theorem Assembly | v11.0 | 0/TBD | Not started | - |
-| 45. Contingency | v11.0 | 0/TBD | Not started (conditional) | - |
+| 44. Gap C Theorem Assembly | v11.0 | 2/2 | Complete (verified) | 2026-04-05 |
+| 45. Contingency | v11.0 | 0/TBD | Skipped (Phase 43 succeeded) | - |
