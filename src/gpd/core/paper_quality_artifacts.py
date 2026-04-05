@@ -677,18 +677,44 @@ def _build_figures_input(
     comparison_required: bool,
 ) -> tuple[FiguresQualityInput, ResultsQualityInput]:
     if not figure_registry:
-        return FiguresQualityInput(), ResultsQualityInput(
+        comparison_missing_inventory = comparison_required
+        figures = FiguresQualityInput(
+            decisive_artifacts_labeled_with_units=CoverageMetric()
+            if comparison_missing_inventory
+            else CoverageMetric(not_applicable=True),
+            decisive_artifacts_uncertainty_qualified=CoverageMetric()
+            if comparison_missing_inventory
+            else CoverageMetric(not_applicable=True),
+            decisive_artifacts_referenced_in_text=CoverageMetric()
+            if comparison_missing_inventory
+            else CoverageMetric(not_applicable=True),
+            decisive_artifact_roles_clear=CoverageMetric()
+            if comparison_missing_inventory
+            else CoverageMetric(not_applicable=True),
+        )
+        return figures, ResultsQualityInput(
             comparison_with_prior_work_present=BinaryCheck(
-                passed=bool(verdicts),
-                not_applicable=not comparison_required,
+                passed=False if comparison_missing_inventory else bool(verdicts),
+                not_applicable=not comparison_missing_inventory,
             ),
             physical_interpretation_present=BinaryCheck(not_applicable=True),
+            decisive_artifacts_with_explicit_verdicts=CoverageMetric()
+            if comparison_missing_inventory
+            else CoverageMetric(not_applicable=True),
+            decisive_artifacts_benchmark_anchored=CoverageMetric()
+            if comparison_missing_inventory
+            else CoverageMetric(not_applicable=True),
+            decisive_comparison_failures_scoped=BinaryCheck(
+                passed=False,
+                not_applicable=not comparison_missing_inventory,
+            ),
         )
 
     total_figures = len(figure_registry)
     decisive_entries = [
         entry for entry in figure_registry if entry.decisive or entry.role in {"smoking_gun", "benchmark", "comparison"}
     ]
+    decisive_inventory_missing = comparison_required and not decisive_entries
 
     decisive_with_verdict = 0
     decisive_with_anchor = 0
@@ -708,6 +734,61 @@ def _build_figures_input(
             if verdict.verdict in {"fail", "tension"} and not (verdict.recommended_action or verdict.notes):
                 decisive_failures_scoped = False
 
+    if decisive_inventory_missing:
+        decisive_artifacts_labeled_with_units = CoverageMetric()
+        decisive_artifacts_uncertainty_qualified = CoverageMetric()
+        decisive_artifacts_referenced_in_text = CoverageMetric()
+        decisive_artifact_roles_clear = CoverageMetric()
+        decisive_uncertainties_present = CoverageMetric()
+        decisive_artifacts_with_explicit_verdicts = CoverageMetric()
+        decisive_artifacts_benchmark_anchored = CoverageMetric()
+        comparison_with_prior_work_present = BinaryCheck(passed=False, not_applicable=False)
+        decisive_comparison_failures_scoped = BinaryCheck(passed=False, not_applicable=False)
+    else:
+        decisive_artifacts_labeled_with_units = (
+            _coverage_metric(sum(1 for entry in decisive_entries if entry.has_units), len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric(not_applicable=True)
+        )
+        decisive_artifacts_uncertainty_qualified = (
+            _coverage_metric(uncertainty_count, len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric(not_applicable=True)
+        )
+        decisive_artifacts_referenced_in_text = (
+            _coverage_metric(sum(1 for entry in decisive_entries if entry.referenced_in_text), len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric(not_applicable=True)
+        )
+        decisive_artifact_roles_clear = (
+            _coverage_metric(sum(1 for entry in decisive_entries if entry.role and entry.role != "other"), len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric(not_applicable=True)
+        )
+        decisive_uncertainties_present = (
+            _coverage_metric(uncertainty_count, len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric()
+        )
+        decisive_artifacts_with_explicit_verdicts = (
+            _coverage_metric(decisive_with_verdict, len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric(not_applicable=True)
+        )
+        decisive_artifacts_benchmark_anchored = (
+            _coverage_metric(decisive_with_anchor, len(decisive_entries))
+            if decisive_entries
+            else CoverageMetric(not_applicable=True)
+        )
+        comparison_with_prior_work_present = BinaryCheck(
+            passed=bool(verdicts),
+            not_applicable=not comparison_required,
+        )
+        decisive_comparison_failures_scoped = BinaryCheck(
+            passed=decisive_failures_scoped,
+            not_applicable=not decisive_entries,
+        )
+
     figures = FiguresQualityInput(
         axes_labeled_with_units=_coverage_metric(sum(1 for entry in figure_registry if entry.has_units), total_figures),
         error_bars_present=_coverage_metric(sum(1 for entry in figure_registry if entry.has_uncertainty), total_figures),
@@ -717,56 +798,18 @@ def _build_figures_input(
             total_figures,
         ),
         colorblind_safe=_coverage_metric(sum(1 for entry in figure_registry if entry.colorblind_safe), total_figures),
-        decisive_artifacts_labeled_with_units=_coverage_metric(
-            sum(1 for entry in decisive_entries if entry.has_units),
-            len(decisive_entries),
-        )
-        if decisive_entries
-        else CoverageMetric(not_applicable=True),
-        decisive_artifacts_uncertainty_qualified=_coverage_metric(
-            uncertainty_count,
-            len(decisive_entries),
-        )
-        if decisive_entries
-        else CoverageMetric(not_applicable=True),
-        decisive_artifacts_referenced_in_text=_coverage_metric(
-            sum(1 for entry in decisive_entries if entry.referenced_in_text),
-            len(decisive_entries),
-        )
-        if decisive_entries
-        else CoverageMetric(not_applicable=True),
-        decisive_artifact_roles_clear=_coverage_metric(
-            sum(1 for entry in decisive_entries if entry.role and entry.role != "other"),
-            len(decisive_entries),
-        )
-        if decisive_entries
-        else CoverageMetric(not_applicable=True),
+        decisive_artifacts_labeled_with_units=decisive_artifacts_labeled_with_units,
+        decisive_artifacts_uncertainty_qualified=decisive_artifacts_uncertainty_qualified,
+        decisive_artifacts_referenced_in_text=decisive_artifacts_referenced_in_text,
+        decisive_artifact_roles_clear=decisive_artifact_roles_clear,
     )
     results = ResultsQualityInput(
-        uncertainties_present=_coverage_metric(uncertainty_count, len(decisive_entries))
-        if decisive_entries
-        else CoverageMetric(),
-        comparison_with_prior_work_present=BinaryCheck(
-            passed=bool(verdicts),
-            not_applicable=not comparison_required,
-        ),
+        uncertainties_present=decisive_uncertainties_present,
+        comparison_with_prior_work_present=comparison_with_prior_work_present,
         physical_interpretation_present=BinaryCheck(not_applicable=True),
-        decisive_artifacts_with_explicit_verdicts=_coverage_metric(
-            decisive_with_verdict,
-            len(decisive_entries),
-        )
-        if decisive_entries
-        else CoverageMetric(not_applicable=True),
-        decisive_artifacts_benchmark_anchored=_coverage_metric(
-            decisive_with_anchor,
-            len(decisive_entries),
-        )
-        if decisive_entries
-        else CoverageMetric(not_applicable=True),
-        decisive_comparison_failures_scoped=BinaryCheck(
-            passed=decisive_failures_scoped,
-            not_applicable=not decisive_entries,
-        ),
+        decisive_artifacts_with_explicit_verdicts=decisive_artifacts_with_explicit_verdicts,
+        decisive_artifacts_benchmark_anchored=decisive_artifacts_benchmark_anchored,
+        decisive_comparison_failures_scoped=decisive_comparison_failures_scoped,
     )
     return figures, results
 
@@ -863,6 +906,10 @@ def build_paper_quality_input(project_root: Path) -> PaperQualityInput:
         citation_key_coverage = _coverage_metric(resolved_sources, total_sources)
     else:
         citation_key_coverage = CoverageMetric()
+    citation_audit_applicable = bibliography_audit is not None or bool(cite_keys) or missing_cites > 0
+    citation_audit_passed = (
+        bibliography_audit is not None and failed_sources == 0 and partial_sources == 0 and unverified_sources == 0
+    )
 
     manuscript_reference_status = _manuscript_reference_status(bibliography_audit, cite_keys=set(cite_keys))
     manuscript_reference_bridge_complete = bool(manuscript_reference_status) and all(
@@ -885,8 +932,8 @@ def build_paper_quality_input(project_root: Path) -> PaperQualityInput:
         missing_placeholders=BinaryCheck(passed=missing_cites == 0),
         key_prior_work_cited=BinaryCheck(passed=bool(verdicts) or bool(cite_keys)),
         hallucination_free=BinaryCheck(
-            passed=failed_sources == 0 and partial_sources == 0 and unverified_sources == 0,
-            not_applicable=bibliography_audit is None,
+            passed=citation_audit_passed,
+            not_applicable=not citation_audit_applicable,
         ),
     )
     completeness = CompletenessQualityInput(

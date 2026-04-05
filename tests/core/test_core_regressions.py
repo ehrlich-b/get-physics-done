@@ -222,7 +222,7 @@ def test_verify_output_checksum_trims_whitespace(tmp_path: Path) -> None:
     assert verify_output_checksum(test_file, f"\n{expected}\n") is True
 
 
-def test_empty_manifest_has_full_checksum_coverage() -> None:
+def test_empty_manifest_has_no_checksum_coverage() -> None:
     from gpd.core.reproducibility import validate_reproducibility_manifest
 
     manifest = {
@@ -247,7 +247,8 @@ def test_empty_manifest_has_full_checksum_coverage() -> None:
 
     result = validate_reproducibility_manifest(manifest)
 
-    assert result.checksum_coverage_percent == 100.0
+    assert result.checksum_coverage_percent == 0.0
+    assert result.ready_for_review is False
 
 
 def test_result_update_wraps_validation_error_as_result_error() -> None:

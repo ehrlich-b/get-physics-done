@@ -23,7 +23,7 @@ The PLAN `contract` value must be a YAML object with these top-level sections:
 - `acceptance_tests`
 - `forbidden_proxies`
 - `uncertainty_markers`
-- `references` when the plan does not already carry explicit grounding through `context_intake`, `approach_policy`, or preserved scoping inputs
+- `references` when the plan does not already carry explicit grounding through `context_intake` or preserved scoping inputs
 
 Optional sections:
 
@@ -33,6 +33,7 @@ Optional sections:
 
 Every list named above must contain objects, not strings.
 `context_intake`, `approach_policy`, and `uncertainty_markers` are object-valued sections, not strings or lists.
+`approach_policy` is execution policy only; it can constrain planning, but it does not by itself satisfy the hard grounding/anchor requirement.
 
 ---
 
@@ -149,6 +150,7 @@ Rules:
 - `approach_policy` must be a YAML object, not a string or list.
 - Every field above is optional, but when present it must be an array of non-empty strings.
 - `allowed_*` and `forbidden_*` lists are closed-world guardrails for downstream check selection; do not bury them in prose.
+- `approach_policy` does not count as grounding on its own; use `context_intake`, preserved scoping inputs, or `references[]` for actual anchors.
 
 ### `observables[]`
 
@@ -288,7 +290,7 @@ Rules:
 - If the plan will execute, verify, or publish a concrete result, use the full non-scoping shape.
 - A reduced contract still needs a real decision surface: preserve at least one target, open question, or carry-forward input instead of emitting a hollow scaffold.
 - If you are unsure, classify the plan as non-scoping and use the full shape.
-- `references[]` are mandatory only when the contract does not already expose enough grounding through `context_intake`, `approach_policy`, or preserved scoping inputs. `context_gaps`, `crucial_inputs`, and `stop_and_rethink_conditions` keep uncertainty visible, but they do not satisfy the grounding/anchor requirement by themselves. When concrete grounding already exists, omit `references[]` rather than padding the contract with decorative anchors.
+- `references[]` are mandatory only when the contract does not already expose enough grounding through `context_intake` or preserved scoping inputs. `context_gaps`, `crucial_inputs`, and `stop_and_rethink_conditions` keep uncertainty visible, but they do not satisfy the grounding/anchor requirement by themselves. When concrete grounding already exists, omit `references[]` rather than padding the contract with decorative anchors.
 - The schema still exposes the semantic fields `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`; their default is `other`. Omit them only when `other` is genuinely intended, and set the specific value explicitly when the semantics are already known.
 - For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required.
 - The defaultable semantic fields above do not relax the hard requirements on `context_intake` or `uncertainty_markers`, and they do not replace required contract targets for non-scoping plans.

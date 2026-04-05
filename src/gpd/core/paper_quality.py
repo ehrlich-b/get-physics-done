@@ -523,6 +523,16 @@ def score_paper_quality(data: PaperQualityInput) -> PaperQualityReport:
                 blocking=True,
             )
         )
+    if not data.citations.hallucination_free.not_applicable and not data.citations.hallucination_free.passed:
+        blockers.append(
+            PaperQualityIssue(
+                category="citations",
+                check="hallucination_free",
+                severity=Severity.blocker,
+                summary="Citation audit is missing or unresolved where citations are in play.",
+                blocking=True,
+            )
+        )
     if unreliable_count > 0:
         blockers.append(
             PaperQualityIssue(
@@ -530,6 +540,16 @@ def score_paper_quality(data: PaperQualityInput) -> PaperQualityReport:
                 check="no_unreliable_results",
                 severity=Severity.blocker,
                 summary="At least one key result is marked UNRELIABLE.",
+                blocking=True,
+            )
+        )
+    if not data.results.comparison_with_prior_work_present.not_applicable and not data.results.comparison_with_prior_work_present.passed:
+        blockers.append(
+            PaperQualityIssue(
+                category="results",
+                check="comparison_with_prior_work_present",
+                severity=Severity.blocker,
+                summary="Decisive comparison work is missing or unresolved.",
                 blocking=True,
             )
         )

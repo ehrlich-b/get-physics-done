@@ -756,7 +756,37 @@ Done.
 
     assert result.citations.citation_keys_resolve.satisfied == 1
     assert result.citations.citation_keys_resolve.total == 1
-    assert result.citations.hallucination_free.not_applicable is True
+    assert result.citations.hallucination_free.passed is False
+    assert result.citations.hallucination_free.not_applicable is False
+
+
+def test_build_paper_quality_input_marks_missing_bibliography_audit_applicable_when_citations_are_present(
+    tmp_path: Path,
+) -> None:
+    _write(
+        tmp_path / "paper" / "citation_audit_required.tex",
+        r"""
+\documentclass{article}
+\begin{document}
+\section{Introduction}
+See \cite{bench2026}.
+\section{Conclusion}
+Done.
+\end{document}
+""".strip()
+        + "\n",
+    )
+    _write(
+        tmp_path / "paper" / "refs.bib",
+        "@article{bench2026,\n  title={Benchmark},\n  author={Doe, Jane},\n  year={2026}\n}\n",
+    )
+
+    result = build_paper_quality_input(tmp_path)
+
+    assert result.citations.citation_keys_resolve.satisfied == 1
+    assert result.citations.citation_keys_resolve.total == 1
+    assert result.citations.hallucination_free.passed is False
+    assert result.citations.hallucination_free.not_applicable is False
 
 
 def test_build_paper_quality_input_requires_decisive_verdicts_for_decisive_artifact_coverage(tmp_path: Path) -> None:
@@ -812,6 +842,49 @@ comparison_verdicts:
     assert result.results.decisive_artifacts_with_explicit_verdicts.total == 1
     assert result.results.decisive_artifacts_benchmark_anchored.satisfied == 0
     assert result.results.decisive_artifacts_benchmark_anchored.total == 1
+
+
+def test_build_paper_quality_input_blocks_required_decisive_comparison_without_figure_inventory(
+    tmp_path: Path,
+) -> None:
+    _write(
+        tmp_path / "paper" / "comparison_only.tex",
+        r"""
+\documentclass{article}
+\begin{document}
+\begin{abstract}
+Comparison inventory test.
+\end{abstract}
+\section{Introduction}
+Intro.
+\section{Conclusion}
+Done.
+\end{document}
+""".strip()
+        + "\n",
+    )
+    _write(
+        tmp_path / "paper" / "PAPER-CONFIG.json",
+        json.dumps(_paper_config_payload("Comparison Only", "jhep")),
+    )
+    _write(
+        tmp_path / "GPD" / "phases" / "01-benchmark" / "01-01-PLAN.md",
+        (STAGE0_FIXTURES_DIR / "plan_with_contract.md").read_text(encoding="utf-8"),
+    )
+
+    result = build_paper_quality_input(tmp_path)
+
+    assert result.results.comparison_with_prior_work_present.passed is False
+    assert result.results.comparison_with_prior_work_present.not_applicable is False
+    assert result.results.decisive_artifacts_with_explicit_verdicts.not_applicable is False
+    assert result.results.decisive_artifacts_with_explicit_verdicts.total == 0
+    assert result.results.decisive_artifacts_benchmark_anchored.not_applicable is False
+    assert result.results.decisive_artifacts_benchmark_anchored.total == 0
+    assert result.results.decisive_comparison_failures_scoped.not_applicable is False
+    assert result.figures.decisive_artifacts_labeled_with_units.not_applicable is False
+    assert result.figures.decisive_artifacts_uncertainty_qualified.not_applicable is False
+    assert result.figures.decisive_artifacts_referenced_in_text.not_applicable is False
+    assert result.figures.decisive_artifact_roles_clear.not_applicable is False
 
 
 def test_build_paper_quality_input_reads_manuscript_dir_and_config_title(tmp_path: Path) -> None:

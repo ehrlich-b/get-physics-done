@@ -20,6 +20,7 @@ Template for spawning `gpd-planner`. The planner agent owns the planning logic; 
 
 Planning requires an approved scoping contract. That contract must include a non-empty `contract.context_intake`. If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of inferring scope from roadmap text alone.
 The contract still exposes defaultable semantic fields: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other` and may be omitted only when that generic category is actually intended.
+Treat `approach_policy` as execution policy only; it does not substitute for grounding.
 
 **Project State:** {state_content}
 **Project Contract:** {project_contract}
@@ -55,7 +56,7 @@ Each plan MUST include:
 - **Error budget:** For numerical work, specify target precision and identify dominant error sources
 - **Consistency checks:** Cross-checks between independent methods or approaches where possible
 - **Stale proof review gate:** If a proof-backed deliverable or theorem statement changes after review, plan a fresh proof audit before allowing the affected claim to pass
-- **Contract completeness:** Every plan must carry decisive claims, deliverables, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter. Include `references[]` only when the contract does not already carry explicit grounding through `context_intake`, `approach_policy`, or preserved scoping inputs.
+- **Contract completeness:** Every plan must carry decisive claims, deliverables, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter. Include `references[]` only when the contract does not already carry explicit grounding through `context_intake` or preserved scoping inputs.
 - **Semantic defaults:** Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended; otherwise set the more specific value explicitly
 - **Defaulted semantic fields:** `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation` all exist in the contract and default to `other`
 - **Context intake:** Every plan must carry a non-empty `contract.context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs the executor needs before planning
@@ -67,7 +68,7 @@ Each plan MUST include:
 Planning requires `project_contract`:
 
 - If `project_contract` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of writing a weak or guessed plan.
-- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, acceptance tests, and forbidden proxies. Include `references[]` only when the contract lacks explicit grounding elsewhere.
+- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, acceptance tests, and forbidden proxies. Include `references[]` only when the contract lacks explicit grounding elsewhere; do not treat `approach_policy` as grounding.
 - Every PLAN.md must include a non-empty `contract.context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs needed to execute the plan.
 - Every PLAN.md must carry forward required context from the contract: must-read refs, prior outputs, baselines, and user anchors when execution depends on them.
 - Treat `effective_reference_intake` as the machine-readable carry-forward ledger. Use `active_reference_context` to interpret it, not to replace it.

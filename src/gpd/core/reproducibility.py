@@ -466,7 +466,7 @@ def validate_reproducibility_manifest(manifest: ReproducibilityManifest | dict) 
                     message=f"Output file '{output_file.path}' is missing a valid checksum.",
                 )
             )
-    checksum_coverage = round((100.0 * checksum_ok / checksum_items), 2) if checksum_items else 100.0
+    checksum_coverage = round((100.0 * checksum_ok / checksum_items), 2) if checksum_items else 0.0
 
     if not manifest_obj.execution_steps:
         issues.append(

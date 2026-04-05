@@ -110,6 +110,24 @@ def test_validate_reproducibility_manifest_valid():
     assert result.issues == []
 
 
+def test_validate_reproducibility_manifest_zero_checksum_bearing_artifacts_are_not_ready():
+    manifest = _manifest().model_copy(
+        update={
+            "input_data": [],
+            "generated_data": [],
+            "output_files": [],
+        }
+    )
+
+    result = validate_reproducibility_manifest(manifest)
+
+    assert result.valid is True
+    assert result.checksum_coverage_percent == 0.0
+    assert result.ready_for_review is False
+    assert result.issues == []
+    assert result.warnings == []
+
+
 def test_validate_reproducibility_manifest_rejects_string_booleans():
     manifest = _manifest().model_dump()
     manifest["execution_steps"][1]["stochastic"] = "true"
