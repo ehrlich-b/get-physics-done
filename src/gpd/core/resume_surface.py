@@ -12,7 +12,6 @@ from collections.abc import Callable, Mapping, Sequence
 
 __all__ = [
     "RESUME_COMPATIBILITY_ALIAS_FIELDS",
-    "RESUME_COMPATIBILITY_ALIAS_KEYS",
     "RESUME_CANDIDATE_KIND_BOUNDED_SEGMENT",
     "RESUME_CANDIDATE_KIND_CONTINUITY_HANDOFF",
     "RESUME_CANDIDATE_KIND_INTERRUPTED_AGENT",
@@ -51,6 +50,7 @@ RESUME_COMPATIBILITY_ALIAS_FIELDS: tuple[str, ...] = (
     "session_resume_file",
 )
 
+# Legacy direct-import compatibility for older tests and callers.
 RESUME_COMPATIBILITY_ALIAS_KEYS: tuple[str, ...] = RESUME_COMPATIBILITY_ALIAS_FIELDS
 
 RESUME_CANDIDATE_KIND_BOUNDED_SEGMENT = "bounded_segment"

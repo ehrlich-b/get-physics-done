@@ -993,6 +993,36 @@ def test_public_runtime_docs_explain_runtime_specific_command_syntax() -> None:
     assert "Common first commands by runtime:" not in readme
 
 
+def test_public_readme_config_path_overrides_follow_runtime_catalog() -> None:
+    readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
+    config_overrides = _extract_between(
+        readme,
+        "<summary><strong>Config path overrides</strong></summary>",
+        "</details>",
+    )
+
+    assert "GPD respects these overrides during install, uninstall, and runtime detection." in config_overrides
+    for descriptor in _RUNTIME_DESCRIPTORS:
+        local_config_dir = f"`./{descriptor.config_dir_name}/`"
+        if descriptor.global_config.strategy == "env_or_home":
+            global_config_dir = f"`~/{descriptor.global_config.home_subpath}/`"
+            env_overrides = f"`{descriptor.global_config.env_var}`"
+            if descriptor.runtime_name == "codex":
+                env_overrides += "; discoverable global skills use `CODEX_SKILLS_DIR`"
+        else:
+            global_config_dir = f"`~/.config/{descriptor.global_config.xdg_subdir}/`"
+            env_overrides = (
+                f"`{descriptor.global_config.env_dir_var}`, "
+                f"`{descriptor.global_config.env_file_var}`, `XDG_CONFIG_HOME`"
+            )
+
+        expected_row = (
+            f"| {descriptor.display_name} | {local_config_dir} | "
+            f"{global_config_dir} | {env_overrides} |"
+        )
+        assert expected_row in config_overrides
+
+
 def test_codex_runtime_docs_distinguish_public_skills_from_full_agent_install() -> None:
     repo_root = _repo_root()
     readme = (repo_root / "README.md").read_text(encoding="utf-8")

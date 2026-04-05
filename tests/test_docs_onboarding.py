@@ -38,6 +38,10 @@ def _markdown_section(content: str, heading: str) -> str:
     return content[start:next_heading]
 
 
+def _expected_install_row(surface) -> str:
+    return f"| {surface.display_name} | `npx -y get-physics-done {surface.install_flag} --local` |"
+
+
 @pytest.mark.parametrize("surface", beginner_runtime_surfaces(), ids=lambda surface: surface.runtime_name)
 def test_runtime_quickstarts_surface_the_beginner_next_steps(surface) -> None:
     content = _read(f"docs/{runtime_onboarding_doc_filename(surface.runtime_name)}")
@@ -56,6 +60,18 @@ def test_runtime_quickstarts_surface_the_beginner_next_steps(surface) -> None:
     assert "## Choose this runtime if" in content
     assert "## What must already be true" in content
     assert "## Return to work" in content
+
+
+@pytest.mark.parametrize(
+    "doc_name",
+    ["macos.md", "windows.md", "linux.md"],
+)
+def test_os_quickstarts_install_matrix_matches_runtime_catalog(doc_name: str) -> None:
+    content = _read(f"docs/{doc_name}")
+    install_section = _markdown_section(content, "## Install GPD")
+
+    for surface in beginner_runtime_surfaces():
+        assert _expected_install_row(surface) in install_section
 
 
 @pytest.mark.parametrize(

@@ -191,8 +191,7 @@ def test_hook_self_detection_accepts_manifest_backed_owned_incomplete_install(
     assert detected is not None
     assert detected.runtime == "codex"
     assert detected.install_scope == "local"
-    assert detected.update_command == installed_update_command(config_dir)
-    assert detected.update_command is None
+    assert installed_update_command(config_dir) is None
 
 
 def test_hook_self_detection_requires_explicit_target_metadata_for_update_command(

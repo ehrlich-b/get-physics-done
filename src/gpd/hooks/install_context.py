@@ -12,7 +12,6 @@ from gpd.hooks.install_metadata import (
     assess_install_target,
     install_scope_from_manifest,
     installed_runtime,
-    installed_update_command,
 )
 from gpd.hooks.runtime_lookup import resolve_runtime_lookup_dir
 
@@ -32,10 +31,6 @@ class SelfOwnedInstallContext:
     @property
     def todo_dir(self) -> Path:
         return self.config_dir / TODOS_DIR_NAME
-
-    @property
-    def update_command(self) -> str | None:
-        return installed_update_command(self.config_dir)
 
 
 @dataclass(frozen=True, slots=True)
