@@ -1086,20 +1086,6 @@ def _continuation_payload_has_values(payload: object) -> bool:
         return False
 
 
-def _markdown_session_can_update_canonical_continuation(payload: object) -> bool:
-    """Return whether a markdown session edit surface may project back into continuation."""
-    normalized = _normalize_continuation_payload(payload)
-    if not _continuation_payload_has_values(normalized):
-        return True
-    if normalized.get("bounded_segment") is not None:
-        return False
-    handoff = normalized.get("handoff")
-    if not isinstance(handoff, dict):
-        return True
-    recorded_by = _optional_state_text(handoff.get("recorded_by"))
-    return recorded_by in {None, "state_record_session", "save_state_markdown"}
-
-
 def _session_from_continuation_payload(continuation: object) -> dict[str, str | None]:
     session = _blank_session_payload()
     normalized = _normalize_continuation_payload(continuation)
@@ -1675,7 +1661,7 @@ def _strip_placeholder(value: str | None) -> str | None:
     return stripped
 
 
-def parse_state_to_json(content: str) -> dict:
+def parse_state_to_json(content: str, *, import_legacy_session: bool = True) -> dict:
     """Parse STATE.md content into JSON-sidecar format."""
     parsed = parse_state_md(content)
 
@@ -1693,7 +1679,11 @@ def parse_state_to_json(content: str) -> dict:
         "resume_file": resume_file,
         "last_result_id": last_result_id,
     }
-    continuation = _continuation_from_session_payload(session)
+    continuation = (
+        _continuation_from_session_payload(session)
+        if import_legacy_session
+        else _normalize_continuation_payload(None)
+    )
 
     return {
         "_version": 1,
@@ -1796,36 +1786,49 @@ def _normalize_state_schema(
         project_root=project_root,
     )
 
-    try:
-        validated = ResearchState.model_validate(normalized).model_dump()
-        return _mirror_continuation_state(validated), integrity_issues
-    except PydanticValidationError as exc:
-        bad_keys: set[str] = set()
-        for err in exc.errors():
-            loc = err.get("loc", ())
-            if loc:
-                bad_keys.add(str(loc[0]))
+    validation_findings: list[str] = []
+    removed_validation_paths: set[tuple[object, ...]] = set()
+    removed_top_level_keys: set[str] = set()
+    while True:
+        try:
+            validated = ResearchState.model_validate(normalized).model_dump()
+            integrity_issues.extend(validation_findings)
+            return _mirror_continuation_state(validated), integrity_issues
+        except PydanticValidationError as exc:
+            nested_removed = False
+            top_level_keys: set[str] = set()
+            for err in exc.errors():
+                loc = tuple(err.get("loc", ()))
+                message = str(err.get("msg", "validation failed")).strip() or "validation failed"
+                if len(loc) > 1 and loc not in removed_validation_paths:
+                    if _remove_validation_error_path(normalized, loc):
+                        removed_validation_paths.add(loc)
+                        issue = f'schema normalization: dropped malformed "{_format_validation_location(loc)}": {message}'
+                        if issue not in validation_findings:
+                            validation_findings.append(issue)
+                        nested_removed = True
+                        continue
+                if loc:
+                    top_level_keys.add(str(loc[0]))
 
-        if bad_keys:
-            integrity_issues.append(
-                "schema normalization: removed invalid top-level sections "
-                + ", ".join(sorted(f'"{key}"' for key in bad_keys))
-            )
-            for bad_key in bad_keys:
-                normalized.pop(bad_key, None)
-            try:
-                validated = ResearchState.model_validate(normalized).model_dump()
-                return _mirror_continuation_state(validated), integrity_issues
-            except PydanticValidationError:
-                pass
+            if nested_removed:
+                continue
 
-        logger.warning("state.json had irrecoverable schema errors; resetting to defaults")
-        integrity_issues.append("schema normalization: irrecoverable validation failure; reset to defaults")
-        result = default_state_dict()
-        for key, value in normalized.items():
-            if key not in result:
-                result[key] = value
-        return _mirror_continuation_state(result), integrity_issues
+            removed_now = sorted(key for key in top_level_keys if key not in removed_top_level_keys and key in normalized)
+            if removed_now:
+                validation_findings.append(
+                    "schema normalization: removed invalid top-level sections "
+                    + ", ".join(f'"{key}"' for key in removed_now)
+                )
+                for key in removed_now:
+                    removed_top_level_keys.add(key)
+                    normalized.pop(key, None)
+                continue
+
+            logger.warning("state.json had irrecoverable schema errors; resetting to defaults")
+            integrity_issues.extend(validation_findings)
+            integrity_issues.append("schema normalization: irrecoverable validation failure; reset to defaults")
+            return _mirror_continuation_state(default_state_dict()), integrity_issues
 
 
 def _normalize_state_schema_with_backup_project_contract(
@@ -1833,12 +1836,14 @@ def _normalize_state_schema_with_backup_project_contract(
     backup_raw: dict | None,
     *,
     allow_project_contract_salvage: bool = True,
+    project_root: Path | None = None,
 ) -> tuple[dict, list[str], bool, bool, bool, bool]:
     """Normalize state and recover backup state when the primary root is unreadable."""
 
     normalized, integrity_issues = _normalize_state_schema(
         raw,
         allow_project_contract_salvage=allow_project_contract_salvage,
+        project_root=project_root,
     )
     recovered_root_from_backup = False
     recovered_position_from_backup = False
@@ -1851,6 +1856,7 @@ def _normalize_state_schema_with_backup_project_contract(
         backup_normalized, backup_issues = _normalize_state_schema(
             backup_raw,
             allow_project_contract_salvage=allow_project_contract_salvage,
+            project_root=project_root,
         )
 
     def _state_reset_issue_present(issues: list[str]) -> bool:
@@ -1883,12 +1889,6 @@ def _normalize_state_schema_with_backup_project_contract(
             or issue.startswith('schema normalization: dropped malformed "continuation" because expected object, got ')
             or issue == 'schema normalization: removed invalid top-level sections "continuation"'
         ]
-        primary_session_issues = [
-            issue
-            for issue in integrity_issues
-            if issue.startswith('schema normalization: dropped "session" because expected object, got ')
-            or issue == 'schema normalization: removed invalid top-level sections "session"'
-        ]
         if (
             isinstance(raw, dict)
             and backup_normalized is not None
@@ -1911,19 +1911,6 @@ def _normalize_state_schema_with_backup_project_contract(
             normalized["continuation"] = copy.deepcopy(backup_normalized["continuation"])
             integrity_issues = [issue for issue in integrity_issues if issue not in primary_continuation_issues]
             recovered_continuation_from_backup = True
-        if (
-            isinstance(raw, dict)
-            and backup_normalized is not None
-            and not recovered_root_from_backup
-            and primary_session_issues
-            and isinstance(backup_normalized.get("session"), dict)
-            and any(value is not None for value in backup_normalized["session"].values())
-        ):
-            normalized = copy.deepcopy(normalized)
-            normalized["session"] = copy.deepcopy(backup_normalized["session"])
-            integrity_issues = [issue for issue in integrity_issues if issue not in primary_session_issues]
-            recovered_session_from_backup = True
-
     normalized = _mirror_continuation_state(normalized)
     return (
         normalized,
@@ -1937,6 +1924,40 @@ def _normalize_state_schema_with_backup_project_contract(
 
 def _format_validation_location(loc: tuple[object, ...]) -> str:
     return ".".join(str(part) for part in loc)
+
+
+def _remove_validation_error_path(payload: object, loc: tuple[object, ...]) -> bool:
+    """Remove one nested validation target from a mutable payload."""
+
+    if not loc:
+        return False
+
+    container: object = payload
+    for part in loc[:-1]:
+        if isinstance(container, dict):
+            if part not in container:
+                return False
+            container = container[part]
+            continue
+        if isinstance(container, list):
+            if not isinstance(part, int) or part < 0 or part >= len(container):
+                return False
+            container = container[part]
+            continue
+        return False
+
+    terminal = loc[-1]
+    if isinstance(container, dict):
+        if terminal not in container:
+            return False
+        del container[terminal]
+        return True
+    if isinstance(container, list):
+        if not isinstance(terminal, int) or terminal < 0 or terminal >= len(container):
+            return False
+        del container[terminal]
+        return True
+    return False
 
 
 def _first_validation_issue(exc: PydanticValidationError) -> str:
@@ -2143,19 +2164,13 @@ def ensure_state_schema(raw: dict | None) -> dict:
 
 def _normalize_state_for_persistence(raw: dict | None, *, project_root: Path | None = None) -> dict:
     """Normalize state for writes without silently salvaging malformed contracts."""
-    persistence_payload = raw
-    if isinstance(raw, dict):
-        persistence_payload = copy.deepcopy(raw)
-        persistence_payload["continuation"] = _continuation_from_session_payload(
-            persistence_payload.get("session"),
-            base_continuation=persistence_payload.get("continuation"),
-            only_missing=True,
-        )
     normalized, integrity_issues = _normalize_state_schema(
-        persistence_payload,
+        raw,
         allow_project_contract_salvage=False,
         project_root=project_root,
     )
+    normalized = copy.deepcopy(normalized)
+    normalized["session"] = _session_from_continuation_payload(normalized.get("continuation"))
     if any("project_contract" in issue for issue in integrity_issues):
         logger.warning("state.json persistence normalized project_contract with issue(s): %s", "; ".join(integrity_issues))
     return normalized
@@ -2700,7 +2715,7 @@ def _build_state_from_markdown(cwd: Path, md_content: str, *, recover_intent: bo
     """Merge markdown-derived state into the existing JSON state."""
     json_path = _state_json_path(cwd)
     backup_path = json_path.parent / STATE_JSON_BACKUP_FILENAME
-    parsed = parse_state_to_json(md_content)
+    parsed = parse_state_to_json(md_content, import_legacy_session=False)
     has_convention_lock = _has_bold_block(md_content, "Convention Lock")
     has_approximations = _has_subsection(md_content, "Active Approximations")
     has_uncertainties = _has_subsection(md_content, "Propagated Uncertainties")
@@ -2763,8 +2778,6 @@ def _build_state_from_markdown(cwd: Path, md_content: str, *, recover_intent: bo
             else _blank_session_payload()
         )
         parsed_session_has_values = _session_payload_has_values(parsed_session)
-        session_changed = parsed_session_has_values and parsed_session != existing_session
-
         if parsed.get("project_reference"):
             merged["project_reference"] = {**(merged.get("project_reference") or {}), **parsed["project_reference"]}
 
@@ -2801,28 +2814,8 @@ def _build_state_from_markdown(cwd: Path, md_content: str, *, recover_intent: bo
             if markdown_has_field and field in parsed:
                 merged[field] = parsed.get(field) or []
 
-        existing_continuation = existing.get("continuation")
-        if _continuation_payload_has_values(existing_continuation):
-            if session_changed and _markdown_session_can_update_canonical_continuation(existing_continuation):
-                updated_continuation = _continuation_from_session_payload(
-                    parsed_session,
-                    base_continuation=existing_continuation,
-                )
-                handoff = updated_continuation.get("handoff")
-                if isinstance(handoff, dict):
-                    handoff["recorded_by"] = "save_state_markdown"
-                merged["continuation"] = updated_continuation
-            else:
-                merged["continuation"] = copy.deepcopy(existing_continuation)
-        elif session_changed and _session_payload_has_values(parsed_session):
-            updated_continuation = _continuation_from_session_payload(
-                parsed_session,
-                base_continuation=merged.get("continuation"),
-            )
-            handoff = updated_continuation.get("handoff")
-            if isinstance(handoff, dict):
-                handoff["recorded_by"] = "save_state_markdown"
-            merged["continuation"] = updated_continuation
+        if "continuation" in existing:
+            merged["continuation"] = copy.deepcopy(existing.get("continuation"))
     else:
         merged = parsed
 
@@ -3006,6 +2999,7 @@ def _load_state_json_with_integrity_issues(
                 parsed,
                 backup_parsed,
                 allow_project_contract_salvage=allow_project_contract_salvage,
+                project_root=cwd,
             )
             if surface_blocked_project_contract:
                 normalized, restored_contract_findings = _restore_visible_project_contract(
@@ -3053,6 +3047,7 @@ def _load_state_json_with_integrity_issues(
                 integrity_mode=integrity_mode,
                 allow_project_contract_salvage=allow_project_contract_salvage,
                 surface_blocked_project_contract=surface_blocked_project_contract,
+                project_root=cwd,
             )
             if restored is not None:
                 integrity_issues.append(
@@ -3075,6 +3070,7 @@ def _load_state_json_with_integrity_issues(
                 integrity_mode=integrity_mode,
                 allow_project_contract_salvage=allow_project_contract_salvage,
                 surface_blocked_project_contract=surface_blocked_project_contract,
+                project_root=cwd,
             )
             if restored is not None:
                 integrity_issues.append(
@@ -3103,6 +3099,7 @@ def _load_state_json_with_integrity_issues(
                 integrity_mode=integrity_mode,
                 allow_project_contract_salvage=allow_project_contract_salvage,
                 surface_blocked_project_contract=surface_blocked_project_contract,
+                project_root=cwd,
             )
             if restored is not None:
                 integrity_issues.insert(0, parse_issue)
@@ -3192,6 +3189,7 @@ def _load_state_json_from_backup(
     integrity_mode: str,
     allow_project_contract_salvage: bool,
     surface_blocked_project_contract: bool,
+    project_root: Path | None = None,
 ) -> tuple[dict | None, list[str]]:
     try:
         bak_raw = bak_path.read_text(encoding="utf-8")
@@ -3209,6 +3207,7 @@ def _load_state_json_from_backup(
             bak_parsed,
             None,
             allow_project_contract_salvage=allow_project_contract_salvage,
+            project_root=project_root,
         )
         if surface_blocked_project_contract:
             restored, restored_contract_findings = _restore_visible_project_contract(
@@ -3451,6 +3450,26 @@ def _preserved_project_contract_for_markdown_save(cwd: Path) -> dict[str, object
     return _preservable_contract_payload(backup.get("project_contract"))
 
 
+def _canonicalize_session_continuity_section(md_content: str, state_obj: dict[str, object]) -> str:
+    """Rewrite the session continuity section from canonical continuation state."""
+
+    canonical_match = re.search(
+        r"(##\s*Session Continuity\s*\n[\s\S]*?)(?=\n##|$)",
+        generate_state_markdown(state_obj),
+        re.IGNORECASE,
+    )
+    if canonical_match is None:
+        return md_content
+
+    section_pattern = re.compile(
+        r"(##\s*Session Continuity\s*\n)([\s\S]*?)(?=\n##|$)",
+        re.IGNORECASE,
+    )
+    if section_pattern.search(md_content):
+        return section_pattern.sub(canonical_match.group(1), md_content, count=1)
+    return md_content.rstrip() + "\n\n" + canonical_match.group(1).rstrip() + "\n"
+
+
 def save_state_markdown_locked(cwd: Path, md_content: str) -> dict:
     """Atomically write markdown-derived state while holding the canonical state lock."""
     _recover_intent_locked(cwd)
@@ -3458,10 +3477,11 @@ def save_state_markdown_locked(cwd: Path, md_content: str) -> dict:
     preserved_contract = None
     if merged.get("project_contract") is None:
         preserved_contract = _preserved_project_contract_for_markdown_save(cwd)
+    normalized_md_content = _canonicalize_session_continuity_section(md_content, merged)
     return _write_state_pair_locked(
         cwd,
         state_obj=merged,
-        md_content=md_content,
+        md_content=normalized_md_content,
         preserve_raw_project_contract=preserved_contract,
     )
 
@@ -3782,11 +3802,7 @@ def state_set_continuation_bounded_segment(
     with _state_lock(cwd):
         _recover_intent_locked(cwd)
         state_obj = _load_state_snapshot_for_mutation(cwd, recover_intent=False)
-        current_continuation = _continuation_from_session_payload(
-            state_obj.get("session"),
-            base_continuation=state_obj.get("continuation"),
-            only_missing=True,
-        )
+        current_continuation = normalize_continuation(cwd, state_obj.get("continuation")).model_dump(mode="python")
         desired_continuation = normalize_continuation(
             cwd,
             {
@@ -3828,11 +3844,10 @@ def state_carry_forward_continuation_last_result_id(
                 ),
             )
 
-        current_continuation = _continuation_from_session_payload(
-            loaded_state_obj.get("session"),
-            base_continuation=loaded_state_obj.get("continuation"),
-            only_missing=True,
-        )
+        current_continuation = normalize_continuation(
+            cwd,
+            loaded_state_obj.get("continuation"),
+        ).model_dump(mode="python")
         current_handoff = current_continuation.get("handoff")
         current_bounded_segment = current_continuation.get("bounded_segment")
         if not isinstance(current_handoff, dict):
@@ -3884,11 +3899,7 @@ def state_clear_continuation_bounded_segment(cwd: Path) -> StateUpdateResult:
     with _state_lock(cwd):
         _recover_intent_locked(cwd)
         state_obj = _load_state_snapshot_for_mutation(cwd, recover_intent=False)
-        current_continuation = _continuation_from_session_payload(
-            state_obj.get("session"),
-            base_continuation=state_obj.get("continuation"),
-            only_missing=True,
-        )
+        current_continuation = normalize_continuation(cwd, state_obj.get("continuation")).model_dump(mode="python")
 
         if current_continuation.get("bounded_segment") is None:
             return StateUpdateResult(updated=False, reason="Continuation bounded_segment already clear")
@@ -4219,11 +4230,7 @@ def state_record_session(
         machine = _current_machine_identity()
         current_continuation = normalize_continuation(
             cwd,
-            _continuation_from_session_payload(
-                state_obj.get("session"),
-                base_continuation=state_obj.get("continuation"),
-                only_missing=True,
-            ),
+            state_obj.get("continuation"),
         )
         existing_handoff = current_continuation.handoff
         existing_machine = current_continuation.machine

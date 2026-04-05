@@ -98,6 +98,13 @@ def _write_intent_recovery_state(
     return layout
 
 
+def _write_raw_state_json(tmp_path: Path, payload: dict[str, object]) -> ProjectLayout:
+    layout = ProjectLayout(tmp_path)
+    layout.state_json.parent.mkdir(parents=True, exist_ok=True)
+    layout.state_json.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return layout
+
+
 def _project_contract_with_question(question: str) -> dict[str, object]:
     contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
     contract["scope"]["question"] = question
@@ -586,6 +593,77 @@ def test_normalize_state_schema_drops_project_contract_that_fails_draft_scoping_
         for issue in issues
     )
     assert any("project_contract: claim claim-benchmark references unknown reference missing-ref" in issue for issue in issues)
+
+
+def test_peek_state_json_respects_project_root_for_project_contract_grounding(tmp_path: Path) -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    outside_prior_output = tmp_path.parent / "outside-prior-output.md"
+    outside_prior_output.write_text("outside\n", encoding="utf-8")
+    contract["context_intake"] = {
+        "must_read_refs": [],
+        "must_include_prior_outputs": [str(outside_prior_output)],
+        "user_asserted_anchors": [],
+        "known_good_baselines": [],
+        "context_gaps": ["TBD"],
+        "crucial_inputs": ["TBD"],
+    }
+
+    assert state_module.validate_project_contract(contract, project_root=None).valid is True
+    rooted_validation = state_module.validate_project_contract(contract, project_root=tmp_path)
+    assert rooted_validation.valid is False
+    assert "context_intake must not be empty" in rooted_validation.errors
+
+    state = default_state_dict()
+    state["project_contract"] = contract
+    _write_raw_state_json(tmp_path, state)
+
+    loaded, issues, source = state_module.peek_state_json(tmp_path)
+
+    assert loaded is not None
+    assert source == "state.json"
+    assert any("schema normalization: dropped \"project_contract\"" in issue for issue in issues)
+    assert loaded["project_contract"] is None
+
+
+def test_load_state_json_preserves_sibling_fields_when_nested_position_field_is_invalid(tmp_path: Path) -> None:
+    state = default_state_dict()
+    state["position"]["current_phase"] = "3"
+    state["position"]["current_phase_name"] = 42
+    state["position"]["status"] = "Executing"
+    state["blockers"] = ["still valid"]
+    _write_raw_state_json(tmp_path, state)
+
+    loaded = load_state_json(tmp_path)
+
+    assert loaded is not None
+    assert loaded["position"]["current_phase"] == "3"
+    assert loaded["position"]["current_phase_name"] is None
+    assert loaded["position"]["status"] == "Executing"
+    assert loaded["blockers"] == ["still valid"]
+
+
+def test_normalize_state_schema_irrecoverable_reset_drops_unknown_top_level_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    validation_error = state_module.PydanticValidationError.from_exception_data(
+        "ResearchState",
+        [
+            {
+                "type": "string_type",
+                "loc": ("position", "current_phase_name"),
+                "msg": "Input should be a valid string",
+                "input": 42,
+            }
+        ],
+    )
+
+    def _always_fail(*args, **kwargs):
+        raise validation_error
+
+    monkeypatch.setattr(state_module.ResearchState, "model_validate", _always_fail)
+
+    normalized, issues = _normalize_state_schema({"custom_field": "kept"})
+
+    assert "custom_field" not in normalized
+    assert any("schema normalization: irrecoverable validation failure; reset to defaults" in issue for issue in issues)
 
 
 def test_ensure_state_schema_strips_claim_extra_keys_without_dropping_claim():
@@ -2642,7 +2720,7 @@ def test_state_validate_recovers_backup_root_without_project_contract(tmp_path: 
     assert not any("project_contract was recovered from state.json.bak" in warning for warning in validation.warnings)
 
 
-def test_state_load_recovers_backup_session_without_replacing_newer_primary_fields(
+def test_state_load_ignores_backup_only_session_without_replacing_newer_primary_fields(
     tmp_path: Path,
 ) -> None:
     primary_state = default_state_dict()
@@ -2670,9 +2748,9 @@ def test_state_load_recovers_backup_session_without_replacing_newer_primary_fiel
     assert loaded.state["position"]["current_phase"] == "05"
     assert loaded.state["position"]["status"] == "Executing"
     assert loaded.state["project_contract"]["scope"]["question"] == "newer primary contract"
-    assert loaded.state["session"]["resume_file"] == "backup-resume.md"
+    assert loaded.state["session"]["resume_file"] is None
+    assert loaded.state["continuation"]["handoff"]["resume_file"] is None
     assert loaded.state_source == "state.json"
-    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["session"]["resume_file"] == "backup-resume.md"
 
 
 def test_state_load_keeps_primary_position_authoritative_when_only_position_requires_normalization(
@@ -3059,7 +3137,7 @@ def test_state_record_session_without_resume_file_updates_recent_project_freshne
     assert row.stopped_at == "Phase 4 P2"
 
 
-def test_save_state_markdown_backfills_missing_canonical_machine_from_session_surface(tmp_path: Path) -> None:
+def test_save_state_markdown_does_not_backfill_missing_canonical_machine_from_session_surface(tmp_path: Path) -> None:
     baseline = default_state_dict()
     baseline["position"]["status"] = "Executing"
     baseline["continuation"]["handoff"].update(
@@ -3080,12 +3158,12 @@ def test_save_state_markdown_backfills_missing_canonical_machine_from_session_su
 
     assert result["session"]["stopped_at"] == "Phase 03 Plan 2"
     assert result["session"]["resume_file"] == "resume.md"
-    assert result["session"]["hostname"] == "builder-02"
-    assert result["session"]["platform"] == "Linux x86_64"
+    assert result["session"]["hostname"] is None
+    assert result["session"]["platform"] is None
     assert result["continuation"]["handoff"]["stopped_at"] == "Phase 03 Plan 2"
     assert result["continuation"]["handoff"]["resume_file"] == "resume.md"
-    assert result["continuation"]["machine"]["hostname"] == "builder-02"
-    assert result["continuation"]["machine"]["platform"] == "Linux x86_64"
+    assert result["continuation"]["machine"]["hostname"] is None
+    assert result["continuation"]["machine"]["platform"] is None
 
 
 def test_save_state_json_projects_recent_project_resume_file_from_canonical_continuation(
