@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from gpd.adapters.runtime_catalog import iter_runtime_descriptors
+from gpd.core.constants import ProjectLayout
 from gpd.core.context import (
     _extract_frontmatter_field,
     _generate_slug,
@@ -68,6 +69,24 @@ def _create_config(tmp_path: Path, config: dict) -> Path:
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config))
     return config_path
+
+
+def _write_state_intent_recovery_files(project_root: Path) -> ProjectLayout:
+    from gpd.core.state import default_state_dict
+
+    layout = ProjectLayout(project_root)
+    layout.state_json.parent.mkdir(parents=True, exist_ok=True)
+    layout.state_json.write_text(json.dumps(default_state_dict(), indent=2) + "\n", encoding="utf-8")
+
+    recovered_state = default_state_dict()
+    recovered_state["position"]["current_phase"] = "05"
+    recovered_state["position"]["status"] = "Executing"
+    json_tmp = layout.gpd / ".state-json-tmp"
+    md_tmp = layout.gpd / ".state-md-tmp"
+    json_tmp.write_text(json.dumps(recovered_state, indent=2) + "\n", encoding="utf-8")
+    md_tmp.write_text("# Recovered State\n", encoding="utf-8")
+    layout.state_intent.write_text(f"{json_tmp}\n{md_tmp}\n", encoding="utf-8")
+    return layout
 
 
 def _write_manuscript_proof_review_artifacts(tmp_path: Path) -> Path:
@@ -1983,6 +2002,52 @@ class TestInitResume:
         assert ctx["session_stopped_at"] is None
         assert ctx["resume_candidates"] == []
         assert "compat_resume_surface" not in ctx
+
+    def test_init_resume_does_not_recover_intent_during_read_only_discovery(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        layout = _write_state_intent_recovery_files(tmp_path)
+
+        before_state_json = layout.state_json.read_text(encoding="utf-8")
+        before_state_intent = layout.state_intent.read_text(encoding="utf-8")
+        before_json_tmp = (layout.gpd / ".state-json-tmp").read_text(encoding="utf-8")
+        before_md_tmp = (layout.gpd / ".state-md-tmp").read_text(encoding="utf-8")
+
+        ctx = init_resume(tmp_path)
+
+        assert ctx["state_exists"] is True
+        assert layout.state_json.read_text(encoding="utf-8") == before_state_json
+        assert layout.state_intent.read_text(encoding="utf-8") == before_state_intent
+        assert (layout.gpd / ".state-json-tmp").read_text(encoding="utf-8") == before_json_tmp
+        assert (layout.gpd / ".state-md-tmp").read_text(encoding="utf-8") == before_md_tmp
+
+    def test_state_md_fallback_no_longer_hydrates_resume_authority_from_legacy_session(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        from gpd.core.state import default_state_dict, generate_state_markdown
+
+        state = default_state_dict()
+        state["session"]["resume_file"] = "GPD/phases/03-analysis/.continue-here.md"
+        state["session"]["stopped_at"] = "2026-03-10T12:00:00+00:00"
+        state["session"]["hostname"] = "legacy-host"
+        state["session"]["platform"] = "legacy-platform"
+        resume_path = tmp_path / "GPD" / "phases" / "03-analysis" / ".continue-here.md"
+        resume_path.parent.mkdir(parents=True, exist_ok=True)
+        resume_path.write_text("resume\n", encoding="utf-8")
+        (tmp_path / "GPD" / "STATE.md").write_text(generate_state_markdown(state), encoding="utf-8")
+
+        ctx = init_resume(tmp_path)
+
+        assert ctx["active_resume_kind"] is None
+        assert ctx["active_resume_origin"] is None
+        assert ctx["active_resume_pointer"] is None
+        assert ctx["machine_change_detected"] is False
+        assert ctx["machine_change_notice"] is None
+        assert ctx["continuity_handoff_file"] is None
+        assert ctx["recorded_continuity_handoff_file"] is None
+        assert ctx["session_hostname"] is None
+        assert ctx["session_platform"] is None
+        assert ctx["session_last_date"] is None
+        assert ctx["session_stopped_at"] is None
+        assert ctx["resume_candidates"] == []
 
     def test_init_resume_propagates_unexpected_continuation_errors(self, tmp_path: Path, monkeypatch) -> None:
         _setup_project(tmp_path)

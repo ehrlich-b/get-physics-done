@@ -345,7 +345,7 @@ class TestStateServerIntegration:
         assert "position" in result
         assert not (gpd_dir / "state.json").exists()
 
-    def test_get_state_recovers_intent_marker_and_surfaces_recovered_contract(
+    def test_get_state_does_not_recover_intent_marker_and_keeps_visible_state_read_only(
         self, tmp_path: Path
     ) -> None:
         from gpd.mcp.servers.state_server import get_state
@@ -369,16 +369,17 @@ class TestStateServerIntegration:
             recovered_state=recovered_state,
         )
         layout = ProjectLayout(project_root)
+        before_state = layout.state_json.read_text(encoding="utf-8")
 
         result = get_state(str(project_root))
 
-        assert result["position"]["current_phase"] == "09"
+        assert result["position"]["current_phase"] == "01"
         assert "session" not in result
-        assert result["project_contract_load_info"]["status"] == "loaded"
-        assert result["project_contract_validation"]["valid"] is True
-        assert result["project_contract_gate"]["authoritative"] is True
-        assert not layout.state_intent.exists()
-        assert json.loads(layout.state_json.read_text(encoding="utf-8"))["position"]["current_phase"] == "09"
+        assert result["project_contract_load_info"]["status"] == "missing"
+        assert result["project_contract_validation"] is None
+        assert result["project_contract_gate"]["authoritative"] is False
+        assert layout.state_intent.exists()
+        assert layout.state_json.read_text(encoding="utf-8") == before_state
 
     def test_advance_plan_increments(self, gpd_project: Path):
         from gpd.mcp.servers.state_server import advance_plan

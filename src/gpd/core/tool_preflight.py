@@ -11,6 +11,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_validator, model_validator
 from pydantic import ValidationError as PydanticValidationError
 
+from gpd.core.root_resolution import resolve_project_root
 from gpd.mcp.managed_integrations import (
     WOLFRAM_MANAGED_INTEGRATION,
     WOLFRAM_MANAGED_SERVER_KEY,
@@ -122,6 +123,12 @@ class _ToolSpec:
     warning: str = ""
 
 
+@dataclass(frozen=True, slots=True)
+class _CommandRunnerPolicy:
+    option_flags_with_value: frozenset[str] = frozenset()
+    selector_delimiter: str | None = None
+
+
 _TOOL_SPECS: dict[str, _ToolSpec] = {
     "wolfram": _ToolSpec(
         provider="wolframscript",
@@ -132,6 +139,15 @@ _TOOL_SPECS: dict[str, _ToolSpec] = {
 
 _WOLFRAM_CAVEAT = "Availability is config-level only; live execution and license state are not proven."
 _ENV_ASSIGNMENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=.*$")
+_PYTHON_LAUNCHER_RE = re.compile(r"^(?:python(?:\d+(?:\.\d+)*)?|pythonw(?:\d+(?:\.\d+)*)?|pypy(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?$")
+_COMMAND_RUNNER_POLICIES: dict[str, _CommandRunnerPolicy] = {
+    "uv": _CommandRunnerPolicy(option_flags_with_value=frozenset({"--python", "-p", "--with", "-w", "--from", "--project"})),
+    "poetry": _CommandRunnerPolicy(),
+    "pipx": _CommandRunnerPolicy(option_flags_with_value=frozenset({"--spec", "--python", "-p", "--index-url", "-i", "--pip-args"})),
+    "hatch": _CommandRunnerPolicy(option_flags_with_value=frozenset({"--env", "-e", "--project"}), selector_delimiter=":"),
+    "pixi": _CommandRunnerPolicy(option_flags_with_value=frozenset({"--manifest-path", "-m", "--project", "-p", "--cwd", "-C"})),
+}
+_PYTHON_COMMAND_FLAGS_WITH_VALUES = frozenset({"-W", "-X"})
 _ENV_FLAG_WITH_VALUE = {"-u", "-S", "-C"}
 _ENV_FLAG_WITHOUT_VALUE = {"-i", "-0", "-v"}
 _SHELL_LAUNCHERS = frozenset({"sh", "bash", "zsh", "dash", "ksh", "mksh", "ash"})
@@ -220,6 +236,80 @@ def _shell_wrapped_command(argv: list[str]) -> str | None:
     return None
 
 
+def _unwrap_command_runner(argv: list[str]) -> tuple[list[str] | None, str | None]:
+    if len(argv) < 2:
+        return argv, None
+    launcher = _normalized_launcher_name(argv[0])
+    policy = _COMMAND_RUNNER_POLICIES.get(launcher)
+    if policy is None or argv[1] != "run":
+        return argv, None
+
+    working = argv[2:]
+    index = 0
+    while index < len(working):
+        token = working[index]
+        if token == "--":
+            index += 1
+            break
+        if token in policy.option_flags_with_value:
+            if index + 1 >= len(working):
+                return None, f"{launcher} run option {token} requires a value"
+            index += 2
+            continue
+        if any(token.startswith(f"{flag}=") for flag in policy.option_flags_with_value):
+            index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        break
+
+    if index >= len(working):
+        return [], None
+
+    target_argv = working[index:]
+    if policy.selector_delimiter and target_argv:
+        selector = target_argv[0]
+        if policy.selector_delimiter in selector:
+            _prefix, candidate = selector.rsplit(policy.selector_delimiter, 1)
+            if _is_python_launcher(candidate):
+                return [candidate, *target_argv[1:]], None
+    return target_argv, None
+
+
+def _command_target_argv(argv: list[str]) -> tuple[list[str] | None, str | None]:
+    working = list(argv)
+
+    while working and _ENV_ASSIGNMENT_RE.fullmatch(working[0]):
+        working.pop(0)
+
+    if not working:
+        return [], None
+
+    if Path(working[0]).name == "env":
+        env_argv, parse_error = _env_wrapped_argv(working)
+        if parse_error is not None:
+            return None, parse_error
+        if env_argv == [working[0]]:
+            return working, None
+        return _command_target_argv(env_argv or [])
+
+    shell_command = _shell_wrapped_command(working)
+    if shell_command is not None:
+        nested_argv, parse_error = _split_command_argv(shell_command)
+        if parse_error is not None:
+            return None, parse_error
+        return _command_target_argv(nested_argv or [])
+
+    runner_argv, runner_error = _unwrap_command_runner(working)
+    if runner_error is not None:
+        return None, runner_error
+    if runner_argv != working:
+        return _command_target_argv(runner_argv or [])
+
+    return working, None
+
+
 def _command_executable_from_argv(argv: list[str]) -> tuple[str | None, str | None]:
     working = list(argv)
 
@@ -262,6 +352,125 @@ def _command_executable(command: str) -> tuple[str | None, str | None]:
     return _command_executable_from_argv(argv or [])
 
 
+def _normalized_launcher_name(token: str) -> str:
+    name = Path(token).name.casefold()
+    if name.endswith(".exe"):
+        return name[:-4]
+    return name
+
+
+def _is_python_launcher(token: str) -> bool:
+    return _PYTHON_LAUNCHER_RE.fullmatch(_normalized_launcher_name(token)) is not None
+
+
+def _workspace_roots_for_command(cwd: Path | None) -> list[Path]:
+    if cwd is None:
+        return []
+    roots = [cwd]
+    src_root = cwd / "src"
+    if src_root.is_dir():
+        roots.append(src_root)
+    return roots
+
+
+def _missing_python_script_target_issue(target: str, *, cwd: Path | None) -> str | None:
+    target_path = Path(target).expanduser()
+    candidate_paths: list[Path] = []
+
+    if target_path.is_absolute():
+        candidate_paths.append(target_path.resolve(strict=False))
+    elif cwd is not None:
+        candidate_paths.append((cwd / target_path).resolve(strict=False))
+
+    if not candidate_paths:
+        return None
+
+    for candidate_path in candidate_paths:
+        if candidate_path.exists():
+            return None
+
+    formatted_candidates = ", ".join(str(path) for path in candidate_paths)
+    return f"repo-local script target not found: {target} (looked under {formatted_candidates})"
+
+
+def _module_namespace_exists(module_name: str, *, cwd: Path | None) -> bool:
+    module_path = Path(*module_name.split("."))
+    if not module_path.parts:
+        return False
+    namespace = module_path.parts[0]
+    for root in _workspace_roots_for_command(cwd):
+        if (root / namespace).exists():
+            return True
+    return False
+
+
+def _missing_python_module_target_issue(module_name: str, *, cwd: Path | None) -> str | None:
+    if not _module_namespace_exists(module_name, cwd=cwd):
+        return None
+
+    module_path = Path(*module_name.split("."))
+    candidate_paths: list[Path] = []
+    for root in _workspace_roots_for_command(cwd):
+        candidate_paths.append((root / f"{module_path}.py").resolve(strict=False))
+        candidate_paths.append((root / module_path / "__init__.py").resolve(strict=False))
+        candidate_paths.append((root / module_path / "__main__.py").resolve(strict=False))
+
+    for candidate_path in candidate_paths:
+        if candidate_path.exists():
+            return None
+
+    formatted_candidates = ", ".join(str(path) for path in candidate_paths)
+    return f"repo-local module target not found: {module_name} (looked under {formatted_candidates})"
+
+
+def _command_target_issue(command: str, *, cwd: Path | None) -> str | None:
+    argv, parse_error = _split_command_argv(command)
+    if parse_error is not None:
+        return parse_error
+    target_argv, target_parse_error = _command_target_argv(argv or [])
+    if target_parse_error is not None:
+        return target_parse_error
+    if not target_argv or not _is_python_launcher(target_argv[0]):
+        return None
+
+    command_argv = target_argv[1:]
+    if not command_argv:
+        return None
+
+    index = 0
+    while index < len(command_argv):
+        token = command_argv[index]
+        if token == "--":
+            index += 1
+            break
+        if token == "-c":
+            return None
+        if token == "-m":
+            if index + 1 >= len(command_argv):
+                return "python -m requires a module target"
+            return _missing_python_module_target_issue(command_argv[index + 1], cwd=cwd)
+        if token in _PYTHON_COMMAND_FLAGS_WITH_VALUES:
+            if token in {"-W", "-X"}:
+                if index + 1 >= len(command_argv):
+                    return f"{token} requires a value"
+                index += 2
+            else:
+                index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        break
+
+    if index >= len(command_argv):
+        return None
+
+    target = command_argv[index]
+    if target == "-":
+        return None
+    return _missing_python_script_target_issue(target, cwd=cwd)
+
+
 def _probe_tool(requirement: PlanToolRequirement, *, cwd: Path | None = None) -> tuple[bool, str, str, list[str]]:
     if requirement.tool == "command":
         command = requirement.command or ""
@@ -270,6 +479,9 @@ def _probe_tool(requirement: PlanToolRequirement, *, cwd: Path | None = None) ->
             return False, parse_error, "command", []
         path = shutil.which(executable) if executable else None
         if path:
+            target_issue = _command_target_issue(command, cwd=cwd)
+            if target_issue is not None:
+                return False, target_issue, "command", []
             return True, f"{executable} found at {Path(path).resolve(strict=False)}", "command", []
         return False, f"{executable} not found on PATH", "command", []
 
@@ -335,6 +547,7 @@ def build_plan_tool_preflight(
         )
 
     active_requirements = requirements
+    command_workspace_root = resolve_project_root(resolved_path.parent, require_layout=True) or resolved_path.parent
     if active_requirements is None:
         try:
             content = resolved_path.read_text(encoding="utf-8")
@@ -402,7 +615,7 @@ def build_plan_tool_preflight(
     blocking_missing = False
     for requirement in active_requirements:
         try:
-            available, detail, provider, probe_warnings = _probe_tool(requirement, cwd=resolved_path.parent)
+            available, detail, provider, probe_warnings = _probe_tool(requirement, cwd=command_workspace_root)
         except RuntimeError as exc:
             available = False
             detail = str(exc)

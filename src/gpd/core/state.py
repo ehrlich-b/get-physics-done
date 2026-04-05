@@ -514,6 +514,13 @@ class StateUpdateResult(BaseModel):
     unchanged: bool = Field(default=False, exclude=True)
     reason: str | None = None
     warnings: list[str] = Field(default_factory=list)
+    schema_reference: str | None = None
+
+    def model_dump(self, *args, **kwargs):  # type: ignore[override]
+        payload = super().model_dump(*args, **kwargs)
+        if payload.get("schema_reference") is None:
+            payload.pop("schema_reference", None)
+        return payload
 
 
 class StatePatchResult(BaseModel):
@@ -755,12 +762,9 @@ def _load_raw_project_contract_payload(cwd: Path) -> tuple[Path, object] | None:
     """Return the raw project_contract payload from state storage."""
 
     layout = ProjectLayout(cwd)
-
-    if layout.state_intent.exists():
-        _load_state_json_with_integrity_issues(cwd, persist_recovery=True)
     _state_obj, _state_issues, state_source = peek_state_json(
         cwd,
-        recover_intent=True,
+        recover_intent=False,
         surface_blocked_project_contract=True,
     )
     if state_source == "state.json":
@@ -904,7 +908,11 @@ def _load_project_contract_for_runtime_context(cwd: Path) -> tuple[ResearchContr
             provenance="raw",
         )
 
-    state, state_issues, state_source = peek_state_json(cwd, surface_blocked_project_contract=True)
+    state, state_issues, state_source = peek_state_json(
+        cwd,
+        recover_intent=False,
+        surface_blocked_project_contract=True,
+    )
     default_source = _project_contract_source_path(cwd, layout.state_json)
     if not isinstance(state, dict):
         return None, _project_contract_load_payload(status="missing", source_path=default_source)
@@ -1052,6 +1060,7 @@ def _load_state_snapshot_for_mutation(cwd: Path, *, recover_intent: bool = True)
         cwd,
         persist_recovery=False,
         recover_intent=recover_intent,
+        import_session_continuation_from_markdown=True,
         acquire_lock=False,
     )
     if isinstance(recovered_state, dict):
@@ -1075,6 +1084,7 @@ def _load_or_rebuild_state_markdown_locked(cwd: Path) -> str | None:
         cwd,
         persist_recovery=False,
         recover_intent=False,
+        import_session_continuation_from_markdown=True,
         acquire_lock=False,
     )
     if not isinstance(recovered_state, dict) or state_source is None:
@@ -1659,7 +1669,7 @@ def _strip_placeholder(value: str | None) -> str | None:
     return stripped
 
 
-def parse_state_to_json(content: str, *, import_legacy_session: bool = True) -> dict:
+def parse_state_to_json(content: str, *, import_legacy_session: bool = False) -> dict:
     """Parse STATE.md content into JSON-sidecar format."""
     parsed = parse_state_md(content)
 
@@ -2714,12 +2724,15 @@ def _build_state_from_markdown(
     md_content: str,
     *,
     recover_intent: bool = True,
-    recover_continuation_from_session_mirror: bool = False,
+    import_session_continuation_from_markdown: bool = False,
 ) -> dict:
     """Merge markdown-derived state into the existing JSON state."""
     json_path = _state_json_path(cwd)
     backup_path = json_path.parent / STATE_JSON_BACKUP_FILENAME
-    parsed = parse_state_to_json(md_content, import_legacy_session=recover_continuation_from_session_mirror)
+    parsed = parse_state_to_json(
+        md_content,
+        import_legacy_session=import_session_continuation_from_markdown,
+    )
     has_convention_lock = _has_bold_block(md_content, "Convention Lock")
     has_approximations = _has_subsection(md_content, "Active Approximations")
     has_uncertainties = _has_subsection(md_content, "Propagated Uncertainties")
@@ -2916,7 +2929,11 @@ def sync_state_json_core(cwd: Path, md_content: str) -> dict:
     json_path = _state_json_path(cwd)
     backup_path = json_path.parent / STATE_JSON_BACKUP_FILENAME
     _recover_intent_locked(cwd)
-    merged = _build_state_from_markdown(cwd, md_content)
+    merged = _build_state_from_markdown(
+        cwd,
+        md_content,
+        import_session_continuation_from_markdown=True,
+    )
 
     json_content = json.dumps(merged, indent=2) + "\n"
     prior_json = safe_read_file(json_path)
@@ -2964,6 +2981,7 @@ def _load_state_json_with_integrity_issues(
     integrity_mode: str = "standard",
     persist_recovery: bool = True,
     recover_intent: bool = True,
+    import_session_continuation_from_markdown: bool = False,
     surface_blocked_project_contract: bool = False,
     acquire_lock: bool = True,
 ) -> tuple[dict | None, list[str], str | None]:
@@ -3135,7 +3153,7 @@ def _load_state_json_with_integrity_issues(
                 cwd,
                 content,
                 recover_intent=recover_intent,
-                recover_continuation_from_session_mirror=True,
+                import_session_continuation_from_markdown=import_session_continuation_from_markdown,
             )
             integrity_issues = ["state.json root was recovered from STATE.md after primary state.json was unavailable or unreadable"]
             if parse_issue is not None:
@@ -3167,6 +3185,7 @@ def peek_state_json(
         integrity_mode=integrity_mode,
         persist_recovery=False,
         recover_intent=recover_intent,
+        import_session_continuation_from_markdown=False,
         surface_blocked_project_contract=surface_blocked_project_contract,
     )
 
@@ -3349,6 +3368,7 @@ def load_state_json(cwd: Path, integrity_mode: str = "standard") -> dict | None:
         cwd,
         integrity_mode=integrity_mode,
         persist_recovery=True,
+        import_session_continuation_from_markdown=True,
         surface_blocked_project_contract=True,
     )
     if integrity_mode == "review" and integrity_issues:
@@ -3482,7 +3502,11 @@ def _canonicalize_session_continuity_section(md_content: str, state_obj: dict[st
 def save_state_markdown_locked(cwd: Path, md_content: str) -> dict:
     """Atomically write markdown-derived state while holding the canonical state lock."""
     _recover_intent_locked(cwd)
-    merged = _build_state_from_markdown(cwd, md_content)
+    merged = _build_state_from_markdown(
+        cwd,
+        md_content,
+        import_session_continuation_from_markdown=True,
+    )
     preserved_contract = None
     if merged.get("project_contract") is None:
         preserved_contract = _preserved_project_contract_for_markdown_save(cwd)
@@ -3520,6 +3544,7 @@ def state_load(cwd: Path, integrity_mode: str = "standard") -> StateLoadResult:
         cwd,
         integrity_mode=integrity_mode,
         persist_recovery=True,
+        import_session_continuation_from_markdown=True,
         surface_blocked_project_contract=True,
     )
     validation = state_validate(cwd, integrity_mode=integrity_mode)
@@ -3695,7 +3720,17 @@ def state_set_project_contract(cwd: Path, contract_data: dict[str, object] | Res
     still canonicalize historical state through ``ensure_state_schema()`` and
     the backup recovery path.
     """
+    schema_reference = "templates/state-json-schema.md"
     warning_messages: list[str] = []
+
+    def _failure(reason: str) -> StateUpdateResult:
+        return StateUpdateResult(
+            updated=False,
+            reason=reason,
+            warnings=list(warning_messages),
+            schema_reference=schema_reference,
+        )
+
     try:
         # Treat model instances like serialized payloads so schema drift is
         # checked through the same strict path as JSON/dict input.
@@ -3704,45 +3739,35 @@ def state_set_project_contract(cwd: Path, contract_data: dict[str, object] | Res
         elif isinstance(contract_data, dict):
             contract_payload = contract_data
         else:
-            return StateUpdateResult(
-                updated=False,
-                reason="Invalid project contract schema: project contract must be a JSON object",
-            )
+            return _failure("Invalid project contract schema: project contract must be a JSON object")
         strict_result: ProjectContractParseResult = parse_project_contract_data_strict(contract_payload)
         if strict_result.errors:
-            return StateUpdateResult(
-                updated=False,
-                reason="Invalid project contract schema: " + "; ".join(strict_result.errors),
-            )
+            return _failure("Invalid project contract schema: " + "; ".join(strict_result.errors))
         parsed = strict_result.contract
         if parsed is None:
-            return StateUpdateResult(
-                updated=False,
-                reason="Invalid project contract schema: project contract could not be normalized",
-            )
+            return _failure("Invalid project contract schema: project contract could not be normalized")
     except PydanticValidationError as exc:
         first_error = exc.errors()[0] if exc.errors() else {}
         location = ".".join(str(part) for part in first_error.get("loc", ())) or "project_contract"
         message = first_error.get("msg", "validation failed")
-        return StateUpdateResult(updated=False, reason=f"Invalid project contract at {location}: {message}")
+        return _failure(f"Invalid project contract at {location}: {message}")
 
     draft_validation = validate_project_contract(parsed, mode="draft", project_root=cwd)
     if not draft_validation.valid:
-        return StateUpdateResult(
-            updated=False,
-            reason="Project contract failed scoping validation: " + "; ".join(draft_validation.errors),
-        )
+        for warning in draft_validation.warnings:
+            if warning not in warning_messages:
+                warning_messages.append(warning)
+        return _failure("Project contract failed scoping validation: " + "; ".join(draft_validation.errors))
     for warning in draft_validation.warnings:
         if warning not in warning_messages:
             warning_messages.append(warning)
 
     approval_validation = validate_project_contract(parsed, mode="approved", project_root=cwd)
     if not approval_validation.valid:
-        return StateUpdateResult(
-            updated=False,
-            reason="Project contract failed approval validation: " + "; ".join(approval_validation.errors),
-            warnings=[*warning_messages, *[warning for warning in approval_validation.warnings if warning not in warning_messages]],
-        )
+        for warning in approval_validation.warnings:
+            if warning not in warning_messages:
+                warning_messages.append(warning)
+        return _failure("Project contract failed approval validation: " + "; ".join(approval_validation.errors))
     for warning in approval_validation.warnings:
         if warning not in warning_messages:
             warning_messages.append(warning)
@@ -4231,6 +4256,7 @@ def state_record_session(
             cwd,
             persist_recovery=False,
             recover_intent=False,
+            import_session_continuation_from_markdown=True,
             acquire_lock=False,
         )
         if not isinstance(state_obj, dict) or state_source is None:
@@ -4347,7 +4373,7 @@ def state_record_session(
 @instrument_gpd_function("state.snapshot")
 def state_snapshot(cwd: Path) -> StateSnapshotResult:
     """Fast snapshot of state for progress/routing commands."""
-    state_obj, _issues, _state_source = peek_state_json(cwd, recover_intent=True)
+    state_obj, _issues, _state_source = peek_state_json(cwd, recover_intent=False)
     if state_obj is None:
         return StateSnapshotResult(error="STATE.md not found")
 
@@ -4411,7 +4437,7 @@ def state_validate(
     try:
         content = md_path.read_text(encoding="utf-8")
         issues.extend(_state_markdown_structure_issues(content))
-        state_md = parse_state_to_json(content)
+        state_md = parse_state_to_json(content, import_legacy_session=False)
     except FileNotFoundError:
         issues.append("STATE.md not found")
     except (OSError, UnicodeDecodeError) as e:

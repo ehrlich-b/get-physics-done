@@ -720,6 +720,31 @@ class TestParseCommandFile:
         assert requirement.blocking_conditions == []
         assert requirement.stage_artifacts == ["GPD/review/PROOF-REDTEAM{round_suffix}.md"]
 
+    def test_command_review_contract_rejects_duplicate_conditional_requirement_when(
+        self, tmp_path: Path
+    ) -> None:
+        f = _write_review_contract_command(
+            tmp_path,
+            "duplicate-conditional-requirements.md",
+            "  conditional_requirements:\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_outputs:\n"
+            "        - GPD/review/PROOF-REDTEAM{round_suffix}.md\n"
+            "    - when: theorem-bearing claims are present\n"
+            "      required_evidence:\n"
+            "        - duplicate activation clause\n",
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                r"Invalid review-contract in .*duplicate-conditional-requirements\.md.*"
+                r"conditional_requirements\[1\]\.when duplicates conditional_requirements\[0\]\.when: "
+                r"theorem-bearing claims are present"
+            ),
+        ):
+            _parse_command_file(f, source="commands")
+
     def test_command_review_contract_conditional_requirements_reject_non_list(self, tmp_path: Path) -> None:
         f = _write_review_contract_command(
             tmp_path,

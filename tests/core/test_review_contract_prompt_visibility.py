@@ -300,6 +300,57 @@ def test_review_contract_prompt_and_registry_share_singleton_string_list_normali
     assert dataclasses.asdict(parsed) == normalized
 
 
+@pytest.mark.parametrize(
+    ("normalizer", "payload"),
+    [
+        (
+            normalize_review_contract_payload,
+            {
+                "schema_version": 1,
+                "review_mode": "publication",
+                "conditional_requirements": [
+                    {
+                        "when": "theorem-bearing claims are present",
+                        "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                    },
+                    {
+                        "when": "theorem-bearing claims are present",
+                        "required_evidence": ["duplicate activation clause"],
+                    },
+                ],
+            },
+        ),
+        (
+            normalize_review_contract_frontmatter_payload,
+            {
+                "review-contract": {
+                    "schema_version": 1,
+                    "review_mode": "publication",
+                    "conditional_requirements": [
+                        {
+                            "when": "theorem-bearing claims are present",
+                            "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                        },
+                        {
+                            "when": "theorem-bearing claims are present",
+                            "required_evidence": ["duplicate activation clause"],
+                        },
+                    ],
+                }
+            },
+        ),
+    ],
+)
+def test_review_contract_normalizers_reject_duplicate_conditional_requirement_when(
+    normalizer, payload: dict[str, object]
+) -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"conditional_requirements\[1\]\.when duplicates conditional_requirements\[0\]\.when: theorem-bearing claims are present",
+    ):
+        normalizer(payload)
+
+
 def test_review_contract_frontmatter_normalizer_rejects_prompt_wrapper_alias() -> None:
     with pytest.raises(ValueError, match="wrapper key 'review-contract'"):
         normalize_review_contract_frontmatter_payload(

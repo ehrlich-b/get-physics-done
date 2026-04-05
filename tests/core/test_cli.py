@@ -24,7 +24,7 @@ import gpd.runtime_cli as runtime_cli
 from gpd.adapters import get_adapter, list_runtimes
 from gpd.cli import app
 from gpd.core import cli_args as cli_args_module
-from gpd.core.constants import STATE_JSON_BACKUP_FILENAME
+from gpd.core.constants import ProjectLayout, STATE_JSON_BACKUP_FILENAME
 from gpd.core.costs import (
     CostBudgetThresholdSummary,
     CostProjectSummary,
@@ -2693,7 +2693,7 @@ def test_state_set_project_contract_uses_ancestor_project_root_from_nested_cwd(
     (project_root / "GPD").mkdir(parents=True, exist_ok=True)
     nested_cwd.mkdir(parents=True, exist_ok=True)
     contract_path = nested_cwd / "contract.json"
-    contract_path.write_text("{}", encoding="utf-8")
+    contract_path.write_text((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"), encoding="utf-8")
 
     validation_result = MagicMock()
     validation_result.valid = True
@@ -2716,7 +2716,8 @@ def test_state_set_project_contract_uses_ancestor_project_root_from_nested_cwd(
     _, validate_kwargs = mock_validate_contract.call_args
     assert validate_kwargs["project_root"] == project_root.resolve()
     assert validate_kwargs["mode"] == "approved"
-    mock_set_project_contract.assert_called_once_with(project_root.resolve(), {})
+    mock_set_project_contract.assert_called_once()
+    assert mock_set_project_contract.call_args.args[0] == project_root.resolve()
 
 
 @patch("gpd.core.state.state_record_session")
@@ -3121,6 +3122,39 @@ def test_convention_list(mock_list):
     result = runner.invoke(app, ["convention", "list"])
     assert result.exit_code == 0
     mock_list.assert_called_once()
+
+
+@patch("gpd.core.conventions.convention_list")
+def test_convention_list_does_not_recover_intent_during_read_only_snapshot(
+    mock_list: MagicMock,
+    tmp_path: Path,
+) -> None:
+    stale_state = default_state_dict()
+    stale_state["convention_lock"]["metric_signature"] = "(+,-,-,-)"
+    save_state_json(tmp_path, stale_state)
+
+    layout = ProjectLayout(tmp_path)
+    recovered_state = default_state_dict()
+    recovered_state["convention_lock"]["metric_signature"] = "(-,+,+,+)"
+    json_tmp = layout.gpd / ".state-json-tmp"
+    md_tmp = layout.gpd / ".state-md-tmp"
+    json_tmp.write_text(json.dumps(recovered_state, indent=2) + "\n", encoding="utf-8")
+    md_tmp.write_text(generate_state_markdown(recovered_state), encoding="utf-8")
+    layout.state_intent.write_text(f"{json_tmp}\n{md_tmp}\n", encoding="utf-8")
+
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {"conventions": {}}
+    mock_list.return_value = mock_result
+
+    before_state = layout.state_json.read_text(encoding="utf-8")
+
+    result = runner.invoke(app, ["--cwd", str(tmp_path), "convention", "list"])
+
+    assert result.exit_code == 0, result.output
+    lock = mock_list.call_args.args[0]
+    assert lock.metric_signature == "(+,-,-,-)"
+    assert layout.state_intent.exists()
+    assert layout.state_json.read_text(encoding="utf-8") == before_state
 
 
 def test_convention_list_fails_closed_for_malformed_primary_state(tmp_path: Path) -> None:

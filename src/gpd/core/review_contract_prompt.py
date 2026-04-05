@@ -207,6 +207,7 @@ def _normalize_review_contract_conditional_requirements(value: object) -> list[d
         raise ValueError("conditional_requirements must be a list of mappings")
 
     normalized: list[dict[str, object]] = []
+    seen_whens: dict[str, int] = {}
     for index, item in enumerate(value):
         field_name = f"conditional_requirements[{index}]"
         if not isinstance(item, Mapping):
@@ -254,6 +255,13 @@ def _normalize_review_contract_conditional_requirements(value: object) -> list[d
                 "required_outputs, required_evidence, blocking_conditions, "
                 "blocking_preflight_checks, stage_artifacts"
             )
+        when = normalized_item["when"]
+        if when in seen_whens:
+            first_index = seen_whens[when]
+            raise ValueError(
+                f"{field_name}.when duplicates conditional_requirements[{first_index}].when: {when}"
+            )
+        seen_whens[when] = index
         normalized.append(normalized_item)
     return normalized
 

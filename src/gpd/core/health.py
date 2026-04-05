@@ -204,7 +204,7 @@ def _peek_normalized_state_for_health(cwd: Path) -> tuple[dict[str, object] | No
     """
     state_obj, _integrity_issues, state_source = peek_state_json(
         cwd,
-        recover_intent=True,
+        recover_intent=False,
         surface_blocked_project_contract=True,
     )
     if not isinstance(state_obj, dict):
@@ -217,7 +217,7 @@ def check_state_validity(cwd: Path) -> HealthCheck:
 
     Delegates core validation to :func:`state_validate` and wraps the result.
     """
-    result = state_validate(cwd, recover_intent=True)
+    result = state_validate(cwd, recover_intent=False)
     issues = list(result.issues)
     warnings = list(result.warnings)
 

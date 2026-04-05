@@ -681,6 +681,32 @@ class TestConventionsServer:
 
         assert lock.metric_signature == "(+,-,-,-)"
 
+    def test_load_lock_does_not_recover_intent_during_read_only_status_lookup(self, tmp_path):
+        from gpd.core.constants import ProjectLayout
+        from gpd.core.state import default_state_dict, generate_state_markdown, save_state_json
+        from gpd.mcp.servers.conventions_server import _load_lock_from_project
+
+        stale_state = default_state_dict()
+        stale_state["convention_lock"] = {"metric_signature": "(+,-,-,-)"}
+        save_state_json(tmp_path, stale_state)
+
+        layout = ProjectLayout(tmp_path)
+        recovered_state = default_state_dict()
+        recovered_state["convention_lock"] = {"metric_signature": "(-,+,+,+)"}
+        json_tmp = layout.gpd / ".state-json-tmp"
+        md_tmp = layout.gpd / ".state-md-tmp"
+        json_tmp.write_text(json.dumps(recovered_state, indent=2) + "\n", encoding="utf-8")
+        md_tmp.write_text(generate_state_markdown(recovered_state), encoding="utf-8")
+        layout.state_intent.write_text(f"{json_tmp}\n{md_tmp}\n", encoding="utf-8")
+
+        before_state = layout.state_json.read_text(encoding="utf-8")
+
+        lock = _load_lock_from_project(str(tmp_path))
+
+        assert lock.metric_signature == "(+,-,-,-)"
+        assert layout.state_intent.exists()
+        assert layout.state_json.read_text(encoding="utf-8") == before_state
+
     def test_convention_set_preserves_backup_only_state_when_mutating_lock(self, tmp_path):
         from gpd.core.state import default_state_dict
         from gpd.mcp.servers.conventions_server import convention_set
@@ -1641,6 +1667,33 @@ class TestStateServer:
         assert result["project_contract_load_info"]["status"] == "loaded"
         assert result["project_contract_validation"]["valid"] is True
         assert result["project_contract_gate"]["authoritative"] is True
+
+    def test_state_server_load_state_json_does_not_recover_intent_during_read_only_lookup(self, tmp_path):
+        from gpd.core.constants import ProjectLayout
+        from gpd.core.state import default_state_dict, generate_state_markdown, save_state_json
+        from gpd.mcp.servers.state_server import load_state_json
+
+        stale_state = default_state_dict()
+        stale_state["position"]["current_phase"] = "01"
+        save_state_json(tmp_path, stale_state)
+
+        layout = ProjectLayout(tmp_path)
+        recovered_state = default_state_dict()
+        recovered_state["position"]["current_phase"] = "05"
+        json_tmp = layout.gpd / ".state-json-tmp"
+        md_tmp = layout.gpd / ".state-md-tmp"
+        json_tmp.write_text(json.dumps(recovered_state, indent=2) + "\n", encoding="utf-8")
+        md_tmp.write_text(generate_state_markdown(recovered_state), encoding="utf-8")
+        layout.state_intent.write_text(f"{json_tmp}\n{md_tmp}\n", encoding="utf-8")
+
+        before_state = layout.state_json.read_text(encoding="utf-8")
+
+        result = load_state_json(tmp_path)
+
+        assert result is not None
+        assert result["position"]["current_phase"] == "01"
+        assert layout.state_intent.exists()
+        assert layout.state_json.read_text(encoding="utf-8") == before_state
 
     def test_get_state_no_state(self):
         from gpd.mcp.servers.state_server import get_state

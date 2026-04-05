@@ -9,7 +9,7 @@ import pytest
 
 from gpd.adapters import get_adapter, list_runtimes
 from gpd.adapters.runtime_catalog import get_runtime_descriptor
-from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME
+from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, ProjectLayout
 from gpd.core.costs import UsageRecord, _profile_tier_mix, usage_ledger_path
 from gpd.core.recent_projects import record_recent_project
 from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_FIELDS
@@ -75,6 +75,24 @@ def _bootstrap_recoverable_project(tmp_path: Path) -> Path:
     (project / "GPD" / "ROADMAP.md").write_text("# Roadmap\n", encoding="utf-8")
     (project / "GPD" / "PROJECT.md").write_text("# Project\n", encoding="utf-8")
     return project
+
+
+def _write_state_intent_recovery_files(project: Path) -> ProjectLayout:
+    from gpd.core.state import default_state_dict
+
+    layout = ProjectLayout(project)
+    layout.state_json.parent.mkdir(parents=True, exist_ok=True)
+    layout.state_json.write_text(json.dumps(default_state_dict(), indent=2) + "\n", encoding="utf-8")
+
+    recovered_state = default_state_dict()
+    recovered_state["position"]["current_phase"] = "05"
+    recovered_state["position"]["status"] = "Executing"
+    json_tmp = layout.gpd / ".state-json-tmp"
+    md_tmp = layout.gpd / ".state-md-tmp"
+    json_tmp.write_text(json.dumps(recovered_state, indent=2) + "\n", encoding="utf-8")
+    md_tmp.write_text("# Recovered State\n", encoding="utf-8")
+    layout.state_intent.write_text(f"{json_tmp}\n{md_tmp}\n", encoding="utf-8")
+    return layout
 
 
 def _write_current_session(project: Path, *, session_id: str) -> None:
@@ -321,6 +339,24 @@ def test_build_runtime_hint_payload_merges_source_sections_and_actions(tmp_path:
     assert any("continues in-runtime from the selected project state" in action for action in payload.next_actions)
     assert any("fastest post-resume next command" in action for action in payload.next_actions)
     assert len(payload.next_actions) == len(set(payload.next_actions))
+
+
+def test_build_runtime_hint_payload_does_not_recover_intent_during_read_only_discovery(tmp_path: Path) -> None:
+    project = _bootstrap_recoverable_project(tmp_path)
+    layout = _write_state_intent_recovery_files(project)
+
+    before_state_json = layout.state_json.read_text(encoding="utf-8")
+    before_state_intent = layout.state_intent.read_text(encoding="utf-8")
+    before_json_tmp = (layout.gpd / ".state-json-tmp").read_text(encoding="utf-8")
+    before_md_tmp = (layout.gpd / ".state-md-tmp").read_text(encoding="utf-8")
+
+    payload = build_runtime_hint_payload(project)
+
+    assert payload.orientation["project_root"] == project.as_posix()
+    assert layout.state_json.read_text(encoding="utf-8") == before_state_json
+    assert layout.state_intent.read_text(encoding="utf-8") == before_state_intent
+    assert (layout.gpd / ".state-json-tmp").read_text(encoding="utf-8") == before_json_tmp
+    assert (layout.gpd / ".state-md-tmp").read_text(encoding="utf-8") == before_md_tmp
 
 
 def test_build_runtime_hint_payload_prefers_lineage_head_over_legacy_current_execution_snapshot(

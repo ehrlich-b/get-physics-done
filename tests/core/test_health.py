@@ -1045,7 +1045,7 @@ class TestRunHealth:
         assert report.fixes_applied == []
         assert state_check.details["state_source"] == "state.json"
 
-    def test_read_only_health_recovers_intent_marker_and_reports_current_state(
+    def test_read_only_health_does_not_recover_intent_marker_and_keeps_state_unchanged(
         self, tmp_path: Path
     ) -> None:
         cwd = _bootstrap_health_project(tmp_path)
@@ -1064,10 +1064,10 @@ class TestRunHealth:
         report = run_health(cwd, fix=False)
         state_check = next(check for check in report.checks if check.label == "State Validity")
 
-        assert layout.state_json.read_text(encoding="utf-8") != before_state
-        assert layout.state_md.read_text(encoding="utf-8") != before_md
-        assert not layout.state_intent.exists()
-        assert json.loads(layout.state_json.read_text(encoding="utf-8"))["position"]["current_phase"] == "05"
+        assert layout.state_json.read_text(encoding="utf-8") == before_state
+        assert layout.state_md.read_text(encoding="utf-8") == before_md
+        assert layout.state_intent.exists()
+        assert json.loads(layout.state_json.read_text(encoding="utf-8"))["position"]["current_phase"] == "01"
         assert state_check.details["state_source"] == "state.json"
 
     def test_fix_mode_restores_backup_state_and_refreshes_report_details(self, tmp_path: Path) -> None:

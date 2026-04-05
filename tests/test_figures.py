@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import struct
+import types
 from pathlib import Path
 
 import pytest
@@ -128,6 +129,115 @@ class TestNormalization:
 
         with pytest.raises(RuntimeError, match="SVG conversion requires"):
             normalize_figure(src, out)
+
+    def test_normalize_svg_preserves_cairosvg_failure_when_inkscape_also_missing(
+        self, tmp_path, monkeypatch
+    ):
+        src = tmp_path / "input" / "fig.svg"
+        src.parent.mkdir()
+        src.write_text("<svg></svg>")
+
+        out = tmp_path / "output"
+
+        import subprocess
+        import sys
+
+        cairo_error = ValueError("invalid SVG content")
+        fake_cairosvg = types.ModuleType("cairosvg")
+
+        def _raise_svg2pdf(*args, **kwargs):
+            raise cairo_error
+
+        fake_cairosvg.svg2pdf = _raise_svg2pdf  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "cairosvg", fake_cairosvg)
+        _original_run = subprocess.run
+
+        def _mock_run(args, **kwargs):
+            if args and args[0] == "inkscape":
+                raise FileNotFoundError("inkscape not found")
+            return _original_run(args, **kwargs)
+
+        monkeypatch.setattr("subprocess.run", _mock_run)
+
+        with pytest.raises(RuntimeError) as exc_info:
+            normalize_figure(src, out)
+
+        message = str(exc_info.value)
+        assert "SVG conversion failed after CairoSVG raised ValueError: invalid SVG content" in message
+        assert "Inkscape fallback failed: inkscape not found" in message
+        assert exc_info.value.__cause__ is cairo_error
+
+    def test_normalize_svg_reports_inkscape_stderr_and_cleans_partial_output(self, tmp_path, monkeypatch):
+        src = tmp_path / "input" / "fig.svg"
+        src.parent.mkdir()
+        src.write_text("<svg></svg>")
+
+        out = tmp_path / "output"
+
+        import subprocess
+        import sys
+
+        cairo_error = ValueError("invalid SVG content")
+        fake_cairosvg = types.ModuleType("cairosvg")
+
+        def _raise_svg2pdf(*args, **kwargs):
+            raise cairo_error
+
+        fake_cairosvg.svg2pdf = _raise_svg2pdf  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "cairosvg", fake_cairosvg)
+
+        def _mock_run(args, **kwargs):
+            export_arg = next(arg for arg in args if arg.startswith("--export-filename="))
+            dest = Path(export_arg.split("=", 1)[1])
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text("partial pdf")
+            raise subprocess.CalledProcessError(
+                1,
+                args,
+                stderr="inkscape parse failure",
+            )
+
+        monkeypatch.setattr("subprocess.run", _mock_run)
+
+        with pytest.raises(RuntimeError) as exc_info:
+            normalize_figure(src, out)
+
+        message = str(exc_info.value)
+        assert "stderr: inkscape parse failure" in message
+        assert exc_info.value.__cause__ is cairo_error
+        assert not (out / "fig.pdf").exists()
+
+    def test_normalize_svg_preserves_broken_cairosvg_import_error(self, tmp_path, monkeypatch):
+        src = tmp_path / "input" / "fig.svg"
+        src.parent.mkdir()
+        src.write_text("<svg></svg>")
+
+        out = tmp_path / "output"
+
+        import builtins
+
+        original_import = builtins.__import__
+        cairo_error = ImportError("missing libcairo runtime")
+        cairo_error.name = "libcairo"
+
+        def _mock_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == "cairosvg":
+                raise cairo_error
+            return original_import(name, globals, locals, fromlist, level)
+
+        def _mock_run(args, **kwargs):
+            raise FileNotFoundError("inkscape not found")
+
+        monkeypatch.setattr(builtins, "__import__", _mock_import)
+        monkeypatch.setattr("subprocess.run", _mock_run)
+
+        with pytest.raises(RuntimeError) as exc_info:
+            normalize_figure(src, out)
+
+        message = str(exc_info.value)
+        assert "SVG conversion failed after CairoSVG raised ImportError: missing libcairo runtime" in message
+        assert "Inkscape fallback failed: inkscape not found" in message
+        assert exc_info.value.__cause__ is cairo_error
 
 
 # ---- Sizing ----

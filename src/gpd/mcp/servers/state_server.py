@@ -53,7 +53,7 @@ def load_state_json(cwd: Path) -> dict | None:
 
     state_obj, _issues, state_source = peek_state_json(
         cwd,
-        recover_intent=True,
+        recover_intent=False,
         surface_blocked_project_contract=True,
     )
     if state_obj is None:

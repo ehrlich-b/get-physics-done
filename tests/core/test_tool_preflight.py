@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,73 @@ from gpd.core.tool_preflight import (
     build_plan_tool_preflight,
     parse_plan_tool_requirements,
 )
+
+
+def _write_tool_requirement_plan(plan_path: Path, command: str, *, plan_id: str) -> None:
+    plan_path.write_text(
+        "---\n"
+        "phase: 01-test\n"
+        f"plan: {plan_id}\n"
+        "type: execute\n"
+        "wave: 1\n"
+        "depends_on: []\n"
+        "files_modified: []\n"
+        "interactive: false\n"
+        "tool_requirements:\n"
+        "  - id: solver\n"
+        "    tool: command\n"
+        f"    command: {json.dumps(command)}\n"
+        "    purpose: Run external solver\n"
+        "conventions:\n"
+        "  units: natural\n"
+        "  metric: (+,-,-,-)\n"
+        "  coordinates: Cartesian\n"
+        "contract:\n"
+        "  schema_version: 1\n"
+        "  scope:\n"
+        "    question: What benchmark must this plan recover?\n"
+        "  context_intake:\n"
+        "    must_read_refs: [ref-main]\n"
+        "    must_include_prior_outputs: [GPD/phases/00-baseline/00-01-SUMMARY.md]\n"
+        "  claims:\n"
+        "    - id: claim-main\n"
+        "      statement: Recover the benchmark value within tolerance\n"
+        "      deliverables: [deliv-main]\n"
+        "      acceptance_tests: [test-main]\n"
+        "      references: [ref-main]\n"
+        "  deliverables:\n"
+        "    - id: deliv-main\n"
+        "      kind: figure\n"
+        "      path: figures/main.png\n"
+        "      description: Main benchmark figure\n"
+        "  references:\n"
+        "    - id: ref-main\n"
+        "      kind: paper\n"
+        "      locator: Author et al., Journal, 2024\n"
+        "      role: benchmark\n"
+        "      why_it_matters: Published comparison target\n"
+        "      applies_to: [claim-main]\n"
+        "      must_surface: true\n"
+        "      required_actions: [read, compare, cite]\n"
+        "  acceptance_tests:\n"
+        "    - id: test-main\n"
+        "      subject: claim-main\n"
+        "      kind: benchmark\n"
+        "      procedure: Compare against the benchmark reference\n"
+        "      pass_condition: Matches reference within tolerance\n"
+        "      evidence_required: [deliv-main, ref-main]\n"
+        "  forbidden_proxies:\n"
+        "    - id: fp-main\n"
+        "      subject: claim-main\n"
+        "      proxy: Qualitative trend match without numerical comparison\n"
+        "      reason: Would allow false progress without the decisive benchmark\n"
+        "  uncertainty_markers:\n"
+        "    weakest_anchors: [Reference tolerance interpretation]\n"
+        "    disconfirming_observations: [Benchmark agreement disappears after normalization fix]\n"
+        "---\n\n"
+        "Body.\n",
+        encoding="utf-8",
+    )
 
 
 def test_parse_plan_tool_requirements_normalizes_mathematica_alias() -> None:
@@ -196,6 +264,122 @@ def test_build_plan_tool_preflight_reports_missing_wolfram(monkeypatch: pytest.M
     assert result.checks[0].blocking is True
     assert "wolframscript not found on PATH" in result.blocking_conditions[0]
     assert "live execution and license state are not proven" in result.warnings[0]
+
+
+def test_build_plan_tool_preflight_blocks_missing_repo_local_script_target(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        "gpd.core.tool_preflight.shutil.which",
+        lambda name: "/usr/bin/python3" if name == "python" else None,
+    )
+    project_root = tmp_path / "project"
+    plan_path = project_root / "GPD" / "phases" / "01" / "01-10-PLAN.md"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_tool_requirement_plan(plan_path, "python scripts/missing_solver.py --version", plan_id="10")
+
+    result = build_plan_tool_preflight(plan_path)
+
+    assert result.passed is False
+    assert result.checks[0].available is False
+    assert result.checks[0].blocking is True
+    assert "repo-local script target not found" in result.checks[0].detail
+
+
+@pytest.mark.parametrize(
+    ("command", "runners"),
+    [
+        ("uv run --python 3.11 python scripts/missing_solver.py --version", {"uv", "python"}),
+        ("uv run -- python scripts/missing_solver.py --version", {"uv", "python"}),
+        ("pipx run --spec solver python scripts/missing_solver.py --version", {"pipx", "python"}),
+        ("hatch run test:python scripts/missing_solver.py --version", {"hatch", "python"}),
+    ],
+)
+def test_build_plan_tool_preflight_unwraps_runner_wrapped_python_targets(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    command: str,
+    runners: set[str],
+) -> None:
+    monkeypatch.setattr(
+        "gpd.core.tool_preflight.shutil.which",
+        lambda name: f"/usr/bin/{name}" if name in runners else None,
+    )
+    project_root = tmp_path / "project"
+    plan_path = project_root / "GPD" / "phases" / "01" / "01-10b-PLAN.md"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_tool_requirement_plan(plan_path, command, plan_id="10b")
+
+    result = build_plan_tool_preflight(plan_path)
+
+    assert result.passed is False
+    assert result.checks[0].available is False
+    assert "repo-local script target not found" in result.checks[0].detail
+
+
+def test_build_plan_tool_preflight_blocks_missing_extensionless_repo_local_python_target(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        "gpd.core.tool_preflight.shutil.which",
+        lambda name: "/usr/bin/python3" if name == "python" else None,
+    )
+    project_root = tmp_path / "project"
+    plan_path = project_root / "GPD" / "phases" / "01" / "01-10c-PLAN.md"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_tool_requirement_plan(plan_path, "python solver", plan_id="10c")
+
+    result = build_plan_tool_preflight(plan_path)
+
+    assert result.passed is False
+    assert result.checks[0].available is False
+    assert "repo-local script target not found: solver" in result.checks[0].detail
+
+
+def test_build_plan_tool_preflight_does_not_treat_src_as_script_path_alias(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        "gpd.core.tool_preflight.shutil.which",
+        lambda name: "/usr/bin/python3" if name == "python" else None,
+    )
+    project_root = tmp_path / "project"
+    (project_root / "src" / "scripts").mkdir(parents=True, exist_ok=True)
+    (project_root / "src" / "scripts" / "solver.py").write_text("print('solver')\n", encoding="utf-8")
+    plan_path = project_root / "GPD" / "phases" / "01" / "01-10d-PLAN.md"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_tool_requirement_plan(plan_path, "python scripts/solver.py --version", plan_id="10d")
+
+    result = build_plan_tool_preflight(plan_path)
+
+    assert result.passed is False
+    assert result.checks[0].available is False
+    assert "repo-local script target not found" in result.checks[0].detail
+
+
+def test_build_plan_tool_preflight_blocks_missing_repo_local_module_target(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        "gpd.core.tool_preflight.shutil.which",
+        lambda name: "/usr/bin/python3" if name == "python" else None,
+    )
+    project_root = tmp_path / "project"
+    (project_root / "src" / "gpd").mkdir(parents=True, exist_ok=True)
+    plan_path = project_root / "GPD" / "phases" / "01" / "01-11-PLAN.md"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_tool_requirement_plan(plan_path, "python -m gpd.cli", plan_id="11")
+
+    result = build_plan_tool_preflight(plan_path)
+
+    assert result.passed is False
+    assert result.checks[0].available is False
+    assert result.checks[0].blocking is True
+    assert "repo-local module target not found" in result.checks[0].detail
 
 
 def test_build_plan_tool_preflight_reports_configured_shared_wolfram_integration(

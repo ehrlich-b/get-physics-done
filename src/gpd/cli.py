@@ -831,18 +831,32 @@ def state_set_project_contract_cmd(
     source: str = typer.Argument(..., help="Path to a JSON file containing the project contract, or '-' for stdin"),
 ) -> None:
     """Persist the canonical project contract into state.json."""
+    from gpd.contracts import parse_project_contract_data_strict
     from gpd.core.contract_validation import validate_project_contract
-    from gpd.core.state import state_set_project_contract
+    from gpd.core.state import StateUpdateResult, state_set_project_contract
 
     contract_data = _load_json_document(source)
     project_root = _state_command_cwd()
-
-    validation = validate_project_contract(contract_data, mode="approved", project_root=project_root)
-    if not validation.valid:
-        _output(validation)
+    strict_result = parse_project_contract_data_strict(contract_data)
+    if strict_result.contract is None or strict_result.errors:
+        result = StateUpdateResult(
+            updated=False,
+            reason="Invalid project contract schema: "
+            + "; ".join(list(strict_result.errors) or ["project contract could not be normalized"]),
+            schema_reference="templates/state-json-schema.md",
+        )
+        _output(result)
         raise typer.Exit(code=1)
 
-    result = state_set_project_contract(project_root, contract_data)
+    validation = validate_project_contract(strict_result.contract, mode="approved", project_root=project_root)
+    if not validation.valid:
+        if _raw:
+            _emit_raw_json(_model_dump_with_schema_reference(validation, schema_reference="templates/state-json-schema.md"), err=True)
+        else:
+            _output(validation)
+        raise typer.Exit(code=1)
+
+    result = state_set_project_contract(project_root, strict_result.contract)
     _output(result)
     if not result.updated and not result.unchanged:
         raise typer.Exit(code=1)
@@ -2391,7 +2405,7 @@ def _load_convention_state_snapshot(cwd: Path) -> dict[str, object] | None:
     raw_state, _issues, source = _load_state_json_with_integrity_issues(
         cwd,
         persist_recovery=False,
-        recover_intent=True,
+        recover_intent=False,
         acquire_lock=False,
     )
     if raw_state is None:
@@ -5602,6 +5616,38 @@ def _project_root_for_json_input(input_path: str) -> Path:
     return resolved.parent
 
 
+def _enclosing_project_root_for_json_input(input_path: str) -> Path | None:
+    """Return the enclosing project root for a JSON artifact, if one exists."""
+
+    cwd = _get_cwd()
+    if input_path == "-":
+        return cwd if (cwd / "GPD").is_dir() else None
+
+    target = Path(input_path)
+    if not target.is_absolute():
+        resolved = (cwd / target).resolve(strict=False)
+        for base in (resolved.parent, *resolved.parent.parents):
+            if (base / "GPD").is_dir():
+                return base
+        return None
+
+    resolved = target.expanduser().resolve(strict=False)
+    immediate_parent = resolved.parent
+    if (immediate_parent / "GPD").is_dir():
+        return immediate_parent
+
+    for base in immediate_parent.parents:
+        gpd_dir = (base / "GPD").resolve(strict=False)
+        if not gpd_dir.is_dir():
+            continue
+        try:
+            resolved.relative_to(gpd_dir)
+        except ValueError:
+            continue
+        return base
+    return None
+
+
 def _resolve_existing_input_path(input_path: str | None, *, candidates: tuple[str, ...], label: str) -> Path:
     """Resolve an explicit or default input path under the current cwd."""
     if input_path:
@@ -7272,13 +7318,14 @@ def validate_project_contract_cmd(
 
     payload = _load_json_document(input_path)
     if input_path == "-":
-        anchored_project_root = _state_command_cwd()
-        stdin_inside_project = (anchored_project_root / "GPD").is_dir()
+        workspace_cwd = _state_command_cwd()
+        stdin_inside_project = (workspace_cwd / "GPD").is_dir()
+        anchored_project_root = workspace_cwd if stdin_inside_project else None
         prefer_filesystem_anchor = False
     else:
-        anchored_project_root = _project_root_for_json_input(input_path)
+        anchored_project_root = _enclosing_project_root_for_json_input(input_path)
         stdin_inside_project = False
-        prefer_filesystem_anchor = (anchored_project_root / "GPD").is_dir()
+        prefer_filesystem_anchor = anchored_project_root is not None
     strict_result = parse_project_contract_data_strict(payload)
     if strict_result.contract is None or strict_result.errors:
         result = ProjectContractValidationResult(
@@ -7288,7 +7335,7 @@ def validate_project_contract_cmd(
             mode=normalized_mode,
         )
     else:
-        if prefer_filesystem_anchor:
+        if prefer_filesystem_anchor and anchored_project_root is not None:
             result = validate_project_contract(
                 strict_result.contract,
                 mode=normalized_mode,
@@ -7308,12 +7355,15 @@ def validate_project_contract_cmd(
             )
         else:
             unanchored_result = validate_project_contract(strict_result.contract, mode=normalized_mode, project_root=None)
-            anchored_result = validate_project_contract(
-                strict_result.contract,
-                mode=normalized_mode,
-                project_root=anchored_project_root,
-            )
-            result = anchored_result if anchored_result.valid != unanchored_result.valid else unanchored_result
+            if anchored_project_root is None:
+                result = unanchored_result
+            else:
+                anchored_result = validate_project_contract(
+                    strict_result.contract,
+                    mode=normalized_mode,
+                    project_root=anchored_project_root,
+                )
+                result = anchored_result if anchored_result.valid != unanchored_result.valid else unanchored_result
     if not result.valid:
         if _raw:
             _emit_raw_json(_model_dump_with_schema_reference(result, schema_reference="templates/state-json-schema.md"), err=True)

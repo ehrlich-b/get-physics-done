@@ -787,6 +787,7 @@ def test_state_set_project_contract_rejects_invalid_contract(tmp_path: Path):
     assert result.updated is False
     assert result.reason is not None
     assert "Invalid project contract" in result.reason
+    assert result.schema_reference == "templates/state-json-schema.md"
     saved = load_state_json(tmp_path)
     assert saved is not None
     assert saved["project_contract"] is None
@@ -964,6 +965,7 @@ def test_state_set_project_contract_rejects_non_object_input_without_crashing(tm
 
     assert result.updated is False
     assert result.reason == "Invalid project contract schema: project contract must be a JSON object"
+    assert result.schema_reference == "templates/state-json-schema.md"
     saved = load_state_json(tmp_path)
     assert saved is not None
     assert saved["project_contract"] is None
@@ -1976,7 +1978,7 @@ def test_state_validate_keeps_normalized_primary_when_unrelated_section_is_schem
     assert not any("state.json root was recovered from state.json.bak" in warning for warning in result.warnings)
 
 
-def test_state_snapshot_recovers_intent_marker_and_reports_current_state(tmp_path: Path) -> None:
+def test_state_snapshot_does_not_recover_intent_marker_and_keeps_state_unchanged(tmp_path: Path) -> None:
     stale_state = default_state_dict()
     stale_state["position"]["current_phase"] = "01"
 
@@ -1989,10 +1991,10 @@ def test_state_snapshot_recovers_intent_marker_and_reports_current_state(tmp_pat
 
     snapshot = state_snapshot(tmp_path)
 
-    assert snapshot.current_phase == "05"
-    assert layout.state_json.read_text(encoding="utf-8") != before_state
-    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["position"]["current_phase"] == "05"
-    assert not layout.state_intent.exists()
+    assert snapshot.current_phase == "01"
+    assert layout.state_json.read_text(encoding="utf-8") == before_state
+    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["position"]["current_phase"] == "01"
+    assert layout.state_intent.exists()
 
 
 def test_load_state_json_discards_stale_intent_when_current_state_files_are_newer(tmp_path: Path) -> None:
@@ -2048,6 +2050,29 @@ def test_peek_state_json_fallback_does_not_consume_intent_marker(tmp_path: Path)
     assert state_source == "STATE.md"
     assert layout.state_intent.exists()
     assert layout.state_intent.read_text(encoding="utf-8") == before_intent
+
+
+def test_peek_state_json_state_md_fallback_does_not_import_legacy_session_continuation(tmp_path: Path) -> None:
+    state = default_state_dict()
+    state["session"]["resume_file"] = "GPD/phases/03-analysis/.continue-here.md"
+    state["session"]["stopped_at"] = "2026-03-10T12:00:00+00:00"
+    state["session"]["hostname"] = "legacy-host"
+    state["session"]["platform"] = "legacy-platform"
+    layout = ProjectLayout(tmp_path)
+    layout.gpd.mkdir(parents=True, exist_ok=True)
+    layout.state_md.write_text(generate_state_markdown(state), encoding="utf-8")
+
+    resume_path = tmp_path / "GPD" / "phases" / "03-analysis" / ".continue-here.md"
+    resume_path.parent.mkdir(parents=True, exist_ok=True)
+    resume_path.write_text("resume\n", encoding="utf-8")
+
+    loaded, issues, state_source = peek_state_json(tmp_path, recover_intent=False)
+
+    assert loaded is not None
+    assert state_source == "STATE.md"
+    assert "state.json root was recovered from STATE.md after primary state.json was unavailable or unreadable" in issues
+    assert loaded["continuation"]["handoff"]["resume_file"] is None
+    assert loaded["continuation"]["machine"]["hostname"] is None
 
 
 def test_mutation_snapshot_recovers_from_state_markdown_when_json_and_backup_are_unreadable(tmp_path: Path) -> None:
@@ -2883,6 +2908,26 @@ def test_state_validate_review_blocks_missing_evidence_file(tmp_path):
     assert any('evidence_path "artifacts/reports/R-04.json" does not exist' in issue for issue in result.issues)
 
 
+def test_state_validate_does_not_revive_legacy_session_resume_file_as_continuation_mismatch(tmp_path: Path) -> None:
+    save_state_json(tmp_path, default_state_dict())
+
+    state_md = default_state_dict()
+    state_md["session"]["resume_file"] = "GPD/phases/03-analysis/.continue-here.md"
+    state_md["session"]["stopped_at"] = "2026-03-10T12:00:00+00:00"
+    state_md["session"]["hostname"] = "legacy-host"
+    state_md["session"]["platform"] = "legacy-platform"
+    layout = ProjectLayout(tmp_path)
+    layout.state_md.write_text(generate_state_markdown(state_md), encoding="utf-8")
+
+    resume_path = tmp_path / "GPD" / "phases" / "03-analysis" / ".continue-here.md"
+    resume_path.parent.mkdir(parents=True, exist_ok=True)
+    resume_path.write_text("resume\n", encoding="utf-8")
+
+    result = state_validate(tmp_path)
+
+    assert "continuation mismatch between state.json and STATE.md" not in result.issues
+
+
 def test_state_load_review_surfaces_integrity_blockers(tmp_path):
     state = _state_with_result(
         {
@@ -3000,10 +3045,7 @@ def test_parse_state_to_json_structure():
     assert result["position"]["current_phase"] == "3"
     assert result["position"]["status"] == "Executing"
     assert result["session"]["last_date"] is not None
-    assert result["continuation"]["handoff"]["recorded_at"] == result["session"]["last_date"]
-    assert result["continuation"]["handoff"]["stopped_at"] == result["session"]["stopped_at"]
-    assert result["continuation"]["handoff"]["resume_file"] is None
-    assert result["continuation"]["machine"]["recorded_at"] == result["session"]["last_date"]
+    assert result["continuation"] == default_state_dict()["continuation"]
     assert result["performance_metrics"]["rows"][0]["label"] == "Phase 1 P1"
     assert len(result["decisions"]) == 1
     assert len(result["blockers"]) == 1
@@ -3018,7 +3060,7 @@ def test_parse_state_to_json_preserves_session_last_result_id() -> None:
     result = parse_state_to_json(content)
 
     assert result["session"]["last_result_id"] == "result-03"
-    assert result["continuation"]["handoff"]["last_result_id"] == "result-03"
+    assert result["continuation"] == default_state_dict()["continuation"]
 
 
 def test_state_record_session_does_not_emit_local_observability_events(tmp_path, monkeypatch):

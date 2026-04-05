@@ -315,7 +315,7 @@ def test_project_contract_loader_does_not_warn_about_backup_use_without_a_loaded
     assert not any("Using project_contract from" in record.message for record in caplog.records)
 
 
-def test_project_contract_loader_recovers_intent_backed_state_and_persists_it(tmp_path: Path) -> None:
+def test_project_contract_loader_keeps_intent_backed_state_read_only(tmp_path: Path) -> None:
     _setup_project(tmp_path)
     save_state_json(tmp_path, default_state_dict())
 
@@ -339,11 +339,11 @@ def test_project_contract_loader_recovers_intent_backed_state_and_persists_it(tm
     contract, load_info = _load_project_contract(tmp_path)
 
     assert contract is not None
-    assert contract.model_dump(mode="json")["scope"]["question"] == "Recovered from intent-backed write"
+    assert contract.model_dump(mode="json")["scope"]["question"] == "Stale contract"
     assert load_info["status"] == "loaded"
     assert load_info["source_path"].endswith("state.json")
-    assert not layout.state_intent.exists()
-    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["project_contract"]["scope"]["question"] == "Recovered from intent-backed write"
+    assert layout.state_intent.exists()
+    assert json.loads(layout.state_json.read_text(encoding="utf-8"))["project_contract"]["scope"]["question"] == "Stale contract"
 
 
 def test_state_and_context_surface_visible_blocked_integrity_backup_project_contract(tmp_path: Path) -> None:

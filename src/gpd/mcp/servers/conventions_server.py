@@ -204,11 +204,16 @@ SUBFIELD_DEFAULTS: dict[str, dict[str, str]] = {
 def _load_lock_from_project(project_dir: str) -> ConventionLock:
     """Load convention lock from project state.json."""
     project_root = Path(project_dir)
-    raw = _recoverable_state_payload(project_root)
+    raw = _recoverable_state_payload(project_root, recover_intent=False)
     return convention_lock_from_state_payload(raw, source_label="project state")
 
 
-def _recoverable_state_payload(project_root: Path, *, acquire_lock: bool = True) -> dict[str, object]:
+def _recoverable_state_payload(
+    project_root: Path,
+    *,
+    acquire_lock: bool = True,
+    recover_intent: bool = False,
+) -> dict[str, object]:
     """Return recoverable project state or fail closed when state exists but is unusable."""
     from gpd.core.state import peek_state_json
 
@@ -229,7 +234,7 @@ def _recoverable_state_payload(project_root: Path, *, acquire_lock: bool = True)
     if acquire_lock:
         state_obj, _integrity_issues, _state_source = peek_state_json(
             project_root,
-            recover_intent=True,
+            recover_intent=recover_intent,
             surface_blocked_project_contract=True,
         )
     else:
@@ -238,7 +243,7 @@ def _recoverable_state_payload(project_root: Path, *, acquire_lock: bool = True)
         state_obj, _integrity_issues, _state_source = _load_state_json_with_integrity_issues(
             project_root,
             persist_recovery=False,
-            recover_intent=True,
+            recover_intent=recover_intent,
             surface_blocked_project_contract=True,
             acquire_lock=False,
         )
@@ -267,7 +272,7 @@ def _update_lock_in_project(
     cwd = Path(project_dir)
     state_path = ProjectLayout(cwd).state_json
     with file_lock(state_path):
-        raw = _recoverable_state_payload(cwd, acquire_lock=False)
+        raw = _recoverable_state_payload(cwd, acquire_lock=False, recover_intent=True)
         lock_data = convention_lock_data_from_state_payload(raw, source_label="state.json")
         lock = convention_lock_from_state_payload(raw, source_label="state.json")
 
