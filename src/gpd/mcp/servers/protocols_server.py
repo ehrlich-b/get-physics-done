@@ -32,6 +32,18 @@ logger = configure_mcp_logging("gpd-protocols")
 
 PROTOCOLS_DIR = SPECS_DIR / "references" / "protocols"
 PROTOCOL_DOMAINS_MANIFEST = PROTOCOLS_DIR / "protocol-domains.json"
+_AUTHORITATIVE_PROTOCOL_DOMAINS: tuple[str, ...] = (
+    "computational_methods",
+    "condensed_matter",
+    "core_derivation",
+    "fluid_plasma",
+    "general",
+    "gr_cosmology",
+    "mathematical_methods",
+    "nuclear_particle",
+    "numerical_translation",
+    "quantum_info",
+)
 
 # ---------------------------------------------------------------------------
 # Parsing
@@ -137,8 +149,7 @@ def _protocol_domain(name: str) -> str:
         raise ValueError(f"Protocol {name!r} is missing domain metadata in {PROTOCOL_DOMAINS_MANIFEST.name}") from exc
 
 
-_PROTOCOL_FILTER_DOMAINS = tuple(sorted(set(_load_protocol_domain_manifest().values())))
-ProtocolDomainFilter = Literal[*_PROTOCOL_FILTER_DOMAINS]
+ProtocolDomainFilter = Literal[*_AUTHORITATIVE_PROTOCOL_DOMAINS]
 
 
 def _normalize_protocol_tier(raw: object, *, protocol_name: str) -> int:

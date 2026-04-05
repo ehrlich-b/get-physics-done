@@ -237,6 +237,17 @@ class TestParseAgentFile:
         agent = _parse_agent_file(f, source="agents")
         assert agent.tools == ["file_read", "shell"]
 
+    def test_agent_file_allowed_tools_alias_merges_into_tools(self, tmp_path: Path) -> None:
+        f = tmp_path / "aliased-tools.md"
+        f.write_text(
+            "---\nname: aliased-tools\ntools: shell\nallowed-tools:\n  - file_read\n  - shell\n---\nBody.",
+            encoding="utf-8",
+        )
+
+        agent = _parse_agent_file(f, source="agents")
+
+        assert agent.tools == ["shell", "file_read"]
+
     def test_agent_file_invalid_tools_scalar_raises(self, tmp_path: Path) -> None:
         f = tmp_path / "bad-tools-scalar.md"
         f.write_text("---\nname: bad-agent\ntools: 7\n---\nBody.", encoding="utf-8")
@@ -454,6 +465,47 @@ class TestParseCommandFile:
 
         with pytest.raises(ValueError, match="project_reentry_capable for gpd:resume-work must be a boolean"):
             _parse_command_file(f, source="commands")
+
+    @pytest.mark.parametrize("raw_value", ['"true"', '"false"', "1", "0", "yes", "no"])
+    def test_command_project_reentry_capable_rejects_legacy_boolean_aliases(
+        self,
+        tmp_path: Path,
+        raw_value: str,
+    ) -> None:
+        f = tmp_path / "resume-work.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:resume-work\n"
+            f"project_reentry_capable: {raw_value}\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match="project_reentry_capable for gpd:resume-work must be a boolean"):
+            _parse_command_file(f, source="commands")
+
+    @pytest.mark.parametrize(("raw_value", "expected"), [("True", True), ("FALSE", False)])
+    def test_command_project_reentry_capable_accepts_yaml_boolean_case_variants(
+        self,
+        tmp_path: Path,
+        raw_value: str,
+        expected: bool,
+    ) -> None:
+        f = tmp_path / "resume-work.md"
+        f.write_text(
+            "---\n"
+            "name: gpd:resume-work\n"
+            "context_mode: project-required\n"
+            f"project_reentry_capable: {raw_value}\n"
+            "---\n"
+            "Body.",
+            encoding="utf-8",
+        )
+
+        cmd = _parse_command_file(f, source="commands")
+
+        assert cmd.project_reentry_capable is expected
 
     def test_command_project_reentry_capable_requires_project_required_context_mode(self, tmp_path: Path) -> None:
         f = tmp_path / "start.md"

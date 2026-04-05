@@ -298,7 +298,6 @@ _CONTRACT_CHECK_REQUEST_HINTS: dict[str, dict[str, object]] = {
         "required_request_fields": [
             "contract",
             "observed.scope_status",
-            "observed.uncovered_conclusion_clause_ids",
         ],
         "schema_required_request_fields": ["contract", "observed.scope_status"],
         "schema_required_request_anyof_fields": [
@@ -1228,6 +1227,12 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
     if check_key:
         request_template["check_key"] = check_key
     required_request_fields = list(hint.get("required_request_fields", []))
+    schema_required_request_fields = list(hint.get("schema_required_request_fields", required_request_fields))
+    schema_required_request_anyof_fields = [
+        [field for field in group if isinstance(field, str) and field]
+        for group in hint.get("schema_required_request_anyof_fields", [])
+        if isinstance(group, (list, tuple))
+    ]
     optional_request_fields = [
         *supported_binding_fields,
         *[
@@ -1238,6 +1243,8 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
     ]
     enriched_hint = {
         "required_request_fields": required_request_fields,
+        "schema_required_request_fields": schema_required_request_fields,
+        "schema_required_request_anyof_fields": schema_required_request_anyof_fields,
         "optional_request_fields": [field for field in optional_request_fields if field not in required_request_fields],
         "supported_binding_fields": supported_binding_fields,
         "request_template": request_template,
@@ -1424,6 +1431,12 @@ def _contract_check_request_hint(check_key: str, *, contract: ResearchContract |
             for field_name in ("metadata.hypothesis_ids", "metadata.theorem_parameter_symbols"):
                 if field_name in enriched_hint["required_request_fields"]:
                     _demote_required_field(field_name)
+
+    if check_key == "contract.claim_to_proof_alignment":
+        observed = request_template.setdefault("observed", {})
+        # Keep the starter template runnable without pre-asserting a clause audit outcome.
+        if metadata.get("conclusion_clause_ids") and observed.get("uncovered_conclusion_clause_ids") is None:
+            metadata["conclusion_clause_ids"] = None
 
     if check_key in _PROOF_CHECK_KEYS:
         if "contract" not in enriched_hint["required_request_fields"]:
@@ -1664,16 +1677,23 @@ def _normalize_contract_metadata(metadata: dict[str, object]) -> tuple[dict[str,
     for key in (
         "allowed_families",
         "forbidden_families",
-        "theorem_parameter_symbols",
-        "hypothesis_ids",
-        "quantifiers",
-        "conclusion_clause_ids",
     ):
         if key in normalized:
             error = _validate_string_list_field(normalized[key], field_name=f"metadata.{key}")
             if error is not None:
                 return {}, error
             normalized[key] = _normalize_string_list(normalized[key])
+    for key in (
+        "theorem_parameter_symbols",
+        "hypothesis_ids",
+        "quantifiers",
+        "conclusion_clause_ids",
+    ):
+        if key in normalized:
+            normalized_value, error = _validate_optional_string_list(normalized[key], field_name=f"metadata.{key}")
+            if error is not None:
+                return {}, error
+            normalized[key] = normalized_value
     return normalized, None
 
 
@@ -1970,7 +1990,8 @@ def run_check(
     ``check_id`` accepts the stable numeric check ids (for example ``"5.1"``)
     and the canonical check keys (for example ``"contract.limit_recovery"``).
     For contract-aware checks, the response also surfaces
-    ``required_request_fields``, ``optional_request_fields``,
+    ``required_request_fields``, ``schema_required_request_fields``,
+    ``schema_required_request_anyof_fields``, ``optional_request_fields``,
     ``supported_binding_fields``, and a ``request_template`` so callers can
     build a valid ``run_contract_check`` request before executing it.
 
@@ -2661,6 +2682,8 @@ def _proof_metadata_contract_mismatch_errors(
         if field_name not in supplied_metadata:
             continue
         supplied_value = supplied_metadata.get(field_name)
+        if supplied_value is None:
+            continue
         if isinstance(expected_value, list):
             if set(_normalized_unique_strings(supplied_value)) != set(_normalized_unique_strings(expected_value)):
                 errors.append(
@@ -3753,7 +3776,8 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
     optional and must be a string when present.
 
     Use ``suggest_contract_checks(contract, active_checks=...)`` first when you
-    need the exact ``required_request_fields``, ``optional_request_fields``,
+    need the exact ``required_request_fields``, ``schema_required_request_fields``,
+    ``schema_required_request_anyof_fields``, ``optional_request_fields``,
     ``supported_binding_fields``, and ``request_template`` for a given
     contract-aware check before calling this tool.
     """
@@ -4312,6 +4336,7 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                     status = "warning"
 
             elif check_meta.check_key == "contract.claim_to_proof_alignment":
+                supplied_conclusion_clause_ids = _normalized_unique_strings(supplied_metadata.get("conclusion_clause_ids"))
                 claim_statement, error_message = _validate_optional_string(
                     metadata.get("claim_statement"),
                     field_name="metadata.claim_statement",
@@ -4351,7 +4376,7 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
                     missing_inputs.append("metadata.claim_statement")
                 if scope_status is None:
                     missing_inputs.append("observed.scope_status")
-                if conclusion_clause_ids and uncovered_conclusion_clause_ids is None:
+                if supplied_conclusion_clause_ids and uncovered_conclusion_clause_ids is None:
                     missing_inputs.append("observed.uncovered_conclusion_clause_ids")
                 if scope_status == "matched" and not (uncovered_conclusion_clause_ids or []) and not missing_inputs:
                     status = "pass"
@@ -4491,6 +4516,7 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
     each suggestion can mark ``already_active`` precisely.
 
     Each ``suggested_checks[]`` entry includes ``required_request_fields``,
+    ``schema_required_request_fields``, ``schema_required_request_anyof_fields``,
     ``optional_request_fields``, ``supported_binding_fields``, and a
     ``request_template`` that is safe to use as the starting point for
     ``run_contract_check(request=...)``. Proof-check templates surface an

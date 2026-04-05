@@ -133,6 +133,44 @@ def test_resolve_runtime_lookup_dir_falls_back_to_project_root_for_trusted_proje
     assert resolved == str(project_root)
 
 
+def test_resolve_runtime_lookup_dir_normalizes_workspace_return_path_for_trusted_project_dir(
+    tmp_path: Path,
+) -> None:
+    project_root = tmp_path / "project"
+    workspace = project_root / "src" / "analysis"
+    workspace.mkdir(parents=True)
+
+    _mark_complete_install(workspace / ".codex", runtime="codex")
+
+    resolved = resolve_runtime_lookup_dir(
+        workspace_dir=str(workspace / ".." / "analysis"),
+        project_root=str(project_root / ".." / "project"),
+        explicit_project_dir=True,
+        active_runtime="codex",
+    )
+
+    assert resolved == str(workspace)
+
+
+def test_resolve_runtime_lookup_dir_normalizes_project_root_return_path_for_trusted_project_dir(
+    tmp_path: Path,
+) -> None:
+    project_root = tmp_path / "project"
+    workspace = project_root / "src" / "analysis"
+    workspace.mkdir(parents=True)
+
+    _mark_complete_install(project_root / ".codex", runtime="codex")
+
+    resolved = resolve_runtime_lookup_dir(
+        workspace_dir=str(workspace / ".." / "analysis"),
+        project_root=str(project_root / ".." / "project"),
+        explicit_project_dir=True,
+        active_runtime="codex",
+    )
+
+    assert resolved == str(project_root)
+
+
 def test_resolve_runtime_lookup_active_runtime_prefers_project_runtime_for_explicit_project_dir() -> None:
     calls: list[str | None] = []
 
@@ -281,8 +319,9 @@ def test_resolve_runtime_lookup_context_from_payload_roots_respects_trusted_proj
         runtime_resolver=_runtime_resolver,
     )
 
+    expected_lookup_dir = str(Path("/tmp/project").resolve(strict=False))
     assert resolved.active_runtime == "codex"
-    assert resolved.lookup_dir == "/tmp/project"
+    assert resolved.lookup_dir == expected_lookup_dir
     assert calls == ["/tmp/project"]
 
 

@@ -530,6 +530,17 @@ def _inject_command_visibility_sections_from_frontmatter(content: str) -> str:
         return content
     command_name_match = re.search(r"(?m)^name:\s*(?P<name>.+?)\s*$", frontmatter)
     command_name = command_name_match.group("name").strip().strip("\"'") if command_name_match is not None else ""
+    has_agent_only_frontmatter = any(
+        re.search(pattern, frontmatter, flags=re.MULTILINE) is not None
+        for pattern in (
+            r"^tools:\s*(?:.*)$",
+            r"^surface:\s*(?:.*)$",
+            r"^role_family:\s*(?:.*)$",
+            r"^artifact_write_authority:\s*(?:.*)$",
+            r"^shared_state_authority:\s*(?:.*)$",
+            r"^commit_authority:\s*(?:.*)$",
+        )
+    )
     has_command_only_frontmatter = any(
         re.search(pattern, frontmatter, flags=re.MULTILINE) is not None
         for pattern in (
@@ -540,6 +551,8 @@ def _inject_command_visibility_sections_from_frontmatter(content: str) -> str:
             r"^project_reentry_capable:\s*.+$",
         )
     )
+    if not command_name.startswith("gpd:") and has_agent_only_frontmatter:
+        return content
     if not command_name.startswith("gpd:") and not has_command_only_frontmatter:
         return content
     eol = _preferred_markdown_eol(preamble, frontmatter, separator, body)

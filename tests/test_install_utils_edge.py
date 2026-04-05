@@ -371,6 +371,22 @@ class TestProtectRuntimeAgentPrompt:
 
 
 class TestCommandVisibilityInjection:
+    def test_agent_frontmatter_with_allowed_tools_is_not_treated_as_command_surface(self) -> None:
+        content = (
+            "---\n"
+            "name: gpd-executor\n"
+            "allowed-tools:\n"
+            "  - shell\n"
+            "surface: internal\n"
+            "role_family: execution\n"
+            "---\n"
+            "Body.\n"
+        )
+
+        result = _inject_command_visibility_sections_from_frontmatter(content)
+
+        assert result == content
+
     def test_requires_only_section_is_injected_once_before_body(self) -> None:
         content = (
             "---\n"

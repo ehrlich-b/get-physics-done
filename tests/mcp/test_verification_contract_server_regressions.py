@@ -1232,20 +1232,13 @@ def test_suggest_contract_checks_derives_proof_request_templates_from_unique_pro
     assert quantifier["request_template"]["observed"]["scope_status"] is None
 
     alignment = checks["contract.claim_to_proof_alignment"]
-    assert alignment["required_request_fields"] == [
-        "contract",
-        "observed.scope_status",
-        "observed.uncovered_conclusion_clause_ids",
-    ]
+    assert alignment["required_request_fields"] == ["contract", "observed.scope_status"]
     assert "metadata.conclusion_clause_ids" in alignment["optional_request_fields"]
     assert "metadata.conclusion_clause_ids[]" not in alignment["optional_request_fields"]
     assert alignment["request_template"]["binding"]["acceptance_test_ids"] == ["test-proof-align"]
     assert alignment["request_template"]["contract"] is None
     assert alignment["request_template"]["metadata"]["claim_statement"].startswith("For all r_0 > 0")
-    assert alignment["request_template"]["metadata"]["conclusion_clause_ids"] == [
-        "conclusion-classification",
-        "conclusion-uniqueness",
-    ]
+    assert alignment["request_template"]["metadata"]["conclusion_clause_ids"] is None
     assert alignment["request_template"]["observed"]["uncovered_conclusion_clause_ids"] is None
 
     counterexample = checks["contract.counterexample_search"]

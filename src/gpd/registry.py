@@ -161,14 +161,22 @@ class SkillDef:
 # ─── Parsing helpers ─────────────────────────────────────────────────────────
 
 
-def _parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
-    """Parse YAML frontmatter from markdown text. Returns (meta, body)."""
+def _frontmatter_parts(text: str) -> tuple[str | None, str]:
+    """Return raw frontmatter YAML and body from markdown text when present."""
+
     text = text.lstrip('﻿')
     frontmatter_candidate = _LEADING_BLANK_LINES_BEFORE_FRONTMATTER_RE.sub("", text, count=1)
     frontmatter_parts = _split_frontmatter_block(frontmatter_candidate)
     if frontmatter_parts is None:
+        return None, text
+    return frontmatter_parts
+
+
+def _parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
+    """Parse YAML frontmatter from markdown text. Returns (meta, body)."""
+    yaml_str, body = _frontmatter_parts(text)
+    if yaml_str is None:
         return {}, text
-    yaml_str, body = frontmatter_parts
     try:
         meta = yaml.safe_load(yaml_str)
     except yaml.YAMLError as exc:
@@ -260,6 +268,19 @@ def _parse_tools(raw: object, *, field_name: str = "tools", owner_name: str | No
     return values
 
 
+def _merge_tool_lists(*tool_lists: list[str]) -> list[str]:
+    """Merge multiple tool lists while preserving first-seen order."""
+    merged: list[str] = []
+    seen: set[str] = set()
+    for tool_list in tool_lists:
+        for tool in tool_list:
+            if tool in seen:
+                continue
+            seen.add(tool)
+            merged.append(tool)
+    return merged
+
+
 def _parse_requires(raw: object, *, command_name: str) -> dict[str, object]:
     """Normalize command requires frontmatter without accepting malformed mappings."""
     if raw is None:
@@ -314,22 +335,44 @@ def _parse_allowed_tools(raw: object, *, command_name: str) -> list[str]:
 
 
 def _parse_bool_field(raw: object, *, field_name: str, command_name: str, default: bool = False) -> bool:
-    """Normalize booleans from YAML, including common quoted string spellings."""
+    """Parse a strict YAML boolean and reject legacy compatibility aliases."""
     if raw is None:
         return default
     if isinstance(raw, bool):
         return raw
-    if isinstance(raw, int) and raw in (0, 1):
-        return bool(raw)
-    if isinstance(raw, str):
-        normalized = raw.strip().lower()
-        if not normalized:
-            return default
-        if normalized in {"true", "1", "yes", "y", "on"}:
-            return True
-        if normalized in {"false", "0", "no", "n", "off"}:
-            return False
     raise ValueError(f"{field_name} for {command_name} must be a boolean")
+
+
+def _validate_raw_boolean_frontmatter_field(
+    frontmatter: str | None,
+    *,
+    field_name: str,
+    command_name: str,
+) -> None:
+    """Reject legacy boolean spellings before YAML coercion can hide them."""
+
+    if not frontmatter:
+        return
+    pattern = re.compile(
+        rf"(?m)^[ \t]*{re.escape(field_name)}:[ \t]*(?P<value>[^#\r\n]+?)[ \t]*(?:#.*)?$"
+    )
+    match = pattern.search(frontmatter)
+    if match is None:
+        return
+    raw_value = match.group("value").strip()
+    if raw_value.casefold() in {"true", "false"}:
+        return
+    raise ValueError(f"{field_name} for {command_name} must be a boolean")
+
+
+def _validate_raw_command_frontmatter(frontmatter: str | None, *, command_name: str) -> None:
+    """Reject legacy raw frontmatter spellings for strict command metadata."""
+
+    _validate_raw_boolean_frontmatter_field(
+        frontmatter,
+        field_name="project_reentry_capable",
+        command_name=command_name,
+    )
 
 
 def _parse_project_reentry_capable(raw: object, *, command_name: str, context_mode: str) -> bool:
@@ -353,6 +396,8 @@ VALID_AGENT_SURFACES: tuple[str, ...] = ("public", "internal")
 VALID_AGENT_ROLE_FAMILIES: tuple[str, ...] = ("worker", "analysis", "verification", "review", "coordination")
 VALID_AGENT_ARTIFACT_WRITE_AUTHORITIES: tuple[str, ...] = ("scoped_write", "read_only")
 VALID_AGENT_SHARED_STATE_AUTHORITIES: tuple[str, ...] = ("return_only", "direct")
+
+
 def _review_contract_frontmatter_value(meta: dict[str, object], *, command_name: str) -> object:
     """Return the canonical review-contract frontmatter payload."""
 
@@ -529,6 +574,7 @@ def render_command_visibility_sections(
 def render_command_visibility_sections_from_frontmatter(frontmatter: str, *, command_name: str) -> str:
     """Render canonical model-visible command constraints from raw frontmatter."""
 
+    _validate_raw_command_frontmatter(frontmatter, command_name=command_name)
     try:
         meta = yaml.safe_load(frontmatter) if frontmatter.strip() else {}
     except yaml.YAMLError as exc:
@@ -635,6 +681,10 @@ def _parse_agent_file(path: Path, source: str) -> AgentDef:
         required=True,
     )
     _validate_agent_frontmatter_keys(meta, agent_name=agent_name)
+    tools = _merge_tool_lists(
+        _parse_tools(meta.get("tools"), owner_name=agent_name),
+        _parse_tools(meta.get("allowed-tools"), field_name="allowed-tools", owner_name=agent_name),
+    )
     return AgentDef(
         name=agent_name,
         description=_parse_frontmatter_string_field(
@@ -643,7 +693,7 @@ def _parse_agent_file(path: Path, source: str) -> AgentDef:
             owner_name=agent_name,
         ),
         system_prompt=body.strip(),
-        tools=_parse_tools(meta.get("tools"), owner_name=agent_name),
+        tools=tools,
         commit_authority=_parse_commit_authority(meta.get("commit_authority"), agent_name=agent_name),
         surface=_parse_agent_metadata_enum(
             meta.get("surface"),
@@ -686,6 +736,7 @@ def _parse_agent_file(path: Path, source: str) -> AgentDef:
 def _parse_command_file(path: Path, source: str) -> CommandDef:
     """Parse a single command .md file into a CommandDef."""
     text = path.read_text(encoding="utf-8")
+    raw_frontmatter, _unused_body = _frontmatter_parts(text)
     try:
         meta, body = _parse_frontmatter(text)
     except ValueError as exc:
@@ -698,6 +749,7 @@ def _parse_command_file(path: Path, source: str) -> CommandDef:
         default=path.stem,
         required=True,
     )
+    _validate_raw_command_frontmatter(raw_frontmatter, command_name=command_name)
 
     try:
         review_contract = _parse_review_contract(
@@ -904,6 +956,7 @@ _SKILL_CATEGORY_MAP: dict[str, str] = {
     "gpd-research-mapper": "exploration",
     "gpd-verifier": "verification",
 }
+VALID_SKILL_CATEGORIES: tuple[str, ...] = tuple(sorted({*set(_SKILL_CATEGORY_MAP.values()), "other"}))
 
 
 def _infer_skill_category(skill_name: str) -> str:
@@ -917,6 +970,11 @@ def _infer_skill_category(skill_name: str) -> str:
         if skill_name.startswith(prefix):
             return _SKILL_CATEGORY_MAP[prefix]
     return "other"
+
+
+def skill_categories() -> tuple[str, ...]:
+    """Return the canonical skill-category enum published to shared callers."""
+    return VALID_SKILL_CATEGORIES
 
 
 def _canonical_skill_name_for_command(registry_name: str, command: CommandDef) -> str:

@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import importlib
+import sys
+from pathlib import Path
+
 import anyio
 
 
@@ -54,3 +58,23 @@ def test_route_protocol_publishes_non_blank_contract_in_tool_schema() -> None:
     assert computation_type["minLength"] == 1
     assert computation_type["pattern"] == r"\S"
     assert schema["required"] == ["computation_type"]
+
+
+def test_protocols_server_import_survives_malformed_domain_metadata(monkeypatch) -> None:
+    module_name = "gpd.mcp.servers.protocols_server"
+    original_read_text = Path.read_text
+
+    def _read_text(self: Path, *args: object, **kwargs: object) -> str:
+        if self.name == "protocol-domains.json":
+            raise ValueError("malformed protocol domain manifest")
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.delitem(sys.modules, module_name, raising=False)
+    parent_module = sys.modules.get("gpd.mcp.servers")
+    if parent_module is not None and hasattr(parent_module, "protocols_server"):
+        monkeypatch.delattr(parent_module, "protocols_server", raising=False)
+    monkeypatch.setattr(Path, "read_text", _read_text)
+
+    module = importlib.import_module(module_name)
+
+    assert module.route_protocol("perturbative QCD one-loop calculation")["schema_version"] == 1

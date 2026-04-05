@@ -125,10 +125,10 @@ def latest_update_cache(
         detect_runtime_install_target,
     )
 
-    workspace_path, _resolved_home, active_installed_runtime, preferred_runtime = resolve_update_cache_inputs(cwd=cwd)
+    workspace_path, resolved_home, active_installed_runtime, preferred_runtime = resolve_update_cache_inputs(cwd=cwd)
     self_install = hook_layout.detect_self_owned_install(hook_file)
     active_install_target = (
-        detect_runtime_install_target(active_installed_runtime, cwd=workspace_path)
+        detect_runtime_install_target(active_installed_runtime, cwd=workspace_path, home=resolved_home)
         if active_installed_runtime not in (None, "", RUNTIME_UNKNOWN)
         else None
     )
@@ -187,11 +187,11 @@ def update_command_for_candidate(
 
     runtime = getattr(candidate, "runtime", None) or RUNTIME_UNKNOWN
     scope = getattr(candidate, "scope", None)
-    if runtime != RUNTIME_UNKNOWN and not _runtime_dir_has_gpd_install(runtime, cwd=workspace_path):
+    if runtime != RUNTIME_UNKNOWN and not _runtime_dir_has_gpd_install(runtime, cwd=workspace_path, home=lookup.resolved_home):
         runtime = RUNTIME_UNKNOWN
         scope = None
     if runtime == RUNTIME_UNKNOWN:
-        runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path)
+        runtime = detect_active_runtime_with_gpd_install(cwd=workspace_path, home=lookup.resolved_home)
     if scope is None and runtime != RUNTIME_UNKNOWN:
-        scope = detect_install_scope(runtime, cwd=workspace_path)
+        scope = detect_install_scope(runtime, cwd=workspace_path, home=lookup.resolved_home)
     return update_command_for_runtime(runtime, scope=scope)

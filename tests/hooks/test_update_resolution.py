@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 
+from gpd.adapters import get_adapter
 from gpd.adapters.runtime_catalog import get_shared_install_metadata, iter_runtime_descriptors
 from gpd.hooks.update_resolution import (
     latest_update_cache,
@@ -195,6 +197,31 @@ def test_resolve_update_cache_inputs_uses_non_project_cwd_for_runtime_preference
     assert active_runtime is None
     assert preferred_runtime == "codex"
     assert mock_preferred.call_args.kwargs["cwd"] == workspace
+
+
+def test_latest_update_cache_threads_resolved_home_into_active_install_detection(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    resolved_home = tmp_path / "custom-home"
+    resolved_home.mkdir()
+
+    def _detect_runtime_install_target(runtime: str, *, cwd: Path | None = None, home: Path | None = None):
+        assert runtime == "codex"
+        assert cwd == workspace
+        assert home == resolved_home
+        return None
+
+    with (
+        patch(
+            "gpd.hooks.update_resolution.resolve_update_cache_inputs",
+            return_value=(workspace, resolved_home, "codex", "codex"),
+        ),
+        patch("gpd.hooks.install_context.detect_self_owned_install", return_value=None),
+        patch("gpd.hooks.install_context.should_prefer_self_owned_install", return_value=False),
+        patch("gpd.hooks.runtime_detect.detect_runtime_install_target", side_effect=_detect_runtime_install_target),
+        patch("gpd.hooks.update_resolution.ordered_update_cache_candidates", return_value=[]),
+    ):
+        assert latest_update_cache(hook_file=__file__, cwd=str(workspace), debug=_noop_debug) == (None, None)
 
 
 def test_resolve_update_cache_inputs_prefers_nested_workspace_local_install_over_ancestor_project_root(
@@ -521,6 +548,52 @@ def test_update_command_for_candidate_uses_cache_runtime_when_install_exists(tmp
         command = update_command_for_candidate(candidate, hook_file=__file__, cwd=str(workspace))
 
     expected = _repair_command("codex", install_scope="local", target_dir=local_runtime_dir, explicit_target=False)
+    assert command == expected
+
+
+def test_update_command_for_candidate_uses_resolved_home_for_global_install_resolution(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    resolved_home = tmp_path / "custom-home"
+    resolved_home.mkdir()
+    other_home = tmp_path / "other-home"
+    other_home.mkdir()
+
+    adapter = get_adapter("codex")
+    global_runtime_dir = adapter.resolve_global_config_dir(home=resolved_home)
+    seed_complete_runtime_install(
+        global_runtime_dir,
+        runtime="codex",
+        install_scope="global",
+        home=resolved_home,
+        explicit_target=False,
+    )
+    candidate = SimpleNamespace(
+        path=global_runtime_dir / "cache" / "gpd-update-check.json",
+        runtime="codex",
+        scope="global",
+    )
+
+    with (
+        patch(
+            "gpd.hooks.install_context.resolve_hook_lookup_context",
+            return_value=SimpleNamespace(
+                lookup_cwd=workspace,
+                resolved_home=resolved_home,
+                active_runtime=None,
+                preferred_runtime=None,
+            ),
+        ),
+        patch("gpd.hooks.runtime_detect.Path.home", return_value=other_home),
+    ):
+        command = update_command_for_candidate(candidate, hook_file=__file__, cwd=str(workspace))
+
+    expected = _repair_command(
+        "codex",
+        install_scope="global",
+        target_dir=global_runtime_dir,
+        explicit_target=False,
+    )
     assert command == expected
 
 

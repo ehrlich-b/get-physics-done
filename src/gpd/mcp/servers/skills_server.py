@@ -81,7 +81,7 @@ def _load_skill_index() -> list[content_registry.SkillDef]:
     return [content_registry.get_skill(name) for name in content_registry.list_skills()]
 
 
-_SKILL_CATEGORIES = tuple(sorted({skill.category for skill in _load_skill_index()}))
+_SKILL_CATEGORIES = content_registry.skill_categories()
 SkillCategoryFilter = Literal[*_SKILL_CATEGORIES]
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 
@@ -101,6 +102,119 @@ def _assert_enum_string_or_string_list_schema(
 
 def _assert_closed_object(schema_fragment: dict[str, object], *, label: str) -> None:
     assert schema_fragment["additionalProperties"] is False, f"{label} must reject unknown top-level keys"
+
+
+def _proof_contract_fixture() -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "scope": {
+            "question": "Does the proof establish the theorem for all r_0 > 0?",
+            "in_scope": ["proof-obligation audit"],
+        },
+        "context_intake": {
+            "must_read_refs": ["ref-proof"],
+            "crucial_inputs": ["Track every theorem parameter and conclusion clause through the proof."],
+        },
+        "observables": [
+            {
+                "id": "obs-proof",
+                "name": "main theorem proof obligation",
+                "kind": "proof_obligation",
+                "definition": "Formal proof obligation for the main theorem",
+            }
+        ],
+        "claims": [
+            {
+                "id": "claim-theorem",
+                "statement": "For all r_0 > 0, the full theorem holds.",
+                "claim_kind": "theorem",
+                "observables": ["obs-proof"],
+                "deliverables": ["deliv-summary"],
+                "acceptance_tests": [
+                    "test-proof-param",
+                    "test-proof-align",
+                    "test-proof-counterexample",
+                ],
+                "references": ["ref-proof"],
+                "parameters": [
+                    {"symbol": "r_0", "domain_or_type": "positive real", "aliases": ["r0"], "required_in_proof": True},
+                    {"symbol": "n", "domain_or_type": "integer", "required_in_proof": True},
+                ],
+                "hypotheses": [{"id": "hyp-main", "text": "r_0 > 0", "required_in_proof": True}],
+                "quantifiers": ["for all r_0 > 0"],
+                "conclusion_clauses": [{"id": "conclusion-main", "text": "the theorem holds"}],
+                "proof_deliverables": ["deliv-proof"],
+            }
+        ],
+        "deliverables": [
+            {
+                "id": "deliv-summary",
+                "kind": "report",
+                "description": "Theorem summary note",
+                "must_contain": ["theorem statement"],
+            },
+            {
+                "id": "deliv-proof",
+                "kind": "derivation",
+                "description": "Formal theorem proof",
+                "must_contain": ["proof audit"],
+            },
+        ],
+        "acceptance_tests": [
+            {
+                "id": "test-proof-param",
+                "subject": "claim-theorem",
+                "kind": "proof_parameter_coverage",
+                "procedure": "Audit theorem parameters against the proof body.",
+                "pass_condition": "All theorem parameters remain present in the proof.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-align",
+                "subject": "claim-theorem",
+                "kind": "claim_to_proof_alignment",
+                "procedure": "Audit the theorem statement against the proof conclusion.",
+                "pass_condition": "The proof establishes the theorem exactly as stated.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+            {
+                "id": "test-proof-counterexample",
+                "subject": "claim-theorem",
+                "kind": "counterexample_search",
+                "procedure": "Attempt an adversarial counterexample search.",
+                "pass_condition": "No counterexample or narrowed claim is found.",
+                "evidence_required": ["deliv-proof"],
+                "automation": "hybrid",
+            },
+        ],
+        "references": [
+            {
+                "id": "ref-proof",
+                "kind": "paper",
+                "locator": "doi:10.1000/proof",
+                "role": "definition",
+                "why_it_matters": "Defines the theorem statement and notation.",
+                "applies_to": ["claim-theorem"],
+                "must_surface": True,
+                "required_actions": ["read"],
+            }
+        ],
+        "forbidden_proxies": [
+            {
+                "id": "fp-proof",
+                "subject": "claim-theorem",
+                "proxy": "Algebraic consistency without theorem alignment",
+                "reason": "The theorem still requires statement-to-proof alignment.",
+            }
+        ],
+        "links": [],
+        "uncertainty_markers": {
+            "weakest_anchors": ["A theorem parameter could disappear from the proof body."],
+            "disconfirming_observations": ["The proof only covers the r_0 = 0 special case."],
+        },
+    }
 
 
 def _binding_condition_for_check(run_request_schema: dict[str, object], check_identifier: str) -> dict[str, object]:
@@ -467,6 +581,8 @@ def test_run_contract_check_tool_description_surfaces_request_requirements() -> 
     assert "``request.artifact_content``" in description
     assert "must be a string when present" in description
     assert "``required_request_fields``" in description
+    assert "``schema_required_request_fields``" in description
+    assert "``schema_required_request_anyof_fields``" in description
     assert "``optional_request_fields``" in description
     assert "``supported_binding_fields``" in description
     assert "``request_template``" in description
@@ -490,6 +606,8 @@ def test_suggest_contract_checks_tool_description_surfaces_contract_requirements
     assert "``active_checks`` is optional and must be ``list[str]``" in description
     assert "``already_active``" in description
     assert "``supported_binding_fields``" in description
+    assert "``schema_required_request_fields``" in description
+    assert "``schema_required_request_anyof_fields``" in description
     assert "``references[].carry_forward_to`` uses workflow" in description
     assert "scope labels, never contract IDs" in description
     assert "``references[].must_surface`` requires non-empty ``applies_to`` and ``required_actions`` lists" in description
@@ -806,6 +924,38 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
             assert check_identifier in enum_values
 
 
+def test_suggest_contract_checks_exposes_claim_alignment_branches() -> None:
+    from gpd.mcp.servers.verification_server import suggest_contract_checks
+
+    result = suggest_contract_checks(_proof_contract_fixture())
+    alignment = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.claim_to_proof_alignment")
+
+    assert alignment["required_request_fields"] == ["contract", "observed.scope_status"]
+    assert alignment["schema_required_request_fields"] == ["contract", "observed.scope_status"]
+    assert alignment["schema_required_request_anyof_fields"] == [
+        ["metadata.claim_statement"],
+        ["metadata.conclusion_clause_ids", "observed.uncovered_conclusion_clause_ids"],
+    ]
+    assert alignment["request_template"]["metadata"]["claim_statement"] == "For all r_0 > 0, the full theorem holds."
+    assert alignment["request_template"]["metadata"]["conclusion_clause_ids"] is None
+    assert alignment["request_template"]["observed"]["uncovered_conclusion_clause_ids"] is None
+
+
+def test_suggested_claim_alignment_template_is_runnable_without_clause_audit_preset() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    result = suggest_contract_checks(_proof_contract_fixture())
+    alignment = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.claim_to_proof_alignment")
+    request = copy.deepcopy(alignment["request_template"])
+    request["contract"] = _proof_contract_fixture()
+    request["observed"]["scope_status"] = "matched"
+
+    verification = run_contract_check(request)
+
+    assert verification["status"] == "pass"
+    assert "observed.uncovered_conclusion_clause_ids" not in verification["missing_inputs"]
+
+
 def test_patterns_tools_expose_domain_category_and_severity_enums() -> None:
     from gpd.core.patterns import VALID_CATEGORIES, VALID_DOMAINS, VALID_SEVERITIES
     from gpd.mcp.servers.patterns_server import mcp
@@ -839,6 +989,8 @@ def test_public_descriptors_surface_contract_and_optional_dependency_visibility(
     verification = descriptors["gpd-verification"]
     assert "contract payloads whose `schema_version` is required and must equal `1`" in verification["description"]
     assert "required_request_fields" in verification["description"]
+    assert "schema_required_request_fields" in verification["description"]
+    assert "schema_required_request_anyof_fields" in verification["description"]
     assert "optional_request_fields" in verification["description"]
     assert "request_template" in verification["description"]
     assert "supported binding fields" in verification["description"]
@@ -854,6 +1006,8 @@ def test_public_descriptors_surface_contract_and_optional_dependency_visibility(
     assert "live semantic integrity rules" in verification["description"]
     assert "target resolution ambiguous" in verification["description"]
     assert "`references[].carry_forward_to` entries as workflow scope labels only" in verification["description"]
+    assert "`references[].must_surface` anchors to carry non-empty `applies_to` and `required_actions` lists" in verification["description"]
+    assert "contract context consistent with metadata defaults and explicit metadata fields" in verification["description"]
     assert "never contract IDs" in verification["description"]
 
 
@@ -979,4 +1133,6 @@ def test_public_verification_infra_descriptor_surfaces_semantic_contract_rules()
     assert "live semantic integrity rules" in description
     assert "target resolution ambiguous" in description
     assert "`references[].carry_forward_to` entries as workflow scope labels only" in description
+    assert "`references[].must_surface` anchors to carry non-empty `applies_to` and `required_actions` lists" in description
+    assert "contract context consistent with metadata defaults and explicit metadata fields" in description
     assert "never contract IDs" in description

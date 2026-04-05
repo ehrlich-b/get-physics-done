@@ -1209,6 +1209,13 @@ def test_gitignore_covers_repo_local_npm_cache() -> None:
     assert ".npm-cache/" in (repo_root / ".gitignore").read_text(encoding="utf-8")
 
 
+def test_gitignore_covers_repo_local_tmp_root() -> None:
+    repo_root = _repo_root()
+    content = (repo_root / ".gitignore").read_text(encoding="utf-8")
+
+    assert "tmp/" in content
+
+
 def test_npm_pack_dry_run_uses_temp_cache_outside_repo(tmp_path: Path) -> None:
     repo_root = _repo_root()
     if shutil.which("npm") is None:

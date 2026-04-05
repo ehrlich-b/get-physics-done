@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib
+import json
+from pathlib import Path
 
 import anyio
 
@@ -93,8 +95,15 @@ def test_catalog_tool_schemas_publish_non_blank_contracts() -> None:
 
 
 def test_catalog_filter_schemas_publish_authoritative_enum_values() -> None:
+    from gpd import registry as content_registry
+
     protocol_schema = _tool_schema("gpd.mcp.servers.protocols_server", "list_protocols")
     skill_schema = _tool_schema("gpd.mcp.servers.skills_server", "list_skills")
+    manifest = json.loads(
+        (Path(__file__).resolve().parents[2] / "src" / "gpd" / "specs" / "references" / "protocols" / "protocol-domains.json").read_text(encoding="utf-8")
+    )
+    expected_protocol_domains = set(manifest["protocol_domains"].values())
+    expected_skill_categories = set(content_registry.skill_categories())
 
-    assert "core_derivation" in _collect_enum_values(protocol_schema["properties"]["domain"])
-    assert "execution" in _collect_enum_values(skill_schema["properties"]["category"])
+    assert _collect_enum_values(protocol_schema["properties"]["domain"]) == expected_protocol_domains
+    assert _collect_enum_values(skill_schema["properties"]["category"]) == expected_skill_categories

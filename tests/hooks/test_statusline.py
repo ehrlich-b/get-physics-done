@@ -1054,7 +1054,7 @@ class TestCheckUpdateHook:
         ):
             result = _check_update()
 
-        mock_scope.assert_called_once_with("claude-code", cwd=None)
+        mock_scope.assert_called_once_with("claude-code", cwd=None, home=tmp_path)
         assert result != ""
 
 

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib
+import sys
 from unittest.mock import patch
 
+import gpd.registry as registry_module
 from gpd.registry import AgentDef, CommandDef, SkillDef
 
 
@@ -78,3 +81,17 @@ def test_get_skill_agent_surfaces_allowed_tools() -> None:
     assert result["allowed_tools_surface"] == "agent.tools"
     result["allowed_tools"].append("network")
     assert agent.tools == ["shell", "file_read", "shell"]
+
+
+def test_skills_server_import_is_resilient_to_registry_index_failure(monkeypatch) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "list_skills",
+        lambda: (_ for _ in ()).throw(ValueError("boom")),
+    )
+    sys.modules.pop("gpd.mcp.servers.skills_server", None)
+
+    module = importlib.import_module("gpd.mcp.servers.skills_server")
+
+    assert hasattr(module, "list_skills")
+    assert hasattr(module, "get_skill")

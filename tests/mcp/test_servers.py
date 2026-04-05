@@ -2053,13 +2053,28 @@ class TestVerificationServer:
         assert result["check_id"] == "5.21"
         assert result["metrics"]["missing_parameter_symbols"] == ["r_0"]
 
-    def test_run_contract_check_claim_to_proof_alignment_requires_clause_audit(self):
+    def test_run_contract_check_claim_to_proof_alignment_accepts_claim_statement_path(self):
         from gpd.mcp.servers.verification_server import run_contract_check
 
         result = run_contract_check(
             {
                 "check_key": "contract.claim_to_proof_alignment",
                 "contract": _proof_contract_fixture(),
+                "observed": {"scope_status": "matched"},
+            }
+        )
+
+        assert result["status"] == "pass"
+        assert result["missing_inputs"] == []
+
+    def test_run_contract_check_claim_to_proof_alignment_requires_clause_audit_when_clause_ids_are_explicit(self):
+        from gpd.mcp.servers.verification_server import run_contract_check
+
+        result = run_contract_check(
+            {
+                "check_key": "contract.claim_to_proof_alignment",
+                "contract": _proof_contract_fixture(),
+                "metadata": {"conclusion_clause_ids": ["conclusion-main"]},
                 "observed": {"scope_status": "matched"},
             }
         )

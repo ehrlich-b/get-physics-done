@@ -37,6 +37,11 @@ def _normalized_runtime_hint(runtime: str | None) -> str | None:
     return normalized if normalized in ALL_RUNTIMES else None
 
 
+def _normalized_lookup_dir(path: str | Path) -> str:
+    """Return a normalized string path for hook lookup routing."""
+    return str(Path(path).expanduser().resolve(strict=False))
+
+
 def resolve_runtime_lookup_active_runtime(
     *,
     workspace_dir: str,
@@ -72,24 +77,24 @@ def resolve_runtime_lookup_dir(
             for runtime in ALL_RUNTIMES:
                 install_target = detect_runtime_install_target(runtime, cwd=resolved_workspace)
                 if install_target is not None and install_target.install_scope == SCOPE_LOCAL:
-                    return str(resolved_workspace)
-            return project_root
+                    return _normalized_lookup_dir(resolved_workspace)
+            return _normalized_lookup_dir(resolved_project)
         if normalized_runtime is not None:
             install_target = detect_runtime_install_target(normalized_runtime, cwd=resolved_workspace)
             if install_target is not None and install_target.install_scope == SCOPE_LOCAL:
-                return workspace_dir
+                return _normalized_lookup_dir(resolved_workspace)
             project_target = detect_runtime_install_target(normalized_runtime, cwd=resolved_project)
             if project_target is not None and project_target.install_scope == SCOPE_LOCAL:
-                return project_root
+                return _normalized_lookup_dir(resolved_project)
             for runtime in ALL_RUNTIMES:
                 if runtime == normalized_runtime:
                     continue
                 install_target = detect_runtime_install_target(runtime, cwd=resolved_workspace)
                 if install_target is not None and install_target.install_scope == SCOPE_LOCAL:
-                    return str(resolved_workspace)
-        return project_root
+                    return _normalized_lookup_dir(resolved_workspace)
+        return _normalized_lookup_dir(resolved_project)
 
-    return str(Path(workspace_dir).expanduser().resolve(strict=False))
+    return _normalized_lookup_dir(workspace_dir)
 
 
 def resolve_runtime_lookup_context(
