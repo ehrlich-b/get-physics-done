@@ -1792,7 +1792,11 @@ def _normalize_recent_project_row(row: object) -> dict[str, object] | None:
         return None
 
     project_path = Path(project_root).expanduser()
-    available = project_path.exists()
+    available_value = row.get("available")
+    if isinstance(available_value, bool):
+        available = available_value
+    else:
+        available = project_path.is_dir()
     normalized: dict[str, object] = {
         "project_root": project_root,
         "workspace": _format_display_path(project_path),
@@ -7205,7 +7209,8 @@ def validate_project_contract_cmd(
     mode: str = typer.Option("approved", "--mode", help="Validation mode: approved or draft"),
 ) -> None:
     """Validate a project-scoping contract before downstream artifact generation, including proof-obligation observables."""
-    from gpd.core.contract_validation import validate_project_contract
+    from gpd.contracts import parse_project_contract_data_strict
+    from gpd.core.contract_validation import ProjectContractValidationResult, validate_project_contract
 
     normalized_mode = mode.strip().lower()
     if normalized_mode not in {"draft", "approved"}:
@@ -7220,7 +7225,16 @@ def validate_project_contract_cmd(
         project_root = _project_root_for_json_input(input_path)
         if not (project_root / "GPD").is_dir():
             project_root = None
-    result = validate_project_contract(payload, mode=normalized_mode, project_root=project_root)
+    strict_result = parse_project_contract_data_strict(payload)
+    if strict_result.contract is None or strict_result.errors:
+        result = ProjectContractValidationResult(
+            valid=False,
+            errors=list(strict_result.errors) or ["project contract could not be normalized"],
+            warnings=[],
+            mode=normalized_mode,
+        )
+    else:
+        result = validate_project_contract(strict_result.contract, mode=normalized_mode, project_root=project_root)
     _output(result)
     if not result.valid:
         raise typer.Exit(code=1)

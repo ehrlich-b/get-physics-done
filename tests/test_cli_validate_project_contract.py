@@ -70,6 +70,20 @@ def test_validate_project_contract_command_stdin_matches_file_mode_outside_proje
     assert json.loads(stdin_result.output) == json.loads(file_result.output)
 
 
+def test_validate_project_contract_command_fails_closed_on_recoverable_schema_drift(tmp_path: Path) -> None:
+    contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+    contract_path = tmp_path / "project-contract.json"
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+
+    result = runner.invoke(app, ["--raw", "validate", "project-contract", str(contract_path)], catch_exceptions=False)
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.output)
+    assert payload["valid"] is False
+    assert "context_intake.must_read_refs must be a list, not str" in payload["errors"]
+
+
 def test_validate_project_contract_command_warns_when_user_guidance_is_missing(tmp_path: Path) -> None:
     contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
     contract["context_intake"] = {

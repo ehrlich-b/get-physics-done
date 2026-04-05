@@ -1504,6 +1504,26 @@ def test_load_recent_projects_rows_prefers_stronger_recovery_over_newer_weaker_t
     assert [Path(str(row["project_root"])).name for row in rows] == ["stronger-project", "weaker-project"]
 
 
+def test_normalize_recent_project_row_preserves_non_directory_unavailability() -> None:
+    project_root = Path("/tmp/not-a-project-file")
+    row = {
+        "schema_version": 1,
+        "project_root": project_root.as_posix(),
+        "available": False,
+        "availability_reason": "project root is not a directory",
+        "resumable": True,
+    }
+
+    normalized = cli_module._normalize_recent_project_row(row)
+
+    assert normalized is not None
+    assert normalized["available"] is False
+    assert normalized["missing"] is True
+    assert normalized["availability_reason"] == "project root is not a directory"
+    assert normalized["resumable"] is False
+    assert normalized["status"] == "unavailable"
+
+
 def test_resume_plain_output_surfaces_session_handoff_status(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
