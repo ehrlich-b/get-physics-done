@@ -8,6 +8,16 @@ Deriving the fundamental laws of physics from the algebraic structure of self-mo
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
+## Current Milestone: v11.0 Gap C Complexification from Sequential Product
+
+**Goal:** Close Gap C algebraically by showing the observer's C-linear sequential product extends the measurement algebra Cl(9,0) to Cl(9,C), forcing spinor module complexification S_9 -> S_{10}^+.
+
+**Target results:**
+
+- Prove or disprove that C-linear composition of real Cl(9,0) generators via the observer's sequential product extends to Cl(9,C)
+- If successful: state Gap C closure as a single theorem (C*-observer -> complexification -> Spin(10) -> chirality)
+- If unsuccessful: characterize the precise obstruction and evaluate contingency routes (Peirce multiplication, conditional expectations, GNS, tensor product, observable algebra)
+
 ## Current State (after v10.0)
 
 The derivation chain from self-modeling to Einstein equations now runs on the real algebra h_3(O), not a toy model. Key established results:
@@ -172,7 +182,9 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-(No active research questions -- awaiting next milestone)
+- [ ] Does a C*-observer's sequential product (C-linear Luders composition) extend the measurement algebra Cl(9,0) on V_{1/2} to Cl(9,C)?
+- [ ] If algebraic extension fails, does Peirce multiplication, GNS, or observable algebra analysis close Gap C via an alternative route?
+- [ ] What is the weakest sufficient condition for complexification of V_{1/2} = O^2 inside h_3(O)?
 
 ### Answered in v9.0
 
@@ -368,4 +380,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-03-31 after v10.0 milestone_
+_Last updated: 2026-04-04 after v11.0 milestone initialization_
