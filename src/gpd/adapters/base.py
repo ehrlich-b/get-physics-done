@@ -14,6 +14,7 @@ from gpd.adapters.install_utils import (
     CACHE_DIR_NAME,
     COMMANDS_DIR_NAME,
     FLAT_COMMANDS_DIR_NAME,
+    _dir_contains_files,
     GPD_INSTALL_DIR_NAME,
     HOOKS_DIR_NAME,
     MANIFEST_NAME,
@@ -51,17 +52,6 @@ def _managed_install_surface(target_dir: Path):
     from gpd.hooks.install_metadata import inspect_managed_install_surface
 
     return inspect_managed_install_surface(target_dir)
-
-
-def _dir_contains_files(path: Path) -> bool:
-    """Return whether *path* contains at least one regular file."""
-    if not path.is_dir():
-        return False
-
-    try:
-        return any(entry.is_file() for entry in path.rglob("*"))
-    except OSError:
-        return True
 
 
 def _remove_gpd_flat_command_residue(flat_commands: Path, *, stop_at: Path) -> int:

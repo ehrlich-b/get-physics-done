@@ -93,6 +93,17 @@ def _paths_equal(left: Path, right: Path) -> bool:
         return left.expanduser() == right.expanduser()
 
 
+def _dir_contains_files(path: Path) -> bool:
+    """Return whether *path* contains at least one regular file."""
+    if not path.is_dir():
+        return False
+
+    try:
+        return any(entry.is_file() for entry in path.rglob("*"))
+    except OSError:
+        return True
+
+
 def _default_install_target(runtime: str, scope_flag: str | None) -> Path | None:
     """Return the default install location for *runtime* and *scope_flag* when known."""
     descriptor = get_runtime_descriptor(runtime)
@@ -271,6 +282,7 @@ def _replace_runtime_placeholders(
     path_prefix: str,
     runtime: str | None,
     install_scope: str | None = None,
+    workflow_target_dir: Path | None = None,
 ) -> str:
     """Replace runtime-specific placeholders in installed prompt content."""
     shared_install = get_shared_install_metadata()
@@ -291,6 +303,8 @@ def _replace_runtime_placeholders(
     descriptor = get_runtime_descriptor(runtime)
     config_dir = path_prefix[:-1] if path_prefix.endswith("/") else path_prefix
     global_config_dir = str(Path(get_global_dir(runtime)).expanduser()).replace("\\", "/")
+    if _normalize_install_scope_flag(install_scope) == "--global" and workflow_target_dir is not None:
+        global_config_dir = workflow_target_dir.expanduser().resolve(strict=False).as_posix()
     install_flag = descriptor.install_flag
 
     content = content.replace("{GPD_CONFIG_DIR}", config_dir)
@@ -304,6 +318,7 @@ def replace_placeholders(
     path_prefix: str,
     runtime: str | None = None,
     install_scope: str | None = None,
+    workflow_target_dir: Path | None = None,
 ) -> str:
     """Replace GPD path placeholders in file content.
 
@@ -319,7 +334,13 @@ def replace_placeholders(
     """
     content = content.replace("{GPD_INSTALL_DIR}", path_prefix + GPD_INSTALL_DIR_NAME)
     content = content.replace("{GPD_AGENTS_DIR}", path_prefix + AGENTS_DIR_NAME)
-    return _replace_runtime_placeholders(content, path_prefix, runtime, install_scope)
+    return _replace_runtime_placeholders(
+        content,
+        path_prefix,
+        runtime,
+        install_scope,
+        workflow_target_dir=workflow_target_dir,
+    )
 
 
 def _materialize_workflow_paths(
@@ -334,11 +355,12 @@ def _materialize_workflow_paths(
     resolved_target = target_dir.expanduser().resolve(strict=False)
     config_dir = resolved_target.as_posix()
     install_dir = (resolved_target / GPD_INSTALL_DIR_NAME).as_posix()
-    # Keep the canonical runtime-global directory distinct from an explicit
-    # global install target so update/reapply workflows can still detect when
-    # ``--target-dir`` is required.
     descriptor = get_runtime_descriptor(runtime)
-    global_config_dir = resolve_global_config_dir(descriptor, home=Path.home()).as_posix()
+    legacy_global_config_dir = resolve_global_config_dir(descriptor, home=Path.home()).as_posix()
+    if _normalize_install_scope_flag(install_scope) == "--global":
+        global_config_dir = config_dir
+    else:
+        global_config_dir = legacy_global_config_dir
     relative_config_prefix = f"./{descriptor.config_dir_name}/"
     update_command = build_runtime_install_repair_command(
         runtime,
@@ -347,6 +369,9 @@ def _materialize_workflow_paths(
         explicit_target=explicit_target,
     )
     patch_meta = f"{config_dir}/{PATCHES_DIR_NAME}/backup-meta.json"
+
+    if _normalize_install_scope_flag(install_scope) == "--global" and legacy_global_config_dir != global_config_dir:
+        content = content.replace(legacy_global_config_dir, global_config_dir)
 
     replacements = {
         "GPD_INSTALL_DIR": install_dir,
@@ -994,7 +1019,13 @@ def compile_markdown_for_runtime(
             install_scope=install_scope,
         )
 
-    content = replace_placeholders(content, path_prefix, runtime, install_scope)
+    content = replace_placeholders(
+        content,
+        path_prefix,
+        runtime,
+        install_scope,
+        workflow_target_dir=workflow_target_dir,
+    )
 
     if protect_agent_prompt_body:
         content = protect_runtime_agent_prompt(content, runtime)

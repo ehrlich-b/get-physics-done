@@ -504,7 +504,7 @@ def test_installed_update_command_keeps_implicit_local_scope_when_manifest_omits
 
 
 @pytest.mark.parametrize("runtime", list_runtime_names())
-def test_installed_update_command_uses_supplied_home_for_legacy_global_manifest(
+def test_installed_update_command_rejects_legacy_global_manifest_without_explicit_target_flag(
     tmp_path: Path,
     runtime: str,
     monkeypatch: pytest.MonkeyPatch,
@@ -529,7 +529,7 @@ def test_installed_update_command_uses_supplied_home_for_legacy_global_manifest(
     )
 
     monkeypatch.setattr("gpd.hooks.install_metadata.Path.home", lambda: tmp_path / "ambient-home")
-    assert installed_update_command(global_target, home=canonical_home) is None
+    assert installed_update_command(global_target) is None
 
 
 @pytest.mark.parametrize(

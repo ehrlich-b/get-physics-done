@@ -183,7 +183,7 @@ def update_command_for_candidate(
     self_install = hook_layout.detect_self_owned_install(hook_file)
     candidate_path = getattr(candidate, "path", None)
     if self_install is not None and candidate_path == self_install.cache_file:
-        return installed_update_command(self_install.config_dir, home=lookup.resolved_home)
+        return installed_update_command(self_install.config_dir)
 
     runtime = getattr(candidate, "runtime", None) or RUNTIME_UNKNOWN
     scope = getattr(candidate, "scope", None)

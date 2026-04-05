@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from importlib import import_module
 from pathlib import Path
 
+import gpd.adapters.install_utils as install_utils
 from gpd.adapters.runtime_catalog import get_managed_install_surface_policy, get_shared_install_metadata
 
 _SHARED_INSTALL_METADATA = get_shared_install_metadata()
@@ -93,23 +94,6 @@ def _load_manifest_payload(config_dir: Path) -> dict[str, object] | None:
     return payload
 
 
-def _dir_contains_files(path: Path) -> bool:
-    """Return whether *path* contains at least one regular file.
-
-    Empty leftover directories are not strong enough ownership evidence for
-    install/update/uninstall decisions, so marker detection keys off real files.
-    Read errors fail closed and count as managed content.
-    """
-
-    if not path.is_dir():
-        return False
-
-    try:
-        return any(entry.is_file() for entry in path.rglob("*"))
-    except OSError:
-        return True
-
-
 def _glob_contains_files(config_dir: Path, patterns: tuple[str, ...]) -> bool:
     """Return whether any configured managed-surface glob materializes files."""
 
@@ -117,7 +101,7 @@ def _glob_contains_files(config_dir: Path, patterns: tuple[str, ...]) -> bool:
         for match in config_dir.glob(pattern):
             if match.is_file():
                 return True
-            if match.is_dir() and _dir_contains_files(match):
+            if match.is_dir() and install_utils._dir_contains_files(match):
                 return True
     return False
 
@@ -279,7 +263,7 @@ def config_dir_has_complete_install(config_dir: Path) -> bool:
     return assess_install_target(config_dir).state == "owned_complete"
 
 
-def installed_update_command(config_dir: Path, *, home: Path | None = None) -> str | None:
+def installed_update_command(config_dir: Path) -> str | None:
     """Return the bootstrap update command for the install in *config_dir*."""
 
     manifest_state, manifest, runtime = load_install_manifest_runtime_status(config_dir)

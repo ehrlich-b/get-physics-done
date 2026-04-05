@@ -291,11 +291,15 @@ def test_explicit_target_local_install_keeps_local_update_scope(tmp_path: Path, 
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
-def test_explicit_target_global_install_keeps_global_update_scope(tmp_path: Path, descriptor) -> None:
+def test_explicit_target_global_install_keeps_global_update_scope(
+    tmp_path: Path,
+    descriptor,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     adapter = get_adapter(descriptor.runtime_name)
     target = tmp_path / "explicit-global" / f"{descriptor.runtime_name}-config"
     target.mkdir(parents=True)
-    canonical_global = resolve_global_config_dir(descriptor)
+    monkeypatch.setattr("gpd.adapters.install_utils.Path.home", lambda: tmp_path / "ambient-home")
 
     install_kwargs: dict[str, object] = {"is_global": True, "explicit_target": True}
     if "skills/" in descriptor.manifest_file_prefixes:
@@ -306,6 +310,9 @@ def test_explicit_target_global_install_keeps_global_update_scope(tmp_path: Path
     _install_and_finalize(adapter, GPD_ROOT, target, **install_kwargs)
 
     content = (target / INSTALL_ROOT_DIR_NAME / "workflows" / "update.md").read_text(encoding="utf-8")
+    reapply_content = (target / INSTALL_ROOT_DIR_NAME / "workflows" / "reapply-patches.md").read_text(
+        encoding="utf-8"
+    )
     manifest = json.loads((target / MANIFEST_NAME).read_text(encoding="utf-8"))
     command = installed_update_command(target)
 
@@ -313,7 +320,8 @@ def test_explicit_target_global_install_keeps_global_update_scope(tmp_path: Path
     assert isinstance(command, str)
     assert f'UPDATE_COMMAND="{command}"' in content
     assert f'GPD_CONFIG_DIR="{target.as_posix()}"' in content
-    assert f'GPD_GLOBAL_CONFIG_DIR="{canonical_global.as_posix()}"' in content
+    assert f'GPD_GLOBAL_CONFIG_DIR="{target.as_posix()}"' in content
+    assert f'GLOBAL_PATCHES_DIR="{target.as_posix()}/{_SHARED_INSTALL.patches_dir_name}"' in reapply_content
     assert "{GPD_INSTALL_SCOPE_FLAG}" not in content
     assert "TARGET_DIR_ARG=$(" not in content
     assert manifest["install_scope"] == "global"
@@ -364,6 +372,40 @@ def test_global_install_without_explicit_target_returns_no_trusted_update_comman
     with monkeypatch.context() as ctx:
         ctx.setattr("gpd.hooks.install_metadata.Path.home", lambda: home_dir)
         assert installed_update_command(canonical_target) is None
+
+
+@pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+def test_global_install_materializes_authoritative_paths_for_custom_home(
+    tmp_path: Path,
+    descriptor,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    home_dir = tmp_path / "custom-home"
+    home_dir.mkdir()
+    canonical_target = resolve_global_config_dir(descriptor, home=home_dir, environ={})
+    canonical_target.mkdir(parents=True)
+
+    install_kwargs: dict[str, object] = {"is_global": True}
+    if "skills/" in descriptor.manifest_file_prefixes:
+        skills_dir = tmp_path / "custom-home-global" / "skills"
+        skills_dir.mkdir(parents=True)
+        install_kwargs["skills_dir"] = skills_dir
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr("gpd.adapters.install_utils.Path.home", lambda: tmp_path / "ambient-home")
+        _install_and_finalize(adapter, GPD_ROOT, canonical_target, **install_kwargs)
+
+    update_content = (canonical_target / INSTALL_ROOT_DIR_NAME / "workflows" / "update.md").read_text(encoding="utf-8")
+    reapply_content = (canonical_target / INSTALL_ROOT_DIR_NAME / "workflows" / "reapply-patches.md").read_text(
+        encoding="utf-8"
+    )
+    patches_dir = f"{canonical_target.as_posix()}/{_SHARED_INSTALL.patches_dir_name}"
+
+    assert f'GPD_CONFIG_DIR="{canonical_target.as_posix()}"' in update_content
+    assert f'GPD_GLOBAL_CONFIG_DIR="{canonical_target.as_posix()}"' in update_content
+    assert f'PATCHES_DIR="{patches_dir}"' in reapply_content
+    assert f'GLOBAL_PATCHES_DIR="{patches_dir}"' in reapply_content
 
 
 @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
