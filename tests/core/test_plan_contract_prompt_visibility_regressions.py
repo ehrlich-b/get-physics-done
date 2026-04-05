@@ -71,7 +71,7 @@ def test_phase_prompt_surfaces_default_salvage_and_hard_plan_requirements() -> N
     assert "They default to `other`, but the more specific value remains mandatory when the plan already knows it." in phase_prompt
     assert "The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `contract.context_intake`" in phase_prompt
     assert "Treat `approach_policy` as execution policy only; it does not satisfy grounding on its own." in phase_prompt
-    assert "If the contract does not already carry explicit grounding elsewhere, references must be present and at least one must set `must_surface: true`." in phase_prompt
+    assert "If the contract does not already carry explicit concrete grounding elsewhere, references must be present and at least one must set `must_surface: true`." in phase_prompt
     assert "`must_surface` is a boolean scalar. Use the YAML literals `true` and `false`;" in phase_prompt
     assert "If `must_surface: true`, `required_actions[]` and `applies_to[]` must both stay non-empty." in phase_prompt
     assert "`carry_forward_to[]` is free-text workflow scope only and must not be overloaded with contract IDs." in phase_prompt
