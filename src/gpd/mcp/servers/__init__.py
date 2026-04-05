@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import importlib
 import logging
 import os
@@ -135,8 +136,36 @@ def run_mcp_server(mcp: object, description: str) -> None:
     mcp.run(transport=args.transport)  # type: ignore[union-attr]
 
 
+def published_tool_input_schema(tool: object) -> dict[str, object] | None:
+    """Return the currently published input schema for a FastMCP tool-like object."""
+
+    for attribute in ("inputSchema", "parameters"):
+        schema = getattr(tool, attribute, None)
+        if isinstance(schema, dict):
+            return schema
+    return None
+
+
+def _set_tool_attribute(tool: object, attribute: str, value: object) -> None:
+    try:
+        setattr(tool, attribute, value)
+    except (AttributeError, TypeError):
+        object.__setattr__(tool, attribute, value)
+
+
+def set_published_tool_input_schema(tool: object, schema: dict[str, object]) -> None:
+    """Write a published input schema onto both public and private FastMCP surfaces."""
+
+    if hasattr(tool, "inputSchema"):
+        _set_tool_attribute(tool, "inputSchema", copy.deepcopy(schema))
+    if hasattr(tool, "parameters"):
+        _set_tool_attribute(tool, "parameters", copy.deepcopy(schema))
+
+
 def tighten_registered_tool_contracts(mcp: object) -> None:
     """Publish strict top-level tool schemas and stable validation envelopes."""
+
+    strict_schemas_by_name: dict[str, dict[str, object]] = {}
 
     def _build_strict_call(original_call, allowed_keys):
         async def _strict_call_fn_with_arg_validation(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly):
@@ -157,7 +186,9 @@ def tighten_registered_tool_contracts(mcp: object) -> None:
             __base__=arg_model,
             __config__=ConfigDict(extra="forbid", arbitrary_types_allowed=True),
         )
-        tool.parameters = strict_model.model_json_schema(by_alias=True)
+        strict_schema = strict_model.model_json_schema(by_alias=True)
+        strict_schemas_by_name[str(tool.name)] = strict_schema
+        set_published_tool_input_schema(tool, strict_schema)
         allowed_keys = {
             key
             for field_name, field_info in arg_model.model_fields.items()
@@ -166,6 +197,19 @@ def tighten_registered_tool_contracts(mcp: object) -> None:
         }
         original_call = tool.fn_metadata.call_fn_with_arg_validation
         object.__setattr__(tool.fn_metadata, "call_fn_with_arg_validation", _build_strict_call(original_call, allowed_keys))
+
+    original_list_tools = mcp.list_tools
+
+    async def _list_tools_with_strict_schemas():
+        tools = await original_list_tools()
+        for tool in tools:
+            strict_schema = strict_schemas_by_name.get(str(getattr(tool, "name", "")))
+            if strict_schema is None:
+                continue
+            set_published_tool_input_schema(tool, strict_schema)
+        return tools
+
+    mcp.list_tools = _list_tools_with_strict_schemas
 
 
 __all__ = [
@@ -183,6 +227,8 @@ __all__ = [
     "run_mcp_server",
     "skills_server",
     "state_server",
+    "published_tool_input_schema",
+    "set_published_tool_input_schema",
     "stable_mcp_error",
     "stable_mcp_response",
     "tighten_registered_tool_contracts",

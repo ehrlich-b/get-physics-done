@@ -29,6 +29,8 @@ from gpd.core.observability import gpd_span
 from gpd.mcp.servers import (
     configure_mcp_logging,
     parse_frontmatter_safe,
+    published_tool_input_schema,
+    set_published_tool_input_schema,
     stable_mcp_error,
     stable_mcp_response,
     tighten_registered_tool_contracts,
@@ -89,37 +91,23 @@ def _skill_category_values() -> tuple[str, ...]:
 SkillCategoryFilter = str
 
 
-def _refresh_skill_category_schema() -> None:
-    """Refresh the published skill category enum from the live registry."""
+def _schema_with_refreshed_skill_category_enum(schema: dict[str, object]) -> dict[str, object]:
+    """Return one published schema with the live skill-category enum refreshed."""
 
+    refreshed = copy.deepcopy(schema)
     category_values = list(_skill_category_values())
-    for tool in mcp._tool_manager.list_tools():  # type: ignore[attr-defined]
-        if tool.name != "list_skills":
-            continue
-        parameters = tool.parameters
-        properties = parameters.get("properties") if isinstance(parameters, dict) else None
-        if not isinstance(properties, dict):
-            return
-        category_schema = properties.get("category")
-        if not isinstance(category_schema, dict):
-            return
-        enum_schema = category_schema
-        any_of = category_schema.get("anyOf")
-        if isinstance(any_of, list) and any_of and isinstance(any_of[0], dict):
-            enum_schema = any_of[0]
-        enum_schema["enum"] = category_values
-        return
-
-
-_BASE_LIST_TOOLS = mcp.list_tools
-
-
-async def _list_tools_with_fresh_skill_schema():
-    _refresh_skill_category_schema()
-    return await _BASE_LIST_TOOLS()
-
-
-mcp.list_tools = _list_tools_with_fresh_skill_schema
+    properties = refreshed.get("properties") if isinstance(refreshed, dict) else None
+    if not isinstance(properties, dict):
+        return refreshed
+    category_schema = properties.get("category")
+    if not isinstance(category_schema, dict):
+        return refreshed
+    enum_schema = category_schema
+    any_of = category_schema.get("anyOf")
+    if isinstance(any_of, list) and any_of and isinstance(any_of[0], dict):
+        enum_schema = any_of[0]
+    enum_schema["enum"] = category_values
+    return refreshed
 
 
 def _resolve_skill(name: str) -> content_registry.SkillDef | None:
@@ -796,6 +784,23 @@ def main() -> None:
 
 
 tighten_registered_tool_contracts(mcp)
+
+_BASE_LIST_TOOLS = mcp.list_tools
+
+
+async def _list_tools_with_fresh_skill_schema():
+    tools = await _BASE_LIST_TOOLS()
+    for tool in tools:
+        if tool.name != "list_skills":
+            continue
+        schema = published_tool_input_schema(tool)
+        if schema is None:
+            continue
+        set_published_tool_input_schema(tool, _schema_with_refreshed_skill_category_enum(schema))
+    return tools
+
+
+mcp.list_tools = _list_tools_with_fresh_skill_schema
 
 
 if __name__ == "__main__":

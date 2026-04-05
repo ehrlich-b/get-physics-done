@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import json
 from pathlib import Path
 
 import anyio
 import pytest
+from pydantic import BaseModel, ConfigDict
 
 
 def _tool_description(mcp_server: object, tool_name: str) -> str:
@@ -1018,6 +1020,78 @@ def test_non_verification_tools_publish_closed_input_schemas(mcp_module: str, ex
     assert expected_tools <= names
     for tool in tools:
         assert tool.inputSchema["additionalProperties"] is False, f"{tool.name} must reject unknown top-level keys"
+
+
+def test_tighten_registered_tool_contracts_updates_detached_public_tool_descriptors() -> None:
+    from gpd.mcp.servers import tighten_registered_tool_contracts
+
+    class DemoArgs(BaseModel):
+        model_config = ConfigDict(extra="allow")
+
+        project_dir: str
+
+    async def _call_fn_with_arg_validation(fn, fn_is_async, arguments_to_validate, arguments_to_pass_directly):
+        return {
+            "fn": fn,
+            "fn_is_async": fn_is_async,
+            "arguments_to_validate": arguments_to_validate,
+            "arguments_to_pass_directly": arguments_to_pass_directly,
+        }
+
+    @dataclasses.dataclass
+    class _FakeFnMetadata:
+        arg_model: type[BaseModel]
+        call_fn_with_arg_validation: object
+
+    @dataclasses.dataclass
+    class _FakeRegisteredTool:
+        name: str
+        parameters: dict[str, object]
+        fn_metadata: _FakeFnMetadata
+
+    @dataclasses.dataclass
+    class _FakePublicTool:
+        name: str
+        inputSchema: dict[str, object]
+
+    @dataclasses.dataclass
+    class _FakeToolManager:
+        tools: list[_FakeRegisteredTool]
+
+        def list_tools(self) -> list[_FakeRegisteredTool]:
+            return self.tools
+
+    class _FakeMCP:
+        def __init__(self) -> None:
+            self._registered_tool = _FakeRegisteredTool(
+                name="demo",
+                parameters={"type": "object", "properties": {}, "additionalProperties": True},
+                fn_metadata=_FakeFnMetadata(
+                    arg_model=DemoArgs,
+                    call_fn_with_arg_validation=_call_fn_with_arg_validation,
+                ),
+            )
+            self._tool_manager = _FakeToolManager([self._registered_tool])
+
+        async def list_tools(self) -> list[_FakePublicTool]:
+            return [
+                _FakePublicTool(
+                    name="demo",
+                    inputSchema={"type": "object", "properties": {}, "additionalProperties": True},
+                )
+            ]
+
+    fake_mcp = _FakeMCP()
+
+    tighten_registered_tool_contracts(fake_mcp)
+
+    public_tools = anyio.run(fake_mcp.list_tools)
+
+    public_schema = public_tools[0].inputSchema
+    assert public_schema["additionalProperties"] is False
+    assert public_schema["required"] == ["project_dir"]
+    assert public_schema["properties"]["project_dir"]["type"] == "string"
+    assert fake_mcp._registered_tool.parameters["additionalProperties"] is False
 
 
 def test_state_server_tools_publish_absolute_project_dir_schema() -> None:

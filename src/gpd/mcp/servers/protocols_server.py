@@ -7,6 +7,7 @@ Entry point: python -m gpd.mcp.servers.protocols_server
 Console script: gpd-mcp-protocols
 """
 
+import copy
 import json
 import re
 import threading
@@ -21,7 +22,9 @@ from gpd.core.observability import gpd_span
 from gpd.mcp.servers import (
     configure_mcp_logging,
     parse_frontmatter_with_error,
+    published_tool_input_schema,
     run_mcp_server,
+    set_published_tool_input_schema,
     stable_mcp_error,
     stable_mcp_response,
     tighten_registered_tool_contracts,
@@ -146,26 +149,23 @@ def _protocol_domain_values() -> tuple[str, ...]:
 ProtocolDomainFilter = str
 
 
-def _refresh_protocol_domain_schema() -> None:
-    """Refresh the published domain enum from the live protocol-domain manifest."""
+def _schema_with_refreshed_protocol_domain_enum(schema: dict[str, object]) -> dict[str, object]:
+    """Return one published schema with the live protocol-domain enum refreshed."""
 
+    refreshed = copy.deepcopy(schema)
     domain_values = list(_protocol_domain_values())
-    for tool in mcp._tool_manager.list_tools():  # type: ignore[attr-defined]
-        if tool.name != "list_protocols":
-            continue
-        parameters = tool.parameters
-        properties = parameters.get("properties") if isinstance(parameters, dict) else None
-        if not isinstance(properties, dict):
-            return
-        domain_schema = properties.get("domain")
-        if not isinstance(domain_schema, dict):
-            return
-        enum_schema = domain_schema
-        any_of = domain_schema.get("anyOf")
-        if isinstance(any_of, list) and any_of and isinstance(any_of[0], dict):
-            enum_schema = any_of[0]
-        enum_schema["enum"] = domain_values
-        return
+    properties = refreshed.get("properties") if isinstance(refreshed, dict) else None
+    if not isinstance(properties, dict):
+        return refreshed
+    domain_schema = properties.get("domain")
+    if not isinstance(domain_schema, dict):
+        return refreshed
+    enum_schema = domain_schema
+    any_of = domain_schema.get("anyOf")
+    if isinstance(any_of, list) and any_of and isinstance(any_of[0], dict):
+        enum_schema = any_of[0]
+    enum_schema["enum"] = domain_values
+    return refreshed
 
 
 def _normalize_protocol_tier(raw: object, *, protocol_name: str) -> int:
@@ -555,18 +555,24 @@ def main() -> None:
     run_mcp_server(mcp, "GPD Protocols MCP Server")
 
 
+tighten_registered_tool_contracts(mcp)
+
 _BASE_LIST_TOOLS = mcp.list_tools
 
 
 async def _list_tools_with_fresh_protocol_schema():
-    _refresh_protocol_domain_schema()
-    return await _BASE_LIST_TOOLS()
+    tools = await _BASE_LIST_TOOLS()
+    for tool in tools:
+        if tool.name != "list_protocols":
+            continue
+        schema = published_tool_input_schema(tool)
+        if schema is None:
+            continue
+        set_published_tool_input_schema(tool, _schema_with_refreshed_protocol_domain_enum(schema))
+    return tools
 
 
 mcp.list_tools = _list_tools_with_fresh_protocol_schema
-
-
-tighten_registered_tool_contracts(mcp)
 
 
 if __name__ == "__main__":
