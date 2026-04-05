@@ -1,12 +1,132 @@
-# Prior Work: Universality Class of Self-Modeler Network in h_3(O)
+# Prior Work: Gap C Complexification via Sequential Product Route
 
-**Surveyed:** 2026-03-30
-**Domain:** Exceptional Jordan algebras / Quantum lattice systems / SSB with continuous symmetry / Nonlinear sigma models
-**Confidence:** MEDIUM (established results for SU(2)/O(3); novel territory for F_4 lattice systems)
+**Surveyed:** 2026-04-04
+**Domain:** Clifford algebra complexification / Sequential product spaces / Jordan-to-C*-algebra lifting / Observer-induced complex structure
+**Confidence:** MEDIUM-HIGH (established algebraic results are solid; the specific application to sequential-product-induced complexification is novel)
 
-This document covers prior work relevant to proving the universality class of the self-modeler network (whose algebra is h_3(O) with F_4 automorphism symmetry) supports the v9.0 mechanism chain. It does NOT re-cover v9.0 results (Fisher geometry -> sigma model -> Lorentz -> BW -> KMS -> Jacobson -> Einstein for the Heisenberg toy model) or v5.0/v8.0 results (h_3(O) Peirce decomposition, Cl(6) chirality, M_16(R) observable algebra). Those are validated inputs.
+This document covers prior work relevant to closing Gap C (complexification V_{1/2} = O^2 -> S_{10}^+) via the observer's C-linear sequential product. It does NOT re-cover:
+- Paper 5: Self-modeling forces M_n(C)^sa (validated)
+- Paper 7: Peirce decomposition, V_{1/2} = O^2 = R^16, Spin(9) action (validated)
+- v8.0: Three impossibility theorems, M_16(R) observable algebra, Cl(9,0) generation (validated)
+- v5.0: Extension-of-scalars complexification V_{1/2}^C = S_{10}^+ (validated)
 
-**Central question:** Does the REAL self-modeler system (sites carrying h_3(O) degrees of freedom with F_4 symmetry) fall into a universality class where the v9.0 chain fires?
+**Central question:** Does the observer's C-linear sequential product (Luders product from M_n(C)^sa) force complexification of the measurement algebra from Cl(9,0) to Cl(9,C), thereby complexifying V_{1/2}?
+
+---
+
+## Key Results
+
+| Result | Expression / Value | Conditions | Source | Year | Confidence |
+|--------|-------------------|------------|--------|------|------------|
+| Cl(9,0) tensor_R C = Cl(9,C) = M_16(C) + M_16(C) | Isomorphism of algebras | Standard complexification of real Clifford algebras | Lawson-Michelsohn, Spin Geometry, Table I.4.3 | 1989 | HIGH |
+| S_9 tensor_R C = S_{10}^+ + S_{10}^- | Branching under complexification | Spin(9) -> Spin(10) embedding via Cl(9,0) -> Cl(9,C) | Lawson-Michelsohn Ch. I; Baez, Bull. AMS 39 (2002) | 1989/2002 | HIGH |
+| No Spin(9)-equivariant J on V_{1/2} | Theorem 1 (v8.0) | End_{Spin(9)}(S_9) = R (real-type by Bott) | Phase 30, derivations/30-impossibility-theorems.md | 2026 | HIGH |
+| Schur commutant dim = 1 | End_{Spin(9)}(S_9) = R * I_16 | 9 mod 8 = 1 => Cl^+(9,0) = M_16(R) | Lawson-Michelsohn Table I.4.3; Phase 29 | 1989/2026 | HIGH |
+| JB-algebra = self-adjoint part of C*-algebra iff dynamical correspondence exists | Alfsen-Shultz theorem | Unital JB-algebra; orientation of state space | Alfsen-Shultz, PNAS 95:6596 (1998); Geometry of State Spaces (2003) | 1998 | HIGH |
+| Sequential product spaces are Jordan algebras | Theorem (vdW) | Finite-dimensional order unit space with S1-S7 | van de Wetering, J. Math. Phys. 60:062201 (2019), arXiv:1803.11139 | 2019 | HIGH |
+| Krasnov complex structure J_u on O^2 | J_u^2 = -I_16, breaks Spin(9) to SM gauge group | Choice of unit imaginary octonion u | Krasnov, J. Math. Phys. 62:021703 (2021), arXiv:1912.11282 | 2021 | HIGH |
+
+---
+
+## Foundational Work
+
+### Lawson-Michelsohn (1989) - Spin Geometry: Clifford Classification
+
+**Key contribution:** Complete classification of real Clifford algebras Cl(p,q) and their complexifications. For n = p+q, Cl(n,0) tensor_R C = Cl(n,C). The complex Clifford algebras have period 2: Cl(2m,C) = M_{2^m}(C), Cl(2m+1,C) = M_{2^m}(C) + M_{2^m}(C).
+
+**Method:** Bott periodicity for real Clifford algebras (period 8), universal property of Clifford algebras under complexification.
+
+**Directly relevant results:**
+- Cl(9,0) = M_16(R) + M_16(R) [since 9 mod 8 = 1, using Cl(1,0) = R + R and Bott tensor]
+- Cl^+(9,0) = M_16(R) [even subalgebra]
+- Cl(9,0) tensor_R C = Cl(9,C) = M_16(C) + M_16(C) [complexification forgets signature]
+- The unique irreducible real representation S_9 of Spin(9) has dimension 16 and is real-type (Frobenius-Schur indicator +1)
+- Under complexification: S_9 tensor_R C = S_{10}^+ + S_{10}^- where S_{10}^{\pm} are the two chiral Weyl spinors of Spin(10)
+
+**Limitations:** Purely algebraic -- says nothing about WHY or WHEN complexification should occur physically.
+
+**Relevance:** This is THE mathematical backbone. It establishes that complexifying the measurement algebra Cl(9,0) -> Cl(9,C) automatically complexifies the representation S_9 -> S_{10}^+ + S_{10}^-, delivering exactly the Spin(10) chiral fermion content. The question is not WHETHER this works algebraically but WHAT FORCES the tensor with C.
+
+### Alfsen-Shultz (1998, 2003) - Dynamical Correspondence and Orientation
+
+**Key contribution:** A unital JB-algebra A is isomorphic to the self-adjoint part of a C*-algebra if and only if there exists a dynamical correspondence on A. The dynamical correspondence is a map psi: A -> Der(A) satisfying psi_a(b) = i[a,b] in the C*-product, encoding the Lie bracket (generator/commutator structure) from the Jordan product (observable structure).
+
+**Method:** The C*-product is recovered from the Jordan product and the dynamical correspondence via: ab = a circ b - i * psi_b(a), where circ is the Jordan product and psi is the dynamical correspondence. The imaginary unit i enters NECESSARILY -- this is where complexification is forced.
+
+**Key theorem (Alfsen-Shultz, PNAS 95:6596, 1998):**
+- A JB-algebra A admits a dynamical correspondence iff its state space K has the 3-ball property and is orientable
+- Each dynamical correspondence determines a UNIQUE C*-algebra structure on the complexification A_C = A + iA
+- For JBW-algebras, Connes orientations and dynamical correspondences are in 1-1 correspondence
+
+**Limitations:** Applies to JB-algebras (which include M_n(R)^sa, M_n(C)^sa, M_n(H)^sa, and spin factors, but NOT h_3(O) -- the exceptional Jordan algebra is not the self-adjoint part of any C*-algebra). The theorem characterizes WHICH JB-algebras are "quantizable" (liftable to C*-algebras); h_3(O) famously fails this test.
+
+**Relevance:** CRITICAL but requires careful handling. The Alfsen-Shultz theorem does NOT apply directly to h_3(O) because h_3(O) is exceptional (not special). However, it DOES apply to the measurement algebra M_16(R)^sa, which IS a special Jordan algebra (self-adjoint part of M_16(R)). The question is whether the OBSERVER's dynamical correspondence (from M_n(C)^sa) propagates to the MEASUREMENT algebra acting on V_{1/2}. The Alfsen-Shultz theorem tells us that if M_16(R)^sa acquires a dynamical correspondence, it lifts to M_16(C), and this complexifies the representation from R^16 to C^16.
+
+### van de Wetering (2019) - Sequential Product Spaces are Jordan Algebras
+
+**Key contribution:** Any finite-dimensional order unit space with a sequential product satisfying axioms S1-S7 is a Euclidean Jordan algebra. This is the abstract characterization that connects measurement structure (sequential products) to algebraic structure (Jordan algebras).
+
+**Method:** Shows that S1-S7 force homogeneity and self-duality of the cone, then invokes the Koecher-Vinberg theorem to conclude Jordan algebra structure.
+
+**Key results for this project:**
+- The sequential product a & b = sqrt(a) b sqrt(a) on the effects [0,1]_A of a C*-algebra A is the canonical example
+- When A = M_n(C), this sequential product is C-LINEAR in the second argument
+- When A = M_n(R), the sequential product is only R-linear
+
+**Limitations:** The theorem identifies the Jordan algebra but does not determine which TYPE (R, C, or H). The type is an additional datum -- precisely the dynamical correspondence / orientation.
+
+**Relevance:** Establishes that the observer's sequential product (from Paper 5, which forces M_n(C)^sa) is C-linear. The basin's measurement operators T_b generate Cl(9,0) acting on R^16. When the observer applies its C-linear sequential product to measure these operators, the resulting effective algebra must be compatible with C-linearity. This is the mechanism: the observer's C-linear measurement maps force the measurement algebra to extend from R-linear (Cl(9,0) subset M_16(R)) to C-linear (Cl(9,0) tensor C subset M_16(C)).
+
+### Krasnov (2021) - SO(9) Characterization of the SM Gauge Group
+
+**Key contribution:** The Standard Model gauge group is the subgroup of Spin(9) that commutes with a specific complex structure J_u on the space of Spin(9) spinors S_9 = R^16. The complex structure J_u is parameterized by a choice of unit imaginary octonion u in S^6 subset Im(O).
+
+**Method:** Direct algebraic construction. Left multiplication L_u by a unit imaginary octonion u on O^2 gives J_u with J_u^2 = -Id. The subgroup of Spin(9) commuting with J_u is isomorphic to the SM gauge group [SU(3) x SU(2) x U(1)]/Z_6.
+
+**Key results:**
+- J_u is NOT Spin(9)-equivariant (consistent with Theorem 1 of v8.0)
+- J_u breaks Spin(9) -> [SU(3) x SU(2) x U(1)]/Z_6
+- Under J_u, R^16 becomes C^8, and the Spin(9) representation decomposes into SM representations
+- The choice of u (which imaginary octonion) parametrizes a family of complex structures, all related by G_2 = Aut(O) transformations
+
+**Limitations:** Does not explain WHY a specific u should be chosen. The complex structure is put in by hand.
+
+**Relevance:** Shows that the TARGET of complexification is well-defined and produces SM structure. The question for Gap C is: does the observer's C-linear sequential product select or generate such a J_u?
+
+### Westerbaan-Westerbaan-van de Wetering (2020) - Three Types of Normal SEAs
+
+**Key contribution:** Normal sequential effect algebras decompose as a direct sum E = E_b + E_c + E_ac of Boolean (classical), convex (quantum), and purely almost-convex parts. Convex normal SEAs correspond to JBW-algebras. The effects of any von Neumann algebra form a convex normal SEA.
+
+**Method:** Categorical decomposition using directed completeness and convexity.
+
+**Key result for this project:** The convex part E_c of any normal SEA is a JBW-algebra. When the full SEA arises from a C*-algebra (as it does for the observer M_n(C)), the JBW structure carries the full C*-information including orientation.
+
+**Reference:** Quantum 4:378 (2020), arXiv:2004.12749
+
+**Relevance:** Confirms that the observer's sequential product encodes not just the Jordan structure but the full C*-structure including orientation/complexification. The observer is not just a Jordan algebra -- it is a C*-algebra SEEN THROUGH its sequential product.
+
+### Grgin-Petersen (1974) - Observable-Generator Duality
+
+**Key contribution:** In quantum mechanics, self-adjoint operators play a dual role: as observables (Jordan product) and as generators of symmetries (Lie bracket/commutator). When the Lie algebra of generators is central simple, the observable-generator duality restricts the structure to either: (a) commutative associative algebra (classical), or (b) central simple special Jordan algebra (quantum).
+
+**Method:** Algebraic classification from the requirement that the same elements serve as both observables and generators.
+
+**Key formula:** The full associative product is ab = a circ b - i(a * b) where circ is the Jordan product and * is the Lie product (commutator). The factor of i is NECESSARY for self-adjoint elements to generate unitary transformations.
+
+**Reference:** Grgin-Petersen, J. Math. Phys. 15:764 (1974)
+
+**Relevance:** This is the conceptual ancestor of the Alfsen-Shultz dynamical correspondence. It explains WHY complexification is tied to dynamics: real observables generate unitary (complex) dynamics only if the algebra is complexified. The observer's dynamical role (generating measurement transformations) forces the imaginary unit into the algebra.
+
+---
+
+## Recent Developments
+
+| Paper | Authors | Year | Advance | Impact on Our Work |
+|-------|---------|------|---------|--------------------|
+| Fermion mass ratios from exceptional Jordan algebra | Singh | 2025 | Complexified J_3(O_C) produces three generations with mass hierarchies from Sym^3(3) ladder | Confirms complexified EJA is the right target; does not address mechanism |
+| Algebraic realization of three fermion generations with S_3 | Gillard, Gresnigt, Sherrill | 2024 | Cl(8) approach to three generations with unbroken gauge symmetry | Alternative Cl(8) route; our Cl(9,0) -> Cl(9,C) is different but related |
+| n-point exceptional Jordan geometries | Farnsworth | 2025 | F_4 x F_4 gauge theory from spectral geometry on h_3(O) | Independent NCG route; validates h_3(O) as gauge theory source |
+| Sequential quantum measurements and instrumental group algebra | Various | 2025 | Group algebra structure of sequential measurements | Extends sequential product theory to measurement sequences; relevant to iterated observer actions |
 
 ---
 
@@ -16,237 +136,152 @@ This document covers prior work relevant to proving the universality class of th
 
 | Framework | Scope | Key Equations | Regime of Validity |
 |-----------|-------|---------------|-------------------|
-| Exceptional Jordan algebra h_3(O) | 27-dim self-adjoint octonionic 3x3 matrices | a o b = (1/2)(ab + ba), Aut(h_3(O)) = F_4 | Exact algebraic structure |
-| DLS infrared bounds | SSB proof for quantum lattice systems with continuous symmetry | Infrared bound: S(k) <= C/E(k), E(k) ~ k^2 for AFM | Bipartite lattice, reflection positive, d >= 3 |
-| Nonlinear sigma model on G/H | Low-energy effective theory of SSB system | L = (1/2g^2) Tr(d_mu U^{-1} d^mu U), U in G/H | Below SSB scale, above lattice UV cutoff |
-| FSS infrared bounds (classical) | Phase transitions with continuous symmetry | Gaussian domination + RP -> infrared bound | d >= 3, NN ferromagnetic, reflection positive |
+| Real Clifford algebra Cl(9,0) | Measurement algebra on V_{1/2} | {gamma_i, gamma_j} = 2 delta_ij I_16, Cl^+(9,0) = M_16(R) | Exact algebraic structure from Peirce operators |
+| Complexification functor | Algebra extension R -> C | Cl(n,0) tensor_R C = Cl(n,C) | Universal -- works for any R-algebra |
+| Sequential product spaces | Measurement structure -> Jordan algebra | a & b = sqrt(a) b sqrt(a) (Luders form) | Finite-dimensional OUS with S1-S7 |
+| Alfsen-Shultz dynamical correspondence | Jordan -> C*-algebra lifting | ab = a circ b - i psi_b(a) | Unital JB-algebras with orientable state space |
+| Connes real spectral triples | NCG approach to SM | KO-dimension determines real structure | Finite spectral triples for internal geometry |
 
 ### Mathematical Prerequisites
 
 | Topic | Why Needed | Key Results | References |
 |-------|-----------|-------------|-----------|
-| F_4 Lie algebra (dim 52, rank 4) | Symmetry group of h_3(O) | F_4 = Aut(h_3(O)); maximal subgroups: Spin(9), SU(3)xSU(3), Sp(3)xSU(2) | Todorov-Drenska arXiv:1805.06739 |
-| Octonionic projective plane OP^2 | Target space of effective sigma model | OP^2 = F_4/Spin(9), dim = 16, compact symmetric space | Parton-Picken, Axioms 7(4):72 (2018) |
-| Reflection positivity on lattices | Technical condition for infrared bounds | RP holds for bipartite lattices with NN interactions | Froehlich-Simon-Spencer, CMP 50 (1976) |
-| Peirce decomposition of h_3(O) | Defines the lattice site algebra | h_3(O) = V_1 + V_{1/2} + V_0 (dims 1+16+10) | Validated in v5.0/v8.0 |
-| Spectral triples on Jordan backgrounds | Alternative approach via NCG | Farnsworth: F_4 x F_4 gauge theory from n-point Jordan geometries | arXiv:2503.10744, arXiv:2506.21496 |
+| Bott periodicity (period 8 real, period 2 complex) | Determines Schur type of S_9 | 9 mod 8 = 1 => Cl^+(9,0) = M_16(R), real-type | Lawson-Michelsohn Table I.4.3 |
+| Schur's lemma over R | Proves impossibility of equivariant J | End_{Spin(9)}(S_9) = D in {R, C, H}; here D = R | Standard; Phase 30 Theorem 1 |
+| Complexification of representations | S_9 tensor C = S_{10}^+ + S_{10}^- | Branching rule for Spin(9) -> Spin(10) | Lawson-Michelsohn Ch. I.5 |
+| JB-algebra theory | Framework for Jordan-to-C* lifting | JB = self-adjoint part of C* iff dynamical corr. exists | Alfsen-Shultz (2003) Ch. 5-7 |
+| CPTP maps / Kraus decomposition | Observer's measurement action | Phi(rho) = sum K_i rho K_i^dag, K_i in M_n(C) | Nielsen-Chuang (2000) Ch. 8 |
 
 ### Symmetries and Conservation Laws
 
 | Symmetry | Conserved Quantity | Implications for Methods |
 |----------|-------------------|------------------------|
-| F_4 (automorphism of h_3(O)) | 52-dim Noether currents in continuum | Goldstone theorem: SSB of F_4 -> H produces dim(F_4/H) Goldstone modes |
-| Spin(9) (stabilizer of idempotent) | 36-dim charges | If F_4 -> Spin(9): 52-36 = 16 Goldstone modes on OP^2 |
-| G_2 (automorphism of octonions) | 14-dim charges | If F_4 -> G_2: 52-14 = 38 Goldstone modes |
-| Lattice translation | Crystal momentum | Dispersion relation of Goldstone modes determines spin-wave velocity |
-| Lattice point group | Discrete rotation symmetry | Must restore to full SO(d) in continuum limit for von Ignatowsky |
+| Spin(9) on V_{1/2} | 36 generators of spin(9) | Any complex structure J breaks Spin(9); need mechanism to select the break |
+| G_2 = Aut(O) | 14-dim, acts on unit imaginary octonions S^6 | Krasnov J_u family parametrized by u in S^6; G_2 relates different complex structures |
+| Observer C-linearity | Complex structure preserved by measurement maps | All Kraus operators K_i are C-linear; this is the FORCING mechanism |
 
 ### Unit System and Conventions
 
-- **Unit system:** hbar = 1, k_B = 1, lattice spacing a = 1
-- **Jordan product:** a o b = (1/2)(ab + ba)
-- **Peirce eigenvalues:** {0, 1/2, 1}
-- **Octonion convention:** Fano e_1 e_2 = e_4 (matches Paper 7)
-- **Clifford signature:** Cl(9,0) (positive definite)
+- **Unit system:** Dimensionless (algebraic computation)
+- **Jordan product:** a circ b = (1/2)(ab + ba)
+- **Clifford convention:** {gamma_i, gamma_j} = 2 delta_ij I_16 (Euclidean signature, positive definite)
+- **Peirce operator normalization:** T_b = (1/2) L_b L_e (from v8.0); gamma_1 = 4*T_b[1], gamma_k = 2*T_b[k] for k=2..9
+- **Octonion convention:** Fano plane e_1 e_2 = e_4 (matches Paper 7)
+- **Complex structure convention:** J_u = left multiplication by u on O^2 (Krasnov)
 
 ### Known Limiting Cases
 
 | Limit | Parameter Regime | Expected Behavior | Reference |
 |-------|-----------------|-------------------|-----------|
-| SU(2) Heisenberg | Restrict h_3(O) to h_2(C) | Neel order d >= 3; O(3) sigma model; v9.0 chain fires | DLS 1978; v9.0 |
-| Free field (g -> 0) | Sigma model weak coupling | Asymptotic freedom in 2D; perturbative in d >= 3 | Friedan, Ann. Phys. 163 (1985) |
-| Large-N O(N) | N -> infinity with g^2 N fixed | Solvable sigma model; mass gap in 2D | Brezin-Zinn-Justin, PRB 14 (1976) |
-| Classical limit S -> infinity | Quantum -> classical lattice model | FSS theorem applies directly | Biskup-Chayes-Starr, CMP 269 (2007) |
-
----
-
-## Key Parameters and Constants
-
-| Parameter | Value | Source | Notes |
-|-----------|-------|--------|-------|
-| dim h_3(O) | 27 | Algebraic | Site Hilbert space dimension (per self-modeler) |
-| dim F_4 | 52 | Algebraic | Number of continuous symmetry generators |
-| rank F_4 | 4 | Algebraic | Number of independent Casimirs |
-| dim OP^2 = F_4/Spin(9) | 16 | Algebraic | Goldstone manifold dimension if F_4 -> Spin(9) |
-| dim Spin(9) | 36 | Algebraic | Stabilizer of a primitive idempotent in h_3(O) |
-| Ricci curvature of OP^2 | Positive (Einstein manifold) | Differential geometry | Ensures asymptotic freedom of 2D sigma model |
+| Cl(1,0) tensor C | n=1 (toy model) | Cl(1,0) = R+R; Cl(1,C) = C+C; S_1 tensor C = C = S_2^+ + S_2^- | Trivial check |
+| Observer = M_1(C) = C | Trivial observer | No non-trivial measurement; no forcing | Degenerate case |
+| Observer = M_n(R) | Real observer | Sequential product R-linear; no complexification forced | Confirms: must have C-observer |
+| n -> infinity | Large observer | C-linearity unchanged; Cl(9,0) tensor C = Cl(9,C) regardless of n | Algebraic (n-independent) |
 
 ---
 
 ## Established Results to Build On
 
-### Result 1: Froehlich-Simon-Spencer (FSS) Infrared Bounds for Classical Systems
+### Result 1: Three Impossibility Theorems (v8.0)
 
-**Statement:** For classical lattice spin models on Z^d (d >= 3) with compact continuous symmetry group G, nearest-neighbor ferromagnetic interactions, and reflection positivity, the Fourier transform of the two-point function satisfies S(k) <= C/E(k) where E(k) is the lattice Laplacian spectrum. This infrared bound implies long-range order (SSB of G) at sufficiently low temperature.
+**Statement:** (1) No Spin(9)-equivariant complex structure J exists on V_{1/2}. (2) The Krasnov J_u is not in spin(9). (3) The Schur commutant End_{Spin(9)}(S_9) = R, so no complex structure lies in the commutant algebra.
 
-**Proven/Conjectured:** PROVEN (1976)
+**Proven/Conjectured:** PROVEN (Phase 30)
 
-**Reference:** Froehlich-Simon-Spencer, CMP 50 (1976) 79-95
+**Reference:** derivations/30-impossibility-theorems.md
 
-**Relevance:** This is the foundational method. Originally proved for O(N) models and phi^4 theories. The key insight: the infrared bound S(k) <= C/k^2 prevents correlations from decaying too fast, forcing long-range order in d >= 3. The method requires TWO technical conditions: (1) reflection positivity of the measure, and (2) a Gaussian domination inequality. For the CLASSICAL F_4 lattice model (which exists in the classical limit S -> infinity of the quantum model), FSS applies IF the interaction is reflection positive. NN interactions on bipartite lattices satisfy RP.
+**Relevance:** These theorems close the ALGEBRAIC route -- complexification cannot come from the basin structure (h_3(O) and its Peirce decomposition) alone. An EXTERNAL input is required. The sequential product route provides that external input: it comes from the observer, not the basin.
 
-**Confidence:** HIGH for O(N)/SU(N) models; MEDIUM for F_4 (conditions met in principle, but never explicitly verified for exceptional groups)
+### Result 2: Observable Algebra = M_16(R)
 
-### Result 2: Dyson-Lieb-Simon (DLS) Neel Order for Quantum Heisenberg
+**Statement:** The measurement operators T_b (b in V_0) acting on V_{1/2} = R^16 generate Cl^+(9,0) = M_16(R) as an associative algebra. The full Cl(9,0) = M_16(R) + M_16(R) acts on V_{1/2} via the P_+ = (1/2)(1+omega) projection.
 
-**Statement:** The quantum SU(2) Heisenberg antiferromagnet on Z^d exhibits spontaneous symmetry breaking (Neel order) at T = 0 for: (a) S >= 1, d >= 3; (b) S >= 3/2, d >= 2; and at T > 0 for S >= 1, d >= 3. Extended by Kennedy-Lieb-Shastry (1988) to S = 1/2, d >= 3.
+**Proven/Conjectured:** PROVEN (Phase 29, Phase 30)
+
+**Reference:** derivations/30-impossibility-theorems.md, Eq. 29-01.4
+
+**Relevance:** M_16(R) is the STARTING algebra. It is a real matrix algebra -- equivalently, M_16(R)^sa is a special Jordan algebra. By Alfsen-Shultz, M_16(R)^sa CAN be lifted to a C*-algebra (namely M_16(C)) IF a dynamical correspondence is provided. The question is whether the observer provides one.
+
+### Result 3: Observer Forces M_n(C)^sa (Paper 5)
+
+**Statement:** Self-modeling axioms (S1-S7) plus local tomography plus type exclusion force the observer algebra to be M_n(C)^sa for some n >= 2.
+
+**Proven/Conjectured:** PROVEN (Paper 5)
+
+**Reference:** Paper 5 (published); derivations/04-sequential-product-definition.md
+
+**Relevance:** The observer is COMPLEX. Its sequential product a & b = sqrt(a) b sqrt(a) is computed in M_n(C), making it C-LINEAR. This C-linearity is the datum that propagates to the measurement algebra.
+
+### Result 4: Alfsen-Shultz Dynamical Correspondence Theorem
+
+**Statement:** A unital JB-algebra A is isomorphic to the self-adjoint part of a C*-algebra if and only if there exists a dynamical correspondence psi: A -> Der(A) such that for each a in A, psi_a is a derivation of the Jordan product, and exp(t psi_a) is a Jordan automorphism for all t. The C*-product is then ab = a circ b - i psi_b(a).
 
 **Proven/Conjectured:** PROVEN
 
-**Reference:** Dyson-Lieb-Simon, J. Stat. Phys. 18 (1978) 335; Kennedy-Lieb-Shastry, J. Stat. Phys. 53 (1988) 1019
+**Reference:** Alfsen-Shultz, PNAS 95:6596 (1998); Alfsen-Shultz, State Spaces of Operator Algebras (2001); Alfsen-Shultz, Geometry of State Spaces (2003)
 
-**Relevance:** The benchmark result. DLS proves SSB for quantum spins with SU(2) symmetry. The METHOD (reflection positivity + infrared bounds) is what matters for v10.0: can it be extended to F_4 symmetry? DLS used properties specific to SU(2) spin operators, but the underlying framework (RP + infrared bounds) is more general. Nachtergaele's review (arXiv:math-ph/0603017) surveys the landscape of extensions.
+**Relevance:** This is the MECHANISM. If the observer's C-linear measurement maps induce a dynamical correspondence on M_16(R)^sa (the measurement algebra), then M_16(R)^sa lifts to M_16(C), and the representation R^16 complexifies to C^16 = S_{10}^+ + S_{10}^-.
 
-**Confidence:** HIGH
+### Result 5: Complexification of Clifford Representations
 
-### Result 3: Biskup-Chayes-Starr Quantum-to-Classical Reduction
-
-**Statement:** For quantum spin systems with reflection positivity and a meaningful classical limit (spin magnitude S -> infinity), whenever chessboard estimates prove a phase transition in the classical model, the quantum model has a similar phase transition provided beta << sqrt(S). This reduces the quantum SSB problem to the classical one for large enough spin.
+**Statement:** Let S_n be the real spinor representation of Spin(n) (when it exists as a real irreducible). Then S_n tensor_R C decomposes under the complexified spin group according to:
+- n odd: S_n tensor_R C = S_n^C (irreducible complex spinor, if n = 3 mod 4) or S_n tensor_R C = S_n^+ + S_n^- (two irreducible Weyl spinors, if n = 1 mod 4)
+- For n=9 (= 1 mod 8): S_9 tensor_R C = S_{10}^+ + S_{10}^-, the two Weyl spinors of Spin(10)
 
 **Proven/Conjectured:** PROVEN
 
-**Reference:** Biskup-Chayes-Starr, CMP 269 (2007) 611-657; arXiv:math-ph/0509017
+**Reference:** Lawson-Michelsohn, Spin Geometry (1989), Ch. I.5; see also Baez, Bull. AMS 39 (2002) Sec. 3.4
 
-**Relevance:** This is a CRITICAL result for v10.0. It says: if we can establish SSB for the CLASSICAL F_4 lattice model (which is the FSS problem), then the QUANTUM version also has SSB for large enough effective spin. The h_3(O) site algebra is 27-dimensional, so the "spin" is large (analogous to large S). The condition beta << sqrt(S) with S ~ 27 is not particularly restrictive. The catch: must verify the quantum model is reflection positive and has a well-defined classical limit.
+**Relevance:** Confirms that complexifying the representation automatically produces the desired Spin(10) chiral spinor. The branching is: Spin(9) subset Spin(10) with S_{10}^+|_{Spin(9)} = S_9. Complexification "doubles" the representation and the doubled version decomposes chirally.
 
-**Confidence:** HIGH for the general theorem; MEDIUM for applicability to h_3(O) (need to verify RP and classical limit)
+### Result 6: Krasnov Complex Structure and SM Gauge Group
 
-### Result 4: Sigma Model One-Loop Beta Function = Ricci Tensor
+**Statement:** The subgroup of Spin(9) that commutes with the complex structure J_u (left multiplication by unit imaginary octonion u) on S_9 = R^16 is isomorphic to the Standard Model gauge group [SU(3) x SU(2) x U(1)]/Z_6.
 
-**Statement:** For a 2D nonlinear sigma model with target manifold (M, g), the one-loop RG beta function is beta^{(1)}_{ab} = (1/2pi) R_{ab} where R_{ab} is the Ricci tensor of the target manifold. For compact symmetric spaces G/H, the Ricci tensor is proportional to the metric: R_{ab} = (1/2d_G/H) g_{ab} where the proportionality depends on the geometry. Positive Ricci curvature implies asymptotic freedom.
+**Proven/Conjectured:** PROVEN
 
-**Proven/Conjectured:** PROVEN (perturbatively)
+**Reference:** Krasnov, J. Math. Phys. 62:021703 (2021), arXiv:1912.11282
 
-**Reference:** Friedan, Ann. Phys. 163 (1985) 318; Polyakov, Phys. Lett. B 59 (1975) 79
-
-**Relevance:** The octonionic projective plane OP^2 = F_4/Spin(9) is a compact symmetric Einstein manifold with positive Ricci curvature. Therefore a 2D sigma model on OP^2 is asymptotically free, just like the O(3) sigma model that describes the Heisenberg antiferromagnet. This is the effective field theory statement: IF the F_4 lattice model breaks F_4 -> Spin(9) spontaneously, the Goldstone sector is described by a sigma model on OP^2 that is asymptotically free in 2D and has massive excitations (spin waves) in d >= 3 with a well-defined propagation velocity.
-
-**Confidence:** HIGH for the general result; MEDIUM for applicability to the specific F_4 -> Spin(9) breaking pattern (which has not been established)
-
-### Result 5: F_4 Subgroup Structure and Borel-de Siebenthal Classification
-
-**Statement:** The maximal subgroups of F_4 (compact form) include: (a) Spin(9) (dim 36) -- stabilizer of a primitive idempotent in h_3(O); coset F_4/Spin(9) = OP^2 (dim 16). (b) SU(3) x SU(3) / Z_3 (dim 16) -- preserves the decomposition of h_3(O) into 3x3 block structure. (c) Sp(3) x SU(2) (dim 24) -- related to quaternionic substructure. The intersection of (a) and (b) yields the Standard Model gauge group (Todorov).
-
-**Proven/Conjectured:** PROVEN (classification theory)
-
-**Reference:** Todorov-Drenska, Adv. Appl. Cliff. Alg. 28:82 (2018), arXiv:1805.06739
-
-**Relevance:** Determines the possible SSB patterns. If the lattice model breaks F_4 completely, the Goldstone manifold is F_4 itself (dim 52 modes). If it breaks F_4 -> Spin(9), the Goldstone manifold is OP^2 (16 modes). The PHYSICAL question is which subgroup H is preserved, which depends on the specific Hamiltonian. For self-modeler dynamics, Spin(9) is the most natural stabilizer because it is the automorphism group that preserves a chosen idempotent (= a chosen "observer" state in h_3(O)).
-
-**Confidence:** HIGH for the group theory; LOW for which pattern is realized dynamically
-
-### Result 6: Farnsworth Spectral Geometry with Exceptional Jordan Algebras
-
-**Statement:** Finite-dimensional discrete spectral geometries can be constructed from non-simple exceptional Jordan algebras as coordinate algebras. The 2-point geometry yields an F_4 x F_4 gauge theory; the 1-point geometry yields G_2 x G_2. Scalar content is restricted by novel conditions from the associative properties of the coordinate algebra.
-
-**Proven/Conjectured:** PROVEN (constructive)
-
-**Reference:** Farnsworth, arXiv:2503.10744 (2025); arXiv:2506.21496 (2025)
-
-**Relevance:** Independent confirmation that the exceptional Jordan algebra route to gauge theories is viable. Farnsworth's approach is via noncommutative geometry / spectral triples, different from the self-modeling route of Papers 5-7. The F_4 x F_4 gauge group from the 2-point geometry is larger than what emerges from the self-modeling framework, but the underlying algebraic structure is the same h_3(O). This cross-validates the general approach without duplicating it.
-
-**Confidence:** MEDIUM (very recent, not yet widely cited)
-
-### Result 7: Bjornberg-Ueltschi Review of RP and Infrared Bounds for Quantum Spins
-
-**Statement:** Comprehensive review of the method of reflection positivity and infrared bounds applied to quantum spin systems. Covers the DLS approach, random loop representations, and extensions to SU(2)-invariant systems including spin-1 bilinear-biquadratic models.
-
-**Proven/Conjectured:** REVIEW
-
-**Reference:** Bjornberg-Ueltschi, arXiv:2204.12896 (2022)
-
-**Relevance:** Most recent comprehensive survey of the RP/infrared bound technology. Clarifies what symmetry groups and lattice structures the method handles. The method works for systems where: (i) the Hamiltonian is reflection positive across a lattice hyperplane, (ii) Gaussian domination can be established, and (iii) the infrared bound S(k) <= C/E(k) can be proven. The SU(2) case is fully worked out; extensions to SU(N) and other groups require case-by-case verification.
-
-**Confidence:** HIGH
+**Relevance:** Once a complex structure J is chosen on V_{1/2}, the Spin(9) action that survives (commutes with J) is precisely the SM gauge group. This connects complexification to gauge symmetry breaking. The sequential product route must either (a) select a specific J, or (b) show that ANY J induced by the observer yields SM structure.
 
 ---
 
 ## Open Problems Relevant to This Project
 
-### Open Problem 1: Existence of SSB for Lattice Models with Exceptional Symmetry
+### Open Problem 1: Does the Observer's C-Linear Map Induce a Dynamical Correspondence on M_16(R)^sa?
 
-**Statement:** Does a quantum lattice system on Z^d (d >= 3) with F_4-symmetric nearest-neighbor interactions exhibit spontaneous symmetry breaking at low temperature?
+**Statement:** The observer M_n(C)^sa acts on the basin through measurement maps (Kraus operators, CPTP channels). These maps are C-linear. Do they induce a dynamical correspondence on the measurement algebra M_16(R)^sa subset End(V_{1/2})?
 
-**Why it matters:** This is THE central question for v10.0. If SSB occurs, the Goldstone sector provides the sigma model needed for the rest of the v9.0 chain. If SSB does not occur (which would be surprising in d >= 3 for a compact continuous symmetry with large enough representation), the mechanism fails.
+**Why it matters:** If YES, then by Alfsen-Shultz, M_16(R)^sa lifts to M_16(C), and the representation complexifies. This would close Gap C.
 
-**Current status:** No published work addresses this specific question. However, the general theory strongly suggests YES for the following reasons:
+**Current status:** No published work addresses this specific question. The ingredients exist separately:
+- The observer's measurement maps are C-linear CPTP channels (standard quantum information theory)
+- The Alfsen-Shultz theorem characterizes when JB-algebras lift to C*-algebras
+- M_16(R)^sa is a special JB-algebra that CAN admit a dynamical correspondence
 
-1. The classical limit (FSS 1976): A classical F_4 lattice model on Z^d, d >= 3 with NN ferromagnetic interaction is expected to break F_4 spontaneously, by the same FSS infrared bound argument that works for O(N). The FSS method requires only reflection positivity (satisfied for NN bipartite) and Gaussian domination (which follows from the convexity structure of the interaction). The key technical step is verifying that the F_4 Haar measure provides the needed estimates. For ANY compact group G, the NN Heisenberg model on Z^d with spins in a G-representation has a classical RP measure, and FSS-type arguments go through in d >= 3 for large enough representation dimension. This is essentially the content of the Biskup-Chayes-Starr framework.
+The missing step is showing that the observer's C-linear action on V_{1/2} naturally produces the Lie bracket / commutator structure that constitutes a dynamical correspondence on M_16(R)^sa.
 
-2. The quantum regime (DLS-type): For quantum spins with F_4 symmetry and site Hilbert space dim 27, the Biskup-Chayes-Starr reduction works because the effective spin is large (dim >> 1). The quantum model inherits SSB from its classical limit.
+**Key references:** Alfsen-Shultz PNAS 95:6596; van de Wetering arXiv:1803.11139; Paper 5
 
-3. Physical intuition: In d >= 3, the infrared divergence is too weak to destroy long-range order for continuous symmetries (unlike d <= 2 where Mermin-Wagner applies). Larger symmetry groups have MORE Goldstone modes, which could in principle cause stronger fluctuations, but in d >= 3 the infrared counting still favors ordering.
+### Open Problem 2: Does the Induced Complex Structure Match Krasnov's J_u?
 
-**Key references:** FSS CMP 50 (1976); DLS J. Stat. Phys. 18 (1978); Biskup-Chayes-Starr CMP 269 (2007); Nachtergaele arXiv:math-ph/0603017
+**Statement:** If the observer's action complexifies V_{1/2}, does the resulting complex structure coincide with (or lie in the G_2-orbit of) Krasnov's J_u?
 
-### Open Problem 2: Determination of the SSB Pattern for F_4
+**Why it matters:** If the induced J matches J_u, then the SM gauge group emerges automatically. If it is a DIFFERENT complex structure, the gauge group decomposition may differ.
 
-**Statement:** If F_4 is spontaneously broken, which subgroup H is preserved? Candidates: Spin(9), SU(3) x SU(3), Sp(3) x SU(2), or smaller.
+**Current status:** Krasnov's J_u is determined by a choice of unit imaginary octonion u in S^6 subset Im(O). All choices related by G_2 = Aut(O) give isomorphic SM gauge groups. The observer's complex structure would need to be compatible with the octonion multiplication structure on V_{1/2} = O^2. Since the observer acts through measurement operators T_b that generate Cl(9,0), and Krasnov shows that J_u is a grade-1 Clifford element (not in spin(9)), the induced J must come from OUTSIDE Cl^+(9,0).
 
-**Why it matters:** The Goldstone manifold F_4/H determines the target space of the effective sigma model, which controls the low-energy physics. F_4/Spin(9) = OP^2 (dim 16) is the physically most natural choice.
+**Key references:** Krasnov arXiv:1912.11282; Phase 30 Theorems 1-3
 
-**Current status:** For the Heisenberg-type model where the interaction is the Jordan product inner product, the ground state selects a direction in h_3(O). The stabilizer of a generic element of h_3(O) depends on its Jordan-algebraic properties:
-- A primitive idempotent has stabilizer Spin(9) [Todorov-Drenska]
-- A generic element (3 distinct eigenvalues) has stabilizer smaller than Spin(9)
-- An element proportional to the identity has stabilizer F_4 (no breaking)
+### Open Problem 3: Does the Sequential Product Extension Preserve Spin(9) Equivariance?
 
-The SSB pattern depends on the ground state manifold of the specific Hamiltonian. For a nearest-neighbor antiferromagnet on a bipartite lattice, the Neel state selects directions on alternating sublattices, and the unbroken symmetry is the diagonal subgroup of (isotropy of sublattice A) x (isotropy of sublattice B).
+**Statement:** When the measurement algebra extends from Cl(9,0) subset M_16(R) to Cl(9,C) subset M_16(C), is the Spin(9) action on V_{1/2}^C compatible with the complexified sequential product?
 
-**Key references:** Todorov-Drenska arXiv:1805.06739; classification of F_4 maximal subgroups
+**Why it matters:** The extended Spin(9) action on C^16 = S_{10}^+ + S_{10}^- should commute with the complexified measurement operators. This is automatic algebraically (Spin(9) subset Cl^+(9,0) subset Cl^+(9,C)), but must be verified at the sequential product level.
 
-### Open Problem 3: Does the OP^2 Sigma Model Have the Right Universality Class?
+**Current status:** Standard representation theory guarantees compatibility at the algebra level. The sequential product level requires checking that Spin(9)-covariance of the Luders product is preserved under complexification.
 
-**Statement:** Is the 2D nonlinear sigma model on OP^2 = F_4/Spin(9) in the same universality class as the O(3) model for the purposes of the v9.0 chain (Fisher geometry -> Lorentz -> BW)?
-
-**Why it matters:** If the OP^2 sigma model is "sufficiently like" the O(3) model (asymptotic freedom, mass gap in d >= 3, well-defined spin-wave velocity), then the entire v9.0 chain generalizes from SU(2) -> O(3) -> S^2 to F_4 -> Spin(9) -> OP^2.
-
-**Current status:** General theory strongly supports YES:
-- OP^2 is a compact symmetric Einstein space with positive Ricci curvature, so the 2D sigma model is asymptotically free (Friedan 1985)
-- In d >= 3, the sigma model is in the ordered phase with massive Goldstone bosons (spin waves) at finite temperature, exactly like O(3)
-- The spin-wave velocity is determined by the curvature of the interaction and the lattice structure, not the target manifold
-- The key difference: 16 Goldstone modes instead of 2, but this is a quantitative difference, not qualitative
-
-**Key references:** Friedan, Ann. Phys. 163 (1985); Polyakov, Phys. Lett. B 59 (1975); Brezin-Zinn-Justin PRB 14 (1976)
-
-### Open Problem 4: Constructing the F_4-Symmetric Hamiltonian from Self-Modeling
-
-**Statement:** What is the explicit Hamiltonian for the self-modeler lattice, and is it F_4-symmetric? Is it NN on a bipartite lattice? Is it reflection positive?
-
-**Why it matters:** The DLS/FSS/BCS machinery requires specific properties of the Hamiltonian. The self-modeling framework must produce a Hamiltonian with these properties, or an alternative route to SSB must be found.
-
-**Current status:** Paper 5 derives the SWAP interaction from self-modeling. On the Heisenberg chain (v9.0), this is the SU(2) Heisenberg Hamiltonian H = J sum_{<ij>} S_i . S_j. For h_3(O), the analogous interaction should be H = J sum_{<ij>} (a_i, a_j) where (,) is the trace inner product on h_3(O). This interaction IS F_4-symmetric (F_4 preserves the trace inner product on h_3(O)), IS nearest-neighbor on any lattice, and IS reflection positive on bipartite lattices (by the same argument as for O(N) models: the interaction is a sum of products of generators, and the RP follows from the positivity of the representation).
-
-**Key references:** Paper 5 (SWAP derivation); Paper 6 (lattice structure); v8.0 (Peirce operators as 16x16 matrices)
-
----
-
-## Key Negative Results and No-Go Constraints
-
-### No Lattice Models with F_4 Symmetry Exist in the Literature
-
-**Statement:** A thorough literature survey found NO published work on quantum or classical lattice spin models with F_4 symmetry in the condensed matter or statistical mechanics literature.
-
-**Significance:** This means v10.0 is genuinely novel. There are no benchmarks, no QMC data, no known phase diagrams for F_4 lattice models. The universality class must be established analytically (via DLS/FSS-type arguments) rather than numerically.
-
-**What exists instead:** (a) O(N) and SU(N) lattice models -- extensively studied. (b) E_8 appears in the Zamolodchikov integrable field theory (1D Ising in transverse + longitudinal field), but this is E_8 as a DYNAMICAL symmetry of excitations, not as the SYMMETRY GROUP of the lattice interaction. (c) F-theory models with F_4 gauge group exist in string theory, but these are NOT lattice models.
-
-**Confidence:** HIGH (absence of evidence, supported by extensive search)
-
-### Mermin-Wagner Forbids F_4 SSB in d <= 2 at T > 0
-
-**Statement:** For any compact continuous symmetry group G on Z^d with d <= 2 at T > 0, the Mermin-Wagner-Hohenberg theorem forbids spontaneous symmetry breaking. F_4 is compact, so SSB of F_4 is forbidden in d = 1, 2 at T > 0.
-
-**Significance:** The v10.0 chain REQUIRES d >= 3 for the SSB step, consistent with v9.0 (which also needed d >= 3 for DLS-type arguments). In d = 2 at T = 0, SSB may still occur (DLS-type result for S = 1/2 on the square lattice is numerical evidence, not rigorous for SU(2); for F_4 nothing is known).
-
-**Confidence:** HIGH (Mermin-Wagner is rigorous)
-
-### No-Go: Jordan Algebra is NOT an Associative Algebra
-
-**Statement:** h_3(O) is an exceptional Jordan algebra that cannot be realized as the self-adjoint part of any associative algebra (this is what makes it "exceptional" in the JvNW classification). Consequently, standard matrix-algebra techniques (trace, determinant, representation theory of associative algebras) do not apply directly.
-
-**Significance:** The Hamiltonian construction must use Jordan-algebraic operations (Jordan product, trace form, Freudenthal product) rather than standard matrix multiplication. The trace inner product (a, b) = Tr(a o b) IS well-defined and F_4-invariant, so the Heisenberg-type interaction works. But diagonalization, transfer matrix methods, and other techniques that rely on associativity need careful reformulation.
-
-**Confidence:** HIGH (algebraic fact)
+**Key references:** Lawson-Michelsohn Ch. I; van de Wetering arXiv:1803.11139
 
 ---
 
@@ -254,38 +289,68 @@ The SSB pattern depends on the ground state manifold of the specific Hamiltonian
 
 | Category | Recommended | Alternative | Why Not |
 |----------|------------|-------------|---------|
-| SSB proof method | DLS/FSS infrared bounds via BCS reduction | Direct quantum Monte Carlo | No QMC code exists for F_4; IR bounds are analytic and general |
-| Sigma model target | OP^2 = F_4/Spin(9) | F_4/G_2 or F_4/(SU(3)xSU(3)) | Spin(9) is the natural stabilizer of an idempotent; matches self-modeler structure |
-| Lattice structure | Hypercubic Z^d, d >= 3 | Triangular, honeycomb, other | Bipartite needed for RP; hypercubic is simplest bipartite |
-| Interaction type | Trace inner product on h_3(O) | Quadratic Casimir, higher-order Jordan products | Trace form is unique F_4-invariant bilinear form; simplest; matches SWAP |
-| Universality argument | Sigma model universality (one coupling) | Lattice-specific phase diagram | Symmetric space sigma models have one coupling; universality is standard |
+| Complexification mechanism | Observer's C-linear sequential product induces dynamical correspondence on M_16(R)^sa | Direct algebraic forcing from h_3(O) | IMPOSSIBLE -- three theorems (v8.0) prove no equivariant J exists from basin alone |
+| Complexification mechanism | Alfsen-Shultz lifting M_16(R)^sa -> M_16(C)^sa | Connes real spectral triple with KO-dimension | NCG route viable but independent; our framework has the observer, not a Dirac operator |
+| Complex structure selection | Observer-induced J compatible with Krasnov J_u | Arbitrary J on R^16 | Must produce SM gauge group; Krasnov shows only J_u-type does |
+| Algebra extension route | Cl(9,0) tensor_R C = Cl(9,C) via measurement maps | E_6 complexification of F_4 | E_6 complexifies the automorphism GROUP, not the representation; wrong target |
+| Selection argument (v6.0 fallback) | rho > 0 requires complexification for chirality -> time arrow | Direct algebraic proof | Selection closes the gap conditionally; algebraic proof from sequential product would be unconditional |
 
 ---
 
-## Logical Dependency Chain for v10.0
+## Notation Conventions in the Literature
+
+| Quantity | Standard Symbol(s) | Variations | Our Choice | Reason |
+|----------|-------------------|------------|-----------|--------|
+| Real spinor of Spin(9) | S_9, Delta_9, S | S^+, S_16 | S_9 | Matches Lawson-Michelsohn |
+| Weyl spinor of Spin(10) | S_{10}^+, Delta_{10}^+, 16 | S^+, S_W | S_{10}^+ | Standard NCG/GUT notation |
+| Even Clifford algebra | Cl^+(n,0), Cl^0(n,0), Cl_{even} | C(V)^+, C^0 | Cl^+(9,0) | Matches Lawson-Michelsohn |
+| Sequential product | a & b, a circ_s b | a o_s b | a & b | Matches van de Wetering |
+| Jordan product | a circ b, a * b | {a,b}/2 | a circ b | Standard; avoids confusion with anticommutator |
+| Dynamical correspondence | psi, sigma | D, delta | psi | Matches Alfsen-Shultz |
+| Krasnov complex structure | J_u, J_omega | J, I | J_u | Matches Krasnov |
+
+---
+
+## Logical Dependency Chain for Gap C via Sequential Product
 
 ```
-[v5.0] Self-modeling -> M_n(C)^sa
-[v8.0] Observable algebra = M_16(R); Peirce operators T_b
-[Paper 7] Universe algebra = h_3(O), Aut = F_4
-         |
-         v
-[v10.0 Step 1] Construct Hamiltonian H = J sum Tr(a_i o a_j) on Z^d
-         |
-         v
-[v10.0 Step 2] Verify: H is F_4-symmetric, NN, reflection positive on bipartite lattice
-         |
-         v
-[v10.0 Step 3] Apply FSS/BCS: classical limit has SSB in d >= 3
-         |
-         v
-[v10.0 Step 4] Identify SSB pattern: F_4 -> Spin(9), Goldstone manifold = OP^2
-         |
-         v
-[v10.0 Step 5] Effective sigma model on OP^2: asymptotically free, spin waves with velocity c_s
-         |
-         v
-[v10.0 Step 6] Map to v9.0 chain: Fisher geometry on OP^2 -> Lorentz -> BW -> Jacobson
+[Paper 5] Self-modeling axioms -> Observer = M_n(C)^sa
+    |
+    v
+[Paper 5 + vdW] Observer has C-LINEAR sequential product a & b = sqrt(a) b sqrt(a)
+    |
+    v
+[v8.0] Basin measurement algebra = Cl(9,0) subset M_16(R) acting on V_{1/2} = R^16
+[v8.0] Impossibility: no Spin(9)-equivariant J (Theorems 1-3)
+    |
+    v
+[NEW Step 1] Observer's C-linear measurement maps act on V_{1/2}
+    - CPTP channels Phi: End(V_{1/2}) -> End(V_{1/2}) with C-linear Kraus operators
+    |
+    v
+[NEW Step 2] C-linear action induces dynamical correspondence on M_16(R)^sa
+    - Observer provides the Lie bracket psi_a(b) = i[a,b] where [,] computed in M_n(C)
+    - This psi satisfies Alfsen-Shultz conditions
+    |
+    v
+[NEW Step 3] Alfsen-Shultz theorem: M_16(R)^sa lifts to M_16(C)
+    - The C*-product on M_16(R)^sa + i*M_16(R)^sa = M_16(C) is determined by psi
+    |
+    v
+[NEW Step 4] Cl(9,0) tensor_R C = Cl(9,C) = M_16(C) + M_16(C) inside M_16(C)
+    - Measurement algebra complexifies
+    |
+    v
+[NEW Step 5] V_{1/2} tensor_R C = S_9 tensor_R C = S_{10}^+ + S_{10}^-
+    - Representation complexifies: Spin(9) -> Spin(10) branching
+    |
+    v
+[NEW Step 6] Complex structure J on V_{1/2}^C selects chirality
+    - J from dynamical correspondence; compare with Krasnov J_u
+    - Commutant of J in Spin(9) = SM gauge group
+    |
+    v
+GAP C CLOSED (conditional on Steps 1-2)
 ```
 
 ---
@@ -294,20 +359,20 @@ The SSB pattern depends on the ground state manifold of the specific Hamiltonian
 
 | Reference | arXiv/DOI | Type | Relevance |
 |-----------|-----------|------|-----------|
-| Froehlich-Simon-Spencer (1976) | DOI:10.1007/BF01608557 | Foundational paper | Infrared bounds for classical lattice models; establishes SSB for O(N), d >= 3 |
-| Dyson-Lieb-Simon (1978) | DOI:10.1007/BF01022099 | Foundational paper | Quantum SSB (Neel order) for SU(2) Heisenberg, d >= 3 |
-| Kennedy-Lieb-Shastry (1988) | DOI:10.1007/BF01023854 | Extension | Neel order for S = 1/2, d = 3 |
-| Nachtergaele (2006) | arXiv:math-ph/0603017 | Review | Survey of DLS extensions and quantum spin system methods |
-| Biskup-Chayes-Starr (2007) | arXiv:math-ph/0509017 | Extension | Quantum-to-classical reduction via RP; SSB for large spin |
-| Bjornberg-Ueltschi (2022) | arXiv:2204.12896 | Review | Modern review of RP/IR bounds for quantum spins |
-| Todorov-Drenska (2018) | arXiv:1805.06739 | Paper | F_4 subgroup structure; maximal Borel-de Siebenthal subgroups |
-| Todorov (2019) | arXiv:1911.13124 | Paper | Exceptional quantum algebra for Standard Model |
-| Farnsworth (2025) | arXiv:2503.10744 | Paper | n-point exceptional Jordan geometries; F_4 x F_4 gauge theory |
-| Farnsworth (2025) | arXiv:2506.21496 | Paper | Spectral geometry with exceptional symmetry |
-| Friedan (1985) | DOI:10.1016/0003-4916(85)90383-5 | Foundational paper | Sigma model beta function = Ricci tensor |
-| Polyakov (1975) | DOI:10.1016/0370-2693(75)90161-6 | Foundational paper | Asymptotic freedom of 2D sigma models |
-| Parton-Picken (2018) | DOI:10.3390/axioms7040072 | Paper | Role of Spin(9) in octonionic geometry; OP^2 = F_4/Spin(9) |
-| Froehlich-Israel-Lieb-Simon (1978) | DOI:10.1007/BF01014646 | Extension | Phase transitions and RP II: lattice systems |
+| Lawson-Michelsohn (1989) | ISBN 978-0-691-08542-5 | Textbook | Cl(9,0) classification, complexification, Spin(9) representation theory |
+| Alfsen-Shultz (1998) | DOI:10.1073/pnas.95.12.6596 | Paper | Dynamical correspondence theorem: JB -> C* iff orientation exists |
+| Alfsen-Shultz (2003) | ISBN 978-0-8176-4319-5 | Textbook | Complete treatment of state space geometry, JB/C*-algebra correspondence |
+| van de Wetering (2019) | arXiv:1803.11139 | Paper | Sequential product spaces = Jordan algebras |
+| Westerbaan-Westerbaan-van de Wetering (2020) | arXiv:2004.12749 | Paper | Three types of normal SEAs; convex part = JBW-algebra |
+| Krasnov (2021) | arXiv:1912.11282 | Paper | J_u complex structure on S_9; SM gauge group = commutant of J_u in Spin(9) |
+| Grgin-Petersen (1974) | DOI:10.1063/1.1666719 | Paper | Observable-generator duality; necessity of i for dynamics |
+| Baez (2002) | arXiv:math/0105155 | Review | Octonions survey; S_9 complexification; division algebra approach to SM |
+| Todorov-Drenska (2018) | arXiv:1805.06739 | Paper | F_4 subgroup structure; SM gauge group from h_3(O) |
+| Singh (2025) | arXiv:2508.10131 | Paper | Fermion mass ratios from complexified exceptional Jordan algebra |
+| Farnsworth (2025) | arXiv:2503.10744 | Paper | Exceptional Jordan geometries; F_4 x F_4 gauge theory via NCG |
+| Alfsen-Hanche-Olsen-Shultz (1980) | DOI:10.1007/BF02392126 | Paper | State spaces of C*-algebras; 3-ball property and orientation |
+| Phase 30 (v8.0) | derivations/30-impossibility-theorems.md | Internal | Three impossibility theorems for Peirce-generated complexification |
+| Paper 5 | Published | Internal | Self-modeling -> M_n(C)^sa; C-linear sequential product |
 
 ---
 
@@ -315,17 +380,32 @@ The SSB pattern depends on the ground state manifold of the specific Hamiltonian
 
 | Component | Status | Confidence |
 |-----------|--------|------------|
-| h_3(O) has Aut = F_4 | ESTABLISHED | HIGH |
-| F_4 is compact Lie group (dim 52, rank 4) | ESTABLISHED | HIGH |
-| F_4/Spin(9) = OP^2 (dim 16, compact symmetric) | ESTABLISHED | HIGH |
-| OP^2 has positive Ricci curvature | ESTABLISHED | HIGH |
-| FSS infrared bounds prove SSB for O(N) models d >= 3 | ESTABLISHED | HIGH |
-| DLS/KLS proves quantum SSB for SU(2) d >= 3 | ESTABLISHED | HIGH |
-| BCS reduces quantum SSB to classical for large spin | ESTABLISHED | HIGH |
-| Sigma model on OP^2 is asymptotically free in 2D | ESTABLISHED (follows from positive Ricci + Friedan) | HIGH |
-| FSS/BCS applies to F_4 lattice model | NEW -- needs verification of RP + Gaussian domination | MEDIUM |
-| F_4 lattice model breaks to Spin(9) specifically | NEW -- SSB pattern depends on Hamiltonian details | LOW-MEDIUM |
-| Self-modeler Hamiltonian has the right form | NEW -- must derive from self-modeling axioms | MEDIUM |
-| Full v9.0 chain fires for OP^2 sigma model | NEW -- universality argument | MEDIUM |
-| Mermin-Wagner forbids F_4 SSB in d <= 2 at T > 0 | ESTABLISHED | HIGH |
-| No prior lattice models with F_4 symmetry exist | ESTABLISHED (negative result) | HIGH |
+| Cl(9,0) tensor_R C = Cl(9,C) = M_16(C) + M_16(C) | ESTABLISHED | HIGH |
+| S_9 tensor_R C = S_{10}^+ + S_{10}^- | ESTABLISHED | HIGH |
+| No Spin(9)-equivariant J on V_{1/2} | ESTABLISHED (v8.0) | HIGH |
+| End_{Spin(9)}(S_9) = R (real-type) | ESTABLISHED (Bott periodicity) | HIGH |
+| Observer = M_n(C)^sa with C-linear sequential product | ESTABLISHED (Paper 5) | HIGH |
+| JB-algebra lifts to C*-algebra iff dynamical correspondence exists | ESTABLISHED (Alfsen-Shultz) | HIGH |
+| M_16(R)^sa is a special JB-algebra (can admit dyn. corr.) | ESTABLISHED | HIGH |
+| SM gauge group = commutant of J_u in Spin(9) | ESTABLISHED (Krasnov) | HIGH |
+| Observer's C-linear maps induce dynamical correspondence on M_16(R)^sa | NEW -- core claim to prove | LOW-MEDIUM |
+| Induced complex structure matches Krasnov J_u orbit | NEW -- needs verification | LOW |
+| Full chain Step 1 -> Step 6 closing Gap C | NEW -- this is the project | MEDIUM (established ingredients, novel assembly) |
+
+---
+
+## Critical Assessment of the Sequential Product Route
+
+**Strengths:**
+1. All ingredients are established theorems (Alfsen-Shultz, van de Wetering, Krasnov, Bott periodicity)
+2. The mechanism is physically motivated: the observer MUST be complex (Paper 5), and its measurements MUST act on the basin
+3. The impossibility theorems (v8.0) eliminate all basin-internal routes, making an observer-external mechanism NECESSARY
+4. The algebraic target is well-defined: Cl(9,0) -> Cl(9,C) produces exactly S_{10}^+ + S_{10}^-
+
+**Weaknesses / Risks:**
+1. The KEY step (C-linear maps inducing dynamical correspondence) has no published precedent -- this is genuinely new mathematics
+2. The Alfsen-Shultz theorem requires a GLOBAL dynamical correspondence on M_16(R)^sa, not just local C-linear action; the gap between local and global must be bridged
+3. The relationship between the observer's measurement maps (CPTP channels on the basin) and derivations of M_16(R)^sa (required for dyn. corr.) is not obvious -- CPTP maps are positive linear maps, not derivations
+4. h_3(O) is EXCEPTIONAL and does not admit a dynamical correspondence; the argument must work at the level of M_16(R)^sa (the measurement algebra on V_{1/2}) rather than at the level of h_3(O) itself
+
+**Verdict:** The sequential product route is the ONLY viable route (given the impossibility theorems). The ingredients are solid. The assembly requires one genuinely new result (Step 2 in the chain). This is a well-posed mathematical problem with clear success criteria.
