@@ -104,7 +104,7 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
             {
                 "id": "ref-a",
                 "kind": "paper",
-                "locator": "Benchmark A",
+                "locator": "doi:10.1234/benchmark-a",
                 "role": "benchmark",
                 "why_it_matters": "Claim A anchor",
                 "applies_to": ["claim-a"],
@@ -114,7 +114,7 @@ def _multi_claim_contract_fixture() -> dict[str, object]:
             {
                 "id": "ref-b",
                 "kind": "paper",
-                "locator": "Benchmark B",
+                "locator": "doi:10.1234/benchmark-b",
                 "role": "benchmark",
                 "why_it_matters": "Claim B anchor",
                 "applies_to": ["claim-b"],

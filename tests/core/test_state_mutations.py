@@ -388,13 +388,17 @@ def test_state_resolve_blocker_recovers_missing_state_markdown_from_state_json(t
 
 
 class TestStateContinuationBoundedSegment:
-    def test_set_continuation_bounded_segment_persists_json_only_and_preserves_session(
+    def test_set_continuation_bounded_segment_persists_json_only_and_preserves_canonical_handoff(
         self, tmp_path: Path
     ) -> None:
         state = default_state_dict()
-        state["session"]["last_date"] = "2026-03-29T00:00:00+00:00"
-        state["session"]["stopped_at"] = "Phase 03 Plan 2"
-        state["session"]["resume_file"] = "resume.md"
+        state["continuation"]["handoff"].update(
+            {
+                "recorded_at": "2026-03-29T00:00:00+00:00",
+                "stopped_at": "Phase 03 Plan 2",
+                "resume_file": "resume.md",
+            }
+        )
         save_state_json(tmp_path, state)
 
         layout = tmp_path / "GPD"
@@ -432,7 +436,7 @@ class TestStateContinuationBoundedSegment:
 
     def test_clear_continuation_bounded_segment_is_idempotent(self, tmp_path: Path) -> None:
         state = default_state_dict()
-        state["session"]["resume_file"] = "resume.md"
+        state["continuation"]["handoff"]["resume_file"] = "resume.md"
         state["continuation"]["bounded_segment"] = {
             "resume_file": "GPD/phases/03-analysis/.continue-here.md",
             "phase": "03",
@@ -459,11 +463,13 @@ class TestStateContinuationBoundedSegment:
         self, tmp_path: Path
     ) -> None:
         state = default_state_dict()
-        state["session"]["last_date"] = "2026-03-29T12:00:00+00:00"
-        state["session"]["stopped_at"] = "Phase 03 Plan 2"
-        state["session"]["resume_file"] = "resume.md"
-        state["continuation"]["handoff"]["recorded_at"] = "2026-03-29T12:00:00+00:00"
-        state["continuation"]["handoff"]["stopped_at"] = "Phase 03 Plan 2"
+        state["continuation"]["handoff"].update(
+            {
+                "recorded_at": "2026-03-29T12:00:00+00:00",
+                "stopped_at": "Phase 03 Plan 2",
+                "resume_file": "resume.md",
+            }
+        )
         state["continuation"]["bounded_segment"] = {
             "resume_file": "GPD/phases/03-analysis/.continue-here.md",
             "phase": "03",

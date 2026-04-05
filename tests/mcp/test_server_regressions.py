@@ -434,7 +434,7 @@ def test_verification_suggest_contract_checks_returns_error_envelope_on_backend_
             {
                 "id": "ref-benchmark",
                 "kind": "paper",
-                "locator": "Benchmark reference",
+                "locator": "doi:10.1234/benchmark-main",
                 "role": "benchmark",
                 "why_it_matters": "Primary benchmark anchor",
                 "applies_to": ["claim-main"],
