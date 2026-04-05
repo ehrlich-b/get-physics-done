@@ -33,6 +33,57 @@ def _call_verification_tool(tool_name: str, arguments: dict[str, object]) -> dic
     return anyio.run(_call)
 
 
+def _tool_input_schema(mcp_server: object, tool_name: str) -> dict[str, object]:
+    async def _load() -> dict[str, object]:
+        tools = await mcp_server.list_tools()
+        return next(tool.inputSchema for tool in tools if tool.name == tool_name)
+
+    return anyio.run(_load)
+
+
+def _schema_object(schema: dict[str, object], schema_fragment: dict[str, object]) -> dict[str, object]:
+    if "properties" in schema_fragment:
+        return schema_fragment
+    ref = schema_fragment["$ref"]
+    target: object = schema
+    for segment in str(ref).removeprefix("#/").split("/"):
+        if not isinstance(target, dict):
+            raise AssertionError(f"Schema pointer {ref} resolved to non-object {target!r}")
+        target = target[segment]
+    if not isinstance(target, dict):
+        raise AssertionError(f"Schema pointer {ref} resolved to non-object {target!r}")
+    return target
+
+
+def _schema_anyof_object(schema_fragment: dict[str, object]) -> dict[str, object]:
+    if schema_fragment.get("type") == "object":
+        return schema_fragment
+    for branch in schema_fragment.get("anyOf", []):
+        if isinstance(branch, dict) and branch.get("type") == "object":
+            return branch
+    raise AssertionError(f"No object branch found in {schema_fragment!r}")
+
+
+def _request_requirement_for_check(run_request_schema: dict[str, object], check_identifier: str) -> dict[str, object] | None:
+    for clause in run_request_schema.get("allOf", []):
+        if_branch = clause.get("if")
+        if not isinstance(if_branch, dict):
+            continue
+        for branch in if_branch.get("anyOf", []):
+            if not isinstance(branch, dict):
+                continue
+            for field_name in ("check_key", "check_id"):
+                field_schema = branch.get("properties", {}).get(field_name)
+                if not isinstance(field_schema, dict):
+                    continue
+                enum_values = field_schema.get("enum")
+                if isinstance(enum_values, list) and check_identifier in enum_values:
+                    then_schema = clause.get("then")
+                    if isinstance(then_schema, dict) and "required" in then_schema:
+                        return then_schema
+    return None
+
+
 def test_run_contract_check_treats_empty_binding_like_omitted_binding() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check
 
@@ -69,6 +120,28 @@ def test_run_contract_check_accepts_semantically_equivalent_check_key_and_check_
     assert result["check_key"] == "contract.benchmark_reproduction"
     assert result["check_id"] == "5.16"
     assert _call_verification_tool("run_contract_check", {"request": request_payload}) == expected
+
+
+def test_run_contract_check_published_schema_keeps_schema_required_fields_strict() -> None:
+    from gpd.mcp.servers.verification_server import mcp
+
+    run_schema = _tool_input_schema(mcp, "run_contract_check")
+    request_schema = _schema_object(run_schema, run_schema["properties"]["request"])
+    benchmark_requirement = _request_requirement_for_check(request_schema, "contract.benchmark_reproduction")
+    assert benchmark_requirement is not None
+    metadata_schema = _schema_anyof_object(benchmark_requirement["properties"]["metadata"])
+    observed_schema = _schema_anyof_object(benchmark_requirement["properties"]["observed"])
+
+    assert benchmark_requirement["required"] == ["metadata", "observed"]
+    assert metadata_schema["required"] == ["source_reference_id"]
+    assert metadata_schema["properties"]["source_reference_id"]["minLength"] == 1
+    assert metadata_schema["properties"]["source_reference_id"]["pattern"] == r"\S"
+    assert observed_schema["required"] == ["metric_value", "threshold_value"]
+    assert observed_schema["properties"]["metric_value"]["type"] == "number"
+    assert observed_schema["properties"]["threshold_value"]["type"] == "number"
+    assert "null" not in json.dumps(metadata_schema["properties"]["source_reference_id"])
+    assert "null" not in json.dumps(observed_schema["properties"]["metric_value"])
+    assert "null" not in json.dumps(observed_schema["properties"]["threshold_value"])
 
 
 @pytest.mark.parametrize(

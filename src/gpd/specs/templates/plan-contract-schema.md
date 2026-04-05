@@ -66,6 +66,7 @@ Rules:
 - `in_scope`, `out_of_scope`, and `unresolved_questions` are optional arrays of non-empty strings.
 - Use `scope.unresolved_questions` for genuinely undecided anchors; do not hide them in prose or placeholder text.
 - Only concrete anchors count as grounding. `must_include_prior_outputs`, `user_asserted_anchors`, and `known_good_baselines` can ground the plan only when they name a durable path, citation, DOI, arXiv ID, or similarly concrete handle. `context_gaps` and `crucial_inputs` preserve uncertainty and workflow visibility, but they do not satisfy the hard grounding/anchor requirement by themselves.
+- Placeholder-only values like `TBD`, `unknown`, `placeholder`, or other non-concrete stand-ins do not count as grounding, even if they appear in a field that is otherwise permitted to carry context.
 
 ### `claims[]`
 
@@ -109,7 +110,7 @@ Rules:
 - For theorem/proof work, enumerate `parameters[]`, `hypotheses[]`, `quantifiers[]`, `conclusion_clauses[]`, and `proof_deliverables[]` so the proof audit can detect dropped assumptions, silently specialized parameters, and narrowed conclusions.
 - Nested proof lists stay list-shaped even for one item: `parameters[].aliases`, `hypotheses[].symbols`, `quantifiers`, and `proof_deliverables` must stay YAML arrays, not scalar strings.
 - `proof_deliverables[]` may only reference declared `deliverables[].id`.
-- When a claim is theorem-bearing or references an `observables[].kind: proof_obligation`, the contract must declare at least one proof-specific acceptance test in `acceptance_tests[]`.
+- When a claim is theorem-bearing or references an `observables[].kind: proof_obligation`, the contract must declare at least one proof-specific acceptance test in `acceptance_tests[]` and surface the proof fields (`proof_deliverables`, `parameters`, `hypotheses`, and `conclusion_clauses`) so the proof obligation is auditable.
 - `required_in_proof` must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`.
 
 ### `context_intake`

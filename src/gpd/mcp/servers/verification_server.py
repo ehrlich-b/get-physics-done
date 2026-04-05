@@ -562,6 +562,26 @@ def _object_schema(
     return schema
 
 
+def _strict_required_schema_fragment(schema_fragment: dict[str, object]) -> dict[str, object]:
+    schema = copy.deepcopy(schema_fragment)
+    any_of = schema.get("anyOf")
+    if isinstance(any_of, list):
+        strict_branches: list[object] = []
+        for branch in any_of:
+            if not isinstance(branch, dict):
+                strict_branches.append(branch)
+                continue
+            if branch.get("type") == "null":
+                continue
+            strict_branches.append(_strict_required_schema_fragment(branch))
+        if len(strict_branches) == 1 and isinstance(strict_branches[0], dict):
+            return strict_branches[0]
+        schema["anyOf"] = strict_branches
+    if schema.get("type") == "array" and (not isinstance(schema.get("minItems"), int) or int(schema["minItems"]) < 1):
+        schema["minItems"] = 1
+    return schema
+
+
 def _enum_string_schema(values: Iterable[str]) -> dict[str, object]:
     return {
         "type": "string",
@@ -1067,6 +1087,14 @@ def _request_section_required_schema(section_schema: dict[str, object], required
     schema = dict(section_schema)
     if required_list:
         schema["required"] = required_list
+    properties = schema.get("properties")
+    if isinstance(properties, dict) and required_list:
+        strict_properties = dict(properties)
+        for field_name in required_list:
+            field_schema = strict_properties.get(field_name)
+            if isinstance(field_schema, dict):
+                strict_properties[field_name] = _strict_required_schema_fragment(field_schema)
+        schema["properties"] = strict_properties
     return schema
 
 
@@ -1091,28 +1119,22 @@ def _request_requirement_schema(required_fields: Iterable[str]) -> dict[str, obj
         schema["required"] = required_top_level
 
     section_schemas: dict[str, object] = {}
-    if "metadata" in section_requirements:
-        section_schemas["metadata"] = _request_section_required_schema(
-            _CONTRACT_METADATA_INPUT_SCHEMA,
-            section_requirements["metadata"],
-        )
-    if "observed" in section_requirements:
-        section_schemas["observed"] = _request_section_required_schema(
-            _CONTRACT_OBSERVED_INPUT_SCHEMA,
-            section_requirements["observed"],
-        )
-    if "binding" in section_requirements:
-        section_schemas["binding"] = _request_section_required_schema(
-            _CONTRACT_BINDING_INPUT_SCHEMA,
-            section_requirements["binding"],
-        )
-    if "contract" in section_requirements:
-        section_schemas["contract"] = _request_section_required_schema(
-            _CONTRACT_PAYLOAD_INPUT_SCHEMA,
-            section_requirements["contract"],
-        )
+    section_schema_sources: dict[str, dict[str, object]] = {
+        "metadata": _CONTRACT_METADATA_INPUT_SCHEMA,
+        "observed": _CONTRACT_OBSERVED_INPUT_SCHEMA,
+        "binding": _CONTRACT_BINDING_INPUT_SCHEMA,
+        "contract": _CONTRACT_PAYLOAD_INPUT_SCHEMA,
+    }
+    for section_name, section_schema in section_schema_sources.items():
+        if section_name in section_requirements:
+            section_schemas[section_name] = _request_section_required_schema(
+                section_schema,
+                section_requirements[section_name],
+            )
+        elif section_name in top_level_required:
+            section_schemas[section_name] = _strict_required_schema_fragment(section_schema)
     if "artifact_content" in top_level_required:
-        section_schemas["artifact_content"] = _non_empty_string_or_null_schema()
+        section_schemas["artifact_content"] = _strict_required_schema_fragment(_non_empty_string_or_null_schema())
     if section_schemas:
         schema["properties"] = section_schemas
     return schema

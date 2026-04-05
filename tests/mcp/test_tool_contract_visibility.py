@@ -93,6 +93,42 @@ def _assert_closed_object(schema_fragment: dict[str, object], *, label: str) -> 
     assert schema_fragment["additionalProperties"] is False, f"{label} must reject unknown top-level keys"
 
 
+def _assert_strict_required_schema_fragment(schema_fragment: dict[str, object], *, label: str) -> None:
+    any_of = schema_fragment.get("anyOf")
+    if isinstance(any_of, list):
+        assert not any(
+            isinstance(branch, dict) and branch.get("type") == "null"
+            for branch in any_of
+        ), f"{label} must not allow null when schema-required"
+        for branch in any_of:
+            if not isinstance(branch, dict):
+                continue
+                if branch.get("type") == "array":
+                    assert branch["minItems"] == 1, f"{label} must not allow empty arrays when schema-required"
+                    assert branch["items"]["type"] == "string"
+                    assert branch["items"]["minLength"] == 1
+                    assert branch["items"]["pattern"] == r"\S"
+                if branch.get("type") == "string":
+                    if "enum" in branch:
+                        continue
+                    assert branch["minLength"] == 1
+                    assert branch["pattern"] == r"\S"
+            return
+
+    if schema_fragment.get("type") == "array":
+        assert schema_fragment["minItems"] == 1, f"{label} must not allow empty arrays when schema-required"
+        assert schema_fragment["items"]["type"] == "string"
+        assert schema_fragment["items"]["minLength"] == 1
+        assert schema_fragment["items"]["pattern"] == r"\S"
+        return
+
+    if schema_fragment.get("type") == "string":
+        if "enum" in schema_fragment:
+            return
+        assert schema_fragment["minLength"] == 1
+        assert schema_fragment["pattern"] == r"\S"
+
+
 def _proof_contract_fixture() -> dict[str, object]:
     return {
         "schema_version": 1,
@@ -260,6 +296,19 @@ def _assert_request_requirement_schema(
         for section_name, fields in section_required.items():
             section_schema = requirement["properties"][section_name]
             assert section_schema["required"] == fields
+            assert "properties" in section_schema
+            for field_name in fields:
+                _assert_strict_required_schema_fragment(
+                    section_schema["properties"][field_name],
+                    label=f"request requirement {section_name}.{field_name}",
+                )
+    for field_name in required:
+        if "properties" not in requirement or field_name not in requirement["properties"]:
+            continue
+        _assert_strict_required_schema_fragment(
+            requirement["properties"][field_name],
+            label=f"request requirement {field_name}",
+        )
     if anyof is None:
         assert "anyOf" not in requirement
         return

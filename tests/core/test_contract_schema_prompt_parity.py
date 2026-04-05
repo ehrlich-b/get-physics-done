@@ -128,6 +128,9 @@ def test_plan_contract_schema_surfaces_canonical_research_contract_fields() -> N
 
     _assert_tokens_visible(plan_schema, _field_tokens(*PLAN_MODELS), label="plan-contract-schema.md")
     assert "scalar|curve|map|classification|proof_obligation|other" in plan_schema
+    assert "do not count as grounding" in plan_schema
+    assert "proof-specific acceptance test" in plan_schema
+    assert "proof_deliverables`, `parameters`, `hypotheses`, and `conclusion_clauses" in plan_schema
 
 
 def test_expanded_phase_prompt_surfaces_the_same_research_contract_fields_before_generation() -> None:
@@ -135,6 +138,9 @@ def test_expanded_phase_prompt_surfaces_the_same_research_contract_fields_before
 
     _assert_tokens_visible(phase_prompt, _field_tokens(*PLAN_MODELS), label="expanded phase-prompt.md")
     assert "scalar|curve|map|classification|proof_obligation|other" in phase_prompt
+    assert "do not count as grounding" in phase_prompt
+    assert "proof-specific acceptance test" in phase_prompt
+    assert "proof_deliverables`, `parameters`, `hypotheses`, and `conclusion_clauses" in phase_prompt
 
 
 def test_contract_results_schema_and_verification_template_surface_canonical_result_ledger_fields() -> None:
