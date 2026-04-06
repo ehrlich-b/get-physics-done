@@ -33,9 +33,6 @@ from gpd.adapters.install_utils import (
 )
 from gpd.mcp import managed_integrations as _managed_integrations
 
-WOLFRAM_MANAGED_INTEGRATION = _managed_integrations.WOLFRAM_MANAGED_INTEGRATION
-WOLFRAM_MANAGED_SERVER_KEY = _managed_integrations.WOLFRAM_MANAGED_SERVER_KEY
-
 logger = logging.getLogger(__name__)
 
 _SHELL_FENCE_LANGUAGES = frozenset({"bash", "sh", "shell", "zsh"})
@@ -832,18 +829,14 @@ def _build_managed_optional_mcp_servers(
     env: Mapping[str, str] | None = None,
 ) -> dict[str, dict[str, object]]:
     """Return optional managed MCP servers that are currently configured."""
-    if WOLFRAM_MANAGED_INTEGRATION is None:
-        return {}
-    if not WOLFRAM_MANAGED_INTEGRATION.is_configured(env, cwd=cwd, strict=True):
-        return {}
-    return {WOLFRAM_MANAGED_SERVER_KEY: WOLFRAM_MANAGED_INTEGRATION.projected_server_entry(env, cwd=cwd, strict=True)}
+    return _managed_integrations.projected_managed_optional_mcp_servers(env, cwd=cwd, strict=True)
 
 
 def _managed_mcp_server_keys() -> frozenset[str]:
     """Return MCP server keys owned by GPD or managed optional integrations."""
     from gpd.mcp.builtin_servers import GPD_MCP_SERVER_KEYS
 
-    return frozenset(set(GPD_MCP_SERVER_KEYS) | {WOLFRAM_MANAGED_SERVER_KEY})
+    return frozenset(set(GPD_MCP_SERVER_KEYS) | set(_managed_integrations.managed_optional_mcp_server_keys()))
 
 
 __all__ = ["ClaudeCodeAdapter"]

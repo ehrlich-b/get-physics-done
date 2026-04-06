@@ -59,9 +59,6 @@ from gpd.core.observability import gpd_span
 from gpd.mcp import managed_integrations as _managed_integrations
 from gpd.registry import AgentDef, load_agents_from_dir
 
-WOLFRAM_MANAGED_INTEGRATION = _managed_integrations.WOLFRAM_MANAGED_INTEGRATION
-WOLFRAM_MANAGED_SERVER_KEY = _managed_integrations.WOLFRAM_MANAGED_SERVER_KEY
-
 logger = logging.getLogger(__name__)
 
 _TOOL_NAME_MAP: dict[str, str] = {
@@ -1891,16 +1888,12 @@ def _build_managed_optional_mcp_servers(
     env: Mapping[str, str] | None = None,
 ) -> dict[str, dict[str, object]]:
     """Return optional managed MCP servers that are currently configured."""
-    if WOLFRAM_MANAGED_INTEGRATION is None:
-        return {}
-    if not WOLFRAM_MANAGED_INTEGRATION.is_configured(env, cwd=cwd, strict=True):
-        return {}
-    return {WOLFRAM_MANAGED_SERVER_KEY: WOLFRAM_MANAGED_INTEGRATION.projected_server_entry(env, cwd=cwd, strict=True)}
+    return _managed_integrations.projected_managed_optional_mcp_servers(env, cwd=cwd, strict=True)
 
 
 def _managed_optional_mcp_server_keys() -> frozenset[str]:
     """Return optional managed MCP server keys removed during uninstall."""
-    return frozenset({WOLFRAM_MANAGED_SERVER_KEY})
+    return _managed_integrations.managed_optional_mcp_server_keys()
 
 
 def _remove_gpd_mcp_toml_sections(content: str, *, extra_keys: set[str] | None = None) -> str:

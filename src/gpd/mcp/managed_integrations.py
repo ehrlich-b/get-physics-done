@@ -37,23 +37,19 @@ def _strict_unknown_keys_error(*, section: str, unknown_keys: list[str], support
     return RuntimeError(f"{section} contains unsupported keys: {joined_unknown}; supported keys are {joined_supported}")
 
 
-def _load_project_integrations_payload(cwd: Path, *, strict: bool) -> dict[str, object]:
+def _load_project_integrations_payload(cwd: Path) -> dict[str, object]:
     config_path = _project_integrations_config_path(cwd)
     try:
         raw_text = config_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return {}
     except OSError as exc:
-        if strict:
-            raise RuntimeError(f"Cannot read integrations config: {exc}") from exc
-        return {}
+        raise RuntimeError(f"Cannot read integrations config: {exc}") from exc
 
     try:
         payload = json.loads(raw_text)
     except json.JSONDecodeError as exc:
-        if strict:
-            raise RuntimeError(f"Malformed integrations config: {exc}. Fix or delete {config_path.name}") from exc
-        return {}
+        raise RuntimeError(f"Malformed integrations config: {exc}. Fix or delete {config_path.name}") from exc
     if not isinstance(payload, dict):
         raise RuntimeError("integrations config must be a JSON object")
     unknown_keys = sorted(str(key) for key in payload if str(key) not in MANAGED_INTEGRATIONS)
@@ -91,7 +87,7 @@ class ManagedIntegrationDescriptor:
     def project_payload(self, cwd: Path | None = None, *, strict: bool = False) -> dict[str, object]:
         if cwd is None:
             return {}
-        return _load_project_integrations_payload(cwd, strict=strict)
+        return _load_project_integrations_payload(cwd)
 
     def project_record(self, cwd: Path | None = None, *, strict: bool = False) -> dict[str, object] | None:
         if cwd is None:
@@ -266,3 +262,29 @@ def list_managed_integrations() -> dict[str, ManagedIntegrationDescriptor]:
     """Return the canonical managed integration registry."""
 
     return dict(MANAGED_INTEGRATIONS)
+
+
+def projected_managed_optional_mcp_servers(
+    env: Mapping[str, str] | None = None,
+    *,
+    cwd: Path | None = None,
+    strict: bool = False,
+) -> dict[str, dict[str, object]]:
+    """Project all configured optional managed integrations into MCP server entries."""
+
+    managed_servers: dict[str, dict[str, object]] = {}
+    for integration in MANAGED_INTEGRATIONS.values():
+        if not integration.is_configured(env, cwd=cwd, strict=strict):
+            continue
+        managed_servers[integration.managed_server_key] = integration.projected_server_entry(
+            env,
+            cwd=cwd,
+            strict=strict,
+        )
+    return managed_servers
+
+
+def managed_optional_mcp_server_keys() -> frozenset[str]:
+    """Return the registry-backed optional managed MCP server keys."""
+
+    return frozenset(integration.managed_server_key for integration in MANAGED_INTEGRATIONS.values())
