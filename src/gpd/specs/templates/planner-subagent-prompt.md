@@ -18,9 +18,9 @@ Template for spawning `gpd-planner`. The planner agent owns the planning logic; 
 **Research mode:** {research_mode}
 **Autonomy:** {autonomy}
 
-Planning requires an approved scoping contract. That contract must include a non-empty `contract.context_intake`. If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of inferring scope from roadmap text alone.
-The contract still exposes defaultable semantic fields: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other` and may be omitted only when that generic category is actually intended.
-Treat `approach_policy` as execution policy only; it does not substitute for grounding.
+Use `@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md` as the canonical contract source. Keep this prompt for scope selection, mode flags, and return conventions only.
+If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` rather than guessing.
+Treat `approach_policy` as execution policy only.
 
 **Project State:** {state_content}
 **Project Contract:** {project_contract}
@@ -47,34 +47,18 @@ IMPORTANT: If context exists below, it contains USER DECISIONS from gpd:discuss-
 </planning_context>
 
 <physics_planning_requirements>
-Each plan MUST include:
-
-- **Mathematical rigor checkpoints:** Points where derivations must be verified for dimensional consistency, symmetry preservation, and correct tensor structure
-- **Proof claim audit:** For theorem/proof work, enumerate hypotheses, quantified variables, and named parameters explicitly enough that a red-team reviewer can detect silently narrowed subcases or dropped assumptions
-- **Limiting case validation:** Explicit checks that results reduce correctly in all known limits (classical, non-relativistic, weak-coupling, thermodynamic, etc.)
-- **Order-of-magnitude estimates:** Before any detailed calculation, estimate the expected scale of the answer
-- **Error budget:** For numerical work, specify target precision and identify dominant error sources
-- **Consistency checks:** Cross-checks between independent methods or approaches where possible
-- **Stale proof review gate:** If a proof-backed deliverable or theorem statement changes after review, plan a fresh proof audit before allowing the affected claim to pass
-- **Contract completeness:** Every plan must carry decisive claims, deliverables, acceptance tests, forbidden proxies, and uncertainty markers in frontmatter. Include `references[]` only when the contract does not already carry explicit grounding through `context_intake` or preserved scoping inputs.
-- **Semantic defaults:** Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended; otherwise set the more specific value explicitly
-- **Defaulted semantic fields:** `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation` all exist in the contract and default to `other`
-- **Context intake:** Every plan must carry a non-empty `contract.context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs the executor needs before planning
-- **Anchor discipline:** If a benchmark, paper, dataset, baseline, or prior artifact is contract-critical, surface it in the plan instead of treating it as optional background
-- **Protocol bundle coverage:** If specialized protocol bundles are selected, carry their anchor prompts, estimator policies, decisive artifact guidance, and verification extensions into the plan rather than leaving them implicit
+Each plan still needs explicit checks for dimensions, limits, proof coverage, and cross-method consistency.
+Keep `contract.context_intake` non-empty and specific, and surface explicit anchors when they matter.
+If the plan is proof-bearing, make hypotheses, parameters, and conclusion clauses auditable in the body.
 </physics_planning_requirements>
 
 <contract_completion_requirements>
 Planning requires `project_contract`:
 
-- If `project_contract` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` instead of writing a weak or guessed plan.
-- Every PLAN.md must include a `contract` frontmatter block with exact IDs for claims, deliverables, acceptance tests, and forbidden proxies. Include `references[]` only when the contract lacks explicit grounding elsewhere; do not treat `approach_policy` as grounding.
-- Every PLAN.md must include a non-empty `contract.context_intake` object with the must-read refs, prior outputs, baselines, user anchors, context gaps, and crucial inputs needed to execute the plan.
-- Every PLAN.md must carry forward required context from the contract: must-read refs, prior outputs, baselines, and user anchors when execution depends on them.
-- Treat `effective_reference_intake` as the machine-readable carry-forward ledger. Use `active_reference_context` to interpret it, not to replace it.
-- Every PLAN.md must include uncertainty markers from the contract when they constrain interpretation or verification.
-- Every PLAN.md should express result wiring through `contract.links` or explicit task/verification handoffs, not through a second ad hoc success schema.
-- Autonomy mode and model profile may change cadence or detail, but they do NOT relax contract completeness.
+- If `project_contract` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED`.
+- Keep the contract block complete per the schema include.
+- Use `effective_reference_intake` and `active_reference_context` for carry-forward grounding, not as substitutes for the contract.
+- Autonomy and model profile can change cadence, not contract completeness.
 </contract_completion_requirements>
 
 <light_mode_instructions>
@@ -117,13 +101,13 @@ Output consumed by gpd:execute-phase. Plans need:
 
 - [ ] PLAN.md files created in phase directory
 - [ ] Each plan has valid frontmatter
-- [ ] Each plan includes a contract block with claims, deliverables, acceptance tests, forbidden proxies, uncertainty markers, and references whenever explicit grounding is not already carried elsewhere in the contract
+- [ ] Each plan includes a complete contract block per `plan-contract-schema.md`
 - [ ] Tasks are specific and actionable with clear mathematical deliverables
 - [ ] Dependencies correctly identified
 - [ ] Waves assigned for parallel execution
-- [ ] Contract links or explicit task-level dependency wiring cover the critical handoffs and limiting-case recovery path
+- [ ] Contract links or explicit task-level wiring cover critical handoffs
 - [ ] Required refs, prior outputs, and baselines are surfaced in `<context>` or verification paths
-- [ ] Selected protocol bundle guidance is reflected in the task structure, estimator guards, or decisive artifacts when applicable
+- [ ] Selected protocol bundle guidance is reflected in the task structure when applicable
 - [ ] Forbidden proxies are rejected explicitly in `<done>` or `<success_criteria>`
 - [ ] Dimensional analysis check specified for each quantitative result
 - [ ] Validation checkpoints placed after each major derivation step

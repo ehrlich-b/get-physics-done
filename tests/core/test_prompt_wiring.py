@@ -1098,8 +1098,10 @@ def test_planning_prompts_keep_contract_gate_in_light_mode_and_all_modes() -> No
     checker_agent = (AGENTS_DIR / "gpd-plan-checker.md").read_text(encoding="utf-8")
     workflow_text = (WORKFLOWS_DIR / "plan-phase.md").read_text(encoding="utf-8")
 
+    assert "@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md" in planner_prompt
+    assert "Use `@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md` as the canonical contract source." in planner_prompt
+    assert "Treat `approach_policy` as execution policy only." in planner_prompt
     assert "Light mode changes verbosity, not contract completeness." in planner_prompt
-    assert "Autonomy mode and model profile may change cadence or detail, but they do NOT relax contract completeness." in planner_prompt
     assert "Profiles may compress detail, but they do NOT relax contract completeness." in planner_agent
     assert "All modes still require contract completeness, decisive outputs, required anchors, forbidden-proxy handling, and disconfirming paths before execution starts." in workflow_text
     assert "Human review does not replace those requirements." in checker_agent
@@ -1465,8 +1467,7 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert '#     command: "pdflatex --version"' in phase_prompt
     assert "`required` defaults to true when omitted" in phase_prompt
     assert "fallback does not make a missing required tool non-blocking" in phase_prompt
-    assert "Surface any hard validation requirements up front" in phase_prompt
-    assert "visible on the plan surface before the body is written" in phase_prompt
+    assert "Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
     assert "# tool_requirements: # Machine-checkable specialized tools (omit entirely if none)" in planner_agent
     assert "tool: command" in planner_agent
     assert "Use only the closed tool vocabulary the validator accepts" in planner_agent
@@ -2320,7 +2321,9 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "schema_version: 1" in phase_prompt
     assert "in_scope:" in phase_prompt
     assert "context_intake:" in phase_prompt
-    assert "non-empty `contract.context_intake`" in phase_prompt
+    assert "Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
+    assert "Use the schema include for contract semantics rather than repeating them here." in phase_prompt
+    assert "Keep proofs auditable in the body when a plan is proof-bearing, and rerun stale proof audits before `status: passed`." in phase_prompt
     assert "must_include_prior_outputs: [\"GPD/phases/00-baseline/00-01-SUMMARY.md\"]" in phase_prompt
     assert "user_asserted_anchors: [\"Use the lattice normalization from the user notes\"]" in phase_prompt
     assert "claims:" in phase_prompt
@@ -2328,8 +2331,11 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "### `forbidden_proxies[]`" in phase_prompt
     assert "### `links[]`" in phase_prompt
     assert "# PLAN Contract Schema" in planner_prompt
-    assert "non-empty `contract.context_intake` object" in planner_prompt
-    assert "Omit `kind`, `role`, or `relation` only when the schema default `other` is genuinely intended" in planner_prompt
+    assert "Use `@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md` as the canonical contract source." in planner_prompt
+    assert "If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` rather than guessing." in planner_prompt
+    assert "Treat `approach_policy` as execution policy only." in planner_prompt
+    assert "Keep `contract.context_intake` non-empty and specific, and surface explicit anchors when they matter." in planner_prompt
+    assert "Keep the contract block complete per the schema include." in planner_prompt
     assert "scope.unresolved_questions" in planner_prompt
     assert "Every claim must declare a stable `id`." in planner_prompt
     assert (
@@ -2337,7 +2343,7 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
         "target resolution becomes ambiguous."
         in planner_prompt
     )
-    assert "If `must_surface: true`, `required_actions` must not be empty." in planner_prompt
+    assert "Keep the contract block complete per the schema include." in planner_prompt
     assert "# Contract Results Schema" in summary_template
     assert "Missing contract-backed `contract_results` is invalid." in summary_template
     assert "Do not invent `artifact` or `other` subject kinds" in summary_template
@@ -2478,11 +2484,13 @@ def test_state_json_schema_surfaces_stdin_contract_persistence_and_model_normali
 def test_phase_prompt_surfaces_validation_critical_plan_contract_rules() -> None:
     phase_prompt = (TEMPLATES_DIR / "phase-prompt.md").read_text(encoding="utf-8")
 
-    assert "the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies" in phase_prompt
-    assert "If the contract does not already carry explicit concrete grounding elsewhere, references must be present and at least one must set `must_surface: true`." in phase_prompt
-    assert "The locator still has to be concrete enough to re-find later" in phase_prompt
-    assert "Semantic enum fields with schema defaults may be omitted when `other` is actually intended." in phase_prompt
-    assert "If the plan is intentionally scoping-only" in phase_prompt
+    assert "Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
+    assert "Use the schema include for contract semantics rather than repeating them here." in phase_prompt
+    assert "Keep proofs auditable in the body when a plan is proof-bearing, and rerun stale proof audits before `status: passed`." in phase_prompt
+    assert "If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input." in phase_prompt
+    assert "the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies" not in phase_prompt
+    assert "If the contract does not already carry explicit concrete grounding elsewhere, references must be present and at least one must set `must_surface: true`." not in phase_prompt
+    assert "Semantic enum fields with schema defaults may be omitted when `other` is actually intended." not in phase_prompt
 
 
 def test_review_ledger_schema_surfaces_enforced_id_formats() -> None:

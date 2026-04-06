@@ -10,15 +10,10 @@ Before authoring or revising the `contract:` block, use the canonical schema bel
 
 @{GPD_INSTALL_DIR}/templates/plan-contract-schema.md
 
-Surface any hard validation requirements up front: if the plan depends on specialized tooling or another machine-checkable prerequisite, declare it in frontmatter `tool_requirements` before drafting task prose. Keep human-only setup in `researcher_setup`; keep executable validation dependencies in `tool_requirements` so they are visible on the plan surface before the body is written.
+Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`.
 Gap-closure plans still use `type: execute`. Mark verification-repair plans with `gap_closure: true` instead of inventing a third plan type.
-
-The validator is strict here: for ordinary execution plans, the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies, and a non-empty `contract.context_intake`, plus non-empty `uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations`. If the contract does not already carry explicit concrete grounding elsewhere, references must be present and at least one must set `must_surface: true`. Placeholder-only `context_intake` values like `TBD`, `unknown`, or `placeholder` do not count as grounding.
-`must_surface` is a boolean scalar. Use the YAML literals `true` and `false`; do not quote them or replace them with synonyms. If `must_surface: true`, `required_actions[]` and `applies_to[]` must both stay non-empty. The locator still has to be concrete enough to re-find later; placeholders like `TBD`, `unknown`, or bare section/table labels do not count. `carry_forward_to[]` is free-text workflow scope only and must not be overloaded with contract IDs. `uncertainty_markers` must stay a YAML object, not a string or list.
-Semantic enum fields with schema defaults may be omitted when `other` is actually intended. Use explicit `kind`, `role`, and `relation` values when the plan already knows the more specific semantics.
-The defaultable semantic fields still exist in the contract surface: `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, and `links[].relation`. They default to `other`, but the more specific value remains mandatory when the plan already knows it. `references[]` are only required when the contract does not already carry explicit concrete grounding through `contract.context_intake` or preserved scoping inputs. Treat `approach_policy` as execution policy only; it does not satisfy grounding on its own. `context_gaps`, `crucial_inputs`, and `stop_and_rethink_conditions` keep uncertainty visible, but they do not satisfy the grounding/anchor requirement by themselves.
-For `observables[].kind: proof_obligation`, name the theorem or claim plus the hypotheses/parameter regime explicitly, and make the plan auditable for dropped assumptions or silently specialized parameters. If a claim is proof-bearing or tied to a `proof_obligation` observable, it must also surface `proof_deliverables`, `parameters`, `hypotheses`, and `conclusion_clauses`, plus at least one proof-specific acceptance test, so the proof surface is visible before execution.
-If a proof or theorem statement changes after a proof audit, treat that audit as stale and rerun it before `status: passed` is possible for the affected target.
+Use the schema include for contract semantics rather than repeating them here.
+Keep proofs auditable in the body when a plan is proof-bearing, and rerun stale proof audits before `status: passed`.
 
 ---
 
@@ -211,7 +206,7 @@ For `plan depth: light`, keep the same frontmatter but reduce the body to:
 
 Do not omit the `contract`, conventions, or approximation validity just because the plan is light.
 The `contract` block is still required in light mode, including `contract.context_intake` and any `links` needed to make downstream handoffs explicit.
-If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input instead of emitting a half-empty execution contract.
+If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input.
 
 ## Contract Shape Classifier
 

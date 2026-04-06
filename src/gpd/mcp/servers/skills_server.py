@@ -46,14 +46,44 @@ logger = configure_mcp_logging("gpd-skills")
 
 mcp = FastMCP("gpd-skills")
 
-_CONTRACT_REFERENCE_NAMES = {
-    "contract-results-schema.md",
-    "peer-review-reliability.md",
-    "peer-review-panel.md",
-    "reproducibility-manifest.md",
-    "summary.md",
-    "verification-report.md",
-}
+_SCHEMA_REFERENCE_NAMES = frozenset(
+    {
+        "author-response.md",
+        "continue-here.md",
+        "contract-results-schema.md",
+        "figure-tracker.md",
+        "reproducibility-manifest.md",
+        "summary.md",
+        "verification-report.md",
+    }
+)
+_CONTRACT_REFERENCE_NAMES = _SCHEMA_REFERENCE_NAMES | frozenset(
+    {
+        "peer-review-reliability.md",
+        "peer-review-panel.md",
+    }
+)
+_GENERIC_ROUTE_TOKENS = frozenset(
+    {
+        "analysis",
+        "milestone",
+        "milestones",
+        "phase",
+        "phases",
+        "project",
+        "projects",
+        "paper",
+        "papers",
+        "research",
+        "review",
+        "reviews",
+        "summary",
+        "summaries",
+        "work",
+        "workflow",
+        "workflows",
+    }
+)
 
 _SPEC_ROOT = content_registry.SPECS_DIR.resolve()
 _AGENT_ROOT = content_registry.AGENTS_DIR.resolve()
@@ -286,6 +316,23 @@ def _score_new_project_route(normalized_task: str, words: set[str]) -> int:
     return 0
 
 
+def _derived_route_keywords(skill: content_registry.SkillDef) -> list[str]:
+    """Infer route hints from the live registry name so routing does not go stale."""
+    registry_name = _normalize_route_text(skill.registry_name)
+    if not registry_name or registry_name == "new project":
+        return []
+
+    derived: list[str] = []
+    if " " in registry_name:
+        derived.append(registry_name)
+    for token in registry_name.split():
+        if token in _GENERIC_ROUTE_TOKENS:
+            continue
+        if len(token) >= 4 or token in {"todo", "todos"}:
+            derived.append(token)
+    return list(dict.fromkeys(derived))
+
+
 def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) -> tuple[str, Path | None] | None:
     """Return a stable reference path plus its local file path, if resolvable."""
     candidate = raw_path.rstrip(".,:;")
@@ -422,12 +469,7 @@ def _extract_referenced_files(content: str, *, source_path: Path | None = None) 
 
 def _is_schema_reference(path: str) -> bool:
     name = Path(path).name
-    return name.endswith("-schema.md") or name in {
-        "reproducibility-manifest.md",
-        "summary.md",
-        "verification-report.md",
-        "contract-results-schema.md",
-    }
+    return name.endswith("-schema.md") or name in _SCHEMA_REFERENCE_NAMES
 
 
 def _is_contract_reference(path: str) -> bool:
@@ -546,7 +588,7 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                 predicate=_is_contract_reference,
             )
             loading_hint = (
-                "schema_documents and contract_documents already include the expanded canonical bodies. Use referenced_files for any additional workflow/context docs."
+                "schema_documents and contract_documents already include the expanded canonical bodies; use referenced_files only for additional workflow/context docs."
                 if referenced_files
                 else "No external markdown dependencies detected in the canonical skill body."
             )
@@ -567,23 +609,12 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
             if skill.source_kind == "command":
                 command = content_registry.get_command(skill.registry_name)
                 allowed_tools = _normalize_allowed_tools(command.allowed_tools)
-                command_fields_phrase = (
-                    "`context_mode`, `project_reentry_capable`, `allowed_tools`, and any launch `requires`"
-                )
-                if command.agent is not None:
-                    command_fields_phrase = (
-                        "`context_mode`, `project_reentry_capable`, `agent`, `allowed_tools`, and any launch `requires`"
-                    )
                 command_loading_hint = (
-                    loading_hint
-                    + " The content field already includes a model-visible `Command Requirements` section for "
-                    + f"{command_fields_phrase}; "
-                    + "treat `content` as authoritative rather than injecting mirrored command metadata separately."
+                    loading_hint + " treat `content` as authoritative; the content field already includes a model-visible `Command Requirements` section."
                 )
                 if command.review_contract is not None:
                     command_loading_hint += (
-                        " You do not need to inject `review_contract` alongside `content` because the content field "
-                        "already includes a model-visible `Review Contract` section; `review_contract` is a mirrored projection."
+                        " You do not need to inject `review_contract` alongside `content` because the `Review Contract` section is already embedded. `review_contract` remains a mirrored projection."
                     )
                 payload.update(
                     {
@@ -620,10 +651,7 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                 payload["content_authority"] = "canonical"
                 payload["loading_hint"] = (
                     loading_hint
-                    + " The content field already includes a model-visible `Agent Policy` section for "
-                    + "`commit_authority`, `surface`, `role_family`, `artifact_write_authority`, "
-                    + "`shared_state_authority`, and `tools`; treat `content` as authoritative rather than "
-                    + "injecting mirrored agent metadata separately."
+                    + " treat `content` as authoritative; the `Agent Policy` section already covers `commit_authority`, `surface`, `role_family`, `artifact_write_authority`, `shared_state_authority`, and `tools`."
                 )
             return stable_mcp_response(payload)
         except (GPDError, OSError, ValueError, TimeoutError) as e:
@@ -651,7 +679,8 @@ def route_skill(
             skills = _load_skill_index()
             if not skills:
                 return stable_mcp_response({"suggestion": None}, error="No skills available")
-            available_names = {skill.name for skill in skills}
+            skills_by_name = {skill.name: skill for skill in skills}
+            available_names = set(skills_by_name)
             normalized_task = _normalize_route_text(task_description)
 
             if "gpd-suggest-next" in available_names and any(
@@ -707,8 +736,9 @@ def route_skill(
             }
 
             scored: list[tuple[int, str]] = []
-            for skill_name, keywords in command_keywords.items():
-                if skill_name not in available_names:
+            for skill_name in available_names:
+                keywords = [*command_keywords.get(skill_name, []), *_derived_route_keywords(skills_by_name[skill_name])]
+                if not keywords:
                     continue
                 score = 0
                 for kw in keywords:
@@ -726,7 +756,8 @@ def route_skill(
             if new_project_score > 0:
                 scored.append((new_project_score, "gpd-new-project"))
 
-            scored.sort(key=lambda x: -x[0])
+            skill_order = {name: index for index, name in enumerate(skills_by_name)}
+            scored.sort(key=lambda item: (-item[0], skill_order.get(item[1], len(skill_order))))
 
             if scored:
                 best = scored[0][1]
