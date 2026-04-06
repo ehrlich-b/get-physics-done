@@ -228,9 +228,9 @@ If a project-contract reference sets `must_surface: true`, `applies_to[]` must n
 
 Approved-mode grounding is field-specific:
 
-- `must_include_prior_outputs[]` entries should be explicit project-artifact paths or filenames that already exist inside the current project root.
+- `must_include_prior_outputs[]` entries should be explicit project-artifact paths or filenames that already exist inside the current project root. If `project_root` is unavailable, treat them as non-grounding until the file can be resolved against a concrete root.
 - `user_asserted_anchors[]` and `known_good_baselines[]` should use at least three words and name a concrete benchmark, baseline, reference, paper, notebook, figure, table, dataset, curve, result, derivation, observable, limit, comparison, or comparable anchor phrase. Single-token filler does not count.
-- If a `references[].locator` uses a project-local artifact path instead of an external paper locator, it only counts as approved grounding when the referenced file already exists inside the current project root.
+- If a `references[].locator` uses a project-local artifact path instead of an external paper locator, it only counts as approved grounding when the referenced file already exists inside the current project root. If no project root is available, it does not count as approved grounding.
 - `Placeholder`, `TBD`, `TODO`, `unknown`, `unclear`, `none`, `n/a`, and `placeholder` remain non-grounding unless they are part of a genuinely missing-anchor blocker phrase.
 
 #### Approved-Mode Grounding Rule

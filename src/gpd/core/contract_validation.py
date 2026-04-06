@@ -844,15 +844,24 @@ def _has_concrete_must_surface_reference(
     contract: ResearchContract,
     *,
     project_root: Path | None = None,
+    require_existing_project_artifacts: bool = False,
 ) -> bool:
     """Return whether the contract includes a concrete must_surface reference."""
 
     for reference in contract.references:
-        if reference.must_surface and _shared_is_concrete_reference_locator(
+        if not reference.must_surface:
+            continue
+        if not _shared_is_concrete_reference_locator(
             reference.locator,
             reference_kind=reference.kind,
             project_root=project_root,
         ):
+            continue
+        if not require_existing_project_artifacts:
+            return True
+        if not _shared_is_project_artifact_path(reference.locator, project_root=None):
+            return True
+        if project_root is not None and _shared_is_project_artifact_path(reference.locator, project_root=project_root):
             return True
     return False
 
@@ -890,7 +899,11 @@ def _has_approved_grounding_signal(
 
     return any(
         (
-            _has_concrete_must_surface_reference(contract, project_root=project_root),
+            _has_concrete_must_surface_reference(
+                contract,
+                project_root=project_root,
+                require_existing_project_artifacts=True,
+            ),
             _has_concrete_grounding_entries(
                 contract.context_intake.must_include_prior_outputs,
                 field_name="must_include_prior_outputs",

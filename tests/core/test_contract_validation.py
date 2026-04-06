@@ -1042,6 +1042,65 @@ def test_validate_project_contract_approved_mode_accepts_project_local_prior_art
     assert result.mode == "approved"
 
 
+def test_validate_project_contract_approved_mode_rejects_project_local_prior_artifact_locator_without_project_root(
+    tmp_path: Path,
+) -> None:
+    contract = _load_contract_fixture()
+    _remove_incidental_grounding(contract)
+    artifact = tmp_path / "artifacts" / "benchmark" / "report.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("{}", encoding="utf-8")
+    contract["references"] = [
+        {
+            "id": "ref-anchor",
+            "kind": "prior_artifact",
+            "locator": "artifacts/benchmark/report.json",
+            "aliases": [],
+            "role": "background",
+            "why_it_matters": "Concrete prior artifact should not count without a resolved project root.",
+            "applies_to": ["claim-benchmark"],
+            "carry_forward_to": [],
+            "must_surface": True,
+            "required_actions": ["read"],
+        }
+    ]
+    contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-anchor"]
+
+    result = validate_project_contract(contract, mode="approved")
+
+    assert result.valid is False
+    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+
+
+def test_validate_project_contract_approved_mode_rejects_missing_project_local_prior_artifact_locator(
+    tmp_path: Path,
+) -> None:
+    contract = _load_contract_fixture()
+    _remove_incidental_grounding(contract)
+    contract["references"] = [
+        {
+            "id": "ref-anchor",
+            "kind": "prior_artifact",
+            "locator": "artifacts/benchmark/missing-report.json",
+            "aliases": [],
+            "role": "background",
+            "why_it_matters": "Missing prior artifacts should not count as approved grounding.",
+            "applies_to": ["claim-benchmark"],
+            "carry_forward_to": [],
+            "must_surface": True,
+            "required_actions": ["read"],
+        }
+    ]
+    contract["scope"]["unresolved_questions"] = []
+    contract["context_intake"]["must_read_refs"] = ["ref-anchor"]
+
+    result = validate_project_contract(contract, mode="approved", project_root=tmp_path)
+
+    assert result.valid is False
+    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+
+
 def test_validate_project_contract_approved_mode_rejects_placeholder_must_surface_reference_masked_by_background_reference() -> None:
     contract = _load_contract_fixture()
     _remove_incidental_grounding(contract)

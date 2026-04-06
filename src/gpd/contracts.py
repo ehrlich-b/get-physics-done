@@ -404,10 +404,13 @@ def _is_project_artifact_path(value: str, *, project_root: Path | None = None) -
     candidate = value.strip()
     if not candidate or "://" in candidate:
         return False
-    if project_root is None:
-        return _looks_like_project_artifact_path(candidate)
     if not any(pattern.search(candidate) for pattern in _PROJECT_ARTIFACT_PATH_PATTERNS):
         return False
+
+    if project_root is None:
+        if any(pattern.search(candidate) for pattern in _PLAN_REFERENCE_LOCATOR_CONCRETE_PATTERNS):
+            return False
+        return _looks_like_project_artifact_path(candidate)
 
     root = project_root.expanduser().resolve(strict=False)
     path = Path(candidate).expanduser()
@@ -482,7 +485,7 @@ def _is_concrete_external_http_locator(value: str, *, reference_kind: str) -> bo
     )
 
 
-def _is_concrete_text_grounding(value: str) -> bool:
+def _is_concrete_text_grounding(value: str, *, project_root: Path | None = None) -> bool:
     """Return whether *value* names locator-grade grounding rather than filler."""
 
     lowered = value.casefold().strip()
@@ -494,7 +497,7 @@ def _is_concrete_text_grounding(value: str) -> bool:
         return True
     if _is_citation_like_locator(value):
         return True
-    if _looks_like_project_artifact_path(value):
+    if _is_project_artifact_path(value, project_root=project_root):
         return True
     if any(
         _is_concrete_external_http_locator(value, reference_kind=reference_kind)
@@ -533,17 +536,22 @@ def _is_concrete_reference_locator(
     if any(pattern.search(lowered) for pattern in _PLAN_REFERENCE_LOCATOR_PLACEHOLDER_PATTERNS):
         return False
     if reference_kind == "user_anchor":
-        return _is_concrete_text_grounding(value)
+        return _is_concrete_text_grounding(value, project_root=project_root)
     return False
 
 
-def _has_concrete_grounding_entries(values: list[str], *, field_name: str) -> bool:
+def _has_concrete_grounding_entries(
+    values: list[str],
+    *,
+    field_name: str,
+    project_root: Path | None = None,
+) -> bool:
     """Return whether any grounding entry is concrete for the requested field."""
 
     if field_name == "must_include_prior_outputs":
-        return any(_looks_like_project_artifact_path(value) for value in values)
+        return any(_is_project_artifact_path(value, project_root=project_root) for value in values)
     if field_name in {"user_asserted_anchors", "known_good_baselines"}:
-        return any(_is_concrete_text_grounding(value) for value in values)
+        return any(_is_concrete_text_grounding(value, project_root=project_root) for value in values)
     raise ValueError(f"Unsupported grounding field {field_name!r}")
 
 

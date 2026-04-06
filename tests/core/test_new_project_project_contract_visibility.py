@@ -107,6 +107,7 @@ def test_state_schema_surfaces_the_exact_approved_mode_grounding_rule() -> None:
         "`must_include_prior_outputs[]` entries should be explicit project-artifact paths or filenames that already exist inside the current project root."
         in state_schema_text
     )
+    assert "If `project_root` is unavailable, treat them as non-grounding until the file can be resolved against a concrete root." in state_schema_text
     assert '"must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"]' in state_schema_text
     assert "`GPD/phases/.../*-SUMMARY.md` or `paper/main.tex`" not in state_schema_text
     assert "`GPD/phases/.../SUMMARY.md`" not in state_schema_text

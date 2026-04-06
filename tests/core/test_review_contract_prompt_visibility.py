@@ -488,6 +488,15 @@ def test_review_contract_renderer_rejects_unknown_preflight_checks() -> None:
         )
 
 
+def test_review_contract_renderer_always_surfaces_blocking_preflight_dependency_rule() -> None:
+    section = render_review_contract_prompt({"schema_version": 1, "review_mode": "review"})
+
+    assert (
+        "Each `conditional_requirements[].blocking_preflight_checks` entry must also appear in `preflight_checks`."
+        in section
+    )
+
+
 def test_review_contract_renderer_rejects_conditional_blocking_preflight_checks_not_declared_top_level() -> None:
     with pytest.raises(
         ValueError,
@@ -887,6 +896,7 @@ def test_contract_ledgers_surface_forbidden_proxy_bindings_and_action_vocabulary
         "`must_include_prior_outputs[]` entries should be explicit project-artifact paths or filenames that already exist inside the current project root."
         in state_schema
     )
+    assert "If `project_root` is unavailable, treat them as non-grounding until the file can be resolved against a concrete root." in state_schema
     assert '"must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"]' in state_schema
     assert "`GPD/phases/.../*-SUMMARY.md`" not in state_schema
     assert "`GPD/phases/.../SUMMARY.md`" not in state_schema
