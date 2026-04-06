@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import re
 from pathlib import Path
@@ -404,38 +405,50 @@ def test_parse_project_contract_data_salvage_preserves_blocking_errors_for_missi
 
     result: ProjectContractParseResult = parse_project_contract_data_salvage(contract)
 
-    assert result.contract is None
+    assert result.contract is not None
     assert "claims.0.statement is required" in result.blocking_errors
     assert contract_from_data_salvage(contract) is None
 
 
 @pytest.mark.parametrize(
-    ("mutator", "expected_error"),
+    ("collection_name", "expected_error"),
     [
-        (
-            lambda contract: contract["claims"][0].__setitem__("statement", None),
-            "claims.0.statement",
-        ),
-        (
-            lambda contract: contract["references"][0].__setitem__("must_surface", "yes"),
-            "references.0.must_surface",
-        ),
-        (
-            lambda contract: contract["acceptance_tests"][0].__setitem__("kind", "Robot"),
-            "acceptance_tests.0.kind",
-        ),
+        ("claims", "claims.0.statement"),
+        ("references", "references.0.must_surface"),
+        ("acceptance_tests", "acceptance_tests.0.kind"),
     ],
 )
-def test_parse_project_contract_data_salvage_blocks_semantically_invalid_collection_members(
-    mutator,
+def test_parse_project_contract_data_salvage_preserves_valid_siblings_when_one_collection_member_is_invalid(
+    collection_name: str,
     expected_error: str,
 ) -> None:
     contract = _load_contract_fixture()
-    mutator(contract)
+    sibling_id: str
+    if collection_name == "claims":
+        sibling = copy.deepcopy(contract["claims"][0])
+        sibling_id = "claim-sibling"
+        sibling["id"] = sibling_id
+        contract["claims"].append(sibling)
+        contract["claims"][0].pop("statement")
+    elif collection_name == "references":
+        sibling = copy.deepcopy(contract["references"][0])
+        sibling_id = "ref-sibling"
+        sibling["id"] = sibling_id
+        contract["references"].append(sibling)
+        contract["references"][0]["must_surface"] = "yes"
+    elif collection_name == "acceptance_tests":
+        sibling = copy.deepcopy(contract["acceptance_tests"][0])
+        sibling_id = "test-sibling"
+        sibling["id"] = sibling_id
+        contract["acceptance_tests"].append(sibling)
+        contract["acceptance_tests"][0]["kind"] = "Robot"
+    else:
+        raise AssertionError(f"unexpected collection: {collection_name}")
 
     result: ProjectContractParseResult = parse_project_contract_data_salvage(contract)
 
-    assert result.contract is None
+    assert result.contract is not None
+    assert any(item.id == sibling_id for item in getattr(result.contract, collection_name))
     assert any(expected_error in error for error in result.blocking_errors)
     assert contract_from_data_salvage(contract) is None
 
@@ -839,6 +852,8 @@ def test_validate_project_contract_approved_mode_accepts_concrete_reference_loca
 
     assert result.valid is True
     assert result.mode == "approved"
+    assert result.guidance_signal_count == 1
+    assert result.guidance_signal_count == 1
 
 
 @pytest.mark.parametrize(("reference_kind", "locator"), [("paper", "Table 2"), ("paper", "Fig. 3"), ("paper", "Section 4")])
@@ -926,6 +941,8 @@ def test_validate_project_contract_approved_mode_accepts_external_nonpaper_urls(
 
     assert result.valid is True
     assert result.mode == "approved"
+    assert result.guidance_signal_count == 1
+    assert result.guidance_signal_count == 1
 
 
 @pytest.mark.parametrize("reference_kind", ["dataset", "spec", "prior_artifact"])
@@ -1170,6 +1187,31 @@ def test_validate_project_contract_approved_mode_accepts_short_concrete_locator_
 
     assert result.valid is True
     assert result.mode == "approved"
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "https://example.org/missing-data-benchmark.csv",
+        "GPD/phases/03-missing-energy/03-01-SUMMARY.md",
+    ],
+)
+def test_validate_project_contract_approved_mode_accepts_placeholder_word_locators_in_non_reference_grounding(
+    value: str,
+) -> None:
+    contract = _load_contract_fixture()
+    contract["references"] = []
+    _remove_incidental_grounding(contract)
+    contract["context_intake"]["must_include_prior_outputs"] = []
+    contract["context_intake"]["user_asserted_anchors"] = []
+    contract["context_intake"]["known_good_baselines"] = [value]
+    contract["scope"]["unresolved_questions"] = []
+
+    result = validate_project_contract(contract, mode="approved")
+
+    assert result.valid is True
+    assert result.mode == "approved"
+    assert result.guidance_signal_count == 1
 
 
 def test_referee_decision_input_rejects_string_booleans() -> None:
@@ -2486,6 +2528,8 @@ def test_collect_plan_contract_integrity_errors_rejects_placeholder_must_surface
     [
         ("paper", "Author et al., Journal, 2024"),
         ("other", "Einstein, Annalen der Physik, 1905"),
+        ("prior_artifact", "GPD/phases/03-missing-energy/03-01-SUMMARY.md"),
+        ("spec", "https://example.org/missing-data-benchmark.csv"),
     ],
 )
 def test_collect_plan_contract_integrity_errors_accepts_concrete_must_surface_reference_locator(

@@ -492,6 +492,13 @@ def _is_concrete_text_grounding(value: str) -> bool:
         return True
     if _is_citation_like_locator(value):
         return True
+    if _looks_like_project_artifact_path(value):
+        return True
+    if any(
+        _is_concrete_external_http_locator(value, reference_kind=reference_kind)
+        for reference_kind in ("paper", "dataset", "prior_artifact", "spec")
+    ):
+        return True
     if (
         all(pattern.search(lowered) for pattern in _PLAN_GROUNDING_TEXT_QUESTION_PATTERNS)
         and any(pattern.search(lowered) for pattern in _PLAN_GROUNDING_TEXT_SELECTION_PATTERNS)
@@ -499,12 +506,7 @@ def _is_concrete_text_grounding(value: str) -> bool:
         return False
     if any(pattern.search(lowered) for pattern in _PLAN_REFERENCE_LOCATOR_PLACEHOLDER_PATTERNS):
         return False
-    if any(
-        _is_concrete_external_http_locator(value, reference_kind=reference_kind)
-        for reference_kind in ("paper", "dataset", "prior_artifact", "spec")
-    ):
-        return True
-    return _looks_like_project_artifact_path(value)
+    return False
 
 
 def _is_concrete_reference_locator(
@@ -524,12 +526,12 @@ def _is_concrete_reference_locator(
         return True
     if _is_concrete_external_http_locator(value, reference_kind=reference_kind):
         return True
+    if _is_project_artifact_path(value, project_root=project_root):
+        return reference_kind in {"dataset", "prior_artifact", "spec"}
     if any(pattern.search(lowered) for pattern in _PLAN_REFERENCE_LOCATOR_PLACEHOLDER_PATTERNS):
         return False
     if reference_kind == "user_anchor":
         return _is_concrete_text_grounding(value)
-    if _is_project_artifact_path(value, project_root=project_root):
-        return reference_kind in {"dataset", "prior_artifact", "spec"}
     return False
 
 

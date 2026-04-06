@@ -478,7 +478,6 @@ def salvage_project_contract(contract: dict[str, object]) -> tuple[ResearchContr
     if missing_required_section_errors:
         return None, [*errors, *missing_required_section_errors]
 
-    blocked_semantic_errors = False
     collection_models: dict[str, type[BaseModel]] = {
         "observables": ContractObservable,
         "claims": ContractClaim,
@@ -491,14 +490,13 @@ def salvage_project_contract(contract: dict[str, object]) -> tuple[ResearchContr
     for field_name, item_model in collection_models.items():
         if field_name not in normalized_contract:
             continue
-        normalized_items, collection_blocked = _salvage_contract_collection(
+        normalized_items, _collection_blocked = _salvage_contract_collection(
             normalized_contract.get(field_name),
             field_name=field_name,
             item_model=item_model,
             errors=errors,
         )
         normalized_contract[field_name] = normalized_items
-        blocked_semantic_errors = blocked_semantic_errors or collection_blocked
 
     scope, scope_blocked = _salvage_model_mapping(
         normalized_contract.get("scope"),
@@ -550,9 +548,6 @@ def salvage_project_contract(contract: dict[str, object]) -> tuple[ResearchContr
         except PydanticValidationError:
             errors.append("schema_version: Input should be 1")
             normalized_contract.pop("schema_version", None)
-
-    if blocked_semantic_errors:
-        return None, errors
 
     try:
         return ResearchContract.model_validate(normalized_contract), errors
@@ -811,6 +806,13 @@ def _is_concrete_text_grounding(
         return False
     if any(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_DIRECT_PATTERNS):
         return False
+    if any(
+        _shared_is_concrete_reference_locator(value, reference_kind=reference_kind, project_root=project_root)
+        for reference_kind in ("paper", "other", "dataset", "prior_artifact", "spec")
+    ):
+        return True
+    if _shared_is_project_artifact_path(value, project_root=project_root):
+        return True
     if any(pattern.search(lowered) for pattern in _USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS):
         return False
     if any(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_BLOCKER_PATTERNS):
@@ -820,13 +822,6 @@ def _is_concrete_text_grounding(
         and any(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_SELECTION_PATTERNS)
     ):
         return False
-    if any(
-        _shared_is_concrete_reference_locator(value, reference_kind=reference_kind, project_root=project_root)
-        for reference_kind in ("paper", "other", "dataset", "prior_artifact", "spec")
-    ):
-        return True
-    if _shared_is_project_artifact_path(value, project_root=project_root):
-        return True
     return False
 
 
