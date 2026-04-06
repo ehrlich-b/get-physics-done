@@ -55,3 +55,10 @@ def test_help_workflow_paper_toolchain_doctor_row_is_single_sourced() -> None:
 
     assert len(re.findall(r"(?m)^\s*gpd doctor --runtime <runtime> --local\|--global\b.*$", help_workflow)) == 1
     assert len(re.findall(r"(?m)^\s*gpd doctor --runtime <runtime> --global\b.*$", help_workflow)) == 0
+
+
+def test_help_command_uses_one_shared_extract_warning() -> None:
+    help_command = _read("src/gpd/commands/help.md")
+
+    assert help_command.count("Shared wrapper rule for every extract below") == 1
+    assert help_command.count("output only the requested section and do not rewrite, summarize, or invent alternate wording") == 1
