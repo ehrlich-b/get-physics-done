@@ -455,6 +455,13 @@ def _is_project_artifact_path(value: str, *, project_root: Path | None = None) -
     return resolved.is_file()
 
 
+def _is_unresolved_project_artifact_path(value: str) -> bool:
+    """Return whether *value* names an artifact path that needs a project root."""
+
+    candidate_path = Path(value.strip()).expanduser()
+    return candidate_path.is_absolute() or ".." in candidate_path.parts
+
+
 def _is_citation_like_locator(value: str) -> bool:
     """Return whether *value* looks like an explicit citation rather than a vague anchor."""
 
@@ -529,6 +536,8 @@ def _is_concrete_text_grounding(value: str, *, project_root: Path | None = None)
     if _is_citation_like_locator(value):
         return True
     if _is_project_artifact_path(value, project_root=project_root):
+        if project_root is None and _is_unresolved_project_artifact_path(value):
+            return False
         return True
     if any(
         _is_concrete_external_http_locator(value, reference_kind=reference_kind)
@@ -584,8 +593,10 @@ def _has_concrete_grounding_entries(
 
     if field_name == "must_include_prior_outputs":
         if require_existing_project_artifacts:
+            if project_root is None:
+                return False
             return any(
-                project_root is not None and _is_project_artifact_path(value, project_root=project_root)
+                _is_project_artifact_path(value, project_root=project_root)
                 for value in values
             )
         return any(_is_project_artifact_path(value, project_root=project_root) for value in values)

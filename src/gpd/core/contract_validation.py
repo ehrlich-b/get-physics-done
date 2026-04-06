@@ -12,21 +12,6 @@ from pydantic import BaseModel, Field
 from pydantic import ValidationError as PydanticValidationError
 
 from gpd.contracts import (
-    _PLAN_GROUNDING_TEXT_BLOCKER_PATTERNS as _SHARED_PLAN_GROUNDING_TEXT_BLOCKER_PATTERNS,
-)
-from gpd.contracts import (
-    _PLAN_GROUNDING_TEXT_DIRECT_PATTERNS as _SHARED_PLAN_GROUNDING_TEXT_DIRECT_PATTERNS,
-)
-from gpd.contracts import (
-    _PLAN_GROUNDING_TEXT_QUESTION_PATTERNS as _SHARED_PLAN_GROUNDING_TEXT_QUESTION_PATTERNS,
-)
-from gpd.contracts import (
-    _PLAN_GROUNDING_TEXT_SELECTION_PATTERNS as _SHARED_PLAN_GROUNDING_TEXT_SELECTION_PATTERNS,
-)
-from gpd.contracts import (
-    _USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS as _SHARED_USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS,
-)
-from gpd.contracts import (
     CONTRACT_ACCEPTANCE_AUTOMATION_VALUES,
     CONTRACT_ACCEPTANCE_TEST_KIND_VALUES,
     CONTRACT_CLAIM_KIND_VALUES,
@@ -55,7 +40,16 @@ from gpd.contracts import (
     parse_project_contract_data_salvage,
 )
 from gpd.contracts import (
+    _has_concrete_grounding_entries as _shared_has_concrete_grounding_entries,
+)
+from gpd.contracts import (
+    _has_concrete_must_surface_reference as _shared_has_concrete_must_surface_reference,
+)
+from gpd.contracts import (
     _is_concrete_reference_locator as _shared_is_concrete_reference_locator,
+)
+from gpd.contracts import (
+    _is_concrete_text_grounding as _shared_is_concrete_text_grounding,
 )
 from gpd.contracts import (
     _is_project_artifact_path as _shared_is_project_artifact_path,
@@ -73,11 +67,6 @@ __all__ = [
 ]
 
 
-_ANCHOR_UNKNOWN_DIRECT_PATTERNS = _SHARED_PLAN_GROUNDING_TEXT_DIRECT_PATTERNS
-_ANCHOR_UNKNOWN_BLOCKER_PATTERNS = _SHARED_PLAN_GROUNDING_TEXT_BLOCKER_PATTERNS
-_ANCHOR_UNKNOWN_QUESTION_PATTERNS = _SHARED_PLAN_GROUNDING_TEXT_QUESTION_PATTERNS
-_ANCHOR_UNKNOWN_SELECTION_PATTERNS = _SHARED_PLAN_GROUNDING_TEXT_SELECTION_PATTERNS
-_USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS = _SHARED_USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS
 _RECOVERABLE_SCHEMA_WARNING_PATTERNS = (
     re.compile(r"^.+: Extra inputs are not permitted$"),
     re.compile(r"^.+\.\d+ must be a valid list member$"),
@@ -100,6 +89,10 @@ _AUTHORITATIVE_SCALAR_FINDING_PATTERNS = (
     re.compile(r"^schema_version: Input should be 1$"),
     re.compile(r"^.+\.must_surface must be a boolean$"),
 )
+
+_is_concrete_text_grounding = _shared_is_concrete_text_grounding
+_has_concrete_grounding_entries = _shared_has_concrete_grounding_entries
+_has_concrete_must_surface_reference = _shared_has_concrete_must_surface_reference
 
 _SCHEMA_VERSION_REQUIRED_ERROR = "schema_version is required"
 
@@ -754,93 +747,6 @@ def _is_placeholder_only_guidance_text(value: str) -> bool:
     """Return whether *value* is only a placeholder and not actionable guidance."""
 
     return _shared_is_placeholder_only_guidance_text(value)
-
-
-def _is_concrete_text_grounding(
-    value: str,
-    *,
-    project_root: Path | None = None,
-) -> bool:
-    """Return whether *value* names locator-grade grounding rather than filler."""
-
-    lowered = value.casefold().strip()
-    if not lowered:
-        return False
-    if project_root is None and _shared_is_project_artifact_path(value, project_root=None):
-        candidate_path = Path(value.strip()).expanduser()
-        if candidate_path.is_absolute() or ".." in candidate_path.parts:
-            return False
-    if any(
-        _shared_is_concrete_reference_locator(value, reference_kind=reference_kind, project_root=project_root)
-        for reference_kind in ("paper", "other", "dataset", "prior_artifact", "spec")
-    ):
-        return True
-    if _shared_is_project_artifact_path(value, project_root=project_root):
-        if project_root is None:
-            candidate_path = Path(value.strip()).expanduser()
-            if candidate_path.is_absolute() or ".." in candidate_path.parts:
-                return False
-        return True
-    if any(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_DIRECT_PATTERNS):
-        return False
-    if any(pattern.search(lowered) for pattern in _USER_ASSERTED_ANCHOR_PLACEHOLDER_PATTERNS):
-        return False
-    if any(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_BLOCKER_PATTERNS):
-        return False
-    if (
-        all(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_QUESTION_PATTERNS)
-        and any(pattern.search(lowered) for pattern in _ANCHOR_UNKNOWN_SELECTION_PATTERNS)
-    ):
-        return False
-    return False
-
-
-def _has_concrete_grounding_entries(
-    values: list[str],
-    *,
-    field_name: str,
-    project_root: Path | None = None,
-    require_existing_project_artifacts: bool = False,
-) -> bool:
-    """Return whether any grounding entry is concrete for the requested field."""
-
-    if field_name == "must_include_prior_outputs":
-        if require_existing_project_artifacts and project_root is None:
-            return False
-        return any(_shared_is_project_artifact_path(value, project_root=project_root) for value in values)
-    if field_name in {"user_asserted_anchors", "known_good_baselines"}:
-        return any(_is_concrete_text_grounding(value, project_root=project_root) for value in values)
-    raise ValueError(f"Unsupported grounding field {field_name!r}")
-
-
-def _has_concrete_must_surface_reference(
-    contract: ResearchContract,
-    *,
-    project_root: Path | None = None,
-    require_existing_project_artifacts: bool = False,
-) -> bool:
-    """Return whether the contract includes a concrete must_surface reference."""
-
-    for reference in contract.references:
-        if not reference.must_surface:
-            continue
-        if project_root is None and _shared_is_project_artifact_path(reference.locator, project_root=None):
-            locator_path = Path(reference.locator.strip()).expanduser()
-            if locator_path.is_absolute() or ".." in locator_path.parts:
-                continue
-        if not _shared_is_concrete_reference_locator(
-            reference.locator,
-            reference_kind=reference.kind,
-            project_root=project_root,
-        ):
-            continue
-        if not require_existing_project_artifacts:
-            return True
-        if not _shared_is_project_artifact_path(reference.locator, project_root=None):
-            return True
-        if project_root is not None and _shared_is_project_artifact_path(reference.locator, project_root=project_root):
-            return True
-    return False
 
 
 def _must_read_ref_counts_as_guidance(
