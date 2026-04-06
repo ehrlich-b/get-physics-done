@@ -20,13 +20,13 @@ from gpd.core.review_contract_prompt import (
     normalize_review_contract_frontmatter_payload,
     render_review_contract_prompt,
 )
+from gpd.specs import SPECS_DIR
 
 # ─── Package layout ──────────────────────────────────────────────────────────
 
 _PKG_ROOT = Path(__file__).resolve().parent  # gpd/
 AGENTS_DIR = _PKG_ROOT / "agents"
 COMMANDS_DIR = _PKG_ROOT / "commands"
-SPECS_DIR = _PKG_ROOT / "specs"
 
 # ─── Frontmatter parsing helpers ────────────────────────────────────────────
 
@@ -1096,13 +1096,9 @@ def skill_categories() -> tuple[str, ...]:
     return VALID_SKILL_CATEGORIES
 
 
-def _canonical_skill_name_for_command(registry_name: str, command: CommandDef) -> str:
+def _canonical_skill_name_for_command(command: CommandDef) -> str:
     """Project a command registry entry into the canonical gpd-* skill namespace."""
-    if command.name.startswith("gpd:"):
-        return command.name.replace("gpd:", "gpd-", 1)
-    if registry_name.startswith("gpd-"):
-        return registry_name
-    return f"gpd-{registry_name}"
+    return command.name.replace("gpd:", "gpd-", 1)
 
 
 def _discover_skills(commands: dict[str, CommandDef], agents: dict[str, AgentDef]) -> dict[str, SkillDef]:
@@ -1112,7 +1108,7 @@ def _discover_skills(commands: dict[str, CommandDef], agents: dict[str, AgentDef
     for registry_name, command in sorted(commands.items()):
         if command.source != "commands":
             continue
-        skill_name = _canonical_skill_name_for_command(registry_name, command)
+        skill_name = _canonical_skill_name_for_command(command)
         if skill_name in result:
             raise ValueError(f"Duplicate skill name {skill_name!r} from command registry")
         result[skill_name] = SkillDef(
@@ -1210,7 +1206,6 @@ def get_skill(name: str) -> SkillDef:
     for candidate in (
         name.strip(),
         canonical_skill_label(name),
-        canonical_command_label(name),
         slug,
         f"gpd-{slug}" if slug else None,
     ):

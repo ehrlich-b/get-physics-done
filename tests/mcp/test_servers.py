@@ -1388,8 +1388,9 @@ class TestSkillsServer:
     def test_get_skill_loading_hint_only_claims_schema_documents_when_loaded(self):
         from gpd.mcp.servers.skills_server import get_skill
 
-        result = get_skill("gpd-debug")
+        result = get_skill("gpd-slides")
 
+        assert "error" not in result
         assert result["reference_count"] > 0
         assert result["schema_documents"] == []
         assert result["contract_documents"] == []

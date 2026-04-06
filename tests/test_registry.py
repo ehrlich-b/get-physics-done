@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from gpd import registry
+from gpd.specs import SPECS_DIR as CANONICAL_SPECS_DIR
 from gpd.registry import (
     AgentDef,
     CommandDef,
@@ -41,6 +42,9 @@ def _write_review_contract_command(tmp_path: Path, file_name: str, review_contra
 
 class TestParseFrontmatter:
     """Tests for _parse_frontmatter edge cases."""
+
+    def test_registry_exports_canonical_specs_dir(self) -> None:
+        assert registry.SPECS_DIR == CANONICAL_SPECS_DIR
 
     def test_valid_frontmatter(self) -> None:
         meta, body = _parse_frontmatter("---\nname: test\ndescription: hello\n---\nBody here.")

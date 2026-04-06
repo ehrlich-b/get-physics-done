@@ -1361,6 +1361,7 @@ def test_workflows_use_raw_json_when_shell_snippets_pipe_cli_output_into_gpd_jso
 
 def test_workflow_and_command_docs_use_raw_output_for_machine_parsed_cli_json() -> None:
     offenders: list[str] = []
+    shell_languages = {"bash", "sh", "shell", "zsh"}
 
     prompt_paths = [
         *sorted(WORKFLOWS_DIR.glob("*.md")),
@@ -1370,24 +1371,34 @@ def test_workflow_and_command_docs_use_raw_output_for_machine_parsed_cli_json() 
         *sorted(REFERENCES_DIR.rglob("*.md")),
     ]
 
-    machine_parsed_paths = [
-        *sorted(WORKFLOWS_DIR.glob("*.md")),
-        *sorted(COMMANDS_DIR.glob("*.md")),
-    ]
-
     for path in prompt_paths:
+        in_shell_fence = False
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            stripped = line.lstrip()
+            if stripped.startswith("```"):
+                if in_shell_fence:
+                    in_shell_fence = False
+                else:
+                    in_shell_fence = stripped[3:].strip().lower() in shell_languages
+                continue
+
+            if not in_shell_fence:
+                continue
+
             if re.search(r"\bgpd init\b", line) and "gpd --raw init" not in line:
                 offenders.append(f"{path.relative_to(REPO_ROOT)}:{line_number}: {line.strip()}")
             if re.search(r"\bgpd summary-extract\b", line) and "gpd --raw summary-extract" not in line:
                 offenders.append(f"{path.relative_to(REPO_ROOT)}:{line_number}: {line.strip()}")
-
-    for path in machine_parsed_paths:
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             if re.search(r"\bgpd state compact\b", line) and "gpd --raw state compact" not in line:
                 offenders.append(f"{path.relative_to(REPO_ROOT)}:{line_number}: {line.strip()}")
 
     assert not offenders, "Found machine-parsed CLI snippets missing --raw:\n" + "\n".join(offenders)
+
+
+def test_planner_subagent_prompt_uses_raw_init_placeholder_source() -> None:
+    planner_subagent_prompt = (TEMPLATES_DIR / "planner-subagent-prompt.md").read_text(encoding="utf-8")
+
+    assert "| `{phase_number}` | `gpd --raw init plan-phase` |" in planner_subagent_prompt
 
 
 def test_research_phase_uses_resolved_phase_dir_for_artifact_paths_and_context_lookups() -> None:

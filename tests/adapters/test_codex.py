@@ -432,10 +432,10 @@ class TestInstall:
         assert 'echo "ERROR: gpd initialization failed: $INIT"' in skill
         assert expected_bridge + " config ensure-section" in workflow
         assert f'if ! {expected_bridge} verify plan "$plan"; then' in execute_phase
-        assert f'INIT=$({expected_bridge} init plan-phase "${{PHASE}}")' in agent
+        assert f'INIT=$({expected_bridge} --raw init plan-phase "${{PHASE}}")' in agent
         assert "```bash\ngpd config ensure-section\n" not in workflow
         assert 'if ! gpd verify plan "$plan"; then' not in execute_phase
-        assert 'INIT=$(gpd init plan-phase "${PHASE}")' not in agent
+        assert 'INIT=$(gpd --raw init plan-phase "${PHASE}")' not in agent
 
     def test_install_keeps_canonical_local_cli_language_in_skill_prose(
         self,
@@ -1041,6 +1041,7 @@ class TestRuntimePermissions:
 
         manifest = json.loads((target / "gpd-file-manifest.json").read_text(encoding="utf-8"))
         assert manifest["codex_skills_dir"] == str(skills)
+        assert "skills_dir" not in manifest
         assert manifest["codex_generated_skill_dirs"]
         assert all(name.startswith("gpd-") for name in manifest["codex_generated_skill_dirs"])
 

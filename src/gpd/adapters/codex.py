@@ -207,9 +207,8 @@ def _resolve_codex_skills_dir(target_dir: Path, *, is_global: bool, skills_dir: 
 def _load_manifest_codex_skills_dir(target_dir: Path) -> Path | None:
     """Return the install-time Codex skills dir recorded in the local manifest.
 
-    `codex_skills_dir` is the authoritative Codex-specific key. The generic
-    manifest `skills_dir` field is shared patch-tracking metadata and is not a
-    second ownership source for Codex uninstall or validation.
+    `codex_skills_dir` is the only authoritative manifest key for Codex skill
+    ownership and uninstall validation.
     """
     manifest_path = target_dir / MANIFEST_NAME
     if not manifest_path.exists():
