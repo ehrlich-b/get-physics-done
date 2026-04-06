@@ -8,9 +8,9 @@ import yaml
 from tests.conftest import (
     _FAST_SUITE_ENV_VAR,
     FAST_SUITE_EXCLUDES,
+    complementary_heavy_suite_ignore_args,
     _explicit_collection_requested,
     _full_suite_requested,
-    full_suite_ignore_args,
 )
 
 
@@ -20,6 +20,11 @@ def _read(relpath: str) -> str:
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
+
+
+def _all_test_paths() -> tuple[str, ...]:
+    tests_root = _repo_root() / "tests"
+    return tuple(path.relative_to(tests_root).as_posix() for path in sorted(tests_root.rglob("test_*.py")))
 
 
 def _workflow_data() -> dict[str, object]:
@@ -98,16 +103,22 @@ def test_ci_and_test_readme_document_explicit_fast_and_full_suite_commands() -> 
 
     assert "Set up Node.js" in step_names
     assert step_names.index("Set up Node.js") < step_names.index("Install dependencies")
-    assert run_steps["Run fast test suite"] == "uv run pytest tests/ -q -n auto --dist=loadscope"
-    assert "from tests.conftest import full_suite_ignore_args" in run_steps["Run complementary heavy suite"]
-    assert "uv run pytest tests/ -q -n auto --dist=loadscope $HEAVY_SUITE_IGNORE_ARGS" in run_steps[
-        "Run complementary heavy suite"
-    ]
-    assert "--full-suite" not in run_steps["Run complementary heavy suite"]
+    fast_suite_command = run_steps["Run fast test suite"]
+    assert fast_suite_command.startswith("uv run pytest tests/ -q")
+    assert "-n auto" in fast_suite_command
+    assert "--dist=loadscope" in fast_suite_command
+    assert "--full-suite" not in fast_suite_command
+    heavy_suite_command = run_steps["Run complementary heavy suite"]
+    assert "from tests.conftest import complementary_heavy_suite_ignore_args" in heavy_suite_command
+    assert 'HEAVY_SUITE_IGNORE_ARGS="$(' in heavy_suite_command
+    assert "uv run pytest tests/ -q --full-suite -n auto --dist=loadscope $HEAVY_SUITE_IGNORE_ARGS" in heavy_suite_command
+    assert "--full-suite" in heavy_suite_command
     assert "preferred parallel fast path" in tests_readme
     assert "parallel flags now live at the call site instead of repo config" in tests_readme
-    assert "GitHub Actions workflow runs both fast and full suites explicitly" in tests_readme
-    assert full_suite_ignore_args() == tuple(f"--ignore=tests/{rel_path}" for rel_path in sorted(FAST_SUITE_EXCLUDES))
+    assert "GitHub Actions workflow runs the complementary heavy suite with `--full-suite` plus the shared ignore helper" in tests_readme
+    assert complementary_heavy_suite_ignore_args() == tuple(
+        f"--ignore=tests/{rel_path}" for rel_path in _all_test_paths() if rel_path not in FAST_SUITE_EXCLUDES
+    )
 
 
 def test_explicit_collection_is_not_treated_as_fast_suite_blacklisting() -> None:
@@ -117,3 +128,18 @@ def test_explicit_collection_is_not_treated_as_fast_suite_blacklisting() -> None
     )
 
     assert _explicit_collection_requested(collection_path.resolve(strict=False), config) is True
+
+
+def test_k_expression_value_is_not_treated_as_a_collection_root() -> None:
+    collection_path = Path(__file__).resolve().parent / "core" / "test_state.py"
+    config = SimpleNamespace(
+        invocation_params=SimpleNamespace(
+            args=[
+                "tests/test_runtime_abstraction_boundaries.py",
+                "-k",
+                "public_surface_contract or runtime_catalog or managed_virtualenv",
+            ]
+        ),
+    )
+
+    assert _explicit_collection_requested(collection_path.resolve(strict=False), config) is False

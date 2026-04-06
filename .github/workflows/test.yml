@@ -70,9 +70,9 @@ jobs:
       - name: Run complementary heavy suite
         run: |
           HEAVY_SUITE_IGNORE_ARGS="$(uv run python - <<'PY'
-          from tests.conftest import full_suite_ignore_args
+          from tests.conftest import complementary_heavy_suite_ignore_args
 
-          print(" ".join(full_suite_ignore_args()))
+          print(" ".join(complementary_heavy_suite_ignore_args()))
           PY
           )"
-          uv run pytest tests/ -q -n auto --dist=loadscope $HEAVY_SUITE_IGNORE_ARGS
+          uv run pytest tests/ -q --full-suite -n auto --dist=loadscope $HEAVY_SUITE_IGNORE_ARGS

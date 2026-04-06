@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from tests.conftest import FAST_SUITE_EXCLUDES, full_suite_ignore_args
+from tests.conftest import FAST_SUITE_EXCLUDES, complementary_heavy_suite_ignore_args
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -36,19 +36,28 @@ def test_ci_workflow_runs_fast_and_full_pytest_suites_with_call_site_xdist_flags
     assert step_names.index("Set up Node.js") < step_names.index("Install dependencies")
     assert run_steps["Run fast test suite"] == "uv run pytest tests/ -q -n auto --dist=loadscope"
     assert run_steps["Run complementary heavy suite"].startswith("HEAVY_SUITE_IGNORE_ARGS=")
-    assert "from tests.conftest import full_suite_ignore_args" in run_steps["Run complementary heavy suite"]
-    assert "uv run pytest tests/ -q -n auto --dist=loadscope $HEAVY_SUITE_IGNORE_ARGS" in run_steps[
+    assert "from tests.conftest import complementary_heavy_suite_ignore_args" in run_steps[
         "Run complementary heavy suite"
     ]
-    assert "--full-suite" not in run_steps["Run complementary heavy suite"]
+    assert "uv run pytest tests/ -q --full-suite -n auto --dist=loadscope $HEAVY_SUITE_IGNORE_ARGS" in run_steps[
+        "Run complementary heavy suite"
+    ]
+    assert "--full-suite" in run_steps["Run complementary heavy suite"]
     assert steps[-2]["name"] == "Run fast test suite"
     assert steps[-1]["name"] == "Run complementary heavy suite"
     assert steps[-2]["run"] == "uv run pytest tests/ -q -n auto --dist=loadscope"
-    assert "full_suite_ignore_args" in steps[-1]["run"]
+    assert "complementary_heavy_suite_ignore_args" in steps[-1]["run"]
     assert steps[2]["uses"] == "actions/setup-node@v6"
     assert steps[2]["with"]["node-version"] == "20"
     assert 'addopts = "-n auto --dist=loadscope"' not in pyproject
-    assert full_suite_ignore_args() == tuple(f"--ignore=tests/{rel_path}" for rel_path in sorted(FAST_SUITE_EXCLUDES))
+    assert complementary_heavy_suite_ignore_args() == tuple(
+        f"--ignore=tests/{rel_path}"
+        for rel_path in sorted(
+            path.relative_to(REPO_ROOT / "tests").as_posix()
+            for path in (REPO_ROOT / "tests").rglob("test_*.py")
+            if path.relative_to(REPO_ROOT / "tests").as_posix() not in FAST_SUITE_EXCLUDES
+        )
+    )
 
 
 def test_tests_readme_documents_fast_and_full_suite_entrypoints() -> None:
@@ -56,6 +65,5 @@ def test_tests_readme_documents_fast_and_full_suite_entrypoints() -> None:
 
     assert "Default `uv run pytest tests/ -q` uses the fast daily suite declared in" in tests_readme
     assert "`uv run pytest tests/ -q -n auto --dist=loadscope`" in tests_readme
-    assert "`uv run pytest tests/ -q --full-suite -n auto --dist=loadscope`" in tests_readme
     assert "parallel flags now live at the call site instead of repo config" in tests_readme
-    assert "The GitHub Actions workflow runs both fast and full suites explicitly." in tests_readme
+    assert "The GitHub Actions workflow runs the complementary heavy suite with `--full-suite` plus the shared ignore helper" in tests_readme

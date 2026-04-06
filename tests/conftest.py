@@ -81,11 +81,12 @@ def fast_suite_ignored(rel_path: str, *, full_suite: bool, explicitly_requested:
     return not full_suite and not explicitly_requested and rel_path in FAST_SUITE_EXCLUDES
 
 
-def full_suite_ignore_args(*, tests_root: Path | None = None) -> tuple[str, ...]:
-    """Return pytest ``--ignore=...`` args for the complementary heavy suite."""
+def complementary_heavy_suite_ignore_args(*, tests_root: Path | None = None) -> tuple[str, ...]:
+    """Return pytest ``--ignore=...`` args for the heavy-suite complement of the fast path."""
 
     root = Path("tests") if tests_root is None else tests_root
-    return tuple(f"--ignore={root / rel_path}" for rel_path in sorted(FAST_SUITE_EXCLUDES))
+    test_paths = sorted(path.relative_to(root).as_posix() for path in root.rglob("test_*.py"))
+    return tuple(f"--ignore={root / rel_path}" for rel_path in test_paths if rel_path not in FAST_SUITE_EXCLUDES)
 
 
 def _requested_collection_roots(config) -> tuple[Path, ...]:
@@ -102,8 +103,11 @@ def _requested_collection_roots(config) -> tuple[Path, ...]:
             if not candidate.is_absolute()
             else candidate.resolve(strict=False)
         )
-        if candidate.exists():
-            roots.append(candidate)
+        try:
+            if candidate.exists():
+                roots.append(candidate)
+        except OSError:
+            continue
     return tuple(dict.fromkeys(roots))
 
 
