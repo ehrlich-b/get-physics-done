@@ -36,7 +36,8 @@ from gpd.mcp.servers import (
     configure_mcp_logging,
     parse_frontmatter_safe,
     published_tool_input_schema,
-    set_published_tool_input_schema,
+    refresh_string_enum_property_schema,
+    set_registered_and_published_tool_input_schema,
     stable_mcp_error,
     stable_mcp_response,
     tighten_registered_tool_contracts,
@@ -112,20 +113,11 @@ SkillCategoryFilter = str
 def _schema_with_refreshed_skill_category_enum(schema: dict[str, object]) -> dict[str, object]:
     """Return one published schema with the live skill-category enum refreshed."""
 
-    refreshed = copy.deepcopy(schema)
-    category_values = list(_skill_category_values())
-    properties = refreshed.get("properties") if isinstance(refreshed, dict) else None
-    if not isinstance(properties, dict):
-        return refreshed
-    category_schema = properties.get("category")
-    if not isinstance(category_schema, dict):
-        return refreshed
-    enum_schema = category_schema
-    any_of = category_schema.get("anyOf")
-    if isinstance(any_of, list) and any_of and isinstance(any_of[0], dict):
-        enum_schema = any_of[0]
-    enum_schema["enum"] = category_values
-    return refreshed
+    return refresh_string_enum_property_schema(
+        schema,
+        property_name="category",
+        enum_values=list(_skill_category_values()),
+    )
 
 
 def _resolve_skill(name: str) -> content_registry.SkillDef | None:
@@ -879,7 +871,11 @@ async def _list_tools_with_fresh_skill_schema():
         schema = published_tool_input_schema(tool)
         if schema is None:
             continue
-        set_published_tool_input_schema(tool, _schema_with_refreshed_skill_category_enum(schema))
+        set_registered_and_published_tool_input_schema(
+            mcp,
+            tool,
+            _schema_with_refreshed_skill_category_enum(schema),
+        )
     return tools
 
 

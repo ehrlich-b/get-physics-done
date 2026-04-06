@@ -1183,6 +1183,7 @@ def test_tighten_registered_tool_contracts_updates_detached_public_tool_descript
     @dataclasses.dataclass
     class _FakeRegisteredTool:
         name: str
+        inputSchema: dict[str, object]
         parameters: dict[str, object]
         fn_metadata: _FakeFnMetadata
 
@@ -1202,6 +1203,7 @@ def test_tighten_registered_tool_contracts_updates_detached_public_tool_descript
         def __init__(self) -> None:
             self._registered_tool = _FakeRegisteredTool(
                 name="demo",
+                inputSchema={"type": "object", "properties": {}, "additionalProperties": True},
                 parameters={"type": "object", "properties": {}, "additionalProperties": True},
                 fn_metadata=_FakeFnMetadata(
                     arg_model=DemoArgs,
@@ -1225,10 +1227,61 @@ def test_tighten_registered_tool_contracts_updates_detached_public_tool_descript
     public_tools = anyio.run(fake_mcp.list_tools)
 
     public_schema = public_tools[0].inputSchema
+    registered_schema = fake_mcp._registered_tool.parameters
     assert public_schema["additionalProperties"] is False
     assert public_schema["required"] == ["project_dir"]
     assert public_schema["properties"]["project_dir"]["type"] == "string"
-    assert fake_mcp._registered_tool.parameters["additionalProperties"] is False
+    assert fake_mcp._registered_tool.inputSchema["additionalProperties"] is False
+    assert registered_schema["additionalProperties"] is False
+    assert fake_mcp._registered_tool.inputSchema == public_schema
+    assert registered_schema == public_schema
+
+
+def test_skill_category_schema_refresh_handles_reversed_anyof_branch_order() -> None:
+    from gpd import registry as content_registry
+    from gpd.mcp.servers.skills_server import _schema_with_refreshed_skill_category_enum
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "category": {
+                "anyOf": [
+                    {"type": "object", "properties": {"extra": {"type": "string"}}},
+                    {"type": "string", "minLength": 1, "pattern": r"^\S(?:[\s\S]*\S)?$"},
+                ]
+            }
+        },
+    }
+
+    refreshed = _schema_with_refreshed_skill_category_enum(schema)
+    branches = refreshed["properties"]["category"]["anyOf"]
+
+    assert branches[0]["type"] == "object"
+    assert "enum" not in branches[0]
+    assert branches[1]["enum"] == list(content_registry.skill_categories())
+
+
+def test_protocol_domain_schema_refresh_handles_reversed_anyof_branch_order() -> None:
+    from gpd.mcp.servers.protocols_server import _protocol_domain_values, _schema_with_refreshed_protocol_domain_enum
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "domain": {
+                "anyOf": [
+                    {"type": "object", "properties": {"extra": {"type": "string"}}},
+                    {"type": "string", "minLength": 1, "pattern": r"^\S(?:[\s\S]*\S)?$"},
+                ]
+            }
+        },
+    }
+
+    refreshed = _schema_with_refreshed_protocol_domain_enum(schema)
+    branches = refreshed["properties"]["domain"]["anyOf"]
+
+    assert branches[0]["type"] == "object"
+    assert "enum" not in branches[0]
+    assert branches[1]["enum"] == list(_protocol_domain_values())
 
 
 def test_state_server_tools_publish_absolute_project_dir_schema() -> None:
