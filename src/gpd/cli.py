@@ -4545,20 +4545,33 @@ app.add_typer(config_app, name="config")
 _WOLFRAM_INTEGRATION_NAME = WOLFRAM_MANAGED_INTEGRATION.integration_id
 
 
+def _require_project_root_for_integrations(cwd: Path) -> Path:
+    """Require a verified GPD project root for project-scoped integrations."""
+    workspace_cwd = cwd.expanduser().resolve(strict=False)
+    project_root = resolve_project_root(workspace_cwd, require_layout=True)
+    if project_root is None:
+        _error(
+            "gpd integrations require a real GPD project root. Run the command from inside a project with a GPD/ layout."
+        )
+    return project_root
+
+
 def _integrations_config_path(cwd: Path) -> Path:
     """Return the per-project shared-integration config path."""
-    return WOLFRAM_MANAGED_INTEGRATION.project_config_path(cwd)
+    project_root = _require_project_root_for_integrations(cwd)
+    return WOLFRAM_MANAGED_INTEGRATION.project_config_path(project_root)
 
 
 def _update_wolfram_integration_state(cwd: Path, *, enabled: bool) -> dict[str, object]:
     """Persist the Wolfram integration override in the project-local config file."""
     from gpd.core.utils import atomic_write, file_lock
 
-    config_path = _integrations_config_path(cwd)
+    project_root = _require_project_root_for_integrations(cwd)
+    config_path = _integrations_config_path(project_root)
     with file_lock(config_path):
         try:
-            payload = WOLFRAM_MANAGED_INTEGRATION.project_payload(cwd, strict=True)
-            current = WOLFRAM_MANAGED_INTEGRATION.project_record(cwd, strict=True) or {}
+            payload = WOLFRAM_MANAGED_INTEGRATION.project_payload(project_root, strict=True)
+            current = WOLFRAM_MANAGED_INTEGRATION.project_record(project_root, strict=True) or {}
         except RuntimeError as exc:
             _error(str(exc))
         updated: dict[str, object] = {"enabled": enabled}
@@ -4570,8 +4583,8 @@ def _update_wolfram_integration_state(cwd: Path, *, enabled: bool) -> dict[str, 
         atomic_write(config_path, json.dumps(payload, indent=2) + "\n")
 
     try:
-        ready = WOLFRAM_MANAGED_INTEGRATION.is_configured(cwd=cwd, strict=True)
-        endpoint = WOLFRAM_MANAGED_INTEGRATION.resolved_endpoint(cwd=cwd, strict=True)
+        ready = WOLFRAM_MANAGED_INTEGRATION.is_configured(cwd=project_root, strict=True)
+        endpoint = WOLFRAM_MANAGED_INTEGRATION.resolved_endpoint(cwd=project_root, strict=True)
     except RuntimeError as exc:
         _error(str(exc))
 
@@ -4590,12 +4603,13 @@ def _update_wolfram_integration_state(cwd: Path, *, enabled: bool) -> dict[str, 
 
 def _wolfram_integration_status_payload(cwd: Path) -> dict[str, object]:
     """Return the effective project-local status payload for the Wolfram integration."""
-    config_path = _integrations_config_path(cwd)
+    project_root = _require_project_root_for_integrations(cwd)
+    config_path = _integrations_config_path(project_root)
     try:
-        record = WOLFRAM_MANAGED_INTEGRATION.project_record(cwd, strict=True)
-        enabled = WOLFRAM_MANAGED_INTEGRATION.project_enabled(cwd, strict=True)
-        ready = WOLFRAM_MANAGED_INTEGRATION.is_configured(cwd=cwd, strict=True)
-        endpoint = WOLFRAM_MANAGED_INTEGRATION.resolved_endpoint(cwd=cwd, strict=True)
+        record = WOLFRAM_MANAGED_INTEGRATION.project_record(project_root, strict=True)
+        enabled = WOLFRAM_MANAGED_INTEGRATION.project_enabled(project_root, strict=True)
+        ready = WOLFRAM_MANAGED_INTEGRATION.is_configured(cwd=project_root, strict=True)
+        endpoint = WOLFRAM_MANAGED_INTEGRATION.resolved_endpoint(cwd=project_root, strict=True)
     except RuntimeError as exc:
         _error(str(exc))
 

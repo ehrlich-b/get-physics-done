@@ -244,7 +244,11 @@ def test_workflow_presets_surface_lists_catalog() -> None:
 
 
 def test_integrations_status_reports_effective_project_local_state_and_plan_readiness(tmp_path: Path) -> None:
-    result = runner.invoke(app, ["--cwd", str(tmp_path), "--raw", "integrations", "status", "wolfram"])
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    (project_root / "GPD").mkdir()
+
+    result = runner.invoke(app, ["--cwd", str(project_root), "--raw", "integrations", "status", "wolfram"])
     assert result.exit_code == 0
     payload = json.loads(result.output)
     assert payload["integration"] == "wolfram"
@@ -260,27 +264,41 @@ def test_integrations_status_reports_effective_project_local_state_and_plan_read
 
 
 def test_integrations_enable_and_disable_wolfram_persist_project_local_config(tmp_path: Path) -> None:
-    enable_result = runner.invoke(app, ["--cwd", str(tmp_path), "--raw", "integrations", "enable", "wolfram"])
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    (project_root / "GPD").mkdir()
+
+    enable_result = runner.invoke(app, ["--cwd", str(project_root), "--raw", "integrations", "enable", "wolfram"])
     assert enable_result.exit_code == 0
     enable_payload = json.loads(enable_result.output)
     assert enable_payload["enabled"] is True
     assert enable_payload["scope"] == "project-local"
 
-    config_path = tmp_path / "GPD" / "integrations.json"
+    config_path = project_root / "GPD" / "integrations.json"
     assert config_path.exists()
     saved = json.loads(config_path.read_text(encoding="utf-8"))
     assert saved["wolfram"]["enabled"] is True
 
-    disable_result = runner.invoke(app, ["--cwd", str(tmp_path), "--raw", "integrations", "disable", "wolfram"])
+    disable_result = runner.invoke(app, ["--cwd", str(project_root), "--raw", "integrations", "disable", "wolfram"])
     assert disable_result.exit_code == 0
     disable_payload = json.loads(disable_result.output)
     assert disable_payload["enabled"] is False
 
-    status_result = runner.invoke(app, ["--cwd", str(tmp_path), "--raw", "integrations", "status", "wolfram"])
+    status_result = runner.invoke(app, ["--cwd", str(project_root), "--raw", "integrations", "status", "wolfram"])
     assert status_result.exit_code == 0
     status_payload = json.loads(status_result.output)
     assert status_payload["enabled"] is False
     assert status_payload["state"] == "disabled"
+
+
+@pytest.mark.parametrize("command", ("status", "enable", "disable"))
+def test_integrations_commands_fail_outside_real_project(tmp_path: Path, command: str) -> None:
+    result = runner.invoke(app, ["--cwd", str(tmp_path), "--raw", "integrations", command, "wolfram"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert "real GPD project root" in payload["error"]
+    assert not (tmp_path / "GPD").exists()
 
 
 def test_integrations_commands_use_project_root_config_from_nested_workspace(tmp_path: Path) -> None:
