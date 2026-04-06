@@ -691,10 +691,10 @@ def test_run_contract_check_tool_description_surfaces_request_requirements() -> 
     assert "without leading or trailing" in description
     assert "whitespace" in description
     assert "``request.contract`` is optional" in description
-    assert "contract payload ``schema_version`` is required and must equal ``1``" in description
+    assert "`schema_version` is required and must equal `1`" in description
     assert "unknown top-level keys" in description
-    assert "same-kind IDs must be unique" in description
-    assert "contract context must stay consistent with metadata defaults" in description
+    assert "Same-kind IDs must be unique" in description
+    assert "Contract context must stay consistent with metadata defaults" in description
     assert "metadata defaults and explicit" in description
     assert "metadata fields, so benchmark anchors" in description
     assert "metadata.expected_behavior" in description
@@ -713,8 +713,8 @@ def test_run_contract_check_tool_description_surfaces_request_requirements() -> 
     assert "``optional_request_fields``" in description
     assert "``supported_binding_fields``" in description
     assert "``request_template``" in description
-    assert "workflow scope labels, never contract IDs" in description
-    assert "``references[].must_surface`` requires non-empty ``applies_to`` and ``required_actions`` lists" in description
+    assert "`references[].carry_forward_to` uses workflow scope labels only, never contract IDs" in description
+    assert "`references[].must_surface` requires non-empty `applies_to` and `required_actions` lists" in description
     assert "make resolution ambiguous" in description
 
 
@@ -723,9 +723,9 @@ def test_suggest_contract_checks_tool_description_surfaces_contract_requirements
 
     description = _tool_description(mcp, "suggest_contract_checks")
 
-    assert "contract payload ``schema_version`` is required and must equal ``1``" in description
-    assert "same-kind IDs must be unique" in description
-    assert "contract context must stay" in description
+    assert "`schema_version` is required and must equal `1`" in description
+    assert "Same-kind IDs must be unique" in description
+    assert "Contract context must stay" in description
     assert "consistent with metadata defaults and explicit metadata fields" in description
     assert "metadata defaults and explicit" in description
     assert "metadata fields, so" in description
@@ -740,13 +740,13 @@ def test_suggest_contract_checks_tool_description_surfaces_contract_requirements
     assert "``supported_binding_fields``" in description
     assert "``schema_required_request_fields``" in description
     assert "``schema_required_request_anyof_fields``" in description
-    assert "``references[].carry_forward_to`` uses workflow" in description
-    assert "scope labels, never contract IDs" in description
-    assert "``references[].must_surface`` requires non-empty ``applies_to`` and ``required_actions`` lists" in description
+    assert "`references[].carry_forward_to` uses workflow" in description
+    assert "scope labels only, never contract IDs" in description
+    assert "`references[].must_surface` requires non-empty `applies_to` and `required_actions` lists" in description
     assert "``run_contract_check(request=...)``" in description
-    assert description.count("same-kind IDs must be unique") == 1
+    assert description.count("Same-kind IDs must be unique") == 1
     assert description.count("never contract IDs") == 1
-    assert description.count("contract context must stay") == 1
+    assert description.count("Contract context must stay") == 1
 
 
 def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
@@ -983,7 +983,7 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
         assert "minItems" not in contract_schema["properties"][field_name]
     assert "either `references` or explicit grounding context" in contract_schema["description"]
     assert "`references[].must_surface=true` anchor" in contract_schema["description"]
-    assert "require non-empty `forbidden_proxies`" in contract_schema["description"]
+    assert "non-empty `forbidden_proxies`" in contract_schema["description"]
 
     suggest_schema = _tool_input_schema(mcp, "suggest_contract_checks")
     contract_schema = _schema_anyof_object(suggest_schema["properties"]["contract"])
@@ -993,7 +993,7 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
         assert "minItems" not in contract_schema["properties"][field_name]
     assert "either `references` or explicit grounding context" in contract_schema["description"]
     assert "`references[].must_surface=true` anchor" in contract_schema["description"]
-    assert "require non-empty `forbidden_proxies`" in contract_schema["description"]
+    assert "non-empty `forbidden_proxies`" in contract_schema["description"]
     active_checks = suggest_schema["properties"]["active_checks"]
     assert active_checks["anyOf"][0]["type"] == "array"
     assert active_checks["anyOf"][0]["items"]["type"] == "string"
@@ -1111,6 +1111,7 @@ def test_public_descriptors_surface_contract_and_optional_dependency_visibility(
     descriptors = build_public_descriptors()
 
     verification = descriptors["gpd-verification"]
+    assert verification["description"].startswith("GPD physics verification checks.")
     assert "contract payloads whose `schema_version` is required and must equal `1`" in verification["description"]
     assert "required_request_fields" in verification["description"]
     assert "schema_required_request_fields" in verification["description"]
@@ -1128,13 +1129,10 @@ def test_public_descriptors_surface_contract_and_optional_dependency_visibility(
         "binding.forbidden_proxy_ids",
     ):
         assert field in verification["description"]
-    assert "`run_contract_check` uses `request.check_key` as its sole top-level identifier" in verification["description"]
-    assert "rejects `check_id` there" in verification["description"]
-    assert "live semantic integrity rules" in verification["description"]
-    assert "target resolution ambiguous" in verification["description"]
-    assert "`references[].carry_forward_to` entries as workflow scope labels only" in verification["description"]
-    assert "`references[].must_surface` anchors to carry non-empty `applies_to` and `required_actions` lists" in verification["description"]
-    assert "contract context consistent with metadata defaults and explicit metadata fields" in verification["description"]
+    assert "target IDs must not be reused across claim/deliverable/acceptance-test/reference kinds" in verification["description"]
+    assert "`references[].carry_forward_to` uses workflow scope labels only" in verification["description"]
+    assert "`references[].must_surface` requires non-empty `applies_to` and `required_actions` lists" in verification["description"]
+    assert "Contract context must stay consistent with metadata defaults and explicit metadata fields" in verification["description"]
     assert "never contract IDs" in verification["description"]
 
 
@@ -1368,6 +1366,7 @@ def test_public_verification_infra_descriptor_surfaces_semantic_contract_rules()
     )
 
     description = descriptor["description"]
+    assert description.startswith("GPD physics verification checks.")
     assert "contract payloads whose `schema_version` is required and must equal `1`" in description
     assert "required_request_fields" in description
     assert "optional_request_fields" in description
@@ -1387,11 +1386,8 @@ def test_public_verification_infra_descriptor_surfaces_semantic_contract_rules()
         "binding.forbidden_proxy_ids",
     ):
         assert field in description
-    assert "`run_contract_check` uses `request.check_key` as its sole top-level identifier" in description
-    assert "rejects `check_id` there" in description
-    assert "live semantic integrity rules" in description
-    assert "target resolution ambiguous" in description
-    assert "`references[].carry_forward_to` entries as workflow scope labels only" in description
-    assert "`references[].must_surface` anchors to carry non-empty `applies_to` and `required_actions` lists" in description
-    assert "contract context consistent with metadata defaults and explicit metadata fields" in description
+    assert "target IDs must not be reused across claim/deliverable/acceptance-test/reference kinds" in description
+    assert "`references[].carry_forward_to` uses workflow scope labels only" in description
+    assert "`references[].must_surface` requires non-empty `applies_to` and `required_actions` lists" in description
+    assert "Contract context must stay consistent with metadata defaults and explicit metadata fields" in description
     assert "never contract IDs" in description
