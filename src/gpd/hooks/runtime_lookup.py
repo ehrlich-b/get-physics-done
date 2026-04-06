@@ -8,11 +8,11 @@ from pathlib import Path
 
 from gpd.hooks.payload_roots import PayloadRoots
 from gpd.hooks.runtime_detect import (
-    ALL_RUNTIMES,
     RUNTIME_UNKNOWN,
     SCOPE_LOCAL,
     detect_runtime_install_target,
     normalize_runtime_name,
+    supported_runtime_names,
 )
 
 
@@ -34,7 +34,7 @@ def _normalized_runtime_hint(runtime: str | None) -> str | None:
     normalized = normalize_runtime_name(runtime) or runtime.strip() or None
     if normalized in (None, RUNTIME_UNKNOWN):
         return None
-    return normalized if normalized in ALL_RUNTIMES else None
+    return normalized if normalized in supported_runtime_names() else None
 
 
 def _normalized_lookup_dir(path: str | Path) -> str:
@@ -73,8 +73,9 @@ def resolve_runtime_lookup_dir(
     if _project_dir_is_trusted(explicit_project_dir, project_dir_trusted):
         resolved_workspace = Path(workspace_dir).expanduser().resolve(strict=False)
         resolved_project = Path(project_root).expanduser().resolve(strict=False)
+        runtime_names = supported_runtime_names()
         if normalized_runtime is None:
-            for runtime in ALL_RUNTIMES:
+            for runtime in runtime_names:
                 install_target = detect_runtime_install_target(runtime, cwd=resolved_workspace)
                 if install_target is not None and install_target.install_scope == SCOPE_LOCAL:
                     return _normalized_lookup_dir(resolved_workspace)
@@ -86,7 +87,7 @@ def resolve_runtime_lookup_dir(
             project_target = detect_runtime_install_target(normalized_runtime, cwd=resolved_project)
             if project_target is not None and project_target.install_scope == SCOPE_LOCAL:
                 return _normalized_lookup_dir(resolved_project)
-            for runtime in ALL_RUNTIMES:
+            for runtime in runtime_names:
                 if runtime == normalized_runtime:
                     continue
                 install_target = detect_runtime_install_target(runtime, cwd=resolved_workspace)

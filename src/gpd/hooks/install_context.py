@@ -116,14 +116,15 @@ def resolve_hook_lookup_context(
 ) -> HookLookupContext:
     """Resolve the shared cwd/home/runtime preference context for hook lookups."""
     from gpd.hooks.runtime_detect import (
-        ALL_RUNTIMES,
         RUNTIME_UNKNOWN,
         detect_active_runtime,
         detect_active_runtime_with_gpd_install,
         detect_local_runtime_with_gpd_install,
         detect_runtime_for_gpd_use,
         normalize_runtime_name,
+        supported_runtime_names,
     )
+    runtime_names = supported_runtime_names()
 
     def _normalize_runtime_hint(runtime: str | None) -> str | None:
         if runtime is None:
@@ -131,7 +132,7 @@ def resolve_hook_lookup_context(
         normalized = normalize_runtime_name(runtime)
         if normalized in (None, RUNTIME_UNKNOWN):
             return None
-        return normalized if normalized in ALL_RUNTIMES else None
+        return normalized if normalized in runtime_names else None
 
     resolved_cwd = Path(cwd).expanduser().resolve(strict=False) if cwd is not None else None
     resolved_home = Path.home() if home is None else Path(home).expanduser().resolve(strict=False)

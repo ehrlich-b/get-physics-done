@@ -15,6 +15,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator
 
+from gpd.adapters.runtime_catalog import normalize_runtime_name
 from gpd.core.constants import PLANNING_DIR_NAME, ProjectLayout
 from gpd.core.errors import ConfigError
 from gpd.core.observability import instrument_gpd_function
@@ -949,7 +950,10 @@ def resolve_model(project_dir: Path, agent_name: str, runtime: str | None = None
 
     config = load_config(project_dir)
     tier = resolve_agent_tier(agent_name, config.model_profile).value
-    runtime_overrides = (config.model_overrides or {}).get(runtime)
+    normalized_runtime = normalize_runtime_name(runtime)
+    if normalized_runtime is None:
+        return None
+    runtime_overrides = (config.model_overrides or {}).get(normalized_runtime)
     if not runtime_overrides:
         return None
     return runtime_overrides.get(tier)

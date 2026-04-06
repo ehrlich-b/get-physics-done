@@ -53,10 +53,10 @@ def ordered_update_cache_candidates(
 ) -> list[object]:
     """Return update-cache candidates in the shared precedence order."""
     from gpd.hooks.runtime_detect import (
-        ALL_RUNTIMES,
         RUNTIME_UNKNOWN,
         get_update_cache_candidates,
         should_consider_update_cache_candidate,
+        supported_runtime_names,
     )
 
     workspace_path, resolved_home, active_runtime, resolved_preferred_runtime = resolve_update_cache_inputs(
@@ -80,7 +80,8 @@ def ordered_update_cache_candidates(
             home=resolved_home,
         )
     ]
-    if active_runtime in (None, "", RUNTIME_UNKNOWN) and resolved_preferred_runtime in ALL_RUNTIMES:
+    runtime_names = supported_runtime_names()
+    if active_runtime in (None, "", RUNTIME_UNKNOWN) and resolved_preferred_runtime in runtime_names:
         preferred_candidates = [
             candidate for candidate in relevant_candidates if getattr(candidate, "runtime", None) == resolved_preferred_runtime
         ]

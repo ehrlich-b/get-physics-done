@@ -391,6 +391,27 @@ class TestResolveModel:
         model = resolve_model(tmp_path, "gpd-planner", runtime=descriptor.runtime_name)
         assert model is None
 
+    @pytest.mark.parametrize("descriptor", _RUNTIME_DESCRIPTORS, ids=lambda descriptor: descriptor.runtime_name)
+    def test_normalizes_runtime_display_names_before_override_lookup(self, tmp_path: Path, descriptor) -> None:
+        display_name = descriptor.display_name
+        if display_name == descriptor.runtime_name:
+            pytest.skip(f"{descriptor.runtime_name} has no distinct display name")
+
+        (tmp_path / "GPD").mkdir()
+        (tmp_path / "GPD" / "config.json").write_text(
+            json.dumps(
+                {
+                    "model_overrides": {
+                        descriptor.runtime_name: {"tier-1": f"{descriptor.runtime_name}-tier-1"}
+                    }
+                }
+            )
+        )
+
+        model = resolve_model(tmp_path, "gpd-planner", runtime=display_name)
+
+        assert model == f"{descriptor.runtime_name}-tier-1"
+
 
 class TestResolveTier:
     def test_project_resolve_tier_uses_profile(self, tmp_path: Path):

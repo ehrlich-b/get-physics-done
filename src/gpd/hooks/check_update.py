@@ -257,8 +257,8 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     from gpd.hooks.runtime_detect import (
-        ALL_RUNTIMES,
         UpdateCacheCandidate,
+        supported_runtime_names,
     )
     from gpd.hooks.update_resolution import (
         ordered_update_cache_candidates,
@@ -286,7 +286,8 @@ def main(argv: list[str] | None = None) -> None:
         cache_file = primary_update_cache_file(relevant_candidates, home=resolved_home)
 
     # Throttle: skip only when the preferred runtime/home cache set is still fresh.
-    has_runtime_specific_candidate = any(candidate.runtime in ALL_RUNTIMES for candidate in relevant_candidates)
+    runtime_names = supported_runtime_names()
+    has_runtime_specific_candidate = any(candidate.runtime in runtime_names for candidate in relevant_candidates)
     for candidate in relevant_candidates:
         if candidate.runtime is None and has_runtime_specific_candidate:
             continue

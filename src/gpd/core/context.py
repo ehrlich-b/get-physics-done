@@ -1679,23 +1679,21 @@ def load_config(cwd: Path) -> dict:
 def _resolve_model(
     cwd: Path,
     agent_type: str,
-    config: dict | None = None,
+    _config: dict | None = None,
     runtime: str | None = None,
 ) -> str | None:
     """Resolve the runtime-specific model override for an agent type."""
     active_runtime = runtime
+    runtime_unknown = "unknown"
     if active_runtime is None:
         try:
-            from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, detect_runtime_for_gpd_use
+            from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN
 
-            active_runtime = detect_runtime_for_gpd_use(cwd=cwd)
+            runtime_unknown = RUNTIME_UNKNOWN
         except Exception:
-            active_runtime = _detect_platform(cwd)
-    else:
-        RUNTIME_UNKNOWN = "unknown"
-    if active_runtime == RUNTIME_UNKNOWN:
+            pass
         active_runtime = _detect_platform(cwd)
-    if active_runtime == RUNTIME_UNKNOWN:
+    if active_runtime == runtime_unknown:
         active_runtime = None
 
     return _resolve_model_canonical(cwd, agent_type, runtime=active_runtime)
@@ -1731,45 +1729,12 @@ def _detect_platform(cwd: Path | None = None) -> str:
     resolved_home = Path.home()
     runtime_unknown = "unknown"
     try:
-        from gpd.hooks.runtime_detect import (
-            RUNTIME_UNKNOWN,
-            detect_active_runtime,
-            detect_runtime_for_gpd_use,
-            detect_runtime_install_target,
-        )
+        from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, detect_runtime_for_gpd_use
+
         runtime_unknown = RUNTIME_UNKNOWN
-
-        active = detect_active_runtime(cwd=resolved_cwd, home=resolved_home)
-        if active != runtime_unknown:
-            return active
-
         detected = detect_runtime_for_gpd_use(cwd=resolved_cwd, home=resolved_home)
-        if detected != runtime_unknown:
+        if isinstance(detected, str) and detected.strip():
             return detected
-
-        for descriptor in iter_runtime_descriptors():
-            try:
-                install_target = detect_runtime_install_target(
-                    descriptor.runtime_name,
-                    cwd=resolved_cwd,
-                    home=resolved_home,
-                )
-            except Exception:
-                continue
-            if install_target is not None and getattr(install_target, "install_scope", None) == "local":
-                return descriptor.runtime_name
-
-        for descriptor in iter_runtime_descriptors():
-            try:
-                install_target = detect_runtime_install_target(
-                    descriptor.runtime_name,
-                    cwd=resolved_cwd,
-                    home=resolved_home,
-                )
-            except Exception:
-                continue
-            if install_target is not None and getattr(install_target, "install_scope", None) == "global":
-                return descriptor.runtime_name
     except Exception:
         pass
 

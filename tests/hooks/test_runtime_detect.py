@@ -44,6 +44,7 @@ from gpd.hooks.runtime_detect import (
     resolve_effective_runtime,
     should_consider_todo_candidate,
     should_consider_update_cache_candidate,
+    supported_runtime_names,
     update_command_for_runtime,
 )
 from tests.hooks.helpers import clean_runtime_env as _clean_runtime_env
@@ -56,6 +57,8 @@ RUNTIME_CLAUDE = _RUNTIME_BY_NAME["claude-code"].runtime_name
 RUNTIME_CODEX = _RUNTIME_BY_NAME["codex"].runtime_name
 RUNTIME_GEMINI = _RUNTIME_BY_NAME["gemini"].runtime_name
 RUNTIME_OPENCODE = _RUNTIME_BY_NAME["opencode"].runtime_name
+
+
 def _mark_gpd_install(config_dir: Path, *, runtime: str | None = None, install_scope: str = SCOPE_LOCAL) -> None:
     """Mark a runtime directory as containing a GPD install."""
     _mark_complete_install(config_dir, runtime=runtime, install_scope=install_scope)
@@ -388,6 +391,15 @@ class TestNormalizeRuntimeName:
     def test_rejects_unknown_runtime_names(self) -> None:
         assert normalize_runtime_name("not-a-runtime") is None
         assert catalog_normalize_runtime_name("not-a-runtime") is None
+
+
+def test_supported_runtime_names_reflect_live_runtime_inventory(monkeypatch: pytest.MonkeyPatch) -> None:
+    import gpd.hooks.runtime_detect as runtime_detect
+
+    monkeypatch.setattr(runtime_detect, "list_runtimes", lambda: ["alpha", "beta", "gamma"])
+
+    assert supported_runtime_names() == ("alpha", "beta", "gamma")
+    assert runtime_detect._prioritized_runtimes("beta") == ["beta", "alpha", "gamma"]
 
 
 class TestDetectActiveRuntimeWithInstall:
