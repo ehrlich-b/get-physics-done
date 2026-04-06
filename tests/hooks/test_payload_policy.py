@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from gpd.adapters.runtime_catalog import get_hook_payload_policy
 from gpd.hooks.install_context import HookLookupContext, SelfOwnedInstallContext
 from gpd.hooks.payload_policy import resolve_hook_payload_policy, resolve_hook_surface_runtime
@@ -56,6 +58,59 @@ def test_resolve_hook_surface_runtime_ignores_self_owned_install_when_surface_is
         runtime = resolve_hook_surface_runtime(hook_file=hook_file, cwd=tmp_path / "workspace", surface="statusline")
 
     assert runtime == "gemini"
+
+
+def test_resolve_hook_surface_runtime_falls_back_when_self_owned_runtime_is_unknown(tmp_path: Path) -> None:
+    hook_file = tmp_path / ".claude" / "hooks" / "notify.py"
+    self_install = SelfOwnedInstallContext(
+        config_dir=tmp_path / ".claude",
+        runtime="unknown-runtime",
+        install_scope="local",
+    )
+
+    with (
+        patch("gpd.hooks.payload_policy.hook_layout.detect_self_owned_install", return_value=self_install),
+        patch(
+            "gpd.hooks.payload_policy.hook_layout.resolve_hook_lookup_context",
+            return_value=HookLookupContext(
+                lookup_cwd=tmp_path / "workspace",
+                resolved_home=tmp_path / "home",
+                active_runtime="gemini",
+                preferred_runtime="gemini",
+            ),
+        ),
+        patch("gpd.hooks.payload_policy.get_runtime_capabilities", side_effect=KeyError("unknown runtime")),
+    ):
+        runtime = resolve_hook_surface_runtime(hook_file=hook_file, cwd=tmp_path / "workspace", surface="notify")
+
+    assert runtime == "gemini"
+
+
+def test_resolve_hook_surface_runtime_propagates_unexpected_runtime_catalog_errors(
+    tmp_path: Path,
+) -> None:
+    hook_file = tmp_path / ".claude" / "hooks" / "notify.py"
+    self_install = SelfOwnedInstallContext(
+        config_dir=tmp_path / ".claude",
+        runtime="broken-runtime",
+        install_scope="local",
+    )
+
+    with (
+        patch("gpd.hooks.payload_policy.hook_layout.detect_self_owned_install", return_value=self_install),
+        patch(
+            "gpd.hooks.payload_policy.hook_layout.resolve_hook_lookup_context",
+            return_value=HookLookupContext(
+                lookup_cwd=tmp_path / "workspace",
+                resolved_home=tmp_path / "home",
+                active_runtime="gemini",
+                preferred_runtime="gemini",
+            ),
+        ),
+        patch("gpd.hooks.payload_policy.get_runtime_capabilities", side_effect=RuntimeError("catalog boom")),
+    ):
+        with pytest.raises(RuntimeError, match="catalog boom"):
+            resolve_hook_surface_runtime(hook_file=hook_file, cwd=tmp_path / "workspace", surface="notify")
 
 
 def test_resolve_hook_payload_policy_uses_surface_runtime_resolution(tmp_path: Path) -> None:

@@ -1051,6 +1051,20 @@ def test_main_logs_usage_skip_when_runtime_capability_is_unknown(tmp_path: Path)
     assert "usage telemetry skipped: runtime capability unknown or unsupported" in stderr.getvalue()
 
 
+def test_runtime_supports_usage_telemetry_returns_false_for_unknown_runtime() -> None:
+    with patch("gpd.adapters.runtime_catalog.get_runtime_capabilities", side_effect=KeyError("unknown runtime")):
+        assert notify_module._runtime_supports_usage_telemetry("broken-runtime") is False
+
+
+def test_runtime_supports_usage_telemetry_propagates_unexpected_runtime_catalog_errors() -> None:
+    with patch(
+        "gpd.adapters.runtime_catalog.get_runtime_capabilities",
+        side_effect=RuntimeError("catalog boom"),
+    ):
+        with pytest.raises(RuntimeError, match="catalog boom"):
+            notify_module._runtime_supports_usage_telemetry("broken-runtime")
+
+
 def test_main_does_not_record_usage_when_usage_container_has_no_token_or_cost_signal(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -1074,6 +1088,31 @@ def test_main_does_not_record_usage_when_usage_container_has_no_token_or_cost_si
         main()
 
     assert not usage_ledger_path(data_root).exists()
+
+
+def test_record_usage_telemetry_logs_advisory_when_runtime_capability_lookup_fails_unexpectedly(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    stderr = io.StringIO()
+
+    with (
+        patch("gpd.adapters.runtime_catalog.get_runtime_capabilities", side_effect=RuntimeError("catalog boom")),
+        patch("gpd.core.costs.record_usage_from_runtime_payload") as mock_record,
+        patch("gpd.hooks.notify._debug") as mock_debug,
+        patch.dict("os.environ", {"GPD_DEBUG": "1"}),
+        patch("sys.stderr", stderr),
+    ):
+        notify_module._record_usage_telemetry(
+            {"type": "agent-turn-complete"},
+            workspace_dir=str(workspace),
+            project_root=str(workspace),
+            active_runtime="broken-runtime",
+        )
+
+    mock_record.assert_not_called()
+    mock_debug.assert_called_once_with("usage telemetry skipped: catalog boom")
 
 
 def test_main_logs_handler_exception_instead_of_swallowing(tmp_path: Path) -> None:

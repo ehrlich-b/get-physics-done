@@ -108,7 +108,7 @@ def _runtime_supports_usage_telemetry(runtime: str | None) -> bool:
 
     try:
         capability = get_runtime_capabilities(runtime)
-    except Exception:
+    except KeyError:
         return False
     return capability.telemetry_source == "notify-hook" and capability.telemetry_completeness != "none"
 

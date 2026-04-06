@@ -16,7 +16,7 @@ def _surface_is_explicit(runtime: str | None, *, surface: HookSurface) -> bool:
         return False
     try:
         capabilities = get_runtime_capabilities(runtime)
-    except Exception:
+    except KeyError:
         return False
     if surface == "notify":
         return capabilities.notify_surface == "explicit"
