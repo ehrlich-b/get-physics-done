@@ -19,6 +19,7 @@ from gpd.core.public_surface_contract import (
     beginner_onboarding_caveats,
     beginner_preflight_requirements,
     load_public_surface_contract,
+    local_cli_bridge_note,
     local_cli_doctor_command,
     local_cli_help_command,
     local_cli_permissions_sync_command,
@@ -251,6 +252,16 @@ def test_public_surface_contract_loader_requires_recovery_ladder_commands_to_sta
     load_public_surface_contract.cache_clear()
 
 
+def test_public_surface_contract_bridge_note_surfaces_runtime_readiness_and_plan_validation() -> None:
+    note = local_cli_bridge_note()
+
+    assert "local install, readiness, validation, permissions, observability, diagnostics, recovery, cost, preset, and shared Wolfram integration surface" in note
+    assert "gpd doctor --runtime <runtime> --local" in note
+    assert "gpd doctor --runtime <runtime> --global" in note
+    assert "gpd validate plan-preflight <PLAN.md>" in note
+    assert "gpd validate plan-preflight <PLAN.md>" in public_surface_contract_module.local_cli_plan_preflight_command()
+
+
 def test_public_surface_contract_loader_normalizes_whitespace(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -371,6 +382,7 @@ def test_doc_surface_contract_helpers_read_runtime_normalized_contract(
                 "gpd observe execution",
                 "gpd cost",
                 "gpd presets list",
+                "gpd validate plan-preflight <PLAN.md>",
                 "gpd integrations status wolfram",
             ),
             named_commands=public_surface_contract_module.LocalCliNamedCommandsContract(
@@ -384,6 +396,7 @@ def test_doc_surface_contract_helpers_read_runtime_normalized_contract(
                 observe_execution="gpd observe execution",
                 cost="gpd cost",
                 presets_list="gpd presets list",
+                plan_preflight="gpd validate plan-preflight <PLAN.md>",
                 integrations_status_wolfram="gpd integrations status wolfram",
             ),
             terminal_phrase="in your normal terminal",
@@ -422,7 +435,11 @@ def test_doc_surface_contract_helpers_read_runtime_normalized_contract(
     assert local_cli_doctor_command() == "gpd doctor"
     assert local_cli_unattended_readiness_command() == "gpd validate unattended-readiness --runtime <runtime> --autonomy balanced"
     assert local_cli_permissions_sync_command() == "gpd permissions sync --runtime <runtime> --autonomy balanced"
+    assert public_surface_contract_module.local_cli_plan_preflight_command() == "gpd validate plan-preflight <PLAN.md>"
     assert recovery_local_snapshot_command() == "gpd resume"
     assert recovery_cross_workspace_command() == "resume --recent"
+    assert public_surface_contract_module.local_cli_bridge_purpose_phrase() == "workspace diagnostics"
+    assert local_cli_bridge_note().startswith("Use `gpd --help`, `gpd doctor`")
+    assert local_cli_bridge_note().endswith("when you want workspace diagnostics.")
 
     doc_surface_contracts_module._public_surface_contract_payload.cache_clear()

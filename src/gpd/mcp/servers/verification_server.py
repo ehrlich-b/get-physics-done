@@ -562,6 +562,79 @@ def _enum_string_schema(values: Iterable[str]) -> dict[str, object]:
     }
 
 
+def _case_insensitive_exact_enum_pattern(values: Iterable[str]) -> str:
+    patterns: list[str] = []
+    for value in values:
+        token_parts: list[str] = []
+        for char in str(value):
+            if char.isalpha():
+                lowered = re.escape(char.lower())
+                uppered = re.escape(char.upper())
+                token_parts.append(f"[{lowered}{uppered}]")
+            else:
+                token_parts.append(re.escape(char))
+        patterns.append("".join(token_parts))
+    return r"^(?:" + "|".join(patterns) + r")$"
+
+
+def _contract_string_schema() -> dict[str, object]:
+    return dict(_trimmed_non_empty_string_schema())
+
+
+def _contract_string_list_schema(*, min_items: int | None = None) -> dict[str, object]:
+    schema: dict[str, object] = {"type": "array", "items": _contract_string_schema(), "uniqueItems": True}
+    if min_items is not None:
+        schema["minItems"] = min_items
+    return schema
+
+
+def _contract_string_or_string_list_schema(*, min_items: int | None = None) -> dict[str, object]:
+    return {
+        "anyOf": [
+            _contract_string_schema(),
+            _contract_string_list_schema(min_items=min_items),
+        ]
+    }
+
+
+def _contract_enum_string_schema(values: Iterable[str]) -> dict[str, object]:
+    canonical_values = list(values)
+    return {
+        "anyOf": [
+            {"type": "string", "enum": canonical_values},
+            {"type": "string", "pattern": _case_insensitive_exact_enum_pattern(canonical_values)},
+        ],
+        "description": (
+            "Use the exact canonical value when possible. Case-only drift is accepted and normalized to the "
+            "canonical value."
+        ),
+    }
+
+
+def _contract_enum_string_list_schema(values: Iterable[str], *, min_items: int | None = None) -> dict[str, object]:
+    schema: dict[str, object] = {
+        "type": "array",
+        "items": _contract_enum_string_schema(values),
+        "uniqueItems": True,
+    }
+    if min_items is not None:
+        schema["minItems"] = min_items
+    return schema
+
+
+def _contract_enum_string_or_string_list_schema(
+    values: Iterable[str],
+    *,
+    min_items: int | None = None,
+) -> dict[str, object]:
+    return {
+        "anyOf": [
+            _contract_enum_string_schema(values),
+            _contract_enum_string_list_schema(values, min_items=min_items),
+        ]
+    }
+
+
 def _binding_input_schema_for_targets(targets: Iterable[str]) -> dict[str, object]:
     properties: dict[str, object] = {}
     for target in targets:
@@ -667,9 +740,9 @@ _CONTRACT_OBSERVED_INPUT_SCHEMA: dict[str, object] = _object_schema(
 _CONTRACT_SCOPE_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "question": _non_empty_string_schema(),
-        "in_scope": _string_list_schema(),
-        "out_of_scope": _string_list_schema(),
-        "unresolved_questions": _string_list_schema(),
+        "in_scope": _contract_string_or_string_list_schema(),
+        "out_of_scope": _contract_string_or_string_list_schema(),
+        "unresolved_questions": _contract_string_or_string_list_schema(),
     },
     required=("question",),
     additional_properties=False,
@@ -680,7 +753,10 @@ _CONTRACT_SCOPE_INPUT_SCHEMA["description"] = (
     "infer it."
 )
 _CONTRACT_CONTEXT_INTAKE_INPUT_SCHEMA: dict[str, object] = _object_schema(
-    {field_name: _string_list_schema(min_items=1) for field_name in CONTRACT_CONTEXT_INTAKE_FIELD_NAMES},
+    {
+        field_name: _contract_string_or_string_list_schema(min_items=1)
+        for field_name in CONTRACT_CONTEXT_INTAKE_FIELD_NAMES
+    },
     additional_properties=False,
 )
 _CONTRACT_CONTEXT_INTAKE_INPUT_SCHEMA["minProperties"] = 1
@@ -693,14 +769,14 @@ _CONTRACT_CONTEXT_INTAKE_INPUT_SCHEMA["description"] = (
     "gaps, or other user-stated inputs the model must still see when later contract-aware tools validate the work."
 )
 _CONTRACT_APPROACH_POLICY_INPUT_SCHEMA: dict[str, object] = _object_schema(
-    {field_name: _string_list_schema() for field_name in CONTRACT_APPROACH_POLICY_FIELD_NAMES},
+    {field_name: _contract_string_or_string_list_schema() for field_name in CONTRACT_APPROACH_POLICY_FIELD_NAMES},
     additional_properties=False,
 )
 _CONTRACT_OBSERVABLE_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
         "name": _non_empty_string_schema(),
-        "kind": _enum_string_schema(CONTRACT_OBSERVABLE_KIND_VALUES),
+        "kind": _contract_enum_string_schema(CONTRACT_OBSERVABLE_KIND_VALUES),
         "definition": _non_empty_string_schema(),
         "regime": _non_empty_string_or_null_schema(),
         "units": _non_empty_string_or_null_schema(),
@@ -712,7 +788,7 @@ _CONTRACT_PROOF_PARAMETER_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "symbol": _non_empty_string_schema(),
         "domain_or_type": _string_schema(),
-        "aliases": _string_list_schema(),
+        "aliases": _contract_string_or_string_list_schema(),
         "required_in_proof": {"type": "boolean"},
         "notes": _non_empty_string_or_null_schema(),
     },
@@ -723,8 +799,8 @@ _CONTRACT_PROOF_HYPOTHESIS_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
         "text": _non_empty_string_schema(),
-        "symbols": _string_list_schema(),
-        "category": _enum_string_schema(PROOF_HYPOTHESIS_CATEGORY_VALUES),
+        "symbols": _contract_string_or_string_list_schema(),
+        "category": _contract_enum_string_schema(PROOF_HYPOTHESIS_CATEGORY_VALUES),
         "required_in_proof": {"type": "boolean"},
     },
     required=("id", "text"),
@@ -742,16 +818,16 @@ _CONTRACT_CLAIM_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
         "statement": _non_empty_string_schema(),
-        "claim_kind": _enum_string_schema(CONTRACT_CLAIM_KIND_VALUES),
-        "observables": _string_list_schema(),
-        "deliverables": _string_list_schema(min_items=1),
-        "acceptance_tests": _string_list_schema(min_items=1),
-        "references": _string_list_schema(),
+        "claim_kind": _contract_enum_string_schema(CONTRACT_CLAIM_KIND_VALUES),
+        "observables": _contract_string_or_string_list_schema(),
+        "deliverables": _contract_string_or_string_list_schema(min_items=1),
+        "acceptance_tests": _contract_string_or_string_list_schema(min_items=1),
+        "references": _contract_string_or_string_list_schema(),
         "parameters": {"type": "array", "items": dict(_CONTRACT_PROOF_PARAMETER_INPUT_SCHEMA)},
         "hypotheses": {"type": "array", "items": dict(_CONTRACT_PROOF_HYPOTHESIS_INPUT_SCHEMA)},
-        "quantifiers": _string_list_schema(),
+        "quantifiers": _contract_string_or_string_list_schema(),
         "conclusion_clauses": {"type": "array", "items": dict(_CONTRACT_PROOF_CONCLUSION_INPUT_SCHEMA)},
-        "proof_deliverables": _string_list_schema(),
+        "proof_deliverables": _contract_string_or_string_list_schema(),
     },
     required=("id", "statement", "deliverables", "acceptance_tests"),
     additional_properties=False,
@@ -770,12 +846,12 @@ _CONTRACT_CLAIM_INPUT_SCHEMA["allOf"] = [
     {
         "if": {
             "required": ["claim_kind"],
-            "properties": {"claim_kind": {"enum": list(THEOREM_CLAIM_KIND_VALUES)}},
+            "properties": {"claim_kind": _contract_enum_string_schema(THEOREM_CLAIM_KIND_VALUES)},
         },
         "then": {
             "required": ["proof_deliverables", "parameters", "hypotheses", "conclusion_clauses"],
             "properties": {
-                "proof_deliverables": _string_list_schema(min_items=1),
+                "proof_deliverables": _contract_string_or_string_list_schema(min_items=1),
                 "parameters": {
                     "type": "array",
                     "minItems": 1,
@@ -808,7 +884,7 @@ _CONTRACT_CLAIM_INPUT_SCHEMA["allOf"] = [
         "then": {
             "required": ["proof_deliverables", "parameters", "hypotheses", "conclusion_clauses"],
             "properties": {
-                "proof_deliverables": _string_list_schema(min_items=1),
+                "proof_deliverables": _contract_string_or_string_list_schema(min_items=1),
                 "parameters": {
                     "type": "array",
                     "minItems": 1,
@@ -839,8 +915,8 @@ _CONTRACT_CLAIM_INPUT_SCHEMA["allOf"] = [
         "then": {
             "required": ["claim_kind", "proof_deliverables", "parameters", "hypotheses", "conclusion_clauses"],
             "properties": {
-                "claim_kind": {"enum": list(THEOREM_CLAIM_KIND_VALUES)},
-                "proof_deliverables": _string_list_schema(min_items=1),
+                "claim_kind": _contract_enum_string_schema(THEOREM_CLAIM_KIND_VALUES),
+                "proof_deliverables": _contract_string_or_string_list_schema(min_items=1),
                 "parameters": {
                     "type": "array",
                     "minItems": 1,
@@ -863,10 +939,10 @@ _CONTRACT_CLAIM_INPUT_SCHEMA["allOf"] = [
 _CONTRACT_DELIVERABLE_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
-        "kind": _enum_string_schema(CONTRACT_DELIVERABLE_KIND_VALUES),
+        "kind": _contract_enum_string_schema(CONTRACT_DELIVERABLE_KIND_VALUES),
         "path": {"anyOf": [{"type": "string"}, {"type": "null"}]},
         "description": _non_empty_string_schema(),
-        "must_contain": _string_list_schema(),
+        "must_contain": _contract_string_or_string_list_schema(),
     },
     required=("id", "description"),
     additional_properties=False,
@@ -875,11 +951,11 @@ _CONTRACT_ACCEPTANCE_TEST_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
         "subject": _non_empty_string_schema(),
-        "kind": _enum_string_schema(CONTRACT_ACCEPTANCE_TEST_KIND_VALUES),
+        "kind": _contract_enum_string_schema(CONTRACT_ACCEPTANCE_TEST_KIND_VALUES),
         "procedure": _non_empty_string_schema(),
         "pass_condition": _non_empty_string_schema(),
-        "evidence_required": _string_list_schema(),
-        "automation": _enum_string_schema(CONTRACT_ACCEPTANCE_AUTOMATION_VALUES),
+        "evidence_required": _contract_string_or_string_list_schema(),
+        "automation": _contract_enum_string_schema(CONTRACT_ACCEPTANCE_AUTOMATION_VALUES),
     },
     required=("id", "subject", "procedure", "pass_condition"),
     additional_properties=False,
@@ -887,15 +963,15 @@ _CONTRACT_ACCEPTANCE_TEST_INPUT_SCHEMA: dict[str, object] = _object_schema(
 _CONTRACT_REFERENCE_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
         "id": _non_empty_string_schema(),
-        "kind": _enum_string_schema(CONTRACT_REFERENCE_KIND_VALUES),
+        "kind": _contract_enum_string_schema(CONTRACT_REFERENCE_KIND_VALUES),
         "locator": _non_empty_string_schema(),
-        "aliases": _string_list_schema(),
-        "role": _enum_string_schema(CONTRACT_REFERENCE_ROLE_VALUES),
+        "aliases": _contract_string_or_string_list_schema(),
+        "role": _contract_enum_string_schema(CONTRACT_REFERENCE_ROLE_VALUES),
         "why_it_matters": _non_empty_string_schema(),
-        "applies_to": _string_list_schema(),
-        "carry_forward_to": _string_list_schema(),
+        "applies_to": _contract_string_or_string_list_schema(),
+        "carry_forward_to": _contract_string_or_string_list_schema(),
         "must_surface": {"type": "boolean"},
-        "required_actions": _enum_string_list_schema(CONTRACT_REFERENCE_ACTION_VALUES),
+        "required_actions": _contract_enum_string_or_string_list_schema(CONTRACT_REFERENCE_ACTION_VALUES),
     },
     required=("id", "locator", "why_it_matters"),
     additional_properties=False,
@@ -915,15 +991,15 @@ _CONTRACT_LINK_INPUT_SCHEMA: dict[str, object] = _object_schema(
         "id": _non_empty_string_schema(),
         "source": _non_empty_string_schema(),
         "target": _non_empty_string_schema(),
-        "relation": _enum_string_schema(CONTRACT_LINK_RELATION_VALUES),
-        "verified_by": _string_list_schema(),
+        "relation": _contract_enum_string_schema(CONTRACT_LINK_RELATION_VALUES),
+        "verified_by": _contract_string_or_string_list_schema(),
     },
     required=("id", "source", "target"),
     additional_properties=False,
 )
 _CONTRACT_UNCERTAINTY_MARKERS_INPUT_SCHEMA: dict[str, object] = _object_schema(
     {
-        field_name: _string_list_schema(
+        field_name: _contract_string_or_string_list_schema(
             min_items=1 if field_name in {"weakest_anchors", "disconfirming_observations"} else None
         )
         for field_name in CONTRACT_UNCERTAINTY_MARKER_FIELD_NAMES
@@ -983,8 +1059,10 @@ _CONTRACT_PAYLOAD_INPUT_SCHEMA["description"] = (
     "Each claim must name deliverables and acceptance_tests. When claims are present, top-level deliverables and "
     "acceptance_tests must also be present. Non-scoping non-exploratory plans also require either `references` or "
     "explicit grounding context, require at least one `references[].must_surface=true` anchor when references are "
-    "present, and require non-empty `forbidden_proxies`. Additional semantic integrity rules still apply at runtime "
-    "for scoping, grounding, references, forbidden_proxies, and id resolution."
+    "present, and require non-empty `forbidden_proxies`. The schema accepts recoverable singleton-string/list drift "
+    "for contract string-list fields and case-only drift for closed enum fields, but unknown keys, non-object "
+    "sections, blank strings, and malformed members still remain hard errors. Additional semantic integrity rules "
+    "still apply at runtime for scoping, grounding, references, forbidden_proxies, and id resolution."
 )
 _CONTRACT_PAYLOAD_INPUT_SCHEMA["allOf"] = [
     {
@@ -3195,23 +3273,37 @@ def _recoverable_collection_list_shape_error(error: str, *, contract_raw: dict[s
         return False
     path = error.removesuffix(" must be a list, not str")
     tokens = _contract_path_tokens(path)
-    if len(tokens) != 3:
-        return False
-    collection_name, index, field_name = tokens
-    if (
-        not isinstance(collection_name, str)
-        or not isinstance(index, int)
-        or not isinstance(field_name, str)
-        or field_name not in PROJECT_CONTRACT_COLLECTION_LIST_FIELDS.get(collection_name, ())
-    ):
-        return False
-
     raw_value = _contract_value_at_path(contract_raw, path)
     if not isinstance(raw_value, str) or not raw_value.strip():
         return False
-    if collection_name == "references" and field_name == "required_actions":
-        return raw_value.strip().casefold() in _REFERENCE_ACTIONS
-    return True
+
+    if len(tokens) == 3:
+        collection_name, index, field_name = tokens
+        if (
+            not isinstance(collection_name, str)
+            or not isinstance(index, int)
+            or not isinstance(field_name, str)
+            or field_name not in PROJECT_CONTRACT_COLLECTION_LIST_FIELDS.get(collection_name, ())
+        ):
+            return False
+        if collection_name == "references" and field_name == "required_actions":
+            return raw_value.strip().casefold() in _REFERENCE_ACTIONS
+        return True
+
+    if len(tokens) == 5:
+        collection_name, index, nested_collection_name, nested_index, field_name = tokens
+        if (
+            collection_name,
+            nested_collection_name,
+            field_name,
+        ) not in {
+            ("claims", "parameters", "aliases"),
+            ("claims", "hypotheses", "symbols"),
+        }:
+            return False
+        return isinstance(index, int) and isinstance(nested_index, int)
+
+    return False
 
 
 def _recoverable_mapping_list_shape_error(error: str, *, contract_raw: dict[str, object]) -> bool:
@@ -3644,16 +3736,18 @@ def run_contract_check(request: RunContractCheckPayload) -> dict:
     contract payload even when other checks can rely on metadata-only evidence.
     The contract payload ``schema_version`` is required and must equal ``1``.
     The payload is treated as a hard schema boundary for authoritative fields:
-    unknown top-level keys, non-object sections,
-    coercive scalars, blank strings, and malformed list members are rejected
-    instead of being guessed. Recoverable scalar-to-list drift is normalized by
-    the shared contract parser before verification, and benchmark prose may
-    still surface a warning when direct evidence is incomplete. Contract
+    unknown top-level keys, non-object sections, blank strings, and malformed
+    list members are rejected instead of being guessed. Recoverable
+    singleton-string/list drift for contract string-list fields and case-only
+    drift for closed contract enum fields are normalized by the shared
+    contract parser before verification, and benchmark prose may still surface
+    a warning when direct evidence is incomplete. Contract
     payloads must also satisfy the shared semantic integrity rules: same-kind IDs must be unique; target IDs must not be reused across claim/deliverable/acceptance-test/reference kinds when that would make resolution ambiguous; ``references[].carry_forward_to`` uses workflow scope labels, never contract IDs; ``references[].must_surface`` requires non-empty ``applies_to`` and ``required_actions`` lists; and contract context must stay consistent with metadata defaults and explicit metadata fields, so benchmark anchors, regime labels, and family selections cannot contradict the resolved binding. For plan-style contract payloads, ``context_intake`` must be
     present and non-empty, and the contract must satisfy the same plan semantic
-    requirements GPD enforces in plan frontmatter. Limited recoverable
-    structural drift may still be salvaged, and any such recovery is surfaced
-    back as structured salvage findings. For proof-oriented checks, any
+    requirements GPD enforces in plan frontmatter. Recoverable singleton-list
+    and case-only enum normalization is surfaced back as structured salvage
+    findings; unknown keys and non-object sections still fail hard. For
+    proof-oriented checks, any
     contract-derived metadata you provide must either be omitted or match the
     resolved contract defaults exactly, including
     ``metadata.expected_behavior``, ``metadata.claim_statement``,
@@ -4380,9 +4474,11 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
 
     ``contract`` must be an object with the normal GPD contract structure.
     The contract payload ``schema_version`` is required and must equal ``1``. The tool keeps authoritative fields strict: non-object
-    payloads, unknown top-level keys, coercive scalars, and malformed list
-    members are rejected rather than inferred. Recoverable scalar-to-list drift
-    is normalized by the shared contract parser before verification.
+    payloads, unknown top-level keys, blank strings, and malformed list
+    members are rejected rather than inferred. Recoverable singleton-string/list
+    drift for contract string-list fields and case-only drift for closed
+    contract enum fields are normalized by the shared contract parser before
+    verification.
 
     Contract payloads must also satisfy the shared semantic integrity rules:
     same-kind IDs must be unique; target IDs must not be reused across
@@ -4402,9 +4498,9 @@ def suggest_contract_checks(contract: SuggestContractPayload, active_checks: Str
     omit claims only when they still preserve at least one target, unresolved
     question, or grounding input. ``uncertainty_markers.weakest_anchors`` and
     ``uncertainty_markers.disconfirming_observations`` must stay explicit and
-    non-empty so unresolved risk remains visible to later tools. Limited
-    recoverable structural drift may still be salvaged, and any such recovery
-    is carried through the suggestion metadata.
+    non-empty so unresolved risk remains visible to later tools. Recoverable
+    singleton-list and case-only enum normalization is carried through the
+    suggestion metadata; unknown keys and non-object sections still fail hard.
 
     ``active_checks`` is optional and must be ``list[str]`` with non-empty
     entries when provided. Supply already-enabled check ids or check keys so

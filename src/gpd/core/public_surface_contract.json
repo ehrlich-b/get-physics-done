@@ -33,6 +33,7 @@
       "gpd observe execution",
       "gpd cost",
       "gpd presets list",
+      "gpd validate plan-preflight <PLAN.md>",
       "gpd integrations status wolfram"
     ],
     "named_commands": {
@@ -46,10 +47,11 @@
       "observe_execution": "gpd observe execution",
       "cost": "gpd cost",
       "presets_list": "gpd presets list",
+      "plan_preflight": "gpd validate plan-preflight <PLAN.md>",
       "integrations_status_wolfram": "gpd integrations status wolfram"
     },
     "terminal_phrase": "from your normal terminal",
-    "purpose_phrase": "the broader local diagnostics, readiness, recovery, visibility, cost, preset, and shared Wolfram integration surface"
+    "purpose_phrase": "the broader local install, readiness, validation, permissions, observability, diagnostics, recovery, cost, preset, and shared Wolfram integration surface; use `gpd doctor --runtime <runtime> --local` or `gpd doctor --runtime <runtime> --global` for runtime-local readiness and `gpd validate plan-preflight <PLAN.md>` for plan validation"
   },
   "post_start_settings": {
     "primary_sentence": "After your first successful start or later, use the runtime `settings` command to review autonomy, workflow defaults, model-cost posture, runtime permission sync, and preset/tier overrides.",

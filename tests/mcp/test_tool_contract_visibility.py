@@ -67,12 +67,48 @@ def _schema_anyof_string(schema_fragment: dict[str, object]) -> dict[str, object
     raise AssertionError(f"No string branch found in {schema_fragment!r}")
 
 
+def _schema_anyof_array(schema_fragment: dict[str, object]) -> dict[str, object]:
+    if schema_fragment.get("type") == "array":
+        return schema_fragment
+    for branch in schema_fragment.get("anyOf", []):
+        if isinstance(branch, dict) and branch.get("type") == "array":
+            return branch
+    raise AssertionError(f"No array branch found in {schema_fragment!r}")
+
+
+def _assert_recoverable_enum_string_schema(
+    schema_fragment: dict[str, object],
+    *,
+    label: str,
+    enum_values: list[str],
+) -> None:
+    if schema_fragment.get("type") == "string":
+        assert schema_fragment["enum"] == enum_values
+        return
+
+    assert "anyOf" in schema_fragment, f"{label} must publish case-only enum salvage semantics"
+    exact_branch = next(
+        branch for branch in schema_fragment["anyOf"] if isinstance(branch, dict) and branch.get("type") == "string" and "enum" in branch
+    )
+    pattern_branch = next(
+        branch
+        for branch in schema_fragment["anyOf"]
+        if isinstance(branch, dict) and branch.get("type") == "string" and "pattern" in branch
+    )
+    assert exact_branch["enum"] == enum_values
+    assert pattern_branch["pattern"].startswith("^(?:")
+    assert pattern_branch["pattern"].endswith(")$")
+
+
 def _assert_string_list_schema(schema_fragment: dict[str, object], *, label: str) -> None:
-    assert schema_fragment["type"] == "array", f"{label} must publish array-only contract list semantics"
-    array_branch = schema_fragment
+    array_branch = _schema_anyof_array(schema_fragment)
+    if "anyOf" in schema_fragment:
+        string_branch = _schema_anyof_string(schema_fragment)
+        assert string_branch["minLength"] == 1
+        assert string_branch["pattern"] == r"^\S(?:[\s\S]*\S)?$"
     assert array_branch["items"]["type"] == "string"
     assert array_branch["items"]["minLength"] == 1
-    assert array_branch["items"]["pattern"] == r"\S"
+    assert array_branch["items"]["pattern"] == r"^\S(?:[\s\S]*\S)?$"
     assert array_branch["uniqueItems"] is True
 
 
@@ -82,10 +118,13 @@ def _assert_enum_string_list_schema(
     label: str,
     enum_values: list[str],
 ) -> None:
-    assert schema_fragment["type"] == "array", f"{label} must publish array-only contract enum-list semantics"
-    array_branch = schema_fragment
-    assert array_branch["items"]["type"] == "string"
-    assert array_branch["items"]["enum"] == enum_values
+    array_branch = _schema_anyof_array(schema_fragment)
+    if "anyOf" in schema_fragment:
+        scalar_branch = next(
+            branch for branch in schema_fragment["anyOf"] if isinstance(branch, dict) and branch.get("type") != "array"
+        )
+        _assert_recoverable_enum_string_schema(scalar_branch, label=f"{label} scalar branch", enum_values=enum_values)
+    _assert_recoverable_enum_string_schema(array_branch["items"], label=f"{label} items", enum_values=enum_values)
     assert array_branch["uniqueItems"] is True
 
 
@@ -392,15 +431,19 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
     assert "proof-specific acceptance test id" in claims["description"]
     assert claims["properties"]["id"]["minLength"] == 1
     assert claims["properties"]["id"]["pattern"] == r"\S"
-    assert claims["properties"]["claim_kind"]["enum"] == [
-        "theorem",
-        "lemma",
-        "corollary",
-        "proposition",
-        "result",
-        "claim",
-        "other",
-    ]
+    _assert_recoverable_enum_string_schema(
+        claims["properties"]["claim_kind"],
+        label="contract.claims[].claim_kind",
+        enum_values=[
+            "theorem",
+            "lemma",
+            "corollary",
+            "proposition",
+            "result",
+            "claim",
+            "other",
+        ],
+    )
     assert "Claims are proof-bearing not only when `claim_kind` is theorem-like" in claims["description"]
     assert "when the statement is theorem-like" in claims["description"]
     assert "when proof-specific fields are already populated" in claims["description"]
@@ -416,13 +459,17 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
     conclusion_clauses = claims["properties"]["conclusion_clauses"]["items"]
     _assert_closed_object(conclusion_clauses, label="contract.claims[].conclusion_clauses[]")
     proof_claim_condition = claims["allOf"][0]
-    assert proof_claim_condition["if"]["properties"]["claim_kind"]["enum"] == [
-        "theorem",
-        "lemma",
-        "corollary",
-        "proposition",
-        "claim",
-    ]
+    _assert_recoverable_enum_string_schema(
+        proof_claim_condition["if"]["properties"]["claim_kind"],
+        label="contract.claims[].proof condition claim_kind",
+        enum_values=[
+            "theorem",
+            "lemma",
+            "corollary",
+            "proposition",
+            "claim",
+        ],
+    )
     assert proof_claim_condition["then"]["required"] == [
         "proof_deliverables",
         "parameters",
@@ -438,14 +485,18 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     observables = contract_schema["properties"]["observables"]["items"]
     _assert_closed_object(observables, label="contract.observables[]")
-    assert observables["properties"]["kind"]["enum"] == [
-        "scalar",
-        "curve",
-        "map",
-        "classification",
-        "proof_obligation",
-        "other",
-    ]
+    _assert_recoverable_enum_string_schema(
+        observables["properties"]["kind"],
+        label="contract.observables[].kind",
+        enum_values=[
+            "scalar",
+            "curve",
+            "map",
+            "classification",
+            "proof_obligation",
+            "other",
+        ],
+    )
     for field_name in ("regime", "units"):
         field_schema = observables["properties"][field_name]
         assert len(field_schema["anyOf"]) == 2
@@ -456,17 +507,21 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     deliverables = contract_schema["properties"]["deliverables"]["items"]
     _assert_closed_object(deliverables, label="contract.deliverables[]")
-    assert deliverables["properties"]["kind"]["enum"] == [
-        "figure",
-        "table",
-        "dataset",
-        "data",
-        "derivation",
-        "code",
-        "note",
-        "report",
-        "other",
-    ]
+    _assert_recoverable_enum_string_schema(
+        deliverables["properties"]["kind"],
+        label="contract.deliverables[].kind",
+        enum_values=[
+            "figure",
+            "table",
+            "dataset",
+            "data",
+            "derivation",
+            "code",
+            "note",
+            "report",
+            "other",
+        ],
+    )
     _assert_string_list_schema(
         deliverables["properties"]["must_contain"],
         label="contract.deliverables[].must_contain",
@@ -474,29 +529,37 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     acceptance_tests = contract_schema["properties"]["acceptance_tests"]["items"]
     _assert_closed_object(acceptance_tests, label="contract.acceptance_tests[]")
-    assert acceptance_tests["properties"]["kind"]["enum"] == [
-        "existence",
-        "schema",
-        "benchmark",
-        "consistency",
-        "cross_method",
-        "limiting_case",
-        "symmetry",
-        "dimensional_analysis",
-        "convergence",
-        "oracle",
-        "proxy",
-        "reproducibility",
-        "proof_hypothesis_coverage",
-        "proof_parameter_coverage",
-        "proof_quantifier_domain",
-        "claim_to_proof_alignment",
-        "lemma_dependency_closure",
-        "counterexample_search",
-        "human_review",
-        "other",
-    ]
-    assert acceptance_tests["properties"]["automation"]["enum"] == ["automated", "hybrid", "human"]
+    _assert_recoverable_enum_string_schema(
+        acceptance_tests["properties"]["kind"],
+        label="contract.acceptance_tests[].kind",
+        enum_values=[
+            "existence",
+            "schema",
+            "benchmark",
+            "consistency",
+            "cross_method",
+            "limiting_case",
+            "symmetry",
+            "dimensional_analysis",
+            "convergence",
+            "oracle",
+            "proxy",
+            "reproducibility",
+            "proof_hypothesis_coverage",
+            "proof_parameter_coverage",
+            "proof_quantifier_domain",
+            "claim_to_proof_alignment",
+            "lemma_dependency_closure",
+            "counterexample_search",
+            "human_review",
+            "other",
+        ],
+    )
+    _assert_recoverable_enum_string_schema(
+        acceptance_tests["properties"]["automation"],
+        label="contract.acceptance_tests[].automation",
+        enum_values=["automated", "hybrid", "human"],
+    )
     _assert_string_list_schema(
         acceptance_tests["properties"]["evidence_required"],
         label="contract.acceptance_tests[].evidence_required",
@@ -505,22 +568,16 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
     references = contract_schema["properties"]["references"]["items"]
     _assert_closed_object(references, label="contract.references[]")
     assert references["required"] == ["id", "locator", "why_it_matters"]
-    assert references["properties"]["kind"]["enum"] == [
-        "paper",
-        "dataset",
-        "prior_artifact",
-        "spec",
-        "user_anchor",
-        "other",
-    ]
-    assert references["properties"]["role"]["enum"] == [
-        "definition",
-        "benchmark",
-        "method",
-        "must_consider",
-        "background",
-        "other",
-    ]
+    _assert_recoverable_enum_string_schema(
+        references["properties"]["kind"],
+        label="contract.references[].kind",
+        enum_values=["paper", "dataset", "prior_artifact", "spec", "user_anchor", "other"],
+    )
+    _assert_recoverable_enum_string_schema(
+        references["properties"]["role"],
+        label="contract.references[].role",
+        enum_values=["definition", "benchmark", "method", "must_consider", "background", "other"],
+    )
     for field_name in ("aliases", "applies_to", "carry_forward_to"):
         _assert_string_list_schema(
             references["properties"][field_name],
@@ -534,18 +591,22 @@ def _assert_contract_schema_sections_closed(contract_schema: dict[str, object]) 
 
     links = contract_schema["properties"]["links"]["items"]
     _assert_closed_object(links, label="contract.links[]")
-    assert links["properties"]["relation"]["enum"] == [
-        "supports",
-        "computes",
-        "visualizes",
-        "benchmarks",
-        "depends_on",
-        "evaluated_by",
-        "proves",
-        "uses_hypothesis",
-        "depends_on_lemma",
-        "other",
-    ]
+    _assert_recoverable_enum_string_schema(
+        links["properties"]["relation"],
+        label="contract.links[].relation",
+        enum_values=[
+            "supports",
+            "computes",
+            "visualizes",
+            "benchmarks",
+            "depends_on",
+            "evaluated_by",
+            "proves",
+            "uses_hypothesis",
+            "depends_on_lemma",
+            "other",
+        ],
+    )
     _assert_string_list_schema(links["properties"]["verified_by"], label="contract.links[].verified_by")
 
     forbidden_proxies = contract_schema["properties"]["forbidden_proxies"]["items"]
@@ -817,11 +878,21 @@ def test_contract_tools_list_tools_expose_structured_request_schemas() -> None:
 
     _assert_request_requirement_schema(
         _request_requirement_for_check(run_request, "contract.benchmark_reproduction"),
-        required=["metadata", "observed"],
+        required=["observed"],
         section_required={
-            "metadata": ["source_reference_id"],
             "observed": ["metric_value", "threshold_value"],
         },
+        anyof=[
+            {
+                "required": ["metadata"],
+                "section_required": {
+                    "metadata": ["source_reference_id"],
+                },
+            },
+            {
+                "required": ["contract"],
+            },
+        ],
     )
 
     _assert_request_requirement_schema(

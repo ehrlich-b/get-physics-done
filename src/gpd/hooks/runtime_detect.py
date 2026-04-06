@@ -341,7 +341,11 @@ def detect_runtime_install_target(
     home: Path | None = None,
 ) -> RuntimeInstallTarget | None:
     """Return the concrete config dir currently serving *runtime*, if any."""
-    return _detect_runtime_install_target(runtime, cwd=cwd, home=home)
+    normalized_runtime = normalize_runtime_name(runtime)
+    resolved_runtime = normalized_runtime or runtime
+    if resolved_runtime not in supported_runtime_names():
+        return None
+    return _detect_runtime_install_target(resolved_runtime, cwd=cwd, home=home)
 
 
 def detect_install_scope(
@@ -351,7 +355,8 @@ def detect_install_scope(
     home: Path | None = None,
 ) -> str | None:
     """Detect whether the active install for *runtime* is local or global."""
-    resolved_runtime = runtime or detect_runtime_for_gpd_use(cwd=cwd, home=home)
+    normalized_runtime = normalize_runtime_name(runtime) if runtime is not None else None
+    resolved_runtime = normalized_runtime or runtime or detect_runtime_for_gpd_use(cwd=cwd, home=home)
     if resolved_runtime not in supported_runtime_names():
         return None
 
@@ -426,8 +431,9 @@ def _resolved_priority_runtime(
     home: Path,
 ) -> str:
     """Return an explicit preferred runtime when valid, else detect the lookup priority runtime."""
-    if preferred_runtime in supported_runtime_names():
-        return preferred_runtime
+    normalized_preferred_runtime = normalize_runtime_name(preferred_runtime) or preferred_runtime
+    if normalized_preferred_runtime in supported_runtime_names():
+        return normalized_preferred_runtime
     return detect_runtime_for_gpd_use(cwd=cwd, home=home)
 
 
@@ -576,7 +582,7 @@ def should_consider_update_cache_candidate(
     and a different runtime currently has a live GPD install. This prevents stale
     caches from one runtime from being paired with another runtime's update command.
     """
-    runtime = candidate.runtime
+    runtime = normalize_runtime_name(candidate.runtime) or candidate.runtime
     if runtime not in supported_runtime_names():
         return True
 
@@ -599,13 +605,14 @@ def should_consider_update_cache_candidate(
     if not _has_gpd_install(candidate_config_dir, cwd=cwd, home=home):
         return False
 
-    if active_installed_runtime in (None, "", RUNTIME_UNKNOWN):
+    normalized_active_runtime = normalize_runtime_name(active_installed_runtime) or active_installed_runtime
+    if normalized_active_runtime in (None, "", RUNTIME_UNKNOWN):
         return True
 
     # A caller may supply an active runtime hint that no longer matches the
     # actual filesystem. Only use that hint to suppress other runtime caches
     # when the hinted runtime still has a concrete install.
-    if not _runtime_dir_has_gpd_install(active_installed_runtime, cwd=cwd, home=home):
+    if not _runtime_dir_has_gpd_install(normalized_active_runtime, cwd=cwd, home=home):
         return True
 
     return False
@@ -619,7 +626,7 @@ def should_consider_todo_candidate(
     home: Path | None = None,
 ) -> bool:
     """Return whether a todo candidate should participate in current-task lookup."""
-    runtime = candidate.runtime
+    runtime = normalize_runtime_name(candidate.runtime) or candidate.runtime
     if runtime not in supported_runtime_names():
         return True
 
@@ -642,10 +649,11 @@ def should_consider_todo_candidate(
     if not _has_gpd_install(candidate_config_dir, cwd=cwd, home=home):
         return False
 
-    if active_installed_runtime in (None, "", RUNTIME_UNKNOWN):
+    normalized_active_runtime = normalize_runtime_name(active_installed_runtime) or active_installed_runtime
+    if normalized_active_runtime in (None, "", RUNTIME_UNKNOWN):
         return True
 
-    if not _runtime_dir_has_gpd_install(active_installed_runtime, cwd=cwd, home=home):
+    if not _runtime_dir_has_gpd_install(normalized_active_runtime, cwd=cwd, home=home):
         return True
 
     return False
@@ -684,6 +692,7 @@ def update_command_for_runtime(runtime: str, scope: str | None = None) -> str:
     When the runtime cannot be identified, fall back to the canonical
     runtime-neutral bootstrap command instead of an invalid runtime surface.
     """
+    runtime = normalize_runtime_name(runtime) or runtime
     base = RUNTIME_NEUTRAL_UPDATE_COMMAND
     try:
         command = get_adapter(runtime).update_command

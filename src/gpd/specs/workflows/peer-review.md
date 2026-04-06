@@ -28,9 +28,10 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-Parse JSON for: `project_exists`, `state_exists`, `commit_docs`, `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `reference_artifacts_content`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `derived_manuscript_reference_status`, `derived_manuscript_reference_status_count`.
+Parse JSON for: `project_exists`, `state_exists`, `commit_docs`, `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `reference_artifacts_content`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `derived_manuscript_reference_status`, `derived_manuscript_reference_status_count`, `derived_manuscript_proof_review_status`.
 Treat `project_contract_gate` as the authoritative contract gate state. Treat `project_contract` and `contract_intake` as approved contract scope only when `project_contract_gate.authoritative` is true. Keep `project_contract_load_info` and `project_contract_validation` visible as supporting diagnostics around that gate. Treat `effective_reference_intake`, `reference_artifacts_content`, and `active_reference_context` as binding carry-forward evidence context even when the structured contract is blocked. Stage 1 stays manuscript-first, but later adjudication must not ignore either the approved contract or the active anchor ledger.
 If `derived_manuscript_reference_status` is present, use it as a first-pass manuscript-local summary of reference coverage, citation readiness, and audit freshness. Keep the manuscript-root publication artifacts authoritative for strict decisions: `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`, and the reproducibility manifest still decide pass/fail.
+If `derived_manuscript_proof_review_status` is present, use it as the first-pass manuscript-local summary of theorem/proof freshness and keep the manuscript-root proof-redteam artifacts authoritative for strict decisions.
 
 Run centralized context preflight before continuing:
 

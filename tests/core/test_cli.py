@@ -24,7 +24,7 @@ import gpd.runtime_cli as runtime_cli
 from gpd.adapters import get_adapter, list_runtimes
 from gpd.cli import app
 from gpd.core import cli_args as cli_args_module
-from gpd.core.constants import ProjectLayout, STATE_JSON_BACKUP_FILENAME
+from gpd.core.constants import STATE_JSON_BACKUP_FILENAME, ProjectLayout
 from gpd.core.costs import (
     CostBudgetThresholdSummary,
     CostProjectSummary,

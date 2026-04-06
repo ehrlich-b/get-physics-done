@@ -29,7 +29,10 @@ VALID_REVIEW_PREFLIGHT_CHECKS = (
     "reproducibility_ready",
     "manuscript_proof_review",
     "referee_report_source",
+    "phase_lookup",
     "phase_artifacts",
+    "phase_summaries",
+    "phase_proof_review",
 )
 VALID_REVIEW_REQUIRED_STATES = ("phase_executed",)
 VALID_REVIEW_CONDITIONAL_WHENS = (

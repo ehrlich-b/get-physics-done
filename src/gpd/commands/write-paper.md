@@ -8,6 +8,17 @@ review-contract:
   schema_version: 1
   required_outputs:
     - "${PAPER_DIR}/{topic_specific_stem}.tex"
+    - "${PAPER_DIR}/ARTIFACT-MANIFEST.json"
+    - "${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json"
+    - "${PAPER_DIR}/reproducibility-manifest.json"
+    - "GPD/review/CLAIMS{round_suffix}.json"
+    - "GPD/review/STAGE-reader{round_suffix}.json"
+    - "GPD/review/STAGE-literature{round_suffix}.json"
+    - "GPD/review/STAGE-math{round_suffix}.json"
+    - "GPD/review/STAGE-physics{round_suffix}.json"
+    - "GPD/review/STAGE-interestingness{round_suffix}.json"
+    - "GPD/review/REVIEW-LEDGER{round_suffix}.json"
+    - "GPD/review/REFEREE-DECISION{round_suffix}.json"
     - "GPD/REFEREE-REPORT{round_suffix}.md"
     - "GPD/REFEREE-REPORT{round_suffix}.tex"
   required_evidence:
@@ -37,6 +48,21 @@ review-contract:
     - reproducibility_manifest
     - reproducibility_ready
     - manuscript_proof_review
+  stage_artifacts:
+    - "GPD/review/CLAIMS{round_suffix}.json"
+    - "GPD/review/STAGE-reader{round_suffix}.json"
+    - "GPD/review/STAGE-literature{round_suffix}.json"
+    - "GPD/review/STAGE-math{round_suffix}.json"
+    - "GPD/review/STAGE-physics{round_suffix}.json"
+    - "GPD/review/STAGE-interestingness{round_suffix}.json"
+    - "GPD/review/REVIEW-LEDGER{round_suffix}.json"
+    - "GPD/review/REFEREE-DECISION{round_suffix}.json"
+  conditional_requirements:
+    - when: theorem-bearing claims are present
+      required_outputs:
+        - "GPD/review/PROOF-REDTEAM{round_suffix}.md"
+      stage_artifacts:
+        - "GPD/review/PROOF-REDTEAM{round_suffix}.md"
 allowed-tools:
   - file_read
   - file_write

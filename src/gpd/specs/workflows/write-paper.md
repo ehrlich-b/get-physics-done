@@ -51,7 +51,7 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-Parse JSON for: `commit_docs`, `state_exists`, `project_exists`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `derived_manuscript_reference_status`, `derived_manuscript_reference_status_count`.
+Parse JSON for: `commit_docs`, `state_exists`, `project_exists`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `derived_manuscript_reference_status`, `derived_manuscript_reference_status_count`, `derived_manuscript_proof_review_status`.
 
 **Load mode settings:**
 
@@ -86,6 +86,7 @@ gpd validate review-preflight write-paper --strict
 ```
 
 If review preflight exits nonzero because of missing project state, missing roadmap, degraded review integrity, missing research artifacts, or non-review-ready reproducibility coverage, STOP and show the blocking issues before drafting. Keep the current `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, and `active_reference_context` visible throughout the staged review; the contract is authoritative only when `project_contract_gate.authoritative` is true.
+If `derived_manuscript_proof_review_status` is present, use it as the first-pass manuscript-local summary of proof-review freshness for theorem-bearing results; keep passed proof-redteam artifacts authoritative for strict drafting decisions.
 For any resumed manuscript, strict preflight reads `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`, and `reproducibility-manifest.json` from the resolved manuscript directory itself. The strict gate also requires `bibliography_audit_clean` and `reproducibility_ready`, not just file presence. Do not satisfy that gate with legacy publication artifacts from a different manuscript directory when the active manuscript lives elsewhere.
 If the manuscript depends on any theorem-style or `proof_obligation` result, treat passed proof-redteam artifacts from the source phases as mandatory review inputs. Missing or open proof audits are CRITICAL blockers, not polish issues.
 

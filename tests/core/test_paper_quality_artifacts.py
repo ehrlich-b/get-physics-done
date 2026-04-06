@@ -1671,9 +1671,11 @@ def test_publication_review_surfaces_keep_protocol_bundle_guidance_additive() ->
     assert "prefer fulfilling that existing obligation or narrowing the claim" in respond
     assert "Treat referee requests beyond the manuscript's honest scope as optional unless they expose a real support gap" in respond
 
-    assert "protocol_bundle_ids (optional):" in internal_template
-    assert "bundle_expectations (optional):" in internal_template
+    assert "protocol_bundle_ids (optional):" not in internal_template
+    assert "bundle_expectations (optional):" not in internal_template
+    assert "omit `protocol_bundle_ids` and `bundle_expectations` entirely" in internal_template.lower()
     assert "additive provenance" in internal_template
-    assert "protocol_bundle_ids (optional):" in experimental_template
-    assert "bundle_expectations (optional):" in experimental_template
+    assert "protocol_bundle_ids (optional):" not in experimental_template
+    assert "bundle_expectations (optional):" not in experimental_template
+    assert "omit `protocol_bundle_ids` and `bundle_expectations` entirely" in experimental_template.lower()
     assert "additive provenance" in experimental_template

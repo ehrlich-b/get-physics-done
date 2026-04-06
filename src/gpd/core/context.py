@@ -93,7 +93,6 @@ logger = logging.getLogger(__name__)
 
 # Research file extensions for project detection.
 _RESEARCH_EXTENSIONS = frozenset({".tex", ".ipynb", ".py", ".jl", ".f90"})
-_RUNTIME_CONFIG_DIRS = frozenset(descriptor.config_dir_name for descriptor in iter_runtime_descriptors())
 _LITERATURE_DIR_NAME = "literature"
 _REFERENCE_MAP_DOCS = ("REFERENCES.md", "VALIDATION.md")
 _LITERATURE_INCLUDE_LIMIT = 2
@@ -110,30 +109,46 @@ _REFERENCE_ROLE_PRIORITY = {
 _RESUME_SURFACE_SCHEMA_VERSION = 1
 
 # Directories to skip when scanning for research files.
-_RUNTIME_IGNORED_SCAN_PATHS = frozenset(
-    {
-        (descriptor.config_dir_name,)
-        for descriptor in iter_runtime_descriptors()
-    }
-)
 _LEADING_BLANK_LINES_BEFORE_FRONTMATTER_RE = re.compile(r"^(?:[ \t]*\r?\n)+(?=---[ \t]*\r?\n)")
-_IGNORE_DIRS = frozenset(
-    {
-        ".git",
-        PLANNING_DIR_NAME,
-        *_RUNTIME_CONFIG_DIRS,
-        ".venv",
-        ".tox",
-        ".pytest_cache",
-        ".mypy_cache",
-        ".ruff_cache",
-        ".vscode",
-        ".idea",
-        "node_modules",
-        "__pycache__",
-        GPD_INSTALL_DIR_NAME,
-    }
-)
+
+
+def _runtime_config_dirs() -> frozenset[str]:
+    """Return the live runtime config-dir inventory."""
+
+    return frozenset(descriptor.config_dir_name for descriptor in iter_runtime_descriptors())
+
+
+def _runtime_ignored_scan_paths() -> frozenset[tuple[str, ...]]:
+    """Return runtime-owned path suffixes to skip during research scans."""
+
+    return frozenset((descriptor.config_dir_name,) for descriptor in iter_runtime_descriptors())
+
+
+def _ignore_dirs() -> frozenset[str]:
+    """Return directory names excluded from research-file scans."""
+
+    return frozenset(
+        {
+            ".git",
+            PLANNING_DIR_NAME,
+            *_runtime_config_dirs(),
+            ".venv",
+            ".tox",
+            ".pytest_cache",
+            ".mypy_cache",
+            ".ruff_cache",
+            ".vscode",
+            ".idea",
+            "node_modules",
+            "__pycache__",
+            GPD_INSTALL_DIR_NAME,
+        }
+    )
+
+
+_RUNTIME_CONFIG_DIRS = _runtime_config_dirs()
+_RUNTIME_IGNORED_SCAN_PATHS = _runtime_ignored_scan_paths()
+_IGNORE_DIRS = _ignore_dirs()
 
 __all__ = [
     "init_execute_phase",
@@ -464,14 +479,14 @@ def _append_unique_strings(target: list[str], values: list[object] | tuple[objec
 def _should_skip_research_scan_entry(cwd: Path, entry: Path) -> bool:
     """Return whether *entry* should be skipped during research-file discovery."""
 
-    if entry.name in _IGNORE_DIRS:
+    if entry.name in _ignore_dirs():
         return True
 
     try:
         relative_parts = entry.relative_to(cwd).parts
     except ValueError:
         return False
-    for ignored_parts in _RUNTIME_IGNORED_SCAN_PATHS:
+    for ignored_parts in _runtime_ignored_scan_paths():
         ignored_length = len(ignored_parts)
         if ignored_length == 0 or len(relative_parts) < ignored_length:
             continue
@@ -928,13 +943,19 @@ def _build_reference_runtime_context(
         project_contract_load_info,
     )
     project_text = _safe_read_file(cwd / PLANNING_DIR_NAME / PROJECT_FILENAME)
+    visible_context_contract = visible_contract if project_contract_gate.get("visible") else None
     authoritative_contract = visible_contract if project_contract_gate.get("authoritative") else None
+    carry_forward_reference_contract = (
+        visible_context_contract
+        if authoritative_contract is not None or project_contract_gate.get("approval_blocked")
+        else None
+    )
     surfaced_active_references = _merge_active_references(
-        _serialize_active_references(authoritative_contract),
+        _serialize_active_references(carry_forward_reference_contract),
         derived_references,
     )
     surfaced_effective_reference_intake = _merge_reference_intake(
-        authoritative_contract,
+        carry_forward_reference_contract,
         artifact_ingestion.intake.to_dict(),
         surfaced_active_references,
     )
@@ -952,13 +973,13 @@ def _build_reference_runtime_context(
             )
 
     return {
-        "project_contract": authoritative_contract.model_dump(mode="json") if authoritative_contract is not None else None,
+        "project_contract": visible_context_contract.model_dump(mode="json") if visible_context_contract is not None else None,
         "project_contract_validation": project_contract_validation,
         "project_contract_load_info": project_contract_load_info,
         "project_contract_gate": project_contract_gate,
         "contract_intake": (
-            authoritative_contract.context_intake.model_dump(mode="json")
-            if authoritative_contract is not None
+            visible_context_contract.context_intake.model_dump(mode="json")
+            if visible_context_contract is not None
             else None
         ),
         "effective_reference_intake": surfaced_effective_reference_intake,
@@ -1683,16 +1704,33 @@ def _resolve_model(
     runtime: str | None = None,
 ) -> str | None:
     """Resolve the runtime-specific model override for an agent type."""
+    def _normalize_runtime_local(value: object) -> str | None:
+        if isinstance(value, str):
+            normalized = value.strip()
+            return normalized or None
+        return None
+
     active_runtime = runtime
     runtime_unknown = "unknown"
+    normalize_runtime = _normalize_runtime_local
     if active_runtime is None:
         try:
-            from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN
+            from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, normalize_runtime_name
 
             runtime_unknown = RUNTIME_UNKNOWN
+            normalize_runtime = normalize_runtime_name
         except Exception:
             pass
         active_runtime = _detect_platform(cwd)
+    else:
+        try:
+            from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, normalize_runtime_name
+
+            runtime_unknown = RUNTIME_UNKNOWN
+            normalize_runtime = normalize_runtime_name
+        except Exception:
+            pass
+    active_runtime = normalize_runtime(active_runtime)
     if active_runtime == runtime_unknown:
         active_runtime = None
 

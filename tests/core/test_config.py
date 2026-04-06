@@ -289,6 +289,47 @@ class TestLoadConfig:
             load_config(tmp_path)
 
         _valid_runtime_names.cache_clear()
+
+    def test_model_overrides_accept_runtime_display_name_and_normalize_to_canonical_id(self, tmp_path: Path) -> None:
+        descriptor = next(
+            descriptor
+            for descriptor in _RUNTIME_DESCRIPTORS
+            if descriptor.display_name != descriptor.runtime_name
+        )
+        (tmp_path / "GPD").mkdir()
+        (tmp_path / "GPD" / "config.json").write_text(
+            json.dumps({"model_overrides": {descriptor.display_name: {"tier-1": "gpt-5.4"}}}),
+            encoding="utf-8",
+        )
+
+        cfg = load_config(tmp_path)
+
+        assert cfg.model_overrides == {descriptor.runtime_name: {"tier-1": "gpt-5.4"}}
+
+    def test_model_overrides_reject_duplicate_canonical_and_display_runtime_entries(self, tmp_path: Path) -> None:
+        descriptor = next(
+            descriptor
+            for descriptor in _RUNTIME_DESCRIPTORS
+            if descriptor.display_name != descriptor.runtime_name
+        )
+        (tmp_path / "GPD").mkdir()
+        (tmp_path / "GPD" / "config.json").write_text(
+            json.dumps(
+                {
+                    "model_overrides": {
+                        descriptor.runtime_name: {"tier-1": "canonical-model"},
+                        descriptor.display_name: {"tier-2": "display-model"},
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        expected_match = re.escape(
+            f"model_overrides contains duplicate runtime entries for '{descriptor.runtime_name}'"
+        )
+        with pytest.raises(ConfigError, match=expected_match):
+            load_config(tmp_path)
 # ─── resolve_agent_tier ─────────────────────────────────────────────────────────
 
 

@@ -412,7 +412,7 @@ Runtime sync:
 - {permissions_sync.message}
 - {permissions_sync.next_step if present}
 - If relaunch is still required, say clearly that unattended use is not ready yet under the newly selected autonomy setting.
-- `gpd permissions ...` in this workflow only handles runtime-owned permission alignment, not install validation.
+- `gpd permissions status --runtime <runtime> --autonomy balanced` and `gpd permissions sync --runtime <runtime> --autonomy balanced` in this workflow only handle runtime-owned permission alignment, not install validation.
 
 Project conventions still live in `GPD/CONVENTIONS.md` and `GPD/state.json` (`convention_lock`), not in `GPD/config.json`.
 

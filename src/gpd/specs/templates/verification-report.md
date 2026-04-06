@@ -63,7 +63,7 @@ Even singleton values must stay YAML lists in strict contract-backed ledgers: us
 ---
 phase: XX-name
 verified: YYYY-MM-DDTHH:MM:SSZ
-status: passed | gaps_found | expert_needed | human_needed
+status: gaps_found
 score: N/M contract targets verified
 plan_contract_ref: GPD/phases/XX-name/{phase}-{plan}-PLAN.md#/contract
 # Use `contract_results` only for user-visible contract targets. Do not encode internal tool/process milestones here.
@@ -71,11 +71,11 @@ contract_results:
   # Every ID declared in the PLAN contract must appear in its matching section below.
   claims:
     claim-id:
-      status: passed|partial|failed|blocked|not_attempted
+      status: partial
       summary: "[verification verdict for this claim]"
       linked_ids: [deliverable-id, acceptance-test-id, reference-id]
       proof_audit:
-        completeness: complete|incomplete
+        completeness: incomplete
         reviewed_at: "2026-04-02T12:00:00Z"
         reviewer: gpd-check-proof
         proof_artifact_path: derivations/main-proof.tex
@@ -89,9 +89,9 @@ contract_results:
         missing_parameter_symbols: []
         uncovered_quantifiers: []
         uncovered_conclusion_clause_ids: []
-        quantifier_status: matched|narrowed|mismatched|unclear
-        scope_status: matched|narrower_than_claim|mismatched|unclear
-        counterexample_status: none_found|counterexample_found|not_attempted|narrowed_claim
+        quantifier_status: unclear
+        scope_status: unclear
+        counterexample_status: not_attempted
         stale: false
       evidence:
         - verifier: gpd-verifier
@@ -105,24 +105,24 @@ contract_results:
           evidence_path: GPD/phases/01-benchmark/01-VERIFICATION.md
   deliverables:
     deliverable-id:
-      status: passed|partial|failed|blocked|not_attempted
+      status: partial
       path: path/to/artifact
       summary: "[artifact verification verdict]"
       linked_ids: [claim-id, acceptance-test-id]
   acceptance_tests:
     acceptance-test-id:
-      status: passed|partial|failed|blocked|not_attempted
+      status: partial
       summary: "[test verification verdict]"
       linked_ids: [claim-id, deliverable-id, reference-id]
   references:
     reference-id:
-      status: completed|missing|not_applicable
+      status: missing
       completed_actions: [read, compare, cite]
       missing_actions: []
       summary: "[how the anchor was checked]"
   forbidden_proxies:
     forbidden-proxy-id:
-      status: rejected|violated|unresolved|not_applicable
+      status: unresolved
       notes: "[proxy status]"
   uncertainty_markers:
     weakest_anchors: [anchor-1]
@@ -134,13 +134,13 @@ contract_results:
 # instead of omitting the entry or upgrading the parent target to `passed`.
 comparison_verdicts:
   - subject_id: claim-id
-    subject_kind: claim|deliverable|acceptance_test|reference
-    subject_role: decisive|supporting|supplemental|other
+    subject_kind: claim
+    subject_role: decisive
     reference_id: reference-id
-    comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other
+    comparison_kind: benchmark
     metric: relative_error
     threshold: "<= 0.01"
-    verdict: pass|tension|fail|inconclusive
+    verdict: inconclusive
     recommended_action: "[what to do next]"
     notes: "[optional context]"
 # Required when the verifier can name a missing decisive check on a user-visible target.
@@ -176,6 +176,9 @@ suggested_contract_checks:
 
 Use contract IDs consistently throughout the report. The PLAN contract defines what must be verified. `SUMMARY.md` `contract_results` and `comparison_verdicts` tell you what evidence was produced, not what success means.
 Record only user-visible contract targets here: things a researcher could point to in the promised outcome or artifact set. Internal workflow steps, tool invocations, and generic "validation happened" statements do not belong in this table.
+- `claims|deliverables|acceptance_tests -> passed|partial|failed|blocked|not_attempted`
+- `references -> completed|missing|not_applicable`
+- `forbidden_proxies -> rejected|violated|unresolved|not_applicable`
 
 If the verifier identifies a decisive check that the contract omitted, record it under `suggested_contract_checks` instead of silently treating the missing check as acceptable. When you derive that suggestion from `suggest_contract_checks(contract)`, copy the returned `check_key` into the frontmatter `check` field.
 When a decisive comparison was attempted but remains unresolved, keep the affected target at `partial` and emit a `comparison_verdict` with `inconclusive` or `tension`; do not convert promising trends or proxy evidence into a pass.
@@ -197,6 +200,10 @@ When a decisive comparison was attempted but remains unresolved, keep the affect
 | {deliverable-id} | deliverable | supporting | cross_method | {reference-id or artifact path} | {difference} | {threshold} | {verdict} | {notes} |
 
 Emit comparison verdicts whenever the contract or decisive anchor context requires a benchmark, prior-work, experiment, baseline, or cross-method comparison. If a comparison is decisive, absence of a verdict is itself a gap; a prose claim like "agrees with literature" is not a substitute. For partial or exploratory phases, `inconclusive` and `tension` are valid honest outcomes when the check was started but not closed.
+- `subject_kind: claim|deliverable|acceptance_test|reference`
+- `subject_role: decisive|supporting|supplemental|other`
+- `comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other`
+- `verdict: pass|tension|fail|inconclusive`
 Only `subject_role: decisive` closes a decisive benchmark/cross-method requirement or contradicts a passed contract target. `supporting` and `supplemental` verdicts are recorded context, not decisive blockers on their own.
 - Benchmark acceptance tests require `comparison_kind: benchmark`; cross-method acceptance tests require `comparison_kind: cross_method`.
 

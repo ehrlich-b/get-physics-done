@@ -1131,7 +1131,9 @@ review_summary:
         assert result.exit_code == 0, result.output
         payload = json.loads(result.output)
 
-        assert payload["project_contract"] is None
+        assert payload["project_contract"] is not None
+        assert payload["project_contract"]["references"][0]["must_surface"] is False
+        assert payload["contract_intake"]["context_gaps"] == ["Need a concrete must-surface anchor before approval."]
         assert payload["project_contract_load_info"]["status"] == "loaded_with_approval_blockers"
         assert payload["project_contract_validation"]["valid"] is False
         assert "project_contract_load_info" in payload
@@ -1157,7 +1159,9 @@ review_summary:
         assert result.exit_code == 0, result.output
         payload = json.loads(result.output)
 
-        assert payload["project_contract"] is None
+        assert payload["project_contract"] is not None
+        assert payload["project_contract"]["references"][0]["must_surface"] is False
+        assert payload["contract_intake"]["context_gaps"] == ["Need a concrete must-surface anchor before approval."]
         assert payload["project_contract_load_info"]["status"] == "loaded_with_approval_blockers"
         assert payload["project_contract_validation"]["valid"] is False
         assert "project_contract_load_info" in payload
@@ -1365,6 +1369,11 @@ class TestReviewValidationCommands:
         assert payload["command"] == "gpd:write-paper"
         assert payload["context_mode"] == "project-required"
         assert payload["review_contract"]["review_mode"] == "publication"
+        assert "${PAPER_DIR}/ARTIFACT-MANIFEST.json" in payload["review_contract"]["required_outputs"]
+        assert "${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json" in payload["review_contract"]["required_outputs"]
+        assert "${PAPER_DIR}/reproducibility-manifest.json" in payload["review_contract"]["required_outputs"]
+        assert "GPD/review/REVIEW-LEDGER{round_suffix}.json" in payload["review_contract"]["required_outputs"]
+        assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in payload["review_contract"]["required_outputs"]
         assert "GPD/REFEREE-REPORT{round_suffix}.md" in payload["review_contract"]["required_outputs"]
         assert "GPD/REFEREE-REPORT{round_suffix}.tex" in payload["review_contract"]["required_outputs"]
         assert payload["review_contract"]["preflight_checks"] == [
@@ -1381,6 +1390,26 @@ class TestReviewValidationCommands:
             "reproducibility_manifest",
             "reproducibility_ready",
             "manuscript_proof_review",
+        ]
+        assert payload["review_contract"]["stage_artifacts"] == [
+            "GPD/review/CLAIMS{round_suffix}.json",
+            "GPD/review/STAGE-reader{round_suffix}.json",
+            "GPD/review/STAGE-literature{round_suffix}.json",
+            "GPD/review/STAGE-math{round_suffix}.json",
+            "GPD/review/STAGE-physics{round_suffix}.json",
+            "GPD/review/STAGE-interestingness{round_suffix}.json",
+            "GPD/review/REVIEW-LEDGER{round_suffix}.json",
+            "GPD/review/REFEREE-DECISION{round_suffix}.json",
+        ]
+        assert payload["review_contract"]["conditional_requirements"] == [
+            {
+                "when": "theorem-bearing claims are present",
+                "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+                "required_evidence": [],
+                "blocking_conditions": [],
+                "blocking_preflight_checks": [],
+                "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            }
         ]
         assert "manuscript scaffold target (existing draft or bootstrap target)" in payload["review_contract"]["required_evidence"]
         assert "phase summaries or milestone digest" in payload["review_contract"]["required_evidence"]

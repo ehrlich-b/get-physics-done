@@ -1249,11 +1249,12 @@ class TestInitPlanPhase:
 
         ctx = init_progress(tmp_path)
 
-        assert ctx["project_contract"] is None
+        assert ctx["project_contract"] is not None
+        assert ctx["project_contract"]["scope"]["question"] == contract.scope.question
         assert ctx["project_contract_gate"]["authoritative"] is False
         assert ctx["project_contract_gate"]["repair_required"] is True
         assert ctx["project_contract_gate"]["visible"] is True
-        assert ctx["contract_intake"] is None
+        assert ctx["contract_intake"]["must_read_refs"] == ["ref-benchmark"]
         assert ctx["selected_protocol_bundle_ids"] == []
         assert ctx["active_reference_count"] == 0
         assert ctx["effective_reference_intake"] == {
@@ -1678,7 +1679,8 @@ class TestInitNewMilestone:
 
         ctx = init_new_milestone(tmp_path)
 
-        assert ctx["project_contract"] is None
+        assert ctx["project_contract"] is not None
+        assert ctx["project_contract"]["references"][0]["role"] == "background"
         assert ctx["project_contract_load_info"]["status"] == "blocked_integrity"
         assert ctx["project_contract_validation"]["valid"] is False
         assert ctx["project_contract_gate"]["visible"] is True
@@ -2675,12 +2677,13 @@ class TestInitProgress:
 
         ctx = init_progress(tmp_path)
 
-        assert ctx["project_contract"] is None
+        assert ctx["project_contract"] is not None
+        assert ctx["project_contract"]["claims"][0]["id"] == "claim-benchmark"
         assert ctx["project_contract_load_info"]["status"] == "loaded_with_schema_normalization"
         assert ctx["project_contract_gate"]["authoritative"] is False
         assert ctx["project_contract_gate"]["repair_required"] is True
         assert ctx["project_contract_gate"]["visible"] is True
-        assert ctx["contract_intake"] is None
+        assert ctx["contract_intake"]["must_read_refs"] == ["ref-benchmark"]
         assert "Recover known limiting behavior" not in ctx["active_reference_context"]
         assert "ref-benchmark" not in ctx["effective_reference_intake"]["must_read_refs"]
         assert "None confirmed in `state.json.project_contract.references` yet." in ctx["active_reference_context"]
@@ -2696,7 +2699,8 @@ class TestInitProgress:
         loaded = state_load(tmp_path)
         ctx = init_progress(tmp_path)
 
-        assert ctx["project_contract"] is None
+        assert ctx["project_contract"] is not None
+        assert ctx["project_contract"]["claims"][0]["id"] == "claim-benchmark"
         assert loaded.state["project_contract"]["claims"][0]["id"] == "claim-benchmark"
         assert "notes" not in loaded.state["project_contract"]["claims"][0]
         assert ctx["project_contract_gate"]["visible"] is True
@@ -2834,7 +2838,8 @@ class TestInitProgress:
         assert loaded is not None
         assert load_info["status"] == "blocked_integrity"
         assert any("duplicate" in error for error in load_info["errors"])
-        assert ctx["project_contract"] is None
+        assert ctx["project_contract"] is not None
+        assert ctx["project_contract"]["claims"][0]["id"] == "claim-benchmark"
         assert ctx["project_contract_load_info"]["status"] == "blocked_integrity"
         assert ctx["project_contract_gate"]["visible"] is True
         assert ctx["project_contract_gate"]["blocked"] is True

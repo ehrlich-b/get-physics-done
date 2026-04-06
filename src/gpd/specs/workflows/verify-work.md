@@ -60,7 +60,7 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-Parse JSON for: `planner_model`, `checker_model`, `verifier_model`, `commit_docs`, `autonomy`, `research_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`, `has_validation`, `project_contract`, `project_contract_validation`, `project_contract_load_info`, `project_contract_gate`, `contract_intake`, `effective_reference_intake`, `derived_active_references`, `derived_active_reference_count`, `citation_source_files`, `citation_source_count`, `citation_source_warnings`, `derived_citation_sources`, `derived_citation_source_count`, `active_references`, `active_reference_count`, `convention_lock`, `convention_lock_count`, `derived_convention_lock`, `derived_convention_lock_count`, `selected_protocol_bundle_ids`, `protocol_bundle_count`, `protocol_bundle_context`, `protocol_bundle_verifier_extensions`, `active_reference_context`, `literature_review_files`, `literature_review_count`, `research_map_reference_files`, `research_map_reference_count`, `reference_artifact_files`, `reference_artifacts_content`.
+Parse JSON for: `planner_model`, `checker_model`, `verifier_model`, `commit_docs`, `autonomy`, `research_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`, `has_validation`, `phase_proof_review_status`, `project_contract`, `project_contract_validation`, `project_contract_load_info`, `project_contract_gate`, `contract_intake`, `effective_reference_intake`, `derived_active_references`, `derived_active_reference_count`, `citation_source_files`, `citation_source_count`, `citation_source_warnings`, `derived_citation_sources`, `derived_citation_source_count`, `active_references`, `active_reference_count`, `convention_lock`, `convention_lock_count`, `derived_convention_lock`, `derived_convention_lock_count`, `selected_protocol_bundle_ids`, `protocol_bundle_count`, `protocol_bundle_context`, `protocol_bundle_verifier_extensions`, `active_reference_context`, `literature_review_files`, `literature_review_count`, `research_map_reference_files`, `research_map_reference_count`, `reference_artifact_files`, `reference_artifacts_content`.
 
 **Mode-aware behavior:**
 - `autonomy=supervised`: Pause after each verification round for user review. Present findings and wait for confirmation before writing the canonical `XX-VERIFICATION.md` artifact.
@@ -122,6 +122,7 @@ For proof-bearing work:
 - confirm it inventories theorem text, named parameters, hypotheses, quantifier/domain obligations, conclusion clauses, and at least one adversarial special-case or counterexample probe
 - treat missing artifact, missing coverage inventory, or `status != passed` as a blocking gap
 - do not let `--dimensional`, `--limits`, `--convergence`, exploratory mode, or manual urgency waive this gate
+- if `phase_proof_review_status` is present, use it as the structured freshness summary for the phase proof-review manifest instead of re-deriving freshness from file greps.
 
 When runtime delegation is available and a required proof-redteam artifact is missing, malformed, or stale, spawn `gpd-check-proof` once before finalizing the gap ledger:
 

@@ -392,6 +392,9 @@ class TestNormalizeRuntimeName:
         assert normalize_runtime_name("not-a-runtime") is None
         assert catalog_normalize_runtime_name("not-a-runtime") is None
 
+    def test_detect_runtime_install_target_returns_none_for_unknown_runtime(self, tmp_path: Path) -> None:
+        assert detect_runtime_install_target("not-a-runtime", cwd=tmp_path, home=tmp_path / "home") is None
+
 
 def test_supported_runtime_names_reflect_live_runtime_inventory(monkeypatch: pytest.MonkeyPatch) -> None:
     import gpd.hooks.runtime_detect as runtime_detect

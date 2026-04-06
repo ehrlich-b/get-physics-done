@@ -137,8 +137,9 @@ Depending on the runtime, those names may be rendered with slash prefixes, dolla
 - That shared onboarding surface keeps the OS guides, runtime guides, and beginner startup checklist in one place.
 - Use these names inside the installed agent/runtime command surface.
 - The bootstrap installer owns Node.js / Python / `venv` prerequisites. The local `gpd` CLI may expose different `gpd ...` subcommands and grouping. Use `gpd --help` to inspect the executable local install/readiness/permissions/diagnostics surface directly.
+- Use `gpd permissions status --runtime <runtime> --autonomy balanced` when you want the read-only runtime-owned permission/alignment snapshot from your normal terminal.
 - Use `gpd validate unattended-readiness --runtime <runtime> --autonomy balanced` for the unattended or overnight verdict, and `gpd permissions sync --runtime <runtime> --autonomy balanced` when runtime-owned permissions need realignment.
-- `gpd doctor` checks the selected install target and runtime-local readiness signals. `gpd validate unattended-readiness ...` returns `ready`, `relaunch-required`, `not-ready`, or `unresolved`. Add `--live-executable-probes` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`. `gpd permissions ...` checks runtime-owned approval/alignment only.
+- `gpd doctor` checks the selected install target and runtime-local readiness signals. `gpd validate unattended-readiness --runtime <runtime> --autonomy balanced` returns `ready`, `relaunch-required`, `not-ready`, or `unresolved`. Add `--live-executable-probes` if you also want cheap local executable probes such as `pdflatex --version` or `wolframscript -version`. `gpd permissions status --runtime <runtime> --autonomy balanced` is the read-only runtime-owned approval/alignment snapshot, and `gpd permissions sync --runtime <runtime> --autonomy balanced` is the write path when runtime-owned alignment needs to be changed.
 - If you need to validate whether a public runtime command can run in the current workspace, use `gpd validate command-context gpd:<name>`.
 - If a plan declares specialized `tool_requirements`, use `gpd validate plan-preflight <PLAN.md>` from your normal terminal before execution.
 - For a normal-terminal, current-workspace read-only recovery snapshot without launching the runtime, use `gpd resume`.
@@ -188,6 +189,7 @@ If `gpd observe execution` surfaces an alternative-path follow-up, route it thro
 3. `gpd presets list` - Inspect the local preset catalog; presets resolve to the existing config keys and do not add a separate persisted preset block
 4. `gpd presets show <preset>` - Preview one preset's bundle before applying it
 5. `gpd presets apply <preset> [--dry-run]` - Apply or preview one preset from your normal terminal without inventing a separate preset schema
+6. `gpd validate plan-preflight <PLAN.md>` - Check machine-readable plan tool requirements before execution when a plan depends on specialized tools
 
 Workflow presets are bundles over the existing config keys only; they do not add a separate persisted preset block.
 

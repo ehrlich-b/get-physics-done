@@ -508,6 +508,11 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "manuscript scaffold target (existing draft or bootstrap target)" in write_paper.review_contract.required_evidence
     assert "manuscript-root artifact manifest" in write_paper.review_contract.required_evidence
     assert "manuscript-root reproducibility manifest" in write_paper.review_contract.required_evidence
+    assert "${PAPER_DIR}/ARTIFACT-MANIFEST.json" in write_paper.review_contract.required_outputs
+    assert "${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json" in write_paper.review_contract.required_outputs
+    assert "${PAPER_DIR}/reproducibility-manifest.json" in write_paper.review_contract.required_outputs
+    assert "GPD/review/REVIEW-LEDGER{round_suffix}.json" in write_paper.review_contract.required_outputs
+    assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in write_paper.review_contract.required_outputs
     assert "GPD/REFEREE-REPORT{round_suffix}.md" in write_paper.review_contract.required_outputs
     assert "GPD/REFEREE-REPORT{round_suffix}.tex" in write_paper.review_contract.required_outputs
     assert "command_context" in write_paper.review_contract.preflight_checks
@@ -519,6 +524,36 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert "reproducibility_manifest" in write_paper.review_contract.preflight_checks
     assert "reproducibility_ready" in write_paper.review_contract.preflight_checks
     assert "manuscript_proof_review" in write_paper.review_contract.preflight_checks
+    assert write_paper.review_contract.stage_artifacts == [
+        "GPD/review/CLAIMS{round_suffix}.json",
+        "GPD/review/STAGE-reader{round_suffix}.json",
+        "GPD/review/STAGE-literature{round_suffix}.json",
+        "GPD/review/STAGE-math{round_suffix}.json",
+        "GPD/review/STAGE-physics{round_suffix}.json",
+        "GPD/review/STAGE-interestingness{round_suffix}.json",
+        "GPD/review/REVIEW-LEDGER{round_suffix}.json",
+        "GPD/review/REFEREE-DECISION{round_suffix}.json",
+    ]
+    assert [
+        {
+            "when": requirement.when,
+            "required_outputs": list(requirement.required_outputs),
+            "required_evidence": list(requirement.required_evidence),
+            "blocking_conditions": list(requirement.blocking_conditions),
+            "blocking_preflight_checks": list(requirement.blocking_preflight_checks),
+            "stage_artifacts": list(requirement.stage_artifacts),
+        }
+        for requirement in write_paper.review_contract.conditional_requirements
+    ] == [
+        {
+            "when": "theorem-bearing claims are present",
+            "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            "required_evidence": [],
+            "blocking_conditions": [],
+            "blocking_preflight_checks": [],
+            "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+        }
+    ]
 
     assert peer_review.review_contract is not None
     assert peer_review.review_contract.review_mode == "publication"
@@ -599,7 +634,10 @@ def test_review_commands_expose_typed_contracts() -> None:
     assert verify_work.review_contract is not None
     assert verify_work.review_contract.required_state == "phase_executed"
     assert "command_context" in verify_work.review_contract.preflight_checks
+    assert "phase_lookup" in verify_work.review_contract.preflight_checks
     assert "phase_artifacts" in verify_work.review_contract.preflight_checks
+    assert "phase_summaries" in verify_work.review_contract.preflight_checks
+    assert "phase_proof_review" in verify_work.review_contract.preflight_checks
 
     assert respond_to_referees.review_contract is not None
     assert "GPD/review/REFEREE_RESPONSE{round_suffix}.md" in respond_to_referees.review_contract.required_outputs
@@ -1326,14 +1364,78 @@ def test_phase_research_and_verification_surfaces_keep_anchor_checks_mandatory()
     assert "suggest_contract_checks(contract)" in verify_workflow
 
 
+def test_workflows_surface_structured_proof_review_statuses() -> None:
+    verify_workflow = (WORKFLOWS_DIR / "verify-work.md").read_text(encoding="utf-8")
+    verify_phase = (WORKFLOWS_DIR / "verify-phase.md").read_text(encoding="utf-8")
+    write_paper = (WORKFLOWS_DIR / "write-paper.md").read_text(encoding="utf-8")
+    peer_review = (WORKFLOWS_DIR / "peer-review.md").read_text(encoding="utf-8")
+    respond_to_referees = (WORKFLOWS_DIR / "respond-to-referees.md").read_text(encoding="utf-8")
+    arxiv_submission = (WORKFLOWS_DIR / "arxiv-submission.md").read_text(encoding="utf-8")
+
+    assert "phase_proof_review_status" in verify_workflow
+    assert "structured freshness summary for the phase proof-review manifest" in verify_workflow
+    assert "derived_manuscript_proof_review_status" in verify_phase
+    assert "manuscript-local proof-bearing artifact" in verify_phase
+    assert "derived_manuscript_proof_review_status" in write_paper
+    assert "proof-review freshness for theorem-bearing results" in write_paper
+    assert "derived_manuscript_proof_review_status" in peer_review
+    assert "theorem/proof freshness" in peer_review
+    assert "derived_manuscript_proof_review_status" in respond_to_referees
+    assert "proof-review freshness for theorem-bearing revisions" in respond_to_referees
+    assert "derived_manuscript_proof_review_status" in arxiv_submission
+    assert "theorem-proof freshness for the resolved manuscript" in arxiv_submission
+
+
+def test_verify_phase_and_gap_reverify_prompts_surface_contract_context_before_contract_checks() -> None:
+    verify_phase = (WORKFLOWS_DIR / "verify-phase.md").read_text(encoding="utf-8")
+    execute_phase = (WORKFLOWS_DIR / "execute-phase.md").read_text(encoding="utf-8")
+
+    assert "project_contract_gate" in verify_phase
+    assert "contract_intake" in verify_phase
+    assert "effective_reference_intake" in verify_phase
+    assert "active_reference_context" in verify_phase
+    assert "reference_artifacts_content" in verify_phase
+    assert "protocol_bundle_context" in verify_phase
+    assert verify_phase.index("project_contract_gate") < verify_phase.index("suggest_contract_checks(contract)")
+    assert "{GPD_INSTALL_DIR}/workflows/verify-phase.md" in execute_phase
+    assert "{GPD_INSTALL_DIR}/templates/verification-report.md" in execute_phase
+    assert "{GPD_INSTALL_DIR}/templates/contract-results-schema.md" in execute_phase
+    assert "gpd init phase-op {PHASE_NUMBER}" in execute_phase
+    assert "active_reference_context" in execute_phase
+    assert "protocol_bundle_context" in execute_phase
+
+
 def test_stage4_templates_and_workflows_surface_contract_results_and_verdict_ledgers() -> None:
     summary_template = (TEMPLATES_DIR / "summary.md").read_text(encoding="utf-8")
 
     assert "contract_results" in summary_template
     assert "comparison_verdicts" in summary_template
     assert "plan_contract_ref" in summary_template
+    assert "subsystem (optional):" not in summary_template
+    assert "tags (optional):" not in summary_template
+    assert "plan_contract_ref (required" not in summary_template
+    assert "contract_results (required" not in summary_template
+    assert "comparison_verdicts (required" not in summary_template
     assert "Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML" in summary_template
     assert "uncertainty_markers:" in summary_template
+
+
+def test_validator_backed_examples_use_concrete_machine_readable_values() -> None:
+    assert '"stage_id": "reader | literature | math | physics | interestingness"' not in (
+        REFERENCES_DIR / "publication" / "peer-review-panel.md"
+    ).read_text(encoding="utf-8")
+    assert '"claim_type": "main_result | novelty | significance | physical_interpretation | generality | method"' not in (
+        REFERENCES_DIR / "publication" / "peer-review-panel.md"
+    ).read_text(encoding="utf-8")
+    assert "claim_kind: theorem | lemma | corollary | proposition | result | claim | other" not in (
+        TEMPLATES_DIR / "plan-contract-schema.md"
+    ).read_text(encoding="utf-8")
+    assert "status: passed|partial|failed|blocked|not_attempted" not in (
+        TEMPLATES_DIR / "contract-results-schema.md"
+    ).read_text(encoding="utf-8")
+    assert "status: passed | gaps_found | expert_needed | human_needed" not in (
+        TEMPLATES_DIR / "verification-report.md"
+    ).read_text(encoding="utf-8")
 
 
 def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() -> None:
@@ -1464,13 +1566,39 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "selected_protocol_bundle_ids" in compare_workflow
     assert "protocol_bundle_context" in compare_workflow
     assert "active_reference_context" in compare_workflow
-    assert "protocol_bundle_ids (optional):" in compare_workflow
-    assert "bundle_expectations (optional):" in compare_workflow
-    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" in compare_workflow
-    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" in comparison_template
+    assert "protocol_bundle_ids (optional):" not in compare_workflow
+    assert "bundle_expectations (optional):" not in compare_workflow
+    assert "subject_kind: claim|deliverable|acceptance_test|reference" not in compare_workflow
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" not in compare_workflow
+    assert "verdict: pass | tension | fail | inconclusive" not in compare_workflow
+    assert "subject_kind: claim" in compare_workflow
+    assert "subject_role: decisive" in compare_workflow
+    assert "comparison_kind: experiment" in compare_workflow
+    assert "verdict: pass" in compare_workflow
+    assert "omit `protocol_bundle_ids` and `bundle_expectations` entirely" in compare_workflow
+    assert "protocol_bundle_ids (optional):" not in comparison_template
+    assert "bundle_expectations (optional):" not in comparison_template
+    assert "subject_kind: claim|deliverable|acceptance_test|reference" not in comparison_template
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" not in comparison_template
+    assert "verdict: pass | tension | fail | inconclusive" not in comparison_template
+    assert "subject_kind: claim" in comparison_template
+    assert "subject_role: decisive" in comparison_template
+    assert "comparison_kind: experiment" in comparison_template
+    assert "verdict: pass" in comparison_template
+    assert "omit `protocol_bundle_ids` and `bundle_expectations` entirely" in comparison_template
     assert "`comparison_verdicts` is a closed schema" in comparison_template
     internal_comparison_template = (TEMPLATES_DIR / "paper" / "internal-comparison.md").read_text(encoding="utf-8")
     assert "`comparison_verdicts` is a closed schema" in internal_comparison_template
+    assert "protocol_bundle_ids (optional):" not in internal_comparison_template
+    assert "bundle_expectations (optional):" not in internal_comparison_template
+    assert "subject_kind: claim|deliverable|acceptance_test|reference" not in internal_comparison_template
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" not in internal_comparison_template
+    assert "verdict: pass|tension|fail|inconclusive" not in internal_comparison_template
+    assert "comparison_kind: cross_method" in internal_comparison_template
+    assert "subject_kind: claim" in internal_comparison_template
+    assert "subject_role: decisive" in internal_comparison_template
+    assert "verdict: pass" in internal_comparison_template
+    assert "omit `protocol_bundle_ids` and `bundle_expectations` entirely" in internal_comparison_template
     assert "subject_role" in comparison_template
     assert "Profiles and autonomy modes may compress prose or cadence, but they do NOT relax contract-result emission" in executor_agent
     assert "Use claim IDs, deliverable IDs, acceptance test IDs, reference IDs, and forbidden proxy IDs directly from the `contract` block." in verifier_agent
@@ -2287,7 +2415,7 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "observables: [obs-main]" in plan_schema
     assert "aliases: [\"optional stable label or citation shorthand\"]" in plan_schema
     assert "carry_forward_to: [planning, verification]" in plan_schema
-    assert "automation: automated | hybrid | human" in plan_schema
+    assert "automation: automated" in plan_schema
     assert "`kind` is optional and defaults to `other`; set it when the plan knows a more specific semantic category." in plan_schema
     assert "`kind` and `role` are optional and default to `other`; set them when the anchor semantics are already known." in plan_schema
     assert "`relation` is optional and defaults to `other`; set it when the dependency type is already known." in plan_schema

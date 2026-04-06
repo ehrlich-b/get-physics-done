@@ -1250,8 +1250,10 @@ def test_real_installed_contract_and_review_surfaces_keep_required_schema_bodies
     assert "conditional_requirements:" in peer_review_section
     assert "when: theorem-bearing claims are present" in peer_review_section
     assert "Peer Review Panel Protocol" in review_literature
-    assert '"stage_id": "reader | literature | math | physics | interestingness"' in review_literature
-    assert '"stage_kind": "reader | literature | math | physics | interestingness"' in review_literature
+    assert '"stage_id": "reader | literature | math | physics | interestingness"' not in review_literature
+    assert '"stage_kind": "reader | literature | math | physics | interestingness"' not in review_literature
+    assert '"stage_id": "reader"' in review_literature
+    assert '"stage_kind": "reader"' in review_literature
     assert "Peer Review Panel Protocol" in review_reader
     assert "GPD/review/CLAIMS.json" in review_reader_raw
     assert "GPD/review/STAGE-reader.json" in review_reader_raw

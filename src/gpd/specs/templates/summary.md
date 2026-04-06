@@ -50,9 +50,9 @@ Canonical ledger schema and validator-enforced rules to load before writing fron
 ---
 phase: XX-name
 plan: YY
-depth: minimal|standard|full|complex  # Controls which sections to include; set explicitly
+depth: full  # Set explicitly; allowed values are documented above
 one-liner: "[Substantive one-liner describing outcome — NOT 'phase complete' or 'derivation finished']"
-subsystem (optional):
+subsystem:
   [
     primary category: derivation,
     computation,
@@ -64,7 +64,7 @@ subsystem (optional):
     numerics,
     etc.,
   ]
-tags (optional):
+tags:
   [
     searchable physics: hamiltonian,
     perturbation-theory,
@@ -107,12 +107,12 @@ conventions:
   - "Fourier = e^{-ikx} forward"
 
 # Canonical contract outcome ledger (required when source PLAN has a contract)
-plan_contract_ref (required when `contract_results` or `comparison_verdicts` are present): "GPD/phases/XX-name/{phase}-{plan}-PLAN.md#/contract"
-contract_results (required for contract-backed plans):
+plan_contract_ref: "GPD/phases/XX-name/{phase}-{plan}-PLAN.md#/contract"
+contract_results:
   # Every ID declared in the PLAN contract must appear in its matching section below.
   claims:
     claim-id:
-      status: passed|partial|failed|blocked|not_attempted
+      status: passed
       summary: "[what was actually established in user-visible terms]"
       linked_ids: [deliverable-id, acceptance-test-id, reference-id]
       evidence:
@@ -127,24 +127,24 @@ contract_results (required for contract-backed plans):
           evidence_path: "GPD/phases/XX-name/{phase}-VERIFICATION.md"
   deliverables:
     deliverable-id:
-      status: passed|partial|failed|blocked|not_attempted
+      status: passed
       path: path/to/artifact
       summary: "[what artifact exists and why it matters]"
       linked_ids: [claim-id, acceptance-test-id]
   acceptance_tests:
     acceptance-test-id:
-      status: passed|partial|failed|blocked|not_attempted
+      status: passed
       summary: "[what decisive test actually happened and what it showed]"
       linked_ids: [claim-id, deliverable-id, reference-id]
   references:
     reference-id:
-      status: completed|missing|not_applicable
+      status: completed
       completed_actions: [read, use, compare, cite, avoid]
       missing_actions: []
       summary: "[how the anchor was surfaced for a visible claim]"
   forbidden_proxies:
     forbidden-proxy-id:
-      status: rejected|violated|unresolved|not_applicable
+      status: rejected
       notes: "[why this proxy was or was not allowed]"
   uncertainty_markers:
     weakest_anchors: [anchor-1]
@@ -154,15 +154,15 @@ contract_results (required for contract-backed plans):
 
 # Decisive comparison verdict ledger
 # Required whenever a contract-backed claim / deliverable / acceptance test depends on a decisive comparison.
-comparison_verdicts (required when a decisive comparison was required or attempted):
+comparison_verdicts:
   - subject_id: claim-id
-    subject_kind: claim|deliverable|acceptance_test|reference
-    subject_role: decisive|supporting|supplemental|other  # Must be explicit on every verdict
+    subject_kind: claim
+    subject_role: decisive  # Must be explicit on every verdict
     reference_id: reference-id
-    comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other
+    comparison_kind: benchmark
     metric: relative_error
     threshold: "<= 0.01"
-    verdict: pass|tension|fail|inconclusive
+    verdict: pass
     recommended_action: "[what to do next]"
     notes: "[optional context]"
 

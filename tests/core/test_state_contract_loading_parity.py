@@ -89,6 +89,7 @@ def test_state_and_context_keep_primary_state_when_primary_root_is_dict_but_sche
     assert loaded.project_contract_gate["visible"] is False
     assert loaded.project_contract_gate["status"] == "missing"
     assert ctx["project_contract"] is None
+    assert ctx["contract_intake"] is None
     assert ctx["project_contract_load_info"]["status"] == "missing"
     assert ctx["project_contract_load_info"]["source_path"].endswith("GPD/state.json")
     persisted = json.loads(layout.state_json.read_text(encoding="utf-8"))
@@ -123,6 +124,7 @@ def test_state_and_context_surface_blocked_primary_project_contract_when_primary
     assert loaded.project_contract_gate["status"] == "blocked_schema"
     assert loaded.project_contract_gate["visible"] is False
     assert ctx["project_contract"] is None
+    assert ctx["contract_intake"] is None
     assert ctx["project_contract_load_info"]["status"] == "blocked_schema"
     assert ctx["project_contract_load_info"]["source_path"].endswith("GPD/state.json")
     assert any("context_intake" in error for error in ctx["project_contract_load_info"]["errors"])
@@ -154,6 +156,7 @@ def test_state_and_context_surface_blocked_primary_project_contract_when_primary
     assert loaded.project_contract_gate["status"] == "blocked_type"
     assert loaded.project_contract_gate["visible"] is False
     assert ctx["project_contract"] is None
+    assert ctx["contract_intake"] is None
     assert ctx["project_contract_load_info"]["status"] == "blocked_type"
     assert ctx["project_contract_load_info"]["source_path"].endswith("GPD/state.json")
     assert ctx["project_contract_load_info"]["errors"] == ["project contract must be a JSON object"]
@@ -191,6 +194,7 @@ def test_state_and_context_block_raw_project_contract_missing_top_level_required
     assert loaded.project_contract_gate["authoritative"] is False
     assert loaded.project_contract_gate["visible"] is False
     assert ctx["project_contract"] is None
+    assert ctx["contract_intake"] is None
     assert ctx["project_contract_load_info"]["status"] == "blocked_schema"
     assert ctx["project_contract_gate"]["authoritative"] is False
     assert ctx["project_contract_gate"]["visible"] is False
@@ -220,6 +224,7 @@ def test_state_and_context_block_raw_project_contract_missing_uncertainty_marker
     assert loaded.project_contract_gate["status"] == "blocked_schema"
     assert loaded.project_contract_gate["authoritative"] is False
     assert ctx["project_contract"] is None
+    assert ctx["contract_intake"] is None
     assert ctx["project_contract_load_info"]["status"] == "blocked_schema"
     assert ctx["project_contract_gate"]["authoritative"] is False
     assert ctx["project_contract_gate"]["visible"] is False
@@ -290,7 +295,8 @@ def test_state_and_context_keep_fallback_project_contract_visible_but_non_author
     assert loaded.project_contract_gate["raw_project_contract_classified"] is False
     assert loaded.project_contract_gate["authoritative"] is False
     assert loaded.project_contract_gate["repair_required"] is True
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
     assert ctx["project_contract_load_info"]["provenance"] == "fallback"
     assert ctx["project_contract_gate"]["visible"] is True
     assert ctx["project_contract_gate"]["raw_project_contract_classified"] is False
@@ -362,7 +368,8 @@ def test_state_and_context_surface_visible_blocked_integrity_backup_project_cont
     ctx = init_progress(tmp_path)
     loaded = state_load(tmp_path)
 
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["claims"][0]["id"] == "claim-benchmark"
     assert ctx["project_contract_load_info"]["status"] == "blocked_integrity"
     assert loaded.project_contract_gate is not None
     assert ctx["project_contract_gate"] is not None
@@ -395,7 +402,8 @@ def test_state_and_context_surface_draft_invalid_primary_project_contract_after_
     assert loaded.state["project_contract"] is not None
     assert loaded.state["project_contract"]["claims"][0]["references"] == ["missing-ref"]
     assert any("unknown reference missing-ref" in issue for issue in loaded.integrity_issues)
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["claims"][0]["references"] == ["missing-ref"]
     assert ctx["project_contract_load_info"]["status"] == "blocked_integrity"
     assert loaded.project_contract_gate == ctx["project_contract_gate"]
     assert any(
@@ -453,7 +461,8 @@ def test_state_contract_remains_visible_in_runtime_context_with_approval_blocker
 
     assert loaded.state["project_contract"] is not None
     assert loaded.state["project_contract"]["references"][0]["role"] == "background"
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["references"][0]["role"] == "background"
     assert ctx["project_contract_load_info"]["status"] == "loaded_with_approval_blockers"
     assert ctx["project_contract_validation"]["valid"] is False
     assert loaded.project_contract_gate == ctx["project_contract_gate"]
@@ -486,7 +495,8 @@ def test_state_and_context_keep_salvaged_project_contract_visible_but_non_author
     assert loaded.state["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
     assert loaded.state["project_contract"]["references"][0]["role"] == "benchmark"
     assert loaded.state["project_contract"]["references"][0]["required_actions"] == ["read", "compare", "cite"]
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
     assert ctx["project_contract_load_info"]["status"] == "loaded_with_schema_normalization"
     assert any(
         "references.0.role must use exact canonical value: benchmark" in warning
@@ -581,7 +591,8 @@ def test_state_and_context_surface_duplicate_and_blank_project_contract_list_mem
     assert loaded.state["project_contract"] is not None
     assert loaded.state["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
     assert loaded.state["project_contract"]["references"][0]["required_actions"] == ["read"]
-    assert ctx["project_contract"] is None
+    assert ctx["project_contract"] is not None
+    assert ctx["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
     assert ctx["project_contract_load_info"]["status"] == "loaded_with_schema_normalization"
     assert loaded.project_contract_gate["status"] == "loaded_with_schema_normalization"
     assert loaded.project_contract_gate["visible"] is True

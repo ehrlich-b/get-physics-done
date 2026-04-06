@@ -356,6 +356,7 @@ class GPDProjectConfig(BaseModel):
             return None
 
         normalized: dict[str, dict[str, str]] = {}
+        normalized_runtime_sources: dict[str, str] = {}
         try:
             valid_runtime_names = _valid_runtime_names()
         except RuntimeError as exc:
@@ -364,7 +365,8 @@ class GPDProjectConfig(BaseModel):
         supported_tiers = ", ".join(sorted(_VALID_MODEL_TIER_VALUES))
 
         for runtime, tier_map in value.items():
-            if runtime not in valid_runtime_names:
+            normalized_runtime_name = normalize_runtime_name(runtime)
+            if normalized_runtime_name not in valid_runtime_names:
                 raise ValueError(
                     f"model_overrides contains unknown runtime {runtime!r}; "
                     f"expected one of: {supported_runtimes}"
@@ -386,7 +388,14 @@ class GPDProjectConfig(BaseModel):
                 normalized_runtime[tier] = model.strip()
 
             if normalized_runtime:
-                normalized[runtime] = normalized_runtime
+                previous_runtime = normalized_runtime_sources.get(normalized_runtime_name)
+                if previous_runtime is not None:
+                    raise ValueError(
+                        f"model_overrides contains duplicate runtime entries for {normalized_runtime_name!r}: "
+                        f"{previous_runtime!r} and {runtime!r} both target the same runtime"
+                    )
+                normalized_runtime_sources[normalized_runtime_name] = runtime
+                normalized[normalized_runtime_name] = normalized_runtime
 
         return normalized or None
 

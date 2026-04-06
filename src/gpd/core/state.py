@@ -2765,9 +2765,6 @@ def _build_state_from_markdown(
             backup_existing = None
         if isinstance(backup_existing, dict):
             existing = copy.deepcopy(backup_existing)
-            # project_contract exists only in JSON, so a corrupt primary file must
-            # not resurrect stale backup contract state during a markdown sync.
-            existing["project_contract"] = None
             existing_continuation = existing.get("continuation")
             if _continuation_payload_has_values(existing_continuation):
                 existing["session"] = _session_from_continuation_payload(existing_continuation)
@@ -2775,12 +2772,22 @@ def _build_state_from_markdown(
                 existing["session"] = _blank_session_payload()
 
     if existing and isinstance(existing, dict):
+        if primary_unreadable and existing.get("project_contract") is not None:
+            existing = copy.deepcopy(existing)
+            existing["project_contract"] = None
         project_contract = existing.get("project_contract")
         if project_contract is not None:
-            strict_result = parse_project_contract_data_strict(project_contract)
-            if strict_result.contract is None or strict_result.errors:
+            preserved_contract = _preserved_visible_project_contract_from_raw_state(
+                cwd,
+                source_path=backup_path if primary_unreadable else json_path,
+                raw_state=existing,
+            )
+            if preserved_contract is None:
                 existing = copy.deepcopy(existing)
                 existing["project_contract"] = None
+            else:
+                existing = copy.deepcopy(existing)
+                existing["project_contract"] = preserved_contract
         merged = {**existing}
         merged["_version"] = parsed["_version"]
         merged["_synced_at"] = parsed["_synced_at"]
@@ -2873,6 +2880,26 @@ def _preserved_visible_project_contract_from_raw_state(
     return copy.deepcopy(raw_contract)
 
 
+def _preserved_visible_project_contract_from_state_file(
+    cwd: Path,
+    *,
+    state_path: Path,
+) -> dict[str, object] | None:
+    """Return the raw visible project contract preserved from a state JSON file."""
+
+    try:
+        raw_state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return None
+    if not isinstance(raw_state, dict):
+        return None
+    return _preserved_visible_project_contract_from_raw_state(
+        cwd,
+        source_path=state_path,
+        raw_state=raw_state,
+    )
+
+
 def _write_state_pair_locked(
     cwd: Path,
     *,
@@ -2895,7 +2922,7 @@ def _write_state_pair_locked(
     md_backup = safe_read_file(md_path)
 
     normalized = _normalize_state_for_persistence(state_obj, project_root=cwd)
-    if normalized.get("project_contract") is None and isinstance(preserve_raw_project_contract, dict):
+    if isinstance(preserve_raw_project_contract, dict):
         normalized = copy.deepcopy(normalized)
         normalized["project_contract"] = copy.deepcopy(preserve_raw_project_contract)
 
@@ -2963,7 +2990,10 @@ def sync_state_json_core(cwd: Path, md_content: str) -> dict:
     json_path = _state_json_path(cwd)
     backup_path = json_path.parent / STATE_JSON_BACKUP_FILENAME
     _recover_intent_locked(cwd)
-    preserved_contract = _preserved_project_contract_for_markdown_save(cwd)
+    preserved_contract = _preserved_project_contract_for_markdown_save(
+        cwd,
+        allow_backup_fallback_on_primary_failure=False,
+    )
     merged = _build_state_from_markdown(
         cwd,
         md_content,
@@ -3119,11 +3149,15 @@ def _load_state_json_with_integrity_issues(
                     "state.json root was recovered from state.json.bak after primary state.json was missing"
                 )
                 if persist_recovery:
+                    preserved_contract = _preserved_visible_project_contract_from_state_file(
+                        cwd,
+                        state_path=bak_path,
+                    )
                     _write_state_pair_locked(
                         cwd,
                         state_obj=restored,
                         md_content=generate_state_markdown(restored),
-                        preserve_raw_project_contract=restored.get("project_contract"),
+                        preserve_raw_project_contract=preserved_contract,
                     )
                 return restored, integrity_issues, "state.json.bak"
         except TypeError as e:
@@ -3142,11 +3176,15 @@ def _load_state_json_with_integrity_issues(
                     "state.json root was recovered from state.json.bak after primary state.json was unavailable or unreadable"
                 )
                 if persist_recovery:
+                    preserved_contract = _preserved_visible_project_contract_from_state_file(
+                        cwd,
+                        state_path=bak_path,
+                    )
                     _write_state_pair_locked(
                         cwd,
                         state_obj=restored,
                         md_content=generate_state_markdown(restored),
-                        preserve_raw_project_contract=restored.get("project_contract"),
+                        preserve_raw_project_contract=preserved_contract,
                     )
                 return restored, integrity_issues, "state.json.bak"
             if os.environ.get(ENV_GPD_DEBUG):
@@ -3172,11 +3210,15 @@ def _load_state_json_with_integrity_issues(
                     "state.json root was recovered from state.json.bak after primary state.json was unavailable or unreadable"
                 )
                 if persist_recovery:
+                    preserved_contract = _preserved_visible_project_contract_from_state_file(
+                        cwd,
+                        state_path=bak_path,
+                    )
                     _write_state_pair_locked(
                         cwd,
                         state_obj=restored,
                         md_content=generate_state_markdown(restored),
-                        preserve_raw_project_contract=restored.get("project_contract"),
+                        preserve_raw_project_contract=preserved_contract,
                     )
                 return restored, integrity_issues, "state.json.bak"
             if os.environ.get(ENV_GPD_DEBUG):
@@ -3419,14 +3461,23 @@ def load_state_json(cwd: Path, integrity_mode: str = "standard") -> dict | None:
     return state_obj
 
 
-def save_state_json_locked(cwd: Path, state_obj: dict) -> None:
+def save_state_json_locked(
+    cwd: Path,
+    state_obj: dict,
+    *,
+    preserve_visible_project_contract: bool = True,
+) -> None:
     """Core write logic: write state.json + regenerate STATE.md atomically.
 
     Caller MUST hold the canonical state lock.
     """
     _recover_intent_locked(cwd)
     normalized = _normalize_state_for_persistence(state_obj, project_root=cwd)
-    preserved_contract = _preserved_visible_project_contract_for_json_save(cwd, state_obj=state_obj)
+    preserved_contract = (
+        _preserved_visible_project_contract_for_json_save(cwd, state_obj=state_obj)
+        if preserve_visible_project_contract
+        else None
+    )
     _write_state_pair_locked(
         cwd,
         state_obj=normalized,
@@ -3476,20 +3527,41 @@ def _preserved_visible_project_contract_for_json_save(cwd: Path, *, state_obj: d
     return copy.deepcopy(raw_contract)
 
 
-def _preserved_project_contract_for_markdown_save(cwd: Path) -> dict[str, object] | None:
+def _preserved_project_contract_for_markdown_save(
+    cwd: Path,
+    *,
+    allow_backup_fallback_on_primary_failure: bool = True,
+) -> dict[str, object] | None:
     """Return the raw persisted contract when a markdown-only save should keep it visible."""
 
     layout = ProjectLayout(cwd)
     try:
         existing = json.loads(layout.state_json.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
+        existing = None
+    if isinstance(existing, dict):
+        preserved = _preserved_visible_project_contract_from_raw_state(
+            cwd,
+            source_path=layout.state_json,
+            raw_state=existing,
+        )
+        if preserved is not None:
+            return preserved
+        if existing.get("project_contract") is not None:
+            return None
+    elif not allow_backup_fallback_on_primary_failure:
         return None
-    if not isinstance(existing, dict):
+
+    try:
+        backup_existing = json.loads(layout.state_json_backup.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return None
+    if not isinstance(backup_existing, dict):
         return None
     return _preserved_visible_project_contract_from_raw_state(
         cwd,
-        source_path=layout.state_json,
-        raw_state=existing,
+        source_path=layout.state_json_backup,
+        raw_state=backup_existing,
     )
 
 
@@ -3532,10 +3604,19 @@ def save_state_markdown_locked(cwd: Path, md_content: str) -> dict:
 
 
 @instrument_gpd_function("state.save")
-def save_state_json(cwd: Path, state_obj: dict) -> None:
+def save_state_json(
+    cwd: Path,
+    state_obj: dict,
+    *,
+    preserve_visible_project_contract: bool = True,
+) -> None:
     """Save state.json + STATE.md atomically (with locking)."""
     with _state_lock(cwd):
-        save_state_json_locked(cwd, state_obj)
+        save_state_json_locked(
+            cwd,
+            state_obj,
+            preserve_visible_project_contract=preserve_visible_project_contract,
+        )
 
 
 @instrument_gpd_function("state.save_markdown")
@@ -3811,7 +3892,7 @@ def state_set_project_contract(cwd: Path, contract_data: dict[str, object] | Res
                     state_obj.setdefault("open_questions", []).append(question)
                     existing_questions.add(question)
 
-        save_state_json_locked(cwd, state_obj)
+        save_state_json_locked(cwd, state_obj, preserve_visible_project_contract=False)
         return StateUpdateResult(updated=True, warnings=warning_messages)
 
 

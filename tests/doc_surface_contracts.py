@@ -12,12 +12,14 @@ from gpd.core.surface_phrases import post_start_settings_note, post_start_settin
 
 DOCTOR_RUNTIME_SCOPE_RE = re.compile(r"gpd doctor --runtime <runtime> --local\|--global")
 UNATTENDED_READINESS_SURFACE = "gpd validate unattended-readiness"
+PERMISSIONS_STATUS_SURFACE = "gpd permissions status --runtime <runtime> --autonomy balanced"
 PERMISSIONS_SYNC_SURFACE = "gpd permissions sync --runtime <runtime> --autonomy balanced"
 PLAN_PREFLIGHT_SURFACE = "gpd validate plan-preflight <PLAN.md>"
 WOLFRAM_STATUS_SURFACE = "gpd integrations status wolfram"
 
 __all__ = [
     "DOCTOR_RUNTIME_SCOPE_RE",
+    "PERMISSIONS_STATUS_SURFACE",
     "PERMISSIONS_SYNC_SURFACE",
     "PLAN_PREFLIGHT_SURFACE",
     "UNATTENDED_READINESS_SURFACE",
@@ -121,6 +123,7 @@ def _public_surface_contract_payload() -> dict[str, object]:
                 "observe_execution": contract.local_cli_bridge.named_commands.observe_execution,
                 "cost": contract.local_cli_bridge.named_commands.cost,
                 "presets_list": contract.local_cli_bridge.named_commands.presets_list,
+                "plan_preflight": contract.local_cli_bridge.named_commands.plan_preflight,
                 "integrations_status_wolfram": contract.local_cli_bridge.named_commands.integrations_status_wolfram,
             },
             "terminal_phrase": contract.local_cli_bridge.terminal_phrase,
@@ -235,12 +238,15 @@ def resume_compat_alias_fields() -> tuple[str, ...]:
 def assert_unattended_readiness_contract(content: str) -> None:
     assert UNATTENDED_READINESS_SURFACE in content
     assert PERMISSIONS_SYNC_SURFACE in content
+    assert PERMISSIONS_STATUS_SURFACE in content
     assert "gpd doctor" in content
     _assert_contains_any(
         content,
         (
             "runtime-owned approval/alignment only",
             "runtime-owned permission alignment",
+            "read-only runtime-owned approval/alignment snapshot",
+            "runtime-owned alignment needs to be changed",
             "Runtime permissions are",
         ),
         label="runtime-owned permissions/alignment boundary",
@@ -1060,11 +1066,15 @@ def assert_runtime_readiness_handoff_contract(content: str) -> None:
     _assert_contains_any(
         content,
         (
-            "gpd permissions ...",
+            PERMISSIONS_STATUS_SURFACE,
             PERMISSIONS_SYNC_SURFACE,
+            "sharedPermissionsStatusCommand()",
             "sharedPermissionsSyncCommand()",
+            "localCliBridge.permissionsStatusCommand",
             "localCliBridge.permissionsSyncCommand",
             "runtime-owned permission alignment and sync",
+            "read-only runtime-owned permission snapshot",
+            "read-only runtime-owned approval/alignment snapshot",
             "runtime-owned permission alignment",
             "mirrored from canonical continuation",
             "projected from canonical continuation",
@@ -1208,9 +1218,9 @@ def assert_settings_local_terminal_follow_up_contract(content: str) -> None:
     _assert_contains_any(
         content,
         (
+            PERMISSIONS_STATUS_SURFACE,
             PERMISSIONS_SYNC_SURFACE,
             "gpd permissions sync --runtime <runtime> --autonomy <mode>",
-            "gpd permissions status --runtime <runtime> --autonomy balanced",
         ),
         label="settings runtime-permission follow-up surface",
     )

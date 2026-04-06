@@ -74,7 +74,7 @@ Rules:
 ```yaml
 - id: claim-main
   statement: "[Physics statement this plan must establish]"
-  claim_kind: theorem | lemma | corollary | proposition | result | claim | other
+  claim_kind: theorem
   observables: [obs-main]
   deliverables: [deliv-main]
   acceptance_tests: [test-main]
@@ -89,7 +89,7 @@ Rules:
     - id: hyp-r0
       text: "r_0 >= 0"
       symbols: [r_0]
-      category: assumption | precondition | regime | definition | lemma | other
+      category: assumption
       required_in_proof: true
   quantifiers: ["for all x > 0", "for all r_0 >= 0"]
   conclusion_clauses:
@@ -108,6 +108,7 @@ Rules:
 - `acceptance_tests[]` may only reference declared `acceptance_tests[].id`.
 - `references[]` may only reference declared `references[].id`.
 - `claim_kind` is optional and defaults to `other`; set it explicitly for theorem-bearing claims.
+- `claim_kind: theorem|lemma|corollary|proposition|result|claim|other`
 - For theorem/proof work, enumerate `parameters[]`, `hypotheses[]`, `quantifiers[]`, `conclusion_clauses[]`, and `proof_deliverables[]` so the proof audit can detect dropped assumptions, silently specialized parameters, and narrowed conclusions.
 - Nested proof lists stay list-shaped even for one item: `parameters[].aliases`, `hypotheses[].symbols`, `quantifiers`, and `proof_deliverables` must stay YAML arrays, not scalar strings.
 - `proof_deliverables[]` may only reference declared `deliverables[].id`.
@@ -157,7 +158,7 @@ Rules:
 ```yaml
 - id: obs-main
   name: "Benchmark residual"
-  kind: scalar|curve|map|classification|proof_obligation|other
+  kind: scalar
   definition: "[What quantity or behavior is being established]"
   regime: "large-k"
   units: "dimensionless"
@@ -167,6 +168,7 @@ Rules:
 
 - Every observable must declare `id`, `name`, and `definition`.
 - `kind` is optional and defaults to `other`; set it when the plan knows a more specific semantic category.
+- `kind: scalar|curve|map|classification|proof_obligation|other`
 - When `kind: proof_obligation`, make `definition` name the theorem/result plus the hypotheses or parameter regime the proof must cover. Do not hide proof scope in body prose alone.
 - `regime` and `units` are optional strings; omit them instead of fabricating placeholders.
 - Claims may only reference observables that appear in `observables[]`.
@@ -175,7 +177,7 @@ Rules:
 
 ```yaml
 - id: deliv-main
-  kind: figure | table | dataset | data | derivation | code | note | report | other
+  kind: figure
   path: path/to/output
   description: "[Primary artifact this plan produces]"
   must_contain: ["optional checklist item"]
@@ -185,6 +187,7 @@ Rules:
 
 - Every deliverable must declare `id` and `description`.
 - `kind` is optional and defaults to `other`; set it when the deliverable type is already known.
+- `kind: figure|table|dataset|data|derivation|code|note|report|other`
 - `path` is optional, but preferred whenever the plan already knows the durable artifact location.
 - `must_contain` is optional, but if present it must be an array of strings.
 
@@ -205,10 +208,10 @@ Rules:
 
 ```yaml
 - id: ref-main
-  kind: paper | dataset | prior_artifact | spec | user_anchor | other
+  kind: paper
   locator: "[Citation, dataset identifier, or artifact path]"
   aliases: ["optional stable label or citation shorthand"]
-  role: definition | benchmark | method | must_consider | background | other
+  role: benchmark
   why_it_matters: "[What this anchor constrains]"
   applies_to: [claim-main]
   carry_forward_to: [planning, verification]
@@ -220,6 +223,8 @@ Rules:
 
 - Every reference must declare a stable `id`.
 - `kind` and `role` are optional and default to `other`; set them when the anchor semantics are already known.
+- `kind: paper | dataset | prior_artifact | spec | user_anchor | other`
+- `role: definition | benchmark | method | must_consider | background | other`
 - `aliases[]` is optional and stores stable human-facing labels or citation shorthands that downstream anchor-resolution logic may use.
 - `applies_to[]` may only reference declared claim or deliverable IDs.
 - `carry_forward_to[]` is optional free-text workflow scope (for example `planning`, `verification`, `writing`); do not overload it with contract IDs.
@@ -234,16 +239,17 @@ Rules:
 ```yaml
 - id: test-main
   subject: claim-main
-  kind: existence | schema | benchmark | consistency | cross_method | limiting_case | symmetry | dimensional_analysis | convergence | oracle | proxy | reproducibility | proof_hypothesis_coverage | proof_parameter_coverage | proof_quantifier_domain | claim_to_proof_alignment | lemma_dependency_closure | counterexample_search | human_review | other
+  kind: benchmark
   procedure: "[How this plan will check the claim]"
   pass_condition: "[Concrete decisive pass condition]"
   evidence_required: [deliv-main, ref-main]
-  automation: automated | hybrid | human
+  automation: automated
 ```
 
 Rules:
 
 - `kind` is optional and defaults to `other`; set it when the test category is already known.
+- `kind: existence | schema | benchmark | consistency | cross_method | limiting_case | symmetry | dimensional_analysis | convergence | oracle | proxy | reproducibility | proof_hypothesis_coverage | proof_parameter_coverage | proof_quantifier_domain | claim_to_proof_alignment | lemma_dependency_closure | counterexample_search | human_review | other`
 - `subject` must reference a declared claim or deliverable ID.
 - `evidence_required[]` may only reference declared claim, deliverable, acceptance-test, or reference IDs.
 - `automation` is optional and defaults to `hybrid`, but if present it must be `automated`, `hybrid`, or `human`.
@@ -255,13 +261,14 @@ Rules:
 - id: link-main
   source: claim-main
   target: deliv-main
-  relation: supports | computes | visualizes | benchmarks | depends_on | evaluated_by | proves | uses_hypothesis | depends_on_lemma | other
+  relation: supports
   verified_by: [test-main]
 ```
 
 Rules:
 
 - `relation` is optional and defaults to `other`; set it when the dependency type is already known.
+- `relation: supports | computes | visualizes | benchmarks | depends_on | evaluated_by | proves | uses_hypothesis | depends_on_lemma | other`
 - `source` and `target` may only reference declared claim, deliverable, acceptance-test, or reference IDs.
 - `verified_by[]` may only reference declared `acceptance_tests[].id`.
 

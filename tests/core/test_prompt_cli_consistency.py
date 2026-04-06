@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from gpd.core.public_surface_contract import resume_authority_fields
+from gpd.core import public_surface_contract as public_surface_contract_module
+from gpd.core.public_surface_contract import local_cli_bridge_note, resume_authority_fields
 from gpd.registry import VALID_CONTEXT_MODES, _parse_frontmatter
 from tests.doc_surface_contracts import (
     DOCTOR_RUNTIME_SCOPE_RE,
@@ -548,6 +549,24 @@ def test_help_prompt_keeps_cost_surface_on_local_cli_not_runtime_slash_command()
     assert "gpd cost" in help_workflow
     assert "/gpd:cost" not in help_workflow
     assert_cost_advisory_contract(help_workflow)
+
+
+def test_prompt_and_public_surface_contract_agree_on_runtime_readiness_and_plan_validation_surfaces() -> None:
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+    bridge_note = local_cli_bridge_note()
+
+    assert "gpd doctor --runtime <runtime> --local|--global" in help_workflow
+    assert "gpd permissions status --runtime <runtime> --autonomy balanced" in help_workflow
+    assert "gpd validate plan-preflight <PLAN.md>" in help_workflow
+    assert "gpd doctor --runtime <runtime> --local" in bridge_note
+    assert "gpd doctor --runtime <runtime> --global" in bridge_note
+    assert "gpd validate plan-preflight <PLAN.md>" in bridge_note
+
+
+def test_help_workflow_mentions_all_authoritative_local_cli_bridge_commands() -> None:
+    help_workflow = (WORKFLOWS_DIR / "help.md").read_text(encoding="utf-8")
+    for command in public_surface_contract_module.load_public_surface_contract().local_cli_bridge.named_commands.ordered():
+        assert command in help_workflow
 
 
 def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_return() -> None:

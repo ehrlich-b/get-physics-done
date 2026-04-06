@@ -154,6 +154,7 @@ const PUBLIC_SURFACE_LOCAL_CLI_NAMED_COMMAND_KEYS = [
   "observe_execution",
   "cost",
   "presets_list",
+  "plan_preflight",
   "integrations_status_wolfram",
 ];
 const RUNTIME_CATALOG_ENTRY_KEYS = {
@@ -234,21 +235,8 @@ const RUNTIME_CATALOG_HOOK_PAYLOAD_KEYS = new Set([
   "context_remaining_keys",
 ]);
 const RUNTIME_CONFIG_SURFACE_LABEL_RE = /^[A-Za-z0-9._-]+:[A-Za-z0-9+._-]+$/;
-const BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES = new Set(
-  BUNDLED_RUNTIME_CATALOG_PAYLOAD.map((runtime) => {
-    if (!runtime || typeof runtime !== "object") {
-      return null;
-    }
-    const capabilities = runtime.capabilities;
-    if (!capabilities || typeof capabilities !== "object") {
-      return null;
-    }
-    return capabilities.permission_surface_kind;
-  }).filter(
-    (value) =>
-      typeof value === "string" && value !== "none" && !RUNTIME_CONFIG_SURFACE_LABEL_RE.test(value)
-  )
-);
+const MANAGED_LAUNCHER_WRAPPER_PERMISSION_SURFACE = "managed-launcher-wrapper";
+const BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES = new Set([MANAGED_LAUNCHER_WRAPPER_PERMISSION_SURFACE]);
 
 function requireJsonObject(payload, label) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
@@ -339,8 +327,15 @@ function requireRuntimeSurfaceLabel(value, label, { allowSpecialValues = new Set
     return normalized;
   }
   if (allowSpecialValues.size > 0) {
+    const specialValues = [...allowSpecialValues].sort();
+    if (specialValues.length === 1) {
+      throw new Error(
+        `${label} must be "none", ${JSON.stringify(specialValues[0])}, or a config surface label like file:key`
+      );
+    }
     throw new Error(
-      `${label} must be "none", a bundled special surface kind, or a config surface label like file:key`
+      `${label} must be "none", one of ${specialValues.map((value) => JSON.stringify(value)).join(", ")}, `
+      + "or a config surface label like file:key"
     );
   }
   throw new Error(`${label} must be "none" or a config surface label like file:key`);
@@ -483,9 +478,10 @@ function validateRuntimeCatalogCapabilities(capabilities, label) {
       throw new Error(`${label}.supports_runtime_permission_sync must be true when permissions_surface=config-file`);
     }
   } else if (validated.permissions_surface === "launch-wrapper") {
-    if (!BUNDLED_PERMISSION_SURFACE_SPECIAL_VALUES.has(validated.permission_surface_kind)) {
+    if (validated.permission_surface_kind !== MANAGED_LAUNCHER_WRAPPER_PERMISSION_SURFACE) {
       throw new Error(
-        `${label}.permission_surface_kind must be a bundled special surface kind when permissions_surface=launch-wrapper`
+        `${label}.permission_surface_kind must be ${JSON.stringify(MANAGED_LAUNCHER_WRAPPER_PERMISSION_SURFACE)} `
+        + "when permissions_surface=launch-wrapper"
       );
     }
     if (!validated.supports_runtime_permission_sync) {
@@ -878,6 +874,7 @@ function validateSharedPublicSurfaceContract(contractPayload) {
       observeExecutionCommand: namedCommands.observe_execution,
       costCommand: namedCommands.cost,
       presetsListCommand: namedCommands.presets_list,
+      planPreflightCommand: namedCommands.plan_preflight,
       integrationsStatusWolframCommand: namedCommands.integrations_status_wolfram,
       terminalPhrase,
       purposePhrase,
@@ -948,6 +945,10 @@ function sharedUnattendedReadinessCommand() {
   return SHARED_PUBLIC_SURFACE_TEXT.localCliBridge.unattendedReadinessCommand;
 }
 
+function sharedPermissionsStatusCommand() {
+  return SHARED_PUBLIC_SURFACE_TEXT.localCliBridge.permissionsStatusCommand;
+}
+
 function sharedPermissionsSyncCommand() {
   return SHARED_PUBLIC_SURFACE_TEXT.localCliBridge.permissionsSyncCommand;
 }
@@ -960,8 +961,30 @@ function sharedRecentRecoveryCommand() {
   return SHARED_PUBLIC_SURFACE_TEXT.recoveryLadder.crossWorkspaceCommand;
 }
 
+function joinBacktickedCommands(commands) {
+  const rendered = commands.map((command) => `\`${command}\``);
+  if (rendered.length <= 1) {
+    return rendered.join("");
+  }
+  if (rendered.length === 2) {
+    return `${rendered[0]} and ${rendered[1]}`;
+  }
+  return `${rendered.slice(0, -1).join(", ")}, and ${rendered.at(-1)}`;
+}
+
+function localCliBridgeNote() {
+  return (
+    `Use ${joinBacktickedCommands(SHARED_PUBLIC_SURFACE_TEXT.localCliBridgeCommands)} `
+    + `${SHARED_PUBLIC_SURFACE_TEXT.localCliBridge.terminalPhrase} when you want `
+    + `${SHARED_PUBLIC_SURFACE_TEXT.localCliBridge.purposePhrase}.`
+  );
+}
+
 function localCliDiagnosticsFollowUpLine() {
-  return `Use \`${sharedLocalCliHelpCommand()}\` for local install, readiness, validation, permissions, observability, and diagnostics.`;
+  return (
+    `Use \`${sharedLocalCliHelpCommand()}\` for local install, readiness, validation, permissions, observability, and diagnostics. `
+    + `Local CLI bridge: ${localCliBridgeNote()}`
+  );
 }
 
 function recoveryLadderNote({ resumeWorkPhrase, suggestNextPhrase, pauseWorkPhrase }) {
@@ -1886,7 +1909,9 @@ function runInstallReadinessPreflight(managedPython, runtimes, scope, targetDir 
   log(
     `Use \`${sharedDoctorCommand()}\` for install and runtime-local readiness, `
     + `\`${sharedUnattendedReadinessCommand().replace(/\s+--runtime\b[\s\S]*$/u, "")}\` `
-    + "for the unattended or overnight verdict, and `gpd permissions ...` for runtime-owned permission alignment and sync."
+    + `for the unattended or overnight verdict, \`${sharedPermissionsStatusCommand()}\` `
+    + "for the read-only runtime-owned permission snapshot, and "
+    + `\`${sharedPermissionsSyncCommand()}\` when runtime-owned permission alignment needs a write/sync.`
   );
   log(
     "Workflow presets: if you plan paper/manuscript workflows, rerun "

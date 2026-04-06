@@ -23,7 +23,10 @@ review-contract:
     - command_context
     - project_state
     - roadmap
+    - phase_lookup
     - phase_artifacts
+    - phase_summaries
+    - phase_proof_review
   required_state: phase_executed
 allowed-tools:
   - file_read

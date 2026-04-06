@@ -633,6 +633,17 @@ def test_write_paper_review_contract_uses_round_suffixed_referee_outputs() -> No
     assert contract is not None
     assert contract.required_outputs == [
         "${PAPER_DIR}/{topic_specific_stem}.tex",
+        "${PAPER_DIR}/ARTIFACT-MANIFEST.json",
+        "${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json",
+        "${PAPER_DIR}/reproducibility-manifest.json",
+        "GPD/review/CLAIMS{round_suffix}.json",
+        "GPD/review/STAGE-reader{round_suffix}.json",
+        "GPD/review/STAGE-literature{round_suffix}.json",
+        "GPD/review/STAGE-math{round_suffix}.json",
+        "GPD/review/STAGE-physics{round_suffix}.json",
+        "GPD/review/STAGE-interestingness{round_suffix}.json",
+        "GPD/review/REVIEW-LEDGER{round_suffix}.json",
+        "GPD/review/REFEREE-DECISION{round_suffix}.json",
         "GPD/REFEREE-REPORT{round_suffix}.md",
         "GPD/REFEREE-REPORT{round_suffix}.tex",
     ]
@@ -684,7 +695,7 @@ def test_summary_template_surfaces_plan_contract_ref_rule_for_contract_ledgers()
     summary_template = (TEMPLATES_DIR / "summary.md").read_text(encoding="utf-8")
 
     assert "If `contract_results` or `comparison_verdicts` are present, `plan_contract_ref` is also required." in summary_template
-    assert "plan_contract_ref (required when `contract_results` or `comparison_verdicts` are present)" in summary_template
+    assert 'plan_contract_ref: "GPD/phases/XX-name/{phase}-{plan}-PLAN.md#/contract"' in summary_template
     assert "Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing the YAML" in summary_template
     assert "canonical project-root-relative `GPD/phases/XX-name/{phase}-{plan}-PLAN.md#/contract` path" in summary_template
     assert "Choose the depth explicitly" in summary_template
@@ -755,17 +766,19 @@ def test_write_paper_prompt_loads_figure_tracker_schema_before_updating_tracker(
 
 
 def test_comparison_templates_match_full_comparison_verdict_subject_kind_enum() -> None:
-    expected = "subject_kind: claim|deliverable|acceptance_test|reference"
-    expected_kind = "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other"
     internal = (TEMPLATES_DIR / "paper" / "internal-comparison.md").read_text(encoding="utf-8")
     experimental = (TEMPLATES_DIR / "paper" / "experimental-comparison.md").read_text(encoding="utf-8")
     contract_results = (TEMPLATES_DIR / "contract-results-schema.md").read_text(encoding="utf-8")
 
-    assert expected in internal
-    assert expected in experimental
-    assert expected_kind in internal
-    assert expected_kind in experimental
-    assert expected_kind in contract_results
+    assert "subject_kind: claim|deliverable|acceptance_test|reference" not in internal
+    assert "subject_kind: claim|deliverable|acceptance_test|reference" not in experimental
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" not in internal
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" not in experimental
+    assert "subject_kind: claim" in internal
+    assert "subject_kind: claim" in experimental
+    assert "comparison_kind: cross_method" in internal
+    assert "comparison_kind: experiment" in experimental
+    assert "comparison_kind: benchmark|prior_work|experiment|cross_method|baseline|other" in contract_results
     assert "uncertainty_markers:" in contract_results
     assert "weakest_anchors: [anchor-1]" in contract_results
     assert "disconfirming_observations: [observation-1]" in contract_results

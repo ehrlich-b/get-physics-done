@@ -32,10 +32,12 @@ __all__ = [
     "local_cli_permissions_status_command",
     "local_cli_bridge_note",
     "local_cli_presets_list_command",
+    "local_cli_plan_preflight_command",
     "local_cli_resume_command",
     "local_cli_resume_recent_command",
     "local_cli_permissions_sync_command",
     "local_cli_unattended_readiness_command",
+    "local_cli_bridge_purpose_phrase",
     "post_start_settings_contract",
     "post_start_settings_note",
     "post_start_settings_recommendation",
@@ -71,6 +73,7 @@ class LocalCliNamedCommandsContract:
     observe_execution: str
     cost: str
     presets_list: str
+    plan_preflight: str
     integrations_status_wolfram: str
 
     def ordered(self) -> tuple[str, ...]:
@@ -85,6 +88,7 @@ class LocalCliNamedCommandsContract:
             self.observe_execution,
             self.cost,
             self.presets_list,
+            self.plan_preflight,
             self.integrations_status_wolfram,
         )
 
@@ -199,6 +203,7 @@ _LOCAL_CLI_NAMED_COMMAND_KEYS = (
     "observe_execution",
     "cost",
     "presets_list",
+    "plan_preflight",
     "integrations_status_wolfram",
 )
 
@@ -311,6 +316,7 @@ def _require_local_cli_named_commands(
         ),
         cost=_require_string(named_payload, "cost", label="local_cli_bridge.named_commands"),
         presets_list=_require_string(named_payload, "presets_list", label="local_cli_bridge.named_commands"),
+        plan_preflight=_require_string(named_payload, "plan_preflight", label="local_cli_bridge.named_commands"),
         integrations_status_wolfram=_require_string(
             named_payload,
             "integrations_status_wolfram",
@@ -576,12 +582,20 @@ def local_cli_presets_list_command() -> str:
     return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.presets_list)
 
 
+def local_cli_plan_preflight_command() -> str:
+    return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.plan_preflight)
+
+
 def local_cli_integrations_status_wolfram_command() -> str:
     return _local_cli_bridge_command(local_cli_bridge_contract().named_commands.integrations_status_wolfram)
 
 
 def local_cli_bridge_note() -> str:
     return local_cli_bridge_contract().render_note()
+
+
+def local_cli_bridge_purpose_phrase() -> str:
+    return local_cli_bridge_contract().purpose_phrase
 
 
 def post_start_settings_contract() -> PostStartSettingsContract:

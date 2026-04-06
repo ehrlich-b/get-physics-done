@@ -65,6 +65,7 @@ _OPENCODE_RUNTIME_NAME, _OPENCODE_RUNTIME_ALIAS = runtime_with_multiword_alias(
     exclude=(_CODEX_RUNTIME_NAME, _CLAUDE_RUNTIME_NAME)
 )
 _BEGINNER_ONBOARDING_HUB_URL = beginner_onboarding_hub_url()
+_LOCAL_CLI_BRIDGE_NOTE = public_surface_contract_module.local_cli_bridge_note()
 _CODEX_INSTALL_FLAG = runtime_install_flag(_CODEX_RUNTIME_NAME)
 _CLAUDE_INSTALL_FLAG = runtime_install_flag(_CLAUDE_RUNTIME_NAME)
 _GENERIC_RECOVERY_LADDER_NOTE = recovery_ladder_note(
@@ -126,7 +127,10 @@ def _assert_single_runtime_next_steps(output: str, runtime: str) -> None:
             )
         ),
         re.escape("Secondary follow-up"),
-        re.escape("7. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics."),
+        re.escape(
+            "7. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics. "
+            f"Local CLI bridge: {_LOCAL_CLI_BRIDGE_NOTE}"
+        ),
         re.escape("8. Run gpd doctor --runtime"),
         re.escape(f"9. {_POST_START_SETTINGS_NOTE} {_POST_START_SETTINGS_RECOMMENDATION}"),
         re.escape("10. If you plan to use paper/manuscript workflows, rerun"),
@@ -570,7 +574,10 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
         )
         print("")
         print("Secondary follow-up")
-        print("7. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics.")
+        print(
+            "7. Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics. "
+            f"Local CLI bridge: {_LOCAL_CLI_BRIDGE_NOTE}"
+        )
         print(f"8. Run gpd doctor --runtime {{runtime}} --{{scope}} for a focused readiness check.")
         print(f"9. {_POST_START_SETTINGS_NOTE} {_POST_START_SETTINGS_RECOMMENDATION}")
         print(
@@ -597,7 +604,10 @@ if args[:3] == ["-m", "gpd.cli", "install"]:
             f"Fast bootstrap: use {{NEW_PROJECT_COMMANDS[runtimes[0]]}} --minimal for the shortest onboarding path."
         )
         print({_GENERIC_RECOVERY_LADDER_NOTE!r})
-        print("Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics.")
+        print(
+            "Use gpd --help for local install, readiness, validation, permissions, observability, and diagnostics. "
+            f"Local CLI bridge: {_LOCAL_CLI_BRIDGE_NOTE}"
+        )
         print("Run gpd doctor --runtime <runtime> --local|--global for a focused readiness check.")
         print(
             f"{_POST_START_SETTINGS_NOTE} {_POST_START_SETTINGS_RECOMMENDATION}"
@@ -770,6 +780,9 @@ assert.equal(sharedText.localCliBridge.resumeRecentCommand, payload.local_cli_br
 assert.equal(sharedText.localCliBridge.observeExecutionCommand, payload.local_cli_bridge.named_commands.observe_execution);
 assert.equal(sharedText.localCliBridge.costCommand, payload.local_cli_bridge.named_commands.cost);
 assert.equal(sharedText.localCliBridge.presetsListCommand, payload.local_cli_bridge.named_commands.presets_list);
+assert.equal(sharedText.localCliBridge.planPreflightCommand, payload.local_cli_bridge.named_commands.plan_preflight);
+assert.equal(sharedText.localCliBridge.terminalPhrase, payload.local_cli_bridge.terminal_phrase);
+assert.equal(sharedText.localCliBridge.purposePhrase, payload.local_cli_bridge.purpose_phrase);
 assert.equal(
   sharedText.localCliBridge.integrationsStatusWolframCommand,
   payload.local_cli_bridge.named_commands.integrations_status_wolfram
@@ -1101,7 +1114,7 @@ const badPermissionKindCatalog = JSON.parse(JSON.stringify(catalog));
 badPermissionKindCatalog[0].capabilities.permission_surface_kind = "approval-toggle";
 assert.throws(
   () => validateRuntimeCatalog(badPermissionKindCatalog),
-  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be "none", a bundled special surface kind, or a config surface label like file:key/
+  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be "none", "managed-launcher-wrapper", or a config surface label like file:key/
 );
 
 const badStatuslineCatalog = JSON.parse(JSON.stringify(catalog));
@@ -1138,7 +1151,7 @@ badLaunchWrapperPermissionContractCatalog[0].capabilities.permissions_surface = 
 badLaunchWrapperPermissionContractCatalog[0].capabilities.permission_surface_kind = "future.json:permissions.mode";
 assert.throws(
   () => validateRuntimeCatalog(badLaunchWrapperPermissionContractCatalog),
-  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be a bundled special surface kind when permissions_surface=launch-wrapper/
+  /runtime catalog entry 0\.capabilities\.permission_surface_kind must be "managed-launcher-wrapper" when permissions_surface=launch-wrapper/
 );
 
 const badUnsupportedPermissionContractCatalog = JSON.parse(JSON.stringify(catalog));
