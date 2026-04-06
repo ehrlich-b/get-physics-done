@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 __all__ = [
+    "agent_visibility_note",
     "command_visibility_note",
     "review_contract_visibility_note",
 ]
+
+
+def agent_visibility_note() -> str:
+    return "Model-visible agent requirements. Follow this YAML directly."
 
 
 def command_visibility_note() -> str:

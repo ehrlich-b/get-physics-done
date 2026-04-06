@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 from gpd.command_labels import canonical_command_label, canonical_skill_label, command_slug_from_label
-from gpd.core.model_visible_text import command_visibility_note
+from gpd.core.model_visible_text import agent_visibility_note, command_visibility_note
 from gpd.core.review_contract_prompt import (
     normalize_review_contract_frontmatter_payload,
     render_review_contract_prompt,
@@ -513,6 +513,55 @@ def render_review_contract_section(review_contract: ReviewCommandContract | None
     return render_review_contract_prompt(_review_contract_payload(review_contract))
 
 
+def _agent_requirements_payload(
+    *,
+    tools: list[str],
+    commit_authority: str,
+    surface: str,
+    role_family: str,
+    artifact_write_authority: str,
+    shared_state_authority: str,
+) -> dict[str, object]:
+    return {
+        "commit_authority": commit_authority,
+        "surface": surface,
+        "role_family": role_family,
+        "artifact_write_authority": artifact_write_authority,
+        "shared_state_authority": shared_state_authority,
+        "tools": list(tools),
+    }
+
+
+def render_agent_requirements_section(
+    *,
+    tools: list[str],
+    commit_authority: str,
+    surface: str,
+    role_family: str,
+    artifact_write_authority: str,
+    shared_state_authority: str,
+) -> str:
+    """Render a model-visible agent-contract block for agent prompt bodies."""
+
+    rendered = yaml.safe_dump(
+        _agent_requirements_payload(
+            tools=tools,
+            commit_authority=commit_authority,
+            surface=surface,
+            role_family=role_family,
+            artifact_write_authority=artifact_write_authority,
+            shared_state_authority=shared_state_authority,
+        ),
+        sort_keys=False,
+        allow_unicode=False,
+    ).rstrip()
+    return (
+        "## Agent Requirements\n\n"
+        f"{agent_visibility_note()}\n\n"
+        f"```yaml\n{rendered}\n```"
+    )
+
+
 def _command_visibility_payload(
     *,
     context_mode: str,
@@ -629,6 +678,33 @@ def render_command_visibility_sections_from_frontmatter(frontmatter: str, *, com
     )
 
 
+def _agent_model_content(
+    body: str,
+    *,
+    tools: list[str],
+    commit_authority: str,
+    surface: str,
+    role_family: str,
+    artifact_write_authority: str,
+    shared_state_authority: str,
+) -> str:
+    """Return the model-visible agent body, including enforced agent constraints."""
+
+    sections: list[str] = [
+        render_agent_requirements_section(
+            tools=tools,
+            commit_authority=commit_authority,
+            surface=surface,
+            role_family=role_family,
+            artifact_write_authority=artifact_write_authority,
+            shared_state_authority=shared_state_authority,
+        )
+    ]
+    if body:
+        sections.append(body)
+    return "\n\n".join(sections)
+
+
 def _command_model_content(
     body: str,
     review_contract: ReviewCommandContract | None,
@@ -709,49 +785,65 @@ def _parse_agent_file(path: Path, source: str) -> AgentDef:
         _parse_tools(meta.get("tools"), owner_name=agent_name),
         _parse_tools(meta.get("allowed-tools"), field_name="allowed-tools", owner_name=agent_name),
     )
+    description = _parse_frontmatter_string_field(
+        meta.get("description"),
+        field_name="description",
+        owner_name=agent_name,
+    )
+    commit_authority = _parse_commit_authority(meta.get("commit_authority"), agent_name=agent_name)
+    surface = _parse_agent_metadata_enum(
+        meta.get("surface"),
+        field_name="surface",
+        agent_name=agent_name,
+        valid_values=VALID_AGENT_SURFACES,
+        default="internal",
+    )
+    role_family = _parse_agent_metadata_enum(
+        meta.get("role_family"),
+        field_name="role_family",
+        agent_name=agent_name,
+        valid_values=VALID_AGENT_ROLE_FAMILIES,
+        default="analysis",
+    )
+    artifact_write_authority = _parse_agent_metadata_enum(
+        meta.get("artifact_write_authority"),
+        field_name="artifact_write_authority",
+        agent_name=agent_name,
+        valid_values=VALID_AGENT_ARTIFACT_WRITE_AUTHORITIES,
+        default="scoped_write",
+    )
+    shared_state_authority = _parse_agent_metadata_enum(
+        meta.get("shared_state_authority"),
+        field_name="shared_state_authority",
+        agent_name=agent_name,
+        valid_values=VALID_AGENT_SHARED_STATE_AUTHORITIES,
+        default="return_only",
+    )
+    color = _parse_frontmatter_string_field(
+        meta.get("color"),
+        field_name="color",
+        owner_name=agent_name,
+    )
+    system_prompt = _agent_model_content(
+        body.strip(),
+        tools=tools,
+        commit_authority=commit_authority,
+        surface=surface,
+        role_family=role_family,
+        artifact_write_authority=artifact_write_authority,
+        shared_state_authority=shared_state_authority,
+    )
     return AgentDef(
         name=agent_name,
-        description=_parse_frontmatter_string_field(
-            meta.get("description"),
-            field_name="description",
-            owner_name=agent_name,
-        ),
-        system_prompt=body.strip(),
+        description=description,
+        system_prompt=system_prompt,
         tools=tools,
-        commit_authority=_parse_commit_authority(meta.get("commit_authority"), agent_name=agent_name),
-        surface=_parse_agent_metadata_enum(
-            meta.get("surface"),
-            field_name="surface",
-            agent_name=agent_name,
-            valid_values=VALID_AGENT_SURFACES,
-            default="internal",
-        ),
-        role_family=_parse_agent_metadata_enum(
-            meta.get("role_family"),
-            field_name="role_family",
-            agent_name=agent_name,
-            valid_values=VALID_AGENT_ROLE_FAMILIES,
-            default="analysis",
-        ),
-        artifact_write_authority=_parse_agent_metadata_enum(
-            meta.get("artifact_write_authority"),
-            field_name="artifact_write_authority",
-            agent_name=agent_name,
-            valid_values=VALID_AGENT_ARTIFACT_WRITE_AUTHORITIES,
-            default="scoped_write",
-        ),
-        shared_state_authority=_parse_agent_metadata_enum(
-            meta.get("shared_state_authority"),
-            field_name="shared_state_authority",
-            agent_name=agent_name,
-            valid_values=VALID_AGENT_SHARED_STATE_AUTHORITIES,
-            default="return_only",
-        ),
-        color=_parse_frontmatter_string_field(
-            meta.get("color"),
-            field_name="color",
-            owner_name=agent_name,
-        ),
+        commit_authority=commit_authority,
+        surface=surface,
+        role_family=role_family,
+        artifact_write_authority=artifact_write_authority,
+        shared_state_authority=shared_state_authority,
+        color=color,
         path=str(path),
         source=source,
     )
@@ -1162,6 +1254,7 @@ __all__ = [
     "list_commands",
     "list_review_commands",
     "list_skills",
+    "render_agent_requirements_section",
     "render_command_visibility_sections",
     "render_command_visibility_sections_from_frontmatter",
     "render_review_contract_section",

@@ -229,34 +229,10 @@ def _agent_policy_payload(agent: content_registry.AgentDef) -> dict[str, object]
     }
 
 
-def _agent_policy_section(agent: content_registry.AgentDef) -> str:
-    rendered = "\n".join(
-        [
-            f"- `commit_authority`: `{agent.commit_authority}`",
-            f"- `surface`: `{agent.surface}`",
-            f"- `role_family`: `{agent.role_family}`",
-            f"- `artifact_write_authority`: `{agent.artifact_write_authority}`",
-            f"- `shared_state_authority`: `{agent.shared_state_authority}`",
-            "- `tools`: " + ", ".join(f"`{tool}`" for tool in agent.tools),
-        ]
-    )
-    return (
-        "## Agent Policy\n\n"
-        "The following agent contract is enforced before this skill runs. Treat it as authoritative and do not weaken it.\n\n"
-        f"{rendered}"
-    )
-
-
 def _canonical_skill_content(skill: content_registry.SkillDef) -> tuple[str, Path]:
     """Return the canonical content body and source path for a skill."""
     source_path = Path(skill.path)
-    content = skill.content
-
-    if skill.source_kind == "agent":
-        agent = content_registry.get_agent(skill.registry_name)
-        content = f"{_agent_policy_section(agent)}\n\n{content}"
-
-    return _portable_skill_content(content), source_path
+    return _portable_skill_content(skill.content), source_path
 
 
 def _normalize_allowed_tools(tools: list[str]) -> list[str]:
@@ -651,7 +627,7 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                 payload["content_authority"] = "canonical"
                 payload["loading_hint"] = (
                     loading_hint
-                    + " treat `content` as authoritative; the `Agent Policy` section already covers `commit_authority`, `surface`, `role_family`, `artifact_write_authority`, `shared_state_authority`, and `tools`."
+                    + " treat `content` as authoritative; the content field already includes a model-visible `Agent Requirements` section."
                 )
             return stable_mcp_response(payload)
         except (GPDError, OSError, ValueError, TimeoutError) as e:

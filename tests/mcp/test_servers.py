@@ -1360,8 +1360,11 @@ class TestSkillsServer:
         agent = registry.get_agent("gpd-debugger")
         # Agent-backed entries remain part of the canonical MCP skill index.
         assert result["name"] == "gpd-debugger"
+        assert result["content"] == agent.system_prompt
         assert "Primary debugger agent" in result["content"]
-        assert "## Agent Policy" in result["content"]
+        assert "## Agent Requirements" in result["content"]
+        assert result["content"].count("## Agent Requirements") == 1
+        assert "## Agent Policy" not in result["content"]
         assert "commit_authority" in result["content"]
         assert "artifact_write_authority" in result["content"]
         assert "shared_state_authority" in result["content"]
