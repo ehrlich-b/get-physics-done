@@ -47,7 +47,13 @@ def test_planner_workflows_do_not_embed_the_removed_long_policy_blocks() -> None
         "Keep the full canonical frontmatter, including `wave`, `depends_on`, `files_modified`, `interactive`, `conventions`, and `contract`.",
         "If the downstream fix plan will need specialized tooling or any other machine-checkable hard validation requirement, surface it in PLAN frontmatter `tool_requirements` before drafting task prose.",
         "If the revised fix plan still needs specialized tooling or any other machine-checkable hard validation requirement, keep it in PLAN frontmatter `tool_requirements` before rewriting task prose.",
-    ):
+        ):
         assert legacy_phrase not in plan_phase
         assert legacy_phrase not in verify_work
 
+
+def test_planner_workflows_keep_tangent_policy_single_sourced() -> None:
+    plan_phase = _read("plan-phase.md")
+
+    assert plan_phase.count("Required 4-way tangent decision model:") == 1
+    assert plan_phase.count("Branch as alternative hypothesis") == 1
