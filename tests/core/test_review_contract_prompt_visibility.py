@@ -90,6 +90,8 @@ def test_review_grade_commands_prepend_model_visible_review_contract_to_registry
         assert "## Review Contract" in command.content
         assert expected_section in command.content
         assert "review_contract:" in command.content
+        assert "Wrapper key: `review_contract`;" in expected_section
+        assert "`schema_version` must be `1`;" in expected_section
         assert review_contract_visibility_note() in expected_section
         assert f"review_mode: {contract.review_mode}" in expected_section
         for output in contract.required_outputs:

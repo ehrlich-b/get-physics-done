@@ -440,7 +440,7 @@ Target journal: {target_journal}
 Round: {round}
 Selected protocol bundles: {selected_protocol_bundle_ids}
 Additive specialized guidance: {protocol_bundle_context}
-Carry-forward context: project contract {project_contract}; project contract load info {project_contract_load_info}; project contract validation {project_contract_validation}; active references {active_reference_context}; derived manuscript reference status {derived_manuscript_reference_status}; contract intake {contract_intake}; effective reference intake {effective_reference_intake}; reference artifacts content {reference_artifacts_content}
+Carry-forward context: project contract {project_contract}; project contract gate {project_contract_gate}; project contract load info {project_contract_load_info}; project contract validation {project_contract_validation}; active references {active_reference_context}; derived manuscript reference status {derived_manuscript_reference_status}; contract intake {contract_intake}; effective reference intake {effective_reference_intake}; reference artifacts content {reference_artifacts_content}
 Output path: `GPD/review/STAGE-physics{round_suffix}.json`
 
 Files to read:

@@ -77,6 +77,8 @@ def _review_contract_guidance() -> str:
     return (
         f"{review_contract_visibility_note()} "
         "Closed schema; no extra keys. "
+        "Wrapper key: `review_contract`; "
+        "`schema_version` must be `1`; "
         f"`review_mode`={review_modes}; "
         f"`required_state`={required_states} when present; "
         f"`preflight_checks`=`{preflight_checks}`; "
