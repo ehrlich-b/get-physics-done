@@ -28,7 +28,6 @@ from gpd.adapters.install_utils import (
     convert_tool_references_in_body,
     ensure_update_hook,
     hook_python_interpreter,
-    materialize_first_round_review_schema_headings,
     parse_jsonc,
     process_attribution,
     protect_runtime_agent_prompt,
@@ -975,7 +974,6 @@ def _copy_agents_gemini(
             install_scope=install_scope,
             src_root=source_root,
         )
-        content = materialize_first_round_review_schema_headings(content)
         content = process_attribution(content, attribution)
         content = protect_runtime_agent_prompt(content, "gemini")
         content = _convert_frontmatter_to_gemini(content)

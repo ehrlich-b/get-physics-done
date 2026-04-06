@@ -42,7 +42,6 @@ from gpd.adapters.install_utils import (
     get_global_dir,
     hook_python_interpreter,
     managed_hook_paths,
-    materialize_first_round_review_schema_headings,
     pre_install_cleanup,
     prune_empty_ancestors,
     remove_empty_text_file,
@@ -206,7 +205,12 @@ def _resolve_codex_skills_dir(target_dir: Path, *, is_global: bool, skills_dir: 
 
 
 def _load_manifest_codex_skills_dir(target_dir: Path) -> Path | None:
-    """Return the install-time Codex skills dir recorded in the local manifest."""
+    """Return the install-time Codex skills dir recorded in the local manifest.
+
+    `codex_skills_dir` is the authoritative Codex-specific key. The generic
+    manifest `skills_dir` field is shared patch-tracking metadata and is not a
+    second ownership source for Codex uninstall or validation.
+    """
     manifest_path = target_dir / MANIFEST_NAME
     if not manifest_path.exists():
         return None
@@ -222,10 +226,6 @@ def _load_manifest_codex_skills_dir(target_dir: Path) -> Path | None:
     manifest_skills_dir = manifest.get(_MANIFEST_CODEX_SKILLS_DIR_KEY)
     if isinstance(manifest_skills_dir, str) and manifest_skills_dir:
         return Path(manifest_skills_dir)
-
-    generic_skills_dir = manifest.get("skills_dir")
-    if isinstance(generic_skills_dir, str) and generic_skills_dir:
-        return Path(generic_skills_dir)
 
     return None
 
@@ -1518,7 +1518,6 @@ def _copy_agents_as_agent_files(
             src_root=source_root,
             protect_agent_prompt_body=True,
         )
-        content = materialize_first_round_review_schema_headings(content)
         content = convert_tool_references_in_body(content, _TOOL_REFERENCE_MAP)
         content = _rewrite_codex_gpd_cli_invocations(content, launcher)
         content = _normalize_codex_questioning(content)

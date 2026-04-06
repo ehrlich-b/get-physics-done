@@ -17,7 +17,6 @@ from gpd.adapters.install_utils import (
     copy_with_path_replacement,
     ensure_update_hook,
     hook_python_interpreter,
-    materialize_first_round_review_schema_headings,
     parse_jsonc,
     prune_empty_ancestors,
     read_settings,
@@ -655,7 +654,6 @@ def _copy_agents_native(
         )
         if translate_tool_name is not None:
             content = translate_frontmatter_tool_names(content, translate_tool_name)
-        content = materialize_first_round_review_schema_headings(content)
         if content_transform is not None:
             content = content_transform(content)
         if body_tool_reference_map is None:

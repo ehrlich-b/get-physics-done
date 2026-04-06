@@ -366,7 +366,7 @@ def test_update_surface_materializes_workflow_paths_in_compiled_artifacts(
 
 
 @pytest.mark.parametrize("runtime", ["claude-code"])
-def test_shared_installed_markdown_materializes_first_round_review_placeholders(
+def test_shared_installed_markdown_preserves_round_aware_review_placeholders(
     real_installed_repo_factory,
     runtime: str,
 ) -> None:
@@ -375,10 +375,13 @@ def test_shared_installed_markdown_materializes_first_round_review_placeholders(
     shared_markdown = sorted((target / "get-physics-done").rglob("*.md"))
     assert shared_markdown
 
+    saw_round_placeholder = False
     for markdown_path in shared_markdown:
         content = markdown_path.read_text(encoding="utf-8")
-        assert "{round_suffix}" not in content, markdown_path
-        assert "{-RN}" not in content, markdown_path
+        if "{round_suffix}" in content or "{-RN}" in content:
+            saw_round_placeholder = True
+
+    assert saw_round_placeholder is True
 
 # ---------------------------------------------------------------------------
 # Claude Code: install → read back → compare

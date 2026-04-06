@@ -428,7 +428,7 @@ class TestInstall:
         assert "validates the install contract" in skill
         assert "`GPD_ACTIVE_RUNTIME=codex uv run gpd ...`" not in skill
         assert expected_bridge + " config ensure-section" in skill
-        assert f'INIT=$({expected_bridge} init progress --include state,config)' in skill
+        assert f'INIT=$({expected_bridge} --raw init progress --include state,config --no-project-reentry)' in skill
         assert 'echo "ERROR: gpd initialization failed: $INIT"' in skill
         assert expected_bridge + " config ensure-section" in workflow
         assert f'if ! {expected_bridge} verify plan "$plan"; then' in execute_phase
@@ -1415,29 +1415,36 @@ class TestUninstall:
         assert str(skills) in adapter.missing_install_artifacts(target)
         assert adapter.has_complete_install(target) is False
 
-    def test_missing_codex_skills_dir_metadata_falls_back_to_generic_manifest_skills_dir(
+    def test_missing_codex_skills_dir_metadata_does_not_fall_back_to_generic_manifest_skills_dir(
         self,
         adapter: CodexAdapter,
         gpd_root: Path,
         tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         target = tmp_path / ".codex"
         target.mkdir()
         skills = tmp_path / "custom-skills"
         skills.mkdir()
+        env_skills = tmp_path / "ignored-global-skills"
+        monkeypatch.setenv("CODEX_SKILLS_DIR", str(env_skills))
 
-        adapter.install(gpd_root, target, skills_dir=skills)
+        adapter.install(gpd_root, target, is_global=False, skills_dir=skills)
         manifest_path = target / "gpd-file-manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         tracked_skill_names = set(manifest["codex_generated_skill_dirs"])
         manifest.pop("codex_skills_dir", None)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
-        assert str(skills) not in adapter.missing_install_artifacts(target)
+        missing = adapter.missing_install_artifacts(target)
+        expected_local_skills = target.parent / ".agents" / "skills"
+        assert str(skills) not in missing
+        assert str(expected_local_skills) in missing
+        assert str(env_skills) not in missing
 
         adapter.uninstall(target)
 
-        assert all(not (skills / name).exists() for name in tracked_skill_names)
+        assert all((skills / name).exists() for name in tracked_skill_names)
 
     def test_uninstall_fails_closed_when_manifest_and_install_metadata_drift_past_live_skill_tracking(
         self,
