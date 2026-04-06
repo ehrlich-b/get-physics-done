@@ -662,7 +662,6 @@ task(
 ```
 
 **If a writer agent fails to spawn or returns an error:** Check if the expected .tex file was written to `${PAPER_DIR}/` (agents write files first). If the file exists, proceed to the next section. If not, offer: 1) Retry the failed section, 2) Draft the section in the main context using the section brief, 3) Skip the section and continue with remaining waves. Do not block the entire paper on a single section failure — other sections can still be drafted in parallel.
-Default bootstrap wording: `Check if the expected .tex file was written to `${PAPER_DIR}/``. If the file exists, proceed to the next section.
 
 **Each writer agent receives:**
 
@@ -888,7 +887,6 @@ Return BIBLIOGRAPHY UPDATED or CITATION ISSUES FOUND."
 - Add missing citations identified by the bibliographer
 - Re-run the audit if substantial changes were made
 - Re-run `gpd paper-build` after bibliography changes so `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` and the derived reference bridge are regenerated before entering strict review or `pre_submission_review`.
-  Default bootstrap wording: rerun `paper-build` so `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` is current before strict review or `pre_submission_review`.
 
 **If BIBLIOGRAPHY UPDATED:**
 
@@ -921,7 +919,6 @@ Minimum required inputs:
 - contract-backed summary-artifact / `VERIFICATION.md` evidence for decisive claims, figures, and comparisons
 
 `gpd paper-build` must have regenerated `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` for the current bibliography before building the reproducibility manifest. Stale bibliography audits are not acceptable review inputs.
-  Default bootstrap wording: rerun `paper-build` so `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` is current before building the reproducibility manifest.
 
 Validate it before entering strict review:
 

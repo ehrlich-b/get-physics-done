@@ -152,15 +152,12 @@ awaiting: researcher response
 
 ### 1. [Check Name]
 
-<!-- Same rule as above: keep only the ID keys that actually bind this check. -->
-
 check_subject_kind: claim
 subject_id: "claim-main"
 claim_id: "claim-main"
 reference_ids: ["reference-id", "..."]
 comparison_kind: benchmark
 comparison_reference_id: "reference-id"
-# If this check is not comparison-backed yet, omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders.
 expected: "what should hold - physical reasoning, derivation step, or result property"
 suggested_contract_checks:
   # If you cannot bind the gap to a known contract target yet, omit both

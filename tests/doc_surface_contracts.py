@@ -1164,11 +1164,12 @@ def assert_resume_authority_contract(
             assert alias not in content
         assert "Compatibility-only backend intake (`gpd init resume` only):" not in content
     if require_generic_compatibility_note:
+        lowered_content = content.lower()
         _assert_contains_any(
-            content,
+            lowered_content,
             (
-                compatibility_note,
-                _contract_string(contract, "top_level_boundary_phrase", label="resume_authority"),
+                compatibility_note.lower(),
+                _contract_string(contract, "top_level_boundary_phrase", label="resume_authority").lower(),
             ),
             label="generic compatibility note",
         )

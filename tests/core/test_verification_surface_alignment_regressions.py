@@ -18,6 +18,13 @@ def test_verification_scaffolds_surface_closed_comparison_kind_enum_without_blan
 
     expected_enum = "`comparison_kind`: benchmark|prior_work|experiment|cross_method|baseline|other"
     omit_instruction = "omit both `comparison_kind` and `comparison_reference_id` instead of leaving blank placeholders"
+    paired_id_instruction = "omit both keys instead of leaving one blank"
+    subject_id_instruction = (
+        "omit unused `subject_id`, `claim_id`, `deliverable_id`, `acceptance_test_id`, "
+        "and `forbidden_proxy_id` fields instead of leaving blank placeholders."
+    )
+    verify_subject_id_instruction = "follow the omission rule from current check instead of leaving blank placeholder strings."
+    normalized_verify_workflow = " ".join(verify_workflow.lower().split())
 
     assert "Allowed body enum values:" in research_verification
     assert "Allowed body enum values:" in verify_workflow
@@ -29,8 +36,14 @@ def test_verification_scaffolds_surface_closed_comparison_kind_enum_without_blan
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other]" not in verify_workflow
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" not in research_verification
     assert "comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | other | \"\"]" not in verify_workflow
-    assert omit_instruction in research_verification
-    assert omit_instruction in verify_workflow
+    assert research_verification.count(omit_instruction) == 1
+    assert verify_workflow.count(omit_instruction) == 1
+    assert research_verification.count(paired_id_instruction) == 1
+    assert verify_workflow.count(paired_id_instruction) == 1
+    assert research_verification.count(subject_id_instruction) == 1
+    assert normalized_verify_workflow.count(subject_id_instruction) == 1
+    assert normalized_verify_workflow.count(verify_subject_id_instruction) == 1
+    assert "Same rule as above: keep only the ID keys that actually bind this check." not in research_verification
 
 
 def test_verification_report_strict_pass_guidance_includes_reference_coverage_rules() -> None:

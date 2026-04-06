@@ -945,7 +945,7 @@ Next: Phase [X+1] — [Name]
 >>> Auto-continuing: Plan Phase [X+1] in detail
 ```
 
-Exit skill and invoke slash_command("gpd:plan-phase [X+1]")
+Exit this workflow and immediately run `gpd:plan-phase [X+1]` in the installed runtime command surface.
 
 </if>
 
@@ -994,7 +994,7 @@ Milestone {version} is 100% complete — all {N} phases finished!
 >>> Auto-continuing: Complete milestone and archive
 ```
 
-Exit skill and invoke slash_command("gpd:complete-milestone {version}")
+Exit this workflow and immediately run `gpd:complete-milestone {version}` in the installed runtime command surface.
 
 </if>
 

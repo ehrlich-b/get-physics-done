@@ -1644,7 +1644,7 @@ class TestResume:
         assert "Continuity handoff" in result.output
         assert "gpd resume" in result.output
         assert "gpd resume --recent" in result.output
-        assert "gpd init resume" in result.output
+        assert "gpd --raw resume" in result.output
         assert "resume-work" in result.output
         assert "suggest-next" in result.output
 
@@ -1759,7 +1759,7 @@ class TestResume:
         assert "Canonical candidate kinds" in result.output
         assert "continuity handoff is available" not in normalized.lower()
         assert "gpd resume --recent" in result.output
-        assert "gpd init resume" in result.output
+        assert "gpd --raw resume" in result.output
         assert "resume-work" in result.output
         assert "suggest-next" in result.output
 

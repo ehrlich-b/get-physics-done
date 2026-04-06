@@ -737,6 +737,41 @@ def test_derive_execution_visibility_marks_only_active_segments_possibly_stalled
     assert any("gpd observe show --session sess-active --last 20" in step for step in visibility.suggested_next_steps)
 
 
+def test_derive_execution_visibility_uses_valid_progress_command_in_help_paths(
+    tmp_path: Path, monkeypatch
+) -> None:
+    project = _bootstrap_project(tmp_path)
+    monkeypatch.chdir(project)
+
+    from gpd.core.observability import derive_execution_visibility
+
+    visibility = derive_execution_visibility(project)
+    assert visibility is not None
+    assert any(suggestion.command == "gpd progress bar" for suggestion in visibility.suggested_next_commands)
+    assert all("--brief" not in suggestion.command for suggestion in visibility.suggested_next_commands)
+
+    observability_dir = project / "GPD" / "observability"
+    observability_dir.mkdir(parents=True, exist_ok=True)
+    (observability_dir / "current-execution.json").write_text(
+        json.dumps(
+            {
+                "session_id": "sess-active",
+                "phase": "03",
+                "plan": "01",
+                "segment_status": "active",
+                "current_task": "Inspect a live segment",
+                "updated_at": _iso_minutes_ago(1),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    visibility = derive_execution_visibility(project)
+    assert visibility is not None
+    assert any(suggestion.command == "gpd progress bar" for suggestion in visibility.suggested_next_commands)
+    assert all("--brief" not in suggestion.command for suggestion in visibility.suggested_next_commands)
+
+
 def test_derive_execution_visibility_surfaces_pending_tangent_without_new_classification(
     tmp_path: Path, monkeypatch
 ) -> None:

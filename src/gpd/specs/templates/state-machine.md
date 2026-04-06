@@ -17,7 +17,7 @@ Phase 5 separates three layers that were previously blurred together:
 2. A derived execution head projects the latest resumable execution state for compatibility surfaces.
 3. `state.json.continuation.bounded_segment` remains the durable bounded-resume authority.
 
-Current public behavior keeps the canonical continuation decision in `gpd init resume`, which reads `state.json.continuation` first and only consults compatibility surfaces when canonical continuation is missing or incomplete. `session` is a compatibility mirror, and `.continue-here.md` plus `current-execution.json` are projections, not peer authorities.
+Current public behavior exposes the canonical continuation decision through `gpd --raw resume`, which reads `state.json.continuation` first and only consults compatibility surfaces when canonical continuation is missing or incomplete. `session` is a compatibility mirror, and `.continue-here.md` plus `current-execution.json` are projections, not peer authorities.
 
 | Surface | Role | Authority Level | Notes |
 |---------|------|-----------------|-------|
@@ -28,7 +28,7 @@ Current public behavior keeps the canonical continuation decision in `gpd init r
 | Derived execution head / `GPD/observability/current-execution.json` | Compatibility mirror | Non-authoritative | Latest execution snapshot rebuilt from lineage; used by live status surfaces |
 | `GPD/phases/.../.continue-here.md` | Temporary handoff artifact | Non-authoritative | Written by `gpd:pause-work`; may be referenced by canonical continuation, session compatibility, or a live execution snapshot |
 
-The canonical continuation decision comes from `gpd init resume`, not from reading any one of these files in isolation. Canonical `state.json.continuation.bounded_segment` wins first; the derived execution head only fills compatibility gaps. The temporary handoff artifact and derived execution head remain projections, not independent sources of truth.
+The canonical continuation decision comes from `gpd --raw resume`, not from reading any one of these files in isolation. Canonical `state.json.continuation.bounded_segment` wins first; the derived execution head only fills compatibility gaps. The temporary handoff artifact and derived execution head remain projections, not independent sources of truth.
 
 ---
 
@@ -165,7 +165,7 @@ Active → Audited → Complete → Archived
 |-----------|---------|---------------|
 | Project: Created → Active | `gpd:new-project` | PROJECT.md, ROADMAP.md, STATE.md, state.json, config.json created |
 | Project: Active → Paused | `gpd:pause-work` | state.json + STATE.md (canonical continuation / paused marker), `.continue-here.md` temporary handoff projection may be created |
-| Project: Paused → Active | `gpd:resume-work` | Guided by `gpd init resume` over canonical state, editable mirror, temporary handoff projection, and any derived execution head mirror; STATE.md paused marker may be cleared and the handoff projection may be consumed |
+| Project: Paused → Active | `gpd:resume-work` | Guided by `gpd --raw resume` over canonical state, editable mirror, temporary handoff projection, and any derived execution head mirror; STATE.md paused marker may be cleared and the handoff projection may be consumed |
 | Phase: Not started → Discussed | `gpd:discuss-phase` | `{NN}-CONTEXT.md` created |
 | Phase: → Researched | `gpd:research-phase` or `gpd:plan-phase` | `{NN}-RESEARCH.md` created |
 | Phase: Researched → Planned | `gpd:plan-phase` | `{NN}-{plan}-PLAN.md` files created, STATE.md updated |
@@ -228,7 +228,7 @@ For continuation specifically:
 - `.continue-here.md` is the canonical temporary handoff projection, not the storage authority
 - append-only execution lineage is the provenance record, not the bounded-resume authority
 - the derived execution head and `GPD/observability/current-execution.json` are compatibility mirrors, not the storage authority
-- `gpd init resume` resolves the canonical continuation view with `state.json.continuation` first and compatibility fallback only for incomplete bounded-segment recovery
+- `gpd --raw resume` resolves the canonical continuation view with `state.json.continuation` first and compatibility fallback only for incomplete bounded-segment recovery
 
 ---
 

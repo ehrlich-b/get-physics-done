@@ -592,7 +592,7 @@ def test_help_prompt_session_management_keeps_pause_before_leave_and_resume_on_r
         require_generic_compatibility_note=True,
     )
     assert resume_authority_public_vocabulary_intro() in help_workflow
-    assert "compatibility-only intake fields stay internal" in help_workflow
+    assert "compatibility-only intake fields stay internal" in help_workflow.lower()
     assert "state.json.continuation.handoff.resume_file" not in help_workflow
     assert "compat_resume_surface" not in help_workflow
     assert resume_authority_fields() == (

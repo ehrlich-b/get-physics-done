@@ -1852,13 +1852,12 @@ def _normalize_recent_project_row(row: object) -> dict[str, object] | None:
 
     from gpd.core.recent_projects import RecentProjectEntry
 
-    unexpected_fields = sorted(key for key in row if key not in RecentProjectEntry.model_fields)
-    if unexpected_fields:
-        formatted = ", ".join(unexpected_fields)
-        raise ValueError(f"recent-project row contains unexpected field(s): {formatted}")
-
     project_root = _recent_project_text(row, "project_root")
     if project_root is None:
+        unexpected_fields = sorted(key for key in row if key not in RecentProjectEntry.model_fields)
+        if unexpected_fields:
+            formatted = ", ".join(unexpected_fields)
+            raise ValueError(f"recent-project row contains unexpected field(s): {formatted}")
         return None
 
     project_path = Path(project_root).expanduser()
@@ -1873,7 +1872,9 @@ def _normalize_recent_project_row(row: object) -> dict[str, object] | None:
         "available": available,
         "missing": not available,
     }
-    if project_path.is_absolute():
+    if not available:
+        normalized["command"] = "unavailable"
+    elif project_path.is_absolute():
         normalized["command"] = f"gpd --cwd {shlex.quote(str(project_path.resolve(strict=False)))} resume"
     else:
         normalized["command"] = None
@@ -1971,6 +1972,8 @@ def _resume_recent_project_command(row: dict[str, object]) -> str:
     """Return the exact command to reopen one recent project."""
     project_root = row.get("project_root")
     if not isinstance(project_root, str) or not project_root.strip():
+        return "unavailable"
+    if row.get("available") is not True:
         return "unavailable"
     project_path = Path(project_root).expanduser().resolve(strict=False)
     return f"gpd --cwd {shlex.quote(str(project_path))} resume"
@@ -2144,14 +2147,8 @@ def _resume_augmented_payload(payload: dict[str, object], *, cwd: Path | None = 
 
 def _render_recent_resume_summary(rows: list[dict[str, object]]) -> None:
     """Render the recent-project picker for cross-project recovery."""
-    recovery_advice = _resume_recovery_advice(recent_rows=rows, force_recent=True)
-
     console.print("[bold]Recent Projects[/]")
     console.print("[dim]Machine-local recovery index. Recent projects are ordered by recovery strength, then recency. A single recoverable match can auto-select; otherwise choose explicitly with the command shown for each row.[/]")
-    if isinstance(recovery_advice.continue_command, str) and recovery_advice.continue_command.strip() and not recovery_advice.continue_command.startswith("runtime `"):
-        console.print(f"[dim]In the selected workspace, continue with `{recovery_advice.continue_command}`.[/]")
-    if isinstance(recovery_advice.fast_next_command, str) and recovery_advice.fast_next_command.strip() and not recovery_advice.fast_next_command.startswith("runtime `"):
-        console.print(f"[dim]After resuming, `{recovery_advice.fast_next_command}` is the fastest next runtime action.[/]")
     console.print()
 
     if not rows:
@@ -2187,9 +2184,8 @@ def _render_recent_resume_summary(rows: list[dict[str, object]]) -> None:
         console.print()
     console.print()
     console.print("[bold]Next here[/]")
-    console.print("- Run the exact `gpd --cwd ... resume` command from the table to continue in the selected workspace.")
-    for line in _resume_follow_up_actions(recovery_advice):
-        console.print(f"- {line}")
+    console.print("- Select a workspace above, then continue there with `resume-work`.")
+    console.print("- After resuming, `suggest-next` is the fastest next action.")
 
 
 def _render_resume_summary(payload: dict[str, object]) -> None:
@@ -2323,7 +2319,7 @@ def _render_resume_summary(payload: dict[str, object]) -> None:
     console.print("[bold]Recovery ladder[/]")
     console.print(f"- {recovery_resume_action()}")
     console.print(f"- {recovery_recent_action()}")
-    console.print("- `gpd init resume` remains the machine-readable backend used by runtime resume workflows.")
+    console.print("- `gpd --raw resume` is the machine-readable local recovery surface.")
     hint = _resume_recent_hint(public_payload)
     if hint is not None:
         console.print(f"- {hint}")
