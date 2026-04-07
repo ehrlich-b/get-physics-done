@@ -47,7 +47,7 @@ def test_planner_workflows_expand_the_shared_planner_template_once_per_route() -
     assert "templates/planner-subagent-prompt.md" not in quick_raw
     assert planner_agent_raw.count("@{GPD_INSTALL_DIR}/templates/phase-prompt.md") == 1
     assert planner_agent_raw.count("@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md") == 1
-    assert "canonical planner read surface" in planner_agent_raw
+    assert "These are the hard planner contract gates." in planner_agent_raw
 
     assert planner_template.count("## Standard Planning Template") == 1
     assert planner_template.count("## Revision Template") == 1

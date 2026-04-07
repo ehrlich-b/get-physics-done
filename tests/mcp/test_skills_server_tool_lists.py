@@ -410,6 +410,24 @@ def test_get_skill_executor_agent_does_not_expose_staged_loading_sidecar() -> No
     assert "staged_loading" not in result["structured_metadata_authority"]
 
 
+def test_get_skill_planner_agent_does_not_expose_staged_loading_sidecar(monkeypatch) -> None:
+    from pathlib import Path
+
+    from gpd import registry as content_registry
+    from gpd.mcp.servers.skills_server import get_skill
+
+    repo_agents_dir = Path(__file__).resolve().parents[2] / "src/gpd/agents"
+    monkeypatch.setattr(content_registry, "AGENTS_DIR", repo_agents_dir)
+    content_registry.invalidate_cache()
+
+    result = get_skill("gpd-planner")
+
+    assert result["allowed_tools_surface"] == "agent.tools"
+    assert result["structured_metadata_authority"]["content"] == "canonical"
+    assert "staged_loading" not in result
+    assert "staged_loading" not in result["structured_metadata_authority"]
+
+
 def test_skills_server_import_is_resilient_to_registry_index_failure(monkeypatch) -> None:
     monkeypatch.setattr(
         registry_module,

@@ -996,7 +996,7 @@ Display:
 * Spawning planner for gap closure...
 ```
 
-Spawn gpd-planner in --gaps mode:
+Spawn gpd-planner in `--gaps` mode:
 > **Runtime delegation:** Spawn a subagent for the task below. Adapt the `task()` call to your runtime's agent spawning mechanism. If `model` resolves to `null` or an empty string, omit it so the runtime uses its default model. Always pass `readonly=false` for file-producing agents. If subagent spawning is unavailable, execute these steps sequentially in the main context.
 
 Planner prompt:
@@ -1004,7 +1004,7 @@ Planner prompt:
 @{GPD_INSTALL_DIR}/templates/planner-subagent-prompt.md
 
 ```markdown
-Render the template's `## Standard Planning Template` into `gap_closure_prompt` with these bindings:
+Render the stage-local planner template's `## Standard Planning Template` into `gap_closure_prompt` with these bindings:
 
 - `{phase_number}` -> {phase_number}
 - `{standard | gap_closure}` -> `gap_closure`
@@ -1028,9 +1028,9 @@ Render the template's `## Standard Planning Template` into `gap_closure_prompt` 
 - `{experiment_design_content}` -> No separate experiment-design artifact is preloaded for gap closure.
 - `{verification_content}` -> Read `${phase_dir}/${phase_number}-VERIFICATION.md` before drafting.
 - `{validation_content}` -> Use existing phase validation notes only if they already exist and matter to the diagnosed gaps.
-
 If the downstream fix plan needs specialized tooling or other machine-checkable hard requirements, keep them in PLAN frontmatter `tool_requirements`.
-Keep the prompt scoped to diagnosed verification gaps. Do not restate template-owned contract gates, tangent control, context-budget guidance, downstream-consumer rules, or the quality gate here.
+
+Keep the prompt scoped to diagnosed verification gaps and stage-local anchors.
 ```
 
 ```
@@ -1132,7 +1132,7 @@ Revision prompt:
 @{GPD_INSTALL_DIR}/templates/planner-subagent-prompt.md
 
 ```markdown
-Render the template's `## Revision Template` into `revision_prompt` with these bindings:
+Render the stage-local planner template's `## Revision Template` into `revision_prompt` with these bindings:
 
 - `{phase_number}` -> {phase_number}
 - `{plans_content}` -> Read all PLAN.md files in `${phase_dir}/` before revising.
@@ -1148,10 +1148,10 @@ Render the template's `## Revision Template` into `revision_prompt` with these b
 - `{active_reference_context}` -> {active_reference_context}
 - `{reference_artifacts_content}` -> {reference_artifacts_content}
 - `{context_content}` -> Keep revisions scoped to checker feedback plus the diagnosed verification gaps already surfaced in `${phase_dir}/${phase_number}-VERIFICATION.md`.
-
 If the revised fix plan still needs specialized tooling or other machine-checkable hard requirements, keep them in PLAN frontmatter `tool_requirements`.
 Treat `effective_reference_intake` as the structured source of carry-forward anchors; `active_reference_context` is the readable projection, not the source of truth.
-Keep the revision prompt scoped to targeted checker fixes. Do not restate template-owned revision policy here.
+
+Keep the revision prompt scoped to targeted checker fixes and stage-local anchors.
 ```
 
 ```

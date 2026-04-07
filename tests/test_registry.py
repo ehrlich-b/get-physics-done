@@ -2369,3 +2369,17 @@ def test_executor_skill_defers_completion_only_materials_until_summary_creation(
     assert "templates/summary.md" not in bootstrap
     assert "templates/calculation-log.md" not in bootstrap
     assert "Order-of-Limits Awareness" not in bootstrap
+
+
+def test_planner_skill_defers_late_planning_materials_into_on_demand_references() -> None:
+    skill = registry.get_skill("gpd-planner")
+    bootstrap, separator, _ = skill.content.partition("On-demand references:")
+
+    assert skill.name == "gpd-planner"
+    assert skill.source_kind == "agent"
+    assert separator == "On-demand references:"
+    assert "Phase Plan Prompt" in bootstrap
+    assert "PLAN Contract Schema" in bootstrap
+    assert "Read config.json for planning behavior settings." not in bootstrap
+    assert "## Summary Template" not in bootstrap
+    assert "Order-of-Limits Awareness" not in bootstrap

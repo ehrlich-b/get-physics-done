@@ -493,7 +493,7 @@ ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null
 
 ## 7. Use Context Files from INIT
 
-Refresh the full planning payload now that research routing is complete. This is the first stage that should load file contents, protocol-bundle context, reference-artifact content, and stage-local experiment design data for planner/checker prompts:
+Refresh the stage-local planning payload now that research routing is complete:
 
 ```bash
 INIT=$(gpd --raw init plan-phase "$PHASE" --stage planner_authoring)
@@ -535,7 +535,7 @@ Display banner:
 
 Planner prompt:
 
-Use `templates/planner-subagent-prompt.md` here as the stage-local planner spawn template and render its `## Standard Planning Template` section.
+Use `templates/planner-subagent-prompt.md` here as the stage-local planner template and render its `## Standard Planning Template` section.
 
 ```markdown
 Render the template's `## Standard Planning Template` into `filled_prompt` with these bindings:
@@ -562,9 +562,8 @@ Render the template's `## Standard Planning Template` into `filled_prompt` with 
 - `{experiment_design_content}` -> {experiment_design_content}
 - `{verification_content}` -> {verification_content}
 - `{validation_content}` -> {validation_content}
-
-If an active hypothesis branch exists, append the existing `<hypothesis_constraint>` block after the rendered planning context.
 Keep `{contract_intake}` and `{effective_reference_intake}` visible in the rendered prompt.
+
 Do not restate template-owned contract gates, tangent control, tool-requirement policy, proof-bearing plan policy, context-budget guidance, downstream-consumer rules, or the quality gate here.
 ```
 
@@ -746,7 +745,7 @@ fi
 
 Revision prompt:
 
-Use `templates/planner-subagent-prompt.md` here as the stage-local revision template and render its `## Revision Template` section.
+Use `templates/planner-subagent-prompt.md` here as the stage-local planner template and render its `## Revision Template` section.
 
 ```markdown
 Render the template's `## Revision Template` into `revision_prompt` with these bindings:
@@ -765,6 +764,8 @@ Render the template's `## Revision Template` into `revision_prompt` with these b
 - `{active_reference_context}` -> {active_reference_context}
 - `{reference_artifacts_content}` -> {reference_artifacts_content}
 - `{context_content}` -> {context_content}
+If the revised fix plan still needs specialized tooling or other machine-checkable hard requirements, keep them in PLAN frontmatter `tool_requirements`.
+Treat `effective_reference_intake` as the structured source of carry-forward anchors; `active_reference_context` is the readable projection, not the source of truth.
 
 Keep the revision prompt scoped to targeted checker fixes. Do not restate template-owned revision policy here.
 ```

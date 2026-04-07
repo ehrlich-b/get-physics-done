@@ -151,6 +151,7 @@ def test_contract_schema_docs_make_lowercase_closed_vocab_rule_model_visible() -
 
 def test_planner_prompt_stays_compact_while_preserving_canonical_contract_wiring() -> None:
     planner_prompt = (REPO_ROOT / "src/gpd/agents/gpd-planner.md").read_text(encoding="utf-8")
+    planner_role = planner_prompt.partition("</role>")[0]
 
     assert "parameters:\n        - symbol: \"q\"" in planner_prompt
     assert "hypotheses:\n        - id: \"hyp-gauge\"" in planner_prompt
@@ -175,6 +176,9 @@ def test_planner_prompt_stays_compact_while_preserving_canonical_contract_wiring
     assert 'proof_deliverables: ["deliv-proof-vac-pol"]' in planner_prompt
     assert "GPD/phases/00-baseline/00-01-SUMMARY.md#gauge-and-tensor-convention" in planner_prompt
     assert "GPD/phases/01-vacuum-polarization/01-01-SUMMARY.md" in planner_prompt
+    assert "@{GPD_INSTALL_DIR}/workflows/execute-plan.md" not in planner_role
+    assert "@{GPD_INSTALL_DIR}/templates/summary.md" not in planner_role
+    assert "@{GPD_INSTALL_DIR}/references/protocols/order-of-limits.md" not in planner_role
 
 
 def test_proof_obligation_planning_surfaces_require_claim_audit_and_stale_review_gate() -> None:

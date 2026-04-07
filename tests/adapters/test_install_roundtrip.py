@@ -664,3 +664,20 @@ def test_installed_executor_bootstrap_surface_defers_completion_only_materials(
     assert "templates/summary.md" not in bootstrap
     assert "templates/calculation-log.md" not in bootstrap
     assert "Order-of-Limits Awareness" not in bootstrap
+
+
+@pytest.mark.parametrize("runtime", ["claude-code", "codex", "gemini", "opencode"])
+def test_installed_planner_bootstrap_surface_defers_execution_and_completion_materials(
+    real_installed_repo_factory,
+    runtime: str,
+) -> None:
+    target = real_installed_repo_factory(runtime)
+    planner = _read_runtime_agent_prompt(target, runtime, "gpd-planner")
+    bootstrap, separator, _ = planner.partition("On-demand references:")
+
+    assert separator == "On-demand references:"
+    assert "phase-prompt.md" in bootstrap
+    assert "plan-contract-schema.md" in bootstrap
+    assert "Read config.json for planning behavior settings." not in bootstrap
+    assert "## Summary Template" not in bootstrap
+    assert "Order-of-Limits Awareness" not in bootstrap
