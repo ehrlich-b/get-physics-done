@@ -74,32 +74,15 @@ def _iter_runtime_descriptors_from_schema(
     schema_shape = runtime_catalog._load_runtime_catalog_schema_shape()
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_CATALOG_SHAPE", schema_shape)
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_ENTRY_REQUIRED_KEYS", schema_shape["entry_required_keys"])
-    monkeypatch.setattr(
-        runtime_catalog,
-        "_RUNTIME_ENTRY_OPTIONAL_KEYS",
-        schema_shape["entry_optional_keys"]
-        | frozenset(runtime_catalog._RUNTIME_CATALOG_SCHEMA_OVERRIDES.get("entry_optional_keys", ())),
-    )
+    monkeypatch.setattr(runtime_catalog, "_RUNTIME_ENTRY_OPTIONAL_KEYS", schema_shape["entry_optional_keys"])
     monkeypatch.setattr(
         runtime_catalog,
         "_RUNTIME_ENTRY_ALLOWED_KEYS",
-        schema_shape["entry_required_keys"]
-        | (
-            schema_shape["entry_optional_keys"]
-            | frozenset(runtime_catalog._RUNTIME_CATALOG_SCHEMA_OVERRIDES.get("entry_optional_keys", ()))
-        ),
+        schema_shape["entry_required_keys"] | schema_shape["entry_optional_keys"],
     )
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_GLOBAL_CONFIG_STRATEGIES", frozenset(schema_shape["global_config_keys"].keys()))
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_INSTALL_HELP_EXAMPLE_SCOPES", schema_shape["install_help_example_scopes"])
-    monkeypatch.setattr(
-        runtime_catalog,
-        "_RUNTIME_CAPABILITY_ENUMS",
-        {
-            field_name: values
-            | frozenset(runtime_catalog._RUNTIME_CATALOG_SCHEMA_OVERRIDES.get("capability_enum_values", {}).get(field_name, ()))
-            for field_name, values in schema_shape["capability_enums"].items()
-        },
-    )
+    monkeypatch.setattr(runtime_catalog, "_RUNTIME_CAPABILITY_ENUMS", schema_shape["capability_enums"])
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_GLOBAL_CONFIG_KEYS", schema_shape["global_config_keys"])
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_CAPABILITY_KEYS", schema_shape["capability_keys"])
     monkeypatch.setattr(runtime_catalog, "_RUNTIME_HOOK_PAYLOAD_KEYS", schema_shape["hook_payload_keys"])

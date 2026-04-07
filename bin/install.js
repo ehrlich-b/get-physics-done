@@ -28,7 +28,6 @@ const PUBLIC_SURFACE_CONTRACT = require("../src/gpd/core/public_surface_contract
 const PUBLIC_SURFACE_CONTRACT_SCHEMA = require("../src/gpd/core/public_surface_contract_schema.json");
 const BUNDLED_RUNTIME_CATALOG_PAYLOAD = require("../src/gpd/adapters/runtime_catalog.json");
 const RUNTIME_CATALOG_SCHEMA = require("../src/gpd/adapters/runtime_catalog_schema.json");
-const RUNTIME_CATALOG_SCHEMA_OVERRIDES = require("../src/gpd/adapters/runtime_catalog_overrides.json");
 
 const pythonPackageVersion = typeof rawPythonPackageVersion === "string" ? rawPythonPackageVersion.trim() : "";
 const GPD_HOME_ENV = "GPD_HOME";
@@ -118,10 +117,7 @@ const RUNTIME_CATALOG_GLOBAL_CONFIG_KEYS = Object.fromEntries(
 );
 const RUNTIME_CATALOG_GLOBAL_CONFIG_STRATEGIES = new Set(Object.keys(RUNTIME_CATALOG_GLOBAL_CONFIG_KEYS));
 const RUNTIME_CATALOG_ENTRY_REQUIRED_KEYS = new Set(RUNTIME_CATALOG_SCHEMA.entry_required_keys);
-const RUNTIME_CATALOG_ENTRY_OPTIONAL_KEYS = new Set([
-  ...RUNTIME_CATALOG_SCHEMA.entry_optional_keys,
-  ...(RUNTIME_CATALOG_SCHEMA_OVERRIDES.entry_optional_keys || []),
-]);
+const RUNTIME_CATALOG_ENTRY_OPTIONAL_KEYS = new Set(RUNTIME_CATALOG_SCHEMA.entry_optional_keys);
 const RUNTIME_CATALOG_ENTRY_KEYS = {
   required: [...RUNTIME_CATALOG_ENTRY_REQUIRED_KEYS],
   optional: [...RUNTIME_CATALOG_ENTRY_OPTIONAL_KEYS],
@@ -132,10 +128,7 @@ const RUNTIME_CATALOG_ALLOWED_KEYS = new Set([
 ]);
 const RUNTIME_CATALOG_CAPABILITY_KEYS = new Set(RUNTIME_CATALOG_SCHEMA.capability_keys);
 const RUNTIME_CATALOG_CAPABILITY_ENUMS = Object.fromEntries(
-  Object.entries(RUNTIME_CATALOG_SCHEMA.capability_enums).map(([fieldName, values]) => [
-    fieldName,
-    new Set([...values, ...(RUNTIME_CATALOG_SCHEMA_OVERRIDES.capability_enum_values?.[fieldName] || [])]),
-  ])
+  Object.entries(RUNTIME_CATALOG_SCHEMA.capability_enums).map(([fieldName, values]) => [fieldName, new Set(values)])
 );
 const RUNTIME_CATALOG_HOOK_PAYLOAD_KEYS = new Set(RUNTIME_CATALOG_SCHEMA.hook_payload_keys);
 const RUNTIME_INSTALL_HELP_EXAMPLE_SCOPES = new Set(RUNTIME_CATALOG_SCHEMA.install_help_example_scopes);

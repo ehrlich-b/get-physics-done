@@ -27,11 +27,14 @@ def _load_descriptors_from_payload(
         runtime_catalog._load_catalog.cache_clear()
 
 
-def test_runtime_catalog_schema_loader_merges_overrides() -> None:
+def test_runtime_catalog_schema_loader_exposes_canonical_optional_keys() -> None:
     runtime_catalog._load_catalog.cache_clear()
+    schema = runtime_catalog._load_runtime_catalog_schema_shape()
 
     assert "public_command_surface_prefix" in runtime_catalog._RUNTIME_ENTRY_OPTIONAL_KEYS
+    assert "public_command_surface_prefix" in schema["entry_optional_keys"]
     assert "unsupported" in runtime_catalog._RUNTIME_CAPABILITY_ENUMS["permissions_surface"]
+    assert "unsupported" in schema["capability_enums"]["permissions_surface"]
 
 
 def test_runtime_catalog_schema_matches_canonical_catalog_payload() -> None:

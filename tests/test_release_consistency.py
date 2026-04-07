@@ -29,7 +29,6 @@ def _repo_root() -> Path:
 _SHARED_INSTALL = get_shared_install_metadata()
 _BOOTSTRAP_JSON_ASSETS = (
     "src/gpd/adapters/runtime_catalog.json",
-    "src/gpd/adapters/runtime_catalog_overrides.json",
     "src/gpd/adapters/runtime_catalog_schema.json",
     "src/gpd/core/public_surface_contract.json",
     "src/gpd/core/public_surface_contract_schema.json",

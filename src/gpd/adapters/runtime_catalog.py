@@ -261,24 +261,15 @@ def _catalog_path() -> Path:
     return Path(__file__).with_name("runtime_catalog.json")
 
 
-_RUNTIME_CATALOG_SCHEMA_OVERRIDES = json.loads(
-    Path(__file__).with_name("runtime_catalog_overrides.json").read_text(encoding="utf-8")
-)
 _RUNTIME_CATALOG_SHAPE = _load_runtime_catalog_schema_shape()
 _RUNTIME_ENTRY_REQUIRED_KEYS = _RUNTIME_CATALOG_SHAPE["entry_required_keys"]
-_RUNTIME_ENTRY_OPTIONAL_KEYS = _RUNTIME_CATALOG_SHAPE["entry_optional_keys"] | frozenset(
-    _RUNTIME_CATALOG_SCHEMA_OVERRIDES.get("entry_optional_keys", ())
-)
+_RUNTIME_ENTRY_OPTIONAL_KEYS = _RUNTIME_CATALOG_SHAPE["entry_optional_keys"]
 _RUNTIME_ENTRY_ALLOWED_KEYS = _RUNTIME_ENTRY_REQUIRED_KEYS | _RUNTIME_ENTRY_OPTIONAL_KEYS
 _RUNTIME_GLOBAL_CONFIG_STRATEGIES = frozenset(_RUNTIME_CATALOG_SHAPE["global_config_keys"].keys())
 _RUNTIME_INSTALL_HELP_EXAMPLE_SCOPES = _RUNTIME_CATALOG_SHAPE["install_help_example_scopes"]
 _RUNTIME_VALIDATED_COMMAND_SURFACE_RE = re.compile(r"^public_runtime_[a-z0-9_]+_command$")
 _RUNTIME_CONFIG_SURFACE_LABEL_RE = re.compile(r"^[A-Za-z0-9._-]+:[A-Za-z0-9+._-]+$")
-_RUNTIME_CAPABILITY_ENUMS = {
-    field_name: values
-    | frozenset(_RUNTIME_CATALOG_SCHEMA_OVERRIDES.get("capability_enum_values", {}).get(field_name, ()))
-    for field_name, values in _RUNTIME_CATALOG_SHAPE["capability_enums"].items()
-}
+_RUNTIME_CAPABILITY_ENUMS = _RUNTIME_CATALOG_SHAPE["capability_enums"]
 _RUNTIME_GLOBAL_CONFIG_KEYS = _RUNTIME_CATALOG_SHAPE["global_config_keys"]
 _RUNTIME_CAPABILITY_KEYS = _RUNTIME_CATALOG_SHAPE["capability_keys"]
 _RUNTIME_HOOK_PAYLOAD_KEYS = _RUNTIME_CATALOG_SHAPE["hook_payload_keys"]

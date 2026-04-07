@@ -20,7 +20,8 @@
     "native_include_support",
     "agent_prompt_uses_dollar_templates",
     "installer_help_example_scope",
-    "validated_command_surface"
+    "validated_command_surface",
+    "public_command_surface_prefix"
   ],
   "global_config_keys": {
     "env_or_home": [
@@ -56,7 +57,8 @@
   "capability_enums": {
     "permissions_surface": [
       "config-file",
-      "launch-wrapper"
+      "launch-wrapper",
+      "unsupported"
     ],
     "statusline_surface": [
       "explicit",
