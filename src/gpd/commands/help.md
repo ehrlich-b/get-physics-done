@@ -13,7 +13,7 @@ Output ONLY reference content. Do NOT add project-specific analysis, git status,
 next-step suggestions, or commentary beyond the requested reference extract.
 </objective>
 
-Shared wrapper rule for every extract below: output only the requested section and do not rewrite, summarize, or invent alternate wording.
+Shared wrapper rule for every extract below: the loaded workflow help file is the authority. output only the requested section and do not rewrite, summarize, or invent alternate wording.
 
 <execution_context>
 @{GPD_INSTALL_DIR}/workflows/help.md
@@ -31,8 +31,7 @@ Check whether the user passed `--command <name>` or `--all`.
 
 ## Step 2: Quick Start Extract (Default Output)
 
-Use the loaded workflow help file as the authority. Output ONLY this extract from
-that workflow-owned reference and then STOP:
+Output ONLY this extract from the workflow-owned reference and then STOP:
 
 - Start at the workflow-owned `## Quick Start` section.
 - Include the workflow-owned `## Quick Start` section.
@@ -41,8 +40,7 @@ that workflow-owned reference and then STOP:
 
 ## Step 3: Compact Command Index (--all)
 
-Use the loaded workflow help file as the authority. Output ONLY this extract from
-that workflow-owned reference and then STOP:
+Output ONLY this extract from the workflow-owned reference and then STOP:
 
 - Start at the workflow-owned `## Quick Start` section.
 - Include the workflow-owned `## Quick Start` section.
@@ -51,8 +49,6 @@ that workflow-owned reference and then STOP:
 - Append this one wrapper-owned line: `Run \`gpd:help --command <name>\` for detailed help on one command.`
 
 ## Step 4: Single Command Detail Extract (--command <name>)
-
-Use the loaded workflow help file as the authority.
 
 - Parse the command name from `$ARGUMENTS` after `--command`.
 - Accept either a bare command name such as `plan-phase` or a canonical runtime command such as `gpd:plan-phase`.
