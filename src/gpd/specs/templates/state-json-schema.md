@@ -96,6 +96,7 @@ Fields marked **Authoritative** exist only in state.json (not representable in S
     {
       "id": "claim-main",
       "statement": "Recover the published benchmark curve within the stated tolerance",
+      "claim_kind": "theorem",
       "observables": ["obs-main"],
       "deliverables": ["deliv-main"],
       "acceptance_tests": ["test-main"],
@@ -187,7 +188,7 @@ Canonical IDs and other required string fields are trimmed before validation. Bl
 
 `scope.in_scope` must name at least one project boundary or objective.
 
-`context_intake` must not be empty. At least one of `must_read_refs`, `must_include_prior_outputs`, `user_asserted_anchors`, `known_good_baselines`, `context_gaps`, or `crucial_inputs` must carry a non-empty item.
+`context_intake` must not be empty. At least one of `must_read_refs`, `must_include_prior_outputs`, `user_asserted_anchors`, `known_good_baselines`, `context_gaps`, or `crucial_inputs` must carry a non-empty item, and the grounding fields must be concrete enough to re-find later.
 `context_intake`, `approach_policy`, and `uncertainty_markers` are JSON objects when present; do not collapse them to strings or lists.
 
 #### Closed Schema And List Shape
@@ -253,6 +254,7 @@ Every ID-like field must point to a declared object ID in the same contract:
 - `claims[].deliverables[]` must contain `deliverables[].id` values only.
 - `claims[].acceptance_tests[]` must contain `acceptance_tests[].id` values only.
 - `claims[].references[]` must contain `references[].id` values only.
+- Proof-bearing claims must set `claim_kind` explicitly to a non-`other` value; do not leave theorem-bearing work on the default.
 - `acceptance_tests[].subject` must point to a `claims[].id` or `deliverables[].id`, never an observable ID or prose label.
 - `acceptance_tests[].evidence_required[]` may point only to claim, deliverable, acceptance-test, or reference IDs.
 - `references[].applies_to[]` must point to a claim ID or deliverable ID.

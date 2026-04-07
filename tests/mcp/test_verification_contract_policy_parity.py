@@ -21,8 +21,14 @@ def test_verification_contract_policy_text_stays_aligned_across_public_surfaces(
 
     assert _CONTRACT_PAYLOAD_INPUT_SCHEMA["description"] == VERIFICATION_CONTRACT_POLICY_TEXT
     assert verification_descriptor["description"] == verification_server_description()
-    assert infra_descriptor["description"] == verification_server_description()
+    assert infra_descriptor["description"].startswith("GPD physics verification checks.")
     assert tools["run_contract_check"].description is not None
     assert tools["suggest_contract_checks"].description is not None
     assert tools["run_contract_check"].description.count(VERIFICATION_CONTRACT_POLICY_TEXT) == 1
     assert tools["suggest_contract_checks"].description.count(VERIFICATION_CONTRACT_POLICY_TEXT) == 1
+    assert "request.check_key" in tools["run_contract_check"].description
+    assert "supported_binding_fields" in tools["run_contract_check"].description
+    assert "project_dir" in tools["run_contract_check"].description
+    assert "request_template" in tools["suggest_contract_checks"].description
+    assert "active_checks" in tools["suggest_contract_checks"].description
+    assert "contract payload" in tools["suggest_contract_checks"].description

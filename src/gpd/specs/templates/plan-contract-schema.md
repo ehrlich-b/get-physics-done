@@ -55,7 +55,7 @@ Rules:
 ```yaml
 scope:
   question: "[The decisive question this plan advances]"
-  in_scope: ["[Optional boundary or objective]"]
+  in_scope: ["Recover the benchmark curve within tolerance"]
   out_of_scope: ["[Optional excluded boundary]"]
   unresolved_questions: ["[Optional open question that still blocks planning]"]
 ```
@@ -64,9 +64,10 @@ Rules:
 
 - `scope` must be an object, not a string or list.
 - `scope.question` is required and must be non-empty after trimming whitespace.
-- `in_scope`, `out_of_scope`, and `unresolved_questions` are optional arrays of non-empty strings.
+- `scope.in_scope` is required and must name at least one project boundary or objective.
+- `out_of_scope` and `unresolved_questions` are optional arrays of non-empty strings.
 - Use `scope.unresolved_questions` for genuinely undecided anchors; do not hide them in prose or placeholder text.
-- Only concrete anchors count as grounding. `must_include_prior_outputs`, `user_asserted_anchors`, and `known_good_baselines` count only when they name a durable path, citation, DOI, arXiv ID, or similarly concrete handle. `context_gaps` and `crucial_inputs` preserve uncertainty and workflow visibility, but they do not satisfy the hard grounding requirement by themselves.
+- `context_intake` anchors must be concrete enough to re-find later. `must_read_refs`, `must_include_prior_outputs`, `user_asserted_anchors`, and `known_good_baselines` count only when they name a declared reference id, durable project-artifact path, citation, DOI, arXiv ID, URL, or similarly concrete handle. `context_gaps` and `crucial_inputs` preserve uncertainty and workflow visibility, but they do not satisfy the hard grounding requirement by themselves.
 - Placeholder-only values like `TBD`, `unknown`, `placeholder`, or other non-concrete stand-ins do not count as grounding, even if they appear in a field that is otherwise permitted to carry context.
 
 ### `claims[]`
@@ -107,13 +108,13 @@ Rules:
 - `deliverables[]` may only reference declared `deliverables[].id`.
 - `acceptance_tests[]` may only reference declared `acceptance_tests[].id`.
 - `references[]` may only reference declared `references[].id`.
-- `claim_kind` is optional and defaults to `other`; set it explicitly for theorem-bearing claims.
+- `claim_kind` is optional and defaults to `other` only for non-proof work; proof-bearing claims must set it explicitly and must not leave it at `other`.
 - `claim_kind: theorem|lemma|corollary|proposition|result|claim|other`
 - For theorem/proof work, enumerate `parameters[]`, `hypotheses[]`, `quantifiers[]`, `conclusion_clauses[]`, and `proof_deliverables[]` so proof audits can spot dropped assumptions, specialized parameters, and narrowed conclusions.
 - Keep nested proof lists as YAML arrays, even for one item: `parameters[].aliases`, `hypotheses[].symbols`, `quantifiers`, and `proof_deliverables` must not collapse to scalar strings.
 - `proof_deliverables[]` may only reference declared `deliverables[].id`.
 - Treat a claim as proof-bearing whenever any of these is true: `claim_kind` is `theorem|lemma|corollary|proposition|claim`; the statement is theorem-like (`prove/show that`, explicit `for all` / `exists`, or uniqueness language); any proof field is already populated (`parameters`, `hypotheses`, `quantifiers`, `conclusion_clauses`, or `proof_deliverables`); or `observables[]` references a `proof_obligation` target.
-- Proof-bearing claims must declare at least one proof-specific acceptance test in `acceptance_tests[]` and surface `proof_deliverables`, `parameters`, `hypotheses`, and `conclusion_clauses` so the proof obligation is auditable.
+- Proof-bearing claims must use an explicit non-`other` `claim_kind`, declare at least one proof-specific acceptance test in `acceptance_tests[]`, and surface `proof_deliverables`, `parameters`, `hypotheses`, and `conclusion_clauses` so the proof obligation is auditable.
 - `required_in_proof` must be a literal JSON boolean (`true` or `false`), not a quoted string or synonym such as `"yes"` / `"no"`.
 
 ### `context_intake`
@@ -133,7 +134,7 @@ Rules:
 - `contract.context_intake` is required and must be a non-empty object, not a string or list.
 - Every field above is optional inside the object, but the object itself must not be empty.
 - `must_read_refs[]` may only reference declared `references[].id`.
-- Use `context_gaps`, `scope.unresolved_questions`, or `uncertainty_markers.weakest_anchors` for unresolved anchors; do not invent placeholder references.
+- Use concrete anchors in `must_read_refs[]`, `must_include_prior_outputs[]`, `user_asserted_anchors[]`, and `known_good_baselines[]`; use `context_gaps`, `scope.unresolved_questions`, or `uncertainty_markers.weakest_anchors` for unresolved anchors instead of inventing placeholder references.
 
 ### `approach_policy`
 
@@ -310,7 +311,7 @@ Rules:
 - Canonical IDs and other required strings are trimmed before validation; blank-after-trim values are invalid.
 - A cross-reference must fail loudly if it points to an undeclared ID.
 - A non-object `contract:` value is invalid. Treat it as a schema error, not as “missing”.
-- If `references[]` is non-empty, at least one reference must set `must_surface: true`.
+- If `references[]` is non-empty and the contract does not already carry concrete grounding elsewhere, at least one reference must set `must_surface: true`. When concrete grounding already exists, a missing `must_surface: true` reference is a warning, not a blocker.
 - Do not assume any contract field is optional unless the active PLAN validator or workflow explicitly says so.
 
 ---

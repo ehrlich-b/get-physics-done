@@ -46,14 +46,15 @@ IMPORTANT: If context exists below, it contains USER DECISIONS from gpd:discuss-
 </planning_context>
 
 <physics_planning_requirements>
-Keep dimensions, limits, proof coverage, and cross-method consistency explicit. Keep `contract.context_intake` specific, and make proof-bearing hypotheses, parameters, and conclusions auditable in the body.
+Keep dimensions, limits, and cross-method consistency explicit. For proof-bearing work, make hypotheses, parameters, and conclusions auditable in the body.
 </physics_planning_requirements>
 
 <contract_visibility_requirements>
 Planning requires `project_contract`. Keep the contract block complete per the schema include.
 Keep `project_contract` as the structured grounding ledger. Use `effective_reference_intake` and `active_reference_context` only as readable projections of the same anchors, not as substitutes.
 Treat `approach_policy` as execution policy only. It does not substitute for grounding.
-Keep `contract.context_intake` specific, and for proof-bearing work keep hypotheses, quantified variables, and named parameters explicit enough to audit.
+Keep `scope.in_scope` populated, and keep `contract.context_intake` concrete enough to audit.
+For proof-bearing work, use an explicit non-`other` `claim_kind` and keep hypotheses, quantified variables, and named parameters explicit enough to audit.
 </contract_visibility_requirements>
 
 <light_mode_instructions>

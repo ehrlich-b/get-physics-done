@@ -857,13 +857,15 @@ contract:
   schema_version: 1
   scope:
     question: "[The decisive question this plan advances]"
+    in_scope: ["Recover the benchmark curve within tolerance"]
   context_intake:
     must_read_refs: ["ref-textbook"]
-    must_include_prior_outputs: ["Phase 01 benchmark table"]
-    user_asserted_anchors: ["Gauge choice and tensor convention are fixed by the user"]
+    must_include_prior_outputs: ["GPD/phases/01-vacuum-polarization/01-01-SUMMARY.md"]
+    user_asserted_anchors: ["GPD/phases/00-baseline/00-01-SUMMARY.md#gauge-and-tensor-convention"]
   claims:
     - id: "claim-polarization"
       statement: "Vacuum polarization tensor is transverse in the chosen gauge and scheme"
+      claim_kind: theorem
       deliverables: ["deliv-vac-pol"]
       acceptance_tests: ["test-transversality"]
       references: ["ref-textbook"]
@@ -1220,6 +1222,7 @@ contract:
   schema_version: 1
   scope:
     question: "[Which failed verification or gap does this plan repair?]"
+    in_scope: ["Repair the failed verification for the published benchmark comparison"]
   context_intake:
     must_include_prior_outputs: ["GPD/phases/XX-name/XX-NN-SUMMARY.md"]
     crucial_inputs: ["Exact failed verification and affected artifact"]

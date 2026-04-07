@@ -1602,7 +1602,7 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert '#     command: "pdflatex --version"' in phase_prompt
     assert "`required` defaults to true when omitted" in phase_prompt
     assert "fallback does not make a missing required tool non-blocking" in phase_prompt
-    assert "Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
+    assert "Quick contract rules:" in phase_prompt
     assert "# tool_requirements: # Machine-checkable specialized tools (omit entirely if none)" in planner_agent
     assert "tool: command" in planner_agent
     assert "Use only the closed tool vocabulary the validator accepts" in planner_agent
@@ -1676,10 +1676,10 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "acceptance_tests: {}" not in verify_workflow
     assert "references: {}" not in verify_workflow
     assert "forbidden_proxies: {}" not in verify_workflow
-    assert "deliverable-id" in verify_workflow
-    assert "acceptance-test-id" in verify_workflow
-    assert "reference-id" in verify_workflow
-    assert "forbidden-proxy-id" in verify_workflow
+    assert "deliverable-main" in verify_workflow
+    assert "acceptance-test-main" in verify_workflow
+    assert "reference-main" in verify_workflow
+    assert "forbidden-proxy-main" in verify_workflow
     assert "comparison_verdicts:" in verify_workflow
     assert "subject_role: decisive" in verify_workflow
     assert "comparison_kind: benchmark" in verify_workflow
@@ -1798,10 +1798,12 @@ def test_verification_prompts_keep_suggested_contract_check_bindings_schema_tigh
     assert 'suggested_subject_id: ""' not in verification_template
     assert 'suggested_subject_id: [contract id or ""]' not in research_verification
     assert 'suggested_subject_id: [contract id or ""]' not in verify_workflow
-    assert 'suggested_subject_id: "matching contract id"' in research_verification
-    assert 'suggested_subject_id: "matching contract id"' in verify_workflow
+    assert "suggested_subject_id: acceptance-test-main" in research_verification
+    assert "suggested_subject_id: reference-main" in research_verification
+    assert "suggested_subject_id: acceptance-test-main" in verify_workflow
+    assert "suggested_subject_id: reference-main" in verify_workflow
     assert "acceptance-test-main" in research_verification
-    assert "acceptance-test-id" in verifier_agent
+    assert "acceptance-test-main" in verifier_agent
     assert "suggested_contract_checks" in verification_template
     assert "Reload `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` immediately before writing" in verification_template
     assert "proof-audit rules in the canonical schema" in verification_template
@@ -1835,15 +1837,15 @@ def test_lane5_prompt_examples_keep_schema_valid_contract_fields_visible() -> No
     assert "acceptance-test-main" in research_verification
     assert "linked_ids: [deliverable-main, acceptance-test-main, reference-main]" in research_verification
     assert "evidence:\n        - verifier: gpd-verifier" in research_verification
-    assert 'evidence_path: "[artifact path or expected evidence path]"' in research_verification
-    assert 'started: "ISO timestamp"' in research_verification
-    assert 'updated: "ISO timestamp"' in research_verification
+    assert 'evidence_path: "GPD/phases/01-benchmark/01-VERIFICATION.md"' in research_verification
+    assert "started:" in research_verification
+    assert "updated:" in research_verification
     assert "test-benchmark" not in research_verification
-    assert "reference-id" in verify_work
-    assert "acceptance-test-id" in verify_work
+    assert "reference-main" in verify_work
+    assert "acceptance-test-main" in verify_work
     assert "test-benchmark" not in verify_work
-    assert "reference-id" in verifier
-    assert "acceptance-test-id" in verifier
+    assert "reference-main" in verifier
+    assert "acceptance-test-main" in verifier
     assert "test-benchmark" not in verifier
     assert "deliverables:" in executor_example
     assert "references:" in executor_example
@@ -2327,7 +2329,7 @@ def test_verify_work_workflow_uses_body_only_subject_kind_fields() -> None:
     assert "Allowed body enum values:" in verify_work
     assert "check_subject_kind: claim" in verify_work
     assert "`check_subject_kind`: claim|deliverable|acceptance_test|reference" in verify_work
-    assert 'gap_subject_kind: "{check_subject_kind}"' in verify_work
+    assert 'gap_subject_kind: "claim"' in verify_work
     assert "Use `forbidden_proxy_id` for explicit proxy-rejection checks" in verify_work
     assert "instead of inventing extra body subject kinds" in verify_work
     assert "# Allowed check_subject_kind values: claim|deliverable|acceptance_test|reference" not in verify_work
@@ -2475,9 +2477,9 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "schema_version: 1" in phase_prompt
     assert "in_scope:" in phase_prompt
     assert "context_intake:" in phase_prompt
-    assert "Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
+    assert "Quick contract rules:" in phase_prompt
     assert "Use the included schema for contract shape, cardinality, and enum defaults." in phase_prompt
-    assert "Keep proofs auditable in the body when a plan is proof-bearing, and rerun stale proof audits before `status: passed`." in phase_prompt
+    assert "Proof-bearing claims must use an explicit non-`other` `claim_kind`, and the body must keep hypotheses, parameters, and conclusions auditable." in phase_prompt
     assert "must_include_prior_outputs: [\"GPD/phases/00-baseline/00-01-SUMMARY.md\"]" in phase_prompt
     assert (
         "user_asserted_anchors: "
@@ -2492,7 +2494,7 @@ def test_planner_and_summary_prompt_surfaces_expand_contract_schema_bodies() -> 
     assert "Use `@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md` as the canonical contract source." in planner_prompt
     assert "If `{project_contract}` is empty, stale, or too underspecified to identify the phase contract slice, return `## CHECKPOINT REACHED` rather than guessing." in planner_prompt
     assert "Treat `approach_policy` as execution policy only." in planner_prompt
-    assert "Keep `contract.context_intake` specific" in planner_prompt
+    assert "Keep `scope.in_scope` populated, and keep `contract.context_intake` concrete enough to audit." in planner_prompt
     assert "contract block complete per the schema include" in planner_prompt
     assert "scope.unresolved_questions" in phase_prompt
     assert "Every claim must declare a stable `id`." in phase_prompt
@@ -2556,7 +2558,7 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
 
     assert "schema_version: 1" in plan_schema
     assert "scope:" in plan_schema
-    assert "in_scope: [\"[Optional boundary or objective]\"]" in plan_schema
+    assert "in_scope: [\"Recover the benchmark curve within tolerance\"]" in plan_schema
     assert "unresolved_questions: [\"[Optional open question that still blocks planning]\"]" in plan_schema
     assert "context_intake:" in plan_schema
     assert "`contract.context_intake` is required and must be a non-empty object, not a string or list." in plan_schema
@@ -2572,7 +2574,7 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     )
     assert "context_gaps: [\"Comparison source still undecided before planning\"]" in plan_schema
     assert "crucial_inputs: [\"Check the user's finite-volume cutoff choice before proceeding\"]" in plan_schema
-    assert "Only concrete anchors count as grounding." in plan_schema
+    assert "Use concrete anchors in `must_read_refs[]`" in plan_schema
     assert "preserve uncertainty and workflow visibility" in plan_schema
     assert "do not satisfy the hard grounding requirement by themselves" in plan_schema
     assert "approach_policy:" in plan_schema
@@ -2585,6 +2587,7 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "`kind` is optional and defaults to `other`; set it when the plan knows a more specific semantic category." in plan_schema
     assert "`kind` and `role` are optional and default to `other`; set them when the anchor semantics are already known." in plan_schema
     assert "`relation` is optional and defaults to `other`; set it when the dependency type is already known." in plan_schema
+    assert "Proof-bearing claims must use an explicit non-`other` `claim_kind`" in plan_schema
     assert "required_actions: [read, compare, cite, avoid]" in plan_schema
     assert "`required_actions[]` values must use the closed action vocabulary: `read`, `use`, `compare`, `cite`, `avoid`." in plan_schema
     assert "For non-scoping plans, `claims[]`, `deliverables[]`, `acceptance_tests[]`, and `forbidden_proxies[]` are all required." in plan_schema
@@ -2605,7 +2608,12 @@ def test_plan_contract_schema_surfaces_downstream_contract_fields_and_normalizat
     assert "`deliverables[]` must not be empty." in plan_schema
     assert "`acceptance_tests[]` must not be empty." in plan_schema
     assert "If `must_surface: true`, `applies_to[]` must not be empty." in plan_schema
-    assert "If `references[]` is non-empty, at least one reference must set `must_surface: true`." in plan_schema
+    assert (
+        "If `references[]` is non-empty and the contract does not already carry concrete grounding elsewhere, "
+        "at least one reference must set `must_surface: true`."
+        in plan_schema
+    )
+    assert "a missing `must_surface: true` reference is a warning, not a blocker" in plan_schema
     assert "blank-after-trim values are invalid" in plan_schema
 
 
@@ -2619,6 +2627,8 @@ def test_state_json_schema_surfaces_stdin_contract_persistence_and_model_normali
     assert "Project contracts must include at least one observable, claim, or deliverable." in state_schema
     assert "`uncertainty_markers.weakest_anchors` and `uncertainty_markers.disconfirming_observations` must both be non-empty." in state_schema
     assert "`scope.in_scope` must name at least one project boundary or objective." in state_schema
+    assert "claim_kind\": \"theorem\"" in state_schema
+    assert "grounding fields must be concrete enough to re-find later" in state_schema
     assert (
         "If a project contract has any `references[]` and does not already carry concrete prior-output, "
         "user-anchor, or baseline grounding, at least one reference must set `must_surface: true`."
@@ -2642,9 +2652,12 @@ def test_state_json_schema_surfaces_stdin_contract_persistence_and_model_normali
 def test_phase_prompt_surfaces_validation_critical_plan_contract_rules() -> None:
     phase_prompt = (TEMPLATES_DIR / "phase-prompt.md").read_text(encoding="utf-8")
 
-    assert "Surface machine-checkable prerequisites up front with `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
+    assert "Quick contract rules:" in phase_prompt
+    assert "Put machine-checkable prerequisites in `tool_requirements`; keep human-only setup in `researcher_setup`." in phase_prompt
     assert "Use the included schema for contract shape, cardinality, and enum defaults." in phase_prompt
-    assert "Keep proofs auditable in the body when a plan is proof-bearing, and rerun stale proof audits before `status: passed`." in phase_prompt
+    assert "`scope.in_scope` must be populated for project-scoping plans." in phase_prompt
+    assert "Proof-bearing claims must use an explicit non-`other` `claim_kind`, and the body must keep hypotheses, parameters, and conclusions auditable." in phase_prompt
+    assert "If grounding already exists elsewhere, a missing `must_surface: true` reference is a warning, not a blocker." in phase_prompt
     assert "If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input." in phase_prompt
     assert "the contract must carry non-empty claims, deliverables, acceptance tests, forbidden proxies" not in phase_prompt
     assert "If the contract does not already carry explicit concrete grounding elsewhere, references must be present and at least one must set `must_surface: true`." not in phase_prompt
@@ -2997,7 +3010,7 @@ def test_stage8_surfaces_decisive_comparisons_paper_quality_artifacts_and_profil
     assert "required first-result, anchor, and pre-fanout checkpoints" in planner
     assert "Do NOT change conventions mid-project without an explicit checkpoint" in planner
     assert "Required first-result, anchor, and pre-fanout gates still apply even in yolo mode" in executor
-    assert "live verifier registry now has 19 checks" in verifier_agent
+    assert "suggested_contract_checks" in verifier_agent
 
 
 def test_publication_workflows_refresh_bibliography_audit_after_bibliography_changes() -> None:

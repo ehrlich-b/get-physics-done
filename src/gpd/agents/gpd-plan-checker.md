@@ -887,13 +887,15 @@ If present, treat it as the canonical planning surface.
 contract:
   scope:
     question: "What decisive question does this plan advance?"
+    in_scope: ["Recover the benchmark value within tolerance"]
   context_intake:
     must_read_refs: [ref-main]
-    must_include_prior_outputs: ["Phase 00 baseline table"]
-    user_asserted_anchors: ["Use the approved gauge, unit, and notation conventions"]
+    must_include_prior_outputs: ["GPD/phases/00-baseline/00-01-SUMMARY.md"]
+    user_asserted_anchors: ["GPD/phases/00-baseline/00-01-SUMMARY.md#gauge-unit-and-notation-conventions"]
   claims:
     - id: claim-main
       statement: "Recover the benchmark value within tolerance"
+      claim_kind: theorem
       deliverables: [deliv-main]
       acceptance_tests: [test-main]
       references: [ref-main]
