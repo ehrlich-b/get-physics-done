@@ -15,7 +15,7 @@ allowed-tools:
   - ask_user
 ---
 <objective>
-Conduct a systematic literature review for a physics research topic and produce a structured `LITERATURE-REVIEW.md` plus a strict `CITATION-SOURCES.json` sidecar for manuscript reuse.
+Conduct a systematic literature review for a physics research topic and produce a structured `LITERATURE-REVIEW.md` plus a machine-readable, strict `CITATION-SOURCES.json` sidecar for manuscript reuse.
 
 **Orchestrator role:** Scope the review, spawn the gpd-literature-reviewer agent, handle checkpoints, and present results.
 
