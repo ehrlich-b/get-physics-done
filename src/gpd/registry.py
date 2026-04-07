@@ -16,6 +16,7 @@ from pathlib import Path
 import yaml
 
 from gpd.command_labels import canonical_command_label, canonical_skill_label, command_slug_from_label
+from gpd.core.model_visible_sections import render_model_visible_yaml_section
 from gpd.core.model_visible_text import (
     REVIEW_CONTRACT_FRONTMATTER_KEY,
     REVIEW_CONTRACT_PROMPT_WRAPPER_KEY,
@@ -594,8 +595,10 @@ def render_agent_requirements_section(
 ) -> str:
     """Render a model-visible agent-contract block for agent prompt bodies."""
 
-    rendered = yaml.safe_dump(
-        _agent_requirements_payload(
+    return render_model_visible_yaml_section(
+        heading="Agent Requirements",
+        note=agent_visibility_note(),
+        payload=_agent_requirements_payload(
             tools=tools,
             commit_authority=commit_authority,
             surface=surface,
@@ -603,13 +606,6 @@ def render_agent_requirements_section(
             artifact_write_authority=artifact_write_authority,
             shared_state_authority=shared_state_authority,
         ),
-        sort_keys=False,
-        allow_unicode=False,
-    ).rstrip()
-    return (
-        "## Agent Requirements\n\n"
-        f"{agent_visibility_note()}\n\n"
-        f"```yaml\n{rendered}\n```"
     )
 
 
@@ -644,21 +640,16 @@ def render_command_requires_section(
 ) -> str:
     """Render model-visible execution constraints from command frontmatter."""
 
-    rendered = yaml.safe_dump(
-        _command_visibility_payload(
+    return render_model_visible_yaml_section(
+        heading="Command Requirements",
+        note=command_visibility_note(),
+        payload=_command_visibility_payload(
             context_mode=context_mode,
             project_reentry_capable=project_reentry_capable,
             agent=agent,
             allowed_tools=allowed_tools,
             requires=requires,
         ),
-        sort_keys=False,
-        allow_unicode=False,
-    ).rstrip()
-    return (
-        "## Command Requirements\n\n"
-        f"{command_visibility_note()}\n\n"
-        f"```yaml\n{rendered}\n```"
     )
 
 

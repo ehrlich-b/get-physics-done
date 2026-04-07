@@ -7,6 +7,10 @@ from pathlib import Path
 import pytest
 
 from gpd import registry
+from gpd.core.model_visible_sections import (
+    MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE,
+    render_model_visible_yaml_section,
+)
 from gpd.core.model_visible_text import (
     REVIEW_CONTRACT_CONDITIONAL_WHENS,
     REVIEW_CONTRACT_FRONTMATTER_KEY,
@@ -134,6 +138,66 @@ def test_review_grade_commands_prepend_model_visible_review_contract_to_registry
                     assert str(require_value) in command.content
 
 
+def test_model_visible_section_renderers_share_one_canonical_wrapper_structure() -> None:
+    agent_section = registry.render_agent_requirements_section(
+        tools=["git", "python"],
+        commit_authority="orchestrator",
+        surface="internal",
+        role_family="analysis",
+        artifact_write_authority="scoped_write",
+        shared_state_authority="return_only",
+    )
+    command_section = registry.render_command_requires_section(
+        context_mode="project-required",
+        project_reentry_capable=False,
+        agent="execute-phase",
+        allowed_tools=["git", "python"],
+        requires={"artifact_manifest": "required"},
+    )
+    review_contract_payload_data = normalize_review_contract_payload(
+        {
+            "schema_version": 1,
+            "review_mode": "review",
+            "preflight_checks": ["manuscript"],
+        }
+    )
+    rendered_review_contract_payload = review_contract_payload(review_contract_payload_data)
+    review_section = render_review_contract_prompt(review_contract_payload_data)
+
+    assert agent_section == render_model_visible_yaml_section(
+        heading="Agent Requirements",
+        note=agent_visibility_note(),
+        payload={
+            "commit_authority": "orchestrator",
+            "surface": "internal",
+            "role_family": "analysis",
+            "artifact_write_authority": "scoped_write",
+            "shared_state_authority": "return_only",
+            "tools": ["git", "python"],
+        },
+    )
+    assert command_section == render_model_visible_yaml_section(
+        heading="Command Requirements",
+        note=command_visibility_note(),
+        payload={
+            "context_mode": "project-required",
+            "project_reentry_capable": False,
+            "agent": "execute-phase",
+            "allowed_tools": ["git", "python"],
+            "requires": {"artifact_manifest": "required"},
+        },
+    )
+    assert review_section == render_model_visible_yaml_section(
+        heading="Review Contract",
+        note=(
+            f"{review_contract_visibility_note()} "
+            "List fields reject blank entries and duplicates. "
+            "Each conditional requirement must declare at least one field. "
+        ),
+        payload={REVIEW_CONTRACT_PROMPT_WRAPPER_KEY: rendered_review_contract_payload},
+    )
+
+
 def test_model_visible_wrapper_notes_surface_their_closed_schema_rules() -> None:
     note = review_contract_visibility_note()
     command_note = command_visibility_note()
@@ -141,13 +205,16 @@ def test_model_visible_wrapper_notes_surface_their_closed_schema_rules() -> None
     conditional_whens = " or ".join(f"`{value}`" for value in REVIEW_CONTRACT_CONDITIONAL_WHENS)
     required_states = " or ".join(f"`{value}`" for value in REVIEW_CONTRACT_REQUIRED_STATES)
 
-    assert "Closed schema" in agent_visibility_note()
-    assert "Closed schema" in command_note
+    assert MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE in agent_visibility_note()
+    assert MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE in command_note
+    assert MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE in note
+    assert agent_visibility_note().count(MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE) == 1
+    assert command_note.count(MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE) == 1
+    assert note.count(MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE) == 1
     assert "strict booleans" in command_note.lower()
     assert "context_mode" in command_note
     assert "project_reentry_capable" in command_note
 
-    assert "Closed schema" in note
     assert "wrapper key" in note
     assert f"`review_mode` must be {review_modes}" in note
     assert f"`required_state` must be {required_states}" in note

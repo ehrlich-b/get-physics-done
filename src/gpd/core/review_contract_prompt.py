@@ -7,6 +7,7 @@ from collections.abc import Mapping
 
 import yaml
 
+from gpd.core.model_visible_sections import render_model_visible_yaml_section
 from gpd.core.model_visible_text import (
     REVIEW_CONTRACT_CONDITIONAL_WHENS,
     REVIEW_CONTRACT_FRONTMATTER_KEY,
@@ -403,13 +404,8 @@ def render_review_contract_prompt(review_contract: object) -> str:
     rendered_payload = dict(payload)
     if not rendered_payload.get("required_state"):
         rendered_payload.pop("required_state", None)
-    rendered = yaml.safe_dump(
-        {REVIEW_CONTRACT_PROMPT_WRAPPER_KEY: rendered_payload},
-        sort_keys=False,
-        allow_unicode=False,
-    ).rstrip()
-    return (
-        "## Review Contract\n\n"
-        f"{_review_contract_guidance()}\n\n"
-        f"```yaml\n{rendered}\n```"
+    return render_model_visible_yaml_section(
+        heading="Review Contract",
+        note=_review_contract_guidance(),
+        payload={REVIEW_CONTRACT_PROMPT_WRAPPER_KEY: rendered_payload},
     )

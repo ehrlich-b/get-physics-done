@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+from gpd.core.model_visible_sections import (
+    MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE,
+    render_model_visible_note,
+)
+
 __all__ = [
     "agent_visibility_note",
     "command_visibility_note",
+    "MODEL_VISIBLE_CLOSED_SCHEMA_PHRASE",
     "REVIEW_CONTRACT_CONDITIONAL_WHENS",
     "REVIEW_CONTRACT_FRONTMATTER_KEY",
     "REVIEW_CONTRACT_MODES",
@@ -61,21 +67,19 @@ def _join_disjunction(values: tuple[str, ...]) -> str:
 
 
 def agent_visibility_note() -> str:
-    return (
-        "Model-visible agent requirements. Follow this YAML. "
-        "Closed schema; no extra keys. "
-        "Use only the declared enum values for `commit_authority`, `surface`, `role_family`, "
-        "`artifact_write_authority`, and `shared_state_authority`."
+    return render_model_visible_note(
+        "Model-visible agent requirements.",
+        "Use only the declared enum values for `commit_authority`, `surface`, `role_family`,",
+        "`artifact_write_authority`, and `shared_state_authority`.",
     )
 
 
 def command_visibility_note() -> str:
-    return (
-        "Model-visible command constraints. Follow this YAML. "
-        "Closed schema; no extra keys. "
-        "Strict booleans only. "
-        "Use only declared values for `context_mode` and `agent`; "
-        "`project_reentry_capable` must be `true` or `false`."
+    return render_model_visible_note(
+        "Model-visible command constraints.",
+        "Strict booleans only.",
+        "Use only declared values for `context_mode` and `agent`;",
+        "`project_reentry_capable` must be `true` or `false`.",
     )
 
 
@@ -83,12 +87,11 @@ def review_contract_visibility_note() -> str:
     review_modes = _join_disjunction(REVIEW_CONTRACT_MODES)
     conditional_whens = _join_disjunction(REVIEW_CONTRACT_CONDITIONAL_WHENS)
     required_states = _join_disjunction(REVIEW_CONTRACT_REQUIRED_STATES)
-    return (
-        "Review contract schema. Follow this YAML. "
-        "Closed schema; no extra keys. "
-        f"`{REVIEW_CONTRACT_PROMPT_WRAPPER_KEY}` is the wrapper key; `schema_version` must be `1`; "
-        f"`review_mode` must be {review_modes}; "
-        f"when present, `required_state` must be {required_states}; "
-        f"`conditional_requirements[].when` must be one of {conditional_whens}; "
-        "`conditional_requirements[].blocking_preflight_checks` must reuse declared `preflight_checks`."
+    return render_model_visible_note(
+        "Review contract schema.",
+        f"`{REVIEW_CONTRACT_PROMPT_WRAPPER_KEY}` is the wrapper key; `schema_version` must be `1`;",
+        f"`review_mode` must be {review_modes};",
+        f"when present, `required_state` must be {required_states};",
+        f"`conditional_requirements[].when` must be one of {conditional_whens};",
+        "`conditional_requirements[].blocking_preflight_checks` must reuse declared `preflight_checks`.",
     )
