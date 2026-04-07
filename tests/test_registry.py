@@ -742,6 +742,28 @@ class TestParseCommandFile:
         with pytest.raises(ValueError, match=r"Unknown agent 'gpd-not-real' for gpd:plan-phase"):
             _parse_command_file(f, source="commands")
 
+    def test_command_builtin_agent_survives_monkeypatched_agent_root(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        f = tmp_path / "plan-phase.md"
+        f.write_text("---\nname: gpd:plan-phase\nagent: gpd-planner\n---\nBody.", encoding="utf-8")
+
+        patched_agents_dir = tmp_path / "agents"
+        patched_agents_dir.mkdir()
+        (patched_agents_dir / "gpd-debugger.md").write_text(
+            "---\nname: gpd-debugger\ndescription: Debugger\n---\nPrompt.",
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(registry, "AGENTS_DIR", patched_agents_dir)
+        registry.invalidate_cache()
+
+        cmd = _parse_command_file(f, source="commands")
+
+        assert cmd.agent == "gpd-planner"
+
     def test_command_file_invalid_frontmatter_raises_with_path(self, tmp_path: Path) -> None:
         f = tmp_path / "help.md"
         f.write_text("---\nname: gpd:help\nbad: [unterminated\n---\nBody.", encoding="utf-8")

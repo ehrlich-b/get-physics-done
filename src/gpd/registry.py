@@ -538,6 +538,13 @@ def _canonical_agent_names(agents_dir: Path) -> frozenset[str]:
     return frozenset(load_agents_from_dir(agents_dir))
 
 
+@lru_cache(maxsize=1)
+def _builtin_agent_names() -> frozenset[str]:
+    """Return built-in agent names from the packaged canonical agent tree."""
+
+    return frozenset(load_agents_from_dir(_PKG_ROOT / "agents"))
+
+
 def canonical_agent_names() -> tuple[str, ...]:
     """Return the sorted built-in agent labels accepted by command frontmatter."""
 
@@ -569,7 +576,7 @@ def _parse_command_agent(raw: object, *, command_name: str) -> str | None:
     if not value:
         raise ValueError(f"agent for {command_name} must be a non-empty string")
     normalized = canonical_skill_label(value)
-    known_agents = canonical_agent_names()
+    known_agents = frozenset(canonical_agent_names()) | _builtin_agent_names()
     if known_agents and normalized not in known_agents:
         raise ValueError(f"Unknown agent {normalized!r} for {command_name}")
     return normalized
@@ -1429,6 +1436,7 @@ def invalidate_cache() -> None:
     """Clear the registry cache. Call after install/uninstall or in tests."""
     _cache.invalidate()
     _canonical_agent_names.cache_clear()
+    _builtin_agent_names.cache_clear()
 
 
 __all__ = [
