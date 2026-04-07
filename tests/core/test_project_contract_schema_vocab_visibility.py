@@ -44,5 +44,6 @@ def test_project_contract_schema_docs_surface_the_closed_contract_vocabularies()
 
     for schema_path in (PROJECT_CONTRACT_SCHEMA, STATE_JSON_SCHEMA):
         text = _read(schema_path)
+        assert "@{GPD_INSTALL_DIR}/templates/project-contract-grounding-linkage.md" in text
         for line in expected_lines:
             assert line in text, f"{schema_path.name} is missing: {line}"

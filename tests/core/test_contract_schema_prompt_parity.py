@@ -205,7 +205,7 @@ def test_expanded_verifier_and_executor_prompts_keep_canonical_result_ledger_fie
 
 def test_project_contract_schema_examples_surface_validator_accepted_proof_objects() -> None:
     for schema_name in ("project-contract-schema.md", "state-json-schema.md"):
-        schema_text = _read(TEMPLATES_DIR / schema_name)
+        schema_text = _expanded(TEMPLATES_DIR / schema_name)
         assert '"parameters": [' in schema_text
         assert '"hypotheses": [' in schema_text
         assert '"conclusion_clauses": [' in schema_text
@@ -213,6 +213,9 @@ def test_project_contract_schema_examples_surface_validator_accepted_proof_objec
         assert '"id": "hyp-main"' in schema_text
         assert '"id": "concl-main"' in schema_text
         assert '"automation": "human"' in schema_text
+        assert "Project Contract ID Linkage Rules" in schema_text
+        assert "`context_intake.must_read_refs[]` must contain `references[].id` values only." in schema_text
+        assert "`links[].verified_by[]` must contain `acceptance_tests[].id` values only." in schema_text
 
 
 def test_project_and_state_contract_schemas_surface_full_closed_research_vocabularies() -> None:
@@ -227,7 +230,7 @@ def test_project_and_state_contract_schemas_surface_full_closed_research_vocabul
     )
 
     for schema_name in ("project-contract-schema.md", "state-json-schema.md"):
-        schema_text = _read(TEMPLATES_DIR / schema_name)
+        schema_text = _expanded(TEMPLATES_DIR / schema_name)
         for line in expected_lines:
             assert line in schema_text, f"{schema_name} is missing canonical enum line: {line}"
 
