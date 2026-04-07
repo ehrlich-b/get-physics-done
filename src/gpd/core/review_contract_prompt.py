@@ -42,14 +42,6 @@ REVIEW_CONTRACT_KEYS = frozenset(REVIEW_CONTRACT_FIELD_ORDER)
 REVIEW_CONTRACT_CONDITIONAL_KEYS = frozenset(REVIEW_CONTRACT_CONDITIONAL_FIELD_ORDER)
 
 
-def _review_contract_guidance() -> str:
-    return (
-        f"{review_contract_visibility_note()} "
-        "List fields reject blank entries and duplicates. "
-        "Each conditional requirement must declare at least one field. "
-    )
-
-
 def _load_review_contract_payload(
     review_contract: object,
     *,
@@ -106,6 +98,42 @@ def _load_review_contract_payload(
         raise ValueError(f"Unknown review-contract field(s): {formatted}")
 
     return loaded, False
+
+
+def _render_review_contract_payload(payload: Mapping[str, object]) -> dict[str, object]:
+    """Return the compact model-visible payload, omitting empty optional collections."""
+
+    rendered: dict[str, object] = {}
+    for field_name in REVIEW_CONTRACT_FIELD_ORDER:
+        value = payload.get(field_name)
+        if field_name == "required_state":
+            if value:
+                rendered[field_name] = value
+            continue
+        if field_name == "conditional_requirements":
+            if not value:
+                continue
+            conditional_requirements: list[dict[str, object]] = []
+            for requirement in value:
+                if not isinstance(requirement, Mapping):
+                    continue
+                rendered_requirement: dict[str, object] = {}
+                for conditional_field in REVIEW_CONTRACT_CONDITIONAL_FIELD_ORDER:
+                    conditional_value = requirement.get(conditional_field)
+                    if conditional_value:
+                        rendered_requirement[conditional_field] = conditional_value
+                if rendered_requirement:
+                    conditional_requirements.append(rendered_requirement)
+            if conditional_requirements:
+                rendered[field_name] = conditional_requirements
+            continue
+        if isinstance(value, list):
+            if value:
+                rendered[field_name] = value
+            continue
+        if value is not None:
+            rendered[field_name] = value
+    return rendered
 
 
 def _normalize_review_contract_required_str(value: object, *, field_name: str) -> str:
@@ -401,11 +429,9 @@ def render_review_contract_prompt(review_contract: object) -> str:
     payload = normalize_review_contract_payload(review_contract)
     if not payload:
         return ""
-    rendered_payload = dict(payload)
-    if not rendered_payload.get("required_state"):
-        rendered_payload.pop("required_state", None)
+    rendered_payload = _render_review_contract_payload(payload)
     return render_model_visible_yaml_section(
         heading="Review Contract",
-        note=_review_contract_guidance(),
+        note=review_contract_visibility_note(),
         payload={REVIEW_CONTRACT_PROMPT_WRAPPER_KEY: rendered_payload},
     )

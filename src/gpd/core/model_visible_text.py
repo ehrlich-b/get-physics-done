@@ -94,4 +94,6 @@ def review_contract_visibility_note() -> str:
         f"when present, `required_state` must be {required_states};",
         f"`conditional_requirements[].when` must be one of {conditional_whens};",
         "`conditional_requirements[].blocking_preflight_checks` must reuse declared `preflight_checks`.",
+        "List fields reject blank entries and duplicates.",
+        "Each conditional requirement must declare at least one field.",
     )

@@ -15,6 +15,7 @@ from pathlib import Path
 
 import yaml
 
+from gpd.adapters.install_utils import expand_at_includes
 from gpd.command_labels import canonical_command_label, canonical_skill_label, command_slug_from_label
 from gpd.core.model_visible_sections import render_model_visible_yaml_section
 from gpd.core.model_visible_text import (
@@ -35,6 +36,7 @@ from gpd.specs import SPECS_DIR
 _PKG_ROOT = Path(__file__).resolve().parent  # gpd/
 AGENTS_DIR = _PKG_ROOT / "agents"
 COMMANDS_DIR = _PKG_ROOT / "commands"
+_MODEL_VISIBLE_INCLUDE_PATH_PREFIX = "{GPD_INSTALL_DIR}/__gpd_registry_include__/"
 
 # ─── Frontmatter parsing helpers ────────────────────────────────────────────
 
@@ -87,6 +89,30 @@ def _validate_agent_frontmatter_keys(meta: dict[object, object], *, agent_name: 
     unknown_keys = sorted(str(key) for key in meta if str(key) not in _AGENT_FRONTMATTER_KEYS)
     if unknown_keys:
         raise ValueError(f"unknown frontmatter keys for {agent_name}: {', '.join(unknown_keys)}")
+
+
+def _inline_model_visible_includes(content: str) -> str:
+    """Inline shared include directives while preserving canonical placeholder tokens."""
+
+    expanded = expand_at_includes(content, _PKG_ROOT, _MODEL_VISIBLE_INCLUDE_PATH_PREFIX)
+    return (
+        expanded.replace(
+            f"{_MODEL_VISIBLE_INCLUDE_PATH_PREFIX}get-physics-done/",
+            "{GPD_INSTALL_DIR}/",
+        )
+        .replace(
+            f"{_MODEL_VISIBLE_INCLUDE_PATH_PREFIX}get-physics-done",
+            "{GPD_INSTALL_DIR}",
+        )
+        .replace(
+            f"{_MODEL_VISIBLE_INCLUDE_PATH_PREFIX}agents/",
+            "{GPD_AGENTS_DIR}/",
+        )
+        .replace(
+            f"{_MODEL_VISIBLE_INCLUDE_PATH_PREFIX}agents",
+            "{GPD_AGENTS_DIR}",
+        )
+    )
 
 
 # ─── Dataclasses ─────────────────────────────────────────────────────────────
@@ -732,6 +758,7 @@ def _agent_model_content(
 ) -> str:
     """Return the model-visible agent body, including enforced agent constraints."""
 
+    body = _inline_model_visible_includes(body)
     sections: list[str] = [
         render_agent_requirements_section(
             tools=tools,
@@ -759,6 +786,7 @@ def _command_model_content(
 ) -> str:
     """Return the model-visible command body, including enforced command constraints."""
 
+    body = _inline_model_visible_includes(body)
     sections: list[str] = []
     visibility_sections = render_command_visibility_sections(
         context_mode=context_mode,

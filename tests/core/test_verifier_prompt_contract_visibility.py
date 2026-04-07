@@ -40,7 +40,7 @@ def test_verifier_prompt_points_to_canonical_verification_schema_sources() -> No
     assert "@{GPD_INSTALL_DIR}/references/verification/meta/verifier-profile-checks.md" in verifier_lines
     assert "`@{GPD_INSTALL_DIR}/templates/verification-report.md` is the canonical `VERIFICATION.md` frontmatter/body surface." in verifier
     assert "`@{GPD_INSTALL_DIR}/templates/contract-results-schema.md` is the canonical source of truth for `plan_contract_ref`, `contract_results`, `comparison_verdicts`, and verification-side `suggested_contract_checks`." in verifier
-    assert "Immediately before writing frontmatter, reload the same canonical schema files from Step 2 and obey those ledger rules literally:" in verifier
+    assert "Immediately before writing frontmatter, reload those canonical schema files and obey those ledger rules literally." in verifier
     assert "## Data Boundary" not in verifier
     assert "## Canonical LLM Error References" in verifier
     assert "`@{GPD_INSTALL_DIR}/references/verification/errors/llm-physics-errors.md` -- index and entry point" in verifier
@@ -79,6 +79,31 @@ def test_verifier_prompt_surfaces_validator_enforced_contract_ledger_rules() -> 
     assert "For each suggested check, start from its returned `request_template`, satisfy the listed `required_request_fields`, constrain any bindings to the returned `supported_binding_fields`, and then execute `run_contract_check(request=...)`" in verifier
     assert "required reference actions missing" in verifier
     assert "`suggested_contract_check`" not in verifier
+
+
+def test_verifier_prompt_keeps_reference_actions_within_the_canonical_enum() -> None:
+    verifier = _read_verifier_prompt()
+
+    assert "Verify the required action (`read`, `compare`, `cite`, etc.) was actually completed" in verifier
+    assert "Verify the required action (`read`, `compare`, `cite`, `reproduce`, etc.) was actually completed" not in verifier
+
+
+def test_verifier_prompt_loads_conventions_from_state_json_with_degraded_state_md_fallback() -> None:
+    verifier = _read_verifier_prompt()
+
+    assert "**Load conventions from `state.json` `convention_lock` first.**" in verifier
+    assert "`state.json` is the machine-readable source of truth." in verifier
+    assert "use `STATE.md` only as a degraded fallback" in verifier
+    assert "Do NOT parse STATE.md for conventions" not in verifier
+
+
+def test_verifier_prompt_reloads_the_canonical_schema_files_once() -> None:
+    verifier = _read_verifier_prompt()
+
+    assert verifier.count("@{GPD_INSTALL_DIR}/templates/verification-report.md") == 2
+    assert verifier.count("@{GPD_INSTALL_DIR}/templates/contract-results-schema.md") == 2
+    assert "reload those canonical schema files and obey those ledger rules literally." in verifier
+    assert "from Step 2" not in verifier
 
 
 def test_verifier_prompt_frontmatter_example_includes_contract_ledgers() -> None:

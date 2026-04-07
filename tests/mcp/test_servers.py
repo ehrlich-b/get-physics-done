@@ -1250,7 +1250,9 @@ class TestSkillsServer:
             "requires": "mirrored",
             "review_contract": "mirrored",
         }
-        assert "treat `content` as authoritative" in result["loading_hint"]
+        assert "Treat `content` as the wrapper/context surface." in result["loading_hint"]
+        assert "See `referenced_files` for external markdown dependencies." in result["loading_hint"]
+        assert "It already embeds the model-visible `Command Requirements` section." in result["loading_hint"]
         assert result["file_count"] == 1
         assert result["allowed_tools_surface"] == "command.allowed-tools"
 
@@ -1287,8 +1289,8 @@ class TestSkillsServer:
         assert "referee-decision-schema.md" in schema_documents
         assert "Referee Decision Schema" in schema_documents["referee-decision-schema.md"]["body"]
         assert "review-ledger-schema.md" not in contract_documents
-        assert "schema_documents mirror loaded schema markdown bodies" in result["loading_hint"]
-        assert "contract_documents mirror the remaining contract markdown bodies" in result["loading_hint"]
+        assert "Treat `content` as the wrapper/context surface." in result["loading_hint"]
+        assert "Load `schema_documents` and `contract_documents` too when present" in result["loading_hint"]
         assert result["content_authority"] == "canonical"
         assert result["structured_metadata_authority"] == {
             "content": "canonical",
@@ -1298,7 +1300,7 @@ class TestSkillsServer:
             "requires": "mirrored",
             "review_contract": "mirrored",
         }
-        assert "treat `content` as authoritative" in result["loading_hint"]
+        assert "It already embeds the model-visible `Command Requirements` section." in result["loading_hint"]
         assert result["context_mode"] == "project-required"
         assert result["project_reentry_capable"] is False
         assert result["review_contract"] is not None

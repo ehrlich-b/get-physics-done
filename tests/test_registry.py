@@ -1391,6 +1391,26 @@ class TestSkillDiscovery:
             registry._discover_skills(registry._discover_commands(), registry._discover_agents())
 
 
+class TestRegistryPromptIncludeInlining:
+    """Tests for registry-loaded content surfaces that inline shared includes."""
+
+    def test_verifier_system_prompt_inlines_included_verification_checklists(self) -> None:
+        agent = registry.get_agent("gpd-verifier")
+
+        assert "Verifier Profile-Specific Checks" in agent.system_prompt
+        assert "**For every checklist item: perform the CHECK, do not search_files for the CONCEPT.**" in agent.system_prompt
+        assert "# Verification Report Template" in agent.system_prompt
+        assert "# Contract Results Schema" in agent.system_prompt
+
+    def test_write_paper_command_content_inlines_contract_schema_dependencies(self) -> None:
+        command = registry.get_command("gpd:write-paper")
+
+        assert "Paper Config Schema" in command.content
+        assert "Review Ledger Schema" in command.content
+        assert "Referee Decision Schema" in command.content
+        assert "Stage 1 `CLAIMS{round_suffix}.json` must follow this compact `ClaimIndex` shape" in command.content
+
+
 class TestNonMdFilesIgnored:
     """Tests that non-.md files are ignored during discovery."""
 

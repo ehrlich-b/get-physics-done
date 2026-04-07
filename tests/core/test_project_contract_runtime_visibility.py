@@ -60,6 +60,8 @@ def test_runtime_context_surfaces_approval_blocked_project_contract_payload_with
     assert ctx["project_contract_load_info"]["status"] == "loaded_with_approval_blockers"
     assert ctx["project_contract_validation"]["valid"] is False
     assert ctx["project_contract_validation"]["mode"] == "approved"
+    assert ctx["project_contract_gate"]["visible"] is True
+    assert ctx["project_contract_gate"]["blocked"] is True
     assert ctx["project_contract_gate"]["approval_blocked"] is True
     assert ctx["project_contract_gate"]["authoritative"] is False
     assert ctx["effective_reference_intake"]["context_gaps"] == ["Need a concrete must-surface anchor before approval."]

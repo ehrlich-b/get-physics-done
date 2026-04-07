@@ -138,26 +138,24 @@ def _public_skill(skill: content_registry.SkillDef) -> dict[str, str]:
 
 def _skill_loading_hint(*, source_kind: str, referenced_files: bool, reference_documents: bool) -> str:
     """Return a concise, content-first loading hint for a skill payload."""
-    reference_hint = (
-        "schema_documents mirror loaded schema markdown bodies, while contract_documents mirror the remaining contract markdown bodies."
-        if reference_documents
-        else (
-            "See `referenced_files` for external markdown dependencies."
-            if referenced_files
-            else "No external markdown dependencies detected in the canonical skill body."
+    if reference_documents:
+        dependency_hint = (
+            "Treat `content` as the wrapper/context surface. Load `schema_documents` and "
+            "`contract_documents` too when present; they carry the markdown bodies that back the "
+            "model-visible schema and contract rules."
         )
-    )
+    elif referenced_files:
+        dependency_hint = (
+            "Treat `content` as the wrapper/context surface. See `referenced_files` for external "
+            "markdown dependencies."
+        )
+    else:
+        dependency_hint = "Treat `content` as the wrapper/context surface."
     if source_kind == "command":
-        return (
-            f"{reference_hint} treat `content` as authoritative; it already embeds the model-visible "
-            "`Command Requirements` section."
-        )
+        return f"{dependency_hint} It already embeds the model-visible `Command Requirements` section."
     if source_kind == "agent":
-        return (
-            f"{reference_hint} treat `content` as authoritative; it already embeds the model-visible "
-            "`Agent Requirements` section."
-        )
-    return f"{reference_hint} treat `content` as authoritative."
+        return f"{dependency_hint} It already embeds the model-visible `Agent Requirements` section."
+    return dependency_hint
 
 
 def _skill_review_contract_payload(review_contract: content_registry.ReviewCommandContract | None) -> dict[str, object] | None:

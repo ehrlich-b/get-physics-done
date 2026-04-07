@@ -1039,6 +1039,34 @@ class UnattendedReadinessResult:
     validated_surface: str = "public_runtime_command_surface"
 
 
+def _permissions_capability_fallback_payload(
+    *,
+    contract_source: str,
+    contract_error: str | None = None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "contract_source": contract_source,
+        "permissions_surface": "adapter-defined",
+        "permission_surface_kind": "unknown",
+        "prompt_free_mode_value": None,
+        "supports_runtime_permission_sync": False,
+        "supports_prompt_free_mode": False,
+        "prompt_free_requires_relaunch": False,
+        "statusline_surface": "unknown",
+        "statusline_config_surface": "unknown",
+        "notify_surface": "unknown",
+        "notify_config_surface": "unknown",
+        "telemetry_source": "unknown",
+        "telemetry_completeness": "unknown",
+        "supports_usage_tokens": False,
+        "supports_cost_usd": False,
+        "supports_context_meter": False,
+    }
+    if contract_error is not None:
+        payload["contract_error"] = contract_error
+    return payload
+
+
 def _permissions_capability_payload(runtime_name: object) -> dict[str, object]:
     """Return the structured runtime capability contract for permissions surfaces."""
     if isinstance(runtime_name, str) and runtime_name:
@@ -1049,20 +1077,10 @@ def _permissions_capability_payload(runtime_name: object) -> dict[str, object]:
         except KeyError:
             pass
         except Exception as exc:
-            return {
-                "contract_source": "runtime-catalog-error",
-                "contract_error": f"{type(exc).__name__}: {exc}",
-                "permissions_surface": "adapter-defined",
-                "permission_surface_kind": "unknown",
-                "prompt_free_mode_value": None,
-                "supports_runtime_permission_sync": False,
-                "supports_prompt_free_mode": False,
-                "prompt_free_requires_relaunch": False,
-                "statusline_surface": "unknown",
-                "notify_surface": "unknown",
-                "telemetry_source": "unknown",
-                "telemetry_completeness": "unknown",
-            }
+            return _permissions_capability_fallback_payload(
+                contract_source="runtime-catalog-error",
+                contract_error=f"{type(exc).__name__}: {exc}",
+            )
         else:
             return {
                 "contract_source": "runtime-catalog",
@@ -1073,23 +1091,16 @@ def _permissions_capability_payload(runtime_name: object) -> dict[str, object]:
                 "supports_prompt_free_mode": capabilities.supports_prompt_free_mode,
                 "prompt_free_requires_relaunch": capabilities.prompt_free_requires_relaunch,
                 "statusline_surface": capabilities.statusline_surface,
+                "statusline_config_surface": capabilities.statusline_config_surface,
                 "notify_surface": capabilities.notify_surface,
+                "notify_config_surface": capabilities.notify_config_surface,
                 "telemetry_source": capabilities.telemetry_source,
                 "telemetry_completeness": capabilities.telemetry_completeness,
+                "supports_usage_tokens": capabilities.supports_usage_tokens,
+                "supports_cost_usd": capabilities.supports_cost_usd,
+                "supports_context_meter": capabilities.supports_context_meter,
             }
-    return {
-        "contract_source": "generic-fallback",
-        "permissions_surface": "adapter-defined",
-        "permission_surface_kind": "unknown",
-        "prompt_free_mode_value": None,
-        "supports_runtime_permission_sync": False,
-        "supports_prompt_free_mode": False,
-        "prompt_free_requires_relaunch": False,
-        "statusline_surface": "unknown",
-        "notify_surface": "unknown",
-        "telemetry_source": "unknown",
-        "telemetry_completeness": "unknown",
-    }
+    return _permissions_capability_fallback_payload(contract_source="generic-fallback")
 
 
 def _permissions_requested_surface(payload: dict[str, object]) -> str:

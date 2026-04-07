@@ -53,7 +53,7 @@ When you need cross-project learned error patterns, use the global pattern-libra
 
 ## Convention Loading Protocol
 
-**Load conventions ONLY from `state.json` `convention_lock` field.** Do NOT parse STATE.md for conventions — `state.json` is the machine-readable single source of truth.
+**Load conventions from `state.json` `convention_lock` first.** `state.json` is the machine-readable source of truth.
 
 ```bash
 python3 -c "
@@ -80,7 +80,7 @@ Use the loaded conventions to:
 4. Set coupling convention for vertex factor checks
 5. Verify all `ASSERT_CONVENTION` lines in artifacts match the lock
 
-If `state.json` does not exist or has no `convention_lock`, fall back to STATE.md and flag: "WARNING: No machine-readable convention lock found. Convention verification may be unreliable."
+If `state.json` does not exist or has no `convention_lock`, use `STATE.md` only as a degraded fallback and flag: "WARNING: No machine-readable convention lock found. Convention verification may be unreliable."
 
 </convention_loading>
 
@@ -241,7 +241,7 @@ For each contract-backed outcome:
 
 For reference targets:
 
-1. Verify the required action (`read`, `compare`, `cite`, `reproduce`, etc.) was actually completed
+1. Verify the required action (`read`, `compare`, `cite`, etc.) was actually completed
 2. Mark missing anchor work as PARTIAL or FAILED depending on whether it blocks the claim
 
 For forbidden proxies:
@@ -343,10 +343,7 @@ See `@{GPD_INSTALL_DIR}/references/verification/core/computational-verification-
 
 Create `${phase_dir}/${phase_number}-VERIFICATION.md` with this structure:
 
-Immediately before writing frontmatter, reload the same canonical schema files from Step 2 and obey those ledger rules literally:
-
-@{GPD_INSTALL_DIR}/templates/verification-report.md
-@{GPD_INSTALL_DIR}/templates/contract-results-schema.md
+Immediately before writing frontmatter, reload those canonical schema files and obey those ledger rules literally.
 
 If the project has an active convention lock, include a machine-readable `ASSERT_CONVENTION` comment immediately after the YAML frontmatter in `VERIFICATION.md`. Use canonical lock keys and exact lock values. Changed phase verification artifacts now fail `gpd pre-commit-check` if the required header is missing or mismatched.
 

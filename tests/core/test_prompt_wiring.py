@@ -2377,31 +2377,25 @@ def test_skill_surface_exposes_contract_references_for_paper_and_review_workflow
     assert any(path.endswith("bibliography-audit-schema.md") for path in write_paper["schema_references"])
     assert any(path.endswith("review-ledger-schema.md") for path in write_paper["schema_references"])
     assert any(path.endswith("referee-decision-schema.md") for path in write_paper["schema_references"])
-    assert any(path.endswith("paper-config-schema.md") for path in peer_review["schema_references"])
-    assert any(path.endswith("artifact-manifest-schema.md") for path in peer_review["schema_references"])
-    assert any(path.endswith("bibliography-audit-schema.md") for path in peer_review["schema_references"])
-    assert any(path.endswith("reproducibility-manifest.md") for path in peer_review["schema_references"])
-    assert any(path.endswith("paper-config-schema.md") for path in arxiv_submission["schema_references"])
-    assert any(path.endswith("bibliography-audit-schema.md") for path in arxiv_submission["schema_references"])
-    assert any(path.endswith("bibliography-audit-schema.md") for path in respond_to_referees["schema_references"])
+    assert any(path.endswith("review-ledger-schema.md") for path in peer_review["schema_references"])
+    assert any(path.endswith("referee-decision-schema.md") for path in peer_review["schema_references"])
+    assert any(path.endswith("paper-quality-input-schema.md") for path in arxiv_submission["schema_references"])
+    assert any(path.endswith("author-response.md") for path in respond_to_referees["schema_references"])
     assert any(path.endswith("reproducibility-manifest.md") for path in write_paper["schema_references"])
     assert any(path.endswith("peer-review-panel.md") for path in write_paper["contract_references"])
+    assert any(path.endswith("peer-review-reliability.md") for path in write_paper["contract_references"])
     assert any(path.endswith("peer-review-panel.md") for path in peer_review["contract_references"])
-    assert any(path.endswith("review-ledger-schema.md") for path in arxiv_submission["schema_references"])
-    assert any(path.endswith("referee-decision-schema.md") for path in arxiv_submission["schema_references"])
-    assert any(path.endswith("artifact-manifest-schema.md") for path in arxiv_submission["schema_references"])
-    assert any(path.endswith("bibliography-audit-schema.md") for path in arxiv_submission["schema_references"])
-    assert any(path.endswith("review-ledger-schema.md") for path in respond_to_referees["schema_references"])
-    assert any(path.endswith("referee-decision-schema.md") for path in respond_to_referees["schema_references"])
+    assert any(path.endswith("peer-review-reliability.md") for path in peer_review["contract_references"])
     assert "Paper Config Schema" in write_paper_schema_documents["paper-config-schema.md"]["body"]
     assert "Artifact Manifest Schema" in write_paper_schema_documents["artifact-manifest-schema.md"]["body"]
     assert "Bibliography Audit Schema" in write_paper_schema_documents["bibliography-audit-schema.md"]["body"]
     assert "Reproducibility Manifest Template" in write_paper_schema_documents["reproducibility-manifest.md"]["body"]
     assert "Peer Review Panel Protocol" in peer_review_contract_documents["peer-review-panel.md"]["body"]
-    assert "Peer Review Phase Reliability" in arxiv_contract_documents["peer-review-reliability.md"]["body"]
-    assert "Peer Review Phase Reliability" in respond_contract_documents["peer-review-reliability.md"]["body"]
-    assert "schema_documents mirror loaded schema markdown bodies" in write_paper["loading_hint"]
-    assert "contract_documents mirror the remaining contract markdown bodies" in write_paper["loading_hint"]
+    assert "Peer Review Phase Reliability" in peer_review_contract_documents["peer-review-reliability.md"]["body"]
+    assert arxiv_contract_documents == {}
+    assert respond_contract_documents == {}
+    assert "Treat `content` as the wrapper/context surface." in write_paper["loading_hint"]
+    assert "Load `schema_documents` and `contract_documents` too when present" in write_paper["loading_hint"]
 
 
 def test_review_and_execution_prompts_expand_required_schema_sources() -> None:

@@ -166,7 +166,6 @@ def test_model_visible_section_renderers_share_one_canonical_wrapper_structure()
             "preflight_checks": ["manuscript"],
         }
     )
-    rendered_review_contract_payload = review_contract_payload(review_contract_payload_data)
     review_section = render_review_contract_prompt(review_contract_payload_data)
 
     assert agent_section == _manual_model_visible_yaml_section(
@@ -194,12 +193,14 @@ def test_model_visible_section_renderers_share_one_canonical_wrapper_structure()
     )
     assert review_section == _manual_model_visible_yaml_section(
         heading="Review Contract",
-        note=(
-            f"{review_contract_visibility_note()} "
-            "List fields reject blank entries and duplicates. "
-            "Each conditional requirement must declare at least one field. "
-        ),
-        payload={REVIEW_CONTRACT_PROMPT_WRAPPER_KEY: rendered_review_contract_payload},
+        note=review_contract_visibility_note(),
+        payload={
+            REVIEW_CONTRACT_PROMPT_WRAPPER_KEY: {
+                "schema_version": 1,
+                "review_mode": "review",
+                "preflight_checks": ["manuscript"],
+            }
+        },
     )
 
 
@@ -225,6 +226,8 @@ def test_model_visible_wrapper_notes_surface_their_closed_schema_rules() -> None
     assert f"`required_state` must be {required_states}" in note
     assert f"`conditional_requirements[].when` must be one of {conditional_whens}" in note
     assert "blocking_preflight_checks" in note
+    assert "List fields reject blank entries and duplicates." in note
+    assert "Each conditional requirement must declare at least one field." in note
 
 
 def test_review_contract_renderer_rejects_unknown_keys() -> None:
@@ -630,7 +633,12 @@ def test_review_contract_renderer_always_surfaces_blocking_preflight_dependency_
     section = render_review_contract_prompt({"schema_version": 1, "review_mode": "review"})
 
     assert review_contract_visibility_note() in section
-    assert "preflight_checks: []" in section
+    assert "preflight_checks: []" not in section
+    assert "required_outputs: []" not in section
+    assert "required_evidence: []" not in section
+    assert "blocking_conditions: []" not in section
+    assert "stage_artifacts: []" not in section
+    assert "conditional_requirements: []" not in section
     assert "`conditional_requirements[].blocking_preflight_checks`" in section
 
 
@@ -764,13 +772,13 @@ def test_review_contract_renderer_rejects_non_list_and_non_mapping_conditional_s
 def test_review_contract_renderer_fills_canonical_defaults_for_minimal_payload() -> None:
     section = render_review_contract_prompt({"schema_version": 1, "review_mode": "review"})
 
-    assert "required_outputs: []" in section
-    assert "required_evidence: []" in section
-    assert "blocking_conditions: []" in section
-    assert "preflight_checks: []" in section
-    assert "stage_artifacts: []" in section
-    assert "conditional_requirements: []" in section
-    assert "required_state: ''" not in section
+    assert "required_outputs: []" not in section
+    assert "required_evidence: []" not in section
+    assert "blocking_conditions: []" not in section
+    assert "preflight_checks: []" not in section
+    assert "stage_artifacts: []" not in section
+    assert "conditional_requirements: []" not in section
+    assert "required_state:" not in section
     assert "stage_ids" not in section
     assert "final_decision_output" not in section
     assert "requires_fresh_context_per_stage" not in section
@@ -797,6 +805,8 @@ def test_review_contract_renderer_renders_conditional_requirements() -> None:
     assert "conditional_requirements:" in section
     assert "- when: theorem-bearing claims are present" in section
     assert "required_outputs:" in section
+    assert "required_evidence: []" not in section
+    assert "blocking_conditions: []" not in section
     assert "blocking_preflight_checks:" in section
     assert "stage_artifacts:" in section
     assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in section

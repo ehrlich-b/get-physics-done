@@ -466,7 +466,7 @@ class TestSkillsServerIntegration:
         assert "gpd-help" in result["content"]
         assert "## Command Requirements" in result["content"]
         assert "Quick Start Extract" in result["content"]
-        assert "## Contextual Help" not in result["content"]
+        assert "## Contextual Help" in result["content"]
         assert result["file_count"] == 1
         assert result["allowed_tools_surface"] == "command.allowed-tools"
 
@@ -496,9 +496,9 @@ class TestSkillsServerIntegration:
         assert "## Review Contract" in result["content"]
         assert "review_contract:" in result["content"]
         assert "review-contract:" not in result["content"]
-        assert "schema_documents mirror loaded schema markdown bodies" in result["loading_hint"]
-        assert "contract_documents mirror the remaining contract markdown bodies" in result["loading_hint"]
-        assert "treat `content` as authoritative" in result["loading_hint"]
+        assert "Treat `content` as the wrapper/context surface." in result["loading_hint"]
+        assert "Load `schema_documents` and `contract_documents` too when present" in result["loading_hint"]
+        assert "It already embeds the model-visible `Command Requirements` section." in result["loading_hint"]
 
     def test_get_skill_surfaces_template_backed_schema_documents_for_writing_and_resume(self):
         from gpd.mcp.servers.skills_server import get_skill

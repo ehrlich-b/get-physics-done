@@ -80,6 +80,7 @@ def test_fast_suite_policy_keeps_boundary_regressions_in_default_path() -> None:
         "core/test_contract_validation_smoke.py",
         "core/test_executor_prompt_contract_visibility.py",
         "core/test_frontmatter_smoke.py",
+        "core/test_review_contract_prompt_visibility.py",
         "core/test_plan_contract_prompt_visibility_regressions.py",
         "test_project_contract_boundary_regressions.py",
         "test_runtime_abstraction_boundaries.py",
@@ -118,6 +119,7 @@ def test_ci_and_test_readme_document_explicit_fast_and_full_suite_commands() -> 
     assert "Default `uv run pytest tests/ -q` uses the fast daily suite declared in `tests/conftest.py`." in tests_readme
     assert "explicit `loadscope` scheduling used by CI" in tests_readme
     assert "GitHub Actions workflow runs the complementary heavy suite with `--full-suite` plus the shared ignore helper" in tests_readme
+    assert "tests/core/test_review_contract_prompt_visibility.py" in tests_readme
     assert complementary_heavy_suite_ignore_args() == tuple(
         f"--ignore=tests/{rel_path}" for rel_path in _all_test_paths() if rel_path not in FAST_SUITE_EXCLUDES
     )

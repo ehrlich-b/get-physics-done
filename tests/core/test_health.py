@@ -84,6 +84,30 @@ def _draft_invalid_project_contract() -> dict[str, object]:
     return contract
 
 
+def _expected_permissions_capability_fallback_payload(*, contract_source: str, contract_error: str | None = None) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "contract_source": contract_source,
+        "permissions_surface": "adapter-defined",
+        "permission_surface_kind": "unknown",
+        "prompt_free_mode_value": None,
+        "supports_runtime_permission_sync": False,
+        "supports_prompt_free_mode": False,
+        "prompt_free_requires_relaunch": False,
+        "statusline_surface": "unknown",
+        "statusline_config_surface": "unknown",
+        "notify_surface": "unknown",
+        "notify_config_surface": "unknown",
+        "telemetry_source": "unknown",
+        "telemetry_completeness": "unknown",
+        "supports_usage_tokens": False,
+        "supports_cost_usd": False,
+        "supports_context_meter": False,
+    }
+    if contract_error is not None:
+        payload["contract_error"] = contract_error
+    return payload
+
+
 def test_doctor_active_runtime_settings_command_falls_back_to_runtime_neutral_reference(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -107,16 +131,10 @@ def test_permissions_capability_payload_surfaces_unexpected_catalog_failures(
 
     payload = health_module._permissions_capability_payload(PRIMARY_RUNTIME)
 
-    assert payload["contract_source"] == "runtime-catalog-error"
-    assert payload["contract_error"] == "RuntimeError: catalog exploded"
-    assert payload["permissions_surface"] == "adapter-defined"
-    assert payload["permission_surface_kind"] == "unknown"
-    assert payload["supports_runtime_permission_sync"] is False
-    assert payload["supports_prompt_free_mode"] is False
-    assert payload["prompt_free_requires_relaunch"] is False
-    assert payload["telemetry_source"] == "unknown"
-    assert payload["telemetry_completeness"] == "unknown"
-    assert payload["contract_source"] != "generic-fallback"
+    assert payload == _expected_permissions_capability_fallback_payload(
+        contract_source="runtime-catalog-error",
+        contract_error="RuntimeError: catalog exploded",
+    )
 
 
 def test_permissions_capability_payload_keeps_generic_fallback_for_unknown_runtime(
@@ -129,8 +147,7 @@ def test_permissions_capability_payload_keeps_generic_fallback_for_unknown_runti
 
     payload = health_module._permissions_capability_payload(PRIMARY_RUNTIME)
 
-    assert payload["contract_source"] == "generic-fallback"
-    assert "contract_error" not in payload
+    assert payload == _expected_permissions_capability_fallback_payload(contract_source="generic-fallback")
 
 # ─── Model Tests ─────────────────────────────────────────────────────────────
 

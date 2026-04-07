@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from gpd.contracts import contract_from_data, contract_from_data_salvage
 from gpd.core.contract_validation import validate_project_contract
 from gpd.core.state import (
     ProjectLayout,
@@ -38,6 +39,18 @@ def test_fast_project_contract_proxy_rejects_unknown_proof_deliverable_in_draft_
 
     assert result.valid is False
     assert "claim claim-benchmark references unknown proof deliverable deliv-missing" in result.errors
+
+
+def test_fast_project_contract_proxy_strict_rejects_singleton_list_drift_but_salvage_recovers() -> None:
+    contract = _load_contract_fixture()
+    contract["context_intake"]["must_read_refs"] = "ref-benchmark"
+
+    assert contract_from_data(contract) is None
+
+    salvaged = contract_from_data_salvage(contract)
+
+    assert salvaged is not None
+    assert salvaged.context_intake.must_read_refs == ["ref-benchmark"]
 
 
 def test_fast_project_contract_proxy_rejects_malformed_optional_approach_policy(tmp_path: Path) -> None:
