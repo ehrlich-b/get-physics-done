@@ -650,3 +650,17 @@ def test_installed_prompt_contract_visibility_survives_adapter_projection(
         assert "## Physics Stub Detection Patterns" not in verifier
     else:
         assert verifier.count("## Physics Stub Detection Patterns") == 1
+
+
+@pytest.mark.parametrize("runtime", ["claude-code", "codex", "gemini", "opencode"])
+def test_installed_executor_bootstrap_surface_defers_completion_only_materials(
+    real_installed_repo_factory,
+    runtime: str,
+) -> None:
+    target = real_installed_repo_factory(runtime)
+    executor = _read_runtime_agent_prompt(target, runtime, "gpd-executor")
+    bootstrap, _, _ = executor.partition("<summary_creation>")
+
+    assert "templates/summary.md" not in bootstrap
+    assert "templates/calculation-log.md" not in bootstrap
+    assert "Order-of-Limits Awareness" not in bootstrap

@@ -1217,6 +1217,13 @@ class TestInitExecutePhaseStagedWiring:
         assert "protocol_bundle_context" not in ctx
         assert "current_execution" not in ctx
 
+    def test_stage_rejects_unknown_execute_phase_stage(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _create_phase_dir(tmp_path, "01-setup")
+
+        with pytest.raises(ValueError, match="Unknown execute-phase stage 'bogus'"):
+            init_execute_phase(tmp_path, "1", stage="bogus")
+
 
 # ─── init_plan_phase ──────────────────────────────────────────────────────────
 

@@ -395,6 +395,21 @@ def test_get_skill_agent_surfaces_allowed_tools() -> None:
     assert agent.tools == ["shell", "file_read", "shell"]
 
 
+def test_get_skill_executor_agent_does_not_expose_staged_loading_sidecar() -> None:
+    from gpd.mcp.servers.skills_server import get_skill
+
+    result = get_skill("gpd-executor")
+
+    assert result["allowed_tools_surface"] == "agent.tools"
+    assert result["structured_metadata_authority"] == {
+        "content": "canonical",
+        "allowed_tools": "mirrored",
+        "agent_policy": "mirrored",
+    }
+    assert "staged_loading" not in result
+    assert "staged_loading" not in result["structured_metadata_authority"]
+
+
 def test_skills_server_import_is_resilient_to_registry_index_failure(monkeypatch) -> None:
     monkeypatch.setattr(
         registry_module,

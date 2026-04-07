@@ -1638,6 +1638,29 @@ class TestSkillsServer:
             "tools": agent.tools,
         }
 
+
+    def test_get_skill_executor_agent_defers_completion_only_materials_until_summary_creation(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        from gpd import registry as content_registry
+        from gpd.mcp.servers.skills_server import get_skill
+
+        repo_agents_dir = Path(__file__).resolve().parents[2] / "src/gpd/agents"
+        monkeypatch.setattr(content_registry, "AGENTS_DIR", repo_agents_dir)
+        content_registry.invalidate_cache()
+
+        result = get_skill("gpd-executor")
+
+        assert "error" not in result
+        bootstrap, _, _ = result["content"].partition("<summary_creation>")
+
+        assert result["name"] == "gpd-executor"
+        assert result["allowed_tools_surface"] == "agent.tools"
+        assert "staged_loading" not in result
+        assert "templates/summary.md" not in bootstrap
+        assert "templates/calculation-log.md" not in bootstrap
+        assert "Order-of-Limits Awareness" not in bootstrap
+
     def test_get_skill_loading_hint_only_claims_schema_documents_when_loaded(self):
         from gpd.mcp.servers.skills_server import get_skill
 

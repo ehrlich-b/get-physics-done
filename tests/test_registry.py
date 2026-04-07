@@ -2358,3 +2358,14 @@ class TestSkillCategoryMap:
         from gpd.registry import _infer_skill_category
 
         assert _infer_skill_category("gpd-peer-review") == "paper"
+
+
+def test_executor_skill_defers_completion_only_materials_until_summary_creation() -> None:
+    skill = registry.get_skill("gpd-executor")
+    bootstrap, _, _ = skill.content.partition("<summary_creation>")
+
+    assert skill.name == "gpd-executor"
+    assert skill.source_kind == "agent"
+    assert "templates/summary.md" not in bootstrap
+    assert "templates/calculation-log.md" not in bootstrap
+    assert "Order-of-Limits Awareness" not in bootstrap

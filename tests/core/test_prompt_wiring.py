@@ -145,7 +145,6 @@ AGENT_REFERENCE_TOKENS = {
         "references/execution/executor-task-checkpoints.md",
         "references/execution/executor-completion.md",
         "references/execution/executor-worked-example.md",
-        "references/protocols/order-of-limits.md",
         "references/methods/approximation-selection.md",
         "references/verification/errors/llm-physics-errors.md",
         "references/verification/core/code-testing-physics.md",
@@ -1945,10 +1944,10 @@ def test_execute_phase_and_execute_plan_use_staged_execution_bootstrap_instead_o
     assert "WAVE_PLANNING_INIT=$(load_execute_phase_stage wave_planning)" in execute_workflow
     assert "WAVE_DISPATCH_INIT=$(load_execute_phase_stage wave_dispatch)" in execute_workflow
     assert "gpd --raw init execute-phase \"${phase}\" --include state,config" not in execute_plan
-    assert 'gpd --raw init execute-phase "${phase}" --stage plan_bootstrap' in execute_plan
-    assert 'gpd --raw init execute-phase "${phase}" --stage contract_anchor_gate' in execute_plan
-    assert 'gpd --raw init execute-phase "${phase}" --stage segment_execution' in execute_plan
-    assert 'gpd --raw init execute-phase "${phase}" --stage summary_finalize' in execute_plan
+    assert 'gpd --raw init execute-phase "${phase}" --stage phase_bootstrap' in execute_plan
+    assert 'gpd --raw init execute-phase "${phase}" --stage phase_classification' in execute_plan
+    assert 'gpd --raw init execute-phase "${phase}" --stage wave_planning' in execute_plan
+    assert 'gpd --raw init execute-phase "${phase}" --stage aggregate_and_verify' in execute_plan
 
 
 def test_execute_phase_and_execute_plan_surface_required_reference_and_state_ownership_guidance() -> None:
@@ -2706,18 +2705,11 @@ def test_review_and_execution_prompts_expand_required_schema_sources() -> None:
         src_root,
         "/runtime/",
     )
-    executor = expand_at_includes(
-        (AGENTS_DIR / "gpd-executor.md").read_text(encoding="utf-8"),
-        src_root,
-        "/runtime/",
-    )
 
     assert "Peer Review Panel Protocol" in review_reader
     assert "Peer Review Panel Protocol" in review_literature
     assert "Review Ledger Schema" in referee
     assert "Referee Decision Schema" in referee
-    assert "Summary Template" in executor
-    assert "Contract Results Schema" in executor
 
 
 def test_verification_and_agent_reference_prompts_expand_or_stage_required_reference_bodies() -> None:
@@ -3437,11 +3429,9 @@ def test_stage8_surfaces_decisive_comparisons_paper_quality_artifacts_and_profil
     assert "MANUSCRIPT_TEX" in (REFERENCES_DIR / "protocols" / "hypothesis-driven-research.md").read_text(
         encoding="utf-8"
     )
-    assert "MANUSCRIPT_TEX" in executor
     assert "main.tex" not in (REFERENCES_DIR / "protocols" / "hypothesis-driven-research.md").read_text(
         encoding="utf-8"
     )
-    assert "main.tex" not in executor
     assert "Review (Recommended)" in settings
     assert "all required contract-aware checks" in profiles
     assert "current registry: 5.1-5.19" in quick_reference

@@ -48,6 +48,26 @@ def test_load_workflow_stage_manifest_is_cached() -> None:
     assert first.stage_ids() == ("scope_intake", "scope_approval", "post_scope")
     assert "references/shared/canonical-schema-discipline.md" in first.stages[0].must_not_eager_load
 
+    execute_phase_manifest = load_workflow_stage_manifest("execute-phase")
+    assert execute_phase_manifest.stage_ids() == (
+        "phase_bootstrap",
+        "phase_classification",
+        "wave_planning",
+        "pre_execution_specialists",
+        "wave_dispatch",
+        "checkpoint_resume",
+        "aggregate_and_verify",
+        "closeout",
+    )
+    assert execute_phase_manifest.stage("checkpoint_resume").next_stages == ("aggregate_and_verify",)
+    assert execute_phase_manifest.stage("aggregate_and_verify").next_stages == ("closeout",)
+    assert execute_phase_manifest.stage("closeout").next_stages == ()
+    assert "templates/summary.md" in execute_phase_manifest.stage("aggregate_and_verify").loaded_authorities
+    assert "templates/contract-results-schema.md" in execute_phase_manifest.stage(
+        "aggregate_and_verify"
+    ).loaded_authorities
+    assert "templates/calculation-log.md" in execute_phase_manifest.stage("aggregate_and_verify").loaded_authorities
+
 
 def test_validate_workflow_stage_manifest_payload_loads_verify_work_manifest() -> None:
     manifest = validate_workflow_stage_manifest_payload(
@@ -258,7 +278,6 @@ def test_validate_workflow_stage_manifest_payload_loads_execute_phase_manifest_s
     assert "references/orchestration/artifact-surfacing.md" in manifest.stages[2].loaded_authorities
     assert manifest.staged_loading_payload("phase_bootstrap")["next_stages"] == ["wave_planning"]
     assert manifest.staged_loading_payload("wave_dispatch")["checkpoints"] == []
-
 
 @pytest.mark.parametrize(
     ("mutator", "message"),

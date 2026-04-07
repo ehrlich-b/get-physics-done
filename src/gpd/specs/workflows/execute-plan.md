@@ -14,30 +14,30 @@ Defer execution-reference, checkpoint, recovery, and summary-schema loads until 
 Load the bootstrap execution context using the staged init payload:
 
 ```bash
-INIT=$(gpd --raw init execute-phase "${phase}" --stage plan_bootstrap)
+INIT=$(gpd --raw init execute-phase "${phase}" --stage phase_bootstrap)
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   exit 1
 fi
 ```
 
-Extract from bootstrap init JSON: `executor_model`, `commit_docs`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `summaries`, `incomplete_plans`, `plan_count`, `incomplete_count`, `autonomy`, `review_cadence`, `max_unattended_minutes_per_plan`, `max_unattended_minutes_per_wave`, `checkpoint_after_n_tasks`, `checkpoint_after_first_load_bearing_result`, `checkpoint_before_downstream_dependent_tasks`, `branching_strategy`, `branch_name`, `phase_found`, `state_exists`, `roadmap_exists`, `config_exists`, `state_load_source`, `state_integrity_issues`, `convention_lock`, `convention_lock_count`, `derived_convention_lock`, `derived_convention_lock_count`.
+Extract from bootstrap init JSON: `executor_model`, `verifier_model`, `commit_docs`, `autonomy`, `review_cadence`, `research_mode`, `parallelization`, `max_unattended_minutes_per_plan`, `max_unattended_minutes_per_wave`, `checkpoint_after_n_tasks`, `checkpoint_after_first_load_bearing_result`, `checkpoint_before_downstream_dependent_tasks`, `verifier_enabled`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `state_exists`, `roadmap_exists`, `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `platform`.
 
 If `GPD/` missing: error.
 </step>
 
-<step name="load_contract_anchor_context">
-Load the contract / anchor gate payload only when you actually need it:
+<step name="load_phase_classification_context">
+Load the phase-classification payload only when you actually need it:
 
 ```bash
-CONTRACT_INIT=$(gpd --raw init execute-phase "${phase}" --stage contract_anchor_gate)
+CONTRACT_INIT=$(gpd --raw init execute-phase "${phase}" --stage phase_classification)
 if [ $? -ne 0 ]; then
-  echo "ERROR: staged contract-anchor init failed: $CONTRACT_INIT"
+  echo "ERROR: staged phase-classification init failed: $CONTRACT_INIT"
   exit 1
 fi
 ```
 
-Extract from init JSON: `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `active_reference_context`. This is the contract-anchor stage payload.
+Extract from init JSON: `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `convention_lock`, `convention_lock_count`, `derived_convention_lock`, `derived_convention_lock_count`, `state_load_source`, `state_integrity_issues`. This is the phase_classification payload.
 
 If `project_contract_load_info.status` starts with `blocked`, STOP and repair the stored contract before executing. Use the surfaced `project_contract_load_info.errors` / `warnings`; do not guess around them from prose-only context.
 
@@ -49,7 +49,7 @@ Treat `effective_reference_intake` as the structured carry-forward ledger for mu
 </step>
 
 <step name="load_protocol_bundle_context">
-Keep bundle asset reads out of bootstrap. If the plan later needs specialized execution guidance, the segment-execution stage will load the bundle payload and the bundle-listed core assets there instead of here.
+Keep bundle asset reads out of bootstrap. If the plan later needs specialized execution guidance, the wave_planning stage will load the bundle payload and the bundle-listed core assets there instead of here.
 </step>
 
 <step name="verify_conventions">
@@ -290,20 +290,20 @@ ls GPD/phases/*/*SUMMARY.md 2>/dev/null | sort -r | head -2 | tail -1
 If previous SUMMARY has unresolved "Issues Encountered" or "Next Phase Readiness" blockers: ask_user(header="Previous Issues", options: "Proceed anyway" | "Address first" | "Review previous").
 </step>
 
-<step name="load_segment_execution_context">
-Load the plan-execution payload only when the plan is ready to move into segment execution:
+<step name="load_wave_planning_context">
+Load the wave-planning payload only when the plan is ready to move into segment execution:
 
 ```bash
-SEGMENT_INIT=$(gpd --raw init execute-phase "${phase}" --stage segment_execution)
+SEGMENT_INIT=$(gpd --raw init execute-phase "${phase}" --stage wave_planning)
 if [ $? -ne 0 ]; then
-  echo "ERROR: staged segment-execution init failed: $SEGMENT_INIT"
+  echo "ERROR: staged wave-planning init failed: $SEGMENT_INIT"
   exit 1
 fi
 ```
 
-Extract from segment-execution init JSON: `reference_artifacts_content`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `state_load_source`, `state_integrity_issues`, `convention_lock`, `convention_lock_count`, `intermediate_results`, `intermediate_result_count`, `approximations`, `approximation_count`, `propagated_uncertainties`, `propagated_uncertainty_count`, `derived_convention_lock`, `derived_convention_lock_count`, `derived_intermediate_results`, `derived_intermediate_result_count`, `derived_approximations`, `derived_approximation_count`, `current_execution`, `execution_review_pending`, `execution_pre_fanout_review_pending`, `execution_skeptical_requestioning_required`, `execution_downstream_locked`.
+Extract from wave_planning init JSON: `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `reference_artifacts_content`, `state_load_source`, `state_integrity_issues`, `convention_lock`, `convention_lock_count`, `intermediate_results`, `intermediate_result_count`, `approximations`, `approximation_count`, `propagated_uncertainties`, `propagated_uncertainty_count`, `derived_convention_lock`, `derived_convention_lock_count`, `derived_intermediate_results`, `derived_intermediate_result_count`, `derived_approximations`, `derived_approximation_count`.
 
-If `selected_protocol_bundle_ids` is non-empty, treat `protocol_bundle_context` as the execution-stage specialized-loading guide for this plan. Read any bundle-listed core assets now, not during bootstrap.
+If `selected_protocol_bundle_ids` is non-empty, treat `protocol_bundle_context` as the plan-execution specialized-loading guide for this plan. Read any bundle-listed core assets now, not during bootstrap.
 
 Use `reference_artifacts_content` only here, when the segment actually needs to interpret prior outputs, baselines, or unresolved gaps.
 
@@ -570,17 +570,17 @@ fi
 </step>
 
 <step name="create_summary">
-Load the summary-finalization payload only when the plan is ready to write `SUMMARY.md`:
+Load the aggregate-and-verify payload only when the plan is ready to write `SUMMARY.md`:
 
 ```bash
-SUMMARY_INIT=$(gpd --raw init execute-phase "${phase}" --stage summary_finalize)
+SUMMARY_INIT=$(gpd --raw init execute-phase "${phase}" --stage aggregate_and_verify)
 if [ $? -ne 0 ]; then
-  echo "ERROR: staged summary-finalize init failed: $SUMMARY_INIT"
+  echo "ERROR: staged aggregate-and-verify init failed: $SUMMARY_INIT"
   exit 1
 fi
 ```
 
-Extract from summary-finalize init JSON: `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `state_load_source`, `state_integrity_issues`.
+Extract from aggregate-and-verify init JSON: `summaries`, `reference_artifact_files`, `reference_artifacts_content`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `current_execution`, `has_live_execution`, `execution_review_pending`, `execution_pre_fanout_review_pending`, `execution_skeptical_requestioning_required`, `execution_downstream_locked`, `execution_blocked`, `execution_resumable`, `execution_paused_at`, `current_execution_resume_file`, `session_resume_file`, `recorded_session_resume_file`, `missing_session_resume_file`, `execution_resume_file`, `execution_resume_file_source`, `resume_projection`, `project_contract`, `project_contract_gate`, `project_contract_validation`, `project_contract_load_info`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `state_load_source`, `state_integrity_issues`.
 
 Create `${phase}-${plan}-SUMMARY.md` at `${phase_dir}/`. Use `{GPD_INSTALL_DIR}/templates/summary.md`.
 
