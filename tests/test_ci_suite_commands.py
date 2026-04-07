@@ -105,6 +105,7 @@ def test_tests_readme_documents_default_full_suite_and_category_named_runtime_in
     assert "Default `uv run pytest` runs the full checked-in suite" in tests_readme
     assert "`uv run pytest -q` does the same with quieter output" in tests_readme
     assert "Both inherit `-n auto --dist=worksteal` from `pyproject.toml`" in tests_readme
+    assert "raises xdist auto-worker selection toward the current CI shard fanout" in tests_readme
     assert "override that default explicitly with `uv run pytest -n 0`" in tests_readme
     assert "GitHub Actions workflow runs that same full suite as category-named runtime-informed shards" in tests_readme
     assert "`root 1/8` through `root 8/8`, `adapters 1/2` through `adapters 2/2`, `hooks 1/2` through `hooks 2/2`, `mcp`, and `core 1/6` through `core 6/6`" in tests_readme

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
 import yaml
 
+import tests.conftest as tests_conftest
 from tests.ci_sharding import (
     CI_CATEGORY_SHARD_COUNTS,
     CI_HOT_TEST_FILE_SPLITS,
@@ -46,12 +49,40 @@ def test_root_conftest_keeps_default_collection_as_full_suite() -> None:
     core_conftest = _read("core/conftest.py")
 
     assert "_isolate_machine_local_gpd_data" in root_conftest
+    assert "pytest_xdist_auto_num_workers" in root_conftest
     assert "test suite mode: full (default)" in root_conftest
     assert "FAST_SUITE_EXCLUDES" not in root_conftest
     assert "--full-suite" not in root_conftest
     assert "GPD_TEST_FULL" not in root_conftest
     assert "pytest_ignore_collect" not in root_conftest
     assert "collect_ignore" not in core_conftest
+
+
+def test_root_conftest_scales_local_full_suite_auto_workers_toward_ci_fanout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ci_shards = sum(CI_CATEGORY_SHARD_COUNTS.values())
+
+    assert tests_conftest._is_default_full_suite_invocation([]) is True
+    assert tests_conftest._is_default_full_suite_invocation(["tests"]) is True
+    assert tests_conftest._is_default_full_suite_invocation(["tests/"]) is True
+    assert tests_conftest._is_default_full_suite_invocation(["tests/test_runtime_cli.py"]) is False
+    assert tests_conftest._full_suite_auto_worker_count(cpu_count=16, ci_shard_total=ci_shards) == ci_shards
+    assert tests_conftest._full_suite_auto_worker_count(cpu_count=8, ci_shard_total=ci_shards) == 16
+
+    config = SimpleNamespace(
+        args=["tests"],
+        option=SimpleNamespace(numprocesses="auto", maxprocesses=None),
+    )
+    monkeypatch.delenv("PYTEST_XDIST_AUTO_NUM_WORKERS", raising=False)
+    monkeypatch.setattr(tests_conftest.os, "cpu_count", lambda: 16)
+    assert tests_conftest.pytest_xdist_auto_num_workers(config) == ci_shards
+
+    config.option.maxprocesses = 12
+    assert tests_conftest.pytest_xdist_auto_num_workers(config) == 12
+
+    config.args = ["tests/test_runtime_cli.py"]
+    assert tests_conftest.pytest_xdist_auto_num_workers(config) is None
 
 
 def test_default_collection_matches_all_checked_in_test_files() -> None:
@@ -118,6 +149,7 @@ def test_ci_and_test_readme_document_default_full_suite_and_category_named_runti
     assert 'uv run pytest -q "${PYTEST_TARGETS[@]}"' in pytest_shard_command
     assert "Default `uv run pytest` runs the full checked-in suite" in tests_readme
     assert "`uv run pytest -q` does the same with quieter output" in tests_readme
+    assert "raises xdist auto-worker selection toward the current CI shard fanout" in tests_readme
     assert "override that default explicitly with `uv run pytest -n 0`" in tests_readme
     assert "GitHub Actions workflow runs that same full suite as category-named runtime-informed shards" in tests_readme
     assert "`root 1/8` through `root 8/8`, `adapters 1/2` through `adapters 2/2`, `hooks 1/2` through `hooks 2/2`, `mcp`, and `core 1/6` through `core 6/6`" in tests_readme

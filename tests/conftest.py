@@ -5,6 +5,40 @@ from collections.abc import Iterator
 
 import pytest
 
+from tests.ci_sharding import CI_CATEGORY_SHARD_COUNTS
+
+
+def _is_default_full_suite_invocation(args: list[str]) -> bool:
+    normalized = tuple(arg.rstrip("/") for arg in args)
+    return normalized in {(), ("tests",)}
+
+
+def _full_suite_auto_worker_count(*, cpu_count: int, ci_shard_total: int) -> int:
+    cpu_count = max(cpu_count, 1)
+    return min(max(cpu_count, ci_shard_total), cpu_count * 2)
+
+
+def pytest_xdist_auto_num_workers(config: pytest.Config) -> int | None:
+    """Keep local full-suite auto parallelism in the same range as CI fanout."""
+
+    if os.environ.get("PYTEST_XDIST_AUTO_NUM_WORKERS"):
+        return None
+
+    numprocesses = getattr(config.option, "numprocesses", None)
+    if numprocesses not in {"auto", "logical"}:
+        return None
+    if not _is_default_full_suite_invocation([str(arg) for arg in config.args]):
+        return None
+
+    worker_count = _full_suite_auto_worker_count(
+        cpu_count=os.cpu_count() or 1,
+        ci_shard_total=sum(CI_CATEGORY_SHARD_COUNTS.values()),
+    )
+    maxprocesses = getattr(config.option, "maxprocesses", None)
+    if maxprocesses is not None:
+        worker_count = min(worker_count, maxprocesses)
+    return worker_count
+
 
 @pytest.fixture(scope="session", autouse=True)
 def _isolate_machine_local_gpd_data(tmp_path_factory) -> Iterator[None]:
