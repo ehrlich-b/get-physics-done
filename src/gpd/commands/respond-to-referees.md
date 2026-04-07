@@ -39,13 +39,7 @@ allowed-tools:
 <objective>
 Structure a point-by-point response to referee reports and revise the manuscript accordingly.
 
-Handles the full revision pipeline: parsing referee comments, categorizing by priority and type, drafting responses, spawning revision agents for manuscript changes, tracking new calculations needed, verifying consistency after revisions, and producing both the internal author-response tracker and the journal-facing response letter.
-
-**Orchestrator role:** Parse and triage referee comments, coordinate revision agents, track new calculation requests, and keep the internal and journal-facing response artifacts synchronized.
-
-**Why subagent:** Each revision needs the referee comment, current text, and response plan. Fresh context keeps the response coordinated.
-
-Responding to referees is collaborative improvement: every comment, even an incorrect one, reveals something about how the paper communicates its results. The goal is a stronger paper.
+Keep the wrapper focused on referee triage, revision routing, and synchronized response artifacts.
 </objective>
 
 <execution_context>
@@ -78,11 +72,11 @@ Use centralized preflight to resolve the active manuscript only from the canonic
 </context>
 
 <process>
-Execute the respond-to-referees workflow from @{GPD_INSTALL_DIR}/workflows/respond-to-referees.md end-to-end.
-If staged peer-review artifacts exist under `GPD/review/`, absorb them as structured decision context while keeping `GPD/REFEREE-REPORT{round_suffix}.md` as the canonical issue-ID source.
+@{GPD_INSTALL_DIR}/references/publication/publication-review-wrapper-guidance.md
 @{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
-Preserve all validation gates (report parsing, triage confirmation, compilation check, consistency verification, bounded revision loop).
+
+Follow `@{GPD_INSTALL_DIR}/workflows/respond-to-referees.md` exactly.
 </process>
 
 <success_criteria>

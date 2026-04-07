@@ -78,13 +78,9 @@ allowed-tools:
 
 
 <objective>
-Conduct a skeptical peer review of a completed manuscript and its supporting research artifacts within the current GPD project.
+Conduct a skeptical peer review of a completed manuscript and its supporting research artifacts.
 
-This command promotes manuscript review to a first-class workflow instead of hiding it inside `write-paper`. It runs a staged six-agent panel: full-manuscript reader, literature reviewer, mathematical-soundness reviewer, physical-soundness reviewer, significance reviewer, and final adjudicating referee.
-
-**Orchestrator role:** Locate the manuscript, validate review prerequisites, gather supporting artifacts, spawn the staged review panel with fresh context between stages, and present actionable outcomes based on the final recommendation. The review-stage outputs are produced by this run; they are not pre-existing prerequisites.
-
-Peer review is not the same as verification. Verification asks whether a derivation or computation checks out. Peer review asks whether the claimed contribution is correct, complete, clear, well-situated in the literature, reproducible, and publishable.
+Keep the wrapper focused on the manuscript target, review prerequisites, and final routing. When announcing the panel to the user, say what each stage does in one concise sentence: Stage 1 maps the paper's claims; Stages 2-3 check prior work and mathematical soundness in parallel; theorem-bearing claims also trigger the auxiliary gpd-check-proof critic; Stage 4 checks whether the physical interpretation is supported; Stage 5 judges significance and venue fit; Stage 6 synthesizes everything into the final recommendation.
 </objective>
 
 <execution_context>
@@ -117,35 +113,11 @@ If none of those roots exist, pass an explicit manuscript path or paper director
 </context>
 
 <process>
-**Run centralized context preflight first:**
-
-```bash
-CONTEXT=$(gpd --raw validate command-context peer-review "$ARGUMENTS")
-if [ $? -ne 0 ]; then
-  echo "$CONTEXT"
-  exit 1
-fi
-```
-
-**Follow the peer-review workflow** from `@{GPD_INSTALL_DIR}/workflows/peer-review.md`.
-
+@{GPD_INSTALL_DIR}/references/publication/publication-review-wrapper-guidance.md
 @{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
 
-When announcing the panel to the user, say what each stage does in one concise sentence, for example:
-
-`Launching the six-stage review panel: Stage 1 maps the paper's claims; Stages 2-3 check prior work and mathematical soundness in parallel; theorem-bearing claims also trigger the auxiliary gpd-check-proof critic; Stage 4 checks whether the physical interpretation is supported; Stage 5 judges significance and venue fit; Stage 6 synthesizes everything into the final recommendation.`
-
-The workflow handles all logic including:
-
-1. **Init** — Load project context, detect manuscript target, and resolve scope
-2. **Preflight** — Run review preflight validation for the peer-review command
-3. **Artifact discovery** — Load manuscript files, bibliography, verification reports, and review-grade paper artifacts
-4. **Stage 1** — Spawn `gpd-review-reader` to read the whole manuscript and write `GPD/review/CLAIMS{round_suffix}.json` plus the Stage 1 handoff artifact
-5. **Stages 2-5** — Run four fresh-context specialist reviewers with compact stage artifacts: `gpd-review-literature`, `gpd-review-math`, `gpd-review-physics`, and `gpd-review-significance`; when theorem-bearing claims are present, Stage 3 also spawns `gpd-check-proof` to write `GPD/review/PROOF-REDTEAM{round_suffix}.md`
-6. **Final adjudication** — Spawn `gpd-referee` as the meta-reviewer to synthesize stage artifacts, populate `GPD/review/REVIEW-LEDGER{round_suffix}.json` and `GPD/review/REFEREE-DECISION{round_suffix}.json`, validate the decision floor, and issue the canonical final recommendation
-7. **Report handling** — Read the generated referee report and classify the recommendation
-8. **Next-step routing** — Route to respond-to-referees, manuscript edits, or arxiv-submission depending on the outcome
+Follow `@{GPD_INSTALL_DIR}/workflows/peer-review.md` exactly.
 </process>
 
 <success_criteria>

@@ -77,15 +77,9 @@ allowed-tools:
 
 
 <objective>
-Structure and write a physics paper from completed research results. Drive the full pipeline from digest to draft: readiness audit, scope, outline, figures, wave-parallelized drafting, notation audit, bibliography verification, staged peer review, and bounded revision. When literature review has already assembled a machine-readable citation list, treat it as a handoff artifact for `gpd paper-build --citation-sources`, not a separate bibliography database.
+Structure and write a physics paper from completed research results.
 
-**Orchestrator role:** Set scope and structure, spawn gpd-paper-writer agents for wave-parallelized section drafting, run gpd-bibliographer for citation verification, coordinate the staged peer-review panel (`gpd-review-reader`, `gpd-review-literature`, `gpd-review-math`, `gpd-review-physics`, `gpd-review-significance`, then `gpd-referee`), and keep the manuscript internally consistent.
-
-**Why subagent:** Paper writing needs full research context, and fresh context keeps each section draft isolated.
-
-Writing a physics paper is not writing a report. Keep the narrative arc tight, let every equation and figure earn its place, and keep the review gates semantic: bibliography must clear `bibliography_audit_clean`, and the reproducibility manifest must clear `reproducibility_ready`.
-
-Follow `@{GPD_INSTALL_DIR}/workflows/write-paper.md` for the full pipeline.
+Keep the wrapper thin and let the workflow own the full pipeline.
 </objective>
 
 <execution_context>
@@ -120,29 +114,11 @@ cat GPD/research-map/FORMALISM.md 2>/dev/null
 </context>
 
 <process>
-**Follow the write-paper workflow** from `@{GPD_INSTALL_DIR}/workflows/write-paper.md`.
-
+@{GPD_INSTALL_DIR}/references/publication/publication-review-wrapper-guidance.md
 @{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
 
-The workflow handles the rest:
-
-1. **Init** — Load project context, check optional local compiler availability, and verify conventions.
-2. **Load research digest** — Map RESEARCH-DIGEST.md sections to paper structure, or fall back to raw phase data when needed.
-3. **Establish scope** — Fix journal, paper type, key result, audience, and available artifacts.
-4. **Catalog artifacts** — Gather derivations, numerical results, figures, literature, and verification outputs from phases.
-5. **Paper-readiness audit** — Check SUMMARY completeness, convention consistency, numerical stability, figure readiness, and citation readiness.
-6. **Create outline** — Draft a section-level outline with purpose, key content, equations, figures, citations, and dependencies.
-7. **Generate files** — Build `${PAPER_DIR}/PAPER-CONFIG.json`, then materialize the canonical manuscript scaffold with `gpd paper-build`.
-8. **Generate figures** — Produce figures under `${PAPER_DIR}/figures/` and update `${PAPER_DIR}/FIGURE_TRACKER.md`.
-9. **Draft sections** — Spawn gpd-paper-writer agents in waves, skipping waves whose outputs already exist.
-10. **Consistency and notation** — Audit notation, cross-references, placeholders, and physics consistency.
-11. **Verify references** — Use gpd-bibliographer to verify citations and detect orphans.
-12. **Pre-submission review** — Run the staged peer-review panel used by `gpd:peer-review`.
-13. **Final review** — Check abstract, equations, figures, and length.
-14. **Paper revision** — Apply a bounded revision loop for referee issues.
-
-For a standalone rerun of the referee stage after the manuscript already exists, use `gpd:peer-review`.
+Follow `@{GPD_INSTALL_DIR}/workflows/write-paper.md` exactly.
 </process>
 
 <success_criteria>

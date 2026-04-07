@@ -4,10 +4,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = REPO_ROOT / "src/gpd/specs/workflows"
+COMMANDS_DIR = REPO_ROOT / "src/gpd/commands"
 
 
 def _workflow_text(name: str) -> str:
     return (WORKFLOWS_DIR / name).read_text(encoding="utf-8")
+
+
+def _command_text(name: str) -> str:
+    return (COMMANDS_DIR / name).read_text(encoding="utf-8")
 
 
 def test_write_paper_workflow_runs_centralized_review_preflight() -> None:
@@ -54,6 +59,13 @@ def test_peer_review_workflow_runs_centralized_review_preflight_with_explicit_ar
 
     assert 'gpd validate review-preflight peer-review "$ARGUMENTS" --strict' in workflow
     assert "gpd validate review-preflight peer-review --strict" not in workflow
+
+
+def test_publication_review_wrappers_reference_shared_wrapper_guidance() -> None:
+    shared_include = "@{GPD_INSTALL_DIR}/references/publication/publication-review-wrapper-guidance.md"
+
+    for command_name in ("write-paper.md", "peer-review.md", "respond-to-referees.md"):
+        assert shared_include in _command_text(command_name)
 
 
 def test_verify_work_workflow_runs_centralized_review_preflight() -> None:
