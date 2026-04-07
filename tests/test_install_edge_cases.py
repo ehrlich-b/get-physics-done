@@ -841,6 +841,27 @@ class TestRegistryInvalidYaml:
         with pytest.raises(ValueError, match="Malformed YAML frontmatter"):
             _parse_frontmatter(text)
 
+    def test_registry_frontmatter_rejects_duplicate_keys(self) -> None:
+        """Duplicate keys in registry frontmatter should fail closed."""
+        text = "---\nname: first\nname: second\n---\nBody."
+        with pytest.raises(ValueError, match="duplicate key"):
+            _parse_frontmatter(text)
+
+    def test_registry_frontmatter_rejects_duplicate_nested_review_contract_keys(self) -> None:
+        """Duplicate keys inside nested review-contract payloads should fail closed."""
+        text = (
+            "---\n"
+            "name: review-test\n"
+            "review-contract:\n"
+            "  schema_version: 1\n"
+            "  review_mode: review\n"
+            "  review_mode: publication\n"
+            "---\n"
+            "Body."
+        )
+        with pytest.raises(ValueError, match="duplicate key"):
+            _parse_frontmatter(text)
+
     def test_valid_yaml_non_dict_raises(self) -> None:
         """Non-mapping registry frontmatter should also fail fast."""
         text = "---\n- list\n- items\n---\nBody."
