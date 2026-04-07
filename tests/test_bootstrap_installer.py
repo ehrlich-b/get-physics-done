@@ -1042,6 +1042,20 @@ if (installHelpExampleScopes.has("local")) {
   assert.ok(helpExampleRuntimes.some((runtime) => runtime.installer_help_example_scope === "local"));
 }
 
+const duplicateGlobalHelpScopeCatalog = JSON.parse(JSON.stringify(catalog));
+duplicateGlobalHelpScopeCatalog.find((runtime) => runtime.runtime_name === "codex").installer_help_example_scope = "global";
+assert.throws(
+  () => validateRuntimeCatalog(duplicateGlobalHelpScopeCatalog),
+  /runtime catalog contains duplicate installer_help_example_scope "global"/
+);
+
+const duplicateLocalHelpScopeCatalog = JSON.parse(JSON.stringify(catalog));
+duplicateLocalHelpScopeCatalog.find((runtime) => runtime.runtime_name === "gemini").installer_help_example_scope = "local";
+assert.throws(
+  () => validateRuntimeCatalog(duplicateLocalHelpScopeCatalog),
+  /runtime catalog contains duplicate installer_help_example_scope "local"/
+);
+
 const explicitSurfaceCatalog = JSON.parse(JSON.stringify(catalog));
 explicitSurfaceCatalog[0].public_command_surface_prefix = explicitSurfaceCatalog[0].command_prefix;
 const validatedSurfaceCatalog = validateRuntimeCatalog(explicitSurfaceCatalog);

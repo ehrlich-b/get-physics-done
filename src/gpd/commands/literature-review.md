@@ -15,13 +15,11 @@ allowed-tools:
   - ask_user
 ---
 <objective>
-Conduct a systematic literature review for a physics research topic. Identifies key papers, maps citation networks, catalogs methods and results, finds open questions, and produces a structured LITERATURE-REVIEW.md plus a machine-readable, strict `CITATION-SOURCES.json` sidecar for manuscript reuse.
+Conduct a systematic literature review for a physics research topic and produce a structured `LITERATURE-REVIEW.md` plus a strict `CITATION-SOURCES.json` sidecar for manuscript reuse.
 
-**Orchestrator role:** Scope the review, spawn gpd-literature-reviewer agent, handle checkpoints, present results.
+**Orchestrator role:** Scope the review, spawn the gpd-literature-reviewer agent, handle checkpoints, and present results.
 
 **Why subagent:** Literature searches burn context fast. Fresh context keeps the survey lean.
-
-A physics literature review is not a bibliography. It is a map of the intellectual landscape: who computed what, using which methods, with what assumptions, getting what results, and where do they agree or disagree. The reviewer must think like a physicist surveying a field, not a librarian cataloging references.
 </objective>
 
 <execution_context>
@@ -92,67 +90,13 @@ Conduct systematic literature review: {topic}
 - Time range: {time_range}
 - Purpose: {purpose}
 - Contract-critical anchors: {active_reference_context}
-  </objective>
 
-<review_strategy>
-A physics literature review follows a structured protocol:
-
-1. **Identify foundational works** -- The seminal papers that defined the field or subfield. These are non-negotiable: every physicist in the area knows them.
-
-2. **Map the methodological landscape** -- What theoretical and computational methods have been applied?
-
-   - Analytical: perturbation theory, exact solutions, variational methods, RG, etc.
-   - Numerical: Monte Carlo, exact diagonalization, DMRG, DFT, molecular dynamics, etc.
-   - Each method has a regime of validity, characteristic approximations, and known limitations.
-
-3. **Catalog key results** -- For each significant paper:
-
-   - What was computed (observable, quantity, prediction)
-   - What method was used (and its limitations)
-   - What was found (numerical value, scaling law, phase diagram feature)
-   - What conventions were used (units, metric signature, Fourier conventions)
-   - How it connects to other results (agrees, disagrees, extends, corrects)
-   - Whether it should be treated as a must-surface benchmark or comparison target downstream
-
-4. **Trace citation networks** -- Which papers cite which? Where are the intellectual lineages?
-
-   - Method A lineage: paper1 -> paper2 -> paper3 (progressively refined)
-   - Method B lineage: paperX -> paperY (competing approach)
-   - Reconciliation papers: where different methods were compared
-
-5. **Identify controversies and disagreements** -- Where do published results conflict?
-
-   - Different numerical values for the same quantity
-   - Different phase diagram topologies
-   - Competing theoretical explanations
-   - Unresolved sign or factor disagreements
-
-6. **Find open questions** -- What has NOT been computed or resolved?
-
-   - Quantities mentioned but never calculated
-   - Regimes where no method works reliably
-   - Long-standing conjectures without proof
-   - Experimental predictions not yet tested
-
-7. **Assess the current frontier** -- What is state-of-the-art right now?
-   - Most recent results and their significance
-   - Active groups and their focus areas
-   - Emerging methods or approaches
-     </review_strategy>
-
-<source_hierarchy>
-
-1. **Textbooks and monographs** -- For established results and standard methods
-2. **Review articles** (Rev. Mod. Phys., Physics Reports, Annual Reviews) -- For field overview
-3. **Seminal papers** -- Original derivations and key breakthroughs
-4. **Recent arXiv preprints** -- For current state-of-the-art
-5. **Conference proceedings** -- For very recent results and community direction
-   </source_hierarchy>
+Keep the field-specific search protocol in the workflow-owned `gpd-literature-reviewer` instructions. This wrapper should only scope, checkpoint, and route.
+</objective>
+```
 
 <output>
 Write to: GPD/literature/{slug}-REVIEW.md
-
-Structure:
 
 - Frontmatter (topic, date, depth, paper count)
 - Executive Summary (3-5 key takeaways)
@@ -167,8 +111,7 @@ Structure:
 - Recommended Reading Path (ordered list for someone entering the field)
 - Full Reference List (formatted citations)
 - Citation Source Sidecar (`GPD/literature/{slug}-CITATION-SOURCES.json`, strict `CitationSource` records keyed by stable `reference_id`)
-  </output>
-```
+</output>
 
 ```
 task(

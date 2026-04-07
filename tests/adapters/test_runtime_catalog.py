@@ -153,6 +153,34 @@ def test_runtime_catalog_marks_install_help_example_runtimes() -> None:
     assert get_runtime_help_example_runtime("local") == "codex"
 
 
+def test_runtime_catalog_rejects_duplicate_global_install_help_example_scope(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    _catalog_entry_by_runtime_name(payload, "codex")["installer_help_example_scope"] = "global"
+
+    with pytest.raises(
+        ValueError,
+        match=r"runtime catalog contains duplicate installer_help_example_scope 'global'",
+    ):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
+def test_runtime_catalog_rejects_duplicate_local_install_help_example_scope(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = deepcopy(json.loads(_RUNTIME_CATALOG_PATH.read_text(encoding="utf-8")))
+    _catalog_entry_by_runtime_name(payload, "gemini")["installer_help_example_scope"] = "local"
+
+    with pytest.raises(
+        ValueError,
+        match=r"runtime catalog contains duplicate installer_help_example_scope 'local'",
+    ):
+        _iter_runtime_descriptors_from_payload(payload, tmp_path=tmp_path, monkeypatch=monkeypatch)
+
+
 def test_runtime_catalog_declares_one_explicit_installer_help_example_per_scope() -> None:
     examples = [descriptor.runtime_name for descriptor in iter_runtime_descriptors() if descriptor.installer_help_example_scope]
 

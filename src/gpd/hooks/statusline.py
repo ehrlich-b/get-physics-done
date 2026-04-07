@@ -553,30 +553,8 @@ def main() -> None:
         roots = _resolve_payload_roots(data, policy_getter=_root_resolution_policy)
         workspace_dir = roots.workspace_dir
         project_root = roots.project_root
-        project_dir_present = next(
-            (
-                value
-                for value in (
-                    getattr(roots, "project_dir_present", None),
-                    getattr(roots, "explicit_project_dir", None),
-                )
-                if isinstance(value, bool)
-            ),
-            False,
-        )
-        project_dir_trusted = next(
-            (
-                value
-                for value in (
-                    getattr(roots, "project_dir_trusted", None),
-                    getattr(roots, "trusted_project_dir", None),
-                    getattr(roots, "project_dir_is_authoritative", None),
-                    getattr(roots, "project_dir_authoritative", None),
-                )
-                if isinstance(value, bool)
-            ),
-            None,
-        )
+        project_dir_present = roots.project_dir_present
+        project_dir_trusted = roots.project_dir_trusted
         payload_policy = _hook_payload_policy(workspace_dir)
         if project_dir_trusted is True and _workspace_mapping_prefers_local_statusline_lookup(
             data,

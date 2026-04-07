@@ -250,8 +250,11 @@ def test_model_visible_wrapper_notes_surface_their_closed_schema_rules() -> None
     assert f"`review_mode` must be {review_modes}" in note
     assert f"`required_state` must be {required_states}" in note
     assert f"`conditional_requirements[].when` must be one of {conditional_whens}" in note
-    assert f"`preflight_checks` must be one of {preflight_checks}" in note
-    assert "blocking_preflight_checks" in note
+    assert f"`preflight_checks` is a list and each entry must be one of {preflight_checks}" in note
+    assert (
+        "`conditional_requirements[].blocking_preflight_checks` entries must also appear in the top-level "
+        "`preflight_checks` list."
+    ) in note
     assert "Each `conditional_requirements[].when` value may appear at most once." in note
     assert "List fields reject blank entries and duplicates." in note
     assert "Each conditional requirement must declare at least one field." in note
@@ -403,7 +406,11 @@ def test_review_contract_visibility_note_surfaces_the_hard_constraints() -> None
     assert "`schema_version` must be the integer `1`;" in note
     assert f"`review_mode` must be {review_modes};" in note
     assert f"`conditional_requirements[].when` must be one of {conditional_whens};" in note
-    assert "`conditional_requirements[].blocking_preflight_checks` must reuse declared `preflight_checks`." in note
+    assert "`preflight_checks` is a list and each entry must be one of" in note
+    assert (
+        "`conditional_requirements[].blocking_preflight_checks` entries must also appear in the top-level "
+        "`preflight_checks` list."
+    ) in note
 
 
 def test_review_contract_normalizer_accepts_singleton_string_list_fields() -> None:

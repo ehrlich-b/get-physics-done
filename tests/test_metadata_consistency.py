@@ -168,6 +168,11 @@ def test_agent_metadata_inventory_uses_valid_enums_without_changing_canonical_sk
     valid_artifact_authorities = set(content_registry.VALID_AGENT_ARTIFACT_WRITE_AUTHORITIES)
     valid_shared_state_authorities = set(content_registry.VALID_AGENT_SHARED_STATE_AUTHORITIES)
 
+    assert content_registry.VALID_AGENT_SURFACES is content_registry.AGENT_SURFACES
+    assert content_registry.VALID_AGENT_ROLE_FAMILIES is content_registry.AGENT_ROLE_FAMILIES
+    assert content_registry.VALID_AGENT_ARTIFACT_WRITE_AUTHORITIES is content_registry.AGENT_ARTIFACT_WRITE_AUTHORITIES
+    assert content_registry.VALID_AGENT_SHARED_STATE_AUTHORITIES is content_registry.AGENT_SHARED_STATE_AUTHORITIES
+
     for name in content_registry.list_agents():
         agent = content_registry.get_agent(name)
         assert agent.surface in valid_surfaces, name

@@ -70,7 +70,6 @@ Prepare a completed paper for arXiv submission. Handles the full submission pipe
 Output: A submission-ready tarball and checklist of manual steps remaining.
 
 The workflow's preflight gate checks the explicit paper target, the manuscript-root artifact gates, the compiled manuscript, unresolved publication blockers, the latest staged review decision, and for theorem-bearing manuscripts a cleared manuscript proof-review status before packaging begins.
-In strict mode that bibliography gate is semantic: `BIBLIOGRAPHY-AUDIT.json` must also pass `bibliography_audit_clean`, not merely exist.
 </objective>
 
 <execution_context>
@@ -91,6 +90,7 @@ Paper directory: $ARGUMENTS (optional; when omitted, resolve only from `paper/`,
 
 <process>
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
+@{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 
 ## 1. Locate Paper
 

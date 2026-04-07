@@ -9,16 +9,7 @@ allowed-tools:
   - task
 ---
 <objective>
-Research how to tackle a phase. Spawns gpd-phase-researcher agent with phase context.
-
-**Note:** This is a standalone research command. For most workflows, use `gpd:plan-phase` which integrates research automatically.
-
-**Use this command when:**
-
-- You want to research without planning yet
-- You want to re-research after planning is complete
-- You need to investigate before deciding if a phase is feasible
-- You need to survey the literature or mathematical landscape for a physics problem
+Research how to tackle a phase. Use this command when you want phase-specific investigation before planning or when you need to re-research after planning is complete.
 
 **Orchestrator role:** Parse phase, validate against roadmap, check existing research, gather context, spawn researcher agent, present results.
 
@@ -91,23 +82,6 @@ Research depth follows the workflow-owned `research_mode`. Do not invent separat
 Phase Research -- investigating HOW to approach a specific physics problem or computation.
 </research_type>
 
-<key_insight>
-The question is NOT "which method should I use?"
-
-The question is: "What do I not know that I don't know?"
-
-For this phase, discover:
-
-- What is the established theoretical framework?
-- What mathematical methods and computational tools form the standard approach?
-- What approximations are standard and what are their regimes of validity?
-- What problems do people commonly hit (divergences, instabilities, sign problems)?
-- What is the current state-of-the-art vs what the model's training data says is SOTA?
-- What should NOT be derived from scratch (use established results instead)?
-- Are there known exact solutions, limiting cases, or benchmark results for validation?
-- What are the key references (textbooks, review articles, seminal papers)?
-  </key_insight>
-
 <objective>
 Research approach for Phase {phase_number}: {phase_name}
 Research depth: use the active workflow `research_mode` from init/config
@@ -136,17 +110,6 @@ Your RESEARCH.md will be loaded by `gpd:plan-phase` which uses specific sections
 
 Be prescriptive, not exploratory. "Use X" not "Consider X or Y."
 </downstream_consumer>
-
-<quality_gate>
-Before declaring complete, verify:
-
-- [ ] All relevant subfields investigated (not just some)
-- [ ] Negative claims verified with literature or established results
-- [ ] Multiple sources for critical claims (cross-reference textbooks and papers)
-- [ ] Confidence levels assigned honestly
-- [ ] Approximation regimes clearly stated with validity conditions
-- [ ] Section names match what plan-phase expects
-      </quality_gate>
 
 <output>
 Write to: {phase_dir}/{phase_number}-RESEARCH.md

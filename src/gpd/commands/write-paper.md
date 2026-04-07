@@ -107,9 +107,7 @@ Paper topic: $ARGUMENTS
 
 Read `@{GPD_INSTALL_DIR}/references/publication/publication-pipeline-modes.md` before applying any autonomy or research mode behavior.
 
-Check for existing drafts:
-
-Let centralized preflight resolve any existing manuscript entrypoint only from `paper/`, `manuscript/`, or `draft/`, using the manuscript-root `ARTIFACT-MANIFEST.json` first and then `PAPER-CONFIG.json`. Do not fall back to ad hoc `find` or first-match wildcard expansion for manuscript selection.
+Check for existing drafts with the shared manuscript-root publication preflight block.
 
 Load research context:
 
@@ -124,8 +122,8 @@ cat GPD/research-map/FORMALISM.md 2>/dev/null
 <process>
 **Follow the write-paper workflow** from `@{GPD_INSTALL_DIR}/workflows/write-paper.md`.
 
+@{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
-If the workflow is resuming an existing manuscript, keep the active manuscript root bound to the canonical manifest/config/entrypoint resolver rather than picking the first matching `*.tex` or `*.md` file by wildcard expansion.
 
 The workflow handles the rest:
 

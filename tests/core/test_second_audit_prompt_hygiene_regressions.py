@@ -3,6 +3,8 @@ from pathlib import Path
 WORKFLOWS_DIR = Path("src/gpd/specs/workflows")
 COMMANDS_DIR = Path("src/gpd/commands")
 REFERENCES_DIR = Path("src/gpd/specs/references")
+TEMPLATES_DIR = Path("src/gpd/specs/templates")
+PUBLICATION_SHARED_PREFLIGHT = TEMPLATES_DIR / "paper" / "publication-manuscript-root-preflight.md"
 OWNED_COMMANDS = (
     COMMANDS_DIR / "debug.md",
     COMMANDS_DIR / "research-phase.md",
@@ -64,6 +66,36 @@ def test_write_paper_workflow_drops_authoring_note_placeholders() -> None:
     write_paper = (WORKFLOWS_DIR / "write-paper.md").read_text(encoding="utf-8")
 
     assert "Default bootstrap wording:" not in write_paper
+
+
+def test_publication_commands_reference_one_shared_manuscript_root_preflight_block() -> None:
+    shared_preflight = PUBLICATION_SHARED_PREFLIGHT.read_text(encoding="utf-8")
+
+    assert "For any resumed manuscript, strict preflight reads `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`, and `reproducibility-manifest.json` from the resolved manuscript directory itself." in shared_preflight
+    assert "Do not use ad hoc wildcard discovery or first-match filename scans." in shared_preflight
+    assert "bibliography_audit_clean" in shared_preflight
+    assert "reproducibility_ready" in shared_preflight
+
+    for path in (
+        COMMANDS_DIR / "write-paper.md",
+        COMMANDS_DIR / "peer-review.md",
+        COMMANDS_DIR / "arxiv-submission.md",
+        COMMANDS_DIR / "respond-to-referees.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert text.count("@{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md") == 1, path
+
+
+def test_literature_and_research_commands_trim_inline_methodology_blocks() -> None:
+    literature = (COMMANDS_DIR / "literature-review.md").read_text(encoding="utf-8")
+    research_phase = (COMMANDS_DIR / "research-phase.md").read_text(encoding="utf-8")
+
+    assert "A physics literature review is not a bibliography." not in literature
+    assert "Method A lineage: paper1 -> paper2 -> paper3" not in literature
+    assert "What do I not know that I don't know?" not in research_phase
+    assert "What mathematical methods and computational tools form the standard approach?" not in research_phase
+    assert "Research depth follows the workflow-owned `research_mode`." in research_phase
+    assert "Active Anchor Registry" in literature
 
 
 def test_shared_context_budget_guidance_stays_runtime_neutral() -> None:

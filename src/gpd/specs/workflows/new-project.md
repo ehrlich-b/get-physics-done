@@ -115,6 +115,7 @@ Wait for response. From the single response, extract:
 #### M1.5. Synthesize And Approve The Scoping Contract
 
 Build a canonical scoping contract from the extracted input.
+Before you ask for approval, keep the contract as a literal JSON object for the `project_contract` subsection of `templates/project-contract-schema.md`, and use that schema as the canonical source of truth for the object rules. Do not restate the full contract rules here; keep only the approval-critical reminders below.
 
 **Blocking fields that must be present before approval:**
 
@@ -139,6 +140,7 @@ Build a canonical scoping contract from the extracted input.
 Prefer explicit missing-anchor wording such as `Which reference should serve as the decisive benchmark anchor?`, `Benchmark reference not yet selected`, or `decisive target not yet chosen`.
 Do not force a phase list just to make the scoping contract look complete. If decomposition is still unclear, record that uncertainty and let `ROADMAP.md` start with a single coarse phase or first grounded investigation chunk.
 If the init JSON already contains `project_contract`, `project_contract_load_info`, or `project_contract_validation`, preserve that state in the approval gate and continuation decision. Do not collapse a visible-but-blocked contract into a blank slate when deciding whether this is a fresh project or a continuation.
+preserve any init-surfaced `project_contract`, `project_contract_load_info`, and `project_contract_validation` state while deciding whether this is fresh work or a continuation.
 
 If a blocking field is missing, ask exactly one repair prompt that targets only the missing field. Do not silently continue with placeholders.
 If no must-read references are confirmed yet, record that explicitly in the contract rather than inventing one.
@@ -150,6 +152,18 @@ If the user named a prior output or review checkpoint that must ground approval 
 Do not approve a scoping contract that strips decisive outputs, anchors, prior outputs, or review/stop triggers down to generic placeholders. The approved contract must preserve the user guidance that downstream planning needs.
 If the only checks captured so far are limiting cases, sanity checks, or qualitative expectations, treat the contract as still underspecified unless the user explicitly states that these are the decisive standard.
 Missing-anchor notes preserve uncertainty, but they do not satisfy approval on their own. Do not offer approval until at least one concrete anchor, reference, prior-output constraint, or baseline is present.
+Before you show the approval gate, build the raw contract as a literal JSON object for the `project_contract` subsection of `templates/project-contract-schema.md`:
+
+- author only the JSON object that will be stored in `project_contract`, not the surrounding `state.json` envelope
+- follow the `project_contract` object rules in `templates/project-contract-schema.md` exactly
+- do not paraphrase the schema here; reuse its exact keys, enum values, list/object shapes, ID-linkage rules, and proof-bearing claim requirements
+- do not invent near-miss enum values, extra keys, or scalar shortcuts for list fields
+- fix them to the schema before approval
+- `context_intake`, `approach_policy`, and `uncertainty_markers` must each stay as objects, not strings or lists.
+- `schema_version` must be the integer `1`, and `references[].must_surface` must be a boolean `true` or `false`, not a quoted synonym.
+- keep `context_intake`, `uncertainty_markers`, and `references[]` visible in the approval gate so the contract still reflects the real inputs
+- keep `schema_version` at `1`, and keep `references[].must_surface` as a boolean, not a synonym
+
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
 
 Then present a concise scoping summary and require explicit approval:

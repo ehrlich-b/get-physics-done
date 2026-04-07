@@ -21,36 +21,6 @@ class PayloadRoots:
     project_dir_present: bool = False
     project_dir_trusted: bool = False
 
-    @property
-    def raw_workspace_dir(self) -> str:
-        """Compatibility alias for the un-resolved workspace path."""
-        return self.workspace_dir
-
-    @property
-    def resolved_project_root(self) -> str:
-        """Compatibility alias for the resolved project root."""
-        return self.project_root
-
-    @property
-    def explicit_project_dir(self) -> bool:
-        """Compatibility alias for whether the payload carried a project_dir hint."""
-        return self.project_dir_present
-
-    @property
-    def trusted_project_dir(self) -> bool:
-        """Return whether the resolved project root trusted the explicit project_dir hint."""
-        return self.project_dir_trusted
-
-    @property
-    def project_dir_is_authoritative(self) -> bool:
-        """Compatibility alias for older hook trust payloads."""
-        return self.project_dir_trusted
-
-    @property
-    def project_dir_authoritative(self) -> bool:
-        """Compatibility alias for older hook trust payloads."""
-        return self.project_dir_trusted
-
 
 def _object_value(value: object, key: str) -> object | None:
     if isinstance(value, dict):
@@ -206,28 +176,18 @@ def _coerce_root_pair(
     else:
         workspace_dir = _first_string(
             value,
-            "raw_workspace_dir",
             "workspace_dir",
             "workspace_root",
             "cwd",
         )
         project_root = _first_string(
             value,
-            "resolved_project_root",
             "project_root",
             "project_dir",
             "root",
         )
-        project_dir_present = bool(_first_bool(value, "project_dir_present", "explicit_project_dir"))
-        project_dir_trusted = bool(
-            _first_bool(
-                value,
-                "project_dir_trusted",
-                "trusted_project_dir",
-                "project_dir_is_authoritative",
-                "project_dir_authoritative",
-            )
-        )
+        project_dir_present = bool(_first_bool(value, "project_dir_present"))
+        project_dir_trusted = bool(_first_bool(value, "project_dir_trusted"))
 
     if not project_root:
         return None

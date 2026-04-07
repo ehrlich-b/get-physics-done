@@ -531,6 +531,21 @@ def _validate_runtime_catalog_uniqueness(descriptors: list[RuntimeDescriptor]) -
             selection_tokens[normalized_token] = descriptor.runtime_name
 
 
+def _validate_runtime_catalog_help_example_scopes(descriptors: list[RuntimeDescriptor]) -> None:
+    scope_owners: dict[str, str] = {}
+    for descriptor in descriptors:
+        scope = descriptor.installer_help_example_scope
+        if scope is None:
+            continue
+        existing_owner = scope_owners.get(scope)
+        if existing_owner is not None and existing_owner != descriptor.runtime_name:
+            raise ValueError(
+                "runtime catalog contains duplicate installer_help_example_scope "
+                f"{scope!r} for {existing_owner!r} and {descriptor.runtime_name!r}"
+            )
+        scope_owners[scope] = descriptor.runtime_name
+
+
 def _parse_install_help_example_scope(value: object, *, label: str) -> str | None:
     if value is None:
         return None
@@ -672,9 +687,10 @@ def _load_catalog() -> tuple[RuntimeDescriptor, ...]:
                     command_prefix=_require_string(payload["command_prefix"], label=f"{label}.command_prefix"),
                 ),
             )
-        )
+    )
     descriptors.sort(key=lambda descriptor: (descriptor.priority, descriptor.runtime_name))
     _validate_runtime_catalog_uniqueness(descriptors)
+    _validate_runtime_catalog_help_example_scopes(descriptors)
     return tuple(descriptors)
 
 

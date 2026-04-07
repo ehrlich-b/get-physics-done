@@ -13,6 +13,7 @@ from gpd.adapters.install_utils import CACHE_DIR_NAME, GPD_INSTALL_DIR_NAME, UPD
 from gpd.adapters.runtime_catalog import get_shared_install_metadata
 from gpd.core.constants import ENV_GPD_DEBUG
 from gpd.hooks.install_metadata import config_dir_has_complete_install
+from gpd.hooks.install_context import should_prefer_self_owned_install
 
 _SHARED_INSTALL_METADATA = get_shared_install_metadata()
 SECONDS_PER_HOUR = 3600
@@ -255,7 +256,7 @@ def _relevant_update_cache_candidates(
     resolved_home: Path,
 ) -> tuple[list[object], Path]:
     from gpd.hooks.install_context import detect_self_owned_install
-    from gpd.hooks.runtime_detect import UpdateCacheCandidate
+    from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN, UpdateCacheCandidate, detect_runtime_install_target
     from gpd.hooks.update_resolution import (
         ordered_update_cache_candidates,
         primary_update_cache_file,
@@ -275,23 +276,36 @@ def _relevant_update_cache_candidates(
 
     if self_config_dir is not None:
         self_install = detect_self_owned_install(__file__)
-        self_candidate = (
-            UpdateCacheCandidate(path=self_config_dir / CACHE_DIR_NAME / UPDATE_CACHE_FILENAME)
-            if self_install is None
-            else UpdateCacheCandidate(
-                path=self_install.cache_file,
-                runtime=self_install.runtime,
-                scope=self_install.install_scope,
-            )
+        active_install_target = (
+            detect_runtime_install_target(active_installed_runtime, cwd=workspace_path, home=resolved_home)
+            if active_installed_runtime not in (None, "", RUNTIME_UNKNOWN)
+            else None
         )
-        relevant_candidates = [self_candidate]
-        seen_paths = {self_candidate.path}
-        for candidate in shared_candidates:
-            candidate_path = getattr(candidate, "path", None)
-            if candidate_path in seen_paths:
-                continue
-            seen_paths.add(candidate_path)
-            relevant_candidates.append(candidate)
+        if should_prefer_self_owned_install(
+            self_install,
+            active_install_target=active_install_target,
+            active_runtime=active_installed_runtime,
+            workspace_path=workspace_path,
+        ):
+            self_candidate = (
+                UpdateCacheCandidate(path=self_config_dir / CACHE_DIR_NAME / UPDATE_CACHE_FILENAME)
+                if self_install is None
+                else UpdateCacheCandidate(
+                    path=self_install.cache_file,
+                    runtime=self_install.runtime,
+                    scope=self_install.install_scope,
+                )
+            )
+            relevant_candidates = [self_candidate]
+            seen_paths = {self_candidate.path}
+            for candidate in shared_candidates:
+                candidate_path = getattr(candidate, "path", None)
+                if candidate_path in seen_paths:
+                    continue
+                seen_paths.add(candidate_path)
+                relevant_candidates.append(candidate)
+        else:
+            relevant_candidates = shared_candidates
     else:
         relevant_candidates = shared_candidates
 

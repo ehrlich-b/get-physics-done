@@ -80,7 +80,7 @@ allowed-tools:
 <objective>
 Conduct a skeptical peer review of a completed manuscript and its supporting research artifacts within the current GPD project.
 
-This command promotes manuscript review to a first-class workflow instead of hiding it inside `write-paper`. It now runs a staged six-agent panel instead of a single all-purpose referee pass: full-manuscript reader, literature reviewer, mathematical-soundness reviewer, physical-soundness reviewer, significance reviewer, and final adjudicating referee.
+This command promotes manuscript review to a first-class workflow instead of hiding it inside `write-paper`. It runs a staged six-agent panel: full-manuscript reader, literature reviewer, mathematical-soundness reviewer, physical-soundness reviewer, significance reviewer, and final adjudicating referee.
 
 **Orchestrator role:** Locate the manuscript, validate review prerequisites, gather supporting artifacts, spawn the staged review panel with fresh context between stages, and present actionable outcomes based on the final recommendation. The review-stage outputs are produced by this run; they are not pre-existing prerequisites.
 
@@ -129,8 +129,7 @@ fi
 
 **Follow the peer-review workflow** from `@{GPD_INSTALL_DIR}/workflows/peer-review.md`.
 
-The workflow forwards the resolved `$ARGUMENTS` manuscript target into review preflight and keeps manuscript-root-relative support artifacts anchored to that same explicit root instead of falling back to `paper/...`.
-In strict mode the preflight gate is semantic, not just file-presence based: the manuscript-root bibliography audit must clear `bibliography_audit_clean`, and the reproducibility manifest must clear `reproducibility_ready` before the staged panel proceeds.
+@{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
 
 When announcing the panel to the user, say what each stage does in one concise sentence, for example:

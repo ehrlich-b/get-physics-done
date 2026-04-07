@@ -96,6 +96,7 @@ _COLOR_NAME_TO_HEX: dict[str, str] = {
 
 _HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$")
 _SHELL_FENCE_LANGUAGES = frozenset({"bash", "sh", "shell", "zsh"})
+_GPD_SLASH_COMMAND_RE = re.compile(r"(?<![A-Za-z0-9/_.-])/gpd:(?P<command>[A-Za-z][A-Za-z0-9-]*)\b")
 _OPENCODE_PERMISSION_DECISIONS = frozenset({"allow", "ask", "deny"})
 _OPENCODE_YOLO_PERMISSION = "allow"
 _MANIFEST_OPENCODE_GENERATED_COMMAND_FILES_KEY = "opencode_generated_command_files"
@@ -172,7 +173,7 @@ def convert_claude_to_opencode_frontmatter(content: str, path_prefix: str | None
 
     converted = content
     converted = convert_tool_references_in_body(converted, _TOOL_REFERENCE_MAP)
-    converted = converted.replace("/gpd:", "/gpd-")
+    converted = _GPD_SLASH_COMMAND_RE.sub(r"/gpd-\g<command>", converted)
     converted = re.sub(r"~/\.claude\b", lambda m: resolved_config_dir, converted)
 
     preamble, frontmatter, separator, body = split_markdown_frontmatter(converted)
@@ -1190,18 +1191,9 @@ class OpenCodeAdapter(RuntimeAdapter):
             failures.append(f"VERSION: {exc}")
 
     def _install_hooks(self, gpd_root: Path, target_dir: Path, failures: list[str]) -> None:
-        hooks_src = gpd_root / "hooks"
+        del gpd_root, target_dir, failures
+        # OpenCode does not wire any bundled Python hook surface.
         self._hooks_count = 0
-        if hooks_src.exists():
-            hooks_dest = target_dir / "hooks"
-            hooks_dest.mkdir(parents=True, exist_ok=True)
-            try:
-                for entry in hooks_src.iterdir():
-                    if entry.is_file() and not entry.name.startswith("__"):
-                        shutil.copy2(entry, hooks_dest / entry.name)
-                        self._hooks_count += 1
-            except Exception as exc:
-                failures.append(f"hooks: {exc}")
 
     def _configure_runtime(self, target_dir: Path, is_global: bool) -> dict[str, object]:
         _, config_parse_error = _read_opencode_config_state(target_dir)

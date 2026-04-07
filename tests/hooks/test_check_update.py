@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from gpd.adapters.runtime_catalog import get_shared_install_metadata, iter_runtime_descriptors
@@ -797,3 +798,60 @@ class TestMainThrottle:
         mock_popen.assert_called_once()
         spawned_argv = mock_popen.call_args.args[0]
         assert str(explicit_target / "cache" / "gpd-update-check.json") == spawned_argv[-1]
+
+    def test_explicit_target_hook_prefers_workspace_cache_over_fresh_self_cache_when_workspace_install_owns_runtime(
+        self, tmp_path: Path
+    ) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        home = tmp_path / "home"
+        home.mkdir()
+        explicit_target = tmp_path / "custom-runtime-dir"
+        hook_path = explicit_target / "hooks" / "check_update.py"
+        hook_path.parent.mkdir(parents=True)
+        hook_path.write_text("# hook\n", encoding="utf-8")
+        _mark_complete_install(explicit_target, runtime="codex")
+
+        workspace_runtime_dir = workspace / ".codex"
+        workspace_cache = workspace_runtime_dir / "cache" / "gpd-update-check.json"
+        workspace_cache.parent.mkdir(parents=True)
+        workspace_cache.write_text(
+            json.dumps({"checked": int(time.time()) - UPDATE_CHECK_TTL_SECONDS - 100, "update_available": False}),
+            encoding="utf-8",
+        )
+
+        self_cache = explicit_target / "cache" / "gpd-update-check.json"
+        self_cache.parent.mkdir(parents=True)
+        self_cache.write_text(
+            json.dumps({"checked": int(time.time()), "update_available": False}),
+            encoding="utf-8",
+        )
+
+        active_install_target = SimpleNamespace(config_dir=workspace_runtime_dir, install_scope="local")
+        self_install = SimpleNamespace(config_dir=explicit_target, runtime="codex", install_scope="local")
+
+        with (
+            patch("gpd.hooks.check_update.__file__", str(hook_path)),
+            patch("gpd.hooks.check_update.Path.cwd", return_value=workspace),
+            patch("gpd.hooks.check_update.Path.home", return_value=home),
+            patch("gpd.hooks.check_update._self_config_dir", return_value=explicit_target),
+            patch("gpd.hooks.install_context.detect_self_owned_install", return_value=self_install),
+            patch("gpd.hooks.runtime_detect.detect_runtime_install_target", return_value=active_install_target),
+            patch(
+                "gpd.hooks.update_resolution.resolve_update_cache_inputs",
+                return_value=(workspace, home, "codex", "codex"),
+            ),
+            patch(
+                "gpd.hooks.update_resolution.ordered_update_cache_candidates",
+                return_value=[
+                    UpdateCacheCandidate(path=workspace_cache, runtime="codex", scope="local"),
+                ],
+            ),
+            patch("gpd.hooks.check_update._claim_inflight_marker", return_value=True),
+            patch("subprocess.Popen") as mock_popen,
+        ):
+            main()
+
+        mock_popen.assert_called_once()
+        spawned_argv = mock_popen.call_args.args[0]
+        assert spawned_argv[-1] == str(workspace_cache)

@@ -166,8 +166,8 @@ def test_coerce_root_pair_preserves_trust_flags_from_mapping_payload(tmp_path) -
         {
             "workspace_dir": str(workspace),
             "project_root": str(project),
-            "explicit_project_dir": True,
-            "trusted_project_dir": False,
+            "project_dir_present": True,
+            "project_dir_trusted": False,
         },
         fallback_workspace_dir=str(tmp_path / "fallback"),
     )
@@ -179,7 +179,7 @@ def test_coerce_root_pair_preserves_trust_flags_from_mapping_payload(tmp_path) -
     assert roots.project_dir_trusted is False
 
 
-def test_coerce_root_pair_accepts_legacy_trust_flag_aliases(tmp_path) -> None:
+def test_payload_roots_return_only_canonical_field_names(tmp_path) -> None:
     workspace = tmp_path / "workspace"
     project = tmp_path / "project"
 
@@ -187,8 +187,8 @@ def test_coerce_root_pair_accepts_legacy_trust_flag_aliases(tmp_path) -> None:
         {
             "workspace_dir": str(workspace),
             "project_root": str(project),
-            "explicit_project_dir": True,
-            "project_dir_is_authoritative": True,
+            "project_dir_present": True,
+            "project_dir_trusted": True,
         },
         fallback_workspace_dir=str(tmp_path / "fallback"),
     )
@@ -196,8 +196,15 @@ def test_coerce_root_pair_accepts_legacy_trust_flag_aliases(tmp_path) -> None:
     assert roots is not None
     assert roots.project_dir_present is True
     assert roots.project_dir_trusted is True
-    assert roots.project_dir_is_authoritative is True
-    assert roots.project_dir_authoritative is True
+    for legacy_name in (
+        "raw_workspace_dir",
+        "resolved_project_root",
+        "explicit_project_dir",
+        "trusted_project_dir",
+        "project_dir_is_authoritative",
+        "project_dir_authoritative",
+    ):
+        assert not hasattr(roots, legacy_name)
 
 
 def test_resolve_with_shared_service_uses_later_signature_after_type_error(tmp_path) -> None:
@@ -230,7 +237,7 @@ def test_resolve_with_shared_service_uses_later_signature_after_type_error(tmp_p
     assert len(calls) >= 3
 
 
-def test_project_root_from_payload_prefers_explicit_project_dir_alias(tmp_path) -> None:
+def test_project_root_from_payload_prefers_explicit_project_dir_input(tmp_path) -> None:
     workspace = tmp_path / "project" / "src" / "notes"
     project = tmp_path / "project"
     workspace.mkdir(parents=True)
@@ -277,7 +284,7 @@ def test_project_root_from_payload_uses_workspace_dir_as_policy_context_when_cwd
     assert result == str(workspace.resolve(strict=False))
 
 
-def test_resolve_payload_roots_preserves_raw_workspace_and_resolved_project_root(tmp_path) -> None:
+def test_resolve_payload_roots_returns_canonical_workspace_and_project_root(tmp_path) -> None:
     project = tmp_path / "project"
     workspace = project / "src" / "notes"
     workspace.mkdir(parents=True)
@@ -412,15 +419,15 @@ def test_project_root_from_payload_prefers_policy_root_resolution_service(tmp_pa
     assert result == str(project.resolve(strict=False))
 
 
-def test_resolve_payload_roots_accepts_compatibility_aliases_from_shared_service(tmp_path) -> None:
+def test_resolve_payload_roots_accepts_canonical_fields_from_shared_service(tmp_path) -> None:
     project = tmp_path / "project"
     workspace = project / "src" / "notes"
     workspace.mkdir(parents=True)
     (project / "GPD").mkdir()
     service = Mock(
         return_value=SimpleNamespace(
-            raw_workspace_dir=str(workspace),
-            resolved_project_root=str(project),
+            workspace_dir=str(workspace),
+            project_root=str(project),
         )
     )
 
@@ -435,8 +442,8 @@ def test_resolve_payload_roots_accepts_compatibility_aliases_from_shared_service
 
     assert roots.workspace_dir == str(workspace.resolve(strict=False))
     assert roots.project_root == str(project.resolve(strict=False))
-    assert roots.raw_workspace_dir == roots.workspace_dir
-    assert roots.resolved_project_root == roots.project_root
+    assert roots.project_dir_present is True
+    assert roots.project_dir_trusted is True
 
 
 def test_resolve_payload_roots_keeps_raw_workspace_when_service_only_returns_project_root(tmp_path) -> None:

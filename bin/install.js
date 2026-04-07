@@ -693,6 +693,22 @@ function validateRuntimeCatalogEntry(entry, index, options = {}) {
   };
 }
 
+function validateRuntimeCatalogHelpExampleScopes(entries) {
+  const scopeOwners = new Map();
+  for (const entry of entries) {
+    if (!entry.installer_help_example_scope) {
+      continue;
+    }
+    const existingOwner = scopeOwners.get(entry.installer_help_example_scope);
+    if (existingOwner && existingOwner !== entry.runtime_name) {
+      throw new Error(
+        `runtime catalog contains duplicate installer_help_example_scope ${JSON.stringify(entry.installer_help_example_scope)} for ${JSON.stringify(existingOwner)} and ${JSON.stringify(entry.runtime_name)}`
+      );
+    }
+    scopeOwners.set(entry.installer_help_example_scope, entry.runtime_name);
+  }
+}
+
 function validateRuntimeCatalog(catalogPayload) {
   const payload = requireJsonArray(catalogPayload, "runtime catalog");
   const entries = payload.map((entry, index) => validateRuntimeCatalogEntry(entry, index));
@@ -751,6 +767,8 @@ function validateRuntimeCatalog(catalogPayload) {
       selectionTokens.set(normalizedToken, entry.runtime_name);
     }
   }
+
+  validateRuntimeCatalogHelpExampleScopes(entries);
 
   return entries;
 }

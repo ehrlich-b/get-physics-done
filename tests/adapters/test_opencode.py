@@ -110,11 +110,18 @@ class TestConvertFrontmatter:
         assert "question: true" in result
         assert "allowed-tools:" not in result
 
-    def test_slash_command_conversion(self) -> None:
-        content = "---\ndescription: D\n---\nRun /gpd:execute-phase now"
+    def test_slash_command_conversion_is_boundary_aware(self) -> None:
+        content = (
+            "---\ndescription: D\n---\n"
+            "Run /gpd:execute-phase now.\n"
+            "See https://example.test//gpd:help and /tmp//gpd:help.txt.\n"
+            "Use `/gpd:tour` when you mean the runtime command.\n"
+        )
         result = convert_claude_to_opencode_frontmatter(content)
         assert "/gpd-execute-phase" in result
-        assert "/gpd:" not in result
+        assert "`/gpd-tour`" in result
+        assert "https://example.test//gpd:help" in result
+        assert "/tmp//gpd:help.txt" in result
 
     def test_claude_path_conversion(self) -> None:
         content = "---\ndescription: D\n---\nSee ~/.claude/agents/gpd-verifier.md"
@@ -584,12 +591,12 @@ class TestInstall:
         assert "<!-- [included: gpd-shared.md] -->" in content
         assert "@ include not resolved:" not in content.lower()
 
-    def test_install_copies_hooks(self, adapter: OpenCodeAdapter, gpd_root: Path, tmp_path: Path) -> None:
+    def test_install_skips_unused_hooks(self, adapter: OpenCodeAdapter, gpd_root: Path, tmp_path: Path) -> None:
         target = tmp_path / ".opencode"
         target.mkdir()
         adapter.install(gpd_root, target)
 
-        assert (target / "hooks" / "statusline.py").exists()
+        assert not (target / "hooks").exists()
 
     def test_install_writes_version(self, adapter: OpenCodeAdapter, gpd_root: Path, tmp_path: Path) -> None:
         target = tmp_path / ".opencode"
@@ -620,6 +627,7 @@ class TestInstall:
         assert result["runtime"] == "opencode"
         assert result["commands"] > 0
         assert result["agents"] > 0
+        assert result["hooks"] == 0
 
     def test_install_rewrites_gpd_cli_calls_to_runtime_cli_bridge(
         self,

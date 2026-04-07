@@ -80,6 +80,7 @@ Use centralized preflight to resolve the active manuscript only from the canonic
 <process>
 Execute the respond-to-referees workflow from @{GPD_INSTALL_DIR}/workflows/respond-to-referees.md end-to-end.
 If staged peer-review artifacts exist under `GPD/review/`, absorb them as structured decision context while keeping `GPD/REFEREE-REPORT{round_suffix}.md` as the canonical issue-ID source.
+@{GPD_INSTALL_DIR}/templates/paper/publication-manuscript-root-preflight.md
 @{GPD_INSTALL_DIR}/references/shared/canonical-schema-discipline.md
 Preserve all validation gates (report parsing, triage confirmation, compilation check, consistency verification, bounded revision loop).
 </process>
