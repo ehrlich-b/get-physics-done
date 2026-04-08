@@ -177,7 +177,7 @@ class TestLoadConfig:
     ) -> None:
         (tmp_path / "GPD").mkdir()
         (tmp_path / "GPD" / "config.json").write_text(
-            json.dumps({"execution": {"project_usd_budget": invalid_budget}}),, encoding="utf-8"
+            json.dumps({"execution": {"project_usd_budget": invalid_budget}}), encoding="utf-8"
         )
 
         with pytest.raises(ConfigError, match="Invalid config.json values"):
