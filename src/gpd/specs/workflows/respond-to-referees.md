@@ -29,17 +29,18 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-Parse JSON for: `commit_docs`, `state_exists`, `project_exists`, `autonomy`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `derived_manuscript_reference_status`, `derived_manuscript_reference_status_count`, `derived_manuscript_proof_review_status`.
+Parse JSON for: `commit_docs`, `state_exists`, `project_exists`, `autonomy`, `research_mode`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `active_reference_context`, `derived_manuscript_reference_status`, `derived_manuscript_reference_status_count`, `derived_manuscript_proof_review_status`.
 
 **Read mode settings:**
 
 ```bash
 AUTONOMY=$(echo "$INIT" | gpd json get .autonomy --default balanced)
+RESEARCH_MODE=$(echo "$INIT" | gpd json get .research_mode --default balanced)
 ```
 
 **Mode-aware behavior:**
 - `autonomy=supervised`: Pause after each referee point for user review of the proposed response.
-- `autonomy=balanced` (default): Draft the full response and apply routine manuscript changes. Pause only for claim-level changes, new calculations, or unresolved referee disagreements.
+- `autonomy=balanced` (default): Draft the full response and apply routine manuscript changes. Do not force a parse-confirmation pause; pause only if the referee report is ambiguous, the response needs claim-level changes, new calculations, or unresolved referee disagreements.
 - `autonomy=yolo`: Draft response and apply manuscript changes without pausing.
 
 Run centralized context preflight before continuing:
@@ -167,7 +168,7 @@ For each comment, extract:
 
 Do not invent new `REF-*` identifiers from the JSON artifacts. Instead, use them to prioritize and calibrate the responses to the issues already surfaced in the canonical `GPD/REFEREE-REPORT{round_suffix}.md`.
 
-Present the parsed structure for user confirmation:
+Present the parsed structure. Ask for explicit user confirmation only in supervised mode or when the report source is ambiguous; balanced mode should treat the parse as working context and continue unless ambiguity or missing source requires a checkpoint:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -248,6 +249,8 @@ gpd commit \
 ```
 
 Keep the two files synchronized for the rest of the workflow: draft issue-by-issue substance in `GPD/AUTHOR-RESPONSE{round_suffix}.md`, and mirror the journal-facing prose into `GPD/review/REFEREE_RESPONSE{round_suffix}.md`.
+
+Treat `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/review/REFEREE_RESPONSE{round_suffix}.md` as the response success gate. If either artifact is missing after the writer returns, the response is not complete.
 
 </step>
 
@@ -365,7 +368,7 @@ Group revision items by affected section to minimize agent spawns. For each affe
 
 ```
 task(
-  prompt="First, read {GPD_AGENTS_DIR}/gpd-paper-writer.md for your role and instructions.\n\n" + revision_prompt,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-paper-writer.md for your role and instructions.\n\n<autonomy_mode>{AUTONOMY}</autonomy_mode>\n<research_mode>{RESEARCH_MODE}</research_mode>\n" + revision_prompt,
   subagent_type="gpd-paper-writer",
   model="{writer_model}",
   readonly=false,
@@ -418,7 +421,7 @@ pdflatex -interaction=nonstopmode "${MANUSCRIPT_BASENAME}" 2>&1 | tail -5
 4. Check cross-references to new or renumbered equations/figures
 5. Resolve any `MISSING:` citation markers left by the paper-writer (see write-paper workflow for the resolution protocol)
 6. Re-check any decisive `comparison_verdicts` or benchmark anchors touched by the revision. If protocol bundles are selected, use them only as an additive reminder of which decisive comparisons or estimator caveats must remain visible after revision.
-7. If the revision touched bibliography files or citation commands, refresh `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` before generating the response letter or proceeding to final review. Use `derived_manuscript_reference_status` as the quick read on what likely changed, but the manuscript-root bibliography audit remains authoritative for the round. Stale bibliography audits are not acceptable in a referee-response round.
+7. If the revision touched bibliography files or citation commands, refresh `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` before generating the response letter or proceeding to final review. Use `derived_manuscript_reference_status` as the quick read on what likely changed, but the manuscript-root bibliography audit remains authoritative for the round. Stale bibliography audits are not acceptable in a referee-response round. Confirm the refreshed JSON artifact exists before treating the round as complete.
 
 **If inconsistencies found and iteration < 3:**
 

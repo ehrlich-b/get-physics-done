@@ -577,11 +577,13 @@ task(
 )
 ```
 
+> Runtime delegation rule: this is a one-shot handoff. If the planner needs user input, it checkpoints and returns; the wrapper must start a fresh continuation after the user responds.
+
 ## 9. Handle Planner Return
 
 **If the planner agent fails to spawn or returns an error:** Check if any PLAN.md files were written to the phase directory (agents write files first). If plans exist, proceed as if PLANNING COMPLETE. If no plans, offer: 1) Retry planner, 2) Create plans in the main context, 3) Abort.
 
-- **`## PLANNING COMPLETE`:** Display plan count. If `AUTONOMY=supervised`, show the written draft plans and get user confirmation before advancing to checker or next-step output. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13 only when no proof-bearing plans were written. Proof-bearing plans still require checker review or an equivalent main-context audit before planning is considered complete. Otherwise: step 10.
+- **`## PLANNING COMPLETE`:** Before accepting the success marker, verify that at least one readable `*-PLAN.md` artifact exists in `${PHASE_DIR}`. Do not accept the planner return text alone. If the planner says complete but no plan files are present, treat the handoff as incomplete and request a fresh continuation. Display plan count. If `AUTONOMY=supervised`, show the written draft plans and get user confirmation before advancing to checker or next-step output. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13 only when no proof-bearing plans were written. Proof-bearing plans still require checker review or an equivalent main-context audit before planning is considered complete. Otherwise: step 10.
 - **`## CHECKPOINT REACHED`:** Present to user, get response, spawn continuation (step 12)
 - **`## PLANNING INCONCLUSIVE`:** Show attempts, offer: Add context / Retry / Manual
 

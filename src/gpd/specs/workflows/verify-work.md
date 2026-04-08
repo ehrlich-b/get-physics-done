@@ -131,6 +131,8 @@ Return `status: checkpoint` instead of waiting for user input inside this run.",
   description="Repair proof audit for phase {phase_number}"
 )
 ```
+
+After the proof critic returns, re-open `${phase_dir}/${phase_number}-PROOF-REDTEAM.md` from disk and confirm the artifact exists and is `passed` before finalizing the gap ledger. Never trust the return text alone; if the file is missing, stale, malformed, or not passed, keep the verification session fail-closed and start a fresh proof continuation.
 </step>
 
 <step name="check_active_session">

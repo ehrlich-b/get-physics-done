@@ -4,7 +4,7 @@ template_version: 1
 
 # Executor Continuation Prompt Template
 
-Template for spawning a fresh gpd-executor agent to continue plan execution after a checkpoint pause. Uses a fresh agent with explicit state instead of resume to avoid serialization issues with parallel tool calls. The `<execution_segment>` block is the workflow/runtime handoff payload; if the pause is durably recorded, the bounded stop is persisted in `continuation.bounded_segment` and also recorded in the append-only execution lineage so the execution head can be rebuilt without parsing prose.
+Template for spawning a fresh gpd-executor agent to continue plan execution after a checkpoint pause. This is a fresh continuation handoff owned by the orchestrator, not an in-run wait or resume-in-place. Uses a fresh agent with explicit state instead of resume to avoid serialization issues with parallel tool calls. The `<execution_segment>` block is the workflow/runtime handoff payload; if the pause is durably recorded, the bounded stop is persisted in `continuation.bounded_segment` and also recorded in the append-only execution lineage so the execution head can be rebuilt without parsing prose. If the checkpoint payload names expected artifacts, verify them on disk before continuing; returned text alone is not enough.
 
 Referenced by `workflows/execute-phase.md` checkpoint_handling step.
 
@@ -14,6 +14,7 @@ Referenced by `workflows/execute-phase.md` checkpoint_handling step.
 
 ```markdown
 <objective>
+This is a fresh continuation handoff owned by the orchestrator. Do not wait for the user inside the spawned run.
 Continue executing plan {plan_number} of phase {phase_number}-{phase_name} from task {resume_task_number}.
 
 Previous tasks are completed and committed. Verify prior commits exist, then continue from task {resume_task_number}: {resume_task_name}.
@@ -75,6 +76,8 @@ Before executing task {resume_task_number}, verify that prior tasks' commits exi
 git log --oneline --grep="({phase}-{plan}):" | head -20
 
 Compare against the completed tasks table above. If any expected commits are missing, STOP and report the discrepancy -- do not proceed with incomplete prior state.
+
+If the checkpoint or execution segment names expected artifacts, verify them on disk before continuing; do not treat returned text alone as sufficient evidence.
 
 Also verify the bounded execution segment still satisfies its resume preconditions:
 
@@ -158,5 +161,5 @@ task(
 3. User responds with approval/decision/action confirmation
 4. Orchestrator fills this template with checkpoint state + bounded `execution_segment` + user response
 5. Orchestrator spawns fresh gpd-executor with filled template
-6. New executor verifies prior commits, incorporates user response, continues execution
+6. New executor verifies prior commits, incorporates user response, verifies any required artifacts, and continues execution
 7. If executor hits another checkpoint, cycle repeats (step 1)

@@ -1806,6 +1806,8 @@ Return a checkpoint when:
 - Need clarification on the target journal to calibrate expectations
 - Discovered that the research contradicts itself across phases and need researcher input
 
+Checkpoint ownership is orchestrator-side: when you stop, the orchestrator presents the issue and owns the fresh continuation handoff.
+
 ## Checkpoint Format
 
 ```markdown

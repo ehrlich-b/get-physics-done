@@ -665,6 +665,7 @@ Parse JSON for: `selected_protocol_bundle_ids`, `protocol_bundle_context`, `curr
    For each SUMMARY.md:
 
    - Verify first 2 files from `key-files.created` exist on disk
+   - If the SUMMARY marks any `key-files.created` / `key-files.modified` paths as required or final-deliverable, verify those paths on disk before accepting success
 	   - Check `git log --oneline --grep="{phase}-{plan}"` returns >=1 commit
 	   - Check for `## Self-Check: FAILED` marker
 	   - Check for `## Validation: FAILED` marker (physics-specific)
@@ -1595,7 +1596,7 @@ Re-verify Phase {PHASE_NUMBER} after gap closure.
 )
 ```
 
-**If the verifier agent fails to spawn or returns an error:** Proceed without automated re-verification. Note in the phase status that post-gap-closure verification was skipped. The user should run `gpd:verify-work` separately to confirm gaps are closed. If the phase is proof-bearing, do NOT mark it complete on this path; proof-obligation work remains blocked until re-verification and proof-redteam audits actually clear.
+**If the verifier agent fails to spawn or returns an error:** Stop in a blocked state. Do not mark the phase complete or clear gap-closure state on this path. The user should run `gpd:verify-work` separately to confirm gaps are closed. If the phase is proof-bearing, do NOT mark it complete on this path; proof-obligation work remains blocked until re-verification and proof-redteam audits actually clear.
 
 | Re-verification Result | Action |
 | ---------------------- | ------ |
@@ -1693,7 +1694,7 @@ Load conventions: gpd convention list
 **If the notation coordinator agent fails to spawn or returns an error:** The consistency issues remain unresolved. Offer: 1) Retry notation coordinator, 2) Resolve conflicts manually by editing CONVENTIONS.md and using `gpd convention set`, 3) Force continue with known inconsistencies (log to DECISIONS.md). Do not silently proceed — convention errors compound across phases.
 
 Handle notation-coordinator return:
-- **`CONVENTION UPDATE`:** Conventions fixed. Commit CONVENTIONS.md. If any phase artifacts were flagged for re-execution, present them to user. Continue to phase completion.
+- **`CONVENTION UPDATE`:** Conventions fixed. Commit CONVENTIONS.md. Then verify `gpd convention check` reports `locked` or `complete`, and re-check any phase artifacts flagged for re-execution are still present on disk before continuing. If the lock is still open or a flagged artifact is missing, treat the update as incomplete and keep the phase blocked.
 - **`CONVENTION CONFLICT`:** Unresolvable conflict requiring user decision. Present options and wait.
 
 **If "Force continue":** Log the forced override to DECISIONS.md:
