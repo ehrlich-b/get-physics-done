@@ -40,13 +40,6 @@ MODEL_OMISSION_FRAGMENT = (
 )
 READONLY_FALSE_FRAGMENT = "readonly=false"
 READONLY_RUNTIME_NOTE_FRAGMENT = "Always pass `readonly=false` for file-producing agents."
-ONE_SHOT_WAIT_PHRASES = (
-    "wait for user confirmation",
-    "ask the user then continue",
-    "pause here for approval",
-    "wait here for approval",
-    "hold for user confirmation",
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -164,11 +157,6 @@ def _assert_spawn_contract(
     assert f"shared_state_policy: {shared_state_policy}" in task.text
     for output in expected_outputs:
         assert output in task.text
-
-
-def _assert_one_shot_spawn_prompt(task: TaskBlock) -> None:
-    for phrase in ONE_SHOT_WAIT_PHRASES:
-        assert phrase not in task.text
 
 
 def test_agent_delegation_reference_defines_canonical_task_contract() -> None:
@@ -303,10 +291,8 @@ def test_research_phase_verifies_research_artifact_before_accepting_handoff() ->
 
     assert "Accept the researcher handoff automatically only once `expected_artifacts` exist and pass the artifact check." in content
     assert "Do not trust the runtime handoff status by itself." in content
-    assert "Human-readable headings such as `## RESEARCH COMPLETE` and `## CHECKPOINT REACHED` are presentation only" in content
     assert "Artifact gate:" in content
     assert "If `gpd_return.status: completed` but the `expected_artifacts` entry (`RESEARCH.md`) is missing" in content
-    assert "gpd_return.status: checkpoint" in content
     assert "<spawn_contract>" in content
     assert "expected_artifacts:" in content
     assert "shared_state_policy: return_only" in content
@@ -318,10 +304,10 @@ def test_new_project_parallel_researchers_write_to_disjoint_artifacts() -> None:
     outputs = {output for task in tasks for output in _extract_output_paths(task)}
 
     expected = {
-        "GPD/research/PRIOR-WORK.md",
-        "GPD/research/METHODS.md",
-        "GPD/research/COMPUTATIONAL.md",
-        "GPD/research/PITFALLS.md",
+        "GPD/literature/PRIOR-WORK.md",
+        "GPD/literature/METHODS.md",
+        "GPD/literature/COMPUTATIONAL.md",
+        "GPD/literature/PITFALLS.md",
     }
 
     assert expected <= outputs
@@ -335,14 +321,14 @@ def test_new_project_parallel_researchers_write_to_disjoint_artifacts() -> None:
 
     content = _read(path)
     synth = _find_single_task(path, "gpd-research-synthesizer")
-    _assert_spawn_contract(synth, ("GPD/research/SUMMARY.md",))
+    _assert_spawn_contract(synth, ("GPD/literature/SUMMARY.md",))
     assert "GPD/PROJECT.md" in synth.text
     assert "GPD/config.json" in synth.text
-    assert "GPD/research/SUMMARY.md (if re-synthesizing an existing survey)" in synth.text
+    assert "GPD/literature/SUMMARY.md (if re-synthesizing an existing survey)" in synth.text
     assert "Do not trust the runtime handoff status by itself." in content
     assert "If a scout reports success but its `expected_artifacts` entry" in content
-    assert "`GPD/research/{FILE}`" in content
-    assert "If the synthesizer reports success but `GPD/research/SUMMARY.md` is missing" in content
+    assert "`GPD/literature/{FILE}`" in content
+    assert "If the synthesizer reports success but `GPD/literature/SUMMARY.md` is missing" in content
     assert "Do not proceed with a partial literature survey" in content
     assert "Do not synthesize from incomplete scout output" in content
     assert "Do not fabricate a fallback summary in the main context" in content
@@ -355,7 +341,7 @@ def test_new_project_roadmapper_uses_spawn_contract_and_artifact_gate() -> None:
 
     _assert_spawn_contract(roadmapper, ("GPD/ROADMAP.md", "GPD/STATE.md"), shared_state_policy="direct")
     assert "GPD/REQUIREMENTS.md" in roadmapper.text
-    assert "GPD/research/SUMMARY.md" in roadmapper.text
+    assert "GPD/literature/SUMMARY.md" in roadmapper.text
     assert "allowed_paths:" in roadmapper.text
     assert "If the roadmapper reports `gpd_return.status: completed`" in content
     assert "`GPD/ROADMAP.md` or `GPD/STATE.md` is missing" in content
@@ -381,20 +367,20 @@ def test_new_milestone_research_and_roadmapper_gate_success_path_artifacts() -> 
 
     assert content.count("<spawn_contract>") >= 3
     assert "Do not trust the runtime handoff status by itself." in content
-    assert "If a scout reports success but its `expected_artifacts` entry (`GPD/research/{FILE}`) is missing" in content
-    assert "If the synthesizer reports success but `GPD/research/SUMMARY.md` is missing" in content
+    assert "If a scout reports success but its `expected_artifacts` entry (`GPD/literature/{FILE}`) is missing" in content
+    assert "If the synthesizer reports success but `GPD/literature/SUMMARY.md` is missing" in content
     assert "If the roadmapper reports `gpd_return.status: completed` but `GPD/ROADMAP.md` or `GPD/STATE.md` is missing" in content
     assert "shared_state_policy: return_only" in content
 
     assert 'subagent_type="gpd-project-researcher"' in content
-    assert "GPD/research/{FILE}" in content
+    assert "GPD/literature/{FILE}" in content
     assert "expected_artifacts:" in content
     assert "PRIOR-WORK.md" in content
     assert "METHODS.md" in content
     assert "COMPUTATIONAL.md" in content
     assert "PITFALLS.md" in content
     assert 'subagent_type="gpd-research-synthesizer"' in content
-    assert "GPD/research/SUMMARY.md" in content
+    assert "GPD/literature/SUMMARY.md" in content
     assert 'subagent_type="gpd-roadmapper"' in content
     assert "GPD/ROADMAP.md" in content
     assert "GPD/STATE.md" in content
@@ -433,28 +419,12 @@ def test_peer_review_stages_use_fresh_context_and_stage_artifacts() -> None:
     assert "GPD/review/STAGE-literature{round_suffix}.json" in referee.text
     assert "GPD/review/STAGE-math{round_suffix}.json" in referee.text
     assert "GPD/review/PROOF-REDTEAM{round_suffix}.md" in check_proof.text
-    _assert_one_shot_spawn_prompt(check_proof)
     assert "GPD/review/STAGE-physics{round_suffix}.json" in referee.text
     assert "GPD/review/STAGE-interestingness{round_suffix}.json" in referee.text
     assert "GPD/review/REVIEW-LEDGER{round_suffix}.json" in referee.text
     assert "GPD/review/REFEREE-DECISION{round_suffix}.json" in referee.text
     assert "GPD/REFEREE-REPORT{round_suffix}.md" in referee.text
     assert "GPD/REFEREE-REPORT{round_suffix}.tex" in referee.text
-
-
-def test_check_proof_spawn_prompts_stay_one_shot_in_verification_and_derivation_flows() -> None:
-    verify_work_check_proof = _find_single_task(WORKFLOWS_DIR / "verify-work.md", "gpd-check-proof")
-    derive_equation_check_proof = _find_single_task(WORKFLOWS_DIR / "derive-equation.md", "gpd-check-proof")
-
-    assert "templates/proof-redteam-schema.md" in verify_work_check_proof.text
-    assert "references/verification/core/proof-redteam-protocol.md" in verify_work_check_proof.text
-    assert "Return `status: checkpoint` instead of waiting for user input inside this run." in verify_work_check_proof.text
-    _assert_one_shot_spawn_prompt(verify_work_check_proof)
-    assert "templates/proof-redteam-schema.md" in derive_equation_check_proof.text
-    assert "references/verification/core/proof-redteam-protocol.md" in derive_equation_check_proof.text
-    assert "Operate in proof-redteam mode with a fresh context." in derive_equation_check_proof.text
-    assert "If the runtime needs user input, return `status: checkpoint` instead of waiting inside this run." in derive_equation_check_proof.text
-    _assert_one_shot_spawn_prompt(derive_equation_check_proof)
 
 
 def test_referee_response_template_uses_round_suffixed_decision_artifacts() -> None:

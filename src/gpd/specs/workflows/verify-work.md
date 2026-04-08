@@ -134,6 +134,30 @@ Return `status: checkpoint` instead of waiting for user input inside this run.",
 ```
 
 After the proof critic returns, re-open `${phase_dir}/${phase_number}-PROOF-REDTEAM.md` from disk and confirm the artifact exists and is `passed` before finalizing the gap ledger. Never trust the return text alone; if the file is missing, stale, malformed, or not passed, keep the verification session fail-closed and start a fresh proof continuation.
+If `gpd-check-proof` still cannot produce a passed audit, keep the verification status fail-closed.
+</step>
+
+<step name="load_anchor_context">
+Use `active_reference_context` from init JSON as a mandatory input to verification.
+
+- If it names a benchmark, prior artifact, or must-read reference, verification must explicitly check it or report why it could not.
+- Treat `effective_reference_intake` as the structured source of must-read refs, prior outputs, baselines, user anchors, and context gaps. `active_reference_context` is the readable rendering of that ledger, not its substitute.
+- Treat `reference_artifacts_content` as supporting evidence for what comparisons remain decisive. Stable knowledge docs that appear there are reviewed background synthesis: use them to clarify definitions, assumptions, and caveats only when they agree with stronger sources, and never as decisive evidence on their own.
+- Background literature may be reduced by mode; anchor checks may not.
+</step>
+
+<step name="load_protocol_bundle_context">
+Use `protocol_bundle_context` from init JSON as additive specialized guidance.
+
+- If `selected_protocol_bundle_ids` is non-empty, use `protocol_bundle_verifier_extensions` from init JSON as the primary source for bundle checklist extensions and treat them as extra prompts for evidence gathering.
+- Call `get_bundle_checklist(selected_protocol_bundle_ids)` through the verification server only when the init payload lacks those extensions or when you need a fallback consistency check.
+- Bundle guidance may add estimator checks, decisive artifact expectations, or domain-specific audits, but it does NOT replace the plan contract or reduce anchor obligations.
+- Use `protocol_bundle_verifier_extensions` as the machine-readable quick map when deciding which contract-aware checks deserve deeper scrutiny first.
+- If the phase has a PLAN `contract` and project-local anchors or prior-output paths matter, use this contract-check loop before finalizing the inventory:
+  1. Call `suggest_contract_checks(contract, project_dir=...)`.
+  2. Treat the returned items as the default contract-aware seed unless they are clearly inapplicable.
+  3. For each returned check, start from `request_template`, satisfy `required_request_fields` and `schema_required_request_fields`, satisfy one full alternative from `schema_required_request_anyof_fields`, stay within `supported_binding_fields` for `request.binding`, and keep `project_dir` as the top-level absolute project root argument.
+  4. Call `run_contract_check(request=..., project_dir=...)` so contract-aware checks are executed rather than only discovered.
 </step>
 
 <step name="check_active_session">

@@ -28,11 +28,11 @@ This graph therefore includes:
 
 <!-- repo-graph-scope:start -->
 
-- `src/gpd/commands/*.md`: `66`
+- `src/gpd/commands/*.md`: `68`
 - `src/gpd/agents/*.md`: `24`
-- `src/gpd/specs/workflows/*.md`: `67`
-- `src/gpd/specs/templates/**/*.md`: `76`
-- `src/gpd/specs/references/**/*.md`: `169`
+- `src/gpd/specs/workflows/*.md`: `69`
+- `src/gpd/specs/templates/**/*.md`: `79`
+- `src/gpd/specs/references/**/*.md`: `170`
 - `src/gpd/adapters/*.py`: `9`
 - `src/gpd/hooks/*.py`: `11`
 - `src/gpd/mcp/servers/*.py`: `9`
@@ -473,7 +473,7 @@ flowchart TD
   Canonical parser for agent prompt definitions.
 
 <!-- repo-graph-same-stem-command-workflow:start -->
-- `src/gpd/commands/{add-phase,add-todo,arxiv-submission,audit-milestone,branch-hypothesis,check-todos,compact-state,compare-branches,compare-experiment,compare-results,complete-milestone,debug,decisions,derive-equation,dimensional-analysis,discover,discuss-phase,error-patterns,error-propagation,execute-phase,explain,export,export-logs,graph,help,insert-phase,limiting-cases,list-phase-assumptions,literature-review,map-research,merge-phases,new-milestone,new-project,numerical-convergence,parameter-sweep,pause-work,peer-review,plan-milestone-gaps,plan-phase,progress,quick,reapply-patches,record-insight,regression-check,remove-phase,research-phase,respond-to-referees,resume-work,revise-phase,sensitivity-analysis,set-profile,set-tier-models,settings,show-phase,slides,start,sync-state,tangent,tour,undo,update,validate-conventions,verify-work,write-paper}.md -> src/gpd/specs/workflows/{same stems}.md`
+- `src/gpd/commands/{add-phase,add-todo,arxiv-submission,audit-milestone,branch-hypothesis,check-todos,compact-state,compare-branches,compare-experiment,compare-results,complete-milestone,debug,decisions,derive-equation,digest-knowledge,dimensional-analysis,discover,discuss-phase,error-patterns,error-propagation,execute-phase,explain,export,export-logs,graph,help,insert-phase,limiting-cases,list-phase-assumptions,literature-review,map-research,merge-phases,new-milestone,new-project,numerical-convergence,parameter-sweep,pause-work,peer-review,plan-milestone-gaps,plan-phase,progress,quick,reapply-patches,record-insight,regression-check,remove-phase,research-phase,respond-to-referees,resume-work,review-knowledge,revise-phase,sensitivity-analysis,set-profile,set-tier-models,settings,show-phase,slides,start,sync-state,tangent,tour,undo,update,validate-conventions,verify-work,write-paper}.md -> src/gpd/specs/workflows/{same stems}.md`
 <!-- repo-graph-same-stem-command-workflow:end -->
   `include`
   Explicit same-stem command-to-workflow includes are node-level edges, not just an aggregate count.
@@ -630,12 +630,6 @@ flowchart TD
 - `src/gpd/agents/{gpd-review-math,gpd-check-proof,gpd-review-physics}.md -> src/gpd/specs/references/verification/core/verification-core.md`
   `include`
 
-- `src/gpd/agents/gpd-check-proof.md -> src/gpd/specs/templates/proof-redteam-schema.md`
-  `include`
-
-- `src/gpd/agents/gpd-check-proof.md -> src/gpd/specs/references/verification/core/proof-redteam-protocol.md`
-  `include`
-
 - `src/gpd/agents/{gpd-bibliographer,gpd-paper-writer,gpd-referee}.md -> src/gpd/specs/references/publication/publication-pipeline-modes.md`
   `include`
 
@@ -651,7 +645,7 @@ flowchart TD
 - `src/gpd/agents/{gpd-consistency-checker,gpd-debugger,gpd-executor}.md -> src/gpd/specs/references/shared/cross-project-patterns.md`
   `include`
 
-- `src/gpd/agents/gpd-bibliographer.md -> src/gpd/specs/{templates/notation-glossary.md,references/publication/bibtex-standards.md,references/publication/bibliography-advanced-search.md}`
+- `src/gpd/agents/gpd-bibliographer.md -> src/gpd/specs/{templates/notation-glossary.md,references/publication/bibtex-standards.md}`
   `include`
 
 - `src/gpd/agents/gpd-explainer.md -> src/gpd/specs/templates/notation-glossary.md`

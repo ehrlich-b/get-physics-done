@@ -213,6 +213,14 @@ def test_research_verification_template_uses_concrete_example_values() -> None:
 def test_verify_work_template_keeps_session_overlay_after_verifier_output() -> None:
     verify_work = _read_verify_work_template()
 
+    assert "Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true." in verify_work
+    assert (
+        "Stable knowledge docs that appear there are reviewed background synthesis: use them to clarify definitions, "
+        "assumptions, and caveats only when they agree with stronger sources, and never as decisive evidence on their own."
+        in verify_work
+    )
+    assert "Human-readable headings in the verifier output are presentation only;" in verify_work
+    assert "route on the canonical verification frontmatter and `gpd_return.status`" in verify_work
     assert "The verification overlay is written only after authoritative verifier output is available" in verify_work
     assert "canonical verifier report content remains owned by `gpd-verifier`" in verify_work
     assert "Every spawned agent is a one-shot delegation" in verify_work

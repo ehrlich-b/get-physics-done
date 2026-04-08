@@ -56,6 +56,7 @@ from gpd.core.continuation import (
 )
 from gpd.core.errors import ValidationError
 from gpd.core.extras import approximation_list
+from gpd.core.knowledge_runtime import discover_knowledge_docs
 from gpd.core.manuscript_artifacts import resolve_current_manuscript_entrypoint
 from gpd.core.phases import _milestone_completion_snapshot
 from gpd.core.project_reentry import (
@@ -99,9 +100,11 @@ logger = logging.getLogger(__name__)
 # Research file extensions for project detection.
 _RESEARCH_EXTENSIONS = frozenset({".tex", ".ipynb", ".py", ".jl", ".f90"})
 _LITERATURE_DIR_NAME = "literature"
+_LEGACY_RESEARCH_DIR_NAME = "research"
 _REFERENCE_MAP_DOCS = ("REFERENCES.md", "VALIDATION.md")
 _LITERATURE_INCLUDE_LIMIT = 2
 _RESEARCH_MAP_INCLUDE_LIMIT = 4
+_KNOWLEDGE_INCLUDE_LIMIT = 2
 _EXPERIMENT_DESIGN_SUFFIX = "-EXPERIMENT-DESIGN.md"
 _REFERENCE_ROLE_PRIORITY = {
     "benchmark": 0,
@@ -164,6 +167,14 @@ _PLAN_PHASE_REFERENCE_RUNTIME_FIELDS = frozenset(
         "protocol_bundle_context",
         "protocol_bundle_verifier_extensions",
         "active_reference_context",
+        "knowledge_doc_files",
+        "knowledge_doc_count",
+        "stable_knowledge_doc_files",
+        "stable_knowledge_doc_count",
+        "knowledge_doc_status_counts",
+        "derived_knowledge_docs",
+        "derived_knowledge_doc_count",
+        "knowledge_doc_warnings",
         "reference_artifact_files",
         "reference_artifacts_content",
         "literature_review_files",
@@ -257,12 +268,15 @@ _VERIFY_WORK_CONTRACT_GATE_FIELDS = frozenset(
         "project_contract_gate",
     }
 )
-_VERIFY_WORK_REFERENCE_INVENTORY_FIELDS = frozenset(
+_VERIFY_WORK_REFERENCE_RUNTIME_FIELDS = frozenset(
     {
         "contract_intake",
         "effective_reference_intake",
         "derived_active_references",
         "derived_active_reference_count",
+        "derived_knowledge_docs",
+        "derived_knowledge_doc_count",
+        "knowledge_doc_warnings",
         "citation_source_files",
         "citation_source_count",
         "citation_source_warnings",
@@ -270,31 +284,25 @@ _VERIFY_WORK_REFERENCE_INVENTORY_FIELDS = frozenset(
         "derived_citation_source_count",
         "derived_manuscript_reference_status",
         "derived_manuscript_reference_status_count",
+        "derived_manuscript_proof_review_status",
         "active_references",
         "active_reference_count",
+        "selected_protocol_bundle_ids",
+        "protocol_bundle_count",
+        "protocol_bundle_verifier_extensions",
+        "protocol_bundle_context",
         "active_reference_context",
+        "knowledge_doc_files",
+        "knowledge_doc_count",
+        "stable_knowledge_doc_files",
+        "stable_knowledge_doc_count",
+        "knowledge_doc_status_counts",
         "literature_review_files",
         "literature_review_count",
         "research_map_reference_files",
         "research_map_reference_count",
         "reference_artifact_files",
-    }
-)
-_VERIFY_WORK_PROTOCOL_BUNDLE_FIELDS = frozenset(
-    {
-        "selected_protocol_bundle_ids",
-        "protocol_bundle_count",
-        "protocol_bundle_verifier_extensions",
-        "protocol_bundle_context",
-    }
-)
-_VERIFY_WORK_REFERENCE_ARTIFACT_CONTENT_FIELDS = frozenset({"reference_artifacts_content"})
-_VERIFY_WORK_REFERENCE_RUNTIME_FIELDS = frozenset(
-    {
-        *_VERIFY_WORK_REFERENCE_INVENTORY_FIELDS,
-        *_VERIFY_WORK_PROTOCOL_BUNDLE_FIELDS,
-        *_VERIFY_WORK_REFERENCE_ARTIFACT_CONTENT_FIELDS,
-        "derived_manuscript_proof_review_status",
+        "reference_artifacts_content",
     }
 )
 _VERIFY_WORK_STRUCTURED_STATE_FIELDS = frozenset(
@@ -357,6 +365,9 @@ _EXECUTE_PHASE_REFERENCE_RUNTIME_FIELDS = frozenset(
         "effective_reference_intake",
         "derived_active_references",
         "derived_active_reference_count",
+        "derived_knowledge_docs",
+        "derived_knowledge_doc_count",
+        "knowledge_doc_warnings",
         "citation_source_files",
         "citation_source_count",
         "citation_source_warnings",
@@ -371,6 +382,11 @@ _EXECUTE_PHASE_REFERENCE_RUNTIME_FIELDS = frozenset(
         "active_reference_context",
         "active_references",
         "active_reference_count",
+        "knowledge_doc_files",
+        "knowledge_doc_count",
+        "stable_knowledge_doc_files",
+        "stable_knowledge_doc_count",
+        "knowledge_doc_status_counts",
         "reference_artifact_files",
         "reference_artifacts_content",
         "literature_review_files",
@@ -823,6 +839,17 @@ def _sorted_markdown_files(directory: Path) -> list[Path]:
         return []
 
 
+def _preferred_review_dir(cwd: Path) -> Path | None:
+    """Return the canonical review directory, falling back to legacy research only when needed."""
+    literature_dir = cwd / PLANNING_DIR_NAME / _LITERATURE_DIR_NAME
+    if literature_dir.is_dir():
+        return literature_dir
+    legacy_research_dir = cwd / PLANNING_DIR_NAME / _LEGACY_RESEARCH_DIR_NAME
+    if legacy_research_dir.is_dir():
+        return legacy_research_dir
+    return None
+
+
 def _relative_posix(cwd: Path, path: Path) -> str:
     """Return a stable repo-relative POSIX path."""
     return path.relative_to(cwd).as_posix()
@@ -1114,6 +1141,8 @@ def _canonicalize_project_contract(
 def _render_active_reference_context(
     active_references: list[dict[str, object]],
     effective_intake: dict[str, list[str]],
+    stable_knowledge_doc_files: list[str],
+    knowledge_doc_status_counts: dict[str, int],
     literature_review_files: list[str],
     research_map_reference_files: list[str],
     contract_validation: dict[str, object] | None = None,
@@ -1139,7 +1168,7 @@ def _render_active_reference_context(
                 f"why: {ref['why_it_matters']}{source_note}"
             )
     else:
-        if literature_review_files or research_map_reference_files:
+        if stable_knowledge_doc_files or literature_review_files or research_map_reference_files:
             lines.append("- No structured anchors parsed yet; raw reference artifacts are available below.")
         else:
             lines.append("- None confirmed in `state.json.project_contract.references` yet.")
@@ -1210,13 +1239,29 @@ def _render_active_reference_context(
         lines.extend(f"- Gap: {item}" for item in effective_intake["context_gaps"])
 
     lines.append("")
+    lines.append("## Stable Knowledge Documents")
+    if stable_knowledge_doc_files:
+        lines.extend(f"- Knowledge doc: {path}" for path in stable_knowledge_doc_files)
+    else:
+        lines.append("- No runtime-active stable knowledge docs found yet.")
+    suppressed_count = sum(
+        count for status, count in knowledge_doc_status_counts.items() if status != "stable"
+    )
+    if suppressed_count:
+        lines.append(
+            f"- {suppressed_count} non-stable knowledge doc(s) remain inventory-visible only and are excluded from active carry-forward context."
+        )
+
+    lines.append("")
     lines.append("## Reference Artifacts Available")
+    if stable_knowledge_doc_files:
+        lines.extend(f"- Stable knowledge: {path}" for path in stable_knowledge_doc_files)
     if literature_review_files:
         lines.extend(f"- Literature review: {path}" for path in literature_review_files)
     if research_map_reference_files:
         lines.extend(f"- Research map: {path}" for path in research_map_reference_files)
-    if not literature_review_files and not research_map_reference_files:
-        lines.append("- No literature-review or research-map anchor artifacts found yet.")
+    if not stable_knowledge_doc_files and not literature_review_files and not research_map_reference_files:
+        lines.append("- No stable knowledge, literature-review, or research-map anchor artifacts found yet.")
 
     return "\n".join(lines)
 
@@ -1245,12 +1290,13 @@ def _append_contract_warnings(lines: list[str], warnings: list[str]) -> None:
     )
 
 
-def _reference_artifact_payload(cwd: Path, *, include_content: bool = True) -> dict[str, object]:
+def _reference_artifact_payload(cwd: Path) -> dict[str, object]:
     """Collect durable reference artifacts for downstream planning and verification."""
-    literature_dir = cwd / PLANNING_DIR_NAME / _LITERATURE_DIR_NAME
-    literature_paths = _sorted_markdown_files(literature_dir)
+    review_dir = _preferred_review_dir(cwd)
+    literature_paths = _sorted_markdown_files(review_dir) if review_dir is not None else []
     research_map_dir = cwd / PLANNING_DIR_NAME / RESEARCH_MAP_DIR_NAME
     research_map_paths = _sorted_markdown_files(research_map_dir)
+    knowledge_inventory = discover_knowledge_docs(cwd)
     prioritized_research_map_paths = [
         research_map_dir / name for name in _REFERENCE_MAP_DOCS if (research_map_dir / name).is_file()
     ]
@@ -1259,19 +1305,18 @@ def _reference_artifact_payload(cwd: Path, *, include_content: bool = True) -> d
 
     literature_review_files = [_relative_posix(cwd, path) for path in literature_paths]
     research_map_reference_files = [_relative_posix(cwd, path) for path in prioritized_research_map_paths]
-
-    result: dict[str, object] = {
-        "literature_review_files": literature_review_files,
-        "literature_review_count": len(literature_review_files),
-        "research_map_reference_files": research_map_reference_files,
-        "research_map_reference_count": len(research_map_reference_files),
-        "reference_artifact_files": [*research_map_reference_files, *literature_review_files],
-    }
-    if not include_content:
-        return result
+    knowledge_doc_files = [record.path for record in knowledge_inventory.records]
+    stable_knowledge_doc_files = [
+        record.path
+        for record in knowledge_inventory.records
+        if record.status == "stable" and record.is_fresh_approved
+    ]
+    stable_knowledge_paths = [cwd / rel_path for rel_path in stable_knowledge_doc_files]
+    knowledge_doc_status_counts = knowledge_inventory.status_counts()
 
     content_sections: list[str] = []
     selected_artifacts = [
+        *stable_knowledge_paths[:_KNOWLEDGE_INCLUDE_LIMIT],
         *prioritized_research_map_paths[:_RESEARCH_MAP_INCLUDE_LIMIT],
         *literature_paths[:_LITERATURE_INCLUDE_LIMIT],
     ]
@@ -1281,24 +1326,34 @@ def _reference_artifact_payload(cwd: Path, *, include_content: bool = True) -> d
             continue
         content_sections.append(f"## {path.relative_to(cwd).as_posix()}\n{content}")
 
-    result["reference_artifacts_content"] = "\n\n".join(content_sections) if content_sections else None
-    return result
+    return {
+        "literature_review_files": literature_review_files,
+        "literature_review_count": len(literature_review_files),
+        "research_map_reference_files": research_map_reference_files,
+        "research_map_reference_count": len(research_map_reference_files),
+        "knowledge_doc_files": knowledge_doc_files,
+        "knowledge_doc_count": len(knowledge_doc_files),
+        "stable_knowledge_doc_files": stable_knowledge_doc_files,
+        "stable_knowledge_doc_count": len(stable_knowledge_doc_files),
+        "knowledge_doc_status_counts": knowledge_doc_status_counts,
+        "reference_artifact_files": [*stable_knowledge_doc_files, *research_map_reference_files, *literature_review_files],
+        "reference_artifacts_content": "\n\n".join(content_sections) if content_sections else None,
+    }
 
 
 def _build_reference_runtime_context(
     cwd: Path,
     *,
     persist_manuscript_proof_review_manifest: bool = False,
-    include_protocol_bundle_fields: bool = True,
-    include_reference_artifact_content: bool = True,
 ) -> dict[str, object]:
     """Build shared reference/anchor context for workflow init payloads."""
     contract, project_contract_load_info = _load_project_contract(cwd)
-    artifact_payload = _reference_artifact_payload(cwd, include_content=include_reference_artifact_content)
+    artifact_payload = _reference_artifact_payload(cwd)
     artifact_ingestion = ingest_reference_artifacts(
         cwd,
         literature_review_files=list(artifact_payload["literature_review_files"]),
         research_map_reference_files=list(artifact_payload["research_map_reference_files"]),
+        knowledge_doc_files=list(artifact_payload["stable_knowledge_doc_files"]),
     )
     manuscript_reference_status = ingest_manuscript_reference_status(cwd)
     manuscript_proof_review_status = resolve_manuscript_proof_review_status(
@@ -1306,6 +1361,7 @@ def _build_reference_runtime_context(
         persist_manifest=persist_manuscript_proof_review_manifest,
     )
     derived_references = [ref.to_context_dict() for ref in artifact_ingestion.references]
+    derived_knowledge_docs = [record.to_context_dict() for record in artifact_ingestion.knowledge_docs]
     derived_citation_sources = [item.to_context_dict() for item in artifact_ingestion.citation_sources]
     derived_manuscript_reference_status = {
         record.reference_id: record.to_context_dict()
@@ -1332,7 +1388,7 @@ def _build_reference_runtime_context(
         visible_contract,
         project_contract_load_info,
     )
-    project_text = _safe_read_file(cwd / PLANNING_DIR_NAME / PROJECT_FILENAME) if include_protocol_bundle_fields else None
+    project_text = _safe_read_file(cwd / PLANNING_DIR_NAME / PROJECT_FILENAME)
     visible_context_contract = None
     if project_contract_gate.get("visible"):
         visible_context_contract = visible_contract if project_contract_gate.get("authoritative") else contract
@@ -1354,7 +1410,20 @@ def _build_reference_runtime_context(
         artifact_ingestion.intake.to_dict(),
         surfaced_active_references,
     )
-    result: dict[str, object] = {
+    selected_protocol_bundles = select_protocol_bundles(project_text, authoritative_contract)
+
+    bundle_verifier_extensions: list[dict[str, object]] = []
+    for bundle in selected_protocol_bundles:
+        for extension in bundle.verifier_extensions:
+            bundle_verifier_extensions.append(
+                {
+                    "bundle_id": bundle.bundle_id,
+                    "bundle_title": bundle.title,
+                    **extension.model_dump(mode="json"),
+                }
+            )
+
+    return {
         "project_contract": visible_context_contract.model_dump(mode="json") if visible_context_contract is not None else None,
         "project_contract_validation": project_contract_validation,
         "project_contract_load_info": project_contract_load_info,
@@ -1363,6 +1432,9 @@ def _build_reference_runtime_context(
         "effective_reference_intake": surfaced_effective_reference_intake,
         "derived_active_references": derived_references,
         "derived_active_reference_count": len(derived_references),
+        "derived_knowledge_docs": derived_knowledge_docs,
+        "derived_knowledge_doc_count": len(derived_knowledge_docs),
+        "knowledge_doc_warnings": list(artifact_ingestion.knowledge_doc_warnings),
         "citation_source_files": list(artifact_ingestion.citation_source_files),
         "citation_source_count": len(artifact_ingestion.citation_source_files),
         "citation_source_warnings": list(artifact_ingestion.citation_source_warnings),
@@ -1373,9 +1445,15 @@ def _build_reference_runtime_context(
         "derived_manuscript_proof_review_status": manuscript_proof_review_status.to_context_dict(cwd),
         "active_references": surfaced_active_references,
         "active_reference_count": len(surfaced_active_references),
+        "selected_protocol_bundle_ids": [bundle.bundle_id for bundle in selected_protocol_bundles],
+        "protocol_bundle_count": len(selected_protocol_bundles),
+        "protocol_bundle_verifier_extensions": bundle_verifier_extensions,
+        "protocol_bundle_context": render_protocol_bundle_context(selected_protocol_bundles),
         "active_reference_context": _render_active_reference_context(
             surfaced_active_references,
             surfaced_effective_reference_intake,
+            list(artifact_payload["stable_knowledge_doc_files"]),
+            dict(artifact_payload["knowledge_doc_status_counts"]),
             artifact_payload["literature_review_files"],
             artifact_payload["research_map_reference_files"],
             project_contract_validation,
@@ -1383,28 +1461,6 @@ def _build_reference_runtime_context(
         ),
         **artifact_payload,
     }
-    if include_protocol_bundle_fields:
-        selected_protocol_bundles = select_protocol_bundles(project_text, authoritative_contract)
-        bundle_verifier_extensions: list[dict[str, object]] = []
-        for bundle in selected_protocol_bundles:
-            for extension in bundle.verifier_extensions:
-                bundle_verifier_extensions.append(
-                    {
-                        "bundle_id": bundle.bundle_id,
-                        "bundle_title": bundle.title,
-                        **extension.model_dump(mode="json"),
-                    }
-                )
-        result.update(
-            {
-                "selected_protocol_bundle_ids": [bundle.bundle_id for bundle in selected_protocol_bundles],
-                "protocol_bundle_count": len(selected_protocol_bundles),
-                "protocol_bundle_verifier_extensions": bundle_verifier_extensions,
-                "protocol_bundle_context": render_protocol_bundle_context(selected_protocol_bundles),
-            }
-        )
-
-    return result
 
 
 def _build_new_project_contract_runtime_context(cwd: Path) -> dict[str, object]:
@@ -2849,19 +2905,11 @@ def init_verify_work(cwd: Path, phase: str | None, stage: str | None = None) -> 
 
     required_fields = set(stage_def.required_init_fields)
     staged_source = dict(base_result)
-    needs_reference_context = bool(required_fields & _VERIFY_WORK_REFERENCE_RUNTIME_FIELDS)
+    needs_full_reference_context = bool(required_fields & _VERIFY_WORK_REFERENCE_RUNTIME_FIELDS)
     needs_contract_gate_context = bool(required_fields & _VERIFY_WORK_CONTRACT_GATE_FIELDS)
 
-    if needs_reference_context:
-        staged_source.update(
-            _build_reference_runtime_context(
-                cwd,
-                include_protocol_bundle_fields=bool(required_fields & _VERIFY_WORK_PROTOCOL_BUNDLE_FIELDS),
-                include_reference_artifact_content=bool(
-                    required_fields & _VERIFY_WORK_REFERENCE_ARTIFACT_CONTENT_FIELDS
-                ),
-            )
-        )
+    if needs_full_reference_context:
+        staged_source.update(_build_reference_runtime_context(cwd))
     elif needs_contract_gate_context:
         staged_source.update(_build_new_project_contract_runtime_context(cwd))
 

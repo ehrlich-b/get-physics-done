@@ -305,7 +305,7 @@ Extract from wave_planning init JSON: `selected_protocol_bundle_ids`, `protocol_
 
 If `selected_protocol_bundle_ids` is non-empty, treat `protocol_bundle_context` as the plan-execution specialized-loading guide for this plan. Read any bundle-listed core assets now, not during bootstrap.
 
-Use `reference_artifacts_content` only here, when the segment actually needs to interpret prior outputs, baselines, or unresolved gaps.
+Use `reference_artifacts_content` only here, when the segment actually needs to interpret prior outputs, baselines, or unresolved gaps. Stable knowledge docs may be present in that content as reviewed background, but they do not override the contract, conventions, or decisive evidence requirements.
 
 Read these reference files using the file_read tool only now, in the segment-execution stage:
 - {GPD_INSTALL_DIR}/references/execution/git-integration.md
