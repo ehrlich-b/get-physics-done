@@ -1429,6 +1429,24 @@ class TestDiscovery:
         assert "public writable production agent specialized for discrepancy investigation" in debugger_agent.system_prompt
         assert {"gpd-debug", "gpd-debugger"}.issubset(registry.list_skills())
 
+    def test_consistency_checker_remains_registry_discoverable(self) -> None:
+        registry.invalidate_cache()
+
+        skill = registry.get_skill("gpd-consistency-checker")
+        agent = registry.get_agent("gpd-consistency-checker")
+
+        assert skill.name == "gpd-consistency-checker"
+        assert skill.source_kind == "agent"
+        assert skill.category == "verification"
+        assert skill.path.endswith("gpd-consistency-checker.md")
+        assert agent.surface == "internal"
+        assert agent.role_family == "verification"
+        assert agent.commit_authority == "orchestrator"
+        assert agent.artifact_write_authority == "scoped_write"
+        assert agent.shared_state_authority == "return_only"
+        assert agent.tools == ["file_read", "file_write", "shell", "search_files", "find_files"]
+        assert "gpd-consistency-checker" in registry.list_skills()
+
 class TestSkillDiscovery:
     """Tests for canonical skills derived from primary commands and agents."""
 

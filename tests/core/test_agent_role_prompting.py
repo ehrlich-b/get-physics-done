@@ -67,3 +67,15 @@ def test_internal_agents_explicitly_identify_internal_specialist_surface() -> No
         content = _read_agent(name)
         assert "Agent surface: internal specialist subagent." in content, name
         assert "Do not act as the default writable implementation agent" in content, name
+
+
+def test_consistency_checker_stays_one_shot_and_does_not_claim_resolution_work() -> None:
+    source = _read_agent("gpd-consistency-checker")
+
+    assert "This is a one-shot handoff: inspect once, write once, return once." in source
+    assert "gpd_return.status: checkpoint" in source
+    assert "status: completed | checkpoint | blocked | failed" in source
+    assert "Do not act as the default writable implementation agent." in source
+    assert "Do not claim ownership of code fixes, commits, convention-authoring, or pattern-library updates." in source
+    assert "Create it from the template" not in source
+    assert "gpd pattern add" not in source

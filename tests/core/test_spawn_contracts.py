@@ -206,7 +206,7 @@ def test_representative_workflows_keep_runtime_note_and_agent_prompt_bootstrap()
         "write-paper.md": ["gpd-paper-writer", "gpd-bibliographer"],
         "respond-to-referees.md": ["gpd-paper-writer"],
         "peer-review.md": ["gpd-review-reader", "gpd-referee"],
-        "validate-conventions.md": ["gpd-consistency-checker", "gpd-notation-coordinator"],
+        "validate-conventions.md": ["gpd-consistency-checker"],
         "new-project.md": [
             "gpd-project-researcher",
             "gpd-research-synthesizer",
@@ -383,6 +383,23 @@ def test_new_project_notation_coordinator_uses_explicit_model_and_spawn_contract
     assert "Do not hardcode `natural` or `mostly_minus`" in content
     assert 'gpd convention set units "$RESOLVED_UNITS"' in content
     assert 'gpd convention set metric_signature "$RESOLVED_METRIC"' in content
+
+
+def test_validate_conventions_uses_one_shot_delegation_and_artifact_gating_for_resolution() -> None:
+    content = _read(WORKFLOWS_DIR / "validate-conventions.md")
+
+    assert content.count('subagent_type="gpd-consistency-checker"') == 1
+    assert content.count('subagent_type="gpd-notation-coordinator"') == 0
+    assert "Thin wrapper around `gpd-consistency-checker` for convention validation." in content
+    assert "Spawn `gpd-consistency-checker` once and let it own convention policy." in content
+    assert "Runtime delegation rule: this is a one-shot handoff." in content
+    assert "Route only on the canonical `gpd_return.status`:" in content
+    assert "Do not route on checker-local text markers or headings." in content
+    assert "gpd-notation-coordinator" in content
+    assert "If the checker's `next_actions` call for notation repair, spawn `gpd-notation-coordinator` with the checker report and the same scope." in content
+    assert "Keep that handoff thin: the coordinator owns the repair policy, not this workflow." in content
+    assert "If the checker returns `gpd_return.status: completed`, accept success only after verifying that:" in content
+    assert "The same path appears in `gpd_return.files_written`." in content
 
 
 def test_new_milestone_research_and_roadmapper_gate_success_path_artifacts() -> None:

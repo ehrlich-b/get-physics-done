@@ -1623,34 +1623,44 @@ task(prompt="First, read {GPD_AGENTS_DIR}/gpd-consistency-checker.md for your ro
 <mode>rapid</mode>
 <phase>{PHASE_NUMBER}</phase>
 
+<spawn_contract>
+write_scope:
+  mode: scoped_write
+  allowed_paths:
+    - {phase_dir}/CONSISTENCY-CHECK.md
+expected_artifacts:
+  - {phase_dir}/CONSISTENCY-CHECK.md
+shared_state_policy: return_only
+</spawn_contract>
+
 Check phase {PHASE_NUMBER} results against the full conventions ledger and all accumulated project state.
 Use the structured init-state payload (`convention_lock` / `derived_convention_lock`) and SUMMARY.md frontmatter convention fields first.
 Use `gpd convention list` and `file_read: GPD/STATE.md, GPD/state.json` only if the payload is missing or inconsistent.
 file_read: All SUMMARY.md files from phase {PHASE_NUMBER}
 
-Return consistency_status with any issues found.
+Return exactly one typed `gpd_return` envelope with `status: completed | checkpoint | blocked | failed`, include `files_written`, and write `{phase_dir}/CONSISTENCY-CHECK.md`.
 ", subagent_type="gpd-consistency-checker", model="{consistency_model}", readonly=false, description="Rapid consistency check")
 
-**If the consistency checker agent fails to spawn or returns an error:** Proceed without cross-phase consistency checking for this wave. Note in the phase status that consistency verification was skipped. The user should run `gpd:validate-conventions` after execution completes to catch any convention drift.
+**Artifact gate:** Do not accept `gpd_return.status: completed` until `{phase_dir}/CONSISTENCY-CHECK.md` exists on disk. If the artifact is missing, treat the handoff as blocked even when the runtime reported success.
 
-**If INCONSISTENT:** STOP execution. Present issues to user with resolution options:
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GPD > CONVENTION INCONSISTENCY DETECTED
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-{issues from consistency checker}
-
-──────────────────────────────────────────────────────
-Options:
-  1. "Resolve conventions" -- spawn notation coordinator to fix (Recommended)
-  2. "Force continue" -- proceed despite inconsistency (--force-inconsistent)
-  3. "Stop" -- halt and investigate manually
-──────────────────────────────────────────────────────
+```bash
+CONSISTENCY_REPORT="${phase_dir}/CONSISTENCY-CHECK.md"
+if [ ! -f "$CONSISTENCY_REPORT" ]; then
+  echo "ERROR: consistency-check artifact missing: $CONSISTENCY_REPORT"
+  exit 1
+fi
 ```
 
-**If "Resolve conventions":** Spawn gpd-notation-coordinator to fix the conflicts:
+**If the consistency checker agent fails to spawn or returns an error:** Treat the consistency check as blocked. Do not proceed as if the phase was checked. The user can rerun `gpd:validate-conventions` or resume this phase from a fresh continuation if they want the cross-phase sweep.
+
+**Handle the checker response through `gpd_return.status`:**
+- `gpd_return.status: completed`: accept only if the artifact gate passes. Surface any `issues` as warnings, then continue.
+- `gpd_return.status: checkpoint`: stop and surface the checkpoint payload from the checker. Do not wait in place for user input inside this run.
+- `gpd_return.status: blocked` / `gpd_return.status: failed`: stop execution and surface the returned issues. If the user wants convention repair, spawn `gpd-notation-coordinator` from a fresh continuation after the stop.
+
+**If the checker output is malformed or omits `gpd_return.status`:** Treat it as blocked. Do not infer success from prose headings or untyped legacy routing.
+
+If the user chooses convention repair in a fresh continuation, spawn `gpd-notation-coordinator` to fix the conflicts:
 
 ```bash
 NOTATION_MODEL=$(gpd resolve-model gpd-notation-coordinator)
@@ -1695,7 +1705,7 @@ Load conventions: gpd convention list
 
 Handle notation-coordinator return:
 - **`CONVENTION UPDATE`:** Conventions fixed. Commit CONVENTIONS.md. Then verify `gpd convention check` reports `locked` or `complete`, and re-check any phase artifacts flagged for re-execution are still present on disk before continuing. If the lock is still open or a flagged artifact is missing, treat the update as incomplete and keep the phase blocked.
-- **`CONVENTION CONFLICT`:** Unresolvable conflict requiring user decision. Present options and wait.
+- **`CONVENTION CONFLICT`:** Unresolvable conflict requiring user decision. Return blocked and resume only in a fresh continuation.
 
 **If "Force continue":** Log the forced override to DECISIONS.md:
 
@@ -1706,8 +1716,7 @@ gpd state add-decision \
   --rationale "${USER_RATIONALE}"
 ```
 
-**If WARNING:** Present warnings, ask user whether to proceed or investigate.
-**If CONSISTENT:** Continue to phase completion.
+**If `gpd_return.status: completed`:** Continue to phase completion.
 </step>
 
 <step name="orchestrator_self_check">

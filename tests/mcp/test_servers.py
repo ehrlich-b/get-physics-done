@@ -1538,6 +1538,50 @@ class TestSkillsServer:
         assert any(path.endswith("shared-protocols.md") for path in direct_paths)
         assert any(path.endswith("bibliography-advanced-search.md") for path in transitive_paths)
 
+    def test_get_skill_consistency_checker_surfaces_agent_metadata(self):
+        from gpd import registry as content_registry
+        from gpd.mcp.servers.skills_server import get_skill
+
+        repo_root = Path(__file__).resolve().parents[2]
+        with (
+            patch("gpd.registry.COMMANDS_DIR", repo_root / "src" / "gpd" / "commands"),
+            patch("gpd.registry.AGENTS_DIR", repo_root / "src" / "gpd" / "agents"),
+        ):
+            content_registry.invalidate_cache()
+            result = get_skill("gpd-consistency-checker")
+            content_registry.invalidate_cache()
+
+        direct_paths = {entry["path"] for entry in result["referenced_files"]}
+
+        assert "error" not in result
+        assert result["name"] == "gpd-consistency-checker"
+        assert result["allowed_tools_surface"] == "agent.tools"
+        assert result["content_authority"] == "canonical"
+        assert result["allowed_tools"] == ["file_read", "file_write", "shell", "search_files", "find_files"]
+        assert result["agent_policy"] == {
+            "commit_authority": "orchestrator",
+            "surface": "internal",
+            "role_family": "verification",
+            "artifact_write_authority": "scoped_write",
+            "shared_state_authority": "return_only",
+            "tools": ["file_read", "file_write", "shell", "search_files", "find_files"],
+        }
+        assert result["structured_metadata_authority"] == {
+            "content": "canonical",
+            "allowed_tools": "mirrored",
+            "agent_policy": "mirrored",
+        }
+        assert result["schema_references"] == []
+        assert result["schema_documents"] == []
+        assert result["contract_references"] == []
+        assert result["contract_documents"] == []
+        assert result["reference_count"] == len(direct_paths)
+        assert result["transitive_reference_count"] == 0
+        assert result["transitive_referenced_files"] == []
+        assert "@GPD/CONVENTIONS.md" in direct_paths
+        assert "@GPD/phases/{scope}/CONSISTENCY-CHECK.md" in direct_paths
+        assert "@GPD/CONSISTENCY-CHECK.md" in direct_paths
+
     def test_get_skill_surfaces_schema_references(self):
         from gpd.mcp.servers.skills_server import get_skill
 

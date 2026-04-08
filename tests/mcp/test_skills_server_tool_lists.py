@@ -86,6 +86,42 @@ def test_get_skill_command_surfaces_agent_metadata() -> None:
     assert "agent: gpd-planner" in result["content"]
 
 
+def test_list_skills_filters_consistency_checker_by_verification_category() -> None:
+    from gpd.mcp.servers.skills_server import list_skills
+
+    consistency_checker = SkillDef(
+        name="gpd-consistency-checker",
+        description="Consistency checker.",
+        content="Consistency checker body.",
+        category="verification",
+        path="/tmp/gpd-consistency-checker.md",
+        source_kind="agent",
+        registry_name="gpd-consistency-checker",
+    )
+    help_skill = SkillDef(
+        name="gpd-help",
+        description="Help.",
+        content="Help body.",
+        category="help",
+        path="/tmp/gpd-help.md",
+        source_kind="command",
+        registry_name="help",
+    )
+
+    with patch("gpd.mcp.servers.skills_server._load_skill_index", return_value=[consistency_checker, help_skill]):
+        result = list_skills(category="verification")
+
+    assert result["count"] == 1
+    assert result["skills"] == [
+        {
+            "name": "gpd-consistency-checker",
+            "category": "verification",
+            "description": "Consistency checker.",
+        }
+    ]
+    assert result["categories"] == ["help", "verification"]
+
+
 def test_get_skill_command_surfaces_staged_loading_sidecar() -> None:
     from gpd.mcp.servers.skills_server import get_skill
 

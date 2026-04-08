@@ -115,17 +115,6 @@ AGENT_REFERENCE_TOKENS = {
         "references/physics-subfields.md",
         "templates/notation-glossary.md",
     ],
-    "gpd-consistency-checker.md": [
-        "references/shared/shared-protocols.md",
-        "references/orchestration/agent-infrastructure.md",
-        "references/physics-subfields.md",
-        "references/verification/core/verification-core.md",
-        "references/shared/cross-project-patterns.md",
-        "references/examples/contradiction-resolution-example.md",
-        "references/verification/meta/verification-hierarchy-mapping.md",
-        "templates/uncertainty-budget.md",
-        "templates/conventions.md",
-    ],
     "gpd-debugger.md": [
         "Spawned by the debug orchestrator workflow.",
         "Agent surface: public writable production agent specialized for discrepancy investigation and bounded repair work.",
@@ -520,6 +509,22 @@ def test_workflows_reference_expected_spawn_agents() -> None:
 def test_agents_reference_expected_shared_specs() -> None:
     for agent_name, reference_tokens in AGENT_REFERENCE_TOKENS.items():
         _assert_contains_tokens(AGENTS_DIR / agent_name, reference_tokens)
+
+
+def test_consistency_checker_prompt_keeps_the_canonical_contract_and_stays_least_privileged() -> None:
+    source = (AGENTS_DIR / "gpd-consistency-checker.md").read_text(encoding="utf-8")
+
+    assert "one-shot handoff" in source
+    assert "status: completed | checkpoint | blocked | failed" in source
+    assert "files_written: [GPD/phases/{scope}/CONSISTENCY-CHECK.md]" in source
+    assert "GPD/CONSISTENCY-CHECK.md" in source
+    assert "@{GPD_INSTALL_DIR}" not in source
+    assert "Do not act as the default writable implementation agent" in source
+    assert "Do not claim ownership of code fixes, commits, convention-authoring, or pattern-library updates." in source
+    assert "Create it from the template" not in source
+    assert "gpd pattern add" not in source
+    assert "Step 0.5" not in source
+    assert "CONVENTIONS.md does not exist" not in source
 
 
 def test_review_commands_expose_typed_contracts() -> None:

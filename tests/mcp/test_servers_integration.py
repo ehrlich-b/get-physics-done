@@ -453,6 +453,16 @@ class TestSkillsServerIntegration:
             assert "category" in skill
             assert skill["name"].startswith("gpd-")
 
+    def test_list_skills_by_category_keeps_consistency_checker_visible(self):
+        from gpd.mcp.servers.skills_server import list_skills
+
+        result = list_skills(category="verification")
+
+        assert result["count"] > 0
+        names = {skill["name"] for skill in result["skills"]}
+        assert {"gpd-consistency-checker", "gpd-plan-checker", "gpd-verifier"}.issubset(names)
+        assert all(skill["category"] == "verification" for skill in result["skills"])
+
     def test_debug_command_and_debugger_agent_surfaces_remain_available(self):
         from gpd.mcp.servers.skills_server import get_skill, list_skills
 
