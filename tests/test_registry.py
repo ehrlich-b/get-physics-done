@@ -1524,6 +1524,40 @@ class TestRegistryPromptIncludeInlining:
         assert "# Canonical Schema Discipline" in agent.system_prompt
         assert "<!-- [included:" not in agent.system_prompt
 
+    def test_plan_checker_registry_surface_keeps_direct_plan_contract_schema_and_checkpoint_contract_visible(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from functools import lru_cache
+        from shutil import copytree
+
+        agents_dir = tmp_path / "agents"
+        copytree(Path(__file__).resolve().parents[1] / "src" / "gpd" / "agents", agents_dir)
+        plan_checker_path = agents_dir / "gpd-plan-checker.md"
+        plan_checker_text = plan_checker_path.read_text(encoding="utf-8")
+        plan_checker_text = plan_checker_text.replace(
+            "artifact_write_authority: return_only",
+            "artifact_write_authority: read_only",
+        )
+        plan_checker_path.write_text(
+            plan_checker_text.replace(
+                "tools: file_read, file_write, shell, find_files, search_files, web_search, web_fetch",
+                "tools: file_read, shell, find_files, search_files, web_search, web_fetch",
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(registry, "AGENTS_DIR", agents_dir)
+        monkeypatch.setattr(registry, "_builtin_agent_names", lru_cache(maxsize=1)(lambda: frozenset()))
+        registry.invalidate_cache()
+
+        skill = registry.get_skill("gpd-plan-checker")
+
+        assert skill.source_kind == "agent"
+        assert skill.path.endswith("gpd-plan-checker.md")
+        assert "{GPD_INSTALL_DIR}/templates/plan-contract-schema.md" in skill.content
+        assert "This is a one-shot handoff. If user input is needed, return `status: checkpoint`; do not wait inside the same run." in skill.content
+        assert "approved_plans: [list of plan IDs that passed]" in skill.content
+        assert "blocked_plans: [list of plan IDs needing revision or escalation]" in skill.content
+
     def test_write_paper_command_surface_uses_staged_loading_for_contract_schemas(self) -> None:
         command = registry.get_command("gpd:write-paper")
 

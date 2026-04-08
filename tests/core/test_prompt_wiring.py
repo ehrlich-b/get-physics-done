@@ -222,6 +222,7 @@ AGENT_REFERENCE_TOKENS = {
         "references/orchestration/agent-infrastructure.md",
         "references/physics-subfields.md",
         "references/verification/core/verification-core.md",
+        "templates/plan-contract-schema.md",
     ],
     "gpd-planner.md": [
         "references/shared/shared-protocols.md",
@@ -1329,6 +1330,8 @@ def test_plan_checker_requires_contract_gate_and_reference_artifacts() -> None:
     workflow_text = (WORKFLOWS_DIR / "plan-phase.md").read_text(encoding="utf-8")
 
     assert "## Dimension 0: Contract Gate" in checker_agent
+    assert "{GPD_INSTALL_DIR}/templates/plan-contract-schema.md" in checker_agent
+    assert "This is a one-shot handoff. If user input is needed, return `status: checkpoint`; do not wait inside the same run." in checker_agent
     assert "contract_decisive_output" in checker_agent
     assert "contract_anchor_coverage" in checker_agent
     assert "proxy_only_success_path" in checker_agent

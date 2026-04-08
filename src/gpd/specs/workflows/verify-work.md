@@ -404,12 +404,20 @@ Spawn `gpd-plan-checker` as a fresh one-shot delegation.
 Before accepting the handoff as complete, confirm the expected `PLAN.md` files are present and readable.
 
 If the checker fails to spawn or returns an error, proceed without plan verification but note that the plans were not verified.
+
+If the checker returns a structured `gpd_return`, route on `gpd_return.status` and the structured plan lists, not on presentation text:
+
+- `completed`: treat the fix plans as verified and continue.
+- `checkpoint`: some plans are approved and others need revision; record `approved_plans` and `blocked_plans`, then send only the blocked plans back through the revision loop.
+- `blocked`: nothing is approved; feed the checker issues and blocked plan IDs back into the revision loop.
+- `failed`: present the issues and offer retry, manual revision, or skipping gap closure.
 </step>
 
 <step name="revision_loop">
 **Iterate planner <-> checker until plans pass, up to 3 rounds**
 
 If the checker reports issues, send a fresh planner continuation with the checker feedback. After the planner returns, run the checker again. Each agent turn is one-shot; do not keep either agent alive across user interaction.
+When the checker returns `checkpoint` or `blocked`, use the structured `approved_plans`, `blocked_plans`, and `issues` fields to decide which plans to revise. Use the structured fields, not the human-readable approval table, as the source of truth.
 First, read {GPD_AGENTS_DIR}/gpd-planner.md for your role and instructions.
 Use `templates/planner-subagent-prompt.md` again for checker-driven gap_closure revisions.
 

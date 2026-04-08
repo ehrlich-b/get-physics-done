@@ -170,6 +170,7 @@ def test_validate_workflow_stage_manifest_payload_loads_plan_phase_manifest() ->
     assert "reference_artifacts_content" in manifest.stages[3].required_init_fields
     assert "experiment_design_content" in manifest.stages[2].required_init_fields
     assert "experiment_design_content" in manifest.stages[3].required_init_fields
+    assert "state_content" not in manifest.stages[3].required_init_fields
     assert "GPD/phases" in manifest.stages[2].writes_allowed
 
 

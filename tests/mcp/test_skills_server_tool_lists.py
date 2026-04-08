@@ -541,6 +541,49 @@ def test_get_skill_planner_agent_does_not_expose_staged_loading_sidecar(monkeypa
     assert "staged_loading" not in result["structured_metadata_authority"]
 
 
+def test_get_skill_plan_checker_agent_surfaces_direct_schema_dependency_and_least_privilege(
+    tmp_path, monkeypatch
+) -> None:
+    from functools import lru_cache
+    from shutil import copytree
+
+    from gpd import registry as content_registry
+    from gpd.mcp.servers.skills_server import get_skill
+
+    agents_dir = tmp_path / "agents"
+    copytree(Path(__file__).resolve().parents[2] / "src" / "gpd" / "agents", agents_dir)
+    plan_checker_path = agents_dir / "gpd-plan-checker.md"
+    plan_checker_text = plan_checker_path.read_text(encoding="utf-8")
+    plan_checker_text = plan_checker_text.replace(
+        "artifact_write_authority: return_only",
+        "artifact_write_authority: read_only",
+    )
+    plan_checker_path.write_text(
+        plan_checker_text.replace(
+            "tools: file_read, file_write, shell, find_files, search_files, web_search, web_fetch",
+            "tools: file_read, shell, find_files, search_files, web_search, web_fetch",
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(content_registry, "AGENTS_DIR", agents_dir)
+    monkeypatch.setattr(
+        content_registry,
+        "_builtin_agent_names",
+        lru_cache(maxsize=1)(lambda: frozenset()),
+    )
+    content_registry.invalidate_cache()
+
+    result = get_skill("gpd-plan-checker")
+    schema_documents = {Path(entry["path"]).name: entry for entry in result["schema_documents"]}
+
+    assert result["allowed_tools_surface"] == "agent.tools"
+    assert "file_write" not in result["allowed_tools"]
+    assert any(path.endswith("plan-contract-schema.md") for path in result["schema_references"])
+    assert "@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md" in result["content"]
+    assert "plan-contract-schema.md" in schema_documents
+    assert "PLAN Contract Schema" in schema_documents["plan-contract-schema.md"]["body"]
+
+
 def test_skills_server_import_is_resilient_to_registry_index_failure(monkeypatch) -> None:
     monkeypatch.setattr(
         registry_module,
