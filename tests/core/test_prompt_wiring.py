@@ -105,6 +105,7 @@ AGENT_REFERENCE_TOKENS = {
         "references/orchestration/agent-infrastructure.md",
         "references/physics-subfields.md",
         "references/publication/publication-pipeline-modes.md",
+        "references/publication/bibliography-advanced-search.md",
         "templates/notation-glossary.md",
         "references/publication/bibtex-standards.md",
     ],

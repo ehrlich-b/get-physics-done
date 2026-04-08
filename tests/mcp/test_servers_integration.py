@@ -551,6 +551,7 @@ class TestSkillsServerIntegration:
         assert any(path.endswith("agent-infrastructure.md") for path in bibliographer_referenced_paths)
         assert any(path.endswith("bibtex-standards.md") for path in bibliographer_referenced_paths)
         assert any(path.endswith("publication-pipeline-modes.md") for path in bibliographer_referenced_paths)
+        assert any(path.endswith("bibliography-advanced-search.md") for path in bibliographer_referenced_paths)
         assert any(path.endswith("notation-glossary.md") for path in bibliographer_template_references)
 
     def test_get_skill_index_complete(self):

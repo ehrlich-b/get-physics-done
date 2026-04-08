@@ -1576,10 +1576,11 @@ class TestRegistryPromptIncludeInlining:
         for path in (
             "references/shared/shared-protocols.md",
             "references/physics-subfields.md",
-            "templates/notation-glossary.md",
             "references/orchestration/agent-infrastructure.md",
+            "templates/notation-glossary.md",
             "references/publication/bibtex-standards.md",
             "references/publication/publication-pipeline-modes.md",
+            "references/publication/bibliography-advanced-search.md",
         ):
             lightweight = f"{{GPD_INSTALL_DIR}}/{path}"
             eager = f"@{{GPD_INSTALL_DIR}}/{path}"

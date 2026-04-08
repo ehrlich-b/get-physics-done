@@ -46,3 +46,5 @@ def test_bibliographer_prompt_uses_typed_checkpoint_language_and_shorter_heading
     assert "issues: [list of citation problems, if any]" in envelope
     assert "next_actions: [list of recommended follow-up actions]" in envelope
     assert "entries_added: N" in envelope
+    assert "{GPD_INSTALL_DIR}/references/publication/publication-pipeline-modes.md" in source
+    assert "@{GPD_INSTALL_DIR}/references/publication/publication-pipeline-modes.md" not in source
