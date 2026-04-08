@@ -415,6 +415,16 @@ def test_get_skill_verify_work_surfaces_staged_loading_sidecar() -> None:
     ]
     assert result["staged_loading"]["workflow_id"] == "verify-work"
     assert result["staged_loading"]["stages"][0]["loaded_authorities"] == ["workflows/verify-work.md"]
+    assert "Follow the included workflow file exactly." in result["content"]
+    assert (
+        "The workflow file owns the detailed check taxonomy; this wrapper only bootstraps the canonical "
+        "verification surfaces and delegates the physics checks."
+        in result["content"]
+    )
+    assert "Severity Classification" not in result["content"]
+    assert "One check at a time, plain text responses, no interrogation." not in result["content"]
+    assert "Physics verification is not binary:" not in result["content"]
+    assert "For deeper focused analysis" not in result["content"]
     assert result["staged_loading"]["stages"][2]["loaded_authorities"] == [
         "workflows/verify-work.md",
         "references/verification/meta/verification-independence.md",

@@ -213,6 +213,7 @@ def test_representative_workflows_keep_runtime_note_and_agent_prompt_bootstrap()
             "gpd-roadmapper",
             "gpd-notation-coordinator",
         ],
+        "verify-work.md": ["gpd-check-proof", "gpd-verifier"],
         "derive-equation.md": ["gpd-check-proof"],
         "explain.md": ["gpd-explainer"],
         "audit-milestone.md": ["gpd-consistency-checker", "gpd-referee"],

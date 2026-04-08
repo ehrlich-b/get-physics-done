@@ -79,7 +79,7 @@ WORKFLOW_SPAWN_TOKENS = {
         "gpd-notation-coordinator",
         "gpd-experiment-designer",
     ],
-    "verify-work.md": ["gpd-check-proof", "gpd-planner", "gpd-plan-checker"],
+    "verify-work.md": ["gpd-check-proof", "gpd-verifier", "gpd-planner", "gpd-plan-checker"],
     "write-paper.md": ["gpd-paper-writer", "gpd-bibliographer", "gpd-referee"],
     "peer-review.md": [
         "gpd-review-reader",
@@ -2442,6 +2442,16 @@ def test_review_and_verification_prompts_explicitly_surface_schema_sources_and_c
     assert "references/publication/peer-review-panel.md" not in peer_review_command
     assert "templates/verification-report.md" not in verify_command
     assert "templates/contract-results-schema.md" not in verify_command
+    assert "Follow the included workflow file exactly." in verify_command
+    assert (
+        "The workflow file owns the detailed check taxonomy; this wrapper only bootstraps the canonical "
+        "verification surfaces and delegates the physics checks."
+        in verify_command
+    )
+    assert "Severity Classification" not in verify_command
+    assert "One check at a time, plain text responses, no interrogation." not in verify_command
+    assert "Physics verification is not binary:" not in verify_command
+    assert "For deeper focused analysis" not in verify_command
     assert "Load the staged researcher-session scaffold and canonical schema pack at this stage." in verify_workflow
     assert "Keep the session overlay frontmatter compatible with the authoritative verification report." in verify_workflow
     assert "templates/verification-report.md" in interactive_validation.loaded_authorities
@@ -2770,7 +2780,7 @@ def test_verify_work_workflow_uses_body_only_subject_kind_fields() -> None:
     assert "GPD/phases/{phase_dir}" not in verify_work
     assert "Write to `${phase_dir}/${phase_number}-VERIFICATION.md`" in verify_work
     assert (
-        "changed verification files fail `gpd pre-commit-check` when this header is missing or mismatched against the active lock"
+        "Changed verification files fail `gpd pre-commit-check` when this header is missing or mismatched against the active lock."
         in verify_work
     )
     assert 'gpd validate verification-contract "${phase_dir}/${phase_number}-VERIFICATION.md"' in verify_work
