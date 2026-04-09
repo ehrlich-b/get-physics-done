@@ -4301,11 +4301,21 @@ def init_new_project(
 
 
 @init_app.command("new-milestone")
-def init_new_milestone() -> None:
+def init_new_milestone(
+    stage: str | None = typer.Option(
+        None,
+        "--stage",
+        help="Load the staged new-milestone context for a specific stage id.",
+    ),
+) -> None:
     """Assemble context for starting a new milestone."""
     from gpd.core.context import init_new_milestone
 
-    _output(init_new_milestone(_get_cwd()))
+    try:
+        payload = init_new_milestone(_get_cwd(), stage=stage)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
 
 
 @init_app.command("write-paper")

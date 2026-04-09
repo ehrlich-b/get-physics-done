@@ -127,10 +127,9 @@ Before you ask for approval, keep the contract as a literal JSON object for the 
 **Fields to capture even if still uncertain:**
 
 - In-scope and out-of-scope boundaries
-- Must-read references, benchmarks, or prior outputs
-- User-stated observables, deliverables, decisive plots, or artifact expectations
+- Must-read references or prior outputs
+- User-stated observables, deliverables, or artifact expectations
 - User-stated stop conditions, rethink triggers, or "come back to me before continuing" guidance
-- Initial investigation chunk or decomposition sketch if the user already knows it
 - Weakest anchor
 - What would look like progress but should not count as success
 - What result would make the current framing look wrong or incomplete
@@ -321,7 +320,7 @@ If the project may rely on Wolfram capability, distinguish a local Mathematica /
 
 | Decision                                    | Rationale              | Outcome   |
 | ------------------------------------------- | ---------------------- | --------- |
-| Minimal initialization — defer deep scoping | Fast project bootstrap | — Pending |
+| Minimal initialization — defer deep scoping | Fast staged initialization | — Pending |
 
 ---
 
@@ -367,9 +366,9 @@ For each phase, create one or more requirements using the standard format:
 
 #### M4. Create ROADMAP.md
 
-Create `GPD/ROADMAP.md` directly from the phase descriptions or inferred work chunks (no roadmapper agent).
+Route `GPD/ROADMAP.md` through the staged post-scope roadmapping handoff instead of creating a local ad hoc roadmap.
 
-Use the coarsest decomposition the approved contract actually supports. If the input only supports one grounded stage so far, create a one-phase roadmap and carry later decomposition as an open question instead of inventing filler phases.
+Use the coarsest decomposition the approved contract actually supports. If the input only supports one grounded stage so far, keep the roadmap coarse and carry later decomposition as an open question instead of inventing filler phases.
 
 Use the standard roadmap template structure:
 
@@ -587,14 +586,14 @@ Use ask_user:
 **MANDATORY FIRST STEP — Execute these checks before ANY user interaction:**
 
 ```bash
-INIT=$(gpd --raw init new-project)
+INIT=$(gpd --raw init new-project --stage scope_intake)
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed with the workflow.
 fi
 ```
 
-Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `autonomy`, `research_mode`, `project_exists`, `has_research_map`, `planning_exists`, `has_research_files`, `has_project_manifest`, `needs_research_map`, `has_git`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`.
+Parse JSON for: `researcher_model`, `synthesizer_model`, `commit_docs`, `autonomy`, `research_mode`, `project_exists`, `has_research_map`, `planning_exists`, `has_research_files`, `has_project_manifest`, `needs_research_map`, `has_git`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`.
 
 **Mode-aware behavior:**
 - `autonomy=supervised`: Pause for user confirmation after each major step (questioning, scoping contract, research, roadmap). Show summaries and wait for approval before proceeding.
@@ -605,7 +604,7 @@ Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `co
 - `research_mode=exploit`: Focused literature survey (2-3 researchers), targeted questioning, lean roadmap with minimal exploratory phases.
 - `research_mode=balanced` (default): Use the standard literature-survey depth and keep the default anchor and contract coverage unless scoping or evidence calls for broader or narrower review.
 - `research_mode=adaptive`: Start broad enough to compare viable approaches while scoping the project. Narrow the roadmap only after anchors or decisive evidence make one method family clearly preferable.
-- Before `GPD/config.json` exists, the `autonomy` and `research_mode` values from `gpd --raw init new-project` are temporary defaults, not a durable user choice. Let those defaults govern the initial questioning and scoping pass, then run Step 5 immediately after scope approval and before the first project-artifact commit so the durable config takes over before research and roadmap execution.
+- Before `GPD/config.json` exists, the `autonomy` and `research_mode` values from `gpd --raw init new-project --stage scope_intake` are temporary defaults, not a durable user choice. Let those defaults govern the initial questioning and scoping pass, then run Step 5 immediately after scope approval and before the first project-artifact commit so the durable config takes over before research and roadmap execution.
 - Treat `project_contract` as approved scope only when `project_contract_gate.authoritative` is true. If the gate is false, keep the contract visible for scoping diagnostics and repair, not as authoritative downstream scope.
 
 **If `project_exists` is true:** Error — project already initialized. Use `gpd:progress`.
@@ -688,7 +687,7 @@ Run `gpd:map-research` first, then return to `gpd:new-project`
 
 Exit command.
 
-If `project_contract` is present in the init JSON, keep `project_contract`, `project_contract_load_info`, and `project_contract_validation` visible while deciding whether this is fresh work or a continuation. Preserve blockers, warnings, and approval state rather than flattening them into a blank-slate prompt.
+If `project_contract` is present in the init JSON, keep `project_contract` and `project_contract_load_info` visible while deciding whether this is fresh work or a continuation. Treat `project_contract_validation` as approval-stage authority rather than a stage-1 requirement. Preserve blockers, warnings, and approval state rather than flattening them into a blank-slate prompt.
 
 **If "Skip mapping" OR `needs_research_map` is false:** Continue to Step 3.
 
@@ -719,22 +718,15 @@ Based on what they said, ask follow-up questions that dig into their response. U
 Keep following threads. Each answer opens new threads to explore. Ask about:
 
 - What physical system or phenomenon motivated this
-- What they currently suspect about the answer, and what evidence would change their mind
 - What theoretical framework they are working in
-- What approximations or limits they are considering
 - What observable or measurable quantities they care about
 - What exact output, artifact, or benchmark would count as success
-- What exact observable, figure, derivation, dataset, or note they would personally look for first
-- What first smoking-gun observable, curve, benchmark reproduction, or scaling law they would trust before softer sanity checks
-- What would look like progress but should not count as success
-- Whether passing limiting cases, generic expectations, or qualitative agreement without that smoking gun should still count as failure
-- What references, benchmark results, datasets, or prior internal outputs must stay visible
-- What prior plots, notebooks, code outputs, or existing artifacts already matter and must not be ignored
+- What exact smoking-gun observable, curve, benchmark reproduction, or scaling law they would trust before softer sanity checks
+- What references, benchmark results, datasets, or prior outputs must stay visible
 - What should make the system stop, re-scope, or ask them again before a long execution branch
 - Which anchor or assumption feels weakest right now
 - What result would make the current framing look wrong or incomplete
-- What computational resources they have access to
-- Whether this connects to existing experimental data
+- What would look like progress but should not count as success
 
 If the user names a specific observable, deliverable, anchor paper, benchmark, figure, notebook, or prior result, reflect it back using recognizable wording and treat it as binding context unless the user later revises it.
 
@@ -759,17 +751,9 @@ Context to gather:
 - Research question (precise, falsifiable or answerable)
 - Physical system and regime
 - Theoretical framework (QFT, condensed matter, GR, statistical mechanics, etc.)
-- Key parameters and scales
-- User-stated observables, smoking-gun signals, or decisive plots
-- Decisive outputs, deliverables, or benchmark targets
-- Must-read references, baselines, and prior outputs to carry forward
-- User-stated stop conditions, rethink triggers, or review requests before long execution
-- Known results in the field (what has been done)
-- What is new or open (what has NOT been done)
-- Computational vs analytical approach preference
-- Target audience and venue (journal, conference)
-- Timeline and collaboration context
-- Available computational resources
+- Key observables or decisive outputs
+- Must-read references or prior outputs
+- User-stated stop conditions or rethink triggers before long execution
 - Weakest anchor or assumption
 - Disconfirming observation / change-course trigger
 - False-progress signals to reject
@@ -1202,7 +1186,19 @@ CHECKPOINT
 
 ## 5.5. Resolve Model Profile
 
-Use models from init: `researcher_model`, `synthesizer_model`, `roadmapper_model`.
+Run a fresh post-scope init immediately before literature survey, requirements finalization, roadmapping, or conventions. Treat this late-stage init as the source of truth for downstream model selection, commit policy, and approval-state visibility.
+
+```bash
+POST_SCOPE_INIT=$(gpd --raw init new-project --stage post_scope)
+if [ $? -ne 0 ]; then
+  echo "ERROR: post-scope init failed: $POST_SCOPE_INIT"
+  exit 1
+fi
+```
+
+Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `autonomy`, `research_mode`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`.
+
+Do not reuse stale bootstrap values for literature survey, roadmapping, or conventions once this post-scope init succeeds.
 
 ## 6. Literature Survey Decision
 
@@ -1761,7 +1757,7 @@ Project contract validation: {project_contract_validation}
 </planning_context>
 
 <instructions>
-Create research roadmap from the approved contract and requirements. Keep the handoff orchestration-only: do not reinterpret contract authority, do not widen scope, and do not invent an alternate roadmap path.
+Create research roadmap through the staged post-scope continuation handoff. Keep the handoff orchestration-only: do not reinterpret contract authority, do not widen scope, and do not invent an alternate roadmap path.
 1. If `project_contract_gate.authoritative` is false, `project_contract_load_info.status` starts with `blocked`, or `project_contract_validation.valid` is false, return `gpd_return.status: checkpoint` rather than guessing.
 2. Otherwise, derive the smallest decomposition that keeps decisive outputs, anchor handoffs, and verification legible. A tightly scoped project may have a single phase or a coarse early roadmap. Do NOT invent literature, numerics, or paper phases unless the requirements or contract demand them.
 3. Map every requirement to exactly one phase.
@@ -1923,7 +1919,7 @@ CHECKPOINT
 
 ## 8.5. Establish Conventions
 
-**After roadmap is committed, spawn gpd-notation-coordinator to establish notation conventions.**
+**After the staged roadmap commit is recorded, spawn gpd-notation-coordinator to establish notation conventions.**
 
 This step is critical for multi-phase projects where convention mismatches cause silent errors (wrong signs, factors of 2*pi, metric signature confusion).
 

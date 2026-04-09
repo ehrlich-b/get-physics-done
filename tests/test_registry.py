@@ -1993,7 +1993,8 @@ class TestPublicAPI:
         assert cmd.staged_loading.workflow_id == "new-project"
         assert cmd.staged_loading.stage_ids() == ("scope_intake", "scope_approval", "post_scope")
         assert cmd.staged_loading.stages[0].loaded_authorities == ("workflows/new-project.md",)
-        assert "roadmapper_model" in cmd.staged_loading.stages[0].required_init_fields
+        assert "project_contract_gate" in cmd.staged_loading.stages[0].required_init_fields
+        assert "project_contract_load_info" in cmd.staged_loading.stages[0].required_init_fields
         assert cmd.staged_loading.stages[0].produced_state == (
             "intake routing state",
             "scoping-contract gate state",
@@ -2001,7 +2002,7 @@ class TestPublicAPI:
         assert cmd.staged_loading.stages[0].checkpoints == (
             "detect existing workspace state",
             "surface the first scoping question",
-            "preserve contract gate visibility",
+            "preserve contract gate visibility without assuming approval-stage authority",
         )
         assert cmd.staged_loading.stages[1].produced_state == (
             "approved project contract",
@@ -2043,9 +2044,62 @@ class TestPublicAPI:
 
         command = registry.get_command("gpd:new-milestone")
 
-        assert "gpd-roadmapper spawned with phase numbering context" in command.content
+        assert "gpd-roadmapper spawned with staged continuation context" in command.content
         assert "gpd-roadmapper" in command.content
         assert "roadmapper" in command.content
+
+    def test_get_command_new_milestone_surfaces_staged_loading_manifest(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        manifest_path = tmp_path / "new-milestone-stage-manifest.json"
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "workflow_id": "new-milestone",
+                    "stages": [
+                        {
+                            "id": "milestone_bootstrap",
+                            "order": 1,
+                            "purpose": "milestone lookup and routing",
+                            "mode_paths": ["workflows/new-milestone.md"],
+                            "required_init_fields": [],
+                            "loaded_authorities": ["workflows/new-milestone.md"],
+                            "conditional_authorities": [],
+                            "must_not_eager_load": ["references/research/questioning.md"],
+                            "allowed_tools": ["file_read", "task"],
+                            "writes_allowed": [],
+                            "produced_state": [],
+                            "next_stages": [],
+                            "checkpoints": [],
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        original_resolve_manifest_path = registry.resolve_workflow_stage_manifest_path
+        monkeypatch.setattr(
+            registry,
+            "resolve_workflow_stage_manifest_path",
+            lambda workflow_id: manifest_path
+            if workflow_id == "new-milestone"
+            else original_resolve_manifest_path(workflow_id),
+        )
+        registry.invalidate_cache()
+
+        command = registry.get_command("gpd:new-milestone")
+
+        assert command.staged_loading is not None
+        assert command.staged_loading.workflow_id == "new-milestone"
+        assert command.staged_loading.stage_ids() == ("milestone_bootstrap",)
+        assert command.staged_loading.stages[0].loaded_authorities == ("workflows/new-milestone.md",)
+        assert command.staged_loading.stages[0].must_not_eager_load == ("references/research/questioning.md",)
+        assert command.staged_loading.stages[0].writes_allowed == ()
+        assert command.staged_loading.stages[0].next_stages == ()
 
     def test_get_command_plan_phase_surfaces_staged_loading_manifest(self) -> None:
         from tempfile import TemporaryDirectory

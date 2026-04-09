@@ -29,6 +29,7 @@ from gpd.core.constants import (
     CONFIG_FILENAME,
     CONTEXT_SUFFIX,
     MILESTONES_DIR_NAME,
+    MILESTONES_FILENAME,
     PHASES_DIR_NAME,
     PLAN_SUFFIX,
     PLANNING_DIR_NAME,
@@ -447,6 +448,81 @@ _WRITE_PAPER_INIT_FIELDS = frozenset(
         *_WRITE_PAPER_REFERENCE_RUNTIME_FIELDS,
         *_WRITE_PAPER_STATE_MEMORY_FIELDS,
         *_WRITE_PAPER_FILE_CONTENT_FIELDS,
+    }
+)
+_NEW_MILESTONE_STAGE_ALLOWED_TOOLS = frozenset(
+    {
+        "ask_user",
+        "file_read",
+        "file_write",
+        "shell",
+        "task",
+    }
+)
+_NEW_MILESTONE_BASE_INIT_FIELDS = frozenset(
+    {
+        "researcher_model",
+        "synthesizer_model",
+        "roadmapper_model",
+        "commit_docs",
+        "autonomy",
+        "research_mode",
+        "research_enabled",
+        "current_milestone",
+        "current_milestone_name",
+        "project_exists",
+        "roadmap_exists",
+        "state_exists",
+        "platform",
+    }
+)
+_NEW_MILESTONE_CONTRACT_GATE_FIELDS = frozenset(
+    {
+        "project_contract",
+        "project_contract_gate",
+        "project_contract_load_info",
+        "project_contract_validation",
+    }
+)
+_NEW_MILESTONE_REFERENCE_RUNTIME_FIELDS = frozenset(
+    {
+        "contract_intake",
+        "effective_reference_intake",
+        "active_reference_context",
+        "reference_artifact_files",
+        "reference_artifacts_content",
+        "literature_review_files",
+        "literature_review_count",
+        "research_map_reference_files",
+        "research_map_reference_count",
+    }
+)
+_NEW_MILESTONE_STATE_MEMORY_FIELDS = frozenset(
+    {
+        "derived_convention_lock",
+        "derived_convention_lock_count",
+        "derived_intermediate_results",
+        "derived_intermediate_result_count",
+        "derived_approximations",
+        "derived_approximation_count",
+    }
+)
+_NEW_MILESTONE_FILE_CONTENT_FIELDS = frozenset(
+    {
+        "project_content",
+        "state_content",
+        "milestones_content",
+        "requirements_content",
+        "roadmap_content",
+    }
+)
+_NEW_MILESTONE_INIT_FIELDS = frozenset(
+    {
+        *_NEW_MILESTONE_BASE_INIT_FIELDS,
+        *_NEW_MILESTONE_CONTRACT_GATE_FIELDS,
+        *_NEW_MILESTONE_REFERENCE_RUNTIME_FIELDS,
+        *_NEW_MILESTONE_STATE_MEMORY_FIELDS,
+        *_NEW_MILESTONE_FILE_CONTENT_FIELDS,
     }
 )
 _VERIFY_WORK_STAGE_ALLOWED_TOOLS = frozenset(
@@ -2718,6 +2794,32 @@ def _build_publication_file_context(
     return result
 
 
+def _build_new_milestone_file_context(
+    cwd: Path,
+    *,
+    include_project: bool = False,
+    include_state: bool = False,
+    include_milestones: bool = False,
+    include_requirements: bool = False,
+    include_roadmap: bool = False,
+) -> dict[str, object]:
+    """Build planning-file content payloads for new-milestone init surfaces."""
+    result: dict[str, object] = {}
+    planning = cwd / PLANNING_DIR_NAME
+
+    if include_project:
+        result["project_content"] = _safe_read_file_truncated(planning / PROJECT_FILENAME)
+    if include_state:
+        result["state_content"] = _safe_read_file_truncated(planning / STATE_MD_FILENAME)
+    if include_milestones:
+        result["milestones_content"] = _safe_read_file_truncated(planning / MILESTONES_FILENAME)
+    if include_requirements:
+        result["requirements_content"] = _safe_read_file_truncated(planning / REQUIREMENTS_FILENAME)
+    if include_roadmap:
+        result["roadmap_content"] = _safe_read_file_truncated(planning / ROADMAP_FILENAME)
+    return result
+
+
 def _build_resume_file_context(
     cwd: Path,
     *,
@@ -3007,11 +3109,11 @@ def init_new_project(cwd: Path, stage: str | None = None) -> dict:
     return staged_payload
 
 
-def init_new_milestone(cwd: Path) -> dict:
+def init_new_milestone(cwd: Path, stage: str | None = None) -> dict:
     """Assemble context for new milestone creation."""
     config = load_config(cwd)
     milestone = _try_get_milestone_info(cwd)
-    result = {
+    base_result = {
         # Models
         "researcher_model": _resolve_model(cwd, "gpd-project-researcher", config),
         "synthesizer_model": _resolve_model(cwd, "gpd-research-synthesizer", config),
@@ -3031,9 +3133,62 @@ def init_new_milestone(cwd: Path) -> dict:
         # Platform
         "platform": _detect_platform(cwd),
     }
-    result.update(_build_reference_runtime_context(cwd))
-    result.update(_build_state_memory_runtime_context(cwd))
-    return result
+
+    if stage is None:
+        result = dict(base_result)
+        result.update(_build_reference_runtime_context(cwd))
+        result.update(_build_state_memory_runtime_context(cwd))
+        return result
+
+    from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+    manifest = load_workflow_stage_manifest(
+        "new-milestone",
+        allowed_tools=_NEW_MILESTONE_STAGE_ALLOWED_TOOLS,
+        known_init_fields=_NEW_MILESTONE_INIT_FIELDS,
+    )
+    try:
+        stage_def = manifest.stage_by_id(stage)
+    except KeyError as exc:
+        raise ValueError(
+            f"Unknown new-milestone stage {stage!r}. Allowed values: {', '.join(manifest.stage_ids())}."
+        ) from exc
+
+    required_fields = set(stage_def.required_init_fields)
+    staged_source = dict(base_result)
+
+    needs_full_reference_context = bool(required_fields & _NEW_MILESTONE_REFERENCE_RUNTIME_FIELDS)
+    needs_contract_gate_context = bool(required_fields & _NEW_MILESTONE_CONTRACT_GATE_FIELDS)
+
+    if needs_full_reference_context:
+        staged_source.update(_build_reference_runtime_context(cwd))
+    elif needs_contract_gate_context:
+        staged_source.update(_build_new_project_contract_runtime_context(cwd))
+
+    if required_fields & _NEW_MILESTONE_STATE_MEMORY_FIELDS:
+        staged_source.update(_build_state_memory_runtime_context(cwd))
+
+    if required_fields & _NEW_MILESTONE_FILE_CONTENT_FIELDS:
+        staged_source.update(
+            _build_new_milestone_file_context(
+                cwd,
+                include_project="project_content" in required_fields,
+                include_state="state_content" in required_fields,
+                include_milestones="milestones_content" in required_fields,
+                include_requirements="requirements_content" in required_fields,
+                include_roadmap="roadmap_content" in required_fields,
+            )
+        )
+
+    missing_fields = [field for field in stage_def.required_init_fields if field not in staged_source]
+    if missing_fields:
+        raise ValueError(
+            f"new-milestone stage {stage!r} requires unavailable init field(s): {', '.join(missing_fields)}"
+        )
+
+    staged_payload = {field: staged_source[field] for field in stage_def.required_init_fields}
+    staged_payload["staged_loading"] = manifest.staged_loading_payload(stage_def.id)
+    return staged_payload
 
 
 def init_quick(cwd: Path, description: str | None = None) -> dict:

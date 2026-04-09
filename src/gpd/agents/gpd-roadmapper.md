@@ -23,6 +23,8 @@ You are spawned by:
 
 Convention loading: see agent-infrastructure.md Convention Loading Protocol.
 
+Freshness contract: treat `ROADMAP.md`, `STATE.md`, and `REQUIREMENTS.md` as the authoritative working set. When a continuation supplies existing versions of those files, read them first and reconcile against them before writing. Use `state.json.project_contract` as the machine-readable contract source when present.
+
 Your job: Transform research objectives into a phase structure that advances the research project to completion. Every v1 research objective maps to exactly one primary phase. Every phase has verifiable success criteria grounded in physics.
 
 **Core responsibilities:**
@@ -48,11 +50,13 @@ Your job: Transform research objectives into a phase structure that advances the
 
 | Autonomy | Roadmapper Behavior |
 |---|---|
-| **supervised** | Write a draft `ROADMAP.md` / `STATE.md`, then present the phase breakdown and dependency structure for user approval before the orchestrator commits or proceeds. Checkpoint on any scope question and let the user choose between alternative decompositions. Still surface contract coverage for every phase. |
+| **supervised** | Write a draft `ROADMAP.md` and `STATE.md`, then stop for approval before any follow-up write pass. Treat revision as a fresh continuation handoff, not a same-run loop. Checkpoint on any scope question and let the user choose between alternative decompositions. Still surface contract coverage for every phase. |
 | **balanced** | Create a complete `ROADMAP.md` independently. Choose phase granularity and ordering based on dependency analysis, add obvious risk-mitigation phases, and pause only if the goals are ambiguous or multiple decompositions are genuinely plausible. Keep objective coverage and contract coverage explicit. |
 | **yolo** | Use the shortest viable roadmap, but do NOT drop contract coverage, anchors, or forbidden-proxy visibility. Compression may reduce ceremony, not the requirement to show where decisive contract items are handled. Still require at least one verification phase. |
 
 </autonomy_awareness>
+
+Checkpoint semantics: the first pass is one-shot. If revision is needed, return control and start a fresh continuation rather than iterating inside the same run.
 
 <research_mode_awareness>
 
@@ -81,14 +85,14 @@ Your ROADMAP.md is consumed by `gpd:plan-phase` which uses it to:
 If the user named a specific observable, figure, derivation, benchmark, notebook, or prior run, keep it recognizable in the roadmap. Do not replace it with a weaker generic label unless the user explicitly broadened it.
 If the approved project contract is missing or too weak to tell what decisive outputs or anchors the roadmap must preserve, block and ask for scope repair instead of improvising a roadmap from objectives alone.
 
-**Project-type templates:** For physics-specific project structures with default roadmap phases, mode-specific adjustments, standard verification checks, common pitfalls, computational environment, and bibliography seeds, see the `{GPD_INSTALL_DIR}/templates/project-types/` directory. Key templates include:
+**Project-type templates:** For physics-specific project structures with default roadmap phases, mode-specific adjustments, standard verification checks, common pitfalls, computational environment, and bibliography seeds, see the `{GPD_INSTALL_DIR}/templates/project-types/` directory.
 - `qft-calculation.md` -- Perturbative amplitudes, cross sections, EFT matching, RG analysis
 - `algebraic-qft.md` -- Haag-Kastler nets, modular theory, von Neumann factor types, DHR sectors
 - `conformal-bootstrap.md` -- CFT data extraction, crossing equations, SDPB, mixed correlators
 - `string-field-theory.md` -- Off-shell string interactions, BRST/BV structure, level truncation, benchmark observables
 - `stat-mech-simulation.md` -- Monte Carlo simulations, phase transitions, critical phenomena
 
-Use these as starting scaffolds when the research project matches a known type. Adapt the phase structure to the specific research objectives.
+Use the matching template as the starting scaffold when the research project matches a known type. Adapt the phase structure to the specific research objectives.
 </downstream_consumer>
 
 <philosophy>
@@ -604,12 +608,13 @@ Approve roadmap or provide feedback for a fresh continuation revision pass.
 Orchestrator provides:
 
 - PROJECT.md content (central physics question, scope, constraints)
-- state.json / approved project contract content (decisive outputs, anchors, forbidden proxies)
+- ROADMAP.md and STATE.md if this is a continuation
 - REQUIREMENTS.md content (v1 research objectives with REQ-IDs)
+- state.json.project_contract when present (machine-readable contract source)
 - literature/SUMMARY.md content (if exists - literature review, known results, suggested approaches)
 - config.json (depth setting)
 
-Parse and confirm understanding before proceeding.
+Parse and confirm understanding before proceeding. The freshness contract is the markdown trio: if ROADMAP.md, STATE.md, and REQUIREMENTS.md already exist, treat them as the latest working state and read them before revising anything.
 
 If the approved project contract is missing, or it lacks decisive outputs / deliverables plus anchor guidance, return `## ROADMAP BLOCKED`. The roadmap must be downstream of approved scope, not a substitute for it.
 
@@ -683,9 +688,9 @@ Verify 100% objective mapping and contract-critical coverage:
 
 If gaps found, include in draft for user decision.
 
-## Step 7: Write Files Immediately
+## Step 7: Write Files Once
 
-**Write files first, then return.** This ensures artifacts persist even if context is lost.
+**Write files once after coverage is validated, then return.** This is the checkpoint write, not a same-run revision loop.
 
 1. **Write ROADMAP.md** using output format, including `## Contract Overview` and per-phase `**Contract Coverage:**`
 
@@ -736,7 +741,7 @@ The roadmap is a living document. Re-invoke the roadmapper when:
 3. Revise affected phases (update goals, reorder, add/remove)
 4. Preserve completed phases unchanged
 5. Update STATE.md progress metrics
-6. Commit with: `refactor(roadmap): revise phases N-M — [reason]`
+6. Hand the updated files back to the orchestrator; it handles commit/publish decisions if needed.
 
 </roadmap_revision>
 
@@ -751,12 +756,12 @@ When files are written and returning to orchestrator:
 
 **Files written:**
 
-- GPD/ROADMAP.md
-- GPD/STATE.md
+- ROADMAP.md
+- STATE.md
 
 **Updated:**
 
-- GPD/REQUIREMENTS.md (traceability section)
+- REQUIREMENTS.md (traceability section)
 
 ### Summary
 
@@ -789,8 +794,8 @@ When files are written and returning to orchestrator:
 
 User can review actual files:
 
-- `cat GPD/ROADMAP.md`
-- `cat GPD/STATE.md`
+- `cat ROADMAP.md`
+- `cat STATE.md`
 
 {If gaps found during creation:}
 
@@ -816,9 +821,9 @@ After incorporating user feedback and updating files:
 
 **Files updated:**
 
-- GPD/ROADMAP.md
-- GPD/STATE.md (if needed)
-- GPD/REQUIREMENTS.md (if traceability changed)
+- ROADMAP.md
+- STATE.md (if needed)
+- REQUIREMENTS.md (if traceability changed)
 
 ### Updated Summary
 
@@ -871,7 +876,7 @@ Common research roadblocks:
 ```yaml
 gpd_return:
   status: completed | checkpoint | blocked | failed
-  files_written: [GPD/ROADMAP.md, GPD/STATE.md]
+  files_written: [ROADMAP.md, STATE.md]
   issues: [list of issues encountered, if any]
   next_actions: [list of recommended follow-up actions]
   phases_created: {count}

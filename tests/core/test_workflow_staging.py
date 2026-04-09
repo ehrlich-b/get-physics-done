@@ -49,12 +49,30 @@ def test_load_workflow_stage_manifest_is_cached() -> None:
     assert first is second
     assert first.stage_ids() == ("scope_intake", "scope_approval", "post_scope")
     assert "references/shared/canonical-schema-discipline.md" in first.stages[0].must_not_eager_load
-    assert "roadmapper_model" in first.stages[0].required_init_fields
+    assert first.stages[0].required_init_fields == (
+        "researcher_model",
+        "synthesizer_model",
+        "commit_docs",
+        "autonomy",
+        "research_mode",
+        "project_exists",
+        "has_research_map",
+        "planning_exists",
+        "has_research_files",
+        "has_project_manifest",
+        "needs_research_map",
+        "has_git",
+        "platform",
+        "project_contract",
+        "project_contract_gate",
+        "project_contract_load_info",
+        "project_contract_validation",
+    )
     assert first.stages[0].produced_state == ("intake routing state", "scoping-contract gate state")
     assert first.stages[0].checkpoints == (
         "detect existing workspace state",
         "surface the first scoping question",
-        "preserve contract gate visibility",
+        "preserve contract gate visibility without assuming approval-stage authority",
     )
     assert first.stages[1].produced_state == ("approved project contract", "approval-state persistence")
     assert first.stages[1].checkpoints == (
@@ -70,6 +88,27 @@ def test_load_workflow_stage_manifest_is_cached() -> None:
         "approval gate has passed",
         "stage-aware deferred reads are now allowed",
     )
+    assert first.stages[2].loaded_authorities == (
+        "references/ui/ui-brand.md",
+        "templates/project.md",
+        "templates/requirements.md",
+    )
+    assert first.stages[2].must_not_eager_load == ()
+    assert first.stages[2].writes_allowed == (
+        "GPD/PROJECT.md",
+        "GPD/REQUIREMENTS.md",
+        "GPD/ROADMAP.md",
+        "GPD/STATE.md",
+        "GPD/state.json",
+        "GPD/config.json",
+        "GPD/CONVENTIONS.md",
+        "GPD/literature/PRIOR-WORK.md",
+        "GPD/literature/METHODS.md",
+        "GPD/literature/COMPUTATIONAL.md",
+        "GPD/literature/PITFALLS.md",
+        "GPD/literature/SUMMARY.md",
+    )
+    assert first.stages[2].next_stages == ()
 
     execute_phase_manifest = load_workflow_stage_manifest("execute-phase")
     assert execute_phase_manifest.stage_ids() == (

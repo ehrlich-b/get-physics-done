@@ -16,6 +16,7 @@ from gpd.contracts import ResearchContract, VerificationEvidence
 from gpd.core.frontmatter import validate_frontmatter
 from gpd.core.workflow_staging import validate_workflow_stage_manifest_payload
 from gpd.registry import _parse_frontmatter, _parse_tools
+from tests.core.test_spawn_contracts import _find_single_task
 from tests.doc_surface_contracts import (
     assert_cost_surface_discoverability,
     assert_execution_observability_surface_contract,
@@ -984,8 +985,9 @@ def test_new_project_requires_scoping_contract_across_setup_modes() -> None:
         "scoping contract",
         "decisive outputs",
         "anchors",
-        "explicit approval",
-        "downstream artifacts",
+        "one explicit scope approval",
+        "scoping approval gate",
+        "staged roadmap/conventions handoff",
     )
 
 
@@ -1009,7 +1011,6 @@ def test_new_project_wiring_mentions_contract_persistence_and_contract_first_dow
         (
             "researcher_model",
             "synthesizer_model",
-            "roadmapper_model",
             "commit_docs",
             "autonomy",
             "research_mode",
@@ -1026,6 +1027,8 @@ def test_new_project_wiring_mentions_contract_persistence_and_contract_first_dow
             "project_contract_validation",
         ),
     )
+    assert "POST_SCOPE_INIT=$(gpd --raw init new-project --stage post_scope)" in workflow_text
+    assert "roadmapper_model" in workflow_text
     _assert_contains_fragments(
         workflow_text,
         "project_contract_gate.authoritative",
@@ -1038,7 +1041,8 @@ def test_new_project_wiring_mentions_contract_persistence_and_contract_first_dow
         command_text,
         "scoping contract",
         "roadmap generation",
-        "explicit approval",
+        "one explicit scope approval",
+        "scoping approval gate",
     )
 
 
@@ -1095,11 +1099,7 @@ def test_new_project_questioning_requires_smoking_gun_and_rejects_proxy_only_rea
     guide_text = (REFERENCES_DIR / "research" / "questioning.md").read_text(encoding="utf-8")
 
     assert (
-        "What first smoking-gun observable, curve, benchmark reproduction, or scaling law they would trust before softer sanity checks"
-        in workflow_text
-    )
-    assert (
-        "Whether passing limiting cases, generic expectations, or qualitative agreement without that smoking gun should still count as failure"
+        "What exact smoking-gun observable, curve, benchmark reproduction, or scaling law they would trust before softer sanity checks"
         in workflow_text
     )
     assert (
@@ -1107,7 +1107,7 @@ def test_new_project_questioning_requires_smoking_gun_and_rejects_proxy_only_rea
         in workflow_text
     )
     assert (
-        "If you only have limiting cases, sanity checks, or generic benchmark language with no decisive smoking-gun observable"
+        "If you only have limiting cases, sanity checks, or generic benchmark language with no decisive smoking-gun observable, curve, or benchmark reproduction, keep exploring unless the user explicitly says that is the decisive standard."
         in workflow_text
     )
     assert (
@@ -1341,6 +1341,8 @@ def test_roadmap_template_and_workflows_surface_phase_contract_coverage() -> Non
     roadmapper_agent = (AGENTS_DIR / "gpd-roadmapper.md").read_text(encoding="utf-8")
     new_project = (WORKFLOWS_DIR / "new-project.md").read_text(encoding="utf-8")
     new_milestone = (WORKFLOWS_DIR / "new-milestone.md").read_text(encoding="utf-8")
+    new_project_roadmapper = _find_single_task(WORKFLOWS_DIR / "new-project.md", "gpd-roadmapper").text
+    new_milestone_roadmapper = _find_single_task(WORKFLOWS_DIR / "new-milestone.md", "gpd-roadmapper").text
 
     assert "## Contract Overview" in roadmap_template
     assert "**Contract Coverage:**" in roadmap_template
@@ -1358,8 +1360,15 @@ def test_roadmap_template_and_workflows_surface_phase_contract_coverage() -> Non
     assert "Machine-Readable Return Envelope" in roadmapper_agent
     assert "gpd_return:" in roadmapper_agent
     assert "status: completed | checkpoint | blocked | failed" in roadmapper_agent
-    assert "files_written: [GPD/ROADMAP.md, GPD/STATE.md]" in roadmapper_agent
+    assert "files_written: [ROADMAP.md, STATE.md]" in roadmapper_agent
     assert "phases_created: {count}" in roadmapper_agent
+    assert "gpd_return.files_written" in new_project_roadmapper
+    assert "GPD/REQUIREMENTS.md" in new_project_roadmapper
+    assert "do not rely on runtime completion text alone." in new_project_roadmapper
+    assert "gpd_return.files_written" in new_milestone_roadmapper
+    assert "treat existing files as stale unless the same paths appear in `gpd_return.files_written`" in (
+        new_milestone_roadmapper
+    )
     assert "Intermediate Results" in state_template
     assert "return `## ROADMAP BLOCKED`" in roadmapper_agent
     assert (

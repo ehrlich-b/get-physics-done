@@ -41,7 +41,7 @@ from gpd.core.frontmatter import compute_knowledge_reviewed_content_sha256
 from gpd.core.recent_projects import record_recent_project
 from gpd.core.reproducibility import compute_sha256
 from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_FIELDS
-from gpd.core.workflow_staging import NEW_PROJECT_INIT_FIELDS, load_workflow_stage_manifest
+from gpd.core.workflow_staging import load_workflow_stage_manifest
 
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
 _RUNTIME_DESCRIPTORS = iter_runtime_descriptors()
@@ -2184,7 +2184,7 @@ class TestInitNewProject:
         assert ctx["staged_loading"]["checkpoints"] == [
             "detect existing workspace state",
             "surface the first scoping question",
-            "preserve contract gate visibility",
+            "preserve contract gate visibility without assuming approval-stage authority",
         ]
         assert ctx["staged_loading"]["next_stages"] == ["scope_approval"]
 
@@ -2213,6 +2213,45 @@ class TestInitNewProject:
             "approval gate has passed",
             "project contract is ready for persistence",
         ]
+
+    def test_new_project_stage_post_scope_filters_payload(self, tmp_path: Path) -> None:
+        from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+        _setup_project(tmp_path)
+        _write_project_contract_state(tmp_path)
+
+        manifest = load_workflow_stage_manifest("new-project")
+        stage = manifest.get_stage("post_scope")
+
+        ctx = init_new_project(tmp_path, stage="post_scope")
+
+        assert set(ctx) == set(stage.required_init_fields) | {"staged_loading"}
+        assert ctx["staged_loading"]["workflow_id"] == "new-project"
+        assert ctx["staged_loading"]["stage_id"] == "post_scope"
+        assert ctx["staged_loading"]["loaded_authorities"] == [
+            "references/ui/ui-brand.md",
+            "templates/project.md",
+            "templates/requirements.md",
+        ]
+        assert ctx["staged_loading"]["writes_allowed"] == [
+            "GPD/PROJECT.md",
+            "GPD/REQUIREMENTS.md",
+            "GPD/ROADMAP.md",
+            "GPD/STATE.md",
+            "GPD/state.json",
+            "GPD/config.json",
+            "GPD/CONVENTIONS.md",
+            "GPD/literature/PRIOR-WORK.md",
+            "GPD/literature/METHODS.md",
+            "GPD/literature/COMPUTATIONAL.md",
+            "GPD/literature/PITFALLS.md",
+            "GPD/literature/SUMMARY.md",
+        ]
+        assert ctx["staged_loading"]["next_stages"] == []
+        assert "reference_artifacts_content" not in ctx
+        assert "active_reference_context" not in ctx
+        assert "effective_reference_intake" not in ctx
+        assert "reference_artifact_files" not in ctx
 
     def test_new_project_stage_rejects_unknown_stage(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
@@ -2261,14 +2300,24 @@ class TestInitNewProject:
         assert ctx["project_contract_validation"]["valid"] is True
 
     def test_stage_scope_intake_returns_only_manifest_required_fields(self, tmp_path: Path) -> None:
+        from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+        manifest = load_workflow_stage_manifest("new-project")
+        stage = manifest.get_stage("scope_intake")
+
         ctx = init_new_project(tmp_path, stage="scope_intake")
 
-        assert set(ctx) == {*NEW_PROJECT_INIT_FIELDS, "staged_loading"}
+        assert set(ctx) == set(stage.required_init_fields) | {"staged_loading"}
         assert ctx["staged_loading"]["workflow_id"] == "new-project"
         assert ctx["staged_loading"]["stage_id"] == "scope_intake"
         assert ctx["staged_loading"]["order"] == 1
         assert ctx["staged_loading"]["loaded_authorities"] == ["workflows/new-project.md"]
         assert "references/research/questioning.md" in ctx["staged_loading"]["must_not_eager_load"]
+        assert ctx["staged_loading"]["checkpoints"] == [
+            "detect existing workspace state",
+            "surface the first scoping question",
+            "preserve contract gate visibility without assuming approval-stage authority",
+        ]
         assert ctx["staged_loading"]["writes_allowed"] == []
 
     def test_stage_scope_approval_returns_only_contract_fields(self, tmp_path: Path) -> None:

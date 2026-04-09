@@ -1062,6 +1062,51 @@ review_summary:
         assert "project_contract_load_info" in payload
         assert "project_contract_validation" in payload
 
+    def test_new_project_init_stage_post_scope_filters_payload(self, gpd_project: Path) -> None:
+        from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+        state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
+        state["project_contract"] = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+        (gpd_project / "GPD" / "state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+        manifest = load_workflow_stage_manifest("new-project")
+        stage = manifest.get_stage("post_scope")
+
+        result = runner.invoke(
+            app,
+            ["--raw", "init", "new-project", "--stage", "post_scope"],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+
+        assert set(payload) == set(stage.required_init_fields) | {"staged_loading"}
+        assert payload["staged_loading"]["workflow_id"] == "new-project"
+        assert payload["staged_loading"]["stage_id"] == "post_scope"
+        assert payload["staged_loading"]["loaded_authorities"] == [
+            "references/ui/ui-brand.md",
+            "templates/project.md",
+            "templates/requirements.md",
+        ]
+        assert payload["staged_loading"]["writes_allowed"] == [
+            "GPD/PROJECT.md",
+            "GPD/REQUIREMENTS.md",
+            "GPD/ROADMAP.md",
+            "GPD/STATE.md",
+            "GPD/state.json",
+            "GPD/config.json",
+            "GPD/CONVENTIONS.md",
+            "GPD/literature/PRIOR-WORK.md",
+            "GPD/literature/METHODS.md",
+            "GPD/literature/COMPUTATIONAL.md",
+            "GPD/literature/PITFALLS.md",
+            "GPD/literature/SUMMARY.md",
+        ]
+        assert payload["staged_loading"]["next_stages"] == []
+        assert "reference_artifacts_content" not in payload
+        assert "active_reference_context" not in payload
+        assert "effective_reference_intake" not in payload
+
     def test_phase_op_surfaces_contract_load_and_validation_gates(self, gpd_project: Path) -> None:
         state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
         contract = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))

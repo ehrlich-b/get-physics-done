@@ -14,6 +14,7 @@ from gpd.specs import SPECS_DIR
 WORKFLOW_STAGE_MANIFEST_DIR = SPECS_DIR / "workflows"
 WORKFLOW_STAGE_MANIFEST_SUFFIX = "-stage-manifest.json"
 NEW_PROJECT_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"new-project{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
+NEW_MILESTONE_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"new-milestone{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
 EXECUTE_PHASE_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"execute-phase{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
 RESUME_WORK_INIT_FIELDS = frozenset(
     {
@@ -144,6 +145,47 @@ NEW_PROJECT_INIT_FIELDS = frozenset(
         "project_contract_gate",
         "project_contract_load_info",
         "project_contract_validation",
+    }
+)
+NEW_MILESTONE_INIT_FIELDS = frozenset(
+    {
+        "researcher_model",
+        "synthesizer_model",
+        "roadmapper_model",
+        "commit_docs",
+        "autonomy",
+        "research_mode",
+        "research_enabled",
+        "current_milestone",
+        "current_milestone_name",
+        "project_exists",
+        "roadmap_exists",
+        "state_exists",
+        "project_contract",
+        "project_contract_gate",
+        "project_contract_load_info",
+        "project_contract_validation",
+        "contract_intake",
+        "effective_reference_intake",
+        "active_reference_context",
+        "reference_artifact_files",
+        "reference_artifacts_content",
+        "literature_review_files",
+        "literature_review_count",
+        "research_map_reference_files",
+        "research_map_reference_count",
+        "derived_convention_lock",
+        "derived_convention_lock_count",
+        "derived_intermediate_results",
+        "derived_intermediate_result_count",
+        "derived_approximations",
+        "derived_approximation_count",
+        "project_content",
+        "state_content",
+        "milestones_content",
+        "requirements_content",
+        "roadmap_content",
+        "platform",
     }
 )
 EXECUTE_PHASE_INIT_FIELDS = frozenset(
@@ -405,6 +447,7 @@ _DEFAULT_KNOWN_INIT_FIELDS_BY_WORKFLOW = {
     "resume-work": RESUME_WORK_INIT_FIELDS,
     "sync-state": SYNC_STATE_INIT_FIELDS,
     "new-project": NEW_PROJECT_INIT_FIELDS,
+    "new-milestone": NEW_MILESTONE_INIT_FIELDS,
     "plan-phase": PLAN_PHASE_INIT_FIELDS,
     "verify-work": VERIFY_WORK_INIT_FIELDS,
     "write-paper": WRITE_PAPER_INIT_FIELDS,
@@ -986,6 +1029,18 @@ def validate_new_project_stage_contract_payload(raw: object) -> WorkflowStageMan
     return validate_workflow_stage_manifest_payload(raw, expected_workflow_id="new-project")
 
 
+def load_new_milestone_stage_contract() -> WorkflowStageManifest:
+    return load_workflow_stage_manifest("new-milestone")
+
+
+def load_new_milestone_stage_contract_from_path(manifest_path: Path) -> WorkflowStageManifest:
+    return load_workflow_stage_manifest_from_path(manifest_path, expected_workflow_id="new-milestone")
+
+
+def validate_new_milestone_stage_contract_payload(raw: object) -> WorkflowStageManifest:
+    return validate_workflow_stage_manifest_payload(raw, expected_workflow_id="new-milestone")
+
+
 def load_execute_phase_stage_contract() -> WorkflowStageManifest:
     return load_workflow_stage_manifest("execute-phase")
 
@@ -1001,6 +1056,8 @@ def validate_execute_phase_stage_contract_payload(raw: object) -> WorkflowStageM
 __all__ = [
     "NEW_PROJECT_INIT_FIELDS",
     "NEW_PROJECT_STAGE_MANIFEST_PATH",
+    "NEW_MILESTONE_INIT_FIELDS",
+    "NEW_MILESTONE_STAGE_MANIFEST_PATH",
     "EXECUTE_PHASE_INIT_FIELDS",
     "EXECUTE_PHASE_STAGE_MANIFEST_PATH",
     "NewProjectConditionalAuthority",
@@ -1017,6 +1074,8 @@ __all__ = [
     "invalidate_workflow_stage_manifest_cache",
     "load_new_project_stage_contract",
     "load_new_project_stage_contract_from_path",
+    "load_new_milestone_stage_contract",
+    "load_new_milestone_stage_contract_from_path",
     "load_execute_phase_stage_contract",
     "load_execute_phase_stage_contract_from_path",
     "load_workflow_stage_manifest",
@@ -1024,6 +1083,7 @@ __all__ = [
     "known_init_fields_for_workflow",
     "resolve_workflow_stage_manifest_path",
     "validate_new_project_stage_contract_payload",
+    "validate_new_milestone_stage_contract_payload",
     "validate_execute_phase_stage_contract_payload",
     "validate_workflow_stage_manifest_payload",
 ]

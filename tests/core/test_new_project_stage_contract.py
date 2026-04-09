@@ -24,7 +24,25 @@ def test_new_project_stage_contract_loads_and_preserves_stage_order() -> None:
     assert contract.stages[2].order == 3
     assert contract.stages[0].mode_paths == ("workflows/new-project.md",)
     assert contract.stages[0].loaded_authorities == ("workflows/new-project.md",)
-    assert "roadmapper_model" in contract.stages[0].required_init_fields
+    assert contract.stages[0].required_init_fields == (
+        "researcher_model",
+        "synthesizer_model",
+        "commit_docs",
+        "autonomy",
+        "research_mode",
+        "project_exists",
+        "has_research_map",
+        "planning_exists",
+        "has_research_files",
+        "has_project_manifest",
+        "needs_research_map",
+        "has_git",
+        "platform",
+        "project_contract",
+        "project_contract_gate",
+        "project_contract_load_info",
+        "project_contract_validation",
+    )
     assert "project_contract_gate" in contract.stages[0].required_init_fields
     assert "needs_research_map" in contract.stages[0].required_init_fields
     assert contract.stages[0].conditional_authorities[0].when == "full_questioning_path"
@@ -37,7 +55,7 @@ def test_new_project_stage_contract_loads_and_preserves_stage_order() -> None:
     assert contract.stages[0].checkpoints == (
         "detect existing workspace state",
         "surface the first scoping question",
-        "preserve contract gate visibility",
+        "preserve contract gate visibility without assuming approval-stage authority",
     )
     assert contract.stages[0].writes_allowed == ()
     assert contract.stages[1].required_init_fields == (
