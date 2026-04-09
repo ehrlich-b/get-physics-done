@@ -1,7 +1,8 @@
 <purpose>
 Conduct a systematic literature review for a physics research topic. Map the intellectual landscape: foundational works, methodological approaches, key results, controversies, and open questions. Produce LITERATURE-REVIEW.md consumed by planning and paper-writing workflows.
 
-Also emit a machine-readable `GPD/literature/{slug}-CITATION-SOURCES.json` sidecar containing strict `CitationSource` records keyed by stable `reference_id` values so paper-writing can reuse the discovered references without manual transcription.
+Also emit a machine-readable `GPD/literature/{slug}-CITATION-SOURCES.json` sidecar containing strict `CitationSource` objects keyed by stable `reference_id` values so paper-writing can reuse the discovered references without manual transcription.
+include `bibtex_key` only when it is already known and verified. Extra keys are rejected by the downstream parser.
 
 Called from gpd:literature-review command.
 
@@ -113,6 +114,8 @@ Define explicit include/exclude boundaries:
 - Include: specific phenomena, methods, energy ranges, dimensions
 - Exclude: tangential fields, historical reviews (unless depth=comprehensive)
 - Record any contract-critical anchor that must be surfaced even if it falls outside the default search breadth
+- Track contract-critical anchors in a compact registry with a `| Must Surface |` column.
+- Set `Must Surface` to `yes` for any anchor that must be surfaced even if it falls outside the default search breadth; use roles like `benchmark`, `definition`, `method`, or `must_consider` to guide the fallback heuristic.
   </step>
 
 <step name="load_scoped_reference_artifacts">
@@ -129,6 +132,7 @@ fi
 - Parse the staged refresh for `reference_artifact_files`, `reference_artifacts_content`, `literature_review_files`, `research_map_reference_files`, `knowledge_doc_files`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, and `active_references`.
 - If `reference_artifact_files` is populated, read those files now and keep only the entries that support the confirmed scope.
 - If `reference_artifacts_content` is available, use it now as supporting evidence for already-scoped anchors, baselines, prior outputs, and citation reuse.
+- Only read or propagate the deferred reference-artifact context after the scope has been fixed.
 - Do not use deferred reference artifacts to reopen the scope question.
 </step>
 
@@ -311,129 +315,81 @@ Map the state-of-the-art:
      </step>
 
 <step name="create_review_document">
-Ensure the output directory exists:
+The reviewer now owns the synthesis pass in fresh context. Use the stage-local scope, anchors, and reference context to write the review and sidecar, rather than synthesizing it inline in the orchestrator.
 
 ```bash
-mkdir -p GPD/literature
+REVIEWER_MODEL=$(gpd resolve-model gpd-literature-reviewer)
 ```
 
-Write `GPD/literature/{slug}-REVIEW.md`:
+Build the reviewer prompt from the scoped evidence:
 
 ```markdown
----
-topic: { topic }
-date: { YYYY-MM-DD }
-depth: { quick/standard/comprehensive }
-paper_count: { N }
-status: completed | checkpoint
----
+<objective>
+Write a systematic literature review for {topic} and produce the matching review document and citation-sidecar outputs.
+</objective>
 
-# Literature Review: {Topic}
+<scope_summary>
+Topic: {topic}
+Slug: {slug}
+Depth: {depth}
+Seed anchors: {seed_anchors}
+Confirmed boundaries: {scope_boundaries}
+Contract-critical anchors: {contract_critical_anchors}
+</scope_summary>
 
-## Executive Summary
+<context>
+Project contract: {project_contract}
+Contract intake: {contract_intake}
+Effective reference intake: {effective_reference_intake}
+Active references: {active_reference_context}
+Scoped reference artifacts: {reference_artifacts_content}
+</context>
 
-{3-5 key takeaways from the review. What should a physicist entering this area know first?}
+<output>
+Write `GPD/literature/{slug}-REVIEW.md` and `GPD/literature/{slug}-CITATION-SOURCES.json`.
+</output>
 
-## Foundational Works
-
-| #   | Reference                | Year   | Key Contribution   |
-| --- | ------------------------ | ------ | ------------------ |
-| 1   | {Author et al., Journal} | {year} | {what they showed} |
-
-{Brief narrative connecting these works and showing how the field developed.}
-
-## Methodological Landscape
-
-### Exact Methods
-
-{Description of applicable exact methods, regimes, limitations}
-
-### Perturbative Methods
-
-{Description of perturbative approaches, convergence properties}
-
-### Numerical Methods
-
-{Description of computational approaches, costs, accuracies}
-
-### Effective Theories
-
-{Description of effective theory approaches, energy scales}
-
-### Method Comparison
-
-| Method   | Regime           | Accuracy            | Cost      | Key Reference |
-| -------- | ---------------- | ------------------- | --------- | ------------- |
-| {method} | {where it works} | {typical precision} | {scaling} | {citation}    |
-
-## Key Results
-
-| Quantity     | Value             | Method   | Reference  | Status                |
-| ------------ | ----------------- | -------- | ---------- | --------------------- |
-| {observable} | {value +/- error} | {method} | {citation} | {confirmed/contested} |
-
-## Citation Network
-
-{Intellectual lineages showing how ideas evolved. Key branching and merging points.}
-
-## Controversies and Disagreements
-
-### {Controversy 1}
-
-- **The disagreement:** {what's contested}
-- **Side A:** {position, evidence, key reference}
-- **Side B:** {position, evidence, key reference}
-- **Current status:** {resolved/active/dormant}
-
-## Open Questions
-
-1. **{Question}** -- {Why it matters, why it's hard, what it would take}
-
-## Current Frontier
-
-{State-of-the-art: most recent results, active groups, emerging methods}
-
-## Active Anchor Registry
-
-| Anchor ID | Anchor | Type | Source / Locator | Why It Matters | Contract Subject IDs | Must Surface | Required Action | Carry Forward To |
-| --------- | ------ | ---- | ---------------- | -------------- | -------------------- | ------------ | --------------- | ---------------- |
-| {stable-anchor-id} | {reference or artifact} | {benchmark/method/background/prior artifact} | {citation, dataset id, or path} | {claim, observable, deliverable, or convention constrained} | {claim-id, deliverable-id, or blank} | {yes/no} | {read/use/compare/cite} | {planning/execution/verification/writing} |
-
-`Carry Forward To` is workflow stage scope only. If exact contract subject IDs are known, store them in `Contract Subject IDs` instead of collapsing them into stage labels.
-Set `Must Surface` to `yes` when later planners or verifiers must explicitly re-surface the anchor. If you leave it blank, ingestion promotes anchors with roles like `benchmark`, `definition`, `method`, or `must_consider`, and anchors whose required actions include `use`, `compare`, or `avoid`.
-
-## Convention Catalog
-
-| Convention     | Choice A  | Choice B  | Used By        |
-| -------------- | --------- | --------- | -------------- |
-| {e.g., metric} | (-,+,+,+) | (+,-,-,-) | {which papers} |
-
-## Recommended Reading Path
-
-For someone entering this area, read in this order:
-
-1. {Textbook chapter for background}
-2. {Review article for overview}
-3. {Seminal paper for key result}
-4. {Recent paper for current state}
-
-## Full Reference List
-
-{Formatted citations, organized by topic/method}
+<spawn_contract>
+write_scope:
+  mode: scoped_write
+  allowed_paths:
+    - GPD/literature/{slug}-REVIEW.md
+    - GPD/literature/{slug}-CITATION-SOURCES.json
+expected_artifacts:
+  - GPD/literature/{slug}-REVIEW.md
+  - GPD/literature/{slug}-CITATION-SOURCES.json
+shared_state_policy: return_only
+</spawn_contract>
 ```
 
-Then write `GPD/literature/{slug}-CITATION-SOURCES.json` as a JSON array of strict `CitationSource` objects for the same references. The closed contract is:
+```
+REVIEW_RETURN=$(
+task(
+  subagent_type="gpd-literature-reviewer",
+  model="{reviewer_model}",
+  readonly=false,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-literature-reviewer.md for your role and instructions.\\n\\n" + review_prompt
+)
+)
+```
 
-- `source_type`: `paper`, `tool`, `data`, or `website`
-- `reference_id`: stable project-local identifier for the canonical reference
-- `bibtex_key`: optional preferred key, only when already verified; include `bibtex_key` only when it is already known and verified
-- `title`
-- `authors` when available
-- `year` when available
-- `arxiv_id`, `doi`, `url`, `journal`, `volume`, and `pages` when available
+**If the reviewer agent fails to spawn or returns an error:** Report the failure and stop. Offer: 1) Retry with the same scope, 2) Execute the review in the main context, 3) Abort.
 
-Keep the sidecar synchronized with the review's Full Reference List, keep `reference_id` stable across reruns, and do not add extra keys. Downstream `gpd paper-build --citation-sources` rejects unknown fields, so the sidecar must stay aligned with the published contract before it reaches the build step. Only read or propagate the deferred reference-artifact context after the scope has been fixed.
-Extra keys are rejected by the downstream parser.
+**If the reviewer reports `gpd_return.status: completed`:**
+- Verify `GPD/literature/{slug}-REVIEW.md` and `GPD/literature/{slug}-CITATION-SOURCES.json` are readable
+- Verify both files are named in `gpd_return.files_written`
+- Do not trust the runtime handoff status by itself. Require the files on disk and the file list to agree before advancing.
+- Treat the handoff as incomplete if either file is missing, unreadable, or unnamed
+
+**If the reviewer reports `gpd_return.status: checkpoint`:**
+- Present the checkpoint to the user
+- Collect the response
+- Spawn a fresh continuation handoff with the updated scope and checkpoint response
+- Re-run the same `gpd_return.files_written` and on-disk artifact gate before advancing
+
+**If the reviewer reports `gpd_return.status: blocked` or `failed`:**
+- Surface the blocker
+- Offer: 1) Add context, 2) Narrow scope, 3) Abort
 
 </step>
 
@@ -464,27 +420,21 @@ task(
   subagent_type="gpd-bibliographer",
   model="{biblio_model}",
   readonly=false,
-  prompt="First, read {GPD_AGENTS_DIR}/gpd-bibliographer.md for your role and instructions.
-
-Verify all citations in the literature review.
-
-Mode: Audit bibliography
-
-Review file: GPD/literature/{slug}-REVIEW.md
-
-For every reference listed in the Full Reference List and cited in the body:
-1. Run the hallucination detection protocol (Steps 1-5) against INSPIRE, ADS, arXiv
-2. Cross-check metadata (title, authors, year, journal, identifiers)
-3. Flag any hallucinated or inaccurate citations
-4. Correct metadata errors where possible
-
-Write results to GPD/literature/{slug}-CITATION-AUDIT.md
-
-Return a typed `gpd_return` envelope. Use `status: completed` when the bibliography task finished, even if the human-readable heading is `## CITATION ISSUES FOUND`; use `status: checkpoint` only when researcher input is required to continue."
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-bibliographer.md for your role and instructions.\\n\\nVerify all citations in the literature review.\\n\\nMode: Audit bibliography\\n\\nReview file: GPD/literature/{slug}-REVIEW.md\\n\\nFor every reference listed in the Full Reference List and cited in the body:\\n1. Run the hallucination detection protocol (Steps 1-5) against INSPIRE, ADS, arXiv\\n2. Cross-check metadata (title, authors, year, journal, identifiers)\\n3. Flag any hallucinated or inaccurate citations\\n4. Correct metadata errors where possible\\n\\nWrite results to GPD/literature/{slug}-CITATION-AUDIT.md\\n\\nReturn a typed `gpd_return` envelope. Use `status: completed` when the bibliography task finished, even if the human-readable heading is `## CITATION ISSUES FOUND`; use `status: checkpoint` only when researcher input is required to continue."
 )
 ```
 
-**If the bibliographer agent fails to spawn or returns an error:** Proceed without citation audit. Note in the review summary that citations are unverified. The user should manually check key references against INSPIRE-HEP/ADS.
+<spawn_contract>
+write_scope:
+  mode: scoped_write
+  allowed_paths:
+    - GPD/literature/{slug}-CITATION-AUDIT.md
+expected_artifacts:
+  - GPD/literature/{slug}-CITATION-AUDIT.md
+shared_state_policy: return_only
+</spawn_contract>
+
+**If the bibliographer agent fails to spawn or returns an error:** Treat the review as blocked until citation audit completes. Offer: 1) Retry citation audit, 2) Abort, 3) Return to the user with the review incomplete.
 
 **If the bibliographer completed with issues recorded in the audit report:**
 
@@ -524,24 +474,13 @@ On checkpoint:
 
 - Return `gpd_return.status: checkpoint`
 - Include the decision question, context, options, and partial progress
+- Record the user's answer as `checkpoint_response` for the fresh continuation handoff.
+- Do not trust the runtime handoff status by itself.
 - Stop and let the orchestrator present the checkpoint to the user, then spawn a fresh continuation run after the response
 
 If the review is incomplete or blocked, use `gpd_return.status: blocked` or `failed` and list the missing artifact or unresolved scope issue explicitly.
 
 </step>
-
-**Commit the report:**
-
-```bash
-PRE_CHECK=$(gpd pre-commit-check --files "${OUTPUT_PATH}" 2>&1) || true
-echo "$PRE_CHECK"
-
-gpd commit \
-  "docs: literature review — ${topic_slug:-standalone}" \
-  --files "${OUTPUT_PATH}"
-```
-
-Where `${OUTPUT_PATH}` is the path where LITERATURE-REVIEW.md was written.
 
 </process>
 
