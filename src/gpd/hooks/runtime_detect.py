@@ -10,15 +10,17 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from gpd.adapters import get_adapter
+import gpd.adapters as adapters_module
 from gpd.adapters.install_utils import (
     CACHE_DIR_NAME,
     GPD_INSTALL_DIR_NAME,
     UPDATE_CACHE_FILENAME,
 )
 from gpd.adapters.runtime_catalog import (
+    get_runtime_descriptor,
     get_shared_install_metadata,
     list_runtime_names,
+    resolve_global_config_dir,
 )
 from gpd.adapters.runtime_catalog import (
     normalize_runtime_name as _normalize_runtime_name,
@@ -80,7 +82,7 @@ def _source_for_install_scope(install_scope: str | None, *, fallback: str) -> st
 
 def _adapter(runtime: str):
     try:
-        return get_adapter(runtime)
+        return adapters_module.get_adapter(runtime)
     except KeyError:
         return None
 
@@ -105,18 +107,20 @@ def _prioritized_runtimes(preferred_runtime: str | None = None) -> list[str]:
 
 def _global_runtime_dir(runtime: str, *, home: Path | None = None) -> Path:
     """Resolve the global config directory for *runtime* with env overrides."""
-    adapter = _adapter(runtime)
-    if adapter is None:
-        raise KeyError(runtime)
-    return adapter.resolve_global_config_dir(home=home)
+    try:
+        descriptor = get_runtime_descriptor(runtime)
+    except KeyError:
+        raise KeyError(runtime) from None
+    return resolve_global_config_dir(descriptor, home=home)
 
 
 def _local_runtime_dir(runtime: str, cwd: Path | None = None) -> Path:
     """Return the workspace-local config directory for a runtime."""
-    adapter = _adapter(runtime)
-    if adapter is None:
-        raise KeyError(runtime)
-    return adapter.resolve_local_config_dir(cwd)
+    try:
+        descriptor = get_runtime_descriptor(runtime)
+    except KeyError:
+        raise KeyError(runtime) from None
+    return Path(cwd or Path.cwd()) / descriptor.config_dir_name
 
 
 def _manifest_runtime_status(config_dir: Path) -> tuple[str, str | None]:
@@ -232,15 +236,16 @@ def resolve_effective_runtime(
 
     if not require_gpd_install:
         for runtime in ordered_runtimes:
-            adapter = _adapter(runtime)
-            if adapter is None:
+            try:
+                descriptor = get_runtime_descriptor(runtime)
+            except KeyError:
                 continue
-            for env_var in adapter.activation_env_vars:
+            for env_var in descriptor.activation_env_vars:
                 if os.environ.get(env_var):
-                    install_scope = detect_install_scope(adapter.runtime_name, cwd=resolved_cwd, home=resolved_home)
+                    install_scope = detect_install_scope(runtime, cwd=resolved_cwd, home=resolved_home)
                     has_install = install_scope is not None
                     return EffectiveRuntimeResolution(
-                        runtime=adapter.runtime_name,
+                        runtime=runtime,
                         source=SOURCE_ENV,
                         has_gpd_install=has_install,
                         install_scope=install_scope,
@@ -700,7 +705,7 @@ def update_command_for_runtime(runtime: str, scope: str | None = None) -> str:
     runtime = normalize_runtime_name(runtime) or runtime
     base = RUNTIME_NEUTRAL_UPDATE_COMMAND
     try:
-        command = get_adapter(runtime).update_command
+        command = adapters_module.get_adapter(runtime).update_command
     except KeyError:
         command = base
 

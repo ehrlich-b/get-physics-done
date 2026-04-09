@@ -6,6 +6,7 @@ priority ordering, helper functions, and unknown runtime fallback.
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 from pathlib import Path
@@ -400,7 +401,7 @@ class TestNormalizeRuntimeName:
 def test_supported_runtime_names_reflect_live_runtime_inventory(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(runtime_detect_module, "list_runtime_names", lambda: ["alpha", "beta", "gamma"])
     monkeypatch.setattr(
-        runtime_detect_module,
+        runtime_detect_module.adapters_module,
         "get_adapter",
         lambda runtime: (_ for _ in ()).throw(AssertionError(f"unexpected adapter load: {runtime}")),
     )
@@ -765,6 +766,26 @@ class TestDetectRuntimeForGpdUse:
             patch("gpd.hooks.runtime_detect.Path.cwd", return_value=tmp_path),
         ):
             assert detect_runtime_for_gpd_use() == RUNTIME_CODEX
+
+    def test_import_time_patched_adapter_lookup_does_not_poison_runtime_resolution(self, tmp_path: Path) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        home = tmp_path / "home"
+        global_dir = get_adapter(RUNTIME_CLAUDE).resolve_global_config_dir(home=home)
+        _mark_gpd_install(global_dir, runtime=RUNTIME_CLAUDE, install_scope=SCOPE_GLOBAL)
+
+        class _DummyAdapter:
+            pass
+
+        try:
+            with patch("gpd.adapters.get_adapter", return_value=_DummyAdapter()):
+                importlib.reload(runtime_detect_module)
+
+            env = _clean_runtime_env()
+            with patch.dict(os.environ, env, clear=True):
+                assert runtime_detect_module.detect_runtime_for_gpd_use(cwd=workspace, home=home) == RUNTIME_CLAUDE
+        finally:
+            importlib.reload(runtime_detect_module)
 
 # ─── all_runtime_dirs ──────────────────────────────────────────────────────
 
