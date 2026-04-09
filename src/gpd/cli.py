@@ -4339,12 +4339,21 @@ def init_write_paper(
 @init_app.command("quick")
 def init_quick(
     description: list[str] = typer.Argument(None, help="Task description"),
+    stage: str | None = typer.Option(
+        None,
+        "--stage",
+        help="Load the staged quick context for a specific stage id.",
+    ),
 ) -> None:
     """Assemble context for a quick task."""
     from gpd.core.context import init_quick
 
     text = " ".join(description) if description else None
-    _output(init_quick(_get_cwd(), description=text))
+    try:
+        payload = init_quick(_get_cwd(), description=text, stage=stage)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
 
 
 @init_app.command("resume")

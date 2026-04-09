@@ -49,14 +49,16 @@ def test_verify_work_gap_plan_checker_routes_on_canonical_gpd_return_status() ->
     workflow = _read(WORKFLOWS_DIR / "verify-work.md")
     checker = _read(AGENTS_DIR / "gpd-plan-checker.md")
 
+    assert 'gpd --raw init verify-work "${PHASE_ARG}" --stage gap_repair' in workflow
+    assert "staged payload as the source of truth for planner and checker routing" in workflow
     assert "If the checker returns a structured `gpd_return`, route on `gpd_return.status` and the structured plan lists, not on presentation text:" in workflow
-    assert "- `completed`: treat the fix plans as verified and continue." in workflow
+    assert "- `completed`: treat the fresh fix plans as verified only after the on-disk files still match the planner's `files_written` set." in workflow
     assert (
         "- `checkpoint`: some plans are approved and others need revision; record `approved_plans` and `blocked_plans`, then send only the blocked plans back through the revision loop."
         in workflow
     )
-    assert "- `blocked`: nothing is approved; feed the checker issues and blocked plan IDs back into the revision loop." in workflow
-    assert "- `failed`: present the issues and offer retry, manual revision, or skipping gap closure." in workflow
+    assert "- `blocked`: nothing is approved; feed the checker issues and blocked plan IDs back into the revision loop without rewriting approved plans." in workflow
+    assert "- `failed`: present the issues and offer retry or manual revision." in workflow
     assert "Use the structured fields, not the human-readable approval table, as the source of truth." in workflow
 
     assert "Headings such as `## VERIFICATION PASSED`, `## ISSUES FOUND`, and `## PLAN_BLOCKED — Escalation to User` are presentation only. Route on `gpd_return.status`." in checker
@@ -69,14 +71,16 @@ def test_verify_work_gap_plan_success_reconciles_files_written_and_disk_artifact
     workflow = _read(WORKFLOWS_DIR / "verify-work.md")
     planner_prompt = _read(TEMPLATES_DIR / "planner-subagent-prompt.md")
 
-    assert "Use `templates/planner-subagent-prompt.md` to build the gap_closure planner handoff." in workflow
-    assert "Before treating the handoff as complete, verify that the expected `PLAN.md` files exist in the phase directory." in workflow
+    assert "Use `templates/planner-subagent-prompt.md` to build the gap_closure planner handoff from the staged payload." in workflow
+    assert "Before treating the handoff as complete, verify that the expected `PLAN.md` files exist in the phase directory and are listed in `gpd_return.files_written` from the fresh planner run." in workflow
     assert (
-        "If the planner fails to spawn or returns an error, check whether any `PLAN.md` files were written. If plans exist, continue to `verify_gap_plans`. If no plans exist, offer retry, manual plan creation, or skipping gap closure."
+        "If the planner fails to spawn or returns an error, keep the session fail-closed and offer retry or manual plan creation. Do not fall through to gap verification on the basis of preexisting `PLAN.md` files alone."
         in workflow
     )
-    assert "Before accepting the handoff as complete, confirm the expected `PLAN.md` files are present and readable." in workflow
+    assert "Before accepting the handoff as complete, confirm the expected `PLAN.md` files are present, readable, and listed in `gpd_return.files_written` from the planner turn." in workflow
     assert "If the checker fails to spawn or returns an error, proceed without plan verification but note that the plans were not verified." in workflow
+    assert "Do not rewrite approved plans during the revision round." in workflow
+    assert "Do not fall through to gap verification on the basis of preexisting `PLAN.md` files alone." in workflow
 
     assert "Planner runs must return a structured `gpd_return` envelope." in planner_prompt
     assert "Do not route on them; route on `gpd_return.status` and the artifact gate below." in planner_prompt

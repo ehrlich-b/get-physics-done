@@ -59,6 +59,14 @@ def test_verify_work_current_check_overlay_stays_separate_from_verifier_scaffold
     assert "summary: \"verification not started yet\"" not in verify_workflow
 
 
+def test_verify_work_gap_repair_uses_explicit_stage_route_and_stays_fail_closed() -> None:
+    verify_workflow = _read("src/gpd/specs/workflows/verify-work.md")
+
+    assert 'gpd --raw init verify-work "${PHASE_ARG}" --stage gap_repair' in verify_workflow
+    assert "Do not fall through to gap verification on the basis of preexisting `PLAN.md` files alone." in verify_workflow
+    assert "skipping gap closure" not in verify_workflow
+
+
 def test_model_visible_worked_examples_keep_summary_and_verdict_shapes_copy_safe() -> None:
     executor_example = _read("src/gpd/specs/references/execution/executor-worked-example.md")
     verification_report = _read("src/gpd/specs/templates/verification-report.md")

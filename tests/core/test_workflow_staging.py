@@ -10,6 +10,8 @@ import pytest
 from gpd.core.workflow_staging import (
     EXECUTE_PHASE_STAGE_MANIFEST_PATH,
     NEW_PROJECT_STAGE_MANIFEST_PATH,
+    PLAN_PHASE_STAGE_MANIFEST_PATH,
+    QUICK_STAGE_MANIFEST_PATH,
     invalidate_workflow_stage_manifest_cache,
     known_init_fields_for_workflow,
     load_workflow_stage_manifest,
@@ -28,7 +30,8 @@ def _workflow_payload(workflow_id: str) -> dict[str, object]:
     ("workflow_id", "expected_path"),
     [
         ("new-project", NEW_PROJECT_STAGE_MANIFEST_PATH),
-        ("plan-phase", NEW_PROJECT_STAGE_MANIFEST_PATH.parent / "plan-phase-stage-manifest.json"),
+        ("plan-phase", PLAN_PHASE_STAGE_MANIFEST_PATH),
+        ("quick", QUICK_STAGE_MANIFEST_PATH),
         ("verify-work", NEW_PROJECT_STAGE_MANIFEST_PATH.parent / "verify-work-stage-manifest.json"),
         ("write-paper", NEW_PROJECT_STAGE_MANIFEST_PATH.parent / "write-paper-stage-manifest.json"),
         ("peer-review", NEW_PROJECT_STAGE_MANIFEST_PATH.parent / "peer-review-stage-manifest.json"),
@@ -267,6 +270,25 @@ def test_validate_workflow_stage_manifest_payload_loads_plan_phase_manifest() ->
     assert "GPD/phases" in manifest.stages[2].writes_allowed
 
 
+def test_validate_workflow_stage_manifest_payload_loads_quick_manifest() -> None:
+    manifest = validate_workflow_stage_manifest_payload(
+        _workflow_payload("quick"),
+        expected_workflow_id="quick",
+    )
+
+    assert manifest.workflow_id == "quick"
+    assert manifest.stage_ids() == ("task_bootstrap", "task_authoring")
+    assert manifest.stages[0].loaded_authorities == ("workflows/quick.md",)
+    assert "references/ui/ui-brand.md" in manifest.stages[0].must_not_eager_load
+    assert "project_contract_gate" in manifest.stages[0].required_init_fields
+    assert "project_contract_validation" in manifest.stages[0].required_init_fields
+    assert "contract_intake" in manifest.stages[1].required_init_fields
+    assert "effective_reference_intake" in manifest.stages[1].required_init_fields
+    assert "reference_artifacts_content" in manifest.stages[1].required_init_fields
+    assert "templates/planner-subagent-prompt.md" in manifest.stages[1].must_not_eager_load
+    assert manifest.stages[1].writes_allowed == ("GPD/quick/NNN-slug/PLAN.md",)
+
+
 def test_validate_workflow_stage_manifest_payload_loads_write_paper_manifest() -> None:
     manifest = validate_workflow_stage_manifest_payload(
         _workflow_payload("write-paper"),
@@ -319,6 +341,18 @@ def test_known_init_fields_for_write_paper_cover_bootstrap_and_deferred_publicat
     assert "reference_artifacts_content" in known_init_fields
     assert "state_content" in known_init_fields
     assert "requirements_content" in known_init_fields
+
+
+def test_known_init_fields_for_quick_cover_task_bootstrap_and_reference_context() -> None:
+    known_init_fields = known_init_fields_for_workflow("quick")
+
+    assert known_init_fields is not None
+    assert "executor_model" in known_init_fields
+    assert "next_num" in known_init_fields
+    assert "task_dir" in known_init_fields
+    assert "project_contract_gate" in known_init_fields
+    assert "contract_intake" in known_init_fields
+    assert "reference_artifacts_content" in known_init_fields
 
 
 def test_validate_workflow_stage_manifest_payload_loads_peer_review_manifest() -> None:
@@ -536,6 +570,13 @@ def test_validate_workflow_stage_manifest_payload_loads_execute_phase_manifest_s
             lambda payload: payload["stages"][0].__setitem__(
                 "must_not_eager_load",
                 [*payload["stages"][0]["must_not_eager_load"], "workflows/new-project.md"],
+            ),
+            "overlap with must_not_eager_load",
+        ),
+        (
+            lambda payload: payload["stages"][0].__setitem__(
+                "loaded_authorities",
+                [*payload["stages"][0]["loaded_authorities"], "references/shared/canonical-schema-discipline.md"],
             ),
             "overlap with must_not_eager_load",
         ),

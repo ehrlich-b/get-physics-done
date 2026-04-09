@@ -49,5 +49,16 @@ def test_expanded_planner_prompt_stays_under_budget() -> None:
     )
 
     assert metrics.raw_include_count <= 4
-    assert metrics.expanded_char_count < 320_000
-    assert metrics.expanded_line_count < 6_500
+    assert metrics.expanded_char_count < 290_000
+    assert metrics.expanded_line_count < 6_000
+
+
+def test_planner_prompt_no_longer_carries_the_removed_high_level_boilerplate() -> None:
+    planner = _read_planner_prompt()
+
+    for removed_marker in (
+        "Quality Degradation Curve",
+        "Research Fast",
+        "Specificity Examples",
+    ):
+        assert removed_marker not in planner

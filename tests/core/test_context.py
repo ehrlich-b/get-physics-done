@@ -2600,6 +2600,21 @@ class TestInitQuick:
         # Falls back to default numbering when directory is unreadable
         assert ctx["next_num"] == 1
 
+    def test_stage_task_authoring_uses_quick_manifest_contract(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        (tmp_path / "GPD" / "PROJECT.md").write_text("# Project\n", encoding="utf-8")
+        _write_project_contract_state(tmp_path)
+        manifest = load_workflow_stage_manifest("quick")
+
+        ctx = init_quick(tmp_path, "Quick reference check", stage="task_authoring")
+        stage = manifest.stage_by_id("task_authoring")
+
+        assert ctx["staged_loading"]["stage_id"] == "task_authoring"
+        assert set(ctx) == set(stage.required_init_fields) | {"staged_loading"}
+        assert "project_contract_gate" in ctx
+        assert "reference_artifacts_content" in ctx
+        assert "active_reference_context" in ctx
+
     def test_no_description(self, tmp_path: Path) -> None:
         _setup_project(tmp_path)
         ctx = init_quick(tmp_path)

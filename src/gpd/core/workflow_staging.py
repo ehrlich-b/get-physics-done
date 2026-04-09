@@ -16,6 +16,8 @@ WORKFLOW_STAGE_MANIFEST_SUFFIX = "-stage-manifest.json"
 NEW_PROJECT_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"new-project{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
 NEW_MILESTONE_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"new-milestone{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
 EXECUTE_PHASE_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"execute-phase{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
+PLAN_PHASE_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"plan-phase{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
+QUICK_STAGE_MANIFEST_PATH = WORKFLOW_STAGE_MANIFEST_DIR / f"quick{WORKFLOW_STAGE_MANIFEST_SUFFIX}"
 RESUME_WORK_INIT_FIELDS = frozenset(
     {
         "workspace_root",
@@ -289,7 +291,7 @@ EXECUTE_PHASE_INIT_FIELDS = frozenset(
         "platform",
     }
 )
-PLAN_PHASE_INIT_FIELDS = frozenset(
+PLAN_PHASE_BASE_INIT_FIELDS = frozenset(
     {
         "researcher_model",
         "planner_model",
@@ -312,10 +314,18 @@ PLAN_PHASE_INIT_FIELDS = frozenset(
         "planning_exists",
         "roadmap_exists",
         "platform",
+    }
+)
+PLAN_PHASE_CONTRACT_GATE_FIELDS = frozenset(
+    {
         "project_contract",
         "project_contract_gate",
         "project_contract_load_info",
         "project_contract_validation",
+    }
+)
+PLAN_PHASE_REFERENCE_RUNTIME_FIELDS = frozenset(
+    {
         "contract_intake",
         "effective_reference_intake",
         "selected_protocol_bundle_ids",
@@ -330,6 +340,34 @@ PLAN_PHASE_INIT_FIELDS = frozenset(
         "research_map_reference_files",
         "research_map_reference_count",
         "derived_manuscript_proof_review_status",
+    }
+)
+PLAN_PHASE_STRUCTURED_STATE_FIELDS = frozenset(
+    {
+        "state_load_source",
+        "state_integrity_issues",
+        "convention_lock",
+        "convention_lock_count",
+        "intermediate_results",
+        "intermediate_result_count",
+        "approximations",
+        "approximation_count",
+        "propagated_uncertainties",
+        "propagated_uncertainty_count",
+    }
+)
+PLAN_PHASE_STATE_MEMORY_FIELDS = frozenset(
+    {
+        "derived_convention_lock",
+        "derived_convention_lock_count",
+        "derived_intermediate_results",
+        "derived_intermediate_result_count",
+        "derived_approximations",
+        "derived_approximation_count",
+    }
+)
+PLAN_PHASE_FILE_CONTENT_FIELDS = frozenset(
+    {
         "state_content",
         "roadmap_content",
         "requirements_content",
@@ -338,6 +376,69 @@ PLAN_PHASE_INIT_FIELDS = frozenset(
         "experiment_design_content",
         "verification_content",
         "validation_content",
+    }
+)
+PLAN_PHASE_INIT_FIELDS = frozenset(
+    {
+        *PLAN_PHASE_BASE_INIT_FIELDS,
+        *PLAN_PHASE_CONTRACT_GATE_FIELDS,
+        *PLAN_PHASE_REFERENCE_RUNTIME_FIELDS,
+        *PLAN_PHASE_STRUCTURED_STATE_FIELDS,
+        *PLAN_PHASE_STATE_MEMORY_FIELDS,
+        *PLAN_PHASE_FILE_CONTENT_FIELDS,
+    }
+)
+QUICK_BASE_INIT_FIELDS = frozenset(
+    {
+        "planner_model",
+        "executor_model",
+        "commit_docs",
+        "autonomy",
+        "research_mode",
+        "next_num",
+        "slug",
+        "description",
+        "date",
+        "timestamp",
+        "quick_dir",
+        "task_dir",
+        "roadmap_exists",
+        "project_exists",
+        "planning_exists",
+        "platform",
+    }
+)
+QUICK_CONTRACT_GATE_FIELDS = frozenset(
+    {
+        "project_contract",
+        "project_contract_gate",
+        "project_contract_load_info",
+        "project_contract_validation",
+    }
+)
+QUICK_REFERENCE_RUNTIME_FIELDS = frozenset(
+    {
+        "contract_intake",
+        "effective_reference_intake",
+        "selected_protocol_bundle_ids",
+        "protocol_bundle_count",
+        "protocol_bundle_context",
+        "protocol_bundle_verifier_extensions",
+        "active_reference_context",
+        "reference_artifact_files",
+        "reference_artifacts_content",
+        "literature_review_files",
+        "literature_review_count",
+        "research_map_reference_files",
+        "research_map_reference_count",
+        "derived_manuscript_proof_review_status",
+    }
+)
+QUICK_INIT_FIELDS = frozenset(
+    {
+        *QUICK_BASE_INIT_FIELDS,
+        *QUICK_CONTRACT_GATE_FIELDS,
+        *QUICK_REFERENCE_RUNTIME_FIELDS,
     }
 )
 VERIFY_WORK_INIT_FIELDS = frozenset(
@@ -449,15 +550,10 @@ _DEFAULT_KNOWN_INIT_FIELDS_BY_WORKFLOW = {
     "new-project": NEW_PROJECT_INIT_FIELDS,
     "new-milestone": NEW_MILESTONE_INIT_FIELDS,
     "plan-phase": PLAN_PHASE_INIT_FIELDS,
+    "quick": QUICK_INIT_FIELDS,
     "verify-work": VERIFY_WORK_INIT_FIELDS,
     "write-paper": WRITE_PAPER_INIT_FIELDS,
     "execute-phase": EXECUTE_PHASE_INIT_FIELDS,
-}
-_WORKFLOW_STAGE_REQUIRED_INIT_FIELD_OVERRIDES = {
-    "plan-phase": {
-        "planner_authoring": ("experiment_design_content",),
-        "checker_revision": ("experiment_design_content",),
-    }
 }
 
 _ALLOWED_TOP_LEVEL_KEYS = frozenset({"schema_version", "workflow_id", "stages"})
@@ -772,11 +868,6 @@ def _validate_stage(
         label=f"stages[{index}].required_init_fields",
         allow_empty=True,
     )
-    required_init_fields = _augment_required_init_fields(
-        workflow_id=workflow_id,
-        stage_id=stage_id,
-        required_init_fields=required_init_fields,
-    )
     loaded_authorities = tuple(
         _normalize_manifest_doc_path(authority, label=f"stages[{index}].loaded_authorities[{authority_index}]")
         for authority_index, authority in enumerate(
@@ -831,6 +922,7 @@ def _validate_stage(
         raise ValueError(f"stages[{index}].allowed_tools contains unknown tool name(s): {', '.join(unknown_tools)}")
 
     unconditional_eager = set(mode_paths)
+    unconditional_eager.update(loaded_authorities)
     overlap = sorted(unconditional_eager.intersection(must_not_eager_load))
     if overlap:
         raise ValueError(f"stages[{index}] overlap with must_not_eager_load: {', '.join(overlap)}")
@@ -850,26 +942,6 @@ def _validate_stage(
         next_stages=next_stages,
         checkpoints=checkpoints,
     )
-
-
-def _augment_required_init_fields(
-    *,
-    workflow_id: str,
-    stage_id: str,
-    required_init_fields: tuple[str, ...],
-) -> tuple[str, ...]:
-    overrides = _WORKFLOW_STAGE_REQUIRED_INIT_FIELD_OVERRIDES.get(workflow_id, {}).get(stage_id, ())
-    if not overrides:
-        return required_init_fields
-
-    combined = list(required_init_fields)
-    seen = set(required_init_fields)
-    for field_name in overrides:
-        if field_name in seen:
-            continue
-        seen.add(field_name)
-        combined.append(field_name)
-    return tuple(combined)
 
 
 def validate_workflow_stage_manifest_payload(
@@ -1060,10 +1132,22 @@ __all__ = [
     "NEW_MILESTONE_STAGE_MANIFEST_PATH",
     "EXECUTE_PHASE_INIT_FIELDS",
     "EXECUTE_PHASE_STAGE_MANIFEST_PATH",
+    "PLAN_PHASE_BASE_INIT_FIELDS",
+    "PLAN_PHASE_CONTRACT_GATE_FIELDS",
+    "PLAN_PHASE_FILE_CONTENT_FIELDS",
+    "PLAN_PHASE_INIT_FIELDS",
+    "PLAN_PHASE_REFERENCE_RUNTIME_FIELDS",
+    "PLAN_PHASE_STAGE_MANIFEST_PATH",
+    "PLAN_PHASE_STATE_MEMORY_FIELDS",
+    "PLAN_PHASE_STRUCTURED_STATE_FIELDS",
+    "QUICK_BASE_INIT_FIELDS",
+    "QUICK_CONTRACT_GATE_FIELDS",
+    "QUICK_INIT_FIELDS",
+    "QUICK_REFERENCE_RUNTIME_FIELDS",
+    "QUICK_STAGE_MANIFEST_PATH",
     "NewProjectConditionalAuthority",
     "NewProjectStage",
     "NewProjectStageContract",
-    "PLAN_PHASE_INIT_FIELDS",
     "WRITE_PAPER_INIT_FIELDS",
     "WORKFLOW_STAGE_MANIFEST_DIR",
     "WORKFLOW_STAGE_MANIFEST_SUFFIX",

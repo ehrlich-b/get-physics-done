@@ -1103,9 +1103,32 @@ review_summary:
             "GPD/literature/SUMMARY.md",
         ]
         assert payload["staged_loading"]["next_stages"] == []
-        assert "reference_artifacts_content" not in payload
-        assert "active_reference_context" not in payload
-        assert "effective_reference_intake" not in payload
+
+    def test_quick_init_stage_task_authoring_filters_payload(self, gpd_project: Path) -> None:
+        from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+        state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
+        state["project_contract"] = json.loads((FIXTURES_DIR / "project_contract.json").read_text(encoding="utf-8"))
+        (gpd_project / "GPD" / "state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
+        (gpd_project / "GPD" / "PROJECT.md").write_text("# Project\n", encoding="utf-8")
+
+        manifest = load_workflow_stage_manifest("quick")
+        stage = manifest.get_stage("task_authoring")
+
+        result = runner.invoke(
+            app,
+            ["--raw", "init", "quick", "Quick reference check", "--stage", "task_authoring"],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+
+        assert set(payload) == set(stage.required_init_fields) | {"staged_loading"}
+        assert payload["staged_loading"]["workflow_id"] == "quick"
+        assert payload["staged_loading"]["stage_id"] == "task_authoring"
+        assert payload["staged_loading"]["loaded_authorities"] == ["workflows/quick.md"]
+        assert "active_reference_context" in payload
+        assert "effective_reference_intake" in payload
 
     def test_phase_op_surfaces_contract_load_and_validation_gates(self, gpd_project: Path) -> None:
         state = json.loads((gpd_project / "GPD" / "state.json").read_text(encoding="utf-8"))
@@ -5663,6 +5686,16 @@ def test_init_plan_phase_help_surfaces_stage_option() -> None:
     assert "--stage" in output
     assert "Load the staged plan-phase context for a specific" in output
     assert "stage id." in output
+
+
+def test_init_quick_help_surfaces_stage_option() -> None:
+    result = runner.invoke(app, ["init", "quick", "--help"])
+    output = _normalize_cli_output(result.output)
+
+    assert result.exit_code == 0
+    assert "--stage" in output
+    assert "Load the staged quick context for a specific" in output
+    assert "stage id."
 
 
 def test_init_execute_phase_help_surfaces_stage_option() -> None:

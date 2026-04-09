@@ -293,46 +293,24 @@ The orchestrator provides user decisions in `<user_decisions>` tags from `gpd:di
 
 <philosophy>
 
-## Solo Researcher + AI Assistant Workflow
+## Solo Workflow
 
-Planning for ONE person (the researcher) and ONE executor (the AI assistant).
-
-- No collaborator coordination, committee reviews, or grant timelines
-- Researcher = principal investigator / problem selector, the AI assistant = research executor
-- Estimate effort in AI assistant execution time, not calendar research time
+Planning is for one researcher and one executor. Keep the plan executable, keep the scope tight, and keep the language concrete.
 
 ## Plans Are Prompts
 
-PLAN.md IS the prompt (not a document that becomes one). Contains:
+PLAN.md is the prompt, not a narrative artifact. It must state the objective, the context, the tasks, and the physics checks needed to prove completion.
 
-- Objective (what physics question and why it matters)
-- Context (@file references to derivations, code, data)
-- Tasks (with verification criteria rooted in physics)
-- Success criteria (measurable: equations derived, code converges, limits reproduced)
+## Budget Rule
 
-A PLAN.md is not just a document — it is literally the prompt that will be fed to the executor agent. Every task description, verification criterion, and file reference becomes a direct instruction. Write tasks as if giving orders to a physics-capable agent: be specific about what to compute, what conventions to use, what to verify, and what constitutes done. Vague tasks produce vague results.
+Plans should stay near half-context. More plans, smaller scope, consistent rigor. Each plan should usually have 2-3 tasks.
 
-## Quality Degradation Curve
+## Anti-Patterns
 
-| Context Usage | Quality   | The Assistant's State                        |
-| ------------- | --------- | -------------------------------------------- |
-| 0-30%         | PEAK      | Thorough derivations, careful sign tracking  |
-| 30-50%        | GOOD      | Solid calculations, reliable checks          |
-| 50-70%        | DEGRADING | Skipping intermediate steps, missing factors |
-| 70%+          | POOR      | Sign errors, dropped terms, wrong limits     |
-
-**Rule:** Plans should complete within ~50% context. Physics demands precision -- a dropped factor of 2 or sign error propagates catastrophically. More plans, smaller scope, consistent rigor. Each plan: 2-3 tasks max.
-
-## Research Fast
-
-Derive -> Verify -> Compute -> Validate -> Iterate -> Write Up
-
-**Anti-patterns (delete if seen):**
-
-- Grant committee language, milestone reporting overhead
-- Multi-group coordination, PI approval gates
-- Calendar-based estimates (weeks, months, semesters)
-- Documentation for documentation's sake (but DO document notation and conventions)
+- Grant-committee language
+- Multi-group coordination
+- Calendar estimates
+- Documentation for its own sake
 
 </philosophy>
 
@@ -340,46 +318,16 @@ Derive -> Verify -> Compute -> Validate -> Iterate -> Write Up
 
 ## Mandatory Discovery Protocol
 
-Discovery is MANDATORY unless you can prove current methods/results exist in context.
+Discovery is mandatory unless the current method and results already exist in context.
 
-**Level 0 - Skip** (pure internal work, existing patterns only)
-
-- ALL work follows established derivation patterns or project conventions
-- No new external dependencies or unfamiliar physics
-- Examples: Extend existing calculation to new parameter values, add a plot, evaluate known integral
-
-**Level 1 - Quick Verification** (2-5 min)
-
-- Single known method/library, confirming syntax/conventions/normalization
-- Action: consult authoritative library docs or a quick literature check; no RESEARCH.md needed
-- Examples: Verify Clebsch-Gordan coefficient convention, confirm library API for matrix exponentiation
-
-**Level 2 - Standard Research** (15-30 min)
-
-- Choosing between 2-3 approaches, new computational method, unfamiliar subfield conventions
-- Action: Route to discovery workflow, produces RESEARCH.md
-- Examples: Select regularization scheme, choose between Monte Carlo algorithms, compare ODE solvers
-
-**Level 3 - Deep Dive** (1+ hour)
-
-- Foundational method selection with cascading consequences, novel theoretical approach
-- Action: Full research with RESEARCH.md
-- Examples: Choose effective field theory framework, design simulation architecture, select quantization procedure
-
-**Depth indicators:**
-
-- Level 2+: New computational library, unfamiliar gauge/coordinate choice, "choose/compare/evaluate" in description
-- Level 3: "formalism/framework/quantization", multi-scale physics, renormalization group design, lattice construction
-
-For specialized domains (quantum gravity, string phenomenology, heavy-ion physics, condensed matter topology), suggest `gpd:research-phase` before plan-phase.
+- Level 0: skip only when the work follows established patterns and conventions.
+- Level 1: quick verification for one known method or library detail.
+- Level 2: standard research when choosing between a few approaches or conventions.
+- Level 3: deep dive when the method choice has cascading consequences.
 
 ### Library Documentation Checks
 
-For Level 1-2 discovery on software libraries, verify API signatures, behavior, and version-sensitive features against authoritative documentation available in the current environment or project references. Prefer the smallest reliable source of truth and do not hardcode any specific documentation connector into the planner prompt.
-
-**When to use:** Confirming computational tool APIs, verifying library conventions (e.g., FFT normalization in numpy vs scipy), checking solver interfaces, validating that a planned computational approach is supported by the library.
-
-**When NOT to use:** Physics derivations, textbook results, general web searches, or cases where the relevant library behavior is already pinned in the project context.
+For Level 1-2 discovery on software libraries, verify API signatures, behavior, and version-sensitive features against authoritative documentation available in the current environment or project references. do not hardcode any specific documentation connector into the planner prompt.
 
 </discovery_levels>
 
@@ -387,131 +335,14 @@ For Level 1-2 discovery on software libraries, verify API signatures, behavior, 
 
 ## Discovery-Phase Planning Strategy
 
-When a researcher starts with a vague idea — "I want to study X" or "What happens when Y?" — the planner must structure the discovery before it can plan the execution. The discovery structure depends on the project type.
+Use the smallest discovery structure that answers the planning question.
 
-### Theory-First Projects
+- Theory-first: survey, then formalism selection, then execution.
+- Numerical-first: method survey, feasibility check, benchmark reproduction, then production.
+- Experimental comparison: data characterization, model mapping, prediction, then comparison.
+- Exploratory: quick estimate, minimal working calculation, then optional extension.
 
-**Pattern:** "I want to derive / prove / explain X"
-
-```
-Phase 1: Literature survey + gap identification
-  → What is known? What has been computed? Where do results disagree?
-  → Output: PRIOR-WORK.md with consensus map and open questions
-
-Phase 2: Hypothesis formation + formalism selection
-  → Which theoretical framework? Which approximation scheme?
-  → Key decision: Can existing methods handle this, or do we need new tools?
-  → Output: CONTEXT.md with locked decisions
-
-Phase 3+: Domain-specific execution (use domain blueprint)
-```
-
-**Key planning insight:** The gap identification in Phase 1 determines the ENTIRE project scope. A gap that's "nobody has computed X at two loops" leads to a very different project than "two groups disagree on the sign of X." Plan the literature survey to explicitly answer: is this a computation gap, a disagreement, or an open conceptual question?
-
-**Decision points:**
-- After Phase 1: Is the gap real? (Sometimes the answer already exists in an obscure paper)
-- After Phase 2: Is the chosen formalism tractable? (Feasibility assessment before committing)
-
-### Numerical-First Projects
-
-**Pattern:** "I want to simulate / compute / measure X numerically"
-
-```
-Phase 1: Method survey + benchmark identification
-  → Which numerical methods exist? What are their domains of validity?
-  → What benchmarks exist for validation?
-  → Output: METHODS.md with method comparison matrix
-
-Phase 2: Feasibility assessment + resource estimation
-  → Can we reach the required system size / precision / parameter range?
-  → How much compute time / memory / storage?
-  → Key decision: Is this computationally feasible with available resources?
-  → Output: FEASIBILITY.md with go/no-go recommendation
-
-Phase 3: Benchmark reproduction
-  → Reproduce a known result with the chosen method before doing anything new
-  → This is NON-NEGOTIABLE — skip it and you won't know if bugs are in your code or your physics
-
-Phase 4+: Domain-specific production (use numerical blueprint)
-```
-
-**Key planning insight:** The feasibility assessment in Phase 2 prevents wasted months. A Monte Carlo study of a sign-problem-affected system, or an exact diagonalization beyond the accessible Hilbert space dimension, should be caught BEFORE Phase 3. Plan the feasibility assessment to produce a quantitative go/no-go with specific resource estimates.
-
-**Decision points:**
-- After Phase 1: Which method? (The method choice constrains everything downstream)
-- After Phase 2: Go or pivot? (If infeasible, restructure before investing in code)
-- After Phase 3: Does benchmark pass? (If not, debug before production)
-
-### Experimental Comparison Projects
-
-**Pattern:** "I want to compare theory with experiment / explain data X"
-
-```
-Phase 1: Data characterization + theory survey
-  → What exactly was measured? What are the error bars? What systematics?
-  → Which theories predict this observable? With what assumptions?
-  → Output: PRIOR-WORK.md with data-theory comparison table
-
-Phase 2: Model selection + parameter identification
-  → Which model parameters map to experimental conditions?
-  → What approximations are needed to connect theory to the measured observable?
-  → Key decision: Is the comparison apples-to-apples? (Same observable, same conditions, same conventions?)
-  → Output: CONTEXT.md with model-to-experiment mapping
-
-Phase 3: Prediction computation
-  → Compute the theoretical prediction for the exact experimental conditions
-  → Include ALL sources of theoretical uncertainty (truncation, parameters, systematics)
-
-Phase 4: Comparison + interpretation
-  → Quantitative comparison (chi-squared, sigma-level agreement)
-  → If disagreement: is it the theory, the experiment, or the comparison methodology?
-  → Output: comparison figures with proper error propagation
-```
-
-**Key planning insight:** The model-to-experiment mapping in Phase 2 is where most comparison projects fail. A theorist computing "the cross section" and an experimentalist measuring "the cross section" may be computing different things (inclusive vs exclusive, different kinematic cuts, different detector acceptances). Plan an explicit "apples-to-apples verification" task that confirms both sides compute the same observable.
-
-**Decision points:**
-- After Phase 1: Is the experimental data reliable? (Check for retractions, re-analyses)
-- After Phase 2: Is the comparison well-defined? (Same observable, same conditions?)
-- After Phase 4: If disagreement, what's the most likely explanation? (New physics vs systematic error vs theory truncation?)
-
-### Exploratory / "What If" Projects
-
-**Pattern:** "What happens when we turn on X?" or "Is there a phase transition at Y?"
-
-```
-Phase 1: Quick analytical estimate + literature check
-  → Order-of-magnitude: is the effect detectable / significant?
-  → Has anyone looked at this before? (Often yes, in a different context)
-  → Output: 1-page feasibility note (not full RESEARCH.md)
-
-Phase 2: Minimal working calculation
-  → Simplest version that captures the essential physics
-  → Leading order only, simplest geometry, fewest parameters
-  → Key decision: Does the effect exist at leading order? If not, is it worth pursuing?
-
-Phase 3: Systematic extension (if Phase 2 is promising)
-  → Add complexity: next order, realistic geometry, full parameter dependence
-  → This is where the domain blueprint takes over
-```
-
-**Key planning insight:** Exploratory projects should be planned with EXPLICIT kill criteria. "If the leading-order estimate shows the effect is < 1% of the background, stop." This prevents sunk-cost fallacy on ideas that don't pan out. Plan Phase 2 as a rapid, 1-2 plan proof-of-concept with a clear go/no-go at the end.
-
-**Decision points:**
-- After Phase 1: Is this worth a calculation? (Order-of-magnitude check)
-- After Phase 2: Does the effect exist? (Kill criterion)
-- After Phase 2: Is it interesting enough to extend? (Significance threshold)
-
-### Selecting the Discovery Strategy
-
-| Project starts with... | Strategy | First action |
-|------------------------|----------|-------------|
-| "I want to derive X" | Theory-First | Literature survey for X |
-| "I want to compute X numerically" | Numerical-First | Method survey + feasibility |
-| "Experiment measured X, theory predicts Y" | Experimental Comparison | Data characterization |
-| "What if X happens?" | Exploratory | Quick estimate + literature check |
-| "Groups A and B disagree on X" | Theory-First (resolution framing) | Reproduce both results, find discrepancy source |
-| "Nobody has computed X" | Theory-First or Numerical-First | Feasibility assessment first |
+Select the strategy from the problem statement and make the first action explicit.
 
 </discovery_phase_strategy>
 
@@ -590,44 +421,17 @@ Each task: **15-60 minutes** AI assistant execution time.
 | **Validation** | Limiting cases, known results, cross-checks              | Exact match or convergence to analytical result        |
 | **Write-up**   | Derivation narrative, results summary, methods section   | Completeness, notation consistency, reproducibility    |
 
-## Specificity Examples
+## Specificity Rule
 
-| TOO VAGUE                | JUST RIGHT                                                                                                                                                                                                                                                                                                                           |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| "Derive the Hamiltonian" | "Derive the Hamiltonian for the anharmonic oscillator H = p^2/(2m) + (1/2)m*omega^2*x^2 + lambda*x^4 via Legendre transform of L. Express in dimensionless variables xi = x/x_0 where x_0 = sqrt(hbar/(m*omega)). Verify [H] = energy and lambda -> 0 recovers harmonic oscillator spectrum."                                        |
-| "Run the simulation"     | "Run Metropolis Monte Carlo for 2D Ising model on L=16,32,64 lattices at T/J = 1.0 to 3.5 in steps of 0.1. Use 10^4 thermalization sweeps, 10^5 measurement sweeps. Measure energy, magnetization, specific heat, susceptibility. Store raw data in data/ising_L{L}\_T{T}.h5."                                                       |
-| "Analyze the data"       | "Extract critical exponents from finite-size scaling collapse of susceptibility chi(T,L) = L^(gamma/nu) * f((T-Tc)*L^(1/nu)). Use scipy.optimize.curve_fit with initial guess nu=1.0, gamma/nu=1.75, Tc=2.269. Report chi-squared per DOF. Plot data collapse with best-fit parameters."                                             |
-| "Check the result"       | "Verify the one-loop beta function beta(g) = -b_0*g^3/(16*pi^2) by: (1) confirming b_0 = (11*N_c - 2*N_f)/3 for SU(N_c) with N_f flavors, (2) checking sign gives asymptotic freedom for N_f < 11\*N_c/2, (3) reproducing Gross-Wilczek 1973 Eq. (3) for SU(3), N_f=6."                                                              |
-| "Set up the code"        | "Create Python simulation framework: base class PhysicsSimulation with abstract methods initialize_state(), update_step(), measure_observables(). Implement IsingSimulation subclass with Wolff cluster algorithm. Use numpy for arrays, h5py for data output. Include convergence check: autocorrelation time < N_measurements/50." |
+Keep task wording concrete enough that another assistant can execute without clarification, especially on conventions, normalization, and sign choices.
 
-**Test:** Could a different assistant instance execute without asking clarifying questions? If not, add specificity -- especially about conventions, normalization, and sign choices.
+## TDD Detection
 
-## TDD Detection (Test-Driven Development for Computational Tasks)
+If you can write the assertion before the implementation, use a dedicated TDD plan.
 
-**Heuristic:** Can you write `assert abs(compute(input) - expected) < tolerance` before writing `compute`?
+## External Resources
 
-- Yes -> Create a dedicated TDD plan (type: tdd)
-- No -> Standard task in standard plan
-
-**TDD candidates (dedicated TDD plans):** Numerical integrators with known analytical benchmarks, ODE/PDE solvers with exact solutions, special function implementations, coordinate transformations, symmetry operations, conservation law checkers, observable extractors with known test cases.
-
-**Standard tasks:** Derivations, proofs, exploratory simulations, data analysis without known answer, write-up tasks.
-
-**Why TDD gets own plan:** TDD requires RED->GREEN->OPTIMIZE cycles consuming 40-50% context. Embedding in multi-task plans degrades quality.
-
-## External Resource Detection
-
-For tasks involving external computational resources, identify researcher-required configuration:
-
-External resource indicators: HPC cluster access (`slurm`, `mpi`), licensed software (`mathematica`, `matlab`, `gaussian`), large datasets, GPU computing frameworks, experimental data access.
-
-For each external resource, determine:
-
-1. **Credentials needed** -- What cluster accounts, licenses?
-2. **Environment setup** -- Module loads, conda environments, compilation?
-3. **Data access** -- Where is experimental/observational data stored?
-
-Record in `researcher_setup` frontmatter. Only include what the assistant literally cannot do. Do NOT surface in planning output -- execute-plan handles presentation.
+If the task needs credentials, licenses, cluster access, or other human-only setup, record that in `researcher_setup`.
 
 </task_breakdown>
 
@@ -675,47 +479,9 @@ Wave analysis:
   Wave 5: F (checkpoint, depends on Wave 4)
 ```
 
-## Vertical Slices vs Horizontal Layers
+## Parallelism Rule
 
-**Vertical slices (PREFER when possible):**
-
-```
-Plan 01: Scalar field (Lagrangian + EOM + propagator + numerical check)
-Plan 02: Spinor field (Lagrangian + EOM + propagator + numerical check)
-Plan 03: Gauge field (Lagrangian + EOM + propagator + numerical check)
-```
-
-Result: All three run parallel (Wave 1) -- each is self-contained.
-
-**Horizontal layers (NECESSARY for most physics):**
-
-```
-Plan 01: Establish conventions and derive free theory
-Plan 02: Compute interaction vertices from conventions + free theory
-Plan 03: Calculate loop corrections using vertices + propagators
-```
-
-Result: Fully sequential -- physics demands it.
-
-**When vertical slices work:** Independent physical systems, parameter sweeps, separate limiting cases, independent observables from same simulation data.
-
-**When horizontal layers necessary (COMMON in physics):** Mathematical prerequisites cascade (derive A before using A in B), approximation schemes build on each other (leading order before next-to-leading), computational infrastructure must exist before science runs, conventions must be established before any calculation.
-
-**Physics planning reality:** Most physics research has inherently sequential logical structure. Do NOT force vertical slices when the physics demands sequential derivation. Instead, maximize parallelism WITHIN each logical layer.
-
-## File Ownership for Parallel Execution
-
-Exclusive file ownership prevents conflicts:
-
-```yaml
-# Plan 01 frontmatter
-files_modified: [derivations/scalar_propagator.tex, code/scalar_propagator.py]
-
-# Plan 02 frontmatter (no overlap = parallel)
-files_modified: [derivations/spinor_propagator.tex, code/spinor_propagator.py]
-```
-
-No overlap -> can run parallel. File in multiple plans -> later plan depends on earlier.
+Use vertical slices when tasks are independent; use horizontal layers when the physics creates a real prerequisite chain. Do not force parallelism where the calculation is inherently sequential.
 
 </dependency_graph>
 
@@ -723,56 +489,15 @@ No overlap -> can run parallel. File in multiple plans -> later plan depends on 
 
 ## Context Budget Rules
 
-Plans should complete within ~50% context (not 80%). Physics requires precision throughout -- sign errors in the final step are as fatal as in the first. No context anxiety, rigor maintained start to finish, room for unexpected algebraic complexity.
+Plans should stay near 50% of context, usually with 2-3 tasks. Split whenever a plan crosses regimes, touches too many files, or mixes discovery with implementation.
 
-**Each plan: 2-3 tasks maximum.**
+## Budget Heuristics
 
-| Task Complexity                                        | Tasks/Plan | Context/Task | Total   |
-| ------------------------------------------------------ | ---------- | ------------ | ------- |
-| Simple (known integral, unit conversion, plotting)     | 3          | ~10-15%      | ~30-45% |
-| Standard (single derivation, algorithm implementation) | 2          | ~20-30%      | ~40-50% |
-| Complex (multi-step derivation, novel calculation)     | 1-2        | ~30-40%      | ~30-50% |
+- Simple work: 3 tasks, roughly 30-45% total context.
+- Standard work: 2 tasks, roughly 40-50% total context.
+- Complex work: 1-2 tasks, roughly 30-50% total context.
 
-## Split Signals
-
-**ALWAYS split if:**
-
-- More than 3 tasks
-- Multiple physics regimes (classical + quantum = separate plans)
-- Any task requiring >5 file modifications
-- Checkpoint + derivation in same plan
-- Discovery + implementation in same plan
-- Derivation + numerical validation in same plan (unless trivially coupled)
-
-**CONSIDER splitting:** Complex index contractions (tensor calculations eat context fast), long algebraic manipulations, multiple coordinate transformations, uncertainty about convergence of approach.
-
-## Depth Calibration
-
-| Depth                          | Typical Plans/Phase | Tasks/Plan |
-| ------------------------------ | ------------------- | ---------- |
-| Quick (known calculation)      | 1-3                 | 2-3        |
-| Standard (textbook extension)  | 3-5                 | 2-3        |
-| Comprehensive (research-grade) | 5-10                | 2-3        |
-
-Derive plans from actual work. Depth determines compression tolerance, not a target. Don't pad straightforward calculations to hit a number. Don't compress a difficult derivation to look efficient.
-
-Load `{GPD_INSTALL_DIR}/references/planning/planner-scope-examples.md` on demand when scope pressure, plan depth, or task-count tradeoffs are unclear.
-
-## Context Per Task Estimates
-
-| Files Modified | Context Impact   |
-| -------------- | ---------------- |
-| 0-3 files      | ~10-15% (small)  |
-| 4-6 files      | ~20-30% (medium) |
-| 7+ files       | ~40%+ (split)    |
-
-| Complexity                                  | Context/Task |
-| ------------------------------------------- | ------------ |
-| Known formula application                   | ~10%         |
-| Standard derivation                         | ~20%         |
-| Multi-step derivation with index gymnastics | ~35%         |
-| Novel calculation or proof                  | ~40%         |
-| Tensor algebra in curved spacetime          | ~45%         |
+Load the scope examples reference only when the tradeoff is unclear.
 
 </scope_estimation>
 
@@ -780,44 +505,11 @@ Load `{GPD_INSTALL_DIR}/references/planning/planner-scope-examples.md` on demand
 
 ## Execution Time Heuristics
 
-Rough estimates for different task types. Use these to set expectations and detect scope problems; a phase with 10+ hours of estimated work should usually be split.
+Use rough execution-time estimates to catch scope creep. Split plans that clearly exceed 90 minutes of assistant work.
 
-| Task Type | Typical Execution Time |
-|---|---|
-| Convention establishment | 5-10 min |
-| Known formula application | 10-15 min |
-| Standard textbook derivation | 15-30 min |
-| Multi-step derivation | 30-60 min |
-| Novel calculation or proof | 45-90 min |
-| Algorithm implementation + test | 20-40 min |
-| Monte Carlo simulation (setup + short run) | 30-60 min |
-| Data analysis + visualization | 15-30 min |
-| Literature comparison task | 10-20 min |
-| Limiting case verification | 10-20 min |
-
-**Complexity multipliers:**
-
-| Factor | Multiplier | Example |
-|---|---|---|
-| Tensor indices (d-dimensional) | 1.5-2x | Riemann tensor contractions in arbitrary d |
-| Multiple coupled equations | 1.3-1.5x | Self-consistent mean-field with 3+ order parameters |
-| Symbolic + numerical mixed | 1.3x | Derive analytically, then implement and validate numerically |
-| Unfamiliar formalism | 1.5-2x | First use of Schwinger-Keldysh, worldline, etc. |
-| Large output (>100 lines of equations) | 1.5x | Complete set of Feynman rules for a model |
-
-**Use:** Multiply base time by applicable multipliers. If total estimated time for a plan exceeds 90 min, split. Include estimate in plan frontmatter:
-
-```yaml
-estimated_execution:
-  total_minutes: 45
-  breakdown:
-    - task: 1
-      minutes: 20
-      note: "Standard derivation"
-    - task: 2
-      minutes: 25
-      note: "Numerical implementation + convergence test"
-```
+- Convention setup is usually 5-10 minutes.
+- Standard derivations and data analysis usually fit 15-30 minutes.
+- Multi-step derivations, proofs, or simulations usually take 30-90 minutes.
 
 </execution_time_estimation>
 

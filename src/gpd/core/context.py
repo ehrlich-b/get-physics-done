@@ -94,6 +94,33 @@ from gpd.core.utils import phase_normalize as _phase_normalize_impl
 from gpd.core.utils import phase_sort_key as _phase_sort_key
 from gpd.core.utils import safe_read_file as _safe_read_file
 from gpd.core.utils import safe_read_file_truncated as _safe_read_file_truncated
+from gpd.core.workflow_staging import (
+    PLAN_PHASE_CONTRACT_GATE_FIELDS as _PLAN_PHASE_CONTRACT_GATE_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    PLAN_PHASE_FILE_CONTENT_FIELDS as _PLAN_PHASE_FILE_CONTENT_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    PLAN_PHASE_INIT_FIELDS as _PLAN_PHASE_INIT_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    PLAN_PHASE_REFERENCE_RUNTIME_FIELDS as _PLAN_PHASE_REFERENCE_RUNTIME_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    PLAN_PHASE_STATE_MEMORY_FIELDS as _PLAN_PHASE_STATE_MEMORY_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    PLAN_PHASE_STRUCTURED_STATE_FIELDS as _PLAN_PHASE_STRUCTURED_STATE_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    QUICK_CONTRACT_GATE_FIELDS as _QUICK_CONTRACT_GATE_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    QUICK_INIT_FIELDS as _QUICK_INIT_FIELDS,
+)
+from gpd.core.workflow_staging import (
+    QUICK_REFERENCE_RUNTIME_FIELDS as _QUICK_REFERENCE_RUNTIME_FIELDS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -126,109 +153,15 @@ _PLAN_PHASE_STAGE_ALLOWED_TOOLS = frozenset(
         "web_fetch",
     }
 )
-_PLAN_PHASE_BASE_INIT_FIELDS = frozenset(
+_QUICK_STAGE_ALLOWED_TOOLS = frozenset(
     {
-        "researcher_model",
-        "planner_model",
-        "checker_model",
-        "research_enabled",
-        "plan_checker_enabled",
-        "commit_docs",
-        "autonomy",
-        "research_mode",
-        "phase_found",
-        "phase_dir",
-        "phase_number",
-        "phase_name",
-        "phase_slug",
-        "padded_phase",
-        "has_research",
-        "has_context",
-        "has_plans",
-        "plan_count",
-        "planning_exists",
-        "roadmap_exists",
-        "platform",
-    }
-)
-_PLAN_PHASE_CONTRACT_GATE_FIELDS = frozenset(
-    {
-        "project_contract",
-        "project_contract_gate",
-        "project_contract_load_info",
-        "project_contract_validation",
-    }
-)
-_PLAN_PHASE_REFERENCE_RUNTIME_FIELDS = frozenset(
-    {
-        "contract_intake",
-        "effective_reference_intake",
-        "selected_protocol_bundle_ids",
-        "protocol_bundle_count",
-        "protocol_bundle_context",
-        "protocol_bundle_verifier_extensions",
-        "active_reference_context",
-        "knowledge_doc_files",
-        "knowledge_doc_count",
-        "stable_knowledge_doc_files",
-        "stable_knowledge_doc_count",
-        "knowledge_doc_status_counts",
-        "derived_knowledge_docs",
-        "derived_knowledge_doc_count",
-        "knowledge_doc_warnings",
-        "reference_artifact_files",
-        "reference_artifacts_content",
-        "literature_review_files",
-        "literature_review_count",
-        "research_map_reference_files",
-        "research_map_reference_count",
-        "derived_manuscript_proof_review_status",
-    }
-)
-_PLAN_PHASE_STRUCTURED_STATE_FIELDS = frozenset(
-    {
-        "state_load_source",
-        "state_integrity_issues",
-        "convention_lock",
-        "convention_lock_count",
-        "intermediate_results",
-        "intermediate_result_count",
-        "approximations",
-        "approximation_count",
-        "propagated_uncertainties",
-        "propagated_uncertainty_count",
-    }
-)
-_PLAN_PHASE_STATE_MEMORY_FIELDS = frozenset(
-    {
-        "derived_convention_lock",
-        "derived_convention_lock_count",
-        "derived_intermediate_results",
-        "derived_intermediate_result_count",
-        "derived_approximations",
-        "derived_approximation_count",
-    }
-)
-_PLAN_PHASE_FILE_CONTENT_FIELDS = frozenset(
-    {
-        "state_content",
-        "roadmap_content",
-        "requirements_content",
-        "context_content",
-        "research_content",
-        "experiment_design_content",
-        "verification_content",
-        "validation_content",
-    }
-)
-_PLAN_PHASE_INIT_FIELDS = frozenset(
-    {
-        *_PLAN_PHASE_BASE_INIT_FIELDS,
-        *_PLAN_PHASE_CONTRACT_GATE_FIELDS,
-        *_PLAN_PHASE_REFERENCE_RUNTIME_FIELDS,
-        *_PLAN_PHASE_STRUCTURED_STATE_FIELDS,
-        *_PLAN_PHASE_STATE_MEMORY_FIELDS,
-        *_PLAN_PHASE_FILE_CONTENT_FIELDS,
+        "ask_user",
+        "file_read",
+        "file_write",
+        "find_files",
+        "search_files",
+        "shell",
+        "task",
     }
 )
 _RESUME_BASE_INIT_FIELDS = frozenset(
@@ -3191,7 +3124,7 @@ def init_new_milestone(cwd: Path, stage: str | None = None) -> dict:
     return staged_payload
 
 
-def init_quick(cwd: Path, description: str | None = None) -> dict:
+def init_quick(cwd: Path, description: str | None = None, stage: str | None = None) -> dict:
     """Assemble context for quick task execution."""
     config = load_config(cwd)
     now = datetime.now(UTC)
@@ -3241,9 +3174,39 @@ def init_quick(cwd: Path, description: str | None = None) -> dict:
         # Platform
         "platform": _detect_platform(cwd),
     }
-    result.update(_build_reference_runtime_context(cwd))
-    result.update(_build_state_memory_runtime_context(cwd))
-    return result
+
+    if stage is None:
+        result.update(_build_reference_runtime_context(cwd))
+        result.update(_build_state_memory_runtime_context(cwd))
+        return result
+
+    from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+    manifest = load_workflow_stage_manifest(
+        "quick",
+        allowed_tools=_QUICK_STAGE_ALLOWED_TOOLS,
+        known_init_fields=_QUICK_INIT_FIELDS,
+    )
+    try:
+        stage_def = manifest.stage_by_id(stage)
+    except KeyError as exc:
+        raise ValueError(f"Unknown quick stage {stage!r}. Allowed values: {', '.join(manifest.stage_ids())}.") from exc
+
+    required_fields = set(stage_def.required_init_fields)
+    staged_source = dict(result)
+
+    if required_fields & _QUICK_REFERENCE_RUNTIME_FIELDS:
+        staged_source.update(_build_reference_runtime_context(cwd))
+    elif required_fields & _QUICK_CONTRACT_GATE_FIELDS:
+        staged_source.update(_build_new_project_contract_runtime_context(cwd))
+
+    missing_fields = [field for field in stage_def.required_init_fields if field not in staged_source]
+    if missing_fields:
+        raise ValueError(f"quick stage {stage!r} requires unavailable init field(s): {', '.join(missing_fields)}")
+
+    staged_payload = {field: staged_source[field] for field in stage_def.required_init_fields}
+    staged_payload["staged_loading"] = manifest.staged_loading_payload(stage_def.id)
+    return staged_payload
 
 
 def init_resume(cwd: Path, *, data_root: Path | None = None, stage: str | None = None) -> dict:

@@ -3547,6 +3547,7 @@ def test_stage7_runtime_parity_docs_use_canonical_model_resolution_and_generic_h
     assert "False failure report despite delivered work" in execute_phase
     assert "Handoff verification" in quick
     assert "First, read {GPD_AGENTS_DIR}/gpd-planner.md for your role and instructions." in quick
+    assert "supports staged planner loading when available" in quick
     assert "project_contract_load_info.status" in quick
     assert "project_contract_validation.valid" in quick
     assert "project_contract_validation" in quick
@@ -3561,6 +3562,7 @@ def test_stage7_runtime_parity_docs_use_canonical_model_resolution_and_generic_h
     assert "**Contract Intake:** {contract_intake}" in quick
     assert "Contract intake: {contract_intake}" in quick
     assert "Project contract gate: {project_contract_gate}" in quick
+    assert "gpd validate plan-preflight" in quick
     assert "## CHECKPOINT REACHED" in quick
     assert "classifyHandoffIfNeeded" not in execute_phase
     assert "classifyHandoffIfNeeded" not in execute_plan
