@@ -440,6 +440,46 @@ def test_known_init_fields_for_quick_cover_task_bootstrap_and_reference_context(
             },
         ),
         (
+            "new-milestone",
+            {
+                "researcher_model",
+                "synthesizer_model",
+                "roadmapper_model",
+                "commit_docs",
+                "autonomy",
+                "research_mode",
+                "research_enabled",
+                "current_milestone",
+                "current_milestone_name",
+                "project_exists",
+                "roadmap_exists",
+                "state_exists",
+                "project_contract",
+                "project_contract_gate",
+                "project_contract_load_info",
+                "project_contract_validation",
+                "contract_intake",
+                "effective_reference_intake",
+                "active_reference_context",
+                "reference_artifact_files",
+                "reference_artifacts_content",
+                "literature_review_files",
+                "literature_review_count",
+                "research_map_reference_files",
+                "research_map_reference_count",
+                "derived_convention_lock",
+                "derived_convention_lock_count",
+                "derived_intermediate_results",
+                "derived_intermediate_result_count",
+                "derived_approximations",
+                "derived_approximation_count",
+                "project_content",
+                "state_content",
+                "milestones_content",
+                "platform",
+            },
+        ),
+        (
             "map-research",
             {
                 "mapper_model",
@@ -508,6 +548,54 @@ def test_validate_workflow_stage_manifest_payload_loads_research_phase_manifest(
         "reference and contract context are visible to the handoff",
         "runtime delegation note is loaded only for the child handoff",
         "fresh RESEARCH artifact is required before completion",
+    )
+
+
+def test_validate_workflow_stage_manifest_payload_loads_new_milestone_manifest() -> None:
+    manifest = validate_workflow_stage_manifest_payload(
+        _workflow_payload("new-milestone"),
+        expected_workflow_id="new-milestone",
+    )
+
+    assert manifest.workflow_id == "new-milestone"
+    assert manifest.stage_ids() == ("milestone_bootstrap", "survey_objectives", "roadmap_authoring")
+    assert manifest.stage("milestone_bootstrap").loaded_authorities == ("workflows/new-milestone.md",)
+    assert "references/research/questioning.md" in manifest.stage("milestone_bootstrap").must_not_eager_load
+    assert "templates/project.md" in manifest.stage("milestone_bootstrap").must_not_eager_load
+    assert "templates/requirements.md" in manifest.stage("milestone_bootstrap").must_not_eager_load
+    assert manifest.stage("survey_objectives").loaded_authorities == (
+        "workflows/new-milestone.md",
+        "references/research/questioning.md",
+    )
+    assert "contract_intake" in manifest.stage("survey_objectives").required_init_fields
+    assert "effective_reference_intake" in manifest.stage("survey_objectives").required_init_fields
+    assert "reference_artifacts_content" in manifest.stage("survey_objectives").required_init_fields
+    assert manifest.stage("survey_objectives").writes_allowed == (
+        "GPD/PROJECT.md",
+        "GPD/STATE.md",
+        "GPD/literature",
+    )
+    assert manifest.stage("survey_objectives").checkpoints == (
+        "prior milestone context reviewed",
+        "survey choice and objective scope captured",
+    )
+    assert manifest.stage("roadmap_authoring").loaded_authorities == (
+        "workflows/new-milestone.md",
+        "templates/project.md",
+        "templates/requirements.md",
+    )
+    assert "requirements_content" in manifest.stage("roadmap_authoring").required_init_fields
+    assert "roadmap_content" in manifest.stage("roadmap_authoring").required_init_fields
+    assert manifest.stage("roadmap_authoring").writes_allowed == (
+        "GPD/PROJECT.md",
+        "GPD/STATE.md",
+        "GPD/REQUIREMENTS.md",
+        "GPD/ROADMAP.md",
+        "GPD/literature",
+    )
+    assert manifest.stage("roadmap_authoring").checkpoints == (
+        "objectives finalized",
+        "roadmap authored",
     )
 
 

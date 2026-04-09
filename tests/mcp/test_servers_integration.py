@@ -609,6 +609,26 @@ class TestSkillsServerIntegration:
         assert "Why subagent" in command["content"]
         assert "literature-review" in reviewer["content"]
 
+    def test_get_skill_project_researcher_surfaces_one_shot_handoff_contract(self):
+        from gpd.mcp.servers.skills_server import get_skill
+
+        result = get_skill("gpd-project-researcher")
+
+        assert "error" not in result
+        assert result["name"] == "gpd-project-researcher"
+        assert result["category"] == "research"
+        assert result["allowed_tools_surface"] == "agent.tools"
+        assert result["content_authority"] == "canonical"
+        assert result["structured_metadata_authority"]["content"] == "canonical"
+        assert result["structured_metadata_authority"]["allowed_tools"] == "mirrored"
+        assert result["structured_metadata_authority"]["agent_policy"] == "mirrored"
+        assert "Checkpoint after the initial survey with scope confirmation." in result["content"]
+        assert "gpd_return:" in result["content"]
+        assert "status: completed | checkpoint | blocked | failed" in result["content"]
+        assert "wait for confirmation" not in result["content"]
+        assert "pause here for approval" not in result["content"]
+        assert "ask the user then continue" not in result["content"]
+
     def test_get_skill_surfaces_template_backed_schema_documents_for_writing_and_resume(self):
         from gpd.mcp.servers.skills_server import get_skill
 

@@ -222,6 +222,13 @@ Focus ONLY on what's needed for the NEW research questions.
 Write to: GPD/literature/{FILE}
 Use template: {GPD_INSTALL_DIR}/templates/research-project/{FILE}
 </output>
+
+<return_contract>
+This is a one-shot handoff. Return a typed `gpd_return` envelope with `status` and `files_written`.
+Route on `gpd_return.status` and `gpd_return.files_written`, not on the human-readable handoff text.
+If you need user input, return `status: checkpoint` and stop; do not wait inside the same run.
+Treat `GPD/literature/{FILE}` as fresh only when the file exists on disk and the same path appears in `gpd_return.files_written`.
+</return_contract>
 ", subagent_type="gpd-project-researcher", model="{researcher_model}", readonly=false, description="{DIMENSION} survey")
 ```
 
@@ -240,6 +247,8 @@ shared_state_policy: return_only
 ```
 
 Each scout contract is task-local. Do not widen the write scope or reuse a shared survey contract across dimensions.
+Treat each scout as a one-shot handoff: if it needs user input, it must return `status: checkpoint` and stop, not wait in place.
+Treat `gpd_return.status` and `gpd_return.files_written` as the only freshness signal for a scout result.
 
 **Dimension-specific fields:**
 
@@ -251,7 +260,13 @@ Each scout contract is task-local. Do not widen the write scope or reuse a share
 | GATES            | References specific, conditions stated, relevance explained            | Methods specific to this physics domain, cost noted, limitations identified | Algorithms defined with convergence criteria, versions current, dependencies mapped | Pitfalls specific to this extension, numerical issues covered, prevention actionable |
 | FILE             | PRIOR-WORK.md                                                          | METHODS.md                                                                  | COMPUTATIONAL.md                                                                    | PITFALLS.md                                                                          |
 
-Before trusting the scout handoff, re-read the expected output files from disk and count only artifacts that actually exist. Do not trust the runtime handoff status by itself.
+Before trusting the scout handoff, route on `gpd_return.status` and `gpd_return.files_written`, then re-read the expected output files from disk and count only artifacts that actually exist. Do not trust the runtime handoff status by itself.
+
+**If `gpd_return.status: completed`:** verify that the expected `GPD/literature/{FILE}` path is readable on disk and named in `gpd_return.files_written`. If the same path already existed before this handoff, it only counts as fresh output when it appears in `gpd_return.files_written`.
+
+**If `gpd_return.status: checkpoint`:** present the checkpoint, collect the user's input, and spawn a fresh continuation for the same scout dimension. Do not let the original scout run continue after the checkpoint.
+
+**If `gpd_return.status: blocked` or `failed`:** surface the blocker or error, retry only the missing scout once in the same task-local write scope if the artifact is absent, and stop the survey path if freshness still cannot be proven.
 
 **If any research agent fails to spawn or returns an error:** Verify which required scout artifacts exist (`PRIOR-WORK.md`, `METHODS.md`, `COMPUTATIONAL.md`, `PITFALLS.md`). Retry only the missing scout tasks once with the same task-local write scope. If any required research file is still missing after the retry, STOP this survey path and present the missing artifacts. Do not synthesize from incomplete scout output and do not continue the milestone on partial survey results.
 

@@ -493,7 +493,7 @@ flowchart TD
 - `src/gpd/commands/explain.md -> src/gpd/agents/{gpd-explainer,gpd-bibliographer}.md`
   `spawn`
 
-- `src/gpd/commands/literature-review.md -> src/gpd/agents/gpd-literature-reviewer.md`
+- `src/gpd/specs/workflows/literature-review.md -> src/gpd/agents/gpd-literature-reviewer.md`
   `spawn`
 
 - `src/gpd/commands/debug.md -> src/gpd/agents/gpd-debugger.md`

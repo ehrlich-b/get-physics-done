@@ -2595,6 +2595,80 @@ class TestInitNewMilestone:
         assert "project_contract_load_info" in ctx
         assert "project_contract_validation" in ctx
 
+    def test_new_milestone_stage_survey_objectives_filters_payload(self, tmp_path: Path) -> None:
+        from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+        _setup_project(tmp_path)
+        _create_roadmap(tmp_path, "## Milestone v1.0: Setup Phase\n")
+        _write_project_contract_state(tmp_path)
+        _write_literature_review_anchor_file(tmp_path)
+        _write_research_map_anchor_files(tmp_path)
+
+        manifest = load_workflow_stage_manifest("new-milestone")
+        stage = manifest.get_stage("survey_objectives")
+
+        ctx = init_new_milestone(tmp_path, stage="survey_objectives")
+
+        assert set(ctx) == set(stage.required_init_fields) | {"staged_loading"}
+        assert ctx["staged_loading"]["workflow_id"] == "new-milestone"
+        assert ctx["staged_loading"]["stage_id"] == "survey_objectives"
+        assert ctx["staged_loading"]["loaded_authorities"] == [
+            "workflows/new-milestone.md",
+            "references/research/questioning.md",
+        ]
+        assert ctx["staged_loading"]["writes_allowed"] == [
+            "GPD/PROJECT.md",
+            "GPD/STATE.md",
+            "GPD/literature",
+        ]
+        assert ctx["staged_loading"]["checkpoints"] == [
+            "prior milestone context reviewed",
+            "survey choice and objective scope captured",
+        ]
+        assert "contract_intake" in ctx
+        assert "effective_reference_intake" in ctx
+        assert "reference_artifacts_content" in ctx
+
+    def test_new_milestone_stage_roadmap_authoring_filters_payload(self, tmp_path: Path) -> None:
+        from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+        _setup_project(tmp_path)
+        _create_roadmap(tmp_path, "## Milestone v1.0: Setup Phase\n")
+        (tmp_path / "GPD" / "PROJECT.md").write_text("# Project\n\nMilestone context.\n", encoding="utf-8")
+        (tmp_path / "GPD" / "STATE.md").write_text("# State\n\nReady.\n", encoding="utf-8")
+        (tmp_path / "GPD" / "REQUIREMENTS.md").write_text("# Requirements\n\n- Confirm objective.\n", encoding="utf-8")
+        (tmp_path / "GPD" / "ROADMAP.md").write_text("# Roadmap\n\n## Milestone v1.0\n", encoding="utf-8")
+        _write_project_contract_state(tmp_path)
+        _write_literature_review_anchor_file(tmp_path)
+        _write_research_map_anchor_files(tmp_path)
+
+        manifest = load_workflow_stage_manifest("new-milestone")
+        stage = manifest.get_stage("roadmap_authoring")
+
+        ctx = init_new_milestone(tmp_path, stage="roadmap_authoring")
+
+        assert set(ctx) == set(stage.required_init_fields) | {"staged_loading"}
+        assert ctx["staged_loading"]["workflow_id"] == "new-milestone"
+        assert ctx["staged_loading"]["stage_id"] == "roadmap_authoring"
+        assert ctx["staged_loading"]["loaded_authorities"] == [
+            "workflows/new-milestone.md",
+            "templates/project.md",
+            "templates/requirements.md",
+        ]
+        assert ctx["staged_loading"]["writes_allowed"] == [
+            "GPD/PROJECT.md",
+            "GPD/STATE.md",
+            "GPD/REQUIREMENTS.md",
+            "GPD/ROADMAP.md",
+            "GPD/literature",
+        ]
+        assert ctx["staged_loading"]["checkpoints"] == [
+            "objectives finalized",
+            "roadmap authored",
+        ]
+        assert "requirements_content" in ctx
+        assert "roadmap_content" in ctx
+
 
 # ─── init_quick ───────────────────────────────────────────────────────────────
 

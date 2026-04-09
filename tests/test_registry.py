@@ -1596,6 +1596,19 @@ class TestRegistryPromptIncludeInlining:
         assert "# Canonical Schema Discipline" in agent.system_prompt
         assert "<!-- [included:" not in agent.system_prompt
 
+    def test_project_researcher_system_prompt_keeps_one_shot_checkpoint_contract_visible(self) -> None:
+        agent = registry.get_skill("gpd-project-researcher")
+
+        assert agent.source_kind == "agent"
+        assert agent.path.endswith("gpd-project-researcher.md")
+        assert "Checkpoint after the initial survey with scope confirmation." in agent.content
+        assert "gpd_return:" in agent.content
+        assert "status: completed | checkpoint | blocked | failed" in agent.content
+        assert "Do NOT run `gpd commit`, `git commit`, or stage files." in agent.content
+        assert "wait for confirmation" not in agent.content
+        assert "pause here for approval" not in agent.content
+        assert "ask the user then continue" not in agent.content
+
     def test_plan_checker_registry_surface_keeps_direct_plan_contract_schema_and_checkpoint_contract_visible(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
