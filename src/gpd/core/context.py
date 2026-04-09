@@ -70,6 +70,7 @@ from gpd.core.proof_review import (
     resolve_phase_proof_review_status,
 )
 from gpd.core.protocol_bundles import render_protocol_bundle_context, select_protocol_bundles
+from gpd.core.publication_runtime import resolve_publication_runtime_snapshot
 from gpd.core.reference_ingestion import ingest_manuscript_reference_status, ingest_reference_artifacts
 from gpd.core.results import result_list
 from gpd.core.resume_surface import (
@@ -94,6 +95,9 @@ from gpd.core.utils import phase_normalize as _phase_normalize_impl
 from gpd.core.utils import phase_sort_key as _phase_sort_key
 from gpd.core.utils import safe_read_file as _safe_read_file
 from gpd.core.utils import safe_read_file_truncated as _safe_read_file_truncated
+from gpd.core.workflow_staging import (
+    PEER_REVIEW_INIT_FIELDS,
+)
 from gpd.core.workflow_staging import (
     PLAN_PHASE_CONTRACT_GATE_FIELDS as _PLAN_PHASE_CONTRACT_GATE_FIELDS,
 )
@@ -381,6 +385,71 @@ _WRITE_PAPER_INIT_FIELDS = frozenset(
         *_WRITE_PAPER_REFERENCE_RUNTIME_FIELDS,
         *_WRITE_PAPER_STATE_MEMORY_FIELDS,
         *_WRITE_PAPER_FILE_CONTENT_FIELDS,
+    }
+)
+_PEER_REVIEW_STAGE_ALLOWED_TOOLS = frozenset(
+    {
+        "ask_user",
+        "file_read",
+        "file_write",
+        "find_files",
+        "search_files",
+        "shell",
+        "task",
+        "web_search",
+    }
+)
+_PEER_REVIEW_REFERENCE_RUNTIME_FIELDS = frozenset(
+    {
+        "project_contract",
+        "project_contract_gate",
+        "project_contract_load_info",
+        "project_contract_validation",
+        "contract_intake",
+        "effective_reference_intake",
+        "selected_protocol_bundle_ids",
+        "protocol_bundle_context",
+        "active_reference_context",
+        "derived_manuscript_reference_status",
+        "derived_manuscript_reference_status_count",
+        "derived_manuscript_proof_review_status",
+        "reference_artifact_files",
+        "reference_artifacts_content",
+        "literature_review_files",
+        "literature_review_count",
+        "research_map_reference_files",
+        "research_map_reference_count",
+        "citation_source_files",
+        "citation_source_count",
+        "citation_source_warnings",
+        "derived_citation_sources",
+        "derived_citation_source_count",
+    }
+)
+_PEER_REVIEW_PUBLICATION_RUNTIME_FIELDS = frozenset(
+    {
+        "manuscript_resolution_status",
+        "manuscript_resolution_detail",
+        "manuscript_root",
+        "manuscript_entrypoint",
+        "artifact_manifest_path",
+        "bibliography_audit_path",
+        "reproducibility_manifest_path",
+        "publication_blockers",
+        "publication_blocker_count",
+        "latest_review_round",
+        "latest_review_round_suffix",
+        "latest_review_ledger",
+        "latest_referee_decision",
+        "latest_referee_report_md",
+        "latest_referee_report_tex",
+        "latest_proof_redteam",
+        "latest_review_artifacts",
+        "latest_response_round",
+        "latest_response_round_suffix",
+        "latest_author_response",
+        "latest_referee_response",
+        "latest_response_artifacts",
     }
 )
 _NEW_MILESTONE_STAGE_ALLOWED_TOOLS = frozenset(
@@ -723,6 +792,7 @@ __all__ = [
     "init_execute_phase",
     "init_map_research",
     "init_milestone_op",
+    "init_peer_review",
     "init_new_milestone",
     "init_new_project",
     "init_phase_op",
@@ -1781,6 +1851,25 @@ def _build_publication_bootstrap_runtime_context(
         "derived_manuscript_reference_status_count": len(derived_manuscript_reference_status),
         "derived_manuscript_proof_review_status": manuscript_proof_review_status.to_context_dict(cwd),
     }
+
+
+def _build_peer_review_runtime_context(
+    cwd: Path,
+    *,
+    persist_manuscript_proof_review_manifest: bool = False,
+) -> dict[str, object]:
+    """Build the shared publication runtime payload for peer-review init and staging."""
+
+    result = dict(
+        _build_reference_runtime_context(cwd, persist_manuscript_proof_review_manifest=persist_manuscript_proof_review_manifest)
+    )
+    result.update(
+        resolve_publication_runtime_snapshot(
+            cwd,
+            persist_manuscript_proof_review_manifest=persist_manuscript_proof_review_manifest,
+        ).to_context_dict(cwd)
+    )
+    return result
 
 
 def _has_structured_state_value(value: object) -> bool:
@@ -3610,6 +3699,56 @@ def init_write_paper(cwd: Path, stage: str | None = None) -> dict:
     if missing_fields:
         raise ValueError(
             f"write-paper stage {stage!r} requires unavailable init field(s): {', '.join(missing_fields)}"
+        )
+
+    staged_payload = {field: staged_source[field] for field in stage_def.required_init_fields}
+    staged_payload["staged_loading"] = manifest.staged_loading_payload(stage_def.id)
+    return staged_payload
+
+
+def init_peer_review(cwd: Path, stage: str | None = None) -> dict:
+    """Assemble context for staged manuscript peer review."""
+    config = load_config(cwd)
+    base_result: dict[str, object] = {
+        "commit_docs": config["commit_docs"],
+        "state_exists": _state_exists(cwd),
+        "project_exists": _path_exists(cwd, f"{PLANNING_DIR_NAME}/{PROJECT_FILENAME}"),
+        "autonomy": config["autonomy"],
+        "research_mode": config["research_mode"],
+        "platform": _detect_platform(cwd),
+    }
+    if stage is None:
+        result = dict(base_result)
+        result.update(_build_peer_review_runtime_context(cwd))
+        return result
+
+    from gpd.core.workflow_staging import load_workflow_stage_manifest
+
+    manifest = load_workflow_stage_manifest(
+        "peer-review",
+        allowed_tools=_PEER_REVIEW_STAGE_ALLOWED_TOOLS,
+        known_init_fields=PEER_REVIEW_INIT_FIELDS,
+    )
+    try:
+        stage_def = manifest.stage_by_id(stage)
+    except KeyError as exc:
+        raise ValueError(
+            f"Unknown peer-review stage {stage!r}. Allowed values: {', '.join(manifest.stage_ids())}."
+        ) from exc
+
+    required_fields = set(stage_def.required_init_fields)
+    staged_source = dict(base_result)
+    if required_fields & _PEER_REVIEW_REFERENCE_RUNTIME_FIELDS:
+        staged_source.update(_build_reference_runtime_context(cwd))
+    if required_fields & _PEER_REVIEW_PUBLICATION_RUNTIME_FIELDS:
+        staged_source.update(
+            resolve_publication_runtime_snapshot(cwd).to_context_dict(cwd)
+        )
+
+    missing_fields = [field for field in stage_def.required_init_fields if field not in staged_source]
+    if missing_fields:
+        raise ValueError(
+            f"peer-review stage {stage!r} requires unavailable init field(s): {', '.join(missing_fields)}"
         )
 
     staged_payload = {field: staged_source[field] for field in stage_def.required_init_fields}
