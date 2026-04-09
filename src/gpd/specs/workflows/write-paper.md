@@ -666,7 +666,7 @@ task(
 )
 ```
 
-**If a writer agent fails to spawn or returns an error:** Check the writer's typed `gpd_return.status` first. If the writer returned `status: completed`, verify that `gpd_return.files_written` names the expected `.tex` file and that the file exists on disk. If the writer returned `status: checkpoint`, treat it as an incomplete handoff and continue only by spawning a fresh continuation run after the orchestrator/user review. If the writer returned `status: blocked` or `status: failed`, treat the section as incomplete. If the expected file is present despite the spawn error, proceed to the next section only after recording the completed artifact on disk.
+**If a writer agent fails to spawn or returns an error:** Check the writer's typed `gpd_return.status` first. If the writer returned `status: completed`, verify that `gpd_return.files_written` names the expected `.tex` file and that the file exists on disk. If the writer returned `status: checkpoint`, treat it as an incomplete handoff and continue only by spawning a fresh continuation run after the orchestrator/user review. If the writer returned `status: blocked` or `status: failed`, treat the section as incomplete. Do not accept a preexisting `.tex` file as a substitute for a successful spawn; a spawn error always leaves the section incomplete until a fresh typed return names the artifact and the file exists on disk.
 
 Treat the emitted `.tex` file as the success artifact gate for each section.
 Route on the writer's typed return envelope. A writer response that does not report `status: completed`, does not list the emitted path in `files_written`, or does not leave the expected file on disk is not a completed section, even if the agent returned success text.
@@ -885,9 +885,8 @@ Return a typed `gpd_return` envelope. Use `status: completed` when the bibliogra
 
 **If the bibliographer agent fails to spawn or returns an error:** Do not mark bibliography verification complete. Offer: 1) Retry the bibliographer, 2) Run the audit in the main context, 3) Stop and leave citation status unverified. Do not proceed to strict review, reproducibility-manifest generation, or final review until `${PAPER_DIR}/CITATION-AUDIT.md` and the refreshed `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` exist.
 
-Treat `${PAPER_DIR}/CITATION-AUDIT.md`, the refreshed `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json`, and the bibliographer's typed `gpd_return` envelope as the bibliography success gate.
-Treat `${PAPER_DIR}/CITATION-AUDIT.md` and the refreshed `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json` as the bibliography success gate.
-Also require the bibliographer's typed `gpd_return` envelope. If the audit refresh did not regenerate the JSON artifact, or if `gpd_return.files_written` does not name the bibliography outputs, do not count the bibliography pass as complete.
+Treat `${PAPER_DIR}/CITATION-AUDIT.md`, the refreshed `${PAPER_DIR}/BIBLIOGRAPHY-AUDIT.json`, and the bibliographer's typed `gpd_return` envelope as the bibliography success gate; all three must be present, and the typed return must name the bibliography outputs, before the pass is accepted.
+If the typed return is missing, blocked, or does not name the bibliography outputs, keep the bibliography pass incomplete even if older audit files are still on disk.
 
 **If the bibliographer completed with issues recorded in the audit report or `GPD/references-status.json`:**
 
@@ -1055,7 +1054,7 @@ When revising a paper in response to referee reports:
    )
    ```
 
-   **If the response-artifact agent fails to spawn or returns an error:** Check the agent's typed `gpd_return.status` first. If it returned `status: completed`, verify that `gpd_return.files_written` names both `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/review/REFEREE_RESPONSE{round_suffix}.md`, and verify both files exist on disk. If it returned `status: checkpoint`, treat that as a fresh continuation handoff rather than completion. If it returned `status: blocked` or `status: failed`, treat the response as incomplete. If both files exist despite the spawn error, proceed to calculation tracking and consistency checks. If not, offer: 1) Retry the agent, 2) Draft the response artifacts in the main context using the referee report and revised manuscript, 3) Skip structured response and proceed directly to calculation tracking.
+   **If the response-artifact agent fails to spawn or returns an error:** Check the agent's typed `gpd_return.status` first. If it returned `status: completed`, verify that `gpd_return.files_written` names both `GPD/AUTHOR-RESPONSE{round_suffix}.md` and `GPD/review/REFEREE_RESPONSE{round_suffix}.md`, and verify both files exist on disk. If it returned `status: checkpoint`, treat that as a fresh continuation handoff rather than completion. If it returned `status: blocked` or `status: failed`, treat the response as incomplete. Do not accept preexisting response files as a substitute for a successful spawn; the round remains incomplete until a fresh typed return names both outputs and both files exist on disk. If not, offer: 1) Retry the agent, 2) Draft the response artifacts in the main context using the referee report and revised manuscript, 3) Skip structured response and proceed directly to calculation tracking.
 
    The `GPD/AUTHOR-RESPONSE{round_suffix}.md` tracker uses REF-xxx issue IDs matching the referee report, with classifications (fixed/rebutted/acknowledged/needs-calculation), specific change locations, and source-phase tracking for any new work. When present, `REVIEW-LEDGER{round_suffix}.json` and `REFEREE-DECISION{round_suffix}.json` provide the blocking-issue and recommendation-floor context that the response must resolve. See the canonical `templates/paper/author-response.md` contract and the gpd-paper-writer's `<author_response>` section for the full format.
 

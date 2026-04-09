@@ -64,8 +64,15 @@ def test_write_paper_workflow_defers_stage_authorities_until_the_manifest_stages
     figure_authoring = manifest.stages[2]
     consistency = manifest.stages[3]
     publication_review = manifest.stages[4]
+    late_stage_authorities = {
+        authority
+        for stage in manifest.stages[1:]
+        for authority in stage.loaded_authorities
+        if authority != "workflows/write-paper.md"
+    }
 
     assert bootstrap.loaded_authorities == ("workflows/write-paper.md",)
+    assert late_stage_authorities.issubset(set(bootstrap.must_not_eager_load))
     assert "references/publication/publication-pipeline-modes.md" in bootstrap.must_not_eager_load
     assert "references/publication/peer-review-panel.md" in bootstrap.must_not_eager_load
     assert "templates/paper/paper-config-schema.md" in bootstrap.must_not_eager_load
