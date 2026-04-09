@@ -265,7 +265,7 @@ Protocol bundle verifier extensions: {protocol_bundle_verifier_extensions}
 Proof freshness summary: {phase_proof_review_status}
 </verification_context>
 
-Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. Use `protocol_bundle_verifier_extensions` as the primary bundle-extension surface. Keep decisive comparison gaps legible at the claim / acceptance-test / reference level. If user input is required, return `gpd_return.status: checkpoint` and stop; do not wait inside the same run. Write the canonical verification artifact before returning.
+Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. Use `protocol_bundle_verifier_extensions` as the primary bundle-extension surface. Keep decisive comparison gaps legible at the claim / acceptance-test / reference level. If user input is required, return `gpd_return.status: checkpoint` and stop; do not wait inside the same run.
 
 <spawn_contract>
 write_scope:

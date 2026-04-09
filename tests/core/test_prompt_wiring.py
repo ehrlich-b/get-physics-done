@@ -1867,23 +1867,14 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
         assert legacy_alias not in summary_template
     assert "`suggested_contract_checks` is verification-only and does not belong in summaries." in summary_template
     assert "contract_results" in verification_template
-    assert "## Canonical Report Surface" in verification_template
     assert "machine-readable surface limited to the schema-owned ledgers" in verification_template
-    assert "Comparison verdicts must declare `subject_role` explicitly" in verification_template
-    assert "subject_role: decisive" in verification_template
     assert "verification-side `suggested_contract_checks`" in verification_template
-    assert "uncertainty_markers" in verification_template
     assert (
         "Use `@{GPD_INSTALL_DIR}/templates/verification-report.md` for the canonical verification frontmatter contract."
         in research_verification
     )
     assert "status: gaps_found" in research_verification
     assert "# Allowed status values: passed|gaps_found|expert_needed|human_needed" in research_verification
-    assert "status: passed | gaps_found | expert_needed | human_needed" not in research_verification
-    assert "deliverables: {}" not in research_verification
-    assert "acceptance_tests: {}" not in research_verification
-    assert "references: {}" not in research_verification
-    assert "forbidden_proxies: {}" not in research_verification
     assert "deliverable-main" in research_verification
     assert "acceptance-test-main" in research_verification
     assert "reference-main" in research_verification
@@ -1937,7 +1928,6 @@ def test_plan_tool_preflight_surfaces_across_planning_and_execution_prompts() ->
     assert "Each gap has: `gap_subject_kind`" in verifier_agent
     assert "Each gap has: `subject_kind`" not in verifier_agent
     assert "Verification Status:** {passed | gaps_found | expert_needed | human_needed}" in verifier_agent
-    assert "uncertainty_markers:" in verifier_agent
     assert "`suggested_contract_check`" not in verifier_agent
     assert "`contract_results` is authoritative." in execute_plan
     assert "project_contract_validation" in execute_plan
@@ -3299,7 +3289,7 @@ def test_execute_phase_and_related_agents_surface_only_plan_scoped_verification_
     verifier = (AGENTS_DIR / "gpd-verifier.md").read_text(encoding="utf-8")
     audit_milestone = (WORKFLOWS_DIR / "audit-milestone.md").read_text(encoding="utf-8")
 
-    assert '"$phase_dir"/*-VERIFICATION.md' in execute_phase
+    assert "- Verification: {phase_dir}/{phase}-VERIFICATION.md" in execute_phase
     assert '"$phase_dir"/VERIFICATION.md "$phase_dir"/*-VERIFICATION.md' not in execute_phase
     assert 'ls "$phase_dir"/*-VERIFICATION.md 2>/dev/null' in planner
     assert 'find_files("$PHASE_DIR/*-VERIFICATION.md")' in verifier

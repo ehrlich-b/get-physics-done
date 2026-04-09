@@ -45,7 +45,6 @@ def test_contract_gate_is_visible_before_authoritative_use(
 
     assert expected_token in surface_line
     assert workflow.index(surface_line) < workflow.index("project_contract_gate.authoritative")
-    assert "project_contract_gate.authoritative" in workflow
 
 
 @pytest.mark.parametrize(

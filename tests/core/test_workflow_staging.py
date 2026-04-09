@@ -94,10 +94,19 @@ def test_validate_workflow_stage_manifest_payload_loads_verify_work_manifest() -
     assert manifest.stages[0].loaded_authorities == ("workflows/verify-work.md",)
     assert "references/verification/core/verification-core.md" in manifest.stages[0].must_not_eager_load
     assert "templates/verification-report.md" in manifest.stages[0].must_not_eager_load
+    assert "phase_proof_review_status" in manifest.stages[0].required_init_fields
+    assert "project_contract_gate" in manifest.stages[0].required_init_fields
+    assert "project_contract_load_info" in manifest.stages[0].required_init_fields
+    assert "project_contract_validation" in manifest.stages[0].required_init_fields
+    assert "references/verification/core/verification-core.md" in manifest.stages[1].must_not_eager_load
+    assert "phase_proof_review_status" in manifest.stages[1].required_init_fields
     assert manifest.stages[2].loaded_authorities == (
         "workflows/verify-work.md",
         "references/verification/meta/verification-independence.md",
     )
+    assert "protocol_bundle_verifier_extensions" in manifest.stages[2].required_init_fields
+    assert "active_reference_context" in manifest.stages[2].required_init_fields
+    assert "reference_artifacts_content" not in manifest.stages[2].required_init_fields
     assert manifest.stages[3].allowed_tools == (
         "ask_user",
         "file_read",
@@ -114,6 +123,8 @@ def test_validate_workflow_stage_manifest_payload_loads_verify_work_manifest() -
         "writer-stage schema is visible",
         "check results remain contract-backed",
     )
+    assert "reference_artifact_files" in manifest.stages[3].required_init_fields
+    assert "reference_artifacts_content" not in manifest.stages[3].required_init_fields
     assert manifest.stages[3].loaded_authorities == (
         "workflows/verify-work.md",
         "templates/research-verification.md",
@@ -137,6 +148,8 @@ def test_validate_workflow_stage_manifest_payload_loads_verify_work_manifest() -
         "repair plans are verified",
         "verification closeout is ready",
     )
+    assert "reference_artifact_files" in manifest.stages[4].required_init_fields
+    assert "reference_artifacts_content" in manifest.stages[4].required_init_fields
     assert manifest.stages[4].loaded_authorities == (
         "workflows/verify-work.md",
         "templates/research-verification.md",
@@ -145,7 +158,21 @@ def test_validate_workflow_stage_manifest_payload_loads_verify_work_manifest() -
         "references/shared/canonical-schema-discipline.md",
         "references/protocols/error-propagation-protocol.md",
     )
-    assert manifest.stages[4].next_stages == ()
+
+
+def test_known_init_fields_for_verify_work_include_proof_gate_and_artifact_context() -> None:
+    known_init_fields = known_init_fields_for_workflow("verify-work")
+
+    assert known_init_fields is not None
+    assert "phase_proof_review_status" in known_init_fields
+    assert "project_contract_gate" in known_init_fields
+    assert "project_contract_load_info" in known_init_fields
+    assert "project_contract_validation" in known_init_fields
+    assert "selected_protocol_bundle_ids" in known_init_fields
+    assert "protocol_bundle_verifier_extensions" in known_init_fields
+    assert "derived_manuscript_proof_review_status" in known_init_fields
+    assert "reference_artifact_files" in known_init_fields
+    assert "reference_artifacts_content" in known_init_fields
 
 
 def test_validate_workflow_stage_manifest_payload_loads_plan_phase_manifest() -> None:

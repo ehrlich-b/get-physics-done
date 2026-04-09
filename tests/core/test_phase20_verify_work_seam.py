@@ -20,6 +20,8 @@ def test_verify_work_verifier_handoff_stays_one_shot_and_routes_on_typed_status(
     assert "Spawn `gpd-verifier` once and let it own the physics policy." in workflow
     assert 'subagent_type="gpd-verifier"' in workflow
     assert "<spawn_contract>" in workflow
+    assert "Route only on the canonical verification frontmatter and `gpd_return.status`; do not route on headings or marker strings." in workflow
+    assert "If the canonical verification artifact is missing, unreadable, absent from `gpd_return.files_written`, or fails contract validation, treat the handoff as incomplete and request a fresh verifier continuation. Never trust the return text alone." in workflow
     assert "Human-readable headings in the verifier output are presentation only; route on the canonical verification frontmatter and `gpd_return.status`, not on headings or marker strings." in workflow
     assert "> Runtime delegation rule: this is a one-shot handoff. If the spawned verifier needs user input, it must checkpoint and return." in workflow
     assert "The wrapper must start a fresh continuation after the user responds instead of trying to keep the original verifier alive." in workflow
@@ -33,6 +35,7 @@ def test_verify_work_verifier_sync_requires_artifact_gate_before_downstream_rout
     assert "`${phase_dir}/${phase_number}-VERIFICATION.md` exists on disk and is readable" in workflow
     assert "the same path appears in `gpd_return.files_written`" in workflow
     assert 'gpd validate verification-contract "${phase_dir}/${phase_number}-VERIFICATION.md"' in workflow
+    assert "Do not recompute canonical verification status in this workflow." in workflow
     assert "If a canonical verification file already existed before this run" in workflow
     assert "If a canonical verification file already exists, preserve its authoritative frontmatter and append only the session-local overlay here." in workflow
     assert "Write to `${phase_dir}/${phase_number}-VERIFICATION.md`." in workflow

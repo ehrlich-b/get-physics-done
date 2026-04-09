@@ -2797,7 +2797,14 @@ class TestInitVerifyWork:
 
         assert ctx["phase_found"] is True
         assert ctx["project_contract_gate"]["visible"] is True
+        assert ctx["phase_proof_review_status"]["scope"] == "phase"
+        assert ctx["phase_proof_review_status"]["state"] == "not_reviewed"
         assert ctx["staged_loading"]["stage_id"] == "session_router"
+        assert ctx["staged_loading"]["checkpoints"] == [
+            "active session check completed",
+            "review preflight completed",
+            "contract gate remains visible",
+        ]
         assert "project_contract" not in ctx
         assert "active_reference_context" not in ctx
         assert "reference_artifacts_content" not in ctx
