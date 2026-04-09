@@ -120,8 +120,14 @@ def test_new_milestone_roadmapper_prompt_surfaces_contract_gate_inputs() -> None
     assert "Project contract gate: {project_contract_gate}" in contract_context
     assert "Project contract validation: {project_contract_validation}" in contract_context
     assert "Project contract load info: {project_contract_load_info}" in contract_context
+    assert "Contract intake: {contract_intake}" in contract_context
+    assert "Active references: {active_reference_context}" in contract_context
+    assert "Effective reference intake: {effective_reference_intake}" in contract_context
+    assert "Reference artifacts: {reference_artifacts_content}" in contract_context
     assert workflow.index("Project contract gate: {project_contract_gate}") < workflow.index("approved project contract")
     assert "`project_contract_gate.authoritative` is true" in workflow
+    assert "shared_state_policy: return_only" in workflow
+    assert "expected_artifacts:" in workflow
 
 
 def test_help_resume_surface_stays_user_facing() -> None:

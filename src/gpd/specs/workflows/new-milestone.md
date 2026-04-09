@@ -432,7 +432,6 @@ Create research roadmap for milestone v[X.Y]:
 8. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability) while preserving existing `GPD/state.json` fields, especially `project_contract`
 9. Return `gpd_return.status: completed` with summary
 
-Write files first, then return.
 </instructions>
 ", subagent_type="gpd-roadmapper", model="{roadmapper_model}", readonly=false, description="Create research roadmap")
 ```
@@ -450,17 +449,20 @@ write_scope:
 expected_artifacts:
   - GPD/ROADMAP.md
   - GPD/STATE.md
-shared_state_policy: return_only
+  - GPD/REQUIREMENTS.md
+shared_state_policy: direct
 </spawn_contract>
 ```
 
 **Handle return:**
 
-**If the roadmapper agent fails to spawn or returns an error:** Check if ROADMAP.md was partially written. If it exists and has phases, offer to proceed with it. If no ROADMAP.md, offer: 1) Retry the roadmapper, 2) Create ROADMAP.md in the main context using PROJECT.md and REQUIREMENTS.md.
+**If the roadmapper agent fails to spawn or returns an error:** Treat the handoff as incomplete. Surface any partially written ROADMAP.md, STATE.md, or REQUIREMENTS.md as partial output only; do not proceed from it. Offer: 1) Retry the roadmapper, 2) Abort and inspect the partial write.
 
-**Artifact gate:** If the roadmapper reports `gpd_return.status: completed` but `GPD/ROADMAP.md` or `GPD/STATE.md` is missing, treat the handoff as incomplete. Do not trust the runtime handoff status by itself. Offer: 1) Retry the roadmapper, 2) Create the missing artifacts in the main context, 3) Abort and inspect the partial write.
+**Artifact gate:** If the roadmapper reports `gpd_return.status: completed` but `GPD/ROADMAP.md` or `GPD/STATE.md` is missing, treat the handoff as incomplete. Route only on the typed `gpd_return.status` and `gpd_return.files_written`. Do not route on the `## ROADMAP CREATED` heading alone. Do not route on the `## ROADMAP BLOCKED` heading alone. Before accepting success, also verify that `GPD/REQUIREMENTS.md` exists, that `GPD/ROADMAP.md`, `GPD/STATE.md`, and `GPD/REQUIREMENTS.md` each appear in `gpd_return.files_written`, and that any preexisting artifact is treated as stale unless this run names that exact path in `gpd_return.files_written`. If any expected artifact is missing, unreadable, or absent from `gpd_return.files_written`, request a fresh roadmapper continuation. Do not trust the runtime handoff status by itself.
 
-**If `gpd_return.status: blocked`:** Present blocker, work with user, re-spawn.
+**If `gpd_return.status: checkpoint`:** Present the checkpoint, collect user input, and spawn a fresh roadmapper continuation after the user responds.
+
+**If `gpd_return.status: blocked` or `failed`:** Present the blocker, work with the user, and re-spawn from a fresh continuation.
 
 **If `gpd_return.status: completed`:** Read ROADMAP.md, present inline:
 

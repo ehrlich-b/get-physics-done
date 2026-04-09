@@ -2177,6 +2177,13 @@ class TestInitNewProject:
         assert ctx["staged_loading"]["stage_id"] == "scope_intake"
         assert ctx["staged_loading"]["order"] == 1
         assert ctx["staged_loading"]["loaded_authorities"] == ["workflows/new-project.md"]
+        assert "references/research/questioning.md" in ctx["staged_loading"]["must_not_eager_load"]
+        assert "templates/project-contract-schema.md" in ctx["staged_loading"]["must_not_eager_load"]
+        assert ctx["staged_loading"]["checkpoints"] == [
+            "detect existing workspace state",
+            "surface the first scoping question",
+            "preserve contract gate visibility",
+        ]
         assert ctx["staged_loading"]["next_stages"] == ["scope_approval"]
 
     def test_new_project_stage_scope_approval_filters_payload(self, tmp_path: Path) -> None:
@@ -2197,6 +2204,12 @@ class TestInitNewProject:
             "templates/project-contract-schema.md",
             "templates/project-contract-grounding-linkage.md",
             "references/shared/canonical-schema-discipline.md",
+        ]
+        assert "templates/project.md" in ctx["staged_loading"]["must_not_eager_load"]
+        assert "templates/requirements.md" in ctx["staged_loading"]["must_not_eager_load"]
+        assert ctx["staged_loading"]["checkpoints"] == [
+            "approval gate has passed",
+            "project contract is ready for persistence",
         ]
 
     def test_new_project_stage_rejects_unknown_stage(self, tmp_path: Path) -> None:
@@ -2302,8 +2315,11 @@ class TestInitNewMilestone:
         ctx = init_new_milestone(tmp_path)
 
         assert ctx["project_contract"]["scope"]["question"] == "What benchmark must the project recover?"
+        assert "roadmapper_model" in ctx
         assert ctx["contract_intake"]["must_read_refs"] == ["ref-benchmark"]
         assert ctx["project_contract"]["context_intake"]["must_read_refs"] == ["ref-benchmark"]
+        assert ctx["project_contract_gate"]["visible"] is True
+        assert ctx["project_contract_gate"]["authoritative"] is True
         assert "ref-benchmark" in ctx["effective_reference_intake"]["must_read_refs"]
         assert "lit-anchor-benchmark-ref-2024" in ctx["effective_reference_intake"]["must_read_refs"]
         assert "GPD/phases/01-test-phase/01-SUMMARY.md" in ctx["effective_reference_intake"]["must_include_prior_outputs"]

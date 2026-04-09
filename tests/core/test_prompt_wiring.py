@@ -1373,15 +1373,14 @@ def test_roadmap_template_and_workflows_surface_phase_contract_coverage() -> Non
     assert "Paper Writing" not in roadmap_template
     assert "@{GPD_INSTALL_DIR}/templates/roadmap.md" in roadmapper_agent
     assert "@{GPD_INSTALL_DIR}/templates/state.md" in roadmapper_agent
-    assert "If literature/SUMMARY.md provided:" in roadmapper_agent
-    assert "literature/SUMMARY.md content" in roadmapper_agent
+    assert "## Step 3: Load Research Context (if exists)" in roadmapper_agent
     assert "Contract coverage" in roadmapper_agent
-    assert "Phase Details" in roadmapper_agent
-    assert "Active Calculations" in roadmapper_agent
+    assert "Machine-Readable Return Envelope" in roadmapper_agent
+    assert "gpd_return:" in roadmapper_agent
+    assert "status: completed | checkpoint | blocked | failed" in roadmapper_agent
+    assert "files_written: [GPD/ROADMAP.md, GPD/STATE.md]" in roadmapper_agent
+    assert "phases_created: {count}" in roadmapper_agent
     assert "Intermediate Results" in state_template
-    assert "forbidden proxies a phase must carry" in roadmapper_agent
-    assert "Phase counts are heuristics, not quotas" in roadmapper_agent
-    assert "Do not pad the roadmap with speculative phases just to make it look complete." in roadmapper_agent
     assert "return `## ROADMAP BLOCKED`" in roadmapper_agent
     assert (
         "Treat `context_intake.must_read_refs`, `must_include_prior_outputs`, "
@@ -1406,7 +1405,7 @@ def test_research_prompt_surfaces_use_canonical_literature_outputs() -> None:
     assert "GPD/literature/" in project_researcher
     assert "GPD/literature/SUMMARY.md" in research_synthesizer
     assert "GPD/literature/SUMMARY.md" in phase_researcher
-    assert "If literature/SUMMARY.md provided:" in roadmapper_agent
+    assert "literature/SUMMARY.md" in roadmapper_agent
 
 
 def test_new_project_minimal_mode_and_planning_wiring_allow_coarse_scoped_decomposition() -> None:

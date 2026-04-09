@@ -24,6 +24,7 @@ def test_new_project_stage_contract_loads_and_preserves_stage_order() -> None:
     assert contract.stages[2].order == 3
     assert contract.stages[0].mode_paths == ("workflows/new-project.md",)
     assert contract.stages[0].loaded_authorities == ("workflows/new-project.md",)
+    assert "roadmapper_model" in contract.stages[0].required_init_fields
     assert "project_contract_gate" in contract.stages[0].required_init_fields
     assert "needs_research_map" in contract.stages[0].required_init_fields
     assert contract.stages[0].conditional_authorities[0].when == "full_questioning_path"
@@ -32,6 +33,12 @@ def test_new_project_stage_contract_loads_and_preserves_stage_order() -> None:
     assert "references/shared/canonical-schema-discipline.md" in contract.stages[0].must_not_eager_load
     assert "templates/project-contract-schema.md" in contract.stages[0].must_not_eager_load
     assert "templates/project-contract-grounding-linkage.md" in contract.stages[0].must_not_eager_load
+    assert contract.stages[0].produced_state == ("intake routing state", "scoping-contract gate state")
+    assert contract.stages[0].checkpoints == (
+        "detect existing workspace state",
+        "surface the first scoping question",
+        "preserve contract gate visibility",
+    )
     assert contract.stages[0].writes_allowed == ()
     assert contract.stages[1].required_init_fields == (
         "project_contract",
@@ -45,6 +52,11 @@ def test_new_project_stage_contract_loads_and_preserves_stage_order() -> None:
         "references/shared/canonical-schema-discipline.md",
     )
     assert contract.stages[1].conditional_authorities == ()
+    assert contract.stages[1].produced_state == ("approved project contract", "approval-state persistence")
+    assert contract.stages[1].checkpoints == (
+        "approval gate has passed",
+        "project contract is ready for persistence",
+    )
     assert contract.stages[1].writes_allowed == ("GPD/state.json",)
     assert contract.stages[2].required_init_fields == (
         "researcher_model",
@@ -79,6 +91,15 @@ def test_new_project_stage_contract_loads_and_preserves_stage_order() -> None:
         "GPD/literature/SUMMARY.md",
     )
     assert "references/research/questioning.md" not in contract.stages[2].loaded_authorities
+    assert contract.stages[2].produced_state == (
+        "project artifacts",
+        "workflow preferences",
+        "downstream stage handoff",
+    )
+    assert contract.stages[2].checkpoints == (
+        "approval gate has passed",
+        "stage-aware deferred reads are now allowed",
+    )
 
 
 def test_new_project_stage_contract_loader_is_cached() -> None:

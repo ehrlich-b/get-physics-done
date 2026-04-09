@@ -49,6 +49,27 @@ def test_load_workflow_stage_manifest_is_cached() -> None:
     assert first is second
     assert first.stage_ids() == ("scope_intake", "scope_approval", "post_scope")
     assert "references/shared/canonical-schema-discipline.md" in first.stages[0].must_not_eager_load
+    assert "roadmapper_model" in first.stages[0].required_init_fields
+    assert first.stages[0].produced_state == ("intake routing state", "scoping-contract gate state")
+    assert first.stages[0].checkpoints == (
+        "detect existing workspace state",
+        "surface the first scoping question",
+        "preserve contract gate visibility",
+    )
+    assert first.stages[1].produced_state == ("approved project contract", "approval-state persistence")
+    assert first.stages[1].checkpoints == (
+        "approval gate has passed",
+        "project contract is ready for persistence",
+    )
+    assert first.stages[2].produced_state == (
+        "project artifacts",
+        "workflow preferences",
+        "downstream stage handoff",
+    )
+    assert first.stages[2].checkpoints == (
+        "approval gate has passed",
+        "stage-aware deferred reads are now allowed",
+    )
 
     execute_phase_manifest = load_workflow_stage_manifest("execute-phase")
     assert execute_phase_manifest.stage_ids() == (

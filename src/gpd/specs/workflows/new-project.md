@@ -1736,22 +1736,40 @@ task(prompt="First, read {GPD_AGENTS_DIR}/gpd-roadmapper.md for your role and in
 
 **Read these files before proceeding:**
 - `GPD/PROJECT.md` — Project definition and research question
-- `GPD/state.json` — Approved project contract in `project_contract`
 - `GPD/REQUIREMENTS.md` — Derived requirements
 - `GPD/literature/SUMMARY.md` — Literature survey (if exists)
 - `GPD/config.json` — Project configuration
+- `GPD/state.json` — Continuity state only; do not treat a bare read of `project_contract` there as authoritative
+
+**Contract authority surfaces:**
+- `project_contract` — approved scope payload
+- `project_contract_gate` — whether the contract is authoritative
+- `project_contract_load_info` — load / continuation status for the contract
+- `project_contract_validation` — validation result for the contract
+
+**Contract context:**
+- `project_contract`: {project_contract}
+- `project_contract_gate`: {project_contract_gate}
+- `project_contract_load_info`: {project_contract_load_info}
+- `project_contract_validation`: {project_contract_validation}
+
+Project contract: {project_contract}
+Project contract gate: {project_contract_gate}
+Project contract load info: {project_contract_load_info}
+Project contract validation: {project_contract_validation}
 
 </planning_context>
 
 <instructions>
-Create research roadmap:
-1. Derive phases from requirements AND the approved project contract. Use the smallest decomposition that keeps decisive outputs, anchor handoffs, and verification legible. A tightly scoped project may have a single phase or a coarse early roadmap. Do NOT invent literature, numerics, or paper phases unless the requirements or contract demand them.
-2. Map every requirement to exactly one phase
-3. For each phase, include explicit contract coverage in ROADMAP.md showing the decisive contract items, deliverables, anchor coverage, and forbidden proxies advanced by that phase
-4. Derive 2-5 success criteria per phase (concrete, verifiable results) that respect the decisive outputs, anchors, and forbidden proxies in the approved project contract
-5. Validate 100% requirement coverage and surface all contract-critical items
-6. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability) while preserving any existing `GPD/state.json` fields, especially `project_contract` and previously recorded open questions
-7. Return `gpd_return.status: completed` with summary
+Create research roadmap from the approved contract and requirements. Keep the handoff orchestration-only: do not reinterpret contract authority, do not widen scope, and do not invent an alternate roadmap path.
+1. If `project_contract_gate.authoritative` is false, `project_contract_load_info.status` starts with `blocked`, or `project_contract_validation.valid` is false, return `gpd_return.status: checkpoint` rather than guessing.
+2. Otherwise, derive the smallest decomposition that keeps decisive outputs, anchor handoffs, and verification legible. A tightly scoped project may have a single phase or a coarse early roadmap. Do NOT invent literature, numerics, or paper phases unless the requirements or contract demand them.
+3. Map every requirement to exactly one phase.
+4. For each phase, include explicit contract coverage in ROADMAP.md showing the decisive contract items, deliverables, anchor coverage, and forbidden proxies advanced by that phase.
+5. Derive 2-5 success criteria per phase (concrete, verifiable results) that respect the decisive outputs, anchors, and forbidden proxies in the approved project contract.
+6. Validate 100% requirement coverage and surface all contract-critical items.
+7. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability) while preserving any existing `GPD/state.json` fields, especially `project_contract` and previously recorded open questions.
+8. Return a typed `gpd_return` envelope with `status` and `files_written`, and use `gpd_return.files_written` to prove freshness; do not rely on runtime completion text alone.
 
 Write files first, then return. This ensures artifacts persist even if context is lost.
 </instructions>
@@ -1765,6 +1783,7 @@ write_scope:
 expected_artifacts:
   - GPD/ROADMAP.md
   - GPD/STATE.md
+  - GPD/REQUIREMENTS.md
 shared_state_policy: direct
 </spawn_contract>
 ", subagent_type="gpd-roadmapper", model="{roadmapper_model}", readonly=false, description="Create research roadmap")
@@ -1772,15 +1791,32 @@ shared_state_policy: direct
 
 **Handle roadmapper return:**
 
-**If the roadmapper agent fails to spawn or returns an error:** Check whether both `GPD/ROADMAP.md` and `GPD/STATE.md` already exist and are non-trivial (the agent writes files first). If both artifacts exist, verify them and continue. Otherwise retry the roadmapper once. If either required artifact is still missing after the retry, STOP and surface the blocker. Do not create a second main-context roadmap implementation path, and do not continue with `REQUIREMENTS.md` but no canonical roadmap/state pair.
+Route on `gpd_return.status` and `gpd_return.files_written`.
+Do not route on the `## ROADMAP CREATED` heading alone.
+Do not route on the `## ROADMAP BLOCKED` heading alone.
+
+**If the roadmapper agent fails to spawn or returns an error:** Do not infer completion from files that already exist on disk. Treat any preexisting `GPD/ROADMAP.md`, `GPD/STATE.md`, or `GPD/REQUIREMENTS.md` as a stale baseline unless this run returns a fresh typed `gpd_return` that names them in `gpd_return.files_written`. Check whether both `GPD/ROADMAP.md` and `GPD/STATE.md` already exist and are non-trivial (the agent writes files first) only as a partial-write recovery aid, not as proof of freshness. Otherwise retry the roadmapper once. If either required artifact is still missing after the retry, STOP and surface the blocker. Do not create a second main-context roadmap implementation path, and do not continue with `REQUIREMENTS.md` but no canonical roadmap/state pair.
 
 **Artifact gate:** If the roadmapper reports `gpd_return.status: completed` but `GPD/ROADMAP.md` or `GPD/STATE.md` is missing, treat the handoff as incomplete. Do not trust the runtime handoff status by itself.
+If the roadmapper reports `gpd_return.status: completed`, verify that `GPD/ROADMAP.md`, `GPD/STATE.md`, and `GPD/REQUIREMENTS.md` are readable and named in `gpd_return.files_written`. If any expected artifact was already present before this handoff, it only counts as fresh output when the same path appears in `gpd_return.files_written`.
+
+**If `gpd_return.status: checkpoint`:**
+
+- Present the checkpoint
+- Collect the user's response
+- Re-spawn the roadmapper with a fresh continuation handoff once the blocker is resolved
 
 **If `gpd_return.status: blocked`:**
 
 - Present blocker information
 - Work with user to resolve
 - Re-spawn when resolved
+
+**If `gpd_return.status: failed`:**
+
+- Present the failure details
+- Retry the roadmapper once
+- If the retry still fails, surface the blocker and stop
 
 **If `gpd_return.status: completed`:**
 

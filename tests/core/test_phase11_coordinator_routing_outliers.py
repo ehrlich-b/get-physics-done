@@ -37,8 +37,13 @@ def test_new_project_and_new_milestone_route_roadmaps_on_typed_status() -> None:
         assert "gpd_return.status: blocked" in workflow
         assert "but `GPD/ROADMAP.md` or `GPD/STATE.md` is missing" in workflow
         assert "Do not trust the runtime handoff status by itself." in workflow
-        assert "## ROADMAP CREATED" not in workflow
-        assert "## ROADMAP BLOCKED" not in workflow
+        assert "Do not route on the `## ROADMAP CREATED` heading alone." in workflow
+        assert "Do not route on the `## ROADMAP BLOCKED` heading alone." in workflow
+
+    assert "shared_state_policy: return_only" in new_milestone
+    assert "Project contract gate: {project_contract_gate}" in new_milestone
+    assert "Project contract load info: {project_contract_load_info}" in new_milestone
+    assert "Project contract validation: {project_contract_validation}" in new_milestone
 
 
 def test_parameter_sweep_balanced_mode_is_not_unconditionally_paused() -> None:
