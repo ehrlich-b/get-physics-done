@@ -9,8 +9,6 @@ from types import SimpleNamespace
 import anyio
 import pytest
 
-from tests.mcp.conftest import FAKE_PROJECT_DIR
-
 from gpd.core.errors import GPDError
 from gpd.core.health import CheckStatus, HealthCheck, HealthReport, HealthSummary
 from gpd.core.state import default_state_dict
@@ -26,6 +24,7 @@ from gpd.mcp.servers.state_server import (
     run_health_check,
     validate_state,
 )
+from tests.mcp.conftest import FAKE_PROJECT_DIR
 
 
 async def _tool_names() -> list[str]:
