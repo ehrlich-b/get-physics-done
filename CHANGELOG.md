@@ -4,6 +4,7 @@ All notable changes to Get Physics Done are documented here.
 
 ## vNEXT
 
+- Fix `phase_add` and `phase_insert` heading consistency: detect heading level, number padding, and separator style (colon vs em-dash) from existing ROADMAP phases instead of hardcoding `### Phase {N}:`. Defaults to `### Phase N: ` (unpadded, colon) for empty ROADMAPs, matching the `new-project` template.
 - Add `check_result_consistency` health check: cross-validates `state.json` intermediate results against SUMMARY `provides` frontmatter with guards against empty-string false matches, short-string over-matching, and malformed state records.
 - Fix Windows test compatibility: cross-platform absolute paths in MCP tests, `shlex.quote`-aware assertions, `encoding="utf-8"` on `read_text()`, POSIX display paths in CLI/git_ops, permission/LaTeX/tilde/bash test portability, and schema pattern alignment.
 - Split releases into a manual release-PR preparation workflow and a separate publish workflow for PyPI, npm, tags, and GitHub Releases.
