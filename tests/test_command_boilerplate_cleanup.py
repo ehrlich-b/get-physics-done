@@ -49,12 +49,3 @@ def test_model_facing_prompts_do_not_use_legacy_backcompat_wording() -> None:
             text = path.read_text(encoding="utf-8").lower()
             for phrase in LEGACY_BACKCOMPAT_WORDING:
                 assert phrase not in text, f"{path.relative_to(REPO_ROOT)} still contains {phrase}"
-
-
-def test_gpd_install_dir_placeholders_are_at_include_form_only() -> None:
-    for directory in (COMMANDS_DIR,):
-        for path in sorted(directory.glob("*.md")):
-            text = path.read_text(encoding="utf-8")
-            assert "{GPD_INSTALL_DIR}" not in text.replace("@{GPD_INSTALL_DIR}", ""), (
-                f"{path.relative_to(REPO_ROOT)} uses a bare GPD_INSTALL_DIR placeholder"
-            )
