@@ -2125,3 +2125,167 @@ def compute_vhalf_product_tables():
         'v0_rank': v0_rank,
         'mink_rank': mink_rank,
     }
+
+
+# ============================================================================
+# Phase 47, Plan 01: det_3, polarization, d_{IJK} tensor, Peirce block decomposition
+# ============================================================================
+#
+# ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba),
+#   octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7,
+#   det_3_association=left_to_right_Re((x1*x2)*x3),
+#   d_ijk_normalization=d(X,X,X)=6*N(X)_via_inclusion_exclusion,
+#   peirce_indices=I0_V1_I1to16_Vhalf_I17to26_V0
+#
+# Reference: Baez 2002 (math/0105155) Sec 3.4: det formula for h_3(O).
+# Reference: Slansky 1981, Phys. Rep. 79: E_6 branching 27 -> 1+16+10.
+#
+# The cubic norm on h_3(O) is:
+#   N(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2
+#          + 2*Re((x1*x2)*x3)
+#
+# CRITICAL: The cross-term uses LEFT-to-right association (x1*x2)*x3,
+# matching the Sarrus expansion of the 3x3 matrix determinant.
+# Do NOT use x1*(x2*x3) -- differs by octonion non-associativity.
+
+
+def det_3(X):
+    """Cubic determinant (norm form) on h_3(O).
+
+    N(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2
+           + 2*Re((x1*x2)*x3)
+
+    The cross-term uses LEFT-to-right association: compute x1*x2 first,
+    then multiply by x3, then take Re = c[0].
+
+    Parameters:
+        X: H3O element
+
+    Returns:
+        float: the cubic norm N(X)
+    """
+    # Diagonal cubic term
+    diag = X.alpha * X.beta * X.gamma
+
+    # Quadratic correction terms
+    quad = (X.alpha * X.x1.norm_sq()
+            + X.beta * X.x2.norm_sq()
+            + X.gamma * X.x3.norm_sq())
+
+    # Cross-term: 2 * Re((x1 * x2) * x3)
+    # CRITICAL: left-to-right association
+    x1x2 = X.x1 * X.x2        # Octonion product, computed first
+    x1x2_x3 = x1x2 * X.x3     # Then multiply by x3
+    cross = 2.0 * x1x2_x3.c[0]  # Real part
+
+    return diag - quad + cross
+
+
+def polarize_d(X, Y, Z):
+    """Polarized symmetric trilinear form d(X,Y,Z) from det_3.
+
+    d(X,Y,Z) = N(X+Y+Z) - N(X+Y) - N(X+Z) - N(Y+Z) + N(X) + N(Y) + N(Z)
+
+    With our convention, d(X,X,X) = 6*N(X).
+
+    Parameters:
+        X, Y, Z: H3O elements
+
+    Returns:
+        float: d(X,Y,Z)
+    """
+    XpY = X + Y
+    XpZ = X + Z
+    YpZ = Y + Z
+    XpYpZ = XpY + Z
+
+    return (det_3(XpYpZ)
+            - det_3(XpY) - det_3(XpZ) - det_3(YpZ)
+            + det_3(X) + det_3(Y) + det_3(Z))
+
+
+def peirce_basis_27():
+    """Return the 27-element Peirce-adapted basis for h_3(O).
+
+    Index scheme:
+      I = 0:     E_{11} = diag(1,0,0)                     [V_1]
+      I = 1..16: V_{1/2} basis from Vhalf_basis_vectors()  [V_{1/2}]
+      I = 17..26: V_0 basis from V0_basis_elements()        [V_0]
+
+    Returns:
+        list of 27 H3O elements
+    """
+    basis = []
+    # I=0: V_1
+    basis.append(H3O.E11())
+    # I=1..16: V_{1/2}
+    basis.extend(Vhalf_basis_vectors())
+    # I=17..26: V_0
+    basis.extend(V0_basis_elements())
+    return basis
+
+
+def peirce_sector(I):
+    """Return the Peirce sector label for basis index I.
+
+    Returns:
+        str: 'V_1' (I=0), 'V_{1/2}' (I=1..16), 'V_0' (I=17..26)
+    """
+    if I == 0:
+        return 'V_1'
+    elif 1 <= I <= 16:
+        return 'V_{1/2}'
+    elif 17 <= I <= 26:
+        return 'V_0'
+    else:
+        raise ValueError(f"Index {I} out of range 0..26")
+
+
+def d_ijk_tensor(basis=None, threshold=1e-14):
+    """Compute the full d_{IJK} tensor by polarization on the Peirce basis.
+
+    Evaluates d(e_I, e_J, e_K) for all I <= J <= K in range(27).
+    Returns only nonzero entries (|d| > threshold).
+
+    Parameters:
+        basis: list of 27 H3O elements (default: peirce_basis_27())
+        threshold: cutoff for nonzero entries
+
+    Returns:
+        dict: {(I,J,K): value} for nonzero entries with I <= J <= K
+    """
+    if basis is None:
+        basis = peirce_basis_27()
+
+    tensor = {}
+    for I in range(27):
+        for J in range(I, 27):
+            for K in range(J, 27):
+                val = polarize_d(basis[I], basis[J], basis[K])
+                if abs(val) > threshold:
+                    tensor[(I, J, K)] = val
+
+    return tensor
+
+
+def classify_peirce_blocks(tensor):
+    """Classify d_{IJK} entries by Peirce sector triple.
+
+    For each nonzero tensor entry, determines the Peirce sectors
+    of I, J, K and collects them into block categories.
+
+    Parameters:
+        tensor: dict {(I,J,K): value} from d_ijk_tensor
+
+    Returns:
+        dict: {sector_triple: list of ((I,J,K), value)} where
+              sector_triple is a sorted tuple of sector labels
+    """
+    blocks = {}
+    for (I, J, K), val in tensor.items():
+        sectors = tuple(sorted([peirce_sector(I), peirce_sector(J),
+                                peirce_sector(K)]))
+        if sectors not in blocks:
+            blocks[sectors] = []
+        blocks[sectors].append(((I, J, K), val))
+    return blocks
