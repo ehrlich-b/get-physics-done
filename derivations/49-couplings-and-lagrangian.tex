@@ -1,0 +1,308 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+%   det3_normalization=d(X,X,X)=6*det_3(X),
+%   real_forms=E6(-26)_5d_E7(-25)_4d,
+%   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+%   prepotential=F(X)=d_IJK*X^I*X^J*X^K/(6*X^0),
+%   lagrangian_convention=e^{-1}L=-R/2+g_ij*dz^i*dzj*+Im(N)FF+Re(N)F*F
+
+% Phase 49, Plan 02: Couplings, Precise Claim, and Lagrangian Assembly
+% Direct 4d formulation -- NO 5d intermediate step, NO KK reduction.
+%
+% References:
+%   [GST84] Gunaydin, Sierra, Townsend, Nucl. Phys. B 242 (1984) 244--268
+%   [dWVP92] de Wit, Van Proeyen, Commun. Math. Phys. 149 (1992) 307--333
+%   [LVP20] Lauria, Van Proeyen, Lect. Notes Phys. 966 (2020)
+%   [FG06] Ferrara, Gunaydin, hep-th/0606108
+%   [Phase 46] pi_u projection, V_0 = 4 spacetime + 6 internal
+%   [Phase 47] d_{IJK} tensor, 106 nonzero entries, two Peirce blocks
+%   [Phase 49-01] Field content, prepotential, normalization
+%   [Paper 6] Einstein-Hilbert from Jacobson thermodynamic argument
+
+\section*{Phase 49, Plan 02: Couplings, Precise Claim, and Lagrangian Assembly}
+
+% ======================================================================
+
+\subsection*{Proposition 4: C$_{IJK}$ Coupling Decomposition}
+
+\paragraph{Statement.}
+The GST coupling tensor $C_{IJK} = \frac{1}{6}\, d_{IJK}$
+(Plan~01, Eq.~(49.3)) decomposes under the Peirce sectors of $E_{11}$
+into exactly two nonzero block types:
+
+\begin{center}
+\begin{tabular}{c|c|c|l}
+\hline
+\textbf{Block} & \textbf{Entries} & $C_{IJK}$ & \textbf{Physical role} \\
+\hline
+$(V_1, V_0, V_0)$ & 10 & $C_{0,a,b} = \frac{1}{6}\, B(e_a, e_b)$ &
+  Gravitational self-coupling \\
+\hline
+$(V_{1/2}, V_{1/2}, V_0)$ & 96 & $C_{\alpha,\beta,a} = \frac{1}{6}\, d_{\alpha\beta a}$ &
+  Matter--gravity coupling \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent
+where $B(e_a, e_b)$ is the $\det_2$ bilinear form on $V_0$,
+$\alpha, \beta \in \{1,\ldots,16\}$ ($V_{1/2}$), and
+$a, b \in \{17,\ldots,26\}$ ($V_0$).
+All other Peirce blocks are identically zero (Phase~47, verified
+exhaustively on all 3654 distinct triples).
+Total nonzero entries: $10 + 96 = 106$.
+
+\paragraph{Gravitational self-coupling: $(V_1, V_0, V_0)$.}
+This block gives $C_{0,a,a} = \frac{1}{6}\, d(E_{11}, e_a, e_a)
+= \frac{1}{6}\, B(e_a, e_a)$ where $B$ is the $\det_2$ bilinear form
+(Phase~47, Eq.~(47.4)). In the $V_0$ basis:
+\begin{equation}\tag{49.4}
+  C_{0,a,b} = \frac{1}{6}\, \mathrm{diag}\!\left(
+    +\tfrac{1}{2},\; -\tfrac{1}{2},\;
+    \underbrace{-2, \ldots, -2}_{8}
+  \right)
+\end{equation}
+Physical meaning: the graviphoton scalar $X^0$ (from $V_1$) mediates
+coupling between $V_0$ fields through the $\det_2$ bilinear form.
+Under $\pi_u$ projection (Phase~46), the first four spacetime
+directions carry $\det_2 \to \mathrm{diag}(+1, -1, -1, -1)$
+(Minkowski), so this block encodes the
+\textbf{Minkowski metric structure} within the prepotential.
+
+\paragraph{Matter--gravity coupling: $(V_{1/2}, V_{1/2}, V_0)$.}
+This 96-entry block encodes how pairs of $V_{1/2}$ matter fields
+(carrying SM quantum numbers from Paper~7) couple to $V_0$ sector fields.
+Splitting by the $V_0$ index $a$:
+
+\begin{center}
+\begin{tabular}{l|c|c|l}
+\hline
+\textbf{$V_0$ sector} & \textbf{Indices} & \textbf{Entries} & \textbf{Physical content} \\
+\hline
+Spacetime & $a \in \{17, 18, 19, 26\}$ & 48 &
+  Matter bilinears $\to$ spacetime vectors \\
+\hline
+Internal & $a \in \{20, \ldots, 25\}$ & 48 &
+  Matter bilinears $\to$ internal moduli \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent
+Breakdown by individual $V_0$ index:
+index~17: 16 entries, index~18: 16 entries,
+index~19: 8 entries, index~26: 8 entries (spacetime, total~48);
+indices~20--25: 8 entries each (internal, total~48).
+
+\paragraph{Spacetime surjectivity.}
+Phase~46 showed that $V_{1/2} \times V_{1/2} \to
+\mathfrak{h}_2(\mathbb{C}_u)$ is surjective (rank~4 after $\pi_u$
+projection). Correspondingly, all four spacetime $V_0$ indices
+$\{17, 18, 19, 26\}$ have nonzero couplings.
+This means matter bilinears can produce currents in \textbf{all four
+Minkowski directions}---the coupling to spacetime is complete.
+
+\paragraph{Internal completeness.}
+All six internal $V_0$ indices $\{20, \ldots, 25\}$ have nonzero
+couplings. The internal sector is the $W$-sector
+($W = \mathrm{span}\{e_1, \ldots, e_6\} \subset \mathbb{O}$)
+killed by $\pi_u$. These couplings describe how matter bilinears
+generate internal charges.
+
+\paragraph{Convention note.}
+$E_{6(-26)}$ is the 5d structure group of $\det_3$ on traceless
+$\mathfrak{h}_3(\mathbb{O})$;
+$E_{6(-78)}$ is the compact real form appearing in the 4d coset
+denominator $E_{7(-25)}/(E_{6(-78)} \times U(1))$.
+These are distinct real forms of $E_6$ with different roles~[FG06].
+
+% ======================================================================
+
+\subsection*{Proposition 5: Precise Claim}
+
+\paragraph{Statement (two sentences).}
+\emph{The cubic norm $\det(X)$ on $\mathfrak{h}_3(\mathbb{O})$ serves
+as the prepotential of the 4d $\mathcal{N}=2$ exceptional magic
+Maxwell--Einstein supergravity (GST 1983--84): the symmetric tensor
+$C_{IJK} = \frac{1}{6}\, d_{IJK}$, with $d_{IJK}$ from the
+polarized cubic norm, determines the special K\"ahler scalar manifold
+$E_{7(-25)}/(E_{6(-78)} \times U(1))$, the gauge kinetic matrix
+$\mathcal{N}_{IJ}$, and the cubic Chern--Simons couplings.
+The Einstein--Hilbert term $-R/2$ is an independent input to the
+$\mathcal{N}=2$ MESGT framework---not an output of $\det(X)$---and in
+the project context is provided by Paper~6 (Jacobson thermodynamic
+argument applied to the emergent spacetime
+$\mathfrak{h}_2(\mathbb{C}_u) = \mathbb{R}^{3,1}$ of Phase~46).}
+
+\paragraph{What $\det(X)$ determines.}
+\begin{itemize}
+\item Scalar manifold geometry
+  $\mathcal{M} = E_{7(-25)}/(E_{6(-78)} \times U(1))$
+  via the K\"ahler potential
+  $K = -\ln\!\bigl(i(X^I \bar{F}_I - \bar{X}^I F_I)\bigr)$.
+\item Gauge kinetic matrix $\mathcal{N}_{IJ}$ (vector kinetic terms
+  and theta angles) via the standard special geometry formula~[dWVP92].
+\item All matter--gravity couplings through $C_{IJK}$ (Proposition~4):
+  gravitational self-coupling via $\det_2$ and matter-spacetime/internal
+  couplings.
+\item Chern--Simons-like topological vertex $\mathrm{Re}(\mathcal{N}_{IJ})
+  \, F^I \wedge {*F}^J$.
+\end{itemize}
+
+\paragraph{What $\det(X)$ does \textbf{not} determine.}
+\begin{itemize}
+\item The Einstein--Hilbert term $-R/2$: this is an independent input to
+  the MESGT framework. In our project, it comes from Paper~6.
+\item The cosmological constant $\Lambda$: this requires gauging of
+  isometries or SUSY breaking (Proposition~6).
+\item Fermionic couplings: these are fixed by $\mathcal{N}=2$
+  supersymmetry once the bosonic sector is specified~[LVP20], but
+  $\mathcal{N}=2$ SUSY itself is an \textbf{input} to the MESGT matching,
+  not derived from the self-modeling framework.
+\end{itemize}
+
+\paragraph{Forbidden framing.}
+\begin{itemize}
+\item WRONG: ``$\det(X)$ derives GR.''
+\item CORRECT: ``$\det(X)$ determines how matter couples to GR within
+  the $\mathcal{N}=2$ MESGT framework; GR itself ($-R/2$) is provided
+  independently.''
+\end{itemize}
+
+% ======================================================================
+
+\subsection*{Proposition 6: Cosmological Constant}
+
+\paragraph{Statement.}
+For the ungauged $\mathcal{N}=2$ MESGT, the scalar potential vanishes
+identically:
+\begin{equation}\tag{49.5}
+  V(z, \bar{z}) = 0 \qquad \text{(ungauged MESGT)}
+\end{equation}
+Therefore the cosmological constant $\Lambda = 0$ at tree level.
+
+\paragraph{Argument.}
+In $\mathcal{N}=2$ supergravity, the scalar potential $V(z, \bar{z})$
+arises only from gauging isometries of the scalar manifold or the
+$U(1)$ R-symmetry~[LVP20, Ch.~5]. When the theory is ungauged
+(gauge coupling $g = 0$), there is no scalar potential:
+$V(z, \bar{z}) \equiv 0$. Since $\Lambda \propto \langle V \rangle$,
+the cosmological constant vanishes in the vacuum.
+
+\paragraph{Open issue.}
+The self-modeling framework does not yet provide a mechanism for
+$\Lambda \neq 0$. A nonzero cosmological constant requires
+additional structure beyond classical ungauged MESGT:
+\begin{itemize}
+\item Gauging: introduces $V \neq 0$ through gauge coupling to scalar
+  manifold isometries or Fayet--Iliopoulos terms.
+\item SUSY breaking: can generate $V \neq 0$ at the quantum level.
+\end{itemize}
+Both mechanisms are beyond the scope of Phase~49.
+
+% ======================================================================
+
+\subsection*{Theorem 1: Complete 4d Bosonic Lagrangian}
+
+\paragraph{Statement.}
+The complete bosonic Lagrangian of the exceptional magic
+$\mathcal{N}=2$ MESGT is
+\begin{equation}\tag{49.6}
+  e^{-1}\, \mathcal{L}_{\mathrm{bos}} =
+    \underbrace{-\frac{R}{2}}_{\text{Term 1}}
+    + \underbrace{g_{i\bar{j}}\, \partial_\mu z^i \partial^\mu \bar{z}^{\bar{j}}}_{\text{Term 2}}
+    + \underbrace{\mathrm{Im}(\mathcal{N}_{IJ})\, F^I_{\mu\nu} F^{J\mu\nu}}_{\text{Term 3}}
+    + \underbrace{\mathrm{Re}(\mathcal{N}_{IJ})\, F^I_{\mu\nu} {*F}^{J\mu\nu}}_{\text{Term 4}}
+\end{equation}
+where the ingredients are:
+
+\begin{center}
+\begin{tabular}{c|l|l}
+\hline
+\textbf{Term} & \textbf{Content} & \textbf{Source} \\
+\hline
+1 & $-R/2$: Einstein--Hilbert &
+  Independent input (Paper~6, MESGT framework) \\
+\hline
+2 & Scalar kinetic: $g_{i\bar{j}} = \partial_i \partial_{\bar{j}} K$ &
+  From $\det(X)$ via $F(X)$ and K\"ahler potential \\
+\hline
+3 & Vector kinetic: $\mathrm{Im}(\mathcal{N}_{IJ})$ &
+  From $\det(X)$ via special geometry \\
+\hline
+4 & Topological: $\mathrm{Re}(\mathcal{N}_{IJ})$ &
+  From $\det(X)$ via special geometry \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{K\"ahler potential.}
+$K = -\ln\!\bigl(i(X^I \bar{F}_I - \bar{X}^I F_I)\bigr)$
+where $F_I = \partial F / \partial X^I$ and $F(X)$ is the
+prepotential (Plan~01, Eq.~(49.2)).
+
+\paragraph{Gauge kinetic matrix.}
+$\mathcal{N}_{IJ}$ is determined by the standard special geometry
+formula~[dWVP92]:
+\[
+  \mathcal{N}_{IJ} = \bar{F}_{IJ}
+    + 2i\,\frac{(\mathrm{Im}\, F_{IK})\, X^K\,
+                 (\mathrm{Im}\, F_{JL})\, X^L}
+                 {X^M\, (\mathrm{Im}\, F_{MN})\, X^N}
+\]
+where $F_{IJ} = \partial^2 F / \partial X^I \partial X^J$.
+
+\paragraph{Field strengths.}
+$F^I_{\mu\nu} = \partial_\mu A^I_\nu - \partial_\nu A^I_\mu$
+for $I = 0, 1, \ldots, 26$ (27 abelian vectors: 1 graviphoton + 26
+from vector multiplets).
+${*F}^I_{\mu\nu} = \frac{1}{2}\, \epsilon_{\mu\nu\rho\sigma}\,
+F^{I\rho\sigma}$ is the Hodge dual.
+
+\paragraph{Counting.}
+Scalars: $z^i$, $i = 1, \ldots, 26$ (the 26 vector multiplet
+scalars; $X^0$ is the projective scale).
+Real scalar degrees of freedom: $2 \times 26 + 2 = 54$
+(including the K\"ahler modulus from $X^0$; matches
+$\dim \mathcal{M} = 54$).
+Vectors: $A^I_\mu$, $I = 0, \ldots, 26$ (27 total).
+
+\paragraph{Uniqueness.}
+This Lagrangian, with $C_{IJK}$ from $\mathfrak{h}_3(\mathbb{O})$,
+defines the \textbf{exceptional magic} MESGT---the unique
+$\mathcal{N}=2$ supergravity coupled to 26 vector multiplets with
+$E_{6(-26)}$ symmetry (5d) and $E_{7(-25)}$ symmetry
+(4d)~[GST84, dWVP92, FG06].
+
+\paragraph{Role of $\mathcal{N}=2$ SUSY.}
+The $\mathcal{N}=2$ supersymmetry framework is an \textbf{input} to
+the MESGT matching, not derived from the self-modeling construction.
+Given the bosonic Lagrangian~(49.6), the fermionic couplings are
+uniquely fixed by $\mathcal{N}=2$ SUSY~[LVP20].
+
+% ======================================================================
+
+\subsection*{Summary: Roadmap Requirements}
+
+\begin{center}
+\begin{tabular}{l|l|l}
+\hline
+\textbf{Requirement} & \textbf{Status} & \textbf{Established in} \\
+\hline
+GRAV-01: Field content & Done & Plan~01, Prop.~1 \\
+GRAV-02: 4d field content (direct, no KK) & Done & Plan~01, Prop.~1 \\
+GRAV-03: Precise claim & Done & Plan~02, Prop.~5 \\
+GRAV-04: Cosmological constant & Done & Plan~02, Prop.~6 \\
+GRAV-05: $C_{IJK}$ decomposition & Done & Plan~02, Prop.~4 \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{0.5em}
+\textit{Phase 49, Plan 02. Direct 4d formulation.
+No 5d $\to$ 4d reduction performed.
+$\det(X)$ is prepotential (algebraic input), not Einstein--Hilbert
+(variational output).}

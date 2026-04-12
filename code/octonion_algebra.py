@@ -3594,3 +3594,94 @@ def prepotential_F(X_coords, d_tensor=None):
 #   SM quantum numbers: Paper 7 multiset match for all 16 V_{1/2}.
 #   No KK reduction. No 27 vector multiplet claim.
 # ============================================================================
+
+
+# ============================================================================
+# Phase 49, Plan 02: C_{IJK} coupling decomposition
+# ============================================================================
+#
+# ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+#   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+#   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+#   det3_normalization=d(X,X,X)=6*det_3(X),
+#   real_forms=E6(-26)_5d_E7(-25)_4d,
+#   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+#   lagrangian_convention=e^{-1}L=-R/2+g_ij*dz^i*dzj*+Im(N)FF+Re(N)F*F
+#
+# Spacetime V_0 indices: {17,18,19,26} = h_2(C_u), Minkowski (Phase 46)
+# Internal V_0 indices: {20,21,22,23,24,25} = W-sector, killed by pi_u
+
+
+def decompose_couplings_49(d_tensor=None):
+    """Decompose C_{IJK} = (1/6) d_{IJK} couplings by Peirce block and
+    spacetime/internal split.
+
+    The d_{IJK} tensor has exactly two nonzero Peirce blocks (Phase 47):
+      (V_1, V_0, V_0): 10 entries -- graviphoton-to-V_0 coupling via det_2
+      (V_{1/2}, V_{1/2}, V_0): 96 entries -- matter-gravity coupling
+
+    The (V_{1/2}, V_{1/2}, V_0) block is further split by the V_0 index:
+      Spacetime: V_0 index in {17,18,19,26} (h_2(C_u), Minkowski metric)
+      Internal: V_0 index in {20,...,25} (W-sector, killed by pi_u)
+
+    Parameters:
+        d_tensor: dict {(I,J,K): value} from d_ijk_tensor() (default: computed)
+
+    Returns:
+        dict with keys:
+          'gravitational_self': list of ((I,J,K), C_value) for (V_1,V_0,V_0)
+          'matter_spacetime': list of ((I,J,K), C_value) for (V_{1/2},V_{1/2},V_0)
+                              with V_0 index in spacetime set {17,18,19,26}
+          'matter_internal': list of ((I,J,K), C_value) for (V_{1/2},V_{1/2},V_0)
+                             with V_0 index in internal set {20,...,25}
+          'counts': dict with entry counts per sub-block
+          'spacetime_indices': set of spacetime V_0 indices
+          'internal_indices': set of internal V_0 indices
+    """
+    if d_tensor is None:
+        d_tensor = d_ijk_tensor()
+
+    blocks = classify_peirce_blocks(d_tensor)
+
+    spacetime_set = {17, 18, 19, 26}
+    internal_set = {20, 21, 22, 23, 24, 25}
+
+    # (V_1, V_0, V_0) block: gravitational self-coupling
+    v1v0v0_key = ('V_0', 'V_0', 'V_1')
+    v1v0v0_raw = blocks.get(v1v0v0_key, [])
+    grav_self = [((I, J, K), val / 6.0) for (I, J, K), val in v1v0v0_raw]
+
+    # (V_{1/2}, V_{1/2}, V_0) block: matter-gravity coupling
+    vhalf_key = ('V_0', 'V_{1/2}', 'V_{1/2}')
+    vhalf_raw = blocks.get(vhalf_key, [])
+
+    matter_spacetime = []
+    matter_internal = []
+    for (I, J, K), val in vhalf_raw:
+        c_val = val / 6.0
+        # Find the V_0 index
+        v0_idx = None
+        for idx in [I, J, K]:
+            if 17 <= idx <= 26:
+                v0_idx = idx
+                break
+        if v0_idx in spacetime_set:
+            matter_spacetime.append(((I, J, K), c_val))
+        elif v0_idx in internal_set:
+            matter_internal.append(((I, J, K), c_val))
+
+    counts = {
+        'gravitational_self': len(grav_self),
+        'matter_spacetime': len(matter_spacetime),
+        'matter_internal': len(matter_internal),
+        'total': len(grav_self) + len(matter_spacetime) + len(matter_internal),
+    }
+
+    return {
+        'gravitational_self': sorted(grav_self),
+        'matter_spacetime': sorted(matter_spacetime),
+        'matter_internal': sorted(matter_internal),
+        'counts': counts,
+        'spacetime_indices': spacetime_set,
+        'internal_indices': internal_set,
+    }
