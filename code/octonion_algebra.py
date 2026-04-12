@@ -1915,3 +1915,135 @@ def compute_grade2_stabilizer(gamma_matrices, target_gamma_ij):
         'semisimple_dim': stab_dim - center_count,
         'center_dim': center_count,
     }
+
+
+# ============================================================================
+# Phase 46, Plan 02: Delta non-homomorphism, V_{1/2} x V_{1/2} -> V_0 product
+# ============================================================================
+# ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba),
+#   octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7,
+#   metric_on_h2Cu=mostly_minus_via_det2
+#
+# Delta(A,B) = pi_u(A o B) - pi_u(A) o pi_u(B) measures the failure of pi_u
+# to be a Jordan homomorphism.  It vanishes when both A,B are in h_2(C_u)
+# (associativity of C_u) and is generically nonzero on h_2(O) due to
+# octonion non-associativity.
+#
+# Reference: Baez 2002 Sec 3.3-3.4 (h_2(C) is associative -> pi_u is
+#   homomorphism on h_2(C_u)).
+# Reference: McCrimmon 2004 Ch. 17 (Peirce multiplication rules).
+
+
+def delta_pi_u(A, B):
+    """Non-homomorphism failure of pi_u on V_0.
+
+    Delta(A,B) = pi_u(jordan_product_h2o(A, B)) - jordan_product_h2o(pi_u(A), pi_u(B))
+
+    Both Jordan products are the intrinsic h_2(O) product.
+    The result lives in h_2(C_u) (image of pi_u).
+
+    Parameters:
+        A, B: H3O elements in V_0
+
+    Returns:
+        H3O element in h_2(C_u)
+    """
+    # pi_u(A o B)
+    AB = jordan_product_h2o(A, B)
+    term1 = pi_u(AB)
+
+    # pi_u(A) o pi_u(B)
+    piA = pi_u(A)
+    piB = pi_u(B)
+    term2 = jordan_product_h2o(piA, piB)
+
+    return term1 - term2
+
+
+def h2cu_basis():
+    """Return the 4 basis elements of h_2(C_u) as H3O elements in V_0.
+
+    B_0 = E_{22} = (beta=1, gamma=0)
+    B_1 = E_{33} = (beta=0, gamma=1)
+    B_2 = off-diag real = (x1 = 1)
+    B_3 = off-diag u = (x1 = e_7)
+
+    These span h_2(C_u) where C_u = span{1, e_7}.
+    """
+    return [
+        H3O(beta=1.0, gamma=0.0),       # E_{22}
+        H3O(beta=0.0, gamma=1.0),       # E_{33}
+        H3O(x1=Octonion.basis(0)),      # x1 = 1
+        H3O(x1=Octonion.basis(7)),      # x1 = e_7
+    ]
+
+
+def compute_delta_table():
+    """Compute Delta(B_i, B_j) for all 55 V_0 basis pairs (i <= j).
+
+    Uses V0_basis_elements() (10 elements).
+
+    Returns:
+        dict with keys:
+          'deltas': list of (i, j, H3O) for all 55 pairs
+          'norms': 10x10 symmetric matrix of |Delta(B_i, B_j)|
+          'cu_pairs': list of (i, j) indices for h_2(C_u) basis pairs
+          'cu_max_error': float, max |Delta| on h_2(C_u) pairs
+          'nonzero_pairs': list of (i, j, norm) for pairs with |Delta| > 1e-14
+          'zero_pairs': list of (i, j) for pairs with |Delta| <= 1e-14
+    """
+    basis = V0_basis_elements()
+    n = len(basis)  # 10
+
+    deltas = []
+    norms = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(i, n):
+            d = delta_pi_u(basis[i], basis[j])
+            dn = d.norm()
+            deltas.append((i, j, d))
+            norms[i, j] = dn
+            norms[j, i] = dn
+
+    # Identify h_2(C_u) basis indices within V0_basis_elements:
+    # V0 basis: b[0]=(beta=0.5, gamma=0.5), b[1]=(beta=0.5, gamma=-0.5),
+    #           b[2]=x1=e_0, b[3]=x1=e_1, ..., b[9]=x1=e_7
+    # h_2(C_u) elements: beta, gamma components -> b[0], b[1] span the diagonal
+    # x1 in C_u -> b[2] (x1=e_0=1) and b[9] (x1=e_7=u)
+    cu_indices = [0, 1, 2, 9]  # b[0], b[1] (diagonal), b[2] (x1=1), b[9] (x1=e_7)
+
+    cu_pairs = []
+    cu_max_error = 0.0
+    for i in cu_indices:
+        for j in cu_indices:
+            if j >= i:
+                cu_pairs.append((i, j))
+                cu_max_error = max(cu_max_error, norms[i, j])
+
+    nonzero_pairs = [(i, j, norms[i, j]) for (i, j, _) in deltas if norms[i, j] > 1e-14]
+    zero_pairs = [(i, j) for (i, j, _) in deltas if norms[i, j] <= 1e-14]
+
+    return {
+        'deltas': deltas,
+        'norms': norms,
+        'cu_indices': cu_indices,
+        'cu_pairs': cu_pairs,
+        'cu_max_error': cu_max_error,
+        'nonzero_pairs': nonzero_pairs,
+        'zero_pairs': zero_pairs,
+    }
+
+
+def vhalf_product_V0(v, w):
+    """V_0 component of V_{1/2} x V_{1/2} Peirce product.
+
+    vhalf_product_V0(v, w) = peirce_V0(jordan_product(v, w))
+
+    Parameters:
+        v, w: H3O elements in V_{1/2}
+
+    Returns:
+        H3O element in V_0
+    """
+    return peirce_V0(jordan_product(v, w))
