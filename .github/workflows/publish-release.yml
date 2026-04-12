@@ -37,24 +37,24 @@ jobs:
           fi
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v7
 
       - name: Install development dependencies
         run: |
@@ -109,7 +109,7 @@ jobs:
           uv run --with twine python -m twine check dist/*
 
       - name: Upload Python distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-dists
           path: dist/*
@@ -127,7 +127,7 @@ jobs:
 
     steps:
       - name: Download Python distributions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: python-dists
           path: dist
@@ -148,14 +148,14 @@ jobs:
 
     steps:
       - name: Check out release commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.build-release.outputs.release_sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -164,7 +164,7 @@ jobs:
           python scripts/release_workflow.py stamp-publish-date --repo . --release-date "${{ needs.build-release.outputs.release_date }}" > /tmp/publish-date.json
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
@@ -238,6 +238,22 @@ jobs:
           PR_URL=$(gh pr list --state open --base "$DEFAULT_BRANCH" --head "$FOLLOWUP_BRANCH" --json url --jq '.[0].url')
           echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
 
+      - name: Trigger gpd-web production rebuild
+        env:
+          GPD_WEB_TOKEN: ${{ secrets.GPD_WEB_DISPATCH_TOKEN }}
+        run: |
+          VERSION="${{ needs.build-release.outputs.version }}"
+          if [ -z "$GPD_WEB_TOKEN" ]; then
+            echo "::warning::GPD_WEB_DISPATCH_TOKEN not configured — skipping production rebuild trigger"
+            exit 0
+          fi
+          curl -sf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GPD_WEB_TOKEN}" \
+            https://api.github.com/repos/physicalsuperintelligence/gpd-web/dispatches \
+            -d "{\"event_type\":\"rebuild-gpd\",\"client_payload\":{\"source\":\"npm\",\"version\":\"${VERSION}\",\"image_tag\":\"prod\"}}"
+          echo "Dispatched production rebuild to gpd-web for GPD v${VERSION}"
+
       - name: Write publish summary
         env:
           RELEASE_URL: ${{ steps.github_release.outputs.release_url }}
@@ -261,4 +277,5 @@ jobs:
             else
               echo "- Follow-up metadata PR: not needed; release PR already used the publish date"
             fi
+            echo "- GPD Web production rebuild: dispatched"
           } >> "$GITHUB_STEP_SUMMARY"

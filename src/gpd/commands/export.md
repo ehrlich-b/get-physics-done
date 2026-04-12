@@ -11,8 +11,6 @@ allowed-tools:
   - find_files
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Export research results into shareable formats. Collects key results, equations, derivations, and figures from all completed phases and packages them for external consumption.
@@ -34,9 +32,9 @@ Use this when sharing results with collaborators, preparing for publication, or 
 <context>
 Format: $ARGUMENTS (optional -- if not provided, ask user)
 
-@.gpd/PROJECT.md
-@.gpd/ROADMAP.md
-@.gpd/STATE.md
+@GPD/PROJECT.md
+@GPD/ROADMAP.md
+@GPD/STATE.md
 </context>
 
 <process>

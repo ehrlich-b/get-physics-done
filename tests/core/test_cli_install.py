@@ -13,15 +13,274 @@ Covers:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from typer.testing import CliRunner
 
+from gpd.adapters import get_adapter
+from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 from gpd.cli import _format_install_header_lines, _render_install_option_line, app
+from gpd.core.health import CheckStatus, DoctorReport, HealthCheck, HealthSummary
+from gpd.core.onboarding_surfaces import beginner_startup_ladder_text
+from gpd.core.public_surface_contract import beginner_onboarding_hub_url
+from gpd.core.surface_phrases import recovery_ladder_note
+from tests.doc_surface_contracts import (
+    assert_install_summary_runtime_follow_up_contract,
+    assert_recovery_ladder_contract,
+)
 
-runner = CliRunner()
+
+class _StableCliRunner(CliRunner):
+    def invoke(self, *args, **kwargs):
+        kwargs.setdefault("color", False)
+        return super().invoke(*args, **kwargs)
+
+
+runner = _StableCliRunner()
+
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+
+def _normalize_cli_output(text: str) -> str:
+    return " ".join(_ANSI_ESCAPE_RE.sub("", text).split())
+_INSTALL_TEST_DESCRIPTORS = iter_runtime_descriptors()
+_PRIMARY_INSTALL_DESCRIPTOR = _INSTALL_TEST_DESCRIPTORS[0]
+_SECONDARY_INSTALL_DESCRIPTOR = _INSTALL_TEST_DESCRIPTORS[1]
+_TERTIARY_INSTALL_DESCRIPTOR = _INSTALL_TEST_DESCRIPTORS[2]
+_ENV_OVERRIDE_INSTALL_DESCRIPTOR = next(
+    descriptor
+    for descriptor in _INSTALL_TEST_DESCRIPTORS
+    if (
+        descriptor.global_config.env_var
+        or descriptor.global_config.env_dir_var
+        or descriptor.global_config.env_file_var
+    )
+)
+def _descriptor_with_selection_alias_fragment(fragment: str):
+    matches = [
+        descriptor
+        for descriptor in _INSTALL_TEST_DESCRIPTORS
+        if any(fragment in alias for alias in descriptor.selection_aliases)
+    ]
+    if len(matches) != 1:
+        raise AssertionError(f"Expected exactly one runtime descriptor to match '{fragment}', got {len(matches)}")
+    return matches[0]
+
+
+def _descriptors_with_selection_alias_fragment(fragment: str) -> tuple:
+    return tuple(
+        descriptor
+        for descriptor in _INSTALL_TEST_DESCRIPTORS
+        if any(fragment in alias for alias in descriptor.selection_aliases)
+    )
+
+
+def _descriptor_with_spaced_selection_alias() -> tuple[object, str]:
+    matches: list[tuple[object, str]] = []
+    for descriptor in _INSTALL_TEST_DESCRIPTORS:
+        normalized_display_name = descriptor.display_name.lower().replace("-", " ").replace("cli", "cli")
+        alias = next(
+            (
+                item
+                for item in descriptor.selection_aliases
+                if " " in item and item != normalized_display_name and item != descriptor.runtime_name.replace("-", " ")
+            ),
+            None,
+        )
+        if alias is not None:
+            matches.append((descriptor, alias))
+    if len(matches) != 1:
+        raise AssertionError(f"Expected exactly one runtime descriptor with a spaced alias, got {len(matches)}")
+    return matches[0]
+
+
+def _descriptor_with_runtime_selection_flag() -> tuple[object, str]:
+    for descriptor in _INSTALL_TEST_DESCRIPTORS:
+        flag_inputs = tuple(dict.fromkeys((descriptor.install_flag, *descriptor.selection_flags)))
+        if flag_inputs:
+            return descriptor, flag_inputs[0]
+    raise AssertionError("Expected at least one runtime descriptor with a catalog selection flag")
+
+
+def _install_target(tmp_path: Path, descriptor=_PRIMARY_INSTALL_DESCRIPTOR) -> Path:
+    return tmp_path / descriptor.config_dir_name
+
+
+def _install_nested_target(tmp_path: Path, descriptor=_PRIMARY_INSTALL_DESCRIPTOR) -> Path:
+    return tmp_path / "does" / "not" / "exist" / descriptor.config_dir_name
+
+
+def _install_adapter(descriptor=_PRIMARY_INSTALL_DESCRIPTOR):
+    return get_adapter(descriptor.runtime_name)
+
+
+def _install_adapter_surface(descriptor=_PRIMARY_INSTALL_DESCRIPTOR) -> dict[str, object]:
+    adapter = _install_adapter(descriptor)
+    return {
+        "display_name": descriptor.display_name,
+        "format_command": adapter.format_command,
+        "launch_command": adapter.launch_command,
+        "help_command": adapter.help_command,
+        "new_project_command": adapter.new_project_command,
+        "map_research_command": adapter.map_research_command,
+        "selection_aliases": descriptor.selection_aliases,
+    }
+
+
+def _mock_install_adapter(descriptor=_PRIMARY_INSTALL_DESCRIPTOR, **overrides):
+    surface = _install_adapter_surface(descriptor)
+    surface.update(overrides)
+    return MagicMock(**surface)
+
+
+def _doctor_report(
+    *,
+    overall: CheckStatus = CheckStatus.OK,
+    runtime: str | None = None,
+    install_scope: str | None = None,
+    target: str | None = None,
+    checks: list[HealthCheck] | None = None,
+) -> DoctorReport:
+    report_checks = checks or [HealthCheck(status=CheckStatus.OK, label="Runtime Launcher")]
+    fail_count = sum(1 for check in report_checks if check.status == CheckStatus.FAIL)
+    warn_count = sum(1 for check in report_checks if check.status == CheckStatus.WARN)
+    ok_count = sum(1 for check in report_checks if check.status == CheckStatus.OK)
+    return DoctorReport(
+        overall=overall,
+        mode="runtime-readiness",
+        runtime=runtime,
+        install_scope=install_scope,
+        target=target,
+        summary=HealthSummary(ok=ok_count, warn=warn_count, fail=fail_count, total=len(report_checks)),
+        checks=report_checks,
+    )
+
+
+@pytest.fixture(autouse=True)
+def _mock_install_preflight_doctor(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_run_doctor(*args, **kwargs):
+        target_dir = kwargs.get("target_dir")
+        target_text = str(target_dir) if target_dir is not None else None
+        return _doctor_report(
+            runtime=kwargs.get("runtime"),
+            install_scope=kwargs.get("install_scope"),
+            target=target_text,
+        )
+
+    monkeypatch.setattr("gpd.core.health.run_doctor", _fake_run_doctor)
+
+
+def _assert_install_return_state(target: Path, *, adapter) -> None:
+    for relpath in adapter.install_verification_relpaths():
+        assert (target / relpath).exists()
+
+
+def _first_overwritable_installed_file(target: Path) -> Path:
+    return next(
+        path
+        for path in target.rglob("*")
+        if path.is_file() and path.name != "gpd-file-manifest.json" and "hooks" not in path.relative_to(target).parts
+    )
+
+
+def _assert_single_runtime_next_steps(
+    output: str,
+    descriptor=_PRIMARY_INSTALL_DESCRIPTOR,
+) -> None:
+    adapter = _install_adapter(descriptor)
+    resume_work_command = adapter.format_command("resume-work")
+    suggest_next_command = adapter.format_command("suggest-next")
+    pause_work_command = adapter.format_command("pause-work")
+    ordered_patterns = (
+        re.escape("Startup checklist"),
+        re.escape(f"Beginner Onboarding Hub: {beginner_onboarding_hub_url()}"),
+        re.escape("First-run order: `help -> start -> tour -> new-project / map-research -> resume-work`"),
+        re.escape(
+            f"1. Open {descriptor.display_name} from your system terminal ({adapter.launch_command})."
+        ),
+        re.escape(f"2. Run {adapter.help_command} for the command list."),
+        re.escape(
+            "3. Run "
+            f"{adapter.format_command('start')} if you're not sure what fits this folder yet. "
+            "Run "
+            f"{adapter.format_command('tour')} if you want a read-only overview of the broader command surface first."
+        ),
+        re.escape(
+            f"4. Then use {adapter.new_project_command} for a new project or "
+            f"{adapter.map_research_command} for existing work."
+        ),
+        re.escape(
+            f"Fast bootstrap: use {adapter.new_project_command} --minimal for the shortest onboarding path."
+        ),
+        re.escape(
+            f"6. When you return later, use {resume_work_command} after reopening the right workspace. "
+        ),
+        re.escape(
+            recovery_ladder_note(
+                resume_work_phrase=f"`{resume_work_command}`",
+                suggest_next_phrase=f"`{suggest_next_command}`",
+                pause_work_phrase=f"`{pause_work_command}`",
+            )
+        ),
+        re.escape("7. Use gpd --help for local diagnostics and later setup."),
+    )
+    cursor = 0
+    for pattern in ordered_patterns:
+        match = re.search(pattern, output[cursor:], re.S)
+        assert match, output
+        cursor += match.end()
+    assert "--local|--global" not in output
+    assert beginner_startup_ladder_text() in output
+    assert_install_summary_runtime_follow_up_contract(
+        output,
+        runtime_help_fragments=(
+            f"Run {adapter.help_command} for the command list.",
+        ),
+    )
+
+
+def _assert_multi_runtime_next_step_line(output: str, descriptor) -> None:
+    adapter = get_adapter(descriptor.runtime_name)
+    pattern = re.compile(
+        rf"- {re.escape(descriptor.display_name)}.*?"
+        rf"{re.escape(adapter.launch_command)}.*?"
+        rf"{re.escape(adapter.help_command)}.*?"
+        rf"{re.escape(adapter.format_command('start'))}.*?"
+        rf"{re.escape(adapter.format_command('tour'))}.*?"
+        rf"{re.escape(adapter.new_project_command)}.*?"
+        rf"{re.escape(adapter.map_research_command)}.*?"
+        rf"{re.escape(adapter.format_command('resume-work'))}.*?"
+        rf"Fast bootstrap: use .*? --minimal",
+        re.S,
+    )
+    assert pattern.search(output), output
+
+
+def _assert_install_summary_recovery_contract(
+    output: str,
+    *,
+    descriptor=_PRIMARY_INSTALL_DESCRIPTOR,
+    runtime_specific: bool = False,
+) -> None:
+    if runtime_specific:
+        resume_work_fragments = ("your runtime-specific `resume-work` command",)
+        suggest_next_fragments = ("your runtime-specific `suggest-next` command",)
+        pause_work_fragments = ("your runtime-specific `pause-work` command",)
+    else:
+        adapter = _install_adapter(descriptor)
+        resume_work_fragments = (f"`{adapter.format_command('resume-work')}`",)
+        suggest_next_fragments = (f"`{adapter.format_command('suggest-next')}`",)
+        pause_work_fragments = (f"`{adapter.format_command('pause-work')}`",)
+
+    assert_recovery_ladder_contract(
+        output,
+        resume_work_fragments=resume_work_fragments,
+        suggest_next_fragments=suggest_next_fragments,
+        pause_work_fragments=pause_work_fragments,
+    )
 
 
 # ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -79,15 +338,13 @@ def _make_checkout(tmp_path: Path, version: str = "9.9.9") -> Path:
 
 def test_install_creates_nonexistent_target_dir(gpd_root: Path, tmp_path: Path):
     """Install to a directory that doesn't exist yet — should create it."""
-    target = tmp_path / "does" / "not" / "exist" / ".claude"
+    target = _install_nested_target(tmp_path)
     assert not target.exists()
 
-    from gpd.adapters.claude_code import ClaudeCodeAdapter
-
-    adapter = ClaudeCodeAdapter()
+    adapter = _install_adapter()
     result = adapter.install(gpd_root, target)
     assert target.exists()
-    assert (target / "commands" / "gpd").is_dir()
+    _assert_install_return_state(target, adapter=adapter)
     assert result["commands"] >= 1
 
 
@@ -96,26 +353,23 @@ def test_install_creates_nonexistent_target_dir(gpd_root: Path, tmp_path: Path):
 
 def test_install_upgrades_existing(gpd_root: Path, tmp_path: Path):
     """Install over an existing GPD install — replaces files correctly."""
-    from gpd.adapters.claude_code import ClaudeCodeAdapter
-
-    target = tmp_path / ".claude"
-    adapter = ClaudeCodeAdapter()
+    target = _install_target(tmp_path)
+    adapter = _install_adapter()
 
     # First install
     result1 = adapter.install(gpd_root, target)
     assert result1["commands"] >= 1
 
     # Modify an installed file to simulate user edit
-    commands_dir = target / "commands" / "gpd"
-    first_md = next(commands_dir.rglob("*.md"))
-    first_md.write_text("user modified content", encoding="utf-8")
+    first_file = _first_overwritable_installed_file(target)
+    first_file.write_text("user modified content", encoding="utf-8")
 
     # Second install (upgrade)
     result2 = adapter.install(gpd_root, target)
     assert result2["commands"] >= 1
 
     # File should be overwritten by upgrade (atomic swap)
-    content = first_md.read_text(encoding="utf-8")
+    content = first_file.read_text(encoding="utf-8")
     assert content != "user modified content"
 
 
@@ -126,8 +380,8 @@ def test_install_all_continues_on_failure(tmp_path: Path):
     """--all install continues when some runtimes fail and sets exit code 1."""
 
     def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
-        if runtime_name == "claude-code":
-            return {"runtime": "claude-code", "commands": 5, "agents": 3, "target": str(tmp_path)}
+        if runtime_name == _PRIMARY_INSTALL_DESCRIPTOR.runtime_name:
+            return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path)}
         raise RuntimeError(f"Simulated failure for {runtime_name}")
 
     with (
@@ -158,7 +412,7 @@ def test_install_all_success_exits_0(tmp_path: Path):
         mock_adapter.display_name = "Test"
         mock_get.return_value = mock_adapter
 
-        result = runner.invoke(app, ["install", "claude-code", "--local"])
+        result = runner.invoke(app, ["install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
 
     assert result.exit_code == 0
 
@@ -167,22 +421,22 @@ def test_install_banner_uses_display_names(tmp_path: Path):
     """Install banner should show human-friendly runtime names."""
 
     def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
-        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / ".claude")}
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(_install_target(tmp_path))}
 
     with (
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get,
     ):
-        mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
-        mock_adapter.help_command = "/gpd:help"
-        mock_get.return_value = mock_adapter
+        mock_get.return_value = _mock_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR)
 
-        result = runner.invoke(app, ["--cwd", str(tmp_path), "install", "claude-code", "--local"])
+        result = runner.invoke(app, ["--cwd", str(tmp_path), "install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
 
     assert result.exit_code == 0
-    assert "Installing GPD (local) for: Claude Code" in result.output
-    assert "Installing GPD (local) for: claude-code" not in result.output
+    assert "GPD v" in result.output
+    assert "© 2026 Physical Superintelligence PBC (PSI)" in result.output
+    assert "██████" in result.output
+    assert f"Installing GPD (local) for: {_PRIMARY_INSTALL_DESCRIPTOR.display_name}" in result.output
+    assert f"Installing GPD (local) for: {_PRIMARY_INSTALL_DESCRIPTOR.runtime_name}" not in result.output
 
 
 def test_format_install_header_lines_uses_psi_branding() -> None:
@@ -195,17 +449,23 @@ def test_format_install_header_lines_uses_psi_branding() -> None:
 
 def test_render_install_option_line_uses_single_line_bracketed_layout() -> None:
     """Interactive install options should use the compact bracketed layout."""
-    assert _render_install_option_line(1, "Claude Code", "claude-code", label_width=12).plain == (
-        "  [1] Claude Code   · claude-code"
+    runtime_line = _render_install_option_line(
+        1,
+        _PRIMARY_INSTALL_DESCRIPTOR.display_name,
+        _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+        label_width=12,
     )
-    assert _render_install_option_line(1, "Local", "current project only", "./.claude", label_width=6).plain == (
-        "  [1] Local   · current project only · ./.claude"
+    assert runtime_line.plain.startswith(f"  [1] {_PRIMARY_INSTALL_DESCRIPTOR.display_name}")
+    assert runtime_line.plain.endswith(f"· {_PRIMARY_INSTALL_DESCRIPTOR.runtime_name}")
+    local_target = f"./{_PRIMARY_INSTALL_DESCRIPTOR.config_dir_name}"
+    assert _render_install_option_line(1, "Local", "current project only", local_target, label_width=6).plain == (
+        f"  [1] Local   · current project only · {local_target}"
     )
 
 
 def test_install_summary_formats_target_relative_to_cwd(tmp_path: Path):
     """Install summary should show a compact target path."""
-    target = tmp_path / ".claude"
+    target = _install_target(tmp_path)
 
     def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
         return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(target)}
@@ -214,21 +474,18 @@ def test_install_summary_formats_target_relative_to_cwd(tmp_path: Path):
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get,
     ):
-        mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
-        mock_adapter.help_command = "/gpd:help"
-        mock_get.return_value = mock_adapter
+        mock_get.return_value = _mock_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR)
 
-        result = runner.invoke(app, ["--cwd", str(tmp_path), "install", "claude-code", "--local"])
+        result = runner.invoke(app, ["--cwd", str(tmp_path), "install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
 
     assert result.exit_code == 0
-    assert "./.claude" in result.output
+    assert f"./{_PRIMARY_INSTALL_DESCRIPTOR.config_dir_name}" in result.output
     assert str(target) not in result.output
 
 
-def test_install_summary_leaves_blank_line_after_next_steps(tmp_path: Path):
-    """Install output should leave a blank line after the next-steps block."""
-    target = tmp_path / ".claude"
+def test_install_summary_surfaces_help_then_new_or_existing_entry_points(tmp_path: Path):
+    """Single-runtime install summaries should lead with help, then project entry points."""
+    target = _install_target(tmp_path)
 
     def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
         return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(target)}
@@ -237,28 +494,18 @@ def test_install_summary_leaves_blank_line_after_next_steps(tmp_path: Path):
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get,
     ):
-        mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
-        mock_adapter.launch_command = "claude"
-        mock_adapter.help_command = "/gpd:help"
-        mock_adapter.new_project_command = "/gpd:new-project"
-        mock_adapter.map_research_command = "/gpd:map-research"
-        mock_get.return_value = mock_adapter
+        mock_get.return_value = _mock_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR)
 
-        result = runner.invoke(app, ["--cwd", str(tmp_path), "install", "claude-code", "--local"])
+        result = runner.invoke(app, ["--cwd", str(tmp_path), "install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
 
     assert result.exit_code == 0
-    assert "Next steps" in result.output
-    assert "1. Open Claude Code from your system terminal (claude)." in result.output
-    assert "2. Run /gpd:help for the command list." in result.output
-    assert (
-        "3. Start with /gpd:new-project for a new project or /gpd:map-research for existing work.\n\n"
-        in result.output
-    )
+    _assert_single_runtime_next_steps(result.output)
+    _assert_install_summary_recovery_contract(result.output, descriptor=_PRIMARY_INSTALL_DESCRIPTOR)
 
 
 def test_install_summary_lists_runtime_specific_help_for_multi_runtime_install(tmp_path: Path):
     """Multi-runtime installs should print runtime-specific help hints."""
+    descriptors = (_PRIMARY_INSTALL_DESCRIPTOR, _SECONDARY_INSTALL_DESCRIPTOR)
 
     def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
         return {
@@ -268,75 +515,76 @@ def test_install_summary_lists_runtime_specific_help_for_multi_runtime_install(t
             "target": str(tmp_path / runtime_name),
         }
 
-    adapters = {
-        "claude-code": MagicMock(
-            display_name="Claude Code",
-            launch_command="claude",
-            help_command="/gpd:claude-help",
-            new_project_command="/gpd:claude-new-project",
-            map_research_command="/gpd:claude-map-research",
-        ),
-        "gemini": MagicMock(
-            display_name="Gemini CLI",
-            launch_command="gemini",
-            help_command="/gpd:gemini-help",
-            new_project_command="/gpd:gemini-new-project",
-            map_research_command="/gpd:gemini-map-research",
-        ),
-    }
+    adapters = {}
+    for descriptor in descriptors:
+        adapter = get_adapter(descriptor.runtime_name)
+        adapters[descriptor.runtime_name] = MagicMock(
+            display_name=descriptor.display_name,
+            launch_command=adapter.launch_command,
+            help_command=adapter.help_command,
+            new_project_command=adapter.new_project_command,
+            map_research_command=adapter.map_research_command,
+            format_command=adapter.format_command,
+        )
 
     with (
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter", side_effect=lambda runtime: adapters[runtime]),
     ):
-        result = runner.invoke(app, ["install", "claude-code", "gemini", "--local"])
+        result = runner.invoke(app, ["install", *(descriptor.runtime_name for descriptor in descriptors), "--local"])
 
     assert result.exit_code == 0
-    assert "Next steps" in result.output
-    assert (
-        "- Claude Code (claude), then /gpd:claude-help, then /gpd:claude-new-project or /gpd:claude-map-research"
-        in result.output
-    )
-    assert (
-        "- Gemini CLI (gemini), then /gpd:gemini-help, then /gpd:gemini-new-project or /gpd:gemini-map-research"
-        in result.output
-    )
+    assert "Startup checklist" in result.output
+    assert beginner_startup_ladder_text() in result.output
+    for descriptor in descriptors:
+        _assert_multi_runtime_next_step_line(result.output, descriptor)
     assert "1. From your system terminal" not in result.output
+    _assert_install_summary_recovery_contract(result.output, runtime_specific=True)
+    assert_install_summary_runtime_follow_up_contract(result.output)
+
+
+def test_install_help_surfaces_interactive_batch_and_targeting_guidance() -> None:
+    """Install help should keep local/global targeting and interactive guidance visible."""
+    result = runner.invoke(app, ["install", "--help"])
+    normalized_output = _normalize_cli_output(result.output)
+
+    assert result.exit_code == 0
+    assert "Install GPD skills, agents, and hooks into runtime config directories." in normalized_output
+    assert "Run without arguments for interactive mode." in normalized_output
+    assert "Specify runtime name(s) or --all for batch mode." in normalized_output
+    assert "gpd install --all --global" in normalized_output
+    assert "Runtime(s) to install. Omit for interactive" in normalized_output
+    assert "--local" in normalized_output
+    assert "--global" in normalized_output
+    assert "--target-dir" in normalized_output
 
 
 # ─── 4. Uninstall without manifest ──────────────────────────────────────────
 
 
-def test_uninstall_no_manifest_graceful(tmp_path: Path):
-    """Uninstall when no manifest exists — should not crash."""
-    target = tmp_path / ".claude"
+def test_uninstall_rejects_manifestless_managed_surface(tmp_path: Path):
+    """Uninstall refuses managed surfaces when ownership cannot be proven."""
+    target = _install_target(tmp_path)
     target.mkdir()
     # Create some GPD files but no manifest
     gpd_dir = target / "get-physics-done"
     gpd_dir.mkdir()
     (gpd_dir / "test.md").write_text("test", encoding="utf-8")
 
-    from gpd.adapters.claude_code import ClaudeCodeAdapter
-
-    adapter = ClaudeCodeAdapter()
-    result = adapter.uninstall(target)
-
-    # Should succeed and report what was removed
-    assert result["runtime"] == "claude-code"
-    assert "get-physics-done/" in result["removed"]
+    adapter = _install_adapter()
+    with pytest.raises(RuntimeError, match="contains GPD artifacts but no manifest"):
+        adapter.uninstall(target)
 
 
 def test_uninstall_empty_target_nothing_to_remove(tmp_path: Path):
     """Uninstall from an empty directory — gracefully reports nothing to remove."""
-    target = tmp_path / ".claude"
+    target = _install_target(tmp_path)
     target.mkdir()
 
-    from gpd.adapters.claude_code import ClaudeCodeAdapter
-
-    adapter = ClaudeCodeAdapter()
+    adapter = _install_adapter()
     result = adapter.uninstall(target)
 
-    assert result["runtime"] == "claude-code"
+    assert result["runtime"] == _PRIMARY_INSTALL_DESCRIPTOR.runtime_name
     assert result["removed"] == []
 
 
@@ -344,9 +592,158 @@ def test_uninstall_nonexistent_target_skips(tmp_path: Path):
     """Uninstall when target dir doesn't exist — skip with message."""
     result = runner.invoke(
         app,
-        ["uninstall", "claude-code", "--local", "--target-dir", str(tmp_path / "nonexistent")],
+        ["uninstall", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local", "--target-dir", str(tmp_path / "nonexistent")],
     )
     assert result.exit_code == 0
+
+
+def test_uninstall_all_continues_after_one_runtime_failure(tmp_path: Path) -> None:
+    """A failure in one runtime uninstall must not stop later runtimes."""
+
+    removed_target = _install_target(tmp_path, _PRIMARY_INSTALL_DESCRIPTOR)
+    removed_target.mkdir()
+    failed_target = _install_target(tmp_path, _SECONDARY_INSTALL_DESCRIPTOR)
+    failed_target.mkdir()
+
+    primary_adapter = MagicMock()
+    primary_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+    primary_adapter.resolve_target_dir.return_value = removed_target
+    primary_adapter.uninstall.return_value = {"removed": ["commands"]}
+
+    secondary_adapter = MagicMock()
+    secondary_adapter.display_name = _SECONDARY_INSTALL_DESCRIPTOR.display_name
+    secondary_adapter.resolve_target_dir.return_value = failed_target
+    secondary_adapter.uninstall.side_effect = RuntimeError("boom")
+
+    with (
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
+        patch(
+            "gpd.adapters.get_adapter",
+            side_effect=lambda runtime: (
+                primary_adapter if runtime == _PRIMARY_INSTALL_DESCRIPTOR.runtime_name else secondary_adapter
+            ),
+        ),
+    ):
+        result = runner.invoke(app, ["uninstall", "--all", "--local"], input="y\n")
+
+    assert result.exit_code == 1
+    primary_adapter.uninstall.assert_called_once_with(removed_target)
+    secondary_adapter.uninstall.assert_called_once_with(failed_target)
+    assert "boom" in result.output
+    assert _PRIMARY_INSTALL_DESCRIPTOR.display_name in result.output
+    assert _SECONDARY_INSTALL_DESCRIPTOR.display_name in result.output
+
+
+def test_uninstall_raw_outputs_structured_outcomes(tmp_path: Path) -> None:
+    """--raw uninstall should report removed, skipped, and failed outcomes explicitly."""
+
+    removed_target = _install_target(tmp_path, _PRIMARY_INSTALL_DESCRIPTOR)
+    removed_target.mkdir()
+    failed_target = _install_target(tmp_path, _SECONDARY_INSTALL_DESCRIPTOR)
+    failed_target.mkdir()
+    skipped_target = _install_target(tmp_path, _TERTIARY_INSTALL_DESCRIPTOR)
+
+    primary_adapter = MagicMock()
+    primary_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+    primary_adapter.resolve_target_dir.return_value = removed_target
+    primary_adapter.uninstall.return_value = {"removed": ["commands", "agents"]}
+
+    secondary_adapter = MagicMock()
+    secondary_adapter.display_name = _SECONDARY_INSTALL_DESCRIPTOR.display_name
+    secondary_adapter.resolve_target_dir.return_value = failed_target
+    secondary_adapter.uninstall.side_effect = RuntimeError("boom")
+
+    tertiary_adapter = MagicMock()
+    tertiary_adapter.display_name = _TERTIARY_INSTALL_DESCRIPTOR.display_name
+    tertiary_adapter.resolve_target_dir.return_value = skipped_target
+    tertiary_adapter.uninstall.return_value = {"removed": []}
+
+    with (
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[
+                _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+                _SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+                _TERTIARY_INSTALL_DESCRIPTOR.runtime_name,
+            ],
+        ),
+        patch(
+            "gpd.adapters.get_adapter",
+            side_effect=lambda runtime: {
+                _PRIMARY_INSTALL_DESCRIPTOR.runtime_name: primary_adapter,
+                _SECONDARY_INSTALL_DESCRIPTOR.runtime_name: secondary_adapter,
+                _TERTIARY_INSTALL_DESCRIPTOR.runtime_name: tertiary_adapter,
+            }[runtime],
+        ),
+    ):
+        result = runner.invoke(app, ["--raw", "uninstall", "--all", "--local"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload["uninstalled"][0] == {
+        "runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+        "status": "removed",
+        "target": str(removed_target),
+        "removed": ["commands", "agents"],
+    }
+    assert payload["uninstalled"][1] == {
+        "runtime": _SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+        "status": "failed",
+        "target": str(failed_target),
+        "error": "boom",
+    }
+    skipped = payload["uninstalled"][2]
+    assert skipped["runtime"] == _TERTIARY_INSTALL_DESCRIPTOR.runtime_name
+    assert skipped["status"] == "skipped"
+    assert skipped["target"] == str(skipped_target)
+    assert skipped["reason"].startswith("not installed at ")
+
+
+def test_uninstall_raw_continues_after_adapter_lookup_failure(tmp_path: Path) -> None:
+    removed_target = _install_target(tmp_path, _PRIMARY_INSTALL_DESCRIPTOR)
+    removed_target.mkdir()
+
+    primary_adapter = MagicMock()
+    primary_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+    primary_adapter.resolve_target_dir.return_value = removed_target
+    primary_adapter.uninstall.return_value = {"removed": ["commands"]}
+
+    def fake_get_adapter(runtime: str):
+        if runtime == _SECONDARY_INSTALL_DESCRIPTOR.runtime_name:
+            raise RuntimeError("registry offline")
+        return primary_adapter
+
+    with (
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_SECONDARY_INSTALL_DESCRIPTOR.runtime_name, _PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
+        patch("gpd.adapters.get_adapter", side_effect=fake_get_adapter),
+    ):
+        result = runner.invoke(app, ["--raw", "uninstall", "--all", "--local"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload["uninstalled"] == [
+        {
+            "runtime": _SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+            "status": "failed",
+            "target": "",
+            "error": (
+                f"Runtime adapter unavailable for '{_SECONDARY_INSTALL_DESCRIPTOR.runtime_name}' during uninstall: "
+                "registry offline"
+            ),
+        },
+        {
+            "runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+            "status": "removed",
+            "target": str(removed_target),
+            "removed": ["commands"],
+        },
+    ]
 
 
 # ─── 5. Non-TTY interactive mode ────────────────────────────────────────────
@@ -361,13 +758,18 @@ def test_install_no_args_uses_interactive_defaults(tmp_path: Path):
     with (
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get,
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code"]),
+        patch("gpd.adapters.list_runtimes", return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name]),
     ):
         mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
-        mock_adapter.help_command = "/gpd:help"
+        mock_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+        mock_adapter.help_command = _install_adapter().help_command
         mock_adapter.resolve_target_dir.side_effect = (
-            lambda is_global, cwd=None: tmp_path / (".claude-global" if is_global else ".claude")
+            lambda is_global, cwd=None: tmp_path
+            / (
+                f"{_PRIMARY_INSTALL_DESCRIPTOR.config_dir_name}-global"
+                if is_global
+                else _PRIMARY_INSTALL_DESCRIPTOR.config_dir_name
+            )
         )
         mock_get.return_value = mock_adapter
 
@@ -377,8 +779,8 @@ def test_install_no_args_uses_interactive_defaults(tmp_path: Path):
     assert result.exit_code == 0
     assert "GPD v" in result.output
     assert "© 2026 Physical Superintelligence PBC (PSI)" in result.output
-    assert "[1] Claude Code" in result.output
-    assert "· claude-code" in result.output
+    assert f"[1] {_PRIMARY_INSTALL_DESCRIPTOR.display_name}" in result.output
+    assert f"· {_PRIMARY_INSTALL_DESCRIPTOR.runtime_name}" in result.output
     assert "Enter choice [1]" in result.output
     assert "[1] Local" in result.output
     assert "· current project only ·" in result.output
@@ -400,16 +802,17 @@ def test_install_raw_outputs_json(tmp_path: Path):
         patch("gpd.adapters.get_adapter") as mock_get,
     ):
         mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
+        mock_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
         mock_get.return_value = mock_adapter
 
-        result = runner.invoke(app, ["--raw", "install", "claude-code", "--local"])
+        result = runner.invoke(app, ["--raw", "install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
 
     assert result.exit_code == 0
     # Output should contain valid JSON with "installed" key
     assert '"installed"' in result.output
     # Should NOT contain rich table formatting
     assert "Install Summary" not in result.output
+    assert "GPD v" not in result.output
 
 
 def test_install_raw_includes_failures(tmp_path: Path):
@@ -426,7 +829,10 @@ def test_install_raw_includes_failures(tmp_path: Path):
     with (
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get,
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code", "gemini"]),
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
     ):
         mock_adapter = MagicMock()
         mock_adapter.display_name = "Test"
@@ -447,8 +853,8 @@ def test_install_raw_finalize_failure_not_reported_as_installed(tmp_path: Path):
         return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / runtime_name)}
 
     class FailingFinalizeAdapter:
-        display_name = "Claude Code"
-        help_command = "/gpd:help"
+        display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+        help_command = _install_adapter().help_command
 
         def finalize_install(self, install_result, *, force_statusline=False):
             raise RuntimeError("finalize boom")
@@ -457,26 +863,200 @@ def test_install_raw_finalize_failure_not_reported_as_installed(tmp_path: Path):
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter", return_value=FailingFinalizeAdapter()),
     ):
-        result = runner.invoke(app, ["--raw", "install", "claude-code", "--local"])
+        result = runner.invoke(app, ["--raw", "install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
 
     assert result.exit_code == 1
     payload = json.loads(result.output)
     assert payload["installed"] == []
-    assert payload["failed"] == [{"runtime": "claude-code", "error": "finalize boom"}]
+    assert payload["failed"] == [{"runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "error": "finalize boom"}]
+
+
+@patch("gpd.core.health.run_doctor")
+def test_install_raw_reports_preflight_failures_without_changing_raw_schema(mock_run_doctor, tmp_path: Path) -> None:
+    mock_run_doctor.return_value = _doctor_report(
+        overall=CheckStatus.FAIL,
+        runtime=_PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+        install_scope="local",
+        checks=[
+            HealthCheck(
+                status=CheckStatus.FAIL,
+                label="Runtime Launcher",
+                issues=["launcher missing"],
+            )
+        ],
+    )
+
+    with patch("gpd.cli._install_single_runtime") as mock_install_single:
+        result = runner.invoke(app, ["--raw", "install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload == {
+        "installed": [],
+        "failed": [{"runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "error": "launcher missing"}],
+    }
+    mock_install_single.assert_not_called()
+
+
+@patch("gpd.core.health.run_doctor")
+def test_install_preflight_aggregates_blockers_and_skips_all_runtime_installs(mock_run_doctor, tmp_path: Path) -> None:
+    mock_run_doctor.side_effect = [
+        _doctor_report(
+            runtime=_PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+            install_scope="local",
+            checks=[
+                HealthCheck(
+                    status=CheckStatus.OK,
+                    label="Runtime Launcher",
+                )
+            ],
+        ),
+        _doctor_report(
+            overall=CheckStatus.FAIL,
+            runtime=_SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+            install_scope="local",
+            checks=[
+                HealthCheck(
+                    status=CheckStatus.FAIL,
+                    label="Runtime Config Target",
+                    issues=["secondary target not writable"],
+                )
+            ],
+        ),
+    ]
+
+    with (
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
+        patch("gpd.cli._install_single_runtime") as mock_install_single,
+    ):
+        result = runner.invoke(app, ["install", "--all", "--local"])
+
+    assert result.exit_code == 1
+    mock_install_single.assert_not_called()
+    assert _SECONDARY_INSTALL_DESCRIPTOR.display_name in result.output
+    assert "secondary target not writable" in result.output
+    assert "readiness check passed" not in result.output
+
+
+@patch("gpd.core.health.run_doctor")
+def test_install_raw_reports_all_preflight_failures_for_multi_runtime_install(mock_run_doctor, tmp_path: Path) -> None:
+    mock_run_doctor.side_effect = [
+        _doctor_report(
+            overall=CheckStatus.FAIL,
+            runtime=_PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+            install_scope="local",
+            checks=[
+                HealthCheck(
+                    status=CheckStatus.FAIL,
+                    label="Runtime Launcher",
+                    issues=["primary launcher missing"],
+                )
+            ],
+        ),
+        _doctor_report(
+            overall=CheckStatus.FAIL,
+            runtime=_SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+            install_scope="local",
+            checks=[
+                HealthCheck(
+                    status=CheckStatus.FAIL,
+                    label="Runtime Config Target",
+                    issues=["secondary target not writable"],
+                )
+            ],
+        ),
+    ]
+
+    with (
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
+        patch("gpd.cli._install_single_runtime") as mock_install_single,
+    ):
+        result = runner.invoke(app, ["--raw", "install", "--all", "--local"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload == {
+        "installed": [],
+        "failed": [
+            {"runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "error": "primary launcher missing"},
+            {"runtime": _SECONDARY_INSTALL_DESCRIPTOR.runtime_name, "error": "secondary target not writable"},
+        ],
+    }
+    mock_install_single.assert_not_called()
+
+
+@patch("gpd.core.health.run_doctor")
+def test_install_preflight_forwards_scope_and_explicit_target_dir(mock_run_doctor, tmp_path: Path) -> None:
+    runtime_name = _PRIMARY_INSTALL_DESCRIPTOR.runtime_name
+    target_dir = tmp_path / "target-config"
+    mock_run_doctor.return_value = _doctor_report(
+        runtime=runtime_name,
+        install_scope="local",
+        target=str(target_dir),
+    )
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(target_dir)}
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch("gpd.adapters.get_adapter") as mock_get,
+    ):
+        mock_get.return_value = _mock_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR)
+        result = runner.invoke(app, ["install", runtime_name, "--target-dir", str(target_dir)])
+
+    assert result.exit_code == 0
+    mock_run_doctor.assert_called_once()
+    _, kwargs = mock_run_doctor.call_args
+    assert kwargs["runtime"] == runtime_name
+    assert kwargs["install_scope"] == "local"
+    assert kwargs["target_dir"] == target_dir.resolve(strict=False)
 
 
 def test_uninstall_raw_outputs_json(tmp_path: Path):
     """--raw flag on uninstall outputs clean JSON."""
-    target = tmp_path / ".claude"
+    target = _install_target(tmp_path)
     target.mkdir()
 
     result = runner.invoke(
         app,
-        ["--raw", "uninstall", "claude-code", "--local", "--target-dir", str(target)],
+        ["--raw", "uninstall", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local", "--target-dir", str(target)],
     )
 
     assert result.exit_code == 0
-    assert '"uninstalled"' in result.output
+    payload = json.loads(result.output)
+    assert payload["uninstalled"][0]["runtime"] == _PRIMARY_INSTALL_DESCRIPTOR.runtime_name
+    assert payload["uninstalled"][0]["status"] == "skipped"
+    assert payload["uninstalled"][0]["target"] == str(target)
+    assert payload["uninstalled"][0]["reason"] == "nothing to remove"
+    assert payload["uninstalled"][0]["removed"] == []
+
+
+@patch("gpd.core.health.run_doctor")
+def test_doctor_raw_outputs_structured_readiness_payload(mock_doctor) -> None:
+    """The readiness entrypoint should preserve doctor payloads in raw mode."""
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {
+        "ok": True,
+        "checks": [{"label": "Python", "status": "ok"}],
+    }
+    mock_doctor.return_value = mock_result
+
+    result = runner.invoke(app, ["--raw", "doctor"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload == {
+        "ok": True,
+        "checks": [{"label": "Python", "status": "ok"}],
+    }
+    mock_doctor.assert_called_once()
 
 
 # ─── 7. is_global forwarding ────────────────────────────────────────────────
@@ -487,14 +1067,14 @@ def test_install_single_runtime_passes_is_global(tmp_path: Path):
     from gpd.adapters.install_utils import compute_path_prefix
 
     # Global install should produce absolute path prefix
-    target = tmp_path / ".claude"
-    global_prefix = compute_path_prefix(target, ".claude", is_global=True)
+    target = _install_target(tmp_path)
+    global_prefix = compute_path_prefix(target, _PRIMARY_INSTALL_DESCRIPTOR.config_dir_name, is_global=True)
     assert global_prefix.startswith("/") or global_prefix.startswith("C:")  # absolute path
     assert not global_prefix.startswith("./")
 
     # Local install should produce relative path prefix
-    local_prefix = compute_path_prefix(target, ".claude", is_global=False)
-    assert local_prefix == "./.claude/"
+    local_prefix = compute_path_prefix(target, _PRIMARY_INSTALL_DESCRIPTOR.config_dir_name, is_global=False)
+    assert local_prefix == f"./{_PRIMARY_INSTALL_DESCRIPTOR.config_dir_name}/"
 
 
 def test_install_single_runtime_forwards_is_global(tmp_path: Path):
@@ -502,19 +1082,20 @@ def test_install_single_runtime_forwards_is_global(tmp_path: Path):
     from gpd.cli import _install_single_runtime
 
     captured_calls: list[dict[str, object]] = []
+    descriptor = _PRIMARY_INSTALL_DESCRIPTOR
 
     class SpyAdapter:
-        runtime_name = "claude-code"
-        display_name = "Claude Code"
-        config_dir_name = ".claude"
-        help_command = "/gpd:help"
+        runtime_name = descriptor.runtime_name
+        display_name = descriptor.display_name
+        config_dir_name = descriptor.config_dir_name
+        help_command = _install_adapter(descriptor).help_command
 
         def resolve_target_dir(self, is_global, cwd=None):
-            return tmp_path / ".claude"
+            return _install_target(tmp_path, descriptor)
 
         def install(self, gpd_root, target_dir, *, is_global=False, explicit_target=False):
             captured_calls.append({"is_global": is_global, "explicit_target": explicit_target})
-            return {"runtime": "claude-code", "commands": 0, "agents": 0}
+            return {"runtime": descriptor.runtime_name, "commands": 0, "agents": 0}
 
         def finalize_install(self, install_result, *, force_statusline=False):
             return None
@@ -523,7 +1104,7 @@ def test_install_single_runtime_forwards_is_global(tmp_path: Path):
         patch("gpd.adapters.get_adapter", return_value=SpyAdapter()),
         patch("gpd.cli._get_cwd", return_value=tmp_path),
     ):
-        _install_single_runtime("claude-code", is_global=True)
+        _install_single_runtime(descriptor.runtime_name, is_global=True)
 
     assert len(captured_calls) == 1
     assert captured_calls[0]["is_global"] is True
@@ -534,7 +1115,7 @@ def test_install_single_runtime_forwards_is_global(tmp_path: Path):
         patch("gpd.adapters.get_adapter", return_value=SpyAdapter()),
         patch("gpd.cli._get_cwd", return_value=tmp_path),
     ):
-        _install_single_runtime("claude-code", is_global=False)
+        _install_single_runtime(descriptor.runtime_name, is_global=False)
 
     assert len(captured_calls) == 1
     assert captured_calls[0]["is_global"] is False
@@ -547,19 +1128,20 @@ def test_install_single_runtime_prefers_checkout_source_tree(tmp_path: Path):
 
     checkout = _make_checkout(tmp_path, "9.9.9")
     captured_calls: list[dict[str, object]] = []
+    descriptor = _PRIMARY_INSTALL_DESCRIPTOR
 
     class SpyAdapter:
-        runtime_name = "claude-code"
-        display_name = "Claude Code"
-        config_dir_name = ".claude"
-        help_command = "/gpd:help"
+        runtime_name = descriptor.runtime_name
+        display_name = descriptor.display_name
+        config_dir_name = descriptor.config_dir_name
+        help_command = _install_adapter(descriptor).help_command
 
         def resolve_target_dir(self, is_global, cwd=None):
-            return tmp_path / ".claude"
+            return _install_target(tmp_path, descriptor)
 
         def install(self, gpd_root, target_dir, *, is_global=False, explicit_target=False):
             captured_calls.append({"gpd_root": gpd_root, "target_dir": target_dir})
-            return {"runtime": "claude-code", "commands": 0, "agents": 0}
+            return {"runtime": descriptor.runtime_name, "commands": 0, "agents": 0}
 
         def finalize_install(self, install_result, *, force_statusline=False):
             return None
@@ -568,7 +1150,7 @@ def test_install_single_runtime_prefers_checkout_source_tree(tmp_path: Path):
         patch("gpd.adapters.get_adapter", return_value=SpyAdapter()),
         patch("gpd.cli._get_cwd", return_value=checkout),
     ):
-        _install_single_runtime("claude-code", is_global=False)
+        _install_single_runtime(descriptor.runtime_name, is_global=False)
 
     assert len(captured_calls) == 1
     assert captured_calls[0]["gpd_root"] == checkout / "src" / "gpd"
@@ -580,15 +1162,16 @@ def test_install_single_runtime_marks_explicit_target(tmp_path: Path):
 
     captured_calls: list[dict[str, object]] = []
     target = tmp_path / "custom-runtime-dir"
+    descriptor = _PRIMARY_INSTALL_DESCRIPTOR
 
     class SpyAdapter:
-        runtime_name = "claude-code"
-        display_name = "Claude Code"
-        config_dir_name = ".claude"
-        help_command = "/gpd:help"
+        runtime_name = descriptor.runtime_name
+        display_name = descriptor.display_name
+        config_dir_name = descriptor.config_dir_name
+        help_command = _install_adapter(descriptor).help_command
 
         def resolve_target_dir(self, is_global, cwd=None):
-            return tmp_path / ".claude"
+            return _install_target(tmp_path, descriptor)
 
         def install(self, gpd_root, target_dir, *, is_global=False, explicit_target=False):
             captured_calls.append(
@@ -598,18 +1181,203 @@ def test_install_single_runtime_marks_explicit_target(tmp_path: Path):
                     "target_dir": target_dir,
                 }
             )
-            return {"runtime": "claude-code", "commands": 0, "agents": 0}
+            return {"runtime": descriptor.runtime_name, "commands": 0, "agents": 0}
 
         def finalize_install(self, install_result, *, force_statusline=False):
             return None
 
     with patch("gpd.adapters.get_adapter", return_value=SpyAdapter()):
-        _install_single_runtime("claude-code", is_global=False, target_dir_override=str(target))
+        _install_single_runtime(descriptor.runtime_name, is_global=False, target_dir_override=str(target))
 
     assert len(captured_calls) == 1
     assert captured_calls[0]["is_global"] is False
     assert captured_calls[0]["explicit_target"] is True
     assert captured_calls[0]["target_dir"] == target
+
+
+def test_install_target_dir_preserves_explicit_global_scope(tmp_path: Path) -> None:
+    """A global install should stay global even when a target dir is explicit."""
+    target_descriptor = _PRIMARY_INSTALL_DESCRIPTOR
+    captured_calls: list[dict[str, object]] = []
+    target = tmp_path / "custom-runtime-dir"
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(target)}
+
+    mock_adapter = _mock_install_adapter(target_descriptor)
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch("gpd.adapters.get_adapter", return_value=mock_adapter),
+    ):
+        result = runner.invoke(
+            app,
+            ["install", _PRIMARY_INSTALL_DESCRIPTOR.display_name, "--global", "--target-dir", str(target)],
+        )
+
+    assert result.exit_code == 0
+    assert captured_calls == [
+        {
+            "runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+            "is_global": True,
+            "target_dir_override": str(target),
+        }
+    ]
+
+
+def test_install_target_dir_uses_canonical_global_path_when_runtime_env_overrides_global_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The default global path should not be mistaken for global when env overrides move it."""
+    from gpd.adapters import get_adapter
+    from gpd.adapters.runtime_catalog import resolve_global_config_dir
+
+    captured_calls: list[dict[str, object]] = []
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    home = tmp_path / "home"
+    home.mkdir()
+    override_dir = tmp_path / "override-global"
+    override_dir.mkdir()
+
+    runtime_name = _ENV_OVERRIDE_INSTALL_DESCRIPTOR.runtime_name
+    adapter = get_adapter(runtime_name)
+    descriptor = adapter.runtime_descriptor
+    canonical_target = resolve_global_config_dir(descriptor, home=home, environ={})
+    canonical_target.mkdir(parents=True)
+
+    env_var = descriptor.global_config.env_var or descriptor.global_config.env_dir_var or descriptor.global_config.env_file_var
+    assert env_var is not None
+    env_value = str(override_dir / "config.json") if env_var == descriptor.global_config.env_file_var else str(override_dir)
+    monkeypatch.setenv(env_var, env_value)
+
+    mock_adapter = MagicMock(
+        runtime_descriptor=descriptor,
+        display_name=adapter.display_name,
+        help_command=adapter.help_command,
+        launch_command=adapter.launch_command,
+        new_project_command=adapter.new_project_command,
+        map_research_command=adapter.map_research_command,
+    )
+    mock_adapter.finalize_install.return_value = None
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(canonical_target)}
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch("gpd.adapters.get_adapter", return_value=mock_adapter),
+        patch("gpd.cli._get_cwd", return_value=workspace),
+        patch("gpd.cli.Path.home", return_value=home),
+    ):
+        result = runner.invoke(app, ["install", runtime_name, "--target-dir", str(canonical_target)])
+
+    assert result.exit_code == 0, result.output
+    assert captured_calls == [
+        {
+            "runtime": runtime_name,
+            "is_global": False,
+            "target_dir_override": str(canonical_target),
+        }
+    ]
+
+
+def test_install_target_dir_uses_env_overridden_global_path_as_global_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Env-overridden global config dirs should still classify as global install targets."""
+    from gpd.adapters import get_adapter
+
+    captured_calls: list[dict[str, object]] = []
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    home = tmp_path / "home"
+    home.mkdir()
+    override_dir = tmp_path / "override-global"
+    override_dir.mkdir()
+
+    runtime_name = _ENV_OVERRIDE_INSTALL_DESCRIPTOR.runtime_name
+    adapter = get_adapter(runtime_name)
+    descriptor = adapter.runtime_descriptor
+    env_var = descriptor.global_config.env_var or descriptor.global_config.env_dir_var or descriptor.global_config.env_file_var
+    assert env_var is not None
+    monkeypatch.setenv(env_var, str(override_dir))
+
+    mock_adapter = MagicMock(
+        runtime_descriptor=descriptor,
+        display_name=adapter.display_name,
+        help_command=adapter.help_command,
+        launch_command=adapter.launch_command,
+        new_project_command=adapter.new_project_command,
+        map_research_command=adapter.map_research_command,
+    )
+    mock_adapter.finalize_install.return_value = None
+    mock_adapter.resolve_target_dir.side_effect = (
+        lambda is_global, cwd=None: override_dir if is_global else workspace / descriptor.config_dir_name
+    )
+    captured_preflight: list[dict[str, object]] = []
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(override_dir)}
+
+    def mock_run_doctor(*, specs_dir=None, version=None, runtime=None, install_scope=None, target_dir=None, cwd=None):
+        captured_preflight.append(
+            {
+                "runtime": runtime,
+                "install_scope": install_scope,
+                "target_dir": target_dir,
+            }
+        )
+        target_text = str(target_dir) if target_dir is not None else None
+        return _doctor_report(runtime=runtime, install_scope=install_scope, target=target_text)
+
+    with (
+        patch("gpd.core.health.run_doctor", side_effect=mock_run_doctor),
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch("gpd.adapters.get_adapter", return_value=mock_adapter),
+        patch("gpd.cli._get_cwd", return_value=workspace),
+        patch("gpd.cli.Path.home", return_value=home),
+    ):
+        result = runner.invoke(app, ["install", runtime_name, "--target-dir", str(override_dir)])
+
+    assert result.exit_code == 0, result.output
+    assert captured_calls == [
+        {
+            "runtime": runtime_name,
+            "is_global": True,
+            "target_dir_override": str(override_dir),
+        }
+    ]
+    assert captured_preflight == [
+        {
+            "runtime": runtime_name,
+            "install_scope": "global",
+            "target_dir": override_dir.resolve(strict=False),
+        }
+    ]
 
 
 def test_install_single_runtime_resolves_relative_target_dir_against_cli_cwd(tmp_path: Path):
@@ -621,17 +1389,17 @@ def test_install_single_runtime_resolves_relative_target_dir_against_cli_cwd(tmp
     cli_cwd.mkdir()
 
     class SpyAdapter:
-        runtime_name = "claude-code"
-        display_name = "Claude Code"
-        config_dir_name = ".claude"
-        help_command = "/gpd:help"
+        runtime_name = _PRIMARY_INSTALL_DESCRIPTOR.runtime_name
+        display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+        config_dir_name = _PRIMARY_INSTALL_DESCRIPTOR.config_dir_name
+        help_command = _install_adapter().help_command
 
         def resolve_target_dir(self, is_global, cwd=None):
-            return tmp_path / ".claude"
+            return _install_target(tmp_path)
 
         def install(self, gpd_root, target_dir, *, is_global=False, explicit_target=False):
             captured_calls.append(target_dir)
-            return {"runtime": "claude-code", "commands": 0, "agents": 0}
+            return {"runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "commands": 0, "agents": 0}
 
         def finalize_install(self, install_result, *, force_statusline=False):
             return None
@@ -640,9 +1408,109 @@ def test_install_single_runtime_resolves_relative_target_dir_against_cli_cwd(tmp
         patch("gpd.adapters.get_adapter", return_value=SpyAdapter()),
         patch("gpd.cli._get_cwd", return_value=cli_cwd),
     ):
-        _install_single_runtime("claude-code", is_global=False, target_dir_override="relative-target")
+        _install_single_runtime(_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, is_global=False, target_dir_override="relative-target")
 
     assert captured_calls == [cli_cwd / "relative-target"]
+
+
+def test_install_single_runtime_rejects_explicit_target_with_foreign_manifest(
+    gpd_root: Path,
+    tmp_path: Path,
+) -> None:
+    """Explicit target installs must not clean up a config dir owned by another runtime."""
+    from gpd.cli import _install_single_runtime
+
+    runtime_descriptor = _PRIMARY_INSTALL_DESCRIPTOR
+    foreign_descriptor = _SECONDARY_INSTALL_DESCRIPTOR
+    target = tmp_path / "shared-runtime-dir"
+    target.mkdir()
+    (target / "get-physics-done").mkdir()
+    preserved = target / "get-physics-done" / "keep.md"
+    preserved.write_text("preserve", encoding="utf-8")
+    manifest_path = target / "gpd-file-manifest.json"
+    manifest_path.write_text(
+        json.dumps({"runtime": foreign_descriptor.runtime_name, "install_scope": "local", "explicit_target": True}),
+        encoding="utf-8",
+    )
+
+    with (
+        patch("gpd.adapters.get_adapter", return_value=_install_adapter(runtime_descriptor)),
+        patch("gpd.version.resolve_install_gpd_root", return_value=gpd_root),
+        patch("gpd.cli._get_cwd", return_value=tmp_path),
+    ):
+        foreign_label = _install_adapter(foreign_descriptor).display_name
+        runtime_label = _install_adapter(runtime_descriptor).display_name
+        expected_message = (
+            rf"{foreign_label} \(`{foreign_descriptor.runtime_name}`\), "
+            rf"not {runtime_label} \(`{runtime_descriptor.runtime_name}`\)"
+        )
+        with pytest.raises(RuntimeError, match=expected_message):
+            _install_single_runtime(runtime_descriptor.runtime_name, is_global=False, target_dir_override=str(target))
+
+    assert preserved.read_text(encoding="utf-8") == "preserve"
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["runtime"] == foreign_descriptor.runtime_name
+
+
+def test_local_install_manifest_stays_non_explicit_outside_process_cwd(gpd_root: Path, tmp_path: Path):
+    """Default local installs should not become explicit targets just because cwd differs."""
+    from gpd.hooks.install_metadata import installed_update_command
+
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    target = workspace / _PRIMARY_INSTALL_DESCRIPTOR.config_dir_name
+
+    adapter = _install_adapter()
+    adapter.install(gpd_root, target, is_global=False, explicit_target=False)
+
+    manifest = json.loads((target / "gpd-file-manifest.json").read_text(encoding="utf-8"))
+    command = installed_update_command(target)
+
+    assert manifest["install_scope"] == "local"
+    assert manifest["install_target_dir"] == str(target)
+    assert manifest["explicit_target"] is False
+    assert command is not None
+    assert "--local" in command
+    assert "--target-dir" not in command
+
+
+def test_hook_install_metadata_uses_adapter_detection_rules(tmp_path: Path):
+    """Shared hook metadata should defer install detection checks to the owning adapter."""
+    from gpd.hooks.install_metadata import config_dir_has_complete_install
+
+    config_dir = _install_target(tmp_path)
+    config_dir.mkdir()
+    (config_dir / "get-physics-done").mkdir()
+    (config_dir / "gpd-file-manifest.json").write_text(
+        json.dumps({"runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "install_scope": "local"}),
+        encoding="utf-8",
+    )
+
+    adapter = MagicMock()
+    adapter.has_complete_install.return_value = False
+
+    with patch("gpd.hooks.install_metadata.get_adapter", return_value=adapter):
+        assert config_dir_has_complete_install(config_dir) is False
+
+
+def test_hook_install_metadata_rejects_missing_runtime_specific_completeness_artifact(tmp_path: Path):
+    """Half-installed runtime trees should not count as complete when strict artifacts are missing."""
+    from gpd.hooks.install_metadata import config_dir_has_complete_install
+
+    descriptor = next(
+        descriptor
+        for descriptor in _INSTALL_TEST_DESCRIPTORS
+        if len(_install_adapter(descriptor).install_completeness_relpaths())
+        > len(_install_adapter(descriptor).install_detection_relpaths())
+    )
+    config_dir = _install_target(tmp_path, descriptor)
+    config_dir.mkdir()
+    (config_dir / "get-physics-done").mkdir()
+    (config_dir / "gpd-file-manifest.json").write_text(
+        json.dumps({"runtime": descriptor.runtime_name, "install_scope": "local"}),
+        encoding="utf-8",
+    )
+
+    assert config_dir_has_complete_install(config_dir) is False
 
 
 def test_uninstall_resolves_relative_target_dir_against_cli_cwd(tmp_path: Path):
@@ -654,35 +1522,93 @@ def test_uninstall_resolves_relative_target_dir_against_cli_cwd(tmp_path: Path):
     captured_targets: list[Path] = []
 
     class SpyAdapter:
-        display_name = "Claude Code"
+        display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
 
         def resolve_target_dir(self, is_global, cwd=None):
-            return tmp_path / ".claude"
+            return _install_target(tmp_path)
 
         def uninstall(self, target_dir):
             captured_targets.append(target_dir)
-            return {"runtime": "claude-code", "removed": []}
+            return {"runtime": _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "removed": []}
 
     with (
         patch("gpd.adapters.get_adapter", return_value=SpyAdapter()),
         patch("gpd.cli._get_cwd", return_value=cli_cwd),
     ):
-        result = runner.invoke(app, ["uninstall", "claude-code", "--target-dir", "relative-target"])
+        result = runner.invoke(app, ["uninstall", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--target-dir", "relative-target"])
 
     assert result.exit_code == 0
     assert captured_targets == [target]
 
 
+def test_uninstall_rejects_target_dir_with_foreign_manifest(tmp_path: Path) -> None:
+    """Explicit target uninstalls must not remove another runtime's install."""
+    runtime_descriptor = _PRIMARY_INSTALL_DESCRIPTOR
+    foreign_descriptor = _SECONDARY_INSTALL_DESCRIPTOR
+    target = tmp_path / "shared-runtime-dir"
+    target.mkdir()
+    (target / "get-physics-done").mkdir()
+    preserved = target / "get-physics-done" / "keep.md"
+    preserved.write_text("preserve", encoding="utf-8")
+    manifest_path = target / "gpd-file-manifest.json"
+    manifest_path.write_text(
+        json.dumps({"runtime": foreign_descriptor.runtime_name, "install_scope": "local", "explicit_target": True}),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["uninstall", runtime_descriptor.runtime_name, "--target-dir", str(target)])
+
+    assert result.exit_code == 1
+    foreign_label = _install_adapter(foreign_descriptor).display_name
+    runtime_label = _install_adapter(runtime_descriptor).display_name
+    assert (
+        f"{foreign_label} (`{foreign_descriptor.runtime_name}`), "
+        f"not {runtime_label} (`{runtime_descriptor.runtime_name}`)"
+    ) in result.output
+    assert preserved.read_text(encoding="utf-8") == "preserve"
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["runtime"] == foreign_descriptor.runtime_name
+
+
+def test_uninstall_rejects_target_dir_with_foreign_manifest_without_wrapping(tmp_path: Path) -> None:
+    """Foreign-manifest ownership errors should stay stable under narrow terminals."""
+    runtime_descriptor = _PRIMARY_INSTALL_DESCRIPTOR
+    foreign_descriptor = _SECONDARY_INSTALL_DESCRIPTOR
+    target = tmp_path / "shared-runtime-dir"
+    target.mkdir()
+    (target / "get-physics-done").mkdir()
+    (target / "gpd-file-manifest.json").write_text(
+        json.dumps({"runtime": foreign_descriptor.runtime_name, "install_scope": "local", "explicit_target": True}),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["uninstall", runtime_descriptor.runtime_name, "--target-dir", str(target)],
+        terminal_width=80,
+    )
+
+    assert result.exit_code == 1
+    foreign_label = _install_adapter(foreign_descriptor).display_name
+    runtime_label = _install_adapter(runtime_descriptor).display_name
+    assert (
+        f"{foreign_label} (`{foreign_descriptor.runtime_name}`), "
+        f"not {runtime_label} (`{runtime_descriptor.runtime_name}`)"
+    ) in result.output
+
+
 def test_install_interactive_rejects_ambiguous_runtime_name(tmp_path: Path):
     """Substring matches that hit multiple runtimes should fail closed."""
+    ambiguous_descriptors = _descriptors_with_selection_alias_fragment("code")
     with (
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code", "codex", "opencode"]),
+        patch("gpd.adapters.list_runtimes", return_value=[descriptor.runtime_name for descriptor in ambiguous_descriptors]),
         patch("gpd.adapters.get_adapter") as mock_get,
     ):
         adapters = {
-            "claude-code": MagicMock(display_name="Claude Code", selection_aliases=("claude", "claude code")),
-            "codex": MagicMock(display_name="Codex", selection_aliases=("codex",)),
-            "opencode": MagicMock(display_name="OpenCode", selection_aliases=("opencode", "open code")),
+            descriptor.runtime_name: MagicMock(
+                display_name=descriptor.display_name,
+                selection_aliases=descriptor.selection_aliases,
+            )
+            for descriptor in ambiguous_descriptors
         }
         mock_get.side_effect = lambda runtime: adapters[runtime]
 
@@ -694,6 +1620,7 @@ def test_install_interactive_rejects_ambiguous_runtime_name(tmp_path: Path):
 
 def test_install_interactive_accepts_unique_fuzzy_runtime_name(tmp_path: Path):
     """A unique substring match should select that runtime and continue."""
+    target_descriptor = _descriptor_with_selection_alias_fragment("open")
 
     captured_calls: list[dict[str, object]] = []
 
@@ -709,16 +1636,13 @@ def test_install_interactive_accepts_unique_fuzzy_runtime_name(tmp_path: Path):
 
     with (
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code", "codex", "opencode"]),
+        patch("gpd.adapters.list_runtimes", return_value=[descriptor.runtime_name for descriptor in _INSTALL_TEST_DESCRIPTORS]),
         patch("gpd.adapters.get_adapter") as mock_get,
     ):
         adapters = {
-            "claude-code": MagicMock(display_name="Claude Code", selection_aliases=("claude", "claude code")),
-            "codex": MagicMock(display_name="Codex", selection_aliases=("codex",)),
-            "opencode": MagicMock(display_name="OpenCode", selection_aliases=("opencode", "open code")),
+            descriptor.runtime_name: _mock_install_adapter(descriptor)
+            for descriptor in _INSTALL_TEST_DESCRIPTORS
         }
-        for adapter in adapters.values():
-            adapter.help_command = "/gpd:help"
         mock_get.side_effect = lambda runtime: adapters[runtime]
 
         result = runner.invoke(app, ["install"], input="open\n1\n")
@@ -726,11 +1650,207 @@ def test_install_interactive_accepts_unique_fuzzy_runtime_name(tmp_path: Path):
     assert result.exit_code == 0
     assert captured_calls == [
         {
-            "runtime": "opencode",
+            "runtime": target_descriptor.runtime_name,
             "is_global": False,
             "target_dir_override": None,
         }
     ]
+
+
+def test_install_interactive_accepts_catalog_runtime_flag(tmp_path: Path) -> None:
+    """Interactive install should reuse the shared runtime normalizer for catalog flags."""
+    target_descriptor, selection_flag = _descriptor_with_runtime_selection_flag()
+    competing_descriptor = next(
+        descriptor
+        for descriptor in _INSTALL_TEST_DESCRIPTORS
+        if descriptor.runtime_name != target_descriptor.runtime_name
+    )
+
+    captured_calls: list[dict[str, object]] = []
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / runtime_name)}
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[target_descriptor.runtime_name, competing_descriptor.runtime_name],
+        ),
+        patch("gpd.adapters.get_adapter") as mock_get,
+    ):
+        adapters = {
+            descriptor.runtime_name: _mock_install_adapter(descriptor)
+            for descriptor in (target_descriptor, competing_descriptor)
+        }
+        mock_get.side_effect = lambda runtime: adapters[runtime]
+
+        result = runner.invoke(app, ["install"], input=f"{selection_flag}\n1\n")
+
+    assert result.exit_code == 0
+    assert captured_calls == [
+        {
+            "runtime": target_descriptor.runtime_name,
+            "is_global": False,
+            "target_dir_override": None,
+        }
+    ]
+
+
+def test_install_interactive_accepts_exact_runtime_display_name_before_fuzzy(tmp_path: Path) -> None:
+    """An exact display-name match should win before any fuzzy fallback."""
+    target_descriptor = _PRIMARY_INSTALL_DESCRIPTOR
+    competing_descriptor = _SECONDARY_INSTALL_DESCRIPTOR
+    captured_calls: list[dict[str, object]] = []
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / runtime_name)}
+
+    target_adapter = _mock_install_adapter(target_descriptor, display_name="Open Code")
+    competing_adapter = _mock_install_adapter(competing_descriptor, display_name="Open Code Plus")
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[target_descriptor.runtime_name, competing_descriptor.runtime_name],
+        ),
+        patch("gpd.adapters.get_adapter") as mock_get,
+    ):
+        mock_get.side_effect = lambda runtime: {
+            target_descriptor.runtime_name: target_adapter,
+            competing_descriptor.runtime_name: competing_adapter,
+        }[runtime]
+
+        result = runner.invoke(app, ["install"], input="Open Code\n1\n")
+
+    assert result.exit_code == 0
+    assert captured_calls == [
+        {
+            "runtime": target_descriptor.runtime_name,
+            "is_global": False,
+            "target_dir_override": None,
+        }
+    ]
+
+
+def test_install_interactive_accepts_exact_runtime_selection_alias_before_fuzzy(tmp_path: Path) -> None:
+    """An exact selection alias should win before any fuzzy fallback."""
+    target_descriptor, selection_alias = _descriptor_with_spaced_selection_alias()
+    competing_descriptor = _SECONDARY_INSTALL_DESCRIPTOR
+    captured_calls: list[dict[str, object]] = []
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / runtime_name)}
+
+    target_adapter = _mock_install_adapter(
+        target_descriptor,
+        display_name=target_descriptor.display_name,
+        selection_aliases=(selection_alias,),
+    )
+    competing_adapter = _mock_install_adapter(
+        competing_descriptor,
+        display_name=f"{target_descriptor.display_name} Plus",
+    )
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[target_descriptor.runtime_name, competing_descriptor.runtime_name],
+        ),
+        patch("gpd.adapters.get_adapter") as mock_get,
+    ):
+        mock_get.side_effect = lambda runtime: {
+            target_descriptor.runtime_name: target_adapter,
+            competing_descriptor.runtime_name: competing_adapter,
+        }[runtime]
+
+        result = runner.invoke(app, ["install"], input=f"{selection_alias}\n1\n")
+
+    assert result.exit_code == 0
+    assert captured_calls == [
+        {
+            "runtime": target_descriptor.runtime_name,
+            "is_global": False,
+            "target_dir_override": None,
+        }
+    ]
+
+
+def test_install_accepts_runtime_display_name_alias(tmp_path: Path) -> None:
+    """Non-interactive install should accept runtime display-name aliases."""
+    target_descriptor = _PRIMARY_INSTALL_DESCRIPTOR
+    captured_calls: list[dict[str, object]] = []
+
+    def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
+        captured_calls.append(
+            {
+                "runtime": runtime_name,
+                "is_global": is_global,
+                "target_dir_override": target_dir_override,
+            }
+        )
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / runtime_name)}
+
+    mock_adapter = _mock_install_adapter(target_descriptor)
+
+    with (
+        patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
+        patch("gpd.adapters.get_adapter", return_value=mock_adapter),
+    ):
+        result = runner.invoke(app, ["install", target_descriptor.display_name, "--local"])
+
+    assert result.exit_code == 0
+    assert captured_calls == [
+        {
+            "runtime": target_descriptor.runtime_name,
+            "is_global": False,
+            "target_dir_override": None,
+        }
+    ]
+
+
+def test_uninstall_accepts_runtime_selection_alias(tmp_path: Path) -> None:
+    """Non-interactive uninstall should accept runtime selection aliases."""
+    target_descriptor, selection_alias = _descriptor_with_spaced_selection_alias()
+    target = tmp_path / target_descriptor.config_dir_name
+    target.mkdir()
+    captured_targets: list[Path] = []
+
+    class SpyAdapter:
+        display_name = target_descriptor.display_name
+
+        def uninstall(self, target_dir):
+            captured_targets.append(target_dir)
+            return {"runtime": target_descriptor.runtime_name, "removed": []}
+
+    with patch("gpd.adapters.get_adapter", return_value=SpyAdapter()):
+        result = runner.invoke(app, ["uninstall", selection_alias, "--target-dir", str(target)])
+
+    assert result.exit_code == 0
+    assert captured_targets == [target]
 
 
 def test_install_interactive_rejects_invalid_location_choice(tmp_path: Path):
@@ -742,11 +1862,11 @@ def test_install_interactive_rejects_invalid_location_choice(tmp_path: Path):
     with (
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get,
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code"]),
+        patch("gpd.adapters.list_runtimes", return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name]),
     ):
         mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
-        mock_adapter.selection_aliases = ("claude", "claude code")
+        mock_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+        mock_adapter.selection_aliases = _install_adapter().selection_aliases
         mock_get.return_value = mock_adapter
 
         result = runner.invoke(app, ["install"], input="1\n9\n")
@@ -758,10 +1878,30 @@ def test_install_interactive_rejects_invalid_location_choice(tmp_path: Path):
 @pytest.mark.parametrize(
     ("argv_suffix", "supported_runtimes", "expected_runtimes", "uses_target_dir"),
     [
-        (["claude-code", "--local"], ["claude-code"], ["claude-code"], False),
-        (["--all", "--local"], ["claude-code", "gemini"], ["claude-code", "gemini"], False),
-        (["claude-code", "--local", "--force-statusline"], ["claude-code"], ["claude-code"], False),
-        (["claude-code", "--local", "--target-dir", "__TARGET__"], ["claude-code"], ["claude-code"], True),
+        (
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+            False,
+        ),
+        (
+            ["--all", "--local"],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+            False,
+        ),
+        (
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local", "--force-statusline"],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+            False,
+        ),
+        (
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local", "--target-dir", "__TARGET__"],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+            [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name],
+            True,
+        ),
     ],
 )
 def test_install_local_option_never_forwards_global_scope(
@@ -792,9 +1932,7 @@ def test_install_local_option_never_forwards_global_scope(
         patch("gpd.adapters.get_adapter") as mock_get,
         patch("gpd.adapters.list_runtimes", return_value=supported_runtimes),
     ):
-        mock_adapter = MagicMock()
-        mock_adapter.display_name = "Test"
-        mock_adapter.help_command = "/gpd:help"
+        mock_adapter = _mock_install_adapter(_PRIMARY_INSTALL_DESCRIPTOR, display_name="Test")
         mock_get.return_value = mock_adapter
 
         result = runner.invoke(app, argv)
@@ -820,7 +1958,7 @@ def test_install_unknown_runtime():
 
 def test_install_global_and_local_conflict():
     """--global and --local together errors."""
-    result = runner.invoke(app, ["install", "claude-code", "--global", "--local"])
+    result = runner.invoke(app, ["install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--global", "--local"])
     assert result.exit_code == 1
     assert "Cannot specify both" in result.output
 
@@ -831,7 +1969,7 @@ def test_install_rejects_explicit_runtimes_with_all() -> None:
         patch("gpd.cli._install_single_runtime") as mock_install_single,
         patch("gpd.adapters.list_runtimes") as mock_list_runtimes,
     ):
-        result = runner.invoke(app, ["install", "claude-code", "--all", "--local"])
+        result = runner.invoke(app, ["install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--all", "--local"])
 
     assert result.exit_code == 1
     assert "Cannot combine explicit runtimes with --all for install" in result.output
@@ -843,7 +1981,13 @@ def test_install_target_dir_rejects_multiple_runtimes(tmp_path: Path):
     """Explicit target dirs are only safe for a single runtime."""
     result = runner.invoke(
         app,
-        ["install", "claude-code", "gemini", "--target-dir", str(tmp_path / "shared")],
+        [
+            "install",
+            _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+            _SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+            "--target-dir",
+            str(tmp_path / "shared"),
+        ],
     )
 
     assert result.exit_code == 1
@@ -852,7 +1996,10 @@ def test_install_target_dir_rejects_multiple_runtimes(tmp_path: Path):
 
 def test_install_target_dir_rejects_all_runtimes(tmp_path: Path):
     """`--all` plus an explicit target dir is also unsafe."""
-    with patch("gpd.adapters.list_runtimes", return_value=["claude-code", "gemini"]):
+    with patch(
+        "gpd.adapters.list_runtimes",
+        return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+    ):
         result = runner.invoke(
             app,
             ["install", "--all", "--target-dir", str(tmp_path / "shared")],
@@ -868,27 +2015,33 @@ def test_install_deduplicates_repeated_runtime_args(tmp_path: Path) -> None:
 
     def mock_install_single(runtime_name, *, is_global, target_dir_override=None):
         install_calls.append(runtime_name)
-        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(tmp_path / ".claude")}
+        return {"runtime": runtime_name, "commands": 5, "agents": 3, "target": str(_install_target(tmp_path))}
 
     with (
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code", "gemini"]),
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
         patch("gpd.cli._install_single_runtime", side_effect=mock_install_single),
         patch("gpd.adapters.get_adapter") as mock_get_adapter,
     ):
         mock_adapter = MagicMock()
-        mock_adapter.display_name = "Claude Code"
-        mock_adapter.help_command = "/gpd:help"
+        mock_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
+        mock_adapter.help_command = _install_adapter().help_command
         mock_get_adapter.return_value = mock_adapter
 
-        result = runner.invoke(app, ["install", "claude-code", "claude-code", "--local"])
+        result = runner.invoke(
+            app,
+            ["install", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--local"],
+        )
 
     assert result.exit_code == 0
-    assert install_calls == ["claude-code"]
+    assert install_calls == [_PRIMARY_INSTALL_DESCRIPTOR.runtime_name]
 
 
 def test_uninstall_global_and_local_conflict():
     """--global and --local together on uninstall errors."""
-    result = runner.invoke(app, ["uninstall", "claude-code", "--global", "--local"])
+    result = runner.invoke(app, ["uninstall", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--global", "--local"])
     assert result.exit_code == 1
     assert "Cannot specify both" in result.output
 
@@ -899,7 +2052,7 @@ def test_uninstall_rejects_explicit_runtimes_with_all() -> None:
         patch("gpd.adapters.get_adapter") as mock_get_adapter,
         patch("gpd.adapters.list_runtimes") as mock_list_runtimes,
     ):
-        result = runner.invoke(app, ["uninstall", "claude-code", "--all", "--local"])
+        result = runner.invoke(app, ["uninstall", _PRIMARY_INSTALL_DESCRIPTOR.runtime_name, "--all", "--local"])
 
     assert result.exit_code == 1
     assert "Cannot combine explicit runtimes with --all for uninstall" in result.output
@@ -911,7 +2064,13 @@ def test_uninstall_target_dir_rejects_multiple_runtimes(tmp_path: Path):
     """Explicit target dirs are only safe for a single runtime on uninstall too."""
     result = runner.invoke(
         app,
-        ["uninstall", "claude-code", "gemini", "--target-dir", str(tmp_path / "shared")],
+        [
+            "uninstall",
+            _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+            _SECONDARY_INSTALL_DESCRIPTOR.runtime_name,
+            "--target-dir",
+            str(tmp_path / "shared"),
+        ],
         input="n\n",
     )
 
@@ -925,16 +2084,26 @@ def test_uninstall_deduplicates_repeated_runtime_args(tmp_path: Path) -> None:
     target.mkdir()
 
     mock_adapter = MagicMock()
-    mock_adapter.display_name = "Claude Code"
+    mock_adapter.display_name = _PRIMARY_INSTALL_DESCRIPTOR.display_name
     mock_adapter.uninstall.return_value = {"removed": ["commands"]}
 
     with (
-        patch("gpd.adapters.list_runtimes", return_value=["claude-code", "gemini"]),
+        patch(
+            "gpd.adapters.list_runtimes",
+            return_value=[_PRIMARY_INSTALL_DESCRIPTOR.runtime_name, _SECONDARY_INSTALL_DESCRIPTOR.runtime_name],
+        ),
         patch("gpd.adapters.get_adapter", return_value=mock_adapter),
     ):
         result = runner.invoke(
             app,
-            ["--raw", "uninstall", "claude-code", "claude-code", "--target-dir", str(target)],
+            [
+                "--raw",
+                "uninstall",
+                _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+                _PRIMARY_INSTALL_DESCRIPTOR.runtime_name,
+                "--target-dir",
+                str(target),
+            ],
         )
 
     assert result.exit_code == 0

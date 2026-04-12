@@ -4,7 +4,7 @@ description: Create a hypothesis branch for parallel investigation of an alterna
 argument-hint: "<description>"
 context_mode: project-required
 requires:
-  files: [".gpd/ROADMAP.md", ".gpd/STATE.md"]
+  files: ["GPD/ROADMAP.md", "GPD/STATE.md"]
 allowed-tools:
   - file_read
   - file_write
@@ -13,13 +13,11 @@ allowed-tools:
   - find_files
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Create a git branch for investigating an alternative hypothesis or approach in parallel with the main line of research.
 
-Hypothesis branches allow a researcher to explore "what if?" questions without polluting the main research state. Each branch gets its own STATE.md fork and hypothesis documentation, enabling side-by-side comparison later via /gpd:compare-branches.
+Hypothesis branches allow a researcher to explore "what if?" questions without polluting the main research state. Each branch gets its own STATE.md fork and hypothesis documentation, enabling side-by-side comparison later via gpd:compare-branches.
 
 Common triggers:
 
@@ -37,8 +35,8 @@ Common triggers:
 <context>
 Arguments: $ARGUMENTS (format: <description of hypothesis>)
 
-@.gpd/STATE.md
-@.gpd/ROADMAP.md
+@GPD/STATE.md
+@GPD/ROADMAP.md
 </context>
 
 <process>

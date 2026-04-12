@@ -6,11 +6,11 @@ Mark a completed research stage (v1.0, v1.1, v2.0) as done. Creates historical r
 
 <required_reading>
 
-1. templates/milestone.md
-2. templates/milestone-archive.md
-3. `.gpd/ROADMAP.md`
-4. `.gpd/REQUIREMENTS.md`
-5. `.gpd/PROJECT.md`
+1. `@{GPD_INSTALL_DIR}/templates/milestone.md`
+2. `@{GPD_INSTALL_DIR}/templates/milestone-archive.md`
+3. `GPD/ROADMAP.md`
+4. `GPD/REQUIREMENTS.md`
+5. `GPD/PROJECT.md`
 
 </required_reading>
 
@@ -18,8 +18,8 @@ Mark a completed research stage (v1.0, v1.1, v2.0) as done. Creates historical r
 
 When a research milestone completes:
 
-1. Extract full milestone details to `.gpd/milestones/v[X.Y]-ROADMAP.md`
-2. Archive requirements to `.gpd/milestones/v[X.Y]-REQUIREMENTS.md`
+1. Extract full milestone details to `GPD/milestones/v[X.Y]-ROADMAP.md`
+2. Archive requirements to `GPD/milestones/v[X.Y]-REQUIREMENTS.md`
 3. Update ROADMAP.md -- replace milestone details with one-line summary
 4. Delete REQUIREMENTS.md (fresh one for next research stage)
 5. Perform full PROJECT.md evolution review
@@ -27,7 +27,7 @@ When a research milestone completes:
 
 **Context Efficiency:** Archives keep ROADMAP.md constant-size and REQUIREMENTS.md milestone-scoped.
 
-**ROADMAP archive** uses `templates/milestone-archive.md` -- includes milestone header (status, phases, date), full phase details, milestone summary (decisions, key findings, open questions).
+**ROADMAP archive** uses `@{GPD_INSTALL_DIR}/templates/milestone-archive.md` -- includes milestone header (status, phases, date), full phase details, milestone summary (decisions, key findings, open questions).
 
 **REQUIREMENTS archive** contains all requirements marked complete with outcomes, traceability table with final status, notes on changed requirements.
 
@@ -37,17 +37,18 @@ When a research milestone completes:
 
 <step name="verify_readiness">
 
-**Use `roadmap analyze` for comprehensive readiness check:**
+**Use `roadmap analyze` plus the on-disk phase inventory for the same readiness semantics as `gpd milestone complete`:**
 
 ```bash
-ROADMAP=$(gpd roadmap analyze)
+ROADMAP=$(gpd --raw roadmap analyze)
 ```
 
-This returns all phases with plan/summary counts and disk status. Use this to verify:
+`roadmap analyze` returns the roadmap-backed phase view. Compare that with the on-disk phase directories so the milestone gate sees the same roadmap-plus-disk union that `gpd milestone complete` uses. Use this to verify:
 
-- Which phases belong to this milestone?
-- All phases complete (all plans have summaries)? Check `disk_status == 'complete'` for each.
-- `progress_percent` should be 100%.
+- Which phases belong to this milestone, including any disk-only phase directories?
+- All phases complete? Check that every roadmap phase and every on-disk phase directory reaches `complete`.
+- Standalone `PLAN.md` / `SUMMARY.md` artifacts count the same as numbered `*-PLAN.md` / `*-SUMMARY.md` artifacts.
+- `progress_percent` should be 100% once the roadmap-plus-disk union is fully complete.
 
 Present:
 
@@ -66,7 +67,7 @@ Total: {phase_count} phases, {total_plans} plans, all complete
 <config-check>
 
 ```bash
-if [ -f .gpd/config.json ]; then cat .gpd/config.json; else echo "WARNING: config.json not found — using defaults"; fi
+if [ -f GPD/config.json ]; then cat GPD/config.json; else echo "WARNING: config.json not found — using defaults"; fi
 ```
 
 </config-check>
@@ -128,12 +129,12 @@ Milestone Stats:
 
 <step name="extract_accomplishments">
 
-Extract one-liners from SUMMARY.md files using summary-extract:
+Extract one-liners from summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`) using summary-extract:
 
 ```bash
 # For each phase in milestone, extract one-liner
-for summary in .gpd/phases/*-*/*-SUMMARY.md; do
-  gpd summary-extract "$summary" --field one_liner | gpd json get .one_liner --default ""
+for summary in GPD/phases/*/*SUMMARY.md; do
+  gpd --raw summary-extract "$summary" --field one_liner | gpd json get .one_liner --default ""
 done
 ```
 
@@ -152,7 +153,7 @@ Key accomplishments for this milestone:
 
 <step name="create_milestone_entry">
 
-**Note:** MILESTONES.md entry is now created automatically by `gpd milestone complete` in the archive_milestone step. The entry includes version, date, phase/plan/task counts, and accomplishments extracted from SUMMARY.md files.
+**Note:** MILESTONES.md entry is now created automatically by `gpd milestone complete` in the archive_milestone step. The entry includes version, date, phase/plan/task counts, and accomplishments extracted from summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`).
 
 If additional details are needed (e.g., researcher-provided "Key Findings" summary, git range, LOC stats), add them manually after the CLI creates the base entry.
 
@@ -162,10 +163,10 @@ If additional details are needed (e.g., researcher-provided "Key Findings" summa
 
 Full PROJECT.md evolution review at milestone completion.
 
-Read all phase summaries:
+Read all phase summary artifacts:
 
 ```bash
-cat .gpd/phases/*-*/*-SUMMARY.md
+cat GPD/phases/*/*SUMMARY.md
 ```
 
 **Full review checklist:**
@@ -310,12 +311,12 @@ Minor discrepancy with Georges et al. (1996) at high T -- likely finite bath-siz
 
 <step name="generate_research_digest">
 
-Generate a structured research digest that serves as the primary handoff artifact between milestone completion and paper writing. This digest lives at `.gpd/milestones/v[X.Y]/RESEARCH-DIGEST.md` and captures the full research story in a form optimized for downstream consumption by the paper-writing workflow.
+Generate a structured research digest that serves as the primary handoff artifact between milestone completion and paper writing. This digest lives at `GPD/milestones/v[X.Y]/RESEARCH-DIGEST.md` and captures the full research story in a form optimized for downstream consumption by the paper-writing workflow.
 
 **Step 0 -- Ensure digest directory exists:**
 
 ```bash
-mkdir -p .gpd/milestones/v[X.Y]
+mkdir -p GPD/milestones/v[X.Y]
 ```
 
 **Step 1 -- Run history-digest for foundation data:**
@@ -329,25 +330,25 @@ This returns per-phase summaries with one-liners, provides/requires, and depende
 **Step 2 -- Read source materials:**
 
 ```bash
-# All SUMMARY.md files from this milestone's phases
-cat .gpd/phases/*-*/*-SUMMARY.md
+# All summary artifacts from this milestone's phases
+cat GPD/phases/*/*SUMMARY.md
 
-# Research state
-cat .gpd/state.json
+# Structured research state from init payloads
+INIT=$(gpd --raw init milestone-op)
 
 # Convention catalog (full reference)
-cat .gpd/CONVENTIONS.md
+cat GPD/CONVENTIONS.md
 
-# Convention lock (machine-readable, from state.json)
-gpd --raw convention list
+# Convention lock and derived state are already present in the init payload
+# when available; fall back to raw state views only if a field is missing.
 
 # Original objectives
-cat .gpd/REQUIREMENTS.md
+cat GPD/REQUIREMENTS.md
 ```
 
 **Step 3 -- Compose RESEARCH-DIGEST.md:**
 
-Create `.gpd/milestones/v[X.Y]/RESEARCH-DIGEST.md` with the following structure:
+Create `GPD/milestones/v[X.Y]/RESEARCH-DIGEST.md` with the following structure:
 
 ```markdown
 # Research Digest: v[X.Y] [Milestone Name]
@@ -370,7 +371,9 @@ to a paper's Introduction -> Methods -> Results flow.]
 | [N]   | [Description] | [Equation or numerical value from intermediate_results] | [Parameter regime] | [From verification] |
 | ...   | ...           | ...                                                     | ...                | ...                 |
 
-Source: state.json intermediate_results, organized by phase ordering.
+Source: prefer the structured init payload fields for derived intermediate
+results and related state; use raw `state.json` only as a fallback when a
+specific value is not present in the structured snapshot.
 
 ## Methods Employed
 
@@ -383,9 +386,9 @@ Listed in the order they were introduced, noting which phase introduced each met
 
 ## Convention Evolution
 
-[Timeline of convention changes extracted from `gpd --raw convention list`, showing
-when each convention was established or modified. This ensures the paper writer uses the
-final, settled notation consistently.]
+[Timeline of convention changes extracted from the structured init payload
+when available, with raw convention-state queries used only as fallback. This
+ensures the paper writer uses the final, settled notation consistently.]
 
 | Date / Phase | Convention        | Description     | Status              |
 | ------------ | ----------------- | --------------- | ------------------- |
@@ -404,8 +407,9 @@ Extracted from phase directories and SUMMARY.md artifacts sections.]
 
 ## Open Questions
 
-[From state.json open_questions field. These become the "Future Work" section of a
-paper or motivate the next milestone.]
+[Prefer the structured init payload's projected open questions or summary
+artifacts when available; fall back to raw state only if necessary. These
+become the "Future Work" section of a paper or motivate the next milestone.]
 
 1. [Open question 1]
 2. [Open question 2]
@@ -440,11 +444,13 @@ were fulfilled by which phases/results.]
 Before proceeding, confirm:
 
 - [ ] Narrative arc covers the full research trajectory (not just the last phase)
-- [ ] All intermediate_results from state.json appear in the Key Results table
+- [ ] All available intermediate_results from the structured init payload appear
+      in the Key Results table; raw state is used only to fill gaps
 - [ ] Methods list is complete (cross-check with SUMMARY frontmatter)
-- [ ] Convention timeline includes all entries from `gpd convention list`
+- [ ] Convention timeline includes all available entries from the structured
+      init payload, cross-checked against raw convention state if needed
 - [ ] Figures/data registry includes all artifacts from phase directories
-- [ ] Open questions match state.json
+- [ ] Open questions match the structured payload or, if necessary, raw state
 - [ ] Dependency graph matches history-digest output
 - [ ] Requirements mapping covers all REQUIREMENTS.md items
 
@@ -460,7 +466,7 @@ ARCHIVE=$(gpd milestone complete "v[X.Y]" --name "[Milestone Name]")
 
 The CLI handles:
 
-- Creating `.gpd/milestones/` directory
+- Creating `GPD/milestones/` directory
 - Archiving ROADMAP.md to `milestones/v[X.Y]-ROADMAP.md`
 - Archiving REQUIREMENTS.md to `milestones/v[X.Y]-REQUIREMENTS.md` with archive header
 - Moving audit file to milestones if it exists
@@ -469,9 +475,9 @@ The CLI handles:
 
 Extract from result: `version`, `date`, `phases`, `plans`, `tasks`, `accomplishments`, `archived`.
 
-Verify: `Milestone archived to .gpd/milestones/`
+Verify: `Milestone archived to GPD/milestones/`
 
-**Note:** Phase directories (`.gpd/phases/`) are NOT deleted -- they accumulate across milestones as raw research history. Phase numbering continues (v1.0 phases 1-4, v1.1 phases 5-8, etc.).
+**Note:** Phase directories (`GPD/phases/`) are NOT deleted -- they accumulate across milestones as raw research history. Phase numbering continues (v1.0 phases 1-4, v1.1 phases 5-8, etc.).
 
 
 </step>
@@ -483,7 +489,7 @@ Review project-local insights accumulated during this milestone and promote conf
 **Step 1 — Check for project insights:**
 
 ```bash
-ls .gpd/INSIGHTS.md 2>/dev/null
+ls GPD/INSIGHTS.md 2>/dev/null
 ```
 
 If no INSIGHTS.md exists, skip this step.
@@ -497,7 +503,7 @@ gpd --raw pattern list 2>/dev/null
 
 **Step 3 — Review insights for promotion candidates:**
 
-Read `.gpd/INSIGHTS.md` and identify entries that:
+Read `GPD/INSIGHTS.md` and identify entries that:
 - Were confirmed across 2+ phases (high confidence)
 - Describe repeatable error patterns, not one-off issues
 - Have clear detection and prevention strategies
@@ -563,11 +569,11 @@ ROADMAP.md is kept and reorganized (above). REQUIREMENTS.md is deleted -- a fres
 
 ```bash
 # Verify archive exists before deleting original
-if [ -f ".gpd/milestones/v${VERSION}-REQUIREMENTS.md" ]; then
+if [ -f "GPD/milestones/v${VERSION}-REQUIREMENTS.md" ]; then
   # Use git rm so the deletion is staged for commit (not just a filesystem rm)
-  git rm .gpd/REQUIREMENTS.md 2>/dev/null || rm .gpd/REQUIREMENTS.md
+  git rm GPD/REQUIREMENTS.md 2>/dev/null || rm GPD/REQUIREMENTS.md
 else
-  echo "ERROR: Archive not found at .gpd/milestones/v${VERSION}-REQUIREMENTS.md. Refusing to delete original."
+  echo "ERROR: Archive not found at GPD/milestones/v${VERSION}-REQUIREMENTS.md. Refusing to delete original."
   exit 1
 fi
 ```
@@ -575,12 +581,12 @@ fi
 Commit the reorganized roadmap and milestone archive:
 
 ```bash
-PRE_CHECK=$(gpd pre-commit-check --files .gpd/milestones/ .gpd/ROADMAP.md 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files GPD/milestones/ GPD/ROADMAP.md 2>&1) || true
 echo "$PRE_CHECK"
 
 gpd commit \
   "chore(milestone-v${VERSION}): reorganize roadmap and retire requirements" \
-  --files .gpd/milestones/ .gpd/ROADMAP.md
+  --files GPD/milestones/ GPD/ROADMAP.md
 ```
 
 </step>
@@ -594,7 +600,7 @@ Most STATE.md updates were handled by `milestone complete`, but verify and updat
 ```markdown
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated [today])
+See: GPD/PROJECT.md (updated [today])
 
 **Core research question:** [Current core question from PROJECT.md]
 **Current focus:** [Next milestone or "Planning next research stage"]
@@ -615,7 +621,7 @@ Check branching strategy and offer merge options.
 Use `init milestone-op` for context, or load config directly:
 
 ```bash
-INIT=$(gpd init milestone-op)
+INIT=$(gpd --raw init milestone-op)
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed.
@@ -732,7 +738,7 @@ Key findings:
 - [Finding 2]
 - [Finding 3]
 
-See .gpd/MILESTONES.md for full details."
+See GPD/MILESTONES.md for full details."
 ```
 
 Confirm: "Tagged: v[X.Y]"
@@ -749,15 +755,15 @@ git push origin v[X.Y]
 
 <step name="git_commit_milestone">
 
-Commit milestone completion. Only include files that exist (MILESTONE-AUDIT.md is optional — only present if `/gpd:audit-milestone` was run beforehand).
+Commit milestone completion. Only include files that exist (MILESTONE-AUDIT.md is optional — only present if `gpd:audit-milestone` was run beforehand).
 
 Build the file list, conditionally including MILESTONE-AUDIT.md if it exists:
 
 ```bash
-COMMIT_FILES=".gpd/milestones/v[X.Y]-ROADMAP.md .gpd/milestones/v[X.Y]-REQUIREMENTS.md .gpd/milestones/v[X.Y]/RESEARCH-DIGEST.md .gpd/MILESTONES.md .gpd/PROJECT.md .gpd/STATE.md"
+COMMIT_FILES="GPD/milestones/v[X.Y]-ROADMAP.md GPD/milestones/v[X.Y]-REQUIREMENTS.md GPD/milestones/v[X.Y]/RESEARCH-DIGEST.md GPD/MILESTONES.md GPD/PROJECT.md GPD/STATE.md"
 
-if [ -f ".gpd/milestones/v[X.Y]-MILESTONE-AUDIT.md" ]; then
-  COMMIT_FILES="$COMMIT_FILES .gpd/milestones/v[X.Y]-MILESTONE-AUDIT.md"
+if [ -f "GPD/milestones/v[X.Y]-MILESTONE-AUDIT.md" ]; then
+  COMMIT_FILES="$COMMIT_FILES GPD/milestones/v[X.Y]-MILESTONE-AUDIT.md"
 fi
 
 PRE_CHECK=$(gpd pre-commit-check --files $COMMIT_FILES 2>&1) || true
@@ -784,7 +790,7 @@ Archived:
 - milestones/v[X.Y]-REQUIREMENTS.md
 - milestones/v[X.Y]/RESEARCH-DIGEST.md
 
-Summary: .gpd/MILESTONES.md
+Summary: GPD/MILESTONES.md
 Tag: v[X.Y]
 
 ---
@@ -793,7 +799,7 @@ Tag: v[X.Y]
 
 **Start Next Research Stage** -- new questions -> literature review -> requirements -> roadmap
 
-`/gpd:new-milestone`
+`gpd:new-milestone`
 
 <sub>`/clear` first -> fresh context window</sub>
 
@@ -843,6 +849,6 @@ Milestone completion is successful when:
 - [ ] Pattern promotion reviewed (INSIGHTS.md checked, candidates offered for `pattern add`)
 - [ ] Git tag created (v[X.Y])
 - [ ] Milestone commit made (includes archive files and deletion)
-- [ ] Researcher knows next step (/gpd:new-milestone)
+- [ ] Researcher knows next step (gpd:new-milestone)
 
 </success_criteria>

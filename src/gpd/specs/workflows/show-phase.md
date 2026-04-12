@@ -12,7 +12,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 **Initialize phase context:**
 
 ```bash
-INIT=$(gpd init phase-op "$PHASE")
+INIT=$(gpd --raw init phase-op "$PHASE")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed.
@@ -27,7 +27,7 @@ Extract from init JSON: `phase_dir`, `phase_number`, `phase_name`, `phase_found`
 Phase not found. Available phases:
 [list from roadmap]
 
-Usage: /gpd:show-phase <phase-number>
+Usage: gpd:show-phase <phase-number>
 ```
 
 Exit.
@@ -42,11 +42,10 @@ ls -la "${phase_dir}/" 2>/dev/null
 
 Categorize files into:
 
-- **Plans:** `*-PLAN.md`
-- **Summaries:** `*-SUMMARY.md`
+- **Plans:** `PLAN.md` and `*-PLAN.md`
+- **Summaries:** `SUMMARY.md` and `*-SUMMARY.md`
 - **Context:** `*-CONTEXT.md`
-- **Research:** `*-RESEARCH.md`
-- **Discovery:** `DISCOVERY.md`
+- **Research:** `RESEARCH.md` and `*-RESEARCH.md`
 - **Verification:** `*-VERIFICATION.md`
 - **Validation:** `*-VALIDATION.md`
 - **Scripts:** `*.py`, `*.jl`, `*.m`, `*.nb`
@@ -58,7 +57,7 @@ Categorize files into:
 **Extract phase info from ROADMAP.md:**
 
 ```bash
-PHASE_INFO=$(gpd roadmap get-phase "${phase_number}")
+PHASE_INFO=$(gpd --raw roadmap get-phase "${phase_number}")
 ```
 
 Extract: `phase_name`, `goal`, `dependencies`, `status` (from disk analysis).
@@ -66,7 +65,7 @@ Extract: `phase_name`, `goal`, `dependencies`, `status` (from disk analysis).
 Also get overall roadmap context:
 
 ```bash
-ROADMAP=$(gpd roadmap analyze)
+ROADMAP=$(gpd --raw roadmap analyze)
 ```
 
 Find this phase in the phases array to get `disk_status` (complete/partial/planned/empty/no_directory), `plan_count`, `summary_count`.
@@ -75,10 +74,10 @@ Find this phase in the phases array to get `disk_status` (complete/partial/plann
 <step name="plan_completion">
 **Check plan completion status:**
 
-For each PLAN.md file found:
+For each plan artifact found (`PLAN.md` or `*-PLAN.md`):
 
 1. Extract the plan number and name from filename and frontmatter
-2. Check if a matching SUMMARY.md exists
+2. Check if a matching summary artifact exists (`PLAN.md` <-> `SUMMARY.md`, numbered plan <-> numbered summary)
 3. Mark as: completed (has SUMMARY), pending (no SUMMARY)
 
 Present as table:
@@ -98,10 +97,10 @@ Present as table:
 <step name="key_results">
 **Extract key results from completed plans:**
 
-For each SUMMARY.md:
+For each summary artifact (`SUMMARY.md` or `*-SUMMARY.md`):
 
 ```bash
-gpd summary-extract <path> --field one_liner --field key_results --field equations
+gpd --raw summary-extract <path> --field one_liner --field key_results --field equations
 ```
 
 Collect:
@@ -126,7 +125,7 @@ Present:
 - Key: [key result 1]
 ```
 
-If no SUMMARYs exist: "No results yet (no plans executed)."
+If no summary artifacts exist: "No results yet (no plans executed)."
 </step>
 
 <step name="verification_status">
@@ -137,7 +136,7 @@ Look for:
 - `*-VERIFICATION.md` — automated physics checks
 - `*-VALIDATION.md` — researcher-reviewed validation
 
-For each file found, read frontmatter to extract `status`. Automated verification uses `passed`/`gaps_found`/`human_needed`; interactive validation uses `validating`/`completed`/`diagnosed`.
+For each file found, read frontmatter to extract canonical verification `status`, plus `session_status` when present. Automated verification uses `passed`/`gaps_found`/`expert_needed`/`human_needed`; researcher-session progress uses `session_status: validating|completed|diagnosed`.
 
 Present:
 
@@ -150,13 +149,13 @@ Present:
 | Validation   | 04-VALIDATION.md         | complete | 5      | 5      | 0      |
 ```
 
-If no verification files: "No verification performed yet. Run /gpd:verify-work {phase} to validate results."
+If no verification files: "No verification performed yet. Run gpd:verify-work {phase} to validate results."
 </step>
 
 <step name="convention_changes">
 **Check for convention changes introduced in this phase:**
 
-For each SUMMARY.md, check frontmatter for `affects` field.
+For each summary artifact (`SUMMARY.md` or `*-SUMMARY.md`), check frontmatter for `affects` field.
 
 The `affects` field lists conventions or definitions that were established or changed:
 
@@ -224,9 +223,9 @@ Present with human-readable sizes:
 
 ----------------------------------------------------------------
 **Also available:**
-- /gpd:verify-work {N} -- run physics validation checks
-- /gpd:execute-phase {N} -- execute pending plans
-- /gpd:plan-phase {N} -- create new plans
+- gpd:verify-work {N} -- run physics validation checks
+- gpd:execute-phase {N} -- execute pending plans
+- gpd:plan-phase {N} -- create new plans
 ----------------------------------------------------------------
 ```
 
@@ -239,8 +238,8 @@ Present with human-readable sizes:
 - [ ] Phase validated against roadmap
 - [ ] Phase directory contents loaded and categorized
 - [ ] Roadmap description and goal extracted
-- [ ] Plan completion table showing SUMMARY Y/N per plan
-- [ ] Key results extracted from SUMMARYs (equations, quantities)
+- [ ] Plan completion table showing summary-artifact Y/N per plan
+- [ ] Key results extracted from summary artifacts (equations, quantities)
 - [ ] Verification/validation status shown
 - [ ] Convention changes from `affects` fields listed
 - [ ] All files listed with sizes

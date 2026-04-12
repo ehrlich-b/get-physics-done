@@ -3,20 +3,20 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 dist/
-docs/
 build/
 .venv/
 .env
 *.log
-.gpd/
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
 .npm-cache/
+tmp/
 .mcp.json
 # Runtime-owned local mirrors/config snapshots.
 .agents/
+.claude/
 .codex/
-.planning/
 .gemini/
 .opencode/
+.playwright-mcp/

@@ -33,23 +33,18 @@ You are not the final referee. Your artifact should be decisive on novelty and c
    - missing citations
    - overstated novelty
    - genuine overlap that collapses the contribution
-5. Write `.gpd/review/STAGE-literature.json` or the round-specific variant as a compact `StageReviewReport`.
+5. Write `GPD/review/STAGE-literature{round_suffix}.json` as a compact `StageReviewReport`.
 </process>
 
 <artifact_format>
-Before writing the JSON artifact, read `@{GPD_INSTALL_DIR}/references/publication/peer-review-panel.md` directly and use its stage artifact contract exactly.
+Use `@{GPD_INSTALL_DIR}/references/publication/peer-review-panel.md` as the shared source of truth for the full `StageReviewReport` contract. Do not restate that schema here.
 
-Required finding coverage:
+Literature-specific deltas:
 
-- claimed advance
-- directly relevant prior work
-- missing or misused citations
-- novelty assessment
-
-Set `recommendation_ceiling` to:
-
-- `reject` when prior work already contains the main result or the novelty framing is materially false
-- `major_revision` when literature positioning needs substantial repair
+- Keep `proof_audits` empty in this stage.
+- Focus `findings` on claimed advance, directly relevant prior work, missing or misused citations, and novelty assessment.
+- Escalate to `reject` when prior work already contains the main result or the novelty framing is materially false.
+- Escalate to `major_revision` when literature positioning needs substantial repair.
 </artifact_format>
 
 <anti_patterns>

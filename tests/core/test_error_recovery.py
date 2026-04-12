@@ -46,6 +46,7 @@ from gpd.core.state import (
     generate_state_markdown,
     load_state_json,
     save_state_json,
+    state_add_decision,
     state_validate,
     sync_state_json,
 )
@@ -57,14 +58,14 @@ from gpd.core.utils import safe_read_file
 
 
 def _make_planning(tmp_path: Path) -> Path:
-    """Create minimal .gpd/ structure and return project root."""
-    planning = tmp_path / ".gpd"
+    """Create minimal GPD/ structure and return project root."""
+    planning = tmp_path / "GPD"
     planning.mkdir(parents=True, exist_ok=True)
     return tmp_path
 
 
 def _write_state_json(cwd: Path, obj: dict) -> Path:
-    """Write state.json to .gpd/ and return the path."""
+    """Write state.json to GPD/ and return the path."""
     p = ProjectLayout(cwd).state_json
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(obj, indent=2), encoding="utf-8")
@@ -72,7 +73,7 @@ def _write_state_json(cwd: Path, obj: dict) -> Path:
 
 
 def _write_state_md(cwd: Path, content: str) -> Path:
-    """Write STATE.md to .gpd/ and return the path."""
+    """Write STATE.md to GPD/ and return the path."""
     p = ProjectLayout(cwd).state_md
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(content, encoding="utf-8")
@@ -84,7 +85,7 @@ MINIMAL_STATE_MD = """\
 
 ## Project Reference
 
-See: .gpd/PROJECT.md
+See: GPD/PROJECT.md
 
 **Core research question:** Test question
 **Current focus:** Testing recovery
@@ -127,7 +128,7 @@ See: .gpd/PROJECT.md
 
 **Last session:** 2026-03-09
 **Stopped at:** Phase 01, Plan 01, Task 2
-**Resume file:** .gpd/phases/01-test/01-test-01-PLAN.md
+**Resume file:** GPD/phases/01-test/01-test-01-PLAN.md
 """
 
 
@@ -204,6 +205,23 @@ class TestLoadStateJsonFallback:
         assert result is not None
         assert result["position"]["current_phase"] == "01"
         assert result["position"]["status"] == "Executing"
+
+    def test_tier3_repairs_unreadable_state_json_from_state_md(
+        self, tmp_path: Path
+    ) -> None:
+        """Unreadable state.json should be repaired from STATE.md instead of remaining corrupt."""
+        cwd = _make_planning(tmp_path)
+        layout = ProjectLayout(cwd)
+        layout.state_json.write_text("CORRUPT", encoding="utf-8")
+        _write_state_md(cwd, MINIMAL_STATE_MD)
+
+        result = load_state_json(cwd)
+
+        assert result is not None
+        assert result["position"]["current_phase"] == "01"
+        repaired = json.loads(layout.state_json.read_text(encoding="utf-8"))
+        assert repaired["position"]["current_phase"] == "01"
+        assert repaired["position"]["status"] == "Executing"
 
     def test_returns_none_when_no_state_exists(self, tmp_path: Path) -> None:
         """When no state files exist at all, return None (not raise)."""
@@ -483,6 +501,11 @@ class TestFrontmatterErrorHandling:
         with pytest.raises(FrontmatterParseError):
             extract_frontmatter(content)
 
+    def test_duplicate_keys_raise(self) -> None:
+        content = "---\ntitle: First\ntitle: Second\n---\n\nBody"
+        with pytest.raises(FrontmatterParseError, match="duplicate key"):
+            extract_frontmatter(content)
+
     def test_non_dict_yaml_raises(self) -> None:
         """If YAML block parses to a list instead of dict, raise."""
         content = "---\n- item1\n- item2\n---\n\nBody"
@@ -547,9 +570,16 @@ class TestValidateFrontmatter:
             "depends_on: []\n"
             "files_modified: []\n"
             "interactive: false\n"
+            "conventions:\n"
+            "  units: natural\n"
+            "  metric: (+,-,-,-)\n"
+            "  coordinates: Cartesian\n"
             "contract:\n"
+            "  schema_version: 1\n"
             "  scope:\n"
             "    question: What benchmark must this plan recover?\n"
+            "  context_intake:\n"
+            "    must_read_refs: [ref-main]\n"
             "  claims:\n"
             "    - id: claim-main\n"
             "      statement: Recover the benchmark value within tolerance\n"
@@ -594,6 +624,11 @@ class TestValidateFrontmatter:
         """Malformed YAML in validate propagates as FrontmatterParseError."""
         content = "---\n: : bad\n---\n\nBody"
         with pytest.raises(FrontmatterParseError):
+            validate_frontmatter(content, "plan")
+
+    def test_duplicate_keys_in_validate_raise(self) -> None:
+        content = "---\ntitle: First\ntitle: Second\n---\n\nBody"
+        with pytest.raises(FrontmatterParseError, match="duplicate key"):
             validate_frontmatter(content, "plan")
 
 
@@ -725,15 +760,12 @@ class TestSafeParseFunctions:
         """Reading a directory returns None (not raise)."""
         assert safe_read_file(tmp_path) is None
 
-    def test_safe_read_file_permission_error(self, tmp_path: Path) -> None:
+    def test_safe_read_file_permission_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Reading a file with permission error returns None."""
         f = tmp_path / "noperm.txt"
-        f.write_text("content")
-        f.chmod(0o000)
-        try:
-            assert safe_read_file(f) is None
-        finally:
-            f.chmod(0o644)
+        f.write_text("content", encoding="utf-8")
+        monkeypatch.setattr("pathlib.Path.read_text", lambda *a, **kw: (_ for _ in ()).throw(PermissionError("denied")))
+        assert safe_read_file(f) is None
 
 
 # ===================================================================
@@ -841,3 +873,32 @@ class TestSaveLoadRoundTrip:
         loaded = load_state_json(cwd)
         assert loaded is not None
         assert loaded["position"]["current_phase"] == "02"
+
+    def test_mutator_recovers_pending_intent_before_missing_state_check(self, tmp_path: Path) -> None:
+        """Mutators should recover pending intent before they reject missing STATE.md."""
+        cwd = _make_planning(tmp_path)
+        layout = ProjectLayout(cwd)
+
+        stale_state = default_state_dict()
+        stale_state["position"]["current_phase"] = "01"
+        stale_state["position"]["status"] = "Planning"
+        save_state_json(cwd, stale_state)
+
+        recovered_state = default_state_dict()
+        recovered_state["position"]["current_phase"] = "05"
+        recovered_state["position"]["status"] = "Executing"
+        recovered_state["decisions"] = []
+        json_tmp = layout.gpd / ".state-json-tmp"
+        md_tmp = layout.gpd / ".state-md-tmp"
+        json_tmp.write_text(json.dumps(recovered_state, indent=2) + "\n", encoding="utf-8")
+        md_tmp.write_text(generate_state_markdown(recovered_state), encoding="utf-8")
+        layout.state_intent.write_text(f"{json_tmp}\n{md_tmp}\n", encoding="utf-8")
+
+        layout.state_md.unlink()
+
+        result = state_add_decision(cwd, summary="Recovered decision", phase="05")
+
+        assert result.added is True
+        assert "Recovered decision" in layout.state_md.read_text(encoding="utf-8")
+        assert json.loads(layout.state_json.read_text(encoding="utf-8"))["position"]["current_phase"] == "05"
+        assert not layout.state_intent.exists()

@@ -1,69 +1,62 @@
 <purpose>
-Validate research results through conversational research validation with persistent state. Creates VERIFICATION.md that tracks verification progress, survives /clear, and feeds gaps into /gpd:plan-phase --gaps.
+Orchestrate conversational verification through a thin session wrapper around `gpd-verifier`.
 
-Researcher validates, the AI records. One check at a time. Plain text responses.
-
-**Key upgrade: checks now include computational spot-checks that the AI performs before presenting to the researcher, and the researcher is walked through numerical verification rather than just qualitative confirmation.**
+The verifier agent owns contract-backed target construction, proof policy, computational checks, comparison verdicts, and canonical verification status. This workflow owns preflight, session routing, researcher interaction, report synchronization, diagnosis, and gap-repair routing.
 </purpose>
 
 <philosophy>
-**Show expected physics AND computational evidence, ask if reality matches.**
+**Do not duplicate verifier policy here.**
 
-The AI does not just present what the research SHOULD show — it COMPUTES what the research should show at specific test points, then asks the researcher to confirm.
-
-- "yes" / "y" / "next" / empty -> pass
-- Anything else -> logged as issue, severity inferred
-
-Walk through derivation logic, perform numerical spot-checks, re-derive limiting cases, probe edge cases with actual computations. No formal review forms. Just: "Here is what I independently computed. Does your result match?"
-
-**Verification independence:** Derive validation checks from the phase goal, the PLAN `contract`, and the actual research artifacts — not from SUMMARY.md claims about what was accomplished. SUMMARY.md `contract_results` and `comparison_verdicts` tell you WHERE evidence lives, but expected physics outcomes come from the phase goal, contract IDs, and domain knowledge. See @{GPD_INSTALL_DIR}/references/verification/meta/verification-independence.md.
+- Fail closed before delegation if the project, roadmap, contract, or proof readiness are not usable.
+- Present verifier-produced evidence one check at a time and record only the session overlay in this workflow.
+- Every spawned agent is a one-shot delegation: if it needs user input, it must checkpoint and return, and the wrapper must start a fresh continuation after the user responds.
+- File-producing handoffs must prove the expected artifact exists before success is accepted.
 </philosophy>
 
-<template>
-@{GPD_INSTALL_DIR}/templates/research-verification.md
-</template>
+<shared_contract_floor>
+**Project Contract Gate:** {project_contract_gate}
+**Project Contract Load Info:** {project_contract_load_info}
+**Project Contract Validation:** {project_contract_validation}
+**Contract Intake:** {contract_intake}
+**Effective Reference Intake:** {effective_reference_intake}
 
-Use the researcher-session body scaffold from `research-verification.md`, but keep the frontmatter contract compatible with `@{GPD_INSTALL_DIR}/templates/verification-report.md` and `@{GPD_INSTALL_DIR}/templates/contract-results-schema.md`.
+Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. A visible-but-blocked contract must be repaired before it is used as authoritative verification scope; keep the same contract-critical floor at all times.
+Treat `effective_reference_intake` as the structured source of carry-forward anchors; `active_reference_context` is the readable projection, not the source of truth.
+Do NOT skip contract-critical anchors.
+</shared_contract_floor>
 
-<required_reading>
-@{GPD_INSTALL_DIR}/references/protocols/error-propagation-protocol.md
-</required_reading>
+@{GPD_INSTALL_DIR}/references/orchestration/runtime-delegation-note.md
 
 <process>
 
 <step name="check_type_selection">
 ## Check Type Selection
 
-Parse `$ARGUMENTS` for specific check flags:
-- `--dimensional` — Run only dimensional analysis checks
-- `--limits` — Run only limiting case checks
-- `--convergence` — Run only numerical convergence checks
-- `--regression` — Run regression check (re-verify previously validated contract-backed outcomes)
-- `--all` or no flags — Run full verification suite
+Parse `$ARGUMENTS` for targeted verification flags:
 
-This allows targeted verification without running the full suite.
+- `--dimensional` - narrow the verifier's optional breadth to dimensional checks
+- `--limits` - narrow the verifier's optional breadth to limiting cases
+- `--convergence` - narrow the verifier's optional breadth to numerical convergence
+- `--regression` - narrow the verifier's optional breadth to regression scans
+- `--all` or no flags - delegate the full verifier package
+
+Targeted flags narrow the optional check mix only. They do not change canonical verifier ownership or relax fail-closed routing.
 </step>
 
 <step name="initialize" priority="first">
-If $ARGUMENTS contains a phase number, load context:
+Load the workflow context:
 
 ```bash
-INIT=$(gpd init verify-work "${PHASE_ARG}")
+INIT=$(gpd --raw init verify-work "${PHASE_ARG}")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
-  # STOP — display the error to the user and do not proceed.
+  # STOP - display the error to the user and do not proceed.
 fi
 ```
 
-Parse JSON for: `planner_model`, `checker_model`, `commit_docs`, `autonomy`, `research_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`, `has_validation`, `project_contract`, `contract_intake`, `effective_reference_intake`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `protocol_bundle_verifier_extensions`, `active_reference_context`, `reference_artifacts_content`.
+Parse the init JSON for the wrapper-facing fields only: `planner_model`, `checker_model`, `verifier_model`, `commit_docs`, `autonomy`, `research_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`, `has_validation`, `phase_proof_review_status`, `project_contract`, `project_contract_validation`, `project_contract_load_info`, `project_contract_gate`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `protocol_bundle_verifier_extensions`.
 
-**Mode-aware behavior:**
-- `autonomy=supervised`: Pause after each verification round for user review. Present findings and wait for confirmation before writing `VERIFICATION.md`.
-- `autonomy=balanced` (default): Run the full verification pipeline. Pause only if verification reveals critical issues that require user judgment or claim-level decisions.
-- `autonomy=yolo`: Run verification but skip optional cross-checks and literature comparison. Do NOT skip contract-critical anchors, decisive benchmarks, or user-mandated references.
-- `research_mode=explore`: Thorough verification — run all check types, compare against literature, verify intermediate steps. More spawned verifier agents.
-- `research_mode=exploit`: Keep the full contract-critical floor, but narrow optional breadth around the already-validated method family. Favor decisive comparisons over extra exploratory audits.
-- `research_mode=adaptive`: Keep the same contract-critical floor at all times. Start with explore-style skepticism until prior decisive evidence or an explicit approach lock exists, then narrow only the optional breadth that no longer serves the locked method.
+Treat `effective_reference_intake` as the structured source of carry-forward anchors; `active_reference_context` is the readable projection, not the source of truth.
 
 **If `phase_found` is false:**
 
@@ -73,7 +66,7 @@ ERROR: Phase not found: ${PHASE_ARG}
 Available phases:
 $(gpd phase list)
 
-Usage: /gpd:verify-work <phase-number>
+Usage: gpd:verify-work <phase-number>
 ```
 
 Exit.
@@ -92,7 +85,56 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-If review preflight exits nonzero because the project state is missing or not yet ready for verification, the roadmap is missing, review integrity is degraded, or the selected phase lacks the required artifacts, STOP and show the blocking issues before starting the session.
+If review preflight exits nonzero because the project state is missing or not yet ready for verification, the roadmap is missing, review integrity is degraded, or the selected phase lacks the required artifacts, stop and show the blocking issues before any delegation.
+
+If `project_contract_load_info.status` starts with `blocked`, stop and show the surfaced `project_contract_load_info.errors` / `warnings` before delegation.
+
+If `project_contract_validation.valid` is false, stop and show `project_contract_validation.errors` before delegation.
+
+Use canonical artifact discovery helpers during bootstrap:
+
+```bash
+PHASE_INFO=$(gpd --raw roadmap get-phase "${phase_number}")
+ls "$phase_dir"/*SUMMARY.md 2>/dev/null
+ls "$phase_dir"/*-VERIFICATION.md 2>/dev/null | head -1
+ls GPD/phases/*/*SUMMARY.md 2>/dev/null | sort
+```
+
+Read all PLAN.md files in ${phase_dir}/ using the file_read tool.
+</step>
+
+<step name="proof_readiness_gate">
+Detect whether the phase is proof-bearing before any verifier handoff.
+
+Use `phase_proof_review_status` as the structured freshness summary for the phase proof-review manifest if present. If a required proof-redteam audit is missing, stale, malformed, or not `passed`, spawn `gpd-check-proof` once before finalizing the gap ledger.
+Proof-bearing phases require a canonical `*-PROOF-REDTEAM.md` artifact.
+For proof-bearing work, an additional mandatory floor applies before the wrapper can accept a passed verification result.
+
+```bash
+CHECK_PROOF_MODEL=$(gpd resolve-model gpd-check-proof)
+```
+
+> Runtime delegation rule: this is a single-turn handoff. If the spawned agent needs user input, it checkpoints and returns; do not keep the original run waiting inside the same task. If the proof critic cannot produce a passed audit, keep the verification session fail-closed.
+
+```
+task(
+  subagent_type="gpd-check-proof",
+  model="{check_proof_model}",
+  readonly=false,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-check-proof.md for your role and instructions.
+Then read {GPD_INSTALL_DIR}/templates/proof-redteam-schema.md and {GPD_INSTALL_DIR}/references/verification/core/proof-redteam-protocol.md before writing any proof audit artifact.
+
+Write to:
+- `${phase_dir}/${phase_number}-PROOF-REDTEAM.md`
+
+Read the phase proof artifacts, the relevant PLAN contract slice, and any current verification artifact before auditing.
+Return `status: checkpoint` instead of waiting for user input inside this run.",
+  description="Repair proof audit for phase {phase_number}"
+)
+```
+
+After the proof critic returns, re-open `${phase_dir}/${phase_number}-PROOF-REDTEAM.md` from disk and confirm the artifact exists and is `passed` before finalizing the gap ledger. Never trust the return text alone; if the file is missing, stale, malformed, or not passed, keep the verification session fail-closed and start a fresh proof continuation.
+If `gpd-check-proof` still cannot produce a passed audit, keep the verification status fail-closed.
 </step>
 
 <step name="load_anchor_context">
@@ -100,7 +142,7 @@ Use `active_reference_context` from init JSON as a mandatory input to verificati
 
 - If it names a benchmark, prior artifact, or must-read reference, verification must explicitly check it or report why it could not.
 - Treat `effective_reference_intake` as the structured source of must-read refs, prior outputs, baselines, user anchors, and context gaps. `active_reference_context` is the readable rendering of that ledger, not its substitute.
-- Treat `reference_artifacts_content` as supporting evidence for what comparisons remain decisive.
+- Treat `reference_artifacts_content` as supporting evidence for what comparisons remain decisive. Stable knowledge docs that appear there are reviewed background synthesis: use them to clarify definitions, assumptions, and caveats only when they agree with stronger sources, and never as decisive evidence on their own.
 - Background literature may be reduced by mode; anchor checks may not.
 </step>
 
@@ -111,323 +153,163 @@ Use `protocol_bundle_context` from init JSON as additive specialized guidance.
 - Call `get_bundle_checklist(selected_protocol_bundle_ids)` through the verification server only when the init payload lacks those extensions or when you need a fallback consistency check.
 - Bundle guidance may add estimator checks, decisive artifact expectations, or domain-specific audits, but it does NOT replace the plan contract or reduce anchor obligations.
 - Use `protocol_bundle_verifier_extensions` as the machine-readable quick map when deciding which contract-aware checks deserve deeper scrutiny first.
-- If the phase has a PLAN `contract`, call `suggest_contract_checks(contract)` through the verification server before finalizing the check inventory. Treat the returned items as the default contract-aware check seed unless they are clearly inapplicable to this phase.
+- If the phase has a PLAN `contract` and project-local anchors or prior-output paths matter, use this contract-check loop before finalizing the inventory:
+  1. Call `suggest_contract_checks(contract, project_dir=...)`.
+  2. Treat the returned items as the default contract-aware seed unless they are clearly inapplicable.
+  3. For each returned check, start from `request_template`, satisfy `required_request_fields` and `schema_required_request_fields`, satisfy one full alternative from `schema_required_request_anyof_fields`, stay within `supported_binding_fields` for `request.binding`, and keep `project_dir` as the top-level absolute project root argument.
+  4. Call `run_contract_check(request=..., project_dir=...)` so contract-aware checks are executed rather than only discovered.
 </step>
 
 <step name="check_active_session">
 **First: Check for active verification sessions**
 
 ```bash
-find .gpd/phases -name "*-VERIFICATION.md" -type f 2>/dev/null | head -5
+for file in GPD/phases/*/*-VERIFICATION.md; do
+  [ -f "$file" ] || continue
+  session_status=$(gpd frontmatter get "$file" --field session_status 2>/dev/null)
+  if [ "$session_status" = "validating" ] || [ "$session_status" = "diagnosed" ]; then
+    printf '%s\n' "$file"
+  fi
+done | sort | head -5
 ```
 
-**If active sessions exist AND no $ARGUMENTS provided:**
+**If active sessions exist and no `$ARGUMENTS` are provided:**
 
-Read each file's frontmatter (`session_status` if present, otherwise `status`), plus `phase` and the Current Check section.
+Only treat files whose frontmatter `session_status` is `validating` or `diagnosed` as active researcher sessions. Read each active file's frontmatter to extract canonical verification `status`, `session_status`, `phase`, and the Current Check section. Do not let `session_status` replace or overwrite the canonical verification `status`.
 
-Display inline:
+Display:
 
 ```
 ## Active Verification Sessions
 
-| # | Phase | Session | Current Check | Progress |
-|---|-------|--------|---------------|----------|
-| 1 | 04-dispersion | validating | 3. Limiting Cases | 2/6 |
-| 2 | 05-numerics | validating | 1. Convergence Test | 0/4 |
+| # | Phase | Session | Verification Status | Current Check | Progress |
+|---|-------|---------|---------------------|---------------|----------|
+| 1 | 04-dispersion | validating | gaps_found | 3. Limiting Cases | 2/6 |
+| 2 | 05-numerics | diagnosed | expert_needed | 1. Convergence Test | 0/4 |
 
 Reply with a number to resume, or provide a phase number to start new.
 ```
 
 Wait for user response.
 
-- If user replies with number (1, 2) -> Load that file, go to `resume_from_file`
-- If user replies with phase number -> Treat as new session, go to `create_verification_file`
+**If active sessions exist and `$ARGUMENTS` are provided:**
 
-**If active sessions exist AND $ARGUMENTS provided:**
+Check whether a session already exists for that phase. If yes, offer to resume or restart. If no, continue to verifier delegation.
 
-Check if session exists for that phase. If yes, offer to resume or restart.
-If no, continue to `create_verification_file`.
-
-**If no active sessions AND no $ARGUMENTS:**
+**If no active sessions exist and no `$ARGUMENTS` are provided:**
 
 ```
 No active verification sessions.
 
-Provide a phase number to start validation (e.g., /gpd:verify-work 4)
+Provide a phase number to start validation (e.g., gpd:verify-work 4)
 ```
 
-**If no active sessions AND $ARGUMENTS provided:**
+**If no active sessions exist and `$ARGUMENTS` are provided:**
 
-Continue to `create_verification_file`.
+Continue to verifier delegation.
 </step>
 
-<step name="find_summaries">
-**Find what to validate:**
+<step name="delegate_verification">
+## Delegate Verification
 
-Use `phase_dir` from init (or run init if not already done).
+Spawn `gpd-verifier` once and let it own the physics policy.
 
-```bash
-ls "$phase_dir"/SUMMARY.md "$phase_dir"/*-SUMMARY.md 2>/dev/null
+The delegation prompt must tell the verifier to own:
+
+- contract-backed target extraction
+- evidence mapping from roadmap, contract, artifacts, anchors, and protocol bundles
+- proof-bearing policy
+- computational checks and decisive comparisons
+- canonical verification report and status semantics
+- suggested contract checks and gap ledger contents
+
+Pass the project contract, proof freshness summary, active reference context, and protocol bundle context into the handoff so the verifier can build its own authoritative ledger.
+Use `protocol_bundle_verifier_extensions` as the primary source for bundle checklist extensions; `protocol_bundle_context` is the readable projection. Use `suggest_contract_checks(contract)` whenever decisive anchor actions or prior-output paths remain ambiguous. Required decisive comparisons should stay legible enough that the researcher can recognize in the phase promise which `claim`, acceptance test, or reference is still unresolved. Do not mark the parent claim or acceptance test as passed until that decisive comparison is resolved.
+Human-readable headings in the verifier output are presentation only; route on the canonical verification frontmatter and `gpd_return.status`, not on headings or marker strings.
+
+> Runtime delegation rule: this is a one-shot handoff. If the spawned verifier needs user input, it must checkpoint and return. The wrapper must start a fresh continuation after the user responds instead of trying to keep the original verifier alive.
+
+```
+task(
+  subagent_type="gpd-verifier",
+  model="{verifier_model}",
+  readonly=false,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-verifier.md for your role and instructions.
+
+Verify Phase {phase_number}. Keep verifier ownership of contract-backed target extraction, evidence mapping, proof-bearing policy, computational checks, decisive comparisons, and canonical verification status semantics.
+
+Verification flags from the invoking wrapper: $ARGUMENTS
+Treat `--dimensional`, `--limits`, `--convergence`, and `--regression` as optional-breadth narrowing only. Otherwise run the full verifier package.
+
+<files_to_read>
+Read these files using the file_read tool:
+- Verification artifact if present: {phase_dir}/{phase_number}-VERIFICATION.md
+- All PLAN.md files in {phase_dir}/
+- All SUMMARY.md files in {phase_dir}/
+- All `*-PROOF-REDTEAM.md` files in {phase_dir}/
+- GPD/STATE.md
+- GPD/ROADMAP.md
+</files_to_read>
+
+<verification_context>
+Project contract: {project_contract}
+Project contract gate: {project_contract_gate}
+Project contract load info: {project_contract_load_info}
+Project contract validation: {project_contract_validation}
+Contract intake: {contract_intake}
+Effective reference intake: {effective_reference_intake}
+Active reference context: {active_reference_context}
+Selected protocol bundle ids: {selected_protocol_bundle_ids}
+Protocol bundle context: {protocol_bundle_context}
+Protocol bundle verifier extensions: {protocol_bundle_verifier_extensions}
+Proof freshness summary: {phase_proof_review_status}
+</verification_context>
+
+Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true. Use `protocol_bundle_verifier_extensions` as the primary bundle-extension surface. Keep decisive comparison gaps legible at the claim / acceptance-test / reference level. If user input is required, return `gpd_return.status: checkpoint` and stop; do not wait inside the same run.
+
+<spawn_contract>
+write_scope:
+  mode: scoped_write
+  allowed_paths:
+    - {phase_dir}/{phase_number}-VERIFICATION.md
+expected_artifacts:
+  - {phase_dir}/{phase_number}-VERIFICATION.md
+shared_state_policy: return_only
+</spawn_contract>
+",
+  description="Verify Phase {phase_number}"
+)
 ```
 
-Read each SUMMARY.md to extract **deliverable names, file paths, and evidence locations only**. Do NOT trust SUMMARY.md claims about correctness, convergence, or agreement with literature — those are exactly what you are validating. Use SUMMARY.md as a map to find artifacts and comparison evidence, not as evidence that they are correct.
-
-If a SUMMARY has `contract_results` or `comparison_verdicts`, use them only as evidence maps keyed to contract IDs. The PLAN `contract` remains the source of truth for what must be verified.
-
-Also load the phase goal from ROADMAP.md to derive expected physics outcomes independently:
-
-```bash
-gpd roadmap get-phase "${phase_number}"
-```
-
+If runtime delegation is unavailable, execute the handoff in the main context, but do not re-implement verifier policy here.
 </step>
 
-<step name="extract_checks">
-**Extract validatable contract-backed checks from PLAN `contract` first, then use SUMMARY.md as an evidence map:**
+<step name="sync_verifier_output">
+Read the verifier-produced verification file or report path.
 
-Parse for:
+- Route only on the canonical verification frontmatter and `gpd_return.status`; do not route on headings or marker strings.
+- `gpd_return.status: completed` means success only after verifying that:
+  1. `${phase_dir}/${phase_number}-VERIFICATION.md` exists on disk and is readable
+  2. the same path appears in `gpd_return.files_written`
+  3. `gpd validate verification-contract "${phase_dir}/${phase_number}-VERIFICATION.md"` passes before any downstream routing
+- If a canonical verification file already existed before this run, do not treat it as fresh verifier output unless the child reported that same path in `gpd_return.files_written`.
+- `gpd_return.status: checkpoint` means present the verifier checkpoint, collect user input, and spawn a fresh verifier continuation. Do not overwrite canonical verification status in this workflow.
+- `gpd_return.status: blocked` or `failed` means keep the session fail-closed, present the issues, and offer retry or manual follow-up. Do not treat any preexisting verification file as a new verifier result on this path.
+- If the verifier agent fails to spawn or returns an error, keep the session fail-closed. Do not let a stale existing verification file satisfy the success path.
+- If the canonical verification artifact is missing, unreadable, absent from `gpd_return.files_written`, or fails contract validation, treat the handoff as incomplete and request a fresh verifier continuation. Never trust the return text alone.
+- If a canonical verification file already exists, preserve its authoritative frontmatter and append only the session-local overlay here.
+- Do not recompute canonical verification status in this workflow.
 
-1. **Claims** - Contract-backed statements the phase is supposed to establish
-2. **Deliverables** - Analytical results, numerical outputs, plots, tables, code artifacts
-3. **Acceptance tests** - Explicit tests that must pass for the phase to count as complete
-4. **Reference actions** - Must-read anchors that require read / compare / cite / reproduce actions
-5. **Forbidden proxies** - Outputs that would look like progress but do not establish success
-6. **Suggested contract checks** - Decisive checks the verifier thinks should exist if the contract is incomplete
-
-Focus on VERIFIABLE RESEARCH OUTCOMES the researcher can recognize in the phase promise, not implementation details. Use contract IDs (`claim_id`, `deliverable_id`, `acceptance_test_id`, `reference_id`, `forbidden_proxy_id`) as canonical names throughout the verification file.
-If a contract item is only meaningful as an internal process milestone, do not make it a researcher-facing check; map it to the user-visible claim or deliverable it was supposed to establish, or drop it from validation.
-
-For each contract-backed check, create a validation record that includes **both qualitative expectations and a concrete computational test:**
-
-- name: Brief check name
-- expected: What the physics should show (specific, verifiable)
-- computation: A specific numerical test the AI will perform before presenting to the researcher
-- subject_kind: `claim | deliverable | acceptance_test | reference | forbidden_proxy | suggested_contract_check`
-- subject_id: Contract ID when available
-
-Rules:
-
-- If the contract already says a comparison against a benchmark / prior work / experiment / cross-method result is decisive, attach a comparison target so the final verification can emit a `comparison_verdict`. Do not mark the parent claim or acceptance test as passed until that decisive comparison is resolved. If the comparison was attempted but is still open, record `inconclusive` or `tension` instead of silently dropping it.
-- If a forbidden proxy exists, create an explicit rejection check rather than assuming silence means success.
-- If the contract lacks an obvious decisive check, create a `suggested_contract_check` entry with a short rationale instead of silently dropping the concern.
-- Only create `suggested_contract_check` entries for obvious decisive gaps on user-visible targets, not for paperwork preferences or generic workflow niceties.
-- Each `suggested_contract_check` entry must stay structured: `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id` when known, and `evidence_path`.
-
-**Examples with computational verification:**
-
-- Derivation: "Derived Boltzmann equation from BBGKY hierarchy"
-  -> Check: "Derivation of Boltzmann Equation"
-  -> Expected: "Starting from the BBGKY hierarchy, the two-particle correlation is factored in the dilute gas limit. The collision integral should have the form of gain minus loss terms with cross-section weighting."
-  -> Computation: "I will evaluate the collision integral at a test point (v1=[1,0,0], v2=[0,1,0]) and verify it has the correct structure: gain - loss with appropriate cross-section weighting."
-
-- Calculation: "Computed critical temperature for 3D Ising model"
-  -> Check: "Critical Temperature Value"
-  -> Expected: "Tc/J should be approximately 4.51 for simple cubic lattice."
-  -> Computation: "I will extract the computed Tc from the artifact, compute the exact value Tc/J = 4.5115..., and report the relative error."
-
-- Plot: "Phase diagram as function of temperature and coupling"
-  -> Check: "Phase Diagram Features"
-  -> Expected: "Phase boundary should show expected topology: ordered phase at low T, disordered at high T."
-  -> Computation: "I will evaluate the order parameter at 3 test points: (T=0.5*Tc, g=1) should be non-zero, (T=2*Tc, g=1) should be zero, and the boundary should cross at T=Tc."
-
-- Limiting case: "Free-particle limit of interacting Green's function"
-  -> Check: "Free-particle Limit"
-  -> Expected: "G(k, omega) should reduce to 1/(omega - epsilon_k + i\*eta) when interaction V -> 0."
-  -> Computation: "I will take V=0 in the expression from the artifact, simplify, and verify it equals the free-particle propagator. Then I will evaluate both at k=pi/2, omega=1.0 and compare numerically."
-
-Skip internal/non-observable items (code refactors, file reorganization, checklist completion, etc.).
-</step>
-
-<step name="minimum_verification_floor">
-**Regardless of profile (including exploratory), the pre-computation phase must satisfy these minimums:**
-
-1. **Dimensional analysis**: At least one equation checked symbol-by-symbol for dimensional consistency
-2. **Limiting case**: At least one limiting case independently re-derived (not just discussed qualitatively)
-3. **Numerical spot-check with code execution**: At least one Python/SymPy script actually executed via shell, with the output captured and presented to the researcher
-
-**Code output requirement:** The final VERIFICATION.md must contain at least one fenced code block showing actual execution output. A verification report with only text analysis and zero computational evidence is INCOMPLETE. If the pre-computation step produces no code outputs, flag the verification as incomplete before presenting to the researcher.
-
-These 3 minimum checks must be among the checks presented to the researcher, even when the exploratory profile reduces the total check count.
-</step>
-
-<step name="precompute_checks">
-**Before presenting checks to the researcher, perform computational verification on each deliverable.**
-
-For each check:
-
-1. **Read the artifact** to extract the actual expression/result/code
-2. **Perform the computational test** specified in the check definition
-3. **Record the result** (pass/fail/inconclusive) as pre-computed evidence
-
-This gives the researcher concrete numbers to compare against, not just qualitative expectations.
-
-```bash
-# Example: pre-compute a spot-check before presenting to researcher
-python3 -c "
-import numpy as np
-# Extract key expression from artifact
-# Evaluate at test point
-# Compare with expected
-# print('Pre-check result: ...')
-"
-```
-
-**If the pre-computation reveals an obvious error:** Still present the check to the researcher, but include your finding:
-"I computed X at test point Y and got Z, but expected W. This suggests a possible error. Can you confirm?"
-
-**If the pre-computation confirms the result:** Present with confidence:
-"I independently computed X at test point Y and got Z, which matches the artifact. Does this agree with your understanding?"
-</step>
-
-<step name="create_verification_file">
-**Create or extend verification file with all checks:**
-
-```bash
-mkdir -p "$phase_dir"
-```
-
-**Check for existing VERIFICATION.md** (e.g., from a prior `/gpd:execute-phase` → `verify-phase` run):
-
-```bash
-EXISTING_VERIFICATION=$(ls "$phase_dir"/*-VERIFICATION.md 2>/dev/null | head -1)
-```
-
-If an existing VERIFICATION.md is found (e.g., from a prior `/gpd:execute-phase` → `verify-phase` automated run):
-1. Read it to preserve any prior automated verification results
-2. Do NOT overwrite — instead, append a `## Researcher Validation` section after the existing content
-3. The new researcher checks go under this section, keeping the automated checks intact
-4. **Status merge rule:** The combined verification `status` uses the MORE RESTRICTIVE verification-report vocabulary (`passed | gaps_found | expert_needed | human_needed`). If automated verification passed but the researcher finds issues, the combined status becomes `gaps_found`. If automated found gaps but the researcher confirms they are acceptable, the combined status stays `gaps_found` unless the researcher explicitly upgrades each gap to `pass`. Keep `session_status` for conversational progress only.
-5. The `independently_confirmed` count in the report should aggregate both automated and researcher-confirmed checks
-
-If no existing VERIFICATION.md exists, create a new one from scratch.
-
-Build check list from extracted contract-backed checks, including computational test specifications.
-Checks with non-empty `comparison_kind` are decisive and must end with either a recorded `comparison_verdict` or a recorded gap before the file can finish. Exploratory or partial verification is allowed to end at `inconclusive` or `tension`; it is not allowed to imply a pass from suggestive but non-decisive evidence.
-If a decisive benchmark / cross-method check remains `partial`, `not_attempted`, or still lacks a decisive verdict, add a structured `suggested_contract_checks` entry before final validation. Do not replace that ledger with prose.
-
-If the PLAN has a `contract`, every check in this file must carry the relevant `subject_kind`, `subject_id`, `claim_id`, `deliverable_id`, `acceptance_test_id`, `reference_ids`, and `forbidden_proxy_id` when applicable.
-Mirror decisive verdicts into frontmatter `comparison_verdicts`. The body `## Comparison Verdicts` section is a readable summary, not a substitute for the frontmatter ledger consumed by validation and downstream publication tooling.
-
-Create file (or extend existing):
-
-```markdown
----
-phase: {phase_number}-{phase_name}
-verified: [ISO timestamp]
-status: human_needed
-score: 0/{total contract targets} contract targets verified
-plan_contract_ref: .gpd/phases/{phase_number}-{phase_name}/{phase_number}-{plan}-PLAN.md#/contract
-contract_results:
-  claims:
-    claim-id:
-      status: not_attempted
-      summary: [verification not started yet]
-  deliverables: {}
-  acceptance_tests: {}
-  references: {}
-  forbidden_proxies: {}
-comparison_verdicts: []
-suggested_contract_checks: []
-source: [list of SUMMARY.md files]
-started: [ISO timestamp]
-updated: [ISO timestamp]
-session_status: validating
----
-
-## Current Check
-
-<!-- OVERWRITE each check - shows where we are -->
-
-number: 1
-name: [first check name]
-subject_kind: [claim | deliverable | acceptance_test | reference | forbidden_proxy | suggested_contract_check]
-subject_id: [contract id or ""]
-claim_id: [claim-id or ""]
-deliverable_id: [deliverable-id or ""]
-acceptance_test_id: [acceptance-test-id or ""]
-reference_ids: [reference-id, ...]
-forbidden_proxy_id: [forbidden-proxy-id or ""]
-comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | ""]
-comparison_reference_id: [reference-id or ""]
-expected: |
-[what the physics should show]
-computation: |
-[what computational test was performed]
-precomputed_result: |
-[result of AI's independent computation]
-suggested_contract_checks:
-  - check: [missing decisive check]
-    reason: [why the missing check matters]
-    suggested_subject_kind: [claim | deliverable | acceptance_test | reference]
-    suggested_subject_id: [contract id or ""]
-    evidence_path: [artifact path or expected evidence path]
-awaiting: researcher response
-
-## Checks
-
-### 1. [Check Name]
-
-subject_kind: [claim | deliverable | acceptance_test | reference | forbidden_proxy | suggested_contract_check]
-subject_id: [contract id or ""]
-claim_id: [claim-id or ""]
-deliverable_id: [deliverable-id or ""]
-acceptance_test_id: [acceptance-test-id or ""]
-reference_ids: [reference-id, ...]
-forbidden_proxy_id: [forbidden-proxy-id or ""]
-comparison_kind: [benchmark | prior_work | experiment | cross_method | baseline | ""]
-comparison_reference_id: [reference-id or ""]
-expected: [verifiable physics outcome]
-computation: [specific numerical test performed]
-precomputed_result: [AI's independent computation result]
-suggested_contract_checks:
-  - check: [missing decisive check]
-    reason: [why the missing check matters]
-    suggested_subject_kind: [claim | deliverable | acceptance_test | reference]
-    suggested_subject_id: [contract id or ""]
-    evidence_path: [artifact path or expected evidence path]
-result: [pending]
-
-### 2. [Check Name]
-
-expected: [verifiable physics outcome]
-computation: [specific numerical test performed]
-precomputed_result: [AI's independent computation result]
-result: [pending]
-
-...
-
-## Summary
-
-total: [N]
-passed: 0
-issues: 0
-pending: [N]
-skipped: 0
-comparison_verdicts_recorded: 0
-forbidden_proxies_rejected: 0
-
-## Comparison Verdicts
-
-[none yet]
-
-## Suggested Contract Checks
-
-[none yet]
-
-## Gaps
-
-[none yet]
-```
-
-Write to `${phase_dir}/{phase}-VERIFICATION.md`
-
-Proceed to `present_check`.
+Load the staged researcher-session scaffold and canonical schema pack at this stage.
+Keep the session overlay frontmatter compatible with the authoritative verification report.
+Write to `${phase_dir}/${phase_number}-VERIFICATION.md`.
+Changed verification files fail `gpd pre-commit-check` when this header is missing or mismatched against the active lock.
 </step>
 
 <step name="present_check">
-**Present current check to researcher with computational evidence:**
+**Present current check to the researcher with verifier evidence:**
 
-Read Current Check section from verification file.
+Read the verifier-supplied current check from the verification file or report state.
 
 Display using checkpoint box format:
 
@@ -448,424 +330,114 @@ Display using checkpoint box format:
 --------------------------------------------------------------
 ```
 
-The key upgrade: instead of just asking "does it look right?", present concrete numbers from your independent computation so the researcher has something specific to compare against.
+The wrapper should present verifier-produced evidence exactly once per check. It should not derive a new physics criterion here.
 
-**Guide the researcher through numerical spot-checks when appropriate:**
-
-For derivation checks:
-
-```
-I independently evaluated your expression at [test point]:
-  Your expression gives: [value]
-  Expected (from [source]): [value]
-  Relative error: [value]
-
-Does this match what you see when you evaluate at this point?
-```
-
-For limiting case checks:
-
-```
-I took the [limit name] limit of your final expression:
-  Your expression in the limit: [simplified form]
-  Known result in this limit: [known form]
-  Agreement: [yes/no, with details]
-
-Can you confirm this is the correct limiting behavior?
-```
-
-For numerical checks:
-
-```
-I ran your code at resolutions N=[50, 100, 200]:
-  N=50:  result = [value]
-  N=100: result = [value]
-  N=200: result = [value]
-  Convergence rate: O(1/N^[p])
-
-Does this convergence rate match the expected order of your method?
-```
+Keep body-only session-overlay fields aligned with the staged researcher-session scaffold. Use `forbidden_proxy_id` for explicit proxy-rejection checks instead of inventing extra body subject kinds.
 
 Wait for researcher response (plain text).
 </step>
 
 <step name="process_response">
-**Process researcher response and update file:**
+**Process researcher response and update the session overlay**
 
-**If response indicates pass:**
+- Empty response, `yes`, `y`, `ok`, `pass`, `next`, `confirmed`, `correct` -> pass
+- `skip`, `cannot check`, `n/a`, `not applicable` -> skipped
+- Anything else -> issue
 
-- Empty response, "yes", "y", "ok", "pass", "next", "confirmed", "correct"
+Infer severity from the response text:
 
-Update Checks section:
+- `wrong`, `error`, `diverges`, `unphysical`, `violates` -> blocker
+- `disagrees`, `inconsistent`, `does not match`, `off by`, `missing` -> major
+- `approximate`, `close but`, `small discrepancy`, `minor` -> minor
+- `label`, `formatting`, `axis`, `legend`, `cosmetic` -> cosmetic
+- default -> major
 
-```
-### {N}. {name}
-expected: {expected}
-computation: {computation performed}
-precomputed_result: {AI's result}
-result: pass
-confidence: {independently confirmed | structurally present}
-```
-
-**If response indicates skip:**
-
-- "skip", "cannot check", "n/a", "not applicable"
-
-Update Checks section:
-
-```
-### {N}. {name}
-expected: {expected}
-computation: {computation performed}
-precomputed_result: {AI's result}
-result: skipped
-reason: [researcher's reason if provided]
-```
-
-**If response is anything else:**
-
-- Treat as issue description
-
-Infer severity from description:
-
-- Contains: wrong, error, diverges, blows up, unphysical, violates -> blocker
-- Contains: disagrees, inconsistent, does not match, off by, missing -> major
-- Contains: approximate, close but, small discrepancy, minor -> minor
-- Contains: label, formatting, axis, legend, cosmetic -> cosmetic
-- Default if unclear: major
-
-Update Checks section:
-
-```
-### {N}. {name}
-expected: {expected}
-computation: {computation performed}
-precomputed_result: {AI's result}
-result: issue
-reported: "{verbatim researcher response}"
-severity: {inferred}
-```
-
-Append to Gaps section (structured YAML for plan-phase --gaps):
-
-```yaml
-- subject_kind: "{subject_kind}"
-  subject_id: "{subject_id}"
-  expectation: "{expected physics outcome from check}"
-  expected_check: "{expected physics outcome from check}"
-  claim_id: "{claim_id}"
-  deliverable_id: "{deliverable_id}"
-  acceptance_test_id: "{acceptance_test_id}"
-  reference_ids: ["{reference_id}"]
-  forbidden_proxy_id: "{forbidden_proxy_id}"
-  comparison_kind: "{comparison_kind}"
-  comparison_reference_id: "{comparison_reference_id}"
-  status: failed
-  reason: "Researcher reported: {verbatim researcher response}"
-  computation_evidence: "{what AI independently computed and found}"
-  suggested_contract_checks: []
-  severity: { inferred }
-  check: { N }
-  artifacts: [] # Filled by diagnosis
-  missing: [] # Filled by diagnosis
-```
-
-**After any response:**
-
-Update Summary counts.
-Update frontmatter.updated timestamp.
-
-**REQUIREMENTS.md traceability update (on pass only):**
-
-If the check passed AND the check name or expected outcome corresponds to a requirement ID (REQ-*) from `.gpd/REQUIREMENTS.md`, update the requirement's status:
-
-1. Read `.gpd/REQUIREMENTS.md` (skip if file doesn't exist)
-2. Search for the matching REQ-ID in the requirements table
-3. Update the requirement row's validation status:
-   - Change status cell to `Validated`
-   - Append ` (Phase {phase}, Check {N})` to the evidence/notes cell
-4. Write back the updated REQUIREMENTS.md
-
-**Matching logic:**
-
-- Check name contains `REQ-NNN` literally -> direct match
-- Check expected outcome references a requirement by ID -> direct match
-- Check validates a deliverable that maps to a known requirement -> fuzzy match (note the match in VERIFICATION.md but don't auto-update REQUIREMENTS.md for fuzzy matches)
-
-Skip this sub-step silently if no REQUIREMENTS.md exists or no REQ-IDs match.
-
-If more checks remain -> Update Current Check, go to `present_check`
-If no more checks -> Go to `complete_session`
+Update the session overlay only. The canonical verifier verdict remains verifier-owned.
 </step>
 
 <step name="resume_from_file">
 **Resume validation from file:**
 
-Read the full verification file.
-
-Find first check with `result: [pending]`.
+Read the active verification file. Find the first verifier-supplied check with `result: pending`.
 
 Announce:
 
 ```
-Resuming: Phase {phase} Research Validation
+Resuming: Phase {phase_number} Research Validation
 Progress: {passed + issues + skipped}/{total}
 Issues found so far: {issues count}
 
 Continuing from Check {N}...
 ```
 
-Update Current Check section with the pending check.
-Proceed to `present_check`.
+Update the current check display and continue to `present_check`.
 </step>
 
 <step name="researcher_custom_checks">
-**After presenting all automated checks, invite researcher to add their own:**
+**After the verifier-supplied checks are complete, invite researcher-supplied checks:**
 
 ```
-All {N} automated checks complete ({passed} passed, {issues} issues, {skipped} skipped).
+All {N} verifier checks complete ({passed} passed, {issues} issues, {skipped} skipped).
 
 Are there any additional physics checks you'd like to verify?
 Examples: "check Ward identity", "verify sum rule", "test at strong coupling"
 (Type "done" to skip)
 ```
 
-**If researcher provides custom checks:**
+If the researcher provides custom checks, spawn a fresh verifier continuation rather than extending the old run. Keep the one-shot delegation rule in force.
 
-For each custom check:
-1. Parse the description into a check name and expected behavior
-2. Attempt to pre-compute the check (read relevant artifacts, run test if possible)
-3. Present the result using the same checkpoint box format as automated checks
-4. Process the response identically to automated checks (pass/issue/skip)
-5. Append to the Checks section in VERIFICATION.md with `source: researcher`
-
-Custom checks are numbered continuing from the last automated check (e.g., if 6 automated checks, first custom check is 7).
-
-**If researcher says "done", "no", "skip", or empty:** Proceed to `cross_phase_uncertainty_audit`.
-</step>
-
-<step name="cross_phase_uncertainty_audit">
-**Audit uncertainty propagation across phases with researcher.**
-
-This step checks that uncertainties from prior phases propagate correctly into the current phase's results — the #1 gap found by physics verification audits.
-
-**1. Identify inherited quantities:**
-
-Read phase SUMMARY.md files (current and prior phases). Find quantities consumed by the current phase that were produced by earlier phases.
-
-```bash
-# Check if prior phases declared uncertainty budgets
-for PRIOR_SUMMARY in $(ls .gpd/phases/*/SUMMARY.md .gpd/phases/*/*-SUMMARY.md 2>/dev/null | sort); do
-  grep -l "Uncertainty Budget\|uncertainty\|±\|\\\\pm" "$PRIOR_SUMMARY" 2>/dev/null
-done
-```
-
-**2. If inherited quantities exist, present uncertainty audit to researcher:**
-
-For each inherited quantity used in the current phase:
-
-```
-+================================================+
-|  UNCERTAINTY CHECK: {quantity_name}            |
-+================================================+
-
-Source: Phase {N} SUMMARY.md
-Value: {central_value} ± {uncertainty}
-Used in: {current phase equation/computation}
-
-Propagated uncertainty in final result:
-{independently computed propagated uncertainty}
-
-Does this uncertainty budget look correct? (yes/no/skip)
-```
-
-**3. Check for catastrophic cancellation (Error #102):**
-
-If two quantities with comparable magnitudes are subtracted, compute the relative uncertainty of the difference:
-
-```bash
-python3 -c "
-a, da = ${VALUE_A}, ${UNCERT_A}
-b, db = ${VALUE_B}, ${UNCERT_B}
-diff = abs(a - b)
-d_diff = (da**2 + db**2)**0.5
-if diff > 0:
-    rel = d_diff / diff
-    print(f'Relative uncertainty of difference: {rel:.2%}')
-    if rel > 1.0:
-        print('WARNING: Catastrophic cancellation — uncertainty exceeds the difference')
-else:
-    print('WARNING: Exact cancellation — difference is zero')
-"
-```
-
-**4. Record findings in VERIFICATION.md:**
-
-Add an "Uncertainty Propagation Audit" section with:
-- List of inherited quantities and their declared uncertainties
-- Propagation check results (pass/fail per quantity)
-- Any catastrophic cancellation warnings
-- Researcher responses
-
-If no inherited quantities exist (Phase 1 or self-contained): note "N/A — no cross-phase uncertainty dependencies" and proceed.
-
-Proceed to `complete_session`.
-</step>
-
-<step name="complete_session">
-**Complete validation and commit:**
-
-Update frontmatter:
-
-- verified: [now]
-- status: preserve the final verification outcome vocabulary used by `verification-report.md` (`passed | gaps_found | expert_needed | human_needed`)
-- updated: [now]
-- score: [final contract-backed verification progress summary]
-- session_status: completed
-
-Clear Current Check section:
-
-```
-## Current Check
-
-[validation complete]
-```
-
-Commit the verification file:
-
-```bash
-gpd validate verification-contract "${phase_dir}/{phase}-VERIFICATION.md"
-
-PRE_CHECK=$(gpd pre-commit-check --files "${phase_dir}/{phase}-VERIFICATION.md" 2>&1) || true
-echo "$PRE_CHECK"
-
-gpd commit "verify({phase}): complete research validation - {passed} passed, {issues} issues" --files "${phase_dir}/{phase}-VERIFICATION.md"
-```
-
-Present summary:
-
-```
-## Research Validation Complete: Phase {phase}
-
-| Result | Count |
-|--------|-------|
-| Passed | {N}   |
-| Issues | {N}   |
-| Skipped| {N}   |
-
-### Verification Confidence
-
-| Confidence Level | Count |
-|------------------|-------|
-| Independently Confirmed | {N} |
-| Structurally Present    | {N} |
-| Unable to Verify        | {N} |
-
-[If issues > 0:]
-### Issues Found
-
-[List from Issues section, including computation evidence for each]
-```
-
-**If issues > 0:** Proceed to `diagnose_issues`
-
-**If issues == 0:**
-
-```
-All checks passed. Research validated. Ready to continue.
-
-- `/gpd:plan-phase {next}` -- Plan next research phase
-- `/gpd:execute-phase {next}` -- Execute next research phase
-```
-
+If the researcher says `done`, `no`, `skip`, or leaves it empty, proceed to issue routing.
 </step>
 
 <step name="diagnose_issues">
-**Diagnose root causes before planning fixes:**
+**Diagnose root causes before planning fixes**
 
-**Severity gate:** Only spawn parallel diagnosis agents for major+ issues. Minor and cosmetic issues are reported directly without investigation overhead.
+**Severity gate:** only spawn parallel diagnosis agents for major+ issues. Minor and cosmetic issues are reported directly without investigation overhead.
 
-**1. Partition issues by severity:**
+**Major+ issues**
 
-- **Major+ issues** (blocker, major): Collect into `investigate_issues` list
-- **Minor/cosmetic issues** (minor, cosmetic): Collect into `report_directly` list
+- Collect the major+ issues into an investigation list.
+- Spawn parallel diagnosis agents once per issue.
+- Pass the pre-check evidence and researcher response into each agent.
+- Each spawned agent is a one-shot handoff and must checkpoint instead of waiting for user interaction.
+- Collect root causes and update the verification overlay with the diagnosis result.
 
-**2. Present minor/cosmetic issues directly:**
+**Minor/cosmetic issues**
 
-If `report_directly` is non-empty:
-
-```
-### Minor/Cosmetic Issues (no investigation needed)
-
-| # | Check | Severity | Reported |
-|---|-------|----------|----------|
-| {N} | {name} | {severity} | {verbatim response} |
-```
-
-These are noted in VERIFICATION.md but do not trigger investigation agents.
-
-**3. Investigate major+ issues:**
-
-If `investigate_issues` is non-empty:
-
-```
----
-
-{N} major+ issues found. Diagnosing root causes...
-
-Spawning parallel investigation agents for each major+ issue.
-({M} minor/cosmetic issues reported directly — no investigation needed.)
-```
-
-- Load debug workflow
-- Follow @{GPD_INSTALL_DIR}/workflows/debug.md
-- Spawn parallel investigation agents for each issue in `investigate_issues`
-- **Include computation evidence from pre-checks and researcher reports in the diagnosis context** — the investigator should know what specific test failed and what values were obtained
-- Collect root causes
-- Update VERIFICATION.md with root causes
-- Proceed to `diagnosis_review`
-
-**4. If only minor/cosmetic issues exist (no major+ issues):**
-
-Skip investigation entirely. Present summary and offer options:
-
-```
-All {N} issues are minor or cosmetic — no root cause investigation needed.
-
-Options:
-1. Plan fixes for minor issues
-2. Accept as-is — issues are low-impact
-3. Investigate anyway — I want deeper analysis
-```
-
-Diagnosis runs automatically for major+ issues — no researcher prompt. Parallel agents investigate simultaneously, so overhead is minimal and fixes are more accurate.
+- Present them directly.
+- Do not trigger investigation agents.
 </step>
 
 <step name="diagnosis_review">
 ## Diagnosis Review
 
-Present the diagnosis results to the user:
+Present the diagnosis results to the user and ask how to proceed:
 
-| Issue | Root Cause | Confidence |
-|-------|-----------|------------|
-{diagnosis results from investigation agents}
+- Auto-plan fixes
+- Investigate manually
+- Accept as-is
+</step>
 
-Use ask_user:
+<step name="load_gap_repair_stage">
+## Load Gap Repair Stage
 
-- header: "Fix Approach"
-- question: "How would you like to handle the identified issues?"
-- options:
-  - "Auto-plan fixes (Recommended)" — Spawn planner for systematic gap closure
-  - "Investigate manually" — I want to explore the issues myself first
-  - "Accept as-is" — The issues are minor, results are acceptable
+When the user chooses auto-plan fixes, reload `verify-work` through the explicit gap-repair stage:
 
-**If "Auto-plan fixes":** Continue to plan_gap_closure step.
-**If "Investigate manually":** Present the detailed diagnosis and pause. Offer `/gpd:debug` for structured investigation.
-**If "Accept as-is":** Skip gap closure, mark phase verified with noted caveats.
+```bash
+GAP_REPAIR_INIT=$(gpd --raw init verify-work "${PHASE_ARG}" --stage gap_repair)
+if [ $? -ne 0 ]; then
+  echo "ERROR: gpd gap-repair initialization failed: $GAP_REPAIR_INIT"
+  # STOP - display the error to the user and do not proceed.
+fi
+```
+
+Parse the same wrapper-facing fields from the staged payload as in the main init, then treat the staged payload as the source of truth for planner and checker routing. Use the staged `planner_model`, `checker_model`, `phase_dir`, `phase_number`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `protocol_bundle_verifier_extensions`, and `phase_proof_review_status` values for the gap-repair route.
+
+If the staged init is blocked, stale, or missing required fields, stop and surface the blocking issues instead of falling back to unstaged plan repair.
 </step>
 
 <step name="plan_gap_closure">
-**Auto-plan fixes from diagnosed gaps:**
+**Auto-plan fixes from diagnosed gaps**
 
 Display:
 
@@ -877,49 +449,22 @@ Display:
 * Spawning planner for gap closure...
 ```
 
-Spawn gpd-planner in --gaps mode:
-> **Runtime delegation:** Spawn a subagent for the task below. Adapt the `task()` call to your runtime's agent spawning mechanism. If `model` resolves to `null` or an empty string, omit it so the runtime uses its default model. Always pass `readonly=false` for file-producing agents. If subagent spawning is unavailable, execute these steps sequentially in the main context.
+Spawn `gpd-planner` in `--gaps` mode as a fresh one-shot delegation from the staged gap-repair payload.
+First, read {GPD_AGENTS_DIR}/gpd-planner.md for your role and instructions.
+Use `templates/planner-subagent-prompt.md` to build the gap_closure planner handoff from the staged payload. Keep `tool_requirements`, the checker feedback, and other machine-checkable hard requirements explicit.
 
-```
-task(
-  prompt="""First, read {GPD_AGENTS_DIR}/gpd-planner.md for your role and instructions.
+> Runtime delegation rule: the planner is single-shot. If it needs user input, it checkpoints and returns. Do not keep the same planner run open across user interaction.
 
-<planning_context>
+Before treating the handoff as complete, verify that the expected `PLAN.md` files exist in the phase directory and are listed in `gpd_return.files_written` from the fresh planner run.
+After the planner returns, route on `gpd_return.status`, not on headings. If `gpd_return.status` is `completed`, verify that each expected path is present on disk, readable, and present in `gpd_return.files_written` before treating the handoff as complete.
+If `gpd_return.status` is `checkpoint`, present the checkpoint, collect user input, and spawn a fresh planner continuation from the staged gap-repair payload instead of waiting inside the same run.
+If the planner reports `blocked` or `failed`, or if the expected `PLAN.md` files are missing, unreadable, stale, or absent from `gpd_return.files_written`, keep the session fail-closed and offer retry or manual plan creation.
 
-**Phase:** {phase_number}
-**Mode:** gap_closure
-
-<files_to_read>
-Read these files using the file_read tool:
-- Validation with diagnoses: .gpd/phases/{phase_dir}/{phase}-VERIFICATION.md
-- State: .gpd/STATE.md
-- Roadmap: .gpd/ROADMAP.md
-</files_to_read>
-
-</planning_context>
-
-<downstream_consumer>
-Output consumed by /gpd:execute-phase
-Plans must be executable prompts.
-</downstream_consumer>
-""",
-  subagent_type="gpd-planner",
-  model="{planner_model}",
-  readonly=false,
-  description="Plan gap fixes for Phase {phase}"
-)
-```
-
-On return:
-
-**If the planner agent fails to spawn or returns an error:** Check if any PLAN.md files were written to the phase directory. If plans exist, proceed to `verify_gap_plans`. If no plans, offer: 1) Retry planner, 2) Create fix plans manually in the main context, 3) Skip gap closure and mark gaps as deferred.
-
-- **PLANNING COMPLETE:** Proceed to `verify_gap_plans`
-- **PLANNING INCONCLUSIVE:** Report and offer manual intervention
-  </step>
+If the planner fails to spawn or returns an error, keep the session fail-closed and offer retry or manual plan creation. Do not fall through to gap verification on the basis of preexisting `PLAN.md` files alone.
+</step>
 
 <step name="verify_gap_plans">
-**Verify fix plans with checker:**
+**Verify fix plans with checker**
 
 Display:
 
@@ -931,202 +476,78 @@ Display:
 * Spawning plan checker...
 ```
 
-Initialize: `iteration_count = 1`
+Spawn `gpd-plan-checker` as a fresh one-shot delegation.
 
-Spawn gpd-plan-checker:
+> Runtime delegation rule: this checker is single-shot. If it needs user input, it checkpoints and returns. Do not keep the same checker run open across user interaction.
 
-> **Runtime delegation:** Spawn a subagent for the task below. Adapt the `task()` call to your runtime's agent spawning mechanism. If `model` resolves to `null` or an empty string, omit it so the runtime uses its default model. Always pass `readonly=false` for file-producing agents. If subagent spawning is unavailable, execute these steps sequentially in the main context.
+Before accepting the handoff as complete, confirm the expected `PLAN.md` files are present, readable, and listed in `gpd_return.files_written` from the planner turn.
 
-```
-task(
-  prompt="""First, read {GPD_AGENTS_DIR}/gpd-plan-checker.md for your role and instructions.
+If the checker fails to spawn or returns an error, proceed without plan verification but note that the plans were not verified.
 
-<verification_context>
+If the checker returns a structured `gpd_return`, route on `gpd_return.status` and the structured plan lists, not on presentation text:
 
-**Phase:** {phase_number}
-**Phase Goal:** Close diagnosed gaps from research validation
-
-<files_to_read>
-Read all PLAN.md files in .gpd/phases/{phase_dir}/ using the file_read tool.
-</files_to_read>
-
-</verification_context>
-
-<expected_output>
-Return one of:
-- ## VERIFICATION PASSED -- all checks pass
-- ## ISSUES FOUND -- structured issue list
-</expected_output>
-""",
-  subagent_type="gpd-plan-checker",
-  model="{checker_model}",
-  readonly=false,
-  description="Verify Phase {phase} fix plans"
-)
-```
-
-On return:
-
-**If the plan-checker agent fails to spawn or returns an error:** Proceed without plan verification — the plans will still be executable. Note that plans were not verified and recommend running `/gpd:plan-phase --gaps` to re-verify if needed.
-
-- **VERIFICATION PASSED:** Proceed to `present_ready`
-- **ISSUES FOUND:** Proceed to `revision_loop`
-  </step>
-
-<step name="revision_loop">
-**Iterate planner <-> checker until plans pass (max 3):**
-
-**If iteration_count < 3:**
-
-Display: `Sending back to planner for revision... (iteration {N}/3)`
-
-Spawn gpd-planner with revision context:
-
-> **Runtime delegation:** Spawn a subagent for the task below. Adapt the `task()` call to your runtime's agent spawning mechanism. If `model` resolves to `null` or an empty string, omit it so the runtime uses its default model. Always pass `readonly=false` for file-producing agents. If subagent spawning is unavailable, execute these steps sequentially in the main context.
-
-```
-task(
-  prompt="""First, read {GPD_AGENTS_DIR}/gpd-planner.md for your role and instructions.
-
-<revision_context>
-
-**Phase:** {phase_number}
-**Mode:** revision
-
-<files_to_read>
-Read all PLAN.md files in .gpd/phases/{phase_dir}/ using the file_read tool.
-</files_to_read>
-
-**Checker issues:**
-{structured_issues_from_checker}
-
-</revision_context>
-
-<instructions>
-Read existing PLAN.md files. Make targeted updates to address checker issues.
-Do NOT replan from scratch unless issues are fundamental.
-</instructions>
-""",
-  subagent_type="gpd-planner",
-  model="{planner_model}",
-  readonly=false,
-  description="Revise Phase {phase} plans"
-)
-```
-
-**If the revision planner agent fails to spawn or returns an error:** Check if any revised PLAN.md files were written to the phase directory. If revisions exist, proceed to re-check via `verify_gap_plans`. If no revisions, offer: 1) Retry revision planner, 2) Apply revisions manually in the main context, 3) Force proceed with current gap-fix plans despite checker issues.
-
-After planner returns -> spawn checker again (verify_gap_plans logic)
-Increment iteration_count
-
-**If iteration_count >= 3:**
-
-Display: `Max iterations reached. {N} issues remain.`
-
-Offer options:
-
-1. Force proceed (execute despite issues)
-2. Provide guidance (researcher gives direction, retry)
-3. Abandon (exit, researcher runs /gpd:plan-phase manually)
-
-Wait for researcher response.
+- `completed`: treat the fresh fix plans as verified only after the on-disk files still match the planner's `files_written` set.
+- `checkpoint`: some plans are approved and others need revision; record `approved_plans` and `blocked_plans`, then send only the blocked plans back through the revision loop.
+- `blocked`: nothing is approved; feed the checker issues and blocked plan IDs back into the revision loop without rewriting approved plans.
+- `failed`: present the issues and offer retry or manual revision.
 </step>
 
-<step name="present_ready">
-**Present completion and next steps:**
+<step name="revision_loop">
+**Iterate planner <-> checker until plans pass, up to 3 rounds**
 
+If the checker reports issues, send a fresh planner continuation from the staged gap-repair payload with the checker feedback. After the planner returns, run the checker again. Each agent turn is one-shot; do not keep either agent alive across user interaction.
+When the checker returns `checkpoint` or `blocked`, use the structured `approved_plans`, `blocked_plans`, and `issues` fields to decide which plans to revise. Use the structured fields, not the human-readable approval table, as the source of truth. Do not rewrite approved plans during the revision round.
+First, read {GPD_AGENTS_DIR}/gpd-planner.md for your role and instructions.
+Use `templates/planner-subagent-prompt.md` again for checker-driven gap_closure revisions.
+
+If iteration count reaches 3, stop and offer the user:
+
+1. Force proceed
+2. Provide guidance and retry
+3. Abandon and exit
+</step>
+
+<step name="complete_session">
+**Complete validation and commit**
+
+Update the verification file overlay:
+
+- `verified`: now
+- `updated`: now
+- `session_status`: `completed`
+
+Clear the current check display to indicate completion.
+
+Validate the final verification file, then commit it.
+
+```bash
+gpd commit "verify(${phase_number}): complete research validation - {passed} passed, {issues} issues" --files "${phase_dir}/${phase_number}-VERIFICATION.md"
 ```
-====================================================
- GPD > FIXES READY
-====================================================
 
-**Phase {X}: {Name}** -- {N} gap(s) diagnosed, {M} fix plan(s) created
-
-| Contract Target | Root Cause | Computation Evidence | Fix Plan |
-|-----------------|------------|---------------------|----------|
-| {subject-id or expected check 1} | {root_cause} | {what test showed} | {phase}-04 |
-| {subject-id or expected check 2} | {root_cause} | {what test showed} | {phase}-04 |
-
-Plans verified and ready for execution.
-
----------------------------------------------------------------
-
-## > Next Up
-
-**Execute fixes** -- run fix plans
-
-`/clear` then `/gpd:execute-phase {phase} --gaps-only`
-
----------------------------------------------------------------
-```
-
+Present the summary of passed, issue, and skipped checks. Do not relax verifier fail-closed results.
 </step>
 
 </process>
 
 <update_rules>
-**Batched writes for efficiency:**
+Write only when needed:
 
-Keep results in memory. Write to file only when:
+1. issue found
+2. session complete
+3. every 5 passed checks as a safety net
 
-1. **Issue found** -- Preserve the problem immediately
-2. **Session complete** -- Final write before commit
-3. **Checkpoint** -- Every 5 passed checks (safety net)
-
-| Section             | Rule      | When Written      |
-| ------------------- | --------- | ----------------- |
-| Frontmatter.status  | OVERWRITE | Start, complete   |
-| Frontmatter.updated | OVERWRITE | On any file write |
-| Current Check       | OVERWRITE | On any file write |
-| Checks.{N}.result   | OVERWRITE | On any file write |
-| Summary             | OVERWRITE | On any file write |
-| Gaps                | APPEND    | When issue found  |
-
-On context reset: File shows last checkpoint. Resume from there.
+Keep the current check display, summary, and session overlay in sync with the verifier output. The canonical verifier report content remains owned by `gpd-verifier`.
 </update_rules>
-
-<severity_inference>
-**Infer severity from researcher's natural language:**
-
-| Researcher says                                                 | Infer    |
-| --------------------------------------------------------------- | -------- |
-| "wrong sign", "diverges", "unphysical", "violates conservation" | blocker  |
-| "disagrees with literature", "off by factor", "missing term"    | major    |
-| "close but not exact", "small discrepancy", "approximate"       | minor    |
-| "axis label", "legend", "formatting", "color"                   | cosmetic |
-
-Default to **major** if unclear. Researcher can correct if needed.
-
-**Never ask "how severe is this?"** - just infer and move on.
-</severity_inference>
 
 <success_criteria>
 
-- [ ] Verification file created with checks sourced from the PLAN `contract` first, then SUMMARY evidence maps, including computational test specifications
-- [ ] Checks stay grounded in user-visible contract targets rather than internal process markers
-- [ ] **Minimum verification floor met**: dimensional analysis + limiting case + numerical spot-check with code execution
-- [ ] **VERIFICATION.md contains at least one code output block** (actual execution result, not just text analysis)
-- [ ] **Pre-computation performed** on each check before presenting to researcher
-- [ ] Checks presented one at a time with expected physics outcome AND computation evidence
-- [ ] **Numerical spot-checks** presented with concrete values for researcher to compare
-- [ ] **Limiting cases independently re-derived** and presented to researcher for confirmation
-- [ ] **Convergence data** computed and presented for numerical results
-- [ ] Researcher responses processed as pass/issue/skip
-- [ ] Confidence rating assigned to each passed check (independently confirmed / structurally present)
-- [ ] Severity inferred from description (never asked)
-- [ ] Batched writes: on issue, every 5 passes, or completion
-- [ ] Committed on completion
-- [ ] Forbidden proxies explicitly checked and rejected or escalated
-- [ ] Decisive comparison outcomes recorded as `comparison_verdicts` when applicable, including `inconclusive` / `tension` when that is the honest state
-- [ ] Parent claims / acceptance tests do not pass while decisive comparisons remain unresolved
-- [ ] Missing decisive checks recorded as structured `suggested_contract_checks`
-- [ ] Cross-phase uncertainty audit performed (or N/A noted for Phase 1)
-- [ ] Catastrophic cancellation check for subtracted inherited quantities
-- [ ] If issues: parallel investigation agents diagnose root causes (with computation evidence)
-- [ ] If issues: gpd-planner creates fix plans (gap_closure mode)
-- [ ] If issues: gpd-plan-checker verifies fix plans
-- [ ] If issues: revision loop until plans pass (max 3 iterations)
-- [ ] Ready for `/gpd:execute-phase --gaps-only` when complete
-- [ ] REQUIREMENTS.md updated for any passed checks matching REQ-IDs (if REQUIREMENTS.md exists)
+- [ ] `verify-work` stays thin and does not duplicate verifier policy
+- [ ] Preflight, review gating, session routing, diagnosis, and gap repair remain in the workflow
+- [ ] `gpd-verifier` owns canonical target extraction, evidence mapping, proof policy, checks, and status
+- [ ] Spawned agents use one-shot delegation with checkpoint-and-restart semantics after user input
+- [ ] File-producing handoffs verify expected artifacts on disk before success is accepted
+- [ ] The verification overlay is written only after authoritative verifier output is available
+- [ ] Researcher responses are processed as pass / issue / skip
+- [ ] Final session closeout validates and commits the verification file without recomputing verifier policy
 
 </success_criteria>

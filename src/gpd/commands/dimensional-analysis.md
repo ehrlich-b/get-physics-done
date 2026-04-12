@@ -12,8 +12,6 @@ allowed-tools:
   - ask_user
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Perform a systematic dimensional analysis audit on every equation in a derivation, computation, or phase. Track dimensions through all algebraic steps, verify consistency, and flag any dimensional anomalies.
@@ -35,8 +33,8 @@ Interpretation:
 Load unit system:
 
 ```bash
-cat .gpd/research-map/FORMALISM.md 2>/dev/null | grep -A 10 "Unit System"
-cat .gpd/research-map/FORMALISM.md 2>/dev/null | grep -A 20 "Notation and Conventions"
+cat GPD/research-map/FORMALISM.md 2>/dev/null | grep -A 10 "Unit System"
+cat GPD/research-map/FORMALISM.md 2>/dev/null | grep -A 20 "Notation and Conventions"
 ```
 
 </context>
@@ -58,7 +56,7 @@ fi
 
 Follow the dimensional-analysis workflow: @{GPD_INSTALL_DIR}/workflows/dimensional-analysis.md
 
-**For comprehensive verification** (dimensional analysis + limiting cases + symmetries + convergence), use `/gpd:verify-work`.
+**For comprehensive verification** (dimensional analysis + limiting cases + symmetries + convergence), use `gpd:verify-work`.
 </process>
 
 <success_criteria>

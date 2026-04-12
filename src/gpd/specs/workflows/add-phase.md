@@ -11,15 +11,15 @@ Read all files referenced by the invoking prompt's execution_context before star
 <step name="parse_arguments">
 Parse the command arguments:
 - All arguments become the phase description
-- Example: `/gpd:add-phase Develop effective Hamiltonian formalism` -> description = "Develop effective Hamiltonian formalism"
-- Example: `/gpd:add-phase Validate perturbative expansion against exact diagonalization` -> description = "Validate perturbative expansion against exact diagonalization"
+- Example: `gpd:add-phase Develop effective Hamiltonian formalism` -> description = "Develop effective Hamiltonian formalism"
+- Example: `gpd:add-phase Validate perturbative expansion against exact diagonalization` -> description = "Validate perturbative expansion against exact diagonalization"
 
 If no arguments provided:
 
 ```
 ERROR: Phase description required
-Usage: /gpd:add-phase <description>
-Example: /gpd:add-phase Derive renormalization group equations
+Usage: gpd:add-phase <description>
+Example: gpd:add-phase Derive renormalization group equations
 ```
 
 Exit.
@@ -29,7 +29,7 @@ Exit.
 Load phase operation context:
 
 ```bash
-INIT=$(gpd init phase-op "0")
+INIT=$(gpd --raw init phase-op "0")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed.
@@ -39,8 +39,8 @@ fi
 Check `roadmap_exists` from init JSON. If false:
 
 ```
-ERROR: No roadmap found (.gpd/ROADMAP.md)
-Run /gpd:new-project to initialize.
+ERROR: No roadmap found (GPD/ROADMAP.md)
+Run gpd:new-project to initialize.
 ```
 
 Exit.
@@ -62,7 +62,7 @@ The CLI handles:
 - Finding the highest existing integer phase number
 - Calculating next phase number (max + 1)
 - Generating slug from description
-- Creating the phase directory (`.gpd/phases/{NN}-{slug}/`)
+- Creating the phase directory (`GPD/phases/{NN}-{slug}/`)
 - Inserting the phase entry into ROADMAP.md with Goal, Depends on, and Plans sections
 
 Extract from result: `phase_number`, `padded`, `name`, `slug`, `directory`.
@@ -92,10 +92,10 @@ Present completion summary:
 ```
 Phase {N} added to current milestone:
 - Description: {description}
-- Directory: .gpd/phases/{phase-num}-{slug}/
+- Directory: GPD/phases/{phase-num}-{slug}/
 - Status: Not planned yet
 
-Roadmap updated: .gpd/ROADMAP.md
+Roadmap updated: GPD/ROADMAP.md
 
 ---
 
@@ -103,14 +103,14 @@ Roadmap updated: .gpd/ROADMAP.md
 
 **Phase {N}: {description}**
 
-`/gpd:plan-phase {N}`
+`gpd:plan-phase {N}`
 
 <sub>`/clear` first -> fresh context window</sub>
 
 ---
 
 **Also available:**
-- `/gpd:add-phase <description>` -- add another phase
+- `gpd:add-phase <description>` -- add another phase
 - Review roadmap
 
 ---

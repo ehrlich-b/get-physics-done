@@ -11,15 +11,15 @@ Read all files referenced by the invoking prompt's execution_context before star
 <step name="parse_arguments">
 Parse the command arguments:
 - Argument is the phase number to remove (integer or decimal)
-- Example: `/gpd:remove-phase 17` -> phase = 17
-- Example: `/gpd:remove-phase 16.1` -> phase = 16.1
+- Example: `gpd:remove-phase 17` -> phase = 17
+- Example: `gpd:remove-phase 16.1` -> phase = 16.1
 
 If no argument provided:
 
 ```
 ERROR: Phase number required
-Usage: /gpd:remove-phase <phase-number>
-Example: /gpd:remove-phase 17
+Usage: gpd:remove-phase <phase-number>
+Example: gpd:remove-phase 17
 ```
 
 Exit.
@@ -29,7 +29,7 @@ Exit.
 Load phase operation context:
 
 ```bash
-INIT=$(gpd init phase-op "${target}")
+INIT=$(gpd --raw init phase-op "${target}")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed.
@@ -46,7 +46,7 @@ ERROR: Phase not found: ${target}
 Available phases:
 $(gpd phase list)
 
-Usage: /gpd:remove-phase <phase-number>
+Usage: gpd:remove-phase <phase-number>
 ```
 
 Exit.
@@ -69,7 +69,7 @@ Only future phases can be removed:
 - Current phase: {current}
 - Phase {target} is current or completed
 
-To abandon current work, use /gpd:pause-work instead.
+To abandon current work, use gpd:pause-work instead.
 ```
 
 Exit.
@@ -82,9 +82,9 @@ Present removal summary and confirm:
 Removing Phase {target}: {Name}
 
 This will:
-- Delete: .gpd/phases/{target}-{slug}/
+- Delete: GPD/phases/{target}-{slug}/
 - Renumber all subsequent phases
-- Update: ROADMAP.md, STATE.md
+- Update: ROADMAP.md, STATE.md, checkpoint shelf artifacts
 
 Proceed? (y/n)
 ```
@@ -115,6 +115,7 @@ The CLI handles:
 - Renaming all files inside renumbered directories (PLAN.md, SUMMARY.md, etc.)
 - Updating ROADMAP.md (removing section, renumbering all phase references, updating dependencies)
 - Updating STATE.md (decrementing phase count)
+- Regenerating `GPD/CHECKPOINTS.md` and `GPD/phase-checkpoints/*.md`
 
 Extract from result: `removed`, `directory_deleted`, `renamed_directories`, `renamed_files`, `roadmap_updated`, `state_updated`.
 </step>
@@ -123,11 +124,11 @@ Extract from result: `removed`, `directory_deleted`, `renamed_directories`, `ren
 Stage and commit the removal:
 
 ```bash
-PRE_CHECK=$(gpd pre-commit-check --files .gpd/ROADMAP.md .gpd/STATE.md .gpd/state.json 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files GPD/ROADMAP.md GPD/STATE.md GPD/state.json GPD/CHECKPOINTS.md GPD/phase-checkpoints 2>&1) || true
 echo "$PRE_CHECK"
 
 gpd commit "chore: remove phase {target} ({original-phase-name})" \
-  --files .gpd/phases/ .gpd/ROADMAP.md .gpd/STATE.md .gpd/state.json
+  --files GPD/phases/ GPD/ROADMAP.md GPD/STATE.md GPD/state.json GPD/CHECKPOINTS.md GPD/phase-checkpoints
 ```
 
 The commit message preserves the historical record of what was removed.
@@ -140,9 +141,9 @@ Present completion summary:
 Phase {target} ({original-name}) removed.
 
 Changes:
-- Deleted: .gpd/phases/{target}-{slug}/
+- Deleted: GPD/phases/{target}-{slug}/
 - Renumbered: {N} directories and {M} files
-- Updated: ROADMAP.md, STATE.md
+- Updated: ROADMAP.md, STATE.md, checkpoint shelf artifacts
 - Committed: chore: remove phase {target} ({original-name})
 
 ---
@@ -150,7 +151,7 @@ Changes:
 ## What's Next
 
 Would you like to:
-- `/gpd:progress` -- see updated roadmap status
+- `gpd:progress` -- see updated roadmap status
 - Continue with current phase
 - Review roadmap
 
@@ -176,6 +177,7 @@ Phase removal is complete when:
 
 - [ ] Target phase validated as future/unstarted
 - [ ] `gpd phase remove` executed successfully
+- [ ] `GPD/CHECKPOINTS.md` and `GPD/phase-checkpoints/*.md` resynced
 - [ ] Changes committed with descriptive message
 - [ ] User informed of changes
 

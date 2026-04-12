@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from gpd.core.constants import ProjectLayout
+from gpd.core.constants import PLANNING_DIR_NAME, ProjectLayout
 
 
 @pytest.mark.parametrize(
@@ -22,7 +22,7 @@ def test_project_layout_file_properties(attribute: str, filename: str, tmp_path:
     path = getattr(layout, attribute)
 
     assert path.name == filename
-    assert path.parent == tmp_path / ".gpd"
+    assert path.parent == tmp_path / "GPD"
 
 
 @pytest.mark.parametrize(
@@ -31,6 +31,7 @@ def test_project_layout_file_properties(attribute: str, filename: str, tmp_path:
         ("analysis_dir", "analysis"),
         ("phases_dir", "phases"),
         ("literature_dir", "literature"),
+        ("knowledge_dir", "knowledge"),
         ("research_map_dir", "research-map"),
         ("scratch_dir", "tmp"),
     ],
@@ -40,7 +41,7 @@ def test_project_layout_directory_properties(attribute: str, dirname: str, tmp_p
     path = getattr(layout, attribute)
 
     assert path.name == dirname
-    assert path.parent == tmp_path / ".gpd"
+    assert path.parent == tmp_path / "GPD"
 
 
 @pytest.mark.parametrize(
@@ -73,6 +74,7 @@ def test_project_layout_is_summary_file(filename: str, expected: bool, tmp_path:
     ("filename", "expected"),
     [
         ("01-VERIFICATION.md", True),
+        ("VERIFICATION.md", True),
         ("01-PLAN.md", False),
     ],
 )
@@ -119,4 +121,19 @@ def test_project_layout_phase_artifact_paths(
     path = getattr(layout, method_name)("01-setup", "01")
 
     assert path.name == expected_name
-    assert path.parent == tmp_path / ".gpd" / "phases" / "01-setup"
+    assert path.parent == tmp_path / "GPD" / "phases" / "01-setup"
+
+
+def test_project_layout_ignores_legacy_hidden_project_dir_when_canonical_missing(tmp_path: Path) -> None:
+    legacy = tmp_path / ".gpd"
+    legacy.mkdir()
+    (legacy / "state.json").write_text("{}\n", encoding="utf-8")
+
+    assert ProjectLayout(tmp_path).gpd == tmp_path / PLANNING_DIR_NAME
+
+
+def test_project_layout_ignores_non_project_hidden_gpd_dirs(tmp_path: Path) -> None:
+    legacy = tmp_path / ".gpd"
+    (legacy / "venv" / "bin").mkdir(parents=True)
+
+    assert ProjectLayout(tmp_path).gpd == tmp_path / PLANNING_DIR_NAME

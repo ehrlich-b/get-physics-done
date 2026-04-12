@@ -2,6 +2,8 @@
 
 Model profiles control which model tier each GPD agent uses. This allows balancing quality vs token spend.
 
+For first-touch setup, treat `review` plus runtime defaults as the recommended starting point. If a user wants to think in plain language instead of tiers, frame the choice as `Max quality`, `Balanced`, or `Budget-aware`, then let `gpd:settings` map that posture onto the existing profile and runtime-specific tier override machinery. Use `gpd:set-tier-models` when the user wants the direct concrete path for `tier-1`, `tier-2`, and `tier-3` ids without the broader settings flow. Keep explicit tier IDs as an intentional override path.
+
 ## Tier System
 
 GPD uses capability tiers instead of platform-specific model names:
@@ -11,7 +13,7 @@ GPD uses capability tiers instead of platform-specific model names:
 - **tier-3**: Fast/economical (fastest model)
 
 `gpd resolve-tier` exposes the abstract tier assignment for a given agent.
-`gpd resolve-model` resolves that tier to a runtime-specific override only when `.gpd/config.json` defines `model_overrides.<runtime>.<tier>`.
+`gpd resolve-model` resolves that tier to a runtime-specific override only when `GPD/config.json` defines `model_overrides.<runtime>.<tier>`.
 If no override is configured for the active runtime, `gpd resolve-model` returns empty output and the task call should omit `model` so the platform uses its default model.
 
 ## Profile Definitions
@@ -36,6 +38,7 @@ If no override is configured for the active runtime, `gpd resolve-model` returns
 | gpd-review-reader        | tier-2        | tier-2      | tier-2        | tier-2   | tier-2          |
 | gpd-review-literature    | tier-1        | tier-2      | tier-1        | tier-1   | tier-2          |
 | gpd-review-math          | tier-1        | tier-1      | tier-2        | tier-1   | tier-1          |
+| gpd-check-proof          | tier-1        | tier-1      | tier-2        | tier-1   | tier-1          |
 | gpd-review-physics       | tier-1        | tier-1      | tier-2        | tier-1   | tier-1          |
 | gpd-review-significance  | tier-2        | tier-2      | tier-2        | tier-1   | tier-1          |
 | gpd-referee              | tier-1        | tier-2      | tier-2        | tier-1   | tier-1          |
@@ -238,7 +241,7 @@ When selecting a profile, consider not just the token cost tradeoff (shown in th
 Orchestrators resolve tier and optional concrete model before spawning:
 
 ```
-1. Read .gpd/config.json
+1. Read GPD/config.json
 2. Get model_profile (default: "review")
 3. Look up agent in table above
 4. Resolve tier via `gpd resolve-tier`
@@ -248,9 +251,9 @@ Orchestrators resolve tier and optional concrete model before spawning:
 
 ## Switching Profiles
 
-Runtime: `/gpd:set-profile <profile>`
+Runtime: `gpd:set-profile <profile>`
 
-Per-project default: Set in `.gpd/config.json`:
+Per-project default: Set in `GPD/config.json`:
 
 ```json
 {

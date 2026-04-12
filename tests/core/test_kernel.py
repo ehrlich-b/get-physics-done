@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from gpd.core.kernel import (
     KERNEL_VERSION,
     Fail,
@@ -62,7 +64,7 @@ class TestRegistryBase:
     def test_load_records_single_object(self, tmp_path):
         d = tmp_path / "data"
         d.mkdir()
-        (d / "a.json").write_text('{"id": "test-1"}')
+        (d / "a.json").write_text('{"id": "test-1"}', encoding="utf-8")
         records = RegistryBase.load_records(d, lambda x: x)
         assert len(records) == 1
         assert records[0]["id"] == "test-1"
@@ -70,15 +72,15 @@ class TestRegistryBase:
     def test_load_records_array(self, tmp_path):
         d = tmp_path / "data"
         d.mkdir()
-        (d / "a.json").write_text('[{"id": "a"}, {"id": "b"}]')
+        (d / "a.json").write_text('[{"id": "a"}, {"id": "b"}]', encoding="utf-8")
         records = RegistryBase.load_records(d, lambda x: x)
         assert len(records) == 2
 
     def test_load_records_skips_dotfiles(self, tmp_path):
         d = tmp_path / "data"
         d.mkdir()
-        (d / ".hidden.json").write_text('{"id": "hidden"}')
-        (d / "visible.json").write_text('{"id": "visible"}')
+        (d / ".hidden.json").write_text('{"id": "hidden"}', encoding="utf-8")
+        (d / "visible.json").write_text('{"id": "visible"}', encoding="utf-8")
         records = RegistryBase.load_records(d, lambda x: x)
         assert len(records) == 1
         assert records[0]["id"] == "visible"
@@ -86,15 +88,15 @@ class TestRegistryBase:
     def test_collect_raw_bytes(self, tmp_path):
         d = tmp_path / "sub"
         d.mkdir()
-        (d / "a.json").write_text('{"x": 1}')
+        (d / "a.json").write_text('{"x": 1}', encoding="utf-8")
         raw = RegistryBase.collect_raw_bytes(tmp_path, ["sub"])
         assert raw == b'{"x": 1}'
 
     def test_collect_raw_bytes_sorted(self, tmp_path):
         d = tmp_path / "sub"
         d.mkdir()
-        (d / "b.json").write_text("B")
-        (d / "a.json").write_text("A")
+        (d / "b.json").write_text("B", encoding="utf-8")
+        (d / "a.json").write_text("A", encoding="utf-8")
         raw = RegistryBase.collect_raw_bytes(tmp_path, ["sub"])
         assert raw == b"AB"
 
@@ -134,6 +136,50 @@ class TestKernelRun:
         assert verdict["passed"] == 1
         assert verdict["failed"] == 1
 
+    def test_predicate_exception_fails_closed(self):
+        def explode(_: RegistryBase) -> Result:
+            raise RuntimeError("boom")
+
+        verdict = run(self._make_registry(), {"bad": explode})
+
+        assert verdict["overall"] == "FAIL"
+        assert verdict["passed"] == 0
+        assert verdict["failed"] == 1
+        assert verdict["results"]["bad"]["passed"] is False
+        assert "RuntimeError: boom" in verdict["results"]["bad"]["reason"]
+
+    @pytest.mark.parametrize(
+        ("bad_result", "expected_reason"),
+        [
+            ("not-a-result", "expected Result"),
+            (Result(passed="not-bool", reason="ok"), "Result.passed"),
+            (Result(passed=True, reason=123), "Result.reason"),
+        ],
+    )
+    def test_malformed_predicate_result_fails_closed(self, bad_result, expected_reason):
+        verdict = run(self._make_registry(), {"bad": lambda _: bad_result})
+
+        assert verdict["overall"] == "FAIL"
+        assert verdict["passed"] == 0
+        assert verdict["failed"] == 1
+        assert verdict["results"]["bad"]["passed"] is False
+        assert expected_reason in verdict["results"]["bad"]["reason"]
+
+    def test_broken_result_attribute_access_fails_closed(self):
+        class BrokenResult(Result):
+            def __getattribute__(self, name):
+                if name == "passed":
+                    raise RuntimeError("broken passed attr")
+                return super().__getattribute__(name)
+
+        verdict = run(self._make_registry(), {"bad": lambda _: BrokenResult(True, "ok")})
+
+        assert verdict["overall"] == "FAIL"
+        assert verdict["passed"] == 0
+        assert verdict["failed"] == 1
+        assert verdict["results"]["bad"]["passed"] is False
+        assert "RuntimeError reading Result.passed: broken passed attr" in verdict["results"]["bad"]["reason"]
+
     def test_verdict_has_required_keys(self):
         verdict = run(self._make_registry(), {"a": lambda _: Pass()})
         required = {
@@ -166,7 +212,7 @@ class TestKernelRun:
 
     def test_predicates_source_hash(self, tmp_path):
         src = tmp_path / "preds.py"
-        src.write_text("# predicates")
+        src.write_text("# predicates", encoding="utf-8")
         verdict = run(
             self._make_registry(), {"a": lambda _: Pass()},
             predicates_source=src,
@@ -203,7 +249,7 @@ class TestSubclassPattern:
         d = tmp_path / "evidence"
         d.mkdir()
         (d / "data.json").write_text(
-            '[{"id": "ev-1", "value": 10}, {"id": "ev-2", "value": -1}]'
+            '[{"id": "ev-1", "value": 10}, {"id": "ev-2", "value": -1}]', encoding="utf-8"
         )
 
         class MyRecord:

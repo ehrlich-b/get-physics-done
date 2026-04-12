@@ -13,6 +13,7 @@ from gpd.core.conventions import (
     ConventionEntry,
     ConventionListResult,
     ConventionSetResult,
+    check_assertions,
     convention_check,
     convention_diff,
     convention_list,
@@ -21,6 +22,7 @@ from gpd.core.conventions import (
     normalize_key,
     normalize_value,
     parse_assert_conventions,
+    required_assertion_keys,
     sanitize_value,
     validate_assertions,
 )
@@ -47,6 +49,10 @@ def test_normalize_value_metric():
     assert normalize_value("metric_signature", "(+,-,-,-)") == "mostly-minus"
     assert normalize_value("metric_signature", "(-,+,+,+)") == "mostly-plus"
     assert normalize_value("metric_signature", "++++") == "euclidean"
+
+
+def test_normalize_value_metric_euclidean_alias():
+    assert normalize_value("metric_signature", "Euclidean (+,+,+,+)") == "euclidean"
 
 
 def test_normalize_value_passthrough():
@@ -108,6 +114,14 @@ def test_convention_set_alias():
     assert result.updated is True
     assert result.key == "metric_signature"
     assert lock.metric_signature == "mostly-minus"
+
+
+def test_convention_set_metric_euclidean_alias_normalizes():
+    lock = ConventionLock()
+    result = convention_set(lock, "metric_signature", "Euclidean (+,+,+,+)")
+    assert result.updated is True
+    assert result.value == "euclidean"
+    assert lock.metric_signature == "euclidean"
 
 
 def test_convention_set_immutability_gate():
@@ -269,6 +283,65 @@ def test_validate_assertions_unset_convention_skipped():
     content = "<!-- ASSERT_CONVENTION: metric=mostly-plus -->"
     mismatches = validate_assertions(content, lock, filename="test.md")
     assert mismatches == []
+
+
+def test_validate_assertions_custom_convention_match():
+    lock = ConventionLock()
+    lock.custom_conventions["my_custom_convention"] = "enabled"
+    content = "<!-- ASSERT_CONVENTION: my_custom_convention=enabled -->"
+    mismatches = validate_assertions(content, lock, filename="test.md")
+    assert mismatches == []
+
+
+def test_validate_assertions_no_assertions_is_no_op():
+    lock = ConventionLock(metric_signature="mostly-plus")
+    content = "Just regular text with no assertions."
+    mismatches = validate_assertions(content, lock, filename="test.md")
+    assert mismatches == []
+
+
+def test_required_assertion_keys_only_returns_active_critical_fields():
+    lock = ConventionLock(
+        metric_signature="mostly-plus",
+        fourier_convention="physics",
+        gauge_choice="Lorenz",
+    )
+
+    assert required_assertion_keys(lock) == ["metric_signature", "fourier_convention"]
+
+
+def test_check_assertions_missing_required_key_fails():
+    lock = ConventionLock(metric_signature="mostly-plus", fourier_convention="physics")
+    content = "<!-- ASSERT_CONVENTION: metric=mostly-plus -->"
+
+    result = check_assertions(
+        content,
+        lock,
+        filename="test.md",
+        require_assertions=True,
+        required_keys=required_assertion_keys(lock),
+    )
+
+    assert result.passed is False
+    assert result.missing_required_assertions == []
+    assert result.missing_required_keys == ["fourier_convention"]
+
+
+def test_check_assertions_missing_custom_required_key_fails():
+    lock = ConventionLock(metric_signature="mostly-plus")
+    lock.custom_conventions["my_custom_convention"] = "enabled"
+    content = "<!-- ASSERT_CONVENTION: metric=mostly-plus -->"
+
+    result = check_assertions(
+        content,
+        lock,
+        filename="test.md",
+        require_assertions=True,
+        required_keys=["my_custom_convention"],
+    )
+
+    assert result.passed is False
+    assert result.missing_required_keys == ["my_custom_convention"]
 
 
 # ─── Edge cases: empty/unicode/long values ────────────────────────────────
@@ -449,7 +522,7 @@ class TestConventionDiffPhases:
     def test_missing_phase_ids_returns_empty(self, tmp_path):
         """convention_diff_phases with missing phase IDs returns empty result."""
         from gpd.core.conventions import convention_diff_phases
-        gpd_dir = tmp_path / ".gpd"
+        gpd_dir = tmp_path / "GPD"
         gpd_dir.mkdir()
 
         result = convention_diff_phases(tmp_path, phase1=None, phase2="1")
@@ -460,7 +533,7 @@ class TestConventionDiffPhases:
     def test_nonexistent_phases_returns_empty(self, tmp_path):
         """convention_diff_phases with nonexistent phases returns empty result."""
         from gpd.core.conventions import convention_diff_phases
-        gpd_dir = tmp_path / ".gpd" / "phases"
+        gpd_dir = tmp_path / "GPD" / "phases"
         gpd_dir.mkdir(parents=True)
 
         result = convention_diff_phases(tmp_path, phase1="99", phase2="98")

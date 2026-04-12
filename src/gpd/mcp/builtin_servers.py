@@ -11,11 +11,19 @@ from __future__ import annotations
 import logging
 import os
 import re
+import subprocess
 import sys
 from copy import deepcopy
 
+from gpd.mcp.verification_contract_policy import verification_server_description
+
 logger = logging.getLogger(__name__)
 
+_PYTHON_COMMAND_SENTINEL = "__GPD_PYTHON__"
+_PUBLIC_PYTHON_PLACEHOLDER = "${GPD_PYTHON}"
+_PYTHON_LAUNCH_NOTES = (
+    f"Replace `{_PUBLIC_PYTHON_PLACEHOLDER}` with a Python >=3.11 interpreter that has GPD installed."
+)
 
 # Canonical definition of all GPD built-in MCP servers.
 # Mirrors infra/*.json but lives inside the package so it ships with the wheel.
@@ -23,57 +31,59 @@ _ServerDef = dict[str, str | list[str] | dict[str, str] | bool]
 
 _BUILTIN_SERVERS: dict[str, _ServerDef] = {
     "gpd-conventions": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.conventions_server"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-errors": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.errors_mcp"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-patterns": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.patterns_server"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-protocols": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.protocols_server"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-skills": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.skills_server"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-state": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.state_server"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-verification": {
-        "command": "python",
+        "command": _PYTHON_COMMAND_SENTINEL,
         "args": ["-m", "gpd.mcp.servers.verification_server"],
         "env": {"LOG_LEVEL": "${LOG_LEVEL:-WARNING}"},
     },
     "gpd-arxiv": {
-        "command": "python",
-        "args": ["-m", "arxiv_mcp_server"],
+        "command": _PYTHON_COMMAND_SENTINEL,
+        "args": ["-m", "gpd.mcp.servers.arxiv_bridge"],
         "env": {},
         "optional": True,
         "module_check": "arxiv_mcp_server",
     },
 }
 
-_PUBLIC_BOOTSTRAP_PREREQUISITE = "Install GPD first: npx -y get-physics-done"
-_ENTRY_POINT_NOTES = "Requires gpd package installed"
+_PUBLIC_BOOTSTRAP_PREREQUISITE = "Install GPD before enabling built-in MCP servers."
+_ENTRY_POINT_NOTES = _PYTHON_LAUNCH_NOTES
 
 _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
     "gpd-conventions": {
         "description": (
             "GPD convention lock management. Tools for querying, setting, validating, and comparing "
-            "physics conventions across research phases."
+            "physics conventions across research phases, including ASSERT_CONVENTION validation. "
+            "Every derivation artifact must carry at least one ASSERT_CONVENTION header that matches "
+            "the project convention lock."
         ),
         "capabilities": [
             "convention_lock_status",
@@ -131,7 +141,8 @@ _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
     "gpd-protocols": {
         "description": (
             "Physics computation protocols for GPD research workflows. Provides step-by-step methodology, "
-            "verification checkpoints, and auto-routing for 47 physics domains."
+            "verification checkpoints, and auto-routing across the live protocol catalog. Use them as rigor-first "
+            "procedural guidance; do not invent missing evidence, artifacts, or completion state."
         ),
         "capabilities": [
             "get_protocol",
@@ -149,7 +160,8 @@ _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
     "gpd-skills": {
         "description": (
             "GPD skill discovery and routing. Tools for listing, retrieving, auto-routing, "
-            "and indexing GPD workflow skills for agent prompt injection."
+            "and indexing GPD workflow skills for agent prompt injection. Treat missing evidence or artifacts as "
+            "missing, blocked, failed, or inconclusive; never fabricate fallback outputs."
         ),
         "capabilities": [
             "list_skills",
@@ -161,7 +173,7 @@ _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
         "health_check": {
             "tool": "list_skills",
             "input": {},
-            "expect": "contains gpd-execute-phase",
+            "expect": "contains gpd-execute-phase and gpd-research-phase",
         },
     },
     "gpd-state": {
@@ -180,17 +192,13 @@ _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
         ],
         "registry_prefix": "gpd_state",
         "health_check": {
-            "tool": "get_config",
-            "input": {"project_dir": "/tmp/test"},
-            "expect": "contains model_profile",
+            "tool": "get_state",
+            "input": {},
+            "expect": "returns a stable validation error envelope for missing required project_dir",
         },
     },
     "gpd-verification": {
-        "description": (
-            "GPD physics verification checks. Tools for running contract-aware checks, "
-            "dimensional analysis, domain and bundle-specific checklists, limiting case checks, "
-            "symmetry verification, and coverage gap analysis."
-        ),
+        "description": verification_server_description(),
         "capabilities": [
             "run_check",
             "run_contract_check",
@@ -211,14 +219,16 @@ _PUBLIC_DESCRIPTOR_METADATA: dict[str, dict[str, object]] = {
     },
     "gpd-arxiv": {
         "description": (
-            "arXiv paper search and retrieval via arxiv-mcp-server. Search for physics papers, "
-            "fetch abstracts, and download full text."
+            "Optional/conditional arXiv paper search, retrieval, and source-archive download via arxiv-mcp-server. "
+            "Available only when the optional arxiv-mcp-server dependency is installed; "
+            "search for physics papers, fetch abstracts, download full text, and download raw source archives."
         ),
         "capabilities": [
             "search_papers",
             "download_paper",
             "list_papers",
             "read_paper",
+            "download_source",
         ],
         "registry_prefix": "gpd_arxiv",
         "health_check": {
@@ -251,27 +261,34 @@ def _resolve_env(value: str) -> str:
     return _ENV_VAR_PATTERN.sub(_replace, value)
 
 
-def _is_module_available(module_name: str) -> bool:
-    """Check if a Python module is importable without loading it."""
-    from importlib.util import find_spec
-
+def _is_module_available(module_name: str, *, python_path: str | None = None) -> bool:
+    """Check if a Python module is importable in a specific interpreter."""
+    interpreter = python_path or sys.executable
     try:
-        return find_spec(module_name) is not None
-    except (ModuleNotFoundError, ValueError):
+        return subprocess.run(
+            [
+                interpreter,
+                "-c",
+                "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec(sys.argv[1]) is not None else 1)",
+                module_name,
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode == 0
+    except (FileNotFoundError, ModuleNotFoundError, OSError, ValueError):
         return False
 
 
-def _build_public_alternatives(name: str) -> dict[str, dict[str, str | list[str]]] | None:
+def _build_public_alternatives(name: str) -> dict[str, dict[str, object]] | None:
     """Build fallback launch alternatives for a public built-in server descriptor."""
-    if name == "gpd-arxiv":
-        return None
     if not name.startswith("gpd-"):
         return None
     raw = _BUILTIN_SERVERS[name]
     args = list(raw.get("args", [])) if isinstance(raw.get("args"), list) else []
     return {
         "python_module": {
-            "command": str(raw["command"]),
+            "command": _PUBLIC_PYTHON_PLACEHOLDER,
             "args": args,
             "notes": _ENTRY_POINT_NOTES,
         }
@@ -286,9 +303,11 @@ def build_public_descriptor(name: str) -> dict[str, object]:
     env = dict(raw.get("env", {})) if isinstance(raw.get("env"), dict) else {}
     command = str(raw["command"])
     args = default_args
-    if name != "gpd-arxiv" and name.startswith("gpd-"):
+    if name.startswith("gpd-"):
         command = f"gpd-mcp-{name.removeprefix('gpd-')}"
         args = []
+    elif command == _PYTHON_COMMAND_SENTINEL:
+        command = _PUBLIC_PYTHON_PLACEHOLDER
     descriptor: dict[str, object] = {
         "name": name,
         "description": str(metadata["description"]),
@@ -304,6 +323,16 @@ def build_public_descriptor(name: str) -> dict[str, object]:
     alternatives = _build_public_alternatives(name)
     if alternatives:
         descriptor["alternatives"] = alternatives
+    if raw.get("optional"):
+        descriptor["optional"] = True
+        descriptor["availability"] = "conditional"
+        module_check = raw.get("module_check")
+        if isinstance(module_check, str) and module_check:
+            descriptor["availability_condition"] = (
+                f"Available only when the optional Python module '{module_check}' is installed."
+            )
+    if command == _PUBLIC_PYTHON_PLACEHOLDER:
+        descriptor["notes"] = _PYTHON_LAUNCH_NOTES
     return descriptor
 
 
@@ -394,11 +423,11 @@ def build_mcp_servers_dict(
         # Skip optional servers if their dependencies aren't installed.
         if raw.get("optional"):
             module_check = str(raw.get("module_check", ""))
-            if not module_check or not _is_module_available(module_check):
+            if not module_check or not _is_module_available(module_check, python_path=python_path):
                 continue
 
         cmd = str(raw["command"])
-        if cmd == "python":
+        if cmd == _PYTHON_COMMAND_SENTINEL:
             cmd = python_path
 
         raw_args = raw.get("args", [])

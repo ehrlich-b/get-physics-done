@@ -3,14 +3,42 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
 from pybtex.database import BibliographyData, Entry
+from pydantic import ConfigDict
 
 from gpd.mcp.paper.bibliography import CitationSource
-from gpd.mcp.paper.compiler import CompilationResult, _get_tlmgr_package, check_class_file
-from gpd.mcp.paper.models import Author, FigureRef, PaperConfig, Section
+from gpd.mcp.paper.compiler import (
+    CompilationResult,
+    _get_tlmgr_package,
+    check_class_file,
+    check_journal_dependencies,
+)
+from gpd.mcp.paper.journal_map import get_journal_spec
+from gpd.mcp.paper.models import (
+    REQUIRED_GPD_ACKNOWLEDGMENT,
+    Author,
+    FigureRef,
+    PaperConfig,
+    Section,
+    derive_output_filename,
+)
+
+
+def _allow_journal_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep happy-path build tests focused on build orchestration, not TeX setup."""
+    monkeypatch.setattr("gpd.mcp.paper.compiler.check_journal_dependencies", lambda spec: (True, []))
+
+
+class CitationSourceWithReferenceId(CitationSource):
+    """Test helper that carries a stable project reference ID through the pipeline."""
+
+    model_config = ConfigDict(extra="allow")
+    reference_id: str | None = None
+
 
 # ---- Compiler wrapper tests ----
 
@@ -34,6 +62,40 @@ class TestCompilerWrapper:
         assert _get_tlmgr_package("mnras") == "mnras"
         assert _get_tlmgr_package("article") == "latex-base"
 
+    def test_check_class_file_uses_resolved_kpsewhich_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        observed_commands: list[list[str]] = []
+
+        monkeypatch.setattr(
+            "gpd.mcp.paper.compiler.find_latex_compiler",
+            lambda binary: "/opt/tex/bin/kpsewhich" if binary == "kpsewhich" else None,
+        )
+
+        def fake_run(command: list[str], capture_output: bool, text: bool, timeout: int) -> SimpleNamespace:
+            observed_commands.append(command)
+            return SimpleNamespace(returncode=0, stdout="/opt/tex/texmf-dist/tex/latex/base/article.cls\n")
+
+        monkeypatch.setattr("gpd.mcp.paper.compiler.subprocess.run", fake_run)
+
+        available, msg = check_class_file("article")
+
+        assert available is True
+        assert msg.endswith("article.cls")
+        assert observed_commands == [["/opt/tex/bin/kpsewhich", "article.cls"]]
+
+    def test_check_journal_dependencies_keep_best_effort_when_kpsewhich_is_unavailable(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr(
+            "gpd.mcp.paper.compiler.find_latex_compiler",
+            lambda binary: None if binary == "kpsewhich" else f"/usr/bin/{binary}",
+        )
+
+        available, errors = check_journal_dependencies(get_journal_spec("jhep"))
+
+        assert available is True
+        assert errors == []
+
 
 # ---- build_paper integration test ----
 
@@ -55,7 +117,8 @@ class TestBuildPaper:
         bib.entries["einstein1905"] = Entry("article", [("author", "Einstein"), ("title", "SR"), ("year", "1905")])
 
         # Mock compile_paper to avoid needing actual TeX
-        pdf_path = tmp_path / "main.pdf"
+        output_stem = derive_output_filename(config)
+        pdf_path = tmp_path / f"{output_stem}.pdf"
         mock_result = CompilationResult(success=True, pdf_path=pdf_path)
         # Write a fake PDF so the path exists
         pdf_path.write_bytes(b"%PDF-fake")
@@ -63,13 +126,16 @@ class TestBuildPaper:
         async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
             return mock_result
 
+        _allow_journal_dependencies(monkeypatch)
         monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
 
         output = await build_paper(config, tmp_path, bib_data=bib)
 
-        assert (tmp_path / "main.tex").exists()
-        tex_content = (tmp_path / "main.tex").read_text()
+        assert output.tex_path == tmp_path / f"{output_stem}.tex"
+        assert output.tex_path.exists()
+        tex_content = output.tex_path.read_text()
         assert r"\documentclass" in tex_content
+        assert REQUIRED_GPD_ACKNOWLEDGMENT in tex_content
         assert "Generated with Get Physics Done" in tex_content
         assert (tmp_path / "references.bib").exists()
         bib_content = (tmp_path / "references.bib").read_text()
@@ -77,15 +143,22 @@ class TestBuildPaper:
         assert output.tex_content != ""
         assert output.pdf_path == pdf_path
         assert output.success is True
+        assert output.bibliography_audit_path == tmp_path / "BIBLIOGRAPHY-AUDIT.json"
+        assert output.bibliography_audit is not None
+        assert output.bibliography_audit.total_sources == 1
+        assert output.reference_bibtex_keys == {}
         assert output.manifest_path == tmp_path / "ARTIFACT-MANIFEST.json"
         assert output.manifest is not None
         manifest_content = json.loads(output.manifest_path.read_text(encoding="utf-8"))
         artifact_ids = {artifact["artifact_id"] for artifact in manifest_content["artifacts"]}
         assert "tex-paper" in artifact_ids
         assert "bib-references" in artifact_ids
-        assert "pdf-main" in artifact_ids
+        assert f"pdf-{output_stem}" in artifact_ids
+        assert "audit-bibliography" in artifact_ids
         bib_artifact = next(artifact for artifact in manifest_content["artifacts"] if artifact["artifact_id"] == "bib-references")
         assert bib_artifact["metadata"]["entry_source"] == "bib_data"
+        audit_artifact = next(artifact for artifact in manifest_content["artifacts"] if artifact["artifact_id"] == "audit-bibliography")
+        assert audit_artifact["path"] == "BIBLIOGRAPHY-AUDIT.json"
 
     @pytest.mark.asyncio
     async def test_build_paper_merges_bib_data_and_citation_sources(self, tmp_path, monkeypatch):
@@ -104,13 +177,14 @@ class TestBuildPaper:
             [("author", "Einstein"), ("title", "Zur Elektrodynamik"), ("year", "1905")],
         )
 
-        pdf_path = tmp_path / "main.pdf"
+        pdf_path = tmp_path / f"{derive_output_filename(config)}.pdf"
         mock_result = CompilationResult(success=True, pdf_path=pdf_path)
         pdf_path.write_bytes(b"%PDF-fake")
 
         async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
             return mock_result
 
+        _allow_journal_dependencies(monkeypatch)
         monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
 
         output = await build_paper(
@@ -118,12 +192,13 @@ class TestBuildPaper:
             tmp_path,
             bib_data=explicit_bib,
             citation_sources=[
-                CitationSource(
+                CitationSourceWithReferenceId(
                     source_type="paper",
                     title="Relativity Follow-up",
                     authors=["N. Bohr"],
                     year="1913",
                     doi="10.1000/bohr1913",
+                    reference_id="lit-ref-bohr-1913",
                 )
             ],
             enrich_bibliography=False,
@@ -132,11 +207,18 @@ class TestBuildPaper:
         bib_content = (tmp_path / "references.bib").read_text(encoding="utf-8")
         assert "einstein1905" in bib_content
         assert "bohr1913" in bib_content
+        assert output.success is True
+        assert output.pdf_path == pdf_path
+        assert output.bibliography_audit_path == tmp_path / "BIBLIOGRAPHY-AUDIT.json"
         assert output.bibliography_audit is not None
-        assert output.bibliography_audit.entries[0].key == "bohr1913"
+        assert output.bibliography_audit.total_sources == 2
+        assert {entry.key for entry in output.bibliography_audit.entries} == {"einstein1905", "bohr1913"}
+        assert output.reference_bibtex_keys == {"lit-ref-bohr-1913": "bohr1913"}
         assert output.manifest is not None
         bib_artifact = next(artifact for artifact in output.manifest.artifacts if artifact.artifact_id == "bib-references")
         assert bib_artifact.metadata["entry_source"] == "bib_data+citation_sources"
+        audit_artifact = next(artifact for artifact in output.manifest.artifacts if artifact.artifact_id == "audit-bibliography")
+        assert audit_artifact.path == "BIBLIOGRAPHY-AUDIT.json"
 
     @pytest.mark.asyncio
     async def test_build_paper_prepares_config_figures(self, tmp_path, monkeypatch):
@@ -153,14 +235,14 @@ class TestBuildPaper:
             figures=[FigureRef(path=fig_path, caption="Velocity field.", label="velocity")],
         )
 
-        pdf_path = tmp_path / "main.pdf"
+        pdf_path = tmp_path / f"{derive_output_filename(config)}.pdf"
         mock_result = CompilationResult(success=True, pdf_path=pdf_path)
         pdf_path.write_bytes(b"%PDF-fake")
 
         async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
             return mock_result
 
-        monkeypatch.setattr("gpd.mcp.paper.compiler.check_class_file", lambda dc, install_hint=None: (True, "ok"))
+        _allow_journal_dependencies(monkeypatch)
         monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
 
         output = await build_paper(config, tmp_path)
@@ -188,25 +270,27 @@ class TestBuildPaper:
             sections=[Section(title="Introduction", content="Hello world.")],
         )
 
-        pdf_path = tmp_path / "main.pdf"
+        pdf_path = tmp_path / f"{derive_output_filename(config)}.pdf"
         mock_result = CompilationResult(success=True, pdf_path=pdf_path)
         pdf_path.write_bytes(b"%PDF-fake")
 
         async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
             return mock_result
 
+        _allow_journal_dependencies(monkeypatch)
         monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
 
         output = await build_paper(
             config,
             tmp_path,
             citation_sources=[
-                CitationSource(
+                CitationSourceWithReferenceId(
                     source_type="paper",
                     title="Relativity",
                     authors=["A. Einstein"],
                     year="1905",
                     doi="10.1002/andp.19053221004",
+                    reference_id="lit-ref-einstein-1905",
                 )
             ],
             enrich_bibliography=False,
@@ -216,10 +300,120 @@ class TestBuildPaper:
         assert output.bibliography_audit_path == tmp_path / "BIBLIOGRAPHY-AUDIT.json"
         assert output.bibliography_audit is not None
         assert output.bibliography_audit.total_sources == 1
+        assert (tmp_path / "BIBLIOGRAPHY-AUDIT.json").exists()
+        assert output.reference_bibtex_keys == {"lit-ref-einstein-1905": "einstein1905"}
         manifest_ids = {artifact.artifact_id for artifact in output.manifest.artifacts}
         assert "audit-bibliography" in manifest_ids
         bib_artifact = next(artifact for artifact in output.manifest.artifacts if artifact.artifact_id == "bib-references")
         assert bib_artifact.metadata["entry_source"] == "citation_sources"
+
+    @pytest.mark.asyncio
+    async def test_build_paper_surfaces_preferred_bibtex_key_mapping(self, tmp_path, monkeypatch):
+        from gpd.mcp.paper import bibliography as paper_bibliography
+        from gpd.mcp.paper.compiler import build_paper
+
+        config = PaperConfig(
+            title="Preferred Key Paper",
+            authors=[Author(name="A. Einstein", affiliation="ETH Zurich")],
+            abstract="A test abstract.",
+            sections=[Section(title="Introduction", content="Hello world.")],
+        )
+
+        source = CitationSourceWithReferenceId(
+            source_type="paper",
+            title="Relativity",
+            authors=["A. Einstein"],
+            year="1905",
+            doi="10.1002/andp.19053221004",
+            reference_id="lit-ref-einstein-1905",
+        )
+
+        pdf_path = tmp_path / f"{derive_output_filename(config)}.pdf"
+        mock_result = CompilationResult(success=True, pdf_path=pdf_path)
+        pdf_path.write_bytes(b"%PDF-fake")
+
+        async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
+            return mock_result
+
+        real_create_bib_key = paper_bibliography._create_bib_key
+
+        def mock_create_bib_key(source, existing_keys):
+            if source.title == "Relativity":
+                return "preferred1905"
+            return real_create_bib_key(source, existing_keys)
+
+        _allow_journal_dependencies(monkeypatch)
+        monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
+        monkeypatch.setattr("gpd.mcp.paper.bibliography._create_bib_key", mock_create_bib_key)
+
+        output = await build_paper(
+            config,
+            tmp_path,
+            citation_sources=[source],
+            enrich_bibliography=False,
+        )
+
+        assert output.success is True
+        assert output.bibliography_audit is not None
+        assert output.bibliography_audit.entries[0].key == "preferred1905"
+        assert output.reference_bibtex_keys == {"lit-ref-einstein-1905": "preferred1905"}
+        bib_content = (tmp_path / "references.bib").read_text(encoding="utf-8")
+        assert "@article{preferred1905" in bib_content
+
+    @pytest.mark.asyncio
+    async def test_build_paper_preserves_stable_reference_ids_in_bibliography_hook(
+        self, tmp_path, monkeypatch
+    ):
+        from gpd.mcp.paper import compiler as paper_compiler
+        from gpd.mcp.paper.compiler import build_paper
+
+        config = PaperConfig(
+            title="Reference ID Paper",
+            authors=[Author(name="A. Einstein", affiliation="ETH Zurich")],
+            abstract="A test abstract.",
+            sections=[Section(title="Introduction", content="Hello world.")],
+        )
+
+        source = CitationSourceWithReferenceId(
+            source_type="paper",
+            title="Relativity",
+            authors=["A. Einstein"],
+            year="1905",
+            doi="10.1002/andp.19053221004",
+            reference_id="lit-ref-einstein-1905",
+        )
+
+        pdf_path = tmp_path / f"{derive_output_filename(config)}.pdf"
+        mock_result = CompilationResult(success=True, pdf_path=pdf_path)
+        pdf_path.write_bytes(b"%PDF-fake")
+
+        async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
+            return mock_result
+
+        observed_reference_ids: list[str | None] = []
+        real_build_bibliography_with_audit = paper_compiler.build_bibliography_with_audit
+
+        def spy_build_bibliography_with_audit(sources, enrich, reserved_bib_keys=None):
+            observed_reference_ids.extend(getattr(item, "reference_id", None) for item in sources)
+            return real_build_bibliography_with_audit(sources, enrich, reserved_bib_keys)
+
+        _allow_journal_dependencies(monkeypatch)
+        monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
+        monkeypatch.setattr("gpd.mcp.paper.compiler.build_bibliography_with_audit", spy_build_bibliography_with_audit)
+
+        output = await build_paper(
+            config,
+            tmp_path,
+            citation_sources=[source],
+            enrich_bibliography=False,
+        )
+
+        assert output.success is True
+        assert observed_reference_ids == ["lit-ref-einstein-1905"]
+        assert output.bibliography_audit is not None
+        assert output.bibliography_audit.entries[0].key == "einstein1905"
+        assert output.reference_bibtex_keys == {"lit-ref-einstein-1905": "einstein1905"}
+        assert "einstein1905" in (tmp_path / "references.bib").read_text(encoding="utf-8")
 
     @pytest.mark.asyncio
     async def test_build_paper_manifest_keeps_figure_source_alignment_when_some_figures_are_skipped(
@@ -278,7 +472,7 @@ class TestBuildPaper:
             ],
         )
 
-        pdf_path = tmp_path / "main.pdf"
+        pdf_path = tmp_path / f"{derive_output_filename(config)}.pdf"
         pdf_path.write_bytes(b"%PDF-fake")
         mock_result = CompilationResult(success=True, pdf_path=pdf_path)
 
@@ -325,7 +519,6 @@ class TestPublicAPI:
             ReviewIssueSeverity,
             ReviewIssueStatus,
             ReviewLedger,
-            ReviewPanelBundle,
             ReviewRecommendation,
             ReviewStageKind,
             ReviewSupportStatus,
@@ -340,12 +533,10 @@ class TestPublicAPI:
             list_journals,
             read_claim_index,
             read_review_ledger,
-            read_review_panel_bundle,
             read_stage_review_report,
             write_bibliography_audit,
             write_claim_index,
             write_review_ledger,
-            write_review_panel_bundle,
             write_stage_review_report,
         )
 
@@ -373,7 +564,6 @@ class TestPublicAPI:
         assert ReviewIssueSeverity is not None
         assert ReviewIssueStatus is not None
         assert ReviewLedger is not None
-        assert ReviewPanelBundle is not None
         assert ReviewRecommendation is not None
         assert ReviewStageKind is not None
         assert ReviewSupportStatus is not None
@@ -382,11 +572,9 @@ class TestPublicAPI:
         assert CitationSource is not None
         assert callable(read_claim_index)
         assert callable(read_review_ledger)
-        assert callable(read_review_panel_bundle)
         assert callable(read_stage_review_report)
         assert callable(write_claim_index)
         assert callable(write_review_ledger)
-        assert callable(write_review_panel_bundle)
         assert callable(write_stage_review_report)
 
     def test_public_api_review_artifact_helpers_round_trip(self, tmp_path):
@@ -399,30 +587,27 @@ class TestPublicAPI:
             ReviewIssue,
             ReviewIssueSeverity,
             ReviewLedger,
-            ReviewPanelBundle,
             ReviewRecommendation,
             ReviewStageKind,
             ReviewSupportStatus,
             StageReviewReport,
             read_claim_index,
             read_review_ledger,
-            read_review_panel_bundle,
             read_stage_review_report,
             write_claim_index,
             write_review_ledger,
-            write_review_panel_bundle,
             write_stage_review_report,
         )
 
         claim_index = ClaimIndex(
-            manuscript_path="paper/main.tex",
+            manuscript_path="paper/curvature_flow_bounds.tex",
             manuscript_sha256="a" * 64,
             claims=[
                 ClaimRecord(
                     claim_id="CLM-001",
                     claim_type=ClaimType.main_result,
                     text="A bounded result is established.",
-                    artifact_path="paper/main.tex",
+                    artifact_path="paper/curvature_flow_bounds.tex",
                     section="Results",
                 )
             ],
@@ -430,7 +615,7 @@ class TestPublicAPI:
         stage_report = StageReviewReport(
             stage_id="physics",
             stage_kind=ReviewStageKind.physics,
-            manuscript_path="paper/main.tex",
+            manuscript_path="paper/curvature_flow_bounds.tex",
             manuscript_sha256="a" * 64,
             claims_reviewed=["CLM-001"],
             summary="Physics support is adequate.",
@@ -448,7 +633,7 @@ class TestPublicAPI:
             recommendation_ceiling=ReviewRecommendation.minor_revision,
         )
         ledger = ReviewLedger(
-            manuscript_path="paper/main.tex",
+            manuscript_path="paper/curvature_flow_bounds.tex",
             issues=[
                 ReviewIssue(
                     issue_id="REF-001",
@@ -460,32 +645,18 @@ class TestPublicAPI:
                 )
             ],
         )
-        bundle = ReviewPanelBundle(
-            manuscript_path="paper/main.tex",
-            claim_index_path=".gpd/review/CLAIMS.json",
-            stage_reports=[".gpd/review/STAGE-physics.json"],
-            review_ledger_path=".gpd/review/REVIEW-LEDGER.json",
-            decision_path=".gpd/review/REFEREE-DECISION.json",
-            final_recommendation=ReviewRecommendation.minor_revision,
-            final_confidence=ReviewConfidence.medium,
-            final_report_path=".gpd/REFEREE-REPORT.md",
-            final_report_tex_path=".gpd/REFEREE-REPORT.tex",
-        )
 
         claims_path = tmp_path / "CLAIMS.json"
         stage_path = tmp_path / "STAGE-physics.json"
         ledger_path = tmp_path / "REVIEW-LEDGER.json"
-        bundle_path = tmp_path / "PANEL-BUNDLE.json"
 
         write_claim_index(claim_index, claims_path)
         write_stage_review_report(stage_report, stage_path)
         write_review_ledger(ledger, ledger_path)
-        write_review_panel_bundle(bundle, bundle_path)
 
         assert read_claim_index(claims_path) == claim_index
         assert read_stage_review_report(stage_path) == stage_report
         assert read_review_ledger(ledger_path) == ledger
-        assert read_review_panel_bundle(bundle_path) == bundle
 
 
 # ---- Class file check fallback ----
@@ -505,7 +676,10 @@ class TestClassFileFallback:
 
         monkeypatch.setattr(
             "gpd.mcp.paper.compiler.check_class_file",
-            lambda dc, install_hint=None: (False, f"{dc}.cls not found. Install via: tlmgr install revtex"),
+            lambda dc, install_hint=None, assume_present_when_unavailable=True: (
+                False,
+                f"{dc}.cls not found. Install via: tlmgr install revtex",
+            ),
         )
 
         output = await build_paper(config, tmp_path)
@@ -531,10 +705,13 @@ class TestClassFileFallback:
             journal="jhep",
         )
 
-        monkeypatch.setattr("gpd.mcp.paper.compiler.check_class_file", lambda dc, install_hint=None: (True, "ok"))
+        monkeypatch.setattr(
+            "gpd.mcp.paper.compiler.check_class_file",
+            lambda dc, install_hint=None, assume_present_when_unavailable=True: (True, "ok"),
+        )
         monkeypatch.setattr(
             "gpd.mcp.paper.compiler.check_tex_file",
-            lambda resource_name, install_hint=None: (
+            lambda resource_name, install_hint=None, assume_present_when_unavailable=True: (
                 (False, "jheppub.sty not found. Install via: tlmgr install jhep")
                 if resource_name == "jheppub.sty"
                 else (True, "ok")
@@ -547,3 +724,35 @@ class TestClassFileFallback:
         assert "jheppub.sty not found" in output.errors[0]
         assert output.manifest_path == tmp_path / "ARTIFACT-MANIFEST.json"
         assert output.manifest is not None
+
+    @pytest.mark.asyncio
+    async def test_build_paper_warns_on_zero_citations(self, tmp_path, monkeypatch):
+        """BUG-076: build_paper warns when bib has entries but tex has no citations."""
+        from gpd.mcp.paper.compiler import build_paper
+
+        config = PaperConfig(
+            title="Test Paper",
+            authors=[Author(name="Test Author")],
+            abstract="Abstract text.",
+            sections=[Section(title="Introduction", content="No citations here.")],
+        )
+        bib = BibliographyData()
+        bib.entries["ref2020"] = Entry(
+            "article", [("title", "Ref"), ("author", "Doe"), ("year", "2020")]
+        )
+
+        output_stem = derive_output_filename(config)
+        pdf_path = tmp_path / f"{output_stem}.pdf"
+        mock_result = CompilationResult(success=True, pdf_path=pdf_path)
+        pdf_path.write_bytes(b"%PDF-fake")
+
+        async def mock_compile(tex_path, output_dir, compiler="pdflatex"):
+            return mock_result
+
+        _allow_journal_dependencies(monkeypatch)
+        monkeypatch.setattr("gpd.mcp.paper.compiler.compile_paper", mock_compile)
+
+        output = await build_paper(config, tmp_path, bib_data=bib)
+
+        assert output.citation_warnings
+        assert any("zero" in w.lower() for w in output.citation_warnings)

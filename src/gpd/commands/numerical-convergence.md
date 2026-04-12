@@ -13,8 +13,6 @@ allowed-tools:
   - ask_user
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Perform systematic convergence tests on numerical computations in a physics project. Identifies all numerical parameters, varies them systematically, determines convergence rates, applies Richardson extrapolation where applicable, and assesses numerical trustworthiness.
@@ -295,10 +293,10 @@ overall_status: converged | partially_converged | not_converged
 
 Save to:
 
-- Phase target: `.gpd/phases/XX-name/CONVERGENCE.md`
-- File target: `.gpd/analysis/convergence-{slug}.md`
+- Phase target: `GPD/phases/XX-name/CONVERGENCE.md`
+- File target: `GPD/analysis/convergence-{slug}.md`
 
-**For comprehensive verification** (dimensional analysis + limiting cases + symmetries + convergence), use `/gpd:verify-work`.
+**For comprehensive verification** (dimensional analysis + limiting cases + symmetries + convergence), use `gpd:verify-work`.
 
 </process>
 

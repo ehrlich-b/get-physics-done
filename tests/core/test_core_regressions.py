@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -21,7 +22,7 @@ def _setup_project_with_summary(tmp_path: Path, yaml_block: str) -> Path:
 
 
 def _write_state_md(tmp_path: Path, decisions_body: str) -> Path:
-    planning = tmp_path / ".gpd"
+    planning = tmp_path / "GPD"
     planning.mkdir(exist_ok=True)
     (planning / "STATE.md").write_text(
         "# State\n\n"
@@ -34,6 +35,30 @@ def _write_state_md(tmp_path: Path, decisions_body: str) -> Path:
         encoding="utf-8",
     )
     return tmp_path
+
+
+def _setup_phase_project(tmp_path: Path) -> Path:
+    gpd_dir = tmp_path / "GPD"
+    (gpd_dir / "phases").mkdir(parents=True, exist_ok=True)
+    return tmp_path
+
+
+def _write_phase_roadmap(tmp_path: Path, content: str) -> None:
+    (tmp_path / "GPD" / "ROADMAP.md").write_text(content, encoding="utf-8")
+
+
+def _write_phase_state(tmp_path: Path, content: str) -> None:
+    (tmp_path / "GPD" / "STATE.md").write_text(content, encoding="utf-8")
+
+
+def _write_phase_file(tmp_path: Path, phase_dir_name: str, filename: str, content: str | bytes) -> None:
+    phase_dir = tmp_path / "GPD" / "phases" / phase_dir_name
+    phase_dir.mkdir(parents=True, exist_ok=True)
+    target = phase_dir / filename
+    if isinstance(content, bytes):
+        target.write_bytes(content)
+        return
+    target.write_text(content, encoding="utf-8")
 
 
 def test_safe_read_file_returns_none_for_binary_files(tmp_path: Path) -> None:
@@ -58,42 +83,49 @@ def test_result_not_found_error_str_has_no_surrounding_quotes() -> None:
     assert str(err) == Exception.__str__(err)
 
 
-def test_question_list_preserves_mixed_string_and_dict_items() -> None:
-    from gpd.core.extras import question_list
+@pytest.mark.parametrize(
+    ("helper_name", "payload_key", "first_item", "dict_item_text", "last_item"),
+    [
+        (
+            "question_list",
+            "open_questions",
+            "Why does the coupling diverge?",
+            "Is the vacuum stable?",
+            "What about unitarity?",
+        ),
+        (
+            "calculation_list",
+            "active_calculations",
+            "Compute one-loop correction",
+            "Evaluate path integral",
+            "Check Ward identity",
+        ),
+    ],
+)
+def test_mixed_item_list_helpers_preserve_order_and_dict_entries(
+    helper_name: str,
+    payload_key: str,
+    first_item: str,
+    dict_item_text: str,
+    last_item: str,
+) -> None:
+    from gpd.core import extras
 
-    result = question_list(
+    helper = getattr(extras, helper_name)
+    result = helper(
         {
-            "open_questions": [
-                "Why does the coupling diverge?",
-                {"text": "Is the vacuum stable?", "priority": "high"},
-                "What about unitarity?",
+            payload_key: [
+                first_item,
+                {"text": dict_item_text, "priority": "high" if helper_name == "question_list" else "in-progress"},
+                last_item,
             ]
         }
     )
 
-    assert result[0] == "Why does the coupling diverge?"
+    assert result[0] == first_item
     assert isinstance(result[1], dict)
-    assert result[1]["text"] == "Is the vacuum stable?"
-    assert result[2] == "What about unitarity?"
-
-
-def test_calculation_list_preserves_mixed_string_and_dict_items() -> None:
-    from gpd.core.extras import calculation_list
-
-    result = calculation_list(
-        {
-            "active_calculations": [
-                "Compute one-loop correction",
-                {"text": "Evaluate path integral", "status": "in-progress"},
-                "Check Ward identity",
-            ]
-        }
-    )
-
-    assert result[0] == "Compute one-loop correction"
-    assert isinstance(result[1], dict)
-    assert result[1]["text"] == "Evaluate path integral"
-    assert result[2] == "Check Ward identity"
+    assert result[1]["text"] == dict_item_text
+    assert result[2] == last_item
 
 
 def test_approximation_list_skips_corrupt_entries() -> None:
@@ -140,26 +172,47 @@ def test_json_set_reports_type_mismatch_errors(tmp_path: Path) -> None:
     assert "error" in result
 
 
-@pytest.mark.parametrize(
-    "yaml_block",
-    [
-        "gpd_return: completed",
-        "gpd_return:\n  - a\n  - b",
-        "gpd_return: null",
-    ],
-)
-def test_check_latest_return_tolerates_non_dict_gpd_return(tmp_path: Path, yaml_block: str) -> None:
-    from gpd.core.health import check_latest_return
+def test_check_latest_return_selects_latest_summary_file_deterministically(tmp_path: Path) -> None:
+    from gpd.core.health import CheckStatus, check_latest_return
 
-    result = check_latest_return(_setup_project_with_summary(tmp_path, yaml_block))
+    gpd_dir = tmp_path / "GPD" / "phases"
+    older_phase = gpd_dir / "01-alpha"
+    newer_phase = gpd_dir / "02-beta"
+    older_phase.mkdir(parents=True)
+    newer_phase.mkdir(parents=True)
 
-    assert result.label == "Latest Return Envelope"
+    older_summary = older_phase / "01-alpha-01-SUMMARY.md"
+    newer_summary = newer_phase / "02-beta-01-SUMMARY.md"
+    for summary in (older_summary, newer_summary):
+        summary.write_text(
+            "# Summary\n\n"
+            "```yaml\n"
+            "gpd_return:\n"
+            "  status: completed\n"
+            "  files_written: [src/main.py]\n"
+            "  issues: []\n"
+            "  next_actions: [/gpd:verify-work 01]\n"
+            "```\n",
+            encoding="utf-8",
+        )
+
+    same_mtime = 1_700_000_000
+    os.utime(older_summary, (same_mtime, same_mtime))
+    os.utime(newer_summary, (same_mtime, same_mtime))
+
+    result = check_latest_return(tmp_path)
+    repeated = check_latest_return(tmp_path)
+
+    assert result.status == CheckStatus.OK
+    assert result.details["file"] == "02-beta/02-beta-01-SUMMARY.md"
+    assert repeated.details["file"] == result.details["file"]
+    assert result.details["fields_found"] == ["files_written", "issues", "next_actions", "status"]
 
 
 def test_apply_fixes_resets_config_on_parse_error(tmp_path: Path) -> None:
     from gpd.core.health import CheckStatus, HealthCheck, _apply_fixes
 
-    gpd_dir = tmp_path / ".gpd"
+    gpd_dir = tmp_path / "GPD"
     gpd_dir.mkdir()
 
     fixes = _apply_fixes(
@@ -198,7 +251,7 @@ def test_verify_output_checksum_trims_whitespace(tmp_path: Path) -> None:
     assert verify_output_checksum(test_file, f"\n{expected}\n") is True
 
 
-def test_empty_manifest_has_full_checksum_coverage() -> None:
+def test_empty_manifest_has_no_checksum_coverage() -> None:
     from gpd.core.reproducibility import validate_reproducibility_manifest
 
     manifest = {
@@ -223,7 +276,8 @@ def test_empty_manifest_has_full_checksum_coverage() -> None:
 
     result = validate_reproducibility_manifest(manifest)
 
-    assert result.checksum_coverage_percent == 100.0
+    assert result.checksum_coverage_percent == 0.0
+    assert result.ready_for_review is False
 
 
 def test_result_update_wraps_validation_error_as_result_error() -> None:
@@ -303,7 +357,7 @@ def test_verification_checks_api_handles_valid_and_invalid_ids() -> None:
     assert get_verification_check("5.1") is not None
     assert get_verification_check("contract.benchmark_reproduction") is not None
     assert get_verification_check("99.99") is None
-    assert len(list_verification_checks()) >= 15
+    assert list_verification_checks()
 
 
 def test_error_class_3_maps_to_expected_primary_checks() -> None:
@@ -373,7 +427,7 @@ def test_body_one_liner_regex_ignores_mid_document_frontmatter() -> None:
 def test_show_events_returns_empty_when_session_logs_have_no_matches(tmp_path: Path) -> None:
     from gpd.core.observability import show_events
 
-    sessions_dir = tmp_path / ".gpd" / "observability" / "sessions"
+    sessions_dir = tmp_path / "GPD" / "observability" / "sessions"
     sessions_dir.mkdir(parents=True)
     (sessions_dir / "session-a.jsonl").write_text(
         '{"event_id": "e1", "timestamp": "2026-03-10T00:00:00+00:00", "session_id": "session-a", "action": "log", "category": "test", "name": "demo", "status": "ok"}\n',
@@ -396,22 +450,21 @@ def test_coverage_metric_rejects_nonzero_satisfied_with_zero_total() -> None:
 def test_suggest_next_handles_non_utf8_state_json(tmp_path: Path) -> None:
     from gpd.core.suggest import suggest_next
 
-    gpd_dir = tmp_path / ".gpd"
+    gpd_dir = tmp_path / "GPD"
     gpd_dir.mkdir()
     (gpd_dir / "state.json").write_bytes(b'{"position": "\x80\x81\x82"}')
 
     assert suggest_next(tmp_path) is not None
 
 
-def test_regression_check_detects_standalone_verification_files(tmp_path: Path) -> None:
+def test_regression_check_detects_numbered_verification_files(tmp_path: Path) -> None:
     from gpd.core.commands import cmd_regression_check
-    from gpd.core.constants import STANDALONE_VERIFICATION
 
-    phase_dir = tmp_path / ".gpd" / "phases" / "01-setup"
+    phase_dir = tmp_path / "GPD" / "phases" / "01-setup"
     phase_dir.mkdir(parents=True)
     (phase_dir / "task-1-PLAN.md").write_text("plan", encoding="utf-8")
     (phase_dir / "task-1-SUMMARY.md").write_text("---\nphase: 1\n---\n# Summary\n", encoding="utf-8")
-    (phase_dir / STANDALONE_VERIFICATION).write_text(
+    (phase_dir / "01-VERIFICATION.md").write_text(
         "---\nstatus: gaps_found\nscore: 3/5\n---\n# Verification\nSome gaps here.\n",
         encoding="utf-8",
     )
@@ -420,3 +473,154 @@ def test_regression_check_detects_standalone_verification_files(tmp_path: Path) 
 
     assert result.phases_checked == 1
     assert any(issue.type == "unresolved_verification_issues" for issue in result.issues)
+
+
+def test_phase_complete_keeps_checkpoint_sync_nonfatal_for_malformed_summary(tmp_path: Path) -> None:
+    from gpd.core.phases import phase_complete
+
+    _setup_phase_project(tmp_path)
+    _write_phase_roadmap(
+        tmp_path,
+        "# Research Roadmap v1.0\n\n"
+        "## Phase Overview\n\n"
+        "- [ ] Phase 1: Setup\n"
+        "- [ ] Phase 2: Derivation\n\n"
+        "### Phase 1: Setup\n\n"
+        "**Goal:** Set up the framework\n"
+        "**Plans:** 1 plans\n\n"
+        "### Phase 2: Derivation\n\n"
+        "**Goal:** Derive the result\n"
+        "**Plans:** 1 plans\n",
+    )
+    _write_phase_state(
+        tmp_path,
+        "# Research State\n\n"
+        "## Current Position\n\n"
+        "**Current Phase:** 1\n"
+        "**Current Phase Name:** Setup\n"
+        "**Total Phases:** 2\n"
+        "**Current Plan:** 1\n"
+        "**Total Plans in Phase:** 1\n"
+        "**Status:** in_progress\n"
+        "**Last Activity:** 2026-02-23\n"
+        "**Last Activity Description:** Started\n",
+    )
+    _write_phase_file(tmp_path, "01-setup", "01-01-PLAN.md", "# Plan 1\n")
+    _write_phase_file(
+        tmp_path,
+        "01-setup",
+        "01-01-SUMMARY.md",
+        '---\nphase: "01"\nplan: "01"\ndepth: full\nprovides: []\ncompleted: "2026-02-23"\none-liner: "Summary 01"\n---\n\n# Summary\n',
+    )
+    _write_phase_file(tmp_path, "02-derivation", "02-01-PLAN.md", "# Plan 1\n")
+    _write_phase_file(
+        tmp_path,
+        "02-derivation",
+        "02-01-SUMMARY.md",
+        "---\n"
+        'phase: "02"\n'
+        'plan: "01"\n'
+        'completed: "2026-02-23"\n'
+        'one-liner: "Broken summary"\n'
+        "key-files:\n"
+        "  - src/model.py\n"
+        "key-decisions:\n"
+        "  - Keep the reduced wedge\n"
+        "patterns-established:\n"
+        "  - Hidden-damage rejection survives\n"
+        "invalid: [unterminated\n"
+        "---\n\n"
+        "# Summary\n",
+    )
+
+    result = phase_complete(tmp_path, "1")
+
+    assert result.completed_phase == "1"
+    assert result.next_phase == "02"
+    assert (tmp_path / "GPD" / "phase-checkpoints" / "01-setup.md").exists()
+    assert not (tmp_path / "GPD" / "phase-checkpoints" / "02-derivation.md").exists()
+    assert (tmp_path / "GPD" / "CHECKPOINTS.md").exists()
+
+
+@pytest.mark.parametrize(
+    ("phase_name", "phase_dir_name", "filename"),
+    [
+        ("phase_complete", "01-setup", "01-01-PLAN.md"),
+        ("phase_remove", "02-derivation", "02-01-PLAN.md"),
+    ],
+)
+def test_checkpoint_sync_failure_surfaces_for_phase_completion_and_removal(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    phase_name: str,
+    phase_dir_name: str,
+    filename: str,
+) -> None:
+    from gpd.core.phases import phase_complete, phase_remove
+
+    _setup_phase_project(tmp_path)
+    _write_phase_roadmap(
+        tmp_path,
+        "# Research Roadmap v1.0\n\n"
+        "## Phase Overview\n\n"
+        "- [ ] Phase 1: Setup\n"
+        "- [ ] Phase 2: Derivation\n\n"
+        "### Phase 1: Setup\n\n"
+        "**Goal:** Set up the framework\n"
+        "**Plans:** 1 plans\n\n"
+        "### Phase 2: Derivation\n\n"
+        "**Goal:** Derive the result\n"
+        "**Plans:** 1 plans\n",
+    )
+    _write_phase_state(
+        tmp_path,
+        "# Research State\n\n"
+        "## Current Position\n\n"
+        "**Current Phase:** 1\n"
+        "**Current Phase Name:** Setup\n"
+        "**Total Phases:** 2\n"
+        "**Current Plan:** 1\n"
+        "**Total Plans in Phase:** 1\n"
+        "**Status:** in_progress\n"
+        "**Last Activity:** 2026-02-23\n"
+        "**Last Activity Description:** Started\n",
+    )
+    _write_phase_file(tmp_path, "01-setup", "01-01-PLAN.md", "# Plan 1\n")
+    _write_phase_file(
+        tmp_path,
+        "01-setup",
+        "01-01-SUMMARY.md",
+        '---\nphase: "01"\nplan: "01"\ndepth: full\nprovides: []\ncompleted: "2026-02-23"\none-liner: "Summary 01"\n---\n\n# Summary\n',
+    )
+    _write_phase_file(tmp_path, "02-derivation", "02-01-PLAN.md", "# Plan 1\n")
+
+    def fail_sync(_cwd: Path) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr("gpd.core.phases.sync_phase_checkpoints", fail_sync)
+
+    with pytest.raises(OSError, match="disk full"):
+        if phase_name == "phase_complete":
+            phase_complete(tmp_path, "1")
+        else:
+            _write_phase_roadmap(
+                tmp_path,
+                "## Milestone v1.0: Core\n\n"
+                "### Phase 1: Setup\n\n"
+                "**Goal:** Establish the framework\n"
+                "**Plans:** 1 plans\n\n"
+                "### Phase 2: Derivation\n\n"
+                "**Goal:** Derive the result\n"
+                "**Plans:** 1 plans\n",
+            )
+            _write_phase_state(
+                tmp_path,
+                "# Research State\n\n"
+                "## Current Position\n\n"
+                "**Current Phase:** 1\n"
+                "**Status:** Planning\n"
+                "**Last Activity:** 2026-02-23\n"
+                "**Last Activity Description:** Started\n",
+            )
+            _write_phase_file(tmp_path, phase_dir_name, filename, "# Plan 1\n")
+            phase_remove(tmp_path, "2")

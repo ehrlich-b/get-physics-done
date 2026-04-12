@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from gpd.core.return_contract import REQUIRED_RETURN_FIELDS, VALID_RETURN_STATUSES
+
 __all__ = [
     "ACTIVE_TRACE_FILENAME",
     "ANALYSIS_DIR_NAME",
@@ -20,6 +22,9 @@ __all__ = [
     "CONFIG_FILENAME",
     "CONTEXT_SUFFIX",
     "CONVENTIONS_FILENAME",
+    "COST_LEDGER_DIR_NAME",
+    "COST_LEDGER_RECORDS_FILENAME",
+    "COST_PRICING_SNAPSHOT_FILENAME",
     "DECISION_THRESHOLD",
     "DEFAULT_MAX_INCLUDE_CHARS",
     "ENV_DATA_DIR",
@@ -28,7 +33,13 @@ __all__ = [
     "ENV_GPD_DEBUG",
     "ENV_MAX_INCLUDE_CHARS",
     "ENV_PATTERNS_ROOT",
+    "EXECUTION_LINEAGE_HEAD_FILENAME",
+    "EXECUTION_LINEAGE_LEDGER_FILENAME",
+    "EXECUTION_LINEAGE_REDUCER_VERSION",
+    "EXECUTION_LINEAGE_SCHEMA_VERSION",
+    "HOME_DATA_DIR_NAME",
     "LITERATURE_DIR_NAME",
+    "KNOWLEDGE_DIR_NAME",
     "MILESTONES_DIR_NAME",
     "MILESTONES_FILENAME",
     "MIN_PYTHON_MAJOR",
@@ -42,6 +53,7 @@ __all__ = [
     "PATTERNS_INDEX_FILENAME",
     "PHASES_DIR_NAME",
     "PHASE_CHECKPOINTS_DIR_NAME",
+    "LINEAGE_DIR_NAME",
     "PLANNING_DIR_NAME",
     "PLAN_SUFFIX",
     "PROJECT_FILENAME",
@@ -53,6 +65,8 @@ __all__ = [
     "REQUIRED_SPECS_SUBDIRS",
     "REQUIREMENTS_FILENAME",
     "RESEARCH_MAP_DIR_NAME",
+    "RECENT_PROJECTS_DIR_NAME",
+    "RECENT_PROJECTS_INDEX_FILENAME",
     "RESEARCH_SUFFIX",
     "ROADMAP_FILENAME",
     "SCRATCH_DIR_NAME",
@@ -83,9 +97,9 @@ __all__ = [
 ]
 
 # ─── Planning Directory Layout ────────────────────────────────────────────────
-# These define the on-disk layout of a GPD project's .gpd/ directory.
+# These define the on-disk layout of a GPD project's GPD/ directory.
 
-PLANNING_DIR_NAME = ".gpd"
+PLANNING_DIR_NAME = "GPD"
 """Top-level GPD metadata directory inside a project root."""
 
 STATE_JSON_FILENAME = "state.json"
@@ -113,25 +127,25 @@ MILESTONES_FILENAME = "MILESTONES.md"
 """Milestone tracking document."""
 
 CHECKPOINTS_FILENAME = "CHECKPOINTS.md"
-"""Root-level human-facing checkpoint index."""
+"""Generated human-facing checkpoint index under GPD/."""
 
 AGENT_ID_FILENAME = "current-agent-id.txt"
 """File storing the current agent's identifier for resume detection."""
 
 PHASES_DIR_NAME = "phases"
-"""Subdirectory under .gpd/ containing per-phase directories."""
+"""Subdirectory under GPD/ containing per-phase directories."""
 
 PHASE_CHECKPOINTS_DIR_NAME = "phase-checkpoints"
-"""Root-level generated checkpoint shelf with one document per phase."""
+"""Generated checkpoint shelf under GPD/ with one document per phase."""
 
 ANALYSIS_DIR_NAME = "analysis"
-"""Subdirectory under .gpd/ for internal analysis/provenance reports."""
+"""Subdirectory under GPD/ for internal analysis/provenance reports."""
 
 TRACES_DIR_NAME = "traces"
-"""Subdirectory under .gpd/ for execution trace JSONL files."""
+"""Subdirectory under GPD/ for execution trace JSONL files."""
 
 OBSERVABILITY_DIR_NAME = "observability"
-"""Subdirectory under .gpd/ for local session/event observability logs."""
+"""Subdirectory under GPD/ for local session/event observability logs."""
 
 OBSERVABILITY_SESSIONS_DIR_NAME = "sessions"
 """Subdirectory under observability/ containing per-session event streams."""
@@ -142,20 +156,56 @@ OBSERVABILITY_CURRENT_SESSION_FILENAME = "current-session.json"
 OBSERVABILITY_CURRENT_EXECUTION_FILENAME = "current-execution.json"
 """Pointer to the latest active or resumable execution-state snapshot."""
 
+OBSERVABILITY_LAST_NOTIFY_FILENAME = "last-notify.json"
+"""Marker used by notify hooks to suppress duplicate execution notifications."""
+
+LINEAGE_DIR_NAME = "lineage"
+"""Subdirectory under GPD/ containing append-only lineage projections."""
+
+EXECUTION_LINEAGE_LEDGER_FILENAME = "execution-lineage.jsonl"
+"""Append-only JSONL ledger for execution lineage events."""
+
+EXECUTION_LINEAGE_HEAD_FILENAME = "execution-head.json"
+"""Derived JSON cache for the latest execution head projection."""
+
+EXECUTION_LINEAGE_SCHEMA_VERSION = 1
+"""Schema version for execution lineage records and head projections."""
+
+EXECUTION_LINEAGE_REDUCER_VERSION = "1"
+"""Reducer version for the execution lineage projector."""
+
 MILESTONES_DIR_NAME = "milestones"
-"""Subdirectory under .gpd/ for archived milestone snapshots."""
+"""Subdirectory under GPD/ for archived milestone snapshots."""
 
 TODOS_DIR_NAME = "todos"
-"""Subdirectory under .gpd/ for todo items."""
+"""Subdirectory under GPD/ for todo items."""
 
 LITERATURE_DIR_NAME = "literature"
-"""Subdirectory under .gpd/ for literature review files."""
+"""Subdirectory under GPD/ for literature review files."""
+
+KNOWLEDGE_DIR_NAME = "knowledge"
+"""Subdirectory under GPD/ for knowledge documents."""
 
 RESEARCH_MAP_DIR_NAME = "research-map"
-"""Subdirectory under .gpd/ for theory/research map files."""
+"""Subdirectory under GPD/ for theory/research map files."""
+
+RECENT_PROJECTS_DIR_NAME = "recent-projects"
+"""Subdirectory under the home GPD data root for recent-project discovery state."""
+
+RECENT_PROJECTS_INDEX_FILENAME = "index.json"
+"""Index filename for the machine-local recent-project advisory cache."""
+
+COST_LEDGER_DIR_NAME = "cost"
+"""Subdirectory under the home GPD data root for machine-local usage/cost records."""
+
+COST_LEDGER_RECORDS_FILENAME = "usage.jsonl"
+"""Append-only JSONL ledger filename for measured usage/cost records."""
+
+COST_PRICING_SNAPSHOT_FILENAME = "pricing-snapshot.json"
+"""Optional machine-local pricing snapshot used for conservative USD estimates."""
 
 SCRATCH_DIR_NAME = "tmp"
-"""Subdirectory under .gpd/ for transient scratch files."""
+"""Subdirectory under GPD/ for transient scratch files."""
 
 ACTIVE_TRACE_FILENAME = ".active-trace"
 """Marker file in traces/ indicating the currently recording trace."""
@@ -235,6 +285,9 @@ PATTERNS_INDEX_FILENAME = "index.json"
 PATTERNS_BY_DOMAIN_DIR = "patterns-by-domain"
 """Subdirectory containing domain-organized pattern files."""
 
+HOME_DATA_DIR_NAME = ".gpd"
+"""Hidden home-directory data root for cross-project caches and managed runtime state."""
+
 
 # ─── Environment Variable Names ──────────────────────────────────────────────
 # All env vars that GPD reads.
@@ -267,13 +320,13 @@ REQUIRED_PLANNING_FILES: tuple[str, ...] = (
     STATE_JSON_FILENAME,
     PROJECT_FILENAME,
 )
-"""Files that must exist in .gpd/ for a valid project."""
+"""Files that must exist in GPD/ for a valid project."""
 
 REQUIRED_PLANNING_DIRS: tuple[str, ...] = (PHASES_DIR_NAME,)
-"""Directories that must exist in .gpd/ for a valid project."""
+"""Directories that must exist in GPD/ for a valid project."""
 
 OPTIONAL_PLANNING_FILES: tuple[str, ...] = (CONFIG_FILENAME, CONVENTIONS_FILENAME)
-"""Files that are checked but not required in .gpd/."""
+"""Files that are checked but not required in GPD/."""
 
 
 # ─── Specs Doctor Required Subdirs ────────────────────────────────────────────
@@ -317,12 +370,6 @@ RECOMMENDED_PYTHON_VERSION: tuple[int, int] = (3, 12)
 SEED_PATTERN_INITIAL_OCCURRENCES: int = 5
 """Initial occurrence count for seed patterns in pattern_seed()."""
 
-VALID_RETURN_STATUSES: frozenset[str] = frozenset({"completed", "checkpoint", "blocked", "failed"})
-"""Allowed values for gpd_return.status in summary files."""
-
-REQUIRED_RETURN_FIELDS: tuple[str, ...] = ("status", "files_written", "issues", "next_actions")
-"""Fields that must be present in a gpd_return YAML block."""
-
 
 # ─── Project Layout ─────────────────────────────────────────────────────────
 
@@ -331,16 +378,16 @@ class ProjectLayout:
     """Configurable project directory structure.
 
     Centralizes ALL path construction for a GPD project so that no module
-    needs to hardcode ``".gpd"`` or filename strings.  Every path-
+    needs to hardcode ``"GPD"`` or filename strings.  Every path-
     producing helper in state.py, phases.py, health.py, trace.py, config.py,
     and query.py should delegate to an instance of this class.
 
     Example::
 
         layout = ProjectLayout(project_root)
-        state_json = layout.state_json        # project_root / ".gpd" / "state.json"
-        traces      = layout.traces_dir              # project_root / ".gpd" / "traces"
-        sessions    = layout.observability_sessions_dir  # project_root / ".gpd" / "observability" / "sessions"
+        state_json = layout.state_json        # project_root / "GPD" / "state.json"
+        traces      = layout.traces_dir              # project_root / "GPD" / "traces"
+        sessions    = layout.observability_sessions_dir  # project_root / "GPD" / "observability" / "sessions"
         current_obs = layout.current_observability_session
         phase_dir   = layout.phase_dir("01-setup")
     """
@@ -399,7 +446,7 @@ class ProjectLayout:
 
     @property
     def checkpoints_md(self) -> Path:
-        return self.root / CHECKPOINTS_FILENAME
+        return self.gpd / CHECKPOINTS_FILENAME
 
     @property
     def agent_id_file(self) -> Path:
@@ -413,7 +460,7 @@ class ProjectLayout:
 
     @property
     def phase_checkpoints_dir(self) -> Path:
-        return self.root / PHASE_CHECKPOINTS_DIR_NAME
+        return self.gpd / PHASE_CHECKPOINTS_DIR_NAME
 
     @property
     def analysis_dir(self) -> Path:
@@ -428,6 +475,10 @@ class ProjectLayout:
         return self.gpd / OBSERVABILITY_DIR_NAME
 
     @property
+    def lineage_dir(self) -> Path:
+        return self.gpd / LINEAGE_DIR_NAME
+
+    @property
     def observability_sessions_dir(self) -> Path:
         return self.observability_dir / OBSERVABILITY_SESSIONS_DIR_NAME
 
@@ -440,6 +491,18 @@ class ProjectLayout:
         return self.observability_dir / OBSERVABILITY_CURRENT_EXECUTION_FILENAME
 
     @property
+    def last_observability_notification(self) -> Path:
+        return self.observability_dir / OBSERVABILITY_LAST_NOTIFY_FILENAME
+
+    @property
+    def execution_lineage_ledger(self) -> Path:
+        return self.lineage_dir / EXECUTION_LINEAGE_LEDGER_FILENAME
+
+    @property
+    def execution_lineage_head(self) -> Path:
+        return self.lineage_dir / EXECUTION_LINEAGE_HEAD_FILENAME
+
+    @property
     def milestones_dir(self) -> Path:
         return self.gpd / MILESTONES_DIR_NAME
 
@@ -450,6 +513,10 @@ class ProjectLayout:
     @property
     def literature_dir(self) -> Path:
         return self.gpd / LITERATURE_DIR_NAME
+
+    @property
+    def knowledge_dir(self) -> Path:
+        return self.gpd / KNOWLEDGE_DIR_NAME
 
     @property
     def research_map_dir(self) -> Path:

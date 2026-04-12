@@ -6,7 +6,18 @@ template_version: 1
 
 Canonical PLAN.md structure for `gpd-planner`. PLAN.md is the executor prompt, so every field must be specific enough to execute and verify without interpretation.
 
-Before authoring or revising the `contract:` block, use `@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md` as the schema source of truth. The contract must stay a YAML object with object arrays and fully resolved ID cross-links.
+Use the canonical schema below before drafting any `contract:` block.
+
+@{GPD_INSTALL_DIR}/templates/plan-contract-schema.md
+
+Quick contract rules:
+- Put machine-checkable prerequisites in `tool_requirements`; keep human-only setup in `researcher_setup`. `tool_requirements[].id` values must be unique within the list.
+- Gap-closure plans still use `type: execute`; mark verification-repair plans with `gap_closure: true` instead of inventing a third plan type.
+- `scope.in_scope` must be populated in project-scoping plans, and `context_intake` anchors must be concrete enough to re-find later.
+- Keep `claim_kind`, `observables[].kind`, `deliverables[].kind`, `acceptance_tests[].kind`, `references[].kind`, `references[].role`, `links[].relation`, `must_surface`, `required_actions[]`, `applies_to[]`, `carry_forward_to[]`, and `uncertainty_markers` visible. When `must_surface` is `true`, keep `required_actions[]` and `applies_to[]` non-empty, and treat `carry_forward_to[]` as workflow scope only.
+- `context_intake`, `approach_policy`, and `uncertainty_markers` must stay YAML objects.
+- The validator accepts a closed tool vocabulary today: `wolfram` and `command`. For `tool: command`, a non-empty `command` field is mandatory; for other tools, omit `command`. `required` defaults to `true`, and `fallback` does not waive a required tool.
+- For proof-bearing work, use an explicit non-`other` `claim_kind`, keep hypotheses, parameters, and conclusions auditable, and name `observables[].kind: proof_obligation` items with the theorem or claim plus the hypotheses or parameter regime they cover. If a proof or theorem statement changes after a proof audit, treat that audit as stale before `status: passed` is possible for the affected target.
 
 ---
 
@@ -16,12 +27,25 @@ Before authoring or revising the `contract:` block, use `@{GPD_INSTALL_DIR}/temp
 ---
 phase: XX-name
 plan: NN
-type: execute | tdd | gap_closure
+type: execute | tdd
 wave: N
 depends_on: []
 files_modified: []
 interactive: false
+# gap_closure: true # Optional. Use only for verification repair plans.
 researcher_setup: [] # Optional. Omit if empty.
+# tool_requirements: # Optional machine-checkable specialized tools. Omit entirely if none.
+#   - id: "wolfram-cas"
+#     tool: "wolfram"
+#     purpose: "[Why this specialized tool is needed]"
+#     required: false
+#     fallback: "[Standard-tool fallback when feasible]"
+#   - id: "latex-compiler"
+#     tool: "command"
+#     command: "pdflatex --version"
+#     purpose: "[Executable probe when a specific local command must exist]"
+#     # `required` defaults to true when omitted.
+#     # A fallback does not make a missing required tool non-blocking.
 
 conventions:
   units: "natural"
@@ -39,8 +63,17 @@ approximations:
     check: "verification that guards the approximation"
 
 contract:
+  schema_version: 1
   scope:
     question: "[The decisive question this plan advances]"
+    in_scope: ["[Concrete objective or boundary this plan owns]"]
+  context_intake:
+    must_read_refs: [ref-main]
+    must_include_prior_outputs: ["GPD/phases/00-baseline/00-01-SUMMARY.md"]
+    user_asserted_anchors: ["GPD/phases/00-baseline/00-01-SUMMARY.md#vacuum-polarization-normalization"]
+    known_good_baselines: ["GPD/phases/00-baseline/00-01-SUMMARY.md#accepted-reference-curve"]
+    context_gaps: ["Comparison source still undecided before planning"]
+    crucial_inputs: ["Check the user's finite-volume cutoff choice before proceeding"]
   claims:
     - id: "claim-main"
       statement: "[Physics statement this plan must establish]"
@@ -92,14 +125,13 @@ Output: [Derivations, code, data, figures, or notes created by this plan]
 </objective>
 
 <execution_context>
-@{GPD_INSTALL_DIR}/workflows/execute-plan.md
-@{GPD_INSTALL_DIR}/templates/summary.md
+Downstream execution reads its execution workflow and summary template later. Do not inline those late-stage materials into the planning template itself.
 </execution_context>
 
 <context>
-@.gpd/PROJECT.md
-@.gpd/ROADMAP.md
-@.gpd/STATE.md
+@GPD/PROJECT.md
+@GPD/ROADMAP.md
+@GPD/STATE.md
 @path/to/reference-or-benchmark-anchor.md
 @path/to/prior-summary-or-input.md
 </context>
@@ -133,7 +165,7 @@ Output: [Derivations, code, data, figures, or notes created by this plan]
 </success_criteria>
 
 <output>
-After completion, create `.gpd/phases/XX-name/{phase}-{plan}-SUMMARY.md`.
+After completion, create `GPD/phases/XX-name/{phase}-{plan}-SUMMARY.md`.
 </output>
 ```
 
@@ -177,7 +209,15 @@ For `plan depth: light`, keep the same frontmatter but reduce the body to:
 - `<success_criteria>`
 
 Do not omit the `contract`, conventions, or approximation validity just because the plan is light.
-The `contract` block is still required in light mode, including any `links` needed to make downstream handoffs explicit.
+The `contract` block is still required in light mode, including `contract.context_intake` and any `links` needed to make downstream handoffs explicit.
+If the plan is intentionally scoping-only, keep that limited shape explicit and preserve at least one target, open question, or carry-forward input.
+
+## Contract Shape Classifier
+
+- Reduced contract: legal only when the plan is explicitly scoping or exploratory.
+- Full contract: required when the plan will execute, verify, or publish a concrete result.
+- A reduced contract still needs `scope`, `contract.context_intake`, and `uncertainty_markers` explicit, plus at least one target, open question, or carry-forward input.
+- Light mode changes the body only; it does not change the contract classifier above.
 
 ---
 
@@ -202,8 +242,17 @@ dimensional_check:
   Pi_munu: "[mass^2]"
 
 contract:
+  schema_version: 1
   scope:
     question: What benchmark must this plan recover?
+    in_scope: ["Recover the benchmark curve within tolerance"]
+  context_intake:
+    must_read_refs: [ref-textbook]
+    must_include_prior_outputs: ["GPD/phases/00-baseline/00-01-SUMMARY.md"]
+    user_asserted_anchors: ["GPD/phases/00-baseline/00-01-SUMMARY.md#vacuum-polarization-normalization"]
+    known_good_baselines: ["GPD/phases/00-baseline/00-01-SUMMARY.md#accepted-reference-curve"]
+    context_gaps: ["Need the exact comparison source before planning"]
+    crucial_inputs: ["Confirm the user's cutoff convention before writing the plan"]
   claims:
     - id: claim-polarization
       statement: Vacuum polarization tensor is transverse

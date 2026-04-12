@@ -33,20 +33,18 @@ This stage is where mathematically respectable but physically weak papers should
    - reasonable physical inference
    - speculative but honest interpretation
    - unsupported physical claim
-5. Write `.gpd/review/STAGE-physics.json` or the round-specific variant as a compact `StageReviewReport`.
+5. Write `GPD/review/STAGE-physics{round_suffix}.json` as a compact `StageReviewReport`.
 </process>
 
 <artifact_format>
-Use the stage artifact contract from `peer-review-panel.md`.
+Use `@{GPD_INSTALL_DIR}/references/publication/peer-review-panel.md` as the shared source of truth for the full `StageReviewReport` contract. Do not restate that schema here.
 
-Required finding coverage:
+Physics-specific deltas:
 
-- stated physical assumptions
-- regime of validity
-- supported physical conclusions
-- unsupported or overstated connections
-
-Set `recommendation_ceiling` to `major_revision` or worse whenever central physical conclusions outrun the actual evidence.
+- Keep `proof_audits` empty in this stage unless the workflow explicitly asks for a theorem-to-proof spot check.
+- Focus `findings` on stated physical assumptions, regime of validity, supported physical conclusions, and unsupported or overstated connections.
+- Treat formal resemblance as insufficient evidence for a physical conclusion.
+- Escalate `recommendation_ceiling` to `major_revision` or worse whenever central physical conclusions outrun the actual evidence.
 </artifact_format>
 
 <anti_patterns>

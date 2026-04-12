@@ -5,7 +5,7 @@ type: reproducibility-manifest
 
 # Reproducibility Manifest Template
 
-Template for `paper/reproducibility-manifest.json` — the machine-readable manifest consumed by `gpd validate reproducibility-manifest` and strict review preflight checks.
+Template for `${PAPER_DIR}/reproducibility-manifest.json` — the machine-readable manifest consumed by `gpd validate reproducibility-manifest` and strict review preflight checks.
 
 ---
 
@@ -163,6 +163,17 @@ Template for `paper/reproducibility-manifest.json` — the machine-readable mani
 
 ## Guidelines
 
+**Strict review-ready requirements (`gpd validate reproducibility-manifest ... --strict` and strict review preflight):**
+- The manifest must be schema-valid and warning-free. Strict validation fails on warnings, not only on hard errors.
+- `environment.required_packages` must be non-empty, and every package `version` must be pinned to an exact version string.
+- `environment.lock_file` must name the real lock file used to pin the environment.
+- Every `input_data`, `generated_data`, and `output_files` entry must carry a valid SHA-256 checksum. Draft-only approximate output checksums still emit warnings and therefore block strict review.
+- `execution_steps` are required, and the manifest must declare `expected_results` or `output_files` so a reviewer knows what success looks like.
+- Every `execution_steps[].name` should appear in `resource_requirements[].step`; missing per-step coverage emits warnings that block strict review.
+- Every stochastic `execution_steps[].name` must have a matching `random_seeds[].computation`, and `seeding_strategy` must be non-empty.
+- `verification_steps` should include at least three concrete steps: rerun the pipeline, compare key numbers, and inspect emitted artifacts.
+- `minimum_viable`, `recommended`, `last_verified`, and `last_verified_platform` must all be populated before strict review. If `last_verified` is set, `last_verified_platform` must also be set.
+
 **What must be pinned:**
 - All Python packages with exact versions (not ranges)
 - System libraries if compilation is involved
@@ -170,8 +181,8 @@ Template for `paper/reproducibility-manifest.json` — the machine-readable mani
 - Random seeds for stochastic computations
 
 **Current artifact path and validator:**
-- Store this file as `paper/reproducibility-manifest.json`
-- Validate with `gpd validate reproducibility-manifest paper/reproducibility-manifest.json --strict`
+- Store this file as `${PAPER_DIR}/reproducibility-manifest.json`
+- Validate with `gpd validate reproducibility-manifest "${PAPER_DIR}/reproducibility-manifest.json" --strict`
 - Use this template as the schema source of truth for manual manifests
 
 **Field linkage rules:**
@@ -180,7 +191,7 @@ Template for `paper/reproducibility-manifest.json` — the machine-readable mani
 - `environment.lock_file` may be `uv.lock`, `poetry.lock`, or another real lock file path, but it must name the file actually used to pin the environment
 
 **What can be approximate:**
-- Figure checksums (font rendering varies)
+- Figure checksums may be recorded temporarily as `approx:[64-char sha256]` or with `approximate_checksum: true` while drafting, but those warnings still fail `--strict`; replace them with exact SHA-256 values before strict review
 - Wall time estimates (hardware-dependent)
 - Memory requirements (OS overhead varies)
 

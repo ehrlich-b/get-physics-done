@@ -2,11 +2,11 @@
 
 **Read these files NOW:**
 
-1. `.gpd/STATE.md`
-2. `.gpd/PROJECT.md`
-3. `.gpd/ROADMAP.md`
-4. Current phase's plan files (`*-PLAN.md`)
-5. Current phase's summary files (`*-SUMMARY.md`)
+1. `GPD/STATE.md`
+2. `GPD/PROJECT.md`
+3. `GPD/ROADMAP.md`
+4. Current phase's plan files (`PLAN.md` and `*-PLAN.md`)
+5. Current phase's summary files (`SUMMARY.md` and `*-SUMMARY.md`)
 
 </required_reading>
 
@@ -25,7 +25,7 @@ Mark current research phase complete and advance to next. This is the natural po
 Before transition, read project state:
 
 ```bash
-for f in .gpd/STATE.md .gpd/PROJECT.md .gpd/ROADMAP.md; do
+for f in GPD/STATE.md GPD/PROJECT.md GPD/ROADMAP.md; do
   if [ -f "$f" ]; then cat "$f"; else echo "WARNING: $f not found"; fi
 done
 ```
@@ -36,8 +36,8 @@ Note accumulated context that may need updating after transition.
 **Extract current phase variables from STATE.md:**
 
 ```bash
-CURRENT_PHASE=$(grep "^Phase:" .gpd/STATE.md | head -1 | grep -oE '[0-9]+(\.[0-9]+)?' | head -1)
-PHASE_DIR=$(ls -d .gpd/phases/${CURRENT_PHASE}-* 2>/dev/null | head -1)
+CURRENT_PHASE=$(grep '^\*\*Current Phase:\*\*' GPD/STATE.md | head -1 | grep -oE '[0-9]+(\.[0-9]+)?' | head -1)
+PHASE_DIR=$(ls -d GPD/phases/${CURRENT_PHASE}-* 2>/dev/null | head -1)
 ```
 
 These are used throughout the workflow as `${CURRENT_PHASE}` (phase number) and `${PHASE_DIR}` (full path to phase directory).
@@ -57,21 +57,21 @@ Exit without further action. This prevents duplicate entries in DECISIONS.md and
 Check current phase has all plan summaries:
 
 ```bash
-ls ${PHASE_DIR}/*-PLAN.md 2>/dev/null | sort
-ls ${PHASE_DIR}/*-SUMMARY.md 2>/dev/null | sort
+ls "${PHASE_DIR}"/PLAN.md "${PHASE_DIR}"/*-PLAN.md 2>/dev/null | sort
+ls "${PHASE_DIR}"/SUMMARY.md "${PHASE_DIR}"/*-SUMMARY.md 2>/dev/null | sort
 ```
 
 **Verification logic:**
 
-- Count PLAN files
-- Count SUMMARY files
+- Count standalone and numbered PLAN files
+- Count standalone and numbered SUMMARY files
 - If counts match: all plans complete
 - If counts don't match: incomplete
 
 <config-check>
 
 ```bash
-if [ -f .gpd/config.json ]; then cat .gpd/config.json; else echo "WARNING: config.json not found — using defaults"; fi
+if [ -f GPD/config.json ]; then cat GPD/config.json; else echo "WARNING: config.json not found — using defaults"; fi
 ```
 
 </config-check>
@@ -126,13 +126,13 @@ Wait for user decision.
 
 <step name="cleanup_handoff">
 
-Check for lingering handoffs:
+Check for lingering continuation handoff artifacts:
 
 ```bash
 ls ${PHASE_DIR}/.continue-here*.md 2>/dev/null
 ```
 
-If found, delete them — phase is complete, handoffs are stale.
+If found, delete them — phase is complete, so those continuation handoff artifacts are stale.
 
 </step>
 
@@ -155,6 +155,7 @@ The tool handles:
 - Updating the Progress table (Status -> Complete, adding date)
 - Advancing STATE.md to next phase (Current Phase, Status -> Ready to plan, Current Plan -> Not started)
 - Detecting if this is the last phase in the milestone
+- Counting standalone `PLAN.md` / `SUMMARY.md` alongside numbered `*-PLAN.md` / `*-SUMMARY.md` artifacts
 
 Extract from result: `completed_phase`, `plans_executed`, `next_phase`, `next_phase_name`, `is_last_phase`.
 
@@ -173,7 +174,7 @@ Evolve PROJECT.md to reflect learnings from completed phase.
 **Read phase summaries:**
 
 ```bash
-cat ${PHASE_DIR}/*-SUMMARY.md
+cat ${PHASE_DIR}/SUMMARY.md ${PHASE_DIR}/*-SUMMARY.md 2>/dev/null
 ```
 
 **Assess research question changes:**
@@ -268,20 +269,20 @@ After (Phase 2 computed spectral gap, discovered anomalous scaling):
 
 <step name="append_decisions_log">
 
-**Append decisions from this phase to .gpd/DECISIONS.md.**
+**Append decisions from this phase to GPD/DECISIONS.md.**
 
 This step captures decisions in the cumulative decision log (separate from the PROJECT.md Key Decisions table updated in evolve_project).
 
 **1. Extract decisions from phase summaries:**
 
 ```bash
-cat ${PHASE_DIR}/*-SUMMARY.md
+cat ${PHASE_DIR}/SUMMARY.md ${PHASE_DIR}/*-SUMMARY.md 2>/dev/null
 ```
 
 Look for the `key-decisions` field in SUMMARY.md frontmatter. Also check CONTEXT.md for decisions made during planning:
 
 ```bash
-cat ${PHASE_DIR}/*-CONTEXT.md 2>/dev/null
+cat ${PHASE_DIR}/CONTEXT.md ${PHASE_DIR}/*-CONTEXT.md 2>/dev/null
 ```
 
 Collect all decisions: convention choices, method selections, approximation schemes, algorithm choices, parameter values with rationale.
@@ -289,7 +290,7 @@ Collect all decisions: convention choices, method selections, approximation sche
 **2. Check for existing entries from this phase (idempotency guard):**
 
 ```bash
-EXISTING=$(grep -c "| ${CURRENT_PHASE} |" .gpd/DECISIONS.md 2>/dev/null || echo 0)
+EXISTING=$(grep -c "| ${CURRENT_PHASE} |" GPD/DECISIONS.md 2>/dev/null || echo 0)
 ```
 
 If `EXISTING > 0`, this phase's decisions were already logged (likely from a previous run that was interrupted after this step). Skip to the next step.
@@ -297,14 +298,14 @@ If `EXISTING > 0`, this phase's decisions were already logged (likely from a pre
 **3. Determine next decision ID:**
 
 ```bash
-LAST_ID=$(grep -c '^| DEC-' .gpd/DECISIONS.md 2>/dev/null || echo 0)
+LAST_ID=$(grep -c '^| DEC-' GPD/DECISIONS.md 2>/dev/null || echo 0)
 ```
 
 Next ID = LAST_ID + 1, formatted as `DEC-NNN` (zero-padded to 3 digits).
 
 **4. Create DECISIONS.md if it doesn't exist:**
 
-If `.gpd/DECISIONS.md` doesn't exist, create it with the header from the template:
+If `GPD/DECISIONS.md` doesn't exist, create it with the header from the template:
 
 ```markdown
 # Decision Log
@@ -336,7 +337,7 @@ If no decisions are present in the phase summaries or CONTEXT.md, skip this step
 **Step complete when:**
 
 - [ ] Phase SUMMARY.md and CONTEXT.md checked for decisions
-- [ ] New entries appended to .gpd/DECISIONS.md (or file created)
+- [ ] New entries appended to GPD/DECISIONS.md (or file created)
 - [ ] IDs assigned sequentially with no gaps
 - [ ] Each entry has all fields filled (Decision, Rationale, Alternatives, Phase, Date, Impact)
 
@@ -346,44 +347,44 @@ If no decisions are present in the phase summaries or CONTEXT.md, skip this step
 
 **Note:** Basic position updates (Current Phase, Status, Current Plan, Last Activity) were already handled by `gpd phase complete` in the update_roadmap_and_state step.
 
-Verify the updates are correct by reading STATE.md. If the progress bar needs updating, use:
+Verify the updates are correct by reading the structured state surface. If the progress bar needs updating, use:
 
 ```bash
 PROGRESS=$(gpd --raw progress bar)
 ```
 
-Update the progress bar line in STATE.md with the result.
+Then use `gpd state update-progress` to sync the derived progress field and, if needed, `gpd state update` / `gpd state patch` for any remaining structured fields that feed the rendered state surface.
 
 **Step complete when:**
 
 - [ ] Phase number incremented to next phase (done by phase complete)
 - [ ] Plan status reset to "Not started" (done by phase complete)
 - [ ] Status shows "Ready to plan" (done by phase complete)
-- [ ] Progress bar reflects total completed plans
+- [ ] Progress bar reflects total completed plans after `gpd state update-progress`
 
 
 </step>
 
 <step name="update_project_reference">
 
-Update Project Reference section in STATE.md.
+Update the project reference fields through the structured state commands so the rendered Project Reference section stays in sync.
 
 ```markdown
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated [today])
+See: GPD/PROJECT.md (updated [today])
 
-**Core question:** [Current core research question from PROJECT.md]
+**Core research question:** [Current core research question from PROJECT.md]
 **Current focus:** [Next phase name]
 ```
 
-Update the date and current focus to reflect the transition.
+Update the date and current focus to reflect the transition using `gpd state update` / `gpd state patch` so the rendered state surface stays in sync.
 
 </step>
 
 <step name="review_accumulated_context">
 
-Review and update Accumulated Context section in STATE.md.
+Review and update the accumulated context through the structured state commands and durable phase artifacts.
 
 **Key Results:**
 
@@ -429,29 +430,7 @@ After (if regularization was checked in Phase 3):
 - [ ] Resolved blockers removed from list
 - [ ] Unresolved blockers kept with phase prefix
 - [ ] New concerns from completed phase added
-- [ ] state.json synced from STATE.md
-
-**Sync state.json after all STATE.md updates are complete:**
-
-```bash
-# Backup state.json before regeneration (never delete without backup)
-if [ -f .gpd/state.json ]; then
-  mv .gpd/state.json .gpd/state.json.bak
-fi
-
-gpd --raw state snapshot > /dev/null
-if [ $? -ne 0 ]; then
-  echo "WARNING: gpd state snapshot failed — restoring backup"
-  if [ -f .gpd/state.json.bak ]; then
-    mv .gpd/state.json.bak .gpd/state.json
-  fi
-else
-  # Regeneration succeeded — remove backup
-  rm -f .gpd/state.json.bak
-fi
-```
-
-This is the single markdown-to-json sync point for this workflow. The backup + `gpd --raw state snapshot` sequence intentionally uses the loader's `STATE.md` fallback to merge the schema-backed markdown edits from this workflow into authoritative `state.json` while preserving JSON-only fields from the backup. Earlier steps deliberately skip syncing to avoid multiple writes.
+- [ ] state.json stays synchronized through `gpd state` commands
 
 </step>
 
@@ -465,21 +444,21 @@ If DECISIONS.md doesn't exist (no decisions logged), it will be silently skipped
 
 ```bash
 # Run pre-commit validation on planning files
-PRE_CHECK=$(gpd pre-commit-check --files .gpd/ROADMAP.md .gpd/STATE.md .gpd/PROJECT.md 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files GPD/ROADMAP.md GPD/STATE.md GPD/state.json GPD/PROJECT.md 2>&1) || true
 echo "$PRE_CHECK"
 ```
 
 If the explicit `PRE_CHECK` command reports issues, treat it as early visibility only. `gpd commit` re-runs the same validation on the requested files and remains the blocking gate, even for metadata-only transitions.
 
 ```bash
-gpd commit "docs(phase-${CURRENT_PHASE}): transition to next phase" --files .gpd/ROADMAP.md .gpd/STATE.md .gpd/PROJECT.md .gpd/DECISIONS.md
+gpd commit "docs(phase-${CURRENT_PHASE}): transition to next phase" --files GPD/ROADMAP.md GPD/STATE.md GPD/state.json GPD/PROJECT.md GPD/DECISIONS.md
 ```
 
 If commit fails with "nothing to commit", the changes were already committed — proceed.
 
 **Step complete when:**
 
-- [ ] All modified `.gpd/` files committed
+- [ ] All modified `GPD/` files committed
 - [ ] Commit message references the completed phase
 
 </step>
@@ -491,7 +470,7 @@ If commit fails with "nothing to commit", the changes were already committed —
 After committing the transition, check whether STATE.md has grown past the warning threshold and compact it if needed. This prevents STATE.md from bloating across many phase transitions.
 
 ```bash
-AUTO_COMPACT=$(gpd state compact 2>&1)
+AUTO_COMPACT=$(gpd --raw state compact 2>&1)
 ```
 
 **If compaction occurred** (output contains `"compacted": true`):
@@ -500,10 +479,10 @@ Commit the compacted files:
 
 ```bash
 if echo "$AUTO_COMPACT" | grep -q '"compacted": true'; then
-  PRE_CHECK=$(gpd pre-commit-check --files .gpd/STATE.md .gpd/STATE-ARCHIVE.md .gpd/state.json 2>&1) || true
+  PRE_CHECK=$(gpd pre-commit-check --files GPD/STATE.md GPD/STATE-ARCHIVE.md GPD/state.json 2>&1) || true
   echo "$PRE_CHECK"
 
-  gpd commit "chore: auto-compact state after phase-${CURRENT_PHASE} transition" --files .gpd/STATE.md .gpd/STATE-ARCHIVE.md .gpd/state.json
+  gpd commit "chore: auto-compact state after phase-${CURRENT_PHASE} transition" --files GPD/STATE.md GPD/STATE-ARCHIVE.md GPD/state.json
 fi
 ```
 
@@ -513,9 +492,9 @@ fi
 
 <step name="quick_regression_check">
 
-**Run a quick regression check on previously verified phases.**
+**Run a quick regression scan on recently completed phases.**
 
-After committing the transition, verify that the completed phase hasn't introduced regressions in previously verified results. This catches convention redefinitions, symbol conflicts, and result inconsistencies early.
+After committing the transition, scan the most recent completed phases for artifact-level regressions in recorded verification state. This catches convention redefinitions, symbol conflicts, and invalid verification statuses early without pretending the underlying physics was re-verified.
 
 ```bash
 gpd regression-check --quick
@@ -523,10 +502,10 @@ gpd regression-check --quick
 
 The `--quick` flag limits the check to the most recent 2 completed phases. It:
 
-- Reads all completed phase VERIFICATION.md files
-- Checks for convention redefinitions across SUMMARYs (e.g., same symbol defined with different values)
-- Reports any symbols redefined with different values
-- Flags results that contradict earlier verified claims
+- Reads completed `SUMMARY.md` and `VERIFICATION.md` frontmatter
+- Checks for convention redefinitions across summaries (e.g., same symbol defined with different values)
+- Flags missing, invalid, or non-canonical verification statuses
+- Reports the affected phases and files for follow-up verification or repair
 
 **If issues found:**
 
@@ -540,12 +519,13 @@ The following regressions were detected after completing Phase {X}:
 | Issue | Phase | Details |
 |-------|-------|---------|
 | Convention redefinition | Phase {A} vs Phase {B} | Symbol `g` redefined: 0.3 → 0.5 |
-| Result conflict | Phase {A} vs Phase {B} | Critical temperature differs by >5% |
+| Invalid verification status | Phase {B} | `status: completed` is not a canonical verification status |
+| Unresolved verification issues | Phase {C} | `status: gaps_found`, `score: 3/5` |
 
 Options:
 1. Acknowledge and proceed (issues may be intentional updates)
-2. Investigate before continuing
-3. Run full regression check: `/gpd:regression-check`
+2. Investigate and repair the artifact or frontmatter before continuing
+3. Run `gpd:verify-work <phase>` for any phase that now needs real re-verification
 ```
 
 Wait for user response before proceeding.
@@ -560,18 +540,18 @@ Proceed silently to next step.
 
 **Extract key equations and conventions from phase SUMMARYs into DERIVATION-STATE.md.**
 
-This ensures derivation state is captured even without explicit `/gpd:pause-work`. After phase completion, scan the phase's SUMMARY.md files for equations, conventions, and key results, then append them to `.gpd/DERIVATION-STATE.md`.
+This ensures derivation state is captured even without explicit `gpd:pause-work`. After phase completion, scan the phase's SUMMARY.md files for equations, conventions, and key results, then append them to `GPD/DERIVATION-STATE.md`.
 
 **1. Read phase summaries:**
 
 ```bash
-cat ${PHASE_DIR}/*-SUMMARY.md
+cat ${PHASE_DIR}/SUMMARY.md ${PHASE_DIR}/*-SUMMARY.md 2>/dev/null
 ```
 
 **2. Extract from SUMMARYs:**
 
 - `conventions` frontmatter field -> convention definitions
-- `## Key Results` body section -> key equations and results (use `gpd summary-extract --field key_results` to extract)
+- `## Key Results` body section -> key equations and results (use `gpd --raw summary-extract --field key_results` to extract)
 - `provides` frontmatter field -> artifacts provided by this phase
 
 **3. Create DERIVATION-STATE.md if it doesn't exist:**
@@ -579,8 +559,8 @@ cat ${PHASE_DIR}/*-SUMMARY.md
 Use the same header format as pause-work.md (session-block format):
 
 ```bash
-if [ ! -f .gpd/DERIVATION-STATE.md ]; then
-  cat > .gpd/DERIVATION-STATE.md << 'HEADER'
+if [ ! -f GPD/DERIVATION-STATE.md ]; then
+  cat > GPD/DERIVATION-STATE.md << 'HEADER'
 # Derivation State (Cumulative)
 
 This file is append-only. Each session or phase transition appends its equations,
@@ -592,12 +572,12 @@ fi
 
 **4. Append a phase-transition session block:**
 
-Append a `## Session:` block (same format as pause-work) capturing the phase's key results:
+Append a `## Session:` block (same format as pause-work) capturing the phase's key results. If the phase has already established a canonical derivation `result_id`, carry it into the session block so reruns can recover the same anchor directly:
 
 ```bash
 timestamp=$(gpd --raw timestamp full)
 
-cat >> .gpd/DERIVATION-STATE.md << EOF
+cat >> GPD/DERIVATION-STATE.md << EOF
 
 ---
 
@@ -610,7 +590,7 @@ cat >> .gpd/DERIVATION-STATE.md << EOF
 [Fill from SUMMARY conventions frontmatter: convention choices active in this phase]
 
 ### Intermediate Results
-[Fill from SUMMARY provides frontmatter: result IDs with brief descriptions]
+[Fill from SUMMARY provides frontmatter: result IDs with brief descriptions, including the canonical derivation `result_id` / `last_result_id` when one is known]
 [Mark Verified: yes if VERIFICATION.md exists with status passed, otherwise pending]
 
 ### Approximations Used
@@ -628,10 +608,10 @@ If the summaries have no `conventions` frontmatter or `## Key Results` body sect
 **6. Commit DERIVATION-STATE.md:**
 
 ```bash
-PRE_CHECK=$(gpd pre-commit-check --files .gpd/DERIVATION-STATE.md 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files GPD/DERIVATION-STATE.md 2>&1) || true
 echo "$PRE_CHECK"
 
-gpd commit "docs(phase-${CURRENT_PHASE}): autofill derivation state" --files .gpd/DERIVATION-STATE.md
+gpd commit "docs(phase-${CURRENT_PHASE}): autofill derivation state" --files GPD/DERIVATION-STATE.md
 ```
 
 If no DERIVATION-STATE.md was created or updated (step 5 skipped), the commit will be a no-op.
@@ -648,13 +628,23 @@ If no DERIVATION-STATE.md was created or updated (step 5 skipped), the commit wi
 <step name="update_session_continuity_after_transition">
 
 Update Session Continuity section in STATE.md to reflect transition completion.
+Update the matching canonical continuation fields under `GPD/state.json.continuation`:
+
+- `continuation.handoff.recorded_at`: current ISO timestamp
+- `continuation.handoff.stopped_at`: `Phase [X] complete, ready to plan Phase [X+1]`
+- `continuation.handoff.resume_file`: `null`
+- `continuation.machine.recorded_at`: current ISO timestamp
+- `continuation.machine.hostname`: current hostname
+- `continuation.machine.platform`: current platform
 
 **Format:**
 
 ```markdown
-Last session: [today]
-Stopped at: Phase [X] complete, ready to plan Phase [X+1]
-Resume file: —
+**Last session:** [current ISO timestamp]
+**Stopped at:** Phase [X] complete, ready to plan Phase [X+1]
+**Resume file:** —
+**Hostname:** [current hostname]
+**Platform:** [current platform]
 ```
 
 **Step complete when:**
@@ -662,14 +652,16 @@ Resume file: —
 - [ ] Last session timestamp updated to current date and time
 - [ ] Stopped at describes phase completion and next phase
 - [ ] Resume file confirmed as `—` (transitions don't use resume files)
+- [ ] Hostname and Platform record the current machine identity
+- [ ] `GPD/state.json.continuation.{handoff,machine}` matches the rendered Session Continuity block
 
 **Commit the session continuity update** (commit_transition already ran, so this is a follow-up commit):
 
 ```bash
-PRE_CHECK=$(gpd pre-commit-check --files .gpd/STATE.md 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files GPD/STATE.md GPD/state.json 2>&1) || true
 echo "$PRE_CHECK"
 
-gpd commit "chore: update session continuity after phase-${CURRENT_PHASE} transition" --files .gpd/STATE.md
+gpd commit "chore: update session continuity after phase-${CURRENT_PHASE} transition" --files GPD/STATE.md GPD/state.json
 ```
 
 </step>
@@ -685,7 +677,7 @@ the same time, they are candidates for parallel execution.
 **1. Read the roadmap and collect completed phases:**
 
 ```bash
-ROADMAP=$(gpd roadmap analyze)
+ROADMAP=$(gpd --raw roadmap analyze)
 if [ $? -ne 0 ]; then echo "WARNING: roadmap analyze failed — parallel phase detection may be incomplete"; fi
 ```
 
@@ -718,7 +710,7 @@ Collect all unblocked phases into `ready_phases`.
 **5. Read parallelization config:**
 
 ```bash
-if [ -f .gpd/config.json ]; then cat .gpd/config.json; else echo "WARNING: config.json not found — parallelization defaults apply"; fi
+if [ -f GPD/config.json ]; then cat GPD/config.json; else echo "WARNING: config.json not found — parallelization defaults apply"; fi
 ```
 
 Check for `"parallelization": true` in the config. If the key is absent or
@@ -743,7 +735,7 @@ step with the lowest-numbered ready phase (sequential fallback).
   Launching parallel execution...
   ```
 
-  Launch parallel `/gpd:execute-phase` for each ready phase simultaneously.
+  Launch parallel `gpd:execute-phase` for each ready phase simultaneously.
 
   </if>
 
@@ -764,13 +756,13 @@ step with the lowest-numbered ready phase (sequential fallback).
   | Z     | [Phase Z name]     | [list or "none"]        |
 
   Options:
-  1. Execute all in parallel (launch simultaneous /gpd:execute-phase for each)
+  1. Execute all in parallel (launch simultaneous gpd:execute-phase for each)
   2. Execute sequentially starting with Phase [lowest] (standard path)
   ```
 
   Wait for user decision.
 
-  - **If parallel (option 1):** Launch parallel `/gpd:execute-phase` for each
+  - **If parallel (option 1):** Launch parallel `gpd:execute-phase` for each
     ready phase.
   - **If sequential (option 2):** Fall through to `offer_next_phase` with the
     lowest-numbered ready phase.
@@ -788,7 +780,7 @@ step with the lowest-numbered ready phase (sequential fallback).
 
 **Post-parallel consistency reconciliation.**
 
-After parallel `/gpd:execute-phase` invocations all complete, run the
+After parallel `gpd:execute-phase` invocations all complete, run the
 following reconciliation before advancing to the next batch of phases.
 
 **1. Rapid cross-phase consistency check:**
@@ -804,7 +796,7 @@ Additionally, for each pair of just-completed parallel phases, check:
   notation)?
 
   ```bash
-  cat .gpd/phases/XX-phase-a/*-SUMMARY.md .gpd/phases/YY-phase-b/*-SUMMARY.md
+  cat GPD/phases/XX-phase-a/*-SUMMARY.md GPD/phases/YY-phase-b/*-SUMMARY.md
   ```
 
   Compare `conventions` fields in frontmatter. Flag any overlapping convention
@@ -908,7 +900,7 @@ The `next_phase` and `next_phase_name` fields give you the next phase details.
 If you need additional context, use:
 
 ```bash
-ROADMAP=$(gpd roadmap analyze)
+ROADMAP=$(gpd --raw roadmap analyze)
 ```
 
 This returns all phases with goals, disk status, and completion info.
@@ -938,7 +930,7 @@ Next: Phase [X+1] — [Name]
 >>> Auto-continuing: Plan Phase [X+1] in detail
 ```
 
-Exit skill and invoke slash_command("/gpd:plan-phase [X+1]")
+Exit this workflow and immediately run `gpd:plan-phase [X+1]` in the installed runtime command surface.
 
 </if>
 
@@ -957,15 +949,15 @@ Key results to benchmark against: [list from SUMMARY.md]"]
 
 **Phase [X+1]: [Name]** — [Goal from ROADMAP.md]
 
-`/gpd:plan-phase [X+1]`
+`gpd:plan-phase [X+1]`
 
 <sub>`/clear` first -> fresh context window</sub>
 
 ---
 
 **Also available:**
-- `/gpd:discuss-phase [X+1]` — gather context first
-- `/gpd:research-phase [X+1]` — investigate unknowns in literature
+- `gpd:discuss-phase [X+1]` — gather context first
+- `gpd:research-phase [X+1]` — investigate unknowns in literature
 - Review roadmap
 
 ---
@@ -987,7 +979,7 @@ Milestone {version} is 100% complete — all {N} phases finished!
 >>> Auto-continuing: Complete milestone and archive
 ```
 
-Exit skill and invoke slash_command("/gpd:complete-milestone {version}")
+Exit this workflow and immediately run `gpd:complete-milestone {version}` in the installed runtime command surface.
 
 </if>
 
@@ -1004,7 +996,7 @@ Milestone {version} is 100% complete — all {N} phases finished!
 
 **Complete Milestone {version}** — archive results and prepare for next direction
 
-`/gpd:complete-milestone {version}`
+`gpd:complete-milestone {version}`
 
 <sub>`/clear` first -> fresh context window</sub>
 
@@ -1012,7 +1004,7 @@ Milestone {version} is 100% complete — all {N} phases finished!
 
 **Also available:**
 - Review all results before archiving
-- `/gpd:verify-work` — systematic validation before completing milestone
+- `gpd:verify-work` — systematic validation before completing milestone
 
 ---
 ```

@@ -9,11 +9,20 @@ import os
 import re
 import tempfile
 import time
-from collections.abc import Iterator
+import unicodedata
+from collections.abc import Hashable, Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TypeVar
 
-from gpd.core.constants import DEFAULT_MAX_INCLUDE_CHARS, ENV_MAX_INCLUDE_CHARS
+from gpd.core.constants import (
+    DEFAULT_MAX_INCLUDE_CHARS,
+    ENV_MAX_INCLUDE_CHARS,
+    PLAN_SUFFIX,
+    STANDALONE_PLAN,
+    STANDALONE_SUMMARY,
+    SUMMARY_SUFFIX,
+)
 
 try:
     import fcntl
@@ -29,16 +38,24 @@ __all__ = [
     "MAX_INCLUDE_CHARS",
     "atomic_write",
     "compare_phase_numbers",
+    "dedupe_preserve_order",
     "file_lock",
     "generate_slug",
+    "normalize_ascii_slug",
     "is_phase_complete",
+    "matching_phase_artifact_count",
     "phase_normalize",
+    "phase_artifact_id",
+    "phase_artifact_display_name",
     "phase_sort_key",
     "phase_unpad",
     "safe_parse_int",
+    "strict_parse_int",
     "safe_read_file",
     "safe_read_file_truncated",
 ]
+
+_HashableT = TypeVar("_HashableT", bound=Hashable)
 
 # ─── Phase Utilities ────────────────────────────────────────────────────────────
 
@@ -123,6 +140,27 @@ def is_phase_complete(plan_count: int, summary_count: int) -> bool:
     return plan_count > 0 and summary_count >= plan_count
 
 
+def phase_artifact_id(filename: str, suffix: str, standalone: str) -> str:
+    """Return the comparison key for a phase artifact filename."""
+    if filename == standalone:
+        return ""
+    if filename.endswith(suffix):
+        return filename[: -len(suffix)]
+    return filename
+
+
+def phase_artifact_display_name(identifier: str, standalone: str) -> str:
+    """Return the user-facing name for a phase artifact identity."""
+    return standalone if not identifier or identifier == "_standalone" else identifier
+
+
+def matching_phase_artifact_count(plan_files: Iterable[str], summary_files: Iterable[str]) -> int:
+    """Return how many plans have a matching summary by artifact identity."""
+    plan_ids = {phase_artifact_id(filename, PLAN_SUFFIX, STANDALONE_PLAN) for filename in plan_files}
+    summary_ids = {phase_artifact_id(filename, SUMMARY_SUFFIX, STANDALONE_SUMMARY) for filename in summary_files}
+    return len(plan_ids & summary_ids)
+
+
 def phase_sort_key(name: str) -> list[int]:
     """Sort key for phase directory names by numeric segments.
 
@@ -144,17 +182,43 @@ def generate_slug(text: str) -> str | None:
 
     "Hello World!" -> "hello-world", "" -> None.
     """
-    if not text:
+    return normalize_ascii_slug(text)
+
+
+def normalize_ascii_slug(value: object) -> str | None:
+    """Generate a lowercase ASCII slug from arbitrary text.
+
+    Unicode input is normalized, stripped to ASCII, and collapsed to
+    hyphen-separated tokens. Empty output returns ``None``.
+    """
+    if value is None:
         return None
-    slug = re.sub(r"[^a-z0-9]+", "-", text.lower())
-    return slug.strip("-") or None
+    normalized = unicodedata.normalize("NFKD", str(value).strip().casefold())
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_text)
+    slug = re.sub(r"-+", "-", slug).strip("-")
+    return slug or None
+
+
+def dedupe_preserve_order(values: Iterable[_HashableT]) -> list[_HashableT]:
+    """Return unique values in first-seen order."""
+    deduped: list[_HashableT] = []
+    seen: set[_HashableT] = set()
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        deduped.append(value)
+    return deduped
 
 
 def safe_parse_int(value: object, default: int | None = 0) -> int | None:
     """Parse an integer safely, returning *default* if invalid.
 
     Unlike int(), never raises on bad input.  When *default* is ``None``
-    the caller can distinguish "not a number" from a real zero.
+    the caller can distinguish "not a number" from a real zero. This helper is
+    intentionally permissive for non-authoritative inputs such as env vars and
+    best-effort CLI formatting.
     """
     if value is None:
         return default
@@ -165,6 +229,32 @@ def safe_parse_int(value: object, default: int | None = 0) -> int | None:
     try:
         return int(str(value))
     except (ValueError, TypeError):
+        return default
+
+
+_STRICT_INT_RE = re.compile(r"^[+-]?\d+$")
+
+
+def strict_parse_int(value: object, default: int | None = 0) -> int | None:
+    """Parse an integer without coercing booleans, floats, or decimal strings.
+
+    This helper is for authoritative contract/state/frontmatter boundaries where
+    silent coercion is more harmful than a rejected field.
+    """
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value
+    if not isinstance(value, str):
+        return default
+    normalized = value.strip()
+    if not normalized or not _STRICT_INT_RE.fullmatch(normalized):
+        return default
+    try:
+        return int(normalized)
+    except ValueError:
         return default
 
 
@@ -203,6 +293,28 @@ def safe_read_file_truncated(path: Path, max_chars: int | None = None) -> str | 
     return content[:limit] + f"\n\n...truncated ({len(content)} chars total, showing first {limit})."
 
 
+def _replace_with_retry(
+    src: str | Path,
+    dst: str | Path,
+    *,
+    max_attempts: int = 5,
+) -> None:
+    """Perform ``os.replace(src, dst)`` with retry for Dropbox/sync delays.
+
+    On Windows, cloud-sync tools (Dropbox, OneDrive) may hold a brief lock on
+    the destination file.  Retrying with exponential back-off (100-1600 ms)
+    avoids transient ``PermissionError`` without masking real failures.
+    """
+    for attempt in range(max_attempts):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if attempt == max_attempts - 1:
+                raise
+            time.sleep(0.1 * (2 ** attempt))  # 100, 200, 400, 800, 1600 ms
+
+
 def atomic_write(filepath: Path, content: str) -> None:
     """Write a file atomically via temp file + fsync + rename.
 
@@ -220,7 +332,7 @@ def atomic_write(filepath: Path, content: str) -> None:
         os.fsync(fd.fileno())
         fd.close()
         fd = None
-        os.replace(tmp_path, filepath)
+        _replace_with_retry(tmp_path, filepath)
         tmp_path = None
     finally:
         if fd is not None:

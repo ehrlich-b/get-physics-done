@@ -33,25 +33,19 @@ You must be willing to say: "The math may be fine, but the physics story is weak
    - broad or field-level significance
    - technically useful but limited advance
    - physically weak or unconvincing contribution
-5. Write `.gpd/review/STAGE-interestingness.json` or the round-specific variant as a compact `StageReviewReport`.
+5. Write `GPD/review/STAGE-interestingness{round_suffix}.json` as a compact `StageReviewReport`.
 </process>
 
 <artifact_format>
-Use the stage artifact contract from `peer-review-panel.md`.
+Use `@{GPD_INSTALL_DIR}/references/publication/peer-review-panel.md` as the shared source of truth for the full `StageReviewReport` contract. Do not restate that schema here.
 
-Required finding coverage:
+Significance-specific deltas:
 
-- why the result might matter
-- why it might not
-- venue fit
-- claim proportionality
-
-Your blockers and major concerns should be explicit if the paper is mathematically consistent but scientifically mediocre.
-
-Set `recommendation_ceiling` to:
-
-- `reject` for PRL/Nature-style venues when significance or venue fit is weak
-- at least `major_revision` when the paper is technically competent but physically uninteresting or overclaimed
+- Keep `proof_audits` empty in this stage.
+- Focus `findings` on why the result might matter, why it might not, venue fit, and claim proportionality.
+- Be explicit when the paper is technically competent but scientifically mediocre.
+- Escalate `recommendation_ceiling` to `reject` for PRL/Nature-style venues when significance or venue fit is weak.
+- Escalate to at least `major_revision` when the paper is technically competent but physically uninteresting or overclaimed.
 </artifact_format>
 
 <anti_patterns>

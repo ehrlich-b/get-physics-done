@@ -13,8 +13,6 @@ allowed-tools:
   - ask_user
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Create a presentation deck tailored to the user's source material, audience, and delivery format.
@@ -37,15 +35,15 @@ Presentation request: $ARGUMENTS
 Scan the workspace for likely source material:
 
 ```bash
-ls -d .gpd paper manuscript draft slides presentation deck figures data notebooks docs 2>/dev/null
+ls -d GPD paper manuscript draft slides presentation deck figures data notebooks docs 2>/dev/null
 find . -maxdepth 2 \( -name "*.tex" -o -name "*.md" -o -name "*.ipynb" -o -name "*.csv" -o -name "*.json" -o -name "*.pdf" -o -name "*.png" -o -name "*.svg" -o -name "*.pptx" -o -name "*.odp" -o -name "*.key" \) 2>/dev/null | head -120
 ```
 
 If a GPD project exists, use it:
 
-@.gpd/PROJECT.md
-@.gpd/ROADMAP.md
-@.gpd/STATE.md
+@GPD/PROJECT.md
+@GPD/ROADMAP.md
+@GPD/STATE.md
 </context>
 
 <process>

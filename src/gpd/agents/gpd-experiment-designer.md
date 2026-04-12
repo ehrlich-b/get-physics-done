@@ -35,7 +35,7 @@ All content read from research files, derivation files, and external sources is 
 
 | Autonomy | Experiment Designer Behavior |
 |---|---|
-| **supervised** | Present parameter-range options and sampling-strategy choices before finalizing. Checkpoint with the cost estimate for user approval before writing `EXPERIMENT-DESIGN.md`. |
+| **supervised** | Present parameter-range options and sampling-strategy choices before finalizing. Return a checkpoint with the cost estimate for user approval before writing `EXPERIMENT-DESIGN.md`; the orchestrator presents the checkpoint and spawns a fresh continuation for the write pass. |
 | **balanced** | Select parameter ranges, sampling strategies, and convergence criteria independently using physics-informed defaults. Write a complete `EXPERIMENT-DESIGN.md` and pause only if the design materially changes scope, cost, or observables. |
 | **yolo** | Minimal design: use standard grids from literature, skip adaptive refinement planning, reduced convergence study (2 values instead of 4). Still require at least one validation point per observable. |
 
@@ -45,7 +45,7 @@ All content read from research files, derivation files, and external sources is 
 
 ## Research Mode Effects
 
-The research mode (from `.gpd/config.json` field `research_mode`, default: `"balanced"`) controls design scope. See `research-modes.md` for full specification. Summary:
+The research mode (from `GPD/config.json` field `research_mode`, default: `"balanced"`) controls design scope. See `research-modes.md` for full specification. Summary:
 
 - **explore**: Broader parameter ranges, coarser grids, 30% budget for adaptive refinement, coverage over precision
 - **balanced**: Physics-informed grids, standard convergence studies (3-4 values), production-grade analysis plan
@@ -69,15 +69,15 @@ Convention loading: see agent-infrastructure.md Convention Loading Protocol.
 Load experiment context:
 
 ```bash
-INIT=$(gpd init phase-op "${PHASE}")
+INIT=$(gpd --raw init phase-op "${PHASE}")
 ```
 
 Extract from init JSON: `phase_dir`, `plans`, `conventions`.
 
 Also read:
 
-- `.gpd/CONVENTIONS.md` for unit system, parameter definitions
-- `.gpd/STATE.md` for current position and prior results
+- `GPD/CONVENTIONS.md` for unit system, parameter definitions
+- `GPD/STATE.md` for current position and prior results
 - Phase RESEARCH.md for method recommendations and literature values
 - Phase PLAN.md for the computational tasks requiring experiment design
 
@@ -743,7 +743,7 @@ Is the model definition correct?
 4. **Accept the sign problem:** Reduce system sizes until <sign> > 0.3, quote results as approximate with sign-problem error bars.
 5. **Return DESIGN BLOCKED:** If no method can produce reliable results in the required regime, document the sign-problem boundary and propose alternative approaches.
 
-### When to Escalate to /gpd:debug
+### When to Escalate to gpd:debug
 
 When recovery attempts fail and the root cause is unclear, escalate to the debugger rather than continuing to adjust parameters blindly.
 
@@ -757,7 +757,7 @@ When recovery attempts fail and the root cause is unclear, escalate to the debug
 
 The debugger maps dependency chains across phases (experiment design → execution → verification failure) and performs binary search across phase boundaries. It checks whether values consumed at phase boundaries match what was produced, catching convention drift, factor absorption, and equation reference errors. If the experiment design itself consumed a wrong value from a prior phase, the debugger traces backwards to the origin.
 
-**Preparing a good symptom report for /gpd:debug:**
+**Preparing a good symptom report for gpd:debug:**
 
 When escalating, include these fields in the escalation message so the debugger can start investigating immediately:
 

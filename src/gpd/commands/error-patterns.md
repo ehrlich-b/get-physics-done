@@ -10,11 +10,9 @@ allowed-tools:
   - find_files
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
-Display accumulated physics error patterns from `.gpd/ERROR-PATTERNS.md`. Optionally filter by category.
+Display accumulated physics error patterns from `GPD/ERROR-PATTERNS.md`. Optionally filter by category.
 
 Error patterns are recorded by the debugger after confirming root causes. They capture project-specific failure modes so that verifiers, planners, and executors can proactively check for recurrence.
 
@@ -32,22 +30,22 @@ Categories:
 
 <execution_context>
 @{GPD_INSTALL_DIR}/workflows/error-patterns.md
-@.gpd/ERROR-PATTERNS.md
+@GPD/ERROR-PATTERNS.md
 </execution_context>
 
 <process>
 
 **Pre-flight check:**
 ```bash
-if [ ! -d ".gpd" ]; then
-  echo "Error: No GPD project found. Run /gpd:new-project first."
+if [ ! -d "GPD" ]; then
+  echo "Error: No GPD project found. Run gpd:new-project first."
   exit 1
 fi
 ```
 
 <step name="check_file">
 ```bash
-test -f .gpd/ERROR-PATTERNS.md && echo "EXISTS" || echo "MISSING"
+test -f GPD/ERROR-PATTERNS.md && echo "EXISTS" || echo "MISSING"
 ```
 
 **If MISSING:**
@@ -55,19 +53,19 @@ test -f .gpd/ERROR-PATTERNS.md && echo "EXISTS" || echo "MISSING"
 ```
 No error patterns recorded yet.
 
-Error patterns are captured by /gpd:debug when root causes are confirmed.
+Error patterns are captured by gpd:debug when root causes are confirmed.
 They help the verifier and planner proactively check for recurring issues.
 
 ---
 
-Start a debugging session with /gpd:debug to begin building the pattern database.
+Start a debugging session with gpd:debug to begin building the pattern database.
 ```
 
 Exit.
 </step>
 
 <step name="read_patterns">
-Read `.gpd/ERROR-PATTERNS.md`.
+Read `GPD/ERROR-PATTERNS.md`.
 
 **If $ARGUMENTS provided (category filter):**
 
@@ -80,7 +78,7 @@ Filter the patterns table to show only rows matching the category. Display:
 
 ---
 
-Showing {N} of {total} patterns. Run `/gpd:error-patterns` to see all.
+Showing {N} of {total} patterns. Run `gpd:error-patterns` to see all.
 ```
 
 **If no arguments (show all):**
@@ -94,7 +92,7 @@ Display the full contents formatted as:
 
 ---
 
-{total} patterns recorded. Filter by category: `/gpd:error-patterns sign`
+{total} patterns recorded. Filter by category: `gpd:error-patterns sign`
 ```
 
 </step>
@@ -104,7 +102,7 @@ Display the full contents formatted as:
 
 ```bash
 gpd pattern init 2>/dev/null || true
-DOMAIN=$(grep -m1 "domain:" .gpd/PROJECT.md 2>/dev/null | sed 's/.*: *//' || echo "")
+DOMAIN=$(grep -m1 "domain:" GPD/PROJECT.md 2>/dev/null | sed 's/.*: *//' || echo "")
 GLOBAL=$(gpd --raw pattern list ${DOMAIN:+--domain "$DOMAIN"} 2>/dev/null)
 ```
 

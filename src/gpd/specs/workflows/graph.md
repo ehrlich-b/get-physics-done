@@ -1,5 +1,5 @@
 <purpose>
-Build and visualize the dependency graph across all research phases. Shows how results flow between phases via provides/requires/affects frontmatter in SUMMARY.md files and phase definitions in ROADMAP.md. Identifies gaps where a phase requires something no other phase provides, and highlights the critical path through the research.
+Build and visualize the dependency graph across all research phases. Shows how results flow between phases via provides/requires/affects frontmatter in summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`) and phase definitions in ROADMAP.md. Identifies gaps where a phase requires something no other phase provides, and highlights the critical path through the research.
 </purpose>
 
 <required_reading>
@@ -12,7 +12,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 **Load roadmap and phase inventory:**
 
 ```bash
-ROADMAP=$(gpd roadmap analyze)
+ROADMAP=$(gpd --raw roadmap analyze)
 ```
 
 Extract: phase list with names, goals, dependencies, and disk status.
@@ -25,7 +25,7 @@ Extract: phase list with names, goals, dependencies, and disk status.
 ╚══════════════════════════════════════════════════════════════╝
 
 No ROADMAP.md found. Create a project first:
-  /gpd:new-project
+  gpd:new-project
 ```
 
 Exit.
@@ -40,15 +40,15 @@ Exit.
 </step>
 
 <step name="scan_frontmatter">
-**Read all SUMMARY.md frontmatter for dependency metadata:**
+**Read all summary-artifact frontmatter for dependency metadata:**
 
-For each phase directory, find all SUMMARY.md files:
+For each phase directory, find all summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`):
 
 ```bash
-ls .gpd/phases/*/SUMMARY.md .gpd/phases/*/*-SUMMARY.md 2>/dev/null
+ls GPD/phases/*/*SUMMARY.md 2>/dev/null
 ```
 
-For each SUMMARY.md, extract YAML frontmatter fields:
+For each summary artifact, extract YAML frontmatter fields:
 
 - **provides:** List of results/quantities this plan produces (e.g., `effective-hamiltonian`, `dispersion-relation`, `transport-coefficients`)
 - **requires:** List of results/quantities this plan needs from earlier phases (e.g., `band-structure`, `coupling-constants`)
@@ -94,7 +94,7 @@ graph TD
 
 **Node styling by status:**
 
-- `complete` -- green: all plans have SUMMARYs
+- `complete` -- green: all plans have matching summary artifacts
 - `partial` -- orange: some plans complete
 - `planned` -- blue: plans exist but none executed
 - `empty` -- grey: no plans created yet
@@ -198,7 +198,7 @@ Parallelizable phases: {list of phases NOT on critical path}
 
 ───────────────────────────────────────────────────────────────
 
-Write this analysis to `.gpd/DEPENDENCY-GRAPH.md`? (y/n)
+Write this analysis to `GPD/DEPENDENCY-GRAPH.md`? (y/n)
 
 ───────────────────────────────────────────────────────────────
 
@@ -206,13 +206,13 @@ Write this analysis to `.gpd/DEPENDENCY-GRAPH.md`? (y/n)
 
 **If yes:**
 
-Write the full report to `.gpd/DEPENDENCY-GRAPH.md`.
+Write the full report to `GPD/DEPENDENCY-GRAPH.md`.
 
 ```bash
-PRE_CHECK=$(gpd pre-commit-check --files .gpd/DEPENDENCY-GRAPH.md 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files GPD/DEPENDENCY-GRAPH.md 2>&1) || true
 echo "$PRE_CHECK"
 
-gpd commit "docs: generate dependency graph" --files .gpd/DEPENDENCY-GRAPH.md
+gpd commit "docs: generate dependency graph" --files GPD/DEPENDENCY-GRAPH.md
 ````
 
 **After write (or if declined):**
@@ -221,9 +221,9 @@ gpd commit "docs: generate dependency graph" --files .gpd/DEPENDENCY-GRAPH.md
 ───────────────────────────────────────────────────────────────
 
 **Also available:**
-- `/gpd:show-phase <N>` -- inspect a specific phase in detail
-- `/gpd:plan-phase <N>` -- plan an unstarted phase
-- `/gpd:progress` -- overall research progress
+- `gpd:show-phase <N>` -- inspect a specific phase in detail
+- `gpd:plan-phase <N>` -- plan an unstarted phase
+- `gpd:progress` -- overall research progress
 
 ───────────────────────────────────────────────────────────────
 ```
@@ -238,19 +238,19 @@ gpd commit "docs: generate dependency graph" --files .gpd/DEPENDENCY-GRAPH.md
 - Don't generate broken Mermaid syntax (test node IDs are valid: alphanumeric, no spaces)
 - Don't ignore ROADMAP.md dependencies when SUMMARY frontmatter is absent
 - Don't report orphaned provides as high severity -- unused results are normal in early phases
-- Don't silently skip phases with no SUMMARY -- include them as nodes with planned/empty status
+- Don't silently skip phases with no summary artifact -- include them as nodes with planned/empty status
   </anti_patterns>
 
 <success_criteria>
 Dependency graph is complete when:
 
-- [ ] All SUMMARY.md frontmatter parsed for provides/requires/affects
+- [ ] All summary-artifact frontmatter parsed for provides/requires/affects
 - [ ] ROADMAP.md phase dependencies included
 - [ ] Directed graph constructed with labeled edges
 - [ ] Valid Mermaid diagram generated with status-based coloring
 - [ ] Gaps identified (unmet requires, orphaned provides, missing phases)
 - [ ] Critical path computed and displayed
 - [ ] Results presented in structured report
-- [ ] Optional write to .gpd/DEPENDENCY-GRAPH.md offered
+- [ ] Optional write to GPD/DEPENDENCY-GRAPH.md offered
 
 </success_criteria>

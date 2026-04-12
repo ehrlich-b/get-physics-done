@@ -1,9 +1,11 @@
 <purpose>
-Verify research phase goal achievement through computational verification. Check that the research delivers what the phase promised by actually testing the physics — substituting values, re-deriving limits, parsing dimensions, and cross-checking by independent methods.
+Verify research phase goal achievement through decisive verification. Check that the research delivers what the phase promised by actually testing the physics — substituting values, re-deriving limits, parsing dimensions, cross-checking by independent methods, and for proof obligations, auditing theorem-to-proof coverage adversarially instead of trusting polished algebra.
 
 Executed by a verification subagent spawned from execute-phase.md.
 
-Can also be invoked directly via `/gpd:verify-work` for re-verification after manual fixes. When invoked standalone, the workflow runs identically but returns results to the user instead of to the execute-phase orchestrator.
+`verify-phase` is the canonical owner of the verifier/proof child-return contract and artifact-gate seam for phase verification. Shared handoff mechanics live in `references/verification/core/verification-child-return-contract.md`, while report-schema and proof-audit authority stay local to this workflow.
+
+The standalone `gpd:verify-work` workflow reuses the same verification criteria through `verify-work.md`; this file itself is executed by the execute-phase orchestrator.
 </purpose>
 
 <core_principle>
@@ -20,7 +22,9 @@ Goal-backward verification:
 
 Then verify each level against the actual research artifacts — **by doing physics, not by pattern-matching**.
 
-**Fundamental rule: every verification check must involve COMPUTATION, not just text search.**
+**Fundamental rule: every verification check must involve decisive evidence, not just text search.**
+
+For most research targets that means actual computation. For proof-bearing or `proof_obligation` targets it means a theorem-to-proof audit plus an adversarial special-case or counterexample probe. Plain text search never suffices.
 
 | Verification theater (NEVER DO)               | Real verification (ALWAYS DO)                                |
 | --------------------------------------------- | ------------------------------------------------------------ |
@@ -29,14 +33,18 @@ Then verify each level against the actual research artifacts — **by doing phys
 | Use `search_files` for "convergence" to see if the word appears | Run at 2+ resolutions and measure convergence rate           |
 | Count scipy imports as proof of computation   | Run the code with known inputs and verify output             |
 | Check if reference is cited                   | Extract the benchmark value and compare numerically          |
+| See a polished proof and assume it covers the theorem | Inventory parameters / hypotheses / quantifiers and prove none were silently dropped |
 
 </core_principle>
 
 <required_reading>
 @{GPD_INSTALL_DIR}/references/verification/core/verification-core.md
 @{GPD_INSTALL_DIR}/references/verification/core/verification-numerical.md
+@{GPD_INSTALL_DIR}/references/verification/core/verification-child-return-contract.md
+@{GPD_INSTALL_DIR}/references/verification/meta/verification-independence.md
 @{GPD_INSTALL_DIR}/references/protocols/error-propagation-protocol.md
 @{GPD_INSTALL_DIR}/templates/verification-report.md
+@{GPD_INSTALL_DIR}/templates/contract-results-schema.md
 </required_reading>
 
 <process>
@@ -45,14 +53,14 @@ Then verify each level against the actual research artifacts — **by doing phys
 Load phase operation context:
 
 ```bash
-INIT=$(gpd init phase-op "${PHASE_ARG}")
+INIT=$(gpd --raw init phase-op "${PHASE_ARG}")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed.
 fi
 ```
 
-Extract from init JSON: `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_plans`, `plan_count`.
+Extract from init JSON: `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_plans`, `plan_count`, `project_contract`, `project_contract_validation`, `project_contract_load_info`, `project_contract_gate`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `reference_artifacts_content`, `selected_protocol_bundle_ids`, `protocol_bundle_context`, `phase_proof_review_status`, `derived_manuscript_proof_review_status`.
 
 **If `phase_found` is false:**
 
@@ -68,32 +76,36 @@ Exit.
 Then load phase details:
 
 ```bash
-gpd roadmap get-phase "${phase_number}"
-grep -E "^| ${phase_number}" .gpd/REQUIREMENTS.md 2>/dev/null
+gpd --raw roadmap get-phase "${phase_number}"
+grep -E "^| ${phase_number}" GPD/REQUIREMENTS.md 2>/dev/null
 ```
 
 Extract **phase goal** from ROADMAP.md (the research outcome to verify, not tasks) and **requirements** from REQUIREMENTS.md if it exists.
 
 **Verification independence:** Load only what the verifier needs to judge results on their own merits. See @{GPD_INSTALL_DIR}/references/verification/meta/verification-independence.md.
 
+If `derived_manuscript_proof_review_status` is present, use it as the structured freshness summary for any manuscript-local proof-bearing artifact and keep the corresponding `*-PROOF-REDTEAM.md` artifact authoritative for pass/fail decisions.
+If `project_contract_gate.visible` is true, keep `project_contract`, `contract_intake`, `effective_reference_intake`, `active_reference_context`, `reference_artifacts_content`, `selected_protocol_bundle_ids`, and `protocol_bundle_context` in the verifier context even when `project_contract_gate.authoritative` is false. They remain visible carry-forward context, not authoritative scope, until the gate clears. Stable knowledge docs that surface through this context are reviewed background synthesis only: they may guide check selection and interpretation, but they do not override the contract, the gate, or decisive evidence.
+
 **INCLUDE in verification context:**
 
 - Phase goal from ROADMAP.md
 - `contract` from PLAN.md frontmatter (primary verification target definition)
 - Artifact file paths (the actual research outputs to inspect)
-- .gpd/STATE.md (project conventions, active approximations, unit system)
-- .gpd/config.json (project configuration)
+- GPD/STATE.md (project conventions, active approximations, unit system)
+- GPD/config.json (project configuration)
+- Visible contract/reference carry-forward context from init JSON when `project_contract_gate.visible` is true
 
 **EXCLUDE from verification context:**
 
 - Full PLAN.md body (task breakdowns, implementation details)
-- SUMMARY.md files (what executors claimed they did)
+- Summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`) (what executors claimed they did)
 - Execution logs or agent conversation history
 
 Extract the contract target definition from frontmatter only:
 
 ```bash
-for plan in "$phase_dir"/*-PLAN.md; do
+for plan in "$phase_dir"/PLAN.md "$phase_dir"/*-PLAN.md; do
   gpd frontmatter get "$plan" --field contract
 done
 ```
@@ -115,7 +127,12 @@ Treat these as separate verification obligations:
 - `forbidden_proxies` -> determine whether tempting but non-decisive substitutes were explicitly rejected
 
 If the phase depends on a decisive comparison (benchmark, prior work, experiment, cross-method, baseline), emit a `comparison_verdicts` entry in the report keyed to the relevant contract IDs. Missing or purely implicit comparison evidence keeps the supported target below VERIFIED. If the comparison was attempted but not closed, record that honestly with `verdict: inconclusive` or `verdict: tension` instead of omitting the entry.
-Before finalizing the check list, call `suggest_contract_checks(contract)` through the verification server and fold the returned contract-aware checks into the verification plan unless they are clearly inapplicable.
+Before finalizing the check list, use this contract-check loop whenever project-local anchors or prior-output paths matter:
+
+1. Call `suggest_contract_checks(contract, project_dir=...)`.
+2. Fold the returned contract-aware checks into the plan unless they are clearly inapplicable.
+3. For each returned check, start from `request_template`, satisfy `required_request_fields` and `schema_required_request_fields`, satisfy one full alternative from `schema_required_request_anyof_fields`, use only `supported_binding_fields` inside `request.binding`, and keep `project_dir` as the top-level absolute project root argument.
+4. Execute `run_contract_check(request=..., project_dir=...)` so the contract-aware check actually runs.
 
 **Option B: Derive contract-like targets from phase goal**
 
@@ -131,8 +148,67 @@ If no `contract` is available in frontmatter:
 
 **Important: every derived claim must be testable by substituting values, taking limits, or performing an independent computation. Outcomes that can only be checked by grepping are process claims, not verification targets.**
 
-If the plan contract is materially incomplete but the verifier can see an obvious decisive check that should exist, record it as a `suggested_contract_check` in the report rather than silently ignoring the gap.
-Record `suggested_contract_checks` only for clearly decisive, user-visible gaps. Do not use them for administrative preferences, nicer formatting, or generic paperwork. Every such entry must stay structured with `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id` when known, and `evidence_path`.
+If the plan contract is materially incomplete but the verifier can see an obvious decisive check that should exist, record it as a structured `suggested_contract_checks` entry in the report rather than silently ignoring the gap.
+Record `suggested_contract_checks` only for clearly decisive, user-visible gaps. Do not use them for administrative preferences, nicer formatting, or generic paperwork. Every such entry must stay structured with `check`, `reason`, `suggested_subject_kind`, `suggested_subject_id` when known, and `evidence_path`. When the gap comes from `suggest_contract_checks(contract)`, copy the returned `check_key` into the frontmatter `check` field.
+
+If the phase includes a theorem-style claim or `proof_obligation` and no structured theorem inventory exists yet, derive one before continuing: enumerate the theorem statement, named parameters, hypotheses, quantifier/domain obligations, and conclusion clauses. Verification must stay keyed to that inventory rather than to vague prose.
+</step>
+
+<step name="proof_obligation_gate">
+Detect whether any verification target is proof-bearing.
+
+Use the shared verification child-return contract for the generic handoff mechanics; keep the proof-redteam requirements below authoritative.
+
+Treat a target as proof-bearing when:
+
+- the contract includes an observable or claim with kind `proof_obligation`
+- a claim, deliverable, or acceptance test is theorem-style (`theorem`, `lemma`, `corollary`, `proposition`, `claim`, `proof`, `prove`, `show that`)
+- the result is a formal derivation whose truth depends on all named hypotheses, parameters, or quantifiers being used correctly
+
+If ambiguous, default to proof-bearing.
+
+For each proof-bearing plan or claim, require the sibling `*-PROOF-REDTEAM.md` artifact. Read it and verify that it contains:
+
+1. the theorem or claim text being audited
+2. the inventory of named parameters, hypotheses, quantifier/domain obligations, and conclusion clauses
+3. explicit coverage notes showing where each obligation is used in the proof
+4. at least one adversarial special-case or counterexample probe
+5. canonical `status: passed | gaps_found | human_needed`
+
+Missing artifact, missing theorem inventory, or `status != passed` is a blocking gap. Do not allow the phase verification report to finish at `status: passed` while any required proof-redteam artifact is missing or open.
+When runtime delegation is available and a required audit is missing, malformed, or stale, spawn `gpd-check-proof` once to repair that gap before finalizing the verdict. If the proof critic cannot produce a passed audit, keep the target blocked rather than inferring theorem-proof alignment from the main verifier context.
+</step>
+
+<step name="proof_redteam_repair">
+When the proof-obligation gate finds a missing, stale, malformed, or non-passing proof-redteam artifact, resolve the proof-critic model and spawn a fresh repair handoff once.
+
+```bash
+CHECK_PROOF_MODEL=$(gpd resolve-model gpd-check-proof)
+```
+
+> Runtime delegation rule: this is a single-turn handoff. Follow the shared verification child-return contract: if the spawned agent needs user input, it must checkpoint and return; do not keep the original run waiting inside the same task. Never trust the return text alone.
+
+```
+task(
+  subagent_type="gpd-check-proof",
+  model="{check_proof_model}",
+  readonly=false,
+  prompt="First, read {GPD_AGENTS_DIR}/gpd-check-proof.md for your role and instructions.
+Then read {GPD_INSTALL_DIR}/templates/proof-redteam-schema.md and {GPD_INSTALL_DIR}/references/verification/core/proof-redteam-protocol.md before writing any proof audit artifact.
+
+Operate in proof-redteam repair mode with a fresh context.
+If the runtime needs user input, return `status: checkpoint` instead of waiting inside the spawned run.
+
+Write to:
+- `${phase_dir}/${phase_number}-PROOF-REDTEAM.md`
+
+Read the proof-bearing plan or claim artifacts, the relevant PLAN contract slice, and any current verification artifact before repairing the audit.
+Return `status: checkpoint` if the runtime needs user input instead of waiting inside the spawned run.",
+  description="Repair proof redteam artifact for phase {phase_number}"
+)
+```
+
+After the repair run returns, re-open `${phase_dir}/${phase_number}-PROOF-REDTEAM.md` from disk and confirm the artifact exists and reports `status: passed` before continuing. If the artifact is still missing, stale, malformed, or not passed, keep the phase blocked.
 </step>
 
 <step name="batch_verification_triage">
@@ -180,6 +256,14 @@ For each forbidden proxy: verify the phase did not treat the proxy as success ev
 
 For each decisive comparison: emit a `comparison_verdict` (`pass`, `tension`, `fail`, `inconclusive`) with the relevant subject ID, reference ID if applicable, comparison kind, metric, threshold, and outcome. A nearby sentence like "agrees with literature" or an unlabeled plot does not satisfy a decisive comparison. Use `inconclusive` or `tension` for exploratory or partial verification when the comparison was started but does not yet justify a decisive pass.
 
+For each proof-bearing claim or acceptance test, additionally:
+
+1. inventory every named parameter, hypothesis, quantifier/domain obligation, and conclusion clause from the theorem statement
+2. verify the proof and the `*-PROOF-REDTEAM.md` artifact both account for each inventory item explicitly
+3. fail the target if a named parameter or hypothesis disappears from the proof, even when the algebra that remains is correct
+4. check whether the proof silently collapses to a special case (for example, proving only the zero-parameter limit)
+5. record proof-support status as FAILED or PARTIAL until the redteam audit closes every missing-coverage item
+
 **Example:** Claim "Dispersion relation is correct in all limiting cases" depends on derivation.tex (full derivation), limits_check.py (numerical verification), dispersion_plot.pdf (visual confirmation).
 
 Verification approach:
@@ -196,7 +280,7 @@ If the limits you compute do not match known results -> FAILED. If some supporti
 Use gpd for initial artifact structural verification:
 
 ```bash
-for plan in "$phase_dir"/*-PLAN.md; do
+for plan in "$phase_dir"/PLAN.md "$phase_dir"/*-PLAN.md; do
   ARTIFACT_RESULT=$(gpd verify artifacts "$plan")
   echo "=== $plan ===" && echo "$ARTIFACT_RESULT"
 done
@@ -209,6 +293,7 @@ Parse JSON result: `{ all_passed, passed, total, artifacts: [{path, exists, issu
 - `exists=false` -> MISSING
 - `issues` not empty -> INCOMPLETE (check issues for "Only N lines" or "Missing pattern")
 - `passed=true` -> Levels 1-2 pass (structural)
+- For proof-bearing work, `*-PROOF-REDTEAM.md` is a required artifact, not optional reviewer scratch output
 
 **Level 3 -- Content Validation (the critical addition):**
 
@@ -218,6 +303,7 @@ For each artifact that passes structural checks, perform content validation:
 2. **Spot-check** key expressions by substituting 2-3 test parameter sets where the answer is known
 3. **Verify** at least one limiting case by independently taking the limit of the final expression
 4. **Check dimensions** of the key equations by tracing physical dimensions of each symbol
+5. **For `*-PROOF-REDTEAM.md` artifacts:** confirm the theorem inventory exists, the coverage tables are explicit, and the adversarial probe would catch a proof that only establishes a narrower special case
 
 ```bash
 # Example: content validation of a derivation artifact
@@ -405,14 +491,14 @@ REQUIREMENTS.md uses a traceability table mapping REQ-IDs to phases. The table f
 
 ```bash
 # Match traceability table rows referencing this phase (handles "Phase 3", "Phase 3," and "Phase 3 |")
-grep -E "\|.*Phase\s*${PHASE_NUM}(\s*[,|]|\s*$)" .gpd/REQUIREMENTS.md 2>/dev/null
+grep -E "\|.*Phase\s*${PHASE_NUM}(\s*[,|]|\s*$)" GPD/REQUIREMENTS.md 2>/dev/null
 ```
 
 If the traceability table is not found, fall back to a broader search:
 
 ```bash
 # Fallback: match any row containing the phase number in a table context
-grep -E "^\|.*\b${PHASE_NUM}\b" .gpd/REQUIREMENTS.md 2>/dev/null
+grep -E "^\|.*\b${PHASE_NUM}\b" GPD/REQUIREMENTS.md 2>/dev/null
 ```
 
 For each requirement: parse description -> identify supporting contract targets / artifacts -> status: SATISFIED / BLOCKED / NEEDS EXPERT.
@@ -439,7 +525,7 @@ For each numerical result, record:
   </step>
 
 <step name="scan_antipatterns">
-Extract files modified in this phase from SUMMARY.md, scan each:
+Extract files modified in this phase from summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`), scan each:
 
 | Pattern                    | Search                                                                | Severity |
 | -------------------------- | --------------------------------------------------------------------- | -------- |
@@ -458,19 +544,19 @@ Categorize: Blocker (prevents research goal) | Warning (incomplete) | Info (nota
 
 Skip this step if `phase_number` is the first phase (no prior phase to compare against).
 
-Otherwise, locate the previous phase's SUMMARY.md and read the current phase's SUMMARY.md:
+Otherwise, locate the previous phase's summary artifact and read the current phase's summary artifact:
 
 ```bash
 # Find previous phase summary (phase N-1)
-PREV_PHASE_DIR=$(ls -d .gpd/phases/*/ | sort | grep -B1 "$phase_dir" | head -1)
-PREV_SUMMARY=$(ls "$PREV_PHASE_DIR"/*-SUMMARY.md 2>/dev/null | tail -1)
-CURR_SUMMARY=$(ls "$phase_dir"/*-SUMMARY.md 2>/dev/null | tail -1)
+PREV_PHASE_DIR=$(ls -d GPD/phases/*/ | sort | grep -B1 "$phase_dir" | head -1)
+PREV_SUMMARY=$(ls "$PREV_PHASE_DIR"/SUMMARY.md "$PREV_PHASE_DIR"/*-SUMMARY.md 2>/dev/null | tail -1)
+CURR_SUMMARY=$(ls "$phase_dir"/SUMMARY.md "$phase_dir"/*-SUMMARY.md 2>/dev/null | tail -1)
 ```
 
 If both summaries exist, check for cross-phase consistency by reading:
 
-1. **Current SUMMARY.md** — "Cross-Phase Dependencies" section (consumed results, convention changes)
-2. **Previous SUMMARY.md** — "Approximations Used" table and "Key Results" / "Equations Derived"
+1. **Current summary artifact** — "Cross-Phase Dependencies" section (consumed results, convention changes)
+2. **Previous summary artifact** — "Approximations Used" table and "Key Results" / "Equations Derived"
 3. **STATE.md** — "Active Approximations" table and "Convention Lock"
 
 Reference: @{GPD_INSTALL_DIR}/references/verification/core/verification-core.md (+ relevant domain verification file)
@@ -506,10 +592,12 @@ Format each as: Check Name -> What to verify -> Expected result -> Why cannot ve
 
 **gaps_found:** Any decisive contract target FAILED, artifact MISSING/INCOMPLETE/INCORRECT, required comparison verdict missing/FAIL/TENSION without resolution, required reference action missing, forbidden proxy VIOLATED/UNRESOLVED, physics check NOT_PERFORMED/FAILED, blocker anti-pattern found, cross-phase blocker found, or an omitted decisive check is recorded in `suggested_contract_checks` without an equivalent closing check elsewhere.
 
-**human_needed:** All automated and computational checks pass but expert verification items remain.
+**expert_needed:** All automated and computational checks pass but domain-expert verification items remain.
+
+**human_needed:** All automated and computational checks pass but non-expert human review or user decision remains.
 
 **Score:** `verified_contract_targets / total_contract_targets`
-**Independently confirmed:** `independently_confirmed_checks / total_applicable_checks`
+If you need an aggregate independently confirmed tally for the narrative, keep it in body prose or tables. Do not add a non-canonical verification frontmatter key for that count.
 </step>
 
 <step name="generate_fix_plans">
@@ -529,7 +617,7 @@ If gaps_found:
 REPORT_PATH="$phase_dir/${phase_number}-VERIFICATION.md"
 ```
 
-Fill template sections: frontmatter (phase/timestamp/status/score/plan_contract_ref/contract_results/comparison_verdicts/suggested_contract_checks/independently_confirmed), goal achievement, contract targets table, artifact table, computational verification details (spot-checks, limits re-derived, cross-checks, dimensional analysis traces), physics checks table, requirements coverage, anti-patterns, cross-phase consistency, expert verification, gaps summary with computation evidence, fix plans (if gaps_found), metadata. The contract targets table should read like a user-visible outcome ledger, not a workflow checklist.
+Fill template sections: frontmatter (phase/verified/status/score/plan_contract_ref/contract_results including `uncertainty_markers`/comparison_verdicts/suggested_contract_checks), goal achievement, contract targets table, artifact table, computational verification details (spot-checks, limits re-derived, cross-checks, dimensional analysis traces), physics checks table, requirements coverage, anti-patterns, cross-phase consistency, expert verification, gaps summary with computation evidence, fix plans (if gaps_found), metadata. The contract targets table should read like a user-visible outcome ledger, not a workflow checklist.
 
 If the verifier identifies a decisive check that the contract omitted but downstream work clearly depends on, record it under `suggested_contract_checks` with a reason and recommended evidence path. Do not hide this by marking the parent target VERIFIED; keep the target PARTIAL or FAILED until the missing decisive check is resolved or explicitly re-scoped.
 
@@ -537,13 +625,13 @@ See {GPD_INSTALL_DIR}/templates/verification-report.md for complete template.
 </step>
 
 <step name="oracle_gate_check">
-**Before returning, verify that VERIFICATION.md contains at least one computational oracle block.**
+**Before returning, verify that VERIFICATION.md exists on disk, is named in the return envelope, passes the verification-contract schema gate, and contains at least one computational oracle block.**
 
 Scan the written VERIFICATION.md for evidence of actual code execution:
 
 ```bash
 # Check for code output blocks in VERIFICATION.md
-VERIFICATION_FILE="${phase_dir}/${phase}-VERIFICATION.md"
+VERIFICATION_FILE="${phase_dir}/${phase_number}-VERIFICATION.md"
 if [ -f "$VERIFICATION_FILE" ]; then
   # Look for output blocks (```output or **Output:** followed by ```)
   HAS_OUTPUT=$(grep -cE '(^\*\*Output:?\*\*|^```(output|text)|computed=|PASS|FAIL|match=True|match=False)' "$VERIFICATION_FILE")
@@ -557,18 +645,21 @@ if [ -f "$VERIFICATION_FILE" ]; then
 fi
 ```
 
-If no computational output blocks are found, the verification is INCOMPLETE. The verifier must go back and execute at least one computational check before the workflow can proceed.
+If the file is missing, absent from `gpd_return.files_written`, or fails `gpd validate verification-contract "${VERIFICATION_FILE}"`, the verification is INCOMPLETE. If no computational output blocks are found, the verification is INCOMPLETE. The verifier must go back and execute at least one computational check before the workflow can proceed.
 
 This gate enforces the principle that verification must involve external computation, not just LLM reasoning about physics.
 </step>
 
 <step name="return_to_orchestrator">
-Return status (`passed` | `gaps_found` | `human_needed`), score (N/M contract targets), independently confirmed count (K/M), report path.
+Route on `gpd_return.status`, not on headings. If the run reports `completed`, accept it only after `VERIFICATION.md` exists on disk, is named in `gpd_return.files_written`, and passes `gpd validate verification-contract "${phase_dir}/${phase_number}-VERIFICATION.md"`. For proof-bearing phases, the sibling `*-PROOF-REDTEAM.md` must also exist and report `status: passed` before the phase can be treated as verified. If the run reports `checkpoint`, present the checkpoint and start a fresh continuation after user input. If it reports `blocked` or `failed`, keep the session fail-closed and surface the issues.
+
+Return status (`passed` | `gaps_found` | `expert_needed` | `human_needed`), score (N/M contract targets), independently confirmed count (K/M), report path.
 
 If gaps_found: list gaps with contract IDs, computation evidence, comparison verdict failures or forbidden-proxy violations, and recommended fix plan names.
-If human_needed: list items requiring expert review with explanation of why computational verification was insufficient.
+If expert_needed: list items requiring expert review with explanation of why computational verification was insufficient.
+If human_needed: list items requiring non-expert human review with explanation of why computational verification was insufficient.
 
-Orchestrator routes: `passed` -> update_roadmap | `gaps_found` -> create/execute fixes, re-verify | `human_needed` -> present to researcher.
+Orchestrator routes: `passed` -> update_roadmap | `gaps_found` -> create/execute fixes, re-verify | `expert_needed` -> present to researcher/expert review | `human_needed` -> present to researcher.
 </step>
 
 </process>

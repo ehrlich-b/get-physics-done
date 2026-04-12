@@ -4,10 +4,12 @@ This directory contains the automated test suite for GPD: core CLI and state reg
 
 The final section of this README keeps the full checked-in repository interdependency graph that the graph guardrail tests read directly.
 
+Default `uv run pytest` runs the full checked-in suite, and `uv run pytest -q` does the same with quieter output. Both inherit `-n auto --dist=worksteal` from `pyproject.toml`, so pytest parallelizes by default and can rebalance giant modules across idle workers. For default full-suite local runs, `tests/conftest.py` also raises xdist auto-worker selection toward the current CI shard fanout, so local `uv run pytest` stays in the same rough parallelism range as CI without changing what gets collected. If you need a serial run for debugging, override that default explicitly with `uv run pytest -n 0`. For a focused smoke pass, run `uv run pytest tests/test_runtime_abstraction_boundaries.py tests/core/test_contract_schema_prompt_parity.py tests/core/test_review_contract_prompt_visibility.py tests/mcp/test_tool_contract_visibility.py tests/core/test_verifier_prompt_contract_visibility.py tests/core/test_verification_surface_alignment_regressions.py -q`. The GitHub Actions workflow runs that same full suite as category-named runtime-informed shards: `root 1/9` through `root 9/9`, `adapters 1/2` through `adapters 2/2`, `hooks 1/2` through `hooks 2/2`, `mcp`, and `core 1/5` through `core 5/5`. `tests/ci_sharding.py` still weights files by collected test counts, boosts root modules that have been slow on GitHub Actions, splits known hotspot modules such as `tests/test_runtime_cli.py`, `tests/test_registry.py`, `tests/test_update_workflow.py`, and `tests/hooks/test_runtime_detect.py`, and greedily rebalances those work units inside each category so the thematic shard names remain close to the well-balanced anonymous-shard timings while each shard still inherits the same default pytest work-stealing parallelism policy.
+
 ## Repository Interdependency Graph
 
 <!-- repo-graph-generated-on:start -->
-Generated on `2026-03-18` from the current worktree.
+Generated from the current worktree via `python scripts/sync_repo_graph_contract.py`.
 <!-- repo-graph-generated-on:end -->
 
 ## Status
@@ -26,17 +28,14 @@ This graph therefore includes:
 
 <!-- repo-graph-scope:start -->
 
-- Live repo files analyzed in the current tree: `641`
-- Python files under `src/` and `tests/`: `206`
-- `src/gpd/commands/*.md`: `61`
-- `src/gpd/agents/*.md`: `23`
-- `src/gpd/specs/workflows/*.md`: `62`
-- `src/gpd/specs/templates/**/*.md`: `71`
-- `src/gpd/specs/references/**/*.md`: `156`
+- `src/gpd/commands/*.md`: `68`
+- `src/gpd/agents/*.md`: `24`
+- `src/gpd/specs/workflows/*.md`: `69`
+- `src/gpd/specs/templates/**/*.md`: `79`
+- `src/gpd/specs/references/**/*.md`: `180`
 - `src/gpd/adapters/*.py`: `9`
-- `src/gpd/hooks/*.py`: `6`
-- `src/gpd/mcp/servers/*.py`: `8`
-- `tests/**` files: `138`
+- `src/gpd/hooks/*.py`: `11`
+- `src/gpd/mcp/servers/*.py`: `9`
 - `infra/gpd-*.json`: `8`
 
 Excluded as noise from node counting, but still modeled where contractually relevant:
@@ -49,7 +48,7 @@ Excluded as noise from node counting, but still modeled where contractually rele
 - `.pytest_cache/**`
 - `.mypy_cache/**`
 - `.ruff_cache/**`
-- `.gpd/**`
+- `GPD/**`
 - `.claude/**`
 - `.gemini/**`
 - `.codex/**`
@@ -61,9 +60,9 @@ Generated-output families are modeled when code or tests depend on them:
 
 - `dist/*.whl`
 - `dist/*.tar.gz`
-- `<workspace>/.gpd/**`
+- `<workspace>/GPD/**`
 - runtime config files and caches
-- paper build outputs such as `main.pdf`, `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`
+- paper build outputs such as `{topic_specific_stem}.pdf`, `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`
 
 ## Edge Taxonomy
 
@@ -112,6 +111,7 @@ flowchart TD
     cli --> adapters[src/gpd/adapters/*.py]
     cli --> hooks[src/gpd/hooks/*.py]
     cli --> paper[src/gpd/mcp/paper/*.py]
+    cli --> checkpoints[src/gpd/core/checkpoints.py]
     registry[src/gpd/registry.py] --> commands[src/gpd/commands/*.md]
     registry --> agents[src/gpd/agents/*.md]
     commands --> workflows[src/gpd/specs/workflows/*.md]
@@ -121,9 +121,10 @@ flowchart TD
     adapters --> claude_artifacts[installed .claude/** family]
     adapters --> runtime_cfg[external runtime configs]
     hooks --> runtime_cfg
-    hooks --> workspace_state[external .gpd/**]
+    hooks --> workspace_state[external GPD/**]
     builtin[src/gpd/mcp/builtin_servers.py] --> infra[infra/gpd-*.json]
     paper --> paper_outputs[generated paper/build outputs]
+    checkpoints --> checkpoint_outputs[generated checkpoint outputs]
     tests[tests/**] --> cli
     tests --> core
     tests --> adapters
@@ -204,7 +205,7 @@ flowchart TD
 
 - `.github/workflows/test.yml -> tests/**`
   `authority`
-  Runs `uv run pytest tests/ -v` across the whole test tree.
+  Runs fast and full pytest coverage explicitly in CI.
 
 - `.github/workflows/test.yml -> pyproject.toml`
   `authority`
@@ -214,13 +215,13 @@ flowchart TD
   `authority`
   Locked dependency resolution surface for CI.
 
-- `.github/workflows/test.yml -> actions/checkout@v4`
+- `.github/workflows/test.yml -> actions/checkout@v5`
   `external-service`
 
-- `.github/workflows/test.yml -> actions/setup-python@v5`
+- `.github/workflows/test.yml -> actions/setup-python@v6`
   `external-service`
 
-- `.github/workflows/test.yml -> astral-sh/setup-uv@v4`
+- `.github/workflows/test.yml -> astral-sh/setup-uv@v7`
   `external-service`
 
 - `.github/pull_request_template.md -> src/**`
@@ -261,28 +262,28 @@ flowchart TD
 
 - `src/gpd/cli.py -> src/gpd/core/*.py`
   `hard-import` plus `candidate-set`
-  The CLI is a dynamic router over core modules and over on-disk project layout under `<cwd>/.gpd/**`.
+  The CLI is a dynamic router over core modules and over on-disk project layout under `<cwd>/GPD/**`.
 
-- `src/gpd/cli.py -> external project-layout family <cwd>/.gpd/{state.json,STATE.md,config.json,phases/**,milestones/**,traces/**}`
+- `src/gpd/cli.py -> external project-layout family <cwd>/GPD/{state.json,STATE.md,config.json,phases/**,milestones/**,traces/**}`
   `candidate-set`
 
-- `src/gpd/cli.py -> ordered paper-config candidate family {paper,manuscript,draft}/{PAPER-CONFIG.json,paper-config.json}`
+- `src/gpd/cli.py -> ordered paper-config candidate family {paper,manuscript,draft}/PAPER-CONFIG.json`
   `candidate-set`
 
-- `src/gpd/cli.py -> ordered paper-config candidate family {paper,manuscript,draft}/{PAPER-CONFIG.json,paper-config.json}`
+- `src/gpd/cli.py -> ordered paper-config candidate family {paper,manuscript,draft}/PAPER-CONFIG.json`
   `ordering-contract`
   `_resolve_existing_input_path()` returns the first existing config from the declared candidate order.
 
-- `src/gpd/cli.py -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`
+- `src/gpd/cli.py -> active manuscript roots {paper,manuscript,draft} resolved via {ARTIFACT-MANIFEST.json, PAPER-CONFIG.json}`
   `candidate-set`
 
-- `src/gpd/cli.py -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`
+- `src/gpd/cli.py -> active manuscript roots {paper,manuscript,draft} resolved via {ARTIFACT-MANIFEST.json, PAPER-CONFIG.json}`
   `ordering-contract`
 
-- `src/gpd/cli.py -> peer-review manuscript candidate family {target/main.tex, target/main.md, lexicographically first direct *.tex/*.md fallback}`
+- `src/gpd/cli.py -> peer-review manuscript entrypoint resolver {target/ARTIFACT-MANIFEST.json, target/PAPER-CONFIG.json}`
   `candidate-set`
 
-- `src/gpd/cli.py -> peer-review manuscript candidate family {target/main.tex, target/main.md, lexicographically first direct *.tex/*.md fallback}`
+- `src/gpd/cli.py -> peer-review manuscript entrypoint resolver {target/ARTIFACT-MANIFEST.json, target/PAPER-CONFIG.json}`
   `ordering-contract`
 
 - `src/gpd/cli.py -> bibliography candidate family {config_path.parent, output_dir, <cwd>/references}/{<bib_stem>.bib}`
@@ -291,31 +292,31 @@ flowchart TD
 - `src/gpd/cli.py -> bibliography candidate family {config_path.parent, output_dir, <cwd>/references}/{<bib_stem>.bib}`
   `ordering-contract`
 
-- `src/gpd/cli.py -> strict review artifact manifest candidates {manuscript.parent/ARTIFACT-MANIFEST.json, <cwd>/.gpd/paper/ARTIFACT-MANIFEST.json}`
+- `src/gpd/cli.py -> strict review artifact manifest candidates {manuscript.parent/ARTIFACT-MANIFEST.json}`
   `candidate-set`
 
-- `src/gpd/cli.py -> strict review artifact manifest candidates {manuscript.parent/ARTIFACT-MANIFEST.json, <cwd>/.gpd/paper/ARTIFACT-MANIFEST.json}`
+- `src/gpd/cli.py -> strict review artifact manifest candidates {manuscript.parent/ARTIFACT-MANIFEST.json}`
   `ordering-contract`
 
-- `src/gpd/cli.py -> strict review bibliography audit candidates {manuscript.parent/BIBLIOGRAPHY-AUDIT.json, <cwd>/.gpd/paper/BIBLIOGRAPHY-AUDIT.json}`
+- `src/gpd/cli.py -> strict review bibliography audit candidates {manuscript.parent/BIBLIOGRAPHY-AUDIT.json}`
   `candidate-set`
 
-- `src/gpd/cli.py -> strict review bibliography audit candidates {manuscript.parent/BIBLIOGRAPHY-AUDIT.json, <cwd>/.gpd/paper/BIBLIOGRAPHY-AUDIT.json}`
+- `src/gpd/cli.py -> strict review bibliography audit candidates {manuscript.parent/BIBLIOGRAPHY-AUDIT.json}`
   `ordering-contract`
 
-- `src/gpd/cli.py -> strict review reproducibility manifest candidates {manuscript.parent/reproducibility-manifest.json, manuscript.parent/REPRODUCIBILITY-MANIFEST.json, <cwd>/.gpd/paper/reproducibility-manifest.json}`
+- `src/gpd/cli.py -> strict review reproducibility manifest candidates {manuscript.parent/reproducibility-manifest.json}`
   `candidate-set`
 
-- `src/gpd/cli.py -> strict review reproducibility manifest candidates {manuscript.parent/reproducibility-manifest.json, manuscript.parent/REPRODUCIBILITY-MANIFEST.json, <cwd>/.gpd/paper/reproducibility-manifest.json}`
+- `src/gpd/cli.py -> strict review reproducibility manifest candidates {manuscript.parent/reproducibility-manifest.json}`
   `ordering-contract`
 
 - `src/gpd/cli.py -> src/gpd/core/patterns.py -> {GPD_PATTERNS_ROOT, GPD_DATA_DIR, ~/.gpd/learned-patterns}`
   `candidate-set`
 
-- `src/gpd/cli.py -> effective observability roots <cwd>/.gpd/observability/{events.jsonl,sessions/*.jsonl,sessions/*.json,current-session.json}`
+- `src/gpd/cli.py -> effective observability roots <cwd>/GPD/observability/{events.jsonl,sessions/*.jsonl,sessions/*.json,current-session.json}`
   `candidate-set`
 
-- `src/gpd/cli.py -> effective observability roots <cwd>/.gpd/observability/{events.jsonl,sessions/*.jsonl,sessions/*.json,current-session.json}`
+- `src/gpd/cli.py -> effective observability roots <cwd>/GPD/observability/{events.jsonl,sessions/*.jsonl,sessions/*.json,current-session.json}`
   `ordering-contract`
   `events.jsonl` is preferred before falling back to per-session event streams and session metadata.
 
@@ -335,6 +336,17 @@ flowchart TD
 - `src/gpd/cli.py -> src/gpd/mcp/paper/compiler.py`
   `hard-import`
 
+- `src/gpd/cli.py::sync_phase_checkpoints -> src/gpd/core/checkpoints.py::sync_phase_checkpoints`
+  `spawn`
+
+- `src/gpd/core/phases.py -> src/gpd/core/checkpoints.py::sync_phase_checkpoints`
+  `spawn`
+  `phases.py` also regenerates checkpoint artifacts after phase completion and cleanup.
+
+- `src/gpd/core/checkpoints.py -> generated outputs {GPD/CHECKPOINTS.md, GPD/phase-checkpoints/*.md}`
+  `generated-output`
+  `sync-phase-checkpoints` materializes the internal checkpoint index plus one checkpoint note per phase directory.
+
 - `src/gpd/core/state.py -> src/gpd/contracts.py`
   `schema-contains`
   `ResearchState` contains `ConventionLock` and related typed state structures.
@@ -352,9 +364,15 @@ flowchart TD
 - `src/gpd/core/state.py -> state.json.bak`
   `generated-output`
 
-- `src/gpd/core/state.py -> <cwd>/.gpd/state.intent`
+- `src/gpd/core/state.py -> <cwd>/GPD/.state-write-intent`
   `generated-output`
   Dual-write recovery marker for interrupted `state.json` and `STATE.md` writes.
+
+- `src/gpd/core/checkpoints.py -> <cwd>/GPD/CHECKPOINTS.md`
+  `generated-output`
+
+- `src/gpd/core/checkpoints.py -> <cwd>/GPD/phase-checkpoints/*.md`
+  `generated-output`
 
 - `src/gpd/core/results.py -> src/gpd/contracts.py`
   `schema-contains`
@@ -424,7 +442,7 @@ flowchart TD
 - `src/gpd/core/observability.py -> src/gpd/mcp/servers/*.py`
   `span-context`
 
-- `src/gpd/core/observability.py -> <cwd>/.gpd/observability/{events.jsonl,sessions/*.jsonl,sessions/*.json,current-session.json}`
+- `src/gpd/core/observability.py -> <cwd>/GPD/observability/{events.jsonl,sessions/*.jsonl,sessions/*.json,current-session.json}`
   `generated-output`
   Observability writes and rereads the project-wide event stream, per-session event streams, and session metadata from this tree.
 
@@ -440,7 +458,7 @@ flowchart TD
   `ordering-contract`
   Query-time dependency semantics follow parser precedence, not simple field union.
 
-- `src/gpd/core/query.py -> .gpd/phases/**/{*-SUMMARY.md,SUMMARY.md}`
+- `src/gpd/core/query.py -> GPD/phases/**/{*-SUMMARY.md,SUMMARY.md}`
   `candidate-set`
   Query walks both plan-scoped `*-SUMMARY.md` files and standalone `SUMMARY.md` files under each phase directory.
 
@@ -455,15 +473,27 @@ flowchart TD
   Canonical parser for agent prompt definitions.
 
 <!-- repo-graph-same-stem-command-workflow:start -->
-- `src/gpd/commands/{add-phase,add-todo,arxiv-submission,audit-milestone,branch-hypothesis,check-todos,compact-state,compare-branches,compare-experiment,compare-results,complete-milestone,debug,decisions,derive-equation,dimensional-analysis,discover,discuss-phase,error-patterns,error-propagation,execute-phase,explain,export,graph,help,insert-phase,limiting-cases,list-phase-assumptions,literature-review,map-research,merge-phases,new-milestone,new-project,numerical-convergence,parameter-sweep,pause-work,peer-review,plan-milestone-gaps,plan-phase,progress,quick,reapply-patches,record-insight,regression-check,remove-phase,research-phase,respond-to-referees,resume-work,revise-phase,sensitivity-analysis,set-profile,settings,show-phase,slides,sync-state,undo,update,validate-conventions,verify-work,write-paper}.md -> src/gpd/specs/workflows/{same stems}.md`
+- `src/gpd/commands/{add-phase,add-todo,arxiv-submission,audit-milestone,branch-hypothesis,check-todos,compact-state,compare-branches,compare-experiment,compare-results,complete-milestone,debug,decisions,derive-equation,digest-knowledge,dimensional-analysis,discover,discuss-phase,error-patterns,error-propagation,execute-phase,explain,export,export-logs,graph,help,insert-phase,limiting-cases,list-phase-assumptions,literature-review,map-research,merge-phases,new-milestone,new-project,numerical-convergence,parameter-sweep,pause-work,peer-review,plan-milestone-gaps,plan-phase,progress,quick,reapply-patches,record-insight,regression-check,remove-phase,research-phase,respond-to-referees,resume-work,review-knowledge,revise-phase,sensitivity-analysis,set-profile,set-tier-models,settings,show-phase,slides,start,sync-state,tangent,tour,undo,update,validate-conventions,verify-work,write-paper}.md -> src/gpd/specs/workflows/{same stems}.md`
 <!-- repo-graph-same-stem-command-workflow:end -->
   `include`
   Explicit same-stem command-to-workflow includes are node-level edges, not just an aggregate count.
 
+- `src/gpd/commands/help.md -> runtime slash-command surface contract {in-runtime `/gpd:*` reference, local CLI distinction, `gpd --help`, `gpd validate command-context gpd:<name>`}`
+  `behavior-contract`
+  Help must say these entries describe the in-runtime slash-command surface, not promise that every item is a direct local `gpd` CLI subcommand.
+
+- `src/gpd/commands/help.md -> src/gpd/core/commands.py::cmd_regression_check`
+  `behavior-contract`
+  `/gpd:regression-check` help must describe the implemented SUMMARY/VERIFICATION scan instead of claiming a full re-run of dimensional, limit, or numerical verification.
+
+- `src/gpd/specs/workflows/help.md -> slash-command/local-CLI distinction and regression-check wording from src/gpd/commands/help.md`
+  `parity`
+  Command and workflow help surfaces should stay synchronized on invocation-surface semantics and on the actual `regression-check` behavior.
+
 - `src/gpd/commands/explain.md -> src/gpd/agents/{gpd-explainer,gpd-bibliographer}.md`
   `spawn`
 
-- `src/gpd/commands/literature-review.md -> src/gpd/agents/gpd-literature-reviewer.md`
+- `src/gpd/specs/workflows/literature-review.md -> src/gpd/agents/gpd-literature-reviewer.md`
   `spawn`
 
 - `src/gpd/commands/debug.md -> src/gpd/agents/gpd-debugger.md`
@@ -487,41 +517,29 @@ flowchart TD
 - `src/gpd/commands/write-paper.md -> gpd paper-build paper/PAPER-CONFIG.json`
   `spawn`
 
-- `src/gpd/commands/write-paper.md -> paper/{PAPER-CONFIG.json,main.tex,ARTIFACT-MANIFEST.json}`
+- `src/gpd/commands/write-paper.md -> paper/{PAPER-CONFIG.json,<topic_stem>.tex,ARTIFACT-MANIFEST.json}`
   `generated-output`
   The command explicitly creates the paper config and requires the canonical manuscript scaffold before drafting continues.
 
-- `src/gpd/commands/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
+- `src/gpd/commands/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
   `spawn`
 
-- `src/gpd/commands/peer-review.md -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`
+- `src/gpd/commands/peer-review.md -> active manuscript roots {paper,manuscript,draft} resolved via {ARTIFACT-MANIFEST.json, PAPER-CONFIG.json}`
   `candidate-set`
 
-- `src/gpd/commands/health.md -> .gpd/{STATE.md,state.json,config.json}`
+- `src/gpd/commands/health.md -> GPD/{STATE.md,state.json,config.json}`
   `include`
 
 - `src/gpd/commands/health.md -> gpd --raw health {,--fix}`
   `spawn`
 
-- `src/gpd/commands/suggest-next.md -> .gpd/{STATE.md,ROADMAP.md}`
+- `src/gpd/commands/suggest-next.md -> GPD/{STATE.md,ROADMAP.md}`
   `include`
 
 - `src/gpd/commands/suggest-next.md -> gpd --raw suggest`
   `spawn`
 
 - `src/gpd/commands/new-project.md -> src/gpd/specs/workflows/new-project.md`
-  `include`
-
-- `src/gpd/commands/new-project.md -> src/gpd/specs/references/research/questioning.md`
-  `include`
-
-- `src/gpd/commands/new-project.md -> src/gpd/specs/references/ui/ui-brand.md`
-  `include`
-
-- `src/gpd/commands/new-project.md -> src/gpd/specs/templates/project.md`
-  `include`
-
-- `src/gpd/commands/new-project.md -> src/gpd/specs/templates/requirements.md`
   `include`
 
 - `src/gpd/commands/new-milestone.md -> src/gpd/specs/workflows/new-milestone.md`
@@ -576,6 +594,9 @@ flowchart TD
 - `src/gpd/specs/workflows/plan-phase.md -> src/gpd/specs/templates/phase-prompt.md`
   `include`
 
+- `src/gpd/specs/workflows/plan-phase.md -> src/gpd/specs/templates/plan-contract-schema.md`
+  `include`
+
 - `src/gpd/specs/workflows/plan-phase.md -> src/gpd/specs/references/ui/ui-brand.md`
   `include`
 
@@ -588,25 +609,25 @@ flowchart TD
 - `src/gpd/agents/{gpd-bibliographer,gpd-consistency-checker,gpd-debugger,gpd-executor,gpd-experiment-designer,gpd-literature-reviewer,gpd-notation-coordinator,gpd-paper-writer,gpd-phase-researcher,gpd-plan-checker,gpd-planner,gpd-project-researcher,gpd-referee,gpd-research-synthesizer,gpd-roadmapper,gpd-research-mapper,gpd-verifier}.md -> src/gpd/specs/references/shared/shared-protocols.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance}.md -> src/gpd/specs/references/shared/shared-protocols.md`
+- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance}.md -> src/gpd/specs/references/shared/shared-protocols.md`
   `include`
 
 - `src/gpd/agents/{gpd-bibliographer,gpd-consistency-checker,gpd-debugger,gpd-executor,gpd-experiment-designer,gpd-explainer,gpd-literature-reviewer,gpd-notation-coordinator,gpd-paper-writer,gpd-phase-researcher,gpd-plan-checker,gpd-planner,gpd-project-researcher,gpd-referee,gpd-research-synthesizer,gpd-roadmapper,gpd-research-mapper}.md -> src/gpd/specs/references/orchestration/agent-infrastructure.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-significance}.md -> src/gpd/specs/references/orchestration/agent-infrastructure.md`
+- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-check-proof,gpd-review-significance}.md -> src/gpd/specs/references/orchestration/agent-infrastructure.md`
   `include`
 
 - `src/gpd/agents/{gpd-bibliographer,gpd-consistency-checker,gpd-debugger,gpd-executor,gpd-explainer,gpd-phase-researcher,gpd-plan-checker,gpd-planner,gpd-referee,gpd-research-mapper,gpd-verifier}.md -> src/gpd/specs/references/physics-subfields.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-math,gpd-review-physics}.md -> src/gpd/specs/references/physics-subfields.md`
+- `src/gpd/agents/{gpd-review-math,gpd-check-proof,gpd-review-physics}.md -> src/gpd/specs/references/physics-subfields.md`
   `include`
 
 - `src/gpd/agents/{gpd-consistency-checker,gpd-debugger,gpd-plan-checker,gpd-planner,gpd-referee,gpd-verifier}.md -> src/gpd/specs/references/verification/core/verification-core.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-math,gpd-review-physics}.md -> src/gpd/specs/references/verification/core/verification-core.md`
+- `src/gpd/agents/{gpd-review-math,gpd-check-proof,gpd-review-physics}.md -> src/gpd/specs/references/verification/core/verification-core.md`
   `include`
 
 - `src/gpd/agents/{gpd-bibliographer,gpd-paper-writer,gpd-referee}.md -> src/gpd/specs/references/publication/publication-pipeline-modes.md`
@@ -615,7 +636,7 @@ flowchart TD
 - `src/gpd/agents/{gpd-review-literature,gpd-review-significance}.md -> src/gpd/specs/references/publication/publication-pipeline-modes.md`
   `include`
 
-- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md -> src/gpd/specs/references/publication/peer-review-panel.md`
+- `src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md -> src/gpd/specs/references/publication/peer-review-panel.md`
   `include`
 
 - `src/gpd/agents/{gpd-phase-researcher,gpd-project-researcher,gpd-verifier}.md -> src/gpd/specs/references/research/research-modes.md`
@@ -664,7 +685,7 @@ flowchart TD
 - `src/gpd/agents/gpd-verifier.md -> src/gpd/specs/{references/verification/meta/verification-hierarchy-mapping.md,references/verification/core/computational-verification-templates.md,references/verification/domains/verification-domain-{qft,condmat,statmech,gr-cosmology,amo,nuclear-particle,astrophysics,fluid-plasma,mathematical-physics,algebraic-qft,string-field-theory,quantum-info,soft-matter}.md}`
   `conditional-include`
 
-- `.gpd/config.json::{autonomy,research_mode,workflow.research,workflow.plan_checker,workflow.verifier,workflow.verify_between_waves,model_profile} -> src/gpd/specs/workflows/{plan-phase,execute-phase,verify-work,new-project,write-paper}.md`
+- `GPD/config.json::{autonomy,research_mode,execution.review_cadence,workflow.research,workflow.plan_checker,workflow.verifier,model_profile} -> src/gpd/specs/workflows/{plan-phase,execute-phase,verify-work,new-project,write-paper}.md`
   `selector-input`
 
 - `STATE.md/state.json::convention_lock -> src/gpd/specs/workflows/{execute-phase,validate-conventions,new-project}.md`
@@ -701,16 +722,21 @@ flowchart TD
 - `src/gpd/specs/workflows/execute-phase.md -> selector tree {phase classification, force-sequential, YOLO restrictions, inter-wave verification gates}`
   `selector-input`
 
-- `src/gpd/specs/workflows/execute-phase.md -> src/gpd/specs/{references/orchestration/meta-orchestration.md,references/orchestration/checkpoints.md,references/verification/core/verification-core.md,templates/summary.md,templates/continuation-prompt.md,templates/paper/figure-tracker.md,templates/paper/experimental-comparison.md,templates/recovery-plan.md}`
+- `src/gpd/specs/workflows/execute-phase.md -> src/gpd/specs/{references/orchestration/meta-orchestration.md,references/orchestration/checkpoints.md,references/orchestration/continuous-execution.md,references/verification/core/verification-core.md,templates/summary.md,templates/continuation-prompt.md,templates/paper/figure-tracker.md,templates/paper/experimental-comparison.md,templates/recovery-plan.md}`
   `include`
-
 - `src/gpd/specs/workflows/execute-plan.md -> src/gpd/specs/references/protocols/error-propagation-protocol.md`
   `include`
 
-- `src/gpd/specs/workflows/execute-plan.md -> src/gpd/specs/{references/execution/git-integration.md,references/execution/execute-plan-recovery.md,references/execution/execute-plan-validation.md,references/execution/execute-plan-checkpoints.md,references/protocols/reproducibility.md,references/execution/executor-index.md,references/orchestration/context-budget.md,references/orchestration/checkpoints.md,templates/summary.md}`
+- `src/gpd/specs/workflows/execute-phase.md -> src/gpd/specs/{references/orchestration/meta-orchestration.md,references/orchestration/artifact-surfacing.md,references/orchestration/checkpoints.md,references/verification/core/verification-core.md,templates/summary.md,templates/continuation-prompt.md,templates/paper/figure-tracker.md,templates/paper/experimental-comparison.md,templates/recovery-plan.md}`
+  `include`
+
+- `src/gpd/specs/workflows/execute-plan.md -> src/gpd/specs/{references/execution/git-integration.md,references/execution/github-lifecycle.md,references/execution/execute-plan-recovery.md,references/execution/execute-plan-validation.md,references/execution/execute-plan-checkpoints.md,references/protocols/reproducibility.md,references/execution/executor-index.md,references/orchestration/context-budget.md,references/orchestration/checkpoints.md,templates/summary.md}`
   `include`
 
 - `src/gpd/specs/workflows/execute-plan.md -> src/gpd/specs/templates/calculation-log.md`
+  `include`
+
+- `src/gpd/specs/workflows/execute-plan.md -> src/gpd/specs/templates/contract-results-schema.md`
   `include`
 
 - `src/gpd/specs/workflows/execute-plan.md -> src/gpd/specs/templates/recovery-plan.md`
@@ -725,10 +751,16 @@ flowchart TD
 - `src/gpd/specs/workflows/verify-work.md -> src/gpd/specs/templates/research-verification.md`
   `include`
 
+- `src/gpd/specs/workflows/verify-work.md -> src/gpd/specs/templates/contract-results-schema.md`
+  `include`
+
 - `src/gpd/specs/workflows/verify-work.md -> src/gpd/specs/references/protocols/error-propagation-protocol.md`
   `include`
 
 - `src/gpd/specs/workflows/verify-work.md -> src/gpd/specs/{references/verification/meta/verification-independence.md,workflows/debug.md}`
+  `include`
+
+- `src/gpd/specs/workflows/verify-work.md -> src/gpd/specs/templates/plan-contract-schema.md`
   `include`
 
 - `src/gpd/specs/workflows/verify-work.md -> src/gpd/agents/gpd-planner.md`
@@ -763,17 +795,17 @@ flowchart TD
   `spawn`
   Invoked as `gpd paper-build paper/PAPER-CONFIG.json` before section drafting and review.
 
-- `src/gpd/specs/workflows/write-paper.md -> paper/{PAPER-CONFIG.json,main.tex,ARTIFACT-MANIFEST.json}`
+- `src/gpd/specs/workflows/write-paper.md -> paper/{PAPER-CONFIG.json,<topic_stem>.tex,ARTIFACT-MANIFEST.json}`
   `generated-output`
   Drafting and downstream review are gated on the scaffold and manifest emitted by the paper-build contract.
 
 - `src/gpd/specs/workflows/write-paper.md -> src/gpd/agents/gpd-referee.md`
   `spawn`
 
-- `src/gpd/specs/workflows/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
+- `src/gpd/specs/workflows/peer-review.md -> src/gpd/agents/{gpd-review-reader,gpd-review-literature,gpd-review-math,gpd-check-proof,gpd-review-physics,gpd-review-significance,gpd-referee}.md`
   `spawn`
 
-- `src/gpd/specs/workflows/peer-review.md -> candidate manuscript roots {paper/main.tex, manuscript/main.tex, draft/main.tex}`
+- `src/gpd/specs/workflows/peer-review.md -> active manuscript roots {paper,manuscript,draft} resolved via {ARTIFACT-MANIFEST.json, PAPER-CONFIG.json}`
   `candidate-set`
 
 - `src/gpd/specs/workflows/peer-review.md -> paper/{PAPER-CONFIG.json,ARTIFACT-MANIFEST.json,BIBLIOGRAPHY-AUDIT.json}`
@@ -784,6 +816,9 @@ flowchart TD
   `selector-input`
 
 - `src/gpd/specs/workflows/write-paper.md -> src/gpd/specs/{references/publication/publication-pipeline-modes.md,references/publication/paper-quality-scoring.md,templates/latex-preamble.md,templates/paper/supplemental-material.md,templates/paper/experimental-comparison.md}`
+  `include`
+
+- `src/gpd/specs/workflows/write-paper.md -> src/gpd/specs/templates/paper/{paper-config-schema.md,artifact-manifest-schema.md,bibliography-audit-schema.md,reproducibility-manifest.md}`
   `include`
 
 - `src/gpd/specs/workflows/debug.md -> src/gpd/specs/templates/debug-subagent-prompt.md`
@@ -817,6 +852,9 @@ flowchart TD
   `include`
 
 - `src/gpd/specs/workflows/new-project.md -> src/gpd/specs/{references/research/questioning.md,references/conventions/subfield-convention-defaults.md}`
+  `include`
+
+- `src/gpd/specs/workflows/new-project.md -> src/gpd/specs/templates/project-contract-schema.md`
   `include`
 
 - `src/gpd/specs/workflows/new-project.md -> src/gpd/specs/templates/research-project/PRIOR-WORK.md`
@@ -879,6 +917,9 @@ flowchart TD
 - `src/gpd/specs/workflows/{arxiv-submission,compact-state,compare-experiment,discover,insert-phase,resume-work,sensitivity-analysis,sync-state}.md -> src/gpd/specs/{references/publication/paper-quality-scoring.md,templates/state-archive.md,templates/paper/experimental-comparison.md,templates/research.md,references/orchestration/agent-infrastructure.md,references/orchestration/continuation-format.md,templates/parameter-table.md,templates/state-json-schema.md}`
   `include`
 
+- `src/gpd/specs/workflows/resume-work.md -> src/gpd/specs/references/orchestration/state-portability.md`
+  `include`
+
 - `src/gpd/specs/templates/continuation-prompt.md -> src/gpd/specs/{workflows/execute-plan.md,templates/summary.md,references/orchestration/checkpoints.md,references/verification/core/verification-core.md}`
   `include`
 
@@ -909,7 +950,7 @@ flowchart TD
 - `src/gpd/adapters/base.py -> src/gpd/adapters/install_utils.py::pre_install_cleanup`
   `spawn`
 
-- `src/gpd/adapters/install_utils.py::pre_install_cleanup -> save_local_patches() -> gpd-file-manifest.json["files"] -> gpd-local-patches/**`
+- `src/gpd/adapters/install_utils.py::pre_install_cleanup -> save_local_patches() -> managed install manifest["files"] -> managed patches/**`
   `manifest-contract`
   The manifest is a control-plane node and selective-backup baseline, not just inventory.
 
@@ -932,7 +973,7 @@ flowchart TD
 - `src/gpd/adapters/install_utils.py -> .claude/get-physics-done/VERSION`
   `materialized`
 
-- `src/gpd/adapters/install_utils.py -> .claude/gpd-file-manifest.json`
+- `src/gpd/adapters/install_utils.py -> .claude/managed install manifest`
   `materialized`
 
 - `src/gpd/hooks/{check_update,statusline,notify,runtime_detect}.py -> .claude/hooks/{check_update,statusline,notify,runtime_detect}.py`
@@ -1004,11 +1045,15 @@ flowchart TD
   `partial-ownership`
   Discoverable Codex command skills live here; agent roles stay under `.codex/agents/`.
 
-- `src/gpd/adapters/codex.py -> gpd-file-manifest.json::codex_skills_dir`
+- `src/gpd/adapters/codex.py -> managed install manifest::codex_skills_dir`
   `manifest-contract`
   Used later by uninstall to locate shared skills.
 
-- `src/gpd/adapters/install_utils.py::write_manifest -> gpd-file-manifest.json["files"]["skills/gpd-*/SKILL.md"]`
+- `src/gpd/adapters/codex.py -> managed install manifest::codex_generated_skill_dirs`
+  `manifest-contract`
+  Codex uninstall and completeness checks use these manifest-owned skill directory names as the authoritative skill inventory.
+
+- `src/gpd/adapters/install_utils.py::write_manifest -> managed install manifest["files"]["skills/gpd-*/SKILL.md"]`
   `manifest-contract`
 
 - `src/gpd/adapters/opencode.py -> opencode.json`
@@ -1034,7 +1079,7 @@ flowchart TD
   `partial-ownership`
   Backup/reapply semantics are manifest-driven, while hook and runtime-config cleanup follow separate managed-path rules.
 
-- `src/gpd/adapters/opencode.py::write_manifest -> gpd-file-manifest.json["files"]["command/gpd-*.md"]`
+- `src/gpd/adapters/opencode.py::write_manifest -> managed install manifest["files"]["command/gpd-*.md"]`
   `manifest-contract`
 
 - `.claude/settings.json`
@@ -1050,8 +1095,8 @@ Adapters do not own an entire runtime tree. They own only:
 - `get-physics-done/**`
 - bundled hook filenames
 - `VERSION`
-- `gpd-file-manifest.json`
-- `gpd-local-patches/**`
+- `managed install manifest`
+- `managed patches/**`
 - specific config keys or sections
 
 They explicitly preserve:
@@ -1080,7 +1125,7 @@ They explicitly preserve:
 - `src/gpd/hooks/runtime_detect.py -> environment signals {CLAUDE_CODE_SESSION, CLAUDE_CODE, CODEX_SESSION, CODEX_CLI, GEMINI_CLI, OPENCODE_SESSION, CLAUDE_CONFIG_DIR, CODEX_CONFIG_DIR, GEMINI_CONFIG_DIR, OPENCODE_CONFIG_DIR, OPENCODE_CONFIG, XDG_CONFIG_HOME}`
   `candidate-set`
 
-- `src/gpd/hooks/runtime_detect.py -> active runtime precedence {activation env vars -> local runtime dirs -> global runtime dirs -> ALL_RUNTIMES tie-break}`
+- `src/gpd/hooks/runtime_detect.py -> active runtime precedence {activation env vars -> local runtime dirs -> global runtime dirs -> live runtime inventory tie-break}`
   `ordering-contract`
   Runtime detection is precedence-driven, not a flat unordered candidate family.
 
@@ -1094,19 +1139,23 @@ They explicitly preserve:
   `ordering-contract`
   Hook consumers inherit this precedence through `get_gpd_install_dirs(prefer_active=True)` and `get_update_cache_files()`.
 
-- `tests/hooks/test_runtime_detect.py -> src/gpd/hooks/runtime_detect.py::ALL_RUNTIMES`
+- `tests/hooks/test_runtime_detect.py -> src/gpd/hooks/runtime_detect.py::supported_runtime_names()`
   `ordering-contract`
 
-- `src/gpd/hooks/statusline.py -> <workspace>/.gpd/state.json`
+- `src/gpd/hooks/statusline.py -> <workspace>/GPD/state.json`
   `candidate-set`
+
+- `src/gpd/hooks/statusline.py -> src/gpd/hooks/install_context.py`
+  `hard-import`
+  Shared self-owned install detection and todo/update-cache layout selection.
 
 - `src/gpd/hooks/statusline.py -> src/gpd/hooks/runtime_detect.py`
   `hard-import`
 
-- `src/gpd/hooks/statusline.py -> freshest valid update-cache candidate from runtime_detect.get_update_cache_files()`
+- `src/gpd/hooks/statusline.py -> shared self-owned install context + freshest valid update-cache candidate from runtime_detect.get_update_cache_files()`
   `candidate-set`
 
-- `src/gpd/hooks/statusline.py -> candidate todo family {local,global runtime dirs}/todos/<session>-agent-*.json`
+- `src/gpd/hooks/statusline.py -> shared self-owned todo directory + candidate todo family {local,global runtime dirs}/todos/<session>-agent-*.json`
   `candidate-set`
 
 - `src/gpd/hooks/statusline.py -> stdin payload schema {model, workspace, session_id, context_window}`
@@ -1141,6 +1190,10 @@ They explicitly preserve:
 - `src/gpd/hooks/notify.py -> src/gpd/hooks/check_update.py`
   `spawn`
 
+- `src/gpd/hooks/notify.py -> src/gpd/hooks/install_context.py`
+  `hard-import`
+  Shared self-owned install detection and update-cache layout selection.
+
 - `src/gpd/hooks/notify.py -> freshest valid update-cache candidate set`
   `candidate-set`
 
@@ -1150,6 +1203,10 @@ They explicitly preserve:
 - `src/gpd/hooks/notify.py -> src/gpd/hooks/runtime_detect.py`
   `hard-import`
   Reads cache candidates and runtime-scoped update commands through runtime-detection helpers.
+
+- `src/gpd/hooks/notify.py -> src/gpd/core/constants.py::ProjectLayout.last_observability_notification`
+  `layout-authority`
+  Duplicate notification suppression follows the shared observability layout helper instead of a hard-coded GPD path.
 
 - `src/gpd/core/context.py -> src/gpd/adapters/__init__.py`
   `authority`
@@ -1163,14 +1220,17 @@ They explicitly preserve:
 - `src/gpd/mcp/builtin_servers.py -> external binary {python}`
   `external-binary`
 
-- `src/gpd/mcp/builtin_servers.py -> external Python package {arxiv_mcp_server}`
+- `src/gpd/mcp/builtin_servers.py -> src/gpd/mcp/servers/arxiv_bridge.py`
+  `hard-import`
+
+- `src/gpd/mcp/servers/arxiv_bridge.py -> external Python package {arxiv_mcp_server}`
   `external-package`
 
 - `infra/gpd-{conventions,errors,patterns,protocols,skills,state,verification,arxiv}.json -> external binary {python}`
   `external-binary`
 
-- `infra/gpd-arxiv.json -> external Python package {arxiv_mcp_server}`
-  `external-package`
+- `infra/gpd-arxiv.json -> src/gpd/mcp/servers/arxiv_bridge.py`
+  `hard-import`
 
 - `src/gpd/mcp/servers/state_server.py -> src/gpd/core/{config,health,state,errors}.py`
   `hard-import`
@@ -1258,7 +1318,7 @@ They explicitly preserve:
 - `src/gpd/mcp/paper/review_artifacts.py -> external Python package {pydantic}`
   `external-package`
 
-- `src/gpd/mcp/paper/review_artifacts.py -> src/gpd/mcp/paper/models.py::{ClaimIndex, StageReviewReport, ReviewLedger, ReviewPanelBundle}`
+- `src/gpd/mcp/paper/review_artifacts.py -> src/gpd/mcp/paper/models.py::{ClaimIndex, StageReviewReport, ReviewLedger}`
   `hard-import`
 
 - `src/gpd/mcp/paper/bibliography.py -> generated outputs {*.bib, BIBLIOGRAPHY-AUDIT.json}`
@@ -1267,10 +1327,10 @@ They explicitly preserve:
 - `src/gpd/mcp/paper/artifact_manifest.py -> ARTIFACT-MANIFEST.json`
   `generated-output`
 
-- `src/gpd/mcp/paper/review_artifacts.py -> generated outputs {CLAIMS.json, STAGE-*.json, REVIEW-LEDGER.json, PANEL-BUNDLE.json}`
+- `src/gpd/mcp/paper/review_artifacts.py -> generated outputs {CLAIMS.json, STAGE-*.json, REVIEW-LEDGER.json, REFEREE-DECISION.json}`
   `generated-output`
 
-- `src/gpd/mcp/paper/compiler.py -> generated outputs {figures/**, main.tex, <bib>.bib, BIBLIOGRAPHY-AUDIT.json, ARTIFACT-MANIFEST.json, main.pdf}`
+- `src/gpd/mcp/paper/compiler.py -> generated outputs {figures/**, <topic_stem>.tex, <bib>.bib, BIBLIOGRAPHY-AUDIT.json, ARTIFACT-MANIFEST.json, <topic_stem>.pdf}`
   `generated-output`
 
 - `tests/test_paper_e2e.py -> src/gpd/mcp/paper/compiler.py`
@@ -1285,7 +1345,7 @@ They explicitly preserve:
 - `tests/test_paper_e2e.py -> src/gpd/mcp/paper/bibliography.py`
   `hard-import`
 
-- `tests/test_paper_e2e.py -> generated outputs {main.tex, references.bib, ARTIFACT-MANIFEST.json, BIBLIOGRAPHY-AUDIT.json, main.pdf, figures/**}`
+- `tests/test_paper_e2e.py -> generated outputs {<topic_stem>.tex, references.bib, ARTIFACT-MANIFEST.json, BIBLIOGRAPHY-AUDIT.json, <topic_stem>.pdf, figures/**}`
   `generated-output`
 
 - `tests/test_paper_models.py -> src/gpd/mcp/paper/{models,journal_map,template_registry}.py`
@@ -1313,7 +1373,7 @@ They explicitly preserve:
 - `tests/core/test_review_artifacts.py -> src/gpd/mcp/paper/review_artifacts.py`
   `hard-import`
 
-- `tests/core/test_review_artifacts.py -> generated outputs {CLAIMS.json, STAGE-*.json, REVIEW-LEDGER.json, PANEL-BUNDLE.json}`
+- `tests/core/test_review_artifacts.py -> generated outputs {CLAIMS.json, STAGE-*.json, REVIEW-LEDGER.json, REFEREE-DECISION.json}`
   `typed-roundtrip`
 
 - `tests/test_paper_compiler_regressions.py -> external binaries {latexmk, pdflatex}`
@@ -1459,11 +1519,11 @@ They explicitly preserve:
 - `tests/test_release_consistency.py -> MANUAL-TEST-PLAN.md`
   `negative-packaging-contract`
 
-- `tests/test_install_lifecycle.py -> gpd-file-manifest.json`
+- `tests/test_install_lifecycle.py -> managed install manifest`
   `manifest-contract`
   Includes `version`, `timestamp`, `file_hash`, stale-file cleanup, Codex discoverable-skill entries, and OpenCode path-shape constraints.
 
-- `tests/adapters/test_install_roundtrip.py -> installed runtime gpd-file-manifest.json families under {.claude,.gemini,.codex,.opencode}`
+- `tests/adapters/test_install_roundtrip.py -> installed runtime managed install manifest families under {.claude,.gemini,.codex,.opencode}`
   `manifest-contract`
 
 - `tests/adapters/test_install_roundtrip.py -> adapter source-command inventory versus Gemini .toml command count and Codex skill count`
@@ -1557,7 +1617,7 @@ They explicitly preserve:
 - `tests/core/test_frontmatter.py + tests/core/test_frontmatter_edge.py + tests/core/test_properties.py -> src/gpd/core/frontmatter.py`
   `typed-roundtrip`
 
-- `tests/core/test_state.py + tests/core/test_state_stress.py + tests/core/test_state_coverage_gaps.py + tests/core/test_state_mutations.py + tests/core/test_state_storage.py -> src/gpd/core/state.py`
+- `tests/core/test_state.py + tests/core/test_state_stress.py + tests/core/test_state_mutations.py + tests/core/test_state_storage.py -> src/gpd/core/state.py`
   `typed-roundtrip`
   Markdown/json persistence, normalization, sync, backup, and tagged verification-record preservation are all exercised.
 
@@ -1580,7 +1640,7 @@ They explicitly preserve:
 
 - `.claude/settings.json` is a runtime-shaped config artifact, not a portable config authority.
 
-- `.claude/gpd-file-manifest.json` is both:
+- `.claude/managed install manifest` is both:
   `materialized`
   `manifest-contract`
   It is inventory, backup baseline, and uninstall control-plane data.
@@ -1589,15 +1649,17 @@ They explicitly preserve:
 
 Operationally important node families that are not canonical repo files:
 
-- `<workspace>/.gpd/{state.json,STATE.md,state.json.bak,config.json,phases/**,milestones/**,traces/**}`
+- `<workspace>/GPD/{state.json,STATE.md,state.json.bak,config.json,phases/**,milestones/**,traces/**}`
 - `${GPD_HOME:-~/.gpd}/venv/**`
 - runtime config dirs `{cwd}/{.claude,.codex,.gemini,.opencode}` and `{home}/{.claude,.codex,.gemini,.config/opencode}`
 - `<workspace>/.mcp.json`
 - update caches `*/cache/gpd-update-check.json`
 - runtime install `*/get-physics-done/VERSION`
+- `<cwd>/GPD/CHECKPOINTS.md`
+- `<cwd>/GPD/phase-checkpoints/*.md`
 - `dist/*.whl`
 - `dist/*.tar.gz`
-- paper outputs `main.tex`, `references.bib`, `main.pdf`, `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`
+- paper outputs `<topic_stem>.tex`, `references.bib`, `<topic_stem>.pdf`, `ARTIFACT-MANIFEST.json`, `BIBLIOGRAPHY-AUDIT.json`
 - GitHub Actions used by CI
 - npm latest-version endpoint `https://registry.npmjs.org/get-physics-done/latest`
 
@@ -1649,7 +1711,7 @@ High-to-medium confidence coverage:
 
 Lower-confidence or inherently incomplete coverage:
 
-- live runtime-resolved file I/O under `.gpd/**`, runtime config files, caches, todos, and install locations
+- live runtime-resolved file I/O under `GPD/**`, runtime config files, caches, todos, and install locations
 - semantic governance dependencies under `.github/**`
 - external tool availability and actual environment-specific subprocess behavior
 - full object-level call graphs, mutation graphs, inheritance graphs, and dataflow

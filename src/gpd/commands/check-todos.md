@@ -10,8 +10,6 @@ allowed-tools:
   - ask_user
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 List all pending todos, allow selection, load full context for the selected todo, and route to appropriate action.
@@ -34,8 +32,8 @@ Area filters can target research domains such as:
   </objective>
 
 <execution_context>
-@.gpd/STATE.md
-@.gpd/ROADMAP.md
+@GPD/STATE.md
+@GPD/ROADMAP.md
 @{GPD_INSTALL_DIR}/workflows/check-todos.md
 </execution_context>
 

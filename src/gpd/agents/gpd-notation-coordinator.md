@@ -48,7 +48,7 @@ This agent should be spawned in the following situations:
 
 | Autonomy | Notation Coordinator Behavior |
 |---|---|
-| **supervised** | Present the auto-suggested convention set from subfield defaults and ask the user to confirm or override each category. Checkpoint before locking any convention. Present cross-convention conflicts explicitly. |
+| **supervised** | Present the auto-suggested convention set from subfield defaults and ask the user to confirm or override each category. Return a `checkpoint` handoff before locking any convention; the orchestrator presents it, collects confirmation/overrides, and spawns a fresh continuation handoff to perform the lock writes. Present cross-convention conflicts explicitly. |
 | **balanced** | Lock clear subfield-default conventions automatically at project initialization. For mid-execution conventions, choose the option most compatible with existing locks and the primary reference. Pause only for non-standard choices or genuine convention conflicts, and document all AI-made choices in `CONVENTIONS.md` with rationale. |
 | **yolo** | Lock all subfield defaults without presentation. For mid-execution conventions, apply the most common choice for the domain without analysis. Skip cross-convention interaction verification (rely on consistency-checker to catch issues later). |
 
@@ -295,9 +295,9 @@ Use the cross-convention interaction table from `<convention_validation>` to ide
 4. Continue execution
 
 **If the plan requires checkpoints:**
-1. Return a checkpoint with type `decision` including the convention request
-2. Wait for user decision
-3. Lock the decision via `gpd convention set`
+1. Return a checkpoint with type `decision` including the convention request and proposed resolution
+2. The orchestrator presents the checkpoint, collects the user decision, and spawns a fresh continuation handoff
+3. Lock the decision via `gpd convention set` in that fresh continuation
 4. Continue execution
 
 **Step 4: Propagate**
@@ -305,7 +305,7 @@ Use the cross-convention interaction table from `<convention_validation>` to ide
 After locking a new convention mid-execution:
 1. Update CONVENTIONS.md with the new entry
 2. Add an ASSERT_CONVENTION line to the current derivation file
-3. Verify compatibility with all prior derivation files in the current phase (grep for ASSERT_CONVENTION headers)
+3. Verify compatibility with all prior derivation files in the current phase (search_files for ASSERT_CONVENTION headers)
 4. If any prior file in this phase assumed a different choice for this convention → flag as DEVIATION Rule 5
 
 ### Worked Example
@@ -348,7 +348,7 @@ At project initialization (before the user sees any convention choices), automat
 
 ```bash
 # Read PROJECT.md and extract physics area
-PHYSICS_AREA=$(grep -i "physics.*area\|subfield\|domain\|branch" .gpd/PROJECT.md | head -3)
+PHYSICS_AREA=$(grep -i "physics.*area\|subfield\|domain\|branch" GPD/PROJECT.md | head -3)
 ```
 
 Parse the physics area. Map to one of the subfield categories in the defaults table above. If the project spans multiple subfields, identify the primary and secondary.
@@ -374,6 +374,8 @@ Display the auto-suggested conventions with:
 - Any cross-subfield conflicts highlighted
 - Cross-convention consistency already verified
 - Test values pre-populated from the defaults
+
+**If running in supervised / interactive bootstrap mode:** return `gpd_return.status: checkpoint` with the proposed convention set, rationale, test values, and any unresolved conflicts. Do NOT write `GPD/CONVENTIONS.md` and do NOT call `gpd convention set` yet. The orchestrator must collect confirmation/overrides and then spawn a fresh continuation handoff.
 
 **Step 4: Lock confirmed conventions**
 
@@ -527,7 +529,7 @@ Invalid reasons:
 
 ### Change Protocol
 
-1. **Document the decision** in `.gpd/DECISIONS.md` with rationale
+1. **Document the decision** in `GPD/DECISIONS.md` with rationale
 2. **Write conversion procedure:**
 
 ```markdown
@@ -576,7 +578,7 @@ When comparing conventions between two phases or between project and reference:
 
 When a convention change is later found to be incorrect:
 
-1. **Identify scope:** `grep -r "[old convention pattern]" .gpd/ src/ derivations/`
+1. **Identify scope:** `grep -r "[old convention pattern]" GPD/ src/ derivations/`
 2. **Create revert plan:**
    - List all files using the convention
    - For each file, specify the exact change needed
@@ -599,8 +601,8 @@ If no source (PROJECT.md, literature, RESEARCH.md) specifies a convention:
 2. **Present options to user** with tradeoffs:
    - Option A: [convention] — used by [community/textbook], advantage: [X]
    - Option B: [convention] — used by [community/textbook], advantage: [Y]
-3. **Wait for user decision** before proceeding
-4. **Record the decision** in CONVENTIONS.md with rationale
+3. Return a checkpoint with the options and stop; the orchestrator collects the user decision and relaunches a fresh continuation before any convention is locked
+4. Record the decision in CONVENTIONS.md with rationale in that fresh continuation
 
 </convention_changes>
 
@@ -689,13 +691,15 @@ All returns to the orchestrator MUST use this YAML envelope for reliable parsing
 gpd_return:
   status: completed | checkpoint | blocked | failed
   # Mapping: established → completed, updated → completed, conflict → failed
-  files_written: [.gpd/CONVENTIONS.md, ...]
+  files_written: [GPD/CONVENTIONS.md, ...]
   issues: [list of issues encountered, if any]
   next_actions: [list of recommended follow-up actions]
-  conventions_file: .gpd/CONVENTIONS.md
+  conventions_file: GPD/CONVENTIONS.md
 ```
 
 The four base fields (`status`, `files_written`, `issues`, `next_actions`) are required per agent-infrastructure.md. `conventions_file` is an extended field specific to this agent.
+
+For supervised/bootstrap convention review, use `status: checkpoint` until the user-approved convention set is available. A checkpoint return should leave `files_written: []` and carry the proposed convention set in the body or extended fields; the follow-up continuation handoff performs the actual file and lock writes.
 
 </structured_returns>
 

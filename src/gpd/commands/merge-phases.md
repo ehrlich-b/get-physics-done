@@ -12,8 +12,6 @@ allowed-tools:
   - find_files
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Merge the results, artifacts, and state updates from a source phase into a target phase. Useful when phases are reorganized, when a decimal phase (e.g., 2.1) needs to be folded back into its parent, or when parallel investigation branches converge.
@@ -36,8 +34,8 @@ Format: `<source-phase> <target-phase>` — first argument is the source phase, 
 Source phase: first argument (e.g., "2.1")
 Target phase: second argument (e.g., "2")
 
-@.gpd/STATE.md
-@.gpd/ROADMAP.md
+@GPD/STATE.md
+@GPD/ROADMAP.md
 </context>
 
 <process>

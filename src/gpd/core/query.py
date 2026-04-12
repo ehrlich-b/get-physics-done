@@ -1,7 +1,8 @@
 """Cross-phase result query commands for GPD.
 
-Searches across all phase SUMMARY files to find results by provides, requires,
-affects, equation, text, and assumption references.
+Searches across all phase summary artifacts (`SUMMARY.md` and `*-SUMMARY.md`)
+to find results by provides, requires, affects, equation, text, and assumption
+references.
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from gpd.core.constants import STANDALONE_SUMMARY, SUMMARY_SUFFIX, ProjectLayout
+from gpd.core.constants import ProjectLayout
 from gpd.core.errors import QueryError
 from gpd.core.frontmatter import FrontmatterParseError, extract_frontmatter
 from gpd.core.observability import instrument_gpd_function
@@ -31,6 +32,9 @@ __all__ = [
     "QueryMatch",
     "QueryResult",
     "SummaryEntry",
+    "VALID_SCOPES",
+    "collect_all_markdown",
+    "collect_phase_markdown",
     "collect_summaries",
     "extract_context",
     "extract_requires_values",
@@ -45,8 +49,11 @@ __all__ = [
 # ─── Models ──────────────────────────────────────────────────────────────────────
 
 
+VALID_SCOPES = frozenset({"summary", "phase", "all"})
+
+
 class SummaryEntry(BaseModel):
-    """A parsed SUMMARY file from a phase directory."""
+    """A parsed markdown file from a phase directory (SUMMARY or other .md file)."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -105,6 +112,7 @@ class DepsResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     provides_by: DepsProvider | None = None
+    provider_conflicts: list[DepsProvider] = Field(default_factory=list)
     required_by: list[DepsConsumer] = Field(default_factory=list)
 
 
@@ -205,11 +213,57 @@ def extract_requires_values(requires_arr: list) -> list[str]:
     return values
 
 
+def _strip_phase_locator_prefix(value: str) -> str | None:
+    """Return the dependency identifier from ``PHASE-PLAN: identifier`` strings."""
+
+    prefix, separator, suffix = value.partition(":")
+    if not separator or not suffix.strip():
+        return None
+    phase_token, dash, plan_token = prefix.strip().partition("-")
+    if not dash:
+        return None
+    if not _is_valid_phase_str(phase_token) or not _is_valid_phase_str(plan_token):
+        return None
+    identifier = suffix.strip()
+    return identifier or None
+
+
+def extract_requires_identifiers(requires_arr: list) -> list[str]:
+    """Extract result identifiers from a requires array for dependency tracing."""
+
+    values: list[str] = []
+    for item in requires_arr:
+        if isinstance(item, str):
+            values.append(item)
+            stripped = _strip_phase_locator_prefix(item)
+            if stripped is not None:
+                values.append(stripped)
+        elif isinstance(item, dict):
+            _append_search_values(values, item.get("provides"))
+    return values
+
+
 def term_matches(term: str, value: str) -> bool:
     """Check whether a term matches (case-insensitive substring) against a value."""
     if not term or not value:
         return False
     return str(term).lower() in str(value).lower()
+
+
+def _normalize_identifier(value: object) -> str:
+    """Return a normalized identifier token for exact dependency matching."""
+    return re.sub(r"[^a-z0-9]+", " ", str(value or "").strip().casefold()).strip()
+
+
+def _normalized_identifier_matches(identifier: str, value: object, *preferred_keys: str) -> bool:
+    """Check whether any normalized token in value matches identifier exactly."""
+    normalized_identifier = _normalize_identifier(identifier)
+    if not normalized_identifier:
+        return False
+    for candidate in _search_values_from_item(value, *preferred_keys):
+        if _normalize_identifier(candidate) == normalized_identifier:
+            return True
+    return False
 
 
 def parse_phase_range(range_str: str | None) -> tuple[str, str] | None:
@@ -272,7 +326,8 @@ def _serialize_search_value(value: object) -> str:
 @instrument_gpd_function("query.collect_summaries")
 def collect_summaries(cwd: Path) -> list[SummaryEntry]:
     """Enumerate all phase directories and collect parsed SUMMARY files."""
-    phases_dir = ProjectLayout(cwd).phases_dir
+    layout = ProjectLayout(cwd)
+    phases_dir = layout.phases_dir
     results: list[SummaryEntry] = []
 
     if not phases_dir.is_dir():
@@ -292,7 +347,7 @@ def collect_summaries(cwd: Path) -> list[SummaryEntry]:
         except OSError:
             continue
 
-        summaries = [f for f in files if f.name.endswith(SUMMARY_SUFFIX) or f.name == STANDALONE_SUMMARY]
+        summaries = [f for f in files if layout.is_summary_file(f.name)]
 
         for summary_file in summaries:
             try:
@@ -312,11 +367,7 @@ def collect_summaries(cwd: Path) -> list[SummaryEntry]:
 
             # Derive plan identifier from filename
             plan_id = summary_file.name
-            if plan_id.upper().endswith(SUMMARY_SUFFIX.upper()):
-                plan_id = plan_id[: -len(SUMMARY_SUFFIX)]
-            elif plan_id.upper() == STANDALONE_SUMMARY.upper():
-                plan_id = ""
-            plan_id = plan_id or None
+            plan_id = layout.strip_summary_suffix(summary_file.name) or None
 
             results.append(
                 SummaryEntry(
@@ -332,6 +383,111 @@ def collect_summaries(cwd: Path) -> list[SummaryEntry]:
     return results
 
 
+@instrument_gpd_function("query.collect_phase_markdown")
+def collect_phase_markdown(cwd: Path) -> list[SummaryEntry]:
+    """Enumerate all phase directories and collect non-SUMMARY .md files."""
+    layout = ProjectLayout(cwd)
+    phases_dir = layout.phases_dir
+    results: list[SummaryEntry] = []
+
+    if not phases_dir.is_dir():
+        return results
+
+    phase_dirs = sorted(
+        [d for d in phases_dir.iterdir() if d.is_dir()],
+        key=lambda d: _phase_sort_key(d.name),
+    )
+
+    for dir_path in phase_dirs:
+        phase_match = re.match(r"^(\d+(?:\.\d+)*)", dir_path.name)
+        phase_num = phase_match.group(1) if phase_match else dir_path.name
+
+        try:
+            files = list(dir_path.iterdir())
+        except OSError:
+            continue
+
+        md_files = [
+            f for f in files
+            if f.suffix.lower() == ".md" and not layout.is_summary_file(f.name)
+        ]
+
+        for md_file in md_files:
+            try:
+                content = md_file.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+
+            try:
+                fm, body = extract_frontmatter(content)
+            except FrontmatterParseError:
+                fm = {}
+                body = content
+
+            results.append(
+                SummaryEntry(
+                    phase=phase_num,
+                    dir_name=dir_path.name,
+                    file=md_file.name,
+                    plan=md_file.stem,
+                    frontmatter=fm,
+                    body=body,
+                )
+            )
+
+    return results
+
+
+@instrument_gpd_function("query.collect_all_markdown")
+def collect_all_markdown(cwd: Path) -> list[SummaryEntry]:
+    """Collect all .md files across the entire GPD project directory."""
+    layout = ProjectLayout(cwd)
+    gpd_dir = layout.gpd
+    results: list[SummaryEntry] = []
+
+    if not gpd_dir.is_dir():
+        return results
+
+    for md_file in gpd_dir.rglob("*.md"):
+        if not md_file.is_file():
+            continue
+
+        rel = md_file.relative_to(gpd_dir)
+        parts = rel.parts
+        phase_num = ""
+        dir_name = ""
+        if len(parts) >= 2 and parts[0] == "phases":
+            dir_name = parts[1]
+            phase_match = re.match(r"^(\d+(?:\.\d+)*)", dir_name)
+            phase_num = phase_match.group(1) if phase_match else dir_name
+        else:
+            dir_name = str(rel.parent)
+
+        try:
+            content = md_file.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+
+        try:
+            fm, body = extract_frontmatter(content)
+        except FrontmatterParseError:
+            fm = {}
+            body = content
+
+        results.append(
+            SummaryEntry(
+                phase=phase_num,
+                dir_name=dir_name,
+                file=md_file.name,
+                plan=md_file.stem,
+                frontmatter=fm,
+                body=body,
+            )
+        )
+
+    return sorted(results, key=lambda e: (_phase_sort_key(e.dir_name), e.file))
+
+
 @instrument_gpd_function("query.search")
 def query(
     cwd: Path,
@@ -342,17 +498,37 @@ def query(
     equation: str | None = None,
     phase_range: str | None = None,
     text: str | None = None,
+    scope: str = "summary",
 ) -> QueryResult:
-    """Search across all phase results.
+    """Search across phase results.
 
-    Scans all .gpd/phases/SUMMARY.md files, matching frontmatter fields
-    and body text against the provided search terms.
+    Scans markdown files according to ``scope``: ``summary`` (default,
+    SUMMARY files only), ``phase`` (all .md in phase dirs), or ``all``
+    (entire GPD directory).  Frontmatter filters (provides/requires/affects)
+    always use SUMMARY files regardless of scope.
     """
-    summaries = collect_summaries(cwd)
+    if scope not in VALID_SCOPES:
+        raise QueryError(f"invalid scope {scope!r}; expected one of: {', '.join(sorted(VALID_SCOPES))}")
+
+    # provides/requires/affects are SUMMARY-specific frontmatter fields.
+    # equation and text search body content, so they respect --scope.
+    has_frontmatter_filter = any([provides, requires, affects])
+
+    if has_frontmatter_filter:
+        entries = collect_summaries(cwd)
+    elif scope == "summary":
+        entries = collect_summaries(cwd)
+    elif scope == "phase":
+        entries = collect_summaries(cwd) + collect_phase_markdown(cwd)
+    elif scope == "all":
+        entries = collect_all_markdown(cwd)
+    else:
+        entries = collect_summaries(cwd)
+
     matches: list[QueryMatch] = []
     parsed_range = parse_phase_range(phase_range)
 
-    for entry in summaries:
+    for entry in entries:
         phase = entry.phase
         plan = entry.plan
         fm = entry.frontmatter
@@ -459,7 +635,7 @@ def query_deps(cwd: Path, identifier: str) -> DepsResult:
     """Trace what depends on a given result identifier.
 
     Finds the phase/plan that provides it, and all phases whose requires
-    field references this identifier.
+    field references this identifier using exact normalized ID matching.
 
     Raises ValueError if identifier is empty.
     """
@@ -467,7 +643,7 @@ def query_deps(cwd: Path, identifier: str) -> DepsResult:
         raise QueryError("identifier required for query-deps")
 
     summaries = collect_summaries(cwd)
-    provides_by: DepsProvider | None = None
+    provider_matches: list[DepsProvider] = []
     required_by: list[DepsConsumer] = []
 
     for entry in summaries:
@@ -480,22 +656,22 @@ def query_deps(cwd: Path, identifier: str) -> DepsResult:
 
         # Check if this summary provides the identifier
         for p in fm_provides:
-            search_vals = _search_values_from_item(p, "name", "provides")
-            for sv in search_vals:
-                if term_matches(identifier, sv):
-                    # Prefer exact match
-                    if provides_by is None or str(sv).lower() == str(identifier).lower():
-                        provides_by = DepsProvider(phase=phase, plan=plan, value=p)
-                    break
+            if _normalized_identifier_matches(identifier, p, "name", "provides"):
+                provider_matches.append(DepsProvider(phase=phase, plan=plan, value=p))
+                break
 
         # Check if this summary requires the identifier
-        requires_values = extract_requires_values(fm_requires)
+        requires_values = extract_requires_identifiers(fm_requires)
         for rv in requires_values:
-            if term_matches(identifier, rv):
+            if _normalized_identifier_matches(identifier, rv):
                 required_by.append(DepsConsumer(phase=phase, plan=plan, value=rv))
                 break
 
-    return DepsResult(provides_by=provides_by, required_by=required_by)
+    return DepsResult(
+        provides_by=provider_matches[-1] if provider_matches else None,
+        provider_conflicts=provider_matches[:-1],
+        required_by=required_by,
+    )
 
 
 @instrument_gpd_function("query.assumptions")

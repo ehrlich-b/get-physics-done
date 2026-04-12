@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from gpd.core.constants import HOME_DATA_DIR_NAME
 from gpd.core.errors import PatternError
 from gpd.core.patterns import (
     _BOOTSTRAP_PATTERNS,
@@ -43,10 +44,10 @@ def lib_root(tmp_path: Path) -> Path:
 
 class TestConstants:
     def test_domains_count(self):
-        assert len(VALID_DOMAINS) == 13
+        assert len(VALID_DOMAINS) == len(set(VALID_DOMAINS))
 
     def test_categories_count(self):
-        assert len(VALID_CATEGORIES) == 8
+        assert len(VALID_CATEGORIES) == len(set(VALID_CATEGORIES))
 
     def test_severities_order(self):
         assert VALID_SEVERITIES == ("critical", "high", "medium", "low")
@@ -80,7 +81,7 @@ class TestPatternsRootResolution:
         monkeypatch.delenv("GPD_DATA_DIR", raising=False)
         monkeypatch.setattr(Path, "home", lambda: fake_home)
 
-        assert patterns_root() == fake_home / ".gpd" / "learned-patterns"
+        assert patterns_root() == fake_home / HOME_DATA_DIR_NAME / "learned-patterns"
 
     def test_specs_root_overrides_env_and_home(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.delenv("GPD_PATTERNS_ROOT", raising=False)

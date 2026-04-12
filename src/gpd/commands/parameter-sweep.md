@@ -14,8 +14,6 @@ allowed-tools:
   - ask_user
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Execute a systematic parameter sweep: vary one or more parameters across a range, collect results, and produce summary tables and data. Uses wave-based parallelism for independent parameter values.
@@ -32,8 +30,8 @@ Execute a systematic parameter sweep: vary one or more parameters across a range
 <context>
 Phase: $ARGUMENTS
 
-@.gpd/ROADMAP.md
-@.gpd/STATE.md
+@GPD/ROADMAP.md
+@GPD/STATE.md
 </context>
 
 <process>
@@ -192,10 +190,10 @@ Fixed: {param} = {value}, {param} = {value}
 ```
 
 Save to:
-- Internal sweep docs: `.gpd/phases/{phase-dir}/sweep-{PADDED_INDEX}-PLAN.md`, `.gpd/phases/{phase-dir}/sweep-{PADDED_INDEX}-SUMMARY.md`, and `.gpd/phases/{phase-dir}/SWEEP-SUMMARY.md`
+- Internal sweep docs: `GPD/phases/{phase-dir}/sweep-{PADDED_INDEX}-PLAN.md`, `GPD/phases/{phase-dir}/sweep-{PADDED_INDEX}-SUMMARY.md`, and `GPD/phases/{phase-dir}/SWEEP-SUMMARY.md`
 - Durable sweep artifacts: `artifacts/phases/{phase-dir}/sweeps/{sweep-slug}/`
 
-Do not put machine-readable sweep datasets under `.gpd/phases/**` or `.gpd/analysis/**`. Keep the `.gpd` documents as internal execution records and write the durable JSON/CSV outputs to `artifacts/`.
+Do not put machine-readable sweep datasets under `GPD/phases/**` or `GPD/analysis/**`. Keep the `GPD` documents as internal execution records and write the durable JSON/CSV outputs to `artifacts/`.
 
 ## 6. Common Pitfalls
 
@@ -212,7 +210,7 @@ A 10-point grid in each of 5 dimensions is 10⁵ = 100,000 evaluations. Use Lati
 First-order phase transitions show hysteresis: sweeping up gives a different result from sweeping down. Run the sweep in both directions near suspected first-order transitions to detect metastability.
 
 ### Not checking convergence at each point
-A sweep that varies a physical parameter should also verify that the numerical computation at each point is converged. A phase diagram computed on an unconverged grid is meaningless. Run `/gpd:numerical-convergence` on representative points.
+A sweep that varies a physical parameter should also verify that the numerical computation at each point is converged. A phase diagram computed on an unconverged grid is meaningless. Run `gpd:numerical-convergence` on representative points.
 
 </process>
 

@@ -10,8 +10,6 @@ allowed-tools:
   - find_files
 ---
 
-<!-- Tool names and @ includes are platform-specific. The installer translates paths for your runtime. -->
-<!-- Allowed-tools are runtime-specific. Other platforms may use different tool interfaces. -->
 
 <objective>
 Analyze a phase and present the AI's assumptions about the physics, methodology, computational approach, scope boundaries, anchors, risk areas, and dependencies.
@@ -74,10 +72,10 @@ Output: Conversational output only (no file creation) -- ends with "What do you 
 Phase number: $ARGUMENTS (required)
 
 **Load project state first:**
-@.gpd/STATE.md
+@GPD/STATE.md
 
 **Load roadmap:**
-@.gpd/ROADMAP.md
+@GPD/ROADMAP.md
 </context>
 
 <process>

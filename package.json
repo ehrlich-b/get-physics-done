@@ -2,13 +2,16 @@
   "name": "get-physics-done",
   "version": "1.1.0",
   "gpdPythonVersion": "1.1.0",
-  "description": "Open-source AI copilot for physics research across supported AI runtimes",
+  "description": "Open-source agentic AI system for physics research across supported AI runtimes",
   "bin": {
     "get-physics-done": "bin/install.js"
   },
   "files": [
     "bin/",
-    "src/gpd/adapters/runtime_catalog.json"
+    "src/gpd/adapters/runtime_catalog.json",
+    "src/gpd/adapters/runtime_catalog_schema.json",
+    "src/gpd/core/public_surface_contract_schema.json",
+    "src/gpd/core/public_surface_contract.json"
   ],
   "repository": {
     "type": "git",

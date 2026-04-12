@@ -43,6 +43,8 @@ A vague PROJECT.md forces every downstream phase to guess. The cost compounds --
 
 **Surface anchors early.** Ask what references, prior outputs, benchmarks, datasets, or known results should remain visible if the project goes well. Push until you know the first hard correctness check or smoking-gun signal they would trust; do not settle for loose agreement or generic limiting cases if they expect a sharper benchmark. If none are known yet, record that explicitly instead of inventing one.
 
+**Keep the contract closed.** When you turn the discussion into a scoping contract, do not invent extra keys or collapse list fields into scalars. Array fields stay arrays, even for singletons, and blank or duplicate list items are invalid after trimming whitespace.
+
 **Preserve the user's guidance.** If they name a specific figure, dataset, derivation, notebook, prior run, paper, benchmark, stop condition, or review checkpoint, keep that wording recognizable. Do not flatten it into generic "artifact" or "benchmark" language unless they asked you to broaden it.
 
 **Pressure-test the first story.** Treat the first framing as a working hypothesis, not as truth. Once you have a plausible framing on the table, restate the current picture in one sentence and ask one question that could narrow, overturn, or falsify it.
@@ -166,10 +168,13 @@ Only offer to proceed when you can state, in concrete terms:
 
 - the core problem,
 - the decisive output or deliverable,
-- at least one anchor (or an explicit "anchor unknown; must establish later"),
+- at least one concrete anchor, reference, prior output, or baseline,
+- and, if the decisive anchor is still unknown, an explicit missing-anchor note that keeps that blocker visible,
 - the weakest assumption,
 - one failure signal or forbidden proxy,
 - and any user-stated prior outputs, stop conditions, or review triggers that must stay visible.
+
+Explicit missing-anchor notes preserve uncertainty, but they do not replace the requirement for at least one concrete reference, prior output, baseline, or comparable grounding signal before you offer the gate.
 
 Then offer to proceed:
 
@@ -183,7 +188,9 @@ If "Keep exploring" -- ask what they want to add or identify gaps in the physica
 Lack of a full phase list is not itself a blocker. If only the first grounded investigation chunk is clear, that is enough to offer the gate.
 
 Do not count turns mechanically. Keep exploring while the conversation is materially sharpening the scoping contract, and re-offer the gate when the picture becomes clearer.
-Do not offer the gate if you only have proxy checks, sanity checks, or limiting cases with no decisive smoking-gun observable or explicit note that the anchor is still unknown.
+Do not offer the gate if you only have proxy checks, sanity checks, or limiting cases with no decisive smoking-gun observable.
+Do not treat an explicit missing-anchor note as a substitute for concrete reference/prior-output/baseline grounding.
+Do not offer the gate if you only have proxy checks, sanity checks, or limiting cases and still lack concrete reference/prior-output/baseline grounding, even when the missing anchor is noted explicitly.
 
 </decision_gate>
 

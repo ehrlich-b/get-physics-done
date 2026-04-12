@@ -1,7 +1,7 @@
 <purpose>
 Execute a systematic parameter sweep over one or two parameters, computing a specified quantity at each point (or grid point) in the parameter space. Leverages wave-based parallel execution from execute-phase.md to evaluate independent parameter values concurrently, then aggregates results into structured data and a summary report.
 
-Called from /gpd:parameter-sweep command. References wave-based execution patterns from execute-phase.md.
+Called from gpd:parameter-sweep command. References wave-based execution patterns from execute-phase.md.
 </purpose>
 
 <core_principle>
@@ -16,7 +16,7 @@ A parameter sweep is the physicist's workhorse for mapping out how a system resp
 Load project context:
 
 ```bash
-INIT=$(gpd init phase-op "${PHASE_ARG:-}")
+INIT=$(gpd --raw init phase-op "${PHASE_ARG:-}")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
   # STOP — display the error to the user and do not proceed.
@@ -29,8 +29,8 @@ Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `autonomy`, `
 - `research_mode=explore`: Broad parameter ranges, fine grid resolution, include secondary parameters. Spawn experiment-designer agent to validate sweep design.
 - `research_mode=exploit`: Tight ranges around known values, coarse grid, primary parameters only.
 - `research_mode=adaptive`: Start with coarse grid, refine adaptively around interesting regions.
-- `autonomy=supervised`: Pause after the sweep design for user approval before execution.
-- `autonomy=balanced` (default): Execute the sweep automatically and pause only if the design exceeds context budget, has more than 100 grid points, or changes scope materially.
+- `autonomy=supervised`: Show the sweep design and ask for approval before generating plans.
+- `autonomy=balanced` (default): Execute automatically unless the design exceeds context budget, has more than 100 grid points, or changes scope materially; only then pause for user approval.
 - `autonomy=yolo`: Execute the sweep without pausing.
 
 Read STATE.md for project conventions, unit system, and active approximations.
@@ -57,7 +57,7 @@ mkdir -p "$SWEEP_PHASE_DIR"
 **If no phase specified:** Create a sweep-specific phase directory for internal records:
 
 ```bash
-SWEEP_PHASE_DIR=".gpd/phases/XX-sweep"
+SWEEP_PHASE_DIR="GPD/phases/XX-sweep"
 SWEEP_PHASE_KEY="XX-sweep"
 mkdir -p "$SWEEP_PHASE_DIR"
 ```
@@ -126,11 +126,9 @@ Adaptive refinement: {enabled|disabled}
 Parameter 1: {name1} -- {start1} to {end1} ({steps1} points)
 Parameter 2: {name2} -- {start2} to {end2} ({steps2} points)
 Grid: {steps1} x {steps2} = {total} points
-
-Proceed? (y/n)
 ```
 
-Wait for user confirmation before generating plans.
+If `autonomy=supervised`, show this plan and ask for confirmation before generating plans. Otherwise continue automatically unless the balanced-mode pause conditions are met.
 
 Derive a durable artifact location for the sweep outputs:
 
@@ -140,7 +138,7 @@ SWEEP_ARTIFACT_DIR="artifacts/phases/${SWEEP_PHASE_KEY}/sweeps/${SWEEP_SLUG}"
 mkdir -p "${SWEEP_ARTIFACT_DIR}/results"
 ```
 
-Keep plans and SUMMARY files in `${SWEEP_PHASE_DIR}` because they are internal execution records. Write machine-readable sweep datasets to `${SWEEP_ARTIFACT_DIR}`. Do not put point-result JSON under `.gpd/phases/**`.
+Keep plans and SUMMARY files in `${SWEEP_PHASE_DIR}` because they are internal execution records. Write machine-readable sweep datasets to `${SWEEP_ARTIFACT_DIR}`. Do not put point-result JSON under `GPD/phases/**`.
 </step>
 
 <step name="generate_sweep_plans">
@@ -171,8 +169,13 @@ files_modified:
   - ${SWEEP_PHASE_DIR}/sweep-{PADDED_INDEX}-SUMMARY.md
   - ${SWEEP_ARTIFACT_DIR}/results/point-{PADDED_INDEX}.json
 contract:
+  schema_version: 1
   scope:
     question: "What does {observable} evaluate to at {param_name}={p_i}?"
+  context_intake:
+    must_read_refs: [ref-sweep-anchor]
+    must_include_prior_outputs: ["Phase-level sweep baseline"]
+    user_asserted_anchors: ["The observable stays within the approved regime"]
   claims:
     - id: claim-sweep-point
       statement: "{observable} computed at {param_name}={p_i}"
@@ -286,7 +289,7 @@ Execute the sweep plans using wave-based parallel execution following the execut
 2. **Spawn executor agents for all plans in the wave:**
 
    Follow the same task() spawning pattern as execute-phase.md step `execute_waves`.
-   > **Runtime delegation:** Spawn a subagent for the task below. Adapt the `task()` call to your runtime's agent spawning mechanism. If `model` resolves to `null` or an empty string, omit it so the runtime uses its default model. Always pass `readonly=false` for file-producing agents. If subagent spawning is unavailable, execute these steps sequentially in the main context.
+   @{GPD_INSTALL_DIR}/references/orchestration/runtime-delegation-note.md
 
    ```
    task(
@@ -321,8 +324,8 @@ Execute the sweep plans using wave-based parallel execution following the execut
        - Workflow: {GPD_INSTALL_DIR}/workflows/execute-plan.md
        - Summary template: {GPD_INSTALL_DIR}/templates/summary.md
        - Plan: ${SWEEP_PHASE_DIR}/sweep-{PADDED_INDEX}-PLAN.md
-       - State: .gpd/STATE.md
-       - Config: .gpd/config.json (if exists)
+       - State: GPD/STATE.md
+       - Config: GPD/config.json (if exists)
        </files_to_read>
 
        <success_criteria>
@@ -614,12 +617,12 @@ Re-run feature identification on the merged dataset.
 **Commit all sweep artifacts:**
 
 ```bash
-PRE_CHECK=$(gpd pre-commit-check --files "${SWEEP_ARTIFACT_DIR}/sweep-results.json" "${SWEEP_PHASE_DIR}/SWEEP-SUMMARY.md" .gpd/STATE.md 2>&1) || true
+PRE_CHECK=$(gpd pre-commit-check --files "${SWEEP_ARTIFACT_DIR}/sweep-results.json" "${SWEEP_PHASE_DIR}/SWEEP-SUMMARY.md" GPD/STATE.md 2>&1) || true
 echo "$PRE_CHECK"
 
 gpd commit \
   "data(phase-${phase_number}): parameter sweep - ${OBSERVABLE} vs ${PARAM_NAME}" \
-  --files "${SWEEP_ARTIFACT_DIR}/sweep-results.json" "${SWEEP_PHASE_DIR}/SWEEP-SUMMARY.md" "${SWEEP_ARTIFACT_DIR}/results" .gpd/STATE.md
+  --files "${SWEEP_ARTIFACT_DIR}/sweep-results.json" "${SWEEP_PHASE_DIR}/SWEEP-SUMMARY.md" "${SWEEP_ARTIFACT_DIR}/results" GPD/STATE.md
 ```
 
 **Present final results:**
@@ -651,9 +654,9 @@ Completed: {M}/{N}
 ## Next Steps
 
 - **Visualize:** Plot the sweep data to inspect features
-- **Refine:** `/gpd:parameter-sweep {phase} --adaptive` -- add points near interesting features
-- **Converge:** `/gpd:numerical-convergence {phase}` -- verify convergence at key points
-- **Branch:** `/gpd:branch-hypothesis` -- investigate features with different methods
+- **Refine:** `gpd:parameter-sweep {phase} --adaptive` -- add points near interesting features
+- **Converge:** `gpd:numerical-convergence {phase}` -- verify convergence at key points
+- **Branch:** `gpd:branch-hypothesis` -- investigate features with different methods
 
 ---
 ```

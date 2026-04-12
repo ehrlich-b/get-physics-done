@@ -7,15 +7,18 @@ verification assets plus planning / execution / verification hints.
 
 from __future__ import annotations
 
+import json
+import logging
 import re
 import textwrap
 from functools import lru_cache
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import ValidationError as PydanticValidationError
 
 from gpd.contracts import ResearchContract
-from gpd.core.frontmatter import extract_frontmatter
+from gpd.core.frontmatter import FrontmatterParseError, extract_frontmatter
 from gpd.specs import SPECS_DIR
 
 __all__ = [
@@ -36,6 +39,7 @@ __all__ = [
 
 
 BUNDLES_DIR = SPECS_DIR / "bundles"
+logger = logging.getLogger(__name__)
 
 _HEADING_RE = re.compile(r"^\s{0,3}(#{2,4})\s+(.+)$", re.MULTILINE)
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
@@ -49,6 +53,23 @@ class BundleAsset(BaseModel):
     path: str
     required: bool = False
     note: str | None = None
+
+    @field_validator("path", mode="before")
+    @classmethod
+    def _validate_path(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("path must not be empty")
+        if normalized.startswith(("~", "/")):
+            raise ValueError("path must be relative to specs dir")
+        if "\\" in normalized:
+            raise ValueError("path must use forward slashes")
+        pure_path = PurePosixPath(normalized)
+        if any(part == ".." for part in pure_path.parts):
+            raise ValueError("path must stay within specs dir")
+        return pure_path.as_posix()
 
 
 class BundleAssets(BaseModel):
@@ -188,6 +209,16 @@ def _contains_term(normalized_text: str, term: str) -> bool:
     return padded_term in padded_text
 
 
+def _literalize_markdown_text(value: str) -> str:
+    """Return one-line literal text that cannot reshape markdown structure."""
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _literalize_markdown_list(values: list[str]) -> str:
+    """Return a compact literal list for prompt-visible metadata."""
+    return "[" + ", ".join(_literalize_markdown_text(value) for value in values) + "]"
+
+
 def _extract_sections(markdown: str) -> dict[str, str]:
     """Extract markdown heading bodies keyed by normalized heading text."""
     sections: dict[str, str] = {}
@@ -269,13 +300,17 @@ def _load_protocol_bundles(bundles_dir: str) -> tuple[ProtocolBundle, ...]:
 
     bundles: list[ProtocolBundle] = []
     for path in sorted(directory.glob("*.md")):
-        text = path.read_text(encoding="utf-8")
-        meta, _body = extract_frontmatter(text)
-        if not meta:
+        try:
+            text = path.read_text(encoding="utf-8")
+            meta, _body = extract_frontmatter(text)
+            if not meta:
+                continue
+            if "bundle_id" not in meta:
+                continue
+            bundles.append(ProtocolBundle.model_validate(meta))
+        except (FrontmatterParseError, OSError, PydanticValidationError, UnicodeError) as exc:
+            logger.warning("Skipping invalid protocol bundle %s: %s", path, exc)
             continue
-        if "bundle_id" not in meta:
-            continue
-        bundles.append(ProtocolBundle.model_validate(meta))
     return tuple(bundles)
 
 
@@ -383,7 +418,14 @@ def _render_asset_line(role: str, assets: list[BundleAsset]) -> str | None:
         return None
     role_label = role.replace("_", " ")
     rendered = ", ".join(
-        f"{{GPD_INSTALL_DIR}}/{asset.path}{' (required)' if asset.required else ''}" for asset in assets
+        "".join(
+            [
+                _literalize_markdown_text(f"{{GPD_INSTALL_DIR}}/{asset.path}"),
+                " (required)" if asset.required else "",
+                f" (note: {_literalize_markdown_text(asset.note)})" if asset.note else "",
+            ]
+        )
+        for asset in assets
     )
     return f"- {role_label}: {rendered}"
 
@@ -401,21 +443,21 @@ def render_protocol_bundle_context(selected: list[ResolvedProtocolBundle]) -> st
     for bundle in selected:
         reason_bits: list[str] = []
         if bundle.matched_tags:
-            reason_bits.append("tags=" + ", ".join(bundle.matched_tags))
+            reason_bits.append("tags=" + _literalize_markdown_list(bundle.matched_tags))
         if bundle.matched_terms:
-            reason_bits.append("terms=" + ", ".join(bundle.matched_terms))
+            reason_bits.append("terms=" + _literalize_markdown_list(bundle.matched_terms))
         reason = "; ".join(reason_bits) if reason_bits else "metadata match"
 
         lines.extend(
             [
                 "",
-                f"### {bundle.title} [{bundle.bundle_id}]",
+                f"### {_literalize_markdown_text(bundle.title)} [{_literalize_markdown_text(bundle.bundle_id)}]",
                 f"- Why selected: {reason}",
-                f"- Summary: {bundle.summary}",
+                f"- Summary: {_literalize_markdown_text(bundle.summary)}",
             ]
         )
         if bundle.selection_tags:
-            lines.append("- Selection tags: " + ", ".join(bundle.selection_tags))
+            lines.append("- Selection tags: " + _literalize_markdown_list(bundle.selection_tags))
 
         for role in (
             "project_types",
@@ -430,16 +472,28 @@ def render_protocol_bundle_context(selected: list[ResolvedProtocolBundle]) -> st
                 lines.append(asset_line)
 
         if bundle.anchor_prompts:
-            lines.append("- Anchor prompts: " + " | ".join(bundle.anchor_prompts))
+            lines.append(
+                "- Anchor prompts: " + " | ".join(_literalize_markdown_text(prompt) for prompt in bundle.anchor_prompts)
+            )
         if bundle.reference_prompts:
-            lines.append("- Reference prompts: " + " | ".join(bundle.reference_prompts))
+            lines.append(
+                "- Reference prompts: "
+                + " | ".join(_literalize_markdown_text(prompt) for prompt in bundle.reference_prompts)
+            )
         if bundle.estimator_policies:
-            lines.append("- Estimator policies: " + " | ".join(bundle.estimator_policies))
+            lines.append(
+                "- Estimator policies: "
+                + " | ".join(_literalize_markdown_text(policy) for policy in bundle.estimator_policies)
+            )
         if bundle.decisive_artifact_guidance:
-            lines.append("- Decisive artifacts: " + " | ".join(bundle.decisive_artifact_guidance))
+            lines.append(
+                "- Decisive artifacts: "
+                + " | ".join(_literalize_markdown_text(guidance) for guidance in bundle.decisive_artifact_guidance)
+            )
         if bundle.verifier_extensions:
             rendered_extensions = " | ".join(
-                f"{extension.name} [{', '.join(extension.check_ids) or 'no-check-ids'}]"
+                f"{_literalize_markdown_text(extension.name)} "
+                f"[{_literalize_markdown_list(extension.check_ids) if extension.check_ids else _literalize_markdown_text('no-check-ids')}]"
                 for extension in bundle.verifier_extensions
             )
             lines.append("- Verifier extensions: " + rendered_extensions)

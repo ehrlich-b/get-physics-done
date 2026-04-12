@@ -4,13 +4,29 @@ template_version: 1
 
 # Debug Subagent Prompt Template
 
-Template for spawning gpd-debugger agent. The agent contains all physics debugging expertise - this template provides problem context only.
+Template for spawning `gpd-debugger`. The agent provides the debugging expertise; this template only supplies problem context.
 
 ---
+
+## Canonical Debug Session Contract
+
+The spawned debugger must satisfy this contract before producing output:
+
+- Session artifact: `GPD/debug/{slug}.md`
+- Lifecycle/status vocabulary: `gathering | investigating | fixing | verifying | resolved`
+- Goal vocabulary: `find_root_cause_only | find_and_fix`
+- Continuation semantics: read `GPD/debug/{slug}.md` first, then continue from next_action
 
 ## Template
 
 ```markdown
+<debug_session_contract>
+session_artifact: GPD/debug/{slug}.md
+status: gathering | investigating | fixing | verifying | resolved
+goal: find_root_cause_only | find_and_fix
+continuation: Read the file at GPD/debug/{slug}.md first, then continue from next_action.
+</debug_session_contract>
+
 <objective>
 Investigate issue: {issue_id}
 
@@ -38,10 +54,6 @@ approximations: {approximations}
 symptoms_prefilled: {true_or_false}
 goal: {find_root_cause_only | find_and_fix}
 </mode>
-
-<debug_file>
-Create: .gpd/debug/{slug}.md
-</debug_file>
 ```
 
 ---
@@ -70,7 +82,7 @@ Create: .gpd/debug/{slug}.md
 
 ## Usage
 
-**From /gpd:debug:**
+**From gpd:debug:**
 
 ```python
 task(
@@ -88,7 +100,7 @@ task(prompt=template, subagent_type="gpd-debugger", description="Debug VAL-001")
 # model parameter from profile tier — omit on single-model platforms
 ```
 
-## <!-- task() subagent_type and model parameters are runtime-specific. The installer adapts these to the target platform's delegation mechanism. -->
+## <!-- task() subagent_type and model parameters are runtime-specific; the installer adapts them to the target platform's delegation mechanism. -->
 
 ## Systematic Physics Debugging Strategy
 
@@ -107,15 +119,22 @@ The gpd-debugger agent applies a systematic approach to physics calculation erro
 
 ## Continuation
 
-For checkpoints, spawn fresh agent with:
+For checkpoints, spawn a fresh agent with:
 
 ```markdown
+<debug_session_contract>
+session_artifact: GPD/debug/{slug}.md
+status: gathering | investigating | fixing | verifying | resolved
+goal: {goal}
+continuation: Read the file at GPD/debug/{slug}.md first, then continue from next_action.
+</debug_session_contract>
+
 <objective>
 Continue debugging {slug}. Evidence is in the debug file.
 </objective>
 
 <prior_state>
-Read the file at .gpd/debug/{slug}.md
+Read the file at GPD/debug/{slug}.md
 </prior_state>
 
 <checkpoint_response>
