@@ -460,7 +460,11 @@ Plans:
 
 **Backtracking:** If the field content count doesn't match GST 1984 Table 1, there is a fundamental error in the Peirce-to-field identification -- recheck. If the 5d -> 4d reduction gives the wrong 4d coset (not E_7(-25)), the real form of E_6 is wrong. If the cosmological constant comes out negative (AdS), note the phenomenological tension but do not treat as a failure (this is the classical GST result).
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 49-01-PLAN.md -- Field content identification from Peirce decomposition + prepotential construction + normalization fixing
+- [ ] 49-02-PLAN.md -- C_{IJK} coupling decomposition + precise claim statement + cosmological constant + Lagrangian assembly
 
 ### Phase 50: Synthesis and Paper Integration
 
@@ -516,5 +520,5 @@ Plans:
 | 46. V_0 Foundation + pi_u | v12.0 | Complete    | 2026-04-12 | - |
 | 47. d_{IJK} + Uniqueness | v12.0 | Complete    | 2026-04-12 | - |
 | 48. Equivariance + Lorentz | v12.0 | 0/TBD | Not started | - |
-| 49. GST Connection + KK | v12.0 | 0/TBD | Not started | - |
+| 49. GST Connection + KK | v12.0 | 0/2 | Planned | - |
 | 50. Synthesis | v12.0 | 0/TBD | Not started | - |
