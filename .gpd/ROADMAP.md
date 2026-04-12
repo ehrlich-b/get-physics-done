@@ -345,7 +345,7 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 - Papers 5, 6, 7 (QM, GR, SM from self-modeling)
 - Lauria-Van Proeyen 2020 (N=2 sugra conventions)
 
-- [ ] **Phase 46: V_0 Algebraic Foundation and pi_u Projection** -- Establish h_2(O) structure with pi_u: h_2(O) -> h_2(C_u) = R^{3,1}; verify Minkowski signature; characterize non-homomorphism failure; compute V_{1/2} x V_{1/2} -> V_0 product
+- [x] **Phase 46: V_0 Algebraic Foundation and pi_u Projection** -- Establish h_2(O) structure with pi_u: h_2(O) -> h_2(C_u) = R^{3,1}; verify Minkowski signature; characterize non-homomorphism failure; compute V_{1/2} x V_{1/2} -> V_0 product (completed 2026-04-12)
 - [ ] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck
 - [ ] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u
 - [ ] **Phase 49: GST Lagrangian Connection and KK Reduction** -- Match GST field content to Peirce sectors; perform 5d -> 4d circle compactification; state precise claim on det(X) role; decompose C_{IJK} couplings
@@ -374,7 +374,7 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 
 **Backtracking:** If det_2(pi_u(Y)) has wrong signature (not (1,3)), check u choice and projection formula. If V_0 circ V_0 leakage into V_{1/2} invalidates intrinsic h_2(O) product, switch to intrinsic h_2(O) Jordan product (not inherited from h_3(O)).
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 46-01-PLAN.md -- Construct pi_u, verify Minkowski signature (1,3), establish V_0 Peirce closure (ALGB-01)
@@ -478,10 +478,8 @@ Plans:
 
 | Phase | Depends On | Enables | Critical Path? |
 |-------|-----------|---------|:-:|
-| 46 - V_0 Foundation + pi_u | 44 (v11.0) | 47, 48, 49 | Yes |
-| 47 - d_{IJK} + Uniqueness | 46 | 49 | Yes |
-| 48 - Equivariance + Lorentz | 46 | 49 | No (parallel with 47) |
-| 49 - GST Connection + KK | 46, 47, 48 | 50 | Yes |
+| 46 - V_0 Foundation + pi_u | 44 (v11.0) | Complete    | 2026-04-12 |
+| 47 - d_{IJK} + Uniqueness | 46 | 49 | Complete    | 2026-04-12 | 48 - Equivariance + Lorentz | 46 | 49 | Complete    | 2026-04-12 | 49 - GST Connection + KK | 46, 47, 48 | 50 | Yes |
 | 50 - Synthesis | 49 | -- | Yes |
 
 **Critical path:** 46 -> 47 -> 49 -> 50 (4 phases, minimum duration)
@@ -491,7 +489,7 @@ Plans:
 
 | Phase | Top Risk | Probability | Impact | Mitigation |
 |-------|---------|:-:|:-:|-----------|
-| 46 | pi_u signature wrong (not (1,3)) | LOW | HIGH | Baez 2002 guarantees h_2(C) = R^{3,1}; error would be in projection formula |
+| 46 | pi_u signature wrong (not (1,3)) | Complete    | 2026-04-12 | Baez 2002 guarantees h_2(C) = R^{3,1}; error would be in projection formula |
 | 47 | "Double duty" argument circular | MEDIUM | HIGH | Representation-theoretic route (Sym^3 invariant counting) avoids function-level circularity |
 | 48 | Stabilizer too small for SL(2,C) | LOW | HIGH | Spin(9)/G_2 fibration guarantees enough dimensions; explicit computation resolves |
 | 49 | GST field content doesn't match Peirce | MEDIUM | HIGH | This is the highest-risk phase; field counting against GST 1984 Table 1 is the decisive test |
@@ -503,7 +501,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 46. V_0 Foundation + pi_u | v12.0 | 0/TBD | Not started | - |
+| 46. V_0 Foundation + pi_u | v12.0 | Complete    | 2026-04-12 | - |
 | 47. d_{IJK} + Uniqueness | v12.0 | 0/TBD | Not started | - |
 | 48. Equivariance + Lorentz | v12.0 | 0/TBD | Not started | - |
 | 49. GST Connection + KK | v12.0 | 0/TBD | Not started | - |

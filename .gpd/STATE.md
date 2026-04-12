@@ -9,20 +9,25 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-**Current Phase:** 46
-**Current Phase Name:** V_0 Foundation + pi_u
+**Current Phase:** 47
+**Current Phase Name:** d_{IJK} Tensor and Uniqueness Theorems
 **Total Phases:** 50 (v12.0: Phases 46-50)
-**Current Plan:** --
-**Total Plans in Phase:** TBD
+**Current Plan:** —
+**Total Plans in Phase:** —
 **Status:** Ready to plan
-**Last Activity:** 2026-04-11
-**Last Activity Description:** Roadmap created for v12.0: 5 phases (46-50) from 14 requirements
+**Last Activity:** 2026-04-12
+**Last Activity Description:** Phase 46 complete, transitioned to Phase 47
 
-**Progress:** [                                            ] 0%
+**Progress:** [████████████████████████████████████████████] 100%
 
 ## Active Calculations
 
-None yet.
+- det_2 Gram matrix on h_2(C_u) = diag(+1,-1,-1,-1): Minkowski signature (1,3) confirmed
+- pi_u idempotent with 4-dim image; benchmark values det_2(E_{22})=0, det_2(I_2)=1, det_2(off-diag e_7)=-1
+- Intrinsic h_2(O) Jordan product closes exactly in V_0 (all 55 basis pairs, zero V_{1/2} leakage)
+- Delta(A,B) = <wA,wB>_W * I_2 closed form (vanishes on h_2(C_u), nonzero on W)
+- Four Minkowski matrices M_mu with M_0=(1/2)I, spatial Cl(3,0): {M_i,M_j}=(1/2)*delta_ij*I_16
+- V_{1/2} x V_{1/2} -> V_0 surjective (rank 10), pi_u-projected surjective (rank 4)
 
 ## Intermediate Results
 
@@ -76,11 +81,15 @@ None yet.
 | 43-02 | ~4min | 2 tasks | 2 files |
 | 44-01 | ~5min | 1 task | 1 file |
 | 44-02 | ~7min | 2 tasks | 2 files |
+| 46-01 | ~4min | 2 tasks | 1 file |
+| 46-02 | ~9min | 2 tasks | 1 file |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 46, Plan 02]: Delta(A,B) = <wA,wB>_W * I_2 where W=span{e_1,...,e_6}. Mechanism: pi_u kills W-components, but W x W Fano cross-terms produce C_u diagonal. V_{1/2} x V_{1/2} -> h_2(C_u) gives spatial Cl(3,0): {M_i,M_j}=(1/2)*delta_ij*I_16. V_1 = identity. Both product maps surjective.
+- [Phase 46, Plan 01]: pi_u constructed via proj_u(b) = (b_0, 0,...,0, b_7) for u=e_7. det_2 = beta*gamma - |x1|^2 gives Gram diag(+1,-1,-1,-1). Intrinsic h_2(O) Jordan product closes exactly in V_0 with zero V_{1/2} leakage -- Peirce rule holds for h_3(O), resolving uncertainty marker.
 - [Phase 44, Plan 02]: L1-L9 chain verified: L4 UPGRADED (Argued -> Proved given Paper 5), L5/L7/L9 STRENGTHENED (conditionality shifts from L4 to L1), L1/L2/L3/L6/L8 UNCHANGED. Zero regressions. Gap register v11.0 section appended with Paper 7 Gap C = PROVED (given Paper 5), v10.0 Gap C = UNCHANGED at CONDITIONAL-DERIVED.
 - [Phase 44, Plan 01]: Pure assembly -- Gap C closure stated as single 7-step theorem. All steps cite Phase 43, Paper 5, Paper 7, or Lawson-Michelsohn. No new mathematics. Observer-induced label; algebraic closure rejected. Phase 30 compatibility explicit. Gap C disambiguated (Paper 7 vs v10.0).
 - [Phase 43, Plan 02]: C-linear closure proved by dimension counting. 256 even-grade Cl(9,0) monomials form C-basis of M_16(C). Volume element hat_omega = +I_16 on V_{1/2}. Cl(9,C) identified. Spinor extension S_9 -> S_{10}^+ via Lawson-Michelsohn branching.
