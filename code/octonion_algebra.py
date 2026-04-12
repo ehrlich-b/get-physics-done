@@ -3495,3 +3495,102 @@ def field_content_table_49():
         'v0_spacetime_indices': qn['v0_spacetime_indices'],
         'v0_internal_indices': qn['v0_internal_indices'],
     }
+
+
+def _peirce_gram_diagonal():
+    """Compute diagonal Gram matrix G_{II} = tr(e_I o e_I) for Peirce basis.
+
+    The Peirce basis is orthogonal (G_{IJ} = 0 for I != J), so only the
+    diagonal is needed.  Cached on first call.
+
+    Returns:
+        np.ndarray of shape (27,)
+    """
+    if not hasattr(_peirce_gram_diagonal, '_cache'):
+        basis = peirce_basis_27()
+        G = np.zeros(27)
+        for I in range(27):
+            prod = jordan_product(basis[I], basis[I])
+            G[I] = prod.alpha + prod.beta + prod.gamma  # trace
+        _peirce_gram_diagonal._cache = G
+    return _peirce_gram_diagonal._cache
+
+
+def peirce_coords(X, basis=None):
+    """Extract Peirce coordinates X^I of an h_3(O) element X.
+
+    X = sum_I X^I * e_I  where e_I is the Peirce basis element.
+    Using orthogonality: X^I = tr(X o e_I) / tr(e_I o e_I).
+
+    Parameters:
+        X: H3O element
+        basis: optional precomputed Peirce basis (default: peirce_basis_27())
+
+    Returns:
+        np.ndarray of shape (27,): the coordinates X^I
+    """
+    if basis is None:
+        basis = peirce_basis_27()
+    G = _peirce_gram_diagonal()
+    coords = np.zeros(27)
+    for I in range(27):
+        prod = jordan_product(X, basis[I])
+        coords[I] = (prod.alpha + prod.beta + prod.gamma) / G[I]
+    return coords
+
+
+def prepotential_F(X_coords, d_tensor=None):
+    """Compute the 4d cubic prepotential F(X).
+
+    F(X) = d_{IJK} X^I X^J X^K / (6 * X^0)
+
+    where d_{IJK} is the fully symmetric trilinear form from Phase 47,
+    normalized so that d(X,X,X) = 6 * det_3(X).
+
+    The prepotential is homogeneous of degree 2: F(lambda X) = lambda^2 F(X).
+
+    The GST coupling tensor is C_{IJK} = (1/6) d_{IJK}, so equivalently
+    F(X) = C_{IJK} X^I X^J X^K / X^0.
+
+    Parameters:
+        X_coords: np.ndarray of shape (27,), the projective coordinates
+                  X^I = (X^0, X^1, ..., X^26)
+        d_tensor: dict {(I,J,K): value} from d_ijk_tensor() (default: computed)
+
+    Returns:
+        float: the prepotential value F(X)
+
+    Raises:
+        ValueError: if X^0 = 0 (prepotential singular at X^0 = 0)
+    """
+    if d_tensor is None:
+        d_tensor = d_ijk_tensor()
+
+    X0 = X_coords[0]
+    if abs(X0) < 1e-300:
+        raise ValueError("X^0 = 0: prepotential is singular")
+
+    # Contract d_{IJK} X^I X^J X^K
+    # d_tensor stores only I <= J <= K, so account for multiplicity
+    cubic = 0.0
+    for (I, J, K), val in d_tensor.items():
+        if I == J == K:
+            mult = 1
+        elif I == J or J == K or I == K:
+            mult = 3
+        else:
+            mult = 6
+        cubic += mult * val * X_coords[I] * X_coords[J] * X_coords[K]
+
+    return cubic / (6.0 * X0)
+
+
+# ============================================================================
+# VERIFIED (49-01 Task 1):
+#   field_content_table_49: 1 gravity + 26 vector = 27 total.
+#   n_V=26, total_vectors=27, real_scalars=54, coset_dim=54.
+#   E_{7(-25)}: dim=133, E_{6(-78)}: dim=78, U(1): dim=1.
+#   Coset: 133-78-1=54=2*27. V_0: 4 spacetime + 6 internal.
+#   SM quantum numbers: Paper 7 multiset match for all 16 V_{1/2}.
+#   No KK reduction. No 27 vector multiplet claim.
+# ============================================================================
