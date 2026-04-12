@@ -401,7 +401,11 @@ Plans:
 
 **Backtracking:** If d_{0,0,0} != 0, the Peirce block structure is richer than expected -- reassess. If uniqueness proof encounters real-form subtlety (E_6(-26) vs E_6(-78)), address explicitly. If the "double duty" argument proves circular (det appears in both input and output), the proof must go through the representation-theoretic route (Sym^3 invariant counting) rather than function-level equality.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 47-01-PLAN.md -- Implement det_3, compute d_{IJK} tensor by polarization, verify two-block Peirce decomposition (ALGB-02)
+- [ ] 47-02-PLAN.md -- Prove uniqueness via F_4-invariance (Springer 1962), double duty theorem, verify 27 quantum numbers (UNIQ-01, UNIQ-02)
 
 ### Phase 48: Equivariance and Lorentz Subgroup
 
@@ -436,13 +440,13 @@ Plans:
 - Advances: GST field content match; 5d -> 4d reduction; precise claim statement; cosmological constant; C_{IJK} physical couplings
 - Deliverables: (1) 5d field content table matching GST 1984. (2) 4d field content after circle compactification matching de Wit-Van Proeyen 1992. (3) Two-sentence precise claim on det(X) role. (4) Cosmological constant analysis. (5) C_{IJK} coupling decomposition with physical identification.
 - Anchor coverage: GST 1983/1984; de Wit-Van Proeyen 1992; Lauria-Van Proeyen 2020; Papers 5, 6, 7
-- Forbidden proxies: "GR from h_3(O)" without citing Paper 6 for Einstein equations; wrong E_6 real form (must specify E_6(-26) for 5d, E_7(-25) for 4d); overclaiming full Lagrangian derivation when only algebraic structure is obtained
+- Forbidden proxies: overclaiming that GST alone derives GR without noting the 5d manifold assumption; wrong E_6 real form (must specify E_6(-26) for 5d, E_7(-25) for 4d); referencing old Paper 6 lattice route (ABANDONED); confusing det(X) as prepotential (algebraic input) with the Einstein equations themselves (variational output)
 
 **Success Criteria** (what must be TRUE):
 
 1. 5d GST field content matched: graviton (1), graviphoton (1), 26 vector multiplets (each: 1 vector + 1 real scalar), total 27 vectors and 27 scalars on E_6(-26)/F_4 (dim 26 coset), with Peirce sector assignments for each field
 2. 5d -> 4d circle compactification performed: 4d N=2 field content identified -- graviton + 28 vectors + 56 real scalars on E_7(-25)/(E_6 x U(1)) (dim 56 coset); 4d prepotential F(X) = d_{IJK} X^I X^J X^K / X^0 with d_{IJK} from Phase 47
-3. Precise claim stated: "det(X) on h_3(O) determines the matter-gravity coupling structure (scalar manifold geometry and prepotential of the very special real manifold); Einstein gravity itself (field equations) comes from Paper 6 via Jacobson's entanglement equilibrium argument"
+3. Precise claim stated: "det(X) on h_3(O) determines the FULL bosonic Lagrangian of the exceptional magic MESGT (GST 1983-84), including the Einstein-Hilbert term -R/2. Einstein's field equations emerge from varying this action. The 4d spacetime on which it lives is h_2(C_u) = R^{3,1} (Phase 46). The old Paper 6 Jacobson/lattice route is ABANDONED; the GST action principle replaces it."
 4. Cosmological constant: either derived from GST vacuum structure (V_0 = 0 gives Lambda = 0 at classical level) or honestly flagged as undetermined
 5. C_{IJK} couplings decomposed under Peirce: fermion-fermion-spacetime (d_{1/2,1/2,0}) and gravitational self-coupling (d_{1,0,0}) physically identified; relation to SM Yukawa-like couplings noted if it exists
 
@@ -464,7 +468,7 @@ Plans:
 
 **Success Criteria** (what must be TRUE):
 
-1. Assembly document traces: self-modeling (axiom) -> C*-algebra (Paper 5) -> h_3(O) (exceptional by compositionality + Peirce) -> Peirce 27 = 1+16+10 -> V_{1/2} complexifies to SM fermions (Paper 7 + v11.0) + V_0 projects to R^{3,1} with GST coupling (v12.0) + lattice gives Einstein equations (Paper 6)
+1. Assembly document traces: self-modeling (axiom) -> C*-algebra (Paper 5) -> h_3(O) (exceptional by compositionality + Peirce) -> Peirce 27 = 1+16+10 -> V_{1/2} complexifies to SM fermions (Paper 7 + v11.0) + V_0 projects to R^{3,1} (Phase 46) + det(X) determines GST Lagrangian including Einstein-Hilbert term (v12.0). NOTE: old lattice/Jacobson route (Paper 6 v1) is ABANDONED.
 2. No circular dependencies in the assembly: each link is checked for logical independence (in particular: det(X) as prepotential does NOT assume the physics it is trying to derive)
 3. Gap inventory is complete: every assumption (N=2 SUSY structure from GST, pi_u extends from V_{1/2} to V_0, quantum SSB conditionality, Jacobson vs algebraic GR route) is listed with severity rating
 4. Comparison with Farnsworth 2025 (spectral triple on h_3(O)) and other approaches (Boyle, Todorov-Drenska) is included, noting what this work adds and where it differs
