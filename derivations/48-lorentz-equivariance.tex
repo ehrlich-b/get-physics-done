@@ -1,0 +1,271 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus, gamma_matrix_convention=Cl(9,0), generator_normalization=gamma_ab/4, commutation_convention=[A,B]=AB-BA
+%
+% Phase 48: Lorentz Equivariance Derivation Summary
+% Produced by Plan 48-02
+% Date: 2026-04-12
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,booktabs,geometry}
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{Stabilizer Structure and Lorentz Equivariance\\ of the $\pi_u$ Projection on $V_0$}
+\author{Phase 48}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+
+%% ============================================================
+\section{Setup}
+%% ============================================================
+
+Let $V_0 = h_2(\mathbb{O}) \cong \mathbb{R}^{10}$ be the Peirce-0 eigenspace
+of $h_3(\mathbb{O})$ with respect to the idempotent $E_{11}$.  The group
+$\mathrm{Spin}(9)$ acts on $V_0$ via the 10-dimensional (vector)
+representation derived from the commutator action
+\begin{equation}\label{eq:comm-action}
+  \bigl[\tfrac{1}{4}\gamma_a\gamma_b,\; T_c\bigr]
+  = \sum_{d=0}^{9} M^{(ab)}_{dc}\, T_d,
+  \qquad 0 \le a < b \le 8,
+\end{equation}
+where $\gamma_a$ ($a=0,\ldots,8$) are the $\mathrm{Cl}(9,0)$ generators
+satisfying $\{\gamma_a,\gamma_b\} = 2\delta_{ab}\,I_{16}$,
+and $\{T_c\}_{c=0}^{9}$ is the $V_0$ basis from Phase~46.
+
+Choosing the unit imaginary octonion $u = e_7$ defines the projection
+$\pi_u : V_0 \to h_2(\mathbb{C}_u)$, whose image is the 4-dimensional
+spacetime factor $h_2(\mathbb{C}_u)$ with Lorentzian metric
+$\det_2 \leftrightarrow \eta = \mathrm{diag}(+1,-1,-1,-1)$
+(Phase~46, Eq.~46.2).
+
+The $V_0$ coordinate basis splits as:
+\begin{itemize}
+  \item \textbf{Spacetime indices} $S = \{0,1,2,9\}$:
+    $c_0 = \beta+\gamma$,\; $c_1 = \beta-\gamma$,\;
+    $c_2 = \mathrm{Re}(x_1)$,\; $c_9 = (x_1)_{e_7}$.
+  \item \textbf{Internal indices} $I = \{3,4,5,6,7,8\}$:
+    the six $W$-sector components of $x_1$, where
+    $W = u^\perp \cap \mathrm{Im}(\mathbb{O}) = \mathrm{span}\{e_1,\ldots,e_6\}$.
+\end{itemize}
+
+%% ============================================================
+\section{$V_0$ Stabilizer: $\mathfrak{so}(3) \oplus \mathfrak{so}(6)$}
+%% ============================================================
+
+\begin{definition}
+The \emph{$V_0$ stabilizer} is
+\[
+  \mathfrak{stab}(u)
+  = \bigl\{L \in \mathfrak{spin}(9) :
+    L \text{ preserves the } 4{+}6 \text{ splitting}\bigr\},
+\]
+equivalently, the subalgebra whose 10$\times$10 matrices are block-diagonal
+with respect to $(S, I)$.
+\end{definition}
+
+\begin{theorem}[Stabilizer Structure, Phase 48-01]\label{thm:stab}
+\[
+  \mathfrak{stab}(u) \;=\; \mathfrak{so}(3) \oplus \mathfrak{so}(6),
+  \qquad \dim = 3 + 15 = 18.
+\]
+The $\mathfrak{so}(3)$ factor acts nontrivially on the 4-dim spacetime
+block and trivially on the 6-dim internal block.
+The $\mathfrak{so}(6)$ factor acts nontrivially on the internal block
+and trivially on spacetime.  Cross-brackets vanish:
+$[\mathfrak{so}(3), \mathfrak{so}(6)] = 0$.
+\end{theorem}
+
+\noindent\textbf{Verification} (computational, exact to machine precision):
+\begin{itemize}
+  \item SVD of the 48$\times$36 off-diagonal constraint matrix:
+    18 null singular values (all $< 10^{-17}$), gap 0.71.
+  \item Stabilizer closure: 153 brackets, max residual $5.3 \times 10^{-17}$.
+  \item Killing form: $\mathrm{spec}(K) = \{-2^{(\times 15)},\, -0.5^{(\times 3)}\}$,
+    negative definite, center dimension 0.
+\end{itemize}
+
+\begin{remark}
+The stabilizer dimension is 18, not 21.
+One might expect $\dim\,\mathfrak{so}(3,1) + \dim\,\mathfrak{so}(6) = 6 + 15 = 21$,
+but $\mathfrak{so}(3,1)$ is \emph{non-compact} and cannot embed as a
+subalgebra of the compact $\mathfrak{so}(9)$.
+Only its maximal compact subalgebra $\mathfrak{so}(3)$ (spatial rotations)
+embeds.  The 3 boost generators do not exist within $\mathfrak{spin}(9)$.
+\end{remark}
+
+%% ============================================================
+\section{Lorentz Rotation Subalgebra}
+%% ============================================================
+
+The Minkowski basis for $h_2(\mathbb{C}_u)$ is
+$\{x_0, x_1, x_2, x_3\}$ with $x_0 = c_0/2$, $x_1 = c_2$,
+$x_2 = c_9$, $x_3 = c_1/2$.  The basis transformation is
+\begin{equation}\label{eq:basis-change}
+  B = \begin{pmatrix} 1/2 & 0 & 0 & 0 \\
+                       0 & 0 & 1 & 0 \\
+                       0 & 0 & 0 & 1 \\
+                       0 & 1/2 & 0 & 0 \end{pmatrix},
+  \qquad
+  L_{\mathrm{Mink}} = B\, L_S\, B^{-1}.
+\end{equation}
+
+In the Minkowski basis, the 3 rotation generators are:
+\begin{equation}\label{eq:rotations}
+  J_{13} = \begin{pmatrix} 0&0&0&0\\0&0&0&-\tfrac12\\0&0&0&0\\0&\tfrac12&0&0 \end{pmatrix},
+  \quad
+  J_{23} = \begin{pmatrix} 0&0&0&0\\0&0&0&0\\0&0&0&-\tfrac12\\0&0&\tfrac12&0 \end{pmatrix},
+  \quad
+  J_{12} = \begin{pmatrix} 0&0&0&0\\0&0&\tfrac12&0\\0&-\tfrac12&0&0\\0&0&0&0 \end{pmatrix}.
+\end{equation}
+These satisfy the $\mathfrak{so}(3)$ commutation relations
+\begin{equation}\label{eq:so3-comm}
+  [J_{13}, J_{23}] = -\tfrac{1}{2} J_{12}, \quad
+  [J_{13}, J_{12}] = +\tfrac{1}{2} J_{23}, \quad
+  [J_{23}, J_{12}] = -\tfrac{1}{2} J_{13},
+\end{equation}
+i.e.\ $[J_i, J_j] = \tfrac{1}{2}\epsilon_{ijk}\, J_k$ with the
+generator normalization from $\gamma_{ab}/4$.
+
+\begin{proposition}[Metric compatibility]\label{prop:eta}
+Every rotation generator satisfies
+\begin{equation}\label{eq:eta-compat}
+  \eta\, L_{\mathrm{Mink}} + L_{\mathrm{Mink}}^{\!\top}\, \eta = 0,
+  \qquad \eta = \mathrm{diag}(+1,-1,-1,-1),
+\end{equation}
+with max error $2.2 \times 10^{-16}$.
+\end{proposition}
+
+\noindent This is the defining relation of $\mathfrak{so}(3,1)$
+generators.  The 3 rotation generators satisfy it because
+spatial rotations preserve both the Euclidean and Lorentzian metrics.
+They form the \emph{maximal compact subalgebra} of $\mathfrak{so}(3,1)$.
+
+\begin{remark}[Compact vs.\ non-compact]
+The abstract Lie algebra of the spacetime block is $\mathfrak{so}(3)$,
+which is simultaneously:
+\begin{itemize}
+  \item a subalgebra of $\mathfrak{so}(4)$ (compact, Euclidean rotations),
+  \item the rotation subalgebra of $\mathfrak{so}(3,1)$ (Lorentz algebra),
+  \item the maximal compact subalgebra of $\mathfrak{so}(3,1)$.
+\end{itemize}
+The Lorentz boosts ($K_1, K_2, K_3$) would need non-compact generators
+that do not exist in the compact $\mathfrak{spin}(9)$.
+At the group level: $\mathrm{SU}(2) \subset \mathrm{Spin}(9)$ acts as
+spatial rotations $\mathrm{SO}(3) \subset \mathrm{SO}(3,1)$ on
+$(h_2(\mathbb{C}_u), \det_2)$.  The full Lorentz group
+$\mathrm{SL}(2,\mathbb{C})$ does not embed in compact $\mathrm{Spin}(9)$.
+This is the standard Baez~(2002) isomorphism
+$\mathrm{SL}(2,\mathbb{K}) = \mathrm{Spin}(\dim\mathbb{K}+1, 1)$
+restricted to the compact subgroup.
+\end{remark}
+
+%% ============================================================
+\section{Internal Symmetry: $\mathfrak{so}(6) \cong \mathfrak{su}(4)$}
+%% ============================================================
+
+The 15 internal generators act on the 6-dim $W$-sector with:
+\begin{itemize}
+  \item Killing form: all eigenvalues $= -2$ (15-fold degenerate),
+    negative definite $\Rightarrow$ compact real form.
+  \item $\mathfrak{so}(6) \cong \mathfrak{su}(4)$
+    (the standard isomorphism of rank-3 algebras).
+\end{itemize}
+
+The relationship to the Standard Model gauge algebra $G_{\mathrm{SM}}$
+(dim~8, from the $V_{1/2}$ stabilizer of $J_u$, Krasnov 2019) is:
+$G_{\mathrm{SM}} \subset \mathfrak{stab}(u)$, verified with
+max residual $4.85 \times 10^{-15}$.
+The extra $15 - 8 = 7$ generators in $\mathfrak{so}(6)$ beyond
+$G_{\mathrm{SM}}$ preserve the $V_0$ splitting but do NOT commute
+with $J_u$ on $V_{1/2}$.
+
+%% ============================================================
+\section{Equivariance Theorem}
+%% ============================================================
+
+\begin{theorem}[Equivariance of $\pi_u$]\label{thm:equiv}
+For all $L \in \mathfrak{stab}(u)$ and all $Y \in V_0$:
+\begin{equation}\label{eq:equivariance}
+  \pi_u(L \cdot Y) = L\big|_{h_2(\mathbb{C}_u)} \cdot \pi_u(Y).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $P_S : V_0 \to h_2(\mathbb{C}_u)$ be the projection onto spacetime
+indices $S = \{0,1,2,9\}$.  Since $L \in \mathfrak{stab}(u)$, the
+10$\times$10 matrix of $L$ is block-diagonal with respect to $(S, I)$:
+$L = L_S \oplus L_I$.  Therefore
+\[
+  P_S \circ L = L_S \circ P_S,
+\]
+which is precisely the equivariance condition~\eqref{eq:equivariance}
+since $\pi_u = P_S$ on $V_0$.
+
+Verified numerically: $\max_{L,\, e_k}
+|P_S(L \cdot e_k) - L_S(P_S \cdot e_k)| = 5.2 \times 10^{-17}$
+over all 18 stabilizer generators and all 10 basis vectors.
+\end{proof}
+
+%% ============================================================
+\section{Mixing Generators and Physical Interpretation}
+%% ============================================================
+
+The 18 coset generators (mixing generators) in $\mathfrak{spin}(9) / \mathfrak{stab}(u)$
+have nonzero off-diagonal blocks: they mix spacetime and internal
+components.  These correspond to infinitesimal changes of $u$ in $S^6$
+(equivalently, changes of complex structure on $\mathbb{O}$).
+
+\begin{center}
+\begin{tabular}{lccp{6cm}}
+\toprule
+\textbf{Subalgebra} & \textbf{Dim} & \textbf{Type} & \textbf{Physical Role} \\
+\midrule
+$\mathfrak{stab}(u)$ & 18 & $\mathfrak{so}(3) \oplus \mathfrak{so}(6)$
+  & Symmetry preserving the $u$-splitting \\
+\quad Rotations & 3 & $\mathfrak{so}(3)$
+  & Spatial rotations on $h_2(\mathbb{C}_u)$; maximal compact
+    subalgebra of $\mathfrak{so}(3,1)$ \\
+\quad Internal & 15 & $\mathfrak{so}(6) \cong \mathfrak{su}(4)$
+  & Internal symmetry of $W$-sector \\
+$G_{\mathrm{SM}}$ & 8 & $\mathfrak{su}(3) \oplus \mathfrak{u}(1) \oplus \cdots$
+  & Standard Model gauge algebra (from $V_{1/2}$; $\subset\!\mathfrak{stab}(u)$) \\
+Mixing & 18 & coset
+  & Transformations changing $u \in S^6$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\bigskip
+\noindent\textbf{Dimension accounting:}
+\[
+  \underbrace{3}_{\text{rotations}} + \underbrace{15}_{\text{internal}}
+  = \underbrace{18}_{\text{stabilizer}},
+  \qquad
+  \underbrace{18}_{\text{stabilizer}} + \underbrace{18}_{\text{mixing}}
+  = \underbrace{36}_{\mathfrak{spin}(9)}.
+\]
+
+%% ============================================================
+\section*{References}
+%% ============================================================
+
+\begin{itemize}
+  \item Baez, J.C.\ (2002).
+    The octonions. \emph{Bull.\ AMS} \textbf{39}, 145--205.
+    arXiv:math/0105155, Section~3.3.
+  \item Krasnov, K.\ (2019).
+    arXiv:1912.11282, Section~3.
+  \item Phase~46: $\pi_u$ projection, $\det_2$ Gram matrix, spacetime/internal splitting.
+  \item Phase~47: $\mathrm{Spin}(9)$ action on $V_0$ verified (630 tests), uniqueness.
+  \item Phase~48-01: $V_0$ stabilizer = $\mathfrak{so}(3) \oplus \mathfrak{so}(6)$, dim 18.
+\end{itemize}
+
+\end{document}
