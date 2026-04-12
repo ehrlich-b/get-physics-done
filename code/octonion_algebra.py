@@ -2659,6 +2659,270 @@ def verify_f4_invariance_det3(n_random=10, seeds=None):
     return results
 
 
+def compute_spin9_v0_rep():
+    """Build all 36 spin(9) generators as 10x10 real matrices on V_0.
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, gamma_matrix_convention=Cl(9,0), generator_normalization=gamma_ab/4, commutation_convention=[A,B]=AB-BA
+
+    The spin(9) Lie algebra has basis {gamma_a gamma_b / 4 : 0 <= a < b <= 8},
+    giving 36 generators.  Each acts on V_0 = R^{10} via the commutator action
+    on the Peirce operators T_c:
+
+        [gamma_ab/4, T_c] = sum_d  M^{(ab)}_{dc} T_d
+
+    so column c of M^{(ab)} is the coefficient vector of the bracket in the
+    T_d basis.  This is the 10-dim (vector) representation of spin(9) ~ so(9).
+
+    Returns:
+        dict with keys:
+          'generators': list of 36 numpy arrays (10x10)
+          'labels':     list of 36 (a,b) pairs with a < b
+          'T_flat':     256x10 matrix (columns = flattened T_c), for reuse
+    """
+    T_mats = compute_T_b_matrices()          # 10 matrices, each 16x16
+    gammas = rescale_to_clifford_generators(T_mats)  # 9 Clifford generators
+
+    # T_flat: 256 x 10, column c = T_mats[c].flatten()
+    T_flat = np.array([T_mats[c].flatten() for c in range(10)]).T  # 256x10
+
+    generators = []
+    labels = []
+    for a in range(9):
+        for b in range(a + 1, 9):
+            gab = gammas[a] @ gammas[b]          # 16x16 grade-2 element
+            M = np.zeros((10, 10), dtype=np.float64)
+            for c in range(10):
+                bracket = (gab / 4.0) @ T_mats[c] - T_mats[c] @ (gab / 4.0)
+                coeffs, _, _, _ = np.linalg.lstsq(
+                    T_flat, bracket.flatten(), rcond=None)
+                M[:, c] = coeffs
+            generators.append(M)
+            labels.append((a, b))
+
+    # Orthonormalization: G_{ab} = Tr(T_a T_b) = diag(1,1,4,...,4).
+    # D = diag(1,1,2,...,2) sends natural T_c coords to orthonormal coords.
+    # In ortho basis: M_ortho = D M D^{-1} is antisymmetric (M + M^T = 0).
+    D = np.diag([1.0, 1.0] + [2.0] * 8)
+    D_inv = np.diag([1.0, 1.0] + [0.5] * 8)
+    generators_ortho = [D @ M @ D_inv for M in generators]
+
+    return {
+        'generators': generators,           # natural T_c basis (matches Phase 46 coords)
+        'generators_ortho': generators_ortho,  # orthonormal basis (antisymmetric)
+        'labels': labels,
+        'T_flat': T_flat,
+        'ortho_matrix': D,                  # v_ortho = D @ v_natural
+        'ortho_inv': D_inv,
+    }
+
+
+def compute_v0_stabilizer():
+    """Find the subalgebra of spin(9) preserving the 4+6 splitting of V_0.
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, gamma_matrix_convention=Cl(9,0), generator_normalization=gamma_ab/4, commutation_convention=[A,B]=AB-BA
+
+    The 4+6 splitting (Phase 46):
+      Spacetime indices S = {0, 1, 2, 9}  in the 10-dim V_0 coordinate vector
+      Internal  indices I = {3, 4, 5, 6, 7, 8}
+
+    A spin(9) generator preserves the splitting iff its 10x10 matrix is
+    block-diagonal with respect to (S, I), i.e. the off-diagonal blocks
+    M[S,I] and M[I,S] are both zero.
+
+    The stabilizer is found via SVD of the off-diagonal constraint matrix.
+
+    Returns:
+        dict with keys:
+          'stab_dim':              int  -- stabilizer Lie algebra dimension
+          'stab_generators':       list of 10x10 matrices
+          'stab_coeffs':           array (stab_dim x 36), coefficients in spin(9) basis
+          'killing_form':          array (stab_dim x stab_dim)
+          'killing_eigenvalues':   array
+          'killing_signature':     (n_pos, n_neg, n_zero)
+          'center_dim':            int
+          'is_closed':             bool
+          'max_closure_residual':  float
+          'spacetime_block_dims':  int   -- rank of independent 4x4 generators
+          'internal_block_dims':   int   -- rank of independent 6x6 generators
+          'sv_gap':                float -- gap between last null and first non-null singular value
+          'coset_dim':             int   -- 36 - stab_dim
+          'gsm_contained':         bool  -- whether G_SM (dim 8) is a subalgebra
+          'gsm_max_residual':      float
+    """
+    rep = compute_spin9_v0_rep()
+    gens = rep['generators']       # 36 matrices, each 10x10
+    n_gens = len(gens)             # 36
+
+    # Spacetime and internal index sets
+    S = [0, 1, 2, 9]
+    I = [3, 4, 5, 6, 7, 8]
+
+    # Build off-diagonal constraint matrix A  (48 x 36)
+    # For each generator k, flatten M_k[S,I] (4x6=24) and M_k[I,S] (6x4=24)
+    n_constraints = len(S) * len(I) + len(I) * len(S)   # 24 + 24 = 48
+    A = np.zeros((n_constraints, n_gens), dtype=np.float64)
+    for k in range(n_gens):
+        M = gens[k]
+        block_SI = M[np.ix_(S, I)].flatten()   # 24
+        block_IS = M[np.ix_(I, S)].flatten()   # 24
+        A[:, k] = np.concatenate([block_SI, block_IS])
+
+    # SVD to find nullspace
+    U_svd, s_svd, Vt_svd = np.linalg.svd(A, full_matrices=True)
+
+    # Find gap: singular values below threshold are "null"
+    threshold = 1e-10
+    n_nonzero = np.sum(s_svd > threshold)
+    stab_dim = n_gens - n_nonzero
+    null_vecs = Vt_svd[n_nonzero:]    # stab_dim x 36
+
+    # Singular value gap
+    if n_nonzero < len(s_svd) and n_nonzero > 0:
+        sv_gap = s_svd[n_nonzero - 1] - (s_svd[n_nonzero] if n_nonzero < len(s_svd) else 0.0)
+    elif n_nonzero == 0:
+        sv_gap = float('inf')
+    else:
+        sv_gap = s_svd[n_nonzero - 1]
+
+    # Build stabilizer generators as 10x10 matrices
+    stab_generators = []
+    for idx in range(stab_dim):
+        v = null_vecs[idx]
+        L = sum(v[k] * gens[k] for k in range(n_gens))
+        stab_generators.append(L)
+
+    stab_flat = np.array([L.flatten() for L in stab_generators]).T  # 100 x stab_dim
+
+    # Verify off-diagonal blocks are zero
+    max_offdiag = 0.0
+    for L in stab_generators:
+        max_offdiag = max(max_offdiag,
+                         np.max(np.abs(L[np.ix_(S, I)])),
+                         np.max(np.abs(L[np.ix_(I, S)])))
+
+    # Check closure under Lie bracket
+    is_closed = True
+    max_closure_residual = 0.0
+    for a in range(stab_dim):
+        for b in range(a + 1, stab_dim):
+            bracket = (stab_generators[a] @ stab_generators[b]
+                       - stab_generators[b] @ stab_generators[a])
+            coeffs, _, _, _ = np.linalg.lstsq(
+                stab_flat, bracket.flatten(), rcond=None)
+            resid = np.linalg.norm(bracket.flatten() - stab_flat @ coeffs)
+            max_closure_residual = max(max_closure_residual, resid)
+            if resid > 1e-10:
+                is_closed = False
+
+    # Compute adjoint representation and Killing form
+    ad_mats = np.zeros((stab_dim, stab_dim, stab_dim))
+    for a in range(stab_dim):
+        for b in range(stab_dim):
+            bracket = (stab_generators[a] @ stab_generators[b]
+                       - stab_generators[b] @ stab_generators[a])
+            coeffs, _, _, _ = np.linalg.lstsq(
+                stab_flat, bracket.flatten(), rcond=None)
+            ad_mats[a, b] = coeffs
+
+    killing = np.zeros((stab_dim, stab_dim))
+    for a in range(stab_dim):
+        for b in range(stab_dim):
+            killing[a, b] = np.trace(ad_mats[a] @ ad_mats[b])
+
+    killing_evals = np.sort(np.linalg.eigvalsh(killing))
+    n_pos = int(np.sum(killing_evals > 1e-8))
+    n_neg = int(np.sum(killing_evals < -1e-8))
+    n_zero = stab_dim - n_pos - n_neg
+
+    # Find center (generators commuting with all others)
+    # Build full adjoint matrix: ad(L_a)_{bc} = structure constants f^c_{ab}
+    full_ad = np.zeros((stab_dim, stab_dim * stab_dim))
+    for a in range(stab_dim):
+        full_ad[a] = ad_mats[a].flatten()
+    # Center = nullspace of the map a -> ad(a)
+    # A generator L_a is central iff ad_mats[a] = 0, i.e. [L_a, L_b] = 0 for all b.
+    center_norms = np.array([np.linalg.norm(ad_mats[a]) for a in range(stab_dim)])
+    center_dim = int(np.sum(center_norms < 1e-10))
+
+    # Rank of spacetime and internal blocks
+    space_blocks = np.array([L[np.ix_(S, S)].flatten() for L in stab_generators]).T
+    internal_blocks = np.array([L[np.ix_(I, I)].flatten() for L in stab_generators]).T
+    spacetime_block_dims = int(np.linalg.matrix_rank(space_blocks, tol=1e-10))
+    internal_block_dims = int(np.linalg.matrix_rank(internal_blocks, tol=1e-10))
+
+    # Cross-check: G_SM (dim 8) should be a subalgebra of this stabilizer
+    # G_SM lives in spin(9) acting on V_{1/2} = R^16.
+    # We need to check if its spin(9) generators, projected onto V_0, lie in the stabilizer.
+    T_mats = compute_T_b_matrices()
+    gammas_16 = rescale_to_clifford_generators(T_mats)
+    J_u = krasnov_J_u_matrix()
+    gsm = compute_gsm_commutant(gammas_16, J_u)
+
+    # Reconstruct G_SM generators as 10x10 matrices on V_0
+    # G_SM lives in spin(9) on V_{1/2}; we need its V_0 representation.
+    # The commutant gives nullspace vectors in the 36-dim spin(9) basis (on V_{1/2}).
+    # But compute_gsm_commutant uses the raw gamma_i @ gamma_j products as basis,
+    # while compute_spin9_v0_rep uses gab/4 normalization.
+    # Actually the commutant nullspace vectors are coefficients in the gamma_i @ gamma_j
+    # basis (without the /4). But the V_0 rep uses gab/4 normalization in the bracket.
+    # The key: if c_k are the SVD nullspace coefficients from compute_gsm_commutant,
+    # then the spin(9) element is L = sum_k c_k * (gamma_{a_k} gamma_{b_k}).
+    # The corresponding V_0 generator is sum_k c_k * M^{(a_k, b_k)}.
+    # (The factor of 4 is a shared normalization that cancels in the commutation relation.)
+
+    # Rebuild gsm nullspace: need to re-run SVD to get the null vectors
+    spin9_gens_16 = []
+    for i in range(9):
+        for j in range(i + 1, 9):
+            spin9_gens_16.append(gammas_16[i] @ gammas_16[j])
+
+    comm_action = np.zeros((256, 36))
+    for k, L in enumerate(spin9_gens_16):
+        comm = J_u @ L - L @ J_u
+        comm_action[:, k] = comm.flatten()
+
+    U_gsm, s_gsm, Vt_gsm = np.linalg.svd(comm_action, full_matrices=True)
+    rank_gsm = np.sum(s_gsm > 1e-10)
+    gsm_null_vecs = Vt_gsm[rank_gsm:]   # gsm_dim x 36
+
+    # Project G_SM generators to V_0
+    gsm_v0_gens = []
+    for idx in range(gsm_null_vecs.shape[0]):
+        v = gsm_null_vecs[idx]
+        L_v0 = sum(v[k] * gens[k] for k in range(n_gens))
+        gsm_v0_gens.append(L_v0)
+
+    # Check each G_SM V_0 generator is in the stabilizer span
+    gsm_contained = True
+    gsm_max_residual = 0.0
+    for L_gsm in gsm_v0_gens:
+        coeffs, _, _, _ = np.linalg.lstsq(
+            stab_flat, L_gsm.flatten(), rcond=None)
+        resid = np.linalg.norm(L_gsm.flatten() - stab_flat @ coeffs)
+        gsm_max_residual = max(gsm_max_residual, resid)
+        if resid > 1e-10:
+            gsm_contained = False
+
+    return {
+        'stab_dim': stab_dim,
+        'stab_generators': stab_generators,
+        'stab_coeffs': null_vecs,
+        'killing_form': killing,
+        'killing_eigenvalues': killing_evals,
+        'killing_signature': (n_pos, n_neg, n_zero),
+        'center_dim': center_dim,
+        'is_closed': is_closed,
+        'max_closure_residual': max_closure_residual,
+        'spacetime_block_dims': spacetime_block_dims,
+        'internal_block_dims': internal_block_dims,
+        'sv_gap': sv_gap,
+        'coset_dim': n_gens - stab_dim,
+        'gsm_contained': gsm_contained,
+        'gsm_max_residual': gsm_max_residual,
+        'max_offdiag_block': max_offdiag,
+    }
+
+
 def quantum_number_table_27():
     """Produce the full 27 = 1 + 16 + 10 decomposition table with SM quantum
     numbers for V_{1/2} and the 4+6 splitting of V_0 under pi_u.
