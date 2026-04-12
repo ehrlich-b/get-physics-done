@@ -2836,23 +2836,25 @@ def quantum_number_table_27():
     }
 
     # Verify match with Paper 7: check that the MULTISET of quantum numbers
-    # (Q, Y, J3L, J3R, BmL) matches exactly.
-    p7_qn_set = set()
+    # (Q, Y, J3L, J3R, BmL) matches exactly (including multiplicities from color).
+    from collections import Counter
+    p7_qn_list = []
     for p in paper7_fermions:
         key = (round(p['Q'], 6), round(p['Y'], 6),
                round(p['J3L'], 6), round(p['J3R'], 6),
                round(p['BmL'], 6))
-        p7_qn_set.add(key)
+        p7_qn_list.append(key)
 
-    our_qn_set = set()
+    our_qn_list = []
     for entry in table:
         if entry['sector'] == 'V_{1/2}':
             key = (round(entry['Q'], 6), round(entry['Y'], 6),
                    round(entry['J3L'], 6), round(entry['J3R'], 6),
                    round(entry['BmL'], 6))
-            our_qn_set.add(key)
+            our_qn_list.append(key)
 
-    paper7_match = (p7_qn_set == our_qn_set and len(p7_qn_set) == 16)
+    paper7_match = (Counter(p7_qn_list) == Counter(our_qn_list)
+                    and len(p7_qn_list) == 16)
 
     particle_set = set(p['particle'] for p in paper7_fermions)
 
