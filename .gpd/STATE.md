@@ -2,27 +2,27 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-04-04)
+See: .gpd/PROJECT.md (updated 2026-04-11)
 
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** v11.0 Gap C Complexification from Sequential Product
+**Current focus:** v12.0 GR from det(X) on h_3(O)
 
 ## Current Position
 
-**Current Phase:** 44
-**Current Phase Name:** Gap C Theorem Assembly
-**Total Phases:** 45 (43 complete + 2 remaining)
-**Current Plan:** 2/2
-**Total Plans in Phase:** 2
-**Status:** Phase 44 complete: Plan 01 (4/4 claims) + Plan 02 (3/3 claims) = all 7 contract claims passed
-**Last Activity:** 2026-04-05
-**Last Activity Description:** Phase 44 complete: Gap C closure theorem assembled, L1-L9 verified (zero regressions), gap register updated
+**Current Phase:** --
+**Current Phase Name:** Defining objectives
+**Total Phases:** TBD
+**Current Plan:** --
+**Total Plans in Phase:** --
+**Status:** Defining objectives for v12.0
+**Last Activity:** 2026-04-11
+**Last Activity Description:** Started milestone v12.0: GR from det(X) on h_3(O)
 
-**Progress:** [############################################] 98% (44/45 phases complete)
+**Progress:** [                                            ] 0%
 
 ## Active Calculations
 
-- H_2 = J * sum_{a=1}^{9} T_a^(1) T_a^(2) on R^{256}, J=1 (lattice units)
+None yet.
 
 ## Intermediate Results
 
@@ -107,6 +107,7 @@ See: .gpd/PROJECT.md (updated 2026-04-04)
 - [Phase 29, Plan 01]: Associative closure = M_16(R) (256-dim). Clifford rescaling established.
 - [Phase 41]: Added Phase 41: O(9)/S^8 Quantitative Verification — Patch phase to recompute model-specific numbers for O(9)/S^8, replacing Heisenberg carry-forward values in links (i)-(l)
 - [Phase 0]: Started milestone v11.0: Gap C Complexification from Sequential Product — New milestone cycle -- second attempt at Gap C using sequential product route
+- [Phase 0]: Started milestone v12.0: GR from det(X) on h_3(O) — New milestone cycle -- algebraic GR route via GST magic supergravity prepotential on Peirce complement
 
 ### Active Approximations
 

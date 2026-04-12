@@ -2,21 +2,22 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 pursues a new algebraic route to GR: the Peirce complement V_0 = h_2(O), projected via the C*-bottleneck to h_2(C) = R^{3,1}, carries the GST magic supergravity Lagrangian with prepotential det(X) -- deriving Einstein gravity from h_3(O) without lattice or continuum limit. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Current Milestone: v11.0 Gap C Complexification from Sequential Product
+## Current Milestone: v12.0 GR from det(X) on h_3(O)
 
-**Goal:** Close Gap C algebraically by showing the observer's C-linear sequential product extends the measurement algebra Cl(9,0) to Cl(9,C), forcing spinor module complexification S_9 -> S_{10}^+.
+**Goal:** Derive Einstein gravity with SM matter coupling from the Peirce complement V_0 = h_2(O) of h_3(O), projected via the C*-observer's complex structure to h_2(C) = R^{3,1}, where det(X) serves as the GST magic supergravity prepotential.
 
 **Target results:**
 
-- Prove or disprove that C-linear composition of real Cl(9,0) generators via the observer's sequential product extends to Cl(9,C)
-- If successful: state Gap C closure as a single theorem (C*-observer -> complexification -> Spin(10) -> chirality)
-- If unsuccessful: characterize the precise obstruction and evaluate contingency routes (Peirce multiplication, conditional expectations, GNS, tensor product, observable algebra)
+- Formalize the C*-bottleneck projection pi_u: h_2(O) -> h_2(C), verify Minkowski metric structure, Lorentz equivariance, and Peirce product compatibility
+- Verify GST field content matches Paper 7 SM content under Peirce decomposition (27 = 1 + 16 + 10)
+- Prove the "double duty" theorem: det(X) is uniquely forced as both rho_J factor and gravitational prepotential by F_4-invariance
+- Perform 5d -> 4d circle compactification and verify Einstein + SM structure on h_2(C)
 
 ## Current State (after v10.0)
 
@@ -180,11 +181,16 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 - [x] What is the effective Hamiltonian H_eff for self-modelers interacting via the Jordan product of h_3(O)? -- **H_eff = J*sum T_a^(1)T_a^(2)** on R^256. 5-level Spin(9) spectrum. Ferromagnetic ground state Lambda^1(V_9). -- v10.0
 - [x] Does H_eff exhibit spontaneous F_4 breaking via DLS/infrared bounds? -- **SSB is Spin(9)->Spin(8) on S^8** (not F_4->Spin(9) on OP^2). Classical proved via FSS (d>=3). Quantum conditional. 8 Type-A Goldstone modes. -- v10.0
 
+### Answered in v11.0
+
+- [x] Does a C*-observer's sequential product (C-linear Luders composition) extend the measurement algebra Cl(9,0) on V_{1/2} to Cl(9,C)? -- **YES.** C-linear closure proved by dimension counting. Gap C theorem assembled: 7-step chain, L1-L9 zero regressions. -- v11.0
+
 ### Active
 
-- [ ] Does a C*-observer's sequential product (C-linear Luders composition) extend the measurement algebra Cl(9,0) on V_{1/2} to Cl(9,C)?
-- [ ] If algebraic extension fails, does Peirce multiplication, GNS, or observable algebra analysis close Gap C via an alternative route?
-- [ ] What is the weakest sufficient condition for complexification of V_{1/2} = O^2 inside h_3(O)?
+- [ ] Does the C*-bottleneck projection pi_u: h_2(O) -> h_2(C) carry the right equivariance (Lorentz group inside stabilizer)?
+- [ ] Does the GST field content (27 = 1 + 16 + 10 under Peirce) match Paper 7's SM particle spectrum?
+- [ ] Is det(X) uniquely forced as both the self-modeling density factor and the gravitational prepotential by F_4-invariance?
+- [ ] Does 5d -> 4d circle compactification of the GST Lagrangian on h_2(C) give Einstein + SM with correct matter coupling?
 
 ### Answered in v9.0
 
