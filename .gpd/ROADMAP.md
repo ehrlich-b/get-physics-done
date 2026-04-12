@@ -333,10 +333,10 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 | Precise claim: det(X) = prepotential, Paper 6 = GR | Phase 49 | Done |
 | Cosmological constant Lambda=0 (ungauged) | Phase 49 | Done |
 | C_{IJK} Peirce decomposition with physical couplings | Phase 49 | Done |
-| Spin-2 character of det_2 under SO(3,1) | Phase 50 | Planned |
-| Masslessness of V_0 excitation (no quadratic potential) | Phase 50 | Planned |
-| Stress-energy identification of (V_{1/2},V_{1/2},V_0) | Phase 50 | Planned |
-| Weinberg 1964 application: -R/2 forced | Phase 50 | Planned |
+| Spin-2 character of det_2 under SO(3,1) | Phase 50 | Done |
+| Masslessness of V_0 excitation (no quadratic potential) | Phase 50 | Done |
+| Stress-energy identification of (V_{1/2},V_{1/2},V_0) | Phase 50 | Done |
+| Weinberg 1964 application: -R/2 forced | Phase 50 | Done |
 | Complete SM+GR assembly (Papers 5+6+7+this) | Phase 51 | Planned |
 | Honest gap inventory | Phase 51 | Planned |
 
@@ -354,7 +354,7 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 - [x] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck (completed 2026-04-12)
 - [x] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u (completed 2026-04-12)
 - [x] **Phase 49: GST Lagrangian Connection (Direct 4d Formulation)** -- Field content 1 gravity + 26 vector multiplets; prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0); C_{IJK} coupling decomposition; precise claim; Lambda=0; Lagrangian assembly (completed 2026-04-12)
-- [ ] **Phase 50: Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)** -- Verify det_2 excitation is massless spin-2, (V_{1/2},V_{1/2},V_0) coupling is stress-energy, apply Weinberg 1964 to force -R/2. HARD GATE: if this fails, STOP and regroup with Bryan.
+- [x] **Phase 50: Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)** -- Verify det_2 excitation is massless spin-2, (V_{1/2},V_{1/2},V_0) coupling is stress-energy, apply Weinberg 1964 to force -R/2. HARD GATE PASSED. (completed 2026-04-12)
 - [ ] **Phase 51: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory. Requires Phase 50 success.
 
 ## Phase Details

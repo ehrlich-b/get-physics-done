@@ -9,14 +9,14 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-**Current Phase:** 49
-**Current Phase Name:** GST Lagrangian Connection
-**Total Phases:** 50 (v12.0: Phases 46-50)
+**Current Phase:** 50
+**Current Phase Name:** Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)
+**Total Phases:** 51 (v12.0: Phases 46-51)
 **Current Plan:** —
-**Total Plans in Phase:** —
-**Status:** Phase 49 complete, ready for Phase 50
+**Total Plans in Phase:** 2
+**Status:** Phase 50 complete, verified (4/4 contract targets). Phase 51 ready to plan.
 **Last Activity:** 2026-04-12
-**Last Activity Description:** Phase 49 complete: verification 7/7, consistency 18/18, advance to Phase 50
+**Last Activity Description:** Phase 50 complete and verified. All 4 Weinberg hypotheses confirmed from h_3(O): spin-2 (10=9+1), massless (M=det_2), universal coupling (C_{i,j,a} symmetric+universal+bilinear). -R/2 forced by Weinberg 1964. HARD GATE PASSED. Non-circularity verified. Consistency 5/5.
 
 **Progress:** [████████████████████████████████████████████] 100%
 
@@ -39,6 +39,10 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 - Field content: n_V = 26, total vectors = 27, real scalars = 54, scalar manifold E_{7(-25)}/(E_6(-78) x U(1))
 - C_{IJK} decomposition: 10 gravitational self-coupling (det_2) + 48 matter-spacetime + 48 matter-internal = 106 total
 - Lambda = 0 (ungauged MESGT, classical); Lagrangian Eq. (49.6) with 4 terms
+- SO(3,1) irrep decomposition: 10 = 9 (spin-2, traceless symmetric) + 1 (spin-0, trace); graviton in spacetime V_0 only
+- M_{ab} = det_2 Gram (kinetic, not Fierz-Pauli mass); graviton massless; E_{11}# = 0 confirmed
+- Stress-energy coupling C_{i,j,a}: symmetric (exact), universal (16 fields x 4 directions), bilinear; T_{ij} nonzero (norm 4.22)
+- Weinberg 1964 applied: -R/2 forced at low energies from h_3(O) algebraic structure; non-circular
 
 ## Intermediate Results
 
@@ -104,10 +108,15 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 | 48-02 | ~10min | 2 tasks | 2 files |
 | 49-01 | ~6min | 2 tasks | 2 files |
 | 49-02 | ~5min | 2 tasks | 2 files |
+| 50-01 | ~12min | 2 tasks | 2 files |
+| 50-02 | ~6min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
 ### Decisions
+
+- [Phase 50, Plan 01]: SO(3,1) irrep decomposition: 10 = 9 (spin-2) + 1 (spin-0). det_3 quadratic expansion: M_{ab} = det_2 Gram (kinetic structure, case b from plan). Masslessness confirmed by direct expansion + F_4-invariant decomposition. Weinberg W2+W3 satisfied.
+- [Phase 50, Plan 02]: Stress-energy identification: C_{i,j,a} symmetric (480 pairs exact), universal (16 fields x 4 directions), bilinear. Trace coupling T_{ij} nonzero (norm 4.22). All 4 Weinberg hypotheses confirmed: H1 (Spin(9) stabilizer), H2 (10=9+1), H3 (M=det_2), H4 (universal coupling). -R/2 forced at low energies by Weinberg 1964. Non-circularity: all inputs from h_3(O), none assumes -R/2.
 
 - [Phase 49, Plan 02]: C_{IJK} decomposed into 3 physical channels: gravitational self-coupling (10 entries, det_2 bilinear), matter-spacetime (48 entries, all 4 Minkowski V_0 directions), matter-internal (48 entries, all 6 W-sector directions). Precise claim: det(X) is prepotential (not EH); -R/2 from Paper 6. Lambda=0 for ungauged MESGT. Complete 4d bosonic Lagrangian assembled. GRAV-01 through GRAV-05 all satisfied.
 - [Phase 49, Plan 01]: Direct 4d formulation (no KK). Field content: 1 gravity + 26 vector multiplets = 27 vectors, 54 real scalars on E_{7(-25)}/(E_6(-78) x U(1)). Prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0). Normalization C_{IJK} = (1/6) d_{IJK} from d(X,X,X) = 6 N(X). Peirce coords via orthogonal decomposition.
