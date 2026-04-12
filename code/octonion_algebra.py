@@ -3704,3 +3704,131 @@ def decompose_couplings_49(d_tensor=None):
 #   Forbidden proxies: no old lattice route, no wrong real forms, no EH confusion.
 #   GRAV-01 through GRAV-05 all addressed. N=2 SUSY noted as input.
 # ============================================================================
+
+
+# ============================================================================
+# Phase 50, Plan 01: Weinberg verification -- spin-2 + masslessness
+# ============================================================================
+#
+# ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba),
+#   octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7,
+#   metric_on_h2Cu=mostly_minus_via_det2, det3_normalization=d(X,X,X)=6*det_3(X),
+#   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+#   spacetime_V0_local={0,1,2,9}, internal_V0_local={3,4,5,6,7,8}
+#
+# Spacetime V_0 indices (Peirce): {17,18,19,26}
+# Internal V_0 indices (Peirce): {20,21,22,23,24,25}
+# Spacetime V_0 local indices: {0,1,2,9} in V_0 basis ordering
+# Internal V_0 local indices: {3,4,5,6,7,8} in V_0 basis ordering
+
+
+def so31_irrep_decomposition_50():
+    """SO(3,1) irrep decomposition of symmetric rank-2 tensor on h_2(C_u).
+
+    The det_2 quadratic form on h_2(C_u) = R^{3,1} gives the Minkowski metric
+    eta = diag(+1,-1,-1,-1) on a normalized spacetime basis. A symmetric
+    perturbation h_{ab} of this metric has 4*(4+1)/2 = 10 independent
+    components, which decompose under SO(3,1) as:
+
+        10 = 9 (spin-2, traceless symmetric, (1,1) of SL(2,C))
+           + 1 (spin-0, trace)
+
+    The 6 internal V_0 directions (Peirce indices 20-25) are killed by pi_u
+    and do not participate in the graviton.
+
+    Returns:
+        dict with keys:
+          'eta': 4x4 Minkowski metric on normalized spacetime basis
+          'P_TL': 10x10 traceless projector on symmetric tensors
+          'P_trace': 10x10 trace projector on symmetric tensors
+          'rank_TL': int (should be 9)
+          'rank_trace': int (should be 1)
+          'idempotent_err_TL': float (should be < 1e-14)
+          'idempotent_err_trace': float (should be < 1e-14)
+          'orthogonality_err': float (should be < 1e-14)
+          'completeness_err': float (should be < 1e-14)
+          'det2_gram_full': 10x10 det_2 Gram on full V_0
+          'det2_gram_spacetime': 4x4 det_2 Gram on spacetime V_0 (normalized)
+          'det2_gram_internal_max': float (should be 0, internal killed by pi_u)
+          'spacetime_local_indices': list [0,1,2,9]
+          'internal_local_indices': list [3,4,5,6,7,8]
+          'decomposition': str "10 = 9 (spin-2) + 1 (spin-0)"
+    """
+    v0 = V0_basis_elements()
+
+    # --- Full 10x10 det_2 Gram matrix on V_0 ---
+    G_full = np.zeros((10, 10))
+    for a in range(10):
+        for b in range(10):
+            ApB = v0[a] + v0[b]
+            G_full[a, b] = 0.5 * (det_2(ApB) - det_2(v0[a]) - det_2(v0[b]))
+
+    # --- Spacetime/internal split ---
+    spacetime_local = [0, 1, 2, 9]
+    internal_local = [3, 4, 5, 6, 7, 8]
+
+    # --- Normalized spacetime basis: e_0'=2*b[0], e_3'=2*b[1], e_1'=b[2], e_2'=b[9] ---
+    # Gives eta = diag(+1,-1,-1,-1) on [e_0', e_1', e_2', e_3']
+    norms = [2.0, 2.0, 1.0, 1.0]  # normalization for [b[0], b[1], b[2], b[9]]
+    eta = np.zeros((4, 4))
+    for i_idx, (i_loc, ni) in enumerate(zip(spacetime_local, norms)):
+        for j_idx, (j_loc, nj) in enumerate(zip(spacetime_local, norms)):
+            eta[i_idx, j_idx] = ni * nj * G_full[i_loc, j_loc]
+
+    # --- Internal det_2 after pi_u projection: should be zero ---
+    G_proj = np.zeros((10, 10))
+    for a in range(10):
+        for b in range(10):
+            pa = pi_u(v0[a])
+            pb = pi_u(v0[b])
+            ApB = pa + pb
+            G_proj[a, b] = 0.5 * (det_2(ApB) - det_2(pa) - det_2(pb))
+    internal_max = np.max(np.abs(G_proj[np.ix_(internal_local, internal_local)]))
+
+    # --- SO(3,1) irrep decomposition of symmetric rank-2 tensor ---
+    n = 4
+    n_sym = n * (n + 1) // 2  # 10
+
+    # Trace vector: picks out eta^{ab} h_{ab}
+    eta_inv = np.diag([1.0, -1.0, -1.0, -1.0])
+    pairs = []
+    for a in range(n):
+        for b in range(a, n):
+            pairs.append((a, b))
+
+    trace_vec = np.zeros(n_sym)
+    eta_vec = np.zeros(n_sym)
+    for i, (a, b) in enumerate(pairs):
+        if a == b:
+            trace_vec[i] = eta_inv[a, a]
+        eta_vec[i] = eta[a, b]
+
+    # Traceless projector: P^TL = I - (1/4) eta_vec (x) trace_vec
+    P_TL = np.eye(n_sym) - 0.25 * np.outer(eta_vec, trace_vec)
+    P_trace = 0.25 * np.outer(eta_vec, trace_vec)
+
+    # Verification
+    idem_TL = np.max(np.abs(P_TL @ P_TL - P_TL))
+    idem_trace = np.max(np.abs(P_trace @ P_trace - P_trace))
+    orth = np.max(np.abs(P_TL @ P_trace))
+    comp = np.max(np.abs(P_TL + P_trace - np.eye(n_sym)))
+    rank_TL = np.linalg.matrix_rank(P_TL)
+    rank_trace = np.linalg.matrix_rank(P_trace)
+
+    return {
+        'eta': eta,
+        'P_TL': P_TL,
+        'P_trace': P_trace,
+        'rank_TL': rank_TL,
+        'rank_trace': rank_trace,
+        'idempotent_err_TL': idem_TL,
+        'idempotent_err_trace': idem_trace,
+        'orthogonality_err': orth,
+        'completeness_err': comp,
+        'det2_gram_full': G_full,
+        'det2_gram_spacetime': eta,
+        'det2_gram_internal_max': internal_max,
+        'spacetime_local_indices': spacetime_local,
+        'internal_local_indices': internal_local,
+        'decomposition': f'{n_sym} = {rank_TL} (spin-2) + {rank_trace} (spin-0)',
+    }

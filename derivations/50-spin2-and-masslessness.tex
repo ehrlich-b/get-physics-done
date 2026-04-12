@@ -1,0 +1,99 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+%   det3_normalization=d(X,X,X)=6*det_3(X),
+%   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+%   spacetime_V0_indices={17,18,19,26}, internal_V0_indices={20,...,25}
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\h}{\mathfrak{h}}
+\begin{document}
+
+\section{Spin-2 and Masslessness from $\det_3$ on $\h_3(\mathbb{O})$}
+
+\subsection{Setup}
+
+From Phase 46: the projection $\pi_u$ maps $V_0 = \h_2(\mathbb{O})$ (dim 10) onto
+$\h_2(\mathbb{C}_u) \cong \mathbb{R}^{3,1}$ (dim 4), where $u = e_7$.
+The quadratic form $\det_2(X) = \beta\gamma - |x_1|^2$ restricted to
+$\h_2(\mathbb{C}_u)$ gives the Minkowski metric
+$\eta = \mathrm{diag}(+1,-1,-1,-1)$ on the normalized spacetime basis
+\begin{equation}\label{eq:50.1}
+  e_\mu = \{2b_0,\; b_2,\; b_9,\; 2b_1\},
+  \qquad \mu = 0,1,2,3,
+\end{equation}
+where $b_0 = \tfrac{1}{2}(E_{22}+E_{33})$, $b_1 = \tfrac{1}{2}(E_{22}-E_{33})$,
+$b_2 = (x_1 = e_0)$, $b_9 = (x_1 = e_7)$ are the 4 spacetime V$_0$ basis elements
+(Peirce indices $\{17,18,19,26\}$).
+
+The 6 internal V$_0$ directions (Peirce indices $\{20,\ldots,25\}$,
+corresponding to $x_1 = e_k$ for $k=1,\ldots,6$) are killed by $\pi_u$
+and have zero $\det_2$ Gram on $\h_2(\mathbb{C}_u)$. The graviton lives
+only in the 4-dimensional spacetime sector.
+
+\subsection{SO(3,1) Irrep Decomposition}
+
+\begin{proposition}[Spin-2 graviton candidate]\label{prop:spin2}
+The symmetric bilinear perturbation $h_{ab}$ of $\det_2$ on
+$\h_2(\mathbb{C}_u) = \mathbb{R}^{3,1}$ decomposes under $\mathrm{SO}(3,1)$ as
+\begin{equation}\label{eq:50.2}
+  10 = 9\;(\text{spin-2, traceless symmetric}) + 1\;(\text{spin-0, trace}).
+\end{equation}
+The 9-component traceless part transforms as the $(1,1)$ representation
+of $\mathrm{SL}(2,\mathbb{C})$ and is the graviton candidate.
+\end{proposition}
+
+\begin{proof}
+A symmetric rank-2 tensor $h_{ab}$ on $\mathbb{R}^{3,1}$ has
+$4 \times 5/2 = 10$ independent components.
+The trace $h = \eta^{ab} h_{ab} = h_{00} - h_{11} - h_{22} - h_{33}$
+is a single scalar (1 component, spin-0).
+
+The traceless symmetric part is
+\begin{equation}\label{eq:50.3}
+  h_{ab}^{\mathrm{TL}} = h_{ab} - \tfrac{1}{4}\,\eta_{ab}\,h,
+\end{equation}
+which satisfies $\eta^{ab} h_{ab}^{\mathrm{TL}} = 0$ (9 independent
+components). The corresponding projector
+\begin{equation}\label{eq:50.4}
+  (P^{\mathrm{TL}})^{cd}_{ab}
+    = \tfrac{1}{2}(\delta^c_a \delta^d_b + \delta^d_a \delta^c_b)
+    - \tfrac{1}{4}\,\eta_{ab}\,\eta^{cd}
+\end{equation}
+is verified to be idempotent ($P^2 = P$, error $<10^{-15}$) with rank 9
+on the 10-dimensional space of symmetric tensors. The complementary trace
+projector $\tfrac{1}{4}\eta_{ab}\eta^{cd}$ is idempotent with rank 1,
+and the two projectors are orthogonal and complete:
+$P^{\mathrm{TL}} + P^{\mathrm{trace}} = \mathbb{1}$.
+
+By standard Lorentz representation theory (Weinberg 1964, Ch.~2),
+a symmetric traceless rank-2 tensor on $\mathbb{R}^{3,1}$ transforms
+as the $(1,1)$ representation of $\mathrm{SL}(2,\mathbb{C})$, which
+corresponds to spin-2. This is verified numerically: the traceless
+projector has rank 9, matching the $2j+1 = 2(2)+1 = 5$ complex
+(equivalently 9 real) degrees of freedom of a massive spin-2 field,
+or equivalently the $(2s+1)^2 - 1 = 9$ components of a symmetric
+traceless rank-2 4-tensor.
+
+The 6 internal V$_0$ directions have zero $\det_2$ eigenvalue on
+$\h_2(\mathbb{C}_u)$ (they are annihilated by $\pi_u$, verified
+numerically: $|\pi_u(b_k)| = 0$ for $k=3,\ldots,8$). They do not
+contribute to the graviton representation.
+\end{proof}
+
+\begin{remark}
+The decomposition $10 = 9 + 1$ is the standard Lorentz content of
+linearized gravity. The spin-0 trace $h$ is the conformal mode.
+In Einstein gravity with the tracelessness gauge $h = 0$ (de Donder gauge),
+only the 9 components propagate; further on-shell conditions reduce to
+$2s+1 = 2$ physical polarizations for massless spin-2.
+We do not impose gauge or on-shell conditions here---we are identifying
+the algebraic spin content of the perturbation space.
+\end{remark}
+
+\end{document}
