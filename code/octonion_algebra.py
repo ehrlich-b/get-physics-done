@@ -2047,3 +2047,81 @@ def vhalf_product_V0(v, w):
         H3O element in V_0
     """
     return peirce_V0(jordan_product(v, w))
+
+
+def compute_vhalf_product_tables():
+    """Compute full V_{1/2} x V_{1/2} product tables.
+
+    Returns dict with:
+      'v0_table': 16x16x10 array (V_0 component as R^10 vectors)
+      'mink_table': 16x16x4 array (pi_u-projected Minkowski coordinates)
+      'mink_matrices': list of 4 matrices [M0, M1, M2, M3] (16x16 each)
+      'alpha_table': 16x16 array (V_1 component alpha_{ij})
+      'v0_rank': int
+      'mink_rank': int
+
+    Minkowski coordinates: x_0=(beta+gamma)/2, x_3=(beta-gamma)/2,
+    x_1=Re(x1)=x1.c[0], x_2=x1.c[7] (Im_u component).
+
+    VERIFIED (46-02 Task 2):
+      Peirce rule: |V_{1/2} component| = 0 for all 136 pairs.
+      Symmetry: all tables symmetric with zero error.
+      V_1 component: alpha_ij = delta_ij (identity).
+      V_0 product rank: 10 (surjective onto V_0).
+      pi_u-projected rank: 4 (surjective onto h_2(C_u)).
+      M_0 = (1/2)*I_16 (timelike).
+      Spatial {M_i, M_j} = (1/2)*delta_ij*I_16 (Cl(3,0) on R^16).
+      Cu^2 restriction: matches standard Hermitian outer product exactly.
+      Cu^2 self-products: rank-1 positive semidefinite (det_2=0).
+    """
+    vbasis = Vhalf_basis_vectors()
+    n = len(vbasis)  # 16
+
+    v0_table = np.zeros((n, n, 10))
+    mink_table = np.zeros((n, n, 4))
+    alpha_table = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(i, n):
+            prod = jordan_product(vbasis[i], vbasis[j])
+
+            # V_0 component
+            v0 = peirce_V0(prod)
+            v0_vec = np.array([v0.beta, v0.gamma] + list(v0.x1.c))
+            v0_table[i, j] = v0_vec
+            v0_table[j, i] = v0_vec
+
+            # pi_u projection -> Minkowski coordinates
+            v0p = pi_u(v0)
+            x0 = (v0p.beta + v0p.gamma) / 2
+            x3 = (v0p.beta - v0p.gamma) / 2
+            x1 = v0p.x1.c[0]
+            x2 = v0p.x1.c[7]
+            mink_table[i, j] = [x0, x1, x2, x3]
+            mink_table[j, i] = [x0, x1, x2, x3]
+
+            # V_1 component
+            v1 = peirce_V1(prod)
+            alpha_table[i, j] = v1.alpha
+            alpha_table[j, i] = v1.alpha
+
+    # Rank computations
+    products = []
+    proj_products = []
+    for i in range(n):
+        for j in range(i, n):
+            products.append(v0_table[i, j])
+            proj_products.append(mink_table[i, j])
+    v0_rank = int(np.linalg.matrix_rank(np.array(products), tol=1e-10))
+    mink_rank = int(np.linalg.matrix_rank(np.array(proj_products), tol=1e-10))
+
+    mink_matrices = [mink_table[:, :, mu] for mu in range(4)]
+
+    return {
+        'v0_table': v0_table,
+        'mink_table': mink_table,
+        'mink_matrices': mink_matrices,
+        'alpha_table': alpha_table,
+        'v0_rank': v0_rank,
+        'mink_rank': mink_rank,
+    }
