@@ -501,6 +501,20 @@ def V0_basis_elements():
 # ============================================================================
 # Phase 46, Plan 01: pi_u projection, det_2 quadratic form, h_2(O) Jordan product
 # ============================================================================
+#
+# VERIFIED (46-01 Task 1):
+#   det_2(E_{22}) = 0, det_2(I_2) = 1, det_2(off-diag e_7) = -1.
+#   Gram matrix of det_2 on h_2(C_u) = diag(+1,-1,-1,-1).  Signature (1,3).
+#   pi_u idempotent (error 0), image dim 4, components [1:7] exactly zero.
+#   Reference: Baez 2002 Sec 3.3: h_2(C) = R^{3,1}.
+#
+# VERIFIED (46-01 Task 2):
+#   jordan_product_h2o: symmetric (error 0), identity property (error 0).
+#   Intrinsic V_0 closure: all 55 basis pairs, zero V_{1/2} and V_1 leakage.
+#   Intrinsic vs inherited: EXACT agreement on all 55 pairs, zero V_{1/2}
+#   leakage from inherited h_3(O) product. Peirce rule V_0 o V_0 c V_0 holds.
+#   h_2(C_u) limiting case: both products close in C_u, exact agreement.
+#   Reference: McCrimmon 2004 Ch. 17 (Peirce multiplication rules).
 # ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba),
 #   octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7,
 #   metric_on_h2Cu=mostly_minus_via_det2
