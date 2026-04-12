@@ -346,7 +346,7 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 - Lauria-Van Proeyen 2020 (N=2 sugra conventions)
 
 - [x] **Phase 46: V_0 Algebraic Foundation and pi_u Projection** -- Establish h_2(O) structure with pi_u: h_2(O) -> h_2(C_u) = R^{3,1}; verify Minkowski signature; characterize non-homomorphism failure; compute V_{1/2} x V_{1/2} -> V_0 product (completed 2026-04-12)
-- [ ] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck
+- [x] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck (completed 2026-04-12)
 - [ ] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u
 - [ ] **Phase 49: GST Lagrangian Connection and KK Reduction** -- Match GST field content to Peirce sectors; perform 5d -> 4d circle compactification; state precise claim on det(X) role; decompose C_{IJK} couplings
 - [ ] **Phase 50: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory
@@ -401,7 +401,7 @@ Plans:
 
 **Backtracking:** If d_{0,0,0} != 0, the Peirce block structure is richer than expected -- reassess. If uniqueness proof encounters real-form subtlety (E_6(-26) vs E_6(-78)), address explicitly. If the "double duty" argument proves circular (det appears in both input and output), the proof must go through the representation-theoretic route (Sym^3 invariant counting) rather than function-level equality.
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 47-01-PLAN.md -- Implement det_3, compute d_{IJK} tensor by polarization, verify two-block Peirce decomposition (ALGB-02)
@@ -430,9 +430,11 @@ Plans:
 
 **Plans:** TBD
 
-### Phase 49: GST Lagrangian Connection and KK Reduction
+### Phase 49: GST Lagrangian Connection (Direct 4d Formulation)
 
-**Goal:** The GST 5d N=2 MESGT field content is matched to Peirce sectors, the 5d -> 4d circle compactification is performed giving E_7(-25)/(E_6 x U(1)) scalar manifold, the precise role of det(X) as prepotential (not as GR itself) is stated, and the Chern-Simons cubic couplings are decomposed under Peirce.
+**IMPORTANT: Skip KK reduction. Work directly in 4d.** The 5d formulation is an artifact of GST's construction context, not a physical requirement. The Einstein-Hilbert term -R/2 works in any dimension. det(X) determines the matter-gravity coupling (scalar manifold, vector kinetics, Chern-Simons), not the gravitational part itself. The 4d theory is formulated directly via special Kahler geometry on the Freudenthal triple system F(h_3(O)), with spacetime = h_2(C_u) = R^{3,1} (Phase 46). Reference: de Wit-Van Proeyen 1992 for the direct 4d formulation; Ferrara-Gunaydin hep-th/0606108 for the E_{7(-25)} structure.
+
+**Goal:** The 4d bosonic Lagrangian determined by det(X) is matched to Peirce sectors on h_2(C_u), the precise role of det(X) as prepotential (not as GR itself) is stated, and the cubic couplings are decomposed under Peirce.
 
 **Depends on:** Phase 46 (V_0 + pi_u), Phase 47 (d_{IJK} + uniqueness), Phase 48 (equivariance)
 **Requirements:** GRAV-01, GRAV-02, GRAV-03, GRAV-04, GRAV-05
@@ -483,7 +485,7 @@ Plans:
 | Phase | Depends On | Enables | Critical Path? |
 |-------|-----------|---------|:-:|
 | 46 - V_0 Foundation + pi_u | 44 (v11.0) | Complete    | 2026-04-12 |
-| 47 - d_{IJK} + Uniqueness | 46 | 49 | Complete    | 2026-04-12 | 48 - Equivariance + Lorentz | 46 | 49 | Complete    | 2026-04-12 | 49 - GST Connection + KK | 46, 47, 48 | 50 | Yes |
+| 47 - d_{IJK} + Uniqueness | 46 | Complete    | 2026-04-12 | 2026-04-12 | 48 - Equivariance + Lorentz | 46 | 49 | Complete    | 2026-04-12 | 49 - GST Connection + KK | 46, 47, 48 | 50 | Yes |
 | 50 - Synthesis | 49 | -- | Yes |
 
 **Critical path:** 46 -> 47 -> 49 -> 50 (4 phases, minimum duration)
@@ -494,7 +496,7 @@ Plans:
 | Phase | Top Risk | Probability | Impact | Mitigation |
 |-------|---------|:-:|:-:|-----------|
 | 46 | pi_u signature wrong (not (1,3)) | Complete    | 2026-04-12 | Baez 2002 guarantees h_2(C) = R^{3,1}; error would be in projection formula |
-| 47 | "Double duty" argument circular | MEDIUM | HIGH | Representation-theoretic route (Sym^3 invariant counting) avoids function-level circularity |
+| 47 | "Double duty" argument circular | Complete    | 2026-04-12 | Representation-theoretic route (Sym^3 invariant counting) avoids function-level circularity |
 | 48 | Stabilizer too small for SL(2,C) | LOW | HIGH | Spin(9)/G_2 fibration guarantees enough dimensions; explicit computation resolves |
 | 49 | GST field content doesn't match Peirce | MEDIUM | HIGH | This is the highest-risk phase; field counting against GST 1984 Table 1 is the decisive test |
 | 50 | Assembly reveals circular dependency | MEDIUM | MEDIUM | Phase 47 uniqueness theorem specifically designed to block this |
@@ -506,7 +508,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 46. V_0 Foundation + pi_u | v12.0 | Complete    | 2026-04-12 | - |
-| 47. d_{IJK} + Uniqueness | v12.0 | 0/TBD | Not started | - |
+| 47. d_{IJK} + Uniqueness | v12.0 | Complete    | 2026-04-12 | - |
 | 48. Equivariance + Lorentz | v12.0 | 0/TBD | Not started | - |
 | 49. GST Connection + KK | v12.0 | 0/TBD | Not started | - |
 | 50. Synthesis | v12.0 | 0/TBD | Not started | - |

@@ -9,19 +9,21 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-**Current Phase:** 47
-**Current Phase Name:** d_{IJK} Tensor and Uniqueness Theorems
+**Current Phase:** 48
+**Current Phase Name:** Equivariance and Lorentz Subgroup
 **Total Phases:** 50 (v12.0: Phases 46-50)
 **Current Plan:** —
 **Total Plans in Phase:** —
 **Status:** Ready to plan
 **Last Activity:** 2026-04-12
-**Last Activity Description:** Phase 46 complete, transitioned to Phase 47
+**Last Activity Description:** Phase 47 complete, transitioned to Phase 48
 
 **Progress:** [████████████████████████████████████████████] 100%
 
 ## Active Calculations
 
+- det_3(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2 + 2*Re((x1*x2)*x3); left-to-right association confirmed
+- d_{IJK} tensor: 106 nonzero entries out of 3654 (97% sparse); two Peirce blocks (V_1,V_0,V_0) [10] and (V_{1/2},V_{1/2},V_0) [96]
 - det_2 Gram matrix on h_2(C_u) = diag(+1,-1,-1,-1): Minkowski signature (1,3) confirmed
 - pi_u idempotent with 4-dim image; benchmark values det_2(E_{22})=0, det_2(I_2)=1, det_2(off-diag e_7)=-1
 - Intrinsic h_2(O) Jordan product closes exactly in V_0 (all 55 basis pairs, zero V_{1/2} leakage)
@@ -88,6 +90,8 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ### Decisions
 
+- [Phase 47, Plan 02]: F_4 invariance verified under S_3+G_2+Spin(9) (630 tests). Uniqueness via Springer 1962. Double duty non-circular: V_GST = c*det(X). 16 SM fermions match Paper 7. V_0 = 4(Minkowski) + 6(internal).
+- [Phase 47, Plan 01]: det_3 with left-to-right Re((x1*x2)*x3); d_{IJK} via inclusion-exclusion polarization yields d(X,X,X)=6*N(X). Two nonzero Peirce blocks: (V_1,V_0,V_0)=det_2 bilinear [10 entries] and (V_{1/2},V_{1/2},V_0) [96 entries]. All forbidden blocks exactly zero. 106/3654 nonzero (97% sparse).
 - [Phase 46, Plan 02]: Delta(A,B) = <wA,wB>_W * I_2 where W=span{e_1,...,e_6}. Mechanism: pi_u kills W-components, but W x W Fano cross-terms produce C_u diagonal. V_{1/2} x V_{1/2} -> h_2(C_u) gives spatial Cl(3,0): {M_i,M_j}=(1/2)*delta_ij*I_16. V_1 = identity. Both product maps surjective.
 - [Phase 46, Plan 01]: pi_u constructed via proj_u(b) = (b_0, 0,...,0, b_7) for u=e_7. det_2 = beta*gamma - |x1|^2 gives Gram diag(+1,-1,-1,-1). Intrinsic h_2(O) Jordan product closes exactly in V_0 with zero V_{1/2} leakage -- Peirce rule holds for h_3(O), resolving uncertainty marker.
 - [Phase 44, Plan 02]: L1-L9 chain verified: L4 UPGRADED (Argued -> Proved given Paper 5), L5/L7/L9 STRENGTHENED (conditionality shifts from L4 to L1), L1/L2/L3/L6/L8 UNCHANGED. Zero regressions. Gap register v11.0 section appended with Paper 7 Gap C = PROVED (given Paper 5), v10.0 Gap C = UNCHANGED at CONDITIONAL-DERIVED.
