@@ -333,8 +333,12 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 | Precise claim: det(X) = prepotential, Paper 6 = GR | Phase 49 | Done |
 | Cosmological constant Lambda=0 (ungauged) | Phase 49 | Done |
 | C_{IJK} Peirce decomposition with physical couplings | Phase 49 | Done |
-| Complete SM+GR assembly (Papers 5+6+7+this) | Phase 50 | Planned |
-| Honest gap inventory | Phase 50 | Planned |
+| Spin-2 character of det_2 under SO(3,1) | Phase 50 | Planned |
+| Masslessness of V_0 excitation (no quadratic potential) | Phase 50 | Planned |
+| Stress-energy identification of (V_{1/2},V_{1/2},V_0) | Phase 50 | Planned |
+| Weinberg 1964 application: -R/2 forced | Phase 50 | Planned |
+| Complete SM+GR assembly (Papers 5+6+7+this) | Phase 51 | Planned |
+| Honest gap inventory | Phase 51 | Planned |
 
 **Key References:**
 - GST 1983/1984 (magic supergravity, prepotential V = det)
@@ -344,12 +348,14 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 - Farnsworth 2025 (spectral triple over h_3(O), F_4 x F_4 gauge)
 - Papers 5, 6, 7 (QM, GR, SM from self-modeling)
 - Lauria-Van Proeyen 2020 (N=2 sugra conventions)
+- Weinberg 1964 (Phys Rev 135 B1049: massless spin-2 + universal coupling = GR)
 
 - [x] **Phase 46: V_0 Algebraic Foundation and pi_u Projection** -- Establish h_2(O) structure with pi_u: h_2(O) -> h_2(C_u) = R^{3,1}; verify Minkowski signature; characterize non-homomorphism failure; compute V_{1/2} x V_{1/2} -> V_0 product (completed 2026-04-12)
 - [x] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck (completed 2026-04-12)
 - [x] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u (completed 2026-04-12)
 - [x] **Phase 49: GST Lagrangian Connection (Direct 4d Formulation)** -- Field content 1 gravity + 26 vector multiplets; prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0); C_{IJK} coupling decomposition; precise claim; Lambda=0; Lagrangian assembly (completed 2026-04-12)
-- [ ] **Phase 50: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory
+- [ ] **Phase 50: Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)** -- Verify det_2 excitation is massless spin-2, (V_{1/2},V_{1/2},V_0) coupling is stress-energy, apply Weinberg 1964 to force -R/2. HARD GATE: if this fails, STOP and regroup with Bryan.
+- [ ] **Phase 51: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory. Requires Phase 50 success.
 
 ## Phase Details
 
@@ -466,27 +472,55 @@ Plans:
 - [x] 49-01-PLAN.md -- Field content identification from Peirce decomposition + prepotential construction + normalization fixing
 - [x] 49-02-PLAN.md -- C_{IJK} coupling decomposition + precise claim statement + cosmological constant + Lagrangian assembly
 
-### Phase 50: Synthesis and Paper Integration
+### Phase 50: Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)
 
-**Goal:** The complete SM+GR picture is assembled from Papers 5 (QM) + 6 (GR) + 7 (SM) + this milestone (matter-gravity coupling), with all remaining gaps honestly stated and no overclaiming.
+**CONTEXT: Phase 49 proved det(X) determines matter-gravity couplings but NOT -R/2 (Einstein-Hilbert). -R/2 is independent input in the MESGT framework. This phase attempts to close the gap via Weinberg's theorem (1964): any consistent massless spin-2 field with universal coupling to stress-energy forces GR at low energies. The ingredients are already in hand from Phases 47-49; this phase checks whether they satisfy Weinberg's hypotheses.**
 
-**Depends on:** Phase 49 (all gravitational results)
+**Goal:** Verify that the (V_1,V_0,V_0) = det_2 coupling produces a massless spin-2 excitation on h_2(C_u) = R^{3,1}, that the (V_{1/2},V_{1/2},V_0) coupling constitutes universal coupling to stress-energy, and if both hold, apply Weinberg 1964 to derive -R/2. If either fails, STOP.
+
+**Depends on:** Phase 49 (C_{IJK} coupling decomposition, precise claim, Lagrangian structure)
+**Requirements:** WEIN-01, WEIN-02, WEIN-03
+**Contract Coverage:**
+- Advances: Spin-2 character of det_2 excitation; masslessness from algebraic structure; stress-energy identification; Weinberg theorem application
+- Deliverables: (1) SO(3,1) representation analysis of det_2 bilinear on h_2(C_u). (2) Quadratic expansion of det_3 around E: mass analysis of V_0 fluctuation. (3) Stress-energy identification: (V_{1/2},V_{1/2},V_0) as canonical T_{ab}. (4) Weinberg application or honest failure report.
+- Anchor coverage: Weinberg 1964 (Phys Rev 135 B1049); Phase 47 (V_1,V_0,V_0) = det_2; Phase 49 C_{IJK} decomposition; Phase 46 Minkowski signature
+- Forbidden proxies: Assuming -R/2 to prove -R/2 (circularity); confusing "symmetric 2-tensor" with "spin-2 particle" without Lorentz rep theory; claiming masslessness without checking quadratic sector; proceeding to synthesis if any Weinberg hypothesis fails
+
+**Success Criteria** (what must be TRUE for Phase 51 to proceed):
+
+1. det_2 bilinear on h_2(C_u) transforms as a symmetric rank-2 tensor under SO(3,1), with irreducible decomposition identified (expected: spin-2 + spin-0 trace). The spin-2 (traceless symmetric) part is the graviton candidate.
+2. Expanding det_3(E + delta) to quadratic order in V_0 fluctuations delta, there is NO mass term (no term quadratic in delta without spacetime derivatives). The cubic structure of det_3 provides vertices but no quadratic potential. If a mass-like term exists, document its scale and origin.
+3. The (V_{1/2},V_{1/2},V_0) coupling is identified as coupling to stress-energy: T_{ab} ~ C_{i,j,a} phi^i phi^j where i,j in V_{1/2} and a in V_0 spacetime. Universality already proved (Phase 49: all 16 matter fields, all 4 Minkowski directions).
+4. If criteria 1-3 hold: state that Weinberg 1964 applies and -R/2 is forced. The argument: massless spin-2 (criterion 1+2) + universal coupling to stress-energy (criterion 3) + Lorentz invariance (Phase 48) = GR (Weinberg's theorem).
+5. If ANY criterion FAILS: document precisely which Weinberg hypothesis is not met and why. This is a HARD STOP. Do NOT proceed to Phase 51. Report failure clearly for Bryan to decide next steps.
+
+**Backtracking:** If V_0 excitation has a mass term, document it and stop. If the coupling is to something other than stress-energy, document what and stop. If the spin decomposition gives unexpected irreps, document and stop. In all failure cases, note whether Route C (accept -R/2 as universal) or Route B (Peirce-Jacobson) remain viable alternatives, but do NOT attempt them -- stop and report.
+
+**Plans:** 2 plans
+- [ ] 50-01-PLAN.md -- Spin-2 representation theory of det_2 under SO(3,1) + masslessness from det_3 quadratic expansion (WEIN-01, WEIN-02)
+- [ ] 50-02-PLAN.md -- Stress-energy identification of (V_{1/2},V_{1/2},V_0) coupling + Weinberg theorem application or failure report (WEIN-03)
+
+### Phase 51: Synthesis and Paper Integration
+
+**Goal:** The complete SM+GR picture is assembled from Papers 5 (QM) + 6 (GR) + 7 (SM) + this milestone (matter-gravity coupling + Weinberg -R/2), with all remaining gaps honestly stated and no overclaiming.
+
+**Depends on:** Phase 50 (Weinberg verification MUST PASS -- hard gate)
 **Requirements:** SYNT-01, SYNT-02
 **Contract Coverage:**
 - Advances: Complete SM+GR assembly; honest gap inventory
-- Deliverables: (1) Summary document: self-modeling -> h_3(O) -> QM (Paper 5) + GR (Paper 6) + SM (Paper 7) + matter-gravity coupling (v12.0). (2) Gap inventory: every conditional claim, every assumption, every remaining open question.
+- Deliverables: (1) Summary document: self-modeling -> h_3(O) -> QM (Paper 5) + GR (Phase 50 Weinberg + Phase 49 couplings) + SM (Paper 7) + matter-gravity coupling (v12.0). (2) Gap inventory: every conditional claim, every assumption, every remaining open question.
 - Anchor coverage: Papers 5, 6, 7; all v12.0 results; Farnsworth 2025 comparison
-- Forbidden proxies: Claiming "SM+GR derived" without listing all conditions; circular dependency in the assembly; hiding the N=2 SUSY assumption
+- Forbidden proxies: Claiming "SM+GR derived" without listing all conditions; circular dependency in the assembly; hiding the N=2 SUSY assumption; claiming det(X) derives -R/2 (it doesn't -- Weinberg does, from the algebraic structure det(X) provides)
 
 **Success Criteria** (what must be TRUE):
 
-1. Assembly document traces: self-modeling (axiom) -> C*-algebra (Paper 5) -> h_3(O) (exceptional by compositionality + Peirce) -> Peirce 27 = 1+16+10 -> V_{1/2} complexifies to SM fermions (Paper 7 + v11.0) + V_0 projects to R^{3,1} (Phase 46) + det(X) determines GST Lagrangian including Einstein-Hilbert term (v12.0). NOTE: old lattice/Jacobson route (Paper 6 v1) is ABANDONED.
-2. No circular dependencies in the assembly: each link is checked for logical independence (in particular: det(X) as prepotential does NOT assume the physics it is trying to derive)
-3. Gap inventory is complete: every assumption (N=2 SUSY structure from GST, pi_u extends from V_{1/2} to V_0, quantum SSB conditionality, Jacobson vs algebraic GR route) is listed with severity rating
+1. Assembly document traces: self-modeling (definition) -> C*-algebra (Paper 5) -> h_3(O) (non-composability, Paper 7) -> Peirce 27 = 1+16+10 -> V_{1/2} complexifies to SM fermions (Paper 7 + v11.0) + V_0 projects to R^{3,1} (Phase 46) + det(X) determines matter-gravity couplings (Phase 49) + -R/2 forced by Weinberg (Phase 50). NOTE: old lattice/Jacobson route (Paper 6 v1) is ABANDONED.
+2. No circular dependencies in the assembly: each link is checked for logical independence (in particular: Weinberg argument uses spin-2 + universality from algebra, does NOT assume -R/2)
+3. Gap inventory is complete: every assumption (G4: V_0 = spacetime is argued not proved, N=2 SUSY structure as input, quantum SSB conditionality, Lambda = 0) is listed with severity rating
 4. Comparison with Farnsworth 2025 (spectral triple on h_3(O)) and other approaches (Boyle, Todorov-Drenska) is included, noting what this work adds and where it differs
 5. The N=2 SUSY status is explicitly addressed: the self-modeling framework is SUSY-agnostic, so the GST connection identifies algebraic structure without assuming or proving SUSY
 
-**Backtracking:** If the assembly reveals a circular dependency (e.g., det(X) appears in both the density and the prepotential without independent justification), escalate to a structural issue requiring resolution before the synthesis can be completed.
+**Backtracking:** If the assembly reveals a circular dependency (e.g., Weinberg argument smuggles in what it's trying to prove), escalate to a structural issue requiring resolution before synthesis can be completed.
 
 **Plans:** TBD
 
@@ -494,12 +528,15 @@ Plans:
 
 | Phase | Depends On | Enables | Critical Path? |
 |-------|-----------|---------|:-:|
-| 46 - V_0 Foundation + pi_u | 44 (v11.0) | Complete    | 2026-04-12 |
-| 47 - d_{IJK} + Uniqueness | 46 | Complete    | 2026-04-12 | 2026-04-12 | 48 - Equivariance + Lorentz | 46 | 49 | Complete    | 2026-04-12 | 49 - GST Connection + KK | 46, 47, 48 | 50 | Yes |
-| 50 - Synthesis | 49 | -- | Yes |
+| 46 - V_0 Foundation + pi_u | 44 (v11.0) | 47, 48 | Complete 2026-04-12 |
+| 47 - d_{IJK} + Uniqueness | 46 | 49 | Complete 2026-04-12 |
+| 48 - Equivariance + Lorentz | 46 | 49 | Complete 2026-04-12 |
+| 49 - GST Connection (4d) | 46, 47, 48 | 50 | Complete 2026-04-12 |
+| 50 - Weinberg Verification | 49 | 51 | Yes (HARD GATE) |
+| 51 - Synthesis | 50 | -- | Yes |
 
-**Critical path:** 46 -> 47 -> 49 -> 50 (4 phases, minimum duration)
-**Parallelizable:** Phase 48 runs concurrently with Phase 47
+**Critical path:** 46 -> 47 -> 49 -> 50 -> 51 (5 phases)
+**Hard gate:** Phase 50 MUST pass for Phase 51 to proceed. Failure = stop and regroup.
 
 ## Risk Register
 
@@ -508,17 +545,19 @@ Plans:
 | 46 | pi_u signature wrong (not (1,3)) | Complete    | 2026-04-12 | Baez 2002 guarantees h_2(C) = R^{3,1}; error would be in projection formula |
 | 47 | "Double duty" argument circular | Complete    | 2026-04-12 | Representation-theoretic route (Sym^3 invariant counting) avoids function-level circularity |
 | 48 | Stabilizer too small for SL(2,C) | LOW | HIGH | Spin(9)/G_2 fibration guarantees enough dimensions; explicit computation resolves |
-| 49 | GST field content doesn't match Peirce | MEDIUM | HIGH | This is the highest-risk phase; field counting against GST 1984 Table 1 is the decisive test |
-| 50 | Assembly reveals circular dependency | MEDIUM | MEDIUM | Phase 47 uniqueness theorem specifically designed to block this |
+| 49 | GST field content doesn't match Peirce | Complete    | 2026-04-12 | Field content matched. Critical finding: -R/2 independent of det(X) |
+| 50 | Weinberg hypotheses not satisfied | MEDIUM | HIGH | If V_0 excitation is massive or coupling isn't stress-energy, Route A fails. Fallback: Route C (accept -R/2). HARD GATE. |
+| 51 | Assembly reveals circular dependency | MEDIUM | MEDIUM | Phase 47 uniqueness theorem + Phase 50 Weinberg (independent of det(X)) blocks circularity |
 
 ## Progress
 
-**Execution Order:** 46 -> (47 || 48) -> 49 -> 50
+**Execution Order:** 46 -> (47 || 48) -> 49 -> 50 -> 51
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 46. V_0 Foundation + pi_u | v12.0 | Complete    | 2026-04-12 | - |
-| 47. d_{IJK} + Uniqueness | v12.0 | Complete    | 2026-04-12 | - |
-| 48. Equivariance + Lorentz | v12.0 | 0/TBD | Not started | - |
-| 49. GST Connection + KK | v12.0 | 0/2 | Planned | - |
-| 50. Synthesis | v12.0 | 0/TBD | Not started | - |
+| 46. V_0 Foundation + pi_u | v12.0 | 2/2 | Complete | 2026-04-12 |
+| 47. d_{IJK} + Uniqueness | v12.0 | 2/2 | Complete | 2026-04-12 |
+| 48. Equivariance + Lorentz | v12.0 | 2/2 | Complete | 2026-04-12 |
+| 49. GST Connection (4d) | v12.0 | 2/2 | Complete | 2026-04-12 |
+| 50. Weinberg Verification | v12.0 | 0/2 | Not started | - |
+| 51. Synthesis | v12.0 | 0/TBD | Not started | - |
