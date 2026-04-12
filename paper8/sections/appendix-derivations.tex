@@ -1,0 +1,287 @@
+% appendix-derivations.tex --- Appendix A: Detailed Derivations
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats, coupling_convention=H=JF, state_normalization=Tr(rho)=1, sequential_product=a&b=sqrt(a)b*sqrt(a)
+
+%----------------------------------------------------------------------
+\section{Detailed Derivations}\label{app:derivations}
+%----------------------------------------------------------------------
+
+This appendix collects derivations supporting the main text that would
+interrupt the narrative flow if included in full.
+Section~\ref{app:kraus} gives the Kraus operator decomposition of the
+SWAP channel~\eqref{eq:depolarizing}.
+Section~\ref{app:sagawa-ueda} develops the Sagawa--Ueda mapping
+referenced in Sec.~\ref{sec:coherence}.
+Section~\ref{app:general-channel} derives the general $\rho_M$ channel
+formula~\eqref{eq:channel-general}.
+
+%----------------------------------------------------------------------
+\subsection{Kraus operator derivation for the SWAP
+  channel}\label{app:kraus}
+%----------------------------------------------------------------------
+
+The depolarizing channel~\eqref{eq:depolarizing},
+\begin{equation}
+  \mathcal{E}(\rho_B)
+  = (1-p)\,\rho_B + p\,\frac{\1}{2} \,,
+  \qquad p = \sin^2(Jt) \,,
+  \label{eq:depol-app}
+\end{equation}
+admits an explicit Kraus decomposition.  We rewrite the maximally
+mixed contribution using the Pauli identity
+\begin{equation}
+  \sum_{j=1}^{3} \sigma_j\,\rho\,\sigma_j
+  = 2\,\Tr(\rho)\,\1 - \rho \,,
+  \label{eq:pauli-identity}
+\end{equation}
+valid for any $2\times 2$ matrix~$\rho$, which gives
+$\1/2 = \bigl(\rho + \sum_j \sigma_j\rho\sigma_j\bigr)/4$
+when $\Tr(\rho) = 1$.  Substituting into~\eqref{eq:depol-app}:
+\begin{align}
+  \mathcal{E}(\rho_B)
+  &= (1-p)\,\rho_B
+    + \frac{p}{4}\Bigl(\rho_B
+    + \sum_{j=1}^{3}\sigma_j\,\rho_B\,\sigma_j\Bigr)
+  \notag\\
+  &= \Bigl(1 - \tfrac{3p}{4}\Bigr)\,\rho_B
+    + \frac{p}{4}\sum_{j=1}^{3}\sigma_j\,\rho_B\,\sigma_j \,.
+  \label{eq:depol-expanded}
+\end{align}
+This is a sum of four terms $K_i\,\rho_B\,K_i^\dagger$ with the Kraus
+operators
+\begin{equation}
+  K_0 = \sqrt{1 - \tfrac{3p}{4}}\;\1 \,,
+  \qquad
+  K_j = \frac{\sqrt{p}}{2}\;\sigma_j
+  \quad (j = 1,2,3) \,.
+  \label{eq:kraus-app}
+\end{equation}
+
+\paragraph{Trace preservation.}
+Using $\sigma_j^\dagger = \sigma_j$ and $\sigma_j^2 = \1$:
+\begin{align}
+  \sum_{i=0}^{3} K_i^\dagger K_i
+  &= \Bigl(1 - \tfrac{3p}{4}\Bigr)\,\1
+    + \frac{p}{4}\sum_{j=1}^{3}\sigma_j^2
+  \notag\\
+  &= \Bigl(1 - \tfrac{3p}{4}\Bigr)\,\1
+    + \frac{3p}{4}\,\1
+  = \1 \,.
+  \label{eq:tp-check}
+\end{align}
+The channel is trace-preserving for all $p \in [0,1]$.
+
+\paragraph{Unitality.}
+Acting on $\1/2$:
+\begin{align}
+  \mathcal{E}\!\left(\frac{\1}{2}\right)
+  &= \Bigl(1 - \tfrac{3p}{4}\Bigr)\frac{\1}{2}
+    + \frac{p}{4}\sum_{j=1}^{3}\sigma_j\frac{\1}{2}\sigma_j
+  \notag\\
+  &= \Bigl(1 - \tfrac{3p}{4}\Bigr)\frac{\1}{2}
+    + \frac{3p}{4}\,\frac{\1}{2}
+  = \frac{\1}{2} \,,
+  \label{eq:unital-check}
+\end{align}
+where we used $\sigma_j(\1/2)\sigma_j = \1/2$.  The channel is
+unital, confirming Eq.~\eqref{eq:unitality} in the main text.
+
+\paragraph{Complete positivity.}
+The Kraus operators~\eqref{eq:kraus-app} are well-defined (i.e., the
+prefactors are real) when $1 - 3p/4 \geq 0$, i.e., $p \leq 4/3$.
+Since $p = \sin^2(Jt) \leq 1 < 4/3$, this condition is always
+satisfied.  The Kraus representation manifestly defines a CP
+map~\cite{Lindblad1975}.
+
+%----------------------------------------------------------------------
+\subsection{Sagawa--Ueda mapping for the coherence
+  loophole}\label{app:sagawa-ueda}
+%----------------------------------------------------------------------
+
+Section~\ref{sec:coherence} (argument~R3) invoked the generalized
+Jarzynski equality of Sagawa and Ueda~\cite{SagawaUeda2010} as an
+independent cross-check on the Landauer bound
+(Theorem~\ref{thm:landauer}).  Here we develop the mapping in detail
+and verify consistency.
+
+\paragraph{Generalized Jarzynski equality.}
+For a system undergoing measurement followed by feedback
+control~\cite{SagawaUeda2010}, the work~$W$ performed on the system
+satisfies
+\begin{equation}
+  \bigl\langle e^{-\beta(W - \Delta F)} \bigr\rangle = e^{I_{fc}} \,,
+  \label{eq:gen-jarzynski}
+\end{equation}
+where $\Delta F$ is the equilibrium free energy change and $I_{fc}$ is
+the efficacy of feedback control (transfer entropy).  By Jensen's
+inequality ($\langle e^X \rangle \geq e^{\langle X\rangle}$), the
+mean work satisfies
+\begin{equation}
+  \langle W \rangle \geq \Delta F - \kB T\,I_{fc} \,.
+  \label{eq:su-mean}
+\end{equation}
+For a cyclic process ($\Delta F = 0$), the dissipated work is bounded
+below by $\kB T\,I_{fc}$.
+
+\paragraph{Mapping to the self-modeling cycle.}
+The self-modeling cycle maps onto the Sagawa--Ueda framework as:
+
+\smallskip
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+  \toprule
+  Self-modeling & Sagawa--Ueda \\
+  \midrule
+  Body $B$ & System \\
+  Model $M$ & Memory / controller \\
+  Lüders product (testing $B$) & Measurement \\
+  Model update & Feedback control \\
+  $\MI{B}{M}$ & Mutual information \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\smallskip
+
+\noindent
+In this mapping, the body plays the role of the system to be
+controlled, the model plays the role of the measurement memory, the
+Lüders product~\cite{Paper5} implements the measurement step, and the
+subsequent model update implements feedback.
+
+\paragraph{Consistency with Theorem~\ref{thm:landauer}.}
+The two bounds constrain the same physical quantity (work per cycle)
+from different starting points:
+\begin{itemize}
+  \item \textbf{Landauer route}
+    (Theorem~\ref{thm:landauer}): the erasure step of the Bennett
+    decomposition requires $W \geq \kB T\,\MI{B}{M}$.
+  \item \textbf{Sagawa--Ueda route}: for a cyclic process,
+    $W \geq \kB T\,I_{fc}$.  In the pure-erasure limit
+    ($I_{fc} \to 0$, no feedback advantage), this reduces to the
+    standard Landauer bound.  When $I_{fc} > 0$, the feedback
+    step can extract at most $\kB T\,I_{fc}$, but the memory reset
+    still costs $\kB T\,\SvN{\rho_M} \geq \kB T\,\MI{B}{M}$ by the
+    Reeb--Wolf bound~\cite{ReebWolf2014}.  The full-cycle cost
+    is therefore consistent with Eq.~\eqref{eq:landauer}.
+\end{itemize}
+
+\paragraph{Numerical verification.}
+We tested 50 random two-qubit states and confirmed that both bounds
+give non-negative work costs in every case.  For pure bipartite states
+$\ket{\psi}_{BM}$, the relation $\MI{B}{M} = 2\,\SvN{\rho_M}$ holds
+exactly (verified to numerical precision $< 10^{-6}$), confirming that
+the cycle cost exceeds the single-register erasure cost by the
+expected factor of two.
+
+\paragraph{Epistemic status.}
+The mapping from the self-modeling cycle to the Sagawa--Ueda feedback
+framework is physically motivated but not axiomatically derived from
+the Paper~5 axioms~\cite{Paper5}.  It serves as an independent
+consistency check: two different thermodynamic frameworks, applied to
+the same physical cycle, yield compatible bounds.  The Landauer bound
+(Theorem~\ref{thm:landauer}) stands on its own; the Sagawa--Ueda
+mapping strengthens confidence in its robustness.
+
+%----------------------------------------------------------------------
+\subsection{General $\rho_M$ channel
+  formula}\label{app:general-channel}
+%----------------------------------------------------------------------
+
+The main text (Eq.~\eqref{eq:channel-general}) states the reduced
+dynamics for an arbitrary model state~$\rho_M$.  Here we derive the
+result from the unitary evolution~\eqref{eq:unitary} by explicit
+partial trace.
+
+Starting from $\rho_{BM}(t) = U(t)\,(\rho_B \otimes \rho_M)\,
+U(t)^\dagger$ with $U(t) = \cos(Jt)\,\1 - i\sin(Jt)\,F$,
+the reduced state $\rho_B(t) = \Tr_M[\rho_{BM}(t)]$ expands into
+four terms:
+\begin{align}
+  \rho_B(t)
+  &= \cos^2\!(Jt)\;\Tr_M[\rho_B \otimes \rho_M]
+  \notag\\
+  &\quad + \sin^2\!(Jt)\;\Tr_M[F(\rho_B \otimes \rho_M)F]
+  \notag\\
+  &\quad - i\sin(Jt)\cos(Jt)\;\Tr_M[F(\rho_B \otimes \rho_M)]
+  \notag\\
+  &\quad + i\sin(Jt)\cos(Jt)\;\Tr_M[(\rho_B \otimes \rho_M)F] \,.
+  \label{eq:four-terms}
+\end{align}
+We evaluate each term using the index structure of the SWAP operator,
+$F_{ac,bd} = \delta_{ad}\delta_{cb}$, where $(a,c)$ and $(b,d)$ label
+the $B$ and $M$ indices respectively.
+
+\paragraph{Term 1.}
+$\Tr_M[\rho_B \otimes \rho_M] = \rho_B\,\Tr(\rho_M) = \rho_B$.
+
+\paragraph{Term 2.}
+Since $F(\rho_B \otimes \rho_M)F = \rho_M \otimes \rho_B$ (SWAP
+exchanges the two tensor factors),
+$\Tr_M[\rho_M \otimes \rho_B] = \rho_M\,\Tr(\rho_B) = \rho_M$.
+
+\paragraph{Term 3.}
+Using the index form of $F$:
+\begin{equation}
+  \bigl[F(\rho_B \otimes \rho_M)\bigr]_{ac,bd}
+  = (\rho_B)_{cb}\,(\rho_M)_{ad} \,.
+  \label{eq:term3-index}
+\end{equation}
+Tracing over~$M$ (setting $d = c$ and summing):
+\begin{equation}
+  \bigl[\Tr_M\bigl(F(\rho_B \otimes \rho_M)\bigr)\bigr]_{ab}
+  = \sum_c (\rho_M)_{ac}\,(\rho_B)_{cb}
+  = (\rho_M\,\rho_B)_{ab} \,.
+  \label{eq:term3-trace}
+\end{equation}
+
+\paragraph{Term 4.}
+By an analogous computation:
+\begin{equation}
+  \bigl[(\rho_B \otimes \rho_M)F\bigr]_{ac,bd}
+  = (\rho_B)_{ad}\,(\rho_M)_{cb} \,,
+  \label{eq:term4-index}
+\end{equation}
+so that
+\begin{equation}
+  \bigl[\Tr_M\bigl((\rho_B \otimes \rho_M)F\bigr)\bigr]_{ab}
+  = \sum_c (\rho_B)_{ac}\,(\rho_M)_{cb}
+  = (\rho_B\,\rho_M)_{ab} \,.
+  \label{eq:term4-trace}
+\end{equation}
+
+\paragraph{Combining.}
+Substituting terms~1--4 into Eq.~\eqref{eq:four-terms}:
+\begin{equation}
+  \rho_B(t) = \cos^2\!(Jt)\;\rho_B + \sin^2\!(Jt)\;\rho_M
+    - i\sin(Jt)\cos(Jt)\;\bigl(\rho_M\rho_B - \rho_B\rho_M\bigr) \,.
+  \label{eq:general-result}
+\end{equation}
+Recognizing the commutator $[\rho_M, \rho_B] = \rho_M\rho_B
+- \rho_B\rho_M$, this reproduces Eq.~\eqref{eq:channel-general}:
+\begin{equation}
+  \boxed{%
+    \rho_B(t) = \cos^2\!(Jt)\;\rho_B + \sin^2\!(Jt)\;\rho_M
+    - i\sin(Jt)\cos(Jt)\;[\rho_M, \rho_B]
+  }
+  \label{eq:general-boxed}
+\end{equation}
+
+\paragraph{Consistency checks.}
+\begin{enumerate}
+  \item \textit{$\rho_M = \1/2$:}
+    The commutator $[\1/2, \rho_B] = 0$ for all~$\rho_B$,
+    recovering the depolarizing channel~\eqref{eq:channel}.
+  \item \textit{$[\rho_M, \rho_B] = 0$:}
+    When the model and body states commute, the cross term vanishes and
+    $\rho_B(t) = \cos^2\!(Jt)\;\rho_B + \sin^2\!(Jt)\;\rho_M$,
+    a classical mixing of the two states.
+  \item \textit{Non-unitality:}
+    $\mathcal{E}(\1/2) = \cos^2\!(Jt)\,(\1/2) + \sin^2\!(Jt)\,\rho_M
+    \neq \1/2$ unless $\rho_M = \1/2$.  The channel is unital only
+    for the maximally mixed model.
+  \item \textit{Entropy decrease:}
+    For $\rho_M \neq \1/2$, the non-unital channel can decrease the
+    body's entropy.  Numerical verification with $\rho_M =
+    \diag(0.9, 0.1)$ shows $\Delta S < 0$ for $56\%$ of state--time
+    points in a parametric sweep (9900~samples), as reported in
+    Sec.~\ref{sec:swap-channel}.
+\end{enumerate}

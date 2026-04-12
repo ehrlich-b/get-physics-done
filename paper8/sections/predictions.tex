@@ -1,0 +1,347 @@
+% predictions.tex --- Section 6: Quantitative Predictions
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats, state_normalization=Tr(rho)=1, von_neumann_entropy=S(rho)=-Tr(rho*ln*rho), information=I(B;M)=S(B)+S(M)-S(BM), free_energy=F=E-TS
+
+%----------------------------------------------------------------------
+\section{Quantitative Predictions}\label{sec:predictions}
+%----------------------------------------------------------------------
+
+The entropy gradient theorem (Sec.~\ref{sec:gradient}) and the
+Landauer bound (Sec.~\ref{sec:landauer}) together constrain the
+thermodynamic environment in which self-modeling composites can exist.
+We now extract quantitative predictions from these results.  The
+predictions fall into two classes: \emph{framework predictions}
+(P1--P6), which follow from assumptions A1--A7 alone and carry no
+model-dependent parameters, and \emph{order-of-magnitude estimates}
+(P7--P9), which additionally require cosmological inputs (A8--A10).
+We compare the Landauer-derived entropy deficit with Penrose's
+gravitational entropy estimate~\cite{Penrose1979}, finding a gap of
+94~orders of magnitude that we argue is a feature of the framework
+rather than a failure.
+
+%----------------------------------------------------------------------
+\subsection{Minimum entropy deficit for self-modeling}
+\label{sec:min-entropy}
+%----------------------------------------------------------------------
+
+From the exhaustion bound (Corollary~\ref{cor:exhaustion}), a
+self-modeler with initial free energy surplus
+$\Delta F = F(\rho_0) - F_{\mathrm{eq}}$ can sustain at most
+$N_{\mathrm{cycles}} \lesssim \Delta F / (\kB T\,\MI{B}{M})$
+cycles.  Since the available free energy is
+$\Delta F \approx \kB T\,\Delta S$ with
+$\Delta S = \Smax - S$ the entropy deficit (in nats)---an
+approximation valid when the energy spectrum is much smaller
+than $\kB T$ (the exact expression is
+$\Delta F = \kB T\,D(\rho\|\rho_{\mathrm{eq}})$, where $D$
+denotes relative entropy)---the temperature cancels:
+\begin{equation}
+  N_{\mathrm{exhaust}} = \frac{\Delta S}{\MI{B}{M}} \,.
+  \label{eq:n-exhaust}
+\end{equation}
+This result is purely informational: neither the bath temperature~$T$
+nor the coupling constant~$J$ appears.  For self-modeling to occur at
+all ($N_{\mathrm{exhaust}} \geq 1$), the initial entropy must satisfy
+\begin{equation}
+  \boxed{S_{\mathrm{initial}} \leq \Smax - N\,\MI{B}{M}}
+  \label{eq:s-initial-bound}
+\end{equation}
+for $N$~update cycles.  The minimum entropy deficit is therefore
+\begin{equation}
+  \Delta S_{\min} = N\,\MI{B}{M} \,.
+  \label{eq:delta-s-min}
+\end{equation}
+This is an exact consequence of the Landauer bound
+(Theorem~\ref{thm:landauer}) and the definition of available work.
+It requires only assumptions A1~(finite-dimensional QM) and
+A2~(thermal contact).
+
+%----------------------------------------------------------------------
+\subsection{Comparison with the Penrose entropy deficit}
+\label{sec:penrose}
+%----------------------------------------------------------------------
+
+To evaluate Eq.~\eqref{eq:delta-s-min} numerically, we introduce
+three cosmological inputs that are \emph{external} to the framework.
+
+\paragraph{A8 (cosmological entropy budget).}
+The Bekenstein--Bousso bound on the cosmological horizon gives
+\begin{equation}
+  \Smax \sim \frac{\pi R_H^2}{\ell_P^2} \sim 10^{122}\;\text{nats}\,,
+  \label{eq:smax-cosmo}
+\end{equation}
+where $R_H \sim 4.4\times 10^{26}\,\text{m}$ is the Hubble radius
+and $\ell_P \sim 1.6\times 10^{-35}\,\text{m}$ is the Planck
+length.
+
+\paragraph{Penrose initial entropy.}
+Penrose estimated the initial gravitational entropy of the observable
+universe from the Weyl curvature hypothesis~\cite{Penrose1979}:
+\begin{equation}
+  S_{\mathrm{initial}} \sim 10^{88}\;\text{nats}\,,
+  \label{eq:penrose-s}
+\end{equation}
+yielding a Penrose entropy deficit
+$\Delta S_{\mathrm{Penrose}} = \Smax - S_{\mathrm{initial}}
+\approx 10^{122}\;\text{nats}$ (since $10^{122} \gg 10^{88}$).
+
+\paragraph{A9 (neural self-modeling dimension) and A10 (update rate).}
+A human-scale self-modeler with $\sim 10^{10}$ neural degrees of
+freedom at $\sim\!\ln 2$~nats each has mutual information
+$\MI{B}{M} \sim 7\times 10^{9}\;\text{nats}$.  At an update rate
+$\nu \sim 10\;\text{Hz}$ over a cosmic time
+$t_U \sim 4\times 10^{17}\;\text{s}$, the total number of cycles is
+$N \sim \nu\, t_U \sim 4\times 10^{18}$.
+
+\medskip
+The Landauer entropy deficit is then
+\begin{equation}
+  \Delta S_{\mathrm{Landauer}}
+  = N\,\MI{B}{M}
+  \sim 4\times 10^{18}\times 7\times 10^{9}
+  \sim 3\times 10^{28}\;\text{nats}\,.
+  \label{eq:delta-s-landauer}
+\end{equation}
+The ratio to Penrose's deficit is
+\begin{equation}
+  \frac{\Delta S_{\mathrm{Landauer}}}{\Delta S_{\mathrm{Penrose}}}
+  \sim \frac{3\times 10^{28}}{10^{122}} \sim 10^{-94}\,.
+  \label{eq:gap-94}
+\end{equation}
+The Landauer bound on self-modeling requires an entropy deficit of
+order $10^{28}$~nats.  The observed deficit (as estimated by
+Penrose) is $\sim\!10^{122}$~nats---larger by
+\textbf{94~orders of magnitude}.
+
+This gap is a \emph{feature}, not a failure, of the framework.  The
+Landauer bound constrains the \emph{information-processing} cost of
+self-modeling: how much entropy headroom a self-modeler must consume
+to maintain body--model correlations.  Penrose's estimate constrains
+the \emph{gravitational} entropy budget: how smooth the initial
+geometry must be relative to the black-hole-dominated equilibrium.
+These are different physical mechanisms.  The enormous gap reflects
+the fact that gravitational entropy dominates the universe's entropy
+budget, while the thermodynamic cost of self-modeling is negligible by
+comparison.
+
+The gap is robust to order-of-magnitude variations in the
+model-dependent parameters.  Even if $\MI{B}{M}$ is uncertain by a
+factor of~$10^3$ and $N$~by a factor of~$10^3$, the Landauer deficit
+shifts to~$\sim\!10^{34}$~nats, leaving a gap of~$\sim\!88$ orders
+of magnitude.
+
+%----------------------------------------------------------------------
+\subsection{Exhaustion timescale}\label{sec:exhaust-time}
+%----------------------------------------------------------------------
+
+The exhaustion timescale---the time before the entropy budget is
+consumed and self-modeling becomes thermodynamically impossible---is
+\begin{equation}
+  \tauex = N_{\mathrm{exhaust}}\,\tcyc
+  = \frac{\Delta S}{\MI{B}{M}}\,\tcyc \,.
+  \label{eq:tau-exhaust}
+\end{equation}
+Using the Penrose deficit $\Delta S \sim 10^{122}$~nats,
+$\MI{B}{M} \sim 7\times 10^{9}$~nats, and
+$\tcyc = 1/\nu \sim 0.1\;\text{s}$:
+\begin{equation}
+  \tauex \sim \frac{10^{122}}{7\times 10^{9}}
+    \times 0.1\;\text{s}
+  \sim 10^{111}\;\text{s}\,.
+  \label{eq:tau-value}
+\end{equation}
+Compared with the current age of the universe,
+\begin{equation}
+  \frac{\tauex}{t_U} \sim \frac{10^{111}}{4\times 10^{17}}
+  \sim 10^{93}\,.
+  \label{eq:tau-ratio}
+\end{equation}
+Self-modeling is thermodynamically permitted for a time
+$\sim\!10^{93}$ times the present age of the universe.  The entropy
+budget is far from exhausted; the universe is in the earliest stages
+of its thermodynamic lifetime as measured by the self-modeling
+capacity.
+
+Note that $\tauex$ depends on the entropy budget (A8--A9) and the
+self-modeling parameters (A10), but does \emph{not} depend on the
+bath temperature~$T$, which cancels between the available work
+$\kB T\,\Delta S$ and the cost per cycle $\kB T\,\MI{B}{M}$.
+
+%----------------------------------------------------------------------
+\subsection{Experiential density profile}\label{sec:rho-profile}
+%----------------------------------------------------------------------
+
+The experiential density~\cite{Paper5},
+\begin{equation}
+  \rhoexp(\MI{B}{M})
+  = \MI{B}{M}\!\left(1 - \frac{\MI{B}{M}}{S_B}\right),
+  \label{eq:rho-profile}
+\end{equation}
+where $S_B = \SvN{\rho_B}$ is the body entropy, is a concave
+parabola in $\MI{B}{M}$ on the interval $[0,\, S_B]$.  Setting
+$\mathrm{d}\rhoexp/\mathrm{d}I = 1 - 2I/S_B = 0$ yields
+\begin{equation}
+  I^{*} = \frac{S_B}{2}\,,
+  \qquad
+  \rhoexp_{\max} = \frac{S_B}{4}\,.
+  \label{eq:rho-peak}
+\end{equation}
+
+The profile has three notable limits:
+\begin{enumerate}
+  \item $\MI{B}{M} = 0$ (no tracking):
+    $\rhoexp = 0$.  At thermal equilibrium, the model contains no
+    information about the body
+    (Eq.~\eqref{eq:eq-mutual}).
+  \item $\MI{B}{M} = S_B$ (saturated tracking):
+    $\rhoexp = 0$.  The pure-state constraint
+    $S(\rho_{BM}) = 0$ enforces $\MI{B}{M} = 2\,S_B$ only for
+    pure joint states; for $\MI{B}{M} = S_B$ the parabola returns
+    to zero.
+  \item $N \to \infty$ (equilibration):
+    The monotonicity chain~\eqref{eq:monotonicity} drives
+    $\MI{B}{M}\to 0$, so $\rhoexp\to 0$ regardless of initial
+    conditions.
+\end{enumerate}
+
+Under the passive equilibration dynamics of
+Sec.~\ref{sec:three-regimes}, the mutual information decays
+geometrically: $I(N) \sim I_0\,(1-p)^N$, where
+$p = \sin^2(Jt)$ is the depolarizing parameter.
+The time dependence of~$\rhoexp$ then takes the form
+\begin{equation}
+  \rhoexp(N) = I_0\,(1-p)^N
+    \left(1 - \frac{I_0\,(1-p)^N}{S_B}\right).
+  \label{eq:rho-time}
+\end{equation}
+If $I_0 > S_B/2$, this rises to the peak $\rhoexp_{\max} = S_B/4$
+(when $I$ has decayed to $S_B/2$) and then falls to zero.  If
+$I_0 \leq S_B/2$, $\rhoexp$ decreases monotonically from the start.
+Both scenarios terminate at $\rhoexp = 0$ as the system
+equilibrates.
+
+%----------------------------------------------------------------------
+\subsection{Model-dependence register}\label{sec:model-dep}
+%----------------------------------------------------------------------
+
+The quantitative predictions P7--P9 rely on three assumptions beyond
+the framework (A1--A7).  We record each, its role, and the sensitivity
+of predictions to its value.
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+  \toprule
+  ID & Parameter & Enters via & Sensitivity \\
+  \midrule
+  A8 & $\Smax\sim 10^{122}$ nats
+     & Entropy budget $\Delta S$
+     & $\tauex \propto \Smax$ \\
+  A9 & $S_{\mathrm{init}}\sim 10^{88}$ nats
+     & Penrose comparison
+     & Gap shifts $\pm 2$ orders \\
+  A10 & $d_M\!\sim\! 10^{11}$, $\nu\!\sim\! 10\;\text{Hz}$
+      & $\MI{B}{M}$, $N$ in Eq.~\eqref{eq:delta-s-landauer}
+      & $\Delta S_{\mathrm{L}}\!\propto\! I\!\cdot\! N$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+These are \emph{separate} from the framework assumptions A1--A7.
+Varying A8--A10 by several orders of magnitude in either direction
+shifts the Landauer deficit $\Delta S_{\mathrm{Landauer}}$
+accordingly but does not close the 94-order gap with Penrose.  The
+framework predictions P1--P6 (Table~\ref{tab:predictions}) are
+independent of A8--A10.
+
+%----------------------------------------------------------------------
+\subsection{Prediction summary}\label{sec:pred-table}
+%----------------------------------------------------------------------
+
+Table~\ref{tab:predictions} collects the predictions of the
+entropy gradient theorem and its consequences.  Each entry is
+classified by strength and the assumptions it requires.
+
+\begin{table*}[t]
+\caption{Predictions of the self-modeling thermodynamics framework.
+``Strength'' indicates the epistemic status: THEOREM
+(rigorous under stated assumptions), SELECTION (logical chain with
+identified weakest link), MATHEMATICAL (follows from definitions),
+ESTIMATE (order-of-magnitude, model-dependent), STRUCTURAL
+(qualitative connection without a quantitative formula).
+Assumptions A1--A7 are framework assumptions
+(Sec.~\ref{sec:gradient}); A8--A10 are cosmological inputs
+(Sec.~\ref{sec:model-dep}).
+\label{tab:predictions}}
+\begin{tabular}{@{}clll@{}}
+  \toprule
+  \# & Prediction & Strength & Assumptions \\
+  \midrule
+  P1 & Entropy gradient required: $S(t) < \Smax$ for $\rhoexp > 0$
+     & THEOREM & A1--A3 \\
+  P2 & $\Delta S \geq \MI{B}{M}$ per update cycle
+     & THEOREM & A1, A2 \\
+  P3 & $\rhoexp = 0$ at thermal equilibrium
+     & THEOREM & A1, A5 \\
+  P4 & Complexification necessary for SM-like observers (chirality requires $\Spin{10}$);
+       non-SM self-modelers in non-complexified blocks remain open
+     & THEOREM + OPEN & A1--A7 \\
+  P5 & $\rhoexp$ peaks at $I = S_B/2$ with $\rhoexp_{\max} = S_B/4$
+     & MATH & A5 \\
+  P6 & $\rhoexp \to 0$ at heat death
+     & THEOREM & A1, A3, A5 \\
+  \midrule
+  P7 & $\Delta S_{\mathrm{Landauer}} \sim 10^{28}$ nats
+     & ESTIMATE & A1, A2, A8, A10 \\
+  P8 & Landauer $\sim 94$ orders weaker than Penrose
+     & ESTIMATE & A8--A10 \\
+  P9 & $\tauex\sim 10^{111}\;\text{s}\gg t_U$
+     & ESTIMATE & A1, A2, A8--A10 \\
+  \bottomrule
+\end{tabular}
+\end{table*}
+
+%----------------------------------------------------------------------
+\subsection{Non-claims}\label{sec:non-claims}
+%----------------------------------------------------------------------
+
+To guard against overclaiming, we state explicitly what the
+quantitative results do \emph{not} establish.
+
+\begin{description}
+  \item[NC-1.] The Landauer bound is not a prediction of the initial
+    entropy of the universe.  It provides a \emph{necessary
+    condition} ($\Delta S \gtrsim 10^{28}$~nats), not a
+    determination.  The observed deficit ($\sim\!10^{122}$~nats) is
+    vastly larger, and its origin lies in gravitational
+    physics~\cite{Penrose1979}, not in the self-modeling framework.
+
+  \item[NC-2.] The comparison with Penrose is not a derivation of
+    $S_{\mathrm{initial}} \sim 10^{88}$.  The two constraints
+    address different physics: Landauer constrains
+    information-processing cost; Penrose constrains gravitational
+    entropy via the Weyl curvature hypothesis.  The comparison
+    demonstrates internal consistency (the framework's bound is
+    weaker), not explanatory power.
+
+  \item[NC-3.] The exhaustion timescale $\tauex \sim 10^{111}\;\text{s}$
+    is not a prediction of the age of the universe.  It quantifies how
+    long the entropy budget permits self-modeling to continue, not how
+    old the universe is.
+
+  \item[NC-4.] The experiential density profile $\rhoexp(I)$ is not
+    computed to observational precision.  The qualitative shape (peak
+    at $I = S_B/2$, decay to zero at equilibrium) is exact given
+    assumption~A5; the mapping from update steps~$N$ to cosmological
+    time is model-dependent (requiring A8--A10 and the specific
+    equilibration dynamics from Sec.~\ref{sec:entropy}).
+\end{description}
+
+\medskip
+The quantitative results of this section are best understood as
+consistency checks: the framework's thermodynamic constraints are
+compatible with---and vastly weaker than---independent cosmological
+estimates~\cite{Penrose1979,Albert2000}.  This weakness is itself
+informative: the thermodynamic cost of self-modeling is negligible
+compared to the gravitational entropy budget, confirming that the
+entropy gradient theorem constrains the \emph{qualitative existence}
+of an arrow of time, not its quantitative magnitude.

@@ -1,0 +1,368 @@
+% landauer.tex --- Section 3: Self-Modeling Requires Free Energy
+% ASSERT_CONVENTION: kB_explicit_in_bounds, entropy_base=nats, state_normalization=Tr(rho)=1, sequential_product=a&b=sqrt(a)b*sqrt(a), von_neumann_entropy=S(rho)=-Tr(rho*ln*rho), information=I(B;M)=S(B)+S(M)-S(BM), free_energy=F=E-TS
+
+%----------------------------------------------------------------------
+\section{Self-Modeling Requires Free Energy}\label{sec:landauer}
+%----------------------------------------------------------------------
+
+The entropy dynamics of Sec.~\ref{sec:entropy} established that
+SWAP interactions drive the body toward thermal equilibrium, erasing
+the body--model correlations that define self-modeling.  We now show
+that maintaining these correlations has an irreducible thermodynamic
+cost: every self-modeling update cycle must dissipate at least
+$\kB T\,\MI{B}{M}$ of free energy, where $\MI{B}{M}$ is the mutual
+information between body and model.  This is the Landauer
+bound~\cite{Landauer1961} applied to the erasure step that every
+self-modeler must perform.
+
+The section is organized as follows.  We first identify the
+self-modeling cycle as an instance of Bennett's Maxwell's demon
+analysis~\cite{Bennett1982} (Sec.~\ref{sec:demon}).  We then derive
+the Landauer bound in the quantum setting using the Reeb--Wolf
+result~\cite{ReebWolf2014} (Sec.~\ref{sec:landauer-bound}).  We
+close a potential coherence loophole via three independent arguments
+(Sec.~\ref{sec:coherence}), and finally assemble the three-link
+chain connecting self-modeling to the need for an entropy gradient
+(Sec.~\ref{sec:chain}).
+
+%----------------------------------------------------------------------
+\subsection{The self-modeler as Maxwell's demon}
+\label{sec:demon}
+%----------------------------------------------------------------------
+
+A self-modeling composite $(B,M,\mathbin{\&})$ in the sense of
+Ref.~\cite{Paper5} consists of a body~$B$ (Hilbert space
+$\mathcal{H}_B$, $\dim = d_B$), a model~$M$ ($\mathcal{H}_M$,
+$\dim = d_M$), and the Lüders sequential product
+$a \mathbin{\&} b = \sqrt{a}\,b\,\sqrt{a}$ implementing updates.
+Faithful self-modeling requires $\MI{B}{M} > 0$: the model must
+carry non-trivial information about the body.
+
+Each update cycle decomposes into three information-processing
+steps~\cite{Bennett1982}:
+\begin{enumerate}
+  \item \textbf{Test.}  Interact $B$ and~$M$ to acquire information
+    about the current state of~$B$.
+  \item \textbf{Erase.}  Clear the old tracking data from~$M$.
+    This step is logically irreversible: the $\MI{B}{M}$ nats of
+    correlation between $B$ and~$M$ are destroyed.
+  \item \textbf{Write.}  Record fresh tracking data into~$M$,
+    restoring $\MI{B}{M} > 0$.
+\end{enumerate}
+The writing step can in principle be performed reversibly, adding no
+thermodynamic cost beyond that of erasure~\cite{Bennett1982}.  The
+erasure step cannot: it maps many possible states of~$M$ to a single
+reset state, an operation that is logically irreversible.  This is
+precisely the structure of Maxwell's demon, and the thermodynamic
+cost of the erasure step is bounded below by Landauer's
+principle~\cite{Landauer1961}.
+
+We emphasize that this decomposition is not an approximation.  The
+Lüders product is a quantum operation (completely positive map),
+and the non-selective version
+$\Lambda(\rho) = \sqrt{a}\,\rho\,\sqrt{a}
++ \sqrt{\1-a}\,\rho\,\sqrt{\1-a}$
+is CPTP, as established in Sec.~\ref{sec:swap-channel}.  The
+Bennett decomposition applies to any information-processing cycle
+that maintains correlations and periodically refreshes
+them~\cite{Bennett1982}.
+
+%----------------------------------------------------------------------
+\subsection{Landauer bound on the self-modeling cycle}
+\label{sec:landauer-bound}
+%----------------------------------------------------------------------
+
+The mutual information between body and model,
+\begin{equation}
+  \MI{B}{M} = \SvN{\rho_B} + \SvN{\rho_M} - \SvN{\rho_{BM}} \,,
+  \label{eq:mi-def}
+\end{equation}
+quantifies the information content that the erasure step must
+destroy.  Here $\SvN{\rho} = -\Tr(\rho\ln\rho)$ is the von Neumann
+entropy in nats.
+
+The quantum Landauer bound~\cite{ReebWolf2014} states that resetting
+a quantum register with entropy $\SvN{\rho_S}$, in thermal contact
+with a bath at temperature~$T$, requires work
+$W \geq \kB T\,\SvN{\rho_S}$.
+Applied to the erasure of the old body--model correlation:
+
+\begin{theorem}[Landauer bound on self-modeling]
+\label{thm:landauer}
+Let $(B,M,\mathbin{\&})$ be a self-modeling composite with
+finite-dimensional Hilbert spaces, Lüders sequential product, and
+faithful tracking $\MI{B}{M} > 0$.  Suppose the composite is in
+thermal contact with a heat bath at temperature~$T$.  Then each
+self-modeling update cycle dissipates work
+\begin{equation}
+  \boxed{\Wmin = \kB T\,\MI{B}{M}}
+  \label{eq:landauer}
+\end{equation}
+with equality for quasi-static (reversible) erasure protocols.
+\end{theorem}
+
+\begin{proof}
+The update cycle erases $\MI{B}{M}$ nats of correlation
+(step~2 of the Bennett decomposition).  By the quantum Landauer
+bound~\cite{ReebWolf2014}, this requires
+$W_{\mathrm{erase}} \geq \kB T\,\MI{B}{M}$.  The writing step
+(step~3) can be performed reversibly~\cite{Bennett1982}, contributing
+zero net work.  Hence $W_{\mathrm{cycle}} \geq \kB T\,\MI{B}{M}$.
+\end{proof}
+
+\noindent\textit{Assumptions.}---The theorem requires:
+\begin{itemize}
+  \item[\textbf{A1.}] Finite-dimensional quantum mechanics (standard).
+  \item[\textbf{A2.}] Thermal contact with a bath at temperature~$T$
+    (standard Landauer regime).
+\end{itemize}
+
+\paragraph{Experiential density and its cost.}
+The experiential density from Ref.~\cite{Paper5},
+\begin{equation}
+  \rhoexp = \MI{B}{M}\!\left(1 - \frac{\MI{B}{M}}{\SvN{\rho_B}}\right),
+  \label{eq:rho-def}
+\end{equation}
+is a concave function of $\MI{B}{M}$, peaking at
+$I^{*} = \SvN{\rho_B}/2$ with $\rhoexp_{\max} = \SvN{\rho_B}/4$.
+The Landauer cost at peak experiential density is
+\begin{equation}
+  W_{\mathrm{peak}} \geq \kB T\,\frac{\SvN{\rho_B}}{2} \,.
+  \label{eq:peak-cost}
+\end{equation}
+For a qubit body ($d_B = 2$, $\SvN{\rho_B} \leq \ln 2$), this gives
+$W_{\mathrm{peak}} \geq \kB T\,(\ln 2)/2 \approx 0.35\,\kB T$.
+
+\paragraph{Equilibrium death.}
+At thermal equilibrium, $\rho_{BM} = \1/(d_B d_M)$.  The marginals
+are $\rho_B = \1/d_B$ and $\rho_M = \1/d_M$, so
+\begin{equation}
+  \MI{B}{M}^{\mathrm{eq}}
+  = \ln d_B + \ln d_M - \ln(d_B d_M) = 0 \,.
+  \label{eq:eq-mutual}
+\end{equation}
+The body and model are uncorrelated: the model contains no
+information about the body.  From Eq.~\eqref{eq:rho-def},
+$\rhoexp^{\mathrm{eq}} = 0$.  Self-modeling at thermal equilibrium
+is impossible---there is nothing to model and no free energy with
+which to model it.
+
+\paragraph{Free energy depletion rate.}
+A self-modeler cycling at frequency~$\nu$ depletes free energy at a
+rate bounded below by
+\begin{equation}
+  \frac{dF}{dt} \leq -\kB T\,\MI{B}{M}\,\nu \,.
+  \label{eq:depletion}
+\end{equation}
+
+%----------------------------------------------------------------------
+\subsection{Closing the coherence loophole}\label{sec:coherence}
+%----------------------------------------------------------------------
+
+A potential objection is that quantum coherence, as a resource absent
+in classical thermodynamics, might allow a self-modeler to maintain
+$\MI{B}{M} > 0$ without paying the full Landauer cost.  We close
+this loophole with three independent arguments.
+
+\paragraph{R1: The Lüders product destroys coherence (CPTP).}
+Let the effect $a$ have spectral decomposition
+$a = \sum_i \lambda_i \ket{i}\!\bra{i}$.  The non-selective Lüders
+channel acts on off-diagonal matrix elements as
+\begin{equation}
+  \Lambda(\rho)_{ij}
+  = c_{ij}\,\rho_{ij} \,,
+  \qquad
+  c_{ij}
+  = \sqrt{\lambda_i\lambda_j}
+  + \sqrt{(1-\lambda_i)(1-\lambda_j)} \,,
+  \label{eq:decoherence-factor}
+\end{equation}
+while preserving the diagonal ($c_{ii} = 1$).  By the Cauchy--Schwarz
+inequality applied to the vectors
+$(\sqrt{\lambda_i},\,\sqrt{1-\lambda_i})$ and
+$(\sqrt{\lambda_j},\,\sqrt{1-\lambda_j})$,
+\begin{equation}
+  c_{ij} \leq 1
+  \label{eq:cij-bound}
+\end{equation}
+with equality if and only if $\lambda_i = \lambda_j$.  Therefore,
+whenever the effect~$a$ has distinct eigenvalues, the self-modeling
+update strictly reduces off-diagonal coherence in the eigenbasis
+of~$a$.  This blocks evasion strategies that rely on unitary-only
+protocols (the Lüders product is mandatory in the Paper~5
+framework~\cite{Paper5}) or on storing information in quantum
+coherences (repeated Lüders updates drive all off-diagonals to
+zero).
+
+\paragraph{R2: Maintaining coherence costs free energy.}
+Even setting aside the Lüders product, thermal contact with a bath
+at temperature~$T$ induces decoherence.  The Gibbs state
+$\rho^{\mathrm{eq}} = e^{-\beta H}/Z$ is diagonal in the energy
+eigenbasis; all off-diagonal coherences vanish at equilibrium.
+Open-system dynamics drives any initial coherence to zero at a rate
+$\Gamma_d = (\gamma_+ + \gamma_-)/2 > 0$, where $\gamma_{\pm}$ are
+the bath emission and absorption rates.  Maintaining coherence
+against this decay requires active intervention---error correction or
+continuous driving---which itself costs free energy.  This argument
+is framework-independent: it does not rely on the Lüders product
+or the specific axioms of Paper~5.
+
+\paragraph{R3: Sagawa--Ueda cross-check.}
+The generalized Jarzynski equality for feedback-controlled
+systems~\cite{SagawaUeda2010},
+\begin{equation}
+  \bigl\langle e^{-\beta(W - \Delta F)}\bigr\rangle = e^{I_{fc}} \,,
+  \label{eq:sagawa-ueda}
+\end{equation}
+where $I_{fc}$ is the efficacy of feedback control (transfer
+entropy), independently confirms that any measurement-feedback cycle
+has a minimum thermodynamic cost.  By Jensen's inequality, the mean
+work satisfies $\langle W \rangle \geq \Delta F - \kB T\,I_{fc}$.
+For a cyclic process ($\Delta F = 0$),
+$\langle W \rangle \geq -\kB T\,I_{fc}$, so the maximum
+\emph{extractable} work is $\kB T\,I_{fc}$.  Since the self-modeling cycle maps onto the
+Sagawa--Ueda framework (body~$\to$~system, model~$\to$~memory,
+Lüders product~$\to$~measurement, update~$\to$~feedback), the bound
+is consistent with Theorem~\ref{thm:landauer}.  The detailed
+mapping and numerical consistency check (50~random states, all
+satisfying both bounds) are reported in the supplemental derivation
+material.
+
+\medskip
+\noindent
+In summary, three evasion strategies are blocked:
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  Evasion strategy & Blocked by & Mechanism \\
+  \midrule
+  E1: Unitary-only protocol & R1 & Paper~5 mandates Lüders product \\
+  E2: Coherence-protected info & R1 & Lüders destroys coherences \\
+  E3: Equilibrium coherence & R2 & Gibbs state has zero coherence \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+%----------------------------------------------------------------------
+\subsection{Three-link chain: self-modeling to entropy gradient}
+\label{sec:chain}
+%----------------------------------------------------------------------
+
+We now assemble the central result of the paper's thermodynamic
+argument: a three-link chain connecting self-modeling to the need for
+an entropy gradient.  Each link is labeled by its epistemic status.
+
+\begin{proposition}[Chain theorem]\label{prop:chain}
+Let $(B,M,\mathbin{\&})$ be a self-modeling composite on a finite
+SWAP lattice in thermal contact with an environment at
+temperature~$T$.  Then:
+
+\medskip\noindent
+\textbf{Link~1} \textup{[THEOREM].}\enspace
+Maintaining $\MI{B}{M} > 0$ requires work
+$W_{\mathrm{cycle}} \geq \kB T\,\MI{B}{M}$ per cycle
+\textup{(Theorem~\ref{thm:landauer})}.
+
+\medskip\noindent
+\textbf{Link~2} \textup{[STANDARD PHYSICS].}\enspace
+Performing work $W > 0$ per cycle requires the composite to be out
+of thermal equilibrium:
+\begin{equation}
+  F(\rho_{BM}) > F_{\mathrm{eq}}
+  \quad\text{when}\quad \MI{B}{M} > 0 \,,
+  \label{eq:link2}
+\end{equation}
+where $F(\rho) = \langle H\rangle_\rho - T\,\SvN{\rho}$ is the
+Helmholtz free energy and $F_{\mathrm{eq}}$ is its minimum at
+thermal equilibrium.  This is equivalent to a positive quantum
+relative entropy: the maximum extractable work is
+$W_{\max}^{\mathrm{extract}} = \kB T\, D(\rho_{BM}\|\rho_{\mathrm{eq}})
+\geq 0$.
+
+\medskip\noindent
+\textbf{Link~3} \textup{[PHYSICAL ARGUMENT $+$ A3].}\enspace
+A finite system out of thermal equilibrium will equilibrate on a
+finite timescale unless it has access to a low-entropy reservoir.
+By Sec.~\ref{sec:entropy}, the SWAP dynamics drives
+$\MI{B}{M} \to 0$ geometrically
+\textup{(Eq.~\eqref{eq:convergence})}.
+To sustain self-modeling beyond the exhaustion time, the system
+requires $S(t) < \Smax$: an entropy gradient.
+\end{proposition}
+
+\noindent
+The chain has no logical gaps: Link~1 outputs $W > 0$, which is
+Link~2's input; Link~2 outputs $F > F_{\mathrm{eq}}$, which is
+Link~3's input; Link~3 outputs the requirement for an entropy
+gradient.
+
+\begin{corollary}[Exhaustion bound]\label{cor:exhaustion}
+A self-modeler with initial free energy surplus
+$\Delta F = F(\rho_0) - F_{\mathrm{eq}}$ can sustain at most
+\begin{equation}
+  N_{\mathrm{cycles}}
+  \lesssim \frac{\Delta F}{\kB T\,\MI{B}{M}}
+  \label{eq:exhaustion}
+\end{equation}
+self-modeling cycles before reaching thermal equilibrium, at which
+point $\MI{B}{M} = 0$ and $\rhoexp = 0$.
+\end{corollary}
+
+\paragraph{Assumption A3 (strongest assumption).}
+Link~3 relies on the physical assumption that a closed or
+semi-closed finite system equilibrates on finite timescales.  This
+is standard statistical mechanics for systems with
+$t \ll t_{\mathrm{rec}}$, but it is the strongest assumption in the
+chain.  It can fail if the system is coupled to an infinite reservoir
+that never equilibrates (an idealization, not a physical scenario),
+if the universe has an infinite-dimensional Hilbert space
+(speculative), if the system exhibits many-body
+localization~(MBL)---established in 1D disordered interacting
+chains but controversial in higher dimensions---or if it is
+integrable, thermalizing to a generalized Gibbs ensemble (GGE)
+rather than the thermal state.  Neither MBL nor GGE is expected
+for the SWAP lattice (which is neither disordered nor integrable),
+but they represent concrete finite-system failure modes of A3
+beyond the idealized scenarios listed above.  A3 can also fail
+if there exist sources of free energy that do not ultimately
+derive from a low-entropy initial condition (unknown physics).
+Links~1 and~2 remain valid regardless of whether A3 holds.
+
+\paragraph{Assumption A4 (model choice).}
+The SWAP lattice dynamics $H = JF$ from Ref.~\cite{Paper6} enters
+only through the quantitative equilibration rate.  Replacing SWAP
+with any other thermalizing dynamics changes the timescale of
+convergence but not the qualitative conclusion: any finite system
+in thermal contact equilibrates.
+
+%----------------------------------------------------------------------
+\subsection{Explicit non-claims}\label{sec:nonclaims}
+%----------------------------------------------------------------------
+
+To prevent overclaiming, we state what the chain does \emph{not}
+establish:
+\begin{enumerate}
+  \item The chain does not derive the Past Hypothesis.  It shows
+    that self-modeling \emph{requires} an entropy gradient, but does
+    not explain why the initial entropy was low.
+  \item The chain does not derive the Second Law.  Link~2 \emph{uses}
+    the Second Law as input (standard physics).
+  \item The chain does not predict the magnitude of the initial
+    entropy of the universe.
+  \item The chain does not extend to infinite-dimensional systems
+    without additional analysis.  Assumption~A1 (finite-dimensional
+    QM) is required for the Reeb--Wolf quantum Landauer bound.
+  \item The connection from Link~3 to cosmology is a physical
+    argument (assumption~A3), not a mathematical theorem.
+\end{enumerate}
+The status of the Past Hypothesis is elevated from ``observed
+feature'' to ``necessary condition for self-modeling,'' but it
+remains an input to the argument, not an output.
+
+\medskip
+With the thermodynamic cost of self-modeling established, we turn
+in Sec.~\ref{sec:chirality} to a second consequence of the
+self-modeling framework: the chirality from the exceptional Jordan
+algebra requires the emergent spacetime to carry a time-orientation,
+the same geometric structure that supports the thermodynamic arrow
+of time.

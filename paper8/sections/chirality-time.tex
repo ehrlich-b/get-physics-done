@@ -1,0 +1,377 @@
+% chirality-time.tex — Section 4: Chirality Requires Time-Orientation
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats, clifford_convention=euclidean_positive_for_Cl6_lorentzian_mostly_minus_for_Cl(d-1,1), complex_structure=u_equals_e7, spin_representation=S10plus_boyle, metric=mostly_minus
+
+%----------------------------------------------------------------------
+\section{Chirality Requires Time-Orientation}\label{sec:chirality}
+%----------------------------------------------------------------------
+
+Paper~7 showed that a single choice of unit imaginary octonion
+$u\in S^6$ determines both the Standard Model gauge group and its
+chiral representation~\cite{Paper7}.  That derivation is purely
+algebraic: the Euclidean Clifford algebra $\Cl{6}$ decomposes the
+$\Spin{10}$ Weyl spinor into left- and right-handed sectors without
+reference to spacetime geometry.  We now show that \emph{physical
+realization} of this chirality---as spacetime Weyl spinors coupling
+to a chiral gauge theory---requires the emergent spacetime to carry a
+time-orientation.  This is the new contribution of the present paper:
+the algebraic choice $u$ not only builds particle physics structures
+(constructive) but also constrains spacetime geometry (constraint).
+
+%----------------------------------------------------------------------
+\subsection{The chirality operator in Lorentzian signature}
+\label{sec:chirality-lorentz}
+%----------------------------------------------------------------------
+
+Consider an even-dimensional Lorentzian manifold of signature
+$(d{-}1,1)$, with Clifford generators satisfying
+\begin{equation}\label{eq:clifford-lorentz}
+  \{\Gamma_\mu,\, \Gamma_\nu\} = 2\,\eta_{\mu\nu}\,,
+\end{equation}
+where $\eta = \mathrm{diag}(+1,-1,\ldots,-1)$ is the mostly-minus
+metric.  In particular, $\Gamma_0^2 = +1$ (timelike) and
+$\Gamma_i^2 = -1$ for $i = 1,\ldots,d{-}1$ (spacelike).
+
+The chirality operator (volume form) in $\Cl{d-1,1}$ is
+\begin{equation}\label{eq:chirality-op}
+  \Gammastar = i^k\,\Gamma_0\,\Gamma_1 \cdots \Gamma_{d-1}\,,
+\end{equation}
+where the integer $k$ is chosen so that $(\Gammastar)^2 = +1$.
+For $d = 4$ this gives the standard $\gamma_5 = i\,\Gamma_0
+\Gamma_1\Gamma_2\Gamma_3$ of four-dimensional physics.
+
+The Weyl (chirality) projectors are
+\begin{equation}\label{eq:weyl-proj}
+  P_L = \frac{1 + \Gammastar}{2}\,,
+  \qquad
+  P_R = \frac{1 - \Gammastar}{2}\,.
+\end{equation}
+These are orthogonal idempotents ($P_L + P_R = 1$, $P_L P_R = 0$),
+and they decompose the Dirac spinor into Weyl spinors:
+$S = S_L \oplus S_R$ with $S_L = P_L S$ and $S_R = P_R S$.
+
+%----------------------------------------------------------------------
+\subsection{Time-reversal flips chirality}
+\label{sec:time-reversal}
+%----------------------------------------------------------------------
+
+Time reversal acts on the Clifford generators as
+\begin{equation}\label{eq:time-reversal}
+  T\colon\; \Gamma_0 \to -\Gamma_0\,,
+  \qquad
+  \Gamma_i \to \Gamma_i \quad (i = 1,\ldots,d{-}1)\,.
+\end{equation}
+
+\begin{proposition}[Chirality flip]\label{prop:chirality-flip}
+For any even $d = 2m$, the chirality operator satisfies
+\begin{equation}\label{eq:chirality-flip}
+  T(\Gammastar) = -\Gammastar\,.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The prefactor $i^k$ is unaffected by~$T$.  The product
+$\Gamma_0\Gamma_1\cdots\Gamma_{d-1}$ contains $\Gamma_0$ exactly
+once, so under~$T$ it acquires precisely one factor of~$(-1)$:
+\begin{equation*}
+  \Gamma_0\Gamma_1\cdots\Gamma_{d-1}
+  \;\xrightarrow{\;T\;}
+  (-\Gamma_0)\Gamma_1\cdots\Gamma_{d-1}
+  = -\Gamma_0\Gamma_1\cdots\Gamma_{d-1}\,.
+\end{equation*}
+Hence $T(\Gammastar) = i^k\cdot(-\Gamma_0\Gamma_1
+\cdots\Gamma_{d-1}) = -\Gammastar$.
+\end{proof}
+
+\begin{corollary}\label{cor:projector-exchange}
+Under time reversal, the Weyl projectors exchange:
+\begin{equation}\label{eq:projector-exchange}
+  P_L \;\xrightarrow{\;T\;}\; P_R\,,
+  \qquad
+  P_R \;\xrightarrow{\;T\;}\; P_L\,.
+\end{equation}
+\end{corollary}
+
+\noindent
+The proof is immediate from Eq.~\eqref{eq:chirality-flip}: replacing
+$\Gammastar\to -\Gammastar$ in~\eqref{eq:weyl-proj} interchanges
+$P_L$ and~$P_R$.
+
+\medskip
+We verify the chirality flip explicitly in three dimensions
+relevant to this program:
+
+\medskip\noindent
+\textbf{$d = 4$} (physical spacetime).
+$\gamma_5 = i\,\Gamma_0\Gamma_1\Gamma_2\Gamma_3$,
+$(\gamma_5)^2 = +1$\,\checkmark.
+Under $T$: $\gamma_5 \to i(-\Gamma_0)\Gamma_1\Gamma_2\Gamma_3
+= -\gamma_5$\,\checkmark.
+
+\medskip\noindent
+\textbf{$d = 2$} (simplest non-trivial case).
+$\Gammastar = \Gamma_0\Gamma_1$,
+$(\Gammastar)^2 = +1$\,\checkmark.
+Under $T$: $\Gammastar \to -\Gamma_0\Gamma_1
+= -\Gammastar$\,\checkmark.
+
+\medskip\noindent
+\textbf{$d = 10$} (the $\Spin{10}$ setting of the $\hthree$ program).
+$\Gammastar = \Gamma_0\Gamma_1\cdots\Gamma_9$,
+$(\Gammastar)^2 = +1$\,\checkmark.
+Under $T$: $\Gammastar \to -\Gammastar$\,\checkmark.
+
+\medskip
+The result holds for all even-dimensional \emph{Lorentzian}
+Clifford algebras $\Cl{d-1,1}$ because $\Gamma_0$ (the unique
+timelike generator) appears exactly once in the ordered
+product~\eqref{eq:chirality-op}, regardless of~$d$.  In Euclidean
+signature there is no timelike direction and the proposition does
+not apply.
+
+%----------------------------------------------------------------------
+\subsection{Internal vs.\ spacetime chirality}
+\label{sec:internal-spacetime}
+%----------------------------------------------------------------------
+
+Paper~7's Clifford algebra $\Cl{6}$ and the spacetime Clifford algebra
+$\Cl{3,1}$ are distinct objects with distinct chirality operators:
+
+\medskip\noindent
+\textbf{Internal chirality} ($\omegasix$, Euclidean).
+The volume form of the Euclidean algebra $\Cl{6}$, with generators
+$\gamma_1,\ldots,\gamma_6$ satisfying $\{\gamma_i,\gamma_j\} =
+2\delta_{ij}$, is~\cite{Paper7}
+\begin{equation}\label{eq:omega6-recap}
+  \omegasix = \gamma_1\gamma_2\gamma_3\gamma_4\gamma_5\gamma_6\,,
+  \qquad
+  \omegasix^2 = -1\,,
+  \qquad
+  (i\,\omegasix)^2 = +1\,.
+\end{equation}
+The chirality operator $i\,\omegasix$ decomposes the
+16-dimensional Weyl spinor $S_{10}^+$ into two 8-dimensional
+sectors carrying the Pati-Salam representations
+$(\rep{4},\rep{2},\rep{1})$ and
+$(\bar{\rep{4}},\rep{1},\rep{2})$.
+This decomposition is a \emph{representation-theoretic} fact: it
+determines which SM quantum numbers each state carries.  It is
+purely algebraic and involves no spacetime geometry.
+
+\medskip\noindent
+\textbf{Spacetime chirality} ($\gamma_5$ or $\Gammastar$, Lorentzian).
+The chirality operator of $\Cl{3,1}$ (or $\Cl{9,1}$) determines
+which Lorentz representation each fermion carries: left-handed
+spinors transform as $(\tfrac{1}{2},0)$ under
+$\mathrm{SL}(2,\mathbb{C})$, right-handed as $(0,\tfrac{1}{2})$.
+This operator involves $\Gamma_0$ and therefore \emph{requires
+time-orientation} for a globally consistent definition
+(Proposition~\ref{prop:chirality-flip}).
+
+\medskip\noindent
+\textbf{The correlation that defines the chiral SM.}
+The Standard Model is a chiral gauge theory: its defining feature is
+that left-handed fermions couple differently from right-handed ones
+under $\SU{2}_L$.  This means a fermion labeled ``left-handed''
+must be \emph{simultaneously}:
+\begin{enumerate}
+  \item in the $(\rep{4},\rep{2},\rep{1})$ representation under
+    Pati-Salam (from the internal $\omegasix$), \emph{and}
+  \item a left-handed Weyl spinor under the Lorentz group
+    (from the spacetime $\gamma_5$).
+\end{enumerate}
+The internal chirality alone assigns representation labels;
+the spacetime chirality determines propagation and coupling.
+The full chiral Standard Model requires both chiralities to be
+defined and correlated---and the spacetime part requires
+time-orientation.
+
+%----------------------------------------------------------------------
+\subsection{Conditions for Weyl spinor bundles}
+\label{sec:weyl-conditions}
+%----------------------------------------------------------------------
+
+We now state precisely which geometric structures a manifold needs
+to support Weyl spinor bundles.  A globally consistent
+$\Gammastar$ with definite sign requires two independent data:
+
+\begin{enumerate}
+  \item \textbf{Space-orientation}: to fix the sign from the ordered
+    spatial product $\Gamma_1\cdots\Gamma_{d-1}$.  A permutation of
+    two generators flips the sign.
+
+  \item \textbf{Time-orientation}: to fix the sign from $\Gamma_0$.
+    Reversing which direction is ``future-pointing'' sends
+    $\Gamma_0\to -\Gamma_0$ and hence $\Gammastar\to -\Gammastar$.
+\end{enumerate}
+
+\noindent
+A Lorentzian spin manifold $(M,g)$ admits Weyl spinor bundles
+$S(M) = S_L(M)\oplus S_R(M)$ if and only if $M$ is both
+time-oriented and space-oriented~\cite{LawsonMichelsohn1989}.
+Conversely, if both orientations are fixed, the ordered frame
+$\{e_0,e_1,\ldots,e_{d-1}\}$ (with $e_0$ future-pointing and
+$\{e_1,\ldots,e_{d-1}\}$ positively oriented) is globally defined
+up to proper orthochronous Lorentz transformations
+$\mathrm{SO}^+(d{-}1,1)$, which preserve the sign of~$\Gammastar$.
+
+We assume that the emergent spacetime of Paper~6 provides these
+structures:
+
+\medskip\noindent
+\textbf{Assumption A6} (continuum limit).
+\emph{The continuum limit of Paper~6's self-modeling lattice yields a
+smooth Lorentzian manifold $(M,g)$.}
+
+\medskip\noindent
+\textbf{Assumption A7} (Lorentzian signature).
+\emph{The emergent spacetime has Lorentzian signature, as implied by
+Paper~6's causal structure from Lieb-Robinson
+bounds~\cite{Paper6}.}
+
+\medskip
+Under these assumptions, the lattice structure provides all necessary
+geometric data.  A $d$-dimensional regular lattice has $d$ globally
+defined basis vectors, which in the continuum limit become a global
+frame (a trivialization of the tangent bundle).  A global frame is
+\emph{stronger} than each of the conditions it implies:
+\begin{equation}\label{eq:framing-hierarchy}
+  \text{framing}
+  \;\Longrightarrow\;
+  \text{spin structure}
+  \;\Longrightarrow\;
+  \text{orientability}\,,
+\end{equation}
+where neither implication reverses.%
+\footnote{Counterexamples showing strictness: $S^4$ is spin but not
+frameable ($\chi(S^4)=2\ne 0$); $\mathbb{C}P^2$ is oriented but
+not spin ($w_2\ne 0$).}
+Paper~6's lattice additionally provides time-orientation from
+Hamiltonian evolution (the sign of $e^{-iHt}$ distinguishes
+$t > 0$ from $t < 0$~\cite{Paper6}) and space-orientation from
+the lattice ordering.  Therefore all four conditions for Weyl
+spinor bundles---spin structure, space-orientation,
+time-orientation, and even-dimensionality---are satisfied.
+
+%----------------------------------------------------------------------
+\subsection{Three consequences of a single choice}
+\label{sec:three-consequences}
+%----------------------------------------------------------------------
+
+We are now in a position to extend Paper~7's
+``one choice, two consequences'' theorem.  Paper~7 showed that the
+single algebraic input $u\in S^6$ determines both the gauge group
+and the chiral representation~\cite{Paper7}.
+The results of this section add a third consequence: the chirality
+from $u$ imposes a geometric constraint on the emergent spacetime.
+
+\begin{theorem}[Three consequences of $u$]
+\label{thm:three-consequence}
+Let $\hthree$ be the exceptional Jordan algebra with observer
+idempotent $E_{11}$.  Assume:
+\begin{itemize}
+  \item[\textup{(P1)}] $\hthree$ is the universe algebra
+    \textup{(Gap~A)}.
+  \item[\textup{(P2)}] The observer selects $E_{11}$, breaking
+    $\Ffour\to\Spin{9}$ \textup{(Gap~B1)}.
+  \item[\textup{(P3)}] A complex structure $u\in S^6 \subset
+    \mathrm{Im}(\mathbb{O})$ is chosen \textup{(Gap~B2)}.
+  \item[\textup{(P4)}] The complexification principle holds:
+    $\Vhalf\otimes_{\mathbb{R}}\mathbb{C} = S_{10}^+$
+    \textup{(Gap~C)}.
+  \item[\textup{(A6)}] The continuum limit of Paper~6's lattice
+    yields a smooth manifold.
+  \item[\textup{(A7)}] The emergent spacetime has Lorentzian
+    signature.
+\end{itemize}
+Then the single choice of $u$ simultaneously determines:
+
+\medskip\noindent
+\textup{(a)~\textbf{Gauge group}} \textup{(constructive):}\enspace
+The $\Ffour$ intersection gives $\SMgauge$,
+$\dim = 12$~\cite{Paper7,TodorovDrenska2018}.
+
+\medskip\noindent
+\textup{(b)~\textbf{Chirality}} \textup{(constructive):}\enspace
+$u$ defines $\Cl{6}\subset\Cl{10}$, whose volume form $\omegasix$
+selects the LEFT chiral embedding~\cite{Paper7,Furey2018}:
+\begin{equation}\label{eq:chiral-decomp}
+  \rep{16}
+  \;\to\;
+  (\rep{4},\rep{2},\rep{1})
+  \;\oplus\;
+  (\bar{\rep{4}},\rep{1},\rep{2})\,.
+\end{equation}
+
+\medskip\noindent
+\textup{(c)~\textbf{Time-orientation requirement}}
+\textup{(constraint):}\enspace
+The chirality from~\textup{(b)} can only be physically realized as
+spacetime Weyl spinors on a time-oriented Lorentzian manifold.
+Therefore $u$ creates a necessity for time-orientation on the
+emergent spacetime.
+\end{theorem}
+
+\begin{proof}
+Consequences~(a) and~(b) are proved in Paper~7
+(Theorems~4.1 and~4.2 of~\cite{Paper7}).  For~(c), the logical
+chain is:
+\begin{equation}\label{eq:logical-chain}
+  u \;\xrightarrow{\;\text{alg}\;}\; W = u^\perp
+  \;\xrightarrow{\;\text{alg}\;}\; \Cl{6}
+  \;\xrightarrow{\;\text{alg}\;}\; \omegasix
+  \;\xrightarrow{\;\text{rep}\;}\;
+  \text{L/R decomp}
+  \;\xrightarrow{\;\text{phys}\;}\;
+  \text{Weyl spinors}
+  \;\xrightarrow{\;\text{geom}\;}\;
+  \text{time-oriented}\,.
+\end{equation}
+Steps~1--4 are pure algebra (from $u$ to the L/R decomposition via
+$\omegasix$).  Step~5 is the physical identification of the
+algebraic L/R labels with spacetime Weyl spinor types.  Step~6 is
+Proposition~\ref{prop:chirality-flip}: the spacetime chirality
+operator $\Gammastar$ involves $\Gamma_0$, so a globally consistent
+Weyl decomposition requires time-orientation.
+The argument is not circular: steps~1--4 assume no geometry, and
+time-orientation appears only as a \emph{conclusion}, not a
+premise.
+\end{proof}
+
+\begin{remark}[Nature of consequence~(c)]\label{rem:constraint-not-constructive}
+Consequences~(a) and~(b) are \emph{constructive}: $u$ builds the
+gauge group and the chiral representation through explicit algebraic
+procedures.  Consequence~(c) is a \emph{constraint}: $u$ imposes a
+geometric requirement on the emergent spacetime but does not itself
+select a specific time-orientation.  The particular ``arrow of
+time''---which direction is the future---comes not from~$u$ but
+from the thermodynamic gradient developed in
+Section~\ref{sec:gradient-gapc}.
+\end{remark}
+
+\begin{remark}[Assumptions A6--A7 are new]\label{rem:new-assumptions}
+Assumptions P1--P4 are inherited from Paper~7; they suffice for
+consequences~(a) and~(b), which are purely algebraic.
+Assumptions~A6--A7 are needed only for consequence~(c) and its
+satisfaction: they place the algebraic chirality into a geometric
+context.  If A6 or A7 fail, consequences~(a) and~(b) are
+unaffected, and the three-consequence theorem reduces to Paper~7's
+two-consequence theorem.
+\end{remark}
+
+\medskip
+That Paper~6's emergent spacetime satisfies the constraint is the
+consistency check: under assumptions~A6--A7, the lattice framing
+provides a spin structure, the lattice ordering provides
+space-orientation, and Hamiltonian evolution provides
+time-orientation~\cite{Paper6}.  The chirality from~(b) can
+therefore be physically realized.
+
+The key structural insight is that the same choice $u$ that
+determines particle physics content (gauge group and chirality) also
+constrains spacetime geometry (time-orientation).
+This cross-paper link---particle physics from Paper~7 constraining
+spacetime from Paper~6---was implicit in the program but has not
+been stated before.  It will become central in the next section,
+where we show that the time-orientation required by chirality is
+the \emph{same} geometric prerequisite needed for the
+thermodynamic arrow of time.

@@ -1,0 +1,208 @@
+% introduction.tex — Paper 8: Arrow of Time and Complexification
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats, jordan_product=(1/2)(ab+ba), clifford_convention=euclidean_positive, complex_structure=u_equals_e7, spin_representation=S10plus_boyle, pati_salam=SU4xSU2LxSU2R
+
+%----------------------------------------------------------------------
+\section{Introduction}\label{sec:intro}
+%----------------------------------------------------------------------
+
+Why does particle physics use complex numbers?  The Standard Model is
+a quantum field theory over $\mathbb{C}$: its gauge group $\SMgauge$
+acts on complex representations, and its chiral fermions are
+complex Weyl spinors.  The exceptional Jordan algebra
+$\hthree$---the $3\times 3$ Hermitian matrices over the octonions
+$\mathbb{O}$---provides a natural algebraic setting in which the
+Standard Model gauge group and its chiral representation
+emerge~\cite{JvNW1934,TodorovDrenska2018,Furey2018,Boyle2020,BGW2020}.
+In a companion paper~\cite{Paper7}, we showed that a single algebraic
+choice---a unit imaginary octonion $u \in S^6 \subset
+\mathrm{Im}(\mathbb{O})$---simultaneously determines both the gauge
+group $\SMgauge$ (via the $\Ffour$ intersection of
+Todorov--Drenska~\cite{TodorovDrenska2018}) and the chiral
+(left-handed) fermion representation (via the $\Cl{6}$ volume form of
+Furey~\cite{Furey2018}).  This ``one choice, two consequences'' result
+connects the self-modeling axioms of Paper~5~\cite{Paper5} through
+$\hthree$ to a one-generation chiral Standard Model representation in
+a nine-link chain with explicit gap identification.
+
+The derivation, however, is conditional on a step that Paper~7 left
+open.  The Peirce decomposition of $\hthree$ under a rank-1
+idempotent $E_{11}$ produces a half-space $\Vhalf \cong \mathbb{O}^2$
+that is a \emph{real} 16-dimensional space carrying the spinor
+representation of $\Spin{9}$.  The gauge group and chirality
+results require this space to be complexified:
+$\Vhalf \otimes_{\mathbb{R}} \mathbb{C} = S_{10}^+$, upgrading
+$\Spin{9} \to \Spin{10}$ and $\Ffour \to \Esix$.  Paper~7
+argued that the C*-algebra nature of the observer (from
+Paper~5~\cite{Paper5}) motivates this complexification, but flagged
+it as an open gap: \textbf{Gap~C}.
+
+%----------------------------------------------------------------------
+\subsection{The problem: complexification is not algebraically forced}
+\label{sec:intro-problem}
+%----------------------------------------------------------------------
+
+Paper~7's gap analysis~\cite{Paper7} showed that four independent
+algebraic routes to complexification all fail.  The
+obstruction is structural: the Peirce eigenspace
+$V_1 = \mathbb{R} \cdot E_{11}$ is one-dimensional, creating a
+bottleneck through which no Peirce-mediated mechanism can transmit a
+complex structure from the observer's C*-algebra to the half-space
+$\Vhalf$.  This result is sharp.  Complexification of $\Vhalf$ is
+\emph{not} forced by the Jordan algebra structure of $\hthree$, by the
+Peirce decomposition, or by any known algebraic property of the
+observer--universe interface~\cite{BGW2020}.
+
+The failure is not a computational gap awaiting a cleverer argument.
+It is a no-go result: the $V_1$ bottleneck is a theorem about the
+Peirce decomposition, and it closes the algebraic route to Gap~C.
+Any resolution must come from outside the algebra.
+
+%----------------------------------------------------------------------
+\subsection{The resolution: thermodynamic selection}
+\label{sec:intro-resolution}
+%----------------------------------------------------------------------
+
+We narrow Gap~C via two independent chains of results that
+converge on a common geometric prerequisite.
+
+\medskip\noindent
+\textbf{Chain~1 (all self-modelers):}
+The Landauer bound~\cite{Landauer1961,Bennett1982} applied to the
+self-modeling update cycle (Sec.~\ref{sec:landauer}) shows that
+maintaining correlations $\MI{B}{M} > 0$ dissipates at least
+$\kB T\,\MI{B}{M}$ per cycle.  Free energy requires
+non-equilibrium ($F > F_{\mathrm{eq}}$), and a finite system out of
+equilibrium must have $S(t) < \Smax$.  The entropy gradient theorem
+(Sec.~\ref{sec:egt}), proved via three independent routes, establishes
+this for \emph{all} self-modelers regardless of their matter content.
+The entropy gradient defines a temporal direction---the arrow of time.
+
+\medskip\noindent
+\textbf{Chain~2 (SM-like observers):}
+Chirality requires complexification: the $\Cl{6}$ volume form
+$\omegasix$ has no eigenstates in real
+$\Vhalf = \mathbb{O}^2$~\cite{Paper7}.  Chirality also requires
+time-orientation: the chirality operator $\Gammastar$ in Lorentzian
+signature flips under time reversal~\cite{LawsonMichelsohn1989}
+(Sec.~\ref{sec:chirality}).  Therefore SM-like observers require
+both complexification and time-orientation.
+
+\medskip\noindent
+\textbf{Structural convergence:}
+Both chains require time-orientation---Chain~1 for the thermodynamic
+arrow, Chain~2 for the Weyl decomposition.  The single algebraic
+choice $u \in S^6$ that determines gauge group and
+chirality~\cite{Paper7} simultaneously creates a requirement for the
+same time-orientation that the entropy gradient provides.  This
+convergence is a structural consistency check---the framework's
+particle physics and thermodynamics both require a geometric
+property that the emergent spacetime provides.  It is \emph{not}
+a logical closure:
+the two chains are independent, and we do not prove that
+non-complexified blocks have $\rhoexp = 0$.
+
+%----------------------------------------------------------------------
+\subsection{What this paper proves and does not prove}
+\label{sec:intro-contract}
+%----------------------------------------------------------------------
+
+\noindent\textbf{Proved (within stated assumptions):}
+\begin{itemize}
+  \item \textbf{Entropy gradient theorem}
+    (Theorem~\ref{thm:entropy-gradient}): every self-modeling composite
+    with $\rhoexp > 0$ satisfies $S(t) < \Smax$, established via three
+    independent routes using different assumption subsets
+    (Sec.~\ref{sec:egt}).
+  \item \textbf{Landauer bound on self-modeling}
+    (Theorem~\ref{thm:landauer}): each update cycle dissipates at
+    least $\kB T\,\MI{B}{M}$ of work (Sec.~\ref{sec:landauer-bound}).
+  \item \textbf{Three-consequence theorem}
+    (Theorem~\ref{thm:three-consequence}): the single choice
+    $u \in S^6$ determines the gauge group, chirality, \emph{and}
+    the requirement for spacetime time-orientation---extending
+    Paper~7's ``one choice, two consequences'' to three
+    (Sec.~\ref{sec:three-consequences}).
+  \item \textbf{Gap~C narrowing}
+    (Theorem~\ref{thm:complexification}): complexification is necessary
+    for SM-like observers; the status of non-SM self-modelers in
+    non-complexified blocks remains open
+    (Sec.~\ref{sec:gapc-theorem}).
+\end{itemize}
+
+\medskip
+\noindent\textbf{Not proved:}
+\begin{itemize}
+  \item \textbf{Gap~C is narrowed, not closed.}  The $V_1$
+    bottleneck remains genuine~\cite{BGW2020}.  Non-complexified blocks
+    exist and are not forbidden by the algebra.  Whether they can
+    support non-SM self-modelers is an open question.
+  \item \textbf{The Past Hypothesis is not derived.}  The entropy
+    gradient theorem shows that self-modeling \emph{requires}
+    $S(t) < \Smax$ but does not explain \emph{why} the initial entropy
+    was low~\cite{Penrose1979,Albert2000}.  Its status is elevated from
+    ``observed cosmological fact'' to ``necessary condition for
+    self-modeling''---an observer-selection argument, not a
+    first-principles derivation.
+  \item \textbf{The Second Law is not derived.}  It is \emph{used} as
+    input (standard physics) in Link~2 of the chain.
+  \item \textbf{The spectral action is not computed.}  The dynamics
+    (GR~+~SM Lagrangian from the Connes--Chamseddine--Marcolli spectral
+    triple~\cite{CCM2007}) remains a separate open problem.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Epistemic honesty.}
+Gap~C is \emph{narrowed}, not \emph{closed}.  ``Narrowed'' means
+we prove complexification is necessary for SM-like observers, but
+do not prove $\rhoexp = 0$ for all non-complexified blocks.  A
+non-complexified block could in principle have time-orientation
+(from dynamics), an entropy gradient, and non-SM self-modelers with
+vector-like rather than chiral matter.  Whether such physics supports
+self-modeling is open.  This does not undermine the program: it
+explains \emph{our} physics (we observe SM chirality, which requires
+complexification), not all possible physics---the same epistemic
+status as ``why 3+1 dimensions?''
+
+%----------------------------------------------------------------------
+\subsection{Paper organization}\label{sec:intro-outline}
+%----------------------------------------------------------------------
+
+Section~\ref{sec:entropy} derives the entropy dynamics of self-modeling
+composites under the SWAP Hamiltonian: the CPTP channel, its unitality,
+and three regimes of entropy behavior (oscillation, monotonic increase,
+effective thermalization).
+
+Section~\ref{sec:landauer} establishes the Landauer bound on
+self-modeling.  The self-modeling update cycle maps onto Bennett's
+Maxwell's demon analysis~\cite{Bennett1982}, and the Reeb--Wolf quantum
+Landauer bound~\cite{ReebWolf2014} gives the minimum dissipation per
+cycle.  Three independent arguments close a potential coherence
+loophole.
+
+Section~\ref{sec:chirality} shows that physical realization of the
+chirality from Paper~7 requires the emergent spacetime to carry a
+time-orientation, extending ``one choice, two consequences'' to
+``one choice, three consequences.''
+
+Section~\ref{sec:gradient-gapc} brings the preceding results together.
+The entropy gradient theorem is proved via three independent routes.
+Two independent chains---one thermodynamic, one algebraic---converge
+on time-orientation, narrowing Gap~C\@.  The master theorem collects
+the results, and an assumption register classifies every input by
+severity.
+
+Section~\ref{sec:predictions} extracts quantitative predictions:
+the minimum entropy deficit for self-modeling, comparison with
+Penrose's gravitational entropy estimate~\cite{Penrose1979} (a
+94-order-of-magnitude gap that is a feature, not a failure), the
+exhaustion timescale, and the experiential density profile.
+
+Section~\ref{sec:discussion} places the results in the context of
+the self-modeling program (Papers~5--7) and discusses connections to
+the spectral triple approach~\cite{CCM2007}, Jacobson's thermodynamic
+gravity~\cite{Jacobson1995}, and observer-selection
+principles~\cite{Hoffman2015}.
+
+Appendix~\ref{app:derivations} collects detailed derivations, and
+Appendix~\ref{app:assumptions} provides the complete assumption
+register.

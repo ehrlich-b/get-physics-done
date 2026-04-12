@@ -1,0 +1,195 @@
+% appendix-assumptions.tex --- Appendix B: Assumption Register
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats
+
+%----------------------------------------------------------------------
+\section{Assumption Register}\label{app:assumptions}
+%----------------------------------------------------------------------
+
+The main text (Table~\ref{tab:assumptions}) summarizes the seven
+framework assumptions entering the master theorem
+(Theorem~\ref{thm:master}).  This appendix provides the complete
+register, organized into two tiers: \emph{framework assumptions}
+(A1--A7), which define the theoretical setting and are common to all
+results, and \emph{model-dependent parameters} (A8--A10), which enter
+only the order-of-magnitude estimates of
+Sec.~\ref{sec:predictions}.  For each assumption we record its
+source, severity, current status, what evidence would close or
+validate it, and which results depend on it.
+
+%......................................................................
+\subsection{Framework assumptions}\label{app:framework-assumptions}
+%......................................................................
+
+Table~\ref{tab:assumptions-full} expands on the main-text summary.
+Severity levels are: \textsc{standard} (widely accepted, no serious
+prospect of failure), \textsc{model choice} (replaceable without
+changing qualitative conclusions), \textsc{medium} (plausible but
+unproven), and \textsc{high} (strongest assumption in the chain;
+failure would weaken key conclusions).
+
+\begin{table*}[t]
+  \centering
+  \caption{Full framework assumption register (A1--A7).  ``What would
+  close it'' describes the minimal result that would either validate
+  the assumption or render it unnecessary.  ``Depends'' lists results
+  that rely on each assumption.}
+  \label{tab:assumptions-full}
+  \begin{tabular}{@{}c p{3.5cm} l l l p{4.5cm}@{}}
+    \toprule
+    ID & Assumption & Source & Severity & Status
+       & What would close it \\
+    \midrule
+    A1 & Finite-dimensional quantum mechanics
+       & Paper~5~\cite{Paper5}
+       & \textsc{standard}
+       & Accepted
+       & --- \\[4pt]
+    A2 & Thermal contact at temperature~$T$
+       & Standard thermodynamics
+       & \textsc{standard}
+       & Accepted
+       & --- \\[4pt]
+    A3 & Closed/semi-closed system equilibrates on finite timescales
+       & Statistical mechanics
+       & \textsc{high}
+       & Open
+       & Rigorous equilibration bound for self-modeling Hamiltonians
+         (e.g., extending~\cite{Short2012} to SWAP lattices) \\[4pt]
+    A4 & SWAP lattice dynamics ($H = JF$)
+       & Paper~6~\cite{Paper6}
+       & \textsc{model choice}
+       & Accepted
+       & Show qualitative results hold for general nearest-neighbor~$H$ \\[4pt]
+    A5 & Experiential density formula:
+         $\rhoexp = \MI{B}{M}(1 - \MI{B}{M}/S_B)$
+       & Paper~5~\cite{Paper5}
+       & \textsc{standard}
+       & Accepted
+       & --- (definitional within Paper~5 axioms) \\[4pt]
+    A6 & Continuum limit of self-modeling lattice yields smooth
+         Lorentzian manifold
+       & Paper~6~\cite{Paper6}
+       & \textsc{medium}
+       & Unvalidated
+       & Rigorous continuum-limit construction
+         (cf.\ causal-set--manifold correspondence) \\[4pt]
+    A7 & Emergent spacetime has Lorentzian signature
+       & Paper~6 causal structure~\cite{Paper6}
+       & \textsc{medium}
+       & Unvalidated
+       & Derive signature from causal axioms
+         (e.g., via Malament's theorem~\cite{Malament1977}) \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\noindent
+Assumption~A3 is the strongest in the chain.  If it fails---e.g., if
+recurrence times for self-modeling Hamiltonians are shorter than
+expected---then Route~A of the entropy gradient theorem
+(Sec.~\ref{sec:egt}) is weakened, though Routes~B and~C survive.
+Assumptions~A6 and~A7 are needed only for the SM-observer
+complexification requirement [part~(II) of the master theorem]; the
+entropy gradient [part~(I)] is independent of both.  A5 (experiential
+density) enters via Route~C and part~(II) step~(d).
+
+%......................................................................
+\subsection{Model-dependent parameters}\label{app:model-params}
+%......................................................................
+
+The order-of-magnitude estimates P7--P9 of Sec.~\ref{sec:predictions}
+require three cosmological or biological inputs external to the
+framework.  Table~\ref{tab:params} records each parameter, its
+fiducial value, plausible range, and sensitivity.
+
+\begin{table*}[t]
+  \centering
+  \caption{Model-dependent parameters (A8--A10).  These enter only the
+  order-of-magnitude predictions P7--P9; the framework predictions
+  P1--P6 are independent of all three.  ``Sensitivity'' indicates how
+  the Landauer deficit $\Delta S_{\mathrm{Landauer}}$ or the
+  exhaustion timescale $\tauex$ scales with each parameter.}
+  \label{tab:params}
+  \begin{tabular}{@{}c l l l l@{}}
+    \toprule
+    ID & Parameter & Fiducial value & Plausible range & Sensitivity \\
+    \midrule
+    A8 & Cosmological entropy budget $\Smax$
+       & ${\sim}\,10^{122}$ nats (Bekenstein)
+       & $10^{120}$--$10^{124}$
+       & $\tauex \propto \Smax$;
+         linear in $\Delta S$ \\[4pt]
+    A9 & Neural self-modeling dimension $d_M$
+       & ${\sim}\,10^{11}$
+       & $10^{9}$--$10^{13}$
+       & Logarithmic in $\MI{B}{M}$;
+         linear in $\Delta S_{\mathrm{Landauer}}$ \\[4pt]
+    A10 & Self-modeling update rate $\nu$
+        & ${\sim}\,10$ Hz
+        & 1--100 Hz
+        & Linear in $N$;
+          linear in $\tauex$ \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\noindent
+Varying all three parameters simultaneously across their full
+plausible ranges shifts $\Delta S_{\mathrm{Landauer}}$ by at most
+${\sim}\,6$ orders of magnitude (from ${\sim}\,10^{25}$ to
+${\sim}\,10^{31}$~nats).  The 94-order gap with the Penrose deficit
+(Eq.~\eqref{eq:gap-94}) narrows to at worst ${\sim}\,88$ orders of
+magnitude: the qualitative conclusion is robust.
+
+%......................................................................
+\subsection{Dependency map}\label{app:dep-map}
+%......................................................................
+
+Table~\ref{tab:dep-map} records which assumptions are required by
+each theorem, proposition, and named result in the paper.  An entry
+``$+$A3'' indicates that the assumption strengthens the result
+(e.g., extends it from a single-cycle bound to a cosmological
+statement) but is not required for the core claim.
+
+\begin{table}[t]
+  \centering
+  \caption{Dependency map: assumptions required by each result.
+  Parenthesized entries are needed only for specific sub-results
+  (e.g., a particular route or corollary).}
+  \label{tab:dep-map}
+  \begin{tabular}{@{}l l@{}}
+    \toprule
+    Result & Assumptions \\
+    \midrule
+    Landauer bound (Thm.~\ref{thm:landauer})
+      & A1, A2 \\
+    Coherence loophole closure
+      & A1, A2 (+Markovian bath for R2) \\
+    Chain theorem (Prop.~\ref{prop:chain})
+      & A1, A2, A3 \\
+    Entropy gradient, Route~A
+      & A1, A2, A3 \\
+    Entropy gradient, Route~B
+      & A1, A3 \\
+    Entropy gradient, Route~C
+      & A1, A5 \\
+    Three-consequence theorem (Thm.~\ref{thm:three-consequence})
+      & A6, A7 \\
+    Gap~C resolution (Thm.~\ref{thm:complexification})
+      & A1--A7 \\
+    Master theorem (Thm.~\ref{thm:master})
+      & A1--A7 \\
+    Quantitative estimates P7--P9
+      & A1--A7 $+$ A8--A10 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent
+The dependency structure has two notable features.  First, the entropy
+gradient theorem has three independent routes with different assumption
+subsets (Table~\ref{tab:routes}), so no single assumption failure
+destroys the conclusion.  Second, the model-dependent parameters
+A8--A10 enter only the quantitative estimates; all structural results
+(Landauer bound, chain theorem, Gap~C resolution) are independent of
+cosmological inputs.

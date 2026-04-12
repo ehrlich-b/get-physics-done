@@ -1,0 +1,719 @@
+% gradient-gapc.tex --- Section 5: Entropy Gradient Theorem and Gap C Resolution
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats, state_normalization=Tr(rho)=1, sequential_product=a&b=sqrt(a)b*sqrt(a), von_neumann_entropy=S(rho)=-Tr(rho*ln*rho), information=I(B;M)=S(B)+S(M)-S(BM), free_energy=F=E-TS, clifford=Euclidean_Cl6_Lorentzian_Cl(d-1,1)
+
+%----------------------------------------------------------------------
+\section{Entropy Gradient Theorem and Gap~C
+  Resolution}\label{sec:gradient-gapc}
+\label{sec:gradient}% alias for cross-refs from Sec.~2
+%----------------------------------------------------------------------
+
+We now bring together the entropy dynamics of
+Sec.~\ref{sec:entropy}, the Landauer bound of
+Sec.~\ref{sec:landauer}, and the chirality--time-orientation link of
+Sec.~\ref{sec:chirality} to establish the central results of this
+paper.  The argument has four parts.  First, we prove that every
+self-modeler requires an entropy gradient $S(t) < \Smax$---what we
+call the \emph{entropy gradient theorem}---via three independent
+routes (Sec.~\ref{sec:egt}).  Second, we identify two independent
+chains that converge on time-orientation as a shared geometric
+prerequisite (Sec.~\ref{sec:selection-chain}).  Third, we state the
+narrowed Gap~C result as a formal theorem with epistemic labels
+(Sec.~\ref{sec:gapc-theorem}).  Fourth, we present the updated master
+theorem and nine-link chain with Link~6 annotated
+(Secs.~\ref{sec:master-theorem}--\ref{sec:updated-chain}).
+
+%----------------------------------------------------------------------
+\subsection{Entropy gradient theorem}\label{sec:egt}
+%----------------------------------------------------------------------
+
+\begin{theorem}[Entropy gradient]\label{thm:entropy-gradient}
+Let $(B,M,\mathbin{\&})$ be a self-modeling composite on a finite
+SWAP lattice in thermal contact with an environment at
+temperature~$T$, with $\dim\mathcal{H}_B = d_B$,
+$\dim\mathcal{H}_M = d_M$, and faithful tracking
+$\MI{B}{M} > 0$.  Then $S(t) < \Smax \equiv \ln(d_B\,d_M)$: the
+composite must be out of thermal equilibrium, with entropy strictly
+below its maximum.
+\end{theorem}
+
+\noindent
+We prove this via three independent routes, each using a different
+subset of assumptions.  Their convergence on the same conclusion
+strengthens the result.
+
+%......................................................................
+\paragraph{Route~A (Direct chain).}
+This route assembles the chain theorem of
+Sec.~\ref{sec:chain} into a single implication.
+\begin{enumerate}
+  \item \textbf{Self-modeling $\boldsymbol{\Rightarrow}$ work.}
+    Theorem~\ref{thm:landauer} gives
+    $\Wmin = \kB T\,\MI{B}{M} > 0$ per update cycle.
+    \hfill[\textsc{theorem}, Sec.~\ref{sec:landauer-bound}]
+
+  \item \textbf{Work $\boldsymbol{\Rightarrow}$ non-equilibrium.}
+    Performing work $W > 0$ requires free energy above the
+    equilibrium value: $F(\rho_{BM}) > F_{\mathrm{eq}}$.
+    Equivalently, the extractable work
+    $\kB T\,D(\rho_{BM}\|\rho_{\mathrm{eq}}) > 0$ implies
+    $\rho_{BM} \neq \rho_{\mathrm{eq}}$.
+    \hfill[\textsc{standard physics}]
+
+  \item \textbf{Non-equilibrium $\boldsymbol{\Rightarrow}$ entropy
+    gradient.}
+    A finite system out of equilibrium will equilibrate on a
+    timescale set by the SWAP dynamics
+    (Eq.~\eqref{eq:convergence}).  To sustain self-modeling beyond
+    the exhaustion bound~\eqref{eq:exhaustion}, the system must
+    access a low-entropy reservoir: $S(t) < \Smax$.
+    \hfill[\textsc{physical argument} $+$ A3]
+\end{enumerate}
+The chain is:
+\begin{equation}
+  \MI{B}{M} > 0
+  \;\xrightarrow{\;\text{Thm.~\ref{thm:landauer}}\;}
+  W > 0
+  \;\xrightarrow{\;\text{2nd Law}\;}
+  F > F_{\mathrm{eq}}
+  \;\xrightarrow{\;\text{A3}\;}
+  S(t) < \Smax \,.
+  \label{eq:route-a}
+\end{equation}
+Each link's output is the next link's input, and no link uses the
+conclusion of a later link.
+
+\paragraph{Route~B (Boundary argument).}
+This route avoids the Landauer bound entirely, using only finitude and
+monotonicity.
+
+\begin{enumerate}
+  \item \textbf{Entropy is bounded.}
+    Finite-dimensional quantum mechanics gives
+    $0 \leq S(\rho_{BM}) \leq \ln(d_B\,d_M) = \Smax$.
+    \hfill[A1]
+
+  \item \textbf{Entropy is non-decreasing.}
+    Under repeated interaction with fresh maximally mixed bath qubits,
+    the monotonicity chain~\eqref{eq:monotonicity} holds.  On a
+    macroscopic lattice ($N \gg 1$), effective monotonicity holds for
+    $t \ll t_{\mathrm{rec}} \sim e^{c\cdot 2^N}$
+    (Proposition~\ref{prop:three-regimes}).
+    \hfill[\textsc{theorem}, Sec.~\ref{sec:entropy-step}]
+
+  \item \textbf{Self-modeling requires $S < \Smax$.}
+    At $S = \Smax$ the state is maximally mixed, so $\MI{B}{M} = 0$
+    (Eq.~\eqref{eq:eq-mutual}) and $\rhoexp = 0$.  Therefore
+    $\rhoexp > 0$ implies $S(t) < \Smax$.
+    \hfill[\textsc{definition}, Eq.~\eqref{eq:rho-def}]
+\end{enumerate}
+Combining: $S$ is bounded, non-decreasing, and currently below its
+maximum.  Therefore for all $t_0 < t$,
+\begin{equation}
+  S(t_0) \;\leq\; S(t) \;<\; \Smax \,.
+  \label{eq:route-b}
+\end{equation}
+The block possesses a low-entropy past.
+
+\paragraph{Route~C ($\rhoexp$-selection).}
+This route requires the fewest assumptions.  The contrapositive of
+three established results gives:
+\begin{equation}
+  \rhoexp > 0
+  \;\Longrightarrow\;
+  \MI{B}{M} > 0
+  \;\Longrightarrow\;
+  \rho_{BM} \neq \rho_{\mathrm{eq}}
+  \;\Longrightarrow\;
+  S(t) < \Smax \,.
+  \label{eq:route-c}
+\end{equation}
+Step~1 is the definition of $\rhoexp$
+(Eq.~\eqref{eq:rho-def}: $\rhoexp = 0$ when $\MI{B}{M} = 0$).
+Step~2 is the equilibrium result $\MI{B}{M}^{\mathrm{eq}} = 0$
+(Eq.~\eqref{eq:eq-mutual}).  Step~3 is
+$S(\rho_{\mathrm{eq}}) = \Smax$.  The $\rhoexp$-weighted ensemble is
+therefore concentrated on blocks with $S < \Smax$: the experiential
+measure sees only non-equilibrium blocks.
+
+\medskip
+\noindent
+\textit{Comparison of routes.}---Table~\ref{tab:routes} compares the
+three routes.  Route~A provides the strongest quantitative content
+(the Landauer cost per cycle).  Route~B provides the simplest logic
+(bounded monotone sequences).  Route~C requires the fewest
+assumptions (only the definition of~$\rhoexp$ and the equilibrium
+result).  Their convergence from different starting points makes the
+entropy gradient theorem robust against the failure of any single
+assumption.
+
+\begin{table}[t]
+  \centering
+  \caption{Three routes to the entropy gradient theorem.  Each route
+  proves $S(t) < \Smax$ using a different subset of assumptions.
+  ``A$n$'' labels refer to the assumption register in
+  Table~\ref{tab:assumptions}.}
+  \label{tab:routes}
+  \begin{tabular}{llll}
+    \toprule
+    & Route~A & Route~B & Route~C \\
+    \midrule
+    Key input
+      & Landauer bound & Finitude $+$ monotonicity
+      & $\rhoexp > 0 \Leftrightarrow I > 0$ \\
+    Assumptions
+      & A1, A2, A3, A4 & A1, A3 & A1, A5 \\
+    Epistemic chain
+      & Thm.\ $+$ std.\ phys.\ $+$ A3
+      & Thm.\ (Lindblad) $+$ arithmetic
+      & Def.\ $+$ thm.\ $+$ contrapositive \\
+    Gives $W_{\min}$?
+      & Yes & No & No \\
+    Uses Landauer?
+      & Yes & No & No \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------
+\subsection{Two chains and their convergence}\label{sec:selection-chain}
+%----------------------------------------------------------------------
+
+The entropy gradient theorem and the chirality--time-orientation link
+of Sec.~\ref{sec:chirality} provide two \emph{independent} chains of
+reasoning.  We present each, then show that they converge on a common
+geometric prerequisite: time-orientation.
+
+%......................................................................
+\paragraph{Chain~1 (all self-modelers).}
+The entropy gradient theorem (Theorem~\ref{thm:entropy-gradient})
+establishes that \emph{every} self-modeling composite requires an
+entropy gradient, regardless of chirality or complexification.  The
+logic, proved via three independent routes in Sec.~\ref{sec:egt}, is:
+\begin{equation}
+  \MI{B}{M} > 0
+  \;\xrightarrow{\;\text{Landauer}\;}
+  W \geq \kB T\,\MI{B}{M}
+  \;\xrightarrow{\;\text{2nd Law}\;}
+  \text{non-equilibrium}
+  \;\xrightarrow{\phantom{\;\text{2nd Law}\;}}
+  S(t) < \Smax \,.
+  \label{eq:chain-1}
+\end{equation}
+This chain holds for all self-modelers on any block of structure
+space.  It makes no reference to chirality, complexification, or
+the Standard Model.  It uses only assumptions~A1--A3
+(Table~\ref{tab:assumptions}).
+
+The entropy gradient defines a temporal direction: the ``future'' is
+the direction of entropy increase, and the ``past'' is the direction
+of lower entropy.  On an emergent Lorentzian manifold (A6--A7), this
+thermodynamic arrow requires a time-orientation---a continuous choice
+of future-pointing timelike vector field---to distinguish the two
+null half-cones at every point.  This last step uses A6--A7 and is
+a physical identification (thermodynamic arrow $\to$ geometric
+time-orientation), not a mathematical theorem; it is the standard
+assumption that the emergent spacetime's causal structure is
+compatible with its thermodynamics.
+
+%......................................................................
+\paragraph{Chain~2 (SM-like observers).}
+Standard Model physics is defined by chiral fermions.  The chain
+from complexification to chirality to time-orientation is:
+\begin{equation}
+  \text{SM-like observer}
+  \;\xrightarrow{\;\text{def.}\;}
+  \text{chirality}
+  \;\xrightarrow{\;\text{\cite{Paper7}}\;}
+  \text{complexification}
+  \;\xrightarrow{\;\text{CHIR-01}\;}
+  \text{time-orientation} \,.
+  \label{eq:chain-2}
+\end{equation}
+Each arrow is a necessary condition, reading right-to-left:
+\begin{itemize}
+  \item \textbf{Chirality requires complexification.}
+    On real $\Vhalf = \mathbb{O}^2$, the $\Cl{6}$ volume form
+    $\omegasix$ has no eigenstates giving the left--right
+    decomposition: the eigenvalue equation
+    $i\,\omegasix\,\ket{\psi} = \pm\ket{\psi}$ requires complex
+    coefficients.  Without complexification, chirality is not
+    defined.
+    \hfill[\textsc{algebra};~\cite{Paper7}]
+
+  \item \textbf{Chirality requires time-orientation.}
+    The three-consequence theorem
+    (Theorem~\ref{thm:three-consequence}, consequence~(c))
+    establishes that the physical Weyl decomposition
+    $S = S_L \oplus S_R$ requires both internal chirality and
+    a time-orientation for a globally consistent sign of the
+    spacetime chirality operator $\Gammastar$
+    (Proposition~\ref{prop:chirality-flip},
+    Corollary~\ref{cor:projector-exchange}).
+    \hfill[\textsc{geometry}; Sec.~\ref{sec:chirality}]
+\end{itemize}
+This chain uses assumptions~A6--A7 in addition to the algebraic
+results of~\cite{Paper7}.
+
+\paragraph{Logical status of the two chains.}
+The direction of implication is critical.  The three-consequence
+theorem proves \emph{chirality $\Rightarrow$ time-orientation is
+required}.  Its valid contrapositive is \emph{no time-orientation
+$\Rightarrow$ no chirality}.  Crucially, the \emph{converse}---no
+chirality $\Rightarrow$ no time-orientation---does \emph{not}
+follow.  A non-complexified block can lack chirality while still
+possessing time-orientation from other sources.
+
+This is why the two chains are independent.  Chain~1 establishes
+entropy gradients (and hence a temporal direction) for all
+self-modelers without invoking chirality.  Chain~2 shows that
+SM-like observers additionally require chirality, which in turn
+requires both complexification and time-orientation.  Neither chain
+implies the other.
+
+%......................................................................
+\paragraph{Structural convergence.}
+The two chains converge on time-orientation as a shared geometric
+prerequisite:
+\begin{itemize}
+  \item \textbf{Chain~1:} the entropy gradient defines a temporal
+    direction (low-entropy past $\to$ high-entropy future),
+    which on a Lorentzian manifold corresponds to a
+    time-orientation.
+  \item \textbf{Chain~2:} chirality requires time-orientation for
+    the Weyl decomposition
+    (Theorem~\ref{thm:three-consequence}(c)).
+\end{itemize}
+The single algebraic choice $u \in S^6$ does double duty: it
+determines the gauge group and chirality
+(Paper~7~\cite{Paper7}) \emph{and} creates a requirement for the
+same time-orientation that the thermodynamic arrow provides.  This
+convergence is a structural consistency check: the framework's
+particle physics content and its thermodynamic content both require
+a geometric property (time-orientation) that the emergent spacetime
+automatically provides.
+
+It is \emph{not}, however, a proof that non-complexified blocks have
+$\rhoexp = 0$.  A block without chirality can still possess
+time-orientation (from Chain~1 alone), sustain an entropy gradient,
+and support non-SM self-modelers.  The convergence constrains
+SM-like observers; it does not exclude all observers from
+non-complexified blocks.
+
+Schematically, the two-chain structure is:
+\begin{equation}
+\boxed{
+\begin{aligned}
+  &\textbf{Chain 1:}\;
+  \text{self-modeling}
+  \;\Rightarrow\;
+  S < \Smax
+  \;\Rightarrow\;
+  \text{time-orientation}
+  \quad\text{(all self-modelers)}\\[4pt]
+  &\textbf{Chain 2:}\;
+  \text{SM-like}
+  \;\Rightarrow\;
+  \text{chirality}
+  \;\Rightarrow\;
+  \text{complexification} + \text{time-orientation}
+  \quad\text{(SM observers)}
+\end{aligned}
+}
+\label{eq:selection-chain}
+\end{equation}
+
+%----------------------------------------------------------------------
+\subsection{Gap~C: narrowed}\label{sec:gapc-theorem}
+%----------------------------------------------------------------------
+
+We are now in a position to state the central result regarding
+Gap~C\@.  The result is a \emph{narrowing}, not a full resolution:
+complexification is necessary for SM-like observers, but we cannot
+exclude non-SM self-modelers in non-complexified blocks.
+
+\begin{theorem}[SM-observer complexification requirement]
+\label{thm:complexification}
+Let $\mathcal{S}$ be structure space with experiential measure
+$\mu_{\rhoexp}$.  Let $\mathcal{B}$ be a block of $\mathcal{S}$
+supporting a $C^*$-observer ($M_n(\mathbb{C})^{\mathrm{sa}}$)
+probing~$\hthree$.  Suppose assumptions A1--A7 hold
+\textup{(Table~\ref{tab:assumptions})}.  If
+$\Vhalf(\mathcal{B})$ is not complexified
+\textup{(}remains real $\mathbb{O}^2$\textup{)}, then:
+
+\smallskip\noindent
+\textup{(a)}~$\mathcal{B}$ has \textbf{no chiral spinors}: the
+$\Cl{6}$ volume form $\omegasix$ has no eigenstates in real
+$\Vhalf$ that give the $L/R$
+decomposition.
+\hfill\textup{[\textsc{algebra};~\cite{Paper7}]}
+
+\smallskip\noindent
+\textup{(b)}~$\mathcal{B}$ has \textbf{no SM gauge group}: without
+complexification, the breaking chain
+$\Spin{10} \to \PS \to \SMgauge$ is not
+realized.
+\hfill\textup{[\textsc{algebra};~\cite{Paper7}]}
+
+\smallskip\noindent
+\textup{(c)}~Chirality \textbf{requires time-orientation}: the
+physical Weyl decomposition $S = S_L \oplus S_R$ requires a
+time-orientation for a globally consistent sign of
+$\Gammastar$.
+\hfill\textup{[\textsc{geometry}; Sec.~\ref{sec:chirality}]}
+
+\smallskip\noindent
+\textup{(d)}~Self-modelers \textbf{independently require entropy
+gradients}: $\MI{B}{M} > 0$ implies $S(t) < \Smax$ via
+Theorem~\ref{thm:entropy-gradient}, with no reference to
+chirality.
+\hfill\textup{[\textsc{thermodynamics}; Sec.~\ref{sec:egt}]}
+
+\smallskip\noindent
+The convergence of \textup{(c)} and \textup{(d)} on
+time-orientation means that within~$\hthree$, the particle physics
+content \textup{(}gauge group, chirality\textup{)} and the
+thermodynamic content \textup{(}entropy gradient, arrow of
+time\textup{)} share a common geometric prerequisite.
+
+\smallskip\noindent
+Consequently, every block with SM-like observers \textup{(}chiral
+fermions, SM gauge group\textup{)} has complexified
+$\Vhalf^{\mathbb{C}} = S_{10}^+$.
+\end{theorem}
+
+\begin{proof}
+Part~(a) is pure representation theory: on the real space
+$\Vhalf = \mathbb{O}^2$, the operator $i\,\omegasix$ is not
+defined ($i$ requires complex scalars), so the eigenvalue equation
+$i\,\omegasix\ket{\psi} = \pm\ket{\psi}$ has no solutions.  The
+left--right decomposition~\eqref{eq:chiral-decomp} therefore does
+not exist.  This is proved in Ref.~\cite{Paper7}.
+
+Part~(b) follows from~(a): the gauge symmetry breaking chain
+$\Spin{10} \to \PS \to \SMgauge$ requires the complexified
+representation $S_{10}^+$ for its chiral content.  Without
+complexification, the $\Spin{10}$ structure acting on real
+$\Vhalf$ does not decompose into SM representations.  This is
+established in Ref.~\cite{Paper7}.
+
+Part~(c) follows from
+Theorem~\ref{thm:three-consequence}(c): the physical realization
+of chirality as spacetime Weyl spinors requires both internal
+chirality [from~(a)] and time-orientation
+(Proposition~\ref{prop:chirality-flip}).  The direction of
+implication is: chirality $\Rightarrow$ time-orientation required.
+The valid contrapositive is: no time-orientation $\Rightarrow$ no
+chirality.
+
+Part~(d) is the entropy gradient theorem
+(Theorem~\ref{thm:entropy-gradient}), proved via three independent
+routes in Sec.~\ref{sec:egt}.  This part is logically independent
+of~(a)--(c): it applies to all self-modelers regardless of
+chirality or complexification.
+
+The convergence statement follows from~(c) and~(d): both the
+chirality requirement and the self-modeling requirement point to
+time-orientation, but through independent logical paths.
+
+The final statement (SM-like $\Rightarrow$ complexified) follows
+from~(a) by contrapositive: no complexification $\Rightarrow$ no
+chirality $\Rightarrow$ not SM-like.
+\end{proof}
+
+\begin{remark}[Selection, not algebraic forcing]
+\label{rem:selection-not-forcing}
+The complexification of $\Vhalf$ for SM-like observers is a
+\emph{selection effect}, not an algebraic derivation.  Phase~22 of
+this program established that four independent algebraic routes to
+complexification all fail: the
+$V_1 = \mathbb{R}\cdot E_{11}$ bottleneck in the Peirce
+decomposition is a genuine obstruction~\cite{BGW2020}.
+Theorem~\ref{thm:complexification} does not override this negative
+result.  Non-complexified blocks exist in structure space; they are
+not algebraically forbidden.  SM-like observers require
+complexification, but the theorem does not establish
+$\rhoexp = 0$ for all non-complexified blocks: a non-complexified
+block could in principle support non-SM self-modelers with
+$\rhoexp > 0$.
+\end{remark}
+
+\paragraph{What is proved and what is not.}
+It is important to state the epistemic status precisely:
+\begin{itemize}
+  \item \textbf{Proved:} Complexification is necessary for SM-like
+    observers (chiral fermions, SM gauge group).
+  \item \textbf{Proved:} All self-modelers require entropy
+    gradients, independent of chirality.
+  \item \textbf{Proved:} Chirality and thermodynamics share
+    time-orientation as a common geometric prerequisite.
+  \item \textbf{Not proved:} $\rhoexp = 0$ for all
+    non-complexified blocks.  A non-complexified block could have
+    time-orientation, an entropy gradient, and non-SM self-modelers
+    with $\rhoexp > 0$.
+\end{itemize}
+The last point does not undermine the program: the program explains
+\emph{our} physics (SM particle content, chiral fermions,
+Pati--Salam unification), and for that physics, complexification is
+necessary.  Non-SM blocks, if they exist, are inaccessible under
+L4---different structure-space points do not interact.
+
+%......................................................................
+\paragraph{Gap~C: narrowed.}
+Paper~7's nine-link chain~\cite{Paper7} identifies Gap~C as the
+complexification step $\Vhalf \to \Vhalf^{\mathbb{C}} = S_{10}^+$
+(Link~L6).  Theorem~\ref{thm:complexification} \emph{narrows} this
+gap: among all blocks supporting SM-like observers, $\Vhalf$ is
+complexified.  The gap is not fully resolved because we cannot
+exclude non-SM self-modelers in non-complexified blocks.  The
+narrowing is via the experiential measure restricted to the SM
+sector, not via algebraic necessity.  This is the appropriate level
+of progress given Phase~22's proof that algebraic closure is
+impossible~\cite{BGW2020}.
+
+\paragraph{Status of the Past Hypothesis.}
+The entropy gradient theorem
+(Theorem~\ref{thm:entropy-gradient}) shows that self-modeling
+\emph{requires} $S(t) < \Smax$.  Combined with the entropy
+monotonicity of Sec.~\ref{sec:entropy}, this implies a low-entropy
+boundary condition at earlier times
+(Eq.~\eqref{eq:route-b}).  The Past Hypothesis---the
+cosmological observation that the universe began in a state of
+extraordinarily low entropy~\cite{Penrose1979,Albert2000}---is
+thereby \emph{elevated} from ``observed feature of the universe'' to
+``necessary condition for self-modeling.''  It is not
+\emph{derived}: the entropy gradient theorem is silent on \emph{why}
+the initial entropy was low.  It establishes only that it
+\emph{must} have been low for blocks with $\rhoexp > 0$ to exist.
+
+%----------------------------------------------------------------------
+\subsection{The v7.0 master theorem}\label{sec:master-theorem}
+%----------------------------------------------------------------------
+
+We collect the results of this paper and its predecessors into a
+single statement.
+
+\begin{theorem}[Arrow of time and SM-observer complexification]
+\label{thm:master}
+Under assumptions A1--A7 \textup{(Table~\ref{tab:assumptions})},
+the following hold for self-modeling composites
+$(B,M,\mathbin{\&})$ on a finite SWAP lattice probing~$\hthree$:
+
+\smallskip\noindent
+\textup{(I)~\textbf{Entropy gradient.}}\enspace
+Self-modelers require an entropy gradient: $S(t) < \Smax$.
+This is established via three independent routes
+\textup{(Table~\ref{tab:routes})}, each using a different assumption
+subset.  This holds for all self-modelers regardless of chirality
+or complexification.
+
+\smallskip\noindent
+\textup{(II)~\textbf{SM-observer complexification.}}\enspace
+SM-like observers within~$\hthree$ require complexified $\Vhalf$.
+Non-complexified blocks have no chiral spinors and no SM gauge
+group \textup{(}Theorem~\ref{thm:complexification}(a)--(b)\textup{)}.
+
+\smallskip\noindent
+\textup{(III)~\textbf{Gap~C status: narrowed.}}\enspace
+Complexification is necessary for SM-like observers
+\textup{(}selection effect, not algebraic necessity\textup{)}.
+The gap remains open for non-SM self-modelers: a non-complexified
+block could in principle support observers with $\rhoexp > 0$ but
+without chiral fermions or the SM gauge group.
+\end{theorem}
+
+\begin{corollary}[Chirality--thermodynamics nexus]
+\label{cor:nexus}
+The chirality of the Standard Model and the thermodynamic arrow of
+time share a common geometric prerequisite:
+\textbf{time-orientation} of the emergent spacetime.
+Chirality requires time-orientation for the physical Weyl
+decomposition
+\textup{(Theorem~\ref{thm:three-consequence}(c))}.
+The arrow of time requires time-orientation to define the direction
+of entropy increase
+\textup{(Theorem~\ref{thm:entropy-gradient})}.
+Both are consequences of the self-modeling framework: the choice
+$u \in S^6$ that determines particle physics
+\textup{(}gauge group and chirality~\cite{Paper7}\textup{)}
+simultaneously constrains spacetime geometry
+\textup{(}time-orientation\textup{)}, and this time-orientation is
+the same structure that supports the entropy gradient sustaining
+self-modeling.  This convergence is structural, not causal: neither
+chain implies the other.
+\end{corollary}
+
+%----------------------------------------------------------------------
+\subsection{Updated nine-link chain}\label{sec:updated-chain}
+%----------------------------------------------------------------------
+
+Paper~7's nine-link chain from self-modeling to the chiral Standard
+Model~\cite{Paper7} is updated with the results of this paper.
+Table~\ref{tab:chain} shows each link, its status, and the
+annotation from this work.
+
+\begin{table*}[t]
+  \centering
+  \caption{Updated nine-link chain.  Links are numbered as in
+  Paper~7~\cite{Paper7}.  ``Status'' indicates the epistemic
+  classification; ``Annotation'' records changes from this paper and
+  its predecessors~(Papers~5--7).  Link~L6 is narrowed via selection
+  (Theorem~\ref{thm:complexification}); Link~L7 is updated with the
+  three-consequence theorem
+  (Theorem~\ref{thm:three-consequence}).}
+  \label{tab:chain}
+  \begin{tabular}{clll}
+    \toprule
+    Link & Statement & Status & Annotation \\
+    \midrule
+    L1 & Self-modeling composite $(B,M,\mathbin{\&})$ on $\hthree$
+       & \textbf{Proved} \cite{Paper5}
+       & --- \\
+    L2 & Observer is $C^*$-algebra ($M_n(\mathbb{C})^{\mathrm{sa}}$)
+       & \textbf{Proved} \cite{Paper5}
+       & --- \\
+    L3 & Faithful tracking requires local tomography
+       & \textbf{Proved} \cite{Paper5}
+       & --- \\
+    L4 & $\hthree$ probed via rank-1 idempotent $e = E_{11}$
+       & \textbf{Assumed} (Gap~B1)
+       & --- \\
+    L5 & Peirce decomposition: $V_1 \oplus \Vhalf \oplus V_0$
+       & \textbf{Proved} \cite{Paper7}
+       & --- \\
+    L6 & $\Vhalf$ complexifies to $S_{10}^+$
+       & \textbf{Narrowed via selection}
+       & Thm.~\ref{thm:complexification}: necessary
+         for SM-like; open for non-SM \\
+    L7 & $u \in S^6$ determines gauge $+$ chirality
+         $+$ time-orient.
+       & \textbf{Proved $+$ updated}
+       & Thm.~\ref{thm:three-consequence}: third
+         consequence~(c) \\
+    L8 & $\Spin{10} \to \PS \to \SMgauge$
+       & \textbf{Proved} \cite{Paper7}
+       & --- \\
+    L9 & Chiral SM fermions from $\Cl{6}$ action
+       & \textbf{Proved} \cite{Paper7}
+       & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\noindent
+Of the nine links, six are proved algebraically (L1--L3, L5, L8,
+L9), one is assumed (L4, Gap~B1), one is updated with a new
+geometric consequence (L7), and one is narrowed via selection (L6,
+this paper): necessary for SM-like observers, open for non-SM
+self-modelers.
+
+%----------------------------------------------------------------------
+\subsection{Assumption register}\label{sec:assumption-register}
+%----------------------------------------------------------------------
+
+Table~\ref{tab:assumptions} lists every assumption entering the
+master theorem (Theorem~\ref{thm:master}), ordered by severity.
+Assumption~A3 is the strongest: it connects local thermodynamics to
+cosmological initial conditions and is the only assumption that, if
+it fails, weakens the ``low-entropy past'' conclusion of
+Route~A\@.  Assumptions~A6--A7 are needed only for the
+SM-observer complexification requirement [part~(II) of the master
+theorem]; the entropy gradient theorem [part~(I)] survives their
+failure.
+
+\begin{table*}[t]
+  \centering
+  \caption{Assumption register for the master theorem
+  (Theorem~\ref{thm:master}).  Assumptions are ordered by decreasing
+  severity (A3 strongest, A1/A5 weakest).  ``Used in'' refers to the
+  parts of the master theorem.}
+  \label{tab:assumptions}
+  \begin{tabular}{cllll}
+    \toprule
+    ID & Assumption & Source & Status
+       & Used in \\
+    \midrule
+    A1 & Finite-dimensional QM
+       & Paper~5~\cite{Paper5}
+       & Axiom
+       & (I) all routes; (II) all steps \\
+    A2 & Thermal contact at temperature $T$
+       & Standard~\cite{ReebWolf2014}
+       & Standard physics
+       & (I) Route~A, Link~1 \\
+    A3 & Finite system equilibrates on finite timescales
+       & Stat.\ mech.
+       & Physical argument
+       & (I) Routes~A,B; Link~3 \\
+    A4 & SWAP lattice dynamics $H = JF$
+       & Paper~6~\cite{Paper6}
+       & Model choice
+       & (I) timescales only \\
+    A5 & $\rhoexp = \MI{B}{M}(1 - \MI{B}{M}/\SvN{\rho_B})$
+       & Paper~5~\cite{Paper5}
+       & Axiom
+       & (I) Route~C; (II) step~(d) \\
+    A6 & Continuum limit yields smooth manifold
+       & Paper~6~\cite{Paper6}
+       & Assumption
+       & (II) steps~(a)--(c) \\
+    A7 & Lorentzian signature $(d{-}1,1)$
+       & Paper~6~\cite{Paper6}
+       & Physical
+       & (II) steps~(a)--(c) \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+%----------------------------------------------------------------------
+\subsection{Explicit non-claims}\label{sec:explicit-nonclaims}
+%----------------------------------------------------------------------
+
+To prevent overclaiming, we state what the results of this section
+do \emph{not} establish.
+
+\begin{enumerate}
+  \item \textbf{Gap~C is not closed algebraically.}
+    The algebraic obstruction ($V_1 = \mathbb{R}\cdot E_{11}$) found
+    in Phase~22~\cite{BGW2020} remains genuine.
+    Theorem~\ref{thm:complexification} narrows Gap~C via the
+    experiential measure restricted to SM-like observers, not by
+    overriding the algebraic result.
+
+  \item \textbf{$\rhoexp = 0$ is not proved for all non-complexified
+    blocks.}
+    A non-complexified block could possess time-orientation, sustain
+    an entropy gradient, and support non-SM self-modelers with
+    $\rhoexp > 0$.  Complexification is necessary for SM-like
+    observers, not for all observers.
+
+  \item \textbf{No chirality does not imply no time-orientation.}
+    The three-consequence theorem proves chirality $\Rightarrow$
+    time-orientation.  The valid contrapositive is
+    no time-orientation $\Rightarrow$ no chirality.  The
+    converse---no chirality $\Rightarrow$ no time-orientation---is
+    logically invalid and is not used in any argument of this paper.
+
+  \item \textbf{This does not derive the Past Hypothesis.}
+    The entropy gradient theorem shows that $S(t) < \Smax$ is
+    \emph{necessary} for self-modeling.  It does not explain
+    \emph{why} the universe started with low entropy.
+
+  \item \textbf{The Past Hypothesis is elevated, not derived.}
+    Its status changes from ``observed cosmological fact'' to
+    ``necessary condition for self-modeling''---an
+    observer-selection argument, not a first-principles
+    derivation~\cite{Penrose1979,Albert2000}.
+
+  \item \textbf{``Narrowed via selection'' is weaker than ``resolved
+    via selection,'' which is weaker than ``proved algebraically.''}
+    An algebraic proof of complexification would close Gap~C
+    unconditionally.  A full selection resolution would show
+    $\rhoexp = 0$ for all non-complexified blocks.  The narrowing
+    establishes necessity for SM-like observers only.
+\end{enumerate}
+
+\medskip
+With Gap~C narrowed and the master theorem stated,
+we turn in Sec.~\ref{sec:predictions} to the testable consequences
+of the framework.

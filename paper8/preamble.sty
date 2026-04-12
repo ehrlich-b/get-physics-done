@@ -1,12 +1,12 @@
-% preamble.sty — Custom macros for Paper 7: Chirality from h_3(O)
-% ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba), clifford_convention=euclidean_positive, octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7, spin_representation=S10plus_boyle, pati_salam=SU4xSU2LxSU2R
+% preamble.sty — Custom macros for Paper 8: Arrow of Time and Complexification
+% ASSERT_CONVENTION: natural_units=kB_equals_1, entropy_base=nats, jordan_product=(1/2)(ab+ba), clifford_convention=euclidean_positive, complex_structure=u_equals_e7, spin_representation=S10plus_boyle, pati_salam=SU4xSU2LxSU2R
 
 % ————————————————————————————————————
 % Packages
 % ————————————————————————————————————
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{mathtools}
-\usepackage{bbm}
+\usepackage{dsfont}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{makecell}
@@ -15,51 +15,50 @@
 \usepackage{xcolor}
 
 % ————————————————————————————————————
-% Jordan algebra macros
+% Thermodynamics / information macros (new for Paper 8)
 % ————————————————————————————————————
-\newcommand{\jordan}[2]{#1 \circ #2}                     % Jordan product a * b
-\newcommand{\hthree}{h_3(\mathbb{O})}                    % h_3(O)
-\newcommand{\hthreeC}{h_3^{\mathbb{C}}(\mathbb{O})}      % h_3^C(O)
-\newcommand{\hnK}[2]{h_{#1}(\mathbb{#2})}                % h_n(K) for arbitrary n, K
+\newcommand{\kB}{k_{\mathrm{B}}}                              % Boltzmann constant
+\newcommand{\MI}[2]{I(#1;#2)}                                 % mutual information I(B;M)
+\newcommand{\SvN}[1]{S_{\mathrm{vN}}(#1)}                     % von Neumann entropy
+\newcommand{\rhoexp}{\rho}                                     % experiential density
+\newcommand{\Smax}{S_{\max}}                                   % maximum entropy
+\newcommand{\Wmin}{W_{\min}}                                   % minimum work
+\newcommand{\tauex}{\tau_{\mathrm{exhaust}}}                   % exhaustion timescale
+\newcommand{\tcyc}{t_{\mathrm{cycle}}}                         % cycle time
+\DeclareMathOperator{\diag}{diag}
 
 % ————————————————————————————————————
-% Clifford algebra macros
+% Clifford algebra macros (carried from Paper 7)
 % ————————————————————————————————————
-\newcommand{\Cl}[1]{\mathrm{Cl}(#1)}                     % Cl(n)
-\newcommand{\omegasix}{\omega_6}                          % Cl(6) volume form
+\newcommand{\Cl}[1]{\mathrm{Cl}(#1)}                          % Cl(n)
+\newcommand{\omegasix}{\omega_6}                               % Cl(6) volume form
+\newcommand{\Gammastar}{\Gamma_*}                              % chirality operator
 
 % ————————————————————————————————————
-% Peirce space macros
+% Group macros (carried from Paper 7)
 % ————————————————————————————————————
-\newcommand{\Vone}{V_1}                                   % Peirce 1-space
-\newcommand{\Vhalf}{V_{1/2}}                              % Peirce 1/2-space
-\newcommand{\Vzero}{V_0}                                  % Peirce 0-space
+\newcommand{\Spin}[1]{\mathrm{Spin}(#1)}
+\newcommand{\SU}[1]{\mathrm{SU}(#1)}
+\newcommand{\SO}[1]{\mathrm{SO}(#1)}
+\newcommand{\UU}[1]{\mathrm{U}(#1)}
+\newcommand{\Ffour}{F_4}
+\newcommand{\Esix}{E_6}
 
 % ————————————————————————————————————
-% Group macros
+% Standard Model macros (carried from Paper 7)
 % ————————————————————————————————————
-\newcommand{\Spin}[1]{\mathrm{Spin}(#1)}                  % Spin(n)
-\newcommand{\SU}[1]{\mathrm{SU}(#1)}                      % SU(n)
-\newcommand{\SO}[1]{\mathrm{SO}(#1)}                      % SO(n)
-\newcommand{\UU}[1]{\mathrm{U}(#1)}                       % U(n)
-\newcommand{\Gfour}{G_2}                                  % G_2 (named Gfour for macro, but prints G_2)
-\newcommand{\Ffour}{F_4}                                  % F_4
-\newcommand{\Esix}{E_6}                                   % E_6
+\newcommand{\SMgauge}{\SU{3}_C \times \SU{2}_L \times \UU{1}_Y}
+\newcommand{\PS}{\SU{4} \times \SU{2}_L \times \SU{2}_R}
+\newcommand{\rep}[1]{\mathbf{#1}}
 
 % ————————————————————————————————————
-% Standard Model macros
+% Jordan algebra macros (carried from Paper 7)
 % ————————————————————————————————————
-\newcommand{\SMgauge}{\SU{3}_C \times \SU{2}_L \times \UU{1}_Y}  % SM gauge group
-\newcommand{\PS}{\SU{4} \times \SU{2}_L \times \SU{2}_R}          % Pati-Salam group
+\newcommand{\hthree}{h_3(\mathbb{O})}
+\newcommand{\Vhalf}{V_{1/2}}
 
 % ————————————————————————————————————
-% Representation macros
-% ————————————————————————————————————
-\newcommand{\rep}[1]{\mathbf{#1}}                          % bold representation
-\newcommand{\Stenplus}{S_{10}^+}                           % Spin(10) Weyl spinor
-
-% ————————————————————————————————————
-% Standard math shortcuts (reused from Paper 6)
+% Standard math shortcuts
 % ————————————————————————————————————
 \DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
@@ -68,12 +67,7 @@
 \newcommand{\braket}[2]{\langle #1 | #2 \rangle}
 \newcommand{\expval}[1]{\langle #1 \rangle}
 \DeclareMathOperator{\Tr}{Tr}
-\DeclareMathOperator{\rank}{rank}
-\DeclareMathOperator{\Aut}{Aut}
-\DeclareMathOperator{\Stab}{Stab}
-\DeclareMathOperator{\Str}{Str}
-\DeclareMathOperator{\im}{Im}
-\newcommand{\1}{\mathbbm{1}}                               % identity operator
+\newcommand{\1}{\mathds{1}}
 
 % ————————————————————————————————————
 % Theorem environments
