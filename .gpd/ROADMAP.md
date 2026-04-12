@@ -522,7 +522,11 @@ Plans:
 
 **Backtracking:** If the assembly reveals a circular dependency (e.g., Weinberg argument smuggles in what it's trying to prove), escalate to a structural issue requiring resolution before synthesis can be completed.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 51-01-PLAN.md -- Assembly DAG: self-modeling -> SM+GR with topological ordering, non-circularity verification (SYNT-01)
+- [ ] 51-02-PLAN.md -- Gap inventory (10+ gaps, severity-rated) + Farnsworth/Boyle/Todorov-Drenska comparison + N=2 SUSY status (SYNT-02)
 
 ## Phase Dependencies
 
@@ -559,5 +563,5 @@ Plans:
 | 47. d_{IJK} + Uniqueness | v12.0 | 2/2 | Complete | 2026-04-12 |
 | 48. Equivariance + Lorentz | v12.0 | 2/2 | Complete | 2026-04-12 |
 | 49. GST Connection (4d) | v12.0 | 2/2 | Complete | 2026-04-12 |
-| 50. Weinberg Verification | v12.0 | 0/2 | Not started | - |
-| 51. Synthesis | v12.0 | 0/TBD | Not started | - |
+| 50. Weinberg Verification | v12.0 | 2/2 | Complete | 2026-04-12 |
+| 51. Synthesis | v12.0 | 0/2 | Planned | - |
