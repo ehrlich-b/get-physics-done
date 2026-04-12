@@ -12,7 +12,8 @@
 - **v8.0 Gap C Algebraic Closure via C*-Measurement Maps** -- Phases 28-31 (completed 2026-03-29)
 - **v9.0 Continuum Limit from Finite-Dimensional Observer** -- Phases 32-36 (completed 2026-03-30)
 - **v10.0 Universality Class of Self-Modeler Network and Full Gap Closure** -- Phases 37-41 (completed 2026-03-31)
-- Active: **v11.0 Gap C Complexification from Sequential Product** -- Phases 42-45 (in progress)
+- **v11.0 Gap C Complexification from Sequential Product** -- Phases 42-45 (completed 2026-04-05)
+- Active: **v12.0 GR from det(X) on h_3(O)** -- Phases 46-50 (in progress)
 
 ## Phases
 
@@ -137,7 +138,8 @@ See `.gpd/milestones/v10.0-ROADMAP.md` for full details.
 
 </details>
 
-### Active: v11.0 Gap C Complexification from Sequential Product (In Progress)
+<details>
+<summary>v11.0 Gap C Complexification from Sequential Product (Phases 42-45) -- COMPLETED 2026-04-05</summary>
 
 **Milestone Goal:** Close Gap C algebraically by showing the observer's C-linear sequential product extends Cl(9,0) to Cl(9,C), forcing spinor module complexification S_9 -> S_{10}^+. If the algebraic route fails, characterize the precise obstruction.
 
@@ -306,3 +308,199 @@ Plans:
 | 43. Complexification Theorem | v11.0 | 2/2 | Complete (verified) | 2026-04-05 |
 | 44. Gap C Theorem Assembly | v11.0 | 2/2 | Complete (verified) | 2026-04-05 |
 | 45. Contingency | v11.0 | 0/TBD | Skipped (Phase 43 succeeded) | - |
+
+See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
+
+</details>
+
+### Active: v12.0 GR from det(X) on h_3(O) (In Progress)
+
+**Milestone Goal:** Derive Einstein gravity with SM matter coupling from the Peirce complement V_0 = h_2(O) of h_3(O), projected via the C*-observer's complex structure to h_2(C) = R^{3,1}, where det(X) serves as the GST magic supergravity prepotential.
+
+**Contract Overview:**
+
+| Contract Item | Advanced By Phase(s) | Status |
+| ------------- | -------------------- | ------ |
+| pi_u projection + Minkowski signature on h_2(C) | Phase 46 | Planned |
+| pi_u non-homomorphism failure characterization | Phase 46 | Planned |
+| V_{1/2} x V_{1/2} -> V_0 Peirce product under pi_u | Phase 46 | Planned |
+| d_{IJK} Peirce block decomposition | Phase 47 | Planned |
+| "Double duty" uniqueness theorem (det = rho_J = prepotential) | Phase 47 | Planned |
+| 27 decomposition under Peirce + C*-bottleneck | Phase 47 | Planned |
+| Stabilizer of u in Spin(9) with SL(2,C_u) embedding | Phase 48 | Planned |
+| GST field content matched to Peirce sectors | Phase 49 | Planned |
+| 5d -> 4d KK reduction field content | Phase 49 | Planned |
+| Precise claim: det(X) = coupling, Paper 6 = GR | Phase 49 | Planned |
+| Cosmological constant from GST vacuum | Phase 49 | Planned |
+| C_{IJK} Peirce decomposition with physical couplings | Phase 49 | Planned |
+| Complete SM+GR assembly (Papers 5+6+7+this) | Phase 50 | Planned |
+| Honest gap inventory | Phase 50 | Planned |
+
+**Key References:**
+- GST 1983/1984 (magic supergravity, prepotential V = det)
+- de Wit-Van Proeyen 1992 (5d -> 4d c-map, E_7(-25))
+- Springer 1962 (uniqueness of F_4-invariant cubic)
+- Baez 2002 (h_2(K) = R^{dim(K)+1,1}, division algebra Minkowski)
+- Farnsworth 2025 (spectral triple over h_3(O), F_4 x F_4 gauge)
+- Papers 5, 6, 7 (QM, GR, SM from self-modeling)
+- Lauria-Van Proeyen 2020 (N=2 sugra conventions)
+
+- [ ] **Phase 46: V_0 Algebraic Foundation and pi_u Projection** -- Establish h_2(O) structure with pi_u: h_2(O) -> h_2(C_u) = R^{3,1}; verify Minkowski signature; characterize non-homomorphism failure; compute V_{1/2} x V_{1/2} -> V_0 product
+- [ ] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck
+- [ ] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u
+- [ ] **Phase 49: GST Lagrangian Connection and KK Reduction** -- Match GST field content to Peirce sectors; perform 5d -> 4d circle compactification; state precise claim on det(X) role; decompose C_{IJK} couplings
+- [ ] **Phase 50: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory
+
+## Phase Details
+
+### Phase 46: V_0 Algebraic Foundation and pi_u Projection
+
+**Goal:** The algebraic structure of V_0 = h_2(O) is established with explicit pi_u projection to h_2(C_u) = R^{3,1}, the Minkowski metric is verified, the non-homomorphism failure is characterized, and the V_{1/2} x V_{1/2} -> V_0 Peirce product is computed under pi_u.
+
+**Depends on:** Phase 44 (v11.0 -- C*-observer complex structure, Peirce decomposition established)
+**Requirements:** ALGB-01, ALGB-04, ALGB-05
+**Contract Coverage:**
+- Advances: pi_u projection + Minkowski signature; non-homomorphism failure; V_{1/2} x V_{1/2} -> V_0 product
+- Deliverables: (1) Explicit pi_u matrix or map formula. (2) det_2(pi_u(Y)) signature verification with benchmarks det(E_{11})=0, det(I_2)=1. (3) Failure term pi_u(A circ B) - pi_u(A) circ pi_u(B) algebraic structure. (4) V_{1/2} x V_{1/2} -> V_0 image under pi_u.
+- Anchor coverage: Baez 2002 (h_2(C) = R^{3,1}); Paper 7 Peirce decomposition (27 = 1+16+10); existing octonion code
+- Forbidden proxies: Claiming R^{3,1} without explicit pi_u (h_2(O) = R^{9,1}, not R^{3,1}); treating V_0 circ V_0 within h_3(O) without noting leakage into V_{1/2}
+
+**Success Criteria** (what must be TRUE):
+
+1. pi_u: h_2(O) -> h_2(C_u) is constructed explicitly, keeping only the C_u = span{1,u} component of each off-diagonal octonion entry, with det_2(pi_u(Y)) having signature (1,3) verified by eigenvalue computation
+2. Benchmark checks: det_2(diag(a,b)) = ab (real diagonal), det_2(matrix with off-diagonal x) gives |x|^2 with correct sign, recovering Minkowski norm on R^{3,1}
+3. The non-homomorphism failure term Delta(A,B) = pi_u(A circ B) - pi_u(A) circ pi_u(B) is computed for basis elements and its algebraic structure identified (which Peirce sectors it couples; whether it vanishes on h_2(C_u) restriction)
+4. V_{1/2} x V_{1/2} -> V_0 Peirce product is computed for basis elements of V_{1/2} = O^2, and its image under pi_u is determined (connection to Dirac bilinear / fermion current)
+
+**Backtracking:** If det_2(pi_u(Y)) has wrong signature (not (1,3)), check u choice and projection formula. If V_0 circ V_0 leakage into V_{1/2} invalidates intrinsic h_2(O) product, switch to intrinsic h_2(O) Jordan product (not inherited from h_3(O)).
+
+**Plans:** TBD
+
+### Phase 47: d_{IJK} Tensor and Uniqueness Theorems
+
+**Goal:** The polarized cubic form d_{IJK} of h_3(O) is fully decomposed into Peirce blocks, the "double duty" theorem (det(X) uniquely forced as both rho_J factor and GST prepotential) is proved via F_4-invariance, and the 27 = 1+16+10 decomposition is verified with SM quantum numbers under the C*-bottleneck.
+
+**Depends on:** Phase 46 (V_0 structure and pi_u established)
+**Requirements:** ALGB-02, UNIQ-01, UNIQ-02
+**Contract Coverage:**
+- Advances: d_{IJK} Peirce block decomposition; "double duty" uniqueness theorem; 27 decomposition with quantum numbers
+- Deliverables: (1) d_{IJK} tensor with each index labeled by Peirce sector. (2) Verification that exactly two nonzero blocks exist: (V_1,V_0,V_0) and (V_{1/2},V_{1/2},V_0). (3) Proof: dim Sym^3(27)^{F_4} = 1, so det(X) is the unique F_4-invariant cubic up to scale. (4) 27 quantum number table matching Paper 7 SM assignments.
+- Anchor coverage: Springer 1962 (uniqueness); GST 1984 C_{IJK}; Paper 7 SM fermion table
+- Forbidden proxies: Incomplete block decomposition missing any sector; circular argument using GST to prove GST; wrong E_6 real form (must be E_6(-26))
+
+**Success Criteria** (what must be TRUE):
+
+1. d_{IJK} is computed via polarization of det: d_{IJK} = det(X+Y+Z) - det(X+Y) - det(X+Z) - det(Y+Z) + det(X) + det(Y) + det(Z) (normalized), and decomposed into Peirce blocks with index labels (V_1, V_{1/2}, V_0)
+2. Exactly two nonzero block types confirmed: d_{1,0,0} = d_{V_1,V_0,V_0} (the "spacetime-spacetime" cubic coupling) and d_{1/2,1/2,0} = d_{V_{1/2},V_{1/2},V_0} (the "matter-matter-spacetime" coupling), with d_{0,0,0} = 0 verified (no purely-V_0 cubic)
+3. Uniqueness theorem proved: Sym^3(27*)^{F_4} is 1-dimensional (cite Springer 1962), so det(X) is the unique F_4-invariant cubic, forcing rho_J (from Paper 5 self-modeling density) and the GST prepotential to share the same cubic form by algebraic necessity
+4. 27 under Peirce + C*-bottleneck: 16 -> SM fermions matching Paper 7 Table (quantum numbers), 10 -> 4 spacetime + 6 internal (via pi_u), 1 -> singlet; dimensions sum to 27
+
+**Backtracking:** If d_{0,0,0} != 0, the Peirce block structure is richer than expected -- reassess. If uniqueness proof encounters real-form subtlety (E_6(-26) vs E_6(-78)), address explicitly. If the "double duty" argument proves circular (det appears in both input and output), the proof must go through the representation-theoretic route (Sym^3 invariant counting) rather than function-level equality.
+
+**Plans:** TBD
+
+### Phase 48: Equivariance and Lorentz Subgroup
+
+**Goal:** The full stabilizer of u in Spin(9) is identified, SL(2,C_u) = Spin(3,1) is verified as the Lorentz subgroup acting on h_2(C_u), and pi_u equivariance under this subgroup is established.
+
+**Depends on:** Phase 46 (pi_u and V_0 structure)
+**Requirements:** ALGB-03
+**Contract Coverage:**
+- Advances: Stabilizer Lie algebra identification; SL(2,C_u) Lorentz embedding
+- Deliverables: (1) Full stabilizer Lie algebra of u in spin(9) with generators. (2) SL(2,C_u) embedding as Lorentz group on h_2(C_u). (3) Equivariance: pi_u(g.Y) = g|_{SL(2,C)}.pi_u(Y) for g in Stab(u).
+- Anchor coverage: Paper 7 Spin(9) action on V_0 = h_2(O); existing Cl(9,0) gamma matrices
+- Forbidden proxies: Confusing Spin(9) with SO(9); claiming SL(2,C) without explicit embedding; ignoring the extra stabilizer directions beyond SL(2,C)
+
+**Success Criteria** (what must be TRUE):
+
+1. Full stabilizer Lie algebra stab(u) subset spin(9) is computed: its dimension and structure are identified (expected: spin(7) or spin(7) + u(1), based on Spin(9)/G_2 fibration)
+2. SL(2,C_u) = Spin(3,1) is exhibited as a subalgebra of stab(u) acting on h_2(C_u) by conjugation: X -> gXg^dagger for g in SL(2,C_u)
+3. pi_u is equivariant under the Lorentz subgroup: pi_u(g.Y) = g|_{SL(2,C)}.pi_u(Y) for all g in Stab(u) that commute with the projection, with explicit formula
+4. The remaining stabilizer generators (beyond SL(2,C)) are identified and their physical role characterized (internal symmetry on the 6 projected-out dimensions)
+
+**Backtracking:** If the stabilizer is smaller than expected (no SL(2,C) subgroup), the Lorentz interpretation fails -- this would block the entire gravitational interpretation and require fundamental reassessment. If the stabilizer is Spin(7) (dim 21) rather than Spin(7) x U(1) (dim 22), determine whether SL(2,C) (dim 6) embeds in Spin(7).
+
+**Plans:** TBD
+
+### Phase 49: GST Lagrangian Connection and KK Reduction
+
+**Goal:** The GST 5d N=2 MESGT field content is matched to Peirce sectors, the 5d -> 4d circle compactification is performed giving E_7(-25)/(E_6 x U(1)) scalar manifold, the precise role of det(X) as prepotential (not as GR itself) is stated, and the Chern-Simons cubic couplings are decomposed under Peirce.
+
+**Depends on:** Phase 46 (V_0 + pi_u), Phase 47 (d_{IJK} + uniqueness), Phase 48 (equivariance)
+**Requirements:** GRAV-01, GRAV-02, GRAV-03, GRAV-04, GRAV-05
+**Contract Coverage:**
+- Advances: GST field content match; 5d -> 4d reduction; precise claim statement; cosmological constant; C_{IJK} physical couplings
+- Deliverables: (1) 5d field content table matching GST 1984. (2) 4d field content after circle compactification matching de Wit-Van Proeyen 1992. (3) Two-sentence precise claim on det(X) role. (4) Cosmological constant analysis. (5) C_{IJK} coupling decomposition with physical identification.
+- Anchor coverage: GST 1983/1984; de Wit-Van Proeyen 1992; Lauria-Van Proeyen 2020; Papers 5, 6, 7
+- Forbidden proxies: "GR from h_3(O)" without citing Paper 6 for Einstein equations; wrong E_6 real form (must specify E_6(-26) for 5d, E_7(-25) for 4d); overclaiming full Lagrangian derivation when only algebraic structure is obtained
+
+**Success Criteria** (what must be TRUE):
+
+1. 5d GST field content matched: graviton (1), graviphoton (1), 26 vector multiplets (each: 1 vector + 1 real scalar), total 27 vectors and 27 scalars on E_6(-26)/F_4 (dim 26 coset), with Peirce sector assignments for each field
+2. 5d -> 4d circle compactification performed: 4d N=2 field content identified -- graviton + 28 vectors + 56 real scalars on E_7(-25)/(E_6 x U(1)) (dim 56 coset); 4d prepotential F(X) = d_{IJK} X^I X^J X^K / X^0 with d_{IJK} from Phase 47
+3. Precise claim stated: "det(X) on h_3(O) determines the matter-gravity coupling structure (scalar manifold geometry and prepotential of the very special real manifold); Einstein gravity itself (field equations) comes from Paper 6 via Jacobson's entanglement equilibrium argument"
+4. Cosmological constant: either derived from GST vacuum structure (V_0 = 0 gives Lambda = 0 at classical level) or honestly flagged as undetermined
+5. C_{IJK} couplings decomposed under Peirce: fermion-fermion-spacetime (d_{1/2,1/2,0}) and gravitational self-coupling (d_{1,0,0}) physically identified; relation to SM Yukawa-like couplings noted if it exists
+
+**Backtracking:** If the field content count doesn't match GST 1984 Table 1, there is a fundamental error in the Peirce-to-field identification -- recheck. If the 5d -> 4d reduction gives the wrong 4d coset (not E_7(-25)), the real form of E_6 is wrong. If the cosmological constant comes out negative (AdS), note the phenomenological tension but do not treat as a failure (this is the classical GST result).
+
+**Plans:** TBD
+
+### Phase 50: Synthesis and Paper Integration
+
+**Goal:** The complete SM+GR picture is assembled from Papers 5 (QM) + 6 (GR) + 7 (SM) + this milestone (matter-gravity coupling), with all remaining gaps honestly stated and no overclaiming.
+
+**Depends on:** Phase 49 (all gravitational results)
+**Requirements:** SYNT-01, SYNT-02
+**Contract Coverage:**
+- Advances: Complete SM+GR assembly; honest gap inventory
+- Deliverables: (1) Summary document: self-modeling -> h_3(O) -> QM (Paper 5) + GR (Paper 6) + SM (Paper 7) + matter-gravity coupling (v12.0). (2) Gap inventory: every conditional claim, every assumption, every remaining open question.
+- Anchor coverage: Papers 5, 6, 7; all v12.0 results; Farnsworth 2025 comparison
+- Forbidden proxies: Claiming "SM+GR derived" without listing all conditions; circular dependency in the assembly; hiding the N=2 SUSY assumption
+
+**Success Criteria** (what must be TRUE):
+
+1. Assembly document traces: self-modeling (axiom) -> C*-algebra (Paper 5) -> h_3(O) (exceptional by compositionality + Peirce) -> Peirce 27 = 1+16+10 -> V_{1/2} complexifies to SM fermions (Paper 7 + v11.0) + V_0 projects to R^{3,1} with GST coupling (v12.0) + lattice gives Einstein equations (Paper 6)
+2. No circular dependencies in the assembly: each link is checked for logical independence (in particular: det(X) as prepotential does NOT assume the physics it is trying to derive)
+3. Gap inventory is complete: every assumption (N=2 SUSY structure from GST, pi_u extends from V_{1/2} to V_0, quantum SSB conditionality, Jacobson vs algebraic GR route) is listed with severity rating
+4. Comparison with Farnsworth 2025 (spectral triple on h_3(O)) and other approaches (Boyle, Todorov-Drenska) is included, noting what this work adds and where it differs
+5. The N=2 SUSY status is explicitly addressed: the self-modeling framework is SUSY-agnostic, so the GST connection identifies algebraic structure without assuming or proving SUSY
+
+**Backtracking:** If the assembly reveals a circular dependency (e.g., det(X) appears in both the density and the prepotential without independent justification), escalate to a structural issue requiring resolution before the synthesis can be completed.
+
+**Plans:** TBD
+
+## Phase Dependencies
+
+| Phase | Depends On | Enables | Critical Path? |
+|-------|-----------|---------|:-:|
+| 46 - V_0 Foundation + pi_u | 44 (v11.0) | 47, 48, 49 | Yes |
+| 47 - d_{IJK} + Uniqueness | 46 | 49 | Yes |
+| 48 - Equivariance + Lorentz | 46 | 49 | No (parallel with 47) |
+| 49 - GST Connection + KK | 46, 47, 48 | 50 | Yes |
+| 50 - Synthesis | 49 | -- | Yes |
+
+**Critical path:** 46 -> 47 -> 49 -> 50 (4 phases, minimum duration)
+**Parallelizable:** Phase 48 runs concurrently with Phase 47
+
+## Risk Register
+
+| Phase | Top Risk | Probability | Impact | Mitigation |
+|-------|---------|:-:|:-:|-----------|
+| 46 | pi_u signature wrong (not (1,3)) | LOW | HIGH | Baez 2002 guarantees h_2(C) = R^{3,1}; error would be in projection formula |
+| 47 | "Double duty" argument circular | MEDIUM | HIGH | Representation-theoretic route (Sym^3 invariant counting) avoids function-level circularity |
+| 48 | Stabilizer too small for SL(2,C) | LOW | HIGH | Spin(9)/G_2 fibration guarantees enough dimensions; explicit computation resolves |
+| 49 | GST field content doesn't match Peirce | MEDIUM | HIGH | This is the highest-risk phase; field counting against GST 1984 Table 1 is the decisive test |
+| 50 | Assembly reveals circular dependency | MEDIUM | MEDIUM | Phase 47 uniqueness theorem specifically designed to block this |
+
+## Progress
+
+**Execution Order:** 46 -> (47 || 48) -> 49 -> 50
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+| ----- | --------- | -------------- | ------ | --------- |
+| 46. V_0 Foundation + pi_u | v12.0 | 0/TBD | Not started | - |
+| 47. d_{IJK} + Uniqueness | v12.0 | 0/TBD | Not started | - |
+| 48. Equivariance + Lorentz | v12.0 | 0/TBD | Not started | - |
+| 49. GST Connection + KK | v12.0 | 0/TBD | Not started | - |
+| 50. Synthesis | v12.0 | 0/TBD | Not started | - |

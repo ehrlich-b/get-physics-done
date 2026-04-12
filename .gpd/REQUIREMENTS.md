@@ -81,28 +81,28 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ALGB-01 | TBD | Pending |
-| ALGB-02 | TBD | Pending |
-| ALGB-03 | TBD | Pending |
-| ALGB-04 | TBD | Pending |
-| ALGB-05 | TBD | Pending |
-| UNIQ-01 | TBD | Pending |
-| UNIQ-02 | TBD | Pending |
-| GRAV-01 | TBD | Pending |
-| GRAV-02 | TBD | Pending |
-| GRAV-03 | TBD | Pending |
-| GRAV-04 | TBD | Pending |
-| GRAV-05 | TBD | Pending |
-| SYNT-01 | TBD | Pending |
-| SYNT-02 | TBD | Pending |
+| ALGB-01 | Phase 46 | Pending |
+| ALGB-02 | Phase 47 | Pending |
+| ALGB-03 | Phase 48 | Pending |
+| ALGB-04 | Phase 46 | Pending |
+| ALGB-05 | Phase 46 | Pending |
+| UNIQ-01 | Phase 47 | Pending |
+| UNIQ-02 | Phase 47 | Pending |
+| GRAV-01 | Phase 49 | Pending |
+| GRAV-02 | Phase 49 | Pending |
+| GRAV-03 | Phase 49 | Pending |
+| GRAV-04 | Phase 49 | Pending |
+| GRAV-05 | Phase 49 | Pending |
+| SYNT-01 | Phase 50 | Pending |
+| SYNT-02 | Phase 50 | Pending |
 
 **Coverage:**
 
 - Primary requirements: 14 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 14
+- Mapped to phases: 14/14
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-04-11_
-_Last updated: 2026-04-11 after initial definition_
+_Last updated: 2026-04-11 after roadmap creation (phases 46-50)_
