@@ -374,7 +374,11 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 
 **Backtracking:** If det_2(pi_u(Y)) has wrong signature (not (1,3)), check u choice and projection formula. If V_0 circ V_0 leakage into V_{1/2} invalidates intrinsic h_2(O) product, switch to intrinsic h_2(O) Jordan product (not inherited from h_3(O)).
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 46-01-PLAN.md -- Construct pi_u, verify Minkowski signature (1,3), establish V_0 Peirce closure (ALGB-01)
+- [ ] 46-02-PLAN.md -- Characterize Delta(A,B) non-homomorphism failure, compute V_{1/2} x V_{1/2} -> V_0 product under pi_u (ALGB-04, ALGB-05)
 
 ### Phase 47: d_{IJK} Tensor and Uniqueness Theorems
 
