@@ -2731,6 +2731,13 @@ def compute_v0_stabilizer():
 
     The stabilizer is found via SVD of the off-diagonal constraint matrix.
 
+    Verified result (Phase 48-01):
+      stab_dim = 18 = so(3) + so(6), with so(3) acting on 4-dim spacetime block
+      and so(6) acting on 6-dim internal block.  Killing form negative definite
+      with eigenvalues -2 (x15, so(6)) and -0.5 (x3, so(3)).  Center dim = 0.
+      G_SM (dim 8) is contained as a subalgebra (residual < 5e-15).
+      Note: dim 18, not 21, because so(3,1) is noncompact and only so(3) c so(9).
+
     Returns:
         dict with keys:
           'stab_dim':              int  -- stabilizer Lie algebra dimension
