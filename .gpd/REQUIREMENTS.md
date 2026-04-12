@@ -1,85 +1,108 @@
-# Requirements: Gap C Complexification from Sequential Product
+# Requirements: GR from det(X) on h_3(O)
 
-**Defined:** 2026-04-04
-**Core Research Question:** Does the C*-observer's sequential product extend Cl(9,0) to Cl(9,C), closing Gap C?
+**Defined:** 2026-04-11
+**Core Research Question:** Does the Peirce complement V_0 = h_2(O), projected via the C*-bottleneck to h_2(C) = R^{3,1}, carry the GST magic supergravity structure with prepotential det(X)?
 
 ## Primary Requirements
 
-### Sequential Product Complexification
+### Algebraic Foundations
 
-- [ ] **SEQP-01**: Compute sqrt(T_a) for all 9 Cl(9,0) generators (eigenvalues +/-1/2) and verify sqrt(T_a) T_b sqrt(T_a) = (i/2)*T_b for all 72 anticommuting pairs. GO/NO-GO gate.
-- [ ] **SEQP-02**: Prove the C*-observer is physically justified in applying the complex functional calculus to indefinite Peirce operators T_a (not effects). Bridge the gap between Gudder-Greechie (effects only) and the observer's actual measurement algebra.
-- [ ] **SEQP-03**: Show the C-linear closure of {sqrt(T_a) T_b sqrt(T_a) : a != b} generates M_16(C), and identify this with Cl(9,C) = M_16(C) + M_16(C). Verify the spinor module extends S_9 -> S_{10}^+.
+- [ ] **ALGB-01**: Implement and verify projection pi_u: h_2(O) -> h_2(C_u); confirm det on h_2(C_u) has Minkowski signature (1,3)
+- [ ] **ALGB-02**: Compute full d_{IJK} polarized cubic form tensor on h_3(O) and decompose into Peirce blocks; confirm exactly two nonzero blocks: (V_1,V_0,V_0) and (V_{1/2},V_{1/2},V_0)
+- [ ] **ALGB-03**: Verify stabilizer of u in Spin(9) contains SL(2,C_u) acting as Lorentz group on h_2(C_u); identify full stabilizer Lie algebra
+- [ ] **ALGB-04**: Characterize pi_u non-homomorphism failure term pi_u(A circ B) - pi_u(A) circ pi_u(B) and its algebraic structure
+- [ ] **ALGB-05**: Compute Peirce product V_{1/2} x V_{1/2} -> V_0 explicitly and determine its image under pi_u
 
-### Gap C Theorem
+### Uniqueness and Structure Theorems
 
-- [ ] **GAPC-01**: State Gap C closure as a single theorem: C*-observer (Paper 5) -> complex FC on Cl(9,0) generators -> measurement algebra = Cl(9,C) -> spinor module complexifies to S_{10}^+ -> Spin(9) extends to Spin(10) -> F_4 extends to E_6 -> chirality from Cl(6).
-- [ ] **GAPC-02**: Verify compatibility with Paper 7's existing 9-link chain (L1-L9). Confirm no regression in existing links. Identify what Gap C closure upgrades in the gap register.
+- [ ] **UNIQ-01**: State and prove "double duty" theorem: det(X) is unique (up to scale) F_4-invariant cubic on h_3(O), forcing rho_J and GST prepotential to share det(X) by algebraic necessity
+- [ ] **UNIQ-02**: Decompose the 27 under Peirce + C*-bottleneck: verify 16 -> SM fermions (Paper 7), 10 -> 4 + 6 (spacetime + internal), 1 -> singlet
 
-### Contingency
+### Gravitational Connection
 
-- [ ] **CONT-01**: If SEQP-02 fails (complex FC not physically justified), evaluate Peirce multiplication route and the 4 formal routes (conditional expectations, state-effect, GNS, tensor product) with the new framing from the literature survey.
-- [ ] **CONT-02**: If all algebraic routes fail, characterize the precise obstruction, state Gap C status as "algebraic impossibility confirmed; selection argument (Paper 8) is ceiling," and identify weakest sufficient condition for complexification.
+- [ ] **GRAV-01**: Identify GST 5d N=2 MESGT field content under Peirce decomposition; match scalars, vectors, and graviton to V_1, V_{1/2}, V_0 sectors
+- [ ] **GRAV-02**: Perform 5d -> 4d circle compactification; verify 4d field content (graviton + 28 vectors + 56 scalars on E_7(-25)/(E_6 x U(1)))
+- [ ] **GRAV-03**: State precise claim: det(X) determines matter-gravity coupling structure (scalar manifold, prepotential); Paper 6 determines GR itself (Einstein equations via Jacobson)
+- [ ] **GRAV-04**: Compute 4d cosmological constant from GST vacuum structure
+- [ ] **GRAV-05**: Decompose Chern-Simons cubic coupling C_{IJK} under Peirce; identify physical couplings (fermion-fermion-spacetime, gravitational self-coupling)
+
+### Synthesis
+
+- [ ] **SYNT-01**: Assemble complete picture: Papers 5 (QM) + 6 (GR) + 7 (SM) + this milestone (matter-gravity coupling) giving SM+GR from self-modeling
+- [ ] **SYNT-02**: Identify and honestly state all remaining gaps, open questions, and conditional claims
 
 ## Follow-up Requirements
 
 ### Extended Analysis
 
-- **SEQP-04**: Identify the 10th Clifford generator explicitly -- relate the (i/2) factor in the sequential product to gamma_10 in Cl(10,0)
-- **GAPC-03**: Connect Gap C closure to Alfsen-Shultz dynamical correspondence (alternative proof route via JB -> C* lifting)
-- **PAPR-01**: Integrate Gap C closure into Paper 7 revision (update complexification section, gap register, abstract)
+- **EXTD-01**: Physical interpretation of pi_u failure term as gauge-gravity coupling
+- **EXTD-02**: Connection to Farnsworth's spectral triple framework for gravity sector
+- **EXTD-03**: Moduli stabilization on E_6(-26)/F_4 scalar manifold
+- **EXTD-04**: Extension to full 10d/11d supergravity context
 
 ## Out of Scope
 
 | Topic | Reason |
-| ----- | ------ |
-| Quantum SSB at S_eff=1/2 | Separate conditionality, not related to Gap C |
-| Gap A (continuum limit) | Different gap, addressed in v9.0/v10.0 |
-| Gap B (symmetry breaking inputs) | Different gap, u in S^6 choice |
-| Paper 7 full revision | Deferred until Gap C status is resolved |
-| Spectral action computation | Beyond Gap C scope |
+|-------|--------|
+| Full GST Lagrangian numerical evaluation | Only algebraic structure needed; numerical coefficients require spectral action |
+| E_7(-25) quaternionic-Kahler geometry | 4d scalar manifold details beyond field content counting |
+| Moduli stabilization and vacuum selection | Requires dynamical mechanism beyond algebraic structure |
+| Re-deriving Papers 5, 6, 7 results | Already established; used as input |
+| Spectral action computation for coupling constants | Beyond scope -- separate milestone |
+| N=2 SUSY preservation or breaking | Self-modeling framework is SUSY-agnostic |
 
 ## Accuracy and Validation Criteria
 
 | Requirement | Accuracy Target | Validation Method |
-| ----------- | --------------- | ----------------- |
-| SEQP-01 | Exact (algebraic identity) | SymPy symbolic verification + NumPy numerical check for all 72 pairs |
-| SEQP-02 | Rigorous proof | Check premises match Paper 5 Def 2.6; no circular arguments |
-| SEQP-03 | Exact (dimension counting) | Verify dim_C(closure) = 256 = dim(M_16(C)); identify Cl(9,C) decomposition |
-| GAPC-01 | Complete logical chain | Each step cites specific theorem/equation; no gaps |
-| GAPC-02 | Zero regressions | All 9 existing links still valid; gap register updated |
-| CONT-01 | Exhaustive | All 4 routes evaluated with new framing |
-| CONT-02 | Precise obstruction | Weakest sufficient condition identified |
+|-------------|-----------------|-------------------|
+| ALGB-01 | Exact (algebraic) | det signature check; det(E_{11})=0, det(I)=1 benchmarks |
+| ALGB-02 | Exact (algebraic) | d_{IJK} symmetry; reassembled tensor reproduces det; d_{0,0,0}=0 |
+| ALGB-03 | Exact (algebraic) | Stabilizer Lie algebra dimension and structure; SL(2,C) embedding explicit |
+| UNIQ-01 | Exact (proof) | Springer 1962 uniqueness; dim Sym^3(27)^{F_4} = 1 |
+| UNIQ-02 | Exact (algebraic) | Quantum numbers match Paper 7 table; dimensions add to 27 |
+| GRAV-01 | Exact (field counting) | Match GST 1984 Table 1; 27 vectors, 26+1 scalars |
+| GRAV-02 | Exact (field counting) | Match de Wit-Van Proeyen; E_7(-25) coset dimension = 56 |
+| GRAV-03 | N/A (precise statement) | No overclaiming vs Paper 6; reviewable by physicist |
+| SYNT-01 | N/A (assembly) | All links cited; no circular dependencies |
+| SYNT-02 | N/A (completeness) | Every conditional claim flagged; no hidden assumptions |
 
 ## Contract Coverage
 
 | Requirement | Decisive Output | Anchor / Reference | Prior Inputs | False Progress To Reject |
-| ----------- | --------------- | ------------------ | ------------ | ------------------------ |
-| SEQP-01 | Verified identity (i/2)*T_b for 72 pairs | Cl(9,0) generators from v8.0 Phase 29 | T_b matrices from v8.0 | Partial verification (must be ALL pairs) |
-| SEQP-02 | Theorem with proof | Paper 5 Def 2.6, Gudder-Greechie 2002 | v8.0 impossibility theorems | Physical hand-waving without theorem |
-| SEQP-03 | Dimension = 256 over C | Cl(9,C) = M_16(C) + M_16(C) (Lawson-Michelsohn) | SEQP-01 result | Generating a proper subalgebra of M_16(C) |
-| GAPC-01 | Single theorem statement + proof | Paper 7 chain, Paper 5 | SEQP-01-03 | Theorem with unjustified step |
-| GAPC-02 | Compatibility verification | Paper 7 L1-L9 | v5.0 Paper 7 | Claiming compatibility without checking each link |
+|-------------|-----------------|-------------------|--------------|--------------------------|
+| ALGB-01 | Explicit pi_u matrix + signature proof | Baez 2002 (h_2(C)=R^{3,1}) | Existing octonion code | Claiming R^{3,1} without pi_u (h_2(O)=R^{9,1}) |
+| ALGB-02 | d_{IJK} tensor with Peirce block labels | GST 1984 C_{IJK} | det_h3o implementation | Incomplete block decomposition |
+| ALGB-03 | Stabilizer Lie algebra generators | Paper 7 Spin(9) action | Existing Cl(9,0) gamma matrices | Confusing Spin(9) with SO(9) |
+| UNIQ-01 | Theorem statement + proof | Springer 1962 | F_4 rep theory | Circular argument using GST to prove GST |
+| GRAV-02 | 4d field content table | de Wit-Van Proeyen 1992 | 5d GST content | Wrong E_6 real form |
+| GRAV-03 | Precise 2-sentence claim | Papers 5, 6, 7 | All prior milestones | "GR from h_3(O)" without Paper 6 |
 
 ## Traceability
 
 | Requirement | Phase | Status |
-| ----------- | ----- | ------ |
-| SEQP-01 | Phase 42 | Pending |
-| SEQP-02 | Phase 43 | Pending |
-| SEQP-03 | Phase 43 | Pending |
-| GAPC-01 | Phase 44 | Pending |
-| GAPC-02 | Phase 44 | Pending |
-| CONT-01 | Phase 45 (conditional) | Pending |
-| CONT-02 | Phase 45 (conditional) | Pending |
+|-------------|-------|--------|
+| ALGB-01 | TBD | Pending |
+| ALGB-02 | TBD | Pending |
+| ALGB-03 | TBD | Pending |
+| ALGB-04 | TBD | Pending |
+| ALGB-05 | TBD | Pending |
+| UNIQ-01 | TBD | Pending |
+| UNIQ-02 | TBD | Pending |
+| GRAV-01 | TBD | Pending |
+| GRAV-02 | TBD | Pending |
+| GRAV-03 | TBD | Pending |
+| GRAV-04 | TBD | Pending |
+| GRAV-05 | TBD | Pending |
+| SYNT-01 | TBD | Pending |
+| SYNT-02 | TBD | Pending |
 
 **Coverage:**
 
-- Primary requirements: 7 total
-- Mapped to phases: 7/7
-- Unmapped: 0
+- Primary requirements: 14 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 14
 
 ---
 
-_Requirements defined: 2026-04-04_
-_Last updated: 2026-04-04 after roadmap creation (Phases 42-45)_
+_Requirements defined: 2026-04-11_
+_Last updated: 2026-04-11 after initial definition_
