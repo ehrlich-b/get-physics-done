@@ -328,11 +328,11 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 | "Double duty" uniqueness theorem (det = rho_J = prepotential) | Phase 47 | Planned |
 | 27 decomposition under Peirce + C*-bottleneck | Phase 47 | Planned |
 | Stabilizer of u in Spin(9) with SL(2,C_u) embedding | Phase 48 | Planned |
-| GST field content matched to Peirce sectors | Phase 49 | Planned |
-| 5d -> 4d KK reduction field content | Phase 49 | Planned |
-| Precise claim: det(X) = coupling, Paper 6 = GR | Phase 49 | Planned |
-| Cosmological constant from GST vacuum | Phase 49 | Planned |
-| C_{IJK} Peirce decomposition with physical couplings | Phase 49 | Planned |
+| GST field content matched to Peirce sectors | Phase 49 | Done |
+| Direct 4d field content (no KK) | Phase 49 | Done |
+| Precise claim: det(X) = prepotential, Paper 6 = GR | Phase 49 | Done |
+| Cosmological constant Lambda=0 (ungauged) | Phase 49 | Done |
+| C_{IJK} Peirce decomposition with physical couplings | Phase 49 | Done |
 | Complete SM+GR assembly (Papers 5+6+7+this) | Phase 50 | Planned |
 | Honest gap inventory | Phase 50 | Planned |
 
@@ -347,8 +347,8 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 
 - [x] **Phase 46: V_0 Algebraic Foundation and pi_u Projection** -- Establish h_2(O) structure with pi_u: h_2(O) -> h_2(C_u) = R^{3,1}; verify Minkowski signature; characterize non-homomorphism failure; compute V_{1/2} x V_{1/2} -> V_0 product (completed 2026-04-12)
 - [x] **Phase 47: d_{IJK} Tensor and Uniqueness Theorems** -- Decompose polarized cubic form into Peirce blocks; prove det(X) "double duty" uniqueness from F_4-invariance; verify 27 = 1+16+10 quantum numbers under C*-bottleneck (completed 2026-04-12)
-- [ ] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u
-- [ ] **Phase 49: GST Lagrangian Connection and KK Reduction** -- Match GST field content to Peirce sectors; perform 5d -> 4d circle compactification; state precise claim on det(X) role; decompose C_{IJK} couplings
+- [x] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u (completed 2026-04-12)
+- [x] **Phase 49: GST Lagrangian Connection (Direct 4d Formulation)** -- Field content 1 gravity + 26 vector multiplets; prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0); C_{IJK} coupling decomposition; precise claim; Lambda=0; Lagrangian assembly (completed 2026-04-12)
 - [ ] **Phase 50: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory
 
 ## Phase Details
@@ -463,8 +463,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 49-01-PLAN.md -- Field content identification from Peirce decomposition + prepotential construction + normalization fixing
-- [ ] 49-02-PLAN.md -- C_{IJK} coupling decomposition + precise claim statement + cosmological constant + Lagrangian assembly
+- [x] 49-01-PLAN.md -- Field content identification from Peirce decomposition + prepotential construction + normalization fixing
+- [x] 49-02-PLAN.md -- C_{IJK} coupling decomposition + precise claim statement + cosmological constant + Lagrangian assembly
 
 ### Phase 50: Synthesis and Paper Integration
 
