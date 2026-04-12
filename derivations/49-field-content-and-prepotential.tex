@@ -1,0 +1,206 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+%   det3_normalization=d(X,X,X)=6*det_3(X),
+%   real_forms=E6(-26)_5d_E7(-25)_4d,
+%   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+%   prepotential=F(X)=d_IJK*X^I*X^J*X^K/(6*X^0)
+
+% Phase 49, Plan 01: Field Content and Prepotential for h_3(O) MESGT
+% Direct 4d formulation -- NO 5d intermediate step, NO KK reduction.
+%
+% References:
+%   [GST84] Gunaydin, Sierra, Townsend, Nucl. Phys. B 242 (1984) 244--268
+%   [dWVP92] de Wit, Van Proeyen, Commun. Math. Phys. 149 (1992) 307--333
+%   [LVP20] Lauria, Van Proeyen, Lect. Notes Phys. 966 (2020)
+%   [FG06] Ferrara, Gunaydin, hep-th/0606108
+%   [Phase 47] d_{IJK} tensor, 106 nonzero entries, two Peirce blocks
+
+\section*{Phase 49, Plan 01: Field Content and Prepotential}
+
+\subsection*{Setup}
+
+The exceptional Jordan algebra $\mathfrak{h}_3(\mathbb{O})$ has dimension 27.
+Phase~47 computed the symmetric trilinear form $d_{IJK}$ on the
+27-element Peirce basis via polarization of $\det_3(X)$, yielding 106
+nonzero entries in exactly two Peirce blocks:
+$(V_1, V_0, V_0)$ [10 entries] and $(V_{1/2}, V_{1/2}, V_0)$ [96 entries].
+
+The Peirce decomposition under the idempotent $E_{11}$ gives
+\begin{equation}\tag{49.0}
+  27 = \underbrace{1}_{V_1} \,+\, \underbrace{16}_{V_{1/2}} \,+\,
+       \underbrace{10}_{V_0}
+\end{equation}
+with basis indices $I = 0$ ($V_1$), $I = 1, \ldots, 16$ ($V_{1/2}$),
+$I = 17, \ldots, 26$ ($V_0$).
+
+We work \emph{directly in 4d} following de Wit--Van Proeyen~[dWVP92],
+using $d_{IJK}$ as the defining algebraic data. No 5d $\to$ 4d
+Kaluza--Klein reduction is performed.
+
+% ======================================================================
+
+\subsection*{Proposition 1: Field Content}
+
+The 4d $\mathcal{N}=2$ Maxwell--Einstein supergravity theory (MESGT)
+determined by $\mathfrak{h}_3(\mathbb{O})$ contains:
+
+\begin{center}
+\begin{tabular}{c|c|c|l}
+\hline
+\textbf{Peirce index} & \textbf{Sector} & \textbf{Multiplet} & \textbf{Content} \\
+\hline
+$I = 0$ & $V_1$ & Gravity &
+  $g_{\mu\nu}$, graviphoton $A^0_\mu$, scalar direction $X^0$ \\
+\hline
+$I = 1, \ldots, 16$ & $V_{1/2}$ & 16 vector &
+  $A^i_\mu$, $z^i$ ($2$ real each); SM fermion q.n.\ \\
+\hline
+$I = 17, \ldots, 26$ & $V_0$ & 10 vector &
+  $A^a_\mu$, $z^a$ ($2$ real each); $4$ spacetime $+$ $6$ internal \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Counting.}
+\begin{itemize}
+\item Number of vector multiplets: $n_V = 16 + 10 = 26$.
+  The graviphoton $A^0_\mu$ belongs to the gravity multiplet, \textbf{not}
+  a vector multiplet.
+\item Total gauge vectors: $1 + 26 = 27$.
+\item Total real scalars: $2 \times 27 = 54$
+  (including the 2 real components from the $X^0$ direction in special
+  K\"ahler geometry).
+\item Scalar manifold:
+\begin{equation}\tag{49.1}
+  \mathcal{M}_{\mathrm{scalar}} =
+  \frac{E_{7(-25)}}{E_{6(-78)} \times U(1)}
+\end{equation}
+  with $\dim_{\mathbb{R}} \mathcal{M} = 133 - 78 - 1 = 54 = 2 \times 27$.
+\end{itemize}
+
+\paragraph{Real form identification.}
+$E_{6(-26)}$ is the 5d structure group (automorphism group of the cubic
+norm on $\mathfrak{h}_3(\mathbb{O})$ restricted to traceless elements);
+$E_{7(-25)}$ is the 4d U-duality group.
+These are the \emph{non-compact, non-split} real forms corresponding
+to the \emph{magic} $\mathcal{N} = 2$ supergravity.
+They are \textbf{not} $E_7(7)$ (the split form appearing in maximal
+$\mathcal{N} = 8$ supergravity) or $E_{7(-133)}$/$E_{6(-78)}$
+(the compact forms).
+
+\paragraph{Comparison with GST 1984 [GST84].}
+GST~Table~1 gives the 5d field content for the exceptional magic MESGT:
+1~graviton, 27~vectors, and $27 + 1$ scalars on
+$E_{6(-26)}/F_4$.
+In 4d, the additional scalar from dimensional reduction
+(the ``very special'' coordinate) is absorbed into the prepotential
+formalism, giving 27 projective coordinates
+$(X^0, X^1, \ldots, X^{26})$ and the scalar manifold (49.1).
+Our field count matches: $n_V = 26$ vector multiplets $+ 1$ gravity
+multiplet containing the graviphoton.
+
+\paragraph{$V_0$ splitting under $\pi_u$.}
+From Phase~46, $\pi_u$ projects $V_0 = \mathfrak{h}_2(\mathbb{O})$
+(dim~10) onto $\mathfrak{h}_2(\mathbb{C}_u)$ (dim~4, Minkowski metric).
+\begin{itemize}
+\item Spacetime: $I \in \{17, 18, 19, 26\}$ ($b_0, b_1, b_2, b_9$) ---
+  the $\mathfrak{h}_2(\mathbb{C}_u)$ sector with
+  $\det_2$ Gram $= \mathrm{diag}(+1, -1, -1, -1)$.
+\item Internal: $I \in \{20, 21, 22, 23, 24, 25\}$ ($b_3, \ldots, b_8$)
+  --- the $W$-sector killed by $\pi_u$.
+\end{itemize}
+Dimension: $4 + 6 = 10 = \dim V_0$. The 4d spacetime is
+$\mathfrak{h}_2(\mathbb{C}_u)$, \textbf{not} the full 10-dimensional
+$V_0$.
+
+\paragraph{$V_{1/2}$ SM quantum numbers.}
+The 16 basis vectors in $V_{1/2}$ carry the quantum numbers of one
+generation of Standard Model fermions (verified against Paper~7 in
+Phase~47, Plan~02: multiset match of $(Q, Y, J_{3L}, J_{3R}, B{-}L)$
+for all 16 states including color multiplicities).
+
+% ======================================================================
+
+\subsection*{Proposition 2: Prepotential}
+
+The 4d cubic prepotential is
+\begin{equation}\tag{49.2}
+  F(X) = \frac{d_{IJK}\, X^I X^J X^K}{6\, X^0}
+\end{equation}
+where $d_{IJK}$ is the fully symmetric trilinear form from Phase~47
+(normalized so that $d(X, X, X) = 6\,\det_3(X)$) and $X^I = (X^0, X^1,
+\ldots, X^{26})$ are projective coordinates on the scalar manifold.
+
+\paragraph{Homogeneity.}
+$F(X)$ is homogeneous of degree 2:
+\[
+  F(\lambda X) = \frac{d_{IJK}\, \lambda^3 X^I X^J X^K}{6 \cdot
+  \lambda X^0} = \lambda^2 F(X).
+\]
+This is the required degree for a special K\"ahler prepotential
+[dWVP92].
+
+\paragraph{Convention note.}
+Some references write $F = C_{IJK}\, X^I X^J X^K / X^0$ where
+$C_{IJK} = \tfrac{1}{6}\, d_{IJK}$ already absorbs the combinatorial
+factor. Both conventions are equivalent:
+\[
+  F = \frac{d_{IJK}\, X^I X^J X^K}{6\, X^0}
+    = \frac{C_{IJK}\, X^I X^J X^K}{X^0}.
+\]
+
+\paragraph{Role of the prepotential.}
+The prepotential $F(X)$ is the algebraic \textbf{input} that determines:
+\begin{itemize}
+\item The scalar manifold metric $g_{i\bar{j}}$ via the K\"ahler potential.
+\item The gauge kinetic matrix $\mathcal{N}_{IJ}$ (vector kinetic terms
+  and theta angles).
+\item The Chern--Simons-like topological couplings in the bosonic
+  Lagrangian.
+\end{itemize}
+It does \textbf{not} produce the Einstein--Hilbert term $-R/2$.
+The gravitational kinetic term is an independent ingredient of the
+$\mathcal{N} = 2$ MESGT framework (or, in the project context, comes from
+Paper~6 via the Jacobson thermodynamic argument).
+
+% ======================================================================
+
+\subsection*{Proposition 3: Normalization}
+
+\paragraph{Statement.}
+The GST coupling tensor $C_{IJK}$ is related to the Phase~47 tensor
+$d_{IJK}$ by
+\begin{equation}\tag{49.3}
+  C_{IJK} = \frac{1}{6}\, d_{IJK}
+\end{equation}
+so that $C_{IJK}\, X^I X^J X^K = \det_3(X)$ on the Jordan algebra,
+i.e., on the ``$V = 1$ constraint surface'' the GST prepotential
+equals the cubic norm.
+
+\paragraph{Verification.}
+Evaluate at the identity $I_3 = \mathrm{diag}(1,1,1)$:
+\begin{itemize}
+\item $\det_3(I_3) = 1$ (Phase~47 benchmark).
+\item The Peirce expansion of $I_3$ gives coordinates $X^I$.
+\item $d_{IJK}\, X^I X^J X^K = 6 \cdot \det_3(I_3) = 6$
+  (Phase~47 normalization: $d(X,X,X) = 6\,N(X)$).
+\item Therefore $C_{IJK}\, X^I X^J X^K = \tfrac{1}{6} \cdot 6 = 1
+  = \det_3(I_3)$. \checkmark
+\end{itemize}
+
+For a general diagonal element $\mathrm{diag}(a,b,c)$:
+\[
+  \det_3(\mathrm{diag}(a,b,c)) = abc, \qquad
+  C_{IJK}\, X^I X^J X^K = \frac{1}{6}\, d_{IJK}\, X^I X^J X^K
+  = \frac{1}{6} \cdot 6 \cdot abc = abc. \; \checkmark
+\]
+
+The normalization $\lambda = 1/6$ is uniquely determined by the
+convention $d(X,X,X) = 6\,N(X)$ from Phase~47.
+
+\vspace{1em}
+\hrule
+\vspace{0.5em}
+\textit{Phase 49, Plan 01. Direct 4d formulation.
+No 5d $\to$ 4d reduction performed.}
