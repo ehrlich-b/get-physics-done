@@ -303,3 +303,159 @@ Paper 6 appears in this document only as historical context (this section) to pr
 | N18 | Complete Lagrangian | CONDITIONAL-DERIVED | Inherits N17 + N12 conditions |
 
 **Summary:** 1 axiom, 1 PROVED, 11 DERIVED, 3 CONDITIONAL-DERIVED, 2 ASSUMED.
+
+---
+
+## 8. Weinberg Non-Circularity Traces
+
+For each of the four Weinberg hypotheses, we trace backward through the DAG to verify that no step assumes -R/2, Einstein field equations, or any other GR result.
+
+### H1: Lorentz Invariance
+
+**Backward trace:** N17 <- N11 <- N9 + N4
+
+Full path to axiom:
+- N11 (so(3) x so(6) stabilizer, Phase 48): computed from spin(9) action on V_0
+- N9 (Minkowski signature, Phase 46): det_2 Gram on h_2(C_u) = diag(+1,-1,-1,-1)
+- N4 (Peirce decomposition): standard Jordan algebra
+- N3 (h_3(O)): non-composability, Paper 7
+- N2 (C\*-algebra): self-modeling, Paper 5
+- N1 (axiom)
+
+**GR content check:** The so(3) rotation subalgebra comes from the compact Spin(9) stabilizer of V_0. Boosts are recovered via complexification so(3,C) = sl(2,C) -- this is a standard Lie algebra result that does not reference GR. No step in this chain invokes -R/2, Einstein equations, or the Christoffel connection.
+
+**Verdict: CLEAN.** No GR assumption.
+
+**Note:** The compact-to-non-compact step (so(3) -> so(3,1)) is the weakest point (CONDITIONAL-DERIVED), but it is a mathematical step (complexification), not a physical assumption about GR.
+
+### H2: Spin-2
+
+**Backward trace:** N17 <- N14 <- N9 + N11
+
+Full path to axiom:
+- N14 (spin-2 decomposition, Phase 50-01): SO(3,1) irrep of det_2 perturbation, 10 = 9 + 1
+- N9 (Minkowski signature, Phase 46): det_2 on h_2(C_u)
+- N11 (Lorentz structure, Phase 48): SO(3,1) action available for decomposition
+- N4 (Peirce): determines V_0 = h_2(O) dim 10
+- N3 -> N2 -> N1
+
+**GR content check:** The spin-2 identification comes from the algebraic structure of det_2 on h_2(C_u). The traceless symmetric part (dim 9) transforms as the (1,1) representation of SL(2,C). This is representation theory on the space V_0, not a statement about gravitons or GR. The word "graviton" is applied after the fact based on Weinberg's theorem, not before.
+
+**Verdict: CLEAN.** No GR assumption.
+
+### H3: Masslessness
+
+**Backward trace:** N17 <- N15 <- N10 + N9
+
+Full path to axiom:
+- N15 (massless, Phase 50-01): det_3(E_{11} + eps*delta) = eps^2 * det_2(delta), M_{ab} = det_2 Gram
+- N10 (det_3 uniqueness, Phase 47, Springer 1962): F_4-invariant cubic
+- N9 (det_2 on h_2(C_u), Phase 46): Minkowski metric structure
+- N4 (Peirce): E_{11} is rank-1 idempotent with E_{11}# = 0
+- N3 -> N2 -> N1
+
+**GR content check:** Masslessness is established by computing the O(eps^2) coefficient of det_3 around the rank-1 idempotent E_{11}. The result M_{ab} = det_2 (kinetic-type, not Fierz-Pauli mass) follows from the algebraic identity Tr(delta# circ E) = det_2(delta). This is pure Jordan algebra computation. No Fierz-Pauli tuning is assumed -- it EMERGES from the algebraic structure. No GR content enters at any step.
+
+**Verdict: CLEAN.** No GR assumption.
+
+### H4: Universal Coupling
+
+**Backward trace:** N17 <- N16 <- N13 + N9
+
+Full path to axiom:
+- N16 (universal coupling, Phase 50-02): C_{i,j,a} symmetric, universal, bilinear (stress-energy structure)
+- N13 (C_{IJK} decomposition, Phase 49-02): 48 matter-spacetime + 48 matter-internal couplings
+- N10 (d_{IJK} tensor, Phase 47-01): 106 nonzero entries from polarization of det_3
+- N12 (prepotential, Phase 49-01): C_{IJK} = (1/6) d_{IJK}
+- N3 -> N2 -> N1
+
+**GR content check:** The coupling tensor C_{IJK} = (1/6) d_{IJK} is computed by polarizing det_3, which is a purely algebraic operation on h_3(O). Its restriction to spacetime V_0 directions gives the matter-gravity coupling C_{i,j,a}. Symmetry (480 pairs, max err 0) and universality (16 fields x 4 directions) are algebraic properties of d_{IJK}, verified computationally. The identification of this structure as "stress-energy" is a labeling earned by the algebraic properties (symmetric, universal, bilinear), not assumed from GR.
+
+**Verdict: CLEAN.** No GR assumption.
+
+### Non-Circularity Summary
+
+| Hypothesis | Algebraic source | Intermediate nodes | -R/2 assumed? | GR assumed? |
+|-----------|-----------------|-------------------|---------------|-------------|
+| H1 (Lorentz) | Spin(9) stabilizer of V_0 | N11 <- N9, N4 | NO | NO |
+| H2 (Spin-2) | det_2 perturbation irrep | N14 <- N9, N11 | NO | NO |
+| H3 (Massless) | det_3 expansion (E# = 0) | N15 <- N10, N9 | NO | NO |
+| H4 (Universal) | C_{IJK} stress-energy | N16 <- N13, N9 | NO | NO |
+
+**All four Weinberg inputs trace to h_3(O) algebraic structure via N3 -> N2 -> N1. No path passes through -R/2, Einstein equations, Christoffel connection, or any other GR assumption. The -R/2 term appears ONLY as the OUTPUT of Weinberg's theorem at N17, never as input to any earlier node.**
+
+---
+
+## 9. Assembly Summary
+
+The self-modeling axiom, via the unique exceptional Jordan algebra h_3(O), determines:
+
+1. **Quantum mechanics** (Paper 5: C\*-algebra) [PROVED]
+2. **Standard Model fermion content** (Paper 7: V_{1/2} = 16 of Spin(9), one generation) [DERIVED]
+3. **Chirality** (Paper 7 + v11.0: Cl(9,C) -> Cl(6) volume form) [PROVED given Paper 5]
+4. **Minkowski spacetime** (Phase 46: V_0 -> R^{3,1} via pi_u) [DERIVED]
+5. **Matter-gravity couplings** (Phase 49: det(X) prepotential determines full bosonic Lagrangian) [DERIVED given MESGT identification]
+6. **Einstein gravity -R/2** (Phase 50: Weinberg from algebraic inputs, non-circular) [CONDITIONAL-DERIVED]
+
+### Conditions and Assumptions
+
+The chain is CONDITIONAL ON:
+
+- **N=2 SUSY algebraic identification (ASSUMED):** The MESGT framework is identified with the h_3(O) algebraic structure by matching field content and prepotential. N=2 SUSY is not derived from self-modeling; it is the mathematical framework in which the algebraic data is organized. This is the entry point for the full Lagrangian (N12).
+
+- **Compact so(3) complexification to so(3,1) (CONDITIONAL-DERIVED):** The stabilizer computation (Phase 48) gives compact so(3) rotations. Full Lorentz invariance requires boosts, recovered via complexification so(3,C) = sl(2,C). This is a standard mathematical operation but is the weakest structural link in the H1 chain.
+
+- **Weinberg low-energy scope (CONDITIONAL-DERIVED):** Weinberg's 1964 theorem is a statement about the low-energy effective action. It does not constrain UV completion. Higher-derivative corrections (R^2, R_{abcd}^2, ...) are not excluded but are suppressed at low energies.
+
+- **Lambda = 0 (ASSUMED in ungauged MESGT):** The ungauged N=2 MESGT has no cosmological constant at tree level. A nonzero Lambda would require gauging or quantum corrections not addressed here.
+
+### NOT DERIVED from self-modeling
+
+The following are explicitly outside the scope of this chain:
+
+- **3 generations:** The Peirce decomposition gives 27 = 1 + 16 + 10, which accommodates one generation. The origin of three generations is not addressed. (Possible avenue: Peirce tower over h_3(O) x h_3(O) x h_3(O), but not pursued here.)
+
+- **so(6) -> G_SM reduction mechanism:** The V_0 stabilizer contains so(6), which contains g_SM = su(3) + su(2) + u(1) (Phase 48). But the mechanism that reduces so(6) to precisely g_SM is not derived from self-modeling. Compare Todorov-Drenska 2019 for an F_4 intersection argument.
+
+- **Lambda != 0:** No mechanism for a positive cosmological constant is provided.
+
+- **Full fermionic sector:** Only the bosonic Lagrangian (Eq. 49.6 / 50.9) is assembled. The N=2 MESGT also predicts gravitinos and gauginos, but these are not included in the v12.0 chain.
+
+- **Quantum corrections:** Everything is at tree level. Loop corrections, anomalies, and RG running are not addressed.
+
+- **UV completion:** Weinberg's theorem is low-energy. The self-consistent UV completion of the theory is not addressed by this chain.
+
+### What det(X) Does and Does Not Do
+
+**det(X) IS:** The unique F_4-invariant cubic on h_3(O) (Springer 1962). It serves as the prepotential of the MESGT Lagrangian, determining all matter-gravity coupling constants C_{IJK} = (1/6) d_{IJK}.
+
+**det(X) DOES NOT:** Derive -R/2 directly. The Einstein-Hilbert term -R/2 is forced by Weinberg's theorem from the algebraic properties that det(X) provides (spin-2, massless, universal coupling). det(X) provides the INPUT to Weinberg; -R/2 is the OUTPUT of Weinberg. This distinction is essential for non-circularity.
+
+---
+
+## 10. Source Citation Registry
+
+Every node cites at least one source. No node is uncited.
+
+| Node | Primary source | Secondary source | Phase/Paper |
+|------|---------------|------------------|-------------|
+| N1 | Paper 5, Def. 1 | -- | Paper |
+| N2 | Paper 5, Thm. 1 | -- | Paper |
+| N3 | Paper 7, Thm. 2 | Albert 1934 | Paper |
+| N4 | McCrimmon 2004, Ch. 6 | Phase 47-01 | Paper + Phase |
+| N5 | Paper 7, Sec. 4 | Phase 47-02 | Paper + Phase |
+| N6 | Phases 42-44 | Paper 5 (C\*) | Phase |
+| N7 | Paper 7, L1-L9 | Phase 44 | Paper + Phase |
+| N8 | Phase 48-01 | Todorov-Drenska 2019 (comparison) | Phase |
+| N9 | Phase 46-01, 46-02 | -- | Phase |
+| N10 | Springer 1962 | Phase 47-02 | Paper + Phase |
+| N11 | Phase 48-01, 48-02 | -- | Phase |
+| N12 | GST 1983-84 | Phase 49-01 | Paper + Phase |
+| N13 | Phase 49-02 | -- | Phase |
+| N14 | Phase 50-01, Prop. 1 | -- | Phase |
+| N15 | Phase 50-01, Prop. 2 | Boulware-Deser | Phase + Paper |
+| N16 | Phase 50-02, Prop. 3 | -- | Phase |
+| N17 | Weinberg 1964 | Phase 50-02, Thm. 1 | Paper + Phase |
+| N18 | Phase 49-02, Eq. 49.6 | Phase 50-02, Eq. 50.9 | Phase |
+
+**Zero uncited nodes. Zero nodes citing Paper 6 as logical input.**
