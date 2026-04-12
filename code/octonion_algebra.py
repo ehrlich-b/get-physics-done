@@ -3685,3 +3685,22 @@ def decompose_couplings_49(d_tensor=None):
         'spacetime_indices': spacetime_set,
         'internal_indices': internal_set,
     }
+
+
+# ============================================================================
+# VERIFIED (49-02 Task 1):
+#   decompose_couplings_49: 10 grav_self + 48 matter_spacetime + 48 matter_internal = 106.
+#   C_{IJK} = (1/6) d_{IJK}: max |C - d/6| = 0 (exact to float64).
+#   Spacetime V_0 indices: {17,18,19,26} all present (surjective, Phase 46).
+#   Internal V_0 indices: {20,...,25} all present.
+#   Per-index counts: 17:16, 18:16, 19:8, 26:8 (spacetime); 20-25:8 each (internal).
+#   Exactly 2 Peirce block types (Phase 47 match).
+#
+# VERIFIED (49-02 Task 2):
+#   Proposition 5 (precise claim): two sentences distinguishing prepotential from EH.
+#   No overclaiming: "det(X) derives GR" absent except in WRONG label.
+#   Proposition 6 (Lambda): V=0 for ungauged, cited LVP20, flagged as open.
+#   Theorem 1 (Lagrangian): all 4 terms present, sources identified.
+#   Forbidden proxies: no old lattice route, no wrong real forms, no EH confusion.
+#   GRAV-01 through GRAV-05 all addressed. N=2 SUSY noted as input.
+# ============================================================================
