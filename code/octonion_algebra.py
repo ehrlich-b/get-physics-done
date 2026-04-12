@@ -498,6 +498,152 @@ def V0_basis_elements():
     return basis
 
 
+# ============================================================================
+# Phase 46, Plan 01: pi_u projection, det_2 quadratic form, h_2(O) Jordan product
+# ============================================================================
+# ASSERT_CONVENTION: natural_units=dimensionless, jordan_product=(1/2)(ab+ba),
+#   octonion_basis=fano_e1e2=e4, complex_structure=u_equals_e7,
+#   metric_on_h2Cu=mostly_minus_via_det2
+#
+# Reference: Baez 2002 (math/0105155) Sec 3.3-3.4: h_2(K) = R^{dim(K)+1,1}
+#   For K=C (dim 2): h_2(C) = R^{3,1}, Minkowski signature via det.
+# Reference: McCrimmon 2004, Ch. 17: Peirce multiplication rules.
+
+
+def proj_u(b):
+    """Project octonion b onto C_u = span{1, u} where u = e_7.
+
+    For u = e_7: keep real part (component 0) and e_7 component (component 7),
+    zero out imaginary components 1-6.
+
+    Parameters:
+        b: Octonion
+
+    Returns:
+        Octonion with only components 0 and 7 nonzero.
+    """
+    c = np.zeros(8, dtype=np.float64)
+    c[0] = b.c[0]
+    c[7] = b.c[7]
+    return Octonion(c)
+
+
+def pi_u(X):
+    """Project V_0 element X in h_2(O) onto h_2(C_u) where u = e_7.
+
+    Formula: pi_u(beta, gamma, x1) = (beta, gamma, proj_u(x1)).
+    The diagonal entries are unchanged; the off-diagonal octonion is
+    projected to its C_u = span{1, e_7} component.
+
+    Assumes X is already in V_0 (alpha=0, x2=0, x3=0). Preserves those.
+
+    Parameters:
+        X: H3O element in V_0
+
+    Returns:
+        H3O element in h_2(C_u) subset of V_0.
+    """
+    return H3O(
+        alpha=0.0,
+        beta=X.beta,
+        gamma=X.gamma,
+        x1=proj_u(X.x1),
+        x2=Octonion(),
+        x3=Octonion(),
+    )
+
+
+def det_2(X):
+    """Quadratic form det_2 on h_2(O) or h_2(C_u).
+
+    For X = (beta, gamma, x1) representing the 2x2 Hermitian matrix
+        [[beta,    conj(x1)],
+         [x1,      gamma   ]]
+
+    det_2(X) = beta * gamma - |x1|^2.
+
+    This is the natural determinant on 2x2 Hermitian octonionic matrices.
+    On h_2(C_u) = R^4 with parametrization x_0=(beta+gamma)/2,
+    x_3=(beta-gamma)/2, x_1=Re(x1), x_2=x1.c[7], it becomes
+    det_2 = x_0^2 - x_1^2 - x_2^2 - x_3^2, giving signature (1,3).
+
+    Parameters:
+        X: H3O element (uses beta, gamma, x1 only)
+
+    Returns:
+        float: beta * gamma - |x1|^2
+    """
+    return X.beta * X.gamma - X.x1.norm_sq()
+
+
+def jordan_product_h2o(A, B):
+    """Intrinsic Jordan product on h_2(O), the 2x2 Hermitian octonionic matrices.
+
+    For A = (beta_A, gamma_A, x1_A) and B = (beta_B, gamma_B, x1_B),
+    representing 2x2 matrices:
+        A_mat = [[beta_A,    conj(x1_A)],
+                 [x1_A,      gamma_A   ]]
+        B_mat = [[beta_B,    conj(x1_B)],
+                 [x1_B,      gamma_B   ]]
+
+    The Jordan product is (1/2)(A_mat B_mat + B_mat A_mat), extracting
+    the Hermitian entries.
+
+    CRITICAL: This is the INTRINSIC h_2(O) product, NOT the inherited
+    h_3(O) Peirce product. The intrinsic product closes in h_2(O) by
+    construction (h_2(O) is a Jordan algebra in its own right).
+
+    Parameters:
+        A, B: H3O elements in V_0 (only beta, gamma, x1 used)
+
+    Returns:
+        H3O element in V_0 (alpha=0, x2=0, x3=0)
+    """
+    bA, gA = A.beta, A.gamma
+    bB, gB = B.beta, B.gamma
+    x1A, x1B = A.x1, B.x1
+    cx1A, cx1B = x1A.conjugate(), x1B.conjugate()
+
+    # Real scalars for diagonal entries
+    bA_oct = Octonion(np.array([bA, 0, 0, 0, 0, 0, 0, 0]))
+    gA_oct = Octonion(np.array([gA, 0, 0, 0, 0, 0, 0, 0]))
+    bB_oct = Octonion(np.array([bB, 0, 0, 0, 0, 0, 0, 0]))
+    gB_oct = Octonion(np.array([gB, 0, 0, 0, 0, 0, 0, 0]))
+
+    # AB matrix entries:
+    #   (AB)_{11} = bA*bB + conj(x1A)*x1B
+    #   (AB)_{12} = bA*conj(x1B) + conj(x1A)*gB
+    #   (AB)_{21} = x1A*bB + gA*x1B
+    #   (AB)_{22} = x1A*conj(x1B) + gA*gB
+    AB_11 = bA_oct * bB_oct + cx1A * x1B
+    AB_12 = bA_oct * cx1B + cx1A * gB_oct
+    AB_21 = x1A * bB_oct + gA_oct * x1B
+    AB_22 = x1A * cx1B + gA_oct * gB_oct
+
+    # BA matrix entries:
+    BA_11 = bB_oct * bA_oct + cx1B * x1A
+    BA_12 = bB_oct * cx1A + cx1B * gA_oct
+    BA_21 = x1B * bA_oct + gB_oct * x1A
+    BA_22 = x1B * cx1A + gB_oct * gA_oct
+
+    # Jordan product = (1/2)(AB + BA)
+    # Diagonal entries are real (take real part)
+    beta_out = 0.5 * ((AB_11 + BA_11).real_part())
+    gamma_out = 0.5 * ((AB_22 + BA_22).real_part())
+
+    # Off-diagonal entry: x1 sits at position (2,1) in the 2x2 matrix
+    x1_out = 0.5 * (AB_21 + BA_21)
+
+    return H3O(
+        alpha=0.0,
+        beta=beta_out,
+        gamma=gamma_out,
+        x1=x1_out,
+        x2=Octonion(),
+        x3=Octonion(),
+    )
+
+
 def compute_T_b_matrix(b):
     """Compute the 16x16 matrix of T_b: V_{1/2} -> V_{1/2}.
 
