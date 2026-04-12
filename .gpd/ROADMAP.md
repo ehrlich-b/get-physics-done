@@ -428,7 +428,11 @@ Plans:
 
 **Backtracking:** If the stabilizer is smaller than expected (no SL(2,C) subgroup), the Lorentz interpretation fails -- this would block the entire gravitational interpretation and require fundamental reassessment. If the stabilizer is Spin(7) (dim 21) rather than Spin(7) x U(1) (dim 22), determine whether SL(2,C) (dim 6) embeds in Spin(7).
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 48-01-PLAN.md -- Build spin(9) 10x10 rep on V_0, find stabilizer of 4+6 splitting, classify structure
+- [ ] 48-02-PLAN.md -- Identify so(3,1) Lorentz and so(6) internal subalgebras, prove pi_u equivariance
 
 ### Phase 49: GST Lagrangian Connection (Direct 4d Formulation)
 
