@@ -2930,6 +2930,210 @@ def compute_v0_stabilizer():
     }
 
 
+def verify_lorentz_equivariance():
+    """Classify stabilizer subalgebra structure and verify pi_u equivariance.
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus, gamma_matrix_convention=Cl(9,0), generator_normalization=gamma_ab/4, commutation_convention=[A,B]=AB-BA
+
+    Builds on compute_v0_stabilizer() (Plan 01) to:
+    1. Separate so(3) (spacetime rotations) and so(6) (internal) factors
+    2. Transform spacetime generators to Minkowski basis
+    3. Verify eta-compatibility: eta L + L^T eta = 0 for Lorentz metric
+    4. Verify so(3) and so(6) commutation relations and Killing forms
+    5. Prove pi_u equivariance for ALL stabilizer generators
+    6. Identify coset (mixing) generators
+
+    Key result (Phase 48):
+      The V_0 stabilizer is so(3) x so(6), dim 18.
+      The so(3) factor is the ROTATION subalgebra of so(3,1), the maximal
+      compact subalgebra of the Lorentz algebra.  The 3 boost generators
+      do NOT exist in spin(9) because Spin(9) is compact and boosts are
+      non-compact.  The 3 rotation generators satisfy eta-compatibility
+      (eta L + L^T eta = 0) because spatial rotations preserve both the
+      Euclidean and Lorentzian metrics.
+
+      The abstract Lie algebra of the spacetime block is so(3), which
+      equals the rotation subalgebra of so(3,1).  This is the maximal
+      subalgebra of so(3,1) that embeds in compact so(9).
+
+    Returns:
+        dict with keys:
+          'rotation_dim':           int  -- dim of spacetime rotation subalgebra (3)
+          'rotation_generators_mink': list of 4x4 -- rotations in Minkowski basis
+          'rotation_generators_v0':   list of 10x10 -- full stabilizer gens with nonzero L_S
+          'internal_dim':           int  -- dim of internal subalgebra (15)
+          'internal_generators':    list of 10x10 -- stabilizer gens with L_S = 0
+          'metric_compatibility_max_error': float -- max|eta L + L^T eta|
+          'equivariance_max_error': float -- max equivariance error over all gens x basis
+          'mixing_count':           int  -- number of coset generators (18)
+          'rotation_killing_form':  array (3x3)
+          'internal_killing_form':  array (15x15)
+          'rotation_killing_eigenvalues': array
+          'internal_killing_eigenvalues': array
+          'rotation_structure_constants': dict -- [J_i, J_j] coefficients
+          'cross_bracket_max':      float -- max||[so(3), so(6)]||
+          'stab_dim':               int  -- total stabilizer dim (18)
+          'minkowski_basis_matrix': array (4x4) -- B: V_0-spacetime -> Minkowski
+          'minkowski_metric':       array (4x4) -- eta = diag(+1,-1,-1,-1)
+          'v0_spacetime_gram':      array (4x4) -- det_2 Gram in V_0 coords
+    """
+    stab = compute_v0_stabilizer()
+    stab_gens = stab['stab_generators']
+    stab_dim = stab['stab_dim']
+
+    S = [0, 1, 2, 9]
+    I_idx = [3, 4, 5, 6, 7, 8]
+
+    # ----------------------------------------------------------------
+    # Step 1: Separate so(3) and so(6) generators
+    # ----------------------------------------------------------------
+    so3_gens_full = []   # 10x10 matrices
+    so6_gens_full = []   # 10x10 matrices
+    for L in stab_gens:
+        L_S = L[np.ix_(S, S)]
+        if np.linalg.norm(L_S) > 1e-10:
+            so3_gens_full.append(L)
+        else:
+            so6_gens_full.append(L)
+
+    rotation_dim = len(so3_gens_full)
+    internal_dim = len(so6_gens_full)
+
+    # ----------------------------------------------------------------
+    # Step 2: Minkowski basis transformation
+    # V_0 spacetime coords: [c0, c1, c2, c9]
+    #   c0 = beta+gamma, c1 = beta-gamma, c2 = Re(x1), c9 = x1.c[7]
+    # Minkowski coords: [x_0, x_1, x_2, x_3]
+    #   x_0 = (beta+gamma)/2 = c0/2
+    #   x_1 = Re(x1) = c2
+    #   x_2 = x1.c[7] = c9
+    #   x_3 = (beta-gamma)/2 = c1/2
+    # ----------------------------------------------------------------
+    B = np.array([
+        [0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 0.5, 0.0, 0.0],
+    ], dtype=np.float64)
+    B_inv = np.linalg.inv(B)
+    eta = np.diag([1.0, -1.0, -1.0, -1.0])
+
+    # V_0 spacetime Gram matrix in V_0 coords
+    v0_spacetime_gram = B.T @ eta @ B
+
+    # ----------------------------------------------------------------
+    # Step 3: Transform so(3) generators to Minkowski basis, verify eta-compatibility
+    # ----------------------------------------------------------------
+    so3_mink = []
+    metric_compat_max = 0.0
+    for L in so3_gens_full:
+        L_S = L[np.ix_(S, S)]
+        L_m = B @ L_S @ B_inv
+        so3_mink.append(L_m)
+        compat = eta @ L_m + L_m.T @ eta
+        metric_compat_max = max(metric_compat_max, np.max(np.abs(compat)))
+
+    # ----------------------------------------------------------------
+    # Step 4: Verify so(3) commutation relations
+    # ----------------------------------------------------------------
+    so3_flat_10 = np.array([L.flatten() for L in so3_gens_full]).T
+    ad3 = np.zeros((rotation_dim, rotation_dim, rotation_dim))
+    for a in range(rotation_dim):
+        for b in range(rotation_dim):
+            bracket = (so3_gens_full[a] @ so3_gens_full[b]
+                       - so3_gens_full[b] @ so3_gens_full[a])
+            coeffs, _, _, _ = np.linalg.lstsq(
+                so3_flat_10, bracket.flatten(), rcond=None)
+            ad3[a, b] = coeffs
+
+    rotation_killing = np.zeros((rotation_dim, rotation_dim))
+    for a in range(rotation_dim):
+        for b in range(rotation_dim):
+            rotation_killing[a, b] = np.trace(ad3[a] @ ad3[b])
+
+    rotation_killing_evals = np.sort(np.linalg.eigvalsh(rotation_killing))
+
+    # Structure constants: [J_i, J_j] = f_{ij}^k J_k
+    structure_constants = {}
+    for i in range(rotation_dim):
+        for j in range(i + 1, rotation_dim):
+            structure_constants[(i, j)] = ad3[i, j].tolist()
+
+    # ----------------------------------------------------------------
+    # Step 5: Verify so(6) Killing form (negative definite)
+    # ----------------------------------------------------------------
+    so6_flat_10 = np.array([L.flatten() for L in so6_gens_full]).T
+    ad6 = np.zeros((internal_dim, internal_dim, internal_dim))
+    for a in range(internal_dim):
+        for b in range(internal_dim):
+            bracket = (so6_gens_full[a] @ so6_gens_full[b]
+                       - so6_gens_full[b] @ so6_gens_full[a])
+            coeffs, _, _, _ = np.linalg.lstsq(
+                so6_flat_10, bracket.flatten(), rcond=None)
+            ad6[a, b] = coeffs
+
+    internal_killing = np.zeros((internal_dim, internal_dim))
+    for a in range(internal_dim):
+        for b in range(internal_dim):
+            internal_killing[a, b] = np.trace(ad6[a] @ ad6[b])
+
+    internal_killing_evals = np.sort(np.linalg.eigvalsh(internal_killing))
+
+    # ----------------------------------------------------------------
+    # Step 6: Cross-brackets [so(3), so(6)] = 0
+    # ----------------------------------------------------------------
+    cross_bracket_max = 0.0
+    for L3 in so3_gens_full:
+        for L6 in so6_gens_full:
+            bracket = L3 @ L6 - L6 @ L3
+            cross_bracket_max = max(cross_bracket_max, np.linalg.norm(bracket))
+
+    # ----------------------------------------------------------------
+    # Step 7: Verify equivariance of pi_u for ALL stabilizer generators
+    # P_S @ L @ e_k = L_S @ P_S @ e_k for all L, all basis vectors e_k
+    # ----------------------------------------------------------------
+    P_S = np.zeros((4, 10), dtype=np.float64)
+    for i in range(4):
+        P_S[i, S[i]] = 1.0
+
+    equivariance_max = 0.0
+    for L in stab_gens:
+        L_S = L[np.ix_(S, S)]
+        for k in range(10):
+            e_k = np.zeros(10)
+            e_k[k] = 1.0
+            lhs = P_S @ (L @ e_k)
+            rhs = L_S @ (P_S @ e_k)
+            err = np.max(np.abs(lhs - rhs))
+            equivariance_max = max(equivariance_max, err)
+
+    # ----------------------------------------------------------------
+    # Step 8: Count mixing (coset) generators
+    # ----------------------------------------------------------------
+    mixing_count = stab['coset_dim']
+
+    return {
+        'rotation_dim': rotation_dim,
+        'rotation_generators_mink': so3_mink,
+        'rotation_generators_v0': so3_gens_full,
+        'internal_dim': internal_dim,
+        'internal_generators': so6_gens_full,
+        'metric_compatibility_max_error': metric_compat_max,
+        'equivariance_max_error': equivariance_max,
+        'mixing_count': mixing_count,
+        'rotation_killing_form': rotation_killing,
+        'internal_killing_form': internal_killing,
+        'rotation_killing_eigenvalues': rotation_killing_evals,
+        'internal_killing_eigenvalues': internal_killing_evals,
+        'rotation_structure_constants': structure_constants,
+        'cross_bracket_max': cross_bracket_max,
+        'stab_dim': stab_dim,
+        'minkowski_basis_matrix': B,
+        'minkowski_metric': eta,
+        'v0_spacetime_gram': v0_spacetime_gram,
+    }
+
+
 def quantum_number_table_27():
     """Produce the full 27 = 1 + 16 + 10 decomposition table with SM quantum
     numbers for V_{1/2} and the 4+6 splitting of V_0 under pi_u.
