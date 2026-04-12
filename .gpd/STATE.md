@@ -9,14 +9,14 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-**Current Phase:** 48
-**Current Phase Name:** Equivariance and Lorentz Subgroup
+**Current Phase:** 49
+**Current Phase Name:** GST Lagrangian Connection
 **Total Phases:** 50 (v12.0: Phases 46-50)
 **Current Plan:** —
 **Total Plans in Phase:** —
 **Status:** Ready to plan
 **Last Activity:** 2026-04-12
-**Last Activity Description:** Phase 47 complete, transitioned to Phase 48
+**Last Activity Description:** Phase 48 complete, transitioned to Phase 49
 
 **Progress:** [████████████████████████████████████████████] 100%
 
@@ -30,6 +30,11 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 - Delta(A,B) = <wA,wB>_W * I_2 closed form (vanishes on h_2(C_u), nonzero on W)
 - Four Minkowski matrices M_mu with M_0=(1/2)I, spatial Cl(3,0): {M_i,M_j}=(1/2)*delta_ij*I_16
 - V_{1/2} x V_{1/2} -> V_0 surjective (rank 10), pi_u-projected surjective (rank 4)
+- 36 spin(9) generators as 10x10 matrices on V_0 via [gamma_ab/4, T_c] (compute_spin9_v0_rep)
+- V_0 stabilizer = so(3) x so(6) dim 18: so(3) rotations on spacetime {0,1,2,9}, so(6) on internal {3..8}
+- so(3) generators satisfy eta L + L^T eta = 0 (max err 2.2e-16); [J_i,J_j] = (1/2) epsilon_{ijk} J_k
+- so(6) Killing form = -2*I_15 (negative definite, compact); G_SM dim 8 contained
+- pi_u equivariance: max error 5.15e-17 for all 18 stabilizer generators x 10 basis vectors
 
 ## Intermediate Results
 
@@ -38,9 +43,12 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ## Open Questions
 
-- NEW: Why does the Peirce-derived spin(9) differ from Krasnov's spin(9)? Physical significance of two distinct spin(9) subalgebras of M_16(R)?
-- NEW: Can the choice of u in S^6 be derived from the self-modeling framework, or is it necessarily external input?
-- NEW: Is the reduced stabilizer (dim 10 = su(3)+u(1)^2) or Krasnov's (dim 12 = su(3)+su(2)+u(1)) the physically correct one?
+- NEW: Can Lorentz boosts be recovered by analytic continuation or Wick rotation from the compact so(3) in Spin(9)?
+- NEW: How does so(6) internal reduce to SU(3) x U(1) (Standard Model gauge group without SU(2))?
+- NEW: Physical significance of Killing form ratio -2/-0.5 = 4 between so(6) and so(3) blocks?
+- Why does the Peirce-derived spin(9) differ from Krasnov's spin(9)? Physical significance of two distinct spin(9) subalgebras of M_16(R)?
+- Can the choice of u in S^6 be derived from the self-modeling framework, or is it necessarily external input?
+- Is the reduced stabilizer (dim 10 = su(3)+u(1)^2) or Krasnov's (dim 12 = su(3)+su(2)+u(1)) the physically correct one?
 - RESOLVED (38-02): Macroscopic lattice = Z^d with h_3(O) per site. K_3 is on-site algebraic structure.
 - RESOLVED (39-01): SSB pattern corrected: spontaneous Spin(9)->Spin(8) on S^8 (8 Goldstones), not F_4->Spin(9) on OP^2 (16).
 - RESOLVED (38-02): Cubic det(A) is formally RG-relevant (dim 3/2 in d=3) but coefficient = 0 exactly on OP^2.
@@ -85,11 +93,15 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 | 44-02 | ~7min | 2 tasks | 2 files |
 | 46-01 | ~4min | 2 tasks | 1 file |
 | 46-02 | ~9min | 2 tasks | 1 file |
+| 48-01 | ~8min | 2 tasks | 1 file |
+| 48-02 | ~10min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 48, Plan 02]: V_0 stabilizer spacetime block = so(3) (dim 3), rotation subalgebra of so(3,1). Boosts absent from compact spin(9). so(6) internal (dim 15) contains G_SM (dim 8). pi_u equivariant under full 18-dim stabilizer. Dimension: 3+15=18 stabilizer + 18 coset = 36 spin(9). so(3) normalization: [J_i,J_j] = (1/2) epsilon_{ijk} J_k from gamma_ab/4.
+- [Phase 48, Plan 01]: 36 spin(9) generators as 10x10 matrices on V_0 via [gamma_ab/4, T_c]. V_0 stabilizer = so(3) x so(6) dim 18 (not predicted 21). Correct: compact Spin(9) contains only rotation so(3), not non-compact so(3,1). Killing form eigenvalues -2 (x15, so(6)) and -0.5 (x3, so(3)). G_SM dim 8 contained. V_0 = 1 + 9 decomposition (T_0 trivial).
 - [Phase 47, Plan 02]: F_4 invariance verified under S_3+G_2+Spin(9) (630 tests). Uniqueness via Springer 1962. Double duty non-circular: V_GST = c*det(X). 16 SM fermions match Paper 7. V_0 = 4(Minkowski) + 6(internal).
 - [Phase 47, Plan 01]: det_3 with left-to-right Re((x1*x2)*x3); d_{IJK} via inclusion-exclusion polarization yields d(X,X,X)=6*N(X). Two nonzero Peirce blocks: (V_1,V_0,V_0)=det_2 bilinear [10 entries] and (V_{1/2},V_{1/2},V_0) [96 entries]. All forbidden blocks exactly zero. 106/3654 nonzero (97% sparse).
 - [Phase 46, Plan 02]: Delta(A,B) = <wA,wB>_W * I_2 where W=span{e_1,...,e_6}. Mechanism: pi_u kills W-components, but W x W Fano cross-terms produce C_u diagonal. V_{1/2} x V_{1/2} -> h_2(C_u) gives spatial Cl(3,0): {M_i,M_j}=(1/2)*delta_ij*I_16. V_1 = identity. Both product maps surjective.
