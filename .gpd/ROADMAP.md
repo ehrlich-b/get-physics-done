@@ -607,7 +607,7 @@ See `.gpd/milestones/v12.0-ROADMAP.md` for full details.
 - **C4 (CRITICAL): Compact Lorentz gap** -- Spin(9) is compact, so(3,1) is not. Resolution: KKT(h_2(C_u)) yields Str_0 = so(3,1) + R containing boosts as L_a operators. Boosts live in the structure algebra, not the automorphism group.
 - **C5 (CRITICAL): N=2 circularity** -- THE risk for Phase 53. Must construct Lagrangian from E_{6(-26)} + cubic form + two-derivative restriction FIRST, then identify result with GST. Never start from "In N=2 MESGT..."
 
-- [ ] **Phase 52: G4 Spacetime Derivation -- V_0 IS Spacetime** -- Derive that V_0 = h_2(C_u) is spacetime via operational criteria OD1-OD7, KKT(h_2(C_u)) = so(4,2), F_4 observer independence, and uniqueness theorem. Resolves gap G5 (compact so(3) -> non-compact so(3,1)) via Str_0 boost identification.
+- [x] **Phase 52: G4 Spacetime Derivation -- V_0 IS Spacetime** -- completed 2026-04-13. KKT(h_2(C_u)) = so(4,2) with Killing sig (8,7), boosts in Str_0, G5 resolved, OD1-OD7 all verified, uniqueness via JSpin(3) classification.
 - [ ] **Phase 53: N=2 Lagrangian Uniqueness -- SUSY as Consequence** -- Derive that the two-derivative bosonic Lagrangian is uniquely determined by det(X) + E_{6(-26)} covariance without N=2 SUSY input, then apply GST bijection to identify the result as N=2 MESGT. Cross-check against Phase 49.
 
 ## Phase Details
