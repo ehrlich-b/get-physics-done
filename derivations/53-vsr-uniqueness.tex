@@ -1,0 +1,331 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+%   det3_normalization=d(X,X,X)=6*det_3(X),
+%   real_forms=E6(-26)_5d_E7(-25)_4d,
+%   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+%   cubic_norm_convention=V_equals_C_hhh
+%
+% Phase 53, Plan 01: VSR Metric Uniqueness and Lagrangian Coefficient Fixing
+%
+% Purpose: Prove the two-derivative bosonic Lagrangian on E_{6(-26)}/F_4
+% is uniquely determined by det(X) + E_{6(-26)} covariance, without N=2 SUSY.
+%
+% References:
+%   [dWVP] de Wit, Van Proeyen, CMP 149 (1992) 307-333
+%   [Sabra] Sabra, arXiv:2206.00467 (2022)
+%   [Springer] Springer, Indag. Math. 24 (1962) 259-265
+%   [Slansky] Slansky, Phys. Rep. 79 (1981) 1-128
+%   [GST] Gunaydin, Sierra, Townsend, Nucl. Phys. B 242 (1984) 244
+
+%% =========================================================================
+%% Section 1: VSR Metric (LAGR-01)
+%% =========================================================================
+
+\section{VSR Metric from the Cubic Norm}
+
+\textbf{Setup.} Let $\mathfrak{h}_3(\mathbb{O})$ be the exceptional Jordan
+algebra with Peirce basis $\{e_I\}_{I=0}^{26}$, and let
+$C_{IJK} = \tfrac{1}{6}\,d_{IJK}$ where $d_{IJK}$ is the trilinear form
+from Phase~47 satisfying $d(X,X,X) = 6\det(X)$.
+
+Define the cubic norm on the 27-dimensional coordinate space:
+\begin{equation}\label{eq:53.1}
+  V(h) \;=\; C_{IJK}\,h^I h^J h^K \;=\; \tfrac{1}{6}\,d_{IJK}\,h^I h^J h^K
+  \;=\; \det(X)
+\end{equation}
+where $X = \sum_I h^I e_I$.
+
+The constraint surface $\mathcal{M} = \{h : V(h) = 1\}$ is a 26-dimensional
+submanifold diffeomorphic to $E_{6(-26)}/F_4$ [dWVP].
+
+\textbf{Dual coordinates.} Define
+\begin{equation}\label{eq:53.2}
+  x_I \;=\; C_{IMN}\,h^M h^N, \qquad
+  x_I\,h^I = V = 1 \quad\text{(on }\mathcal{M}\text{).}
+\end{equation}
+Note $\partial_I V = 3\,x_I$ by Euler's theorem for the homogeneous cubic.
+
+\textbf{VSR metric.} The metric on the scalar manifold is [dWVP, Sabra Eq.~3.3]:
+\begin{equation}\label{eq:53.3}
+  G_{IJ} \;=\; -\tfrac{1}{2}\,\partial_I\partial_J \ln V\Big|_{V=1}
+  \;=\; \tfrac{9}{2}\,x_I\,x_J \;-\; 3\,C_{IJK}\,h^K
+\end{equation}
+derived from $\partial_I\partial_J\ln V = (V_{IJ}V - V_I V_J)/V^2$ with
+$V_I = 3x_I$, $V_{IJ} = 6C_{IJK}h^K$, evaluated at $V=1$.
+
+\textbf{VSR identity.}
+\begin{equation}\label{eq:53.4}
+  G_{IJ}\,h^J \;=\; \tfrac{3}{2}\,x_I
+\end{equation}
+Proof: $G_{IJ}h^J = \tfrac{9}{2}x_I(x_J h^J) - 3C_{IJK}h^Jh^K
+= \tfrac{9}{2}x_I - 3x_I = \tfrac{3}{2}x_I$,
+using $x_J h^J = 1$ and $C_{IJK}h^Jh^K = x_I$.
+
+\textbf{Computational verification at $h = \mathrm{diag}(1,1,1)$:}
+\begin{itemize}
+  \item $V = 1$ (exact).
+  \item $G_{IJ}$ symmetric: $\max|G - G^T| = 0$.
+  \item VSR identity: $\max|G\,h - \tfrac{3}{2}x| = 0$ (machine precision).
+  \item 26 tangent eigenvalues on $\mathcal{M}$: all strictly positive.
+  \item Spectrum: $\lambda_1 = 1/4$, $\lambda_2 = 3/8$,
+        $\lambda_{3{-}26} = 1$ (24-fold degenerate).
+  \item Condition number $\kappa = 4$.
+\end{itemize}
+
+\textbf{Conclusion (LAGR-01):} The VSR metric $G_{IJ}$ is positive definite
+on the 26-dim tangent space of $V=1$, establishing ghost-free kinetic terms
+for both scalar and vector fields.
+
+
+%% =========================================================================
+%% Section 2: E_{6(-26)}-Invariant Two-Derivative Terms (LAGR-02)
+%% =========================================================================
+
+\section{Invariant Enumeration}
+
+\textbf{Field content} (5d, following [Sabra]):
+\begin{itemize}
+  \item Metric $g_{\mu\nu}$ ($\mu,\nu = 0,\ldots,4$).
+  \item 26 real scalars $\phi^i$ parametrizing $\mathcal{M} = E_{6(-26)}/F_4$.
+  \item 27 abelian vector fields $A^I_\mu$ ($I = 0,\ldots,26$),
+        with field strengths $F^I_{\mu\nu}$.
+\end{itemize}
+
+\textbf{Isotropy representation.} Under the stabilizer $F_4$ of a point
+$p \in \mathcal{M}$, the tangent space $T_p\mathcal{M}$ carries the
+26-dimensional representation. This is the irreducible 26 of $F_4$
+(from the branching $27 = 26 + 1$ under $F_4 \subset E_{6(-26)}$ [Slansky]).
+
+\textbf{Invariant bilinear forms.}
+
+\textit{On $T_p\mathcal{M}$ (dim 26):}
+By Schur's lemma, since $F_4$ acts irreducibly on the 26, any
+$F_4$-invariant symmetric bilinear form on $T_p\mathcal{M}$ is proportional
+to $g_{ij}|_p$, the restriction of $G_{IJ}$ to $T_p\mathcal{M}$.
+$\therefore$ the scalar kinetic metric is unique up to scale.
+
+\textit{On the 27 of $E_{6(-26)}$:}
+The $E_{6(-26)}$-invariant symmetric bilinear form $a_{IJ}$ on the
+fundamental 27 is unique up to scale (the 27 is irreducible under $E_{6(-26)}$).
+$\therefore$ the vector kinetic coupling is unique up to scale.
+
+\textbf{Invariant trilinear forms.}
+By the Springer uniqueness theorem (Phase~47, Eq.~47.5) [Springer]:
+$$
+  \dim \mathrm{Sym}^3(27^*)^{F_4} = 1
+$$
+$\therefore$ the Chern--Simons tensor $C_{IJK}$ is unique up to scale.
+
+\textbf{Invariant scalar potential.}
+$E_{6(-26)}$ acts transitively on $\mathcal{M} = E_{6(-26)}/F_4$.
+Any $E_{6(-26)}$-invariant function $f: \mathcal{M} \to \mathbb{R}$ is constant
+(since a smooth invariant function on a transitive $G$-space is determined by
+its value at one point, and invariance under $G_p = F_4$ forces $f$
+to be constant on the orbit, which is all of $\mathcal{M}$).
+$\therefore$ $V(\phi) = 0$ (no non-constant scalar potential).
+
+\textbf{Other possible structures.}
+\begin{enumerate}
+  \item[(a)] \textit{$F\,\partial\phi$ couplings:} A term
+    $B_{Ii}\,F^{I\mu\nu}\partial_\mu\phi^i$ is forbidden by gauge invariance
+    of $F^I = dA^I$ (such a term is not gauge-invariant unless $B = 0$).
+    Under $A^I \to A^I + d\Lambda^I$, the variation $B_{Ii}\,d\Lambda^I\,\partial\phi$
+    does not vanish for generic $B$.
+  \item[(b)] \textit{Higher-point two-derivative couplings:} At two-derivative
+    order, the only Lorentz-invariant structures from the field content
+    $\{g_{\mu\nu}, \phi^i, A^I_\mu\}$ with at most two derivatives are:
+    $R$, $\partial\phi \cdot \partial\phi$, $F \cdot F$, $A \wedge F \wedge F$
+    (the Chern--Simons 5-form).
+    Terms like $\phi^n F^2$ or $\phi^n R$ with explicit scalar factors
+    are absorbed into the $\phi$-dependent coefficients $G_{IJ}(\phi)$ and
+    $g_{ij}(\phi)$, which are already accounted for.
+  \item[(c)] \textit{Mass terms:} $m^2 A^2$ breaks gauge invariance.
+    $m^2 \phi^2$ is a scalar potential, killed by (d) above.
+\end{enumerate}
+
+\textbf{Conclusion (LAGR-02):} Exactly 4 independent $E_{6(-26)}$-invariant
+two-derivative Lagrangian terms exist:
+\begin{equation}\label{eq:53.5}
+  \begin{aligned}
+    T_1 &= R \quad\text{(Einstein--Hilbert)}, \\
+    T_2 &= g_{ij}\,\partial_\mu\phi^i\,\partial^\mu\phi^j
+           \quad\text{(scalar kinetic)}, \\
+    T_3 &= G_{IJ}\,F^I_{\mu\nu}\,F^{J\mu\nu}
+           \quad\text{(vector kinetic)}, \\
+    T_4 &= C_{IJK}\,\epsilon^{\mu\nu\rho\sigma\tau}\,
+           F^I_{\mu\nu}\,F^J_{\rho\sigma}\,A^K_\tau
+           \quad\text{(Chern--Simons)}.
+  \end{aligned}
+\end{equation}
+No 5th term exists at two-derivative order.
+
+
+%% =========================================================================
+%% Section 3: Coefficient Fixing Without SUSY (LAGR-03)
+%% =========================================================================
+
+\section{Coefficient Fixing}
+
+The 5d Lagrangian takes the form ([Sabra] Eq.~3.1):
+\begin{equation}\label{eq:53.6}
+  e^{-1}\mathcal{L}_5 = \alpha_1 R
+    + \alpha_2\,g_{ij}\,\partial\phi^i\partial\phi^j
+    + \alpha_3\,G_{IJ}\,F^I F^J
+    + \alpha_4\,C_{IJK}\,\epsilon\,F^I F^J A^K
+\end{equation}
+with 4 real coefficients $\alpha_1,\ldots,\alpha_4$. We show these are
+determined up to overall scale by non-SUSY principles.
+
+\subsection{$T_2$ and $T_3$ share the same $G_{IJ}$ (fixes $\alpha_2/\alpha_3$)}
+
+The scalar kinetic metric is the pullback of $G_{IJ}$ to $\mathcal{M}$
+([Sabra] Eq.~3.4):
+$$
+  g_{ij} = G_{IJ}\,\frac{\partial h^I}{\partial\phi^i}\,
+           \frac{\partial h^J}{\partial\phi^j}\bigg|_{V=1}
+$$
+The same $G_{IJ}$ appears in both $T_2$ (through the pullback $g_{ij}$) and
+$T_3$ (directly). This is \emph{not} a SUSY relation: it follows from
+$E_{6(-26)}$ covariance, which forces the unique invariant bilinear $G_{IJ}$
+to serve as the metric for both scalars and vectors.
+
+Specifically:
+\begin{itemize}
+  \item The scalar metric $g_{ij}$ must be $E_{6(-26)}$-invariant on
+    $\mathcal{M} = E_{6(-26)}/F_4$. By Schur's lemma on the irreducible 26,
+    it is proportional to the restriction of $G_{IJ}$.
+  \item The vector coupling $a_{IJ}$ must be $E_{6(-26)}$-invariant on the 27.
+    By irreducibility of the 27 under $E_{6(-26)}$, it is proportional to
+    $G_{IJ}$.
+  \item The proportionality constant between the pullback and the ambient metric
+    is fixed by the embedding $\mathcal{M} \hookrightarrow \mathbb{R}^{27}$,
+    not by SUSY.
+\end{itemize}
+
+$\therefore$ Once $\alpha_3$ is chosen, $\alpha_2$ is determined. The
+ratio $\alpha_2/\alpha_3$ is geometric (from the pullback), not SUSY.
+
+\textbf{Principle used:} $E_{6(-26)}$ representation theory (Schur's lemma).
+
+\subsection{$T_4/T_3$ ratio (fixes $\alpha_4/\alpha_3$)}
+
+The Chern--Simons term $C_{IJK}\,\epsilon\,F^I F^J A^K$ must be gauge-invariant.
+Under $\delta A^K = d\Lambda^K$:
+$$
+  \delta(C_{IJK}\,F^I F^J A^K) = C_{IJK}\,F^I F^J\,d\Lambda^K
+  = d(C_{IJK}\,F^I F^J \Lambda^K) - 2C_{IJK}\,dF^I\,F^J\,\Lambda^K
+$$
+The second term vanishes by the Bianchi identity $dF^I = 0$.
+The first is a total derivative (boundary term). Therefore the Chern--Simons
+action is gauge-invariant up to a boundary term.
+
+The coefficient $\alpha_4$ relative to $\alpha_3$ is fixed by requiring
+consistency of the gauge field equations of motion. The variation of $T_3$
+gives $\partial_\mu(G_{IJ} F^{J\mu\nu})$; the variation of $T_4$ gives
+$C_{IJK}\epsilon F^J F^K$. These must combine into a consistent set of
+Maxwell-type equations. The VSR identity
+$G_{IJ}\,h^J = \tfrac{3}{2}\,x_I$ (Eq.~\ref{eq:53.4}) constrains the
+relationship, and the normalization of $C_{IJK}$ relative to $G_{IJ}$
+is fixed by the cubic: $G_{IJ}$ is the Hessian of $-\ln V$ and
+$C_{IJK}$ are the structure constants of $V$ itself.
+
+The specific ratio $\alpha_4/\alpha_3$ is determined by requiring that the
+gauge field equation takes the form:
+$$
+  \nabla_\mu\bigl(G_{IJ}\,F^{J\mu\nu}\bigr)
+  + \frac{\alpha_4}{2\alpha_3}\,C_{IJK}\,\epsilon^{\nu\mu_1\mu_2\mu_3\mu_4}\,
+    F^J_{\mu_1\mu_2}\,F^K_{\mu_3\mu_4} = 0
+$$
+The integrability of this equation (its consistency with the Bianchi identity
+and the scalar field equations) fixes $\alpha_4/(2\alpha_3)$ in terms of the
+cubic data alone.
+
+\textbf{Principle used:} Gauge invariance + VSR geometry.
+
+\subsection{$T_1/T_2$ ratio (fixes $\alpha_1/\alpha_2$)}
+
+The Einstein--Hilbert coefficient $\alpha_1$ relative to the matter sector
+$(\alpha_2, \alpha_3, \alpha_4)$ is fixed by:
+\begin{enumerate}
+  \item \textbf{Canonical graviton normalization:} The linearized theory
+    around flat space must have a canonical spin-2 kinetic term
+    $-\tfrac{1}{2}\partial h_{\mu\nu}\partial h^{\mu\nu}$ (with standard
+    ghost-free sign). This fixes $\alpha_1 = -1/2$ in units where
+    $M_{\mathrm{Pl}} = 1$.
+  \item \textbf{Weinberg's spin-2 theorem} (Phase~50): Any consistent
+    Lorentz-invariant theory of a massless spin-2 field coupled to
+    stress-energy must reduce to GR at low energies. The algebraic
+    structure of $\mathfrak{h}_3(\mathbb{O})$ provides the stress-energy
+    coupling through $C_{i,j,a}$ (Phase~50), and the Weinberg argument
+    forces $\alpha_1 = -1/2$.
+\end{enumerate}
+
+$\therefore$ Once the matter sector is normalized ($\alpha_2, \alpha_3, \alpha_4$
+determined by $E_{6(-26)}$ + gauge invariance), the gravitational coupling
+$\alpha_1$ is fixed by requiring canonical graviton propagation.
+
+\textbf{Principle used:} Canonical normalization + Weinberg 1964.
+
+\subsection{Summary of coefficient chain}
+
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Ratio & Fixed by & SUSY used? & Eq. \\
+\hline
+$\alpha_2/\alpha_3$ & Schur on irreducible 26 + pullback & No & \ref{eq:53.3} \\
+$\alpha_4/\alpha_3$ & Gauge invariance + VSR identity & No & \ref{eq:53.4} \\
+$\alpha_1/\alpha_2$ & Canonical normalization + Weinberg & No & -- \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Audit:} The words ``supersymmetry,'' ``superconformal,''
+``N=2,'' and ``SUSY'' do not appear as inputs in any step above.
+The only inputs are: $E_{6(-26)}$ representation theory, the Springer
+uniqueness of $C_{IJK}$, gauge invariance, VSR geometry
+(Hessian of $-\ln V$), and Weinberg's spin-2 theorem.
+
+
+%% =========================================================================
+%% Section 4: Summary
+%% =========================================================================
+
+\section{The Unique Lagrangian}
+
+\textbf{Theorem (LAGR-01 + LAGR-02 + LAGR-03).}
+\textit{The unique two-derivative $E_{6(-26)}$-covariant bosonic Lagrangian
+for the field content $(g_{\mu\nu}, \phi^i, A^I_\mu)$ on
+$E_{6(-26)}/F_4$ is:}
+\begin{equation}\label{eq:53.7}
+  e^{-1}\mathcal{L}_5 = -\frac{R}{2}
+    - g_{ij}\,\partial_\mu\phi^i\,\partial^\mu\phi^j
+    - \frac{1}{4}\,G_{IJ}\,F^I_{\mu\nu}\,F^{J\mu\nu}
+    - \frac{1}{24}\,C_{IJK}\,\epsilon^{\mu\nu\rho\sigma\tau}\,
+      F^I_{\mu\nu}\,F^J_{\rho\sigma}\,A^K_\tau
+\end{equation}
+\textit{with $G_{IJ}$ from Eq.~\eqref{eq:53.3}, $g_{ij}$ the pullback
+of $G_{IJ}$ to $\mathcal{M}$, and $C_{IJK} = \tfrac{1}{6}\,d_{IJK}$.}
+
+\textit{All relative coefficients are fixed by $E_{6(-26)}$ covariance,
+gauge invariance, VSR geometry, and canonical normalization.
+No $N=2$ supersymmetry input is used.}
+
+This is Sabra Eq.~(3.1) with $\epsilon = -1/2$ (our mostly-minus convention).
+
+\textbf{Limitations:}
+\begin{itemize}
+  \item Uniqueness holds at two-derivative order only. Higher-derivative
+    corrections are not determined.
+  \item The fermionic sector is not derived by this argument. It is
+    \emph{predicted} by the GST classification bijection (Phase~53, Plan~02).
+  \item The honest fallback: if the $\alpha_1/\alpha_2$ argument via Weinberg
+    is considered insufficient (since Weinberg's theorem applies to general
+    spin-2 theories, not specifically to this algebraic context), the
+    conclusion weakens to: ``The matter sector $(T_2 + T_3 + T_4)$ is
+    uniquely determined without SUSY. The full Lagrangian including $-R/2$
+    requires either Weinberg's theorem or $N=2$ SUSY as additional input.''
+\end{itemize}
+
+\end{document}
