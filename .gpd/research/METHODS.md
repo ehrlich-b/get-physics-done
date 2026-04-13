@@ -1,32 +1,30 @@
-# Methods Research: GR from det(X) on h_3(O) via Peirce Complement
+# Methods Research: Paper 6 Closure -- G4 Spacetime Derivation + N=2 SUSY as Consequence
 
-**Domain:** Exceptional Jordan algebras / Magic supergravity / Octonion geometry / Very special real geometry
-**Researched:** 2026-04-11
-**Confidence:** HIGH (Jordan algebra methods, Clifford-algebraic structure), MEDIUM (GST cubic decomposition under Peirce, 5d->4d reduction details)
+**Domain:** Exceptional Jordan algebras / Kantor-Koecher-Tits construction / Very special real geometry / Conformal algebra / E_{6(-26)} invariant theories
+**Researched:** 2026-04-12
+**Confidence:** HIGH (KKT construction, F4 orbit theory, cubic metric), MEDIUM (operational criteria formalization, Lagrangian uniqueness without SUSY)
 
 ### Scope Boundary
 
-METHODS.md covers analytical and computational PHYSICS methods for the NEW milestone: deriving GR from the Peirce complement V_0 = h_2(O) of h_3(O) via the GST magic supergravity prepotential det(X). It does NOT cover software tools (see COMPUTATIONAL.md) or methods already established in Papers 5-8 (Peirce decomposition, C*-bottleneck, Cl(6)/Cl(10) analysis, F_4 intersection, representation branching).
+METHODS.md covers analytical and computational PHYSICS methods for the v13.0 milestone: closing the two remaining algebraic inputs (G4 = spacetime and G2 = N=2 SUSY) by deriving them from the Peirce structure of h_3(O). It does NOT cover methods already established in v12.0 (Peirce decomposition, pi_u projection, d_{IJK} computation, stabilizer calculation, prepotential, Weinberg coupling) nor software tools (see COMPUTATIONAL.md).
 
-**What is NEW vs Papers 5-8:** Papers 5-8 establish the algebraic chain ending at SM gauge group + chirality from V_{1/2}. The new milestone investigates V_0 = h_2(O) and its image under the observer's projection pi_u: h_2(O) -> h_2(C_u), with the goal of recovering 4d Lorentzian geometry and GR via the GST (Gunaydin-Sierra-Townsend) magic supergravity framework, where the cubic form det(X) on h_3(O) serves as the prepotential.
+**What is NEW vs v12.0:** v12.0 ASSUMED (a) that V_0 = h_2(C_u) is spacetime and (b) that the GST N=2 MESGT framework applies. v13.0 DERIVES both from algebraic structure: spacetime via operational criteria + KKT conformal algebra, and the MESGT Lagrangian via E_{6(-26)}-invariant term enumeration without assuming SUSY.
 
 ---
 
 ## Problem Statement
 
-Six interconnected computations are required:
+Five interconnected computations are required:
 
-1. **Projection pi_u:** Compute pi_u: h_2(O) -> h_2(C_u) explicitly, where u in S^6 is the observer's complex structure, and verify equivariance under the stabilizer SU(3)_C = Stab_{G_2}(u).
+1. **Operational spacetime criteria OD1-OD7:** Prove that h_2(C_u) satisfies operational axioms (dimension, signature, causal structure, conformal group, homogeneity, isotropy, observer-compatible reduction) that uniquely characterize 4d Minkowski spacetime as a Jordan-algebraic observable space.
 
-2. **GST cubic decomposition:** Decompose the symmetric cubic structure constants C_{IJK} of the GST magic supergravity prepotential V = C_{IJK} h^I h^J h^K under the Peirce decomposition 27 = 1 + 16 + 10, identifying which components survive the observer's projection.
+2. **KKT algebra g(h_2(C_u)):** Compute the Kantor-Koecher-Tits (TKK) Lie algebra of the spin factor h_2(C_u) = JSpin(3,1) and identify it with so(4,2), the conformal algebra of 3+1 dimensional spacetime.
 
-3. **Cubic invariant uniqueness:** Prove that the cubic norm form N(X) = det(X) on h_3(O) is the unique E_6-invariant cubic on the 27-dimensional representation, up to scale.
+3. **Observer independence via F_4:** Prove that the spacetime structure is independent of the choice of idempotent E by showing F_4 = Aut(h_3(O)) acts transitively on rank-1 idempotents, and that the resulting KKT algebras are conjugate.
 
-4. **5d -> 4d reduction:** Perform the standard Kaluza-Klein reduction of the 5d N=2 MESGT defined by the octonionic magic square entry, reducing on S^1 to obtain 4d N=2 supergravity with special Kahler geometry.
+4. **Very special real metric a_{IJ}:** Compute the scalar field metric a_{IJ} = -(1/2) partial_I partial_J ln(V)|_{V=1} from the cubic norm V = (1/6) d_{IJK} h^I h^J h^K, using the already-computed d_{IJK} tensor from Phase 47.
 
-5. **Lorentz structure verification:** Verify that h_2(C) = R^{3,1} carries the correct Minkowski signature after the projection pi_u, using the determinant form det(X) = alpha*gamma - |z|^2 as the Lorentzian norm.
-
-6. **Peirce products V_{1/2} * V_{1/2} -> V_0:** Compute the Jordan product of two elements of V_{1/2} = O^2, determine the image in V_0 = h_2(O), and trace through pi_u.
+5. **Two-derivative Lagrangian uniqueness:** Prove that a two-derivative Lagrangian for gravity + scalar fields with E_{6(-26)} global symmetry and the cubic norm prepotential is unique up to overall scale, WITHOUT assuming supersymmetry. This closes G2 by showing N=2 SUSY is a consequence of the algebraic structure rather than an input.
 
 ---
 
@@ -34,353 +32,431 @@ Six interconnected computations are required:
 
 ### Primary Analytical Methods
 
-| Method | Purpose | Applicability | Limitations |
-|--------|---------|---------------|-------------|
-| Explicit matrix Jordan product | Peirce products, pi_u computation | All h_3(O) calculations | Requires careful octonion multiplication tracking |
-| Branching rules for E_6 -> Spin(10) x U(1) | GST cubic decomposition | Standard rep theory | Well-tabulated; the novel part is mapping to Peirce sectors |
-| Springer/Freudenthal cubic norm construction | Uniqueness of cubic invariant | Exact, algebraic | The proof is classical (Springer 1962, Freudenthal 1954) |
-| r-map (very special real -> special Kahler) | 5d -> 4d dimensional reduction | Standard SUGRA technology | Requires tracking all Peirce sector fields through reduction |
-| Division algebra -> spacetime identification | Lorentz structure of h_2(K) | Exact for K = R, C, H, O | The projection pi_u introduces approximation in selecting C from O |
-| Peirce multiplication rules (McCrimmon) | V_i * V_j containment and explicit products | General Jordan algebra theory | For h_3(O) specifically, octonion non-associativity requires care |
+| Method | Purpose | Applicability | Limitations | Serves |
+|--------|---------|---------------|-------------|--------|
+| Jordan-algebraic operational axiomatics | OD1-OD7 spacetime criteria | Finite-dim formally real Jordan algebras | Must define axioms precisely enough to be checkable | G4 |
+| Kantor-Koecher-Tits construction | Conformal algebra from spin factor | All simple Jordan algebras | Textbook construction; novel part is connecting to Peirce output | G4 |
+| F_4 orbit theory on OP^2 | Observer independence | h_3(O) with Aut = F_4 | Classical result; need to verify KKT conjugacy, not just orbit transitivity | G4 |
+| Very special real geometry metric formula | Scalar kinetic term from cubic norm | 5d real scalar manifolds with cubic prepotential | Requires careful constraint surface V=1 evaluation | G4+G2 |
+| E_{6(-26)}-invariant term enumeration | Lagrangian uniqueness without SUSY | Two-derivative bosonic Lagrangians on E_{6(-26)}/F_4 | The hard part: proving no additional invariants exist beyond cubic | G2 |
+| de Wit-Van Proeyen classification | Cross-check of very special real manifold | Symmetric cubic polynomials with transitive symmetry | Confirms octonionic magic entry is the unique E_{6(-26)} case | G2 |
 
 ### Primary Numerical Methods
 
 | Method | Purpose | Convergence | Cost Scaling | Implementation |
 |--------|---------|-------------|-------------|----------------|
-| Explicit 3x3 octonionic matrix multiplication | Verify Peirce products, cross-check analytic formulas | Exact (finite-dimensional) | O(1) per product, 8-component octonion arithmetic | Python/NumPy with octonion module |
-| Symbolic CAS verification of cubic form decomposition | Verify C_{IJK} branching under 27 = 1 + 10 + 16 | Exact | O(27^3) = O(19683) terms worst case | SymPy or SageMath |
-| Numerical eigenvalue computation for projected operators | Verify Lorentz signature of h_2(C_u) norm | Exact for 2x2 matrices | O(1) | NumPy |
+| Explicit KKT bracket computation | Verify so(4,2) identification numerically | Exact (finite-dim) | O(dim^3) ~ O(15^3) for so(4,2) | Python/NumPy, extend octonion_algebra.py |
+| Numerical a_{IJ} metric computation | Verify metric signature and positivity on constraint surface | Exact for given d_{IJK} | O(27^2) = O(729) matrix entries | Python/NumPy using existing d_ijk_tensor() |
+| F_4 orbit numerical verification | Check transitivity on sample idempotents | Statistical (random F_4 elements) | O(27^2) per orbit check | Extend verify_f4_invariance_det3() |
+| Lagrangian term enumeration | Count independent E_{6(-26)}-invariants at each derivative order | Exact via representation theory | O(1) for two-derivative sector | SymPy + Lie algebra branching |
 
 ---
 
 ## Method Details
 
-### Method 1: Explicit Projection pi_u: h_2(O) -> h_2(C_u)
+### Method 1: Operational Spacetime Criteria OD1-OD7
 
-**What:** The observer's complex structure u in S^6 subset Im(O) induces a splitting O = C_u + C_u^3 (Paper 7, Sec. 2.3). The projection pi_u acts on each octonion entry of a matrix in h_2(O) by projecting onto the C_u = span_R{1, u} component.
+**What:** Define seven operational criteria that a Jordan algebra must satisfy to serve as a spacetime observable algebra, then verify h_2(C_u) satisfies all seven. The criteria must be phrased in terms of the algebraic data already available from the Peirce decomposition (V_0, the Jordan product, the determinant form, the stabilizer).
 
-**Mathematical basis:**
+**Criteria construction approach:** Rather than inventing axioms ab initio, extract them from the established physics of Minkowski spacetime and phrase each as a Jordan-algebraic property:
 
-For X in h_2(O):
+| Criterion | Physical Requirement | Jordan-Algebraic Statement | Verification Method |
+|-----------|---------------------|---------------------------|-------------------|
+| OD1: Dimension | 4 spacetime dimensions | dim_R(V_0^{proj}) = 4 where V_0^{proj} = pi_u(V_0) | Direct: dim h_2(C) = 4 |
+| OD2: Signature | Lorentzian (3,1) | det_2 on V_0^{proj} has signature (3,1) | Already verified Phase 46: Gram = diag(+1,-1,-1,-1) |
+| OD3: Causal structure | Light cone = boundary of future | {X in V_0^{proj} : det_2(X) = 0, tr(X) > 0} is a cone | det_2 = 0 is the light cone; this is a standard Jordan spin factor result |
+| OD4: Conformal group | so(4,2) conformal symmetry | KKT(V_0^{proj}) = so(4,2) | Method 2 below |
+| OD5: Homogeneity | Transitive Lorentz action | Str_0(V_0^{proj}) acts transitively on timelike vectors | Str_0(JSpin(3,1)) = SO_0(3,1); transitive on hyperboloid |
+| OD6: Isotropy | SO(3) rotation subgroup | Der(V_0^{proj}) = so(3) | Der(JSpin(n)) = so(n); for n=3 this gives spatial rotations |
+| OD7: Reduction compatibility | Consistent with Peirce origin | V_0^{proj} = pi_u(V_0) inherits Jordan structure from h_3(O) | Explicit pi_u computation (v12.0 Phase 46) |
 
-    X = ( beta    x_1^*  )
-        ( x_1     gamma  )
+**Mathematical basis:** The key insight is that for a spin factor JSpin(p,q), the determinant det(X) = t^2 - x_1^2 - ... - x_n^2 (for signature (1,n)) defines the causal structure, the structure group is SO_0(p,q), the derivation algebra is the isotropy subalgebra, and the KKT algebra is the conformal algebra. All of these are standard results in Jordan algebra theory (see Faraut-Koranyi, "Analysis on Symmetric Cones," 1994; McCrimmon, "A Taste of Jordan Algebras," 2004).
 
-where beta, gamma in R and x_1 in O. Write x_1 = a + b where a in C_u and b in W = u^perp cap Im(O), i.e. a = Re(x_1) + <x_1, u> u and b = x_1 - a. Then:
+**Rigor level:** Physicist's proof. Each criterion is verified by direct computation or appeal to established theorems. The novelty is in the systematic framing, not in individual proofs.
 
-    pi_u(X) = ( beta    a^*  )
-              ( a       gamma )
+**Known failure mode:** OD7 is the most delicate. The projection pi_u is NOT a Jordan algebra homomorphism (documented in v12.0 METHODS.md). This means V_0^{proj} inherits a Jordan structure from h_2(C_u), not from h_3(O) via pi_u. The correct statement is: V_0^{proj} IS the spin factor JSpin(3,1) as an abstract Jordan algebra, and the projection pi_u provides the physical identification with the Peirce complement of the observer. The failure of pi_u to be a homomorphism is not a bug but a feature: it encodes the observer's inability to access color degrees of freedom.
 
-which lies in h_2(C_u) = h_2(C), a 4-dimensional real vector space.
+**Cost:** Analytic. Each criterion is a one-line verification given existing results.
 
-**Equivariance:** SU(3)_C = Stab_{G_2}(u) acts on W = C^3 and fixes C_u pointwise. Therefore SU(3)_C acts trivially on h_2(C_u). The projection pi_u is SU(3)_C-equivariant in the sense that for g in SU(3)_C:
-
-    pi_u(g . X) = pi_u(X)
-
-since g acts only on the W-components that pi_u discards. This is verified by the explicit matrix action: g acts on x_1 via the O-representation of G_2, and since g in Stab(u), it preserves the C_u component and rotates only W.
-
-**Verification protocol:**
-- Check dim h_2(C_u) = 4 (two real diagonal + one complex off-diagonal = 2 + 2 = 4)
-- Check the determinant form: det(pi_u(X)) = beta*gamma - |a|^2, a real quadratic form of signature (3,1)
-- Verify pi_u is a Jordan algebra homomorphism: pi_u(A circ B) = pi_u(A) circ pi_u(B) for A, B in h_2(O) -- NOTE: this is NOT automatic and must be checked carefully because the Jordan product involves octonion multiplication, which does not commute with projection
-
-**Known failure mode:** pi_u is NOT a Jordan algebra homomorphism in general. The product A circ B = (1/2)(AB + BA) involves octonion products x_1 * y_1^*, and projecting the product is not the same as projecting the factors then multiplying, because the W-components of x_1 and y_1 contribute to the C_u-component of x_1 * y_1^* via the Fano plane relations. This failure is physically meaningful: it means the observer's 4d geometry inherits "memory" of the discarded color degrees of freedom.
-
-**Cost:** Analytic computation, trivially verifiable numerically with explicit octonion arithmetic. O(1) complexity.
-
-**Confidence:** HIGH for the projection formula. MEDIUM for the homomorphism failure analysis -- needs explicit computation.
+**Confidence:** HIGH for OD1-OD6 (standard Jordan algebra theory). MEDIUM for OD7 (requires careful statement about pi_u non-homomorphism).
 
 **References:**
-- Baez, "The Octonions," Bull. AMS 39 (2002), arXiv:math/0105155
-- Springer & Veldkamp, "Octonions, Jordan Algebras, and Exceptional Groups" (2000)
-- Todorov & Drenska, arXiv:1805.06739
+- Faraut & Koranyi, "Analysis on Symmetric Cones," Oxford (1994), Ch. III-IV
+- McCrimmon, "A Taste of Jordan Algebras," Springer (2004), Ch. 9-11
+- Baez, "The Octonions," Bull. AMS 39 (2002), arXiv:math/0105155, Sec. 3.4
 
 ---
 
-### Method 2: GST Cubic Structure Constants C_{IJK} Decomposition
+### Method 2: KKT Algebra g(h_2(C_u)) = so(4,2)
 
-**What:** The GST (Gunaydin-Sierra-Townsend) magic supergravity in 5d is defined by the prepotential V = (1/6) C_{IJK} h^I h^J h^K, where C_{IJK} are symmetric structure constants and h^I (I = 0, 1, ..., n_V) are the real scalar fields from the vector multiplets. For the octonionic magic square entry, the scalar manifold is E_{6(-26)} / F_4 and the cubic form is the determinant on h_3(O).
+**What:** Compute the Kantor-Koecher-Tits (also called Tits-Kantor-Koecher, TKK) Lie algebra associated to the Jordan algebra J = h_2(C) = JSpin(3,1) and show it equals so(4,2), the conformal algebra of 3+1 dimensional Minkowski space.
+
+**Mathematical basis:** The KKT construction associates to any Jordan algebra J a 3-graded Lie algebra:
+
+    g(J) = g_{-1} + g_0 + g_{+1}
+
+where:
+- g_{+1} = J (translations)
+- g_{-1} = J (special conformal transformations)
+- g_0 = Str(J) = Der(J) + L(J) (structure algebra)
+
+Here Der(J) is the derivation algebra and L(J) = {L_a : a in J} where L_a(x) = a o x is the left multiplication operator. The structure algebra Str(J) consists of all linear maps T: J -> J such that T preserves the quadratic representation: T o U_a = U_{T(a)} + U_a o T* for all a in J.
+
+For J = JSpin(p,q) (spin factor of signature (p,q)):
+- dim(J) = p + q + 1
+- Der(J) = so(p,q) (rotations of the "spatial" part)
+- L(J) = J (as a vector space, the multiplication operators)
+- Str(J) = so(p,q) + R + J = co(p,q) (conformal Lorentz algebra plus dilations plus boosts)
+- dim(g_0) = dim(so(p,q)) + 1 + (p+q) -- where the 1 is the dilation/grading element
+
+So:
+    dim(g(J)) = (p+q+1) + [dim(so(p,q)) + 1 + (p+q)] + (p+q+1)
+              = 2(p+q+1) + (p+q)(p+q-1)/2 + 1 + (p+q)
+
+For (p,q) = (3,1):
+    dim = 2*4 + 3*2/2 + 1 + 3+1 = 8 + 3 + 1 + 4 = 16
+
+Wait -- let me be precise. For JSpin(n) where n = p+q:
+- dim(J) = n + 1
+- Der(J) = so(n) of dimension n(n-1)/2
+- Str(J) has dimension n(n-1)/2 + 1 + (n+1) = n(n-1)/2 + n + 2
+
+But actually Str(J) = co(p,q) + R*id, where co(p,q) = so(p,q) + R (Lorentz + dilation). The correct count:
+- Str_0(J) = inner structure algebra = {L_a : a in J} + Der(J)
+- dim(Str_0) = (n+1) + n(n-1)/2
+
+And g(J) = J + Str_0(J) + J, so:
+    dim(g) = (n+1) + [(n+1) + n(n-1)/2] + (n+1)
+           = 3(n+1) + n(n-1)/2
+
+For n = p + q = 4:
+    dim(g) = 3*5 + 4*3/2 = 15 + 6 = 21
+
+But dim(so(4+1,2)) = dim(so(5,2)) = 7*6/2 = 21. Hmm, that gives so(5,2), not so(4,2).
+
+**Critical correction:** The KKT algebra of the LORENTZIAN spin factor JSpin(p,q) (with q time dimensions) is so(p+1, q+1), the conformal algebra of R^{p,q}. For JSpin(3,1):
+
+    g(JSpin(3,1)) = so(4,2)
+
+with dim = 6*5/2 = 15. Let me recount. The issue is that the "spin factor" as a Jordan algebra does not see the signature -- it is formally real with the standard trace form. The signature enters via the NORM FORM on J.
+
+The correct statement: h_2(C) as a Jordan algebra is JSpin(3) (three imaginary directions + one real direction = 4-dimensional), which is a rank-2 Jordan algebra. Its KKT algebra is:
+
+    g(h_2(C)) = sl(2,C)_R = so(3,1)
+
+No -- this is the STRUCTURE algebra, not the full KKT algebra.
+
+Let me state this precisely using the classification table.
+
+**Classification table for KKT algebras of simple Jordan algebras:**
+
+| Jordan algebra J | dim(J) | Der(J) | Str(J) | KKT g(J) |
+|-----------------|--------|--------|--------|-----------|
+| R | 1 | 0 | R | sl(2,R) |
+| JSpin(n) = Gamma(1,n) | n+1 | so(n) | co(n) ~ so(n)+R | so(n+1,2) |
+| h_2(R) = JSpin(2) | 3 | so(2) | co(2) | so(3,2) ~ sp(4,R) |
+| h_2(C) = JSpin(3) | 4 | so(3) | co(3) | so(4,2) ~ su(2,2) |
+| h_2(H) = JSpin(5) | 6 | so(5) | co(5) | so(6,2) |
+| h_2(O) = JSpin(9) | 10 | so(9) | co(9) | so(10,2) |
+| h_3(R) | 6 | so(3) | sl(3,R) | sp(6,R) |
+| h_3(C) | 9 | su(3) | sl(3,C)_R | su(3,3) |
+| h_3(H) | 15 | sp(3) | su*(6) | so*(12) |
+| h_3(O) | 27 | f_4 | e_{6(-26)} | e_{7(-25)} |
+
+For our case: J = h_2(C) = JSpin(3). The KKT algebra is:
+
+    g(h_2(C)) = so(4,2)
+
+This is the conformal algebra of R^{3,1} (Minkowski space), as required. Dimension: 15.
+
+The identification works because:
+- g_{-1} = R^4 (special conformal transformations)
+- g_0 = so(3) + R^4 + R = so(3,1) + R (Lorentz + dilation) -- actually co(3,1)
+- g_{+1} = R^4 (translations)
+
+Total: 4 + 4 + (6 + 1) = 15 = dim(so(4,2)). Correct.
+
+**The signature point:** The Jordan algebra h_2(C) = {hermitian 2x2 complex matrices} is a 4-dimensional real Jordan algebra. As a spin factor, it is JSpin(3) with the EUCLIDEAN inner product on the traceless part. The LORENTZIAN structure comes from the determinant form det(X) = ad - |b|^2, which gives signature (1,3) on h_2(C). The KKT construction using the FULL structure (including the determinant/cubic form) gives the conformal group of the LORENTZIAN space. The standard reference is:
+
+Gunaydin, "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407, arXiv:hep-th/9301050.
+
+The key result (Gunaydin 1993, Theorem 3.1 paraphrased): For a simple Jordan algebra J of degree r, the conformal group Conf(J) is the identity component of the automorphism group of the KKT algebra g(J). For spin factors JSpin(p,q), the conformal group is SO_0(p+1,q+1).
+
+**Algorithm for explicit verification:**
+
+```
+1. Choose basis {e_0, e_1, e_2, e_3} for h_2(C):
+   e_0 = I (identity), e_1 = sigma_1, e_2 = sigma_2, e_3 = sigma_3
+   (Pauli matrices as traceless hermitian basis, I as trace part)
+
+2. Compute L_{e_i} matrices: (L_{e_i})_{jk} = <e_i o e_j, e_k>
+   These are 4x4 real matrices.
+
+3. Compute Der(h_2(C)):
+   D_{ij}(x) = [L_{e_i}, L_{e_j}](x) (inner derivations)
+   Result: 3-dimensional, isomorphic to so(3).
+
+4. Form Str(h_2(C)) = span{L_{e_i}} + Der(h_2(C)) + R*id
+   Dimension: 4 + 3 + 1 = 8 (this is co(3,1) with Lorentz + dilation)
+
+5. Form g = h_2(C) + Str(h_2(C)) + h_2(C)
+   Dimension: 4 + (4+3+1) + 4 = 16... 
+
+   Wait: overcounting. Str_0(J) has dimension dim(L(J)) + dim(Der(J))
+   but L(J) maps are not all independent of Der(J) in general.
+
+   For spin factors: Str_0(JSpin(n)) has dimension (n+1) + n(n-1)/2
+   For n=3: 4 + 3 = 7. Plus one for the grading element: 8.
+   g = 4 + 7 + 4 = 15 for the inner KKT algebra.
+   With grading element: 4 + 8 + 4 = 16. But so(4,2) has dim 15.
+   The grading element is INCLUDED in so(4,2) as the dilation generator.
+
+   Resolution: The inner structure algebra Str_0(J) includes L_{e_0} = id/2 (the identity operator scaled by 1/2), which IS the grading element. So:
+   dim(Str_0) = 4 + 3 = 7 (L operators + derivations)
+   But L_{e_0} = (1/2)id acts as the grading, contributing 1 to the count.
+   Effective: Lorentz (3) + boosts/rotations from L (3) + dilation (1) = 7.
+   g = 4 + 7 + 4 = 15. Matches so(4,2).
+
+6. Verify Lie bracket relations match so(4,2) Cartan matrix.
+```
+
+**Cost:** Moderate analytic computation. The 4x4 matrix representations of L operators and derivations are straightforward. Numerical verification is O(15^3) = O(3375) for checking the structure constants.
+
+**Confidence:** HIGH. The KKT construction for spin factors is a standard result. The identification g(JSpin(n)) = so(n+1,2) is in Gunaydin (1993), Faraut-Koranyi (1994), and McCrimmon (2004). The novel contribution is connecting this to the Peirce output V_0^{proj} = h_2(C_u).
+
+**References:**
+- Gunaydin, "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407, arXiv:hep-th/9301050
+- Faraut & Koranyi, "Analysis on Symmetric Cones," Oxford (1994), Ch. XI
+- McCrimmon, "A Taste of Jordan Algebras," Springer (2004), Sec. 14.2
+- Tits, "Une classe d'algebres de Lie en relation avec les algebres de Jordan," Indag. Math. 24 (1962) 530-535
+- Kantor, "Classification of irreducible transitive differential groups," Dokl. Akad. Nauk SSSR 158 (1964) 1271-1274
+- Koecher, "Imbedding of Jordan algebras into Lie algebras I, II," Amer. J. Math. 89-90 (1967-68)
+
+---
+
+### Method 3: F_4 Observer Independence
+
+**What:** Prove that the spacetime structure derived from the Peirce decomposition is independent of the choice of rank-1 idempotent E in h_3(O). This requires showing: (i) F_4 acts transitively on rank-1 idempotents, (ii) the Peirce decomposition is equivariant under F_4, and (iii) the resulting KKT algebra is conjugate for any choice of E.
 
 **Mathematical basis:**
 
-The cubic norm (determinant) on h_3(O) is:
+**Step 1: F_4 transitivity on rank-1 idempotents.**
 
-    N(X) = det(X) = alpha*beta*gamma - alpha*|x_1|^2 - beta*|x_2|^2 - gamma*|x_3|^2 + 2*Re(x_1 x_2 x_3)
+The rank-1 idempotents (primitive idempotents) of h_3(O) are exactly the elements of trace 1 and rank 1, i.e., the elements of the form v o v where v is a unit vector in the 27-dimensional representation. The space of such idempotents is the octonionic projective plane OP^2 = F_4/Spin(9).
 
-(using the notation of Eq. (eq:h3O-element) in Paper 7). The structure constants C_{IJK} are obtained by expanding N(X) = (1/6) C_{IJK} X^I X^J X^K in a basis {X^I} of h_3(O).
+F_4 acts transitively on OP^2. This is a classical result:
+- Freudenthal (1951): identified OP^2 as a symmetric space of F_4
+- Tits (1953): proved F_4 transitivity
+- Jordan-von Neumann-Wigner (1934): classified simple formally real Jordan algebras
 
-Under the Peirce decomposition 27 = 1 + 16 + 10:
-- V_1 = R (the alpha = <X, E_{11}> component, I = 0)
-- V_{1/2} = O^2 (the (x_2, x_3) components, I = 1,...,16)
-- V_0 = h_2(O) (the (beta, gamma, x_1) components, I = 17,...,26)
+The stabilizer of E_{11} (our chosen idempotent) under F_4 is Spin(9), which acts on V_{1/2} = O^2 via the 16-dimensional spinor representation and on V_0 = h_2(O) via the 10-dimensional vector representation (these are the Peirce eigenspaces under E_{11}).
 
-The cubic form decomposes as:
+**Step 2: Peirce decomposition equivariance.**
 
-    N(X) = alpha * det_2(X_0) + cubic_in_V12(x_2, x_3; X_0)
+For any g in F_4 and any rank-1 idempotent E:
+- The Peirce decomposition of h_3(O) under E is h_3(O) = V_1(E) + V_{1/2}(E) + V_0(E)
+- Under g: V_k(E) maps to V_k(gE) for k = 0, 1/2, 1
+- Therefore: V_0(gE) = g(V_0(E)) as a Jordan subalgebra of h_3(O)
 
-where det_2(X_0) = beta*gamma - |x_1|^2 is the determinant restricted to V_0 = h_2(O), and the remaining terms couple V_1, V_{1/2}, and V_0.
+This follows from the defining property of the Peirce decomposition: V_k(E) = {X : E o X = (k/2)X} for k = 0, 1, and V_{1/2}(E) = {X : E o X = (1/2)X}. Since g is a Jordan algebra automorphism, g(E o X) = gE o gX, so if X is in V_k(E), then gX is in V_k(gE).
 
-**Representation-theoretic decomposition:** Under Spin(10) x U(1) subset E_6, the 27 branches as 1_2 + 10_{-1} + 16_1 (the subscripts are U(1) charges). The cubic invariant 27 x 27 x 27 -> C decomposes into components:
+**Step 3: KKT algebra conjugacy.**
 
-    - 1 x 10 x 10: gives the V_1 * V_0 * V_0 coupling (the alpha * det_2 term)
-    - 16 x 16 x 10: gives the V_{1/2} * V_{1/2} * V_0 coupling
-    - 1 x 16 x 16: does NOT appear (U(1) charge mismatch: 2 + 1 + 1 = 4 != 0)
-    - 10 x 10 x 10: does NOT appear (charge: -1 -1 -1 = -3 != 0)
-    - 16 x 16 x 16: does NOT appear (charge: 1 + 1 + 1 = 3 != 0)
+Since V_0(gE) = g(V_0(E)) as Jordan algebras (g is an isomorphism), the KKT algebras are isomorphic:
 
-So the cubic norm has exactly TWO nonzero components under Peirce:
+    g(V_0(gE)) = g(g(V_0(E))) (isomorphic as Lie algebras)
 
-    N(X) = alpha * det_2(X_0) + Gamma(psi, psi, X_0)
+More precisely, if we further project via pi_u (which depends on the complex structure u), the full observer choice is the pair (E, u). The relevant symmetry group for observer independence is:
 
-where Gamma is the trilinear form coupling V_{1/2} x V_{1/2} x V_0, determined by the 16 x 16 x 10 Clebsch-Gordan coefficient of Spin(10).
+- F_4 transitivity on E (rank-1 idempotent choice)
+- For FIXED E, the stabilizer Spin(9) acts on V_0 = h_2(O), and the further choice of u in S^6 gives the projection pi_u: h_2(O) -> h_2(C_u).
+- G_2 = Aut(O) acts on S^6 transitively, with stabilizer SU(3)_C.
+- So the full observer parameter space is F_4/(Spin(9)) x G_2/SU(3) locally, but these are not independent choices.
 
-**Implementation:** Use the standard branching tables for E_6 -> Spin(10) x U(1) (available in LiE, SageMath, or by direct computation from Dynkin diagram folding). The C_{IJK} values in the Peirce basis are then computed from the branching coefficients.
+The key claim: for any rank-1 idempotent E, the projected Peirce complement V_0^{proj} is a 4-dimensional spin factor with Lorentzian determinant, and its KKT algebra is so(4,2). This is E-independent because:
+1. V_0(E) is always isomorphic to h_2(O) (F_4 transitivity + Peirce equivariance)
+2. h_2(O) always admits projections pi_u giving h_2(C_u) = h_2(C) (G_2 transitivity on u)
+3. h_2(C) always has KKT algebra so(4,2) (this is a property of the abstract Jordan algebra)
 
-**Cost:** Moderate symbolic computation. The 27^3 = 19683 components of C_{IJK} reduce to a manageable number in the Peirce-adapted basis. The key tensors are: the bilinear form on V_0 (the 10-dimensional metric), the Clebsch-Gordan coefficient 16 x 16 -> 10, and the overall scale.
+**Algorithm:**
 
-**Confidence:** HIGH. The E_6 branching rules are textbook (Slansky, Phys. Rep. 79, 1981). The identification of the cubic form with det(h_3(O)) is due to Freudenthal (1954) and is standard.
+```
+1. Verify F_4 transitivity numerically:
+   - Generate random F_4 elements (via Spin(9) orbit + coset representatives)
+   - Apply to E_{11}, check output is rank-1 idempotent
+   - Check V_0 dimensions are preserved
+
+2. Verify Peirce equivariance:
+   - For random g in F_4, compute Peirce decomposition under gE_{11}
+   - Check dim(V_k(gE)) = dim(V_k(E)) for k = 0, 1/2, 1
+   - Check g(V_0(E)) = V_0(gE) explicitly
+
+3. Verify KKT conjugacy:
+   - Compute Det form on V_0(gE) for several choices of g
+   - Verify signature is always (3,1) after pi_u projection
+   - Verify KKT dimension is always 15
+```
+
+**Cost:** Analytic proof is straightforward using standard theorems. Numerical verification uses existing verify_f4_invariance_det3() infrastructure from octonion_algebra.py, extended to check Peirce decompositions.
+
+**Confidence:** HIGH. F_4 transitivity on OP^2 is a 70-year-old theorem. Peirce equivariance is a direct consequence of automorphism properties. The novel contribution is assembling these into a coherent "observer independence" argument.
+
+**References:**
+- Freudenthal, "Oktaven, Ausnahmegruppen und Oktavengeometrie," Geom. Dedicata 19 (1985) 7-63 (reprint of 1951 original)
+- Tits, "Le plan projectif des octaves et les groupes exceptionnels E_6 et E_7," Acad. Roy. Belg. Bull. Cl. Sci. 39 (1953) 309-329
+- Yokota, "Exceptional Lie Groups," arXiv:0902.0431 (2009)
+- Todorov & Drenska, "Octonions, exceptional Jordan algebra and the role of the group F_4 in particle physics," arXiv:1805.06739
+- Cerautomatically & Ferrara, "Octonionic planes and real forms of G_2, F_4 and E_6," arXiv:2203.02671
+
+---
+
+### Method 4: Very Special Real Metric a_{IJ} from det(X)
+
+**What:** Compute the scalar field metric a_{IJ} on the very special real manifold M = {h in R^{n_V+1} : V(h) = 1} where V(h) = (1/6) d_{IJK} h^I h^J h^K is the cubic prepotential, using the d_{IJK} tensor already computed in Phase 47.
+
+**Mathematical basis:**
+
+The very special real (VSR) geometry is defined by the cubic prepotential V = (1/6) C_{IJK} h^I h^J h^K on R^{n_V+1}, where C_{IJK} = d_{IJK} (fully symmetric). The physical scalar fields phi^x (x = 1,...,n_V) parameterize the constraint surface V = 1. On this surface, the metric on the scalar manifold is:
+
+    a_{IJ} = -(1/2) (partial_I partial_J ln V)|_{V=1}
+
+Explicitly:
+
+    partial_I V = (1/2) C_{IJK} h^J h^K
+    partial_I partial_J V = C_{IJK} h^K
+    
+    partial_I ln V = (partial_I V) / V
+    partial_I partial_J ln V = (partial_I partial_J V)/V - (partial_I V)(partial_J V)/V^2
+
+On the constraint surface V = 1:
+
+    a_{IJ} = -(1/2) [C_{IJK} h^K - (1/2)(C_{IKL} h^K h^L)(C_{JMN} h^M h^N)]
+
+Define:
+    h_I := (1/2) C_{IJK} h^J h^K  (the "dual" coordinates)
+
+Then:
+    a_{IJ} = -(1/2) C_{IJK} h^K + (1/2) h_I h_J
+
+This is the standard formula from GST (1984) and de Wit-Van Proeyen (1992). The matrix a_{IJ} serves as the kinetic metric for the scalar fields AND (via the VSR constraint) determines the gauge kinetic coupling in the vector sector.
+
+**For the octonionic magic square entry:**
+- n_V + 1 = 27 (the dimension of h_3(O))
+- The constraint surface V = 1 is E_{6(-26)}/F_4, a 26-dimensional manifold
+- The scalar manifold is the coset E_{6(-26)}/F_4
+- The metric a_{IJ} on the constraint surface has signature (26,0) (positive definite) when restricted to the tangent space of V = 1
+
+The positive definiteness follows from the fact that E_{6(-26)}/F_4 is a Riemannian symmetric space of noncompact type (rank 2). This is the real form relevant to 5d supergravity with Minkowski signature target space.
+
+**Algorithm:**
+
+```python
+# Given: d_ijk from Phase 47 (106 nonzero entries, 27x27x27 symmetric)
+# Given: a base point h^I on V=1 (e.g., h = E_{11} with h^0 = 1, all others 0)
+
+# Step 1: Evaluate V(h) and verify V = 1 at base point
+V = (1/6) * sum(d[I,J,K] * h[I] * h[J] * h[K])  # should be 1
+
+# Step 2: Compute h_I (dual coordinates)
+h_dual[I] = (1/2) * sum(d[I,J,K] * h[J] * h[K])
+
+# Step 3: Compute a_{IJ}
+a[I,J] = -(1/2) * sum(d[I,J,K] * h[K]) + (1/2) * h_dual[I] * h_dual[J]
+
+# Step 4: Restrict to tangent space of V=1
+# The tangent space at h is {delta_h : h_I * delta_h^I = 0}
+# Project a_{IJ} onto this 26-dimensional subspace
+
+# Step 5: Verify signature
+eigenvalues = numpy.linalg.eigvalsh(a_restricted)
+# Should be 26 positive eigenvalues (Riemannian metric on E_{6(-26)}/F_4)
+```
+
+**Base point choice:** The natural base point is h^I = delta^{I,0} (all weight on V_1 = R). At this point:
+- V = (1/6) d_{000} * 1^3. Need d_{000} = 6 for V = 1, or rescale h^0 accordingly.
+- Actually, det(E_{11}) = 0 (rank 1), so V = 0 at E_{11}. Need a FULL RANK element.
+- Use h = I_3/3^{1/3} (scaled identity), which has det(I_3/3^{1/3}) = det(I_3)/3 = 1/3 * 1... need to calibrate.
+
+The correct base point is any element X in h_3(O) with det(X) = 1. The simplest is X = diag(1,1,1) with det = 1. In Peirce coordinates, this has h^0 = 1 (coefficient of E_{11}) and specific V_0 + V_{1/2} coordinates. The existing prepotential_F() and peirce_coords() functions in octonion_algebra.py can evaluate this.
+
+**Cost:** O(27^3) for the full d_{IJK} contraction, O(27^2) for the metric computation at a point. Trivial with existing infrastructure.
+
+**Confidence:** HIGH. The VSR metric formula is standard (GST 1984, de Wit-Van Proeyen 1992, Lauria-Van Proeyen 2020). The computation is mechanical given d_{IJK}.
 
 **References:**
 - Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268
-- Gunaydin, Sierra, Townsend, "Exceptional supergravity theories and the magic square," Phys. Lett. B 133 (1983) 72-76
-- Slansky, "Group theory for unified model building," Phys. Rep. 79 (1981) 1-128
+- de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333, arXiv:hep-th/9112027
+- Lauria & Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer LNP 966 (2020), arXiv:2004.11433
+- Craps, Roose, Troost, Van Proeyen, "What is special Kahler geometry?" Nucl. Phys. B 503 (1997) 565, arXiv:hep-th/9611112
 
 ---
 
-### Method 3: Uniqueness of the Cubic Invariant N(X) = det(X)
+### Method 5: Two-Derivative Lagrangian Uniqueness Without SUSY
 
-**What:** Prove that the cubic norm form on h_3(O) is, up to scalar multiple, the unique polynomial of degree 3 invariant under E_6 (the structure group of h_3(O)^C) or equivalently under F_4 (the automorphism group of h_3(O)).
+**What:** Prove that a two-derivative Lagrangian for the bosonic fields (gravity g_{mu nu}, 26 real scalars phi^x in E_{6(-26)}/F_4, and 27 abelian gauge fields A^I_mu) with E_{6(-26)} global symmetry and cubic prepotential V is unique up to overall scale -- without assuming supersymmetry.
+
+**This is the key argument that closes G2 (N=2 SUSY assumption).** Instead of ASSUMING N=2 SUSY and then invoking the GST construction, we show that the BOSONIC sector is already uniquely determined by the algebraic data. The N=2 SUSY of the resulting Lagrangian is then a CONSEQUENCE (it happens to admit a supersymmetric extension), not an input.
 
 **Mathematical basis:**
 
-The standard approach uses the Springer construction. Springer (1962) showed that the exceptional Jordan algebra h_3(O) carries a cubic norm form N: h_3(O) -> R that is invariant under F_4. The complexified algebra h_3(O)^C carries the same form, now invariant under E_6.
+The most general two-derivative Lagrangian for gravity + scalars + abelian vectors with E_{6(-26)} symmetry is:
 
-**Uniqueness proof sketch:**
+    L = sqrt(-g) [ alpha * R + g_{xy}(phi) * partial_mu phi^x partial^mu phi^y + a_{IJ}(phi) * F^I_{mu nu} F^{J mu nu} + C_{IJK} * A^I wedge F^J wedge F^K ]
 
-1. The 27-dimensional representation of E_6 is minuscule (its weights form a single Weyl orbit).
-2. The space of cubic invariants Sym^3(27*)^{E_6} is 1-dimensional. This follows from the decomposition of Sym^3(27) under E_6: the trivial representation appears exactly once.
-3. To verify: Sym^3(27) decomposes under E_6 as 27 + 351' + ... (the exact decomposition is in Slansky). The trivial component is the unique cubic invariant.
-4. Alternatively: the Freudenthal cross product X x Y (a bilinear map h_3(O) x h_3(O) -> h_3(O)) is defined via the linearization of N, i.e., 3 N(X, X, Y) = <X x X, Y>, where <,> is the trace form. The uniqueness of x up to scale implies uniqueness of N.
+where:
+- R is the Ricci scalar
+- g_{xy} is the sigma model metric on E_{6(-26)}/F_4
+- a_{IJ} is the gauge kinetic matrix
+- The last term is the Chern-Simons coupling (5d topological term)
 
-**For the project specifically:** We need that N(X) restricted to V_0 = h_2(O) gives the standard determinant on h_2(O). This is immediate from the matrix formula for N(X):
+The constraints from E_{6(-26)} symmetry:
 
-    N(E_{11} + X_0) = det(X_0)    (when V_{1/2} components vanish)
+1. **Sigma model metric:** The E_{6(-26)}-invariant metric on E_{6(-26)}/F_4 is unique up to scale (symmetric space, irreducible, rank 2). This follows from Schur's lemma applied to the isotropy representation of F_4 on the tangent space (the 26-dimensional representation is irreducible). Cost: zero computation, this is a standard result in symmetric space theory.
 
-since the E_{11} row/column drops out of all cross-terms when x_2 = x_3 = 0.
+2. **Gauge kinetic coupling:** The gauge fields A^I transform in the 27 of E_{6(-26)}. The gauge kinetic term requires a symmetric tensor a_{IJ}(phi) that transforms covariantly. Since the scalar fields live on E_{6(-26)}/F_4, the most general such tensor is determined by the cubic form: a_{IJ} = -(1/2) partial_I partial_J ln V. This follows because:
+   - The symmetric product 27 x 27 decomposes under E_{6(-26)} as 27 otimes_S 27 = 27 + 351'
+   - The scalar-dependent metric a_{IJ}(phi) must be E_{6(-26)}-covariant
+   - At each point of E_{6(-26)}/F_4, the tangent space is the 26 of F_4, and the stabilizer F_4 acts on the fiber 27 otimes_S 27
+   - The F_4-invariant symmetric bilinear forms on 27 are: the trace form (1-dimensional space, gives delta_{IJ}) and the cubic-derived form a_{IJ}(h) (from the second derivative of the cubic norm)
+   - But delta_{IJ} is NOT compatible with E_{6(-26)} covariance on the full coset (it corresponds to a flat metric, not the curved one). The ONLY E_{6(-26)}-covariant choice is a_{IJ} from the cubic norm.
 
-**Confidence:** HIGH. This is a classical result in the theory of exceptional groups. The 1-dimensionality of the cubic invariant space is verified in multiple references.
+3. **Chern-Simons term:** In 5d, the topological term A wedge F wedge F requires a fully symmetric tensor C_{IJK}. The unique E_{6(-26)}-invariant cubic on the 27 is proportional to d_{IJK} (Springer uniqueness theorem, already proved in v12.0). So C_{IJK} = kappa * d_{IJK} for some constant kappa.
+
+4. **Einstein-Hilbert term:** The coefficient alpha of R is fixed by requiring canonical normalization of the graviton kinetic term (or can be absorbed by field redefinition). No E_{6(-26)} constraint acts on it beyond dimensionality.
+
+**Term enumeration strategy:**
+
+The key is to enumerate ALL possible two-derivative invariants built from (g_{mu nu}, phi^x, A^I_mu) that are E_{6(-26)}-covariant, and show there are exactly 4 terms (Einstein-Hilbert, scalar kinetic, gauge kinetic, Chern-Simons) with coefficients determined up to 2 free parameters (overall scale + relative CS coefficient).
+
+At two-derivative order, the possible building blocks are:
+- R (Ricci scalar): 1 term
+- partial phi partial phi contracted with sigma model metric: 1 term (unique metric on symmetric space)
+- F F contracted with gauge kinetic matrix: 1 term (unique a_{IJ} from cubic)
+- A F F (Chern-Simons): 1 term (unique cubic)
+- epsilon^{mu nu rho sigma lambda} F F partial phi: ruled out by Lorentz + gauge invariance in 5d (would require a parity-odd coupling to scalars, but E_{6(-26)}/F_4 has no candidate 1-form)
+- Scalar potential: V(phi) must be E_{6(-26)}-invariant, but on E_{6(-26)}/F_4 the only such function is constant. So no nontrivial scalar potential (this gives Lambda = 0 automatically, closing G4!).
+
+**Why this implies N=2 SUSY without assuming it:**
+
+The resulting Lagrangian (with the specific relative coefficients determined by E_{6(-26)} covariance) happens to be exactly the bosonic sector of the 5d N=2 MESGT defined by h_3(O) (Gunaydin-Sierra-Townsend 1984). This can be verified by comparing term-by-term with the GST Lagrangian. The SUSY is then a PROPERTY of this unique Lagrangian, not an input.
+
+The argument relies on a theorem of de Wit and Van Proeyen (1992): the bosonic sector of 5d N=2 MESGT is uniquely determined by the cubic polynomial V and the constraint V = 1. Our argument shows that V is uniquely determined by E_{6(-26)} invariance (Springer theorem), and the Lagrangian is uniquely determined by V + E_{6(-26)} covariance + two-derivative restriction. The GST Lagrangian is the UNIQUE such Lagrangian.
+
+**Rigor level:** This is a physicist's proof combining representation theory (E_{6(-26)} invariant tensors) with Lagrangian field theory (classification of two-derivative terms). The individual steps are well-established, but assembling them into a "SUSY is a consequence" argument is the novel contribution.
+
+**Known failure mode:** The argument proves uniqueness of the BOSONIC Lagrangian. To conclude that N=2 SUSY follows, one needs to verify that the bosonic Lagrangian admits a supersymmetric completion. This is guaranteed by the GST construction (which explicitly constructs the fermionic sector), but strictly speaking the logic is: E_{6(-26)} + two-derivative -> unique bosonic Lagrangian -> this bosonic Lagrangian IS the GST bosonic sector -> GST proved it has N=2 SUSY completion -> therefore N=2 SUSY. The potential weakness is the last step: SUSY completion existence. However, this is a proven result (GST 1984), not an assumption.
+
+**Cost:** The main computation is the invariant tensor enumeration, which requires decomposing symmetric products of the 27 representation under E_{6(-26)}. This is a finite group theory computation. The branching rules are available in Slansky (1981) and can be verified with LiE or SageMath.
+
+**Confidence:** MEDIUM-HIGH. The individual ingredients are well-established (Springer uniqueness, symmetric space metric uniqueness, de Wit-Van Proeyen construction, GST Lagrangian). The novel assembly into a "SUSY-free derivation" is the less-established part. The main risk is overlooking an exotic two-derivative invariant that breaks the uniqueness. This risk is mitigated by the symmetric space structure (irreducible isotropy representation kills most possibilities).
 
 **References:**
+- Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268
+- de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333, arXiv:hep-th/9112027
+- Lauria & Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer LNP 966 (2020), Ch. 5, arXiv:2004.11433
 - Springer, "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265
-- Freudenthal, "Beziehungen der E_7 und E_8 zur Oktavenebene I-XI," Indag. Math. (1954-1963)
-- McCrimmon, "A Taste of Jordan Algebras," Springer (2004), Ch. V
-- Springer & Veldkamp, "Octonions, Jordan Algebras, and Exceptional Groups" (2000)
-
----
-
-### Method 4: 5d -> 4d Dimensional Reduction via the r-map
-
-**What:** The octonionic magic supergravity in 5d is an N=2 MESGT (Maxwell-Einstein supergravity theory) with scalar manifold M_5 = E_{6(-26)} / F_4 (a 26-dimensional symmetric space, since dim E_{6(-26)} = 78 and dim F_4 = 52). Upon dimensional reduction on S^1, the 5d theory reduces to 4d N=2 supergravity coupled to vector multiplets, with the scalar manifold acquiring special Kahler geometry via the "r-map" (real special -> special Kahler).
-
-**Mathematical basis:**
-
-The 5d theory is defined by the prepotential:
-
-    V(h) = C_{IJK} h^I h^J h^K = 1    (constraint on the very special real manifold)
-
-where I = 0, 1, ..., 26 (27 vector fields including the graviphoton). The dimensional reduction gives:
-
-1. The 27 5d vector fields A^I_mu decompose into 27 4d vectors A^I_mu and 27 real scalars phi^I = A^I_5 (the fifth-component).
-2. The graviphoton becomes one of the 4d vectors plus a scalar (the dilaton).
-3. The 4d scalar manifold is a special Kahler manifold parametrized by complex coordinates z^i = phi^i + i * a_D^i, where a_D^i are the dual scalars from dualizing vectors.
-
-The r-map takes the very special real manifold M_5 to the special Kahler manifold M_4:
-
-    M_4 = {z in C^{n_V} : F(z) = C_{IJK} z^I z^J z^K is the prepotential}
-
-For the octonionic magic supergravity:
-- 5d: M_5 = E_{6(-26)} / F_4 (real dimension 26)
-- 4d: M_4 = E_{7(-25)} / (E_6 x U(1)) (real dimension 54 = 2 * 27)
-
-The 4d U-duality group E_{7(-25)} contains the 5d symmetry E_{6(-26)} as a subgroup.
-
-**Standard procedure (de Wit, Van Proeyen 1992; Gunaydin, Sierra, Townsend 1984):**
-
-Step 1: Start with the 5d bosonic Lagrangian:
-    L_5 = R_5 - g_{IJ}(h) F^I_mn F^{J mn} - g_{ij}(h) d_m h^i d^m h^j - (C_{IJK}/6*sqrt(6)) eps^{mnpqr} F^I_{mn} F^J_{pq} A^K_r
-
-Step 2: Reduce on S^1 using the standard KK ansatz ds^2_5 = e^{2alpha phi} ds^2_4 + e^{2beta phi}(dz + A^0_mu dx^mu)^2.
-
-Step 3: The resulting 4d Lagrangian takes the form of N=2 supergravity with n_V + 1 vector multiplets and prepotential F(X) = C_{IJK} X^I X^J X^K / X^0.
-
-**For the project:** The key observation is that the Peirce decomposition of h_3(O) directly gives the field content decomposition:
-- V_1 (1-dim): the graviphoton scalar, related to the observer's "slot"
-- V_{1/2} (16-dim): matter fields (fermion multiplets in the SUGRA context)
-- V_0 (10-dim): the gravitational sector (vielbein + dilaton degrees of freedom)
-
-After the observer's projection pi_u: V_0 = h_2(O) -> h_2(C_u) = R^{3,1}, the 10d vector representation reduces to a 4d spacetime vector, and the prepotential restricted to this sector gives the Einstein-Hilbert action.
-
-**Cost:** The reduction is algebraic (no numerical integration needed). The main work is tracking field redefinitions and Weyl rescalings through the KK ansatz. This is a well-established procedure with many worked examples in the literature.
-
-**Confidence:** HIGH for the standard reduction procedure. MEDIUM for the specific identification of pi_u-projected fields with 4d gravitational degrees of freedom -- this is the novel part that requires careful computation.
-
-**References:**
-- Gunaydin, Sierra, Townsend, Nucl. Phys. B 242 (1984) 244-268
-- de Wit, Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333
-- Lauria, Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," arXiv:2004.11433
-- Ceresole, D'Auria, Ferrara, "The symplectic structure of N=2 supergravity and its central extension," Nucl. Phys. Proc. Suppl. 46 (1996) 67-74
-
----
-
-### Method 5: Lorentz Structure Verification for h_2(C_u)
-
-**What:** Verify that h_2(C_u) carries the correct Minkowski metric structure. This is the step that connects the algebraic projection to physical spacetime.
-
-**Mathematical basis:**
-
-The space h_2(K) of 2x2 Hermitian matrices over a division algebra K has dimension dim_R(K) + 2 and carries a Lorentzian norm form:
-
-    det(X) = alpha * gamma - |z|^2
-
-for X = ( alpha  z^* ; z  gamma ) with alpha, gamma in R and z in K.
-
-The specific cases:
-- K = R: h_2(R) = R^{2,1} (3d Minkowski)
-- K = C: h_2(C) = R^{3,1} (4d Minkowski)
-- K = H: h_2(H) = R^{5,1} (6d Minkowski)
-- K = O: h_2(O) = R^{9,1} (10d Minkowski)
-
-**For K = C specifically:** An element of h_2(C) is
-
-    X = ( t + z     x - iy )
-        ( x + iy    t - z  )
-
-with determinant det(X) = t^2 - x^2 - y^2 - z^2, which is exactly the Minkowski metric eta_{mu nu} x^mu x^nu with signature (+,-,-,-).
-
-**Verification steps:**
-
-1. Write the most general element of V_0 = h_2(O) and apply pi_u:
-   - V_0 element: ( beta  x_1^* ; x_1  gamma ) with x_1 in O
-   - pi_u projects x_1 -> a in C_u: write x_1 = a_0 + a_1 u + sum_{k=1}^6 b_k e_k, then a = a_0 + a_1 u
-
-2. Verify the norm form: det(pi_u(X)) = beta*gamma - |a|^2 = beta*gamma - a_0^2 - a_1^2
-
-3. Reparametrize: t = (beta + gamma)/2, z = (beta - gamma)/2, x = a_0, y = a_1. Then det = t^2 - z^2 - x^2 - y^2 = eta_{mu nu} x^mu x^nu. This is Minkowski (3,1).
-
-4. The Lorentz group acts: SL(2, C_u) acts on h_2(C_u) by X -> M X M^dagger, preserving det(X). The group SL(2, C) = Spin(3,1) is the double cover of SO^+(3,1).
-
-**The SL(2,O) -> SL(2,C) reduction:** On h_2(O), the "Lorentz group" is (a restricted version of) SL(2,O) = Spin(9,1). The projection pi_u reduces this to SL(2,C_u) = Spin(3,1). Explicitly: an element M of SL(2,O) acts as X -> M X M^dagger, and if M lies in the subgroup preserving the C_u embedding, the action restricts to h_2(C_u) and gives standard 4d Lorentz transformations.
-
-**Known subtlety:** SL(2,O) is not a Lie group in the usual sense because O is non-associative. The "group" is defined via the action on h_2(O) rather than as a matrix group. The well-defined object is the automorphism group of the norm form, which is SO(9,1). The projection to SL(2,C) via pi_u is well-defined because C is associative.
-
-**Cost:** Purely algebraic verification. No numerical computation needed beyond sanity checks.
-
-**Confidence:** HIGH. The identification h_2(K) = R^{dim(K)+1,1} is textbook (Baez 2002, Sudbery 1984). The projection pi_u reducing dimension from 10 to 4 via the octonion splitting is the specific novel computation but is straightforward.
-
-**References:**
-- Baez, "The Octonions," Bull. AMS 39 (2002), arXiv:math/0105155
-- Sudbery, "Division algebras, (pseudo)orthogonal groups and spinors," J. Phys. A 17 (1984) 939-955
-- Baez & Huerta, "Division Algebras and Supersymmetry I," arXiv:0909.0551
-- Dray & Manogue, "The Geometry of the Octonions," World Scientific (2015)
-
----
-
-### Method 6: Peirce Products V_{1/2} * V_{1/2} -> V_0
-
-**What:** Compute the Jordan product of two elements psi, chi in V_{1/2} = O^2, verify the result lands in V_0 = h_2(O), and trace the result through pi_u.
-
-**Mathematical basis:**
-
-The Peirce multiplication rules for a Jordan algebra with idempotent e:
-- V_1 * V_1 subset V_1
-- V_1 * V_{1/2} subset V_{1/2}
-- V_1 * V_0 = {0}
-- V_{1/2} * V_{1/2} subset V_1 + V_0
-- V_{1/2} * V_0 subset V_{1/2}
-- V_0 * V_0 subset V_0
-
-For h_3(O) with e = E_{11}, these are standard (McCrimmon 2004, Ch. V; Jacobson 1968).
-
-**Explicit computation of psi circ chi for psi, chi in V_{1/2}:**
-
-Let psi, chi in V_{1/2}. In the matrix representation:
-
-    psi = ( 0      a^*    b  )        chi = ( 0      c^*    d  )
-          ( a      0      0  )              ( c      0      0  )
-          ( b^*    0      0  )              ( d^*    0      0  )
-
-where a, b, c, d in O (and psi corresponds to (x_2, x_3) = (b, a), chi to (d, c) in the Paper 7 notation).
-
-The Jordan product psi circ chi = (1/2)(psi * chi + chi * psi), where * is ordinary matrix multiplication with octonion entries. Computing entry by entry:
-
-    (psi * chi)_{11} = a^* c + b d^*
-    (psi * chi)_{22} = a c^*    (this is in the V_0 block)
-    (psi * chi)_{33} = b^* d    (this is in the V_0 block)
-    (psi * chi)_{23} = 0        (no V_0 off-diagonal contribution from this term)
-
-Wait -- this needs to be done more carefully. Let me write the full product.
-
-Actually, the correct computation uses the 3x3 matrix product. For psi with entries (0, a^*, b; a, 0, 0; b^*, 0, 0):
-
-    (psi * chi)_{ij} = sum_k psi_{ik} chi_{kj}
-
-    (psi * chi)_{11} = 0*0 + a^* * c + b * d^* = a^* c + b d^*
-    (psi * chi)_{12} = 0*c^* + a^* * 0 + b * 0 = 0
-    (psi * chi)_{13} = 0*d + a^* * 0 + b * 0 = 0
-    (psi * chi)_{21} = a*0 + 0*c + 0*d^* = 0
-    (psi * chi)_{22} = a*c^* + 0 + 0 = a c^*
-    (psi * chi)_{23} = a*d + 0 + 0 = a d
-    (psi * chi)_{31} = b^**0 + 0*c + 0*d^* = 0
-    (psi * chi)_{32} = b^* c^* + 0 + 0 = b^* c^*
-    (psi * chi)_{33} = b^* d + 0 + 0 = b^* d
-
-So:
-    psi * chi = ( a^*c + bd^*    0         0       )
-                ( 0               ac^*      ad      )
-                ( 0               b^*c^*    b^*d    )
-
-And chi * psi is the same with psi <-> chi:
-    chi * psi = ( c^*a + db^*    0         0       )
-                ( 0               ca^*      cb      )
-                ( 0               d^*a^*    d^*b    )
-
-Therefore:
-    psi circ chi = (1/2)(psi*chi + chi*psi)
-
-The (1,1) entry (V_1 component):
-    (1/2)(a^*c + bd^* + c^*a + db^*) = Re(a^*c) + Re(bd^*) = <a,c> + <b,d>
-
-where <,> is the real inner product on O (Re(x^*y)).
-
-The V_0 block (2,2), (2,3), (3,2), (3,3):
-    (2,2): (1/2)(ac^* + ca^*) = Re(ac^*) = <a,c>  -- wait, this equals <a,c> only if we use Re(ac^*) = Re(c^*a). Actually Re(xy) = Re(yx) for octonions, so (1/2)(ac^* + ca^*) is the Jordan product a circ_{O} c^* in the octonions... No, it's just the symmetrized product.
-
-Let me use the standard result. The V_0 component of psi circ chi is:
-
-    (psi circ chi)_0 = (1/2)( ac^* + ca^*        ad + cb            )
-                              ( (ad+cb)^*          b^*d + d^*b        )
-
-    = ( Re(ac^*)           (1/2)(ad + cb)       )
-      ( (1/2)(ad+cb)^*     Re(b^*d)             )
-
-This is a well-defined element of h_2(O) = V_0.
-
-**Image under pi_u:** Apply pi_u to each octonion entry. The diagonal entries are already real (projecting a real number gives itself). The off-diagonal entry (1/2)(ad + cb) in O is projected to its C_u-component:
-
-    pi_u((1/2)(ad + cb)) = (1/2) * pi_{C_u}(ad + cb)
-
-where pi_{C_u}: O -> C_u projects an octonion to its C_u = span{1, u} component.
-
-**Key physical content:** The V_1 component <a,c> + <b,d> is the inner product on V_{1/2} = O^2, which is invariant under Spin(9). This is the "observer's measurement" of the V_{1/2} state -- a single real number (the trace-form coupling). The V_0 component contains the "backreaction" of matter (V_{1/2}) on the gravitational sector (V_0).
-
-**Cost:** Explicit octonion arithmetic. Each product involves 8-component multiplication. Verifiable symbolically or numerically.
-
-**Confidence:** HIGH for the Peirce product formula (textbook Jordan algebra). MEDIUM for the pi_u image analysis -- the projection of products like (ad + cb) requires tracking which Fano plane relations contribute to the C_u component.
-
-**References:**
-- McCrimmon, "A Taste of Jordan Algebras," Springer (2004), Ch. V.2 (Peirce decomposition), Ch. V.6 (Albert algebra)
-- Jacobson, "Structure and Representations of Jordan Algebras," AMS Colloquium Publications vol. 39 (1968)
-- Schafer, "An Introduction to Nonassociative Algebras," Academic Press (1966), Dover reprint (1995)
+- Slansky, "Group theory for unified model building," Phys. Rep. 79 (1981) 1-128
+- Castellani, D'Auria, Fre, "Supergravity and Superstrings: A Geometric Perspective," Vol. 2, Ch. III.8
 
 ---
 
@@ -388,118 +464,98 @@ where pi_{C_u}: O -> C_u projects an octonion to its C_u = span{1, u} component.
 
 | Category | Recommended | Alternative | Why Not |
 |----------|------------|-------------|---------|
-| Cubic form computation | Direct matrix determinant formula | Freudenthal triple system formalism | Direct formula is explicit and elementary; FTS formalism is more powerful but introduces unnecessary abstraction for a single cubic form |
-| 5d -> 4d reduction | Standard KK on S^1 via r-map | Calabi-Yau compactification from 11d | CY compactification is physically more fundamental but computationally much harder; the r-map gives the same 4d SUGRA data |
-| Lorentz structure | h_2(C) determinant identification | Spin(3,1) Casimir analysis | The determinant approach is elementary and gives explicit coordinates; Casimir analysis is indirect |
-| Peirce products | Explicit 3x3 matrix multiplication | U-operator formalism (U_a(b) = 2a(ab) - a^2 b) | Matrix multiplication is more transparent for verification; U-operator formalism is standard in abstract Jordan theory but less suited to explicit computation |
-| pi_u equivariance | Direct computation via matrix action | Induced representation theory | Direct computation is more explicit and less error-prone for this specific case |
-| Uniqueness of cubic | Sym^3(27)^{E_6} decomposition | Highest weight theory / Dynkin index | The symmetric power decomposition is the standard approach and gives the result directly |
+| Conformal algebra derivation | KKT construction on h_2(C_u) | Direct Lie algebra computation from Killing vectors of Minkowski | KKT is intrinsic to Jordan algebra; Killing vectors assume the spacetime is already known |
+| Observer independence | F_4 orbit on OP^2 | Explicit computation for all diagonal idempotents | F_4 orbit theorem is cleaner and covers ALL idempotents, not just diagonal ones |
+| Scalar metric a_{IJ} | VSR formula from cubic norm | Direct sigma model computation on E_{6(-26)}/F_4 coset | VSR formula is already available from d_{IJK}; coset computation is equivalent but harder |
+| SUSY derivation | E_{6(-26)} invariant Lagrangian uniqueness | Direct N=2 SUSY construction from scratch | Direct construction assumes SUSY; our goal is to derive it as consequence |
+| Lagrangian uniqueness | Invariant tensor enumeration | Noether procedure / gauging E_{6(-26)} | Noether procedure is more involved and still requires the cubic form as input |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Treating SL(2,O) as a Lie group | O is non-associative; SL(2,O) is not a group in the usual sense | Work with SO(9,1) or Spin(9,1) directly; use the h_2(O) norm-preserving maps |
-| Assuming pi_u is a Jordan homomorphism | It is NOT -- octonion non-associativity means projection does not commute with Jordan product | Compute the failure term explicitly; it carries physical content |
-| Component-free octonionic computation | Non-associativity means different parenthesizations give different answers; implicit associations hide errors | Always specify parenthesization; use the Fano plane multiplication table explicitly |
-| Assuming the Chern-Simons term vanishes in KK reduction | The 5d Chern-Simons term C_{IJK} eps F^I F^J A^K contributes theta-angle terms and topological couplings in 4d | Track the CS term through reduction; it contributes to the 4d prepotential |
-| Quaternionic methods for octonions | H is associative, O is not; subalgebra techniques that work for h_2(H) may fail for h_2(O) | Use division-algebra-general formulas that handle non-associativity |
+| Assuming SUSY to derive the Lagrangian | Circular: G2 gap IS the SUSY assumption | E_{6(-26)} invariant term enumeration (Method 5) |
+| Lattice / Jacobson route for spacetime | Abandoned in v12.0 (Paper 6 independence) | Operational criteria + KKT (Methods 1+2) |
+| Explicit boost generator construction | Addresses G5 (compact so(3) vs so(3,1)) but not needed for G4 closure | KKT gives full so(4,2) including boosts; G5 is separate |
+| 5d -> 4d reduction at this stage | Premature: need 5d Lagrangian uniqueness first | Establish 5d uniqueness (Method 5), then reduce later if needed |
+| Assuming specific form of scalar potential | Would introduce Lambda != 0 | E_{6(-26)} invariance on E_{6(-26)}/F_4 forces constant potential (no non-trivial invariant function) |
 
 ## Method Selection by Problem Type
 
-**If computing explicit Peirce products:**
-- Use Method 6 (direct 3x3 matrix multiplication with explicit octonion arithmetic)
-- Because: transparent, verifiable, catches non-associativity errors
+**If proving spacetime from algebra (G4 closure):**
+- Use Methods 1 + 2 + 3 (operational criteria + KKT + F_4 observer independence)
+- Because these derive spacetime structure purely from Peirce algebraic data
 
-**If establishing Lorentz structure:**
-- Use Method 5 (h_2(C) determinant identification)
-- Because: gives explicit Minkowski coordinates and metric signature in one step
+**If proving Lagrangian uniqueness (G2 closure):**
+- Use Methods 4 + 5 (VSR metric + invariant Lagrangian uniqueness)
+- Because these construct the unique bosonic Lagrangian from E_{6(-26)} + cubic form, showing N=2 SUSY is consequence
 
-**If decomposing the cubic form:**
-- Use Method 2 (representation-theoretic branching under E_6 -> Spin(10) x U(1))
-- Because: cleanly separates the two nonzero components and identifies them with known Spin(10) Clebsch-Gordan coefficients
-
-**If proving uniqueness results:**
-- Use Method 3 (Springer construction / Sym^3 decomposition)
-- Because: the classical approach, with the shortest proof path
-
-**If performing dimensional reduction:**
-- Use Method 4 (r-map / KK on S^1)
-- Because: the standard supergravity machinery, with many worked examples in the literature
+**If computing explicit metric for numerical verification:**
+- Use Method 4 with existing d_ijk_tensor() output
+- Because the computational infrastructure is already in place from Phase 47
 
 ---
 
-## Validation Strategy
+## Validation Strategy by Method
 
-| Check | Expected Result | Tolerance | Reference |
-|-------|----------------|-----------|-----------|
-| dim h_2(C_u) = 4 | 4 = 2 + 2 (two reals + one C entry) | Exact | Baez 2002 |
-| det(h_2(C_u)) has signature (3,1) | Eigenvalues of the Gram matrix: {+,+,+,-} | Exact | Sudbery 1984 |
-| N(X) restricted to alpha E_{11} + V_0 equals alpha * det_2(V_0) | Polynomial identity | Exact | Springer-Veldkamp 2000 |
-| Peirce product V_{1/2} * V_{1/2} lands in V_1 + V_0 | No V_{1/2} component | Exact | McCrimmon 2004 |
-| dim Sym^3(27)^{E_6} = 1 | One-dimensional space of cubic invariants | Exact | Slansky 1981 |
-| SL(2,C_u) is double cover of SO^+(3,1) | Group isomorphism | Exact | Standard |
-| C_{IJK} from Peirce decomposition reproduces full det(X) when reassembled | Polynomial identity in 27 variables | Exact | GST 1984 |
-| V_1 component of psi circ psi equals |psi|^2 (norm on O^2) | <a,a> + <b,b> = |a|^2 + |b|^2 | Exact | McCrimmon 2004 |
+| Method | Validation Approach | Key Benchmarks |
+|--------|-------------------|----------------|
+| OD1-OD7 criteria | Each criterion verified independently; cross-check with known JSpin(3,1) properties | dim = 4, sig = (3,1), Der = so(3), KKT = so(4,2) |
+| KKT algebra | Explicit bracket computation + dimension count + Cartan matrix comparison | dim(g) = 15, rank = 3, Killing form signature matches so(4,2) |
+| F_4 observer independence | Numerical orbit check + analytic equivariance proof | All random gE_{11} give isomorphic Peirce decomposition |
+| VSR metric a_{IJ} | Positive definiteness on V=1 surface, correct dimension 26, invariance under F_4 | 26 positive eigenvalues, metric transforms covariantly |
+| Lagrangian uniqueness | Term count matches GST, coefficient ratios match GST Lagrangian | 4 terms, 2 free parameters, matches Eq. 49.6 from Phase 49 |
 
----
+## Logical Dependencies
+
+```
+OD1-OD3 (dimension, signature, causal) <- v12.0 Phase 46 (det_2 Gram, Peirce)
+OD4 (conformal) <- Method 2 (KKT construction)
+OD5-OD6 (homogeneity, isotropy) <- Der(h_2(C)) = so(3), Str(h_2(C)) = co(3,1)
+OD7 (reduction) <- v12.0 Phase 46 (pi_u projection)
+Method 2 (KKT) <- OD1-OD3 (needs h_2(C_u) as input)
+Method 3 (F4 independence) <- Method 1 + Method 2 (needs criteria + KKT for each E)
+Method 4 (a_{IJ}) <- v12.0 Phase 47 (d_{IJK} tensor)
+Method 5 (Lagrangian uniqueness) <- Method 4 (a_{IJ}) + Springer uniqueness (v12.0)
+G4 closure <- Methods 1 + 2 + 3
+G2 closure <- Methods 4 + 5
+```
+
+## Computational Tools
+
+| Tool | Version | Purpose | Why |
+|------|---------|---------|-----|
+| Python/NumPy | 3.14+ / 2.4+ | KKT bracket computation, a_{IJ} computation, F_4 orbit checks | Existing infrastructure in octonion_algebra.py |
+| SymPy | Latest | Symbolic verification of Lie bracket relations, invariant tensor decomposition | Exact arithmetic for structure constant verification |
+| octonion_algebra.py | Current | d_{IJK} tensor, Peirce decomposition, F_4 verification, Jordan products | 4258-line codebase with all needed primitives |
 
 ## Installation / Setup
 
 ```bash
-# Core computational environment (for numerical verification)
-pip install numpy scipy sympy
-
-# For Lie algebra branching rules and representation decompositions
-# SageMath includes LiE-compatible functionality
-# User may need to install SageMath separately if not present
-# pip install sagemath-standard  # (large, ~2GB)
-
-# For explicit octonion arithmetic
-# No standard package; use the octonion multiplication module from Paper 7 codebase
-# or implement from Fano plane table (7 lines, 7 points, straightforward)
+# No new packages needed beyond existing environment
+# All computation extends octonion_algebra.py
+# Verify existing setup:
+python3 -c "import numpy; print(numpy.__version__)"
+python3 -c "from code.octonion_algebra import d_ijk_tensor; print('d_{IJK} available')"
 ```
-
----
 
 ## Sources
 
-### Foundational
-- Albert, "On a certain algebra of quantum mechanics," Ann. Math. 35 (1934) 65-73
-- Jordan, von Neumann, Wigner, "On an algebraic generalization of the quantum mechanical formalism," Ann. Math. 35 (1934) 29-64
-- Freudenthal, "Beziehungen der E_7 und E_8 zur Oktavenebene," Indag. Math. 16 (1954) 218-230
-- Springer, "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265
-
-### Jordan Algebra Computation
-- McCrimmon, "A Taste of Jordan Algebras," Springer (2004) -- Ch. V for Peirce decomposition, Ch. V.6 for Albert algebra
-- Jacobson, "Structure and Representations of Jordan Algebras," AMS (1968)
-- Springer & Veldkamp, "Octonions, Jordan Algebras, and Exceptional Groups," Springer (2000)
-
-### Magic Supergravity and GST
 - Gunaydin, Sierra, Townsend, "Exceptional supergravity theories and the magic square," Phys. Lett. B 133 (1983) 72-76
 - Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268
-- Gunaydin, Sierra, Townsend, "More on d=5 Maxwell-Einstein supergravity: symmetric spaces and kinks," Class. Quant. Grav. 3 (1986) 763
-
-### Dimensional Reduction and Special Geometry
-- de Wit, Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333
-- Lauria, Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer Lecture Notes in Physics 966 (2020), arXiv:2004.11433
-- Ceresole, D'Auria, Ferrara, "The symplectic structure of N=2 supergravity," Nucl. Phys. B 444 (1995) 92-124
-
-### Octonions and Spacetime
-- Baez, "The Octonions," Bull. AMS 39 (2002) 145-205, arXiv:math/0105155
-- Baez & Huerta, "Division Algebras and Supersymmetry I," arXiv:0909.0551
-- Sudbery, "Division algebras, (pseudo)orthogonal groups and spinors," J. Phys. A 17 (1984) 939-955
-- Dray & Manogue, "The Geometry of the Octonions," World Scientific (2015)
-
-### Standard Model from Octonions
-- Todorov & Drenska, "Octonions, exceptional Jordan algebra and the role of the group F_4 in particle physics," arXiv:1805.06739
-- Boyle, "The Standard Model, The Exceptional Jordan Algebra, and Triality," arXiv:2006.16265
-- Furey, "Three generations, two unbroken gauge symmetries, and one eight-dimensional algebra," Phys. Lett. B 785 (2018) 84-89
-
-### Representation Theory
+- de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307, arXiv:hep-th/9112027
+- Gunaydin, "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407, arXiv:hep-th/9301050
+- Faraut & Koranyi, "Analysis on Symmetric Cones," Oxford (1994)
+- McCrimmon, "A Taste of Jordan Algebras," Springer (2004)
+- Springer, "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265
+- Freudenthal, "Oktaven, Ausnahmegruppen und Oktavengeometrie," Geom. Dedicata 19 (1985) 7-63
+- Todorov & Drenska, arXiv:1805.06739 (F_4 role in particle physics)
+- Boyle, arXiv:2006.16265 (SM from exceptional Jordan algebra and triality)
+- Lauria & Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer LNP 966 (2020), arXiv:2004.11433
 - Slansky, "Group theory for unified model building," Phys. Rep. 79 (1981) 1-128
+- Yokota, "Exceptional Lie Groups," arXiv:0902.0431
 
 ---
 
-_Methods research for: GR from det(X) on h_3(O) via Peirce complement_
-_Researched: 2026-04-11_
+_Methods research for: Paper 6 Closure (G4 + G2 from algebraic structure)_
+_Researched: 2026-04-12_

@@ -1,114 +1,326 @@
 # Research Summary
 
-**Project:** v12.0 GR from det(X) on h_3(O)
-**Domain:** Exceptional Jordan algebra / Magic supergravity / Peirce complement V_0 / Very special geometry
-**Researched:** 2026-04-11
-**Confidence:** MEDIUM (algebraic ingredients HIGH; novel V_0-to-spacetime chain MEDIUM-LOW; physical interpretation LOW-MEDIUM)
+**Project:** v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure
+**Domain:** Exceptional Jordan algebras / Kantor-Koecher-Tits construction / Very special real geometry / GST classification
+**Researched:** 2026-04-12
+**Confidence:** HIGH for algebraic foundations; MEDIUM-HIGH for the "N=2 as consequence" assembly; MEDIUM for G5 (compact so(3) vs so(3,1)) resolution
 
 ## Unified Notation
 
 | Symbol | Quantity | Units/Dimensions | Convention Notes |
 |--------|----------|------------------|------------------|
 | h_3(O) | Exceptional (Albert) Jordan algebra | dim 27, dimensionless | 3x3 hermitian octonionic matrices |
-| h_2(O) | 2x2 hermitian octonionic matrices = JSpin_9 | dim 10, dimensionless | Isomorphic to V_0 Peirce complement |
-| h_2(C) | 2x2 hermitian complex matrices | dim 4, dimensionless | Isomorphic to R^{3,1} Minkowski |
-| V_1, V_{1/2}, V_0 | Peirce spaces of h_3(O) at E_{11} | dim 1, 16, 10 | 27 = 1 + 16 + 10 decomposition |
-| det_3(X) or N(X) | Cubic norm on h_3(O) | dimensionless | GST writes V(h) |
-| det_2(Y) | Quadratic norm on h_2(O) | dimensionless | = beta*gamma - |x_1|^2; gives Minkowski metric |
-| pi_u | Projection h_2(O) -> h_2(C_u) | linear map | Keeps C_u = span{1,u} component of off-diagonal octonion |
+| h_2(C_u) | Projected Peirce complement | dim 4, dimensionless | pi_u(V_0); isomorphic to R^{3,1} as spin factor JSpin(3,1) |
+| h_2(O) | Full Peirce complement V_0 | dim 10, dimensionless | JSpin(9); carries R^{9,1} Minkowski via det_2 |
+| V_1, V_{1/2}, V_0 | Peirce spaces at E_{11} | dim 1, 16, 10 | 27 = 1 + 16 + 10 decomposition |
+| det_2(Y) | Quadratic norm on h_2(C_u) | dimensionless | Gives Minkowski metric diag(+1,-1,-1,-1) |
+| det_3(X) / N(X) | Cubic norm on h_3(O) | dimensionless | Unique F_4-invariant cubic form (Springer 1962) |
+| d_{IJK} | Polarized cubic form coefficients | symmetric 3-tensor | det_3(X) = (1/6) d_{IJK} X^I X^J X^K; Phase 47: 106 nonzero |
+| C_{IJK} | GST cubic tensor | symmetric 3-tensor | C_{IJK} = d_{IJK}/6; determines bosonic Lagrangian |
+| V(h) | Very special real prepotential | dimensionless | V(h) = C_{IJK} h^I h^J h^K; constraint surface V=1 |
+| a_{IJ} | VSR scalar metric | dimensionless | a_{IJ} = -(1/2) d_I d_J ln V at V=1 |
+| pi_u | Projection h_2(O) -> h_2(C_u) | linear map | Keeps C_u = span{1,u} component |
 | u | Observer's complex structure | u in S^6 subset Im(O) | Default: u = e_7 (Fano convention) |
-| C_u | Complex subalgebra of O | dim_R 2 | C_u = span_R{1, u} |
-| F_4 | Aut(h_3(O)) | dim 52, rank 4 | Preserves Jordan product, Tr, and det |
-| E_6(-26) | Str(h_3(O)) | dim 78, rank 6 | Preserves det up to scale; ALWAYS specify real form |
-| E_7(-25) | 4d U-duality group | dim 133 | From 5d->4d reduction of octonionic MESGT |
-| Spin(9) | Stab_{F_4}(E_{11}) | dim 36 | NOT SO(9) when acting on spinorial V_{1/2} |
-| SU(3)_C | Stab_{G_2}(u) | dim 8 | Color group; acts on C^3 subset O, fixes C_u |
-| d_{IJK} | Polarized cubic form | symmetric 3-tensor | det_3(X) = (1/6) d_{IJK} X^I X^J X^K |
-| X circ Y | Jordan product | (1/2)(XY + YX) | Paper 5-7 convention with 1/2 factor |
-| V(h) | GST prepotential | dimensionless | = C_{IJK} h^I h^J h^K = det_3(h) on N=1 surface |
+| F_4 | Aut(h_3(O)) | dim 52 | Preserves Jordan product, Tr, and det |
+| E_{6(-26)} | Str(h_3(O)) | dim 78 | Structure group; preserves det up to scale. ALWAYS specify real form |
+| TKK(J) / KKT(J) | Tits-Kantor-Koecher Lie algebra | 3-graded Lie algebra | g = J + Str_0(J) + J |
+| Str_0(J) | Reduced structure algebra | subalgebra of TKK | For h_2(C): so(3,1) + R (Lorentz + dilatation), dim 7 |
+| Der(J) | Derivation algebra | subalgebra of Str_0 | For h_2(C): so(3), dim 3 (spatial rotations only) |
+| OD1-OD7 | Operational spacetime criteria | -- | Dimension, signature, causal, conformal, homogeneity, isotropy, reduction |
+| F(X) | 4d prepotential | dimensionless | F(X) = d_{IJK} X^I X^J X^K / (6 X^0); degree 2 in X^I |
 
-**Metric signature:** (+,-,-,...,-) (mostly minus). det_2 on h_2(O) gives (1,9); det_2 on h_2(C) gives (1,3).
+**Metric signature:** (+,-,-,-) (mostly minus). det_2 on h_2(C_u) gives Gram = diag(+1,-1,-1,-1).
 
-**Unit system:** Natural units (hbar = c = 1) for supergravity; dimensionless for pure algebra.
+**Unit system:** Natural units (hbar = c = 1) for Lagrangian; dimensionless for pure algebra.
 
 **Octonion basis:** Fano convention with e_1 e_2 = e_4, complex structure u = e_7.
 
+**Key convention reconciliation:** The 5d prepotential V(h) = C_{IJK} h^I h^J h^K is degree 3 and homogeneous. The 4d prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0) is degree 2 (projective). These are related by the c-map (circle reduction); C_{IJK} = d_{IJK}/6 with our Phase 49 normalization. All four research files use consistent conventions on this point.
+
 ## Executive Summary
 
-The v12.0 milestone investigates whether the Peirce complement V_0 = h_2(O) of h_3(O), projected to h_2(C) = R^{3,1} by the C*-observer's complex structure u, can deliver 4d Lorentzian spacetime with the Gunaydin-Sierra-Townsend (GST) magic supergravity structure -- where det(X) on h_3(O) serves as the cubic prepotential determining matter-gravity coupling. The algebraic ingredients are individually well-established (HIGH confidence): h_2(O) = R^{9,1} as 10d Minkowski via determinant (Baez 2002), det(X) as the unique F_4-invariant cubic form (Springer 1962), and the GST construction of 5d N=2 MESGT from h_3(O) with prepotential V = det (GST 1983-84). What is genuinely novel and unestablished is the specific chain: C*-bottleneck forces pi_u: h_2(O) -> h_2(C) = R^{3,1}, the projected cubic form determines 4d gravitational couplings, and this reproduces the GST Lagrangian structure without invoking N=2 supersymmetry.
+The v13.0 milestone closes two chain-critical gaps in the algebraic derivation of Einstein gravity from h_3(O): (G4) V_0 = spacetime as a derived result rather than an identification, and (G2) N=2 SUSY as a consequence rather than an assumption. Both closures rest on well-established mathematics applied in a novel combination. For G4, the Kantor-Koecher-Tits construction (Tits 1962, Koecher 1967, Gunaydin 1993) applied to h_2(C_u) yields so(4,2) -- the full conformal algebra of 3+1 Minkowski spacetime -- deriving not just the metric (already established in Phase 46) but the complete operational spacetime structure including translations, Lorentz transformations, dilatation, and special conformal transformations. F_4 transitivity on rank-1 idempotents (Freudenthal 1954) guarantees observer independence. For G2, the GST classification theorem (1984) combined with Springer's uniqueness theorem (1962) and de Wit-Van Proeyen's very special real geometry (1992) shows that the bosonic Lagrangian is uniquely determined by C_{IJK} + E_{6(-26)} covariance + two-derivative restriction, without assuming supersymmetry. The resulting Lagrangian happens to coincide with the GST N=2 MESGT bosonic sector; SUSY is a mathematical consequence, not an input.
 
-A critical dimension-signature issue must be front and center: h_2(O) with det gives R^{9,1} (10d Minkowski), NOT R^{3,1}. The reduction to 4d spacetime comes entirely from pi_u -- the projection O -> C_u that keeps only the complex component of each octonion. This is the same mechanism that projects V_{1/2} = O^2 to SM fermion representations (Papers 5+7), now applied to the gravitational sector. The 6 discarded dimensions correspond to the C^3 = "color" directions, giving a 10 = 4 + 6 splitting where the internal space is algebraically determined rather than chosen by hand. However, pi_u is NOT a Jordan algebra homomorphism due to octonion non-associativity -- the failure term is physically significant and may encode gauge-gravity coupling.
+The principal risk is circularity in the N=2 derivation (pitfall C5): the argument must construct the Lagrangian from E_{6(-26)} invariance and the cubic form alone, then identify the result with GST, not start from "In N=2 MESGT..." The recommended approach splits cleanly into two phases: Phase 52 (G4 spacetime via OD1-OD7 + KKT + F_4) and Phase 53 (G2 SUSY via VSR metric + E_{6(-26)} invariant term enumeration). All computations are exact finite-dimensional algebra on spaces dim <= 27 with ~70% of infrastructure already implemented, total runtime under 15 seconds. The KKT construction additionally resolves gap G5 (compact so(3) vs non-compact so(3,1)): Der(h_2(C)) = so(3) gives only rotations, but Str_0(h_2(C)) = so(3,1) + R provides the full Lorentz algebra including boosts. The boosts live in the structure algebra, not the automorphism group -- a conceptually important distinction that Spin(9) compactness obscured.
 
-The recommended approach proceeds in five phases: (1) establish V_0 algebraic structure with pi_u and verify Minkowski signature, (2) decompose the d_{IJK} tensor into Peirce blocks identifying which cubic couplings survive projection, (3) verify equivariance and Lorentz subgroup structure, (4) connect to the GST Lagrangian and 5d->4d reduction, (5) synthesis and paper integration. All computations are exact finite-dimensional algebra (under 5 seconds total), with ~60% of needed infrastructure already implemented. The principal risks are overclaiming (GR itself comes from Paper 6 via Jacobson; h_3(O) determines the matter-gravity COUPLING), circularity in the det "double duty" argument, and the open question of whether the C*-bottleneck mechanism that works for V_{1/2} extends to V_0.
+The recommended phase structure is two phases (52 and 53) that are largely independent computationally but logically ordered: G4 closure establishes that V_0 IS spacetime (prerequisite for the Lagrangian to have physical meaning), then G2 closure establishes the Lagrangian is unique and N=2 supersymmetric. Both phases build on validated v12.0 infrastructure (Phases 46-50) and require no new software dependencies.
 
 ## Key Findings
 
+### Computational Approaches
+
+All five algorithms operate on exact finite-dimensional algebra (dim <= 27). No numerical approximation, no convergence issues, no Monte Carlo. Total estimated runtime: < 15 seconds on a single-core laptop. No new Python dependencies beyond NumPy. SymPy optional for exact rational cross-checks.
+
+**Core approach:**
+
+- **KKT(h_2(C_u)) = so(4,2):** Derives full conformal algebra from Jordan algebra axioms -- the strongest form of "V_0 is spacetime" [HIGH confidence, textbook result applied to Peirce output]
+- **E_{6(-26)} invariant Lagrangian uniqueness:** Proves bosonic Lagrangian uniquely determined without SUSY input -- closes G2 [MEDIUM-HIGH confidence, novel assembly of established results]
+- **VSR metric a_{IJ}:** Computes scalar field metric from d_{IJK}, verifies positive definiteness on E_{6(-26)}/F_4 -- confirms ghost-free kinetic terms [HIGH confidence, standard formula]
+- **F_4 observer independence:** Proves all idempotent choices give isomorphic spacetime structure [HIGH confidence, classical theorem]
+
 ### Prior Work Landscape
 
-- **h_2(K) = R^{dim(K)+1,1}** as Minkowski spacetime for each division algebra K, with det giving the Minkowski metric (Baez 2002) [HIGH confidence]
-- **det(X) on h_3(O) is the unique F_4-invariant cubic form**, up to scale (Springer 1962) [HIGH confidence]
-- **GST magic supergravity**: 5d N=2 MESGT with scalar manifold E_6(-26)/F_4, 27 vectors, prepotential V = det(h) (GST 1983-84) [HIGH confidence]
-- **5d -> 4d c-map**: Circle reduction gives 4d N=2 MESGT with E_7(-25)/(E_6 x U(1)), prepotential F(X) = det(X)/X^0 (de Wit-Van Proeyen 1992) [HIGH confidence]
-- **Farnsworth (2025)**: First spectral triple over h_3(O), giving F_4 x F_4 gauge theory. Does NOT address gravity or det(X). [HIGH confidence for what it covers]
-- **The V_0 -> spacetime interpretation is genuinely novel.** No prior work connects det(X) to gravity without N=2 SUSY.
+**Must reproduce (benchmarks):**
 
-### Recommended Methods
+- TKK(h_2(C)) = su(2,2) = so(4,2), dim = 15 (Koecher 1967, Gunaydin 1993) [HIGH confidence]
+- F_4/Spin(9) = OP^2, dim = 16 (Freudenthal 1954) [HIGH confidence]
+- GST bosonic Lagrangian L_bos from C_{IJK} = d_{IJK}/6 matches Phase 49 Eq. 49.6 [HIGH confidence]
+- Scalar manifold E_{6(-26)}/F_4, dim = 26 in 5d; E_{7(-25)}/(E_6 x U(1)), dim = 54 in 4d [HIGH confidence]
+- VSR metric a_{IJ} positive definite on N=1 constraint surface (26 positive eigenvalues) [HIGH confidence]
 
-- **Explicit matrix Jordan product**: All h_3(O) and h_2(O) computations via direct octonionic matrix arithmetic
-- **Polarization identity for d_{IJK}**: Compute symmetric trilinear form from det evaluations, decompose into Peirce blocks
-- **Clifford commutant for stabilizer**: Intersect spin(9) generators with commutant of J_u
-- **r-map KK reduction**: Standard 5d -> 4d following Lauria-Van Proeyen (2020) conventions
+**Novel predictions (contributions):**
+
+- The full spacetime structure (conformal algebra, causal structure, Lorentz boosts) derived from Peirce V_0 via KKT, not assumed
+- N=2 SUSY is a consequence of h_3(O) algebraic structure via cubic form uniqueness + E_{6(-26)} covariance, not an input
+- Gap G5 (compact so(3) -> non-compact so(3,1)) resolved: boosts emerge from Str_0, not Der or Aut
+- Lambda = 0 forced by E_{6(-26)} invariance on E_{6(-26)}/F_4 (no non-trivial invariant scalar potential)
+
+**Defer (future work):**
+
+- Fermionic sector completion (predicted by N=2, not derived from algebra)
+- Gauged MESGT and nonzero cosmological constant (requires gauge coupling g as additional input)
+- 3-generation structure and so(6) -> G_SM reduction (gaps G6, G7)
+
+### Methods and Tools
+
+Five analytical methods cover the full closure. Methods 1-3 address G4 (spacetime): operational axiomatics OD1-OD7 formalize what "being spacetime" means in Jordan-algebraic terms, the KKT construction derives so(4,2) from h_2(C_u), and F_4 orbit theory ensures observer independence. Methods 4-5 address G2 (SUSY): the VSR metric a_{IJ} from the cubic norm establishes the scalar manifold geometry, and E_{6(-26)}-invariant term enumeration proves the two-derivative Lagrangian is unique. All computations extend the existing octonion_algebra.py codebase (4258 lines, ~70% of needed primitives already implemented).
+
+**Major components:**
+
+1. **OD1-OD4 verification** -- Consolidates Peirce structure checks (faithfulness rank=10, multiplication rules, Jordan identity). Runtime < 0.5 sec.
+2. **KKT bracket computation** -- 15 generators of so(4,2), 105 commutation relations, Killing form signature (6,9). Runtime < 0.1 sec.
+3. **VSR metric a_{IJ}** -- Constrained Hessian of log(det) on N=1, 26 positive eigenvalues. Runtime < 0.5 sec.
+4. **E_{6(-26)} invariant enumeration** -- 78 generators, Schur's lemma on irreducible 26 of F_4. Runtime < 10 sec.
+5. **Observer independence** -- E_{22} Peirce decomposition, isomorphism via permutation. Runtime < 1 sec.
 
 ### Critical Pitfalls
 
-1. **P1 (CRITICAL):** V_0 circ V_0 leaks into V_{1/2} -- use intrinsic h_2(O) product
-2. **P2 (CRITICAL):** h_2(O) gives R^{9,1} not R^{3,1} -- pi_u does the reduction
-3. **P3 (CRITICAL):** det "double duty" circularity risk -- must go through full GST chain
-4. **P5 (CRITICAL):** E_6(-26) is the structure group, not E_6(-78) or E_6(6)
-5. **P9 (MODERATE):** GR from Paper 6; h_3(O) determines matter-gravity COUPLING
+1. **C1 (CRITICAL): Fisher-Rao trap** -- Fisher information metric is positive-definite; it CANNOT give Minkowski signature. The spacetime metric is det_2 (algebraic), not Fisher-Rao (statistical). Prevention: never derive spacetime metric from information geometry.
 
-### Computational Readiness
+2. **C5 (CRITICAL): N=2 SUSY circularity** -- If the Lagrangian derivation starts with "In N=2 MESGT...", SUSY is an input. Prevention: construct the Lagrangian from E_{6(-26)} + cubic form + two-derivative restriction, then identify the result with GST.
 
-All computations exact on spaces dim <= 27. Existing codebase covers ~60%. Total runtime under 5 seconds.
+3. **C4 (CRITICAL): Compact so(3) vs non-compact so(3,1)** -- Spin(9) is compact, Lorentz group is not. Resolution via KKT: Str_0(h_2(C)) = so(3,1) + R contains the full Lorentz algebra; boosts are L_a operators, not derivations.
 
-## Implications for Roadmap
+4. **C6 (HIGH): Relative coefficient fixing** -- The ratio between -R/2 and matter kinetic terms requires E_{6(-26)} covariance on the symmetric space (Schur's lemma on irreducible F_4 isotropy representation).
 
-### Suggested Phase Structure (5 phases)
+5. **C7 (MODERATE): Wrong real form** -- Always write E_7(-25) for octonionic magic, NOT E_7(7). Check maximal compact subgroup.
 
-1. **V_0 Algebraic Foundation and pi_u Projection** -- LOW risk, prerequisite for all
-2. **d_{IJK} Tensor and Peirce Block Decomposition** -- LOW risk, depends on Phase 1
-3. **Equivariance and Lorentz Subgroup** -- LOW risk, parallel with Phase 2
-4. **GST Lagrangian Connection and KK Reduction** -- MEDIUM risk, novel territory
-5. **Synthesis and Paper Integration** -- MEDIUM risk, framing claims
+## Approximation Landscape
 
-## Open Questions
+| Method | Valid Regime | Breaks Down When | Controlled? | Complements |
+|--------|-------------|-----------------|-------------|-------------|
+| KKT construction | All simple Jordan algebras | N/A (exact algebraic) | Yes -- exact | Direct metric computation (weaker) |
+| VSR geometry from cubic | Euclidean degree-3 Jordan algebras with V=1 | Non-Euclidean J, boundary of moduli | Yes -- closed-form | Direct sigma model on coset |
+| E_{6(-26)} invariant enumeration | Two-derivative, symmetric scalar manifold | Higher-derivative terms | Yes -- rep theory | Noether procedure (more involved) |
+| Weinberg spin-2 theorem | Low energy, massless spin-2 | Finite-energy corrections | Yes -- E/M_Pl | Lattice route (v9.0-v10.0) |
+| F_4 orbit theory | h_3(O) automorphisms | N/A (exact) | Yes -- exact | Explicit numerical verification |
 
-1. **[HIGH PRIORITY]** Does the C*-bottleneck argument extend from V_{1/2} to V_0?
-2. **[HIGH PRIORITY]** Does the self-modeling framework produce a cubic density on h_3(O)?
-3. **[MEDIUM]** Physical content of the pi_u non-homomorphism failure term?
-4. **[MEDIUM]** Stabilizer of u in Spin(9): Spin(7) or Spin(7) x U(1)?
-5. **[MEDIUM]** Does V_{1/2} x V_{1/2} -> V_0 after pi_u give the Dirac current?
+**Coverage gap:** No reliable method for quantum corrections to ungauged MESGT. Acceptable: v13.0 is tree-level algebraic closure.
+
+## Theoretical Connections
+
+### Structural Parallels
+
+1. **KKT as universal conformal construction** [ESTABLISHED]: TKK(h_2(K)) = so(dim(K)+2, 2) for all division algebras K. The 4d spacetime so(4,2) is one entry in a complete table parametrized by K = R, C, H, O.
+
+2. **Cubic form determines everything** [ESTABLISHED]: Springer uniqueness -> GST classification -> de Wit-Van Proeyen VSR geometry. The cubic norm det_3 is the single algebraic datum from which spacetime metric, matter couplings, and (claimed) SUSY all follow.
+
+3. **Der -> Str_0 -> KKT hierarchy** [ESTABLISHED]: For h_2(C): so(3) -> so(3,1)+R -> so(4,2). Each step adds physical generators: rotations -> boosts+dilatation -> special conformal. Resolves G5.
+
+### Cross-Validation Matrix
+
+|  | VSR Metric | KKT Algebra | Phase 49 Lagrangian | F_4 Orbit |
+|---|:---:|:---:|:---:|:---:|
+| **KKT Algebra** | Conformal group of metric | -- | Conformal invariance | F_4 conjugates KKT |
+| **VSR Metric** | -- | Metric in Str_0 | a_{IJ} matches kinetic terms | F_4-invariant |
+| **d_{IJK}** | a_{IJ} from d_{IJK} | Cubic defines KKT product | Lagrangian coefficients | Unique F_4-invariant |
+
+### Critical Claim Verification
+
+| # | Claim | Source | Verification | Result |
+|---|-------|--------|--------------|--------|
+| 1 | TKK(h_2(C)) = so(4,2) | PRIOR-WORK.md | Wikipedia, nLab, Gunaydin (2001) | CONFIRMED |
+| 2 | GST: cubic Jordan -> N=2 MESGT unique | PRIOR-WORK.md | nLab, multiple JHEP refs | CONFIRMED |
+| 3 | F_4 transitive on rank-1 idempotents | PRIOR-WORK.md | Springer-Veldkamp (2000), McCrimmon (2004) | CONFIRMED |
+| 4 | det(X) unique F_4-invariant cubic | METHODS.md | Springer-Veldkamp textbook | CONFIRMED |
+| 5 | E_{6(-26)}/F_4 rank-2 symmetric, dim 26 | PRIOR-WORK.md | Cartan classification | CONFIRMED |
+| 6 | F_4 acts irreducibly on 26-dim tangent | METHODS.md | Slansky (1981) tables | CONFIRMED |
+| 7 | C_{IJK} determines bosonic Lagrangian in MESGT | PRIOR-WORK.md | de Wit-Van Proeyen (1992) | CONFIRMED |
+
+## Implications for Research Plan
+
+Based on analysis, suggested phase structure:
+
+### Phase 52: G4 Spacetime Derivation -- V_0 IS Spacetime
+
+**Rationale:** Must establish that V_0 = h_2(C_u) is spacetime before the Lagrangian on this spacetime has physical meaning. All prior phases assumed this; Phase 52 derives it.
+**Delivers:** OD1-OD7 verified, KKT(h_2(C_u)) = so(4,2) with 15 generators, F_4 observer independence, G5 resolved via Str_0 boost identification.
+**Validates:** dim(KKT) = 15, Killing form signature (6,9), all 105 brackets match so(4,2), boost generators in Str_0 not Der.
+**Avoids:** C1 (Fisher-Rao trap), C3 (u-dependence), C4 (compact/non-compact), C7 (wrong real form).
+
+### Phase 53: G2 N=2 SUSY as Consequence -- Lagrangian Uniqueness
+
+**Rationale:** With spacetime established, show the matter-gravity Lagrangian is uniquely determined by algebraic data, and the unique result is N=2 supersymmetric.
+**Delivers:** VSR metric a_{IJ} positive-definite (26 eigenvalues), E_{6(-26)}-invariant 2-derivative terms = exactly 4, coefficients match Phase 49, Lambda=0 as consequence.
+**Uses:** VSR metric formula (Method 4), E_{6(-26)} invariant enumeration (Method 5).
+**Builds on:** Phase 47 (d_{IJK}), Phase 49 (Lagrangian), Phase 52 (spacetime).
+
+### Phase Ordering Rationale
+
+- Phase 52 before 53: spacetime must be established before writing a Lagrangian on it
+- Algorithms 1-4 parallelize within phases; Algorithm 5 depends on Algorithm 4
+- Both phases are short (~1-2 plans each) due to ~70% infrastructure coverage
+- No deep investigation needed: all methods are established constructions applied to computed data
+
+### Phases Requiring Deep Investigation
+
+Phases likely needing additional theoretical or computational exploration:
+
+- **Phase 53 (C5 avoidance):** The circularity avoidance requires careful logical ordering. Not a research gap but a proof-structure challenge.
+
+Phases with established methodology (straightforward execution):
+
+- **Phase 52:** KKT construction is a textbook computation. OD criteria are direct verifications of known Jordan algebra properties. F_4 orbit theory is a 70-year-old result.
+
+## Confidence Assessment
+
+| Area | Confidence | Notes |
+|------|-----------|-------|
+| Computational Approaches | HIGH | All exact finite-dim algebra; 70% codebase coverage; < 15 sec total |
+| Prior Work | HIGH | All core results established mathematics (1954-2001); multiple sources |
+| Methods | HIGH (G4), MEDIUM-HIGH (G2) | KKT textbook; E_{6(-26)} enumeration is novel assembly |
+| Pitfalls | HIGH | 12 pitfalls identified; C5 and C4 critical, both have resolutions |
+
+**Overall confidence:** MEDIUM-HIGH
+
+### Gaps to Address
+
+- **G5 resolution depth:** Explicit boost generator identification in Str_0 needs numerical verification in Phase 52.
+- **E_{6(-26)} coset generators:** 26 coset generators must be constructed explicitly for invariant enumeration.
+- **Fermion sector:** Bosonic Lagrangian derived; fermionic completion predicted by N=2 but not independently derived. Honest limitation, not a v13.0 gap.
+- **Lambda=0 interpretation:** Consequence of ungauged theory, not a prediction. Must state clearly.
 
 ## Sources
 
-### Primary (HIGH confidence)
+### Primary (HIGH)
 
-- Springer, T.A. and Veldkamp, F.D., *Octonions, Jordan Algebras and Exceptional Groups*, Springer (2000)
-- Baez, J.C., "The Octonions," Bull. AMS 39 (2002) 145-205
-- Gunaydin, Sierra, Townsend, Phys. Lett. B 133 (1983) 72-76
-- Gunaydin, Sierra, Townsend, Nucl. Phys. B 242 (1984) 244-268
-- de Wit, Van Proeyen, Commun. Math. Phys. 149 (1992) 307-333
-- McCrimmon, K., *A Taste of Jordan Algebras*, Springer (2004)
+- Tits (1962), Kantor (1964), Koecher (1967) -- TKK construction
+- Freudenthal (1954) -- F_4 transitivity on OP^2
+- Springer (1962), Springer-Veldkamp (2000) -- Cubic form uniqueness, exceptional groups
+- Gunaydin-Sierra-Townsend (1983, 1984) -- Magic supergravity, GST classification
+- de Wit-Van Proeyen (1992) -- Very special real geometry, c-map
+- McCrimmon (2004) -- Jordan algebra structure theory
+- Baez (2002) -- Division algebra spacetimes
+- Gunaydin (1993) -- Generalized conformal groups from Jordan algebras
 
-### Secondary (MEDIUM confidence)
+### Secondary (MEDIUM)
 
-- Lauria, Van Proeyen, arXiv:2004.11433 (2020)
-- Farnsworth, arXiv:2503.10744 (2025)
-- Farnsworth, arXiv:2506.21496 (2025)
-- Boyle, arXiv:2006.16265 (2020)
-- Todorov, Drenska, arXiv:1805.06739
+- Lauria-Van Proeyen, arXiv:2004.11433 -- N=2 SUGRA modern conventions
+- Faraut-Koranyi (1994) -- Symmetric cones
+- Gunaydin-Koepsell-Nicolai (2001) -- Conformal realizations of exceptional groups
+- Todorov-Drenska, arXiv:1805.06739 -- F_4 in particle physics
+- Slansky (1981) -- Group theory branching rules
+- Yokota (2009) -- Exceptional Lie group real forms
+
+### Tertiary (LOW)
+
+- Kamenshchik-Marrani-Muscolino (2026) -- Carroll symmetry and Jordan algebras (tangential)
 
 ---
 
-_Research synthesis completed: 2026-04-11_
+_Research synthesis completed: 2026-04-12_
 _Ready for research plan: yes_
+
+```yaml
+# --- ROADMAP INPUT (machine-readable, consumed by gpd-roadmapper) ---
+synthesis_meta:
+  project_title: "v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure"
+  synthesis_date: "2026-04-12"
+  input_files: [METHODS.md, PRIOR-WORK.md, COMPUTATIONAL.md, PITFALLS.md]
+  input_quality: {METHODS: good, PRIOR-WORK: good, COMPUTATIONAL: good, PITFALLS: good}
+
+conventions:
+  unit_system: "natural"
+  metric_signature: "mostly_minus"
+  fourier_convention: "physics"
+  coupling_convention: "alpha = g^2/(4pi), C_IJK = d_IJK/6"
+  renormalization_scheme: "N/A"
+
+methods_ranked:
+  - name: "KKT construction on h_2(C_u)"
+    regime: "All simple Jordan algebras (exact)"
+    confidence: HIGH
+    cost: "O(15^3) ~ O(3375) for bracket verification"
+    complements: "Direct metric identification (weaker but faster)"
+  - name: "E_{6(-26)} invariant Lagrangian enumeration"
+    regime: "Two-derivative, symmetric scalar manifold E_{6(-26)}/F_4"
+    confidence: MEDIUM
+    cost: "O(78 * 27^2) ~ O(57000) for Lie derivative checks"
+    complements: "GST SUSY construction (assumes what we derive)"
+  - name: "VSR metric a_{IJ} from cubic norm"
+    regime: "Euclidean degree-3 Jordan algebras on V=1"
+    confidence: HIGH
+    cost: "O(27^3) ~ O(20000) for d_{IJK} contraction"
+    complements: "Direct sigma model on coset"
+  - name: "F_4 orbit theory on OP^2"
+    regime: "h_3(O) automorphisms (exact)"
+    confidence: HIGH
+    cost: "O(27^2) per orbit check"
+    complements: "Explicit computation for each diagonal idempotent"
+  - name: "Operational criteria OD1-OD7"
+    regime: "Finite-dim formally real Jordan algebras"
+    confidence: HIGH
+    cost: "O(1) per criterion (direct verification)"
+    complements: "KKT (provides OD4 conformal criterion)"
+
+phase_suggestions:
+  - name: "G4 Spacetime Derivation"
+    goal: "Derive V_0 = spacetime via OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance"
+    methods: ["KKT construction on h_2(C_u)", "Operational criteria OD1-OD7", "F_4 orbit theory on OP^2"]
+    depends_on: []
+    needs_research: false
+    risk: LOW
+    pitfalls: ["C1", "C3", "C4", "C7"]
+  - name: "G2 N=2 SUSY as Consequence"
+    goal: "Derive N=2 SUSY as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)}"
+    methods: ["VSR metric a_{IJ} from cubic norm", "E_{6(-26)} invariant Lagrangian enumeration"]
+    depends_on: ["G4 Spacetime Derivation"]
+    needs_research: false
+    risk: MEDIUM
+    pitfalls: ["C5", "C6", "C8", "C9", "C10", "C11"]
+
+critical_benchmarks:
+  - quantity: "dim(KKT(h_2(C_u)))"
+    value: "15"
+    source: "Koecher (1967), Gunaydin (1993)"
+    confidence: HIGH
+  - quantity: "Killing form signature of so(4,2)"
+    value: "(6, 9)"
+    source: "Standard Lie theory"
+    confidence: HIGH
+  - quantity: "dim(E_{6(-26)}/F_4)"
+    value: "26"
+    source: "Cartan classification"
+    confidence: HIGH
+  - quantity: "Number of E_{6(-26)}-invariant 2-derivative terms"
+    value: "4 (EH + scalar kinetic + gauge kinetic + CS)"
+    source: "GST (1984), Schur's lemma on irreducible 26 of F_4"
+    confidence: MEDIUM
+  - quantity: "VSR metric a_{IJ} eigenvalue count on V=1"
+    value: "26 positive, 1 null"
+    source: "de Wit-Van Proeyen (1992)"
+    confidence: HIGH
+
+open_questions:
+  - question: "Is Lagrangian uniqueness from E_{6(-26)} + 2-derivative robust at the level needed for publication?"
+    priority: HIGH
+    blocks_phase: "G2 N=2 SUSY as Consequence"
+  - question: "Does Lambda=0 constitute a prediction or a limitation?"
+    priority: MEDIUM
+    blocks_phase: "none"
+  - question: "Does the C*-bottleneck on V_0 require independent justification beyond V_{1/2} analogy?"
+    priority: MEDIUM
+    blocks_phase: "none"
+
+contradictions_unresolved: []
+```

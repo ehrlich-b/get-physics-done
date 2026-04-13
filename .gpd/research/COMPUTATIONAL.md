@@ -1,270 +1,512 @@
-# Computational Approaches: GR from det(X) on h_3(O)
+# Computational Approaches: v13.0 Paper 6 Closure Extensions
 
-**Surveyed:** 2026-04-11
-**Domain:** Exceptional Jordan algebra / Magic supergravity / Peirce decomposition / Very special real geometry
-**Confidence:** HIGH (all algorithms are exact algebraic operations on small-dimensional spaces; existing codebase covers ~60% of what's needed)
+**Surveyed:** 2026-04-12
+**Domain:** Exceptional Jordan algebra / KKT conformal algebra / Very special real geometry / E_{6(-26)} invariants
+**Confidence:** HIGH (all algorithms are exact algebraic operations on finite-dimensional spaces <= 27; existing codebase covers ~70% of what's needed)
 
 ## Recommended Stack
 
-Extend the existing `code/octonion_algebra.py` infrastructure with five new modules: (1) h_2(O) data structures and the projection pi_u: h_2(O) -> h_2(C_u), (2) determinant computations on h_3(O) and h_2(O), (3) cubic form d_IJK decomposition under Peirce, (4) group representation machinery for equivariance checks, and (5) KK reduction field content bookkeeping. All computations involve matrices of dimension at most 27x27 (or 16x16 for group actions on V_{1/2}). The existing Python/NumPy/SymPy stack suffices with no new dependencies. SageMath is available as an optional cross-check tool for branching rules but is not required for the core computation pipeline.
+Extend `code/octonion_algebra.py` with five computational blocks, each building on existing infrastructure:
 
-The key insight is that h_2(O) = V_0 already has a complete 10-element basis implementation (`V0_basis_elements()`) and Peirce projection (`peirce_V0()`). The new work is primarily: (a) implementing det(X) on h_3(O) and h_2(O) as explicit polynomial functions, (b) constructing pi_u as a concrete linear map, and (c) decomposing the 27-dimensional C_IJK tensor into Peirce blocks. These are all finite-dimensional linear algebra problems, not iterative numerical computations.
+1. **OD1-OD4 verification** -- Uses existing `jordan_product()`, `V0_basis_elements()`, `peirce_V0()`, `compute_T_b_matrices()`. New: systematic faithfulness check (10x10 matrix rank), Peirce multiplication table verification against McCrimmon axioms.
+
+2. **KKT structure constants for h_2(C_u)** -- Uses existing `h2cu_basis()` (4 elements), `jordan_product_h2o()`. New: 15 generators of KKT(h_2(C_u)) as explicit matrices, commutation relation verification against so(4,2).
+
+3. **Observer independence via second idempotent** -- Uses existing Peirce projection functions, `jordan_product()`. New: E_{22} idempotent, second Peirce decomposition, isomorphism map between decompositions.
+
+4. **Very special real metric a_{IJ}** -- Uses existing `det_3()`, `peirce_basis_27()`, `peirce_coords()`, `d_ijk_tensor()`. New: constrained Hessian computation on det=1 hypersurface, positive definiteness check.
+
+5. **E_{6(-26)}-invariant two-derivative enumeration** -- Uses existing `d_ijk_tensor()`, `_compute_sharp()`, Spin(9) generators. New: E_{6(-26)} generator construction, invariant tensor classification, derivative term enumeration.
+
+No new Python dependencies needed. NumPy for numerics, SymPy only if exact rational verification is desired (optional). All matrices are at most 27x27, all computations complete in seconds on a laptop.
 
 ---
 
 ## Numerical Algorithms
 
-### Algorithm 1: det(X) on h_3(O) -- the Cubic Form
+### Algorithm 1: OD1-OD4 Verification (Faithful V_0 Action + Peirce Multiplication)
 
 | Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
 |-----------|---------|-------------|---------------|--------|---------------|
-| Direct formula evaluation | det: h_3(O) -> R | Exact (polynomial) | O(1) per octonion multiply (8x8 table lookup) | O(1) | Baez, Bull. AMS 39 (2002); Faraut-Koranyi (1994) |
+| Matrix rank of T_b representation | OD1: V_0 acts faithfully on V_{1/2} | Exact (SVD) | O(16^2 * 10) = O(2560) | 10 matrices 16x16 | McCrimmon 2004 Ch. 17 |
+| Peirce product table comparison | OD2-OD4: multiplication rules | Exact (polynomial) | O(10^2 * 27) = O(2700) | 10x10 table of 27-vectors | Alfsen-Shultz 2001 Ch. 8 |
 
-**Formula:** For X = (alpha, beta, gamma, x1, x2, x3) in h_3(O):
+**What exists:** `compute_T_b_matrices()` returns 10 matrices (16x16) representing V_0 action on V_{1/2}. `V0_basis_elements()` provides the V_0 basis. `jordan_product()` and `jordan_product_h2o()` compute products.
 
-```
-det(X) = alpha * beta * gamma
-       - alpha * |x1|^2
-       - beta  * |x2|^2
-       - gamma * |x3|^2
-       + 2 * Re(x1 * (x2 * x3))
-```
+**What's new:**
 
-where |x|^2 = x * conj(x) (octonion norm squared) and Re() extracts the real (e_0) component. The triple product term x1 * (x2 * x3) is NOT associative, but this specific expression is well-defined because we evaluate right-to-left: first compute x2 * x3, then multiply x1 on the left.
-
-**Convergence criterion:** Exact. Verify: det(E_{11}) = 0 (rank-1 idempotent), det(I) = 1 (identity), det(lambda * X) = lambda^3 * det(X).
-
-**Known failure modes:** The triple product Re(x1 * (x2 * x3)) is sensitive to parenthesization because O is non-associative. The formula uses the SPECIFIC ordering x1 * (x2 * x3). Using (x1 * x2) * x3 gives a different answer in general, though for HERMITIAN matrices Re(x1 * (x2 * x3)) = Re((x1 * x2) * x3) by the Moufang identity. This should be verified numerically but is expected to hold exactly.
-
-**Implementation:**
-```python
-def det_h3o(X):
-    """Determinant of X in h_3(O).
-    
-    det(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2
-             - gamma*|x3|^2 + 2*Re(x1*(x2*x3))
-    """
-    triple = X.x1 * (X.x2 * X.x3)
-    return (X.alpha * X.beta * X.gamma
-            - X.alpha * X.x1.norm_sq()
-            - X.beta * X.x2.norm_sq()
-            - X.gamma * X.x3.norm_sq()
-            + 2.0 * triple.real_part())
-```
-
-### Algorithm 2: det on h_2(O) -- the 10d Quadratic Form
-
-| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
-|-----------|---------|-------------|---------------|--------|---------------|
-| Direct formula | det: h_2(O) -> R | Exact | O(1) | O(1) | Standard |
-
-**Formula:** For Y = (beta, gamma, x1) in V_0 = h_2(O) (alpha = x2 = x3 = 0):
-
-```
-det_2(Y) = beta * gamma - |x1|^2
-```
-
-This is a quadratic form of signature (1,9) on R^{10}: writing beta = (s+t)/2, gamma = (s-t)/2, we get det_2 = (s^2 - t^2)/4 - |x1|^2. Alternatively, writing the 10 coordinates as (beta, gamma, x1[0..7]), the associated bilinear form is the spin factor inner product.
-
-**Relationship to h_3(O) determinant:** When restricted to V_0 (alpha = x2 = x3 = 0), the h_3(O) determinant reduces to: det(X)|_{V_0} = 0 (all three terms involving alpha vanish, and the triple product x1*(0*0) = 0). This is correct because V_0 elements have rank at most 2 in h_3(O), so det = 0 trivially. The h_2(O) determinant is NOT the restriction of det_{h_3(O)} but rather the intrinsic Jordan algebra determinant of the rank-2 algebra h_2(O).
-
-**Implementation:**
-```python
-def det_h2o(Y):
-    """Determinant of Y in h_2(O), the Peirce complement V_0.
-    
-    Y has beta, gamma (diagonal) and x1 (off-diagonal octonionic entry).
-    det = beta*gamma - |x1|^2
-    """
-    return Y.beta * Y.gamma - Y.x1.norm_sq()
-```
-
-### Algorithm 3: Projection pi_u: h_2(O) -> h_2(C_u)
-
-| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
-|-----------|---------|-------------|---------------|--------|---------------|
-| Orthogonal projection on octonion space | pi_u: h_2(O) -> h_2(C_u) | Exact (linear) | O(1) | O(1) | Project-specific construction |
-
-**Formula:** For u in S^6 (unit imaginary octonion, e.g., u = e_7):
-
-```
-proj_u: O -> C_u = span_R{1, u}
-proj_u(x) = Re(x) + <Im(x), u> * u
-```
-
-where Im(x) = (x[1], ..., x[7]) and <,> is the R^7 inner product. Then:
-
-```
-pi_u: h_2(O) -> h_2(C_u)
-pi_u(beta, gamma, x1) = (beta, gamma, proj_u(x1))
-```
-
-The diagonal entries (beta, gamma) are real and pass through unchanged. The off-diagonal entry x1 is projected from O to C_u.
-
-**Output dimension:** h_2(C_u) is 4-dimensional: 2 real diagonal + 2 real components of proj_u(x1) = a + b*u. This is isomorphic to h_2(C) = R^{3,1} with det = Minkowski metric.
-
-**Kernel:** ker(pi_u) = {(0, 0, x1) : x1 in u^perp cap Im(O)} has dimension 6. These are the "internal" directions.
-
-**Implementation:**
-```python
-def proj_u(x, u_index=7):
-    """Project octonion x onto C_u = span{1, e_u}.
-    
-    proj_u(x) = x[0]*e_0 + x[u]*e_u  (for basis unit u = e_{u_index})
-    """
-    result = np.zeros(8, dtype=np.float64)
-    result[0] = x.c[0]          # real part preserved
-    result[u_index] = x.c[u_index]  # u-component preserved
-    return Octonion(result)
-
-def pi_u(Y, u_index=7):
-    """Project h_2(O) element Y to h_2(C_u).
-    
-    Preserves diagonal (beta, gamma), projects x1 to C_u.
-    """
-    return H3O(beta=Y.beta, gamma=Y.gamma,
-               x1=proj_u(Y.x1, u_index))
-```
-
-For general u (not a basis vector), the projection becomes:
-```python
-def proj_u_general(x, u_vec):
-    """Project octonion x onto C_u for general unit imaginary u.
-    
-    u_vec: 7-component unit vector (imaginary part of u).
-    proj(x) = Re(x)*1 + <Im(x), u_vec>*u
-    """
-    im_x = x.c[1:]  # 7 components
-    coeff = np.dot(im_x, u_vec)
-    result = np.zeros(8, dtype=np.float64)
-    result[0] = x.c[0]
-    result[1:] = coeff * u_vec
-    return Octonion(result)
-```
-
-### Algorithm 4: Cubic Form d_IJK in Peirce Basis
-
-| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
-|-----------|---------|-------------|---------------|--------|---------------|
-| Third-order partial derivatives of det(X) | d_IJK = (d^3/dh^I dh^J dh^K) det(X) | Exact (polynomial) | O(27^3) evaluations | O(27^3) = O(20000) floats | GST (1983); de Wit-Van Proeyen (1992) |
-
-**Method:** The cubic form d_IJK encodes det(X) via:
-
-```
-det(X) = (1/6) d_IJK h^I h^J h^K
-```
-
-where h^I are the 27 coordinates of X in some basis. Compute d_IJK by taking third derivatives (or equivalently, by polarization: d_IJK = det(e_I, e_J, e_K) where det is extended to a symmetric trilinear form).
-
-**Polarization identity:** The symmetric trilinear form associated to det is:
-
-```
-det(A, B, C) = (1/6)[det(A+B+C) - det(A+B) - det(A+C) - det(B+C)
-                      + det(A) + det(B) + det(C)]
-```
-
-Then d_IJK = det(e_I, e_J, e_K) for the 27 standard basis vectors e_I of h_3(O).
-
-**Peirce block structure:** In the Peirce basis {e_1 (V_1), e_2...e_{17} (V_{1/2}), e_{18}...e_{27} (V_0)}, the tensor d_IJK has block structure forced by degree counting:
-- d_{111} = 0 (V_1 is 1-dim, contributes at most linearly to det)
-- d_{1,half,half} nonzero (these give the V_{1/2} x V_{1/2} -> V_0 bilinear form seen by V_1)
-- d_{half,half,0} nonzero (these are the core SM-gravity coupling terms)
-- d_{0,0,0} = 0 (V_0 is h_2(O) with rank 2, so its intrinsic det is quadratic, not cubic)
-
-The nonvanishing blocks and their physical interpretation are the central computation of Phase 2.
-
-**Implementation:**
-```python
-def compute_dIJK(basis_27=None):
-    """Compute the full 27x27x27 tensor d_IJK = det(e_I, e_J, e_K).
-    
-    Uses the polarization identity for the symmetric trilinear form
-    associated to the cubic det: h_3(O) -> R.
-    
-    Returns: (27, 27, 27) numpy array, fully symmetric in all indices.
-    """
-    if basis_27 is None:
-        basis_27 = [H3O.from_vector(np.eye(27)[i]) for i in range(27)]
-    
-    d = np.zeros((27, 27, 27), dtype=np.float64)
-    for I in range(27):
-        for J in range(I, 27):
-            for K in range(J, 27):
-                # Polarization: det(A,B,C) from det evaluations
-                eI, eJ, eK = basis_27[I], basis_27[J], basis_27[K]
-                val = _trilinear_det(eI, eJ, eK)
-                # Symmetrize
-                for perm in [(I,J,K),(I,K,J),(J,I,K),(J,K,I),(K,I,J),(K,J,I)]:
-                    d[perm] = val
-    return d
-
-def _trilinear_det(A, B, C):
-    """Polarization of det to symmetric trilinear form."""
-    ABC = A + B + C
-    AB = A + B
-    AC = A + C
-    BC = B + C
-    return (det_h3o(ABC) - det_h3o(AB) - det_h3o(AC) - det_h3o(BC)
-            + det_h3o(A) + det_h3o(B) + det_h3o(C)) / 6.0
-```
-
-### Algorithm 5: Equivariance Verification -- Group Actions
-
-| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
-|-----------|---------|-------------|---------------|--------|---------------|
-| Explicit matrix construction + conjugation check | Verify G-equivariance of pi_u | Exact | O(n^3) per group element | O(n^2) | Standard representation theory |
-
-**Spin(9) on V_0 = h_2(O):** Already available. The 10 T_b operators generate the Spin(9) action on V_{1/2}, and the induced action on V_0 is via:
-
-```
-g . Y = Pi_0( sum_IJ g_IJ T_{b_I}(T_{b_J}(Y_half)) )  -- NOT correct
-
-Actually: Spin(9) acts on h_2(O) = V_0 directly as the spin factor automorphism group.
-The action on the 10-dim space is the VECTOR representation of SO(9).
-```
-
-The existing T_b matrices encode the Spin(9) action on V_{1/2} via Clifford generators. The action on V_0 is the 10-dim representation: 9 (vector) + 1 (trace). The trace (beta+gamma)/2 is invariant; the 9 traceless directions transform as the SO(9) vector.
-
-**SL(2,C_u) on h_2(C_u):** For the standard choice u = e_7, SL(2,C) acts on h_2(C) by X -> gXg*. Represent g as a 2x2 complex matrix, convert to a 4x4 real matrix acting on (beta, gamma, Re(x1), Im_u(x1)). This is the defining representation of SO_0(3,1).
-
-**Stabilizer computation:** The stabilizer of u in Spin(9) is the subgroup that preserves the splitting O = C_u + C_u^perp. For u = e_7, this is generated by Clifford elements that commute with left-e_7-multiplication. Use the existing gamma matrices to find which grade-2 Clifford elements stabilize u.
-
-**Implementation approach:** Use the existing `compute_commutator_algebra()` infrastructure. Compute [gamma_a, gamma_b] for all pairs and filter those that commute with J_u (the left-e_7 multiplication operator). The stabilizer Lie algebra is spin(7) (dim 21) inside spin(9) (dim 36).
-
-### Algorithm 6: 5d -> 4d KK Reduction Bookkeeping
-
-| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
-|-----------|---------|-------------|---------------|--------|---------------|
-| Field content decomposition | Track how 5d fields decompose under KK reduction | Exact (algebraic counting) | Negligible | Negligible | de Wit-Van Proeyen (1992); GST (1984) |
-
-**Method:** This is primarily a bookkeeping exercise, not a numerical computation. The 5d N=2 MESGT has:
-- Graviton (5d metric g_{mu nu}): 5 d.o.f. -> 4d metric (2) + graviphoton (2) + dilaton (1)
-- 27 vector fields A^I_mu: 27 x 3 d.o.f. -> 27 4d vectors (27x2) + 27 scalars (27x1)
-- 26 scalars phi^x: 26 d.o.f. -> 26 4d scalars
-
-Total 4d bosonic content: 1 metric + 28 vectors + 53 scalars (on coset E_{7(-25)}/(E_6 x U(1)) after dualization).
-
-**Implementation:** A Python dict tracking field multiplicities and representations. No heavy numerics needed.
+OD1 (Faithful action): Verify that the map b -> T_b from V_0 to End(V_{1/2}) is injective. Stack the 10 flattened 16x16 matrices as columns of a 256x10 matrix; check rank = 10.
 
 ```python
-def kk_field_content_5d_to_4d():
-    """Return the 5d -> 4d KK reduction field content.
+def verify_OD1_faithful_action():
+    """OD1: V_0 acts faithfully on V_{1/2} via Peirce operators T_b.
     
-    5d N=2 MESGT with n_V = 26 vector multiplets (exceptional magic case).
+    Faithfulness means ker(b -> T_b) = {0}, equivalently rank = 10.
+    
+    Uses: compute_T_b_matrices() [existing], V0_basis_elements() [existing]
+    Returns: dict with rank, singular values, is_faithful bool
     """
+    T_mats = compute_T_b_matrices()  # 10 matrices, 16x16
+    T_flat = np.array([T.flatten() for T in T_mats]).T  # 256 x 10
+    rank = np.linalg.matrix_rank(T_flat, tol=1e-10)
+    sv = np.linalg.svd(T_flat, compute_uv=False)
     return {
-        '5d_graviton': {'5d_dof': 5, '4d_metric': 1, '4d_graviphoton': 1, '4d_dilaton': 1},
-        '5d_vectors': {'count': 27, '4d_vectors': 27, '4d_scalars_from_vectors': 27},
-        '5d_scalars': {'count': 26, '4d_scalars': 26},
-        '4d_total': {
-            'metric': 1,
-            'vectors': 28,  # 27 + 1 graviphoton
-            'scalars': 53,  # 26 + 27 from vectors
-            'scalar_manifold': 'E7(-25)/(E6 x U(1))',
-            'scalar_manifold_dim_real': 54,  # dim_R(E7(-25)) - dim_R(E6 x U(1))
-        }
+        'rank': rank,
+        'is_faithful': rank == 10,
+        'singular_values': sv,
+        'sv_min': sv[min(9, len(sv)-1)],
+        'sv_gap': sv[9] if len(sv) > 9 else sv[-1],
     }
 ```
+
+OD2-OD3 (Peirce multiplication verification): Verify the three Peirce multiplication rules hold with exact zero error:
+- V_1 . V_0 = 0
+- V_{1/2} . V_{1/2} subset V_1 + V_0  (no V_{1/2} component)
+- V_0 . V_0 subset V_0
+
+These are already partially verified in Phase 46-01 Task 2 (V_0 closure), Phase 46-02 Task 2 (V_{1/2} x V_{1/2} Peirce rule), and Phase 47-01 Task 2 (d_{IJK} forbidden blocks = 0). The new function consolidates all checks.
+
+```python
+def verify_OD2_OD3_peirce_rules():
+    """OD2-OD3: Systematic Peirce multiplication rule verification.
+    
+    Checks all sector pairs (V_1,V_0), (V_1,V_{1/2}), (V_0,V_0),
+    (V_{1/2},V_{1/2}), (V_{1/2},V_0) and verifies landing sectors.
+    
+    Uses: jordan_product() [existing], peirce_V0/V1/Vhalf [existing],
+          peirce_basis_27() [existing]
+    """
+    basis = peirce_basis_27()  # 27 elements
+    # For each pair, compute jordan_product and check Peirce projections
+    # V_1 . V_0 = 0: basis[0] . basis[17..26] -> check norm = 0
+    # etc.
+    # Returns: dict with max_error per rule, all_passed bool
+```
+
+OD4 (Associativity of Peirce product on V_0): The intrinsic Jordan product on V_0 = h_2(O) satisfies the Jordan identity (a . b) . a^2 = a . (b . a^2). Already verified in Phase 46-01 Task 2 (intrinsic vs inherited agreement). New: explicit Jordan identity check on random V_0 elements.
+
+```python
+def verify_OD4_jordan_identity_V0(n_random=20, seed=42):
+    """OD4: Jordan identity on V_0.
+    
+    (a . b) . a^2 = a . (b . a^2) for random a, b in V_0.
+    
+    Uses: jordan_product_h2o() [existing], V0_basis_elements() [existing]
+    """
+    rng = np.random.default_rng(seed)
+    # Generate random V_0 elements as linear combos of basis
+    # Check Jordan identity with machine-precision tolerance
+    # Returns: dict with max_error, n_tests, all_passed bool
+```
+
+**Convergence criterion:** All errors < 1e-14 (float64 machine precision).
+
+**Operation count:** OD1: 1 SVD of 256x10 matrix. OD2-OD3: 27*27 = 729 Jordan products (each ~50 octonion multiplications). OD4: 20 random tests, 4 Jordan products each. Total: < 0.5 seconds.
+
+
+### Algorithm 2: KKT Structure Constants for h_2(C_u) and so(4,2) Isomorphism
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| TKK Lie algebra construction | KKT(h_2(C_u)) generators | Exact (structure constants) | O(4^3) = O(64) per bracket | 15 matrices, each 10x10 | Tits 1962, Koecher 1967, McCrimmon 2004 |
+| Killing form eigenvalue check | so(4,2) isomorphism | Exact (eigenvalues) | O(15^3) = O(3375) | 15x15 Killing form | Conformal algebra: Fradkin-Palchik 1998 |
+
+**What exists:** `h2cu_basis()` returns 4 basis elements of h_2(C_u). `jordan_product_h2o()` computes the Jordan product. `det_2()` provides the quadratic form.
+
+**What's new:** The Kantor-Koecher-Tits (TKK/KKT) construction builds a Lie algebra from a Jordan algebra J:
+
+```
+KKT(J) = J^- + Der(J) + J^+
+```
+
+where J^+ and J^- are two copies of J (translations and special conformal), and Der(J) is the derivation algebra. For J = h_2(C) (= R^{3,1} as Jordan algebra with det_2):
+- dim(J) = 4
+- Der(h_2(C)) = so(3,1), dim = 6 (derivations of 2x2 Hermitian complex matrices)
+- A dilatation generator, dim = 1
+- Total: 4 + 6 + 1 + 4 = 15 = dim(so(4,2))
+
+The 15 generators decompose as: 4 translations P_mu, 4 special conformal K_mu, 6 Lorentz M_munu, 1 dilatation D.
+
+**Implementation strategy:** Represent the TKK algebra on J + R + J (dimension 4+1+4 = 9) or equivalently on the 10-dimensional V_0 (which already contains h_2(C_u) as a 4-dim subspace). Use the existing V_0 coordinate system.
+
+Step 1: Construct derivation algebra of h_2(C_u). A derivation D satisfies D(a . b) = D(a) . b + a . D(b). For h_2(C_u), this is so(3,1) acting on the 4-dim space. Build the 6 derivation generators as 4x4 matrices satisfying the Leibniz rule on the Jordan product.
+
+Step 2: Construct translation and special conformal generators. For a in J, the translation T_a acts as T_a(x) = a (constant map). The special conformal transformation S_a acts as S_a(x) = {x, a, x} (quadratic map via the triple product). In the linearized (Lie algebra) formulation on J + R + J, these become:
+
+```python
+def build_kkt_generators_h2cu():
+    """Build 15 generators of KKT(h_2(C_u)) = so(4,2).
+    
+    Representation on 10-dim space: [x in J, lambda in R, y in J]
+    where J = h_2(C_u), dim(J) = 4.
+    Representation dimension: 4 + 1 + 4 + 1(extra for conformal weight) = 10.
+    
+    Actually: use 6x6 matrix representation.
+    Embed h_2(C_u) = R^{3,1} in R^{4,2} via conformal embedding.
+    The so(4,2) generators are then 6x6 antisymmetric matrices 
+    (with respect to eta_{4,2} = diag(+,+,+,+,-,-) or (+,-,-,-,+,-)).
+    
+    Uses: h2cu_basis() [existing], det_2() [existing for metric]
+    Returns: dict with 15 generators (6x6 or 10x10), 
+             commutation relations, Killing form, isomorphism proof
+    """
+    # Step 1: Get Minkowski metric on h_2(C_u) from det_2
+    basis = h2cu_basis()  # 4 elements
+    eta = np.zeros((4, 4))
+    for i in range(4):
+        for j in range(4):
+            # Polarization of det_2
+            ApB = basis[i] + basis[j]  # need to handle H3O addition in V_0
+            eta[i, j] = 0.5 * (det_2(ApB) - det_2(basis[i]) - det_2(basis[j]))
+    # eta should be diag(+1/4, -1/4, -1, -1) in unnormalized basis
+    # Normalize to get eta = diag(+1, -1, -1, -1)
+    
+    # Step 2: Build so(4,2) generators in 6x6 representation
+    # Metric: eta_42 = diag(+1,-1,-1,-1,+1,-1) on R^{4,2}
+    # 15 generators M_{AB} for A < B in {0,1,2,3,4,5}
+    # (M_{AB})^C_D = eta_{AC} delta_{BD} - eta_{BC} delta_{AD}
+    
+    # Step 3: Identify P_mu, K_mu, M_munu, D in conformal decomposition
+    # P_mu = M_{mu,4} + M_{mu,5}  (4 translations)
+    # K_mu = M_{mu,4} - M_{mu,5}  (4 special conformal)
+    # M_munu = M_{mu,nu}          (6 Lorentz)
+    # D = M_{45}                  (1 dilatation)
+    
+    # Step 4: Verify commutation relations match so(4,2)
+    # [M_{AB}, M_{CD}] = eta_{BC} M_{AD} - eta_{AC} M_{BD} 
+    #                   + eta_{AD} M_{BC} - eta_{BD} M_{AC}
+```
+
+Step 3: Verify the Killing form. For so(4,2), the Killing form has signature (6, 9) (6 positive from the compact so(4) x so(2) subalgebra, 9 negative from the noncompact directions). Alternatively: Killing(M_AB, M_CD) = 8 * (eta_AC eta_BD - eta_AD eta_BC).
+
+Step 4: Verify commutation relations. All 15*14/2 = 105 brackets must match so(4,2) structure constants exactly.
+
+**Convergence criterion:** All structure constants exact to 1e-14. Killing form eigenvalue spectrum matches so(4,2) prediction.
+
+**Operation count:** 15^2 = 225 matrix commutators (each 6x6). Killing form: 15x15 matrix (225 traces). Total: < 0.1 seconds.
+
+**Connection to existing code:** The 6 Lorentz generators can be cross-checked against the so(3) x so(6) stabilizer from `compute_v0_stabilizer()`. The so(3) factor (3 generators) should match 3 of the 6 Lorentz generators (the rotation subgroup M_{12}, M_{13}, M_{23}). The 3 boost generators M_{0i} will be NEW -- they do not appear in the compact Spin(9) stabilizer because boosts are noncompact. This is the key v13.0 result: the KKT construction PRODUCES the missing boosts that Spin(9) could not provide.
+
+
+### Algorithm 3: Second Idempotent and Observer Independence
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Peirce decomposition under E_{22} | Second observer's Peirce sectors | Exact (eigenvalue) | O(27^2) = O(729) products | 27x27 + 3 projection matrices | McCrimmon 2004 Ch. 17 |
+| Isomorphism construction | Map between decompositions | Exact (linear) | O(27^2) = O(729) | 27x27 change-of-basis | Alfsen-Shultz 2001 |
+
+**What exists:** Full Peirce decomposition under E_{11}: `peirce_V1()`, `peirce_Vhalf()`, `peirce_V0()`, `L_E11()`, `L_E11_matrix_on_Vhalf()`, all 27-dim basis functions.
+
+**What's new:** Construct the Peirce decomposition under E_{22} = diag(0,1,0) and verify it produces isomorphic structure.
+
+E_{22} is a rank-1 idempotent (E_{22}^2 = E_{22}, Tr(E_{22}) = 1). Its Peirce decomposition gives:
+- V_1(E_{22}) = R * E_{22}: the 1-dim eigenspace with eigenvalue 1
+- V_{1/2}(E_{22}): the 16-dim eigenspace with eigenvalue 1/2 -- spanned by the (1,2) and (2,3) off-diagonal octonionic entries (x3 and x1)
+- V_0(E_{22}): the 10-dim eigenspace with eigenvalue 0 -- the h_2(O) complementary to the (2,2) position, consisting of (alpha, gamma, x2)
+
+```python
+def peirce_decomposition_E22():
+    """Peirce decomposition of h_3(O) under E_{22} = diag(0,1,0).
+    
+    L_{E_{22}}(X) = E_{22} . X has eigenvalues 0, 1/2, 1.
+    
+    V_1(E_{22}) = R * E_{22}
+    V_{1/2}(E_{22}) = {X : alpha=0, beta=0, gamma=0, x2=0}
+                     = span{x1 components, x3 components} = O^2
+    V_0(E_{22}) = {X : beta=0, x1=0, x3=0}
+                 = h_2(O) in (alpha, gamma, x2) coordinates
+    
+    Uses: jordan_product() [existing], H3O [existing]
+    Returns: dict with projection functions, basis elements, 
+             L_{E22} matrix on 27-dim space
+    """
+    E22 = H3O(beta=1.0)  # diag(0,1,0)
+    
+    # Verify idempotent
+    E22_sq = jordan_product(E22, E22)
+    # E22_sq should equal E22
+    
+    # Build L_{E22} matrix on full 27-dim basis
+    basis = peirce_basis_27()
+    L_mat = np.zeros((27, 27))
+    for j in range(27):
+        prod = jordan_product(E22, basis[j])
+        coords = peirce_coords(prod, basis)
+        L_mat[:, j] = coords
+    
+    # Eigenvalues should be {0 (x10), 1/2 (x16), 1 (x1)}
+    evals = np.linalg.eigvalsh(L_mat)
+    
+    # Projection functions for the new decomposition
+    def peirce_V1_E22(X):
+        return H3O(beta=X.beta)
+    
+    def peirce_Vhalf_E22(X):
+        return H3O(x1=Octonion(X.x1.c.copy()), 
+                   x3=Octonion(X.x3.c.copy()))
+    
+    def peirce_V0_E22(X):
+        return H3O(alpha=X.alpha, gamma=X.gamma, 
+                   x2=Octonion(X.x2.c.copy()))
+```
+
+Step 2: Build the isomorphism between the two Peirce decompositions. There exists an F_4 automorphism sigma that maps E_{11} -> E_{22}. Under this automorphism:
+- V_1(E_{11}) -> V_1(E_{22})
+- V_{1/2}(E_{11}) -> V_{1/2}(E_{22})  
+- V_0(E_{11}) -> V_0(E_{22})
+
+The automorphism sigma is conjugation by the permutation matrix that swaps rows/columns 1 and 2 in the 3x3 representation. On h_3(O) coordinates:
+
+```python
+def permute_12(X):
+    """F_4 automorphism swapping positions 1 and 2 in h_3(O).
+    
+    Swaps E_{11} <-> E_{22}, mapping:
+      alpha <-> beta
+      x1 -> conj(x3), x2 -> conj(x2), x3 -> conj(x1)
+    
+    This is the existing _permute_h3o with perm=(1,0,2).
+    Uses: _permute_h3o() [existing]
+    """
+    return _permute_h3o(X, (1, 0, 2))
+```
+
+Step 3: Verify that after permutation, all structures match:
+- det_3 is preserved: det_3(sigma(X)) = det_3(X)
+- d_{IJK} tensor is preserved (in permuted basis)
+- V_0 projection pi_u in the new decomposition gives the same Minkowski metric
+- T_b operators on the new V_{1/2} give isomorphic Clifford algebra
+
+```python
+def verify_observer_independence(n_random=20, seed=42):
+    """Verify E_{11} and E_{22} Peirce decompositions are F_4-isomorphic.
+    
+    Checks:
+    1. sigma(E_{11}) = E_{22} and sigma(E_{22}) = E_{11}
+    2. det_3 preserved: det_3(sigma(X)) = det_3(X) for random X
+    3. V_0 structures isomorphic (det_2 metric same signature)
+    4. V_{1/2} Clifford structures isomorphic (same Cl(9,0))
+    5. pi_u in new decomposition gives same Minkowski structure
+    
+    Uses: _permute_h3o() [existing], det_3() [existing], 
+          det_2() [existing], verify_f4_invariance_det3() [existing]
+    Returns: dict with all verification results
+    """
+```
+
+**Convergence criterion:** All errors < 1e-14. det_3 preservation exact.
+
+**Operation count:** 27x27 = 729 Jordan products for L_{E22} matrix. 20 random det_3 checks. Permutation map: O(1) per element. Total: < 1 second.
+
+**Why this matters for v13.0:** Observer independence (any rank-1 idempotent gives the same physics) strengthens the claim that V_0 = spacetime is not an artifact of choosing E_{11}. All three diagonal idempotents E_{11}, E_{22}, E_{33} should give isomorphic Peirce decompositions with isomorphic spacetime. This is guaranteed by the S_3 subgroup of F_4 acting on h_3(O) by permuting diagonal positions.
+
+
+### Algorithm 4: Very Special Real Metric a_{IJ}
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| Constrained Hessian of log det | a_{IJ} on det=1 surface | Exact (closed form) | O(27^3) = O(20000) d_IJK lookups | 27x27 matrix | GST 1984, de Wit-Van Proeyen 1992 |
+| Eigenvalue check | Positive definiteness | Exact | O(27^3) eigenvalue | 27x27 matrix | Cecotti-Ferrara-Girardello 1989 |
+
+**What exists:** `det_3()`, `d_ijk_tensor()` (106 nonzero entries), `peirce_basis_27()`, `peirce_coords()`, `prepotential_F()`.
+
+**What's new:** The very special real (VSR) metric on the scalar manifold of 5d N=2 MESGT is:
+
+```
+a_{IJ} = -(1/2) * (d_I d_J log N(h))|_{N(h)=1}
+```
+
+where N(h) = (1/6) d_{IJK} h^I h^J h^K is the cubic norm and d_I = d/dh^I. On the constraint surface N(h) = 1, this reduces to:
+
+```
+a_{IJ} = -(1/2) * [ (d_{IJK} h^K) / N - (3/2) * (d_{IKL} h^K h^L)(d_{JMN} h^M h^N) / N^2 ]
+```
+
+evaluated at N = 1. With d(X,X,X) = 6*N(X), using our convention d_{IJK} h^I h^J h^K = 6*det_3(X), we have N(h) = det_3(X). Then:
+
+```python
+def vsr_metric_aIJ(h_coords, d_tensor=None):
+    """Compute the very special real metric a_{IJ}.
+    
+    a_{IJ} = -(1/2) d_I d_J log(N)|_{N=1}
+    
+    where N = det_3 expressed in Peirce coordinates,
+    d_{IJK} is the totally symmetric tensor from d_ijk_tensor().
+    
+    The formula on N=1:
+      a_{IJ} = -(1/2) * [N_{IJ}/N - (3/2)(N_I N_J)/N^2]
+    where N_I = d_{IJK} h^J h^K, N_{IJ} = d_{IJK} h^K.
+    
+    Parameters:
+        h_coords: np.ndarray shape (27,), coordinates with det_3 = 1
+        d_tensor: dict from d_ijk_tensor() (default: computed)
+    
+    Uses: d_ijk_tensor() [existing]
+    Returns: dict with a_IJ (27x27), eigenvalues, signature, 
+             is_positive_definite, restricted metrics on Peirce sectors
+    """
+    if d_tensor is None:
+        d_tensor = d_ijk_tensor()
+    
+    # Step 1: Compute N_I = sum_{JK} d_{IJK} h^J h^K for each I
+    N_I = np.zeros(27)
+    for I in range(27):
+        for (A, B, C), val in d_tensor.items():
+            # d is stored with A<=B<=C; sum over all permutations
+            indices = [A, B, C]
+            for perm in _unique_perms(indices):
+                if perm[0] == I:
+                    N_I[I] += val * h_coords[perm[1]] * h_coords[perm[2]]
+    
+    # Step 2: Compute N_{IJ} = sum_K d_{IJK} h^K for each (I,J)
+    N_IJ = np.zeros((27, 27))
+    for (A, B, C), val in d_tensor.items():
+        for perm in _unique_perms([A, B, C]):
+            N_IJ[perm[0], perm[1]] += val * h_coords[perm[2]]
+    
+    # Step 3: Compute N = det_3(X) for normalization
+    N = 0.0
+    for (A, B, C), val in d_tensor.items():
+        mult = _multiplicity(A, B, C)
+        N += mult * val * h_coords[A] * h_coords[B] * h_coords[C]
+    N /= 6.0  # d(X,X,X) = 6*det_3
+    
+    # Step 4: a_{IJ} = -(1/2) * [N_{IJ}/N - (3/2)(N_I N_J)/N^2]
+    a = np.zeros((27, 27))
+    for I in range(27):
+        for J in range(27):
+            a[I, J] = -0.5 * (N_IJ[I, J] / N 
+                              - 1.5 * N_I[I] * N_I[J] / N**2)
+    
+    # Step 5: Check positive definiteness
+    # CRITICAL: a_{IJ} is 27x27 but the physical metric lives on the
+    # 26-dim submanifold N=1 (remove one direction). The normal to
+    # N=1 is n_I = N_I/|N_I|. Project out this direction:
+    # a_perp = a - (a.n)(n.a) / (n.a.n)
+    
+    evals = np.linalg.eigvalsh(a)
+    evals_sorted = np.sort(evals)
+    
+    return {
+        'a_IJ': a,
+        'eigenvalues': evals_sorted,
+        'n_positive': int(np.sum(evals > 1e-10)),
+        'n_negative': int(np.sum(evals < -1e-10)),
+        'n_zero': int(np.sum(np.abs(evals) <= 1e-10)),
+        'is_positive_definite_full': bool(np.all(evals > -1e-10)),
+        'N_I': N_I,
+        'N_IJ': N_IJ,
+        'N_value': N,
+    }
+```
+
+**Evaluation point:** Use h = peirce_coords(I_3) where I_3 = diag(1,1,1) is the identity (det_3(I_3) = 1). This is the maximally symmetric point on the N=1 surface.
+
+**Alternative evaluation:** Use h = peirce_coords(E_{11} + E_{22} + E_{33}) which is the same as I_3. Can also check at a generic point on N=1 by scaling any X with det_3(X) > 0 to det_3 = 1 via h -> h / det_3(h)^{1/3}.
+
+**Expected result:** The 27x27 metric a_{IJ} has rank 26 (one null direction along the N=1 normal). The projected metric on the 26-dim tangent space should have signature (26, 0) -- positive definite -- because the scalar manifold of the octonionic magic MESGT is E_{6(-26)} / F_4, which is a COMPACT symmetric space of RANK 2, dimension 26. Positive definiteness of a_{IJ} on the constraint surface is equivalent to stating that the 5d kinetic terms for the 26 vector multiplet scalars are positive (no ghosts).
+
+**Cross-check:** At the identity point I_3, the F_4 symmetry forces a_{IJ} to be proportional to the Peirce Gram matrix (since F_4 acts transitively on the N=1 surface near I_3). This means a_{IJ} should be diagonal in the Peirce basis with entries proportional to 1/G_{II} where G_{II} = Tr(e_I . e_I).
+
+**Convergence criterion:** Rank of a_{IJ} = 26 exactly. All 26 nonzero eigenvalues positive. Null eigenvector proportional to N_I.
+
+**Operation count:** d_tensor has 106 entries. N_I: 27 * 106 * 6 permutations ~ 17000 operations. N_IJ: 27^2 * 106 ~ 77000 operations. Total: < 0.5 seconds.
+
+
+### Algorithm 5: E_{6(-26)}-Invariant Two-Derivative Terms
+
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|-----------|---------|-------------|---------------|--------|---------------|
+| E_6 generator construction | 78 generators of e_{6(-26)} on R^{27} | Exact (Lie bracket) | O(27^2 * 78) per closure | 78 matrices 27x27 | Yokota 2009, Barton-Sudbery 2003 |
+| Invariant tensor enumeration | E_6-invariant symmetric tensors | Exact (kernel computation) | O(78 * 27^4) | Tensor spaces | GST 1984, Cecotti et al. 1989 |
+
+**What exists:** `verify_f4_invariance_det3()` builds F_4 generators (52-dim) acting on h_3(O). `compute_spin9_v0_rep()` builds Spin(9) generators. `_g2_derivation_matrix()` builds G_2 derivations.
+
+**What's new:** E_{6(-26)} is the structure group of the cubic form det_3 on h_3(O). It has dimension 78 = 52 (F_4) + 26 (coset). The 26 coset generators are the "boosts" that do NOT preserve the identity I_3 but DO preserve det_3. The coset is E_{6(-26)}/F_4 = OP^2 (octonionic projective plane), dimension 26.
+
+E_{6(-26)} = Aut(det_3), the determinant-preserving linear transformations on h_3(O). An infinitesimal generator D satisfies:
+
+```
+d/dt det_3(e^{tD} X)|_{t=0} = 0  for all X
+```
+
+which linearizes to:
+
+```
+d_3(DX, X, X) = 0  for all X
+```
+
+where d_3 is the polarized trilinear form.
+
+**Step 1:** Build F_4 generators (already available in `verify_f4_invariance_det3()`). These are 52 matrices acting on R^{27}.
+
+**Step 2:** Build the 26 coset generators. These are traceless endomorphisms of h_3(O) preserving det_3 but NOT preserving the Jordan product. Concretely, for each a in h_3(O) with Tr(a) = 0, the map:
+
+```
+D_a(X) = a . X - (1/3) Tr(a . X) * I
+```
+
+is a generator of E_{6(-26)} if a is in the 26-dim traceless subspace. Verify: d_3(D_a X, X, X) = 0.
+
+**Step 3:** Check closure. The 78 generators should close under Lie bracket.
+
+**Step 4:** Enumerate E_{6(-26)}-invariant two-derivative terms. A two-derivative term in a 5d Lagrangian has the form:
+
+```
+L_2 = g_{IJ}(h) * (d_mu h^I)(d^mu h^J)
+```
+
+where g_{IJ}(h) is a metric on the scalar manifold. E_{6(-26)} invariance requires g_{IJ}(h) to be invariant under the E_{6(-26)} action on h^I. Since E_{6(-26)} acts transitively on N=1 with stabilizer F_4, the only E_{6(-26)}-invariant metric on N=1 is the coset metric (up to scale). This coset metric IS the VSR metric a_{IJ}.
+
+For the gauge kinetic terms, the two-derivative term is:
+
+```
+L_gauge = a_{IJ}(h) * F^I_{mu nu} * F^{J mu nu}
+```
+
+where a_{IJ} is again the VSR metric. E_{6(-26)} invariance uniquely determines the gauge kinetic matrix to be a_{IJ} (up to scale).
+
+```python
+def enumerate_e6_invariant_terms():
+    """Enumerate and verify E_{6(-26)}-invariant two-derivative terms.
+    
+    Result: exactly TWO independent E_{6(-26)}-invariant two-derivative 
+    structures exist:
+    1. a_{IJ} dh^I dh^J  (scalar kinetic)
+    2. a_{IJ} F^I F^J    (gauge kinetic)
+    Both use the SAME metric a_{IJ} from Algorithm 4.
+    
+    Proof strategy: 
+    - E_{6(-26)} acts on the 27 with one invariant: det_3 (cubic)
+    - Two-index invariant tensors: only the metric on the orbit space
+    - By Schur's lemma applied to the IRREDUCIBLE 27 of E_6: the only
+      E_6-invariant symmetric 2-tensor on the 27 is the one derived 
+      from det_3 (since 27 is irreducible, Sym^2(27) contains exactly 
+      one singlet under E_6, which is the metric induced by det_3).
+    
+    Verification: For each E_6 generator D_alpha (78 total), check:
+      D_alpha^I_K a_{IJ} + D_alpha^J_K a_{IK} = 0
+    (Lie derivative of a_{IJ} under the E_6 action vanishes)
+    
+    Uses: verify_f4_invariance_det3() [existing for F_4 part],
+          vsr_metric_aIJ() [new, Algorithm 4]
+    Returns: dict with n_invariant_2tensors, verification errors,
+             scalar_kinetic_unique (bool), gauge_kinetic_unique (bool)
+    """
+```
+
+**The key uniqueness result:** The decomposition Sym^2(27) under E_6 is:
+
+```
+Sym^2(27) = 27 + 351
+```
+
+where 27 appears exactly ONCE. The invariant (singlet) under E_{6(-26)} in Sym^2(27) does NOT appear directly, but on the N=1 constraint surface, the induced metric from the cubic form provides the unique E_6-invariant metric. This is because E_6 acts transitively on N=1 with isotropy F_4, so E_6-invariant metrics on N=1 correspond to F_4-invariant metrics on T_{p}(N=1), and F_4 acts irreducibly on the 26-dim tangent space, giving a UNIQUE invariant metric by Schur's lemma.
+
+**Convergence criterion:** All 78 Lie derivative checks zero to 1e-14.
+
+**Operation count:** 78 generators x 27^2 entries x 27 contractions ~ 1.5M multiplications. Total: < 5 seconds.
+
 
 ---
 
@@ -274,247 +516,213 @@ def kk_field_content_5d_to_4d():
 
 | Tool | Version | Purpose | License | Maturity |
 |------|---------|---------|---------|----------|
-| Python | 3.14.2 | Runtime | PSF | Stable |
-| NumPy | 2.4.2 | Matrix operations, linear algebra, 27x27 tensor computations | BSD | Stable |
-| SymPy | 1.14.0 | Symbolic verification of det formula, F_4 invariance check | BSD | Stable |
+| Python | 3.14.2 | Core language | PSF | stable |
+| NumPy | 2.4.2 | Float64 matrix operations | BSD | stable |
 
 ### Supporting Tools
 
 | Tool | Version | Purpose | When Needed |
 |------|---------|---------|-------------|
-| SageMath | >=10.x | Branching rules Spin(9)->Spin(7), exceptional Jordan algebra cross-checks | Optional: for verifying stabilizer computations and representation decompositions |
-| Matplotlib | >=3.8 | Visualization of scalar manifold geometry | Plotting only |
+| SymPy | latest | Exact rational verification of structure constants | Optional cross-check for KKT commutation relations |
+| SageMath | 10.x | Lie algebra classification, branching rules | Optional cross-check for E_6 representation theory |
 
-**No new dependencies required.** All core computations use existing NumPy + SymPy. SageMath is listed as optional because it has a built-in exceptional Jordan algebra implementation (h_3(O) as self-adjoint 3x3 octonionic matrices, with determinant and F_4 automorphism group) that could serve as an independent cross-check, but it is not needed for the computation pipeline.
+No additional installations needed. The existing environment already has NumPy.
 
-### SageMath Exceptional Jordan Algebra (Optional Cross-Check)
-
-SageMath's `sage.algebras.jordan_algebra` module implements the exceptional 27-dimensional Jordan algebra as self-adjoint 3x3 matrices over an octonion algebra. The module provides:
-- Basis computation and Jordan multiplication
-- Derivation algebra computation (returns F_4)
-- Operations over commutative rings with characteristic not 2
-
-This could independently verify our `det_h3o()` and `_trilinear_det()` implementations. However, SageMath operates symbolically (slow) while our NumPy pipeline operates numerically (fast). Use SageMath for spot-checking, not bulk computation.
-
----
 
 ## Data Flow
 
 ```
-Existing infrastructure (code/octonion_algebra.py)
-  - H3O class, Octonion class, Jordan product, Peirce projections
-  - V0_basis_elements() (10 basis vectors of h_2(O))
-  - Vhalf_basis_vectors() (16 basis vectors of V_{1/2})
-  - T_b matrices, Clifford generators, J_u
-
-Phase 1: pi_u projection
-  -> Implement proj_u: O -> C_u (single octonion projection)
-  -> Implement pi_u: h_2(O) -> h_2(C_u) (apply proj_u to x1 entry)
-  -> Verify: det on h_2(C_u) = Minkowski metric on R^{3,1}
-  -> Compute kernel of pi_u: 6-dim subspace of h_2(O)
-  -> Verify: det on h_2(O) splits as det_4 + quadratic_on_kernel
-
-Phase 2: det(X) and d_IJK
-  -> Implement det_h3o: h_3(O) -> R (cubic form)
-  -> Validate: det(E_11) = 0, det(I) = 1, det(lambda*X) = lambda^3 det(X)
-  -> Implement trilinear polarization _trilinear_det
-  -> Compute full d_IJK tensor (27^3 entries, symmetric => 27*28*29/6 = 3654 independent)
-  -> Decompose d_IJK into Peirce blocks: (V_1, V_{1/2}, V_0) indexing
-  -> Identify nonzero blocks and their physical meaning
-
-Phase 3: Equivariance
-  -> Compute stabilizer of u in Spin(9): intersect spin(9) with commutant of J_u
-  -> Verify stabilizer contains SL(2,C_u) acting on h_2(C_u)
-  -> Decompose 10 of Spin(9) under stabilizer: expect 4 + 6
-
-Phase 4: KK reduction
-  -> Bookkeeping: 5d -> 4d field content
-  -> Verify scalar manifold dimension matches E_{7(-25)}/(E_6 x U(1))
-  -> Identify 4d Einstein equations from reduced Lagrangian
+Existing v12.0 infrastructure
+  |
+  +--> OD1-OD4 verification (Algorithm 1)
+  |     Input: T_b matrices (existing), basis functions (existing)
+  |     Output: faithfulness proof, Peirce rule verification
+  |
+  +--> KKT(h_2(C_u)) construction (Algorithm 2)
+  |     Input: h2cu_basis() (existing), det_2() (existing), 
+  |            compute_v0_stabilizer() (existing for Lorentz cross-check)
+  |     Output: 15 generators, so(4,2) isomorphism proof, commutation table
+  |
+  +--> Second idempotent (Algorithm 3)
+  |     Input: jordan_product() (existing), _permute_h3o() (existing)
+  |     Output: E_{22} Peirce decomposition, isomorphism verification
+  |
+  +--> VSR metric a_{IJ} (Algorithm 4)
+  |     Input: d_ijk_tensor() (existing, 106 entries), det_3() (existing)
+  |     Output: 27x27 metric, positive definiteness on N=1, eigenvalues
+  |
+  +--> E_{6(-26)} invariants (Algorithm 5)
+        Input: F_4 generators (existing), a_{IJ} (from Alg 4),
+               d_ijk_tensor() (existing)
+        Output: 78 E_6 generators, uniqueness proof for 2-derivative terms
 ```
+
 
 ## Computation Order and Dependencies
 
 | Step | Depends On | Produces | Can Parallelize? |
 |------|-----------|----------|-----------------|
-| 1. Implement det_h3o() | H3O class (Phase 28) | det: h_3(O) -> R | N/A (entry point) |
-| 2. Validate det_h3o() | Step 1 | Boolean pass/fail + known values | Sequential after Step 1 |
-| 3. Implement proj_u, pi_u | Octonion class (Phase 28) | pi_u: h_2(O) -> h_2(C_u) | Parallel with Steps 1-2 |
-| 4. Verify det on h_2(C_u) = Minkowski | Steps 1, 3 | Metric signature check | Sequential after 1,3 |
-| 5. Compute d_IJK tensor | Step 1 | 27x27x27 symmetric tensor | Sequential after Step 2 |
-| 6. Decompose d_IJK into Peirce blocks | Step 5, Peirce projections (Phase 28) | Block structure of d_IJK | Sequential after Step 5 |
-| 7. Compute stabilizer of u in Spin(9) | Clifford generators (Phase 29), J_u (Phase 28) | Lie algebra of stabilizer | Parallel with Steps 1-6 |
-| 8. Verify Lorentz subgroup in stabilizer | Steps 3, 7 | SL(2,C) embedding check | Sequential after 3,7 |
-| 9. KK reduction field count | Steps 5, 6 | 4d field content table | Sequential after Step 6 |
+| Algorithm 1 (OD1-OD4) | v12.0 code only | Faithfulness + Peirce rules | Yes (independent) |
+| Algorithm 2 (KKT) | v12.0 code only | so(4,2) generators + isomorphism | Yes (independent) |
+| Algorithm 3 (2nd idempotent) | v12.0 code only | Observer independence proof | Yes (independent) |
+| Algorithm 4 (VSR metric) | v12.0 code (d_ijk_tensor) | a_{IJ}, positive definiteness | Yes (independent) |
+| Algorithm 5 (E_6 invariants) | Algorithm 4 (a_{IJ}) | Uniqueness of 2-derivative Lagrangian | After Algorithm 4 |
 
----
+Algorithms 1-4 are fully independent and can execute in parallel. Algorithm 5 depends on Algorithm 4's a_{IJ} output for the invariance verification.
+
 
 ## Resource Estimates
 
 | Computation | Time (estimate) | Memory | Storage | Hardware |
 |-------------|-----------------|--------|---------|----------|
-| det_h3o for single X | < 0.01 ms | < 1 KB | negligible | Any CPU |
-| Full d_IJK tensor (3654 independent entries) | < 1 second | ~160 KB (27^3 doubles) | negligible | Any CPU |
-| Peirce block decomposition of d_IJK | < 10 ms | ~160 KB | negligible | Any CPU |
-| Stabilizer Lie algebra computation | < 100 ms | < 10 KB | negligible | Any CPU |
-| Full pipeline (all phases) | < 5 seconds | < 5 MB | negligible | Any CPU |
+| Algorithm 1 (OD1-OD4) | < 1 sec | < 10 MB | negligible | CPU (laptop) |
+| Algorithm 2 (KKT) | < 1 sec | < 10 MB | negligible | CPU (laptop) |
+| Algorithm 3 (2nd idempotent) | < 2 sec | < 10 MB | negligible | CPU (laptop) |
+| Algorithm 4 (VSR metric) | < 1 sec | < 10 MB | negligible | CPU (laptop) |
+| Algorithm 5 (E_6 invariants) | < 10 sec | < 50 MB | negligible | CPU (laptop) |
+| **Total** | **< 15 sec** | **< 50 MB** | **negligible** | **Single-core laptop** |
 
-All computations are trivially small. The bottleneck is algebraic understanding, not computational resources.
-
----
 
 ## Integration with Existing Code
 
-### Input Formats
-- `H3O` class from `octonion_algebra.py`: stores (alpha, beta, gamma, x1, x2, x3) with `to_vector()` / `from_vector()` for R^27 <-> H3O conversion
-- `V0_basis_elements()`: returns 10 H3O elements spanning V_0 = h_2(O)
-- `Vhalf_basis_vectors()`: returns 16 H3O elements spanning V_{1/2}
-- `peirce_V0(X)`, `peirce_Vhalf(X)`, `peirce_V1(X)`: projection operators
-- `compute_T_b_matrices()`: 10 real 16x16 matrices (Spin(9) generators on V_{1/2})
-- `rescale_to_clifford_generators(T_matrices)`: 9 Cl(9,0) generators with {gamma_i, gamma_j} = 2*delta*I
-- `krasnov_J_u_matrix()`: 16x16 matrix for left-e_7-multiplication on V_{1/2}
+All new functions extend `code/octonion_algebra.py`. No new files needed.
 
-### Output Formats
-- `det_h3o(X)`: float (the cubic determinant)
-- `det_h2o(Y)`: float (the quadratic determinant on V_0)
-- `pi_u(Y, u_index)`: H3O element in h_2(C_u) (alpha=x2=x3=0, beta,gamma preserved, x1 projected)
-- `compute_dIJK()`: (27, 27, 27) numpy array
-- `dIJK_peirce_blocks()`: dict mapping block labels to sub-tensors
+### Existing Functions Used by Each Algorithm
+
+**Algorithm 1 (OD1-OD4):**
+- `compute_T_b_matrices()` -- returns 10 matrices, 16x16 (Phase 28)
+- `V0_basis_elements()` -- returns 10 H3O elements (Phase 28)
+- `jordan_product()` -- h_3(O) Jordan product (Phase 28)
+- `jordan_product_h2o()` -- intrinsic V_0 product (Phase 46)
+- `peirce_V0()`, `peirce_Vhalf()`, `peirce_V1()` -- projections (Phase 28)
+- `peirce_basis_27()` -- full 27-element basis (Phase 47)
+
+**Algorithm 2 (KKT):**
+- `h2cu_basis()` -- 4 basis elements of h_2(C_u) (Phase 46)
+- `det_2()` -- Minkowski quadratic form (Phase 46)
+- `jordan_product_h2o()` -- for derivation construction (Phase 46)
+- `compute_v0_stabilizer()` -- for so(3) cross-check (Phase 48)
+
+**Algorithm 3 (2nd idempotent):**
+- `jordan_product()` -- (Phase 28)
+- `_permute_h3o()` -- S_3 permutation automorphisms (Phase 47)
+- `det_3()` -- for invariance check (Phase 47)
+- `peirce_coords()` -- coordinate extraction (Phase 49)
+
+**Algorithm 4 (VSR metric):**
+- `d_ijk_tensor()` -- 106 nonzero entries of d_{IJK} (Phase 47)
+- `det_3()` -- cubic norm (Phase 47)
+- `peirce_basis_27()` -- basis (Phase 47)
+- `peirce_coords()` -- coordinate extraction (Phase 49)
+
+**Algorithm 5 (E_6 invariants):**
+- `verify_f4_invariance_det3()` -- F_4 generators on R^27 (Phase 47)
+- `d_ijk_tensor()` -- for invariance verification (Phase 47)
+- `_g2_derivation_matrix()` -- G_2 derivations (Phase 47)
+- Algorithm 4 output: a_{IJ} metric
 
 ### Interface Points
 
-**Entry point:** `code/octonion_algebra.py` -- all new functions added to this file, extending the existing module.
+- **Input format:** All functions take H3O objects or numpy arrays (same as existing code)
+- **Output format:** All return dicts with numpy arrays and scalar diagnostics (same as existing code)
+- **Naming convention:** Follow existing `verify_*()` and `compute_*()` pattern
+- **Error reporting:** Return max_error fields in dict for automated checking
 
-**New functions needed:**
-- `det_h3o(X)` -- cubic determinant on h_3(O)
-- `det_h2o(Y)` -- quadratic determinant on h_2(O) = V_0
-- `proj_u(x, u_index)` -- project octonion to C_u
-- `proj_u_general(x, u_vec)` -- project octonion to C_u for general u
-- `pi_u(Y, u_index)` -- project h_2(O) to h_2(C_u)
-- `minkowski_metric_h2c(Y1, Y2, u_index)` -- inner product on h_2(C_u) induced by det
-- `compute_dIJK(basis_27)` -- full 27x27x27 cubic form tensor
-- `_trilinear_det(A, B, C)` -- polarized trilinear form of det
-- `dIJK_peirce_blocks(d_tensor)` -- decompose d_IJK into Peirce block structure
-- `stabilizer_u_in_spin9(gammas, J_u)` -- find Lie algebra of stabilizer of u in Spin(9)
-- `verify_lorentz_in_stabilizer(stab_basis, pi_u_matrix)` -- check SL(2,C) embedding
-
-**Existing functions reusable without modification:**
-- All Octonion arithmetic (multiplication, conjugation, norm)
-- H3O class (storage, arithmetic, to_vector/from_vector)
-- jordan_product(A, B)
-- All Peirce projections (peirce_V0, peirce_Vhalf, peirce_V1)
-- V0_basis_elements(), Vhalf_basis_vectors()
-- compute_T_b_matrices(), rescale_to_clifford_generators()
-- krasnov_J_u_matrix(), compute_commutator_algebra()
-
-### H3O.from_vector Basis Convention
-
-The `H3O.from_vector(v)` maps R^27 -> h_3(O) as:
-- v[0] = alpha (V_1 coordinate)
-- v[1] = beta, v[2] = gamma, v[3:11] = x1 components (V_0 coordinates, indices 1-10)
-- v[11:19] = x2 components, v[19:27] = x3 components (V_{1/2} coordinates, indices 11-26)
-
-For d_IJK decomposition, the index ranges are:
-- I = 0: V_1 block
-- I = 1..10: V_0 block (beta, gamma, x1[0..7])
-- I = 11..26: V_{1/2} block (x2[0..7], x3[0..7])
-
-This means the Peirce block (V_1, V_{1/2}, V_{1/2}) of d_IJK corresponds to d[0, 11:27, 11:27].
-
----
 
 ## Open Questions
 
 | Question | Why Open | Impact on Project | Approaches Being Tried |
 |----------|---------|-------------------|----------------------|
-| Does Re(x1*(x2*x3)) = Re((x1*x2)*x3) for all octonions x1,x2,x3? | Alternative expressions: by Artin's theorem this holds when any two of x1,x2,x3 are equal, but the general case follows from the trace form Re(abc) being alternating on Im(O). Must verify this identity numerically. | If this fails, det_h3o must use a specific parenthesization consistently. | Numerical verification for 1000 random triples + appeal to Moufang identity |
-| Is the stabilizer of u in Spin(9) exactly Spin(7), or Spin(7) x something? | The isotropy group of a unit vector in S^8 under Spin(9) is Spin(8), but u is in S^6 subset Im(O), not S^8. The isotropy in G_2 subset Spin(7) of u in S^6 is SU(3). Need to track how this lifts to Spin(9). | Determines the structure group on the 6d kernel of pi_u and whether it matches SU(3) for gauge symmetry. | Explicit computation using Clifford algebra commutant |
-| What is the precise relationship between d_{half,half,0} and the fermion bilinear -> spacetime vector coupling? | The Peirce product V_{1/2} x V_{1/2} -> V_0 maps spinor bilinears to h_2(O). After pi_u projection, does this give the standard Dirac current j^mu = psi_bar gamma^mu psi? | If yes, the GST cubic coupling directly encodes SM matter-gravity interaction. | Explicit computation of d_IJK for V_{1/2} x V_{1/2} x V_0 block |
+| Does the KKT construction for h_2(C_u) produce boosts as well as rotations? | Boosts are noncompact, h_2(C_u) is a rank-2 Jordan algebra | Critical: if KKT only gives the compact part, need alternative argument for full Lorentz | KKT by construction gives all conformal generators including boosts; verify numerically |
+| Is a_{IJ} positive definite at generic points on N=1, not just at I_3? | Positive definiteness could break at boundary of moduli space | Medium: affects physical interpretation of scalar kinetic terms | Check at multiple points; F_4 transitivity on N=1 guarantees uniformity near I_3 |
+| Which real form of E_6 appears? | E_6 has 5 real forms; need E_{6(-26)} specifically | Critical: wrong real form gives wrong signature | Check Killing form signature: E_{6(-26)} has maximal compact F_4, so Killing signature is (52, 26) |
+
 
 ## Anti-Approaches
 
 | Anti-Approach | Why Avoid | What to Do Instead |
 |---------------|-----------|-------------------|
-| Using SymPy symbolic computation for the full d_IJK tensor | 27^3 = 19683 symbolic evaluations each requiring symbolic octonion multiplication. Painfully slow (hours). | Use NumPy floats throughout; verify specific entries symbolically if needed |
-| Implementing h_2(O) as a separate class | h_2(O) = V_0 of h_3(O), already stored as H3O with alpha=x2=x3=0. A separate class would duplicate logic and create interface friction. | Use existing H3O class with peirce_V0 projection; add det_h2o as a standalone function |
-| Building explicit 27x27 matrices for the E_6 action | E_6 is 78-dimensional; constructing all generators as 27x27 matrices is a large computation not needed for this milestone. | Work with the F_4 subgroup (which preserves det) and the Spin(9) subgroup (which we already have via Clifford generators) |
-| Attempting to implement the full GST Lagrangian numerically | The Lagrangian involves spacetime derivatives, gauge covariant derivatives, and Chern-Simons forms -- these are field-theoretic objects, not finite-dimensional matrices. | Focus on the algebraic/group-theoretic content: d_IJK tensor, field content decomposition, representation matching. The Lagrangian is a formula to be VERIFIED algebraically, not simulated numerically. |
-| Using general-purpose symmetric space computation packages | The specific coset E_{6(-26)}/F_4 has dimension 26 and is well-characterized analytically. Generic algorithms add overhead without insight. | Use the explicit Jordan algebra structure: the 26-dim tangent space is the traceless part of h_3(O), with metric from the Jordan trace form |
+| Building E_6 generators from scratch via root system | Overcomplicated, error-prone for exceptional groups | Use the known embedding E_6 superset F_4, build coset generators from Jordan algebra operations |
+| Numerical optimization for N=1 constraint | Not needed, analytical formula exists | Use closed-form a_{IJ} from d_{IJK} contraction |
+| Generic Lie algebra software (GAP, LiE) for commutation relations | Overkill for 15-dim so(4,2) | Direct 6x6 matrix construction, verify commutators explicitly |
+| Computing E_6 invariants via character theory | Abstract, doesn't connect to the physical metric | Use infinitesimal invariance (Lie derivative = 0) directly |
+| SymPy for all computations | Too slow for 27x27 symbolic matrices | Use NumPy float64 with SymPy only for exact verification of critical structure constants |
 
----
 
 ## Logical Dependencies
 
 ```
-Octonion arithmetic + H3O class (Phase 28, existing)
-  -> det_h3o (new: cubic polynomial on 27 coordinates)
-    -> _trilinear_det (new: polarization)
-      -> compute_dIJK (new: full 27x27x27 tensor)
-        -> dIJK_peirce_blocks (new: block decomposition)
-          -> Physical interpretation: which C_IJK encode which SM couplings
+det_3 (existing, Phase 47) -> d_{IJK} tensor (existing, Phase 47)
+                                |
+                                +--> a_{IJ} VSR metric (Algorithm 4)
+                                |     |
+                                |     +--> E_6 invariant verification (Algorithm 5)
+                                |
+                                +--> Peirce block structure (existing, Phase 47)
+                                      |
+                                      +--> OD1-OD4 verification (Algorithm 1)
 
-Peirce projections (Phase 28, existing)
-  -> pi_u = proj_u composed with peirce_V0 (new: linear map)
-    -> det on h_2(C_u) = Minkowski metric (new: verification)
-    -> 10 = 4 + 6 splitting under pi_u (new: kernel computation)
+h2cu_basis (existing, Phase 46) -> KKT construction (Algorithm 2)
+                                    |
+                                    +--> so(4,2) isomorphism (Algorithm 2)
 
-Clifford generators gamma_i (Phase 29, existing)
-  -> spin(9) Lie algebra = span{[gamma_i, gamma_j]} (existing from Phase 30)
-  -> stabilizer of u = {M in spin(9) : [M, J_u] = 0} (new: commutant)
-    -> verify Lorentz subgroup in stabilizer (new: representation check)
-    -> verify SU(3) structure group on kernel (new: branching rule)
+jordan_product (existing, Phase 28) -> E_{22} decomposition (Algorithm 3)
+                                       |
+                                       +--> Observer independence (Algorithm 3)
 
-det_h3o validated + pi_u constructed + stabilizer computed
-  -> GST Lagrangian algebraic content verified
-    -> KK reduction field counting
-      -> 4d field content matches SM + GR expectation
+compute_v0_stabilizer (existing, Phase 48) --> Cross-check for Algorithm 2
+                                               (so(3) in stabilizer = rotation 
+                                                subgroup of so(3,1) in KKT)
 ```
 
----
 
 ## Recommended Investigation Scope
 
 Prioritize:
-1. **det_h3o + validation** -- the cubic determinant is the foundation of everything else. Validate against det(E_{11}) = 0, det(I) = 1, the F_4-invariance property det(g.X) = det(X) for g in Aut(h_3(O)), and consistency with the existing Jordan product: det(X) = (1/3)Tr(X . (X . X)) - (1/6)(Tr X)^3 + (1/2)(Tr X)(Tr(X.X)) - (1/3)Tr(X.(X.X)).
-2. **pi_u and Minkowski metric** -- the projection must produce the correct (1,3) signature on h_2(C_u). This is the "gravity lives here" claim.
-3. **d_IJK Peirce block decomposition** -- this tells us which cubic couplings in the GST Lagrangian correspond to which SM interactions.
+1. **Algorithm 2 (KKT -> so(4,2)):** This is the most novel result. If KKT(h_2(C_u)) = so(4,2), it proves the conformal spacetime symmetry algebraically, providing OD5-OD7 plus boosts. This directly addresses gap G4 (V_0 = spacetime).
+2. **Algorithm 4 (VSR metric):** Computing a_{IJ} and proving positive definiteness establishes the kinetic term structure. Combined with E_6 invariance (Algorithm 5), this proves the Lagrangian is uniquely determined, addressing the N=2 SUSY gap.
+3. **Algorithm 1 (OD1-OD4):** Systematic consolidation of Peirce structure verification. Many pieces already verified in Phases 46-47; this assembles them into a single coherent check.
 
 Defer:
-- **Full KK reduction Lagrangian:** The 5d -> 4d reduction is a standard calculation (de Wit-Van Proeyen 1992) that does not require new computational infrastructure. It should be done analytically with numerical spot-checks, not as a full numerical computation.
-- **E_{7(-25)} scalar manifold geometry:** Only needed if Phases 1-2 succeed and Phase 3 proceeds. The 54-dimensional quaternionic manifold is well-characterized in the literature.
+- Algorithm 3 (observer independence): Important for completeness but follows trivially from F_4 symmetry already established in Phase 47. Can be executed after the core results.
+- Algorithm 5 (E_6 invariants): Depends on Algorithm 4. Can run after Algorithm 4 but before paper assembly.
 
----
 
 ## Validation Strategy
 
 | Result | Validation Method | Benchmark | Source |
 |--------|------------------|-----------|--------|
-| det(E_{11}) = 0 | Direct computation | Exact zero | Rank-1 idempotent has det = 0 |
-| det(I_{3x3}) = 1 | Direct computation | Exact 1.0 | Identity matrix det = 1 |
-| det(lambda*X) = lambda^3 * det(X) | 50 random X, 10 random lambda | Rel error < 1e-14 | Cubic homogeneity |
-| det is F_4-invariant: det(g.X) = det(X) | Apply Jordan automorphisms and check | Rel error < 1e-12 | F_4 = Aut(h_3(O)) preserves det |
-| det from trace formula: det = (1/3)Tr(X^3) - (1/2)Tr(X)Tr(X^2) + (1/6)(Tr X)^3 | Compare two formulas for 100 random X | Diff < 1e-12 | Cayley-Hamilton for rank-3 Jordan algebras |
-| det on h_2(C_u) has signature (1,3) | Compute metric matrix g_{ab} = d^2(det)/dY_a dY_b for h_2(C_u) basis | Eigenvalues: one positive, three negative | h_2(C) = R^{3,1} is classical |
-| pi_u is a Jordan algebra homomorphism for h_2 | pi_u(A.B) = pi_u(A).pi_u(B) for A,B in h_2(O)? | This should FAIL in general (pi_u is NOT a homomorphism) | Expectation from non-associativity |
-| d_IJK is fully symmetric | Check d[I,J,K] = d[sigma(I,J,K)] for all permutations | Exact within machine precision | Definition of polarized form |
-| d_IJK with all V_0 indices vanishes | d[1:11, 1:11, 1:11] = 0 | Exact zero | V_0 = h_2(O) is rank-2; cubic invariant of rank-2 algebra is zero |
-| Stabilizer dimension | Count independent generators | dim = 21 (if Spin(7)) or 28 (if Spin(7) x U(1)) | Representation theory |
-| 10 = 4 + 6 under stabilizer | Decompose V_0 restricted to stabilizer | Two irreducible pieces of dim 4 and 6 | Branching rule |
+| OD1 faithfulness | Rank of T_b map = 10 | Exact integer | McCrimmon 2004 |
+| KKT(h_2(C_u)) = so(4,2) | Killing form signature (6,9) | Exact | Conformal algebra theory |
+| KKT commutation | [M_AB, M_CD] structure constants | Exact match to so(4,2) | Standard Lie theory |
+| so(3) embedding | KKT rotations match v12.0 stabilizer | < 1e-14 | Phase 48 cross-check |
+| E_{22} idempotent | E_{22}^2 = E_{22}, Tr = 1 | Exact | Jordan algebra axiom |
+| Observer independence | det_3(sigma(X)) = det_3(X) | < 1e-14 | F_4 invariance (Phase 47) |
+| a_{IJ} rank | rank = 26 on R^{27}, 26 positive eigenvalues | Exact integer | GST 1984 |
+| a_{IJ} at I_3 | Proportional to Peirce Gram inverse | < 1e-12 | F_4 isotropy argument |
+| a_{IJ} positive definite | All 26 nonzero eigenvalues > 0 | > 1e-10 | de Wit-Van Proeyen 1992 |
+| E_6 invariance of a_{IJ} | Lie derivative = 0 for all 78 generators | < 1e-14 | Schur's lemma |
+| 2-derivative uniqueness | Exactly 1 singlet in Sym^2(27)|_{N=1} | Exact integer | E_6 representation theory |
 
----
+
+## Key References
+
+- **GST 1984:** Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268. Primary reference for magic MESGT, Jordan algebra structure.
+- **de Wit, Van Proeyen 1992:** "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333 (hep-th/9112027). VSR geometry, a_{IJ} metric, dimensional reduction chain.
+- **Tits 1962:** "Une classe d'algebres de Lie en relation avec les algebres de Jordan," Indag. Math. 24 (1962) 530-535. KKT construction.
+- **McCrimmon 2004:** "A Taste of Jordan Algebras," Springer. Peirce decomposition, multiplication rules, derivation algebra.
+- **Alfsen-Shultz 2001:** "State Spaces of Operator Algebras," Springer. Jordan algebra structure theory.
+- **Yokota 2009:** "Exceptional Lie Groups," arXiv:0902.0431. E_6 generators, real forms.
+- **Barton-Sudbery 2003:** "Magic squares and matrix models of Lie algebras," Adv. Math. 180 (2003) 596-647 (math/0203010). F_4 and E_6 from 3x3 matrices.
+- **Baez 2002:** "The Octonions," Bull. AMS 39 (2002) 145-205 (math/0105155). h_2(K) = R^{dim(K)+1,1}, KKT for Jordan algebras.
+- **Springer 1962:** "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265. Uniqueness of det_3.
+- **Weinberg 1964:** Phys. Rev. 135 (1964) B1049. Low-energy uniqueness of spin-2 theory.
+
 
 ## Sources
 
-- Baez, J.C., "The Octonions," Bull. AMS 39 (2002) 145-205, [math/0105155](https://arxiv.org/abs/math/0105155) -- h_3(O) structure, det formula, F_4 automorphism group
-- Gunaydin, M., Sierra, G., and Townsend, P.K., [Phys. Lett. B 133 (1983) 72](https://www.sciencedirect.com/science/article/abs/pii/0370269383901089) -- original magic supergravity paper, cubic prepotential from det(X)
-- Gunaydin, M., Sierra, G., and Townsend, P.K., Nucl. Phys. B 242 (1984) 244 -- detailed GST Lagrangian and field content
-- de Wit, B. and Van Proeyen, A., "Special geometry, cubic polynomials and homogeneous quaternionic spaces," [hep-th/9112027](https://arxiv.org/abs/hep-th/9112027) -- classification of very special real manifolds, c-map, r-map
-- Faraut, J. and Koranyi, A., *Analysis on Symmetric Cones* (1994) -- Jordan algebra determinant formulas, symmetric cones, trace forms
-- Springer, T.A., "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259 -- uniqueness of cubic invariant on h_3(O)
-- Farnsworth, S., "The n-point Exceptional Universe," [arXiv:2503.10744](https://arxiv.org/abs/2503.10744) -- exceptional spectral geometry from Jordan algebras, F_4 x F_4 gauge theory
-- Todorov, I. and Drenska, S., "Octonions, Exceptional Jordan Algebra and the role of the group F_4 in particle physics," [arXiv:1805.06739](https://arxiv.org/abs/1805.06739) -- SM from F_4, decomposition under subgroups
-- Boyle, L., "The Standard Model, The Exceptional Jordan Algebra, and Triality," [arXiv:2006.16265](https://arxiv.org/abs/2006.16265) -- Peirce decomposition, Spin(10) upgrade, triality
-- [SageMath Jordan algebra documentation](https://doc.sagemath.org/html/en/reference/algebras/sage/algebras/jordan_algebra.html) -- optional cross-check tool for exceptional Jordan algebra computations
-- [SageMath branching rules](https://doc.sagemath.org/html/en/thematic_tutorials/lie/branching_rules.html) -- optional tool for representation decomposition verification
-- Parisi, M. and Marrani, A., "The role of Spin(9) in Octonionic Geometry," [Preprints 2018](https://www.preprints.org/manuscript/201809.0430/v1/download) -- Spin(9) representation theory on octonionic spaces
-- Okubo, S., "The exceptional Jordan eigenvalue problem," [arXiv:math-ph/9910004](https://arxiv.org/pdf/math-ph/9910004) -- eigenvalue computation for h_3(O), computational aspects
+- GST 1984 (Nucl. Phys. B 242, 244) -- prepotential structure, field content, C_{IJK}
+- de Wit, Van Proeyen 1992 (hep-th/9112027) -- VSR metric definition and properties
+- McCrimmon 2004 (Springer) -- Peirce rules, Jordan identity, derivation algebra
+- Baez 2002 (math/0105155) -- KKT construction, h_2(K) spacetime structure
+- Phase 46-50 verification headers in `code/octonion_algebra.py` -- existing benchmarks
