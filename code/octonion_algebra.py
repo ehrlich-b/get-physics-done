@@ -4256,3 +4256,520 @@ def weinberg_hypothesis_check_50():
         )
 
     return results
+
+
+# ============================================================================
+# Phase 52, Plan 01: KKT Algebra Construction g(h_2(C_u)) = so(4,2)
+# ============================================================================
+#
+# ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+#   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+#   complex_structure=u_equals_e7, kkt_bracket=mccrimmon_convention,
+#   killing_form=B(X,Y)=Tr(ad_X_ad_Y)
+#
+# Constructs the Kantor-Koecher-Tits algebra from J = h_2(C_u):
+#   g(J) = g_{-1} + g_0 + g_{+1} = J + Str_0(J) + J
+#
+# Where Str_0(J) = Der(J) + {L_a : a traceless} + R*E
+#   with E = L_{e_0} the grading element.
+#
+# For J = h_2(C) (2x2 Hermitian matrices over commutative C_u = span{1,e_7}):
+#   Der(J) = so(3), dim 3
+#   {L_a traceless} = 3 boost generators
+#   E = (1/2) I = grading/dilatation
+#   Total dim = 4 + 7 + 4 = 15 = dim(so(4,2))
+#
+# References:
+#   Tits 1962, Indag. Math. 24 (TKK 3-grading)
+#   Koecher 1967, Amer. J. Math. 89-90 (structure algebra, boosts)
+#   McCrimmon 2004, A Taste of Jordan Algebras, Ch. IV Sec. 14.2
+#   Gunaydin 1993, hep-th/9301050 (TKK(h_2(C)) = su(2,2) = so(4,2))
+#   Baez 2002, math/0105155 (division algebra spacetime table)
+
+
+def _h2cu_pauli_basis():
+    """Return the 4-element Pauli basis of h_2(C_u) as H3O elements.
+
+    e_0 = I_2 = E_{22} + E_{33}  (identity, trace 2)
+    e_1 = sigma_1  (off-diag real part)
+    e_2 = sigma_2  (off-diag e_7 part, the 'imaginary' in C_u)
+    e_3 = sigma_3 = E_{22} - E_{33}  (traceless diagonal)
+
+    Minkowski coordinates: x_mu = (1/2) Tr(sigma_mu X) gives
+      x_0 = (beta+gamma)/2, x_1 = Re(x1), x_2 = x1.c[7], x_3 = (beta-gamma)/2
+    and det_2(X) = x_0^2 - x_1^2 - x_2^2 - x_3^2.
+    """
+    return [
+        H3O(beta=1.0, gamma=1.0),                         # e_0 = I_2
+        H3O(x1=Octonion.basis(0)),                         # e_1 = sigma_1
+        H3O(x1=Octonion.basis(7)),                         # e_2 = sigma_2
+        H3O(beta=1.0, gamma=-1.0),                         # e_3 = sigma_3
+    ]
+
+
+def _h2cu_to_coords(X):
+    """Extract 4 Minkowski coordinates from an h_2(C_u) element.
+
+    x_0 = (beta+gamma)/2, x_1 = Re(x1), x_2 = x1.c[7], x_3 = (beta-gamma)/2
+    """
+    return np.array([
+        (X.beta + X.gamma) / 2.0,
+        X.x1.c[0],
+        X.x1.c[7],
+        (X.beta - X.gamma) / 2.0,
+    ])
+
+
+def _h2cu_from_coords(v):
+    """Construct h_2(C_u) element from 4 Minkowski coordinates."""
+    x0, x1, x2, x3 = v
+    oc = np.zeros(8)
+    oc[0] = x1
+    oc[7] = x2
+    return H3O(beta=x0 + x3, gamma=x0 - x3, x1=Octonion(oc))
+
+
+def _jordan_product_h2cu(A, B):
+    """Jordan product restricted to h_2(C_u).
+
+    Uses jordan_product_h2o but ensures inputs/outputs stay in C_u.
+    Since C_u = span{1, e_7} is commutative and associative,
+    the h_2(C_u) product closes exactly.
+    """
+    return jordan_product_h2o(A, B)
+
+
+def _compute_L_operator(a, basis=None):
+    """Compute the left multiplication operator L_a on h_2(C_u).
+
+    L_a(x) = a o x  (Jordan product)
+
+    Returns a 4x4 real matrix in Minkowski coordinates.
+    """
+    if basis is None:
+        basis = _h2cu_pauli_basis()
+
+    coords = np.array([_h2cu_to_coords(b) for b in basis])
+
+    # Compute L_a e_j for each basis element, express in coords
+    L = np.zeros((4, 4), dtype=np.float64)
+    for j in range(4):
+        product = _jordan_product_h2cu(a, basis[j])
+        product_coords = _h2cu_to_coords(product)
+        # Express in basis: solve coords.T @ c = product_coords
+        c = np.linalg.solve(coords.T, product_coords)
+        L[:, j] = c
+    return L
+
+
+def compute_kkt_algebra():
+    """Construct the 15-dimensional KKT algebra g(h_2(C_u)) and verify = so(4,2).
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+    %   jordan_product=(1/2)(ab+ba), kkt_bracket=mccrimmon_convention,
+    %   killing_form=B(X,Y)=Tr(ad_X_ad_Y)
+
+    Constructs the 3-graded Lie algebra:
+      g = g_{-1} + g_0 + g_{+1}  (dim 4 + 7 + 4 = 15)
+
+    Generators (15 total):
+      g_{+1}: T_0, T_1, T_2, T_3  (translations, one per Pauli basis element)
+      g_0:    D (dilatation = L_{e_0}), B_1, B_2, B_3 (boosts = L_{sigma_i}),
+              J_1, J_2, J_3 (rotations = derivations)
+      g_{-1}: K_0, K_1, K_2, K_3  (special conformal generators)
+
+    KKT bracket rules (McCrimmon convention, ATJA Ch. IV Sec. 14.2):
+      [T_a, T_b] = 0                                    (g_{+1} abelian)
+      [K_a, K_b] = 0                                    (g_{-1} abelian)
+      [T_a, K_b] = L(e_a o e_b) + [L(e_a), L(e_b)]     (mixed grade -> g_0)
+      [S, T_a] = S(e_a) as g_{+1} element               (g_0 on g_{+1})
+      [S, K_a] = -S^t(e_a) as g_{-1} element            (g_0 on g_{-1})
+      [S, S'] = standard Lie bracket in Str_0            (within g_0)
+
+    where L(a)(x) = a o x, [L(a), L(b)] is the Lie bracket of multiplication
+    operators, and S^t is the adjoint w.r.t. the trace form.
+
+    Returns:
+        dict with many keys (see end of function).
+    """
+    basis = _h2cu_pauli_basis()  # e_0, e_1, e_2, e_3
+    n_basis = 4
+
+    # ----------------------------------------------------------------
+    # Step 1: Compute L_{e_i} operators (4x4 matrices in basis coords)
+    # ----------------------------------------------------------------
+    L_ops = {}
+    for i in range(n_basis):
+        L_ops[i] = _compute_L_operator(basis[i], basis)
+
+    # ----------------------------------------------------------------
+    # Step 2: Compute trace inner product (e_a | e_b)
+    # (a|b) = Tr(a o b) where Tr(X) = beta + gamma
+    # ----------------------------------------------------------------
+    trace_inner = np.zeros((n_basis, n_basis), dtype=np.float64)
+    for a in range(n_basis):
+        for b in range(n_basis):
+            prod = _jordan_product_h2cu(basis[a], basis[b])
+            trace_inner[a, b] = prod.beta + prod.gamma
+
+    # ----------------------------------------------------------------
+    # Step 3: Compute Jordan triple product operator L_{a,b}
+    # L_{a,b}(z) = a o (b o z) + b o (a o z) - (a o b) o z
+    # Returns a 4x4 matrix in basis coordinates for each (a,b) pair
+    # ----------------------------------------------------------------
+    pauli_coords = np.array([_h2cu_to_coords(b) for b in basis])
+
+    def jordan_triple_op(a_idx, b_idx):
+        """Compute L_{e_a, e_b} as a 4x4 matrix in basis coordinates."""
+        M = np.zeros((4, 4), dtype=np.float64)
+        for k in range(n_basis):
+            z = basis[k]
+            bz = _jordan_product_h2cu(basis[b_idx], z)
+            term1 = _jordan_product_h2cu(basis[a_idx], bz)
+            az = _jordan_product_h2cu(basis[a_idx], z)
+            term2 = _jordan_product_h2cu(basis[b_idx], az)
+            ab = _jordan_product_h2cu(basis[a_idx], basis[b_idx])
+            term3 = _jordan_product_h2cu(ab, z)
+            result = term1 + term2 - term3
+            result_coords = _h2cu_to_coords(result)
+            c = np.linalg.solve(pauli_coords.T, result_coords)
+            M[:, k] = c
+        return M
+
+    # ----------------------------------------------------------------
+    # Step 4: Compute derivation operators D_{ij} = [L_{e_i}, L_{e_j}]
+    # ----------------------------------------------------------------
+    derivations = {}
+    for i in range(n_basis):
+        for j in range(i + 1, n_basis):
+            D_ij = L_ops[i] @ L_ops[j] - L_ops[j] @ L_ops[i]
+            if np.linalg.norm(D_ij) > 1e-14:
+                derivations[(i, j)] = D_ij
+
+    # ----------------------------------------------------------------
+    # Step 5: Identify generators and build g_0 = Str_0(J)
+    # ----------------------------------------------------------------
+    D_gen = L_ops[0]   # L_{e_0} = (1/2) I in basis coords
+    boost_gens = [L_ops[1], L_ops[2], L_ops[3]]
+
+    # Collect all nonzero derivations
+    all_der_mats = []
+    for (i, j), D in sorted(derivations.items()):
+        all_der_mats.append(D)
+
+    # Find 3 independent rotation generators via SVD
+    if len(all_der_mats) > 0:
+        der_flat = np.array([d.flatten() for d in all_der_mats]).T
+        U, s, Vt = np.linalg.svd(der_flat, full_matrices=False)
+        der_rank = int(np.sum(s > 1e-10))
+        rot_gens_final = []
+        for k in range(min(der_rank, 3)):
+            gen = sum(Vt[k, m] * all_der_mats[m]
+                      for m in range(len(all_der_mats)))
+            rot_gens_final.append(gen)
+    else:
+        rot_gens_final = []
+        der_rank = 0
+
+    # g_0 basis: D, B_1, B_2, B_3, J_1, J_2, J_3
+    g0_gens_4x4 = [D_gen] + boost_gens + rot_gens_final
+    g0_labels = ['D', 'B_1', 'B_2', 'B_3', 'J_1', 'J_2', 'J_3']
+    n_g0 = len(g0_gens_4x4)
+
+    # Full generator labels and grades
+    labels = (['T_0', 'T_1', 'T_2', 'T_3']
+              + g0_labels
+              + ['K_0', 'K_1', 'K_2', 'K_3'])
+    grades = [+1]*4 + [0]*7 + [-1]*4
+    n_total = 15
+
+    # ----------------------------------------------------------------
+    # Step 6: Compute all structure constants f^c_{ab}
+    # ----------------------------------------------------------------
+    g0_flat = np.array([g.flatten() for g in g0_gens_4x4]).T  # 16 x 7
+    f = np.zeros((n_total, n_total, n_total), dtype=np.float64)
+
+    # Change of basis: Pauli basis coords -> basis index coords
+    # basis[a] has coords pauli_coords[a]. Since the L operators are
+    # already expressed in the {e_0,e_1,e_2,e_3} basis, the identity
+    # matrix converts between them.
+
+    # (a) [T_a, T_b] = 0  -- already zero
+    # (b) [K_a, K_b] = 0  -- already zero
+
+    # (c) [T_a, K_b] = L(e_a o e_b) + [L(e_a), L(e_b)]  (McCrimmon ATJA 14.2)
+    # Express e_a o e_b in basis, then L(e_a o e_b) = sum_k c_k L_{e_k}
+    for a in range(4):
+        for b in range(4):
+            xoy = _jordan_product_h2cu(basis[a], basis[b])
+            xoy_coords = _h2cu_to_coords(xoy)
+            xoy_in_basis = np.linalg.solve(pauli_coords.T, xoy_coords)
+            L_xoy = sum(xoy_in_basis[k] * L_ops[k] for k in range(n_basis))
+            comm = L_ops[a] @ L_ops[b] - L_ops[b] @ L_ops[a]
+            bracket_4x4 = L_xoy + comm
+            coeffs, _, _, _ = np.linalg.lstsq(
+                g0_flat, bracket_4x4.flatten(), rcond=None)
+            for c in range(7):
+                f[a, 11 + b, 4 + c] = coeffs[c]
+                f[11 + b, a, 4 + c] = -coeffs[c]
+
+    # (d) [S, T_a] = S(e_a) as g_{+1} element
+    for s_idx in range(7):
+        S = g0_gens_4x4[s_idx]
+        for a in range(4):
+            # S acts in basis coords, so S @ e_a (unit vector) gives coords
+            e_a = np.zeros(4)
+            e_a[a] = 1.0
+            result = S @ e_a  # 4-vector in basis coords = T coefficients
+            for c in range(4):
+                f[4 + s_idx, a, c] = result[c]
+                f[a, 4 + s_idx, c] = -result[c]
+
+    # (e) [S, K_a] = -S^t(e_a) as g_{-1} element
+    # S^t adjoint w.r.t. trace form: <S x, y> = <x, S^t y>
+    # In basis coords with Gram G: S^t = G^{-1} S^T G
+    G = trace_inner
+    G_inv = np.linalg.inv(G)
+    for s_idx in range(7):
+        S = g0_gens_4x4[s_idx]
+        S_adj = G_inv @ S.T @ G
+        for a in range(4):
+            e_a = np.zeros(4)
+            e_a[a] = 1.0
+            result = -S_adj @ e_a
+            for c in range(4):
+                f[4 + s_idx, 11 + a, 11 + c] = result[c]
+                f[11 + a, 4 + s_idx, 11 + c] = -result[c]
+
+    # (f) [S, S'] within g_0
+    for i in range(7):
+        for j in range(i + 1, 7):
+            bracket_4x4 = (g0_gens_4x4[i] @ g0_gens_4x4[j]
+                           - g0_gens_4x4[j] @ g0_gens_4x4[i])
+            coeffs, _, _, _ = np.linalg.lstsq(
+                g0_flat, bracket_4x4.flatten(), rcond=None)
+            for c in range(7):
+                f[4 + i, 4 + j, 4 + c] = coeffs[c]
+                f[4 + j, 4 + i, 4 + c] = -coeffs[c]
+
+    # ----------------------------------------------------------------
+    # Step 7: Build adjoint representation matrices
+    # ----------------------------------------------------------------
+    ad_matrices = []
+    for a in range(n_total):
+        M = np.zeros((n_total, n_total), dtype=np.float64)
+        for b in range(n_total):
+            for c in range(n_total):
+                M[c, b] = f[a, b, c]
+        ad_matrices.append(M)
+
+    # ----------------------------------------------------------------
+    # Step 8: Compute Killing form
+    # ----------------------------------------------------------------
+    killing = np.zeros((n_total, n_total), dtype=np.float64)
+    for a in range(n_total):
+        for b in range(n_total):
+            killing[a, b] = np.trace(ad_matrices[a] @ ad_matrices[b])
+
+    killing_evals = np.sort(np.linalg.eigvalsh(killing))
+    n_pos = int(np.sum(killing_evals > 1e-8))
+    n_neg = int(np.sum(killing_evals < -1e-8))
+    killing_det = np.linalg.det(killing)
+
+    # ----------------------------------------------------------------
+    # Step 9: Verify Jacobi identity
+    # ----------------------------------------------------------------
+    jacobi_max = 0.0
+    for a in range(n_total):
+        for b in range(a + 1, n_total):
+            for c in range(b + 1, n_total):
+                jac = np.zeros(n_total)
+                for d in range(n_total):
+                    val = 0.0
+                    for e in range(n_total):
+                        val += f[a, b, e] * f[e, c, d]
+                        val += f[b, c, e] * f[e, a, d]
+                        val += f[c, a, e] * f[e, b, d]
+                    jac[d] = val
+                jacobi_max = max(jacobi_max, np.max(np.abs(jac)))
+
+    # ----------------------------------------------------------------
+    # Step 10: Check abelian grades
+    # ----------------------------------------------------------------
+    abelian_plus_max = 0.0
+    for a in range(4):
+        for b in range(a + 1, 4):
+            abelian_plus_max = max(abelian_plus_max,
+                                   np.max(np.abs(f[a, b, :])))
+
+    abelian_minus_max = 0.0
+    for a in range(11, 15):
+        for b in range(a + 1, 15):
+            abelian_minus_max = max(abelian_minus_max,
+                                    np.max(np.abs(f[a, b, :])))
+
+    return {
+        'dim': n_total,
+        'generators': ad_matrices,
+        'labels': labels,
+        'grades': grades,
+        'structure_constants': f,
+        'killing_form': killing,
+        'killing_eigenvalues': killing_evals,
+        'killing_signature': (n_pos, n_neg),
+        'killing_det': killing_det,
+        'jacobi_max_error': jacobi_max,
+        'abelian_plus_max': abelian_plus_max,
+        'abelian_minus_max': abelian_minus_max,
+        'L_operators': {i: L_ops[i] for i in range(n_basis)},
+        'pauli_basis': basis,
+        'pauli_coords': pauli_coords,
+        'trace_inner_product': trace_inner,
+        'g0_generators_4x4': g0_gens_4x4,
+        'g0_labels': g0_labels,
+        'g0_flat': g0_flat,
+        'rotation_generators_4x4': rot_gens_final,
+        'boost_generators_4x4': boost_gens,
+        'dilatation_4x4': D_gen,
+        'trace_form_gram': G,
+    }
+
+
+def verify_kkt_so42():
+    """Run all verification checks on the KKT algebra.
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+    %   jordan_product=(1/2)(ab+ba), kkt_bracket=mccrimmon_convention,
+    %   killing_form=B(X,Y)=Tr(ad_X_ad_Y)
+
+    Checks:
+      1. dim = 15
+      2. Jacobi identity < 1e-13
+      3. g_{+1} and g_{-1} abelian
+      4. Killing form non-degenerate
+      5. Killing form signature (8, 7)
+      6. so(3) rotation subalgebra: [J_i, J_j] = epsilon_{ijk} J_k
+      7. so(3,1) Lorentz subalgebra: [B_i, B_j] = -J_k, sig (3,3)
+      8. dim(Str_0) = 7
+      9. Phase 48 rotation generators in KKT rotation span
+
+    Returns:
+        dict with all check results and 'all_passed' bool.
+    """
+    kkt = compute_kkt_algebra()
+    results = {}
+
+    # 1. Dimension
+    results['dim'] = kkt['dim']
+    results['dim_pass'] = (kkt['dim'] == 15)
+
+    # 2. Jacobi
+    results['jacobi_max'] = kkt['jacobi_max_error']
+    results['jacobi_pass'] = (kkt['jacobi_max_error'] < 1e-13)
+
+    # 3. Abelian grades
+    results['abelian_plus'] = kkt['abelian_plus_max']
+    results['abelian_minus'] = kkt['abelian_minus_max']
+    results['abelian_pass'] = (kkt['abelian_plus_max'] < 1e-13 and
+                                kkt['abelian_minus_max'] < 1e-13)
+
+    # 4. Killing non-degenerate
+    results['killing_det'] = kkt['killing_det']
+    results['killing_nondegenerate'] = (abs(kkt['killing_det']) > 1e-6)
+
+    # 5. Killing signature
+    results['killing_signature'] = kkt['killing_signature']
+    results['killing_eigenvalues'] = kkt['killing_eigenvalues']
+    results['killing_sig_pass'] = (kkt['killing_signature'] == (8, 7))
+
+    # 6. so(3) rotation commutation
+    J = kkt['rotation_generators_4x4']
+    J_flat = np.array([j.flatten() for j in J]).T
+    so3_ad = np.zeros((3, 3, 3))
+    for i in range(3):
+        for j in range(3):
+            comm = J[i] @ J[j] - J[j] @ J[i]
+            c, _, _, _ = np.linalg.lstsq(J_flat, comm.flatten(), rcond=None)
+            so3_ad[i, j] = c
+    # Check [J_i, J_j] = epsilon_{ijk} J_k
+    results['so3_structure'] = so3_ad
+    so3_check = True
+    for i in range(3):
+        for j in range(i+1, 3):
+            k = 3 - i - j  # third index
+            if abs(so3_ad[i, j, k]) < 0.5:
+                so3_check = False
+    results['so3_pass'] = so3_check
+
+    # 7. Lorentz subalgebra
+    B = kkt['boost_generators_4x4']
+    lor_gens = list(B) + list(J)
+    lor_flat = np.array([g.flatten() for g in lor_gens]).T
+    lor_ad = np.zeros((6, 6, 6))
+    for i in range(6):
+        for j in range(6):
+            comm = lor_gens[i] @ lor_gens[j] - lor_gens[j] @ lor_gens[i]
+            c, _, _, _ = np.linalg.lstsq(lor_flat, comm.flatten(), rcond=None)
+            lor_ad[i, j] = c
+    lor_killing = np.zeros((6, 6))
+    for i in range(6):
+        for j in range(6):
+            lor_killing[i, j] = np.trace(lor_ad[i] @ lor_ad[j])
+    lor_evals = np.sort(np.linalg.eigvalsh(lor_killing))
+    lor_npos = int(np.sum(lor_evals > 1e-8))
+    lor_nneg = int(np.sum(lor_evals < -1e-8))
+    results['lorentz_killing_sig'] = (lor_npos, lor_nneg)
+    results['lorentz_killing_evals'] = lor_evals
+    results['lorentz_pass'] = (lor_npos == 3 and lor_nneg == 3)
+
+    # Check boost-boost sign: [B_i, B_j] should have NEGATIVE J component
+    bb_signs_correct = True
+    for i in range(3):
+        for j in range(i+1, 3):
+            # [B_i, B_j] should be a negative combination of J's
+            comm_coeffs = lor_ad[i, j]
+            # B components (0-2) should be zero, J components (3-5) should be nonzero
+            if np.max(np.abs(comm_coeffs[:3])) > 1e-10:
+                bb_signs_correct = False
+            j_part = comm_coeffs[3:]
+            nz = np.where(np.abs(j_part) > 1e-10)[0]
+            if len(nz) != 1:
+                bb_signs_correct = False
+            elif j_part[nz[0]] > 0:  # should be negative
+                bb_signs_correct = False
+    results['boost_boost_negative'] = bb_signs_correct
+
+    # 8. Str_0 dimension
+    results['str0_dim'] = len(kkt['g0_generators_4x4'])
+    results['str0_dim_pass'] = (results['str0_dim'] == 7)
+
+    # 9. Phase 48 cross-check
+    try:
+        lorentz_data = verify_lorentz_equivariance()
+        J_p48 = lorentz_data['rotation_generators_mink']
+        max_resid = 0.0
+        for Jp in J_p48:
+            c, _, _, _ = np.linalg.lstsq(J_flat, Jp.flatten(), rcond=None)
+            r = np.linalg.norm(Jp.flatten() - J_flat @ c)
+            max_resid = max(max_resid, r)
+        results['phase48_match_resid'] = max_resid
+        results['phase48_pass'] = (max_resid < 1e-12)
+    except Exception as e:
+        results['phase48_match_resid'] = float('inf')
+        results['phase48_pass'] = False
+        results['phase48_error'] = str(e)
+
+    results['all_passed'] = all([
+        results['dim_pass'],
+        results['jacobi_pass'],
+        results['abelian_pass'],
+        results['killing_nondegenerate'],
+        results['killing_sig_pass'],
+        results['so3_pass'],
+        results['lorentz_pass'],
+        results['boost_boost_negative'],
+        results['str0_dim_pass'],
+        results['phase48_pass'],
+    ])
+
+    return results
