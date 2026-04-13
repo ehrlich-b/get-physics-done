@@ -634,7 +634,9 @@ See `.gpd/milestones/v12.0-ROADMAP.md` for full details.
 
 **Backtracking:** If KKT dimension != 15, check the 3-grading construction (most likely error: wrong Str_0 computation). If boosts cannot be identified in Str_0, the compact->non-compact transition requires deeper analysis -- do NOT claim resolution without explicit generators. If F_4 conjugacy fails for some idempotent class, investigate whether the obstruction is physical (preferred observer) or technical (wrong conjugation element).
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 52-01-PLAN.md -- KKT algebra construction, boost identification (G5), OD1-OD6 verification
+- [ ] 52-02-PLAN.md -- Observer independence (OD7, F_4 conjugacy), uniqueness theorem
 
 ### Phase 53: N=2 Lagrangian Uniqueness -- SUSY as Consequence
 
