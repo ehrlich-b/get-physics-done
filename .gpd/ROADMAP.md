@@ -13,7 +13,8 @@
 - **v9.0 Continuum Limit from Finite-Dimensional Observer** -- Phases 32-36 (completed 2026-03-30)
 - **v10.0 Universality Class of Self-Modeler Network and Full Gap Closure** -- Phases 37-41 (completed 2026-03-31)
 - **v11.0 Gap C Complexification from Sequential Product** -- Phases 42-45 (completed 2026-04-05)
-- **v12.0 GR from det(X) on h_3(O)** -- Phases 42-51 (completed 2026-04-12)
+- **v12.0 GR from det(X) on h_3(O)** -- Phases 46-51 (completed 2026-04-12)
+- **v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure** -- Phases 52-53 (in progress)
 
 ## Phases
 
@@ -313,7 +314,8 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 
 </details>
 
-### Active: v12.0 GR from det(X) on h_3(O) (In Progress)
+<details>
+<summary>v12.0 GR from det(X) on h_3(O) (Phases 46-51) -- COMPLETED 2026-04-12</summary>
 
 **Milestone Goal:** Derive Einstein gravity with SM matter coupling from the Peirce complement V_0 = h_2(O) of h_3(O), projected via the C*-observer's complex structure to h_2(C) = R^{3,1}, where det(X) serves as the GST magic supergravity prepotential.
 
@@ -565,3 +567,124 @@ Plans:
 | 49. GST Connection (4d) | v12.0 | 2/2 | Complete | 2026-04-12 |
 | 50. Weinberg Verification | v12.0 | 2/2 | Complete | 2026-04-12 |
 | 51. Synthesis | v12.0 | 2/2 | Complete | 2026-04-12 |
+
+See `.gpd/milestones/v12.0-ROADMAP.md` for full details.
+
+</details>
+
+### Active: v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure (In Progress)
+
+**Milestone Goal:** Derive the two remaining inputs to the GR derivation -- V_0 = spacetime identification and N=2 SUSY framework -- from h_3(O) algebraic structure alone, closing gaps G4 (V_0 = spacetime CONDITIONAL-DERIVED -> DERIVED) and G2 (N=2 SUSY ASSUMED -> DERIVED).
+
+**Contract Overview:**
+
+| Contract Item | Advanced By Phase(s) | Status |
+| ------------- | -------------------- | ------ |
+| OD1-OD4 operational criteria verification | Phase 52 | Planned |
+| KKT(h_2(C_u)) = so(4,2) with 15 generators | Phase 52 | Planned |
+| OD5-OD6 causal classification via det_2 | Phase 52 | Planned |
+| OD7 observer independence via F_4 conjugacy | Phase 52 | Planned |
+| Uniqueness theorem: V_0 is the unique spacetime | Phase 52 | Planned |
+| Boost generators in Str_0 (G5 resolution) | Phase 52 | Planned |
+| VSR metric a_{IJ} positive definite | Phase 53 | Planned |
+| Two-derivative Lagrangian uniqueness (no SUSY input) | Phase 53 | Planned |
+| Coefficient fixing via E_{6(-26)} covariance alone | Phase 53 | Planned |
+| N=2 as derived property via GST bijection | Phase 53 | Planned |
+| Cross-check with Phase 49 Eq. 49.6 | Phase 53 | Planned |
+
+**Key References:**
+- Tits 1962, Kantor 1964, Koecher 1967 (TKK/KKT construction)
+- Borel 1950, Freudenthal 1954 (F_4 transitivity on OP^2)
+- Springer 1962, Springer-Veldkamp 2000 (cubic form uniqueness)
+- GST 1984, Nucl. Phys. B 242 (magic supergravity, GST classification bijection)
+- de Wit-Van Proeyen 1992 (very special real geometry)
+- Ferrara-Gunaydin 2006, hep-th/0606108 (E_{6(-26)} structure)
+- Gunaydin 1993 (generalized conformal groups from Jordan algebras)
+- Phase 46-50 code in code/octonion_algebra.py (pi_u, det_2, d_{IJK}, stabilizer infrastructure)
+
+**Key Pitfalls:**
+- **C1 (CRITICAL): Fisher-Rao trap** -- Fisher information metric is positive-definite; it CANNOT give Minkowski. Spacetime metric is det_2 (algebraic). DO NOT USE information geometry for spacetime metric.
+- **C4 (CRITICAL): Compact Lorentz gap** -- Spin(9) is compact, so(3,1) is not. Resolution: KKT(h_2(C_u)) yields Str_0 = so(3,1) + R containing boosts as L_a operators. Boosts live in the structure algebra, not the automorphism group.
+- **C5 (CRITICAL): N=2 circularity** -- THE risk for Phase 53. Must construct Lagrangian from E_{6(-26)} + cubic form + two-derivative restriction FIRST, then identify result with GST. Never start from "In N=2 MESGT..."
+
+- [ ] **Phase 52: G4 Spacetime Derivation -- V_0 IS Spacetime** -- Derive that V_0 = h_2(C_u) is spacetime via operational criteria OD1-OD7, KKT(h_2(C_u)) = so(4,2), F_4 observer independence, and uniqueness theorem. Resolves gap G5 (compact so(3) -> non-compact so(3,1)) via Str_0 boost identification.
+- [ ] **Phase 53: N=2 Lagrangian Uniqueness -- SUSY as Consequence** -- Derive that the two-derivative bosonic Lagrangian is uniquely determined by det(X) + E_{6(-26)} covariance without N=2 SUSY input, then apply GST bijection to identify the result as N=2 MESGT. Cross-check against Phase 49.
+
+## Phase Details
+
+### Phase 52: G4 Spacetime Derivation -- V_0 IS Spacetime
+
+**Goal:** The Peirce complement V_0 = h_2(C_u) is proved to be spacetime by satisfying all 7 operational criteria (OD1-OD7), the full conformal algebra so(4,2) is derived from the KKT construction, observer independence is established via F_4 conjugacy, and a uniqueness theorem eliminates all alternative subspaces. Gap G5 (compact so(3) vs non-compact so(3,1)) is resolved by identifying boost generators in Str_0(h_2(C_u)).
+
+**Depends on:** Phase 51 (v12.0 complete -- pi_u, det_2, d_{IJK}, stabilizer all established)
+**Requirements:** SPTM-01, SPTM-02, SPTM-03, SPTM-04, SPTM-05, SPTM-06
+**Contract Coverage:**
+- Advances: V_0 = spacetime (DERIVED, not CONDITIONAL-DERIVED); gap G5 closed; gap G4 closed
+- Deliverables: (1) OD1-OD4 verification with explicit Peirce multiplication computations. (2) 15 KKT generators with all 105 commutation relations matching so(4,2). (3) OD5-OD6: det_2 causal classification and forward cone convexity. (4) OD7: second idempotent E', Peirce decomposition comparison, F_4 conjugacy. (5) Uniqueness theorem statement and proof. (6) Explicit boost generators in Str_0 with so(3,1) commutation relations.
+- Anchor coverage: Tits 1962, Koecher 1967, Gunaydin 1993 (KKT = so(4,2)); Borel 1950, Freudenthal 1954 (F_4 transitivity on rank-1 idempotents); Phase 46 pi_u and h_2(C_u) basis; Phase 48 so(3) rotation generators
+- Forbidden proxies: Getting so(3) only (rotations, not full KKT); using Fisher-Rao metric (C1); citing boosts exist abstractly without constructing them (SPTM-06); claiming uniqueness without eliminating alternatives (SPTM-05)
+
+**Success Criteria** (what must be TRUE):
+
+1. KKT(h_2(C_u)) = so(4,2) verified: 15 generators constructed (4 translations in g_{-1}, 4 special conformal in g_{+1}, 3 rotations + 3 boosts + 1 dilatation in g_0 = Str_0), all 105 structure constants match so(4,2), Killing form has signature (6,9)
+2. Uniqueness theorem stated and proved: for any self-modeling observer at rank-1 idempotent E in h_3(O), pi_u(V_0(E)) = h_2(C_u) is the unique 4d subspace satisfying OD1-OD4 (disjointness, accessibility, completeness, maximality), with all alternatives eliminated
+3. Boost generators identified explicitly in Str_0(h_2(C_u)) as L_X operators for traceless X in h_2(C_u), with [boost, rotation] commutation relations verified to match so(3,1): [K_i, J_j] = epsilon_{ijk} K_k, [K_i, K_j] = -epsilon_{ijk} J_k (resolves gap G5)
+4. Observer independence (OD7): second rank-1 idempotent E' constructed, V_0(E') shown F_4-conjugate to V_0(E_{11}), det_2 signature and d_{IJK} pattern invariant under observer change
+5. Causal structure (OD5-OD6): h_2(C_u) elements classified by det_2 sign (timelike/null/spacelike), forward cone {det_2 > 0, Tr > 0} verified convex, SL(2,C_u) preserves det_2
+
+**Backtracking:** If KKT dimension != 15, check the 3-grading construction (most likely error: wrong Str_0 computation). If boosts cannot be identified in Str_0, the compact->non-compact transition requires deeper analysis -- do NOT claim resolution without explicit generators. If F_4 conjugacy fails for some idempotent class, investigate whether the obstruction is physical (preferred observer) or technical (wrong conjugation element).
+
+**Plans:** TBD
+
+### Phase 53: N=2 Lagrangian Uniqueness -- SUSY as Consequence
+
+**Goal:** The two-derivative bosonic Lagrangian on the scalar manifold E_{6(-26)}/F_4 is proved unique from det(X) + E_{6(-26)} covariance alone (NO N=2 SUSY input), and the GST classification bijection is applied to identify the unique result as the bosonic sector of N=2 MESGT, establishing N=2 supersymmetry as a derived algebraic property.
+
+**Depends on:** Phase 47 (d_{IJK} tensor), Phase 49 (explicit Lagrangian for cross-check). Note: Phase 52 provides physical interpretation but is NOT a computational prerequisite -- these phases are INDEPENDENT.
+**Requirements:** LAGR-01, LAGR-02, LAGR-03, LAGR-04, LAGR-05
+**Contract Coverage:**
+- Advances: N=2 SUSY (DERIVED, not ASSUMED); gap G2 closed; Lagrangian uniqueness without SUSY
+- Deliverables: (1) VSR metric a_{IJ} computed from d_{IJK} with positive definiteness verified (26 positive eigenvalues on V=1 constraint surface). (2) E_{6(-26)}-invariant two-derivative term enumeration proving exactly 4 terms exist. (3) Coefficient fixing traced through de Wit-Van Proeyen construction confirming no SUSY assumption enters. (4) GST bijection applied: unique Lagrangian IS the N=2 MESGT bosonic sector. (5) Cross-check: coefficients match Phase 49 Eq. 49.6 exactly.
+- Anchor coverage: de Wit-Van Proeyen 1992 (VSR geometry, coefficient relations); GST 1984 (classification bijection: cubic Jordan algebra <-> N=2 MESGT); Ferrara-Gunaydin 2006 (E_{6(-26)} structure); Phase 47 d_{IJK} (106 nonzero entries); Phase 49 Eq. 49.6 (explicit coefficient values)
+- Forbidden proxies: Proving uniqueness WITH N=2 assumed (circular -- C5); using SUSY to fix relative coefficients then claiming N=2 derived (C5); stating "N=2 is consequence" without proving Lagrangian uniqueness first (LAGR-04 prerequisite); claiming a_{IJ} positive definite without computing eigenvalues
+
+**Success Criteria** (what must be TRUE):
+
+1. VSR metric a_{IJ} = -(1/2) d_I d_J log det(X)|_{det=1} computed from Phase 47 d_{IJK} tensor, with positive definiteness verified: all 26 eigenvalues strictly positive on the V=1 constraint surface (ghost-free kinetic terms)
+2. Lagrangian uniqueness proved WITHOUT N=2 SUSY: enumerate all E_{6(-26)}-invariant two-derivative terms on E_{6(-26)}/F_4 (scalar kinetic from a_{IJ}, vector kinetic from Im(N_{IJ}), Chern-Simons from Re(N_{IJ}), Einstein-Hilbert -R/2), prove no other structures exist at this order via Schur's lemma on the irreducible 26 of F_4, and show all relative coefficients are fixed by E_{6(-26)} covariance alone
+3. GST bijection applied: cite GST 1984 classification theorem (cubic Jordan algebra over R with positive-definite trace form <-> unique N=2 MESGT), verify h_3(O) satisfies the hypotheses, conclude the unique Lagrangian from criterion 2 IS the bosonic sector of N=2 MESGT
+4. Cross-check passed: uniqueness-derived scalar metric, vector metric, and Chern-Simons coefficient match Phase 49 explicit values (Eq. 49.6) to machine precision
+5. Circularity audit: the logical chain det(X) -> E_{6(-26)} invariant enumeration -> unique Lagrangian -> GST identification -> "N=2 is consequence" contains NO step where N=2 SUSY is assumed or used to fix parameters
+
+**Backtracking:** If a_{IJ} has a zero or negative eigenvalue, check constraint surface evaluation (most likely: evaluated at wrong point, not on V=1). If additional E_{6(-26)}-invariant structures are found beyond the 4 expected, the uniqueness claim weakens -- determine whether the extra structures are higher-derivative or genuinely two-derivative. If the circularity audit finds SUSY leaking into the coefficient fixing, the honest conclusion is "N=2 is algebraically identified, not derived" -- weaker but still valuable.
+
+**Plans:** TBD
+
+## Phase Dependencies
+
+| Phase | Depends On | Enables | Critical Path? |
+|-------|-----------|---------|:-:|
+| 52 - G4 Spacetime | 51 (v12.0) | -- | Independent |
+| 53 - N=2 Lagrangian | 47, 49 (v12.0) | -- | Independent |
+
+**Independence:** Phases 52 and 53 are computationally and logically independent. Phase 52 establishes V_0 IS spacetime (physical meaning of the Lagrangian); Phase 53 establishes the Lagrangian is unique and N=2 (algebraic content). Either can be done first. Both build on validated v12.0 infrastructure.
+
+**Execution:** Run in either order or interleave plans. No blocking dependencies between the two phases.
+
+## Risk Register
+
+| Phase | Top Risk | Probability | Impact | Mitigation |
+|-------|---------|:-:|:-:|-----------|
+| 52 | KKT dimension wrong (not 15) | LOW | HIGH | Textbook result (Koecher 1967, Gunaydin 1993); error would be in 3-grading construction |
+| 52 | Boosts not in Str_0 (G5 unresolvable) | LOW | HIGH | KKT 3-grading guarantees g_{-1} + g_0 + g_{+1} structure; Str_0 = so(3,1) + R by standard theory |
+| 53 | N=2 circularity (C5) -- SUSY leaks into derivation | MEDIUM | HIGH | Strict logical ordering: construct from E_{6(-26)} FIRST, identify with GST AFTER. Circularity audit at end. |
+| 53 | Additional E_{6(-26)}-invariant 2-derivative terms found | LOW | MEDIUM | Schur's lemma on irreducible 26 of F_4 constrains tightly; if extras found, check if higher-derivative |
+
+## Progress
+
+**Execution Order:** 52, 53 (independent -- either order)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+| ----- | --------- | -------------- | ------ | --------- |
+| 52. G4 Spacetime | v13.0 | 0/TBD | Not started | - |
+| 53. N=2 Lagrangian | v13.0 | 0/TBD | Not started | - |
