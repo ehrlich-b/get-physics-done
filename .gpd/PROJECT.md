@@ -2,32 +2,28 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 pursues a new algebraic route to GR: the Peirce complement V_0 = h_2(O), projected via the C*-bottleneck to h_2(C) = R^{3,1}, carries the GST magic supergravity Lagrangian with prepotential det(X) -- deriving Einstein gravity from h_3(O) without lattice or continuum limit. The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
 
-## Current Milestone: v12.0 GR from det(X) on h_3(O)
+## v12.0 Summary (complete 2026-04-12)
 
-**Goal:** Derive Einstein gravity with SM matter coupling from the Peirce complement V_0 = h_2(O) of h_3(O), projected via the C*-observer's complex structure to h_2(C) = R^{3,1}, where det(X) serves as the GST magic supergravity prepotential.
+Einstein gravity derived algebraically from h_3(O) via GST magic supergravity. pi_u: h_2(O) -> h_2(C_u) = R^{3,1} with Minkowski signature (1,3). d_{IJK} tensor computed (106 nonzero, 97% sparse). det(X) unique F_4-invariant cubic (Springer 1962). V_0 stabilizer = so(3) x so(6), pi_u equivariant. 4d N=2 MESGT: 1 gravity + 26 vectors, prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0). C_{IJK} decomposed: 10 gravitational + 48 spacetime + 48 internal. Weinberg 1964 applied: spin-2 (10=9+1), massless (M=det_2), universal coupling (C_{i,j,a}) force -R/2 at low energies. Assembly DAG: 18 nodes, 31 edges, acyclic. 13 gaps catalogued. Chain-critical: N=2 SUSY (ASSUMED), compact so(3) vs so(3,1) (CONDITIONAL-DERIVED). Paper 6 lattice route ABANDONED; v12.0 route independent.
 
-**Target results:**
+## Current State (after v12.0)
 
-- Formalize the C*-bottleneck projection pi_u: h_2(O) -> h_2(C), verify Minkowski metric structure, Lorentz equivariance, and Peirce product compatibility
-- Verify GST field content matches Paper 7 SM content under Peirce decomposition (27 = 1 + 16 + 10)
-- Prove the "double duty" theorem: det(X) is uniquely forced as both rho_J factor and gravitational prepotential by F_4-invariance
-- Perform 5d -> 4d circle compactification and verify Einstein + SM structure on h_2(C)
+Two independent routes to Einstein gravity from self-modeling are now established:
 
-## Current State (after v10.0)
+- **Route 1 (v9.0-v10.0, lattice):** Fisher geometry -> Lorentz -> BW/KMS -> Jacobson -> Einstein. Conditional on quantum SSB at S_eff=1/2.
+- **Route 2 (v12.0, algebraic):** h_3(O) -> Peirce V_0 -> pi_u -> R^{3,1} -> det(X) prepotential -> MESGT -> Weinberg -> -R/2. Conditional on N=2 SUSY identification and compact so(3) -> so(3,1).
 
-The derivation chain from self-modeling to Einstein equations now runs on the real algebra h_3(O), not a toy model. Key established results:
+**Complete chain:** Self-modeling (Paper 5) -> C*-algebra -> h_3(O) (Paper 7) -> QM + SM fermions (V_{1/2}) + chirality (Cl(6)) + spacetime (V_0) + matter-gravity couplings (det(X)) + Einstein gravity (Weinberg). Assembly DAG verified acyclic with 18 nodes.
 
-- **Algebraic segment (unconditional):** Self-modeling -> h_3(O) -> Peirce -> Cl(9,0) -> H_eff = J*sum T_a T_a -> Z^d bipartite lattice
-- **SSB segment (classical proved):** Spin(9)->Spin(8) on S^8 via FSS infrared bounds (d>=3); 8 Type-A Goldstone modes; O(9) NL sigma model asymptotically free
-- **Gravity segment (conditional):** Fisher geometry -> Lorentz -> BW/KMS -> Jacobson -> Einstein, with O(9)-specific values (c_s=J*sqrt(3/2), v_LR=27eJ)
-- **Gap status:** A NARROWED (d>=3), B CLOSED/OPEN, C CONDITIONAL-DERIVED (tensoriality derived via Lovelock), D CONDITIONAL-THEOREM (MVEH proved via Gibbs)
-- **Single remaining conditionality:** Quantum SSB at S_eff=1/2 (BCS fails, Speer blocks quantum RP)
+**13 gaps catalogued (v12.0 Phase 51):** 3 chain-critical (V_0=spacetime CONDITIONAL-DERIVED, N=2 SUSY ASSUMED, so(3) vs so(3,1) CONDITIONAL-DERIVED), 2 UNKNOWN (so(6)->G_SM reduction, 3 generations), 5 ASSUMED (Lambda=0, bosonic sector only, choice of u, Weinberg low-energy scope, quantum SSB lattice-only).
+
+**Comparison:** This work uniquely addresses gravity from h_3(O). Todorov-Drenska derives G_SM (gap G6 closure candidate). Boyle derives 3 generations (gap G7 candidate). Farnsworth provides spectral geometry framework (no gravity).
 
 ## v10.0 Summary (complete 2026-03-31)
 
@@ -185,12 +181,19 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 - [x] Does a C*-observer's sequential product (C-linear Luders composition) extend the measurement algebra Cl(9,0) on V_{1/2} to Cl(9,C)? -- **YES.** C-linear closure proved by dimension counting. Gap C theorem assembled: 7-step chain, L1-L9 zero regressions. -- v11.0
 
+### Answered in v12.0
+
+- [x] Does the C*-bottleneck projection pi_u: h_2(O) -> h_2(C) carry the right equivariance (Lorentz group inside stabilizer)? -- **YES (compact part).** V_0 stabilizer = so(3) x so(6), pi_u equivariant. so(3) = rotation subalgebra. Boosts absent from compact Spin(9); require complexification. -- v12.0
+- [x] Does the GST field content (27 = 1 + 16 + 10 under Peirce) match Paper 7's SM particle spectrum? -- **YES.** 16 SM fermions match Paper 7. V_0 splits 4(spacetime) + 6(internal). All quantum numbers verified. -- v12.0
+- [x] Is det(X) uniquely forced as both the self-modeling density factor and the gravitational prepotential by F_4-invariance? -- **YES.** Springer 1962 uniqueness + F_4 = Aut(h_3(O)). Double duty non-circular. -- v12.0
+- [x] Does the algebraic structure of h_3(O) force Einstein gravity? -- **YES (at low energies).** det(X) -> MESGT -> spin-2 + massless + universal coupling -> Weinberg 1964 -> -R/2. N=2 SUSY identification is ASSUMED, not derived. -- v12.0
+
 ### Active
 
-- [ ] Does the C*-bottleneck projection pi_u: h_2(O) -> h_2(C) carry the right equivariance (Lorentz group inside stabilizer)?
-- [ ] Does the GST field content (27 = 1 + 16 + 10 under Peirce) match Paper 7's SM particle spectrum?
-- [ ] Is det(X) uniquely forced as both the self-modeling density factor and the gravitational prepotential by F_4-invariance?
-- [ ] Does 5d -> 4d circle compactification of the GST Lagrangian on h_2(C) give Einstein + SM with correct matter coupling?
+- [ ] Can N=2 SUSY be derived from self-modeling, or is there a non-SUSY route from det(X) to -R/2?
+- [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling?
+- [ ] Can Boyle's triality mechanism address gap G7 (3 generations)?
+- [ ] Can explicit boost generators be found within h_3(O) to close gap G5 (so(3) -> so(3,1))?
 
 ### Answered in v9.0
 

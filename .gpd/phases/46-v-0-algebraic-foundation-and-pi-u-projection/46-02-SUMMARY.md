@@ -20,7 +20,7 @@ provides:
 affects: [47-hamiltonian-and-equations-of-motion, 48-einstein-equation-derivation, 49-gst-matching]
 
 methods:
-  added: [delta_pi_u computation, V_{1/2} Peirce product tables, pi_u Minkowski projection]
+  added: [delta_pi_u computation, "V_{1/2} Peirce product tables", pi_u Minkowski projection]
   patterns: [W-component inner product extraction, Clifford anticommutation verification]
 
 key-files:

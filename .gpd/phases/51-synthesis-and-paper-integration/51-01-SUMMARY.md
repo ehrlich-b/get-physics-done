@@ -10,11 +10,11 @@ requires:
   - phase: 50-weinberg-verification-spin2-universal-coupling
     provides: [all 4 Weinberg hypotheses confirmed, -R/2 forced, non-circularity verified]
   - phase: 49-gst-lagrangian-connection-direct-4d-formulation
-    provides: [MESGT field content, prepotential F(X), C_{IJK} decomposition, Lagrangian Eq. 49.6]
+    provides: [MESGT field content, prepotential F(X), "C_{IJK} decomposition", Lagrangian Eq. 49.6]
   - phase: 48-equivariance-and-lorentz-subgroup
     provides: [V_0 stabilizer so(3) x so(6), pi_u equivariance, G_SM containment]
   - phase: 47-d-ijk-tensor-and-uniqueness-theorems
-    provides: [d_{IJK} tensor, F_4 uniqueness, double duty non-circularity, quantum numbers]
+    provides: ["d_{IJK} tensor", F_4 uniqueness, double duty non-circularity, quantum numbers]
   - phase: 46-v-0-algebraic-foundation-and-pi-u-projection
     provides: [pi_u projection, det_2 Minkowski, V_0 Peirce closure, Cl(3,0) Minkowski matrices]
 provides:

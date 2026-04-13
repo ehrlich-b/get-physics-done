@@ -12,7 +12,7 @@ requires:
   - phase: 42
     provides: [computational verification of all 72 sequential product pairs]
   - phase: 30
-    provides: [impossibility theorems: End_{Spin(9)}(S_9) = R]
+    provides: ["impossibility theorems: End_{Spin(9)}(S_9) = R"]
 provides:
   - "Gap C closure theorem: single citable 7-step proof chain from C*-observer to Pati-Salam chirality"
   - "Explicit compatibility statement with Phase 30 impossibility theorems"

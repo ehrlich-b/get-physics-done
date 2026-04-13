@@ -25,7 +25,7 @@ affects: [49-02-couplings-and-lagrangian, 50-paper-assembly]
 
 methods:
   added: [Peirce-to-field-content identification, cubic prepotential construction, special Kahler formulation]
-  patterns: [Peirce coordinate extraction via trace inner product, multiplicity-weighted d_{IJK} contraction]
+  patterns: [Peirce coordinate extraction via trace inner product, "multiplicity-weighted d_{IJK} contraction"]
 
 key-files:
   modified: [code/octonion_algebra.py, derivations/49-field-content-and-prepotential.tex]

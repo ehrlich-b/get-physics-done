@@ -15,7 +15,7 @@ requires:
   - phase: 42
     provides: [computational verification of all 72 sequential product pairs]
   - phase: 30
-    provides: [impossibility theorems: End_{Spin(9)}(S_9) = R]
+    provides: ["impossibility theorems: End_{Spin(9)}(S_9) = R"]
 provides:
   - "L1-L9 verification: 1 UPGRADED + 3 STRENGTHENED + 5 UNCHANGED + 0 regressions"
   - "Gap register v11.0 update: Paper 7 Gap C = PROVED (given Paper 5)"

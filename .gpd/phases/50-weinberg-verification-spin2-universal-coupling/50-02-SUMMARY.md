@@ -10,11 +10,11 @@ requires:
   - phase: 50-weinberg-verification-spin2-universal-coupling
     provides: [spin-2 (10=9+1 decomposition), massless (M_ab = det_2, no Fierz-Pauli)]
   - phase: 49-gst-lagrangian-connection-direct-4d-formulation
-    provides: [C_{IJK} = (1/6) d_{IJK}, 48 spacetime + 48 internal matter-gravity couplings, Lagrangian Eq. 49.6]
+    provides: ["C_{IJK} = (1/6) d_{IJK}", 48 spacetime + 48 internal matter-gravity couplings, Lagrangian Eq. 49.6]
   - phase: 48
     provides: [SO(3,1) structure on h_2(C_u), so(3) x so(6) stabilizer, pi_u equivariant]
   - phase: 47
-    provides: [d_{IJK} tensor 106 nonzero, (V_{1/2},V_{1/2},V_0) = 96 entries]
+    provides: ["d_{IJK} tensor 106 nonzero", "(V_{1/2}", "V_{1/2}", V_0) = 96 entries]
   - phase: 46
     provides: [det_2 Gram = diag(+1,-1,-1,-1), pi_u projection, spacetime/internal V_0 split]
 provides:
@@ -28,7 +28,7 @@ affects: [51 (synthesis), 12 (paper-assembly)]
 
 methods:
   added: [stress-energy coupling analysis, Weinberg hypothesis verification, trace coupling computation]
-  patterns: [G^{-1} = diag(+4,-4,-1,-1) on Peirce spacetime basis, non-circularity trace for each hypothesis]
+  patterns: ["G^{-1} = diag(+4", -4, -1, -1) on Peirce spacetime basis, non-circularity trace for each hypothesis]
 
 key-files:
   created: [derivations/50-stress-energy-and-weinberg.tex]

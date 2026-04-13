@@ -24,7 +24,7 @@ affects: [50-paper-assembly]
 
 methods:
   added: [Peirce coupling decomposition with spacetime/internal split, MESGT Lagrangian assembly]
-  patterns: [C_{IJK} = (1/6) d_{IJK} physical identification by Peirce block and V_0 sector]
+  patterns: ["C_{IJK} = (1/6) d_{IJK} physical identification by Peirce block and V_0 sector"]
 
 key-files:
   modified: [code/octonion_algebra.py, derivations/49-couplings-and-lagrangian.tex]

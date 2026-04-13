@@ -8,13 +8,13 @@ tags: [gap-inventory, comparison, SUSY-status, jordan-algebra, h3O, standard-mod
 
 requires:
   - phase: 50-weinberg-verification-spin2-universal-coupling
-    provides: [Weinberg 4 hypotheses verified, -R/2 forced, non-circularity, stress-energy C_{ija}]
+    provides: [Weinberg 4 hypotheses verified, -R/2 forced, non-circularity, "stress-energy C_{ija}"]
   - phase: 49-gst-lagrangian-connection-direct-4d-formulation
-    provides: [MESGT Lagrangian Eq 49.6, C_{IJK} decomposition, Lambda=0, field content]
+    provides: [MESGT Lagrangian Eq 49.6, "C_{IJK} decomposition", Lambda=0, field content]
   - phase: 48
     provides: [V_0 stabilizer so(3) x so(6), so(6) contains G_SM, pi_u equivariant]
   - phase: 47
-    provides: [d_{IJK} tensor, det(X) uniqueness (Springer 1962), double duty non-circularity]
+    provides: ["d_{IJK} tensor", det(X) uniqueness (Springer 1962), double duty non-circularity]
   - phase: 46
     provides: [pi_u projection, det_2 Gram = Minkowski, V_0 Peirce closure]
 provides:

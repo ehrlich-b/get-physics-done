@@ -10,7 +10,7 @@ requires:
   - phase: 46
     provides: [det_2 Gram = diag(+1,-1,-1,-1) on h_2(C_u), pi_u projection, spacetime/internal V_0 split]
   - phase: 47
-    provides: [det_3 formula, d_{IJK} tensor, Peirce basis ordering]
+    provides: [det_3 formula, "d_{IJK} tensor", Peirce basis ordering]
 provides:
   - SO(3,1) irrep decomposition of det_2 perturbation (10 = 9 spin-2 + 1 spin-0)
   - det_3 quadratic expansion around E_{11} gives M_{ab} = det_2 (massless)
