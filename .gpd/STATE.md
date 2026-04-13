@@ -5,20 +5,20 @@
 See: .gpd/PROJECT.md (updated 2026-04-11)
 
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** v12.0 GR from det(X) on h_3(O)
+**Current focus:** v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure
 
 ## Current Position
 
-**Current Phase:** 51
-**Current Phase Name:** Synthesis and Paper Integration
-**Total Phases:** 51 (v12.0: Phases 46-51)
-**Current Plan:** 2
-**Total Plans in Phase:** 2
-**Status:** Milestone complete
-**Last Activity:** 2026-04-13
-**Last Activity Description:** v12.0 milestone completed and archived
+**Current Phase:** 52
+**Current Phase Name:** G4 -- V_0 IS Spacetime
+**Total Phases:** 53 (v13.0: Phases 52-53)
+**Current Plan:** 0
+**Total Plans in Phase:** 0
+**Status:** Defining objectives
+**Last Activity:** 2026-04-12
+**Last Activity Description:** Started milestone v13.0
 
-**Progress:** [████████████████████████████████████████████] 100%
+**Progress:** [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Active Calculations
 
@@ -158,6 +158,7 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 - [Phase 41]: Added Phase 41: O(9)/S^8 Quantitative Verification — Patch phase to recompute model-specific numbers for O(9)/S^8, replacing Heisenberg carry-forward values in links (i)-(l)
 - [Phase 0]: Started milestone v11.0: Gap C Complexification from Sequential Product — New milestone cycle -- second attempt at Gap C using sequential product route
 - [Phase 0]: Started milestone v12.0: GR from det(X) on h_3(O) — New milestone cycle -- algebraic GR route via GST magic supergravity prepotential on Peirce complement
+- [Phase 0]: Started milestone v13.0: Paper 6 Closure -- G4 + N=2 from Algebraic Structure — New milestone cycle -- derive V_0=spacetime and N=2 SUSY from h_3(O) algebraic structure
 
 ### Active Approximations
 

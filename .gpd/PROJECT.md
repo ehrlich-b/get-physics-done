@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
@@ -24,6 +24,18 @@ Two independent routes to Einstein gravity from self-modeling are now establishe
 **13 gaps catalogued (v12.0 Phase 51):** 3 chain-critical (V_0=spacetime CONDITIONAL-DERIVED, N=2 SUSY ASSUMED, so(3) vs so(3,1) CONDITIONAL-DERIVED), 2 UNKNOWN (so(6)->G_SM reduction, 3 generations), 5 ASSUMED (Lambda=0, bosonic sector only, choice of u, Weinberg low-energy scope, quantum SSB lattice-only).
 
 **Comparison:** This work uniquely addresses gravity from h_3(O). Todorov-Drenska derives G_SM (gap G6 closure candidate). Boyle derives 3 generations (gap G7 candidate). Farnsworth provides spectral geometry framework (no gravity).
+
+## Current Milestone: v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure
+
+**Goal:** Derive the two remaining inputs to the GR derivation -- V_0 = spacetime identification and N=2 SUSY framework -- from h_3(O) algebraic structure alone, reducing Paper 6 inputs from 4 to 2.
+
+**Target results:**
+
+- V_0 IS spacetime: operational definition match (OD1-OD7), KKT(h_2(C_u)) = so(4,2), F_4 covariance, uniqueness theorem
+- N=2 is consequence: very special real metric a_{IJ} from det(X), two-derivative Lagrangian uniqueness, GST bijection
+- Paper 6 claim upgrade: "one definition + one premise -> GR" (no geometric input, no SUSY input)
+
+**Dependencies:** v12.0 complete (Phases 46-51). Code in code/octonion_algebra.py.
 
 ## v10.0 Summary (complete 2026-03-31)
 
@@ -190,10 +202,12 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-- [ ] Can N=2 SUSY be derived from self-modeling, or is there a non-SUSY route from det(X) to -R/2?
+- [ ] Does V_0 (through C*-bottleneck) satisfy all 7 operational spacetime criteria (OD1-OD7), and is it the unique such subspace? (v13.0 Phase 52)
+- [ ] Does KKT(h_2(C_u)) = so(4,2), confirming full conformal spacetime symmetry? (v13.0 Phase 52)
+- [ ] Is the two-derivative bosonic Lagrangian uniquely determined by det(X) + E_{6(-26)} without assuming N=2? (v13.0 Phase 53)
+- [ ] Is N=2 SUSY a consequence of the Lagrangian that det(X) determines, via the GST classification? (v13.0 Phase 53)
 - [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling?
 - [ ] Can Boyle's triality mechanism address gap G7 (3 generations)?
-- [ ] Can explicit boost generators be found within h_3(O) to close gap G5 (so(3) -> so(3,1))?
 
 ### Answered in v9.0
 
