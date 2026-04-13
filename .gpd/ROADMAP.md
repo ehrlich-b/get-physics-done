@@ -13,7 +13,7 @@
 - **v9.0 Continuum Limit from Finite-Dimensional Observer** -- Phases 32-36 (completed 2026-03-30)
 - **v10.0 Universality Class of Self-Modeler Network and Full Gap Closure** -- Phases 37-41 (completed 2026-03-31)
 - **v11.0 Gap C Complexification from Sequential Product** -- Phases 42-45 (completed 2026-04-05)
-- Active: **v12.0 GR from det(X) on h_3(O)** -- Phases 46-50 (in progress)
+- Active: **v12.0 GR from det(X) on h_3(O)** -- Phases 46-51 (in progress)
 
 ## Phases
 
@@ -355,7 +355,7 @@ See `.gpd/milestones/v11.0-ROADMAP.md` for full details.
 - [x] **Phase 48: Equivariance and Lorentz Subgroup** -- Identify full stabilizer of u in Spin(9); verify SL(2,C_u) Lorentz subgroup; establish equivariance of pi_u (completed 2026-04-12)
 - [x] **Phase 49: GST Lagrangian Connection (Direct 4d Formulation)** -- Field content 1 gravity + 26 vector multiplets; prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0); C_{IJK} coupling decomposition; precise claim; Lambda=0; Lagrangian assembly (completed 2026-04-12)
 - [x] **Phase 50: Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)** -- Verify det_2 excitation is massless spin-2, (V_{1/2},V_{1/2},V_0) coupling is stress-energy, apply Weinberg 1964 to force -R/2. HARD GATE PASSED. (completed 2026-04-12)
-- [ ] **Phase 51: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory. Requires Phase 50 success.
+- [x] **Phase 51: Synthesis and Paper Integration** -- Assemble SM+GR picture from Papers 5+6+7+this milestone; produce honest gap inventory. Requires Phase 50 success. (completed 2026-04-12)
 
 ## Phase Details
 
@@ -525,8 +525,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 51-01-PLAN.md -- Assembly DAG: self-modeling -> SM+GR with topological ordering, non-circularity verification (SYNT-01)
-- [ ] 51-02-PLAN.md -- Gap inventory (10+ gaps, severity-rated) + Farnsworth/Boyle/Todorov-Drenska comparison + N=2 SUSY status (SYNT-02)
+- [x] 51-01-PLAN.md -- Assembly DAG: self-modeling -> SM+GR with topological ordering, non-circularity verification (SYNT-01)
+- [x] 51-02-PLAN.md -- Gap inventory (10+ gaps, severity-rated) + Farnsworth/Boyle/Todorov-Drenska comparison + N=2 SUSY status (SYNT-02)
 
 ## Phase Dependencies
 
@@ -564,4 +564,4 @@ Plans:
 | 48. Equivariance + Lorentz | v12.0 | 2/2 | Complete | 2026-04-12 |
 | 49. GST Connection (4d) | v12.0 | 2/2 | Complete | 2026-04-12 |
 | 50. Weinberg Verification | v12.0 | 2/2 | Complete | 2026-04-12 |
-| 51. Synthesis | v12.0 | 0/2 | Planned | - |
+| 51. Synthesis | v12.0 | 2/2 | Complete | 2026-04-12 |

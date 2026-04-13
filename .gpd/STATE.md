@@ -9,14 +9,14 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-**Current Phase:** 50
-**Current Phase Name:** Weinberg Verification (-R/2 from Spin-2 + Universal Coupling)
+**Current Phase:** 51
+**Current Phase Name:** Synthesis and Paper Integration
 **Total Phases:** 51 (v12.0: Phases 46-51)
-**Current Plan:** —
+**Current Plan:** 2
 **Total Plans in Phase:** 2
-**Status:** Phase 50 complete, verified (4/4 contract targets). Phase 51 ready to plan.
+**Status:** Phase 51 complete, verified (6/6 contract targets). v12.0 milestone complete.
 **Last Activity:** 2026-04-12
-**Last Activity Description:** Phase 50 complete and verified. All 4 Weinberg hypotheses confirmed from h_3(O): spin-2 (10=9+1), massless (M=det_2), universal coupling (C_{i,j,a} symmetric+universal+bilinear). -R/2 forced by Weinberg 1964. HARD GATE PASSED. Non-circularity verified. Consistency 5/5.
+**Last Activity Description:** Phase 51 complete and verified. Assembly DAG: 18 nodes, 31 edges, acyclic, 4 Weinberg non-circularity traces clean, Paper 6 independent. Gap inventory: 13 gaps severity-rated, 4x9 comparison matrix, N=2 SUSY status with 3 explicit statements. Verification 6/6, confidence HIGH.
 
 **Progress:** [████████████████████████████████████████████] 100%
 
@@ -110,10 +110,15 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 | 49-02 | ~5min | 2 tasks | 2 files |
 | 50-01 | ~12min | 2 tasks | 2 files |
 | 50-02 | ~6min | 2 tasks | 2 files |
+| 51-01 | ~7min | 2 tasks | 1 file |
+| 51-02 | ~12min | 2 tasks | 1 file |
 
 ## Accumulated Context
 
 ### Decisions
+
+- [Phase 51, Plan 01]: Assembly DAG constructed with 18 nodes, 31 edges, zero back-edges. Status: 1 axiom, 1 PROVED, 11 DERIVED, 3 CONDITIONAL-DERIVED, 2 ASSUMED. N12 (MESGT) ASSUMED. det(X) double duty non-circular via Springer 1962. Paper 6 ABANDONED. Convention reconciliation: (+,-,-,-) vs (-,+,+,+) algebraically equivalent. All 4 Weinberg non-circularity traces terminate at N1.
+- [Phase 51, Plan 02]: 13 gaps identified (G1-G13). Chain-critical: G1 (V_0=spacetime, CONDITIONAL-DERIVED), G2 (N=2 SUSY, ASSUMED), G5 (so(3) vs so(3,1), CONDITIONAL-DERIVED). UNKNOWN: G6 (so(6)->G_SM), G7 (3 generations). Comparison: 4 approaches x 9 categories, zero ranking language. N=2 SUSY: 3 explicit statements, MESGT = primary theoretical assumption. Todorov G_SM and Boyle triality identified as synthesis directions.
 
 - [Phase 50, Plan 01]: SO(3,1) irrep decomposition: 10 = 9 (spin-2) + 1 (spin-0). det_3 quadratic expansion: M_{ab} = det_2 Gram (kinetic structure, case b from plan). Masslessness confirmed by direct expansion + F_4-invariant decomposition. Weinberg W2+W3 satisfied.
 - [Phase 50, Plan 02]: Stress-energy identification: C_{i,j,a} symmetric (480 pairs exact), universal (16 fields x 4 directions), bilinear. Trace coupling T_{ij} nonzero (norm 4.22). All 4 Weinberg hypotheses confirmed: H1 (Spin(9) stabilizer), H2 (10=9+1), H3 (M=det_2), H4 (universal coupling). -R/2 forced at low energies by Weinberg 1964. Non-circularity: all inputs from h_3(O), none assumes -R/2.
