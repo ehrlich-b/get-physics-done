@@ -5354,3 +5354,149 @@ def classify_jordan_subalgebras():
     ])
 
     return results
+
+
+# ============================================================================
+# Phase 53, Plan 01: VSR metric computation
+# ============================================================================
+#
+# ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+#   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+#   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+#   det3_normalization=d(X,X,X)=6*det_3(X),
+#   real_forms=E6(-26)_5d_E7(-25)_4d,
+#   peirce_basis_ordering=I0_V1_I1to16_Vhalf_I17to26_V0,
+#   cubic_norm_convention=V_equals_C_hhh,
+#   vsr_metric=G_IJ_from_Hessian_of_ln_V
+#
+# Convention: V = C_{IJK} h^I h^J h^K with C_{IJK} = (1/6) d_{IJK}.
+# Dual: x_I = C_{IMN} h^M h^N.  Identity: x_I h^I = V.
+# VSR metric: G_{IJ} = -(1/2) d_I d_J ln V |_{V=1}
+#           = (9/2) x_I x_J - 3 C_{IJK} h^K   at V=1.
+# VSR identity: G_{IJ} h^J = (3/2) x_I.
+#
+# Reference: de Wit-Van Proeyen, CMP 149 (1992) 307-333.
+#            Sabra, arXiv:2206.00467 (2022), Eq. (3.1)-(3.5).
+
+
+def vsr_metric_53(base_point=None, d_tensor=None):
+    """Compute the very special real (VSR) metric G_{IJ} on E_{6(-26)}/F_4.
+
+    The VSR metric is the unique E_{6(-26)}-invariant metric on the scalar
+    manifold, derived from the Hessian of -ln(V) where V = C_{IJK} h^I h^J h^K
+    is the cubic norm with C_{IJK} = (1/6) d_{IJK}.
+
+    G_{IJ} = -(1/2) d_I d_J ln V |_{V=1}
+           = (9/2) x_I x_J - 3 C_{IJK} h^K
+
+    where x_I = C_{IMN} h^M h^N are dual coordinates satisfying x_I h^I = V.
+
+    Parameters:
+        base_point: H3O element on V=1 (default: diag(1,1,1), which has V=1).
+                    Must satisfy V = C_{IJK} h^I h^J h^K = 1.
+        d_tensor: dict {(I,J,K): value} from d_ijk_tensor() (default: computed).
+
+    Returns:
+        dict with keys:
+            'G': np.ndarray (27,27) -- full VSR metric
+            'eigenvalues': np.ndarray (26,) -- tangent space eigenvalues (sorted)
+            'tangent_projector': np.ndarray (27,26) -- orthonormal basis for
+                tangent space of V=1 at base_point
+            'h': np.ndarray (27,) -- Peirce coordinates of base_point
+            'x': np.ndarray (27,) -- dual coordinates x_I = C_{IMN} h^M h^N
+            'V': float -- cubic norm at base_point (should be 1.0)
+            'sym_error': float -- max |G - G^T|
+            'vsr_error': float -- max |G h - (3/2) x|
+            'min_eigenvalue': float
+            'max_eigenvalue': float
+            'condition_number': float -- max/min tangent eigenvalue
+    """
+    if d_tensor is None:
+        d_tensor = d_ijk_tensor()
+
+    # --- Base point ---
+    if base_point is None:
+        base_point = H3O(alpha=1.0, beta=1.0, gamma=1.0)  # diag(1,1,1)
+
+    h = peirce_coords(base_point)
+
+    # Helper: C_{IJK} = (1/6) d_{IJK} from sorted-key storage
+    def get_c(I, J, K):
+        return d_tensor.get(tuple(sorted([I, J, K])), 0.0) / 6.0
+
+    # --- Cubic norm V = C_{IJK} h^I h^J h^K ---
+    V_val = 0.0
+    for (I, J, K), val in d_tensor.items():
+        c_val = val / 6.0
+        if I == J == K:
+            mult = 1
+        elif I == J or J == K or I == K:
+            mult = 3
+        else:
+            mult = 6
+        V_val += mult * c_val * h[I] * h[J] * h[K]
+
+    # --- Dual coordinates x_I = C_{IMN} h^M h^N ---
+    x = np.zeros(27)
+    for I in range(27):
+        s = 0.0
+        for J in range(27):
+            if abs(h[J]) < 1e-15:
+                continue
+            for K in range(27):
+                if abs(h[K]) < 1e-15:
+                    continue
+                s += get_c(I, J, K) * h[J] * h[K]
+        x[I] = s
+
+    # --- VSR metric G_{IJ} = (9/2) x_I x_J - 3 C_{IJK} h^K ---
+    G = np.zeros((27, 27))
+    for I in range(27):
+        for J in range(I, 27):
+            outer = (9.0 / 2.0) * x[I] * x[J]
+            contract = 0.0
+            for K in range(27):
+                if abs(h[K]) < 1e-15:
+                    continue
+                contract += get_c(I, J, K) * h[K]
+            G[I, J] = outer - 3.0 * contract
+            G[J, I] = G[I, J]
+
+    # --- Verification: symmetry ---
+    sym_error = np.max(np.abs(G - G.T))
+
+    # --- Verification: VSR identity G h = (3/2) x ---
+    Gh = G @ h
+    vsr_error = np.max(np.abs(Gh - 1.5 * x))
+
+    # --- Tangent space projection ---
+    # Normal to V=1: proportional to x_I (= (1/3) dV/dh^I)
+    n = x / np.linalg.norm(x)
+
+    # Orthonormal basis for tangent space via QR
+    A = np.eye(27) - np.outer(n, n)
+    Q, R = np.linalg.qr(A)
+    keep = np.abs(np.diag(R)) > 1e-12
+    Q_tan = Q[:, keep]  # 27 x 26
+
+    # --- Tangent eigenvalues ---
+    G_tan_26 = Q_tan.T @ G @ Q_tan  # 26 x 26
+    eigenvalues = np.sort(np.linalg.eigvalsh(G_tan_26))
+
+    min_eig = eigenvalues[0]
+    max_eig = eigenvalues[-1]
+    cond = max_eig / min_eig if min_eig > 0 else np.inf
+
+    return {
+        'G': G,
+        'eigenvalues': eigenvalues,
+        'tangent_projector': Q_tan,
+        'h': h,
+        'x': x,
+        'V': V_val,
+        'sym_error': sym_error,
+        'vsr_error': vsr_error,
+        'min_eigenvalue': min_eig,
+        'max_eigenvalue': max_eig,
+        'condition_number': cond,
+    }
