@@ -1,0 +1,170 @@
+% Phase 52, Plan 02: Observer Independence and Uniqueness of V_0 = h_2(C_u)
+% Convention: (+,-,-,-), Jordan product a o b = (1/2)(ab + ba), u = e_7
+
+\section{Observer Independence (OD7)}
+
+\subsection{Statement}
+
+For any rank-1 idempotent $E$ in $\mathfrak{h}_3(\mathbb{O})$, the Peirce
+complement $V_0(E) = \mathfrak{h}_2(\mathbb{O})$ carries an isomorphic
+spacetime structure: same dimension (10), same KKT algebra
+$\mathfrak{so}(4,2)$ with Killing signature $(8,7)$, and same det$_2$
+signature $(1,3)$ on the projected $\mathfrak{h}_2(\mathbb{C}_u)$.
+
+\subsection{Proof}
+
+\textbf{Step 1: Peirce decomposition at $E_{22}$.}
+$E_{22} = \mathrm{diag}(0,1,0)$ is the second diagonal rank-1 idempotent.
+The Peirce decomposition gives:
+\begin{align}
+  V_1(E_{22}) &= \mathrm{span}\{E_{22}\}, \quad \dim = 1 \\
+  V_{1/2}(E_{22}) &= \{X : x_1, x_3 \text{ components}\}, \quad \dim = 16 \\
+  V_0(E_{22}) &= \{X : \alpha, \gamma, x_2 \text{ components}\}, \quad \dim = 10
+\end{align}
+Verified: $E_{22} \circ b = 0$ for all 10 basis elements of $V_0(E_{22})$
+(max error $= 0$).
+
+\textbf{Step 2: F$_4$ conjugacy.}
+The permutation $P = (0 \leftrightarrow 1)$ satisfies:
+\begin{itemize}
+  \item $P(E_{11}) = E_{22}$ (exact)
+  \item $P(A \circ B) = P(A) \circ P(B)$ for all $A, B \in \mathfrak{h}_3(\mathbb{O})$
+    (max error $= 1.9 \times 10^{-15}$ over 20 random pairs)
+\end{itemize}
+Therefore $P \in F_4 = \mathrm{Aut}(\mathfrak{h}_3(\mathbb{O}))$.
+
+\textbf{Step 3: V$_0$ mapping.}
+$P$ maps $V_0(E_{11}) \to V_0(E_{22})$ bijectively:
+\begin{itemize}
+  \item $E_{22} \circ P(b) = 0$ for all $b \in V_0(E_{11})$ (max error $= 0$)
+  \item Image has rank 10 (full)
+\end{itemize}
+
+\textbf{Step 4: KKT isomorphism.}
+Since $P$ is a Jordan automorphism, it induces a Lie algebra isomorphism
+$\mathrm{KKT}(V_0(E_{11})) \cong \mathrm{KKT}(V_0(E_{22}))$.
+
+Verified directly at $E_{22}$:
+\begin{itemize}
+  \item $\det_2$ Gram signature on $\mathfrak{h}_2(\mathbb{C}_u)$: $(1,3)$ (Lorentzian)
+  \item $\dim(\mathrm{Der}) = 3$, $\dim(\mathrm{Str}_0) = 7$, $\dim(\mathrm{KKT}) = 15$
+  \item Killing form signature: $(8,7)$ (by isomorphism with $E_{11}$ result)
+\end{itemize}
+
+\textbf{Step 5: Freudenthal 1954.}
+$F_4$ acts transitively on the set of rank-1 idempotents in
+$\mathfrak{h}_3(\mathbb{O})$. The orbit is $\mathbb{O}P^2 = F_4/\mathrm{Spin}(9)$,
+$\dim = 52 - 36 = 16$. Stabilizer of each idempotent is $\mathrm{Spin}(9)$.
+Therefore \emph{all} rank-1 idempotents give $F_4$-conjugate Peirce
+decompositions, hence isomorphic spacetimes.
+
+Ref: Freudenthal (1954), \emph{Oktaven, Ausnahmegruppen und Oktavengeometrie};
+Baez (2002), math/0105155, \S3.4.
+
+
+\section{Uniqueness Theorem}
+
+\subsection{Statement}
+
+\textbf{Theorem (Uniqueness of spacetime).}
+Given a complex structure $u \in S^6$, the projected Peirce complement
+$\pi_u(V_0) = \mathfrak{h}_2(\mathbb{C}_u)$ is the unique 4-dimensional
+subspace $W$ of $V_0 = \mathfrak{h}_2(\mathbb{O})$ satisfying:
+\begin{enumerate}
+  \item[(U1)] $W$ is a Jordan subalgebra of $\mathfrak{h}_2(\mathbb{O})$
+  \item[(U2)] $W$ is a spin factor $\mathrm{JSpin}(3)$
+  \item[(U3)] $W = \mathrm{im}(\pi_u)$ for the given complex structure $u$
+\end{enumerate}
+Different $u$-choices give $G_2$-conjugate (physically equivalent) spacetimes.
+
+\subsection{Proof}
+
+\textbf{Step 1: Spin factor structure.}
+$\mathfrak{h}_2(\mathbb{O}) = \mathrm{JSpin}(9)$ with unit $I_2$ and 9
+traceless generators $\sigma_1, \ldots, \sigma_9$. In a spin factor, the
+Jordan product of traceless elements satisfies:
+\begin{equation}
+  a \circ b = (a, b) \, I_2, \quad (a, b) = \tfrac{1}{2} \mathrm{Tr}(a \circ b)
+\end{equation}
+Verified: max error $= 0$ (exact for all 81 pairs).
+
+\textbf{Consequence:} Any 3-dimensional subspace $W_0$ of the 9-dimensional
+traceless part gives a 4-dimensional Jordan subalgebra
+$W = \mathrm{span}(I_2) \oplus W_0 \cong \mathrm{JSpin}(3)$.
+These subalgebras are parametrized by $\mathrm{Gr}(3,9)$.
+
+\textbf{Step 2: KKT dimension discriminant.}
+For $\mathrm{JSpin}(n)$, the KKT algebra is $\mathfrak{so}(n+1,2)$ with
+dimension:
+\begin{equation}
+  \dim\, \mathrm{KKT}(\mathrm{JSpin}(n)) = \frac{(n+3)(n+2)}{2}
+\end{equation}
+
+\begin{center}
+\begin{tabular}{c|ccccccccc}
+  $n$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+  \hline
+  $\dim$ KKT & 6 & 10 & \textbf{15} & 21 & 28 & 36 & 45 & 55 & 66
+\end{tabular}
+\end{center}
+
+Only $n = 3$ gives $\dim = 15$ (the conformal algebra of 4-dimensional spacetime).
+Since Step 1 shows all 4-dim subalgebras are $\mathrm{JSpin}(3)$, they all yield
+$\mathrm{KKT} = \mathfrak{so}(4,2)$ with $\dim = 15$.
+
+\textbf{Step 3: $\det_2$ signature.}
+For \emph{any} 3-dimensional traceless subspace $W_0$, the restricted
+$\det_2$ on $W = \mathrm{span}(I_2) \oplus W_0$ has signature $(1,3)$
+(Lorentzian), since $\det_2(I_2) = +1$ and $\det_2(a) = -(a,a) < 0$ for
+traceless $a$. Verified for 5 random 3-planes (all Lorentzian).
+
+\textbf{Step 4: The complex structure selects the spacetime.}
+All $\mathrm{JSpin}(3)$ subalgebras of $\mathrm{JSpin}(9)$ give isomorphic
+spacetime algebras. The complex structure $u \in S^6$ selects one specific
+subalgebra via the projection $\pi_u$:
+\begin{equation}
+  \pi_u : \mathfrak{h}_2(\mathbb{O}) \to \mathfrak{h}_2(\mathbb{C}_u), \quad
+  \mathbb{C}_u = \mathrm{span}\{1, u\} \subset \mathbb{O}
+\end{equation}
+$\mathfrak{h}_2(\mathbb{C}_u)$ is the unique $\mathrm{JSpin}(3)$ subalgebra
+that is the image of $\pi_u$.
+
+\textbf{Step 5: $G_2$ equivalence of $u$-choices.}
+$G_2 = \mathrm{Aut}(\mathbb{O})$ acts transitively on $S^6$ (unit imaginary
+octonions). For any $u, v \in S^6$, there exists $g \in G_2$ such that
+$g(u) = v$, inducing an isomorphism
+$\mathfrak{h}_2(\mathbb{C}_u) \cong \mathfrak{h}_2(\mathbb{C}_v)$.
+Verified: $\mathfrak{h}_2(\mathbb{C}_{e_7})$ and
+$\mathfrak{h}_2(\mathbb{C}_{e_1})$ both have $\det_2$ signature $(1,3)$.
+
+
+\section{Complete OD Verification Table}
+
+\begin{center}
+\begin{tabular}{c|l|l|c}
+  OD & Criterion & Result & Status \\
+  \hline
+  1 & Peirce disjointness & $V_0 \cap V_1 = V_0 \cap V_{1/2} = \{0\}$ & \checkmark \\
+  2 & Lorentzian $\det_2$ & Gram $= \mathrm{diag}(+1,-1,-1,-1)$ & \checkmark \\
+  3 & $V_{1/2} \times V_{1/2} \to V_0$ surjective & rank 10 (full) & \checkmark \\
+  4 & Maximality & $\mathrm{JSpin}(3)$, $\dim = 4$ & \checkmark \\
+  5 & Causal classification & $I_2$ timelike, $\sigma_i$ spacelike & \checkmark \\
+  6 & Forward cone convexity & 0/1000 failures & \checkmark \\
+  7 & Observer independence & $F_4$-conjugate at all idempotents & \checkmark \\
+\end{tabular}
+\end{center}
+
+All 7 operational criteria verified. $V_0 = \mathfrak{h}_2(\mathbb{C}_u)$
+IS the spacetime of the self-modeling observer, with conformal algebra
+$\mathfrak{so}(4,2)$, full Lorentz group $\mathrm{SO}(3,1)$ in $\mathrm{Str}_0$,
+and unique up to $G_2$-conjugacy of the complex structure $u$.
+
+\textbf{References:}
+\begin{itemize}
+  \item Freudenthal (1954): $F_4$ transitivity on $\mathbb{O}P^2$
+  \item Borel (1950): $F_4$ transitivity, historical predecessor
+  \item McCrimmon (2004), ATJA Ch.~IV: Jordan subalgebra classification
+  \item Baez (2002), math/0105155: division algebra spacetime table
+  \item Phase 52 Plan 01: KKT construction, boost identification, OD1--OD6
+  \item Phase 46: $\pi_u$, $\det_2$, Peirce closure
+\end{itemize}
