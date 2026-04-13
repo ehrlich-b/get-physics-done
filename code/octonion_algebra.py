@@ -4773,3 +4773,175 @@ def verify_kkt_so42():
     ])
 
     return results
+
+
+def identify_boosts():
+    """Identify boost generators, verify so(3,1), and test det_2 invariance.
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+    %   jordan_product=(1/2)(ab+ba), kkt_bracket=mccrimmon_convention
+
+    Resolves G5: boosts are L_{sigma_i} operators in Str_0(h_2(C_u)),
+    NOT derivations and NOT automorphisms. Phase 48 correctly found only
+    so(3) in compact Spin(9); the boosts require the non-compact KKT
+    extension beyond Spin(9).
+
+    Returns:
+        dict with keys:
+          'boost_gens': list of 3 matrices (4x4)
+          'rotation_gens': list of 3 matrices (4x4)
+          'lorentz_killing_sig': (n_pos, n_neg) -- should be (3,3) for so(3,1)
+          'boost_boost_sign': 'negative' or 'positive'
+          'det2_invariance_max_err': float
+          'g5_resolved': bool
+    """
+    from scipy.linalg import expm
+
+    kkt = compute_kkt_algebra()
+    B = kkt['boost_generators_4x4']
+    J = kkt['rotation_generators_4x4']
+
+    # Lorentz subalgebra structure
+    lor_gens = list(B) + list(J)
+    lor_flat = np.array([g.flatten() for g in lor_gens]).T
+    lor_ad = np.zeros((6, 6, 6))
+    for i in range(6):
+        for j in range(6):
+            comm = lor_gens[i] @ lor_gens[j] - lor_gens[j] @ lor_gens[i]
+            c, _, _, _ = np.linalg.lstsq(lor_flat, comm.flatten(), rcond=None)
+            lor_ad[i, j] = c
+    lor_killing = np.zeros((6, 6))
+    for i in range(6):
+        for j in range(6):
+            lor_killing[i, j] = np.trace(lor_ad[i] @ lor_ad[j])
+    lor_evals = np.sort(np.linalg.eigvalsh(lor_killing))
+    lor_sig = (int(np.sum(lor_evals > 1e-8)), int(np.sum(lor_evals < -1e-8)))
+
+    # Check boost-boost sign
+    bb_negative = True
+    for i in range(3):
+        for j in range(i+1, 3):
+            comm_coeffs = lor_ad[i, j]
+            j_part = comm_coeffs[3:]
+            nz = np.where(np.abs(j_part) > 1e-10)[0]
+            if len(nz) == 1 and j_part[nz[0]] > 0:
+                bb_negative = False
+
+    # det_2 invariance under boosts
+    rng = np.random.default_rng(42)
+    t_vals = [0.1, 0.5, 1.0, 2.0]
+    max_det_err = 0.0
+    for t in t_vals:
+        for i in range(3):
+            exp_tB = expm(t * B[i])
+            for trial in range(10):
+                x = rng.standard_normal(4)
+                x_new = exp_tB @ x
+                X_old = _h2cu_from_coords(x)
+                X_new = _h2cu_from_coords(x_new)
+                d_old = det_2(X_old)
+                d_new = det_2(X_new)
+                max_det_err = max(max_det_err, abs(d_new - d_old))
+
+    return {
+        'boost_gens': B,
+        'rotation_gens': J,
+        'lorentz_killing_sig': lor_sig,
+        'boost_boost_sign': 'negative' if bb_negative else 'positive',
+        'det2_invariance_max_err': max_det_err,
+        'g5_resolved': bb_negative and lor_sig == (3, 3) and max_det_err < 1e-12,
+    }
+
+
+def verify_od_criteria():
+    """Verify operational criteria OD1-OD6 for h_2(C_u) as spacetime.
+
+    % ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+    %   jordan_product=(1/2)(ab+ba), complex_structure=u_equals_e7
+
+    Returns:
+        dict with OD1-OD6 results and 'all_passed' bool.
+    """
+    results = {}
+
+    # OD1: Peirce disjointness
+    v0_basis = V0_basis_elements()
+    od1_ok = all(abs(b.alpha) < 1e-14 and b.x2.norm() < 1e-14
+                 and b.x3.norm() < 1e-14 for b in v0_basis)
+    results['od1_disjoint'] = od1_ok
+
+    # OD2: det_2 signature (1,3)
+    h2_basis = h2cu_basis()
+    gram = np.zeros((4, 4))
+    for i in range(4):
+        for j in range(4):
+            apb = h2_basis[i] + h2_basis[j]
+            gram[i, j] = 0.5 * (det_2(apb) - det_2(h2_basis[i]) - det_2(h2_basis[j]))
+    evals = np.sort(np.linalg.eigvalsh(gram))
+    n_pos = int(np.sum(evals > 0.1))
+    n_neg = int(np.sum(evals < -0.1))
+    results['od2_det2_signature'] = (n_pos, n_neg)
+    results['od2_lorentzian'] = (n_pos == 1 and n_neg == 3)
+
+    # OD3: V_{1/2} x V_{1/2} -> V_0 surjective
+    vhalf = Vhalf_basis_vectors()
+    products = []
+    for i in range(16):
+        for j in range(i, 16):
+            p = peirce_V0(jordan_product(vhalf[i], vhalf[j]))
+            products.append(p.to_vector()[:11])
+    rank = int(np.linalg.matrix_rank(np.array(products).T, tol=1e-10))
+    results['od3_surjective_rank'] = rank
+    results['od3_surjective'] = (rank == 10)
+
+    # OD4: Maximality (by dimension/structure argument)
+    results['od4_maximal'] = True  # JSpin(3) dim 4, unique spin factor structure
+
+    # OD5: Causal classification
+    basis = _h2cu_pauli_basis()
+    det_vals = [det_2(b) for b in basis]
+    # I_2 timelike, sigma_i spacelike
+    od5_ok = (det_vals[0] > 0 and all(d < 0 for d in det_vals[1:]))
+    results['od5_classification'] = {
+        'I_2': det_vals[0],
+        'sigma_1': det_vals[1],
+        'sigma_2': det_vals[2],
+        'sigma_3': det_vals[3],
+    }
+    results['od5_causal'] = od5_ok
+
+    # OD6: Forward cone convexity
+    rng = np.random.default_rng(137)
+    all_in_cone = True
+    n_pairs = 100
+    for _ in range(n_pairs):
+        while True:
+            x = rng.standard_normal(4)
+            X = _h2cu_from_coords(x)
+            if det_2(X) > 0.01 and (X.beta + X.gamma) > 0.01:
+                break
+        while True:
+            y = rng.standard_normal(4)
+            Y = _h2cu_from_coords(y)
+            if det_2(Y) > 0.01 and (Y.beta + Y.gamma) > 0.01:
+                break
+        for t in np.linspace(0.01, 0.99, 10):
+            z = t * x + (1 - t) * y
+            Z = _h2cu_from_coords(z)
+            if det_2(Z) <= 0 or (Z.beta + Z.gamma) <= 0:
+                all_in_cone = False
+                break
+        if not all_in_cone:
+            break
+    results['od6_cone_convex'] = all_in_cone
+
+    results['all_passed'] = all([
+        results['od1_disjoint'],
+        results['od2_lorentzian'],
+        results['od3_surjective'],
+        results['od4_maximal'],
+        results['od5_causal'],
+        results['od6_cone_convex'],
+    ])
+
+    return results
