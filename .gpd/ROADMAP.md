@@ -694,7 +694,11 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 
 **Backtracking:** If Phase 4-06 circularity audit FAILS, (A) via internal prior art is unavailable — proceed to (C-i) and stop attempting to prove. If (A) attempts accumulate without closure in a reasonable time cap and all attempts silently drift toward Jordan tokens, pivot to (C-i) (ADDENDUM recommendation). If adversarial fresh-eyes review in VALD-54-02 finds a prohibited structure, mark `attempt-NN.md` as failed and open the next attempt or pivot. (C-iii) restructure-before-S4 is EXPLICITLY UNAVAILABLE and must not be tried. Outcome (C) on this phase triggers milestone pause for human decision.
 
-**Plans:** TBD (plan-phase will decompose; expected 2-3 plans: 4-06 circularity audit → (A) attempts → (C-i) fallback draft / SymPy sanity + adversarial review)
+**Plans:** 3 plans
+
+- [ ] 54-01-PLAN.md — Phase 4-06 circularity audit (DERV-54-01) + `claim.md` named-lemma restatement (DERV-54-02 foundation) + `alfsen-shultz-notes.md` SHARED ARTIFACT baseline (Wave 1; interactive — audit-routing checkpoint)
+- [ ] 54-02-PLAN.md — Outcome (A) proof attempts (DERV-54-03) with per-attempt SymPy rank-1 gate + three early falsifier gates + adversarial `gpd-review-math` review; attempt cap 3; mandatory end-of-attempt-02 stop/rethink pause (Wave 2, depends_on 54-01; interactive)
+- [ ] 54-03-PLAN.md — (C-i) S0 axiom + canonical-example defense + OUS-compatibility sketch (DERV-54-04/05/06) IF PIVOT-TO-C-I; closeout SymPy with R3 cross-term coverage (VALD-54-01); §3.3 revision text integrated into main.tex; adversarial review (VALD-54-02); exit gate (grep + manual review); 54-RESULT.md (DERV-00-01 Phase 54 slice) (Wave 3, depends_on 54-02; interactive — Phase 54 close checkpoint)
 
 ### Phase 55: S4 Facial Structure Lemma
 
