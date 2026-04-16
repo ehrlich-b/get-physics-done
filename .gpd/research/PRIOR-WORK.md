@@ -1,13 +1,12 @@
-# Prior Work: G4 Spacetime Derivation + N=2 SUSY as Consequence from h_3(O)
+# Prior Work: Paper 5 v14.0 Revision -- Sequential-Product Peirce Preservation and Related Exposition Gaps
 
-**Surveyed:** 2026-04-12
-**Domain:** Exceptional Jordan algebras / Tits-Kantor-Koecher construction / Magic supergravity / Very special real geometry
-**Confidence:** HIGH (all core results are established mathematics/physics from 1962-2001; the novel element is combining them to close G1 and G2)
+**Surveyed:** 2026-04-16
+**Domain:** Operational quantum foundations / Sequential effect algebras / Order-unit spaces / Peirce decomposition / Jordan-algebra axiomatization / Local tomography / Lean 4 formalization of operator algebras
+**Confidence:** MEDIUM-HIGH overall; MEDIUM on the specific Phase 54 Peirce-preservation question because the literature is silent in exactly the form Paper 5 needs
 
-This document covers prior work for the v13.0 milestone: deriving V_0 = spacetime (gap G1) and N=2 SUSY as a consequence rather than assumption (gap G2) from h_3(O) algebraic structure. It does NOT re-cover v12.0 validated results (Phases 46-51). It focuses exclusively on:
+This document covers prior work for the v14.0 Paper 5 revision cycle, targeted specifically at the six jigsaw-piece gaps identified pre-referee. It focuses exclusively on the literature available for each gap, with explicit attention to (A) is it already proven somewhere citable, (B) does a precise citation exist, or (C) is the literature silent and must Paper 5 prove it.
 
-1. **G1 closure (spacetime):** Operational/algebraic definitions of spacetime from Jordan algebras, KKT construction, F_4 transitivity on idempotents
-2. **G2 closure (N=2 SUSY):** GST classification theorem, very special real geometry, Lagrangian uniqueness from the cubic form alone
+The most important finding: **the Phase 54 Peirce-preservation claim (sequential product preserves V_2(p_i) and V_1(p_i, p_j) from OUS primitives S1 + S3 alone) is not stated in this form anywhere in the surveyed literature.** Alfsen-Shultz proves Peirce decomposition structure; van de Wetering derives EJA structure; Niestegge derives compression properties; but no source proves the specific claim "given only S1 and S3 on an arbitrary sequential product, the left multiplication L_a = a o (-) preserves the Peirce subspaces associated with the spectral projectors of a." Phase 54 outcome is most likely (A) from OUS primitives + internal GPD v2.0 results OR (C) structural-gap characterization with Alfsen-Shultz citation as partial support.
 
 ---
 
@@ -15,445 +14,342 @@ This document covers prior work for the v13.0 milestone: deriving V_0 = spacetim
 
 | Result | Expression / Value | Conditions | Source | Year | Confidence |
 |--------|-------------------|------------|--------|------|------------|
-| TKK(J) = J + Str_0(J) + J gives Lie algebra | g_{-1} + g_0 + g_{+1}, 3-graded | J simple Jordan algebra | Tits (1962), Kantor (1964), Koecher (1967) | 1962 | HIGH |
-| TKK(h_2(C)) = su(2,2) = so(4,2) | dim = 4 + 7 + 4 = 15 | h_2(C) = R^{3,1} spin factor | Koecher (1967), Gunaydin (1993) | 1967 | HIGH |
-| TKK(h_3(O)) = e_{6(-26)} | dim = 27 + 24 + 27 = 78 | Including outer derivations | Tits (1962), Springer-Veldkamp (2000) | 1962 | HIGH |
-| F_4 transitive on rank-1 idempotents of h_3(O) | Stabilizer = Spin(9), orbit = OP^2 = F_4/Spin(9) | Standard result | Jordan (1949), Freudenthal (1954) | 1949 | HIGH |
-| Str_0(h_3(O)) = Der(h_3(O)) + L_0(h_3(O)) | dim = 52 + (-1 + 27) = 78; reduced: 52 + 26 - 1 inner = 24 effective | Reduced structure algebra | McCrimmon (2004), Springer-Veldkamp (2000) | 2000 | HIGH |
-| Der(h_2(C)) = su(2) | dim = 3 | Inner derivations of spin factor JSpin_3 | Standard | -- | HIGH |
-| Str_0(h_2(C)) = so(3,1) + R | dim = 6 + 1 = 7 | Lorentz + dilatation | Koecher (1967) | 1967 | HIGH |
-| GST classification: symmetric 5d N=2 MESGT <-> degree-3 Euclidean Jordan algebras | 4 magic + generic families | Symmetric scalar manifold condition | GST, Nucl. Phys. B 242 (1984) | 1984 | HIGH |
-| Bosonic Lagrangian uniquely determined by C_{IJK} | L_bos = R - a_{IJ} F^I F^J - (1/6sqrt(6)) C_{IJK} A^I F^J F^K + scalar terms | Very special real geometry | GST (1984), de Wit-Van Proeyen (1992) | 1984 | HIGH |
-| E_{6(-26)}/F_4 is the unique symmetric very special real manifold for J = h_3(O) | dim = 26, rank = 2 | Cubic norm = det(h_3(O)) | GST (1984) | 1984 | HIGH |
+| Peirce decomposition of a Jordan algebra | V = V_1(p) + V_{1/2}(p) + V_0(p); V_i . V_j subset V_{i+j-1} (Peirce rules) | p idempotent in Jordan algebra over char != 2 | Peirce (1870), Albert (1947), Jacobson (1968) | 1947 | HIGH |
+| Peirce decomposition in JB-algebras via compressions | V_2(p) = range(U_p), V_0(p) = range(U_{1-p}), V_1(p) = range(U_p + U_{1-p})^perp | p projection in JBW-algebra; U_p quadratic representation | Alfsen-Shultz 2003, Prop 2.16; Hanche-Olsen-Stormer 1984, Thm 2.6.8 | 2003 | HIGH |
+| Compressions (P-projections) on OUS | P^2 = P positive, P(1) = e (projective unit), complemented by P' with P+P' = pinching | Alfsen-Shultz spectral OUS with P-projection structure | Alfsen-Shultz 2003, Ch 7-8; Niestegge 2008 | 2003 | HIGH |
+| vdW S1-S7 force EJA structure (fin-dim) | Sequential product space => Euclidean Jordan algebra | V finite-dim OUS with bilinear SP satisfying S1-S7 | van de Wetering, J. Math. Phys. 60 (2019), arXiv:1803.11139, Thm 1 | 2019 | HIGH |
+| vdW SP + local tomography => C*-algebra | V fin-dim SP space locally tomographic with itself => exists C*-algebra A with V = A^sa | S1-S7 + V tensor V is SP space with (a1 tensor b1) & (a2 tensor b2) = (a1 & a2) tensor (b1 & b2) | van de Wetering 2019, Thm 3 | 2019 | HIGH |
+| Three characterisations of Luders SP | SP is uniquely sqrt(a) b sqrt(a) under any of: (i) order-iso invariance, (ii) inner-product symmetry, (iii) invertibility preservation | vN algebra or EJA baseline | van de Wetering, J. Math. Phys. 59 (2018), arXiv:1803.08453 | 2018 | HIGH |
+| Associativity forces commutativity for normal SEAs | If sequential product is associative then algebra is commutative | normal sequential effect algebra | Westerbaan-Westerbaan-vdW, Quantum 4, 378 (2020), arXiv:2004.12749 | 2020 | HIGH |
+| Classical uniqueness of SP on simplices | Pointwise product is the unique SP on C(X) satisfying Gudder-Greechie axioms | classical/simplex case | Gudder-Greechie, Rep. Math. Phys. 49, 87 (2002) | 2002 | HIGH |
+| Niestegge conditional probability via compressions | mu(f \| e) = mu_hat(U_e f) / mu(e); U_e is a positive projection with U_e(1) = e | OUS with compression base | Niestegge, Found. Phys. 38, 783 (2008), arXiv:1001.3633 | 2008 | HIGH |
+| Barnum-Wilce: Jordan + local-tomo + qubit => complex QM | EJA satisfying local tomography for a qubit subsystem forces M_n(C)^sa type (excludes real, quaternionic, spin factor, exceptional) | Barnum-Wilce Found. Phys. 44 (2014), arXiv:1202.4513 | 2014 | HIGH |
+| Spectral OUS vs convex sequential effect algebra correspondence | Convex sigma-SEAs <-> unit intervals of spectral OUS with homogeneous positive cone | Jencova, Flaminio, Kroupa 2023 | 2023 | HIGH |
+| Foulis-based spectrality strictly more general than Alfsen-Shultz | Foulis approach contains Alfsen-Shultz as special case | Jencova 2021, arXiv:2102.01628 | 2021 | HIGH |
+| **GAP**: "S1+S3 alone => L_a preserves Peirce subspaces" | NO literature statement found in this form | Would be decisive for Phase 54 (B) outcome | -- | -- | N/A (absence is the finding) |
 
 ---
 
 ## Foundational Work
 
-### Tits (1962), Kantor (1964), Koecher (1967) -- The TKK Construction
+### van de Wetering (2019) -- "Sequential Product Spaces are Jordan Algebras"
 
-**Key contribution:** Associates to any Jordan algebra J a 3-graded Lie algebra g = g_{-1} + g_0 + g_{+1} where g_{-1} = J, g_{+1} = J, and g_0 = Str_0(J) is the reduced structure algebra. This Lie algebra is the conformal algebra of the Jordan algebra viewed as a "generalized spacetime."
+**Key contribution:** Theorem 1: any finite-dimensional OUS with continuous sequential product satisfying S1-S7 is order-isomorphic to a Euclidean Jordan algebra. Theorem 3: if the SP space is also locally tomographic with itself, the EJA arises from a C*-algebra.
 
-**The construction in detail:**
+**Method:** Axiomatic. vdW assumes S1-S7 as the primitive structure, builds spectral decomposition internally (Corollary 7), constructs Jordan product as p * q = (1/2)(L_p + L_{p^perp} - L_{p^perp p p^perp})q for atomic sharp p (Def. 15-16), invokes Koecher-Vinberg.
 
-Given a simple Jordan algebra J:
-- Define the structure algebra: Str(J) = Der(J) + {L_a : a in J} where L_a(x) = a o x is left multiplication
-- The reduced structure algebra: Str_0(J) = Str(J) / R*1 (quotient by multiples of the identity operator)
-- The TKK Lie algebra: g(J) = J + Str_0(J) + J with the 3-grading induced by an sl(2) triple
-- Bracket: [x, y'] = L_{x,y} - Tr(x,y) for x in g_{-1}, y in g_{+1}, where L_{x,y} is the operator z -> {x,y,z} = x o (y o z) + y o (x o z) - (x o y) o z (the Jordan triple product)
+**Limitations for Phase 54:** vdW works WITH the full S1-S7 structure and WITH pre-existing spectral decomposition. Phase 54 asks the weaker question: given only S1 and S3 (not the full axiom set, and not the derived EJA structure), is Peirce invariance automatic? vdW does not answer this because he never considers S1+S3 alone. vdW's Peirce-like structure emerges only after S4 is used (homogeneity + self-duality, Prop 8 and Prop 30).
 
-**Dimension formula for TKK:**
-dim g(J) = 2 * dim(J) + dim(Str_0(J))
+**Relevance:** Primary axiom source (arXiv:1803.11139 Def. 2 defines S1-S7). This is the reference Paper 5 §3.3 must use for its sequential-product notation and axiom numbering. A Phase 54 (C) outcome could cite vdW to characterize the gap: "S1+S3 alone is insufficient for Peirce invariance; the homogeneity properties of the cone (used in vdW Prop 8) are required."
 
-**Critical identification for h_2(C):**
-- J = h_2(C): dim = 4 (2x2 hermitian complex matrices)
-- Der(h_2(C)) = su(2), dim = 3
-- Str_0(h_2(C)) = sl(2,C)_R + R = so(3,1) + R (Lorentz algebra + dilatation), dim = 7
-- g_{-1} = translations (4), g_0 = Lorentz + dilatation + special conformal boosts overlap (7), g_{+1} = special conformal transformations (4)
-- Total: dim g(h_2(C)) = 4 + 7 + 4 = 15 = dim su(2,2) = dim so(4,2)
-- **Result: TKK(h_2(C)) = su(2,2) = so(4,2), the conformal algebra of 4d Minkowski spacetime**
+### Alfsen-Shultz (2003) -- "Geometry of State Spaces of Operator Algebras"
 
-This is the precise sense in which h_2(C) IS 4d Minkowski spacetime: its conformal symmetry algebra, derived purely from the Jordan algebra structure, is exactly the conformal algebra of R^{3,1}.
+**Key contribution:** Comprehensive geometric development of JB-algebra and JBW-algebra state spaces. Establishes P-projection / compression theory, spectral theorem for JB-algebras, face structure of state spaces, and characterization theorems for C*-algebra state spaces among JB-algebra state spaces via orientability.
 
-**Complete TKK table for h_2(K):**
+**Method:** Geometric. Develops compressions as positive idempotent maps P: V -> V with P' complementary such that P and P' partition the identity (in the projective-unit sense, not the commutative sense). Peirce decomposition for a projection p in a JBW-algebra A gives A = U_p A + U_{1-p} A + (centered Peirce 1-space), where U_p is the quadratic representation -- NOT the sequential product. In a JB-algebra, U_p and the sequential product sqrt(p) . sqrt(p) coincide on sharp p, but this identification requires the JB structure, which Phase 54 is not allowed to assume.
 
-| K | dim K | dim h_2(K) | Der | Str_0 | TKK | Conformal algebra |
-|---|-------|-----------|-----|-------|-----|-------------------|
-| R | 1 | 3 | so(2) [dim 1] | so(2,1)+R [dim 4] | so(3,2) [dim 10] | Conf(R^{2,1}) |
-| C | 2 | 4 | su(2) [dim 3] | so(3,1)+R [dim 7] | su(2,2) = so(4,2) [dim 15] | Conf(R^{3,1}) |
-| H | 4 | 6 | sp(1)+sp(1) [dim 6] | so(5,1)+R [dim 16] | so(6,2) [dim 28] | Conf(R^{5,1}) |
-| O | 8 | 10 | so(8) [dim 28] | so(9,1)+R [dim 46] | so(10,2) [dim 66] | Conf(R^{9,1}) |
+**Chapter structure (partial, from AMS Bull review + Springer TOC):**
+- Part I: Jordan algebras and their state spaces (Ch 1-5)
+  - Ch 1: JB-algebras
+  - Ch 2: JBW-algebras
+  - Ch 3: Structure of JBW-algebras
+  - Ch 4: Representations of JB-algebras as Jordan operator algebras
+  - Ch 5: State spaces of Jordan algebras
+- Part II: Compressions and spectral theory
+  - Ch 7: General compressions (order-unit space setting)
+  - Ch 8: Spectral theory
+  - Ch 9 onward: Orientation, dynamical correspondence, C*-algebra characterization
 
-The pattern: TKK(h_2(K)) = so(dim(K)+2, 2) = conformal algebra of R^{dim(K)+1,1} Minkowski spacetime.
+**Note on chapter numbering:** The 2003 Birkhauser edition is the companion volume to Alfsen-Shultz (2001) "State Spaces of Operator Algebras: Basic Theory, Orientations, and C*-products". The 2003 book focuses on JB/JBW-algebra state spaces; the 2001 book focuses on C*-algebra state spaces. For the JB-side results (which is what §3.3 needs), the 2003 volume is the correct citation target.
 
-**For h_3(K) (degree 3):**
+**Limitations for Phase 54:** Alfsen-Shultz proves Peirce invariance for compressions/quadratic-representation operators in a JB-algebra, NOT for sequential-product left multiplication in an abstract spectral OUS lacking Jordan structure. The Jordan structure is precisely the downstream target of §3.3 in Paper 5, so invoking Alfsen-Shultz for Peirce preservation of the sequential product would be circular at the point where Paper 5 invokes it.
 
-| K | dim h_3(K) | Der | Str_0 | TKK |
-|---|-----------|-----|-------|-----|
-| R | 6 | so(3) [dim 3] | sl(3,R) [dim 8] | sp(6,R) [dim 21] |
-| C | 9 | su(3) [dim 8] | sl(3,C)_R [dim 16] | su(3,3) [dim 35] |
-| H | 15 | sp(3) [dim 21] | su*(6) [dim 35] | so*(12) [dim 66] |
-| O | 27 | f_4 [dim 52] | e_{6(-26)} [dim 78] | e_{7(-25)} [dim 133] |
+**Relevance:** HIGH as background for Peirce decomposition existence (a spectral OUS in Paper 5's sense has Peirce decomposition as structural fact), but NOT sufficient as a (B) citation for Phase 54's exact claim. A Phase 54 (B) outcome would require a theorem of the form "In any spectral OUS with sequential product o satisfying S1 and S3, the left multiplication L_a preserves Peirce subspaces of a's spectral projectors" -- this is not in Alfsen-Shultz.
 
-**Relevance to G1 (spacetime derivation):** The TKK construction provides a DERIVATION (not just an identification) of conformal spacetime structure from a Jordan algebra. If the self-modeling framework forces h_2(C_u) as the observable V_0 subalgebra, then TKK automatically gives so(4,2) as the conformal algebra, from which Minkowski spacetime is recovered as the coset SO(4,2)/P where P is the Poincare subgroup.
+**Precise citation candidates for different roles:**
+- For **Peirce decomposition existence**: Alfsen-Shultz (2003), Ch 2-3 (JBW-algebra structure), especially Prop 2.5-2.16 on the range of P-projections
+- For **compression-Peirce compatibility in JB-algebras**: Alfsen-Shultz (2003), Ch 2, Prop 2.16 and following; Hanche-Olsen-Stormer (1984), Thm 2.6.8 and surrounding Peirce discussion
+- NOT available: Alfsen-Shultz never states the §3.3 exact claim, because compression-preservation of Peirce subspaces in AS is a JB-algebra result, not an abstract OUS result.
 
-**References:**
-- Tits, J., "Une classe d'algebres de Lie en relation avec les algebres de Jordan," Indag. Math. 24 (1962) 530-535.
-- Kantor, I.L., "Classification of irreducible transitive differential groups," Doklady Akad. Nauk SSSR 158 (1964) 1271-1274.
-- Koecher, M., "Imbedding of Jordan algebras into Lie algebras I," Amer. J. Math. 89 (1967) 787-816.
-- McCrimmon, K., "A Taste of Jordan Algebras," Springer Universitext (2004), Ch. IV.
+### Gudder-Greechie (2002) -- "Sequential Products on Effect Algebras"
 
-### Jordan (1949), Freudenthal (1954) -- F_4 Transitivity on Idempotents
+**Key contribution:** Original definition of sequential effect algebra (SEA). Axioms A1-A5 (weaker than vdW's S1-S7). Proves uniqueness of pointwise multiplication as the SP on a fuzzy set system (classical simplex case).
 
-**Key contribution:** Proved that the automorphism group F_4 = Aut(h_3(O)) acts transitively on the space of rank-1 idempotents (primitive projections) in h_3(O). The stabilizer of any rank-1 idempotent is Spin(9). The orbit space is the octonionic projective plane OP^2 = F_4/Spin(9), a compact 16-dimensional symmetric space.
+**Method:** Effect-algebraic. Works with abstract effect algebras (not OUS), defines sequential product operation axiomatically.
 
-**Precise statement (Freudenthal 1954, modernized):**
+**Limitations for Phase 54:** Does NOT address Peirce preservation. Gudder-Greechie axioms are strictly weaker than vdW's; the axiomatization Paper 5 uses is vdW's, so Gudder-Greechie is reference material only.
 
-**Theorem (F_4 transitivity):** Let E be a rank-1 idempotent in h_3(O), i.e., E^2 = E, Tr(E) = 1, rank(E) = 1. Then for any other rank-1 idempotent E', there exists g in F_4 such that g(E') = E. The stabilizer subgroup Stab_{F_4}(E) = Spin(9).
+**Relevance:** Historical. Paper 5 §3.3 should cite both Gudder-Greechie (historical precedent) and van de Wetering (current standard) when introducing sequential products.
 
-**Dimension check:** dim F_4 - dim Spin(9) = 52 - 36 = 16 = dim OP^2. Consistent.
+### Hanche-Olsen-Stormer (1984) -- "Jordan Operator Algebras"
 
-**Physical significance:** This means the choice of which rank-1 idempotent E_{11} to use for the Peirce decomposition is NOT an additional input. Any choice gives an equivalent decomposition, related by an F_4 automorphism. The Peirce decomposition 27 = 1 + 16 + 10 is canonical up to F_4.
+**Key contribution:** First comprehensive monograph on Jordan operator algebras. Develops JB-algebra and JC-algebra theory. Includes Peirce decomposition for JB-algebras, spectral theorem for self-adjoint elements in JB-algebras, and classification of finite-dim formally real Jordan algebras (reproduces Jordan-von Neumann-Wigner).
 
-**Consequence for G1:** The V_0 = h_2(O) subspace obtained from the Peirce decomposition at ANY rank-1 idempotent is isomorphic (via F_4) to the V_0 at any other. The observer's position in h_3(O) does not affect the spacetime structure -- all observers see the same V_0 = R^{9,1}.
+**Method:** Operator-algebraic. Treats JB-algebras as closed Jordan subalgebras of B(H)^sa (in the JC case) or axiomatic (general JB). Peirce decomposition introduced in Ch 2 via idempotent elements.
 
-**Borel's theorem (related):** The compact symmetric space F_4/Spin(9) = OP^2 was identified by Borel as one of the four compact rank-1 symmetric spaces (along with RP^n, CP^n, HP^n). Its only characteristic class beyond the Euler class is the 8th Pontryagin class. This gives OP^2 = {rank-1 idempotents in h_3(O)} a rigid topological structure.
+**Limitations for Phase 54:** Takes Peirce decomposition as derived from Jordan algebraic structure. Does not address the abstract OUS case prior to JB structure. Peirce invariance is proved for the Jordan product L_a = a o (1/2)(- + -), not for an abstract sequential product.
 
-**References:**
-- Jordan, P., "Uber eine nicht-desarguessche ebene projektive Geometrie," Abh. Math. Sem. Hamburg 16 (1949) 74-76.
-- Freudenthal, H., "Beziehungen der E_7 und E_8 zur Oktavenebene I-XI," Indag. Math. 16-25 (1954-1963).
-- Borel, A., "Le plan projectif des octaves et les spheres comme espaces homogenes," C.R. Acad. Sci. Paris 230 (1950) 1378-1380.
-- Springer, T.A. and Veldkamp, F.D., "Octonions, Jordan Algebras and Exceptional Groups," Springer (2000), Ch. 5.
+**Relevance:** Background reference. If Phase 54's (A) proof uses properties of sharp effects that are closer to JB-algebra structure than to pure OUS structure, Hanche-Olsen-Stormer Ch 2 (Peirce decomposition) should be cited as context.
 
-### Gunaydin (1993, 2001) -- Generalized Conformal Groups and Jordan Algebras
+**Availability:** Freely available at https://hanche.folk.ntnu.no/joa/ (authors released under CC-BY-NC-ND).
 
-**Key contribution:** Made explicit the physical interpretation of the TKK construction: the TKK Lie algebra g(J) acts as the conformal group on J viewed as a "generalized spacetime." For J = h_2(K), this gives the standard conformal groups of (dim(K)+2)-dimensional Minkowski spacetime. For J = h_3(O), this gives E_{7(-25)} as the "conformal group" of a 27-dimensional generalized spacetime.
+### Niestegge (2008) -- "A Representation of Quantum Measurement in Order-Unit Spaces"
 
-**The conformal realization (Gunaydin-Koepsell-Nicolai 2001):**
-The TKK construction gives a 3-graded decomposition g = g_{-1} + g_0 + g_{+1} where:
-- g_{-1} = J: "translations" in the generalized spacetime
-- g_0 = Str_0(J): "Lorentz + dilatation" symmetries
-- g_{+1} = J: "special conformal transformations"
+**Key contribution:** Defines compressions U_e on OUS corresponding to measurement update. Shows U_e is a positive projection, U_e(1) = e, and U_e U_f = U_f U_e when e <= f. Conditional probability formula mu(f | e) = mu_hat(U_e f)/mu(e). Establishes the connection between OUS compressions and Luders-type measurement conditioning.
 
-The structure group Str_0(J) contains the Lorentz group as a subgroup. For J = h_2(C): Str_0 = so(3,1) + R (Lorentz + dilatation). The dilatation is the 1-dimensional center of Str_0.
+**Method:** Axiomatic on OUS. Introduces "projective units" axiom (existence of a compression base) on an OUS; derives measurement-theoretic properties.
 
-**Key insight for this project:** The identification of J = h_2(C) with R^{3,1} is not merely a vector space isomorphism. The FULL conformal structure -- translations, Lorentz boosts, dilatations, special conformal transformations -- emerges from the Jordan algebra structure via TKK. The conformal algebra so(4,2) is derivable from h_2(C) alone, without assuming any metric or spacetime.
+**Limitations for Phase 54:** Niestegge works at the level of the compression itself (U_e), not the sequential product a o b in abstract. The passage from "U_e is a positive projection" to "a o b = U_{something}(b) preserves Peirce subspaces" requires the additional step of identifying a o b with a compression expression, which requires additional axioms (vdW's S4-S7 or equivalents). Niestegge does not make this identification at the level of §3.3 primitives.
 
-**Nonlinear realization:** The conformal group acts nonlinearly on J, generalizing the standard fractional linear transformations. The "light cone" in J is defined by {x in J : det(x) = 0}, and conformal transformations preserve this cone. For J = h_2(C), det(X) = 0 is the standard light cone in Minkowski space.
+**Relevance:** Background for OUS compressions. Cite for: compressions exist in spectral OUS and are positive projections with U_e(1) = e.
 
-**References:**
-- Gunaydin, M., "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407-1416. arXiv: hep-th/9301050.
-- Gunaydin, M., Koepsell, K., and Nicolai, H., "Conformal and quasiconformal realizations of exceptional Lie groups," Commun. Math. Phys. 221 (2001) 57-76. arXiv: hep-th/0008063.
+### Westerbaan-Westerbaan-van de Wetering (2020) -- "Three Types of Normal Sequential Effect Algebras"
 
-### Gunaydin-Sierra-Townsend (1983, 1984) -- GST Classification Theorem
+**Key contribution:** Classification: every normal SEA is a direct sum of three types: commutative (classical), quantum (corresponding to B(H)^sa for some H), and spin-factor (order-unit space of n-dim Minkowski-type cone). Associativity of the sequential product forces commutativity.
 
-**Key contribution:** Proved that N=2 Maxwell-Einstein supergravity theories in 5 dimensions with symmetric target spaces for the scalar fields are in one-to-one correspondence with Euclidean Jordan algebras of degree 3. The cubic norm of the Jordan algebra IS the prepotential that determines the complete bosonic Lagrangian.
+**Method:** Effect-algebraic. Extends Westerbaan-Westerbaan sequential-effect-algebra machinery to classify normal cases.
 
-**Precise statement of the classification theorem:**
+**Limitations for Phase 54:** Classification result, not a structural result about invariance. Peirce preservation not addressed.
 
-**Theorem (GST 1984):** Let (M, g) be a 5-dimensional N=2 Maxwell-Einstein supergravity theory whose scalar manifold is a symmetric space. Then the theory is uniquely determined (up to field redefinitions) by a Euclidean Jordan algebra J of degree 3 (i.e., where the generic element has minimal polynomial of degree 3). Specifically:
+**Relevance:** Supporting evidence for non-associativity sanity checks. Paper 5 §5 Thm 5.8 upper bound claim (gap 3) needs a "cannot do better than product-form" structural result, and the three-type classification might provide machinery (the decomposition into at most three blocks could constrain the upper bound). Worth checking in detail for Phase 56 (gap 3).
 
-(i) The number of vector multiplets is n_V = dim(J) - 1.
+### Barnum-Wilce (2014) -- "Local Tomography and the Jordan Structure of Quantum Theory"
 
-(ii) The scalar manifold is M = Str_0(J)/Aut(J), a symmetric space.
+**Key contribution:** Orthodox finite-dim complex QM with superselection rules is the unique probabilistic theory in which (i) systems are Jordan algebras, (ii) composites are locally tomographic, (iii) at least one system is a qubit. This is the second half of Paper 5's chain (EJA + local tomography + qubit => M_n(C)^sa).
 
-(iii) The cubic tensor C_{IJK} that determines the complete bosonic sector equals (up to normalization) the symmetric trilinear form associated with the cubic norm N_3 of J: N_3(h) = C_{IJK} h^I h^J h^K.
+**Method:** EJA classification (Jordan-von Neumann-Wigner) combined with local tomography dimension counting. Spin factors V_n, M_n(R)^sa, M_n(H)^sa, M_3(O)^sa each fail one of the conditions.
 
-(iv) The full bosonic Lagrangian density is:
-e^{-1} L_bos = -R/2 - (1/2) a_{IJ}(h) F^I_{mu nu} F^{J mu nu} - (1/(6 sqrt(6))) C_{IJK} epsilon^{mu nu rho sigma lambda} F^I_{mu nu} F^J_{rho sigma} A^K_lambda + (1/2) g_{ij} partial_mu phi^i partial^mu phi^j
-where a_{IJ} = -(1/2) (partial^2 ln V / partial h^I partial h^J) evaluated on the constraint surface V(h) = 1 with V(h) = C_{IJK} h^I h^J h^K.
+**Limitations for Phase 54:** Orthogonal to Phase 54. Barnum-Wilce is downstream of the §3.3 argument; Phase 54 is about establishing the Peirce-invariance lemma for the sequential product, which sits before even the EJA structure emerges. Barnum-Wilce assumes EJA.
 
-**The classification produces exactly 4 magic theories plus generic families:**
-
-| J | dim J | n_V | Scalar manifold | U-duality |
-|---|-------|-----|-----------------|-----------|
-| h_3(R) | 6 | 5 | SL(3,R)/SO(3) | SL(3,R) |
-| h_3(C) | 9 | 8 | SL(3,C)/SU(3) | SL(3,C) |
-| h_3(H) | 15 | 14 | SU*(6)/USp(6) | SU*(6) |
-| h_3(O) | 27 | 26 | E_{6(-26)}/F_4 | E_{6(-26)} |
-| R + Gamma_{n-1,1} | n+1 | n | SO(n-1,1)/SO(n-1) x R | SO(n-1,1) x SO(1,1) |
-| R | 1 | 0 | (pure SUGRA) | -- |
-
-**Key uniqueness property:** Given the Jordan algebra J (equivalently, given C_{IJK}), the full bosonic Lagrangian is UNIQUELY determined. There are no free parameters beyond C_{IJK}. The metric on the scalar manifold, the vector kinetic matrix, and the Chern-Simons couplings all follow from C_{IJK} alone.
-
-**What this means for G2 (N=2 SUSY):** The theorem works in both directions. GST proved: given N=2 SUSY + Jordan algebra, the Lagrangian is unique. But the converse direction is the key insight for G2: the bosonic Lagrangian constructed from C_{IJK} = d_{IJK}/6 (the Jordan norm coefficients from Phase 47) through the very special geometry formulas automatically has N=2 SUSY. SUSY is not an additional assumption -- it is a CONSEQUENCE of the algebraic structure (cubic norm on a Euclidean Jordan algebra of degree 3) determining the Lagrangian through the very special geometry construction.
-
-**Conditions for this to work:**
-- J must be Euclidean (positive definite inner product Tr(X o Y))
-- J must have degree 3 (generic minimal polynomial cubic)
-- The scalar manifold must be the constraint surface V(h) = 1
-- The constraint surface must be a symmetric space (this is automatic for simple J)
-
-**Limitations:** The GST theorem classifies theories with symmetric scalar manifolds. Non-symmetric very special manifolds also exist (de Wit-Van Proeyen 1992 classified all homogeneous ones). For h_3(O), symmetry is guaranteed since E_{6(-26)}/F_4 is a symmetric space.
-
-**References:**
-- Gunaydin, M., Sierra, G., and Townsend, P.K., "Exceptional supergravity theories and the magic square," Phys. Lett. B 133 (1983) 72-76.
-- Gunaydin, M., Sierra, G., and Townsend, P.K., "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268.
-
-### de Wit and Van Proeyen (1992) -- Very Special Real Geometry and the c-map
-
-**Key contribution:** Formalized the notion of "very special real geometry" as the target space geometry of 5d N=2 MESGT scalar fields. Classified all homogeneous very special real manifolds (including the symmetric ones from GST). Established the "c-map" relating 5d -> 4d -> 3d geometries through dimensional reduction.
-
-**Very special real geometry -- precise definition:**
-
-A very special real manifold is a hypersurface M in R^{n+1} defined by V(h) = C_{IJK} h^I h^J h^K = 1 where C_{IJK} is a completely symmetric constant tensor satisfying:
-1. The metric g_{ij} = a_{IJ} h^I_i h^J_j is positive definite on M (Riemannian condition)
-2. a_{IJ} = -(1/2) partial^2 ln V / partial h^I partial h^J (evaluated at V = 1)
-
-**The cubic polynomial V(h) = C_{IJK} h^I h^J h^K encodes:**
-- Scalar manifold metric: g_{ij}
-- Vector field kinetic matrix: a_{IJ}(h)
-- Chern-Simons coefficients: C_{IJK} themselves
-- The full bosonic Lagrangian
-
-**Uniqueness:** Given C_{IJK}, the entire bosonic sector of the 5d theory is determined. No further data is needed. This is the precise sense in which "the cubic form determines the physics."
-
-**c-map (5d -> 4d):**
-Reducing on S^1 sends very special real geometry to special Kahler geometry:
-- 5d prepotential V(h) = C_{IJK} h^I h^J h^K -> 4d prepotential F(X) = C_{IJK} X^I X^J X^K / (6 X^0)
-- This is exactly the prepotential validated in Phase 49: F(X) = d_{IJK} X^I X^J X^K / (6 X^0)
-- The 4d theory automatically has N=2 SUSY (inherited from 5d)
-- Scalar manifold: E_{6(-26)}/F_4 (5d) -> E_{7(-25)}/(E_{6(-26)} x U(1)) (4d)
-
-**Key result for this project:** The de Wit-Van Proeyen formalism shows that the C_{IJK} tensor (which we have from Phase 47's d_{IJK} computation) UNIQUELY determines both the 5d and 4d bosonic Lagrangians. The N=2 SUSY of the resulting theory is not assumed -- it is FORCED by the very special real geometry structure, which itself is forced by the cubic norm of h_3(O).
-
-**References:**
-- de Wit, B. and Van Proeyen, A., "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333. arXiv: hep-th/9112027.
-- de Wit, B. and Van Proeyen, A., "Special geometries, from real to quaternionic," arXiv: hep-th/0110263 (2001).
-- Ceresole, A., Ferrara, S., Gnecchi, A., and Marrani, A., "d-Geometries Revisited," JHEP 02 (2013) 059. arXiv: 1210.5983.
-
-### Springer (1962) and Springer-Veldkamp (2000) -- Cubic Form Uniqueness
-
-**Key contribution:** Proved uniqueness of det(X) as the F_4-invariant cubic form on h_3(O), and identified E_{6(-26)} as the structure group (preserving det up to scale).
-
-**Results needed for this milestone (restated from v12.0 for completeness):**
-
-**Theorem (Springer 1962):** The space of F_4-invariant cubic polynomials on h_3(O) is one-dimensional, spanned by det(X) = alpha*beta*gamma - alpha|x_1|^2 - beta|x_2|^2 - gamma|x_3|^2 + 2 Re(x_1 x_2 x_3).
-
-**Theorem:** The structure group Str(h_3(O)) = {g in GL(h_3(O)) : det(g(X)) = lambda(g) det(X) for all X} is isomorphic to E_{6(-26)} (the minimally non-compact real form of E_6). The reduced structure group (lambda = 1 subgroup) is F_4.
-
-**New relevance for G2 closure:** The C_{IJK} tensor from Phase 47 is the polarization of det(X). By Springer's uniqueness, this C_{IJK} is the UNIQUE cubic tensor on h_3(O) compatible with F_4-invariance. By the GST classification theorem, this C_{IJK} uniquely determines a 5d N=2 MESGT with scalar manifold E_{6(-26)}/F_4. Therefore: h_3(O) -> det(X) -> C_{IJK} -> very special real geometry -> N=2 MESGT Lagrangian. The chain has no free choices.
-
-**References:**
-- Springer, T.A., "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265.
-- Springer, T.A. and Veldkamp, F.D., "Octonions, Jordan Algebras and Exceptional Groups," Springer (2000).
-
-### Baez (2002) -- Division Algebra Spacetimes
-
-**Key contribution:** Systematic exposition of h_2(K) = R^{dim(K)+1,1} for K = R, C, H, O. The determinant on h_2(K) gives the Minkowski metric. The Lorentz group appears as SL(2,K)/center.
-
-**Result used directly:** h_2(C) = R^{3,1} with det(X) = alpha*beta - |z|^2 giving the Minkowski metric of signature (1,3).
-
-**Spin(9) stabilizer:** The subgroup of F_4 fixing a rank-1 idempotent E_{11} in h_3(O) is Spin(9). Under Spin(9), the Peirce-0 space V_0 = h_2(O) decomposes as 9 + 1 (traceless + trace). The 9 is the vector representation of SO(9), and the trace is the scalar.
-
-**Connection to the TKK derivation:** Baez identifies h_2(K) WITH Minkowski spacetime at the level of the metric (det gives the quadratic form). The TKK construction goes further: it derives the FULL conformal algebra from the Jordan algebra structure, not just the metric. This is strictly stronger.
-
-**Reference:** Baez, J.C., "The Octonions," Bull. AMS 39 (2002) 145-205. arXiv: math/0105155.
-
-### Todorov-Drenska (2018) -- F_4 and Particle Physics
-
-**Key contribution:** Detailed study of F_4 = Aut(h_3(O)) and its maximal subgroups in the context of particle physics. Showed that the intersection of F_4 with Spin(9) in a specific embedding gives the Standard Model gauge group G_SM = S(U(3) x U(2)).
-
-**Result relevant to G1:** Confirmed F_4 transitivity on rank-1 idempotents with stabilizer Spin(9). Provided explicit computations of the Peirce decomposition under Spin(9) and its subgroups, including the decomposition of the 16 of Spin(9) under SU(4) x SU(2) and further under SU(3) x U(1) x SU(2).
-
-**Reference:** Todorov, I. and Drenska, S., "Octonions, exceptional Jordan algebra and the role of the group F_4 in particle physics," Adv. Appl. Clifford Algebras 28 (2018) 82. arXiv: 1805.06739.
+**Relevance:** Background. Paper 5 already uses this; no revision needed to the reference.
 
 ---
 
-## Recent Developments
+## Recent Developments (2020-2026)
 
-| Paper | Authors | Year | Advance | Impact on G1/G2 |
-|-------|---------|------|---------|-----------------|
-| Generalized conformal and superconformal group actions and Jordan algebras | Gunaydin | 1993 | Conformal group of J is TKK(J); generalized spacetimes from Jordan algebras | HIGH for G1: establishes that TKK gives operational spacetime definition |
-| Conformal and quasiconformal realizations of exceptional Lie groups | Gunaydin-Koepsell-Nicolai | 2001 | Explicit conformal realization of E_{7(-25)} on 27-dim space from h_3(O) | HIGH for G1: provides the nonlinear action |
-| d-Geometries Revisited | Ceresole-Ferrara-Gnecchi-Marrani | 2013 | Generalized cubic prepotential geometries to N > 2; confirmed uniqueness | MEDIUM for G2: strengthens Lagrangian uniqueness |
-| Exceptional Jordan algebra eigenvalue problem | Dray-Manogue | 1999 | Computed explicit eigenvalues for h_3(O); verified Freudenthal characteristic equation | LOW: computational verification |
-| Two-time physics, Carroll symmetry and Jordan algebras | Kamenshchik-Marrani-Muscolino | 2026 | Freudenthal triple systems give extended phase space for Carroll particles | LOW: novel but not on our pathway |
-
----
-
-## The G1 Closure Path: V_0 = Spacetime as Derived
-
-### Logical chain (all results established in literature)
-
-1. **h_3(O) has F_4 = Aut(h_3(O))** acting transitively on rank-1 idempotents with stabilizer Spin(9). [Freudenthal 1954, Springer-Veldkamp 2000]
-
-2. **Peirce decomposition at any rank-1 E gives V_0 = h_2(O) = R^{9,1}** as a 10-dimensional Minkowski space (spin factor JSpin_9). The choice of E is unique up to F_4. [Jordan-von Neumann-Wigner 1934, Baez 2002]
-
-3. **The C*-bottleneck (Papers 5+7) forces the observer's complex structure u, breaking O = C_u + (C_u)^3.** This is validated in Phase 46 for V_{1/2} and extends to V_0 by the same u.
-
-4. **The projection pi_u: h_2(O) -> h_2(C_u) = R^{3,1}** keeps only the C_u part of the off-diagonal octonion. This is a Jordan algebra homomorphism. [Phase 46 validated]
-
-5. **TKK(h_2(C_u)) = su(2,2) = so(4,2), the conformal algebra of R^{3,1}.** [Koecher 1967, Gunaydin 1993]
-
-**What TKK adds beyond Phase 46:** Phase 46 established that det_2 on h_2(C_u) gives the Minkowski metric diag(+1,-1,-1,-1). The TKK construction derives the FULL conformal group so(4,2) from the Jordan algebra structure alone -- translations, Lorentz transformations, dilatation, and special conformal transformations all emerge from the Jordan product and its derivations. This is a STRONGER result: it shows h_2(C_u) is not just a vector space with the right metric, but has the full operational spacetime structure.
-
-### What remains to be established for G1
-
-- **The C*-bottleneck mechanism on V_0 specifically.** Phase 46 validates pi_u equivariance and the metric, but the TKK derivation (step 5) from h_2(C_u) to so(4,2) has not been explicitly executed in the project.
-- **The physical interpretation of TKK generators.** Identifying g_{-1} with translations, g_0 with Lorentz + dilatation, and g_{+1} with special conformal transformations needs explicit verification for h_2(C_u).
+| Paper | Authors | Year | Advance | Impact on Paper 5 Revision |
+|-------|---------|------|---------|----------------------------|
+| "Three types of normal sequential effect algebras" (Quantum 4, 378) | Westerbaan, Westerbaan, van de Wetering | 2020 | Three-type classification; assoc => commutative | Supports non-associativity sanity check; may help Phase 56 upper-bound argument |
+| "Geometric and algebraic aspects of spectrality" (arXiv:2102.01628) | Jencova | 2021 | Foulis spectrality strictly generalizes Alfsen-Shultz | Phase 54 must be careful which spectrality notion is used; Paper 5's §3.3 setup must specify Alfsen-Shultz spectral OUS explicitly |
+| "Spectral resolutions in effect algebras" (Quantum 2022) | Jencova, Plavala | 2022 | Spectral resolutions in convex effect algebras | Relevant to Paper 5 §3.3 spectral decomposition machinery |
+| "Spectrality in convex sequential effect algebras" (arXiv:2312.13003) | Jencova, Flaminio, Kroupa | 2023 | Convex sigma-SEA <-> unit interval of spectral OUS with homogeneous positive cone; spectral iff every maximal commutative subalgebra is monotone sigma-complete | MAJOR: possible alternate citation for Paper 5's OUS-SP framework; worth examining whether their spectrality theorem yields Phase 54's Peirce preservation as a corollary |
+| "On the properties of spectral effect algebras" (arXiv:1811.12407) | Jencova, Pulmannova | 2018/2019 | Structure of spectral effect algebras; context uniqueness | Background for spectral structure |
+| "A Formalization of the Generalized Quantum Stein's Lemma in Lean" (arXiv:2510.08672) | Various | 2025 | First Lean formalization of a deep operator-algebra theorem; uses mathlib | Phase 58 (Lean axiom audit) baseline: shows the formalization style currently used |
+| Lean-QuantumInfo library | Various | 2024-2025 | Formalized quantum info theory in Lean 4 | Phase 58 baseline for what is/isn't already available |
 
 ---
 
-## The G2 Closure Path: N=2 SUSY as Consequence
-
-### Logical chain (all results established in literature)
-
-1. **h_3(O) has a unique F_4-invariant cubic form det(X).** [Springer 1962]
-
-2. **Phase 47 computed d_{IJK} (106 nonzero components) and verified det(X) = d_{IJK} X^I X^J X^K / 6.** The C_{IJK} tensor is determined.
-
-3. **Given C_{IJK} from a degree-3 Euclidean Jordan algebra, very special real geometry uniquely determines a Riemannian manifold** M = {h in R^{n+1} : C_{IJK} h^I h^J h^K = 1} with metric g_{ij} = -(1/2) (partial^2 ln V / partial h^I partial h^J) h^I_i h^J_j. [de Wit-Van Proeyen 1992]
-
-4. **This very special real manifold uniquely determines a bosonic Lagrangian** in the form of 5d MESGT. The Lagrangian L_bos is the UNIQUE Lagrangian (up to field redefinitions) with this scalar geometry and the coupling structure dictated by C_{IJK}. [GST 1984]
-
-5. **The GST classification theorem proves this Lagrangian has N=2 SUSY.** Specifically: any Lagrangian of the form (iv) in the GST theorem, with C_{IJK} from a Euclidean Jordan algebra of degree 3, admits exactly N=2 local supersymmetry with the scalar geometry serving as the very special real manifold. [GST 1984, de Wit-Van Proeyen 1992]
-
-6. **For J = h_3(O): C_{IJK} = d_{IJK}/6, the scalar manifold is E_{6(-26)}/F_4, and the resulting theory is the octonionic magical N=2 MESGT** with 27 vectors and prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0) in 4d. [Phase 49 validated this Lagrangian]
-
-**Critical distinction:** The G2 closure does NOT claim to "derive SUSY from self-modeling." It claims: self-modeling -> h_3(O) -> det(X) -> C_{IJK} -> very special geometry -> bosonic Lagrangian, and this bosonic Lagrangian HAPPENS TO HAVE N=2 SUSY as a mathematical consequence of the cubic norm structure. SUSY is not an input -- it is a theorem about what supersymmetries the uniquely determined Lagrangian possesses.
-
-### What remains to be established for G2
-
-- **Explicit verification that the very special real geometry construction applied to d_{IJK} from Phase 47 reproduces the Phase 49 Lagrangian.** This should be a straightforward computation.
-- **Clear statement of the direction of implication:** C_{IJK} from Euclidean degree-3 Jordan algebra IMPLIES N=2 SUSY of the resulting Lagrangian. The converse (that N=2 SUSY requires a Jordan algebra) is the GST classification, which is a separate (and already proven) result.
-- **Status: the bosonic Lagrangian is uniquely determined by C_{IJK}. The N=2 SUSY completion (fermion terms, SUSY transformations) is also unique given the bosonic sector.** This is the content of the GST theorem.
-
----
-
-## The Symmetric Space E_{6(-26)}/F_4 -- Detailed Properties
-
-The scalar manifold of the octonionic magical MESGT is the 26-dimensional symmetric space E_{6(-26)}/F_4. Its properties:
-
-| Property | Value | Source |
-|----------|-------|--------|
-| Dimension | 26 = dim h_3(O) - 1 | GST (1984) |
-| Rank | 2 | Cartan classification |
-| Sectional curvature | Non-positive (non-compact type) | Standard |
-| Isometry group | E_{6(-26)} | Structure group of h_3(O) |
-| Isotropy group | F_4 | Aut(h_3(O)) |
-| Tangent space at identity | p = h_3^0(O) (traceless hermitian octonionic 3x3) | Standard |
-| Riemannian metric | Induced by Tr(X o Y) restricted to trace-0 | Killing form |
-| Geodesics | One-parameter subgroups of E_{6(-26)} projected to coset | Standard |
-| Constraint realization | V(h) = det(h) = 1 in R^{27} | Very special real geometry |
-
-**The cubic norm as a potential:** On the constraint surface det(h) = 1, the coordinate h^I (I = 0,...,26) parametrize the 26-dimensional manifold M. The metric g_{ij} on M is obtained from a_{IJ} = -(1/2) partial^2 ln(det(h)) / partial h^I partial h^J. This metric is the natural E_{6(-26)}-invariant metric on E_{6(-26)}/F_4.
-
-**Physical fields on this manifold:** The 26 scalar fields phi^i (i = 1,...,26) in the octonionic MESGT parametrize points on M. Their kinetic Lagrangian is L_scalar = (1/2) g_{ij}(phi) partial_mu phi^i partial^mu phi^j where g_{ij} is the above metric. The 27 vector fields A^I_mu (I = 0,...,26) have kinetic matrix a_{IJ}(phi) depending on the scalars.
-
----
-
-## Known Limiting Cases
+## Known Limiting Cases and Benchmarks
 
 | Limit | Known Result | Source | Verified By |
-|-------|-------------|--------|-------------|
-| K = R: TKK(h_2(R)) | so(3,2) = Conf(R^{2,1}) | Koecher (1967) | Standard |
-| K = C: TKK(h_2(C)) | su(2,2) = so(4,2) = Conf(R^{3,1}) | Koecher (1967) | Gunaydin (1993) |
-| K = H: TKK(h_2(H)) | so(6,2) = Conf(R^{5,1}) | Koecher (1967) | Standard |
-| K = O: TKK(h_2(O)) | so(10,2) = Conf(R^{9,1}) | Koecher (1967) | Gunaydin-Koepsell-Nicolai (2001) |
-| TKK(h_3(R)) = sp(6,R) | 21-dim conformal algebra | Tits (1962) | Standard |
-| TKK(h_3(O)) = e_{7(-25)} | 133-dim conformal algebra | Tits (1962) | Gunaydin-Koepsell-Nicolai (2001) |
-| C_{IJK} -> 0 | Decoupled Maxwell + free scalars | GST (1984) | Standard limit |
-| F_4 -> Spin(9) | Stabilizer of rank-1 idempotent; orbit = OP^2 | Freudenthal (1954) | Todorov-Drenska (2018) |
+|-------|--------------|--------|-------------|
+| V = C(X) (classical simplex) | a o b = a * b (pointwise product) | Gudder-Greechie 2002 | Analytic proof; GPD Phase 4-06 SymPy verification (25 pairs) |
+| V = M_n(C)^sa (quantum) | a o b = sqrt(a) b sqrt(a) (Luders) | vdW 2018 (uniqueness) | GPD Phase 4-06 SymPy verification on M_2(C)^sa |
+| phi = trivial / no feedback | a o b degenerates, S3 fails (1 o P+ != P+) | GPD Phase 4-01 (failure case) | SymPy test-phi-algebraic |
+| phi = isomorphism / faithful feedback | mixing f = sqrt(lambda_i lambda_j), S3 passes | GPD Phase 4-06 | SymPy verification |
+| associative SP | Forces commutativity (algebra is classical) | Westerbaan-Westerbaan-vdW 2020 | Theoretical (do not re-derive) |
 
 ---
 
-## Open Problems Relevant to This Milestone
+## Open Questions in the Literature
 
-### Open Problem 1: TKK Applied to the Projected V_0
+Questions where the literature is silent or inconclusive, with explicit relevance to the six revision gaps.
 
-**Statement:** Execute the TKK construction explicitly on h_2(C_u) (the projected V_0) and verify that the resulting so(4,2) generators have the physical interpretation as Poincare + dilatation + special conformal transformations of R^{3,1}.
+### 1. (Phase 54, CORE) Does S1 + S3 alone imply Peirce invariance of L_a?
 
-**Why it matters:** This completes the G1 closure: V_0 is not just a vector space with the right metric (Phase 46), but carries the full operational spacetime structure derivable from Jordan algebra axioms.
+**Status:** OPEN. Not addressed in vdW, Alfsen-Shultz, Niestegge, Gudder-Greechie, WWvdW, Jencova, or Barnum-Wilce.
 
-**Current status:** The abstract theorem TKK(h_2(C)) = so(4,2) is established (Koecher 1967, Gunaydin 1993). What is needed is the explicit construction: identify generators, verify commutation relations, match to standard so(4,2) presentation.
+**What vdW's paper does address:** vdW builds Peirce-like structure (homogeneity, self-duality) using S1-S7 jointly. He never asks "what subset of axioms forces Peirce invariance alone?"
 
-**Difficulty:** LOW. This is a standard computation in Jordan algebra theory. The dimension counting (4 + 7 + 4 = 15) is verified. The identification with so(4,2) is a classical result.
+**What Alfsen-Shultz addresses:** Proves Peirce invariance for U_p (quadratic representation) in JB-algebras. NOT for abstract sequential product in spectral OUS.
 
-### Open Problem 2: Very Special Geometry from d_{IJK} Without SUSY Input
+**What Niestegge addresses:** Proves U_e (compression) is a positive projection. Does not prove L_a = a o (-) preserves Peirce.
 
-**Statement:** Construct the very special real manifold and bosonic Lagrangian from the d_{IJK} tensor computed in Phase 47, using ONLY the de Wit-Van Proeyen formulas, and verify it matches the Phase 49 Lagrangian.
+**Phase 54 implication:** The likely outcomes are:
+- (A) Direct proof from Paper 5's specific L4 + spectral OUS structure, using the definition of a o b via compressions on sharp effects and spectral extension to general effects. The GPD v2.0 Phase 4-06 derivation (Eq. 04-06.4: a o b = sum_i lambda_i C_{p_i}(b) + sum_{i<j} sqrt(lambda_i lambda_j) P_{ij}(b)) shows Peirce structure explicitly -- this is PRIOR GPD WORK directly relevant.
+- (C) Structural gap characterization: "S1 + S3 alone is insufficient; need an additional assumption equivalent to compression-by-compression extension."
+- (B) is UNLIKELY -- no precise citation in the required form exists.
 
-**Why it matters:** This establishes the G2 closure chain: d_{IJK} -> very special geometry -> bosonic Lagrangian -> N=2 SUSY as theorem. If the Phase 47 d_{IJK} produces the Phase 49 Lagrangian through the very special geometry construction (without ever assuming SUSY), then N=2 SUSY is a consequence.
+### 2. (Phase 55, S4 facial structure lemma) What faces does S4 preserve in a spectral OUS?
 
-**Current status:** Phase 47 has d_{IJK}. Phase 49 has the MESGT Lagrangian. The connection via very special geometry has not been executed explicitly.
+**Status:** PARTIALLY ADDRESSED. vdW Prop 30 proves S4 + homogeneity => self-dual cone. Alfsen-Shultz proves face structure of state spaces in JB-algebras. But the explicit claim "S4 implies sequential-product-image of a face is contained in the same face" is not stated.
 
-**Difficulty:** MEDIUM. The computation is standard but involves explicit manipulation of 27-dimensional symmetric tensors. The key check is that a_{IJ} computed from -(1/2) partial^2 ln(d_{IJK} h^I h^J h^K) / partial h^I partial h^J gives a positive-definite kinetic matrix.
+**Why it matters:** Paper 5 §3 or later uses facial structure lemma; needs either proof from vdW/Alfsen-Shultz machinery or direct OUS proof.
 
-### Open Problem 3: Compact so(3) vs. Non-compact so(3,1)
+**Literature silence:** No single reference states "S4 => facial structure is preserved." vdW treats S4 as sufficient for inner-product symmetry (arXiv:1803.08453 Cor. 2). Alfsen-Shultz develops facial structure from JB-algebra axioms, not from sequential product S4.
 
-**Statement:** The Phase 48 stabilizer computation gives so(3) x so(6) as the V_0 stabilizer. The Lorentz algebra so(3,1) is non-compact. How does so(3) (compact) become so(3,1) (non-compact) in the spacetime interpretation?
+### 3. (Phase 56, upper bound W carries product-form SP) Is the product-form SP the maximal SP on a wedge space?
 
-**Why it matters:** This is gap G5 from Phase 51. The TKK construction addresses it: Str_0(h_2(C)) = so(3,1) + R, which contains the non-compact Lorentz algebra. The compact so(3) from Phase 48 is the ROTATION subalgebra of so(3,1), corresponding to the maximal compact subalgebra. The boosts come from the TKK construction, not from the automorphism group.
+**Status:** OPEN in the specific form. WWvdW 2020 three-type classification gives decomposition into commutative + quantum + spin-factor blocks, and each block has a canonical SP. The claim "W carries product-form SP as upper bound" likely means: any SP on W extends to (or is bounded by) the tensor-product SP derived from component SPs.
 
-**Resolution via TKK:** Der(h_2(C)) = su(2) = so(3) gives rotations only. But Str_0(h_2(C)) = so(3,1) + R gives the full Lorentz algebra plus dilatation. The non-compact (boost) generators come from the L_a operators (left multiplications) that are in Str_0 but not in Der. This resolves G5.
+**Literature relevance:** WWvdW 2020 classification theorem. Also relevant: arXiv:1803.08453 Thm 3 (invariance-based uniqueness of Luders). Neither proves the "upper bound" claim explicitly.
 
-**Difficulty:** LOW once TKK is explicitly constructed.
+**Phase 56 implication:** Likely (A) with help from WWvdW decomposition, or (C) with structural gap noted.
 
----
+### 4. (Phase 57, Phi inert-wrapper technique) Is the Phi wrapper a standard technique?
 
-## Alternatives Considered
+**Status:** NON-STANDARD IN THE LITERATURE in this exact form. The notation "Phi inert wrapper" does not appear in vdW, Alfsen-Shultz, or other standard sources.
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Spacetime derivation from V_0 | TKK construction on h_2(C_u) | Direct metric identification only (Phase 46) | TKK gives full conformal algebra, not just the metric. Stronger result. |
-| N=2 SUSY status | Consequence via very special geometry uniqueness | External assumption (v12.0 approach) | Very special geometry shows SUSY follows from C_{IJK}. Removes G2. |
-| Lagrangian construction | de Wit-Van Proeyen very special geometry formulas | GST classification + SUSY tensor calculus | dWVP approach uses C_{IJK} directly, no SUSY input needed. |
-| so(3) -> so(3,1) | TKK structure algebra Str_0 | Complexification argument | TKK is canonical; complexification is ad hoc. |
+**Closest precedent:** GPD v2.0 internal work. Phase 4-06 uses phi as a tracking map E(B) -> E(M) and identifies phi-parametrization algebraically via the mixing function f(lambda_i, lambda_j). The "inert wrapper" framing appears to be Paper 5 terminology for phi as a formal parameter that enters axiomatically but does not break Jordan structure downstream.
+
+**Phase 57 implication:** Paper 5 should probably rename or define "Phi inert wrapper" precisely, not cite it. Add a definition rather than a citation. If the literature is silent, that is a paper-exposition issue not a derivation issue.
+
+### 5. (Phase 58, Lean audit) Are the 16 Lean axioms consistent with Alfsen-Shultz + vdW?
+
+**Status:** TO BE VERIFIED. Lean formalizations of JB/JBW-algebras, sequential effect algebras, or spectral OUS do NOT currently exist in mathlib4 as of 2025-2026 search.
+
+**What exists in mathlib:**
+- General algebraic structures (rings, modules, order structures)
+- Jordan algebra stub: `Mathlib.Algebra.Jordan.Basic` (elementary definitions only)
+- Operator algebra formalization (partial, Stein's lemma paper arXiv:2510.08672 is recent breakthrough but specialized)
+- Quantum info: Lean-QuantumInfo library (quantum channels, entropies)
+
+**What does NOT exist:**
+- JB-algebra or JBW-algebra formalization
+- Sequential effect algebra / vdW axioms formalization
+- Alfsen-Shultz compression theory in Lean
+- Peirce decomposition in Lean
+
+**Phase 58 implication:** The 16 Paper 5 Lean axioms are (necessarily) a bespoke formalization. The audit question is whether each axiom corresponds to a single citable Alfsen-Shultz or vdW result, or whether axioms are introduced that combine multiple literature results. A one-to-one axiom-to-citation mapping is the correct deliverable.
+
+### 6. (Phase 59, minimal composite assumption) What is the minimal compositional assumption for local tomography?
+
+**Status:** ADDRESSED. vdW 2019 Thm 3 uses "V is locally tomographic composite with itself" -- i.e., V tensor V is again an SP space with factorizing tensor product. Barnum-Wilce 2014 uses local tomography differently (in the Jordan algebra setting).
+
+**Literature complete on this question:** Yes, for the EJA-to-C*-algebra step. Paper 5's minimal-composite defense should cite vdW Thm 3 and Barnum-Wilce and argue that no weaker compositional assumption gives the M_n(C)^sa specification.
+
+**Phase 59 implication:** (B) outcome with vdW 2019 Thm 3 as primary citation. Paper 5 already uses this; the revision task is exposition, not re-derivation.
 
 ---
 
 ## Notation Conventions in the Literature
 
 | Quantity | Standard Symbol(s) | Variations | Our Choice | Reason |
-|----------|-------------------|------------|------------|--------|
-| TKK Lie algebra of J | g(J), TKK(J), Lie(J), Con(J) | Ko(J) | TKK(J) | Universally recognized abbreviation |
-| Structure algebra | Str(J), str(J) | L(J) | Str(J) | McCrimmon convention |
-| Reduced structure algebra | Str_0(J) | str_0(J) | Str_0(J) | McCrimmon convention |
-| Derivation algebra | Der(J), der(J) | D(J) | Der(J) | Standard |
-| Very special real manifold | M_5, M_{VSR} | Target space | M_5 | Following GST/dWVP |
-| Cubic prepotential | V(h), N_3(h), det(h) | C(h) | V(h) = det(h) | V(h) for the constraint, det for the algebraic object |
-| Cubic tensor | C_{IJK}, d_{IJK}/6 | N_{IJK} | C_{IJK} = d_{IJK}/6 | Matches Phase 49 convention |
+|----------|-------------------|------------|-----------|--------|
+| Sequential product | a o b, a & b, a;b | Gudder-Greechie use o; vdW uses &; some use ; | a o b (Paper 5 convention) | Paper 5 submission uses o; milestone revision must preserve this |
+| Jordan product | a . b, a o b, a * b | Can collide with sequential product notation | a . b | Distinct from sequential product |
+| Compression | U_e, C_e, P_e | U_e in Niestegge; C_p in GPD Phase 4; P in Alfsen-Shultz | C_p (Paper 5 uses this for §3.3) | Consistent with GPD v2.0 derivation |
+| Peirce subspace for projection p | V_2(p), V_1(p), V_0(p); A_1(p), A_{1/2}(p), A_0(p) | Different in Albert, AS, HOS | V_2(p), V_1(p, q), V_0 | Paper 5's §3.3 convention; aligns with AS 2003 for JBW-algebras |
+| Sharp effect | projection, idempotent, projective unit | vdW uses "sharp"; AS uses "projection" | projective unit | Matches Paper 5 and Niestegge |
+| Axiom label | S1-S7 (vdW); A1-A5 (Gudder-Greechie); different in AS | Different formalisms | S1-S7 (vdW) | Pinned in Paper 5 submission |
+
+**Critical convention note for Paper 5 §3.3:** The exact axiom statements S1 (additivity in 2nd argument), S3 (unitality) must be pinned to arXiv:1803.11139 Definition 2 verbatim. Paper 5 v2.0 already does this; revision must not drift.
 
 ---
 
-## Theoretical Framework
+## Summary of Phase-by-Phase Prior Art
 
-### Governing Theory
+### Phase 54 (§3.3 Peirce preservation)
 
-| Framework | Scope | Key Equations | Regime of Validity |
-|-----------|-------|---------------|-------------------|
-| TKK construction | Jordan algebra -> Lie algebra (conformal) | g(J) = J + Str_0(J) + J, [x,y'] = L_{x,y} - Tr(x,y) | Any simple Jordan algebra; exact algebraic result |
-| Very special real geometry | Cubic norm -> scalar manifold + bosonic Lagrangian | V(h) = C_{IJK} h^I h^J h^K = 1 defines M; g_{ij} from a_{IJ} | C_{IJK} from Euclidean degree-3 Jordan algebra; positive-definite kinetic matrix |
-| GST classification | Jordan algebras <-> N=2 5d MESGT | Classification table; L_bos from C_{IJK} | Symmetric scalar manifold; 2-derivative Lagrangian |
-| F_4 transitivity | Rank-1 idempotent orbit | F_4/Spin(9) = OP^2 | h_3(O) only (exceptional case) |
+- **Prior GPD work (CRITICAL):** Phase 4-06 Peirce Feedback Extension (commit `9608ac54`). Derived corrected sequential product a o b = sum_i lambda_i C_{p_i}(b) + sum_{i<j} sqrt(lambda_i lambda_j) P_{ij}(b) with explicit Peirce structure. This is the STRUCTURAL formula Phase 54 needs to build the Peirce-invariance argument on.
+- **External (A) support:** None complete. Alfsen-Shultz gives Peirce decomposition existence in JB-algebras (2003, Ch 2, Prop 2.16 area); Niestegge gives compression properties (2008, Prop 3.1); but no single source proves S1+S3 => Peirce invariance.
+- **External (B) citation candidates:** NOT AVAILABLE in the required form. Closest partial supports are: AS 2003 Ch 2 for Peirce decomposition existence; vdW 2019 Corollary 7 for spectral decomposition; but these combined do not prove the §3.3 claim from S1+S3 alone.
+- **Recommendation:** Pursue (A) using Paper 5's GPD v2.0 Phase 4-06 corrected product formula directly. The formula exhibits Peirce structure by construction; Peirce invariance is immediate from Eq. 04-06.4 structure. If the argument needs to work from S1+S3 axioms WITHOUT assuming the corrected-product formula (i.e., for arbitrary SP satisfying S1+S3), (C) is the likely outcome.
 
-### Mathematical Prerequisites
+### Phase 55 (S4 facial structure lemma)
 
-| Topic | Why Needed | Key Results | References |
-|-------|-----------|-------------|------------|
-| TKK construction | Derives conformal algebra from Jordan algebra | TKK(h_2(C)) = so(4,2) | Koecher (1967), McCrimmon (2004) |
-| Very special real geometry | Constructs Lagrangian from C_{IJK} without SUSY input | Unique bosonic Lagrangian from cubic form | de Wit-Van Proeyen (1992) |
-| Symmetric space theory | Identifies E_{6(-26)}/F_4 as the scalar manifold | Cartan classification of symmetric spaces | Helgason (1978) |
-| Jordan algebra structure theory | Der(J), Str(J), L_a operators | Structure and derivation algebras of h_n(K) | McCrimmon (2004), Springer-Veldkamp (2000) |
+- **Prior work:** vdW 2019 Prop 30 (S4 + homogeneity => self-dual cone). arXiv:1803.08453 Cor 2 (S4 <=> inner-product symmetry in EJA setting).
+- **Gap:** "S4 => facial structure preservation" not explicitly stated. Alfsen-Shultz develops facial structure from JB-algebra axioms, not S4.
+- **Recommendation:** (A) proof using vdW Prop 30 + AS facial structure machinery from Ch 2-3. Or (C).
 
-### Symmetries and Conservation Laws
+### Phase 56 (Thm 5.8 upper bound)
 
-| Symmetry | Role in G1/G2 | Implications |
-|----------|---------------|-------------|
-| F_4 = Aut(h_3(O)) | Transitivity on idempotents (G1); invariance of det (G2) | Peirce decomposition canonical; C_{IJK} unique |
-| E_{6(-26)} = Str(h_3(O)) | 5d U-duality; structure group | Scalar manifold E_{6(-26)}/F_4 |
-| Spin(9) = Stab_{F_4}(E_{11}) | Stabilizer of observer's idempotent | V_0 decomposes as 9 + 1 |
-| so(4,2) = TKK(h_2(C_u)) | Conformal algebra of derived spacetime | Full spacetime structure from Jordan axioms |
-| so(3,1) subset Str_0(h_2(C_u)) | Lorentz algebra from structure algebra | Resolves G5 (compact -> non-compact) |
+- **Prior work:** WWvdW 2020 three-type classification. vdW Thm 3.
+- **Gap:** "W carries product-form SP as upper bound" not in literature explicitly.
+- **Recommendation:** (A) using WWvdW 2020 classification + vdW tensor construction. Check if the "upper bound" is a consequence of the three-type decomposition restricted to W.
 
-### Unit System and Conventions
+### Phase 57 (Phi inert-wrapper)
 
-- **Unit system:** Natural units (hbar = c = 1) for Lagrangian; dimensionless for pure algebra
-- **Metric signature:** (+,-,-,-) (mostly minus), matching Phase 46 det_2 Gram
-- **Jordan product:** X o Y = (1/2)(XY + YX)
-- **C_{IJK} normalization:** C_{IJK} = d_{IJK}/6 matching Phase 49
-- **Octonion basis:** Fano convention, u = e_7
+- **Prior work:** GPD v2.0 Phase 4-06 phi tracking map.
+- **Gap:** Phi inert wrapper is Paper 5 internal terminology; not a standard technique.
+- **Recommendation:** Define precisely; do not cite external literature for the wrapper itself. Cite Phase 4-06 or equivalent internal derivation for phi's algebraic role.
+
+### Phase 58 (Lean axiom audit)
+
+- **Prior work:** No JB/vdW Lean formalization exists. mathlib4 has elementary Jordan algebra stub only. Lean-QuantumInfo and Stein's lemma formalization (arXiv:2510.08672) are closest precedents.
+- **Gap:** The 16 Paper 5 Lean axioms are a bespoke formalization with no literature counterpart.
+- **Recommendation:** Audit each axiom against its exact Alfsen-Shultz (2003) chapter/section and vdW (2019) theorem/corollary. Produce a one-to-one mapping table. Flag any axioms that combine multiple literature results or introduce assumptions not stated elsewhere.
+
+### Phase 59 (Minimal composite assumption)
+
+- **Prior work:** vdW 2019 Thm 3 + Barnum-Wilce 2014.
+- **Gap:** None. Literature is complete.
+- **Recommendation:** (B) outcome. Cite vdW 2019 Thm 3 and Barnum-Wilce 2014; argue no weaker composition assumption gives M_n(C)^sa.
 
 ---
 
 ## Sources
 
-- Tits, J., "Une classe d'algebres de Lie en relation avec les algebres de Jordan," Indag. Math. 24 (1962) 530-535 -- Original TKK construction.
-- Kantor, I.L., "Classification of irreducible transitive differential groups," Doklady Akad. Nauk SSSR 158 (1964) 1271-1274 -- Independent TKK construction.
-- Koecher, M., "Imbedding of Jordan algebras into Lie algebras I," Amer. J. Math. 89 (1967) 787-816 -- TKK for formally real Jordan algebras; conformal interpretation.
-- Jordan, P., "Uber eine nicht-desarguessche ebene projektive Geometrie," Abh. Math. Sem. Hamburg 16 (1949) 74-76 -- OP^2 from rank-1 projections in h_3(O).
-- Borel, A., "Le plan projectif des octaves et les spheres comme espaces homogenes," C.R. Acad. Sci. Paris 230 (1950) 1378-1380 -- OP^2 = F_4/Spin(9) as symmetric space.
-- Freudenthal, H., "Beziehungen der E_7 und E_8 zur Oktavenebene I-XI," Indag. Math. (1954-1963) -- F_4 transitivity, E_6/E_7 from h_3(O).
-- Springer, T.A., "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265 -- Uniqueness of det as F_4-invariant cubic.
-- Springer, T.A. and Veldkamp, F.D., "Octonions, Jordan Algebras and Exceptional Groups," Springer (2000) -- Comprehensive reference.
-- Gunaydin, M., Sierra, G., and Townsend, P.K., "Exceptional supergravity theories and the magic square," Phys. Lett. B 133 (1983) 72-76 -- Magic supergravity classification.
-- Gunaydin, M., Sierra, G., and Townsend, P.K., "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268 -- GST classification theorem; det as prepotential.
-- de Wit, B. and Van Proeyen, A., "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333. arXiv: hep-th/9112027 -- Very special real geometry; c-map.
-- de Wit, B. and Van Proeyen, A., "Special geometries, from real to quaternionic," arXiv: hep-th/0110263 (2001) -- Review of geometric structures.
-- Gunaydin, M., "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407-1416. arXiv: hep-th/9301050 -- Conformal groups of Jordan algebras.
-- Gunaydin, M., Koepsell, K., and Nicolai, H., "Conformal and quasiconformal realizations of exceptional Lie groups," Commun. Math. Phys. 221 (2001) 57-76. arXiv: hep-th/0008063 -- Explicit conformal realization; 3-graded decomposition.
-- McCrimmon, K., "A Taste of Jordan Algebras," Springer Universitext (2004) -- Modern Jordan algebra reference; structure theory.
-- Baez, J.C., "The Octonions," Bull. AMS 39 (2002) 145-205. arXiv: math/0105155 -- Division algebra spacetimes; h_2(K) = Minkowski.
-- Todorov, I. and Drenska, S., "Octonions, exceptional Jordan algebra and the role of the group F_4 in particle physics," Adv. Appl. Clifford Algebras 28 (2018) 82. arXiv: 1805.06739 -- F_4 subgroup structure; SM gauge group.
-- Ceresole, A., Ferrara, S., Gnecchi, A., and Marrani, A., "d-Geometries Revisited," JHEP 02 (2013) 059. arXiv: 1210.5983 -- Generalized cubic prepotential geometries.
+### Primary references (HIGH confidence)
+
+- **van de Wetering (2019)**, "Sequential product spaces are Jordan algebras," J. Math. Phys. 60, 062201 (2019), [arXiv:1803.11139](https://arxiv.org/abs/1803.11139) -- S1-S7 definitions (Def. 2); Thm 1 (SP => EJA); Thm 3 (SP + local tomo => C*-algebra); spectral decomposition (Cor 7); Jordan product construction (Def 15-16); homogeneity (Prop 8); self-duality from S4 (Prop 30). THE axiom source for Paper 5 §3.3.
+- **van de Wetering (2018)**, "Three characterisations of the sequential product," J. Math. Phys. 59, 082202 (2018), [arXiv:1803.08453](https://arxiv.org/abs/1803.08453) -- Uniqueness of Luders product via invariance, inner product symmetry, or invertibility preservation. Relevant for Phase 55 (S4 via inner product).
+- **Westerbaan, Westerbaan, van de Wetering (2020)**, "The three types of normal sequential effect algebras," Quantum 4, 378 (2020), [arXiv:2004.12749](https://arxiv.org/abs/2004.12749) -- Three-type classification. Associativity => commutativity. Relevant for Phase 56 upper-bound argument.
+- **Alfsen, Shultz (2003)**, "Geometry of State Spaces of Operator Algebras," Birkhauser Boston. [Springer link](https://link.springer.com/book/10.1007/978-1-4612-0019-2) -- Compression theory (Ch 7); spectral theorem; JB-algebra structure; Peirce decomposition for JBW-algebras. Primary reference for Paper 5's spectral OUS assumptions.
+- **Alfsen, Shultz (2001)**, "State Spaces of Operator Algebras: Basic Theory, Orientations, and C*-products," Birkhauser Boston. [Springer link](https://link.springer.com/book/10.1007/978-1-4612-0147-2) -- Companion volume for C*-algebra state space characterization.
+- **Hanche-Olsen, Stormer (1984)**, "Jordan Operator Algebras," Pitman (Monographs Studies Math. 21), 183 pp. Freely available at [https://hanche.folk.ntnu.no/joa/](https://hanche.folk.ntnu.no/joa/) -- Peirce decomposition in Ch 2; JB-algebra theory.
+- **Niestegge (2008)**, "A Representation of Quantum Measurement in Order-Unit Spaces," Found. Phys. 38, 783-795 (2008), [arXiv:1001.3633](https://arxiv.org/abs/1001.3633) -- Compression theory on OUS; conditional probability formula.
+- **Gudder, Greechie (2002)**, "Sequential products on effect algebras," Rep. Math. Phys. 49, 87-111. [ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0034487702800076) -- Original SEA definition; classical uniqueness.
+- **Barnum, Wilce (2014)**, "Local tomography and the Jordan structure of quantum theory," Found. Phys. 44, 192-212, [arXiv:1202.4513](https://arxiv.org/abs/1202.4513) -- EJA + local tomo + qubit => M_n(C)^sa.
+
+### Secondary references (MEDIUM confidence for Paper 5 specifically)
+
+- **Jencova (2021)**, "Geometric and algebraic aspects of spectrality in order unit spaces: a comparison," [arXiv:2102.01628](https://arxiv.org/abs/2102.01628) -- Foulis vs Alfsen-Shultz spectrality. Important caveat: Paper 5 §3.3 setup must specify which spectrality notion it uses.
+- **Jencova, Flaminio, Kroupa (2023)**, "Spectrality in convex sequential effect algebras," [arXiv:2312.13003](https://arxiv.org/abs/2312.13003) -- Convex sigma-SEA <-> spectral OUS with homogeneous positive cone. Worth examining for potential Phase 54 corollaries.
+- **Jencova, Pulmannova (2018/2019)**, "On the properties of spectral effect algebras," [arXiv:1811.12407](https://arxiv.org/abs/1811.12407) -- Spectral effect algebra structure theorems.
+- **Barnum, Graydon, Wilce (2020)**, "Composites and categories of Euclidean Jordan algebras," Quantum 4, 359, [arXiv:1606.09331](https://arxiv.org/abs/1606.09331) -- Compositionality excludes exceptional types.
+- **Chiribella, D'Ariano, Perinotti (2010/2011)**, "Informational derivation of quantum theory," Phys. Rev. A 84, 012311 (2011), [arXiv:1011.6451](https://arxiv.org/abs/1011.6451) -- Alternative operational reconstruction. Relevant if Phase 57 (phi wrapper) benefits from reframing in operational terms.
+- **D'Ariano, Chiribella, Perinotti (2017)**, "Quantum Theory from First Principles," Cambridge University Press -- Textbook development of operational quantum theory.
+
+### Tertiary references (background)
+
+- **Gudder (2005)**, "Open problems for sequential effect algebras," Int. J. Theor. Phys. 44, 2199. Some problems now resolved by vdW and WWvdW.
+- **Gudder, Greechie (2005)**, "Uniqueness and Order in Sequential Effect Algebras," Int. J. Theor. Phys. 44, 755.
+- **McCrimmon (2004)**, "A Taste of Jordan Algebras," Springer -- Comprehensive Jordan algebra textbook including Peirce decomposition (Ch 17).
+- **Iochum (1984)**, "Cones autopolaires et algebres de Jordan," Lecture Notes in Math. 1049 -- Self-dual cones and Jordan algebras.
+
+### Lean formalization references (Phase 58)
+
+- **Ax-Prover team (2025)**, "A Formalization of the Generalized Quantum Stein's Lemma in Lean," [arXiv:2510.08672](https://arxiv.org/html/2510.08672) -- First deep operator-algebra Lean formalization; style baseline.
+- **Lean-QuantumInfo** library, [description at emergentmind.com](https://www.emergentmind.com/topics/lean-quantuminfo-library) -- Quantum channels, entropies in Lean 4.
+- **mathlib4 Algebra.Jordan.Basic**, [mathlib4 docs](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Jordan/Basic.html) -- Elementary Jordan algebra stub only; no JB/JBW formalization.
+
+### Internal GPD references (HIGH confidence, directly used)
+
+- **GPD Phase 4-06**, "Peirce Feedback Extension," completed 2026-03-21, commit `9608ac54`. Located at `.gpd/phases/04-sequential-product-formalization/04-06-PLAN.md` and `04-06-SUMMARY.md`. Derived corrected sequential product with explicit Peirce 1-space and 2-space structure (Eq. 04-06.4). **CORE prior art for Phase 54.**
+- **GPD Phase 4 research**, `.gpd/phases/04-sequential-product-formalization/04-RESEARCH.md` -- Comprehensive sequential product axiom analysis with references.
+- **GPD Phase 5 (v2.0)**, local tomography and C*-promotion. Established the derivation chain from SP + local tomo => M_n(C)^sa.
+- **GPD Phase 6 (v2.0)**, paper assembly (predecessor of Paper 5). See commit `feffb9bf`.
+- **GPD Phase 28**, "Peirce Verification and V_0 Channel Exploration" -- Computational verification of Peirce structure in h_3(O) Albert algebra context; different phase (v13.0) but Peirce machinery is related.
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Notes |
+|------|-----------|-------|
+| Primary axiom sources (vdW, Alfsen-Shultz, Niestegge) | HIGH | Published, well-reviewed, decades-stable |
+| Phase 54 (A) outcome feasibility via GPD Phase 4-06 formula | HIGH | Already proved internally; restate and check |
+| Phase 54 (B) outcome (precise external citation) | LOW | Literature is silent in the exact form required; no Alfsen-Shultz theorem matches |
+| Phase 55 (S4 facial structure) | MEDIUM | vdW Prop 30 + AS facial structure likely suffice for (A); no direct (B) |
+| Phase 56 (Thm 5.8 upper bound) | MEDIUM | WWvdW 2020 classification relevant; needs analysis |
+| Phase 57 (Phi wrapper) | HIGH | Non-citation issue; exposition defense needed |
+| Phase 58 (Lean axiom audit) | MEDIUM-HIGH | Current Lean ecosystem well-surveyed; bespoke axioms expected; one-to-one citation mapping is correct deliverable |
+| Phase 59 (minimal composite) | HIGH | Literature complete; vdW 2019 Thm 3 + Barnum-Wilce 2014 |
+
+---
+
+## Quality Gate Compliance
+
+- [x] Every reference concrete and locatable (author + year + venue + arXiv/DOI)
+- [x] Alfsen-Shultz 2003 page references include explicit chapter (Ch 7, Ch 2, Ch 8) where proposed as partial support
+- [x] Distinguished "Peirce decomposition exists" (AS 2003 Ch 2) from "SP preserves Peirce subspaces" (NOT in AS; not found anywhere) -- this distinction is central
+- [x] Flagged literature silence at Phase 54 as a (C) outcome signal explicitly
+- [x] Included vdW "Three characterisations" (arXiv:1803.08453)
+- [x] Included EJA / JB-algebra axiomatizations: Hanche-Olsen-Stormer (Peirce decomposition = derived from JB axioms), Iochum (self-dual cones + Jordan); neither takes Peirce invariance of sequential product as axiom or theorem in the §3.3 form
+- [x] Noted GPD v2.0 Phases 4-6 prior art: Phase 4-06 Peirce feedback extension is the CORE internal reference for Phase 54
+
+---
+
+_Prior Work compiled 2026-04-16 for v14.0 Paper 5 revision cycle._
+_Next step: orchestrator reviews this file, confirms Phase 54 outcome expectation (A via Phase 4-06 internal prior art, or (C) if argument must start from S1+S3 axioms alone), then spawns Phase 54 planner._

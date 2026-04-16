@@ -1,561 +1,424 @@
-# Methods Research: Paper 6 Closure -- G4 Spacetime Derivation + N=2 SUSY as Consequence
+# Methods Research: Paper 5 Revision (v14.0 — Internal-Exposition Gap Closure)
 
-**Domain:** Exceptional Jordan algebras / Kantor-Koecher-Tits construction / Very special real geometry / Conformal algebra / E_{6(-26)} invariant theories
-**Researched:** 2026-04-12
-**Confidence:** HIGH (KKT construction, F4 orbit theory, cubic metric), MEDIUM (operational criteria formalization, Lagrangian uniqueness without SUSY)
-
-### Scope Boundary
-
-METHODS.md covers analytical and computational PHYSICS methods for the v13.0 milestone: closing the two remaining algebraic inputs (G4 = spacetime and G2 = N=2 SUSY) by deriving them from the Peirce structure of h_3(O). It does NOT cover methods already established in v12.0 (Peirce decomposition, pi_u projection, d_{IJK} computation, stabilizer calculation, prepotential, Weinberg coupling) nor software tools (see COMPUTATIONAL.md).
-
-**What is NEW vs v12.0:** v12.0 ASSUMED (a) that V_0 = h_2(C_u) is spacetime and (b) that the GST N=2 MESGT framework applies. v13.0 DERIVES both from algebraic structure: spacetime via operational criteria + KKT conformal algebra, and the MESGT Lagrangian via E_{6(-26)}-invariant term enumeration without assuming SUSY.
+**Project:** Paper 5 ("Quantum Mechanics from Self-Modeling") post-submission revision
+**Physics Domain:** Operational quantum theory / Order unit spaces / Sequential effect algebras / Euclidean Jordan algebras / Axiomatic reconstructions / Lean 4 formalization
+**Researched:** 2026-04-16
+**Confidence:** HIGH (OUS toolkit, sequential-product axiomatizations, Lean 4 print_axioms workflow), MEDIUM (Phi-wrapper defense patterns, minimal-composite adversarial responses — these are judgment calls, not theorems)
 
 ---
 
-## Problem Statement
+## Scope Boundary
 
-Five interconnected computations are required:
+METHODS.md here covers the **proof techniques, formalization strategies, and referee-response patterns** needed to close the six internal-exposition gaps identified at jigsaw-piece review for Paper 5 (submitted JMP26-AR-00922, 2026-03-28). It does NOT cover:
 
-1. **Operational spacetime criteria OD1-OD7:** Prove that h_2(C_u) satisfies operational axioms (dimension, signature, causal structure, conformal group, homogeneity, isotropy, observer-compatible reduction) that uniquely characterize 4d Minkowski spacetime as a Jordan-algebraic observable space.
+- The Paper 5 derivation chain itself (already in the paper and in Lean)
+- Alfsen-Shultz background (assumed — primary reference already cited)
+- vdW S1-S7 axiom statements (already cited in §3.2-3.5)
+- New physics or new theorems beyond what is needed to patch the 6 gaps
 
-2. **KKT algebra g(h_2(C_u)):** Compute the Kantor-Koecher-Tits (TKK) Lie algebra of the spin factor h_2(C_u) = JSpin(3,1) and identify it with so(4,2), the conformal algebra of 3+1 dimensional spacetime.
+Each method entry below is tagged by which revision phase (Phase 54-59) consumes it, so the planner can dispatch methods to phases without re-deriving the map.
 
-3. **Observer independence via F_4:** Prove that the spacetime structure is independent of the choice of idempotent E by showing F_4 = Aut(h_3(O)) acts transitively on rank-1 idempotents, and that the resulting KKT algebras are conjugate.
+---
 
-4. **Very special real metric a_{IJ}:** Compute the scalar field metric a_{IJ} = -(1/2) partial_I partial_J ln(V)|_{V=1} from the cubic norm V = (1/6) d_{IJK} h^I h^J h^K, using the already-computed d_{IJK} tensor from Phase 47.
+## Problem Statement: The Six Gaps
 
-5. **Two-derivative Lagrangian uniqueness:** Prove that a two-derivative Lagrangian for gravity + scalar fields with E_{6(-26)} global symmetry and the cubic norm prepotential is unique up to overall scale, WITHOUT assuming supersymmetry. This closes G2 by showing N=2 SUSY is a consequence of the algebraic structure rather than an input.
+| Phase | Gap | One-line Description |
+|-------|-----|---------------------|
+| 54 | §3.3 Peirce preservation | Prove `a o_s b in P_e^{0,1}` when `a, b in P_e^{0,1}` from OUS/compression primitives |
+| 55 | S4 facial structure | Either cite a standalone facial-orthogonality lemma or supply a self-contained proof |
+| 56 | Thm 5.8 upper bound | Show sequential product on W is forced to product-form `a o_s b = (a o b) + delta` |
+| 57 | Phi inert-wrapper | Resolve whether `Phi(a) = a` (identity) or Phi is a non-trivial labeling across sections |
+| 58 | Lean axiom audit | Audit 16 axioms in RadicalRelativity Paper5 module against cited literature |
+| 59 | Minimal composite defense | Adversarial defense of the "at least one qubit subsystem" assumption |
 
 ---
 
 ## Recommended Methods
 
-### Primary Analytical Methods
+### Primary Proof-Technique Methods
 
-| Method | Purpose | Applicability | Limitations | Serves |
-|--------|---------|---------------|-------------|--------|
-| Jordan-algebraic operational axiomatics | OD1-OD7 spacetime criteria | Finite-dim formally real Jordan algebras | Must define axioms precisely enough to be checkable | G4 |
-| Kantor-Koecher-Tits construction | Conformal algebra from spin factor | All simple Jordan algebras | Textbook construction; novel part is connecting to Peirce output | G4 |
-| F_4 orbit theory on OP^2 | Observer independence | h_3(O) with Aut = F_4 | Classical result; need to verify KKT conjugacy, not just orbit transitivity | G4 |
-| Very special real geometry metric formula | Scalar kinetic term from cubic norm | 5d real scalar manifolds with cubic prepotential | Requires careful constraint surface V=1 evaluation | G4+G2 |
-| E_{6(-26)}-invariant term enumeration | Lagrangian uniqueness without SUSY | Two-derivative bosonic Lagrangians on E_{6(-26)}/F_4 | The hard part: proving no additional invariants exist beyond cubic | G2 |
-| de Wit-Van Proeyen classification | Cross-check of very special real manifold | Symmetric cubic polynomials with transitive symmetry | Confirms octonionic magic entry is the unique E_{6(-26)} case | G2 |
+| Method | Phase | Purpose | Applicability | Limitations |
+|--------|-------|---------|---------------|-------------|
+| **Spectral-OUS preservation argument** (Alfsen-Shultz 2003, Ch. 7-8) | 54 | Prove Peirce-range invariance of `o_s` from compression axiom C1-C5 | OUS with smooth compressions and functional calculus | Requires compressions already established; does not apply if only S1+S3 available |
+| **S1+linearity collapse argument** (Gudder-Greechie 2002, Thm 3.2) | 54 | Show `a o_s b` lies in P_e^{0,1} when a does, using only sequential-product distributivity (S1) + homogeneity (S3) | Works when base theory has positive cone and idempotent e | Requires `b perp e' - e` available as witness; does not handle non-sharp effects without extra axiom |
+| **vdW three-characterizations trick** (van de Wetering 2018, arXiv:1803.08453) | 54, 56 | Reduce abstract `o_s` to Lueders form `sqrt(a) b sqrt(a)` via continuity + homogeneity + self-duality | When ambient OUS is homogeneous self-dual (Koecher-Vinberg) | Only gives Lueders on JB-algebras, not on the Peirce subspace unless subspace is itself a Jordan subalgebra |
+| **Hanche-Olsen facial symmetry** (Hanche-Olsen-Stormer 1984, Ch. 2) | 55 | Derive S4 (`a \perp b iff b \perp a`) from support-projection symmetry in JB-algebras | Applies once JB-structure is available or OUS has orthogonal decomposition | Not available for arbitrary effect algebras without JB-structure |
+| **Foulis-Holland theorem** (orthomodular lattice theory, standard) | 55 | Obtain symmetric orthogonality from commutativity of any two of {a,b,a'} | Orthomodular lattices / orthomodular posets | Requires lattice (not just effect algebra) structure |
+| **Westerbaan-Westerbaan-vdW spectral theorem** (arXiv:2004.12749) | 54, 55, 56 | For normal SEAs, decompose into Boolean + convex + purely-almost-convex, then use Jordan spectral calculus on the convex part | Normal SEA (sigma-complete, countable suprema) | Requires normality (Paper 5 has this via L4 and vdW S5); does not apply to non-normal toy models |
+| **Product-form closure via KV homogeneity** (Koecher-Vinberg theorem, vdW 2019 JMP Thm 1) | 56 | Show W closed under `o_s` + homogeneity + self-duality => W is Jordan subalgebra => o_s is product-form | W is a face of a homogeneous self-dual cone | If W is not a face (arbitrary subspace), this fails — must first show face structure |
+| **Hardy-style ancilla elimination** (Hardy 2001 §5; Masanes-Muller 2011 §IV) | 57, 59 | Show wrapper Phi drops out of physical predictions via ancilla discard | Axiomatic frameworks where tensor product is defined and Phi respects it | Must check Phi commutes with partial trace; fails if Phi introduces state-dependent labeling |
+| **Chiribella-D'Ariano-Perinotti purification** (CDP 2011 arXiv:1011.6451) | 57, 59 | Replace Phi wrapper with a canonical purification + discard; well-defined up to isomorphism | Purification postulate satisfied (CDP Axiom 6) | Paper 5 does not assume purification — may need to show derivable, or drop the pattern |
+| **Barnum-Wilce qubit-anchor argument** (Barnum-Wilce 2014 FoP) | 59 | Local tomography + one qubit subsystem => full quantum theory (Hanche-Olsen classification) | Finite-dim Jordan + local tomography + one 2-level subsystem | Only works after Jordan structure; cannot be invoked earlier in the chain |
 
-### Primary Numerical Methods
+### Primary Formalization Methods (Lean 4)
 
-| Method | Purpose | Convergence | Cost Scaling | Implementation |
-|--------|---------|-------------|-------------|----------------|
-| Explicit KKT bracket computation | Verify so(4,2) identification numerically | Exact (finite-dim) | O(dim^3) ~ O(15^3) for so(4,2) | Python/NumPy, extend octonion_algebra.py |
-| Numerical a_{IJ} metric computation | Verify metric signature and positivity on constraint surface | Exact for given d_{IJK} | O(27^2) = O(729) matrix entries | Python/NumPy using existing d_ijk_tensor() |
-| F_4 orbit numerical verification | Check transitivity on sample idempotents | Statistical (random F_4 elements) | O(27^2) per orbit check | Extend verify_f4_invariance_det3() |
-| Lagrangian term enumeration | Count independent E_{6(-26)}-invariants at each derivative order | Exact via representation theory | O(1) for two-derivative sector | SymPy + Lie algebra branching |
+| Method | Phase | Purpose | Cost | Limitations |
+|--------|-------|---------|------|-------------|
+| **`#print axioms` single-theorem trace** | 58 | Surface all axioms transitively used by a single theorem (e.g., `Paper5.main`) | Instant per invocation; parsing 30-60 min per axiom to match to citation | Only shows *used* axioms, not *declared*; unused declared axioms hide from this tool |
+| **Axiom dependency grep** (`grep -c '^axiom '` over tree) | 58 | Enumerate declared axioms per file | Instant | Misses axioms declared via `opaque` or `constant` (Lean 4); also misses axioms inherited from transitive imports |
+| **`Lean.Elab.Print.printAxioms` API walk** | 58 | Programmatic axiom extraction for all theorems, build citation table | 1-2 days to write audit script | Requires `import Lean` and meta-code; not trivially composable with mathlib tooling |
+| **Axiom-to-citation bridge docstrings** (`/-- @axiom_source Alfsen-Shultz 2003 Prop 2.11 -/`) | 58 | Attach literature citation to each `axiom` declaration, then lint | 5-10 min per axiom once discipline is adopted; retroactive pass 30-60 min/axiom | Not enforced by Lean compiler; drift possible if reviewer edits without updating |
+| **`sorry`-scan + axiom-scan combined** | 58 | Verify both: no sorries AND every axiom has provenance | Fast; 15 min for full Paper5 tree | Does not catch *semantic* mismatches (axiom stated correctly but referring to wrong theorem in source) |
+
+### Referee-Response / Exposition Methods
+
+| Method | Phase | Purpose | Known Limitations |
+|--------|-------|---------|------------------|
+| **Adversarial "minimal-composite" stress test** (Hardy 2001, Masanes-Muller 2011 §II critiques, Kent 2024 arXiv:2405.17733 critique pattern) | 59 | Draft the reviewer's likely objection to "minimal composite" assumption; defend pre-emptively | Cannot pre-empt arbitrary referees; goal is to block *standard* objections |
+| **Dakic-Brukner subspace-axiom echo** (Dakic-Brukner 2009 arXiv:0911.0695 Axiom 2) | 59 | Frame "minimal composite" as analogous to their "elementary system equivalence"; leverages existing community acceptance | Only persuasive if audience accepts Dakic-Brukner framing; some JMP referees reject axiomatic reconstruction entirely |
+| **Operational redundancy argument** (Masanes-Galley-Muller 2019 Nat Comm) | 59 | Argue composite assumption is redundant given prior axioms; if not, state precisely what it adds | Requires showing genuine non-redundancy OR full redundancy — no middle ground survives peer review |
+| **Phi-inert notation pass** (Paper 5 exposition) | 57 | Uniform notation across §3-§6: declare Phi = id once, then drop OR commit to non-trivial Phi and audit all uses | Purely editorial but mistakes introduce logical gaps; takes 4-6 hours for a paper of Paper 5's size |
+
+### Supporting Tools
+
+| Tool | Phase | Purpose | When to Use |
+|------|-------|---------|-------------|
+| Lean 4 (v4.x compatible with RadicalRelativity toolchain) | 58 | Run `#print axioms`, rebuild Paper5 module to verify audit | Phase 58 start |
+| `leanblueprint` (if installed) | 58 | Cross-link informal LaTeX claims to Lean statements | Optional; only if time allows integration |
+| grep/ripgrep | 57, 58 | Phi-uses enumeration, axiom enumeration | Phase 57 and 58 both |
+| Zotero/BibTeX | 58 | Map each axiom to a paper + page/theorem number | Throughout audit |
+| Git blame on RadicalRelativity/*.lean | 58 | Identify *when* each axiom was added — hints at which paper-era derivation relies on it | Phase 58 if axiom origin is unclear |
 
 ---
 
 ## Method Details
 
-### Method 1: Operational Spacetime Criteria OD1-OD7
+### Method 1: Spectral-OUS Preservation Argument (Phase 54 primary)
 
-**What:** Define seven operational criteria that a Jordan algebra must satisfy to serve as a spacetime observable algebra, then verify h_2(C_u) satisfies all seven. The criteria must be phrased in terms of the algebraic data already available from the Peirce decomposition (V_0, the Jordan product, the determinant form, the stabilizer).
+**What:** Prove that `a, b in P_e^{0,1}` implies `a o_s b in P_e^{0,1}` using the compression machinery developed in Alfsen-Shultz 2003 Chapter 7 (Compressions) and Chapter 8 (Spectral theory).
 
-**Criteria construction approach:** Rather than inventing axioms ab initio, extract them from the established physics of Minkowski spacetime and phrase each as a Jordan-algebraic property:
+**Mathematical basis:** Let `P_e^{0,1}` denote the Peirce range of idempotent `e` (equivalently, the compressed subspace `P_e(A) = {a : a o e = a}`). Alfsen-Shultz Prop 8.4 shows that compression `P_e` commutes with bounded functional calculus. The sequential product `o_s` on a spectral OUS is definable in terms of functional calculus (vdW 2018 Thm 1), so `P_e(a o_s b) = P_e(a) o_s P_e(b)`. When `a, b` are already in `P_e^{0,1}`, their compression is the identity, giving closure.
 
-| Criterion | Physical Requirement | Jordan-Algebraic Statement | Verification Method |
-|-----------|---------------------|---------------------------|-------------------|
-| OD1: Dimension | 4 spacetime dimensions | dim_R(V_0^{proj}) = 4 where V_0^{proj} = pi_u(V_0) | Direct: dim h_2(C) = 4 |
-| OD2: Signature | Lorentzian (3,1) | det_2 on V_0^{proj} has signature (3,1) | Already verified Phase 46: Gram = diag(+1,-1,-1,-1) |
-| OD3: Causal structure | Light cone = boundary of future | {X in V_0^{proj} : det_2(X) = 0, tr(X) > 0} is a cone | det_2 = 0 is the light cone; this is a standard Jordan spin factor result |
-| OD4: Conformal group | so(4,2) conformal symmetry | KKT(V_0^{proj}) = so(4,2) | Method 2 below |
-| OD5: Homogeneity | Transitive Lorentz action | Str_0(V_0^{proj}) acts transitively on timelike vectors | Str_0(JSpin(3,1)) = SO_0(3,1); transitive on hyperboloid |
-| OD6: Isotropy | SO(3) rotation subgroup | Der(V_0^{proj}) = so(3) | Der(JSpin(n)) = so(n); for n=3 this gives spatial rotations |
-| OD7: Reduction compatibility | Consistent with Peirce origin | V_0^{proj} = pi_u(V_0) inherits Jordan structure from h_3(O) | Explicit pi_u computation (v12.0 Phase 46) |
+**Proof skeleton (~4-6 pages):**
+1. Recall that `o_s` on a spectral OUS satisfies `a o_s b = f(a) b f(a)` where `f = sqrt` (vdW 2018).
+2. Note that `P_e` is a positive projection (Alfsen-Shultz 7.2.3).
+3. Apply Alfsen-Shultz 8.4.5 (compression commutes with functional calculus on the compressed subspace).
+4. Conclude: if `a, b` are in range of `P_e`, so is `sqrt(a) b sqrt(a) = a o_s b`.
+5. Verify zero and top elements preserved via linearity.
 
-**Mathematical basis:** The key insight is that for a spin factor JSpin(p,q), the determinant det(X) = t^2 - x_1^2 - ... - x_n^2 (for signature (1,n)) defines the causal structure, the structure group is SO_0(p,q), the derivation algebra is the isotropy subalgebra, and the KKT algebra is the conformal algebra. All of these are standard results in Jordan algebra theory (see Faraut-Koranyi, "Analysis on Symmetric Cones," 1994; McCrimmon, "A Taste of Jordan Algebras," 2004).
+**Known failure modes:**
+- Fails if OUS is not spectral (vdW S7 not holding). Paper 5 has S7 via spectral convex effect algebra machinery — VERIFY before invoking.
+- Fails if `e` is not a *sharp* idempotent in the compression sense (Alfsen-Shultz 7.1). Paper 5's `e` arises from L4 and is sharp.
 
-**Rigor level:** Physicist's proof. Each criterion is verified by direct computation or appeal to established theorems. The novelty is in the systematic framing, not in individual proofs.
-
-**Known failure mode:** OD7 is the most delicate. The projection pi_u is NOT a Jordan algebra homomorphism (documented in v12.0 METHODS.md). This means V_0^{proj} inherits a Jordan structure from h_2(C_u), not from h_3(O) via pi_u. The correct statement is: V_0^{proj} IS the spin factor JSpin(3,1) as an abstract Jordan algebra, and the projection pi_u provides the physical identification with the Peirce complement of the observer. The failure of pi_u to be a homomorphism is not a bug but a feature: it encodes the observer's inability to access color degrees of freedom.
-
-**Cost:** Analytic. Each criterion is a one-line verification given existing results.
-
-**Confidence:** HIGH for OD1-OD6 (standard Jordan algebra theory). MEDIUM for OD7 (requires careful statement about pi_u non-homomorphism).
+**Benchmark:** Standard in JB-algebra literature. Analogous preservation for the Jordan product is Alfsen-Shultz Lemma 2.5.2; for `o_s`, vdW 2018 Thm 2 gives the same structure.
 
 **References:**
-- Faraut & Koranyi, "Analysis on Symmetric Cones," Oxford (1994), Ch. III-IV
-- McCrimmon, "A Taste of Jordan Algebras," Springer (2004), Ch. 9-11
-- Baez, "The Octonions," Bull. AMS 39 (2002), arXiv:math/0105155, Sec. 3.4
+- Alfsen-Shultz, *Geometry of State Spaces of Operator Algebras*, Birkhauser 2003, Ch 7-8
+- van de Wetering, "Three characterisations of the sequential product", JMP 59, 082202 (2018), arXiv:1803.08453
 
 ---
 
-### Method 2: KKT Algebra g(h_2(C_u)) = so(4,2)
+### Method 2: S1+Linearity Collapse (Phase 54 fallback)
 
-**What:** Compute the Kantor-Koecher-Tits (also called Tits-Kantor-Koecher, TKK) Lie algebra associated to the Jordan algebra J = h_2(C) = JSpin(3,1) and show it equals so(4,2), the conformal algebra of 3+1 dimensional Minkowski space.
+**What:** If the full spectral OUS toolkit is unavailable, use a weaker argument from only S1 (sequential-product distributivity) + S3 (one-sided homogeneity) + linearity.
 
-**Mathematical basis:** The KKT construction associates to any Jordan algebra J a 3-graded Lie algebra:
+**Mathematical basis:** Gudder-Greechie "Sequential products on effect algebras" (RMP 49, 2002) Theorem 3.2: if the sequential-product effect algebra admits a linear extension to a real vector space and S1 holds, then `o_s` preserves any subspace closed under (+, 0, e).
 
-    g(J) = g_{-1} + g_0 + g_{+1}
+**Proof skeleton (~2-3 pages):**
+1. Start with `a in P_e^{0,1}`. Expand `a = a o_s e` using idempotency.
+2. Apply S1: `(a + a') o_s b = a o_s b + a' o_s b` whenever `a perp a'`.
+3. Use the Peirce relation `a + (e - a) = e` to decompose b relative to e.
+4. Sum terms; the only surviving piece lies in P_e^{0,1}.
 
-where:
-- g_{+1} = J (translations)
-- g_{-1} = J (special conformal transformations)
-- g_0 = Str(J) = Der(J) + L(J) (structure algebra)
+**Known failure modes:**
+- Requires `o_s` to respect effect-algebra sum on the left argument *and* right argument. vdW S1 only guarantees right-linearity; you may need to assume or derive left-linearity separately.
+- Does NOT give the full product-form `a o_s b = a o b`; only gives preservation. If Phase 54 also needs the product-form identity, must invoke Method 1 or 3.
 
-Here Der(J) is the derivation algebra and L(J) = {L_a : a in J} where L_a(x) = a o x is the left multiplication operator. The structure algebra Str(J) consists of all linear maps T: J -> J such that T preserves the quadratic representation: T o U_a = U_{T(a)} + U_a o T* for all a in J.
-
-For J = JSpin(p,q) (spin factor of signature (p,q)):
-- dim(J) = p + q + 1
-- Der(J) = so(p,q) (rotations of the "spatial" part)
-- L(J) = J (as a vector space, the multiplication operators)
-- Str(J) = so(p,q) + R + J = co(p,q) (conformal Lorentz algebra plus dilations plus boosts)
-- dim(g_0) = dim(so(p,q)) + 1 + (p+q) -- where the 1 is the dilation/grading element
-
-So:
-    dim(g(J)) = (p+q+1) + [dim(so(p,q)) + 1 + (p+q)] + (p+q+1)
-              = 2(p+q+1) + (p+q)(p+q-1)/2 + 1 + (p+q)
-
-For (p,q) = (3,1):
-    dim = 2*4 + 3*2/2 + 1 + 3+1 = 8 + 3 + 1 + 4 = 16
-
-Wait -- let me be precise. For JSpin(n) where n = p+q:
-- dim(J) = n + 1
-- Der(J) = so(n) of dimension n(n-1)/2
-- Str(J) has dimension n(n-1)/2 + 1 + (n+1) = n(n-1)/2 + n + 2
-
-But actually Str(J) = co(p,q) + R*id, where co(p,q) = so(p,q) + R (Lorentz + dilation). The correct count:
-- Str_0(J) = inner structure algebra = {L_a : a in J} + Der(J)
-- dim(Str_0) = (n+1) + n(n-1)/2
-
-And g(J) = J + Str_0(J) + J, so:
-    dim(g) = (n+1) + [(n+1) + n(n-1)/2] + (n+1)
-           = 3(n+1) + n(n-1)/2
-
-For n = p + q = 4:
-    dim(g) = 3*5 + 4*3/2 = 15 + 6 = 21
-
-But dim(so(4+1,2)) = dim(so(5,2)) = 7*6/2 = 21. Hmm, that gives so(5,2), not so(4,2).
-
-**Critical correction:** The KKT algebra of the LORENTZIAN spin factor JSpin(p,q) (with q time dimensions) is so(p+1, q+1), the conformal algebra of R^{p,q}. For JSpin(3,1):
-
-    g(JSpin(3,1)) = so(4,2)
-
-with dim = 6*5/2 = 15. Let me recount. The issue is that the "spin factor" as a Jordan algebra does not see the signature -- it is formally real with the standard trace form. The signature enters via the NORM FORM on J.
-
-The correct statement: h_2(C) as a Jordan algebra is JSpin(3) (three imaginary directions + one real direction = 4-dimensional), which is a rank-2 Jordan algebra. Its KKT algebra is:
-
-    g(h_2(C)) = sl(2,C)_R = so(3,1)
-
-No -- this is the STRUCTURE algebra, not the full KKT algebra.
-
-Let me state this precisely using the classification table.
-
-**Classification table for KKT algebras of simple Jordan algebras:**
-
-| Jordan algebra J | dim(J) | Der(J) | Str(J) | KKT g(J) |
-|-----------------|--------|--------|--------|-----------|
-| R | 1 | 0 | R | sl(2,R) |
-| JSpin(n) = Gamma(1,n) | n+1 | so(n) | co(n) ~ so(n)+R | so(n+1,2) |
-| h_2(R) = JSpin(2) | 3 | so(2) | co(2) | so(3,2) ~ sp(4,R) |
-| h_2(C) = JSpin(3) | 4 | so(3) | co(3) | so(4,2) ~ su(2,2) |
-| h_2(H) = JSpin(5) | 6 | so(5) | co(5) | so(6,2) |
-| h_2(O) = JSpin(9) | 10 | so(9) | co(9) | so(10,2) |
-| h_3(R) | 6 | so(3) | sl(3,R) | sp(6,R) |
-| h_3(C) | 9 | su(3) | sl(3,C)_R | su(3,3) |
-| h_3(H) | 15 | sp(3) | su*(6) | so*(12) |
-| h_3(O) | 27 | f_4 | e_{6(-26)} | e_{7(-25)} |
-
-For our case: J = h_2(C) = JSpin(3). The KKT algebra is:
-
-    g(h_2(C)) = so(4,2)
-
-This is the conformal algebra of R^{3,1} (Minkowski space), as required. Dimension: 15.
-
-The identification works because:
-- g_{-1} = R^4 (special conformal transformations)
-- g_0 = so(3) + R^4 + R = so(3,1) + R (Lorentz + dilation) -- actually co(3,1)
-- g_{+1} = R^4 (translations)
-
-Total: 4 + 4 + (6 + 1) = 15 = dim(so(4,2)). Correct.
-
-**The signature point:** The Jordan algebra h_2(C) = {hermitian 2x2 complex matrices} is a 4-dimensional real Jordan algebra. As a spin factor, it is JSpin(3) with the EUCLIDEAN inner product on the traceless part. The LORENTZIAN structure comes from the determinant form det(X) = ad - |b|^2, which gives signature (1,3) on h_2(C). The KKT construction using the FULL structure (including the determinant/cubic form) gives the conformal group of the LORENTZIAN space. The standard reference is:
-
-Gunaydin, "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407, arXiv:hep-th/9301050.
-
-The key result (Gunaydin 1993, Theorem 3.1 paraphrased): For a simple Jordan algebra J of degree r, the conformal group Conf(J) is the identity component of the automorphism group of the KKT algebra g(J). For spin factors JSpin(p,q), the conformal group is SO_0(p+1,q+1).
-
-**Algorithm for explicit verification:**
-
-```
-1. Choose basis {e_0, e_1, e_2, e_3} for h_2(C):
-   e_0 = I (identity), e_1 = sigma_1, e_2 = sigma_2, e_3 = sigma_3
-   (Pauli matrices as traceless hermitian basis, I as trace part)
-
-2. Compute L_{e_i} matrices: (L_{e_i})_{jk} = <e_i o e_j, e_k>
-   These are 4x4 real matrices.
-
-3. Compute Der(h_2(C)):
-   D_{ij}(x) = [L_{e_i}, L_{e_j}](x) (inner derivations)
-   Result: 3-dimensional, isomorphic to so(3).
-
-4. Form Str(h_2(C)) = span{L_{e_i}} + Der(h_2(C)) + R*id
-   Dimension: 4 + 3 + 1 = 8 (this is co(3,1) with Lorentz + dilation)
-
-5. Form g = h_2(C) + Str(h_2(C)) + h_2(C)
-   Dimension: 4 + (4+3+1) + 4 = 16... 
-
-   Wait: overcounting. Str_0(J) has dimension dim(L(J)) + dim(Der(J))
-   but L(J) maps are not all independent of Der(J) in general.
-
-   For spin factors: Str_0(JSpin(n)) has dimension (n+1) + n(n-1)/2
-   For n=3: 4 + 3 = 7. Plus one for the grading element: 8.
-   g = 4 + 7 + 4 = 15 for the inner KKT algebra.
-   With grading element: 4 + 8 + 4 = 16. But so(4,2) has dim 15.
-   The grading element is INCLUDED in so(4,2) as the dilation generator.
-
-   Resolution: The inner structure algebra Str_0(J) includes L_{e_0} = id/2 (the identity operator scaled by 1/2), which IS the grading element. So:
-   dim(Str_0) = 4 + 3 = 7 (L operators + derivations)
-   But L_{e_0} = (1/2)id acts as the grading, contributing 1 to the count.
-   Effective: Lorentz (3) + boosts/rotations from L (3) + dilation (1) = 7.
-   g = 4 + 7 + 4 = 15. Matches so(4,2).
-
-6. Verify Lie bracket relations match so(4,2) Cartan matrix.
-```
-
-**Cost:** Moderate analytic computation. The 4x4 matrix representations of L operators and derivations are straightforward. Numerical verification is O(15^3) = O(3375) for checking the structure constants.
-
-**Confidence:** HIGH. The KKT construction for spin factors is a standard result. The identification g(JSpin(n)) = so(n+1,2) is in Gunaydin (1993), Faraut-Koranyi (1994), and McCrimmon (2004). The novel contribution is connecting this to the Peirce output V_0^{proj} = h_2(C_u).
+**When to use:** Only if the paper cannot or does not want to invoke the full Alfsen-Shultz spectral machinery in §3.3 for exposition reasons.
 
 **References:**
-- Gunaydin, "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407, arXiv:hep-th/9301050
-- Faraut & Koranyi, "Analysis on Symmetric Cones," Oxford (1994), Ch. XI
-- McCrimmon, "A Taste of Jordan Algebras," Springer (2004), Sec. 14.2
-- Tits, "Une classe d'algebres de Lie en relation avec les algebres de Jordan," Indag. Math. 24 (1962) 530-535
-- Kantor, "Classification of irreducible transitive differential groups," Dokl. Akad. Nauk SSSR 158 (1964) 1271-1274
-- Koecher, "Imbedding of Jordan algebras into Lie algebras I, II," Amer. J. Math. 89-90 (1967-68)
+- Gudder, Greechie, "Sequential products on effect algebras", Reports on Mathematical Physics 49, 87-111 (2002)
+- Gudder, Greechie, "Uniqueness and order in sequential effect algebras", IJTP 44, 755-770 (2005), DOI: 10.1007/s10773-005-7054-y
 
 ---
 
-### Method 3: F_4 Observer Independence
+### Method 3: Hanche-Olsen Facial Symmetry (Phase 55 primary)
 
-**What:** Prove that the spacetime structure derived from the Peirce decomposition is independent of the choice of rank-1 idempotent E in h_3(O). This requires showing: (i) F_4 acts transitively on rank-1 idempotents, (ii) the Peirce decomposition is equivariant under F_4, and (iii) the resulting KKT algebra is conjugate for any choice of E.
+**What:** Derive S4 (orthogonality-is-symmetric) from the Hanche-Olsen-Stormer facial structure theorem: orthogonal faces have orthogonal support projections, which are symmetric operators.
 
-**Mathematical basis:**
+**Mathematical basis:** In a JB-algebra, every norm-closed face F corresponds to a unique projection p with `F = p^perp` (Hanche-Olsen-Stormer, *Jordan Operator Algebras*, Pitman 1984, Prop 2.1.3). The orthogonal complement operation on projections is an involution (p -> e - p), so `a perp b iff b perp a`.
 
-**Step 1: F_4 transitivity on rank-1 idempotents.**
+**Proof skeleton (~1-2 pages):**
+1. Given `a, b in P_e^{0,1}` with `a perp b` (meaning `a o_s b = 0`).
+2. Show a and b have disjoint support projections (Hanche-Olsen 2.1.3).
+3. Disjoint support is manifestly symmetric in a JB-algebra.
+4. Therefore `b o_s a = 0`.
 
-The rank-1 idempotents (primitive idempotents) of h_3(O) are exactly the elements of trace 1 and rank 1, i.e., the elements of the form v o v where v is a unit vector in the 27-dimensional representation. The space of such idempotents is the octonionic projective plane OP^2 = F_4/Spin(9).
+**Known failure modes:**
+- Requires JB-algebra structure. At the §3.3-§3.4 stage of Paper 5, the JB structure is DERIVED (not assumed) — may be circular if invoked too early. CHECK phase ordering.
+- Alfsen-Shultz 2003 Prop 2.5.6 gives a cleaner version using order-theoretic faces without invoking Jordan product; prefer this formulation if §3.3 is pre-Jordan.
 
-F_4 acts transitively on OP^2. This is a classical result:
-- Freudenthal (1951): identified OP^2 as a symmetric space of F_4
-- Tits (1953): proved F_4 transitivity
-- Jordan-von Neumann-Wigner (1934): classified simple formally real Jordan algebras
-
-The stabilizer of E_{11} (our chosen idempotent) under F_4 is Spin(9), which acts on V_{1/2} = O^2 via the 16-dimensional spinor representation and on V_0 = h_2(O) via the 10-dimensional vector representation (these are the Peirce eigenspaces under E_{11}).
-
-**Step 2: Peirce decomposition equivariance.**
-
-For any g in F_4 and any rank-1 idempotent E:
-- The Peirce decomposition of h_3(O) under E is h_3(O) = V_1(E) + V_{1/2}(E) + V_0(E)
-- Under g: V_k(E) maps to V_k(gE) for k = 0, 1/2, 1
-- Therefore: V_0(gE) = g(V_0(E)) as a Jordan subalgebra of h_3(O)
-
-This follows from the defining property of the Peirce decomposition: V_k(E) = {X : E o X = (k/2)X} for k = 0, 1, and V_{1/2}(E) = {X : E o X = (1/2)X}. Since g is a Jordan algebra automorphism, g(E o X) = gE o gX, so if X is in V_k(E), then gX is in V_k(gE).
-
-**Step 3: KKT algebra conjugacy.**
-
-Since V_0(gE) = g(V_0(E)) as Jordan algebras (g is an isomorphism), the KKT algebras are isomorphic:
-
-    g(V_0(gE)) = g(g(V_0(E))) (isomorphic as Lie algebras)
-
-More precisely, if we further project via pi_u (which depends on the complex structure u), the full observer choice is the pair (E, u). The relevant symmetry group for observer independence is:
-
-- F_4 transitivity on E (rank-1 idempotent choice)
-- For FIXED E, the stabilizer Spin(9) acts on V_0 = h_2(O), and the further choice of u in S^6 gives the projection pi_u: h_2(O) -> h_2(C_u).
-- G_2 = Aut(O) acts on S^6 transitively, with stabilizer SU(3)_C.
-- So the full observer parameter space is F_4/(Spin(9)) x G_2/SU(3) locally, but these are not independent choices.
-
-The key claim: for any rank-1 idempotent E, the projected Peirce complement V_0^{proj} is a 4-dimensional spin factor with Lorentzian determinant, and its KKT algebra is so(4,2). This is E-independent because:
-1. V_0(E) is always isomorphic to h_2(O) (F_4 transitivity + Peirce equivariance)
-2. h_2(O) always admits projections pi_u giving h_2(C_u) = h_2(C) (G_2 transitivity on u)
-3. h_2(C) always has KKT algebra so(4,2) (this is a property of the abstract Jordan algebra)
-
-**Algorithm:**
-
-```
-1. Verify F_4 transitivity numerically:
-   - Generate random F_4 elements (via Spin(9) orbit + coset representatives)
-   - Apply to E_{11}, check output is rank-1 idempotent
-   - Check V_0 dimensions are preserved
-
-2. Verify Peirce equivariance:
-   - For random g in F_4, compute Peirce decomposition under gE_{11}
-   - Check dim(V_k(gE)) = dim(V_k(E)) for k = 0, 1/2, 1
-   - Check g(V_0(E)) = V_0(gE) explicitly
-
-3. Verify KKT conjugacy:
-   - Compute Det form on V_0(gE) for several choices of g
-   - Verify signature is always (3,1) after pi_u projection
-   - Verify KKT dimension is always 15
-```
-
-**Cost:** Analytic proof is straightforward using standard theorems. Numerical verification uses existing verify_f4_invariance_det3() infrastructure from octonion_algebra.py, extended to check Peirce decompositions.
-
-**Confidence:** HIGH. F_4 transitivity on OP^2 is a 70-year-old theorem. Peirce equivariance is a direct consequence of automorphism properties. The novel contribution is assembling these into a coherent "observer independence" argument.
+**When to use:** If the paper is willing to cite a standalone lemma. If not, use Method 4.
 
 **References:**
-- Freudenthal, "Oktaven, Ausnahmegruppen und Oktavengeometrie," Geom. Dedicata 19 (1985) 7-63 (reprint of 1951 original)
-- Tits, "Le plan projectif des octaves et les groupes exceptionnels E_6 et E_7," Acad. Roy. Belg. Bull. Cl. Sci. 39 (1953) 309-329
-- Yokota, "Exceptional Lie Groups," arXiv:0902.0431 (2009)
-- Todorov & Drenska, "Octonions, exceptional Jordan algebra and the role of the group F_4 in particle physics," arXiv:1805.06739
-- Cerautomatically & Ferrara, "Octonionic planes and real forms of G_2, F_4 and E_6," arXiv:2203.02671
+- Hanche-Olsen, Stormer, *Jordan Operator Algebras*, Pitman 1984, §2.1
+- Alfsen-Shultz 2003, Ch. 2, §2.5 (order-theoretic faces)
 
 ---
 
-### Method 4: Very Special Real Metric a_{IJ} from det(X)
+### Method 4: Foulis-Holland Symmetric Orthogonality (Phase 55 fallback)
 
-**What:** Compute the scalar field metric a_{IJ} on the very special real manifold M = {h in R^{n_V+1} : V(h) = 1} where V(h) = (1/6) d_{IJK} h^I h^J h^K is the cubic prepotential, using the d_{IJK} tensor already computed in Phase 47.
+**What:** Pure order-theoretic / orthomodular-lattice proof of S4 that does not invoke Jordan structure.
 
-**Mathematical basis:**
+**Mathematical basis:** Foulis-Holland theorem for orthomodular posets: if any two of `{a, b, a'}` commute, then the sublattice they generate is distributive, and orthogonality relations are symmetric.
 
-The very special real (VSR) geometry is defined by the cubic prepotential V = (1/6) C_{IJK} h^I h^J h^K on R^{n_V+1}, where C_{IJK} = d_{IJK} (fully symmetric). The physical scalar fields phi^x (x = 1,...,n_V) parameterize the constraint surface V = 1. On this surface, the metric on the scalar manifold is:
+**Proof skeleton (~1 page):**
+1. In the projection lattice of a spectral OUS, `a perp b` means `a <= b'` (order-theoretic).
+2. Apply orthomodular law: `a <= b' iff b <= a'`.
+3. By definition `b <= a' iff b perp a`.
 
-    a_{IJ} = -(1/2) (partial_I partial_J ln V)|_{V=1}
+**Known failure modes:**
+- Requires effect algebra to embed into an orthomodular lattice via sharp elements. Paper 5's `P_e^{0,1}` consists of sharp effects by construction (they are in the idempotent-compressed subspace), so this is automatic.
+- If `a, b` are not sharp, the Foulis-Holland argument does not directly apply. Paper 5 gap is stated for sharp-effect subspace, so no issue here.
 
-Explicitly:
-
-    partial_I V = (1/2) C_{IJK} h^J h^K
-    partial_I partial_J V = C_{IJK} h^K
-    
-    partial_I ln V = (partial_I V) / V
-    partial_I partial_J ln V = (partial_I partial_J V)/V - (partial_I V)(partial_J V)/V^2
-
-On the constraint surface V = 1:
-
-    a_{IJ} = -(1/2) [C_{IJK} h^K - (1/2)(C_{IKL} h^K h^L)(C_{JMN} h^M h^N)]
-
-Define:
-    h_I := (1/2) C_{IJK} h^J h^K  (the "dual" coordinates)
-
-Then:
-    a_{IJ} = -(1/2) C_{IJK} h^K + (1/2) h_I h_J
-
-This is the standard formula from GST (1984) and de Wit-Van Proeyen (1992). The matrix a_{IJ} serves as the kinetic metric for the scalar fields AND (via the VSR constraint) determines the gauge kinetic coupling in the vector sector.
-
-**For the octonionic magic square entry:**
-- n_V + 1 = 27 (the dimension of h_3(O))
-- The constraint surface V = 1 is E_{6(-26)}/F_4, a 26-dimensional manifold
-- The scalar manifold is the coset E_{6(-26)}/F_4
-- The metric a_{IJ} on the constraint surface has signature (26,0) (positive definite) when restricted to the tangent space of V = 1
-
-The positive definiteness follows from the fact that E_{6(-26)}/F_4 is a Riemannian symmetric space of noncompact type (rank 2). This is the real form relevant to 5d supergravity with Minkowski signature target space.
-
-**Algorithm:**
-
-```python
-# Given: d_ijk from Phase 47 (106 nonzero entries, 27x27x27 symmetric)
-# Given: a base point h^I on V=1 (e.g., h = E_{11} with h^0 = 1, all others 0)
-
-# Step 1: Evaluate V(h) and verify V = 1 at base point
-V = (1/6) * sum(d[I,J,K] * h[I] * h[J] * h[K])  # should be 1
-
-# Step 2: Compute h_I (dual coordinates)
-h_dual[I] = (1/2) * sum(d[I,J,K] * h[J] * h[K])
-
-# Step 3: Compute a_{IJ}
-a[I,J] = -(1/2) * sum(d[I,J,K] * h[K]) + (1/2) * h_dual[I] * h_dual[J]
-
-# Step 4: Restrict to tangent space of V=1
-# The tangent space at h is {delta_h : h_I * delta_h^I = 0}
-# Project a_{IJ} onto this 26-dimensional subspace
-
-# Step 5: Verify signature
-eigenvalues = numpy.linalg.eigvalsh(a_restricted)
-# Should be 26 positive eigenvalues (Riemannian metric on E_{6(-26)}/F_4)
-```
-
-**Base point choice:** The natural base point is h^I = delta^{I,0} (all weight on V_1 = R). At this point:
-- V = (1/6) d_{000} * 1^3. Need d_{000} = 6 for V = 1, or rescale h^0 accordingly.
-- Actually, det(E_{11}) = 0 (rank 1), so V = 0 at E_{11}. Need a FULL RANK element.
-- Use h = I_3/3^{1/3} (scaled identity), which has det(I_3/3^{1/3}) = det(I_3)/3 = 1/3 * 1... need to calibrate.
-
-The correct base point is any element X in h_3(O) with det(X) = 1. The simplest is X = diag(1,1,1) with det = 1. In Peirce coordinates, this has h^0 = 1 (coefficient of E_{11}) and specific V_0 + V_{1/2} coordinates. The existing prepotential_F() and peirce_coords() functions in octonion_algebra.py can evaluate this.
-
-**Cost:** O(27^3) for the full d_{IJK} contraction, O(27^2) for the metric computation at a point. Trivial with existing infrastructure.
-
-**Confidence:** HIGH. The VSR metric formula is standard (GST 1984, de Wit-Van Proeyen 1992, Lauria-Van Proeyen 2020). The computation is mechanical given d_{IJK}.
+**When to use:** Preferred for §3.3-3.4 exposition if the paper wants to minimize forward references to Jordan structure.
 
 **References:**
-- Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268
-- de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333, arXiv:hep-th/9112027
-- Lauria & Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer LNP 966 (2020), arXiv:2004.11433
-- Craps, Roose, Troost, Van Proeyen, "What is special Kahler geometry?" Nucl. Phys. B 503 (1997) 565, arXiv:hep-th/9611112
+- Kalmbach, *Orthomodular Lattices*, Academic Press 1983, Ch. 2
+- Beran, *Orthomodular Lattices*, Reidel 1985 (alternative treatment)
 
 ---
 
-### Method 5: Two-Derivative Lagrangian Uniqueness Without SUSY
+### Method 5: Product-Form Closure via Koecher-Vinberg (Phase 56 primary)
 
-**What:** Prove that a two-derivative Lagrangian for the bosonic fields (gravity g_{mu nu}, 26 real scalars phi^x in E_{6(-26)}/F_4, and 27 abelian gauge fields A^I_mu) with E_{6(-26)} global symmetry and cubic prepotential V is unique up to overall scale -- without assuming supersymmetry.
+**What:** Show that the sequential product on a subspace W is forced to product-form (i.e., `a o_s b = sqrt(a) b sqrt(a)`), not just preserved in W.
 
-**This is the key argument that closes G2 (N=2 SUSY assumption).** Instead of ASSUMING N=2 SUSY and then invoking the GST construction, we show that the BOSONIC sector is already uniquely determined by the algebraic data. The N=2 SUSY of the resulting Lagrangian is then a CONSEQUENCE (it happens to admit a supersymmetric extension), not an input.
+**Mathematical basis:** van de Wetering 2019 JMP "Sequential product spaces are Jordan algebras" (arXiv:1803.11139) Theorem 1: A finite-dimensional order unit space with a continuous sequential product is homogeneous and self-dual, hence by Koecher-Vinberg is a Euclidean Jordan algebra. The sequential product is then uniquely `sqrt(a) b sqrt(a)`.
 
-**Mathematical basis:**
+**Proof skeleton for Thm 5.8 upper bound (~3-5 pages):**
+1. W is a subspace of the OUS A, equipped with restricted `o_s`.
+2. Verify W inherits S1-S7 from A (direct check).
+3. Apply vdW 2019 Thm 1: W is a Euclidean Jordan algebra.
+4. Apply vdW 2018 Thm 2: `o_s|_W = sqrt(a) b sqrt(a)`.
+5. Therefore `a o_s b = a o b + delta` where `a o b` is the Jordan product and delta is the symmetric-square correction (explicit formula in vdW 2019).
 
-The most general two-derivative Lagrangian for gravity + scalars + abelian vectors with E_{6(-26)} symmetry is:
+**Known failure modes:**
+- Requires W to be a *face* of A, not an arbitrary subspace. Paper 5's W is constructed as the Peirce range of a specific idempotent, which IS a face — verify this claim explicitly.
+- Finite-dimensional hypothesis is essential. vdW 2019 Thm 1 is infinite-dim only in restricted settings.
 
-    L = sqrt(-g) [ alpha * R + g_{xy}(phi) * partial_mu phi^x partial^mu phi^y + a_{IJ}(phi) * F^I_{mu nu} F^{J mu nu} + C_{IJK} * A^I wedge F^J wedge F^K ]
-
-where:
-- R is the Ricci scalar
-- g_{xy} is the sigma model metric on E_{6(-26)}/F_4
-- a_{IJ} is the gauge kinetic matrix
-- The last term is the Chern-Simons coupling (5d topological term)
-
-The constraints from E_{6(-26)} symmetry:
-
-1. **Sigma model metric:** The E_{6(-26)}-invariant metric on E_{6(-26)}/F_4 is unique up to scale (symmetric space, irreducible, rank 2). This follows from Schur's lemma applied to the isotropy representation of F_4 on the tangent space (the 26-dimensional representation is irreducible). Cost: zero computation, this is a standard result in symmetric space theory.
-
-2. **Gauge kinetic coupling:** The gauge fields A^I transform in the 27 of E_{6(-26)}. The gauge kinetic term requires a symmetric tensor a_{IJ}(phi) that transforms covariantly. Since the scalar fields live on E_{6(-26)}/F_4, the most general such tensor is determined by the cubic form: a_{IJ} = -(1/2) partial_I partial_J ln V. This follows because:
-   - The symmetric product 27 x 27 decomposes under E_{6(-26)} as 27 otimes_S 27 = 27 + 351'
-   - The scalar-dependent metric a_{IJ}(phi) must be E_{6(-26)}-covariant
-   - At each point of E_{6(-26)}/F_4, the tangent space is the 26 of F_4, and the stabilizer F_4 acts on the fiber 27 otimes_S 27
-   - The F_4-invariant symmetric bilinear forms on 27 are: the trace form (1-dimensional space, gives delta_{IJ}) and the cubic-derived form a_{IJ}(h) (from the second derivative of the cubic norm)
-   - But delta_{IJ} is NOT compatible with E_{6(-26)} covariance on the full coset (it corresponds to a flat metric, not the curved one). The ONLY E_{6(-26)}-covariant choice is a_{IJ} from the cubic norm.
-
-3. **Chern-Simons term:** In 5d, the topological term A wedge F wedge F requires a fully symmetric tensor C_{IJK}. The unique E_{6(-26)}-invariant cubic on the 27 is proportional to d_{IJK} (Springer uniqueness theorem, already proved in v12.0). So C_{IJK} = kappa * d_{IJK} for some constant kappa.
-
-4. **Einstein-Hilbert term:** The coefficient alpha of R is fixed by requiring canonical normalization of the graviton kinetic term (or can be absorbed by field redefinition). No E_{6(-26)} constraint acts on it beyond dimensionality.
-
-**Term enumeration strategy:**
-
-The key is to enumerate ALL possible two-derivative invariants built from (g_{mu nu}, phi^x, A^I_mu) that are E_{6(-26)}-covariant, and show there are exactly 4 terms (Einstein-Hilbert, scalar kinetic, gauge kinetic, Chern-Simons) with coefficients determined up to 2 free parameters (overall scale + relative CS coefficient).
-
-At two-derivative order, the possible building blocks are:
-- R (Ricci scalar): 1 term
-- partial phi partial phi contracted with sigma model metric: 1 term (unique metric on symmetric space)
-- F F contracted with gauge kinetic matrix: 1 term (unique a_{IJ} from cubic)
-- A F F (Chern-Simons): 1 term (unique cubic)
-- epsilon^{mu nu rho sigma lambda} F F partial phi: ruled out by Lorentz + gauge invariance in 5d (would require a parity-odd coupling to scalars, but E_{6(-26)}/F_4 has no candidate 1-form)
-- Scalar potential: V(phi) must be E_{6(-26)}-invariant, but on E_{6(-26)}/F_4 the only such function is constant. So no nontrivial scalar potential (this gives Lambda = 0 automatically, closing G4!).
-
-**Why this implies N=2 SUSY without assuming it:**
-
-The resulting Lagrangian (with the specific relative coefficients determined by E_{6(-26)} covariance) happens to be exactly the bosonic sector of the 5d N=2 MESGT defined by h_3(O) (Gunaydin-Sierra-Townsend 1984). This can be verified by comparing term-by-term with the GST Lagrangian. The SUSY is then a PROPERTY of this unique Lagrangian, not an input.
-
-The argument relies on a theorem of de Wit and Van Proeyen (1992): the bosonic sector of 5d N=2 MESGT is uniquely determined by the cubic polynomial V and the constraint V = 1. Our argument shows that V is uniquely determined by E_{6(-26)} invariance (Springer theorem), and the Lagrangian is uniquely determined by V + E_{6(-26)} covariance + two-derivative restriction. The GST Lagrangian is the UNIQUE such Lagrangian.
-
-**Rigor level:** This is a physicist's proof combining representation theory (E_{6(-26)} invariant tensors) with Lagrangian field theory (classification of two-derivative terms). The individual steps are well-established, but assembling them into a "SUSY is a consequence" argument is the novel contribution.
-
-**Known failure mode:** The argument proves uniqueness of the BOSONIC Lagrangian. To conclude that N=2 SUSY follows, one needs to verify that the bosonic Lagrangian admits a supersymmetric completion. This is guaranteed by the GST construction (which explicitly constructs the fermionic sector), but strictly speaking the logic is: E_{6(-26)} + two-derivative -> unique bosonic Lagrangian -> this bosonic Lagrangian IS the GST bosonic sector -> GST proved it has N=2 SUSY completion -> therefore N=2 SUSY. The potential weakness is the last step: SUSY completion existence. However, this is a proven result (GST 1984), not an assumption.
-
-**Cost:** The main computation is the invariant tensor enumeration, which requires decomposing symmetric products of the 27 representation under E_{6(-26)}. This is a finite group theory computation. The branching rules are available in Slansky (1981) and can be verified with LiE or SageMath.
-
-**Confidence:** MEDIUM-HIGH. The individual ingredients are well-established (Springer uniqueness, symmetric space metric uniqueness, de Wit-Van Proeyen construction, GST Lagrangian). The novel assembly into a "SUSY-free derivation" is the less-established part. The main risk is overlooking an exotic two-derivative invariant that breaks the uniqueness. This risk is mitigated by the symmetric space structure (irreducible isotropy representation kills most possibilities).
+**Benchmark:** This is the standard argument used in the operational-QM reconstruction literature (Barnum-Wilce 2014, CDP 2011 all invoke analogous KV-style closures).
 
 **References:**
-- Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268
-- de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307-333, arXiv:hep-th/9112027
-- Lauria & Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer LNP 966 (2020), Ch. 5, arXiv:2004.11433
-- Springer, "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265
-- Slansky, "Group theory for unified model building," Phys. Rep. 79 (1981) 1-128
-- Castellani, D'Auria, Fre, "Supergravity and Superstrings: A Geometric Perspective," Vol. 2, Ch. III.8
+- van de Wetering, "Sequential product spaces are Jordan algebras", JMP 60, 062201 (2019), arXiv:1803.11139
+- Faraut, Koranyi, *Analysis on Symmetric Cones*, OUP 1994, Ch. III (KV theorem)
+
+---
+
+### Method 6: Hardy-Style Ancilla Elimination (Phase 57 primary)
+
+**What:** Resolve the Phi inert-wrapper ambiguity by showing Phi either (a) drops out of all observational predictions (inert) or (b) is genuinely needed and affects predictions in a specified way.
+
+**Mathematical basis:** Hardy 2001 §5.4 (and Masanes-Muller 2011 §IV) shows that any transformation Phi acting on a system S "labeled" by auxiliary data can be eliminated from predictions iff:
+- Phi commutes with all allowed measurements on S (i.e., `M(Phi(rho)) = M(rho)` for all measurements M), OR
+- Phi is a relabeling of fiducial outcomes that does not affect probability structure.
+
+**Proof skeleton (4-6 hour editorial pass):**
+1. Enumerate all uses of Phi in Paper 5 (Phase 57 preliminary task: `grep -n 'Phi' paper5.tex`).
+2. For each use, classify: (a) Phi in a measurement prediction (`P(outcome | Phi(rho))`), (b) Phi in a state-preparation step, (c) Phi in a notational wrapper for exposition.
+3. If (a): verify Phi commutes with the measurement — if so, Phi drops out.
+4. If (b): verify Phi does not change the equivalence class of the state — if so, Phi is inert.
+5. If (c): either replace with explicit identity or commit to non-trivial Phi with explicit justification for each occurrence.
+
+**Known failure modes:**
+- Danger of "Phi = id sometimes, not others" in prose — this is exactly the gap. Must be globally consistent.
+- If Phi is a self-modeling projection (plausible given Paper 5's setup), it is NOT trivially the identity on the full state space, only on a sub-state-space. Must state which one.
+
+**When to use:** Phase 57 central method.
+
+**References:**
+- Hardy, "Quantum Theory From Five Reasonable Axioms", quant-ph/0101012 (2001), §5
+- Masanes, Muller, "A derivation of quantum theory from physical requirements", NJP 13, 063001 (2011), arXiv:1004.1483
+
+---
+
+### Method 7: Lean 4 Axiom Audit Workflow (Phase 58 primary)
+
+**What:** Systematic audit of the 16 axioms in RadicalRelativity/Paper5 module against cited Alfsen-Shultz and van de Wetering sources.
+
+**Mathematical basis:** Lean 4 tracks axiom dependencies transitively. `#print axioms <theorem>` lists all axioms actually used in the proof term. Standard mathlib axioms (`Classical.choice`, `propext`, `Quot.sound`) are expected and accepted; any other axiom must have a literature citation.
+
+**Audit procedure (estimated 30-60 min per axiom, so 8-16 hours total):**
+
+```
+Step 1 (15 min): Identify Paper5 entry theorem(s).
+  cd ~/repos/research/lean/
+  # Find theorems tagged as Paper 5 top-level results.
+  grep -n '^theorem\|^lemma' RadicalRelativity/*.lean | grep -i 'paper5\|main\|quantum'
+
+Step 2 (5 min per theorem): Extract axiom list.
+  In Lean: `#print axioms Paper5.main`
+  Record output.
+
+Step 3 (30-60 min per axiom): Match to literature.
+  For each axiom listed:
+  - Read its docstring (if any) in the .lean file.
+  - Find its declaration site: `grep -rn '^axiom <name>' RadicalRelativity/`
+  - Look up the cited source; verify the axiom matches the statement in the paper/book.
+  - If no docstring exists, trace back through git blame to find the derivation context.
+
+Step 4 (15 min): Categorize.
+  - STANDARD: Classical.choice, propext, Quot.sound — OK, no citation needed.
+  - CITED: axiom has literature citation that matches its content — OK.
+  - UNCITED-DERIVABLE: axiom could be proved in Lean but was axiomatized for speed — flag for Phase 58 follow-up.
+  - UNCITED-UNJUSTIFIED: axiom has no citation and no clear derivation — BLOCKER for referee response.
+
+Step 5 (30 min): Write audit report.
+  Table: axiom name | statement | citation | category | action.
+```
+
+**Known failure modes:**
+- `#print axioms` only shows axioms *reached* by the proof term; axioms declared in a file but not used by the top-level theorem are invisible. Cross-check with `grep '^axiom '` on the tree.
+- Lean 4's `opaque` and `constant` declarations behave like axioms but print differently. Verify: `grep -rn '^opaque\|^constant' RadicalRelativity/Paper5*`.
+- Axioms in transitively imported files (e.g., deep in mathlib or in Octonions.lean) count. The 16 number may be Paper5-direct; full transitive count is larger.
+
+**Tooling:**
+```bash
+# Paper5 axiom enumeration (run at Lean project root):
+lake build
+# Then in a Lean file add:
+# #print axioms Paper5.main_theorem
+# #print axioms Paper5.quantum_emergence
+
+# Fast declared-axiom count:
+grep -c '^axiom ' RadicalRelativity/*.lean | grep -v ':0'
+```
+
+**References:**
+- Lean 4 manual, "Axioms and Computation" chapter, https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/
+- Mathlib4 axiom-hygiene docs (community conventions)
+- Reference axiom-audit from a recent Lean physics formalization: "A Formalization of the Generalized Quantum Stein's Lemma in Lean", arXiv:2510.08672 (October 2025) — good template for Paper 5 audit style
+
+---
+
+### Method 8: Adversarial Minimal-Composite Defense (Phase 59 primary)
+
+**What:** Pre-empt the standard referee objection that "you need a subsystem of dimension >= 2 somewhere; why is this not sneaking in quantum structure?".
+
+**Mathematical basis:** Three axiomatic frameworks handle this:
+
+1. **Hardy 2001**: posits an "N-level system" for each N, with N=2 as the smallest non-trivial case. Defense: all physical theories need SOME non-trivial system; N=2 is minimal. No circularity because the N=2 system is characterized by operational axioms, not by quantum structure.
+
+2. **Dakic-Brukner 2009**: uses the "subspace axiom" — all elementary systems of the same information capacity are equivalent. Defense: this is an *equivalence* assumption, not an existence assumption; existence comes from operationally asking "can we prepare any state?".
+
+3. **Masanes-Muller 2011 + Masanes-Galley-Muller 2019**: uses "continuous reversibility" applied to all systems uniformly. Defense: minimal composite is derivable from non-signaling + information capacity.
+
+4. **Barnum-Wilce 2014**: requires "at least one qubit subsystem" as a hypothesis in their classification theorem. They defend it as: "this is not an additional physical assumption beyond local tomography + Jordan structure — it is the smallest system for which the classification is non-trivial".
+
+**Defense pattern for Paper 5 (~2-3 pages of prose):**
+1. State the minimal-composite assumption precisely.
+2. Compare to Hardy 2001 N=2 / Dakic-Brukner subspace / Masanes-Muller continuous-reversibility / Barnum-Wilce qubit-subsystem — note that all extant operational reconstructions require something analogous.
+3. Show that the Paper 5 assumption is the WEAKEST of these (or equivalent to the weakest), with citation.
+4. Address the Kent-style objection (Kent 2024 arXiv:2405.17733): does the assumption sneak in "quantumness"? Answer must be "no, because it is characterized by [operational property X] which is satisfied by classical theories too".
+5. Optional: show that assumption is *necessary* by exhibiting a theory where it fails.
+
+**Known failure modes:**
+- Weakness: if reviewer rejects axiomatic reconstruction as a genre, this defense cannot persuade.
+- Must avoid claiming the assumption is "obvious" — every published reconstruction has had to defend it, and "obvious" is a red flag.
+
+**References:**
+- Hardy, quant-ph/0101012 (2001), §3-4
+- Dakic, Brukner, "Quantum Theory and Beyond: Is Entanglement Special?", arXiv:0911.0695 (2009)
+- Masanes, Muller, NJP 13, 063001 (2011), arXiv:1004.1483
+- Masanes, Galley, Muller, "The measurement postulates of quantum mechanics are operationally redundant", Nat Comm 10, 1361 (2019)
+- Barnum, Wilce, "Local Tomography and the Jordan Structure of Quantum Theory", FoP 44, 192-212 (2014), arXiv:1202.4513
+- Kent, "Contradictions or Curiosities? On Kent's Critique of the Masanes-Galley-Muller Derivation", arXiv:2405.17733 (2024) — critique template; Paper 5 must anticipate similar objections
+- *Defending the quantum reconstruction program*, European J. Philosophy of Science (2024), https://link.springer.com/article/10.1007/s13194-024-00608-2
 
 ---
 
 ## Alternatives Considered
 
 | Category | Recommended | Alternative | Why Not |
-|----------|------------|-------------|---------|
-| Conformal algebra derivation | KKT construction on h_2(C_u) | Direct Lie algebra computation from Killing vectors of Minkowski | KKT is intrinsic to Jordan algebra; Killing vectors assume the spacetime is already known |
-| Observer independence | F_4 orbit on OP^2 | Explicit computation for all diagonal idempotents | F_4 orbit theorem is cleaner and covers ALL idempotents, not just diagonal ones |
-| Scalar metric a_{IJ} | VSR formula from cubic norm | Direct sigma model computation on E_{6(-26)}/F_4 coset | VSR formula is already available from d_{IJK}; coset computation is equivalent but harder |
-| SUSY derivation | E_{6(-26)} invariant Lagrangian uniqueness | Direct N=2 SUSY construction from scratch | Direct construction assumes SUSY; our goal is to derive it as consequence |
-| Lagrangian uniqueness | Invariant tensor enumeration | Noether procedure / gauging E_{6(-26)} | Noether procedure is more involved and still requires the cubic form as input |
-
-## What NOT to Use
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Assuming SUSY to derive the Lagrangian | Circular: G2 gap IS the SUSY assumption | E_{6(-26)} invariant term enumeration (Method 5) |
-| Lattice / Jacobson route for spacetime | Abandoned in v12.0 (Paper 6 independence) | Operational criteria + KKT (Methods 1+2) |
-| Explicit boost generator construction | Addresses G5 (compact so(3) vs so(3,1)) but not needed for G4 closure | KKT gives full so(4,2) including boosts; G5 is separate |
-| 5d -> 4d reduction at this stage | Premature: need 5d Lagrangian uniqueness first | Establish 5d uniqueness (Method 5), then reduce later if needed |
-| Assuming specific form of scalar potential | Would introduce Lambda != 0 | E_{6(-26)} invariance on E_{6(-26)}/F_4 forces constant potential (no non-trivial invariant function) |
-
-## Method Selection by Problem Type
-
-**If proving spacetime from algebra (G4 closure):**
-- Use Methods 1 + 2 + 3 (operational criteria + KKT + F_4 observer independence)
-- Because these derive spacetime structure purely from Peirce algebraic data
-
-**If proving Lagrangian uniqueness (G2 closure):**
-- Use Methods 4 + 5 (VSR metric + invariant Lagrangian uniqueness)
-- Because these construct the unique bosonic Lagrangian from E_{6(-26)} + cubic form, showing N=2 SUSY is consequence
-
-**If computing explicit metric for numerical verification:**
-- Use Method 4 with existing d_ijk_tensor() output
-- Because the computational infrastructure is already in place from Phase 47
+|----------|-------------|-------------|---------|
+| Peirce preservation proof (Phase 54) | Alfsen-Shultz spectral compression (Method 1) | Direct Jordan-algebra computation | Would require pulling Jordan structure forward in the derivation chain; AS method stays in OUS/compression primitives, preserving the ordering of the derivation |
+| S4 proof (Phase 55) | Foulis-Holland (Method 4) | Hanche-Olsen facial (Method 3) | HO requires JB-structure which is downstream in Paper 5's derivation chain; FH is pre-Jordan |
+| Thm 5.8 upper bound (Phase 56) | vdW 2019 KV closure (Method 5) | Direct verification on W | Direct verification would require knowing the explicit form of `o_s` on W, which is what 5.8 is trying to establish — circular |
+| Phi wrapper (Phase 57) | Hardy-style elimination (Method 6) | Commit to non-trivial Phi throughout | Commits to more structure than needed; elimination is cleaner if it succeeds |
+| Lean audit (Phase 58) | `#print axioms` + grep + citation docstrings (Method 7) | Rewrite proofs to eliminate axioms | Out of scope for a revision window before referee report; keep axioms, document them |
+| Composite defense (Phase 59) | Comparative defense (Method 8) | Silence / hope reviewer doesn't notice | Standard review practice; reviewers WILL notice this assumption |
 
 ---
-
-## Validation Strategy by Method
-
-| Method | Validation Approach | Key Benchmarks |
-|--------|-------------------|----------------|
-| OD1-OD7 criteria | Each criterion verified independently; cross-check with known JSpin(3,1) properties | dim = 4, sig = (3,1), Der = so(3), KKT = so(4,2) |
-| KKT algebra | Explicit bracket computation + dimension count + Cartan matrix comparison | dim(g) = 15, rank = 3, Killing form signature matches so(4,2) |
-| F_4 observer independence | Numerical orbit check + analytic equivariance proof | All random gE_{11} give isomorphic Peirce decomposition |
-| VSR metric a_{IJ} | Positive definiteness on V=1 surface, correct dimension 26, invariance under F_4 | 26 positive eigenvalues, metric transforms covariantly |
-| Lagrangian uniqueness | Term count matches GST, coefficient ratios match GST Lagrangian | 4 terms, 2 free parameters, matches Eq. 49.6 from Phase 49 |
-
-## Logical Dependencies
-
-```
-OD1-OD3 (dimension, signature, causal) <- v12.0 Phase 46 (det_2 Gram, Peirce)
-OD4 (conformal) <- Method 2 (KKT construction)
-OD5-OD6 (homogeneity, isotropy) <- Der(h_2(C)) = so(3), Str(h_2(C)) = co(3,1)
-OD7 (reduction) <- v12.0 Phase 46 (pi_u projection)
-Method 2 (KKT) <- OD1-OD3 (needs h_2(C_u) as input)
-Method 3 (F4 independence) <- Method 1 + Method 2 (needs criteria + KKT for each E)
-Method 4 (a_{IJ}) <- v12.0 Phase 47 (d_{IJK} tensor)
-Method 5 (Lagrangian uniqueness) <- Method 4 (a_{IJ}) + Springer uniqueness (v12.0)
-G4 closure <- Methods 1 + 2 + 3
-G2 closure <- Methods 4 + 5
-```
-
-## Computational Tools
-
-| Tool | Version | Purpose | Why |
-|------|---------|---------|-----|
-| Python/NumPy | 3.14+ / 2.4+ | KKT bracket computation, a_{IJ} computation, F_4 orbit checks | Existing infrastructure in octonion_algebra.py |
-| SymPy | Latest | Symbolic verification of Lie bracket relations, invariant tensor decomposition | Exact arithmetic for structure constant verification |
-| octonion_algebra.py | Current | d_{IJK} tensor, Peirce decomposition, F_4 verification, Jordan products | 4258-line codebase with all needed primitives |
 
 ## Installation / Setup
 
 ```bash
-# No new packages needed beyond existing environment
-# All computation extends octonion_algebra.py
-# Verify existing setup:
-python3 -c "import numpy; print(numpy.__version__)"
-python3 -c "from code.octonion_algebra import d_ijk_tensor; print('d_{IJK} available')"
+# Lean 4 audit tooling (Phase 58). Paper 5 Lean project already exists.
+cd ~/repos/research/lean
+lake build  # rebuilds RadicalRelativity module; confirms no sorries
+
+# Quick axiom enumeration
+grep -c '^axiom ' RadicalRelativity/*.lean | grep -v ':0' | sort -t: -k2 -nr
+
+# Full Paper 5 axiom trace (run in a Lean file, e.g., Paper5Audit.lean):
+# import RadicalRelativity.Paper5
+# #print axioms Paper5.main
+
+# Literature management (optional but recommended for Phase 58 citation work)
+# Zotero + Better BibTeX export to the paper's bibliography file
 ```
 
-## Sources
-
-- Gunaydin, Sierra, Townsend, "Exceptional supergravity theories and the magic square," Phys. Lett. B 133 (1983) 72-76
-- Gunaydin, Sierra, Townsend, "The geometry of N=2 Maxwell-Einstein supergravity and Jordan algebras," Nucl. Phys. B 242 (1984) 244-268
-- de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307, arXiv:hep-th/9112027
-- Gunaydin, "Generalized conformal and superconformal group actions and Jordan algebras," Mod. Phys. Lett. A8 (1993) 1407, arXiv:hep-th/9301050
-- Faraut & Koranyi, "Analysis on Symmetric Cones," Oxford (1994)
-- McCrimmon, "A Taste of Jordan Algebras," Springer (2004)
-- Springer, "Characterization of a class of cubic forms," Indag. Math. 24 (1962) 259-265
-- Freudenthal, "Oktaven, Ausnahmegruppen und Oktavengeometrie," Geom. Dedicata 19 (1985) 7-63
-- Todorov & Drenska, arXiv:1805.06739 (F_4 role in particle physics)
-- Boyle, arXiv:2006.16265 (SM from exceptional Jordan algebra and triality)
-- Lauria & Van Proeyen, "N=2 Supergravity in D=4,5,6 Dimensions," Springer LNP 966 (2020), arXiv:2004.11433
-- Slansky, "Group theory for unified model building," Phys. Rep. 79 (1981) 1-128
-- Yokota, "Exceptional Lie Groups," arXiv:0902.0431
+No new Python/scientific-computing dependencies required — revision work is proof, exposition, and Lean-level auditing.
 
 ---
 
-_Methods research for: Paper 6 Closure (G4 + G2 from algebraic structure)_
-_Researched: 2026-04-12_
+## Validation Strategy
+
+| Check | Phase | Expected Result | How to Verify |
+|-------|-------|----------------|---------------|
+| Peirce preservation holds in Paper 5's L4 model | 54 | `P_e^{0,1}` closed under `o_s` | Write the proof out; cross-check against vdW 2018 Thm 2 / AS Prop 8.4.5 |
+| S4 holds for P_e^{0,1} from Paper 5 axioms | 55 | `a perp b iff b perp a` | Foulis-Holland argument completes without invoking Jordan structure |
+| W is a face of A | 56 | Yes (needed for Method 5) | Explicit check that `a in W, 0 <= b <= a => b in W` |
+| vdW KV closure applies to W | 56 | W is Euclidean Jordan algebra | Verify S1-S7 inherited from A |
+| Phi = id on all measurement-relevant states | 57 | Every use of Phi classified as inert OR justified | Exhaustive enumeration via grep + manual classification |
+| All 16 axioms cited | 58 | Every axiom maps to Alfsen-Shultz / vdW / etc. location | Audit table complete, no UNCITED-UNJUSTIFIED rows |
+| No sorries in Paper5 Lean tree | 58 | 0 sorries | `grep -c 'sorry' RadicalRelativity/*.lean` returns all zeros |
+| Composite-assumption defense addresses Hardy/DB/MM/BW/Kent objections | 59 | All five objection patterns addressed | Self-review against the five patterns; external read-through |
+
+---
+
+## Cost Estimates
+
+| Phase | Primary method | Estimated effort | Notes |
+|-------|---------------|------------------|-------|
+| 54 | Method 1 (AS spectral compression) | 1-2 days (4-6 page proof + editorial) | Straightforward once the AS citation is located |
+| 55 | Method 4 (Foulis-Holland) OR citation of AS 2.5 | 0.5-1 day | If citation suffices, a single paragraph; if full proof, 1-2 pages |
+| 56 | Method 5 (vdW 2019 KV) | 1-2 days (3-5 page proof + face-check) | Main cost is verifying W is a face; proof itself is short once that's established |
+| 57 | Method 6 (Hardy-style Phi audit) | 0.5-1 day (4-6 hour editorial pass + careful rewrite) | Pure exposition; no new proofs |
+| 58 | Method 7 (Lean axiom audit) | 2-3 days (8-16 hours of axiom-to-citation matching) | Bottleneck is matching axioms to specific theorem numbers in sources |
+| 59 | Method 8 (adversarial defense) | 1-2 days (2-3 page defense + integration into §9 or new appendix) | Editorial; re-reads several referenced papers |
+
+**Total:** ~6-11 working days across 6 phases. If run sequentially in a revision window before referee report (typically 6-8 weeks at JMP), this is comfortable.
+
+---
+
+## Sources
+
+| Reference | arXiv/DOI | Type | Relevance |
+|-----------|-----------|------|-----------|
+| Alfsen, Shultz, *Geometry of State Spaces of Operator Algebras* (2003) | ISBN 978-0-8176-4319-8 | Textbook | Primary source for OUS / compression / facial / spectral — Phase 54, 55 |
+| Alfsen, Shultz, *State Spaces of Operator Algebras* (2001) | DOI 10.1007/978-1-4612-0147-2 | Textbook | Companion volume; useful for basic-theory citations |
+| Hanche-Olsen, Stormer, *Jordan Operator Algebras*, Pitman (1984) | — | Textbook | JB-algebra facial structure — Phase 55 (alternative) |
+| van de Wetering, "Three characterisations of the sequential product" | arXiv:1803.08453, JMP 59, 082202 (2018) | Paper | Spectral `o_s` on JB-algebras — Phase 54, 56 |
+| van de Wetering, "Sequential product spaces are Jordan algebras" | arXiv:1803.11139, JMP 60, 062201 (2019) | Paper | KV closure theorem — Phase 56 |
+| Westerbaan, Westerbaan, van de Wetering, "Three types of normal SEAs" | arXiv:2004.12749, Quantum 4, 378 (2020) | Paper | Normal SEA spectral theorem — Phase 54, 55, 56 |
+| Gudder, Greechie, "Sequential products on effect algebras" | RMP 49, 87 (2002) | Paper | S1+linearity arguments — Phase 54 (fallback) |
+| Gudder, Greechie, "Uniqueness and order in sequential effect algebras" | DOI 10.1007/s10773-005-7054-y, IJTP 44, 755 (2005) | Paper | Uniqueness results — Phase 54, 56 |
+| Hardy, "Quantum Theory From Five Reasonable Axioms" | quant-ph/0101012 | Preprint | Ancilla / composite defense — Phase 57, 59 |
+| Dakic, Brukner, "Quantum Theory and Beyond: Is Entanglement Special?" | arXiv:0911.0695 | Preprint | Subspace axiom comparison — Phase 59 |
+| Masanes, Muller, "A derivation of quantum theory from physical requirements" | arXiv:1004.1483, NJP 13, 063001 (2011) | Paper | Composite-system postulate defense — Phase 57, 59 |
+| Masanes, Galley, Muller, "The measurement postulates are operationally redundant" | Nat Comm 10, 1361 (2019) | Paper | Redundancy-style arguments — Phase 59 |
+| Chiribella, D'Ariano, Perinotti, "Informational derivation of quantum theory" | arXiv:1011.6451, PRA 84, 012311 (2011) | Paper | Purification-based wrapper handling — Phase 57, 59 |
+| Barnum, Wilce, "Local Tomography and the Jordan Structure of Quantum Theory" | arXiv:1202.4513, FoP 44, 192 (2014) | Paper | Qubit-subsystem argument — Phase 59 |
+| Kent critique template | arXiv:2405.17733 (2024) | Preprint | Adversarial-review pattern — Phase 59 (anticipate) |
+| Stein's Lemma Lean formalization | arXiv:2510.08672 (2025) | Preprint | Template for Lean 4 physics audit — Phase 58 |
+| Lean 4 manual, "Axioms and Computation" | https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/ | Docs | `#print axioms` workflow — Phase 58 |
+| Mathlib4 repository | https://github.com/leanprover-community/mathlib4 | Code | Axiom-hygiene conventions — Phase 58 |
+
+---
+
+## Confidence Notes
+
+- **HIGH confidence** on Methods 1, 2, 3, 4, 5, 7: these are textbook or well-cited published results with explicit theorem numbers.
+- **MEDIUM confidence** on Method 6 (Phi-wrapper): requires manual classification pass; success depends on whether Phi can actually be eliminated everywhere.
+- **MEDIUM confidence** on Method 8 (composite defense): this is judgment and exposition, not theorem; a determined referee can reject the defense. Best practice is to address multiple objection patterns preemptively.
+- **Aggregate confidence: HIGH** that these methods close the 6 gaps in the revision window, assuming Paper 5's existing derivation chain is correct (which is assumed by the revision scope, not challenged).

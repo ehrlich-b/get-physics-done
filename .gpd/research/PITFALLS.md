@@ -1,428 +1,591 @@
-# Known Pitfalls Research: Paper 6 Closure -- G4 Spacetime Derivation + N=2 SUSY as Consequence
+# Known Pitfalls Research: Paper 5 JMP Revision -- Six Jigsaw-Piece Gaps
 
-**Domain:** Exceptional Jordan algebra h_3(O), Peirce V_0 spacetime derivation, KKT (Kantor-Koecher-Tits) construction, N=2 MESGT Lagrangian uniqueness, GST classification, algebraic metric emergence
-**Researched:** 2026-04-12
-**Confidence:** HIGH for algebraic/structural pitfalls (C1-C4); MEDIUM-HIGH for circularity pitfalls (C5-C7); MEDIUM for classification pitfalls (C8-C10)
+**Domain:** Axiomatic quantum mechanics from sequential-product axioms; spectral order unit spaces in the Alfsen-Shultz sense; Peirce decomposition for compressions; JB-algebra / EJA identification; operator-algebra formalization in Lean 4
+**Researched:** 2026-04-16
+**Confidence:** HIGH for circularity-ordering pitfalls (R1-R4), literature-citation precision (R5-R7), and Lean-axiom audit (R8-R9); MEDIUM-HIGH for cross-phase sequencing (R10-R11); MEDIUM for referee-timeline risk (R12)
 
-**Scope:** Pitfalls specific to v13.0 -- closing the two remaining inputs in the self-modeling -> SM+GR chain: (1) deriving the 4d Minkowski metric from algebraic structure (not information geometry), and (2) showing N=2 SUSY emerges as a consequence rather than being assumed. The v12.0 PITFALLS.md (now superseded) covered the five-phase algebraic chain Phases 46-50. This file covers the EXTENSION pitfalls for Phases 52-53.
+**Scope:** Pitfalls specific to v14.0 -- closing six load-bearing jigsaw gaps in Paper 5 "QM from Self-Modeling" (submitted to JMP 2026-03-28, ref JMP26-AR-00922) before the referee report lands. The submission is frozen at git tag `paper5-jmp-submitted`; revision happens in `main.tex`. Six phases are planned: 54 (§3.3 Peirce preservation), 55 (S4 facial structure), 56 (Thm 5.8 W upper bound), 57 (Phi inert-wrapper), 58 (Lean axiom audit), 59 (minimal composite defense).
 
-**Relationship to v12.0 pitfalls:** Pitfalls P1-P9 from v12.0 remain valid. This file adds pitfalls C1-C12 specific to the closure work. Where a v12.0 pitfall is sharpened by v13.0 context, the updated version appears here with a cross-reference.
+**Relationship to prior pitfall files:** v12.0 pitfalls P1-P9 and v13.0 pitfalls C1-C12 covered Paper 6 (spacetime/SUSY). This file (R1-R12) is orthogonal: it covers the revision mechanics for Paper 5, not the physics chain downstream of it. The v2.0 Phase 4 work established the corrected sequential-product formula `a & b = Σ λ_i C_{p_i}(b) + Σ √(λ_i λ_j) P_{ij}(b)` (Eq. 04-06.4); the present milestone's pitfalls concern whether Paper 5's EXPOSITION of that derivation survives referee scrutiny at the step level, not whether the math is right.
+
+**Key stance:** The failure modes here are subtle because the paper is already internally consistent at the reading level. The question is whether each argument is RECONSTRUCTIBLE FROM PRIMITIVES by a skeptical reader, not whether it is VISUALLY PLAUSIBLE to the author. Every pitfall below distinguishes "looks right" from "is right from the stated primitives."
 
 ---
 
 ## Critical Pitfalls
 
-### C1: Fisher-Rao Trap -- Positive-Definite Information Metric Cannot Give Minkowski Signature
+### R1: Assuming the Conclusion -- Using Jordan Structure to Prove Something Meant to Derive Jordan Structure
 
 **What goes wrong:**
-Attempting to derive the Minkowski metric on spacetime from the Fisher-Rao metric (Fisher information metric) on a statistical manifold of observer states. The Fisher-Rao metric is positive semi-definite by construction (it is the expectation value of the outer product of score functions), so its eigenvalues are all non-negative. A Riemannian metric with signature (+,+,+,+) cannot produce a Lorentzian metric with signature (+,-,-,-) by any smooth deformation, restriction, or projection that preserves the metric structure.
+Paper 5's strategic core is that Jordan-algebra structure is DERIVED from sequential-product axioms (van de Wetering Theorem 1), not assumed. Any argument in §3.3 (or any phase revising it) that invokes "a ∘ b is a Jordan product," "the Jordan identity `a²`∘(b∘a) = (a²∘b)∘a`," or "self-adjoint operator multiplication" to prove Peirce invariance of `a ∘ (−)` has circularly assumed what it was meant to derive. The same trap applies to invoking "operator compression" in the B(H) sense (i.e., x ↦ pxp) rather than "Alfsen-Shultz compression" in the OUS sense (positive projection c_p with specified order-theoretic properties).
 
-Concretely: if g_FI(theta) = E[d_i log p * d_j log p] is the Fisher information matrix at parameter theta, then for any tangent vector v, v^T g_FI v >= 0 by Cauchy-Schwarz. There is no parameter submanifold, no quotient, and no restriction that makes this indefinite.
+Concretely: the claim Phase 54 must prove is that `a ∘ V_2(p_i) ⊆ V_2(p_i)` and `a ∘ V_1(p_i, p_j) ⊆ V_1(p_i, p_j)` using ONLY (S1) additivity in the second argument, (S3) `1 ∘ a = a` and sharp constraint `a ∘ b = c_a(b)` when a is projective, order-unit-space primitives, and Alfsen-Shultz compression properties. Any appeal to `(a ∘ b) = (1/2)(ab + ba)` with ab, ba understood as operator products is a circular step.
 
 **Why it happens:**
-The Fisher-Rao metric is the unique (up to scale) Riemannian metric on statistical manifolds that is invariant under sufficient statistics (Cencov's theorem). This uniqueness result is sometimes misinterpreted as meaning it is the unique metric period, leading researchers to try to extract spacetime geometry from it. Additionally, information-geometric approaches to gravity (Verlinde-type emergent gravity, Jacobson's thermodynamic derivation) use entropy and information concepts, creating a false association between "information geometry" and "spacetime geometry."
+The mental model Paper 5 assumes -- M_n(C)^sa with Lüders product -- is the prototype for everything. When writing exposition, it is natural to verify claims by "checking on M_n(C)^sa" and then asserting the general case by analogy. But the analogy is the thing being derived; analogy-to-M_n(C) is the payload of the theorem, not a proof tool. Additionally, "compression" has two meanings (B(H)-compression `pxp`, A-S compression `c_p`) that coincide for projectors in M_n(C) but are distinct primitives in an abstract OUS.
 
-**How to avoid:**
-- The Minkowski metric on V_0 = h_2(C_u) comes from det_2, which is an ALGEBRAIC form (the determinant of a 2x2 Hermitian matrix), not an information-geometric metric.
-- det_2(X) = ad - |b|^2 is an indefinite quadratic form: it takes both positive and negative values. This is NOT a metric in the Riemannian sense -- it is a pseudo-Riemannian quadratic form.
-- The connection to information theory, if any, operates at the level of the self-modeling axiom selecting h_3(O), NOT at the level of the spacetime metric. The spacetime metric is algebraic, not statistical.
-- Never write "the Fisher-Rao metric gives the Minkowski metric" or "information geometry produces Lorentzian signature."
+**Consequences:**
+A referee will correctly identify the argument as circular. If §3.3 depends on §4 or §5 results that depend on §3.3, the paper's derivation spine is broken even though every individual claim may be true. Outcome (C) of the Phase 54 deliverable matrix.
 
-**Warning signs:**
-Any argument that starts from a positive-definite quantity (Fisher information, von Neumann entropy, mutual information) and claims to produce an indefinite metric without an explicit mathematical mechanism for the sign flip.
+**Prevention:**
+- Every proof attempt in Phase 54 must begin with an explicit allowed-tool list: order unit, ≤, ||·||, `c_p` (with its A-S axioms: idempotent, positive, `c_p + c_{p'} = id` on sharp effects' face, `c_p(p) = p`), S1, S3, linearity, finite dimension.
+- Explicit forbidden-tool list: Jordan multiplication `·`, `a² = a∘a` with any associativity-style manipulation, `M_n(C)^sa`, JB-algebra spectral theorem, `vdW Theorem 1`, anything from §4 or §5 of Paper 5, any result downstream of the sequential product being proved to be a Jordan operation.
+- Adversarial review must apply grep for forbidden tokens in the proof: `M_n`, `M_2(C)`, `Jordan product`, `EJA`, `f(λ,μ) = √(λμ)` (this last formula IS a conclusion of §3.3/§4, not a primitive available to §3.3's proof).
 
 **Detection:**
-Check the signature of any proposed "metric on spacetime." If all eigenvalues are non-negative, it cannot be Minkowski. Compute the Gram matrix and verify it has signature (1,3) or (3,1) depending on convention.
+Grep patterns on any RESULT.md or proof file: `"since .* Jordan"`, `"because .* Jordan"`, `"M_n\(C\)"`, `"Lüders"`, `"M_2"`, `"operator product"`, `"pxp"`, `"√a.*b.*√a"`. Any hit is suspect. Also: if the proof is shorter than 30 lines for a claim about compositions of compressions and Peirce projections in an abstract OUS, it is likely hand-waving.
 
-**Phase to address:** Phase 52 (spacetime derivation). This is the single most important pitfall for Phase 52. The entire phase must be structured around det_2 on h_2(C_u), not information geometry.
-
-**References:**
-- Cencov, "Statistical Decision Rules and Optimal Inference" (1982) -- Fisher-Rao uniqueness
-- Amari, Nagaoka, "Methods of Information Geometry" (2000) -- positive definiteness is fundamental
-- Phase 46 (v12.0) -- det_2 Gram = diag(+1,-1,-1,-1) established computationally
-
----
-
-### C2: Confusing Algebraic Form (det_2) with Physical Metric (g_{\mu\nu})
-
-**What goes wrong:**
-Identifying det_2 on h_2(C_u) directly with the dynamical spacetime metric g_{\mu\nu}. The det_2 is a FIXED quadratic form on a 4-dimensional real vector space -- it is the flat Minkowski metric eta_{\mu\nu}. A dynamical metric requires fluctuations h_{\mu\nu} around this background, and the gravitational field is h_{\mu\nu}, not eta_{\mu\nu}. Claiming "det_2 gives gravity" conflates the background with the dynamical field.
-
-**Why it happens:**
-Phase 46 proved det_2 has Lorentzian signature. Phase 50 used Weinberg's theorem to derive -R/2. The temptation is to compress the chain "det_2 -> Minkowski background -> fluctuations -> spin-2 field -> Weinberg -> GR" into the shorthand "det_2 gives gravity." This shorthand hides multiple non-trivial steps, each with its own pitfall.
-
-**How to avoid:**
-- det_2 determines the BACKGROUND Minkowski metric eta on h_2(C_u). This is a kinematic structure, not a dynamical one.
-- The spin-2 field h_{\mu\nu} is a PERTURBATION around eta. Its existence requires showing that fluctuations of the Peirce V_0 sector include a symmetric traceless rank-2 tensor under SO(3,1).
-- Weinberg's theorem then forces the dynamics to be -R/2 at low energies.
-- Each step is logically distinct: (background) -> (fluctuations exist) -> (fluctuations are spin-2) -> (coupling is universal) -> (dynamics is GR).
-
-**Warning signs:**
-If the argument goes directly from "det_2 has signature (1,3)" to "therefore Einstein gravity," multiple steps have been skipped.
-
-**Phase to address:** Phase 52 (spacetime derivation), specifically the step connecting algebraic structure to dynamical geometry.
-
----
-
-### C3: Observer Dependence -- The u-Choice as Gauge vs. Physics
-
-**What goes wrong:**
-Treating the choice of unit imaginary octonion u in S^6 as a physical choice that selects a preferred frame, rather than a gauge choice within the F_4 orbit. If the Minkowski metric on h_2(C_u) depends on which u is chosen, and different u's give physically inequivalent spacetimes, then the framework has an unphysical 6-parameter ambiguity (the 6 dimensions of S^6).
-
-Conversely, if u-independence is claimed but not proved, the entire spacetime derivation may be u-dependent in a way that breaks the algebraic naturality of the construction.
-
-**Why it happens:**
-G_2 = Aut(O) acts transitively on S^6 (the unit imaginary octonions), so all choices of u are G_2-equivalent. But the relevant group is F_4 = Aut(h_3(O)), not G_2. The stabilizer of E_{11} in F_4 is Spin(9), and Spin(9) acts transitively on S^7 (unit octonions) but NOT on S^6 (unit IMAGINARY octonions) -- Spin(7) subset Spin(9) stabilizes a given u. The correct statement requires the F_4 action on rank-1 idempotents, not an ad hoc choice.
-
-**How to avoid:**
-- Show that the construction is F_4-equivariant: different choices of u (or equivalently, of the rank-1 idempotent E_{11}) give isomorphic spacetime structures, with the isomorphism implemented by the F_4 automorphism that maps one choice to another.
-- The F_4 action on rank-1 idempotents is transitive (F_4 acts transitively on OP^2 = the space of rank-1 idempotents in h_3(O)). Use this to establish that the spacetime metric is defined up to F_4-equivalence.
-- Phase 48 (v12.0) proved pi_u equivariance under the Lorentz subgroup. Phase 52 must extend this to show the full spacetime construction is u-independent up to isomorphism.
-- The physical content is: "any observer picks a u (equivalently, a rank-1 idempotent), and sees the same spacetime structure." This is analogous to gauge freedom, not physical choice.
-
-**Warning signs:**
-If the Minkowski metric on h_2(C_u) is stated without noting the u-dependence, or if u-independence is assumed without proof. If the stabilizer chain Spin(9) -> Spin(7) -> G_2 is not tracked.
-
-**Phase to address:** Phase 52. The u-independence/equivariance argument is essential for the spacetime derivation to be well-defined.
+**Phase to address:** Phase 54 (primary). Phase 56 secondary (Thm 5.8 W upper bound: asserting "W carries a product-form sequential product" must not implicitly assume W is already Jordan-structured). Phase 58 tertiary (Lean axiom audit: an `axiom` that states "sequential product of Jordan elements is Jordan" is a circular axiom, not a genuine primitive).
 
 **References:**
-- Baez, "The Octonions" [arXiv:math/0105155] Sec. 4.3 -- F_4 action on OP^2
-- Phase 48 (v12.0) -- Spin(9) stabilizer, pi_u equivariance
+- Paper 5 v2.0 Phase 4 (04-06-SUMMARY.md): established the Peirce-feedback formula with explicit "circularity audit" deliverable; reuse this audit pattern.
+- van de Wetering (2019), "Sequential product spaces are Jordan algebras," JMP 60, 062201 (arXiv:1803.11139). Theorem 1 is the sink, not the source: a proof in §3.3 that uses Theorem 1's conclusion has inverted the dependency.
+- Alfsen-Shultz (2003), "Geometry of State Spaces of Operator Algebras," Birkhäuser. Compressions are defined order-theoretically; see Ch. 7-8.
 
 ---
 
-### C4: Compact so(3) vs. Non-Compact so(3,1) -- The Lorentz Signature Gap
+### R2: Conflating Peirce Decomposition (Fact About V) with Peirce Invariance (Claim About a ∘ (−))
 
 **What goes wrong:**
-Phase 48 (v12.0) identified so(3) x so(6) as the V_0 stabilizer of pi_u within spin(9). The so(3) factor corresponds to SPATIAL rotations. But the physical Lorentz group is SO(3,1), whose Lie algebra so(3,1) is NON-COMPACT and includes boosts. The compact so(3) does NOT contain boosts. Claiming "so(3) = Lorentz" or "so(3) becomes so(3,1) by complexification" is mathematically correct at the level of complexified Lie algebras (both have complexification sl(2,C) x sl(2,C)), but physically incomplete.
+The Peirce decomposition `V = ⊕_i V_2(p_i) ⊕ ⊕_{i<j} V_1(p_i, p_j)` is a theorem about the space V with respect to a family of orthogonal projective units {p_i}. It says V splits into subspaces -- nothing more. The claim Phase 54 needs is that the linear map `L_a : b ↦ a ∘ b` preserves this splitting, i.e., that each summand is L_a-invariant. These are DIFFERENT statements.
 
-The gap: Spin(9) is compact. All its subgroups are compact. The Lorentz group SO(3,1) is non-compact and CANNOT be a subgroup of any compact group. Therefore, the Lorentz group does not literally sit inside Spin(9). The boosts must emerge through a different mechanism -- either analytic continuation, a non-compact real form, or identification of the boost generators outside Spin(9).
+Decomposition ≠ invariance. Every space that admits a family of orthogonal projections decomposes; whether a given endomorphism respects the decomposition is a separate question. Citing "Peirce decomposition (Alfsen-Shultz)" as the justification for "`a ∘ V_2(p_i) ⊆ V_2(p_i)`" is a cited non-sequitur.
 
 **Why it happens:**
-The h_2(C_u) with det_2 has signature (1,3), so the isometry group of det_2 IS SO(3,1) (or more precisely SL(2,C) = Spin(3,1)). The issue is that this SO(3,1) acts on V_0 by preserving det_2, but this action is NOT a subgroup of Spin(9)'s action on V_0 via the vector representation. The compact Spin(9) acts on V_0 via SO(9) (the vector representation), which preserves the POSITIVE-DEFINITE norm |X|^2 = Tr(X^2), NOT the indefinite det_2.
+"Peirce" is load-bearing language in Paper 5. In Jordan theory, "the Peirce decomposition of V with respect to p" is often presented with simultaneous claims about how Jordan multiplication respects the decomposition -- because in a Jordan algebra, Jordan multiplication DOES respect the decomposition. But this is a theorem requiring the Jordan product's properties; it is not free. In an OUS with only S1 and S3, no such result is automatic.
 
-**How to avoid:**
-- Acknowledge this gap explicitly (it is gap G5 in the v12.0 inventory).
-- The compact so(3) from Phase 48 is the ROTATION subalgebra of so(3,1). The boost generators do not come from Spin(9) -- they must come from a different part of the algebraic structure.
-- Two legitimate approaches:
-  (a) **Complexification:** so(3)_C = sl(2,C) = so(3,1)_C. The complexified algebra contains boosts, and the physical Lorentz algebra is a real form. This is standard but non-constructive -- it does not tell you where the boosts "live" in the original real algebraic structure.
-  (b) **Non-compact extension:** Extend from Aut(h_3(O)) = F_4 (compact) to Str_0(h_3(O)) = E_6(-26) (non-compact). The structure group E_6(-26) has non-compact directions that may provide boost generators. Phase 52 should investigate whether SO(3,1) embeds in E_6(-26) in a way compatible with the Peirce structure.
-- Do NOT claim "boosts come from Spin(9)" -- they cannot.
+**Consequences:**
+If this conflation passes, §3.3 has zero content for the invariance claim -- it has only cited that V decomposes. The reviewer will correctly say "you have cited decomposition; where is invariance?"
 
-**Warning signs:**
-Any claim that "the full Lorentz group acts on V_0 via Spin(9)." If you compute the dimension: so(3) has dim 3, so(3,1) has dim 6. The 3 missing generators (boosts) are not in the Spin(9) stabilizer.
+**Prevention:**
+- In Phase 54's claim.md, state Peirce DECOMPOSITION and Peirce INVARIANCE as two separate propositions. Prove invariance; decomposition is a given.
+- In Phase 55 (S4 facial structure), distinguish "face F_p of the state space exists and corresponds to projective unit p" (A-S geometric fact) from "orthogonality of effects factors through face structure in a phi-independent way" (the claim Paper 5 makes in §3.4 for S4).
+- Any passage in main.tex of the form "the Peirce decomposition theorem gives X" should be audited for whether X is a decomposition statement or an invariance / preservation statement.
 
 **Detection:**
-For any proposed "Lorentz generator" L in spin(9), check whether exp(tL) preserves det_2 for all t. Rotations preserve det_2. Boosts change det_2 by a factor (they preserve it up to a conformal factor on the trace part). If all Spin(9) generators preserve det_2 AND the positive-definite norm, they can only generate the compact rotation subgroup.
+Grep `main.tex` for `Peirce`. For each hit, classify the sentence: decomposition statement (V splits) or invariance/action statement (some map respects the split). All invariance statements need proofs distinct from decomposition citations.
 
-**Phase to address:** Phase 52. This is gap G5 from v12.0 and is THE hardest gap to close.
+**Phase to address:** Phase 54 (central). Phase 55 (analogous conflation for face structure).
 
 **References:**
-- Phase 48 (v12.0) -- V_0 stabilizer = so(3) x so(6), dim 18
-- Baez, Huerta, "Division Algebras and Supersymmetry I" [arXiv:0909.0551] -- SL(2,K) = Spin(dim(K)+1,1)
-- Yokota, "Exceptional Lie Groups" (2009) -- E_6(-26) as non-compact structure group
+- Alfsen-Shultz (2003), Ch. 8 treats Peirce decomposition for JB-algebras with the Jordan product's action on the decomposition simultaneously. In a pre-Jordan OUS, only the decomposition part is available.
+- Foulis-type spectral compression bases (arXiv:2102.01628, "Geometric and algebraic aspects of spectrality in order unit spaces"): confirms decomposition-in-OUS is strictly weaker than A-S spectrality, and A-S spectrality is strictly weaker than Jordan-algebra structure.
 
 ---
 
-### C5: N=2 SUSY Circularity -- Assuming What You Derive
+### R3: Confusing Single-Compression Invariance with Composite-Map Invariance
 
 **What goes wrong:**
-The central risk for Phase 53. The v12.0 chain uses the GST N=2 MESGT framework: the cubic prepotential det_3(X) determines the bosonic Lagrangian WITHIN the N=2 MESGT structure. The relative coefficients between the Einstein-Hilbert term (-R/2), the scalar kinetic terms, the vector kinetic terms, and the Chern-Simons terms are FIXED by N=2 supersymmetry. If N=2 SUSY is an input assumption, then the Lagrangian is derived only CONDITIONAL on N=2.
+Alfsen-Shultz establishes that individual compressions `c_{p_i}` are idempotent positive projections whose ranges are the Peirce 2-spaces: `c_{p_i}(V) = V_2(p_i)` and `c_{p_i}` fixes V_2(p_i) pointwise. This is a statement about the LIST of maps `{c_{p_i}}`. The claim in §3.3 is about a SINGLE map `L_a : b ↦ a ∘ b` where `a = Σ λ_i p_i`. One does not trivially imply the other, because the corrected sequential product is not just a sum of compressions -- it includes Peirce-1-space terms with mixing coefficients.
 
-The circularity: "We assume N=2 SUSY to fix the Lagrangian, then observe the Lagrangian has N=2 SUSY, and claim N=2 SUSY is derived." This is a tautology, not a derivation.
+Specifically, v2.0 Phase 4 established:
+```
+a & b = Σ_i λ_i C_{p_i}(b) + Σ_{i<j} √(λ_i λ_j) P_{ij}(b)
+```
+The first sum operates via compressions and therefore preserves V_2(p_i) by A-S. The second sum involves `P_{ij}(b) = b − Σ_k C_{p_k}(b)`, the Peirce-1 projection. Its invariance on V_1(p_i, p_j) is a SEPARATE claim requiring proof. The phrase "compressions preserve Peirce subspaces" is true of the first sum's factors; it does NOT by itself give invariance of the full sum.
 
 **Why it happens:**
-The GST framework is explicitly an N=2 MESGT. The relative coefficients between kinetic terms are not free parameters -- they are fixed by requiring the Lagrangian to be invariant under 8 real supercharges. Without this requirement, the algebraic data (d_{IJK}) would determine the cubic couplings but NOT the relative normalization of the gravitational vs. matter kinetic terms. The specific ratio (e.g., why -R/2 multiplies the same scalar manifold metric as the vector kinetics) is a consequence of N=2 SUSY.
+When reading the formula `a & b = Σ λ_i C_{p_i}(b) + ...`, the eye sees "compressions appear; compressions preserve Peirce spaces; therefore the whole thing does." But linearity of L_a requires each TERM in the sum to preserve the relevant subspace, and the mixed-coefficient Peirce-1 term is a new object. Also: even for the diagonal part, `C_{p_i}` preserves V_2(p_i) but sends V_1(p_j, p_k) to... what? A-S says `c_{p_i}` sends V_1(p_i, p_j) to zero (the off-diagonal-involving-p_i part gets killed). The composite map's action on V_1(p_j, p_k) for i ∉ {j,k} is a case analysis, not a one-liner.
 
-**How to avoid:**
-There are three honest approaches, each with different implications:
-1. **N=2 as algebraic identification (weakest claim):** "The algebraic structure of h_3(O) matches the field content and coupling structure of N=2 MESGT. We IDENTIFY this as an N=2 theory." This is honest but does not derive N=2.
-2. **N=2 from Weinberg + algebraic constraints (medium claim):** Weinberg's theorem fixes -R/2 for the graviton. The d_{IJK} tensor fixes the cubic couplings. If these two independent inputs TOGETHER determine the Lagrangian uniquely, and that unique Lagrangian happens to have N=2 SUSY, then N=2 is a consequence of the algebraic structure + Weinberg, not an assumption. This requires proving uniqueness of the Lagrangian from (d_{IJK}, -R/2) alone.
-3. **N=2 from representation theory (strongest claim):** If the h_3(O) Peirce decomposition forces the field content into N=2 multiplets by representation-theoretic necessity (not by assumption), then N=2 is derived from the algebra. This requires showing that the 27 = 1 + 16 + 10 decomposition under Spin(9) is compatible ONLY with N=2 (not N=0, N=1, or N=4).
+**Consequences:**
+A proof that only cites "compressions preserve Peirce spaces" has proved nothing about `L_a`'s block structure. Outcome (B) from the Phase 54 deliverable matrix would require a precise citation; none exists for the composite-map claim specifically.
 
-Phase 53 should pursue approach (2) and check whether (3) is achievable.
-
-**Warning signs:**
-If the Lagrangian derivation begins with "In N=2 MESGT, the bosonic Lagrangian is..." then N=2 is being assumed. If the relative coefficients between -R/2 and the matter kinetics are cited as "fixed by SUSY" without an independent derivation, N=2 is an input.
+**Prevention:**
+- Phase 54's proof MUST do case analysis on L_a's action on each Peirce subspace: V_2(p_i), V_1(p_i, p_j), and cross-terms V_1(p_k, p_l) with k ≠ i, l ≠ i, l ≠ j.
+- For the corrected formula (v2.0 Eq. 04-06.4), each of the two sums needs independent invariance verification.
+- An explicit lemma: "If T_1, T_2, ..., T_n are linear maps each preserving subspace W, then Σ c_k T_k preserves W." This is trivial but should be STATED so the argument is not hand-waved as "sum of invariant-preserving maps."
 
 **Detection:**
-Ask: "Could the same algebraic data (d_{IJK}, Minkowski background, Weinberg) produce a DIFFERENT Lagrangian that is NOT N=2 supersymmetric?" If yes, N=2 is additional input. If no (uniqueness), N=2 is derived.
+In any Phase 54 proof, check: does the proof address BOTH the compression-sum term AND the mixing term? If only one, the proof is incomplete. Grep for `P_{ij}` or "Peirce-1 term" or "mixing function" -- these should appear in a complete proof.
 
-**Phase to address:** Phase 53. This is the defining question of Phase 53.
+**Phase to address:** Phase 54 (central).
 
 **References:**
-- GST 1984, Nucl. Phys. B 242 -- N=2 MESGT from Jordan algebras
-- de Wit, Van Proeyen, CMP 149 (1992) -- special Kahler geometry and uniqueness
-- Lauria, Van Proeyen [arXiv:2004.11433] -- modern review of N=2 SUGRA
+- v2.0 Phase 4 Plan 06 summary (`04-06-SUMMARY.md`): the formula decomposition that makes the case analysis explicit. Phase 54 should reuse this structure.
+- Alfsen-Shultz (2003) Ch. 7: individual-compression properties.
+- vdW Def. 2 (S1, S3): the only axioms allowed.
 
 ---
 
-### C6: Relative Coefficient Fixing -- Where Do the Ratios Come From?
+### R4: "It's Obvious" Rate-Limiting
 
 **What goes wrong:**
-Even if d_{IJK} determines the scalar manifold and vector kinetics, the RELATIVE coefficient between the Einstein-Hilbert term and the matter Lagrangian is not determined by d_{IJK} alone. In the GST framework, this ratio is fixed by SUSY. Outside the SUSY framework, the ratio is a free parameter.
+The Paper 5 §3.3 passage at lines 508-528 spends ~20 lines asserting Peirce invariance of `a ∘ (−)`. If the claim were obvious, those 20 lines would be a one-liner. The word "obvious" (or synonyms "clearly," "immediately," "of course") in a revision of a passage that was already 20 lines is a sign that the writer has given up trying to prove the claim and is using rhetorical weight as a substitute. Reviewers recognize this instantly.
 
-Concretely, the bosonic Lagrangian has the form:
-L = alpha * R + beta * g_{ij} dz^i dz^j + gamma * Im(N_IJ) F^I F^J + delta * Re(N_IJ) F^I * F^J
-
-In N=2 MESGT, alpha = -1/2, and beta, gamma, delta are all determined by the prepotential F(X) with specific normalization. But if SUSY is not assumed, alpha is a free parameter (it sets Newton's constant), and the ratios beta/alpha, gamma/alpha, delta/alpha are undetermined by algebraic data alone.
+More dangerously: "obvious" in the revision can LOSE information. If the original 20 lines were doing actual work, compressing to "obviously, a ∘ (−) preserves each Peirce subspace" deletes whatever structure was being built. The revision gets shorter but weaker.
 
 **Why it happens:**
-The prepotential F(X) determines the special Kahler geometry, which fixes g_{ij} and N_{IJ}. But the overall normalization of the matter Lagrangian relative to the gravitational Lagrangian requires an additional principle. In SUSY, this principle is supersymmetry invariance. Without SUSY, it is a free coupling constant.
+Pressure to make §3.3 tighter, plus the author's correct intuition that the claim IS true on M_n(C)^sa, combine to make a shortcut tempting. The shortcut fails because:
+1. The reader does not share the author's mental picture.
+2. True-on-M_n(C)^sa ≠ proved-from-OUS-primitives.
+3. A reviewer's job is to NOT accept "obvious."
 
-**How to avoid:**
-- Phase 53 must identify what fixes the relative coefficients WITHOUT assuming N=2 SUSY.
-- Candidate mechanisms:
-  (a) Weinberg's universal coupling requirement: if the spin-2 field couples to ALL stress-energy universally, this may fix the relative normalization (because the coupling constant in front of R determines G_N, and universal coupling means the same G_N multiplies all matter).
-  (b) Anomaly cancellation: if quantum consistency of the theory requires specific ratios, these are determined by the matter content (which IS algebraically determined).
-  (c) Self-consistency of the algebraic structure: if the d_{IJK} tensor together with det_2 background geometry admits only one consistent interacting Lagrangian, uniqueness follows.
-- If none of these works, the relative coefficients remain an input, and the honest statement is: "The algebraic structure determines the Lagrangian up to one overall coupling constant (Newton's constant)."
+**Consequences:**
+A revised §3.3 that is shorter than the original but does not resolve the gap is worse than the original. The reviewer may approve the shorter version on first read (less to object to), but flag it harder on second read (content was removed without replacement).
 
-**Warning signs:**
-If the relative coefficient appears "by construction" or "by convention" without physical justification. If the derivation switches from algebraic arguments to SUSY arguments mid-stream.
+**Prevention:**
+- In Phase 54's RESULT.md, if outcome is (A) -- proof from primitives -- the proof must be at least as long as the original 20 lines. If shorter, something is missing.
+- Forbidden words in the revised §3.3: "obvious," "obviously," "clearly," "immediately follows," "of course." These are acceptable ONLY following a cited theorem number with a page reference.
+- Adversarial review: a second agent with "ruthless skeptic" persona must read the proof and attempt to find the gap.
 
-**Phase to address:** Phase 53, as the key step after Weinberg and before claiming uniqueness.
+**Detection:**
+Word-count comparison: revised §3.3 length vs. submitted §3.3 length (lines 508-528 of main.tex). Grep for rhetorical shortcuts in the revision.
+
+**Phase to address:** All phases 54-59, especially 54 and 57 where exposition is dense.
+
+**References:**
+- Tao's blog post "The 'no self-defeating object' argument" and related meta-mathematical discussions of when rhetorical shortcuts substitute for proof. (General methodological reference; no specific URL needed.)
 
 ---
 
-### C7: KKT Construction -- Wrong Real Form Identification
+### R5: Vague Alfsen-Shultz Citations -- "AlfsenShultz2003" Without Theorem Number
 
 **What goes wrong:**
-The Tits-Kantor-Koecher (TKK/KKT) construction builds a Lie algebra from a Jordan algebra:
-L(J) = J + str(J) + J_bar
-where str(J) = Der(J) + L(J) is the structure algebra. For J = h_3(O), this gives L(J) = e_7(-25) (the non-compact real form of E_7 with maximal compact subgroup E_6(-78) x U(1)).
+Paper 5 currently cites `\cite{AlfsenShultz2003}` throughout §2-3 without theorem or proposition numbers. The book is 467 pages. "Alfsen-Shultz 2003" as a general citation tells the reader "there's a book somewhere that justifies this" -- which is functionally equivalent to no citation. A referee will correctly demand the specific theorem or proposition being invoked.
 
-The pitfall: using the WRONG real form of the TKK Lie algebra. The options are:
-- e_7(-133): compact E_7. Does NOT arise from h_3(O).
-- e_7(-25): the physical real form, structure algebra of h_3(O) in the sense of TKK. 4d U-duality group.
-- e_7(-5): another real form. Appears in quaternionic magic sugra from h_3(H).
-- e_7(7): the maximally split form. Appears in maximal N=8 supergravity, NOT magic N=2.
+Additionally: Alfsen-Shultz has TWO relevant books, and the citation must distinguish:
+- Alfsen & Shultz (2001), *State Spaces of Operator Algebras: Basic Theory, Orientations, and C*-products* (Birkhäuser Progress in Mathematics v. 179)
+- Alfsen & Shultz (2003), *Geometry of State Spaces of Operator Algebras* (Birkhäuser Progress in Mathematics v. 190)
 
-Confusing e_7(-25) with e_7(7) gives the wrong scalar manifold, wrong field content, and wrong physics. The octonionic magic supergravity has 4d scalar manifold E_7(-25)/(E_6(-78) x U(1)), NOT E_7(7)/(SU(8)/Z_2).
+These are sequentially-written volumes on the same topic with different theorem numbering. Paper 5 cites "2003" -- so the second volume -- but §3.3 invokes compression theory which is developed primarily in the 2001 volume's Ch. 7-8. The citation may be to the wrong volume for some invocations.
 
 **Why it happens:**
-The physics literature frequently writes "E_7" without specifying the real form, relying on context. The notation itself varies: some use the Satake index (the difference dim(p) - dim(k)), some use the character (dim(non-compact) - dim(compact)), and some use subscript notation. Additionally, the 5d and 4d magic supergravities use DIFFERENT exceptional groups: 5d uses E_6(-26)/F_4, while 4d uses E_7(-25)/(E_6(-78) x U(1)). The dimensional reduction maps one to the other, but the real forms must be tracked carefully.
+Early-draft physics habit: cite the book, worry about pages later. "Later" never arrives. Also: LaTeX's `\cite` completion makes `AlfsenShultz2003` trivially available and there is no compiler warning if the citation is imprecise.
 
-**How to avoid:**
-- Always write the Satake index: E_7(-25), never just "E_7."
-- The hierarchy for h_3(O) is:
-  - Aut: F_4(-52) = F_4 (compact)
-  - Str_0: E_6(-26) (non-compact, maximal compact F_4)
-  - TKK: e_7(-25) (non-compact, maximal compact E_6(-78) x U(1))
-  - Conformal: e_8(-24) (non-compact, maximal compact E_7(-133) x SU(2))
-- Check maximal compact subgroup: E_7(-25) has E_6(-78) x U(1). If your computation gives E_6(-26) x U(1) or SU(8) as maximal compact, you have the wrong real form.
-- The KKT algebra for h_3(O) is specifically for the REAL Jordan algebra h_3(O), not the complexified algebra h_3(O_C). The complexified TKK gives e_7(C), and the correct real form is determined by the reality conditions inherited from h_3(O).
+**Consequences:**
+For Phase 55 outcome (B), the deliverable is "precise Alfsen-Shultz citation" meaning chapter + section + theorem. A bare `\cite{AlfsenShultz2003}` does not satisfy this. The referee will flag it. Worse: if the claim isn't actually in A-S, the citation is wrong AND imprecise.
 
-**Warning signs:**
-If the 4d scalar manifold comes out as E_7(7)/SU(8) (that is maximal N=8, not magic N=2). If the dimension of the scalar manifold is wrong (it should be 54 real dimensions for the octonionic magic = dim E_7(-25) - dim E_6(-78) - dim U(1) = 133 - 78 - 1 = 54).
+**Prevention:**
+- Phase 55 must produce `alfsen-shultz-notes.md` with, for each Paper 5 invocation of A-S, the specific theorem/proposition number and which volume (2001 or 2003).
+- Replace `\cite{AlfsenShultz2003}` with `\cite[Thm X.Y.Z]{AlfsenShultz2003}` form in all §3.3-§3.5 invocations.
+- If a claim is not found in either A-S volume at the stated precision, flag it: the claim may be folklore, may require a proof, or may be false. Folklore claims should be proved inline; false claims are the whole point of the milestone to catch.
 
-**Phase to address:** Phase 52, where the KKT construction is used for the SPECIFIC h_2(C_u) from pi_u (not generic h_2(C)).
+**Detection:**
+`grep -n "cite{AlfsenShultz" main.tex` followed by `grep -n "cite\[" main.tex | grep AlfsenShultz`. The first count should equal the second count in a clean revision. Any `\cite{AlfsenShultz...}` without square brackets containing a theorem number is an offender.
+
+**Phase to address:** Phase 55 (primary deliverable), Phase 54 (inherited: §3.3 citations). Phase 58 (Lean axioms that cite A-S must also cite precisely).
 
 **References:**
-- Gunaydin, "Lectures on Spectrum Generating Symmetries" [arXiv:0908.0374]
-- Borsten et al., "Magic square from Yang-Mills squared" [arXiv:1301.4176]
-- arXiv:0812.2690 -- E_7(-25) structure in octonionic context
-- arXiv:1403.5120 -- Exceptional Lie algebras and Jordan pairs
+- Alfsen & Shultz (2001), Progress in Math v. 179. Covers basic theory, orientations, compressions for C*-algebras.
+- Alfsen & Shultz (2003), Progress in Math v. 190. Covers geometry of state spaces, Jordan-algebra state spaces, facial structure.
+- Published review of A-S by Araki (2004 AMS Bull) notes the volumes have distinct but related content.
+
+---
+
+### R6: Face-Phi-Independence Leaning on State Separation (Which Leans on Jordan)
+
+**What goes wrong:**
+Paper 5 §3.4 (or the S4 axiom verification) argues that facial orthogonality of effects is phi-independent: whether two effects a, b are F-orthogonal (their supporting faces don't overlap) does not depend on the self-modeling map phi. This is the crucial claim that lets S4 (`a ∘ b = 0 ⟹ b ∘ a = 0`) be checked once rather than for every phi.
+
+The subtle pitfall: facial orthogonality IS phi-independent, BUT the proof that this is so may implicitly use state separation (different faces = different sets of separating states), and state separation in an OUS that is not a priori known to be Jordan requires either (i) Alfsen-Shultz spectrality + projective units + separating families (A-S chapters 7-9, proved in the ORDER-UNIT setting) or (ii) Jordan-algebra structure. If Paper 5's argument accidentally routes through (ii), it is circular again.
+
+Barnum-Wilce (2014) and subsequent work on reconstruction consistently note that the step from "operational structure" to "faithful separating state family" is load-bearing and often proved via techniques that presuppose more than the stated axioms. This has been a recurring referee objection in the field.
+
+**Why it happens:**
+In practice, everyone works in M_n(C)^sa where states (density matrices) separate effects automatically. In a general OUS, A-S separation is a theorem of spectrality theory, not a free fact. When writing the paper, the step "effects a, b have disjoint supporting faces ⟹ distinguishable by states ⟹ S4 holds independent of phi" elides which version of "states separate effects" is being used.
+
+**Consequences:**
+If Phase 55 finds the phi-independence proof uses separation-via-Jordan, §3.4 has a circularity at S4 -- parallel to the §3.3 circularity for Peirce. Mitigation is harder because S4 is the axiom that promotes OUS to EJA via vdW Theorem 1; if S4's verification circularly uses EJA structure, the whole derivation chain collapses.
+
+**Prevention:**
+- Phase 55's proof of phi-independence of facial orthogonality must explicitly track what "face" means: A-S geometric face (defined by extreme-point support on the state space) or EJA-face (Peirce 2-space of a projector). For the argument to be non-circular, the geometric face definition must be in play, and separation of faces by states must come from A-S (not from EJA).
+- If A-S separation requires spectrality, and spectrality requires... check the dependency graph in Alfsen-Shultz (2001) Ch. 7-9 versus (2003) Ch. 1-2. Do NOT use anything that Paper 5 has not yet established.
+- Cross-reference with van de Wetering's paper: vdW assumes spectral OUS as input to his Theorem 1. If Paper 5 is proving it is a spectral OUS, the spectrality cannot be invoked during the proof.
+
+**Detection:**
+In Phase 55 work, for every invocation of "states separate effects" or "faces are determined by extreme states," trace the justification back to an explicit axiom list. If the trace hits Jordan structure, EJA classification, or any vdW Theorem 1 consequence, the argument is circular.
+
+**Phase to address:** Phase 55 (central), Phase 54 (if §3.3 uses similar separation arguments).
+
+**References:**
+- Barnum, Wilce (2014), "Local Tomography and the Jordan Structure of Quantum Theory," Found. Phys. 44, 192-212 (arXiv:1202.4513). Discusses separation assumptions in operational reconstructions.
+- Barnum, Graydon, Wilce (2020), "Composites and Categories of Euclidean Jordan Algebras," Quantum 4, 359 (quantum-journal.org/papers/q-2020-11-08-359/). Explicit on which composition constraints preserve Jordan structure versus require it as input.
+- Alfsen-Shultz (2001), Ch. 7-9 for spectral theory and separation in OUS.
+
+---
+
+### R7: Thm 5.8 Upper Bound -- "Carries" is Ambiguous Between Closure and Structural Preservation
+
+**What goes wrong:**
+Paper 5 Theorem 5.8 asserts an upper bound via a substructure W that "carries" the product-form sequential product on the composite. "Carries" is an informal word; its precise meaning matters. Concretely, "W carries the product" can mean:
+1. **Closure:** For all `a, b ∈ W`, the product `a ∘ b` (defined on the ambient space) lies in W.
+2. **Induced structure:** W with the ambient product RESTRICTED to W is itself a sequential-product space (all axioms S1-S7 hold on W).
+3. **Functorial preservation:** W with the ambient product satisfies the axioms AND the inclusion `W ↪ V` is a morphism of sequential-product spaces.
+
+These are three progressively stronger claims. (1) is sometimes true without (2): the product closes but associativity of compatible effects (S5) fails on W because compatibility in W differs from compatibility in V. (2) is sometimes true without (3): W is internally a SPS but the inclusion is not structural (e.g., compressions in W are not A-S compressions inherited from V).
+
+The Gudder-Greechie literature contains an explicit counterexample (Example 39 in several SEA papers): a sequential effect algebra that is NOT order-isomorphic to the unit interval of a EJA, whose sequential product IS associative -- meaning "abstract SEA + associativity" does not imply "EJA substructure." This counterexample is directly analogous to what can go wrong with Thm 5.8's W.
+
+**Why it happens:**
+The word "carries" reads as obviously meaning (3), but many proof attempts only establish (1). In the literature, this kind of equivocation has been flagged in Barnum-Graydon-Wilce's work on Jordan composites: not every subalgebra of an EJA is itself an EJA under the induced product.
+
+**Consequences:**
+If Thm 5.8's proof only establishes (1) but the downstream use requires (2) or (3), the theorem is too weak to serve its purpose. The upper bound is not actually bounding.
+
+**Prevention:**
+- Phase 56's work must explicitly state which sense of "carries" is intended and prove that sense.
+- For each of S1-S7, prove the axiom holds on W with the induced product. Do not assume that "W is closed under ∘" suffices.
+- Check: if W is a spin factor V_n with n ≥ 4 (one of the EJA types that fails local tomography), does the composite product on V ⊗ V restrict to a product on W ⊗ W that is still SPS? The answer may be no, making Thm 5.8 inapplicable in that case.
+- Look for classical counterexamples in EJA literature: the Albert algebra h_3(O)'s behavior under tensor composition is the canonical source of "closes but not structurally" pathologies.
+
+**Detection:**
+In Phase 56's deliverable, grep the proof for the word "carries" or "inherits" or "restricts to." For each, verify an explicit S1-S7 check has been performed on W.
+
+**Phase to address:** Phase 56 (central). Phase 59 (minimal composite: similar issues about what structure the composite inherits).
+
+**References:**
+- Gudder, Greechie (2002), "Sequential products on effect algebras," Rep. Math. Phys. 49, 87. Example 39 of associative non-EJA SEA.
+- Westerbaan, Westerbaan, van de Wetering (2020), "The three types of normal sequential effect algebras," Quantum 4, 378. Catalogs which SEA types are vs. are not EJA-embedded.
+- Barnum, Graydon, Wilce (2020), "Composites and Categories of Euclidean Jordan Algebras," Quantum 4, 359. Composites-of-EJAs subtleties.
 
 ---
 
 ## Moderate Pitfalls
 
-### C8: GST Classification -- 5d vs. 4d Confusion
+### R8: Phi Cross-Section Equivocation -- Same Symbol, Different Objects Across Sections
 
 **What goes wrong:**
-The GST classification of magic supergravities is formulated in 5d. The 4d theory obtained by dimensional reduction on a circle has a DIFFERENT structure:
+Paper 5's phi (the self-modeling map) appears in multiple roles across sections. Common uses include:
+- §2: phi as a map from B's effect space to M's effect space, parametrizing the self-model.
+- §3: phi as a tracking map whose faithfulness selects the mixing function `f = √(λμ)` (v2.0 Phase 4 result).
+- §4: phi as an inert wrapper around the sequential product, with the product's structure not depending on phi beyond faithfulness.
+- §5-6: phi possibly reinterpreted or specialized in the local-tomography and C*-completion arguments.
 
-| Property | 5d | 4d |
-| --- | --- | --- |
-| Scalar manifold | E_6(-26)/F_4 (real, dim 26) | E_7(-25)/(E_6(-78) x U(1)) (Kahler, dim 54) |
-| # vector multiplets | 26 | 27 (one extra from KK graviphoton) |
-| # scalar fields | 26 (real) | 27 complex = 54 real |
-| Prepotential type | Cubic N(h) = C_{IJK} h^I h^J h^K | Cubic F(X) = d_{IJK} X^I X^J X^K / X^0 |
-| Constraint | N(h) = 1 on scalars | X^I projective (special Kahler) |
-| Symmetry of action | E_6(-26) (full) | Only E_7(-25) is symmetry at equations-of-motion level |
-| Scalar manifold type | Very special real | Special Kahler |
+If phi means slightly different things in different sections -- different domain/codomain, different faithfulness condition, different role -- a reviewer will correctly say "which phi? At line X you treat phi as inert wrapper; at line Y you use a specific property that inert wrappers do not have."
 
-The v12.0 chain (Phases 46-50) worked DIRECTLY in 4d, bypassing 5d entirely. Phase 49 used the 4d prepotential F(X) = d_{IJK} X^I X^J X^K / X^0. Phase 52-53 must maintain this 4d-direct approach and not accidentally import 5d results with 4d-incompatible normalizations.
+**Why it happens:**
+Progressive refinement during drafting: each section locally makes sense with its version of phi, but the global consistency is never audited. This is a standard revision pitfall for papers with a single symbol doing heavy lifting.
 
-**How to avoid:**
-- Use Lauria-Van Proeyen [arXiv:2004.11433] as the primary convention reference for both 5d and 4d.
-- Track the extra vector multiplet: in 5d there are n_V = 26 vector multiplets (including the 26 scalars parametrizing E_6(-26)/F_4). In 4d there are n_V = 27 (the 26 from 5d plus the KK graviphoton). The index I runs from 0 to 26 in 4d but from 1 to 26 in 5d. The I=0 mode in 4d is the graviphoton, not a matter field.
-- The 4d prepotential F(X) is homogeneous of degree 2 in X^I (not degree 3 -- the cubic N(h) in 5d becomes degree 2 in 4d projective coordinates). Verify this explicitly.
+**Consequences:**
+Referee complains "phi is overloaded." Revision must either rename the different roles or prove they all coincide.
 
-**Warning signs:**
-If the number of vector multiplets is 26 in a 4d calculation (should be 27). If the scalar manifold is E_6(-26)/F_4 in a 4d calculation (should be E_7(-25)/(E_6(-78) x U(1))). If the prepotential is stated as "homogeneous degree 3" in 4d special coordinates.
+**Prevention:**
+- Phase 57 must produce an explicit phi-audit: every occurrence of phi in main.tex, what role it plays there, what properties are assumed.
+- If multiple roles are in fact the same object, prove coincidence explicitly.
+- If multiple roles are different objects, rename: `\phi_{\text{track}}`, `\phi_{\text{inert}}`, etc., or (better) restructure the paper so phi is introduced once and used consistently.
 
-**Phase to address:** Both Phases 52 and 53.
-
----
-
-### C9: Gauged vs. Ungauged MESGT -- Lambda and Scalar Potential
-
-**What goes wrong:**
-The v12.0 chain works with UNGAUGED N=2 MESGT, which has:
-- No scalar potential: V(phi) = 0
-- Cosmological constant: Lambda = 0 at tree level
-- All scalars are moduli (flat directions)
-- No mass terms for any fields
-
-If v13.0 needs to produce a cosmological constant or scalar potential (e.g., for SUSY breaking or realistic cosmology), it must GAUGE the MESGT. Gauging introduces a scalar potential, which changes the vacuum structure, can break SUSY, and can generate Lambda != 0. But gauging also introduces a gauge coupling constant g as a new free parameter -- violating the "derived from algebra" program if g is arbitrary.
-
-The pitfall: claiming Lambda = 0 is a prediction (it is a consequence of NOT gauging), or claiming Lambda != 0 is derived (it requires gauging with a specific g).
-
-**How to avoid:**
-- State explicitly: "The ungauged MESGT from h_3(O) has Lambda = 0 classically. A nonzero cosmological constant requires gauging, which introduces the gauge coupling g as an additional input not determined by h_3(O)."
-- If the project scope includes Lambda, it must include the gauging mechanism. If not, Lambda = 0 should be listed as a known limitation.
-- Quantum corrections can generate an effective Lambda, but this is beyond the tree-level scope of v12.0-v13.0.
-
-**Warning signs:**
-If the Lagrangian includes a scalar potential V(phi) without an explicit gauging procedure. If Lambda appears without explanation.
-
-**Phase to address:** Phase 53, in the Lagrangian uniqueness discussion.
+**Phase to address:** Phase 57.
 
 **References:**
-- GST, Nucl. Phys. B 242 (1984) -- ungauged formulation
-- Ceresole, Ferrara, Marrani, [arXiv:0905.09167] -- gauged N=2 solutions
-- de Wit, Van Proeyen, hep-th/9605032 -- general gaugings of N=2
+- v2.0 Phase 4 Plan 06: established that faithful phi selects `f = √(λμ)`. This is the "essential phi" role.
+- Standard paper-revision methodology: Strunk-White (rule 17), stable referents across sections.
 
 ---
 
-### C10: Bosonic Sector Only -- Missing Fermions and Consistency
+### R9: Lean Axiom Audit -- Three Failure Types
 
 **What goes wrong:**
-The v12.0 Lagrangian (Eq. 49.6, Phase 49) is the BOSONIC sector only. The full N=2 MESGT Lagrangian includes gravitini (spin-3/2), gaugini (spin-1/2), and hyperini (spin-1/2). The bosonic sector is a CONSISTENT TRUNCATION (setting all fermions to zero is consistent with the equations of motion), but:
+Paper 5's Lean 4 formalization has 16 axioms and 0 sorry. Each axiom can be:
+- **Type (i): Theorem-in-disguise.** The axiom states something that is actually a theorem (in Alfsen-Shultz, in vdW, or derivable from earlier axioms). Keeping it as axiom either (a) admits the proof was hard and skipped, or (b) hides a non-trivial mathematical step from the reader. Either way, a skeptical referee will ask for the proof.
+- **Type (ii): Definition-as-axiom.** The axiom declares a STRUCTURE that should be introduced via `def` or `structure`. E.g., `axiom compression_is_idempotent : ∀ p, c p (c p x) = c p x` is really part of the definition of compression, not an axiom. Lean will accept this, but it misrepresents the logical role.
+- **Type (iii): Statement-mismatch.** The axiom states a claim whose wording doesn't quite match the cited published theorem. E.g., axiom states `a ∘ b = c_a(b)` for all effects, but the cited A-S proposition requires a to be PROJECTIVE (sharp). This is a silent strengthening and is a correctness bug in the formalization.
 
-(a) The fermion kinetic terms have their own normalizations that are fixed by SUSY. If N=2 is being derived (not assumed), the fermion terms must also be shown to follow from the algebra.
-(b) The fermion mass terms (if any) after gauging provide additional constraints that could over-determine the system.
-(c) The anomaly cancellation conditions involve the FULL field content including fermions. If the fermion content from V_{1/2} = 16 does not match the anomaly-free condition for the bosonic gauge group, the theory is inconsistent.
+Mathlib community has flagged type (iii) as the most dangerous: type-correct code that does not match the cited mathematics. A type-(i) or type-(ii) axiom is annoying; a type-(iii) axiom can make the formalization unsound relative to its cited justification.
 
-**How to avoid:**
-- For v13.0: state that the bosonic Lagrangian is derived, and the fermionic completion is a prediction of N=2 SUSY (if N=2 is established).
-- Check anomaly cancellation: the 16 matter fermions from V_{1/2} must be in representations that cancel gauge anomalies. For the SM gauge group S(U(3) x U(2)), the standard one-generation anomaly cancellation is a known result -- verify the V_{1/2} content matches.
-- Do NOT claim "full SM+GR Lagrangian derived" if only the bosonic sector is derived. The honest claim is "bosonic sector of N=2 MESGT derived, fermionic sector predicted by SUSY completion."
+**Why it happens:**
+- Type (i): early development used `axiom` to make progress; converting to `theorem` was postponed.
+- Type (ii): formalization starts from the paper's wording, which conflates definitional properties with theorems.
+- Type (iii): paper's informal language is imprecise (missing "projective," "sharp," "compatible" qualifiers); formalization copies the informal statement.
 
-**Warning signs:**
-If the derivation claims completeness but only discusses bosons. If anomaly cancellation is not checked.
+**Consequences:**
+For a JMP referee, Lean formalization is supplementary. But 0 sorry with 16 axioms is not equivalent to 0 sorry with 3 axioms if those 16 contain type-(i) and type-(iii) entries. The formalization's credibility hinges on what the axioms actually are.
 
-**Phase to address:** Phase 53, as part of the consistency check.
+**Prevention:**
+- Phase 58 must classify each of the 16 axioms: (i), (ii), or (iii) + "genuine primitive."
+- Type (i): prove it, demote to `theorem`.
+- Type (ii): refactor into `def` / `structure`.
+- Type (iii): either (a) prove the STRONGER statement (if true from the cited source), or (b) weaken to the cited version and audit downstream proofs for whether they still compile.
+- Produce an axiom manifest with one-line justification for each remaining axiom: "genuine primitive because no OUS primitives can derive it, and it is assumed throughout the A-S / vdW framework."
+
+**Phase to address:** Phase 58 (central).
+
+**References:**
+- Mathlib4 axiom conventions: `leanprover-community/mathlib4` README and CONTRIBUTING. Axioms are reserved for genuine extensions to the core Lean logic (e.g., `Classical.choice`) plus a short controlled list; adding axioms in application code is discouraged.
+- Avigad-Massot, *Mathematics in Lean* v4.19 (2025). Best practices for Lean formalization of research mathematics.
+- Zulip discussions (leanprover-community.zulipchat.com): periodic threads on axiom audits for research formalizations.
 
 ---
 
-### C11: Boundary Terms and Total Derivatives
+### R10: Minimal Composite / Simplicity Assumption as Adversarial-Review Magnet
 
 **What goes wrong:**
-The Einstein-Hilbert action integral(-R/2 * sqrt(-g)) requires the Gibbons-Hawking-York boundary term to have a well-defined variational principle on manifolds with boundary. The Weinberg derivation (Phase 50) gives the BULK Lagrangian -R/2 but says nothing about boundary terms. Similarly, the Chern-Simons-like topological terms Re(N_IJ) F^I *F^J involve a total derivative (integral of F wedge F is topological) that is sensitive to boundary conditions.
+Paper 5 relies (in §5-6, and by reference to vdW Theorem 3) on a minimal-composite or simplest-composite assumption to pick out C*-algebra structure from EJA structure. Some form of this assumption is unavoidable in any Jordan-to-C* promotion. But the specific FORM of the assumption, and its operational motivation, are classical attack surfaces in axiomatic QM reviews.
 
-The pitfall: claiming the Lagrangian is fully derived when boundary terms are not addressed.
+Historical pattern:
+- Hardy's 2001 "Five Reasonable Axioms" paper had a "Simplicity" axiom that postulated the smallest-dimensional solution is realized. This was immediately criticized as un-motivated; subsequent reconstructions (Masanes-Müller, Dakić-Brukner, Chiribella-D'Ariano-Perinotti) explicitly REMOVED Hardy's simplicity and replaced it with more operational axioms.
+- Chiribella-D'Ariano-Perinotti's purification axiom, while operational, still takes flak for being "not physically obvious."
+- Masanes-Müller's (2011) reconstruction uses "continuous reversibility" in place of simplicity.
+- Barnum-Wilce's use of local tomography attracts the same objection: why THIS composite axiom?
 
-**How to avoid:**
-- State explicitly that the derivation determines the BULK Lagrangian. Boundary terms require additional input (boundary conditions, which are not determined by h_3(O)).
-- For the Chern-Simons terms: Re(N_IJ) F^I *F^J contributes theta-angles for the gauge fields. These are topological and do not affect local equations of motion. They DO affect the partition function and instanton physics. Note this but do not claim the theta-angles are derived from h_3(O).
-- The GHY boundary term is standard and does not affect the claim "the Lagrangian has been derived" -- it is understood as part of the variational principle.
+Every one of these gets flagged by some reviewer. Paper 5's minimal-composite assumption will be flagged.
 
-**Phase to address:** Phase 53, in the Lagrangian assembly.
+**Why it happens:**
+Operational axioms are never fully uncontroversial. There is always a choice between multiple formulations (Hardy-simplicity, CD-P-purification, Masanes-reversibility, local-tomography, independent-accessibility) and a committed opponent can attack any single choice. The defense is to (a) show your formulation is operationally well-motivated, (b) show it is IMPLIED by more primitive self-modeling considerations, or (c) show it is weaker than / equivalent to the standard literature formulations.
+
+**Consequences:**
+Without a prepared defense, Phase 59's work amounts to "we assume it because we need it" -- which is exactly the objection the milestone wants to preempt.
+
+**Prevention:**
+- Phase 59 must produce an explicit comparison: Paper 5's minimal-composite axiom vs. local-tomography (Barnum-Wilce, vdW Thm 3) vs. purification (Chiribella et al.) vs. independent-accessibility (Paper 5's earlier sections). Where in the implication chain does Paper 5's axiom sit?
+- Produce at least one operational motivation: "if the self-model M is to faithfully represent B, the composite B ⊗ M must be... [specific property]. This is what minimal-composite encodes." Bryan's intuition is NOT a shortcut here; the motivation must be mathematically tight.
+- Anticipate three specific reviewer objections: (a) "why not purification instead?"; (b) "is this just local tomography renamed?"; (c) "does this exclude interesting non-standard QM (e.g., real QM)?" Prepare written responses.
+
+**Phase to address:** Phase 59.
+
+**References:**
+- Hardy (2001), "Quantum Theory From Five Reasonable Axioms," arXiv:quant-ph/0101012. Original "Simplicity."
+- Masanes, Müller (2011), "A derivation of quantum theory from physical requirements," NJP 13, 063001 (arXiv:1004.1483). Replaces simplicity with reversibility.
+- Chiribella, D'Ariano, Perinotti (2011), "Informational derivation of quantum theory," PRA 84, 012311 (arXiv:1011.6451). Purification axiom.
+- Dakić, Brukner (2011), "Quantum theory and beyond: is entanglement special?" Also post-Hardy reconstruction.
+- Barnum, Wilce (2014), arXiv:1202.4513. Local tomography route.
+- Hardy-critique literature: see "The operational framework for quantum theories is both epistemologically and ontologically neutral" (ScienceDirect, Hagar-Hemmo type critique).
+
+---
+
+### R11: Cross-Phase Sequencing -- Phase 54 Outcome (C) Cascading
+
+**What goes wrong:**
+The phases 54-59 are scoped sequentially but their dependencies are not linear. If Phase 54's outcome is (C) -- structural gap, Peirce invariance requires Jordan structure Paper 5 hasn't yet derived -- then:
+- Phase 55's S4 facial-structure argument may have the same circularity (similar proof strategy).
+- Phase 56's Thm 5.8 W upper bound may rest on the Peirce-invariance claim.
+- Phase 57's phi-inert-wrapper argument depends on whether the product's block structure is phi-independent, which depends on Peirce invariance.
+- Phase 58's Lean axiom audit may reveal the circular dependency already encoded as an axiom.
+- Phase 59's minimal-composite defense may be premature if upstream axioms are suspect.
+
+If Phases 54-59 run strictly in sequence and Phase 54 is (C), phases 55-59 do not automatically pause -- they may accumulate work that assumes Phase 54's outcome is (A) or (B).
+
+Conversely: running 54-59 in parallel risks duplicating work (the same Alfsen-Shultz citation audit would be repeated in Phases 54, 55, 57) and allowing inconsistent resolutions (Phase 55 uses a spectrality assumption that Phase 54 ruled out).
+
+**Why it happens:**
+Milestone is scoped as "six gaps, six phases" without a dependency DAG. Plus the urgency of the JMP referee timeline (see R12) creates pressure to parallelize.
+
+**Consequences:**
+Best case: duplicated work. Worst case: phases close with contradictory resolutions, and the paper revision is internally inconsistent.
+
+**Prevention:**
+- Roadmapper (downstream consumer of this PITFALLS file) must produce a dependency graph:
+  - Phase 54 is the root; its outcome determines the pattern.
+  - Phase 55 depends on Phase 54's Alfsen-Shultz citation audit (shared deliverable).
+  - Phase 56 depends on Phase 54's resolution of Peirce invariance (used downstream).
+  - Phase 57 depends on Phase 54 AND Phase 55 (phi inertness requires both Peirce and facial structure to be phi-independent).
+  - Phase 58 runs concurrently with 54-57 but MUST be re-audited after they close.
+  - Phase 59 is mostly independent but depends on Phase 56's formalization of "composite structure."
+- Define a single shared `alfsen-shultz-notes.md` produced in Phase 54, consumed in Phases 55, 57, 58.
+- Gate: Phase 55 cannot start until Phase 54 closes with (A), (B), or (C). If (C), orchestrator must pause for human decision before Phase 55 proceeds.
+
+**Phase to address:** Orchestration / roadmap construction, not a specific phase. Relevant to all phases 54-59.
+
+**References:**
+- Paper 5 revision prompt (`paper5-revision-prompt.md`): explicitly states Phase 1 (= Phase 54) outcome (C) "pauses milestone for human decision." Inherit this gating pattern to 55-59.
+
+---
+
+## Minor Pitfalls
+
+### R12: JMP Timeline -- 16+ Days with Associate Editor, No Referee Report
+
+**What goes wrong:**
+Paper 5 has been at JMP for 16+ days with no referee report. JMP Editorial Policies state manuscripts are "sent to an expert referee for evaluation and, if necessary, to another reviewer for a second opinion." No numerical timeline is published. For mathematical physics journals, common timelines are:
+- Desk rejection / desk accept within 2-4 weeks of associate editor receipt.
+- First referee report within 2-6 months of being sent out.
+- Full review cycle often 6-12 months.
+
+16 days is within the associate-editor-consideration window. It does NOT indicate either (a) desk rejection is imminent or (b) referee reports are about to arrive. It is normal. The milestone's goal of closing gaps "before the referee report lands" is prudent but the deadline is uncertain.
+
+**Why it happens:**
+Anxiety about an imminent referee report can distort priorities. The milestone prompt's phrasing "16+ days have passed, no referee report" could be read as urgency -- but JMP does not commit to any specific timeline.
+
+**Consequences:**
+- If phases 54-59 are rushed, quality suffers (see R4, R10).
+- If phases 54-59 are paced assuming months of runway, a fast referee response catches the revision half-finished.
+- The right pace is "as fast as quality allows, on the assumption of 2-3 months of runway, with stopping-point discipline if a referee report lands earlier."
+
+**Prevention:**
+- Do not read "16 days" as a deadline signal. It is ambient JMP pacing.
+- Phases 54-59 should each produce a standalone deliverable that could be incorporated into a revision response INDEPENDENTLY. If the referee report lands with only Phase 54 closed, the response should still be improvable by Phase 54's work alone.
+- Each phase's RESULT.md should be drafted as a potential "response to Reviewer 1 point N" in the revision letter -- i.e., quotable in the response-to-referees document.
+
+**Detection:**
+Check JMP submission system (JMP26-AR-00922) weekly for status changes. Use any status update (e.g., "with referee" or "decision: revise") as a hard gate on phase 59's closing.
+
+**Phase to address:** All, as metadata.
+
+**References:**
+- JMP Editorial Policies (pubs.aip.org/aip/jmp/pages/policies): no published review timeline commitment.
+- SciRev crowdsourced JMP review times (scirev.org/journal/journal-of-mathematical-physics/): typical 3-6 months first response.
+- Physical Review Letters Review Time 2026 (manusights.com/blog/physical-review-letters-review-time): for comparison, PRL averages 5 weeks; JMP is typically longer.
 
 ---
 
 ## Approximation Shortcuts
 
+Shortcuts that seem reasonable but introduce systematic errors specific to this revision.
+
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Assuming N=2 SUSY to fix coefficients | Immediately determines the full Lagrangian | Makes N=2 an input, not a consequence | Only for establishing what the Lagrangian WOULD BE if N=2 holds; not for claiming N=2 is derived |
-| Using compact so(3) as "the Lorentz group" | Simplifies stabilizer analysis | Misses boosts; cannot do Lorentz-invariant physics | For rotation-sector analysis only; must address boosts separately |
-| Treating det_2 as dynamical metric | Simplifies the path from algebra to gravity | Conflates background with fluctuations; skips Weinberg chain | Never -- the det_2 is kinematic, not dynamic |
-| Ignoring the I=0 (graviphoton) index | Simplifies d_{IJK} decomposition | Misses the 4d graviton-vector mixing | Only in 5d formulation; in 4d the I=0 mode is physical |
-| Dropping boundary terms | Simplifies variational principle | Incomplete action, issues for quantum theory | Acceptable for classical bulk equations of motion |
-
-## Convention Traps
-
-| Convention Issue | Common Mistake | Correct Approach |
-|-----------------|----------------|-------------------|
-| KKT real form labels | Writing "E_7" without Satake index | Always write E_7(-25) for octonionic magic; check maximal compact |
-| 5d vs 4d vector multiplet count | Using n_V = 26 in 4d (correct in 5d) | 4d: n_V = 27 (includes KK graviphoton); index I = 0,...,26 |
-| Prepotential homogeneity degree | "Cubic prepotential" = degree 3 | In 4d special coordinates: F(X) = d_{IJK} X^I X^J X^K / X^0, degree 2 in X^I, not 3 |
-| C_{IJK} vs d_{IJK} normalization | Using d_{IJK} where C_{IJK} = (1/6) d_{IJK} is needed | GST use C_{IJK} h^I h^J h^K = N(h) on N=1; Phase 47 uses d_{IJK} with N = (1/6) d_{IJK} X^I X^J X^K |
-| det_2 signature reporting | Writing "signature (1,3)" for det_2 on h_2(C_u) when convention is mostly-minus | Under (+,-,-,-): det_2 Gram = diag(+1,-1,-1,-1). Under (-,+,+,+): det_2 Gram = diag(-1,+1,+1,+1). Same physics, different sign convention. |
-| Fisher-Rao vs det_2 | "The metric from information geometry" | Fisher-Rao is positive-definite (Riemannian). det_2 is indefinite (pseudo-Riemannian). They are different objects. |
-
-## Numerical Traps
-
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| KKT Lie bracket computation for non-associative J | Jacobi identity violations at O(10^{-14}) | Use exact rational arithmetic or track associator explicitly | When testing Jacobi on 3 elements spanning different Peirce sectors |
-| Scalar manifold metric positivity check | Kahler metric g_{i bar{j}} appears non-positive | Verify you are on the correct domain of the prepotential (positive cone); wrong domain gives wrong-sign kinetics | When evaluating at boundary of moduli space |
-| Gram matrix eigenvalue computation near degeneracy | Eigenvalue splitting lost at 10^{-12} | Use higher precision (mpmath) or analytic eigenvalue formulas | When Peirce basis vectors are nearly linearly dependent in floating point |
-| E_7(-25) structure constant computation | Wrong structure constants from using E_7(7) tables | Derive from h_3(O) TKK construction directly, not from E_7 Chevalley basis | Always -- tables for different real forms are incompatible |
-
-## Interpretation Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| "N=2 SUSY is derived from h_3(O)" | Circular if SUSY was assumed to fix coefficients | State clearly: "algebraic identification" vs "derivation"; check if non-SUSY Lagrangian with same d_{IJK} exists |
-| "Fisher-Rao metric gives spacetime" | Wrong -- Fisher-Rao is positive-definite | Spacetime metric is det_2 (algebraic), not Fisher-Rao (statistical) |
-| "V_0 stabilizer = Lorentz group" | Incomplete -- so(3) is rotation subgroup, not full Lorentz | Full Lorentz requires boosts, which are non-compact and absent from Spin(9) |
-| "det(X) derives gravity" | Overstated -- det(X) determines couplings, not -R/2 itself | -R/2 comes from Weinberg theorem applied to algebraic inputs; det(X) provides matter-gravity coupling |
-| "Ungauged MESGT predicts Lambda = 0" | Misleading -- Lambda = 0 is a consequence of not gauging | State: "Lambda = 0 in ungauged theory; nonzero Lambda requires gauging with additional input g" |
-
-## "Looks Correct But Is Not" Checklist
-
-- [ ] **Spacetime metric derivation:** "det_2 has signature (1,3), therefore spacetime is Minkowski" -- missing the step from algebraic form to DYNAMICAL metric (need fluctuations + Weinberg)
-- [ ] **N=2 uniqueness:** "The Lagrangian is unique for given d_{IJK}" -- only true WITHIN N=2 MESGT; without SUSY constraint, relative coefficients are free
-- [ ] **Observer independence:** "The construction is F_4-equivariant" -- need to verify this for the SPECIFIC pi_u construction, not just for h_3(O) in the abstract
-- [ ] **KKT algebra:** "TKK(h_3(O)) = E_7" -- need to specify E_7(-25), not E_7(7) or E_7(-133)
-- [ ] **Lorentz invariance:** "Phase 48 proved Lorentz invariance" -- Phase 48 proved SO(3) rotation invariance; full SO(3,1) including boosts is gap G5
-- [ ] **Fermion anomaly cancellation:** "16 from V_{1/2} is anomaly-free" -- need to check against the SPECIFIC gauge group, not assume it
-- [ ] **Scalar manifold dimension:** "26-dimensional scalar manifold in 4d" -- wrong, should be 54 real (= 27 complex) in 4d; 26 is the 5d count
-
-## Recovery Strategies
-
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| C1: Fisher-Rao used for metric | LOW | Delete Fisher-Rao section, replace with det_2 derivation (algebraic, already proved in Phase 46) |
-| C2: Static det_2 confused with dynamical metric | LOW | Insert fluctuation analysis and Weinberg chain (already done in Phase 50) |
-| C3: u-dependence not addressed | MEDIUM | Add F_4 equivariance proof for the full construction (extends Phase 48 result) |
-| C4: Compact so(3) claimed as Lorentz | MEDIUM-HIGH | Must find boost generators outside Spin(9); may require E_6(-26) analysis |
-| C5: N=2 circularity | HIGH | Must prove Lagrangian uniqueness from (d_{IJK}, Weinberg) without SUSY input, or honestly state N=2 is identified, not derived |
-| C6: Relative coefficients unfixed | HIGH | Must identify physical principle fixing alpha/beta ratio beyond SUSY; may require rethinking the scope claim |
-| C7: Wrong E_7 real form | LOW | Check Satake index, maximal compact subgroup; correct from tables |
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|-----------------|--------------|
-| C1: Fisher-Rao trap | Phase 52 | Check: no Fisher information metric appears in spacetime derivation |
-| C2: det_2 vs g_{\mu\nu} | Phase 52 | Check: fluctuation analysis separates background from dynamics |
-| C3: Observer u-dependence | Phase 52 | Check: F_4 equivariance proven for full construction |
-| C4: Compact vs non-compact Lorentz | Phase 52 | Check: boost generators identified or gap G5 honestly stated |
-| C5: N=2 circularity | Phase 53 | Check: Lagrangian derived without "In N=2 MESGT..." as starting point |
-| C6: Relative coefficients | Phase 53 | Check: ratio -R/2 : matter kinetics derived from algebraic + Weinberg inputs |
-| C7: KKT real form | Phase 52 | Check: E_7(-25) stated with Satake index, maximal compact verified |
-| C8: 5d vs 4d confusion | Phases 52-53 | Check: n_V = 27 in 4d, scalar manifold dim = 54 |
-| C9: Gauged vs ungauged | Phase 53 | Check: Lambda = 0 stated as consequence of ungauged, not as prediction |
-| C10: Bosonic only | Phase 53 | Check: fermion sector noted as prediction, not claimed as derived |
-| C11: Boundary terms | Phase 53 | Check: GHY boundary term noted, not silently omitted |
-
-## Sources
-
-- Cencov, "Statistical Decision Rules and Optimal Inference" (1982) -- Fisher-Rao positive definiteness and uniqueness
-- Amari, Nagaoka, "Methods of Information Geometry" (2000) -- information geometry foundations
-- Gunaydin, Sierra, Townsend, Phys. Lett. B 133 (1983) 72-76 -- magic supergravity
-- Gunaydin, Sierra, Townsend, Nucl. Phys. B 242 (1984) 244-268 -- GST N=2 MESGT
-- de Wit, Van Proeyen, CMP 149 (1992) 307-333 -- special Kahler geometry, cubic polynomials
-- Lauria, Van Proeyen [arXiv:2004.11433] -- N=2 SUGRA in D=4,5,6 (modern conventions)
-- Cremonini, "What is Special Kahler Geometry?" [arXiv:hep-th/9703082] -- confusion in special geometry definitions
-- Ferrara, Gunaydin [arXiv:hep-th/0606108] -- E_7(-25) orbits
-- Gunaydin, "Lectures on Spectrum Generating Symmetries" [arXiv:0908.0374] -- TKK, real forms
-- Hinterbichler, "Theoretical Aspects of Massive Gravity" [arXiv:1105.3735] -- vDVZ, Boulware-Deser ghost (relevance to Fierz-Pauli mass gap)
-- Padmanabhan, "GR as a classical spin-2 theory?" [arXiv:2403.08637] -- Weinberg theorem subtleties
-- Baez, "The Octonions" [arXiv:math/0105155] -- h_2(K) as Minkowski, F_4 on OP^2
-- Baez, Huerta, "Division Algebras and Supersymmetry I" [arXiv:0909.0551] -- 10d spacetime from h_2(O)
-- Yokota, "Exceptional Lie Groups" (2009) -- real forms of exceptional groups
-- Phase 46-50 (v12.0 project artifacts) -- established results this builds on
-- v12.0 PITFALLS.md (this file, prior version) -- pitfalls P1-P9 for the algebraic chain
+| -------- | ----------------- | -------------- | --------------- |
+| Prove Peirce invariance by checking on M_2(C)^sa | Fast, concrete, obviously true | Circular; every referee will spot it | Never for outcome (A). Allowed ONLY as a sanity check ALONGSIDE a primitive-only proof. |
+| Cite "AlfsenShultz2003" without page/theorem | Saves time finding reference | Referee correctly asks "where?"; citation is functionally empty | Never in the revision. v2.0 drafts: OK as placeholder; must be completed before revision submission. |
+| Collapse §3.3's 20 lines to "it follows immediately" | Shorter paper | Loses content; referee flags "where's the proof?" | Never. See R4. |
+| Formalize sequential-product axioms in Lean via a structure that assumes Jordan identity | Makes Lean proofs easy | Lean formalization now depends on Jordan structure, which Paper 5 is supposed to derive | Never. See R1 and R9. |
+| Defer Phase 58 Lean audit to post-revision | Focuses effort on exposition | If axioms have type-(iii) mismatches, formalization is unsound; referee with Lean familiarity will find this | Acceptable only if a (non-rushed) audit pass happened in v2.0 Phase 6 and the 16 current axioms are unchanged since then. Verify this assumption before deferring. |
+| Argue minimal-composite from "Bryan's intuition" | Fast | Exactly the failure mode the milestone was designed to prevent | Never. Milestone prompt explicitly forbids. |
 
 ---
 
-_Known pitfalls research for: Paper 6 Closure -- G4 spacetime + N=2 SUSY_
-_Researched: 2026-04-12_
-_Supersedes: v12.0 PITFALLS.md (2026-04-11)_
+## Convention Traps
+
+Convention mismatches specific to this revision.
+
+| Convention Issue | Common Mistake | Correct Approach |
+| ---------------- | -------------- | ---------------- |
+| Sequential product notation | Paper 5 uses `a ∘ b`; vdW uses `a & b`; v2.0 Phase 4 uses `a & b` | Revise Paper 5 to match vdW notation (`a & b`) for symmetric-product vs. `a * b` for Jordan product OR keep `∘` but explicitly distinguish from Jordan product `·`. Inconsistent notation between Paper 5 and vdW's cited Theorem 1 is itself a referee-attack surface. |
+| Compression notation | `c_p` (A-S) vs `C_p` (vdW) vs `U_e` (Niestegge) | Pin to one; explicitly state "c_p denotes the A-S compression of Alfsen-Shultz 2001 Ch. 7" once, then use consistently. v2.0 Phase 4 uses `C_p`. |
+| Projective unit vs. projection vs. sharp effect | Paper 5 may use interchangeably; A-S distinguishes | "Projective unit p": element with a specific A-S-axiomatic role. "Sharp effect": p with `p ∘ p = p` and `p ∘ p' = 0` (vdW Def. 7). These coincide for finite-dim SPS but are conceptually distinct. Audit usage. |
+| Face vs. subspace vs. Peirce component | Paper 5 §3.3-3.4 uses geometric language loosely | "Face of state space": geometric (A-S Ch. 1). "Peirce component V_2(p_i)": algebraic, inside V (A-S Ch. 8 in JB setting). These are DUAL objects, not the same thing. Referee will catch conflation. |
+| Two Alfsen-Shultz volumes | `\cite{AlfsenShultz2003}` for everything | (2001) vol. 179 for basic compression theory; (2003) vol. 190 for Jordan state spaces. Cite correctly per claim. |
+| Finite-dimensional vs. general OUS | Implicit finite-dim in proofs, general OUS in statements | Paper 5 assumes finite-dim (vdW Theorem 1's hypothesis). Either state this hypothesis every time or state it once and mark each section's scope. |
+
+---
+
+## Numerical Traps
+
+Paper 5 is primarily analytical; "numerical" pitfalls here refer to Lean-formalization traps.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+| ---- | -------- | ---------- | -------------- |
+| Decidable-instance blow-up in Lean for OUS | Slow elaboration, timeouts on basic tactics | Use `Classical.dec` sparingly; prefer `DecidableEq` only where genuinely needed. For abstract OUS with no decidable order, mark non-decidable explicitly. | OUS is not presented as a decidable order in mathlib; naive instances fail. |
+| `axiom` vs. `opaque` in Lean 4 | axiom admits anything including `False`; opaque is safer | Prefer `opaque` for definitional constants; `axiom` only for genuine extensions to Lean's core logic. | Type-(ii) failure mode of R9. |
+| `simp` normal form drift for compression algebra | `simp` reduces `c p (c p x)` to `c p x` but may also reduce other expressions unpredictably | Use explicit `@[simp]` tags sparingly; prefer targeted rewriting. | Large compression proofs become brittle under mathlib version bumps. |
+| Nat vs. Fin for projector indexing | `Fin n` indices cause clumsy proofs; `Nat` indices admit invalid values | Use `Fin n` with `Fintype` for finite orthogonal projector families; lift to `Nat` only at the boundary. | Formalizing `Σ_i λ_i p_i` for a spectral decomposition. |
+
+---
+
+## Interpretation Mistakes
+
+Domain-specific errors in interpreting what Phase 54-59 work actually shows.
+
+| Mistake | Risk | Prevention |
+| ------- | ---- | ---------- |
+| Reading Phase 54 outcome (A) proof as justifying the full §3.3 passage | False confidence; §3.3 says more than just Peirce invariance | Phase 54 only addresses the Peirce-invariance claim at lines 508-528. Other §3.3 claims need independent audits. |
+| Treating outcome (B) citation as "problem solved" | If the A-S citation is imprecise, the problem is not solved | Outcome (B) requires chapter+section+theorem+page. "Cite A-S somewhere in Ch. 8" is not (B). |
+| Treating outcome (C) as catastrophic | Outcome (C) is a correct finding of a real gap; paper has an ordering problem but is not wrong | Per milestone prompt: outcome (C) pauses milestone, triggers human decision on restructuring -- NOT paper retraction. |
+| Reading Lean 0-sorry as certificate of correctness | 0 sorry + type-(iii) axioms = false certificate | Lean certifies modulo its axioms. The milestone's whole point is to audit what those axioms actually assert vs. what they should assert. |
+| Treating "carries" in Thm 5.8 as natural-language obvious | Proof may only establish closure (sense 1 of R7), not structural preservation (sense 3) | Distinguish closure / induced-structure / functorial in the proof and state which sense applies. |
+| Treating minimal-composite objection as merely philosophical | It is technical: the choice determines which JVW algebras are excluded | Different composite axioms exclude different subsets of {M_n(R), M_n(C), M_n(H), V_n, h_3(O)}. The choice matters for Paper 5's conclusion. |
+| Assuming independence from upstream v2.0 work | Paper 5 inherited v2.0 Phase 4-6 results; those phases had their own assumptions | Audit v2.0 Phase 4-6 for any "we assume" or "by standard argument" that Paper 5 now needs to prove from primitives. Prior GPD work on sequential product (v2.0) may have settled pieces, or may have ASSUMED them -- check which. |
+
+---
+
+## Publication Pitfalls
+
+Common mistakes specific to Paper 5's JMP revision.
+
+| Pitfall | Impact | Better Approach |
+| ------- | ------ | --------------- |
+| Silent revision of §3.3 without explaining to referee | Reviewer won't know what changed; may re-flag resolved issues | In the response-to-referees letter, explicitly address each of the six gaps: "At §3.3, we have added a full proof of Peirce invariance from OUS primitives; see revised lines 508-560." |
+| Shortening the paper under revision | "Simpler = better" instinct; but the referee flagged gaps BECAUSE of insufficient detail | Expect revised Paper 5 to be LONGER than submitted version, not shorter. Phase 54's (A) proof adds 30-50 lines; Phase 55's lemma adds 20; Phase 56's Thm 5.8 revision adds 15; etc. |
+| Introducing new results in revision not flagged by referee | Feature creep; risks new objections on new content | Unless a new result closes a flagged gap, defer to Paper 6. Revision should be responsive, not exploratory. |
+| Not updating the arXiv / Zenodo copy | Paper 5 arXiv:[id] and Zenodo DOI 10.5281/zenodo.19342703 diverge from JMP version | Plan arXiv v2 replacement and Zenodo new version simultaneously with JMP revision submission. |
+| Not freezing revision state | Continued fiddling after submission | Tag `paper5-jmp-revision-v1` at revision submission; any post-submission changes become v2. |
+
+---
+
+## "Looks Correct But Is Not" Checklist
+
+Checklist for Phase 54-59 work review.
+
+- [ ] **§3.3 revised proof:** Uses only the allowed tool list (OUS, ≤, 1, c_p A-S axioms, S1, S3, linearity, finite-dim)? No forbidden tokens (Jordan, EJA, M_n, √(λμ), vdW Thm 1)?
+- [ ] **§3.4 S4 phi-independence proof:** Does not circularly use state separation derived from Jordan structure? Cites A-S separation explicitly with theorem number?
+- [ ] **Thm 5.8 "carries" sense:** Which of {closure, induced-structure, functorial preservation} does the proof establish? Is this the sense the downstream use requires?
+- [ ] **Phi role audit:** Every occurrence of phi classified; multiple roles either proved coincident or renamed?
+- [ ] **Lean 16 axioms:** Each classified as (i) theorem-in-disguise, (ii) definition-as-axiom, (iii) statement-mismatch, or (iv) genuine primitive? Post-audit axiom count ≤ 10?
+- [ ] **Minimal composite defense:** Operational motivation independent of "Bryan's intuition"? Compared to Hardy / Masanes-Müller / Chiribella / Barnum-Wilce alternatives?
+- [ ] **A-S citation precision:** Every `\cite{AlfsenShultz...}` upgraded to `\cite[Ch.Sec.Thm]{AlfsenShultz...}` with correct volume (2001 vs. 2003)?
+- [ ] **Cross-phase consistency:** All six phases cite the same version of the Peirce invariance result, the same phi definition, the same minimal-composite formulation?
+- [ ] **Revision letter:** Each of 6 gaps explicitly addressed in response-to-referees? Quotes from RESULT.md files usable verbatim?
+- [ ] **Notation consistency:** `a & b` vs `a ∘ b` vs `a * b` distinctions preserved throughout? v2.0 Phase 4 conventions compatible with revised Paper 5?
+
+---
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+| ------- | ------------- | -------------- |
+| R1 (circularity in §3.3) detected late | HIGH | Phase 54 outcome (C); pause milestone; human decision on restructuring. May require moving §4 derivation of Jordan structure earlier, or adding an explicit assumption at §3.3 and re-writing §3.4-§3.5 to depend on it. |
+| R2 / R3 (Peirce conflation) detected in review | MEDIUM | Add explicit case-analysis lemma to §3.3; expand proof by ~20 lines; re-verify downstream §4. |
+| R5 (vague A-S citations) detected late | LOW-MEDIUM | One-time audit of main.tex; replace `\cite{AlfsenShultz2003}` with precise citations. ~2 hours of work + verification of each theorem's actual content. |
+| R6 (phi-independence circularity at S4) detected late | HIGH | If §3.4's argument truly requires Jordan-structured separation, S4 proof must be rewritten with explicit A-S spectrality instead. If A-S spectrality is unavailable without Jordan, §3.4 has the same ordering problem as §3.3 and the two circularities stack. |
+| R7 ("carries" equivocation) detected late | MEDIUM | Thm 5.8 statement may need to be weakened (from "W carries" to "W admits a closed operation satisfying S1-S3"), with downstream use re-audited. |
+| R8 (phi overloading) detected late | LOW | Symbol-rename pass; ~1-2 hours. |
+| R9 (Lean type-iii axiom) detected late | LOW-HIGH depending on dependency | If axiom is only used in one theorem, weaken axiom to match cited A-S statement and re-verify. If axiom is used throughout, may require proving the stronger form from primitives (which was the whole point of this milestone). |
+| R10 (minimal composite flagged by reviewer) | MEDIUM | Expand Phase 59's response letter section; add a subsection "Relation to alternative composite axioms" citing Masanes-Müller and Chiribella et al. |
+| R11 (cross-phase cascade) detected mid-milestone | MEDIUM-HIGH | Pause active phases; consolidate shared deliverables (A-S notes, phi audit); restart. |
+| R12 (referee lands early) | Depends on phase progress | If only Phase 54 closed, respond only to §3.3-related reviewer points; request extension for other points. If Phase 58 incomplete, note "Lean formalization revision in progress" in cover letter. |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+Primary and secondary phases per pitfall.
+
+| Pitfall | Primary Phase | Secondary Phase(s) | Verification |
+| ------- | ------------- | ------------------ | ------------ |
+| R1 (circularity via Jordan) | Phase 54 | 56, 58 | Forbidden-token grep on RESULT.md and main.tex revision. |
+| R2 (decomposition vs. invariance) | Phase 54 | 55 | Proof explicitly distinguishes the two; cited theorems match what is being cited for. |
+| R3 (single vs. composite compression) | Phase 54 | -- | Case analysis for each Peirce subspace type; mixing term treated explicitly. |
+| R4 ("obvious" rate limit) | All 54-59 | -- | Word-count compare revised vs. submitted; forbidden-word grep. |
+| R5 (A-S citation precision) | Phase 55 | 54, 57, 58 | Every A-S cite has chapter/section/theorem/volume; manual spot-check against Birkhäuser books. |
+| R6 (facial orthogonality phi-indep.) | Phase 55 | 54 (if shared argument pattern) | Explicit dependency trace on separation-of-states. |
+| R7 ("carries" equivocation) | Phase 56 | 59 | Explicit S1-S7 on W; distinction between closure/induced/functorial. |
+| R8 (phi overloading) | Phase 57 | -- | Symbol audit; every occurrence classified. |
+| R9 (Lean axiom audit) | Phase 58 | -- | 16 axioms classified (i-iv); post-audit count; each remaining axiom has one-line justification. |
+| R10 (minimal composite) | Phase 59 | -- | Comparison table to Hardy / Masanes-Müller / CD-P / Barnum-Wilce; anticipated-objection responses prepared. |
+| R11 (cross-phase cascade) | Orchestration | All | Dependency graph exists; shared deliverables defined; Phase 54 outcome gates 55-59. |
+| R12 (JMP timeline) | Metadata | All | Weekly status check; each phase's RESULT.md is revision-letter-ready standalone. |
+
+---
+
+## Sources
+
+### Peer-reviewed primary sources
+
+- van de Wetering, J. (2019). "Sequential product spaces are Jordan algebras." J. Math. Phys. 60, 062201. arXiv:1803.11139. [DOI](https://pubs.aip.org/aip/jmp/article-abstract/60/6/062201/233722/).
+- van de Wetering, J. (2018). "Three characterisations of the sequential product." J. Math. Phys. 59, 082202. arXiv:1803.08453. [DOI](https://pubs.aip.org/aip/jmp/article-abstract/59/8/082202/233970/).
+- Gudder, S., Greechie, R. (2002). "Sequential products on effect algebras." Rep. Math. Phys. 49, 87. Contains the non-EJA SEA counterexamples directly relevant to R7.
+- Gudder, S., Greechie, R. (2005). "Uniqueness and Order in Sequential Effect Algebras." Int. J. Theor. Phys. 44, 755.
+- Westerbaan, A., Westerbaan, B., van de Wetering, J. (2020). "The three types of normal sequential effect algebras." Quantum 4, 378. [Quantum Journal](https://quantum-journal.org/papers/q-2020-12-24-378/).
+- Barnum, H., Wilce, A. (2014). "Local Tomography and the Jordan Structure of Quantum Theory." Found. Phys. 44, 192. arXiv:1202.4513.
+- Barnum, H., Graydon, M., Wilce, A. (2020). "Composites and Categories of Euclidean Jordan Algebras." Quantum 4, 359. [Quantum Journal](https://quantum-journal.org/papers/q-2020-11-08-359/).
+- Alfsen, E.M., Shultz, F.W. (2001). *State Spaces of Operator Algebras: Basic Theory, Orientations, and C*-products*. Birkhäuser Progress in Math. v. 179.
+- Alfsen, E.M., Shultz, F.W. (2003). *Geometry of State Spaces of Operator Algebras*. Birkhäuser Progress in Math. v. 190.
+- Hardy, L. (2001). "Quantum Theory From Five Reasonable Axioms." arXiv:quant-ph/0101012.
+- Masanes, L., Müller, M. (2011). "A derivation of quantum theory from physical requirements." NJP 13, 063001. arXiv:1004.1483.
+- Chiribella, G., D'Ariano, G.M., Perinotti, P. (2011). "Informational derivation of quantum theory." PRA 84, 012311. arXiv:1011.6451.
+- Niestegge, G. (2020). "Local tomography and the role of the complex numbers in quantum mechanics." arXiv:2001.11421.
+
+### Methodological / tooling sources
+
+- Avigad, J., Massot, P. (2025). *Mathematics in Lean* v4.19. [PDF](https://leanprover-community.github.io/mathematics_in_lean/mathematics_in_lean.pdf).
+- Lean Theorem Proving in Lean 4, Ch. 12 "Axioms and Computation." [lean-lang.org](https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/).
+- Jacobs-Mandemaker (2012) and subsequent work on sequential effect algebra categorical semantics.
+
+### Editorial / timeline sources
+
+- JMP Editorial Policies. [pubs.aip.org/aip/jmp/pages/policies](https://pubs.aip.org/aip/jmp/pages/policies).
+- SciRev crowdsourced review times for Journal of Mathematical Physics.
+
+### Internal GPD sources (prior work to build on)
+
+- v2.0 Phase 4 (`04-sequential-product-formalization/`), plans 01-06: established compression-based SP, corrected with Peirce-1 feedback, S3 verified, classical limit verified, Lüders-on-M_2(C) equivalence verified. Especially Plan 06 summary for the corrected formula and circularity audit pattern.
+- v2.0 Phase 5 (`05-local-tomography-from-b-m-compositionality/`): established relationship between independent accessibility and local tomography; foundation for Phase 59 minimal-composite defense.
+- Paper 5 source: `/Users/ehrlich/repos/blog/landing/papers/qm-from-self-modeling/main.tex` at tag `paper5-jmp-submitted`. §3.3 lines 508-528, §3.4 lines (TBD in Phase 55 survey).
+- Paper 5 Lean formalization: `~/repos/research/lean/Paper5/` with 16 axioms, 0 sorry as of 2026-03-28 submission.
+- Milestone prompt: `/Users/ehrlich/scratch/get-physics-done/paper5-revision-prompt.md`.
+
+---
+
+_Known pitfalls research for: Paper 5 JMP revision (v14.0)_
+_Researched: 2026-04-16_
+_Supersedes v13.0 PITFALLS.md for purposes of the Paper 5 revision milestone; v12.0 P1-P9 and v13.0 C1-C12 remain valid for Paper 6 work and will be consulted if Paper 5 revisions touch the Paper 6 chain._
