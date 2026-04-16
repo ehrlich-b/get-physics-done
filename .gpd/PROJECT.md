@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
@@ -12,30 +12,48 @@ Can the Standard Model + GR be derived from the requirement that a composite sys
 
 Einstein gravity derived algebraically from h_3(O) via GST magic supergravity. pi_u: h_2(O) -> h_2(C_u) = R^{3,1} with Minkowski signature (1,3). d_{IJK} tensor computed (106 nonzero, 97% sparse). det(X) unique F_4-invariant cubic (Springer 1962). V_0 stabilizer = so(3) x so(6), pi_u equivariant. 4d N=2 MESGT: 1 gravity + 26 vectors, prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0). C_{IJK} decomposed: 10 gravitational + 48 spacetime + 48 internal. Weinberg 1964 applied: spin-2 (10=9+1), massless (M=det_2), universal coupling (C_{i,j,a}) force -R/2 at low energies. Assembly DAG: 18 nodes, 31 edges, acyclic. 13 gaps catalogued. Chain-critical: N=2 SUSY (ASSUMED), compact so(3) vs so(3,1) (CONDITIONAL-DERIVED). Paper 6 lattice route ABANDONED; v12.0 route independent.
 
-## Current State (after v12.0)
+## Current State (after v13.0)
 
-Two independent routes to Einstein gravity from self-modeling are now established:
+The derivation chain (Papers 5-6-7) is complete end-to-end with 13 gaps catalogued. v14.0 does NOT extend this chain. It turns inward: Paper 5 is 16+ days with the JMP associate editor and a jigsaw-piece review found 6 gaps in its internal exposition that must close before the referee report arrives.
+
+Two independent routes to Einstein gravity from self-modeling are established (carried forward from v13.0):
 
 - **Route 1 (v9.0-v10.0, lattice):** Fisher geometry -> Lorentz -> BW/KMS -> Jacobson -> Einstein. Conditional on quantum SSB at S_eff=1/2.
-- **Route 2 (v12.0, algebraic):** h_3(O) -> Peirce V_0 -> pi_u -> R^{3,1} -> det(X) prepotential -> MESGT -> Weinberg -> -R/2. Conditional on N=2 SUSY identification and compact so(3) -> so(3,1).
+- **Route 2 (v12.0-v13.0, algebraic):** h_3(O) -> Peirce V_0 -> pi_u -> R^{3,1} -> det(X) prepotential -> MESGT (N=2 derived via GST) -> Weinberg -> -R/2.
 
 **Complete chain:** Self-modeling (Paper 5) -> C*-algebra -> h_3(O) (Paper 7) -> QM + SM fermions (V_{1/2}) + chirality (Cl(6)) + spacetime (V_0) + matter-gravity couplings (det(X)) + Einstein gravity (Weinberg). Assembly DAG verified acyclic with 18 nodes.
 
-**13 gaps catalogued (v12.0 Phase 51):** 3 chain-critical (V_0=spacetime CONDITIONAL-DERIVED, N=2 SUSY ASSUMED, so(3) vs so(3,1) CONDITIONAL-DERIVED), 2 UNKNOWN (so(6)->G_SM reduction, 3 generations), 5 ASSUMED (Lambda=0, bosonic sector only, choice of u, Weinberg low-energy scope, quantum SSB lattice-only).
+**Why v14.0 is not more derivation chain work:** Paper 5 is the foundational paper the rest of the chain builds on. If its internal exposition has a §3.3-level gap visible to a referee, everything downstream is weakened at a presentation level. v14.0 is maintenance of the paper that already shipped, not extension of the derivation frontier.
 
-**Comparison:** This work uniquely addresses gravity from h_3(O). Todorov-Drenska derives G_SM (gap G6 closure candidate). Boyle derives 3 generations (gap G7 candidate). Farnsworth provides spectral geometry framework (no gravity).
+## Current Milestone: v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps
 
-## Current Milestone: v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure
+**Goal:** Close 6 jigsaw-piece gaps in Paper 5 before the JMP referee report lands, so revisions ship fast and survive reviewer scrutiny.
 
-**Goal:** Derive the two remaining inputs to the GR derivation -- V_0 = spacetime identification and N=2 SUSY framework -- from h_3(O) algebraic structure alone, reducing Paper 6 inputs from 4 to 2.
+**Target results (in order):**
 
-**Target results:**
+1. §3.3 Peirce preservation from OUS primitives -- outcome (A) proof / (B) precise Alfsen-Shultz citation / (C) structural-gap characterization. **Load-bearing and only phase fully scoped; Phases 2-6 are stubs to be expanded as Phase 1 closes.**
+2. S4 facial structure lemma -- precise Alfsen-Shultz citation or standalone proof
+3. Thm 5.8 upper bound -- W carries product-form sequential product (currently asserted)
+4. Phi inert-wrapper resolution -- stop equivocating across sections
+5. Lean axiom audit -- 16 axioms vs cited Alfsen-Shultz / van de Wetering statements
+6. Minimal composite assumption defense -- every adversarial reviewer flags this
 
-- V_0 IS spacetime: operational definition match (OD1-OD7), KKT(h_2(C_u)) = so(4,2), F_4 covariance, uniqueness theorem
-- N=2 is consequence: very special real metric a_{IJ} from det(X), two-derivative Lagrangian uniqueness, GST bijection
-- Paper 6 claim upgrade: "one definition + one premise -> GR" (no geometric input, no SUSY input)
+**Pause condition:** Outcome (C) on any phase -> milestone pauses for human decision on whether to restructure, add an explicit assumption, or rip out and rework. Above GPD's pay grade.
 
-**Dependencies:** v12.0 complete (Phases 46-51). Code in code/octonion_algebra.py.
+**Dependencies:**
+
+- Paper 5 source (frozen): `/Users/ehrlich/repos/blog/landing/papers/qm-from-self-modeling/main.tex`, git tag `paper5-jmp-submitted`, revision copy at `main-jmp-submitted.tex`
+- §3.3 content: lines 483-562 of `main.tex`; key claim lines 508-528
+- Alfsen-Shultz 2003 "Geometry of State Spaces of Operator Algebras" (Birkhauser)
+- van de Wetering axioms S1-S7 (§3.2 of Paper 5)
+- Paper 5 Lean formalization: `~/repos/research/lean/Paper5/` (0 sorry, 16 axioms)
+- Prior GPD v2.0 work on sequential product (Phases 4-6): check whether any of those attempts settled the §3.3 claim or assumed it
+
+**Deliverables location:** `derivations/paper5-peirce-preservation/` (STATE.md, claim.md, attempt-NN.md, RESULT.md, alfsen-shultz-notes.md) for Phase 1.
+
+## v13.0 Summary (complete 2026-04-13)
+
+Closed the two chain-critical algebraic gaps for Paper 6: V_0 = spacetime derived via operational definition match (OD1-OD7 all verified, KKT(h_2(C_u)) = so(4,2) Killing sig (8,7), F_4 covariance, uniqueness theorem via Gr(3,9) classification), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. Paper 6 claim upgraded to "one definition + one premise -> GR" (no geometric input, no SUSY input). VSR metric G_{IJ} = (9/2)x_Ix_J - 3C_{IJK}h^K with 26 positive tangent eigenvalues; exactly 4 E_{6(-26)}-invariant two-derivative terms proved (-R/2, G d phi d phi, G FF, CAFF); all coefficient ratios fixed without assuming SUSY. GST bijection applied to h_3(O): degree 3 + formally real + positive-definite trace form all verified; unique Lagrangian identified as N=2 MESGT bosonic sector. Phase 49 cross-check max error = 0; circularity audit AC1-AC4 PASS.
 
 ## v10.0 Summary (complete 2026-03-31)
 
@@ -63,99 +81,90 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Contract Coverage
 
-- **Continuum limit (claim-continuum):** Show that a finite-dimensional C*-observer on the SWAP lattice necessarily sees smooth effective geometry, closing all four Paper 6 gaps
-- **Fisher geometry (claim-fisher):** Reduced states rho_Lambda(x) form a smooth manifold with positive-definite Fisher information metric recovering lattice distance
-- **Correlation structure (claim-decay):** Characterize correlation decay for SWAP Hamiltonian ground state. Heisenberg AFM (n=2) in d>=2 is GAPLESS with algebraic decay (Neel order, Goldstone modes). Two-tier approach: rigorous for gapped models, NL sigma model effective theory argument for n=2
-- **Emergent Lorentz (claim-lorentz):** Isotropy + LR finite speed + Fisher smoothness -> Lorentz invariance via von Ignatowsky
-- **Acceptance signal:** Complete derivation chain from finite-dim observer to Einstein equations with all steps rigorous (or honestly flagged as conditional)
-- **False progress to reject:** Claiming constructive continuum limit in mathematical sense; assuming exponential decay without proof/citation for n=2; citing Lorentz invariance without connecting to the specific Fisher metric; treating BW as automatic without checking Wightman axioms in effective theory
+- **Phase 1 §3.3 claim (claim-peirce):** a o V_2(p_i) c V_2(p_i) and a o V_1(p_i,p_j) c V_1(p_i,p_j) for a = sum lambda_i p_i in a spectral OUS, with sequential product satisfying S1 (additivity in second arg) and S3 (sharp constraint a o b = c_a(b) when a is a projective unit), restricted to OUS primitives only. Outcome must be (A) proof / (B) precise Alfsen-Shultz citation / (C) structural-gap characterization.
+- **Acceptance signal (Phase 1):** (A) complete proof with zero uses of Jordan product, EJA, sequential product formula sqrt(lambda mu), C*-structure, or h_n(C); or (B) chapter + section + theorem number in Alfsen-Shultz 2003 that implies the claim from OUS primitives; or (C) explicit gap characterization naming the minimum additional axiom/derivation step needed and the ordering change Paper 5 would require.
+- **Milestone-level acceptance signal:** Each of 6 gaps closed with (A), (B), or explicit (C) flag. Revision response text drafted for each closed gap.
+- **Adversarial review gate:** Phase 1 outcome reviewed by a second fresh-eyes agent before RESULT.md finalizes.
+- **False progress to reject:** "Since a o b is a Jordan product..." (uses the structure being derived); citing the Peirce decomposition theorem as if it proves Peirce invariance of a o (-); conflating "compressions c_{p_i} preserve Peirce subspaces" (Alfsen-Shultz fact about individual compressions) with "a o (-) preserves Peirce subspaces" (claim about the composite map b -> a o b); rate-limiting on "it's obvious" when Paper 5 spends 20 lines asserting it.
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Fisher information metric g_ij(x) on reduced states; correlation decay rate xi; LR velocity as effective speed of light; SRF convergence for BW
-- **User-stated deliverables:** Derivation chain document: finite-dim observer + SWAP + decay -> Fisher manifold -> Lorentz -> BW -> Jacobson -> Einstein
-- **User-stated phases:** (A) Fisher geometry, (B) Correlation structure (gapless for n=2 d>=2; two-tier strategy), (C) Emergent Lorentz, (D) BW/equilibrium, (E) Assembly
-- **Must-have references:** Braunstein-Caves 1994, Zanardi et al. 2007, Provost-Vallee 1980, Hastings 2004/2007, Nachtergaele-Sims 2006, von Ignatowsky 1911, Hamma et al. 2009, Dyson-Lieb-Simon 1978, Papers 5-6
-- **Stop / rethink conditions:** If Fisher metric fails to be positive-definite on reduced states; if exponential decay cannot be established even for n=2 in d>=2; if the effective theory doesn't satisfy Wightman axioms needed for BW
-- **Strategy on failure:** If exponential decay fails for all n, the chain is conditional (like MVEH in Paper 6 v3.0). If Fisher geometry fails, the entire approach is wrong. If Lorentz fails, fall back to emergent diffeomorphism invariance only.
+- **User-stated observables:** Peirce-preservation property of a o (-) on V_2(p_i) and V_1(p_i,p_j); S1 and S3 axioms as stated in Paper 5 §3.2; compression properties per Alfsen-Shultz 2003 (idempotent, positive, c_p + c_{p'} = id, Peirce decomposition).
+- **User-stated deliverables:** `derivations/paper5-peirce-preservation/` tree with STATE.md, claim.md (restated in derivation's own notation), attempt-NN.md (one per serious proof attempt), RESULT.md (outcome A/B/C with proof / citation / gap), alfsen-shultz-notes.md (specific AS theorems consulted with page numbers). Revision text for §3.3 in RESULT.md.
+- **User-stated phases:** (1) §3.3 Peirce preservation [fully scoped], (2) S4 facial structure lemma, (3) Thm 5.8 upper bound, (4) Phi inert-wrapper resolution, (5) Lean axiom audit, (6) Minimal composite assumption defense. Phases 2-6 as stubs -- expanded only as Phase 1 closes.
+- **Must-have references:** Alfsen-Shultz 2003 "Geometry of State Spaces of Operator Algebras" (Birkhauser); Paper 5 main.tex (frozen at `paper5-jmp-submitted`, copy at `main-jmp-submitted.tex`); van de Wetering S1-S7 axioms; Paper 5 Lean formalization (`~/repos/research/lean/Paper5/`); prior GPD v2.0 Phases 4-6 sequential product work.
+- **Stop / rethink conditions:** Outcome (C) on any phase -- milestone pauses for human decision on whether to restructure §3.3 (move Jordan derivation earlier), add an explicit assumption, or rip out and rework. "Above GPD's pay grade."
+- **Strategy on failure:** If proof attempts accumulate and none closes cleanly from OUS primitives, escalate to outcome (C) rather than sneak in Jordan structure. Precise citation (B) beats hand-waved proof (A). Honest gap (C) beats contested proof.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Fisher information geometry on manifold of reduced states rho_Lambda(x)
-- Exponential correlation decay for SWAP Hamiltonian (prove n=2, conjecture general n)
-- Emergent Lorentz invariance via von Ignatowsky (isotropy + finite speed)
-- BW theorem and local equilibrium in effective theory
-- Assembly of complete derivation chain closing Paper 6 gaps
-- Numerical verification on small lattices (N=8-20)
+- OUS / spectral order unit space primitives: order unit, compressions (idempotent, positive, c_p + c_{p'} = id, Peirce decomposition), faithful normal states
+- van de Wetering S1 (additive in second arg), S3 (sharp constraint a o b = c_a(b) when a is projective unit)
+- Linear endomorphism property of a o (-): allowed as an input to Phase 1 per Paper 5
+- Alfsen-Shultz 2003 page-level consultation
+- Lean formalization audit (Phase 5) -- 16 axioms vs cited Alfsen-Shultz / vdW
+- Deriving minimum revision text for each Paper 5 section touched
 
 **Out of scope**
 
-- Constructive continuum limit in mathematical sense (convergence of correlators to continuum QFT)
-- Re-deriving Papers 5, 6, 7 results
-- Gap C, Gaps A/B1/B2 (separate milestones)
-- Spectral action computation
-- New paper writing (derivation document only; paper revision deferred)
+- Any use of Jordan multiplication, EJA structure, sequential product formula f(lambda,mu) = sqrt(lambda mu), or C*-structure in Phase 1 proof
+- Any use of h_n(C) or specific EJA realization in Phase 1 proof
+- Anything downstream of §3.3 (S4, S5, sequential product formula, etc.) in Phase 1 proof
+- Revisiting Paper 6 / Paper 7 / v13.0 results
+- New derivation chain extensions (no new physics)
+- Major restructuring of Paper 5 without human approval (any outcome (C) pauses milestone)
 
 ### Active Anchor Registry
 
-- **ref-braunstein-caves1994:** Braunstein-Caves -- Statistical distance and the geometry of quantum states (PRL 72, 1994)
-  - Why it matters: Fisher information metric on quantum state manifolds; foundation for Phase A
-  - Carry forward: planning, execution, verification
+- **ref-alfsen-shultz-2003:** Alfsen, Shultz -- Geometry of State Spaces of Operator Algebras (Birkhauser 2003)
+  - Why it matters: CRITICAL -- defines the OUS / spectral order unit space / compressions framework Paper 5 §2-3 cite throughout; (B) outcome depends on page-level consultation
+  - Carry forward: planning, execution, verification, writing
+  - Required action: read, cite, page-level lookup
+
+- **ref-paper5-frozen:** Paper 5 frozen JMP submission (git tag `paper5-jmp-submitted`, copy at `~/repos/blog/landing/papers/qm-from-self-modeling/main-jmp-submitted.tex`)
+  - Why it matters: CRITICAL -- §3.3 lines 508-528 contain the exact claim; §3.3 lines 483-562 the surrounding context; revisions will land in `main.tex`
+  - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
-- **ref-hastings2004:** Hastings -- Spectral gap and exponential decay of correlations (CMP 265, 2006)
-  - Why it matters: Gap -> exponential decay theorem; foundation for Phase B
-  - Carry forward: execution, verification
-  - Required action: read, cite
-
-- **ref-nachtergaele-sims2006:** Nachtergaele-Sims -- Lieb-Robinson bounds (CMP 265, 2006)
-  - Why it matters: LR bounds for lattice systems; provides finite speed for Phase C
-  - Carry forward: execution, verification
-  - Required action: read, cite
-
-- **ref-vonignatowsky1911:** von Ignatowsky -- Das Relativitatsprinzip (Archiv der Mathematik und Physik 17, 1911)
-  - Why it matters: Isotropy + finite max speed -> Lorentz; key theorem for Phase C
-  - Carry forward: execution
-  - Required action: read, cite
-
-- **ref-zanardi2007:** Zanardi et al. -- Information-geometric differential equations (PRA 76, 2007)
-  - Why it matters: Information geometry of quantum phase transitions; Fisher metric on state manifolds
+- **ref-vdw-sequential:** van de Wetering -- sequential product axioms S1-S7
+  - Why it matters: S1 and S3 are the allowed primitives in Phase 1; the rest are downstream of §3.3 and PROHIBITED in Phase 1 proof
   - Carry forward: planning, execution
   - Required action: read, cite
 
-- **ref-paper5:** Paper 5 (v2.0) -- QM from self-modeling
-  - Why it matters: CRITICAL -- M_n(C)^sa finite-dimensional; the observer IS the UV cutoff
-  - Carry forward: planning, execution, verification
-  - Required action: read, cite
+- **ref-paper5-lean:** Paper 5 Lean formalization `~/repos/research/lean/Paper5/` (0 sorry, 16 axioms)
+  - Why it matters: Phase 5 audit target -- each of 16 axioms must trace to a cited Alfsen-Shultz or vdW statement
+  - Carry forward: execution (Phase 5), verification
+  - Required action: read, audit
 
-- **ref-paper6:** Paper 6 (v3.0) -- GR from self-modeling
-  - Why it matters: SWAP lattice, area law, Jacobson route; the four gaps this milestone closes
-  - Carry forward: planning, execution, verification, writing
-  - Required action: read, cite, update
+- **ref-gpd-v2-sp-phases:** Prior GPD v2.0 Phases 4-6 (Sequential Product on OUS)
+  - Why it matters: May already have attempted the §3.3 claim; if yes and (A) achieved, promote; if yes and assumed, flag; if no, note that prior work did not address it
+  - Carry forward: planning
+  - Required action: read, check
 
 ### Carry-Forward Inputs
 
-- Paper 5: M_n(C)^sa with dim n^2 -- observer's finite dimension is the UV cutoff mechanism
-- Paper 6: SWAP lattice H = sum J*SWAP, area law, Jacobson route, four gaps (continuum limit, conformal, tensoriality, MVEH)
-- Paper 6 Phase 11: ED benchmarks N=8-20, area-law scaling, K_A locality (SRF=0.9993), MVEH support
-- v3.0: Nachtergaele-Sims LR bound v_LR = 8eJ/(e-1) computed for SWAP on Z^1
+- Paper 5 submission JMP26-AR-00922 with Zenodo DOI 10.5281/zenodo.19342703 (submitted 2026-03-28)
+- Paper 5 main.tex §3.3 lines 483-562 (subsection "The Corrected Product via Peirce Feedback")
+- Paper 5 Lean formalization `~/repos/research/lean/Paper5/` (0 sorry, 16 axioms)
+- Prior GPD v2.0 Phases 4-6 sequential product work (content unknown until Phase 1 checks)
+- Zero "Bryan's intuition says X" shortcuts -- this milestone exists because intuition is insufficient
 
 ### Skeptical Review
 
-- **Weakest anchor:** Heisenberg AFM (n=2) in d>=2 is gapless with algebraic (not exponential) correlation decay due to Neel order and Goldstone modes. Fisher geometry smoothness with algebraic decay is an open question -- no rigorous resolution exists in the literature.
-- **Unvalidated assumptions:** That the Fisher metric on reduced states is non-degenerate (it should be, but needs proof); that lattice symmetry group gives sufficient isotropy for von Ignatowsky; that the effective theory satisfies Wightman axioms needed for BW
-- **Competing explanation:** Continuum limit might require genuinely new mathematics beyond the observer-as-cutoff picture. The information-geometric approach might give smoothness but not the right symmetry group.
-- **Disconfirming observation:** Fisher metric degenerate at some lattice points; exponential decay fails for SWAP (gapless ground state); LR velocity direction-dependent at long wavelengths (breaking isotropy)
-- **False progress to reject:** Numerics on small lattices showing "smooth" behavior that's actually finite-size artifact; citing von Ignatowsky without verifying his premises hold in the lattice setting; treating BW as automatic without checking axioms
+- **Weakest anchor:** The §3.3 claim itself -- if Paper 5 spent 20 lines asserting it, it is not trivial, and the author cannot independently reconstruct it. Probability of outcome (C) is non-trivial.
+- **Unvalidated assumptions:** That S1 + S3 + linearity are sufficient primitives (the whole question). That Alfsen-Shultz 2003 contains an implicit theorem covering this case. That the prior GPD v2.0 work either settled or assumed the claim -- neither has been verified.
+- **Competing explanation:** §3.3's argument may be conflating "compressions preserve Peirce subspaces" with "a o (-) preserves Peirce subspaces" -- these are about different objects and one does not trivially imply the other.
+- **Disconfirming observation (=outcome C):** A proof attempt succeeds but requires Jordan structure / EJA / sequential product formula one step earlier in the chain than §3.3 currently allows. This would force Paper 5 to either (i) move the Jordan-structure derivation earlier, (ii) state an explicit assumption, or (iii) find a genuinely pre-Jordan argument.
+- **False progress to reject:** "Since the Peirce decomposition exists in any spectral OUS (Alfsen-Shultz), the sequential product respects it" -- decomposition of V != invariance of a o (-) under V; "Jordan structure gives it" -- circular; "It's obvious from compressions" -- compressions c_{p_i} are not the same object as b -> a o b.
 
 ### Open Contract Questions
 
-- Does the Fisher metric on reduced states have the right signature for Lorentzian geometry (or only Riemannian)?
-- Is the connection from Fisher metric to spacetime metric unique, or are there ambiguities?
-- Does the SWAP Hamiltonian in d=3 have a spectral gap for all n, or only certain n values?
-- Can the BW theorem be applied to the effective theory, or do we need a lattice version?
+- Does prior GPD v2.0 Phase 4-6 work contain a Phase 1 proof attempt, an assumption, or no engagement with the §3.3 claim?
+- Do the allowed primitives (S1, S3, linearity, OUS structure) suffice, or is there a hidden dependency on the sequential product formula itself?
+- If outcome is (B), does the Alfsen-Shultz statement require any additional hypothesis that must be verified in Paper 5's setting?
+- Are the 16 Lean axioms a red flag for the logical chain (Phase 5), or straightforward Alfsen-Shultz/vdW restatements?
 
 ## Research Questions
 
@@ -202,12 +211,16 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-- [ ] Does V_0 (through C*-bottleneck) satisfy all 7 operational spacetime criteria (OD1-OD7), and is it the unique such subspace? (v13.0 Phase 52)
-- [ ] Does KKT(h_2(C_u)) = so(4,2), confirming full conformal spacetime symmetry? (v13.0 Phase 52)
-- [ ] Is the two-derivative bosonic Lagrangian uniquely determined by det(X) + E_{6(-26)} without assuming N=2? (v13.0 Phase 53)
-- [ ] Is N=2 SUSY a consequence of the Lagrangian that det(X) determines, via the GST classification? (v13.0 Phase 53)
-- [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling?
-- [ ] Can Boyle's triality mechanism address gap G7 (3 generations)?
+- [ ] Does a o (-) preserve Peirce subspaces V_2(p_i) and V_1(p_i,p_j) from OUS primitives alone (S1 + S3 + linearity + compressions)? Outcome (A), (B), or (C). (v14.0 Phase 54)
+- [ ] Does Alfsen-Shultz 2003 contain a theorem implying this preservation from OUS primitives, with precise chapter/section/theorem? (v14.0 Phase 54)
+- [ ] Does prior GPD v2.0 Phase 4-6 work already contain this proof, assume the claim, or neither? (v14.0 Phase 54 prerequisite)
+- [ ] Is the S4 facial structure lemma citable to Alfsen-Shultz or provable standalone? (v14.0 Phase 55, stub)
+- [ ] Does W carry the product-form sequential product asserted by Thm 5.8 upper bound? (v14.0 Phase 56, stub)
+- [ ] Does Phi have a single consistent interpretation across Paper 5 sections, or is the inert-wrapper usage equivocating? (v14.0 Phase 57, stub)
+- [ ] Do each of the 16 axioms in the Paper 5 Lean formalization trace to a cited Alfsen-Shultz or van de Wetering statement? (v14.0 Phase 58, stub)
+- [ ] Is the minimal composite assumption defensible against adversarial review, and does Paper 5 currently defend it adequately? (v14.0 Phase 59, stub)
+- [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling? (deferred)
+- [ ] Can Boyle's triality mechanism address gap G7 (3 generations)? (deferred)
 
 ### Answered in v9.0
 
@@ -305,17 +318,21 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-- Braunstein-Caves (1994), PRL 72 -- Statistical distance and geometry of quantum states (Fisher metric)
-- Zanardi et al. (2007), PRA 76 -- Information geometry of quantum phase transitions
-- Provost-Vallee (1980), CMP 76 -- Riemannian structure on manifolds of quantum states
-- Hastings (2004/2006), CMP 265 -- Spectral gap implies exponential decay of correlations
-- Hastings (2007), JSTAT -- Area law in 1D from spectral gap
-- Nachtergaele-Sims (2006), CMP 265 -- Lieb-Robinson bounds for lattice systems
-- von Ignatowsky (1911), Archiv Math. Phys. 17 -- Lorentz group from isotropy + finite speed
-- Hamma et al. (2009) -- Lieb-Robinson and Lorentz invariance on lattices
-- Dyson-Lieb-Simon (1978) -- Phase transitions in quantum Heisenberg models
-- Paper 5 (this project, v2.0) -- QM from self-modeling; M_n(C)^sa finite-dimensional
-- Paper 6 (this project, v3.0) -- GR from self-modeling; SWAP lattice, four gaps to close
+**v14.0-critical (Paper 5 revision):**
+
+- Alfsen-Shultz (2003) -- Geometry of State Spaces of Operator Algebras (Birkhauser) -- OUS / compressions / Peirce decomposition; (B) citation target for Phase 54
+- Paper 5 (this project, v2.0; JMP submission JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703) -- QM from self-modeling; the paper under revision
+- van de Wetering -- sequential product axioms S1-S7 (S1 + S3 are the Phase 54 primitives)
+- Paper 5 Lean formalization `~/repos/research/lean/Paper5/` -- 16 axioms for Phase 58 audit
+
+**Carried forward from prior milestones (v1.0-v13.0):**
+
+- Braunstein-Caves (1994), PRL 72 -- Fisher metric
+- Hastings (2004/2006), CMP 265 -- Spectral gap implies exponential decay
+- Nachtergaele-Sims (2006), CMP 265 -- Lieb-Robinson bounds
+- von Ignatowsky (1911), Archiv Math. Phys. 17 -- Lorentz from isotropy + finite speed
+- Paper 6 (this project, v3.0) -- GR from self-modeling
+- Paper 7 (this project, v5.0/v11.0) -- chirality from h_3(O) via Cl(6), Gap C closure
 
 ## Constraints
 
@@ -403,4 +420,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-04-04 after v11.0 milestone initialization_
+_Last updated: 2026-04-16 after v14.0 milestone initialization (Paper 5 revision)_

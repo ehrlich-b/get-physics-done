@@ -2,23 +2,23 @@
 
 ## Project Reference
 
-See: .gpd/PROJECT.md (updated 2026-04-11)
+See: .gpd/PROJECT.md (updated 2026-04-16)
 
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure
+**Current focus:** v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps
 
 ## Current Position
 
-**Current Phase:** 53
-**Current Phase Name:** N=2 Lagrangian Uniqueness -- SUSY as Consequence
-**Total Phases:** 53 (v13.0: Phases 52-53)
-**Current Plan:** 2
-**Total Plans in Phase:** 2
-**Status:** Phase execution complete, verified (6/6 contract targets passed)
-**Last Activity:** 2026-04-13
-**Last Activity Description:** Plan 53-02 complete -- GST bijection applied, N=2 derived, Phase 49 cross-check exact match, circularity audit PASS, verification 6/6
+**Current Phase:** 54
+**Current Phase Name:** §3.3 Peirce Preservation from OUS Primitives
+**Total Phases:** 59 (v14.0: Phases 54-59, 6 gaps; Phases 55-59 are stubs until Phase 54 closes)
+**Current Plan:** 0
+**Total Plans in Phase:** 0
+**Status:** Defining objectives
+**Last Activity:** 2026-04-16
+**Last Activity Description:** Milestone v14.0 initialized -- Paper 5 Revision
 
-**Progress:** [██████████████████████████████████████████] 100%
+**Progress:** [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Active Calculations
 
@@ -177,6 +177,7 @@ See: .gpd/PROJECT.md (updated 2026-04-11)
 - [Phase 0]: Started milestone v11.0: Gap C Complexification from Sequential Product — New milestone cycle -- second attempt at Gap C using sequential product route
 - [Phase 0]: Started milestone v12.0: GR from det(X) on h_3(O) — New milestone cycle -- algebraic GR route via GST magic supergravity prepotential on Peirce complement
 - [Phase 0]: Started milestone v13.0: Paper 6 Closure -- G4 + N=2 from Algebraic Structure — New milestone cycle -- derive V_0=spacetime and N=2 SUSY from h_3(O) algebraic structure
+- [Phase 0]: Started milestone v14.0: Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps — Paper 5 submitted to JMP (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703) 16+ days ago; jigsaw-piece review found 6 internal exposition gaps; close before referee report arrives. Phase 54 (§3.3 Peirce preservation) fully scoped; Phases 55-59 are stubs. Outcome (C) on any phase pauses milestone for human decision.
 
 ### Active Approximations
 
