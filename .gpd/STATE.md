@@ -4,77 +4,67 @@
 
 See: .gpd/PROJECT.md (updated 2026-04-16)
 
+**Machine-readable scoping contract:** `.gpd/state.json` field `project_contract` (v14.0 assembly DAG context preserved from v13.0)
+
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps
+**Current focus:** v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps (Phase 54 = load-bearing §3.3 Peirce preservation)
 
 ## Current Position
 
 **Current Phase:** 54
 **Current Phase Name:** §3.3 Peirce Preservation from OUS Primitives
-**Total Phases:** 59 (v14.0: Phases 54-59, 6 gaps; Phases 55-59 are stubs until Phase 54 closes)
+**Total Phases:** 59 (v14.0: Phases 54-59, 6 jigsaw-piece gaps)
 **Current Plan:** 0
-**Total Plans in Phase:** 0
-**Status:** Defining objectives
+**Total Plans in Phase:** 0 (plan-phase pending)
+**Status:** Roadmap defined; ready to plan Phase 54
 **Last Activity:** 2026-04-16
-**Last Activity Description:** Milestone v14.0 initialized -- Paper 5 Revision
+**Last Activity Description:** v14.0 roadmap created (ROADMAP.md + REQUIREMENTS.md traceability); Phase 54-59 objectives mapped; 32/32 REQs covered.
 
-**Progress:** [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
+**Progress:** [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (0/6 v14.0 phases complete)
 
 ## Active Calculations
 
-- det_3(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2 + 2*Re((x1*x2)*x3); left-to-right association confirmed
-- d_{IJK} tensor: 106 nonzero entries out of 3654 (97% sparse); two Peirce blocks (V_1,V_0,V_0) [10] and (V_{1/2},V_{1/2},V_0) [96]
-- det_2 Gram matrix on h_2(C_u) = diag(+1,-1,-1,-1): Minkowski signature (1,3) confirmed
-- pi_u idempotent with 4-dim image; benchmark values det_2(E_{22})=0, det_2(I_2)=1, det_2(off-diag e_7)=-1
-- Intrinsic h_2(O) Jordan product closes exactly in V_0 (all 55 basis pairs, zero V_{1/2} leakage)
-- Delta(A,B) = <wA,wB>_W * I_2 closed form (vanishes on h_2(C_u), nonzero on W)
-- Four Minkowski matrices M_mu with M_0=(1/2)I, spatial Cl(3,0): {M_i,M_j}=(1/2)*delta_ij*I_16
-- V_{1/2} x V_{1/2} -> V_0 surjective (rank 10), pi_u-projected surjective (rank 4)
-- 36 spin(9) generators as 10x10 matrices on V_0 via [gamma_ab/4, T_c] (compute_spin9_v0_rep)
-- V_0 stabilizer = so(3) x so(6) dim 18: so(3) rotations on spacetime {0,1,2,9}, so(6) on internal {3..8}
-- so(3) generators satisfy eta L + L^T eta = 0 (max err 2.2e-16); [J_i,J_j] = (1/2) epsilon_{ijk} J_k
-- so(6) Killing form = -2*I_15 (negative definite, compact); G_SM dim 8 contained
-- pi_u equivariance: max error 5.15e-17 for all 18 stabilizer generators x 10 basis vectors
-- Prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0); C_{IJK} = (1/6) d_{IJK}
-- Field content: n_V = 26, total vectors = 27, real scalars = 54, scalar manifold E_{7(-25)}/(E_6(-78) x U(1))
-- C_{IJK} decomposition: 10 gravitational self-coupling (det_2) + 48 matter-spacetime + 48 matter-internal = 106 total
-- Lambda = 0 (ungauged MESGT, classical); Lagrangian Eq. (49.6) with 4 terms
-- SO(3,1) irrep decomposition: 10 = 9 (spin-2, traceless symmetric) + 1 (spin-0, trace); graviton in spacetime V_0 only
-- M_{ab} = det_2 Gram (kinetic, not Fierz-Pauli mass); graviton massless; E_{11}# = 0 confirmed
-- Stress-energy coupling C_{i,j,a}: symmetric (exact), universal (16 fields x 4 directions), bilinear; T_{ij} nonzero (norm 4.22)
-- Weinberg 1964 applied: -R/2 forced at low energies from h_3(O) algebraic structure; non-circular
-- KKT(h_2(C_u)) = so(4,2): dim 15, Killing sig (8,7), eigenvalues {+8}x8 {-8}x7
-- Boosts B_i = L_{sigma_i} in Str_0; [B_i, B_j] = -epsilon_{ijk} J_k; Lorentz Killing sig (3,3)
-- G5 resolved: Der(J)=so(3) c Str_0(J)=so(3,1)+R c g(J)=so(4,2)
-- G_{IJ} = (9/2) x_I x_J - 3 C_{IJK} h^K; tangent eigenvalues {1/4, 3/8, 1(x24)} all positive; VSR identity G h = (3/2) x verified (error=0)
-- Exactly 4 E_{6(-26)}-invariant two-derivative Lagrangian terms: -R/2, G_{IJ} dphi dphi, G_{IJ} FF, C_{IJK} AFF
-- Coefficient ratios fixed without SUSY: alpha_2/alpha_3 (Schur on irrep 26), alpha_4/alpha_3 (gauge invariance + VSR identity), alpha_1/alpha_2 (Weinberg canonical normalization)
-- GST bijection: h_3(O) satisfies degree 3 + formally real + positive-definite trace form; unique Lagrangian = N=2 MESGT bosonic sector
-- N=2 SUSY derived (not assumed) via 10-step non-circular chain; circularity audit PASS (AC1-AC4)
-- Phase 49 cross-check: all C_{IJK}, G_{IJ} match to machine precision (max error = 0)
+None yet for v14.0. Phase 54 mandatory first task is the Phase 4-06 circularity audit (commit `9608ac54`); no new calculation until then.
+
+**v13.0-era calculations carried forward as reference (archived, no longer active):**
+
+- det_3(X), d_{IJK} tensor (106 nonzero), det_2 Minkowski signature (1,3), KKT(h_2(C_u)) = so(4,2), VSR metric G_{IJ} with 26 positive eigenvalues, N=2 MESGT derivation via GST bijection — see `.gpd/state.json` field `active_calculations` for full list (preserved).
 
 ## Intermediate Results
 
-- **O(9) quantitative (41-01)**: c_s(O(9),Z^3) = J*sqrt(3/2) = 1.225 Ja (classical), v_LR = 27eJ = 73.4 J, ratio 59.9, BW universality (no SRF number), C(r) = 16/(pi*J*r) d=3. All Heisenberg carry-forward values replaced. Quantum correction ~20% unknown. (MEDIUM-HIGH)
-- **Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Carry-forward caveat removed. Internal consistency verified. Chain fully self-consistent on O(9)/S^8. (HIGH)
+**v14.0 (empty; phases have not started):**
+
+None yet.
+
+**Historical (v10.0, preserved for context):**
+
+- **O(9) quantitative (41-01)**: c_s(O(9),Z^3) = J*sqrt(3/2) = 1.225 Ja (classical), v_LR = 27eJ = 73.4 J, ratio 59.9, BW universality (no SRF number), C(r) = 16/(pi*J*r) d=3. (MEDIUM-HIGH)
+- **Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Chain fully self-consistent on O(9)/S^8. (HIGH)
 
 ## Open Questions
 
-- RESOLVED (52-01): Boosts are L_{sigma_i} operators in Str_0(h_2(C_u)), obtained via KKT extension beyond Spin(9), not by Wick rotation.
-- NEW: How does so(6) internal reduce to SU(3) x U(1) (Standard Model gauge group without SU(2))?
-- NEW: Lambda != 0 mechanism not yet provided by self-modeling framework (ungauged MESGT gives Lambda=0 classically)
-- RESOLVED (53-02): N=2 SUSY is derived (not assumed) -- unique Lagrangian from E_{6(-26)} covariance identified as N=2 MESGT via GST bijection. Matter sector uniquely fixed; -R/2 via Weinberg.
-- NEW: Physical interpretation of (V_{1/2},V_{1/2},V_0) couplings as Yukawa-like requires full fermionic sector
-- Physical significance of Killing form ratio -2/-0.5 = 4 between so(6) and so(3) blocks?
-- Why does the Peirce-derived spin(9) differ from Krasnov's spin(9)? Physical significance of two distinct spin(9) subalgebras of M_16(R)?
-- Can the choice of u in S^6 be derived from the self-modeling framework, or is it necessarily external input?
-- Is the reduced stabilizer (dim 10 = su(3)+u(1)^2) or Krasnov's (dim 12 = su(3)+su(2)+u(1)) the physically correct one?
-- RESOLVED (38-02): Macroscopic lattice = Z^d with h_3(O) per site. K_3 is on-site algebraic structure.
-- RESOLVED (39-01): SSB pattern corrected: spontaneous Spin(9)->Spin(8) on S^8 (8 Goldstones), not F_4->Spin(9) on OP^2 (16).
-- RESOLVED (38-02): Cubic det(A) is formally RG-relevant (dim 3/2 in d=3) but coefficient = 0 exactly on OP^2.
-- RESOLVED (39-02): All 8 Goldstone modes are Type-A (linear omega=c_s|k|). rho_ab = 0 from real Clifford rep.
-- RESOLVED (39-02): Ferromagnetic ordering does NOT threaten Lorentz emergence. Real rep forces Type-A.
-- Can quantum SSB be proved without BCS? S_eff=1/2 too small for BCS; alternative routes (mean-field heuristic, direct ED scaling) may help.
+**v14.0 active (from REQUIREMENTS.md "Active" list):**
+
+- Does a o (-) preserve Peirce subspaces V_2(p_i) and V_1(p_i,p_j) from OUS primitives alone (S1 + S3 + linearity + compressions)? Outcome (A), (B), or (C). (Phase 54)
+- Does Alfsen-Shultz 2001 vol. 179 or 2003 vol. 190 contain a theorem implying this preservation from OUS primitives? ADDENDUM says essentially NO (Peirce post-Jordan). (Phase 54)
+- Does prior GPD v2.0 Phase 4-06 work (commit `9608ac54`) already contain this proof, assume the claim, or neither? (Phase 54 mandatory first task)
+- Is the S4 facial structure lemma citable to Alfsen-Shultz (correct volume + prop number) or provable standalone pre-Jordan? (Phase 55)
+- Is W a face of the ambient EJA so Thm 5.8 can invoke KV closure? What "carries" sense does Thm 5.8 downstream need? (Phase 56)
+- Does Phi have a single consistent role across Paper 5 sections, or is the inert-wrapper usage equivocating? (Phase 57)
+- How many of the 16 (claimed) / 19 (grep) axioms in Paper 5 Lean formalization are type-(iii) statement-mismatch? (Phase 58)
+- Is Paper 5's minimal-composite assumption defensible against Hardy / Masanes-Müller / Chiribella-D'Ariano-Perinotti / Dakić-Brukner / Barnum-Wilce / Kent 2024 patterns? (Phase 59)
+
+**Deferred to v15.0+ (from PROJECT.md, unchanged):**
+
+- Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM)?
+- Can Boyle's triality mechanism address gap G7 (3 generations)?
+- Lambda != 0 mechanism not yet provided by self-modeling framework (ungauged MESGT gives Lambda=0 classically)
+
+**Historical resolved (preserved in state.json; condensed here):**
+
+- RESOLVED (52-01): Boosts = L_{sigma_i} in Str_0 via KKT.
+- RESOLVED (53-02): N=2 SUSY derived via GST bijection; not assumed.
+- RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types — see state.json.
 
 ## Performance Metrics
 
@@ -222,15 +212,23 @@ None yet.
 
 ### Blockers/Concerns
 
-- Two distinct spin(9) embeddings in M_16(R) -- physical significance unclear, noted in Krasnov discrepancy
-- Krasnov stabilizer dim discrepancy (10 vs 12) needs interpretation: which spin(9) is physically relevant?
-- RESOLVED (38-02): K_3 bipartiteness -- K_3 is on-site, physical lattice Z^d is bipartite
-- RESOLVED (38-02): Frame stabilizer = Spin(9) (dim 36), confirmed by 3 independent methods
-- RESOLVED (39-02): Ferromagnetic Goldstone modes are Type-A (not Type-II). Real Clifford rep forces rho_ab=0.
-- Quantum SSB remains CONDITIONAL (S_eff=1/2, BCS fails, Speer blocks quantum RP). Shared root for UC1/UC4 conditionality.
+**v14.0 active:**
+
+- **Phase 54 gate:** GPD v2.0 Phase 4-06 circularity audit has NOT been run. Phase 54's mandatory first task; (A)-via-internal-prior-art is UNAVAILABLE if audit fails (ADDENDUM recommends pivot to (C-i) S0). Gate for 55, 56, 57.
+- **Phase 58 prerequisite:** `lake build` under pinned `leanprover/lean4:v4.28.0` + mathlib v4.28.0 must produce 0 sorry before `#print axioms` is trustworthy. If build fails, Phase 58 cannot proceed and milestone blocks.
+- **Phase 58 axiom count delta:** Milestone claims 16 Paper-5 axioms; grep of `^axiom ` in `~/repos/research/lean/RadicalRelativity/` finds 19 (4 in `NonComposability.lean`, 1 in `ObserverInterface.lean`, 13 in `SelfModelingBridge.lean`, 1 in `CStarBridge.lean`). `#print axioms` on headline theorems must reconcile.
+- **Phase 59 prerequisite:** `latexdiff` + `git-latexdiff` not currently installed on this machine; `brew install latexdiff` is a hard prerequisite for the final referee diff.
+- **(C-iii) UNAVAILABLE:** Do not attempt to derive Jordan structure before S4; vdW Thm 1 circularity. Any outcome (C) on Phase 54-59 triggers milestone pause for human decision.
+- **Paper 5 `\cite{AlfsenShultz2003}` citation audit:** ADDENDUM flags that Paper 5 cites A-S Thm 9.37 pre-Jordan, which is illegal (Ch. 9 is the Jordan state-space characterization chapter). Phase 54 `alfsen-shultz-notes.md` must track this; Phase 55 resolves the revision.
+
+**v13.0-era carried forward (non-blocking for v14.0 but preserved):**
+
+- Two distinct spin(9) embeddings in M_16(R) — physical significance unclear, Krasnov discrepancy.
+- Krasnov stabilizer dim discrepancy (10 vs 12) needs interpretation.
+- Quantum SSB remains CONDITIONAL (S_eff=1/2, BCS fails, Speer blocks quantum RP).
 
 ## Session Continuity
 
-**Last session:** 2026-04-13
-**Stopped at:** Phase 53 complete (2/2 plans, verified 6/6). Milestone v13.0 complete -- all phases (52-53) executed and verified.
+**Last session:** 2026-04-16
+**Stopped at:** v14.0 ROADMAP.md created (6 phases 54-59, 32/32 REQs mapped, contract items surfaced per phase). Phase 54 ready for `/gpd:plan-phase 54`. Prior session (2026-04-13): Phase 53 complete, v13.0 milestone complete.
 **Resume file:** --
