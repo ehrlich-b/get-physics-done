@@ -14,13 +14,13 @@ See: .gpd/PROJECT.md (updated 2026-04-16)
 **Current Phase:** 54
 **Current Phase Name:** §3.3 Peirce Preservation from OUS Primitives
 **Total Phases:** 59 (v14.0: Phases 54-59, 6 jigsaw-piece gaps)
-**Current Plan:** 0
-**Total Plans in Phase:** 0 (plan-phase pending)
-**Status:** Roadmap defined; ready to plan Phase 54
+**Current Plan:** 1
+**Total Plans in Phase:** 3
+**Status:** Phase 54 Wave 1 complete (plan 54-01 AUDIT-FAILS verdict); decision checkpoint before Wave 2
 **Last Activity:** 2026-04-16
-**Last Activity Description:** v14.0 roadmap created (ROADMAP.md + REQUIREMENTS.md traceability); Phase 54-59 objectives mapped; 32/32 REQs covered.
+**Last Activity Description:** Plan 54-01 complete — Phase 4-06 circularity audit AUDIT-FAILS on M_n(C) matrix-PSD proof device (line 119-163); Peirce-Preservation Lemma locked in conditional (A)/(C-i) form; A-S citation baseline established with Thm 9.37 PRE-JORDAN-ILLEGAL, Prop 7.36 PROP-NUMBER-UNVERIFIED. Routing recommendation for 54-02: option-b-fails-compression.
 
-**Progress:** [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (0/6 v14.0 phases complete)
+**Progress:** [██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 5% (Plan 54-01 of 18 v14.0 plans complete)
 
 ## Active Calculations
 
@@ -115,6 +115,7 @@ None yet.
 | 52-02 | ~6min | 2 tasks | 2 files |
 | 53-01 | ~7min | 2 tasks | 2 files |
 | 53-02 | ~5min | 2 tasks | 1 file |
+| Phase 54 P54-01 | 10 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,7 @@ None yet.
 - [Phase 0]: Started milestone v12.0: GR from det(X) on h_3(O) — New milestone cycle -- algebraic GR route via GST magic supergravity prepotential on Peirce complement
 - [Phase 0]: Started milestone v13.0: Paper 6 Closure -- G4 + N=2 from Algebraic Structure — New milestone cycle -- derive V_0=spacetime and N=2 SUSY from h_3(O) algebraic structure
 - [Phase 0]: Started milestone v14.0: Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps — Paper 5 submitted to JMP (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703) 16+ days ago; jigsaw-piece review found 6 internal exposition gaps; close before referee report arrives. Phase 54 (§3.3 Peirce preservation) fully scoped; Phases 55-59 are stubs. Outcome (C) on any phase pauses milestone for human decision.
+- [Phase 54]: Plan 54-01: AUDIT-FAILS on v2.0 Phase 4-06 (M_n(C) matrix-PSD proof device at line 119-163); Peirce-Preservation Lemma locked in conditional form; routing for 54-02 = option-b-fails-compression (single non-4-06 (A) attempt via compression combinatorics, then pivot to C-i) — Circularity localized to M_n(C) matrix argument, NOT compression algebra — compression-combinatorics route remains un-foreclosed
 
 ### Active Approximations
 
