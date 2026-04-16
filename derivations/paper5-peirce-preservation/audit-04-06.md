@@ -335,9 +335,17 @@ This audit recommends **option-b-fails-compression**. The user's selection will 
 ### User Decision Record (populated by Task 2)
 
 ```
-Selected option: <to be filled by Task 2 checkpoint>
-Selected at:    <timestamp>
-Plan 54-02 attempt strategy: <populated upon resume>
+Selected option: option-b-fails-compression
+Selected at:    2026-04-16
+Plan 54-02 attempt strategy:
+  - attempt-01: single compression-combinatorics (A) proof attempt from S1 + S3 + linearity + A-S compression axioms only, NOT seeded from Eq. 04-06.4.
+    - Target: prove Prop 3.1, 3.2, 3.3 of claim.md (V_2 invariance, V_1(p_i,p_j) invariance, V_1(p_k,p_l) cross-term with {k,l}∩supp(a)=∅).
+    - If it closes → outcome (A).
+    - If it fails (expected failure mode: V_1 cross-term / anti-R3 non-sequitur, per CONTEXT.md stop/rethink #2) → pivot to (C-i).
+  - attempt-02 (only if attempt-01 fails): draft S0 axiom (compression-closure under generic spectral operator action) in 54-03 wave, then restate claim under {S0, S1, S3, linearity, compressions}.
+  - attempt-03 (only if attempt-02 is blocked): outcome (C-ii) — S4-routing-around-Peirce restructure of §3.3.
+
+A-S book-access blocker: deferred to Plan 54-03 for resolution; VERIFICATION-DEFERRED rows in alfsen-shultz-notes.md remain open for now.
 ```
 
 ---
