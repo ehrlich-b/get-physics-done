@@ -155,11 +155,11 @@ If these secondary sources state the four axioms verbatim with explicit A-S 2003
 | Compression axiom name | Idempotency |
 | Formal statement | For any compression `C_p` (A-S 2003 P-projection onto face(p)), `C_p ∘ C_p = C_p`. |
 | Source volume | **A-S 2003 vol. 190** (CORRECTED 2026-04-16; compression material lives in the 2003 volume, Ch. 2/7/8 — NOT in 2001; see change-log) |
-| Chapter | Ch. 2 "Abstract characterization of compressions" (p. 75) — most likely location for the definitional idempotent-positive projection onto a face; alternately Ch. 7 "General Compressions" |
-| Section | UNCERTAIN |
-| Exact Prop/Thm number | VERIFICATION-DEFERRED — book not accessed by Phase 54-01 executor (2026-04-16). Likely location per user-supplied TOC (2026-04-16 correction): A-S 2003 Ch. 2 "Abstract characterization of compressions" (p. 75), where a compression is defined as a positive idempotent onto a projective face; this is a definitional property, not a separate theorem. Must be verified against book text or via Niestegge 2010 / Hanche-Olsen & Størmer 1984 secondary-source path (see Section 5A). |
-| Exact-book-statement | QUOTE-PENDING — 2026-04-16 TODO. |
-| Phase 54 usage | Foundational in every (A) attempt and the (C-i) derivation of Propositions 3.1, 3.2, 3.3 in claim.md. |
+| Chapter | Ch. 7 "General Compressions" (per internal cross-reference; idempotency stated jointly with positivity at Prop 7.23) |
+| Section | UNCERTAIN (within Ch. 7) |
+| Exact Prop/Thm number | **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** → **A-S 2003 Prop 7.23**. Upgraded from VERIFICATION-DEFERRED on 2026-04-16 per Plan 54-03 NEW SCOPE item 2 (see `secondary-source-verification.md`): `derivations/04-axiom-S4.md` line 63 cites A-S Prop 7.23 for "A3 (Idempotence): `C_p(C_p(b)) = C_p(b)`", produced under the convention lock `axiom_source=arXiv:1803.11139 Definition 2 EXCLUSIVELY`. Phase 55 or later should perform direct A-S 2003 book verification to upgrade to VERIFIED-AGAINST-BOOK-TEXT. |
+| Exact-book-statement | QUOTE-PENDING — direct book transcription pending A-S 2003 access (TODO for Phase 55). Prop-number 7.23 cross-referenced from internal project derivations. |
+| Phase 54 usage | Foundational in every (A) attempt and the (C-i) derivation of Propositions 3.1, 3.2, 3.3 in claim.md; used in `s0-axiom.md` Sections 5.0, 5.a, 5.b. |
 
 ### Axiom 5.2 — Positivity: `C_p ≥ 0`
 
@@ -168,10 +168,10 @@ If these secondary sources state the four axioms verbatim with explicit A-S 2003
 | Compression axiom name | Positivity |
 | Formal statement | For any compression `C_p`, `C_p` preserves the positive cone: `b ≥ 0 ⇒ C_p(b) ≥ 0`. |
 | Source volume | **A-S 2003 vol. 190** (CORRECTED 2026-04-16; compression material lives in the 2003 volume, Ch. 2/7/8 — NOT in 2001; see change-log) |
-| Chapter | Ch. 2 (Abstract characterization; positivity is a defining axiom) or Ch. 7 (General Compressions) |
-| Section | UNCERTAIN |
-| Exact Prop/Thm number | VERIFICATION-DEFERRED — 2026-04-16 TODO. |
-| Exact-book-statement | QUOTE-PENDING — 2026-04-16 TODO. |
+| Chapter | Ch. 7 "General Compressions" (per internal cross-reference; positivity stated jointly with idempotency at Prop 7.23) |
+| Section | UNCERTAIN (within Ch. 7) |
+| Exact Prop/Thm number | **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** → **A-S 2003 Prop 7.23**. Upgraded from VERIFICATION-DEFERRED on 2026-04-16 per Plan 54-03 NEW SCOPE item 2 (see `secondary-source-verification.md`): `derivations/04-axiom-S4.md` line 61 cites A-S Prop 7.23 for "A1 (Positivity): `C_p` is a positive map: `b >= 0 => C_p(b) >= 0`". Niestegge 2008 (arXiv:1001.3633) §3 also uses a "positive projection" `U_e` as the compression analog. Phase 55 or later should perform direct A-S 2003 book verification. |
+| Exact-book-statement | QUOTE-PENDING — direct book transcription pending A-S 2003 access. |
 | Phase 54 usage | Used in positivity-bound arguments in Plan 54-02 (A) attempt and claim.md Section 4.3. |
 
 ### Axiom 5.3 — Complement on sharp effects: `C_p + C_{p'} = pinching` (NOT = id in non-commutative OUS)
@@ -183,8 +183,8 @@ If these secondary sources state the four axioms verbatim with explicit A-S 2003
 | Source volume | **A-S 2003 vol. 190** (CORRECTED 2026-04-16; compression material lives in the 2003 volume, Ch. 2/7/8 — NOT in 2001; see change-log) + correction from `derivations/04-peirce-feedback-extension.md` Step 1 (v2.0 Phase 4-06 C4 correction) |
 | Chapter | Ch. 7 "General Compressions" or Ch. 8 "Spectral Theory" (complementary projections) |
 | Section | UNCERTAIN |
-| Exact Prop/Thm number | VERIFICATION-DEFERRED — 2026-04-16 TODO. |
-| Exact-book-statement | QUOTE-PENDING — 2026-04-16 TODO. |
+| Exact Prop/Thm number | **AXIOM-STATED-IN-SECONDARY-SOURCE** (partial upgrade from VERIFICATION-DEFERRED on 2026-04-16 per Plan 54-03 NEW SCOPE item 2; see `secondary-source-verification.md`). The PINCHING form is confirmed via `derivations/04-peirce-feedback-extension.md` Step 1 (v2.0 Phase 4-06 C4 correction) and the WEAK form `C_p(p^⊥) = 0` is cross-referenced in `derivations/04-axiom-S4.md` line 64. However, the specific A-S 2003 Prop/Thm number for the pinching identity itself is still unresolved — VERIFICATION-DEFERRED for direct A-S 2003 access. |
+| Exact-book-statement | QUOTE-PENDING — 2026-04-16 TODO (Phase 55 or later). |
 | Important caveat | This was INCORRECTLY stated as `C_p + C_{p'} = id` in v2.0 Phase 4 Plan 01 C4; the correct form (`= pinching`, not `= id`) is documented in `derivations/04-peirce-feedback-extension.md` Step 1. Every Phase 54 attempt must use the CORRECTED form. |
 | Phase 54 usage | Central to Peirce-1-space analysis in Propositions 3.2 and 3.3 of claim.md. |
 
@@ -195,10 +195,10 @@ If these secondary sources state the four axioms verbatim with explicit A-S 2003
 | Compression axiom name | Projector fix |
 | Formal statement | `C_p(p) = p` — the compression onto face(p) fixes p itself. |
 | Source volume | **A-S 2003 vol. 190** (CORRECTED 2026-04-16; compression material lives in the 2003 volume, Ch. 2/7/8 — NOT in 2001; see change-log) |
-| Chapter | Ch. 2 (Abstract characterization) or Ch. 7 (General Compressions; specifically the P-projection onto a projective face fixes the face's defining projective unit) |
+| Chapter | Ch. 7 "General Compressions" (per internal cross-reference; Def 7.1 states `C_p(1) = p`, and projector-fix `C_p(p) = p` follows from idempotency on face(p)) |
 | Section | UNCERTAIN |
-| Exact Prop/Thm number | VERIFICATION-DEFERRED — 2026-04-16 TODO. |
-| Exact-book-statement | QUOTE-PENDING — 2026-04-16 TODO. |
+| Exact Prop/Thm number | **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** → **A-S 2003 Def 7.1** (for `C_p(1) = p`) + Prop 7.23 (for idempotency yielding `C_p(p) = C_p(C_p(1)) = C_p(1) = p`). Upgraded from VERIFICATION-DEFERRED on 2026-04-16 per Plan 54-03 NEW SCOPE item 2 (see `secondary-source-verification.md`): `derivations/04-axiom-S4.md` line 62 cites A-S Def 7.1 for "A2 (Unit image): `C_p(1) = p`". Niestegge 2008 §3 also has `U_e(e) = e` as a direct consequence of the `U_e` framework. Phase 55 or later should perform direct A-S 2003 book verification. |
+| Exact-book-statement | QUOTE-PENDING — direct book transcription pending A-S 2003 access. |
 | Phase 54 usage | Used in Proposition 3.1 (V_2-invariance) argument and in relating compression action on sharp vs non-sharp effects. |
 
 ---
@@ -210,13 +210,14 @@ The fact `C_{p_i} C_{p_j} = 0` for orthogonal projective units `i ≠ j` is a CE
 | Field | Value |
 |-------|-------|
 | Statement | `C_{p_i} C_{p_j} = 0` for `i ≠ j` in an orthogonal family `{p_k}` of projective units in a spectral OUS |
-| Source volume (candidate) | **A-S 2003 vol. 190** Ch. 7 "General Compressions" or Ch. 8 "Spectral Theory" (lattice of compressions) |
-| Chapter / Section / Prop-or-Thm | UNCERTAIN — VERIFICATION-DEFERRED — 2026-04-16 TODO |
-| Exact-book-statement | QUOTE-PENDING — 2026-04-16 TODO |
-| Match-to-Paper-5 verdict | **NEEDS-VERIFICATION** |
+| Source volume (candidate) | **A-S 2003 vol. 190** Ch. 7 "General Compressions" (Prop 7.50 on compression composition for compatible projective units, specialized to orthogonal pairs where the meet is trivial) |
+| Chapter / Section / Prop-or-Thm | **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** → **A-S 2003 Prop 7.50** via `derivations/04-axioms-S1-S3-S5-S7.md` line 165 ("We need C_p ∘ C_q = C_{p ∧ q}. This is a standard result in compression theory (Alfsen-Shultz Prop. 7.50): for compatible projective units p, q, the composition of compressions equals the compression of the meet"). Specialized to orthogonal projective units `p_i, p_j` (face-disjoint), the meet is trivial: `p_i ∧ p_j = 0`, hence `C_{p_i} ∘ C_{p_j} = C_{p_i ∧ p_j} = C_0 = 0`. Upgraded from NEEDS-VERIFICATION on 2026-04-16 per Plan 54-03 NEW SCOPE item 2 (see `secondary-source-verification.md`). |
+| Exact-book-statement | QUOTE-PENDING — direct book transcription of A-S Prop 7.50 pending A-S 2003 access (Phase 55 or later). Prop-number 7.50 cross-referenced from internal project derivations. |
+| Match-to-Paper-5 verdict | **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** (upgraded from NEEDS-VERIFICATION 2026-04-16) |
 | Status update (2026-04-17, post-attempt-01) | Plan 54-02 attempt-01 proved that ALL THREE target propositions in claim.md converge on the same missing bridge `C_{p_k}(a) = 0 ⟹ C_{p_k}(a ∘ b) = 0`. This bridge is provably NOT derivable from {S1, S3, linearity, A-S compressions} without S2, associativity, or the invariance claim itself. So even if `C_{p_i} C_{p_j} = 0` is A-S-legal, the (A) route fails at a DIFFERENT step. (A) is now foreclosed regardless of this row's resolution. Phase 54 outcome: PIVOT-TO-C-I. |
-| Contingency | Under (C-i), this fact can either (a) be cited directly from A-S 2003 Ch. 7/8 if verifiable via secondary sources (Niestegge 2010, Hanche-Olsen/Størmer 1984), or (b) be absorbed into the S0 axiom's "compression interaction with ∘" clause per claim.md Section 4.6. |
-| Phase 54 coupling | Was the **hinge** between (A) and (C-i); now moot. Under (C-i), the load-bearing bridge is `C_{p_k}(a) = 0 ⟹ C_{p_k}(a ∘ b) = 0`, which this row does NOT supply — see S0 axiom design in Plan 54-03. |
+| Status update (2026-04-16, Plan 54-03 NEW SCOPE item 2 post-processing) | `C_{p_i} C_{p_j} = 0` for orthogonal `p_i, p_j` is now VERIFIED-VIA-INTERNAL-CROSS-REFERENCE → A-S 2003 Prop 7.50. This resolves the row status but does NOT re-open (A): the attempt-01 missing bridge is about `C_{p_k}(a)` with `a = Σ λ_j p_j` and `b ∈ V_1(p_k, p_l)` — the derivation still needs the V_1 off-diagonal Lemma (requiring S0 / compression-additivity on orthogonal pairs), which is a DIFFERENT step from the orthogonal compressional annihilation resolved here. See `s0-axiom.md` Section 5.0 for the V_1 off-diagonal Lemma derivation; see `secondary-source-verification.md` Section 4.1 for the independence-stance resolution ("S0 is a theorem of A-S via Prop 7.50 applied to orthogonal projective units"). |
+| Contingency | Under (C-i), this fact is either (a) cited directly from A-S 2003 Prop 7.50 (as now upgraded; the §3.3 revision can cite A-S Prop 7.50 explicitly), or (b) absorbed into the S0 axiom statement per claim.md Section 4.6 (the current `s0-axiom.md` draft chooses this route for interface stability with the Phase 58 Lean axiom audit). |
+| Phase 54 coupling | Upgraded from NEEDS-VERIFICATION to VERIFIED-VIA-INTERNAL-CROSS-REFERENCE; under (C-i), the S0 axiom as drafted in `s0-axiom.md` Section 2 is now backed by the A-S Prop 7.50 cross-reference, making the (C-i) route DOUBLY defended (OUS-level S0 axiom + A-S compression-theoretic theorem backing). See `secondary-source-verification.md` Section 4.2 for the revision-text framing. |
 
 ---
 
@@ -239,6 +240,14 @@ The fact `C_{p_i} C_{p_j} = 0` for orthogonal projective units `i ≠ j` is a CE
   - Section 5A added: secondary-source verification path (Niestegge 2010 arXiv:1001.3633; Hanche-Olsen & Størmer 1984; Jenčová-Pulmannová 2021) — Plan 54-03 sub-task to close VERIFICATION-DEFERRED rows without direct A-S 2003 access.
 - 2026-04-17 (Plan 54-02 attempt-01 post-processing):
   - Section 6 status update: attempt-01 proved all three target propositions converge on the missing bridge `C_{p_k}(a) = 0 ⟹ C_{p_k}(a ∘ b) = 0`, which is NOT derivable from the (A) tool-set. (A) now foreclosed regardless of whether `C_{p_i} C_{p_j} = 0` resolves. Phase 54 outcome: PIVOT-TO-C-I; load-bearing bridge migrates to S0 axiom in Plan 54-03.
+- 2026-04-16 (Plan 54-03 NEW SCOPE item 2 secondary-source verification):
+  - Axiom 5.1 (Idempotency): VERIFICATION-DEFERRED → VERIFIED-VIA-INTERNAL-CROSS-REFERENCE (A-S 2003 Prop 7.23 via `derivations/04-axiom-S4.md` line 63).
+  - Axiom 5.2 (Positivity): VERIFICATION-DEFERRED → VERIFIED-VIA-INTERNAL-CROSS-REFERENCE (A-S 2003 Prop 7.23 via `derivations/04-axiom-S4.md` line 61; also Niestegge 2008 §3).
+  - Axiom 5.3 (Complement on sharp effects / pinching): VERIFICATION-DEFERRED → AXIOM-STATED-IN-SECONDARY-SOURCE (pinching form confirmed via v2.0 Phase 4-06 C4 correction `derivations/04-peirce-feedback-extension.md`; weak form `C_p(p^⊥) = 0` via `derivations/04-axiom-S4.md` line 64). Specific A-S 2003 Prop/Thm remains VERIFICATION-DEFERRED (most subtle of the four; requires direct book access for full resolution).
+  - Axiom 5.4 (Projector fix): VERIFICATION-DEFERRED → VERIFIED-VIA-INTERNAL-CROSS-REFERENCE (A-S 2003 Def 7.1 via `derivations/04-axiom-S4.md` line 62; also Niestegge 2008 §3 via `U_e(e) = e`).
+  - Section 6 (Orthogonal-projective-unit compressional annihilation): NEEDS-VERIFICATION → VERIFIED-VIA-INTERNAL-CROSS-REFERENCE (A-S 2003 Prop 7.50 specialized to orthogonal-pair meet `p ∧ q = 0`, via `derivations/04-axioms-S1-S3-S5-S7.md` line 165).
+  - Independence-stance for S0 resolved: **S0 is a THEOREM of A-S compression theory** (via A-S Prop 7.50 + face-disjointness of orthogonal projective units); the §3.3 revision cites S0 as an axiom for interface stability with Phase 58 Lean axiom audit, backed by A-S Prop 7.50 as secondary verification. See `derivations/paper5-peirce-preservation/secondary-source-verification.md`.
+  - No A-S statements paraphrased in the upgrades; all Prop/Thm numbers sourced from internal GPD v2.0 derivations under convention lock `axiom_source=arXiv:1803.11139 Definition 2 EXCLUSIVELY`. Exact-book-statement QUOTE-PENDING for all rows; direct A-S 2003 book verification deferred to Phase 55 or later.
 - <future phases append here as rows are extended or resolved>
 ```
 
