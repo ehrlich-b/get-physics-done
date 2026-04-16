@@ -116,7 +116,7 @@ Every proof under either (A) or (C-i) is built ONLY from the following. (The `p_
 
 ### 4.3 A-S compression axioms
 
-The four A-S compression axioms used in Phase 54 (exact Prop/Thm numbers in `alfsen-shultz-notes.md`; A-S 2001 vol. 179 Ch. 7-8):
+The four A-S compression axioms used in Phase 54 (exact Prop/Thm numbers in `alfsen-shultz-notes.md`; **A-S 2003 vol. 190 Ch. 2 "Abstract characterization of compressions" / Ch. 7 "General Compressions" / Ch. 8 "Spectral Theory"** — corrected 2026-04-16 from earlier misattribution to "A-S 2001 Ch. 7-8"; see `alfsen-shultz-notes.md` change-log):
 
 - **Idempotency:** `C_p² = C_p`.
 - **Positivity:** `C_p ≥ 0` (preserves the positive cone of `V`).
@@ -129,7 +129,7 @@ Plus the structural fact for orthogonal families:
 
 ### 4.4 Finite-dim spectrality
 
-- Existence of an orthogonal projective-unit family `{p_i}` and scalars `λ_i ∈ ℝ` such that `a = Σ_i λ_i p_i` (spectral decomposition). Source: vdW 2019 Definition 9 (spectrality) and A-S 2001 Ch. 8 (spectral duality).
+- Existence of an orthogonal projective-unit family `{p_i}` and scalars `λ_i ∈ ℝ` such that `a = Σ_i λ_i p_i` (spectral decomposition). Source: vdW 2019 Definition 9 (spectrality) and **A-S 2003 vol. 190 Ch. 8 "Spectral Theory"** (spectral duality; corrected 2026-04-16 from earlier misattribution to "A-S 2001 Ch. 8").
 
 ### 4.5 Peirce 1-space definition (derived, not primitive)
 
@@ -170,7 +170,7 @@ The following are FORBIDDEN as proof devices or premises. They may appear in thi
 
 - **Peirce decomposition theorem cited as justification for INVARIANCE of `L_a`** — FORBIDDEN. This is R2 (decomposition vs. invariance non-sequitur). Decomposition (`V = V_2 ⊕ V_1 ⊕ V_0`) is a cited A-S fact; invariance (`L_a(V_k) ⊆ V_k`) is the claim to prove. Paper 5 submitted §3.3 lines 510-514 fell into this non-sequitur.
 
-- **A-S 2003 Theorem 9.37** — FORBIDDEN. A-S 2003 vol. 190 Ch. 9 is the Jordan-state-space characterization chapter per ADDENDUM (`.gpd/research/ADDENDUM-independent-literature-check.md`). Any invocation of Thm 9.37 at the pre-Jordan level is circular. Replace with A-S 2001 vol. 179 Ch. 7-8 compression citation OR with (C-i) S0 axiom.
+- **A-S 2003 Theorem 9.37** — FORBIDDEN. A-S 2003 vol. 190 Ch. 9 is the Jordan-state-space characterization chapter per ADDENDUM (`.gpd/research/ADDENDUM-independent-literature-check.md`). Any invocation of Thm 9.37 at the pre-Jordan level is circular. Replace with **A-S 2003 vol. 190 Ch. 2 / Ch. 7 / Ch. 8** compression citation (pre-Jordan-legal within the same volume) OR with (C-i) S0 axiom. (Previously this file said "A-S 2001 vol. 179 Ch. 7-8" — that was a misattribution; the compression material is in the 2003 volume. Corrected 2026-04-16.)
 
 - **SP closed-form `f(λ, μ) = √(λμ)` as primitive** — FORBIDDEN. In Paper 5, this is a CONCLUSION of §4 (via positivity bound + self-modeling faithfulness); in §3.3 it is not yet available. Using it as a premise in §3.3 inverts dependency.
 
@@ -220,7 +220,8 @@ Plan 54-02's single (A) attempt and Plan 54-03's (C-i) draft BOTH prove/derive P
 - **Paper 5 submitted (frozen):** `~/repos/blog/landing/papers/qm-from-self-modeling/main-jmp-submitted.tex` §3.3 lines 483-562 (key claim 508-528), frozen at git tag `paper5-jmp-submitted`.
 - **Paper 5 living (revision target):** `~/repos/blog/landing/papers/qm-from-self-modeling/main.tex` §3.3 (NOT the frozen submitted copy).
 - **vdW 2019:** van de Wetering (2019), "Sequential product spaces are Jordan algebras," JMP 60, 062201, arXiv:1803.11139. Def. 2 (S1, S3), Def. 7 (sharp effects), Def. 9 (spectrality), Thm 1 (S1-S7 finite-dim ⇒ EJA; forbidden as pre-S4 tool).
-- **A-S 2001 vol. 179:** Alfsen & Shultz (2001), *State Spaces of Operator Algebras: Basic Theory, Orientations, and C\*-products*, Birkhäuser Progress in Mathematics vol. 179, ISBN 978-0817638900. Ch. 7-8 compression theory. Exact Prop/Thm numbers for the compression axioms are verified in `alfsen-shultz-notes.md`.
+- **A-S 2003 vol. 190** (primary compression-theory source): Alfsen & Shultz (2003), *Geometry of State Spaces of Operator Algebras*, Birkhäuser Progress in Mathematics vol. 190, ISBN 978-1461265757, DOI 10.1007/978-1-4612-0019-2. **Ch. 2 §"Abstract characterization of compressions"** (p. 75), **Ch. 7 "General Compressions"** (p. 211), **Ch. 8 "Spectral Theory"** (p. 251) — pre-Jordan-legal within this volume; compression-axiom rows in `alfsen-shultz-notes.md`. (Earlier versions of this reference line said "A-S 2001 vol. 179 Ch. 7-8" — corrected 2026-04-16; the compression material is in the 2003 volume, not 2001.)
+- **A-S 2001 vol. 179** (for reference; NOT the compression-axiom source): Alfsen & Shultz (2001), *State Spaces of Operator Algebras: Basic Theory, Orientations, and C\*-products*, Birkhäuser Progress in Mathematics vol. 179, ISBN 978-0817638900. Cited by Paper 5 elsewhere (C*-flavored material); does not carry the compressions used in Phase 54.
 - **ADDENDUM:** `.gpd/research/ADDENDUM-independent-literature-check.md` (2026-04-16) — justifies (B)-unavailability; confirms Peirce is post-Jordan in accessible literature; supplies pre-Jordan-illegal verdict on A-S 2003 Thm 9.37.
 - **CONTEXT.md:** `.gpd/phases/54-3-3-peirce-preservation-from-ous-primitives/54-CONTEXT.md` — locked user decisions: outcome classification (A / C-i / C-ii), forbidden-token list, allowed-axiom scope, stop/rethink triggers, exit gate.
 - **RESEARCH.md:** `.gpd/phases/54-3-3-peirce-preservation-from-ous-primitives/54-RESEARCH.md` — audit protocol design, (A) attempt routes, S0 axiom design, A-S citation audit protocol, per-attempt SymPy gate design, adversarial review priming specification.
