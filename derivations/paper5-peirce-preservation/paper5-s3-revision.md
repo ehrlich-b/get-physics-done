@@ -121,8 +121,8 @@ compression-additivity $\comp{p_i + p_j} = \comp{p_i} + \comp{p_j}$ on
 the shared range (an A-S compression-theoretic fact for orthogonal
 pairs), the idempotency of $\comp{p_i}$ together with S0 gives
 $\comp{p_i}(b) = \comp{p_i}\, P_{ij}(c) = \comp{p_i}(c) - \comp{p_i}(c) -
-0 = 0$.  Symmetrically $\comp{p_j}(b) = 0$. (No Jordan-level argument;
-only A-S compression axioms and S0 are used.)
+0 = 0$.  Symmetrically $\comp{p_j}(b) = 0$. (Only A-S compression axioms
+and S0 are used in this sub-step; no post-S4 structure is invoked.)
 
 \emph{Part (ii).} For $b \in V_1(p_i, p_j)$ with $i, j \in
 \mathrm{supp}(a)$, the preliminary lemma gives $\comp{p_i}(b) =
