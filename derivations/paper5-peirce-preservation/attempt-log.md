@@ -52,11 +52,7 @@
 
 ---
 
-## Outcome Tag (DRAFT — awaiting Task 2 user confirmation)
-
-**Draft outcome:** `PIVOT-TO-C-I`
-
-**Once confirmed at Task 2 checkpoint, the final line of this file will read:**
+## Outcome Tag (SEALED 2026-04-16; user-confirmed `pivot-to-C-i-now` at Task 2 checkpoint)
 
 ```
 outcome: PIVOT-TO-C-I
@@ -78,7 +74,7 @@ carry-forward to Plan 54-03 (C-i):
   S0 final form — Plan 54-03 to determine).
 ```
 
-**Current status:** Task 2 checkpoint open; awaiting user resume-signal.
+**Status:** SEALED. Plan 54-03 (wave 3) branches to (C-i). Tasks 3-5 of Plan 54-02 (attempt-02, attempt-03) SKIPPED per the user's `pivot-to-C-i-now` resume signal — convergent structural gap across all three sub-proofs + both (A) approaches closed (4-06 audit-FAILS, compression-combinatorics tool-insufficient) make further (A) attempts low-value.
 
 ---
 
