@@ -1,0 +1,37 @@
+/Users/ehrlich/scratch/get-physics-done/derivations/paper5-peirce-preservation/w-closeout-sympy.py:552: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  print(f"Timestamp (ISO 8601): {datetime.utcnow().isoformat()}Z")
+========================================================================
+Phase 56-02 W-SPS SymPy closeout
+========================================================================
+Python: 3.14.2
+SymPy:  1.14.0
+Timestamp (ISO 8601): 2026-04-17T19:45:55.023346Z
+Wedge interpretation: (A) Peirce-1 off-diagonal 3-dim of H_3(R)
+Test space: V_test = H_3(R) ⊗ H_3(R), dim 36
+Test coverage: W_full (36-dim) + W_wedge (9-dim Peirce-1 off-diagonal)
+Factor helpers: compress, seq_prod (verbatim from Phase 54 closeout-sympy.py)
+Tensor helpers: tensor_product, product_sp_diag (new, Phase 56-02)
+------------------------------------------------------------------------
+[PASS] TEST-CLOSURE (sense (a), W_full)
+       [0.0011s] PASS: W_full cases (a=p_1, b=p_1, c=p_2, d=p_2) → 0; (a=p1+p2, b=p1+p2, c=p_1, d=p_2) → p_1 ⊗ p_2
+[PASS] TEST-S1 (additivity on W)
+       [0.0018s] PASS: factor-level S1 additivity + tensor-level bilinearity coherent
+[PASS] TEST-S3 (unitality on W)
+       [0.0008s] PASS: (1_3 ⊗ 1_3) ∘_W (a ⊗ b) == a ⊗ b for diagonal rational a, b
+[PASS] TEST-S4 (orthogonality symmetry)
+       [0.0012s] PASS: forward and reverse both zero for 2 orthogonal-product-effect pairs
+[PASS] TEST-NEGATIVE (sense (a) counterexample search)
+       [0.0007s] PASS: no counterexample; W_full trivially closed; W_wedge annihilation (0 in W_wedge) via Phase 54 Test (ii)
+------------------------------------------------------------------------
+TOTAL elapsed: 0.006 s  (budget: < 30 s)
+========================================================================
+ALL TESTS PASS
+========================================================================
+  TEST-CLOSURE:   [PASS] — sense (a) on W_full via product-form identity
+  TEST-S1:        [PASS] — factor-level S1 + tensor bilinearity coherent
+  TEST-S3:        [PASS] — (1_3 ⊗ 1_3) ∘_W (a⊗b) == a⊗b for diagonal a,b
+  TEST-S4:        [PASS] — forward and reverse zero for orthogonal product effects
+  TEST-NEGATIVE:  [PASS] — W_full trivially closed; W_wedge annihilation via Phase 54 Test (ii)
+
+Consistent with Plan 56-01 sympy-design.md §§2-5 + Phase 54/55 infrastructure.
+EXIT=0
