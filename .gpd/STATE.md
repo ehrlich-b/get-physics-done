@@ -14,11 +14,11 @@ See: .gpd/PROJECT.md (updated 2026-04-16)
 **Current Phase:** 55 (Phase 54 COMPLETE 2026-04-17)
 **Current Phase Name:** S4 Facial Structure Lemma
 **Total Phases:** 59 (v14.0: Phases 54-59, 6 jigsaw-piece gaps; 54 closed)
-**Current Plan:** 2
+**Current Plan:** 3
 **Total Plans in Phase:** 3
-**Status:** Plan 55-01 COMPLETE — classification blueprint frozen; Plan 55-02 revision text ready to proceed with Approach 1
+**Status:** Plan 55-02 COMPLETE — §S4 revision integrated; compile statically-verified (pdflatex env-gate deferred to user). Plan 55-03 close-out ready.
 **Last Activity:** 2026-04-17
-**Last Activity Description:** Phase 55-01 complete: 10 §S4-region A-S invocations classified (1 iii primary bug at line 125; 1 iii secondary bug at line 68 pre-S4; 3 ii unnamed facial appeals; 6 i pre-Jordan-legal tightenings). Prop 7.43 VERIFIED-VIA-INTERNAL-CROSS-REFERENCE via derivations/04-axiom-S4.md:65. Line 68 Thm 9.37 classified PRE-S4 SCOPE → MANDATORY Plan 55-02 fix. alfsen-shultz-notes.md extended append-only with 7 rows + Phase 55-01 change-log. Approach 1 (S0 + Prop 7.43) CONFIRMED.
+**Last Activity Description:** Phase 55-02 complete: §S4 revision integrated across 3 paper files (axiom-verification.tex +41/−22, appendix-proofs.tex +26/−10, main.tex +4/−1 in blog repo commits b44408e, f4fb2f8, e134c24). Thm 9.37 at line 125 replaced with S0 + Peirce-Preservation Lemma refs; line-68 secondary bug fixed with Ch.~8 spectral theory cite. Every A-S cite tightened to `\cite[Ch.~X, Prop.~Y.Z]` form. Prop 7.43 inlined at axiom-verification.tex:140 and appendix-proofs.tex:82. Role-swap annotations explicit. Frozen-file main-jmp-submitted.tex zero-diff verified. 12/14 acceptance tests PASS unconditionally; 2 conditional on user-side pdflatex run (env-gate).
 
 **Progress:** [██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 17% (Plans 54-01/02/03 of ~18 v14.0 plans complete; Phase 54 SEALED outcome (C-i); Phase 55 next)
 
@@ -119,6 +119,7 @@ None yet.
 | Phase 54 P54-02 | 62 min | 1 tasks | 4 files |
 | Phase 54 P54-03 | 78 min | 9 tasks | 11 files |
 | Phase 55 P55-01 | ~12 min | 5 tasks | 4 files |
+| Phase 55 P55-02 | ~75 min | 5 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -176,6 +177,7 @@ None yet.
 - [Phase 54]: Plan 54-02 routing = option-b-fails-compression (single non-4-06 compression-combinatorics (A) attempt, then pivot to C-i on failure). A-S book-access blocker deferred to 54-03. — User confirmation after AUDIT-FAILS localized to M_n(C) matrix-PSD (not compression algebra)
 - [Phase 54]: Plan 54-02 sealed with outcome PIVOT-TO-C-I after attempt-01 failed at structural insufficiency of (A) tool-set (missing bridge C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0, not derivable from {S1,S3,linearity,compressions}). Attempt-02 skipped as redundant — S0 draft belongs in 54-03. (C-ii) feasibility check added as bounded sub-task in 54-03. — User approved C-i pivot. Executor recommendation plus the 54-RESEARCH.md 'policy-grounded, not truth-grounded' dismissal of (C-ii) motivates a bounded feasibility check rather than a full attempt.
 - [Phase 55, Plan 01]: §S4-region A-S citation audit complete. 10 invocations classified. Primary bug at axiom-verification.tex:125 (Thm 9.37 → S0 + Peirce-Preservation Lemma). SECONDARY BUG DISCOVERED at axiom-verification.tex:68 (Thm 9.37 in S2 Continuity proof, PRE-S4 scope, MANDATORY Plan 55-02 fix). Prop 7.43 VERIFIED-VIA-INTERNAL-CROSS-REFERENCE → A-S 2003 Ch. 7 via derivations/04-axiom-S4.md:65. Approach 1 (S0 + Prop 7.43) CONFIRMED; Foulis-Holland fallback NOT triggered. alfsen-shultz-notes.md extended append-only with 7 new rows + Phase 55-01 change-log entry.
+- [Phase 55, Plan 02]: §S4 revision integrated across axiom-verification.tex / appendix-proofs.tex / main.tex (blog repo commits b44408e, f4fb2f8, e134c24). Thm 9.37 at line 125 replaced with `\ref{ax:S0}` + `\ref{lem:peirce-preservation}`; line-68 secondary bug fixed via Ch.~8 spectral theory cite; unnamed facial-orthogonality theorem resolved via S0-termwise derivation at axiom-verification.tex:147-151 + appendix-proofs.tex:122-125 with role-swap annotations (a←b for forward, a←a for reverse); every A-S cite tightened to bracketed `\cite[Ch.~X, Prop.~Y.Z]` form. Prop 7.43 inlined at both sites (axiom-verification.tex:140, appendix-proofs.tex:82). Frozen-file main-jmp-submitted.tex zero-diff verified. Test-compile-clean CONDITIONAL on user-side pdflatex run (env-gate).
 
 ### Active Approximations
 
