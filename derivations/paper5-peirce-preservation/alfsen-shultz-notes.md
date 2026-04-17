@@ -396,6 +396,31 @@ The fact `C_{p_i} C_{p_j} = 0` for orthogonal projective units `i ≠ j` is a CE
 
   **Classification document:** `.gpd/phases/55-s4-facial-structure-lemma/55-01-CLASSIFICATION.md`.
 
+- **2026-04-17 (Phase 55 CLOSE):** outcome tag = **(C-i)**; reference = `.gpd/phases/55-s4-facial-structure-lemma/55-RESULT.md`. Adversarial review verdict = PASS-WITH-CAVEATS (5 non-blocking caveats, 1 nitpick; analogous to Phase 54 closeout pattern). SymPy spot-check PASS on H_3(ℝ) rank-2 Case A + H_4(ℝ) rank-deficient Case B + φ-independence; both directions of S4 symbolically verified in canonical example. Cross-check against `derivations/04-axiom-S4.md` (submitted-era derivation) PASS with zero silent drift. Backtracking rule NOT TRIGGERED (Prop 7.43 VERIFIED-VIA-INTERNAL-CROSS-REFERENCE).
+
+  **Per-row status (Phase 55-01 rows) at Phase 55 CLOSE:**
+
+  | Row | Phase 55-01 proposal | Phase 55-02 action | Phase 55-03 review status |
+  |-----|----------------------|--------------------|---------------------------|
+  | 55-01-A1 (axiom-verification.tex:39 bare Ch. 7) | TIGHTEN-CITE (LOW priority) | **APPLIED-IN-55-02** (Hunk AV-1: `\cite{AS2003}, Ch.~7` → `\cite[Ch.~7]{AS2003}`) | PASS |
+  | 55-01-A2 (axiom-verification.tex:68 Thm 9.37 in S2 proof) | REPLACE (MANDATORY, PRE-S4 scope) | **APPLIED-IN-55-02** (Hunk AV-2: replaced with `\cite[Ch.~8]{AS2003}` for continuous spectral functional calculus) | PASS |
+  | 55-01-A3 (axiom-verification.tex:125 Thm 9.37 PRIMARY BUG) | REPLACE-WITH-S0 + REPLACE-WITH-LEMMA | **APPLIED-IN-55-02** (Hunk AV-4: replaced with `axiom~\ref{ax:S0}` + `Lemma~\ref{lem:peirce-preservation}` + `\cite[Ch.~7]{AS2003}`) | PASS |
+  | 55-01-A4 (axiom-verification.tex:136-137 + appendix-proofs.tex:78-79, Prop 7.43) | TIGHTEN-CITE (VERIFIED-VIA-INTERNAL-CROSS-REFERENCE) | **APPLIED-IN-55-02** (Hunks AV-5 + AP-2: both tightened to `\cite[Ch.~7, Prop.~7.43]{AS2003}`; inlined blockquote preserved) | PASS |
+  | 55-01-A5 (axiom-verification.tex:143-147, 155-157 + appendix-proofs.tex:109-113, Peirce 1-space handwave) | REPLACE-WITH-LEMMA (Part iii) | **APPLIED-IN-55-02** (Hunks AV-5 + AV-6 + AP-4: replaced with `\Cref{lem:peirce-preservation}` Part (iii) invocations with explicit role-swap annotations) | PASS |
+  | 55-01-A6 (axiom-verification.tex:154 + appendix-proofs.tex:106-108, unnamed "facial orthogonality theorem") | RESOLVE-VIA-S0-TERMWISE | **APPLIED-IN-55-02** (Hunks AV-6 + AP-4: explicit S0-termwise derivation; `q_j ⊥ p_i ⟹ C_{q_j}(p_i) = 0` by S0, linearity gives `C_{q_j}(a) = 0`) | PASS |
+  | 55-01-B1 (appendix-proofs.tex:37-49, Peirce direct sum reference) | TIGHTEN-CITE optional | **APPLIED-IN-55-02** (Hunk AP-1: parenthetical `axiom~\ref{ax:S0}` + `Lemma~\ref{lem:peirce-preservation}` + `\cite[Ch.~7]{AS2003}` added) | PASS |
+  | 55-01-B2 (appendix-proofs.tex:85-89, "compressions act independently") | TIGHTEN-CITE | **APPLIED-IN-55-02** (Hunk AP-3: added `by axiom~\ref{ax:S0}; equivalently \cite[Ch.~7, Prop.~7.50]{AS2003}`) | PASS |
+
+  **Total: 8 Phase 55-01 rows; 8 APPLIED-IN-55-02; 0 SKIPPED-PER-SCOPE; 0 ESCALATED-TO-58.** Beyond the 8 classification rows, 5 additional A-S 2003 cites inside §S5/S6/S7 proofs were tightened to bracketed form as incidental improvements (Hunks AV-7, AV-8, AV-9; 55-01 rows 9-13 classified VERIFIED-AS-IS but elevated to uniform bracketed form) and main.tex §3.5 Circularity Check had a 2-line bullet addition (Hunk MT-1) making S0 and the Peirce-Preservation Lemma explicit in the inventory.
+
+  **Inheritance notes:**
+
+  - **Phase 57 (φ-inertness):** Shares R6 facial-structure discipline; use same S0 + Peirce-Preservation Lemma pattern. Hanche-Olsen remains forbidden at pre-Jordan scope. If φ-inertness analysis touches the Positivity-bound proof at `main.tex:~678` (pre-existing spin-factor invocation, adversarial review finding F1), coordinate the cleanup with the φ-audit (this is the most likely cross-phase-57 coupling point).
+  - **Phase 58 (Lean axiom audit):** The Lean axiom `orthogonal_face_sp_zero` (Flag 4.2, Prop 7.36 PROP-NUMBER-UNVERIFIED) may now need re-cite: Paper 5 §S4 no longer invokes Prop 7.36. Options: (a) keep the Lean axiom statement and update its justification to reference Paper 5 §S4's new citation chain (Prop 7.43 + S0 + Prop 7.50); (b) retire `orthogonal_face_sp_zero` and encode S0 + Prop 7.43 + Prop 7.50 directly as separate Lean axioms / theorems. Flag 4.2 follow-up remains with Phase 58; Phase 55 CLOSE changes the upstream citation landscape but does not close Flag 4.2.
+  - **Compression-additivity on orthogonal pairs** (used implicitly in the Preliminary Lemma of the Peirce-Preservation Lemma proof in Phase 54; flagged as caveat F2 in Phase 55-03 adversarial review). This is an inherited caveat from Phase 54 and remains AXIOM-STATED-IN-SECONDARY-SOURCE until direct A-S 2003 book access or an inlined derivation is added. JMP pre-submission task.
+
+  **Consumed by:** Phase 55 CLOSE is the last Phase 55 task; downstream phases (56 locality, 57 φ-inertness, 58 Lean audit, 59 referee) read this entry as the Phase 55 outcome marker.
+
 ---
 
 _Downstream consumers (Phases 55, 57, 58) may append rows but MUST NOT modify existing rows without a dated change-log entry. Resolving a VERIFICATION-DEFERRED / QUOTE-PENDING / NEEDS-VERIFICATION row is a modification and requires the change-log entry; do NOT silently overwrite. Paraphrasing A-S book text is strictly forbidden per fp-as-notes-paraphrase — if the book is not accessible, keep the QUOTE-PENDING marker and flag for later verification._
