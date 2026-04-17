@@ -479,20 +479,79 @@ proof level where the citations belong).
 
 ## Integration Commits
 
-**STATUS:** awaiting Task 2 execution.
+**STATUS:** Task 2 execution complete — hunks applied to LIVING working
+copy; frozen-file zero-diff re-verified; blog-repo commit recorded.
 
-After Task 2 applies Hunks CL-1 and AP-1 to the LIVING working copy and
-commits in the blog repo, the following fields will be populated:
+### Blog-repo integration commit
 
-- **Blog-repo commit SHA(s):** `{filled by Task 2}`
-- **Post-integration line ranges:**
-  - `composite-lt.tex` Hunk CL-1 new line range: `{filled}`
-  - `appendix-proofs.tex` Hunk AP-1 new line range: `{filled}`
-- **Frozen-file zero-diff re-verified after Task 2:** `{filled by Task 2}`
-- **pdflatex compile-clean status:** `{user-verified via checkpoint:human-verify}`
+- **Commit SHA:** `61fbff6` (blog repo: `/Users/ehrlich/repos/blog`)
+- **Commit message:** `phase56(close): §5 revision — three-senses disambiguation + sense-(c)-established language [hunks CL-1, AP-1]`
+- **Files modified (2):**
+  - `landing/papers/qm-from-self-modeling/sections/composite-lt.tex` — 32 insertions, ≈ 12 deletions (net +20 lines)
+  - `landing/papers/qm-from-self-modeling/sections/appendix-proofs.tex` — 28 insertions, ≈ 10 deletions (net +18 lines)
+- **Total diffstat:** `2 files changed, 44 insertions(+), 16 deletions(-)`
+- **Date:** 2026-04-17 (within Plan 56-03 Task 2 execution window)
 
-Task 2 will re-read the commit SHA and line ranges from `git show {SHA}`
-and write them back into this section.
+### Post-integration line ranges
+
+| Hunk | File | Pre-integration range | Post-integration range | Semantic anchor |
+|---|---|---|---|---|
+| CL-1 | `sections/composite-lt.tex` | L203-221 | **L203-239** (head-after-integration) | `\emph{Upper bound.}` (L203) through `we have $\dim(V_{BM}) \le d^2$.` (L239) |
+| AP-1 | `sections/appendix-proofs.tex` | L227-238 | **L227-248** (head-after-integration) | `\medskip` (L227) through `Therefore $\dim(V_{BM}) \leq ...$` (L247-248) |
+
+Anchor verification: `grep -n '^\\emph{Upper bound\.}' composite-lt.tex`
+returns L203 (single hit); `grep -n 'we have \\dim(V_{BM}) \\le d\^2'
+composite-lt.tex` returns L239. `grep -n '^\\textbf{Step 4: Upper bound
+via minimality\.}' appendix-proofs.tex` returns L228; `grep -n '^Therefore'
+appendix-proofs.tex` returns L247 inside hunk AP-1 (and L44, L198 outside
+scope). Both hunks are exactly one contiguous edit region per file.
+
+### Frozen-file zero-diff re-verification (post-integration, verification #3)
+
+```bash
+git -C /Users/ehrlich/repos/blog diff --stat HEAD -- landing/papers/qm-from-self-modeling/main-jmp-submitted.tex
+```
+
+**Output (post-commit 61fbff6):** empty (zero diff). Commit 61fbff6
+changed exactly 2 files, neither of which is `main-jmp-submitted.tex`.
+This is the THIRD frozen-file zero-diff verification during Plan 56-03
+(first at Task 1 start 2026-04-17T20:00:46Z; second in Task 1 pre-audit;
+third post-integration here).
+
+**Note on the tag-vs-HEAD comparison.** Per Plans 56-01 and 56-02
+precedent, the zero-diff check uses `HEAD` (not the tag
+`paper5-jmp-submitted` directly), because `main-jmp-submitted.tex` was
+added at commit `a0190df` which is chronologically AFTER the tag
+`paper5-jmp-submitted` was placed. At tag time the file did not yet
+exist; the tag therefore cannot give a meaningful zero-diff baseline
+for the file itself. The HEAD comparison is the operative baseline for
+Phase 56 and matches the protocol followed by Plans 56-01 and 56-02.
+
+### pdflatex compile-clean status
+
+**Status:** awaiting user verification via `checkpoint:human-verify`
+at Plan 56-03 Task 2 step 3.
+
+Plan 56-03 Task 2 invokes a `checkpoint:human-verify` gate at this
+point. The user is asked to confirm:
+
+1. `pdflatex -interaction=nonstopmode main.tex` builds cleanly in
+   `/Users/ehrlich/repos/blog/landing/papers/qm-from-self-modeling/`.
+2. No undefined references introduced by Hunks CL-1 and AP-1 (the
+   new references introduced are `\cite[Definition~4]{vandeWetering2019}`,
+   `\cite[Theorem~1]{vandeWetering2019}` (in implicit Theorem-1 framing),
+   `\cite[§2]{BarnumGraydonWilce2020}`, and `\cite[Definition~2]{vandeWetering2019}` — all of which require bibliography entries in
+   `refs.bib` under keys `vandeWetering2019` and `BarnumGraydonWilce2020`).
+3. No missing package errors from the new math notation
+   (`\hookrightarrow`, `\otimes_{\mathbb{R}}`, `\mathbb{R}` — all of
+   which are already in use elsewhere in the paper, so no new package
+   is required).
+4. No citation errors (all keys used already exist in `refs.bib` since
+   vdW 2019 and BGW 2020 are pre-existing references in Paper 5).
+
+**Post-verification action:** upon "confirmed" / "approved", Task 3
+executes (alfsen-shultz-notes.md Phase 56 CLOSE append). Upon "failed"
+or "concerns", Task 2 halts with a fix-up commit pending before Task 3.
 
 ---
 
