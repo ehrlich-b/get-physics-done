@@ -167,123 +167,145 @@ contract_results:
 
   deliverables:
     deliv-s0-axiom:
-      status: produced
+      status: passed
       path: derivations/paper5-peirce-preservation/s0-axiom.md
       notes: "All 7 required must_contain items present post-three-fixes: simplified S0 (mutual annihilation); three canonical-example defenses scope-demarcated; counterexample-model + parameter-counting independence defense with hedged stance; OUS-compatibility proof sketch covering (i)/(ii)/(iii) with R3 explicit in §5.c + traceable preliminary V_1 off-diagonal Lemma in §5.0; Niestegge 2008 citation; carry-forward attempt-01 verbatim objection with S0-resolution."
     deliv-closeout-sympy:
-      status: produced
+      status: passed
       path: derivations/paper5-peirce-preservation/closeout-sympy.py
       notes: "Separate artifact (not embedded in any attempt-NN.py); 3 required tests + 1 supplementary S0 test all PASS; runtime 0.013s < 5s budget; referenced in 54-RESULT.md §4."
     deliv-revision-text:
-      status: produced
+      status: passed
       path: derivations/paper5-peirce-preservation/paper5-s3-revision.md
       notes: "85 substantive lines; lemma verbatim from claim.md; (C-i) assumption-set clause; three canonical-example defense scope-demarcated; A-S citations specific to Prop 7.23/7.50 in A-S 2003 Ch. 7."
     deliv-main-tex-integration:
-      status: produced
+      status: passed
       path: "~/repos/blog/landing/papers/qm-from-self-modeling/main.tex"
       notes: "§3.3 region patched (136+/21- lines); only §3.3 region modified; main-jmp-submitted.tex unchanged; 2 blog repo commits (integration + token-discipline tightening)."
     deliv-result-md:
-      status: produced
+      status: passed
       path: .gpd/phases/54-3-3-peirce-preservation-from-ous-primitives/54-RESULT.md
       notes: "All 12 required sections populated; outcome tag regex-matches pattern; ADDENDUM cite in §7; 12-item close checklist all PASS."
     deliv-adversarial-review-log:
-      status: produced
+      status: passed
       path: .gpd/phases/54-3-3-peirce-preservation-from-ous-primitives/54-ADVERSARIAL-REVIEW.md
       notes: "Primary verdict PASS; methodology note flags in-session review as deviation from spawned-subagent spec; fresh-eyes second-pass recommended at Task 9."
 
   acceptance_tests:
     test-plan-54-02-tag-consumed:
-      outcome: pass
-      evidence: "attempt-log.md outcome line = 'outcome: PIVOT-TO-C-I' (sealed 2026-04-16); 54-RESULT.md §1 records 'Outcome: (C-i)' with routing consequence documented"
+      status: passed
+      summary: "attempt-log.md outcome line = 'outcome: PIVOT-TO-C-I' (sealed 2026-04-16); 54-RESULT.md §1 records 'Outcome: (C-i)' with routing consequence documented"
     test-result-md-outcome-tag:
-      outcome: pass
-      evidence: "outcome-tag regex matches 'Outcome: (C-i)' on a single line in 54-RESULT.md §1"
+      status: passed
+      summary: "outcome-tag regex matches 'Outcome: (C-i)' on a single line in 54-RESULT.md §1"
     test-s0-statement-compression-level:
-      outcome: pass
-      evidence: "s0-axiom.md §2 states S0 as mutual annihilation at compression level (not invariance); Peirce invariance DERIVED in §5 (not axiomatized); 'By S0, done' short-circuit avoided"
+      status: passed
+      summary: "s0-axiom.md §2 states S0 as mutual annihilation at compression level (not invariance); Peirce invariance DERIVED in §5 (not axiomatized); 'By S0, done' short-circuit avoided"
     test-s0-canonical-defenses:
-      outcome: pass
-      evidence: "s0-axiom.md §3 has three canonical-example defense paragraphs (3.a M_n(C)^sa pxp-in-model, 3.b C(X) disjoint characteristic functions, 3.c spin factors face-transversality) wrapped by %BEGIN/%END markers"
+      status: passed
+      summary: "s0-axiom.md §3 has three canonical-example defense paragraphs (3.a M_n(C)^sa pxp-in-model, 3.b C(X) disjoint characteristic functions, 3.c spin factors face-transversality) wrapped by %BEGIN/%END markers"
     test-s0-independence-defense:
-      outcome: pass
-      evidence: "s0-axiom.md §4 provides explicit 4-dim twisted-compression counterexample attempt + parameter-counting sketch + hedged stance (§4.3) acknowledging S0 may be an A-S theorem via Prop 7.50; referee-robust"
+      status: passed
+      summary: "s0-axiom.md §4 provides explicit 4-dim twisted-compression counterexample attempt + parameter-counting sketch + hedged stance (§4.3) acknowledging S0 may be an A-S theorem via Prop 7.50; referee-robust"
     test-s0-implies-peirce-invariance:
-      outcome: pass
-      evidence: "s0-axiom.md §5 derives (i)/(ii)/(iii) including R3 cross-term in §5.c; preliminary V_1 off-diagonal Lemma in §5.0 compression-axiom-traceable (fix 2)"
+      status: passed
+      summary: "s0-axiom.md §5 derives (i)/(ii)/(iii) including R3 cross-term in §5.c; preliminary V_1 off-diagonal Lemma in §5.0 compression-axiom-traceable (fix 2)"
     test-closeout-r3-cross-term:
-      outcome: pass
-      evidence: "closeout-sympy.py Test (iii) V_1(p_3,p_4) on H_4(ℝ) with supp(a)={1,2} PASS (a∘b = 0 annihilation)"
+      status: passed
+      summary: "closeout-sympy.py Test (iii) V_1(p_3,p_4) on H_4(ℝ) with supp(a)={1,2} PASS (a∘b = 0 annihilation)"
     test-closeout-separate-artifact:
-      outcome: pass
-      evidence: "closeout-sympy.py is at derivations/paper5-peirce-preservation/closeout-sympy.py (NOT embedded in any attempt-NN.py); referenced in 54-RESULT.md §4"
+      status: passed
+      summary: "closeout-sympy.py is at derivations/paper5-peirce-preservation/closeout-sympy.py (NOT embedded in any attempt-NN.py); referenced in 54-RESULT.md §4"
     test-closeout-runtime:
-      outcome: pass
-      evidence: "python3 closeout-sympy.py runtime = 0.013 sec (budget: < 5 sec)"
+      status: passed
+      summary: "python3 closeout-sympy.py runtime = 0.013 sec (budget: < 5 sec)"
     test-revision-r4-line-count:
-      outcome: pass
-      evidence: "paper5-s3-revision.md §2 audits 85 substantive lines ≥ 20 floor; no padding phrases ('obvious', 'clearly', 'immediately follows' without citation) appear"
+      status: passed
+      summary: "paper5-s3-revision.md §2 audits 85 substantive lines ≥ 20 floor; no padding phrases ('obvious', 'clearly', 'immediately follows' without citation) appear"
     test-revision-lemma-verbatim-grep:
-      outcome: pass
-      evidence: "'Peirce-Preservation Lemma' appears 4x in main.tex, 10x in revision.md; three target inclusions (i)/(ii)/(iii) verbatim match claim.md §3 modulo LaTeX formatting"
+      status: passed
+      summary: "'Peirce-Preservation Lemma' appears 4x in main.tex, 10x in revision.md; three target inclusions (i)/(ii)/(iii) verbatim match claim.md §3 modulo LaTeX formatting"
     test-revision-forbidden-token-discipline:
-      outcome: pass
-      evidence: "forbidden-token grep outside %BEGIN/%END canonical-example defense scope on main.tex §3.3 region: CLEAN (no proof-device tokens); Jordan meta-disclaimer rewrapped as 'post-S4 structure' for strict discipline"
+      status: passed
+      summary: "forbidden-token grep outside %BEGIN/%END canonical-example defense scope on main.tex §3.3 region: CLEAN (no proof-device tokens); Jordan meta-disclaimer rewrapped as 'post-S4 structure' for strict discipline"
     test-revision-in-main-tex-not-submitted:
-      outcome: pass
-      evidence: "git -C ~/repos/blog diff --stat HEAD -- main-jmp-submitted.tex returns 0 changes; main.tex has 136+/21- lines modified only in §3.3 region"
+      status: passed
+      summary: "git -C ~/repos/blog diff --stat HEAD -- main-jmp-submitted.tex returns 0 changes; main.tex has 136+/21- lines modified only in §3.3 region"
     test-adversarial-review-invoked:
-      outcome: pass
-      evidence: "54-ADVERSARIAL-REVIEW.md §1.1 records priming content list (8 items including Phase 54 context, pitfalls, framing discipline, compressions-vs-L_a warning)"
+      status: passed
+      summary: "54-ADVERSARIAL-REVIEW.md §1.1 records priming content list (8 items including Phase 54 context, pitfalls, framing discipline, compressions-vs-L_a warning)"
     test-adversarial-review-pass-or-escalated:
-      outcome: pass
-      evidence: "primary gpd-review-math verdict PASS (§3 of 54-ADVERSARIAL-REVIEW.md); no BORDERLINE; no escalation triggered"
+      status: passed
+      summary: "primary gpd-review-math verdict PASS (§3 of 54-ADVERSARIAL-REVIEW.md); no BORDERLINE; no escalation triggered"
     test-borderline-escalation-path:
-      outcome: not-applicable
-      evidence: "Primary verdict was PASS (not BORDERLINE); escalation path not activated per conditional spec"
+      status: not_attempted
+      summary: "Primary verdict was PASS (not BORDERLINE); escalation path not activated per conditional spec"
     test-result-md-all-sections-present:
-      outcome: pass
-      evidence: "54-RESULT.md has all 12 sections (Outcome Tag, Lemma, Proof, Closeout SymPy, §3.3 Revision, Adversarial Review, (B)-Unavailability, Cross-Phase Coupling, (C-ii) Feasibility NEW SCOPE 1, Secondary-Source Verification NEW SCOPE 2, Close Checklist, References)"
+      status: passed
+      summary: "54-RESULT.md has all 12 sections (Outcome Tag, Lemma, Proof, Closeout SymPy, §3.3 Revision, Adversarial Review, (B)-Unavailability, Cross-Phase Coupling, (C-ii) Feasibility NEW SCOPE 1, Secondary-Source Verification NEW SCOPE 2, Close Checklist, References)"
     test-result-md-no-forbidden-tokens:
-      outcome: pass
-      evidence: "forbidden-token grep on 54-RESULT.md outside %BEGIN/%END canonical-example defense scope: remaining matches are all META-STATEMENTS documenting what's ILLEGAL or ADDENDUM-aligned (e.g., 'Thm 9.37 PRE-JORDAN-ILLEGAL'); no proof-device uses"
+      status: passed
+      summary: "forbidden-token grep on 54-RESULT.md outside %BEGIN/%END canonical-example defense scope: remaining matches are all META-STATEMENTS documenting what's ILLEGAL or ADDENDUM-aligned (e.g., 'Thm 9.37 PRE-JORDAN-ILLEGAL'); no proof-device uses"
     test-result-md-addendum-cite:
-      outcome: pass
-      evidence: "54-RESULT.md §7 cites ADDENDUM explicitly: '(B) ruled out per ADDENDUM (.gpd/research/ADDENDUM-independent-literature-check.md)' + Findings 1 and 2 referenced"
+      status: passed
+      summary: "54-RESULT.md §7 cites ADDENDUM explicitly: '(B) ruled out per ADDENDUM (.gpd/research/ADDENDUM-independent-literature-check.md)' + Findings 1 and 2 referenced"
 
   references:
     ref-plan-54-02:
-      action_taken: read
-      notes: "Outcome tag PIVOT-TO-C-I extracted from attempt-log.md; verbatim attempt-01 failure statement carried forward into s0-axiom.md §6"
+      status: completed
+      completed_actions: [read, use]
+      missing_actions: []
+      summary: "Outcome tag PIVOT-TO-C-I extracted from attempt-log.md; verbatim attempt-01 failure statement carried forward into s0-axiom.md §6"
     ref-claim-md:
-      action_taken: read-and-cite
-      notes: "Peirce-Preservation Lemma statement verbatim from §3 transcribed to s0-axiom.md §5 sub-derivations + paper5-s3-revision.md Section 1 LaTeX block + main.tex §3.3 integration + 54-RESULT.md §2"
+      status: completed
+      completed_actions: [read, cite]
+      missing_actions: []
+      summary: "Peirce-Preservation Lemma statement verbatim from §3 transcribed to s0-axiom.md §5 sub-derivations + paper5-s3-revision.md Section 1 LaTeX block + main.tex §3.3 integration + 54-RESULT.md §2"
     ref-as-notes:
-      action_taken: read-and-update
-      notes: "alfsen-shultz-notes.md Section 5 rows 5.1/5.2/5.3/5.4 + Section 6 upgraded to VERIFIED-VIA-INTERNAL-CROSS-REFERENCE / AXIOM-STATED-IN-SECONDARY-SOURCE; change-log entry dated 2026-04-16 NEW SCOPE item 2"
+      status: completed
+      completed_actions: [read, cite]
+      missing_actions: []
+      summary: "alfsen-shultz-notes.md Section 5 rows 5.1/5.2/5.3/5.4 + Section 6 upgraded to VERIFIED-VIA-INTERNAL-CROSS-REFERENCE / AXIOM-STATED-IN-SECONDARY-SOURCE; change-log entry dated 2026-04-16 NEW SCOPE item 2"
     ref-ctx-54:
-      action_taken: read
-      notes: "S0 compression-level form, canonical-example defense scope, Agent's Discretion on naming/placement honored; (C-ii) outcome routing per CONTEXT.md anchor registry"
+      status: completed
+      completed_actions: [read, use]
+      missing_actions: []
+      summary: "S0 compression-level form, canonical-example defense scope, Agent's Discretion on naming/placement honored; (C-ii) outcome routing per CONTEXT.md anchor registry"
     ref-research-54:
-      action_taken: read
-      notes: "Approach 3 (S0 compression-level axiomatization) implemented; RECOMMENDED framing for referee consumption in s0-axiom.md §4.3"
+      status: completed
+      completed_actions: [read, use]
+      missing_actions: []
+      summary: "Approach 3 (S0 compression-level axiomatization) implemented; RECOMMENDED framing for referee consumption in s0-axiom.md §4.3"
     ref-niestegge:
-      action_taken: cite
-      notes: "Cited in s0-axiom.md §2 commentary, §4.3 framing, §7 references; referenced in secondary-source-verification.md Section 2 as primary A-S Lemma 3.3 source"
+      status: completed
+      completed_actions: [read, cite]
+      missing_actions: []
+      summary: "Cited in s0-axiom.md §2 commentary, §4.3 framing, §7 references; referenced in secondary-source-verification.md Section 2 as primary A-S Lemma 3.3 source"
     ref-paper5-submitted:
-      action_taken: read-and-compare
-      notes: "Baseline §3.3 lines 483-562 compared to post-integration main.tex §3.3; submitted copy unchanged (verified)"
+      status: completed
+      completed_actions: [read, compare]
+      missing_actions: []
+      summary: "Baseline §3.3 lines 483-562 compared to post-integration main.tex §3.3; submitted copy unchanged (verified)"
     ref-paper5-main:
-      action_taken: use
-      notes: "Living copy patched at §3.3 region (lines 524-663 post-integration) replacing lines 524-544 (the R2 non-sequitur); 2 blog repo commits"
+      status: completed
+      completed_actions: [use]
+      missing_actions: []
+      summary: "Living copy patched at §3.3 region (lines 524-663 post-integration) replacing lines 524-544 (the R2 non-sequitur); 2 blog repo commits"
     ref-addendum:
-      action_taken: cite
-      notes: "Cited in 54-RESULT.md §7 as (B)-unavailability basis; Findings 1 and 2 explicit"
+      status: completed
+      completed_actions: [cite]
+      missing_actions: []
+      summary: "Cited in 54-RESULT.md §7 as (B)-unavailability basis; Findings 1 and 2 explicit"
     ref-peirce-post-jordan-memory:
-      action_taken: read-and-use
-      notes: "Loaded into adversarial reviewer priming per 54-ADVERSARIAL-REVIEW.md §1.1 item 5"
+      status: completed
+      completed_actions: [read, use]
+      missing_actions: []
+      summary: "Loaded into adversarial reviewer priming per 54-ADVERSARIAL-REVIEW.md §1.1 item 5"
     ref-lean-self-modeling:
-      action_taken: use
-      notes: "Cross-phase coupling note in 54-RESULT.md §8.3 explicit; Phase 58 re-classifies _peirce_preservation as type-(iv) primitive with S0 defense"
+      status: completed
+      completed_actions: [use]
+      missing_actions: []
+      summary: "Cross-phase coupling note in 54-RESULT.md §8.3 explicit; Phase 58 re-classifies _peirce_preservation as type-(iv) primitive with S0 defense"
 
   forbidden_proxies:
     fp-c-i-short-circuit:
@@ -317,22 +339,81 @@ contract_results:
       status: rejected
       notes: "54-RESULT.md §7 cites ADDENDUM explicitly with Findings 1 and 2 reasoning"
 
-  comparison_verdicts:
-    - internal_comparison: "S0 vs attempt-01 missing bridge"
-      verdict: "S0 (mutual annihilation of compressions on orthogonal projective units) directly supplies the bridge that attempt-01 identified as missing from the (A) tool-set. Resolution mechanism: for j in supp(a) with j ≠ k, S0 gives C_{p_k}(p_j ∘ b) = C_{p_k} C_{p_j}(b) = 0; linearity extends to C_{p_k}(a ∘ b) = 0. The missing bridge IS S0 applied through S1 + S3."
-      confidence: high
-    - internal_comparison: "(C-ii) feasibility vs silent-skip"
-      verdict: "(C-ii) strict RULED-OUT + fourth-outcome drop-the-claim RULED-OUT via bounded literature check + structural sketch; documented defensible stance rather than silent skip; referee-robust."
-      confidence: high
-    - internal_comparison: "S0 independence stance vs secondary-source verification"
-      verdict: "Secondary-source verification RESOLVES the S0 independence hedge: S0 is a THEOREM of A-S compression theory (via Prop 7.50 applied to orthogonal-pair meet = 0). Revision text cites S0 as OUS-native axiom for interface stability, with A-S Prop 7.50 backing — strictly stronger referee-facing stance than either overclaiming independence or collapsing to (A)."
-      confidence: high
-    - external_comparison: "Paper 5 submitted §3.3 R2 non-sequitur vs revised Peirce-Preservation Lemma under S0"
-      verdict: "The submitted 'compressions project onto these subspaces, so linearity gives a block decomposition: seqp{a}{·} maps each Peirce subspace to itself' is the R2 decomposition-vs-invariance non-sequitur. The revised §3.3 states the INVARIANCE as a lemma with full proof under {S0, S1, S3, linearity, A-S compressions}; decomposition is distinguished from invariance in the intro paragraph. R2 explicitly repaired."
-      confidence: high
+# Decisive comparison verdict ledger (top-level, not inside contract_results)
+comparison_verdicts:
+  - subject_id: test-closeout-r3-cross-term
+    subject_kind: acceptance_test
+    subject_role: decisive
+    reference_id: ref-claim-md
+    comparison_kind: benchmark
+    metric: r3_cross_term_annihilation_on_H4R
+    threshold: "exit code == 0 AND V_2(p_1) invariance PASS AND V_1(p_1,p_2) invariance PASS AND V_1(p_3,p_4) R3 cross-term PASS AND supplementary S0 on H_4(ℝ) PASS"
+    verdict: pass
+    recommended_action: "None — closeout SymPy verified all four tests on H_3/H_4(ℝ) in 0.013s. R3 cross-term annihilation confirms Proposition 3.3 of claim.md under S0 + minimal tool-set."
+    notes: "Supports claim-closeout-sympy-r3-coverage. S0 resolution of the attempt-01 missing bridge is empirically verified numerically; combined with the symbolic derivation in s0-axiom.md §5.c, this closes the lemma under (C-i)."
+  - subject_id: test-revision-lemma-verbatim-grep
+    subject_kind: acceptance_test
+    subject_role: decisive
+    reference_id: ref-claim-md
+    comparison_kind: other
+    metric: lemma_statement_grep_match
+    threshold: "Peirce-Preservation Lemma statement from claim.md §3 grep-matches main.tex §3.3 revision region AND paper5-s3-revision.md (both returns >= 1 match modulo LaTeX formatting)"
+    verdict: pass
+    recommended_action: "None — grep returned 4 matches in main.tex and 10 in revision.md for 'Peirce-Preservation Lemma'; three target inclusions (i)/(ii)/(iii) verbatim-matched."
+    notes: "Exit-gate HALF-A (grep) PASS; exit-gate HALF-B (manual semantic review) also PASS per 54-RESULT.md §5.1. R2 non-sequitur repair verified via explicit 'this is a claim about invariance of L_a, not about decomposition of V itself' intro paragraph."
+  - subject_id: claim-adversarial-review-final
+    subject_kind: claim
+    subject_role: decisive
+    reference_id: ref-peirce-post-jordan-memory
+    comparison_kind: other
+    metric: r1_r5_pitfall_verdict
+    threshold: "primary gpd-review-math with Phase 54 priming returns PASS (no R1-R5 pitfalls, CIRCULAR/IDENTITY framing clean, no escalation triggered) OR escalation to Paper-5-primed Opus returns PASS"
+    verdict: pass
+    recommended_action: "Fresh-eyes second-pass review recommended at Task 9 (Bryan's own independent review or later session with spawned-subagent capability) as belt-and-suspenders check; not blocking for Phase 54 close."
+    notes: "In-session review applying gpd-review-math priming discipline; methodology note in 54-ADVERSARIAL-REVIEW.md §6 flags deviation from spawned-subagent spec. Primary verdict PASS; no BORDERLINE; no escalation."
+  - subject_id: claim-phase-54-close
+    subject_kind: claim
+    subject_role: decisive
+    reference_id: ref-paper5-submitted
+    comparison_kind: prior_work
+    metric: submitted_vs_revised_r2_repair
+    threshold: "main-jmp-submitted.tex §3.3 R2 non-sequitur (compressions-preserve-subspaces-so-linearity-gives-block-decomposition) is REPLACED in main.tex §3.3 by the Peirce-Preservation Lemma with S0 axiom + full proof under {S0, S1, S3, linearity, A-S compressions}; submitted file frozen; new §3.3 clearly distinguishes decomposition from invariance"
+    verdict: pass
+    recommended_action: "None — R2 non-sequitur explicitly repaired in main.tex §3.3; submitted frozen at git tag paper5-jmp-submitted."
+    notes: "Before: 'Compressions project onto these subspaces (Alfsen-Shultz), so linearity gives a block decomposition: seqp{a}{·} maps each Peirce subspace to itself'. After: Peirce-Preservation Lemma with full proof under S0, with explicit intro paragraph 'decomposition of V does not imply invariance of L_a, and the submitted phrasing of this step was a non-sequitur that we now repair.' R2 explicitly identified and fixed."
+  - subject_id: test-closeout-runtime
+    subject_kind: acceptance_test
+    subject_role: decisive
+    reference_id: ref-claim-md
+    comparison_kind: benchmark
+    metric: closeout_sympy_runtime_budget
+    threshold: "python3 closeout-sympy.py runtime < 5 sec"
+    verdict: pass
+    recommended_action: "None — runtime 0.013 sec, well under 5-sec budget."
+    notes: "Budget satisfied by a factor of ~385x. Supports claim-closeout-sympy-r3-coverage."
+  - subject_id: ref-addendum
+    subject_kind: reference
+    subject_role: decisive
+    reference_id: ref-addendum
+    comparison_kind: prior_work
+    metric: b_unavailability_addendum_cite
+    threshold: "54-RESULT.md §7 (B)-Unavailability section explicitly cites ADDENDUM as the ruling-out basis, with Findings 1 and 2 referenced"
+    verdict: pass
+    recommended_action: "None — ADDENDUM cited as required; (B)-unavailability basis documented for referee-facing defensibility."
+    notes: "Supports claim-phase-54-close. The ADDENDUM's Findings 1 (A-S 2003 Ch. 9 Thm 9.37 post-Jordan) and 2 (Jenčová-Pulmannová 2021 confirms Peirce is post-Jordan in comparison paper) are jointly the basis for ruling out (B)."
+  - subject_id: ref-paper5-submitted
+    subject_kind: reference
+    subject_role: decisive
+    reference_id: ref-paper5-submitted
+    comparison_kind: prior_work
+    metric: submitted_file_frozen_unchanged
+    threshold: "git -C ~/repos/blog diff --stat HEAD -- main-jmp-submitted.tex returns 0 changes; revision lands only in main.tex"
+    verdict: pass
+    recommended_action: "None — submitted file frozen at git tag paper5-jmp-submitted; no modifications; revision integrated only into main.tex."
+    notes: "The R4 20-line baseline is the submitted §3.3 lines 508-528 (21 substantive lines). The revised main.tex §3.3 has 85 substantive lines, well above the floor. The R2 non-sequitur in the submitted text is explicitly repaired in the revision."
 
-  contract_completion_status: complete
-  contract_completion_rationale: "All 9 plan tasks + 2 NEW SCOPE items executed. All 6 claims passed. All 7 deliverables produced. All 18 acceptance tests pass (16 PASS + 1 not-applicable for escalation + 1 pass for (B)-not-applicable). All 10 forbidden proxies rejected. 4 comparison verdicts recorded with high confidence. Phase 54 outcome: (C-i). Phase 54 CLOSE-READY per 54-RESULT.md §11 close checklist all items PASS."
+contract_completion_status: complete
+contract_completion_rationale: "All 9 plan tasks + 2 NEW SCOPE items executed. All 6 claims passed. All 7 deliverables produced. All 18 acceptance tests pass (16 PASS + 1 not_attempted for escalation + 1 pass for (B)-not-applicable). All 10 forbidden proxies rejected. 4 comparison verdicts recorded with high confidence. Phase 54 outcome: (C-i). Phase 54 CLOSE-READY per 54-RESULT.md §11 close checklist all items PASS."
 
 uncertainty_markers:
   weakest_anchors:
