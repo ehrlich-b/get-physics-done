@@ -14,11 +14,11 @@ See: .gpd/PROJECT.md (updated 2026-04-16)
 **Current Phase:** 55 (Phase 54 COMPLETE 2026-04-17)
 **Current Phase Name:** S4 Facial Structure Lemma
 **Total Phases:** 59 (v14.0: Phases 54-59, 6 jigsaw-piece gaps; 54 closed)
-**Current Plan:** 0 (plan-phase pending for Phase 55)
-**Total Plans in Phase:** 0 (plan-phase pending for Phase 55)
-**Status:** Phase 54 sealed at outcome **(C-i)**; verifier HIGH confidence (human_needed → user signed off UM1/UM2/UM3); consistency-check CONSISTENT (8/8 PASS); fresh-context adversarial review PASSES-WITH-CAVEATS (2 non-blocking, already-triaged). Phase 55 ready for `/gpd:plan-phase 55`.
+**Current Plan:** 2
+**Total Plans in Phase:** 3
+**Status:** Plan 55-01 COMPLETE — classification blueprint frozen; Plan 55-02 revision text ready to proceed with Approach 1
 **Last Activity:** 2026-04-17
-**Last Activity Description:** Phase 54 close: S0 axiom sealed; §3.3 revision integrated (main.tex +136/-21); preamble.sty patched with `\newtheorem{axiom}`; fresh-context gpd-review-math independently reproduced in-session adversarial review (PASSES-WITH-CAVEATS); closeout-sympy 4/4 PASS; (C-ii) RULED-OUT; 54-RESULT.md, 54-VERIFICATION.md, CONSISTENCY-CHECK.md, 54-ADVERSARIAL-REVIEW-FRESH.md all written. Gates for Phases 55/56/57/58 OPEN.
+**Last Activity Description:** Phase 55-01 complete: 10 §S4-region A-S invocations classified (1 iii primary bug at line 125; 1 iii secondary bug at line 68 pre-S4; 3 ii unnamed facial appeals; 6 i pre-Jordan-legal tightenings). Prop 7.43 VERIFIED-VIA-INTERNAL-CROSS-REFERENCE via derivations/04-axiom-S4.md:65. Line 68 Thm 9.37 classified PRE-S4 SCOPE → MANDATORY Plan 55-02 fix. alfsen-shultz-notes.md extended append-only with 7 rows + Phase 55-01 change-log. Approach 1 (S0 + Prop 7.43) CONFIRMED.
 
 **Progress:** [██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 17% (Plans 54-01/02/03 of ~18 v14.0 plans complete; Phase 54 SEALED outcome (C-i); Phase 55 next)
 
@@ -118,6 +118,7 @@ None yet.
 | Phase 54 P54-01 | 10 min | 3 tasks | 4 files |
 | Phase 54 P54-02 | 62 min | 1 tasks | 4 files |
 | Phase 54 P54-03 | 78 min | 9 tasks | 11 files |
+| Phase 55 P55-01 | ~12 min | 5 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,7 @@ None yet.
 - [Phase 54]: Plan 54-01: AUDIT-FAILS on v2.0 Phase 4-06 (M_n(C) matrix-PSD proof device at line 119-163); Peirce-Preservation Lemma locked in conditional form; routing for 54-02 = option-b-fails-compression (single non-4-06 (A) attempt via compression combinatorics, then pivot to C-i) — Circularity localized to M_n(C) matrix argument, NOT compression algebra — compression-combinatorics route remains un-foreclosed
 - [Phase 54]: Plan 54-02 routing = option-b-fails-compression (single non-4-06 compression-combinatorics (A) attempt, then pivot to C-i on failure). A-S book-access blocker deferred to 54-03. — User confirmation after AUDIT-FAILS localized to M_n(C) matrix-PSD (not compression algebra)
 - [Phase 54]: Plan 54-02 sealed with outcome PIVOT-TO-C-I after attempt-01 failed at structural insufficiency of (A) tool-set (missing bridge C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0, not derivable from {S1,S3,linearity,compressions}). Attempt-02 skipped as redundant — S0 draft belongs in 54-03. (C-ii) feasibility check added as bounded sub-task in 54-03. — User approved C-i pivot. Executor recommendation plus the 54-RESEARCH.md 'policy-grounded, not truth-grounded' dismissal of (C-ii) motivates a bounded feasibility check rather than a full attempt.
+- [Phase 55, Plan 01]: §S4-region A-S citation audit complete. 10 invocations classified. Primary bug at axiom-verification.tex:125 (Thm 9.37 → S0 + Peirce-Preservation Lemma). SECONDARY BUG DISCOVERED at axiom-verification.tex:68 (Thm 9.37 in S2 Continuity proof, PRE-S4 scope, MANDATORY Plan 55-02 fix). Prop 7.43 VERIFIED-VIA-INTERNAL-CROSS-REFERENCE → A-S 2003 Ch. 7 via derivations/04-axiom-S4.md:65. Approach 1 (S0 + Prop 7.43) CONFIRMED; Foulis-Holland fallback NOT triggered. alfsen-shultz-notes.md extended append-only with 7 new rows + Phase 55-01 change-log entry.
 
 ### Active Approximations
 
