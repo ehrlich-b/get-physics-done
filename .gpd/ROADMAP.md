@@ -660,6 +660,10 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 
 - [x] **Phase 54: §3.3 Peirce Preservation from OUS Primitives** -- COMPLETE 2026-04-17. Outcome **(C-i)**: S0 axiom (Peirce Coherence: `C_{p_i}C_{p_j}=0` on orthogonal projective units) + §3.3 revision integrated to `main.tex` (+136/-21). Phase 4-06 AUDIT-FAILS localized to M_n(C) matrix-PSD (compression algebra clean). Attempt-01 failed at missing bridge `C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0`; (C-ii) RULED-OUT by bounded feasibility check. Fresh-context adversarial review PASSES-WITH-CAVEATS. Shared artifact `alfsen-shultz-notes.md` ready for 55/57/58 consumption (A-S 2003 vol. 190 Ch. 2/7/8 attribution; Niestegge/H-O-S secondary-source verification upgraded 5 rows). Gates Phases 55-57 OPEN.
 - [ ] **Phase 55: S4 Facial Structure Lemma** -- depends on Phase 54; produces shared `alfsen-shultz-notes.md`.
+  - **Plans:** 3 plans
+  - [ ] 55-01-PLAN.md -- Classification + A-S citation audit + Prop 7.43 verification + alfsen-shultz-notes extension (wave 1)
+  - [ ] 55-02-PLAN.md -- S0-substitution edits to sections/axiom-verification.tex + sections/appendix-proofs.tex + LaTeX compile check (wave 2)
+  - [ ] 55-03-PLAN.md -- SymPy H_n(ℝ) spot-check + cross-check + adversarial review + 55-RESULT.md at outcome (C-i) or (C) (wave 3)
 - [ ] **Phase 56: Thm 5.8 Upper Bound on W** -- depends on Phase 54; addresses R7 "carries" ambiguity.
 - [ ] **Phase 57: Phi Inert-Wrapper Resolution** -- depends on Phases 54 + 55; produces shared `phi-audit.md`.
 - [ ] **Phase 58: Lean Axiom Audit** -- critical-path bottleneck (~2-3 working days); parallel with Phase 54. Mandatory first tasks: reconcile 16 vs 19 via `#print axioms`; confirm `lake build` 0-sorry baseline.
