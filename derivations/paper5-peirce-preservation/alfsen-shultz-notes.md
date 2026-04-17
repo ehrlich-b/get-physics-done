@@ -423,4 +423,115 @@ The fact `C_{p_i} C_{p_j} = 0` for orthogonal projective units `i ≠ j` is a CE
 
 ---
 
+## Phase 56 CLOSE — 2026-04-17
+
+**Phase:** 56 (Thm 5.8 Upper Bound: W carries product-form sequential product)
+**Plan:** 03 (wave 3, Phase close)
+**Outcome:** (B) — W is NOT a face of V_{BM} but the direct S1-S7 route on W succeeded via vdW 2019 Def. 4 + Thm 1
+**Pointer:** `.gpd/phases/56-thm-5-8-upper-bound-w-carries-product-form-sequential-product/56-RESULT.md`
+
+### Summary
+
+Phase 56 closes the "Thm 5.8 upper bound" jigsaw-piece gap: Paper 5 §5's
+upper-bound step of `thm:local-tomo` (`composite-lt.tex:203-221`) and
+`thm:lt-full` (`appendix-proofs.tex:228-238`) previously used the phrase
+"W carries the product-form sequential product" without disambiguating
+between three distinct senses (set-closure / induced-structure SPS /
+functorial SPS-morphism). Plan 56-01 classified 18 §5/§6 consumers; Plan
+56-02 proved sense (b) via vdW 2019 Def. 4 + Thm 1 and upgraded to sense
+(c) as a free corollary (since `1_W = 1_{V_{BM}}` and `\seqp{}{}|_W` is a
+set-theoretic restriction); Plan 56-03 integrated the revised text into
+the LIVING working copy. The revision establishes sense (c) for all 18
+consumers — the strongest of the three senses — and no consumer is
+under-served. Face-status verdict was NOT-FACE (real case, with concrete
+witness); face-restriction shortcut was NOT invoked. Direct S1-S7 route
+on W via vdW 2019 Def. 4 succeeded as designed.
+
+### New A-S citations introduced in Phase 56
+
+| Citation | A-S volume | Chapter | Proposition/Theorem | Role in Phase 56 | Verification tier |
+|----------|-----------|---------|---------------------|------------------|-------------------|
+| `\cite[Ch.~1, Thm.~1.23]{AlfsenShultz2003}` | 2003 PM 190 | Ch. 1 (pre-Jordan-legal; ≤ 8) | Thm 1.23 | State separation for S4-on-W (used in `w-sps-proof.md §2` primary-route and §3 fallback per-axiom table row S4) | VERIFIED-VIA-INTERNAL-CROSS-REFERENCE (via Phase 54 `derivations/04-axiom-S4.md:65` internal cross-reference; Paper 5 `appendix-proofs.tex:220` cite matches verbatim) |
+
+No additional A-S 2003 citations beyond the single Ch. 1 Thm 1.23 entry
+above. The Phase 56 revision text in `composite-lt.tex` (Hunk CL-1) and
+`appendix-proofs.tex` (Hunk AP-1) introduces **zero new A-S 2003 cites**
+(the only new external citations are to vdW 2019 Definition 2 + Definition
+4 and BGW 2020 §2, both non-A-S). The Ch. 1 Thm 1.23 entry above is
+introduced by Plan 56-02 `w-sps-proof.md` §§2-3, not by the paper
+revision itself. Paper 5's pre-existing state-separation cite at
+`appendix-proofs.tex:220` is OUT-OF-HUNK for the Phase 56 revision and
+remains unchanged (already post-Phase-55 bracketed `\cite[Ch.~1,
+Thm.~1.23]{AlfsenShultz2003}`).
+
+### Discipline confirmation
+
+- **R5 (A-S bracketing):** Every A-S cite in `56-03-DIFF-REPORT.md`,
+  `w-sps-proof.md`, `ci-sps-morphism.md`, and `carries-three-sense-table.md`
+  is bracketed `\cite[Ch.~X, Prop.~Y.Z]{AlfsenShultz2003}` with X ≤ 8.
+  Zero Ch. 9 leaks in any Phase 56 artifact (verified by grep over all
+  phase-level files and revision after-text blocks).
+- **R11 (cross-phase cascade from Phase 54 (C-i)):** Factor-level Peirce
+  invariance is discharged inside `w-sps-proof.md §3` (fallback per-axiom
+  table) at rows S5, S6, S7, each citing `\ref{lem:peirce-preservation}`
+  and `\ref{ax:S0}`. The Paper 5 revision text (Hunks CL-1 and AP-1) does
+  **not** invoke factor-level Peirce invariance directly — it uses the
+  vdW 2019 Def. 4 structural framing — so no inline
+  `\ref{lem:peirce-preservation}` citation is required in the revised
+  paper text. R11 discipline is vacuously satisfied at paper level and
+  actively satisfied at fallback-proof level.
+- **Frozen-file:** `main-jmp-submitted.tex` zero-diff preserved at git
+  tag `paper5-jmp-submitted` throughout Phase 56. Verified ≥ 4 times
+  during Plan 56-03 execution (Task 1 start, Task 1 pre-audit,
+  post-integration verification #3, and pre-close re-verification).
+- **Forbidden-token discipline:** Zero hits for `Thm 9.37`, `Ch.~9`,
+  `Hanche-Olsen`, `Lüders`, `Luders`, `pxp`, `M_n(C)^{sa}` in any Phase
+  56 artifact outside demarcated transcription / declaration scope.
+
+### Sense-(c)-established-for-all-consumers
+
+Per `carries-three-sense-table.md §3`, **Phase 56 establishes sense (c)
+of "carries" for every argumentative §5/§6 consumer identified in
+`downstream-consumer-scan.md §§2-5`** (18 rows). Sense (c) implies sense
+(b) implies sense (a) by the collapse diagram of `carries-senses.md §4`;
+in the Paper 5 setting (`1_W = 1_{V_{BM}}`), the three senses are
+equivalent. No consumer is under-served.
+
+### Phase 57 inheritance note (φ-audit)
+
+Phase 56 revision uses structural vdW 2019 Def. 4 + Thm 1 framing at
+paper-text level; factor-level Peirce invariance (R11 touchpoint) sits in
+`w-sps-proof.md §3` fallback rows S5/S6/S7 where `\ref{lem:peirce-preservation}`
+is cited (resting on `\ref{ax:S0}` per Phase 54 C-i). The §5 upper-bound
+proof is therefore phi-independent **at the paper-text level**; Phase 57
+φ-audit may treat the integrated §5 text as phi-independent at the
+paper-surface level, pending Phase 57's own audit of the factor-level
+`prop:inheritance` chain (which is upstream of Phase 56's W-level
+argument and remains the primary phi-audit target). No new phi-dependent
+machinery is introduced by the Phase 56 revision.
+
+### Phase 58 inheritance note (Lean axiom audit)
+
+Phase 56 introduces **zero new Paper-5-level axioms** beyond the already-in-scope
+S0 axiom (Phase 54 C-i). The Lean axiom audit scope is **unchanged** by
+Phase 56 — the revision text uses only standard theorem-invocation LaTeX
+(`\cite[Definition~4]{vandeWetering2019}`, `\cite[§2]{BarnumGraydonWilce2020}`,
+`\ref{prop:inheritance}`) and structural reasoning, not any new axiom
+statement. Flag 4.2 (Prop 7.36 PROP-NUMBER-UNVERIFIED in
+`SelfModelingBridge.lean`) remains Phase 58 scope; Phase 56 does not close
+Flag 4.2.
+
+### Append-only discipline
+
+No Phase 54 or Phase 55 rows modified by this Phase 56 CLOSE entry. Only
+append operations (this entry + the Ch. 1 Thm 1.23 new-cite row above).
+Verified append-only via `git diff` (every diff line is `+`; zero `-`
+lines touching pre-Phase-56 content).
+
+**Consumed by:** Phase 56 CLOSE is the last Phase 56 task; downstream
+phases (57 φ-inertness, 58 Lean audit, 59 referee) read this entry as
+the Phase 56 outcome marker.
+
+---
+
 _Downstream consumers (Phases 55, 57, 58) may append rows but MUST NOT modify existing rows without a dated change-log entry. Resolving a VERIFICATION-DEFERRED / QUOTE-PENDING / NEEDS-VERIFICATION row is a modification and requires the change-log entry; do NOT silently overwrite. Paraphrasing A-S book text is strictly forbidden per fp-as-notes-paraphrase — if the book is not accessible, keep the QUOTE-PENDING marker and flag for later verification._
