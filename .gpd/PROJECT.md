@@ -143,6 +143,21 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
   - Carry forward: planning
   - Required action: read, check
 
+- **ref-addendum-indep-lit-check:** `.gpd/research/ADDENDUM-independent-literature-check.md` (2026-04-16, author-sourced via subagent TOC read + Jenčová-Pulmannová direct read)
+  - Why it matters: Two independent sources (A-S 2003 TOC + arXiv:2102.01628) locate Peirce decomposition post-Jordan, NOT at pure OUS level. Shifts prior probability on Phase 54 outcomes: (A) plausible-but-difficult, (B) essentially ruled out (no OUS-native A-S theorem), (C) most likely — specifically (C-i) "add Peirce coherence axiom S0 at OUS level." (C-iii) restructure-chain is explicitly UNAVAILABLE (vdW Thm 1 consumes S4 to produce Jordan → circularity).
+  - Carry forward: planning, execution
+  - Required action: read, use to cap (A) effort and pre-draft (C-i)
+
+- **ref-jencova-pulmannova2021:** Jenčová & Pulmannová -- "Geometric and algebraic aspects of spectrality in order unit spaces: a comparison" (arXiv:2102.01628, Feb 2021)
+  - Why it matters: Comparison paper for OUS spectrality; §3-4 develop OUS spectrality without Peirce; §5.9 Peirce enters only at JB-algebra level citing A-S Thm 1.4 (Jordan-algebraic Peirce chapter). Confirms Peirce is post-Jordan in the literature we can access.
+  - Carry forward: planning, execution
+  - Required action: read, cite
+
+- **ref-hanche-olsen-stormer1984:** Hanche-Olsen & Størmer -- *Jordan Operator Algebras* (1984), §2.6
+  - Why it matters: Peirce decomposition developed for unital Jordan algebras only, via Macdonald's theorem. No OUS-level counterpart. Free PDF at hanche.folk.ntnu.no/joa/joa-m.pdf.
+  - Carry forward: planning
+  - Required action: read, cite
+
 ### Carry-Forward Inputs
 
 - Paper 5 submission JMP26-AR-00922 with Zenodo DOI 10.5281/zenodo.19342703 (submitted 2026-03-28)
@@ -153,18 +168,18 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Skeptical Review
 
-- **Weakest anchor:** The §3.3 claim itself -- if Paper 5 spent 20 lines asserting it, it is not trivial, and the author cannot independently reconstruct it. Probability of outcome (C) is non-trivial.
-- **Unvalidated assumptions:** That S1 + S3 + linearity are sufficient primitives (the whole question). That Alfsen-Shultz 2003 contains an implicit theorem covering this case. That the prior GPD v2.0 work either settled or assumed the claim -- neither has been verified.
-- **Competing explanation:** §3.3's argument may be conflating "compressions preserve Peirce subspaces" with "a o (-) preserves Peirce subspaces" -- these are about different objects and one does not trivially imply the other.
-- **Disconfirming observation (=outcome C):** A proof attempt succeeds but requires Jordan structure / EJA / sequential product formula one step earlier in the chain than §3.3 currently allows. This would force Paper 5 to either (i) move the Jordan-structure derivation earlier, (ii) state an explicit assumption, or (iii) find a genuinely pre-Jordan argument.
-- **False progress to reject:** "Since the Peirce decomposition exists in any spectral OUS (Alfsen-Shultz), the sequential product respects it" -- decomposition of V != invariance of a o (-) under V; "Jordan structure gives it" -- circular; "It's obvious from compressions" -- compressions c_{p_i} are not the same object as b -> a o b.
+- **Weakest anchor:** The §3.3 claim itself. Independent literature check (2026-04-16, ref-addendum-indep-lit-check) places Peirce decomposition post-Jordan in both A-S 2003 (Part I Ch. 1-3 Jordan-algebraic; Ch. 7-8 compressions have no Peirce section) and Jenčová-Pulmannová 2021 (OUS spectrality §3-4 no Peirce; JB-algebra §5.9 is where Peirce enters). Prior probability on Phase 54 outcomes: (A) plausible-but-difficult, (B) essentially ruled out, (C) most likely.
+- **Unvalidated assumptions:** That S1 + S3 + linearity are sufficient primitives (the whole question). That Alfsen-Shultz 2003 contains an implicit theorem covering this case -- ADDENDUM says likely NO. That the prior GPD v2.0 work either settled or assumed the claim -- neither has been verified. That Paper 5's cite of A-S Theorem 9.37 for the Peirce direct sum is pre-Jordan-legal -- it is not (Ch. 9 is the Jordan state-space characterization chapter; circular at §3.3 level).
+- **Competing explanation:** §3.3's argument conflates "compressions preserve Peirce subspaces" (A-S Ch. 7 fact about individual compressions) with "a o (-) preserves Peirce subspaces" (claim about the composite map b -> a o b). The conflation is not repairable by a Peirce-native OUS citation because none exists.
+- **Disconfirming observation (= outcome C):** ADDENDUM identifies three (C) sub-variants: (C-i) add "Peirce coherence" axiom S0 at OUS level alongside S1-S7 and defend as natural; (C-ii) find an alternative S4 proof that routes around Peirce entirely; (C-iii) restructure the chain to derive Jordan structure before S4 -- EXPLICITLY UNAVAILABLE (vdW Thm 1 consumes S4 to produce Jordan -> circularity). Recommendation from ADDENDUM: cap (A) effort; if (A) fails, formalize (C-i).
+- **False progress to reject:** "Since the Peirce decomposition exists in any spectral OUS (Alfsen-Shultz), the sequential product respects it" -- decomposition of V != invariance of a o (-) under V; also ADDENDUM shows Peirce does NOT exist at pure OUS level in the accessible literature. "Jordan structure gives it" -- circular. "It's obvious from compressions" -- compressions c_{p_i} are not the same object as b -> a o b. "Cite A-S Ch. 9 Theorem 9.37" -- Ch. 9 is Jordan state-space characterization; citing it at pre-Jordan §3.3 is the exact circularity ADDENDUM flags.
 
 ### Open Contract Questions
 
-- Does prior GPD v2.0 Phase 4-6 work contain a Phase 1 proof attempt, an assumption, or no engagement with the §3.3 claim?
-- Do the allowed primitives (S1, S3, linearity, OUS structure) suffice, or is there a hidden dependency on the sequential product formula itself?
-- If outcome is (B), does the Alfsen-Shultz statement require any additional hypothesis that must be verified in Paper 5's setting?
-- Are the 16 Lean axioms a red flag for the logical chain (Phase 5), or straightforward Alfsen-Shultz/vdW restatements?
+- Does prior GPD v2.0 Phase 4-6 work contain a Phase 54 proof attempt, an assumption, or no engagement with the §3.3 claim?
+- Can a direct compression-algebra argument (J_p acts on Peirce subspaces via A-S Ch. 7 compression theory) deliver outcome (A) without invoking Jordan structure? If not in a reasonable time cap, pivot to (C-i).
+- What exact statement and defense does the "Peirce coherence" axiom S0 take at OUS level (for (C-i) fallback), and is it natural enough that a referee accepts it?
+- Are the 16 Lean axioms (Phase 58) red flags for the logical chain, or straightforward Alfsen-Shultz/vdW restatements? Note: `SelfModelingBridge.lean` cites A-S Prop 7.36 for S4 follow-through -- prop number is unverified.
 
 ## Research Questions
 

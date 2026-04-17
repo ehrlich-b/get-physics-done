@@ -602,11 +602,11 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
-| §3.3 Peirce preservation proof / citation / S0 axiom | Phase 54 | Planned |
-| Phase 4-06 circularity audit (commit `9608ac54`, gate for A vs C-i) | Phase 54 | Planned (mandatory first task) |
-| `alfsen-shultz-notes.md` shared artifact (consumed by 55, 57, 58) | Phase 54 | Planned |
-| Small-case SymPy Peirce-invariance sanity check on H_3(ℝ) | Phase 54 | Planned |
-| Adversarial fresh-eyes review of Phase 54 RESULT.md | Phase 54 | Planned |
+| §3.3 Peirce preservation proof / citation / S0 axiom | Phase 54 | **Complete (C-i)** |
+| Phase 4-06 circularity audit (commit `9608ac54`, gate for A vs C-i) | Phase 54 | **Complete — AUDIT-FAILS** |
+| `alfsen-shultz-notes.md` shared artifact (consumed by 55, 57, 58) | Phase 54 | **Complete** |
+| Small-case SymPy Peirce-invariance sanity check on H_3(ℝ) | Phase 54 | **Complete — 4/4 PASS** |
+| Adversarial fresh-eyes review of Phase 54 RESULT.md | Phase 54 | **Complete — PASSES-WITH-CAVEATS (2 non-blocking)** |
 | S4 facial-structure argument classified (Foulis-Holland / Hanche-Olsen / Jordan) | Phase 55 | Planned |
 | Alfsen-Shultz 2001 vol. 179 vs 2003 vol. 190 citation resolution | Phase 55 | Planned |
 | §3.3-§3.4 S4 revision text consistent with Phase 54 outcome | Phase 55 | Planned |
@@ -658,7 +658,7 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 
 **Phase checklist:**
 
-- [ ] **Phase 54: §3.3 Peirce Preservation from OUS Primitives** -- load-bearing, fully scoped. Mandatory first task: circularity audit of v2.0 Phase 4-06 (commit `9608ac54`). Outcome classification (A / C-i / C-ii) gates Phases 55-57.
+- [x] **Phase 54: §3.3 Peirce Preservation from OUS Primitives** -- COMPLETE 2026-04-17. Outcome **(C-i)**: S0 axiom (Peirce Coherence: `C_{p_i}C_{p_j}=0` on orthogonal projective units) + §3.3 revision integrated to `main.tex` (+136/-21). Phase 4-06 AUDIT-FAILS localized to M_n(C) matrix-PSD (compression algebra clean). Attempt-01 failed at missing bridge `C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0`; (C-ii) RULED-OUT by bounded feasibility check. Fresh-context adversarial review PASSES-WITH-CAVEATS. Shared artifact `alfsen-shultz-notes.md` ready for 55/57/58 consumption (A-S 2003 vol. 190 Ch. 2/7/8 attribution; Niestegge/H-O-S secondary-source verification upgraded 5 rows). Gates Phases 55-57 OPEN.
 - [ ] **Phase 55: S4 Facial Structure Lemma** -- depends on Phase 54; produces shared `alfsen-shultz-notes.md`.
 - [ ] **Phase 56: Thm 5.8 Upper Bound on W** -- depends on Phase 54; addresses R7 "carries" ambiguity.
 - [ ] **Phase 57: Phi Inert-Wrapper Resolution** -- depends on Phases 54 + 55; produces shared `phi-audit.md`.
@@ -696,9 +696,9 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 
 **Plans:** 3 plans
 
-- [ ] 54-01-PLAN.md — Phase 4-06 circularity audit (DERV-54-01) + `claim.md` named-lemma restatement (DERV-54-02 foundation) + `alfsen-shultz-notes.md` SHARED ARTIFACT baseline (Wave 1; interactive — audit-routing checkpoint)
-- [ ] 54-02-PLAN.md — Outcome (A) proof attempts (DERV-54-03) with per-attempt SymPy rank-1 gate + three early falsifier gates + adversarial `gpd-review-math` review; attempt cap 3; mandatory end-of-attempt-02 stop/rethink pause (Wave 2, depends_on 54-01; interactive)
-- [ ] 54-03-PLAN.md — (C-i) S0 axiom + canonical-example defense + OUS-compatibility sketch (DERV-54-04/05/06) IF PIVOT-TO-C-I; closeout SymPy with R3 cross-term coverage (VALD-54-01); §3.3 revision text integrated into main.tex; adversarial review (VALD-54-02); exit gate (grep + manual review); 54-RESULT.md (DERV-00-01 Phase 54 slice) (Wave 3, depends_on 54-02; interactive — Phase 54 close checkpoint)
+- [x] 54-01-PLAN.md — COMPLETE. Phase 4-06 AUDIT-FAILS (M_n(C) matrix-PSD at line 119-163; compression algebra uncompromised); `claim.md` locked in conditional form; `alfsen-shultz-notes.md` baseline.
+- [x] 54-02-PLAN.md — COMPLETE. attempt-01 failed at structural insufficiency (missing bridge `C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0`); attempt-02 skipped as redundant; PIVOT-TO-C-I.
+- [x] 54-03-PLAN.md — COMPLETE. S0 axiom sealed; canonical-example defense (H_3(ℝ), 4-dim twisted-compression counterexample); §3.3 revision integrated (main.tex +136/-21); closeout-sympy 4/4 PASS; adversarial review PASSES-WITH-CAVEATS; (C-ii) RULED-OUT; 54-RESULT.md + 54-VERIFICATION.md + CONSISTENCY-CHECK.md written.
 
 ### Phase 55: S4 Facial Structure Lemma
 
