@@ -2,9 +2,9 @@
 phase: 56-thm-5-8-upper-bound-w-carries-product-form-sequential-product
 plan: 01
 type: execute
-status: AWAITING-CHECKPOINT (Task 6 human-decision checkpoint in progress)
+status: COMPLETE
 wave: 1
-outcome_pending: CLASSIFICATION + DESIGN COMPLETE
+outcome: CLASSIFICATION + DESIGN COMPLETE
 interactive: true
 plan_contract_ref: .gpd/phases/56-thm-5-8-upper-bound-w-carries-product-form-sequential-product/56-01-PLAN.md#contract
 conventions:
@@ -14,10 +14,10 @@ conventions:
   face_status_default: NOT-FACE (real case); direct S1-S7 on W via vdW 2019 Def. 4 regardless
   wedge_interpretation_default: "Interpretation (A) — Peirce-1 off-diagonal 3-dim subspace of H_3(R)"
   frozen_file: "main-jmp-submitted.tex zero-diff verified at Task 1 and again at pre-checkpoint"
-one_liner: "Plan 56-01 Wave-1 setup: Thm 5.8 upper-bound identity extracted verbatim (composite-lt.tex:203-221 + appendix-proofs.tex:228-238); 18 §5/§6 consumers classified (15 sense-(b), 1 sense-(a), 2 out-of-scope); W face-status = NOT-FACE (real case); three 'carries' senses formalized with sense (b) ⇒ sense (c) free in Paper 5 setting; SymPy design locks Peirce-1 off-diagonal 3-dim wedge interpretation and 5-test plan; awaiting user checkpoint on three routing decisions."
+one_liner: "Plan 56-01 Wave-1 setup COMPLETE: Thm 5.8 upper-bound identity extracted verbatim (composite-lt.tex:203-221 + appendix-proofs.tex:228-238); 18 §5/§6 consumers classified (15 sense-(b), 1 sense-(a), 2 out-of-scope); W face-status = NOT-FACE (real case); three 'carries' senses formalized with sense (b) ⇒ sense (c) free in Paper 5 setting; SymPy design locks Peirce-1 off-diagonal 3-dim wedge interpretation and 5-test plan; user approved all three defaults at 2026-04-17T19:37:24+00:00 — Plan 56-02 routing LOCKED (sense (b)+(c), direct S1-S7 via vdW 2019 Def. 4, Peirce-1 off-diagonal 9-dim W_wedge + full 36-dim W_full)."
 contract_results:
   schema_version: 1
-  status: partial
+  status: complete
   claims:
     - id: claim-identity-extracted
       status: proved
@@ -45,10 +45,10 @@ contract_results:
       notes: "Sections 1-6 populated; wedge ambiguity resolved via Interpretation (A); W_full (36-dim) + W_wedge (9-dim) specs; 5 test cases (CLOSURE, S1, S3, S4, NEGATIVE); Phase 54/55 reuse plan; runtime budget < 30 s; exit-code-0 PASS; FAIL routing table. NO CODE EXECUTED."
       confidence: HIGH
     - id: claim-routing-checkpoint
-      status: partial
+      status: proved
       evidence: [".gpd/phases/56-thm-5-8-upper-bound-w-carries-product-form-sequential-product/56-01-SUMMARY.md"]
-      notes: "SUMMARY drafted with Tasks 1-5 outputs populated; hand-off block STUBBED pending user confirmation on three decisions. Plan 56-02 routing NOT YET LOCKED. Checkpoint envelope returned to orchestrator; awaiting user input."
-      confidence: LOW
+      notes: "User confirmed all three defaults at 2026-04-17T19:37:24+00:00. Decision 1 = sense (b)+(c) recommended; Decision 2 = direct S1-S7 via vdW 2019 Def. 4 (regardless of NOT-FACE verdict); Decision 3 = Peirce-1 off-diagonal 3-dim (run TEST-CLOSURE + TEST-S1 on BOTH 9-dim W_wedge AND full 36-dim W_full). Plan 56-02 routing now LOCKED in hand-off block."
+      confidence: HIGH
   deliverables:
     - id: deliv-identity-md
       status: produced
@@ -71,9 +71,9 @@ contract_results:
       path: ".gpd/phases/56-thm-5-8-upper-bound-w-carries-product-form-sequential-product/sympy-design.md"
       notes: "Task 5 commit 9696e5eb"
     - id: deliv-summary-with-handoff
-      status: partial
+      status: produced
       path: ".gpd/phases/56-thm-5-8-upper-bound-w-carries-product-form-sequential-product/56-01-SUMMARY.md"
-      notes: "Tasks 1-5 outputs populated; hand-off block STUBBED pending Task 6 checkpoint user response."
+      notes: "Tasks 1-5 outputs populated; Task 6 checkpoint resolved — user approved all three defaults at 2026-04-17T19:37:24+00:00; hand-off block LOCKED."
   acceptance_tests:
     - id: test-identity-verbatim
       outcome: pass
@@ -112,11 +112,11 @@ contract_results:
       outcome: pass
       evidence: "sympy-design.md §4 cites `derivations/paper5-peirce-preservation/closeout-sympy.py` (compress, seq_prod) and `derivations/paper5-peirce-preservation/s4-sympy-spot-check.py` (symbolic-exact pattern) by full path."
     - id: test-checkpoint-user-confirmed
-      outcome: partial
-      evidence: "Task 6 checkpoint envelope returned to orchestrator; user confirmation PENDING."
+      outcome: pass
+      evidence: "56-01-SUMMARY.md §'Hand-off block for Plan 56-02' records user confirmation (verbatim quotes) on all three decisions with timestamp 2026-04-17T19:37:24+00:00. User response: 'approved all three defaults'. Decision 1 = 'sense (b) + sense (c) (Recommended)'; Decision 2 = 'direct S1-S7 via vdW 2019 Def. 4 (Recommended)'; Decision 3 = 'Peirce-1 off-diagonal 3-dim (Recommended)'."
     - id: test-handoff-routing-locked
-      outcome: partial
-      evidence: "Hand-off block STUBBED with defaults; final lock PENDING user confirmation on three decisions."
+      outcome: pass
+      evidence: "Hand-off block §'PLAN 56-02 ROUTING (LOCKED)' names approach = direct S1-S7 on W via vdW 2019 Def. 4 + Thm 1; target sense = (b) core + (c) free-corollary; SymPy test set = 5 tests (CLOSURE + S1 on both 9-dim W_wedge and 36-dim W_full; S3, S4, NEGATIVE on W_full); default is unambiguous."
   must_surface_refs:
     - id: ref-composite-lt
       status: completed
@@ -198,22 +198,23 @@ contract_results:
       outcome: rejected
       evidence: "`git -C /Users/ehrlich/repos/blog diff --stat HEAD -- landing/papers/qm-from-self-modeling/main-jmp-submitted.tex` returns zero diff."
     - id: fp-checkpoint-bypass
-      outcome: pending
-      evidence: "Task 6 checkpoint envelope returned to orchestrator; user confirmation awaited. NOT BYPASSED."
+      outcome: rejected
+      evidence: "Task 6 checkpoint NOT bypassed. User confirmation obtained at 2026-04-17T19:37:24+00:00 with explicit response 'approved all three defaults'; verbatim quotes recorded in hand-off block."
     - id: fp-phase-54-ci-bypass
       outcome: rejected
       evidence: "downstream-consumer-scan.md Section 2 flag notes no W-level upper-bound row invokes factor-level Peirce invariance; R11 check documented."
 ---
 
-# Plan 56-01 SUMMARY — Wave-1 Classification + Design (AWAITING TASK 6 CHECKPOINT)
+# Plan 56-01 SUMMARY — Wave-1 Classification + Design (COMPLETE)
 
 ## Outcome
 
-**PROVISIONAL: CLASSIFICATION + DESIGN COMPLETE — Tasks 1-5 done; Task 6 human-decision checkpoint in progress.**
+**CLASSIFICATION + DESIGN COMPLETE.** All six tasks done; Task 6 human-decision
+checkpoint closed with user approving all three defaults at
+`2026-04-17T19:37:24+00:00`. Plan 56-02 routing LOCKED.
 
-Five Wave-1 artifacts produced; routing decisions presented to the user. Final
-Plan-56-02 routing is LOCKED only after the user confirms (or overrides) the three
-routing decisions (carries sense target, face-status handling, wedge interpretation).
+Five Wave-1 artifacts produced; three routing decisions confirmed by the user;
+hand-off block below is the authoritative routing for Plan 56-02.
 
 ## One-liner
 
@@ -233,48 +234,82 @@ SymPy design locks Peirce-1 off-diagonal 3-dim wedge interpretation and 5-test p
 | 4 | Three "Carries" Senses                      | `.gpd/phases/56-.../carries-senses.md`                                                                                        | addbff6e   | Sense (a) set-closure; (b) induced-structure SPS; (c) functorial SPS-morphism. Collapse (c)⇒(b)⇒(a); (a)⇏(b) via Gudder-Greechie 2002 Ex. 39; (b)⇏(c) general caveat but in Paper 5 (b)⇒(c) FREE via 1_W = 1_V. Sense (b) locked for `sms:minimal`. |
 | 5 | SymPy Design                                | `.gpd/phases/56-.../sympy-design.md`                                                                                          | 9696e5eb   | "Wedge component" = Peirce-1 off-diagonal 3-dim subspace of H_3(R) (Interpretation A); W_full (36-dim) + W_wedge (9-dim) specs; 5 tests (CLOSURE/S1/S3/S4/NEGATIVE) reusing Phase 54/55 infrastructure; budget < 30 s. NO CODE EXECUTED. |
 
-## Hand-off block for Plan 56-02 — STUBBED (final lock pending Task 6 user confirmation)
+## Hand-off block for Plan 56-02 — LOCKED
 
 ```
-PROVISIONAL defaults (to be confirmed/overridden at Task 6 checkpoint):
+TIMESTAMP: 2026-04-17T19:37:24+00:00
+USER CONFIRMATION: "approved all three defaults" — Decisions 1, 2, 3 all accepted
+                   at the Recommended option (verbatim quotes below).
 
 Decision 1 — Target 'carries' sense:
-  DEFAULT: sense (b) + sense (c) free-corollary.
+  USER SELECTED: "sense (b) + sense (c) (Recommended)"
+  RESOLVED: proceed with sense (b) [induced-structure SPS] + sense (c) as free
+            corollary (since 1_W = 1_V in the Paper 5 setting).
   Rationale: sense (b) is the minimum for sms:minimal (carries-senses.md §7);
-             sense (c) is automatic since 1_W = 1_V in Paper 5 setting.
+             sense (c) is automatic via 1_W = 1_V, supporting any
+             monoidal-category downstream consumer at zero extra proof cost.
 
 Decision 2 — Face-status handling:
-  DEFAULT: proceed with direct S1-S7 on W via vdW 2019 Def. 4 + Thm 1.
-  Rationale: W face verdict = NOT-FACE (w-face-status.md §3); face-restriction
-             shortcut unavailable. Direct path is primary regardless.
+  USER SELECTED: "direct S1-S7 via vdW 2019 Def. 4 (Recommended)"
+  RESOLVED: proceed with direct S1-S7 on W via vdW 2019 Def. 4 + Thm 1,
+            regardless of face-status verdict. Face-restriction shortcut is NOT
+            invoked.
+  Rationale: W face verdict = NOT-FACE (real case operative), per
+             w-face-status.md §3-4 (concrete witness u = 1_{V_{BM}},
+             w = (1/2) 1_{V_{BM}} + eps v with (F3) hereditariness violation).
+             Direct path is robust to the NOT-FACE verdict and is the primary
+             route.
 
 Decision 3 — H_3(R) 'wedge component' interpretation:
-  DEFAULT: Interpretation (A) — Peirce-1 off-diagonal 3-dim subspace of H_3(R)
-           w.r.t. {p_1 = diag(1,0,0), p_2 = diag(0,1,0), p_3 = diag(0,0,1)}.
-  Rationale: literal "antisymmetric subspace of symmetric matrices" = {0}; (A) is
-             the canonical Peirce-decomposition-based reading; reuses Phase 54
-             compress(B, i, n) infrastructure directly.
+  USER SELECTED: "Peirce-1 off-diagonal 3-dim (Recommended)"
+  RESOLVED: Interpretation (A) — Peirce-1 off-diagonal 3-dim subspace of H_3(R)
+            w.r.t. {p_1 = diag(1,0,0), p_2 = diag(0,1,0), p_3 = diag(0,0,1)};
+            AND run TEST-CLOSURE + TEST-S1 on BOTH the specialized 9-dim
+            W_wedge AND the full 36-dim W_full (completeness requirement).
+  Rationale: literal "antisymmetric subspace of symmetric matrices" is {0};
+             Interpretation (A) is the canonical Peirce-decomposition-based
+             reading, reuses Phase 54 compress(B, i, n) infrastructure directly,
+             and the parallel W_full check prevents silent specialization error.
 
-PLAN 56-02 ROUTING (pending user confirmation):
-  Approach: direct S1-S7 on W via vdW 2019 Def. 4 (locally tomographic composite)
-            + vdW 2019 Thm 1 (finite-dim SPS => EJA).
-  Target: sense (b) core + sense (c) as free corollary.
-  SymPy test set: 5 tests (CLOSURE W_full + W_wedge, S1, S3, S4, NEGATIVE);
-                  reuse Phase 54 closeout-sympy.py (compress, seq_prod) + Phase 55
-                  symbolic-exact pattern.
-  Paper 5 integration site (Plan 56-03): composite-lt.tex:203-221 (living) +
-                                         appendix-proofs.tex:228-238.
-  Frozen file: main-jmp-submitted.tex — DO NOT TOUCH (git tag paper5-jmp-submitted).
-
-TIMESTAMP: <to be filled by Task 6 closeout on user confirmation>
-USER CONFIRMATION: <to be filled verbatim on user response>
+PLAN 56-02 ROUTING (LOCKED):
+  Approach:       direct S1-S7 on W via vdW 2019 Def. 4 (locally tomographic
+                  composite) + vdW 2019 Thm 1 (finite-dim SPS => EJA).
+  Target sense:   sense (b) core + sense (c) free corollary (1_W = 1_V).
+  SymPy scope:    BOTH W_wedge (9-dim, Peirce-1 off-diagonal of H_3(R)⊗H_3(R))
+                  AND W_full (36-dim ambient H_3(R)⊗H_3(R)).
+                  TEST-CLOSURE + TEST-S1 run on each; TEST-S3, TEST-S4,
+                  TEST-NEGATIVE on W_full.
+  SymPy reuse:    Phase 54 closeout-sympy.py (compress, seq_prod) + Phase 55
+                  s4-sympy-spot-check.py symbolic-exact pattern.
+  Runtime budget: < 30 seconds; exit-code-0 = PASS.
+  Paper 5 integration site (Plan 56-03):
+                  composite-lt.tex:203-221 (living) + appendix-proofs.tex:228-238.
+  Frozen file:    main-jmp-submitted.tex — DO NOT TOUCH (git tag
+                  paper5-jmp-submitted; zero-diff reverified at Plan 56-01
+                  close 2026-04-17T19:37:24+00:00).
+  Scope boundary: No paper file may be edited in Plan 56-02; Plan 56-02 writes
+                  only derivations/ (SymPy + LaTeX draft of proof) + .gpd/phases
+                  artifacts. LaTeX integration is Plan 56-03.
 ```
 
-## User Confirmations — AWAITING
+## User Confirmations — RECORDED
 
-The Task 6 checkpoint requests explicit user confirmation on three routing
-decisions. Until the user responds, Plan 56-02 is NOT ROUTED and this SUMMARY is
-PROVISIONAL.
+User approved all three defaults at the Task 6 checkpoint on
+`2026-04-17T19:37:24+00:00`. Verbatim quotes (from the continuation envelope
+prior_state block, treated as the user's authoritative response to the
+checkpoint question):
+
+- **Decision 1:** "sense (b) + sense (c) (Recommended)" — proceed with sense (b)
+  [induced-structure SPS] + sense (c) free-corollary (since 1_W = 1_V).
+- **Decision 2:** "direct S1-S7 via vdW 2019 Def. 4 (Recommended)" — proceed
+  regardless of face-status verdict. (Verdict is NOT-FACE real case;
+  face-restriction unavailable.)
+- **Decision 3:** "Peirce-1 off-diagonal 3-dim (Recommended)" — w.r.t.
+  {p_1 = diag(1,0,0), p_2 = diag(0,1,0), p_3 = diag(0,0,1)}. Run TEST-CLOSURE and
+  TEST-S1 on BOTH specialized 9-dim W_wedge AND full 36-dim W_full.
+
+No override recorded; all three defaults accepted as-is. Plan 56-02 routing is
+now unambiguous per the Hand-off Block above.
 
 ## Deviations
 
@@ -302,11 +337,19 @@ flagged — not in phase-56 argumentative text).
 
 ## Frozen-file discipline
 
-Verified at Task 1 start and at pre-checkpoint: `git -C /Users/ehrlich/repos/blog
-diff --stat HEAD -- landing/papers/qm-from-self-modeling/main-jmp-submitted.tex`
-returns empty output (zero diff).
+Verified at three points during Plan 56-01:
+1. Task 1 start
+2. Pre-checkpoint (after Task 5 artifacts written)
+3. Plan 56-01 close at `2026-04-17T19:37:24+00:00` (final re-verification)
+
+All three invocations of
+`git -C /Users/ehrlich/repos/blog diff --stat HEAD -- landing/papers/qm-from-self-modeling/main-jmp-submitted.tex`
+returned empty output (zero diff). `main-jmp-submitted.tex` remains at git tag
+`paper5-jmp-submitted` with no modifications.
 
 ## Structured return envelope
 
-See "CHECKPOINT REACHED" block returned to the orchestrator alongside this
-SUMMARY.
+Returned to the orchestrator with `status: completed` alongside this SUMMARY.
+Plan 56-01 hand-off block locks Plan 56-02 routing; the orchestrator can now
+unlock Plan 56-02 fanout (`pre_fanout_review_pending: false`; downstream no
+longer locked on this checkpoint).
