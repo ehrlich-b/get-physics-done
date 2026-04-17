@@ -426,10 +426,10 @@
     "current_phase": "54",
     "current_phase_name": "\u00a73.3 Peirce Preservation from OUS Primitives",
     "total_phases": null,
-    "current_plan": "1",
+    "current_plan": "3",
     "total_plans_in_phase": 3,
-    "status": "Phase 54 Wave 1 complete (plan 54-01 AUDIT-FAILS verdict); decision checkpoint before Wave 2",
-    "last_activity": "2026-04-16",
+    "status": "Ready to execute",
+    "last_activity": "2026-04-17",
     "last_activity_desc": "Plan 54-01 complete \u2014 Phase 4-06 circularity audit AUDIT-FAILS on M_n(C) matrix-PSD proof device (line 119-163); Peirce-Preservation Lemma locked in conditional (A)/(C-i) form; A-S citation baseline established with Thm 9.37 PRE-JORDAN-ILLEGAL, Prop 7.36 PROP-NUMBER-UNVERIFIED. Routing recommendation for 54-02: option-b-fails-compression.",
     "progress_percent": 5,
     "paused_at": null
@@ -734,6 +734,18 @@
         "duration": "10 min",
         "tasks": "3",
         "files": "4"
+      },
+      {
+        "label": "Phase 54 P54-02",
+        "duration": "62 min",
+        "tasks": "1",
+        "files": "4"
+      },
+      {
+        "label": "Phase 54 P54-03",
+        "duration": "78 min",
+        "tasks": "9",
+        "files": "11"
       }
     ]
   },
@@ -967,6 +979,16 @@
       "phase": "54",
       "summary": "Plan 54-01: AUDIT-FAILS on v2.0 Phase 4-06 (M_n(C) matrix-PSD proof device at line 119-163); Peirce-Preservation Lemma locked in conditional form; routing for 54-02 = option-b-fails-compression (single non-4-06 (A) attempt via compression combinatorics, then pivot to C-i)",
       "rationale": "Circularity localized to M_n(C) matrix argument, NOT compression algebra \u2014 compression-combinatorics route remains un-foreclosed"
+    },
+    {
+      "phase": "54",
+      "summary": "Plan 54-02 routing = option-b-fails-compression (single non-4-06 compression-combinatorics (A) attempt, then pivot to C-i on failure). A-S book-access blocker deferred to 54-03.",
+      "rationale": "User confirmation after AUDIT-FAILS localized to M_n(C) matrix-PSD (not compression algebra)"
+    },
+    {
+      "phase": "54",
+      "summary": "Plan 54-02 sealed with outcome PIVOT-TO-C-I after attempt-01 failed at structural insufficiency of (A) tool-set (missing bridge C_{p_k}(a)=0 \u27f9 C_{p_k}(a\u2218b)=0, not derivable from {S1,S3,linearity,compressions}). Attempt-02 skipped as redundant",
+      "rationale": "S0 draft belongs in 54-03. (C-ii) feasibility check added as bounded sub-task in 54-03. \u2014 User approved C-i pivot. Executor recommendation plus the 54-RESEARCH.md 'policy-grounded, not truth-grounded' dismissal of (C-ii) motivates a bounded feasibility check rather than a full attempt."
     }
   ],
   "approximations": [],
@@ -1017,5 +1039,5 @@
     "resume_file": "--"
   },
   "_version": 1,
-  "_synced_at": "2026-04-16T21:07:46.784958+00:00"
+  "_synced_at": "2026-04-17T00:34:06.294361+00:00"
 }
