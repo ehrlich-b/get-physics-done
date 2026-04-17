@@ -253,4 +253,149 @@ The fact `C_{p_i} C_{p_j} = 0` for orthogonal projective units `i ≠ j` is a CE
 
 ---
 
+## Section 8: Phase 55-01 Extension — §S4 Region Citation Audit (2026-04-16)
+
+**Phase:** 55 (S4 Facial Structure Lemma)
+**Plan:** 01 (Audit-only classification; see `.gpd/phases/55-s4-facial-structure-lemma/55-01-CLASSIFICATION.md`)
+**Scope:** Paper 5 `sections/axiom-verification.tex` §S4 (lines 95-168) + contiguous Thm 9.37 at line 68 (S2 scope), and `sections/appendix-proofs.tex` §S4-proof (lines 9-138). Append-only: no Phase 54 row modified.
+
+### Row 55-01-A1 — axiom-verification.tex:39 (S1 proof bare Ch. 7 cite)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/axiom-verification.tex:39` |
+| Verbatim quote | `(Alfsen--Shultz~\cite{AlfsenShultz2003}, Ch.~7), and the Peirce` |
+| Citation target | A-S 2003 vol. 190, Ch. 7 (bare chapter) |
+| Classification | **(i) A-S-compression-only / pre-Jordan-legal** |
+| Citation proposal | **TIGHTEN-CITE** → `\cite[Ch.~7, Prop.~7.23, Def.~7.1]{AlfsenShultz2003}` (Prop 7.23 covers positivity/idempotency; Def 7.1 covers unit-image) |
+| Scope | S1 (Additivity) proof; outside §S4 strict scope. LOW priority for Plan 55-02. |
+| Rationale | Compressions as positive linear maps is Ch. 7 content; bare Ch. 7 cite is pre-Jordan-legal but under-specified (R5 minor). Phase 54 already verified Prop 7.23 + Def 7.1 via internal cross-reference. |
+| Status | OPEN for Plan 55-02 (optional tightening) |
+
+### Row 55-01-A2 — axiom-verification.tex:68 (S2 proof Thm 9.37 — PRE-S4 SCOPE)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/axiom-verification.tex:68` |
+| Verbatim quote | `(Alfsen--Shultz~\cite{AlfsenShultz2003}, Ch.~9, Thm.~9.37).` |
+| Citation target | A-S 2003 vol. 190, Ch. 9, Thm 9.37 |
+| Classification | **(iii) Implicit Jordan appeal / PRE-JORDAN-ILLEGAL** |
+| Citation proposal | **REPLACE** → cite A-S 2003 Ch. 8 "Spectral Theory" (p. 251) for continuous spectral functional calculus, OR cite textbook (Bhatia *Matrix Analysis* §VI or Conway *Functional Analysis* §X.2). Drop Thm 9.37 invocation entirely. |
+| Scope | **PRE-S4** — inside S2 (Continuity) proof (lines 47-70 of axiom-verification.tex). 55-01-CLASSIFICATION.md Section 4 records the pre-S4 verdict with 3+ sentences of evidence. **INCLUDE in Plan 55-02 edit scope.** |
+| Rationale | Thm 9.37 is in A-S 2003 Ch. 9 (Jordan state-space characterization), flagged PRE-JORDAN-ILLEGAL per Flag 4.1. S2 is proved before S4, so invoking Jordan structure at this line is R6 circularity. The actual content (spectral functional calculus continuity in finite dim) is classical and has pre-Jordan substitutes. |
+| Status | OPEN for Plan 55-02 (MANDATORY replacement) |
+
+### Row 55-01-A3 — axiom-verification.tex:125 (S4 Case A Thm 9.37 — PRIMARY BUG)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/axiom-verification.tex:125` |
+| Verbatim quote | `(Alfsen--Shultz~\cite{AlfsenShultz2003}, Theorem~9.37)` (context: Peirce direct sum `V = ⊕_i V_2(p_i) ⊕ ⊕_{i<j} V_1(p_i,p_j)`) |
+| Citation target | A-S 2003 vol. 190, Ch. 9, Thm 9.37 |
+| Classification | **(iii) Implicit Jordan appeal / PRE-JORDAN-ILLEGAL** |
+| Citation proposal | **REPLACE-WITH-S0 + REPLACE-WITH-LEMMA** → `(by axiom~\ref{ax:S0} (Peirce coherence, §3.3) and Lemma~\ref{lem:peirce-preservation})`. The Phase 54 S0 axiom and Peirce-Preservation Lemma are the pre-Jordan-legal substitutes for the Peirce direct sum at compression level. |
+| Scope | §S4 Case A main proof sketch. **PRIMARY PHASE 55 BUG.** INCLUDE in Plan 55-02 edit scope (HIGHEST PRIORITY). |
+| Rationale | Thm 9.37 is PRE-JORDAN-ILLEGAL (Flag 4.1). The Peirce direct sum `V = ⊕_i V_2(p_i) ⊕ ⊕_{i<j} V_1(p_i,p_j)` is pre-Jordan-legal via the Phase 54 S0 axiom (mutual compressional annihilation on orthogonal projective units) + A-S compression additivity. The Phase 54 (C-i) seal authorized this substitution exactly. |
+| Phase 54 cross-link | Phase 54 `\begin{axiom}[S0]` in main.tex lines 537-545 with `\label{ax:S0}`; `\begin{lemma}[Peirce-Preservation Lemma]\label{lem:peirce-preservation}` in main.tex lines 590-612 (Parts i, ii, iii). |
+| Status | OPEN for Plan 55-02 (MANDATORY replacement, PRIMARY BUG) |
+
+### Row 55-01-A4 — axiom-verification.tex:136-137 + appendix-proofs.tex:78-79 (Prop 7.43 facial absorption)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/axiom-verification.tex:136-137` AND `sections/appendix-proofs.tex:78-79` (consolidated row) |
+| Verbatim quote (axiom-verification.tex) | `The crucial step invokes the Alfsen--Shultz facial absorption theorem (Proposition~7.43 of~\cite{AlfsenShultz2003}):` followed by blockquote at lines 138-141: `If $C_p(b) = 0$ and $b \ge 0$, then $b \in \mathrm{face}(p^\perp)$.` |
+| Verbatim quote (appendix-proofs.tex) | `The key step is the \emph{facial absorption theorem} (Alfsen--Shultz~\cite{AlfsenShultz2003}, Proposition~7.43):` followed by blockquote at lines 80-84: `If \comp{p}(b) = 0 and b \geq 0, then b \in \mathrm{face}(p^{\perp})`. |
+| Citation target | A-S 2003 vol. 190, Ch. 7, Prop 7.43 |
+| Classification | **(i) A-S-compression-only / pre-Jordan-legal** (Ch. 7 is pre-Jordan-legal) |
+| Citation proposal | **TIGHTEN-CITE** → `\cite[Ch.~7, Prop.~7.43]{AlfsenShultz2003}` at both sites. Preserve the existing verbatim blockquote (already correctly stated). |
+| Verification status | **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** (see `secondary-source-verification.md` → "Prop 7.43 Verification (Phase 55-01, 2026-04-16)" appended entry). Internal cross-reference: `derivations/04-axiom-S4.md` line 65 explicitly cites "A5 (Face containment): b >= 0 and C_p(b) = 0 => b in face(p^perp) | Alfsen-Shultz, Prop. 7.43". Paper 5 blockquote matches verbatim (modulo notation). |
+| Chapter resolution | Ch. 7 "General Compressions" (p. 211) per ADDENDUM Finding 1 TOC reading |
+| Fallback (if verification had failed) | Approach 2 (Foulis-Holland) — NOT TRIGGERED (verification succeeded) |
+| Scope | §S4 Case B; §S4-proof Case B. INCLUDE in Plan 55-02 edit scope (HIGH priority — cite tightening, no content change). |
+| Status | OPEN for Plan 55-02 (cite tightening only; content verified) |
+
+### Row 55-01-A5 — axiom-verification.tex:143-147, 155-157 + appendix-proofs.tex:109-113 (Peirce 1-space cross-term facial-structure handwave)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/axiom-verification.tex:143-147` AND `:155-157` AND `sections/appendix-proofs.tex:109-113` (consolidated row; three parallel invocations of the same unnamed facial-structure handwave) |
+| Verbatim quote (axiom-verification.tex:143-147) | `By the facial structure of spectral order unit spaces, the Peirce $1$-space components $V_1(p_i, p_j)$ connecting a face to its complement are excluded: an effect in $\mathrm{face}(p^\perp)$ has zero component in every $V_1(p_i,p_j)$ for $i\le m$, $j > m$.` |
+| Verbatim quote (axiom-verification.tex:155-157) | `The Peirce $1$-space terms $Q_{jk}(a)$ either vanish by facial structure (when both $\mu_j,\mu_k>0$) or carry zero weight $\sqrt{\mu_j\mu_k}=0$.` |
+| Verbatim quote (appendix-proofs.tex:109-113) | `The Peirce $1$-space terms $Q_{jk}(a)$ either vanish by facial structure (when both $\mu_{j}, \mu_{k} > 0$, so both $q_{j}, q_{k} \leq p_{+}^{\perp}$, and $a$ has no component in $V_{1}(q_{j}, q_{k})$ since $a$ is supported on the complementary face) or carry zero weight $f(\mu_{j}, 0) = 0$ (when $\mu_{k} = 0$).` |
+| Citation target | Unnamed "facial structure" — no A-S prop/thm in the current text |
+| Classification | **(ii) Unnamed facial appeal (post-Jordan-circular risk)** |
+| Citation proposal | **REPLACE-WITH-LEMMA (Part iii)** → `by Lemma~\ref{lem:peirce-preservation} Part (iii) (R3 cross-term case, with role-swap $a \leftrightarrow b$)`. The Phase 54 Peirce-Preservation Lemma Part (iii) was authored precisely for the R3 cross-term case: `q_j, q_k ⊆ p_+^⊥` with `a` supported on `p_+` implies `Q_{jk}(a) = 0`. |
+| Role-swap note | Part (iii) is stated for `L_a` acting on `V_1(p_k, p_l)` with `{p_k}` as orthogonal projective units and `a = Σ_i λ_i p_i`. For the reverse product in S4, roles swap: `b = Σ_j μ_j q_j` plays the role of "a", and `a = Σ_i λ_i p_i` plays the role of "b". The swap is licit (Part (iii) is stated for generic orthogonal families) but must be made explicit in the revision text. |
+| Scope | §S4 Case B; §S4-proof Case B. INCLUDE in Plan 55-02 edit scope (HIGH priority). |
+| Status | OPEN for Plan 55-02 (replacement text) |
+
+### Row 55-01-A6 — axiom-verification.tex:154 + appendix-proofs.tex:106-108 (unnamed "facial orthogonality theorem")
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/axiom-verification.tex:154` AND `sections/appendix-proofs.tex:106-108` (consolidated row) |
+| Verbatim quote (axiom-verification.tex) | `the facial orthogonality theorem gives $C_{q_j}(a) = 0$ for all $j$ with $\mu_j > 0$.` |
+| Verbatim quote (appendix-proofs.tex) | `since $q_{j} \leq p_{+}^{\perp}$ and $a$ is supported on $p_{+}$ (all nonzero eigenvalues correspond to $p_{+}$), the facial orthogonality of complementary faces gives $\comp{q_{j}}(a) = 0$.` |
+| Citation target | Unnamed "facial orthogonality theorem" — no A-S prop/thm in current text |
+| Classification | **(ii) Unnamed facial appeal (post-Jordan-circular risk)** |
+| Citation proposal | **RESOLVE-VIA-S0-TERMWISE** → explicit derivation from S0 axiom: `since $q_j \leq p_+^\perp$ and $p_i \leq p_+$ for each $i \in I_+$, orthogonality in the face lattice gives $q_j \perp p_i$; axiom~\ref{ax:S0} then yields $C_{q_j}(p_i) = 0$; by linearity of $C_{q_j}$ and the spectral decomposition $a = \sum_{i \in I_+} \lambda_i p_i$, we have $C_{q_j}(a) = \sum_i \lambda_i C_{q_j}(p_i) = 0$`. |
+| Alternative (not preferred) | RESOLVE-VIA-PROP-743 — specialize Prop 7.43 to the complementary face with `(p, b) = (q_j, p_+)`. This requires a second Prop 7.43 invocation and is less direct than the S0-termwise derivation. |
+| Scope | §S4 Case B; §S4-proof Case B. INCLUDE in Plan 55-02 edit scope (HIGH priority). |
+| Rationale | Unnamed "facial orthogonality theorem" is an R5 + R6 pitfall (no cite + possible Jordan-circularity). The S0-termwise derivation is pre-Jordan-legal (S0 was authored for this exact use-case in Phase 54) and directly derivable from the already-available Phase 54 toolkit. |
+| Status | OPEN for Plan 55-02 (replacement text with explicit derivation) |
+
+### Row 55-01-B1 — appendix-proofs.tex:37-49 (Peirce direct sum reference in §S4-proof main proof)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/appendix-proofs.tex:37-49` |
+| Verbatim quote | `By the Peirce decomposition~\eqref{eq:peirce-proj}, the terms $\comp{p_{i}}(b) \in V_{2}(p_{i})$ and $\peirce{ij}(b) \in V_{1}(p_{i}, p_{j})$ lie in mutually orthogonal subspaces.  In a direct sum, a sum vanishes if and only if each summand vanishes.` |
+| Citation target | `\eqref{eq:peirce-proj}` (internal Paper 5 equation label); no A-S cite |
+| Classification | **(i) A-S-compression-only / pre-Jordan-legal** (after Phase 54 integration; `\eqref{eq:peirce-proj}` upstream resolves through main.tex §3.3) |
+| Citation proposal | **TIGHTEN-CITE** (optional) → add parenthetical `(by axiom~\ref{ax:S0} and Lemma~\ref{lem:peirce-preservation})` alongside `\eqref{eq:peirce-proj}` for reader clarity. |
+| Scope | §S4-proof Case A/B opening. LOW priority for Plan 55-02 (reader-aid tightening; not a correctness issue). |
+| Status | OPEN for Plan 55-02 (optional) |
+
+### Row 55-01-B2 — appendix-proofs.tex:85-89 (compressions act independently on orthogonal faces)
+
+| Field | Value |
+|-------|-------|
+| Paper 5 file:line | `sections/appendix-proofs.tex:85-89` |
+| Verbatim quote | `Since $\comp{p_{i}}(b) = 0$ for each $i \in I_{+}$, and compressions for orthogonal projective units act independently on their respective faces, we have $\comp{p_{+}}(b) = \sum_{i \in I_{+}} \comp{p_{i}}(b) = 0$.` |
+| Citation target | Unnamed "compressions ... act independently" — no A-S cite |
+| Classification | **(i) A-S-compression-only / pre-Jordan-legal** (the statement is true; just needs a cite) |
+| Citation proposal | **TIGHTEN-CITE** → add `\ref{ax:S0}` (S0 axiom) for the independence property, OR `\cite[Ch.~7, Prop.~7.50]{AlfsenShultz2003}` for the compression-composition route. Either is pre-Jordan-legal. |
+| Scope | §S4-proof Case B support-projection step. MEDIUM priority for Plan 55-02. |
+| Rationale | The "act independently" claim is exactly S0 (mutual annihilation on orthogonal pairs) + compression additivity. Phase 54 Prop 7.50 internal cross-reference authorizes the `C_p ∘ C_q = C_{p ∧ q}` route. |
+| Status | OPEN for Plan 55-02 (citation insertion) |
+
+---
+
+## Change Log Addendum (Phase 55-01)
+
+- **2026-04-16 (Phase 55-01):** Appended Section 8 with 7 new rows covering Paper 5 `sections/axiom-verification.tex` §S4 region + contiguous pre-S4 Thm 9.37 at line 68, and `sections/appendix-proofs.tex` §S4-proof region. No Phase 54 row modified (append-only discipline).
+
+  **Rows added:**
+  - **55-01-A1** — axiom-verification.tex:39 → (i) TIGHTEN-CITE (S1 proof bare Ch. 7 cite; LOW priority)
+  - **55-01-A2** — axiom-verification.tex:68 → (iii) REPLACE (Thm 9.37 in S2 proof; PRE-S4 SCOPE per 55-01-CLASSIFICATION.md Section 4; MANDATORY Plan 55-02 fix)
+  - **55-01-A3** — axiom-verification.tex:125 → (iii) REPLACE-WITH-S0 + REPLACE-WITH-LEMMA (Thm 9.37 for Peirce direct sum; PRIMARY PHASE 55 BUG)
+  - **55-01-A4** — axiom-verification.tex:136-137 + appendix-proofs.tex:78-79 → (i) TIGHTEN-CITE (Prop 7.43 facial absorption; **VERIFIED-VIA-INTERNAL-CROSS-REFERENCE** per `secondary-source-verification.md` Phase 55-01 entry at `derivations/04-axiom-S4.md:65`)
+  - **55-01-A5** — axiom-verification.tex:143-147, 155-157 + appendix-proofs.tex:109-113 → (ii) REPLACE-WITH-LEMMA (Part iii) (Peirce 1-space cross-term handwave; role-swap required)
+  - **55-01-A6** — axiom-verification.tex:154 + appendix-proofs.tex:106-108 → (ii) RESOLVE-VIA-S0-TERMWISE (unnamed "facial orthogonality theorem"; explicit S0-termwise derivation)
+  - **55-01-B1** — appendix-proofs.tex:37-49 → (i) TIGHTEN-CITE optional (Peirce direct sum reference; reader-aid)
+  - **55-01-B2** — appendix-proofs.tex:85-89 → (i) TIGHTEN-CITE (compressions act independently; add S0 or Prop 7.50 cite)
+
+  **A-S 2001 citation check:** `grep -n 'AlfsenShultz2001' sections/axiom-verification.tex sections/appendix-proofs.tex` returns zero hits. No fp-volume-collapse bug to correct in the §S4 region.
+
+  **Prop 7.43 verification status:** VERIFIED-VIA-INTERNAL-CROSS-REFERENCE → A-S 2003 Ch. 7, Prop 7.43 via `derivations/04-axiom-S4.md` line 65. Exact statement `b ≥ 0 ∧ C_p(b) = 0 ⟹ b ∈ face(p^⊥)` matches Paper 5 blockquote verbatim.
+
+  **Line 68 scope decision:** PRE-S4 SCOPE (S2 proof), INCLUDE IN PLAN 55-02 EDIT SCOPE. See `.gpd/phases/55-s4-facial-structure-lemma/55-01-CLASSIFICATION.md` Section 4 for 3+ sentence justification.
+
+  **Consumed by:** Plan 55-02 (revision text + integration), Plan 55-03 (phase close + adversarial review).
+
+  **Classification document:** `.gpd/phases/55-s4-facial-structure-lemma/55-01-CLASSIFICATION.md`.
+
+---
+
 _Downstream consumers (Phases 55, 57, 58) may append rows but MUST NOT modify existing rows without a dated change-log entry. Resolving a VERIFICATION-DEFERRED / QUOTE-PENDING / NEEDS-VERIFICATION row is a modification and requires the change-log entry; do NOT silently overwrite. Paraphrasing A-S book text is strictly forbidden per fp-as-notes-paraphrase — if the book is not accessible, keep the QUOTE-PENDING marker and flag for later verification._
