@@ -610,10 +610,10 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 | S4 facial-structure argument classified (Foulis-Holland / Hanche-Olsen / Jordan) | Phase 55 | Planned |
 | Alfsen-Shultz 2001 vol. 179 vs 2003 vol. 190 citation resolution | Phase 55 | Planned |
 | §3.3-§3.4 S4 revision text consistent with Phase 54 outcome | Phase 55 | Planned |
-| Thm 5.8 upper-bound text extraction (`main.tex` §5) | Phase 56 | Planned |
-| W-is-a-face verification (precondition for KV closure on W) | Phase 56 | Planned |
-| Product-form closure via vdW 2019 Thm 1 restriction to W | Phase 56 | Planned |
-| Small-case SymPy W closure check on H_3(ℝ) wedge component | Phase 56 | Planned |
+| Thm 5.8 upper-bound text extraction (`main.tex` §5) | Phase 56 | **Complete** |
+| W-is-a-face verification (precondition for KV closure on W) | Phase 56 | **Complete — NOT-FACE (real case, witness)** |
+| Product-form closure via vdW 2019 Thm 1 restriction to W | Phase 56 | **Complete — via vdW 2019 Def. 4 + Thm 1 direct route (face-restriction bypassed)** |
+| Small-case SymPy W closure check on H_3(ℝ) wedge component | Phase 56 | **Complete — 5/5 PASS, 0.006s** |
 | `phi-audit.md` shared artifact (consumed by 54, 58, 59) | Phase 57 | Planned |
 | Phi notation split or standing-definition drafts | Phase 57 | Planned |
 | §3-§6 revision text removing Phi equivocation | Phase 57 | Planned |
@@ -664,7 +664,11 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
   - [x] 55-01-PLAN.md — COMPLETE. 10 §S4-region A-S invocations classified (1 iii primary, 1 iii secondary surfaced, 3 ii unnamed, 6 i tightenable); Prop 7.43 VERIFIED; line-68 PRE-S4 scope; Approach 1 (S0 + Prop 7.43) CONFIRMED.
   - [x] 55-02-PLAN.md — COMPLETE. §S4 revision integrated across 3 paper files (+71/−33); 12/14 acceptance tests PASS unconditionally; 2 conditional on user-side pdflatex run (env-gate).
   - [x] 55-03-PLAN.md — COMPLETE. SymPy PASS; cross-check zero-drift; adversarial review PASS-WITH-CAVEATS; 55-RESULT.md at outcome (C-i); alfsen-shultz-notes.md Phase 55 CLOSE entry; CONSISTENCY-CHECK 4/4 PASS.
-- [ ] **Phase 56: Thm 5.8 Upper Bound on W** -- depends on Phase 54; addresses R7 "carries" ambiguity.
+- [x] **Phase 56: Thm 5.8 Upper Bound on W** -- COMPLETE 2026-04-17. Outcome **(B)**: W is NOT a face (real-case concrete witness) but direct S1-S7-on-W via vdW 2019 Def. 4 + Thm 1 succeeded. Sense (c) SPS-morphism established as free corollary via `1_W = 1_{V_{BM}}`; 18 §5/§6 consumers all get sense (c). SymPy H_3(ℝ)⊗H_3(ℝ) 5/5 PASS (0.006s, symbolic-exact, EXIT=0). §5 revision integrated across living composite-lt.tex L203-239 + appendix-proofs.tex L227-248 (blog commit 61fbff6, +44/-16). Frozen-file main-jmp-submitted.tex zero-diff verified ≥5×. Adversarial review PASS-WITH-CAVEATS (16-artifact priming; R1-R7 + R11 all closed; 4 non-blocking inherited + 1 nitpick). Backtracking rule NOT TRIGGERED. Verifier PASSED (HIGH, 6/6 contract targets, 9/12 independently confirmed). Consistency CONSISTENT (0 violations, 0 convention drift; R5 + R11 cascades CLOSED). Gates Phases 57-59 OPEN.
+  - **Plans:** 3 plans
+  - [x] 56-01-PLAN.md — COMPLETE. Thm 5.8 identity extracted verbatim; 18 consumers classified (15 sense-b, 1 sense-a, 2 out-of-scope); W verdict NOT-FACE real case; three carries-senses formalized ((b)⇒(c) free when 1_W=1_V); SymPy designed (Peirce-1 off-diag 3-dim + 36-dim W_full). User routing locked.
+  - [x] 56-02-PLAN.md — COMPLETE. w-sps-proof.md (S1-S7 on W via vdW 2019 Def. 4 + Thm 1, per-axiom fallback); ci-sps-morphism.md ((c1)-(c4) verified); carries-three-sense-table.md (20-row consumer matrix); SymPy 5/5 PASS in 0.006s.
+  - [x] 56-03-PLAN.md — COMPLETE. DIFF-REPORT CL-1+AP-1; integration at blog commit 61fbff6 (tectonic compile-clean user-confirmed); alfsen-shultz-notes Phase 56 CLOSE append; 5-dim CROSS-CHECK 5/5 PASS; adversarial PASS-WITH-CAVEATS; 56-RESULT outcome (B) with 13+1 sections; CONSISTENCY-CHECK 4/4 PASS, 15/15 forbidden-proxies REJECTED; exit-gate user-approved.
 - [ ] **Phase 57: Phi Inert-Wrapper Resolution** -- depends on Phases 54 + 55; produces shared `phi-audit.md`.
 - [ ] **Phase 58: Lean Axiom Audit** -- critical-path bottleneck (~2-3 working days); parallel with Phase 54. Mandatory first tasks: reconcile 16 vs 19 via `#print axioms`; confirm `lake build` 0-sorry baseline.
 - [ ] **Phase 59: Minimal Composite Assumption Defense** -- mostly independent of 54-57; STRICTLY LAST (requires latexdiff, depends on all prior RESULT.md files).

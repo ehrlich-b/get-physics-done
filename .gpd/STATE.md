@@ -11,16 +11,16 @@ See: .gpd/PROJECT.md (updated 2026-04-16)
 
 ## Current Position
 
-**Current Phase:** 56 (Phase 55 COMPLETE 2026-04-17)
-**Current Phase Name:** Thm 5.8 Upper Bound on W
+**Current Phase:** 57 (Phase 56 COMPLETE 2026-04-17)
+**Current Phase Name:** Phi Inert-Wrapper Resolution
 **Total Phases:** 59 (v14.0: Phases 54-59, 6 jigsaw-piece gaps; 54 + 55 closed)
 **Current Plan:** 0
 **Total Plans in Phase:** 0
-**Status:** Phase complete — ready for verification
+**Status:** Phase 56 SEALED at outcome **(B)**; verifier PASSED (HIGH, 6/6 contract targets, 9/12 independently confirmed; 1 non-blocker = sandbox-denied SymPy re-run, mitigated by log structure + Phase-54-audited helper reuse + adversarial review); consistency CONSISTENT (0 violations, 0 convention drift from Phases 54/55; R5 + R11 cascades CLOSED; 12 `\ref{lem:peirce-preservation}` invocations in w-sps-proof.md §3; only A-S cite is `\cite[Ch.~1, Thm.~1.23]{AlfsenShultz2003}`). Phase 57 ready for `/gpd:plan-phase 57`.
 **Last Activity:** 2026-04-17
-**Last Activity Description:** Phase 55 close: §S4 revision integrated across 3 paper files (blog repo commits b44408e, f4fb2f8, e134c24); SymPy spot-check PASS on H_3(R) rank-2 + H_4(R) rank-deficient (both directions, symbolic-exact, 0.3s); cross-check against derivations/04-axiom-S4.md confirms zero silent drift; adversarial review via gpd-review-math PASSES-WITH-CAVEATS (R1/R5/R6/R7 closed); backtracking rule NOT triggered; verifier independently re-executed SymPy script (0.305s, 4/4 PASS); frozen-file main-jmp-submitted.tex zero-diff preserved; 55-RESULT.md + 55-VERIFICATION.md + CONSISTENCY-CHECK.md + alfsen-shultz-notes.md Phase 55 CLOSE entry all committed. Two non-blocking post-close TODOs: Prop 7.43 book-text upgrade + minor typo at axiom-verification.tex:152-154. Gates for Phases 56/57/58/59 OPEN.
+**Last Activity Description:** Phase 56 close: §5 Thm 5.8 upper-bound revision integrated into LIVING Paper 5 working copy (blog commit 61fbff6: composite-lt.tex L203-239 + appendix-proofs.tex L227-248, +44/-16); outcome **(B)** — W is NOT a face (real-case concrete witness u=1_{V_BM}, w=½1+εv) but direct S1-S7-on-W via vdW 2019 Def. 4 + Thm 1 succeeded primary-route ≤ 2 pages; sense (c) SPS-morphism (ι: W ↪ V_{BM}) established as free corollary via 1_W = 1_{V_{BM}} with set-theoretic restriction; 18 §5/§6 consumers all get sense (c) (R7 mitigation); SymPy H_3(ℝ)⊗H_3(ℝ) 5/5 PASS (0.006s, symbolic-exact, EXIT=0) on W_wedge (Peirce-1 off-diag 3-dim) + W_full (36-dim) per user-locked Interpretation A; frozen-file main-jmp-submitted.tex zero-diff verified ≥5× across Plan 56-03; tectonic compile-clean user-confirmed at Task 2 checkpoint; gpd-review-math adversarial review PASS-WITH-CAVEATS (16-artifact priming; R1-R7 + R11 all closed; 4 non-blocking inherited caveats + 1 nitpick; zero BLOCKING); backtracking rule NOT TRIGGERED (conjunct 2 FALSE); verifier independent: re-derived collapse diagram (c)⇒(b)⇒(a), trivial B=M=ℝ² small-case sanity, R1 Jordan-circularity re-check (SPS-first confirmed); 56-VERIFICATION.md + 56-03-CROSS-CHECK.md (5/5 PASS) + 56-03-ADVERSARIAL-REVIEW.md + 56-RESULT.md (13+1 sections) + CONSISTENCY-CHECK.md (4/4 PASS, 15/15 forbidden-proxies REJECTED) + alfsen-shultz-notes.md Phase 56 CLOSE entry all committed. Exit-gate user-approved 2026-04-17. Two non-blocking Phase 59 cleanup items: pre-existing unbracketed `\cite{AlfsenShultz2003}, Theorem~1.23` at appendix-proofs.tex:220 (inherited pre-Phase-55); clean-env SymPy re-run recommended before JMP submission. Gates for Phases 57/58/59 OPEN.
 
-**Progress:** [████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 33% (Plans 54-01/02/03 + 55-01/02/03 of ~18 v14.0 plans complete; Phases 54 + 55 SEALED outcome (C-i); Phase 56 next)
+**Progress:** [███████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 50% (Plans 54-01/02/03 + 55-01/02/03 + 56-01/02/03 = 9 of ~18 v14.0 plans complete; Phases 54 + 55 SEALED (C-i), Phase 56 SEALED (B); Phase 57 next)
 
 ## Active Calculations
 
@@ -49,7 +49,6 @@ None yet.
 - Does Alfsen-Shultz 2001 vol. 179 or 2003 vol. 190 contain a theorem implying this preservation from OUS primitives? ADDENDUM says essentially NO (Peirce post-Jordan). (Phase 54)
 - Does prior GPD v2.0 Phase 4-06 work (commit `9608ac54`) already contain this proof, assume the claim, or neither? (Phase 54 mandatory first task)
 - Is the S4 facial structure lemma citable to Alfsen-Shultz (correct volume + prop number) or provable standalone pre-Jordan? (Phase 55)
-- Is W a face of the ambient EJA so Thm 5.8 can invoke KV closure? What "carries" sense does Thm 5.8 downstream need? (Phase 56)
 - Does Phi have a single consistent role across Paper 5 sections, or is the inert-wrapper usage equivocating? (Phase 57)
 - How many of the 16 (claimed) / 19 (grep) axioms in Paper 5 Lean formalization are type-(iii) statement-mismatch? (Phase 58)
 - Is Paper 5's minimal-composite assumption defensible against Hardy / Masanes-Müller / Chiribella-D'Ariano-Perinotti / Dakić-Brukner / Barnum-Wilce / Kent 2024 patterns? (Phase 59)
@@ -62,6 +61,7 @@ None yet.
 
 **Historical resolved (preserved in state.json; condensed here):**
 
+- RESOLVED (56, outcome B): W is NOT a face of V_{BM} (real case, concrete witness) — face-restriction unavailable; direct S1-S7-on-W via vdW 2019 Def. 4 + Thm 1 succeeded. Thm 5.8 downstream needs sense (c) SPS-morphism; established as free corollary of sense (b) via 1_W = 1_{V_{BM}} for all 18 §5/§6 consumers.
 - RESOLVED (52-01): Boosts = L_{sigma_i} in Str_0 via KKT.
 - RESOLVED (53-02): N=2 SUSY derived via GST bijection; not assumed.
 - RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types — see state.json.
@@ -129,6 +129,10 @@ None yet.
 
 ### Decisions
 
+- [Phase 56, Close]: Phase 56 SEALED at outcome **(B)** — W is NOT a face of V_{BM} (real case, concrete witness constructed at Plan 56-01 Task 3) but direct S1-S7-on-W via vdW 2019 Def. 4 + Thm 1 succeeded primary-route proof ≤ 2 pages (Plan 56-02 Task 2 w-sps-proof.md). Sense (c) SPS-morphism established as free corollary from sense (b) because 1_W = 1_B ⊗ 1_M = 1_{V_{BM}} and ∘|_W is set-theoretic restriction (Plan 56-02 Task 3 ci-sps-morphism.md). All 18 §5/§6 consumers of thm:local-tomo receive sense (c) — R7 "carries" equivocation mitigated (Plan 56-02 Task 4 carries-three-sense-table.md, 20-row matrix). SymPy H_3(ℝ)⊗H_3(ℝ) spot-check 5/5 PASS in 0.006s symbolic-exact (Plan 56-02 Task 1 w-closeout-sympy.py + .log; Peirce-1 off-diag 3-dim W_wedge + 36-dim W_full per user Interpretation A). §5 revision integrated into LIVING Paper 5 working copy via blog commit 61fbff6: hunks CL-1 (composite-lt.tex L203-239; three-senses disambiguated vdW 2019 Def. 4 framing + BGW 2020 SPS-morphism free-upgrade) + AP-1 (appendix-proofs.tex L227-248; sense-(a) closure preserved + sense-(b)/(c) bridge). Frozen-file main-jmp-submitted.tex zero-diff verified ≥5×. Phase 54 (C-i) R11 cascade CLOSED (12 `\ref{lem:peirce-preservation}`/`\ref{ax:S0}` invocations in w-sps-proof.md §3 factor-level; paper text uses structural vdW 2019 Def. 4 route, R11 vacuously satisfied). Phase 55 (C-i) R5 cascade PRESERVED (only new A-S cite is `\cite[Ch.~1, Thm.~1.23]{AlfsenShultz2003}`; zero Ch. 9; zero bare cites). Adversarial review PASS-WITH-CAVEATS (16-artifact priming; zero BLOCKING; 4 non-blocking inherited + 1 nitpick); verifier PASSED HIGH (6/6, 9/12 independently confirmed); consistency CONSISTENT (0 drift). Backtracking rule NOT TRIGGERED. Two non-blocking Phase 59 cleanup items flagged: pre-existing unbracketed A-S Thm 1.23 cite at appendix-proofs.tex:220 (pre-Phase-55 legacy); clean-env SymPy re-run for JMP submission.
+- [Phase 56, Plan 03]: §5 revision integrated via blog commit 61fbff6 (+44/-16, 2 files: composite-lt.tex + appendix-proofs.tex); tectonic compile-clean user-confirmed at Task 2 checkpoint:human-verify (pdflatex substituted by tectonic). Three-senses framing inline-tags all 8 "carries" occurrences in after-text. New citations use pre-existing keys (`vandeWetering2019` Def. 2/4; `BarnumGraydonWilce2020` §2). CL-2 OMITTED (use-site tagging in CL-1 sufficient; sms:minimal clause sense-agnostic). In-session primary adversarial review per Phase 54/55 precedent (16-artifact priming exceeds 12-artifact plan minimum); fresh-context review recommended but non-blocking for Phase 59. Exit-gate user-approved 2026-04-17.
+- [Phase 56, Plan 02]: Direct S1-S7-on-W primary route = vdW 2019 Def. 4 (locally tomographic composite) + Thm 1 (finite-dim SPS ⇒ EJA); per-axiom S1-S7 fallback table authored as defensive backup. Sense (c) upgrade via (c1)-(c4) verification of ι: W ↪ V_{BM} is SPS-morphism; key lemma 1_W = 1_{V_{BM}} via tensor-product effect-algebra unit identity requires both V_B and V_M to have distinguished units (given by finite-dim archimedean OUS convention). SymPy w-closeout-sympy.py reuses Phase 54 `compress(B,i,n)` + `seq_prod(...)` helpers and Phase 55 symbolic-exact pattern; runtime 0.006s well under 30s budget.
+- [Phase 56, Plan 01]: Routing LOCKED per user-confirmed defaults: target sense (b)+(c) free-corollary (since 1_W = 1_V in Paper 5 setting); direct S1-S7 on W via vdW 2019 Def. 4 + Thm 1 regardless of face-status verdict; H_3(ℝ) "wedge component (3-dim antisymmetric)" = Peirce-1 off-diagonal 3-dim subspace w.r.t. {diag(1,0,0), diag(0,1,0), diag(0,0,1)} (Interpretation A) with parallel 36-dim W_full tests. W face-status verdict: NOT-FACE real case (concrete witness u=1_{V_BM}, w=(1/2)1_{V_BM}+εv); NOT-FACE complex case by dim V_BM > d² argument. Three carries senses formalized: (c) ⇒ (b) ⇒ (a); (a)⇏(b) via Gudder-Greechie 2002 Example 39 [AXIOM-STATED-IN-SECONDARY-SOURCE]; (b)⇏(c) general caveat but (b)⇒(c) FREE in Paper 5 because 1_W = 1_V. Downstream consumer scan: 15 sense-(b), 1 sense-(a), 2 sense-(c) out-of-scope, 0 unclassified; sms:minimal locked sense (b).
 - [Phase 53, Plan 02]: GST classification applied to h_3(O). All 3 hypotheses verified (H1 degree 3, H2 formally real, H3 positive-definite trace). N=2 SUSY derived via 10-step non-circular chain. Phase 49 cross-check max error = 0. Honest assessment: matter sector STRONG, gravitational coupling MEDIUM (Weinberg).
 - [Phase 53, Plan 01]: VSR metric G_{IJ} computed via Hessian of -ln(V) with V = C h h h. 26 tangent eigenvalues {1/4, 3/8, 1(x24)} at diag(1,1,1). Exactly 4 E_{6(-26)}-invariant two-derivative terms proved. All coefficient ratios fixed without SUSY: alpha_2/alpha_3 by Schur on irreducible 26, alpha_4/alpha_3 by gauge invariance + VSR identity, alpha_1/alpha_2 by Weinberg canonical normalization. Honest fallback: matter sector uniquely fixed; -R/2 ratio requires Weinberg or SUSY.
 - [Phase 52, Plan 02]: OD7 observer independence verified via F_4 conjugacy (P automorphism error 1.9e-15). Uniqueness theorem: all 4-dim Jordan subalgebras of JSpin(9) are JSpin(3) parametrized by Gr(3,9), only JSpin(3) gives KKT dim 15. Complex structure u selects h_2(C_u) uniquely; different u related by G_2. Complete OD1-OD7 table verified.
@@ -230,7 +234,8 @@ None yet.
 
 **v14.0 active:**
 
-- **Phase 54 gate:** GPD v2.0 Phase 4-06 circularity audit has NOT been run. Phase 54's mandatory first task; (A)-via-internal-prior-art is UNAVAILABLE if audit fails (ADDENDUM recommends pivot to (C-i) S0). Gate for 55, 56, 57.
+- **Phase 54 gate:** CLEARED. GPD v2.0 Phase 4-06 circularity audit ran; AUDIT-FAILS localized to M_n(C) matrix-PSD (compression algebra clean); Phase 54 closed at (C-i) with S0 axiom. Gates for 55/56/57 OPEN and exercised (55/56 closed; 57 remains).
+- **Phase 56 non-blocking cleanup (for Phase 59):** Pre-existing unbracketed `\cite{AlfsenShultz2003}, Theorem~1.23` at appendix-proofs.tex:220 (pre-Phase-55 legacy; out-of-scope for Phase 55/56). Clean-env SymPy re-run of w-closeout-sympy.py recommended before JMP submission (Phase 56 verifier hit sandbox denial on re-run; mitigated by log structure + Phase-54 helper reuse + adversarial review).
 - **Phase 58 prerequisite:** `lake build` under pinned `leanprover/lean4:v4.28.0` + mathlib v4.28.0 must produce 0 sorry before `#print axioms` is trustworthy. If build fails, Phase 58 cannot proceed and milestone blocks.
 - **Phase 58 axiom count delta:** Milestone claims 16 Paper-5 axioms; grep of `^axiom ` in `~/repos/research/lean/RadicalRelativity/` finds 19 (4 in `NonComposability.lean`, 1 in `ObserverInterface.lean`, 13 in `SelfModelingBridge.lean`, 1 in `CStarBridge.lean`). `#print axioms` on headline theorems must reconcile.
 - **Phase 59 prerequisite:** `latexdiff` + `git-latexdiff` not currently installed on this machine; `brew install latexdiff` is a hard prerequisite for the final referee diff.
@@ -245,6 +250,6 @@ None yet.
 
 ## Session Continuity
 
-**Last session:** 2026-04-16
-**Stopped at:** v14.0 ROADMAP.md created (6 phases 54-59, 32/32 REQs mapped, contract items surfaced per phase). Phase 54 ready for `/gpd:plan-phase 54`. Prior session (2026-04-13): Phase 53 complete, v13.0 milestone complete.
+**Last session:** 2026-04-17
+**Stopped at:** Phase 56 COMPLETE at outcome (B); verifier PASSED HIGH (6/6, 9/12 independent); consistency CONSISTENT (0 drift; R5+R11 cascades CLOSED); exit-gate user-approved. Phase 57 ready for `/gpd:plan-phase 57`.
 **Resume file:** --
