@@ -713,17 +713,17 @@ Plans:
 
 1. Clause (i) is verified for A = h_3(C_u) ~ M_3(C)^sa: it is a finite-dimensional spectral order-unit space with at least two orthogonal nontrivial projective units (M_3(C)^sa has Jordan rank 3, hence three mutually orthogonal nontrivial projective units).
 2. Clause (iv) is verified: A is simple -- no nontrivial direct-sum decomposition into nonzero order-unit subspaces (M_3(C) is a simple algebra; no nontrivial central idempotents).
-3. rem:converse is instantiated for M_3(C)^sa to supply clause (ii) (faithful tracking phi = id, order isomorphism) and clause (iii) (minimal internal composite; minimal = maximal per BGW, product-form sequential product on A). All four Def 1 clauses (i)-(iv) hold for A as a self-modeler in its own right, with clause (iii) checked as stated (NOT redefined to be trivially satisfied).
+3. rem:converse is instantiated for M_3(C)^sa to supply clause (ii) (faithful tracking phi = id, order isomorphism) and clause (iii) (minimal internal composite; CORRECTED per Phase 60: the minimal/standard composite M_9(C)^sa is a DIRECT SUMMAND of the universal/maximal composite M_9(C)^sa (+) M_9(C)^sa — minimal != maximal, extra classical bit, BGW Thm 4.15/Cor 4.16; minimality SELECTS the standard summand — NOT "minimal = maximal coincide", which was the stale pre-Phase-60 phrasing; product-form sequential product on A). All four Def 1 clauses (i)-(iv) hold for A as a self-modeler in its own right, with clause (iii) checked as stated (NOT redefined to be trivially satisfied).
 4. SymPy/matrix verification on M_3(C)^sa (VALD-61-01) confirms: Jordan rank 3; three mutually orthogonal rank-1 projective units summing to the identity; no nontrivial central idempotents (simplicity); and the composite dimension check dim(M_3(C)^sa (x) M_3(C)^sa) = dim(M_9(C)^sa) = 81. Runtime < 5 s; assertions symbolic/numeric-exact.
 
 **Backtracking trigger:** If clause (i) or (iv) FAILS for M_3(C)^sa (would contradict standard structure), or if satisfying clause (iii) requires redefining it -> the slice is not a self-modeler in its own right; revisit Phase 60 framing and the rem:converse confirmation.
 
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 61-01: TBD (verify clauses i, iv; instantiate rem:converse for ii, iii)
-- [ ] 61-02: TBD (VALD-61-01 SymPy: rank 3, projective units, simplicity, composite dim 81)
+- [ ] 61-01-PLAN.md (wave 2) -- Clause-by-clause derivation: verify clauses (i) finite/spectral/>=2 projective units and (iv) simple directly (citing 61-02 SymPy evidence); instantiate rem:converse in CORRECTED direct-summand form for clauses (ii) phi=id and (iii) minimal composite M_9(C)^sa AS STATED (minimal != maximal); explicitly defer induced-by-E to Phase 62; flag the stale "minimal=maximal" text. Appends attempt-03.md. (DERV-61-01/-02/-03, DERV-00-01)
+- [ ] 61-02-PLAN.md (wave 1) -- VALD-61-01 SymPy/matrix: exact-symbolic rank 3 with three orthogonal rank-1 projective units summing to I_3, simplicity (no nontrivial central idempotent), composite real-dim 81=9*9 (maximal 162 != 81), and product-form sequential product factorization on the associative M_9(C)^sa (closes the Phase 60 open item). Runtime < 5 s; exact assertions. Backs 61-01's clause claims as evidence.
 
 ### Phase 62: Coherent Embedding under E (the hard part)
 
