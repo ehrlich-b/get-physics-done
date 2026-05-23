@@ -1,4 +1,4 @@
-# Roadmap: Experiential Measure on Structure Space
+# Research Roadmap: v15.0 The P5 <-> Basin Restriction Lemma (Experiential Measure on Structure Space)
 
 ## Milestones
 
@@ -15,7 +15,8 @@
 - **v11.0 Gap C Complexification from Sequential Product** -- Phases 42-45 (completed 2026-04-05)
 - **v12.0 GR from det(X) on h_3(O)** -- Phases 46-51 (completed 2026-04-12)
 - **v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure** -- Phases 52-53 (completed 2026-04-13)
-- **v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps** -- Phases 54-59 (in progress, initialized 2026-04-16)
+- **v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps** -- Phases 54-59 (PAUSED 2026-04-17, pending JMP referee report; see `.gpd/V14-CLOSEOUT.md`)
+- **v15.0 The P5 <-> Basin Restriction Lemma** -- Phases 60-63 (ACTIVE, initialized 2026-05-23)
 
 ## Phases
 
@@ -583,324 +584,241 @@ See `.gpd/milestones/v13.0-ROADMAP.md` for full details (when archived).
 
 </details>
 
-### Active: v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps (In Progress)
+<details>
+<summary>v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps (Phases 54-59) -- PAUSED 2026-04-17 (pending JMP referee report)</summary>
 
-**Milestone Goal:** Close six jigsaw-piece gaps in Paper 5 (JMP26-AR-00922, 19 days with associate editor as of 2026-04-16) before the referee report arrives, so revisions ship fast and survive scrutiny. Each gap closes with outcome (A) rigorous proof from stated primitives, (B) precise external citation, or (C) explicit structural-gap characterization. Phase 54 (§3.3 Peirce preservation) is load-bearing and fully scoped; Phases 55-59 expand as Phase 54 classifies.
+**Status:** PAUSED, resumable. Not failed, not complete. Paper 5 (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703) is with the JMP associate editor. Resume on (a) referee report received, or (b) explicit user restart. Full inventory + resumption mechanics: `.gpd/V14-CLOSEOUT.md`.
 
-**Paper-level attack surface:**
-- Paper 5's derivation spine: OUS + S1-S7 ⇒ (vdW Thm 1) ⇒ EJA ⇒ (local tomography + qubit subsystem) ⇒ M_n(ℂ)^sa.
-- Central risk (all phases): circularity via implicit Jordan structure. vdW Thm 1 consumes S4 to produce Jordan, so any pre-S4 argument that invokes Jordan is circular. (C-iii) "restructure to derive Jordan before S4" is EXPLICITLY UNAVAILABLE and must not be attempted.
-- Pause condition: outcome (C) on any phase → milestone pauses for human decision (restructure / add explicit assumption / rewrite). Above GPD's pay grade.
+- [x] Phase 54: §3.3 Peirce Preservation from OUS Primitives (3/3 plans) -- sealed (C-i): S0 Peirce-coherence axiom + Peirce-Preservation Lemma integrated to `main.tex`.
+- [x] Phase 55: S4 Facial Structure Lemma (3/3 plans) -- sealed (C-i): §S4 revision integrated; A-S cites tightened; SymPy H_3(R)/H_4(R) PASS.
+- [x] Phase 56: Thm 5.8 Upper Bound on W (3/3 plans) -- sealed (B): W carries product-form sequential product via vdW 2019 Def. 4 + Thm 1; SPS-morphism corollary.
+- [ ] Phase 57: Phi Inert-Wrapper Resolution -- ABANDONED mid-planning (blog commit `a0190df` honest-language fix made it duplicative). Partial plans under `phases/57-phi-inert-wrapper-resolution/abandoned/`.
+- [ ] Phase 58: Lean Axiom Audit -- DEFERRED (not started).
+- [ ] Phase 59: Minimal Composite Assumption Defense + referee diff -- DEFERRED (not started; depends on referee report).
 
-**Prior on Phase 54 outcomes (ADDENDUM + PRIOR-WORK synthesis, 2026-04-16):**
-- (A) via GPD v2.0 Phase 4-06 corrected-product formula -- MEDIUM, conditional on Phase 4-06 circularity audit passing
-- (B) precise external Alfsen-Shultz citation -- essentially ruled out; Peirce decomposition is post-Jordan in accessible literature (A-S 2003 TOC + Jenčová-Pulmannová 2021 §3-5)
-- (C-i) add OUS-level "Peirce coherence" axiom S0 alongside S1-S7 -- HIGH fallback probability
-- (C-ii) alternative S4 proof routing around Peirce -- speculative
+Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key references are preserved in `.gpd/V14-CLOSEOUT.md` and `.gpd/milestones/v14.0-ROADMAP.md` (when archived).
+
+</details>
+
+### Active: v15.0 The P5 <-> Basin Restriction Lemma (In Progress)
+
+**Milestone Goal:** Prove or DISPROVE the program's spine -- the single load-bearing join between Paper 5 (observer forced COMPLEX by HAVING a composite, Def 1 clause iii) and Paper 7 (basin forced OCTONIONIC by having NO composite). Concretely: prove or disprove RESTRICTION -- that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa (reached by a positive unital conditional expectation E: h_3(O) -> A, lem:bottleneck / Effros-Stormer) satisfies Paper 5 Definition 1 clause (iii), with the observer's body-model composite realized COHERENTLY as a sub-structure of the NON-composable h_3(O) induced by the Peirce/bottleneck restriction -- so Paper 5's theorem certifies the observer's complex C* structure even though h_3(O) is non-composable. If RESTRICTION holds, "self-modeling -> QM -> h_3(O)" is a genuine through-line; if it fails (precise obstruction), the observer's C and the basin's O are INDEPENDENT posits.
+
+**A clean negative result (a precisely-characterized structural obstruction) is a fully acceptable, valuable outcome. Do NOT force a positive.**
+
+**The attack (4 steps -> 4 phases, Phases 60-63):**
+
+1. **Two-composites distinction** (Phase 60, rigorous + non-circular): the observer's clause-(iii) body-model composite V_BM is a DIFFERENT object from h_3(O)'s BGW Jordan-monoidal non-composability. Non-composability of h_3(O) does NOT entail non-existence of V_BM. The claim is circular/false if these collapse -- the distinction must be EARNED.
+2. **Slice satisfies clause (iii)** (Phase 61): verify h_3(C_u) ~ M_3(C)^sa meets all four Def 1 clauses as a self-modeler in its own right (rem:converse supplies (ii)-(iii); check (i), (iv); SymPy validates).
+3. **Coherent embedding under E** (Phase 62, the hard part -- where an obstruction would live): show the self-modeling data on A (its V_BM, its sequential product a&b = sqrt(a) b sqrt(a)) is INDUCED by / consistent with the ambient h_3(O) Jordan structure under E -- demonstrated on the ACTUAL non-associative structure, NOT asserted. Preservation proof OR precise obstruction.
+4. **Verdict** (Phase 63): a clean RESTRICTION theorem, OR a precisely-characterized obstruction, with the explicit consequence for the program. Adversarial fresh-eyes review of the reward-hacking guards.
+
+**Reward-hacking guard (CENTRAL RISK -- every phase carries a circularity/conflation check):** do NOT "prove" the claim by (1) redefining clause (iii) to be trivially satisfied [fp-redefine-iii]; (2) conflating the observer's body-model composite with the BGW universe-tensoring [fp-conflate-composites]; (3) asserting the Peirce restriction preserves clause (iii) without demonstrating it on the actual non-associative h_3(O) structure [fp-assert-preservation]; or (4) forcing a positive RESTRICTION theorem when the honest outcome is an obstruction [fp-force-positive].
+
+**Pause condition:** the two composites collapse (claim circular), OR the coherent-embedding step needs structure NOT induced by E (obstruction signature requiring imported structure) -> milestone pauses for human decision. A characterized obstruction is a DELIVERABLE, not a pause.
+
+**Deliverable (verdict-only):** `derivations/p5-basin-restriction/` tree -- `claim.md`, `STATE.md`, `attempt-NN.md` (one per serious attempt), `RESULT.md` (theorem-or-obstruction + program consequence), with explicit SymPy/matrix checks on h_3(O) and h_3(C_u). Ready-to-insert Paper 7 LaTeX (rem:converse + lemma + proof) is an outcome-dependent follow-up (FUTR-01), OUT of scope this milestone.
+
+**Sources (LIVE, NOT the stale repo `papers/`):** Paper 5 Def 1 `~/repos/blog/landing/papers/qm-from-self-modeling/main.tex` (def:self-modeling-system line 342); lem:bottleneck `~/repos/blog/landing/papers/sm-from-self-modeling/sections/complexification.tex` (line 409). Inline definitions in `~/scratch/get-physics-done/p5-basin-restriction-prompt.md` are authoritative. rem:converse is prompt-inline; it is NOT yet a labeled remark in the live complexification.tex.
 
 **Contract Overview:**
 
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
-| §3.3 Peirce preservation proof / citation / S0 axiom | Phase 54 | **Complete (C-i)** |
-| Phase 4-06 circularity audit (commit `9608ac54`, gate for A vs C-i) | Phase 54 | **Complete — AUDIT-FAILS** |
-| `alfsen-shultz-notes.md` shared artifact (consumed by 55, 57, 58) | Phase 54 | **Complete** |
-| Small-case SymPy Peirce-invariance sanity check on H_3(ℝ) | Phase 54 | **Complete — 4/4 PASS** |
-| Adversarial fresh-eyes review of Phase 54 RESULT.md | Phase 54 | **Complete — PASSES-WITH-CAVEATS (2 non-blocking)** |
-| S4 facial-structure argument classified (Foulis-Holland / Hanche-Olsen / Jordan) | Phase 55 | Planned |
-| Alfsen-Shultz 2001 vol. 179 vs 2003 vol. 190 citation resolution | Phase 55 | Planned |
-| §3.3-§3.4 S4 revision text consistent with Phase 54 outcome | Phase 55 | Planned |
-| Thm 5.8 upper-bound text extraction (`main.tex` §5) | Phase 56 | **Complete** |
-| W-is-a-face verification (precondition for KV closure on W) | Phase 56 | **Complete — NOT-FACE (real case, witness)** |
-| Product-form closure via vdW 2019 Thm 1 restriction to W | Phase 56 | **Complete — via vdW 2019 Def. 4 + Thm 1 direct route (face-restriction bypassed)** |
-| Small-case SymPy W closure check on H_3(ℝ) wedge component | Phase 56 | **Complete — 5/5 PASS, 0.006s** |
-| `phi-audit.md` shared artifact (consumed by 54, 58, 59) | Phase 57 | Planned |
-| Phi notation split or standing-definition drafts | Phase 57 | Planned |
-| §3-§6 revision text removing Phi equivocation | Phase 57 | Planned |
-| Axiom count reconciliation 16 (claimed) vs 19 (grep) via `#print axioms` | Phase 58 | Planned (mandatory first task) |
-| `lake exe cache get && lake build` baseline 0-sorry confirmation | Phase 58 | Planned (mandatory first task) |
-| Per-axiom classification (i) theorem-in-disguise / (ii) def-as-axiom / (iii) statement-mismatch / (iv) genuine primitive | Phase 58 | Planned |
-| `axiom-audit-table.md` with literature citations per axiom | Phase 58 | Planned |
-| Adversarial defense vs Hardy / Masanes-Müller / Chiribella / Dakić-Brukner / Barnum-Wilce / Kent 2024 | Phase 59 | Planned |
-| `brew install latexdiff` + `git-latexdiff` installation | Phase 59 | Planned (prerequisite) |
-| Final `latexdiff` against `paper5-jmp-submitted` tag | Phase 59 | Planned |
-| Consolidated JMP revision-response letter draft | Phase 59 | Planned |
+| claim-two-composites (V_BM != BGW universe-tensoring; non-composability of h_3(O) does not preclude V_BM) | Phase 60 | Planned |
+| claim-slice-clause-iii (h_3(C_u) ~ M_3(C)^sa satisfies all four Def 1 clauses) | Phase 61 | Planned |
+| claim-restriction (clause-(iii) structure on A coherently induced by ambient h_3(O) under E) | Phase 62, Phase 63 | Planned (PROVE or DISPROVE) |
+| obs-verdict (clean RESTRICTION theorem OR precise obstruction) | Phase 63 | Planned |
+| deliv-two-composites (`derivations/p5-basin-restriction/`) | Phase 60 | Planned |
+| deliv-slice-clause-iii (clause-by-clause + SymPy) | Phase 61 | Planned |
+| deliv-embedding (sequential product under E on real h_3(O)) | Phase 62 | Planned |
+| deliv-verdict (`RESULT.md`) | Phase 63 | Planned |
+| claim.md + derivation-tree STATE.md | Phase 60 | Planned |
+| attempt-NN.md log (DERV-00-01) | Phases 60-63 | Planned |
+| verdict line (DERV-00-02) | Phase 63 | Planned |
 
-**Key References (v14.0-critical):**
-- Alfsen-Shultz 2001 vol. 179 *State Spaces of Operator Algebras: Basic Theory, Orientations, and C*-products* (Birkhäuser) -- OUS/compressions Ch. 7-8; Phase 55 primary target
-- Alfsen-Shultz 2003 vol. 190 *Geometry of State Spaces of Operator Algebras* (Birkhäuser) -- Jordan state-space characterization Ch. 9 (Thm 9.37 CITED but pre-Jordan-illegal per ADDENDUM); Part I Ch. 1-3 Jordan Peirce
-- van de Wetering 2019 (arXiv:1803.11139), *Sequential Product Spaces are Jordan Algebras* -- Thm 1 (S1-S7 ⇒ EJA), Def. 2 (S1-S7 verbatim); Thm 3 (SP + LT + self ⇒ C*)
-- van de Wetering 2018 (arXiv:1803.08453), *Three Characterisations of the Sequential Product* -- functional calculus characterization
-- Westerbaan-Westerbaan-van de Wetering 2020 (arXiv:2004.12749), *Three Types of Normal SEA* -- relevant to Thm 5.8 upper bound (Phase 56)
-- Hanche-Olsen & Størmer 1984 *Jordan Operator Algebras* §2.6 -- Peirce for unital Jordan algebras only (NOT OUS-level)
-- Jenčová & Pulmannová 2021 (arXiv:2102.01628), §3-5 -- OUS spectrality comparison; confirms Peirce is post-Jordan
-- Niestegge 2008 (arXiv:1001.3633), *A Representation of Quantum Measurement in Order-Unit Spaces* -- `U_e` compression convention cross-reference
-- Gudder & Greechie 2002 *Sequential products on effect algebras* -- Example 39 (associative non-EJA SEA, Phase 56 counterexample anchor)
-- Barnum & Wilce 2014 (arXiv:1202.4513) -- EJA + LT + qubit ⇒ M_n(ℂ)^sa (Phase 59 defense anchor)
-- Hardy 2001 (quant-ph/0101012); Masanes-Müller 2011 (arXiv:1004.1483); Chiribella-D'Ariano-Perinotti 2011 (arXiv:1011.6451); Dakić-Brukner 2009 (arXiv:0911.0695); Masanes-Galley-Müller 2019 (Nat. Comm. 10, 1361); Kent 2024 (arXiv:2405.17733) -- Phase 59 adversarial pattern anchors
-- Paper 5 source, frozen at git tag `paper5-jmp-submitted`: `~/repos/blog/landing/papers/qm-from-self-modeling/main-jmp-submitted.tex` (§3.3 lines 483-562; key claim lines 508-528; revisions land in `main.tex`)
-- Paper 5 Lean formalization: `~/repos/research/lean/Paper5/` (claimed 0 sorry / 16 axioms; grep finds 19 `^axiom` in `RadicalRelativity/`; pinned `leanprover/lean4:v4.28.0` + mathlib v4.28.0)
-- GPD v2.0 Phase 4-06 corrected SP formula `a ∘ b = Σᵢ λᵢ C_{pᵢ}(b) + Σ_{i<j} √(λᵢλⱼ) P_{ij}(b)` -- commit `9608ac54`, 2026-03-21, `.gpd/phases/04-sequential-product-formalization/04-06-PLAN.md` + `04-06-SUMMARY.md` (CORE internal prior art; circularity audit pending)
+**Anchors (the 5 must-read references; all `must_surface: true`):**
+- **ref-paper5-def1** -- Paper 5 live `main.tex` def:self-modeling-system (line 342): four self-modeling clauses; clause (iii) (minimal internal composite -> local tomography) forces the complex field. [Phases 60, 61, 62, 63]
+- **ref-lem-bottleneck** -- Paper 7 live `complexification.tex` lem:bottleneck (line 409) + rem:converse (prompt-inline): slice A = h_3(C_u) ~ M_3(C)^sa, F_4-orbit of maximal C*-targets, conditional expectation E, rank-1 Peirce-0 = h_2(C_u). [Phases 61, 62]
+- **ref-bgw** -- Barnum-Graydon-Wilce 2020 (FRJA composability, Jordan-monoidal): defines the universe-tensoring h_3(O) FAILS; grounds the two-composites distinction and rem:converse (minimal=maximal for M_n(C)^sa). [Phases 60, 62]
+- **ref-effros-stormer** -- Effros-Stormer 1979 (positive projections onto JB-subalgebras): underwrites E: h_3(O) -> A; the coherent-embedding step turns on what E preserves (Jordan vs sequential product). [Phase 62]
+- **ref-hanche-olsen** -- Hanche-Olsen universal tensor product of Jordan algebras (special vs exceptional): characterizes when Jordan algebras admit well-behaved composites; relevant to whether the slice's composite is induced or imported. [Phases 60, 62]
 
-**Key Pitfalls (v14.0-specific; see PITFALLS.md for full list):**
-- **R1 (CRITICAL): Circularity via Jordan.** Forbidden tokens in any Phase 54 / 55 pre-S4 proof or RESULT.md: `M_n(ℂ)`, `Jordan`, `EJA`, `Lüders`, `pxp`, `√a b √a`, "operator product". Allowed tools: OUS primitives, ≤, 1, A-S compressions, S1, S3, linearity, finite-dim. Grep proof for these tokens.
-- **R2 (CRITICAL): Peirce decomposition ≠ Peirce invariance.** Citing the decomposition theorem as if it proves `L_a` preserves `V_j(p_i)` is a non-sequitur.
-- **R3: Composite-map case analysis.** The corrected SP formula has TWO sums (compression + mixing); verify invariance independently for each, AND handle cross-term V_1(p_k,p_l) for {k,l}∩{i,j}=∅.
-- **R4 ("obvious" rate limit):** Revised §3.3 must be at least as long as the submitted 20 lines at main.tex:508-528.
-- **R5: Vague A-S citations.** Every `\cite{AlfsenShultz...}` must become `\cite[Ch. X, Thm Y.Z]{AlfsenShultz2001}` or `...{AlfsenShultz2003}` with correct volume (2001 vol. 179 vs 2003 vol. 190). DO NOT collapse the two volumes.
-- **R6: Hanche-Olsen facial argument pre-S4.** H-O §2.6 Peirce is Jordan-algebraic; invoking it before S4 is verified is circular.
-- **R7: "Carries" equivocation in Thm 5.8.** Distinguish closure (a∘b ∈ W) from induced-structure (W with restricted ∘ is an SPS) from functorial preservation (inclusion is an SPS morphism). Downstream use needs the last two, not just the first.
-- **R8: Phi overloading.** Phi plays different roles in §2 (tracking), §3 (faithfulness), §4 (inert wrapper), §5-6 (LT specialization); enumerate every occurrence before editing.
-- **R9: Three axiom failure types.** Lean axiom audit must classify each axiom as (i) theorem-in-disguise, (ii) definition-as-axiom, (iii) statement-mismatch (type-correct but cited source doesn't imply it), (iv) genuine primitive.
-- **R10: Minimal-composite adversarial magnet.** Hardy 2001 "simplicity" axiom was immediately critiqued; every subsequent reconstruction had to defend its composite assumption. Defend against all six patterns, not just one.
-- **R11: Cross-phase cascade.** If Phase 54 outcome is (C-i), Phases 55 S4 phi-independence and 57 phi-inertness share the same circularity pattern and may need shared restructuring.
-- **(C-iii) UNAVAILABLE:** restructuring to derive Jordan before S4 creates fresh circularity via vdW Thm 1. Do not attempt.
+**Carry-forward prior GPD outputs (bear on the embedding question):**
+- **v6.0** (Gap C algebraic -- all 4 routes failed; V_1 = R bottleneck): the Peirce interface to V_{1/2} is scalar; no C*-subalgebra inside h_3(O); observer necessarily external.
+- **v8.0** (basin impossibility; observable algebra M_16(R)): basin's Peirce structure alone cannot force complexification.
+- **v11.0** (Gap C closure via C*-observer sequential product): C-linear Luders closure extends Cl(9,0) to Cl(9,C); the sequential product a&b = sqrt(a) b sqrt(a) exits M_16(R).
+- **Octonion / h_3(O) SymPy infrastructure** from v8.0/v11.0 -- REUSE for VALD-61-01 and VALD-62-01.
+
+**Unresolved context gaps (surfaced; carried into planning):**
+- The coherent-embedding step (Phase 62, step 3) is ENTIRELY unproved -- the deepest unproven, load-bearing join in the program, and where any obstruction lives.
+- rem:converse is prompt-authoritative but is NOT yet a labeled remark in the live complexification.tex; its exact statement ("minimal = maximal composite for M_n(C)^sa via BGW") must be confirmed against BGW (Phase 60/61).
+- Whether E is coherent with the SEQUENTIAL product (not only the Jordan product) is unverified -- non-associativity may leak in (Phase 62).
 
 **Phase checklist:**
 
-- [x] **Phase 54: §3.3 Peirce Preservation from OUS Primitives** -- COMPLETE 2026-04-17. Outcome **(C-i)**: S0 axiom (Peirce Coherence: `C_{p_i}C_{p_j}=0` on orthogonal projective units) + §3.3 revision integrated to `main.tex` (+136/-21). Phase 4-06 AUDIT-FAILS localized to M_n(C) matrix-PSD (compression algebra clean). Attempt-01 failed at missing bridge `C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0`; (C-ii) RULED-OUT by bounded feasibility check. Fresh-context adversarial review PASSES-WITH-CAVEATS. Shared artifact `alfsen-shultz-notes.md` ready for 55/57/58 consumption (A-S 2003 vol. 190 Ch. 2/7/8 attribution; Niestegge/H-O-S secondary-source verification upgraded 5 rows). Gates Phases 55-57 OPEN.
-- [x] **Phase 55: S4 Facial Structure Lemma** -- COMPLETE 2026-04-17. Outcome **(C-i)**: §S4 revision integrated across axiom-verification.tex / appendix-proofs.tex / main.tex (blog repo commits b44408e, f4fb2f8, e134c24). Line-125 Thm 9.37 replaced with S0 + Peirce-Preservation Lemma refs; line-68 secondary bug fixed via Ch.~8 spectral theory cite (discovered by 55-01 audit). Every A-S cite tightened to bracketed `\cite[Ch.~X, Prop.~Y.Z]` form. Prop 7.43 cited as `\cite[Ch.~7, Prop.~7.43]` with inlined statement and VERIFIED-VIA-INTERNAL-CROSS-REFERENCE via derivations/04-axiom-S4.md:65. Role-swap annotations explicit at both Part (iii) invocations. SymPy spot-check on H_3(R)/H_4(R) PASS (symbolic-exact, 0.3s, both directions). Cross-check against derivations/04-axiom-S4.md: zero silent drift. Adversarial review: PASS-WITH-CAVEATS (5 non-blocking + 1 nitpick; R1/R5/R6/R7 closed). Backtracking rule NOT triggered. Frozen-file main-jmp-submitted.tex zero-diff preserved. Verifier HIGH (6/6 contract targets, SymPy independently re-executed). Consistency CONSISTENT (0 violations, 0 convention drift from Phase 54). Gates Phases 56-59 OPEN.
-  - **Plans:** 3 plans
-  - [x] 55-01-PLAN.md — COMPLETE. 10 §S4-region A-S invocations classified (1 iii primary, 1 iii secondary surfaced, 3 ii unnamed, 6 i tightenable); Prop 7.43 VERIFIED; line-68 PRE-S4 scope; Approach 1 (S0 + Prop 7.43) CONFIRMED.
-  - [x] 55-02-PLAN.md — COMPLETE. §S4 revision integrated across 3 paper files (+71/−33); 12/14 acceptance tests PASS unconditionally; 2 conditional on user-side pdflatex run (env-gate).
-  - [x] 55-03-PLAN.md — COMPLETE. SymPy PASS; cross-check zero-drift; adversarial review PASS-WITH-CAVEATS; 55-RESULT.md at outcome (C-i); alfsen-shultz-notes.md Phase 55 CLOSE entry; CONSISTENCY-CHECK 4/4 PASS.
-- [x] **Phase 56: Thm 5.8 Upper Bound on W** -- COMPLETE 2026-04-17. Outcome **(B)**: W is NOT a face (real-case concrete witness) but direct S1-S7-on-W via vdW 2019 Def. 4 + Thm 1 succeeded. Sense (c) SPS-morphism established as free corollary via `1_W = 1_{V_{BM}}`; 18 §5/§6 consumers all get sense (c). SymPy H_3(ℝ)⊗H_3(ℝ) 5/5 PASS (0.006s, symbolic-exact, EXIT=0). §5 revision integrated across living composite-lt.tex L203-239 + appendix-proofs.tex L227-248 (blog commit 61fbff6, +44/-16). Frozen-file main-jmp-submitted.tex zero-diff verified ≥5×. Adversarial review PASS-WITH-CAVEATS (16-artifact priming; R1-R7 + R11 all closed; 4 non-blocking inherited + 1 nitpick). Backtracking rule NOT TRIGGERED. Verifier PASSED (HIGH, 6/6 contract targets, 9/12 independently confirmed). Consistency CONSISTENT (0 violations, 0 convention drift; R5 + R11 cascades CLOSED). Gates Phases 57-59 OPEN.
-  - **Plans:** 3 plans
-  - [x] 56-01-PLAN.md — COMPLETE. Thm 5.8 identity extracted verbatim; 18 consumers classified (15 sense-b, 1 sense-a, 2 out-of-scope); W verdict NOT-FACE real case; three carries-senses formalized ((b)⇒(c) free when 1_W=1_V); SymPy designed (Peirce-1 off-diag 3-dim + 36-dim W_full). User routing locked.
-  - [x] 56-02-PLAN.md — COMPLETE. w-sps-proof.md (S1-S7 on W via vdW 2019 Def. 4 + Thm 1, per-axiom fallback); ci-sps-morphism.md ((c1)-(c4) verified); carries-three-sense-table.md (20-row consumer matrix); SymPy 5/5 PASS in 0.006s.
-  - [x] 56-03-PLAN.md — COMPLETE. DIFF-REPORT CL-1+AP-1; integration at blog commit 61fbff6 (tectonic compile-clean user-confirmed); alfsen-shultz-notes Phase 56 CLOSE append; 5-dim CROSS-CHECK 5/5 PASS; adversarial PASS-WITH-CAVEATS; 56-RESULT outcome (B) with 13+1 sections; CONSISTENCY-CHECK 4/4 PASS, 15/15 forbidden-proxies REJECTED; exit-gate user-approved.
-- **[DEFERRED 2026-04-17 — v14.0 PAUSED]** **Phase 57: Phi Inert-Wrapper Resolution** -- ABANDONED mid-planning; blog commit `a0190df` honest-language fix already landed pre-GPD; adversarial review on 2026-04-17 judged Phase 57 duplicative. Research + partial plans preserved under `phases/57-phi-inert-wrapper-resolution/` (abandoned plans under `./abandoned/`). Specification below retained for potential resumption if JMP referee report flags φ equivocation.
-- **[DEFERRED 2026-04-17 — v14.0 PAUSED]** **Phase 58: Lean Axiom Audit** -- NOT STARTED. Specification below retained for resumption.
-- **[DEFERRED 2026-04-17 — v14.0 PAUSED]** **Phase 59: Minimal Composite Assumption Defense** -- NOT STARTED. Specification below retained. Depends on referee report arrival for final latexdiff + response letter. See `.gpd/V14-CLOSEOUT.md` for pause rationale and resumption mechanics.
+- [ ] **Phase 60: Two-Composites Distinction** -- DERV-60-01..04. Earn the distinction non-circularly; produce claim.md + derivation STATE.md.
+- [ ] **Phase 61: Slice Satisfies Clause (iii)** -- DERV-61-01..03, VALD-61-01. All four Def 1 clauses for M_3(C)^sa; SymPy validation.
+- [ ] **Phase 62: Coherent Embedding under E** (the hard part) -- DERV-62-01..03, VALD-62-01. Preservation proof OR precise obstruction, demonstrated on the actual non-associative h_3(O).
+- [ ] **Phase 63: Verdict** -- DERV-63-01..02, DERV-00-02. RESULT.md theorem-or-obstruction + adversarial guard review.
+- [ ] **Milestone-level:** DERV-00-01 (attempt-NN.md log, spans 60-63), DERV-00-02 (verdict line, Phase 63).
 
 ## Phase Details
 
-### Phase 54: §3.3 Peirce Preservation from OUS Primitives
+### Phase 60: Two-Composites Distinction
 
-**Goal:** Close the §3.3 Peirce-preservation claim of Paper 5 (lines 483-562; key claim lines 508-528) with outcome (A) rigorous proof from OUS primitives, (B) precise external citation, or (C-i / C-ii) explicit structural-gap characterization. Specifically: `a ∘ V_2(p_i) ⊆ V_2(p_i)` and `a ∘ V_1(p_i, p_j) ⊆ V_1(p_i, p_j)` for `a = Σᵢ λᵢ p_i` in a spectral OUS, using only S1, S3, linearity, and A-S compression primitives (idempotency, positivity, `C_p + C_{p'} = id`). Any use of Jordan multiplication, EJA, sequential-product formula `f(λ,μ) = √(λμ)`, C*-structure, or `h_n(ℂ)` is circular and prohibited.
+**Goal:** The observer's clause-(iii) body-model composite V_BM is established as a genuinely DIFFERENT object from h_3(O)'s BGW Jordan-monoidal non-composability -- rigorously and non-circularly, so the RESTRICTION claim does not presuppose its own conclusion. The derivation workspace (`claim.md`, `STATE.md`) is initialized.
 
-**Depends on:** Nothing within v14.0 (entry point). Reads v2.0 Phase 4-06 (commit `9608ac54`), Paper 5 §3.3, Alfsen-Shultz 2001 + 2003 volumes.
-**Requirements:** DERV-54-01, DERV-54-02, DERV-54-03, DERV-54-04, DERV-54-05, DERV-54-06 (conditional), VALD-54-01, VALD-54-02, DERV-00-01 (Phase 54 slice)
-
-**Contract Coverage:**
-- Advances: §3.3 Peirce-preservation claim closed at outcome (A), (C-i), or (C-ii); Phase 54 `RESULT.md` with revision text for Paper 5 §3.3
-- Decisive deliverables: (1) Phase 4-06 circularity-audit verdict with token-level trace (mandatory first task; pass/fail determines A vs C-i). (2) `derivations/paper5-peirce-preservation/claim.md` restating claim with allowed/prohibited tool lists. (3) `derivations/paper5-peirce-preservation/attempt-NN.md` per serious proof attempt (numbered). (4) `derivations/paper5-peirce-preservation/alfsen-shultz-notes.md` with per-citation (volume, chapter, section, theorem, exact statement, match-to-Paper-5 verdict) — SHARED ARTIFACT consumed by Phases 55, 57, 58. (5) `RESULT.md` with outcome classification (A/C-i/C-ii), proof or S0 axiom draft, and §3.3 revision text. (6) SymPy H_3(ℝ) numerical sanity check on two orthogonal rank-1 projectors.
-- Anchor coverage: GPD v2.0 Phase 4-06 corrected SP formula (commit `9608ac54`, CORE internal prior art, circularity audit pending); Alfsen-Shultz 2001 vol. 179 Ch. 7-8 compressions; Alfsen-Shultz 2003 vol. 190 (NOTE: Thm 9.37 pre-Jordan-illegal per ADDENDUM); vdW 2019 Def. 2 (S1, S3 ONLY; S4-S7 forbidden here); Paper 5 `main.tex` at tag `paper5-jmp-submitted`
-- Required prior outputs: Paper 5 `main-jmp-submitted.tex` §3.3 lines 483-562 (frozen); v2.0 Phase 4-06 corrected product Eq. 04-06.4; `.gpd/research/ADDENDUM-independent-literature-check.md` for (B)-unavailability justification
-- Forbidden proxies (MUST NOT appear in proof): "Since `a ∘ b` is a Jordan product..." (uses derived structure); citing Peirce decomposition theorem as if it proves invariance of `L_a` (R2 non-sequitur); conflating "compressions `c_{p_i}` preserve Peirce subspaces" (A-S fact) with "`a ∘ (−)` preserves Peirce subspaces" (claim about composite map); citing A-S Thm 9.37 (pre-Jordan-illegal); tokens `M_n(ℂ)`, `Jordan`, `EJA`, `Lüders`, `pxp`, `√a b √a`, "operator product"; silently shifting to (C-iii) restructure-before-S4 (UNAVAILABLE)
-
-**Success Criteria** (what must be TRUE when Phase 54 closes):
-
-1. **Phase 4-06 circularity audit** (DERV-54-01, mandatory first task) has a pass/fail verdict with step-by-step token-level trace of every tool used in the derivation of Eq. 04-06.4. Verdict `AUDIT-PASSES` means no Jordan/EJA/`√(λμ)`/C*-structure/`h_n(ℂ)` step was found; verdict `AUDIT-FAILS` names the specific step and tool. Forbidden-token grep on Phase 4-06 prose has zero hits (pass) or identifies every hit (fail).
-2. **Outcome classification** is exactly one of:
-   - (A) Complete §3.3 proof using only S1, S3, linearity, and A-S compressions; both `a ∘ V_2(p_i) ⊆ V_2(p_i)` AND `a ∘ V_1(p_i, p_j) ⊆ V_1(p_i, p_j)` addressed per Peirce subspace (including cross-terms `V_1(p_k, p_l)` for {k,l}∩{i,j}=∅, per R3); proof is ≥ submitted 20 lines (per R4); forbidden-token grep on RESULT.md has zero hits.
-   - (C-i) OUS-level "Peirce coherence" axiom S0 explicitly stated, with defense showing it is automatic in M_n(ℂ)^sa, C(X), spin factors, plus operational motivation (compatible measurements act block-diagonally) plus comparison to literature analogues (Niestegge compression base). §3.3 revision text introduces S0 as OUS-level assumption distinct from S1-S7.
-   - (C-ii) Alternative S4 proof routing around Peirce entirely, with construction stated and defended.
-3. **SymPy sanity check** (VALD-54-01): on H_3(ℝ) with two orthogonal rank-1 projectors, construct `a = Σᵢ λᵢ p_i`, compute `a ∘ b` for `b` in each Peirce subspace, assert numerical Peirce invariance. Runtime < 1 second.
-4. **Adversarial fresh-eyes review** (VALD-54-02): a second agent, with no prior Phase 54 context, reads RESULT.md and verifies no prohibited structure was silently invoked; returns PASS or a specific objection.
-5. **`alfsen-shultz-notes.md` SHARED ARTIFACT** produced: every Paper 5 `\cite{AlfsenShultz...}` in §3.3-§3.4 resolved to (volume 2001 vol. 179 vs 2003 vol. 190, chapter, section, theorem number, exact statement, verdict: does the cited theorem imply the Paper 5 invocation pre-Jordan?). Explicit flag on Thm 9.37 (pre-Jordan-illegal) and Prop 7.36 (Lean `SelfModelingBridge.lean` citation; prop number unverified).
-
-**Backtracking:** If Phase 4-06 circularity audit FAILS, (A) via internal prior art is unavailable — proceed to (C-i) and stop attempting to prove. If (A) attempts accumulate without closure in a reasonable time cap and all attempts silently drift toward Jordan tokens, pivot to (C-i) (ADDENDUM recommendation). If adversarial fresh-eyes review in VALD-54-02 finds a prohibited structure, mark `attempt-NN.md` as failed and open the next attempt or pivot. (C-iii) restructure-before-S4 is EXPLICITLY UNAVAILABLE and must not be tried. Outcome (C) on this phase triggers milestone pause for human decision.
-
-**Plans:** 3 plans
-
-- [x] 54-01-PLAN.md — COMPLETE. Phase 4-06 AUDIT-FAILS (M_n(C) matrix-PSD at line 119-163; compression algebra uncompromised); `claim.md` locked in conditional form; `alfsen-shultz-notes.md` baseline.
-- [x] 54-02-PLAN.md — COMPLETE. attempt-01 failed at structural insufficiency (missing bridge `C_{p_k}(a)=0 ⟹ C_{p_k}(a∘b)=0`); attempt-02 skipped as redundant; PIVOT-TO-C-I.
-- [x] 54-03-PLAN.md — COMPLETE. S0 axiom sealed; canonical-example defense (H_3(ℝ), 4-dim twisted-compression counterexample); §3.3 revision integrated (main.tex +136/-21); closeout-sympy 4/4 PASS; adversarial review PASSES-WITH-CAVEATS; (C-ii) RULED-OUT; 54-RESULT.md + 54-VERIFICATION.md + CONSISTENCY-CHECK.md written.
-
-### Phase 55: S4 Facial Structure Lemma
-
-**Goal:** Audit and close the S4 (orthogonality symmetry) argument in Paper 5 §3.3-§3.4. Classify whether the current argument uses (i) Alfsen-Shultz compressions only (pre-Jordan, preferred), (ii) Hanche-Olsen facial structure (post-Jordan, circular if invoked before S4 is verified), or (iii) implicit Jordan appeal. Produce revision text consistent with Phase 54's outcome. Primary cleanup task: replace every bare `\cite{AlfsenShultz...}` with `\cite[Ch. X, Thm Y.Z]{...}` resolved to the correct volume (2001 vol. 179 vs 2003 vol. 190).
-
-**Depends on:** Phase 54 (shared `alfsen-shultz-notes.md` deliverable; if Phase 54 adopted (C-i) S0, Phase 55's S4 argument must use S0 rather than implicit Peirce appeal)
-**Requirements:** DERV-55-01, DERV-55-02, DERV-55-03, DERV-55-04, DERV-00-01 (Phase 55 slice)
+**Depends on:** Nothing within v15.0 (entry point). Reads Paper 5 Def 1, lem:bottleneck + rem:converse, BGW 2020, Hanche-Olsen; carries v6.0/v8.0/v11.0 context.
+**Requirements:** DERV-60-01, DERV-60-02, DERV-60-03, DERV-60-04, DERV-00-01 (Phase 60 slice)
 
 **Contract Coverage:**
-- Advances: S4 facial-structure lemma with precise citation or standalone proof; §3.3-§3.4 revision text
-- Decisive deliverables: (1) Classification of current S4 argument as (i)/(ii)/(iii). (2) Resolved A-S citations with volume + chapter + section + theorem number for every invocation in §3.3-§3.4 (extends Phase 54's `alfsen-shultz-notes.md`). (3) If current argument is (ii) or (iii), Foulis-Holland pre-Jordan alternative OR explicit assumption proposed. (4) §3.3-§3.4 S4 revision text consistent with Phase 54 outcome (A / C-i / C-ii).
-- Anchor coverage: Alfsen-Shultz 2001 vol. 179 Ch. 7 compressions (pre-Jordan target); Alfsen-Shultz 2003 vol. 190 Ch. 7-8 (verify compression theory actually lives in 2003 or must cite 2001); Hanche-Olsen & Størmer 1984 §2.6 (flagged as post-Jordan, circular pre-S4); vdW 2019 S4 statement; Paper 5 §3.3-§3.4 current text; Phase 54 `alfsen-shultz-notes.md`
-- Required prior outputs: Phase 54 `alfsen-shultz-notes.md`; Phase 54 RESULT.md outcome classification (A / C-i / C-ii)
-- Forbidden proxies: Invoking Hanche-Olsen facial argument before S4 is verified (pre-Jordan circularity, R6); collapsing the two A-S volumes into one citation (R5); defending (i) without resolving the actual A-S proposition number; facial-separation arguments that route through Jordan-level state separation
+- Advances: claim-two-composites; initializes deliv-two-composites, claim.md, derivation STATE.md
+- Deliverables: `derivations/p5-basin-restriction/{claim.md, STATE.md}`; precise definitions of BOTH composite notions; the independence argument
+- Anchor coverage: ref-paper5-def1 (clause iii = minimal composite), ref-bgw (universe-tensoring h_3(O) fails; minimal=maximal for M_n(C)^sa), ref-hanche-olsen (well-behaved composites); confirm rem:converse against BGW
+- Prior inputs: milestone prompt step 1; the Paper 5 remark (main.tex ~line 393) that Def 1 characterizes COMPOSABLE self-modelers and that the non-composable h_3(O) case is treated separately -- direct textual support for the distinction
+- Forbidden proxies: fp-conflate-composites ("h_3(O) non-composable => observer has no composite"); citing rem:converse as if already in the live paper
 
 **Success Criteria** (what must be TRUE):
 
-1. Current Paper 5 §3.3-§3.4 S4 argument is classified (i)/(ii)/(iii) with textual evidence (line numbers from `main-jmp-submitted.tex`).
-2. Every A-S citation in §3.3-§3.4 is resolved to (volume 2001 vol. 179 vs 2003 vol. 190, chapter, section, proposition/theorem number, exact statement); Paper 5's Prop 7.36 and Prop 7.43 citations are verified or corrected.
-3. If classification is (i), revision text tightens citation precision while preserving the argument. If (ii) or (iii), a Foulis-Holland or Phase-54-S0-based alternative is proposed, OR an explicit "this uses Jordan structure derived downstream, see §4" acknowledgement is drafted.
-4. Revision text for §3.3-§3.4 is consistent with Phase 54 outcome (if Phase 54 = (C-i), Phase 55's S4 argument references S0; if Phase 54 = (A), Phase 55 preserves the constructive argument).
-5. Forbidden-token grep (`Jordan`, `EJA`, `Lüders`, `pxp`, `√a b √a`) on revision text has zero hits in pre-S4 context.
+1. Both composite notions are stated precisely and independently: (a) V_BM = the observer's MINIMAL composite OUS carrying product states, product effects, non-signaling constraints, and a product-form sequential product (Paper 5 Def 1 clause iii); (b) the BGW Jordan-monoidal composite of the universe algebra h_3(O) with another system. Each is defined in its own terms, citing Paper 5 Def 1, BGW 2020, Hanche-Olsen.
+2. It is PROVED that h_3(O)'s BGW non-composability and the existence of the observer's V_BM are LOGICALLY INDEPENDENT statements about DIFFERENT objects -- non-composability of h_3(O) does not entail non-existence of V_BM. The argument explicitly does not smuggle in the conclusion (no circularity: the distinction is earned, not assumed).
+3. rem:converse is confirmed against BGW: every M_n(C)^sa admits a faithful self-model (V_M = V_B = M_n(C)^sa, phi = id, composite M_{n^2}(C)^sa), and for complex matrix algebras minimal and maximal composites COINCIDE, so clause (iii) is auto-satisfied. The exact BGW statement grounding "minimal = maximal for M_n(C)^sa" is located, and it is flagged that rem:converse is not yet a labeled remark in the live complexification.tex.
+4. `derivations/p5-basin-restriction/claim.md` (RESTRICTION restated in the derivation's own notation, with allowed inputs and the three prohibited reward-hacking moves stated explicitly) and `derivations/p5-basin-restriction/STATE.md` (derivation-tree state) exist.
 
-**Backtracking:** If no A-S theorem exists covering Paper 5's invocation at pre-Jordan level, flag it to Phase 58 axiom audit (Lean may have encoded the claim as an axiom; Phase 58 classifies as (i) theorem-in-disguise, (ii) definition-as-axiom, (iii) statement-mismatch, or (iv) primitive). If Phase 54 closes (C-i), Phase 55 must not reintroduce implicit Peirce appeals — every "it follows from Peirce..." becomes "by S0, ...". Outcome (C) on Phase 55 triggers milestone pause.
+**Backtracking trigger:** If the two composite notions collapse into one object on close inspection (the distinction CANNOT be earned non-circularly), the RESTRICTION claim is circular/false -> PAUSE for human decision (this is the milestone's first pause condition).
 
 **Plans:** TBD
 
-### Phase 56: Thm 5.8 Upper Bound -- W Carries Product-Form Sequential Product
+Plans:
 
-**Goal:** Close Paper 5 Thm 5.8's assertion that `W` carries the product-form sequential product. Specifically: extract the exact identity from `main.tex` §5, verify that W is a face of the ambient EJA (precondition for vdW 2019 Thm 1 restriction), prove product-form closure on W via Koecher-Vinberg, and resolve the "carries" equivocation (closure vs induced structure vs functorial preservation — R7) with explicit disambiguation so downstream use is defensible.
+- [ ] 60-01: TBD (define both composites; prove independence; claim.md + STATE.md)
+- [ ] 60-02: TBD (confirm rem:converse against BGW; flag not-yet-in-paper)
 
-**Depends on:** Phase 54 (Peirce-invariance lemma used inside Thm 5.8's proof; if Phase 54 = (C-i), Thm 5.8 must reference S0 rather than implicit Peirce)
-**Requirements:** DERV-56-01, DERV-56-02, DERV-56-03, DERV-56-04 (conditional), VALD-56-01, DERV-00-01 (Phase 56 slice)
+### Phase 61: Slice Satisfies Clause (iii)
+
+**Goal:** The C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa is verified to satisfy all four clauses of Paper 5 Definition 1 as a self-modeler in its own right -- with clause (iii) checked AS STATED (not redefined), rem:converse supplying (ii)-(iii), and explicit SymPy validation of the projective-unit and simplicity structure.
+
+**Depends on:** Phase 60 (two-composites distinction earned; rem:converse confirmed against BGW)
+**Requirements:** DERV-61-01, DERV-61-02, DERV-61-03, VALD-61-01, DERV-00-01 (Phase 61 slice)
 
 **Contract Coverage:**
-- Advances: Thm 5.8 upper bound proven with precise "carries" semantics; §5 revision text
-- Decisive deliverables: (1) Exact identity extracted from `main.tex` §5 Thm 5.8 as a standalone precondition. (2) W-is-a-face verification: either W is the Peirce range of a projective unit (automatic face) or explicit face check. (3) If W is a face, vdW 2019 Thm 1 restriction to W applied; product-form closure proved. (4) Three-way disambiguation of "carries": (a) closure `a ∘ b ∈ W`, (b) induced structure `W` with restricted `∘` is itself an SPS, (c) functorial preservation (inclusion is SPS morphism). Downstream use requires (b) or (c); establish that, not just (a). (5) If W is not a face, characterize failure and draft revision text; consider Gudder-Greechie 2002 Example 39 (associative non-EJA SEA) as precedent for "closure without structural preservation". (6) SymPy small-case check: H_3(ℝ) wedge component (3-dim antisymmetric), compute sequential product restricted to W, verify or surface failure.
-- Anchor coverage: vdW 2019 Thm 1 (S1-S7 fin-dim ⇒ EJA; face restriction inherits S1-S7); Westerbaan-Westerbaan-van de Wetering 2020 three-type normal SEA classification; Gudder-Greechie 2002 Example 39 (counterexample to naive equivocation); Paper 5 §5 Thm 5.8 current text; Phase 54 Peirce-invariance lemma
-- Required prior outputs: Paper 5 `main-jmp-submitted.tex` §5 Thm 5.8; Phase 54 RESULT.md (for Peirce-invariance lemma status)
-- Forbidden proxies: Asserting W-closure without face check (R7); collapsing three "carries" senses; asserting product-form on W without verifying vdW S1-S7 actually restrict to W; quoting WWvdW 2020 classification for W without proving W decomposes into classifiable blocks; using Phase 54 (A)-proof Peirce invariance in Thm 5.8 when Phase 54 closed (C-i) — must use S0
+- Advances: claim-slice-clause-iii; deliv-slice-clause-iii
+- Deliverables: clause-by-clause verification (i)-(iv); rem:converse instantiation for M_3(C)^sa; SymPy/matrix check (VALD-61-01)
+- Anchor coverage: ref-paper5-def1 (the four clauses, clause iii NOT redefined), ref-lem-bottleneck (slice A = h_3(C_u) ~ M_3(C)^sa, single F_4-orbit, rank-1 Peirce-0 = h_2(C_u))
+- Prior inputs: rem:converse (from Phase 60); standard M_3(C)^sa structure; v8.0/v11.0 octonion/h_3(O) SymPy infrastructure (reuse)
+- Forbidden proxies: fp-redefine-iii (weakening clause iii so it is trivially satisfied); "the slice is M_3(C)^sa so clause iii is automatic" without checking the embedding is induced by E (that check is Phase 62's job, not a shortcut here); "looks right" without explicit projective-unit / simplicity check
 
 **Success Criteria** (what must be TRUE):
 
-1. Thm 5.8's exact "carries" identity is quoted verbatim from `main-jmp-submitted.tex` with line numbers; ambiguity noted if present.
-2. W is verified to be a face of the ambient EJA (either automatically as Peirce range of a projective unit, with cite, or by explicit face-closure check `a ∈ W, b ≤ a ⇒ b ∈ W`). If not a face, Phase 56 returns outcome (C) and milestone pauses.
-3. Product-form closure proved via vdW 2019 Thm 1 restriction: S1-S7 on V restrict to S1-S7 on W; Koecher-Vinberg gives W is a Jordan subalgebra; SP formula `f(λ,μ) = √(λμ)` inherits. OR precise external citation provided.
-4. Three-way "carries" disambiguation: RESULT.md distinguishes closure / induced-structure / functorial, names which sense downstream Thm 5.8 consumers need, establishes that sense.
-5. SymPy H_3(ℝ) wedge-component check passes: sequential product restricted to W closes and matches product-form; or failure is surfaced with explicit counterexample.
+1. Clause (i) is verified for A = h_3(C_u) ~ M_3(C)^sa: it is a finite-dimensional spectral order-unit space with at least two orthogonal nontrivial projective units (M_3(C)^sa has Jordan rank 3, hence three mutually orthogonal nontrivial projective units).
+2. Clause (iv) is verified: A is simple -- no nontrivial direct-sum decomposition into nonzero order-unit subspaces (M_3(C) is a simple algebra; no nontrivial central idempotents).
+3. rem:converse is instantiated for M_3(C)^sa to supply clause (ii) (faithful tracking phi = id, order isomorphism) and clause (iii) (minimal internal composite; minimal = maximal per BGW, product-form sequential product on A). All four Def 1 clauses (i)-(iv) hold for A as a self-modeler in its own right, with clause (iii) checked as stated (NOT redefined to be trivially satisfied).
+4. SymPy/matrix verification on M_3(C)^sa (VALD-61-01) confirms: Jordan rank 3; three mutually orthogonal rank-1 projective units summing to the identity; no nontrivial central idempotents (simplicity); and the composite dimension check dim(M_3(C)^sa (x) M_3(C)^sa) = dim(M_9(C)^sa) = 81. Runtime < 5 s; assertions symbolic/numeric-exact.
 
-**Backtracking:** If W is not a face, the Koecher-Vinberg route fails; investigate whether a weaker closure-without-preservation statement (Gudder-Greechie Example 39 pattern) is what Thm 5.8 actually needs, or if §5 downstream requires the stronger statement. If SymPy check surfaces a failure mode, the Thm 5.8 claim as stated is false and revision is structural (outcome C). If Phase 54 adopted (C-i), Thm 5.8's proof must be rewritten to invoke S0 instead of implicit Peirce.
+**Backtracking trigger:** If clause (i) or (iv) FAILS for M_3(C)^sa (would contradict standard structure), or if satisfying clause (iii) requires redefining it -> the slice is not a self-modeler in its own right; revisit Phase 60 framing and the rem:converse confirmation.
 
 **Plans:** TBD
 
-### Phase 57: Phi Inert-Wrapper Resolution
+Plans:
 
-**Goal:** Stop equivocating across Paper 5 sections about the role of Φ (self-modeling map / inert wrapper / ancilla / exposition shorthand). Enumerate every Φ occurrence in `main.tex`, classify role, identify equivocation points, and either split notation (`Φ` tracking, `φ` wrapper, `Φ̂` ancilla) or add a standing definition + per-section role qualifier. Produce drafts of both approaches for author choice. Produce `phi-audit.md` as shared artifact consumed by Phases 54, 58, 59.
+- [ ] 61-01: TBD (verify clauses i, iv; instantiate rem:converse for ii, iii)
+- [ ] 61-02: TBD (VALD-61-01 SymPy: rank 3, projective units, simplicity, composite dim 81)
 
-**Depends on:** Phase 54 AND Phase 55 (phi-independence of S4 and Peirce-invariance both require Phase 54/55 to classify what's actually phi-independent vs phi-dependent)
-**Requirements:** DERV-57-01, DERV-57-02, DERV-57-03, DERV-57-04, DERV-00-01 (Phase 57 slice)
+### Phase 62: Coherent Embedding under E (the hard part)
+
+**Goal:** Determine -- by demonstration on the ACTUAL non-associative h_3(O) structure, not by assertion -- whether the self-modeling data on the slice A (its V_BM and its sequential product a&b = sqrt(a) b sqrt(a)) is INDUCED by / consistent with the ambient h_3(O) Jordan structure under the Peirce/bottleneck conditional expectation E. The outcome is EITHER a proved RESTRICTION embedding lemma OR a precisely-located structural obstruction. This is the load-bearing phase, where any obstruction lives.
+
+**Depends on:** Phase 61 (slice satisfies all four Def 1 clauses)
+**Requirements:** DERV-62-01, DERV-62-02, DERV-62-03, VALD-62-01, DERV-00-01 (Phase 62 slice)
 
 **Contract Coverage:**
-- Advances: Phi role disambiguation across Paper 5; `phi-audit.md` shared artifact
-- Decisive deliverables: (1) `phi-audit.md` enumerating every `\phi` / `\Phi` / `\varphi` occurrence in `main.tex` with line number and role classification (a) self-modeling tracking map B→M, (b) inert auxiliary wrapper / ancilla, (c) state-preparation notation, (d) exposition shorthand. SHARED ARTIFACT consumed by Phases 54, 58, 59. (2) Equivocation points: every section where Φ's role shifts between categories without explicit reintroduction. (3) Two revision-text drafts: (a) split-notation approach (`Φ` / `φ` / `Φ̂`); (b) standing-definition + per-section role qualifier. (4) Revision text for each affected section.
-- Anchor coverage: Paper 5 `main.tex` (grep source); Hardy 2001 ancilla elimination pattern; Phase 54 RESULT.md (which Peirce-invariance result is phi-independent); Phase 55 RESULT.md (S4 phi-independence argument)
-- Required prior outputs: Paper 5 `main.tex` grep `\\\\phi\\|\\\\Phi\\|\\\\varphi`; Phase 54 `alfsen-shultz-notes.md`; Phase 54 RESULT.md outcome
-- Forbidden proxies: Fixing one occurrence without checking all (R8); assuming Φ is globally the identity when it is a self-modeling projection (only identity on measurement-relevant states); invoking Chiribella purification (heavier assumption than what Paper 5 uses); renaming without verifying role-classification is exhaustive
+- Advances: claim-restriction (the decisive, deepest-unproven join); deliv-embedding
+- Deliverables: explicit setup of E (positive, unital, range = JB-subalgebra, Effros-Stormer); explicit treatment of the sequential product under E; demonstration on the real non-associative h_3(O) (SymPy); preservation proof OR precise obstruction
+- Anchor coverage: ref-effros-stormer (E onto h_3(C_u) is a positive unital idempotent; range is a JB-subalgebra), ref-lem-bottleneck (the bottleneck E and its Peirce structure), ref-hanche-olsen (induced vs imported composite)
+- Prior inputs: V_1 = R bottleneck (v6.0/v8.0 -- Peirce interface to V_{1/2} is scalar); C*-observer sequential-product closure (v11.0 -- a&b exits M_16(R)); the sequential product a&b = sqrt(a) b sqrt(a) via CFC square roots in the non-associative ambient; v8.0/v11.0 octonion/h_3(O) SymPy infrastructure (reuse)
+- Forbidden proxies: fp-assert-preservation (asserting Peirce-restriction preserves clause iii WITHOUT demonstrating on the actual non-associative h_3(O)); hand-waving "E preserves everything"; ignoring non-associativity; any preservation claim not computed in the ambient h_3(O)
+- **OBSTRUCTION-OR-PRESERVATION FORK (flagged):** this phase resolves to ONE of two decisive outcomes -- (P) preservation demonstrated on the real structure -> RESTRICTION embedding lemma; or (O) a precise obstruction -> name the exact structure clause (iii) needs that E cannot induce, and the minimal extra input required. A clean (O) is a fully acceptable outcome.
+- **NON-ASSOCIATIVITY REWARD-HACKING GUARD (flagged):** the success of this phase REQUIRES the sequential product sqrt(a) b sqrt(a) to be computed in the genuinely non-associative ambient h_3(O) (where (xy)z != x(yz) in general). A demonstration that only manipulates the associative slice M_3(C)^sa, or that assumes associativity of the ambient, is forbidden false progress and does NOT satisfy any criterion below.
 
 **Success Criteria** (what must be TRUE):
 
-1. `grep -n "\\\\phi\\|\\\\Phi\\|\\\\varphi" main.tex` output completely enumerated; every occurrence classified (a)/(b)/(c)/(d); count reconciled with the audit table.
-2. All equivocation points (Φ role shifts without explicit reintroduction) identified by line number.
-3. Two revision-text drafts produced: split-notation AND standing-definition.
-4. For every affected Paper 5 section, revision text removes or flags the equivocation.
-5. Inertness claims are verified: where Paper 5 asserts Φ is inert, the specific sub-state-space is stated explicitly (Φ not globally the identity if Φ is a self-modeling projection).
+1. The Peirce/bottleneck conditional expectation E: h_3(O) -> h_3(C_u) is set up explicitly (Effros-Stormer): positive, unital, idempotent, range = JB-subalgebra. What E preserves is stated precisely -- in particular whether E is coherent with the SEQUENTIAL product a&b = sqrt(a) b sqrt(a), not only the Jordan product a o b.
+2. Whether the self-modeling data on A (its V_BM and its sequential product) is INDUCED by / consistent with the ambient h_3(O) under E is settled by computation ON THE ACTUAL NON-ASSOCIATIVE STRUCTURE -- the sequential product is computed via CFC square roots in the ambient h_3(O), treating non-associativity explicitly, NOT asserted.
+3. The verdict for this step is decisive and falls on the OBSTRUCTION-OR-PRESERVATION fork: EITHER (P) preservation holds and the RESTRICTION embedding lemma is stated and proved (touching the actual non-associative structure), OR (O) preservation fails and the obstruction is characterized precisely -- naming the exact structure clause (iii) needs that E cannot induce from the non-associative ambient, plus the minimal extra input that would be required to close it.
+4. SymPy/matrix verification on h_3(O) (VALD-62-01) constructs E onto h_3(C_u) for a fixed u in S^6 (e.g. u = e_7, per the convention lock) and tests whether sqrt(a) b sqrt(a) for a, b in the slice -- computed in the ambient h_3(O) -- lands back in the slice (preservation) OR exhibits explicit leakage / a non-associativity obstruction. The computation uses explicit octonion/h_3(O) matrices (v8.0/v11.0 infrastructure).
 
-**Backtracking:** If the grep reveals Φ is used genuinely state-dependently (not inert anywhere), the Paper 5 claim "Φ is inert" is false globally and revision is structural (outcome C). If the split-notation approach forces renaming in > 5 sections, prefer the standing-definition approach to minimize LaTeX diff.
+**Backtracking trigger:** If the coherent-embedding step requires structure NOT induced by E from h_3(O) (clause iii can only be satisfied by importing external structure) -> that is the obstruction signature: characterize it precisely (outcome O) and PAUSE for human decision per the milestone's second pause condition. A characterized obstruction is a DELIVERABLE; do NOT force preservation.
 
 **Plans:** TBD
 
-### Phase 58: Lean Axiom Audit
+Plans:
 
-**Goal:** Audit every axiom in the Paper 5 Lean formalization against its cited published theorem. Classify each axiom as (i) theorem-in-disguise (should be proved, or reframed as explicit assumption), (ii) definition-as-axiom (should be `def`/`structure`), (iii) statement-mismatch (type-correct but cited published theorem does NOT imply it — most dangerous), or (iv) genuine primitive (correct). Mandatory first tasks: reconcile axiom count 16 (claimed by milestone) vs 19 (grep of `^axiom ` in `~/repos/research/lean/RadicalRelativity/`); confirm `lake build` produces 0-sorry baseline under pinned `leanprover/lean4:v4.28.0` + mathlib v4.28.0.
+- [ ] 62-01: TBD (set up E explicitly; state what it preserves; sequential product under E)
+- [ ] 62-02: TBD (demonstrate induction/consistency on real h_3(O) OR locate obstruction; VALD-62-01)
+- [ ] 62-03: TBD (state+prove embedding lemma OR characterize obstruction + minimal extra input)
 
-**Depends on:** Nothing blocking (axiom inventory is independent of §3.3 outcome); can start in PARALLEL with Phase 54. Final audit reconciliation after Phases 54-57 close (axiom encoding `_peirce_preservation` etc. may re-classify based on Phase 54 outcome).
-**Requirements:** FORM-58-01, FORM-58-02, FORM-58-03, FORM-58-04, FORM-58-05, DERV-00-01 (Phase 58 slice)
+### Phase 63: Verdict
+
+**Goal:** A decisive verdict is delivered -- either a clean RESTRICTION theorem (the "self-modeling -> QM -> h_3(O)" through-line is real) or a precisely-characterized obstruction (the observer's C and the basin's O are independent posits) -- with the explicit consequence for the Radical Relativity program, and the three reward-hacking guards confirmed by adversarial fresh-eyes review.
+
+**Depends on:** Phase 62 (preservation proof OR characterized obstruction)
+**Requirements:** DERV-63-01, DERV-63-02, DERV-00-02, DERV-00-01 (Phase 63 slice)
 
 **Contract Coverage:**
-- Advances: Lean axiom audit with per-axiom classification and literature citation; `axiom-audit-table.md` for Paper 5 appendix / supplementary
-- Decisive deliverables: (1) MANDATORY FIRST TASK: axiom-count reconciliation. Run `#print axioms` on Paper 5 headline theorems, list distinct non-builtin axioms, compare to grep count 19 (4 in `NonComposability.lean`, 1 in `ObserverInterface.lean`, 13 in `SelfModelingBridge.lean`, 1 in `CStarBridge.lean`); determine which N are Paper-5-relevant. (2) MANDATORY FIRST TASK: `lake exe cache get && lake build` in `~/repos/research/lean/` confirms 0-sorry baseline before audit begins; if build fails under pinned toolchain, Phase 58 cannot proceed. (3) Full axiom inventory per axiom: statement, existing docstring citation (some cite "Alfsen-Shultz 2003, Thm 9.33"), classification (i)/(ii)/(iii)/(iv). (4) For every (i)/(ii)/(iii), proposed fix: prove it / demote to `def` / correct the citation. (5) `axiom-audit-table.md` deliverable for Paper 5 supplementary. (6) Cross-check: reconcile Phase 58 citations against Phase 54 `alfsen-shultz-notes.md` and Phase 57 `phi-audit.md`.
-- Anchor coverage: `~/repos/research/lean/RadicalRelativity/*.lean` (axiom source; existing docstrings ALREADY cite A-S); Alfsen-Shultz 2001/2003 (literature target); vdW 2019 (literature target); Phase 54 `alfsen-shultz-notes.md` (authoritative Paper-5-to-citation mapping); Phase 57 `phi-audit.md` (any phi-axiom role clarification)
-- Required prior outputs: `lake build` green baseline; `#print axioms` per headline theorem output; Phase 54 `alfsen-shultz-notes.md`; Phase 57 `phi-audit.md` (when available; final reconciliation after both produced)
-- Forbidden proxies: Classifying without running `#print axioms` (not trusting grep alone); accepting docstring citation without verifying against actual A-S text or Phase 54 notes; skipping `lake build` baseline ("it was green last time"); counting 16 vs 19 by intuition rather than `#print axioms` output
+- Advances: obs-verdict; claim-restriction (final adjudication); deliv-verdict
+- Deliverables: `derivations/p5-basin-restriction/RESULT.md` (theorem-or-obstruction + program consequence); adversarial guard review; the one-sentence verdict line (DERV-00-02)
+- Anchor coverage: the whole contract; all phase outputs (60-62); all 5 anchors as cited upstream
+- Prior inputs: Phase 60 distinction, Phase 61 clause verification, Phase 62 embedding verdict; the milestone's stop/rethink conditions
+- Forbidden proxies: fp-force-positive (forcing a positive RESTRICTION theorem when the honest outcome is an obstruction); vague "mostly works" / "broadly preserved" verdicts; any verdict not touching the actual non-associative structure
+- **NEGATIVE-RESULT-IS-SUCCESS (flagged):** a clean, precisely-characterized obstruction is a FULLY ACCEPTABLE pass. The acceptance test passes on EITHER a theorem-with-proof OR a precise obstruction + program consequence. Reporting a negative honestly is the success condition; manufacturing a positive is failure.
 
 **Success Criteria** (what must be TRUE):
 
-1. MANDATORY FIRST TASK: `lake exe cache get && lake build` produces 0 sorry under pinned `leanprover/lean4:v4.28.0` + mathlib v4.28.0; if not, Phase 58 cannot proceed and triggers a toolchain pin investigation.
-2. MANDATORY FIRST TASK: axiom count reconciled. `#print axioms` on every Paper-5-cited headline theorem output; distinct non-builtin axioms counted; milestone's "16" claim either confirmed or re-stated with explanation for the delta to grep's 19.
-3. Every Paper-5-relevant axiom has (statement, docstring citation, classification (i)/(ii)/(iii)/(iv), proposed fix). Type-(iii) statement-mismatches are called out explicitly — they are the most dangerous failure mode (type-correct but cited justification wrong).
-4. `axiom-audit-table.md` produced as Paper 5 appendix / supplementary content.
-5. Cross-check with Phase 54 `alfsen-shultz-notes.md` and Phase 57 `phi-audit.md`: every Lean axiom citing A-S has its prop number verified against `alfsen-shultz-notes.md`; every Lean axiom involving Φ has its role verified against `phi-audit.md`. Discrepancies surfaced.
+1. `derivations/p5-basin-restriction/RESULT.md` is assembled with a DECISIVE verdict: EITHER a clean RESTRICTION theorem (statement + proof, touching the actual non-associative structure) OR a precisely-characterized obstruction, plus the explicit consequence for the program (through-line real vs C and O independent posits) and -- if an obstruction -- what would have to change to close it.
+2. An adversarial fresh-eyes review of the verdict is performed BEFORE RESULT.md finalizes, checking the three reward-hacking guards: (a) clause (iii) was NOT redefined; (b) the two composites were NOT conflated; (c) preservation was NOT asserted without demonstration on h_3(O). The review confirms a negative result (if reached) was reported honestly rather than a positive forced.
+3. The final verdict line (DERV-00-02) states one of: RESTRICTION THEOREM (through-line) or CHARACTERIZED OBSTRUCTION (independent posits), with the one-sentence consequence for the Radical Relativity program.
+4. The `attempt-NN.md` log (DERV-00-01) is complete: one entry per serious proof/obstruction attempt across Phases 60-63, each stating inputs used, the argument, and failure mode if any.
 
-**Backtracking:** If `lake build` fails under pinned toolchain, Phase 58 cannot proceed and the milestone must address the toolchain pin before continuing. If axiom count reconciliation shows more than a few Paper-5-relevant axioms are type-(i) or type-(iii), the formalization's "0 sorry" is misleading and Phase 58 surfaces this to Phase 59 adversarial defense. If an axiom is type-(iii) and the cited A-S theorem does not imply the stated form, Phase 58 proposes EITHER a weaker form that IS implied, OR an explicit assumption with Phase 59-style defense.
+**Backtracking trigger:** If the adversarial review finds a reward-hacking guard violated (clause iii redefined, composites conflated, or preservation asserted without demonstration) -> the verdict is not yet earned; return to the offending phase (61 for clause iii, 60 for conflation, 62 for asserted preservation) before finalizing RESULT.md.
 
 **Plans:** TBD
 
-### Phase 59: Minimal Composite Assumption Defense (STRICTLY LAST)
+Plans:
 
-**Goal:** Draft an adversarial defense of Paper 5's minimal-composite assumption against six published review patterns (Hardy 2001 simplicity, Dakić-Brukner 2009 subspace reconstruction, Masanes-Müller 2011 continuous reversibility, Masanes-Galley-Müller 2019, Barnum-Wilce 2014 qubit-subsystem, Kent 2024 arXiv:2405.17733). Produce the consolidated JMP revision-response letter and final `latexdiff` against `paper5-jmp-submitted`. STRICTLY LAST: requires `latexdiff` + `git-latexdiff` installed (brew prerequisite) AND depends on Phases 54-58 RESULT.md files.
-
-**Depends on:** All of Phases 54, 55, 56, 57, 58 (consolidated revision-response requires every RESULT.md). Mostly independent of the specific mathematical outcomes for the composite-assumption defense itself, but consolidated letter requires them.
-**Requirements:** DERV-59-01, DERV-59-02, DERV-59-03, DERV-59-04, DERV-00-02, VALD-00-01
-
-**Contract Coverage:**
-- Advances: Minimal-composite assumption defense; consolidated JMP revision-response letter; final referee-ready diff
-- Decisive deliverables: (1) PREREQUISITE: `brew install latexdiff` and `git-latexdiff` (latexdiff not currently on this machine); required for the final diff. (2) Review of Paper 5's current minimal-composite defense against six adversarial patterns: Hardy 2001 "simplicity" critiques (Masanes-Müller, Chiribella-D'Ariano-Perinotti, Barnum-Wilce all had to replace it); Dakić-Brukner 2009 subspace reconstruction; Masanes-Müller 2011 continuous reversibility; Masanes-Galley-Müller 2019; Barnum-Wilce 2014 qubit-subsystem; Kent 2024 arXiv:2405.17733 critique pattern. (3) Per-pattern drafted defense: do NOT assume any one pattern will be the actual referee; defend against all six. (4) Revision text for Paper 5's composite-assumption section. (5) DERV-00-02: consolidated revision-response draft referencing every Phase 54-58 RESULT.md, suitable for inclusion in JMP referee response letter. (6) VALD-00-01: full `latexdiff` against frozen `paper5-jmp-submitted` tag showing all revisions, committed as `paper5-revisions.pdf`.
-- Anchor coverage: Hardy 2001 (quant-ph/0101012); Masanes-Müller 2011 (arXiv:1004.1483); Chiribella-D'Ariano-Perinotti 2011 (arXiv:1011.6451); Dakić-Brukner 2009 (arXiv:0911.0695); Masanes-Galley-Müller 2019 (Nat. Comm. 10, 1361); Barnum-Wilce 2014 (arXiv:1202.4513); Kent 2024 (arXiv:2405.17733); vdW 2019 Thm 3 (EJA + SP + local-tomo ⇒ C*); Paper 5 §7 composite-assumption section
-- Required prior outputs: Phase 54 RESULT.md; Phase 55 RESULT.md; Phase 56 RESULT.md; Phase 57 RESULT.md; Phase 58 `axiom-audit-table.md`; git tag `paper5-jmp-submitted`; latexdiff binary installed
-- Forbidden proxies: Defending against only one adversarial pattern; relying on "the composite assumption is standard" without comparison table; deferring latexdiff to post-completion; referencing only the most recent RESULT.md in the consolidated letter
-
-**Success Criteria** (what must be TRUE):
-
-1. PREREQUISITE: `which latexdiff && which git-latexdiff` return binaries; `brew install latexdiff` completed.
-2. Six adversarial patterns (Hardy / Dakić-Brukner / Masanes-Müller / Chiribella-D'Ariano-Perinotti / Barnum-Wilce / Kent 2024) each have a drafted per-pattern defense; a comparison table shows how Paper 5's assumption differs from each critiqued predecessor.
-3. Revision text for Paper 5 §7 (composite assumption) is drafted and defensible.
-4. Consolidated revision-response letter references every Phase 54-58 RESULT.md by section; outcome classification (A / B / C) is explicit per phase.
-5. Final `latexdiff` against `paper5-jmp-submitted` produces a clean diff PDF (`paper5-revisions.pdf`); all revisions visible.
-
-**Backtracking:** If any Phase 54-58 RESULT.md closes as (C) and triggered milestone pause, Phase 59 pauses along with the milestone. If a new adversarial pattern emerges from Phase 58 axiom audit (type-(iii) statement-mismatch surfaces a fresh attack surface), add it to the defense comparison table.
-
-**Plans:** TBD (likely split 59 into: 59-01 install latexdiff + adversarial defense drafts; 59-02 consolidated response letter + final diff)
+- [ ] 63-01: TBD (assemble RESULT.md verdict + program consequence; complete attempt-NN.md log)
+- [ ] 63-02: TBD (adversarial fresh-eyes review of the three reward-hacking guards; finalize verdict line)
 
 ## Phase Dependencies
 
 | Phase | Depends On | Enables | Critical Path? |
 |-------|-----------|---------|:-:|
-| 54 - §3.3 Peirce Preservation | — (entry point) | 55, 56, 57 | Yes (gates 55, 56, 57) |
-| 55 - S4 Facial Structure | 54 (`alfsen-shultz-notes.md`; outcome classification) | 57, 58 (A-S cross-check) | Yes (within outcome A / C-i path) |
-| 56 - Thm 5.8 W Upper Bound | 54 (Peirce-invariance lemma or S0) | 59 (consolidated letter) | Parallel with 55, 57 |
-| 57 - Phi Inert-Wrapper | 54, 55 (what is actually phi-independent) | 58 (Φ-related axiom cross-check), 59 | Partial critical path |
-| 58 - Lean Axiom Audit | — (parallel start); final reconciliation needs 54, 55, 57 | 59 (axiom-audit-table.md for consolidated letter) | **CRITICAL PATH BOTTLENECK (~2-3 working days)** |
-| 59 - Minimal Composite Defense | 54, 55, 56, 57, 58 (all RESULT.md files) | — (milestone terminal) | Yes (strictly last; requires latexdiff) |
+| 60 - Two-Composites Distinction | -- | 61, 62, 63 | Yes |
+| 61 - Slice Satisfies Clause (iii) | 60 | 62 | Yes |
+| 62 - Coherent Embedding under E | 61 | 63 | Yes |
+| 63 - Verdict | 62 | -- | Yes |
 
-**Critical path:** 54 → (55 || 56 || 57) → 58 final reconciliation → 59.
-**Bottleneck:** Phase 58 Lean audit ~2-3 working days. Start Phase 58 axiom inventory in parallel with Phase 54 to overlap.
-**Parallelizable:** Phases 55, 56, 57 can run concurrently after Phase 54 classifies. Phase 58 runs concurrently with 54-57; final axiom reconciliation after 54/55/57 close.
-
-## Wave Schedule
-
-```
-Wave 1: Phase 54 (mandatory first task: Phase 4-06 circularity audit) || Phase 58 axiom inventory (parallel start)
-Wave 2: Phase 55 || Phase 56 || Phase 57 (all depend on Phase 54 outcome; run concurrently)
-Wave 3: Phase 58 final reconciliation (uses Phase 54 alfsen-shultz-notes.md and Phase 57 phi-audit.md)
-Wave 4: Phase 59 (consolidated letter + latexdiff; STRICTLY LAST)
-```
-
-## Shared Deliverables
-
-| Artifact | Produced By | Consumed By |
-|----------|-------------|-------------|
-| `alfsen-shultz-notes.md` (in `derivations/paper5-peirce-preservation/`) | Phase 54 | Phases 55, 57, 58 |
-| `phi-audit.md` | Phase 57 | Phases 54 (late reconciliation), 58, 59 |
-| `axiom-audit-table.md` | Phase 58 | Phase 59 (consolidated letter) |
+**Critical path:** 60 -> 61 -> 62 -> 63 (4 phases; strictly sequential -- each phase consumes the prior phase's decisive output).
+**Parallelizable:** None. The chain is linear: the distinction must be earned (60) before the slice is checked as a self-modeler (61), which must hold before asking whether E induces it (62), which must resolve before the verdict (63). This is a single load-bearing argument, not independent work streams.
 
 ## Risk Register
 
 | Phase | Top Risk | Probability | Impact | Mitigation |
 |-------|---------|:-:|:-:|-----------|
-| 54 | GPD v2.0 Phase 4-06 silently used Jordan structure (audit fails → (A) unavailable) | MEDIUM | HIGH | Mandatory first task: explicit token-level audit with grep; if fails, pivot to (C-i) S0 per ADDENDUM recommendation. |
-| 54 | (A) proof attempts drift into Jordan tokens (R1) | MEDIUM | HIGH | Forbidden-token grep on every `attempt-NN.md`; adversarial fresh-eyes review (VALD-54-02) before RESULT.md finalizes. |
-| 54 | Outcome (C-i) adopted but S0 axiom is not defensible | LOW | HIGH | Defense requires (i) automatic in M_n(ℂ)^sa + C(X) + spin factors, (ii) operational motivation, (iii) literature analogue (Niestegge). If all three fail, Phase 54 closes (C) and milestone pauses. |
-| 55 | A-S 2001 vs 2003 volume split not resolvable for some Paper 5 invocation | MEDIUM | MEDIUM | Cross-check against Springer TOC or library copy; flag unverified prop numbers (Prop 7.36, Prop 7.43) in `alfsen-shultz-notes.md`; if neither volume supports it, escalate to Phase 58 as possible type-(iii) axiom. |
-| 55 | S4 argument in Paper 5 is classification (ii) or (iii) (post-Jordan / implicit Jordan) | MEDIUM | HIGH | If (ii), propose Foulis-Holland pre-Jordan alternative. If (iii), add explicit acknowledgement in revision text. If neither works, escalate to milestone pause. |
-| 56 | W is not a face of the ambient EJA | LOW-MEDIUM | HIGH | Most EJA W's are Peirce ranges (automatically faces); if not, try weaker closure-without-preservation (Gudder-Greechie 2002 Ex. 39 pattern); if Thm 5.8 downstream needs stronger than Gudder-Greechie can provide, outcome (C). |
-| 56 | "Carries" equivocation cannot be cleanly disambiguated | LOW | MEDIUM | Three-way split always possible; pick the strongest sense Thm 5.8 downstream actually needs; prove that sense explicitly. |
-| 57 | Φ genuinely not globally inert (role shifts state-dependently) | LOW-MEDIUM | MEDIUM | If inertness claim is false, surface it as outcome (C) for §4 section; revision removes or qualifies the "inert" claim. |
-| 58 | `lake build` fails under pinned toolchain | LOW | HIGH | Toolchain is pinned `leanprover/lean4:v4.28.0` + mathlib v4.28.0; if build fails, fix toolchain pin first. Phase 58 cannot proceed without green build. |
-| 58 | More than 5 Lean axioms are type-(iii) statement-mismatch | LOW-MEDIUM | HIGH | Paper 5's "0 sorry / 16 axioms" claim is weakened; surface in Phase 59 defense with honest axiom-audit-table; consider prove-or-downgrade pass before resubmission. |
-| 58 | Axiom count 16 vs 19 delta hides a Paper-5-relevant axiom | MEDIUM | MEDIUM | `#print axioms` per headline theorem is authoritative; grep's 19 may include test-only axioms; reconciliation is mechanical. |
-| 59 | `latexdiff` + `git-latexdiff` not installed and brew prerequisite fails | LOW | MEDIUM | Install check as prerequisite task; if brew install fails, fallback to manual section-by-section diff. |
-| 59 | Consolidated letter lands after JMP referee report | LOW | LOW | JMP typical 3-6 month window; 19 days is normal; each Phase 54-58 RESULT.md is revision-letter-ready as standalone deliverable. |
-| all | Outcome (C) on any phase triggers milestone pause for human decision | MEDIUM (for Phase 54), LOW (for others) | HIGH | Pause condition documented at milestone level; do NOT silently shift to (C-iii) restructure-before-S4 (UNAVAILABLE); flag to human and wait. |
-| all | Cross-phase cascade from Phase 54 outcome (C-i) | MEDIUM (conditional) | MEDIUM | If Phase 54 = (C-i), Phases 55 S4 phi-independence and 57 phi-inertness may share restructuring; orchestrator gates 55-57 on Phase 54 outcome. |
+| 60 | The two composites collapse on inspection -> RESTRICTION circular/false | MEDIUM | HIGH | Earn the distinction non-circularly with Paper 5's own "composable vs non-composable" remark (main.tex ~393) as textual anchor; if they collapse, that is a decisive (negative) finding -> PAUSE per pause condition 1 |
+| 61 | Clause (iii) verified only by redefining it (fp-redefine-iii) | LOW | HIGH | Check clause (iii) AS STATED; rem:converse supplies it via BGW minimal=maximal, not by weakening; VALD-61-01 SymPy guards the projective-unit/simplicity facts |
+| 62 | Non-associativity of h_3(O) breaks the sequential-product/local-tomography structure clause (iii) needs on the slice (genuine obstruction) | HIGH | HIGH | This is the load-bearing fork and an EXPECTED possible outcome, not a failure: compute sqrt(a) b sqrt(a) in the actual ambient (VALD-62-01); if E cannot induce the structure, characterize the obstruction precisely (outcome O) and PAUSE per pause condition 2. Mid-phase checkpoint after E setup (DERV-62-01) before committing to a route. |
+| 62 | Preservation ASSERTED without demonstration on the non-associative ambient (fp-assert-preservation) | MEDIUM | HIGH | Non-associativity reward-hacking guard: every preservation claim must be computed in h_3(O) (where (xy)z != x(yz)); slice-only / associativity-assuming arguments are rejected by the success criteria |
+| 63 | A positive verdict is forced when the honest outcome is an obstruction (fp-force-positive) | MEDIUM | HIGH | Negative-result-is-success: acceptance passes on a clean obstruction; mandatory adversarial fresh-eyes review (DERV-63-02) checks all three guards before RESULT.md finalizes |
 
 ## Progress
 
-**Execution Order:** (54 || 58 inventory) → (55 || 56 || 57) → 58 final → 59
+**Execution Order:** 60 -> 61 -> 62 -> 63 (strictly sequential)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 52. G4 Spacetime | v13.0 | 2/2 | Complete | 2026-04-13 |
-| 53. N=2 Lagrangian | v13.0 | 2/2 | Complete | 2026-04-13 |
-| 54. §3.3 Peirce Preservation | v14.0 | 0/TBD | Not started | - |
-| 55. S4 Facial Structure | v14.0 | 0/TBD | Not started | - |
-| 56. Thm 5.8 W Upper Bound | v14.0 | 0/TBD | Not started | - |
-| 57. Phi Inert-Wrapper | v14.0 | 0/TBD | Not started | - |
-| 58. Lean Axiom Audit | v14.0 | 0/TBD | Not started | - |
-| 59. Minimal Composite Defense | v14.0 | 0/TBD | Not started | - |
+| 60. Two-Composites Distinction | v15.0 | 0/TBD | Not started | - |
+| 61. Slice Satisfies Clause (iii) | v15.0 | 0/TBD | Not started | - |
+| 62. Coherent Embedding under E | v15.0 | 0/TBD | Not started | - |
+| 63. Verdict | v15.0 | 0/TBD | Not started | - |
+
