@@ -7,238 +7,293 @@
   "project_contract": {
     "schema_version": 1,
     "scope": {
-      "question": "Can the experiential measure framework on structure space be formalized with rigorous proofs \u2014 specifically, can Theorem A (BB negligibility) be assembled from its constituent lemmas, can the experiential density rho's Lipschitz stability be proven, and does the Born-Fisher-Experiential conjecture survive a qubit falsification test?",
+      "question": "Is 'self-modeling -> QM -> h_3(O)' a genuine through-line, or are the observer's complex C* structure and the basin's octonionic structure independent posits? Concretely: prove or disprove RESTRICTION -- that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa (reached by a positive unital conditional expectation E: h_3(O) -> A per lem:bottleneck, Effros-Stormer) satisfies Paper 5 Definition 1 clause (iii), with the observer's body-model composite realized coherently as a sub-structure of the NON-composable h_3(O) induced by the Peirce/bottleneck restriction, so that Paper 5's theorem certifies the observer's complex C* structure.",
       "in_scope": [
-        "Assemble Theorem A proof from BEGK, Freidlin-Wentzell, Donsker-Varadhan, and QSD lemmas with explicit error scaling",
-        "Prove Lipschitz stability of rho(P) under kernel perturbations",
-        "Compute I_vN(B;M) and S_vN(B) for toy qubit model to test Born-Fisher conjecture"
+        "Two-composites distinction: prove rigorously and non-circularly that the observer's clause-(iii) body-model composite V_BM is a different object from h_3(O)'s BGW Jordan-monoidal non-composability (universe algebra tensoring with another system)",
+        "Slice satisfies clause (iii): verify h_3(C_u) ~ M_3(C)^sa meets all four Def 1 clauses (i) finite spectral OUS, (ii) faithful tracking, (iii) minimal internal composite, (iv) simple",
+        "Coherent embedding (the hard part): show the self-modeling structure on A (its V_BM, its sequential product a&b = sqrt(a) b sqrt(a)) is induced by / consistent with the ambient h_3(O) Jordan structure under E -- or exhibit a precise obstruction from the non-associative ambient",
+        "Verdict: a clean RESTRICTION theorem OR a precisely-characterized structural obstruction, with explicit SymPy/matrix verification on h_3(O) and h_3(C_u)"
       ],
       "out_of_scope": [
-        "Countable state space generalization (Stage 1 of extension program)",
-        "Full variational structure of mu_Q beyond qubit test",
-        "Non-equilibrium extension via quasi-potentials",
-        "Reference measure nu on structure space",
-        "Eternal inflation regime (fixed epsilon, T -> infinity)"
+        "Anthropic 'observer-grade' restriction (conceded conditioning input)",
+        "Forced-vs-selected complexification (downstream of THIS lemma; parked)",
+        "Consciousness / Phi (separate track)",
+        "Ready-to-insert Paper 7 LaTeX (rem:converse + lemma + proof) -- verdict-only deliverable per user; paper integration is an outcome-dependent follow-up",
+        "Revisiting or re-deriving prior Paper 5 / Paper 6 / Paper 7 / v13.0 results"
       ],
       "unresolved_questions": [
-        "Exact form of L(|Omega|, spectral_gap) in Lipschitz bound",
-        "Whether qubit model needs 2x2 or larger Hilbert space to be informative"
+        "Does restricting through the bottleneck E PRESERVE what clause (iii) needs, or is there an obstruction from the non-associative ambient h_3(O)?",
+        "Does rem:converse hold exactly as stated in the prompt (minimal = maximal composite coincide for M_n(C)^sa per BGW, so clause (iii) auto-satisfied)? It is NOT yet a labeled remark in the live complexification.tex.",
+        "Is the conditional expectation E's interaction with the sequential product (not just the Jordan product) controlled, or does non-associativity leak in?"
       ]
     },
     "context_intake": {
       "must_read_refs": [
-        "ref-begk",
-        "ref-fw",
-        "ref-baez-dolan",
-        "ref-lmc",
-        "ref-gell-mann-lloyd",
-        "ref-dv"
+        "ref-paper5-def1",
+        "ref-lem-bottleneck",
+        "ref-bgw",
+        "ref-effros-stormer",
+        "ref-hanche-olsen"
       ],
       "must_include_prior_outputs": [
-        "~/repos/blog/research/experiential-measure/draft.md",
-        "~/repos/blog/research/experiential-measure/toy-model/composite_self_model.py",
-        "~/repos/blog/research/experiential-measure/toy-model/three_state_chain.py",
-        "~/repos/blog/research/quantum-extension/draft.md"
+        "~/repos/blog/landing/papers/qm-from-self-modeling/main.tex",
+        "~/repos/blog/landing/papers/sm-from-self-modeling/sections/complexification.tex",
+        "~/repos/blog/research/STATE.md",
+        "~/repos/blog/research/GRAPH.md",
+        "~/repos/blog/research/phi-inaccessibility-program.md",
+        "~/scratch/get-physics-done/p5-basin-restriction-prompt.md"
       ],
       "user_asserted_anchors": [
-        "Toy model rho = 0.347 for self-modeling observer",
-        "Parametric peak at tracking accuracy alpha ~= 0.498 with I*/H = 0.507",
-        "Three-state chain verification matches analytical formula within 1% error",
-        "BEGK exponential residence time scaling",
-        "Groupoid cardinality 1/|Aut(x)| weighting from Baez-Dolan"
+        "Maximal C*-target inside h_3(O) is A ~ M_3(C)^sa ~ h_3(C_u), u in S^6 c Im(O); family {h_3(C_u)} is a single F_4-orbit (lem:bottleneck (ii))",
+        "For a rank-1 idempotent in h_3(C_u), the Peirce 0-space within the slice is h_2(C_u) ~ M_2(C)^sa (lem:bottleneck (iii))",
+        "rem:converse (prompt-authoritative): every M_n(C)^sa admits a faithful self-model; for complex matrix algebras minimal and maximal composites COINCIDE (BGW), so clause (iii) is automatically satisfied for the slice",
+        "h_3(O) is the unique non-special simple formally real Jordan algebra; it admits no well-behaved Jordan-tensor composite (BGW sense) -- this NON-composability is exactly why Paper 7 selects it as the basin",
+        "The two forcings: observer forced COMPLEX by HAVING a composite (clause iii); basin forced OCTONIONIC by having NO composite. The program asserts they coexist via Peirce/bottleneck access (NOT tensor factorization)"
       ],
       "known_good_baselines": [
-        "Seven 16-state Markov chain toy model results from composite_self_model.py",
-        "Three-state Freidlin-Wentzell metastability verification from three_state_chain.py"
+        "lem:bottleneck proof in live complexification.tex (Effros-Stormer 1979 range-is-JB-subalgebra + Artin-Wedderburn + Baez 2002 classification of Jordan subalgebras of h_3(O))",
+        "Paper 5 def:self-modeling-system: four clauses (sms:finite, sms:faithful, sms:minimal, sms:simple) in live qm-from-self-modeling/main.tex line 342",
+        "Prior GPD v6.0 (Gap C algebraic, all 4 routes failed, V_1 = R bottleneck), v8.0 (basin impossibility, observable algebra M_16(R)), v11.0 (Gap C closure via C*-observer sequential product) -- bear on the embedding question"
       ],
       "context_gaps": [
-        "Explicit constants in BEGK lemma composition not yet worked through",
-        "Qubit model Hilbert space dimension not yet decided"
+        "rem:converse is asserted in the prompt but is NOT currently a labeled remark in the live complexification.tex (grep finds lem:bottleneck and Peirce decomposition, no rem:converse) -- prompt's inline version is authoritative; milestone may produce it",
+        "The coherent-embedding step (step 3) is entirely unproved -- this is the deepest unproven join in the program",
+        "Whether Effros-Stormer guarantees E onto h_3(C_u) is positive AND unital AND interacts coherently with the sequential product (not only the Jordan product) is unverified"
       ],
       "crucial_inputs": [
-        "Theorem A 7-lemma dependency graph from draft Section 8",
-        "Experiential density definition rho(p) = I(B;M) * (1 - I(B;M)/H(B))",
-        "Composite Markov process factorization condition"
+        "Paper 5 Def 1, four clauses (i)-(iv), with clause (iii) = minimal internal composite forcing local tomography hence the complex field",
+        "lem:bottleneck (i)-(iii): admissible C*-targets, maximal = M_3(C)^sa = h_3(C_u) single F_4-orbit, rank-1 Peirce-0 = h_2(C_u)",
+        "rem:converse (prompt-inline, authoritative): M_n(C)^sa self-models with minimal=maximal composite (BGW)",
+        "The two distinct composite notions: observer body-model V_BM (clause iii) vs BGW Jordan-monoidal universe tensoring (h_3(O) non-composability)",
+        "Self-modeling sequential product a&b = sqrt(a) b sqrt(a)"
       ]
     },
     "approach_policy": {
       "formulations": [
-        "Finite irreducible continuous-time Markov chains with reversible Metropolis-type dynamics",
-        "Product space Omega = B x M with factorization condition on transition kernel"
+        "Finite-dimensional formally real Jordan algebras (h_3(O), h_3(C_u) ~ M_3(C)^sa); Peirce decomposition w.r.t. a rank-1 idempotent",
+        "Positive unital conditional expectation E: h_3(O) -> A (Effros-Stormer) as the bottleneck access map, NOT tensor factorization",
+        "Barnum-Graydon-Wilce Jordan-monoidal composability framework for the universe-tensoring (non-)composite",
+        "Paper 5 spectral order-unit-space (OUS) framing for the self-modeling Definition 1 clauses on the slice"
       ],
       "allowed_estimator_families": [
-        "direct proof composition from established lemmas"
+        "rigorous algebraic proof grounded in the cited literature (Effros-Stormer, BGW, Hanche-Olsen, Baez)",
+        "explicit SymPy/NumPy matrix verification on h_3(C_u) <-> M_3(C)^sa and the h_3(O) Jordan/sequential product",
+        "precise structural-obstruction characterization (a clean negative result)"
       ],
       "forbidden_estimator_families": [
-        "proof by analogy without explicit bounds"
+        "redefining clause (iii) so it is trivially satisfied",
+        "conflating the observer's body-model composite with the universe-algebra tensoring (the two-composites distinction must be EARNED)",
+        "asserting the Peirce restriction preserves clause (iii) without demonstrating it on the actual non-associative h_3(O) structure",
+        "proof by analogy without explicit algebraic demonstration"
       ],
       "allowed_fit_families": [],
       "forbidden_fit_families": [],
       "stop_and_rethink_conditions": [
-        "BEGK/DV/QSD error bounds do not compose \u2014 exponential suppression breaks in the full chain",
-        "I_vN(B;M) = S_vN(B)/2 fails for Born-rule distributions in qubit model"
+        "The two composites collapse into one object -- the whole claim is circular/false; pause for human decision",
+        "The coherent-embedding step exhibits a genuine obstruction -- this is a VALID negative outcome; characterize it precisely, do NOT force a positive",
+        "Clause (iii) on the slice can only be satisfied by importing structure NOT induced by E from h_3(O) -- that is the obstruction signature; surface it"
       ]
     },
     "observables": [
       {
-        "id": "obs-theorem-a",
-        "name": "Theorem A proof completeness",
+        "id": "obs-two-composites",
+        "name": "Two-composites distinction",
         "kind": "proof_obligation",
-        "definition": "Self-contained proof assembling BEGK, FW, DV, QSD lemmas showing mu_BB/mu_stable <= C*exp(-(Delta_s - Delta_b - alpha)/epsilon)",
+        "definition": "A rigorous, non-circular argument that the observer's clause-(iii) body-model composite V_BM and h_3(O)'s BGW Jordan-monoidal non-composability are about different objects; non-composability of h_3(O) does not entail non-existence of V_BM",
         "regime": null,
         "units": null
       },
       {
-        "id": "obs-lipschitz",
-        "name": "Lipschitz constant characterization",
+        "id": "obs-slice-clause-iii",
+        "name": "Slice satisfies Def 1",
         "kind": "proof_obligation",
-        "definition": "Proven bound |rho(P) - rho(P')| <= L*||P-P'||_inf with L depending on |Omega| and spectral gap",
+        "definition": "Verification that h_3(C_u) ~ M_3(C)^sa satisfies all four Paper 5 Def 1 clauses (i) finite spectral OUS with >= 2 orthogonal nontrivial projective units, (ii) faithful tracking phi, (iii) minimal internal composite, (iv) simple",
         "regime": null,
         "units": null
       },
       {
-        "id": "obs-qubit-test",
-        "name": "Qubit Born-Fisher test result",
-        "kind": "scalar",
-        "definition": "Numerical value of I_vN(B;M)/S_vN(B) for Born-rule distributions in toy qubit composite process",
+        "id": "obs-coherent-embedding",
+        "name": "Coherent embedding under E",
+        "kind": "proof_obligation",
+        "definition": "Demonstration on the actual non-associative h_3(O) structure that the self-modeling data on A (its V_BM and sequential product sqrt(a) b sqrt(a)) is induced by / consistent with the ambient Jordan structure under the conditional expectation E -- OR a precisely-located obstruction",
+        "regime": null,
+        "units": null
+      },
+      {
+        "id": "obs-verdict",
+        "name": "RESTRICTION verdict",
+        "kind": "classification",
+        "definition": "Either a clean RESTRICTION theorem (through-line is real) or a precisely-characterized structural obstruction (C and O are independent posits)",
         "regime": null,
         "units": null
       }
     ],
     "claims": [
       {
-        "id": "claim-theorem-a",
-        "statement": "Theorem A can be assembled as a complete proof from established metastability lemmas with explicit error scaling",
+        "id": "claim-two-composites",
+        "statement": "The observer's clause-(iii) body-model composite and h_3(O)'s BGW non-composability concern different objects; the non-composability of h_3(O) does not preclude the existence of the observer's body-model composite",
         "observables": [
-          "obs-theorem-a"
+          "obs-two-composites"
         ],
         "deliverables": [
-          "deliv-theorem-a-proof"
+          "deliv-two-composites"
         ],
         "acceptance_tests": [
-          "test-theorem-a"
+          "test-two-composites"
         ],
         "references": [
-          "ref-begk",
-          "ref-fw",
-          "ref-dv"
+          "ref-bgw",
+          "ref-paper5-def1",
+          "ref-hanche-olsen"
         ]
       },
       {
-        "id": "claim-lipschitz",
-        "statement": "The experiential density rho is Lipschitz continuous in the transition kernel with characterizable constant",
+        "id": "claim-slice-clause-iii",
+        "statement": "The C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa satisfies all four clauses of Paper 5 Definition 1 as a self-modeler in its own right",
         "observables": [
-          "obs-lipschitz"
+          "obs-slice-clause-iii"
         ],
         "deliverables": [
-          "deliv-lipschitz-proof"
+          "deliv-slice-clause-iii"
         ],
         "acceptance_tests": [
-          "test-lipschitz"
+          "test-slice-clause-iii"
         ],
         "references": [
-          "ref-lmc"
+          "ref-paper5-def1",
+          "ref-lem-bottleneck"
         ]
       },
       {
-        "id": "claim-born-fisher",
-        "statement": "Born-rule distributions satisfy or violate I_vN(B;M) = S_vN(B)/2 in the toy qubit model",
+        "id": "claim-restriction",
+        "statement": "RESTRICTION: the clause-(iii) self-modeling structure on A is coherently induced by the ambient h_3(O) Jordan structure under the Peirce/bottleneck conditional expectation E, so Paper 5's theorem applies to the slice and certifies the observer's complex C* structure even though h_3(O) as a whole is non-composable -- to be PROVEN or DISPROVEN (clean obstruction acceptable)",
         "observables": [
-          "obs-qubit-test"
+          "obs-coherent-embedding",
+          "obs-verdict"
         ],
         "deliverables": [
-          "deliv-qubit-code"
+          "deliv-embedding",
+          "deliv-verdict"
         ],
         "acceptance_tests": [
-          "test-qubit"
+          "test-embedding",
+          "test-verdict"
         ],
         "references": [
-          "ref-baez-dolan"
+          "ref-lem-bottleneck",
+          "ref-effros-stormer",
+          "ref-paper5-def1",
+          "ref-bgw"
         ]
       }
     ],
     "deliverables": [
       {
-        "id": "deliv-theorem-a-proof",
+        "id": "deliv-two-composites",
         "kind": "derivation",
-        "path": null,
-        "description": "Self-contained proof of Theorem A with 7 lemmas composed, explicit error scaling, constants deferred to appendix",
+        "path": "derivations/p5-basin-restriction/",
+        "description": "Rigorous, non-circular distinction between the observer body-model composite V_BM (clause iii) and the BGW universe-tensoring non-composite of h_3(O)",
         "must_contain": [
-          "lemma statements",
-          "composition chain",
-          "exponential bound"
+          "precise definitions of both composite notions",
+          "argument that non-composability of h_3(O) does not entail non-existence of V_BM",
+          "explicit check against circularity / conflation"
         ]
       },
       {
-        "id": "deliv-lipschitz-proof",
+        "id": "deliv-slice-clause-iii",
         "kind": "derivation",
-        "path": null,
-        "description": "Proof of Lipschitz stability of rho with L characterized in terms of |Omega| and spectral gap",
+        "path": "derivations/p5-basin-restriction/",
+        "description": "Verification that h_3(C_u) ~ M_3(C)^sa satisfies Def 1 clauses (i)-(iv), with rem:converse supplying (ii)-(iii) and explicit checks of (i) and (iv)",
         "must_contain": [
-          "perturbation bound",
-          "MI continuity argument",
-          "explicit L dependence"
+          "clause-by-clause verification (i)-(iv)",
+          "rem:converse instantiation for M_3(C)^sa (minimal = maximal composite, BGW)",
+          "SymPy/matrix check of rank, projective units, simplicity"
         ]
       },
       {
-        "id": "deliv-qubit-code",
-        "kind": "code",
-        "path": null,
-        "description": "Python implementation of toy qubit composite process computing I_vN(B;M) and S_vN(B) for Born-rule and non-Born distributions",
+        "id": "deliv-embedding",
+        "kind": "derivation",
+        "path": "derivations/p5-basin-restriction/",
+        "description": "Coherent-embedding analysis: does E preserve the clause-(iii) data on A when A sits inside the non-associative h_3(O), or is there an obstruction? Demonstrated on the actual structure, not asserted",
         "must_contain": [
-          "qubit density matrix construction",
-          "von Neumann entropy computation",
-          "Born vs non-Born comparison"
+          "explicit treatment of the sequential product under E",
+          "demonstration on the real non-associative h_3(O) structure (SymPy where applicable)",
+          "either a preservation proof or a precisely-located obstruction"
+        ]
+      },
+      {
+        "id": "deliv-verdict",
+        "kind": "derivation",
+        "path": "derivations/p5-basin-restriction/RESULT.md",
+        "description": "RESULT.md: clean RESTRICTION theorem OR precisely-characterized obstruction, with honest statement of the consequence for the Radical Relativity program (through-line vs two independent posits)",
+        "must_contain": [
+          "the theorem statement and proof, OR the obstruction characterization",
+          "explicit consequence for the program",
+          "what (if anything) would have to change to close an obstruction"
         ]
       }
     ],
     "acceptance_tests": [
       {
-        "id": "test-theorem-a",
-        "subject": "claim-theorem-a",
+        "id": "test-two-composites",
+        "subject": "claim-two-composites",
         "kind": "human_review",
-        "procedure": "Verify each lemma cites the specific theorem from the source literature, verify the composition chain has no gaps, verify the final bound has the claimed exponential form",
-        "pass_condition": "Complete logical chain from lemma statements to Theorem A conclusion with no deferred steps in the main argument",
+        "procedure": "Verify the two composite notions are defined precisely and shown distinct without circularity; confirm the argument does not smuggle in the conclusion by conflating them",
+        "pass_condition": "The distinction is EARNED: a reviewer agrees non-composability of h_3(O) and existence of V_BM are independent facts about different objects",
         "evidence_required": [
-          "deliv-theorem-a-proof"
+          "deliv-two-composites"
         ],
         "automation": "human"
       },
       {
-        "id": "test-lipschitz",
-        "subject": "claim-lipschitz",
+        "id": "test-slice-clause-iii",
+        "subject": "claim-slice-clause-iii",
         "kind": "human_review",
-        "procedure": "Verify perturbation theory for stationary distributions is applied correctly, verify MI continuity bound is tight, verify L dependence is explicit",
-        "pass_condition": "Rigorous bound with no hand-waving steps; numerical verification against toy model perturbations",
+        "procedure": "Check each of the four Def 1 clauses for h_3(C_u) ~ M_3(C)^sa; run SymPy verification of rank-3 projective-unit structure and simplicity; confirm rem:converse correctly supplies (ii)-(iii)",
+        "pass_condition": "All four clauses verified; rem:converse instantiation correct; no clause trivially redefined",
         "evidence_required": [
-          "deliv-lipschitz-proof"
+          "deliv-slice-clause-iii"
         ],
-        "automation": "hybrid"
+        "automation": "human"
       },
       {
-        "id": "test-qubit",
-        "subject": "claim-born-fisher",
-        "kind": "benchmark",
-        "procedure": "Run qubit model code, compute I_vN(B;M)/S_vN(B) for Born-rule distribution, compare to 0.5",
-        "pass_condition": "Clear numerical answer: ratio equals 0.5 (within numerical precision) or demonstrably does not",
+        "id": "test-embedding",
+        "subject": "claim-restriction",
+        "kind": "human_review",
+        "procedure": "Verify the coherent-embedding claim is demonstrated on the actual non-associative h_3(O) structure (not asserted); confirm the sequential product behaviour under E is treated explicitly; confirm reward-hacking guards are satisfied",
+        "pass_condition": "Either preservation is demonstrated on the real structure, or an obstruction is precisely located; in both cases the demonstration touches the actual non-associative ambient",
         "evidence_required": [
-          "deliv-qubit-code"
+          "deliv-embedding"
         ],
-        "automation": "automated"
+        "automation": "human"
+      },
+      {
+        "id": "test-verdict",
+        "subject": "claim-restriction",
+        "kind": "human_review",
+        "procedure": "Adjudicate the final verdict: a clean RESTRICTION theorem or a precisely-characterized obstruction; confirm a negative result is reported honestly rather than a positive being forced",
+        "pass_condition": "A decisive verdict with the consequence for the program stated explicitly; negative (obstruction) is a fully acceptable pass",
+        "evidence_required": [
+          "deliv-verdict"
+        ],
+        "automation": "human"
       }
     ],
     "references": [
       {
-        "id": "ref-begk",
+        "id": "ref-paper5-def1",
         "kind": "paper",
-        "locator": "Bovier, Eckhoff, Gayrard, Klein \u2014 Metastability papers (2001-2004)",
+        "locator": "Paper 5 (qm-from-self-modeling) live main.tex, def:self-modeling-system (line ~342); Def 1 four clauses + clause (iii) minimal composite -> local tomography -> complex field",
         "aliases": [
-          "BEGK"
+          "Paper 5 Def 1",
+          "def:self-modeling-system"
         ],
-        "role": "method",
-        "why_it_matters": "Provides exponential residence time bounds used in Theorem A Lemma 2",
+        "role": "definition",
+        "why_it_matters": "Defines the self-modeling system whose clause (iii) the slice must satisfy; the complex-field-forcing clause is the heart of the through-line claim",
         "applies_to": [
-          "claim-theorem-a"
+          "claim-two-composites",
+          "claim-slice-clause-iii",
+          "claim-restriction"
         ],
         "carry_forward_to": [
           "planning",
@@ -253,16 +308,19 @@
         ]
       },
       {
-        "id": "ref-fw",
+        "id": "ref-lem-bottleneck",
         "kind": "paper",
-        "locator": "Freidlin, Wentzell \u2014 Random Perturbations of Dynamical Systems (1984/2012)",
+        "locator": "Paper 7 (sm-from-self-modeling) live complexification.tex, lem:bottleneck (line 409) + rem:converse (prompt-inline, authoritative; not yet labeled in live paper)",
         "aliases": [
-          "Freidlin-Wentzell"
+          "lem:bottleneck",
+          "C*-bottleneck universality",
+          "rem:converse"
         ],
-        "role": "method",
-        "why_it_matters": "Provides cycle hierarchy and communication heights for basin decomposition in Theorem A Lemma 1",
+        "role": "definition",
+        "why_it_matters": "Defines the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa and the conditional expectation E; rem:converse supplies clause (ii)-(iii) for the slice",
         "applies_to": [
-          "claim-theorem-a"
+          "claim-slice-clause-iii",
+          "claim-restriction"
         ],
         "carry_forward_to": [
           "planning",
@@ -277,16 +335,18 @@
         ]
       },
       {
-        "id": "ref-dv",
+        "id": "ref-bgw",
         "kind": "paper",
-        "locator": "Donsker, Varadhan \u2014 Large deviations for Markov processes (1975-1983)",
+        "locator": "Barnum, Graydon, Wilce (2020) -- composability of formally real Jordan algebras (Jordan-monoidal composites)",
         "aliases": [
-          "Donsker-Varadhan"
+          "BGW",
+          "Barnum-Graydon-Wilce 2020"
         ],
         "role": "method",
-        "why_it_matters": "Provides concentration inequality for weighted empirical measure in Theorem A Lemma 6",
+        "why_it_matters": "Defines the universe-tensoring composability that h_3(O) FAILS; the two-composites distinction and rem:converse (minimal=maximal for M_n(C)^sa) both rely on BGW",
         "applies_to": [
-          "claim-theorem-a"
+          "claim-two-composites",
+          "claim-restriction"
         ],
         "carry_forward_to": [
           "planning",
@@ -300,125 +360,132 @@
         ]
       },
       {
-        "id": "ref-baez-dolan",
+        "id": "ref-effros-stormer",
         "kind": "paper",
-        "locator": "Baez, Dolan \u2014 From Finite Sets to Feynman Diagrams (2001)",
+        "locator": "Effros, Stormer (1979) -- positive projections and Jordan structure (range of a positive unital idempotent on a JB-algebra is a JB-subalgebra)",
         "aliases": [
-          "Baez-Dolan groupoid cardinality"
+          "Effros-Stormer 1979"
         ],
-        "role": "definition",
-        "why_it_matters": "Defines groupoid cardinality that motivates the 1/|Aut(x)| weighting on structure space",
+        "role": "method",
+        "why_it_matters": "Underwrites the conditional expectation E: h_3(O) -> A in lem:bottleneck; the coherent-embedding step turns on what E preserves",
         "applies_to": [
-          "claim-born-fisher"
+          "claim-restriction"
         ],
         "carry_forward_to": [
           "planning",
-          "writing"
+          "execution",
+          "verification"
         ],
         "must_surface": true,
         "required_actions": [
+          "read",
           "cite"
         ]
       },
       {
-        "id": "ref-lmc",
+        "id": "ref-hanche-olsen",
         "kind": "paper",
-        "locator": "Lopez-Ruiz, Mancini, Calbet \u2014 A statistical measure of complexity (1995)",
+        "locator": "Hanche-Olsen -- universal tensor product of Jordan algebras / special vs exceptional Jordan algebras",
         "aliases": [
-          "LMC statistical complexity"
+          "Hanche-Olsen universal tensor product"
         ],
-        "role": "definition",
-        "why_it_matters": "The rho density belongs to this family \u2014 establishes the pedigree of the I*(1-I/H) functional form",
+        "role": "method",
+        "why_it_matters": "Characterizes when Jordan algebras admit well-behaved tensor composites; relevant to whether the slice's composite is induced coherently or requires external structure",
         "applies_to": [
-          "claim-lipschitz"
+          "claim-two-composites",
+          "claim-restriction"
         ],
         "carry_forward_to": [
-          "writing"
+          "planning",
+          "execution"
         ],
         "must_surface": true,
         "required_actions": [
-          "cite"
-        ]
-      },
-      {
-        "id": "ref-gell-mann-lloyd",
-        "kind": "paper",
-        "locator": "Gell-Mann, Lloyd \u2014 Effective Complexity (1996/2003)",
-        "aliases": [
-          "effective complexity"
-        ],
-        "role": "background",
-        "why_it_matters": "Places rho in the broader family of measures that peak between order and randomness",
-        "applies_to": [
-          "claim-lipschitz"
-        ],
-        "carry_forward_to": [
-          "writing"
-        ],
-        "must_surface": true,
-        "required_actions": [
+          "read",
           "cite"
         ]
       }
     ],
     "forbidden_proxies": [
       {
-        "id": "fp-sketch-only",
-        "subject": "claim-theorem-a",
-        "proxy": "Another proof sketch with 'the tools exist' language but no assembled composition",
-        "reason": "This is exactly what the existing draft already has \u2014 repeating it is not progress"
+        "id": "fp-redefine-iii",
+        "subject": "claim-slice-clause-iii",
+        "proxy": "Redefining clause (iii) (minimal internal composite / local tomography) so it is trivially satisfied by the slice",
+        "reason": "This fakes the result; clause (iii) is the complex-field-forcing condition and must be checked as stated, not weakened"
       },
       {
-        "id": "fp-numerics-only",
-        "subject": "claim-lipschitz",
-        "proxy": "More toy model numerical runs confirming intuition without formal Lipschitz bound",
-        "reason": "Numerical evidence for rho stability already exists in the parametric sweep; the gap is the proof"
+        "id": "fp-conflate-composites",
+        "subject": "claim-two-composites",
+        "proxy": "Treating h_3(O)'s BGW non-composability as the same fact as non-existence of the observer body-model composite (or vice versa)",
+        "reason": "The whole RESTRICTION claim is circular/false if these two composites collapse; the distinction must be earned"
+      },
+      {
+        "id": "fp-assert-preservation",
+        "subject": "claim-restriction",
+        "proxy": "Asserting the Peirce/bottleneck restriction preserves clause (iii) without demonstrating it on the actual non-associative h_3(O) structure",
+        "reason": "Non-associativity of the ambient is exactly where an obstruction could live; preservation must be demonstrated, not assumed"
+      },
+      {
+        "id": "fp-force-positive",
+        "subject": "claim-restriction",
+        "proxy": "Forcing a positive RESTRICTION theorem when the honest outcome is a structural obstruction",
+        "reason": "A negative result (clean obstruction) is a fully acceptable, valuable outcome; manufacturing a positive defeats the milestone's purpose"
       }
     ],
     "links": [
       {
-        "id": "link-theorem-a",
-        "source": "claim-theorem-a",
-        "target": "deliv-theorem-a-proof",
+        "id": "link-two-composites",
+        "source": "claim-two-composites",
+        "target": "deliv-two-composites",
         "relation": "supports",
         "verified_by": [
-          "test-theorem-a"
+          "test-two-composites"
         ]
       },
       {
-        "id": "link-lipschitz",
-        "source": "claim-lipschitz",
-        "target": "deliv-lipschitz-proof",
+        "id": "link-slice-clause-iii",
+        "source": "claim-slice-clause-iii",
+        "target": "deliv-slice-clause-iii",
         "relation": "supports",
         "verified_by": [
-          "test-lipschitz"
+          "test-slice-clause-iii"
         ]
       },
       {
-        "id": "link-qubit",
-        "source": "claim-born-fisher",
-        "target": "deliv-qubit-code",
-        "relation": "computes",
+        "id": "link-embedding",
+        "source": "claim-restriction",
+        "target": "deliv-embedding",
+        "relation": "supports",
         "verified_by": [
-          "test-qubit"
+          "test-embedding"
+        ]
+      },
+      {
+        "id": "link-verdict",
+        "source": "claim-restriction",
+        "target": "deliv-verdict",
+        "relation": "supports",
+        "verified_by": [
+          "test-verdict"
         ]
       }
     ],
     "uncertainty_markers": {
       "weakest_anchors": [
-        "BEGK error bounds may not compose cleanly across all 7 lemmas \u2014 the individual bounds are established but their product has not been verified to preserve the exponential form",
-        "The qubit model dimension choice may be too small to be informative about the general conjecture"
+        "The coherent-embedding step (step 3) is entirely unproved -- it is the deepest unproven, load-bearing join in the program and where any obstruction would live",
+        "rem:converse is prompt-authoritative but not yet a labeled remark in the live complexification.tex; its exact statement (minimal=maximal composite for M_n(C)^sa via BGW) must be confirmed against BGW"
       ],
       "unvalidated_assumptions": [
-        "Reversibility assumption in Theorem A (real observers are non-equilibrium)",
-        "Factorization condition exactness (real systems have approximate factorization)"
+        "That the Effros-Stormer conditional expectation E onto h_3(C_u) is positive AND unital AND interacts coherently with the sequential product (not only the Jordan product)",
+        "That the slice's clause-(iii) 'minimal composite' is INDUCED by E from h_3(O) rather than imported as external structure"
       ],
       "competing_explanations": [
-        "Alternative density functions in the LMC family with same boundary conditions but different peak behavior could work equally well"
+        "The two-composites distinction collapses on close inspection, making RESTRICTION circular/false",
+        "The slice's clause-(iii) composite requires structure not derivable from the non-associative ambient under E -- a genuine obstruction, implying C and O are independent posits"
       ],
       "disconfirming_observations": [
-        "BEGK/DV/QSD error bounds do not compose \u2014 exponential suppression of mu_BB/mu_stable breaks in the assembled proof",
-        "Born-rule distributions do NOT satisfy I_vN(B;M) = S_vN(B)/2 in the qubit model"
+        "A proof that any clause-(iii) composite for A cannot be induced by E from h_3(O) without additional input -> obstruction -> the program concedes two unconnected foundations",
+        "Demonstration that non-associativity of h_3(O) breaks the sequential-product/local-tomography structure required by clause (iii) on the slice"
       ]
     }
   },
@@ -429,7 +496,7 @@
     "current_plan": "0",
     "total_plans_in_phase": 0,
     "status": "v14.0 PAUSED \u2014 waiting on JMP referee report; last sealed phase 56 at outcome (B); Phase 57 ABANDONED mid-planning; 58/59 DEFERRED. GPD available for new milestones.",
-    "last_activity": "2026-04-17",
+    "last_activity": "2026-05-23",
     "last_activity_desc": "v14.0 milestone PAUSED close-out: STATE.md + ROADMAP.md + state.json updated; 57-ABANDONED.md + V14-CLOSEOUT.md written; partial 57 plans moved to phases/57-phi-inert-wrapper-resolution/abandoned/. See V14-CLOSEOUT.md for full inventory and resumption mechanics.",
     "progress_percent": 33,
     "paused_at": "2026-04-17"
@@ -455,7 +522,10 @@
     "Lambda != 0 mechanism not yet provided by self-modeling framework (ungauged MESGT gives Lambda=0 classically)",
     "RESOLVED (52-01): Boosts = L_{sigma_i} in Str_0 via KKT.",
     "RESOLVED (53-02): N=2 SUSY derived via GST bijection; not assumed.",
-    "RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types \u2014 see state.json."
+    "RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types \u2014 see state.json.",
+    "Does restricting through the bottleneck E PRESERVE what clause (iii) needs, or is there an obstruction from the non-associative ambient h_3(O)?",
+    "Does rem:converse hold exactly as stated in the prompt (minimal = maximal composite coincide for M_n(C)^sa per BGW, so clause (iii) auto-satisfied)? It is NOT yet a labeled remark in the live complexification.tex.",
+    "Is the conditional expectation E's interaction with the sequential product (not just the Jordan product) controlled, or does non-associativity leak in?"
   ],
   "performance_metrics": {
     "rows": [
@@ -1045,6 +1115,11 @@
       "phase": "55, Close",
       "summary": "Phase 55 verification PASS (HIGH, 6/6 contract targets, SymPy independently re-executed by verifier in 0.305s, 4/4 PASS). Rapid consistency check CONSISTENT (0 violations, 0 convention drift from Phase 54; 3 provides/consumes pairs semantically verified: S0 axiom, Peirce-Preservation Lemma, Prop 7.43). Two non-blocking post-close TODOs flagged: (1) Prop 7.43 upgrade from VERIFIED-VIA-INTERNAL-CROSS-REFERENCE to VERIFIED-AGAINST-BOOK-TEXT; (2) minor typo at axiom-verification.tex:152-154 (whenever/for clause ambiguity). Stale `.gpd/CONVENTIONS.md` flagged as pre-existing (not Phase 55 issue; recommended v14.0-close refresh).",
       "rationale": null
+    },
+    {
+      "phase": "0",
+      "summary": "Started milestone v15.0: The P5 <-> Basin Restriction Lemma",
+      "rationale": "New milestone cycle -- prove/disprove the load-bearing join between Paper 5 (observer forced complex by having a composite) and Paper 7 (basin forced octonionic by non-composability); v14.0 paused pending JMP referee report"
     }
   ],
   "approximations": [],
@@ -1095,10 +1170,13 @@
     "resume_file": "--"
   },
   "_version": 1,
-  "_synced_at": "2026-04-17T20:50:32.133677+00:00",
-  "active_milestone": null,
+  "_synced_at": "2026-05-23T16:30:44.669250+00:00",
+  "active_milestone": "v15.0",
   "milestone_status": {
-    "v14_0": "paused"
+    "v14_0": "paused",
+    "v15_0": "active"
   },
-  "last_sealed_phase": 56
+  "last_sealed_phase": 56,
+  "current_milestone": "v15.0",
+  "current_milestone_name": "The P5 <-> Basin Restriction Lemma"
 }

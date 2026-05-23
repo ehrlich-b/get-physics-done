@@ -8,5 +8,5 @@
     "plan_checker": true,
     "verifier": true
   },
-  "research": true
+  "research": false
 }

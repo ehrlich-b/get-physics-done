@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny. The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny -- v14.0 is now PAUSED pending the JMP referee report. v15.0 turns to the program's spine: prove or disprove the RESTRICTION lemma -- that the observer's complex C* structure (Paper 5 clause iii) is coherently realized as the C*-bottleneck Peirce slice h_3(C_u) ~ M_3(C)^sa inside the non-composable basin h_3(O), settling whether "self-modeling -> QM -> h_3(O)" is a genuine through-line or two independent posits. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
@@ -12,44 +12,47 @@ Can the Standard Model + GR be derived from the requirement that a composite sys
 
 Einstein gravity derived algebraically from h_3(O) via GST magic supergravity. pi_u: h_2(O) -> h_2(C_u) = R^{3,1} with Minkowski signature (1,3). d_{IJK} tensor computed (106 nonzero, 97% sparse). det(X) unique F_4-invariant cubic (Springer 1962). V_0 stabilizer = so(3) x so(6), pi_u equivariant. 4d N=2 MESGT: 1 gravity + 26 vectors, prepotential F(X) = d_{IJK} X^I X^J X^K / (6 X^0). C_{IJK} decomposed: 10 gravitational + 48 spacetime + 48 internal. Weinberg 1964 applied: spin-2 (10=9+1), massless (M=det_2), universal coupling (C_{i,j,a}) force -R/2 at low energies. Assembly DAG: 18 nodes, 31 edges, acyclic. 13 gaps catalogued. Chain-critical: N=2 SUSY (ASSUMED), compact so(3) vs so(3,1) (CONDITIONAL-DERIVED). Paper 6 lattice route ABANDONED; v12.0 route independent.
 
-## Current State (after v13.0)
+## Current State (after v14.0 pause)
 
-The derivation chain (Papers 5-6-7) is complete end-to-end with 13 gaps catalogued. v14.0 does NOT extend this chain. It turns inward: Paper 5 is 16+ days with the JMP associate editor and a jigsaw-piece review found 6 gaps in its internal exposition that must close before the referee report arrives.
+The derivation chain (Papers 5-6-7) is complete end-to-end with 13 gaps catalogued. v14.0 (Paper 5 internal-exposition hardening) is PAUSED pending the JMP referee report (see `.gpd/V14-CLOSEOUT.md`); Phases 54/55 sealed at (C-i), 56 at (B), 57 abandoned mid-planning, 58/59 deferred. v15.0 does NOT extend the derivation chain and does NOT continue v14.0. It attacks the program's spine: the single load-bearing join between Paper 5 (observer forced COMPLEX by HAVING a composite) and Paper 7 (basin forced OCTONIONIC by having NO composite).
 
-Two independent routes to Einstein gravity from self-modeling are established (carried forward from v13.0):
+Two independent routes to Einstein gravity from self-modeling are established (carried forward, unchanged):
 
 - **Route 1 (v9.0-v10.0, lattice):** Fisher geometry -> Lorentz -> BW/KMS -> Jacobson -> Einstein. Conditional on quantum SSB at S_eff=1/2.
 - **Route 2 (v12.0-v13.0, algebraic):** h_3(O) -> Peirce V_0 -> pi_u -> R^{3,1} -> det(X) prepotential -> MESGT (N=2 derived via GST) -> Weinberg -> -R/2.
 
 **Complete chain:** Self-modeling (Paper 5) -> C*-algebra -> h_3(O) (Paper 7) -> QM + SM fermions (V_{1/2}) + chirality (Cl(6)) + spacetime (V_0) + matter-gravity couplings (det(X)) + Einstein gravity (Weinberg). Assembly DAG verified acyclic with 18 nodes.
 
-**Why v14.0 is not more derivation chain work:** Paper 5 is the foundational paper the rest of the chain builds on. If its internal exposition has a §3.3-level gap visible to a referee, everything downstream is weakened at a presentation level. v14.0 is maintenance of the paper that already shipped, not extension of the derivation frontier.
+**Why v15.0 is the spine:** the whole chain opens with "self-modeling -> QM" (Paper 5) and "QM lives in h_3(O)" (Paper 7). Paper 5 reaches the complex field via clause (iii), which needs a well-behaved composite to EXIST. Paper 7 selects h_3(O) precisely because it is NON-composable. The lemma reconciling these -- observer = a complex C*-subsystem reading the non-composable whole through a Peirce bottleneck, access by Peirce projection NOT tensor factorization -- has never been proved. If it fails, C and O are two unconnected foundations and the through-line is an illusion.
 
-## Current Milestone: v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps
+## Current Milestone: v15.0 The P5 <-> Basin Restriction Lemma
 
-**Goal:** Close 6 jigsaw-piece gaps in Paper 5 before the JMP referee report lands, so revisions ship fast and survive reviewer scrutiny.
+**Goal:** Prove or disprove RESTRICTION -- that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa (reached by a positive unital conditional expectation E: h_3(O) -> A, lem:bottleneck / Effros-Stormer) satisfies Paper 5 Definition 1 clause (iii), with the observer's body-model composite realized coherently as a sub-structure of the NON-composable h_3(O) induced by the Peirce/bottleneck restriction, so Paper 5's theorem certifies the observer's complex C* structure. A clean negative result (precise obstruction) is fully acceptable; do NOT force a positive.
 
-**Target results (in order):**
+**The attack (4 steps -> phases, starting Phase 60):**
 
-1. §3.3 Peirce preservation from OUS primitives -- outcome (A) proof / (B) precise Alfsen-Shultz citation / (C) structural-gap characterization. **Load-bearing and only phase fully scoped; Phases 2-6 are stubs to be expanded as Phase 1 closes.**
-2. S4 facial structure lemma -- precise Alfsen-Shultz citation or standalone proof
-3. Thm 5.8 upper bound -- W carries product-form sequential product (currently asserted)
-4. Phi inert-wrapper resolution -- stop equivocating across sections
-5. Lean axiom audit -- 16 axioms vs cited Alfsen-Shultz / van de Wetering statements
-6. Minimal composite assumption defense -- every adversarial reviewer flags this
+1. **Two-composites distinction** (rigorous, non-circular): the observer's clause-(iii) body-model V_BM is a DIFFERENT object from h_3(O)'s BGW Jordan-monoidal non-composability. Non-composability of h_3(O) does NOT entail non-existence of V_BM. The whole claim is circular/false if these collapse -- the distinction must be EARNED.
+2. **Slice satisfies clause (iii):** verify h_3(C_u) ~ M_3(C)^sa meets all four Def 1 clauses as a self-modeler in its own right (rem:converse supplies (ii)-(iii); check (i), (iv)).
+3. **Coherent embedding** (the hard part -- where an obstruction would live): show the self-modeling structure on A (its V_BM, its sequential product a&b = sqrt(a) b sqrt(a)) is induced by / consistent with the ambient h_3(O) under E. Does restricting through the bottleneck PRESERVE what clause (iii) needs on the actual non-associative structure, or is there an obstruction?
+4. **Verdict:** a clean RESTRICTION theorem, OR a precisely-characterized obstruction.
 
-**Pause condition:** Outcome (C) on any phase -> milestone pauses for human decision on whether to restructure, add an explicit assumption, or rip out and rework. Above GPD's pay grade.
+**Pause condition:** the two composites collapse (claim circular), or the coherent-embedding step needs structure NOT induced by E -> milestone pauses for human decision. A characterized obstruction is a deliverable, not a pause.
 
-**Dependencies:**
+**Deliverable (verdict-only):** `derivations/p5-basin-restriction/` (STATE.md, claim.md, attempt-NN.md, RESULT.md) with the theorem-or-obstruction and explicit SymPy/matrix checks on h_3(O)/h_3(C_u). Ready-to-insert Paper 7 LaTeX (rem:converse + lemma + proof) is an outcome-dependent follow-up, OUT of scope for v15.0.
 
-- Paper 5 source (frozen): `/Users/ehrlich/repos/blog/landing/papers/qm-from-self-modeling/main.tex`, git tag `paper5-jmp-submitted`, revision copy at `main-jmp-submitted.tex`
-- §3.3 content: lines 483-562 of `main.tex`; key claim lines 508-528
-- Alfsen-Shultz 2003 "Geometry of State Spaces of Operator Algebras" (Birkhauser)
-- van de Wetering axioms S1-S7 (§3.2 of Paper 5)
-- Paper 5 Lean formalization: `~/repos/research/lean/Paper5/` (0 sorry, 16 axioms)
-- Prior GPD v2.0 work on sequential product (Phases 4-6): check whether any of those attempts settled the §3.3 claim or assumed it
+**Dependencies (LIVE sources -- NOT the stale repo `papers/`):**
 
-**Deliverables location:** `derivations/paper5-peirce-preservation/` (STATE.md, claim.md, attempt-NN.md, RESULT.md, alfsen-shultz-notes.md) for Phase 1.
+- Paper 5 Def 1: `~/repos/blog/landing/papers/qm-from-self-modeling/main.tex` (def:self-modeling-system line 342, App A)
+- lem:bottleneck + Peirce under E_11: `~/repos/blog/landing/papers/sm-from-self-modeling/sections/complexification.tex` (lem:bottleneck line 409)
+- rem:converse: prompt-inline authoritative; NOT yet a labeled remark in the live complexification.tex (milestone may produce it)
+- BGW (Barnum-Graydon-Wilce 2020, FRJA composability); Effros-Stormer 1979 (positive projections onto JB-subalgebras); Hanche-Olsen universal tensor product
+- Context: `~/repos/blog/research/{STATE.md, GRAPH.md, phi-inaccessibility-program.md}`
+- Prior GPD: v6.0 (Gap C algebraic, all 4 routes failed, V_1 = R), v8.0 (basin impossibility, M_16(R)), v11.0 (Gap C closure via C*-observer sequential product) -- bear on the embedding question
+- Milestone prompt: `~/scratch/get-physics-done/p5-basin-restriction-prompt.md`
+
+## v14.0 Status (PAUSED 2026-04-17)
+
+v14.0 (Paper 5 internal-exposition hardening for the JMP referee response) is paused, not abandoned. Phases 54/55 sealed at (C-i) [S0 Peirce-coherence axiom + Peirce-Preservation Lemma], Phase 56 sealed at (B) [§5 Thm 5.8 W carries sequential product]; Phase 57 (Phi inert-wrapper) abandoned mid-planning; 58 (Lean axiom audit) / 59 (minimal-composite defense + referee diff) deferred. Resumption triggers: (a) JMP referee report received, (b) explicit user restart. Full inventory: `.gpd/V14-CLOSEOUT.md`. Paper 5 submission JMP26-AR-00922 (Zenodo DOI 10.5281/zenodo.19342703).
 
 ## v13.0 Summary (complete 2026-04-13)
 
@@ -81,105 +84,84 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Contract Coverage
 
-- **Phase 1 §3.3 claim (claim-peirce):** a o V_2(p_i) c V_2(p_i) and a o V_1(p_i,p_j) c V_1(p_i,p_j) for a = sum lambda_i p_i in a spectral OUS, with sequential product satisfying S1 (additivity in second arg) and S3 (sharp constraint a o b = c_a(b) when a is a projective unit), restricted to OUS primitives only. Outcome must be (A) proof / (B) precise Alfsen-Shultz citation / (C) structural-gap characterization.
-- **Acceptance signal (Phase 1):** (A) complete proof with zero uses of Jordan product, EJA, sequential product formula sqrt(lambda mu), C*-structure, or h_n(C); or (B) chapter + section + theorem number in Alfsen-Shultz 2003 that implies the claim from OUS primitives; or (C) explicit gap characterization naming the minimum additional axiom/derivation step needed and the ordering change Paper 5 would require.
-- **Milestone-level acceptance signal:** Each of 6 gaps closed with (A), (B), or explicit (C) flag. Revision response text drafted for each closed gap.
-- **Adversarial review gate:** Phase 1 outcome reviewed by a second fresh-eyes agent before RESULT.md finalizes.
-- **False progress to reject:** "Since a o b is a Jordan product..." (uses the structure being derived); citing the Peirce decomposition theorem as if it proves Peirce invariance of a o (-); conflating "compressions c_{p_i} preserve Peirce subspaces" (Alfsen-Shultz fact about individual compressions) with "a o (-) preserves Peirce subspaces" (claim about the composite map b -> a o b); rate-limiting on "it's obvious" when Paper 5 spends 20 lines asserting it.
+- **RESTRICTION (claim-restriction):** the clause-(iii) self-modeling structure on A = h_3(C_u) ~ M_3(C)^sa is coherently INDUCED by the ambient h_3(O) Jordan structure under the Peirce/bottleneck conditional expectation E, so Paper 5's theorem applies to the slice and certifies the observer's complex C* structure even though h_3(O) is non-composable. PROVE or DISPROVE.
+- **Acceptance signal:** a clean RESTRICTION theorem (proof touching the actual non-associative structure), OR a precisely-located structural obstruction. Both are decisive verdicts; a clean obstruction is a fully acceptable outcome.
+- **Decisive sub-claims:** (1) two-composites distinction earned non-circularly; (2) slice satisfies all four Def 1 clauses; (3) coherent embedding demonstrated on the real non-associative ambient (not asserted).
+- **False progress to reject:** redefining clause (iii) to be trivially satisfied; conflating the observer's body-model composite with BGW universe-tensoring; asserting Peirce-restriction preserves clause (iii) without demonstrating on h_3(O); forcing a positive when the honest outcome is an obstruction.
 
 ### User Guidance To Preserve
 
-- **User-stated observables:** Peirce-preservation property of a o (-) on V_2(p_i) and V_1(p_i,p_j); S1 and S3 axioms as stated in Paper 5 §3.2; compression properties per Alfsen-Shultz 2003 (idempotent, positive, c_p + c_{p'} = id, Peirce decomposition).
-- **User-stated deliverables:** `derivations/paper5-peirce-preservation/` tree with STATE.md, claim.md (restated in derivation's own notation), attempt-NN.md (one per serious proof attempt), RESULT.md (outcome A/B/C with proof / citation / gap), alfsen-shultz-notes.md (specific AS theorems consulted with page numbers). Revision text for §3.3 in RESULT.md.
-- **User-stated phases:** (1) §3.3 Peirce preservation [fully scoped], (2) S4 facial structure lemma, (3) Thm 5.8 upper bound, (4) Phi inert-wrapper resolution, (5) Lean axiom audit, (6) Minimal composite assumption defense. Phases 2-6 as stubs -- expanded only as Phase 1 closes.
-- **Must-have references:** Alfsen-Shultz 2003 "Geometry of State Spaces of Operator Algebras" (Birkhauser); Paper 5 main.tex (frozen at `paper5-jmp-submitted`, copy at `main-jmp-submitted.tex`); van de Wetering S1-S7 axioms; Paper 5 Lean formalization (`~/repos/research/lean/Paper5/`); prior GPD v2.0 Phases 4-6 sequential product work.
-- **Stop / rethink conditions:** Outcome (C) on any phase -- milestone pauses for human decision on whether to restructure §3.3 (move Jordan derivation earlier), add an explicit assumption, or rip out and rework. "Above GPD's pay grade."
-- **Strategy on failure:** If proof attempts accumulate and none closes cleanly from OUS primitives, escalate to outcome (C) rather than sneak in Jordan structure. Precise citation (B) beats hand-waved proof (A). Honest gap (C) beats contested proof.
+- **User-stated framing:** observer forced COMPLEX by HAVING a composite (clause iii); basin forced OCTONIONIC by having NO composite; the program asserts they coexist via Peirce bottleneck access, NOT tensor factorization. "The two-composites distinction must be EARNED." "A negative result (clean obstruction) is a fully acceptable, valuable outcome -- do not force a positive."
+- **User-stated deliverables:** `derivations/p5-basin-restriction/` tree (claim.md, attempt-NN.md, RESULT.md) with theorem-or-obstruction + explicit checks on the non-associative structure. Verdict-only (no Paper 7 LaTeX integration this milestone).
+- **Must-use sources:** LIVE papers in `~/repos/blog/landing/papers/` (NOT the stale repo `papers/`): qm-from-self-modeling Def 1; sm-from-self-modeling lem:bottleneck + Peirce under E_11. Inline definitions in the milestone prompt are authoritative.
+- **Stop / rethink conditions:** two composites collapse (circular); coherent embedding needs structure not induced by E (obstruction signature) -> pause for human decision.
+- **Reward-hacking guard:** do NOT "prove" the claim by redefining clause (iii), conflating the two composites, or asserting Peirce-restriction preserves clause (iii) without demonstrating it on the actual non-associative h_3(O) structure.
 
 ### Scope Boundaries
 
 **In scope**
 
-- OUS / spectral order unit space primitives: order unit, compressions (idempotent, positive, c_p + c_{p'} = id, Peirce decomposition), faithful normal states
-- van de Wetering S1 (additive in second arg), S3 (sharp constraint a o b = c_a(b) when a is projective unit)
-- Linear endomorphism property of a o (-): allowed as an input to Phase 1 per Paper 5
-- Alfsen-Shultz 2003 page-level consultation
-- Lean formalization audit (Phase 5) -- 16 axioms vs cited Alfsen-Shultz / vdW
-- Deriving minimum revision text for each Paper 5 section touched
+- Two-composites distinction (rigorous, non-circular): observer body-model V_BM vs BGW Jordan-monoidal universe tensoring
+- Slice satisfies Def 1 clauses (i)-(iv) for h_3(C_u) ~ M_3(C)^sa
+- Coherent embedding under the conditional expectation E on the actual non-associative h_3(O); preservation proof OR obstruction
+- Verdict with explicit SymPy/matrix verification on h_3(O) and h_3(C_u)
 
 **Out of scope**
 
-- Any use of Jordan multiplication, EJA structure, sequential product formula f(lambda,mu) = sqrt(lambda mu), or C*-structure in Phase 1 proof
-- Any use of h_n(C) or specific EJA realization in Phase 1 proof
-- Anything downstream of §3.3 (S4, S5, sequential product formula, etc.) in Phase 1 proof
-- Revisiting Paper 6 / Paper 7 / v13.0 results
-- New derivation chain extensions (no new physics)
-- Major restructuring of Paper 5 without human approval (any outcome (C) pauses milestone)
+- Anthropic observer-grade restriction (conceded conditioning input)
+- Forced-vs-selected complexification (downstream of this lemma; parked)
+- Consciousness / Phi (separate track)
+- Ready-to-insert Paper 7 LaTeX (rem:converse + lemma + proof) -- outcome-dependent follow-up
+- Revisiting / re-deriving Paper 5 / Paper 6 / Paper 7 / v13.0 results
 
 ### Active Anchor Registry
 
-- **ref-alfsen-shultz-2003:** Alfsen, Shultz -- Geometry of State Spaces of Operator Algebras (Birkhauser 2003)
-  - Why it matters: CRITICAL -- defines the OUS / spectral order unit space / compressions framework Paper 5 §2-3 cite throughout; (B) outcome depends on page-level consultation
-  - Carry forward: planning, execution, verification, writing
-  - Required action: read, cite, page-level lookup
-
-- **ref-paper5-frozen:** Paper 5 frozen JMP submission (git tag `paper5-jmp-submitted`, copy at `~/repos/blog/landing/papers/qm-from-self-modeling/main-jmp-submitted.tex`)
-  - Why it matters: CRITICAL -- §3.3 lines 508-528 contain the exact claim; §3.3 lines 483-562 the surrounding context; revisions will land in `main.tex`
+- **ref-paper5-def1:** Paper 5 live `main.tex`, def:self-modeling-system (line ~342)
+  - Why it matters: CRITICAL -- defines the four self-modeling clauses; clause (iii) (minimal internal composite) is what the slice must satisfy and what forces the complex field
   - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
-- **ref-vdw-sequential:** van de Wetering -- sequential product axioms S1-S7
-  - Why it matters: S1 and S3 are the allowed primitives in Phase 1; the rest are downstream of §3.3 and PROHIBITED in Phase 1 proof
-  - Carry forward: planning, execution
+- **ref-lem-bottleneck:** Paper 7 live `complexification.tex`, lem:bottleneck (line 409) + rem:converse (prompt-inline; not yet labeled in live paper)
+  - Why it matters: CRITICAL -- defines slice A = h_3(C_u) ~ M_3(C)^sa, the F_4-orbit of maximal C*-targets, conditional expectation E, rank-1 Peirce-0 = h_2(C_u); rem:converse supplies clause (ii)-(iii)
+  - Carry forward: planning, execution, verification, writing
   - Required action: read, cite
 
-- **ref-paper5-lean:** Paper 5 Lean formalization `~/repos/research/lean/Paper5/` (0 sorry, 16 axioms)
-  - Why it matters: Phase 5 audit target -- each of 16 axioms must trace to a cited Alfsen-Shultz or vdW statement
-  - Carry forward: execution (Phase 5), verification
-  - Required action: read, audit
-
-- **ref-gpd-v2-sp-phases:** Prior GPD v2.0 Phases 4-6 (Sequential Product on OUS)
-  - Why it matters: May already have attempted the §3.3 claim; if yes and (A) achieved, promote; if yes and assumed, flag; if no, note that prior work did not address it
-  - Carry forward: planning
-  - Required action: read, check
-
-- **ref-addendum-indep-lit-check:** `.gpd/research/ADDENDUM-independent-literature-check.md` (2026-04-16, author-sourced via subagent TOC read + Jenčová-Pulmannová direct read)
-  - Why it matters: Two independent sources (A-S 2003 TOC + arXiv:2102.01628) locate Peirce decomposition post-Jordan, NOT at pure OUS level. Shifts prior probability on Phase 54 outcomes: (A) plausible-but-difficult, (B) essentially ruled out (no OUS-native A-S theorem), (C) most likely — specifically (C-i) "add Peirce coherence axiom S0 at OUS level." (C-iii) restructure-chain is explicitly UNAVAILABLE (vdW Thm 1 consumes S4 to produce Jordan → circularity).
-  - Carry forward: planning, execution
-  - Required action: read, use to cap (A) effort and pre-draft (C-i)
-
-- **ref-jencova-pulmannova2021:** Jenčová & Pulmannová -- "Geometric and algebraic aspects of spectrality in order unit spaces: a comparison" (arXiv:2102.01628, Feb 2021)
-  - Why it matters: Comparison paper for OUS spectrality; §3-4 develop OUS spectrality without Peirce; §5.9 Peirce enters only at JB-algebra level citing A-S Thm 1.4 (Jordan-algebraic Peirce chapter). Confirms Peirce is post-Jordan in the literature we can access.
-  - Carry forward: planning, execution
+- **ref-bgw:** Barnum-Graydon-Wilce (2020), FRJA composability (Jordan-monoidal)
+  - Why it matters: defines the universe-tensoring h_3(O) FAILS; underpins both the two-composites distinction and rem:converse (minimal=maximal composite for M_n(C)^sa)
+  - Carry forward: planning, execution, verification
   - Required action: read, cite
 
-- **ref-hanche-olsen-stormer1984:** Hanche-Olsen & Størmer -- *Jordan Operator Algebras* (1984), §2.6
-  - Why it matters: Peirce decomposition developed for unital Jordan algebras only, via Macdonald's theorem. No OUS-level counterpart. Free PDF at hanche.folk.ntnu.no/joa/joa-m.pdf.
-  - Carry forward: planning
+- **ref-effros-stormer:** Effros-Stormer (1979), positive projections onto JB-subalgebras
+  - Why it matters: underwrites E: h_3(O) -> A; the coherent-embedding step turns on what E preserves (Jordan product vs sequential product)
+  - Carry forward: planning, execution, verification
+  - Required action: read, cite
+
+- **ref-hanche-olsen:** Hanche-Olsen, universal tensor product of Jordan algebras
+  - Why it matters: characterizes when Jordan algebras admit well-behaved composites; relevant to whether the slice's composite is induced coherently or requires external structure
+  - Carry forward: planning, execution
   - Required action: read, cite
 
 ### Carry-Forward Inputs
 
-- Paper 5 submission JMP26-AR-00922 with Zenodo DOI 10.5281/zenodo.19342703 (submitted 2026-03-28)
-- Paper 5 main.tex §3.3 lines 483-562 (subsection "The Corrected Product via Peirce Feedback")
-- Paper 5 Lean formalization `~/repos/research/lean/Paper5/` (0 sorry, 16 axioms)
-- Prior GPD v2.0 Phases 4-6 sequential product work (content unknown until Phase 1 checks)
-- Zero "Bryan's intuition says X" shortcuts -- this milestone exists because intuition is insufficient
+- Live papers (authoritative): `qm-from-self-modeling/main.tex`, `sm-from-self-modeling/sections/complexification.tex`
+- Research context: `~/repos/blog/research/{STATE.md, GRAPH.md, phi-inaccessibility-program.md}`
+- Prior GPD: v6.0 (Gap C algebraic -- all 4 routes failed; V_1 = R bottleneck), v8.0 (basin impossibility; observable algebra M_16(R)), v11.0 (Gap C closure via C*-observer sequential product)
+- Milestone prompt: `~/scratch/get-physics-done/p5-basin-restriction-prompt.md` (self-contained; inline definitions authoritative)
 
 ### Skeptical Review
 
-- **Weakest anchor:** The §3.3 claim itself. Independent literature check (2026-04-16, ref-addendum-indep-lit-check) places Peirce decomposition post-Jordan in both A-S 2003 (Part I Ch. 1-3 Jordan-algebraic; Ch. 7-8 compressions have no Peirce section) and Jenčová-Pulmannová 2021 (OUS spectrality §3-4 no Peirce; JB-algebra §5.9 is where Peirce enters). Prior probability on Phase 54 outcomes: (A) plausible-but-difficult, (B) essentially ruled out, (C) most likely.
-- **Unvalidated assumptions:** That S1 + S3 + linearity are sufficient primitives (the whole question). That Alfsen-Shultz 2003 contains an implicit theorem covering this case -- ADDENDUM says likely NO. That the prior GPD v2.0 work either settled or assumed the claim -- neither has been verified. That Paper 5's cite of A-S Theorem 9.37 for the Peirce direct sum is pre-Jordan-legal -- it is not (Ch. 9 is the Jordan state-space characterization chapter; circular at §3.3 level).
-- **Competing explanation:** §3.3's argument conflates "compressions preserve Peirce subspaces" (A-S Ch. 7 fact about individual compressions) with "a o (-) preserves Peirce subspaces" (claim about the composite map b -> a o b). The conflation is not repairable by a Peirce-native OUS citation because none exists.
-- **Disconfirming observation (= outcome C):** ADDENDUM identifies three (C) sub-variants: (C-i) add "Peirce coherence" axiom S0 at OUS level alongside S1-S7 and defend as natural; (C-ii) find an alternative S4 proof that routes around Peirce entirely; (C-iii) restructure the chain to derive Jordan structure before S4 -- EXPLICITLY UNAVAILABLE (vdW Thm 1 consumes S4 to produce Jordan -> circularity). Recommendation from ADDENDUM: cap (A) effort; if (A) fails, formalize (C-i).
-- **False progress to reject:** "Since the Peirce decomposition exists in any spectral OUS (Alfsen-Shultz), the sequential product respects it" -- decomposition of V != invariance of a o (-) under V; also ADDENDUM shows Peirce does NOT exist at pure OUS level in the accessible literature. "Jordan structure gives it" -- circular. "It's obvious from compressions" -- compressions c_{p_i} are not the same object as b -> a o b. "Cite A-S Ch. 9 Theorem 9.37" -- Ch. 9 is Jordan state-space characterization; citing it at pre-Jordan §3.3 is the exact circularity ADDENDUM flags.
+- **Weakest anchor:** the coherent-embedding step (step 3) is entirely unproved -- the deepest unproven, load-bearing join in the program, and where any obstruction lives.
+- **Unvalidated assumptions:** that E is positive AND unital AND coherent with the sequential product (not only the Jordan product); that the slice's "minimal composite" is INDUCED by E rather than imported; that rem:converse holds exactly as stated (not yet a labeled remark in the live paper).
+- **Competing explanation:** the two-composites distinction collapses on close inspection (RESTRICTION circular/false), OR the slice's clause-(iii) composite needs structure external to the non-associative ambient (genuine obstruction -> C and O are independent posits).
+- **Disconfirming observation (= valid negative):** a proof that no clause-(iii) composite for A can be induced by E from h_3(O) without additional input; or that non-associativity of h_3(O) breaks the sequential-product/local-tomography structure clause (iii) needs on the slice.
+- **False progress to reject:** "h_3(O) is non-composable, so the observer can't have a composite either" (conflation); "the slice is M_3(C)^sa so clause (iii) is automatic" without checking the embedding is induced by E; any preservation claim not demonstrated on the actual non-associative structure.
 
 ### Open Contract Questions
 
-- Does prior GPD v2.0 Phase 4-6 work contain a Phase 54 proof attempt, an assumption, or no engagement with the §3.3 claim?
-- Can a direct compression-algebra argument (J_p acts on Peirce subspaces via A-S Ch. 7 compression theory) deliver outcome (A) without invoking Jordan structure? If not in a reasonable time cap, pivot to (C-i).
-- What exact statement and defense does the "Peirce coherence" axiom S0 take at OUS level (for (C-i) fallback), and is it natural enough that a referee accepts it?
-- Are the 16 Lean axioms (Phase 58) red flags for the logical chain, or straightforward Alfsen-Shultz/vdW restatements? Note: `SelfModelingBridge.lean` cites A-S Prop 7.36 for S4 follow-through -- prop number is unverified.
+- Does restricting through the bottleneck E preserve clause (iii), or is there an obstruction from the non-associative ambient h_3(O)?
+- Does rem:converse hold exactly as stated (minimal=maximal composite for M_n(C)^sa via BGW)? Confirm against BGW; it is not yet a labeled remark in the live complexification.tex.
+- Is E's interaction with the sequential product (a&b = sqrt(a) b sqrt(a)) controlled, or does non-associativity leak in?
+- Does prior GPD v6.0/v8.0/v11.0 work bear decisively on the embedding question (e.g., V_1 = R bottleneck, M_16(R) observable algebra, C*-observer sequential-product closure)?
 
 ## Research Questions
 
@@ -226,16 +208,22 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-- [ ] Does a o (-) preserve Peirce subspaces V_2(p_i) and V_1(p_i,p_j) from OUS primitives alone (S1 + S3 + linearity + compressions)? Outcome (A), (B), or (C). (v14.0 Phase 54)
-- [ ] Does Alfsen-Shultz 2003 contain a theorem implying this preservation from OUS primitives, with precise chapter/section/theorem? (v14.0 Phase 54)
-- [ ] Does prior GPD v2.0 Phase 4-6 work already contain this proof, assume the claim, or neither? (v14.0 Phase 54 prerequisite)
-- [ ] Is the S4 facial structure lemma citable to Alfsen-Shultz or provable standalone? (v14.0 Phase 55, stub)
-- [ ] Does W carry the product-form sequential product asserted by Thm 5.8 upper bound? (v14.0 Phase 56, stub)
-- [ ] Does Phi have a single consistent interpretation across Paper 5 sections, or is the inert-wrapper usage equivocating? (v14.0 Phase 57, stub)
-- [ ] Do each of the 16 axioms in the Paper 5 Lean formalization trace to a cited Alfsen-Shultz or van de Wetering statement? (v14.0 Phase 58, stub)
-- [ ] Is the minimal composite assumption defensible against adversarial review, and does Paper 5 currently defend it adequately? (v14.0 Phase 59, stub)
-- [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling? (deferred)
-- [ ] Can Boyle's triality mechanism address gap G7 (3 generations)? (deferred)
+**v15.0 (The P5 <-> Basin Restriction Lemma):**
+
+- [ ] Is the observer's clause-(iii) body-model composite V_BM a genuinely different object from h_3(O)'s BGW Jordan-monoidal non-composability -- provably, non-circularly? (Phase 60)
+- [ ] Does the C*-bottleneck slice h_3(C_u) ~ M_3(C)^sa satisfy all four Paper 5 Def 1 clauses (i)-(iv) as a self-modeler in its own right? (Phase 61)
+- [ ] Does the Peirce/bottleneck conditional expectation E PRESERVE what clause (iii) needs on the actual non-associative h_3(O) structure, or is there an obstruction? (Phase 62, the hard part)
+- [ ] VERDICT: clean RESTRICTION theorem (through-line real) or precisely-characterized obstruction (C and O are independent posits)? (Phase 63)
+- [ ] Does rem:converse hold exactly as stated (minimal=maximal composite for M_n(C)^sa via BGW)? It is not yet a labeled remark in the live complexification.tex. (Phase 60/61)
+
+**v14.0 (PAUSED -- pending JMP referee report; see `.gpd/V14-CLOSEOUT.md`):**
+
+- [~] §3.3 Peirce preservation, S4 facial lemma, Thm 5.8 W sequential product -- sealed (C-i)/(C-i)/(B). Phi inert-wrapper (57) abandoned; Lean axiom audit (58) + minimal-composite defense (59) deferred.
+
+**Deferred to v16.0+:**
+
+- [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling?
+- [ ] Can Boyle's triality mechanism address gap G7 (3 generations)?
 
 ### Answered in v9.0
 
@@ -333,12 +321,17 @@ See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
 
-**v14.0-critical (Paper 5 revision):**
+**v15.0-critical (P5 <-> Basin Restriction Lemma):**
 
-- Alfsen-Shultz (2003) -- Geometry of State Spaces of Operator Algebras (Birkhauser) -- OUS / compressions / Peirce decomposition; (B) citation target for Phase 54
-- Paper 5 (this project, v2.0; JMP submission JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703) -- QM from self-modeling; the paper under revision
-- van de Wetering -- sequential product axioms S1-S7 (S1 + S3 are the Phase 54 primitives)
-- Paper 5 Lean formalization `~/repos/research/lean/Paper5/` -- 16 axioms for Phase 58 audit
+- Paper 5 Def 1 -- `~/repos/blog/landing/papers/qm-from-self-modeling/main.tex` (def:self-modeling-system, line 342) -- the four self-modeling clauses; clause (iii) forces the complex field
+- lem:bottleneck -- `~/repos/blog/landing/papers/sm-from-self-modeling/sections/complexification.tex` (line 409) -- the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa + conditional expectation E
+- Barnum-Graydon-Wilce (2020) -- FRJA composability (Jordan-monoidal); defines the universe-tensoring that h_3(O) fails
+- Effros-Stormer (1979) -- positive projections onto JB-subalgebras; underwrites E
+- Hanche-Olsen -- universal tensor product of Jordan algebras (special vs exceptional)
+
+**v14.0-critical (Paper 5 JMP revision, PAUSED):**
+
+- Alfsen-Shultz (2003) -- Geometry of State Spaces of Operator Algebras (Birkhauser); Paper 5 submission JMP26-AR-00922 (Zenodo DOI 10.5281/zenodo.19342703); van de Wetering S1-S7; Paper 5 Lean `~/repos/research/lean/Paper5/`
 
 **Carried forward from prior milestones (v1.0-v13.0):**
 
@@ -435,4 +428,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-04-16 after v14.0 milestone initialization (Paper 5 revision)_
+_Last updated: 2026-05-23 after v15.0 milestone initialization (P5 <-> Basin Restriction Lemma); v14.0 paused pending JMP referee report_
