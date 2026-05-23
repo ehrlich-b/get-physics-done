@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "round": 2,
+  "stage_id": "reader",
+  "stage_kind": "reader",
+  "manuscript_path": "paper8/main.tex",
+  "manuscript_sha256": "not_computed",
+  "claims_reviewed": [
+    "CLM-001",
+    "CLM-002",
+    "CLM-003",
+    "CLM-004",
+    "CLM-005",
+    "CLM-006",
+    "CLM-007",
+    "CLM-008",
+    "CLM-009",
+    "CLM-010"
+  ],
+  "summary": "The revised paper replaces the v1 broken selection chain (which used the converse instead of the contrapositive at step 6->5) with two independent chains -- thermodynamic and algebraic -- that converge on time-orientation. The narrowed Gap C claim is now logically valid: complexification is necessary for SM-like observers, while non-SM self-modelers in non-complexified blocks remain open. The proved/not-proved accounting is accurate and repeated extensively. The strongest suspected narrative weakness is that the 'structural convergence' on time-orientation may be less impressive than the framing suggests, since time-orientation is an extremely generic geometric property of Lorentzian manifolds. There is one major presentational inconsistency: assumption numbering (A5/A6/A7) is swapped between the main text tables and the appendix/chirality section.",
+  "strengths": [
+    "The v1 logical error is fully excised; no residual instance of 'rho_exp = 0 for non-complexified blocks' survives",
+    "The two-chain architecture is logically sound -- neither chain implies the other, and the convergence is correctly labeled 'structural, not causal'",
+    "Exceptionally disciplined about overclaiming: proved/not-proved lists, explicit non-claims sections, and epistemic labels on every link",
+    "Three independent routes to the entropy gradient theorem provide robustness against failure of any single assumption",
+    "The Landauer bound derivation is clean and the coherence loophole closure is thorough"
+  ],
+  "findings": [
+    {
+      "issue_id": "RDR-001",
+      "claim_ids": [
+        "CLM-001",
+        "CLM-003",
+        "CLM-004"
+      ],
+      "severity": "major",
+      "summary": "Assumption numbering (A5/A6/A7) is inconsistent between the main text and the appendix",
+      "rationale": "In gradient-gapc.tex Table 2: A5=experiential density, A6=continuum limit, A7=Lorentzian signature. In appendix-assumptions.tex Table 3 and chirality-time.tex: A5=continuum limit, A6=Lorentzian signature, A7=experiential density. The predictions table follows the main text. The appendix dependency map follows the appendix. A reader cannot reliably trace which assumptions support which results.",
+      "evidence_refs": [
+        "paper8/sections/gradient-gapc.tex#tab:assumptions",
+        "paper8/sections/appendix-assumptions.tex#tab:assumptions-full",
+        "paper8/sections/chirality-time.tex:218-226",
+        "paper8/sections/appendix-assumptions.tex#tab:dep-map"
+      ],
+      "manuscript_locations": [
+        "paper8/sections/gradient-gapc.tex:645-657",
+        "paper8/sections/appendix-assumptions.tex:63-81",
+        "paper8/sections/chirality-time.tex:218-226",
+        "paper8/sections/appendix-assumptions.tex:174-176"
+      ],
+      "support_status": "partially_supported",
+      "blocking": true,
+      "required_action": "Unify assumption numbering throughout. Choose one ordering and apply it consistently in every table, inline reference, and dependency map."
+    },
+    {
+      "issue_id": "RDR-002",
+      "claim_ids": [
+        "CLM-005",
+        "CLM-008"
+      ],
+      "severity": "minor",
+      "summary": "Chain 1's final arrow (entropy gradient -> time-orientation) is asserted without proof",
+      "rationale": "The paper claims that an entropy gradient 'defines a temporal direction' which on a Lorentzian manifold 'requires a time-orientation.' But a thermodynamic arrow does not logically force geometric time-orientability. One could have an entropy gradient on a non-time-orientable manifold. The step requires either a brief argument or an explicit statement that it assumes time-orientability (which A5/A6 may already provide).",
+      "evidence_refs": [
+        "paper8/sections/gradient-gapc.tex:207-211"
+      ],
+      "manuscript_locations": [
+        "paper8/sections/gradient-gapc.tex:207-211"
+      ],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Add a sentence clarifying that the entropy gradient requires time-orientability for global consistency, and that this is provided by assumptions A5-A6 (or A6-A7, after numbering is unified)."
+    },
+    {
+      "issue_id": "RDR-003",
+      "claim_ids": [
+        "CLM-005"
+      ],
+      "severity": "minor",
+      "summary": "Title implies stronger derivation than delivered",
+      "rationale": "The title 'Arrow of Time and Complexification from Self-Modeling Thermodynamics' uses 'from' which suggests derivation. The arrow of time is shown to be a necessary condition for self-modeling (not derived from it), and complexification is a selection result for SM-like observers, not a thermodynamic derivation.",
+      "evidence_refs": [
+        "paper8/main.tex:7"
+      ],
+      "manuscript_locations": [
+        "paper8/main.tex:7"
+      ],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Consider whether the title accurately reflects the epistemic status. A possible alternative: 'Arrow of Time and Complexification in the Self-Modeling Framework.'"
+    },
+    {
+      "issue_id": "RDR-004",
+      "claim_ids": [
+        "CLM-005"
+      ],
+      "severity": "minor",
+      "summary": "Structural convergence on time-orientation may be less significant than framed",
+      "rationale": "Time-orientation is an extremely generic geometric property -- virtually all physically interesting Lorentzian manifolds are time-orientable. The convergence of two requirements on such a generic structure is less surprising than the paper's framing ('genuine structural insight') implies.",
+      "evidence_refs": [
+        "paper8/sections/gradient-gapc.tex:269-286",
+        "paper8/sections/abstract.tex:16-28"
+      ],
+      "manuscript_locations": [
+        "paper8/sections/gradient-gapc.tex:269-286"
+      ],
+      "support_status": "supported",
+      "blocking": false,
+      "required_action": "Acknowledge that time-orientation is a weak geometric requirement. The convergence gains significance from the fact that both chains trace back to self-modeling, not from the rarity of the shared structure."
+    }
+  ],
+  "confidence": "high",
+  "recommendation_ceiling": "minor_revision"
+}

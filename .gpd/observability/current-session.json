@@ -1,0 +1,11 @@
+{
+  "session_id": "20260417T003225-97071-100db2",
+  "started_at": "2026-04-17T00:32:25.647118+00:00",
+  "last_event_at": "2026-04-17T16:20:08.319212+00:00",
+  "cwd": "/Users/ehrlich/scratch/get-physics-done",
+  "source": "python",
+  "pid": 97071,
+  "command": "observe event",
+  "status": "active",
+  "metadata": {}
+}

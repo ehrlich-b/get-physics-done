@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "round": 2,
+  "manuscript_path": "paper8/main.tex",
+  "claims": [
+    {
+      "claim_id": "CLM-001",
+      "claim_type": "main_result",
+      "text": "Entropy gradient theorem: every self-modeling composite with rho_exp > 0 satisfies S(t) < S_max, established via three independent routes using different assumption subsets.",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.1 (Theorem 2)"
+    },
+    {
+      "claim_id": "CLM-002",
+      "claim_type": "main_result",
+      "text": "Landauer bound on self-modeling: each update cycle dissipates at least kB T I(B;M) of work.",
+      "artifact_path": "paper8/sections/landauer.tex",
+      "section": "Sec 3.2 (Theorem 1)"
+    },
+    {
+      "claim_id": "CLM-003",
+      "claim_type": "main_result",
+      "text": "Three-consequence theorem: the single choice u in S^6 determines gauge group, chirality, AND the requirement for spacetime time-orientation.",
+      "artifact_path": "paper8/sections/chirality-time.tex",
+      "section": "Sec 4.5 (Theorem 3)"
+    },
+    {
+      "claim_id": "CLM-004",
+      "claim_type": "main_result",
+      "text": "Gap C narrowing: complexification is necessary for SM-like observers; status of non-SM self-modelers in non-complexified blocks remains open.",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.3 (Theorem 4)"
+    },
+    {
+      "claim_id": "CLM-005",
+      "claim_type": "novelty",
+      "text": "Two-chain convergence on time-orientation is a 'genuine structural insight connecting particle physics to thermodynamics through geometry.'",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.2, abstract"
+    },
+    {
+      "claim_id": "CLM-006",
+      "claim_type": "physical_interpretation",
+      "text": "The Past Hypothesis is 'elevated' from observed cosmological fact to necessary condition for self-modeling -- an observer-selection argument, not a first-principles derivation.",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 1.3, Sec 5.3"
+    },
+    {
+      "claim_id": "CLM-007",
+      "claim_type": "method",
+      "text": "SWAP channel on qubit pair is CPTP and unital for rho_M = I/2, proved not assumed.",
+      "artifact_path": "paper8/sections/entropy.tex",
+      "section": "Sec 2.1"
+    },
+    {
+      "claim_id": "CLM-008",
+      "claim_type": "generality",
+      "text": "Chain 1 (thermodynamic) applies to ALL self-modelers regardless of chirality or complexification.",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.2"
+    },
+    {
+      "claim_id": "CLM-009",
+      "claim_type": "significance",
+      "text": "The 94-order-of-magnitude gap between Landauer entropy deficit (~10^28 nats) and Penrose gravitational estimate (~10^122 nats) is a feature of the framework, not a failure.",
+      "artifact_path": "paper8/sections/predictions.tex",
+      "section": "Sec 6.2"
+    },
+    {
+      "claim_id": "CLM-010",
+      "claim_type": "method",
+      "text": "Coherence loophole closed via three independent arguments: Luders destroys coherence, maintaining coherence costs free energy, Sagawa-Ueda cross-check.",
+      "artifact_path": "paper8/sections/landauer.tex",
+      "section": "Sec 3.3"
+    }
+  ]
+}

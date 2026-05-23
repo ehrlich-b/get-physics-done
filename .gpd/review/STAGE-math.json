@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "round": 1,
+  "stage_id": "math",
+  "stage_kind": "math",
+  "manuscript_path": "papers/paper1-theorem-a/main.tex",
+  "manuscript_sha256": "fc8b55325e52c5d1558160d8c016f9efd6d23961b8733cf2311244672d7d6ba3",
+  "claims_reviewed": [
+    "CLM-THEOREM-A-BOUND",
+    "CLM-EXPONENTIAL-SUPPRESSION",
+    "CLM-ERROR-RATE-GAMMA",
+    "CLM-PREFACTOR-C-O1",
+    "CLM-CASE-ANALYSIS",
+    "CLM-SEVEN-LEMMA-COMPOSITION",
+    "CLM-VALIDATION-9-CASES"
+  ],
+  "summary": "The mathematical framework of Theorem A is sound. The core exponential suppression bound mu_BB/mu_stable <= C*exp(-(Ds-Db-alpha)/eps) follows correctly from a seven-lemma composition chain grounded in BEGK capacity asymptotics, Freidlin-Wentzell cycle decomposition, and Champagnat-Villemonais QSD convergence. The case-analysis proof structure (ratio = 0 on the dominant event A1; event A2 absorbed into failure probability) is clean and logically airtight. One minor error was found: the error rate gamma = alpha/2 is stated as universal but is only correct when alpha <= 2Ds/3; the correct formula is gamma = min(alpha/2, Ds-alpha). This does not affect the leading-order result. Six limiting cases were verified. Dimensional consistency holds throughout. The numerical validation is logically correct but operates at moderate eps (0.5) where asymptotic formulas are only approximately valid.",
+  "strengths": [
+    "Clean proof architecture: seven lemmas with explicit error terms, typed dependency graph verified acyclic, all type mismatches resolved",
+    "Case-analysis structure elegantly sidesteps the difficulty of bounding the ratio on event A2 by absorbing it into the failure probability",
+    "Error composition is carefully tracked through all seven steps with explicit rate constants",
+    "Self-consistency across four files (main.tex, proof.tex, lemmas.tex, validation.py) is maintained for all key definitions",
+    "Correct identification and honest discussion of the routing-probability limitation (C not tight for p < 0.5)"
+  ],
+  "findings": [
+    {
+      "issue_id": "MATH-06",
+      "claim_ids": ["CLM-ERROR-RATE-GAMMA"],
+      "severity": "minor",
+      "summary": "Error rate gamma = alpha/2 is not universally correct",
+      "rationale": "The proof claims gamma = min(c_2, Ds-alpha, c_5, alpha/2) = alpha/2, justified by the inequality chain 'alpha/2 < alpha < Ds-Db <= Ds-alpha' (main.tex line 738, proof.tex line 607). The last inequality Ds-Db <= Ds-alpha holds only when alpha <= Db. When Db < Ds/3 and alpha is near Ds-Db, we have Ds-alpha < alpha/2, making the true minimum gamma = Ds-alpha, not alpha/2. The correct general formula is gamma = min(alpha/2, Ds-alpha). This makes the claimed error decay rate slightly overoptimistic in a corner of parameter space (Db < Ds/3, alpha near Ds-Db).",
+      "evidence_refs": [
+        "papers/paper1-theorem-a/main.tex:738",
+        "derivations/theorem-a-proof.tex:607"
+      ],
+      "manuscript_locations": [
+        "papers/paper1-theorem-a/main.tex:738",
+        "papers/paper1-theorem-a/main.tex:232"
+      ],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Replace gamma = alpha/2 with gamma = min(alpha/2, Ds-alpha) in eq (10), Remark 3, and the error composition proposition. Fix the inequality chain. One-line fix."
+    },
+    {
+      "issue_id": "MATH-12",
+      "claim_ids": ["CLM-SEVEN-LEMMA-COMPOSITION"],
+      "severity": "minor",
+      "summary": "Lipschitz constant L_rho = O(H(B)) is claimed but not proven",
+      "rationale": "The proof uses |rho(p) - rho(q)| <= L_rho * ||p-q||_TV with L_rho = O(H(B)) in Lemma 4 to bound the transient-phase error. This is plausible for smooth functions of distributions on finite state spaces, but the bound is not derived. Adding a one-paragraph proof (or citation) would close this gap.",
+      "evidence_refs": [
+        "papers/paper1-theorem-a/main.tex:417-421",
+        "derivations/theorem-a-proof.tex:281-286"
+      ],
+      "manuscript_locations": [
+        "papers/paper1-theorem-a/main.tex:417"
+      ],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Add a brief proof or citation for the Lipschitz bound on rho with respect to TV distance."
+    },
+    {
+      "issue_id": "MATH-10",
+      "claim_ids": ["CLM-VALIDATION-9-CASES"],
+      "severity": "suggestion",
+      "summary": "MC validation at eps=0.5 is marginal for asymptotic regime",
+      "rationale": "The BEGK exponential law and capacity asymptotics are eps->0 results. At eps=0.5, E[tau] = exp(6) ~ 403 and T_eps ranges from ~148 to ~403 depending on alpha. These are moderate numbers where finite-eps corrections are non-negligible. The validation passes because the case-analysis structure (ratio=0 on A1) is robust, but the numerical agreement does not rigorously test the asymptotic error rates. Adding a comparison at eps=0.2 or 0.1 (with analytical formulas rather than full MC, since simulation is impractical) would strengthen the validation.",
+      "evidence_refs": [
+        "validation/theorem_a_validation.py:250-260"
+      ],
+      "manuscript_locations": [
+        "papers/paper1-theorem-a/main.tex:917-923"
+      ],
+      "support_status": "supported",
+      "blocking": false,
+      "required_action": "Consider adding analytical validation at smaller eps values to complement the MC tests."
+    }
+  ],
+  "confidence": "high",
+  "recommendation_ceiling": "minor_revision"
+}
