@@ -195,4 +195,175 @@ Walking the two definition blocks against the Categories ledger:
 
 ---
 
-<!-- The Independence section is appended below in Task 2 (DERV-60-02). -->
+## Independence (DERV-60-02)
+
+**Goal.** Prove the implication
+
+```
+  ( h_3(O) is BGW-non-composable )   does NOT entail   ( the observer's V_BM does not exist )
+```
+
+i.e. these are **logically independent** statements about objects in **different
+categories**. Equivalently: the non-composability of the universe algebra `h_3(O)` does
+*not* preclude the existence of the observer's body-model composite `V_BM`. Establishing
+this is exactly what stops the downstream RESTRICTION claim from presupposing its own
+conclusion.
+
+> **Non-circularity contract (read before the argument).** The argument below uses
+> **only** two ingredients: (i) the *category separation* recorded in the Categories
+> ledger above, and (ii) Paper 5's *own scoping remark*. It does **not** use: the
+> RESTRICTION claim; the conditional expectation `E`/coherent-embedding step; or
+> clause-(iii)-satisfaction-on-the-slice. Those are precisely the things RESTRICTION wants
+> to conclude, so using any of them here would be circular. See guard (d).
+
+### (a) The two propositions live in different categories — so neither entails the other a priori
+
+Write the two propositions with their category tags from the ledger:
+
+- **P_BGW** := "`h_3(O)` admits no well-behaved Jordan-monoidal composite `⊠`."
+  *Category:* a **bifunctor / monoidal-structure** property of the FRJA `h_3(O)` (a
+  statement about tensoring the *whole universe algebra* with *another* FRJA system).
+
+- **P_VBM** := "the observer (a self-modeling system) has a minimal internal composite OUS
+  `V_BM`." *Category:* an **OUS-level existence** statement about an *internal* composite
+  of the observer's *own* body and model.
+
+These are propositions of **different type**. `P_BGW` quantifies over *external* partners
+`J` of `h_3(O)` under a monoidal product on the category `FRJA-Sys`; `P_VBM` asserts the
+existence of an *internal* OUS construction for one self-modeling subsystem. By the
+type-consistency discipline (the pure-math analog of dimensional analysis), **a statement
+about whether `h_3(O)` tensors well with another FRJA carries no a-priori information about
+whether some subsystem inside `h_3(O)` has its own minimal internal composite.** The two
+live in different categories; there is no type-correct inference rule that takes `P_BGW` to
+`¬P_VBM`. (Asserting one would be exactly the conflation error `fp-conflate-composites`:
+equating an FRJA-monoidal-level proposition with an OUS-level proposition.)
+
+This already breaks the entailment *formally*: to derive `¬P_VBM` from `P_BGW` one would
+need a bridge premise of the form "internal-composite-of-a-subsystem-exists ⟺
+whole-algebra-is-monoidally-composable." No such bridge is available — and the obvious
+candidate bridge *is* RESTRICTION, which we are forbidden to assume (guard (d)). Hence
+`P_BGW ⊬ ¬P_VBM`.
+
+### (b) Textual witness: Paper 5 itself treats the two regimes as distinct
+
+The independence is not merely formal; the authors of Paper 5 already regard the two as
+different regimes. From `main.tex` (remark at lines 397–401; parallel statement at lines
+165–168), verbatim:
+
+> Definition~\ref{def:self-modeling-system} characterizes *composable* self-modelers —
+> subsystems that can participate in composites. The non-composable case
+> (`h_3(O)`, which admits no composite at all) is treated in a companion paper.
+
+Read at the level of *type*, this says: the `V_BM` construction (clause iii) is the
+defining feature of the **composable** regime; `h_3(O)`-non-composability is the defining
+feature of the **separate, non-composable** regime treated elsewhere. Paper 5 thus
+*already distinguishes* "has an internal composite `V_BM`" (composable self-modeler) from
+"`h_3(O)` admits no composite" (non-composable basin). This is direct authorial support
+that `P_VBM` and `P_BGW` concern **different objects** — and it is a *given* of the
+existing program, not a consequence of RESTRICTION.
+
+### (c) Existence direction (principle only; full BGW grounding deferred to plan 60-02)
+
+It remains to see that `P_VBM` is *not vacuous* — that "lives inside a non-composable
+algebra" and "has no internal composite" really can come apart. At the level of **principle**
+(we do **not** here verify the four clauses on the slice — that is plan 60-02 / Phase 61):
+
+1. A complex matrix algebra `M_n(C)^sa` is a perfectly good **composable** self-modeler:
+   it has its own minimal internal composite OUS `V_BM` (this is the content that
+   `rem:converse` will confirm — take `V_M = V_B = M_n(C)^sa`, `phi = id`, internal
+   composite `M_n(C)^sa ⊗ M_n(C)^sa ≅ M_{n^2}(C)^sa`). **Provenance caveat:**
+   `rem:converse` is **prompt-inline authoritative only** — it is *not yet* a labeled
+   remark in the live `complexification.tex` (grep finds `lem:bottleneck` but no
+   `rem:converse`), and its "minimal = maximal composite coincide for `M_n(C)^sa`" content
+   is to be confirmed against BGW in plan 60-02. We use it here only as a *principle*, not
+   as a published result.
+
+2. `M_3(C)^sa ≅ h_3(C_u)` sits **inside** `h_3(O)` as the C*-bottleneck slice
+   (`lem:bottleneck`, complexification.tex line 409: the maximal complex C*-target Jordan
+   subalgebra, a single `F_4`-orbit). So here is a concrete situation: a special algebra
+   `M_3(C)^sa` that (by item 1, in principle) **has** its own internal composite `V_BM`,
+   while **sitting inside** the FRJA `h_3(O)` that (by `P_BGW`) has **no** monoidal
+   composite.
+
+Therefore "**lives inside a non-composable algebra**" and "**has no internal composite of
+its own**" are **not the same thing**: the bottleneck slice is a witness to a subsystem of
+`h_3(O)` that, in principle, carries the internal-composite structure `P_VBM` asks for,
+even though the ambient `h_3(O)` is BGW-non-composable. This makes `P_VBM` non-vacuous in
+the presence of `P_BGW`, completing the independence: `P_BGW` and `P_VBM` can hold
+simultaneously, so `P_BGW ⊬ ¬P_VBM`.
+
+> **Scope discipline (does NOT pre-empt 60-02 / Phase 61).** Item (c) is stated as
+> *principle / forward reference*. We do **not** claim here that the slice *satisfies*
+> clause (iii) as induced from `h_3(O)` — that is the coherent-embedding question (Phase
+> 62) and the clause-checking (Phase 61). We claim only the weaker, type-level fact:
+> *inhabiting a non-composable ambient does not, by itself, deprive a subsystem of an
+> internal composite.* That weaker fact is all the independence argument needs, and it
+> does not touch `E`.
+
+### (d) Circularity guard (explicit)
+
+The circular argument we must avoid is:
+
+> **(CIRCULAR)** Assume RESTRICTION (the slice `A` satisfies clause (iii) coherently
+> induced from `h_3(O)` under `E`); conclude that the observer's `V_BM` exists inside
+> `h_3(O)`; therefore the two composites are distinct.
+
+This would *assume the conclusion*: RESTRICTION is the very thing the milestone sets out to
+prove, and it already presupposes that `V_BM` is realized inside `h_3(O)`. **The argument
+in (a)–(c) never uses RESTRICTION.** Explicitly, none of the following appears as a premise
+above:
+
+- **RESTRICTION** itself — not used (the independence is from category separation (a) +
+  Paper 5's scoping remark (b));
+- the **coherent-embedding step** / the conditional expectation `E` — not used (`E` is in
+  the ledger only as a forward reference and appears in *no* inference);
+- **clause-(iii)-satisfaction-on-the-slice** — not used (item (c) is explicitly
+  *principle only* and does **not** assert the slice satisfies clause (iii)).
+
+The independence is established **from category separation + Paper 5's own scoping remark**,
+with the existence direction supplied only at the level of principle. The disconfirming
+direction (assuming RESTRICTION) is named and *not taken*. Hence the distinction is
+**earned, not assumed.**
+
+### (e) Honest-negative branch (the disconfirming condition)
+
+The argument has a built-in failure mode, and it is a **valid, valuable outcome** if it
+triggers:
+
+> **(COLLAPSE)** If, on close inspection, the witness (b)+(c) reveals the observer's
+> `V_BM` and the BGW *universe*-composite of `h_3(O)` to be the **same construction** —
+> i.e. the only sense in which the slice has an "internal composite" turns out to *be* the
+> BGW monoidal composite of the whole algebra, with no type distinction surviving — then
+> `P_BGW` and `P_VBM` are **not** about different objects after all. In that case the
+> independence cannot be earned non-circularly, **RESTRICTION is circular/false**, and this
+> plan must **STOP and surface the milestone's first PAUSE condition** (see `claim.md`
+> PAUSE conditions). A second collapse trigger: if the independence argument cannot be made
+> *without* invoking RESTRICTION/embedding/slice-satisfaction (latent circularity), the
+> distinction likewise cannot be earned ⟹ PAUSE.
+
+**Outcome of this attempt:** No collapse was found. The two propositions are type-distinct
+(a), the authors already treat them as distinct regimes (b), and the bottleneck slice
+witnesses (in principle) a subsystem of a non-composable ambient that nonetheless can carry
+its own internal composite (c) — all without invoking RESTRICTION (d). The distinction is
+**EARNED**. (Caveat carried forward: the existence direction (c) rests on the
+prompt-authoritative `rem:converse`, whose exact BGW-grounding is confirmed in plan 60-02;
+this does not weaken the *type-level* independence, which stands on (a)+(b) alone.)
+
+### Independence — type-consistency self-audit
+
+Every load-bearing sentence above, tagged by the category of its subject:
+
+| Load-bearing claim | Subject category | Type-correct? |
+|---|---|---|
+| `P_BGW` is a monoidal property of `h_3(O)` | bifunctor/monoidal (FRJA) | ✓ |
+| `P_VBM` is an OUS existence statement | OUS | ✓ |
+| "no type-correct rule sends `P_BGW` -> `¬P_VBM`" | cross-category *non*-inference | ✓ (this is the whole point: the two are never equated) |
+| (b) Paper 5 scopes Def 1 to composable self-modelers; `h_3(O)` separate | OUS-regime vs FRJA-regime, *kept distinct* | ✓ |
+| (c) `M_n(C)^sa` has its own internal composite (principle) | OUS (special algebra) | ✓ |
+| (c) `M_3(C)^sa ≅ h_3(C_u)` ⊂ `h_3(O)` | FRJA subalgebra inclusion | ✓ (inclusion of algebras, not equation of an OUS with a monoidal property) |
+| (d) RESTRICTION/`E`/slice-clause-(iii) **not used** | — | ✓ (verified by inspection + grep in claim.md/attempt-01.md) |
+
+**No sentence equates an OUS-level proposition with an FRJA-monoidal-level proposition.**
+`P_VBM` (exists `V_BM`) and `P_BGW` (`h_3(O)` composable/not) are never identified and
+never contraposed into each other. ✓
+
