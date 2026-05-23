@@ -657,7 +657,7 @@ Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key referenc
 
 **Phase checklist:**
 
-- [ ] **Phase 60: Two-Composites Distinction** -- DERV-60-01..04. Earn the distinction non-circularly; produce claim.md + derivation STATE.md.
+- [x] **Phase 60: Two-Composites Distinction** -- DERV-60-01..04. Earn the distinction non-circularly; produce claim.md + derivation STATE.md. (completed 2026-05-23)
 - [ ] **Phase 61: Slice Satisfies Clause (iii)** -- DERV-61-01..03, VALD-61-01. All four Def 1 clauses for M_3(C)^sa; SymPy validation.
 - [ ] **Phase 62: Coherent Embedding under E** (the hard part) -- DERV-62-01..03, VALD-62-01. Preservation proof OR precise obstruction, demonstrated on the actual non-associative h_3(O).
 - [ ] **Phase 63: Verdict** -- DERV-63-01..02, DERV-00-02. RESULT.md theorem-or-obstruction + adversarial guard review.
@@ -688,12 +688,12 @@ Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key referenc
 
 **Backtracking trigger:** If the two composite notions collapse into one object on close inspection (the distinction CANNOT be earned non-circularly), the RESTRICTION claim is circular/false -> PAUSE for human decision (this is the milestone's first pause condition).
 
-**Plans:** 2 plans (created + checker-verified)
+**Plans:** 2/2 plans complete
 
 Plans:
 
-- [ ] 60-01 (wave 1): define both composites independently; prove logical independence non-circularly; init claim.md + STATE.md + attempt-01.md
-- [ ] 60-02 (wave 2, depends on 60-01): confirm rem:converse against exact BGW statement; flag not-yet-in-live-paper
+- [x] 60-01 (wave 1): define both composites independently; prove logical independence non-circularly; init claim.md + STATE.md + attempt-01.md (completed 2026-05-23 — distinction EARNED, no PAUSE)
+- [x] 60-02 (wave 2, depends on 60-01): confirm rem:converse against exact BGW statement; flag not-yet-in-live-paper (completed 2026-05-23 — CONFIRMED-WITH-CAVEAT: "minimal=maximal" corrected to direct-summand, Thm 4.15/Cor 4.16)
 
 ### Phase 61: Slice Satisfies Clause (iii)
 
@@ -793,9 +793,8 @@ Plans:
 
 | Phase | Depends On | Enables | Critical Path? |
 |-------|-----------|---------|:-:|
-| 60 - Two-Composites Distinction | -- | 61, 62, 63 | Yes |
-| 61 - Slice Satisfies Clause (iii) | 60 | 62 | Yes |
-| 62 - Coherent Embedding under E | 61 | 63 | Yes |
+| 60 - Two-Composites Distinction | -- | Complete    | 2026-05-23 |
+| 61 - Slice Satisfies Clause (iii) | 60 | 62 | Complete    | 2026-05-23 | 62 - Coherent Embedding under E | 61 | 63 | Yes |
 | 63 - Verdict | 62 | -- | Yes |
 
 **Critical path:** 60 -> 61 -> 62 -> 63 (4 phases; strictly sequential -- each phase consumes the prior phase's decisive output).
@@ -805,7 +804,7 @@ Plans:
 
 | Phase | Top Risk | Probability | Impact | Mitigation |
 |-------|---------|:-:|:-:|-----------|
-| 60 | The two composites collapse on inspection -> RESTRICTION circular/false | MEDIUM | HIGH | Earn the distinction non-circularly with Paper 5's own "composable vs non-composable" remark (main.tex ~393) as textual anchor; if they collapse, that is a decisive (negative) finding -> PAUSE per pause condition 1 |
+| 60 | The two composites collapse on inspection -> RESTRICTION circular/false | Complete    | 2026-05-23 | Earn the distinction non-circularly with Paper 5's own "composable vs non-composable" remark (main.tex ~393) as textual anchor; if they collapse, that is a decisive (negative) finding -> PAUSE per pause condition 1 |
 | 61 | Clause (iii) verified only by redefining it (fp-redefine-iii) | LOW | HIGH | Check clause (iii) AS STATED; rem:converse supplies it via BGW minimal=maximal, not by weakening; VALD-61-01 SymPy guards the projective-unit/simplicity facts |
 | 62 | Non-associativity of h_3(O) breaks the sequential-product/local-tomography structure clause (iii) needs on the slice (genuine obstruction) | HIGH | HIGH | This is the load-bearing fork and an EXPECTED possible outcome, not a failure: compute sqrt(a) b sqrt(a) in the actual ambient (VALD-62-01); if E cannot induce the structure, characterize the obstruction precisely (outcome O) and PAUSE per pause condition 2. Mid-phase checkpoint after E setup (DERV-62-01) before committing to a route. |
 | 62 | Preservation ASSERTED without demonstration on the non-associative ambient (fp-assert-preservation) | MEDIUM | HIGH | Non-associativity reward-hacking guard: every preservation claim must be computed in h_3(O) (where (xy)z != x(yz)); slice-only / associativity-assuming arguments are rejected by the success criteria |
@@ -817,7 +816,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 60. Two-Composites Distinction | v15.0 | 0/TBD | Not started | - |
+| 60. Two-Composites Distinction | v15.0 | 2/2 | Complete | 2026-05-23 |
 | 61. Slice Satisfies Clause (iii) | v15.0 | 0/TBD | Not started | - |
 | 62. Coherent Embedding under E | v15.0 | 0/TBD | Not started | - |
 | 63. Verdict | v15.0 | 0/TBD | Not started | - |

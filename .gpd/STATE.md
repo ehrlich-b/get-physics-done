@@ -7,20 +7,20 @@ See: .gpd/PROJECT.md (updated 2026-05-23)
 **Machine-readable scoping contract:** `.gpd/state.json` field `project_contract` (REFRESHED for v15.0)
 
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** v15.0 The P5 <-> Basin Restriction Lemma — Phase 60 (Two-Composites Distinction). Prove or DISPROVE that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa satisfies Paper 5 Def 1 clause (iii) coherently induced from the non-composable h_3(O) under E. A clean obstruction is a fully acceptable outcome.
+**Current focus:** v15.0 The P5 <-> Basin Restriction Lemma — Phase 61 (Slice Satisfies Clause (iii)); Phase 60 COMPLETE (distinction earned; rem:converse CONFIRMED-WITH-CAVEAT). Prove or DISPROVE that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa satisfies Paper 5 Def 1 clause (iii) coherently induced from the non-composable h_3(O) under E. A clean obstruction is a fully acceptable outcome.
 
 ## Current Position
 
-**Current Phase:** 60
-**Current Phase Name:** Two-Composites Distinction
+**Current Phase:** 61
+**Current Phase Name:** Slice Satisfies Clause (iii)
 **Total Phases:** 4 (Phases 60-63)
-**Current Plan:** 1
+**Current Plan:** 0
 **Total Plans in Phase:** TBD
-**Status:** v15.0 roadmap created; ready to plan Phase 60
+**Status:** Ready to plan
 **Last Activity:** 2026-05-23
-**Last Activity Description:** v15.0 milestone roadmap created — ROADMAP.md (Phases 60-63: Two-Composites Distinction / Slice Satisfies Clause iii / Coherent Embedding under E / Verdict), STATE.md, REQUIREMENTS.md traceability. 16 objectives mapped, 0 orphans. v14.0 collapsed to PAUSED (see V14-CLOSEOUT.md).
+**Last Activity Description:** Phase 60 (Two-Composites Distinction) COMPLETE — 2/2 plans. 60-01: two-composites distinction EARNED non-circularly (observer V_BM vs h_3(O) BGW non-composability are type-distinct; no collapse, no PAUSE). 60-02: rem:converse CONFIRMED-WITH-CAVEAT vs BGW 2020 — existence + clause (iii) grounded via the minimal composite M_{n^2}(C)^sa, but the literal "minimal=maximal coincide" CORRECTED to a direct-summand statement (BGW Thm 4.15/Cor 4.16; universal composite M_{n^2}(C)^sa (+) M_{n^2}(C)^sa is strictly larger — extra classical bit). Verification 5/6 (6/6 oracle checks INDEPENDENTLY CONFIRMED, HIGH); human circularity sign-off APPROVED. Consistency CONSISTENT.
 
-**Progress:** [░░░░░░░░░░] 0%
+**Progress:** [██▌░░░░░░░] 25%
 
 ## Active Calculations
 
@@ -115,6 +115,8 @@ Carried-forward (historical):
 | Phase 56 P01 | ~13min | 6 tasks | 6 files |
 | Phase 56 P02 | ~6min | 5 tasks | 6 files |
 | Phase 56 P03 | ~3h | 7 tasks | 9 files |
+| Phase 60 P01 | 5 min | 2 tasks | 4 files |
+| Phase 60 P02 | 16 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -139,6 +141,9 @@ Full log: `.gpd/DECISIONS.md`
 - [Phase 30, Plan 01]: Three impossibility theorems proved. Basin's Peirce structure alone cannot force complexification; observer IS complex (Paper 5). 71 tests pass. [Bears on v15.0 — observer external to basin.]
 
 (Older v9.0/v10.0/v11.0/v14.0 decisions retained in `.gpd/DECISIONS.md` and prior STATE history; the most relevant to v15.0's embedding question are Phases 42, 46, 30 above plus prior GPD v6.0/v8.0/v11.0 summarized in PROJECT.md.)
+- [Phase 60]: Two-composites distinction EARNED non-circularly (60-01): observer V_BM (OUS internal composite) and h_3(O) BGW non-composability (FRJA-monoidal bifunctor) are type-distinct, logically independent objects; RESTRICTION does not collapse into circularity at step 1. — Established from category separation + Paper 5's own composable/non-composable scoping remark (main.tex ~397, 165-168); existence direction principle-only; RESTRICTION/E/slice-satisfaction never used as premise (grep-audited). No collapse, no PAUSE.
+- [Phase 60]: rem:converse confirmed ABSENT from live complexification.tex (grep: 0 matches); treated as prompt-inline authoritative only, BGW confirmation deferred to plan 60-02. — Prevents faking provenance (fp-converse-already-in-paper). Type-level independence does not depend on rem:converse; only the existence-direction motivation does.
+- [Phase 60]: rem:converse CONFIRMED-WITH-CAVEAT against BGW 2020 (60-02): M_n(C)^sa has a faithful self-model with minimal composite M_{n^2}(C)^sa satisfying clause (iii) as written (existence side of two-composites distinction GROUNDED in literature). CORRECTION: the literal 'minimal=maximal composites coincide' is FALSE -- BGW universal/maximal composite M_{n^2}(C)^sa (+) M_{n^2}(C)^sa is strictly larger (extra classical bit, Thm 4.15/Cor 4.16, Table 2); standard composite is a direct summand and clause (iii)'s minimality selects it. Distinction intact; no collapse, no PAUSE. — BGW PDF read directly (full provenance). FUTR-01 rem:converse wording must use the direct-summand form, NOT 'coincide'. Hardens the milestone's flagged weakest anchor; carries BGW baseline (C*(C_n)=M_n(C)+M_n(C)) into Phase 61.
 
 ### Active Approximations
 
@@ -202,5 +207,5 @@ None yet.
 ## Session Continuity
 
 **Last session:** 2026-05-23
-**Stopped at:** v15.0 milestone roadmap created (ROADMAP.md Phases 60-63, STATE.md, REQUIREMENTS.md traceability). Ready to plan Phase 60 (Two-Composites Distinction). v14.0 collapsed to PAUSED (see V14-CLOSEOUT.md).
-**Resume file:** Next action — `/gpd:plan-phase 60`
+**Stopped at:** Phase 60 (Two-Composites Distinction) COMPLETE & verified (2/2 plans; distinction earned non-circularly, rem:converse CONFIRMED-WITH-CAVEAT vs BGW, human circularity sign-off APPROVED). Ready to plan Phase 61 (Slice Satisfies Clause (iii)). v14.0 remains PAUSED (see V14-CLOSEOUT.md).
+**Resume file:** Next action — `/gpd:plan-phase 61`

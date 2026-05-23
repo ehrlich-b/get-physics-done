@@ -19,10 +19,10 @@ The whole Radical Relativity chain opens with two joins: "self-modeling -> QM" (
 
 ### Phase 60 -- Two-Composites Distinction (rigorous, non-circular)
 
-- [ ] **DERV-60-01**: State precisely, each in its own terms, the two composite notions: (a) the observer's clause-(iii) body-model composite V_BM (Paper 5 Def 1 -- minimal composite OUS carrying product states/effects, non-signaling, product-form sequential product); (b) the BGW Jordan-monoidal composite of the universe algebra h_3(O) with another system. Cite Paper 5 Def 1, BGW 2020, Hanche-Olsen.
-- [ ] **DERV-60-02**: Prove that h_3(O)'s BGW non-composability does NOT entail non-existence of the observer's body-model composite V_BM -- the two are logically independent statements about different objects. Explicitly guard against the conflation; show the RESTRICTION claim does not become circular by assuming what it must prove.
-- [ ] **DERV-60-03**: Confirm rem:converse against BGW: every M_n(C)^sa admits a faithful self-model (V_M = V_B = M_n(C)^sa, phi = id, composite M_{n^2}(C)^sa), and for complex matrix algebras the minimal and maximal composites COINCIDE, so clause (iii) is automatically satisfied. Verify the exact BGW statement that grounds "minimal = maximal for M_n(C)^sa"; flag that rem:converse is not yet in the live paper.
-- [ ] **DERV-60-04**: Produce `derivations/p5-basin-restriction/claim.md` (RESTRICTION restated in the derivation's own notation, with allowed inputs and the three prohibited reward-hacking moves stated explicitly) and `derivations/p5-basin-restriction/STATE.md` (derivation-tree state).
+- [x] **DERV-60-01**: State precisely, each in its own terms, the two composite notions: (a) the observer's clause-(iii) body-model composite V_BM (Paper 5 Def 1 -- minimal composite OUS carrying product states/effects, non-signaling, product-form sequential product); (b) the BGW Jordan-monoidal composite of the universe algebra h_3(O) with another system. Cite Paper 5 Def 1, BGW 2020, Hanche-Olsen.
+- [x] **DERV-60-02**: Prove that h_3(O)'s BGW non-composability does NOT entail non-existence of the observer's body-model composite V_BM -- the two are logically independent statements about different objects. Explicitly guard against the conflation; show the RESTRICTION claim does not become circular by assuming what it must prove.
+- [x] **DERV-60-03**: Confirm rem:converse against BGW: every M_n(C)^sa admits a faithful self-model (V_M = V_B = M_n(C)^sa, phi = id, composite M_{n^2}(C)^sa), and for complex matrix algebras the minimal and maximal composites COINCIDE, so clause (iii) is automatically satisfied. Verify the exact BGW statement that grounds "minimal = maximal for M_n(C)^sa"; flag that rem:converse is not yet in the live paper.
+- [x] **DERV-60-04**: Produce `derivations/p5-basin-restriction/claim.md` (RESTRICTION restated in the derivation's own notation, with allowed inputs and the three prohibited reward-hacking moves stated explicitly) and `derivations/p5-basin-restriction/STATE.md` (derivation-tree state).
 
 ### Phase 61 -- Slice Satisfies Clause (iii)
 
@@ -100,10 +100,10 @@ Which phases cover which requirements. Populated by roadmap.
 
 | Requirement | Phase | Status |
 | ----------- | ----- | ------ |
-| DERV-60-01 | 60 | Pending |
-| DERV-60-02 | 60 | Pending |
-| DERV-60-03 | 60 | Pending |
-| DERV-60-04 | 60 | Pending |
+| DERV-60-01 | 60 | Satisfied |
+| DERV-60-02 | 60 | Satisfied |
+| DERV-60-03 | 60 | Satisfied (caveat: "minimal=maximal" corrected to direct-summand) |
+| DERV-60-04 | 60 | Satisfied |
 | DERV-61-01 | 61 | Pending |
 | DERV-61-02 | 61 | Pending |
 | DERV-61-03 | 61 | Pending |
