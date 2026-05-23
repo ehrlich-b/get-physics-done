@@ -15,10 +15,10 @@ See: .gpd/PROJECT.md (updated 2026-05-23)
 **Current Phase Name:** Slice Satisfies Clause (iii)
 **Total Phases:** 4 (Phases 60-63)
 **Current Plan:** 0
-**Total Plans in Phase:** TBD
-**Status:** Ready to plan
+**Total Plans in Phase:** 2
+**Status:** Planned — ready to execute
 **Last Activity:** 2026-05-23
-**Last Activity Description:** Phase 60 (Two-Composites Distinction) COMPLETE — 2/2 plans. 60-01: two-composites distinction EARNED non-circularly (observer V_BM vs h_3(O) BGW non-composability are type-distinct; no collapse, no PAUSE). 60-02: rem:converse CONFIRMED-WITH-CAVEAT vs BGW 2020 — existence + clause (iii) grounded via the minimal composite M_{n^2}(C)^sa, but the literal "minimal=maximal coincide" CORRECTED to a direct-summand statement (BGW Thm 4.15/Cor 4.16; universal composite M_{n^2}(C)^sa (+) M_{n^2}(C)^sa is strictly larger — extra classical bit). Verification 5/6 (6/6 oracle checks INDEPENDENTLY CONFIRMED, HIGH); human circularity sign-off APPROVED. Consistency CONSISTENT.
+**Last Activity Description:** Phase 61 (Slice Satisfies Clause (iii)) PLANNED — 2 plans, plan-checker PASSED (attempt 1/3, all dimensions, zero blocker/warning issues). 61-02 (wave 1): VALD-61-01 SymPy/matrix evidence — exact-symbolic rank 3, three orthogonal rank-1 projective units summing to I_3, simplicity (center = C·I_3), composite real-dim 81 vs maximal 162, product-form sequential-product factorization on the associative M_9(C)^sa (closes the Phase 60 open item). 61-01 (wave 2, depends on 61-02): clause-by-clause (i)-(iv) derivation citing 61-02 evidence; rem:converse instantiated in CORRECTED direct-summand form (minimal ≠ maximal); induced-by-E coherence explicitly DEFERRED to Phase 62; stale "minimal=maximal" ROADMAP/REQUIREMENTS/contract text flagged (not reproduced). Phase 60 remains COMPLETE (distinction earned; rem:converse CONFIRMED-WITH-CAVEAT vs BGW).
 
 **Progress:** [██▌░░░░░░░] 25%
 
