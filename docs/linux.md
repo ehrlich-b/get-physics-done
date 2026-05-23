@@ -1,6 +1,6 @@
 # GPD on Linux
 
-GPD adds structured physics-research commands to Claude Code, Codex, Gemini CLI, or OpenCode.
+GPD adds structured physics-research commands to Claude Code, Codex, Gemini CLI, GitHub Copilot CLI, or OpenCode.
 
 In these docs, "runtime" means the AI terminal app you talk to.
 
@@ -13,7 +13,7 @@ Back to the onboarding hub: [GPD Onboarding Hub](./README.md).
 - Node.js 20 or newer
 - Python 3.11 or newer with `venv`
 - One supported runtime that already starts from your terminal:
-  Claude Code, Codex, Gemini CLI, or OpenCode
+  Claude Code, Codex, Gemini CLI, GitHub Copilot CLI, or OpenCode
 
 ## Open a terminal
 
@@ -43,7 +43,7 @@ You want:
 
 ## Install or update missing tools
 
-Linux distributions vary more than macOS or Windows, so use the section that matches your distribution, then rerun the version checks above.
+Linux distributions vary more than macOS or Windows, so use the section that matches your distribution, then rerun the version checks above. The package names below are not enough by themselves: do not continue unless `node --version` reports `v20` or newer. If your distro package installs an older `nodejs`, use the official Node.js package-manager guidance linked below instead.
 
 Ubuntu or Debian:
 
@@ -63,7 +63,7 @@ Other Linux distributions:
 - Use your distribution's normal package manager to install Node.js, Python 3, and Python virtual-environment support.
 - Then rerun the version checks above.
 
-After installing anything, open a new terminal and rerun the version checks.
+After installing anything, open a new terminal and rerun the version checks. Seeing `nodejs`, `npm`, and `npx` on your PATH is not sufficient unless the Node version is 20 or newer.
 
 ## Linux-specific notes
 
@@ -80,14 +80,18 @@ Before installing GPD, confirm that your runtime starts from Terminal:
 - Claude Code: `claude --version`
 - Codex: `codex --help`
 - Gemini CLI: `gemini --help`
+- GitHub Copilot CLI: `gh copilot --help`
 - OpenCode: `opencode --help`
 
 Then use the matching runtime guide:
 
+<!-- gpd-public-surface:runtime-doc-links:start -->
 - [Claude Code quickstart](./claude-code.md)
-- [Codex quickstart](./codex.md)
 - [Gemini CLI quickstart](./gemini-cli.md)
+- [Codex quickstart](./codex.md)
 - [OpenCode quickstart](./opencode.md)
+- [GitHub Copilot CLI quickstart](./github-copilot-cli.md)
+<!-- gpd-public-surface:runtime-doc-links:end -->
 
 ## Install GPD
 
@@ -95,12 +99,15 @@ Most beginners should install GPD into one runtime at a time and use `--local`.
 
 Here, `--local` means "install GPD for this project or folder only," so run the install command from inside the folder where you want this research project to live.
 
+<!-- gpd-public-surface:os-install-matrix:start -->
 | Runtime | Install command |
-|---------|-----------------|
+| --- | --- |
 | Claude Code | `npx -y get-physics-done --claude --local` |
-| Codex | `npx -y get-physics-done --codex --local` |
 | Gemini CLI | `npx -y get-physics-done --gemini --local` |
+| Codex | `npx -y get-physics-done --codex --local` |
 | OpenCode | `npx -y get-physics-done --opencode --local` |
+| GitHub Copilot CLI | `npx -y get-physics-done --copilot --local` |
+<!-- gpd-public-surface:os-install-matrix:end -->
 
 ## Confirm success
 
@@ -110,11 +117,17 @@ Here, `--local` means "install GPD for this project or folder only," so run the 
 gpd --help
 ```
 
-2. Open your runtime and run its GPD help command:
+2. Open your runtime and run the matching GPD help command from the generated table:
 
-- Claude Code or Gemini CLI: `/gpd:help`
-- Codex: `$gpd-help`
-- OpenCode: `/gpd-help`
+<!-- gpd-public-surface:supported-runtimes-table:start -->
+| Runtime | `npx` flag | Help | Start | Tour | New work | Existing work | Return later |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Claude Code | `--claude` | `/gpd:help` | `/gpd:start` | `/gpd:tour` | `/gpd:new-project --minimal` | `/gpd:map-research` | `/gpd:resume-work` |
+| Gemini CLI | `--gemini` | `/gpd:help` | `/gpd:start` | `/gpd:tour` | `/gpd:new-project --minimal` | `/gpd:map-research` | `/gpd:resume-work` |
+| Codex | `--codex` | `$gpd-help` | `$gpd-start` | `$gpd-tour` | `$gpd-new-project --minimal` | `$gpd-map-research` | `$gpd-resume-work` |
+| OpenCode | `--opencode` | `/gpd-help` | `/gpd-start` | `/gpd-tour` | `/gpd-new-project --minimal` | `/gpd-map-research` | `/gpd-resume-work` |
+| GitHub Copilot CLI | `--copilot` | `/gpd-help` | `/gpd-start` | `/gpd-tour` | `/gpd-new-project --minimal` | `/gpd-map-research` | `/gpd-resume-work` |
+<!-- gpd-public-surface:supported-runtimes-table:end -->
 
 If that works, the install is in good shape. If you are not sure what fits this folder yet, use the runtime-specific `start` command below. If you want a guided overview first, use the runtime-specific `tour` command below.
 
@@ -122,16 +135,22 @@ If that works, the install is in good shape. If you are not sure what fits this 
 
 Use the exact command for your runtime:
 
-| What you want to do | Claude Code / Gemini CLI | Codex | OpenCode |
-|---------------------|--------------------------|-------|----------|
+<!-- gpd-public-surface:os-next-steps-table:start -->
+| What you want to do | Claude Code / Gemini CLI | Codex | OpenCode / GitHub Copilot CLI |
+| --- | --- | --- | --- |
 | Not sure which path fits this folder | `/gpd:start` | `$gpd-start` | `/gpd-start` |
 | Want a guided overview | `/gpd:tour` | `$gpd-tour` | `/gpd-tour` |
 | Start a new project | `/gpd:new-project --minimal` | `$gpd-new-project --minimal` | `/gpd-new-project --minimal` |
 | Map an existing folder | `/gpd:map-research` | `$gpd-map-research` | `/gpd-map-research` |
 | Rediscover the workspace in your normal terminal | `gpd resume` | `gpd resume` | `gpd resume` |
 | Continue in the reopened runtime | `/gpd:resume-work` | `$gpd-resume-work` | `/gpd-resume-work` |
+<!-- gpd-public-surface:os-next-steps-table:end -->
 
-Use `gpd resume` in your normal terminal first. Use `gpd resume --recent` when you need to jump to a different recent workspace before reopening the runtime. After the terminal points you to the right workspace, open your runtime there and use its `resume-work` command to continue inside the project.
+Use the generated recovery ladder when you are returning later:
+
+<!-- gpd-public-surface:recovery-note:start -->
+Recovery ladder: use `gpd resume` for the current-workspace read-only recovery snapshot. If that is the wrong workspace, use `gpd resume --recent` to find the workspace first, then continue inside that workspace with `resume-work`. After resuming, `suggest-next` is the fastest next command. Before stepping away mid-phase, run `pause-work` so that ladder has an explicit handoff to restore later. Fresh context resets are for context management, not as a recovery step; run `gpd resume` in your normal terminal only when workspace rediscovery is needed.
+<!-- gpd-public-surface:recovery-note:end -->
 
 ## Official docs
 

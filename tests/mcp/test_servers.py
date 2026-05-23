@@ -16,7 +16,54 @@ from unittest.mock import ANY, MagicMock, patch
 import anyio
 import pytest
 
+from tests.assertion_taxonomy_support import assert_prompt_contracts, semantic_anchor, semantic_concept
+
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
+_TASK_OVERLAY_BODY_KEYS = frozenset(
+    {"body", "content", "markdown", "text", "overlay_body", "overlay_content", "overlay_markdown", "overlay_text"}
+)
+
+
+def _assert_semantic_surface(
+    text: str,
+    label: str,
+    *,
+    required: tuple[str, ...] = (),
+    forbidden: tuple[str, ...] = (),
+) -> None:
+    assert_prompt_contracts(text, *semantic_concept(label, required=required, forbidden=forbidden))
+
+
+def _assert_error_surface(
+    error: object,
+    label: str,
+    *,
+    required: tuple[str, ...] = (),
+    forbidden: tuple[str, ...] = (),
+) -> None:
+    assert isinstance(error, str)
+    _assert_semantic_surface(error, f"{label} error surface", required=required, forbidden=forbidden)
+
+
+def _assert_loading_hint(
+    result: dict[str, object],
+    label: str,
+    *,
+    required: tuple[str, ...] = (),
+    forbidden: tuple[str, ...] = (),
+) -> None:
+    loading_hint = result["loading_hint"]
+    assert isinstance(loading_hint, str)
+    _assert_semantic_surface(loading_hint, f"{label} loading hint", required=required, forbidden=forbidden)
+
+
+def _assert_body_free_task_overlay_metadata(payload: dict[str, object]) -> None:
+    assert payload["body_policy"] == "metadata_only"
+    for entry in payload["overlays"]:
+        assert _TASK_OVERLAY_BODY_KEYS.isdisjoint(entry)
+        assert entry["body_loaded"] is False
+        assert entry["path"] == "references/orchestration/task-overlays.md"
+        assert entry["portable_path"] == "@{GPD_INSTALL_DIR}/references/orchestration/task-overlays.md"
 
 
 def _load_project_contract_fixture() -> dict[str, object]:
@@ -278,10 +325,14 @@ class TestBuiltinServerDescriptors:
         expected = ["Install GPD before enabling built-in MCP servers."]
 
         for name, descriptor in descriptors.items():
-            assert descriptor["prerequisites"] == expected, name
-            prerequisite = descriptor["prerequisites"][0].lower()
-            assert "npx" not in prerequisite, name
-            assert "get-physics-done" not in prerequisite, name
+            prerequisites = descriptor["prerequisites"]
+            assert prerequisites[:1] == expected, name
+            if name != "gpd-arxiv":
+                assert prerequisites == expected, name
+            for prerequisite in prerequisites:
+                prerequisite = prerequisite.lower()
+                assert "npx" not in prerequisite, name
+                assert "get-physics-done" not in prerequisite, name
 
     def test_public_descriptor_python_module_alternative_uses_versioned_launcher_label(self):
         from gpd.mcp.builtin_servers import build_public_descriptors
@@ -292,8 +343,7 @@ class TestBuiltinServerDescriptors:
         assert python_module["command"] == "${GPD_PYTHON}"
         assert isinstance(python_module["command"], str)
         assert (
-            python_module["notes"]
-            == "Replace `${GPD_PYTHON}` with a Python >=3.11 interpreter that has GPD installed."
+            python_module["notes"] == "Replace `${GPD_PYTHON}` with a Python >=3.11 interpreter that has GPD installed."
         )
 
     def test_state_public_descriptor_lists_only_live_tools(self):
@@ -303,6 +353,7 @@ class TestBuiltinServerDescriptors:
 
         assert descriptor["capabilities"] == [
             "get_state",
+            "suggest_next",
             "get_phase_info",
             "advance_plan",
             "get_progress",
@@ -311,6 +362,57 @@ class TestBuiltinServerDescriptors:
             "get_config",
         ]
         assert "emit_phase_event" not in descriptor["capabilities"]
+        assert descriptor["mutating_capabilities"] == [
+            "advance_plan",
+            "run_health_check",
+        ]
+        assert set(descriptor["mutating_capabilities"]) <= set(descriptor["capabilities"])
+
+    def test_state_mutating_tools_publish_mutation_metadata(self):
+        from gpd.mcp.servers.state_server import mcp
+
+        async def _load() -> dict[str, object]:
+            tools = await mcp.list_tools()
+            return {tool.name: tool for tool in tools}
+
+        tools = anyio.run(_load)
+        advance_plan = tools["advance_plan"]
+        run_health_check = tools["run_health_check"]
+
+        assert advance_plan.annotations is not None
+        assert advance_plan.annotations.readOnlyHint is False
+        assert advance_plan.annotations.idempotentHint is False
+        assert run_health_check.annotations is not None
+        assert run_health_check.annotations.readOnlyHint is False
+        assert run_health_check.annotations.destructiveHint is True
+        assert run_health_check.annotations.idempotentHint is False
+        assert run_health_check.inputSchema["properties"]["fix"] == {
+            "default": False,
+            "description": "If true, attempt auto-fixes and allow the health check to modify project files.",
+            "title": "Fix",
+            "type": "boolean",
+        }
+
+    def test_arxiv_public_descriptor_describes_baseline_and_live_upstream_forwarding(self):
+        from gpd.mcp.builtin_servers import build_public_descriptors
+        from gpd.mcp.servers.arxiv_bridge import (
+            ADVERTISED_TOOL_NAMES,
+            DOWNLOAD_SOURCE_TOOL_NAME,
+            UPSTREAM_CORE_TOOL_NAMES,
+        )
+
+        descriptor = build_public_descriptors()["gpd-arxiv"]
+
+        _assert_semantic_surface(
+            descriptor["description"],
+            "arxiv descriptor upstream forwarding semantics",
+            required=("baseline upstream tools", "live upstream server", "download_source"),
+        )
+        assert descriptor["capability_surface"] == "baseline_dynamic_upstream"
+        assert descriptor["dynamic_upstream_capabilities"] is True
+        assert descriptor["baseline_upstream_capabilities"] == list(UPSTREAM_CORE_TOOL_NAMES)
+        assert descriptor["local_capabilities"] == [DOWNLOAD_SOURCE_TOOL_NAME]
+        assert descriptor["capabilities"] == list(ADVERTISED_TOOL_NAMES)
 
     def test_state_public_descriptor_health_check_is_executable_without_fake_project_path(self):
         from gpd.mcp.builtin_servers import build_public_descriptors
@@ -323,11 +425,7 @@ class TestBuiltinServerDescriptors:
             result = await mcp.call_tool(str(health_check["tool"]), dict(health_check["input"]))
             if isinstance(result, dict):
                 return result
-            if (
-                isinstance(result, tuple)
-                and len(result) == 2
-                and isinstance(result[1], dict)
-            ):
+            if isinstance(result, tuple) and len(result) == 2 and isinstance(result[1], dict):
                 return result[1]
             if (
                 isinstance(result, list)
@@ -342,11 +440,24 @@ class TestBuiltinServerDescriptors:
 
         assert health_check["tool"] == "get_state"
         assert health_check["input"] == {}
+        assert health_check["probe_kind"] == "expected_error"
         assert "missing required project_dir" in str(health_check["expect"])
         assert "/tmp/test" not in json.dumps(health_check)
         assert result["schema_version"] == 1
         assert "error" in result
         assert "project_dir" in result["error"]
+
+    def test_public_descriptor_health_checks_classify_probe_requirements(self):
+        from gpd.mcp.builtin_servers import build_public_descriptors
+
+        descriptors = build_public_descriptors()
+
+        assert descriptors["gpd-state"]["health_check"]["probe_kind"] == "expected_error"
+        assert descriptors["gpd-arxiv"]["health_check"]["probe_kind"] == "network_required"
+        schema_valid_servers = set(descriptors) - {"gpd-state", "gpd-arxiv"}
+        assert schema_valid_servers
+        for server_name in schema_valid_servers:
+            assert descriptors[server_name]["health_check"]["probe_kind"] == "schema_valid"
 
     def test_build_mcp_servers_dict_checks_optional_modules_in_target_interpreter(self, monkeypatch):
         from gpd.mcp import builtin_servers
@@ -355,11 +466,12 @@ class TestBuiltinServerDescriptors:
         current_python = "/usr/bin/python3.9"
         observed: dict[str, object] = {}
 
-        def fake_run(command, *, check, stdout, stderr):
+        def fake_run(command, *, check, stdout, stderr, timeout):
             observed["command"] = command
             observed["check"] = check
             observed["stdout"] = stdout
             observed["stderr"] = stderr
+            observed["timeout"] = timeout
             return SimpleNamespace(returncode=0 if command[0] == target_python else 1)
 
         monkeypatch.setattr(builtin_servers.sys, "executable", current_python)
@@ -372,6 +484,44 @@ class TestBuiltinServerDescriptors:
         assert observed["command"][2].startswith("import importlib.util")
         assert observed["command"][3] == "arxiv_mcp_server"
         assert observed["check"] is False
+        assert observed["timeout"] == 5
+
+    def test_build_mcp_servers_dict_skips_optional_modules_when_detection_times_out(self, monkeypatch):
+        from gpd.mcp import builtin_servers
+
+        def fake_run(command, *, check, stdout, stderr, timeout):
+            raise builtin_servers.subprocess.TimeoutExpired(command, timeout)
+
+        monkeypatch.setattr(builtin_servers.subprocess, "run", fake_run)
+
+        servers = builtin_servers.build_mcp_servers_dict(python_path="/opt/gpd/python3.11")
+
+        assert "gpd-arxiv" not in servers
+
+    def test_public_infra_descriptors_match_builtin_descriptor_builder(self):
+        from gpd.mcp.builtin_servers import build_public_descriptors
+
+        repo_root = Path(__file__).resolve().parents[2]
+        expected = build_public_descriptors()
+        committed = {
+            path.stem: json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted((repo_root / "infra").glob("gpd-*.json"))
+        }
+
+        assert committed == expected
+
+    def test_skills_public_descriptor_uses_shared_descriptor_text(self):
+        from gpd.mcp.builtin_servers import build_public_descriptors
+        from gpd.mcp.descriptor_text import SKILLS_SERVER_DESCRIPTION
+
+        descriptor = build_public_descriptors()["gpd-skills"]
+
+        assert descriptor["description"] == SKILLS_SERVER_DESCRIPTION
+        _assert_semantic_surface(
+            descriptor["description"],
+            "skills descriptor excludes stale verification prose",
+            forbidden=("missing evidence or artifacts", "never fabricate fallback outputs"),
+        )
 
 
 class TestMcpServerRunner:
@@ -396,6 +546,7 @@ class TestMcpServerRunner:
 
         assert mcp.settings.port == 0
         assert calls == ["sse"]
+
 
 # ---------------------------------------------------------------------------
 # 1. Conventions server
@@ -536,6 +687,13 @@ class TestConventionsServer:
         assert result["found"] is False
         assert "available_domains" in result
 
+    def test_subfield_defaults_blank_returns_error_envelope(self):
+        from gpd.mcp.servers.conventions_server import subfield_defaults
+
+        result = subfield_defaults("   ")
+        assert "error" in result
+        _assert_error_surface(result["error"], "blank subfield domain", required=("domain", "non-empty string"))
+
     def test_subfield_defaults_all_domains_valid(self):
         from gpd.mcp.servers.conventions_server import SUBFIELD_DEFAULTS, subfield_defaults
 
@@ -578,6 +736,38 @@ class TestConventionsServer:
         assert result["status"] == "set"
         assert result["key"] == "metric_signature"
 
+    def test_convention_set_warns_for_nonstandard_standard_value(self, tmp_path):
+        from gpd.mcp.servers.conventions_server import convention_set
+
+        planning = tmp_path / "GPD"
+        planning.mkdir()
+        (planning / "state.json").write_text(json.dumps({}), encoding="utf-8")
+
+        result = convention_set(str(tmp_path), "metric_signature", "moslty-plus")
+
+        assert result["status"] == "set"
+        assert result["non_standard"] is True
+        assert result["known_options"]
+        assert "Non-standard value" in result["warning"]
+        persisted = json.loads((planning / "state.json").read_text(encoding="utf-8"))
+        assert persisted["convention_lock"]["metric_signature"] == "moslty-plus"
+
+    def test_convention_set_persists_nonstandard_standard_value_with_escape_hatch(self, tmp_path):
+        from gpd.mcp.servers.conventions_server import convention_set
+
+        planning = tmp_path / "GPD"
+        planning.mkdir()
+        (planning / "state.json").write_text(json.dumps({}), encoding="utf-8")
+
+        result = convention_set(str(tmp_path), "metric_signature", "custom-project-signature", allow_nonstandard=True)
+
+        assert result["status"] == "set"
+        assert result["key"] == "metric_signature"
+        assert result["non_standard"] is True
+        assert result["known_options"]
+        persisted = json.loads((planning / "state.json").read_text(encoding="utf-8"))
+        assert persisted["convention_lock"]["metric_signature"] == "custom-project-signature"
+
     def test_convention_set_already_set(self, tmp_path):
         from gpd.mcp.servers.conventions_server import convention_set
 
@@ -608,9 +798,12 @@ class TestConventionsServer:
         key_schema = schema["properties"]["key"]
         value_schema = schema["properties"]["value"]
 
-        assert "custom:<slug>" in description
-        assert "blank or placeholder string" in description
-        assert "Use None to clear a convention." not in description
+        _assert_semantic_surface(
+            description,
+            "convention_set description key value constraints",
+            required=("custom:<slug>", "blank", "placeholder"),
+            forbidden=("Use None to clear a convention.",),
+        )
 
         key_branches = key_schema["anyOf"]
         assert any(set(branch["enum"]) == set(KNOWN_CONVENTIONS) for branch in key_branches if "enum" in branch)
@@ -619,11 +812,20 @@ class TestConventionsServer:
             branch.get("pattern") == r"^custom:[A-Za-z0-9][A-Za-z0-9_-]*$" and "custom:<slug>" in branch["description"]
             for branch in key_branches
         )
-        assert "alias" in key_schema["description"]
+        _assert_semantic_surface(
+            key_schema["description"],
+            "convention key schema aliases",
+            required=("alias",),
+        )
         assert value_schema["minLength"] == 1
         assert value_schema["pattern"] == r"^(?!\s*(?:null|none|undefined)\s*$)\S(?:.*\S)?$"
-        assert "placeholder strings" in value_schema["description"]
-        assert "Use None to clear a convention." not in value_schema["description"]
+        assert value_schema.get("type") == "string"
+        _assert_semantic_surface(
+            value_schema["description"],
+            "convention value schema placeholders",
+            required=("placeholder", "strings"),
+            forbidden=("Use None to clear a convention.",),
+        )
 
     def test_convention_set_rejects_invalid_custom_key_shape(self, tmp_path):
         from gpd.mcp.servers.conventions_server import convention_set
@@ -634,8 +836,7 @@ class TestConventionsServer:
 
         result = convention_set(str(tmp_path), "custom:bad key", "my_value")
         assert "error" in result
-        assert "Custom convention keys" in result["error"]
-
+        _assert_error_surface(result["error"], "invalid custom convention key", required=("custom", "keys"))
 
     def test_load_lock_non_dict_state_json_fails_closed(self, tmp_path):
         """If state exists but is unrecoverable, the helper should fail closed."""
@@ -657,6 +858,20 @@ class TestConventionsServer:
         with pytest.raises(ValueError, match="not recoverable"):
             _load_lock_from_project(str(tmp_path))
 
+    def test_load_lock_unknown_convention_field_fails_closed(self, tmp_path):
+        from gpd.core.errors import ConventionError
+        from gpd.mcp.servers.conventions_server import _load_lock_from_project
+
+        planning = tmp_path / "GPD"
+        planning.mkdir()
+        (planning / "state.json").write_text(
+            json.dumps({"convention_lock": {"metric_signature": "mostly-plus", "legacy_metric": "mostly-minus"}}),
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ConventionError, match="Malformed project state.convention_lock"):
+            _load_lock_from_project(str(tmp_path))
+
     def test_update_lock_non_dict_state_json_fails_closed(self, tmp_path):
         """If state exists but is unrecoverable, mutation should not flatten it to defaults."""
         from gpd.mcp.servers.conventions_server import _update_lock_in_project
@@ -667,7 +882,8 @@ class TestConventionsServer:
         with pytest.raises(ValueError, match="not recoverable"):
             _update_lock_in_project(str(tmp_path), lambda lk: lk.metric_signature)
 
-    def test_load_lock_recovers_backup_only_convention_state(self, tmp_path):
+    def test_load_lock_fails_closed_on_backup_only_convention_state(self, tmp_path):
+        from gpd.core.errors import ConventionError
         from gpd.core.state import default_state_dict
         from gpd.mcp.servers.conventions_server import _load_lock_from_project
 
@@ -677,9 +893,8 @@ class TestConventionsServer:
         state["convention_lock"] = {"metric_signature": "(+,-,-,-)"}
         (planning / "state.json.bak").write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 
-        lock = _load_lock_from_project(str(tmp_path))
-
-        assert lock.metric_signature == "(+,-,-,-)"
+        with pytest.raises(ConventionError, match="not recoverable"):
+            _load_lock_from_project(str(tmp_path))
 
     def test_load_lock_does_not_recover_intent_during_read_only_status_lookup(self, tmp_path):
         from gpd.core.constants import ProjectLayout
@@ -707,7 +922,7 @@ class TestConventionsServer:
         assert layout.state_intent.exists()
         assert layout.state_json.read_text(encoding="utf-8") == before_state
 
-    def test_convention_set_preserves_backup_only_state_when_mutating_lock(self, tmp_path):
+    def test_convention_set_fails_closed_on_backup_only_state_when_mutating_lock(self, tmp_path):
         from gpd.core.state import default_state_dict
         from gpd.mcp.servers.conventions_server import convention_set
 
@@ -720,11 +935,13 @@ class TestConventionsServer:
 
         result = convention_set(str(tmp_path), "fourier_convention", "physics")
 
-        assert result["status"] == "set"
-        persisted = json.loads((planning / "state.json").read_text(encoding="utf-8"))
-        assert persisted["position"]["current_phase"] == "09"
-        assert persisted["convention_lock"]["metric_signature"] == "(+,-,-,-)"
-        assert persisted["convention_lock"]["fourier_convention"] == "physics"
+        assert "error" in result
+        _assert_error_surface(result["error"], "backup-only convention state", required=("not recoverable",))
+        assert not (planning / "state.json").exists()
+        backup = json.loads((planning / "state.json.bak").read_text(encoding="utf-8"))
+        assert backup["position"]["current_phase"] == "09"
+        assert backup["convention_lock"]["metric_signature"] == "(+,-,-,-)"
+        assert "fourier_convention" not in backup["convention_lock"]
 
     def test_convention_set_returns_error_on_malformed_state_json(self, tmp_path):
         """convention_set returns an error dict (not raises) when state.json is malformed."""
@@ -736,7 +953,7 @@ class TestConventionsServer:
 
         result = convention_set(str(tmp_path), "metric_signature", "(+,-,-,-)")
         assert "error" in result
-        assert "Malformed" in result["error"] or "state.json" in result["error"]
+        _assert_error_surface(result["error"], "malformed convention state mutation", required=("malformed",))
 
     def test_convention_set_returns_error_on_empty_custom_key(self, tmp_path):
         """convention_set returns error dict for empty custom key."""
@@ -748,7 +965,7 @@ class TestConventionsServer:
 
         result = convention_set(str(tmp_path), "custom:", "val")
         assert "error" in result
-        assert "empty" in result["error"].lower()
+        _assert_error_surface(result["error"], "empty custom convention key", required=("empty",))
 
     def test_convention_set_returns_error_on_os_error(self, tmp_path):
         """convention_set returns error dict when state.json is a directory (IsADirectoryError)."""
@@ -772,7 +989,7 @@ class TestConventionsServer:
 
         result = convention_lock_status(str(tmp_path))
         assert "error" in result
-        assert "Malformed" in result["error"] or "state.json" in result["error"]
+        _assert_error_surface(result["error"], "malformed convention state status", required=("malformed",))
 
     def test_convention_lock_status_returns_error_on_os_error(self, tmp_path):
         """convention_lock_status returns error dict when state.json is a directory."""
@@ -785,6 +1002,7 @@ class TestConventionsServer:
 
         result = convention_lock_status(str(tmp_path))
         assert "error" in result
+
 
 # ---------------------------------------------------------------------------
 # 2. Errors MCP server
@@ -863,6 +1081,15 @@ class TestErrorsMcp:
 
         result = check_error_classes("angular momentum coupling calculation")
         assert result["match_count"] >= 1
+
+    def test_check_error_classes_blank_returns_error_envelope(self):
+        from gpd.mcp.servers.errors_mcp import check_error_classes
+
+        result = check_error_classes("   ")
+        assert "error" in result
+        _assert_error_surface(
+            result["error"], "blank error-class computation", required=("computation_desc", "non-empty string")
+        )
 
     def test_get_detection_strategy(self):
         from gpd.mcp.servers.errors_mcp import get_detection_strategy
@@ -963,6 +1190,22 @@ class TestPatternsServer:
                 description="A test pattern",
             )
         assert result["added"] is True
+
+    @pytest.mark.parametrize("title", ["   ", "!!!"])
+    def test_add_pattern_rejects_titles_that_cannot_generate_slug(self, title, monkeypatch, tmp_path):
+        from gpd.mcp.servers.patterns_server import add_pattern
+
+        monkeypatch.setattr("gpd.mcp.servers.patterns_server._DEFAULT_PATTERNS_ROOT", tmp_path / "patterns")
+
+        result = add_pattern(
+            domain="qft",
+            title=title,
+            category="sign-error",
+            severity="high",
+        )
+
+        assert result["schema_version"] == 1
+        assert result["error"] == "title cannot be empty"
 
     def test_promote_pattern(self):
         from gpd.mcp.servers.patterns_server import promote_pattern
@@ -1101,6 +1344,27 @@ class TestProtocolsServer:
 # ---------------------------------------------------------------------------
 
 
+def test_real_bibliographer_skill_surfaces_direct_and_transitive_references():
+    from gpd import registry as content_registry
+    from gpd.mcp.servers.skills_server import get_skill
+
+    content_registry.invalidate_cache()
+    result = get_skill("gpd-bibliographer")
+    content_registry.invalidate_cache()
+
+    direct_paths = {entry["path"] for entry in result["referenced_files"]}
+    transitive_paths = {entry["path"] for entry in result["transitive_referenced_files"]}
+
+    assert "error" not in result
+    assert result["reference_count"] == len(direct_paths)
+    assert result["transitive_reference_count"] == len(transitive_paths)
+    assert all(entry["depth"] >= 1 for entry in result["transitive_referenced_files"])
+    assert any(path.endswith("shared-protocols.md") for path in direct_paths)
+    assert any(path.endswith("bibliography-advanced-search.md") for path in direct_paths)
+    assert any(path.endswith("verification-core.md") for path in transitive_paths)
+    assert any(path.endswith("llm-physics-errors.md") for path in transitive_paths)
+
+
 class TestSkillsServer:
     """Tests for gpd.mcp.servers.skills_server tool functions."""
 
@@ -1117,7 +1381,7 @@ class TestSkillsServer:
             "name: gpd:execute-phase\n"
             "description: Execute all plans in a phase.\n"
             "requires:\n"
-            "  files: [\"GPD/ROADMAP.md\"]\n"
+            '  files: ["GPD/ROADMAP.md"]\n'
             "---\n"
             "\n"
             "Canonical execute command.\n",
@@ -1163,7 +1427,7 @@ class TestSkillsServer:
             "description: Conduct standalone peer review.\n"
             "context_mode: project-required\n"
             "requires:\n"
-            "  files: [\"paper/*.tex\", \"paper/*.md\", \"manuscript/*.tex\", \"manuscript/*.md\", \"draft/*.tex\", \"draft/*.md\"]\n"
+            '  files: ["paper/*.tex", "paper/*.md", "manuscript/*.tex", "manuscript/*.md", "draft/*.tex", "draft/*.md"]\n'
             "review-contract:\n"
             "  review_mode: publication\n"
             "  schema_version: 1\n"
@@ -1186,12 +1450,7 @@ class TestSkillsServer:
             encoding="utf-8",
         )
         (agents_dir / "gpd-debugger.md").write_text(
-            "---\n"
-            "name: gpd-debugger\n"
-            "description: Canonical debugger agent.\n"
-            "---\n"
-            "\n"
-            "Primary debugger agent.\n",
+            "---\nname: gpd-debugger\ndescription: Canonical debugger agent.\n---\n\nPrimary debugger agent.\n",
             encoding="utf-8",
         )
         (agents_dir / "gpd-check-proof.md").write_text(
@@ -1270,9 +1529,11 @@ class TestSkillsServer:
             "requires": "mirrored",
             "review_contract": "mirrored",
         }
-        assert "Treat `content` as the wrapper/context surface." in result["loading_hint"]
-        assert "See `referenced_files` for external markdown dependencies." in result["loading_hint"]
-        assert "It already embeds the model-visible `Command Requirements` section." in result["loading_hint"]
+        _assert_loading_hint(
+            result,
+            "command skill wrapper and requirements",
+            required=("content", "wrapper", "context", "Command Requirements"),
+        )
         assert result["file_count"] == 1
         assert result["allowed_tools_surface"] == "command.allowed-tools"
 
@@ -1326,7 +1587,9 @@ class TestSkillsServer:
         monkeypatch.setattr(
             content_registry,
             "resolve_workflow_stage_manifest_path",
-            lambda workflow_id: manifest_path if workflow_id == "plan-phase" else original_resolve_manifest_path(workflow_id),
+            lambda workflow_id: (
+                manifest_path if workflow_id == "plan-phase" else original_resolve_manifest_path(workflow_id)
+            ),
         )
         content_registry.invalidate_cache()
 
@@ -1338,7 +1601,9 @@ class TestSkillsServer:
         assert result["staged_loading"]["workflow_id"] == "plan-phase"
         assert result["staged_loading"]["stages"][0]["id"] == "phase_bootstrap"
 
-    def test_get_skill_surfaces_plan_phase_staged_loading_sidecar(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_get_skill_surfaces_plan_phase_staged_loading_sidecar(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
         from gpd import registry as content_registry
         from gpd.mcp.servers.skills_server import get_skill
 
@@ -1388,7 +1653,9 @@ class TestSkillsServer:
         monkeypatch.setattr(
             content_registry,
             "resolve_workflow_stage_manifest_path",
-            lambda workflow_id: manifest_path if workflow_id == "plan-phase" else original_resolve_manifest_path(workflow_id),
+            lambda workflow_id: (
+                manifest_path if workflow_id == "plan-phase" else original_resolve_manifest_path(workflow_id)
+            ),
         )
         content_registry.invalidate_cache()
 
@@ -1399,7 +1666,9 @@ class TestSkillsServer:
         assert result["staged_loading"]["stages"][0]["loaded_authorities"] == ["workflows/plan-phase.md"]
         assert result["structured_metadata_authority"]["staged_loading"] == "mirrored"
 
-    def test_get_skill_surfaces_execute_phase_staged_loading_sidecar(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_get_skill_surfaces_execute_phase_staged_loading_sidecar(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
         from gpd import registry as content_registry
         from gpd.mcp.servers.skills_server import get_skill
 
@@ -1449,7 +1718,9 @@ class TestSkillsServer:
         monkeypatch.setattr(
             content_registry,
             "resolve_workflow_stage_manifest_path",
-            lambda workflow_id: manifest_path if workflow_id == "execute-phase" else original_resolve_manifest_path(workflow_id),
+            lambda workflow_id: (
+                manifest_path if workflow_id == "execute-phase" else original_resolve_manifest_path(workflow_id)
+            ),
         )
         content_registry.invalidate_cache()
 
@@ -1510,7 +1781,9 @@ class TestSkillsServer:
         monkeypatch.setattr(
             content_registry,
             "resolve_workflow_stage_manifest_path",
-            lambda workflow_id: manifest_path if workflow_id == "plan-phase" else original_resolve_manifest_path(workflow_id),
+            lambda workflow_id: (
+                manifest_path if workflow_id == "plan-phase" else original_resolve_manifest_path(workflow_id)
+            ),
         )
         content_registry.invalidate_cache()
 
@@ -1520,26 +1793,9 @@ class TestSkillsServer:
         assert any(entry["kind"] == "workflow" for entry in result["referenced_files"])
         assert all(not entry["path"].startswith("/") for entry in result["referenced_files"])
 
-    def test_get_skill_surfaces_direct_and_transitive_references_when_exposed(self):
-        from gpd.mcp.servers.skills_server import get_skill
-
-        result = get_skill("gpd-bibliographer")
-
-        if "transitive_referenced_files" not in result:
-            pytest.skip("Phase 15 product lane has not exposed transitive skill metadata yet")
-
-        direct_paths = {entry["path"] for entry in result["referenced_files"]}
-        transitive_paths = {entry["path"] for entry in result["transitive_referenced_files"]}
-
-        assert "error" not in result
-        assert result["reference_count"] == len(direct_paths)
-        assert result["transitive_reference_count"] == len(transitive_paths)
-        assert direct_paths.isdisjoint(transitive_paths)
-        assert any(path.endswith("shared-protocols.md") for path in direct_paths)
-        assert any(path.endswith("bibliography-advanced-search.md") for path in transitive_paths)
-
     def test_get_skill_consistency_checker_surfaces_agent_metadata(self):
         from gpd import registry as content_registry
+        from gpd.core.agent_role_kits import role_kit_authority_paths
         from gpd.mcp.servers.skills_server import get_skill
 
         repo_root = Path(__file__).resolve().parents[2]
@@ -1548,6 +1804,7 @@ class TestSkillsServer:
             patch("gpd.registry.AGENTS_DIR", repo_root / "src" / "gpd" / "agents"),
         ):
             content_registry.invalidate_cache()
+            agent = content_registry.get_agent("gpd-consistency-checker")
             result = get_skill("gpd-consistency-checker")
             content_registry.invalidate_cache()
 
@@ -1564,6 +1821,8 @@ class TestSkillsServer:
             "role_family": "verification",
             "artifact_write_authority": "scoped_write",
             "shared_state_authority": "return_only",
+            "role_kits": list(agent.role_kits),
+            "role_kit_authorities": list(role_kit_authority_paths(agent.role_kits)),
             "tools": ["file_read", "file_write", "shell", "search_files", "find_files"],
         }
         assert result["structured_metadata_authority"] == {
@@ -1576,8 +1835,14 @@ class TestSkillsServer:
         assert result["contract_references"] == []
         assert result["contract_documents"] == []
         assert result["reference_count"] == len(direct_paths)
-        assert result["transitive_reference_count"] == 0
-        assert result["transitive_referenced_files"] == []
+        assert result["transitive_reference_count"] == 1
+        assert result["transitive_referenced_files"] == [
+            {
+                "path": "@{GPD_INSTALL_DIR}/references/orchestration/child-artifact-gate.md",
+                "kind": "reference",
+                "depth": 1,
+            }
+        ]
         assert "@GPD/CONVENTIONS.md" in direct_paths
         assert "@GPD/phases/{scope}/CONSISTENCY-CHECK.md" in direct_paths
         assert "@GPD/CONSISTENCY-CHECK.md" in direct_paths
@@ -1597,8 +1862,11 @@ class TestSkillsServer:
         assert "referee-decision-schema.md" in schema_documents
         assert "Referee Decision Schema" in schema_documents["referee-decision-schema.md"]["body"]
         assert "review-ledger-schema.md" not in contract_documents
-        assert "Treat `content` as the wrapper/context surface." in result["loading_hint"]
-        assert "Load `schema_documents` and `contract_documents` too when present" in result["loading_hint"]
+        _assert_loading_hint(
+            result,
+            "skill schema and contract body availability",
+            required=("content", "wrapper", "context", "schema_documents", "contract_documents"),
+        )
         assert result["content_authority"] == "canonical"
         assert result["structured_metadata_authority"] == {
             "content": "canonical",
@@ -1608,27 +1876,87 @@ class TestSkillsServer:
             "requires": "mirrored",
             "review_contract": "mirrored",
         }
-        assert "It already embeds the model-visible `Command Requirements` section." in result["loading_hint"]
+        _assert_loading_hint(
+            result,
+            "skill command requirements visibility",
+            required=("content", "Command Requirements"),
+        )
         assert result["context_mode"] == "project-required"
         assert result["project_reentry_capable"] is False
         assert result["review_contract"] is not None
         assert result["review_contract"]["review_mode"] == "publication"
         assert "required_state" not in result["review_contract"]
-        assert result["review_contract"]["conditional_requirements"] == [
-            {
-                "when": "theorem-bearing claims are present",
-                "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
-                "required_evidence": [],
-                "blocking_conditions": [],
-                "blocking_preflight_checks": [],
-                "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
-            }
-        ]
+        assert {
+            "when": "theorem-bearing claims are present",
+            "required_outputs": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+            "required_evidence": [],
+            "blocking_conditions": [],
+            "preflight_checks": [],
+            "blocking_preflight_checks": [],
+            "stage_artifacts": ["GPD/review/PROOF-REDTEAM{round_suffix}.md"],
+        } in result["review_contract"]["conditional_requirements"]
         assert "## Review Contract" in result["content"]
         assert "review_contract:" in result["content"]
         assert "review-contract:" not in result["content"]
         assert all(not entry["path"].startswith("/") for entry in result["schema_documents"])
         assert all(not entry["path"].startswith("/") for entry in result["contract_documents"])
+
+    def test_get_skill_agent_policy_exposes_role_kit_metadata(self, tmp_path: Path):
+        from gpd import registry as content_registry
+        from gpd.mcp.servers.skills_server import get_skill
+
+        agent_path = tmp_path / "agents" / "gpd-role-kit-agent.md"
+        agent_path.write_text(
+            "---\n"
+            "name: gpd-role-kit-agent\n"
+            "description: Role kit metadata fixture.\n"
+            "tools: file_read\n"
+            "role_kits:\n"
+            "  - status-routing\n"
+            "  - fresh-continuation\n"
+            "---\n"
+            "Fixture body.\n",
+            encoding="utf-8",
+        )
+        content_registry.invalidate_cache()
+
+        result = get_skill("gpd-role-kit-agent")
+        direct_paths = {entry["path"] for entry in result["referenced_files"]}
+
+        assert "error" not in result
+        assert result["agent_policy"]["role_kits"] == ["status-routing", "fresh-continuation"]
+        assert result["agent_policy"]["role_kit_authorities"] == [
+            "{GPD_INSTALL_DIR}/references/orchestration/agent-infrastructure.md",
+            "{GPD_INSTALL_DIR}/references/orchestration/continuation-boundary.md",
+        ]
+        assert "## Agent Role Kits" in result["content"]
+        assert "@{GPD_INSTALL_DIR}/references/orchestration/agent-infrastructure.md" in direct_paths
+        assert "@{GPD_INSTALL_DIR}/references/orchestration/continuation-boundary.md" in direct_paths
+
+    def test_get_skill_agent_surfaces_compatible_task_overlay_metadata_without_bodies(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        from gpd import registry as content_registry
+        from gpd.mcp.servers.skills_server import get_skill
+
+        repo_agents_dir = Path(__file__).resolve().parents[2] / "src/gpd/agents"
+        monkeypatch.setattr(content_registry, "AGENTS_DIR", repo_agents_dir)
+        content_registry.invalidate_cache()
+
+        result = get_skill("gpd-executor")
+
+        assert "error" not in result
+        assert result["structured_metadata_authority"]["compatible_task_overlays"] == "mirrored"
+        assert result["compatible_task_overlays"]["schema_version"] == 1
+        assert result["compatible_task_overlays"]["role"] == "gpd-executor"
+        assert result["compatible_task_overlays"]["compatible_task_overlay_ids"] == [
+            "executor.proof_bearing",
+            "executor.bounded_segment",
+        ]
+        assert result["compatible_task_overlays"]["overlay_count"] == 2
+        _assert_body_free_task_overlay_metadata(result["compatible_task_overlays"])
+        assert "selected_task_overlay_ids" not in result["content"]
+        assert "task_overlay_load_manifest" not in result["content"]
 
     def test_get_skill_surfaces_direct_plan_checker_schema_reference(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -1685,13 +2013,15 @@ class TestSkillsServer:
         assert "error" not in result
         assert any(path.endswith("proof-redteam-schema.md") for path in result["schema_references"])
         assert any(path.endswith("proof-redteam-protocol.md") for path in result["contract_references"])
-        assert "proof-redteam-schema.md" in schema_documents
-        assert "Proof Redteam" in schema_documents["proof-redteam-schema.md"]["body"]
-        assert "proof-redteam-protocol.md" in contract_documents
-        assert "Proof Redteam Protocol" in contract_documents["proof-redteam-protocol.md"]["body"]
+        assert schema_documents == {}
+        assert contract_documents == {}
         assert any(path.endswith("peer-review-panel.md") for path in result["contract_references"])
-        assert "Treat `content` as the wrapper/context surface." in result["loading_hint"]
-        assert "Load `schema_documents` and `contract_documents` too when present" in result["loading_hint"]
+        _assert_loading_hint(
+            result,
+            "proof redteam external dependencies",
+            required=("content", "wrapper", "context", "referenced_files", "external markdown dependencies"),
+            forbidden=("schema_documents", "contract_documents"),
+        )
 
     def test_get_skill_resume_work_surfaces_project_reentry_metadata(self):
         from gpd.mcp.servers.skills_server import get_skill
@@ -1790,14 +2120,24 @@ class TestSkillsServer:
 
         assert result["staged_loading"]["workflow_id"] == "new-project"
         assert result["staged_loading"]["stages"][0]["id"] == "scope_intake"
-        assert result["staged_loading"]["stages"][1]["loaded_authorities"] == [
-            "templates/project-contract-schema.md",
-            "templates/project-contract-grounding-linkage.md",
-            "references/shared/canonical-schema-discipline.md",
+        scope_approval = result["staged_loading"]["stages"][1]
+        assert scope_approval["loaded_authorities"] == ["workflows/new-project/scope-approval.md"]
+        assert scope_approval["conditional_authorities"] == [
+            {
+                "when": "contract_schema_validation_or_linkage_repair",
+                "authorities": [
+                    "templates/project-contract-schema.md",
+                    "templates/project-contract-grounding-linkage.md",
+                    "references/shared/canonical-schema-discipline.md",
+                ],
+            }
         ]
+        assert "templates/project-contract-schema.md" in scope_approval["must_not_eager_load"]
         assert result["structured_metadata_authority"]["staged_loading"] == "mirrored"
 
-    def test_get_skill_new_milestone_surfaces_staged_loading_sidecar(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_get_skill_new_milestone_surfaces_staged_loading_sidecar(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
         from gpd import registry
         from gpd.mcp.servers.skills_server import get_skill
 
@@ -1833,9 +2173,9 @@ class TestSkillsServer:
         monkeypatch.setattr(
             registry,
             "resolve_workflow_stage_manifest_path",
-            lambda workflow_id: manifest_path
-            if workflow_id == "new-milestone"
-            else original_resolve_manifest_path(workflow_id),
+            lambda workflow_id: (
+                manifest_path if workflow_id == "new-milestone" else original_resolve_manifest_path(workflow_id)
+            ),
         )
         repo_root = Path(__file__).resolve().parents[2]
         with (
@@ -1867,6 +2207,7 @@ class TestSkillsServer:
 
     def test_get_skill_agent_uses_primary_agent_content(self):
         from gpd import registry
+        from gpd.core.agent_role_kits import role_kit_authority_paths
         from gpd.mcp.servers.skills_server import get_skill
 
         result = get_skill("gpd-debugger")
@@ -1892,9 +2233,10 @@ class TestSkillsServer:
             "role_family": agent.role_family,
             "artifact_write_authority": agent.artifact_write_authority,
             "shared_state_authority": agent.shared_state_authority,
+            "role_kits": list(agent.role_kits),
+            "role_kit_authorities": list(role_kit_authority_paths(agent.role_kits)),
             "tools": agent.tools,
         }
-
 
     def test_get_skill_debug_command_surfaces_debugger_seam_and_has_no_direct_schema_dependencies(
         self, monkeypatch: pytest.MonkeyPatch
@@ -1926,7 +2268,6 @@ class TestSkillsServer:
         assert result["contract_documents"] == []
         assert "gpd-debugger" in result["content"]
         assert 'subagent_type="gpd-debugger"' in result["content"]
-
 
     def test_get_skill_executor_agent_defers_completion_only_materials_until_summary_creation(
         self, monkeypatch: pytest.MonkeyPatch
@@ -1968,8 +2309,23 @@ class TestSkillsServer:
         assert result["allowed_tools_surface"] == "agent.tools"
         assert "staged_loading" not in result
         assert separator == "On-demand references:"
-        assert "Phase Plan Prompt" in bootstrap
-        assert "PLAN Contract Schema" in bootstrap
+        assert_prompt_contracts(
+            bootstrap,
+            semantic_anchor(
+                "planner bootstrap names the late-loaded plan template and carried schema",
+                (
+                    "phase-prompt.md",
+                    "PLAN.md",
+                    "plan-contract-schema.md",
+                    "before plan frontmatter",
+                ),
+            ),
+            semantic_anchor(
+                "planner bootstrap does not inline the plan template headings",
+                ("Phase Plan Prompt", "PLAN Contract Schema"),
+                mode="absent",
+            ),
+        )
         assert "Read config.json for planning behavior settings." not in bootstrap
         assert "## Summary Template" not in bootstrap
         assert "Order-of-Limits Awareness" not in bootstrap
@@ -1983,10 +2339,12 @@ class TestSkillsServer:
         assert result["reference_count"] > 0
         assert result["schema_documents"] == []
         assert result["contract_documents"] == []
-        assert "See `referenced_files` for external markdown dependencies." in result["loading_hint"]
-        assert "schema_documents and contract_documents mirror loaded schema and contract markdown bodies." not in result[
-            "loading_hint"
-        ]
+        _assert_loading_hint(
+            result,
+            "skill references without loaded schema bodies",
+            required=("referenced_files", "external markdown dependencies"),
+            forbidden=("schema_documents", "contract_documents", "markdown bodies"),
+        )
 
     def test_get_skill_canonicalizes_runtime_command_examples(self):
         from gpd.mcp.servers.skills_server import get_skill
@@ -2281,7 +2639,7 @@ class TestStateServer:
         assert result["error"] == "project_dir must be an absolute path"
         assert result["schema_version"] == 1
 
-    def test_load_state_json_omits_legacy_session_mirror(self, fake_project_dir):
+    def test_load_state_json_omits_session_alias_mirror(self, fake_project_dir):
         from gpd.mcp.servers.state_server import load_state_json
 
         mock_state = {
@@ -2357,6 +2715,25 @@ class TestStateServer:
         assert result["position"]["current_phase"] == "01"
         assert layout.state_intent.exists()
         assert layout.state_json.read_text(encoding="utf-8") == before_state
+
+    def test_state_server_load_state_json_does_not_create_nested_stub_directories(self, tmp_path):
+        from gpd.core.constants import ProjectLayout
+        from gpd.core.state import default_state_dict, save_state_json
+        from gpd.mcp.servers.state_server import load_state_json
+
+        cwd = tmp_path / "workspace" / "notes"
+        cwd.mkdir(parents=True)
+        layout = ProjectLayout(cwd)
+        layout.gpd.mkdir(parents=True)
+        save_state_json(cwd, default_state_dict())
+
+        nested_stub = layout.gpd / "GPD"
+        assert not nested_stub.exists()
+
+        result = load_state_json(cwd)
+
+        assert result is not None
+        assert not nested_stub.exists()
 
     def test_get_state_no_state(self, fake_project_dir):
         from gpd.mcp.servers.state_server import get_state
@@ -2462,15 +2839,15 @@ class TestStateServer:
         mock_info.phase_name = "Setup"
         mock_info.directory = "GPD/phases/01-setup"
         mock_info.phase_slug = "01-setup"
-        mock_info.plans = ["plan-01.md", "plan-02.md", "plan-03.md"]
-        mock_info.summaries = ["summary-01.md", "summary-02.md"]
-        mock_info.incomplete_plans = ["plan-03.md"]
+        mock_info.plans = ["01-setup-01-PLAN.md", "01-setup-02-PLAN.md"]
+        mock_info.summaries = ["01-setup-01-SUMMARY.md", "01-setup-99-SUMMARY.md"]
+        mock_info.incomplete_plans = ["01-setup-02-PLAN.md"]
 
         with patch("gpd.core.phases.find_phase", return_value=mock_info):
             result = get_phase_info(fake_project_dir, "01")
         assert result["phase_number"] == "01"
-        assert result["plan_count"] == 3
-        assert result["summary_count"] == 2
+        assert result["plan_count"] == 2
+        assert result["summary_count"] == 1
         assert result["complete"] is False
 
     def test_get_phase_info_not_found(self, fake_project_dir):
@@ -2722,6 +3099,16 @@ class TestVerificationServer:
 
     # --- run_check ---
 
+    def _assert_run_check_static_triage_invariants(self, result, *, triage_status):
+        assert result["result_kind"] == "static_triage"
+        assert result["triage_status"] == triage_status
+        assert result["passes_physics"] is False
+        assert result["requires_caller_verification"] is True
+        assert result["grants_final_verification_pass"] is False
+        assert result["empty_automated_issues_means"] == (
+            "No static pattern issue was detected; this is not a pass verdict."
+        )
+
     def test_run_check_dimensional(self):
         from gpd.mcp.servers.verification_server import run_check
 
@@ -2731,24 +3118,30 @@ class TestVerificationServer:
         assert result["schema_version"] == 1
         assert result["evidence_kind"] == "computational"
         assert result["machine_supported"] is True
+        self._assert_run_check_static_triage_invariants(result, triage_status="schema_only")
+        assert "Caller-owned verification is still required" in result["guidance"]
 
     def test_run_check_dimensional_missing_hbar(self):
         from gpd.mcp.servers.verification_server import run_check
 
         result = run_check("5.1", "qft", "quantum commutator calculation")
         assert any("hbar" in issue for issue in result["automated_issues"])
+        self._assert_run_check_static_triage_invariants(result, triage_status="failed_or_tension")
 
     def test_run_check_limiting_cases_no_limits(self):
         from gpd.mcp.servers.verification_server import run_check
 
         result = run_check("5.3", "qft", "just some plain calculation here")
         assert any("limiting" in issue.lower() for issue in result["automated_issues"])
+        self._assert_run_check_static_triage_invariants(result, triage_status="failed_or_tension")
 
     def test_run_check_limiting_cases_with_limits(self):
         from gpd.mcp.servers.verification_server import run_check
 
         result = run_check("5.3", "qft", "In the limit \\to 0 this reduces to known result")
         assert len(result["automated_issues"]) == 0
+        self._assert_run_check_static_triage_invariants(result, triage_status="schema_only")
+        assert "not a pass verdict" in result["empty_automated_issues_means"]
 
     def test_run_check_unknown_id(self):
         from gpd.mcp.servers.verification_server import run_check
@@ -2863,7 +3256,7 @@ class TestVerificationServer:
 
         assert result == {"error": "Missing check_key", "schema_version": 1}
 
-    def test_run_contract_check_rejects_legacy_check_id_alias(self):
+    def test_run_contract_check_rejects_stale_check_id_alias(self):
         from gpd.mcp.servers.verification_server import run_contract_check
 
         result = run_contract_check({"check_id": "contract.limit_recovery "})
@@ -3059,7 +3452,10 @@ class TestVerificationServer:
 
         assert result["status"] == "insufficient_evidence"
         assert "metadata.source_reference_id" in result["missing_inputs"]
-        assert any("binding contexts disagree on benchmark reference candidates" in issue for issue in result["automated_issues"])
+        assert any(
+            "binding contexts disagree on benchmark reference candidates" in issue
+            for issue in result["automated_issues"]
+        )
 
     def test_run_contract_check_rejects_explicit_benchmark_anchor_against_single_contract_default_without_binding(self):
         from gpd.mcp.servers.verification_server import run_contract_check
@@ -3148,7 +3544,9 @@ class TestVerificationServer:
 
         assert result["status"] == "insufficient_evidence"
         assert "metadata.regime_label" in result["missing_inputs"]
-        assert any("binding contexts disagree on limit regime candidates" in issue for issue in result["automated_issues"])
+        assert any(
+            "binding contexts disagree on limit regime candidates" in issue for issue in result["automated_issues"]
+        )
 
     def test_run_contract_check_rejects_explicit_regime_label_against_single_contract_default_without_binding(self):
         from gpd.mcp.servers.verification_server import run_contract_check
@@ -3331,7 +3729,7 @@ class TestVerificationServer:
         from gpd.mcp.servers.verification_server import run_contract_check
 
         contract = copy.deepcopy(_load_project_contract_fixture())
-        contract["claims"][0]["notes"] = "legacy extra field"
+        contract["claims"][0]["notes"] = "stale extra field"
 
         result = run_contract_check(
             {
@@ -3344,6 +3742,7 @@ class TestVerificationServer:
         )
 
         assert result == {
+            "contract_error_details": ["claims.0.notes: Extra inputs are not permitted"],
             "error": "Invalid contract payload: claims.0.notes: Extra inputs are not permitted",
             "schema_version": 1,
         }
@@ -3362,7 +3761,9 @@ class TestVerificationServer:
 
         assert "contract.benchmark_reproduction" in suggested
         assert "contract.direct_proxy_consistency" in suggested
-        benchmark = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction")
+        benchmark = next(
+            entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction"
+        )
         assert benchmark["check"] == benchmark["check_key"]
         assert benchmark["binding_targets"] == ["claim", "deliverable", "acceptance_test", "reference"]
         assert benchmark["required_request_fields"] == [
@@ -3383,7 +3784,9 @@ class TestVerificationServer:
         assert "contract.proof_parameter_coverage" in suggested
         assert "contract.claim_to_proof_alignment" in suggested
         assert "contract.counterexample_search" in suggested
-        parameter = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.proof_parameter_coverage")
+        parameter = next(
+            entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.proof_parameter_coverage"
+        )
         assert parameter["check"] == parameter["check_key"]
         assert parameter["binding_targets"] == ["observable", "claim", "deliverable", "acceptance_test"]
         assert parameter["request_template"]["binding"]["claim_ids"] == ["claim-theorem"]
@@ -3400,11 +3803,15 @@ class TestVerificationServer:
         contract = json.loads(fixture.read_text(encoding="utf-8"))
 
         first = suggest_contract_checks(contract)
-        benchmark = next(entry for entry in first["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction")
+        benchmark = next(
+            entry for entry in first["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction"
+        )
         benchmark["request_template"]["metadata"]["source_reference_id"] = "poisoned"
 
         second = suggest_contract_checks(contract)
-        fresh = next(entry for entry in second["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction")
+        fresh = next(
+            entry for entry in second["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction"
+        )
 
         assert fresh["request_template"]["metadata"]["source_reference_id"] == "ref-benchmark"
 
@@ -3412,11 +3819,12 @@ class TestVerificationServer:
         from gpd.mcp.servers.verification_server import suggest_contract_checks
 
         contract = copy.deepcopy(_load_project_contract_fixture())
-        contract["references"][0]["notes"] = "legacy extra field"
+        contract["references"][0]["notes"] = "stale extra field"
 
         result = suggest_contract_checks(contract)
 
         assert result == {
+            "contract_error_details": ["references.0.notes: Extra inputs are not permitted"],
             "error": "Invalid contract payload: references.0.notes: Extra inputs are not permitted",
             "schema_version": 1,
         }
@@ -3441,7 +3849,9 @@ class TestVerificationServer:
         assert result["universal_check_count"] == 24
         assert result["universal_checks"][0]["check_id"] == "5.1"
         assert "evidence_kind" in result["universal_checks"][0]
-        contract_check = next(entry for entry in result["universal_checks"] if entry["check_key"] == "contract.limit_recovery")
+        contract_check = next(
+            entry for entry in result["universal_checks"] if entry["check_key"] == "contract.limit_recovery"
+        )
         assert contract_check["required_request_fields"] == ["metadata.regime_label", "metadata.expected_behavior"]
         assert contract_check["request_template"]["metadata"]["regime_label"] is None
         assert contract_check["request_template"]["metadata"]["expected_behavior"] is None
@@ -3600,7 +4010,6 @@ class TestVerificationServer:
         assert result["coverage_percent"] == 100.0
         assert result["recommendation"] == "Full coverage"
 
-
     # --- _parse_dimensions helper ---
 
     def test_parse_dimensions(self):
@@ -3734,7 +4143,9 @@ Not a checkpoint.
         assert domains["general-relativity"] == "gr_cosmology"
         assert domains["reproducibility"] == "general"
 
-    def test_protocol_store_rejects_missing_domain_metadata(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_protocol_store_rejects_missing_domain_metadata(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         from gpd.mcp.servers.protocols_server import ProtocolStore
 
         protocols_dir = tmp_path / "protocols"

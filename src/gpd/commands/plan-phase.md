@@ -14,6 +14,14 @@ allowed-tools:
   - search_files
   - task
   - web_fetch
+help:
+  group: Planning and execution
+  order: 180
+  compact_description: Build a detailed execution plan for a phase
+  display_signature: gpd:plan-phase <number>
+  notes:
+    - '`--skip-verify` may skip routine verification, but proof-bearing plans still require checker review or an equivalent main-context audit.'
+  root_detail_order: 100
 ---
 
 <objective>
@@ -21,7 +29,7 @@ Create executable phase prompts for a research phase.
 </objective>
 
 <execution_context>
-@{GPD_INSTALL_DIR}/workflows/plan-phase.md
+@{GPD_INSTALL_DIR}/workflows/plan-phase/phase-bootstrap.md
 </execution_context>
 
 <context>
@@ -33,12 +41,12 @@ Canonical contract schema and hard validation rules are enforced later by the st
 - `--research` -- Re-research even if `RESEARCH.md` exists
 - `--skip-research` -- Skip research and plan directly
 - `--gaps` -- Gap-closure mode (`VERIFICATION.md`, no research)
-- `--skip-verify` -- Skip the verification loop
+- `--skip-verify` -- Skip non-proof plan checker verification after planning; proof-bearing plans still require checker review or an equivalent main-context audit
 - `--light` -- Produce contract-plus-constraints plans only
 
 Normalize the phase input before any directory lookups.
 </context>
 
 <process>
-Follow the included workflow file exactly.
+Read the included bootstrap authority first. Later stage loading is manifest-owned by the workflow stage authorities; do not duplicate the stage manifest here.
 </process>

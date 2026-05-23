@@ -18,11 +18,9 @@ import sys
 from pathlib import Path
 
 from gpd.adapters import get_adapter
-from gpd.adapters.install_utils import (
-    build_runtime_install_repair_command,
-)
 from gpd.adapters.runtime_catalog import (
-    get_shared_install_metadata,
+    get_runtime_descriptor,
+    get_shared_install_metadata,  # noqa: F401 - compatibility re-export for bridge tests
     normalize_runtime_name,
     resolve_global_config_dir_candidates,
 )
@@ -33,11 +31,26 @@ from gpd.core.cli_args import (
     validate_root_global_cli_passthrough as _validate_root_global_cli_passthrough,
 )
 from gpd.core.constants import ENV_GPD_ACTIVE_RUNTIME, ENV_GPD_DISABLE_CHECKOUT_REEXEC
-from gpd.hooks.install_metadata import (
-    config_dir_has_managed_install_markers,
-    load_install_manifest_runtime_status,
-    load_install_manifest_scope_status,
+from gpd.core.runtime_bridge_failures import (
+    RuntimeBridgeFailure,
+    RuntimeBridgeFailureKind,
+    build_runtime_bridge_repair_command,
+    classify_runtime_bridge_failure,
+    runtime_bridge_failure,
+    uses_effective_explicit_target,
 )
+from gpd.hooks.install_metadata import (
+    assess_install_target,
+    config_dir_has_managed_install_markers,
+    load_install_manifest_snapshot,
+)
+
+_BridgeFailure = RuntimeBridgeFailure
+_BridgeFailureKind = RuntimeBridgeFailureKind
+_build_repair_command = build_runtime_bridge_repair_command
+_classify_bridge_failure = classify_runtime_bridge_failure
+_bridge_failure = runtime_bridge_failure
+_uses_effective_explicit_target = uses_effective_explicit_target
 
 
 class _BridgeArgumentError(ValueError):
@@ -97,19 +110,20 @@ def _bridge_argument_error_message(message: str) -> str:
     return f"GPD runtime bridge rejected malformed bridge invocation.\n{message}"
 
 
-def _runtime_display_name(runtime: str) -> str:
-    """Return a human-readable runtime label when the runtime is known."""
-    try:
-        return get_adapter(runtime).display_name
-    except KeyError:
-        return runtime
-
-
 def _format_unknown_runtime_error(exc: KeyError) -> str:
     """Return the stable user-facing message for an unknown runtime."""
     if len(exc.args) == 1 and isinstance(exc.args[0], str):
         return exc.args[0]
     return str(exc)
+
+
+def _emit_bridge_failure(failure: _BridgeFailure) -> int:
+    """Write a structured bridge failure to stderr and return its exit code."""
+
+    sys.stderr.write(failure.message)
+    if not failure.message.endswith("\n"):
+        sys.stderr.write("\n")
+    return failure.exit_code
 
 
 def _canonical_runtime_name(runtime: str) -> str:
@@ -130,25 +144,44 @@ def _paths_equal(left: Path, right: Path) -> bool:
 
 def _is_matching_local_install_candidate(candidate: Path, *, runtime: str) -> bool:
     """Return whether *candidate* should satisfy a local bridge config-dir lookup."""
-    if not candidate.is_dir():
-        return False
+    return _local_install_candidate_status(candidate, runtime=runtime) == "matching"
 
+
+def _is_global_config_candidate(candidate: Path, *, runtime: str) -> bool:
     adapter = get_adapter(runtime)
-    manifest_status, manifest, manifest_runtime = load_install_manifest_runtime_status(candidate)
+    return any(
+        _paths_equal(candidate, global_dir)
+        for global_dir in resolve_global_config_dir_candidates(adapter.runtime_descriptor)
+    )
+
+
+def _local_install_candidate_status(candidate: Path, *, runtime: str) -> str:
+    """Classify local config-dir candidates for ancestor resolution."""
+    if not candidate.is_dir():
+        return "none"
+
+    manifest = load_install_manifest_snapshot(candidate)
+    manifest_status = manifest.runtime_state
+    manifest_runtime = manifest.runtime
+    manifest_scope = manifest.payload.get("install_scope")
     if manifest_status == "ok":
         if manifest_runtime != runtime:
-            return False
+            return "diagnostic"
+        if manifest_scope == "local":
+            return "matching"
+        if manifest_scope == "global":
+            return "none"
+        return "diagnostic"
 
-        manifest_scope = manifest.get("install_scope")
-        return manifest_scope == "local"
-
-    global_config_dirs = resolve_global_config_dir_candidates(adapter.runtime_descriptor, home=Path.home())
-    has_install_markers = config_dir_has_managed_install_markers(candidate)
-    if not has_install_markers:
-        return False
-    if any(_paths_equal(candidate, global_dir) for global_dir in global_config_dirs):
-        return False
-    return True
+    if manifest_status != "ok":
+        if manifest_scope == "global":
+            return "none"
+        if manifest_scope != "local" and _is_global_config_candidate(candidate, runtime=runtime):
+            return "none"
+        if manifest_status != "missing" or config_dir_has_managed_install_markers(candidate):
+            return "diagnostic"
+        return "none"
+    return "none"
 
 
 def _resolve_local_config_dir(raw_value: str, *, runtime: str, cli_cwd: Path) -> Path:
@@ -157,7 +190,7 @@ def _resolve_local_config_dir(raw_value: str, *, runtime: str, cli_cwd: Path) ->
     resolved_cwd = cli_cwd.resolve(strict=False)
     for base in (resolved_cwd, *resolved_cwd.parents):
         candidate = (base / relative).resolve(strict=False)
-        if _is_matching_local_install_candidate(candidate, runtime=runtime):
+        if _local_install_candidate_status(candidate, runtime=runtime) != "none":
             return candidate
     return (resolved_cwd / relative).resolve(strict=False)
 
@@ -177,51 +210,6 @@ def _resolve_config_dir(
     if install_scope == "local" and not explicit_target:
         return _resolve_local_config_dir(raw_value, runtime=runtime, cli_cwd=cli_cwd)
     return (cli_cwd / candidate).resolve(strict=False)
-
-
-def _uses_effective_explicit_target(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> bool:
-    """Return whether repair guidance must emit ``--target-dir``."""
-    if explicit_target:
-        return True
-
-    adapter = get_adapter(runtime)
-    if install_scope == "global":
-        canonical_global_dir = adapter.resolve_global_config_dir(home=Path.home())
-        return not _paths_equal(config_dir, canonical_global_dir)
-
-    default_local_config_dir = adapter.resolve_local_config_dir(cli_cwd).resolve(strict=False)
-    return not _paths_equal(config_dir, default_local_config_dir)
-
-
-def _build_repair_command(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return the reinstall command with the effective target-dir projection."""
-
-    return build_runtime_install_repair_command(
-        runtime,
-        install_scope=install_scope,
-        target_dir=config_dir,
-        explicit_target=_uses_effective_explicit_target(
-            runtime=runtime,
-            config_dir=config_dir,
-            install_scope=install_scope,
-            explicit_target=explicit_target,
-            cli_cwd=cli_cwd,
-        ),
-    )
 
 
 def _maybe_reexec_from_checkout(raw_argv: list[str], *, cli_cwd: Path) -> None:
@@ -244,7 +232,9 @@ def _maybe_reexec_from_checkout(raw_argv: list[str], *, cli_cwd: Path) -> None:
     checkout_src = str((root / "src").resolve(strict=False))
     existing_pythonpath = [entry for entry in env.get("PYTHONPATH", "").split(os.pathsep) if entry]
     if checkout_src not in existing_pythonpath:
-        env["PYTHONPATH"] = os.pathsep.join([checkout_src, *existing_pythonpath]) if existing_pythonpath else checkout_src
+        env["PYTHONPATH"] = (
+            os.pathsep.join([checkout_src, *existing_pythonpath]) if existing_pythonpath else checkout_src
+        )
     env[ENV_GPD_DISABLE_CHECKOUT_REEXEC] = "1"
     active_python = current_python_executable()
     checkout_python = resolve_checkout_python(root, fallback=active_python) or active_python
@@ -253,201 +243,17 @@ def _maybe_reexec_from_checkout(raw_argv: list[str], *, cli_cwd: Path) -> None:
     os.execve(checkout_python, [checkout_python, "-m", "gpd.runtime_cli", *raw_argv], env)
 
 
-def _install_error_message(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-    missing: tuple[str, ...],
-) -> str:
-    """Return a deterministic repair message for an incomplete runtime install."""
-    adapter = get_adapter(runtime)
-    missing_list = ", ".join(f"`{relpath}`" for relpath in missing)
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    return (
-        f"GPD runtime install incomplete for {adapter.display_name} at `{config_dir}`.\n"
-        f"Missing required install artifacts: {missing_list}\n"
-        f"Repair the install with: `{repair_command}`\n"
-    )
-
-
-def _runtime_mismatch_error_message(
-    *,
-    runtime: str,
-    manifest_runtime: str,
-    manifest_install_scope: str | None,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return repair guidance when the resolved config dir belongs to another runtime."""
-    owning_install_scope = manifest_install_scope if manifest_install_scope in {"local", "global"} else install_scope
-    repair_command = _build_repair_command(
-        runtime=manifest_runtime,
-        config_dir=config_dir,
-        install_scope=owning_install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    return (
-        f"GPD runtime bridge mismatch for {_runtime_display_name(runtime)} at `{config_dir}`.\n"
-        f"Resolved install manifest pins {_runtime_display_name(manifest_runtime)} (`{manifest_runtime}`), "
-        "so this bridge cannot safely continue.\n"
-        f"Repair or reinstall with the owning runtime: `{repair_command}`\n"
-    )
-
-
-def _install_scope_mismatch_error_message(
-    *,
-    runtime: str,
-    manifest_install_scope: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return repair guidance when the manifest scope disagrees with the bridge scope."""
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=manifest_install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    return (
-        f"GPD runtime bridge scope mismatch for {_runtime_display_name(runtime)} at `{config_dir}`.\n"
-        f"Resolved install manifest pins `{manifest_install_scope}`, but this bridge was launched as `{install_scope}`.\n"
-        f"Repair or reinstall with the owning scope: `{repair_command}`\n"
-    )
-
-
-def _malformed_manifest_runtime_error_message(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return repair guidance when the install manifest runtime field is malformed."""
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    return (
-        f"GPD runtime bridge rejected malformed install manifest at `{config_dir}`.\n"
-        "The manifest `runtime` field must be a recognized non-empty runtime string.\n"
-        f"Repair or reinstall with: `{repair_command}`\n"
-    )
-
-
-def _missing_manifest_runtime_error_message(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return repair guidance when the install manifest omits ``runtime``."""
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    return (
-        f"GPD runtime bridge rejected incomplete install manifest at `{config_dir}`.\n"
-        "The manifest must declare a non-empty `runtime` field.\n"
-        f"Repair or reinstall with: `{repair_command}`\n"
-    )
-
-
-def _install_scope_status_error_message(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-    state: str,
-) -> str:
-    """Return repair guidance when the manifest install_scope field is missing or malformed."""
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    if state == "missing_install_scope":
-        scope_issue = "The manifest must declare a non-empty `install_scope` field."
-    else:
-        scope_issue = "The manifest `install_scope` field must be exactly `local` or `global`."
-    return (
-        f"GPD runtime bridge rejected incomplete install manifest at `{config_dir}`.\n"
-        f"{scope_issue}\n"
-        f"Repair or reinstall with: `{repair_command}`\n"
-    )
-
-
-def _missing_manifest_error_message(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return repair guidance when a managed install surface has no manifest."""
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    shared_install = get_shared_install_metadata()
-    return (
-        f"GPD runtime bridge rejected missing install manifest at `{config_dir}`.\n"
-        f"Managed installs must include `{shared_install.manifest_name}` so runtime identity stays authoritative.\n"
-        f"Repair or reinstall with: `{repair_command}`\n"
-    )
-
-
-def _untrusted_manifest_error_message(
-    *,
-    runtime: str,
-    config_dir: Path,
-    install_scope: str,
-    explicit_target: bool,
-    cli_cwd: Path,
-) -> str:
-    """Return repair guidance when the install manifest cannot be trusted."""
-    repair_command = _build_repair_command(
-        runtime=runtime,
-        config_dir=config_dir,
-        install_scope=install_scope,
-        explicit_target=explicit_target,
-        cli_cwd=cli_cwd,
-    )
-    return (
-        f"GPD runtime bridge rejected unreadable install manifest at `{config_dir}`.\n"
-        "The manifest must be a JSON object with a non-empty `runtime` field.\n"
-        f"Repair or reinstall with: `{repair_command}`\n"
+def _runtime_config_env_names(runtime: str) -> tuple[str, ...]:
+    """Return runtime config env vars that should point at the bridge target."""
+    try:
+        descriptor = get_runtime_descriptor(runtime)
+    except KeyError:
+        return ()
+    global_config = descriptor.global_config
+    return tuple(
+        env_var
+        for env_var in (global_config.env_var, global_config.env_dir_var)
+        if isinstance(env_var, str) and env_var
     )
 
 
@@ -457,16 +263,21 @@ def main(argv: list[str] | None = None) -> int:
     try:
         options, gpd_args = _parse_args(raw_argv)
     except _BridgeArgumentError as exc:
-        sys.stderr.write(_bridge_argument_error_message(str(exc)) + "\n")
-        return 127
+        return _emit_bridge_failure(
+            _bridge_failure(
+                _BridgeFailureKind.MALFORMED_INVOCATION,
+                _bridge_argument_error_message(str(exc)),
+            )
+        )
     runtime = _canonical_runtime_name(options.runtime)
     cli_cwd = _resolve_cli_cwd_from_argv(gpd_args)
     _maybe_reexec_from_checkout(raw_argv, cli_cwd=cli_cwd)
     try:
         adapter = get_adapter(runtime)
     except KeyError as exc:
-        sys.stderr.write(_format_unknown_runtime_error(exc) + "\n")
-        return 127
+        return _emit_bridge_failure(
+            _bridge_failure(_BridgeFailureKind.UNKNOWN_RUNTIME, _format_unknown_runtime_error(exc))
+        )
     config_dir = _resolve_config_dir(
         options.config_dir,
         runtime=runtime,
@@ -474,119 +285,44 @@ def main(argv: list[str] | None = None) -> int:
         explicit_target=bool(options.explicit_target),
         cli_cwd=cli_cwd,
     )
-    manifest_status, manifest_payload, manifest_runtime = load_install_manifest_runtime_status(config_dir)
-    manifest_scope_status, manifest_scope_payload, manifest_install_scope = load_install_manifest_scope_status(config_dir)
-    manifest_explicit_target = manifest_payload.get("explicit_target")
-    if not isinstance(manifest_explicit_target, bool):
-        manifest_explicit_target = None
-    repair_explicit_target = (
-        manifest_explicit_target if manifest_explicit_target is not None else bool(options.explicit_target)
+    manifest = load_install_manifest_snapshot(config_dir)
+    assessment = assess_install_target(config_dir, expected_runtime=runtime, manifest=manifest)
+    repair_explicit_target = _uses_effective_explicit_target(
+        runtime=runtime,
+        config_dir=config_dir,
+        install_scope=manifest.install_scope if isinstance(manifest.install_scope, str) else options.install_scope,
+        explicit_target=bool(
+            options.explicit_target or (manifest.explicit_target if manifest.explicit_target_state == "ok" else False)
+        ),
+        cli_cwd=cli_cwd,
     )
-    if manifest_scope_status in {"missing_install_scope", "malformed_install_scope"}:
-        sys.stderr.write(
-            _install_scope_status_error_message(
-                runtime=runtime,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-                state=manifest_scope_status,
-            )
-        )
-        return 127
-    if manifest_scope_status == "ok":
-        manifest_install_scope = manifest_scope_payload.get("install_scope")
-        if not isinstance(manifest_install_scope, str):
-            manifest_install_scope = None
-    if manifest_status == "missing" and config_dir_has_managed_install_markers(config_dir):
-        sys.stderr.write(
-            _missing_manifest_error_message(
-                runtime=runtime,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-            )
-        )
-        return 127
-    if manifest_status in {"corrupt", "invalid"}:
-        sys.stderr.write(
-            _untrusted_manifest_error_message(
-                runtime=runtime,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-            )
-        )
-        return 127
-    if manifest_status == "missing_runtime":
-        sys.stderr.write(
-            _missing_manifest_runtime_error_message(
-                runtime=runtime,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-            )
-        )
-        return 127
-    if manifest_status == "malformed_runtime":
-        sys.stderr.write(
-            _malformed_manifest_runtime_error_message(
-                runtime=runtime,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-            )
-        )
-        return 127
-    if manifest_runtime is not None and manifest_runtime != runtime:
-        sys.stderr.write(
-            _runtime_mismatch_error_message(
-                runtime=runtime,
-                manifest_runtime=manifest_runtime,
-                manifest_install_scope=manifest_install_scope,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-            )
-        )
-        return 127
-    if isinstance(manifest_install_scope, str) and manifest_install_scope in {"local", "global"}:
-        if manifest_install_scope != options.install_scope:
-            sys.stderr.write(
-                _install_scope_mismatch_error_message(
-                    runtime=runtime,
-                    manifest_install_scope=manifest_install_scope,
-                    config_dir=config_dir,
-                    install_scope=options.install_scope,
-                    explicit_target=repair_explicit_target,
-                    cli_cwd=cli_cwd,
-                )
-            )
-            return 127
-
-    missing = adapter.missing_install_artifacts(config_dir)
-    if missing:
-        sys.stderr.write(
-            _install_error_message(
-                runtime=adapter.runtime_name,
-                config_dir=config_dir,
-                install_scope=options.install_scope,
-                explicit_target=repair_explicit_target,
-                cli_cwd=cli_cwd,
-                missing=missing,
-            )
-        )
-        return 127
+    if assessment.state == "owned_incomplete":
+        missing_install_artifacts = assessment.missing_install_artifacts
+    elif assessment.state in {"absent", "clean"}:
+        missing_install_artifacts = adapter.missing_install_artifacts(config_dir)
+    else:
+        missing_install_artifacts = None
+    failure = _classify_bridge_failure(
+        runtime=runtime,
+        config_dir=config_dir,
+        install_scope=options.install_scope,
+        explicit_target=repair_explicit_target,
+        cli_cwd=cli_cwd,
+        manifest=manifest,
+        assessment=assessment,
+        missing=missing_install_artifacts,
+    )
+    if failure is not None:
+        return _emit_bridge_failure(failure)
 
     prior_active_runtime = os.environ.get(ENV_GPD_ACTIVE_RUNTIME)
     prior_disable_checkout_reexec = os.environ.get(ENV_GPD_DISABLE_CHECKOUT_REEXEC)
+    runtime_config_env_names = _runtime_config_env_names(adapter.runtime_name)
+    prior_runtime_config_env = {name: os.environ.get(name) for name in runtime_config_env_names}
     os.environ[ENV_GPD_ACTIVE_RUNTIME] = adapter.runtime_name
     os.environ[ENV_GPD_DISABLE_CHECKOUT_REEXEC] = "1"
+    for env_name in runtime_config_env_names:
+        os.environ[env_name] = str(config_dir)
 
     from gpd.cli import entrypoint
 
@@ -604,6 +340,11 @@ def main(argv: list[str] | None = None) -> int:
             os.environ.pop(ENV_GPD_DISABLE_CHECKOUT_REEXEC, None)
         else:
             os.environ[ENV_GPD_DISABLE_CHECKOUT_REEXEC] = prior_disable_checkout_reexec
+        for env_name, prior_value in prior_runtime_config_env.items():
+            if prior_value is None:
+                os.environ.pop(env_name, None)
+            else:
+                os.environ[env_name] = prior_value
 
     if result is None:
         return 0

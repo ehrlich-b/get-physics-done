@@ -11,6 +11,11 @@ allowed-tools:
   - shell
   - search_files
   - find_files
+help:
+  group: Tangents, memory, and exports
+  order: 510
+  compact_description: Explicit git-backed alternative path for a side investigation
+  display_signature: gpd:branch-hypothesis <description>
 ---
 
 
@@ -40,6 +45,6 @@ Arguments: $ARGUMENTS (format: <description of hypothesis>)
 </context>
 
 <process>
-Execute the branch-hypothesis workflow from @{GPD_INSTALL_DIR}/workflows/branch-hypothesis.md end-to-end.
+Execute the included branch-hypothesis workflow end-to-end.
 Preserve all validation gates (argument parsing, git state checks, branch creation, hypothesis documentation).
 </process>

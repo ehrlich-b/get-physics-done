@@ -40,9 +40,13 @@ allowed-tools:
   - mcp__gpd_verification__get_bundle_checklist
   - mcp__gpd_verification__suggest_contract_checks
   - mcp__gpd_verification__run_contract_check
+help:
+  group: Validation and analysis
+  order: 290
+  compact_description: Run physics verification checks
+  display_signature: gpd:verify-work [phase]
+  root_detail_order: 120
 ---
-
-<!-- Tool names and @ includes are runtime-specific; the installer rewrites paths for your runtime. -->
 
 <objective>
 Run the staged verification workflow for an executed phase.
@@ -51,7 +55,7 @@ Output: `GPD/phases/XX-name/XX-VERIFICATION.md`. This workflow is only valid onc
 </objective>
 
 <execution_context>
-@{GPD_INSTALL_DIR}/workflows/verify-work.md
+@{GPD_INSTALL_DIR}/workflows/verify-work/session-router.md
 </execution_context>
 
 <context>
@@ -59,13 +63,12 @@ Phase: $ARGUMENTS (optional)
 - If provided: Verify specific phase (e.g., "4")
 - If not provided: Check for active sessions or prompt for phase
 
-@GPD/STATE.md
-@GPD/ROADMAP.md
 </context>
 
 <process>
-**CRITICAL: First, read the full workflow file using the file_read tool:**
-Follow the included workflow file exactly.
+**CRITICAL: First, read the included session-router stage authority using the file_read tool.**
+Follow the included first-stage authority exactly. Later stage loading and field
+access are owned by the staged workflow.
 
-The workflow file owns the detailed check taxonomy; this wrapper only bootstraps the canonical verification surfaces and delegates the physics checks.
+The staged workflow authorities own the detailed check taxonomy; this wrapper only bootstraps the canonical verification surface and delegates the physics checks.
   </process>

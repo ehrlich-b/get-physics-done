@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from functools import lru_cache
 
 from gpd.adapters import get_adapter, iter_runtime_descriptors
@@ -24,9 +24,15 @@ from gpd.core.public_surface_contract import (
     recovery_cross_workspace_command,
     recovery_local_snapshot_command,
 )
-from gpd.core.resume_surface import RESUME_COMPATIBILITY_ALIAS_FIELDS
+from gpd.core.public_surface_renderer import render_public_surface_block
+from gpd.core.resume_surface import RESUME_BACKEND_ONLY_FIELDS
+from scripts.render_public_surface import check_generated_regions, generated_region_markers
+from tests.assertion_taxonomy_support import FragmentMode, assert_fragments, public_exact, semantic_anchor
+from tests.markdown_test_support import extract_marker_range
 
 _RUNTIME_NAMES = tuple(descriptor.runtime_name for descriptor in iter_runtime_descriptors())
+_DOCS_PUBLIC_OWNER = "docs onboarding contract"
+_DOCS_PUBLIC_RATIONALE = "public docs navigation labels, links, and command surfaces must stay stable"
 
 
 def _doctor_runtime_scope_re() -> re.Pattern[str]:
@@ -99,6 +105,17 @@ def _runtime_command_fragments(action: str) -> tuple[str, ...]:
     return tuple(fragments)
 
 
+def _runtime_command_contract_handoff_fragments(action: str) -> tuple[str, ...]:
+    return tuple(
+        fragment
+        for command in _runtime_command_variants(action)
+        for fragment in (
+            f"Follow the installed `{command}` command contract directly",
+            f"Use `{command}` as the selected runtime command label and follow its installed command contract directly",
+        )
+    )
+
+
 def _quoted_fragments(*values: str) -> tuple[str, ...]:
     fragments: list[str] = []
     seen: set[str] = set()
@@ -118,6 +135,7 @@ def _action_surface_fragments(action: str, *, include_bare: bool = False) -> tup
     fragments.extend(_runtime_command_fragments(action))
     return tuple(dict.fromkeys(fragments))
 
+
 __all__ = [
     "DOCTOR_RUNTIME_SCOPE_RE",
     "assert_cost_advisory_contract",
@@ -131,6 +149,15 @@ __all__ = [
     "assert_beginner_hub_preflight_contract",
     "assert_beginner_router_bridge_contract",
     "assert_beginner_startup_routing_contract",
+    "assert_any_docs_semantic_anchor",
+    "assert_docs_public_exact",
+    "assert_docs_release_source_policy_contract",
+    "assert_docs_semantic_anchor",
+    "assert_local_heading_links_resolve",
+    "assert_default_recovery_note_hides_raw_reference_vocabulary",
+    "assert_public_surface_generated_file_current",
+    "assert_public_surface_generated_region",
+    "assert_publication_lane_boundary_contract",
     "assert_recovery_ladder_contract",
     "assert_runtime_reset_rediscovery_contract",
     "assert_resume_authority_contract",
@@ -141,7 +168,7 @@ __all__ = [
     "assert_wolfram_plan_boundary_contract",
     "assert_workflow_preset_surface_contract",
     "resume_authority_public_vocabulary_intro",
-    "resume_compat_alias_fields",
+    "resume_backend_only_fields",
 ]
 
 
@@ -165,7 +192,15 @@ TOUR_ENTRY_FRAGMENTS = (
 
 def _assert_contains_any(content: str, fragments: Iterable[str], *, label: str) -> None:
     options = tuple(fragments)
-    assert any(fragment in content for fragment in options), f"expected {label}; wanted one of {options!r}"
+    assert_fragments(
+        content,
+        semantic_anchor(
+            label,
+            options,
+            mode=FragmentMode.ANY,
+            context="documentation surface contract",
+        ),
+    )
 
 
 def _first_index_of_any(content: str, fragments: Iterable[str], *, label: str) -> int:
@@ -173,6 +208,241 @@ def _first_index_of_any(content: str, fragments: Iterable[str], *, label: str) -
     positions = [content.index(fragment) for fragment in options if fragment in content]
     assert positions, f"expected {label}; wanted one of {options!r}"
     return min(positions)
+
+
+def _code_label_bullets(section: str, *, context: str) -> dict[str, str]:
+    rows: dict[str, str] = {}
+    for line in section.splitlines():
+        match = re.match(r"^\s*-\s+`([^`\n]+)`:\s*(.+?)\s*$", line)
+        if match is None:
+            continue
+        label, description = match.groups()
+        if label in rows:
+            raise AssertionError(f"duplicate code-labeled bullet in {context}: {label!r}")
+        rows[label] = description
+    if not rows:
+        raise AssertionError(f"missing code-labeled bullets in {context}")
+    return rows
+
+
+def _assert_code_label_bullet_terms(
+    section: str,
+    expected_terms_by_label: dict[str, tuple[str, ...]],
+    *,
+    context: str,
+) -> None:
+    rows = _code_label_bullets(section, context=context)
+    for label, expected_terms in expected_terms_by_label.items():
+        description = rows.get(label)
+        if description is None:
+            raise AssertionError(f"missing code-labeled bullet in {context}: {label!r}; labels={tuple(rows)!r}")
+        missing = tuple(term for term in expected_terms if term not in description)
+        if missing:
+            raise AssertionError(
+                f"code-labeled bullet {label!r} in {context} is missing expected terms: {missing!r}; "
+                f"description={description!r}"
+            )
+
+
+def _assert_public_fragments(
+    content: str,
+    label: str,
+    fragments: Iterable[str] | str,
+    *,
+    mode: FragmentMode = FragmentMode.ALL,
+    context: str = "documentation surface",
+) -> None:
+    assert_fragments(
+        content,
+        public_exact(
+            label,
+            fragments,
+            owner=_DOCS_PUBLIC_OWNER,
+            rationale=_DOCS_PUBLIC_RATIONALE,
+            mode=mode,
+            context=context,
+        ),
+    )
+
+
+def assert_docs_public_exact(
+    content: str,
+    label: str,
+    fragments: Iterable[str] | str,
+    *,
+    mode: FragmentMode = FragmentMode.ALL,
+    context: str,
+) -> None:
+    """Assert docs-owned public fragments with consistent ownership metadata."""
+
+    _assert_public_fragments(content, label, fragments, mode=mode, context=context)
+
+
+def assert_docs_semantic_anchor(
+    content: str,
+    label: str,
+    fragments: Iterable[str] | str,
+    *,
+    mode: FragmentMode = FragmentMode.ALL,
+    context: str,
+) -> None:
+    """Assert docs-owned semantic anchors without repeating taxonomy boilerplate."""
+
+    assert_fragments(content, semantic_anchor(label, fragments, mode=mode, context=context))
+
+
+def assert_any_docs_semantic_anchor(
+    docs: Mapping[str, str],
+    label: str,
+    fragments: Iterable[str] | str,
+    *,
+    context: str,
+) -> None:
+    """Assert at least one named doc contains a docs-owned semantic anchor."""
+
+    failures: list[str] = []
+    for doc_name, content in docs.items():
+        try:
+            assert_docs_semantic_anchor(content, label, fragments, context=f"{context}: {doc_name}")
+        except AssertionError as exc:
+            failures.append(f"{doc_name}: {exc}")
+        else:
+            return
+    joined = "\n".join(failures)
+    raise AssertionError(f"expected {label} in at least one document for {context}\n{joined}")
+
+
+def _extract_generated_region(content: str, block_id: str, *, context: str) -> str:
+    start_marker, end_marker = generated_region_markers(block_id)
+    return extract_marker_range(content, start_marker, end_marker, context=context).strip("\n")
+
+
+def _extract_generated_regions(content: str, block_id: str, *, context: str) -> tuple[str, ...]:
+    start_marker, end_marker = generated_region_markers(block_id)
+    starts = content.count(start_marker)
+    ends = content.count(end_marker)
+    if starts == 0:
+        raise AssertionError(f"missing generated public-surface block {block_id!r} in {context}")
+    if starts != ends:
+        raise AssertionError(
+            f"unbalanced generated public-surface block {block_id!r} in {context}: "
+            f"{starts} start marker(s), {ends} end marker(s)"
+        )
+    pattern = re.compile(f"{re.escape(start_marker)}(?P<body>.*?){re.escape(end_marker)}", re.S)
+    regions = tuple(match.group("body").strip("\n") for match in pattern.finditer(content))
+    if len(regions) != starts:
+        raise AssertionError(f"could not extract every generated public-surface block {block_id!r} in {context}")
+    return regions
+
+
+def assert_public_surface_generated_region(content: str, block_id: str, *, context: str) -> None:
+    """Assert one checked-in generated public-surface region matches the renderer."""
+
+    actual = _extract_generated_region(content, block_id, context=context).strip()
+    expected = render_public_surface_block(block_id).strip()
+    if actual != expected:
+        raise AssertionError(
+            f"generated public-surface block {block_id!r} is stale in {context}:\n"
+            f"expected:\n{expected}\n\nactual:\n{actual}"
+        )
+
+
+def assert_public_surface_generated_file_current(content: str, *, context: str) -> None:
+    """Assert every public-surface generated region in a Markdown file is current."""
+
+    diffs = check_generated_regions(content)
+    if diffs:
+        rendered_diffs = "\n".join(diff.diff for diff in diffs)
+        raise AssertionError(f"generated public-surface regions are stale in {context}:\n{rendered_diffs}")
+
+
+def assert_default_recovery_note_hides_raw_reference_vocabulary(content: str, *, context: str) -> None:
+    """Assert default recovery notes stay focused on commands, not raw resume schema vocabulary."""
+
+    forbidden_fragments = (
+        "Resume vocabulary fields",
+        "Canonical continuation fields define the public resume vocabulary",
+        "state.json",
+        "active_resume_",
+        "derived_execution_head",
+        "continuity_handoff_file",
+        "gpd_return",
+    )
+    for index, region in enumerate(_extract_generated_regions(content, "recovery-note", context=context), start=1):
+        missing_expected = tuple(
+            fragment
+            for fragment in (
+                recovery_local_snapshot_command(),
+                recovery_cross_workspace_command(),
+                "`resume-work`",
+                "`suggest-next`",
+                "`pause-work`",
+            )
+            if fragment not in region
+        )
+        if missing_expected:
+            raise AssertionError(
+                f"default recovery-note block {index} in {context} is missing expected command fragments: "
+                f"{missing_expected!r}"
+            )
+        present = tuple(fragment for fragment in forbidden_fragments if fragment in region)
+        if present:
+            raise AssertionError(
+                f"default recovery-note block {index} in {context} exposes raw reference vocabulary: {present!r}"
+            )
+
+
+def _markdown_heading_ids(content: str) -> set[str]:
+    counts: dict[str, int] = {}
+    heading_ids: set[str] = set()
+    for match in re.finditer(r"^#{1,6}\s+(.+?)\s*$", content, re.M):
+        heading = re.sub(r"<[^>]+>", "", match.group(1))
+        heading = re.sub(r"`([^`]+)`", r"\1", heading)
+        slug = re.sub(r"[^\w\s-]", "", heading.strip().lower())
+        slug = re.sub(r"\s+", "-", slug).strip("-")
+        duplicate_count = counts.get(slug, 0)
+        counts[slug] = duplicate_count + 1
+        heading_ids.add(slug if duplicate_count == 0 else f"{slug}-{duplicate_count}")
+    return heading_ids
+
+
+def assert_local_heading_links_resolve(content: str, *, context: str) -> None:
+    linked_heading_ids = set(re.findall(r"\[[^\]]+]\(#([^)]+)\)", content))
+    if not linked_heading_ids:
+        raise AssertionError(f"no local heading links found in {context}")
+    missing = linked_heading_ids - _markdown_heading_ids(content)
+    if missing:
+        raise AssertionError(f"local heading links do not resolve in {context}: {sorted(missing)!r}")
+
+
+def assert_docs_release_source_policy_contract(content: str, *, context: str) -> None:
+    _assert_public_fragments(
+        content,
+        "release source policy labels",
+        (
+            "PyPI pinned release",
+            "tagged GitHub release sources",
+            "`--upgrade`",
+            "latest unreleased GitHub `main` source",
+        ),
+        mode=FragmentMode.ORDERED,
+        context=context,
+    )
+    assert_fragments(
+        content,
+        semantic_anchor(
+            "settings model-cost posture",
+            (
+                "workflow defaults",
+                "model-cost posture",
+                "runtime permission sync",
+                "preset/tier overrides",
+                "review",
+                "runtime defaults",
+            ),
+            context=context,
+        ),
+    )
 
 
 @lru_cache(maxsize=1)
@@ -257,8 +527,8 @@ def resume_authority_public_vocabulary_intro() -> str:
     return _contract_string(section, "public_vocabulary_intro", label="resume_authority")
 
 
-def resume_compat_alias_fields() -> tuple[str, ...]:
-    return RESUME_COMPATIBILITY_ALIAS_FIELDS
+def resume_backend_only_fields() -> tuple[str, ...]:
+    return RESUME_BACKEND_ONLY_FIELDS
 
 
 def assert_unattended_readiness_contract(content: str) -> None:
@@ -332,7 +602,15 @@ def assert_execution_observability_surface_contract(content: str) -> None:
         ),
         label="execution progress/waiting wording",
     )
-    assert "possibly stalled" in content
+    _assert_contains_any(
+        content,
+        (
+            "possibly stalled",
+            "stalled execution",
+            "stall",
+        ),
+        label="possible execution-stall wording",
+    )
     _assert_contains_any(
         content,
         (
@@ -344,14 +622,24 @@ def assert_execution_observability_surface_contract(content: str) -> None:
 
 
 def assert_health_command_public_contract(content: str) -> None:
-    assert "Parse JSON output containing:" in content
-    assert "`overall`: top-level `CheckStatus` for the full report" in content
-    assert "`summary`: `HealthSummary` with `ok`, `warn`, `fail`, and `total`" in content
-    assert (
-        "`checks`: Array of `HealthCheck` objects with `status`, `label`, `details`, `issues`, and `warnings`"
-        in content
+    _assert_contains_any(
+        content,
+        (
+            "Parse JSON output",
+            "valid report JSON",
+        ),
+        label="health command JSON parsing guidance",
     )
-    assert "`fixes_applied`: top-level list of auto-applied fix descriptions" in content
+    _assert_code_label_bullet_terms(
+        content,
+        {
+            "overall": ("CheckStatus",),
+            "summary": ("HealthSummary", "ok", "warn", "fail", "total"),
+            "checks": ("HealthCheck", "status", "label", "details", "issues", "warnings"),
+            "fixes_applied": ("auto-applied fix",),
+        },
+        context="health command JSON fields",
+    )
     assert "Array of `{name, status, message, fixed}`" not in content
     assert "Object with `total`, `passed`, `warnings`, `failures`, `fixed`" not in content
 
@@ -369,6 +657,7 @@ def assert_help_command_quick_start_extract_contract(content: str) -> None:
     _assert_contains_any(
         content,
         (
+            "Workflow-owned reference fallback",
             "workflow-owned reference",
             "workflow-owned `## Quick Start` section",
         ),
@@ -377,31 +666,36 @@ def assert_help_command_quick_start_extract_contract(content: str) -> None:
     _assert_contains_any(
         content,
         (
-            "Start at the workflow-owned `## Quick Start` section.",
-            "workflow-owned `## Quick Start` section",
+            "Extract from `<!-- gpd-help:default:start -->` through `<!-- gpd-help:default:end -->`.",
+            "gpd-help:default:start",
+            "Extract from `<!-- gpd-help:quick-start:start -->` through `<!-- gpd-help:quick-start:end -->`.",
+            "gpd-help:quick-start:start",
         ),
         label="help command quick-start reference anchor",
     )
+    assert "gpd-help:default:start" in content
     assert "## Invocation Surfaces" not in content
     _assert_contains_any(
         content,
         (
-            "Include the workflow-owned `## Quick Start` section.",
-            "`## Quick Start` section",
+            "Exclude the marker comment lines themselves.",
+            "marker comment lines",
         ),
         label="help command quick-start extract boundary",
     )
     _assert_contains_any(
         content,
         (
-            "Stop before `## Command Index`.",
-            "before `## Command Index`",
+            "Exclude the marker comment lines themselves.",
+            "marker comment lines",
         ),
         label="help command command-index cutoff boundary",
     )
     _assert_contains_any(
         content,
         (
+            "Run this help command with --all for the compact command index.",
+            "Run <current-help-command> --all for the compact command index.",
             *tuple(
                 f"Run \\`{command}\\` for the compact command index."
                 for command in _runtime_command_variants("help --all")
@@ -424,22 +718,24 @@ def assert_help_command_all_extract_contract(content: str) -> None:
     _assert_contains_any(
         content,
         (
-            "Include the workflow-owned `## Command Index` section.",
-            "`## Command Index` section",
+            "Extract from `<!-- gpd-help:quick-start:start -->` through `<!-- gpd-help:command-index:end -->`.",
+            "gpd-help:command-index:end",
         ),
         label="help command command-index extract boundary",
     )
     _assert_contains_any(
         content,
         (
-            "Stop before `## Detailed Command Reference`.",
-            "before `## Detailed Command Reference`",
+            "Exclude the marker comment lines themselves.",
+            "marker comment lines",
         ),
         label="help command detailed-reference cutoff boundary",
     )
     _assert_contains_any(
         content,
         (
+            "Run this help command with --command <name> for detailed help on one command.",
+            "Run <current-help-command> --command <name> for detailed help on one command.",
             *tuple(
                 f"Run \\`{command}\\` for detailed help on one command."
                 for command in _runtime_command_variants("help --command <name>")
@@ -496,6 +792,8 @@ def assert_help_command_single_command_extract_contract(content: str) -> None:
     _assert_contains_any(
         content,
         (
+            "Unknown command. Run this help command with --all for the compact command index.",
+            "Unknown command. Run <current-help-command> --all for the compact command index.",
             "Unknown command. Run `",
             *_quoted_fragments(*_runtime_command_variants("help --all")),
         ),
@@ -542,16 +840,12 @@ def assert_help_workflow_quick_start_taxonomy_contract(content: str) -> None:
     )
     _assert_contains_any(
         content,
-        (
-            *_runtime_command_fragments("tangent"),
-        ),
+        (*_runtime_command_fragments("tangent"),),
         label="quick-start tangent follow-up guidance",
     )
     _assert_contains_any(
         content,
-        (
-            *_runtime_command_fragments("branch-hypothesis"),
-        ),
+        (*_runtime_command_fragments("branch-hypothesis"),),
         label="quick-start branch-hypothesis follow-up guidance",
     )
 
@@ -650,13 +944,20 @@ def assert_tour_command_surface_contract(content: str) -> None:
     ):
         _assert_contains_any(content, options, label=label)
 
-    assert "What comes later after startup" in content
     for label, options in (
         ("tour discuss-phase surface", _runtime_command_fragments("discuss-phase")),
         ("tour write-paper surface", _runtime_command_fragments("write-paper")),
         ("tour tangent surface", _runtime_command_fragments("tangent")),
     ):
         _assert_contains_any(content, options, label=label)
+    _assert_contains_any(
+        content,
+        (
+            "What comes later after startup",
+            "later after startup",
+        ),
+        label="tour later-work section",
+    )
 
     _assert_contains_any(
         content,
@@ -685,7 +986,15 @@ def assert_tour_command_surface_contract(content: str) -> None:
         ),
         label="tour settings follow-up boundary",
     )
-    assert "Do not ask the user to pick a branch and do not continue into another workflow." in content
+    _assert_contains_any(
+        content,
+        (
+            "Do not ask the user to pick a branch and do not continue into another workflow.",
+            "not ask the user to pick a branch",
+            "do not continue into another workflow",
+        ),
+        label="tour branch non-routing boundary",
+    )
 
 
 def assert_beginner_startup_routing_contract(content: str) -> None:
@@ -760,37 +1069,23 @@ def assert_start_workflow_router_contract(content: str) -> None:
 
     for label, options in (
         ("start recommended-next-steps heading", ("Recommended next steps:",)),
-        ("start other-useful-options heading", ("Other useful options",)),
+        (
+            "start primary-choices-only boundary",
+            ("only the commands that fit the detected folder state",),
+        ),
         ("start resume-work surface", _runtime_command_fragments("resume-work")),
         ("start progress surface", _runtime_command_fragments("progress")),
-        ("start suggest-next surface", _runtime_command_fragments("suggest-next")),
-        ("start quick surface", _runtime_command_fragments("quick")),
         ("start tour surface", _runtime_command_fragments("tour")),
         ("start map-research surface", _runtime_command_fragments("map-research")),
         ("start new-project --minimal surface", _runtime_command_fragments("new-project --minimal")),
         ("start new-project surface", _runtime_command_fragments("new-project")),
-        ("start explain surface", _runtime_command_fragments("explain")),
-        ("start help --all surface", _runtime_command_fragments("help --all")),
         (
             "start minimal-command-contract handoff",
-            tuple(
-                f"Follow the installed `{command}` command contract directly"
-                for command in _runtime_command_variants("new-project --minimal")
-            ),
+            _runtime_command_contract_handoff_fragments("new-project --minimal"),
         ),
         (
             "start new-project-command-contract handoff",
-            tuple(
-                f"Follow the installed `{command}` command contract directly"
-                for command in _runtime_command_variants("new-project")
-            ),
-        ),
-        (
-            "start help-command-contract handoff",
-            tuple(
-                f"Follow the installed `{command}` command contract directly"
-                for command in _runtime_command_variants("help --all")
-            ),
+            _runtime_command_contract_handoff_fragments("new-project"),
         ),
     ):
         _assert_contains_any(content, options, label=label)
@@ -874,16 +1169,12 @@ def assert_beginner_router_bridge_contract(content: str) -> None:
     )
     _assert_contains_any(
         content,
-        (
-            *_action_surface_fragments("map-research", include_bare=True),
-        ),
+        (*_action_surface_fragments("map-research", include_bare=True),),
         label="map-research routing surface",
     )
     _assert_contains_any(
         content,
-        (
-            *_action_surface_fragments("resume-work", include_bare=True),
-        ),
+        (*_action_surface_fragments("resume-work", include_bare=True),),
         label="resume-work routing surface",
     )
     assert "gpd --help" in content
@@ -899,7 +1190,9 @@ def assert_beginner_router_bridge_contract(content: str) -> None:
 
 
 def assert_beginner_hub_preflight_contract(content: str) -> None:
-    assert "## Before you open the guides" in content
+    preflight_heading = "## Before you open the guides"
+    terminal_runtime_heading = "## First: terminal vs runtime"
+    assert preflight_heading in content
     for requirement in beginner_preflight_requirements():
         assert requirement in content
     _assert_contains_any(
@@ -910,10 +1203,17 @@ def assert_beginner_hub_preflight_contract(content: str) -> None:
         ),
         label="local install learning guidance",
     )
-    assert "What this hub does not do" in content
+    _assert_contains_any(
+        content,
+        (
+            "What this hub does not do",
+            "hub does not do",
+        ),
+        label="beginner hub caveat summary",
+    )
     for caveat in beginner_onboarding_caveats():
         assert caveat in content
-    assert content.index("## Before you open the guides") < content.index("## First: terminal vs runtime")
+    assert content.index(preflight_heading) < content.index(terminal_runtime_heading)
 
 
 def assert_recovery_ladder_contract(
@@ -996,17 +1296,16 @@ def assert_runtime_reset_rediscovery_contract(
     extra_reset_fragments: Iterable[str] = (),
     extra_reset_not_recovery_fragments: Iterable[str] = (),
 ) -> None:
-    assert "/clear" in content
     assert recovery_local_snapshot_command() in content
     assert recovery_cross_workspace_command() in content
     _assert_contains_any(
         content,
         (
-            "fresh-context reset",
+            "fresh context reset",
             "fresh context window",
             "reset the runtime window",
             "reset the runtime to a fresh context window",
-            "`/clear` first, then run `{next command}`",
+            "Start a fresh context window",
             *tuple(extra_reset_fragments),
         ),
         label="runtime reset wording",
@@ -1024,7 +1323,7 @@ def assert_runtime_reset_rediscovery_contract(
         content,
         (
             "not as a recovery step",
-            "instead of implying that `/clear` performs recovery",
+            "do not treat the fresh context reset as project recovery",
             *tuple(extra_reset_not_recovery_fragments),
         ),
         label="reset-not-recovery wording",
@@ -1035,10 +1334,9 @@ def assert_resume_authority_contract(
     content: str,
     *,
     allow_explicit_alias_examples: bool,
-    require_generic_compatibility_note: bool = False,
+    require_canonical_note: bool = False,
 ) -> None:
     contract = _resume_authority_contract()
-    compatibility_note = "Compatibility-only intake fields stay internal"
     assert _contract_string(contract, "durable_authority_phrase", label="resume_authority") in content
     assert _contract_string(contract, "public_vocabulary_intro", label="resume_authority") in content
     for field in _contract_string_list(contract, "public_fields", label="resume_authority"):
@@ -1047,36 +1345,19 @@ def assert_resume_authority_contract(
         _assert_contains_any(
             content,
             (
-                compatibility_note,
-                "Compatibility-only backend intake (`gpd init resume` only):",
-            ),
-            label="resume compatibility phrase",
-        )
-        _assert_contains_any(
-            content,
-            (
                 "session.resume_file",
-                "session_resume_file",
+                "handoff_resume_file",
                 "current_execution",
                 "interrupted_agent",
             ),
             label="compatibility alias examples",
         )
     else:
-        assert "compat_resume_surface" not in content
-        for alias in resume_compat_alias_fields():
+        assert "`resume_surface`" not in content
+        for alias in resume_backend_only_fields():
             assert alias not in content
-        assert "Compatibility-only backend intake (`gpd init resume` only):" not in content
-    if require_generic_compatibility_note:
-        lowered_content = content.lower()
-        _assert_contains_any(
-            lowered_content,
-            (
-                compatibility_note.lower(),
-                _contract_string(contract, "public_vocabulary_intro", label="resume_authority").lower(),
-            ),
-            label="generic compatibility note",
-        )
+    if require_canonical_note:
+        assert _contract_string(contract, "public_vocabulary_intro", label="resume_authority") in content
 
 
 def assert_runtime_readiness_handoff_contract(content: str) -> None:
@@ -1213,9 +1494,7 @@ def assert_install_summary_runtime_follow_up_contract(
     assert "Secondary follow-up" not in content
     _assert_contains_any(
         content,
-        (
-            "local diagnostics and later setup",
-        ),
+        ("local diagnostics and later setup",),
         label="install-summary local CLI bridge",
     )
     help_fragments = tuple(fragment for fragment in runtime_help_fragments if fragment)
@@ -1287,6 +1566,146 @@ def assert_optional_paper_workflow_guidance_contract(content: str) -> None:
         ),
         label="optional paper workflow degradation guidance",
     )
+
+
+def assert_publication_lane_boundary_contract(content: str) -> None:
+    _assert_contains_any(
+        content,
+        (
+            "adds one bounded external-authoring lane",
+            "bounded external-authoring lane",
+            "explicit intake manifest only",
+        ),
+        label="bounded write-paper external-authoring lane surface",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "Publication boundary:",
+            "Publication lane boundary:",
+        ),
+        label="publication lane boundary framing",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "explicit intake manifest only",
+            "one explicit intake manifest",
+            "one explicit external-authoring intake manifest",
+        ),
+        label="explicit intake manifest boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`peer-review` can review the current project manuscript or one explicit",
+            "`gpd:peer-review` can review the current project manuscript or one explicit",
+            "`gpd:peer-review` is the project-aware intake step and can review the current project manuscript or one explicit",
+        ),
+        label="peer-review explicit artifact intake boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "subject-owned publication root under `GPD/publication/{subject_slug}`",
+            "subject-owned publication root at `GPD/publication/{subject_slug}`",
+            "subject-owned publication root under `GPD/publication/{subject_slug}/...`",
+            "subject-owned publication root at `GPD/publication/{subject_slug}/...`",
+            "outputs live under `GPD/publication/{subject_slug}/...`",
+        ),
+        label="subject-owned external continuation boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`GPD/publication/{subject_slug}/manuscript` as the only manuscript/build root",
+            "`GPD/publication/{subject_slug}/manuscript` is the only manuscript/build root",
+            "`GPD/publication/{subject_slug}/manuscript` as the only manuscript root",
+        ),
+        label="managed manuscript-root boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`GPD/publication/{subject_slug}/intake/` for intake and provenance state only",
+            "`GPD/publication/{subject_slug}/intake/` keeps intake/provenance state",
+            "`GPD/publication/{subject_slug}/intake/` as intake/provenance state only",
+        ),
+        label="managed intake-root boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "does not mine arbitrary folders",
+            "no generic folder mining",
+        ),
+        label="no folder-mining boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "infer claim/evidence bindings from loose notes",
+            "infer claim/evidence support from loose notes",
+        ),
+        label="no loose-note inference boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`peer-review` remains the standalone follow-on command",
+            "`gpd:peer-review` remains the standalone follow-on command",
+            "standalone follow-on command when the bounded external-authoring lane needs review",
+            "route authored-manuscript review to standalone `gpd:peer-review`",
+        ),
+        label="external review follow-on boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "Project-backed review/response/package outputs stay on their current `GPD/` and `GPD/review/` paths.",
+            "Project-backed review/response/package outputs stay on their current `GPD/` and `GPD/review/` paths",
+            "Project-backed review/response/package outputs stay on the `GPD/` and `GPD/review/` paths",
+            "project-backed outputs on their current GPD paths",
+        ),
+        label="project-backed publication outputs stay put",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`respond-to-referees` stays tied to the resolved manuscript root",
+            "`gpd:respond-to-referees` stays tied to the resolved manuscript root",
+            "`gpd:respond-to-referees` and `gpd:arxiv-submission` still operate on the resolved manuscript root",
+            "`gpd:respond-to-referees` and `gpd:arxiv-submission` stay tied to the resolved manuscript root",
+            "embedded external staged-review parity remains deferred",
+            "embedded external staged-review parity is out of scope",
+            "The later publication commands stay stricter:",
+        ),
+        label="resolved manuscript-root publication boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "`arxiv-submission` only packages a GPD-owned manuscript root or `.tex` entrypoint",
+            "`gpd:arxiv-submission` only packages a GPD-owned manuscript root or `.tex` entrypoint",
+            "`gpd:arxiv-submission` packages only a GPD-owned manuscript root or `.tex` entrypoint",
+            "resolved GPD-owned manuscript root",
+            "optional GPD-owned manuscript-root target",
+        ),
+        label="arxiv GPD-owned manuscript-root boundary",
+    )
+    _assert_contains_any(
+        content,
+        (
+            "this does not relocate the manuscript draft itself out of `paper/`, `manuscript/`, or `draft/`",
+            "this is not a full manuscript-root migration",
+            "This is not a full publication-root migration.",
+            "This is not a full publication-root migration",
+            "not a full publication-root migration",
+            "Publication-root handling stays bounded to these resolved manuscript, intake, review, response, and package roots.",
+        ),
+        label="manuscript-root migration boundary",
+    )
+
 
 def assert_publication_toolchain_boundary_contract(content: str) -> None:
     _assert_contains_any(

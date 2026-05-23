@@ -7,6 +7,8 @@ from pathlib import Path
 import anyio
 import pytest
 
+from tests.markdown_test_support import assert_contract_finding, normalize_text
+
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
 
 
@@ -53,6 +55,17 @@ def _call_verification_tool(tool_name: str, arguments: dict[str, object]) -> dic
     return anyio.run(_call)
 
 
+def _assert_automated_issue_mentions(result: dict[str, object], label: str, *required_terms: str) -> None:
+    issues = result.get("automated_issues")
+    if not isinstance(issues, list) or not all(isinstance(issue, str) for issue in issues):
+        raise AssertionError(f"{label}: automated_issues must be a list[str], got {issues!r}")
+    normalized_terms = tuple(normalize_text(term).casefold() for term in required_terms)
+    normalized_issues = tuple(normalize_text(issue).casefold() for issue in issues)
+    if any(all(term in issue for term in normalized_terms) for issue in normalized_issues):
+        return
+    raise AssertionError(f"{label}: no automated issue contained all terms {required_terms!r}; got {issues!r}")
+
+
 def _run_contract_check_input_schema() -> dict[str, object]:
     from gpd.mcp.servers.verification_server import mcp
 
@@ -81,6 +94,18 @@ def _schema_error_messages(schema: dict[str, object], payload: dict[str, object]
     return [error.message for error in Draft202012Validator(schema).iter_errors(payload)]
 
 
+def _schema_errors_with_context(schema: dict[str, object], payload: dict[str, object]):
+    from jsonschema import Draft202012Validator
+
+    pending = list(Draft202012Validator(schema).iter_errors(payload))
+    errors = []
+    while pending:
+        error = pending.pop(0)
+        errors.append(error)
+        pending[0:0] = list(error.context)
+    return errors
+
+
 def test_contract_check_tool_schemas_publish_optional_absolute_project_dir() -> None:
     from gpd.mcp.servers import ABSOLUTE_PROJECT_DIR_SCHEMA
 
@@ -90,6 +115,157 @@ def test_contract_check_tool_schemas_publish_optional_absolute_project_dir() -> 
     for schema in (run_project_dir, suggest_project_dir):
         assert schema["anyOf"] == [ABSOLUTE_PROJECT_DIR_SCHEMA, {"type": "null"}]
         assert schema["default"] is None
+
+
+def test_run_contract_check_schema_allows_optional_fields_alongside_required_branch_fields() -> None:
+    schema = _run_contract_check_input_schema()
+    request = {
+        "check_key": "contract.claim_to_proof_alignment",
+        "contract": _load_project_contract_fixture(),
+        "metadata": {
+            "claim_statement": "The proof covers every stated case.",
+            "conclusion_clause_ids": ["conclusion-main"],
+        },
+        "observed": {
+            "scope_status": "matched",
+            "uncovered_conclusion_clause_ids": [],
+        },
+    }
+
+    assert _schema_error_messages(schema, {"request": request}) == []
+
+
+def test_run_contract_check_schema_allows_empty_proof_arrays_on_generic_claims() -> None:
+    schema = _run_contract_check_input_schema()
+    contract = _load_project_contract_fixture()
+    claim = contract["claims"][0]
+    claim.update(
+        {
+            "claim_kind": "result",
+            "proof_deliverables": [],
+            "parameters": [],
+            "hypotheses": [],
+            "quantifiers": [],
+            "conclusion_clauses": [],
+        }
+    )
+    request = {
+        "check_key": "contract.benchmark_reproduction",
+        "contract": contract,
+        "binding": {"claim_ids": ["claim-benchmark"]},
+        "metadata": {"source_reference_id": "ref-benchmark"},
+        "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+    }
+
+    assert _schema_error_messages(schema, {"request": request}) == []
+
+
+def test_contract_check_schema_allows_empty_context_intake_arrays_for_early_contracts() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    contract = _load_project_contract_fixture()
+    for field_name in tuple(contract["context_intake"]):
+        contract["context_intake"][field_name] = []
+
+    request = {
+        "check_key": "contract.benchmark_reproduction",
+        "contract": contract,
+        "binding": {"claim_ids": ["claim-benchmark"]},
+        "metadata": {"source_reference_id": "ref-benchmark"},
+        "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+    }
+
+    assert _schema_error_messages(_run_contract_check_input_schema(), {"request": request}) == []
+    assert _schema_error_messages(_suggest_contract_checks_input_schema(), {"contract": contract}) == []
+    assert "error" not in suggest_contract_checks(contract)
+    assert run_contract_check(request)["status"] in {"pass", "fail", "warning"}
+
+
+def test_contract_check_schemas_require_non_empty_scope_in_scope() -> None:
+    contract = _load_project_contract_fixture()
+    contract["scope"]["in_scope"] = []
+
+    run_errors = _schema_errors_with_context(
+        _run_contract_check_input_schema(),
+        {
+            "request": {
+                "check_key": "contract.benchmark_reproduction",
+                "contract": contract,
+                "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+            }
+        },
+    )
+    suggest_errors = _schema_errors_with_context(_suggest_contract_checks_input_schema(), {"contract": contract})
+
+    assert any(
+        list(error.absolute_path)[-2:] == ["scope", "in_scope"] and "non-empty" in error.message for error in run_errors
+    )
+    assert any(
+        list(error.absolute_path)[-2:] == ["scope", "in_scope"] and "non-empty" in error.message
+        for error in suggest_errors
+    )
+
+
+def test_contract_check_schemas_require_must_surface_reference_surface_fields() -> None:
+    contract = _load_project_contract_fixture()
+    reference = contract["references"][0]
+    assert isinstance(reference, dict)
+    reference.pop("applies_to")
+    reference["required_actions"] = []
+
+    request = {
+        "request": {
+            "check_key": "contract.benchmark_reproduction",
+            "contract": contract,
+            "binding": {"claim_ids": ["claim-benchmark"]},
+            "metadata": {"source_reference_id": "ref-benchmark"},
+            "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+        }
+    }
+
+    run_errors = _schema_errors_with_context(_run_contract_check_input_schema(), request)
+    suggest_errors = _schema_errors_with_context(_suggest_contract_checks_input_schema(), {"contract": contract})
+
+    for schema_errors in (run_errors, suggest_errors):
+        assert any(
+            list(error.absolute_path)[-2:] == ["references", 0]
+            and "'applies_to' is a required property" in error.message
+            for error in schema_errors
+        )
+        assert any(
+            list(error.absolute_path)[-3:] == ["references", 0, "required_actions"] and "non-empty" in error.message
+            for error in schema_errors
+        )
+
+    result = _call_verification_tool("run_contract_check", request)
+
+    assert result["contract_error_details"] == [
+        "reference ref-benchmark is must_surface but missing applies_to",
+        "reference ref-benchmark is must_surface but missing required_actions",
+    ]
+
+
+def test_contract_tools_reject_empty_scope_in_scope() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    contract = _load_project_contract_fixture()
+    contract["scope"]["in_scope"] = []
+
+    request = {
+        "check_key": "contract.benchmark_reproduction",
+        "contract": contract,
+        "binding": {"claim_ids": ["claim-benchmark"]},
+        "metadata": {"source_reference_id": "ref-benchmark"},
+        "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+    }
+    expected = {
+        "error": "Invalid contract payload: scope.in_scope must include at least one non-empty string",
+        "contract_error_details": ["scope.in_scope must include at least one non-empty string"],
+        "schema_version": 1,
+    }
+
+    assert run_contract_check(request) == expected
+    assert suggest_contract_checks(contract) == expected
 
 
 def test_contract_check_tools_reject_relative_project_dir() -> None:
@@ -147,21 +323,16 @@ def test_suggest_contract_checks_rejects_placeholder_only_context_intake(tmp_pat
 
     result = suggest_contract_checks(contract, project_dir=tmp_path.resolve(strict=False).as_posix())
 
-    assert "context_intake must not be empty" in result["error"]
+    assert_contract_finding([result["error"]], path="context_intake", contains="empty")
 
 
-def test_run_contract_check_accepts_non_must_surface_reference_when_project_dir_supplied(tmp_path: Path) -> None:
-    from gpd.mcp.servers.verification_server import run_contract_check
+def test_contract_tools_warn_when_references_lack_must_surface_anchor(tmp_path: Path) -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
 
     contract = _project_local_contract_fixture(tmp_path)
     reference = contract["references"][0]
     assert isinstance(reference, dict)
     reference["must_surface"] = False
-    prior_output = contract["context_intake"]["must_include_prior_outputs"][0]
-    assert isinstance(prior_output, str)
-    grounded_output = tmp_path / prior_output
-    grounded_output.parent.mkdir(parents=True, exist_ok=True)
-    grounded_output.write_text("baseline summary\n", encoding="utf-8")
 
     request = {
         "check_key": "contract.benchmark_reproduction",
@@ -174,6 +345,34 @@ def test_run_contract_check_accepts_non_must_surface_reference_when_project_dir_
     rooted = run_contract_check(request, project_dir=tmp_path.resolve(strict=False).as_posix())
 
     assert rooted["status"] == "pass"
+    assert_contract_finding(rooted["contract_warnings"], path="references", contains="must_surface=true")
+
+    suggested = suggest_contract_checks(contract, project_dir=tmp_path.resolve(strict=False).as_posix())
+    assert_contract_finding(suggested["contract_warnings"], path="references", contains="must_surface=true")
+
+
+def test_contract_tools_warn_for_non_concrete_must_surface_locator(tmp_path: Path) -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check, suggest_contract_checks
+
+    contract = _project_local_contract_fixture(tmp_path)
+    reference = contract["references"][0]
+    assert isinstance(reference, dict)
+    reference["locator"] = "TBD"
+
+    request = {
+        "check_key": "contract.benchmark_reproduction",
+        "contract": contract,
+        "binding": {"claim_ids": ["claim-benchmark"], "reference_ids": ["ref-benchmark"]},
+        "metadata": {"source_reference_id": "ref-benchmark"},
+        "observed": {"metric_value": 0.01, "threshold_value": 0.02},
+    }
+
+    rooted = run_contract_check(request, project_dir=tmp_path.resolve(strict=False).as_posix())
+    suggested = suggest_contract_checks(contract, project_dir=tmp_path.resolve(strict=False).as_posix())
+
+    assert rooted["status"] == "pass"
+    assert any("locator is not concrete enough" in warning for warning in rooted["contract_warnings"])
+    assert any("locator is not concrete enough" in warning for warning in suggested["contract_warnings"])
 
 
 def test_suggest_contract_checks_accepts_rootless_prior_output_as_visible_context_intake() -> None:
@@ -193,14 +392,6 @@ def test_suggest_contract_checks_accepts_rootless_prior_output_as_visible_contex
 
     assert "error" not in result
     assert "suggested_checks" in result
-
-
-def test_contract_server_singleton_drift_classifier_matches_core_contract_policy() -> None:
-    from gpd.mcp.servers.verification_server import _is_defaultable_singleton_contract_error
-
-    assert _is_defaultable_singleton_contract_error("context_intake must be an object, not list") is False
-    assert _is_defaultable_singleton_contract_error("uncertainty_markers must be an object, not list") is False
-    assert _is_defaultable_singleton_contract_error("approach_policy must be an object, not list") is False
 
 
 def _derived_template_contract() -> dict[str, object]:
@@ -431,7 +622,10 @@ def _mismatched_direct_proxy_template_contract() -> dict[str, object]:
 def _proof_obligation_contract() -> dict[str, object]:
     return {
         "schema_version": 1,
-        "scope": {"question": "Does the proof cover every named parameter and hypothesis?"},
+        "scope": {
+            "question": "Does the proof cover every named parameter and hypothesis?",
+            "in_scope": ["proof obligation coverage"],
+        },
         "context_intake": {
             "must_read_refs": ["ref-proof-outline"],
             "must_include_prior_outputs": ["GPD/phases/00-baseline/00-01-SUMMARY.md"],
@@ -552,6 +746,18 @@ def _proof_obligation_contract() -> dict[str, object]:
 def _proof_claim_without_proof_fields_contract() -> dict[str, object]:
     contract = _proof_contract()
     claim = contract["claims"][0]
+    for key in ("proof_deliverables", "parameters", "hypotheses", "conclusion_clauses"):
+        claim.pop(key, None)
+    return contract
+
+
+def _quantifier_only_proof_field_contract() -> dict[str, object]:
+    contract = _proof_contract()
+    claim = contract["claims"][0]
+    claim["statement"] = "The bounded profile follows from the declared domain."
+    claim["claim_kind"] = "result"
+    claim["observables"] = []
+    claim["acceptance_tests"] = ["test-proof-quant"]
     for key in ("proof_deliverables", "parameters", "hypotheses", "conclusion_clauses"):
         claim.pop(key, None)
     return contract
@@ -966,7 +1172,13 @@ def test_run_contract_check_blocks_decisive_pass_for_inconsistent_binding_contex
     )
 
     assert result["status"] == "insufficient_evidence"
-    assert any("binding contexts disagree on claim targets" in issue for issue in result["automated_issues"])
+    _assert_automated_issue_mentions(
+        result,
+        "inconsistent binding context",
+        "binding contexts",
+        "disagree",
+        "claim targets",
+    )
 
 
 @pytest.mark.parametrize(
@@ -996,8 +1208,14 @@ def test_contract_tools_reject_invalid_schema_versions(schema_version: object, e
 
     suggest_result = suggest_contract_checks(contract)
 
-    assert run_result == {"error": expected_error, "schema_version": 1}
-    assert suggest_result == {"error": expected_error, "schema_version": 1}
+    expected_detail = expected_error.removeprefix("Invalid contract payload: ")
+    expected = {
+        "error": expected_error,
+        "contract_error_details": [expected_detail],
+        "schema_version": 1,
+    }
+    assert run_result == expected
+    assert suggest_result == expected
 
 
 def test_contract_tools_reject_missing_schema_version() -> None:
@@ -1018,7 +1236,11 @@ def test_contract_tools_reject_missing_schema_version() -> None:
 
     suggest_result = suggest_contract_checks(contract)
 
-    expected = {"error": "Invalid contract payload: schema_version is required", "schema_version": 1}
+    expected = {
+        "error": "Invalid contract payload: schema_version is required",
+        "contract_error_details": ["schema_version is required"],
+        "schema_version": 1,
+    }
     assert run_result == expected
     assert suggest_result == expected
 
@@ -1043,6 +1265,7 @@ def test_contract_tools_reject_coercive_contract_scalars() -> None:
 
     expected = {
         "error": "Invalid contract payload: references.0.must_surface must be a boolean",
+        "contract_error_details": ["references.0.must_surface must be a boolean"],
         "schema_version": 1,
     }
     assert run_result == expected
@@ -1093,14 +1316,19 @@ def test_contract_tools_salvage_lossy_singleton_section(
     if expected_salvage_success:
         assert run_result["status"] == "pass"
         assert run_result["contract_salvaged"] is True
-        assert "approach_policy must be an object, not list" in run_result["contract_salvage_findings"]
+        assert_contract_finding(
+            run_result["contract_salvage_findings"], path="approach_policy", contains=("object", "list")
+        )
         assert suggest_result["contract_salvaged"] is True
-        assert any("approach_policy must be an object, not list" in warning for warning in suggest_result["contract_warnings"])
+        assert_contract_finding(
+            suggest_result["contract_warnings"], path="approach_policy", contains=("object", "list")
+        )
         return
 
     for result in (run_result, suggest_result):
         assert result["schema_version"] == 1
         assert result["error"] == expected_error
+        assert result["contract_error_details"] == [str(expected_error).removeprefix("Invalid contract payload: ")]
 
 
 def test_contract_tools_reject_missing_context_intake() -> None:
@@ -1158,6 +1386,7 @@ def test_contract_tools_reject_blank_observable_regime_and_units(field_name: str
 
     expected = {
         "error": f"Invalid contract payload: observables.0.{field_name} must be a non-empty string",
+        "contract_error_details": [f"observables.0.{field_name} must be a non-empty string"],
         "schema_version": 1,
     }
 
@@ -1236,7 +1465,9 @@ def test_contract_tools_accept_recoverable_scalar_to_list_contract_drift(
             "context_intake.must_read_refs must be a list, not str",
         ),
         (
-            lambda contract: contract.setdefault("approach_policy", {}).__setitem__("allowed_fit_families", "power_law"),
+            lambda contract: contract.setdefault("approach_policy", {}).__setitem__(
+                "allowed_fit_families", "power_law"
+            ),
             "approach_policy.allowed_fit_families must be a list, not str",
         ),
     ],
@@ -1293,6 +1524,64 @@ def test_contract_tools_surface_recoverable_enum_case_drift() -> None:
     assert expected_finding in run_result["contract_salvage_findings"]
     assert suggest_result["contract_salvaged"] is True
     assert expected_finding in suggest_result["contract_salvage_findings"]
+
+
+def test_project_contract_salvage_recovers_proof_hypothesis_category_case_drift() -> None:
+    from gpd.contracts import parse_project_contract_data_salvage
+
+    contract = _load_project_contract_fixture()
+    contract["claims"][0].update(
+        {
+            "claim_kind": "theorem",
+            "deliverables": ["deliv-figure", "deliv-proof"],
+            "acceptance_tests": ["test-benchmark", "test-proof"],
+            "parameters": [
+                {
+                    "symbol": "k",
+                    "domain_or_type": "benchmark index",
+                    "aliases": [],
+                    "required_in_proof": True,
+                }
+            ],
+            "hypotheses": [
+                {
+                    "id": "hyp-main",
+                    "text": "The benchmark convention is fixed.",
+                    "symbols": ["k"],
+                    "category": "Lemma",
+                    "required_in_proof": True,
+                }
+            ],
+            "conclusion_clauses": [{"id": "conclusion-main", "text": "The benchmark is recovered."}],
+            "proof_deliverables": ["deliv-proof"],
+        }
+    )
+    contract["deliverables"].append(
+        {
+            "id": "deliv-proof",
+            "kind": "derivation",
+            "path": "proof.md",
+            "description": "Proof artifact",
+            "must_contain": [],
+        }
+    )
+    contract["acceptance_tests"].append(
+        {
+            "id": "test-proof",
+            "subject": "claim-benchmark",
+            "kind": "claim_to_proof_alignment",
+            "procedure": "Check the proof fields.",
+            "pass_condition": "All proof fields are covered.",
+            "evidence_required": ["deliv-proof"],
+            "automation": "human",
+        }
+    )
+
+    result = parse_project_contract_data_salvage(contract)
+
+    assert result.contract is not None
+    assert result.contract.claims[0].hypotheses[0].category == "lemma"
+    assert result.recoverable_errors == ["claims.0.hypotheses.0.category must use exact canonical value: lemma"]
 
 
 def test_contract_tools_preserve_non_string_list_member_parse_error() -> None:
@@ -1471,7 +1760,9 @@ def test_suggest_contract_checks_requires_forbidden_proxy_binding_when_contract_
     from gpd.mcp.servers.verification_server import suggest_contract_checks
 
     result = suggest_contract_checks(_ambiguous_direct_proxy_contract())
-    direct_proxy = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency")
+    direct_proxy = next(
+        entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency"
+    )
 
     assert direct_proxy["required_request_fields"] == ["binding.forbidden_proxy_ids"]
     assert direct_proxy["request_template"]["binding"] == {}
@@ -1482,7 +1773,9 @@ def test_suggest_contract_checks_ambiguous_direct_proxy_template_round_trips_to_
 
     contract = _ambiguous_direct_proxy_contract()
     result = suggest_contract_checks(contract)
-    direct_proxy = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency")
+    direct_proxy = next(
+        entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency"
+    )
 
     run_result = run_contract_check(
         {
@@ -1501,7 +1794,9 @@ def test_suggest_contract_checks_direct_proxy_template_does_not_mix_subject_bind
     from gpd.mcp.servers.verification_server import suggest_contract_checks
 
     result = suggest_contract_checks(_mismatched_direct_proxy_template_contract())
-    direct_proxy = next(entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency")
+    direct_proxy = next(
+        entry for entry in result["suggested_checks"] if entry["check_key"] == "contract.direct_proxy_consistency"
+    )
     binding = direct_proxy["request_template"]["binding"]
 
     assert binding["forbidden_proxy_ids"] == ["fp-01"]
@@ -1614,7 +1909,7 @@ def test_run_contract_check_proof_parameter_coverage_fails_when_theorem_paramete
     )
 
     assert result["status"] == "fail"
-    assert "Proof audit reports missing theorem parameters" in result["automated_issues"]
+    _assert_automated_issue_mentions(result, "proof parameter coverage failure", "missing", "theorem parameters")
     assert result["metrics"]["missing_parameter_symbols"] == ["r_0"]
 
 
@@ -1651,7 +1946,7 @@ def test_run_contract_check_proof_quantifier_domain_fails_on_scope_narrowing() -
     )
 
     assert result["status"] == "fail"
-    assert "quantifiers/domains" in " ".join(result["automated_issues"]).lower()
+    _assert_automated_issue_mentions(result, "claim quantifier alignment failure", "quantifier", "domain")
 
 
 def test_run_contract_check_claim_to_proof_alignment_fails_on_uncovered_clause() -> None:
@@ -1686,7 +1981,7 @@ def test_run_contract_check_counterexample_search_fails_when_counterexample_is_f
     )
 
     assert result["status"] == "fail"
-    assert "counterexample" in " ".join(result["automated_issues"]).lower()
+    _assert_automated_issue_mentions(result, "counterexample search failure", "counterexample")
 
 
 def test_run_contract_check_backfills_contract_impacts_for_decisive_passes_without_explicit_binding() -> None:
@@ -1751,6 +2046,77 @@ def test_run_contract_check_backfills_contract_impacts_for_decisive_passes_witho
 
     assert estimator["status"] == "pass"
     assert estimator["contract_impacts"] == ["bootstrap"]
+
+
+def test_run_contract_check_fit_family_failure_impacts_observed_forbidden_family() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    forbidden_result = run_contract_check(
+        {
+            "check_key": "contract.fit_family_mismatch",
+            "contract": _derived_template_contract(),
+            "observed": {
+                "selected_family": "polynomial",
+                "competing_family_checked": True,
+            },
+        }
+    )
+    outside_result = run_contract_check(
+        {
+            "check_key": "contract.fit_family_mismatch",
+            "contract": _derived_template_contract(),
+            "observed": {
+                "selected_family": "spline",
+                "competing_family_checked": True,
+            },
+        }
+    )
+
+    assert forbidden_result["status"] == "fail"
+    assert forbidden_result["contract_impacts"] == ["polynomial"]
+    _assert_automated_issue_mentions(forbidden_result, "forbidden fit family failure", "fit family", "forbidden")
+    assert outside_result["status"] == "fail"
+    assert outside_result["contract_impacts"] == ["spline"]
+    _assert_automated_issue_mentions(outside_result, "outside fit family failure", "fit family", "outside")
+
+
+def test_run_contract_check_estimator_family_failure_impacts_observed_forbidden_family() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    forbidden_result = run_contract_check(
+        {
+            "check_key": "contract.estimator_family_mismatch",
+            "contract": _derived_template_contract(),
+            "observed": {
+                "selected_family": "jackknife",
+                "bias_checked": True,
+                "calibration_checked": True,
+            },
+        }
+    )
+    outside_result = run_contract_check(
+        {
+            "check_key": "contract.estimator_family_mismatch",
+            "contract": _derived_template_contract(),
+            "observed": {
+                "selected_family": "posterior",
+                "bias_checked": True,
+                "calibration_checked": True,
+            },
+        }
+    )
+
+    assert forbidden_result["status"] == "fail"
+    assert forbidden_result["contract_impacts"] == ["jackknife"]
+    _assert_automated_issue_mentions(
+        forbidden_result,
+        "forbidden estimator family failure",
+        "estimator family",
+        "forbidden",
+    )
+    assert outside_result["status"] == "fail"
+    assert outside_result["contract_impacts"] == ["posterior"]
+    _assert_automated_issue_mentions(outside_result, "outside estimator family failure", "estimator family", "outside")
 
 
 def test_run_contract_check_limit_recovery_uses_bound_acceptance_test_pass_condition() -> None:
@@ -1832,7 +2198,14 @@ def test_run_contract_check_estimator_negative_diagnostics_are_not_treated_as_mi
 
     assert result["status"] == "warning"
     assert result["missing_inputs"] == []
-    assert "Estimator family is missing bias or calibration diagnostics" in result["automated_issues"]
+    _assert_automated_issue_mentions(
+        result,
+        "estimator diagnostics warning",
+        "estimator family",
+        "missing",
+        "bias",
+        "calibration",
+    )
 
 
 def test_suggest_contract_checks_leaves_ambiguous_metadata_placeholders_unresolved() -> None:
@@ -1959,7 +2332,9 @@ def test_run_contract_check_schema_rejects_benchmark_requests_without_source_ref
     assert any("any of the given schemas" in message for message in messages)
 
 
-def test_run_contract_check_schema_allows_benchmark_requests_without_source_reference_id_when_contract_is_present() -> None:
+def test_run_contract_check_schema_allows_benchmark_requests_without_source_reference_id_when_contract_is_present() -> (
+    None
+):
     from jsonschema import Draft202012Validator
 
     schema = _run_contract_check_input_schema()
@@ -2118,6 +2493,36 @@ def test_run_contract_check_schema_rejects_soft_missing_proof_audit_fields() -> 
             },
             False,
         ),
+        (
+            lambda: {
+                "request": {
+                    "check_key": "contract.proof_quantifier_domain",
+                    "contract": _quantifier_only_proof_field_contract(),
+                    "observed": {"quantifier_status": "matched", "scope_status": "matched"},
+                }
+            },
+            False,
+        ),
+        (
+            lambda: {
+                "request": {
+                    "check_key": "contract.proof_parameter_coverage",
+                    "contract": {
+                        **_proof_contract(),
+                        "claims": [
+                            {
+                                **_proof_contract()["claims"][0],
+                                "claim_kind": "result",
+                                "statement": "The bounded profile follows from the declared domain.",
+                            }
+                        ],
+                    },
+                    "metadata": {"theorem_parameter_symbols": ["r_0", "n"]},
+                    "observed": {"covered_parameter_symbols": ["r0", "n"]},
+                }
+            },
+            True,
+        ),
     ],
 )
 def test_run_contract_check_schema_and_runtime_stay_in_lockstep_for_proof_bearing_claims(
@@ -2133,7 +2538,21 @@ def test_run_contract_check_schema_and_runtime_stay_in_lockstep_for_proof_bearin
     assert (runtime_result.get("status") == "pass") is expected_valid
 
 
-def test_run_contract_check_blocks_proof_checks_for_repair_relevant_salvaged_contracts() -> None:
+def test_run_contract_check_blocks_proof_checks_when_contract_payload_is_missing() -> None:
+    from gpd.mcp.servers.verification_server import run_contract_check
+
+    result = run_contract_check(
+        {
+            "check_key": "contract.proof_parameter_coverage",
+            "metadata": {"theorem_parameter_symbols": ["r_0", "n"]},
+            "observed": {"covered_parameter_symbols": ["r0", "n"]},
+        }
+    )
+
+    assert result == {"error": "Proof checks require a contract payload", "schema_version": 1}
+
+
+def test_run_contract_check_reports_salvage_relevant_proof_contract_details() -> None:
     from gpd.mcp.servers.verification_server import run_contract_check
 
     contract = _proof_contract()
@@ -2148,7 +2567,11 @@ def test_run_contract_check_blocks_proof_checks_for_repair_relevant_salvaged_con
         }
     )
 
-    assert result == {"error": "Proof checks require an authoritative contract payload", "schema_version": 1}
+    assert result == {
+        "error": "Invalid contract payload: context_intake.must_read_refs must be a list, not str",
+        "contract_error_details": ["context_intake.must_read_refs must be a list, not str"],
+        "schema_version": 1,
+    }
 
 
 def test_run_contract_check_allows_case_only_salvage_for_proof_checks() -> None:
@@ -2192,9 +2615,17 @@ def test_run_contract_check_schema_and_runtime_stay_in_lockstep_for_recoverable_
     assert schema_messages != []
     assert result["status"] == "pass"
     assert result["contract_salvaged"] is True
-    assert "context_intake.must_read_refs must be a list, not str" in result["contract_salvage_findings"]
-    assert "deliverables.0.kind must use exact canonical value: figure" in result["contract_salvage_findings"]
-    assert "references.0.required_actions must be a list, not str" in result["contract_salvage_findings"]
+    assert_contract_finding(
+        result["contract_salvage_findings"],
+        path="context_intake.must_read_refs",
+        contains=("list", "str"),
+    )
+    assert_contract_finding(result["contract_salvage_findings"], path="deliverables.0.kind", contains="figure")
+    assert_contract_finding(
+        result["contract_salvage_findings"],
+        path="references.0.required_actions",
+        contains=("list", "str"),
+    )
 
 
 def test_suggest_contract_checks_schema_and_runtime_stay_in_lockstep_for_nested_proof_field_salvage() -> None:
@@ -2211,14 +2642,26 @@ def test_suggest_contract_checks_schema_and_runtime_stay_in_lockstep_for_nested_
     assert schema_messages != []
     assert result["suggested_count"] > 0
     assert result["contract_salvaged"] is True
-    assert "claims.0.parameters.0.aliases must be a list, not str" in result["contract_salvage_findings"]
-    assert "claims.0.hypotheses.0.symbols must be a list, not str" in result["contract_salvage_findings"]
-    assert "acceptance_tests.0.kind must use exact canonical value: proof_parameter_coverage" in result[
-        "contract_salvage_findings"
-    ]
+    assert_contract_finding(
+        result["contract_salvage_findings"],
+        path="claims.0.parameters.0.aliases",
+        contains=("list", "str"),
+    )
+    assert_contract_finding(
+        result["contract_salvage_findings"],
+        path="claims.0.hypotheses.0.symbols",
+        contains=("list", "str"),
+    )
+    assert_contract_finding(
+        result["contract_salvage_findings"],
+        path="acceptance_tests.0.kind",
+        contains="proof_parameter_coverage",
+    )
 
 
-def test_run_contract_check_schema_rejects_explicit_empty_optional_contract_collections_when_metadata_is_missing() -> None:
+def test_run_contract_check_schema_rejects_explicit_empty_optional_contract_collections_when_metadata_is_missing() -> (
+    None
+):
     from jsonschema import Draft202012Validator
 
     schema = _run_contract_check_input_schema()
@@ -2229,7 +2672,10 @@ def test_run_contract_check_schema_rejects_explicit_empty_optional_contract_coll
             "check_key": "contract.limit_recovery",
             "contract": {
                 "schema_version": 1,
-                "scope": {"question": "What is the asymptotic limit?"},
+                "scope": {
+                    "question": "What is the asymptotic limit?",
+                    "in_scope": ["asymptotic limit recovery"],
+                },
                 "context_intake": {"context_gaps": ["Need benchmark reconciliation."]},
                 "claims": [],
                 "deliverables": [],
@@ -2257,7 +2703,10 @@ def test_run_contract_check_schema_surfaces_duplicate_contract_string_list_rejec
             "check_key": "contract.limit_recovery",
             "contract": {
                 "schema_version": 1,
-                "scope": {"question": "What is the large-k limit?"},
+                "scope": {
+                    "question": "What is the large-k limit?",
+                    "in_scope": ["large-k limit recovery"],
+                },
                 "context_intake": {"must_read_refs": ["ref-main", " ref-main "]},
                 "uncertainty_markers": {
                     "weakest_anchors": ["Benchmark still tentative"],
@@ -2275,6 +2724,7 @@ def test_run_contract_check_schema_surfaces_duplicate_contract_string_list_rejec
     assert messages
     assert runtime_result == {
         "error": "Invalid contract payload: context_intake.must_read_refs.1 is a duplicate",
+        "contract_error_details": ["context_intake.must_read_refs.1 is a duplicate"],
         "schema_version": 1,
     }
 
@@ -2340,11 +2790,18 @@ def test_run_contract_check_ambiguous_context_requires_explicit_subject_selector
 
     assert benchmark["status"] == "insufficient_evidence"
     assert "metadata.source_reference_id" in benchmark["missing_inputs"]
-    assert "Ambiguous benchmark context requires an explicit benchmark reference" in benchmark["automated_issues"]
+    _assert_automated_issue_mentions(
+        benchmark,
+        "ambiguous benchmark context",
+        "ambiguous",
+        "benchmark",
+        "explicit",
+        "reference",
+    )
 
     assert limit["status"] == "insufficient_evidence"
     assert "metadata.regime_label" in limit["missing_inputs"]
-    assert "Ambiguous limit context requires an explicit regime selection" in limit["automated_issues"]
+    _assert_automated_issue_mentions(limit, "ambiguous limit context", "ambiguous", "limit", "explicit", "regime")
 
 
 def test_run_contract_check_ambiguous_context_accepts_explicit_metadata_selector() -> None:
@@ -2427,7 +2884,13 @@ def test_run_contract_check_direct_proxy_consistency_ambiguous_contract_requires
 
     assert result["status"] == "insufficient_evidence"
     assert "binding.forbidden_proxy_ids" in result["missing_inputs"]
-    assert "Ambiguous direct/proxy context requires an explicit forbidden proxy binding" in result["automated_issues"]
+    _assert_automated_issue_mentions(
+        result,
+        "ambiguous direct proxy context",
+        "ambiguous",
+        "direct/proxy",
+        "forbidden proxy",
+    )
 
 
 def test_run_contract_check_direct_proxy_consistency_bound_proxy_can_resolve_ambiguous_contract() -> None:
@@ -2452,7 +2915,9 @@ def test_run_contract_check_direct_proxy_consistency_bound_proxy_can_resolve_amb
     assert result["contract_impacts"] == ["fp-01"]
 
 
-def test_run_contract_check_direct_proxy_consistency_rejects_mixed_forbidden_proxy_and_acceptance_test_subjects() -> None:
+def test_run_contract_check_direct_proxy_consistency_rejects_mixed_forbidden_proxy_and_acceptance_test_subjects() -> (
+    None
+):
     from gpd.mcp.servers.verification_server import run_contract_check
 
     result = run_contract_check(
@@ -2469,7 +2934,13 @@ def test_run_contract_check_direct_proxy_consistency_rejects_mixed_forbidden_pro
 
     assert "error" not in result
     assert result["status"] == "insufficient_evidence"
-    assert any("binding contexts disagree on claim targets" in issue for issue in result["automated_issues"])
+    _assert_automated_issue_mentions(
+        result,
+        "direct proxy mismatched binding context",
+        "binding contexts",
+        "disagree",
+        "claim targets",
+    )
 
 
 def test_run_contract_check_limit_recovery_derives_expected_behavior_from_regime_metadata() -> None:
@@ -2504,9 +2975,13 @@ def test_run_contract_check_limit_recovery_rejects_mismatched_expected_behavior(
 
     assert result["status"] == "insufficient_evidence"
     assert "metadata.expected_behavior" in result["missing_inputs"]
-    assert any(
-        issue.startswith("metadata.expected_behavior does not match the resolved contract context; expected")
-        for issue in result["automated_issues"]
+    _assert_automated_issue_mentions(
+        result,
+        "limit expected behavior mismatch",
+        "metadata.expected_behavior",
+        "does not match",
+        "contract context",
+        "expected",
     )
 
 
@@ -2556,6 +3031,7 @@ def test_contract_tools_reject_unknown_nested_contract_fields() -> None:
 
     expected = {
         "error": "Invalid contract payload: references.0.notes: Extra inputs are not permitted",
+        "contract_error_details": ["references.0.notes: Extra inputs are not permitted"],
         "schema_version": 1,
     }
 
@@ -2577,6 +3053,7 @@ def test_suggest_contract_checks_rejects_unknown_nested_contract_field_salvage_m
     assert salvage_result.recoverable_errors == ["references.0.notes: Extra inputs are not permitted"]
     assert result == {
         "error": "Invalid contract payload: references.0.notes: Extra inputs are not permitted",
+        "contract_error_details": ["references.0.notes: Extra inputs are not permitted"],
         "schema_version": 1,
     }
 
@@ -2623,6 +3100,7 @@ def test_contract_tools_reject_unknown_top_level_contract_fields() -> None:
 
     expected_error = {
         "error": "Invalid contract payload: legacy_notes: Extra inputs are not permitted",
+        "contract_error_details": ["legacy_notes: Extra inputs are not permitted"],
         "schema_version": 1,
     }
     assert run_result == expected_error
@@ -2799,7 +3277,11 @@ def test_contract_tools_reject_blank_or_malformed_contract_list_members_at_mcp_b
     contract = _load_project_contract_fixture()
     mutator(contract)
 
-    expected = {"error": f"Invalid contract payload: {expected_error}", "schema_version": 1}
+    expected = {
+        "error": f"Invalid contract payload: {expected_error}",
+        "contract_error_details": [expected_error],
+        "schema_version": 1,
+    }
 
     assert (
         _call_verification_tool(
@@ -2836,10 +3318,12 @@ def test_contract_tools_reject_blank_or_malformed_contract_list_members_at_mcp_b
         (
             lambda contract: contract["scope"].__setitem__("in_scope", "   "),
             (
+                "scope.in_scope must include at least one non-empty string; "
                 "scope.in_scope must not be blank; "
                 "scope.in_scope was normalized from blank string to empty list"
             ),
             [
+                "scope.in_scope must include at least one non-empty string",
                 "scope.in_scope must not be blank",
                 "scope.in_scope was normalized from blank string to empty list",
             ],
@@ -2930,6 +3414,14 @@ def test_run_contract_check_rejects_non_mapping_payloads(payload: object) -> Non
             {
                 "check_key": "contract.fit_family_mismatch",
                 "metadata": {"allowed_families": "power_law"},
+                "observed": {"selected_family": "power_law", "competing_family_checked": True},
+            },
+            "metadata.allowed_families must be a list of strings",
+        ),
+        (
+            {
+                "check_key": "contract.fit_family_mismatch",
+                "metadata": {"allowed_families": None},
                 "observed": {"selected_family": "power_law", "competing_family_checked": True},
             },
             "metadata.allowed_families must be a list of strings",
@@ -3089,6 +3581,7 @@ def test_contract_tools_reject_blocking_salvage_schema_drift() -> None:
 
     expected = {
         "error": "Invalid contract payload: acceptance_tests must be a list, not str",
+        "contract_error_details": ["acceptance_tests must be a list, not str"],
         "schema_version": 1,
     }
     assert run_result == expected
@@ -3111,6 +3604,7 @@ def test_contract_tools_reject_cross_link_invalid_contracts() -> None:
 
     expected = {
         "error": "Invalid contract payload: claim claim-benchmark references unknown reference missing-ref",
+        "contract_error_details": ["claim claim-benchmark references unknown reference missing-ref"],
         "schema_version": 1,
     }
     assert run_contract_check(request) == expected
@@ -3138,6 +3632,7 @@ def test_contract_tools_surface_full_contract_error_details_for_multi_error_payl
     suggest_result = suggest_contract_checks(contract)
 
     expected_details = [
+        "scope.in_scope must include at least one non-empty string",
         "scope.in_scope must not be blank",
         "scope.in_scope was normalized from blank string to empty list",
         "claims.0.references must not be blank",
@@ -3148,9 +3643,10 @@ def test_contract_tools_surface_full_contract_error_details_for_multi_error_payl
     ]
 
     assert run_result["error"] == (
-        "Invalid contract payload: scope.in_scope must not be blank; "
+        "Invalid contract payload: scope.in_scope must include at least one non-empty string; "
+        "scope.in_scope must not be blank; "
         "scope.in_scope was normalized from blank string to empty list; "
-        "claims.0.references must not be blank; +4 more"
+        "+5 more"
     )
     assert run_result["contract_error_details"] == expected_details
     assert suggest_result["error"] == run_result["error"]
@@ -3175,7 +3671,9 @@ def test_contract_tool_responses_copy_binding_targets_lists() -> None:
     assert second_run["binding_targets"] == ["claim", "deliverable", "acceptance_test", "reference"]
 
     first_suggest = suggest_contract_checks(_load_project_contract_fixture())
-    benchmark = next(entry for entry in first_suggest["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction")
+    benchmark = next(
+        entry for entry in first_suggest["suggested_checks"] if entry["check_key"] == "contract.benchmark_reproduction"
+    )
     benchmark["binding_targets"].append("poisoned")
 
     second_suggest = suggest_contract_checks(_load_project_contract_fixture())
@@ -3308,6 +3806,7 @@ def test_run_contract_check_surfaces_unknown_nested_contract_field_salvage_metad
 
     assert result == {
         "error": "Invalid contract payload: claims.0.notes: Extra inputs are not permitted",
+        "contract_error_details": ["claims.0.notes: Extra inputs are not permitted"],
         "schema_version": 1,
     }
 
@@ -3344,7 +3843,7 @@ def test_run_contract_check_proof_parameter_coverage_fails_when_r0_disappears_fr
     )
 
     assert result["status"] == "fail"
-    assert "Proof audit reports missing theorem parameters" in result["automated_issues"]
+    _assert_automated_issue_mentions(result, "proof obligation parameter failure", "missing", "theorem parameters")
     assert result["metrics"]["missing_parameter_symbols"] == ["r_0"]
 
 
@@ -3366,7 +3865,13 @@ def test_run_contract_check_claim_to_proof_alignment_fails_for_narrower_theorem_
     )
 
     assert result["status"] == "fail"
-    assert "Proof establishes a narrower claim or leaves conclusion clauses uncovered" in result["automated_issues"]
+    _assert_automated_issue_mentions(
+        result,
+        "claim to proof alignment failure",
+        "narrower",
+        "conclusion clauses",
+        "uncovered",
+    )
     assert result["metrics"]["uncovered_conclusion_clause_ids"] == ["concl-uniform"]
 
 

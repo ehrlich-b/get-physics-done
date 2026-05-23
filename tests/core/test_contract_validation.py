@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from gpd.adapters.install_utils import expand_at_includes
 from gpd.contracts import (
     PROOF_AUDIT_REVIEWER,
     ComparisonVerdict,
@@ -20,6 +21,7 @@ from gpd.contracts import (
     ProjectContractParseResult,
     ResearchContract,
     SuggestedContractCheck,
+    _split_missing_must_surface_anchor_findings,
     claim_requires_proof_audit,
     collect_plan_contract_integrity_errors,
     contract_from_data,
@@ -32,16 +34,28 @@ from gpd.contracts import (
     parse_project_contract_data_strict,
 )
 from gpd.core.contract_validation import (
+    claim_deliverable_alignment_summary,
+    context_guidance_fingerprint,
+    contract_fingerprint,
     is_authoritative_project_contract_schema_finding,
     is_repair_relevant_project_contract_schema_finding,
     split_project_contract_schema_findings,
     validate_project_contract,
 )
+from gpd.core.kernel import _content_address
 from gpd.core.referee_policy import RefereeDecisionInput
 from gpd.mcp.paper.models import ReviewFinding, ReviewIssue, ReviewIssueSeverity, ReviewRecommendation, ReviewStageKind
+from tests.markdown_test_support import (
+    assert_contract_finding,
+    assert_contract_relation_finding,
+    assert_no_contract_finding,
+    assert_no_contract_relation_finding,
+)
 
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "stage0"
 TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "src" / "gpd" / "specs" / "templates"
+APPROVED_GROUNDING_ERROR = "approved project contract requires at least one concrete anchor"
+EXPLICIT_MISSING_ANCHOR_ERROR = "explicit missing-anchor notes preserve uncertainty"
 
 
 def _load_contract_fixture() -> dict[str, object]:
@@ -63,7 +77,11 @@ def _remove_incidental_grounding(contract: dict[str, object]) -> None:
         target["evidence_required"] = [item for item in target.get("evidence_required", []) if item != "ref-benchmark"]
 
 
-def test_validate_project_contract_accepts_stage0_fixture() -> None:
+def _assert_contract_error(result, expected_fragment: str) -> None:
+    assert any(expected_fragment in error for error in result.errors)
+
+
+def test_validate_project_contract_accepts_baseline_fixture() -> None:
     contract = _load_contract_fixture()
 
     result = validate_project_contract(contract)
@@ -181,7 +199,7 @@ def test_research_contract_rejects_blank_observable_regime_and_units() -> None:
 
     message = str(exc_info.value)
     assert "observables.0.regime" in message
-    assert "must be a non-empty string" in message
+    assert "non-empty" in message
     assert "observables.0.units" in message
 
 
@@ -193,8 +211,8 @@ def test_validate_project_contract_rejects_blank_observable_regime_and_units() -
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "observables.0.regime must be a non-empty string" in result.errors
-    assert "observables.0.units must be a non-empty string" in result.errors
+    assert_contract_finding(result.errors, path="observables.0.regime", contains=("non-empty", "string"))
+    assert_contract_finding(result.errors, path="observables.0.units", contains=("non-empty", "string"))
 
 
 def test_contract_from_data_rejects_blank_observable_regime_and_units() -> None:
@@ -269,7 +287,13 @@ def test_validate_project_contract_approved_mode_rejects_unknown_proof_deliverab
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert "claim claim-benchmark references unknown proof deliverable deliv-missing" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="claim",
+        subject_id="claim-benchmark",
+        relation_terms=("unknown", "proof deliverable"),
+        target_id="deliv-missing",
+    )
 
 
 def test_validate_project_contract_draft_mode_rejects_unknown_proof_deliverables() -> None:
@@ -279,7 +303,13 @@ def test_validate_project_contract_draft_mode_rejects_unknown_proof_deliverables
     result = validate_project_contract(contract, mode="draft")
 
     assert result.valid is False
-    assert "claim claim-benchmark references unknown proof deliverable deliv-missing" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="claim",
+        subject_id="claim-benchmark",
+        relation_terms=("unknown", "proof deliverable"),
+        target_id="deliv-missing",
+    )
 
 
 def test_contract_from_data_salvage_rejects_missing_uncertainty_marker_subfields() -> None:
@@ -317,8 +347,8 @@ def test_parse_project_contract_data_strict_rejects_nested_proof_list_scalar_dri
     parsed = parse_project_contract_data_strict(contract)
 
     assert parsed.contract is None
-    assert "claims.0.parameters.0.aliases must be a list, not str" in parsed.errors
-    assert "claims.0.hypotheses.0.symbols must be a list, not str" in parsed.errors
+    assert_contract_finding(parsed.errors, path="claims.0.parameters.0.aliases", contains=("list", "str"))
+    assert_contract_finding(parsed.errors, path="claims.0.hypotheses.0.symbols", contains=("list", "str"))
 
 
 def test_parse_project_contract_data_strict_rejects_blank_nested_proof_list_scalar_drift_without_mutation() -> None:
@@ -342,8 +372,8 @@ def test_parse_project_contract_data_strict_rejects_blank_nested_proof_list_scal
     parsed = parse_project_contract_data_strict(contract)
 
     assert parsed.contract is None
-    assert "claims.0.parameters.0.aliases must be a list, not str" in parsed.errors
-    assert "claims.0.hypotheses.0.symbols must be a list, not str" in parsed.errors
+    assert_contract_finding(parsed.errors, path="claims.0.parameters.0.aliases", contains=("list", "str"))
+    assert_contract_finding(parsed.errors, path="claims.0.hypotheses.0.symbols", contains=("list", "str"))
     assert contract["claims"][0]["parameters"][0]["aliases"] == "   "
     assert contract["claims"][0]["hypotheses"][0]["symbols"] == "   "
 
@@ -626,7 +656,7 @@ def test_parse_project_contract_data_salvage_reports_recoverable_findings() -> N
 
     assert result.contract is not None
     assert result.blocking_errors == []
-    assert "scope.legacy_notes: Extra inputs are not permitted" in result.recoverable_errors
+    assert_contract_finding(result.recoverable_errors, path="scope.legacy_notes", contains="Extra inputs")
     assert result.errors == result.recoverable_errors
 
 
@@ -640,8 +670,12 @@ def test_parse_project_contract_data_salvage_reports_literal_case_drift_as_recov
     assert result.contract is not None
     assert result.contract.references[0].role == "benchmark"
     assert result.contract.references[0].required_actions == ["read", "compare", "cite"]
-    assert "references.0.role must use exact canonical value: benchmark" in result.recoverable_errors
-    assert "references.0.required_actions.0 must use exact canonical value: read" in result.recoverable_errors
+    assert_contract_finding(result.recoverable_errors, path="references.0.role", contains=("canonical", "benchmark"))
+    assert_contract_finding(
+        result.recoverable_errors,
+        path="references.0.required_actions.0",
+        contains=("canonical", "read"),
+    )
 
 
 def test_parse_comparison_verdicts_data_strict_rejects_case_drift() -> None:
@@ -771,7 +805,7 @@ def test_parse_project_contract_data_salvage_preserves_valid_siblings_when_one_c
     assert result.contract is not None
     assert any(item.id == sibling_id for item in getattr(result.contract, collection_name))
     if collection_name == "references":
-        assert result.blocking_errors == ["references.0.must_surface must be a boolean"]
+        assert_contract_finding(result.blocking_errors, path="references.0.must_surface", contains="boolean")
     else:
         assert any(expected_error in error for error in result.blocking_errors)
     assert contract_from_data_salvage(contract) is None
@@ -784,7 +818,7 @@ def test_parse_project_contract_data_salvage_preserves_blocking_errors_for_wrong
     result: ProjectContractParseResult = parse_project_contract_data_salvage(contract)
 
     assert result.contract is not None
-    assert "claims must be a list, not dict" in result.blocking_errors
+    assert_contract_finding(result.blocking_errors, path="claims", contains=("list", "dict"))
 
 
 def test_contract_from_data_salvage_rejects_blocking_salvage_errors() -> None:
@@ -802,7 +836,7 @@ def test_parse_project_contract_data_salvage_preserves_contract_with_top_level_e
 
     assert result.contract is not None
     assert result.blocking_errors == []
-    assert result.recoverable_errors == ["legacy_notes: Extra inputs are not permitted"]
+    assert_contract_finding(result.recoverable_errors, path="legacy_notes", contains="Extra inputs")
     assert "legacy_notes" not in result.contract.model_dump()
 
 
@@ -813,7 +847,7 @@ def test_parse_project_contract_data_strict_rejects_singleton_list_drift() -> No
     result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
 
     assert result.contract is None
-    assert result.errors == ["context_intake.must_read_refs must be a list, not str"]
+    assert_contract_finding(result.errors, path="context_intake.must_read_refs", contains=("list", "str"))
 
 
 def test_parse_project_contract_data_strict_rejects_blank_list_members() -> None:
@@ -823,7 +857,7 @@ def test_parse_project_contract_data_strict_rejects_blank_list_members() -> None
     result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
 
     assert result.contract is None
-    assert "scope.in_scope.1 must not be blank" in result.errors
+    assert_contract_finding(result.errors, path="scope.in_scope.1", contains="blank")
 
 
 def test_parse_project_contract_data_strict_rejects_duplicate_list_members() -> None:
@@ -833,7 +867,7 @@ def test_parse_project_contract_data_strict_rejects_duplicate_list_members() -> 
     result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
 
     assert result.contract is None
-    assert "context_intake.must_read_refs.1 is a duplicate" in result.errors
+    assert_contract_finding(result.errors, path="context_intake.must_read_refs.1", contains="duplicate")
 
 
 def test_parse_project_contract_data_strict_rejects_literal_case_drift() -> None:
@@ -844,8 +878,8 @@ def test_parse_project_contract_data_strict_rejects_literal_case_drift() -> None
     result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
 
     assert result.contract is None
-    assert "references.0.role must use exact canonical value: benchmark" in result.errors
-    assert "references.0.required_actions.0 must use exact canonical value: read" in result.errors
+    assert_contract_finding(result.errors, path="references.0.role", contains=("canonical", "benchmark"))
+    assert_contract_finding(result.errors, path="references.0.required_actions.0", contains=("canonical", "read"))
 
 
 def test_parse_project_contract_data_strict_rejects_nested_proof_list_member_drift() -> None:
@@ -858,8 +892,8 @@ def test_parse_project_contract_data_strict_rejects_nested_proof_list_member_dri
     result: ProjectContractParseResult = parse_project_contract_data_strict(contract)
 
     assert result.contract is None
-    assert "claims.0.parameters.0.aliases.1 must not be blank" in result.errors
-    assert "claims.0.hypotheses.0.symbols.1 is a duplicate" in result.errors
+    assert_contract_finding(result.errors, path="claims.0.parameters.0.aliases.1", contains="blank")
+    assert_contract_finding(result.errors, path="claims.0.hypotheses.0.symbols.1", contains="duplicate")
 
 
 def test_parse_project_contract_data_strict_rejects_recoverable_nested_extra_keys() -> None:
@@ -907,9 +941,18 @@ def test_validate_project_contract_rejects_missing_decisive_targets_and_skeptici
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "project contract must include at least one observable, claim, or deliverable" in result.errors
-    assert "uncertainty_markers.weakest_anchors must identify what is least certain" in result.errors
-    assert "uncertainty_markers.disconfirming_observations must identify what would force a rethink" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="project",
+        subject_id="contract",
+        relation_terms=("include", "observable", "claim", "deliverable"),
+    )
+    assert_contract_finding(result.errors, path="uncertainty_markers.weakest_anchors", contains="least certain")
+    assert_contract_finding(
+        result.errors,
+        path="uncertainty_markers.disconfirming_observations",
+        contains="force a rethink",
+    )
 
 
 def test_validate_project_contract_warns_when_user_guidance_signals_are_missing() -> None:
@@ -927,7 +970,7 @@ def test_validate_project_contract_warns_when_user_guidance_signals_are_missing(
 
     assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert "context_intake must not be empty" in result.errors
+    assert_contract_finding(result.errors, path="context_intake", contains="empty")
 
 
 def test_validate_project_contract_rejects_placeholder_only_anchor_guidance() -> None:
@@ -945,7 +988,7 @@ def test_validate_project_contract_rejects_placeholder_only_anchor_guidance() ->
 
     assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert "context_intake must not be empty" in result.errors
+    assert_contract_finding(result.errors, path="context_intake", contains="empty")
     assert (
         "context_intake.user_asserted_anchors entry is not concrete enough to preserve as durable guidance: TBD"
         in result.warnings
@@ -972,7 +1015,7 @@ def test_validate_project_contract_warns_for_non_concrete_anchor_guidance(
 
     assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert "context_intake must not be empty" in result.errors
+    assert_contract_finding(result.errors, path="context_intake", contains="empty")
     assert (
         f"context_intake.{field_name} entry is not concrete enough to preserve as durable guidance: {value}"
         in result.warnings
@@ -994,7 +1037,7 @@ def test_validate_project_contract_rejects_missing_prior_output_only_guidance(tm
 
     assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert "context_intake must not be empty" in result.errors
+    assert_contract_finding(result.errors, path="context_intake", contains="empty")
     assert (
         "context_intake.must_include_prior_outputs entry does not resolve to a project-local artifact: missing/path.md"
         in result.warnings
@@ -1011,7 +1054,7 @@ def test_validate_project_contract_rejects_bare_filename_prior_output_without_ex
 
     assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert "context_intake must not be empty" in result.errors
+    assert_contract_finding(result.errors, path="context_intake", contains="empty")
     assert (
         "context_intake.must_include_prior_outputs entry is not an explicit project artifact path: RESULTS.md"
         in result.warnings
@@ -1028,7 +1071,7 @@ def test_validate_project_contract_accepts_explicit_relative_prior_output_path_w
 
     assert result.valid is True
     assert result.guidance_signal_count == 1
-    assert "context_intake must not be empty" not in result.errors
+    assert_no_contract_finding(result.errors, path="context_intake", contains="empty")
 
 
 def test_validate_project_contract_approved_mode_requires_concrete_anchor_grounding() -> None:
@@ -1040,7 +1083,7 @@ def test_validate_project_contract_approved_mode_requires_concrete_anchor_ground
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_explicit_anchor_unknown_blocker_without_grounding() -> None:
@@ -1053,7 +1096,7 @@ def test_validate_project_contract_approved_mode_rejects_explicit_anchor_unknown
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_context_gaps_only_grounding() -> None:
@@ -1066,7 +1109,7 @@ def test_validate_project_contract_approved_mode_rejects_context_gaps_only_groun
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("explicit missing-anchor notes preserve uncertainty" in error for error in result.errors)
+    _assert_contract_error(result, EXPLICIT_MISSING_ANCHOR_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_ground_truth_unclear_aliases_without_grounding() -> None:
@@ -1079,7 +1122,7 @@ def test_validate_project_contract_approved_mode_rejects_ground_truth_unclear_al
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_question_form_anchor_gap_without_grounding() -> None:
@@ -1092,7 +1135,7 @@ def test_validate_project_contract_approved_mode_rejects_question_form_anchor_ga
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_not_yet_selected_anchor_gap_without_grounding() -> None:
@@ -1107,7 +1150,7 @@ def test_validate_project_contract_approved_mode_rejects_not_yet_selected_anchor
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_anchor_unknown_in_weakest_anchors_without_grounding() -> None:
@@ -1123,7 +1166,7 @@ def test_validate_project_contract_approved_mode_rejects_anchor_unknown_in_weake
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_accepts_prior_output_grounding(tmp_path: Path) -> None:
@@ -1211,7 +1254,7 @@ def test_validate_project_contract_approved_mode_rejects_bare_reference_locator_
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -1234,7 +1277,7 @@ def test_validate_project_contract_approved_mode_rejects_journal_only_text_groun
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -1302,7 +1345,7 @@ def test_validate_project_contract_approved_mode_rejects_root_only_external_nonp
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_accepts_project_local_prior_artifact_locator(tmp_path: Path) -> None:
@@ -1362,7 +1405,7 @@ def test_validate_project_contract_approved_mode_rejects_project_local_prior_art
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_missing_project_local_prior_artifact_locator(
@@ -1390,7 +1433,7 @@ def test_validate_project_contract_approved_mode_rejects_missing_project_local_p
     result = validate_project_contract(contract, mode="approved", project_root=tmp_path)
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_warns_for_invalid_must_surface_reference_when_other_concrete_grounding_exists() -> (
@@ -1430,7 +1473,7 @@ def test_validate_project_contract_approved_mode_warns_for_invalid_must_surface_
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_accepts_concrete_must_surface_reference_anchor() -> None:
@@ -1491,9 +1534,11 @@ def test_validate_project_contract_draft_mode_warns_for_invalid_grounding_entrie
         "context_intake.user_asserted_anchors entry is not concrete enough to preserve as durable guidance: TBD"
         in result.warnings
     )
-    assert (
-        "reference ref-placeholder is must_surface but locator is not concrete enough to ground validation"
-        in result.warnings
+    assert_contract_relation_finding(
+        result.warnings,
+        subject_kind="reference",
+        subject_id="ref-placeholder",
+        relation_terms=("must_surface", "locator", "ground validation"),
     )
 
 
@@ -1521,13 +1566,17 @@ def test_validate_project_contract_approved_mode_warns_for_invalid_must_surface_
     result = validate_project_contract(contract, mode="approved", project_root=tmp_path)
 
     assert result.valid is True
-    assert (
-        "reference ref-placeholder is must_surface but locator is not concrete enough to ground validation"
-        in result.warnings
+    assert_contract_relation_finding(
+        result.warnings,
+        subject_kind="reference",
+        subject_id="ref-placeholder",
+        relation_terms=("must_surface", "locator", "ground validation"),
     )
-    assert (
-        "reference ref-placeholder is must_surface but locator is not concrete enough to ground validation"
-        not in result.errors
+    assert_no_contract_relation_finding(
+        result.errors,
+        subject_kind="reference",
+        subject_id="ref-placeholder",
+        relation_terms=("must_surface", "locator", "ground validation"),
     )
 
 
@@ -1610,8 +1659,18 @@ def test_validate_project_contract_approved_mode_blocks_placeholder_must_surface
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert "reference ref-second is must_surface but locator is not concrete enough to ground validation" in result.errors
-    assert "reference ref-second is must_surface but locator is not concrete enough to ground validation" not in result.warnings
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="reference",
+        subject_id="ref-second",
+        relation_terms=("must_surface", "locator", "ground validation"),
+    )
+    assert_no_contract_relation_finding(
+        result.warnings,
+        subject_kind="reference",
+        subject_id="ref-second",
+        relation_terms=("must_surface", "locator", "ground validation"),
+    )
 
 
 @pytest.mark.parametrize(
@@ -1643,7 +1702,7 @@ def test_validate_project_contract_approved_mode_rejects_vague_reference_locator
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -1669,7 +1728,7 @@ def test_validate_project_contract_approved_mode_rejects_generic_text_grounding(
 
     assert result.valid is False
     assert result.mode == "approved"
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -1721,7 +1780,7 @@ def test_validate_project_contract_approved_mode_rejects_out_of_tree_path_like_g
 
     assert result.valid is False
     assert result.mode == "approved"
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -1761,7 +1820,7 @@ def test_validate_project_contract_approved_mode_rejects_rootless_project_local_
 
     assert result.valid is False
     assert result.mode == "approved"
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
     assert any(
         "context_intake.known_good_baselines entry requires a resolved project_root to verify artifact grounding"
         in warning
@@ -1826,7 +1885,7 @@ def test_validate_project_contract_approved_mode_rejects_repeated_generic_paper_
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize("locator", ["TBD", "unknown"])
@@ -1854,7 +1913,7 @@ def test_validate_project_contract_approved_mode_rejects_placeholder_reference_l
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_accepts_non_reference_grounding_when_must_surface_is_missing(
@@ -1872,7 +1931,24 @@ def test_validate_project_contract_approved_mode_accepts_non_reference_grounding
 
     assert result.valid is True
     assert result.mode == "approved"
-    assert "references must include at least one must_surface=true anchor" in result.warnings
+    assert_contract_finding(result.warnings, path="references", contains="must_surface=true")
+
+
+def test_split_missing_must_surface_anchor_findings_warns_only_when_other_grounding_exists(
+    tmp_path: Path,
+) -> None:
+    contract = _load_contract_fixture()
+    contract["references"][0]["must_surface"] = False
+    prior_output = tmp_path / "GPD" / "phases" / "00-baseline" / "00-01-SUMMARY.md"
+    prior_output.parent.mkdir(parents=True)
+    prior_output.write_text("# Summary\n", encoding="utf-8")
+    contract["context_intake"]["must_include_prior_outputs"] = ["GPD/phases/00-baseline/00-01-SUMMARY.md"]
+    parsed = ResearchContract.model_validate(contract)
+
+    errors, warnings = _split_missing_must_surface_anchor_findings(parsed, project_root=tmp_path, mode="approved")
+
+    assert errors == []
+    assert_contract_finding(warnings, path="references", contains="must_surface=true")
 
 
 def test_validate_project_contract_approved_mode_rejects_nonexistent_prior_output_grounding(tmp_path: Path) -> None:
@@ -1885,7 +1961,7 @@ def test_validate_project_contract_approved_mode_rejects_nonexistent_prior_outpu
     result = validate_project_contract(contract, mode="approved", project_root=tmp_path)
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_unresolved_prior_output_without_project_root() -> None:
@@ -1898,7 +1974,7 @@ def test_validate_project_contract_approved_mode_rejects_unresolved_prior_output
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize("field_name", ["must_include_prior_outputs", "known_good_baselines"])
@@ -1912,7 +1988,7 @@ def test_validate_project_contract_approved_mode_rejects_placeholder_non_referen
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -1932,7 +2008,7 @@ def test_validate_project_contract_approved_mode_rejects_bare_junk_grounding(fie
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_placeholder_user_asserted_anchor() -> None:
@@ -1945,7 +2021,7 @@ def test_validate_project_contract_approved_mode_rejects_placeholder_user_assert
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_placeholder_user_asserted_anchor_even_with_explicit_blocker() -> (
@@ -1961,7 +2037,7 @@ def test_validate_project_contract_approved_mode_rejects_placeholder_user_assert
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_placeholder_only_sentence_guidance() -> None:
@@ -1974,7 +2050,7 @@ def test_validate_project_contract_approved_mode_rejects_placeholder_only_senten
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_rejects_carry_forward_contract_id_as_grounding() -> None:
@@ -1999,9 +2075,12 @@ def test_validate_project_contract_approved_mode_rejects_carry_forward_contract_
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert (
-        "reference ref-background carry_forward_to must name workflow scope, not contract id claim-benchmark"
-        in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="reference",
+        subject_id="ref-background",
+        relation_terms=("carry_forward_to", "workflow scope", "contract id"),
+        target_id="claim-benchmark",
     )
 
 
@@ -2012,7 +2091,11 @@ def test_validate_project_contract_rejects_unknown_must_read_ref() -> None:
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "context_intake.must_read_refs references unknown reference ref-missing" in result.errors
+    assert_contract_finding(
+        result.errors,
+        path="context_intake.must_read_refs",
+        contains=("unknown reference", "ref-missing"),
+    )
 
 
 def test_validate_project_contract_rejects_cross_link_inconsistency() -> None:
@@ -2022,7 +2105,13 @@ def test_validate_project_contract_rejects_cross_link_inconsistency() -> None:
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "claim claim-benchmark references unknown deliverable missing-deliverable" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="claim",
+        subject_id="claim-benchmark",
+        relation_terms=("unknown", "deliverable"),
+        target_id="missing-deliverable",
+    )
 
 
 def test_validate_project_contract_rejects_duplicate_ids() -> None:
@@ -2043,8 +2132,18 @@ def test_validate_project_contract_reports_duplicate_acceptance_test_ids_once_wi
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "duplicate acceptance test id test-benchmark" in result.errors
-    assert result.errors.count("duplicate acceptance test id test-benchmark") == 1
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="acceptance test",
+        subject_id="test-benchmark",
+        relation_terms="duplicate",
+    )
+    assert (
+        sum(
+            "duplicate" in error and "acceptance test" in error and "test-benchmark" in error for error in result.errors
+        )
+        == 1
+    )
     assert not any("duplicate acceptance_test id test-benchmark" in error for error in result.errors)
 
 
@@ -2055,9 +2154,11 @@ def test_validate_project_contract_rejects_cross_type_id_collisions() -> None:
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert (
-        "contract id claim-benchmark is reused across claim, deliverable; target resolution is ambiguous"
-        in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="contract id",
+        subject_id="claim-benchmark",
+        relation_terms=("reused", "claim", "deliverable", "ambiguous"),
     )
 
 
@@ -2069,8 +2170,20 @@ def test_validate_project_contract_rejects_unknown_observables_and_evidence() ->
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "claim claim-benchmark references unknown observable obs-missing" in result.errors
-    assert "acceptance test test-benchmark references unknown evidence evidence-missing" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="claim",
+        subject_id="claim-benchmark",
+        relation_terms=("unknown", "observable"),
+        target_id="obs-missing",
+    )
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="acceptance test",
+        subject_id="test-benchmark",
+        relation_terms=("unknown", "evidence"),
+        target_id="evidence-missing",
+    )
 
 
 def test_validate_project_contract_rejects_must_surface_reference_without_required_actions() -> None:
@@ -2081,7 +2194,12 @@ def test_validate_project_contract_rejects_must_surface_reference_without_requir
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "reference ref-benchmark is must_surface but missing required_actions" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="reference",
+        subject_id="ref-benchmark",
+        relation_terms=("must_surface", "missing required_actions"),
+    )
 
 
 def test_validate_project_contract_requires_theorem_inventory_for_proof_bearing_claims() -> None:
@@ -2142,9 +2260,13 @@ def test_validate_project_contract_requires_theorem_inventory_for_proof_bearing_
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "claim claim-proof missing parameters for proof-bearing claim" in result.errors
-    assert "claim claim-proof missing hypotheses for proof-bearing claim" in result.errors
-    assert "claim claim-proof missing conclusion_clauses for proof-bearing claim" in result.errors
+    for field_name in ("parameters", "hypotheses", "conclusion_clauses"):
+        assert_contract_relation_finding(
+            result.errors,
+            subject_kind="claim",
+            subject_id="claim-proof",
+            relation_terms=("missing", field_name, "proof-bearing"),
+        )
 
 
 def test_validate_project_contract_normalizes_reference_required_actions_whitespace_and_duplicates() -> None:
@@ -2156,7 +2278,7 @@ def test_validate_project_contract_normalizes_reference_required_actions_whitesp
 
     assert parsed.references[0].required_actions == ["read", "compare", "cite"]
     assert result.valid is True
-    assert "references.0.required_actions.3 must not be blank" in result.warnings
+    assert_contract_finding(result.warnings, path="references.0.required_actions.3", contains="blank")
 
 
 def test_validate_project_contract_salvages_singleton_list_string_drift_at_validation_boundary() -> None:
@@ -2172,7 +2294,11 @@ def test_validate_project_contract_salvages_singleton_list_string_drift_at_valid
     assert parsed.references[0].role == "benchmark"
     assert parsed.references[0].required_actions == ["read", "compare", "cite"]
     assert result.valid is True
-    assert "context_intake.must_include_prior_outputs must be a list, not str" in result.warnings
+    assert_contract_finding(
+        result.warnings,
+        path="context_intake.must_include_prior_outputs",
+        contains=("list", "str"),
+    )
 
 
 @pytest.mark.parametrize(
@@ -2187,7 +2313,7 @@ def test_validate_project_contract_salvages_singleton_list_string_drift_at_valid
         (
             lambda contract: contract["scope"].__setitem__("in_scope", "   "),
             False,
-            "scope.in_scope must name at least one project boundary or objective",
+            "scope.in_scope must include at least one non-empty string",
             "scope.in_scope must not be blank",
         ),
     ],
@@ -2238,14 +2364,16 @@ def test_parse_project_contract_data_salvage_normalizes_blank_string_list_corrup
     result = parse_project_contract_data_salvage(contract)
 
     assert result.contract is not None
-    assert result.blocking_errors == []
     assert any(expected_path in error and "must not be blank" in error for error in result.recoverable_errors)
 
     if expected_path == "context_intake.must_read_refs":
+        assert result.blocking_errors == []
         assert result.contract.context_intake.must_read_refs == []
     elif expected_path == "references.0.required_actions":
+        assert result.blocking_errors == []
         assert result.contract.references[0].required_actions == []
     else:
+        assert result.blocking_errors == ["scope.in_scope must include at least one non-empty string"]
         assert result.contract.scope.in_scope == []
 
 
@@ -2283,7 +2411,7 @@ def test_validate_project_contract_rejects_coercive_reference_must_surface_scala
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert result.errors == ["references.0.must_surface must be a boolean"]
+    assert_contract_finding(result.errors, path="references.0.must_surface", contains="boolean")
 
 
 def test_validate_project_contract_rejects_coercive_schema_version_scalar() -> None:
@@ -2326,7 +2454,12 @@ def test_validate_project_contract_rejects_must_surface_reference_without_applie
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "reference ref-benchmark is must_surface but missing applies_to" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="reference",
+        subject_id="ref-benchmark",
+        relation_terms=("must_surface", "missing applies_to"),
+    )
 
 
 def test_validate_project_contract_rejects_references_without_any_must_surface_anchor() -> None:
@@ -2340,7 +2473,7 @@ def test_validate_project_contract_rejects_references_without_any_must_surface_a
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert "references must include at least one must_surface=true anchor" in result.errors
+    assert_contract_finding(result.errors, path="references", contains="must_surface=true")
 
 
 def test_validate_project_contract_draft_warns_when_reference_grounding_lacks_must_surface_anchor() -> None:
@@ -2350,7 +2483,7 @@ def test_validate_project_contract_draft_warns_when_reference_grounding_lacks_mu
     result = validate_project_contract(contract, mode="draft")
 
     assert result.valid is True
-    assert "references must include at least one must_surface=true anchor" in result.warnings
+    assert_contract_finding(result.warnings, path="references", contains="must_surface=true")
 
 
 def test_validate_project_contract_rejects_invalid_forbidden_proxy_and_link_bindings() -> None:
@@ -2363,10 +2496,81 @@ def test_validate_project_contract_rejects_invalid_forbidden_proxy_and_link_bind
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "forbidden proxy fp-01 targets unknown subject missing-claim" in result.errors
-    assert "link link-01 references unknown source missing-source" in result.errors
-    assert "link link-01 references unknown target missing-target" in result.errors
-    assert "link link-01 references unknown acceptance test missing-test" in result.errors
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="forbidden proxy",
+        subject_id="fp-01",
+        relation_terms=("unknown subject",),
+        target_id="missing-claim",
+    )
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="link",
+        subject_id="link-01",
+        relation_terms=("unknown source",),
+        target_id="missing-source",
+    )
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="link",
+        subject_id="link-01",
+        relation_terms=("unknown target",),
+        target_id="missing-target",
+    )
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="link",
+        subject_id="link-01",
+        relation_terms=("unknown acceptance test",),
+        target_id="missing-test",
+    )
+
+
+def test_validate_project_contract_accepts_link_endpoints_for_all_contract_node_types() -> None:
+    contract = _load_contract_fixture()
+    contract["links"] = [
+        {
+            "id": "link-observable-to-proxy",
+            "source": "obs-benchmark",
+            "target": "fp-01",
+            "relation": "depends_on",
+            "verified_by": ["test-benchmark"],
+        },
+        {
+            "id": "link-reference-to-test",
+            "source": "ref-benchmark",
+            "target": "test-benchmark",
+            "relation": "benchmarks",
+            "verified_by": ["test-benchmark"],
+        },
+        {
+            "id": "link-link-to-deliverable",
+            "source": "link-observable-to-proxy",
+            "target": "deliv-figure",
+            "relation": "depends_on",
+            "verified_by": ["test-benchmark"],
+        },
+    ]
+
+    result = validate_project_contract(contract)
+
+    assert result.valid is True
+    assert not any(error.startswith("link ") for error in result.errors)
+
+
+def test_validate_project_contract_rejects_ambiguous_link_endpoint_ids_across_node_types() -> None:
+    contract = _load_contract_fixture()
+    contract["forbidden_proxies"][0]["id"] = "claim-benchmark"
+
+    result = validate_project_contract(contract)
+
+    assert result.valid is False
+    assert_contract_relation_finding(
+        result.errors,
+        subject_kind="contract id",
+        subject_id="claim-benchmark",
+        relation_terms=("reused", "claim", "forbidden proxy", "ambiguous"),
+    )
 
 
 def test_validate_project_contract_reports_nested_object_schema_errors() -> None:
@@ -2377,8 +2581,8 @@ def test_validate_project_contract_reports_nested_object_schema_errors() -> None
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "observables.0 must be an object, not str" in result.errors
-    assert "acceptance_tests.0 must be an object, not str" in result.errors
+    assert_contract_finding(result.errors, path="observables.0", contains=("object", "str"))
+    assert_contract_finding(result.errors, path="acceptance_tests.0", contains=("object", "str"))
 
 
 def test_validate_project_contract_propagates_schema_errors() -> None:
@@ -2388,7 +2592,7 @@ def test_validate_project_contract_propagates_schema_errors() -> None:
     result = validate_project_contract(contract)
 
     assert result.valid is False
-    assert "scope.in_scope must name at least one project boundary or objective" in result.errors
+    assert_contract_finding(result.errors, path="scope.in_scope", contains=("non-empty", "string"))
 
 
 def test_validate_project_contract_rejects_reference_aliases_list_shape_drift_at_validation_boundary() -> None:
@@ -2400,7 +2604,7 @@ def test_validate_project_contract_rejects_reference_aliases_list_shape_drift_at
 
     assert result.valid is True
     assert parsed.references[0].aliases == ["not-a-list"]
-    assert "references.0.aliases must be a list, not str" in result.warnings
+    assert_contract_finding(result.warnings, path="references.0.aliases", contains=("list", "str"))
 
 
 def test_validate_project_contract_rejects_nested_claim_reference_list_shape_drift() -> None:
@@ -2410,7 +2614,7 @@ def test_validate_project_contract_rejects_nested_claim_reference_list_shape_dri
     result = validate_project_contract(contract)
 
     assert result.valid is True
-    assert "claims.0.references must be a list, not str" in result.warnings
+    assert_contract_finding(result.warnings, path="claims.0.references", contains=("list", "str"))
 
 
 def test_validate_project_contract_rejects_extra_item_keys_without_dropping_semantic_counts() -> None:
@@ -2420,7 +2624,7 @@ def test_validate_project_contract_rejects_extra_item_keys_without_dropping_sema
     result = validate_project_contract(contract)
 
     assert result.valid is True
-    assert "claims.0.notes: Extra inputs are not permitted" in result.warnings
+    assert_contract_finding(result.warnings, path="claims.0.notes", contains="Extra inputs")
 
 
 def test_validate_project_contract_rejects_top_level_extra_keys() -> None:
@@ -2430,7 +2634,7 @@ def test_validate_project_contract_rejects_top_level_extra_keys() -> None:
     result = validate_project_contract(contract)
 
     assert result.valid is True
-    assert "legacy_notes: Extra inputs are not permitted" in result.warnings
+    assert_contract_finding(result.warnings, path="legacy_notes", contains="Extra inputs")
 
 
 def test_validate_project_contract_ignores_nested_metadata_must_surface_without_false_boolean_error() -> None:
@@ -2440,9 +2644,9 @@ def test_validate_project_contract_ignores_nested_metadata_must_surface_without_
     result = validate_project_contract(contract)
 
     assert result.valid is True
-    assert "references.0.metadata: Extra inputs are not permitted" in result.warnings
-    assert not any(
-        "references.0.metadata.must_surface must be a boolean" in issue for issue in result.errors + result.warnings
+    assert_contract_finding(result.warnings, path="references.0.metadata", contains="Extra inputs")
+    assert_no_contract_finding(
+        result.errors + result.warnings, path="references.0.metadata.must_surface", contains="boolean"
     )
 
 
@@ -2466,7 +2670,7 @@ def test_validate_project_contract_approved_mode_rejects_background_only_referen
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_approved_mode_accepts_real_reference_anchor() -> None:
@@ -2491,7 +2695,7 @@ def test_validate_project_contract_draft_mode_counts_concrete_must_read_ref_as_g
 
     assert result.valid is True
     assert result.guidance_signal_count == 1
-    assert "context_intake must not be empty" not in result.errors
+    assert_no_contract_finding(result.errors, path="context_intake", contains="empty")
 
 
 def test_validate_project_contract_approved_mode_rejects_background_must_read_ref_without_real_anchor() -> None:
@@ -2514,7 +2718,7 @@ def test_validate_project_contract_approved_mode_rejects_background_must_read_re
     result = validate_project_contract(contract, mode="approved")
 
     assert result.valid is False
-    assert any("approved project contract requires at least one concrete anchor" in error for error in result.errors)
+    _assert_contract_error(result, APPROVED_GROUNDING_ERROR)
 
 
 def test_validate_project_contract_draft_mode_does_not_treat_background_must_read_ref_as_durable_guidance() -> None:
@@ -2538,7 +2742,7 @@ def test_validate_project_contract_draft_mode_does_not_treat_background_must_rea
 
     assert result.valid is False
     assert result.guidance_signal_count == 0
-    assert "context_intake must not be empty" in result.errors
+    assert_contract_finding(result.errors, path="context_intake", contains="empty")
 
 
 def test_validate_project_contract_preserves_requested_mode_for_schema_errors() -> None:
@@ -2549,7 +2753,7 @@ def test_validate_project_contract_preserves_requested_mode_for_schema_errors() 
 
     assert result.valid is False
     assert result.mode == "approved"
-    assert "references.0 must be an object, not str" in result.errors
+    assert_contract_finding(result.errors, path="references.0", contains=("object", "str"))
 
 
 def test_validate_project_contract_preserves_requested_mode_for_non_object_input() -> None:
@@ -2582,7 +2786,7 @@ def test_validate_project_contract_preserves_recoverable_warnings_when_normaliza
     assert result.valid is False
     assert result.mode == "approved"
     assert "context_intake is required" in result.errors
-    assert "legacy_notes: Extra inputs are not permitted" in result.warnings
+    assert_contract_finding(result.warnings, path="legacy_notes", contains="Extra inputs")
 
 
 @pytest.mark.parametrize(
@@ -2915,8 +3119,10 @@ def test_contract_results_strict_mode_rejects_proof_audit_blank_and_duplicate_li
 
     message = str(excinfo.value)
     assert "claims.claim-main.proof_audit.covered_parameter_symbols" in message
-    assert "covered_parameter_symbols.1 must not be blank" in message
-    assert "covered_parameter_symbols.2 is a duplicate" in message
+    assert "covered_parameter_symbols.1" in message
+    assert "blank" in message
+    assert "covered_parameter_symbols.2" in message
+    assert "duplicate" in message
 
 
 def test_research_contract_rejects_string_required_in_proof_booleans() -> None:
@@ -3088,7 +3294,12 @@ def test_collect_plan_contract_integrity_errors_requires_proof_specific_acceptan
 
     errors = collect_plan_contract_integrity_errors(contract)
 
-    assert "claim claim-proof missing proof-specific acceptance_tests" in errors
+    assert_contract_relation_finding(
+        errors,
+        subject_kind="claim",
+        subject_id="claim-proof",
+        relation_terms=("missing", "proof-specific acceptance_tests"),
+    )
 
 
 def test_collect_plan_contract_integrity_errors_requires_theorem_inventory_for_proof_bearing_claims() -> None:
@@ -3149,9 +3360,13 @@ def test_collect_plan_contract_integrity_errors_requires_theorem_inventory_for_p
 
     errors = collect_plan_contract_integrity_errors(contract)
 
-    assert "claim claim-proof missing parameters for proof-bearing claim" in errors
-    assert "claim claim-proof missing hypotheses for proof-bearing claim" in errors
-    assert "claim claim-proof missing conclusion_clauses for proof-bearing claim" in errors
+    for field_name in ("parameters", "hypotheses", "conclusion_clauses"):
+        assert_contract_relation_finding(
+            errors,
+            subject_kind="claim",
+            subject_id="claim-proof",
+            relation_terms=("missing", field_name, "proof-bearing"),
+        )
 
 
 @pytest.mark.parametrize(
@@ -3183,10 +3398,31 @@ def test_collect_plan_contract_integrity_errors_requires_concrete_grounding_not_
 
     errors = collect_plan_contract_integrity_errors(ResearchContract.model_validate(contract))
 
-    assert "missing references or explicit grounding context" in errors
+    assert_contract_relation_finding(
+        errors,
+        subject_kind="missing",
+        subject_id="references",
+        relation_terms="explicit grounding context",
+    )
 
 
-@pytest.mark.parametrize("locator", ["TBD", "Section 4"])
+@pytest.mark.parametrize(
+    "locator",
+    [
+        "TBD",
+        "Section 4",
+        "12345",
+        "data/1304.4926",
+        "1334.4926",
+        "1300.4926",
+        "hep-th/0600123",
+        "hep-th/0613123",
+        "data/2401001",
+        "results/0612001",
+        "output/0301001",
+        "logs/0501001",
+    ],
+)
 def test_collect_plan_contract_integrity_errors_rejects_placeholder_must_surface_reference_locators(
     locator: str,
 ) -> None:
@@ -3210,7 +3446,7 @@ def test_collect_plan_contract_integrity_errors_rejects_placeholder_must_surface
 
     errors = collect_plan_contract_integrity_errors(ResearchContract.model_validate(contract))
 
-    assert "references must include at least one must_surface=true anchor" in errors
+    assert_contract_finding(errors, path="references", contains="must_surface=true")
 
 
 @pytest.mark.parametrize(
@@ -3219,6 +3455,22 @@ def test_collect_plan_contract_integrity_errors_rejects_placeholder_must_surface
         ("paper", "Author et al., Journal, 2024"),
         ("other", "Einstein, Annalen der Physik, 1905"),
         ("spec", "https://example.org/missing-data-benchmark.csv"),
+        ("paper", "1304.4926"),
+        ("paper", "1905.08255v2"),
+        ("paper", "hep-th/0603001"),
+        ("paper", "gr-qc/9711053v1"),
+        ("paper", "math.DG/0211159"),
+        ("paper", "cs.SE/0303020"),
+        ("paper", "q-bio.PE/0501001"),
+        ("paper", "hep-th/0601001"),
+        ("paper", "hep-th/0612001"),
+        ("paper", "math/0301234"),
+        ("paper", "physics/0601001"),
+        ("paper", "cs/0303020"),
+        ("paper", "nlin/0101001"),
+        ("paper", "stat/0501001"),
+        ("paper", "10.1103/PhysRevD.100.026003"),
+        ("paper", "10.1007/JHEP12(2020)155"),
     ],
 )
 def test_collect_plan_contract_integrity_errors_accepts_concrete_must_surface_reference_locator(
@@ -3269,7 +3521,7 @@ def test_collect_plan_contract_integrity_errors_rejects_rootless_project_local_m
 
     errors = collect_plan_contract_integrity_errors(ResearchContract.model_validate(contract))
 
-    assert "references must include at least one must_surface=true anchor" in errors
+    assert_contract_finding(errors, path="references", contains="must_surface=true")
 
 
 def test_collect_plan_contract_integrity_errors_accepts_project_local_must_surface_reference_locator_with_project_root(
@@ -3340,6 +3592,9 @@ def test_collect_plan_contract_integrity_errors_accepts_non_reference_grounding_
     [
         ("paper", "Author et al., Journal, 2024"),
         ("other", "Einstein, Annalen der Physik, 1905"),
+        ("paper", "hep-th/0603001"),
+        ("paper", "10.1103/PhysRevD.100.026003"),
+        ("paper", "math/0301234"),
     ],
 )
 def test_validate_project_contract_approved_mode_accepts_concrete_must_surface_reference_locator(
@@ -3536,7 +3791,12 @@ def test_research_contract_accepts_structured_theorem_claim_fields() -> None:
 
 @pytest.mark.parametrize("schema_name", ("project-contract-schema.md", "state-json-schema.md"))
 def test_project_contract_schema_examples_are_validator_compatible(schema_name: str) -> None:
-    schema_text = (TEMPLATES_DIR / schema_name).read_text(encoding="utf-8")
+    raw_schema_text = (TEMPLATES_DIR / schema_name).read_text(encoding="utf-8")
+    schema_text = (
+        expand_at_includes(raw_schema_text, TEMPLATES_DIR.parent, "/runtime/")
+        if schema_name == "state-json-schema.md"
+        else raw_schema_text
+    )
     match = re.search(r"##+ `project_contract`\n\n```json\n(.*?)\n```", schema_text, re.DOTALL)
 
     assert match is not None
@@ -3545,5 +3805,193 @@ def test_project_contract_schema_examples_are_validator_compatible(schema_name: 
     parsed = ResearchContract.model_validate(contract)
     result = validate_project_contract(contract, mode="approved")
 
-    assert parsed.scope.question == "What benchmark must the project recover?"
+    assert parsed.scope.question.strip()
+    assert contract["schema_version"] == 1
+    assert "context_intake" in contract
+    assert "uncertainty_markers" in contract
     assert result.valid is True
+
+
+def test_claim_deliverable_alignment_summary_projects_expected_rows() -> None:
+    contract = _load_contract_fixture()
+    parsed = ResearchContract.model_validate(contract)
+
+    rows = claim_deliverable_alignment_summary(parsed)
+
+    assert len(rows) == len(parsed.claims)
+    assert len(rows) == 1
+
+    claim = parsed.claims[0]
+    deliverable = parsed.deliverables[0]
+    acceptance_test = parsed.acceptance_tests[0]
+    assert rows[0] == (claim.statement, deliverable.description, acceptance_test.pass_condition)
+    assert rows[0][1] == "Benchmark comparison figure"
+    assert rows[0][2] == "Matches reference within tolerance"
+
+
+def test_claim_deliverable_alignment_summary_flags_missing_deliverable_links() -> None:
+    contract = _load_contract_fixture()
+    for claim in contract["claims"]:
+        claim["deliverables"] = []
+        claim["acceptance_tests"] = []
+    parsed = ResearchContract.model_validate(contract)
+
+    rows = claim_deliverable_alignment_summary(parsed)
+
+    assert len(rows) == len(parsed.claims)
+    assert rows[0][0] == parsed.claims[0].statement
+    assert rows[0][1] == "(no linked deliverable)"
+    assert rows[0][2] == "(no linked acceptance test)"
+
+
+def test_claim_deliverable_alignment_summary_multi_deliverable_claim() -> None:
+    """A claim with multiple linked deliverables yields one row per link."""
+    contract = _load_contract_fixture()
+
+    sibling_deliv = copy.deepcopy(contract["deliverables"][0])
+    sibling_deliv["id"] = "deliv-extra"
+    sibling_deliv["description"] = "Extra comparison figure"
+    contract["deliverables"].append(sibling_deliv)
+
+    sibling_test = copy.deepcopy(contract["acceptance_tests"][0])
+    sibling_test["id"] = "test-extra"
+    sibling_test["pass_condition"] = "Secondary tolerance met"
+    contract["acceptance_tests"].append(sibling_test)
+
+    contract["claims"][0]["deliverables"].append("deliv-extra")
+    contract["claims"][0]["acceptance_tests"].append("test-extra")
+
+    parsed = ResearchContract.model_validate(contract)
+    rows = claim_deliverable_alignment_summary(parsed)
+
+    assert len(rows) == 2
+    descriptions = [row[1] for row in rows]
+    conditions = [row[2] for row in rows]
+    assert "Benchmark comparison figure" in descriptions
+    assert "Extra comparison figure" in descriptions
+    assert "Matches reference within tolerance" in conditions
+    assert "Secondary tolerance met" in conditions
+
+
+def test_claim_deliverable_alignment_summary_unknown_deliverable_id_silently_drops() -> None:
+    """Unknown deliverable/test IDs in claim link lists are silently dropped.
+
+    `ResearchContract.model_validate` accepts unknown IDs in a claim's link
+    lists (cross-reference validation lives in `validate_project_contract`,
+    not in the pydantic schema). The alignment-summary projection must only
+    surface links that resolve to real deliverables/tests.
+    """
+    contract = _load_contract_fixture()
+    contract["claims"][0]["deliverables"] = ["deliv-figure", "deliv-nonexistent"]
+    contract["claims"][0]["acceptance_tests"] = ["test-benchmark", "test-nonexistent"]
+
+    parsed = ResearchContract.model_validate(contract)
+    rows = claim_deliverable_alignment_summary(parsed)
+
+    assert len(rows) == 1
+    assert rows[0][1] == "Benchmark comparison figure"
+    assert rows[0][2] == "Matches reference within tolerance"
+    joined = " ".join(" ".join(str(cell) for cell in row) for row in rows)
+    assert "deliv-nonexistent" not in joined
+    assert "test-nonexistent" not in joined
+
+
+def test_claim_deliverable_alignment_summary_empty_claims_returns_empty_list() -> None:
+    """A contract with no claims yields an empty projection.
+
+    `ResearchContract.claims` is `Field(default_factory=list)` without a
+    `min_length` constraint, so an empty list is accepted at the schema
+    level. Cross-reference invariants that would flag a claim-less
+    contract are enforced by `validate_project_contract`, not by the
+    pydantic model itself.
+    """
+    contract = _load_contract_fixture()
+    contract["claims"] = []
+
+    parsed = ResearchContract.model_validate(contract)
+    rows = claim_deliverable_alignment_summary(parsed)
+
+    assert rows == []
+
+
+def test_contract_fingerprint_is_stable_and_changes_on_edit() -> None:
+    contract = _load_contract_fixture()
+    parsed = ResearchContract.model_validate(contract)
+
+    first = contract_fingerprint(parsed)
+    second = contract_fingerprint(parsed)
+
+    assert first == second
+    assert first.startswith("sha256:")
+    assert len(first) == len("sha256:") + 64
+
+    mutated_data = copy.deepcopy(contract)
+    mutated_data["claims"][0]["statement"] = mutated_data["claims"][0]["statement"] + " (mutated)"
+    mutated = ResearchContract.model_validate(mutated_data)
+
+    assert contract_fingerprint(mutated) != first
+
+
+def test_context_guidance_fingerprint_is_stable_and_changes_on_edit() -> None:
+    text = "user_guidance: observe benchmark within tolerance.\n"
+
+    first = context_guidance_fingerprint(text)
+    second = context_guidance_fingerprint(text)
+
+    assert first == second
+    assert first.startswith("sha256:")
+    assert len(first) == len("sha256:") + 64
+    assert context_guidance_fingerprint(text + "edit\n") != first
+
+
+def test_contract_fingerprint_changes_when_claims_reordered() -> None:
+    """contract_fingerprint must change when claim order changes (list order is part of the canonical JSON)."""
+    contract = _load_contract_fixture()
+    sibling = copy.deepcopy(contract["claims"][0])
+    sibling["id"] = "claim-sibling"
+    contract["claims"].append(sibling)
+
+    original = ResearchContract.model_validate(contract)
+
+    reordered_data = copy.deepcopy(contract)
+    reordered_data["claims"] = list(reversed(reordered_data["claims"]))
+    reordered = ResearchContract.model_validate(reordered_data)
+
+    # Canonical JSON sorts dict keys but preserves list order; reordering the
+    # `claims` list must produce a different fingerprint.
+    assert contract_fingerprint(original) != contract_fingerprint(reordered)
+
+
+def test_context_guidance_fingerprint_handles_crlf_by_byte_hashing() -> None:
+    """context_guidance_fingerprint byte-hashes: CRLF and LF inputs produce distinct fingerprints."""
+    lf_text = "line one\nline two\n"
+    crlf_text = "line one\r\nline two\r\n"
+
+    # context_guidance_fingerprint byte-hashes its input; it does NOT normalize
+    # newlines. Callers that read via Path.read_text get universal-newlines LF
+    # normalization; raw callers see distinct hashes for CRLF vs LF input.
+    assert context_guidance_fingerprint(lf_text) != context_guidance_fingerprint(crlf_text)
+    # Stability: same input -> same fingerprint.
+    assert context_guidance_fingerprint(crlf_text) == context_guidance_fingerprint(crlf_text)
+
+
+def test_context_guidance_fingerprint_handles_bom_and_unicode() -> None:
+    """context_guidance_fingerprint handles BOM prefixes and non-ASCII unicode stably."""
+    plain = "observe benchmark within tolerance.\n"
+    with_bom = "﻿" + plain
+    unicode_text = "观测 benchmark 在容差内; σ ≤ 0.05 μm.\n"
+
+    assert context_guidance_fingerprint(with_bom) != context_guidance_fingerprint(plain)
+
+    fp = context_guidance_fingerprint(unicode_text)
+    assert fp.startswith("sha256:")
+    assert len(fp) == len("sha256:") + 64
+    assert context_guidance_fingerprint(unicode_text) == fp
+    assert context_guidance_fingerprint(unicode_text + "ε") != fp
+
+
+def test_contract_fingerprint_equals_content_address_of_model_dump() -> None:
+    """contract_fingerprint equals _content_address(contract.model_dump(mode="json")) — delegation invariant."""
+    contract = _load_contract_fixture()
+    parsed = ResearchContract.model_validate(contract)
+    assert contract_fingerprint(parsed) == _content_address(parsed.model_dump(mode="json"))

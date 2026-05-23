@@ -39,7 +39,7 @@ Load phase operation context:
 INIT=$(gpd --raw init phase-op "${after_phase}")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
-  # STOP — display the error to the user and do not proceed.
+  # STOP; surface the error.
 fi
 ```
 
@@ -107,13 +107,13 @@ Project state updated: GPD/STATE.md
 
 ---
 
-## Next Up
+## > Next Up
 
 **Phase {decimal_phase}: {description}** -- urgent insertion
 
 `gpd:plan-phase {decimal_phase}`
 
-<sub>`/clear` first -> fresh context window</sub>
+<sub>Start a fresh context window</sub>
 
 ---
 

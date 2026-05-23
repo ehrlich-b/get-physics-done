@@ -44,6 +44,13 @@ def _create_phase(tmp_path: Path, name: str) -> Path:
     return d
 
 
+def _write_passed_verification(phase_dir: Path) -> Path:
+    phase_number = phase_dir.name.split("-", 1)[0]
+    path = phase_dir / f"{phase_number}-VERIFICATION.md"
+    path.write_text("---\nstatus: passed\n---\n\n# Verification\nPASS\n", encoding="utf-8")
+    return path
+
+
 def _write_roadmap(tmp_path: Path, content: str) -> Path:
     p = tmp_path / "GPD" / "ROADMAP.md"
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -56,6 +63,58 @@ def _write_state(tmp_path: Path, content: str) -> Path:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(textwrap.dedent(content), encoding="utf-8")
     return p
+
+
+def test_roadmap_analyze_does_not_duplicate_current_phase_in_next_phase(tmp_path: Path) -> None:
+    _setup_project(tmp_path)
+    _write_roadmap(
+        tmp_path,
+        """\
+        ## Milestone v1.0: Initial Setup
+
+        ### Phase 1: Setup
+        **Goal:** Get started
+        **Plans:** 1 plans
+
+        ### Phase 2: Research
+        **Goal:** Investigate the next step
+        **Plans:** 0 plans
+
+        ### Phase 3: Validation
+        **Goal:** Validate the result
+        **Plans:** 0 plans
+        """,
+    )
+    _write_state(
+        tmp_path,
+        """\
+        # Research State
+
+        ## Current Position
+
+        **Current Phase:** 2
+        **Current Phase Name:** Research
+        **Total Phases:** 3
+        **Current Plan:** 1
+        **Total Plans in Phase:** 1
+        **Status:** in_progress
+        **Last Activity:** 2026-02-23
+        **Last Activity Description:** Started
+        """,
+    )
+
+    phase1 = _create_phase(tmp_path, "01-setup")
+    (phase1 / "01-01-PLAN.md").write_text("plan", encoding="utf-8")
+    (phase1 / "01-01-SUMMARY.md").write_text("summary", encoding="utf-8")
+
+    phase2 = _create_phase(tmp_path, "02-research")
+    (phase2 / "02-01-RESEARCH.md").write_text("notes", encoding="utf-8")
+
+    result = roadmap_analyze(tmp_path)
+
+    assert result.current_phase == "2"
+    assert result.next_phase == "3"
+    assert result.current_phase != result.next_phase
 
 
 # ─── Phase Create → List → Complete Lifecycle ────────────────────────────────
@@ -121,6 +180,7 @@ class TestPhaseLifecycle:
                 f'---\nphase: "{num}"\nplan: "01"\ndepth: full\nprovides: []\ncompleted: "2026-02-23"\none-liner: "Summary {num}"\n---\n\n# Summary 1\n',
                 encoding="utf-8",
             )
+            _write_passed_verification(d)
         return tmp_path
 
     def test_completing_a_phase_updates_roadmap_and_advances_state(self, tmp_path: Path) -> None:
@@ -225,7 +285,7 @@ class TestPhaseRemoveRenumber:
         files = list((tmp_path / "GPD" / "phases" / renamed_dir).iterdir())
         assert any(f.name.startswith("02-") for f in files)
 
-        # ROADMAP.md should no longer mention Phase 2: Derivation
+        # ROADMAP.md must not mention Phase 2: Derivation after removal
         roadmap = (tmp_path / "GPD" / "ROADMAP.md").read_text()
         assert "Phase 2: Derivation" not in roadmap
 
@@ -443,6 +503,7 @@ class TestMilestoneLifecycle:
             (d / f"{num}-01-SUMMARY.md").write_text(
                 f'---\none-liner: "Phase {num} done"\ncompleted: 2026-02-23\n---\n# Summary', encoding="utf-8"
             )
+            _write_passed_verification(d)
 
         # Complete phases
         phase_complete(tmp_path, "1")
@@ -562,7 +623,9 @@ class TestPlanIndexWaveValidation:
         """
         _setup_project(tmp_path)
         d = _create_phase(tmp_path, "01-setup")
-        (d / "a-PLAN.md").write_text('---\nwave: 1\ndepends_on: []\nfiles_modified: ["src/main.py"]\n---\n# A\n', encoding="utf-8")
+        (d / "a-PLAN.md").write_text(
+            '---\nwave: 1\ndepends_on: []\nfiles_modified: ["src/main.py"]\n---\n# A\n', encoding="utf-8"
+        )
         (d / "b-PLAN.md").write_text(
             '---\nwave: 1\ndepends_on: []\nfiles_modified: ["src/main.py", "src/test.py"]\n---\n# B\n', encoding="utf-8"
         )
@@ -576,7 +639,8 @@ class TestPlanIndexWaveValidation:
         d = _create_phase(tmp_path, "01-setup")
         for name in ["a", "b", "c"]:
             (d / f"{name}-PLAN.md").write_text(
-                f'---\nwave: 1\ndepends_on: []\nfiles_modified: ["shared.py"]\n---\n# {name.upper()}\n', encoding="utf-8"
+                f'---\nwave: 1\ndepends_on: []\nfiles_modified: ["shared.py"]\n---\n# {name.upper()}\n',
+                encoding="utf-8",
             )
 
         index = phase_plan_index(tmp_path, "1")
@@ -664,3 +728,43 @@ class TestCrossModuleConsistency:
         assert progress.total_summaries == analysis.total_summaries
         assert progress.total_plans == analysis.total_plans
         assert analysis.completed_phases == 1
+
+    def test_roadmap_analyze_falls_back_to_state_current_phase(self, tmp_path: Path) -> None:
+        _setup_project(tmp_path)
+        _write_roadmap(
+            tmp_path,
+            """\
+            ## Milestone v1.0: Test
+
+            ### Phase 1: Ready
+
+            **Goal:** Finish the first phase
+
+            ### Phase 2: Planning
+
+            **Goal:** Prepare the next phase
+            """,
+        )
+        _write_state(
+            tmp_path,
+            """\
+            # Research State
+
+            ## Current Position
+
+            **Current Phase:** 2
+            **Current Phase Name:** Planning
+            **Status:** in_progress
+            **Last Activity:** 2026-02-23
+            **Last Activity Description:** Waiting on plan artifacts
+            """,
+        )
+
+        ready = _create_phase(tmp_path, "01-ready")
+        (ready / "01-01-PLAN.md").write_text("plan", encoding="utf-8")
+        (ready / "01-01-SUMMARY.md").write_text("done", encoding="utf-8")
+        _create_phase(tmp_path, "02-planning")
+
+        analysis = roadmap_analyze(tmp_path)
+        assert analysis.current_phase == "2"
+        assert analysis.next_phase is None

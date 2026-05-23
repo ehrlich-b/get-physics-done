@@ -1,7 +1,7 @@
 """MCP server for the canonical GPD skill index.
 
 Reads shared skill definitions from the GPD registry and provides discovery,
-content retrieval, auto-routing, and prompt injection support. Runtime
+content retrieval, auto-routing, and runtime context assembly support. Runtime
 adapters may project different installed or discoverable surfaces, but they
 all derive from this shared index.
 
@@ -29,13 +29,22 @@ from gpd.command_labels import (
     runtime_command_prefixes,
     runtime_command_surface_is_path_like_context,
 )
+from gpd.core.agent_role_kits import role_kit_authority_paths
 from gpd.core.errors import GPDError
 from gpd.core.observability import gpd_span
+from gpd.core.reference_graph import (
+    ReferenceResolver,
+    ReferenceSeed,
+    build_reference_lists,
+)
 from gpd.core.review_contract_prompt import review_contract_payload
+from gpd.core.task_overlays import build_task_overlay_compatibility_manifest
+from gpd.mcp.descriptor_text import SKILL_BEHAVIORAL_GUARDRAIL_HINT
 from gpd.mcp.servers import (
     configure_mcp_logging,
     parse_frontmatter_with_error,
     published_tool_input_schema,
+    read_only_tool_annotations,
     refresh_string_enum_property_schema,
     set_registered_and_published_tool_input_schema,
     stable_mcp_error,
@@ -68,37 +77,15 @@ _GENERIC_ROUTE_TOKENS = frozenset(
     }
 )
 
-_SPEC_ROOT = content_registry.SPECS_DIR.resolve()
-_AGENT_ROOT = content_registry.AGENTS_DIR.resolve()
-_COMMAND_ROOT = content_registry.COMMANDS_DIR.resolve()
-_REPO_ROOT = _SPEC_ROOT.parents[2]
-_SPEC_RELATIVE_REFERENCE_PREFIXES = (
-    "references/",
-    "workflows/",
-    "templates/",
-    "bundles/",
-    "shared/",
-    "domains/",
-    "execution/",
-    "verification/",
-    "conventions/",
-    "research/",
-    "publication/",
-    "protocols/",
-    "subfields/",
-    "orchestration/",
-)
+_REFERENCE_RESOLVER = ReferenceResolver()
 _SKILL_COMMAND_PREFIX = "gpd-"
-_MARKDOWN_REFERENCE_RE = re.compile(
-    r"(?P<path>(?:@?\{GPD_(?:INSTALL|AGENTS)_DIR\}/|(?:\.\./|\.\/)?"
-    r"(?:references|workflows|templates|agents|commands|bundles|shared|domains|execution|verification|conventions|research|publication|protocols|subfields|orchestration|GPD|src/gpd)/)"
-    r"[^\s`\"')]+?\.md)"
-)
-_SKILL_BEHAVIORAL_GUARDRAIL_HINT = (
-    "Use scientific skepticism and critical thinking without treating the user as an adversary. Treat missing "
-    "evidence or artifacts as missing, blocked, failed, or inconclusive, and never fabricate references, results, "
-    "files, or completion state."
-)
+
+
+@lru_cache(maxsize=1)
+def _markdown_reference_re() -> re.Pattern[str]:
+    """Return the matcher for direct markdown references."""
+
+    return _REFERENCE_RESOLVER.markdown_reference_re()
 
 
 def _load_skill_index() -> list[content_registry.SkillDef]:
@@ -141,35 +128,48 @@ def _public_skill(skill: content_registry.SkillDef) -> dict[str, str]:
     }
 
 
-def _skill_loading_hint(*, source_kind: str, referenced_files: bool, reference_documents: bool) -> str:
+def _skill_loading_hint(
+    *,
+    source_kind: str,
+    referenced_files: bool,
+    reference_documents: bool,
+    transitive_reference_documents: bool = False,
+    include_transitive_reference_bodies: bool = False,
+) -> str:
     """Return a concise, content-first loading hint for a skill payload."""
     if reference_documents:
         dependency_hint = (
             "Treat `content` as the wrapper/context surface. Load `schema_documents` and "
-            "`contract_documents` too when present; they carry the markdown bodies that back the "
-            "model-visible schema and contract rules."
+            "`contract_documents` too when present. They carry the markdown bodies that back the "
+            "direct model-visible schema and contract rules. See `referenced_files` for external markdown dependencies."
         )
     elif referenced_files:
         dependency_hint = (
-            "Treat `content` as the wrapper/context surface. See `referenced_files` for external "
-            "markdown dependencies."
+            "Treat `content` as the wrapper/context surface. See `referenced_files` for external markdown dependencies."
         )
     else:
         dependency_hint = "Treat `content` as the wrapper/context surface."
+    if transitive_reference_documents and not include_transitive_reference_bodies:
+        dependency_hint = (
+            f"{dependency_hint} Transitive schema/contract document entries are metadata-only by default; "
+            "set `include_transitive_reference_bodies=true` when their markdown bodies are needed."
+        )
     if source_kind == "command":
         return (
             f"{dependency_hint} It already embeds the model-visible `Command Requirements` section. "
-            f"{_SKILL_BEHAVIORAL_GUARDRAIL_HINT}"
+            "Follow that section for command-specific constraints."
         )
     if source_kind == "agent":
         return (
             f"{dependency_hint} It already embeds the model-visible `Agent Requirements` section. "
-            f"{_SKILL_BEHAVIORAL_GUARDRAIL_HINT}"
+            "Follow that section for agent-specific constraints."
         )
-    return f"{dependency_hint} {_SKILL_BEHAVIORAL_GUARDRAIL_HINT}"
+    return dependency_hint
 
 
-def _skill_review_contract_payload(review_contract: content_registry.ReviewCommandContract | None) -> dict[str, object] | None:
+def _skill_review_contract_payload(
+    review_contract: content_registry.ReviewCommandContract | None,
+) -> dict[str, object] | None:
     """Return the canonical MCP payload for a command review contract."""
     if review_contract is None:
         return None
@@ -209,12 +209,17 @@ def _skill_index_label(skill: content_registry.SkillDef) -> str:
         command = content_registry.get_command(skill.registry_name)
         qualifiers = [f"context={command.context_mode}"]
         qualifiers.append(f"reentry={'yes' if command.project_reentry_capable else 'no'}")
+        if command.agent is not None:
+            qualifiers.append(f"agent={command.agent}")
         if command.allowed_tools:
             qualifiers.append("restricted-tools")
         if command.requires:
             qualifiers.append("launch-requires")
         if command.review_contract is not None:
             qualifiers.append("review-contract")
+        if command.staged_loading is not None:
+            qualifiers.append("staged-loading")
+            qualifiers.append(f"stage_count={len(command.staged_loading.stages)}")
         return f"{skill.name} [{' ; '.join(qualifiers)}]"
     return skill.name
 
@@ -252,10 +257,6 @@ def _canonicalize_runtime_command_wildcards(content: str) -> str:
 
 def _portable_skill_content(content: str) -> str:
     """Keep skill content portable while normalizing runtime command references."""
-    content = re.sub(r"(?<!@)\{GPD_INSTALL_DIR\}/", "@{GPD_INSTALL_DIR}/", content)
-    content = re.sub(r"(?<!@)\{GPD_AGENTS_DIR\}/", "@{GPD_AGENTS_DIR}/", content)
-    content = re.sub(r"(?<!@)\{GPD_INSTALL_DIR\}(?=[^\s/`\"')])", "@{GPD_INSTALL_DIR}/", content)
-    content = re.sub(r"(?<!@)\{GPD_AGENTS_DIR\}(?=[^\s/`\"')])", "@{GPD_AGENTS_DIR}/", content)
     return _canonicalize_command_surface(content)
 
 
@@ -266,8 +267,17 @@ def _agent_policy_payload(agent: content_registry.AgentDef) -> dict[str, object]
         "role_family": agent.role_family,
         "artifact_write_authority": agent.artifact_write_authority,
         "shared_state_authority": agent.shared_state_authority,
+        "role_kits": list(agent.role_kits),
+        "role_kit_authorities": list(role_kit_authority_paths(agent.role_kits)),
         "tools": list(agent.tools),
     }
+
+
+def _agent_task_overlay_compatibility_payload(agent: content_registry.AgentDef) -> dict[str, object] | None:
+    payload = build_task_overlay_compatibility_manifest(role=agent.name)
+    if payload["overlay_count"] == 0:
+        return None
+    return payload
 
 
 def _canonical_skill_content(skill: content_registry.SkillDef) -> tuple[str, Path]:
@@ -352,154 +362,120 @@ def _derived_route_keywords(skill: content_registry.SkillDef) -> list[str]:
 
 def _portable_reference_path(raw_path: str, *, base_path: Path | None = None) -> tuple[str, Path | None] | None:
     """Return a stable reference path plus its local file path, if resolvable."""
-    candidate = raw_path.rstrip(".,:;")
-    if not candidate:
-        return None
-
-    def _normalize_resolved_path(resolved: Path) -> tuple[str, Path] | None:
-        resolved = resolved.resolve()
-        if not resolved.is_file():
-            return None
-        try:
-            rel = resolved.relative_to(_SPEC_ROOT)
-        except ValueError:
-            pass
-        else:
-            portable = f"@{{GPD_INSTALL_DIR}}/{rel.as_posix()}"
-            return portable, resolved
-        try:
-            rel = resolved.relative_to(_AGENT_ROOT)
-        except ValueError:
-            pass
-        else:
-            portable = f"@{{GPD_AGENTS_DIR}}/{rel.as_posix()}"
-            return portable, resolved
-        try:
-            rel = resolved.relative_to(_COMMAND_ROOT)
-        except ValueError:
-            return None
-        portable = f"@{{GPD_INSTALL_DIR}}/commands/{rel.as_posix()}"
-        return portable, resolved
-
-    if candidate.startswith("@{GPD_INSTALL_DIR}/") or candidate.startswith("{GPD_INSTALL_DIR}/"):
-        relative = candidate.split("}/", 1)[1]
-        resolved = _SPEC_ROOT / relative if not relative.startswith("commands/") else _COMMAND_ROOT / relative.removeprefix("commands/")
-        normalized = _normalize_resolved_path(resolved)
-        return normalized
-
-    if candidate.startswith("@{GPD_AGENTS_DIR}/") or candidate.startswith("{GPD_AGENTS_DIR}/"):
-        relative = candidate.split("}/", 1)[1]
-        resolved = _AGENT_ROOT / relative
-        normalized = _normalize_resolved_path(resolved)
-        return normalized
-
-    raw_path_obj = Path(candidate)
-    if raw_path_obj.is_absolute():
-        normalized = _normalize_resolved_path(raw_path_obj)
-        if normalized is not None:
-            return normalized
-        return None
-
-    if candidate.startswith(_SPEC_RELATIVE_REFERENCE_PREFIXES):
-        resolved = _SPEC_ROOT / candidate
-        normalized = _normalize_resolved_path(resolved)
-        return normalized
-
-    if candidate.startswith("commands/"):
-        relative = candidate.removeprefix("commands/")
-        resolved = _COMMAND_ROOT / relative
-        normalized = _normalize_resolved_path(resolved)
-        return normalized
-
-    if candidate.startswith("agents/"):
-        relative = candidate.removeprefix("agents/")
-        resolved = _AGENT_ROOT / relative
-        normalized = _normalize_resolved_path(resolved)
-        return normalized
-
-    if candidate.startswith(("GPD/", "@GPD/")):
-        project_path = candidate.removeprefix("@")
-        return f"@{project_path}", None
-
-    if candidate.startswith("src/gpd/"):
-        resolved = (_REPO_ROOT / candidate).resolve()
-        normalized = _normalize_resolved_path(resolved)
-        if normalized is not None:
-            return normalized
-        return candidate, None
-
-    if base_path is not None:
-        resolved = (base_path.parent / candidate).resolve()
-        normalized = _normalize_resolved_path(resolved)
-        if normalized is not None:
-            return normalized
-
-    return None
+    return _REFERENCE_RESOLVER.portable_reference_path(raw_path, base_path=base_path)
 
 
 def _reference_kind(path: str) -> str:
-    if path.startswith("@GPD/"):
-        return "project"
-    if path.startswith("@{GPD_AGENTS_DIR}/"):
-        return "agent"
-    if path.startswith("@{GPD_INSTALL_DIR}/commands/"):
-        return "command"
-    if path.startswith("@{GPD_INSTALL_DIR}/templates/"):
-        return "template"
-    if path.startswith("@{GPD_INSTALL_DIR}/workflows/"):
-        return "workflow"
-    if path.startswith("@{GPD_INSTALL_DIR}/bundles/"):
-        return "bundle"
-    if path.startswith("@{GPD_INSTALL_DIR}/references/"):
-        return "reference"
-    return "spec"
+    return _REFERENCE_RESOLVER.reference_kind(path)
+
+
+def _read_frontmatter_block(path: Path) -> str:
+    """Read only the leading frontmatter block when present."""
+
+    lines: list[str] = []
+    saw_content = False
+    in_frontmatter = False
+
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if not saw_content and not line.strip():
+                lines.append(line)
+                continue
+            if not saw_content:
+                saw_content = True
+                if line.lstrip("\ufeff").strip() != "---":
+                    return ""
+                in_frontmatter = True
+                lines.append(line)
+                continue
+            lines.append(line)
+            if in_frontmatter and line.strip() == "---":
+                break
+
+    return "".join(lines)
 
 
 def _extract_referenced_files(
     content: str,
     *,
     source_path: Path | None = None,
+    read_transitive_reference_bodies: bool = True,
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     """Return direct and transitive markdown references discovered in *content*."""
 
-    direct_references: list[dict[str, object]] = []
-    transitive_references: list[dict[str, object]] = []
-    direct_seen: set[str] = set()
-    transitive_seen: set[str] = set()
-    visited_docs: set[str] = set()
+    return build_reference_lists(
+        content,
+        source_path=source_path,
+        read_transitive_reference_bodies=read_transitive_reference_bodies,
+        resolver=_REFERENCE_RESOLVER,
+        resolve_reference=_portable_reference_path,
+        reference_kind=_reference_kind,
+        content_transform=_portable_skill_content,
+    )
 
-    def _record(entry_list: list[dict[str, object]], seen: set[str], *, path: str, depth: int | None) -> None:
-        if path in seen:
-            return
-        seen.add(path)
-        entry: dict[str, object] = {"path": path, "kind": _reference_kind(path)}
-        if depth is not None:
-            entry["depth"] = depth
-        entry_list.append(entry)
 
-    def _collect(markdown: str, *, current_path: Path | None, depth: int) -> None:
-        for match in _MARKDOWN_REFERENCE_RE.finditer(markdown):
-            normalized = _portable_reference_path(match.group("path"), base_path=current_path)
-            if normalized is None:
-                continue
-            path, referenced_path = normalized
-            if depth == 0:
-                _record(direct_references, direct_seen, path=path, depth=None)
-            else:
-                _record(transitive_references, transitive_seen, path=path, depth=depth)
-            if path in visited_docs:
-                continue
-            visited_docs.add(path)
-            if referenced_path is None or referenced_path.suffix != ".md" or not referenced_path.exists():
-                continue
-            try:
-                nested = _portable_skill_content(referenced_path.read_text(encoding="utf-8"))
-            except OSError:
-                continue
-            _collect(nested, current_path=referenced_path, depth=depth + 1)
+def _staged_loading_reference_seeds(
+    staged_loading: content_registry.WorkflowStageManifest | None,
+) -> tuple[ReferenceSeed, ...]:
+    """Return explicit graph seeds from a staged-loading manifest."""
 
-    _collect(content, current_path=source_path, depth=0)
-    return direct_references, transitive_references
+    if staged_loading is None:
+        return ()
+
+    seeds: list[ReferenceSeed] = []
+    for stage in staged_loading.stages:
+        for path in (*stage.mode_paths, *stage.loaded_authorities):
+            seeds.append(
+                ReferenceSeed(
+                    raw_path=path,
+                    source="staged_loading",
+                    relationship="stage_eager",
+                    stage=stage.id,
+                    scan_body_for_metadata=True,
+                )
+            )
+        for conditional in stage.conditional_authorities:
+            for path in conditional.authorities:
+                seeds.append(
+                    ReferenceSeed(
+                        raw_path=path,
+                        source="staged_loading",
+                        relationship="stage_conditional",
+                        stage=stage.id,
+                        conditional_when=conditional.when,
+                        scan_body_for_metadata=True,
+                    )
+                )
+        for path in stage.must_not_eager_load:
+            seeds.append(
+                ReferenceSeed(
+                    raw_path=path,
+                    source="staged_loading",
+                    relationship="stage_lazy_declared",
+                    stage=stage.id,
+                    scan_body_for_metadata=False,
+                )
+            )
+    return tuple(seeds)
+
+
+def _build_skill_reference_lists(
+    content: str,
+    *,
+    source_path: Path,
+    staged_loading: content_registry.WorkflowStageManifest | None,
+    read_transitive_reference_bodies: bool,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    return build_reference_lists(
+        content,
+        source_path=source_path,
+        seeds=_staged_loading_reference_seeds(staged_loading),
+        read_transitive_reference_bodies=read_transitive_reference_bodies,
+        resolver=_REFERENCE_RESOLVER,
+        resolve_reference=_portable_reference_path,
+        reference_kind=_reference_kind,
+        content_transform=_portable_skill_content,
+    )
 
 
 def _is_schema_reference(path: str) -> bool:
@@ -520,7 +496,7 @@ def _reference_document_metadata(path: str) -> tuple[str | None, str | None]:
     if reference_path is None or not reference_path.is_file():
         return None, None
     try:
-        frontmatter, _body, parse_error = parse_frontmatter_with_error(reference_path.read_text(encoding="utf-8"))
+        frontmatter, _body, parse_error = parse_frontmatter_with_error(_read_frontmatter_block(reference_path))
     except OSError:
         return None, None
     doc_type = frontmatter.get("type") if isinstance(frontmatter, dict) else None
@@ -549,7 +525,7 @@ def _is_contract_reference(path: str) -> bool:
     return any(token in document_type for token in ("contract", "protocol", "reliability"))
 
 
-def _load_reference_document(path: str, *, kind: str) -> dict[str, object]:
+def _load_reference_document(path: str, *, kind: str, include_body: bool = True) -> dict[str, object]:
     document: dict[str, object] = {
         "path": path,
         "name": Path(path).name,
@@ -566,14 +542,17 @@ def _load_reference_document(path: str, *, kind: str) -> dict[str, object]:
         return document
 
     try:
-        content = _portable_skill_content(reference_path.read_text(encoding="utf-8"))
+        if include_body:
+            content = _portable_skill_content(reference_path.read_text(encoding="utf-8"))
+        else:
+            content = _read_frontmatter_block(reference_path)
     except OSError as exc:
         document["error"] = str(exc)
         return document
 
     frontmatter, body, parse_error = parse_frontmatter_with_error(content)
-    document["content"] = content
-    document["body"] = body
+    if include_body:
+        document["body"] = body
     if frontmatter:
         document["frontmatter"] = frontmatter
     if parse_error is not None:
@@ -585,15 +564,20 @@ def _expanded_reference_documents(
     referenced_files: list[dict[str, object]],
     *,
     predicate: Callable[[str], bool],
+    include_bodies: bool = True,
 ) -> tuple[list[str], list[dict[str, object]]]:
     selected = [entry for entry in referenced_files if predicate(entry["path"])]
+    body_selected = [entry for entry in selected if entry.get("eager") is True]
     return (
         [entry["path"] for entry in selected],
-        [_load_reference_document(entry["path"], kind=entry["kind"]) for entry in selected],
+        [
+            _load_reference_document(entry["path"], kind=entry["kind"], include_body=include_bodies)
+            for entry in body_selected
+        ],
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_tool_annotations())
 def list_skills(
     category: Annotated[SkillCategoryFilter, Field(min_length=1, pattern=r"\S")] | None = None,
 ) -> dict:
@@ -631,19 +615,30 @@ def list_skills(
             return stable_mcp_error(e)
 
 
-@mcp.tool()
-def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
+@mcp.tool(annotations=read_only_tool_annotations())
+def get_skill(
+    name: Annotated[str, Field(min_length=1, pattern=r"\S")],
+    include_transitive_reference_bodies: bool = False,
+) -> dict:
     """Get the full content of a canonical skill definition.
 
     Returns the skill prompt and metadata for injection into agent context.
 
     Args:
         name: Skill name (e.g., "gpd-execute-phase", "gpd-plan-phase").
+        include_transitive_reference_bodies: Include markdown bodies for transitive schema/contract
+            reference documents. Defaults to metadata-only transitive documents to keep MCP payloads small.
     """
     if not isinstance(name, str) or not name.strip():
         return stable_mcp_response(error="name must be a non-empty string")
+    if not isinstance(include_transitive_reference_bodies, bool):
+        return stable_mcp_response(error="include_transitive_reference_bodies must be a boolean")
 
-    with gpd_span("mcp.skills.get", skill_name=name):
+    with gpd_span(
+        "mcp.skills.get",
+        skill_name=name,
+        include_transitive_reference_bodies=include_transitive_reference_bodies,
+    ):
         try:
             skill = _resolve_skill(name)
             if skill is None:
@@ -652,8 +647,14 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                     error=f"Skill {name!r} not found",
                 )
 
+            command = content_registry.get_command(skill.registry_name) if skill.source_kind == "command" else None
             content, source_path = _canonical_skill_content(skill)
-            referenced_files, transitive_referenced_files = _extract_referenced_files(content, source_path=source_path)
+            referenced_files, transitive_referenced_files = _build_skill_reference_lists(
+                content,
+                source_path=source_path,
+                staged_loading=command.staged_loading if command is not None else None,
+                read_transitive_reference_bodies=include_transitive_reference_bodies,
+            )
             template_references = [entry["path"] for entry in referenced_files if entry["kind"] == "template"]
             schema_references, schema_documents = _expanded_reference_documents(
                 referenced_files,
@@ -669,15 +670,19 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
             transitive_schema_references, transitive_schema_documents = _expanded_reference_documents(
                 transitive_referenced_files,
                 predicate=_is_schema_reference,
+                include_bodies=include_transitive_reference_bodies,
             )
             transitive_contract_references, transitive_contract_documents = _expanded_reference_documents(
                 transitive_referenced_files,
                 predicate=lambda path: _is_contract_reference(path) and not _is_schema_reference(path),
+                include_bodies=include_transitive_reference_bodies,
             )
             loading_hint = _skill_loading_hint(
                 source_kind=skill.source_kind,
                 referenced_files=bool(referenced_files),
                 reference_documents=bool(schema_documents or contract_documents),
+                transitive_reference_documents=bool(transitive_schema_documents or transitive_contract_documents),
+                include_transitive_reference_bodies=include_transitive_reference_bodies,
             )
             payload = {
                 "name": skill.name,
@@ -701,7 +706,7 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                 "loading_hint": loading_hint,
             }
             if skill.source_kind == "command":
-                command = content_registry.get_command(skill.registry_name)
+                assert command is not None
                 allowed_tools = _normalize_allowed_tools(command.allowed_tools)
                 payload.update(
                     {
@@ -732,10 +737,16 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                 if command.spawn_contracts:
                     payload["spawn_contracts"] = _skill_spawn_contracts_payload(command.spawn_contracts)
                     payload["structured_metadata_authority"]["spawn_contracts"] = "mirrored"
+                if command.interactive_spawn_contracts:
+                    payload["interactive_spawn_contracts"] = _skill_spawn_contracts_payload(
+                        command.interactive_spawn_contracts
+                    )
+                    payload["structured_metadata_authority"]["interactive_spawn_contracts"] = "mirrored"
                 payload["allowed_tools"] = allowed_tools
             elif skill.source_kind == "agent":
                 agent = content_registry.get_agent(skill.registry_name)
                 agent_policy = _agent_policy_payload(agent)
+                task_overlay_compatibility = _agent_task_overlay_compatibility_payload(agent)
                 payload["allowed_tools"] = _normalize_allowed_tools(agent.tools)
                 payload["allowed_tools_surface"] = "agent.tools"
                 payload["agent_policy"] = agent_policy
@@ -745,6 +756,13 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
                     "allowed_tools": "mirrored",
                     "agent_policy": "mirrored",
                 }
+                if task_overlay_compatibility is not None:
+                    payload["compatible_task_overlays"] = task_overlay_compatibility
+                    payload["structured_metadata_authority"]["compatible_task_overlays"] = "mirrored"
+                    loading_hint = (
+                        f"{loading_hint} `compatible_task_overlays` is metadata-only; load overlay bodies only when "
+                        "a runtime spawn manifest selects their portable paths."
+                    )
                 payload["loading_hint"] = loading_hint
             return stable_mcp_response(payload)
         except (GPDError, OSError, ValueError, TimeoutError) as e:
@@ -753,7 +771,7 @@ def get_skill(name: Annotated[str, Field(min_length=1, pattern=r"\S")]) -> dict:
             return stable_mcp_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_tool_annotations())
 def route_skill(
     task_description: Annotated[str, Field(min_length=1, pattern=r"\S")],
 ) -> dict:
@@ -810,7 +828,31 @@ def route_skill(
                 "gpd-verify-work": ["verify", "check", "validate", "test"],
                 "gpd-debug": ["debug", "fix", "investigate", "error", "bug"],
                 "gpd-write-paper": ["write", "paper", "draft", "manuscript"],
-                "gpd-peer-review": ["peer", "referee", "reviewer", "manuscript"],
+                "gpd-peer-review": [
+                    "peer review",
+                    "review manuscript",
+                    "review paper",
+                    "referee report",
+                    "peer",
+                    "referee",
+                    "reviewer",
+                    "manuscript",
+                ],
+                "gpd-respond-to-referees": [
+                    "referee response",
+                    "respond to referee",
+                    "respond to referees",
+                    "response to referee",
+                    "response to referees",
+                    "referee comments",
+                ],
+                "gpd-review-knowledge": [
+                    "approve knowledge",
+                    "promote knowledge",
+                    "review knowledge",
+                    "knowledge approval",
+                    "knowledge promotion",
+                ],
                 "gpd-literature-review": ["literature", "review", "papers", "citations", "references"],
                 "gpd-progress": ["progress", "status", "where", "current"],
                 "gpd-derive-equation": ["derive", "equation", "calculate", "computation"],
@@ -826,6 +868,29 @@ def route_skill(
                 "gpd-limiting-cases": ["limiting", "limit", "asymptotic"],
                 "gpd-sensitivity-analysis": ["sensitivity", "parameter", "uncertainty"],
                 "gpd-numerical-convergence": ["convergence", "numerical", "accuracy"],
+                "gpd-map-research": [
+                    "map an existing folder",
+                    "refresh the research map",
+                    "research map",
+                    "existing research folder",
+                ],
+                "gpd-set-tier-models": [
+                    "pin exact tier models",
+                    "configure concrete tier models",
+                    "set tier models",
+                ],
+                "gpd-start": [
+                    "guided first run",
+                    "first run",
+                    "not sure what this folder is",
+                    "not sure what fits this folder",
+                ],
+                "gpd-tour": [
+                    "guided overview",
+                    "guided tour",
+                    "read only walkthrough",
+                    "read-only walkthrough",
+                ],
             }
 
             scored: list[tuple[int, str]] = []
@@ -850,7 +915,13 @@ def route_skill(
                 scored.append((new_project_score, "gpd-new-project"))
 
             skill_order = {name: index for index, name in enumerate(skills_by_name)}
-            scored.sort(key=lambda item: (-item[0], skill_order.get(item[1], len(skill_order))))
+            scored.sort(
+                key=lambda item: (
+                    -item[0],
+                    0 if skills_by_name[item[1]].source_kind == "command" else 1,
+                    skill_order.get(item[1], len(skill_order)),
+                )
+            )
 
             if scored:
                 best = scored[0][1]
@@ -884,12 +955,12 @@ def route_skill(
             return stable_mcp_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_tool_annotations())
 def get_skill_index() -> dict:
-    """Return a formatted canonical skill index for actor prompt injection.
+    """Return a formatted canonical skill index for runtime context assembly.
 
-    Returns a compact summary suitable for injecting into LLM context
-    to make it aware of available GPD capabilities.
+    Returns a compact summary suitable for adding to LLM context so the
+    runtime can see available GPD capabilities.
     """
     with gpd_span("mcp.skills.index"):
         try:
@@ -906,13 +977,17 @@ def get_skill_index() -> dict:
                     command_envelopes[skill.name] = {
                         "context_mode": command.context_mode,
                         "project_reentry_capable": command.project_reentry_capable,
+                        "agent": command.agent,
                         "allowed_tools": _normalize_allowed_tools(command.allowed_tools),
                         "requires": copy.deepcopy(command.requires),
                         "has_review_contract": command.review_contract is not None,
+                        "has_staged_loading": command.staged_loading is not None,
+                        "stage_count": len(command.staged_loading.stages) if command.staged_loading is not None else 0,
                         "has_spawn_contracts": bool(command.spawn_contracts),
+                        "has_interactive_spawn_contracts": bool(command.interactive_spawn_contracts),
                     }
 
-            lines = ["# Available GPD Skills", "", _SKILL_BEHAVIORAL_GUARDRAIL_HINT, ""]
+            lines = ["# Available GPD Skills", "", SKILL_BEHAVIORAL_GUARDRAIL_HINT, ""]
             for cat in sorted(by_category):
                 lines.append(f"## {cat.title()}")
                 for name in sorted(by_category[cat]):

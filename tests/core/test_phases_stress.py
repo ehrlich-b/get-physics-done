@@ -43,6 +43,13 @@ def _create_phase_dir(tmp_path: Path, name: str) -> Path:
     return phase_dir
 
 
+def _write_passed_verification(phase_dir: Path) -> Path:
+    phase_number = phase_dir.name.split("-", 1)[0]
+    path = phase_dir / f"{phase_number}-VERIFICATION.md"
+    path.write_text("---\nstatus: passed\n---\n\n# Verification\nPASS\n", encoding="utf-8")
+    return path
+
+
 def _create_roadmap(tmp_path: Path, content: str) -> Path:
     """Write ROADMAP.md and return its path."""
     roadmap = tmp_path / "GPD" / "ROADMAP.md"
@@ -266,7 +273,7 @@ class TestRenumbering20Phases:
         phases_dir = tmp_path / "GPD" / "phases"
         remaining = sorted(d.name for d in phases_dir.iterdir() if d.is_dir())
         assert len(remaining) == 19
-        # First directory should now be "01-phase-2" (originally phase 2, renumbered to 01)
+        # First directory should be "01-phase-2" (phase 2 renumbered to 01 after removal)
         assert remaining[0].startswith("01-")
 
     def test_remove_middle_phase_of_20(self, tmp_path: Path) -> None:
@@ -520,10 +527,10 @@ class TestPhaseCompleteIncomplete:
 
 
 class TestFindPhaseAmbiguous:
-    """find_phase returns the first matching directory in sorted order."""
+    """find_phase resolves base and decimal phase directory matches deterministically."""
 
-    def test_find_phase_returns_first_match(self, tmp_path: Path) -> None:
-        """When multiple directories could match, first sorted match wins."""
+    def test_find_phase_prefers_base_phase_over_decimal_descendant(self, tmp_path: Path) -> None:
+        """A base phase query should prefer the base directory over a decimal descendant."""
         _setup_project(tmp_path)
         _create_phase_dir(tmp_path, "01-alpha")
         _create_phase_dir(tmp_path, "01.1-beta")
@@ -687,6 +694,7 @@ class TestPhaseCompleteLargeProject:
         phase_dir = _create_phase_dir(tmp_path, "01-setup")
         (phase_dir / "a-PLAN.md").write_text("plan", encoding="utf-8")
         (phase_dir / "a-SUMMARY.md").write_text("done", encoding="utf-8")
+        _write_passed_verification(phase_dir)
         _create_phase_dir(tmp_path, "02-build")
         _create_phase_dir(tmp_path, "03-deploy")
 
@@ -703,6 +711,7 @@ class TestPhaseCompleteLargeProject:
         phase_dir = _create_phase_dir(tmp_path, "01-only")
         (phase_dir / "a-PLAN.md").write_text("plan", encoding="utf-8")
         (phase_dir / "a-SUMMARY.md").write_text("done", encoding="utf-8")
+        _write_passed_verification(phase_dir)
 
         result = phase_complete(tmp_path, "1")
         assert result.is_last_phase is True

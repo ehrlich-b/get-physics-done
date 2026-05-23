@@ -16,27 +16,26 @@ Read all files referenced by the invoking prompt's execution_context before star
 INIT=$(gpd --raw init milestone-op)
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
-  # STOP — display the error to the user and do not proceed.
+  # STOP; surface the error.
 fi
 ```
 
 Extract from init JSON: `milestone_version`, `milestone_name`, `phase_count`, `completed_phases`, `commit_docs`, `project_exists`, `project_contract`, `project_contract_gate`, `project_contract_load_info`, `project_contract_validation`, `active_reference_context`.
 
-Keep `project_contract`, `project_contract_load_info`, `project_contract_validation`, and `active_reference_context` visible while auditing:
+Keep `project_contract`, `project_contract_load_info`, `project_contract_validation`, and `active_reference_context` visible while auditing.
+`{GPD_INSTALL_DIR}/references/orchestration/contract-authority-gate.md`
 
-- Treat `project_contract` as authoritative only when `project_contract_gate.authoritative` is true.
-- If that contract gate is blocked, keep the contract visible as context but record contract repair as a blocker in the audit instead of silently substituting prose-only scope.
-- If contract repair is still pending, do not mark the milestone `passed` and do not trust mock peer-review publishability judgments as approval to submit.
+Apply the shared contract authority gate: `project_contract` is approved milestone scope only when `project_contract_gate.authoritative` is true. If repair is pending, record it as an audit blocker, do not substitute prose-only scope, do not mark the milestone `passed`, and do not treat mock peer-review publishability judgments as approval to submit.
 
 **Read mode settings:**
 
 ```bash
-AUTONOMY=$(gpd --raw config get autonomy 2>/dev/null | gpd json get .value --default balanced 2>/dev/null || echo "balanced")
+AUTONOMY=$(gpd --raw config get autonomy 2>/dev/null | gpd json get .value --default supervised 2>/dev/null || echo "supervised")
 ```
 
 **Mode-aware behavior:**
-- `autonomy=supervised`: Pause after each audit criterion for user discussion of gaps.
-- `autonomy=balanced` (default): Complete the full audit and generate a gap-closure plan when needed. Pause only if critical gaps or milestone-scope questions need user judgment.
+- `autonomy=supervised` (default): Pause after each audit criterion for user discussion of gaps.
+- `autonomy=balanced`: Complete the full audit and generate a gap-closure plan when needed. Pause only if critical gaps or milestone-scope questions need user judgment.
 - `autonomy=yolo`: Complete audit, auto-approve milestone if > 80% criteria met.
 
 Run centralized context preflight before continuing:
@@ -84,10 +83,9 @@ Use the canonical phase helpers instead of raw phase-path globbing:
 
 ```bash
 gpd phase list
-gpd show-phase <phase-number>
 ```
 
-For each phase in the milestone, use `gpd show-phase <phase-number>` to surface the canonical `*-VERIFICATION.md` artifact and its verification status, then read the artifact itself only when you need blocker-level detail. Do not `find_files` `GPD/phases/*/*-VERIFICATION.md` by hand.
+For each phase in the milestone, use the runtime-installed command surface `gpd:show-phase <phase-number>` to surface the canonical `*-VERIFICATION.md` artifact and its verification status, then read the artifact itself only when you need blocker-level detail. Do not `find_files` `GPD/phases/*/*-VERIFICATION.md` by hand.
 
 From each `*-VERIFICATION.md`, extract:
 
@@ -104,7 +102,7 @@ If a phase is missing `*-VERIFICATION.md`, flag it as "unverified phase" -- this
 With phase context collected:
 @{GPD_INSTALL_DIR}/references/orchestration/runtime-delegation-note.md
 
-> If subagent spawning is unavailable, execute these steps sequentially in the main context.
+> Apply the canonical runtime delegation convention already loaded above.
 
 ```
 task(
@@ -209,9 +207,7 @@ Resolve referee model:
 ```bash
 REFEREE_MODEL=$(gpd resolve-model gpd-referee)
 ```
-@{GPD_INSTALL_DIR}/references/orchestration/runtime-delegation-note.md
-
-> If subagent spawning is unavailable, execute these steps sequentially in the main context.
+Apply the canonical runtime delegation convention already loaded above.
 
 ```
 task(
@@ -249,11 +245,11 @@ Evaluate across all 10 dimensions:
 9. Presentation quality -- organization, figures
 10. Publishability -- overall assessment
 
-Treat `project_contract` as approved milestone scope only when `project_contract_gate.authoritative` is true. If the contract gate is blocked, keep it visible as context but call out the blocker explicitly instead of relying on it as approved scope.
+Use `project_contract` as approved milestone scope only when `project_contract_gate.authoritative` is true; if blocked, keep it as diagnostic context and call out the gate blocker.
 
 Write `GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.md` and the matching `GPD/v{milestone_version}-MILESTONE-REFEREE-REPORT.tex` companion.
 
-Return REVIEW COMPLETE with recommendation and issue counts."
+Return `gpd_return.status: completed` with recommendation and issue counts."
 )
 ```
 
@@ -310,7 +306,7 @@ All requirements covered. Cross-phase consistency verified. Research is complete
 
 gpd:complete-milestone {version}
 
-<sub>/clear first -> fresh context window</sub>
+<sub>Start a fresh context window</sub>
 
 ---
 
@@ -350,7 +346,7 @@ gpd:complete-milestone {version}
 
 gpd:plan-milestone-gaps
 
-<sub>/clear first -> fresh context window</sub>
+<sub>Start a fresh context window</sub>
 
 ---
 
@@ -394,7 +390,7 @@ gpd:complete-milestone {version}
 
 gpd:plan-milestone-gaps
 
-<sub>/clear first -> fresh context window</sub>
+<sub>Start a fresh context window</sub>
 
 ---
 

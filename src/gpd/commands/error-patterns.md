@@ -8,6 +8,15 @@ allowed-tools:
   - shell
   - search_files
   - find_files
+help:
+  group: Tangents, memory, and exports
+  order: 600
+  compact_description: Review common project-specific errors
+  display_signature: gpd:error-patterns [category]
+  examples:
+    - gpd:error-patterns sign-error
+  notes:
+    - Pattern-library categories include sign-error, factor-error, convention-pitfall, convergence-issue, approximation-failure, numerical-instability, conceptual-error, and dimensional-error.
 ---
 
 
@@ -16,16 +25,7 @@ Display accumulated physics error patterns from `GPD/ERROR-PATTERNS.md`. Optiona
 
 Error patterns are recorded by the debugger after confirming root causes. They capture project-specific failure modes so that verifiers, planners, and executors can proactively check for recurrence.
 
-Categories:
-
-- `sign` -- Sign errors (metric, integration by parts, Wick rotation)
-- `factor` -- Missing factors (2, pi, symmetry factors, normalization)
-- `convention` -- Convention mismatches between modules or phases
-- `numerical` -- Numerical issues (convergence, precision, stability)
-- `approximation` -- Approximation validity breakdowns
-- `boundary` -- Boundary condition errors
-- `gauge` -- Gauge/frame artifacts
-- `combinatorial` -- Symmetry factors, diagram counting
+The same-named workflow owns category validation and uses the live pattern-library vocabulary.
   </objective>
 
 <execution_context>
@@ -37,10 +37,7 @@ Categories:
 
 **Pre-flight check:**
 ```bash
-if [ ! -d "GPD" ]; then
-  echo "Error: No GPD project found. Run gpd:new-project first."
-  exit 1
-fi
+test -d GPD || { echo "Error: No GPD project found. Initialize a GPD project first."; exit 1; }
 ```
 
 <step name="check_file">
@@ -92,7 +89,7 @@ Display the full contents formatted as:
 
 ---
 
-{total} patterns recorded. Filter by category: `gpd:error-patterns sign`
+{total} patterns recorded. Filter by category: `gpd:error-patterns sign-error`
 ```
 
 </step>

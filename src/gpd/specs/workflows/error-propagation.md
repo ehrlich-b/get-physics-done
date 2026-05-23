@@ -38,7 +38,7 @@ Determine what final result needs error bars.
 INIT=$(gpd --raw init progress --include state,roadmap,config)
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
-  # STOP — display the error to the user and do not proceed.
+  # STOP; surface the error.
 fi
 ```
 
@@ -302,6 +302,8 @@ TARGET_PHASE_INFO=$(gpd phase find "${target_phase_number}")
 Extract `target_phase_dir` (the `directory` field) from the JSON result.
 
 Save to: `${target_phase_dir}/ERROR-BUDGET.md`.
+
+Do not create a second per-target `GPD/analysis/error-budget-{target}.md` report for this workflow. The project-wide record for propagated uncertainty stays in authoritative state (`propagated_uncertainties`) and any maintained `GPD/analysis/UNCERTAINTY-BUDGET.md` ledger.
 
 </step>
 

@@ -11,6 +11,11 @@ allowed-tools:
   - find_files
   - search_files
   - ask_user
+help:
+  group: Tangents, memory, and exports
+  order: 640
+  compact_description: Turn audit gaps into new phases
+  display_signature: gpd:plan-milestone-gaps
 ---
 
 
@@ -51,7 +56,7 @@ find_files: GPD/v*-MILESTONE-AUDIT.md (use most recent)
 </context>
 
 <process>
-Execute the plan-milestone-gaps workflow from @{GPD_INSTALL_DIR}/workflows/plan-milestone-gaps.md end-to-end.
+Execute the included plan-milestone-gaps workflow end-to-end.
 Preserve all workflow gates (audit loading, prioritization, phase grouping, user confirmation, roadmap updates).
 
 Prioritization should consider:

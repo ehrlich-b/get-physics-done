@@ -16,16 +16,13 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
-import glob
 import json
 import logging
 import os
 import re
-import shlex
 import sys
-from collections.abc import Callable, Mapping
+from collections.abc import Collection, Mapping
 from pathlib import Path
-from types import SimpleNamespace
 from typing import TYPE_CHECKING, NoReturn
 
 import typer
@@ -34,9 +31,46 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
-from gpd.adapters.runtime_catalog import normalize_runtime_name
+from gpd.adapters.base import INSTALL_ROLLBACK_RESULT_KEY as _INSTALL_RESULT_ROLLBACK_KEY
+from gpd.adapters.runtime_catalog import list_runtime_names, normalize_runtime_name
 from gpd.command_labels import canonical_command_label, validated_public_command_prefix
-from gpd.core.arxiv_source_download import normalize_arxiv_id
+from gpd.core import artifact_writers as _artifact_writers
+from gpd.core import install_cli_support as _install_cli_support
+from gpd.core import install_readiness_support as _install_readiness_support
+from gpd.core import permissions_cli_support as _permissions_cli_support
+from gpd.core import recent_project_presentation as _recent_project_presentation
+from gpd.core import resume_presentation as _resume_presentation
+from gpd.core import runtime_targeting as _runtime_targeting
+from gpd.core.artifact_command_payloads import (
+    call_proof_redteam_finalizer as _call_proof_redteam_finalizer,
+)
+from gpd.core.artifact_command_payloads import (
+    call_proof_redteam_skeleton_builder as _call_proof_redteam_skeleton_builder,
+)
+from gpd.core.artifact_command_payloads import (
+    call_verification_report_finalizer as _call_verification_report_finalizer,
+)
+from gpd.core.artifact_command_payloads import (
+    call_verification_report_skeleton_builder as _call_verification_report_skeleton_builder,
+)
+from gpd.core.artifact_command_payloads import (
+    callable_accepts_kwarg as _callable_accepts_kwarg,
+)
+from gpd.core.artifact_command_payloads import (
+    jsonable_value as _jsonable_value,
+)
+from gpd.core.artifact_command_payloads import (
+    mapping_payload as _mapping_payload,
+)
+from gpd.core.artifact_command_payloads import (
+    validation_result_is_valid as _validation_result_is_valid,
+)
+from gpd.core.artifact_text import (
+    ArtifactTextError,
+    load_artifact_text_surface,
+    materialize_artifact_text_surface,
+    probe_artifact_text_surface,
+)
 from gpd.core.cli_args import (
     normalize_root_global_cli_options as _normalize_root_global_cli_options,
 )
@@ -46,28 +80,65 @@ from gpd.core.cli_args import (
 from gpd.core.cli_args import (
     split_root_global_cli_options as _split_root_global_cli_options,
 )
+from gpd.core.command_arguments import (
+    _PROJECT_AWARE_EXPLICIT_INPUT_PREDICATES as _CORE_PROJECT_AWARE_EXPLICIT_INPUT_PREDICATES,
+)
+from gpd.core.command_preflight import (
+    CommandContextPreflightResult,
+    CommandLookupError,
+    CommandRuntimeSurfaceMetadata,
+    _publication_subject_preflight_policy,
+    _review_preflight_publication_routing,
+    build_command_lookup_error_payload,
+    command_label_lookup_and_arguments,
+    format_command_lookup_error,
+)
+from gpd.core.command_preflight import (
+    build_command_context_preflight as _core_build_command_context_preflight,
+)
+from gpd.core.command_preflight import (
+    command_preflight_cwd as _core_command_preflight_cwd,
+)
+from gpd.core.command_preflight import (
+    resolve_registry_command as _core_resolve_registry_command,
+)
+from gpd.core.command_subjects import (
+    ResolvedCommandSubject,
+    _build_resolved_command_subject,
+    _command_allows_manuscript_bootstrap,
+    _command_effective_context_mode,
+    _command_explicit_manuscript_argument,
+    _command_explicit_manuscript_subject_uses_supported_roots,
+    _command_explicit_manuscript_suffixes,
+    _command_referee_report_arguments,
+    _command_requires_compiled_manuscript,
+    _command_supports_explicit_manuscript_subject,
+    _resolve_review_knowledge_target,
+    _resolve_review_preflight_manuscript,
+    _resolve_subject_path,
+    _supported_manuscript_root_for_target,
+)
 from gpd.core.constants import (
+    CONFIG_FILENAME,
     ENV_DATA_DIR,
     ENV_GPD_DISABLE_CHECKOUT_REEXEC,
     HOME_DATA_DIR_NAME,
+    PLANNING_DIR_NAME,
+    PUBLICATION_DIR_NAME,
+    PUBLICATION_MANUSCRIPT_DIR_NAME,
 )
 from gpd.core.errors import ConfigError, GPDError
-from gpd.core.manuscript_artifacts import (
-    _resolve_manuscript_entrypoint_from_root_resolution as resolve_manuscript_entrypoint_from_root_resolution,
-)
 from gpd.core.manuscript_artifacts import (
     locate_publication_artifact,
     resolve_current_manuscript_resolution,
 )
-from gpd.core.onboarding_surfaces import (
-    beginner_onboarding_hub_url,
-    beginner_startup_ladder_text,
+from gpd.core.peer_review_mode import (
+    PEER_REVIEW_PROJECT_BACKED_MODE,
+    PeerReviewModeResolution,
+    resolve_peer_review_mode_details,
 )
 from gpd.core.project_reentry import (
     ProjectReentryResolution,
-    _candidate_from_recent_row,
-    _candidate_sort_key,
-    recoverable_project_context,
     resolve_project_reentry,
 )
 from gpd.core.proof_review import (
@@ -78,9 +149,7 @@ from gpd.core.proof_review import (
 from gpd.core.public_surface_contract import (
     local_cli_bridge_commands,
     local_cli_doctor_local_command,
-    local_cli_help_command,
     local_cli_install_local_example_command,
-    local_cli_permissions_sync_command,
     local_cli_plan_preflight_command,
     local_cli_resume_command,
     local_cli_resume_recent_command,
@@ -89,9 +158,31 @@ from gpd.core.public_surface_contract import (
 from gpd.core.publication_review_paths import (
     manuscript_matches_review_artifact_path,
 )
+from gpd.core.publication_rounds import (
+    PublicationResponseRoundArtifacts,
+    PublicationReviewRoundArtifacts,
+)
+from gpd.core.publication_rounds import (
+    publication_lineage_search_roots as _core_publication_lineage_search_roots,
+)
+from gpd.core.publication_rounds import (
+    publication_response_round_path_maps as _core_publication_response_round_path_maps,
+)
+from gpd.core.publication_rounds import (
+    publication_review_round_artifacts as _core_publication_review_round_artifacts,
+)
+from gpd.core.publication_rounds import (
+    publication_review_round_path_maps as _core_publication_review_round_path_maps,
+)
+from gpd.core.publication_rounds import (
+    resolve_latest_publication_response_round_artifacts as _core_resolve_latest_publication_response_round_artifacts,
+)
+from gpd.core.publication_rounds import (
+    resolve_latest_publication_review_round_artifacts as _core_resolve_latest_publication_review_round_artifacts,
+)
 from gpd.core.publication_runtime import (
     publication_blockers_for_project,
-    resolve_latest_publication_review_artifacts,
+    publication_response_freshness_status,
 )
 from gpd.core.recovery_advice import (
     RecoveryAdvice,
@@ -99,13 +190,13 @@ from gpd.core.recovery_advice import (
     serialize_recovery_advice,
 )
 from gpd.core.resume_surface import (
+    build_resume_presentation_lanes,
     canonicalize_resume_public_payload,
-    lookup_resume_surface_list,
     lookup_resume_surface_value,
     resume_candidate_kind,
     resume_candidate_kind_from_source,
 )
-from gpd.core.root_resolution import resolve_project_root
+from gpd.core.root_resolution import RootResolutionPolicy, resolve_project_root
 from gpd.core.runtime_command_surfaces import (
     format_active_runtime_command,
     resolve_active_runtime_descriptor,
@@ -113,9 +204,6 @@ from gpd.core.runtime_command_surfaces import (
 from gpd.core.surface_phrases import (
     cost_inspect_action,
     recovery_action_lines,
-    recovery_ladder_note,
-    recovery_recent_action,
-    recovery_resume_action,
     tangent_branch_later_follow_up_lines,
 )
 from gpd.core.utils import normalize_ascii_slug
@@ -127,6 +215,7 @@ from gpd.core.workflow_presets import (
 from gpd.mcp.managed_integrations import WOLFRAM_MANAGED_INTEGRATION
 
 if TYPE_CHECKING:
+    from gpd.core.constants import ProjectLayout
     from gpd.core.health import UnattendedReadinessResult
     from gpd.mcp.paper.bibliography import CitationSource
     from gpd.mcp.paper.models import PaperConfig
@@ -134,8 +223,8 @@ if TYPE_CHECKING:
 
 # ─── Output helpers ─────────────────────────────────────────────────────────
 
-# BUG-013: On Windows, Rich Console emits Unicode characters (em-dash, arrows)
-# that cp1252 cannot encode. Reconfigure stdout/stderr to UTF-8 before Console
+# On Windows, Rich Console emits Unicode characters (em-dash, arrows) that
+# cp1252 cannot encode. Reconfigure stdout/stderr to UTF-8 before Console
 # objects are created so both CLI and test imports benefit.
 if sys.platform == "win32":
     for _stream in (sys.stdout, sys.stderr):
@@ -152,6 +241,7 @@ logger = logging.getLogger(__name__)
 # Global state threaded through typer context
 _raw: bool = False
 _cwd: Path = Path(".")
+_PROJECT_AWARE_EXPLICIT_INPUT_PREDICATES = _CORE_PROJECT_AWARE_EXPLICIT_INPUT_PREDICATES
 
 
 def _emit_raw_json(data: object, *, err: bool = False) -> None:
@@ -198,14 +288,31 @@ def _output(data: object) -> None:
             console.print(str(data), highlight=False)
 
 
+def _stdout_is_interactive() -> bool:
+    stream = getattr(sys, "stdout", None)
+    if stream is None:
+        return False
+    try:
+        return bool(stream.isatty())
+    except Exception:
+        return False
+
+
 def _pretty_print(d: dict) -> None:
     """Render a dict as a rich table."""
     table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
     table.add_column("Key")
     table.add_column("Value")
     for k, v in d.items():
-        val = json.dumps(v, default=str) if isinstance(v, (dict, list)) else str(v)
-        table.add_row(str(k), val)
+        if k == "failure_reasons" and isinstance(v, dict):
+            # Render each failure reason as its own row for readability
+            for fk, fv in v.items():
+                table.add_row(Text(f"  reason: {fk}"), Text(str(fv)))
+        elif isinstance(v, (dict, list)):
+            val = json.dumps(v, default=str)
+            table.add_row(Text(str(k)), Text(val))
+        else:
+            table.add_row(Text(str(k)), Text(str(v)))
     console.print(table)
 
 
@@ -222,6 +329,15 @@ def _get_cwd() -> Path:
     return _cwd.resolve()
 
 
+def _resolve_path_from_effective_cwd(path_text: str) -> Path:
+    """Resolve a CLI path argument against the effective global ``--cwd``."""
+
+    path = Path(path_text).expanduser()
+    if not path.is_absolute():
+        path = _get_cwd() / path
+    return path.resolve(strict=False)
+
+
 def _migrate_planning_files(cwd: Path) -> None:
     """Auto-migrate ROADMAP.md / PROJECT.md from root into GPD/ if needed."""
     from gpd.core.project_files import migrate_root_planning_files
@@ -232,7 +348,6 @@ def _migrate_planning_files(cwd: Path) -> None:
 def _status_command_reentry(cwd: Path | None = None) -> ProjectReentryResolution:
     """Resolve the shared re-entry contract for recovery/status commands."""
     workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
-    _migrate_planning_files(workspace_cwd)
     return resolve_project_reentry(workspace_cwd)
 
 
@@ -245,21 +360,119 @@ def _status_command_cwd(cwd: Path | None = None) -> Path:
     return workspace_cwd
 
 
+def _progress_command_cwd(cwd: Path | None = None) -> Path:
+    """Resolve the effective cwd for progress/recovery commands."""
+
+    workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
+    if resolve_project_root(workspace_cwd, require_layout=True) is None:
+        resolution = _status_command_reentry(workspace_cwd)
+        if resolution.resolved_project_root is not None:
+            return resolution.resolved_project_root
+        return workspace_cwd
+    return _status_command_cwd(workspace_cwd)
+
+
 def _state_command_cwd(cwd: Path | None = None) -> Path:
     """Resolve the effective cwd for state and project-contract commands."""
     workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
+    resolved = _project_anchor_cwd(workspace_cwd)
+    if resolved is not None:
+        _migrate_planning_files(resolved)
+        return resolved
     _migrate_planning_files(workspace_cwd)
-    resolved = resolve_project_root(workspace_cwd, require_layout=True)
+    resolved = _project_anchor_cwd(workspace_cwd)
     if resolved is not None:
         return resolved
     return workspace_cwd
 
 
-def _project_scoped_cwd(cwd: Path | None = None) -> Path:
-    """Resolve the nearest verified project root for project-scoped preflights."""
+def _project_anchor_cwd(cwd: Path | None = None) -> Path | None:
+    """Return the nearest visible ``GPD/`` anchor without requiring a complete layout."""
     workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
-    _migrate_planning_files(workspace_cwd)
+    resolved = resolve_project_root(workspace_cwd)
+    if resolved is None or not (resolved / PLANNING_DIR_NAME).is_dir():
+        return None
+    return resolved
+
+
+def _read_only_project_scoped_cwd(cwd: Path | None = None) -> Path:
+    """Resolve a project root for read-only commands without migration writes."""
+    workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
+    resolved = _project_anchor_cwd(workspace_cwd)
+    return resolved if resolved is not None else workspace_cwd
+
+
+def _read_only_marker_backed_project_scoped_cwd(cwd: Path | None = None) -> Path:
+    """Resolve only marker-backed project roots for read-only validation probes."""
+    workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
     resolved = resolve_project_root(workspace_cwd, require_layout=True)
+    return resolved if resolved is not None else workspace_cwd
+
+
+def _config_project_scoped_cwd(cwd: Path | None = None) -> Path:
+    """Resolve the nearest canonical project root for config files without migration writes."""
+    from gpd.core.constants import REQUIRED_PLANNING_DIRS, REQUIRED_PLANNING_FILES
+
+    workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
+    config_only_candidate: Path | None = None
+    for candidate in (workspace_cwd, *workspace_cwd.parents):
+        planning_dir = candidate / PLANNING_DIR_NAME
+        if not planning_dir.is_dir():
+            if (candidate / ".git").exists() or (candidate / ".hg").exists():
+                break
+            continue
+        if any((planning_dir / name).exists() for name in REQUIRED_PLANNING_FILES) or any(
+            (planning_dir / name).is_dir() for name in REQUIRED_PLANNING_DIRS
+        ):
+            return candidate
+        if config_only_candidate is None and (planning_dir / CONFIG_FILENAME).exists():
+            config_only_candidate = candidate
+        if (candidate / ".git").exists() or (candidate / ".hg").exists():
+            break
+    if config_only_candidate is not None:
+        return config_only_candidate
+    resolved = resolve_project_root(workspace_cwd, require_layout=True)
+    return resolved if resolved is not None else workspace_cwd
+
+
+def _project_scoped_cwd(cwd: Path | None = None) -> Path:
+    """Resolve the nearest project-owned ``GPD/`` anchor for project-scoped preflights."""
+    workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
+    resolved = _project_anchor_cwd(workspace_cwd)
+    if resolved is not None:
+        _migrate_planning_files(resolved)
+        return resolved
+    _migrate_planning_files(workspace_cwd)
+    resolved = _project_anchor_cwd(workspace_cwd)
+    return resolved if resolved is not None else workspace_cwd
+
+
+def _resolve_return_file_path(file_path: str, *, launch_cwd: Path, project_root: Path) -> Path:
+    """Resolve a child-return file path using CLI launch cwd before project root."""
+    raw_path = Path(file_path).expanduser()
+    if raw_path.is_absolute():
+        return raw_path.resolve(strict=False)
+
+    launch_candidate = (launch_cwd / raw_path).resolve(strict=False)
+    project_candidate = (project_root / raw_path).resolve(strict=False)
+    for candidate in (launch_candidate, project_candidate):
+        if candidate.exists():
+            return candidate
+    return launch_candidate
+
+
+def _workspace_locked_cwd(cwd: Path | None = None) -> Path:
+    """Resolve the effective cwd without walking up to an ancestor project root."""
+    workspace_cwd = (cwd or _get_cwd()).expanduser().resolve(strict=False)
+    ancestor_root = resolve_project_root(workspace_cwd, require_layout=True)
+    if ancestor_root is not None and ancestor_root != workspace_cwd:
+        return workspace_cwd
+    _migrate_planning_files(workspace_cwd)
+    resolved = resolve_project_root(
+        workspace_cwd,
+        require_layout=True,
+        policy=RootResolutionPolicy.WORKSPACE_LOCKED,
+    )
     return resolved if resolved is not None else workspace_cwd
 
 
@@ -323,9 +536,18 @@ def _format_display_path(target: str | Path | None) -> str:
     if not target_path.is_absolute():
         target_path = _get_cwd() / target_path
 
-    resolved_target = target_path.resolve(strict=False)
-    resolved_cwd = _get_cwd().expanduser().resolve(strict=False)
-    resolved_home = Path.home().expanduser().resolve(strict=False)
+    try:
+        resolved_target = target_path.resolve(strict=False)
+    except OSError:
+        return target_path.as_posix()
+    try:
+        resolved_cwd = _get_cwd().expanduser().resolve(strict=False)
+    except OSError:
+        resolved_cwd = _get_cwd().expanduser()
+    try:
+        resolved_home = Path.home().expanduser().resolve(strict=False)
+    except OSError:
+        return resolved_target.as_posix()
 
     try:
         relative_to_cwd = resolved_target.relative_to(resolved_cwd)
@@ -357,8 +579,14 @@ def _format_display_path_from_cwd(target: str | Path | None, *, cwd: Path) -> st
     if not target_path.is_absolute():
         target_path = cwd.expanduser() / target_path
 
-    resolved_target = target_path.resolve(strict=False)
-    resolved_cwd = cwd.expanduser().resolve(strict=False)
+    try:
+        resolved_target = target_path.resolve(strict=False)
+    except OSError:
+        return target_path.as_posix()
+    try:
+        resolved_cwd = cwd.expanduser().resolve(strict=False)
+    except OSError:
+        resolved_cwd = cwd.expanduser()
 
     try:
         relative = resolved_target.relative_to(resolved_cwd)
@@ -396,37 +624,22 @@ class ReviewPreflightResult:
     blocking_conditions: list[str]
     conditional_requirements: list[ReviewContractConditionalRequirement]
     active_conditional_requirements: list[ReviewContractConditionalRequirement]
+    effective_required_evidence: list[str]
+    effective_blocking_conditions: list[str]
+    resolved_mode: str = ""
+    mode_reason: str = ""
     validated_surface: str = "public_runtime_command_surface"
     public_runtime_command_prefix: str = ""
     local_cli_equivalence_guaranteed: bool = False
     dispatch_note: str = ""
-
-
-@dataclasses.dataclass(frozen=True)
-class CommandContextCheck:
-    """One executable context check for a command."""
-
-    name: str
-    passed: bool
-    blocking: bool
-    detail: str
-
-
-@dataclasses.dataclass(frozen=True)
-class CommandContextPreflightResult:
-    """Summary of whether a command can run in the current workspace context."""
-
-    command: str
-    context_mode: str
-    passed: bool
-    project_exists: bool
-    explicit_inputs: list[str]
-    guidance: str
-    checks: list[CommandContextCheck]
-    validated_surface: str = "public_runtime_command_surface"
-    public_runtime_command_prefix: str = ""
-    local_cli_equivalence_guaranteed: bool = False
-    dispatch_note: str = ""
+    resolved_subject: ResolvedCommandSubject | None = None
+    publication_subject_slug: str | None = None
+    publication_lane_kind: str | None = None
+    managed_publication_root: str | None = None
+    selected_publication_root: str | None = None
+    selected_review_root: str | None = None
+    manuscript_root: str | None = None
+    manuscript_entrypoint: str | None = None
 
 
 def _format_runtime_list(runtime_names: list[str]) -> str:
@@ -786,7 +999,7 @@ def _cli_epilog() -> str:
 
 app = _GPDTyper(
     name="gpd",
-    help="GPD — Get Physics Done: local install, readiness, validation, permissions, observability, and diagnostics CLI",
+    help="GPD local bridge: local install, readiness, validation, permissions, observability, recovery, cost, presets, diagnostics, and shared Wolfram integration CLI",
     no_args_is_help=True,
     add_completion=True,
     epilog=_cli_epilog(),
@@ -819,6 +1032,109 @@ def main(
     _cwd = Path(cwd)
 
 
+@app.command("help")
+def help_bridge(
+    command_name: str | None = typer.Option(
+        None,
+        "--command",
+        help="Runtime command slug or label to inspect, for example new-project or gpd:new-project",
+    ),
+    all_commands: bool = typer.Option(False, "--all", help="Include the compact command index"),
+    minimal: bool = typer.Option(False, "--minimal", help="Return the minimal command-specific payload"),
+) -> None:
+    """Machine-readable bridge for the installed runtime help surface."""
+    from gpd.core.help_renderer import (
+        DETAILED_HELP_FOLLOW_UP,
+        command_detail_payload,
+        command_groups_payload,
+        command_index_payload,
+        format_detailed_help_follow_up,
+        format_help_all_command,
+        render_command_detail_markdown,
+        render_command_index_markdown,
+        render_default_help_markdown,
+        render_quick_start_markdown,
+    )
+
+    runtime_cwd = _get_cwd()
+    runtime_surface = _command_runtime_surface_metadata(cwd=runtime_cwd)
+    active_public_prefix = runtime_surface.public_runtime_command_prefix
+    public_prefix = active_public_prefix or "gpd:"
+    canonical_default_help_markdown = render_default_help_markdown()
+    default_help_markdown = render_default_help_markdown(public_prefix=public_prefix)
+    canonical_quick_start_markdown = render_quick_start_markdown()
+    quick_start_markdown = render_quick_start_markdown(public_prefix=public_prefix)
+    canonical_command_index_markdown = render_command_index_markdown()
+    command_index_markdown = render_command_index_markdown(public_prefix=public_prefix)
+    payload: dict[str, object] = {
+        "command": "gpd:help",
+        "surface": "local_cli_raw_help_bridge",
+        "validated_surface": runtime_surface.validated_surface,
+        "public_runtime_command_prefix": active_public_prefix,
+        "local_cli_equivalence_guaranteed": False,
+        "dispatch_note": (
+            "Runtime commands are installed into configured agent surfaces; "
+            "this local bridge exposes registry metadata for automation."
+        ),
+        "default_sections": ["quick_start_extract", "wrapper_owned_all_hint"],
+        "quick_start": {
+            "heading": "Quick Start",
+            "markdown": default_help_markdown,
+            "canonical_markdown": canonical_default_help_markdown,
+        },
+        "recommended_commands": [format_help_all_command(public_prefix=public_prefix)],
+        "canonical_recommended_commands": ["gpd:help --all"],
+        "read_only": True,
+    }
+    if command_name:
+        canonical = canonical_command_label(command_name)
+        try:
+            detail_payload = command_detail_payload(canonical, minimal=minimal, include_markdown=True)
+        except KeyError:
+            lookup_payload = build_command_lookup_error_payload(
+                command_name,
+                runtime_surface_metadata=runtime_surface,
+            )
+            payload.update(dataclasses.asdict(lookup_payload))
+            _output(payload)
+            raise typer.Exit(code=1) from None
+        canonical_detail_markdown = detail_payload.get("detail_markdown")
+        detail_payload["detail_markdown"] = render_command_detail_markdown(canonical, public_prefix=public_prefix)
+        if isinstance(canonical_detail_markdown, str):
+            detail_payload["canonical_detail_markdown"] = canonical_detail_markdown
+        preflight = _build_command_context_preflight(canonical)
+        preflight_payload = dataclasses.asdict(preflight) if dataclasses.is_dataclass(preflight) else preflight
+        payload.update(
+            {
+                "ok": True,
+                "requested_command": command_name,
+                **detail_payload,
+                "command_context": preflight_payload,
+            }
+        )
+    elif all_commands:
+        payload.update(
+            {
+                "ok": True,
+                "rendered_sections": ["quick_start", "command_index", "detailed_help_follow_up"],
+                "quick_start": {
+                    "heading": "Quick Start",
+                    "markdown": quick_start_markdown,
+                    "canonical_markdown": canonical_quick_start_markdown,
+                },
+                "command_index_markdown": command_index_markdown,
+                "canonical_command_index_markdown": canonical_command_index_markdown,
+                "command_groups": command_groups_payload(),
+                "detailed_help_follow_up": format_detailed_help_follow_up(public_prefix=public_prefix),
+                "canonical_detailed_help_follow_up": DETAILED_HELP_FOLLOW_UP,
+                "command_index": command_index_payload(),
+            }
+        )
+    else:
+        payload["ok"] = True
+    _output(payload)
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # state — STATE.md and state.json management
 # ═══════════════════════════════════════════════════════════════════════════
@@ -830,19 +1146,61 @@ app.add_typer(state_app, name="state")
 @state_app.command("load")
 def state_load() -> None:
     """Load and display current research state."""
-    from gpd.core.state import state_load
+    from gpd.core.state import state_load_readonly
 
-    _output(state_load(_state_command_cwd()))
+    _output(state_load_readonly(_read_only_project_scoped_cwd()))
 
 
 @state_app.command("get")
 def state_get(
     section: str | None = typer.Argument(None, help="State section to retrieve"),
+    include: str | None = typer.Option(
+        None,
+        "--include",
+        help=(
+            "Comma-separated structured state sections to return as JSON "
+            "(position, session, continuation, handoff, project_reference)."
+        ),
+    ),
 ) -> None:
     """Get a specific state section or the full state."""
-    from gpd.core.state import state_get
+    from gpd.core.state import _session_display_from_continuation
+    from gpd.core.state import state_get_readonly as core_state_get
+    from gpd.core.state import state_load_readonly as core_state_load
 
-    _output(state_get(_state_command_cwd(), section))
+    if include is not None:
+        if section is not None:
+            _error("state get accepts either a positional section or --include, not both")
+        allowed = {"position", "session", "continuation", "handoff", "project_reference", "project"}
+        includes: list[str] = []
+        for raw_token in include.split(","):
+            token = raw_token.strip().replace("-", "_")
+            if not token:
+                continue
+            if token not in allowed:
+                supported = ", ".join(sorted(allowed - {"project"}))
+                _error(f"Unknown --include value for state get: {token}. Allowed values: {supported}.")
+            canonical = "project_reference" if token == "project" else token
+            if canonical not in includes:
+                includes.append(canonical)
+        if not includes:
+            _error("state get --include requires at least one non-empty value")
+
+        state_obj = core_state_load(_read_only_project_scoped_cwd()).state
+        state_payload = state_obj if isinstance(state_obj, dict) else {}
+        continuation = state_payload.get("continuation")
+        payload: dict[str, object] = {}
+        for token in includes:
+            if token == "session":
+                payload[token] = _session_display_from_continuation(continuation)
+            elif token == "handoff":
+                payload[token] = continuation.get("handoff") if isinstance(continuation, dict) else {}
+            else:
+                payload[token] = state_payload.get(token) or {}
+        _output(payload)
+        return
+
+    _output(core_state_get(_read_only_project_scoped_cwd(), section))
 
 
 @state_app.command("patch")
@@ -937,15 +1295,15 @@ def state_snapshot() -> None:
     """Return a fast read-only snapshot of current state for progress and routing."""
     from gpd.core.state import state_snapshot
 
-    _output(state_snapshot(_state_command_cwd()))
+    _output(state_snapshot(_read_only_project_scoped_cwd()))
 
 
 @state_app.command("active-hypothesis")
 def state_active_hypothesis() -> None:
     """Extract the active hypothesis branch note from STATE.md, if present."""
-    from gpd.core.state import state_get
+    from gpd.core.state import state_get_readonly as state_get
 
-    result = state_get(_state_command_cwd(), "Active Hypothesis")
+    result = state_get(_read_only_project_scoped_cwd(), "Active Hypothesis")
     section = result.value or ""
     if result.error or not section.strip():
         _output(
@@ -986,11 +1344,24 @@ def state_active_hypothesis() -> None:
 @state_app.command("validate")
 def state_validate() -> None:
     """Validate state consistency and schema compliance."""
-    from gpd.core.state import state_validate
+    from gpd.core.state import state_validate as core_state_validate
 
-    result = state_validate(_state_command_cwd())
+    result = core_state_validate(
+        _read_only_marker_backed_project_scoped_cwd(), recover_intent=False, acquire_lock=False
+    )
     _output(result)
     if hasattr(result, "valid") and not result.valid:
+        raise typer.Exit(code=1)
+
+
+@state_app.command("repair-sync")
+def state_repair_sync() -> None:
+    """Repair STATE.md/state.json using the recovery-aware backend path."""
+    from gpd.core.state import state_repair_sync as core_state_repair_sync
+
+    result = core_state_repair_sync(_state_command_cwd())
+    _output(result)
+    if not result.repaired:
         raise typer.Exit(code=1)
 
 
@@ -1050,6 +1421,39 @@ def state_resolve_blocker(
     _output(state_resolve_blocker(_state_command_cwd(), text))
 
 
+@state_app.command("record-verification")
+def state_record_verification(
+    phase: str = typer.Option(..., "--phase", help="Phase number to record verification for"),
+    status: str | None = typer.Option(
+        None,
+        "--status",
+        help=(
+            "Administrative override outcome (passed|failed). Requires --admin-status-override. "
+            "If omitted, read canonical VERIFICATION.md frontmatter and fail closed on missing, "
+            "malformed, or unknown status."
+        ),
+    ),
+    admin_status_override: bool = typer.Option(
+        False,
+        "--admin-status-override",
+        help="Allow --status to bypass canonical VERIFICATION.md frontmatter for administrative repair.",
+    ),
+) -> None:
+    """Atomically advance STATE.md past verification after a VERIFICATION.md result."""
+    from gpd.core.state import state_record_verification
+
+    result = state_record_verification(
+        _state_command_cwd(),
+        phase=phase,
+        status=status,
+        admin_override=admin_status_override,
+    )
+    payload = result.model_dump(mode="json") if hasattr(result, "model_dump") else result
+    _output(payload)
+    if isinstance(payload, dict) and payload.get("error"):
+        raise typer.Exit(code=1)
+
+
 @state_app.command("record-session")
 def state_record_session(
     stopped_at: str | None = typer.Option(None, "--stopped-at", help="Stop timestamp"),
@@ -1074,11 +1478,226 @@ def state_record_session(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# contract — Machine contract alignment confirmation gate
+# ═══════════════════════════════════════════════════════════════════════════
+
+contract_app = typer.Typer(help="Machine-contract alignment gate (claim-deliverable precheck)")
+app.add_typer(contract_app, name="contract")
+
+
+def _require_project_root(cwd: Path, *, command_label: str) -> Path:
+    """Require a visible GPD project root; ``command_label`` is the noun used in the error."""
+    workspace_cwd = cwd.expanduser().resolve(strict=False)
+    project_root = _project_anchor_cwd(workspace_cwd)
+    if project_root is None:
+        _error(
+            f"{command_label} require a real GPD project root. "
+            "Run the command from inside a project with a GPD/ layout."
+        )
+    return project_root
+
+
+def _load_authoritative_project_contract_or_error(
+    project_root: Path,
+) -> tuple[object, dict[str, object], dict[str, object], dict[str, object]]:
+    """Load the current contract for alignment commands, failing closed on non-authority."""
+    from gpd.core.errors import StateError
+    from gpd.core.state import _load_authoritative_project_contract_for_runtime_context
+
+    try:
+        return _load_authoritative_project_contract_for_runtime_context(project_root)
+    except StateError as exc:
+        _error(str(exc))
+
+
+@contract_app.command("record-alignment")
+def contract_record_alignment(
+    contract_hash: str = typer.Option(
+        ..., "--contract-hash", help="Fingerprint of the machine contract that was reviewed."
+    ),
+    context_hash: str = typer.Option(
+        ..., "--context-hash", help="Fingerprint of the phase CONTEXT.md text that was reviewed."
+    ),
+) -> None:
+    """Persist operator confirmation that the claim-deliverable alignment was reviewed."""
+    from gpd.core.errors import StateError
+    from gpd.core.state import state_record_contract_alignment
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd contract commands")
+    try:
+        state_record_contract_alignment(
+            project_root,
+            contract_hash=contract_hash,
+            context_hash=context_hash,
+        )
+    except StateError as exc:
+        _error(str(exc))
+    if _raw:
+        _emit_raw_json({"result": "recorded"})
+    else:
+        typer.echo("recorded")
+
+
+@contract_app.command("alignment-status")
+def contract_alignment_status() -> None:
+    """Print the persisted claim-deliverable alignment confirmation as JSON."""
+    from gpd.core.state import state_load_readonly
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd contract commands")
+    load_result = state_load_readonly(project_root)
+    state_obj = load_result.state if isinstance(load_result.state, dict) else {}
+    alignment = state_obj.get("contract_alignment") or {}
+    payload = {
+        "confirmed_at": alignment.get("confirmed_at"),
+        "confirmed_contract_hash": alignment.get("confirmed_contract_hash"),
+        "confirmed_context_hash": alignment.get("confirmed_context_hash"),
+    }
+    _emit_raw_json(payload)
+
+
+@contract_app.command("fingerprint")
+def contract_fingerprint_cmd() -> None:
+    """Print the canonical sha256 fingerprint of the current machine contract."""
+    from gpd.core.contract_validation import contract_fingerprint
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd contract commands")
+    contract, _load_info, _validation, _gate = _load_authoritative_project_contract_or_error(project_root)
+    _output(contract_fingerprint(contract))
+
+
+@contract_app.command("context-fingerprint")
+def contract_context_fingerprint_cmd(
+    path: Path | None = typer.Argument(
+        None,
+        help="Path to the CONTEXT.md file. Defaults to the active phase's CONTEXT.md.",
+    ),
+) -> None:
+    """Print the sha256 fingerprint of a CONTEXT.md file's text."""
+    from gpd.core.constants import CONTEXT_SUFFIX, STANDALONE_CONTEXT
+    from gpd.core.context import _find_phase_artifact_path
+    from gpd.core.contract_validation import context_guidance_fingerprint
+    from gpd.core.phases import find_phase
+    from gpd.core.state import state_load_readonly
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd contract commands")
+    if path is None:
+        state_obj = state_load_readonly(project_root).state
+        current_phase = state_obj.get("position", {}).get("current_phase") if isinstance(state_obj, dict) else None
+        if current_phase is None:
+            _error(
+                "No CONTEXT.md could be resolved: state.position.current_phase is "
+                "unset. Pass an explicit path as the argument."
+            )
+        phase_info = find_phase(project_root, str(current_phase))
+        if phase_info is None:
+            _error(f"No CONTEXT.md could be resolved: phase {current_phase!r} not found.")
+        phase_dir = project_root / phase_info.directory
+        resolved = _find_phase_artifact_path(phase_dir, CONTEXT_SUFFIX, STANDALONE_CONTEXT)
+        if resolved is None:
+            _error(f"No CONTEXT.md found under {phase_dir}.")
+    else:
+        resolved = path.expanduser()
+        if not resolved.is_absolute():
+            resolved = _get_cwd() / resolved
+        resolved = resolved.resolve(strict=False)
+        if not resolved.is_file():
+            _error(f"CONTEXT file not found: {resolved}")
+    _output(context_guidance_fingerprint(resolved.read_text(encoding="utf-8")))
+
+
+@contract_app.command("alignment-summary")
+def contract_alignment_summary_cmd() -> None:
+    """Print the claim-deliverable alignment row projection as JSON."""
+    from gpd.core.contract_validation import claim_deliverable_alignment_summary
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd contract commands")
+    contract, _load_info, _validation, _gate = _load_authoritative_project_contract_or_error(project_root)
+    rows = [
+        {"claim": claim, "deliverable": deliverable, "acceptance_test": acceptance}
+        for claim, deliverable, acceptance in claim_deliverable_alignment_summary(contract)
+    ]
+    _emit_raw_json({"rows": rows})
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # phase — Phase lifecycle management
 # ═══════════════════════════════════════════════════════════════════════════
 
 phase_app = typer.Typer(help="Phase lifecycle (add, remove, complete, etc.)")
 app.add_typer(phase_app, name="phase")
+phase_checkpoint_app = typer.Typer(help="Wave rollback checkpoint tag helpers")
+phase_app.add_typer(phase_checkpoint_app, name="checkpoint")
+
+
+@phase_checkpoint_app.command("create")
+def phase_checkpoint_create(
+    phase_num: str = typer.Option(..., "--phase", help="Phase number for the checkpoint tag"),
+    wave_num: str = typer.Option(..., "--wave", help="Wave number for the checkpoint tag"),
+    namespace: str = typer.Option("phase", "--namespace", help="Checkpoint namespace: phase or sweep"),
+) -> None:
+    """Create a helper-owned rollback checkpoint tag before wave execution."""
+    from gpd.core.wave_checkpoints import create_wave_checkpoint
+
+    try:
+        result = create_wave_checkpoint(
+            _project_scoped_cwd(),
+            phase=phase_num,
+            wave=wave_num,
+            namespace=namespace,  # type: ignore[arg-type]
+        )
+    except ValueError as exc:
+        _error(str(exc))
+    _output(result)
+    if not result.safe_to_execute_wave:
+        raise typer.Exit(code=1)
+
+
+@phase_checkpoint_app.command("list")
+def phase_checkpoint_list(
+    phase_num: str = typer.Option(..., "--phase", help="Phase number for checkpoint inventory"),
+    namespace: str = typer.Option("phase", "--namespace", help="Checkpoint namespace: phase or sweep"),
+) -> None:
+    """List helper-owned rollback checkpoint tags for a phase."""
+    from gpd.core.wave_checkpoints import list_wave_checkpoints
+
+    try:
+        result = list_wave_checkpoints(
+            _read_only_project_scoped_cwd(),
+            phase=phase_num,
+            namespace=namespace,  # type: ignore[arg-type]
+        )
+    except ValueError as exc:
+        _error(str(exc))
+    _output(result)
+    if result.errors:
+        raise typer.Exit(code=1)
+
+
+@phase_checkpoint_app.command("cleanup")
+def phase_checkpoint_cleanup(
+    phase_num: str = typer.Option(..., "--phase", help="Phase number for checkpoint cleanup"),
+    namespace: str = typer.Option("phase", "--namespace", help="Checkpoint namespace: phase or sweep"),
+    policy: str = typer.Option(
+        "preserve-on-failure",
+        "--policy",
+        help="Cleanup policy: preserve-on-failure or successful-closeout",
+    ),
+) -> None:
+    """Delete helper-owned rollback checkpoint tags only when policy allows it."""
+    from gpd.core.wave_checkpoints import cleanup_wave_checkpoints
+
+    try:
+        result = cleanup_wave_checkpoints(
+            _project_scoped_cwd(),
+            phase=phase_num,
+            namespace=namespace,  # type: ignore[arg-type]
+            policy=policy,  # type: ignore[arg-type]
+        )
+    except ValueError as exc:
+        _error(str(exc))
+    _output(result)
+    if result.errors:
+        raise typer.Exit(code=1)
 
 
 @phase_app.command("list")
@@ -1089,10 +1708,11 @@ def phase_list(
     """List phases and their files."""
     from gpd.core.phases import list_phase_files, list_phases
 
+    cwd = _read_only_project_scoped_cwd()
     if file_type or phase:
-        _output(list_phase_files(_get_cwd(), file_type=file_type or "plan", phase=phase))
+        _output(list_phase_files(cwd, file_type=file_type or "plan", phase=phase))
     else:
-        _output(list_phases(_get_cwd()))
+        _output(list_phases(cwd))
 
 
 @phase_app.command("add")
@@ -1102,7 +1722,7 @@ def phase_add(
     """Add a new phase to the end of the roadmap."""
     from gpd.core.phases import phase_add
 
-    _output(phase_add(_get_cwd(), " ".join(description)))
+    _output(phase_add(_project_scoped_cwd(), " ".join(description)))
 
 
 @phase_app.command("insert")
@@ -1113,7 +1733,7 @@ def phase_insert(
     """Insert a new phase after an existing one."""
     from gpd.core.phases import phase_insert
 
-    _output(phase_insert(_get_cwd(), after_phase, " ".join(description)))
+    _output(phase_insert(_project_scoped_cwd(), after_phase, " ".join(description)))
 
 
 @phase_app.command("remove")
@@ -1124,7 +1744,7 @@ def phase_remove(
     """Remove a phase from the roadmap."""
     from gpd.core.phases import phase_remove
 
-    _output(phase_remove(_get_cwd(), phase_num, force=force))
+    _output(phase_remove(_project_scoped_cwd(), phase_num, force=force))
 
 
 @phase_app.command("complete")
@@ -1134,7 +1754,32 @@ def phase_complete(
     """Mark a phase as complete."""
     from gpd.core.phases import phase_complete
 
-    _output(phase_complete(_get_cwd(), phase_num))
+    _output(phase_complete(_project_scoped_cwd(), phase_num))
+
+
+@phase_app.command("closeout-readiness")
+def phase_closeout_readiness_cmd(
+    phase_num: str = typer.Argument(..., help="Phase number to check"),
+    require_verification: bool = typer.Option(
+        True,
+        "--require-verification/--no-require-verification",
+        help="Require canonical verification frontmatter status: passed",
+    ),
+) -> None:
+    """Check whether a phase is ready for closeout without mutating state."""
+    from gpd.core.phase_closeout import phase_closeout_readiness, phase_closeout_readiness_payload
+
+    result = phase_closeout_readiness(
+        _read_only_project_scoped_cwd(),
+        phase_num,
+        require_verification=require_verification,
+    )
+    if _raw:
+        _emit_raw_json(phase_closeout_readiness_payload(result))
+    else:
+        _output(result)
+    if not result.ready:
+        raise typer.Exit(code=1)
 
 
 @phase_app.command("index")
@@ -1144,7 +1789,7 @@ def phase_plan_index(
     """Show plan index for a phase (plans, waves, dependencies)."""
     from gpd.core.phases import phase_plan_index
 
-    _output(phase_plan_index(_get_cwd(), phase_num))
+    _output(phase_plan_index(_read_only_project_scoped_cwd(), phase_num))
 
 
 @phase_app.command("find")
@@ -1154,7 +1799,7 @@ def phase_find(
     """Find a phase directory and its metadata."""
     from gpd.core.phases import find_phase
 
-    result = find_phase(_get_cwd(), phase_num)
+    result = find_phase(_read_only_project_scoped_cwd(), phase_num)
     if result is None:
         _error(f"Phase {phase_num} not found")
     _output(result)
@@ -1167,7 +1812,7 @@ def phase_next_decimal(
     """Get the next available decimal phase number (e.g. 42 → 42.1)."""
     from gpd.core.phases import next_decimal_phase
 
-    _output(next_decimal_phase(_get_cwd(), base_phase))
+    _output(next_decimal_phase(_read_only_project_scoped_cwd(), base_phase))
 
 
 @phase_app.command("normalize")
@@ -1187,7 +1832,7 @@ def phase_validate_waves(
     """Validate wave dependencies within a phase."""
     from gpd.core.phases import validate_phase_waves
 
-    result = validate_phase_waves(_get_cwd(), phase_num)
+    result = validate_phase_waves(_read_only_project_scoped_cwd(), phase_num)
     _output(result)
     validation = getattr(result, "validation", None)
     if getattr(validation, "valid", True) is False:
@@ -1209,7 +1854,7 @@ def roadmap_get_phase(
     """Get detailed roadmap entry for a phase."""
     from gpd.core.phases import roadmap_get_phase
 
-    _output(roadmap_get_phase(_get_cwd(), phase_num))
+    _output(roadmap_get_phase(_project_scoped_cwd(), phase_num))
 
 
 @roadmap_app.command("analyze")
@@ -1217,7 +1862,7 @@ def roadmap_analyze() -> None:
     """Analyze roadmap structure, dependencies, and coverage."""
     from gpd.core.phases import roadmap_analyze
 
-    _output(roadmap_analyze(_get_cwd()))
+    _output(roadmap_analyze(_project_scoped_cwd()))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1236,7 +1881,7 @@ def milestone_complete(
     """Archive a completed milestone."""
     from gpd.core.phases import milestone_complete
 
-    _output(milestone_complete(_get_cwd(), version, name=name))
+    _output(milestone_complete(_project_scoped_cwd(), version, name=name))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1246,31 +1891,7 @@ def milestone_complete(
 
 def _resume_status_message(payload: dict[str, object], *, recovery_advice: RecoveryAdvice) -> str:
     """Return a concise human summary of resume readiness for this workspace."""
-    auto_selected = _payload_flag(payload, "project_root_auto_selected")
-    if not _payload_flag(payload, "planning_exists"):
-        return "No GPD planning directory is present in this workspace."
-    if not any(_payload_flag(payload, key) for key in ("state_exists", "roadmap_exists", "project_exists")):
-        return "Planning scaffolding exists, but there is no recoverable project state yet."
-
-    if recovery_advice.status == "bounded-segment":
-        if auto_selected:
-            return "A bounded segment is resumable from an auto-selected recent project."
-        return "A bounded segment is resumable from the current workspace state."
-    if recovery_advice.status == "interrupted-agent":
-        return "An interrupted agent marker is present, but no bounded resume segment is active."
-    if recovery_advice.status == "session-handoff":
-        return "A continuity handoff is available, but no resumable bounded segment is currently active."
-    if recovery_advice.status == "missing-handoff":
-        return "Canonical recovery metadata exists, but the continuity handoff file is missing."
-    if recovery_advice.status == "live-execution":
-        return "A live execution snapshot exists, but it is advisory only and does not expose a portable bounded-segment target."
-    if recovery_advice.status == "workspace-recovery" and recovery_advice.machine_change_notice:
-        return "A machine change was detected, but the project state is portable and does not require repair."
-    if recovery_advice.status == "workspace-recovery":
-        return "Current workspace has recorded recovery context to inspect."
-    if recovery_advice.machine_change_notice:
-        return "A machine change was detected, but the project state is portable and does not require repair."
-    return "No recent local recovery target is currently recorded."
+    return _resume_presentation.resume_status_message(payload, recovery_advice=recovery_advice)
 
 
 def _resume_recent_hint(payload: dict[str, object]) -> str | None:
@@ -1335,42 +1956,17 @@ def _resume_recovery_advice(
 
 def _resume_mode_label(value: object) -> str:
     """Format a resume mode for human-facing CLI output."""
-    if not isinstance(value, str) or not value.strip():
-        return "none"
-    return value.replace("_", " ")
+    return _resume_presentation.resume_mode_label(value)
 
 
 def _resume_status_label(status: object) -> str:
     """Return a canonical human label for one recovery status."""
-    labels = {
-        "bounded-segment": "Bounded segment",
-        "interrupted-agent": "Interrupted agent",
-        "session-handoff": "Continuity handoff",
-        "missing-handoff": "Missing continuity handoff",
-        "live-execution": "Advisory live execution",
-        "workspace-recovery": "Recovery context",
-        "recent-projects": "Recent projects",
-        "recovery-error": "Recovery error",
-        "no-recovery": "No recovery target",
-    }
-    status_text = str(status).strip() if status is not None else ""
-    return labels.get(status_text, status_text.replace("_", " ") if status_text else "Unknown")
+    return _resume_presentation.resume_status_label(status)
 
 
 def _project_root_source_label(source: object, *, auto_selected: bool = False) -> str:
     """Map a project-root source to a plain-language re-entry label."""
-    labels = {
-        "current_workspace": "current workspace",
-        "workspace": "current workspace",
-        "recent_project": "machine-local recent-project index",
-    }
-    source_text = str(source).strip() if source is not None else ""
-    label = labels.get(source_text, source_text.replace("_", " ") if source_text else "unknown")
-    if source_text == "recent_project":
-        if auto_selected:
-            return f"auto-selected recent project (unique recoverable match from the {label})"
-        return f"recent project selected explicitly from the {label}"
-    return label
+    return _resume_presentation.project_root_source_label(source, auto_selected=auto_selected)
 
 
 def _resume_candidate_canonical_kind(candidate: dict[str, object]) -> str:
@@ -1380,13 +1976,7 @@ def _resume_candidate_canonical_kind(candidate: dict[str, object]) -> str:
 
 def _resume_candidate_kind_label(candidate: dict[str, object]) -> str:
     """Map one resume candidate to a user-facing kind label."""
-    kind = _resume_candidate_canonical_kind(candidate)
-    labels = {
-        "bounded_segment": "Bounded segment",
-        "continuity_handoff": "Continuity handoff",
-        "interrupted_agent": "Interrupted agent",
-    }
-    return labels.get(kind, kind.replace("_", " ") if kind else "unknown")
+    return _resume_presentation.resume_candidate_kind_label(candidate)
 
 
 def _resume_candidate_kind(source: object, *, status: object) -> str:
@@ -1398,15 +1988,7 @@ def _resume_candidate_kind(source: object, *, status: object) -> str:
 
 def _resume_origin_label(origin: object) -> str:
     """Map one canonical resume origin to a user-facing label."""
-    labels = {
-        "canonical_continuation": "canonical continuation",
-        "derived_execution_head": "derived execution head",
-        "interrupted_agent": "interrupted agent",
-    }
-    origin_text = str(origin).strip() if origin is not None else ""
-    if not origin_text:
-        return "Unknown"
-    return labels.get(origin_text, "Unknown")
+    return _resume_presentation.resume_origin_label(origin)
 
 
 def _public_resume_origin_family(
@@ -1417,61 +1999,24 @@ def _public_resume_origin_family(
     current_execution: dict[str, object] | None = None,
 ) -> str | None:
     """Collapse internal resume-origin tokens into the public resume-origin families."""
-
-    origin_text = str(origin).strip() if origin is not None else ""
-    if origin_text in {"canonical_continuation", "derived_execution_head", "interrupted_agent"}:
-        return origin_text
-
-    normalized_source = str(source).strip() if source is not None else ""
-
-    if normalized_source == "current_execution":
-        return "canonical_continuation" if isinstance(active_execution, dict) else "derived_execution_head"
-    if normalized_source == "session_resume_file":
-        return "canonical_continuation"
-    if normalized_source == "interrupted_agent":
-        return "interrupted_agent"
-
-    if origin_text == "current_execution":
-        return "canonical_continuation" if isinstance(active_execution, dict) else "derived_execution_head"
-    if origin_text == "session_resume_file":
-        return "canonical_continuation"
-    if origin_text in {"continuation.bounded_segment", "continuation.handoff"}:
-        return "canonical_continuation"
-    if origin_text == "interrupted_agent_marker":
-        return "interrupted_agent"
-    return None
+    return _resume_presentation.public_resume_origin_family(
+        origin,
+        source=source,
+        active_execution=active_execution,
+        current_execution=current_execution,
+    )
 
 
 def _resume_authoritative_active_execution(
     payload: dict[str, object],
 ) -> dict[str, object] | None:
     """Return the bounded segment only when it comes from canonical continuation."""
-    active_bounded_segment_raw = _resume_surface_value(payload, "active_bounded_segment")
-    if not isinstance(active_bounded_segment_raw, dict):
-        return None
-
-    active_origin = payload.get("active_resume_origin")
-    if not isinstance(active_origin, str) or not active_origin.strip():
-        active_origin = _resume_surface_value(payload, "active_resume_origin")
-
-    if str(active_origin).strip() in {"canonical_continuation", "continuation.bounded_segment"}:
-        return active_bounded_segment_raw
-    return None
+    return _resume_presentation.resume_authoritative_active_execution(payload)
 
 
 def _resume_candidate_phase_plan(candidate: dict[str, object]) -> str:
     """Format phase/plan context for one resume candidate."""
-    phase = candidate.get("phase")
-    plan = candidate.get("plan")
-    phase_text = str(phase).strip() if phase is not None else ""
-    plan_text = str(plan).strip() if plan is not None else ""
-    if phase_text and plan_text:
-        return f"{phase_text} / {plan_text}"
-    if phase_text:
-        return phase_text
-    if plan_text:
-        return plan_text
-    return "—"
+    return _resume_presentation.resume_candidate_phase_plan(candidate)
 
 
 def _resume_surface_value(
@@ -1494,76 +2039,27 @@ def _payload_flag(payload: dict[str, object], key: str) -> bool:
 
 def _resume_visible_candidates(payload: dict[str, object]) -> list[dict[str, object]]:
     """Return the canonical candidate list to render."""
-    candidates = lookup_resume_surface_list(payload, "resume_candidates")
-    if not isinstance(candidates, list):
-        return []
-    return [item for item in candidates if isinstance(item, dict)]
+    return _resume_presentation.resume_visible_candidates(payload)
 
 
 def _resume_candidate_target(candidate: dict[str, object]) -> str:
     """Format the primary target/pointer for one resume candidate."""
-    source = str(candidate.get("source") or "").strip()
-    if source == "interrupted_agent":
-        agent_id = candidate.get("agent_id")
-        return str(agent_id).strip() if agent_id is not None and str(agent_id).strip() else "—"
-
-    resume_file = candidate.get("resume_file")
-    if isinstance(resume_file, str) and resume_file.strip():
-        return _format_display_path(resume_file.strip())
-    return "—"
+    return _resume_presentation.resume_candidate_target(candidate, cwd=_get_cwd())
 
 
 def _resume_candidate_rerun_anchor(candidate: dict[str, object]) -> str | None:
     """Return the canonical rerun anchor note for one candidate, if any."""
-    last_result_id = candidate.get("last_result_id")
-    last_result_label = candidate.get("last_result_label")
-    if not isinstance(last_result_id, str) or not last_result_id.strip():
-        if isinstance(last_result_label, str) and last_result_label.strip():
-            return f"last result: {last_result_label.strip()}"
-        return None
-
-    last_result_id_text = last_result_id.strip()
-    if isinstance(last_result_label, str) and last_result_label.strip():
-        return f"rerun anchor: {last_result_label.strip()} ({last_result_id_text})"
-    return f"rerun anchor: {last_result_id_text}"
+    return _resume_presentation.resume_candidate_rerun_anchor(candidate)
 
 
 def _resume_result_payload(value: object) -> dict[str, object] | None:
     """Normalize a hydrated result payload into a plain dictionary."""
-    if hasattr(value, "model_dump"):
-        try:
-            value = value.model_dump(mode="json")
-        except Exception:
-            return None
-    if isinstance(value, Mapping):
-        return dict(value)
-    return None
+    return _resume_presentation.resume_result_payload(value)
 
 
 def _resume_result_summary(result: Mapping[str, object] | None, *, include_id: bool = True) -> str | None:
     """Render a concise human summary for one hydrated intermediate result."""
-    if not isinstance(result, Mapping):
-        return None
-
-    result_id = _recent_project_text(result, "id")
-    description = _recent_project_text(result, "description", "label", "name", "title")
-    equation = _recent_project_text(result, "equation")
-    if description and equation:
-        summary = f"{description} [{equation}]"
-    elif description:
-        summary = description
-    elif equation:
-        summary = equation
-    elif result_id:
-        summary = result_id
-    else:
-        return None
-
-    if include_id and result_id and summary != result_id:
-        summary = f"{summary} ({result_id})"
-    if _strict_bool_value(result.get("verified")) is True or bool(result.get("verification_records")):
-        summary = f"{summary} · verified"
-    return summary
+    return _resume_presentation.resume_result_summary(result, include_id=include_id)
 
 
 def _resume_candidate_last_result(
@@ -1572,29 +2068,7 @@ def _resume_candidate_last_result(
     payload: dict[str, object] | None = None,
 ) -> dict[str, object] | None:
     """Return the hydrated last-result payload for one candidate, if available."""
-    result = _resume_result_payload(candidate.get("last_result"))
-    if result is not None:
-        return result
-
-    if payload is None:
-        return None
-
-    last_result_id = _recent_project_text(candidate, "last_result_id")
-    if not isinstance(last_result_id, str) or not last_result_id.strip():
-        return None
-
-    active_result = _resume_result_payload(_resume_surface_value(payload, "active_resume_result"))
-    if active_result is not None and _recent_project_text(active_result, "id") == last_result_id:
-        return active_result
-
-    derived_results = _resume_surface_value(payload, "derived_intermediate_results")
-    if isinstance(derived_results, list):
-        for item in derived_results:
-            result = _resume_result_payload(item)
-            if result is not None and _recent_project_text(result, "id") == last_result_id:
-                return result
-
-    return None
+    return _resume_presentation.resume_candidate_last_result(candidate, payload=payload)
 
 
 def _resume_active_result(
@@ -1602,16 +2076,7 @@ def _resume_active_result(
     candidates: list[dict[str, object]],
 ) -> dict[str, object] | None:
     """Return the most relevant hydrated result for the current resume view."""
-    active_result = _resume_result_payload(_resume_surface_value(payload, "active_resume_result"))
-    if active_result is not None:
-        return active_result
-
-    for candidate in candidates:
-        result = _resume_candidate_last_result(candidate, payload=payload)
-        if result is not None:
-            return result
-
-    return None
+    return _resume_presentation.resume_active_result(payload, candidates)
 
 
 def _resume_candidate_origin(
@@ -1621,112 +2086,31 @@ def _resume_candidate_origin(
     current_execution: dict[str, object] | None,
 ) -> tuple[str, str]:
     """Return a machine label and human summary for one candidate origin."""
-    origin = candidate.get("origin")
-    source = str(candidate.get("source") or "").strip()
-    public_origin = _public_resume_origin_family(
-        origin,
-        source=source,
+    return _resume_presentation.resume_candidate_origin(
+        candidate,
         active_execution=active_execution,
         current_execution=current_execution,
     )
-    if public_origin is not None and source != "current_execution":
-        return public_origin, _resume_origin_label(public_origin)
-    status = str(candidate.get("status") or "").strip()
-    if source == "current_execution":
-        active_resume = (
-            str(active_execution.get("resume_file")).strip()
-            if isinstance(active_execution, dict) and active_execution.get("resume_file") is not None
-            else ""
-        )
-        current_resume = (
-            str(current_execution.get("resume_file")).strip()
-            if isinstance(current_execution, dict) and current_execution.get("resume_file") is not None
-            else ""
-        )
-        if isinstance(active_execution, dict):
-            if active_resume and current_resume and active_resume != current_resume:
-                return (
-                    "canonical_continuation",
-                    "canonical continuation; current execution points at a different handoff file",
-                )
-            return ("canonical_continuation", "canonical continuation")
-        if isinstance(current_execution, dict):
-            return ("derived_execution_head", "derived execution head")
-        return ("derived_execution_head", "derived execution head")
-    if source == "session_resume_file":
-        if status == "missing":
-            return ("canonical_continuation", "canonical continuation; handoff file missing")
-        return ("canonical_continuation", "canonical continuation")
-    if source == "interrupted_agent":
-        return ("interrupted_agent", "interrupted-agent marker")
-    return ("unknown", "unknown origin")
 
 
 def _recent_project_label(row: dict[str, object]) -> str | None:
     """Return an optional human label for one recent-project row."""
-    return _recent_project_text(row, "label", "title", "project_label", "project_title", "name")
+    return _recent_project_presentation.recent_project_label(row)
 
 
 def _recent_project_summary(row: dict[str, object]) -> str | None:
     """Return an optional human summary for one recent-project row."""
-    return _recent_project_text(row, "summary", "project_summary", "description", "project_description")
+    return _recent_project_presentation.recent_project_summary(row)
 
 
 def _recent_project_current_state(row: dict[str, object]) -> str | None:
     """Return an optional phase/status/progress summary for one recent-project row."""
-    current_phase = row.get("current_phase")
-    if isinstance(current_phase, dict):
-        phase = _recent_project_text(current_phase, "phase", "id", "number", "name", "title")
-        phase_label = _recent_project_text(current_phase, "label", "name", "title")
-        status = _recent_project_text(current_phase, "status", "state")
-        progress = _recent_project_text(current_phase, "progress", "progress_summary", "summary")
-        pieces: list[str] = []
-        if phase and phase_label and phase_label != phase:
-            pieces.append(f"phase {phase} ({phase_label})")
-        elif phase_label:
-            pieces.append(phase_label)
-        elif phase:
-            pieces.append(f"phase {phase}" if not phase.lower().startswith("phase") else phase)
-        if status is not None:
-            pieces.append(status.replace("_", " "))
-        if progress is not None:
-            pieces.append(progress)
-        return " · ".join(pieces) if pieces else None
-
-    phase = _recent_project_text(row, "current_phase", "phase")
-    phase_label = _recent_project_text(row, "current_phase_name", "phase_name")
-    status = _recent_project_text(row, "project_status", "status")
-    progress = _recent_project_text(row, "progress", "progress_summary", "phase_progress")
-    pieces: list[str] = []
-    if phase and phase_label and phase_label != phase:
-        pieces.append(f"phase {phase} ({phase_label})")
-    elif phase_label:
-        pieces.append(phase_label)
-    elif phase:
-        pieces.append(f"phase {phase}" if not phase.lower().startswith("phase") else phase)
-    if status is not None and status.replace("_", " ") not in {"recent", "resumable", "unavailable"}:
-        pieces.append(status.replace("_", " "))
-    if progress is not None:
-        pieces.append(progress)
-    return " · ".join(pieces) if pieces else None
+    return _recent_project_presentation.recent_project_current_state(row)
 
 
 def _recent_project_selection_reason(row: dict[str, object]) -> str:
     """Return a plain-language explanation for why a recent-project row is shown."""
-    if _strict_bool_value(row.get("available")) is not True:
-        reason = row.get("availability_reason")
-        if isinstance(reason, str) and reason.strip():
-            return reason.strip()
-        return "shown because the project root is missing on this machine"
-    if _strict_bool_value(row.get("resumable")) is True:
-        reason = row.get("resume_file_reason")
-        if isinstance(reason, str) and reason.strip():
-            return f"shown because it still has a usable handoff target ({reason.strip()})"
-        return "shown because it still has a usable handoff target"
-    resume_file = row.get("resume_file")
-    if isinstance(resume_file, str) and resume_file.strip():
-        return "shown because the checkout is available, but the recorded handoff is not currently usable"
-    return "shown because the checkout is available, but no recovery handoff is recorded"
+    return _recent_project_presentation.recent_project_selection_reason(row)
 
 
 def _resume_candidate_notes(
@@ -1737,65 +2121,12 @@ def _resume_candidate_notes(
     current_execution: dict[str, object] | None = None,
 ) -> str:
     """Render the most relevant resume notes for one candidate."""
-    notes: list[str] = []
-
-    checkpoint_reason = candidate.get("checkpoint_reason")
-    if isinstance(checkpoint_reason, str) and checkpoint_reason.strip():
-        notes.append(f"checkpoint: {checkpoint_reason.strip().replace('_', ' ')}")
-
-    waiting_reason = candidate.get("waiting_reason")
-    if isinstance(waiting_reason, str) and waiting_reason.strip():
-        notes.append(waiting_reason.strip())
-
-    blocked_reason = candidate.get("blocked_reason")
-    if isinstance(blocked_reason, str) and blocked_reason.strip():
-        notes.append(f"blocked: {blocked_reason.strip()}")
-
-    hydrated_result = _resume_candidate_last_result(candidate, payload=payload)
-    if hydrated_result is not None:
-        hydrated_summary = _resume_result_summary(hydrated_result)
-        if hydrated_summary is not None:
-            notes.append(f"result: {hydrated_summary}")
-    else:
-        rerun_anchor = _resume_candidate_rerun_anchor(candidate)
-        if rerun_anchor is not None:
-            notes.append(rerun_anchor)
-
-    if _strict_bool_value(candidate.get("first_result_gate_pending")) is True:
-        notes.append("first-result gate pending")
-    if _strict_bool_value(candidate.get("pre_fanout_review_pending")) is True:
-        notes.append("pre-fanout review pending")
-    if _strict_bool_value(candidate.get("skeptical_requestioning_required")) is True:
-        notes.append("skeptical re-questioning required")
-    if _strict_bool_value(candidate.get("downstream_locked")) is True:
-        notes.append("downstream locked")
-
-    execution_view = current_execution or active_execution
-    if execution_view is not None:
-        current_task = execution_view.get("current_task")
-        current_task_index = execution_view.get("current_task_index")
-        current_task_total = execution_view.get("current_task_total")
-        if isinstance(current_task, str) and current_task.strip():
-            if current_task_index is not None and current_task_total is not None:
-                notes.append(f"task {current_task_index}/{current_task_total}: {current_task.strip()}")
-            else:
-                notes.append(current_task.strip())
-
-        updated_at = execution_view.get("updated_at")
-        if isinstance(updated_at, str) and updated_at.strip():
-            notes.append(f"updated {updated_at.strip()}")
-
-    if not notes:
-        kind = _resume_candidate_canonical_kind(candidate)
-        status = str(candidate.get("status") or "").strip()
-        if kind == "continuity_handoff" and status == "missing":
-            return "Recorded in canonical continuation state, but the handoff file is missing from this workspace."
-        if kind == "continuity_handoff":
-            return "Recorded in canonical continuation state."
-        if kind == "interrupted_agent":
-            return "Interrupted agent marker only; inspect agent output before continuing."
-        return "No additional resume notes recorded."
-    return "; ".join(notes[:5])
+    return _resume_presentation.resume_candidate_notes(
+        candidate,
+        payload=payload,
+        active_execution=active_execution,
+        current_execution=current_execution,
+    )
 
 
 def _resume_candidate_projection(
@@ -1805,63 +2136,19 @@ def _resume_candidate_projection(
     active_execution: dict[str, object] | None = None,
     current_execution: dict[str, object] | None = None,
 ) -> dict[str, object]:
-    """Project one legacy candidate into a canonical recovery view."""
-    origin, origin_label = _resume_candidate_origin(
+    """Project one raw candidate into a canonical recovery view."""
+    return _resume_presentation.resume_candidate_projection(
         candidate,
+        payload=payload,
         active_execution=active_execution,
         current_execution=current_execution,
+        cwd=_get_cwd(),
     )
-    status = str(candidate.get("status") or "unknown").strip() or "unknown"
-    kind = _resume_candidate_canonical_kind(candidate)
-    if kind == "unknown":
-        kind = _resume_candidate_kind(candidate.get("source"), status=status)
-    return {
-        "kind": kind,
-        "kind_label": _resume_candidate_kind_label(candidate),
-        "status": status,
-        "status_label": status.replace("_", " "),
-        "origin": origin,
-        "origin_label": origin_label,
-        "phase_plan": _resume_candidate_phase_plan(candidate),
-        "target": _resume_candidate_target(candidate),
-        "notes": _resume_candidate_notes(
-            candidate,
-            payload=payload,
-            active_execution=active_execution,
-            current_execution=current_execution,
-        ),
-        "source": candidate.get("source"),
-        "resume_file": candidate.get("resume_file"),
-        "resumable": candidate.get("resumable"),
-        "advisory": candidate.get("advisory"),
-    }
 
 
 def _recent_project_resume_file_state(project_root: object, resume_file: object) -> tuple[bool | None, str | None]:
     """Return whether a recent-project handoff file is still usable."""
-    if not isinstance(project_root, str) or not project_root.strip():
-        return None, None
-    if not isinstance(resume_file, str) or not resume_file.strip():
-        return None, None
-
-    project_path = Path(project_root).expanduser()
-    if not project_path.exists() or not project_path.is_dir():
-        return None, None
-
-    resolved_project = project_path.resolve(strict=False)
-    candidate = Path(resume_file).expanduser()
-    resolved_target = (
-        candidate.resolve(strict=False) if candidate.is_absolute() else (project_path / candidate).resolve(strict=False)
-    )
-    try:
-        resolved_target.relative_to(resolved_project)
-    except ValueError:
-        return False, "resume file outside project root"
-    if not resolved_target.exists():
-        return False, "resume file missing"
-    if not resolved_target.is_file():
-        return False, "resume file is not a file"
-    return True, None
+    return _recent_project_presentation.recent_project_resume_file_state(project_root, resume_file)
 
 
 def _recent_projects_data_root() -> Path:
@@ -1874,226 +2161,65 @@ def _recent_projects_data_root() -> Path:
 
 def _recent_project_text(payload: dict[str, object], *keys: str) -> str | None:
     """Return the first non-empty string value among *keys*."""
-    for key in keys:
-        value = payload.get(key)
-        if isinstance(value, str):
-            stripped = value.strip()
-            if stripped:
-                return stripped
-    return None
+    return _recent_project_presentation.recent_project_text(payload, *keys)
 
 
 def _normalize_recent_project_row(row: object) -> dict[str, object] | None:
     """Project one canonical recent-project row into the CLI display shape."""
-    if not isinstance(row, dict):
-        return None
-
-    from gpd.core.recent_projects import RecentProjectEntry
-
-    project_root = _recent_project_text(row, "project_root")
-    if project_root is None:
-        unexpected_fields = sorted(key for key in row if key not in RecentProjectEntry.model_fields)
-        if unexpected_fields:
-            formatted = ", ".join(unexpected_fields)
-            raise ValueError(f"recent-project row contains unexpected field(s): {formatted}")
-        return None
-
-    project_path = Path(project_root).expanduser()
-    available_value = row.get("available")
-    if isinstance(available_value, bool):
-        available = available_value
-    else:
-        available = project_path.is_dir()
-    normalized: dict[str, object] = {
-        "project_root": project_root,
-        "workspace": _format_display_path(project_path),
-        "available": available,
-        "missing": not available,
-    }
-    if not available:
-        normalized["command"] = "unavailable"
-    elif project_path.is_absolute():
-        normalized["command"] = f"gpd --cwd {shlex.quote(str(project_path.resolve(strict=False)))} resume"
-    else:
-        normalized["command"] = None
-
-    for key in (
-        "schema_version",
-        "last_session_at",
-        "last_seen_at",
-        "stopped_at",
-        "resume_file",
-        "resume_file_available",
-        "resume_file_reason",
-        "status",
-        "resumable",
-        "availability_reason",
-        "last_result_id",
-        "resume_target_kind",
-        "resume_target_recorded_at",
-        "hostname",
-        "platform",
-        "source_kind",
-        "source_session_id",
-        "source_segment_id",
-        "source_transition_id",
-        "source_event_id",
-        "source_recorded_at",
-        "recovery_phase",
-        "recovery_plan",
-    ):
-        if key in row:
-            normalized[key] = row[key]
-
-    resume_file_available, resume_file_reason = _recent_project_resume_file_state(
-        normalized.get("project_root"),
-        normalized.get("resume_file"),
-    )
-    if resume_file_available is not None:
-        normalized["resume_file_available"] = resume_file_available
-    if resume_file_reason is not None:
-        normalized["resume_file_reason"] = resume_file_reason
-
-    resumable_value = normalized.get("resumable")
-    if resumable_value is None:
-        resumable_value = normalized.get("resume_file") if isinstance(normalized.get("resume_file"), str) else False
-    else:
-        resumable_value = _strict_bool_value(resumable_value) is True
-    normalized["resumable"] = (
-        bool(resumable_value)
-        and _strict_bool_value(normalized["available"]) is True
-        and normalized.get("resume_file_available") is not False
-    )
-    status = _recent_project_text(normalized, "status")
-    if _strict_bool_value(normalized["available"]) is not True:
-        status = "unavailable"
-    elif status is None:
-        status = "resumable" if normalized["resumable"] else "recent"
-    normalized["status"] = status
-
-    return normalized
+    return _recent_project_presentation.normalize_recent_project_row(row, cwd=_get_cwd())
 
 
-def _recent_project_sort_key(row: dict[str, object]) -> tuple[int, int, int, int, str, str]:
+def _recent_project_sort_key(row: dict[str, object]) -> tuple[int, int, int, int, int, str, str]:
     """Sort recent rows by recovery strength first, then by recency."""
-    candidate = _candidate_from_recent_row(row)
-    if candidate is None:
-        return (0, 0, 0, 0, "", "")
-    return _candidate_sort_key(candidate)
+    return _recent_project_presentation.recent_project_row_sort_key(row)
 
 
-def _load_recent_projects_rows() -> list[dict[str, object]]:
+def _load_recent_projects_rows(*, last: int | None = None) -> list[dict[str, object]]:
     """Load the recent-project index, preferring the shared helper module when present."""
-    from gpd.core.recent_projects import RecentProjectsError, list_recent_projects
+    from gpd.core.recent_projects import RecentProjectsError
 
     try:
-        raw_rows = list_recent_projects(_recent_projects_data_root())
-    except RecentProjectsError as exc:
+        return _recent_project_presentation.load_recent_project_display_rows(
+            data_root=_recent_projects_data_root(),
+            last=last,
+            cwd=_get_cwd(),
+        )
+    except (RecentProjectsError, ValueError) as exc:
         raise GPDError(str(exc)) from exc
-
-    rows: list[dict[str, object]] = []
-    for row in raw_rows:
-        row_payload = row.model_dump(mode="json") if hasattr(row, "model_dump") else row
-        try:
-            normalized = _normalize_recent_project_row(row_payload)
-        except ValueError as exc:
-            raise GPDError(str(exc)) from exc
-        if normalized is None:
-            raise GPDError("recent-project cache returned a malformed canonical row")
-        rows.append(normalized)
-
-    rows.sort(key=_recent_project_sort_key, reverse=True)
-    return rows
 
 
 def _resume_recent_project_command(row: dict[str, object]) -> str:
     """Return the exact command to reopen one recent project."""
-    project_root = row.get("project_root")
-    if not isinstance(project_root, str) or not project_root.strip():
-        return "unavailable"
-    if row.get("available") is not True:
-        return "unavailable"
-    project_path = Path(project_root).expanduser().resolve(strict=False)
-    return f"gpd --cwd {shlex.quote(str(project_path))} resume"
+    return _recent_project_presentation.recent_project_resume_command(row)
 
 
 def _resume_recent_project_notes(row: dict[str, object]) -> str:
     """Return a concise availability/resumability note for one recent project row."""
-    recovery_note = _recent_project_text(row, "recovery_note")
-    if recovery_note is not None:
-        return recovery_note
-    if _strict_bool_value(row.get("available")) is not True:
-        reason = row.get("availability_reason")
-        if isinstance(reason, str) and reason.strip():
-            return reason.strip()
-        return "project unavailable on this machine"
-    if _strict_bool_value(row.get("resumable")) is True:
-        return "ready to reopen"
-    reason = row.get("resume_file_reason")
-    if isinstance(reason, str) and reason.strip():
-        return reason.strip()
-    return "continue from local recovery state"
+    return _recent_project_presentation.recent_project_notes(row)
 
 
 def _recent_project_recovery_view(row: dict[str, object]) -> dict[str, object] | None:
     """Return a canonical recovery summary for one recent-project row when available."""
-    project_root = row.get("project_root")
-    if not isinstance(project_root, str) or not project_root.strip():
-        return None
-
-    project_path = Path(project_root).expanduser().resolve(strict=False)
-    if not project_path.exists() or not project_path.is_dir():
-        return {
-            "recovery_status": "no-recovery",
-            "recovery_status_label": "Unavailable checkout",
-            "recovery_note": "project unavailable on this machine",
-        }
-
-    state_exists, roadmap_exists, project_exists = recoverable_project_context(project_path)
-    if not (state_exists or roadmap_exists or project_exists):
-        return None
-
-    try:
-        from gpd.core.context import init_resume
-
-        payload = init_resume(project_path)
-        advice = _resume_recovery_advice(resume_payload=payload, recent_rows=[], cwd=project_path)
-    except Exception as exc:
-        error_message = str(exc).strip() or type(exc).__name__
-        return {
-            "recovery_status": "recovery-error",
-            "recovery_status_label": _resume_status_label("recovery-error"),
-            "recovery_note": f"Recovery metadata could not be inspected: {error_message}",
-            "recovery_error": error_message,
-            "recovery_error_type": type(exc).__name__,
-        }
-
-    public_payload = canonicalize_resume_public_payload(payload)
-    view: dict[str, str] = {
-        "recovery_status": advice.status,
-        "recovery_status_label": _resume_status_label(advice.status),
-        "recovery_note": _resume_status_message(public_payload, recovery_advice=advice),
-    }
-    primary_resume_file = _resume_surface_value(public_payload, "active_resume_pointer")
-    if isinstance(primary_resume_file, str) and primary_resume_file.strip():
-        view["recovery_target"] = _format_display_path(primary_resume_file.strip())
-    execution_source = _resume_surface_value(public_payload, "active_resume_origin")
-    public_origin = _public_resume_origin_family(execution_source, active_execution=None, current_execution=None)
-    if public_origin is not None:
-        view["recovery_origin"] = _resume_origin_label(public_origin)
-    return view
+    return _recent_project_presentation.recent_project_recovery_view(
+        row,
+        recovery_advice_builder=lambda cwd, **kwargs: _resume_recovery_advice(
+            resume_payload=dict(kwargs.get("resume_payload") or {}),
+            recent_rows=list(kwargs.get("recent_rows") or []),
+            cwd=cwd,
+        ),
+    )
 
 
 def _annotate_recent_project_rows(rows: list[dict[str, object]]) -> list[dict[str, object]]:
-    """Add canonical recovery summaries to recent-project rows without removing legacy fields."""
-    annotated: list[dict[str, object]] = []
-    for row in rows:
-        payload = dict(row)
-        recovery_view = _recent_project_recovery_view(payload)
-        if recovery_view is not None:
-            payload.update(recovery_view)
-        annotated.append(payload)
-    return annotated
+    """Add canonical recovery summaries to recent-project rows while keeping existing fields."""
+    return _recent_project_presentation.annotate_recent_project_rows(
+        rows,
+        recovery_advice_builder=lambda cwd, **kwargs: _resume_recovery_advice(
+            resume_payload=dict(kwargs.get("resume_payload") or {}),
+            recent_rows=list(kwargs.get("recent_rows") or []),
+            cwd=cwd,
+        ),
+    )
 
 
 def _resume_follow_up_actions(recovery_advice: RecoveryAdvice) -> list[str]:
@@ -2108,274 +2234,48 @@ def _resume_follow_up_actions(recovery_advice: RecoveryAdvice) -> list[str]:
 def _resume_augmented_payload(payload: dict[str, object], *, cwd: Path | None = None) -> dict[str, object]:
     """Augment the raw resume payload with canonical recovery projections."""
     public_payload = canonicalize_resume_public_payload(payload)
-
     recovery_advice = _resume_recovery_advice(resume_payload=public_payload, recent_rows=[], cwd=cwd)
-    derived_execution_head_raw = _resume_surface_value(public_payload, "derived_execution_head")
-    derived_execution_head = derived_execution_head_raw if isinstance(derived_execution_head_raw, dict) else None
-    active_execution = _resume_authoritative_active_execution(public_payload)
-    current_execution = derived_execution_head
-    active_resume_kind = public_payload.get("active_resume_kind")
-    if isinstance(active_resume_kind, str) and active_resume_kind.strip():
-        active_resume_kind = _resume_candidate_canonical_kind({"kind": active_resume_kind})
-    segment_candidates = _resume_visible_candidates(public_payload)
-    projected_candidates = [
-        _resume_candidate_projection(
-            candidate,
-            payload=public_payload,
-            active_execution=active_execution
-            if _resume_candidate_canonical_kind(candidate) == "bounded_segment"
-            else None,
-            current_execution=current_execution
-            if _resume_candidate_canonical_kind(candidate) == "bounded_segment"
-            else None,
-        )
-        for candidate in segment_candidates
-    ]
-    active_resume_result = _resume_active_result(public_payload, segment_candidates)
-    augmented = dict(public_payload)
-    active_resume_origin = augmented.get("active_resume_origin")
-    if isinstance(active_resume_origin, str) and active_resume_origin.strip():
-        public_active_origin = _public_resume_origin_family(
-            active_resume_origin,
-            active_execution=active_execution,
-            current_execution=current_execution,
-        )
-        if public_active_origin is not None:
-            augmented["active_resume_origin"] = public_active_origin
-    normalized_resume_candidates: list[dict[str, object]] = []
-    for candidate in list(augmented.get("resume_candidates") or []):
-        if not isinstance(candidate, dict):
-            continue
-        normalized_candidate = dict(candidate)
-        candidate_origin = normalized_candidate.get("origin")
-        public_candidate_origin = _public_resume_origin_family(
-            candidate_origin,
-            source=normalized_candidate.get("source"),
-            active_execution=active_execution
-            if _resume_candidate_canonical_kind(normalized_candidate) == "bounded_segment"
-            else None,
-            current_execution=current_execution
-            if _resume_candidate_canonical_kind(normalized_candidate) == "bounded_segment"
-            else None,
-        )
-        if public_candidate_origin is not None:
-            normalized_candidate["origin"] = public_candidate_origin
-        normalized_resume_candidates.append(normalized_candidate)
-    augmented["resume_candidates"] = normalized_resume_candidates
-    augmented["recovery_status"] = recovery_advice.status
-    augmented["recovery_status_label"] = _resume_status_label(recovery_advice.status)
-    augmented["recovery_summary"] = _resume_status_message(public_payload, recovery_advice=recovery_advice)
-    augmented["active_resume_kind_label"] = _resume_mode_label(active_resume_kind)
-    recovery_advice_payload = serialize_recovery_advice(recovery_advice)
-    advice_origin = recovery_advice_payload.get("active_resume_origin")
-    if isinstance(advice_origin, str) and advice_origin.strip():
-        public_advice_origin = _public_resume_origin_family(
-            advice_origin,
-            active_execution=active_execution,
-            current_execution=current_execution,
-        )
-        if public_advice_origin is not None:
-            recovery_advice_payload["active_resume_origin"] = public_advice_origin
-    augmented["recovery_advice"] = recovery_advice_payload
-    augmented["recovery_candidates"] = projected_candidates
-    if active_resume_result is not None and "active_resume_result_summary" not in augmented:
-        active_resume_result_summary = _resume_result_summary(active_resume_result)
-        if active_resume_result_summary is not None:
-            augmented["active_resume_result_summary"] = active_resume_result_summary
-    if projected_candidates:
-        augmented["primary_recovery_target"] = projected_candidates[0]
-    return augmented
+    return _resume_presentation.resume_augmented_payload(
+        public_payload,
+        recovery_advice=recovery_advice,
+        cwd=cwd or _get_cwd(),
+    )
 
 
 def _render_recent_resume_summary(rows: list[dict[str, object]]) -> None:
     """Render the recent-project picker for cross-project recovery."""
-    console.print("[bold]Recent Projects[/]")
-    console.print(
-        "[dim]Machine-local recovery index. Recent projects are ordered by recovery strength, then recency. A single recoverable match can auto-select; otherwise choose explicitly with the command shown for each row.[/]"
-    )
-    console.print()
-
-    if not rows:
-        console.print("[dim]No recent projects are recorded on this machine yet.[/]")
-        console.print(
-            f"[dim]Run `{local_cli_resume_command()}` inside a project first, or wait for session continuity to be recorded.[/]"
-        )
-        return
-
-    for idx, row in enumerate(rows, start=1):
-        label = _recent_project_label(row)
-        summary = _recent_project_summary(row)
-        current_state = _recent_project_current_state(row)
-        console.print(
-            f"[bold]{idx}.[/] "
-            f"{str(row.get('workspace') or _format_display_path(str(row.get('project_root') or '')) or 'unknown')}"
-        )
-        if label is not None:
-            console.print(f"   Label: {label}")
-        if summary is not None:
-            console.print(f"   Summary: {summary}")
-        if current_state is not None:
-            console.print(f"   Current: {current_state}")
-        console.print(f"   Last session: {str(row.get('last_session_at') or row.get('last_seen_at') or '—')}")
-        console.print(f"   Stopped at: {str(row.get('stopped_at') or '—')}")
-        recovery_label = _recent_project_text(row, "recovery_status_label")
-        if recovery_label is not None:
-            console.print(f"   Recovery: {recovery_label}")
-        console.print(f"   Resumable: {'yes' if _strict_bool_value(row.get('resumable')) is True else 'no'}")
-        console.print(f"   Why shown: {_recent_project_selection_reason(row)}")
-        console.print(f"   Notes: {_resume_recent_project_notes(row)}")
-        console.print(f"   Resume: {_resume_recent_project_command(row)}")
-        console.print()
-    console.print()
-    console.print("[bold]Next here[/]")
-    console.print("- Select a workspace above, then continue there with `resume-work`.")
-    console.print("- After resuming, `suggest-next` is the fastest next action.")
+    for line in _recent_project_presentation.build_recent_resume_summary_lines(
+        rows,
+        local_resume_command=local_cli_resume_command(),
+    ):
+        console.print(line)
 
 
 def _render_resume_summary(payload: dict[str, object]) -> None:
     """Render a read-only local recovery summary for humans."""
     public_payload = canonicalize_resume_public_payload(payload)
-    active_execution = _resume_authoritative_active_execution(public_payload)
-    current_execution_raw = _resume_surface_value(public_payload, "derived_execution_head")
-    current_execution = current_execution_raw if isinstance(current_execution_raw, dict) else None
     recovery_advice = _resume_recovery_advice(resume_payload=public_payload, recent_rows=[])
-    segment_candidates = _resume_visible_candidates(public_payload)
 
     console.print("[bold]Resume Summary[/]")
     console.print("[dim]Read-only local recovery snapshot for this workspace.[/]")
     console.print()
 
-    summary = Table.grid(padding=(0, 2))
-    summary.add_column(style=f"bold {_INSTALL_ACCENT_COLOR}")
-    summary.add_column()
-    workspace_root = public_payload.get("workspace_root")
-    project_root = public_payload.get("project_root")
-    project_label = _recent_project_text(public_payload, "project_label", "project_title", "project_name")
-    project_summary = _recent_project_text(public_payload, "project_summary", "summary", "description")
-    summary.add_row("Workspace", _format_display_path(str(workspace_root or _get_cwd())))
-    if isinstance(project_root, str) and project_root.strip():
-        summary.add_row("Project", _format_display_path(project_root.strip()))
-    if isinstance(project_label, str) and project_label.strip():
-        summary.add_row("Project label", project_label.strip())
-    if isinstance(project_summary, str) and project_summary.strip():
-        summary.add_row("Project summary", project_summary.strip())
-    if _payload_flag(public_payload, "project_root_auto_selected"):
-        summary.add_row(
-            "Re-entry",
-            _project_root_source_label(public_payload.get("project_root_source"), auto_selected=True),
-        )
-    elif (
-        isinstance(public_payload.get("project_root_source"), str)
-        and str(public_payload.get("project_root_source")).strip()
+    recovery_advice_payload = serialize_recovery_advice(recovery_advice)
+    for lane in build_resume_presentation_lanes(
+        public_payload,
+        recovery_advice=recovery_advice_payload,
+        local_resume_command=local_cli_resume_command(),
+        recent_resume_command=local_cli_resume_recent_command(),
+        raw_resume_command="gpd --raw resume",
     ):
-        summary.add_row(
-            "Re-entry",
-            _project_root_source_label(public_payload.get("project_root_source"), auto_selected=False),
-        )
-    summary.add_row("Status", _resume_status_message(public_payload, recovery_advice=recovery_advice))
-    summary.add_row("Recovery", _resume_status_label(recovery_advice.status))
-    active_resume_kind = public_payload.get("active_resume_kind")
-    if isinstance(active_resume_kind, str) and active_resume_kind.strip():
-        active_resume_kind = _resume_candidate_canonical_kind({"kind": active_resume_kind})
-    summary.add_row("Primary resume kind", _resume_mode_label(active_resume_kind))
-    summary.add_row("Candidates", str(len(segment_candidates)))
-    summary.add_row("Live execution", "yes" if _payload_flag(public_payload, "has_live_execution") else "no")
-    summary.add_row("Autonomy", str(public_payload.get("autonomy") or "unknown"))
-    summary.add_row("Research mode", str(public_payload.get("research_mode") or "unknown"))
-
-    paused_at = public_payload.get("execution_paused_at")
-    if isinstance(paused_at, str) and paused_at.strip():
-        summary.add_row("Paused at", paused_at.strip())
-
-    primary_resume_file = _resume_surface_value(public_payload, "active_resume_pointer")
-    if isinstance(primary_resume_file, str) and primary_resume_file.strip():
-        summary.add_row("Primary pointer", _format_display_path(primary_resume_file.strip()))
-
-    active_resume_result = _resume_active_result(public_payload, segment_candidates)
-    active_resume_result_summary = _resume_result_summary(active_resume_result)
-    if active_resume_result_summary is not None:
-        summary.add_row("Resume result", active_resume_result_summary)
-
-    console.print(summary)
-
-    machine_change_notice = public_payload.get("machine_change_notice")
-    notices: list[str] = []
-    if isinstance(machine_change_notice, str) and machine_change_notice.strip():
-        notices.append(machine_change_notice.strip())
-
-    if active_execution is not None:
-        if bool(active_execution.get("waiting_for_review")):
-            notices.append("Execution is currently waiting for review before continuation.")
-        if bool(public_payload.get("execution_pre_fanout_review_pending")):
-            notices.append("Pre-fanout review is still pending.")
-        if bool(public_payload.get("execution_skeptical_requestioning_required")):
-            notices.append("Skeptical re-questioning is required before downstream work.")
-        if bool(public_payload.get("execution_downstream_locked")):
-            notices.append("Downstream work remains locked by the current execution snapshot.")
-        blocked_reason = active_execution.get("blocked_reason")
-        if isinstance(blocked_reason, str) and blocked_reason.strip():
-            notices.append(f"Execution is blocked: {blocked_reason.strip()}")
-    missing_continuity_handoff = _resume_surface_value(public_payload, "missing_continuity_handoff_file")
-    if isinstance(missing_continuity_handoff, str) and missing_continuity_handoff.strip():
-        notices.append(
-            f"Projected continuity handoff is missing: {_format_display_path(missing_continuity_handoff.strip())}."
-        )
-
-    if notices:
-        console.print()
-        console.print("[bold]Notices[/]")
-        for notice in notices:
-            console.print(f"- {notice}")
-
-    console.print()
-    console.print("[bold]Resume Candidates[/]")
-    console.print("[dim]Canonical candidate kinds: bounded_segment, continuity_handoff, interrupted_agent.[/]")
-    if segment_candidates:
-        table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
-        table.add_column("#", justify="right", no_wrap=True)
-        table.add_column("Kind")
-        table.add_column("Status")
-        table.add_column("Phase/Plan")
-        table.add_column("Target")
-        table.add_column("Origin")
-        table.add_column("Notes")
-        for idx, candidate in enumerate(segment_candidates, start=1):
-            projected_candidate = _resume_candidate_projection(
-                candidate,
-                payload=public_payload,
-                active_execution=active_execution
-                if _resume_candidate_canonical_kind(candidate) == "bounded_segment"
-                else None,
-                current_execution=current_execution
-                if _resume_candidate_canonical_kind(candidate) == "bounded_segment"
-                else None,
-            )
-            table.add_row(
-                str(idx),
-                str(projected_candidate["kind"]),
-                str(projected_candidate["status"]),
-                str(projected_candidate["phase_plan"]),
-                str(projected_candidate["target"]),
-                str(projected_candidate["origin_label"]),
-                str(projected_candidate["notes"]),
-            )
-        console.print(table)
-    else:
         console.print(
-            "[dim]No bounded_segment, continuity_handoff, or interrupted_agent candidate is currently recorded.[/]"
+            Text.assemble(
+                (f"{lane['label']}: ", f"bold {_INSTALL_ACCENT_COLOR}"),
+                lane["value"],
+            ),
+            highlight=False,
+            soft_wrap=True,
         )
-
-    console.print()
-    console.print("[bold]Recovery ladder[/]")
-    console.print(f"- {recovery_resume_action()}")
-    console.print(f"- {recovery_recent_action()}")
-    console.print("- `gpd --raw resume` is the machine-readable local recovery surface.")
-    hint = _resume_recent_hint(public_payload)
-    if hint is not None:
-        console.print(f"- {hint}")
-
-    for line in _resume_follow_up_actions(recovery_advice):
-        console.print(f"- {line}")
 
 
 @app.command("resume")
@@ -2389,7 +2289,7 @@ def resume(
     """Summarize local recovery state or list machine-local recent projects."""
     if recent:
         try:
-            rows = _annotate_recent_project_rows(_load_recent_projects_rows())
+            rows = _annotate_recent_project_rows(_load_recent_projects_rows(last=20))
         except GPDError as exc:
             _error(str(exc))
         recovery_advice = _resume_recovery_advice(recent_rows=rows, force_recent=True)
@@ -2419,14 +2319,204 @@ def resume(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
+def _progress_watch_sleep(seconds: float) -> None:
+    """Sleep for ``seconds`` seconds. Module-local shim for monkeypatching in tests."""
+    import time
+
+    time.sleep(seconds)
+
+
+def _is_idle(result: object) -> bool:
+    """Return True when ``result`` reports no active live execution.
+
+    A project with execution preferences set but no running session yields a
+    live_execution shell whose populated fields are all None; treat that as
+    idle so --exit-on-idle triggers cleanly.
+    """
+    live = getattr(result, "live_execution", None)
+    if live is None:
+        return True
+    live_fields = (
+        "phase",
+        "plan",
+        "wave",
+        "current_task",
+        "current_task_index",
+        "current_task_total",
+        "segment_status",
+        "waiting_reason",
+        "last_result_label",
+        "last_artifact_path",
+        "last_updated_age_label",
+    )
+    return all(getattr(live, name, None) is None for name in live_fields)
+
+
+def _progress_watch_live_table(result: object) -> Table:
+    """Build a rich ``Table`` for a single watch-loop tick (TTY branch)."""
+    table = Table(show_header=True, header_style=f"bold {_INSTALL_ACCENT_COLOR}")
+    table.add_column("Field")
+    table.add_column("Value")
+    live = getattr(result, "live_execution", None)
+    if live is None:
+        table.add_row("live_execution", "No active execution")
+        return table
+    fields = (
+        "phase",
+        "plan",
+        "wave",
+        "current_task",
+        "current_task_index",
+        "current_task_total",
+        "segment_status",
+        "waiting_reason",
+        "last_artifact_path",
+        "last_result_label",
+        "last_updated_age_label",
+        "strict_wait",
+        "never_interrupt_running_workers",
+        "never_auto_close_child_agents",
+    )
+    for name in fields:
+        value = getattr(live, name, None)
+        table.add_row(name, "" if value is None else str(value))
+    return table
+
+
+def _collect_watch_signals(layout: ProjectLayout) -> list[Path]:
+    """Return the filesystem paths whose mtimes gate a progress-watch redraw."""
+    return [
+        layout.state_json,
+        layout.current_observability_execution,
+        layout.execution_lineage_head,
+        layout.execution_lineage_ledger,
+    ]
+
+
+def _run_progress_watch_loop(
+    cwd: Path,
+    fmt: str,
+    interval: float,
+    exit_on_idle: bool,
+    *,
+    raw_mode: bool = False,
+    _max_ticks: int | None = None,
+) -> None:
+    """Poll the execution signal files and redraw progress at ``interval`` cadence.
+
+    First tick always renders. Subsequent ticks render only when at least one
+    signal file's ``st_mtime_ns`` changed since the previous snapshot, or when
+    ``_max_ticks`` forces loop exit first.
+
+    Private parameter ``_max_ticks`` is a test hook — when set, the loop exits
+    after the requested number of iterations regardless of mtime or idle state.
+    """
+    import contextlib
+
+    from gpd.core.constants import ProjectLayout
+    from gpd.core.phases import progress_render
+
+    layout = ProjectLayout(cwd)
+    signal_paths = _collect_watch_signals(layout)
+    _unset = object()
+    last_mtimes: dict[Path, int | None | object] = dict.fromkeys(signal_paths, _unset)
+
+    def _should_redraw() -> bool:
+        changed = False
+        for path in signal_paths:
+            try:
+                mtime: int | None = path.stat().st_mtime_ns
+            except OSError:
+                mtime = None
+            if last_mtimes[path] is _unset or last_mtimes[path] != mtime:
+                last_mtimes[path] = mtime
+                changed = True
+        return changed
+
+    live_cm: object
+    first: object | None
+    if _stdout_is_interactive() and not raw_mode:
+        from rich.live import Live
+
+        _should_redraw()  # prime
+        first = progress_render(cwd, fmt)
+        live_cm = Live(
+            _progress_watch_live_table(first),
+            console=console,
+            refresh_per_second=4,
+        )
+
+        def render(result: object) -> None:
+            live_cm.update(_progress_watch_live_table(result))  # type: ignore[attr-defined]
+    else:
+        live_cm = contextlib.nullcontext()
+        first = None
+
+        def render(result: object) -> None:
+            payload = result.model_dump(mode="json", by_alias=True)
+            typer.echo(json.dumps(payload, ensure_ascii=False, default=str))
+
+    with live_cm:  # type: ignore[attr-defined]
+        if first is None:
+            _should_redraw()
+            first = progress_render(cwd, fmt)
+            render(first)
+        if exit_on_idle and _is_idle(first):
+            return
+        tick = 0
+        while True:
+            tick += 1
+            if _max_ticks is not None and tick >= _max_ticks:
+                return
+            _progress_watch_sleep(interval)
+            if _should_redraw():
+                result = progress_render(cwd, fmt)
+                render(result)
+                if exit_on_idle and _is_idle(result):
+                    return
+
+
 @app.command("progress")
 def progress(
-    fmt: str = typer.Argument("json", help="Format: json, bar, or table"),
+    fmt: str = typer.Argument(
+        "json",
+        help="Format: json, bar, or table (overridden to 'json' when --watch is set)",
+    ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help=(
+            "Poll for updates and redraw a live execution view. "
+            "The positional fmt is overridden to 'json' while watching."
+        ),
+    ),
+    interval: float = typer.Option(
+        10.0,
+        "--interval",
+        help="Redraw interval in seconds.",
+        min=0.1,
+    ),
+    exit_on_idle: bool = typer.Option(
+        False,
+        "--exit-on-idle",
+        help="Exit when no live execution is detected (for scripting).",
+    ),
 ) -> None:
     """Render progress in the specified format."""
     from gpd.core.phases import progress_render
 
-    _output(progress_render(_project_scoped_cwd(), fmt))
+    cwd = _progress_command_cwd()
+    if not watch:
+        _output(progress_render(cwd, fmt))
+        return
+    if fmt != "json":
+        err_console.print(f"[dim]--watch overrides fmt={fmt!r} → 'json' for live execution rendering.[/dim]")
+        fmt = "json"
+    try:
+        _run_progress_watch_loop(cwd, fmt, interval, exit_on_idle, raw_mode=_raw)
+    except KeyboardInterrupt:
+        return
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2539,6 +2629,26 @@ def convention_check() -> None:
     from gpd.core.conventions import convention_check
 
     _output(convention_check(_load_lock()))
+
+
+@convention_app.command("vocabulary")
+def convention_vocabulary() -> None:
+    """Dump the canonical machine-label vocabulary.
+
+    Returns the snake_case keys (e.g. ``metric_signature``) that downstream
+    agents and structured outputs must use, paired with their human-readable
+    labels. Agents that generate structured outputs (scorecards, consistency
+    checks, readiness audits) MUST pick labels from this table rather than
+    inventing ad-hoc keys like ``source_status``.
+    """
+    from gpd.core.conventions import CONVENTION_LABELS, KNOWN_CONVENTIONS
+
+    _output(
+        {
+            "known_conventions": list(KNOWN_CONVENTIONS),
+            "labels": dict(CONVENTION_LABELS),
+        }
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2757,11 +2867,23 @@ def result_persist_derived(
     )
 
 
-def _load_state_dict() -> dict:
-    """Load recoverable project state as a plain dictionary for read-only commands."""
-    from gpd.core.state import load_state_json
+def _load_state_dict(cwd: Path | None = None) -> dict:
+    """Load project state as a plain dictionary for read-only commands.
 
-    data = load_state_json(_get_cwd())
+    This path is intentionally non-mutating so read-only surfaces do not create
+    lockfiles, recovery writes, or nested stub directories when probing nested
+    workspaces.
+    """
+
+    from gpd.core.state import peek_state_json
+
+    project_cwd = _read_only_project_scoped_cwd(cwd)
+    data, _issues, _state_source = peek_state_json(
+        project_cwd,
+        recover_intent=False,
+        surface_blocked_project_contract=True,
+        acquire_lock=False,
+    )
     if data is None:
         return {}
     if not isinstance(data, dict):
@@ -2937,6 +3059,7 @@ def _print_result_show(result_deps: object) -> None:
 
 @result_app.command("search")
 def result_search(
+    term: str | None = typer.Argument(None, help="Optional positional text search term"),
     id: str | None = typer.Option(None, "--id", help="Exact result ID"),
     text: str | None = typer.Option(None, "--text", help="Search id, equation, and description"),
     equation: str | None = typer.Option(None, "--equation", help="Search by equation"),
@@ -2954,6 +3077,10 @@ def result_search(
 
     if verified and unverified:
         _error("--verified and --unverified are mutually exclusive")
+    if term is not None:
+        if text is not None:
+            _error("Use either a positional search term or --text, not both")
+        text = term
 
     _output(
         result_search(
@@ -3282,7 +3409,8 @@ def health(
     """Run the project health diagnostic."""
     from gpd.core.health import run_health
 
-    report = run_health(_get_cwd(), fix=fix)
+    cwd = _project_scoped_cwd() if fix else _read_only_project_scoped_cwd()
+    report = run_health(cwd, fix=fix)
     _output(report)
     if report.overall == "fail":
         raise typer.Exit(code=1)
@@ -3306,7 +3434,7 @@ def doctor(
     live_executable_probes: bool = typer.Option(
         False,
         "--live-executable-probes",
-        help="Run cheap local executable probes such as `pdflatex --version` or `wolframscript -version`",
+        help="Run cheap local executable probes such as `pdflatex --version`, `tectonic --version`, or `wolframscript -version`",
     ),
 ) -> None:
     """Check GPD installation and environment health, or inspect runtime readiness."""
@@ -3334,10 +3462,9 @@ def doctor(
         else "local"
     )
     if target_dir is None and not global_install and not local_install:
-        detected_target, detected_scope = _resolve_detected_runtime_target(normalized_runtime)
-        if detected_target is not None and detected_scope is not None:
-            resolved_target = detected_target
-            install_scope = detected_scope
+        resolved_target = _get_adapter_or_error(normalized_runtime, action="doctor").resolve_target_dir(
+            False, _get_cwd()
+        )
     _output(
         run_doctor(
             specs_dir=SPECS_DIR,
@@ -3348,6 +3475,141 @@ def doctor(
             live_executable_probes=live_executable_probes,
         )
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# diagnostics — Read-only source diagnostics
+# ═══════════════════════════════════════════════════════════════════════════
+
+diagnostics_app = typer.Typer(help="Read-only source and prompt diagnostics")
+app.add_typer(diagnostics_app, name="diagnostics")
+
+_PROMPT_DIAGNOSTIC_FORMATS = frozenset({"table", "markdown", "dashboard", "json"})
+_PROMPT_DIAGNOSTIC_SURFACES = ("command", "agent", "workflow")
+
+
+def _normalize_prompt_diagnostic_format(output_format: str) -> str:
+    normalized = output_format.strip().casefold()
+    if normalized not in _PROMPT_DIAGNOSTIC_FORMATS:
+        allowed = ", ".join(sorted(_PROMPT_DIAGNOSTIC_FORMATS))
+        _error(f"Unknown diagnostics prompt-surface --format {output_format!r}. Supported: {allowed}")
+    return normalized
+
+
+def _normalize_prompt_diagnostic_surfaces(surface: str) -> tuple[str, ...]:
+    normalized = surface.strip().casefold()
+    if normalized == "all":
+        return _PROMPT_DIAGNOSTIC_SURFACES
+    if normalized not in _PROMPT_DIAGNOSTIC_SURFACES:
+        allowed = ", ".join((*_PROMPT_DIAGNOSTIC_SURFACES, "all"))
+        _error(f"Unknown diagnostics prompt-surface --surface {surface!r}. Supported: {allowed}")
+    return (normalized,)
+
+
+def _normalize_prompt_diagnostic_runtime_names(
+    runtime: str,
+    *,
+    include_runtime_projections: bool,
+) -> tuple[str, ...]:
+    if not include_runtime_projections:
+        return ()
+
+    normalized = runtime.strip().casefold()
+    if normalized == "all":
+        return tuple(list_runtime_names())
+
+    canonical_runtime = normalize_runtime_name(runtime)
+    supported = set(list_runtime_names())
+    if canonical_runtime is None or canonical_runtime not in supported:
+        allowed = ", ".join((*list_runtime_names(), "all"))
+        _error(f"Unknown diagnostics prompt-surface --runtime {runtime!r}. Supported: {allowed}")
+    return (canonical_runtime,)
+
+
+def _print_prompt_diagnostic_rendered(rendered: object) -> None:
+    if rendered is None:
+        return
+    if isinstance(rendered, str):
+        console.out(rendered, highlight=False, end="")
+        return
+    console.print(rendered)
+
+
+def _prompt_diagnostic_repo_root() -> Path:
+    """Return the source checkout root that owns the packaged prompt files."""
+
+    package_dir = Path(__file__).resolve().parent
+    if package_dir.parent.name == "src":
+        return package_dir.parent.parent
+    return package_dir
+
+
+@diagnostics_app.command("prompt-surface")
+def diagnostics_prompt_surface(
+    output_format: str = typer.Option(
+        "table",
+        "--format",
+        help="Output format for non-raw display: table, markdown, dashboard, or json.",
+    ),
+    surface: str = typer.Option(
+        "all",
+        "--surface",
+        help="Prompt source surface to report: command, agent, workflow, or all.",
+    ),
+    runtime: str = typer.Option(
+        "all",
+        "--runtime",
+        help="Runtime projection to include: all or a runtime id/alias.",
+    ),
+    top: int = typer.Option(20, "--top", help="Number of largest or highest-pressure rows to display."),
+    include_runtime_projections: bool = typer.Option(
+        True,
+        "--runtime-projections/--no-runtime-projections",
+        help="Include final runtime-projected prompt-size metrics.",
+    ),
+    include_tests: bool = typer.Option(
+        False,
+        "--include-tests",
+        help="Include advisory prompt-facing test exactness diagnostics.",
+    ),
+) -> None:
+    """Report read-only diagnostics for GPD prompt and runtime surfaces."""
+    normalized_format = _normalize_prompt_diagnostic_format(output_format)
+    surfaces = _normalize_prompt_diagnostic_surfaces(surface)
+    runtime_names = _normalize_prompt_diagnostic_runtime_names(
+        runtime,
+        include_runtime_projections=include_runtime_projections,
+    )
+    if top < 1:
+        _error("diagnostics prompt-surface --top must be >= 1")
+
+    from gpd.core import prompt_diagnostics
+
+    report = prompt_diagnostics.build_prompt_surface_report(
+        _prompt_diagnostic_repo_root(),
+        surfaces=surfaces,
+        runtime_names=runtime_names,
+        include_tests=include_tests,
+        top=top,
+        include_runtime_projections=include_runtime_projections,
+    )
+
+    payload = prompt_diagnostics.report_to_dict(report, top=top)
+    if _raw:
+        _output(payload)
+        return
+    if normalized_format == "json":
+        _emit_raw_json(payload)
+        return
+    if normalized_format == "dashboard":
+        from gpd.core import prompt_surface_dashboard
+
+        _print_prompt_diagnostic_rendered(prompt_surface_dashboard.render_prompt_surface_dashboard(report, top))
+        return
+    if normalized_format == "markdown":
+        _print_prompt_diagnostic_rendered(prompt_diagnostics.render_prompt_surface_markdown(report, top))
+        return
+    _print_prompt_diagnostic_rendered(prompt_diagnostics.render_prompt_surface_table(report, top))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -3373,7 +3635,7 @@ def query_search(
 
     _output(
         query_search(
-            _get_cwd(),
+            _project_scoped_cwd(),
             provides=provides,
             requires=requires,
             affects=affects,
@@ -3392,7 +3654,7 @@ def query_deps(
     """Show what provides and requires a given result identifier."""
     from gpd.core.query import query_deps
 
-    _output(query_deps(_get_cwd(), identifier))
+    _output(query_deps(_project_scoped_cwd(), identifier))
 
 
 @query_app.command("assumptions")
@@ -3405,7 +3667,7 @@ def query_assumptions(
     text = " ".join(assumption) if assumption else ""
     if not text.strip():
         _error("Usage: gpd query assumptions <search-term>")
-    _output(query_assumptions(_get_cwd(), text))
+    _output(query_assumptions(_project_scoped_cwd(), text))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -3418,15 +3680,21 @@ def suggest(
     limit: int | None = typer.Option(None, "--limit", help="Max suggestions to return"),
 ) -> None:
     """Suggest what to do next based on project state."""
-    from gpd.core.root_resolution import resolve_project_root
     from gpd.core.suggest import suggest_next
 
     kwargs: dict[str, int] = {}
     if limit is not None:
         kwargs["limit"] = limit
-    workspace_cwd = _get_cwd().expanduser().resolve(strict=False)
-    suggest_cwd = resolve_project_root(workspace_cwd, require_layout=True) or workspace_cwd
+    suggest_cwd = _read_only_project_scoped_cwd()
     _output(suggest_next(suggest_cwd, **kwargs))
+
+
+@app.command("suggest-next")
+def suggest_next_bridge(
+    limit: int | None = typer.Option(None, "--limit", help="Max suggestions to return"),
+) -> None:
+    """Alias for the runtime suggest-next command on the local raw bridge."""
+    suggest(limit=limit)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -3531,7 +3799,7 @@ def pattern_seed() -> None:
 # trace — JSONL execution tracing
 # ═══════════════════════════════════════════════════════════════════════════
 
-trace_app = typer.Typer(help="JSONL execution tracing for debugging and audit")
+trace_app = typer.Typer(help="Trace inspection and recording: show is read-only; start/log/stop write trace state")
 app.add_typer(trace_app, name="trace")
 
 
@@ -3540,7 +3808,7 @@ def trace_start(
     phase: str = typer.Argument(..., help="Phase number"),
     plan: str = typer.Argument(..., help="Plan name"),
 ) -> None:
-    """Start a new trace session."""
+    """Start a new trace session (writes trace state)."""
     from gpd.core.trace import trace_start
 
     _output(trace_start(_get_cwd(), phase, plan))
@@ -3551,7 +3819,7 @@ def trace_log(
     event: str = typer.Argument(..., help="Event type"),
     data: str | None = typer.Option(None, "--data", help="JSON event data"),
 ) -> None:
-    """Log an event to the active trace."""
+    """Record an event to the active trace (writes trace log)."""
     from gpd.core.trace import trace_log
 
     parsed_data = None
@@ -3565,7 +3833,7 @@ def trace_log(
 
 @trace_app.command("stop")
 def trace_stop() -> None:
-    """Stop the active trace session."""
+    """Stop the active trace session (writes trace and observability state)."""
     from gpd.core.trace import trace_stop
 
     _output(trace_stop(_get_cwd()))
@@ -3578,7 +3846,7 @@ def trace_show(
     event_type: str | None = typer.Option(None, "--type", help="Filter by event type"),
     last: int | None = typer.Option(None, "--last", help="Show last N events"),
 ) -> None:
-    """Show trace events with optional filters."""
+    """Inspect trace events with optional filters without modifying project state."""
     from gpd.core.trace import trace_show
 
     _output(trace_show(_get_cwd(), phase=phase, plan=plan, event_type=event_type, last=last))
@@ -3791,7 +4059,7 @@ def _render_observe_execution(result: ObserveExecutionResult) -> None:
         console.print("[dim]No live execution snapshot is currently recorded for this workspace.[/]")
 
 
-observe_app = typer.Typer(help="Inspect local observability sessions, live execution status, and events")
+observe_app = typer.Typer(help="Inspect local observability; event/export are the subcommands that write files")
 app.add_typer(observe_app, name="observe")
 
 
@@ -3811,7 +4079,7 @@ def observe_sessions(
     command: str | None = typer.Option(None, "--command", help="Filter by command label"),
     last: int | None = typer.Option(None, "--last", help="Show most recent N sessions"),
 ) -> None:
-    """List recorded local observability sessions."""
+    """List recorded local observability sessions without modifying project state."""
     _output(_filter_observability_sessions(_get_cwd(), status=status, command=command, last=last))
 
 
@@ -3827,7 +4095,7 @@ def observe_event(
     session: str | None = typer.Option(None, "--session", help="Explicit session id"),
     data: str | None = typer.Option(None, "--data", help="JSON event payload"),
 ) -> None:
-    """Append one local observability event."""
+    """Record one local observability event (writes session logs)."""
     parsed_data = None
     if data:
         try:
@@ -3865,7 +4133,7 @@ def observe_show(
     plan: str | None = typer.Option(None, "--plan", help="Filter by plan"),
     last: int | None = typer.Option(None, "--last", help="Show last N matching events"),
 ) -> None:
-    """Show local observability events with optional filters."""
+    """Inspect local observability events with optional filters without modifying project state."""
     _output(
         _filter_observability_events(
             _get_cwd(),
@@ -3893,7 +4161,7 @@ def observe_export(
     format: str = typer.Option("jsonl", "--format", "-f", help="Output format: jsonl, json, or markdown"),
     no_traces: bool = typer.Option(False, "--no-traces", help="Exclude execution traces from export"),
 ) -> None:
-    """Export session logs and traces to files."""
+    """Export session logs and traces to files (writes export files)."""
     from gpd.core.observability import export_logs
 
     resolved_output_dir = str(_resolve_cli_target_dir(output_dir)) if output_dir is not None else None
@@ -4204,6 +4472,77 @@ def cost(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# stage — Read-only staged workflow metadata
+# ═══════════════════════════════════════════════════════════════════════════
+
+stage_app = typer.Typer(help="Read-only staged workflow metadata")
+app.add_typer(stage_app, name="stage")
+
+
+@stage_app.command("field-access")
+def stage_field_access(
+    workflow_id: str = typer.Argument(..., help="Workflow id, for example plan-phase"),
+    stage: str = typer.Option(..., "--stage", help="Stage id from the workflow stage manifest"),
+    style: str = typer.Option(
+        "instruction",
+        "--style",
+        help="Output style: instruction, json, or shell",
+    ),
+    alias: list[str] | None = typer.Option(
+        None,
+        "--alias",
+        help="Alias binding to expose, as ALIAS=field or field. Repeatable.",
+    ),
+    payload_var: str = typer.Option(
+        "INIT",
+        "--payload-var",
+        help="Shell payload variable name used only with --style shell",
+    ),
+) -> None:
+    """Expose manifest-selected staged-init field access metadata."""
+    from gpd.core.staged_field_access import build_staged_field_access
+
+    try:
+        access = build_staged_field_access(
+            workflow_id,
+            stage_id=stage,
+            style=style,
+            alias_specs=alias,
+            payload_variable=payload_var,
+        )
+    except ValueError as exc:
+        _error(str(exc))
+    _output(access.to_payload())
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# command — Read-only command-context metadata
+# ═══════════════════════════════════════════════════════════════════════════
+
+command_app = typer.Typer(help="Read-only command-context metadata")
+app.add_typer(command_app, name="command")
+
+
+@command_app.command("field-access")
+def command_field_access(
+    command_name: str = typer.Argument(..., help="Command registry key or gpd:name"),
+    style: str = typer.Option(
+        "instruction",
+        "--style",
+        help="Output style: instruction or json",
+    ),
+) -> None:
+    """Expose selected command-context field access metadata."""
+    from gpd.core.command_field_access import build_command_field_access
+
+    try:
+        access = build_command_field_access(command_name, style=style)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(access.to_payload())
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # init — Workflow context assembly
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -4215,7 +4554,7 @@ _INIT_PLAN_PHASE_INCLUDES = frozenset(
     {"context", "requirements", "research", "roadmap", "state", "validation", "verification"}
 )
 _INIT_PHASE_OP_INCLUDES = frozenset({"config", "roadmap", "state"})
-_INIT_PROGRESS_INCLUDES = frozenset({"config", "project", "roadmap", "state"})
+_INIT_PROGRESS_INCLUDES = frozenset({"config", "project", "protocols", "references", "roadmap", "state"})
 
 
 def _parse_init_include_option(
@@ -4238,6 +4577,34 @@ def _parse_init_include_option(
     return includes
 
 
+@init_app.command("autonomous")
+def init_autonomous(
+    argument: list[str] = typer.Argument(
+        None,
+        help="Optional autonomous launch arguments.",
+    ),
+    from_phase: str | None = typer.Option(
+        None,
+        "--from",
+        help="Start from this roadmap phase instead of the first incomplete phase.",
+    ),
+    stage: str | None = typer.Option(
+        None,
+        "--stage",
+        help="Load the staged autonomous context for a specific stage id.",
+    ),
+) -> None:
+    """Assemble context for autonomous milestone execution."""
+    from gpd.core.context import init_autonomous
+
+    argument_text = " ".join(argument) if argument else None
+    try:
+        payload = init_autonomous(_get_cwd(), argument_input=argument_text, stage=stage, from_phase=from_phase)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
+
+
 @init_app.command("execute-phase")
 def init_execute_phase(
     phase: str | None = typer.Argument(None, help="Phase number"),
@@ -4256,7 +4623,10 @@ def init_execute_phase(
         command_name="gpd init execute-phase",
         allowed=_INIT_EXECUTE_PHASE_INCLUDES,
     )
-    _output(init_execute_phase(_get_cwd(), phase, includes=includes, stage=stage))
+    try:
+        _output(init_execute_phase(_get_cwd(), phase, includes=includes, stage=stage))
+    except ValueError as exc:
+        _error(str(exc))
 
 
 @init_app.command("plan-phase")
@@ -4304,6 +4674,18 @@ def init_new_project(
     _output(payload)
 
 
+@init_app.command("start-context")
+def init_start_context() -> None:
+    """Assemble thin context for the start chooser."""
+    from gpd.core.context import init_start_context as _init_start_context
+
+    try:
+        payload = _init_start_context(_get_cwd())
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
+
+
 @init_app.command("new-milestone")
 def init_new_milestone(
     stage: str | None = typer.Option(
@@ -4324,6 +4706,10 @@ def init_new_milestone(
 
 @init_app.command("write-paper")
 def init_write_paper(
+    subject: list[str] = typer.Argument(
+        None,
+        help="Optional normalized write-paper launch payload.",
+    ),
     stage: str | None = typer.Option(
         None,
         "--stage",
@@ -4333,8 +4719,9 @@ def init_write_paper(
     """Assemble context for manuscript authoring."""
     from gpd.core.context import init_write_paper
 
+    subject_text = " ".join(subject) if subject else None
     try:
-        payload = init_write_paper(_get_cwd(), stage=stage)
+        payload = init_write_paper(_get_cwd(), subject=subject_text, stage=stage)
     except ValueError as exc:
         _error(str(exc))
     _output(payload)
@@ -4342,6 +4729,10 @@ def init_write_paper(
 
 @init_app.command("peer-review")
 def init_peer_review(
+    subject: str | None = typer.Argument(
+        None,
+        help="Optional explicit review target path for peer-review context resolution.",
+    ),
     stage: str | None = typer.Option(
         None,
         "--stage",
@@ -4352,7 +4743,56 @@ def init_peer_review(
     from gpd.core.context import init_peer_review
 
     try:
-        payload = init_peer_review(_get_cwd(), stage=stage)
+        payload = init_peer_review(_get_cwd(), subject=subject, stage=stage)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
+
+
+@init_app.command("respond-to-referees")
+def init_respond_to_referees(
+    subject: list[str] = typer.Argument(
+        None,
+        help="Optional normalized manuscript/report intake string for response-round context resolution.",
+    ),
+    stage: str | None = typer.Option(
+        None,
+        "--stage",
+        help="Load the staged respond-to-referees context for a specific stage id.",
+    ),
+) -> None:
+    """Assemble context for responding to referee reports."""
+    from gpd.core.context import init_respond_to_referees
+
+    subject_text = " ".join(subject) if subject else None
+    try:
+        payload = init_respond_to_referees(_get_cwd(), subject=subject_text, stage=stage)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
+
+
+@init_app.command("arxiv-submission")
+def init_arxiv_submission(
+    subject: list[str] = typer.Argument(
+        None,
+        help="Optional explicit manuscript root or .tex entrypoint for staged submission context.",
+    ),
+    stage: str | None = typer.Option(
+        None,
+        "--stage",
+        help="Load the staged arxiv-submission context for a specific stage id.",
+    ),
+) -> None:
+    """Assemble context for arXiv submission packaging."""
+    from gpd.core.context import init_arxiv_submission
+
+    subject_text = " ".join(subject) if subject else None
+    try:
+        kwargs: dict[str, object] = {"stage": stage}
+        if subject_text is not None:
+            kwargs["subject"] = subject_text
+        payload = init_arxiv_submission(_get_cwd(), **kwargs)
     except ValueError as exc:
         _error(str(exc))
     _output(payload)
@@ -4398,6 +4838,16 @@ def init_literature_review(
     _output(payload)
 
 
+def _emit_init_resume(stage: str | None) -> None:
+    from gpd.core.context import init_resume
+
+    try:
+        payload = init_resume(_get_cwd(), stage=stage)
+    except ValueError as exc:
+        _error(str(exc))
+    _output(payload)
+
+
 @init_app.command("resume")
 def init_resume(
     stage: str | None = typer.Option(
@@ -4407,18 +4857,23 @@ def init_resume(
     ),
 ) -> None:
     """Assemble context for resuming previous work."""
-    from gpd.core.context import init_resume
+    _emit_init_resume(stage)
 
-    _output(init_resume(_get_cwd(), stage=stage))
+
+@init_app.command("resume-work")
+def init_resume_work(
+    stage: str | None = typer.Option(
+        None,
+        "--stage",
+        help="Load the staged resume-work context for a specific stage id.",
+    ),
+) -> None:
+    """Alias for gpd init resume."""
+    _emit_init_resume(stage)
 
 
 @init_app.command("sync-state")
 def init_sync_state(
-    prefer: str | None = typer.Option(
-        None,
-        "--prefer",
-        help="Preferred mirrored-field authority for sync-state: md or json.",
-    ),
     stage: str | None = typer.Option(
         None,
         "--stage",
@@ -4429,7 +4884,7 @@ def init_sync_state(
     from gpd.core.context import init_sync_state
 
     try:
-        payload = init_sync_state(_get_cwd(), prefer_mode=prefer, stage=stage)
+        payload = init_sync_state(_get_cwd(), stage=stage)
     except ValueError as exc:
         _error(str(exc))
     _output(payload)
@@ -4447,10 +4902,14 @@ def init_verify_work(
     """Assemble context for verifying completed work."""
     from gpd.core.context import init_verify_work
 
-    if stage is None:
-        _output(init_verify_work(_get_cwd(), phase))
-    else:
-        _output(init_verify_work(_get_cwd(), phase, stage=stage))
+    try:
+        if stage is None:
+            payload = init_verify_work(_get_cwd(), phase)
+        else:
+            payload = init_verify_work(_get_cwd(), phase, stage=stage)
+    except (GPDError, ValueError) as exc:
+        _error(str(exc))
+    _output(payload)
 
 
 @init_app.command("progress")
@@ -4475,6 +4934,10 @@ def init_progress(
 
 @init_app.command("map-research")
 def init_map_research(
+    focus: str | None = typer.Argument(
+        None,
+        help="Optional specific area to emphasize in the research map.",
+    ),
     stage: str | None = typer.Option(
         None,
         "--stage",
@@ -4485,7 +4948,7 @@ def init_map_research(
     from gpd.core.context import init_map_research
 
     try:
-        payload = init_map_research(_get_cwd(), stage=stage)
+        payload = init_map_research(_get_cwd(), focus=focus, stage=stage)
     except ValueError as exc:
         _error(str(exc))
     _output(payload)
@@ -4595,6 +5058,8 @@ def presets_apply(
     dry_run: bool = typer.Option(False, "--dry-run", help="Show a diff-oriented preview without writing it"),
 ) -> None:
     """Apply a workflow preset to GPD/config.json."""
+    from contextlib import nullcontext
+
     from gpd.core.constants import ProjectLayout
     from gpd.core.utils import atomic_write, file_lock
 
@@ -4603,8 +5068,9 @@ def presets_apply(
         supported = ", ".join(preset.id for preset in list_workflow_presets())
         _error(f"Unknown workflow preset {preset_name!r}. Supported: {supported}")
 
-    config_path = ProjectLayout(_get_cwd()).config_json
-    with file_lock(config_path):
+    project_cwd = _config_project_scoped_cwd()
+    config_path = ProjectLayout(project_cwd).config_json
+    with nullcontext() if dry_run else file_lock(config_path):
         try:
             raw_text = config_path.read_text(encoding="utf-8")
         except FileNotFoundError:
@@ -4804,10 +5270,7 @@ def question_resolve(
         joined = " ".join(text)
         res = question_resolve(state, joined, answer=answer)
         if res == 0:
-            _error(
-                f'No open question matching "{joined}". '
-                "Pass the question text (or a unique substring), not an ID."
-            )
+            _error(f'No open question matching "{joined}". Pass the question text (or a unique substring), not an ID.')
         save_state_json_locked(cwd, state)
     _output(res)
 
@@ -4879,22 +5342,12 @@ app.add_typer(config_app, name="config")
 
 
 _WOLFRAM_INTEGRATION_NAME = WOLFRAM_MANAGED_INTEGRATION.integration_id
-
-
-def _require_project_root_for_integrations(cwd: Path) -> Path:
-    """Require a verified GPD project root for project-scoped integrations."""
-    workspace_cwd = cwd.expanduser().resolve(strict=False)
-    project_root = resolve_project_root(workspace_cwd, require_layout=True)
-    if project_root is None:
-        _error(
-            "gpd integrations require a real GPD project root. Run the command from inside a project with a GPD/ layout."
-        )
-    return project_root
+_INSTALL_RESULT_ADAPTER_KEY = "__gpd_install_adapter_instance__"
 
 
 def _integrations_config_path(cwd: Path) -> Path:
     """Return the per-project shared-integration config path."""
-    project_root = _require_project_root_for_integrations(cwd)
+    project_root = _require_project_root(cwd, command_label="gpd integrations")
     return WOLFRAM_MANAGED_INTEGRATION.project_config_path(project_root)
 
 
@@ -4902,18 +5355,15 @@ def _update_wolfram_integration_state(cwd: Path, *, enabled: bool) -> dict[str, 
     """Persist the Wolfram integration override in the project-local config file."""
     from gpd.core.utils import atomic_write, file_lock
 
-    project_root = _require_project_root_for_integrations(cwd)
+    project_root = _require_project_root(cwd, command_label="gpd integrations")
     config_path = _integrations_config_path(project_root)
     with file_lock(config_path):
         try:
             payload = WOLFRAM_MANAGED_INTEGRATION.project_payload(project_root)
-            current = WOLFRAM_MANAGED_INTEGRATION.project_record(project_root) or {}
+            WOLFRAM_MANAGED_INTEGRATION.project_record(project_root)
         except RuntimeError as exc:
             _error(str(exc))
         updated: dict[str, object] = {"enabled": enabled}
-        endpoint = current.get("endpoint")
-        if isinstance(endpoint, str) and endpoint and endpoint != WOLFRAM_MANAGED_INTEGRATION.default_endpoint:
-            updated["endpoint"] = endpoint
         payload[_WOLFRAM_INTEGRATION_NAME] = updated
         config_path.parent.mkdir(parents=True, exist_ok=True)
         atomic_write(config_path, json.dumps(payload, indent=2) + "\n")
@@ -4939,7 +5389,7 @@ def _update_wolfram_integration_state(cwd: Path, *, enabled: bool) -> dict[str, 
 
 def _wolfram_integration_status_payload(cwd: Path) -> dict[str, object]:
     """Return the effective project-local status payload for the Wolfram integration."""
-    project_root = _require_project_root_for_integrations(cwd)
+    project_root = _require_project_root(cwd, command_label="gpd integrations")
     config_path = _integrations_config_path(project_root)
     try:
         record = WOLFRAM_MANAGED_INTEGRATION.project_record(project_root)
@@ -4951,28 +5401,45 @@ def _wolfram_integration_status_payload(cwd: Path) -> dict[str, object]:
 
     configured = record is not None
     api_key_present = WOLFRAM_MANAGED_INTEGRATION.api_key_present()
+    missing_api_key_env_vars = list(WOLFRAM_MANAGED_INTEGRATION.missing_api_key_env_vars())
+    api_key_recovery = WOLFRAM_MANAGED_INTEGRATION.api_key_recovery_message()
     state = "ready" if ready else "disabled" if not enabled else "missing-api-key"
     if not enabled:
         next_step = "Run `gpd integrations enable wolfram` to re-enable the shared Wolfram bridge for this project."
     elif ready:
         next_step = f"Use `{local_cli_plan_preflight_command()}` to verify whether a specific plan can run."
+    elif api_key_recovery:
+        next_step = (
+            f"{api_key_recovery} This makes the shared Wolfram bridge available, "
+            "or run `gpd integrations disable wolfram` to suppress it for this project."
+        )
     else:
         next_step = (
             f"Set `{WOLFRAM_MANAGED_INTEGRATION.api_key_env_var}` to make the shared Wolfram bridge available, "
             "or run `gpd integrations disable wolfram` to suppress it for this project."
         )
+    projected_server = WOLFRAM_MANAGED_INTEGRATION.projected_server_entry(cwd=project_root) if ready else None
+    projection_status = "projected" if ready else "disabled" if not enabled else "blocked_missing_api_key"
 
     return {
         "integration": _WOLFRAM_INTEGRATION_NAME,
+        "managed_server_key": WOLFRAM_MANAGED_INTEGRATION.managed_server_key,
+        "bridge_command": WOLFRAM_MANAGED_INTEGRATION.bridge_command,
+        "bridge_module": WOLFRAM_MANAGED_INTEGRATION.bridge_module,
         "configured": configured,
         "enabled": enabled,
         "ready": ready,
         "state": state,
+        "projection_status": projection_status,
+        "projected_server": projected_server,
         "config_path": str(config_path),
         "scope": "project-local",
         "endpoint": endpoint,
         "api_key_env": WOLFRAM_MANAGED_INTEGRATION.api_key_env_var,
+        "api_key_env_vars": list(WOLFRAM_MANAGED_INTEGRATION.api_key_env_vars),
         "api_key_present": api_key_present,
+        "missing_api_key_env_vars": missing_api_key_env_vars,
+        "api_key_recovery": api_key_recovery,
         "plan_readiness_command": local_cli_plan_preflight_command(),
         "next_step": next_step,
         "local_mathematica_note": (
@@ -5020,8 +5487,7 @@ def integrations_disable(
     _output(_update_wolfram_integration_state(_get_cwd(), enabled=False))
 
 
-class _PermissionsResolutionError(RuntimeError):
-    """Internal error used to report non-fatal permissions resolution failures."""
+_PermissionsResolutionError = _permissions_cli_support.PermissionsResolutionError
 
 
 def _raise_permissions_resolution_error(message: str, *, strict: bool) -> None:
@@ -5038,54 +5504,30 @@ def _resolve_permissions_runtime_name(
     prefer_installed_runtime: bool = False,
 ) -> str:
     """Resolve the runtime to use for permission status/sync commands."""
-    from gpd.hooks.runtime_detect import (
-        RUNTIME_UNKNOWN,
-        detect_active_runtime,
-        detect_runtime_for_gpd_use,
+    return _permissions_cli_support.resolve_permissions_runtime_name(
+        runtime,
+        cwd=_get_cwd(),
+        strict=strict,
+        prefer_installed_runtime=prefer_installed_runtime,
+        supported_runtime_names=_supported_runtime_names,
+        normalize_runtime_name=normalize_runtime_name,
+        error=_error,
     )
-
-    supported = _supported_runtime_names()
-    if runtime is not None:
-        normalized = normalize_runtime_name(runtime)
-        if normalized is None or normalized not in supported:
-            _raise_permissions_resolution_error(
-                f"Unknown runtime {runtime!r}. Supported: {', '.join(supported)}",
-                strict=strict,
-            )
-        return normalized
-
-    detected = (
-        detect_runtime_for_gpd_use(cwd=_get_cwd())
-        if prefer_installed_runtime
-        else detect_active_runtime(cwd=_get_cwd())
-    )
-    if detected == RUNTIME_UNKNOWN:
-        _raise_permissions_resolution_error("No active runtime was detected. Pass --runtime explicitly.", strict=strict)
-    return detected
 
 
 def _resolve_permissions_autonomy(autonomy: str | None, *, strict: bool = True) -> str:
     """Resolve the autonomy value used for runtime-permission sync."""
-    from gpd.core.config import AutonomyMode, load_config
-
-    if autonomy is None:
-        return load_config(_get_cwd()).autonomy.value
-
-    normalized = autonomy.strip().lower()
-    valid_values = {mode.value for mode in AutonomyMode}
-    if normalized not in valid_values:
-        _raise_permissions_resolution_error(
-            f"Unknown autonomy {autonomy!r}. Supported: {', '.join(sorted(valid_values))}",
-            strict=strict,
-        )
-    return normalized
+    return _permissions_cli_support.resolve_permissions_autonomy(
+        autonomy,
+        cwd=_get_cwd(),
+        strict=strict,
+        error=_error,
+    )
 
 
 def _permissions_install_target_assessment(runtime_name: str, target_dir: Path):
     """Return the shared install-state assessment for a permissions target."""
-    from gpd.hooks.install_metadata import assess_install_target
-
-    return assess_install_target(target_dir, expected_runtime=runtime_name)
+    return _permissions_cli_support.permissions_install_target_assessment(runtime_name, target_dir)
 
 
 def _permissions_install_target_error_message(
@@ -5095,26 +5537,12 @@ def _permissions_install_target_error_message(
     action: str,
 ) -> str:
     """Return a user-facing error message for a non-complete permissions target."""
-    target = _format_display_path(assessment.config_dir)
-    if assessment.state == "owned_incomplete":
-        missing = ", ".join(f"`{relpath}`" for relpath in assessment.missing_install_artifacts)
-        missing_message = f" Missing artifacts: {missing}." if missing else ""
-        return (
-            f"Found an incomplete GPD install for runtime {runtime_name!r} at {target}.{missing_message} "
-            f"Repair the install before you {action}."
-        )
-    if assessment.state == "foreign_runtime":
-        other_runtime = assessment.manifest_runtime or "unknown"
-        return (
-            f"Found a GPD install at {target}, but its manifest belongs to runtime {other_runtime!r}, "
-            f"not {runtime_name!r}."
-        )
-    if assessment.state == "untrusted_manifest":
-        return (
-            f"Found a managed GPD surface at {target}, but its manifest state is {assessment.manifest_state!r}. "
-            "Repair or reinstall it before using permissions."
-        )
-    return f"No GPD install found for runtime {runtime_name!r}. Run `gpd install {runtime_name}` first."
+    return _permissions_cli_support.permissions_install_target_error_message(
+        runtime_name,
+        assessment,
+        action=action,
+        cwd=_get_cwd(),
+    )
 
 
 def _resolve_permissions_target_dir(
@@ -5125,121 +5553,20 @@ def _resolve_permissions_target_dir(
     action: str = "inspect runtime permissions on",
 ) -> Path:
     """Resolve the installed config directory targeted by a permissions command."""
-    from gpd.adapters import get_adapter
-    from gpd.hooks.runtime_detect import detect_install_scope, detect_runtime_install_target
-
-    adapter = get_adapter(runtime_name)
-    assessment = None
-    if target_dir:
-        resolved = _resolve_cli_target_dir(target_dir)
-        try:
-            adapter.validate_target_runtime(resolved, action=action)
-        except RuntimeError as exc:
-            _error(str(exc))
-        assessment = _permissions_install_target_assessment(runtime_name, resolved)
-    else:
-        install_target = detect_runtime_install_target(runtime_name, cwd=_get_cwd())
-        if install_target is not None:
-            resolved = install_target.config_dir
-            assessment = _permissions_install_target_assessment(runtime_name, resolved)
-        else:
-            install_scope = detect_install_scope(runtime_name, cwd=_get_cwd())
-            if install_scope == "global":
-                resolved = adapter.resolve_target_dir(True, _get_cwd())
-                assessment = _permissions_install_target_assessment(runtime_name, resolved)
-            elif install_scope == "local":
-                resolved = adapter.resolve_target_dir(False, _get_cwd())
-                assessment = _permissions_install_target_assessment(runtime_name, resolved)
-            else:
-                local_target = adapter.resolve_target_dir(False, _get_cwd())
-                global_target = adapter.resolve_target_dir(True, _get_cwd())
-                local_assessment = _permissions_install_target_assessment(runtime_name, local_target)
-                global_assessment = _permissions_install_target_assessment(runtime_name, global_target)
-                candidate_assessments = (local_assessment, global_assessment)
-                complete_assessment = next(
-                    (candidate for candidate in candidate_assessments if candidate.state == "owned_complete"),
-                    None,
-                )
-                if complete_assessment is not None:
-                    resolved = complete_assessment.config_dir
-                    assessment = complete_assessment
-                else:
-                    informative_assessment = next(
-                        (
-                            candidate
-                            for candidate in candidate_assessments
-                            if candidate.state not in {"absent", "clean"}
-                        ),
-                        None,
-                    )
-                    if informative_assessment is None:
-                        _raise_permissions_resolution_error(
-                            f"No GPD install found for runtime {runtime_name!r}. Run `gpd install {runtime_name}` first.",
-                            strict=strict,
-                        )
-                    resolved = informative_assessment.config_dir
-                    assessment = informative_assessment
-
-    if assessment is None:
-        assessment = _permissions_install_target_assessment(runtime_name, resolved)
-
-    if assessment.state in {"absent", "clean"} and adapter.has_complete_install(resolved):
-        return resolved
-
-    if assessment.state != "owned_complete":
-        _raise_permissions_resolution_error(
-            _permissions_install_target_error_message(runtime_name, assessment, action=action),
-            strict=strict,
-        )
-    return resolved
+    return _permissions_cli_support.resolve_permissions_target_dir(
+        runtime_name,
+        target_dir=target_dir,
+        cwd=_get_cwd(),
+        strict=strict,
+        action=action,
+        target_assessment_resolver=_permissions_install_target_assessment,
+        error=_error,
+    )
 
 
 def _annotate_permissions_payload(payload: dict[str, object]) -> dict[str, object]:
     """Attach structured capability and evidence metadata to a permissions payload."""
-    from gpd.core.health import annotate_permissions_payload
-
-    annotated = annotate_permissions_payload(payload, requested_runtime=None)
-    capability_payload = annotated.get("capabilities")
-    if not isinstance(capability_payload, dict):
-        capability_payload = {}
-        annotated["capabilities"] = capability_payload
-
-    capability_payload.update(
-        {
-            "child_artifact_persistence_reliability": "unknown",
-            "supports_structured_child_results": False,
-            "continuation_surface": "unknown",
-            "checkpoint_stop_semantics": "unknown",
-            "supports_runtime_session_payload_attribution": False,
-            "supports_agent_payload_attribution": False,
-        }
-    )
-
-    runtime_name = annotated.get("runtime")
-    if not isinstance(runtime_name, str) or not runtime_name.strip():
-        return annotated
-
-    try:
-        from gpd.adapters.runtime_catalog import get_runtime_capabilities
-    except Exception:
-        return annotated
-
-    try:
-        capabilities = get_runtime_capabilities(runtime_name)
-    except KeyError:
-        return annotated
-
-    capability_payload.update(
-        {
-            "child_artifact_persistence_reliability": capabilities.child_artifact_persistence_reliability,
-            "supports_structured_child_results": capabilities.supports_structured_child_results,
-            "continuation_surface": capabilities.continuation_surface,
-            "checkpoint_stop_semantics": capabilities.checkpoint_stop_semantics,
-            "supports_runtime_session_payload_attribution": capabilities.supports_runtime_session_payload_attribution,
-            "supports_agent_payload_attribution": capabilities.supports_agent_payload_attribution,
-        }
-    )
-    return annotated
+    return _permissions_cli_support.annotate_permissions_payload(payload, requested_runtime=None)
 
 
 def _runtime_permissions_payload(
@@ -5252,75 +5579,30 @@ def _runtime_permissions_payload(
     prefer_installed_runtime: bool = False,
 ) -> dict[str, object]:
     """Return runtime-permissions status or sync payload for the selected runtime."""
-    from gpd.adapters import get_adapter
-    from gpd.hooks.runtime_detect import RUNTIME_UNKNOWN
-
-    try:
-        runtime_name = _resolve_permissions_runtime_name(
-            runtime,
-            strict=strict,
-            prefer_installed_runtime=prefer_installed_runtime,
-        )
-    except _PermissionsResolutionError as exc:
-        return _annotate_permissions_payload(
-            {
-                "runtime": None,
-                "target": None,
-                "sync_applied": False,
-                "changed": False,
-                "message": str(exc),
-            }
-        )
-
-    if runtime is None and runtime_name == RUNTIME_UNKNOWN:
-        if strict:
-            _error("No active runtime was detected. Pass --runtime explicitly.")
-        return _annotate_permissions_payload(
-            {
-                "runtime": None,
-                "target": None,
-                "sync_applied": False,
-                "changed": False,
-                "message": (
-                    "No active runtime was detected. "
-                    f"Run `{local_cli_permissions_sync_command()}` after installing GPD into a runtime."
-                ),
-            }
-        )
-
-    try:
-        resolved_target_dir = _resolve_permissions_target_dir(
-            runtime_name,
-            target_dir=target_dir,
-            strict=strict,
-            action=("sync" if apply_sync else "inspect") + " runtime permissions on",
-        )
-    except _PermissionsResolutionError as exc:
-        return _annotate_permissions_payload(
-            {
-                "runtime": runtime_name,
-                "target": None if target_dir is None else str(_resolve_cli_target_dir(target_dir)),
-                "sync_applied": False,
-                "changed": False,
-                "message": str(exc),
-            }
-        )
-
-    adapter = get_adapter(runtime_name)
-
-    autonomy_value = _resolve_permissions_autonomy(autonomy, strict=strict)
-    payload = (
-        adapter.sync_runtime_permissions(resolved_target_dir, autonomy=autonomy_value)
-        if apply_sync
-        else adapter.runtime_permissions_status(resolved_target_dir, autonomy=autonomy_value)
-    )
-    return _annotate_permissions_payload(
-        {
-            "runtime": runtime_name,
-            "target": str(resolved_target_dir),
-            "autonomy": autonomy_value,
-            **payload,
-        }
+    return _permissions_cli_support.runtime_permissions_payload(
+        runtime=runtime,
+        autonomy=autonomy,
+        target_dir=target_dir,
+        apply_sync=apply_sync,
+        strict=strict,
+        cwd=_get_cwd(),
+        prefer_installed_runtime=prefer_installed_runtime,
+        runtime_name_resolver=lambda value, **kwargs: _resolve_permissions_runtime_name(
+            value,
+            strict=bool(kwargs.get("strict", True)),
+            prefer_installed_runtime=bool(kwargs.get("prefer_installed_runtime", False)),
+        ),
+        target_dir_resolver=lambda value, **kwargs: _resolve_permissions_target_dir(
+            value,
+            target_dir=kwargs.get("target_dir"),
+            strict=bool(kwargs.get("strict", True)),
+            action=str(kwargs.get("action") or "inspect runtime permissions on"),
+        ),
+        autonomy_resolver=lambda value, **kwargs: _resolve_permissions_autonomy(
+            value,
+            strict=bool(kwargs.get("strict", True)),
+        ),
+        payload_annotator=lambda payload, requested_runtime=None: _annotate_permissions_payload(payload),
     )
 
 
@@ -5331,19 +5613,19 @@ def _permissions_status_payload(
     target_dir: str | None,
 ) -> dict[str, object]:
     """Return a status payload annotated for unattended-readiness checks."""
-    from gpd.core.health import normalize_permissions_readiness_payload
-
-    payload = _runtime_permissions_payload(
+    return _permissions_cli_support.permissions_status_payload(
         runtime=runtime,
         autonomy=autonomy,
         target_dir=target_dir,
-        apply_sync=False,
-        strict=True,
-        prefer_installed_runtime=True,
-    )
-    return normalize_permissions_readiness_payload(
-        payload,
-        requested_runtime=runtime,
+        cwd=_get_cwd(),
+        runtime_permissions_payload_func=lambda **kwargs: _runtime_permissions_payload(
+            runtime=kwargs.get("runtime"),
+            autonomy=kwargs.get("autonomy"),
+            target_dir=kwargs.get("target_dir"),
+            apply_sync=bool(kwargs.get("apply_sync", False)),
+            strict=bool(kwargs.get("strict", True)),
+            prefer_installed_runtime=bool(kwargs.get("prefer_installed_runtime", False)),
+        ),
     )
 
 
@@ -5396,7 +5678,7 @@ def config_get(
     try:
         from gpd.core.config import effective_config_value, load_config
 
-        config = load_config(_get_cwd())
+        config = load_config(_config_project_scoped_cwd())
         found, value = effective_config_value(config, key)
     except ConfigError as exc:
         _error(str(exc))
@@ -5406,17 +5688,41 @@ def config_get(
     _output({"key": key, "value": value, "found": True})
 
 
+_NULLABLE_CONFIG_VALUE_KEYS = frozenset({"project_usd_budget", "session_usd_budget"})
+_MODEL_OVERRIDE_TIERS = ("tier-1", "tier-2", "tier-3")
+
+
+def _parse_config_set_value(canonical_key: str | None, raw_value: str) -> object:
+    """Parse a CLI config value, including prompt-friendly nullable clears."""
+    if canonical_key in _NULLABLE_CONFIG_VALUE_KEYS and raw_value.strip().lower() in {"", "none"}:
+        return None
+    try:
+        return json.loads(raw_value)
+    except (json.JSONDecodeError, ValueError):
+        return raw_value
+
+
+def _normalize_tier_model_value(raw_value: str) -> str | None:
+    """Return a model id, or None when the tier should use the runtime default."""
+    stripped = raw_value.strip()
+    normalized_clear_token = " ".join(stripped.casefold().replace("-", " ").replace("_", " ").split())
+    if not stripped or normalized_clear_token in {"none", "runtime default"}:
+        return None
+    return stripped
+
+
 @config_app.command("set")
 def config_set(
     key: str = typer.Argument(..., help="Config key path (dot-separated)"),
     value: str = typer.Argument(..., help="Value to set"),
 ) -> None:
     """Set a configuration value (advanced local override)."""
-    from gpd.core.config import apply_config_update, effective_config_value, load_config
+    from gpd.core.config import apply_config_update, canonical_config_key, effective_config_value, load_config
     from gpd.core.constants import ProjectLayout
     from gpd.core.utils import atomic_write, file_lock
 
-    config_path = ProjectLayout(_get_cwd()).config_json
+    project_cwd = _config_project_scoped_cwd()
+    config_path = ProjectLayout(project_cwd).config_json
     config_path.parent.mkdir(parents=True, exist_ok=True)
     with file_lock(config_path):
         try:
@@ -5429,31 +5735,125 @@ def config_set(
             _error(f"Cannot read config.json: {exc}")
         if not isinstance(raw, dict):
             _error("config.json must be a JSON object")
-        try:
-            parsed = json.loads(value)
-        except (json.JSONDecodeError, ValueError):
-            parsed = value
+        parsed = _parse_config_set_value(canonical_config_key(key), value)
         try:
             updated_config, canonical_key = apply_config_update(raw, key, parsed)
         except ConfigError as exc:
             _error(str(exc))
         atomic_write(config_path, json.dumps(updated_config, indent=2) + "\n")
 
-    config = load_config(_get_cwd())
+    config = load_config(project_cwd)
     _found, effective_value = effective_config_value(config, key)
     result: dict[str, object] = {"key": key, "canonical_key": canonical_key, "value": effective_value, "updated": True}
     if canonical_key == "autonomy":
         result["guided_path"] = (
-            f"Use `{_active_runtime_settings_command(cwd=_get_cwd())}` inside the runtime for guided autonomy changes."
+            f"Use `{_active_runtime_settings_command(cwd=project_cwd)}` inside the runtime for guided autonomy changes."
         )
-        result["runtime_permissions"] = _runtime_permissions_payload(
-            runtime=None,
-            autonomy=str(effective_value),
-            target_dir=None,
-            apply_sync=True,
-            strict=False,
-        )
+        result["runtime_permissions"] = None
     _output(result)
+
+
+@config_app.command("set-tier-models")
+def config_set_tier_models(
+    runtime: str = typer.Option(..., "--runtime", help="Runtime whose tier model overrides should be updated"),
+    tier_1: str | None = typer.Option(None, "--tier-1", help="Exact tier-1 model id; blank/none clears tier 1"),
+    tier_2: str | None = typer.Option(None, "--tier-2", help="Exact tier-2 model id; blank/none clears tier 2"),
+    tier_3: str | None = typer.Option(None, "--tier-3", help="Exact tier-3 model id; blank/none clears tier 3"),
+    clear: bool = typer.Option(False, "--clear", help="Clear all tier model overrides for the selected runtime"),
+) -> None:
+    """Update model_overrides for one runtime without touching other runtime maps."""
+    from gpd.core.config import apply_config_update, effective_config_value, effective_raw_config_value, load_config
+    from gpd.core.constants import ProjectLayout
+    from gpd.core.utils import atomic_write, file_lock
+
+    runtime_name = normalize_runtime_name(runtime)
+    if runtime_name is None:
+        _error(f"Unknown runtime {runtime!r}. Supported runtimes: {', '.join(sorted(list_runtime_names()))}")
+
+    requested_tiers = {"tier-1": tier_1, "tier-2": tier_2, "tier-3": tier_3}
+    supplied_tiers = {tier: value for tier, value in requested_tiers.items() if value is not None}
+    if clear and supplied_tiers:
+        _error("Use either --clear or tier model options, not both.")
+    if not clear and not supplied_tiers:
+        _error("Provide at least one of --tier-1, --tier-2, --tier-3, or --clear.")
+
+    project_cwd = _config_project_scoped_cwd()
+    config_path = ProjectLayout(project_cwd).config_json
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    changed_tiers: list[str] = []
+    cleared_tiers: list[str] = []
+    with file_lock(config_path):
+        try:
+            raw = json.loads(config_path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            raw = {}
+        except json.JSONDecodeError as e:
+            _error(f"Malformed config.json: {e}")
+        except OSError as exc:
+            _error(f"Cannot read config.json: {exc}")
+        if not isinstance(raw, dict):
+            _error("config.json must be a JSON object")
+
+        try:
+            _found, current_effective = effective_raw_config_value(raw, "model_overrides")
+        except ConfigError as exc:
+            _error(str(exc))
+        current_overrides = current_effective if isinstance(current_effective, dict) else {}
+        next_overrides: dict[str, dict[str, str]] = {
+            str(existing_runtime): dict(tier_map)
+            for existing_runtime, tier_map in current_overrides.items()
+            if isinstance(tier_map, dict)
+        }
+
+        if clear:
+            cleared_tiers = sorted(next_overrides.get(runtime_name, {}))
+            next_overrides.pop(runtime_name, None)
+        else:
+            runtime_overrides = dict(next_overrides.get(runtime_name, {}))
+            for tier in _MODEL_OVERRIDE_TIERS:
+                raw_model = requested_tiers[tier]
+                if raw_model is None:
+                    continue
+                model = _normalize_tier_model_value(raw_model)
+                if model is None:
+                    if tier in runtime_overrides:
+                        cleared_tiers.append(tier)
+                    runtime_overrides.pop(tier, None)
+                    continue
+                runtime_overrides[tier] = model
+                changed_tiers.append(tier)
+
+            if runtime_overrides:
+                next_overrides[runtime_name] = runtime_overrides
+            else:
+                next_overrides.pop(runtime_name, None)
+
+        try:
+            updated_config, canonical_key = apply_config_update(
+                raw,
+                "model_overrides",
+                next_overrides or None,
+            )
+        except ConfigError as exc:
+            _error(str(exc))
+        atomic_write(config_path, json.dumps(updated_config, indent=2) + "\n")
+
+    config = load_config(project_cwd)
+    _found, effective_value = effective_config_value(config, canonical_key)
+    runtime_model_overrides = None
+    if isinstance(effective_value, dict):
+        runtime_model_overrides = effective_value.get(runtime_name)
+    _output(
+        {
+            "runtime": runtime_name,
+            "updated": True,
+            "cleared": clear,
+            "changed_tiers": changed_tiers,
+            "cleared_tiers": cleared_tiers,
+            "model_overrides": effective_value,
+            "runtime_model_overrides": runtime_model_overrides,
+        }
+    )
 
 
 @config_app.command("ensure-section")
@@ -5463,7 +5863,7 @@ def config_ensure_section() -> None:
     from gpd.core.constants import ProjectLayout
     from gpd.core.utils import atomic_write
 
-    config_path = ProjectLayout(_get_cwd()).config_json
+    config_path = ProjectLayout(_config_project_scoped_cwd()).config_json
     if config_path.exists():
         _output({"created": False, "path": str(config_path)})
         return
@@ -5505,124 +5905,27 @@ def config_ensure_section() -> None:
 validate_app = typer.Typer(help="Validation checks")
 app.add_typer(validate_app, name="validate")
 
+verification_report_app = typer.Typer(help="Verification report skeleton helpers")
+app.add_typer(verification_report_app, name="verification-report")
 
-def _resolve_review_preflight_manuscript(
-    cwd: Path,
-    subject: str | None,
-    *,
-    allow_markdown: bool = True,
-    restrict_to_supported_roots: bool = False,
-    workspace_cwd: Path | None = None,
-) -> tuple[Path | None, str]:
-    """Resolve a review-preflight manuscript target from an explicit subject or defaults."""
+proof_redteam_app = typer.Typer(help="Proof-redteam artifact helpers")
+app.add_typer(proof_redteam_app, name="proof-redteam")
 
-    project_root = cwd.resolve(strict=False)
-    subject_base = (workspace_cwd or cwd).resolve(strict=False)
+return_app = typer.Typer(help="gpd_return envelope helpers")
+app.add_typer(return_app, name="return")
 
-    def _supported_explicit_manuscript_target(target: Path) -> bool:
-        try:
-            relative = target.resolve(strict=False).relative_to(project_root)
-        except ValueError:
-            return False
-        return bool(relative.parts) and relative.parts[0] in {"paper", "manuscript", "draft"}
 
-    def _supported_root_resolution_for_target(target: Path) -> tuple[Path, object] | tuple[None, None]:
-        try:
-            relative = target.resolve(strict=False).relative_to(project_root)
-        except ValueError:
-            return None, None
-        if not relative.parts or relative.parts[0] not in {"paper", "manuscript", "draft"}:
-            return None, None
-        manuscript_root = project_root / relative.parts[0]
-        return manuscript_root, resolve_manuscript_entrypoint_from_root_resolution(
-            manuscript_root,
-            allow_markdown=allow_markdown,
-        )
-
-    if subject:
-        target = Path(subject)
-        if not target.is_absolute():
-            target = subject_base / target
-
-        target = target.resolve(strict=False)
-        target_is_supported_root = _supported_explicit_manuscript_target(target)
-        if restrict_to_supported_roots and not target_is_supported_root:
-            return (
-                None,
-                "explicit manuscript target must stay under `paper/`, `manuscript/`, or `draft/` inside the current project",
-            )
-        if not target.exists():
-            return None, f"missing explicit manuscript target {_format_display_path(target)}"
-        if target.is_file():
-            if target.suffix == ".tex" or (allow_markdown and target.suffix == ".md"):
-                manuscript_root, root_resolution = _supported_root_resolution_for_target(target)
-                if manuscript_root is not None and root_resolution is not None:
-                    if root_resolution.status != "resolved" or root_resolution.manuscript_entrypoint is None:
-                        return (
-                            None,
-                            f"{_format_display_path(manuscript_root)} is ambiguous or inconsistent: {root_resolution.detail}",
-                        )
-                    if root_resolution.manuscript_entrypoint.resolve(strict=False) != target.resolve(strict=False):
-                        return (
-                            None,
-                            (
-                                f"{_format_display_path(target)} does not match the resolved manuscript entrypoint "
-                                f"{_format_display_path(root_resolution.manuscript_entrypoint)} under "
-                                f"{_format_display_path(manuscript_root)}"
-                            ),
-                        )
-                return target, f"{_format_display_path(target)} present"
-            if target.suffix == ".md":
-                return None, f"explicit manuscript target must be a .tex file: {_format_display_path(target)}"
-            return None, f"explicit manuscript target must be a .tex or .md file: {_format_display_path(target)}"
-
-        if target.is_dir():
-            manuscript_root, root_resolution = _supported_root_resolution_for_target(target)
-            resolution = (
-                root_resolution
-                if manuscript_root is not None and root_resolution is not None
-                else resolve_manuscript_entrypoint_from_root_resolution(target, allow_markdown=allow_markdown)
-            )
-            if resolution.status == "resolved" and resolution.manuscript_entrypoint is not None:
-                if manuscript_root is not None and manuscript_root != target:
-                    resolved_entrypoint = resolution.manuscript_entrypoint.resolve(strict=False)
-                    try:
-                        resolved_entrypoint.relative_to(target)
-                    except ValueError:
-                        return (
-                            None,
-                            (
-                                f"{_format_display_path(target)} does not contain the resolved manuscript entrypoint "
-                                f"{_format_display_path(resolution.manuscript_entrypoint)} under "
-                                f"{_format_display_path(manuscript_root)}"
-                            ),
-                        )
-                return (
-                    resolution.manuscript_entrypoint,
-                    f"{_format_display_path(target)} resolved to {_format_display_path(resolution.manuscript_entrypoint)}",
-                )
-            if resolution.status == "missing":
-                return None, f"no manuscript entry point found under {_format_display_path(target)}"
-            return None, f"{_format_display_path(target)} is ambiguous or inconsistent: {resolution.detail}"
-
-    resolution = resolve_current_manuscript_resolution(project_root, allow_markdown=allow_markdown)
-    manuscript = resolution.manuscript_entrypoint
-    if manuscript is not None and resolution.status == "resolved":
-        return manuscript, f"{_format_display_path(manuscript)} present"
-    if allow_markdown:
-        if resolution.status == "missing":
-            return (
-                None,
-                "no manuscript entrypoint found under paper/, manuscript/, or draft/ "
-                "(expected ARTIFACT-MANIFEST.json or PAPER-CONFIG.json-derived output)",
-            )
-        return (
-            None,
-            f"ambiguous or inconsistent manuscript roots: {resolution.detail}",
-        )
-    if resolution.status == "missing":
-        return None, "no LaTeX manuscript entrypoint found under paper/, manuscript/, or draft/"
-    return None, f"ambiguous or inconsistent manuscript roots: {resolution.detail}"
+def _resolve_launch_or_project_relative_path(
+    subject: str | None, *, launch_cwd: Path, project_cwd: Path
+) -> Path | None:
+    """Resolve a launch argument relative to launch cwd first, then project root."""
+    launch_candidate = _resolve_subject_path(subject, base=launch_cwd)
+    if launch_candidate is None or launch_candidate.exists() or Path(str(subject or "")).is_absolute():
+        return launch_candidate
+    project_candidate = _resolve_subject_path(subject, base=project_cwd)
+    if project_candidate is not None and project_candidate.exists():
+        return project_candidate
+    return launch_candidate
 
 
 def _resolve_review_preflight_publication_artifact(manuscript: Path, *filenames: str) -> Path | None:
@@ -5639,6 +5942,91 @@ class ManuscriptPublicationArtifacts:
     reproducibility_manifest: Path | None = None
 
 
+def _publication_lineage_search_roots(
+    project_root: Path,
+    *,
+    manuscript: Path | None = None,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+    """Return candidate publication-root and review-root search paths for one manuscript subject."""
+
+    return _core_publication_lineage_search_roots(
+        project_root,
+        manuscript=manuscript,
+        include_global_fallback_for_external=True,
+    )
+
+
+def _publication_review_round_path_maps(
+    project_root: Path,
+    *,
+    manuscript: Path | None = None,
+) -> tuple[dict[int, Path], dict[int, Path]]:
+    """Return staged review-artifact maps rooted at the manuscript's publication lineage."""
+
+    return _core_publication_review_round_path_maps(
+        project_root,
+        manuscript=manuscript,
+        include_global_fallback_for_external=True,
+    )
+
+
+def _publication_response_round_path_maps(
+    project_root: Path,
+    *,
+    manuscript: Path | None = None,
+) -> tuple[dict[int, Path], dict[int, Path]]:
+    """Return paired response-artifact maps rooted at the manuscript's publication lineage."""
+
+    return _core_publication_response_round_path_maps(
+        project_root,
+        manuscript=manuscript,
+        include_global_fallback_for_external=True,
+    )
+
+
+def _publication_review_round_artifacts(
+    round_number: int,
+    *,
+    review_ledger_by_round: dict[int, Path],
+    referee_decision_by_round: dict[int, Path],
+) -> PublicationReviewRoundArtifacts:
+    """Return one staged review round bundle from precomputed round maps."""
+
+    return _core_publication_review_round_artifacts(
+        round_number=round_number,
+        review_ledger_by_round=review_ledger_by_round,
+        referee_decision_by_round=referee_decision_by_round,
+    )
+
+
+def _resolve_latest_publication_review_round_artifacts(
+    project_root: Path,
+    *,
+    manuscript: Path | None = None,
+) -> PublicationReviewRoundArtifacts | None:
+    """Return the newest staged review round without enforcing manuscript-path matching."""
+
+    return _core_resolve_latest_publication_review_round_artifacts(
+        project_root,
+        manuscript=manuscript,
+        include_global_fallback_for_external=True,
+    )
+
+
+def _resolve_latest_publication_response_round_artifacts(
+    project_root: Path,
+    *,
+    manuscript: Path | None = None,
+) -> PublicationResponseRoundArtifacts | None:
+    """Return the newest paired-response round without assuming fresh review clearance exists."""
+
+    return _core_resolve_latest_publication_response_round_artifacts(
+        project_root,
+        manuscript=manuscript,
+        include_global_fallback_for_external=True,
+    )
+
+
 def _resolve_review_preflight_publication_artifacts(manuscript: Path) -> ManuscriptPublicationArtifacts:
     """Resolve the standard manuscript-local publication artifacts."""
     return ManuscriptPublicationArtifacts(
@@ -5650,6 +6038,60 @@ def _resolve_review_preflight_publication_artifacts(manuscript: Path) -> Manuscr
     )
 
 
+def _validate_artifact_manifest_semantics(
+    artifact_manifest: Path,
+    manuscript: Path,
+    *,
+    require_freshness: bool = True,
+) -> tuple[bool, str]:
+    """Validate artifact-manifest structure and manuscript freshness."""
+    from gpd.mcp.paper.artifact_manifest import (
+        validate_artifact_manifest_freshness,
+        validate_artifact_manifest_integrity,
+    )
+    from gpd.mcp.paper.models import ArtifactManifest
+
+    detail = f"{_format_display_path(artifact_manifest)} present"
+    try:
+        artifact_manifest_payload = json.loads(artifact_manifest.read_text(encoding="utf-8"))
+        artifact_manifest_model = ArtifactManifest.model_validate(artifact_manifest_payload)
+        failed_build_artifacts = [
+            artifact
+            for artifact in artifact_manifest_model.artifacts
+            if isinstance(artifact.metadata, dict) and artifact.metadata.get("build_success") is False
+        ]
+        if failed_build_artifacts:
+            failed_artifact = failed_build_artifacts[0]
+            failure_stage = failed_artifact.metadata.get("failure_stage", "unknown")
+            return False, f"artifact manifest records failed paper build at {failure_stage} stage"
+        if require_freshness:
+            artifact_manifest_freshness = validate_artifact_manifest_freshness(
+                artifact_manifest_model,
+                manuscript,
+            )
+            if not artifact_manifest_freshness.fresh:
+                return False, "artifact manifest is stale: " + artifact_manifest_freshness.detail
+        selected_manifest_manuscript = manuscript if manuscript.suffix.lower() in {".tex", ".md"} else None
+        artifact_manifest_integrity = validate_artifact_manifest_integrity(
+            artifact_manifest_model,
+            artifact_manifest.parent,
+            selected_manuscript_path=selected_manifest_manuscript,
+        )
+        if not artifact_manifest_integrity.passed:
+            return False, "artifact manifest integrity failed: " + artifact_manifest_integrity.detail
+    except OSError as exc:
+        return False, f"could not read artifact manifest: {exc}"
+    except UnicodeDecodeError as exc:
+        return False, f"artifact manifest is not valid UTF-8: {exc}"
+    except json.JSONDecodeError as exc:
+        return False, f"could not parse artifact manifest: {exc}"
+    except PydanticValidationError as exc:
+        return False, "artifact manifest is invalid: " + "; ".join(
+            _format_pydantic_schema_error(error, root_label="artifact_manifest") for error in exc.errors()[:3]
+        )
+    return True, detail
+
+
 def _validate_bibliography_audit_semantics(bibliography_audit: Path) -> tuple[bool, str]:
     """Validate bibliography-audit structure and publication semantics."""
     from gpd.mcp.paper.bibliography import BibliographyAudit
@@ -5658,6 +6100,8 @@ def _validate_bibliography_audit_semantics(bibliography_audit: Path) -> tuple[bo
         audit_payload = json.loads(bibliography_audit.read_text(encoding="utf-8"))
     except OSError as exc:
         return False, f"could not read bibliography audit: {exc}"
+    except UnicodeDecodeError as exc:
+        return False, f"bibliography audit is not valid UTF-8: {exc}"
     except json.JSONDecodeError as exc:
         return False, f"could not parse bibliography audit: {exc}"
 
@@ -5705,10 +6149,33 @@ def _requires_theorem_bearing_manuscript_review(
     return manuscript is not None and manuscript_requires_theorem_bearing_review(project_cwd, manuscript)
 
 
+def _review_contract_declared_preflight_checks(contract: object) -> set[str]:
+    """Return every preflight check declared directly or conditionally on one review contract."""
+
+    declared_checks = set(getattr(contract, "preflight_checks", []) or [])
+    for requirement in list(getattr(contract, "conditional_requirements", []) or []):
+        declared_checks.update(list(getattr(requirement, "preflight_checks", []) or []))
+        declared_checks.update(list(getattr(requirement, "blocking_preflight_checks", []) or []))
+    return declared_checks
+
+
 def _review_contract_requests_check(contract: object, check_name: str) -> bool:
     """Return whether the review contract explicitly asks the CLI to execute one check."""
 
-    return check_name in list(getattr(contract, "preflight_checks", []) or [])
+    return check_name in _review_contract_declared_preflight_checks(contract)
+
+
+def _review_contract_active_requested_preflight_checks(
+    contract: object,
+    active_conditional_requirements: list[ReviewContractConditionalRequirement] | None = None,
+) -> set[str]:
+    """Return the preflight checks active for the current resolved review context."""
+
+    active_checks = set(getattr(contract, "preflight_checks", []) or [])
+    for requirement in list(active_conditional_requirements or []):
+        active_checks.update(list(getattr(requirement, "preflight_checks", []) or []))
+        active_checks.update(list(getattr(requirement, "blocking_preflight_checks", []) or []))
+    return active_checks
 
 
 def _review_preflight_check_is_blocking(
@@ -5728,12 +6195,21 @@ def _review_contract_active_conditional_requirements(
     *,
     project_cwd: Path,
     manuscript: Path | None,
+    resolved_mode: str = "",
 ) -> list[object]:
     """Return conditionals whose trigger is active for the current manuscript."""
 
     active_requirements: list[object] = []
     for requirement in list(getattr(contract, "conditional_requirements", []) or []):
         when = str(getattr(requirement, "when", "") or "").strip()
+        if when == "project-backed manuscript review":
+            if resolved_mode == "project-backed manuscript review":
+                active_requirements.append(requirement)
+            continue
+        if when == "standalone explicit-artifact review":
+            if resolved_mode == "standalone explicit-artifact review":
+                active_requirements.append(requirement)
+            continue
         if when in {
             "theorem-bearing claims are present",
             "theorem-bearing manuscripts are present",
@@ -5741,6 +6217,29 @@ def _review_contract_active_conditional_requirements(
             if _requires_theorem_bearing_manuscript_review(project_cwd, manuscript):
                 active_requirements.append(requirement)
     return active_requirements
+
+
+def _effective_review_contract_strings(
+    base_values: Collection[str],
+    active_requirements: Collection[object],
+    attribute_name: str,
+) -> list[str]:
+    """Return a deduplicated list of active review-contract string requirements."""
+
+    effective_values: list[str] = []
+    seen: set[str] = set()
+    for value in list(base_values):
+        normalized = str(value).strip()
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            effective_values.append(normalized)
+    for requirement in active_requirements:
+        for value in list(getattr(requirement, attribute_name, []) or []):
+            normalized = str(value).strip()
+            if normalized and normalized not in seen:
+                seen.add(normalized)
+                effective_values.append(normalized)
+    return effective_values
 
 
 def _evaluate_review_required_state(
@@ -5752,7 +6251,7 @@ def _evaluate_review_required_state(
 ) -> tuple[bool, str] | None:
     """Evaluate review_contract.required_state in a way that matches phase-scoped workflows."""
     from gpd.core.phases import find_phase
-    from gpd.core.state import load_state_json
+    from gpd.core.state import load_state_json_readonly
     from gpd.core.utils import phase_normalize
 
     required_state = str(getattr(contract, "required_state", "") or "").strip()
@@ -5761,7 +6260,7 @@ def _evaluate_review_required_state(
     if required_state != "phase_executed":
         return False, f'unhandled required_state="{required_state}"'
 
-    state_obj = load_state_json(cwd)
+    state_obj = load_state_json_readonly(cwd)
     if not isinstance(state_obj, dict):
         return False, "required_state=phase_executed could not load state.json"
 
@@ -5817,10 +6316,10 @@ def _evaluate_review_required_state(
 
 def _current_review_phase_subject(cwd: Path) -> str | None:
     """Return the current phase number from state.json for phase-scoped review preflights."""
-    from gpd.core.state import load_state_json
+    from gpd.core.state import load_state_json_readonly
     from gpd.core.utils import phase_normalize
 
-    state_obj = load_state_json(cwd)
+    state_obj = load_state_json_readonly(cwd)
     if not isinstance(state_obj, dict):
         return None
     position = state_obj.get("position")
@@ -5884,6 +6383,8 @@ def _load_json_document(input_path: str) -> object:
             raw = target.read_text(encoding="utf-8")
         except FileNotFoundError as exc:
             raise GPDError(f"JSON input not found: {source}") from exc
+        except UnicodeDecodeError as exc:
+            raise GPDError(f"JSON input is not valid UTF-8: {source}: {exc}") from exc
         except OSError as exc:
             raise GPDError(f"Failed to read JSON input from {source}: {exc}") from exc
 
@@ -5904,8 +6405,36 @@ def _load_text_document(input_path: str) -> tuple[Path, str]:
         return target, target.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise GPDError(f"Text input not found: {source}") from exc
+    except UnicodeDecodeError as exc:
+        raise GPDError(f"Text input is not valid UTF-8: {source}: {exc}") from exc
     except OSError as exc:
         raise GPDError(f"Failed to read text input from {source}: {exc}") from exc
+
+
+def _load_json_document_or_error(input_path: str) -> object:
+    """Load JSON input and emit the standard CLI error envelope on failure."""
+
+    try:
+        return _load_json_document(input_path)
+    except GPDError as exc:
+        _error(str(exc))
+
+
+def _load_text_document_or_error(input_path: str) -> tuple[Path, str]:
+    """Load text input and emit the standard CLI error envelope on failure."""
+
+    try:
+        return _load_text_document(input_path)
+    except GPDError as exc:
+        _error(str(exc))
+
+
+def _manifest_reference_root_for_path_checks(input_path: str) -> Path:
+    """Return the root used for manifest-local referenced-path checks."""
+
+    if input_path == "-":
+        return _get_cwd()
+    return _resolve_path_from_effective_cwd(input_path).parent
 
 
 def _project_root_for_json_input(input_path: str) -> Path:
@@ -5916,27 +6445,10 @@ def _project_root_for_json_input(input_path: str) -> Path:
         return cwd
 
     target = Path(input_path)
-    if not target.is_absolute():
-        resolved = (cwd / target).resolve(strict=False)
-        for base in (resolved.parent, *resolved.parent.parents):
-            if (base / "GPD").is_dir():
-                return base
-        return resolved.parent
-
-    resolved = target.expanduser().resolve(strict=False)
-    immediate_parent = resolved.parent
-    if (immediate_parent / "GPD").is_dir():
-        return immediate_parent
-
-    for base in immediate_parent.parents:
-        gpd_dir = (base / "GPD").resolve(strict=False)
-        if not gpd_dir.is_dir():
-            continue
-        try:
-            resolved.relative_to(gpd_dir)
-        except ValueError:
-            continue
-        return base
+    resolved = (cwd / target if not target.is_absolute() else target.expanduser()).resolve(strict=False)
+    anchored_root = resolve_project_root(resolved.parent, require_layout=True)
+    if anchored_root is not None:
+        return anchored_root
     return resolved.parent
 
 
@@ -5945,31 +6457,11 @@ def _enclosing_project_root_for_json_input(input_path: str) -> Path | None:
 
     cwd = _get_cwd()
     if input_path == "-":
-        return cwd if (cwd / "GPD").is_dir() else None
+        return resolve_project_root(cwd, require_layout=True)
 
     target = Path(input_path)
-    if not target.is_absolute():
-        resolved = (cwd / target).resolve(strict=False)
-        for base in (resolved.parent, *resolved.parent.parents):
-            if (base / "GPD").is_dir():
-                return base
-        return None
-
-    resolved = target.expanduser().resolve(strict=False)
-    immediate_parent = resolved.parent
-    if (immediate_parent / "GPD").is_dir():
-        return immediate_parent
-
-    for base in immediate_parent.parents:
-        gpd_dir = (base / "GPD").resolve(strict=False)
-        if not gpd_dir.is_dir():
-            continue
-        try:
-            resolved.relative_to(gpd_dir)
-        except ValueError:
-            continue
-        return base
-    return None
+    resolved = (cwd / target if not target.is_absolute() else target.expanduser()).resolve(strict=False)
+    return resolve_project_root(resolved.parent, require_layout=True)
 
 
 def _resolve_existing_input_path(input_path: str | None, *, candidates: tuple[str, ...], label: str) -> Path:
@@ -5998,6 +6490,11 @@ def _resolve_default_paper_config_path(*, project_root: Path | None = None) -> P
     if len(existing) == 1:
         return existing[0]
     if not existing:
+        resolution = resolve_current_manuscript_resolution(cwd, allow_markdown=True)
+        if resolution.status == "resolved" and resolution.manuscript_root is not None:
+            resolved_config = resolution.manuscript_root / "PAPER-CONFIG.json"
+            if resolved_config.exists():
+                return resolved_config
         searched = ", ".join(f"{root}/PAPER-CONFIG.json" for root in ("paper", "manuscript", "draft"))
         raise GPDError(f"No paper config found. Searched: {searched}")
 
@@ -6011,6 +6508,35 @@ def _resolve_default_paper_config_path(*, project_root: Path | None = None) -> P
     raise GPDError(
         "Ambiguous paper config across supported manuscript roots. "
         f"Found: {discovered}. Pass an explicit config path or fix the manuscript-root ambiguity first."
+    )
+
+
+def _managed_publication_manuscript_output_policy(
+    *,
+    project_root: Path,
+    manuscript_config_path: Path,
+):
+    """Return the narrow managed manuscript output policy for one config path, when applicable."""
+    from gpd.core.storage_paths import ManagedOutputPolicy
+
+    manuscript_root = _supported_manuscript_root_for_target(project_root, manuscript_config_path)
+    if manuscript_root is None:
+        return None
+    try:
+        relative_root = manuscript_root.resolve(strict=False).relative_to(project_root.resolve(strict=False))
+    except ValueError:
+        return None
+    if (
+        len(relative_root.parts) != 4
+        or relative_root.parts[0] != PLANNING_DIR_NAME
+        or relative_root.parts[1] != PUBLICATION_DIR_NAME
+        or relative_root.parts[3] != PUBLICATION_MANUSCRIPT_DIR_NAME
+    ):
+        return None
+    return ManagedOutputPolicy.gpd_subtree(
+        PUBLICATION_DIR_NAME,
+        relative_root.parts[2],
+        PUBLICATION_MANUSCRIPT_DIR_NAME,
     )
 
 
@@ -6054,31 +6580,66 @@ def _resolve_bibliography_path(
     return _first_existing_path(*candidates)
 
 
-def _discover_literature_review_citation_sources(project_root: Path) -> tuple[Path | None, str | None]:
-    """Return a single literature-review citation-source sidecar if it is unambiguous."""
+def _citation_source_bound_stems(paper_config: PaperConfig) -> frozenset[str]:
+    """Return filename stems that explicitly bind citation sources to this paper build."""
+
+    from gpd.mcp.paper.models import derive_output_filename
+
+    stems: set[str] = set()
+    output_stem = derive_output_filename(paper_config).strip()
+    if output_stem:
+        stems.add(output_stem.casefold())
+        stems.add(output_stem.replace("_", "-").casefold())
+    title_slug = normalize_ascii_slug(paper_config.title)
+    if title_slug:
+        stems.add(title_slug.casefold())
+        stems.add(title_slug.replace("-", "_").casefold())
+    return frozenset(stem for stem in stems if stem)
+
+
+def _discover_literature_review_citation_sources(
+    project_root: Path,
+    *,
+    paper_config: PaperConfig,
+) -> tuple[Path | None, str | None]:
+    """Return a citation-source sidecar only when its filename binds to the paper build."""
+
     literature_dir = project_root / "GPD" / "literature"
-    legacy_research_dir = project_root / "GPD" / "research"
-    if literature_dir.is_dir():
-        search_dir = literature_dir
-    elif legacy_research_dir.is_dir():
-        search_dir = legacy_research_dir
-    else:
+    if not literature_dir.is_dir():
         return None, None
 
-    matches = sorted(path for path in search_dir.rglob("*-CITATION-SOURCES.json") if path.is_file())
+    matches = sorted(path for path in literature_dir.rglob("*-CITATION-SOURCES.json") if path.is_file())
     if not matches:
         return None, None
-    if len(matches) == 1:
-        return matches[0], None
+    bound_stems = _citation_source_bound_stems(paper_config)
+    bound_matches = [path for path in matches if path.name[: -len("-CITATION-SOURCES.json")].casefold() in bound_stems]
+    if len(bound_matches) == 1:
+        return bound_matches[0], None
+    if len(bound_matches) > 1:
+        preview = ", ".join(_format_display_path(path) for path in bound_matches[:3])
+        remaining = len(bound_matches) - 3
+        suffix = f", ... (+{remaining} more)" if remaining > 0 else ""
+        return (
+            None,
+            "Multiple bound literature-review citation-source sidecars found; "
+            f"pass --citation-sources explicitly: {preview}{suffix}",
+        )
 
     preview = ", ".join(_format_display_path(path) for path in matches[:3])
     remaining = len(matches) - 3
     suffix = f", ... (+{remaining} more)" if remaining > 0 else ""
-    warning = (
-        f"Multiple {'literature-review' if search_dir == literature_dir else 'legacy research'} citation-source sidecars found; "
-        "pass --citation-sources explicitly: "
-        f"{preview}{suffix}"
-    )
+    if len(matches) == 1:
+        warning = (
+            "Ignoring unbound literature-review citation-source sidecar; "
+            "pass --citation-sources explicitly to use it: "
+            f"{preview}"
+        )
+    else:
+        warning = (
+            "Multiple literature-review citation-source sidecars found; "
+            "pass --citation-sources explicitly: "
+            f"{preview}{suffix}"
+        )
     return None, warning
 
 
@@ -6163,221 +6724,17 @@ def _default_paper_output_dir(config_file: Path) -> Path:
     return config_file.resolve(strict=False).parent
 
 
-def _reject_legacy_paper_config_location(config_file: Path, *, project_root: Path | None = None) -> None:
+def _reject_internal_paper_config_location(config_file: Path, *, project_root: Path | None = None) -> None:
     """Reject removed paper-config locations under internal planning storage."""
     resolved_config = config_file.resolve(strict=False)
     project_root = (project_root or _project_scoped_cwd()).resolve(strict=False)
-    for legacy_config_root in (project_root / "GPD" / "paper", project_root / ".gpd" / "paper"):
-        try:
-            resolved_config.relative_to(legacy_config_root)
-        except ValueError:
-            continue
-        planning_dir_name = legacy_config_root.parent.name
-        raise GPDError(
-            f"Paper configs under `{planning_dir_name}/paper/` are no longer supported. "
-            "Move the config to `paper/`, `manuscript/`, or `draft/`."
-        )
-
-
-def _split_command_arguments(arguments: str | None) -> list[str]:
-    """Split a raw command argument string into shell-like tokens."""
-    if not arguments:
-        return []
+    internal_config_root = project_root / "GPD" / "paper"
     try:
-        return shlex.split(arguments)
+        resolved_config.relative_to(internal_config_root)
     except ValueError:
-        return arguments.split()
-
-
-def _has_flag_value(tokens: list[str], flag: str) -> bool:
-    """Return True when ``flag`` is present with a non-empty value."""
-    for index, token in enumerate(tokens):
-        if token == flag:
-            if index + 1 < len(tokens):
-                next_token = tokens[index + 1]
-                if next_token and not next_token.startswith("-"):
-                    return True
-        elif token.startswith(f"{flag}="):
-            return bool(token.partition("=")[2].strip())
-    return False
-
-
-def _positional_tokens(arguments: str | None, *, flags_with_values: tuple[str, ...] = ()) -> list[str]:
-    """Extract positional tokens after removing known long-option/value pairs."""
-    tokens = _split_command_arguments(arguments)
-    positionals: list[str] = []
-    skip_next = False
-    value_flags = set(flags_with_values)
-
-    for index, token in enumerate(tokens):
-        if skip_next:
-            skip_next = False
-            continue
-        if token == "--":
-            return positionals + tokens[index + 1 :]
-        if token in value_flags:
-            skip_next = True
-            continue
-        if any(token.startswith(f"{flag}=") for flag in value_flags):
-            continue
-        if token.startswith("--"):
-            continue
-        positionals.append(token)
-
-    return positionals
-
-
-def _has_discover_explicit_inputs(arguments: str | None) -> bool:
-    """Discover standalone mode needs either a phase number or a topic."""
-    return bool(_positional_tokens(arguments, flags_with_values=("--depth", "-d")))
-
-
-def _has_simple_positional_inputs(arguments: str | None) -> bool:
-    """Generic detector for commands satisfied by any positional topic/target."""
-    return bool(_positional_tokens(arguments))
-
-
-def _has_sensitivity_explicit_inputs(arguments: str | None) -> bool:
-    """Sensitivity analysis standalone mode requires both target and parameter list."""
-    tokens = _split_command_arguments(arguments)
-    return _has_flag_value(tokens, "--target") and _has_flag_value(tokens, "--params")
-
-
-_DIGEST_KNOWLEDGE_PATH_SUFFIXES = {
-    ".bib",
-    ".csv",
-    ".ipynb",
-    ".json",
-    ".markdown",
-    ".md",
-    ".pdf",
-    ".py",
-    ".rst",
-    ".tex",
-    ".txt",
-    ".tsv",
-    ".yaml",
-    ".yml",
-}
-
-
-def _looks_like_digest_knowledge_topic_token(token: str) -> bool:
-    """Return True for a non-empty topic-like token."""
-    if not token or token.startswith("-"):
-        return False
-    if _looks_like_digest_knowledge_path_token(token) or _looks_like_digest_knowledge_arxiv_token(token):
-        return False
-    return any(character.isalpha() for character in token)
-
-
-def _looks_like_digest_knowledge_path_token(token: str) -> bool:
-    """Return True for a token that looks like an explicit path input."""
-    if not token or token.startswith("-"):
-        return False
-    if token.startswith(("./", "../", "~/", "/", "@")):
-        return True
-    if os.sep in token or (os.altsep is not None and os.altsep in token):
-        return True
-    return Path(token).suffix.lower() in _DIGEST_KNOWLEDGE_PATH_SUFFIXES
-
-
-def _looks_like_digest_knowledge_arxiv_token(token: str) -> bool:
-    """Return True for a token that normalizes as an arXiv identifier."""
-    if not token or token.startswith("-"):
-        return False
-    try:
-        normalize_arxiv_id(token)
-    except ValueError:
-        return False
-    return True
-
-
-def _looks_like_review_knowledge_id_token(token: str) -> bool:
-    """Return True for a canonical knowledge identifier token."""
-    if not token or token.startswith("-") or not token.startswith("K-"):
-        return False
-    slug = token[2:]
-    return bool(slug) and normalize_ascii_slug(slug) == slug
-
-
-def _looks_like_review_knowledge_path_token(token: str) -> bool:
-    """Return True for an explicit knowledge-document path token."""
-    if not token or token.startswith("-"):
-        return False
-    if not _looks_like_digest_knowledge_path_token(token):
-        return False
-    path = Path(token)
-    return (
-        path.suffix.lower() == ".md"
-        and path.stem.startswith("K-")
-        and normalize_ascii_slug(path.stem[2:]) == path.stem[2:]
-    )
-
-
-def _has_digest_knowledge_explicit_inputs(arguments: str | None) -> bool:
-    """Digest-knowledge standalone mode needs an explicit topic, path, or arXiv input."""
-    tokens = _split_command_arguments(arguments)
-    return any(
-        _looks_like_digest_knowledge_topic_token(token)
-        or _looks_like_digest_knowledge_path_token(token)
-        or _looks_like_digest_knowledge_arxiv_token(token)
-        for token in tokens
-    )
-
-
-def _has_review_knowledge_explicit_inputs(arguments: str | None) -> bool:
-    """Review-knowledge standalone mode needs an explicit knowledge path or canonical knowledge id."""
-    tokens = _split_command_arguments(arguments)
-    return any(
-        _looks_like_review_knowledge_path_token(token) or _looks_like_review_knowledge_id_token(token)
-        for token in tokens
-    )
-
-
-_PROJECT_AWARE_EXPLICIT_INPUTS: dict[str, tuple[list[str], Callable[[str | None], bool]]] = {
-    "gpd:compare-experiment": (["prediction, dataset path, or phase identifier"], _has_simple_positional_inputs),
-    "gpd:compare-results": (["phase, artifact, or comparison target"], _has_simple_positional_inputs),
-    "gpd:derive-equation": (["equation or topic to derive"], _has_simple_positional_inputs),
-    "gpd:dimensional-analysis": (["phase number or file path"], _has_simple_positional_inputs),
-    "gpd:discover": (["phase number or standalone topic"], _has_discover_explicit_inputs),
-    "gpd:explain": (["concept, result, method, notation, or paper"], _has_simple_positional_inputs),
-    "gpd:digest-knowledge": (
-        ["knowledge file path, source file path, arXiv ID, or topic"],
-        _has_digest_knowledge_explicit_inputs,
-    ),
-    "gpd:review-knowledge": (
-        ["knowledge document path or canonical K-* knowledge id"],
-        _has_review_knowledge_explicit_inputs,
-    ),
-    "gpd:limiting-cases": (["phase number or file path"], _has_simple_positional_inputs),
-    "gpd:literature-review": (["topic or research question"], _has_simple_positional_inputs),
-    "gpd:numerical-convergence": (["phase number or file path"], _has_simple_positional_inputs),
-    "gpd:sensitivity-analysis": (["--target quantity", "--params p1,p2,..."], _has_sensitivity_explicit_inputs),
-}
-
-
-def _build_project_aware_guidance(explicit_inputs: list[str], *, init_command: str) -> str:
-    """Render the standardized project-aware guidance string."""
-    init_guidance = (
-        f"initialize a project with `{init_command}` in the runtime surface or `gpd init new-project` in the local CLI"
-    )
-    if not explicit_inputs:
-        return f"Either provide explicit inputs for this command, or {init_guidance}."
-    if len(explicit_inputs) == 1:
-        requirement_text = explicit_inputs[0]
-    elif len(explicit_inputs) == 2:
-        requirement_text = f"{explicit_inputs[0]} and {explicit_inputs[1]}"
-    else:
-        requirement_text = ", ".join(explicit_inputs[:-1]) + f", and {explicit_inputs[-1]}"
-    return f"Either provide {requirement_text} explicitly, or {init_guidance}."
-
-
-def _build_recoverable_workspace_guidance(*, init_command: str) -> str:
-    """Render the standardized recovery guidance string for project-required commands."""
-    return (
-        "This command requires a recoverable GPD workspace. "
-        f"Open the right project, use `{local_cli_resume_recent_command()}` to rediscover it, or "
-        f"initialize a new project with `{init_command}` in the runtime surface or `gpd init new-project` in the local CLI."
+        return
+    raise GPDError(
+        "Paper configs under `GPD/paper/` are not supported. Move the config to `paper/`, `manuscript/`, or `draft/`."
     )
 
 
@@ -6420,172 +6777,6 @@ def _active_runtime_settings_command(*, cwd: Path | None = None) -> str:
     )
 
 
-def _command_required_file_patterns(command: object) -> list[str]:
-    """Return normalized ``requires.files`` patterns from command metadata."""
-    requires = getattr(command, "requires", None)
-    if not isinstance(requires, Mapping):
-        return []
-    raw_patterns = requires.get("files")
-    if isinstance(raw_patterns, str):
-        candidates = [raw_patterns]
-    elif isinstance(raw_patterns, list):
-        candidates = [item for item in raw_patterns if isinstance(item, str)]
-    else:
-        return []
-    return [pattern.strip() for pattern in candidates if pattern.strip()]
-
-
-def _command_required_files_present(
-    project_root: Path,
-    command: object,
-) -> tuple[bool, list[str], list[str]]:
-    """Return whether command-required files exist under *project_root*.
-
-    Literal file requirements are conjunctive: every declared path must exist.
-    Globbed requirements are alternative surfaces: if one or more glob patterns
-    are declared, at least one of them must match.
-    """
-    patterns = _command_required_file_patterns(command)
-    if not patterns:
-        return True, [], []
-
-    matched_literals: list[str] = []
-    matched_globs: list[str] = []
-    missing_literals: list[str] = []
-    missing_globs: list[str] = []
-    for pattern in patterns:
-        if glob.has_magic(pattern):
-            try:
-                if any(project_root.glob(pattern)):
-                    matched_globs.append(pattern)
-                else:
-                    missing_globs.append(pattern)
-            except ValueError:
-                missing_globs.append(pattern)
-            continue
-
-        candidate = Path(pattern)
-        resolved = candidate if candidate.is_absolute() else project_root / candidate
-        if resolved.exists():
-            matched_literals.append(pattern)
-        else:
-            missing_literals.append(pattern)
-
-    glob_passed = not missing_globs or bool(matched_globs)
-    passed = not missing_literals and glob_passed
-    matched = [*matched_literals, *matched_globs]
-    missing = [*missing_literals, *missing_globs]
-    return passed, matched, missing
-
-
-def _command_required_files_override_detail(
-    project_root: Path,
-    command: object,
-    arguments: str | None,
-    *,
-    workspace_cwd: Path | None = None,
-) -> str | None:
-    """Return a detail string when explicit review inputs satisfy required-file gating."""
-    if not isinstance(arguments, str) or not arguments.strip():
-        return None
-    if not _command_supports_explicit_manuscript_subject(command):
-        return None
-
-    manuscript, _ = _resolve_review_preflight_manuscript(
-        project_root,
-        arguments,
-        allow_markdown=not _command_requires_compiled_manuscript(command),
-        restrict_to_supported_roots=_command_explicit_manuscript_subject_uses_supported_roots(command),
-        workspace_cwd=workspace_cwd,
-    )
-    if manuscript is None:
-        return None
-    return f"explicit manuscript target satisfies command context: {_format_display_path(manuscript)}"
-
-
-def _command_requires_manuscript_context(command: object) -> bool:
-    """Return whether command context should use canonical manuscript resolution."""
-    contract = getattr(command, "review_contract", None)
-    preflight_checks = getattr(contract, "preflight_checks", ())
-    return isinstance(preflight_checks, tuple | list) and "manuscript" in preflight_checks
-
-
-def _command_requires_compiled_manuscript(command: object) -> bool:
-    """Return whether manuscript checks must resolve to a compiled-submission surface."""
-    contract = getattr(command, "review_contract", None)
-    return _review_contract_requests_check(contract, "compiled_manuscript")
-
-
-def _command_explicit_manuscript_subject_uses_supported_roots(command: object) -> bool:
-    """Return whether explicit manuscript arguments must stay under supported manuscript roots."""
-    if not _command_supports_explicit_manuscript_subject(command):
-        return False
-
-    supported_roots = {"paper", "manuscript", "draft"}
-    roots = {Path(pattern).parts[0] for pattern in _command_required_file_patterns(command) if Path(pattern).parts}
-    return bool(roots) and roots <= supported_roots
-
-
-def _command_supports_explicit_manuscript_subject(command: object) -> bool:
-    """Return whether one command interprets positional subject as manuscript target."""
-    contract = getattr(command, "review_contract", None)
-    if not _command_requires_manuscript_context(command):
-        return False
-    if _review_contract_requests_check(contract, "referee_report_source"):
-        return False
-    return bool(_command_required_file_patterns(command))
-
-
-def _command_allows_manuscript_bootstrap(command: object) -> bool:
-    """Return whether missing manuscript roots are expected to be bootstrapped."""
-    contract = getattr(command, "review_contract", None)
-    return (
-        _command_requires_manuscript_context(command)
-        and not _command_required_file_patterns(command)
-        and not _review_contract_requests_check(contract, "compiled_manuscript")
-        and not _review_contract_requests_check(contract, "referee_report_source")
-    )
-
-
-def _command_context_manuscript_check(
-    project_root: Path,
-    command: object,
-    arguments: str | None,
-    *,
-    workspace_cwd: Path | None = None,
-) -> tuple[bool, str] | None:
-    """Return a canonical manuscript-context check for publication commands."""
-    if not _command_requires_manuscript_context(command):
-        return None
-
-    allow_markdown = not _command_requires_compiled_manuscript(command)
-    if _command_supports_explicit_manuscript_subject(command):
-        manuscript, detail = _resolve_review_preflight_manuscript(
-            project_root,
-            arguments,
-            allow_markdown=allow_markdown,
-            restrict_to_supported_roots=_command_explicit_manuscript_subject_uses_supported_roots(command),
-            workspace_cwd=workspace_cwd,
-        )
-        return manuscript is not None, detail
-
-    resolution = resolve_current_manuscript_resolution(
-        project_root,
-        allow_markdown=allow_markdown,
-    )
-    if _command_allows_manuscript_bootstrap(command) and resolution.status == "missing":
-        return (
-            True,
-            "no manuscript entrypoint found under paper/, manuscript/, or draft/; "
-            "fresh bootstrap is allowed and will scaffold a topic-specific manuscript stem under ./paper/",
-        )
-    if resolution.status == "resolved" and resolution.manuscript_entrypoint is not None:
-        return True, f"{_format_display_path(resolution.manuscript_entrypoint)} present"
-    if resolution.status == "missing":
-        return False, resolution.detail
-    return False, f"ambiguous or inconsistent manuscript roots: {resolution.detail}"
-
-
 def _validated_runtime_surface(*, cwd: Path | None = None) -> str:
     """Return the machine-readable surface label for the active runtime."""
     return _active_runtime_validated_surface(cwd=cwd) or "public_runtime_command_surface"
@@ -6620,25 +6811,78 @@ def _runtime_surface_dispatch_note(*, cwd: Path | None = None) -> str:
     )
 
 
+def _command_runtime_surface_metadata(*, cwd: Path | None = None) -> CommandRuntimeSurfaceMetadata:
+    resolved_cwd = cwd or _get_cwd()
+    return CommandRuntimeSurfaceMetadata(
+        validated_surface=_validated_runtime_surface(cwd=resolved_cwd),
+        public_runtime_command_prefix=_active_runtime_command_prefix(cwd=resolved_cwd) or "",
+        init_command=_active_runtime_new_project_command(cwd=resolved_cwd),
+        dispatch_note=_runtime_surface_dispatch_note(cwd=resolved_cwd),
+    )
+
+
 def _canonical_command_name(command_name: str) -> str:
     """Normalize a CLI command name to the registry's public gpd:name form."""
     return canonical_command_label(command_name)
 
 
-def _command_supports_project_reentry(command: object) -> bool:
-    """Return whether one registry command can recover a project root before execution."""
-    explicit = getattr(command, "project_reentry_capable", None)
-    if isinstance(explicit, bool):
-        return explicit
-    return False
-
-
 def _resolve_registry_command(command_name: str) -> tuple[object, str]:
     """Resolve a command name through the registry and preserve its public name."""
-    from gpd import registry as content_registry
+    return _core_resolve_registry_command(command_name)
 
-    command = content_registry.get_command(command_name)
-    return command, _canonical_command_name(command_name)
+
+def _path_is_within_supported_manuscript_root(project_root: Path, target: Path) -> bool:
+    """Return whether *target* lives under a supported manuscript root in *project_root*."""
+    return _supported_manuscript_root_for_target(project_root, target) is not None
+
+
+def _peer_review_mode_resolution(
+    project_root: Path,
+    subject: str | None,
+    *,
+    workspace_cwd: Path | None = None,
+) -> PeerReviewModeResolution:
+    """Return the resolved peer-review intake mode plus target details."""
+
+    return resolve_peer_review_mode_details(project_root, subject, workspace_cwd=workspace_cwd)
+
+
+def _peer_review_resolved_mode(
+    project_root: Path,
+    subject: str | None,
+    *,
+    workspace_cwd: Path | None = None,
+) -> tuple[str, str]:
+    """Return the resolved peer-review intake mode and the reason it was selected."""
+    resolution = _peer_review_mode_resolution(project_root, subject, workspace_cwd=workspace_cwd)
+    return resolution.resolved_mode, resolution.mode_reason
+
+
+def _peer_review_artifact_text_surface_ready(
+    manuscript: Path,
+    *,
+    probe: object | None = None,
+    verify_generated_surface: bool = False,
+) -> tuple[bool, str]:
+    """Return whether one peer-review artifact can be converted into review text."""
+
+    try:
+        readiness_probe = probe if probe is not None else probe_artifact_text_surface(manuscript)
+    except ArtifactTextError as exc:
+        return False, str(exc)
+
+    detail = readiness_probe.detail
+    for path in (readiness_probe.surface_path, readiness_probe.helper_path):
+        if path is None:
+            continue
+        display_path = _format_display_path(path)
+        detail = detail.replace(path.as_posix(), display_path).replace(str(path), display_path)
+    if verify_generated_surface and readiness_probe.ready and readiness_probe.surface_kind == "generated":
+        try:
+            load_artifact_text_surface(manuscript)
+        except ArtifactTextError as exc:
+            return False, str(exc)
+    return readiness_probe.ready, detail
 
 
 def _build_command_context_preflight(
@@ -6646,340 +6890,15 @@ def _build_command_context_preflight(
     *,
     arguments: str | None = None,
 ) -> CommandContextPreflightResult:
-    """Evaluate whether a command can run in the current workspace context."""
-    from gpd.core.constants import ProjectLayout
-
     cwd = _get_cwd()
-    try:
-        command, public_command_name = _resolve_registry_command(command_name)
-    except Exception:
-        canonical_command_name = _canonical_command_name(command_name)
-        if canonical_command_name != "gpd:review-knowledge":
-            raise
-        command = SimpleNamespace(
-            name=canonical_command_name,
-            context_mode="project-aware",
-            argument_hint="knowledge document path or canonical K-* knowledge id",
-            project_reentry_capable=False,
-        )
-        public_command_name = canonical_command_name
-    context_cwd = _status_command_cwd(cwd) if _command_supports_project_reentry(command) else _project_scoped_cwd(cwd)
-    layout = ProjectLayout(context_cwd)
-    project_exists = layout.project_md.exists()
-    dispatch_note = _runtime_surface_dispatch_note(cwd=cwd)
-    init_command = _active_runtime_new_project_command(cwd=cwd)
-
-    checks: list[CommandContextCheck] = []
-
-    def add_check(name: str, passed: bool, detail: str, *, blocking: bool = True) -> None:
-        checks.append(CommandContextCheck(name=name, passed=passed, detail=detail, blocking=blocking))
-
-    add_check("context_mode", True, f"context_mode={command.context_mode}", blocking=False)
-
-    if command.context_mode == "global":
-        add_check("project_context", True, "command runs without project context", blocking=False)
-        return CommandContextPreflightResult(
-            command=public_command_name,
-            context_mode=command.context_mode,
-            passed=True,
-            project_exists=project_exists,
-            explicit_inputs=[],
-            guidance="",
-            checks=checks,
-            validated_surface=_validated_runtime_surface(cwd=cwd),
-            public_runtime_command_prefix=_active_runtime_command_prefix(cwd=cwd) or "",
-            dispatch_note=dispatch_note,
-        )
-
-    if command.context_mode == "projectless":
-        add_check(
-            "project_context",
-            True,
-            ("initialized project detected" if project_exists else "no initialized project required"),
-            blocking=False,
-        )
-        return CommandContextPreflightResult(
-            command=public_command_name,
-            context_mode=command.context_mode,
-            passed=True,
-            project_exists=project_exists,
-            explicit_inputs=[],
-            guidance="",
-            checks=checks,
-            validated_surface=_validated_runtime_surface(cwd=cwd),
-            public_runtime_command_prefix=_active_runtime_command_prefix(cwd=cwd) or "",
-            dispatch_note=dispatch_note,
-        )
-
-    if command.context_mode == "project-required":
-        required_file_patterns = _command_required_file_patterns(command)
-        if _command_supports_project_reentry(command):
-            reentry = _status_command_reentry(cwd)
-            selected_root = reentry.resolved_project_root or context_cwd
-            layout = ProjectLayout(selected_root)
-            state_exists, roadmap_exists, project_exists = recoverable_project_context(selected_root)
-            if reentry.auto_selected and reentry.project_root:
-                add_check(
-                    "project_reentry",
-                    True,
-                    f"auto-selected recoverable recent project {_format_display_path(reentry.project_root)}",
-                    blocking=False,
-                )
-            elif reentry.requires_user_selection:
-                add_check(
-                    "project_reentry",
-                    False,
-                    "multiple recoverable recent projects are available; explicit selection required",
-                    blocking=False,
-                )
-            elif reentry.has_current_workspace_candidate:
-                add_check(
-                    "project_reentry",
-                    True,
-                    "current workspace or ancestor project root is recoverable",
-                    blocking=False,
-                )
-            else:
-                add_check(
-                    "project_reentry",
-                    False,
-                    "no recoverable current-workspace or uniquely recoverable recent-project target found",
-                    blocking=False,
-                )
-            add_check(
-                "state_exists",
-                state_exists,
-                (
-                    "recoverable state present"
-                    if state_exists
-                    else f"missing {_format_display_path(layout.state_json)} and {_format_display_path(layout.state_md)}"
-                ),
-                blocking=False,
-            )
-            add_check(
-                "roadmap_exists",
-                roadmap_exists,
-                (
-                    f"{_format_display_path(layout.roadmap)} present"
-                    if roadmap_exists
-                    else f"missing {_format_display_path(layout.roadmap)}"
-                ),
-                blocking=False,
-            )
-            add_check(
-                "project_exists",
-                project_exists,
-                (
-                    f"{_format_display_path(layout.project_md)} present"
-                    if project_exists
-                    else f"missing {_format_display_path(layout.project_md)}"
-                ),
-                blocking=False,
-            )
-            required_files_present = True
-            matched_patterns: list[str] = []
-            missing_patterns: list[str] = []
-            manuscript_context_passed = True
-            manuscript_context_detail = ""
-            if required_file_patterns:
-                required_files_present, matched_patterns, missing_patterns = _command_required_files_present(
-                    selected_root,
-                    command,
-                )
-                override_detail = None
-                if not required_files_present:
-                    override_detail = _command_required_files_override_detail(
-                        selected_root,
-                        command,
-                        arguments,
-                        workspace_cwd=cwd,
-                    )
-                    if override_detail is not None:
-                        required_files_present = True
-                        matched_patterns = [override_detail]
-                        missing_patterns = []
-                add_check(
-                    "required_files",
-                    required_files_present,
-                    (
-                        override_detail
-                        if required_files_present and override_detail is not None
-                        else "matching required files present: " + ", ".join(matched_patterns)
-                        if required_files_present
-                        else "missing required files or unmatched patterns: " + ", ".join(missing_patterns)
-                    ),
-                    blocking=False,
-                )
-            manuscript_context = _command_context_manuscript_check(
-                selected_root,
-                command,
-                arguments,
-                workspace_cwd=cwd,
-            )
-            if manuscript_context is not None:
-                manuscript_context_passed, manuscript_context_detail = manuscript_context
-                add_check(
-                    "manuscript",
-                    manuscript_context_passed,
-                    manuscript_context_detail,
-                    blocking=False,
-                )
-            recoverable = (
-                (state_exists or roadmap_exists or project_exists)
-                and required_files_present
-                and manuscript_context_passed
-                and not reentry.requires_user_selection
-            )
-            guidance = (
-                ""
-                if recoverable
-                else (
-                    "This command found multiple recoverable recent GPD projects and will not switch silently. "
-                    f"Use `{local_cli_resume_recent_command()}` to pick the right project explicitly, then reopen it in the runtime."
-                    if reentry.requires_user_selection
-                    else (
-                        _build_recoverable_workspace_guidance(init_command=init_command)
-                        if not (state_exists or roadmap_exists or project_exists)
-                        else manuscript_context_detail
-                        if not manuscript_context_passed
-                        else "This command requires one of the declared required files: "
-                        + ", ".join(required_file_patterns)
-                    )
-                )
-            )
-            return CommandContextPreflightResult(
-                command=public_command_name,
-                context_mode=command.context_mode,
-                passed=recoverable,
-                project_exists=project_exists,
-                explicit_inputs=[],
-                guidance=guidance,
-                checks=checks,
-                validated_surface=_validated_runtime_surface(cwd=cwd),
-                public_runtime_command_prefix=_active_runtime_command_prefix(cwd=cwd) or "",
-                dispatch_note=dispatch_note,
-            )
-        add_check(
-            "project_exists",
-            project_exists,
-            (
-                f"{_format_display_path(layout.project_md)} present"
-                if project_exists
-                else f"missing {_format_display_path(layout.project_md)}"
-            ),
-        )
-        required_file_patterns = _command_required_file_patterns(command)
-        manuscript_context = _command_context_manuscript_check(
-            context_cwd,
-            command,
-            arguments,
-            workspace_cwd=cwd,
-        )
-        if required_file_patterns:
-            required_files_present, matched_patterns, missing_patterns = _command_required_files_present(
-                context_cwd,
-                command,
-            )
-            override_detail = None
-            if not required_files_present:
-                override_detail = _command_required_files_override_detail(
-                    context_cwd,
-                    command,
-                    arguments,
-                    workspace_cwd=cwd,
-                )
-                if override_detail is not None:
-                    required_files_present = True
-                    matched_patterns = [override_detail]
-                    missing_patterns = []
-            add_check(
-                "required_files",
-                required_files_present,
-                (
-                    override_detail
-                    if required_files_present and override_detail is not None
-                    else "matching required files present: " + ", ".join(matched_patterns)
-                    if required_files_present
-                    else "missing required files or unmatched patterns: " + ", ".join(missing_patterns)
-                ),
-            )
-        else:
-            required_files_present = True
-        manuscript_context_passed = True
-        manuscript_context_detail = ""
-        if manuscript_context is not None:
-            manuscript_context_passed, manuscript_context_detail = manuscript_context
-            add_check(
-                "manuscript",
-                manuscript_context_passed,
-                manuscript_context_detail,
-            )
-        passed = project_exists and required_files_present and manuscript_context_passed
-        guidance = (
-            ""
-            if passed
-            else (
-                "This command requires an initialized GPD project."
-                if not project_exists
-                else manuscript_context_detail
-                if not manuscript_context_passed
-                else "This command requires one of the declared required files: " + ", ".join(required_file_patterns)
-            )
-        )
-        return CommandContextPreflightResult(
-            command=public_command_name,
-            context_mode=command.context_mode,
-            passed=passed,
-            project_exists=project_exists,
-            explicit_inputs=[],
-            guidance=guidance,
-            checks=checks,
-            validated_surface=_validated_runtime_surface(cwd=cwd),
-            public_runtime_command_prefix=_active_runtime_command_prefix(cwd=cwd) or "",
-            dispatch_note=dispatch_note,
-        )
-
-    explicit_inputs, predicate = _PROJECT_AWARE_EXPLICIT_INPUTS.get(
-        command.name,
-        (
-            [command.argument_hint.strip()] if command.argument_hint.strip() else ["explicit command inputs"],
-            _has_simple_positional_inputs,
-        ),
-    )
-    explicit_inputs_ok = predicate(arguments)
-    add_check(
-        "project_exists",
-        project_exists,
-        (
-            f"{_format_display_path(layout.project_md)} present"
-            if project_exists
-            else f"missing {_format_display_path(layout.project_md)}"
-        ),
-        blocking=False,
-    )
-    add_check(
-        "explicit_inputs",
-        explicit_inputs_ok,
-        (
-            "explicit standalone inputs detected"
-            if explicit_inputs_ok
-            else f"missing explicit standalone inputs ({', '.join(explicit_inputs)})"
-        ),
-        blocking=not project_exists,
-    )
-    passed = project_exists or explicit_inputs_ok
-    guidance = "" if passed else _build_project_aware_guidance(explicit_inputs, init_command=init_command)
-    return CommandContextPreflightResult(
-        command=public_command_name,
-        context_mode=command.context_mode,
-        passed=passed,
-        project_exists=project_exists,
-        explicit_inputs=explicit_inputs,
-        guidance=guidance,
-        checks=checks,
-        validated_surface=_validated_runtime_surface(cwd=cwd),
-        public_runtime_command_prefix=_active_runtime_command_prefix(cwd=cwd) or "",
-        dispatch_note=dispatch_note,
+    runtime_surface = _command_runtime_surface_metadata(cwd=cwd)
+    return _core_build_command_context_preflight(
+        command_name,
+        cwd=cwd,
+        arguments=arguments,
+        command_resolver=_resolve_registry_command,
+        project_reentry_resolver=_status_command_reentry,
+        runtime_surface_metadata=runtime_surface,
     )
 
 
@@ -6991,30 +6910,42 @@ def _build_review_preflight(
 ) -> ReviewPreflightResult:
     """Evaluate lightweight filesystem/state prerequisites for a review command."""
     from gpd.core.constants import ProjectLayout
+    from gpd.core.knowledge_runtime import KnowledgeDocRuntimeRecord, discover_knowledge_docs
     from gpd.core.phases import find_phase
     from gpd.core.state import state_validate
 
     cwd = _get_cwd()
-    project_cwd = _project_scoped_cwd(cwd)
-    layout = ProjectLayout(project_cwd)
+    command_name, subject = command_label_lookup_and_arguments(command_name, subject)
     command, public_command_name = _resolve_registry_command(command_name)
+    project_cwd = _core_command_preflight_cwd(
+        command,
+        cwd=cwd,
+        project_reentry_resolver=_status_command_reentry,
+    )
+    layout = ProjectLayout(project_cwd)
     contract = command.review_contract
     if contract is None:
         raise GPDError(f"Command {public_command_name} does not expose a review contract")
+    resolved_mode = ""
+    mode_reason = ""
+    standalone_peer_review_mode = False
 
     checks: list[ReviewPreflightCheck] = []
     phase_subject = subject
-    if phase_subject is None and "phase_artifacts" in contract.preflight_checks:
+    if phase_subject is None and _review_contract_requests_check(contract, "phase_artifacts"):
         phase_subject = _current_review_phase_subject(project_cwd)
     phase_info = (
         find_phase(project_cwd, phase_subject)
-        if phase_subject and "phase_artifacts" in contract.preflight_checks
+        if phase_subject and _review_contract_requests_check(contract, "phase_artifacts")
         else None
     )
     manuscript: Path | None = None
     active_conditional_requirements: list[ReviewContractConditionalRequirement] = []
-
     conditional_blocking_preflight_checks: set[str] = set()
+    active_requested_preflight_checks = _review_contract_active_requested_preflight_checks(contract)
+
+    def requested_review_check(check_name: str) -> bool:
+        return check_name in active_requested_preflight_checks
 
     def add_check(name: str, passed: bool, detail: str, *, blocking: bool | None = None) -> None:
         checks.append(
@@ -7035,9 +6966,108 @@ def _build_review_preflight(
         )
 
     context_preflight = _build_command_context_preflight(command_name, arguments=subject)
-    context_detail = context_preflight.guidance or f"context_mode={command.context_mode}"
+    resolved_subject = context_preflight.resolved_subject or _build_resolved_command_subject(
+        project_cwd,
+        command,
+        subject,
+        workspace_cwd=cwd,
+        project_root_source="workspace" if layout.project_md.exists() else None,
+        project_root_auto_selected=False,
+        reentry_mode="current-workspace" if layout.project_md.exists() else None,
+    )
+    subject_preflight_policy = _publication_subject_preflight_policy(
+        command,
+        resolved_subject=resolved_subject,
+    )
+    knowledge_inventory = None
+    knowledge_record: KnowledgeDocRuntimeRecord | None = None
+    knowledge_target_path: Path | None = None
+    knowledge_target_id: str | None = None
+
+    def load_knowledge_context() -> tuple[Path | None, str | None, KnowledgeDocRuntimeRecord | None]:
+        nonlocal knowledge_inventory, knowledge_record, knowledge_target_path, knowledge_target_id
+        if knowledge_inventory is not None:
+            return knowledge_target_path, knowledge_target_id, knowledge_record
+
+        knowledge_inventory = discover_knowledge_docs(project_cwd)
+        if (
+            resolved_subject is not None
+            and resolved_subject.subject_kind == "knowledge_document"
+            and resolved_subject.target_path is not None
+        ):
+            knowledge_target_path = resolved_subject.target_path.resolve(strict=False)
+        elif isinstance(subject, str) and subject.strip():
+            status, candidate_path, _detail = _resolve_review_knowledge_target(
+                project_cwd,
+                subject,
+                workspace_cwd=cwd,
+            )
+            if status in {"resolved", "missing", "invalid"} and candidate_path is not None:
+                knowledge_target_path = candidate_path.resolve(strict=False)
+
+        if knowledge_target_path is not None and knowledge_target_path.stem.startswith("K-"):
+            knowledge_target_id = knowledge_target_path.stem
+
+        if knowledge_target_path is not None:
+            try:
+                relative_path = knowledge_target_path.relative_to(project_cwd.resolve(strict=False)).as_posix()
+            except ValueError:
+                relative_path = None
+            if relative_path is not None:
+                knowledge_record = knowledge_inventory.by_path().get(relative_path)
+        if knowledge_record is None and knowledge_target_id:
+            knowledge_record = knowledge_inventory.by_id().get(knowledge_target_id)
+        return knowledge_target_path, knowledge_target_id, knowledge_record
+
+    def knowledge_target_warnings(target_path: Path | None) -> list[str]:
+        if knowledge_inventory is None or target_path is None:
+            return []
+        try:
+            relative_path = target_path.relative_to(project_cwd.resolve(strict=False)).as_posix()
+        except ValueError:
+            return []
+        return [warning for warning in knowledge_inventory.warnings if relative_path in warning]
+
+    effective_required_outputs = (
+        list(subject_preflight_policy.required_outputs)
+        if subject_preflight_policy.required_outputs
+        else list(contract.required_outputs)
+    )
+    effective_required_evidence = (
+        list(subject_preflight_policy.required_evidence)
+        if subject_preflight_policy.required_evidence
+        else list(contract.required_evidence)
+    )
+    effective_blocking_conditions = (
+        list(subject_preflight_policy.blocking_conditions)
+        if subject_preflight_policy.blocking_conditions
+        else list(contract.blocking_conditions)
+    )
+    context_detail = context_preflight.guidance or f"context_mode={_command_effective_context_mode(command)}"
+    if context_preflight.resolved_mode:
+        context_detail = f"{context_detail}; resolved_mode={context_preflight.resolved_mode}"
+    if context_preflight.mode_reason:
+        context_detail = f"{context_detail}; {context_preflight.mode_reason}"
     if context_preflight.dispatch_note:
         context_detail = f"{context_detail}; {context_preflight.dispatch_note}"
+    if command.name == "gpd:peer-review":
+        resolved_mode, mode_reason = _peer_review_resolved_mode(project_cwd, subject, workspace_cwd=cwd)
+        standalone_peer_review_mode = resolved_mode != PEER_REVIEW_PROJECT_BACKED_MODE
+        active_conditional_requirements = _review_contract_active_conditional_requirements(
+            contract,
+            project_cwd=project_cwd,
+            manuscript=None,
+            resolved_mode=resolved_mode,
+        )
+        conditional_blocking_preflight_checks = {
+            check_name
+            for requirement in active_conditional_requirements
+            for check_name in list(getattr(requirement, "blocking_preflight_checks", []) or [])
+        }
+        active_requested_preflight_checks = _review_contract_active_requested_preflight_checks(
+            contract,
+            active_conditional_requirements,
+        )
     add_check(
         "command_context",
         context_preflight.passed,
@@ -7045,131 +7075,290 @@ def _build_review_preflight(
         blocking=_review_preflight_check_is_blocking(contract, "command_context"),
     )
 
-    if "project_state" in contract.preflight_checks:
-        state_ok = layout.state_json.exists() and layout.state_md.exists()
-        add_check(
-            "project_state",
-            state_ok,
-            (
-                f"state.json={layout.state_json.exists()}, STATE.md={layout.state_md.exists()}"
-                if not state_ok
-                else f"{_format_display_path(layout.state_json)} and {_format_display_path(layout.state_md)} present"
-            ),
+    if str(getattr(command, "name", "") or "") == "gpd:review-knowledge":
+        state_files_present = layout.state_json.exists() and layout.state_md.exists()
+        detail = (
+            f"{_format_display_path(layout.state_json)} and {_format_display_path(layout.state_md)} present as optional background context"
+            if state_files_present
+            else "current-workspace knowledge review: project state is advisory background context only"
         )
-        if strict:
-            validation = state_validate(project_cwd, integrity_mode="review")
-            detail = f"integrity_status={validation.integrity_status}"
-            if validation.issues:
-                detail = f"{detail}; {'; '.join(validation.issues)}"
-            add_check("state_integrity", validation.valid, detail, blocking=True)
+        add_check("project_state", True, detail, blocking=False)
 
-    if "roadmap" in contract.preflight_checks:
-        add_check(
-            "roadmap",
-            layout.roadmap.exists(),
-            (
-                f"{_format_display_path(layout.roadmap)} present"
-                if layout.roadmap.exists()
-                else f"missing {_format_display_path(layout.roadmap)}"
-            ),
+    if "knowledge_target" in contract.preflight_checks:
+        target_path, target_id, _record = load_knowledge_context()
+        target_passed = (
+            resolved_subject is not None
+            and resolved_subject.subject_kind == "knowledge_document"
+            and resolved_subject.status == "resolved"
         )
-
-    if "conventions" in contract.preflight_checks:
-        add_check(
-            "conventions",
-            layout.conventions_md.exists(),
-            (
-                f"{_format_display_path(layout.conventions_md)} present"
-                if layout.conventions_md.exists()
-                else f"missing {_format_display_path(layout.conventions_md)}"
-            ),
-        )
-
-    if "research_artifacts" in contract.preflight_checks:
-        digest_exists = layout.milestones_dir.exists() and any(layout.milestones_dir.rglob("RESEARCH-DIGEST.md"))
-        summary_exists = _has_any_phase_summary(layout.phases_dir)
-        passed = digest_exists or summary_exists
-        detail = "milestone digest or phase summaries present" if passed else "no digest or phase summaries found"
-        add_check("research_artifacts", passed, detail)
-        if strict and summary_exists:
-            summary_failures = _validate_phase_artifacts(layout.phases_dir, "summary")
-            add_check(
-                "summary_frontmatter",
-                not summary_failures,
-                "all phase summaries satisfy the summary schema"
-                if not summary_failures
-                else "; ".join(summary_failures[:3]),
-                blocking=True,
+        detail = (
+            resolved_subject.detail
+            if resolved_subject is not None and resolved_subject.subject_kind == "knowledge_document"
+            else (
+                f"canonical knowledge target {_format_display_path(target_path)}"
+                if target_path is not None
+                else (
+                    f"canonical knowledge id {target_id}"
+                    if target_id
+                    else "missing explicit canonical knowledge target"
+                )
             )
-        verification_reports_requested = _review_contract_requests_check(contract, "verification_reports")
-        if verification_reports_requested:
-            verification_exists = layout.phases_dir.exists() and any(layout.phases_dir.rglob("*VERIFICATION.md"))
-            add_check(
-                "verification_reports",
-                verification_exists,
-                "verification reports present" if verification_exists else "no verification reports found",
+        )
+        add_check("knowledge_target", target_passed, detail)
+
+    if "knowledge_document" in contract.preflight_checks:
+        target_path, target_id, record = load_knowledge_context()
+        document_exists = record is not None
+        target_warnings = knowledge_target_warnings(target_path)
+        detail = (
+            f"{_format_display_path(target_path)} present and parsed"
+            if record is not None and target_path is not None
+            else (
+                f"{_format_display_path(target_path)} present but failed strict parsing: {'; '.join(target_warnings)}"
+                if target_path is not None and target_path.exists() and target_warnings
+                else (
+                    f"{_format_display_path(target_path)} present but failed strict parsing"
+                    if target_path is not None and target_path.exists()
+                    else (
+                        f"missing canonical knowledge document {_format_display_path(target_path)}"
+                        if target_path is not None
+                        else (
+                            f"missing canonical knowledge document for {target_id}"
+                            if target_id
+                            else "missing canonical knowledge document"
+                        )
+                    )
+                )
             )
-            if strict and verification_exists:
-                verification_failures = _validate_phase_artifacts(layout.phases_dir, "verification")
+        )
+        add_check("knowledge_document", document_exists, detail)
+
+    if "knowledge_review_freshness" in contract.preflight_checks:
+        _target_path, _target_id, record = load_knowledge_context()
+        freshness_passed = True
+        detail = "no prior approved review freshness requirement"
+        if record is not None and record.status == "stable":
+            freshness_passed = bool(record.review_fresh) and record.stale is False
+            detail = (
+                "approved review evidence is fresh"
+                if freshness_passed
+                else "stable knowledge document has stale or missing approved review evidence"
+            )
+        add_check("knowledge_review_freshness", freshness_passed, detail)
+
+    if requested_review_check("project_state"):
+        optional_detail = subject_preflight_policy.detail("project_state")
+        if optional_detail is not None:
+            add_check(
+                "project_state",
+                True,
+                optional_detail,
+                blocking=False,
+            )
+        elif standalone_peer_review_mode:
+            add_check(
+                "project_state",
+                True,
+                "external artifact review: project state is optional",
+                blocking=False,
+            )
+        else:
+            state_ok = layout.state_json.exists() and layout.state_md.exists()
+            add_check(
+                "project_state",
+                state_ok,
+                (
+                    f"state.json={layout.state_json.exists()}, STATE.md={layout.state_md.exists()}"
+                    if not state_ok
+                    else f"{_format_display_path(layout.state_json)} and {_format_display_path(layout.state_md)} present"
+                ),
+            )
+            if strict:
+                validation = state_validate(project_cwd, integrity_mode="review")
+                detail = f"integrity_status={validation.integrity_status}"
+                if validation.issues:
+                    detail = f"{detail}; {'; '.join(validation.issues)}"
+                add_check("state_integrity", validation.valid, detail, blocking=True)
+
+    if requested_review_check("roadmap"):
+        optional_detail = subject_preflight_policy.detail("roadmap")
+        if optional_detail is not None:
+            add_check("roadmap", True, optional_detail, blocking=False)
+        elif standalone_peer_review_mode:
+            add_check("roadmap", True, "external artifact review: roadmap is optional", blocking=False)
+        else:
+            add_check(
+                "roadmap",
+                layout.roadmap.exists(),
+                (
+                    f"{_format_display_path(layout.roadmap)} present"
+                    if layout.roadmap.exists()
+                    else f"missing {_format_display_path(layout.roadmap)}"
+                ),
+            )
+
+    if requested_review_check("conventions"):
+        optional_detail = subject_preflight_policy.detail("conventions")
+        if optional_detail is not None:
+            add_check("conventions", True, optional_detail, blocking=False)
+        elif standalone_peer_review_mode:
+            add_check("conventions", True, "external artifact review: project conventions are optional", blocking=False)
+        else:
+            add_check(
+                "conventions",
+                layout.conventions_md.exists(),
+                (
+                    f"{_format_display_path(layout.conventions_md)} present"
+                    if layout.conventions_md.exists()
+                    else f"missing {_format_display_path(layout.conventions_md)}"
+                ),
+            )
+
+    if requested_review_check("research_artifacts"):
+        optional_detail = subject_preflight_policy.detail("research_artifacts")
+        if optional_detail is not None:
+            add_check(
+                "research_artifacts",
+                True,
+                optional_detail,
+                blocking=False,
+            )
+            if requested_review_check("verification_reports"):
                 add_check(
-                    "verification_frontmatter",
-                    not verification_failures,
-                    "all verification reports satisfy the verification schema"
-                    if not verification_failures
-                    else "; ".join(verification_failures[:3]),
+                    "verification_reports",
+                    True,
+                    subject_preflight_policy.detail("verification_reports") or "verification reports are optional",
+                    blocking=False,
+                )
+        elif standalone_peer_review_mode:
+            add_check(
+                "research_artifacts",
+                True,
+                "external artifact review: research artifacts are optional",
+                blocking=False,
+            )
+            if requested_review_check("verification_reports"):
+                add_check(
+                    "verification_reports",
+                    True,
+                    "external artifact review: verification reports are optional",
+                    blocking=False,
+                )
+        else:
+            digest_exists = layout.milestones_dir.exists() and any(layout.milestones_dir.rglob("RESEARCH-DIGEST.md"))
+            summary_exists = _has_any_phase_summary(layout.phases_dir)
+            passed = digest_exists or summary_exists
+            detail = "milestone digest or phase summaries present" if passed else "no digest or phase summaries found"
+            add_check("research_artifacts", passed, detail)
+            if strict and summary_exists:
+                summary_failures = _validate_phase_artifacts(layout.phases_dir, "summary")
+                add_check(
+                    "summary_frontmatter",
+                    not summary_failures,
+                    "all phase summaries satisfy the summary schema"
+                    if not summary_failures
+                    else "; ".join(summary_failures[:3]),
                     blocking=True,
                 )
+            verification_reports_requested = requested_review_check("verification_reports")
+            if verification_reports_requested:
+                verification_exists = layout.phases_dir.exists() and any(layout.phases_dir.rglob("*VERIFICATION.md"))
+                add_check(
+                    "verification_reports",
+                    verification_exists,
+                    "verification reports present" if verification_exists else "no verification reports found",
+                )
+                if strict and verification_exists:
+                    verification_failures = _validate_phase_artifacts(layout.phases_dir, "verification")
+                    add_check(
+                        "verification_frontmatter",
+                        not verification_failures,
+                        "all verification reports satisfy the verification schema"
+                        if not verification_failures
+                        else "; ".join(verification_failures[:3]),
+                        blocking=True,
+                    )
 
-    if "manuscript" in contract.preflight_checks:
+    if requested_review_check("manuscript"):
         allow_markdown = not _command_requires_compiled_manuscript(command)
         supports_explicit_manuscript_subject = _command_supports_explicit_manuscript_subject(command)
+        explicit_manuscript_subject = _command_explicit_manuscript_argument(command, subject)
         if supports_explicit_manuscript_subject:
             manuscript, manuscript_detail = _resolve_review_preflight_manuscript(
                 project_cwd,
-                subject,
+                explicit_manuscript_subject,
                 allow_markdown=allow_markdown,
+                allowed_suffixes=_command_explicit_manuscript_suffixes(command),
                 restrict_to_supported_roots=_command_explicit_manuscript_subject_uses_supported_roots(command),
                 workspace_cwd=cwd,
             )
+            manuscript_passed = manuscript is not None
         else:
-            manuscript, manuscript_detail = _resolve_review_preflight_manuscript(
-                project_cwd,
-                None,
-                allow_markdown=allow_markdown,
-            )
-        resolution = resolve_current_manuscript_resolution(project_cwd, allow_markdown=allow_markdown)
-        if _command_allows_manuscript_bootstrap(command) and subject is None and resolution.status == "missing":
             manuscript_detail = (
-                "no manuscript entrypoint found under paper/, manuscript/, or draft/; "
-                "fresh bootstrap is allowed and will scaffold a topic-specific manuscript stem under ./paper/"
+                resolved_subject.detail
+                if resolved_subject is not None
+                else "manuscript subject could not be resolved from command context"
             )
-            manuscript_passed = True
-        elif _command_requires_compiled_manuscript(command):
-            manuscript_passed = manuscript is not None
-        elif subject is None:
-            manuscript_passed = resolution.status == "resolved"
-        else:
-            manuscript_passed = manuscript is not None
+            manuscript = (
+                resolved_subject.target_path
+                if (
+                    resolved_subject is not None
+                    and resolved_subject.subject_kind == "manuscript"
+                    and resolved_subject.status == "resolved"
+                    and resolved_subject.target_path is not None
+                    and resolved_subject.target_path.is_file()
+                )
+                else None
+            )
+            manuscript_passed = resolved_subject is not None and resolved_subject.status in {"resolved", "bootstrap"}
+            if _command_requires_compiled_manuscript(command):
+                manuscript_passed = manuscript is not None
+        if (
+            manuscript is not None
+            and command.name == "gpd:peer-review"
+            and manuscript.suffix.lower()
+            in {
+                ".pdf",
+                ".docx",
+                ".csv",
+                ".tsv",
+                ".xlsx",
+                ".xlsm",
+            }
+        ):
+            intake_ready, intake_detail = _peer_review_artifact_text_surface_ready(
+                manuscript,
+                verify_generated_surface=strict and subject is not None,
+            )
+            manuscript_passed = manuscript_passed and intake_ready
+            if intake_ready:
+                manuscript_detail = f"{_format_display_path(manuscript)} present; {intake_detail}"
+            else:
+                manuscript_detail = intake_detail
         add_check(
             "manuscript",
             manuscript_passed,
-            (
-                manuscript_detail
-                if manuscript is None or supports_explicit_manuscript_subject
-                else f"{_format_display_path(manuscript)} present"
-            ),
+            manuscript_detail,
         )
-        if subject and _review_contract_requests_check(contract, "referee_report_source") and subject != "paste":
-            report_path = Path(subject)
-            if not report_path.is_absolute():
-                report_path = project_cwd / report_path
+        report_arguments = _command_referee_report_arguments(command, subject)
+        if report_arguments:
+            report_paths = tuple(
+                (
+                    _resolve_launch_or_project_relative_path(report, launch_cwd=cwd, project_cwd=project_cwd)
+                    or (cwd / report).resolve(strict=False)
+                )
+                for report in report_arguments
+            )
             add_check(
                 "referee_report_source",
-                report_path.exists(),
-                (
-                    f"{_format_display_path(report_path)} present"
-                    if report_path.exists()
-                    else f"missing {_format_display_path(report_path)}"
+                all(path.exists() for path in report_paths),
+                "; ".join(
+                    (
+                        f"{_format_display_path(path)} present"
+                        if path.exists()
+                        else f"missing {_format_display_path(path)}"
+                    )
+                    for path in report_paths
                 ),
             )
         if manuscript is not None:
@@ -7178,12 +7367,17 @@ def _build_review_preflight(
                     contract,
                     project_cwd=project_cwd,
                     manuscript=manuscript,
+                    resolved_mode=resolved_mode,
                 )
                 conditional_blocking_preflight_checks = {
                     check_name
                     for requirement in active_conditional_requirements
                     for check_name in list(getattr(requirement, "blocking_preflight_checks", []) or [])
                 }
+                active_requested_preflight_checks = _review_contract_active_requested_preflight_checks(
+                    contract,
+                    active_conditional_requirements,
+                )
             requested_publication_checks = {
                 check_name
                 for check_name in (
@@ -7199,75 +7393,130 @@ def _build_review_preflight(
                     "reproducibility_manifest",
                     "manuscript_proof_review",
                 )
-                if _review_contract_requests_check(contract, check_name)
+                if requested_review_check(check_name)
             }
+            publication_artifacts = _resolve_review_preflight_publication_artifacts(manuscript)
+            optional_external_artifact_manifest = (
+                "artifact_manifest" not in requested_publication_checks
+                and command.name == "gpd:peer-review"
+                and standalone_peer_review_mode
+                and publication_artifacts.artifact_manifest is not None
+            )
+            if optional_external_artifact_manifest:
+                artifact_manifest_passed, artifact_manifest_detail = _validate_artifact_manifest_semantics(
+                    publication_artifacts.artifact_manifest,
+                    manuscript,
+                    require_freshness=False,
+                )
+                if not artifact_manifest_passed:
+                    add_check("artifact_manifest", False, artifact_manifest_detail, blocking=True)
             if requested_publication_checks:
-                publication_artifacts = _resolve_review_preflight_publication_artifacts(manuscript)
                 artifact_manifest = publication_artifacts.artifact_manifest
                 bibliography_audit = publication_artifacts.bibliography_audit
                 reproducibility_manifest = publication_artifacts.reproducibility_manifest
 
                 if "artifact_manifest" in requested_publication_checks:
-                    artifact_manifest_detail = "no ARTIFACT-MANIFEST.json found near the manuscript"
-                    artifact_manifest_passed = artifact_manifest is not None
+                    artifact_manifest_missing = artifact_manifest is None
+                    artifact_manifest_detail = subject_preflight_policy.missing_detail(
+                        "artifact_manifest",
+                        default=(
+                            "no ARTIFACT-MANIFEST.json found near the manuscript"
+                            if not standalone_peer_review_mode
+                            else "no ARTIFACT-MANIFEST.json found near the manuscript; external artifact review can proceed without it"
+                        ),
+                    )
+                    artifact_manifest_passed = (
+                        artifact_manifest is not None
+                        or standalone_peer_review_mode
+                        or subject_preflight_policy.passes_when_missing("artifact_manifest")
+                    )
                     if artifact_manifest is not None:
-                        artifact_manifest_detail = f"{_format_display_path(artifact_manifest)} present"
-                        from gpd.mcp.paper.models import ArtifactManifest
-
-                        try:
-                            artifact_manifest_payload = json.loads(artifact_manifest.read_text(encoding="utf-8"))
-                            ArtifactManifest.model_validate(artifact_manifest_payload)
-                        except OSError as exc:
-                            artifact_manifest_passed = False
-                            artifact_manifest_detail = f"could not read artifact manifest: {exc}"
-                        except json.JSONDecodeError as exc:
-                            artifact_manifest_passed = False
-                            artifact_manifest_detail = f"could not parse artifact manifest: {exc}"
-                        except PydanticValidationError as exc:
-                            artifact_manifest_passed = False
-                            artifact_manifest_detail = "artifact manifest is invalid: " + "; ".join(
-                                _format_pydantic_schema_error(error, root_label="artifact_manifest")
-                                for error in exc.errors()[:3]
-                            )
-                    add_check("artifact_manifest", artifact_manifest_passed, artifact_manifest_detail)
+                        artifact_manifest_passed, artifact_manifest_detail = _validate_artifact_manifest_semantics(
+                            artifact_manifest,
+                            manuscript,
+                        )
+                    add_check(
+                        "artifact_manifest",
+                        artifact_manifest_passed,
+                        artifact_manifest_detail,
+                        blocking=subject_preflight_policy.blocking(
+                            "artifact_manifest",
+                            missing=artifact_manifest_missing,
+                            default=not standalone_peer_review_mode
+                            or (artifact_manifest is not None and not artifact_manifest_passed),
+                        ),
+                    )
 
                 if "bibliography_audit" in requested_publication_checks:
+                    bibliography_missing = bibliography_audit is None
+                    bibliography_missing_detail = subject_preflight_policy.missing_detail(
+                        "bibliography_audit",
+                        default=(
+                            "no BIBLIOGRAPHY-AUDIT.json found near the manuscript"
+                            if not standalone_peer_review_mode
+                            else "no BIBLIOGRAPHY-AUDIT.json found near the manuscript; external artifact review can proceed without it"
+                        ),
+                    )
                     add_check(
                         "bibliography_audit",
-                        bibliography_audit is not None,
+                        bibliography_audit is not None
+                        or standalone_peer_review_mode
+                        or subject_preflight_policy.passes_when_missing("bibliography_audit"),
                         (
                             f"{_format_display_path(bibliography_audit)} present"
                             if bibliography_audit is not None
-                            else "no BIBLIOGRAPHY-AUDIT.json found near the manuscript"
+                            else bibliography_missing_detail
+                        ),
+                        blocking=subject_preflight_policy.blocking(
+                            "bibliography_audit",
+                            missing=bibliography_missing,
+                            default=not standalone_peer_review_mode,
                         ),
                     )
 
                 if "compiled_manuscript" in requested_publication_checks:
                     compiled_manuscript = manuscript.with_suffix(".pdf")
+                    compiled_manuscript_missing = not compiled_manuscript.exists()
                     add_check(
                         "compiled_manuscript",
-                        compiled_manuscript.exists(),
+                        compiled_manuscript.exists()
+                        or subject_preflight_policy.passes_when_missing("compiled_manuscript"),
                         (
                             f"{_format_display_path(compiled_manuscript)} present"
                             if compiled_manuscript.exists()
                             else f"missing compiled manuscript {_format_display_path(compiled_manuscript)}"
                         ),
-                        blocking=True,
+                        blocking=subject_preflight_policy.blocking(
+                            "compiled_manuscript",
+                            missing=compiled_manuscript_missing,
+                            default=True,
+                        ),
                     )
 
                 if "publication_blockers" in requested_publication_checks:
-                    publication_blockers = publication_blockers_for_project(project_cwd)
-                    add_check(
-                        "publication_blockers",
-                        not publication_blockers,
-                        (
-                            "no unresolved publication blockers"
-                            if not publication_blockers
-                            else f"{len(publication_blockers)} unresolved publication blocker(s): "
-                            + "; ".join(publication_blockers[:3])
-                        ),
-                        blocking=True,
-                    )
+                    if subject_preflight_policy.relaxes("publication_blockers"):
+                        add_check(
+                            "publication_blockers",
+                            True,
+                            subject_preflight_policy.missing_detail(
+                                "publication_blockers",
+                                default="publication blockers are optional for this intake",
+                            ),
+                            blocking=False,
+                        )
+                    else:
+                        publication_blockers = publication_blockers_for_project(project_cwd)
+                        add_check(
+                            "publication_blockers",
+                            not publication_blockers,
+                            (
+                                "no unresolved publication blockers"
+                                if not publication_blockers
+                                else f"{len(publication_blockers)} unresolved publication blocker(s): "
+                                + "; ".join(publication_blockers[:3])
+                            ),
+                            blocking=True,
+                        )
 
                 review_ledger = None
                 review_checks_requested = requested_publication_checks.intersection(
@@ -7280,11 +7529,45 @@ def _build_review_preflight(
                     }
                 )
                 if review_checks_requested:
-                    latest_review_artifacts = resolve_latest_publication_review_artifacts(
+                    review_ledger_by_round, referee_decision_by_round = _publication_review_round_path_maps(
                         project_cwd,
-                        manuscript,
+                        manuscript=manuscript,
                     )
-                    if latest_review_artifacts is None:
+                    latest_review_round = _resolve_latest_publication_review_round_artifacts(
+                        project_cwd,
+                        manuscript=manuscript,
+                    )
+                    latest_response_round = _resolve_latest_publication_response_round_artifacts(
+                        project_cwd,
+                        manuscript=manuscript,
+                    )
+                    required_review_round = latest_review_round
+                    response_freshness = publication_response_freshness_status(
+                        latest_review_round=(
+                            latest_review_round.round_number if latest_review_round is not None else None
+                        ),
+                        latest_response_round=(
+                            latest_response_round.round_number if latest_response_round is not None else None
+                        ),
+                    )
+                    if response_freshness.requires_fresh_review:
+                        add_check(
+                            "response_freshness",
+                            False,
+                            f"{response_freshness.detail}; checkpoint=response_gate",
+                            blocking=True,
+                        )
+                    if (
+                        response_freshness.requires_fresh_review
+                        and response_freshness.required_review_round is not None
+                    ):
+                        required_review_round = _publication_review_round_artifacts(
+                            response_freshness.required_review_round,
+                            review_ledger_by_round=review_ledger_by_round,
+                            referee_decision_by_round=referee_decision_by_round,
+                        )
+
+                    if required_review_round is None:
                         if "review_ledger" in review_checks_requested:
                             add_check(
                                 "review_ledger",
@@ -7300,13 +7583,16 @@ def _build_review_preflight(
                                 blocking=True,
                             )
                     else:
-                        ledger_path = latest_review_artifacts.review_ledger
-                        decision_path = latest_review_artifacts.referee_decision
+                        ledger_path = required_review_round.review_ledger
+                        decision_path = required_review_round.referee_decision
+                        review_ledger_manuscript_valid = False
+                        review_ledger_round_valid = False
                         round_label = (
-                            f"round {latest_review_artifacts.round_number}"
-                            if latest_review_artifacts.round_number > 1
+                            f"round {required_review_round.round_number}"
+                            if required_review_round.round_number > 1
                             else "round 1"
                         )
+                        response_round_detail = response_freshness.review_preflight_detail
                         if "review_ledger" in review_checks_requested:
                             add_check(
                                 "review_ledger",
@@ -7314,7 +7600,10 @@ def _build_review_preflight(
                                 (
                                     f"{_format_display_path(ledger_path)} present for latest staged review {round_label}"
                                     if ledger_path is not None
-                                    else f"missing REVIEW-LEDGER{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
+                                    else (
+                                        f"missing REVIEW-LEDGER{required_review_round.round_suffix}.json "
+                                        f"for latest staged review {round_label}{response_round_detail}"
+                                    )
                                 ),
                                 blocking=True,
                             )
@@ -7325,7 +7614,10 @@ def _build_review_preflight(
                                 (
                                     f"{_format_display_path(decision_path)} present for latest staged review {round_label}"
                                     if decision_path is not None
-                                    else f"missing REFEREE-DECISION{latest_review_artifacts.round_suffix}.json for latest staged review {round_label}"
+                                    else (
+                                        f"missing REFEREE-DECISION{required_review_round.round_suffix}.json "
+                                        f"for latest staged review {round_label}{response_round_detail}"
+                                    )
                                 ),
                                 blocking=True,
                             )
@@ -7352,19 +7644,29 @@ def _build_review_preflight(
                                         ),
                                     )
                             else:
-                                review_ledger_valid = manuscript_matches_review_artifact_path(
+                                review_ledger_manuscript_valid = manuscript_matches_review_artifact_path(
                                     review_ledger.manuscript_path,
                                     manuscript,
                                     cwd=project_cwd,
                                 )
+                                review_ledger_round_valid = review_ledger.round == required_review_round.round_number
                                 if "review_ledger_valid" in review_checks_requested:
+                                    review_ledger_reasons: list[str] = []
+                                    if not review_ledger_manuscript_valid:
+                                        review_ledger_reasons.append(
+                                            "review ledger manuscript_path does not match the active submission manuscript"
+                                        )
+                                    if not review_ledger_round_valid:
+                                        review_ledger_reasons.append(
+                                            f"review ledger round {review_ledger.round} does not match required review {round_label}"
+                                        )
                                     add_check(
                                         "review_ledger_valid",
-                                        review_ledger_valid,
+                                        not review_ledger_reasons,
                                         (
                                             "review ledger manuscript_path matches the active submission manuscript"
-                                            if review_ledger_valid
-                                            else "review ledger manuscript_path does not match the active submission manuscript"
+                                            if not review_ledger_reasons
+                                            else "; ".join(review_ledger_reasons)
                                         ),
                                         blocking=True,
                                     )
@@ -7407,6 +7709,14 @@ def _build_review_preflight(
                                 if review_ledger is None:
                                     decision_reasons.append(
                                         "referee decision cannot be validated without the matching review ledger"
+                                    )
+                                elif not review_ledger_manuscript_valid:
+                                    decision_reasons.append(
+                                        "referee decision cannot be validated against a review ledger whose manuscript_path does not match the active submission manuscript"
+                                    )
+                                elif not review_ledger_round_valid:
+                                    decision_reasons.append(
+                                        f"referee decision cannot be validated against a review ledger whose embedded round does not match required review {round_label}"
                                     )
                                 else:
                                     report = evaluate_referee_decision(
@@ -7463,46 +7773,69 @@ def _build_review_preflight(
                                     )
 
                 if "reproducibility_manifest" in requested_publication_checks:
+                    reproducibility_missing = reproducibility_manifest is None
+                    reproducibility_missing_detail = subject_preflight_policy.missing_detail(
+                        "reproducibility_manifest",
+                        default=(
+                            "no reproducibility manifest found near the manuscript"
+                            if not standalone_peer_review_mode
+                            else "no reproducibility manifest found near the manuscript; external artifact review can proceed without it"
+                        ),
+                    )
                     add_check(
                         "reproducibility_manifest",
-                        reproducibility_manifest is not None,
+                        reproducibility_manifest is not None
+                        or standalone_peer_review_mode
+                        or subject_preflight_policy.passes_when_missing("reproducibility_manifest"),
                         (
                             f"{_format_display_path(reproducibility_manifest)} present"
                             if reproducibility_manifest is not None
-                            else "no reproducibility manifest found near the manuscript"
+                            else reproducibility_missing_detail
+                        ),
+                        blocking=subject_preflight_policy.blocking(
+                            "reproducibility_manifest",
+                            missing=reproducibility_missing,
+                            default=not standalone_peer_review_mode,
                         ),
                     )
 
                 if "manuscript_proof_review" in requested_publication_checks:
-                    manuscript_proof_review = resolve_manuscript_proof_review_status(
-                        project_cwd,
-                        manuscript,
-                        persist_manifest=True,
-                    )
-                    theorem_bearing_review_required = _requires_theorem_bearing_manuscript_review(
-                        project_cwd, manuscript
-                    )
-                    manuscript_proof_review_passed = (
-                        manuscript_proof_review.can_rely_on_prior_review
-                        or manuscript_proof_review.state == "not_reviewed"
-                    )
-                    manuscript_proof_review_blocking = False
-                    manuscript_proof_review_detail = manuscript_proof_review.detail
-                    if _command_requires_compiled_manuscript(command):
-                        if "manuscript_proof_review" in conditional_blocking_preflight_checks:
-                            manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
-                            manuscript_proof_review_blocking = True
-                        else:
-                            manuscript_proof_review_passed = True
-                            manuscript_proof_review_detail = (
-                                "no theorem-bearing claims were detected in the latest matching staged claim inventory "
-                                "or staged math review; manuscript proof review is not required for submission"
-                            )
-                    elif _command_allows_manuscript_bootstrap(command):
-                        manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
+                    if standalone_peer_review_mode or subject_preflight_policy.relaxes("manuscript_proof_review"):
+                        manuscript_proof_review_passed = True
                         manuscript_proof_review_blocking = False
-                        if theorem_bearing_review_required:
-                            if not manuscript_proof_review_passed:
+                        manuscript_proof_review_detail = subject_preflight_policy.missing_detail(
+                            "manuscript_proof_review",
+                            default="prior staged manuscript proof review is optional for this intake",
+                        )
+                    else:
+                        manuscript_proof_review = resolve_manuscript_proof_review_status(
+                            project_cwd,
+                            manuscript,
+                            persist_manifest=command.name != "gpd:arxiv-submission",
+                        )
+                        theorem_bearing_review_required = _requires_theorem_bearing_manuscript_review(
+                            project_cwd, manuscript
+                        )
+                        manuscript_proof_review_passed = (
+                            manuscript_proof_review.can_rely_on_prior_review
+                            or manuscript_proof_review.state == "not_reviewed"
+                        )
+                        manuscript_proof_review_blocking = False
+                        manuscript_proof_review_detail = manuscript_proof_review.detail
+                        if _command_requires_compiled_manuscript(command):
+                            if "manuscript_proof_review" in conditional_blocking_preflight_checks:
+                                manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
+                                manuscript_proof_review_blocking = True
+                            else:
+                                manuscript_proof_review_passed = True
+                                manuscript_proof_review_detail = (
+                                    "no theorem-bearing claims were detected in the latest matching staged claim inventory "
+                                    "or staged math review; manuscript proof review is not required for submission"
+                                )
+                        elif _command_allows_manuscript_bootstrap(command):
+                            manuscript_proof_review_passed = manuscript_proof_review.can_rely_on_prior_review
+                            manuscript_proof_review_blocking = False
+                            if theorem_bearing_review_required and not manuscript_proof_review_passed:
                                 manuscript_proof_review_detail = (
                                     manuscript_proof_review.detail
                                     + "; write-paper will run its own staged proof-review loop"
@@ -7516,7 +7849,15 @@ def _build_review_preflight(
 
                 if strict and bibliography_audit is not None and "bibliography_audit" in requested_publication_checks:
                     clean, detail = _validate_bibliography_audit_semantics(bibliography_audit)
-                    add_check("bibliography_audit_clean", clean, detail, blocking=True)
+                    add_check(
+                        "bibliography_audit_clean",
+                        clean,
+                        detail,
+                        blocking=subject_preflight_policy.blocking(
+                            "bibliography_audit_clean",
+                            default=not standalone_peer_review_mode,
+                        ),
+                    )
                 if (
                     strict
                     and reproducibility_manifest is not None
@@ -7528,7 +7869,15 @@ def _build_review_preflight(
                         repro_payload = json.loads(reproducibility_manifest.read_text(encoding="utf-8"))
                         repro_validation = validate_reproducibility_manifest(repro_payload)
                     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-                        add_check("reproducibility_ready", False, f"could not validate reproducibility manifest: {exc}")
+                        add_check(
+                            "reproducibility_ready",
+                            False,
+                            f"could not validate reproducibility manifest: {exc}",
+                            blocking=subject_preflight_policy.blocking(
+                                "reproducibility_ready",
+                                default=not standalone_peer_review_mode,
+                            ),
+                        )
                     else:
                         ready = (
                             repro_validation.valid
@@ -7543,9 +7892,17 @@ def _build_review_preflight(
                                 f"warnings={len(repro_validation.warnings)}, issues={len(repro_validation.issues)}"
                             )
                         )
-                        add_check("reproducibility_ready", ready, detail)
+                        add_check(
+                            "reproducibility_ready",
+                            ready,
+                            detail,
+                            blocking=subject_preflight_policy.blocking(
+                                "reproducibility_ready",
+                                default=not standalone_peer_review_mode,
+                            ),
+                        )
 
-    if "phase_artifacts" in contract.preflight_checks:
+    if requested_review_check("phase_artifacts"):
         if subject:
             phase_exists = phase_info is not None
             add_check(
@@ -7606,6 +7963,34 @@ def _build_review_preflight(
     if required_state_check is not None:
         add_check("required_state", required_state_check[0], required_state_check[1], blocking=True)
 
+    effective_required_outputs = _effective_review_contract_strings(
+        list(subject_preflight_policy.required_outputs)
+        if subject_preflight_policy.required_outputs
+        else list(getattr(contract, "required_outputs", []) or []),
+        active_conditional_requirements,
+        "required_outputs",
+    )
+    effective_required_evidence = _effective_review_contract_strings(
+        list(subject_preflight_policy.required_evidence)
+        if subject_preflight_policy.required_evidence
+        else list(getattr(contract, "required_evidence", []) or []),
+        active_conditional_requirements,
+        "required_evidence",
+    )
+    effective_blocking_conditions = _effective_review_contract_strings(
+        list(subject_preflight_policy.blocking_conditions)
+        if subject_preflight_policy.blocking_conditions
+        else list(getattr(contract, "blocking_conditions", []) or []),
+        active_conditional_requirements,
+        "blocking_conditions",
+    )
+    publication_routing = _review_preflight_publication_routing(
+        project_root=project_cwd,
+        command=command,
+        resolved_subject=resolved_subject,
+        manuscript=manuscript,
+        context_preflight=context_preflight,
+    )
     passed = all(check.passed or not check.blocking for check in checks)
     return ReviewPreflightResult(
         command=public_command_name,
@@ -7613,15 +7998,27 @@ def _build_review_preflight(
         strict=strict,
         passed=passed,
         checks=checks,
-        required_outputs=contract.required_outputs,
-        required_evidence=contract.required_evidence,
-        blocking_conditions=contract.blocking_conditions,
+        required_outputs=effective_required_outputs,
+        required_evidence=effective_required_evidence,
+        blocking_conditions=effective_blocking_conditions,
         conditional_requirements=list(contract.conditional_requirements),
         active_conditional_requirements=active_conditional_requirements,
+        effective_required_evidence=effective_required_evidence,
+        effective_blocking_conditions=effective_blocking_conditions,
+        resolved_mode=resolved_mode,
+        mode_reason=mode_reason,
         validated_surface=context_preflight.validated_surface,
         public_runtime_command_prefix=context_preflight.public_runtime_command_prefix,
         local_cli_equivalence_guaranteed=context_preflight.local_cli_equivalence_guaranteed,
         dispatch_note=context_preflight.dispatch_note,
+        resolved_subject=resolved_subject,
+        publication_subject_slug=publication_routing["publication_subject_slug"],
+        publication_lane_kind=publication_routing["publication_lane_kind"],
+        managed_publication_root=publication_routing["managed_publication_root"],
+        selected_publication_root=publication_routing["selected_publication_root"],
+        selected_review_root=publication_routing["selected_review_root"],
+        manuscript_root=publication_routing["manuscript_root"],
+        manuscript_entrypoint=publication_routing["manuscript_entrypoint"],
     )
 
 
@@ -7630,7 +8027,7 @@ def validate_consistency() -> None:
     """Validate cross-phase consistency."""
     from gpd.core.health import run_health
 
-    report = run_health(_get_cwd())
+    report = run_health(_read_only_project_scoped_cwd())
     _output(report)
     if report.overall == "fail":
         raise typer.Exit(code=1)
@@ -7643,7 +8040,19 @@ def validate_command_context(
 ) -> None:
     """Run centralized command-context preflight based on command metadata."""
     arguments = " ".join(str(arg) for arg in ctx.args) or None
-    result = _build_command_context_preflight(command_name, arguments=arguments)
+    try:
+        result = _build_command_context_preflight(command_name, arguments=arguments)
+    except CommandLookupError as exc:
+        requested_command = " ".join(part for part in (command_name, arguments or "") if part)
+        lookup_payload = build_command_lookup_error_payload(
+            requested_command,
+            runtime_surface_metadata=_command_runtime_surface_metadata(cwd=_get_cwd()),
+        )
+        if _raw:
+            _output(dataclasses.asdict(lookup_payload))
+        else:
+            err_console.print(f"[bold red]Error:[/] {format_command_lookup_error(lookup_payload)}", highlight=False)
+        raise typer.Exit(code=1) from exc
     _output(result)
     if not result.passed:
         raise typer.Exit(code=1)
@@ -7663,7 +8072,7 @@ def validate_unattended_readiness_cmd(
     live_executable_probes: bool = typer.Option(
         False,
         "--live-executable-probes",
-        help="Run cheap local executable probes such as `pdflatex --version` or `wolframscript -version`",
+        help="Run cheap local executable probes such as `pdflatex --version`, `tectonic --version`, or `wolframscript -version`",
     ),
 ) -> None:
     """Check whether one runtime surface is ready for unattended use."""
@@ -7691,14 +8100,15 @@ def validate_review_contract(
     _output(
         {
             "command": public_command_name,
-            "context_mode": command.context_mode,
+            "context_mode": _command_effective_context_mode(command),
             "review_contract": dataclasses.asdict(command.review_contract),
         }
     )
 
 
-@validate_app.command("review-preflight")
+@validate_app.command("review-preflight", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def validate_review_preflight(
+    ctx: typer.Context,
     command_name: str = typer.Argument(..., help="Command registry key or gpd:name"),
     subject: str | None = typer.Argument(
         None,
@@ -7707,10 +8117,1375 @@ def validate_review_preflight(
     strict: bool = typer.Option(False, "--strict", help="Enable stricter evidence-oriented checks"),
 ) -> None:
     """Run lightweight executable preflight checks for review-grade workflows."""
-    result = _build_review_preflight(command_name, subject=subject, strict=strict)
+    arguments: list[str] = []
+    if subject is not None:
+        arguments.append(subject)
+    arguments.extend(str(arg) for arg in ctx.args)
+    result = _build_review_preflight(command_name, subject=" ".join(arguments) or None, strict=strict)
     _output(result)
     if not result.passed:
         raise typer.Exit(code=1)
+
+
+def _project_local_artifact_ref(path: Path) -> str | None:
+    return _artifact_writers.project_local_artifact_ref(path)
+
+
+def _verification_report_plan_contract_ref(plan_path: Path) -> str:
+    return _artifact_writers.verification_report_plan_contract_ref(plan_path)
+
+
+def _normalize_verification_report_skeleton_status(status: str) -> str:
+    return _artifact_writers.normalize_verification_report_skeleton_status(status)
+
+
+def _normalize_verification_report_skeleton_output(
+    raw_payload: object,
+    *,
+    plan_path: Path,
+    plan_contract_ref: str,
+    target_status: str,
+) -> dict[str, object]:
+    return _artifact_writers.normalize_verification_report_skeleton_output(
+        raw_payload,
+        plan_path=plan_path,
+        plan_contract_ref=plan_contract_ref,
+        target_status=target_status,
+    )
+
+
+def _normalize_verification_report_skeleton_format(output_format: str) -> str:
+    return _artifact_writers.normalize_verification_report_skeleton_format(output_format)
+
+
+def _project_local_gpd_ref(path_value: object) -> str | None:
+    return _artifact_writers.project_local_gpd_ref(path_value)
+
+
+def _render_verification_report_frontmatter_yaml(
+    frontmatter: object,
+    *,
+    target_report_ref: str | None = None,
+) -> str:
+    return _artifact_writers.render_verification_report_frontmatter_yaml(
+        frontmatter,
+        target_report_ref=target_report_ref,
+    )
+
+
+def _ensure_frontmatter_block(frontmatter_yaml: object) -> str:
+    return _artifact_writers.ensure_frontmatter_block(frontmatter_yaml)
+
+
+def _body_markdown_starts_with_frontmatter(body_markdown: str) -> bool:
+    return _artifact_writers.body_markdown_starts_with_frontmatter(body_markdown)
+
+
+def _verification_report_artifact_ref(payload: Mapping[str, object]) -> str:
+    return _artifact_writers.verification_report_artifact_ref(payload)
+
+
+def _verification_report_validation_commands(payload: Mapping[str, object]) -> list[str]:
+    return _artifact_writers.verification_report_validation_commands(payload)
+
+
+def _verification_report_authoring_rules() -> list[str]:
+    return _artifact_writers.verification_report_authoring_rules()
+
+
+def _render_verification_report_markdown_draft(payload: Mapping[str, object]) -> str:
+    return _artifact_writers.render_verification_report_markdown_draft(payload)
+
+
+def _emit_verification_report_skeleton(payload: Mapping[str, object], *, output_format: str) -> None:
+    if _raw or output_format == "json":
+        _emit_raw_json(dict(payload))
+        return
+    if output_format == "frontmatter":
+        typer.echo(_ensure_frontmatter_block(payload.get("frontmatter_yaml")), nl=False)
+        return
+    markdown_draft = payload.get("markdown_draft")
+    if not isinstance(markdown_draft, str) or not markdown_draft.strip():
+        markdown_draft = _render_verification_report_markdown_draft(payload)
+    typer.echo(markdown_draft.rstrip() + "\n", nl=False)
+
+
+def _normalize_verification_report_validate_mode(validate_mode: str | None, *, has_body_file: bool) -> str:
+    return _artifact_writers.normalize_verification_report_validate_mode(validate_mode, has_body_file=has_body_file)
+
+
+def _normalize_verification_report_finalize_validate_mode(validate_mode: str | None) -> str:
+    return _artifact_writers.normalize_verification_report_finalize_validate_mode(validate_mode)
+
+
+def _normalize_verification_report_verified(verified: str | None) -> str | None:
+    return _artifact_writers.normalize_verification_report_verified(verified)
+
+
+def _normalize_verification_report_score(score: str | None) -> str | None:
+    return _artifact_writers.normalize_verification_report_score(score)
+
+
+def _verification_report_output_target(
+    output_path: str | None,
+    *,
+    payload: Mapping[str, object],
+    plan_path: Path,
+) -> Path:
+    return _artifact_writers.verification_report_output_target(
+        output_path,
+        payload=payload,
+        plan_path=plan_path,
+        launch_cwd=_get_cwd(),
+    )
+
+
+def _verification_report_validation_commands_for_ref(report_ref: str) -> list[str]:
+    return _artifact_writers.verification_report_validation_commands_for_ref(report_ref)
+
+
+def _verification_report_warning_list(payload: Mapping[str, object], *, validate_mode: str) -> list[str]:
+    return _artifact_writers.verification_report_warning_list(payload, validate_mode=validate_mode)
+
+
+def _render_verification_report_markdown_candidate(frontmatter_yaml: str, body_markdown: str) -> str:
+    return _artifact_writers.render_verification_report_markdown_candidate(frontmatter_yaml, body_markdown)
+
+
+def _render_verification_report_candidate(
+    payload: Mapping[str, object],
+    *,
+    target_report_ref: str,
+    body_markdown: str | None,
+    verified: str | None,
+    score: str | None,
+) -> tuple[str, dict[str, object]]:
+    return _artifact_writers.render_verification_report_candidate(
+        payload,
+        target_report_ref=target_report_ref,
+        body_markdown=body_markdown,
+        verified=verified,
+        score=score,
+    )
+
+
+def _verification_report_validation_not_run(mode: str, error: str) -> dict[str, object]:
+    return _artifact_writers.verification_report_validation_not_run(mode, error)
+
+
+def _artifact_target_ref(target_path: Path) -> str:
+    return _artifact_writers.artifact_target_ref(target_path)
+
+
+def _artifact_write_blocker(
+    target_path: Path,
+    *,
+    force: bool,
+    target_exists: bool | None = None,
+    existing_requires_force: bool = True,
+) -> str | None:
+    return _artifact_writers.artifact_write_blocker(
+        target_path,
+        force=force,
+        target_exists=target_exists,
+        existing_requires_force=existing_requires_force,
+        display_path=_format_display_path,
+    )
+
+
+def _atomic_write_artifact_error(target_path: Path, content: str) -> str | None:
+    return _artifact_writers.atomic_write_artifact_error(target_path, content)
+
+
+def _emit_raw_json_and_exit(payload: Mapping[str, object]) -> NoReturn:
+    _emit_raw_json(dict(payload))
+    raise typer.Exit(code=1)
+
+
+def _verification_report_write_payload(
+    *,
+    target_path: Path,
+    target_ref: str,
+    force: bool,
+    body_path: Path | None,
+    warnings: list[str],
+    validation_commands: list[str],
+    patch_file_path: Path | None = None,
+) -> dict[str, object]:
+    return _artifact_writers.verification_report_write_payload(
+        target_path=target_path,
+        target_ref=target_ref,
+        force=force,
+        body_path=body_path,
+        warnings=warnings,
+        validation_commands=validation_commands,
+        patch_file_path=patch_file_path,
+    )
+
+
+def _emit_verification_report_not_run(
+    write_payload: dict[str, object],
+    *,
+    mode: str,
+    error: str,
+) -> NoReturn:
+    write_payload["validation"] = _verification_report_validation_not_run(mode, error)
+    _emit_raw_json_and_exit(write_payload)
+
+
+def _verification_report_write_recovery(
+    *,
+    plan_path: Path,
+    target_path: Path,
+    body_path: Path | None,
+    validate_mode: str,
+    force: bool,
+    status: str,
+    verified: str | None,
+    score: str | None,
+) -> dict[str, object]:
+    return _artifact_writers.verification_report_write_recovery(
+        plan_path=plan_path,
+        target_path=target_path,
+        body_path=body_path,
+        validate_mode=validate_mode,
+        force=force,
+        status=status,
+        verified=verified,
+        score=score,
+        display_path=_format_display_path,
+    )
+
+
+def _verification_report_finalize_recovery(
+    *,
+    plan_path: Path,
+    patch_path: Path,
+    target_path: Path,
+    body_path: Path,
+    validate_mode: str,
+    force: bool,
+) -> dict[str, object]:
+    return _artifact_writers.verification_report_finalize_recovery(
+        plan_path=plan_path,
+        patch_path=patch_path,
+        target_path=target_path,
+        body_path=body_path,
+        validate_mode=validate_mode,
+        force=force,
+        display_path=_format_display_path,
+    )
+
+
+def _validate_verification_report_candidate(
+    content: str,
+    *,
+    source_path: Path,
+    mode: str,
+) -> dict[str, object]:
+    return _artifact_writers.validate_verification_report_candidate(content, source_path=source_path, mode=mode)
+
+
+def _verification_report_finalized_markdown(payload: Mapping[str, object]) -> str:
+    return _artifact_writers.verification_report_finalized_markdown(payload)
+
+
+def _normalize_proof_redteam_skeleton_status(status: str) -> str:
+    return _artifact_writers.normalize_proof_redteam_skeleton_status(status)
+
+
+def _normalize_proof_redteam_claim_id(claim_id: str) -> str:
+    return _artifact_writers.normalize_proof_redteam_claim_id(claim_id)
+
+
+def _normalize_optional_proof_redteam_claim_text(claim_text: str | None) -> str | None:
+    return _artifact_writers.normalize_optional_proof_redteam_claim_text(claim_text)
+
+
+def _normalize_proof_redteam_proof_artifact_paths(proof_artifact_paths: list[str] | None) -> list[str]:
+    return _artifact_writers.normalize_proof_redteam_proof_artifact_paths(proof_artifact_paths)
+
+
+def _normalize_required_proof_redteam_claim_text(claim_text: str) -> str:
+    return _artifact_writers.normalize_required_proof_redteam_claim_text(claim_text)
+
+
+def _normalize_proof_redteam_reviewed_at(reviewed_at: str | None) -> str | None:
+    return _artifact_writers.normalize_proof_redteam_reviewed_at(reviewed_at)
+
+
+def _normalize_single_proof_redteam_artifact_path(proof_artifact_path: str) -> str:
+    return _artifact_writers.normalize_single_proof_redteam_artifact_path(proof_artifact_path)
+
+
+def _resolve_proof_redteam_proof_artifact_path(
+    proof_artifact_path: str,
+    *,
+    project_root: Path,
+    artifact_dir: Path,
+) -> Path | None:
+    return _artifact_writers.resolve_proof_redteam_proof_artifact_path(
+        proof_artifact_path,
+        project_root=project_root,
+        artifact_dir=artifact_dir,
+    )
+
+
+def _proof_redteam_validation_commands_for_ref(artifact_ref: str) -> list[str]:
+    return _artifact_writers.proof_redteam_validation_commands_for_ref(artifact_ref)
+
+
+def _proof_redteam_finalize_validation_commands_for_ref(artifact_ref: str) -> list[str]:
+    return _artifact_writers.proof_redteam_finalize_validation_commands_for_ref(artifact_ref)
+
+
+def _proof_redteam_artifact_ref_from_payload(payload: Mapping[str, object]) -> str:
+    return _artifact_writers.proof_redteam_artifact_ref_from_payload(payload)
+
+
+def _normalize_proof_redteam_skeleton_output(
+    raw_payload: object,
+    *,
+    claim_id: str,
+    claim_text: str | None,
+    target_status: str,
+) -> dict[str, object]:
+    return _artifact_writers.normalize_proof_redteam_skeleton_output(
+        raw_payload,
+        claim_id=claim_id,
+        claim_text=claim_text,
+        target_status=target_status,
+    )
+
+
+def _emit_proof_redteam_skeleton(payload: Mapping[str, object]) -> None:
+    if _raw:
+        _emit_raw_json(dict(payload))
+        return
+    markdown_draft = payload.get("markdown_draft")
+    if not isinstance(markdown_draft, str) or not markdown_draft.strip():
+        raise GPDError("proof-redteam skeleton payload is missing markdown_draft")
+    typer.echo(markdown_draft.rstrip() + "\n", nl=False)
+
+
+def _proof_redteam_finalize_output_target(input_path: Path, output_path: str | None) -> Path:
+    return _artifact_writers.proof_redteam_finalize_output_target(
+        input_path,
+        output_path,
+        launch_cwd=_get_cwd(),
+    )
+
+
+def _proof_redteam_finalize_not_run(
+    error: str,
+    *,
+    input_path: Path,
+    target_path: Path,
+    force: bool,
+) -> dict[str, object]:
+    return _artifact_writers.proof_redteam_finalize_not_run(
+        error,
+        input_path=input_path,
+        target_path=target_path,
+        force=force,
+    )
+
+
+def _proof_redteam_finalized_markdown(payload: Mapping[str, object]) -> str | None:
+    return _artifact_writers.proof_redteam_finalized_markdown(payload)
+
+
+def _return_status_help_list(*, include_any: bool = False) -> str:
+    from gpd.core.return_contract import RETURN_STATUS_ORDER
+
+    statuses = [*RETURN_STATUS_ORDER]
+    if include_any:
+        statuses.append("any")
+    return ", ".join(statuses)
+
+
+def _return_required_status_error() -> str:
+    return f"required status must be one of: {_return_status_help_list(include_any=True)}"
+
+
+def _normalize_return_classify_required_status(require_status: str) -> str | None:
+    if not isinstance(require_status, str):
+        raise GPDError("required status must be a string")
+    normalized = require_status.strip().lower()
+    if normalized == "any":
+        return None
+    from gpd.core.return_contract import normalize_return_status
+
+    try:
+        return normalize_return_status(require_status, field_name="required status")
+    except ValueError as exc:
+        raise GPDError(_return_required_status_error()) from exc
+
+
+def _classify_return_markdown(content: str, *, require_status: str | None = None) -> dict[str, object]:
+    from gpd.core.return_repair_classifier import classify_gpd_return_repair
+
+    raw_payload = classify_gpd_return_repair(content, require_status=require_status)
+    payload = _mapping_payload(raw_payload, label="return classifier")
+    payload.setdefault("mutated", False)
+    payload.setdefault("mutates", False)
+    return payload
+
+
+def _return_classification_passed(payload: Mapping[str, object]) -> bool:
+    for key in ("passed", "valid", "ok"):
+        value = payload.get(key)
+        if isinstance(value, bool):
+            return value
+    return True
+
+
+def _return_profiles_payload(*, role: str | None, status: str | None) -> dict[str, object]:
+    from gpd.core.return_skeleton import list_gpd_return_profiles
+
+    raw_payload = list_gpd_return_profiles(role=role, status=status)
+    payload = _mapping_payload(raw_payload, label="return profiles provider")
+    payload.setdefault("mutated", False)
+    payload.setdefault("mutates", False)
+    return payload
+
+
+def _normalize_return_skeleton_format(output_format: str) -> str:
+    normalized = output_format.strip().lower()
+    if normalized not in {"markdown", "yaml", "json"}:
+        raise GPDError("return skeleton --format must be one of: markdown, yaml, json")
+    return normalized
+
+
+def _normalize_return_skeleton_output(raw_payload: object) -> dict[str, object]:
+    normalized = _mapping_payload(raw_payload, label="return skeleton builder")
+    envelope = normalized.get("envelope")
+    if not isinstance(envelope, Mapping):
+        raise GPDError("return skeleton payload is missing envelope")
+    if "yaml_payload" not in normalized:
+        from gpd.core.return_skeleton import render_gpd_return_yaml
+
+        normalized["yaml_payload"] = render_gpd_return_yaml(envelope)
+    if "markdown" not in normalized:
+        from gpd.core.return_skeleton import render_gpd_return_markdown
+
+        normalized["markdown"] = render_gpd_return_markdown(envelope)
+    return normalized
+
+
+def _emit_return_skeleton(payload: Mapping[str, object], *, output_format: str) -> None:
+    if _raw or output_format == "json":
+        _emit_raw_json(dict(payload))
+        return
+    if output_format == "yaml":
+        yaml_payload = payload.get("yaml_payload")
+        if not isinstance(yaml_payload, str) or not yaml_payload.strip():
+            raise GPDError("return skeleton payload is missing yaml_payload")
+        typer.echo(yaml_payload.rstrip() + "\n", nl=False)
+        return
+    markdown = payload.get("markdown")
+    if not isinstance(markdown, str) or not markdown.strip():
+        raise GPDError("return skeleton payload is missing markdown")
+    typer.echo(markdown.rstrip() + "\n", nl=False)
+
+
+def _read_return_skeleton_files_from(files_from: str | None) -> list[str]:
+    """Read newline-delimited ``files_written`` seed entries for return skeletons."""
+
+    if files_from is None:
+        return []
+    source = files_from.strip()
+    if not source:
+        raise GPDError("return skeleton --files-from must be a path or '-'")
+    if source == "-":
+        content = sys.stdin.read()
+    else:
+        _, content = _load_text_document_or_error(source)
+    return [line.strip() for line in content.splitlines() if line.strip()]
+
+
+@return_app.command("skeleton")
+def return_skeleton_cmd(
+    role: str = typer.Option(..., "--role", help="Return role profile to render."),
+    status: str = typer.Option(
+        "completed",
+        "--status",
+        help=f"Canonical gpd_return status to render: {_return_status_help_list()}.",
+    ),
+    output_format: str = typer.Option(
+        "markdown",
+        "--format",
+        help="Output mode for non-raw use: markdown, yaml, or json.",
+    ),
+    files_written: list[str] | None = typer.Option(
+        None,
+        "--file",
+        help="Seed one gpd_return.files_written entry. Repeatable.",
+    ),
+    files_from: str | None = typer.Option(
+        None,
+        "--files-from",
+        help="Read newline-delimited gpd_return.files_written entries from a path or '-' for stdin.",
+    ),
+    issues: list[str] | None = typer.Option(
+        None,
+        "--issue",
+        help="Seed one gpd_return.issues entry. Repeatable.",
+    ),
+    next_actions: list[str] | None = typer.Option(
+        None,
+        "--next-action",
+        help="Seed one gpd_return.next_actions entry. Repeatable.",
+    ),
+    phase: str | None = typer.Option(None, "--phase", help="Optional role-local phase value."),
+    plan: str | None = typer.Option(None, "--plan", help="Optional role-local plan value."),
+    include_applicator_fields: bool = typer.Option(
+        False,
+        "--include-applicator-fields",
+        help="Include durable continuation fields when the skeleton can be applicator-ready.",
+    ),
+    include_checkpoint_intent: bool = typer.Option(
+        False,
+        "--include-checkpoint-intent",
+        help="Include child-owned checkpoint intent fields for checkpoint skeletons.",
+    ),
+    checkpoint_reason: str | None = typer.Option(
+        None,
+        "--checkpoint-reason",
+        help="Seed checkpoint_intent.checkpoint_reason when checkpoint intent is included.",
+    ),
+    checkpoint_waiting_reason: str | None = typer.Option(
+        None,
+        "--checkpoint-waiting-reason",
+        help="Seed checkpoint_intent.waiting_reason when checkpoint intent is included.",
+    ),
+    resume_file: str | None = typer.Option(
+        None,
+        "--resume-file",
+        help="Project-relative existing resume file for checkpoint applicator skeletons.",
+    ),
+) -> None:
+    """Render a read-only canonical gpd_return skeleton."""
+
+    try:
+        normalized_format = _normalize_return_skeleton_format(output_format)
+    except GPDError as exc:
+        _error(str(exc))
+
+    from gpd.core.return_skeleton import build_gpd_return_skeleton
+
+    project_root = _read_only_project_scoped_cwd(_get_cwd())
+    try:
+        seeded_files = [*(files_written or []), *_read_return_skeleton_files_from(files_from)]
+        raw_payload = build_gpd_return_skeleton(
+            role=role,
+            status=status,
+            files_written=seeded_files,
+            issues=issues or [],
+            next_actions=next_actions or [],
+            phase=phase,
+            plan=plan,
+            include_applicator_fields=include_applicator_fields,
+            include_checkpoint_intent=include_checkpoint_intent,
+            checkpoint_reason=checkpoint_reason,
+            checkpoint_waiting_reason=checkpoint_waiting_reason,
+            resume_file=resume_file,
+            project_root=project_root,
+        )
+        payload = _normalize_return_skeleton_output(raw_payload)
+        _emit_return_skeleton(payload, output_format=normalized_format)
+    except ValueError as exc:
+        _error(str(exc))
+    except GPDError as exc:
+        _error(str(exc))
+
+
+@return_app.command("classify")
+def return_classify_cmd(
+    input_path: str = typer.Argument(..., help="Path to a file containing a gpd_return YAML block, or '-' for stdin"),
+    require_status: str = typer.Option(
+        "any",
+        "--require-status",
+        help=f"Require a return status: {_return_status_help_list(include_any=True)}.",
+    ),
+) -> None:
+    """Classify one child-return envelope without repairing or mutating it."""
+
+    try:
+        normalized_required_status = _normalize_return_classify_required_status(require_status)
+    except GPDError as exc:
+        _error(str(exc))
+
+    launch_cwd = _get_cwd()
+    project_root = _read_only_project_scoped_cwd(launch_cwd)
+    if input_path == "-":
+        content = sys.stdin.read()
+    else:
+        resolved = _resolve_return_file_path(input_path, launch_cwd=launch_cwd, project_root=project_root)
+        _, content = _load_text_document_or_error(str(resolved))
+
+    try:
+        payload = _classify_return_markdown(
+            content,
+            require_status=normalized_required_status,
+        )
+    except (GPDError, ValueError) as exc:
+        _error(str(exc))
+
+    _output(payload)
+    if not _return_classification_passed(payload):
+        raise typer.Exit(code=1)
+
+
+@return_app.command("profiles")
+def return_profiles_cmd(
+    role: str | None = typer.Option(None, "--role", help="Limit output to one return role profile."),
+    status: str | None = typer.Option(None, "--status", help="Limit status metadata to one gpd_return status."),
+) -> None:
+    """List read-only role/profile metadata for gpd_return skeletons."""
+
+    try:
+        payload = _return_profiles_payload(role=role, status=status)
+    except (GPDError, ValueError) as exc:
+        _error(str(exc))
+    _output(payload)
+
+
+def _proof_redteam_output_target(output_path: str | None) -> Path:
+    return _artifact_writers.proof_redteam_output_target(output_path, launch_cwd=_get_cwd())
+
+
+def _proof_redteam_write_not_run(error: str, *, target_path: Path, force: bool) -> dict[str, object]:
+    return _artifact_writers.proof_redteam_write_not_run(error, target_path=target_path, force=force)
+
+
+@proof_redteam_app.command("skeleton")
+def proof_redteam_skeleton_cmd(
+    claim_id: str = typer.Option(..., "--claim-id", help="Claim or theorem id under proof-redteam review."),
+    claim_text: str | None = typer.Option(None, "--claim-text", help="Exact claim text to seed the skeleton."),
+    status: str = typer.Option(
+        "gaps_found",
+        "--status",
+        help="Target proof-redteam status for the skeleton: gaps_found or human_needed.",
+    ),
+    proof_artifact_paths: list[str] | None = typer.Option(
+        None,
+        "--proof-artifact-path",
+        "--proof-artifact",
+        help="Proof artifact path to bind in frontmatter. Repeatable.",
+    ),
+    write: bool = typer.Option(
+        False, "--write", help="Write the rendered PROOF-REDTEAM artifact instead of only printing it."
+    ),
+    output_path: str | None = typer.Option(None, "--output", help="Target PROOF-REDTEAM.md path for --write."),
+    force: bool = typer.Option(False, "--force", help="Allow --write to replace an existing target."),
+) -> None:
+    """Build a conservative proof-redteam artifact skeleton."""
+
+    try:
+        normalized_claim_id = _normalize_proof_redteam_claim_id(claim_id)
+        normalized_claim_text = _normalize_optional_proof_redteam_claim_text(claim_text)
+        normalized_status = _normalize_proof_redteam_skeleton_status(status)
+        normalized_proof_artifact_paths = _normalize_proof_redteam_proof_artifact_paths(proof_artifact_paths)
+    except GPDError as exc:
+        _error(str(exc))
+
+    if output_path is not None and not write:
+        _error("proof-redteam skeleton --output requires --write")
+
+    from gpd.core.proof_redteam import build_proof_redteam_skeleton
+
+    try:
+        raw_payload = _call_proof_redteam_skeleton_builder(
+            build_proof_redteam_skeleton,
+            claim_id=normalized_claim_id,
+            claim_text=normalized_claim_text,
+            status=normalized_status,
+            proof_artifact_paths=normalized_proof_artifact_paths,
+        )
+        payload = _normalize_proof_redteam_skeleton_output(
+            raw_payload,
+            claim_id=normalized_claim_id,
+            claim_text=normalized_claim_text,
+            target_status=normalized_status,
+        )
+    except ValueError as exc:
+        _error(str(exc))
+    except GPDError as exc:
+        _error(str(exc))
+
+    if not write:
+        try:
+            _emit_proof_redteam_skeleton(payload)
+        except GPDError as exc:
+            _error(str(exc))
+        return
+
+    try:
+        target_path = _proof_redteam_output_target(output_path)
+    except GPDError as exc:
+        _error(str(exc))
+    target_ref = _artifact_target_ref(target_path)
+    validation_commands = _proof_redteam_validation_commands_for_ref(target_ref)
+    markdown_draft = payload["markdown_draft"]
+    assert isinstance(markdown_draft, str)
+    target_exists = target_path.exists()
+    blocker = _artifact_write_blocker(target_path, force=force, target_exists=target_exists)
+    if blocker is not None:
+        _emit_raw_json_and_exit(
+            _proof_redteam_write_not_run(
+                blocker,
+                target_path=target_path,
+                force=force,
+            )
+        )
+
+    write_error = _atomic_write_artifact_error(target_path, markdown_draft.rstrip() + "\n")
+    if write_error is not None:
+        _emit_raw_json_and_exit(
+            _proof_redteam_write_not_run(
+                write_error,
+                target_path=target_path,
+                force=force,
+            )
+        )
+    _emit_raw_json(
+        {
+            "written": True,
+            "target_path": str(target_path),
+            "target_ref": target_ref,
+            "replaced": target_exists,
+            "force": force,
+            "validation_commands": validation_commands,
+        }
+    )
+
+
+@proof_redteam_app.command("finalize")
+def proof_redteam_finalize_cmd(
+    input_path: str = typer.Argument(..., help="Path to the PROOF-REDTEAM.md draft to finalize."),
+    claim_id: str = typer.Option(..., "--claim-id", help="Claim or theorem id under proof-redteam review."),
+    claim_text: str = typer.Option(..., "--claim-text", help="Exact claim statement to hash and bind."),
+    proof_artifact_path: str = typer.Option(
+        ...,
+        "--proof-artifact-path",
+        "--proof-artifact",
+        help="Proof artifact path to hash and bind.",
+    ),
+    reviewed_at: str | None = typer.Option(None, "--reviewed-at", help="Reviewer timestamp to record."),
+    output_path: str | None = typer.Option(
+        None,
+        "--output",
+        help="Target PROOF-REDTEAM.md path. Defaults to finalizing the input path in place.",
+    ),
+    force: bool = typer.Option(False, "--force", help="Allow --output to replace an existing separate target."),
+) -> None:
+    """Finalize a passed proof-redteam artifact through the core finalizer."""
+
+    try:
+        normalized_claim_id = _normalize_proof_redteam_claim_id(claim_id)
+        normalized_claim_text = _normalize_required_proof_redteam_claim_text(claim_text)
+        normalized_proof_artifact_path = _normalize_single_proof_redteam_artifact_path(proof_artifact_path)
+        normalized_reviewed_at = _normalize_proof_redteam_reviewed_at(reviewed_at)
+    except GPDError as exc:
+        _error(str(exc))
+
+    file_path, _ = _load_text_document_or_error(input_path)
+    project_root = resolve_project_root(file_path.parent, require_layout=True) or _require_project_root(
+        _get_cwd(),
+        command_label="gpd proof-redteam finalize",
+    )
+
+    try:
+        target_path = _proof_redteam_finalize_output_target(file_path, output_path)
+    except GPDError as exc:
+        _error(str(exc))
+    target_ref = _artifact_target_ref(target_path)
+    validation_commands = _proof_redteam_finalize_validation_commands_for_ref(target_ref)
+    input_resolved = file_path.resolve(strict=False)
+    target_is_input = target_path == input_resolved
+    target_exists = target_path.exists()
+
+    resolved_proof_artifact_path = _resolve_proof_redteam_proof_artifact_path(
+        normalized_proof_artifact_path,
+        project_root=project_root,
+        artifact_dir=target_path.parent,
+    )
+    if resolved_proof_artifact_path is None:
+        _error(
+            "proof-redteam finalize --proof-artifact-path does not resolve to a readable file: "
+            f"{normalized_proof_artifact_path}"
+        )
+
+    blocker = _artifact_write_blocker(
+        target_path,
+        force=force,
+        target_exists=target_exists,
+        existing_requires_force=not target_is_input,
+    )
+    if blocker is not None:
+        _emit_raw_json_and_exit(
+            _proof_redteam_finalize_not_run(
+                blocker,
+                input_path=file_path,
+                target_path=target_path,
+                force=force,
+            )
+        )
+
+    from gpd.core.proof_redteam import finalize_proof_redteam_artifact
+
+    try:
+        raw_payload = _call_proof_redteam_finalizer(
+            finalize_proof_redteam_artifact,
+            path=file_path,
+            project_root=project_root,
+            claim_id=normalized_claim_id,
+            claim_text=normalized_claim_text,
+            proof_artifact_path=normalized_proof_artifact_path,
+            reviewed_at=normalized_reviewed_at,
+            output_path=target_path,
+        )
+        payload = _mapping_payload(raw_payload, label="proof-redteam finalizer")
+    except (ValueError, PydanticValidationError) as exc:
+        _error(str(exc))
+    except GPDError as exc:
+        _error(str(exc))
+
+    payload.setdefault("input_path", str(file_path))
+    payload["target_path"] = str(target_path)
+    payload["target_ref"] = target_ref
+    payload["validation_commands"] = validation_commands
+    payload["force"] = force
+    payload.setdefault("proof_artifact_path", normalized_proof_artifact_path)
+    payload.setdefault("proof_artifact_resolved_path", str(resolved_proof_artifact_path))
+
+    if not _validation_result_is_valid(payload):
+        payload["written"] = False
+        payload.setdefault("replaced", False)
+        _emit_raw_json_and_exit(payload)
+
+    markdown = _proof_redteam_finalized_markdown(payload)
+    if markdown is not None:
+        write_error = _atomic_write_artifact_error(target_path, markdown)
+        if write_error is not None:
+            failure = _proof_redteam_finalize_not_run(
+                write_error,
+                input_path=file_path,
+                target_path=target_path,
+                force=force,
+            )
+            failure.update({key: value for key, value in payload.items() if key not in failure})
+            _emit_raw_json_and_exit(failure)
+        payload["written"] = True
+        payload["replaced"] = target_exists
+    else:
+        payload["written"] = bool(payload.get("written", target_path.exists()))
+        payload["replaced"] = bool(payload.get("replaced", target_exists and not target_is_input))
+
+    _emit_raw_json(payload)
+
+
+@verification_report_app.command("skeleton")
+def verification_report_skeleton_cmd(
+    input_path: str = typer.Argument(..., help="Path to a contract-backed PLAN.md file"),
+    status: str = typer.Option(
+        "gaps_found",
+        "--status",
+        help="Target VERIFICATION status for the skeleton; only gaps_found is supported.",
+    ),
+    output_format: str = typer.Option(
+        "markdown",
+        "--format",
+        help="Output mode for non-raw use: markdown, frontmatter, or json.",
+    ),
+    write: bool = typer.Option(
+        False, "--write", help="Write the rendered VERIFICATION report instead of only printing it."
+    ),
+    output_path: str | None = typer.Option(None, "--output", help="Target VERIFICATION.md path for --write."),
+    force: bool = typer.Option(False, "--force", help="Allow --write to replace an existing target."),
+    body_file: str | None = typer.Option(
+        None, "--body-file", help="Markdown body file to compose below generated frontmatter."
+    ),
+    verified: str | None = typer.Option(
+        None, "--verified", help="Override verified timestamp; use 'now' for current UTC."
+    ),
+    score: str | None = typer.Option(None, "--score", help="Override the generated score string."),
+    validate_mode: str | None = typer.Option(
+        None,
+        "--validate",
+        help="Validation mode for --write: none, frontmatter, or contract. Defaults to contract with --body-file, otherwise frontmatter.",
+    ),
+) -> None:
+    """Build a typed VERIFICATION frontmatter skeleton, optionally writing a validated report."""
+
+    from gpd.core.frontmatter import (
+        FrontmatterParseError,
+        FrontmatterValidationError,
+        parse_contract_block,
+        validate_frontmatter,
+    )
+
+    try:
+        normalized_status = _normalize_verification_report_skeleton_status(status)
+        normalized_format = _normalize_verification_report_skeleton_format(output_format)
+        normalized_verified = _normalize_verification_report_verified(verified)
+        normalized_score = _normalize_verification_report_score(score)
+        normalized_validate_mode = _normalize_verification_report_validate_mode(
+            validate_mode,
+            has_body_file=body_file is not None,
+        )
+    except GPDError as exc:
+        _error(str(exc))
+    file_path, content = _load_text_document_or_error(input_path)
+    body_path: Path | None = None
+    body_markdown: str | None = None
+    if body_file is not None:
+        body_path, body_markdown = _load_text_document_or_error(body_file)
+        if _body_markdown_starts_with_frontmatter(body_markdown):
+            _error(
+                "verification-report skeleton --body-file must be body-only Markdown; "
+                f"remove YAML frontmatter from {_format_display_path(body_path)}"
+            )
+    try:
+        plan_validation = validate_frontmatter(content, "plan", source_path=file_path)
+        if not plan_validation.valid:
+            diagnostics = [*plan_validation.missing, *plan_validation.errors]
+            detail = "; ".join(diagnostics[:3]) if diagnostics else "invalid plan frontmatter"
+            _error(f"verification-report skeleton requires a valid PLAN.md: {detail}")
+        contract = parse_contract_block(content, source_path=file_path)
+    except (FrontmatterParseError, FrontmatterValidationError) as exc:
+        _error(str(exc))
+    if contract is None:
+        _error("PLAN frontmatter does not contain a contract block")
+
+    plan_contract_ref = _verification_report_plan_contract_ref(file_path)
+    from gpd.core.verification_report import build_verification_report_skeleton
+
+    try:
+        raw_payload = _call_verification_report_skeleton_builder(
+            build_verification_report_skeleton,
+            contract=contract,
+            plan_path=file_path,
+            plan_contract_ref=plan_contract_ref,
+            status=normalized_status,
+            verified=normalized_verified,
+            score=normalized_score,
+        )
+    except ValueError as exc:
+        _error(str(exc))
+    try:
+        payload = _normalize_verification_report_skeleton_output(
+            raw_payload,
+            plan_path=file_path,
+            plan_contract_ref=plan_contract_ref,
+            target_status=normalized_status,
+        )
+    except GPDError as exc:
+        _error(str(exc))
+
+    if (
+        write
+        or output_path is not None
+        or body_markdown is not None
+        or normalized_verified is not None
+        or normalized_score is not None
+    ):
+        target_path = _verification_report_output_target(output_path, payload=payload, plan_path=file_path)
+        target_ref = _artifact_target_ref(target_path)
+        validation_commands = _verification_report_validation_commands_for_ref(target_ref)
+        try:
+            candidate, rendered_payload = _render_verification_report_candidate(
+                payload,
+                target_report_ref=target_ref,
+                body_markdown=body_markdown,
+                verified=normalized_verified,
+                score=normalized_score,
+            )
+        except GPDError as exc:
+            _error(str(exc))
+
+        rendered_payload["target_report_path"] = str(target_path)
+        rendered_payload["target_report_ref"] = target_ref
+        rendered_payload["validation_commands"] = validation_commands
+        if not write:
+            _emit_verification_report_skeleton(rendered_payload, output_format=normalized_format)
+            return
+
+        warnings = _verification_report_warning_list(rendered_payload, validate_mode=normalized_validate_mode)
+        target_exists = target_path.exists()
+        write_payload = _verification_report_write_payload(
+            target_path=target_path,
+            target_ref=target_ref,
+            force=force,
+            body_path=body_path,
+            warnings=warnings,
+            validation_commands=validation_commands,
+        )
+        blocker = _artifact_write_blocker(target_path, force=force, target_exists=target_exists)
+        if blocker is not None:
+            _emit_verification_report_not_run(write_payload, mode=normalized_validate_mode, error=blocker)
+
+        validation = _validate_verification_report_candidate(
+            candidate,
+            source_path=target_path,
+            mode=normalized_validate_mode,
+        )
+        write_payload["validation"] = validation
+        if not validation.get("valid"):
+            if normalized_validate_mode == "contract":
+                write_payload["recovery"] = _verification_report_write_recovery(
+                    plan_path=file_path,
+                    target_path=target_path,
+                    body_path=body_path,
+                    validate_mode=normalized_validate_mode,
+                    force=force,
+                    status=normalized_status,
+                    verified=normalized_verified,
+                    score=normalized_score,
+                )
+            _emit_raw_json_and_exit(write_payload)
+
+        write_error = _atomic_write_artifact_error(target_path, candidate)
+        if write_error is not None:
+            _emit_verification_report_not_run(
+                write_payload,
+                mode=normalized_validate_mode,
+                error=write_error,
+            )
+        write_payload["written"] = True
+        write_payload["replaced"] = target_exists
+        _emit_raw_json(write_payload)
+        return
+
+    _emit_verification_report_skeleton(payload, output_format=normalized_format)
+
+
+@verification_report_app.command("finalize")
+def verification_report_finalize_cmd(
+    input_path: str = typer.Argument(..., help="Path to a contract-backed PLAN.md file."),
+    patch_path: str = typer.Option(..., "--patch", help="Typed outcome patch JSON file."),
+    body_file: str = typer.Option(..., "--body-file", help="Body-only Markdown evidence file."),
+    output_path: str = typer.Option(..., "--output", help="Target VERIFICATION.md path."),
+    validate_mode: str | None = typer.Option(
+        "contract",
+        "--validate",
+        help="Validation mode before write. Phase 4 finalization requires contract.",
+    ),
+    force: bool = typer.Option(False, "--force", help="Allow replacing an existing target."),
+) -> None:
+    """Finalize a VERIFICATION report from a typed outcome patch and body evidence."""
+
+    from gpd.core.frontmatter import (
+        FrontmatterParseError,
+        FrontmatterValidationError,
+        parse_contract_block,
+        validate_frontmatter,
+    )
+
+    try:
+        normalized_validate_mode = _normalize_verification_report_finalize_validate_mode(validate_mode)
+    except GPDError as exc:
+        _error(str(exc))
+
+    file_path, content = _load_text_document_or_error(input_path)
+    body_path, body_markdown = _load_text_document_or_error(body_file)
+    if _body_markdown_starts_with_frontmatter(body_markdown):
+        _error(
+            "verification-report finalize --body-file must be body-only Markdown; "
+            f"remove YAML frontmatter from {_format_display_path(body_path)}"
+        )
+    patch_document = _load_json_document_or_error(patch_path)
+    if not isinstance(patch_document, Mapping):
+        _error("verification-report finalize --patch must contain a JSON object")
+    patch_file_path = _resolve_path_from_effective_cwd(patch_path) if patch_path != "-" else Path("-")
+
+    try:
+        plan_validation = validate_frontmatter(content, "plan", source_path=file_path)
+        if not plan_validation.valid:
+            diagnostics = [*plan_validation.missing, *plan_validation.errors]
+            detail = "; ".join(diagnostics[:3]) if diagnostics else "invalid plan frontmatter"
+            _error(f"verification-report finalize requires a valid PLAN.md: {detail}")
+        contract = parse_contract_block(content, source_path=file_path)
+    except (FrontmatterParseError, FrontmatterValidationError) as exc:
+        _error(str(exc))
+    if contract is None:
+        _error("PLAN frontmatter does not contain a contract block")
+
+    target_path = _verification_report_output_target(output_path, payload={}, plan_path=file_path)
+    target_ref = _artifact_target_ref(target_path)
+    validation_commands = _verification_report_validation_commands_for_ref(target_ref)
+    warnings: list[str] = []
+    target_exists = target_path.exists()
+    write_payload = _verification_report_write_payload(
+        target_path=target_path,
+        target_ref=target_ref,
+        force=force,
+        body_path=body_path,
+        warnings=warnings,
+        validation_commands=validation_commands,
+        patch_file_path=patch_file_path,
+    )
+    blocker = _artifact_write_blocker(target_path, force=force, target_exists=target_exists)
+    if blocker is not None:
+        _emit_verification_report_not_run(write_payload, mode=normalized_validate_mode, error=blocker)
+
+    plan_contract_ref = _verification_report_plan_contract_ref(file_path)
+    from gpd.core.verification_report import finalize_verification_report
+
+    try:
+        raw_payload = _call_verification_report_finalizer(
+            finalize_verification_report,
+            contract=contract,
+            outcome_patch=patch_document,
+            body_markdown=body_markdown,
+            plan_path=file_path,
+            plan_contract_ref=plan_contract_ref,
+            target_report_ref=target_ref,
+            source_path=target_path,
+            validation_mode=normalized_validate_mode,
+        )
+        payload = _mapping_payload(raw_payload, label="verification-report finalizer")
+        candidate = _verification_report_finalized_markdown(payload)
+    except (ValueError, PydanticValidationError) as exc:
+        _error(str(exc))
+    except GPDError as exc:
+        _error(str(exc))
+
+    core_validation = _jsonable_value(payload.get("validation"))
+    validation = _validate_verification_report_candidate(
+        candidate,
+        source_path=target_path,
+        mode=normalized_validate_mode,
+    )
+    if isinstance(core_validation, Mapping) and not _validation_result_is_valid(core_validation):
+        validation = dict(core_validation)
+    write_payload["validation"] = validation
+    raw_warnings = payload.get("warnings")
+    if isinstance(raw_warnings, list):
+        warnings.extend(str(item) for item in raw_warnings if str(item).strip())
+    write_payload["warnings"] = warnings
+    for key in ("frontmatter_yaml", "target_status", "status", "plan_contract_ref"):
+        if key in payload:
+            write_payload[key] = payload[key]
+
+    if not validation.get("valid"):
+        write_payload["recovery"] = _verification_report_finalize_recovery(
+            plan_path=file_path,
+            patch_path=patch_file_path,
+            target_path=target_path,
+            body_path=body_path,
+            validate_mode=normalized_validate_mode,
+            force=force,
+        )
+        _emit_raw_json_and_exit(write_payload)
+
+    write_error = _atomic_write_artifact_error(target_path, candidate)
+    if write_error is not None:
+        _emit_verification_report_not_run(
+            write_payload,
+            mode=normalized_validate_mode,
+            error=write_error,
+        )
+    write_payload["written"] = True
+    write_payload["replaced"] = target_exists
+    _emit_raw_json(write_payload)
+
+
+@validate_app.command("arxiv-package", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def validate_arxiv_package_cmd(
+    ctx: typer.Context,
+    subject: str | None = typer.Argument(
+        None,
+        help="Optional manuscript root or .tex entrypoint to pass through arxiv-submission preflight",
+    ),
+    submission_dir: str | None = typer.Option(
+        None,
+        "--submission-dir",
+        help="Prepared arXiv submission tree to validate; defaults to the managed package root submission directory",
+    ),
+    tarball: str | None = typer.Option(
+        None,
+        "--tarball",
+        help="arxiv-submission.tar.gz path to validate; defaults to the managed package root tarball",
+    ),
+    materialize: bool = typer.Option(
+        False,
+        "--materialize",
+        help="Create arxiv-submission.tar.gz from the validated submission tree before tarball checks",
+    ),
+) -> None:
+    """Validate a managed arXiv submission tree/tarball after strict review preflight."""
+
+    from gpd.core.arxiv_package import validate_arxiv_package
+
+    arguments: list[str] = []
+    if subject is not None:
+        arguments.append(subject)
+    arguments.extend(str(arg) for arg in ctx.args)
+    subject_text = " ".join(arguments) or None
+
+    review_preflight = _build_review_preflight("arxiv-submission", subject=subject_text, strict=True)
+    if not review_preflight.passed:
+        _output(
+            {
+                "passed": False,
+                "preflight_passed": False,
+                "checks": [
+                    {
+                        "name": "strict_review_preflight",
+                        "passed": False,
+                        "blocking": True,
+                        "detail": "strict arxiv-submission review preflight failed",
+                    }
+                ],
+                "review_preflight": dataclasses.asdict(review_preflight),
+            }
+        )
+        raise typer.Exit(code=1)
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd validate arxiv-package")
+    if review_preflight.resolved_subject is not None:
+        project_root = (
+            review_preflight.resolved_subject.resolved_project_root
+            or review_preflight.resolved_subject.context_root
+            or project_root
+        )
+
+    if not review_preflight.publication_subject_slug or not review_preflight.manuscript_entrypoint:
+        _output(
+            {
+                "passed": False,
+                "preflight_passed": True,
+                "checks": [
+                    {
+                        "name": "strict_review_preflight_routing",
+                        "passed": False,
+                        "blocking": True,
+                        "detail": "strict preflight did not emit publication_subject_slug and manuscript_entrypoint",
+                    }
+                ],
+                "review_preflight": dataclasses.asdict(review_preflight),
+            }
+        )
+        raise typer.Exit(code=1)
+
+    result = validate_arxiv_package(
+        project_root=project_root,
+        subject_slug=review_preflight.publication_subject_slug,
+        manuscript_entrypoint=review_preflight.manuscript_entrypoint,
+        submission_dir=submission_dir,
+        tarball=tarball,
+        materialize=materialize,
+    )
+    payload = dataclasses.asdict(result)
+    payload["preflight_passed"] = True
+    payload["review_preflight"] = {
+        "command": review_preflight.command,
+        "strict": review_preflight.strict,
+        "publication_subject_slug": review_preflight.publication_subject_slug,
+        "managed_publication_root": review_preflight.managed_publication_root,
+        "selected_publication_root": review_preflight.selected_publication_root,
+        "selected_review_root": review_preflight.selected_review_root,
+        "manuscript_root": review_preflight.manuscript_root,
+        "manuscript_entrypoint": review_preflight.manuscript_entrypoint,
+    }
+    _output(payload)
+    if not result.passed:
+        raise typer.Exit(code=1)
+
+
+@validate_app.command(
+    "lifecycle-contract-gate", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
+def validate_lifecycle_contract_gate(
+    ctx: typer.Context,
+    command_name: str = typer.Argument(..., help="Lifecycle command being gated"),
+    subject: str | None = typer.Argument(None, help="Optional phase or lifecycle subject"),
+) -> None:
+    """Fail closed unless the current project contract gate is authoritative."""
+    from gpd.core.state import project_contract_authority_status
+
+    command = command_name.removeprefix("gpd:").strip()
+    if command not in {"plan-phase", "execute-phase", "verify-work"}:
+        _error(
+            f"lifecycle-contract-gate only supports plan-phase, execute-phase, and verify-work (got {command_name!r})"
+        )
+    arguments: list[str] = []
+    if subject is not None:
+        arguments.append(subject)
+    arguments.extend(str(arg) for arg in ctx.args)
+
+    project_root = _require_project_root(_get_cwd(), command_label="gpd validate lifecycle-contract-gate")
+    payload = {
+        "command": command,
+        "subject": " ".join(arguments) or None,
+        **project_contract_authority_status(project_root),
+    }
+    _output(payload)
+    if payload.get("passed") is not True:
+        raise typer.Exit(code=1)
+
+
+@validate_app.command("artifact-text")
+def validate_artifact_text_cmd(
+    input_path: str = typer.Argument(..., help="Path to an artifact that should expose a readable text surface"),
+    output_path: str | None = typer.Option(
+        None,
+        "--output",
+        help="Optional path for the materialized UTF-8 text surface",
+    ),
+) -> None:
+    """Validate or materialize a readable text surface for one external artifact."""
+
+    source_path = Path(input_path)
+    if not source_path.is_absolute():
+        source_path = _get_cwd() / source_path
+    source_path = source_path.resolve(strict=False)
+    if not source_path.exists():
+        _error(f"Artifact input not found: {_format_display_path(source_path)}")
+    if not source_path.is_file():
+        _error(f"Artifact input must be a file: {_format_display_path(source_path)}")
+
+    try:
+        probe = probe_artifact_text_surface(source_path)
+    except ArtifactTextError as exc:
+        _error(str(exc))
+    if not probe.ready:
+        _error(probe.detail)
+
+    if output_path is None:
+        _output(
+            {
+                "input_path": str(source_path),
+                "ready": probe.ready,
+                "detail": _peer_review_artifact_text_surface_ready(source_path, probe=probe)[1],
+                "surface_kind": probe.surface_kind,
+            }
+        )
+        return
+
+    materialized_output = Path(output_path)
+    if not materialized_output.is_absolute():
+        materialized_output = _get_cwd() / materialized_output
+    materialized_output = materialized_output.resolve(strict=False)
+    if materialized_output == source_path:
+        _error("--output must differ from the source artifact path")
+
+    try:
+        result = materialize_artifact_text_surface(source_path, materialized_output)
+    except ArtifactTextError as exc:
+        _error(str(exc))
+
+    _output(
+        {
+            "input_path": str(result.source_path),
+            "output_path": str(result.output_path),
+            "detail": _peer_review_artifact_text_surface_ready(source_path, probe=probe)[1],
+            "surface_kind": result.surface_kind,
+            "text_length": result.text_length,
+        }
+    )
 
 
 @validate_app.command("paper-quality")
@@ -7727,7 +9502,7 @@ def validate_paper_quality(
     from gpd.core.paper_quality_artifacts import build_paper_quality_input
 
     if from_project:
-        project_root = Path(from_project)
+        project_root = _resolve_path_from_effective_cwd(from_project)
         manuscript_resolution = resolve_current_manuscript_resolution(project_root, allow_markdown=True)
         if manuscript_resolution.status != "resolved":
             raise GPDError(
@@ -7738,7 +9513,7 @@ def validate_paper_quality(
     else:
         if not input_path:
             _error("Provide a PaperQualityInput path or use --from-project <root>")
-        payload = _load_json_document(input_path)
+        payload = _load_json_document_or_error(input_path)
         try:
             paper_quality_input = PaperQualityInput.model_validate(payload)
         except PydanticValidationError as exc:
@@ -7766,7 +9541,7 @@ def validate_project_contract_cmd(
     if normalized_mode not in {"draft", "approved"}:
         raise GPDError(f"Invalid --mode {mode!r}. Expected 'draft' or 'approved'.")
 
-    payload = _load_json_document(input_path)
+    payload = _load_json_document_or_error(input_path)
     if input_path == "-":
         workspace_cwd = _state_command_cwd()
         stdin_inside_project = (workspace_cwd / "GPD").is_dir()
@@ -7851,7 +9626,7 @@ def validate_plan_preflight_cmd(
 
     from gpd.core.tool_preflight import build_plan_tool_preflight
 
-    file_path, _ = _load_text_document(input_path)
+    file_path, _ = _load_text_document_or_error(input_path)
     result = build_plan_tool_preflight(file_path)
     _output(result)
     if not result.passed:
@@ -7871,9 +9646,215 @@ def validate_summary_contract_cmd(
 def validate_verification_contract_cmd(
     input_path: str = typer.Argument(..., help="Path to a VERIFICATION.md file"),
 ) -> None:
-    """Validate VERIFICATION frontmatter and contract-result alignment, including stale proof-audit blockers when recorded."""
+    """Validate VERIFICATION frontmatter and contract-result alignment, stale proof-audit blockers when recorded, and oracle evidence."""
 
-    _run_frontmatter_validation(input_path, "verification")
+    from gpd.core.correctness_validators import validate_verification_oracle_evidence
+    from gpd.core.frontmatter import validate_frontmatter
+
+    file_path, content = _load_text_document_or_error(input_path)
+    schema_result = validate_frontmatter(content, "verification", source_path=file_path)
+    oracle_result = validate_verification_oracle_evidence(content, source_path=file_path)
+    errors = [*schema_result.errors, *oracle_result.errors]
+    result = {
+        "valid": len(schema_result.missing) == 0 and not errors,
+        "missing": schema_result.missing,
+        "present": schema_result.present,
+        "errors": errors,
+        "schema_name": schema_result.schema_name,
+        "oracle_evidence_count": oracle_result.evidence_count,
+    }
+    _output(result)
+    if not result["valid"]:
+        raise typer.Exit(code=1)
+
+
+@validate_app.command("proof-redteam")
+def validate_proof_redteam_cmd(
+    input_path: str = typer.Argument(..., help="Path to a PROOF-REDTEAM.md artifact"),
+) -> None:
+    """Validate a proof-redteam artifact with the public proof audit validator."""
+
+    file_path, _ = _load_text_document_or_error(input_path)
+    project_root = resolve_project_root(file_path.parent, require_layout=True) or _require_project_root(
+        _get_cwd(),
+        command_label="gpd validate proof-redteam",
+    )
+    from gpd.core.proof_redteam import validate_proof_redteam_artifact
+
+    result = validate_proof_redteam_artifact(file_path, project_root=project_root)
+    _output(result)
+    if not _validation_result_is_valid(result):
+        raise typer.Exit(code=1)
+
+
+@validate_app.command("comparison-contract")
+def validate_comparison_contract_cmd(
+    input_path: str = typer.Argument(..., help="Path to a GPD/comparisons/*-COMPARISON.md file"),
+) -> None:
+    """Validate standalone comparison artifact frontmatter and comparison_verdicts."""
+
+    from gpd.core.correctness_validators import validate_comparison_contract
+
+    file_path, content = _load_text_document_or_error(input_path)
+    result = validate_comparison_contract(content, source_path=file_path)
+    _output(result)
+    if not result.valid:
+        raise typer.Exit(code=1)
+
+
+@validate_app.command("handoff-artifacts")
+def validate_handoff_artifacts_cmd(
+    input_path: str = typer.Argument(..., help="Path to a file containing a gpd_return YAML block, or '-' for stdin"),
+    expected: list[str] | None = typer.Option(
+        None,
+        "--expected",
+        help="Expected artifact path that must exist and be named in gpd_return.files_written. Repeatable.",
+    ),
+    expected_glob: list[str] | None = typer.Option(
+        None,
+        "--expected-glob",
+        help="Glob pattern that must match at least one gpd_return.files_written entry. Repeatable.",
+    ),
+    allowed_root: list[str] | None = typer.Option(
+        None,
+        "--allowed-root",
+        help="Allowed project-local artifact root. Repeatable. Defaults to the project root.",
+    ),
+    required_suffix: list[str] | None = typer.Option(
+        None,
+        "--required-suffix",
+        help="Required suffix for each checked artifact path. Repeatable.",
+    ),
+    require_files_written: bool = typer.Option(
+        False,
+        "--require-files-written",
+        help="Fail when gpd_return.files_written is empty.",
+    ),
+    require_status: str | None = typer.Option(
+        None,
+        "--require-status",
+        help="Require a canonical gpd_return.status value, for example completed for success gates.",
+    ),
+    fresh_after: str | None = typer.Option(
+        None,
+        "--fresh-after",
+        help="ISO 8601 timestamp; checked artifacts must be modified at or after this time.",
+    ),
+    classify: bool = typer.Option(
+        False,
+        "--classify",
+        help="Include structured failure classes when the core handoff validator supports them.",
+    ),
+) -> None:
+    """Validate that a spawned-agent return names real, fresh, in-scope artifacts."""
+    from gpd.core.handoff_artifacts import parse_fresh_after, validate_handoff_artifacts_markdown
+
+    launch_cwd = _get_cwd()
+    project_root = _read_only_project_scoped_cwd(launch_cwd)
+    if input_path == "-":
+        content = sys.stdin.read()
+    else:
+        resolved = _resolve_return_file_path(input_path, launch_cwd=launch_cwd, project_root=project_root)
+        _, content = _load_text_document_or_error(str(resolved))
+    try:
+        freshness_cutoff = parse_fresh_after(fresh_after)
+    except ValueError as exc:
+        _error(str(exc))
+
+    kwargs: dict[str, object] = {
+        "expected_artifacts": expected or [],
+        "expected_globs": expected_glob or [],
+        "allowed_roots": allowed_root or [],
+        "required_suffixes": required_suffix or [],
+        "require_files_written": require_files_written,
+        "require_status": require_status,
+        "fresh_after": freshness_cutoff,
+    }
+    if classify and _callable_accepts_kwarg(validate_handoff_artifacts_markdown, "classify"):
+        kwargs["classify"] = True
+    elif classify and _callable_accepts_kwarg(validate_handoff_artifacts_markdown, "include_classification"):
+        kwargs["include_classification"] = True
+
+    result = validate_handoff_artifacts_markdown(project_root, content, **kwargs)
+    _output(result)
+    if not result.passed:
+        raise typer.Exit(code=1)
+
+
+def _load_child_handoff_documents(
+    *,
+    gate_path: str,
+    return_file: str,
+    launch_cwd: Path,
+    project_root: Path,
+) -> tuple[str, str]:
+    """Load child gate and return content, supporting one combined stdin stream."""
+
+    if gate_path == "-" and return_file == "-":
+        content = sys.stdin.read()
+        return content, content
+
+    if gate_path == "-":
+        gate_content = sys.stdin.read()
+    else:
+        resolved_gate = _resolve_return_file_path(gate_path, launch_cwd=launch_cwd, project_root=project_root)
+        _, gate_content = _load_text_document_or_error(str(resolved_gate))
+
+    if return_file == "-":
+        return_content = sys.stdin.read()
+    else:
+        resolved_return = _resolve_return_file_path(return_file, launch_cwd=launch_cwd, project_root=project_root)
+        _, return_content = _load_text_document_or_error(str(resolved_return))
+
+    return gate_content, return_content
+
+
+@validate_app.command("child-handoff")
+def validate_child_handoff_cmd(
+    gate_path: str = typer.Option(
+        ...,
+        "--gate",
+        help="Path to a child_gate YAML block, or '-' for stdin.",
+    ),
+    return_file: str = typer.Option(
+        ...,
+        "--return-file",
+        help="Path to a file containing a gpd_return YAML block, or '-' for stdin.",
+    ),
+    fresh_after: str | None = typer.Option(
+        None,
+        "--fresh-after",
+        help="ISO 8601 timestamp; checked artifacts must be modified at or after this time.",
+    ),
+) -> None:
+    """Validate a child_gate tuple and child return without running applicators."""
+
+    from gpd.core.child_handoff import parse_child_gate_markdown, validate_child_handoff
+    from gpd.core.handoff_artifacts import parse_fresh_after
+
+    launch_cwd = _get_cwd()
+    project_root = _read_only_project_scoped_cwd(launch_cwd)
+    gate_content, return_content = _load_child_handoff_documents(
+        gate_path=gate_path,
+        return_file=return_file,
+        launch_cwd=launch_cwd,
+        project_root=project_root,
+    )
+    try:
+        gate = parse_child_gate_markdown(gate_content)
+        freshness_cutoff = parse_fresh_after(fresh_after)
+        result = validate_child_handoff(
+            project_root,
+            return_content,
+            gate,
+            fresh_after=freshness_cutoff,
+        )
+    except ValueError as exc:
+        _error(str(exc))
+
+    _output(result)
+    if not result.passed:
+        raise typer.Exit(code=1)
 
 
 @validate_app.command("review-claim-index")
@@ -7883,7 +9864,7 @@ def validate_review_claim_index_cmd(
     """Validate a staged peer-review claim index."""
     from gpd.mcp.paper.models import ClaimIndex
 
-    payload = _load_json_document(input_path)
+    payload = _load_json_document_or_error(input_path)
     try:
         claim_index = ClaimIndex.model_validate(payload)
     except PydanticValidationError as exc:
@@ -7906,7 +9887,7 @@ def validate_review_stage_report_cmd(
     )
     from gpd.mcp.paper.models import StageReviewReport
 
-    payload = _load_json_document(input_path)
+    payload = _load_json_document_or_error(input_path)
     try:
         stage_report = StageReviewReport.model_validate(payload)
     except PydanticValidationError as exc:
@@ -7927,7 +9908,10 @@ def validate_review_stage_report_cmd(
         artifact_path = Path(input_path)
         if not artifact_path.is_absolute():
             artifact_path = _get_cwd() / artifact_path
-        semantic_errors = validate_stage_review_artifact_file(artifact_path)
+        semantic_errors = validate_stage_review_artifact_file(
+            artifact_path,
+            claim_index_fallback_root=_get_cwd() / "GPD" / "review",
+        )
     if semantic_errors:
         message = "; ".join(semantic_errors[:5])
         if len(semantic_errors) > 5:
@@ -7944,7 +9928,7 @@ def validate_review_ledger_cmd(
     """Validate a staged peer-review issue ledger."""
     from gpd.mcp.paper.models import ReviewLedger
 
-    payload = _load_json_document(input_path)
+    payload = _load_json_document_or_error(input_path)
     try:
         ledger = ReviewLedger.model_validate(payload)
     except PydanticValidationError as exc:
@@ -7979,7 +9963,7 @@ def validate_referee_decision(
     if strict and ledger_path is None:
         _error("Strict referee-decision validation requires --ledger with the matching review-ledger JSON.")
 
-    payload = _load_json_document(input_path)
+    payload = _load_json_document_or_error(input_path)
     try:
         decision = RefereeDecisionInput.model_validate(payload)
     except PydanticValidationError as exc:
@@ -7991,7 +9975,7 @@ def validate_referee_decision(
 
     review_ledger = None
     if ledger_path is not None:
-        ledger_payload = _load_json_document(ledger_path)
+        ledger_payload = _load_json_document_or_error(ledger_path)
         try:
             review_ledger = ReviewLedger.model_validate(ledger_payload)
         except PydanticValidationError as exc:
@@ -8026,6 +10010,11 @@ def validate_reproducibility_manifest_cmd(
         "--kernel-verdict",
         help="Also emit a content-addressed kernel verdict for structurally valid manifests.",
     ),
+    check_paths: bool = typer.Option(
+        False,
+        "--check-paths/--no-check-paths",
+        help="Verify that referenced dataset, script, and output paths exist under the project root.",
+    ),
 ) -> None:
     """Validate a machine-readable reproducibility manifest."""
     from gpd.core.kernel import print_verdict
@@ -8035,8 +10024,9 @@ def validate_reproducibility_manifest_cmd(
         validate_reproducibility_manifest,
     )
 
-    payload = _load_json_document(input_path)
-    result = validate_reproducibility_manifest(payload)
+    payload = _load_json_document_or_error(input_path)
+    project_root_for_check = _manifest_reference_root_for_path_checks(input_path) if check_paths else None
+    result = validate_reproducibility_manifest(payload, project_root=project_root_for_check)
     result_payload = result.model_dump(mode="json")
     result_payload["reproducibility_ready"] = result_payload.pop("ready_for_review")
     failure = not result.valid or (strict and not result.ready_for_review)
@@ -8096,7 +10086,7 @@ def history_digest() -> None:
     """Build a digest of project history from phase SUMMARY files."""
     from gpd.core.commands import cmd_history_digest
 
-    _output(cmd_history_digest(_get_cwd()))
+    _output(cmd_history_digest(_project_scoped_cwd()))
 
 
 @app.command("sync-phase-checkpoints")
@@ -8104,7 +10094,7 @@ def sync_phase_checkpoints() -> None:
     """Generate checkpoint notes under GPD/ from phase summaries."""
     from gpd.core.checkpoints import sync_phase_checkpoints
 
-    _output(sync_phase_checkpoints(_get_cwd()))
+    _output(sync_phase_checkpoints(_project_scoped_cwd()))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -8136,7 +10126,7 @@ def regression_check(
     """Check for regressions across completed phases, optionally limited to one phase."""
     from gpd.core.commands import cmd_regression_check
 
-    result = cmd_regression_check(_get_cwd(), phase=phase, quick=quick)
+    result = cmd_regression_check(_project_scoped_cwd(), phase=phase, quick=quick)
     _output(result)
     if not result.passed:
         raise typer.Exit(code=1)
@@ -8154,7 +10144,9 @@ def validate_return(
     """Validate a gpd_return YAML block in a file."""
     from gpd.core.commands import cmd_validate_return
 
-    resolved = _get_cwd() / file_path
+    launch_cwd = _get_cwd()
+    project_root = _read_only_project_scoped_cwd(launch_cwd)
+    resolved = _resolve_return_file_path(file_path, launch_cwd=launch_cwd, project_root=project_root)
     result = cmd_validate_return(resolved)
     _output(result)
     if not result.passed:
@@ -8164,12 +10156,24 @@ def validate_return(
 @app.command("apply-return-updates")
 def apply_return_updates(
     file_path: str = typer.Argument(..., help="Path to file containing gpd_return YAML block"),
+    checkpoint_resume_file: str | None = typer.Option(
+        None,
+        "--checkpoint-resume-file",
+        help="Parent-owned project-relative resume file for checkpoint-intent application.",
+    ),
 ) -> None:
     """Validate one gpd_return envelope and apply its durable child-return updates."""
     from gpd.core.commands import cmd_apply_return_updates
 
-    resolved = _get_cwd() / file_path
-    result = cmd_apply_return_updates(_get_cwd(), resolved)
+    launch_cwd = _get_cwd()
+    project_root = _project_scoped_cwd(launch_cwd)
+    resolved = _resolve_return_file_path(file_path, launch_cwd=launch_cwd, project_root=project_root)
+    kwargs: dict[str, object] = {}
+    if checkpoint_resume_file is not None:
+        if not _callable_accepts_kwarg(cmd_apply_return_updates, "checkpoint_resume_file"):
+            _error("--checkpoint-resume-file requires core cmd_apply_return_updates checkpoint_resume_file support")
+        kwargs["checkpoint_resume_file"] = checkpoint_resume_file
+    result = cmd_apply_return_updates(project_root, resolved, **kwargs)
     _output(result)
     if not result.passed:
         raise typer.Exit(code=1)
@@ -8206,6 +10210,14 @@ def paper_build(
         "--enrich-bibliography/--no-enrich-bibliography",
         help="Allow bibliography enrichment when citation sources are provided.",
     ),
+    minimal: bool = typer.Option(
+        False,
+        "--minimal",
+        help=(
+            "Suppress all sidecars (ARTIFACT-MANIFEST.json, BIBLIOGRAPHY-AUDIT.json). "
+            "Only .tex, .bib, and figures/ land in the output directory."
+        ),
+    ),
 ) -> None:
     """Build a paper from the canonical mcp.paper JSON config surface."""
 
@@ -8220,7 +10232,7 @@ def paper_build(
         if config_path
         else _resolve_default_paper_config_path(project_root=project_root)
     )
-    _reject_legacy_paper_config_location(config_file, project_root=project_root)
+    _reject_internal_paper_config_location(config_file, project_root=project_root)
     raw_config = _load_json_document(str(config_file))
     if not isinstance(raw_config, dict):
         raise GPDError(f"Paper config must be a JSON object: {_format_display_path(config_file)}")
@@ -8233,7 +10245,16 @@ def paper_build(
     resolved_config_root = config_file.resolve(strict=False)
     storage_root = project_root if resolved_config_root.is_relative_to(project_root) else resolved_config_root.parent
     storage_layout = ProjectStorageLayout(storage_root)
-    storage_layout.validate_final_output(output_path)
+    managed_output_policies = tuple(
+        policy
+        for policy in (
+            _managed_publication_manuscript_output_policy(
+                project_root=project_root, manuscript_config_path=config_file
+            ),
+        )
+        if policy is not None
+    )
+    storage_layout.validate_final_output(output_path, managed_output_policies=managed_output_policies)
     storage_check = storage_layout.check_user_output(
         output_path,
         preferred_kinds=(
@@ -8241,6 +10262,7 @@ def paper_build(
             DurableOutputKind.MANUSCRIPT,
             DurableOutputKind.DRAFT,
         ),
+        managed_output_policies=managed_output_policies,
     )
 
     bib_source = _resolve_bibliography_path(
@@ -8268,15 +10290,34 @@ def paper_build(
             citation_payload = _load_citation_sources_payload(citation_source_path)
         except GPDError as exc:
             _error(str(exc))
+
+    toolchain = _paper_build_toolchain_payload()
+
+    # Sidecar routing: strict review and arXiv preflight read manuscript-local
+    # manifest/audit sidecars from the resolved output directory. --minimal
+    # suppresses sidecars entirely.
+    artifact_manifest_output_path: Path | None = None
+    bibliography_audit_output_path: Path | None = None
+    if minimal:
+        paper_sidecar_root: Path | None = None
+        emit_artifact = False
+        emit_bib_audit = False
     else:
-        citation_source_path, citation_source_warning = _discover_literature_review_citation_sources(project_root)
+        emit_artifact = True
+        emit_bib_audit = True
+        paper_sidecar_root = None
+
+    if citation_sources is None:
+        citation_source_path, citation_source_warning = _discover_literature_review_citation_sources(
+            project_root,
+            paper_config=paper_config,
+        )
         if citation_source_path is not None:
             try:
                 citation_payload = _load_citation_sources_payload(citation_source_path)
             except GPDError as exc:
                 _error(str(exc))
 
-    toolchain = _paper_build_toolchain_payload()
     result = asyncio.run(
         build_paper(
             paper_config,
@@ -8284,9 +10325,13 @@ def paper_build(
             bib_data=bib_data,
             citation_sources=citation_payload,
             enrich_bibliography=enrich_bibliography,
+            sidecar_root=paper_sidecar_root,
+            artifact_manifest_output_path=artifact_manifest_output_path,
+            bibliography_audit_output_path=bibliography_audit_output_path,
+            emit_artifact_manifest=emit_artifact,
+            emit_bibliography_audit=emit_bib_audit,
         )
     )
-
     result_tex_path = result.tex_path if isinstance(result.tex_path, Path) else None
     if result_tex_path is None:
         result_tex_path = output_path / f"{derive_output_filename(paper_config)}.tex"
@@ -8305,6 +10350,12 @@ def paper_build(
         "error_count": len(result.errors),
         "errors": result.errors,
         "toolchain": toolchain,
+        "mode": {
+            "minimal": minimal,
+            "sidecar_root": _format_display_path_from_cwd(paper_sidecar_root, cwd=cwd)
+            if paper_sidecar_root is not None
+            else None,
+        },
         "warnings": list(storage_check.warnings)
         + [warning for warning in toolchain["warnings"] if warning not in storage_check.warnings]
         + ([citation_source_warning] if citation_source_warning else [])
@@ -8372,13 +10423,21 @@ def resolve_model_cmd(
         "--runtime",
         help=_runtime_override_help(),
     ),
+    explain: bool = typer.Option(
+        False,
+        "--explain",
+        help="Explain the resolved tier/runtime and why the command may print nothing.",
+    ),
 ) -> None:
     """Resolve the runtime-specific model override for an agent.
 
     Prints nothing when no override is configured so callers can omit the
-    runtime model parameter and let the platform use its default model.
+    runtime model parameter and let the platform use its default model. Use
+    --explain for a human-readable explanation without changing shell-safe
+    default stdout behavior.
     """
-    from gpd.core.config import resolve_model, validate_agent_name
+    from gpd.core.config import resolve_model, resolve_tier, validate_agent_name
+    from gpd.core.context import _detect_platform as detect_context_runtime
     from gpd.core.context import _resolve_model as resolve_context_model
 
     supported_runtimes = _supported_runtime_names()
@@ -8399,6 +10458,46 @@ def resolve_model_cmd(
             if runtime is not None
             else resolve_context_model(_get_cwd(), agent_name)
         )
+        if explain:
+            effective_runtime = (
+                runtime if runtime is not None else normalize_runtime_name(detect_context_runtime(_get_cwd()))
+            )
+            tier = resolve_tier(_get_cwd(), agent_name).value
+            if resolved_model is not None:
+                detail = (
+                    f"Resolved explicit model override for runtime {effective_runtime!r} at {tier}; "
+                    f"the command emits {resolved_model!r}."
+                )
+            elif effective_runtime is None:
+                detail = (
+                    "No active runtime could be resolved, so no runtime-specific override can be selected. "
+                    "Omit the model parameter and let the platform use its default model."
+                )
+            else:
+                detail = (
+                    f"No explicit model override is configured for runtime {effective_runtime!r} at {tier}. "
+                    "The command stays silent by default so shell wrappers can omit the model parameter "
+                    "and use the platform default."
+                )
+            _output(
+                {
+                    "agent_name": agent_name,
+                    "tier": tier,
+                    "runtime": effective_runtime,
+                    "runtime_source": "explicit" if runtime is not None else "detected",
+                    "resolved_model": resolved_model,
+                    "override_configured": resolved_model is not None,
+                    "uses_runtime_default": resolved_model is None,
+                    "detail": detail,
+                }
+            )
+            return
+        if resolved_model is None and _stdout_is_interactive():
+            console.print(
+                "[dim]No explicit model override is configured. Use `gpd resolve-model "
+                f"{agent_name} --explain` for details.[/dim]"
+            )
+            return
         _output(resolved_model)
     except ConfigError as exc:
         _error(str(exc))
@@ -8591,67 +10690,32 @@ def version_cmd() -> None:
 # install — Install GPD into a runtime
 # ═══════════════════════════════════════════════════════════════════════════
 
-_GPD_BANNER = r"""
- ██████╗ ██████╗ ██████╗
-██╔════╝ ██╔══██╗██╔══██╗
-██║  ███╗██████╔╝██║  ██║
-██║   ██║██╔═══╝ ██║  ██║
-╚██████╔╝██║     ██████╔╝
- ╚═════╝ ╚═╝     ╚═════╝
-"""
-
-_GPD_DISPLAY_NAME = "Get Physics Done"
-_GPD_OWNER = "Physical Superintelligence PBC"
-_GPD_OWNER_SHORT = "PSI"
-_GPD_COPYRIGHT_YEAR = 2026
-_INSTALL_LOGO_COLOR = "#F3F0E8"
-_INSTALL_TITLE_COLOR = "#F7F4ED"
-_INSTALL_META_COLOR = "#9E988C"
-_INSTALL_ACCENT_COLOR = "#D8C7A3"
+_INSTALL_ACCENT_COLOR = _install_cli_support.INSTALL_ACCENT_COLOR
+_INSTALL_TARGET_DIR_HELP = (
+    "Override the runtime config directory; defaults to local scope unless the path resolves to that runtime's "
+    "canonical global config dir"
+)
+_ENV_BOOTSTRAP_EMBEDDED_INSTALL = "GPD_BOOTSTRAP_EMBEDDED_INSTALL"
 
 
 def _format_install_header_lines(version: str) -> tuple[str, str]:
     """Return the branded header shown during interactive install."""
-    return (
-        f"GPD v{version} - {_GPD_DISPLAY_NAME}",
-        f"© {_GPD_COPYRIGHT_YEAR} {_GPD_OWNER} ({_GPD_OWNER_SHORT})",
-    )
+    return _install_cli_support.format_install_header_lines(version)
 
 
 def _print_install_header(version: str) -> None:
     """Render the branded install banner for human-facing install flows."""
-    console.print(_GPD_BANNER, style=f"bold {_INSTALL_LOGO_COLOR}")
-    console.print()
-    header_line, attribution_line = _format_install_header_lines(version)
-    console.print(header_line, style=f"bold {_INSTALL_TITLE_COLOR}", markup=False, highlight=False)
-    console.print(attribution_line, style=f"dim {_INSTALL_META_COLOR}", markup=False, highlight=False)
-    console.print()
+    _install_cli_support.print_install_header(version, console=console)
 
 
 def _render_install_option_line(index: int, label: str, *details: str, label_width: int | None = None) -> Text:
     """Return a single-line formatted install menu option."""
-    rendered = Text("  ")
-    rendered.append(f"[{index}]", style=f"bold {_INSTALL_ACCENT_COLOR}")
-    rendered.append(" ")
-    rendered.append(label.ljust(label_width or len(label)), style=f"bold {_INSTALL_TITLE_COLOR}")
-    filtered_details = [detail for detail in details if detail]
-    if filtered_details:
-        rendered.append("  ")
-        for detail_index, detail in enumerate(filtered_details):
-            if detail_index:
-                rendered.append(" ")
-            rendered.append("·", style=f"bold {_INSTALL_ACCENT_COLOR}")
-            rendered.append(" ")
-            rendered.append(detail, style=f"dim {_INSTALL_META_COLOR}")
-    return rendered
+    return _install_cli_support.render_install_option_line(index, label, *details, label_width=label_width)
 
 
 def _render_install_choice_prompt() -> Text:
     """Return the shared interactive prompt label for install menus."""
-    rendered = Text()
-    rendered.append("Enter choice", style=f"bold {_INSTALL_TITLE_COLOR}")
-    rendered.append(" [1]", style=f"dim {_INSTALL_META_COLOR}")
-    return rendered
+    return _install_cli_support.render_install_choice_prompt()
 
 
 def _prompt_runtimes(*, action: str = "install") -> list[str]:
@@ -8659,102 +10723,47 @@ def _prompt_runtimes(*, action: str = "install") -> list[str]:
     from rich.prompt import Prompt
 
     runtimes = _list_runtimes_or_error(action=f"{action} runtime selection")
-    adapters = {runtime: _get_adapter_or_error(runtime, action=f"{action} runtime selection") for runtime in runtimes}
-    label_width = max(len(adapter.display_name) for adapter in adapters.values())
-    all_label = "All runtimes"
-    label_width = max(label_width, len(all_label))
-    console.print(f"\n[bold {_INSTALL_TITLE_COLOR}]Select runtime(s) to {action}[/]\n")
-    for i, rt in enumerate(runtimes, 1):
-        adapter = adapters[rt]
-        console.print(_render_install_option_line(i, adapter.display_name, rt, label_width=label_width))
-    console.print(_render_install_option_line(len(runtimes) + 1, all_label, label_width=label_width))
-
-    console.print()
-    choice = Prompt.ask(_render_install_choice_prompt(), default="1", show_default=False)
-
     try:
-        idx = int(choice)
-    except ValueError:
-        canonical_runtime = normalize_runtime_name(choice)
-        if canonical_runtime in adapters:
-            return [canonical_runtime]
-
-        normalized = choice.strip().casefold()
-        exact_matches = [
-            runtime_name
-            for runtime_name, adapter in adapters.items()
-            if normalized
-            in {
-                runtime_name.casefold(),
-                adapter.display_name.casefold(),
-                *(alias.casefold() for alias in adapter.selection_aliases),
-            }
-        ]
-        if len(exact_matches) == 1:
-            return exact_matches
-
-        fuzzy_matches = [
-            runtime_name
-            for runtime_name, adapter in adapters.items()
-            if normalized
-            and any(
-                normalized in candidate
-                for candidate in (
-                    runtime_name.casefold(),
-                    adapter.display_name.casefold(),
-                    *(alias.casefold() for alias in adapter.selection_aliases),
-                )
-            )
-        ]
-        if len(fuzzy_matches) == 1:
-            return fuzzy_matches
-        if len(fuzzy_matches) > 1:
-            _error(f"Ambiguous selection: {choice!r}. Matches: {', '.join(fuzzy_matches)}")
-        _error(f"Invalid selection: {choice!r}")
+        return _install_cli_support.prompt_runtimes(
+            action=action,
+            runtime_names=runtimes,
+            adapter_lookup=lambda runtime: _get_adapter_or_error(runtime, action=f"{action} runtime selection"),
+            normalize_runtime_name=normalize_runtime_name,
+            console=console,
+            prompt_ask=Prompt.ask,
+        )
+    except _install_cli_support.InstallSelectionError as exc:
+        _error(str(exc))
         return []  # unreachable
-
-    if idx == len(runtimes) + 1:
-        return runtimes
-    if 1 <= idx <= len(runtimes):
-        return [runtimes[idx - 1]]
-
-    _error(f"Invalid selection: {idx}")
-    return []  # unreachable
 
 
 def _location_example(runtimes: list[str], *, is_global: bool, action: str) -> str:
     """Return a representative install location example for the selected runtime set."""
-    if len(runtimes) != 1:
-        return "one config dir per runtime"
-
-    adapter = _get_adapter_or_error(runtimes[0], action=f"{action} location selection")
-    target = adapter.resolve_target_dir(is_global, _get_cwd())
-    return _format_display_path(target)
+    return _install_cli_support.location_example(
+        runtimes,
+        is_global=is_global,
+        action=action,
+        cwd=_get_cwd(),
+        adapter_lookup=lambda runtime: _get_adapter_or_error(runtime, action=f"{action} location selection"),
+    )
 
 
 def _prompt_location(runtimes: list[str], *, action: str = "install") -> bool:
     """Interactive location selection. Returns True for global, False for local."""
     from rich.prompt import Prompt
 
-    label = "Install" if action == "install" else "Uninstall"
-    local_example = _location_example(runtimes, is_global=False, action=action)
-    global_example = _location_example(runtimes, is_global=True, action=action)
-    label_width = max(len("Local"), len("Global"))
-    console.print(f"\n[bold {_INSTALL_TITLE_COLOR}]{label} location[/]\n")
-    console.print(
-        _render_install_option_line(1, "Local", "current project only", local_example, label_width=label_width)
-    )
-    console.print(_render_install_option_line(2, "Global", "all projects", global_example, label_width=label_width))
-
-    console.print()
-    choice = Prompt.ask(_render_install_choice_prompt(), default="1", show_default=False)
-    normalized = choice.strip().lower()
-    if normalized in {"1", "local"}:
-        return False
-    if normalized in {"2", "global"}:
-        return True
-    _error(f"Invalid selection: {choice!r}")
-    return False  # unreachable
+    try:
+        return _install_cli_support.prompt_location(
+            runtimes,
+            action=action,
+            cwd=_get_cwd(),
+            adapter_lookup=lambda runtime: _get_adapter_or_error(runtime, action=f"{action} location selection"),
+            console=console,
+            prompt_ask=Prompt.ask,
+        )
+    except _install_cli_support.InstallSelectionError as exc:
+        _error(str(exc))
+        return False  # unreachable
 
 
 def _install_single_runtime(
@@ -8764,6 +10773,8 @@ def _install_single_runtime(
     target_dir_override: str | None = None,
 ) -> dict[str, object]:
     """Install GPD for a single runtime. Returns install result dict."""
+    from contextlib import nullcontext
+
     from gpd.version import resolve_install_gpd_root
 
     adapter = _get_adapter_or_error(runtime_name, action="install")
@@ -8774,176 +10785,145 @@ def _install_single_runtime(
     else:
         dest = adapter.resolve_target_dir(is_global, _get_cwd())
 
-    return adapter.install(
-        gpd_root,
-        dest,
+    defer_rollback = getattr(adapter, "defer_install_rollback_discard", None)
+    rollback_context = defer_rollback() if callable(defer_rollback) else nullcontext()
+    with rollback_context:
+        result = adapter.install(
+            gpd_root,
+            dest,
+            is_global=is_global,
+            explicit_target=target_dir_override is not None,
+        )
+    install_rollback = result.pop(_INSTALL_RESULT_ROLLBACK_KEY, None)
+    result[_INSTALL_RESULT_ADAPTER_KEY] = adapter
+    if install_rollback is not None:
+        result[_INSTALL_RESULT_ROLLBACK_KEY] = install_rollback
+    return result
+
+
+def _install_repair_command(
+    runtime_name: str,
+    *,
+    target_dir: Path,
+    is_global: bool,
+    explicit_target: bool,
+) -> str:
+    """Return a deterministic repair command for a CLI install target."""
+    from gpd.adapters.install_utils import build_runtime_install_repair_command
+
+    return build_runtime_install_repair_command(
+        runtime_name,
+        install_scope="global" if is_global else "local",
+        target_dir=target_dir,
+        explicit_target=explicit_target,
+    )
+
+
+def _mark_install_incomplete_after_rollback_failure(
+    *,
+    runtime_name: str,
+    target_dir: Path,
+    reason: str,
+    repair_command: str,
+) -> str:
+    """Best-effort marker for install targets that could not be rolled back."""
+    from gpd.adapters.install_utils import MANIFEST_NAME
+
+    if not target_dir.exists():
+        return "Rollback failed, but the target no longer exists; rerun install after fixing the error."
+    marker_path = target_dir / "gpd-install-incomplete.json"
+    try:
+        manifest_path = target_dir / MANIFEST_NAME
+        if manifest_path.exists() or manifest_path.is_symlink():
+            manifest_path.unlink()
+        marker_path.write_text(
+            json.dumps(
+                {
+                    "status": "incomplete",
+                    "runtime": runtime_name,
+                    "reason": reason,
+                    "repair_command": repair_command,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    except Exception as marker_exc:  # noqa: BLE001
+        return (
+            "Rollback failed and GPD could not mark the target incomplete "
+            f"({marker_exc}). Inspect {target_dir} before using it."
+        )
+    return (
+        f"Rollback failed; GPD removed the install manifest and wrote {marker_path} so the target is not treated "
+        "as a complete install. Inspect the target, then rerun the repair command."
+    )
+
+
+def _restore_install_after_finalize_failure(
+    *,
+    runtime_name: str,
+    target_dir: Path,
+    is_global: bool,
+    explicit_target: bool,
+    rollback: object | None,
+    error: Exception,
+) -> str:
+    """Rollback a CLI install whose adapter finalization failed."""
+    if rollback is None:
+        return str(error)
+
+    repair_command = _install_repair_command(
+        runtime_name,
+        target_dir=target_dir,
         is_global=is_global,
-        explicit_target=target_dir_override is not None,
+        explicit_target=explicit_target,
+    )
+    try:
+        rollback.restore()
+    except Exception as rollback_exc:  # noqa: BLE001
+        incomplete_message = _mark_install_incomplete_after_rollback_failure(
+            runtime_name=runtime_name,
+            target_dir=target_dir,
+            reason=f"finalize_install failed: {error}; rollback failed: {rollback_exc}",
+            repair_command=repair_command,
+        )
+        return (
+            f"{error} Rollback of partial install at {_format_display_path(target_dir)} failed: {rollback_exc}. "
+            f"{incomplete_message} Repair command: `{repair_command}`"
+        )
+
+    return (
+        f"{error} Rolled back partial install at {_format_display_path(target_dir)}. "
+        f"After fixing the finalize error, rerun: `{repair_command}`"
     )
 
 
-def _print_install_summary(results: list[tuple[str, dict[str, object]]]) -> None:
+def _discard_install_rollback(rollback: object | None) -> None:
+    """Discard a deferred install rollback snapshot after finalization succeeds."""
+    if rollback is None:
+        return
+    discard = getattr(rollback, "discard", None)
+    if callable(discard):
+        try:
+            discard()
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to discard install rollback snapshot")
+
+
+def _print_install_summary(
+    results: list[tuple[str, dict[str, object]]],
+    *,
+    include_next_steps: bool = True,
+) -> None:
     """Print a rich summary table of install results."""
-    console.print()
-    table = Table(
-        title="Install Summary",
-        title_style=f"italic {_INSTALL_ACCENT_COLOR}",
-        show_header=True,
-        header_style=f"bold {_INSTALL_ACCENT_COLOR}",
+    _install_cli_support.print_install_summary(
+        results,
+        cwd=_get_cwd(),
+        console=console,
+        adapter_lookup=lambda runtime: _get_adapter_or_error(runtime, action="install summary"),
+        include_next_steps=include_next_steps,
     )
-    table.add_column("Runtime", style="bold")
-    table.add_column("Target")
-    table.add_column("Status")
-
-    for runtime_name, result in results:
-        adapter = _get_adapter_or_error(runtime_name, action="install summary")
-        target = _format_display_path(result.get("target"))
-        agents = result.get("agents", 0)
-        commands = result.get("commands", 0)
-        table.add_row(
-            adapter.display_name,
-            target,
-            f"[green]✓[/] {agents} agents, {commands} commands",
-        )
-
-    console.print(table)
-
-    # Post-install next steps
-    if results:
-        next_step_entries: list[tuple[str, str, str, str, str, str, str, str]] = []
-        seen_runtime_names: set[str] = set()
-        for runtime_name, _result in results:
-            if runtime_name in seen_runtime_names:
-                continue
-            seen_runtime_names.add(runtime_name)
-            adapter = _get_adapter_or_error(runtime_name, action="install summary")
-            next_step_entries.append(
-                (
-                    runtime_name,
-                    adapter.display_name,
-                    adapter.launch_command,
-                    adapter.help_command,
-                    adapter.format_command("start"),
-                    adapter.format_command("tour"),
-                    adapter.new_project_command,
-                    adapter.map_research_command,
-                )
-            )
-
-        console.print()
-        console.print("[bold]Startup checklist[/]")
-        console.print(
-            f"Beginner Onboarding Hub: {beginner_onboarding_hub_url()}",
-            soft_wrap=True,
-        )
-        console.print(
-            f"First-run order: {beginner_startup_ladder_text()}",
-            soft_wrap=True,
-        )
-        if len(next_step_entries) == 1:
-            single_runtime_name, _ = results[0]
-            (
-                _runtime_name,
-                display_name,
-                launch_command,
-                help_command,
-                start_command,
-                tour_command,
-                new_project_command,
-                map_research_command,
-            ) = next_step_entries[0]
-            resume_work_command = _get_adapter_or_error(single_runtime_name, action="install summary").format_command(
-                "resume-work"
-            )
-            suggest_next_command = _get_adapter_or_error(single_runtime_name, action="install summary").format_command(
-                "suggest-next"
-            )
-            pause_work_command = _get_adapter_or_error(single_runtime_name, action="install summary").format_command(
-                "pause-work"
-            )
-            console.print(
-                f"1. Open [bold]{display_name}[/] from your system terminal "
-                f"([{_INSTALL_ACCENT_COLOR} bold]{launch_command}[/]).",
-                soft_wrap=True,
-            )
-            console.print(
-                f"2. Run [{_INSTALL_ACCENT_COLOR} bold]{help_command}[/] for the command list.",
-                soft_wrap=True,
-            )
-            console.print(
-                "3. Run "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{start_command}[/] if you're not sure what fits this folder yet. "
-                "Run "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{tour_command}[/] if you want a read-only overview of the broader command surface first.",
-                soft_wrap=True,
-            )
-            console.print(
-                "4. Then use "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{new_project_command}[/] for a new project "
-                "or "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{map_research_command}[/] for existing work.",
-                soft_wrap=True,
-            )
-            console.print(
-                "5. Fast bootstrap: use "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{new_project_command} --minimal[/] "
-                "for the shortest onboarding path.",
-                soft_wrap=True,
-            )
-            console.print(
-                "6. When you return later, use "
-                f"[{_INSTALL_ACCENT_COLOR} bold]{resume_work_command}[/] after reopening the right workspace. "
-                f"{recovery_ladder_note(resume_work_phrase=f'`{resume_work_command}`', suggest_next_phrase=f'`{suggest_next_command}`', pause_work_phrase=f'`{pause_work_command}`')}",
-                soft_wrap=True,
-            )
-            console.print(
-                f"7. {_install_summary_local_cli_bridge_line()}",
-                soft_wrap=True,
-            )
-        else:
-            runtime_lines: list[str] = []
-            for (
-                runtime_name,
-                display_name,
-                launch_command,
-                help_command,
-                start_command,
-                tour_command,
-                new_project_command,
-                map_research_command,
-            ) in next_step_entries:
-                resume_work_command = _get_adapter_or_error(runtime_name, action="install summary").format_command(
-                    "resume-work"
-                )
-                runtime_lines.append(
-                    f"- {display_name} "
-                    f"([{_INSTALL_ACCENT_COLOR} bold]{launch_command}[/]): "
-                    f"[{_INSTALL_ACCENT_COLOR} bold]{help_command}[/], then "
-                    f"[{_INSTALL_ACCENT_COLOR} bold]{start_command}[/], then "
-                    f"[{_INSTALL_ACCENT_COLOR} bold]{tour_command}[/], then "
-                    f"[{_INSTALL_ACCENT_COLOR} bold]{new_project_command}[/] for new work or "
-                    f"[{_INSTALL_ACCENT_COLOR} bold]{map_research_command}[/] for existing work, then "
-                    f"[{_INSTALL_ACCENT_COLOR} bold]{resume_work_command}[/] when you return later."
-                )
-            for line in runtime_lines:
-                console.print(line, soft_wrap=True)
-            console.print(
-                f"Fast bootstrap: use [bold]{next_step_entries[0][6]} --minimal[/] for the shortest onboarding path.",
-                soft_wrap=True,
-            )
-            console.print(
-                recovery_ladder_note(
-                    resume_work_phrase="your runtime-specific `resume-work` command",
-                    suggest_next_phrase="your runtime-specific `suggest-next` command",
-                    pause_work_phrase="your runtime-specific `pause-work` command",
-                ),
-                soft_wrap=True,
-            )
-            console.print(
-                _install_summary_local_cli_bridge_line(),
-                soft_wrap=True,
-            )
-        console.print()
 
 
 def _validate_all_runtime_selection(action: str, runtimes: list[str] | None, use_all: bool) -> None:
@@ -8954,48 +10934,35 @@ def _validate_all_runtime_selection(action: str, runtimes: list[str] | None, use
 
 def _validate_target_dir_runtime_selection(action: str, runtimes: list[str], target_dir: str | None) -> None:
     """Reject explicit target-dir usage when multiple runtimes are selected."""
-    if target_dir and len(runtimes) != 1:
-        _error(f"--target-dir requires exactly one runtime for {action}")
+    try:
+        _runtime_targeting.validate_target_dir_runtime_selection(action, runtimes, target_dir)
+    except _runtime_targeting.RuntimeTargetingError as exc:
+        _error(str(exc))
 
 
 def _resolve_cli_target_dir(target_dir: str) -> Path:
     """Resolve a CLI target-dir argument relative to the active --cwd."""
-    resolved = Path(target_dir).expanduser()
-    if resolved.is_absolute():
-        return resolved.resolve(strict=False)
-    return (_get_cwd() / resolved).resolve(strict=False)
+    return _runtime_targeting.resolve_cli_target_dir(target_dir, cwd=_get_cwd())
 
 
 def _target_dir_matches_global(runtime_name: str, target_dir: str, *, action: str) -> bool:
     """Return whether an explicit target-dir names the runtime's canonical global dir."""
-    adapter = _get_adapter_or_error(runtime_name, action=action)
-    resolved_target = _resolve_cli_target_dir(target_dir)
-    resolve_target_dir = getattr(adapter, "resolve_target_dir", None)
-    if not callable(resolve_target_dir):
-        return False
-    try:
-        canonical_global_target = resolve_target_dir(True, _get_cwd())
-    except (AttributeError, TypeError, ValueError):
-        return False
-    return resolved_target == canonical_global_target.expanduser().resolve(strict=False)
+    return _runtime_targeting.target_dir_matches_global(
+        runtime_name,
+        target_dir,
+        cwd=_get_cwd(),
+        action=action,
+        adapter_lookup=lambda runtime: _get_adapter_or_error(runtime, action=action),
+    )
 
 
 def _resolve_detected_runtime_target(runtime_name: str) -> tuple[Path | None, str | None]:
     """Return the concrete installed runtime target when one can be detected."""
-    from gpd.hooks.runtime_detect import detect_install_scope, detect_runtime_install_target
-
-    install_target = detect_runtime_install_target(runtime_name, cwd=_get_cwd())
-    if install_target is not None:
-        return install_target.config_dir, install_target.install_scope
-
-    install_scope = detect_install_scope(runtime_name, cwd=_get_cwd())
-    if install_scope == "global":
-        adapter = _get_adapter_or_error(runtime_name, action="inspect runtime readiness")
-        return adapter.resolve_target_dir(True, _get_cwd()), "global"
-    if install_scope == "local":
-        adapter = _get_adapter_or_error(runtime_name, action="inspect runtime readiness")
-        return adapter.resolve_target_dir(False, _get_cwd()), "local"
-    return None, None
+    return _runtime_targeting.resolve_detected_runtime_target(
+        runtime_name,
+        cwd=_get_cwd(),
+        adapter_lookup=lambda runtime: _get_adapter_or_error(runtime, action="inspect runtime readiness"),
+    )
 
 
 def _install_summary_local_cli_bridge_line() -> str:
@@ -9004,7 +10971,7 @@ def _install_summary_local_cli_bridge_line() -> str:
     The richer settings guidance stays in bootstrap/help surfaces that render
     post_start_settings_note() and post_start_settings_recommendation().
     """
-    return f"Use [bold]{local_cli_help_command()}[/] for local diagnostics and later setup."
+    return _install_cli_support.install_summary_local_cli_bridge_line()
 
 
 def _print_workflow_preset_list() -> None:
@@ -9042,38 +11009,17 @@ def _print_workflow_preset_details(preset_name: str) -> None:
 
 def _doctor_blocker_messages(report: object) -> list[str]:
     """Extract blocking doctor messages from a report-like object."""
-    messages: list[str] = []
-    seen: set[str] = set()
-
-    for check in getattr(report, "checks", []) or []:
-        status = getattr(check, "status", None)
-        issues = [str(issue) for issue in getattr(check, "issues", []) or [] if str(issue).strip()]
-        if str(status) != "fail":
-            continue
-        if not issues:
-            label = str(getattr(check, "label", "Runtime readiness")).strip() or "Runtime readiness"
-            issues = [f"{label}: readiness check failed."]
-        for issue in issues:
-            if issue not in seen:
-                seen.add(issue)
-                messages.append(issue)
-
-    return messages
+    return _install_readiness_support.doctor_blocker_messages(report)
 
 
 def _doctor_advisory_messages(report: object) -> list[str]:
     """Extract advisory doctor warnings from a report-like object."""
-    messages: list[str] = []
-    seen: set[str] = set()
+    return _install_readiness_support.doctor_advisory_messages(report)
 
-    for check in getattr(report, "checks", []) or []:
-        warnings = [str(item) for item in getattr(check, "warnings", []) or [] if str(item).strip()]
-        for warning in warnings:
-            if warning not in seen:
-                seen.add(warning)
-                messages.append(warning)
 
-    return messages
+def _install_repairable_runtime_target_messages(report: object, runtime_name: str) -> list[str]:
+    """Return install-preflight messages for same-runtime incomplete targets."""
+    return _install_readiness_support.install_repairable_runtime_target_messages(report, runtime_name)
 
 
 def _build_unattended_readiness(
@@ -9086,60 +11032,37 @@ def _build_unattended_readiness(
     live_executable_probes: bool,
 ) -> UnattendedReadinessResult:
     """Compose doctor and permissions status into one unattended-readiness verdict."""
-    from gpd.core.health import build_unattended_readiness_result, run_doctor
     from gpd.specs import SPECS_DIR
 
-    if global_install and local_install:
-        _error("Cannot specify both --global and --local")
-
-    normalized_runtime = _normalize_runtime_selection([runtime], action="validate unattended-readiness")[0]
-    resolved_target = _resolve_cli_target_dir(target_dir) if target_dir is not None else None
-    install_scope = (
-        "global"
-        if global_install
-        else "local"
-        if local_install
-        else "global"
-        if target_dir
-        and _target_dir_matches_global(normalized_runtime, target_dir, action="validate unattended-readiness")
-        else "local"
-    )
-    if target_dir is None and not global_install and not local_install:
-        detected_target, detected_scope = _resolve_detected_runtime_target(normalized_runtime)
-        if detected_target is not None and detected_scope is not None:
-            resolved_target = detected_target
-            install_scope = detected_scope
-
-    if resolved_target is not None:
-        permissions_target = str(resolved_target)
-    else:
-        adapter = _get_adapter_or_error(normalized_runtime, action="validate unattended-readiness")
-        permissions_target = str(adapter.resolve_target_dir(install_scope == "global", _get_cwd()))
-
-    doctor_report = run_doctor(
-        specs_dir=SPECS_DIR,
-        runtime=normalized_runtime,
-        install_scope=install_scope,
-        target_dir=resolved_target,
-        cwd=_get_cwd(),
-        live_executable_probes=live_executable_probes,
-    )
-    permissions_payload = _permissions_status_payload(
-        runtime=normalized_runtime,
-        autonomy=autonomy,
-        target_dir=permissions_target,
-    )
-
-    return build_unattended_readiness_result(
-        runtime=normalized_runtime,
-        autonomy=autonomy,
-        install_scope=install_scope,
-        target_dir=resolved_target,
-        doctor_report=doctor_report,
-        permissions_payload=permissions_payload,
-        live_executable_probes=live_executable_probes,
-        validated_surface=_validated_runtime_surface(cwd=_get_cwd()),
-    )
+    try:
+        return _install_readiness_support.build_unattended_readiness(
+            runtime=runtime,
+            autonomy=autonomy,
+            global_install=global_install,
+            local_install=local_install,
+            target_dir=target_dir,
+            live_executable_probes=live_executable_probes,
+            cwd=_get_cwd(),
+            normalize_runtime_selection=_normalize_runtime_selection,
+            validated_surface=_validated_runtime_surface(cwd=_get_cwd()),
+            specs_dir=SPECS_DIR,
+            target_dir_matches_global_func=lambda runtime_name, target, cwd, action: _target_dir_matches_global(
+                runtime_name,
+                target,
+                action=action,
+            ),
+            resolve_detected_runtime_target_func=lambda runtime_name, cwd: _resolve_detected_runtime_target(
+                runtime_name
+            ),
+            permissions_status_payload_func=lambda **kwargs: _permissions_status_payload(
+                runtime=kwargs.get("runtime"),
+                autonomy=kwargs.get("autonomy"),
+                target_dir=kwargs.get("target_dir"),
+            ),
+        )
+    except _install_readiness_support.InstallReadinessError as exc:
+        _error(str(exc))
+        raise
 
 
 def _run_install_readiness_preflight(
@@ -9149,38 +11072,15 @@ def _run_install_readiness_preflight(
     target_dir: Path | None,
 ) -> tuple[list[tuple[str, list[str]]], dict[str, list[str]]]:
     """Run doctor-led readiness checks before mutating runtime install targets."""
-    from gpd.core.health import CheckStatus, run_doctor
     from gpd.specs import SPECS_DIR
 
-    failures: list[tuple[str, list[str]]] = []
-    advisories: dict[str, list[str]] = {}
-
-    for runtime_name in runtimes:
-        try:
-            report = run_doctor(
-                specs_dir=SPECS_DIR,
-                runtime=runtime_name,
-                install_scope=install_scope,
-                target_dir=target_dir,
-                cwd=_get_cwd(),
-            )
-        except Exception as exc:
-            failures.append((runtime_name, [str(exc)]))
-            continue
-
-        blocker_messages = _doctor_blocker_messages(report)
-        if getattr(report, "overall", None) == CheckStatus.FAIL and not blocker_messages:
-            blocker_messages = ["Runtime readiness reported a failure without blocking details."]
-
-        if blocker_messages:
-            failures.append((runtime_name, blocker_messages))
-            continue
-
-        advisory_messages = _doctor_advisory_messages(report)
-        if advisory_messages:
-            advisories[runtime_name] = advisory_messages
-
-    return failures, advisories
+    return _install_readiness_support.run_install_readiness_preflight(
+        runtimes,
+        install_scope=install_scope,
+        target_dir=target_dir,
+        cwd=_get_cwd(),
+        specs_dir=SPECS_DIR,
+    )
 
 
 def _install_command_doc() -> str:
@@ -9204,8 +11104,11 @@ def install(
     install_all: bool = typer.Option(False, "--all", help="Install for all supported runtimes"),
     local_install: bool = typer.Option(False, "--local", help="Install into the local runtime config dir"),
     global_install: bool = typer.Option(False, "--global", help="Install into the global runtime config dir"),
-    target_dir: str | None = typer.Option(None, "--target-dir", help="Override target config directory"),
+    target_dir: str | None = typer.Option(None, "--target-dir", help=_INSTALL_TARGET_DIR_HELP),
     force_statusline: bool = typer.Option(False, "--force-statusline", help="Overwrite existing statusline config"),
+    skip_readiness_check: bool = typer.Option(
+        False, "--skip-readiness-check", help="Skip runtime readiness preflight (for embedded/sidecar use)"
+    ),
 ) -> None:
     """Install GPD skills, agents, and hooks into runtime config directories."""
     from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -9218,7 +11121,9 @@ def install(
         return  # unreachable
     _validate_all_runtime_selection("install", runtimes, install_all)
 
-    if not _raw:
+    embedded_bootstrap_install = os.environ.get(_ENV_BOOTSTRAP_EMBEDDED_INSTALL) == "1"
+
+    if not _raw and not embedded_bootstrap_install:
         _print_install_header(resolve_active_version(_get_cwd()))
 
     # Resolve which runtimes to install
@@ -9260,11 +11165,14 @@ def install(
     install_scope = "global" if is_global else "local"
     resolved_target_override = _resolve_cli_target_dir(target_dir) if target_dir else None
 
-    preflight_failures, preflight_advisories = _run_install_readiness_preflight(
-        selected,
-        install_scope=install_scope,
-        target_dir=resolved_target_override,
-    )
+    preflight_failures: list[tuple[str, list[str]]] = []
+    preflight_advisories: dict[str, list[str]] = {}
+    if not skip_readiness_check:
+        preflight_failures, preflight_advisories = _run_install_readiness_preflight(
+            selected,
+            install_scope=install_scope,
+            target_dir=resolved_target_override,
+        )
     if preflight_failures:
         if _raw:
             _output(
@@ -9294,17 +11202,22 @@ def install(
             )
         raise typer.Exit(code=1)
 
-    if not _raw:
+    if not _raw and not (skip_readiness_check and embedded_bootstrap_install):
         console.print(f"\n[bold]Runtime readiness preflight for: {_format_runtime_list(selected)}[/]")
-        for runtime_name in selected:
-            display_name = _get_adapter_or_error(runtime_name, action="install readiness").display_name
-            advisories = preflight_advisories.get(runtime_name, [])
-            if advisories:
-                console.print(f"- {display_name}: readiness check passed with advisories.")
-                for advisory in advisories:
-                    console.print(f"  - {advisory}")
-            else:
-                console.print(f"- {display_name}: readiness check passed.")
+        if skip_readiness_check:
+            for runtime_name in selected:
+                display_name = _get_adapter_or_error(runtime_name, action="install readiness").display_name
+                console.print(f"- {display_name}: readiness check skipped.")
+        else:
+            for runtime_name in selected:
+                display_name = _get_adapter_or_error(runtime_name, action="install readiness").display_name
+                advisories = preflight_advisories.get(runtime_name, [])
+                if advisories:
+                    console.print(f"- {display_name}: readiness check passed with advisories.")
+                    for advisory in advisories:
+                        console.print(f"  - {advisory}")
+                else:
+                    console.print(f"- {display_name}: readiness check passed.")
         console.print()
         console.print(f"\n[bold]Installing GPD ({location_label}) for: {_format_runtime_list(selected)}[/]\n")
 
@@ -9322,7 +11235,22 @@ def install(
             task = progress.add_task(f"Installing {adapter.display_name}...", total=None)
             try:
                 result = _install_single_runtime(rt, is_global=is_global, target_dir_override=target_dir)
-                adapter.finalize_install(result, force_statusline=force_statusline)
+                install_adapter = result.pop(_INSTALL_RESULT_ADAPTER_KEY, adapter)
+                install_rollback = result.pop(_INSTALL_RESULT_ROLLBACK_KEY, None)
+                result_target = Path(str(result.get("target") or adapter.resolve_target_dir(is_global, _get_cwd())))
+                try:
+                    install_adapter.finalize_install(result, force_statusline=force_statusline)
+                except Exception as exc:
+                    failure_message = _restore_install_after_finalize_failure(
+                        runtime_name=rt,
+                        target_dir=result_target,
+                        is_global=is_global,
+                        explicit_target=target_dir is not None,
+                        rollback=install_rollback,
+                        error=exc,
+                    )
+                    raise RuntimeError(failure_message) from exc
+                _discard_install_rollback(install_rollback)
                 results.append((rt, result))
                 progress.update(task, description=f"[green]✓[/] {adapter.display_name}")
             except Exception as exc:
@@ -9337,9 +11265,15 @@ def install(
             }
         )
     else:
-        _print_install_summary(results)
+        _print_install_summary(results, include_next_steps=not failures)
 
     if failures:
+        if not _raw:
+            console.print()
+            err_console.print("[bold red]Install failures:[/]", highlight=False)
+            for rt, err in failures:
+                adapter = _get_adapter_or_error(rt, action="install failure reporting")
+                err_console.print(f"- {adapter.display_name} ({rt}): {err}", highlight=False, soft_wrap=True)
         raise typer.Exit(code=1)
 
 
@@ -9360,7 +11294,14 @@ def uninstall(
     uninstall_all: bool = typer.Option(False, "--all", help="Uninstall from all runtimes"),
     local_uninstall: bool = typer.Option(False, "--local", help="Uninstall from local config"),
     global_uninstall: bool = typer.Option(False, "--global", help="Uninstall from global config"),
-    target_dir: str | None = typer.Option(None, "--target-dir", help="Override target directory (testing)"),
+    target_dir: str | None = typer.Option(None, "--target-dir", help=_INSTALL_TARGET_DIR_HELP),
+    assume_yes: bool = typer.Option(
+        False,
+        "--yes",
+        "--force",
+        "-y",
+        help="Confirm uninstall without prompting",
+    ),
 ) -> None:
     """Remove GPD skills, agents, and hooks from runtime config directories.
 
@@ -9408,10 +11349,15 @@ def uninstall(
     else:
         is_global = global_uninstall
 
-    if not _raw and not target_dir:
+    if not _raw and not assume_yes:
         location_label = "global" if is_global else "local"
         runtime_names = _format_runtime_list(selected)
-        if not Confirm.ask(f"Remove GPD from {runtime_names} ({location_label})?", default=False):
+        if target_dir:
+            resolved_target = _resolve_cli_target_dir(target_dir)
+            confirm_message = f"Remove GPD from {runtime_names} at {_format_display_path(resolved_target)}?"
+        else:
+            confirm_message = f"Remove GPD from {runtime_names} ({location_label})?"
+        if not Confirm.ask(confirm_message, default=False):
             console.print("[dim]Cancelled.[/]")
             raise typer.Exit()
 
@@ -9443,20 +11389,7 @@ def uninstall(
         target = (
             _resolve_cli_target_dir(target_dir) if target_dir else adapter.resolve_target_dir(is_global, _get_cwd())
         )
-        if not target.is_dir():
-            outcome = {
-                "runtime": rt,
-                "status": "skipped",
-                "target": str(target),
-                "reason": f"not installed at {_format_display_path(target)}",
-            }
-            if not _raw:
-                console.print(
-                    f"  [yellow]⊘[/] {adapter.display_name} — not installed at {_format_display_path(target)}",
-                    soft_wrap=True,
-                )
-            uninstall_results.append(outcome)
-            continue
+        target_missing_before = not target.is_dir()
         try:
             result = adapter.uninstall(target)
         except Exception as exc:
@@ -9480,11 +11413,18 @@ def uninstall(
             "status": status,
         }
         if not removed_items:
-            outcome["reason"] = "nothing to remove"
+            outcome["reason"] = (
+                f"not installed at {_format_display_path(target)}" if target_missing_before else "nothing to remove"
+            )
         if not _raw:
             if removed_items:
                 console.print(
                     f"  [green]✓[/] {adapter.display_name} — removed: {', '.join(str(r) for r in removed_items)}"
+                )
+            elif target_missing_before:
+                console.print(
+                    f"  [yellow]⊘[/] {adapter.display_name} — not installed at {_format_display_path(target)}",
+                    soft_wrap=True,
                 )
             else:
                 console.print(f"  [dim]⊘[/] {adapter.display_name} — nothing to remove")
@@ -9494,6 +11434,97 @@ def uninstall(
         _output({"uninstalled": uninstall_results})
     if failures:
         raise typer.Exit(code=1)
+
+
+@app.command("mcp-serve", help="Launch a GPD MCP server by name (for sidecar/binary mode).")
+def mcp_serve(
+    server: str = typer.Argument(
+        ...,
+        help="Server name (e.g., conventions, errors, patterns, protocols, skills, state, verification, arxiv).",
+    ),
+) -> None:
+    """Launch a specific GPD MCP server via stdio transport."""
+    import importlib
+
+    from gpd.mcp.builtin_servers import _BUILTIN_SERVERS
+    from gpd.mcp.managed_integrations import list_managed_integrations
+
+    requested_server = server.strip()
+    managed_aliases = {
+        alias: integration
+        for integration in list_managed_integrations().values()
+        for alias in (integration.integration_id, integration.managed_server_key)
+        if alias
+    }
+    prefixed_server = requested_server if requested_server.startswith("gpd-") else f"gpd-{requested_server}"
+    managed_integration = managed_aliases.get(requested_server) or managed_aliases.get(prefixed_server)
+    if managed_integration is not None:
+        module_path = getattr(managed_integration, "bridge_module", None)
+        if not isinstance(module_path, str) or not module_path.strip():
+            raise typer.BadParameter(
+                f"Managed server {managed_integration.managed_server_key} has no descriptor module path "
+                f"for {managed_integration.bridge_command}"
+            )
+        module_path = module_path.strip()
+        sys.argv = [sys.argv[0]]
+        mod = importlib.import_module(module_path)
+        mod.main()
+        return
+
+    # Accept both "conventions" and "gpd-conventions"
+    server = prefixed_server
+
+    if server not in _BUILTIN_SERVERS:
+        managed_server_keys = {integration.managed_server_key for integration in managed_aliases.values()}
+        available = ", ".join(sorted(set(_BUILTIN_SERVERS.keys()) | managed_server_keys))
+        raise typer.BadParameter(f"Unknown server: {server}. Available: {available}")
+
+    entry = _BUILTIN_SERVERS[server]
+    args = entry.get("args", [])
+    if len(args) >= 2 and args[0] == "-m":
+        module_path = args[1]
+    else:
+        raise typer.BadParameter(f"Server {server} has no module path")
+
+    # Clean argv so the server's argparse sees no leftover args
+    sys.argv = [sys.argv[0]]
+
+    mod = importlib.import_module(module_path)
+    mod.main()
+
+
+@app.command("list-servers", help="List available MCP servers as JSON config for runtime integration.")
+def list_servers(
+    json_output: bool = typer.Option(True, "--json/--text", help="Output as JSON (default) or text."),
+    binary_path: str = typer.Option(None, "--binary", help="Override binary path in command arrays."),
+) -> None:
+    """Emit runtime-compatible MCP server config JSON from the builtin registry."""
+    import json as json_mod
+
+    from gpd.mcp.builtin_servers import build_mcp_servers_dict, merge_managed_mcp_servers
+    from gpd.mcp.managed_integrations import projected_managed_optional_mcp_servers
+
+    servers: dict[str, dict[str, object]] = build_mcp_servers_dict(python_path=sys.executable)
+    managed_servers = projected_managed_optional_mcp_servers(cwd=_read_only_project_scoped_cwd())
+    if managed_servers:
+        servers = merge_managed_mcp_servers(servers, managed_servers)
+
+    sidecar = binary_path or (sys.executable if getattr(sys, "frozen", False) else None)
+    if sidecar:
+        servers = {
+            name: {
+                "command": sidecar,
+                "args": ["mcp-serve", name.removeprefix("gpd-")],
+                **({"env": entry["env"]} if isinstance(entry.get("env"), dict) and entry["env"] else {}),
+            }
+            for name, entry in servers.items()
+        }
+
+    if json_output:
+        typer.echo(json_mod.dumps(servers, indent=2))
+    else:
+        for name in sorted(servers):
+            typer.echo(f"  {name}")
 
 
 def entrypoint() -> int | None:

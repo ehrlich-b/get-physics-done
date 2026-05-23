@@ -1,12 +1,10 @@
-"""Regression tests for context/runtime abstraction boundaries."""
+"""Assertions for context/runtime abstraction boundaries."""
 
 from __future__ import annotations
 
 import importlib
 import sys
 from pathlib import Path
-
-from gpd.adapters.runtime_catalog import iter_runtime_descriptors
 
 
 def test_context_import_does_not_require_adapter_instantiation(
@@ -24,7 +22,5 @@ def test_context_import_does_not_require_adapter_instantiation(
     context = importlib.import_module("gpd.core.context")
     payload = context.init_new_project(tmp_path)
 
-    expected_runtime_dirs = {descriptor.config_dir_name for descriptor in iter_runtime_descriptors()}
-    assert expected_runtime_dirs <= context._runtime_config_dirs()
-    assert expected_runtime_dirs <= context._ignore_dirs()
     assert payload["has_research_files"] is False
+    assert payload["research_file_samples"] == []

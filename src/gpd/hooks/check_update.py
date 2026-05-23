@@ -13,14 +13,14 @@ from gpd.adapters.install_utils import CACHE_DIR_NAME, GPD_INSTALL_DIR_NAME, UPD
 from gpd.adapters.runtime_catalog import get_shared_install_metadata
 from gpd.core.constants import ENV_GPD_DEBUG
 from gpd.hooks.install_context import should_prefer_self_owned_install
-from gpd.hooks.install_metadata import config_dir_has_complete_install
+from gpd.hooks.install_metadata import assess_install_target, load_install_manifest_snapshot
 
 _SHARED_INSTALL_METADATA = get_shared_install_metadata()
 SECONDS_PER_HOUR = 3600
 UPDATE_CHECK_TTL_SECONDS = 12 * SECONDS_PER_HOUR
+UNKNOWN_LATEST_UPDATE_CHECK_TTL_SECONDS = SECONDS_PER_HOUR
 UPDATE_CHECK_INFLIGHT_TTL_SECONDS = 5 * 60
-NPM_PACKAGE_NAME = _SHARED_INSTALL_METADATA.bootstrap_package_name
-NPM_LATEST_RELEASE_URL = _SHARED_INSTALL_METADATA.latest_release_url
+LATEST_RELEASE_URL = _SHARED_INSTALL_METADATA.latest_release_url
 _VERSION_RELEASE_RE = re.compile(r"^\s*v?(?P<release>\d+(?:\.\d+)*)(?P<suffix>.*)$")
 
 
@@ -106,11 +106,23 @@ def _version_files() -> list[Path]:
     version_files: list[Path] = []
     for install_dir in get_gpd_install_dirs(prefer_active=True):
         config_dir = install_dir.parent
-        if not config_dir_has_complete_install(config_dir):
+        if assess_install_target(config_dir).state != "owned_complete":
             _debug(f"Skipping non-authoritative VERSION file candidate {install_dir / 'VERSION'}")
             continue
         version_files.append(install_dir / "VERSION")
     return version_files
+
+
+def _read_manifest_version(config_dir: Path) -> str | None:
+    """Return the install manifest's version when it is present and usable."""
+    manifest = load_install_manifest_snapshot(config_dir)
+    if not manifest.exists_as_object:
+        return None
+    version = manifest.payload.get("version")
+    if not isinstance(version, str):
+        return None
+    version = version.strip()
+    return version or None
 
 
 def _read_installed_version() -> str:
@@ -119,11 +131,13 @@ def _read_installed_version() -> str:
         version_file = self_config_dir / GPD_INSTALL_DIR_NAME / "VERSION"
         try:
             if version_file.exists():
-                return version_file.read_text(encoding="utf-8").strip()
+                version = version_file.read_text(encoding="utf-8").strip()
+                if version:
+                    return version
         except OSError as exc:
             _debug(f"Failed to read self-owned VERSION file {version_file}: {exc}")
+        return _read_manifest_version(self_config_dir) or "0.0.0"
 
-    # Primary: importlib.metadata (single source of truth)
     try:
         from gpd.version import __version__
 
@@ -132,7 +146,6 @@ def _read_installed_version() -> str:
     except Exception as exc:
         _debug(f"importlib.metadata lookup failed: {exc}")
 
-    # Fallback: VERSION files (for hook running outside installed package)
     for vf in _version_files():
         try:
             if vf.exists():
@@ -156,7 +169,7 @@ def _do_check(cache_file: Path) -> None:
         try:
             import urllib.request
 
-            with urllib.request.urlopen(NPM_LATEST_RELEASE_URL, timeout=10) as resp:
+            with urllib.request.urlopen(LATEST_RELEASE_URL, timeout=10) as resp:
                 data = json.loads(resp.read())
                 latest = data["version"]
         except Exception as exc:
@@ -249,6 +262,14 @@ def _clear_inflight_marker(cache_file: Path) -> None:
         return
 
 
+def _cache_ttl_seconds(cache: dict[str, object]) -> int:
+    """Return the throttle TTL for one update-cache payload."""
+    latest = cache.get("latest")
+    if isinstance(latest, str) and latest.strip().lower() == "unknown":
+        return UNKNOWN_LATEST_UPDATE_CHECK_TTL_SECONDS
+    return UPDATE_CHECK_TTL_SECONDS
+
+
 def _relevant_update_cache_candidates(
     *,
     self_config_dir: Path | None,
@@ -309,7 +330,21 @@ def _relevant_update_cache_candidates(
     else:
         relevant_candidates = shared_candidates
 
-    return relevant_candidates, primary_update_cache_file(relevant_candidates, home=resolved_home)
+    cache_file = primary_update_cache_file(relevant_candidates, home=resolved_home)
+    if self_config_dir is not None and workspace_path is not None and _path_is_under(cache_file, workspace_path):
+        from gpd.hooks.runtime_detect import home_update_cache_file
+
+        cache_file = home_update_cache_file(home=resolved_home)
+
+    return relevant_candidates, cache_file
+
+
+def _path_is_under(path: Path, root: Path) -> bool:
+    try:
+        path.resolve(strict=False).relative_to(root.resolve(strict=False))
+    except (OSError, ValueError):
+        return False
+    return True
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -349,7 +384,7 @@ def main(argv: list[str] | None = None) -> None:
             checked = cache.get("checked")
             if isinstance(checked, (int, float)):
                 age = int(time.time()) - int(checked)
-                if 0 <= age < UPDATE_CHECK_TTL_SECONDS:
+                if 0 <= age < _cache_ttl_seconds(cache):
                     return
         except Exception as exc:
             _debug(f"Failed to read update cache {candidate_path}: {exc}")

@@ -15,7 +15,7 @@ Load project context:
 INIT=$(gpd --raw init phase-op --include state,config "${PHASE_ARG:-}")
 if [ $? -ne 0 ]; then
   echo "ERROR: gpd initialization failed: $INIT"
-  # STOP — display the error to the user and do not proceed.
+  # STOP; surface the error.
 fi
 ```
 
@@ -191,7 +191,7 @@ CURRENT_PHASE_NUM="${current_phase.number}"
 PHASE_DIR=$(gpd --raw phase find "$CURRENT_PHASE_NUM")
 if [ $? -ne 0 ]; then
   echo "ERROR: Could not find phase directory for phase $CURRENT_PHASE_NUM"
-  # STOP — display the error to the user and do not proceed.
+  # STOP; surface the error.
 fi
 ```
 
@@ -271,7 +271,7 @@ gpd commit "docs: create hypothesis branch for {slug}" --files GPD/hypotheses/${
 <step name="completion">
 Present completion summary:
 
-```
+```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GPD > HYPOTHESIS BRANCH CREATED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -290,7 +290,7 @@ Present completion summary:
 
    gpd:plan-phase {current_phase}
 
-   <sub>/clear first -> fresh context window</sub>
+   <sub>Start a fresh context window</sub>
 
 3. **Execute and compare** when ready:
 

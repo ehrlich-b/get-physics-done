@@ -1,4 +1,4 @@
-"""Regression coverage for the consistency-checker reference contract wording."""
+"""Assertions for the consistency-checker reference contract wording."""
 
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ def test_consistency_checker_reference_contract_uses_state_json_authority_and_ty
     shared = SHARED_PROTOCOLS.read_text(encoding="utf-8")
     infra = AGENT_INFRASTRUCTURE.read_text(encoding="utf-8")
 
-    assert "Read `convention_lock` from `state.json`; `STATE.md` is the readable mirror" in shared
+    assert "Read `convention_lock` from `state.json`; `STATE.md` is the readable state document" in shared
     assert (
         "Spawned agents that need to hand machine-readable results back to the orchestrator return a typed `gpd_return` envelope:"
         in infra
     )
     assert "structured YAML block at the end of their output" not in infra
-    assert "The four base fields above are required on this envelope." in infra
+    assert "The four base fields above are required on every envelope." in infra

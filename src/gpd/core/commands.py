@@ -19,7 +19,12 @@ from gpd.contracts import (
     parse_comparison_verdicts_data_strict,
     parse_contract_results_data_artifact,
 )
-from gpd.core.child_return_application import ApplyChildReturnResult, apply_child_return_updates
+from gpd.core.child_return_application import (
+    RETURN_MALFORMED_BLOCKING_FAILURE_CLASS,
+    ApplyChildReturnFailure,
+    ApplyChildReturnResult,
+    apply_child_return_updates,
+)
 from gpd.core.constants import (
     PHASES_DIR_NAME,
     PLAN_SUFFIX,
@@ -36,7 +41,13 @@ from gpd.core.frontmatter import (
     validate_frontmatter,
 )
 from gpd.core.observability import instrument_gpd_function
-from gpd.core.return_contract import validate_gpd_return_markdown
+from gpd.core.return_contract import GpdReturnValidationResult, validate_gpd_return_markdown
+from gpd.core.return_repair_classifier import (
+    REPAIRABLE_RETURN_CLASSES,
+    return_failure_class_from_repair_class,
+    return_repair_class_from_validation_error,
+    return_repair_hint,
+)
 from gpd.core.utils import (
     compare_phase_numbers,
     generate_slug,
@@ -336,9 +347,7 @@ def _require_non_empty_string_list(
     normalized: list[str] = []
     for index, item in enumerate(value):
         if not isinstance(item, str) or not item.strip():
-            raise ValidationError(
-                f"Invalid {field_name} in {summary_path}: entry {index} must be a non-empty string"
-            )
+            raise ValidationError(f"Invalid {field_name} in {summary_path}: entry {index} must be a non-empty string")
         normalized.append(item.strip())
     return normalized
 
@@ -348,9 +357,7 @@ def _extract_key_files(value: object, *, summary_path: str) -> tuple[list[str], 
     if isinstance(value, dict):
         extra_keys = sorted(str(key) for key in value if key not in {"created", "modified"})
         if extra_keys:
-            raise ValidationError(
-                f"Invalid key-files in {summary_path}: unexpected key(s) {', '.join(extra_keys)}"
-            )
+            raise ValidationError(f"Invalid key-files in {summary_path}: unexpected key(s) {', '.join(extra_keys)}")
         created = _require_non_empty_string_list(
             value.get("created"),
             field_name="key-files.created",
@@ -407,6 +414,16 @@ def _parse_comparison_verdicts(value: object, summary_path: str) -> list[Compari
 _BODY_ONE_LINER_RE = re.compile(r"\A---[\s\S]*?---\s*(?:#[^\n]*\n\s*)?\*\*(.+?)\*\*")
 
 
+def _has_dependency_graph_provides(frontmatter: dict[str, object]) -> bool:
+    """Return whether summary frontmatter declares nested provides."""
+
+    dependency_graph = frontmatter.get("dependency-graph")
+    if not isinstance(dependency_graph, dict):
+        return False
+    nested_provides = dependency_graph.get("provides")
+    return nested_provides is not None and nested_provides != ""
+
+
 @instrument_gpd_function("commands.summary_extract")
 def cmd_summary_extract(
     cwd: Path,
@@ -435,11 +452,12 @@ def cmd_summary_extract(
         raise ValidationError(f"YAML parse error in {summary_path}: {exc}") from exc
 
     validation = validate_frontmatter(content, "summary", source_path=full_path)
-    if not validation.valid:
-        problems = [*validation.missing, *validation.errors]
-        raise ValidationError(
-            f"Invalid summary frontmatter in {summary_path}: {'; '.join(problems)}"
-        )
+    missing = list(validation.missing)
+    if "provides" in missing and _has_dependency_graph_provides(fm):
+        missing = [field for field in missing if field != "provides"]
+    if missing or validation.errors:
+        problems = [*missing, *validation.errors]
+        raise ValidationError(f"Invalid summary frontmatter in {summary_path}: {'; '.join(problems)}")
 
     # Extract one-liner: frontmatter first, fall back to body bold text
     one_liner = fm.get("one-liner")
@@ -658,7 +676,9 @@ def cmd_regression_check(cwd: Path, *, phase: str | None = None, quick: bool = F
             key=cmp_to_key(lambda a, b: compare_phase_numbers(a.name, b.name)),
         )
     except FileNotFoundError:
-        return RegressionCheckResult(passed=True, issues=[], phases_checked=0, warning="No completed phases found to check")
+        return RegressionCheckResult(
+            passed=True, issues=[], phases_checked=0, warning="No completed phases found to check"
+        )
 
     layout = ProjectLayout(cwd)
     completed_dirs: list[Path] = []
@@ -670,10 +690,14 @@ def cmd_regression_check(cwd: Path, *, phase: str | None = None, quick: bool = F
             completed_dirs.append(d)
 
     if not completed_dirs:
-        return RegressionCheckResult(passed=True, issues=[], phases_checked=0, warning="No completed phases found to check")
+        return RegressionCheckResult(
+            passed=True, issues=[], phases_checked=0, warning="No completed phases found to check"
+        )
     completed_dirs = [d for d in completed_dirs if _matches_phase_scope(d.name, phase)]
     if not completed_dirs:
-        return RegressionCheckResult(passed=True, issues=[], phases_checked=0, warning="No completed phases found to check")
+        return RegressionCheckResult(
+            passed=True, issues=[], phases_checked=0, warning="No completed phases found to check"
+        )
 
     if quick and len(completed_dirs) > 2:
         completed_dirs = completed_dirs[-2:]
@@ -811,7 +835,12 @@ def cmd_validate_return(file_path: Path) -> ValidateReturnResult:
 
 
 @instrument_gpd_function("commands.apply_return_updates")
-def cmd_apply_return_updates(cwd: Path, file_path: Path) -> ApplyChildReturnResult:
+def cmd_apply_return_updates(
+    cwd: Path,
+    file_path: Path,
+    *,
+    checkpoint_resume_file: str | Path | None = None,
+) -> ApplyChildReturnResult:
     """Validate and apply the durable subset of one ``gpd_return`` envelope."""
     content = safe_read_file(file_path)
     if content is None:
@@ -819,15 +848,65 @@ def cmd_apply_return_updates(cwd: Path, file_path: Path) -> ApplyChildReturnResu
 
     validation = validate_gpd_return_markdown(content)
     if not validation.passed or validation.envelope is None:
-        return ApplyChildReturnResult(
-            passed=False,
-            status="failed",
-            errors=list(validation.errors),
-            warnings=list(validation.warnings),
-        )
+        return _return_validation_failure_result(validation, content)
 
-    result = apply_child_return_updates(cwd, validation.envelope)
+    result = apply_child_return_updates(cwd, validation.envelope, checkpoint_resume_file=checkpoint_resume_file)
     if validation.warnings:
         result.warnings.extend(warning for warning in validation.warnings if warning not in result.warnings)
     return result
+
+
+def _return_validation_failure_result(
+    validation: GpdReturnValidationResult,
+    content: str,
+) -> ApplyChildReturnResult:
+    failures = [_apply_failure_from_return_validation_error(error, content=content) for error in validation.errors]
+    errors = list(validation.errors)
+    warnings = list(validation.warnings)
+    if not failures and errors:
+        failures = [
+            ApplyChildReturnFailure(
+                failure_class=RETURN_MALFORMED_BLOCKING_FAILURE_CLASS,
+                code=RETURN_MALFORMED_BLOCKING_FAILURE_CLASS,
+                message=error,
+                repairable=False,
+                repair_hint=return_repair_hint("field_shape_error"),
+            )
+            for error in errors
+        ]
+    failure_classes = _failure_classes_from_apply_failures(failures)
+    return ApplyChildReturnResult(
+        passed=False,
+        status="failed",
+        errors=errors,
+        warnings=warnings,
+        primary_failure_class=failure_classes[0] if failure_classes else None,
+        failure_classes=failure_classes,
+        failures=failures,
+    )
+
+
+def _apply_failure_from_return_validation_error(
+    error: str,
+    *,
+    content: str,
+) -> ApplyChildReturnFailure:
+    repair_class = return_repair_class_from_validation_error(error, content=content)
+    return ApplyChildReturnFailure(
+        failure_class=return_failure_class_from_repair_class(repair_class),
+        code=repair_class,
+        message=error,
+        repairable=repair_class in REPAIRABLE_RETURN_CLASSES,
+        repair_hint=return_repair_hint(repair_class),
+    )
+
+
+def _failure_classes_from_apply_failures(failures: list[ApplyChildReturnFailure]) -> list[str]:
+    failure_classes: list[str] = []
+    for failure in failures:
+        if failure.failure_class not in failure_classes:
+            failure_classes.append(failure.failure_class)
+    return failure_classes
+
+
 _MISSING = object()
