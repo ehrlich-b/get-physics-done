@@ -688,12 +688,12 @@ Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key referenc
 
 **Backtracking trigger:** If the two composite notions collapse into one object on close inspection (the distinction CANNOT be earned non-circularly), the RESTRICTION claim is circular/false -> PAUSE for human decision (this is the milestone's first pause condition).
 
-**Plans:** TBD
+**Plans:** 2 plans (created + checker-verified)
 
 Plans:
 
-- [ ] 60-01: TBD (define both composites; prove independence; claim.md + STATE.md)
-- [ ] 60-02: TBD (confirm rem:converse against BGW; flag not-yet-in-paper)
+- [ ] 60-01 (wave 1): define both composites independently; prove logical independence non-circularly; init claim.md + STATE.md + attempt-01.md
+- [ ] 60-02 (wave 2, depends on 60-01): confirm rem:converse against exact BGW statement; flag not-yet-in-live-paper
 
 ### Phase 61: Slice Satisfies Clause (iii)
 
