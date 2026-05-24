@@ -19,8 +19,14 @@ all four Paper 5 Def 1 clauses (i)–(iv) **in its own right** — clauses (i)/(
 (ii)/(iii) via the corrected (direct-summand) `rem:converse`; clause (iii) AS STATED via the
 **minimal** composite `M_9(C)^sa` (dim 81; `minimal ≠ maximal`); 61-02 exact-symbolic evidence
 (rank 3, simple, dim 81 vs 162, product-form factorization); induced-by-`E` DEFERRED to Phase 62.
-No PAUSE triggered. Steps 3–4 (Phases 62–63) pending — **Phase 62 (induced-by-`E`) is the
-load-bearing, entirely-unproved step.**
+**Step 3 (Phase 62) COMPLETE:** the coherent-embedding step settled on the actual non-associative
+`h_3(O)` via the AMBIENT-transport residual `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)` for
+generic `X,Y` — **verdict (O) AMBIENT-TRANSPORT OBSTRUCTION** (exact `R != 0`, `||R||^2 = 38593/72`;
+both routes agree; non-associativity load-bearing, associator `= 524/9`), which **REFINES**
+`RESTRICTION` to **coexistence-as-island** (NOT independent posits, NOT a collapse). `claim.md`
+updated (embedding clause weakened to coexistence-as-island; clause (iii) unchanged). **No PAUSE**
+(corrected PAUSE-2: an ambient-transport obstruction is the expected deliverable). Step 4 (Phase 63,
+the milestone verdict) pending.
 
 ---
 
@@ -30,8 +36,8 @@ load-bearing, entirely-unproved step.**
 |---|---|---|---|
 | **1** | **60** | **Two-composites distinction.** Prove rigorously & non-circularly that the observer's clause-(iii) `V_BM` is a *different object* from `h_3(O)`'s BGW non-composability. | **COMPLETE** (60-01: distinction EARNED; 60-02: `rem:converse` CONFIRMED-WITH-CAVEAT against BGW; existence side stands; no collapse, no PAUSE) |
 | 2 | 61 | **Slice satisfies clause (iii).** Verify `h_3(C_u) ≅ M_3(C)^sa` meets all four Def 1 clauses (i)–(iv) as a self-modeler in its own right (`rem:converse` gets (ii)–(iii); check (i), (iv)). Includes SymPy/matrix verification of the slice. | **COMPLETE** (61-02: VALD-61-01 exact-symbolic evidence — rank 3, simple, dim 81 vs 162, product-form factorization on `M_9(C)^sa` [Phase 60 open item CLOSED]; 61-01: clause-by-clause (i)–(iv) — (i)/(iv) direct + evidence, (ii)/(iii) via corrected `rem:converse`, clause (iii) AS STATED, minimal composite the clause (iii) object, induced-by-`E` DEFERRED to Phase 62, stale "minimal=maximal" text flagged. Honest positive intrinsic verdict; no PAUSE.) |
-| 3 | 62 | **Coherent embedding (the hard part).** Show the self-modeling structure on `A` (its `V_BM`, its sequential product `a & b = sqrt(a) b sqrt(a)`) is induced by / consistent with the ambient `h_3(O)` Jordan structure **under `E`** — or exhibit a precise obstruction from the non-associative ambient. | PENDING (load-bearing, entirely unproved) |
-| 4 | 63 | **Verdict.** A clean RESTRICTION theorem, or a precisely-characterized structural obstruction. | PENDING |
+| 3 | 62 | **Coherent embedding (the hard part).** Show the self-modeling structure on `A` (its `V_BM`, its sequential product `a & b = sqrt(a) b sqrt(a)`) is induced by / consistent with the ambient `h_3(O)` Jordan structure **under `E`** — or exhibit a precise obstruction from the non-associative ambient. | **COMPLETE** — verdict **(O) AMBIENT-TRANSPORT OBSTRUCTION**. The decisive object (CORRECTED 2026-05-24) is **ambient `E`-transport** `E(sqrt(X) Y sqrt(X))` vs `sqrt(EX)(EY)sqrt(EX)` for **generic** `X,Y` (the slice-internal case is the **trivial control** — closed associative subalgebra, leakage 0). 62-02 (VALD-62-01, exact-SymPy, assert-based no-pytest) computed `R != 0` exactly (`is_zero_exact=[False,False]`; `||R||^2 = 38593/72`, `R_{11} = -2`); both routes (direct residual + positional Peirce) agree; non-associativity load-bearing (associator `= 524/9`); ambient SP non-Hermitian. `E` does **NOT** transport the SP. This **REFINES** `RESTRICTION` to **coexistence-as-island** (observer = self-contained C\* island; through-line survives; `E` = access/projection map) — **NOT** independent posits, **NOT** a collapse PAUSE. `claim.md` updated (embedding clause weakened; clause (iii) unchanged). 62-03 §5 reads the verdict; 62-03 interactive checkpoint surfaces it. |
+| 4 | 63 | **Verdict.** A clean RESTRICTION theorem, or a precisely-characterized structural obstruction. | PENDING (reads Step 3's (O) into the milestone verdict: coexistence-as-island RESTRICTION; runs the adversarial guard review) |
 
 ---
 
@@ -130,18 +136,69 @@ Same content.
 
 ---
 
+## Step 3 (Phase 62) detail — current
+
+**CORRECTED FRAMING (Bryan 2026-05-24):** coexistence-as-island. The plan-checker found the original
+embedding clause over-specified — the slice-internal sequential-product test is **trivial** (the
+slice `A = h_3(C_u)` is a closed associative subalgebra = range `E`, leakage 0). The **decisive
+object is AMBIENT `E`-transport** `E(sqrt(X) Y sqrt(X))` vs `sqrt(EX)(EY)sqrt(EX)` for **generic**
+`X,Y`. An ambient-transport obstruction **REFINES** `RESTRICTION` (it does NOT refute it).
+
+**Plan 62-01 (wave 1, DERV-62-01):** DONE.
+- **DERV-62-01:** `embedding-under-E.md` §0–§3 — explicit `E` (entrywise `proj_u`, `u=e_7`; positive
+  unital idempotent, `E|_A=id`, range = JB-subalgebra via Effros–Störmer / `lem:bottleneck`);
+  precisely what `E` preserves (Jordan product **on the slice** — and **NOT** automatically the
+  sequential product; `E` is **not** a Jordan morphism on the ambient); the decisive crux framed as
+  the ambient-transport residual `R` for generic `X,Y`; slice-internal = TRIVIAL control;
+  exact-arithmetic spec; the CORRECTED RESTRICTION (coexistence-as-island, §3.7). Fork kept OPEN.
+
+**Plan 62-02 (wave 2, DERV-62-02 + VALD-62-01):** DONE.
+- **VALD-62-01:** `code/embedding_under_E_verification.py` + `tests/test_embedding_under_E.py` —
+  exact-SymPy octonion arithmetic (Fano `e1e2=e4`), non-associative `h3o_matmul` (triple product by
+  independent left/right association), `E` onto `h_3(C_u)`, ambient sqrt via exact-square trick
+  `X=C*C`, the **DECISIVE ambient-transport residual**, positional-Peirce cross-check,
+  non-associativity exerciser, slice-internal control. **Assert-based** `_report/ALL_PASS/sys.exit`
+  harness (**NO pytest**; runnable as `python tests/test_embedding_under_E.py`, exits 0).
+  Re-confirmed at start of 62-03: both entrypoints `OVERALL: ALL SELF-CHECKS PASS`, verdict (O),
+  `is_zero_exact=[False,False]`, exit 0.
+- **DERV-62-02:** `embedding-under-E.md` §4 — the decisive exact computation + verdict. **(O)**: the
+  ambient residual `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)` is **exactly nonzero** for two
+  generic pairs (`||R||^2 = 38593/72`, `R_{11} = -2`); `E` is NOT a Jordan morphism on the ambient
+  (`||E(XoX)-(EX)o(EX)||^2 = 3797527/34560000`); non-associativity load-bearing (associator
+  `= 524/9`); defect lands entirely in `C_u` (`e_0,e_7`), positional Peirce grades `4 + 1033/18 +
+  3797/8 = 38593/72`; ambient SP non-Hermitian; slice-internal control trivial (leakage 0,
+  associator 0).
+
+**Plan 62-03 (wave 3, DERV-62-03):** DONE (this plan; the verdict + interactive checkpoint).
+- **DERV-62-03:** `embedding-under-E.md` §5 — reads the verdict **(O)** off §4 (equals §4, no
+  divergence); states the coexistence-as-island governing frame; characterizes the obstruction
+  precisely (the product-form SP datum `E` cannot transport; defect inside `A`, all three `E_11`
+  Peirce grades / `C_u` directions; minimal extra input via Hanche-Olsen induced-vs-imported, which
+  coexistence does not require); REFINES `RESTRICTION` to coexistence-as-island (through-line
+  survives; `E` = access/projection map; NOT independent posits, NOT a collapse). Milestone verdict
+  left to Phase 63. **`claim.md` UPDATED** (embedding clause weakened to coexistence-as-island;
+  verdict semantics + PAUSE condition 2 corrected; clause (iii) integrity + `fp-conflate-composites`
+  preserved; dated provenance notes). **`attempt-04.md`** appended (DERV-00-01).
+- **Interactive checkpoint (62-03 Task 3):** surfaces the verdict (O) for human acknowledgement —
+  presented as the **expected** coexistence-as-island refinement, NOT a collapse.
+
+---
+
 ## Pointers
 
 | File | Contents |
 |---|---|
 | `two-composites.md` | (A) `V_BM` def, (B) BGW-composite def, Categories ledger, **Independence** argument (DERV-60-01/02) |
-| `claim.md` | RESTRICTION in derivation notation; allowed inputs; prohibited moves; PAUSE conditions (DERV-60-04) |
+| `claim.md` | RESTRICTION in derivation notation; allowed inputs; prohibited moves; PAUSE conditions (DERV-60-04). **UPDATED 62-03:** embedding clause weakened to coexistence-as-island; verdict semantics + PAUSE condition 2 corrected (ambient-transport obstruction = expected refinement, not collapse); clause (iii) integrity + `fp-conflate-composites` preserved unchanged; dated provenance notes |
+| `embedding-under-E.md` | **Phase-62 deliverable (DERV-62-01/02/03):** §0–§3 explicit `E` + crux framing + coexistence-as-island (62-01); §4 the decisive exact ambient-transport computation + verdict **(O)** (62-02); §5 the verdict read-off + characterized obstruction + minimal extra input, REFINING RESTRICTION to coexistence-as-island (62-03) |
+| `code/embedding_under_E_verification.py`, `tests/test_embedding_under_E.py` | **VALD-62-01 (62-02):** exact-SymPy, assert-based (NO pytest); the decisive ambient-transport residual `R != 0` (verdict O), two routes agree, non-associativity load-bearing, slice-internal trivial control; `python tests/test_embedding_under_E.py` exits 0 |
 | `rem-converse-bgw.md` | **`rem:converse` grounded against BGW (DERV-60-03):** faithful self-model of `M_n(C)^sa`, clause (iii) via minimal composite, EXACT BGW citation, CONFIRMED-WITH-CAVEAT (minimal ≠ maximal), provenance flag |
 | `slice-clause-iii.md` | **Phase-61 clause-by-clause deliverable (DERV-61-01/02/03, citing VALD-61-01):** four separate clause blocks (i)–(iv) for `A = M_3(C)^sa` as a self-modeler in its own right; (i)/(iv) direct, (ii)/(iii) via corrected `rem:converse`; clause (iii) AS STATED (minimal composite `M_9(C)^sa`); Phase 62 deferral; stale-text flag; type/category self-audit |
 | `STATE.md` | this file — derivation-tree state |
 | `attempt-01.md` | Phase-60 attempt log (DERV-00-01): two-composites distinction (60-01) |
 | `attempt-02.md` | Phase-60 attempt log (DERV-00-01): `rem:converse`-vs-BGW grounding (60-02) |
 | `attempt-03.md` | **Phase-61 attempt log (DERV-00-01):** slice satisfies Def 1 (i)–(iv) in its own right (61-01) |
+| `attempt-04.md` | **Phase-62 attempt log (DERV-00-01):** coherent embedding under `E` — ambient-transport decisive, slice-internal trivial control; verdict **(O)** (refines RESTRICTION to coexistence-as-island); no reward-hacking (62-03) |
 | `code/slice_clause_iii_verification.py`, `tests/test_slice_clause_iii.py` | **VALD-61-01 (61-02):** exact-symbolic evidence — rank 3, simplicity, dim 81 vs 162, product-form factorization on `M_9(C)^sa` |
 
 ---
@@ -163,13 +220,25 @@ Same content.
   (`minimal ≠ maximal`; minimal a direct summand of maximal `M_9⊕M_9`, dim 162). See
   `slice-clause-iii.md`. **Caveat:** this is the *intrinsic* result only; the induced-by-`E` question
   is [62], still open.
-- **[62, the hard part]** Does restricting through the bottleneck `E` **preserve** what
-  clause (iii) needs on the actual **non-associative** `h_3(O)` structure, or is there an
-  obstruction? Specifically: is `E`'s interaction with the **sequential product**
-  `a & b = sqrt(a) b sqrt(a)` (not just the Jordan product) controlled, or does
-  non-associativity leak in? — entirely unproved; an obstruction here ⟹ PAUSE condition 2.
-- **[63]** VERDICT: clean RESTRICTION theorem (through-line real) or precisely-characterized
-  obstruction (`C` and `O` independent posits)?
+- **[62, the hard part] — RESOLVED (O, refinement either way).** Does `E` **transport** the
+  sequential product `a & b = sqrt(a) b sqrt(a)` (not just the Jordan product) coherently from the
+  actual **non-associative** `h_3(O)`? **Answer: NO** — verdict **(O) AMBIENT-TRANSPORT
+  OBSTRUCTION**. The decisive object (CORRECTED 2026-05-24) is **ambient `E`-transport** for
+  **generic** `X,Y` (the slice-internal case is the trivial control). 62-02 (VALD-62-01, exact-SymPy)
+  found `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX) != 0` exactly (`||R||^2 = 38593/72`,
+  `R_{11} = -2`; both routes agree; non-associativity load-bearing, associator `= 524/9`; defect in
+  `C_u` / all three `E_11` Peirce grades; ambient SP non-Hermitian). This **REFINES** `RESTRICTION`
+  to **coexistence-as-island** (observer = self-contained C\* island; through-line survives; `E` =
+  access/projection map) — **NOT** independent posits, **NOT** a collapse. **No PAUSE** (corrected
+  PAUSE-2: an ambient-transport obstruction is the expected deliverable, not a backtracking
+  trigger). See `embedding-under-E.md` §4/§5, `attempt-04.md`, `claim.md` (updated). The
+  *induced-by-`E`* property is the now-not-required stronger property; coexistence-as-island does
+  not need it (the slice carries clause (iii) intrinsically, Phase 61).
+- **[63]** VERDICT (milestone): reads Step 3's (O) into the milestone framing — **coexistence-as-island
+  RESTRICTION** (the slice sits inside `h_3(O)` as `range E`; `E` = access/projection map, not a
+  Jordan/SP morphism on the ambient; the through-line survives as the island through-line; (O)
+  refines, does NOT refute). Runs the adversarial guard review. Milestone verdict still UNDECIDED
+  pending Phase 63.
 
 ---
 
@@ -178,11 +247,23 @@ Same content.
 - Clause (iii) is used **verbatim**; never weaken (`fp-redefine-iii`).
 - Never conflate `V_BM` with the BGW universe-composite (`fp-conflate-composites`).
 - Never assert Peirce-restriction preserves clause (iii) without demonstrating on the actual
-  non-associative `h_3(O)` (`assert-Peirce-preserves-iii`).
+  non-associative `h_3(O)` (`assert-Peirce-preserves-iii` / `fp-assert-preservation`). **[Phase 62:
+  honored — the decisive test was the AMBIENT residual on generic `X,Y` with non-associativity
+  load-bearing (associator `= 524/9`), NOT the trivial slice-internal control;
+  `fp-ignore-nonassociativity` rejected; `fp-float-pass` rejected (exact arithmetic).]**
 - `rem:converse` is prompt-inline, **not** published (grep-verified absent from
   `complexification.tex`); now grounded against BGW (60-02, `rem-converse-bgw.md`) —
   **CONFIRMED-WITH-CAVEAT**: confirm the corrected (minimal ≠ maximal) form, and never cite
   `rem:converse` as already-in-paper (`fp-converse-already-in-paper`). FUTR-01 = insert
   corrected remark after `lem:bottleneck`.
-- Do **not** force a positive verdict; a clean obstruction is acceptable.
+- Do **not** force a positive verdict; a clean obstruction is acceptable. **[EXTENDED 2026-05-24
+  (`fp-force-positive`, both directions):** also do **not** over-state an ambient-transport
+  obstruction (O) as a refutation / "independent posits" / collapse — (O) **refines** RESTRICTION to
+  coexistence-as-island. The verdict equals the exact 62-02 computation. Phase 62: honored — (O)
+  reported as the expected refinement, not forced to (P), not over-stated as a collapse; v11.0
+  precedent carried only as historical context.]
+- Clause (iii) is **unchanged** by the coexistence-as-island reframe — only `RESTRICTION`'s
+  **embedding clause** is weakened (`claim.md`, 62-03); `V_BM = A (x) A` remains the observer's own
+  composite (`fp-conflate-composites` preserved). The milestone verdict stays UNDECIDED
+  (`fp-overclaim-milestone`; Phase 63).
 - LIVE sources only (`~/repos/blog/landing/papers/`).
