@@ -7,20 +7,20 @@ See: .gpd/PROJECT.md (updated 2026-05-23)
 **Machine-readable scoping contract:** `.gpd/state.json` field `project_contract` (REFRESHED for v15.0)
 
 **Core research question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
-**Current focus:** v15.0 The P5 <-> Basin Restriction Lemma — Phase 61 (Slice Satisfies Clause (iii)); Phase 60 COMPLETE (distinction earned; rem:converse CONFIRMED-WITH-CAVEAT). Prove or DISPROVE that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa satisfies Paper 5 Def 1 clause (iii) coherently induced from the non-composable h_3(O) under E. A clean obstruction is a fully acceptable outcome.
+**Current focus:** v15.0 The P5 <-> Basin Restriction Lemma — Phase 62 (Coherent Embedding under E, the hard/load-bearing part) NEXT; Phases 60-61 COMPLETE. Phase 61: slice A = h_3(C_u) ~ M_3(C)^sa verified to satisfy all four Paper 5 Def 1 clauses intrinsically (clause iii AS STATED via CORRECTED direct-summand rem:converse, minimal != maximal). Phase 62 must demonstrate — on the ACTUAL non-associative h_3(O) — whether this structure is induced by E, or exhibit a precise obstruction. A clean obstruction is a fully acceptable outcome.
 
 ## Current Position
 
-**Current Phase:** 61
-**Current Phase Name:** Slice Satisfies Clause (iii)
+**Current Phase:** 62
+**Current Phase Name:** Coherent Embedding under E
 **Total Phases:** 4 (Phases 60-63)
 **Current Plan:** 0
-**Total Plans in Phase:** 2
-**Status:** Planned — ready to execute
-**Last Activity:** 2026-05-23
-**Last Activity Description:** Phase 61 (Slice Satisfies Clause (iii)) PLANNED — 2 plans, plan-checker PASSED (attempt 1/3, all dimensions, zero blocker/warning issues). 61-02 (wave 1): VALD-61-01 SymPy/matrix evidence — exact-symbolic rank 3, three orthogonal rank-1 projective units summing to I_3, simplicity (center = C·I_3), composite real-dim 81 vs maximal 162, product-form sequential-product factorization on the associative M_9(C)^sa (closes the Phase 60 open item). 61-01 (wave 2, depends on 61-02): clause-by-clause (i)-(iv) derivation citing 61-02 evidence; rem:converse instantiated in CORRECTED direct-summand form (minimal ≠ maximal); induced-by-E coherence explicitly DEFERRED to Phase 62; stale "minimal=maximal" ROADMAP/REQUIREMENTS/contract text flagged (not reproduced). Phase 60 remains COMPLETE (distinction earned; rem:converse CONFIRMED-WITH-CAVEAT vs BGW).
+**Total Plans in Phase:** TBD (not yet planned)
+**Status:** Ready to plan
+**Last Activity:** 2026-05-24
+**Last Activity Description:** Phase 61 (Slice Satisfies Clause (iii)) COMPLETE & verified (2/2 plans; verifier 9/9 contract targets, 8/8 decisive facts independently re-derived with fresh SymPy, human sign-off APPROVED; cross-phase consistency CONSISTENT). Slice A = h_3(C_u) ~ M_3(C)^sa satisfies all four Paper 5 Def 1 clauses as a self-modeler in its own right: (i) rank-3 spectral OUS (three orthogonal projective units → I_3) and (iv) simple (center = C·I_3) verified DIRECTLY + 61-02 exact SymPy; (ii) φ=id and (iii) minimal composite via CORRECTED direct-summand rem:converse — minimal/standard composite M_9(C)^sa (real-dim 81) is a DIRECT SUMMAND of the maximal M_9⊕M_9 (real-dim 162); minimal != maximal (extra classical bit, BGW Thm 4.15/Cor 4.16). Clause (iii) checked AS STATED (all four data, minimality in full force). Phase 60 OPEN ITEM CLOSED: product-form sequential product √a·b·√a factorizes exactly on the associative M_9(C)^sa = M_3(C)^sa ⊗ M_3(C)^sa. Induced-by-E coherence explicitly DEFERRED to Phase 62 (the load-bearing, entirely-unproved step). Milestone verdict UNDECIDED (Phase 63).
 
-**Progress:** [██▌░░░░░░░] 25%
+**Progress:** [█████░░░░░] 50%
 
 ## Active Calculations
 
@@ -45,7 +45,7 @@ Carried-forward (historical):
 
 - Is the observer's clause-(iii) body-model composite V_BM a genuinely different object from h_3(O)'s BGW Jordan-monoidal non-composability — provably, non-circularly? (Phase 60)
 - Does rem:converse hold exactly as stated in the prompt (minimal = maximal composite coincide for M_n(C)^sa per BGW, so clause (iii) auto-satisfied)? It is NOT yet a labeled remark in the live complexification.tex. (Phase 60/61)
-- Does the C*-bottleneck slice h_3(C_u) ~ M_3(C)^sa satisfy all four Paper 5 Def 1 clauses (i)-(iv) as a self-modeler in its own right? (Phase 61)
+- RESOLVED (Phase 61): the C*-bottleneck slice h_3(C_u) ~ M_3(C)^sa satisfies all four Paper 5 Def 1 clauses (i)-(iv) as a self-modeler in its own right (intrinsically) — (i)/(iv) direct + exact SymPy, (ii)/(iii) via CORRECTED direct-summand rem:converse, clause (iii) checked AS STATED (minimal != maximal). The induced-by-E coherence question (does E preserve this on the non-associative h_3(O)?) is the Phase 62 load-bearing step, still open.
 - Does restricting through the bottleneck E PRESERVE what clause (iii) needs on the actual non-associative h_3(O) structure, or is there an obstruction? (Phase 62, the hard part — entirely unproved)
 - Is the conditional expectation E's interaction with the sequential product (a&b = sqrt(a) b sqrt(a)), not just the Jordan product, controlled, or does non-associativity leak in? (Phase 62)
 - VERDICT: clean RESTRICTION theorem (through-line real) or precisely-characterized obstruction (C and O are independent posits)? (Phase 63)
@@ -117,6 +117,8 @@ Carried-forward (historical):
 | Phase 56 P03 | ~3h | 7 tasks | 9 files |
 | Phase 60 P01 | 5 min | 2 tasks | 4 files |
 | Phase 60 P02 | 16 min | 2 tasks | 3 files |
+| Phase 61 PP02 | 5 min | 2 tasks | 2 files |
+| Phase 61 PP01 | 8 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -144,6 +146,8 @@ Full log: `.gpd/DECISIONS.md`
 - [Phase 60]: Two-composites distinction EARNED non-circularly (60-01): observer V_BM (OUS internal composite) and h_3(O) BGW non-composability (FRJA-monoidal bifunctor) are type-distinct, logically independent objects; RESTRICTION does not collapse into circularity at step 1. — Established from category separation + Paper 5's own composable/non-composable scoping remark (main.tex ~397, 165-168); existence direction principle-only; RESTRICTION/E/slice-satisfaction never used as premise (grep-audited). No collapse, no PAUSE.
 - [Phase 60]: rem:converse confirmed ABSENT from live complexification.tex (grep: 0 matches); treated as prompt-inline authoritative only, BGW confirmation deferred to plan 60-02. — Prevents faking provenance (fp-converse-already-in-paper). Type-level independence does not depend on rem:converse; only the existence-direction motivation does.
 - [Phase 60]: rem:converse CONFIRMED-WITH-CAVEAT against BGW 2020 (60-02): M_n(C)^sa has a faithful self-model with minimal composite M_{n^2}(C)^sa satisfying clause (iii) as written (existence side of two-composites distinction GROUNDED in literature). CORRECTION: the literal 'minimal=maximal composites coincide' is FALSE -- BGW universal/maximal composite M_{n^2}(C)^sa (+) M_{n^2}(C)^sa is strictly larger (extra classical bit, Thm 4.15/Cor 4.16, Table 2); standard composite is a direct summand and clause (iii)'s minimality selects it. Distinction intact; no collapse, no PAUSE. — BGW PDF read directly (full provenance). FUTR-01 rem:converse wording must use the direct-summand form, NOT 'coincide'. Hardens the milestone's flagged weakest anchor; carries BGW baseline (C*(C_n)=M_n(C)+M_n(C)) into Phase 61.
+- [Phase 61, Plan 02]: VALD-61-01 exact-symbolic evidence produced (code/slice_clause_iii_verification.py + tests/test_slice_clause_iii.py, 21 tests, runtime <1s, independently re-run by orchestrator + verifier). M_3(C)^sa: Jordan rank 3 (three orthogonal rank-1 projective units → I_3, frame-independent); simple (center = C·I_3, no nontrivial central idempotent); minimal composite real-dim 81 = 9·9; maximal 162 != 81 (extra classical bit). PHASE 60 OPEN ITEM CLOSED: product-form sequential product √a·b·√a factorizes EXACTLY as (a_B&b_B)⊗(a_M&b_M) on the associative M_9(C)^sa (re-derived by full 9×9 computation, not assumed-from-Luders; sqrt(kron)=kron(sqrt) verified). Stayed on associative slice (no h_3(O) reach — Phase 62). All forbidden proxies rejected; no obstruction, no backtracking.
+- [Phase 61, Plan 01]: Slice A = M_3(C)^sa verified to satisfy ALL FOUR Paper 5 Def 1 clauses as a self-modeler in its own right (intrinsically). (i)/(iv) verified directly (rank 3; simple) citing 61-02; (ii)/(iii) via rem:converse in CORRECTED direct-summand form (V_B=V_M=M_3(C)^sa, φ=id; minimal composite M_9(C)^sa dim 81 a DIRECT SUMMAND of maximal M_9⊕M_9 dim 162; minimal != maximal, BGW Thm 4.15/Cor 4.16). Clause (iii) checked AS STATED (all four data, minimality in full force). Induced-by-E coherence EXPLICITLY DEFERRED to Phase 62 (no RESTRICTION/E premise used). Stale 'minimal=maximal per BGW' ROADMAP/REQUIREMENTS/contract text flagged + corrected to direct-summand form (REQUIREMENTS DERV-61-03 fixed). Honest positive — not forced. Verification 9/9, 8/8 independently re-derived, human sign-off APPROVED. Milestone verdict UNDECIDED (Phase 63); Phase 62 (induced-by-E on non-associative h_3(O)) is the load-bearing unproved step.
 
 ### Active Approximations
 
@@ -206,6 +210,6 @@ None yet.
 
 ## Session Continuity
 
-**Last session:** 2026-05-23
-**Stopped at:** Phase 60 (Two-Composites Distinction) COMPLETE & verified (2/2 plans; distinction earned non-circularly, rem:converse CONFIRMED-WITH-CAVEAT vs BGW, human circularity sign-off APPROVED). Ready to plan Phase 61 (Slice Satisfies Clause (iii)). v14.0 remains PAUSED (see V14-CLOSEOUT.md).
-**Resume file:** Next action — `/gpd:plan-phase 61`
+**Last session:** 2026-05-24
+**Stopped at:** Phase 61 (Slice Satisfies Clause (iii)) COMPLETE & verified (2/2 plans; verifier 9/9 contract targets, 8/8 decisive facts independently re-derived, human sign-off APPROVED; consistency CONSISTENT). Slice A = M_3(C)^sa satisfies all four Def 1 clauses intrinsically; clause (iii) AS STATED via corrected direct-summand rem:converse (minimal != maximal); Phase 60 sequential-product open item CLOSED. Induced-by-E coherence deferred to Phase 62 (load-bearing). Ready to plan Phase 62 (Coherent Embedding under E). v14.0 remains PAUSED (see V14-CLOSEOUT.md).
+**Resume file:** Next action — `/gpd:plan-phase 62`

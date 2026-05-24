@@ -26,10 +26,10 @@ The whole Radical Relativity chain opens with two joins: "self-modeling -> QM" (
 
 ### Phase 61 -- Slice Satisfies Clause (iii)
 
-- [ ] **DERV-61-01**: Verify the slice A = h_3(C_u) ~ M_3(C)^sa satisfies Def 1 clause (i): finite-dimensional spectral order-unit space with at least two orthogonal nontrivial projective units.
-- [ ] **DERV-61-02**: Verify clause (iv): A is simple -- no nontrivial direct-sum decomposition into order-unit subspaces.
-- [ ] **DERV-61-03**: Instantiate rem:converse for M_3(C)^sa to supply clause (ii) (faithful tracking phi) and clause (iii) (minimal internal composite; minimal = maximal per BGW), confirming the product-form sequential product on A. Result: all four Def 1 clauses hold for A as a self-modeler in its own right.
-- [ ] **VALD-61-01**: SymPy/matrix verification on M_3(C)^sa: rank 3, three mutually orthogonal rank-1 projective units summing to the unit, no nontrivial central idempotents (simplicity), and the composite dimension check dim(M_3(C)^sa (x) M_3(C)^sa) = dim(M_9(C)^sa) = 81.
+- [x] **DERV-61-01**: Verify the slice A = h_3(C_u) ~ M_3(C)^sa satisfies Def 1 clause (i): finite-dimensional spectral order-unit space with at least two orthogonal nontrivial projective units. (Satisfied 2026-05-24: Jordan rank 3, three orthogonal projective units → I_3, frame-independent; 61-02 SymPy.)
+- [x] **DERV-61-02**: Verify clause (iv): A is simple -- no nontrivial direct-sum decomposition into order-unit subspaces. (Satisfied 2026-05-24: center(M_3(C)) = C·I_3, no nontrivial central idempotent; 61-02 SymPy.)
+- [x] **DERV-61-03**: Instantiate rem:converse for M_3(C)^sa to supply clause (ii) (faithful tracking phi) and clause (iii) (minimal internal composite; CORRECTED per Phase 60: minimal != maximal — the minimal/standard composite M_9(C)^sa is a DIRECT SUMMAND of the maximal M_9(C)^sa (+) M_9(C)^sa per BGW Thm 4.15/Cor 4.16, extra classical bit; minimality SELECTS the standard summand), confirming the product-form sequential product on A. Result: all four Def 1 clauses hold for A as a self-modeler in its own right. (Satisfied 2026-05-24; clause iii checked AS STATED, induced-by-E deferred to Phase 62.)
+- [x] **VALD-61-01**: SymPy/matrix verification on M_3(C)^sa: rank 3, three mutually orthogonal rank-1 projective units summing to the unit, no nontrivial central idempotents (simplicity), and the composite dimension check dim(M_3(C)^sa (x) M_3(C)^sa) = dim(M_9(C)^sa) = 81. (Satisfied 2026-05-24: exact-symbolic, 21 pytest, runtime <1s, independently re-run; also closed Phase 60 seq-product open item.)
 
 ### Phase 62 -- Coherent Embedding under E (the hard part -- where an obstruction would live)
 
@@ -104,10 +104,10 @@ Which phases cover which requirements. Populated by roadmap.
 | DERV-60-02 | 60 | Satisfied |
 | DERV-60-03 | 60 | Satisfied (caveat: "minimal=maximal" corrected to direct-summand) |
 | DERV-60-04 | 60 | Satisfied |
-| DERV-61-01 | 61 | Pending |
-| DERV-61-02 | 61 | Pending |
-| DERV-61-03 | 61 | Pending |
-| VALD-61-01 | 61 | Pending |
+| DERV-61-01 | 61 | Satisfied |
+| DERV-61-02 | 61 | Satisfied |
+| DERV-61-03 | 61 | Satisfied (minimal=maximal corrected to direct-summand) |
+| VALD-61-01 | 61 | Satisfied |
 | DERV-62-01 | 62 | Pending |
 | DERV-62-02 | 62 | Pending |
 | DERV-62-03 | 62 | Pending (preservation OR obstruction) |
