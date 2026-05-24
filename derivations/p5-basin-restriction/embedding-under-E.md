@@ -17,7 +17,7 @@ answer.**
 **Scope of this file vs the rest of Phase 62.**
 - **§0–§3 are written by 62-01 (this plan): the SETUP + CRUX FRAMING.**
 - **§4 is the decisive exact computation (62-02, VALD-62-01) — BELOW; verdict (O), an exact ambient-transport obstruction (the expected outcome, refining `RESTRICTION` to coexistence-as-island).**
-- **§5 is the verdict on the obstruction-or-preservation fork (62-03) — to follow.**
+- **§5 is the verdict on the obstruction-or-preservation fork (62-03) — BELOW; verdict (O), the ambient-transport obstruction read off §4, interpreted as a REFINEMENT of `RESTRICTION` to coexistence-as-island (not a refutation, not a collapse).**
 - **The induced-by-`E` verdict is NOT reached in this plan.** §3 makes the decisive question
   well-posed; 62-02 computes it on the actual non-associative `h_3(O)`; 62-03 reads off the
   verdict.
@@ -832,13 +832,219 @@ statement "no generic `X,Y` ever gives `R = 0`" is not needed for (O) and is not
 obstruction is the existence of generic `X,Y` with `R != 0`, which is proven. (A hypothetical (P)
 would have required a general argument, not just representatives — but (P) did not occur.)
 
-## 5. The verdict on the fork — TO FOLLOW (62-03)
+## 5. The verdict on the fork — (O) AMBIENT-TRANSPORT OBSTRUCTION, refining RESTRICTION to coexistence-as-island (62-03)
 
-*To be appended by plan 62-03.* Reads off 62-02's exact `R`: branch (P) `=>` `RESTRICTION`
-embedding lemma; branch (O) `=>` precisely-characterized ambient-transport obstruction that
-**refines** `RESTRICTION` to coexistence-as-island (§3.7). No pre-commitment in 62-01/62-02.
+This section reads the verdict off §4's exact computation (the obstruction-or-preservation fork of
+§3.6) and interprets it. Per the CORRECTED framing (§3.7, Bryan 2026-05-24), the verdict is a
+**refinement of `RESTRICTION` either way** (coexistence-as-island); the actual branch, decided by
+§4, is **(O)**.
+
+### 5.1 The verdict, read off §4
+
+§4 computed the decisive **ambient-transport residual** of §3.3,
+
+$$
+R \;:=\; E\big(\sqrt{X}\,Y\,\sqrt{X}\big) \;-\; \sqrt{EX}\,(EY)\,\sqrt{EX},
+$$
+
+**exactly** (SymPy, zero-tolerance) for **two distinct generic ambient** `(X, Y)` (off-diagonal
+octonion entries with nonzero `(e_1,...,e_6)`-parts; `sqrt(X)` taken **in the non-associative
+ambient** via the exact-square trick `X = C*C`). The result was
+
+$$
+\boxed{\;R \;\neq\; 0 \quad(\text{exact}),\qquad \text{is\_zero\_exact} = [\text{False}, \text{False}],\;}
+$$
+
+with `||R||_F^2 = 38593/72` on the clean rational pair (representative exactly-nonzero entry
+`R_{11} = -2`). Per the §3.6 fork (exact `R != 0` `=>` branch **(O)**), **the computation took
+branch (O): the AMBIENT-TRANSPORT OBSTRUCTION.** This §5 verdict is therefore **(O)**, and it
+**equals** §4's computed verdict — there is **no §4/§5 divergence** (the verdict follows the exact
+computation, as mandated). The verdict is grounded in the **genuinely non-associative** ambient: on
+the **same** decisive `(X, Y)` whose residual is `R`, the associator of the triple `(sqrt(X), Y,
+sqrt(X))` is `||·||^2 = 524/9 != 0` (exact) — non-associativity is **load-bearing**, not an
+accidentally-associative corner. The independent positional-Peirce/grade-component route **agreed**
+with the direct residual on both pairs (the harness raises on a split; none occurred).
+
+### 5.2 The governing frame (coexistence-as-island), stated BEFORE the branch
+
+`RESTRICTION` needs **only** that the observer **self-models on the slice** `A = h_3(C_u) ~
+M_3(C)^sa` (Phase 61, `slice-clause-iii.md` §5: all four Paper 5 Def 1 clauses verbatim,
+**intrinsically**) and that the slice **sits inside `h_3(O)` as the range of the projection `E`**.
+Whether `E` **transports** the sequential product from the ambient is a **STRONGER, NOT-REQUIRED**
+property; the verdict on it **refines** `RESTRICTION` **either way** (§3.7). `E` is the
+**access/projection map**, **not** required to be a Jordan morphism on the ambient (it is not —
+§2.2/§4.2(1)) nor an SP-morphism on the ambient (it is not — §4.3). So branch (O) — `E` fails to
+transport the SP — does **not** threaten `RESTRICTION`; it **sharpens** it to the island form.
+
+> The branch below is the one §4 supports. The complementary branch (P) — coherent transport, a
+> `RESTRICTION` **embedding lemma** — **did NOT obtain** (`R` is exactly nonzero on
+> non-associativity-load-bearing generic data), and is **not** asserted. The governing frame (5.2)
+> holds regardless of branch.
 
 ---
 
-_Plan: 62-01 (Phase 62, milestone v15.0) — DERV-62-01. §0–§3 (SETUP + CRUX FRAMING)._
-_The induced-by-`E` verdict is NOT reached in this plan; it is computed in 62-02 and read in 62-03._
+### BRANCH (O): AMBIENT-TRANSPORT OBSTRUCTION — precise characterization + minimal extra input, REFINES RESTRICTION
+
+#### 5.O.1 Characterization of the obstruction (precise; from §4's exact residual)
+
+**(a) The exact structure `E` cannot transport: the product-form sequential-product datum from the
+ambient.** `E` is a **Jordan conditional expectation on the slice** (positive, unital, idempotent;
+`E|_A = id`; Jordan-product-preserving embedding `A hookrightarrow h_3(O)` — §1.3/§2.1), but it is
+**NOT a Jordan morphism on the ambient** (`||E(X o X) - (EX) o (EX)||_F^2 = 3797527/34560000 != 0`,
+§4.2(1)). A fortiori it does **NOT transport the sequential product** `a & b = sqrt(a) b sqrt(a)`
+(clause (iii)'s fourth datum, the actual product-form SP — `fp-redefine-iii` rejected, §4.4)
+coherently from the ambient: for generic ambient `X, Y`,
+
+$$
+E\big(\sqrt{X}\,Y\,\sqrt{X}\big) \;\neq\; \sqrt{EX}\,(EY)\,\sqrt{EX}
+\qquad(\text{exact},\ R \neq 0).
+$$
+
+The two slice elements `E(sqrt(X) Y sqrt(X))` and `sqrt(EX)(EY)sqrt(EX)` **fail to coincide**: the
+obstruction is **not** leakage out of `A` (both lie in `A`, since `E` projects every entry onto
+`C_u`), but the **failure of the two `A`-elements to agree**.
+
+**(b) WHY (the mechanism): non-associativity, with the defect localized.** The defect is a genuine
+**non-associativity effect** (exact, not round-off — `R_{11} = -2` is a rational with no surd). Its
+location, from §4's exact residual (clean pair):
+
+- **All-entry `C_u`-vs-`(e_1,...,e_6)` split:** `R` lands **entirely in the `C_u` directions**
+  (`e_0, e_7`): `C_u`-part`^2 = 38593/72`, `(e_1,...,e_6)`-part`^2 = 0`. So `R` is a genuine **slice
+  element** — the obstruction lives **inside `A`**, as the gap between the two slice elements.
+- **Positional `E_11` Peirce grades** (faithful for the non-Hermitian defect; they partition the
+  nine matrix entries, so the grade magnitudes sum exactly to `||R||_F^2`):
+
+$$
+\|V_1(R)\|^2 = 4,\qquad \|V_{1/2}(R)\|^2 = \tfrac{1033}{18},\qquad \|V_0(R)\|^2 = \tfrac{3797}{8},
+\qquad 4 + \tfrac{1033}{18} + \tfrac{3797}{8} = \tfrac{38593}{72}.
+$$
+
+  The defect is **spread across all three Peirce grades** — dominantly `V_0` (the
+  `h_2(C_u) ~ M_2(C)^sa` block), then `V_{1/2}` (the `C_u^2` interface), with a **nonzero `V_1`
+  scalar bottleneck component** `||V_1(R)||^2 = 4`. Mechanism (§3.5/§4.3): the ambient `sqrt(X) Y
+  sqrt(X)` populates `(e_1,...,e_6)`-components that `E` then projects away; `E` applied **after**
+  the ambient triple product retains contributions from the killed directions that
+  `sqrt(EX)(EY)sqrt(EX)` (built entirely inside `A`) never sees, so the two `C_u`-images differ.
+- **Sharpening (non-Hermiticity, §4.3).** As an additional, association-dependent failure: the
+  ambient SP `sqrt(X) Y sqrt(X)` is itself **NOT Hermitian** in `h_3(O)` (the would-be involution
+  identity fails because `(AB)C != A(BC)`). This is a *further* way `E` cannot coherently transport
+  the SP, on top of `R != 0`.
+
+**(c) The MINIMAL EXTRA INPUT that ambient transport would require.** Ambient transport (the
+**stronger, NOT-required** property) would need the SP's `(e_1,...,e_6)`-content — the part of
+`sqrt(X) Y sqrt(X)` that does **not** survive the projection `E` — to be recoverable from the
+slice data alone. It is not: `E` discards exactly those directions (`ker E`, real-dim 18), and the
+exact residual confirms the discarded content changes the `C_u`-image. In **Hanche-Olsen
+induced-vs-imported** terms: `E` does **not INDUCE** the sequential-product datum from `h_3(O)`;
+ambient transport would require **IMPORTING** structure — an external datum on `h_3(O)` **not in
+the range of `E`** (concretely, a rule fixing how the killed `(e_1,...,e_6)`-content feeds back into
+the `C_u`-image; no such rule is supplied by `E`, and §4 shows the naive "project and compute in
+`A`" route disagrees with "compute in the ambient and project").
+
+> **NOTE — coexistence-as-island does NOT require this extra input at all.** The observer already
+> **self-models on the slice** (Phase 61), which **sits inside `h_3(O)` as `range E``. The minimal
+> extra input is **only** what AMBIENT TRANSPORT (the stronger property) would need; the
+> island claim needs none of it. (This is the weakest-anchor item, §5.5: stated as precisely as the
+> evidence allows, not overstated — `fp-force-positive`/over-claim guard.)
+
+#### 5.O.2 The REFINEMENT (replaces the old PAUSE-2-collapse framing)
+
+The ambient-transport obstruction (O) **REFINES `RESTRICTION` to COEXISTENCE-AS-ISLAND**:
+
+- The observer is a **self-contained C\* island**: it self-certifies its `M_3(C)^sa` QM **on the
+  slice** `A = h_3(C_u)` (Phase 61, all four Def 1 clauses verbatim, intrinsically), and the slice
+  **sits inside `h_3(O)` as the range of the projection `E`**.
+- **The through-line SURVIVES** as the **island through-line**:
+
+  > `h_3(O)` is the **basin** whose **maximal C\* slice** is `M_3(C)^sa`, on which **Paper 5
+  > certifies** the observer's QM; `E` is the **access/projection map**.
+
+  `E` is **not** required to be a Jordan morphism (it is not) nor an SP-morphism (it is not) on the
+  ambient. The basin **fixes the TYPE** `M_3(C)^sa`; it does **not** transport the observer's
+  structure.
+- **Consistent with U-B-M:** Peirce `!=` tensor; the basin fixes the TYPE, not the composite. The
+  observer's own composite `V_BM = A (x) A ~ M_9(C)^sa` is **never** identified with the BGW
+  universe-tensoring `(x)~` of `h_3(O)` (`fp-conflate-composites` preserved — §3.7, §5.4).
+
+This is the **EXPECTED, ACCEPTABLE** outcome and a **valid DELIVERABLE.** It does **NOT** establish
+"**independent posits / two unconnected foundations**" and is **NOT** a program-collapse PAUSE. The
+original `claim.md` **PAUSE condition 2** framing — "obstruction `=>` `C` and `O` independent
+posits, PAUSE" — is **superseded by coexistence-as-island for the embedding clause** (Bryan
+2026-05-24); see the `claim.md` update (Task 1b / `deliv-claim-md`). Only a genuinely **unexpected**
+pathology (e.g. the slice-internal control failing, or the slice not being a closed associative
+subalgebra, or the two-composites distinction collapsing) would be a true PAUSE — and none occurred
+(the slice-internal control is trivial as expected, §4.2(5): leakage 0, associator 0).
+
+#### 5.O.3 Program consequence (this branch)
+
+Under (O), the **through-line survives as coexistence-as-island** with a **precisely-located
+ambient-transport obstruction** (the SP's `(e_1,...,e_6)`-content that `E` cannot transport; defect
+inside `A`, spread across all three `E_11` Peirce grades, `||R||_F^2 = 38593/72`; ambient SP
+non-Hermitian). The **MILESTONE-level `RESTRICTION` verdict is FINALIZED in Phase 63** (which reads
+this step's outcome + runs the adversarial guard review); it is **NOT** declared here
+(`fp-overclaim-milestone` — the milestone verdict stays **UNDECIDED**).
+
+**Respect the asymmetry (project memory: basin-only vs observer+basin).** This (O) concerns **only**
+whether the observer's complex structure is **TRANSPORTED by `E` from the non-associative basin** —
+the stronger, now-not-required property. It does **NOT** downgrade Paper 7's separate
+complexification claim, nor Paper 5's / Phase 61's **intrinsic** result (the slice satisfies clause
+(iii) in its own right). The obstruction is characterized at **exactly that join** (ambient
+`E`-transport of the SP) and is **not** over-generalized into "independent posits."
+
+> **The verdict is NOT forced (`fp-force-positive`, both directions).** It equals §4's exact
+> computation. Coherent transport was **not** manufactured (no `X, Y` cherry-picked to force `R =
+> 0`; the exact test was never relaxed — had `R` been exactly 0 with both routes agreeing, the
+> verdict would have been (P), a `RESTRICTION` embedding lemma; it was not). And (O) is **not**
+> over-stated as a refutation/collapse — it is reported as the expected coexistence-as-island
+> refinement. The **v11.0/Phase 42** precedent (`sqrt(T_a) T_b sqrt(T_a) = (i/2) T_b` exits
+> `M_16(R)`) is noted **only as historical context** — a **different mechanism** (Clifford
+> non-commuting pairs in a fixed matrix algebra, **not** the `h_3(O) -> h_3(C_u)` projection
+> restriction at issue) — and is **NOT** carried as evidence for (O).
+
+---
+
+### 5.4 Type/category + Peirce self-audit for §5
+
+| Load-bearing object / claim | Subject category | Type-correct? |
+|---|---|---|
+| §5 verdict | branch tag **(O)**, `= §4` computed verdict | ✓ (no §4/§5 divergence; reads off the exact residual) |
+| obstruction (O) | ambient-transport obstruction localized in `A` (Peirce grades / `C_u`) | ✓ (named: `V_1/V_{1/2}/V_0` grades sum to `||R||^2`; `C_u` directions `e_0,e_7`) |
+| sequential product `a & b = sqrt(a) b sqrt(a)` | **CFC triple product on effects** (NOT a Jordan op) | ✓ (the actual SP; clause (iii) datum 4) |
+| `E : h_3(O) -> A` | **access/projection map** (positive unital idempotent) | ✓ (NOT a Jordan morphism nor SP-morphism on the ambient) |
+| clause (iii) | OUS composite datum, **verbatim** | ✓ (UNCHANGED — only `RESTRICTION`'s embedding clause is weakened, Task 1b) |
+| `V_BM = A (x) A ~ M_9(C)^sa` | observer's OWN OUS self-composite | ✓ (NOT conflated with BGW `(x)~` on `h_3(O)`) |
+| (O) semantics | refinement to coexistence-as-island | ✓ (EXPECTED + acceptable DELIVERABLE; NOT independent posits, NOT a collapse PAUSE) |
+| milestone verdict | `RESTRICTION` milestone | ✓ (UNDECIDED — left to Phase 63) |
+| v11.0/Phase 42 precedent | historically adjacent (Clifford pairs) | ✓ (NOT carried as evidence — different mechanism) |
+
+**Forbidden proxies — all REJECTED in §5:** `fp-assert-preservation` (the verdict reads off §4's
+**ambient** transport residual on **generic** `X,Y` with the associator `= 524/9 != 0` load-bearing,
+**not** the trivial slice-internal control); `fp-ignore-nonassociativity` (non-associativity
+load-bearing on the **same** decisive `X,Y`; slice-internal recorded as the control in §4.2(5));
+`fp-force-positive` (verdict (O) honest, equals the exact computation; not forced to (P), not
+over-stated as a collapse; v11.0 dropped as a prior); `fp-redefine-iii` (the actual product-form SP
+`sqrt(X) Y sqrt(X)`; clause (iii) **unchanged** — only `RESTRICTION`'s embedding clause weakened,
+Task 1b); `fp-conflate-composites` (`V_BM = A (x) A` not conflated with the ambient);
+`fp-overclaim-milestone` (milestone verdict UNDECIDED, Phase 63).
+
+### 5.5 Confidence
+
+**[CONFIDENCE: HIGH]** that the verdict is **(O)** and **matches the exact 62-02 computation**: the
+two independent routes (direct exact residual; positional-Peirce/grade-component) **agree** on (O)
+for two distinct generic pairs; non-associativity is load-bearing (associator `= 524/9 != 0`) on the
+**same** data; the residual is exactly nonzero with `O(1)` rational entries (`R_{11} = -2`),
+excluding float round-off and accidental cancellation; the slice-internal control is trivial as
+expected (leakage 0, associator 0). **Generality caveat (inherited from §4.6):** **one** exact
+nonzero residual on non-associativity-load-bearing generic data **suffices** to establish (O) — and
+there are **two** — so the obstruction is established rigorously; the complementary statement "no
+generic `X,Y` ever gives `R = 0`" is **not** needed for (O) and is **not** claimed. **Minimal-extra-input
+caveat (5.O.1c):** the precise minimal extra input that ambient transport would require is the
+least-certain part — stated as precisely as the evidence allows (an external datum on `h_3(O)` not
+in `range E`, via Hanche-Olsen induced-vs-imported), and flagged as a Phase-63 / future-work item;
+**NOTE coexistence-as-island does not require it at all** (the observer self-models on the slice).
+The **milestone verdict** is **UNDECIDED** (Phase 63).
+
+---
+
+_Plan: 62-03 (Phase 62, milestone v15.0) — DERV-62-03. §5 (VERDICT)._
+_§0–§3 = 62-01 (SETUP + CRUX FRAMING); §4 = 62-02 (DECISIVE COMPUTATION, verdict (O)); §5 = 62-03 (the verdict read-off + interpretation as coexistence-as-island refinement)._
