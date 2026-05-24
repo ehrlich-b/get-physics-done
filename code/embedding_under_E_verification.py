@@ -776,50 +776,78 @@ def decisive_associator_nonzero():
 # (= ker E directions).  The residual R is exactly zero iff BOTH components
 # vanish.  We compute the defect as D = E(sp_ambient) - sp_projected directly and
 # split EACH entry's octonion into its C_u part (comps 0,7) and its (e_1..e_6)
-# part.  Since sp_projected lies entirely in the slice (C_u) and E(sp_ambient)
-# also lies in the slice (E projects to C_u), the defect is a SLICE element; its
-# being zero is read off the C_u components.  As a genuinely INDEPENDENT route we
-# ALSO recompute via the Peirce grades V_1/V_{1/2}/V_0 at E_11 (port of
-# peirce_* from octonion_algebra.py): the defect, grade by grade, must vanish.
-# RAISES on a split decision (direct vs grade) -- a self-consistency guard.
+# part.  IMPORTANT (non-Hermiticity finding): the ambient sequential product
+# sqrt(X) Y sqrt(X) is NOT Hermitian in h_3(O) (the would-be involution identity
+# (ABC)^dag = CBA fails under non-associativity), so the defect D is generically a
+# NON-Hermitian 3x3 octonionic matrix.  We therefore use a POSITIONAL E_11 Peirce
+# decomposition (faithful for ANY 3x3 matrix, Hermitian or not) and an all-9-entry
+# C_u/e16 split -- NOT a Hermitian-coordinate reconstruction.  As a genuinely
+# INDEPENDENT route the positional-Peirce-grade verdict must match the direct
+# residual; RAISES on a split decision (a self-consistency guard).
 
 
-def _peirce_grades(X):
-    """Split a 3x3 octonion matrix into Peirce grades at E_11 = diag(1,0,0),
-    in h_3(O) coordinates (V_1: alpha; V_{1/2}: x2,x3; V_0: beta,gamma,x1).
-    Returns (V1, Vhalf, V0) as three octmats."""
-    alpha, beta, gamma, x1, x2, x3 = _coord_from_octmat(X)
-    V1 = h3o_from_coords(alpha, 0, 0, oct_zero(), oct_zero(), oct_zero())
-    Vhalf = h3o_from_coords(0, 0, 0, oct_zero(), x2, x3)
-    V0 = h3o_from_coords(0, beta, gamma, x1, oct_zero(), oct_zero())
+def _peirce_grades_positional(X):
+    """Split a 3x3 octonion matrix into Peirce grades at E_11 = diag(1,0,0) by
+    ENTRY POSITION (faithful for non-Hermitian matrices too):
+      V_1   : entry (1,1)
+      V_{1/2}: entries (1,2),(1,3),(2,1),(3,1)  (row-1 or col-1, off the corner)
+      V_0   : entries (2,2),(2,3),(3,2),(3,3)
+    Returns (V1, Vhalf, V0) as three full octmats (zeros elsewhere).  The three
+    grades partition all 9 entries, so |V1|^2 + |Vhalf|^2 + |V0|^2 == |X|^2."""
+    V1 = octmat_zero()
+    Vhalf = octmat_zero()
+    V0 = octmat_zero()
+    for i in range(3):
+        for j in range(3):
+            if i == 0 and j == 0:
+                V1[i][j] = list(X[i][j])
+            elif i == 0 or j == 0:
+                Vhalf[i][j] = list(X[i][j])
+            else:
+                V0[i][j] = list(X[i][j])
     return V1, Vhalf, V0
+
+
+def transport_defect(X, Y):
+    """The defect D = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX) (= R), exact."""
+    lhs = E(sp_ambient(X, Y))
+    rhs = sp_projected(X, Y)
+    return octmat_simplify(octmat_sub(lhs, rhs))
+
+
+def defect_cu_e16_split(D):
+    """Sum-of-squares of the C_u (comps 0,7) and (e_1..e_6) parts of D, over ALL 9
+    entries.  Returns (cu_sq, e16_sq) with cu_sq + e16_sq == |D|^2 exactly."""
+    cu_sq = Rational(0)
+    e16_sq = Rational(0)
+    for i in range(3):
+        for j in range(3):
+            for k in range(8):
+                v = D[i][j][k]
+                if k in (0, 7):
+                    cu_sq += v * v
+                else:
+                    e16_sq += v * v
+    return simplify(cu_sq), simplify(e16_sq)
 
 
 def peirce_grade_residual_is_zero(X, Y):
     """INDEPENDENT verdict: decompose the defect D = E(sp_ambient) - sp_projected
-    into (i) C_u vs (e_1..e_6) components AND (ii) Peirce grades V_1/V_{1/2}/V_0,
-    and read off whether D is exactly zero. RAISES on a split decision vs the
-    direct residual route."""
-    lhs = E(sp_ambient(X, Y))
-    rhs = sp_projected(X, Y)
-    D = octmat_simplify(octmat_sub(lhs, rhs))
+    into (i) C_u vs (e_1..e_6) components (all 9 entries) AND (ii) POSITIONAL
+    Peirce grades V_1/V_{1/2}/V_0 at E_11, and read off whether D is exactly zero.
+    Both sub-routes must agree with each other, and the function RAISES on a split
+    decision vs the direct residual route (a self-consistency guard).
 
-    # (i) C_u vs (e_1..e_6) split: D is a slice element (both terms in C_u), so its
-    # (e_1..e_6) part is identically zero by construction; the verdict rests on the
-    # C_u part.  Confirm the (e_1..e_6) part is zero (sanity) and read the C_u part.
-    e16_all_zero = True
-    cu_all_zero = True
-    for i in range(3):
-        for j in range(3):
-            for k in range(1, 7):
-                if simplify(D[i][j][k]) != 0:
-                    e16_all_zero = False
-            if simplify(D[i][j][0]) != 0 or simplify(D[i][j][7]) != 0:
-                cu_all_zero = False
-    is_zero_components = e16_all_zero and cu_all_zero
+    Sound for the NON-Hermitian defect: uses positional grading + all-entry split,
+    not a Hermitian-coordinate reconstruction."""
+    D = transport_defect(X, Y)
 
-    # (ii) Peirce-grade route: D = 0 iff each grade V_1, V_{1/2}, V_0 vanishes.
-    V1, Vhalf, V0 = _peirce_grades(D)
+    # (i) C_u vs (e_1..e_6) split over ALL entries.  D = 0 iff both parts vanish.
+    cu_sq, e16_sq = defect_cu_e16_split(D)
+    is_zero_components = (cu_sq == 0 and e16_sq == 0)
+
+    # (ii) positional Peirce-grade route: D = 0 iff each grade vanishes.
+    V1, Vhalf, V0 = _peirce_grades_positional(D)
     is_zero_peirce = (octmat_is_zero(V1) and octmat_is_zero(Vhalf)
                       and octmat_is_zero(V0))
 
@@ -986,15 +1014,26 @@ def run_self_checks():
 
 
 def _print_defect_localization(idx, R):
-    """Print which Peirce grade (V_1/V_{1/2}/V_0 at E_11) and which e_k the defect
-    populates -- the characterization handed to 62-03 under branch (O)."""
-    V1, Vhalf, V0 = _peirce_grades(R)
+    """Print the defect characterization handed to 62-03 under branch (O):
+    the C_u-vs-(e_1..e_6) split (all 9 entries), the POSITIONAL E_11 Peirce-grade
+    magnitudes (which sum to |R|^2, since the grades partition the entries), and
+    which octonion components e_k are populated.  Also reports that the ambient
+    sequential product is NON-Hermitian (the defect R is a non-Hermitian octmat)."""
+    cu_sq, e16_sq = defect_cu_e16_split(R)
+    total = simplify(_frob_norm_sq_octmat(R))
+    print(f"    DEFECT LOCALIZATION (pair {idx}):")
+    print(f"      C_u-part^2 = {cu_sq}   (e_1..e_6)-part^2 = {e16_sq}   |R|^2 = {total}")
+    print("      => the defect lies ENTIRELY in the C_u directions (e_0,e_7): E projects")
+    print("         every entry onto C_u, so R is a slice element; the obstruction is the")
+    print("         FAILURE of the two slice elements E(sqrt(X) Y sqrt(X)) and")
+    print("         sqrt(EX)(EY)sqrt(EX) to coincide, NOT leakage out of A.")
+    V1, Vhalf, V0 = _peirce_grades_positional(R)
     g1 = simplify(_frob_norm_sq_octmat(V1))
     gh = simplify(_frob_norm_sq_octmat(Vhalf))
     g0 = simplify(_frob_norm_sq_octmat(V0))
-    print(f"    DEFECT LOCALIZATION (pair {idx}): Peirce-grade magnitudes^2 at E_11:")
-    print(f"      |V_1(R)|^2 = {g1}   |V_{{1/2}}(R)|^2 = {gh}   |V_0(R)|^2 = {g0}")
-    # which e_k components are populated (across all entries)
+    print(f"      positional E_11 Peirce-grade magnitudes^2 (partition; sum=|R|^2):")
+    print(f"        |V_1(R)|^2 = {g1}   |V_{{1/2}}(R)|^2 = {gh}   |V_0(R)|^2 = {g0}"
+          f"   (sum {simplify(g1 + gh + g0)})")
     populated = set()
     for i in range(3):
         for j in range(3):
@@ -1003,6 +1042,10 @@ def _print_defect_localization(idx, R):
                     populated.add(k)
     print(f"      populated octonion components e_k: {sorted(populated)} "
           f"(0=real, 7=e_7 are the C_u directions)")
+    herm = octmat_equal(R, octmat_dagger(R))
+    print(f"      NOTE: ambient sqrt(X) Y sqrt(X) is non-Hermitian under non-associativity")
+    print(f"            => the defect R is {'Hermitian' if herm else 'NON-Hermitian'} "
+          f"(association-dependent SP; obstruction holds for the natural left association).")
 
 
 def main():

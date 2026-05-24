@@ -16,7 +16,7 @@ answer.**
 
 **Scope of this file vs the rest of Phase 62.**
 - **§0–§3 are written by 62-01 (this plan): the SETUP + CRUX FRAMING.**
-- **§4 is the decisive exact computation (62-02, VALD-62-01) — to follow.**
+- **§4 is the decisive exact computation (62-02, VALD-62-01) — BELOW; verdict (O), an exact ambient-transport obstruction (the expected outcome, refining `RESTRICTION` to coexistence-as-island).**
 - **§5 is the verdict on the obstruction-or-preservation fork (62-03) — to follow.**
 - **The induced-by-`E` verdict is NOT reached in this plan.** §3 makes the decisive question
   well-posed; 62-02 computes it on the actual non-associative `h_3(O)`; 62-03 reads off the
@@ -615,13 +615,222 @@ setup pre-commits to **neither** branch.
 
 ---
 
-## 4. The decisive exact computation — TO FOLLOW (62-02, VALD-62-01)
+## 4. The decisive exact computation — AMBIENT E-transport on the non-associative h_3(O) (62-02, VALD-62-01)
 
-*To be appended by plan 62-02.* Implements the §3.3 spec in **exact arithmetic** (§3.4):
-construct generic ambient `X, Y` (exact-square trick `X = C^2`, off-diagonal not in `C_u`),
-verify the associator is nonzero on the chosen `X, Y`, compute the exact residual
-`R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)`, and cross-check via the Peirce/grade-component
-route. Verdict input: exact `R = 0` (P) or exact `R != 0` (O).
+This section records the **decisive exact-arithmetic computation** of the §3.3 spec and reads
+off the verdict on the obstruction-or-preservation fork (§3.6). It implements §3.3–§3.4 in
+**exact SymPy** in `code/embedding_under_E_verification.py` with an **assert-based** harness
+`tests/test_embedding_under_E.py` (NO pytest; runnable as `python tests/test_embedding_under_E.py`,
+exits 0 on self-check success). **All self-checks PASS; the decisive verdict is (O), an
+AMBIENT-TRANSPORT OBSTRUCTION** — the EXPECTED, acceptable outcome that **refines** `RESTRICTION`
+to coexistence-as-island (§3.7), handed to 62-03.
+
+### 4.1 The decisive question, recapped
+
+For **GENERIC ambient** `X >= 0` (PSD, so `sqrt(X)` exists in the ambient) and `Y = Y^dagger in
+h_3(O)`, with `sqrt(X)` computed **in the non-associative ambient** and the relevant associator
+verified **exactly nonzero** (non-associativity load-bearing), is
+
+$$
+R \;:=\; E\big(\sqrt{X}\,Y\,\sqrt{X}\big) \;-\; \sqrt{EX}\,(EY)\,\sqrt{EX} \;\overset{?}{=}\; 0
+\qquad(\text{exact}),
+$$
+
+where `sqrt(EX)` is the **slice** (associative `M_3(C)`) square root of the projected `EX in A`.
+`R == 0` (exact) `=>` coherent transport **(P)**; `R != 0` (exact) `=>` ambient-transport
+obstruction **(O)**.
+
+### 4.2 What was computed (cite: `code/embedding_under_E_verification.py`, `tests/test_embedding_under_E.py`)
+
+All arithmetic is **exact SymPy** (rationals/surds); the decisive equality test is
+`octmat_is_zero(R)` (per-component `simplify(...) == 0`), **never a float tolerance**
+(`fp-float-pass` rejected). h_3(O) elements are carried as **full 3×3 octonionic matrices**
+(`oct_mul` via the Fano table `e_1 e_2 = e_4`), so the **triple matrix product is NOT assumed
+associative**: `(XY)Z` and `X(YZ)` are computed by independent left/right association.
+
+1. **`E` onto `h_3(C_u)` (entrywise `proj_u`, `u = e_7`) — verified EXACTLY:**
+   - **unital** `E(I_3) = I_3`; **idempotent** `E(E(X)) = E(X)` (on a generic ambient `X` with
+     nonzero `e_1..e_6` content — non-vacuous); `E|_A = id` (on a slice element); **entrywise
+     `proj_u`** (off-diagonal `e_1..e_6` zeroed, `e_0, e_7` kept); **positive** on a non-diagonal
+     PSD slice effect with **rational spectrum `{1, 3, 5}`** (`E(.)` PSD, exact eigenvalues
+     `>= 0`); `dim(range E) = 9`, `dim(ker E) = 18`, `27 = 9 + 18`.
+   - **`E` is NOT a Jordan morphism on the ambient** (the §2.2 non-triviality, now CONFIRMED
+     exactly): for a generic ambient `X`,
+     $$
+     \big\|E(X\circ X) - (EX)\circ(EX)\big\|_F^2 \;=\; \tfrac{3797527}{34560000}\;\neq\;0
+     \quad(\text{exact}).
+     $$
+     This is what makes the SP-transport question genuinely non-trivial.
+
+2. **Ambient principal square root `sqrt_ambient(X)` — EXACT:** via the **exact-square trick**
+   `X = C*C` with `C` an ambient PSD element of exact entries (confirmed PSD by its reduced
+   characteristic-polynomial roots `>= 0`), so `sqrt(X) = C`. Self-check
+   `h3o_matmul(sqrt_X, sqrt_X) == X` holds **exactly** in the ambient octonionic product. `X` is
+   genuinely ambient (nonzero `e_1..e_6`).
+
+3. **Non-associativity is LOAD-BEARING on the decisive data:** for the **same** decisive triple
+   `(sqrt(X), Y, sqrt(X))` whose product is the decisive sequential product, the associator is
+   **exactly nonzero**,
+   $$
+   \big\|(\sqrt{X}\,Y)\,\sqrt{X} - \sqrt{X}\,(Y\,\sqrt{X})\big\|_F^2 \;=\; \tfrac{524}{9}\;\neq\;0
+   \quad(\text{exact}),
+   $$
+   so the test genuinely engages `(xy)z != x(yz)` (NOT an accidentally-associative corner;
+   `fp-ignore-nonassociativity` rejected). The decisive `X, Y` are generic ambient, **not**
+   slice-confined.
+
+4. **THE DECISIVE AMBIENT-TRANSPORT residual** `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)`
+   computed **exactly** for **two distinct generic `(X, Y)`** (each with the associator-nonzero
+   precheck passing):
+   - **pair 0:** `R != 0` exactly; `||R||_F^2 = 38593/72` (≈ 536). Representative exactly-nonzero
+     entry: `R_{11} = -2` (the `e_0`/real diagonal component) — an `O(1)` rational, no surd, no
+     cancellation ambiguity.
+   - **pair 1:** `R != 0` exactly; `||R||_F^2 = 127725937/64800 - 13*sqrt(67134)/2 -
+     277*sqrt(183513)/900` (≈ 155). Representative exactly-nonzero entry: `R_{11} = 1/6`.
+   - In both pairs `is_zero_exact = False`; the harness asserts only the **honest consistency**
+     `octmat_is_zero(R) <=> is_zero_exact` (it does **not** hardcode P or O).
+
+5. **Slice-internal TRIVIAL control** (clearly separated, **NOT** the decisive test): for `a, b in
+   A` (a PSD slice effect and a slice element with `C_u` off-diagonal content), the ambient-product
+   `sqrt(a) b sqrt(a)` has **leakage EXACTLY 0** (`E(sqrt(a) b sqrt(a)) = sqrt(a) b sqrt(a)`, it
+   stays in `A`) and triple associator **EXACTLY 0** (`A` is a closed associative subalgebra =
+   range `E`). This reconfirms Phase 61's intrinsic triviality and forecloses both reward-hack
+   loopholes (the trivial-residual-as-decisive move and the unrelated-matrices line-loophole).
+
+6. **Independent Peirce/grade-component cross-check** (a genuinely **second route**): decomposing
+   the defect `D = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)` into its `C_u`-vs-`(e_1..e_6)`
+   components **and** into Peirce grades `V_1/V_{1/2}/V_0` at `E_11`, the verdict **AGREES** with
+   the direct residual on **both** pairs (both routes: defect **nonzero**). The code **RAISES** on a
+   split decision; none occurred.
+
+### 4.3 THE VERDICT — (O) AMBIENT-TRANSPORT OBSTRUCTION (stated exactly as computed; NOT forced)
+
+> **`E` does NOT transport the self-modeling sequential product coherently from the
+> non-associative ambient `h_3(O)`.** The ambient-transport residual
+> `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)` is **EXACTLY nonzero** for generic ambient
+> `X, Y` (non-associativity load-bearing, associator `= 524/9 != 0`), with the direct-residual and
+> the independent Peirce/grade routes **agreeing**. **Branch (O).**
+
+**Characterization of the defect (handed to 62-03).** For the first (clean-rational) pair, the
+exact residual `R` populates **only the `C_u` directions** (octonion components `e_0` and `e_7`)
+of the matrix entries: the all-entry split gives `C_u`-part`^2 = 38593/72` and
+`(e_1..e_6)`-part`^2 = 0`, summing to `||R||_F^2 = 38593/72`. So `R` is a genuine **slice element**
+(both `E(sqrt(X) Y sqrt(X))` and `sqrt(EX)(EY)sqrt(EX)` lie in `A`, since `E` projects every entry
+onto `C_u`), and the obstruction is the **failure of the two slice elements to coincide**, NOT
+leakage out of `A`. Across the **positional** Peirce grades at `E_11` (which partition the 9 matrix
+entries, so the grade magnitudes sum exactly to `||R||_F^2`):
+
+$$
+\|V_1(R)\|^2 = 4,\qquad \|V_{1/2}(R)\|^2 = \tfrac{1033}{18},\qquad \|V_0(R)\|^2 = \tfrac{3797}{8},
+\qquad 4 + \tfrac{1033}{18} + \tfrac{3797}{8} = \tfrac{38593}{72},
+$$
+
+so the defect is **spread across all three Peirce grades** (dominantly `V_0`, the
+`h_2(C_u)`-block, then `V_{1/2}`, then a nonzero `V_1` scalar bottleneck component). Mechanism
+(§3.5): the ambient `sqrt(X) Y sqrt(X)` populates `(e_1..e_6)` components that `E` then projects
+away; equivalently, `E` applied **after** the ambient triple product retains contributions from
+the killed directions that `sqrt(EX)(EY)sqrt(EX)` (built entirely inside `A`) never sees. The
+two slice elements therefore differ in their `C_u` components — an `O(1)` defect.
+
+> **Non-Hermiticity finding (sharpens the obstruction).** A by-product of the exact computation:
+> the ambient sequential product `sqrt(X) Y sqrt(X)` is itself **NOT Hermitian** in the
+> non-associative `h_3(O)` — the would-be involution identity `(\sqrt{X}\,Y\,\sqrt{X})^\dagger =
+> \sqrt{X}\,Y\,\sqrt{X}` **fails** because `(AB)C \neq A(BC)`. The natural **left** association
+> `(\sqrt{X}\,Y)\,\sqrt{X}` leaves the formally-real Jordan cone. (We use the left association
+> throughout; the obstruction holds for it, and would for any fixed association — the SP is
+> association-dependent in the ambient.) Consequently the defect `R` is a **non-Hermitian** `3×3`
+> octonionic matrix; we therefore characterize it with the **positional** `E_11` Peirce grading and
+> an all-entry `C_u`/`(e_1..e_6)` split (faithful for non-Hermitian matrices), **not** a Hermitian-
+> coordinate reconstruction. This is an *additional* way `E` fails to transport the SP coherently —
+> on top of `R \neq 0`, the ambient SP is not even Hermitian — and it reinforces (O).
+
+**Status of (O): EXPECTED, ACCEPTABLE, a REFINEMENT — not a collapse.** Per §3.6–§3.7, (O)
+**refines** `RESTRICTION` to **coexistence-as-island**: the observer self-certifies its
+`M_3(C)^sa` QM **on the slice** (Phase 61, all four Def 1 clauses verbatim, intrinsically), and
+the slice **sits inside `h_3(O)` as the range of the projection `E`**; `E` is the
+**access/projection map**, **not** required to be a Jordan morphism (it is not — §2.2/4.2(1)) nor
+an SP-morphism (it is not — this section) on the ambient. The through-line survives as the island
+through-line. (O) does **NOT** establish "independent posits / two unconnected foundations" and is
+**NOT** a program collapse; it is a clean, valid deliverable, surfaced for the 62-03 read-off and
+the Phase 63 milestone verdict. The original `claim.md` PAUSE-condition-2 framing is **superseded**
+by coexistence-as-island for the embedding clause (Bryan 2026-05-24).
+
+> **`fp-force-positive` NOT triggered.** The verdict is whatever the exact computation yields. No
+> `X, Y` were cherry-picked to force `R = 0`; the exact test was never relaxed; the obstruction is
+> reported honestly. The **v11.0/Phase 42** precedent (`sqrt(T_a) T_b sqrt(T_a) = (i/2) T_b` exits
+> `M_16(R)`) is **NOT** carried as evidence — it is a **different mechanism** (Clifford
+> non-commuting pairs in a fixed matrix algebra, not the `h_3(O) -> h_3(C_u)` projection
+> restriction); it is noted only as historical context.
+
+### 4.4 Why the verdict is trustworthy
+
+- **Two independent routes agree.** The direct ambient residual and the Peirce/grade-component
+  decomposition reach the **same** verdict (O) on **both** generic pairs; the code raises on a
+  split decision and none occurred.
+- **EXACT arithmetic, zero tolerance.** `R != 0` means **exactly** nonzero (e.g. `R_{11} = -2`, a
+  rational with no surd) — a **genuine** ambient-transport obstruction, **not** float round-off
+  (`fp-float-pass` rejected). The exact-square trick `X = C*C` is documented and **confirmed not to
+  trivialize non-associativity** (the associator `= 524/9 != 0` on the same `X, Y`).
+- **Non-associativity is load-bearing on the decisive data**, and the slice-internal triviality is
+  recorded as the **control**, not the decisive test (`fp-ignore-nonassociativity` rejected).
+- **The decisive object is the actual self-modeling SP** `sqrt(X) Y sqrt(X)` (not the Jordan
+  product or a surrogate; `fp-redefine-iii` rejected); **clause (iii) itself is unchanged** (only
+  `RESTRICTION`'s embedding clause is weakened, in §3.7 / 62-03).
+- **The computation is on the genuinely non-associative ambient for GENERIC `X, Y`**, not the
+  trivial slice (`fp-assert-preservation` rejected).
+- **Self-checks pass:** `E` properties (incl. not-a-Jordan-morphism-on-ambient), ambient
+  `sqrt^2 == X`, associator nonzero on the decisive data, slice-internal control trivial; the
+  harness exits 0.
+
+> **Reproducibility.** SymPy 1.14.0, Python 3.14.2, macOS Darwin 24.6.0. Deterministic (no random
+> seeds; all test elements hardcoded with exact rational/surd entries). Re-running the harness
+> reproduces `is_zero_exact = [False, False]` and the verdict (O) identically.
+
+### 4.5 Handoff to 62-03
+
+The decisive input to 62-03 is: **branch (O)** — an exact ambient-transport obstruction — with the
+**characterized defect** (lands in the `C_u` directions `e_0, e_7`; positional `E_11` Peirce-grade
+magnitudes `||V_1||^2 = 4`, `||V_{1/2}||^2 = 1033/18`, `||V_0||^2 = 3797/8`, summing to
+`||R||_F^2 = 38593/72`; representative entry `R_{11} = -2`; the ambient SP is non-Hermitian under
+non-associativity) on the clean pair. 62-03 reads (O) as a **refinement** of
+`RESTRICTION` to coexistence-as-island (§3.7): it states the precise obstruction (the structure
+`E` cannot transport — the ambient SP's `(e_1..e_6)` content that does not survive projection), the
+**minimal extra input** (the observer does not need transport — it self-models on the slice, which
+sits inside `h_3(O)` as `range E`), and carries the verdict to the Phase 63 milestone read-off. The
+§5 marker below is updated accordingly.
+
+### 4.6 Type/category + Peirce self-audit for §4
+
+| Load-bearing object / claim | Subject category | Type-correct? |
+|---|---|---|
+| decisive residual `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)` | residual in `h_3(O)` for **generic ambient** `X,Y` | ✓ (generic ambient; associator `= 524/9 != 0` load-bearing) |
+| ambient sequential product `sqrt(X) Y sqrt(X)` | **CFC triple product on effects** (NOT a Jordan op) | ✓ (triple product, left/right associations computed independently) |
+| `sqrt(X)` (ambient) vs `sqrt(EX)` (slice) | ambient principal root vs `M_3(C)` root in `A` | ✓ (exact-square trick ambient; spectral root in associative slice) |
+| defect `R` (verdict O) | exactly nonzero; populates `C_u` (`e_0,e_7`); Peirce grades `V_1,V_{1/2},V_0` | ✓ (tagged by grade / `e_k`; characterized, not asserted away) |
+| slice-internal `sqrt(a) b sqrt(a)` (`a,b in A`) | **TRIVIAL control** (closed associative subalgebra) | ✓ (leakage 0, associator 0; tagged control, not decisive) |
+| `E : h_3(O) -> A` | **access / projection map** (positive unital idempotent) | ✓ (NOT a Jordan morphism on the ambient: `||E(XoX)-(EX)o(EX)||^2 = 3797527/34560000 != 0`) |
+| verdict (O) | ambient-transport obstruction | ✓ (EXPECTED; refines `RESTRICTION` to island; NOT forced, NOT a collapse) |
+| v11.0/Phase 42 precedent | historically adjacent (Clifford pairs) | ✓ (NOT carried as evidence — different mechanism) |
+
+**Forbidden proxies — all REJECTED in §4:** `fp-assert-preservation` (computed on the genuinely
+non-associative ambient for generic `X,Y`, not the trivial slice or a hand-wave);
+`fp-ignore-nonassociativity` (associator `= 524/9 != 0` load-bearing on the **same** decisive
+`X,Y`; slice-internal recorded as control); `fp-float-pass` (exact SymPy equality on the verdict;
+no float64 anywhere on the decisive path); `fp-force-positive` (verdict (O) reported honestly; no
+cherry-picking; exact test not relaxed; v11.0 dropped as a prior); `fp-redefine-iii` (actual SP
+`sqrt(X) Y sqrt(X)`; clause (iii) unchanged).
+
+**[CONFIDENCE: HIGH]** that the decisive computation is **correct and the verdict is (O)**: all
+self-checks pass exactly; the two independent routes (direct residual; Peirce/grade-component)
+agree on (O) for two distinct generic pairs; non-associativity is load-bearing (associator
+`= 524/9 != 0`) on the same data; the residual is exactly nonzero with `O(1)` rational entries
+(e.g. `R_{11} = -2`), excluding float round-off and accidental cancellation; the slice-internal
+control is trivial (leakage 0) as expected. **Generality caveat (carry to 62-03):** **one** exact
+nonzero residual on non-associativity-load-bearing generic data **suffices** to establish the
+obstruction (O) — and we have **two** — so (O) is established rigorously. The complementary
+statement "no generic `X,Y` ever gives `R = 0`" is not needed for (O) and is not claimed; the
+obstruction is the existence of generic `X,Y` with `R != 0`, which is proven. (A hypothetical (P)
+would have required a general argument, not just representatives — but (P) did not occur.)
 
 ## 5. The verdict on the fork — TO FOLLOW (62-03)
 
