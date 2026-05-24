@@ -396,6 +396,63 @@ def luders_seq_product(a, b):
     return simplify(sa * b * sa)
 
 
+def check_seqprod_factorization():
+    """Clause (iii) datum 4 -- the Phase 60 OPEN ITEM, closed by exact matrix
+    computation: the product-form sequential product a&b = sqrt(a) b sqrt(a)
+    factorizes across the body-model tensor split on the ASSOCIATIVE composite
+    M_9(C)^sa = M_3(C)^sa (x) M_3(C)^sa.
+
+    (The full robustness battery lives in tests/test_slice_clause_iii.py; this
+    is a standalone in-script witness so VALD-61-01 demonstrates the closed
+    open item directly.)
+    """
+    print("\n=== 5. Product-form seq-product factorizes on M_9(C)^sa "
+          "(clause iii datum 4; Phase 60 open item) ===")
+
+    # Exact 3x3 effects (rational entries; eigenvalues in [0,1]); at least one
+    # off-diagonal factor so the factorization is non-trivial.
+    a_B = hermitian_3x3(Rational(1, 2), Rational(1, 2), Rational(1, 2),
+                        Rational(1, 4), 0, 0, 0, 0, 0)   # off-diagonal real
+    a_M = hermitian_3x3(Rational(1, 2), Rational(1, 2), Rational(3, 4),
+                        0, Rational(1, 4), 0, 0, 0, 0)   # off-diagonal complex
+    b_B = Matrix([[Rational(1, 3), 0, 0],
+                  [0, Rational(2, 3), 0],
+                  [0, 0, Rational(1, 5)]])               # diagonal
+    b_M = hermitian_3x3(Rational(2, 5), Rational(3, 5), Rational(1, 2),
+                        Rational(1, 5), 0, 0, 0, 0, 0)   # off-diagonal real
+
+    # matrix_sqrt_nxn self-check: sqrt(a_B)^2 == a_B (Hermitian PSD), exact.
+    s = matrix_sqrt_nxn(a_B)
+    _report("matrix_sqrt_nxn self-check: sqrt(a_B)^2 == a_B (3x3, exact)",
+            simplify(s * s - a_B).equals(zeros(3, 3)))
+
+    # Intermediate identity: sqrt(a_B (x) a_M) = sqrt(a_B) (x) sqrt(a_M).
+    a = kronecker_product(a_B, a_M)                       # 9x9 PSD
+    sqrt_full = matrix_sqrt_nxn(a)                         # sqrt on the full 9x9
+    sqrt_kron = kronecker_product(matrix_sqrt_nxn(a_B), matrix_sqrt_nxn(a_M))
+    _report("sqrt(a_B (x) a_M) = sqrt(a_B) (x) sqrt(a_M) "
+            "(full-9x9 spectral sqrt vs kron of 3x3 sqrts, exact)",
+            simplify(sqrt_full - sqrt_kron).equals(zeros(9, 9)))
+
+    # DECISIVE: a&b = sqrt(a) b sqrt(a) on the full 9x9 == (a_B&b_B)(x)(a_M&b_M).
+    b = kronecker_product(b_B, b_M)
+    lhs = luders_seq_product(a, b)                        # 9x9, via 9x9 sqrt
+    rhs = kronecker_product(luders_seq_product(a_B, b_B),
+                            luders_seq_product(a_M, b_M))
+    _report("PRODUCT-FORM FACTORIZATION: sqrt(a) b sqrt(a) "
+            "== (a_B & b_B) (x) (a_M & b_M) on M_9(C)^sa (exact) "
+            "[Phase 60 open item CLOSED]",
+            simplify(lhs - rhs).equals(zeros(9, 9)))
+
+    # S3 unitality on the composite: I_9 & a = a.
+    _report("S3 unitality: I_9 & a = a (product effect, exact)",
+            simplify(luders_seq_product(eye(9), a) - a).equals(zeros(9, 9)))
+
+    print("      SCOPE: associative slice ONLY -- M_3(C)^sa and M_9(C)^sa; no")
+    print("      h_3(O) / non-associative reach (fp-reach-into-h3o; Phase 62).")
+    return True
+
+
 # ============================================================
 # Main
 # ============================================================
@@ -410,6 +467,7 @@ def main():
     check_rank_three_units()
     check_simplicity()
     check_composite_dimension()
+    check_seqprod_factorization()
 
     print("\n" + "=" * 64)
     if ALL_PASS:
@@ -418,8 +476,9 @@ def main():
         print("    - Jordan rank 3, three orthogonal rank-1 projective units -> I_3 (clause i)")
         print("    - simple, center = C*I_3, no nontrivial central idempotent (clause iv)")
         print("    - minimal composite real-dim 81 = 9*9; maximal 162 != 81 (clause iii; BGW)")
-        print("  Product-form sequential-product factorization (clause iii datum 4)")
-        print("  is exercised in tests/test_slice_clause_iii.py (Task 2 / Phase 60 open item).")
+        print("    - product-form seq-product sqrt(a) b sqrt(a) factorizes on M_9(C)^sa")
+        print("      (clause iii datum 4; Phase 60 open item CLOSED by exact computation)")
+        print("  Full seq-product robustness battery: tests/test_slice_clause_iii.py.")
     else:
         print("OVERALL: SOME CHECKS FAILED -- BACKTRACKING TRIGGER")
         print("  A failure here contradicts standard M_3(C)^sa structure.")
