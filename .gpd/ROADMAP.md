@@ -784,12 +784,12 @@ Plans:
 
 **Backtracking trigger:** If the adversarial review finds a reward-hacking guard violated (clause iii redefined, composites conflated, or preservation asserted without demonstration) -> the verdict is not yet earned; return to the offending phase (61 for clause iii, 60 for conflation, 62 for asserted preservation) before finalizing RESULT.md.
 
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 63-01: TBD (assemble RESULT.md verdict + program consequence; complete attempt-NN.md log)
-- [ ] 63-02: TBD (adversarial fresh-eyes review of the three reward-hacking guards; finalize verdict line)
+- [ ] 63-01-PLAN.md (wave 1) -- Assemble DRAFT RESULT.md: the (O) AMBIENT-TRANSPORT OBSTRUCTION verdict refining RESTRICTION to coexistence-as-island (through-line survives; NOT independent posits), with precise obstruction characterization (R != 0, ||R||^2 = 38593/72, R_11 = -2, associator 524/9 load-bearing; defect inside A across the three E_11 Peirce grades), program consequence, and the Hanche-Olsen minimal-extra-input to close it (not required by coexistence-as-island). Complete the attempt-NN.md log (audit attempt-01..04; add attempt-05.md). Verdict line + finalization deferred to 63-02. (DERV-63-01, DERV-00-01)
+- [ ] 63-02-PLAN.md (wave 2, depends 63-01, interactive) -- Adversarial FRESH-EYES review of the three reward-hacking guards against the real artifacts: (a) clause (iii) NOT redefined (vs Phase 61 slice-clause-iii.md/rem-converse-bgw.md), (b) the two composites NOT conflated (vs Phase 60 two-composites.md), (c) preservation NOT asserted without demonstration on h_3(O) (vs embedding-under-E.md §4 + re-run harness, associator 524/9 load-bearing). Confirm the negative was reported honestly. Backtracking trigger encoded as the finalization gate (guard violation -> return to phase 61/60/62, do NOT finalize). Only if all guards pass: finalize RESULT.md + write the one-sentence verdict line (DERV-00-02) in corrected coexistence-as-island language. (DERV-63-02, DERV-00-02)
 
 ## Phase Dependencies
 
@@ -822,5 +822,5 @@ Plans:
 | 60. Two-Composites Distinction | v15.0 | 2/2 | Complete | 2026-05-23 |
 | 61. Slice Satisfies Clause (iii) | v15.0 | 2/2 | Complete | 2026-05-24 |
 | 62. Coherent Embedding under E | v15.0 | 3/3 | Complete (verdict O) | 2026-05-24 |
-| 63. Verdict | v15.0 | 0/TBD | Not started | - |
+| 63. Verdict | v15.0 | 0/2 | Not started | - |
 
