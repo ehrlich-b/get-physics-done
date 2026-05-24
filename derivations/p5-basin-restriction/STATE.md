@@ -14,7 +14,13 @@ precisely-characterized obstruction.** A clean obstruction is fully acceptable.
 
 **Current verdict (milestone):** `UNDECIDED` (the verdict is Phase 63). **Step 1 (Phase 60)
 COMPLETE:** two-composites distinction EARNED (60-01) and `rem:converse` CONFIRMED-WITH-CAVEAT
-against BGW (60-02). No PAUSE triggered. Steps 2–4 (Phases 61–63) pending.
+against BGW (60-02). **Step 2 (Phase 61) COMPLETE:** the slice `A ≅ M_3(C)^sa` verified to satisfy
+all four Paper 5 Def 1 clauses (i)–(iv) **in its own right** — clauses (i)/(iv) directly, clauses
+(ii)/(iii) via the corrected (direct-summand) `rem:converse`; clause (iii) AS STATED via the
+**minimal** composite `M_9(C)^sa` (dim 81; `minimal ≠ maximal`); 61-02 exact-symbolic evidence
+(rank 3, simple, dim 81 vs 162, product-form factorization); induced-by-`E` DEFERRED to Phase 62.
+No PAUSE triggered. Steps 3–4 (Phases 62–63) pending — **Phase 62 (induced-by-`E`) is the
+load-bearing, entirely-unproved step.**
 
 ---
 
@@ -23,7 +29,7 @@ against BGW (60-02). No PAUSE triggered. Steps 2–4 (Phases 61–63) pending.
 | Step | Phase | Description | State |
 |---|---|---|---|
 | **1** | **60** | **Two-composites distinction.** Prove rigorously & non-circularly that the observer's clause-(iii) `V_BM` is a *different object* from `h_3(O)`'s BGW non-composability. | **COMPLETE** (60-01: distinction EARNED; 60-02: `rem:converse` CONFIRMED-WITH-CAVEAT against BGW; existence side stands; no collapse, no PAUSE) |
-| 2 | 61 | **Slice satisfies clause (iii).** Verify `h_3(C_u) ≅ M_3(C)^sa` meets all four Def 1 clauses (i)–(iv) as a self-modeler in its own right (`rem:converse` gets (ii)–(iii); check (i), (iv)). Includes SymPy/matrix verification of the slice. | PENDING |
+| 2 | 61 | **Slice satisfies clause (iii).** Verify `h_3(C_u) ≅ M_3(C)^sa` meets all four Def 1 clauses (i)–(iv) as a self-modeler in its own right (`rem:converse` gets (ii)–(iii); check (i), (iv)). Includes SymPy/matrix verification of the slice. | **COMPLETE** (61-02: VALD-61-01 exact-symbolic evidence — rank 3, simple, dim 81 vs 162, product-form factorization on `M_9(C)^sa` [Phase 60 open item CLOSED]; 61-01: clause-by-clause (i)–(iv) — (i)/(iv) direct + evidence, (ii)/(iii) via corrected `rem:converse`, clause (iii) AS STATED, minimal composite the clause (iii) object, induced-by-`E` DEFERRED to Phase 62, stale "minimal=maximal" text flagged. Honest positive intrinsic verdict; no PAUSE.) |
 | 3 | 62 | **Coherent embedding (the hard part).** Show the self-modeling structure on `A` (its `V_BM`, its sequential product `a & b = sqrt(a) b sqrt(a)`) is induced by / consistent with the ambient `h_3(O)` Jordan structure **under `E`** — or exhibit a precise obstruction from the non-associative ambient. | PENDING (load-bearing, entirely unproved) |
 | 4 | 63 | **Verdict.** A clean RESTRICTION theorem, or a precisely-characterized structural obstruction. | PENDING |
 
@@ -89,6 +95,41 @@ Same content.
 
 ---
 
+## Step 2 (Phase 61) detail — current
+
+**Plan 61-02 (wave 1, VALD-61-01):** DONE.
+- **VALD-61-01:** `code/slice_clause_iii_verification.py` + `tests/test_slice_clause_iii.py`
+  (21 tests) — exact-symbolic SymPy. `M_3(C)^sa` Jordan rank 3 (three orthogonal rank-1 projective
+  units `E_11,E_22,E_33 → I_3`, frame-independent); simple (center `= C·I_3`, no nontrivial central
+  idempotent); minimal composite `M_9(C)^sa` real-dim **81 = 9·9**, maximal `M_9 ⊕ M_9` real-dim
+  **162 ≠ 81** (extra classical bit, BGW); **product-form sequential product factorizes exactly on
+  the associative `M_9(C)^sa`** — `√a b √a = (a_B&b_B)⊗(a_M&b_M)` (Phase 60 open item CLOSED, derived
+  not assumed). Re-run start of 61-01: ALL CHECKS PASS, exit 0.
+
+**Plan 61-01 (wave 2, depends on 61-02):** DONE.
+- **DERV-61-01 (clause i):** `slice-clause-iii.md` — `M_3(C)^sa` finite-dim spectral OUS with three
+  (`≥2`) orthogonal nontrivial projective units `→ I_3` (direct + cite 61-02 rank 3).
+- **DERV-61-02 (clause iv):** simple, center `= C·I_3`, no nontrivial central idempotent (direct +
+  cite 61-02).
+- **DERV-61-03 (clauses ii, iii via corrected `rem:converse`):** (ii) `V_B=V_M=M_3(C)^sa`, `φ=id`
+  order isomorphism. (iii) AS STATED — minimal composite `M_9(C)^sa` (dim 81) carries all four data
+  (product states; product effects [BGW Prop 4.5]; non-signaling; product-form sequential product
+  [cite 61-02 factorization]); minimality in full force; **CORRECTED form** — minimal a **direct
+  summand** of maximal `M_9⊕M_9` (dim 162, extra classical bit, BGW Thm 4.15/Cor 4.16); `minimal ≠
+  maximal`; minimality SELECTS the standard summand. Cite 61-02 `dim 81 vs 162`.
+- **Verdict (Phase 61):** all four clauses hold for `A = M_3(C)^sa` **intrinsically** (a self-modeler
+  in its own right). Honest positive; no clause redefined; not forced.
+- **Phase 62 deferral (explicit):** induced-by-`E` coherence from the non-associative `h_3(O)` is NOT
+  claimed; the datum-4 factorization is on the **associative** composite only; no `RESTRICTION`/`E`/
+  Peirce-restriction premise used. Phase 62 = NON-ASSOCIATIVITY guard (`E`'s interaction with `&`).
+- **Stale-text flag (explicit):** ROADMAP SC3, REQUIREMENTS DERV-61-03, contract
+  `deliv-slice-clause-iii.must_contain`, `ref-bgw.why_it_matters`, `user_asserted_anchors` still say
+  "minimal=maximal per BGW" — STALE (pre-Phase-60). Corrected direct-summand form used; bidirectional
+  guard recorded. Source of truth: `rem-converse-bgw.md`, `60-02-SUMMARY.md`.
+- **Attempt log:** `attempt-03.md`.
+
+---
+
 ## Pointers
 
 | File | Contents |
@@ -96,9 +137,12 @@ Same content.
 | `two-composites.md` | (A) `V_BM` def, (B) BGW-composite def, Categories ledger, **Independence** argument (DERV-60-01/02) |
 | `claim.md` | RESTRICTION in derivation notation; allowed inputs; prohibited moves; PAUSE conditions (DERV-60-04) |
 | `rem-converse-bgw.md` | **`rem:converse` grounded against BGW (DERV-60-03):** faithful self-model of `M_n(C)^sa`, clause (iii) via minimal composite, EXACT BGW citation, CONFIRMED-WITH-CAVEAT (minimal ≠ maximal), provenance flag |
+| `slice-clause-iii.md` | **Phase-61 clause-by-clause deliverable (DERV-61-01/02/03, citing VALD-61-01):** four separate clause blocks (i)–(iv) for `A = M_3(C)^sa` as a self-modeler in its own right; (i)/(iv) direct, (ii)/(iii) via corrected `rem:converse`; clause (iii) AS STATED (minimal composite `M_9(C)^sa`); Phase 62 deferral; stale-text flag; type/category self-audit |
 | `STATE.md` | this file — derivation-tree state |
 | `attempt-01.md` | Phase-60 attempt log (DERV-00-01): two-composites distinction (60-01) |
 | `attempt-02.md` | Phase-60 attempt log (DERV-00-01): `rem:converse`-vs-BGW grounding (60-02) |
+| `attempt-03.md` | **Phase-61 attempt log (DERV-00-01):** slice satisfies Def 1 (i)–(iv) in its own right (61-01) |
+| `code/slice_clause_iii_verification.py`, `tests/test_slice_clause_iii.py` | **VALD-61-01 (61-02):** exact-symbolic evidence — rank 3, simplicity, dim 81 vs 162, product-form factorization on `M_9(C)^sa` |
 
 ---
 
@@ -111,8 +155,14 @@ Same content.
   universal one (Thm 4.15), and clause (iii)'s *minimality* selects it — so **clause (iii) is
   auto-satisfied as written** for complex matrix algebras. Existence side of the distinction
   stands. FUTR-01 must insert the *corrected* wording (no "coincide"). See `rem-converse-bgw.md`.
-- **[61]** Does `h_3(C_u) ≅ M_3(C)^sa` satisfy clauses (i) [spectral, ≥2 orthogonal
-  projective units] and (iv) [simple] in its own right? (`rem:converse` targets (ii)–(iii).)
+- **[61] — RESOLVED (POSITIVE, intrinsic).** `h_3(C_u) ≅ M_3(C)^sa` satisfies **all four** Def 1
+  clauses as a self-modeler in its own right: (i) finite-dim spectral OUS with three (`≥2`) orthogonal
+  nontrivial projective units `→ I_3` and (iv) simple — both verified **directly** + 61-02 evidence;
+  (ii) `φ=id` order isomorphism and (iii) minimal composite `M_9(C)^sa` (dim 81) carrying all four
+  data AS STATED with minimality in full force — both via the **corrected** `rem:converse`
+  (`minimal ≠ maximal`; minimal a direct summand of maximal `M_9⊕M_9`, dim 162). See
+  `slice-clause-iii.md`. **Caveat:** this is the *intrinsic* result only; the induced-by-`E` question
+  is [62], still open.
 - **[62, the hard part]** Does restricting through the bottleneck `E` **preserve** what
   clause (iii) needs on the actual **non-associative** `h_3(O)` structure, or is there an
   obstruction? Specifically: is `E`'s interaction with the **sequential product**
