@@ -125,8 +125,10 @@ def check_B_ambient_sqrt():
     print("\n=== (B) Ambient square root (exact, non-associative) ===")
 
     # exact-square trick: X = C^2 with C an ambient element (exact entries), sqrt(X)=C.
-    C = V.generic_ambient_psd_root("sqrtB")   # the ambient "C"
-    X = V.h3o_matmul(C, C)                     # X = C*C (ambient octonionic product)
+    # register_square(C) computes X = C*C (ambient octonionic product) AND records the
+    # known principal PSD root C, so sqrt_ambient(X) returns it.
+    C = V.generic_ambient_psd_root("C")   # the ambient "C" (single-direction off-diags)
+    X = V.register_square(C)               # X = C*C (ambient), root C registered
     sqrtX = V.sqrt_ambient(X)
 
     # self-check: sqrt_ambient(X)^2 == X EXACTLY in the ambient octonionic product
