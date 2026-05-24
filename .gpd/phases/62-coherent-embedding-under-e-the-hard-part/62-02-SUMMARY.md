@@ -51,7 +51,7 @@ plan_contract_ref: ".gpd/phases/62-coherent-embedding-under-e-the-hard-part/62-0
 contract_results:
   claims:
     claim-restriction:
-      status: supported
+      status: passed
       summary: "DECISIVE half established by EXACT computation on the genuinely non-associative h_3(O): the ambient E-transport residual R = E(sqrt(X)Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX) is EXACTLY NONZERO for two distinct generic ambient (X,Y) (associator of the decisive triple = 524/9 != 0, so non-associativity is load-bearing). VERDICT = (O) AMBIENT-TRANSPORT OBSTRUCTION — E does NOT transport the sequential product coherently. Both the direct exact-residual route and the independent positional-Peirce/grade-component route AGREE (no split). The slice-internal case is the documented TRIVIAL control (leakage 0, associator 0). (O) is the EXPECTED, ACCEPTABLE outcome that REFINES RESTRICTION to coexistence-as-island (62-03), NOT independent posits / collapse. Verdict NOT forced; v11.0 cited only as historical context. Additional finding: the ambient SP is non-Hermitian (sharpens O)."
       linked_ids: [deliv-embedding, deliv-vald-62-01, test-E-properties-exact, test-ambient-sqrt-exact, test-nonassociativity-load-bearing, test-decisive-ambient-residual, test-slice-internal-control, test-peirce-crosscheck, test-exact-arithmetic, test-no-pytest, test-verdict-not-forced, ref-effros-stormer, ref-lem-bottleneck, ref-paper5-def1, ref-vald-61-01, ref-v11-leakage]
       evidence:
@@ -288,7 +288,7 @@ No physics redirection (Rule 5) or scope change (Rule 6): the (O) verdict is the
 - Numbers consistent: every §4 figure (`3797527/34560000`, `524/9`, `38593/72`, `127725937/64800`, `1033/18`, `3797/8`, `R_{11} = -2`) matches the harness output exactly; Peirce grades sum to `|R|^2`.
 - No float on the decisive path (no `import numpy`/`.evalf`/`atol`/`1e-`); no pytest import (0 literal occurrences); convention assertion lines present in both code and the derivation file; conventions match `convention_lock` (Fano e1e2=e4, u=e_7, slice h_3(C_u), exact arithmetic).
 - Domain final verification (Mathematical physics — Jordan-algebra structure): integer/structural invariants consistent (`dim 27 = 9 + 18`); the exact obstruction is genuine (exact rational `R_{11}=-2`, not round-off); positional Peirce grades partition `|R|^2`.
-- **Contract coverage:** 1 claim (claim-restriction → supported, verdict O); 2 deliverables (deliv-embedding, deliv-vald-62-01 → both passed); 9 acceptance tests (all passed); 5 references (all completed); 5 forbidden proxies (all rejected); uncertainty_markers populated; 1 decisive comparison_verdict (verdict=fail = branch (O) established, the expected outcome). All PLAN contract IDs present.
+- **Contract coverage:** 1 claim (claim-restriction → passed, verdict O); 2 deliverables (deliv-embedding, deliv-vald-62-01 → both passed); 9 acceptance tests (all passed); 5 references (all completed); 5 forbidden proxies (all rejected); uncertainty_markers populated; 1 decisive comparison_verdict (verdict=fail = branch (O) established, the expected outcome). All PLAN contract IDs present.
 
 ---
 
