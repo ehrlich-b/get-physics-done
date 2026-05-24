@@ -750,13 +750,13 @@ Plans:
 
 **Backtracking trigger:** If the coherent-embedding step requires structure NOT induced by E from h_3(O) (clause iii can only be satisfied by importing external structure) -> that is the obstruction signature: characterize it precisely (outcome O) and PAUSE for human decision per the milestone's second pause condition. A characterized obstruction is a DELIVERABLE; do NOT force preservation.
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] 62-01: TBD (set up E explicitly; state what it preserves; sequential product under E)
-- [ ] 62-02: TBD (demonstrate induction/consistency on real h_3(O) OR locate obstruction; VALD-62-01)
-- [ ] 62-03: TBD (state+prove embedding lemma OR characterize obstruction + minimal extra input)
+- [ ] 62-01-PLAN.md (wave 1) -- Set up E: h_3(O) -> h_3(C_u) explicitly (entrywise C_u-projection; positive, unital, idempotent; range = JB-subalgebra by Effros-Stormer; Jordan-product-preserving embedding; Peirce decomposition at E_11). State PRECISELY what E preserves (the Jordan product a o b) and FRAME the decisive crux: whether E is coherent with the SEQUENTIAL product a&b = sqrt(a) b sqrt(a) (a CFC, non-Jordan, non-associative triple product) is OPEN; non-associativity is the leakage channel. Keep the obstruction-or-preservation fork open; structural estimate leans toward obstruction (v11.0 precedent). Creates derivations/p5-basin-restriction/embedding-under-E.md §1-§3. (DERV-62-01)
+- [ ] 62-02-PLAN.md (wave 2, depends 62-01) -- DECISIVE COMPUTATION (TDD, exact SymPy). Build E onto h_3(C_u) exactly; compute sqrt(a) b sqrt(a) for slice a,b with sqrt(a) by CFC in the AMBIENT non-associative h_3(O); test the exact residual R = sqrt(a) b sqrt(a) - E(sqrt(a) b sqrt(a)) (R==0 => preservation P; R!=0 => leakage/obstruction O) with an independent Peirce-grade cross-check, a mandatory non-associativity exerciser, a Jordan-product control, and zero-tolerance EXACT arithmetic (exact-square trick a=c^2 keeping b generic). Verdict not forced. code/embedding_under_E_verification.py + tests/test_embedding_under_E.py + §4. (DERV-62-02, VALD-62-01)
+- [ ] 62-03-PLAN.md (wave 3, depends 62-01, 62-02, interactive) -- VERDICT on the fork, read off 62-02's exact residual: EITHER (P) state+PROVE the RESTRICTION embedding lemma (touching the non-associative structure) OR (O) characterize the obstruction precisely (the product-form sequential-product datum E cannot induce; leakage Peirce grade + e_k; minimal extra input via Hanche-Olsen induced-vs-imported) + flag PAUSE condition 2. Appends embedding-under-E.md §5, attempt-04.md (DERV-00-01), updates STATE.md; interactive checkpoint surfaces the verdict (PAUSE-2 if O). Milestone verdict left to Phase 63. (DERV-62-03, DERV-00-01)
 
 ### Phase 63: Verdict
 
