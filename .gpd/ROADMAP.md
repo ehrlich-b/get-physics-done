@@ -92,6 +92,14 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 Plans:
 - [x] 64-01-PLAN.md -- Port exact-SymPy h_3(O) engine, build 54-symbol pair layout + seven invariants, freeze R_pt, verify 5 convention locks exactly over Q, confirm single-state ring (one cohesive wave-1 plan, 6 tasks)
 
+### Phase 64.1: det_3 generic-norm-consistency fix (CORRECTIVE)
+
+**Status:** Complete (2026-05-25). Opened during `/gpd:plan-phase 65` when verification uncovered that the Phase-64 frozen `det_3` was **not** the F_4 = Aut(h_3(O))-invariant cubic norm: its cross term used `2*Re((x1*x2)*x3)` but the generic norm of the frozen Jordan product needs `2*Re((x2*x1)*x3)` (octonion factor order; `Re(x1 x2 x3) != Re(x2 x1 x3)`). The wrong form satisfies all five original locks yet is annihilated by only 30/324 inner derivations.
+
+**Fix:** one-line cross-term correction in `code/ring_lemma_verification.py`, plus a **permanent generic-norm-consistency lock (Task 7)** that certifies, on genuinely octonionic points, that `det_3` (7a) equals the Cayley-Hamilton generic norm of `jordan` and (7b) is annihilated by ALL inner derivations `[L_a,L_b]` (324/324, dim f_4 = 52). The five original locks are necessary-but-insufficient; the verification *process* was the defect and is now closed. Harness: 27/27 ALL_PASS, exit 0. Builder verified correct (reproduces single-copy orbit 24 = Spin(8)). See `.gpd/phases/64.1-det3-norm-consistency-fix/64.1-SUMMARY.md`.
+
+**Blast radius (separate audit):** the same bug is in `code/octonion_algebra.py:~2178` (used by prior phases/papers); triage via the `[L_a,L_b]`-kills-det_3 probe.
+
 ### Phase 65: f_4 Construction + Orbit-Dimension GATE
 
 **Goal:** The 52-generator infinitesimal action of f_4 = Der(h_3(O)) is built (closed under commutator, dimension 52 verified) and the exact generic orbit dimension of F_4 acting diagonally on h_3(O) (+) h_3(O) is computed as the rank over Q of the 52x54 infinitesimal-action matrix at a generic rational point. This fixes the target transcendence degree (54 - orbit_dim) and therefore the expected Jacobian rank and Hilbert-series Krull dimension for every downstream phase. The consistency anchor 54 - orbit_dim = 7 is the early go/no-go for the whole milestone.

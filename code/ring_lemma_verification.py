@@ -32,7 +32,7 @@ decisive path; see the exact-only guard in Section 7).
 CONVENTION (carry verbatim — the Jordan 1/2 and the det left-association are the
 two most error-prone choices; both are already fixed in the warm engine and are
 COPIED, not re-derived):
-# ASSERT_CONVENTION: jordan=(1/2)(AB+BA); fano e1e2=e4; det3 left-assoc Re((x1x2)x3); det3_normalization d(X,X,X)=6*det_3; coupling c=Tr(X o Y); arithmetic=exact-SymPy-over-Q; ranks=sympy.Matrix.rank(); NEVER float64 on decisive path
+# ASSERT_CONVENTION: jordan=(1/2)(AB+BA); fano e1e2=e4; det3 cross=2Re((x2x1)x3) [generic norm; Phase64.1 factor-order fix, was (x1x2)x3]; det3_normalization d(X,X,X)=6*det_3; coupling c=Tr(X o Y); arithmetic=exact-SymPy-over-Q; ranks=sympy.Matrix.rank(); NEVER float64 on decisive path
 # REP-DECOMP: 27 = 1 (trivial/Tr direction) (+) 26 (trace-free irreducible)   [for downstream (c), Phase 67]
 
 Assert-based harness (NO pytest -- the executor venv has sympy/numpy only).
@@ -57,7 +57,7 @@ References:
 
 import sys
 
-from sympy import Rational, simplify, symbols, Poly, expand, total_degree  # noqa: F401  (Poly reserved for downstream)
+from sympy import Rational, simplify, symbols, Poly, expand, total_degree, Matrix, diff  # noqa: F401  (Poly reserved for downstream)
 
 # Track overall pass/fail; the script must exit nonzero on any lock/guard failure.
 ALL_PASS = True
@@ -306,21 +306,33 @@ def Tr(X):
 
 
 def det_3(X):
-    """Cubic norm det_3(X) = N(X)   (= the T3 term; bidegree (3,0)).
+    """Cubic norm det_3(X) = N(X)   (= the GENERIC norm of (h_3(O), jordan); bidegree (3,0)).
 
         N(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2
-               + 2*Re((x1*x2)*x3)
+               + 2*Re((x2*x1)*x3)
 
-    The cross term uses LEFT-to-right association `oct_mul(oct_mul(x1,x2),x3)`
-    (the Sarrus expansion of the 3x3 octonion determinant). This is LOAD-BEARING:
-    octonions are non-associative, so (x1*x2)*x3 != x1*(x2*x3) generically.
-    Lifted VERBATIM from embedding_under_E_verification.py:573-576 (T3); the
-    formula matches octonion_algebra.py:2152 (cross-checked by the one-time
-    float-det ORACLE in main()).
+    The cross-term octonion FACTOR ORDER is `(x2*x1)*x3` (x2 BEFORE x1). This is
+    LOAD-BEARING and is the F_4 = Aut(h_3(O))-invariant generic norm: it is the
+    UNIQUE cubic form satisfying Cayley-Hamilton X^o3 - Tr(X) X^o2 + S(X) X - N I = 0
+    (S = (1/2)(Tr^2 - Tr(X o X))), equivalently the cubic form annihilated by every
+    inner derivation [L_a, L_b] of the Jordan product. Because octonions are
+    non-associative, Re(x1 x2 x3) != Re(x2 x1 x3) (they differ by the associator),
+    so the factor order genuinely matters; the cyclic rotations (x3 x2) x1 and
+    (x1 x3) x2 are equivalent (same Re), but (x1 x2) x3 is a DIFFERENT cubic form.
+
+    PHASE 64.1 CORRECTION (2026-05-25): the original freeze used `(x1*x2)*x3`
+    (a faithful port of the same factor-order bug in octonion_algebra.py:~2178,
+    the Baez-formula impl). That cubic form passes polarize_d=6N, N(diag)=abc,
+    N(I)=1 and the float-det oracle -- yet is NOT F_4-invariant (annihilated by
+    only 30 of the 324 inner derivations [L_a,L_b]). The bug was invisible to the
+    original five locks (all of which the wrong form also satisfies) and is caught
+    by the Phase-64.1 generic-norm-consistency lock (Task 7), which tests against
+    the Cayley-Hamilton norm AND inner-derivation annihilation on genuinely
+    octonionic points. See .gpd/phases/64.1-*/ for the full record.
     """
     a, b, g, x1, x2, x3 = _coord_from_octmat(X)
     n1, n2, n3 = _oct_normsq(x1), _oct_normsq(x2), _oct_normsq(x3)
-    cross = oct_mul(oct_mul(x1, x2), x3)   # LEFT-assoc: (x1 x2) x3
+    cross = oct_mul(oct_mul(x2, x1), x3)   # (x2 x1) x3 -- generic-norm factor order (Phase 64.1 fix)
     return a * b * g - a * n1 - b * n2 - g * n3 + 2 * cross[0]
 
 
@@ -626,6 +638,79 @@ def generic_rational_X():
     return h3o_from_coords(Rational(2), Rational(3), Rational(5), x1, x2, x3)
 
 
+def octonionic_points():
+    """A few GENUINELY OCTONIONIC rational points (non-real off-diagonals, several
+    nonzero imaginary components) for the generic-norm-consistency lock. The
+    original Phase-64 cross-term bug was INVISIBLE on the commutative real
+    subalgebra (diagonal / real off-diagonals); these points exercise the
+    non-associative cross term where it bites."""
+    p1 = generic_rational_X()
+    p2 = h3o_from_coords(
+        Rational(1), Rational(-2), Rational(4),
+        oct([0, Rational(1), Rational(-1), Rational(2), 0, Rational(1), 0, Rational(-1)]),
+        oct([0, Rational(2), 0, Rational(-1), Rational(1), 0, Rational(1), Rational(1)]),
+        oct([0, Rational(-1), Rational(1), 0, Rational(2), Rational(-1), Rational(1), 0]),
+    )
+    p3 = h3o_from_coords(
+        Rational(3), Rational(1), Rational(-1),
+        oct([Rational(1), 0, Rational(1), 0, Rational(-2), Rational(1), 0, Rational(1)]),
+        oct([Rational(-1), Rational(1), 0, Rational(1), 0, Rational(1), Rational(-1), 0]),
+        oct([0, Rational(1), Rational(-1), Rational(1), Rational(1), 0, 0, Rational(2)]),
+    )
+    return [p1, p2, p3]
+
+
+def cayley_hamilton_norm(X):
+    """Generic norm N(X) from the degree-3 Cayley-Hamilton relation of `jordan`:
+        X^o3 - Tr(X) X^o2 + S(X) X - N(X) I = 0,  S = (1/2)(Tr^2 - Tr(X o X)).
+    Trace of that relation gives 3 N = Tr(X^o3) - Tr(X) Tr(X^o2) + S Tr(X).
+    This is the UNIQUE F_4 = Aut(h_3(O))-invariant cubic norm of the Jordan
+    product; det_3 MUST equal it (Phase-64.1 lock)."""
+    X2 = jordan(X, X)
+    X3 = jordan(X, X2)
+    S = Rational(1, 2) * (Tr(X) ** 2 - Tr(X2))
+    return Rational(1, 3) * (Tr(X3) - Tr(X) * Tr(X2) + S * Tr(X))
+
+
+def _flat27(X):
+    """Flatten an h_3(O) element to 27 real coords on the engine-native layout
+    [alpha,beta,gamma, x1(8), x2(8), x3(8)] (inverse of X_from_symbols)."""
+    a, b, g, x1, x2, x3 = _coord_from_octmat(X)
+    return [a, b, g] + list(x1) + list(x2) + list(x3)
+
+
+def _standard_basis_27():
+    """The 27 standard basis elements E_k = X_from_symbols(e_k) of h_3(O)."""
+    out = []
+    for k in range(27):
+        v = [Rational(0)] * 27
+        v[k] = Rational(1)
+        out.append(X_from_symbols(v))
+    return out
+
+
+def jordan_L_matrix(A, basis):
+    """Left Jordan-multiplication L_A(Z) = jordan(A, Z) as a 27x27 rational matrix
+    (column j = flat coords of jordan(A, E_j))."""
+    cols = [_flat27(jordan(A, basis[j])) for j in range(27)]
+    return Matrix(27, 27, lambda r, col: cols[col][r])
+
+
+def inner_derivations():
+    """Inner derivations D_{a,b} = [L_a, L_b] = L_a L_b - L_b L_a over the standard
+    basis (a<b). Their span is Der(h_3(O)) = f_4 (dim 52); EVERY one annihilates
+    the generic norm. Returns the list of nonzero 27x27 rational matrices."""
+    basis = _standard_basis_27()
+    L = [jordan_L_matrix(basis[a], basis) for a in range(27)]
+    out = []
+    for a in range(27):
+        for b in range(a + 1, 27):
+            M = L[a] * L[b] - L[b] * L[a]
+            if not M.is_zero_matrix:
+                out.append(M)
+    return out
+
+
 def main():
     print("=" * 76)
     print("VALD-64-01 : (RING) exact-SymPy foundation — convention locks & freeze")
@@ -686,6 +771,14 @@ def main():
     # det_3 symbol is never rebound/shadowed.
     # ------------------------------------------------------------------------
     # ORACLE-FENCE-BEGIN  (the ONLY sanctioned octonion_algebra touch; NOT on the decisive path; allowlisted by the Task-5 guard)
+    # PHASE 64.1 REPURPOSE: the original port-oracle cross-checked the frozen det_3
+    # against octonion_algebra.py's float det_3. That reference is now KNOWN to carry
+    # the SAME cross-term factor-order bug ((x1 x2) x3; octonion_algebra.py:~2178), so
+    # it is no longer the correct reference. This is now a port check against the
+    # CORRECT reference -- a float evaluation of the Cayley-Hamilton generic norm --
+    # plus an INFORMATIONAL blast-radius readout of the octonion_algebra.py
+    # discrepancy. Pass/fail depends ONLY on matching the CH norm (so it survives a
+    # later octonion_algebra.py fix); exact correctness is certified by LOCK 7a.
     try:
         from octonion_algebra import det_3 as oa_det_3, H3O, Octonion  # ALIASED — never shadows exact det_3
         a_r, b_r, g_r, x1_r, x2_r, x3_r = _coord_from_octmat(Xr)
@@ -695,11 +788,18 @@ def main():
             x2=Octonion([float(v) for v in x2_r]),
             x3=Octonion([float(v) for v in x3_r]),
         )
-        _oracle_ok = abs(float(det_3(Xr)) - oa_det_3(Xr_float)) < 1e-12
+        _frozen_f = float(det_3(Xr))
+        _ch_f = float(cayley_hamilton_norm(Xr))     # the CORRECT reference
+        _oa_f = oa_det_3(Xr_float)                  # octonion_algebra.py reference (still buggy)
+        _oracle_ok = abs(_frozen_f - _ch_f) < 1e-12
+        print(f"  [blast-radius readout] frozen(corrected) det_3={_frozen_f:.6f}; "
+              f"CH-norm={_ch_f:.6f} (match={_oracle_ok}); "
+              f"octonion_algebra.py det_3={_oa_f:.6f}, delta={_frozen_f - _oa_f:.6f} "
+              f"({'MATCHES (oa fixed)' if abs(_frozen_f - _oa_f) < 1e-9 else 'DIFFERS -> oa carries the bug (STEP-2 audit)'})")
     except Exception as _oracle_exc:  # noqa: BLE001 — non-decisive; report and continue
         print(f"  [WARN] oracle unavailable ({_oracle_exc!r}); non-decisive, skipped")
         _oracle_ok = True
-    _report("ORACLE (non-decisive): exact det_3 matches float64 octonion_algebra det_3 on shared element",
+    _report("ORACLE (non-decisive): corrected det_3 matches float Cayley-Hamilton norm (correct reference; oa.py discrepancy noted)",
             _oracle_ok)
     # ORACLE-FENCE-END
 
@@ -811,6 +911,44 @@ def main():
     _degrees_match = [d for _, _, d in _single_copy] == [1, 2, 3]
     _report("SINGLE-STATE consistency: 3 single-copy generators, degrees 1/2/3, trdeg 3",
             _three_gens and _degrees_match)
+
+    # ========================================================================
+    # Task 7 (Phase 64.1): GENERIC-NORM-CONSISTENCY LOCK.
+    #
+    # WHY THIS EXISTS: the original five locks (polarize_d=6N, N(diag)=abc,
+    # N(I)=1, c(X,X)=Tr2, Fano) are NECESSARY but NOT SUFFICIENT to certify that
+    # det_3 is the F_4 = Aut(h_3(O))-invariant cubic norm -- the wrong cross-term
+    # ordering (x1 x2) x3 satisfies ALL of them yet is NOT F_4-invariant
+    # (annihilated by only 30 of 324 inner derivations). The verification PROCESS,
+    # not just the value, was the Phase-64 defect; this lock closes it. It MUST run
+    # on GENUINELY OCTONIONIC points (the bug is invisible on the commutative real
+    # subalgebra). Two independent certificates, BOTH required:
+    #   7a. det_3 == the Cayley-Hamilton generic norm of `jordan` (the unique norm).
+    #   7b. det_3 annihilated by ALL inner derivations [L_a,L_b] (= f_4, dim 52).
+    # ========================================================================
+    print("Task 7 (Phase 64.1) — generic-norm-consistency lock (octonionic points):")
+
+    # 7a. det_3 == Cayley-Hamilton generic norm at >=3 genuinely octonionic points.
+    _norm_pts = octonionic_points()
+    _norm_ok = all(simplify(det_3(P) - cayley_hamilton_norm(P)) == 0 for P in _norm_pts)
+    _report(f"LOCK 7a det_3 == Cayley-Hamilton generic norm of jordan "
+            f"[{len(_norm_pts)} octonionic pts, exact over Q]", _norm_ok)
+
+    # 7b. ALL inner derivations [L_a,L_b] annihilate det_3 (D_xi det_3 = 0) at a
+    # genuinely octonionic point. D_xi f := (grad f) . (M_xi . v); linear in xi, so
+    # annihilating every bracket == annihilating all of f_4 = span{[L_a,L_b]}.
+    _grad_detX = [diff(inv_det_X, xs[i]) for i in range(27)]
+    _pderiv = _norm_pts[1]                                  # an octonionic point
+    _pvec = Matrix(_flat27(_pderiv))
+    _grad_at = [gi.subs({xs[k]: _pvec[k] for k in range(27)}) for gi in _grad_detX]
+    _derivs = inner_derivations()
+    _killed = sum(
+        1 for _M in _derivs
+        if simplify(sum(_grad_at[i] * (_M * _pvec)[i] for i in range(27))) == 0
+    )
+    _report(f"LOCK 7b det_3 annihilated by ALL inner derivations [L_a,L_b] "
+            f"({_killed}/{len(_derivs)}, dim f_4=52) [octonionic pt]",
+            _killed == len(_derivs) and len(_derivs) == 324)
 
     print("-" * 76)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")
