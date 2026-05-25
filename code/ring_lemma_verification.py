@@ -288,9 +288,77 @@ def _oct_normsq(a):
 
 
 # ============================================================================
-# 3. Standalone invariant functions  (Task 2 — filled below)
+# 3. Standalone invariant functions
+#    Tr / Tr2 / det_3 LIFTED from the inlined T1/T3 of
+#    embedding_under_E_verification.py:567-580 (reduced_charpoly_roots).
+#    polarize_d RE-PORTED onto the exact det_3 from octonion_algebra.py:2184
+#    (formula spec only — that file is float64 and is NEVER called here).
 # ============================================================================
-# TODO(Task 2): det_3 (lifted from engine T3, left-assoc), Tr (=T1), Tr2, c, polarize_d.
+
+
+def Tr(X):
+    """Linear trace Tr(X) = alpha + beta + gamma   (= the T1 term; bidegree (1,0)).
+
+    Component [0] of each diagonal octonion is its real part (diagonals are real
+    for Hermitian X). Lifted from embedding_under_E_verification.py:571 (T1).
+    """
+    return X[0][0][0] + X[1][1][0] + X[2][2][0]
+
+
+def det_3(X):
+    """Cubic norm det_3(X) = N(X)   (= the T3 term; bidegree (3,0)).
+
+        N(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2
+               + 2*Re((x1*x2)*x3)
+
+    The cross term uses LEFT-to-right association `oct_mul(oct_mul(x1,x2),x3)`
+    (the Sarrus expansion of the 3x3 octonion determinant). This is LOAD-BEARING:
+    octonions are non-associative, so (x1*x2)*x3 != x1*(x2*x3) generically.
+    Lifted VERBATIM from embedding_under_E_verification.py:573-576 (T3); the
+    formula matches octonion_algebra.py:2152 (cross-checked by the one-time
+    float-det ORACLE in main()).
+    """
+    a, b, g, x1, x2, x3 = _coord_from_octmat(X)
+    n1, n2, n3 = _oct_normsq(x1), _oct_normsq(x2), _oct_normsq(x3)
+    cross = oct_mul(oct_mul(x1, x2), x3)   # LEFT-assoc: (x1 x2) x3
+    return a * b * g - a * n1 - b * n2 - g * n3 + 2 * cross[0]
+
+
+def Tr2(X):
+    """Quadratic trace Tr(X^2) := Tr(X o X)   (bidegree (2,0)).
+
+    MUST be Tr(jordan(X, X)) (the 1/2 Jordan product), NOT Tr(X)**2 -- Tr(X^2) is
+    a genuinely DISTINCT degree-2 invariant from (Tr X)^2 (both live in R_pt, but
+    they are different functions). The convention lock c(X,X) == Tr2(X) (Task 3)
+    is manifest precisely because both use `jordan`.
+    """
+    return Tr(jordan(X, X))
+
+
+def c(X, Y):
+    """Coupling generator c(X,Y) := Tr(X o Y) = Tr(jordan(X, Y))   (bidegree (1,1)).
+
+    F_4-invariant (NOT E_6-invariant). c(X,X) == Tr2(X) (Task-3 lock). This is the
+    object whose functional independence from R_pt is the milestone SPINE
+    (Phase 66 -- NOT decided here).
+    """
+    return Tr(jordan(X, Y))
+
+
+def polarize_d(X, Y, Z):
+    """Full polarization of the cubic norm:
+
+        d(X,Y,Z) = N(X+Y+Z) - N(X+Y) - N(X+Z) - N(Y+Z) + N(X) + N(Y) + N(Z)
+
+    With this convention d(X,X,X) = 6*det_3(X) (the HEADLINE lock, Task 3). This
+    is the symmetric trilinear polarization -- NOT the Freudenthal/sharp cross
+    X#Y (`_polarized_sharp`), which differs by trace-term shifts (sharp-vs-d
+    trap). Re-ported VERBATIM onto the exact det_3 from octonion_algebra.py:2184.
+    """
+    XpY, XpZ, YpZ = octmat_add(X, Y), octmat_add(X, Z), octmat_add(Y, Z)
+    XpYpZ = octmat_add(XpY, Z)
+    return (det_3(XpYpZ) - det_3(XpY) - det_3(XpZ) - det_3(YpZ)
+            + det_3(X) + det_3(Y) + det_3(Z))
 
 
 # ============================================================================
