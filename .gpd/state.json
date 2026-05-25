@@ -9,12 +9,12 @@
     "current_phase": "64",
     "current_phase_name": "Setup, Conventions, and Exact Engine",
     "total_phases": 6,
-    "current_plan": "-",
-    "total_plans_in_phase": null,
-    "status": "Ready to plan",
-    "last_activity": "2026-05-24",
-    "last_activity_desc": "v16.0 roadmap created (Phases 64-69). 6 requirements (BASE-01, BASE-02 GATE, RING-01 (a), RING-02 (b) SPINE, RING-03 (c), REDU-01) mapped 1:1 to phases. Gated ordering preserved: Setup \u2192 orbit-dim GATE \u2192 (b) SPINE || (c) \u2192 (a) last \u2192 (REDU) statement. Next: `/gpd:plan-phase 64`.",
-    "progress_percent": 0,
+    "current_plan": "64-01",
+    "total_plans_in_phase": 1,
+    "status": "Complete",
+    "last_activity": "2026-05-25",
+    "last_activity_desc": "Phase 64 (Setup, Conventions, Exact Engine) COMPLETE & VERIFIED \u2014 verifier status `passed`, 32/32 contract targets (28/32 independently confirmed). Frozen exact-SymPy h_3(O) foundation in `code/ring_lemma_verification.py` (assert harness, 25 checks, exit 0): headline lock polarize_d(X,X,X)=6\u00b7det_3(X) established EXACTLY over Q for the first time (was float 1.4e-13); all five convention locks pass; exact-only guard adversarially mutation-tested (catches real octonion_algebra import + np.linalg.matrix_rank, ignores provenance prose, allowlists the single fenced oracle); R_pt FROZEN; single-state ring R[Tr,Tr\u00b2,det] confirmed by citation (FK Ch. II-IV; Ch. V\u2192II-IV correction). BASE-01 satisfied. Next: `/gpd:plan-phase 65` (the orbit-dimension GATE \u2014 chain-critical; 54\u2212orbit_dim=7 is the early go/no-go).",
+    "progress_percent": 17,
     "paused_at": null
   },
   "active_calculations": [
@@ -22,7 +22,10 @@
   ],
   "intermediate_results": [
     "**O(9) quantitative (41-01)**: c_s(O(9),Z^3) = J*sqrt(3/2) = 1.225 Ja (classical), v_LR = 27eJ = 73.4 J, ratio 59.9, BW universality (no SRF number), C(r) = 16/(pi*J*r) d=3. (MEDIUM-HIGH)",
-    "**Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Chain fully self-consistent on O(9)/S^8. (HIGH)"
+    "**Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Chain fully self-consistent on O(9)/S^8. (HIGH)",
+    "**Headline convention lock (64-01)**: polarize_d(X,X,X) = 6*det_3(X) established EXACTLY over Q for the first time (det_3(Xr)=631276435001/25971865920; polarize_d=631276435001/4328644320; ratio=6 exactly; was float 1.4e-13). Engine = code/ring_lemma_verification.py (exact-SymPy, ported from embedding_under_E_verification.py). (HIGH)",
+    "**R_pt FROZEN (64-01)**: R_pt = R-subalgebra of R[h_3(O)+h_3(O)]^{F_4} gen by six generators {Tr X, Tr X^2, det X, Tr Y, Tr Y^2, det Y} = R[..X](x)R[..Y]; Tr(X)Tr(Y) IN R_pt; claim (b)='c not in R_pt' STATED (proven in Phase 66, NOT here). Frozen text reusable verbatim by Phases 66/67/68 (anti-Pitfall-7). (HIGH)",
+    "**Single-state ring confirmed (64-01)**: R[h_3(O)]^{F_4} = R[Tr, Tr^2, det] (trdeg 3, degrees 1/2/3) by citation (Faraut-Koranyi Ch. II-IV / Springer; Ch. V->II-IV correction). The 'Observable' single-frame ring = exactly the pointwise single-copy subring (one copy of R_pt). (HIGH -- citation, not re-derived)"
   ],
   "open_questions": [
     "Exact generic orbit dimension of F_4 on 27\u229527 (fixes target trdeg / expected Jacobian rank / Hilbert-series Krull dim) \u2014 COMPUTE in-harness; consistency anchor 54 \u2212 orbit_dim = 7. (Phase 65, the GATE; do NOT look it up \u2014 Spin(8)-triality back-of-envelope is a trap.)",
@@ -416,6 +419,12 @@
         "duration": "~30 min",
         "tasks": "2 tasks",
         "files": "3 files"
+      },
+      {
+        "label": "Phase 64 P64-01",
+        "duration": "~13 min",
+        "tasks": "6",
+        "files": "2"
       }
     ]
   },
@@ -544,6 +553,11 @@
       "phase": "0",
       "summary": "Started milestone v16.0: The (RING) Lemma",
       "rationale": "New milestone cycle -- consciousness-side spine (math half of the Chalmers gap), independent of v15.0. Deliverable = (RING) proved: c(X,Y)=Tr(X o Y) functionally independent of the single-state F_4-invariant ring."
+    },
+    {
+      "phase": "64",
+      "summary": "Phase 64 (Setup, Conventions, Exact Engine) COMPLETE & VERIFIED (verifier passed; 32/32 contract targets, 28/32 independently confirmed). BASE-01 satisfied.",
+      "rationale": "Frozen exact-SymPy h_3(O) foundation in code/ring_lemma_verification.py (assert harness, 25 checks, exit 0). Headline convention lock polarize_d(X,X,X)=6*det_3(X) established EXACTLY over Q for the first time (was float 1.4e-13; det_3(Xr)=631276435001/25971865920, ratio 25971865920/4328644320=6 exactly); all five convention locks pass (c(X,X)=Tr(X^2); e1*e2=e4; det_3(diag)=abc; det_3(I)=1); float-det oracle confirms port |delta|=3.55e-15. R_pt FROZEN (six generators = R[..X](x)R[..Y]; Tr(X)Tr(Y) member; claim (b)='c not in R_pt' STATED not proven). Single-state ring R[Tr,Tr^2,det] confirmed by citation (FK Ch. II-IV; Ch. V->II-IV correction). Exact-only guard adversarially mutation-tested by verifier (catches real octonion_algebra import outside fence + np.linalg.matrix_rank; ignores provenance prose; allowlists single fenced oracle) -- Phases 65-67 inherit a float-free rank guarantee. Scope discipline held: no f_4/orbit/Jacobian/Hilbert/Peirce/c-independence pulled forward; v16.0 not entangled with v15.0. CARRY-FORWARD for Phase 65: (1) reuse jordan/det_3/polarize_d/seven-invariants/54-symbol-layout + rank-routing convention (sympy.Matrix.rank() over QQ) verbatim; (2) verifier suggested hardening the exact-only guard's fence-marker matching to exact stripped-line equality before live rank work (currently 'accidentally correct', no false pass). Orchestrator patched the SUMMARY gpd_return block (was missing)."
     }
   ],
   "approximations": [],
@@ -600,10 +614,10 @@
     "v14.0 PAUSED (pending JMP referee report); resumption triggers and full inventory in `.gpd/V14-CLOSEOUT.md`. Not a v16.0 blocker."
   ],
   "session": {
-    "last_date": "2026-05-24",
-    "stopped_at": "v16.0 milestone STARTED (The (RING) Lemma \u2014 math half of the Chalmers gap; consciousness-side spine, independent of v15.0). Literature survey complete (joint F_4-invariants of 27\u229527; SUMMARY.md with embedded ROADMAP INPUT yaml). 6 requirements defined (BASE-01, BASE-02 GATE, RING-01 (a), RING-02 (b) SPINE, RING-03 (c), REDU-01). **Roadmap created: Phases 64-69** (continuing from v15.0's Phase 63), each requirement mapped 1:1, gated ordering preserved (Setup \u2192 orbit-dim GATE \u2192 (b) SPINE || (c) \u2192 (a) last \u2192 (REDU) statement). Decisive deliverable = (RING) proved with c provably independent, OR decisive NEGATIVE \u2014 both full passes (NEGATIVE-RESULT-IS-SUCCESS). v15.0 COMPLETE & ARCHIVED (tag v15.0); v14.0 remains PAUSED (see V14-CLOSEOUT.md).",
-    "resume_file": "Next action \u2014 `/gpd:plan-phase 64` (Setup, Conventions, and Exact Engine). Then 65 (the orbit-dim GATE), then 66 (the (b) SPINE) \u2014 both chain-critical."
+    "last_date": "2026-05-25",
+    "stopped_at": "Phase 64 (Setup, Conventions, and Exact Engine) COMPLETE & VERIFIED (verifier status passed). Frozen exact-SymPy h_3(O) foundation in code/ring_lemma_verification.py; all five convention locks exact over Q (headline d=6*det_3 first); R_pt frozen; single-state ring confirmed by citation; exact-only guard adversarially verified. BASE-01 satisfied (1/6 phases).",
+    "resume_file": "Next action -- `/gpd:plan-phase 65` (f_4 Construction + Orbit-Dimension GATE -- chain-critical; the consistency anchor 54-orbit_dim=7 is the milestone's early go/no-go). Reuse the Phase 64 frozen engine verbatim."
   },
   "_version": 1,
-  "_synced_at": "2026-05-25T03:45:59.939610+00:00"
+  "_synced_at": "2026-05-25T14:57:14.841129+00:00"
 }

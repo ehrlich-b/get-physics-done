@@ -7,7 +7,7 @@
 
 ### Foundational Baseline
 
-- [ ] **BASE-01**: Confirm the single-state ("Observable") ring R[h_3(O)]^{F_4} = R[Tr, Tr^2, det] (Faraut-Korányi Thm IV.2.5 / Springer; the milestone prompt's "Ch. V" attribution is imprecise — the invariant-ring fact lives in Ch. II-IV). Port and re-verify the EXACT-SymPy h_3(O) engine (octonion arithmetic over Q, Jordan product a o b = (1/2)(ab+ba), `det_3` = cubic norm with d(X,X,X) = 6·det X, Peirce projectors) from `code/embedding_under_E_verification.py`. The float64 `code/octonion_algebra.py` must NOT be used on any decisive path.
+- [x] **BASE-01**: Confirm the single-state ("Observable") ring R[h_3(O)]^{F_4} = R[Tr, Tr^2, det] (Faraut-Korányi Thm IV.2.5 / Springer; the milestone prompt's "Ch. V" attribution is imprecise — the invariant-ring fact lives in Ch. II-IV). Port and re-verify the EXACT-SymPy h_3(O) engine (octonion arithmetic over Q, Jordan product a o b = (1/2)(ab+ba), `det_3` = cubic norm with d(X,X,X) = 6·det X, Peirce projectors) from `code/embedding_under_E_verification.py`. The float64 `code/octonion_algebra.py` must NOT be used on any decisive path.
 
 - [ ] **BASE-02 (GATE)**: Compute the exact generic ORBIT DIMENSION of F_4 acting diagonally on h_3(O) ⊕ h_3(O): build the 52-generator f_4 action (g_2 derivations + inner derivations [L_A, L_B], closed under commutator, dim = 52 asserted) and compute the rank over Q of the 52×54 infinitesimal-action matrix at a generic rational point. Derive transcendence degree = 54 − orbit_dim and verify the consistency anchor **54 − orbit_dim = 7** (six pointwise + c). Compute it; do NOT look it up (the Spin(8)-triality back-of-envelope is a trap). This gates RING-01/02/03.
 
@@ -62,7 +62,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 | ----------- | --------------------------------------------- | ------ |
-| BASE-01 | Phase 64 — Setup, Conventions, and Exact Engine | Pending |
+| BASE-01 | Phase 64 — Setup, Conventions, and Exact Engine | Verified (passed 2026-05-25) |
 | BASE-02 (GATE) | Phase 65 — f_4 Construction + Orbit-Dimension GATE | Pending |
 | RING-02 (b) [SPINE] | Phase 66 — (b) Functional Independence of c | Pending |
 | RING-03 (c) | Phase 67 — (c) Degree-2 Uniqueness | Pending |

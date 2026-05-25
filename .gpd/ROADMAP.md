@@ -56,7 +56,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 
 ## Phases
 
-- [ ] **Phase 64: Setup, Conventions, and Exact Engine** -- Port the exact-SymPy h_3(O) engine, build the 54-symbol pair layout + seven base invariants, freeze R_pt, verify convention locks, confirm single-state ring (BASE-01). Phases continue from 64 (v15.0 ended at 63).
+- [x] **Phase 64: Setup, Conventions, and Exact Engine** -- Port the exact-SymPy h_3(O) engine, build the 54-symbol pair layout + seven base invariants, freeze R_pt, verify convention locks, confirm single-state ring (BASE-01). Phases continue from 64 (v15.0 ended at 63).
 - [ ] **Phase 65: f_4 Construction + Orbit-Dimension GATE** -- Build the 52-generator f_4 = Der(h_3(O)) action, compute the exact generic orbit dimension of F_4 on 27(+)27 via the 52x54 infinitesimal-action rank over Q; verify the consistency anchor 54 - orbit_dim = 7 (BASE-02). GATES Phases 66/67/68.
 - [ ] **Phase 66: (b) Functional Independence of c -- THE SPINE** -- Demonstrate c not in R_pt via the exact 7x54 Jacobian rank over Q at >=3 generic rational points AND the infinitesimal orbit-derivative argument; wire the decisive-NEGATIVE branch (RING-02).
 - [ ] **Phase 67: (c) Degree-2 Uniqueness** -- Show via Sym^2(27(+)27) branching that the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so c is the unique NEW degree-2 coupling generator mod products + pointwise (RING-03). Parallel with Phase 66.
@@ -90,7 +90,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 **Plans:** 1 plan
 
 Plans:
-- [ ] 64-01-PLAN.md -- Port exact-SymPy h_3(O) engine, build 54-symbol pair layout + seven invariants, freeze R_pt, verify 5 convention locks exactly over Q, confirm single-state ring (one cohesive wave-1 plan, 6 tasks)
+- [x] 64-01-PLAN.md -- Port exact-SymPy h_3(O) engine, build 54-symbol pair layout + seven invariants, freeze R_pt, verify 5 convention locks exactly over Q, confirm single-state ring (one cohesive wave-1 plan, 6 tasks)
 
 ### Phase 65: f_4 Construction + Orbit-Dimension GATE
 
@@ -248,7 +248,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 64. Setup, Conventions, Exact Engine | v16.0 | 0/TBD | Pending | - |
+| 64. Setup, Conventions, Exact Engine | v16.0 | 1/1 | ✓ Complete | 2026-05-25 |
 | 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 0/TBD | Pending | - |
 | 66. (b) Functional Independence of c [SPINE] | v16.0 | 0/TBD | Pending | - |
 | 67. (c) Degree-2 Uniqueness | v16.0 | 0/TBD | Pending | - |
