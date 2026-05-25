@@ -1,424 +1,208 @@
-# Methods Research: Paper 5 Revision (v14.0 — Internal-Exposition Gap Closure)
+# Methods Research — (RING) Lemma: Joint F_4-Invariants of 27 ⊕ 27
 
-**Project:** Paper 5 ("Quantum Mechanics from Self-Modeling") post-submission revision
-**Physics Domain:** Operational quantum theory / Order unit spaces / Sequential effect algebras / Euclidean Jordan algebras / Axiomatic reconstructions / Lean 4 formalization
-**Researched:** 2026-04-16
-**Confidence:** HIGH (OUS toolkit, sequential-product axiomatizations, Lean 4 print_axioms workflow), MEDIUM (Phi-wrapper defense patterns, minimal-composite adversarial responses — these are judgment calls, not theorems)
+**Domain:** Mathematical physics / invariant theory of exceptional groups (F_4 = Aut(h_3(O)) acting diagonally on the Albert algebra 27 = h_3(O))
+**Researched:** 2026-05-24
+**Confidence:** HIGH (methods); MEDIUM-HIGH (the literature already containing an explicit pair-ring presentation — see Open Question OQ-1)
+**Milestone:** v16.0, the (RING) lemma. The single-state ring R[h_3(O)]^{F_4} = R[Tr, Tr^2, det] (3 algebraically independent generators), F_4 = compact 52-dim exceptional, and the warm exact-SymPy h_3(O) harness (`code/octonion_algebra.py`: `jordan_product`, `det_3`, `peirce_V1/Vhalf/V0`) are ESTABLISHED. Do NOT re-derive. This file is methodology ONLY — survey/scout, not the proof.
 
----
+### Scope Boundary
 
-## Scope Boundary
-
-METHODS.md here covers the **proof techniques, formalization strategies, and referee-response patterns** needed to close the six internal-exposition gaps identified at jigsaw-piece review for Paper 5 (submitted JMP26-AR-00922, 2026-03-28). It does NOT cover:
-
-- The Paper 5 derivation chain itself (already in the paper and in Lean)
-- Alfsen-Shultz background (assumed — primary reference already cited)
-- vdW S1-S7 axiom statements (already cited in §3.2-3.5)
-- New physics or new theorems beyond what is needed to patch the 6 gaps
-
-Each method entry below is tagged by which revision phase (Phase 54-59) consumes it, so the planner can dispatch methods to phases without re-deriving the map.
+This file covers the analytical and numerical METHODS for proving (RING) sub-claims (a) generating set, (b) functional independence of c = Tr(X∘Y), (c) degree-2 uniqueness. Software/tooling specifics (SymPy version, which harness functions, the f_4 Lie-algebra corroboration stack) live in COMPUTATIONAL.md. The theoretical framework (Albert algebra, cubic norm, F_4 rep theory) lives in PRIOR-WORK.md. Convention conflicts and traps live in PITFALLS.md.
 
 ---
 
-## Problem Statement: The Six Gaps
+## Executive Recommendation (opinionated)
 
-| Phase | Gap | One-line Description |
-|-------|-----|---------------------|
-| 54 | §3.3 Peirce preservation | Prove `a o_s b in P_e^{0,1}` when `a, b in P_e^{0,1}` from OUS/compression primitives |
-| 55 | S4 facial structure | Either cite a standalone facial-orthogonality lemma or supply a self-contained proof |
-| 56 | Thm 5.8 upper bound | Show sequential product on W is forced to product-form `a o_s b = (a o b) + delta` |
-| 57 | Phi inert-wrapper | Resolve whether `Phi(a) = a` (identity) or Phi is a non-trivial labeling across sections |
-| 58 | Lean axiom audit | Audit 16 axioms in RadicalRelativity Paper5 module against cited literature |
-| 59 | Minimal composite defense | Adversarial defense of the "at least one qubit subsystem" assumption |
+| Sub-claim | THE direct rigorous method | Theorem that licenses it | Cost | Hardest caveat |
+|---|---|---|---|---|
+| **(a) Generating set** | Weyl polarization (char 0) of the single-copy generators {Tr, Tr², det} + the cubic-norm polarizations, with **Molien/Hilbert-series completeness check** degree-by-degree | Weyl FFT for polarization in char 0 (Weyl, *Classical Groups*; Procesi §; Kraft–Procesi Primer); finite generation by Hilbert–Nagata for reductive G | Hilbert series to degree ≤ 6: minutes in SymPy; full Derksen algorithm: heavier (Gröbner over a 106-dim+ ideal) | Polarization bounds the **degree** but does NOT say single-copy generators *alone* suffice — you MUST adjoin the genuine mixed (cross-frame) polarizations. The "fails for exceptional groups" worry is a **positive-characteristic** phenomenon, irrelevant over R. |
+| **(b) Functional independence of c** | **Jacobian-rank / orbit-dimension** demonstration on the actual algebra: show the 7×N differential matrix d(Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c) has rank 7 at a generic point | Jacobian criterion: in char 0, trdeg = generic rank of the Jacobian (Derksen–Kemper Thm; Ehrenborg–Rota / standard) | One symbolic gradient + rank at a random rational point: seconds in exact SymPy | Must be a **demonstrated** rank-7 fact on h_3(O), not asserted (reward-hacking guard). The clean orbit argument (fix generic Y, vary X over its F_4-orbit) is the *conceptual* proof; the Jacobian rank is the *machine-checkable* proof. Do BOTH. |
+| **(c) Degree-2 uniqueness** | Decompose Sym²(27 ⊕ 27) into F_4-irreps; **count trivial summands** (a character/branching computation), then identify the genuine coupling generator | Complete reducibility (F_4 compact ⇒ all reps real & completely reducible); multiplicity of trivial = dim of degree-2 invariants | Character integral / weight-multiplicity sum: minutes (LiE/Weyl character formula or harness Reynolds projection) | Must distinguish the **product** invariant Tr(X)Tr(Y) (reducible) from the **genuine** coupling Tr(X∘Y). Both are bidegree-(1,1) F_4-invariants; the claim is that mod products + single-state terms exactly one remains. |
+
+**One-line verdict on the central question (a):** In characteristic zero Weyl's polarization theorem is **valid for every linearly reductive group, exceptional groups included** — so polarizing a single-copy generating set DOES yield a generating set for any number of copies, and the single-copy degree bound transfers. The genuine content of (a) is therefore *not* "does polarization generate?" (yes, by Weyl) but "*which* polarized objects are the new generators, and is the resulting list minimal/complete?" — answered by polarizing det (the cubic norm) and checking the bigraded Hilbert series.
 
 ---
 
 ## Recommended Methods
 
-### Primary Proof-Technique Methods
+### Analytical Methods
 
-| Method | Phase | Purpose | Applicability | Limitations |
-|--------|-------|---------|---------------|-------------|
-| **Spectral-OUS preservation argument** (Alfsen-Shultz 2003, Ch. 7-8) | 54 | Prove Peirce-range invariance of `o_s` from compression axiom C1-C5 | OUS with smooth compressions and functional calculus | Requires compressions already established; does not apply if only S1+S3 available |
-| **S1+linearity collapse argument** (Gudder-Greechie 2002, Thm 3.2) | 54 | Show `a o_s b` lies in P_e^{0,1} when a does, using only sequential-product distributivity (S1) + homogeneity (S3) | Works when base theory has positive cone and idempotent e | Requires `b perp e' - e` available as witness; does not handle non-sharp effects without extra axiom |
-| **vdW three-characterizations trick** (van de Wetering 2018, arXiv:1803.08453) | 54, 56 | Reduce abstract `o_s` to Lueders form `sqrt(a) b sqrt(a)` via continuity + homogeneity + self-duality | When ambient OUS is homogeneous self-dual (Koecher-Vinberg) | Only gives Lueders on JB-algebras, not on the Peirce subspace unless subspace is itself a Jordan subalgebra |
-| **Hanche-Olsen facial symmetry** (Hanche-Olsen-Stormer 1984, Ch. 2) | 55 | Derive S4 (`a \perp b iff b \perp a`) from support-projection symmetry in JB-algebras | Applies once JB-structure is available or OUS has orthogonal decomposition | Not available for arbitrary effect algebras without JB-structure |
-| **Foulis-Holland theorem** (orthomodular lattice theory, standard) | 55 | Obtain symmetric orthogonality from commutativity of any two of {a,b,a'} | Orthomodular lattices / orthomodular posets | Requires lattice (not just effect algebra) structure |
-| **Westerbaan-Westerbaan-vdW spectral theorem** (arXiv:2004.12749) | 54, 55, 56 | For normal SEAs, decompose into Boolean + convex + purely-almost-convex, then use Jordan spectral calculus on the convex part | Normal SEA (sigma-complete, countable suprema) | Requires normality (Paper 5 has this via L4 and vdW S5); does not apply to non-normal toy models |
-| **Product-form closure via KV homogeneity** (Koecher-Vinberg theorem, vdW 2019 JMP Thm 1) | 56 | Show W closed under `o_s` + homogeneity + self-duality => W is Jordan subalgebra => o_s is product-form | W is a face of a homogeneous self-dual cone | If W is not a face (arbitrary subspace), this fails — must first show face structure |
-| **Hardy-style ancilla elimination** (Hardy 2001 §5; Masanes-Muller 2011 §IV) | 57, 59 | Show wrapper Phi drops out of physical predictions via ancilla discard | Axiomatic frameworks where tensor product is defined and Phi respects it | Must check Phi commutes with partial trace; fails if Phi introduces state-dependent labeling |
-| **Chiribella-D'Ariano-Perinotti purification** (CDP 2011 arXiv:1011.6451) | 57, 59 | Replace Phi wrapper with a canonical purification + discard; well-defined up to isomorphism | Purification postulate satisfied (CDP Axiom 6) | Paper 5 does not assume purification — may need to show derivable, or drop the pattern |
-| **Barnum-Wilce qubit-anchor argument** (Barnum-Wilce 2014 FoP) | 59 | Local tomography + one qubit subsystem => full quantum theory (Hanche-Olsen classification) | Finite-dim Jordan + local tomography + one 2-level subsystem | Only works after Jordan structure; cannot be invoked earlier in the chain |
+| Method | Purpose | Why Recommended |
+|---|---|---|
+| **Weyl polarization + restitution (char 0)** | (a) Produce a generating set of R[V⊕V]^{F_4} from R[V]^{F_4} | The single theorem that licenses building pair-invariants from single-copy ones; in char 0 it holds for ALL reductive groups (no exceptional-group obstruction). Gives the degree bound β(R[V⊕V]^G) ≤ β(R[V]^G). |
+| **Polarization of the cubic norm det(X)** | (a) Generate the mixed coupling invariants explicitly | det is degree 3; its full polarization gives the mixed terms det(X,X,Y)→Tr(X#X · Y)-type and det(X,Y,Y); the degree-2 trace form polarizes from Tr(X²) to give c = Tr(X∘Y). These ARE the cross-frame generators. |
+| **Molien / Hilbert–Poincaré series (bigraded)** | (a) Completeness check: verify a candidate generating set degree-by-degree | The Hilbert series H(s,t) = Σ dim R[V⊕V]^{F_4}_{(i,j)} sⁱtʲ is computable from the F_4 character (Molien/Weyl integration). A candidate generator list is COMPLETE iff its free/quotient Hilbert series matches H term-by-term. This is the gold-standard completeness certificate. |
+| **Jacobian criterion (char 0)** | (b) Functional/algebraic independence of c from the six pointwise generators | trdeg of {generators} = generic rank of their Jacobian matrix. c independent ⇔ rank jumps from 6 to 7 ⇔ d(c) ∉ span{d(pointwise)} on a dense open set. Exactly the machine-checkable form of the claim. |
+| **Orbit-dimension argument (F_4-orbit of X, generic Y fixed)** | (b) The conceptual, coordinate-free proof of independence | All single-state invariants of X are constant on the F_4-orbit of X; if Tr(X∘Y) varies as X ranges over that orbit (for fixed generic Y), then c cannot be a function of the pointwise subring. Made rigorous by orbit dim = dim F_4 − dim Stab(X) and F_4-equivariance of the trace pairing ⟨X,Y⟩ = Tr(X∘Y). |
+| **Sym² branching / trivial-summand count** | (c) Degree-2 uniqueness | The space of degree-2 diagonal invariants = (Sym²(27⊕27))^{F_4}; its dimension = multiplicity of the trivial rep in Sym²(27⊕27). A character/branching computation. |
+| **Reynolds-operator averaging (projection to invariants)** | (a,c) Independent corroboration: project a monomial basis onto the invariant subspace | For compact F_4, the Reynolds operator R(f) = ∫_{F_4} g·f dg projects onto invariants; its image in each bidegree gives the invariant space directly. Harness-friendly (numerical Haar average or symbolic via characters). |
 
-### Primary Formalization Methods (Lean 4)
+### Numerical / Symbolic Methods
 
-| Method | Phase | Purpose | Cost | Limitations |
-|--------|-------|---------|------|-------------|
-| **`#print axioms` single-theorem trace** | 58 | Surface all axioms transitively used by a single theorem (e.g., `Paper5.main`) | Instant per invocation; parsing 30-60 min per axiom to match to citation | Only shows *used* axioms, not *declared*; unused declared axioms hide from this tool |
-| **Axiom dependency grep** (`grep -c '^axiom '` over tree) | 58 | Enumerate declared axioms per file | Instant | Misses axioms declared via `opaque` or `constant` (Lean 4); also misses axioms inherited from transitive imports |
-| **`Lean.Elab.Print.printAxioms` API walk** | 58 | Programmatic axiom extraction for all theorems, build citation table | 1-2 days to write audit script | Requires `import Lean` and meta-code; not trivially composable with mathlib tooling |
-| **Axiom-to-citation bridge docstrings** (`/-- @axiom_source Alfsen-Shultz 2003 Prop 2.11 -/`) | 58 | Attach literature citation to each `axiom` declaration, then lint | 5-10 min per axiom once discipline is adopted; retroactive pass 30-60 min/axiom | Not enforced by Lean compiler; drift possible if reviewer edits without updating |
-| **`sorry`-scan + axiom-scan combined** | 58 | Verify both: no sorries AND every axiom has provenance | Fast; 15 min for full Paper5 tree | Does not catch *semantic* mismatches (axiom stated correctly but referring to wrong theorem in source) |
-
-### Referee-Response / Exposition Methods
-
-| Method | Phase | Purpose | Known Limitations |
-|--------|-------|---------|------------------|
-| **Adversarial "minimal-composite" stress test** (Hardy 2001, Masanes-Muller 2011 §II critiques, Kent 2024 arXiv:2405.17733 critique pattern) | 59 | Draft the reviewer's likely objection to "minimal composite" assumption; defend pre-emptively | Cannot pre-empt arbitrary referees; goal is to block *standard* objections |
-| **Dakic-Brukner subspace-axiom echo** (Dakic-Brukner 2009 arXiv:0911.0695 Axiom 2) | 59 | Frame "minimal composite" as analogous to their "elementary system equivalence"; leverages existing community acceptance | Only persuasive if audience accepts Dakic-Brukner framing; some JMP referees reject axiomatic reconstruction entirely |
-| **Operational redundancy argument** (Masanes-Galley-Muller 2019 Nat Comm) | 59 | Argue composite assumption is redundant given prior axioms; if not, state precisely what it adds | Requires showing genuine non-redundancy OR full redundancy — no middle ground survives peer review |
-| **Phi-inert notation pass** (Paper 5 exposition) | 57 | Uniform notation across §3-§6: declare Phi = id once, then drop OR commit to non-trivial Phi and audit all uses | Purely editorial but mistakes introduce logical gaps; takes 4-6 hours for a paper of Paper 5's size |
-
-### Supporting Tools
-
-| Tool | Phase | Purpose | When to Use |
-|------|-------|---------|-------------|
-| Lean 4 (v4.x compatible with RadicalRelativity toolchain) | 58 | Run `#print axioms`, rebuild Paper5 module to verify audit | Phase 58 start |
-| `leanblueprint` (if installed) | 58 | Cross-link informal LaTeX claims to Lean statements | Optional; only if time allows integration |
-| grep/ripgrep | 57, 58 | Phi-uses enumeration, axiom enumeration | Phase 57 and 58 both |
-| Zotero/BibTeX | 58 | Map each axiom to a paper + page/theorem number | Throughout audit |
-| Git blame on RadicalRelativity/*.lean | 58 | Identify *when* each axiom was added — hints at which paper-era derivation relies on it | Phase 58 if axiom origin is unclear |
+| Method | Purpose | When to Use |
+|---|---|---|
+| **Exact-SymPy symbolic gradient + rank-at-rational-point** | (b) The decisive Jacobian-rank computation | PRIMARY for (b). Build the 7 invariants symbolically on a 27-dim parametrized X,Y; form the 7×54 Jacobian; evaluate at a random rational point; check rank = 7. Exact arithmetic ⇒ no false rank from rounding. Reuse the warm `code/octonion_algebra.py` `jordan_product`/`det_3`. |
+| **Numerical Haar-average Reynolds projection** | (a,c) Cross-check the invariant dimension in low bidegree | Generate random F_4 group elements (exp of random f_4 Lie-algebra elements), average a monomial; the rank of the averaged-monomial span = dim of invariants. Fast sanity check before symbolic confirmation. |
+| **Weyl character formula / weight-multiplicity sum** | (c) Branching of Sym²(27) and Sym²(27⊕27) | Compute Sym² character then decompose against F_4 irreducible characters (or use LiE/SageMath `WeylCharacterRing`). Gives exact multiplicities. |
+| **Bigraded Molien series via residue/Weyl integration** | (a) Completeness certificate to degree ≤ 6 | Integrate det(I − s·ρ(g))⁻¹ det(I − t·ρ(g))⁻¹ over F_4; extract coefficients. Heavier; only needed if minimality/completeness of the full generator list is in scope. |
 
 ---
 
 ## Method Details
 
-### Method 1: Spectral-OUS Preservation Argument (Phase 54 primary)
+### (a) GENERATING SET of R[V ⊕ V]^{F_4}, V = 27
 
-**What:** Prove that `a, b in P_e^{0,1}` implies `a o_s b in P_e^{0,1}` using the compression machinery developed in Alfsen-Shultz 2003 Chapter 7 (Compressions) and Chapter 8 (Spectral theory).
+**The licensing theorem (Weyl polarization, characteristic zero).**
+Let G be linearly reductive over a field of characteristic 0 (compact F_4 qualifies; its complexification F_4(C) is reductive). Then for any G-module W and any m, the invariant ring R[W^m]^G is generated by **polarizations** of a generating set of R[W^n]^G where n = dim W. Procesi's FFT phrasing: *"simultaneous invariants of a large number of copies of a given representation can all be obtained from n copies by polarization."* Crucial degree corollary: if R[W]^G is generated in degree ≤ d, then so is R[W^m]^G for every m (Weyl). [Weyl, *The Classical Groups*; Procesi, *Lie Groups* Ch. on FFT; Kraft–Procesi *Classical Invariant Theory: A Primer*.]
 
-**Mathematical basis:** Let `P_e^{0,1}` denote the Peirce range of idempotent `e` (equivalently, the compressed subspace `P_e(A) = {a : a o e = a}`). Alfsen-Shultz Prop 8.4 shows that compression `P_e` commutes with bounded functional calculus. The sequential product `o_s` on a spectral OUS is definable in terms of functional calculus (vdW 2018 Thm 1), so `P_e(a o_s b) = P_e(a) o_s P_e(b)`. When `a, b` are already in `P_e^{0,1}`, their compression is the identity, giving closure.
+**Why "fails for exceptional groups" is a non-issue here (address explicitly).**
+The literature counterexamples to Weyl polarization are **positive-characteristic** phenomena: in char p there exist explicit failures, and the theorem is recovered only in sufficiently large characteristic for good G-modules (Domokos–Kemper, arXiv:1803.03602, *Weyl's polarization theorem in positive characteristic*). A second, separate subtlety is **separating vs generating**: a characteristic-free analogue holds for *separating* invariants (Draisma–Kemper–Wehlau, "Polarization of Separating Invariants", Canad. J. Math.) but not automatically for *generating* sets. **Over R (char 0), the full generating-set version of Weyl polarization holds for F_4 with no exceptional-group caveat.** The downstream planner should NOT treat exceptional-group status as an obstacle to (a); it is an obstacle only to *minimality* claims and to positive-characteristic variants we never enter.
 
-**Proof skeleton (~4-6 pages):**
-1. Recall that `o_s` on a spectral OUS satisfies `a o_s b = f(a) b f(a)` where `f = sqrt` (vdW 2018).
-2. Note that `P_e` is a positive projection (Alfsen-Shultz 7.2.3).
-3. Apply Alfsen-Shultz 8.4.5 (compression commutes with functional calculus on the compressed subspace).
-4. Conclude: if `a, b` are in range of `P_e`, so is `sqrt(a) b sqrt(a) = a o_s b`.
-5. Verify zero and top elements preserved via linearity.
+**What polarization actually produces (the real work of (a)).**
+Single-copy generators: Tr(X) (deg 1), Tr(X²) = trace form (deg 2), det(X) = cubic norm N(X) (deg 3). Polarizing each in the diagonal V⊕V action:
+- Tr is linear → polarization gives Tr(X), Tr(Y) (no new mixed term).
+- Tr(X²) (the quadratic trace form Q(X)=Tr(X²)) polarizes to the **symmetric bilinear trace form** T(X,Y) = Tr(X∘Y) — i.e. **c = Tr(X∘Y) is exactly the (1,1)-polarization of the single-copy degree-2 generator.** This is the lowest-degree genuine coupling generator.
+- det(X) (cubic) polarizes to mixed cubics: the (2,1) term ~ Tr(X# ∘ Y) (where X# is the Freudenthal sharp/adjoint, det's gradient) and the (1,2) term ~ Tr(X ∘ Y#). These are the higher coupling generators.
 
-**Known failure modes:**
-- Fails if OUS is not spectral (vdW S7 not holding). Paper 5 has S7 via spectral convex effect algebra machinery — VERIFY before invoking.
-- Fails if `e` is not a *sharp* idempotent in the compression sense (Alfsen-Shultz 7.1). Paper 5's `e` arises from L4 and is sharp.
+**FFT/SFT framing.** First Fundamental Theorem (FFT): the listed polarized invariants generate. Second Fundamental Theorem (SFT): the *relations* among them (e.g. how products of low-degree couplings re-express higher ones; the syzygies of the cubic-norm polarizations). For (RING) only the FFT (generation) and a degree-2 *minimality* statement are needed; the full SFT (complete syzygy ideal) is OUT OF SCOPE unless the planner wants the entire ring presentation.
 
-**Benchmark:** Standard in JB-algebra literature. Analogous preservation for the Jordan product is Alfsen-Shultz Lemma 2.5.2; for `o_s`, vdW 2018 Thm 2 gives the same structure.
+**Completeness certificate (the Hilbert-series check — recommended, decisive).**
+Compute the bigraded Hilbert series H(s,t) = Σ_{i,j} dim (R[V⊕V]^{F_4})_{(i,j)} sⁱ tʲ by Molien/Weyl integration over F_4. For a candidate generator list with assigned bidegrees, the generated subring has a predictable (rational) Hilbert series; **the list is complete iff the two series agree coefficient-by-coefficient up to the Noether degree bound.** This converts "did we find all generators?" into a finite, verifiable arithmetic check. The single-state series is already known: R[Tr,Tr²,det] ⇒ 1/((1−s)(1−s²)(1−s³)). The planner should target verifying H(s,t) through total degree ≤ 6 (enough to confirm the degree-2 coupling c and the degree-3 mixed cubics, and that no surprise generator hides at degrees 4–6).
 
-**References:**
-- Alfsen-Shultz, *Geometry of State Spaces of Operator Algebras*, Birkhauser 2003, Ch 7-8
-- van de Wetering, "Three characterisations of the sequential product", JMP 59, 082202 (2018), arXiv:1803.08453
+**Computational invariant theory (Derksen–Kemper) — the algorithmic fallback.**
+If a from-scratch generating set is wanted (rather than verifying the polarization candidate), **Derksen's algorithm** computes a generating set for R[W]^G for linearly reductive G via the *Derksen ideal* (the ideal of the graph of the action), eliminate-and-Reynolds. Practical for F_4 only in low degree; the Molien-series + Reynolds-operator route is simpler but yields **redundant** generators (Derksen–Kemper, *Computational Invariant Theory*, Springer; Kemper ISSAC 2010 tutorial). RECOMMENDATION: do NOT run the full Derksen algorithm; use polarization-to-produce + Hilbert-series-to-verify. Cite Derksen–Kemper as the authority that the problem is algorithmically decidable and that the redundancy of the Reynolds route is expected.
 
----
+**SymPy + f_4 corroboration path for (a).** (i) Symbolically build the candidate generators (Tr, Tr², det, c=Tr(X∘Y), the two mixed cubics) using `jordan_product`/`det_3`. (ii) Verify each is F_4-invariant by checking its derivative annihilates under all 52 f_4 generators (infinitesimal invariance: D_ξ f = 0 for ξ ∈ f_4 — much cheaper than finite group elements). (iii) Compute the bigraded invariant dimension in each low bidegree by Reynolds projection (numerical Haar average or character integral) and match against the candidate list.
 
-### Method 2: S1+Linearity Collapse (Phase 54 fallback)
+### (b) FUNCTIONAL INDEPENDENCE of c(X,Y) = Tr(X∘Y) from the six pointwise generators
 
-**What:** If the full spectral OUS toolkit is unavailable, use a weaker argument from only S1 (sequential-product distributivity) + S3 (one-sided homogeneity) + linearity.
+**The precise notion.** "Functional independence" here = **algebraic independence over R is not the claim**; the claim is the weaker, exactly-right statement: *c is not a polynomial (equivalently, by Schwarz/Luna, not a smooth function) in the six pointwise generators.* The clean formalization: the six pointwise invariants g_1,…,g_6 generate a subring R_pt ⊂ R[V⊕V]^{F_4}; c ∉ R_pt. The transcendence-degree / Jacobian formulation makes this checkable.
 
-**Mathematical basis:** Gudder-Greechie "Sequential products on effect algebras" (RMP 49, 2002) Theorem 3.2: if the sequential-product effect algebra admits a linear extension to a real vector space and S1 holds, then `o_s` preserves any subspace closed under (+, 0, e).
+**Jacobian criterion (the machine-checkable proof — char 0).**
+THEOREM (Jacobian criterion, char 0): for polynomials f_1,…,f_k on an affine space, trdeg_R R(f_1,…,f_k) = max rank of the Jacobian matrix [∂f_i/∂x_j] over the variety; equivalently = rank at a generic (dense-open) point. [Standard; Derksen–Kemper *Computational Invariant Theory* §; Ehrenborg–Rota; in char 0 the "large enough characteristic" caveat is vacuous.]
 
-**Proof skeleton (~2-3 pages):**
-1. Start with `a in P_e^{0,1}`. Expand `a = a o_s e` using idempotency.
-2. Apply S1: `(a + a') o_s b = a o_s b + a' o_s b` whenever `a perp a'`.
-3. Use the Peirce relation `a + (e - a) = e` to decompose b relative to e.
-4. Sum terms; the only surviving piece lies in P_e^{0,1}.
+Application: let the seven functions be (g_1,…,g_6, c) on R^{54} (coordinates of X,Y ∈ h_3(O), each 27-dim). Form the 7×54 Jacobian J. Then **c is not a function of g_1,…,g_6 iff rank J = 7 generically** (the gradient d(c) escapes the 6-dim span of d(g_1),…,d(g_6) on a dense set). Since the six pointwise generators already have trdeg 6 (R[Tr,Tr²,det] each ⇒ 3+3, algebraically independent across the two blocks), rank-7 of the full Jacobian is exactly "c adds a new functionally independent direction."
 
-**Known failure modes:**
-- Requires `o_s` to respect effect-algebra sum on the left argument *and* right argument. vdW S1 only guarantees right-linearity; you may need to assume or derive left-linearity separately.
-- Does NOT give the full product-form `a o_s b = a o b`; only gives preservation. If Phase 54 also needs the product-form identity, must invoke Method 1 or 3.
+**The exact recipe (hand this verbatim to the executor):**
+1. Parametrize X = Σ x_a B_a, Y = Σ y_b B_b in the 27-dim basis {B_a} of h_3(O) (3 real diagonal + 3 octonionic off-diagonal = 3 + 3·8 = 27). 54 symbolic variables.
+2. Build symbolically (exact SymPy): g_1=Tr(X), g_2=Tr(X²)=Tr(X∘X), g_3=det_3(X)=N(X), g_4=Tr(Y), g_5=Tr(Y²), g_6=det_3(Y), and c=Tr(X∘Y). (Tr(X∘Y) = the trace bilinear form T(X,Y) = T(XY); for Hermitian X,Y, Tr(X∘Y) = Re Tr(XY).)
+3. Jacobian J = Matrix([[diff(f, v) for v in vars] for f in [g1,…,g6,c]]) — 7×54.
+4. Pick a random **rational** point (x_a,y_b) ∈ Q^{54} avoiding the discriminant locus; substitute; `J.subs(...).rank()` in exact arithmetic.
+5. Assert rank = 7. (If rank = 6 at a generic rational point, c IS in the pointwise subring → the decisive NEGATIVE; report honestly.)
 
-**When to use:** Only if the paper cannot or does not want to invoke the full Alfsen-Shultz spectral machinery in §3.3 for exposition reasons.
+**The clean orbit argument (the conceptual proof — do this TOO, it explains *why*).**
+Fix a generic Y. Let X range over its F_4-orbit O_X = {ρ(g)X : g ∈ F_4}. Every single-state invariant of X is, by definition of invariant, **constant** on O_X: Tr(gX)=Tr(X), Tr((gX)²)=Tr(X²), det(gX)=det(X). The single-state invariants of Y are fixed (Y fixed). So if c were a function of the six pointwise generators, c would be CONSTANT on O_X (for fixed Y). But c(gX, Y) = Tr((gX)∘Y) = ⟨ρ(g)X, Y⟩_T where ⟨·,·⟩_T is the F_4-**equivariant** trace pairing; equivalently c(gX,Y) = ⟨X, ρ(g)⁻¹Y⟩_T, which varies as g moves Y′=ρ(g)⁻¹Y around its orbit and pairs against X. **It is not constant** for generic X,Y because the orbit O_X is positive-dimensional (dim O_X = dim F_4 − dim Stab(X) = 52 − dim Stab(X) > 0 for non-fixed X) and the trace form is non-degenerate. Contradiction ⇒ c ∉ R_pt. ∎(sketch)
 
-**References:**
-- Gudder, Greechie, "Sequential products on effect algebras", Reports on Mathematical Physics 49, 87-111 (2002)
-- Gudder, Greechie, "Uniqueness and order in sequential effect algebras", IJTP 44, 755-770 (2005), DOI: 10.1007/s10773-005-7054-y
+**What makes the orbit argument rigorous (the load-bearing facts to verify, not assert):**
+- **Orbit dimension.** dim O_X = 52 − dim Stab_{F_4}(X). For a *generic* X (regular semisimple-type element of the Jordan algebra), Stab is the small subgroup fixing X; the orbit is positive-dimensional. Verify by computing the rank of the infinitesimal action map ξ ↦ ξ·X (ξ ∈ f_4, 52-dim) at a generic X — its rank = dim O_X. Harness check: build the 27×52 matrix [B_a-components of ξ_k · X], compute its rank at a random rational X.
+- **Trace-form equivariance & non-degeneracy.** T(gX, gY) = T(X,Y) for g ∈ F_4 (F_4 preserves the trace form — this is part of F_4 = automorphisms preserving N and T), and T is non-degenerate on h_3(O) (the 27 is real/self-dual for F_4; T is THE invariant pairing). Both are standard (Springer–Veldkamp; Faraut–Koranyi Ch. V) and harness-verifiable.
+- **Constancy-on-orbit of pointwise invariants** is definitional (invariance), no computation needed.
 
----
+**SymPy + f_4 corroboration path for (b).** Two independent confirmations, BOTH required by the reward-hacking guard:
+1. *Jacobian route* (algebraic): rank-7 of the 7×54 Jacobian at a random rational point (above). Decisive and self-contained.
+2. *Orbit route* (geometric): (i) rank of the infinitesimal-action matrix ξ·X = dim O_X > 0 at generic X; (ii) symbolically/numerically evaluate c(exp(tξ)X, Y) and show d/dt|_0 ≠ 0 for some ξ ∈ f_4 — i.e. c genuinely varies along the orbit while the six pointwise invariants have zero derivative along the same ξ. The pair (nonzero orbit-derivative of c, zero orbit-derivative of every pointwise generator) IS the independence, demonstrated on the actual algebra.
 
-### Method 3: Hanche-Olsen Facial Symmetry (Phase 55 primary)
+### (c) DEGREE-2 UNIQUENESS — span{Tr(X²), Tr(Y²), Tr(X∘Y)}
 
-**What:** Derive S4 (orthogonality-is-symmetric) from the Hanche-Olsen-Stormer facial structure theorem: orthogonal faces have orthogonal support projections, which are symmetric operators.
+**The method: decompose Sym²(27 ⊕ 27) and count trivial summands.**
+Degree-2 polynomial functions on 27⊕27 = Sym²((27⊕27)*) ≅ Sym²(27⊕27) (self-dual over F_4). The F_4-invariant degree-2 functions = the trivial-rep isotypic component. Its dimension = multiplicity of **1** in Sym²(27⊕27).
 
-**Mathematical basis:** In a JB-algebra, every norm-closed face F corresponds to a unique projection p with `F = p^perp` (Hanche-Olsen-Stormer, *Jordan Operator Algebras*, Pitman 1984, Prop 2.1.3). The orthogonal complement operation on projections is an involution (p -> e - p), so `a perp b iff b perp a`.
+**The branching arithmetic (dimension-checked here; the executor confirms with characters):**
+- 27 = **1 ⊕ 26** as F_4-reps (the 27 of E_6 restricts to F_4 as trivial ⊕ 26; the 1 is the Tr direction, the 26 the trace-free part). [PRIOR-WORK.md.]
+- Sym²(27) decomposes as **2·(1) ⊕ 2·(26) ⊕ 324**, dim 378 ✓ (since Sym²(26) = 1 ⊕ 26 ⊕ 324, dim 351 = 1+26+324 ✓, and Sym²(1⊕26)=Sym²(1)⊕(1⊗26)⊕Sym²(26)=1⊕26⊕(1⊕26⊕324)). **Trivial multiplicity in Sym²(27) = 2** → the two single-state degree-2 invariants Tr(X)² and Tr(X²). (324 is a genuine F_4-irrep; 1,26,52,273,324,1053,1274 are the small F_4 irreps — confirmed, Wikipedia F_4 / Slansky.)
+- For the **diagonal pair**: Sym²(27⊕27) = Sym²(27)_{XX} ⊕ (27⊗27)_{XY} ⊕ Sym²(27)_{YY}. Trivial multiplicities: 2 (XX) + 2 (YY) + mult_1(27⊗27) (the pure cross / bidegree-(1,1) part). And **mult_1(27⊗27) = dim Hom_{F_4}(27,27) = dim End_{F_4}(1⊕26) = 1+1 = 2** (Schur: one scalar for the 1, one for the 26). So the bidegree-(1,1) invariants are **2-dimensional**: spanned by **Tr(X)Tr(Y)** (the reducible product) and **Tr(X∘Y) = c** (the genuine coupling).
+- Total degree-2 diagonal invariants = 2 + 2 + 2 = **6**: {Tr(X)², Tr(X²), Tr(Y)², Tr(Y²), Tr(X)Tr(Y), Tr(X∘Y)}.
 
-**Proof skeleton (~1-2 pages):**
-1. Given `a, b in P_e^{0,1}` with `a perp b` (meaning `a o_s b = 0`).
-2. Show a and b have disjoint support projections (Hanche-Olsen 2.1.3).
-3. Disjoint support is manifestly symmetric in a JB-algebra.
-4. Therefore `b o_s a = 0`.
+**The uniqueness statement, made precise.** Modulo products of degree-1 invariants (Tr(X)², Tr(Y)², Tr(X)Tr(Y)) and the single-state degree-2 invariants (Tr(X²), Tr(Y²)), the space of degree-2 invariants is **exactly 1-dimensional**, spanned by c = Tr(X∘Y). Equivalently: the bidegree-(1,1) genuine-coupling space (after removing the reducible product Tr(X)Tr(Y)) is span{Tr(X∘Y)}, dimension 1. THAT is "c is the unique degree-2 coupling generator (mod scale + pointwise terms)." [Matches PROJECT.md sub-claim (c).]
 
-**Known failure modes:**
-- Requires JB-algebra structure. At the §3.3-§3.4 stage of Paper 5, the JB structure is DERIVED (not assumed) — may be circular if invoked too early. CHECK phase ordering.
-- Alfsen-Shultz 2003 Prop 2.5.6 gives a cleaner version using order-theoretic faces without invoking Jordan product; prefer this formulation if §3.3 is pre-Jordan.
-
-**When to use:** If the paper is willing to cite a standalone lemma. If not, use Method 4.
-
-**References:**
-- Hanche-Olsen, Stormer, *Jordan Operator Algebras*, Pitman 1984, §2.1
-- Alfsen-Shultz 2003, Ch. 2, §2.5 (order-theoretic faces)
+**SymPy + character corroboration path for (c).** (i) Compute the Sym²(27) and Sym²(27⊕27) characters via the Weyl character ring (SageMath `WeylCharacterRing('F4')`, or LiE) and read off the trivial multiplicity = 2 and 6 respectively — the authoritative branching. (ii) Independently, harness-side: enumerate the degree-2 monomial basis in the 54 variables, project with the Reynolds operator (numerical Haar average over F_4, or symbolic via the f_4 infinitesimal-invariance kernel: solve D_ξ f = 0 for all 52 ξ on the 1485-dim degree-2 monomial space), and confirm the invariant space is 6-dimensional with the explicit basis above. The infinitesimal-kernel route is exact and avoids group sampling.
 
 ---
 
-### Method 4: Foulis-Holland Symmetric Orthogonality (Phase 55 fallback)
+## Software Stack
 
-**What:** Pure order-theoretic / orthomodular-lattice proof of S4 that does not invoke Jordan structure.
+(Tool/version specifics → COMPUTATIONAL.md. Summary only.)
 
-**Mathematical basis:** Foulis-Holland theorem for orthomodular posets: if any two of `{a, b, a'}` commute, then the sublattice they generate is distributive, and orthogonality relations are symmetric.
-
-**Proof skeleton (~1 page):**
-1. In the projection lattice of a spectral OUS, `a perp b` means `a <= b'` (order-theoretic).
-2. Apply orthomodular law: `a <= b' iff b <= a'`.
-3. By definition `b <= a' iff b perp a`.
-
-**Known failure modes:**
-- Requires effect algebra to embed into an orthomodular lattice via sharp elements. Paper 5's `P_e^{0,1}` consists of sharp effects by construction (they are in the idempotent-compressed subspace), so this is automatic.
-- If `a, b` are not sharp, the Foulis-Holland argument does not directly apply. Paper 5 gap is stated for sharp-effect subspace, so no issue here.
-
-**When to use:** Preferred for §3.3-3.4 exposition if the paper wants to minimize forward references to Jordan structure.
-
-**References:**
-- Kalmbach, *Orthomodular Lattices*, Academic Press 1983, Ch. 2
-- Beran, *Orthomodular Lattices*, Reidel 1985 (alternative treatment)
-
----
-
-### Method 5: Product-Form Closure via Koecher-Vinberg (Phase 56 primary)
-
-**What:** Show that the sequential product on a subspace W is forced to product-form (i.e., `a o_s b = sqrt(a) b sqrt(a)`), not just preserved in W.
-
-**Mathematical basis:** van de Wetering 2019 JMP "Sequential product spaces are Jordan algebras" (arXiv:1803.11139) Theorem 1: A finite-dimensional order unit space with a continuous sequential product is homogeneous and self-dual, hence by Koecher-Vinberg is a Euclidean Jordan algebra. The sequential product is then uniquely `sqrt(a) b sqrt(a)`.
-
-**Proof skeleton for Thm 5.8 upper bound (~3-5 pages):**
-1. W is a subspace of the OUS A, equipped with restricted `o_s`.
-2. Verify W inherits S1-S7 from A (direct check).
-3. Apply vdW 2019 Thm 1: W is a Euclidean Jordan algebra.
-4. Apply vdW 2018 Thm 2: `o_s|_W = sqrt(a) b sqrt(a)`.
-5. Therefore `a o_s b = a o b + delta` where `a o b` is the Jordan product and delta is the symmetric-square correction (explicit formula in vdW 2019).
-
-**Known failure modes:**
-- Requires W to be a *face* of A, not an arbitrary subspace. Paper 5's W is constructed as the Peirce range of a specific idempotent, which IS a face — verify this claim explicitly.
-- Finite-dimensional hypothesis is essential. vdW 2019 Thm 1 is infinite-dim only in restricted settings.
-
-**Benchmark:** This is the standard argument used in the operational-QM reconstruction literature (Barnum-Wilce 2014, CDP 2011 all invoke analogous KV-style closures).
-
-**References:**
-- van de Wetering, "Sequential product spaces are Jordan algebras", JMP 60, 062201 (2019), arXiv:1803.11139
-- Faraut, Koranyi, *Analysis on Symmetric Cones*, OUP 1994, Ch. III (KV theorem)
-
----
-
-### Method 6: Hardy-Style Ancilla Elimination (Phase 57 primary)
-
-**What:** Resolve the Phi inert-wrapper ambiguity by showing Phi either (a) drops out of all observational predictions (inert) or (b) is genuinely needed and affects predictions in a specified way.
-
-**Mathematical basis:** Hardy 2001 §5.4 (and Masanes-Muller 2011 §IV) shows that any transformation Phi acting on a system S "labeled" by auxiliary data can be eliminated from predictions iff:
-- Phi commutes with all allowed measurements on S (i.e., `M(Phi(rho)) = M(rho)` for all measurements M), OR
-- Phi is a relabeling of fiducial outcomes that does not affect probability structure.
-
-**Proof skeleton (4-6 hour editorial pass):**
-1. Enumerate all uses of Phi in Paper 5 (Phase 57 preliminary task: `grep -n 'Phi' paper5.tex`).
-2. For each use, classify: (a) Phi in a measurement prediction (`P(outcome | Phi(rho))`), (b) Phi in a state-preparation step, (c) Phi in a notational wrapper for exposition.
-3. If (a): verify Phi commutes with the measurement — if so, Phi drops out.
-4. If (b): verify Phi does not change the equivalence class of the state — if so, Phi is inert.
-5. If (c): either replace with explicit identity or commit to non-trivial Phi with explicit justification for each occurrence.
-
-**Known failure modes:**
-- Danger of "Phi = id sometimes, not others" in prose — this is exactly the gap. Must be globally consistent.
-- If Phi is a self-modeling projection (plausible given Paper 5's setup), it is NOT trivially the identity on the full state space, only on a sub-state-space. Must state which one.
-
-**When to use:** Phase 57 central method.
-
-**References:**
-- Hardy, "Quantum Theory From Five Reasonable Axioms", quant-ph/0101012 (2001), §5
-- Masanes, Muller, "A derivation of quantum theory from physical requirements", NJP 13, 063001 (2011), arXiv:1004.1483
-
----
-
-### Method 7: Lean 4 Axiom Audit Workflow (Phase 58 primary)
-
-**What:** Systematic audit of the 16 axioms in RadicalRelativity/Paper5 module against cited Alfsen-Shultz and van de Wetering sources.
-
-**Mathematical basis:** Lean 4 tracks axiom dependencies transitively. `#print axioms <theorem>` lists all axioms actually used in the proof term. Standard mathlib axioms (`Classical.choice`, `propext`, `Quot.sound`) are expected and accepted; any other axiom must have a literature citation.
-
-**Audit procedure (estimated 30-60 min per axiom, so 8-16 hours total):**
-
-```
-Step 1 (15 min): Identify Paper5 entry theorem(s).
-  cd ~/repos/research/lean/
-  # Find theorems tagged as Paper 5 top-level results.
-  grep -n '^theorem\|^lemma' RadicalRelativity/*.lean | grep -i 'paper5\|main\|quantum'
-
-Step 2 (5 min per theorem): Extract axiom list.
-  In Lean: `#print axioms Paper5.main`
-  Record output.
-
-Step 3 (30-60 min per axiom): Match to literature.
-  For each axiom listed:
-  - Read its docstring (if any) in the .lean file.
-  - Find its declaration site: `grep -rn '^axiom <name>' RadicalRelativity/`
-  - Look up the cited source; verify the axiom matches the statement in the paper/book.
-  - If no docstring exists, trace back through git blame to find the derivation context.
-
-Step 4 (15 min): Categorize.
-  - STANDARD: Classical.choice, propext, Quot.sound — OK, no citation needed.
-  - CITED: axiom has literature citation that matches its content — OK.
-  - UNCITED-DERIVABLE: axiom could be proved in Lean but was axiomatized for speed — flag for Phase 58 follow-up.
-  - UNCITED-UNJUSTIFIED: axiom has no citation and no clear derivation — BLOCKER for referee response.
-
-Step 5 (30 min): Write audit report.
-  Table: axiom name | statement | citation | category | action.
-```
-
-**Known failure modes:**
-- `#print axioms` only shows axioms *reached* by the proof term; axioms declared in a file but not used by the top-level theorem are invisible. Cross-check with `grep '^axiom '` on the tree.
-- Lean 4's `opaque` and `constant` declarations behave like axioms but print differently. Verify: `grep -rn '^opaque\|^constant' RadicalRelativity/Paper5*`.
-- Axioms in transitively imported files (e.g., deep in mathlib or in Octonions.lean) count. The 16 number may be Paper5-direct; full transitive count is larger.
-
-**Tooling:**
-```bash
-# Paper5 axiom enumeration (run at Lean project root):
-lake build
-# Then in a Lean file add:
-# #print axioms Paper5.main_theorem
-# #print axioms Paper5.quantum_emergence
-
-# Fast declared-axiom count:
-grep -c '^axiom ' RadicalRelativity/*.lean | grep -v ':0'
-```
-
-**References:**
-- Lean 4 manual, "Axioms and Computation" chapter, https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/
-- Mathlib4 axiom-hygiene docs (community conventions)
-- Reference axiom-audit from a recent Lean physics formalization: "A Formalization of the Generalized Quantum Stein's Lemma in Lean", arXiv:2510.08672 (October 2025) — good template for Paper 5 audit style
-
----
-
-### Method 8: Adversarial Minimal-Composite Defense (Phase 59 primary)
-
-**What:** Pre-empt the standard referee objection that "you need a subsystem of dimension >= 2 somewhere; why is this not sneaking in quantum structure?".
-
-**Mathematical basis:** Three axiomatic frameworks handle this:
-
-1. **Hardy 2001**: posits an "N-level system" for each N, with N=2 as the smallest non-trivial case. Defense: all physical theories need SOME non-trivial system; N=2 is minimal. No circularity because the N=2 system is characterized by operational axioms, not by quantum structure.
-
-2. **Dakic-Brukner 2009**: uses the "subspace axiom" — all elementary systems of the same information capacity are equivalent. Defense: this is an *equivalence* assumption, not an existence assumption; existence comes from operationally asking "can we prepare any state?".
-
-3. **Masanes-Muller 2011 + Masanes-Galley-Muller 2019**: uses "continuous reversibility" applied to all systems uniformly. Defense: minimal composite is derivable from non-signaling + information capacity.
-
-4. **Barnum-Wilce 2014**: requires "at least one qubit subsystem" as a hypothesis in their classification theorem. They defend it as: "this is not an additional physical assumption beyond local tomography + Jordan structure — it is the smallest system for which the classification is non-trivial".
-
-**Defense pattern for Paper 5 (~2-3 pages of prose):**
-1. State the minimal-composite assumption precisely.
-2. Compare to Hardy 2001 N=2 / Dakic-Brukner subspace / Masanes-Muller continuous-reversibility / Barnum-Wilce qubit-subsystem — note that all extant operational reconstructions require something analogous.
-3. Show that the Paper 5 assumption is the WEAKEST of these (or equivalent to the weakest), with citation.
-4. Address the Kent-style objection (Kent 2024 arXiv:2405.17733): does the assumption sneak in "quantumness"? Answer must be "no, because it is characterized by [operational property X] which is satisfied by classical theories too".
-5. Optional: show that assumption is *necessary* by exhibiting a theory where it fails.
-
-**Known failure modes:**
-- Weakness: if reviewer rejects axiomatic reconstruction as a genre, this defense cannot persuade.
-- Must avoid claiming the assumption is "obvious" — every published reconstruction has had to defend it, and "obvious" is a red flag.
-
-**References:**
-- Hardy, quant-ph/0101012 (2001), §3-4
-- Dakic, Brukner, "Quantum Theory and Beyond: Is Entanglement Special?", arXiv:0911.0695 (2009)
-- Masanes, Muller, NJP 13, 063001 (2011), arXiv:1004.1483
-- Masanes, Galley, Muller, "The measurement postulates of quantum mechanics are operationally redundant", Nat Comm 10, 1361 (2019)
-- Barnum, Wilce, "Local Tomography and the Jordan Structure of Quantum Theory", FoP 44, 192-212 (2014), arXiv:1202.4513
-- Kent, "Contradictions or Curiosities? On Kent's Critique of the Masanes-Galley-Muller Derivation", arXiv:2405.17733 (2024) — critique template; Paper 5 must anticipate similar objections
-- *Defending the quantum reconstruction program*, European J. Philosophy of Science (2024), https://link.springer.com/article/10.1007/s13194-024-00608-2
+| Layer | Tool | Role in (RING) |
+|---|---|---|
+| Exact algebra | SymPy (warm harness `code/octonion_algebra.py`) | (b) Jacobian rank, (a) invariance checks, (c) infinitesimal-kernel — all exact rational |
+| Lie-algebra structure | f_4 generators (52-dim derivation algebra of h_3(O); buildable from harness Peirce/automorphism data) | (b) orbit dimension via infinitesimal action; (a,c) infinitesimal invariance D_ξ f = 0 |
+| Representation theory | SageMath `WeylCharacterRing('F4')` or LiE (cross-check only) | (c) Sym² branching, (a) Hilbert-series coefficients |
+| Numerical cross-check | NumPy (random F_4 group elements via exp of random f_4) | Reynolds-projection sanity checks before exact confirmation |
 
 ---
 
 ## Alternatives Considered
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Peirce preservation proof (Phase 54) | Alfsen-Shultz spectral compression (Method 1) | Direct Jordan-algebra computation | Would require pulling Jordan structure forward in the derivation chain; AS method stays in OUS/compression primitives, preserving the ordering of the derivation |
-| S4 proof (Phase 55) | Foulis-Holland (Method 4) | Hanche-Olsen facial (Method 3) | HO requires JB-structure which is downstream in Paper 5's derivation chain; FH is pre-Jordan |
-| Thm 5.8 upper bound (Phase 56) | vdW 2019 KV closure (Method 5) | Direct verification on W | Direct verification would require knowing the explicit form of `o_s` on W, which is what 5.8 is trying to establish — circular |
-| Phi wrapper (Phase 57) | Hardy-style elimination (Method 6) | Commit to non-trivial Phi throughout | Commits to more structure than needed; elimination is cleaner if it succeeds |
-| Lean audit (Phase 58) | `#print axioms` + grep + citation docstrings (Method 7) | Rewrite proofs to eliminate axioms | Out of scope for a revision window before referee report; keep axioms, document them |
-| Composite defense (Phase 59) | Comparative defense (Method 8) | Silence / hope reviewer doesn't notice | Standard review practice; reviewers WILL notice this assumption |
+| Recommended | Alternative | When to use the alternative |
+|---|---|---|
+| **(a)** Polarization + Hilbert-series completeness check | Full Derksen algorithm (Derksen ideal + Gröbner) | Only if a from-scratch generating set is demanded and the polarization candidate is in doubt. Heavier; F_4 in 54 vars strains Gröbner. |
+| **(a)** Bigraded Molien via Weyl integration | Reynolds-operator monomial averaging | Reynolds gives the dimension fast but a *redundant* generating set; use it as a cross-check, not the certificate. |
+| **(b)** Jacobian-rank at a rational point | Symbolic rank over the function field (generic rank, not at a point) | If worried the chosen rational point is non-generic (on the discriminant); compute the symbolic rank or test 2–3 random points. Costlier but removes the genericity assumption. |
+| **(b)** Orbit argument via infinitesimal f_4 action | Finite-group orbit sampling (exp of large random ξ) | Numerical illustration only; the infinitesimal (derivative) version is exact and rigorous. |
+| **(c)** Character/branching of Sym² | Direct Reynolds projection on degree-2 monomials | Use as the *independent* corroboration. The character count is the cleaner proof; the projection is the harness witness. |
 
----
+## What NOT to Use
 
-## Installation / Setup
+| Avoid | Why | Use instead |
+|---|---|---|
+| Asserting "polarization fails for exceptional groups, so (a) is hard/impossible" | The failures are **positive-characteristic** (arXiv:1803.03602) or *separating-vs-generating* subtleties; over R (char 0) Weyl polarization is fully valid for F_4 | State the char-0 theorem; the real content is *which* polarizations and minimality |
+| Floating-point Jacobian rank for (b) | Rounding produces spurious rank drops/jumps; rank is discontinuous | Exact rational SymPy rank at a rational point |
+| Asserting c's independence from the orbit picture alone, without computation | Reward-hacking guard (PROJECT.md): independence MUST be demonstrated on the actual algebra | Do the rank-7 Jacobian AND the nonzero orbit-derivative of c |
+| Claiming algebraic independence of all 7 generators | False and not needed — det(X) and Tr(X²),Tr(X) already satisfy no relation but adding c gives 7 functions on a space where the *invariant ring* has Krull dim = dim(27⊕27) − dim(generic orbit) | Claim only the weaker, true statement: c ∉ R_pt (the pointwise subring), via trdeg jump 6→7 |
+| Pursuing the full SFT (complete syzygy ideal of the pair-ring) | Out of scope; (RING) needs generation + degree-2 minimality only | FFT (generation) + Hilbert-series completeness to degree ≤ 6 |
+| Re-deriving R[h_3(O)]^{F_4} = R[Tr,Tr²,det] | Established (Springer 1962 cubic-norm uniqueness; Faraut–Koranyi Ch. V) | Cite it; use only as the polarization seed |
 
-```bash
-# Lean 4 audit tooling (Phase 58). Paper 5 Lean project already exists.
-cd ~/repos/research/lean
-lake build  # rebuilds RadicalRelativity module; confirms no sorries
+## Method Selection by Sub-problem
 
-# Quick axiom enumeration
-grep -c '^axiom ' RadicalRelativity/*.lean | grep -v ':0' | sort -t: -k2 -nr
+**If proving (a) generating set:**
+- Use polarization (char 0 Weyl FFT) to PRODUCE candidates {Tr, Tr², det of X,Y; c=Tr(X∘Y); mixed cubics Tr(X#∘Y), Tr(X∘Y#)}, then the bigraded Hilbert series (to total degree ≤ 6) to CERTIFY completeness.
+- Because polarization is unconditionally valid in char 0, and the Hilbert-series match is a finite verifiable certificate.
 
-# Full Paper 5 axiom trace (run in a Lean file, e.g., Paper5Audit.lean):
-# import RadicalRelativity.Paper5
-# #print axioms Paper5.main
+**If proving (b) independence of c:**
+- Use the exact-SymPy Jacobian rank (decisive, machine-checkable) PLUS the infinitesimal orbit-derivative argument (explanatory, demonstrated on h_3(O)).
+- Because the reward-hacking guard demands a *demonstrated* orbit/Jacobian fact, and the two routes are independent confirmations.
 
-# Literature management (optional but recommended for Phase 58 citation work)
-# Zotero + Better BibTeX export to the paper's bibliography file
-```
+**If proving (c) degree-2 uniqueness:**
+- Use the Sym²(27⊕27) character/branching (trivial multiplicity = 6; bidegree-(1,1) part 2-dim = {Tr(X)Tr(Y), Tr(X∘Y)}) PLUS the harness infinitesimal-kernel projection on degree-2 monomials.
+- Because the branching is the clean proof and the projection is the exact harness witness.
 
-No new Python/scientific-computing dependencies required — revision work is proof, exposition, and Lean-level auditing.
+## Validation Strategy by Method
 
----
-
-## Validation Strategy
-
-| Check | Phase | Expected Result | How to Verify |
-|-------|-------|----------------|---------------|
-| Peirce preservation holds in Paper 5's L4 model | 54 | `P_e^{0,1}` closed under `o_s` | Write the proof out; cross-check against vdW 2018 Thm 2 / AS Prop 8.4.5 |
-| S4 holds for P_e^{0,1} from Paper 5 axioms | 55 | `a perp b iff b perp a` | Foulis-Holland argument completes without invoking Jordan structure |
-| W is a face of A | 56 | Yes (needed for Method 5) | Explicit check that `a in W, 0 <= b <= a => b in W` |
-| vdW KV closure applies to W | 56 | W is Euclidean Jordan algebra | Verify S1-S7 inherited from A |
-| Phi = id on all measurement-relevant states | 57 | Every use of Phi classified as inert OR justified | Exhaustive enumeration via grep + manual classification |
-| All 16 axioms cited | 58 | Every axiom maps to Alfsen-Shultz / vdW / etc. location | Audit table complete, no UNCITED-UNJUSTIFIED rows |
-| No sorries in Paper5 Lean tree | 58 | 0 sorries | `grep -c 'sorry' RadicalRelativity/*.lean` returns all zeros |
-| Composite-assumption defense addresses Hardy/DB/MM/BW/Kent objections | 59 | All five objection patterns addressed | Self-review against the five patterns; external read-through |
-
----
-
-## Cost Estimates
-
-| Phase | Primary method | Estimated effort | Notes |
-|-------|---------------|------------------|-------|
-| 54 | Method 1 (AS spectral compression) | 1-2 days (4-6 page proof + editorial) | Straightforward once the AS citation is located |
-| 55 | Method 4 (Foulis-Holland) OR citation of AS 2.5 | 0.5-1 day | If citation suffices, a single paragraph; if full proof, 1-2 pages |
-| 56 | Method 5 (vdW 2019 KV) | 1-2 days (3-5 page proof + face-check) | Main cost is verifying W is a face; proof itself is short once that's established |
-| 57 | Method 6 (Hardy-style Phi audit) | 0.5-1 day (4-6 hour editorial pass + careful rewrite) | Pure exposition; no new proofs |
-| 58 | Method 7 (Lean axiom audit) | 2-3 days (8-16 hours of axiom-to-citation matching) | Bottleneck is matching axioms to specific theorem numbers in sources |
-| 59 | Method 8 (adversarial defense) | 1-2 days (2-3 page defense + integration into §9 or new appendix) | Editorial; re-reads several referenced papers |
-
-**Total:** ~6-11 working days across 6 phases. If run sequentially in a revision window before referee report (typically 6-8 weeks at JMP), this is comfortable.
-
----
+| Method | Validation Approach | Key Benchmarks |
+|---|---|---|
+| Polarization candidate list (a) | Bigraded Hilbert series match to degree ≤ 6 | Single-state series 1/((1−s)(1−s²)(1−s³)) must appear as the s-only and t-only specializations |
+| Jacobian rank (b) | Recompute at 2–3 independent random rational points; confirm rank = 7 each | Pointwise-only Jacobian (6 functions) must give rank 6 |
+| Orbit-derivative (b) | Verify every pointwise generator has ZERO derivative along the chosen ξ ∈ f_4 (invariance), while c has NONZERO derivative | dim O_X = rank(ξ·X map) > 0 at generic X (e.g. 52 − dim Stab) |
+| Sym² branching (c) | Cross-check dimension sums: Sym²(27)=378, Sym²(26)=351=1+26+324; total degree-2 invariants = 6 | SageMath `WeylCharacterRing('F4')` symmetric_power vs harness Reynolds count must agree |
+| Single-state baseline (sanity) | Confirm R[Tr,Tr²,det] is the FULL single-copy invariant ring (3 alg-indep gens) before polarizing | Springer 1962 / Faraut–Koranyi; harness generic-orbit separation |
 
 ## Sources
 
-| Reference | arXiv/DOI | Type | Relevance |
-|-----------|-----------|------|-----------|
-| Alfsen, Shultz, *Geometry of State Spaces of Operator Algebras* (2003) | ISBN 978-0-8176-4319-8 | Textbook | Primary source for OUS / compression / facial / spectral — Phase 54, 55 |
-| Alfsen, Shultz, *State Spaces of Operator Algebras* (2001) | DOI 10.1007/978-1-4612-0147-2 | Textbook | Companion volume; useful for basic-theory citations |
-| Hanche-Olsen, Stormer, *Jordan Operator Algebras*, Pitman (1984) | — | Textbook | JB-algebra facial structure — Phase 55 (alternative) |
-| van de Wetering, "Three characterisations of the sequential product" | arXiv:1803.08453, JMP 59, 082202 (2018) | Paper | Spectral `o_s` on JB-algebras — Phase 54, 56 |
-| van de Wetering, "Sequential product spaces are Jordan algebras" | arXiv:1803.11139, JMP 60, 062201 (2019) | Paper | KV closure theorem — Phase 56 |
-| Westerbaan, Westerbaan, van de Wetering, "Three types of normal SEAs" | arXiv:2004.12749, Quantum 4, 378 (2020) | Paper | Normal SEA spectral theorem — Phase 54, 55, 56 |
-| Gudder, Greechie, "Sequential products on effect algebras" | RMP 49, 87 (2002) | Paper | S1+linearity arguments — Phase 54 (fallback) |
-| Gudder, Greechie, "Uniqueness and order in sequential effect algebras" | DOI 10.1007/s10773-005-7054-y, IJTP 44, 755 (2005) | Paper | Uniqueness results — Phase 54, 56 |
-| Hardy, "Quantum Theory From Five Reasonable Axioms" | quant-ph/0101012 | Preprint | Ancilla / composite defense — Phase 57, 59 |
-| Dakic, Brukner, "Quantum Theory and Beyond: Is Entanglement Special?" | arXiv:0911.0695 | Preprint | Subspace axiom comparison — Phase 59 |
-| Masanes, Muller, "A derivation of quantum theory from physical requirements" | arXiv:1004.1483, NJP 13, 063001 (2011) | Paper | Composite-system postulate defense — Phase 57, 59 |
-| Masanes, Galley, Muller, "The measurement postulates are operationally redundant" | Nat Comm 10, 1361 (2019) | Paper | Redundancy-style arguments — Phase 59 |
-| Chiribella, D'Ariano, Perinotti, "Informational derivation of quantum theory" | arXiv:1011.6451, PRA 84, 012311 (2011) | Paper | Purification-based wrapper handling — Phase 57, 59 |
-| Barnum, Wilce, "Local Tomography and the Jordan Structure of Quantum Theory" | arXiv:1202.4513, FoP 44, 192 (2014) | Paper | Qubit-subsystem argument — Phase 59 |
-| Kent critique template | arXiv:2405.17733 (2024) | Preprint | Adversarial-review pattern — Phase 59 (anticipate) |
-| Stein's Lemma Lean formalization | arXiv:2510.08672 (2025) | Preprint | Template for Lean 4 physics audit — Phase 58 |
-| Lean 4 manual, "Axioms and Computation" | https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/ | Docs | `#print axioms` workflow — Phase 58 |
-| Mathlib4 repository | https://github.com/leanprover-community/mathlib4 | Code | Axiom-hygiene conventions — Phase 58 |
+**Invariant-theory foundations:**
+- H. Weyl, *The Classical Groups: Their Invariants and Representations*, Princeton 1939/1946 — original polarization theorem (char 0). [textbook]
+- H. Derksen, G. Kemper, *Computational Invariant Theory*, Encyclopaedia of Mathematical Sciences 130, Springer (2002; 2nd enlarged ed. 2015) — Derksen's algorithm, Molien/Hilbert series, Jacobian criterion, finite-generation for reductive G. [canonical computational reference] PDF: math.cit.tum.de/.../kem.k.pdf
+- C. Procesi, *Lie Groups: An Approach through Invariants and Representations*, Springer 2007 — FFT/SFT, polarization for classical and reductive groups. [textbook]
+- H. Kraft, C. Procesi, *Classical Invariant Theory: A Primer* (lecture notes, U. Basel, free) — clean FFT/polarization exposition. dmi.unibas.ch/.../Classical_Invariant_Theory.pdf
+- V. L. Popov, E. B. Vinberg, "Invariant Theory", in *Algebraic Geometry IV*, Encyclopaedia of Math. Sciences 55, Springer — reductive-group invariant theory, covariants, finite generation. [reference]
+- G. Kemper, "Computational Invariant Theory", ISSAC 2010 tutorial (slides). issac-conference.org/2010/.../TutorialKemper.pdf
+
+**Polarization caveats (the "exceptional group / characteristic" subtleties):**
+- M. Domokos, G. Kemper (and related), "Weyl's polarization theorem in positive characteristic", arXiv:1803.03602; Transformation Groups (2020) — explicit char-p failures; recovered in large char for good modules. (Confirms char-0 validity for F_4.)
+- J. Draisma, G. Kemper, D. Wehlau, "Polarization of Separating Invariants", Canad. J. Math. — characteristic-free analogue for *separating* (not generating) invariants. (Confirms the generating-set version needs char 0.)
+
+**F_4 / Albert algebra / cubic norm (seed for polarization; cross-listed in PRIOR-WORK):**
+- T. A. Springer, "Characterization of a class of cubic forms", Indag. Math. 24 (1962) 259–265 — uniqueness of the cubic norm as the F_4 cubic invariant. (Harness `det_3` cites this.)
+- J. Faraut, A. Korányi, *Analysis on Symmetric Cones*, Oxford 1994, Ch. V — Jordan algebra trace/norm, single-state invariant ring. [must-use, PROJECT.md]
+- H. P. Petersson, "Albert Algebras" (Fields Institute notes 2012) & "A Survey on Albert Algebras" — trace bilinear form T(x,y)=T(xy), cubic norm structure. fields.utoronto.ca/.../Alb.-alg.-Ottawa-2012.pdf
+- M. Thakur, "Exceptional Groups" (ISI Bangalore notes) — F_4 = automorphisms of the Albert algebra preserving N and T. isibang.ac.in/~statmath/.../exceptional.pdf
+- F_4 small-irrep dimensions {1,26,52,273,324,1053,1274}: en.wikipedia.org/wiki/F4_(mathematics) (cross-checked, dimension arithmetic above).
+
+**Jacobian / functional independence:**
+- Derksen–Kemper (above), Jacobian criterion section (char 0: trdeg = generic Jacobian rank).
+- G. W. Schwarz / D. Luna: smooth invariants of a compact (reductive) group are smooth functions of the polynomial generators (relevant to "functional" independence). See arXiv:2510.19053 §1 (Hilbert–Weyl + Schwarz–Luna survey) and Schwarz, "Smooth functions invariant under the action of a compact Lie group", Topology 1975. [licenses upgrading "not a polynomial" to "not a smooth function" if needed]
 
 ---
 
-## Confidence Notes
-
-- **HIGH confidence** on Methods 1, 2, 3, 4, 5, 7: these are textbook or well-cited published results with explicit theorem numbers.
-- **MEDIUM confidence** on Method 6 (Phi-wrapper): requires manual classification pass; success depends on whether Phi can actually be eliminated everywhere.
-- **MEDIUM confidence** on Method 8 (composite defense): this is judgment and exposition, not theorem; a determined referee can reject the defense. Best practice is to address multiple objection patterns preemptively.
-- **Aggregate confidence: HIGH** that these methods close the 6 gaps in the revision window, assuming Paper 5's existing derivation chain is correct (which is assumed by the revision scope, not challenged).
+_Methods research for: v16.0 (RING) lemma — joint F_4-invariants of 27 ⊕ 27._
+_Researched: 2026-05-24. Confidence HIGH on methods; the one open literature question (an explicit published pair-ring presentation) is flagged in COMPUTATIONAL.md OQ-1._
