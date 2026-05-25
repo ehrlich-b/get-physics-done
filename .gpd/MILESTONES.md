@@ -538,3 +538,22 @@
 
 ---
 
+
+## v15.0 The P5 <-> Basin Restriction Lemma (Shipped: 2026-05-24)
+
+**Phases completed:** 4 phases (60-63), 9 plans, 21 tasks
+
+**Key accomplishments:**
+- Two-composites distinction EARNED non-circularly: the observer's clause-(iii) body-model composite V_BM (OUS-level) and h_3(O)'s BGW Jordan-monoidal non-composability (FRJA-monoidal-bifunctor) are type-distinct, logically independent -- RESTRICTION does not collapse into circularity (Phase 60-01)
+- Grounded Paper 7's rem:converse against BGW 2020 (CONFIRMED-WITH-CAVEAT): M_n(C)^sa has a faithful self-model with minimal composite M_{n^2}(C)^sa satisfying clause (iii), but minimal != maximal (extra classical bit, BGW Cor. 4.16; minimality SELECTS the standard summand) (Phase 60-02)
+- Clause-by-clause proof that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa satisfies all four Paper 5 Def 1 clauses as a self-modeler in its own right -- (i)/(iv) direct (rank 3, simple), (ii)/(iii) via the CORRECTED direct-summand rem:converse, clause (iii) checked AS STATED (Phase 61-01)
+- Exact-symbolic SymPy: M_3(C)^sa has Jordan rank 3 (three orthogonal rank-1 projective units summing to I_3), is simple (center = C*I_3), minimal composite real-dim 81 = 9*9 (maximal 162 != 81), product-form sequential product factorizes exactly on the associative M_9(C)^sa (Phase 61-02)
+- Set up the bottleneck conditional expectation E: h_3(O) -> h_3(C_u) explicitly (Effros-Stormer positive unital idempotent; Jordan-product-preserving on the slice, NOT a Jordan morphism on ambient elements); framed the decisive crux as AMBIENT E-transport of the sequential product (Phase 62-01)
+- DECISIVE COMPUTATION: on the genuinely non-associative h_3(O), the exact ambient E-transport residual R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX) is EXACTLY NONZERO for generic X,Y (decisive-triple associator 524/9 load-bearing; ||R||^2 = 38593/72) -- VERDICT (O) AMBIENT-TRANSPORT OBSTRUCTION (Phase 62-02)
+- Verdict (O) read off the exact computation and interpreted as a refinement: E does NOT transport the self-modeling sequential product coherently from h_3(O) (exact R != 0, R_11 = -2; both routes agree); observer = self-contained C* island on the slice; through-line SURVIVES (Phase 62-03)
+- Assembled DRAFT RESULT.md: the (O) obstruction read into the milestone verdict (defect inside A partitioning exactly across the three E_11 Peirce grades 4 + 1033/18 + 3797/8 = 38593/72); completed the attempt-01..05 log (DERV-00-01) (Phase 63-01)
+- Fresh-eyes adversarial review confirmed all 3 reward-hacking guards PASS (clause iii not redefined; composites not conflated; preservation demonstrated not asserted); harness re-run exit 0 verdict (O); milestone verdict FINALIZED as CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (Phase 63-02)
+
+**Verdict (DERV-00-02):** CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island -- the "self-modeling -> QM -> h_3(O)" through-line SURVIVES (observer = self-contained C* island self-certifying M_3(C)^sa QM on the slice A = h_3(C_u) = range E; E is the access/projection map, NOT a Jordan/SP morphism on the non-associative ambient). NOT independent posits, NOT a program collapse. Verifier 4/4 (HIGH), consistency CONSISTENT, adversarial 3/3 guards PASS, human-approved. NEGATIVE-RESULT-IS-SUCCESS.
+
+---
