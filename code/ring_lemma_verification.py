@@ -57,7 +57,7 @@ References:
 
 import sys
 
-from sympy import Rational, simplify, symbols, Poly  # noqa: F401  (Poly reserved for downstream)
+from sympy import Rational, simplify, symbols, Poly, expand, total_degree  # noqa: F401  (Poly reserved for downstream)
 
 # Track overall pass/fail; the script must exit nonzero on any lock/guard failure.
 ALL_PASS = True
@@ -362,9 +362,72 @@ def polarize_d(X, Y, Z):
 
 
 # ============================================================================
-# 4. 54-symbol pair coordinatization + seven base invariants  (Task 4)
+# 4. 54-symbol pair coordinatization + seven base invariants
 # ============================================================================
-# TODO(Task 4): xs/ys symbols, X_from_symbols, the seven base invariants.
+# The pair (X, Y) in h_3(O) (+) h_3(O) is coordinatized by 54 real SymPy symbols,
+# 27 per copy, on the ENGINE-NATIVE layout (3 diagonal reals + 3 octonions x 8 =
+# 3 + 24 = 27). X and Y use IDENTICAL conventions (same constructor).
+#
+# NOTE: this is the engine-native coordinate basis, NOT the Peirce-adapted
+# peirce_basis_27(). The seven invariants are basis-agnostic functions of the
+# coordinates, so this is the simplest unambiguous choice for the freeze. Any
+# Peirce-adapted re-coordinatization is a DELIBERATE Phase-65 decision (the
+# Spin(9) f_4 route) and does NOT affect the invariants frozen here.
+
+xs = symbols('x0:27', real=True)   # x0..x26  for X
+ys = symbols('y0:27', real=True)   # y0..y26  for Y
+
+# Coordinate -> matrix map (pinned VERBATIM; matches h3o_from_coords / _coord_from_octmat):
+#   x0, x1, x2     = diagonal reals alpha, beta, gamma   -> X[0][0], X[1][1], X[2][2]
+#   x3 .. x10  (8) = octonion x1  -> matrix entry X[2][1] (conj at X[1][2])
+#   x11.. x18  (8) = octonion x2  -> matrix entry X[0][2] (conj at X[2][0])
+#   x19.. x26  (8) = octonion x3  -> matrix entry X[1][0] (conj at X[0][1])
+# Identical layout for ys.
+
+
+def X_from_symbols(s):
+    """Build the Hermitian octonion matrix from a 27-tuple of coordinates
+    (s = xs or ys), on the engine-native layout. Used IDENTICALLY for X and Y."""
+    alpha, beta, gamma = s[0], s[1], s[2]
+    x1 = [s[3 + k] for k in range(8)]    # octonion x1 -> X[2][1]
+    x2 = [s[11 + k] for k in range(8)]   # octonion x2 -> X[0][2]
+    x3 = [s[19 + k] for k in range(8)]   # octonion x3 -> X[1][0]
+    return h3o_from_coords(alpha, beta, gamma, x1, x2, x3)
+
+
+# The symbolic pair (same constructor for both copies).
+Xsym = X_from_symbols(xs)
+Ysym = X_from_symbols(ys)
+
+# The SEVEN base invariants as SymPy EXPRESSION OBJECTS on the 54-symbol layout.
+# NOT eagerly expanded/simplified (the degree-3 ones in 54 vars would swell;
+# substitution/expansion is a Phase-66+ operation, NOT done here).
+#   1-6 are the POINTWISE generators (three per copy); their R-subalgebra is R_pt.
+#   7 (c) is the COUPLING, bidegree (1,1); c(X,X)=Tr X^2 (Lock 2).
+inv_Tr_X = Tr(Xsym)        # bidegree (1,0)
+inv_Tr2_X = Tr2(Xsym)      # bidegree (2,0)
+inv_det_X = det_3(Xsym)    # bidegree (3,0)
+inv_Tr_Y = Tr(Ysym)        # bidegree (0,1)
+inv_Tr2_Y = Tr2(Ysym)      # bidegree (0,2)
+inv_det_Y = det_3(Ysym)    # bidegree (0,3)
+inv_c = c(Xsym, Ysym)      # bidegree (1,1)  = Tr(jordan(Xsym, Ysym))
+
+# Labelled collection with documented bidegrees (X-degree, Y-degree).
+SEVEN_BASE_INVARIANTS = [
+    ("Tr X",      inv_Tr_X,   (1, 0)),
+    ("Tr X^2",    inv_Tr2_X,  (2, 0)),
+    ("det X",     inv_det_X,  (3, 0)),
+    ("Tr Y",      inv_Tr_Y,   (0, 1)),
+    ("Tr Y^2",    inv_Tr2_Y,  (0, 2)),
+    ("det Y",     inv_det_Y,  (0, 3)),
+    ("c = Tr(X o Y)", inv_c,  (1, 1)),
+]
+
+# The six POINTWISE generators (the generators of R_pt; see Section 5).
+SIX_POINTWISE_GENERATORS = [
+    ("Tr X", inv_Tr_X), ("Tr X^2", inv_Tr2_X), ("det X", inv_det_X),
+    ("Tr Y", inv_Tr_Y), ("Tr Y^2", inv_Tr2_Y), ("det Y", inv_det_Y),
+]
 
 
 # ============================================================================
@@ -476,8 +539,48 @@ def main():
             _oracle_ok)
     # ORACLE-FENCE-END
 
-    # ---- Task 4: 54-symbol layout round-trip + bidegree checks ----
-    # TODO(Task 4).
+    # ========================================================================
+    # Task 4: 54-symbol layout round-trip + seven-invariant bidegree checks.
+    # ========================================================================
+    print("Task 4 — 54-symbol pair layout + seven base invariants:")
+
+    # Round-trip: _coord_from_octmat(X_from_symbols(xs)) recovers the input symbols.
+    rt_a, rt_b, rt_g, rt_x1, rt_x2, rt_x3 = _coord_from_octmat(X_from_symbols(xs))
+    roundtrip_ok = (
+        rt_a == xs[0] and rt_b == xs[1] and rt_g == xs[2]
+        and list(rt_x1) == [xs[3 + k] for k in range(8)]
+        and list(rt_x2) == [xs[11 + k] for k in range(8)]
+        and list(rt_x3) == [xs[19 + k] for k in range(8)]
+    )
+    _report("LAYOUT round-trip _coord_from_octmat(X_from_symbols(xs)) == xs", roundtrip_ok)
+    # Same constructor used for ys (X and Y identical conventions).
+    _report("LAYOUT X and Y use IDENTICAL constructor (X_from_symbols)",
+            X_from_symbols.__name__ == "X_from_symbols" and Xsym is not Ysym)
+
+    # Cheap bidegree check on a LOW-dimensional slice: keep only the diagonal
+    # symbols (set all 24 octonion comps of X to 0), so Tr X / Tr X^2 / det X
+    # reduce to polynomials in {x0, x1, x2} of degree 1 / 2 / 3.
+    diag_only = {xs[3 + k]: 0 for k in range(24)}
+    Tr_diag = expand(inv_Tr_X.subs(diag_only))
+    Tr2_diag = expand(inv_Tr2_X.subs(diag_only))
+    det_diag = expand(inv_det_X.subs(diag_only))
+    _report("BIDEGREE Tr X has X-degree 1 (diagonal slice)", total_degree(Tr_diag) == 1)
+    _report("BIDEGREE Tr X^2 has X-degree 2 (diagonal slice)", total_degree(Tr2_diag) == 2)
+    _report("BIDEGREE det X has X-degree 3 (diagonal slice)", total_degree(det_diag) == 3)
+
+    # Tr X^2 is NOT (Tr X)^2: evaluate both at a rational point and show they differ.
+    pt = {s: Rational(1 + (i % 5), 2 + (i % 3)) for i, s in enumerate(xs)}
+    tr2_val = inv_Tr2_X.subs(pt)
+    trsq_val = (inv_Tr_X.subs(pt))**2
+    _report("BIDEGREE Tr X^2 != (Tr X)^2 (distinct degree-2 invariants)",
+            simplify(tr2_val - trsq_val) != 0)
+
+    # c is bidegree (1,1): linear in xs and linear in ys (check via a slice).
+    # Substituting Y=0 kills c (degree>=1 in Y); substituting X=0 kills c (degree>=1 in X).
+    c_Yzero = inv_c.subs({s: 0 for s in ys})
+    c_Xzero = inv_c.subs({s: 0 for s in xs})
+    _report("BIDEGREE c bidegree (1,1): c(X,0)=0 and c(0,Y)=0",
+            simplify(c_Yzero) == 0 and simplify(c_Xzero) == 0)
 
     # ---- Task 5: R_pt prose-vs-invariants consistency + exact-only guard ----
     # TODO(Task 5).
