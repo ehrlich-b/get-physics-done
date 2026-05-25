@@ -11,12 +11,12 @@ See: .gpd/PROJECT.md (updated 2026-05-24)
 
 ## Current Position
 
-**Current Phase:** 64
-**Current Phase Name:** Setup, Conventions, and Exact Engine
+**Current Phase:** 65
+**Current Phase Name:** f_4 Construction + Orbit-Dimension GATE
 **Total Phases:** 6
-**Current Plan:** 64-01
-**Total Plans in Phase:** 1
-**Status:** Complete
+**Current Plan:** -
+**Total Plans in Phase:** TBD (set at plan-phase)
+**Status:** Ready to plan
 **Last Activity:** 2026-05-25
 **Last Activity Description:** Phase 64 (Setup, Conventions, Exact Engine) COMPLETE & VERIFIED — verifier status `passed`, 32/32 contract targets (28/32 independently confirmed). Frozen exact-SymPy h_3(O) foundation in `code/ring_lemma_verification.py` (assert harness, 25 checks, exit 0): headline lock polarize_d(X,X,X)=6·det_3(X) established EXACTLY over Q for the first time (was float 1.4e-13); all five convention locks pass; exact-only guard adversarially mutation-tested (catches real octonion_algebra import + np.linalg.matrix_rank, ignores provenance prose, allowlists the single fenced oracle); R_pt FROZEN; single-state ring R[Tr,Tr²,det] confirmed by citation (FK Ch. II-IV; Ch. V→II-IV correction). BASE-01 satisfied. Next: `/gpd:plan-phase 65` (the orbit-dimension GATE — chain-critical; 54−orbit_dim=7 is the early go/no-go).
 
