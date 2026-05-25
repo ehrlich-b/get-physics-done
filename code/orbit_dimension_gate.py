@@ -1,26 +1,40 @@
 """
-(RING) Lemma — f_4 Construction + Orbit-Dimension GATE  --  Phase 65, Plan 01
-=============================================================================
-Phase: 65-f-4-construction-orbit-dimension-gate, Plan: 01  (BASE-02 GATE)
+(RING) Lemma — f_4 Construction + Orbit-Dimension GATE  --  Phase 65, Plans 01+02
+=================================================================================
+Phase: 65-f-4-construction-orbit-dimension-gate, Plans: 01 + 02  (BASE-02 GATE)
 Milestone: v16.0 The (RING) Lemma (math half of the Chalmers gap).
 
-This is the BUILDER half of the chain-critical orbit-dimension GATE. It builds
-f_4 = Der(h_3(O)) explicitly as the 52-dimensional span of the inner derivations
-{[L_a, L_b]} (27x27 rational matrices), COMPUTES dim f_4 = 52 over Q (it is NOT
-assumed from the literature -- the famous number 52 is a CONFIRMATION here, not a
-premise; see forbidden proxy fp-assume-dim52), verifies the span is closed under
-the Lie bracket, and certifies that every generator infinitesimally annihilates
-the three single-copy invariants {Tr, Tr^2, det_3} EXACTLY over Q at genuinely
-octonionic points.
+This module is the chain-critical orbit-dimension GATE, in two parts that share
+one inseparable assert-harness:
+
+  PLAN 01 (BUILDER): builds f_4 = Der(h_3(O)) explicitly as the 52-dimensional
+  span of the inner derivations {[L_a, L_b]} (27x27 rational matrices), COMPUTES
+  dim f_4 = 52 over Q (it is NOT assumed from the literature -- the famous number
+  52 is a CONFIRMATION here, not a premise; see forbidden proxy fp-assume-dim52),
+  verifies the span is closed under the Lie bracket, and certifies that every
+  generator infinitesimally annihilates the three single-copy invariants
+  {Tr, Tr^2, det_3} EXACTLY over Q at genuinely octonionic points.
+
+  PLAN 02 (SINGLE-COPY GATE): COMPUTES the generic orbit dimension of F_4 on ONE
+  copy of h_3(O) as the exact rank over QQ of the (f_4-generators x 27)
+  infinitesimal-action matrix (rows M . v, matrix*vector) at >=2 generic INTEGER
+  octonionic points (MAX taken; rank lower-semicontinuous), and asserts the
+  builder-correctness GATE: orbit 24 / stabilizer Spin(8) (52-24=28) / single-state
+  trdeg (27-24=3). This REPRODUCES the Garibaldi-Guralnick / Lawther single-copy
+  anchor IN-ENGINE (the value is COMPUTED, never looked up -- the Spin(8)-triality
+  back-of-envelope is a FORBIDDEN PROXY). A match CERTIFIES the Plan-01 builder is
+  the RIGHT 52-dim algebra acting correctly; a mismatch means the builder is BROKEN
+  and the pair value (Plan 03) must NOT be computed (roadmap GATE / Backtracking).
 
 WHY THIS IS THE GATE: the 52 f_4 generators and the infinitesimal-invariance
-certificate are the prerequisite for the single-copy sanity GATE (Plan 02,
-orbit 24) and the pair orbit-dimension value (Plan 03). A wrong builder silently
-corrupts the entire downstream milestone, so dim 52 and the F_4-invariance of
-det_3 are COMPUTED here, not assumed. Per the Derksen-Kemper char-0 criterion an
-invariant is annihilated by the infinitesimal action of the Lie algebra; the
-D_M f = 0 certificate below is the CONTINUOUS-group F_4-invariance statement that
-finite-group sampling cannot establish.
+certificate (Plan 01) plus the single-copy orbit 24 / Spin(8) reproduction
+(Plan 02) are the prerequisite for the pair orbit-dimension value (Plan 03). A
+wrong builder silently corrupts the entire downstream milestone, so dim 52, the
+F_4-invariance of det_3, AND the single-copy orbit dimension are COMPUTED here,
+not assumed. Per the Derksen-Kemper char-0 criterion an invariant is annihilated
+by the infinitesimal action of the Lie algebra and the generic orbit dimension is
+the rank of that infinitesimal action at a generic point; the D_M f = 0 certificate
+(Plan 01) and the orbit rank (Plan 02) are both exact-over-Q instances of it.
 
 PROVENANCE  (the DECISIVE reuse -- not an oracle)
 -------------------------------------------------
@@ -41,11 +55,16 @@ CONVENTION (carry verbatim from the frozen engine):
 
 Assert-based harness (NO pytest -- the executor venv has sympy/numpy only).
 Runnable directly:  python3 code/orbit_dimension_gate.py
-Exits 0 iff ALL_PASS (every Plan-01 check passes); nonzero on any failure.
+Exits 0 iff ALL_PASS (every Plan-01 AND Plan-02 check passes); nonzero on any
+failure (in particular the single-copy GATE: a hard fail if orbit_dim != 24).
 
 Reproducibility: SymPy 1.14.0, Python 3.14.2, macOS Darwin 24.6.0. Deterministic
-(no random seeds; all test elements are the frozen engine's hardcoded exact
-rational points). NumPy 2.4.2 is present but FORBIDDEN on the decisive/rank path.
+(no random seeds; all test elements are exact rational/integer points -- the
+frozen engine's hardcoded octonionic points for Plan 01, and the explicit generic
+INTEGER octonionic points SINGLE_COPY_POINTS for Plan 02). NumPy 2.4.x is present
+but FORBIDDEN on the decisive/rank path. Runtime ~5 min end-to-end (the heavy
+steps are the exact QQ ranks: the Plan-01 invariance certificate and the three
+Plan-02 single-copy orbit ranks ~20-110s each).
 
 References:
   Schafer, R.D. -- An Introduction to Nonassociative Algebras (1966): inner
@@ -289,6 +308,217 @@ def check_invariance(derivs):
 
 
 # ============================================================================
+# PLAN 02 — single-copy orbit dimension (the builder-correctness GATE)
+# ============================================================================
+# Derksen-Kemper char-0 criterion (Computational Invariant Theory, Sec 4): the
+# GENERIC orbit dimension of a Lie-algebra action equals the rank of the
+# infinitesimal action at a generic point, and the transcendence degree of the
+# invariant field equals (ambient dim) - (orbit dim). Here the action is f_4 on a
+# SINGLE copy of h_3(O) (ambient dim 27): for an f_4 generator M (a 27x27 rational
+# matrix) the orbit-tangent at a point with coordinate vector v is M . v
+# (matrix*vector). Stacking the tangents over the f_4 generators gives the
+# (generators x 27) infinitesimal-action matrix; its exact rank over QQ is the
+# orbit dimension.
+#
+# GARIBALDI-GURALNICK ANCHOR (arXiv:2308.08214; corroborated Lawther
+# arXiv:1508.02918): F_4 acting on the 26 (equivalently the trace-free part of the
+# 27) has a generic orbit of dimension 24, generic stabilizer Spin(8) (dim 28),
+# and the single-state invariant field has trdeg 27 - 24 = 3 (= R[Tr, Tr^2, det],
+# Faraut-Koranyi II-IV). This value is COMPUTED in-engine below, NEVER looked up:
+# the naive Spin(8)-triality back-of-envelope is a FORBIDDEN PROXY (the three 8's
+# are permuted by triality); the literature number is a CONFIRMATION target only.
+#
+# EXACT-ONLY: the rank is sympy.Matrix(...).rank() over QQ on an INTEGER matrix
+# (the integer point is substituted BEFORE the matrix is formed, so every entry is
+# an exact integer). numpy.linalg.matrix_rank / a float SVD tolerance would
+# fabricate the 24 verdict (rank is discontinuous) -- forbidden proxy fp-float-rank.
+# Symbolic-rank-before-substitution stalls (expression swell) -- forbidden proxy
+# fp-rank-before-substitution; we substitute the integer point FIRST.
+
+DIM_F4 = 52          # COMPUTED in Plan 01 (span rank over QQ of the 324 brackets).
+AMBIENT_SINGLE = 27  # one copy of h_3(O).
+DIM_SPIN8 = 28       # dim Spin(8) -- the Garibaldi-Guralnick generic stabilizer.
+ORBIT_DIM_SINGLE_EXPECTED = 24   # the anchor to REPRODUCE (not assume).
+
+# >=2 GENERIC INTEGER octonionic points (all-nonzero/non-degenerate diagonal,
+# octonion off-diagonals carrying SEVERAL nonzero imaginary e_1..e_7 components --
+# genuinely octonionic, NOT on the real/commutative subalgebra, NOT degenerate).
+# Each is an integer 27-vector on the engine-native layout
+# [alpha,beta,gamma, x1(8), x2(8), x3(8)]; the rank is computed at each and the
+# MAX is taken (rank is lower-semicontinuous -- it can only DROP on special loci,
+# so the generic value is the max over sampled points; test-single-copy-multipoint).
+SINGLE_COPY_POINTS = {
+    # Point 1: the planner-spike point (measured -> rank 24).
+    "P1 (planner spike)":
+        [1, -2, 3,
+         1, 0, -1, 2, 0, 1, 0, -1,      # x1 octonion (imag 2,3,5,7)
+         0, 2, 0, -1, 1, 0, 1, 1,       # x2 octonion (imag 1,3,4,6,7)
+         0, -1, 1, 0, 2, -1, 1, 0],     # x3 octonion (imag 1,2,4,5,6)
+    # Point 2: an INDEPENDENT generic integer octonionic point (distinct diagonal
+    # and distinct octonion content; defined HERE so the GATE does not silently
+    # depend on the engine's octonionic_points() definitions).
+    "P2 (independent integer)":
+        [2, 1, -3,
+         1, 1, 0, -1, 1, 0, 2, -1,      # x1 octonion (imag 1,3,4,6,7)
+         -1, 0, 2, 1, 0, -1, 1, 1,      # x2 octonion (imag 2,3,5,6,7)
+         1, -1, 0, 2, 1, 1, 0, -1],     # x3 octonion (imag 1,3,4,5,7)
+    # Point 3: a THIRD independent generic integer octonionic point (defense in
+    # depth; the MAX over all three is the reported orbit dimension).
+    "P3 (independent integer)":
+        [-1, 4, 2,
+         2, 0, -1, 1, 1, 0, -1, 1,      # x1 octonion (imag 2,4,5,7)
+         1, -1, 1, 0, 2, 1, 0, -1,      # x2 octonion (imag 1,2,4,5,7)
+         0, 1, -1, 2, -1, 0, 1, 1],     # x3 octonion (imag 2,3,4,6,7)
+}
+
+
+def _select_independent_basis(derivs):
+    """Select a maximal linearly-independent subset of the 324 f_4 generators (a
+    BASIS of f_4, dim 52). The single-copy rank of a basis equals the rank of the
+    full spanning set (same row space under M . v), so ranking the 52 basis
+    generators is exact AND faster than ranking all 324 (perf, planner-measured:
+    ~47s/basis vs ~130s/full-324 per point).
+
+    EXACT: the basis is the rref pivot set of the 324x729 row-flattened generators
+    over QQ (sympy .rref()); NOT a float selection. Re-confirms dim f_4 = 52."""
+    rows = [_flatten_729(M) for M in derivs]
+    S = Matrix(rows)               # 324 x 729 over QQ
+    _, pivots = S.T.rref()         # independent COLUMNS of S.T = independent generators
+    basis_idx = list(pivots)
+    return basis_idx
+
+
+def single_copy_orbit_rank(derivs, v27):
+    """Exact orbit dimension at ONE generic integer point.
+
+    Build the infinitesimal-action (orbit-tangent) matrix whose row for each f_4
+    generator M is M . v (matrix*vector), v = Matrix(v27) the flattened single-copy
+    coordinates. The INTEGER point is substituted FIRST (v is integer, the M are
+    already rational), so the stacked matrix is integer-valued; its exact rank over
+    QQ is the orbit dimension at that point (Derksen-Kemper).
+
+    derivs may be the full 324 generators OR a 52-independent basis (same rank).
+    EXACT-ONLY: sympy.Matrix(...).rank() over QQ; NEVER numpy rank (fp-float-rank)."""
+    v = Matrix([c if hasattr(c, "is_Number") else Rational(c) for c in v27])
+    tangent_rows = [list(M * v) for M in derivs]   # (generators x 27), matrix*vector
+    return Matrix(tangent_rows).rank()             # exact rank over QQ
+
+
+def _is_genuinely_octonionic_integer(v27):
+    """A sampled point must be (a) integer-valued and (b) genuinely octonionic --
+    each off-diagonal octonion x1,x2,x3 must carry >=2 nonzero IMAGINARY (e_1..e_7)
+    components (so the point is NOT on the real/commutative subalgebra where the
+    Phase-64 cross-term bug was invisible) -- and (c) non-degenerate (distinct
+    diagonal). Returns (ok, detail)."""
+    X = E.X_from_symbols([Rational(c) for c in v27])
+    alpha, beta, gamma, x1, x2, x3 = E._coord_from_octmat(X)
+    integer_ok = all(c == int(c) for c in v27)
+    imag = lambda x: [k for k in range(1, 8) if x[k] != 0]
+    oct_ok = all(len(imag(x)) >= 2 for x in (x1, x2, x3))
+    distinct_diag = len({alpha, beta, gamma}) == 3
+    ok = integer_ok and oct_ok and distinct_diag
+    detail = (f"integer={integer_ok}, diag=({alpha},{beta},{gamma}) distinct={distinct_diag}, "
+              f"x1_imag={imag(x1)}, x2_imag={imag(x2)}, x3_imag={imag(x3)}")
+    return ok, detail
+
+
+def check_single_copy_orbit_dim(derivs):
+    """test-single-copy-24 + test-single-copy-multipoint: the GENERIC single-copy
+    orbit dimension of F_4 on h_3(O) is EXACTLY 24, computed as the rank over QQ of
+    the (generators x 27) infinitesimal-action matrix M . v at >=2 generic integer
+    octonionic points, MAX taken (rank lower-semicontinuous).
+
+    Returns (ok, orbit_dim, per_point) where per_point maps label -> rank.
+
+    BACKTRACK (disconfirming_observations): if the MAX != 24 the f_4 builder is
+    BROKEN (wrong subalgebra, mis-flattened L-columns, or wrong action convention)
+    -- STOP and fix the builder; do NOT compute the pair value (Plan 03). If a
+    single point gives a SMALLER rank it is non-generic; the MAX is the orbit dim."""
+    # Validate every sampled point is integer + genuinely octonionic + non-degenerate.
+    pts_ok = True
+    for label, v27 in SINGLE_COPY_POINTS.items():
+        ok, detail = _is_genuinely_octonionic_integer(v27)
+        pts_ok = pts_ok and _report(
+            f"point {label} is integer + genuinely octonionic + non-degenerate "
+            f"[{detail}]", ok)
+
+    # Use a 52-independent basis (same single-copy rank as the full 324; faster).
+    basis_idx = _select_independent_basis(derivs)
+    basis_ok = _report(
+        f"independent f_4 basis selected via exact rref over QQ "
+        f"(|basis|={len(basis_idx)}; re-confirms dim f_4 = 52)",
+        len(basis_idx) == DIM_F4)
+    basis = [derivs[i] for i in basis_idx]
+
+    # Exact orbit rank at each generic integer point; MAX is the orbit dimension.
+    per_point = {}
+    for label, v27 in SINGLE_COPY_POINTS.items():
+        per_point[label] = single_copy_orbit_rank(basis, v27)
+    orbit_dim = max(per_point.values())
+
+    # test-single-copy-24: first point gives 24.
+    first_label = next(iter(SINGLE_COPY_POINTS))
+    first_ok = _report(
+        f"single-copy orbit rank over QQ == 24 at {first_label} "
+        f"(rank={per_point[first_label]})  [test-single-copy-24]",
+        per_point[first_label] == ORBIT_DIM_SINGLE_EXPECTED)
+
+    # test-single-copy-multipoint: MAX over >=2 integer points == 24, none larger.
+    points_str = ", ".join(f"{lbl.split()[0]}={r}" for lbl, r in per_point.items())
+    multi_ok = _report(
+        f"MAX single-copy orbit rank over QQ == 24 across {len(per_point)} generic "
+        f"integer points ({points_str}; MAX={orbit_dim})  [test-single-copy-multipoint]",
+        orbit_dim == ORBIT_DIM_SINGLE_EXPECTED
+        and all(r <= ORBIT_DIM_SINGLE_EXPECTED for r in per_point.values()))
+
+    ok = pts_ok and basis_ok and first_ok and multi_ok
+    return ok, orbit_dim, per_point
+
+
+def check_single_copy_gate(orbit_dim):
+    """test-stabilizer-28 + test-trdeg-3: the single-copy GATE certifying the f_4
+    builder. From the COMPUTED orbit_dim:
+       stabilizer dim = dim f_4 - orbit_dim = 52 - 24 == 28 == dim Spin(8),
+       single-state trdeg = 27 - orbit_dim = 27 - 24 == 3 (= R[Tr, Tr^2, det]).
+    A match reproduces the Garibaldi-Guralnick / Lawther anchor IN-ENGINE and
+    therefore CERTIFIES the Plan-01 builder is Der(h_3(O)) = f_4 (the RIGHT 52-dim
+    algebra acting correctly), the precondition for the pair value (Plan 03).
+
+    GATE BACKTRACKING (hard): if orbit_dim != 24 the builder is broken -- the
+    harness FAILS and the pair value must NOT be computed (forbidden proxy
+    fp-skip-single-copy-gate; roadmap GATE)."""
+    stab = DIM_F4 - orbit_dim
+    trdeg = AMBIENT_SINGLE - orbit_dim
+
+    orbit_ok = _report(
+        f"orbit_dim == 24 (single-copy generic orbit; Garibaldi-Guralnick anchor "
+        f"reproduced in-engine, NOT looked up)",
+        orbit_dim == ORBIT_DIM_SINGLE_EXPECTED)
+    stab_ok = _report(
+        f"stabilizer dim = 52 - {orbit_dim} == 28 == dim Spin(8) "
+        f"(stab={stab})  [test-stabilizer-28]",
+        stab == DIM_SPIN8)
+    trdeg_ok = _report(
+        f"single-state trdeg = 27 - {orbit_dim} == 3 (= R[Tr, Tr^2, det], "
+        f"degrees 1/2/3; trdeg={trdeg})  [test-trdeg-3]",
+        trdeg == 3)
+
+    # Anchor-match record (Garibaldi-Guralnick / Lawther reproduced in-engine).
+    anchor_ok = _report(
+        "Garibaldi-Guralnick / Lawther single-copy anchor (orbit 24 / Spin(8) 28 "
+        "/ trdeg 3) REPRODUCED in-engine -> f_4 builder CERTIFIED = Der(h_3(O))",
+        orbit_ok and stab_ok and trdeg_ok)
+
+    return orbit_ok and stab_ok and trdeg_ok and anchor_ok, stab, trdeg
+
+
+# Module-level result carried forward to Plan 03 (the pair orbit-dimension value):
+# the CERTIFIED single-copy orbit dimension and the integer-point / substitute-first
+# / matrix*vector-tangent / exact-QQ-rank recipe. Populated by main() on a PASS.
+ORBIT_DIM_SINGLE = None   # set to 24 by main() iff the single-copy GATE passes.
+
+
+# ============================================================================
 # EXACT-ONLY source guard  (forbidden proxy fp-float-rank + fp-norm-bug)
 # ============================================================================
 # RANK-ROUTING CONVENTION (carried forward to Plans 02/03): ALL ranks MUST go
@@ -359,7 +589,8 @@ def exact_only_guard():
 
 def main():
     print("=" * 76)
-    print("Phase 65 Plan 01 : f_4 = Der(h_3(O)) builder + infinitesimal F_4-invariance GATE")
+    print("Phase 65 Plan 01+02 : f_4 = Der(h_3(O)) builder + infinitesimal F_4-invariance")
+    print("                      + single-copy orbit-dimension GATE (orbit 24 / Spin(8) / trdeg 3)")
     print("=" * 76)
 
     # ------------------------------------------------------------------------
@@ -401,6 +632,41 @@ def main():
     # ------------------------------------------------------------------------
     print("Task 2 — infinitesimal F_4-invariance certificate (Derksen-Kemper char-0):")
     check_invariance(derivs)
+
+    # ------------------------------------------------------------------------
+    # TASK 3 (Plan 02): single-copy orbit dimension == 24 (exact rank over QQ at
+    # >=2 generic integer octonionic points, MAX). The Garibaldi-Guralnick anchor
+    # COMPUTED in-engine, NOT looked up (Spin(8)-triality back-of-envelope is a
+    # FORBIDDEN PROXY).
+    #
+    # GATE BACKTRACKING (disconfirming_observations): MAX != 24 -> the f_4 builder
+    # is BROKEN; STOP, do NOT compute the pair value (Plan 03).
+    # ------------------------------------------------------------------------
+    print("Task 3 (Plan 02) — single-copy orbit dimension (exact QQ rank, >=2 generic "
+          "integer octonionic points):")
+    _orbit_ok, orbit_dim, _per_point = check_single_copy_orbit_dim(derivs)
+
+    # ------------------------------------------------------------------------
+    # TASK 4 (Plan 02): assert the single-copy GATE -- orbit 24 / Spin(8) (28) /
+    # trdeg 3. Certifies the f_4 builder = Der(h_3(O)); precondition for Plan 03.
+    # ------------------------------------------------------------------------
+    print("Task 4 (Plan 02) — single-copy GATE (orbit 24 / Spin(8) 28 / trdeg 3; "
+          "builder correctness):")
+    _gate_ok, _stab, _trdeg = check_single_copy_gate(orbit_dim)
+
+    # Carry forward the CERTIFIED orbit dimension to Plan 03 iff the GATE passed.
+    global ORBIT_DIM_SINGLE
+    if _orbit_ok and _gate_ok and orbit_dim == ORBIT_DIM_SINGLE_EXPECTED:
+        ORBIT_DIM_SINGLE = orbit_dim
+        print(f"  [INFO] ORBIT_DIM_SINGLE = {ORBIT_DIM_SINGLE} carried forward to "
+              f"Plan 03 (pair orbit value). Recipe: generic integer point, "
+              f"substitute-first, matrix*vector tangents, exact QQ rank.")
+    else:
+        # HARD GATE: builder broken -> the pair value (Plan 03) must NOT be computed.
+        print("  [GATE-FAIL] single-copy orbit dimension != 24: the f_4 builder is "
+              "BROKEN (wrong subalgebra / mis-flattened L-columns / wrong action "
+              "convention). STOP -- do NOT compute the pair value (Plan 03) until "
+              "fixed (roadmap GATE / Backtracking).")
 
     # exact-only guard self-check (forbidden proxies fp-float-rank, fp-norm-bug).
     print("Exact-only guard (decisive-path source scan):")
