@@ -61,21 +61,25 @@
 Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
-| ----------- | ----- | ------ |
-| BASE-01 | TBD | Pending |
-| BASE-02 | TBD | Pending |
-| RING-01 | TBD | Pending |
-| RING-02 | TBD | Pending |
-| RING-03 | TBD | Pending |
-| REDU-01 | TBD | Pending |
+| ----------- | --------------------------------------------- | ------ |
+| BASE-01 | Phase 64 — Setup, Conventions, and Exact Engine | Pending |
+| BASE-02 (GATE) | Phase 65 — f_4 Construction + Orbit-Dimension GATE | Pending |
+| RING-02 (b) [SPINE] | Phase 66 — (b) Functional Independence of c | Pending |
+| RING-03 (c) | Phase 67 — (c) Degree-2 Uniqueness | Pending |
+| RING-01 (a) | Phase 68 — (a) Generating-Set Completeness Certificate | Pending |
+| REDU-01 (STATE only) | Phase 69 — (REDUCIBILITY) State the Dynamical Bridge | Pending |
 
 **Coverage:**
 
 - Primary requirements: 6 total (BASE-01, BASE-02, RING-01, RING-02, RING-03, REDU-01)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 6 (filled by roadmapper)
+- Mapped to phases: 6/6 (100%) — every requirement maps to exactly one primary phase
+- Unmapped: 0 (no orphans, no duplicates)
+- Chain-critical items: BASE-02 (the orbit-dimension GATE, Phase 65) and RING-02 (the (b) SPINE, Phase 66)
+- Phase numbering: 64-69 (continuing from v15.0's Phase 63)
+
+**Phase ordering note:** the gated ordering (per SUMMARY.md, all four scouts converged) is preserved — Setup (64) → orbit-dim GATE (65, gates the RING phases) → the (b) SPINE (66) and (c) (67) in parallel → (a) generating-set completeness (68, last of the proof phases) → (REDUCIBILITY) statement (69). The traceability table above is ordered by phase number; note RING-02/03/01 map to phases 66/67/68 in that gated order, NOT in REQ-ID numeric order.
 
 ---
 
 _Requirements defined: 2026-05-24_
-_Last updated: 2026-05-24 after v16.0 literature survey_
+_Last updated: 2026-05-24 — traceability mapped to Phases 64-69 during v16.0 roadmap creation_
