@@ -123,6 +123,13 @@ Plans:
 
 **GATE / Backtracking:** If 54 - orbit_dim != 7, the whole generating-set picture (six pointwise + c) is wrong -- STOP and reconsider before any RING phase; this is the milestone's early go/no-go (consider `/gpd:research-phase` only on this failure). If the single-copy sanity (orbit 24 / Spin(8)) does not reproduce, the f_4 builder is broken -- fix it before computing the pair value.
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 65-01-PLAN.md -- Build f_4 = span{[L_a,L_b]} (52 generators as 27x27 over Q via the frozen inner_derivations(); span rank == 52 computed; bracket-closed) + certify infinitesimal F_4-invariance (D_M f = 0 over Q for {Tr,Tr^2,det_3}, all 324 generators, >=3 octonionic points) (wave 1, 2 tasks)
+- [ ] 65-02-PLAN.md -- Single-copy GATE: F_4 on one 27 -> generic orbit dim 24 (exact QQ rank of the (generators x 27) action at >=2 integer points), stabilizer Spin(8) (52-24=28), trdeg 27-24=3; reproduces Garibaldi-Guralnick -> certifies the builder before the pair value (wave 2, 2 tasks; depends 65-01)
+- [ ] 65-03-PLAN.md -- DECISIVE pair value: select 52-independent basis, compute generic orbit dim of F_4 on 27(+)27 as the exact QQ rank of the 52x54 diagonal-action matrix at >=3 integer pairs (MAX), derive trdeg = 54-orbit_dim, ASSERT the milestone anchor 54-orbit_dim = 7 (orbit 47, stab 5); milestone go/no-go checkpoint (wave 3, 3 tasks incl. checkpoint; depends 65-01, 65-02)
+
 ### Phase 66: (b) Functional Independence of c -- THE SPINE
 
 **Goal:** It is DEMONSTRATED -- on the actual non-associative h_3(O), by exact computation over Q -- whether c = Tr(X o Y) is functionally independent of the six pointwise generators. This is the load-bearing result and the mathematical content of "the complete third-person (single-frame) record does not determine Phi." The verdict is either independence (Jacobian rank 7) or the decisive NEGATIVE (rank 6, c expressible in the pointwise ring), both full passes.
