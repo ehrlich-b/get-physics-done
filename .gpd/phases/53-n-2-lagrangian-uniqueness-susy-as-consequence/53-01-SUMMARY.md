@@ -22,7 +22,7 @@ affects: [53-02-gst-bijection-and-n2-as-consequence]
 
 methods:
   added: [VSR Hessian metric from cubic norm, tangent space projection via QR]
-  patterns: [V = C_IJK h^I h^J h^K convention, dual coordinates x_I = C_{IMN} h^M h^N]
+  patterns: ["V = C_IJK h^I h^J h^K convention", "dual coordinates x_I = C_{IMN} h^M h^N"]
 
 key-files:
   modified: [code/octonion_algebra.py, derivations/53-vsr-uniqueness.tex]

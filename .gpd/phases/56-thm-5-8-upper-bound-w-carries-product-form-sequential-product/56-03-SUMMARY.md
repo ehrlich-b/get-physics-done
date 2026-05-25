@@ -11,9 +11,9 @@ requires:
   - phase: 56
     provides: [Plan 56-01 outputs (identity extraction + consumer scan + face-status + sense formalization + SymPy design + routing decision), Plan 56-02 outputs (w-sps-proof.md sense (b) + ci-sps-morphism.md sense (c) + carries-three-sense-table.md R7 mitigation + w-closeout-sympy.py 5/5 PASS certificate)]
   - phase: 54
-    provides: [S0 axiom + Peirce-Preservation Lemma (outcome C-i); `\ref{lem:peirce-preservation}` + `\ref{ax:S0}` discipline for R11 cross-phase cascade]
+    provides: ['S0 axiom + Peirce-Preservation Lemma (outcome C-i); `\ref{lem:peirce-preservation}` + `\ref{ax:S0}` discipline for R11 cross-phase cascade']
   - phase: 55
-    provides: [A-S bracketing discipline `\cite[Ch.~X, Prop.~Y.Z]{AlfsenShultz2003}` with X ≤ 8; Ch. 9 FORBIDDEN (Flag 4.1); forbidden-token list]
+    provides: ['A-S bracketing discipline `\cite[Ch.~X, Prop.~Y.Z]{AlfsenShultz2003}` with X ≤ 8; Ch. 9 FORBIDDEN (Flag 4.1); forbidden-token list']
 provides:
   - Phase 56 outcome (B) — W is NOT a face but direct S1-S7-on-W via vdW 2019 Def. 4 + Thm 1 succeeds
   - Paper 5 §5 upper-bound revision integrated (blog commit 61fbff6; frozen-file preserved)

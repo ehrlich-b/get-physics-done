@@ -10,7 +10,7 @@ requires:
   - phase: 55-01 (classification)
     provides: [55-01-CLASSIFICATION.md frozen blueprint, 10 §S4-region invocations tagged, Prop 7.43 VERIFIED-VIA-INTERNAL-CROSS-REFERENCE, line 68 PRE-S4 scope decision]
   - phase: 54-3-3-peirce-preservation-from-ous-primitives
-    provides: [S0 axiom (`\ref{ax:S0}`), Peirce-Preservation Lemma (`\ref{lem:peirce-preservation}`), `\newtheorem{axiom}` in preamble.sty]
+    provides: ['S0 axiom (`\ref{ax:S0}`)', 'Peirce-Preservation Lemma (`\ref{lem:peirce-preservation}`)', '`\newtheorem{axiom}` in preamble.sty']
 provides:
   - Revised §S4 proof (axiom-verification.tex + appendix-proofs.tex) free of Thm 9.37 / facial-orthogonality handwaves
   - 55-02-PRE-EDIT-SNAPSHOT.md (line-number reconciliation)
@@ -20,7 +20,7 @@ provides:
 affects: [55-03 (close-out + adversarial review), 57 (phi-audit), 58 (Lean axiom audit — S0 + Peirce-Preservation Lemma newly cited in Paper 5 §S4)]
 
 methods:
-  added: [S0-termwise derivation pattern replacing unnamed facial-orthogonality handwaves, explicit role-swap annotation style (`$a \leftarrow b$, $\{p_k, p_l\} \leftarrow \{p_i, p_j\}$`) for Part (iii) invocations]
+  added: ['S0-termwise derivation pattern replacing unnamed facial-orthogonality handwaves', 'explicit role-swap annotation style (`$a \leftarrow b$, $\{p_k, p_l\} \leftarrow \{p_i, p_j\}$`) for Part (iii) invocations']
   patterns: [paper-repo / GPD-repo split-artifact execution (paper edits in blog repo, analysis artifacts in GPD repo), environment-gate documentation for missing toolchains, frozen-tag verification via git diff window constraints]
 
 key-files:
