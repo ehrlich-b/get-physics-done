@@ -389,6 +389,127 @@ does not require it.
 
 ---
 
+## 11. Adversarial fresh-eyes guard review (Phase 63, plan 63-02)
+
+> **STILL A DRAFT.** This section is the **fresh-eyes adversarial review** mandated by ROADMAP
+> Success Criterion 2 — the safeguard that must **precede** finalization. It was run in a
+> **separate wave / fresh context window** (what makes it "fresh-eyes"): every guard was
+> adjudicated **against the NAMED real Phase 60/61/62 artifacts**, not against §1–§10's own
+> self-claims (`fp-rubber-stamp` foreclosed). The verdict LINE (DERV-00-02) and the removal of
+> the DRAFT marker remain the job of plan 63-02's **gated** finalization step — **not written
+> in this review pass.**
+
+**Adversarial stance.** Assume nothing in §1–§10 is correct until checked against the real
+artifacts. The job is to **break** the verdict, not rubber-stamp it. Each guard is adjudicated
+verbatim/structurally against its NAMED artifact; the decisive harness is **re-run** (exact
+SymPy, NO pytest); a guard FAIL fires the backtracking trigger to the offending phase and
+**blocks** finalization.
+
+### 11.1 Per-guard PASS/FAIL table
+
+| Guard | Claim under attack | Adjudicated against (NAMED real artifact) | Decisive evidence | Verdict |
+|---|---|---|---|---|
+| **(a)** clause (iii) **NOT redefined** | Did the coexistence-as-island reframe secretly weaken clause (iii)? | `claim.md` clause-(iii) integrity guard (lines 109–114, verbatim `main.tex` 351–353); `slice-clause-iii.md` §0.2 / clause-(iii) block (lines 64–66, 183–187); `rem-converse-bgw.md` §3 (lines 226–229, 257–272) | Clause-(iii) text is **identical verbatim** in RESULT.md (§5(a), §10), `claim.md`, `slice-clause-iii.md`, `rem-converse-bgw.md`, `two-composites.md`: *"minimal composite OUS carrying product states, product effects, non-signaling constraints, and product-form sequential product"* — **all four data + minimality intact**. `rem-converse-bgw.md` confirms minimality **SELECTS the standard summand** (`minimal ≠ maximal`, `81 ≠ 162`; minimal a **direct summand** of maximal, BGW Thm 4.15/Cor 4.16) — NOT "minimal = maximal coincide" (that wording is explicitly *corrected*). The **only** thing weakened is `RESTRICTION`'s **embedding clause** (`claim.md` lines 62–85; `embedding-under-E.md` §3.7 lines 547–564). | **PASS** |
+| **(b)** two composites **NOT conflated** | Was `V_BM` quietly identified with the BGW universe-tensoring of `h_3(O)`? | `two-composites.md` Categories ledger + Independence (a)–(e); `embedding-under-E.md` §3.7/§5.O.2; `claim.md` `fp-conflate-composites` (lines 158–164) | RESULT.md §2(II), §6, §10 keep `V_BM = A ⊗ A ≅ M_9(C)^sa` (the observer's **OWN** internal composite, dim **81**) **type-distinct** from the BGW bifunctor `⊠̃` on `h_3(O)`, and state **verbatim** *"the basin fixes the TYPE `M_3(C)^sa`, not the composite."* This matches `two-composites.md` exactly (OUS internal self-composite vs monoidal bifunctor — different categories; `P_BGW ⊬ ¬P_VBM`). No sentence equates an OUS-level object with an FRJA-monoidal property. | **PASS** |
+| **(c)** **asserted preservation** foreclosed — preservation **NOT asserted** without demonstration on `h_3(O)` | Is the (O) verdict an **asserted preservation/obstruction** ("`E` is a conditional expectation, so it transports clause (iii)") or a real computation on the non-associative ambient? | `embedding-under-E.md` §4.2 (the decisive exact computation on generic ambient X,Y) + §3.2/§4.2(5) (the trivial control) + the code (`tests/test_embedding_under_E.py`, re-run §11.2) | The opposite of an **asserted preservation**: the residual `R` was **DEMONSTRATED** on **GENERIC ambient** `X,Y` (off-diagonal octonion entries with nonzero `(e_1,…,e_6)`-parts; **NOT** slice-confined), with the associator `‖(√X Y)√X − √X(Y√X)‖² = 524/9 ≠ 0` **LOAD-BEARING on the SAME decisive triple** `(√X, Y, √X)`. The slice-internal case is named the **TRIVIAL control** (leakage 0, associator 0) — explicitly **not** the decisive test. `E` is shown to be **not even a Jordan morphism** on the ambient (`‖E(X∘X)−(EX)∘(EX)‖² = 3797527/34560000 ≠ 0`), a fortiori not an SP-morphism. The hand-wave *"`E` transports clause (iii) because it is a conditional expectation"* (`fp-assert-preservation` / `assert-Peirce-preserves-iii`) is the move foreclosed — and it is not made: the harness re-run (§11.2) independently confirms a **slice-confined control yielding `R = 0`**, proving the test genuinely **CAN** yield branch (P), so (O) is **NOT rigged** and **NOT** an asserted preservation. | **PASS** |
+
+### 11.2 Mandatory harness re-run (test-harness-reconfirm) — EXACT, re-executed this review
+
+Re-ran the decisive harness with the project sympy/numpy venv (assert-based, **NO pytest**):
+
+```
+$ /Users/ehrlich/.gpd/venv/bin/python tests/test_embedding_under_E.py
+...
+      >>> DECISIVE VERDICT (direct residual route): O (AMBIENT-TRANSPORT OBSTRUCTION)
+          per-pair is_zero_exact = [False, False]
+...
+OVERALL: ALL SELF-CHECKS PASS
+=== EXIT CODE: 0 ===
+```
+
+Recorded actual output (the disconfirming-observation gate — it did **NOT** fire):
+
+| Check | Required | Observed (this re-run) | OK? |
+|---|---|---|---|
+| Exit code | `0` | `0` | ✓ |
+| Overall self-check | `ALL SELF-CHECKS PASS` | `OVERALL: ALL SELF-CHECKS PASS` | ✓ |
+| Decisive verdict | `(O)` | `O (AMBIENT-TRANSPORT OBSTRUCTION)` | ✓ |
+| `is_zero_exact` | `[False, False]` | `[False, False]` | ✓ |
+| Associator load-bearing on SAME X,Y | nonzero | `[PASS]` pairs 0 & 1, associator nonzero on the same X,Y | ✓ |
+| `E` not a Jordan morphism on ambient | nonzero diff | `[PASS]` `E(X∘X) ≠ (EX)∘(EX)` exact | ✓ |
+| Slice-confined control | `R = 0` (test non-rigged, CAN yield P) | `[PASS]` leakage EXACTLY 0; associator EXACTLY 0 | ✓ |
+| Two routes (direct + Peirce/grade) | agree | `[PASS]` agree on both pairs (no split) | ✓ |
+| No-pytest | assert-based | `[PASS]` no pytest import | ✓ |
+
+(The verification entrypoint `/Users/ehrlich/.gpd/venv/bin/python code/embedding_under_E_verification.py`
+was also run: same `OVERALL: ALL SELF-CHECKS PASS`, `DECISIVE VERDICT: O`, with the full defect
+characterization — `C_u`-part² `= 38593/72`, `(e_1…e_6)`-part² `= 0`; positional `E_11` grades
+`‖V_1‖²=4`, `‖V_{1/2}‖²=1033/18`, `‖V_0‖²=3797/8`; populated octonion components `[0, 7]`;
+ambient SP non-Hermitian.) **The harness re-confirms (O); finalization is NOT blocked on this axis.**
+
+### 11.3 Honest-negative confirmation (test-honest-negative)
+
+- **Verdict equals the exact computation.** (O) is read directly off `R ≠ 0` (exact); it is **not**
+  forced to (P) — and the harness proves the test *could* have returned (P) (the slice-confined
+  control gives `R = 0`). No `X,Y` were cherry-picked to force `R = 0`; the exact (zero-tolerance)
+  test was never relaxed. ✓
+- **(O) is NOT over-stated as a collapse.** RESULT.md describes (O) as the EXPECTED
+  coexistence-as-island **refinement** (through-line **survives**); the stale *"independent posits /
+  two unconnected foundations / program collapse"* phrasing appears **only** as explicitly-negated
+  or marked-superseded quotation (§2 reconciliation box, §6, §10) — never affirmatively describing
+  the (O) consequence (`fp-overstate-obstruction` foreclosed). ✓
+- **The reconciliation smuggles no positive.** Coexistence-as-island weakens **only** the embedding
+  clause; clause (iii) stays verbatim and `V_BM` stays the observer's own composite. **No branch-(P)
+  `RESTRICTION` embedding lemma is claimed** anywhere — the file is explicit that (P) "did NOT
+  obtain." NEGATIVE-RESULT-IS-SUCCESS: the clean, honestly-reported obstruction **is** the pass. ✓
+
+### 11.4 Pure-algebra dimensional-analysis re-check (re-confirmed exactly this review)
+
+- **Peirce-grade arithmetic:** `4 + 1033/18 + 3797/8 = 288/72 + 4132/72 + 34173/72 = 38593/72 =
+  ‖R‖_F²` — re-verified by exact SymPy (`288 + 4132 + 34173 = 38593`; each summand checked:
+  `4 = 288/72`, `1033/18 = 4132/72`, `3797/8 = 34173/72`). ✓
+- **Rank bookkeeping:** `27 = 9 (range E) + 18 (ker E)`; slice Peirce `9 = 1 + 4 + 4` — both exact. ✓
+- **Ledger cross-checks (exact):** `‖R‖² = 38593/72 ≈ 536`; associator `524/9 ≈ 58.2`; `E`
+  non-Jordan `3797527/34560000 ≈ 0.110`; pair-1 norm `≈ 155` — all reproduced. ✓
+- **Type/category consistency:** no cross-tag equation in the verdict (the §10 self-audit holds; the
+  sequential product is never treated as a Jordan op; `E` is the access/projection map, not a
+  morphism on the ambient). ✓
+
+### 11.5 OVERALL OUTCOME
+
+> **ALL THREE GUARDS PASS.** Guard (a) PASS (clause (iii) verbatim — only the embedding clause
+> weakened). Guard (b) PASS (`V_BM` ≠ the BGW composite; the basin fixes the TYPE, not the
+> composite). Guard (c) PASS (the (O) verdict rests on a DEMONSTRATION on generic ambient `X,Y`
+> with the associator `524/9` load-bearing on the same triple — re-run harness exit 0, verdict
+> (O), `is_zero_exact = [False, False]`, slice-confined control `R = 0` non-rigged). The
+> honest-negative is confirmed; the Peirce-grade arithmetic re-confirms exactly. **No
+> backtracking trigger fires.** The verdict (O) is **earned**.
+
+**Finalization is therefore eligible to proceed — but it is GATED on the human acknowledgement of
+Task 2** (the milestone-sealing decision under balanced autonomy; ROADMAP Success Criterion 2:
+the review precedes finalization). **The DRAFT marker is intentionally still present.** The
+one-sentence verdict line (DERV-00-02) and the DRAFT-marker removal are deferred to the gated Task 2
+step.
+
+**Forbidden proxies — actively rejected in this review:** `fp-rubber-stamp` (each guard adjudicated
+against the NAMED real artifact + the harness re-run, not §1–§10's self-claims); `fp-finalize-before-review`
+(this review **precedes** finalization; the verdict line is NOT written here); `fp-overstate-obstruction`
+(stale phrasing confirmed only as negated/superseded quotation); `fp-force-positive` (verdict = the
+exact computation; the test could have yielded (P)); `fp-ignore-guard-violation` (no violation found;
+had one been found, the backtracking trigger would have fired and blocked finalization).
+
+**[CONFIDENCE: HIGH]** that all three reward-hacking guards PASS against the real Phase 60/61/62
+artifacts, the harness re-confirms (O) (exit 0, `is_zero_exact = [False, False]`), the negative was
+reported honestly, and the Peirce-grade arithmetic holds exactly. *Independent checks supporting
+HIGH:* (i) verbatim clause-(iii) text matched across five artifacts; (ii) the decisive harness
+re-executed this review (not trusted from the DRAFT) with the exact required output; (iii) every
+ledger number re-derived by exact SymPy this review; (iv) the framing matched against the corrected
+governing authority (`claim.md`, `embedding-under-E.md` §5, ROADMAP FRAMING NOTE). **[CONFIDENCE:
+explicitly DEFERRED — the verdict LINE + DRAFT-marker removal]:** owned by the gated Task 2 step,
+pending human acknowledgement.
+
+---
+
 _Plan: 63-01 (Phase 63, milestone v15.0) — DERV-63-01 (DRAFT). Step 4 of 4._
 _Assembles the Phase 62 verdict (O) (`embedding-under-E.md` §4/§5; `62-03-SUMMARY.md`,
 human-approved 2026-05-24) into the milestone coexistence-as-island `RESTRICTION` verdict._
