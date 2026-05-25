@@ -5,20 +5,42 @@
 
 # RESULT.md — Milestone verdict: the P5 ↔ Basin RESTRICTION Lemma
 
-> **DRAFT — verdict line + finalization pending the 63-02 adversarial fresh-eyes review.**
-> This file **assembles** the milestone verdict from the settled Phase 62 outcome; it does
-> **not** recompute anything (every number is restated **verbatim** from `embedding-under-E.md`
-> §4/§5, cross-checked against `62-03-SUMMARY.md`). The **one-sentence milestone verdict line**
-> (DERV-00-02) and the removal of this **DRAFT** marker are **deliberately deferred to plan
-> 63-02**, which runs the fresh-eyes adversarial guard review **before** finalization (ROADMAP
-> Success Criterion 2: the review must **precede** finalization). Until 63-02's guard review
-> passes, this stays a DRAFT.
+> **FINALIZED 2026-05-24 (plan 63-02).** The fresh-eyes adversarial guard review (§11) ran in a
+> separate wave **before** finalization (ROADMAP Success Criterion 2 satisfied): all three
+> reward-hacking guards **PASS** against the real Phase 60/61/62 artifacts, the decisive harness
+> re-ran **exit 0 / verdict (O)** (`is_zero_exact = [False, False]`), the honest-negative was
+> confirmed, and **no backtracking trigger fired** — so the verdict is **earned**. Bryan
+> acknowledged finalization at the 63-02 backtracking-trigger gate (option-finalize). This file
+> **assembles** the milestone verdict from the settled Phase 62 outcome; it does **not** recompute
+> anything (every number is restated **verbatim** from `embedding-under-E.md` §4/§5, cross-checked
+> against `62-03-SUMMARY.md`). The one-sentence milestone verdict line **(DERV-00-02)** is recorded
+> immediately below.
 
-**Plan:** 63-01 (Phase 63, milestone v15.0) — DERV-63-01 (draft). **Step 4 of 4.**
+**Plan:** 63-01 (assembly, DRAFT) → **63-02 (adversarial review + finalization).** Milestone
+v15.0 — DERV-63-01 / DERV-63-02 / **DERV-00-02**. **Step 4 of 4 — COMPLETE.**
 **Role:** The milestone deliverable. Reads the Phase 62 coherent-embedding verdict **(O)
 AMBIENT-TRANSPORT OBSTRUCTION** into the milestone-level `RESTRICTION` verdict and interprets it
 as a **REFINEMENT** of `RESTRICTION` to **coexistence-as-island** — the
 "self-modeling → QM → `h_3(O)`" through-line **SURVIVES**.
+
+---
+
+## Milestone verdict (DERV-00-02)
+
+> **CHARACTERIZED OBSTRUCTION** — `E` does **not** transport the self-modeling sequential product
+> coherently from the non-associative `h_3(O)` (exact `R ≠ 0`, `‖R‖² = 38593/72`, decisive-triple
+> associator `524/9` load-bearing), which **refines `RESTRICTION` to coexistence-as-island**: the
+> observer is a self-contained C\* island that self-certifies its `M_3(C)^sa` QM on the slice
+> `A = h_3(C_u)` (Phase 61, all four Def 1 clauses verbatim, intrinsically), and that slice sits
+> inside `h_3(O)` as `range E` (`E` = access/projection map, **not** a Jordan/SP morphism on the
+> ambient) — so the "self-modeling → QM → `h_3(O)`" through-line **SURVIVES** as the island
+> through-line, **NOT** independent posits and **NOT** a program collapse.
+
+_(One sentence. Equals the exact, human-approved Phase 62 computation — `fp-force-positive` /
+`fp-overstate-obstruction` rejected: not forced to a RESTRICTION theorem, not over-stated as a
+collapse. The corrected coexistence-as-island authority — ROADMAP Phase 62/63 FRAMING NOTE,
+`embedding-under-E.md` §5, `claim.md` — supersedes the stale "independent posits / two unconnected
+foundations / program collapse" requirement phrasing.)_
 
 ---
 
@@ -38,7 +60,7 @@ The attack ran in four steps (derivation-tree `STATE.md`, four-step table):
 | 1 | **60** | **Two-composites distinction.** The observer's clause-(iii) `V_BM` is a *type-distinct* object from `h_3(O)`'s BGW non-composability (no circular collapse at step 1). | **COMPLETE** (60-01 distinction earned; 60-02 `rem:converse` CONFIRMED-WITH-CAVEAT against BGW) |
 | 2 | **61** | **Slice satisfies clause (iii).** `A ≅ M_3(C)^sa` meets all four Def 1 clauses (i)–(iv) **intrinsically** (as a self-modeler in its own right). | **COMPLETE** (61-02 exact-symbolic evidence; 61-01 clause-by-clause; clause (iii) AS STATED via the minimal composite `M_9(C)^sa`, dim 81; `minimal ≠ maximal`) |
 | 3 | **62** | **Coherent embedding under `E` (the hard/load-bearing part).** Does `E` *transport* the self-modeling structure from the non-associative ambient — or is there a precise obstruction? | **COMPLETE** — verdict **(O) AMBIENT-TRANSPORT OBSTRUCTION** (verifier 14/14 + 11/11 physics checks re-derived; consistency CONSISTENT; human-approved 2026-05-24) |
-| 4 | **63** | **Verdict (this file).** A clean RESTRICTION theorem, or a precisely-characterized obstruction — read into the milestone verdict. | **THIS** (DRAFT; verdict line + finalization → 63-02 after the adversarial review) |
+| 4 | **63** | **Verdict (this file).** A clean RESTRICTION theorem, or a precisely-characterized obstruction — read into the milestone verdict. | **COMPLETE** — milestone verdict **FINALIZED** as **CHARACTERIZED OBSTRUCTION** (coexistence-as-island; through-line survives). 63-01 assembled the DRAFT; 63-02 ran the fresh-eyes adversarial guard review (3/3 guards PASS, harness re-run exit 0 verdict (O)) **before** finalization, then wrote the DERV-00-02 verdict line. |
 
 This file (Step 4) **assembles** Step 3's settled (O) verdict into the milestone-level
 `RESTRICTION` verdict. Steps 1–3 are inputs, not re-derived here.
@@ -291,8 +313,9 @@ compute in `A`" route disagrees with "compute in the ambient and project."
 
 > **WEAKEST ANCHOR (flagged; not inflated).** This **minimal extra input** is the
 > **least-certain** part of the analysis. It is stated as precisely as the evidence allows (an
-> external datum on `h_3(O)` not in `range E`, via Hanche-Olsen induced-vs-imported) and flagged
-> for the 63-02 review / future work — **NOT** overstated (`fp-force-positive` over-claim guard).
+> external datum on `h_3(O)` not in `range E`, via Hanche-Olsen induced-vs-imported); the 63-02
+> review confirmed it is stated **NOT** overstated (`fp-force-positive` over-claim guard) and that
+> coexistence-as-island does not lean on it. It remains flagged for future work.
 > **NOTE explicitly: coexistence-as-island does NOT require this extra input AT ALL.** The
 > observer already self-models on the slice (Phase 61), which sits inside `h_3(O)` as `range E`;
 > the minimal extra input is **only** what the stronger AMBIENT TRANSPORT would need. The island
@@ -300,26 +323,27 @@ compute in `A`" route disagrees with "compute in the ambient and project."
 
 ---
 
-## 8. What is NOT decided here (handoff to 63-02)
+## 8. Finalization gate (resolved by 63-02)
 
-This file is a **DRAFT**. The following are **deliberately deferred to plan 63-02**, which runs
-the fresh-eyes adversarial guard review **before** finalization (ROADMAP Success Criterion 2 — the
-review must **precede** finalization):
+This file was a DRAFT under 63-01; **plan 63-02 finalized it** after running the fresh-eyes
+adversarial guard review **before** finalization (ROADMAP Success Criterion 2 — the review
+**preceded** finalization, satisfied):
 
-- **The one-sentence milestone verdict LINE (DERV-00-02)** is **NOT written here.** (It belongs to
-  63-02, after the adversarial review passes.)
-- **The DRAFT marker is NOT removed here** and finalization is **NOT** declared
-  (`fp-overclaim-milestone` — the milestone verdict stays UNDECIDED until 63-02).
-- **The adversarial fresh-eyes review of the three reward-hacking guards** is 63-02's job:
+- **The one-sentence milestone verdict LINE (DERV-00-02)** is now written (top of this file, and
+  the §11.5 review records the verdict is earned). It states **CHARACTERIZED OBSTRUCTION** in
+  corrected coexistence-as-island language.
+- **The DRAFT marker is removed** and finalization is declared — but **only after** all three
+  guards passed (`fp-finalize-before-review` foreclosed: the review in §11 was committed first, as
+  a separate wave, then finalization followed at the gated 63-02 backtracking-trigger step with
+  human acknowledgement).
+- **The adversarial fresh-eyes review of the three reward-hacking guards** (§11) confirmed:
   (i) clause (iii) **not redefined** (only the embedding clause weakened);
   (ii) the **two composites not conflated** (`V_BM ≠` the ambient BGW `⊠̃`);
   (iii) **preservation not asserted** without demonstration on the actual non-associative `h_3(O)`
   (the decisive test was the **ambient** residual on generic `X, Y` with the associator `= 524/9`
   load-bearing).
-  A backtracking trigger would fire only on a **guard violation** found at review — a
-  contingency, not expected.
-
-Until 63-02's guard review passes, this RESULT.md remains a DRAFT.
+  **No backtracking trigger fired** (no guard violation) — so the verdict is earned and
+  finalization was legitimate (`fp-ignore-guard-violation` foreclosed).
 
 ---
 
@@ -391,13 +415,15 @@ does not require it.
 
 ## 11. Adversarial fresh-eyes guard review (Phase 63, plan 63-02)
 
-> **STILL A DRAFT.** This section is the **fresh-eyes adversarial review** mandated by ROADMAP
-> Success Criterion 2 — the safeguard that must **precede** finalization. It was run in a
-> **separate wave / fresh context window** (what makes it "fresh-eyes"): every guard was
-> adjudicated **against the NAMED real Phase 60/61/62 artifacts**, not against §1–§10's own
-> self-claims (`fp-rubber-stamp` foreclosed). The verdict LINE (DERV-00-02) and the removal of
-> the DRAFT marker remain the job of plan 63-02's **gated** finalization step — **not written
-> in this review pass.**
+> **This section is the fresh-eyes adversarial review** mandated by ROADMAP Success Criterion 2 —
+> the safeguard that **preceded** finalization. It was committed first, in a **separate wave /
+> fresh context window** (what makes it "fresh-eyes"), as task 1 of plan 63-02 with the DRAFT
+> marker still present: every guard was adjudicated **against the NAMED real Phase 60/61/62
+> artifacts**, not against §1–§10's own self-claims (`fp-rubber-stamp` foreclosed). The verdict
+> LINE (DERV-00-02) and the removal of the DRAFT marker were **deliberately not written in this
+> review pass** — they followed afterward, at the gated 63-02 backtracking-trigger step (task 2),
+> only because all three guards passed here (`fp-finalize-before-review` foreclosed: review first,
+> then finalize).
 
 **Adversarial stance.** Assume nothing in §1–§10 is correct until checked against the real
 artifacts. The job is to **break** the verdict, not rubber-stamp it. Each guard is adjudicated
@@ -485,15 +511,16 @@ ambient SP non-Hermitian.) **The harness re-confirms (O); finalization is NOT bl
 > honest-negative is confirmed; the Peirce-grade arithmetic re-confirms exactly. **No
 > backtracking trigger fires.** The verdict (O) is **earned**.
 
-**Finalization is therefore eligible to proceed — but it is GATED on the human acknowledgement of
-Task 2** (the milestone-sealing decision under balanced autonomy; ROADMAP Success Criterion 2:
-the review precedes finalization). **The DRAFT marker is intentionally still present.** The
-one-sentence verdict line (DERV-00-02) and the DRAFT-marker removal are deferred to the gated Task 2
-step.
+**Finalization was therefore eligible to proceed, and DID proceed at the gated Task 2 step** (the
+milestone-sealing decision under balanced autonomy; ROADMAP Success Criterion 2: the review
+preceded finalization). Bryan acknowledged finalization (option-finalize) at the 63-02
+backtracking-trigger gate; the DRAFT marker was then removed and the one-sentence verdict line
+(DERV-00-02, top of this file) written. **The review above was committed first** (task 1, separate
+wave, DRAFT still present); finalization followed only because all three guards passed.
 
 **Forbidden proxies — actively rejected in this review:** `fp-rubber-stamp` (each guard adjudicated
 against the NAMED real artifact + the harness re-run, not §1–§10's self-claims); `fp-finalize-before-review`
-(this review **precedes** finalization; the verdict line is NOT written here); `fp-overstate-obstruction`
+(this review **preceded** finalization; the verdict line was not written in this review pass); `fp-overstate-obstruction`
 (stale phrasing confirmed only as negated/superseded quotation); `fp-force-positive` (verdict = the
 exact computation; the test could have yielded (P)); `fp-ignore-guard-violation` (no violation found;
 had one been found, the backtracking trigger would have fired and blocked finalization).
@@ -505,13 +532,18 @@ HIGH:* (i) verbatim clause-(iii) text matched across five artifacts; (ii) the de
 re-executed this review (not trusted from the DRAFT) with the exact required output; (iii) every
 ledger number re-derived by exact SymPy this review; (iv) the framing matched against the corrected
 governing authority (`claim.md`, `embedding-under-E.md` §5, ROADMAP FRAMING NOTE). **[CONFIDENCE:
-explicitly DEFERRED — the verdict LINE + DRAFT-marker removal]:** owned by the gated Task 2 step,
-pending human acknowledgement.
+HIGH — the verdict LINE + finalization]:** completed at the gated 63-02 Task 2 step with human
+acknowledgement (option-finalize); the DERV-00-02 verdict line (top of this file) states
+**CHARACTERIZED OBSTRUCTION** in corrected coexistence-as-island language, no affirmative stale
+phrasing.
 
 ---
 
-_Plan: 63-01 (Phase 63, milestone v15.0) — DERV-63-01 (DRAFT). Step 4 of 4._
+_Plan: 63-01 (assembly, DRAFT) → 63-02 (adversarial review + finalization). Milestone v15.0 —
+DERV-63-01 / DERV-63-02 / DERV-00-02. **Step 4 of 4 — COMPLETE; milestone verdict FINALIZED.**_
 _Assembles the Phase 62 verdict (O) (`embedding-under-E.md` §4/§5; `62-03-SUMMARY.md`,
-human-approved 2026-05-24) into the milestone coexistence-as-island `RESTRICTION` verdict._
-_Verdict LINE (DERV-00-02) + finalization (remove DRAFT) deferred to 63-02, after the adversarial
-guard review (ROADMAP Success Criterion 2)._
+human-approved 2026-05-24) into the milestone **coexistence-as-island** `RESTRICTION` verdict:
+**CHARACTERIZED OBSTRUCTION** — the through-line SURVIVES._
+_Finalized 2026-05-24 after the fresh-eyes adversarial guard review (§11; 3/3 guards PASS, harness
+re-run exit 0 verdict (O), no backtracking trigger) — ROADMAP Success Criterion 2 satisfied
+(review preceded finalization)._

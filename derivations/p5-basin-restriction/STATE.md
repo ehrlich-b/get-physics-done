@@ -12,21 +12,29 @@ with the observer's `V_BM` realized coherently inside the non-composable `h_3(O)
 conditional expectation `E`. Outcome is **a clean RESTRICTION theorem OR a
 precisely-characterized obstruction.** A clean obstruction is fully acceptable.
 
-**Current verdict (milestone):** `UNDECIDED` (the verdict is Phase 63). **Step 1 (Phase 60)
-COMPLETE:** two-composites distinction EARNED (60-01) and `rem:converse` CONFIRMED-WITH-CAVEAT
-against BGW (60-02). **Step 2 (Phase 61) COMPLETE:** the slice `A ≅ M_3(C)^sa` verified to satisfy
-all four Paper 5 Def 1 clauses (i)–(iv) **in its own right** — clauses (i)/(iv) directly, clauses
-(ii)/(iii) via the corrected (direct-summand) `rem:converse`; clause (iii) AS STATED via the
-**minimal** composite `M_9(C)^sa` (dim 81; `minimal ≠ maximal`); 61-02 exact-symbolic evidence
-(rank 3, simple, dim 81 vs 162, product-form factorization); induced-by-`E` DEFERRED to Phase 62.
-**Step 3 (Phase 62) COMPLETE:** the coherent-embedding step settled on the actual non-associative
-`h_3(O)` via the AMBIENT-transport residual `R = E(sqrt(X) Y sqrt(X)) - sqrt(EX)(EY)sqrt(EX)` for
-generic `X,Y` — **verdict (O) AMBIENT-TRANSPORT OBSTRUCTION** (exact `R != 0`, `||R||^2 = 38593/72`;
-both routes agree; non-associativity load-bearing, associator `= 524/9`), which **REFINES**
-`RESTRICTION` to **coexistence-as-island** (NOT independent posits, NOT a collapse). `claim.md`
-updated (embedding clause weakened to coexistence-as-island; clause (iii) unchanged). **No PAUSE**
-(corrected PAUSE-2: an ambient-transport obstruction is the expected deliverable). Step 4 (Phase 63,
-the milestone verdict) pending.
+**Current verdict (milestone):** **FINALIZED — CHARACTERIZED OBSTRUCTION (coexistence-as-island).**
+**Step 1 (Phase 60) COMPLETE:** two-composites distinction EARNED (60-01) and `rem:converse`
+CONFIRMED-WITH-CAVEAT against BGW (60-02). **Step 2 (Phase 61) COMPLETE:** the slice `A ≅ M_3(C)^sa`
+verified to satisfy all four Paper 5 Def 1 clauses (i)–(iv) **in its own right** — clauses (i)/(iv)
+directly, clauses (ii)/(iii) via the corrected (direct-summand) `rem:converse`; clause (iii) AS
+STATED via the **minimal** composite `M_9(C)^sa` (dim 81; `minimal ≠ maximal`); 61-02 exact-symbolic
+evidence (rank 3, simple, dim 81 vs 162, product-form factorization); induced-by-`E` DEFERRED to
+Phase 62. **Step 3 (Phase 62) COMPLETE:** the coherent-embedding step settled on the actual
+non-associative `h_3(O)` via the AMBIENT-transport residual `R = E(sqrt(X) Y sqrt(X)) -
+sqrt(EX)(EY)sqrt(EX)` for generic `X,Y` — **verdict (O) AMBIENT-TRANSPORT OBSTRUCTION** (exact
+`R != 0`, `||R||^2 = 38593/72`; both routes agree; non-associativity load-bearing, associator
+`= 524/9`), which **REFINES** `RESTRICTION` to **coexistence-as-island** (NOT independent posits,
+NOT a collapse). `claim.md` updated (embedding clause weakened to coexistence-as-island; clause
+(iii) unchanged). **No PAUSE** (corrected PAUSE-2: an ambient-transport obstruction is the expected
+deliverable). **Step 4 (Phase 63) COMPLETE:** milestone verdict **FINALIZED** as **CHARACTERIZED
+OBSTRUCTION** (coexistence-as-island; through-line SURVIVES) in `RESULT.md` — the one-sentence
+DERV-00-02 verdict line written. 63-01 assembled the DRAFT; **63-02 ran the fresh-eyes adversarial
+guard review BEFORE finalization (ROADMAP Success Criterion 2): all three reward-hacking guards
+PASS (clause (iii) not redefined; the two composites not conflated; preservation demonstrated on
+generic ambient `X,Y`, associator `524/9` load-bearing) against the real Phase 60/61/62 artifacts;
+the decisive harness re-ran exit 0 / verdict (O) / `is_zero_exact=[False,False]`; honest-negative
+confirmed; NO backtracking trigger fired** — so the verdict is EARNED. Bryan acknowledged
+finalization (option-finalize) at the gated 63-02 backtracking-trigger step.
 
 ---
 
@@ -37,7 +45,7 @@ the milestone verdict) pending.
 | **1** | **60** | **Two-composites distinction.** Prove rigorously & non-circularly that the observer's clause-(iii) `V_BM` is a *different object* from `h_3(O)`'s BGW non-composability. | **COMPLETE** (60-01: distinction EARNED; 60-02: `rem:converse` CONFIRMED-WITH-CAVEAT against BGW; existence side stands; no collapse, no PAUSE) |
 | 2 | 61 | **Slice satisfies clause (iii).** Verify `h_3(C_u) ≅ M_3(C)^sa` meets all four Def 1 clauses (i)–(iv) as a self-modeler in its own right (`rem:converse` gets (ii)–(iii); check (i), (iv)). Includes SymPy/matrix verification of the slice. | **COMPLETE** (61-02: VALD-61-01 exact-symbolic evidence — rank 3, simple, dim 81 vs 162, product-form factorization on `M_9(C)^sa` [Phase 60 open item CLOSED]; 61-01: clause-by-clause (i)–(iv) — (i)/(iv) direct + evidence, (ii)/(iii) via corrected `rem:converse`, clause (iii) AS STATED, minimal composite the clause (iii) object, induced-by-`E` DEFERRED to Phase 62, stale "minimal=maximal" text flagged. Honest positive intrinsic verdict; no PAUSE.) |
 | 3 | 62 | **Coherent embedding (the hard part).** Show the self-modeling structure on `A` (its `V_BM`, its sequential product `a & b = sqrt(a) b sqrt(a)`) is induced by / consistent with the ambient `h_3(O)` Jordan structure **under `E`** — or exhibit a precise obstruction from the non-associative ambient. | **COMPLETE** — verdict **(O) AMBIENT-TRANSPORT OBSTRUCTION**. The decisive object (CORRECTED 2026-05-24) is **ambient `E`-transport** `E(sqrt(X) Y sqrt(X))` vs `sqrt(EX)(EY)sqrt(EX)` for **generic** `X,Y` (the slice-internal case is the **trivial control** — closed associative subalgebra, leakage 0). 62-02 (VALD-62-01, exact-SymPy, assert-based no-pytest) computed `R != 0` exactly (`is_zero_exact=[False,False]`; `||R||^2 = 38593/72`, `R_{11} = -2`); both routes (direct residual + positional Peirce) agree; non-associativity load-bearing (associator `= 524/9`); ambient SP non-Hermitian. `E` does **NOT** transport the SP. This **REFINES** `RESTRICTION` to **coexistence-as-island** (observer = self-contained C\* island; through-line survives; `E` = access/projection map) — **NOT** independent posits, **NOT** a collapse PAUSE. `claim.md` updated (embedding clause weakened; clause (iii) unchanged). 62-03 §5 reads the verdict; 62-03 interactive checkpoint surfaces it. |
-| 4 | 63 | **Verdict.** A clean RESTRICTION theorem, or a precisely-characterized structural obstruction. | PENDING (reads Step 3's (O) into the milestone verdict: coexistence-as-island RESTRICTION; runs the adversarial guard review) |
+| 4 | 63 | **Verdict.** A clean RESTRICTION theorem, or a precisely-characterized structural obstruction. | **COMPLETE** — milestone verdict **FINALIZED** as **CHARACTERIZED OBSTRUCTION (coexistence-as-island; through-line SURVIVES)**. 63-01 assembled the DRAFT `RESULT.md`; **63-02** ran the fresh-eyes adversarial guard review (3/3 reward-hacking guards PASS against the real Phase 60/61/62 artifacts; harness re-run exit 0 / verdict (O) / `is_zero_exact=[False,False]`; honest-negative confirmed; **no backtracking trigger**) **BEFORE** finalization (ROADMAP SC2), then wrote the one-sentence DERV-00-02 verdict line and removed the DRAFT marker at the human-acknowledged (option-finalize) gate. Verdict EARNED; equals the exact Phase 62 computation (not forced, not over-stated as a collapse). |
 
 ---
 
@@ -234,11 +242,15 @@ object is AMBIENT `E`-transport** `E(sqrt(X) Y sqrt(X))` vs `sqrt(EX)(EY)sqrt(EX
   trigger). See `embedding-under-E.md` §4/§5, `attempt-04.md`, `claim.md` (updated). The
   *induced-by-`E`* property is the now-not-required stronger property; coexistence-as-island does
   not need it (the slice carries clause (iii) intrinsically, Phase 61).
-- **[63]** VERDICT (milestone): reads Step 3's (O) into the milestone framing — **coexistence-as-island
-  RESTRICTION** (the slice sits inside `h_3(O)` as `range E`; `E` = access/projection map, not a
-  Jordan/SP morphism on the ambient; the through-line survives as the island through-line; (O)
-  refines, does NOT refute). Runs the adversarial guard review. Milestone verdict still UNDECIDED
-  pending Phase 63.
+- **[63] — RESOLVED (milestone verdict FINALIZED).** Reads Step 3's (O) into the milestone framing:
+  the milestone verdict is **CHARACTERIZED OBSTRUCTION → coexistence-as-island RESTRICTION** (the
+  slice sits inside `h_3(O)` as `range E`; `E` = access/projection map, not a Jordan/SP morphism on
+  the ambient; the through-line **SURVIVES** as the island through-line; (O) refines, does NOT
+  refute). The fresh-eyes adversarial guard review (63-02) confirmed all three reward-hacking guards
+  PASS (harness re-run exit 0 / verdict (O); no backtracking trigger) **before** finalization; the
+  one-sentence DERV-00-02 verdict line is written in `RESULT.md` and the DRAFT marker removed.
+  **Milestone verdict FINALIZED 2026-05-24** (human-acknowledged option-finalize). See `RESULT.md`
+  (DERV-00-02), `embedding-under-E.md` §4/§5.
 
 ---
 
