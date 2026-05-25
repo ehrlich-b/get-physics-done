@@ -87,6 +87,11 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 
 **Backtracking:** If any convention lock fails (e.g., `polarize_d(X,X,X) != 6*det_3(X)`), STOP and reconcile against the harness header before building anything -- a wrong normalization corrupts every downstream invariant. If the ported engine disagrees with the v15.0 harness benchmarks, treat as a port error, not a new result.
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 64-01-PLAN.md -- Port exact-SymPy h_3(O) engine, build 54-symbol pair layout + seven invariants, freeze R_pt, verify 5 convention locks exactly over Q, confirm single-state ring (one cohesive wave-1 plan, 6 tasks)
+
 ### Phase 65: f_4 Construction + Orbit-Dimension GATE
 
 **Goal:** The 52-generator infinitesimal action of f_4 = Der(h_3(O)) is built (closed under commutator, dimension 52 verified) and the exact generic orbit dimension of F_4 acting diagonally on h_3(O) (+) h_3(O) is computed as the rank over Q of the 52x54 infinitesimal-action matrix at a generic rational point. This fixes the target transcendence degree (54 - orbit_dim) and therefore the expected Jacobian rank and Hilbert-series Krull dimension for every downstream phase. The consistency anchor 54 - orbit_dim = 7 is the early go/no-go for the whole milestone.
