@@ -2,11 +2,22 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny -- v14.0 is now PAUSED pending the JMP referee report. v15.0 attacked the program's spine: the RESTRICTION lemma joining Paper 5 (observer forced complex by HAVING a composite, clause iii) and Paper 7 (basin forced octonionic by being NON-composable). Verdict: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island -- the bottleneck conditional expectation E does NOT transport the self-modeling sequential product coherently from the non-associative h_3(O) (exact residual R != 0, ||R||^2 = 38593/72, decisive-triple associator 524/9 load-bearing), so E is the access/projection map, not a Jordan/SP morphism on the ambient; but the observer self-certifies its M_3(C)^sa QM on the slice A = h_3(C_u) (all four Def 1 clauses, intrinsically) and that slice sits inside h_3(O) as range E, so the "self-modeling -> QM -> h_3(O)" through-line SURVIVES as the island through-line (NOT independent posits, NOT a program collapse). The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny -- v14.0 is now PAUSED pending the JMP referee report. v15.0 attacked the program's spine: the RESTRICTION lemma joining Paper 5 (observer forced complex by HAVING a composite, clause iii) and Paper 7 (basin forced octonionic by being NON-composable). Verdict: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island -- the bottleneck conditional expectation E does NOT transport the self-modeling sequential product coherently from the non-associative h_3(O) (exact residual R != 0, ||R||^2 = 38593/72, decisive-triple associator 524/9 load-bearing), so E is the access/projection map, not a Jordan/SP morphism on the ambient; but the observer self-certifies its M_3(C)^sa QM on the slice A = h_3(C_u) (all four Def 1 clauses, intrinsically) and that slice sits inside h_3(O) as range E, so the "self-modeling -> QM -> h_3(O)" through-line SURVIVES as the island through-line (NOT independent posits, NOT a program collapse). v16.0 opens a parallel consciousness-side line (independent of the physics-side spine): proving the (RING) lemma -- the math half of the Chalmers gap, that the inter-frame cross-term c(X,Y) = Tr(X o Y) driving the experiential functional Phi is provably NOT a function of the single-state F_4-invariant ring R[Tr, Tr^2, det] (so the complete third-person record of rho does not determine Phi). The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
+
+## Current Milestone: v16.0 The (RING) Lemma
+
+**Goal:** Prove (or cleanly disprove) the (RING) lemma -- the math half of the Chalmers gap: the inter-frame cross-term c(X,Y) = Tr(X o Y) that the experiential functional Phi integrates is FUNCTIONALLY INDEPENDENT of the single-state F_4-invariant ring R[Tr, Tr^2, det], so the complete third-person record (all of rho) does not determine Phi. Consciousness-side spine, INDEPENDENT of the v15.0 physics-side result (do not entangle).
+
+**Target results:**
+
+- (a) Generating set of R[h_3(O) (+) h_3(O)]^{F_4} (diagonal F_4 on 27 (+) 27): the pointwise sextet {Tr, Tr^2, det of X and Y} + inter-frame coupling generators from polarizing the cubic norm.
+- (b) c(X,Y) = Tr(X o Y) functionally independent of the pointwise sextet (orbit-dimension / Jacobian-rank demonstration on h_3(O), SymPy-corroborated).
+- (c) c is the UNIQUE degree-2 coupling generator (mod scale + pointwise terms).
+- A precise STATEMENT (not a proof) of the (REDUCIBILITY) dynamical bridge for the next milestone, flagging the autonomous-vs-driven trap.
 
 ## v12.0 Summary (complete 2026-04-12)
 
@@ -70,84 +81,92 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Contract Coverage
 
-- **RESTRICTION (claim-restriction):** the clause-(iii) self-modeling structure on A = h_3(C_u) ~ M_3(C)^sa is coherently INDUCED by the ambient h_3(O) Jordan structure under the Peirce/bottleneck conditional expectation E, so Paper 5's theorem applies to the slice and certifies the observer's complex C* structure even though h_3(O) is non-composable. PROVE or DISPROVE.
-- **Acceptance signal:** a clean RESTRICTION theorem (proof touching the actual non-associative structure), OR a precisely-located structural obstruction. Both are decisive verdicts; a clean obstruction is a fully acceptable outcome.
-- **Decisive sub-claims:** (1) two-composites distinction earned non-circularly; (2) slice satisfies all four Def 1 clauses; (3) coherent embedding demonstrated on the real non-associative ambient (not asserted).
-- **False progress to reject:** redefining clause (iii) to be trivially satisfied; conflating the observer's body-model composite with BGW universe-tensoring; asserting Peirce-restriction preserves clause (iii) without demonstrating on h_3(O); forcing a positive when the honest outcome is an obstruction.
+- **(RING) (claim-ring):** R[h_3(O) (+) h_3(O)]^{F_4} (F_4 = Aut(h_3(O)) acting diagonally on 27 (+) 27) is generated by the six pointwise invariants {Tr(X), Tr(X^2), det(X), Tr(Y), Tr(Y^2), det(Y)} TOGETHER WITH finitely many genuinely inter-frame ("coupling") generators whose lowest-degree member is c(X,Y) = Tr(X o Y). PROVE or DISPROVE.
+- **Acceptance signal:** a clean (RING) characterization with c provably independent (explicit orbit/Jacobian demonstration on the actual algebra), OR a decisive NEGATIVE (c IS expressible in the pointwise generators -> kills the Phi mechanism). Both are full passes; report honestly, do not bury a negative.
+- **Decisive sub-claims:** (a) full generating set of R[27 (+) 27]^{F_4} (coupling generators via polarizing the cubic norm); (b) c functionally independent of the six-generator pointwise subring (not a polynomial in them); (c) c the unique degree-2 coupling generator (mod scale + pointwise terms).
+- **Consequence (the Chalmers-gap math half):** "Observable-about-a-single-frame" = exactly the pointwise ring; the inter-frame content Phi integrates (the cross-term) is provably NOT a function of the single-frame Observable data.
+- **False progress to reject:** redefining "reducible"/"pointwise" so c trivially lands in/out of the ring; asserting c's independence without the explicit orbit/Jacobian demonstration on h_3(O); proving the (REDUCIBILITY) verdict (STATE only this milestone); grounding irreducibility in "nonlinear, so chaotic"; conflating the autonomous F_3-contraction with the driven stream.
 
 ### User Guidance To Preserve
 
-- **User-stated framing:** observer forced COMPLEX by HAVING a composite (clause iii); basin forced OCTONIONIC by having NO composite; the program asserts they coexist via Peirce bottleneck access, NOT tensor factorization. "The two-composites distinction must be EARNED." "A negative result (clean obstruction) is a fully acceptable, valuable outcome -- do not force a positive."
-- **User-stated deliverables:** `derivations/p5-basin-restriction/` tree (claim.md, attempt-NN.md, RESULT.md) with theorem-or-obstruction + explicit checks on the non-associative structure. Verdict-only (no Paper 7 LaTeX integration this milestone).
-- **Must-use sources:** LIVE papers in `~/repos/blog/landing/papers/` (NOT the stale repo `papers/`): qm-from-self-modeling Def 1; sm-from-self-modeling lem:bottleneck + Peirce under E_11. Inline definitions in the milestone prompt are authoritative.
-- **Stop / rethink conditions:** two composites collapse (circular); coherent embedding needs structure not induced by E (obstruction signature) -> pause for human decision.
-- **Reward-hacking guard:** do NOT "prove" the claim by redefining clause (iii), conflating the two composites, or asserting Peirce-restriction preserves clause (iii) without demonstrating it on the actual non-associative h_3(O) structure.
+- **User-stated framing:** the math half of the Chalmers / Mary gap -- does the complete third-person record (all of rho) determine Phi? Phi needs the cross-term c(X,Y) = Tr(X o Y); (RING) proves c is independent of the single-state F_4-invariant ring R[Tr, Tr^2, det]. INDEPENDENT of v15.0 (do not entangle; v15.0's result does not bear on this invariant-theory claim). "A negative result, cleanly characterized, is a fully acceptable outcome."
+- **User-stated deliverable:** (RING) proved (the ready core) = a full pass. GPD MAY state the cross-term decomposition + capacity reduction as a corollary, but must NOT assert open-system irreducibility without the structural (Breuer / finite-capacity) argument.
+- **Must-use sources:** Faraut-Koranyi Ch. V + Springer/Freudenthal cubic norm (single-state ring); classical invariant theory of several copies of the 27 of F_4/E_6 (SEARCH first -- may give the pair-ring generators); REUSE the warm v15.0 octonion harness (`tests/test_embedding_under_E.py`, `derivations/p5-basin-restriction/embedding-under-E.md` -- exact SymPy h_3(O) arithmetic, Jordan product, F_4/Peirce decomposition); `pathspace_invariants.py`; `RhoJ.lean` / DS1 for rho_J facts. LIVE sources in `~/repos/blog/` (NOT stale `papers/` copies).
+- **Stop / rethink conditions:** if invariant theory shows c IS expressible in the pointwise generators -> decisive NEGATIVE, report it (do not bury). Do not drift into proving (REDUCIBILITY).
+- **Reward-hacking guard:** do NOT redefine "reducible" so it trivially equals the invariant ring; assert irreducibility from "it's nonlinear, so chaotic"; conflate the autonomous F_3-contraction (reducible) with the driven stream; or assert c's independence without the explicit orbit/Jacobian demonstration on the actual algebra.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Two-composites distinction (rigorous, non-circular): observer body-model V_BM vs BGW Jordan-monoidal universe tensoring
-- Slice satisfies Def 1 clauses (i)-(iv) for h_3(C_u) ~ M_3(C)^sa
-- Coherent embedding under the conditional expectation E on the actual non-associative h_3(O); preservation proof OR obstruction
-- Verdict with explicit SymPy/matrix verification on h_3(O) and h_3(C_u)
+- Single-state baseline (sanity check): confirm R[Tr, Tr^2, det] is the full single-copy F_4-invariant ring (Faraut-Koranyi / Springer; SymPy corroboration of invariance + generic-orbit separation).
+- Pair invariants (the core): characterize R[27 (+) 27]^{F_4}; polarize the cubic norm for the coupling generators; identify the MINIMAL generating set.
+- (b) c = Tr(X o Y) functionally independent of the pointwise sextet (orbit-dimension / Jacobian-rank argument + SymPy instance).
+- (c) degree-2 uniqueness: degree-2 invariants of 27 (+) 27 spanned by Tr(X^2), Tr(Y^2), Tr(X o Y); the first two are pointwise.
+- STATE (do NOT attempt) the (REDUCIBILITY) dynamical bridge: specify the driven dynamics, fix the reducibility definition, state the target reduction, flag the autonomous-vs-driven trap. Output as "what the next milestone needs."
 
 **Out of scope**
 
-- Anthropic observer-grade restriction (conceded conditioning input)
-- Forced-vs-selected complexification (downstream of this lemma; parked)
-- Consciousness / Phi (separate track)
-- Ready-to-insert Paper 7 LaTeX (rem:converse + lemma + proof) -- outcome-dependent follow-up
-- Revisiting / re-deriving Paper 5 / Paper 6 / Paper 7 / v13.0 results
+- The irreducibility VERDICT (prerequisites unmet; this milestone STATES it, does not prove it).
+- ID-MOVE "irreducible residue = experience" (Axiom-B, separate track, never "proved" here).
+- Wolfram-as-authority / NKS framing.
+- The frame-quotient half (QRF / no-broadcasting; framework-level identification, separate).
+- Whether Phi is phenomenology; whether rho is "off a brain" (open encoding).
+- The basin-restriction question (v15.0 physics-side spine; separate, does not bear on this).
 
 ### Active Anchor Registry
 
-- **ref-paper5-def1:** Paper 5 live `main.tex`, def:self-modeling-system (line ~342)
-  - Why it matters: CRITICAL -- defines the four self-modeling clauses; clause (iii) (minimal internal composite) is what the slice must satisfy and what forces the complex field
-  - Carry forward: planning, execution, verification, writing
-  - Required action: read, cite
-
-- **ref-lem-bottleneck:** Paper 7 live `complexification.tex`, lem:bottleneck (line 409) + rem:converse (prompt-inline; not yet labeled in live paper)
-  - Why it matters: CRITICAL -- defines slice A = h_3(C_u) ~ M_3(C)^sa, the F_4-orbit of maximal C*-targets, conditional expectation E, rank-1 Peirce-0 = h_2(C_u); rem:converse supplies clause (ii)-(iii)
-  - Carry forward: planning, execution, verification, writing
-  - Required action: read, cite
-
-- **ref-bgw:** Barnum-Graydon-Wilce (2020), FRJA composability (Jordan-monoidal)
-  - Why it matters: defines the universe-tensoring h_3(O) FAILS; underpins both the two-composites distinction and rem:converse (minimal=maximal composite for M_n(C)^sa)
+- **ref-faraut-koranyi:** Faraut-Koranyi, *Analysis on Symmetric Cones*, Ch. V
+  - Why it matters: CRITICAL -- single-state invariant ring R[h_3(O)]^{F_4} = R[Tr, Tr^2, det]; the "Observable" ring = (a)'s pointwise subring
   - Carry forward: planning, execution, verification
   - Required action: read, cite
 
-- **ref-effros-stormer:** Effros-Stormer (1979), positive projections onto JB-subalgebras
-  - Why it matters: underwrites E: h_3(O) -> A; the coherent-embedding step turns on what E preserves (Jordan product vs sequential product)
+- **ref-springer-veldkamp:** Springer & Veldkamp, *Octonions, Jordan Algebras and Exceptional Groups*; Springer 1962 cubic norm
+  - Why it matters: CRITICAL -- det = cubic norm N(X), F_4-invariance, polarization to the coupling generators
   - Carry forward: planning, execution, verification
   - Required action: read, cite
 
-- **ref-hanche-olsen:** Hanche-Olsen, universal tensor product of Jordan algebras
-  - Why it matters: characterizes when Jordan algebras admit well-behaved composites; relevant to whether the slice's composite is induced coherently or requires external structure
+- **ref-27-joint-invariants:** Classical invariant theory of several copies of the 27 of F_4/E_6 (literature SEARCH -- survey target)
+  - Why it matters: may already supply the pair-ring generating set for (a), de-risking the core
   - Carry forward: planning, execution
+  - Required action: search, use if found
+
+- **ref-v15-harness:** v15.0 octonion harness -- `tests/test_embedding_under_E.py`, `derivations/p5-basin-restriction/embedding-under-E.md` (+ supporting helpers)
+  - Why it matters: exact SymPy h_3(O) matrix arithmetic, Jordan product, F_4/Peirce-grade decomposition, exact residual/zero-testing on generic non-associative data -- exactly what the orbit/Jacobian computations need
+  - Carry forward: planning, execution
+  - Required action: reuse (do NOT re-derive octonion arithmetic from scratch)
+
+- **ref-phi-program:** `~/repos/blog/research/phi-inaccessibility-program.md` (§1-3 ontology/target, §9 the reframe this milestone serves)
+  - Why it matters: defines rho_J, Phi, the rho/Phi split, the Chalmers-gap framing
+  - Carry forward: planning, execution, writing
   - Required action: read, cite
+
+- **ref-rhoj:** `RhoJ.lean` / DS1 rho_J uniqueness (`~/repos/research/lean/RadicalRelativity/RhoJ.lean`); `pathspace_invariants.py` (`~/repos/blog/research/qualia-fixed-point/`)
+  - Why it matters: single-state invariant facts (rho_J = det*(Tr^2 - 1/3), unique minimal F_4-invariant); numerical instance of c escaping the pointwise ring
+  - Carry forward: planning, execution
+  - Required action: read, reuse
 
 ### Carry-Forward Inputs
 
-- Live papers (authoritative): `qm-from-self-modeling/main.tex`, `sm-from-self-modeling/sections/complexification.tex`
-- Research context: `~/repos/blog/research/{STATE.md, GRAPH.md, phi-inaccessibility-program.md}`
-- Prior GPD: v6.0 (Gap C algebraic -- all 4 routes failed; V_1 = R bottleneck), v8.0 (basin impossibility; observable algebra M_16(R)), v11.0 (Gap C closure via C*-observer sequential product)
-- Milestone prompt: `~/scratch/get-physics-done/p5-basin-restriction-prompt.md` (self-contained; inline definitions authoritative)
+- Milestone prompt: `~/scratch/get-physics-done/phi-reducibility-lemma-prompt.md` (self-contained; inline definitions authoritative)
+- Warm v15.0 octonion/h_3(O) SymPy harness -- reuse, do not rebuild
+- Research program: `~/repos/blog/research/phi-inaccessibility-program.md` (+ `STATE.md`, `GRAPH.md`)
+- Single-state invariant facts: `RhoJ.lean` / DS1; `pathspace_invariants.py`
 
 ### Skeptical Review
 
-- **Weakest anchor:** the coherent-embedding step (step 3) is entirely unproved -- the deepest unproven, load-bearing join in the program, and where any obstruction lives.
-- **Unvalidated assumptions:** that E is positive AND unital AND coherent with the sequential product (not only the Jordan product); that the slice's "minimal composite" is INDUCED by E rather than imported; that rem:converse holds exactly as stated (not yet a labeled remark in the live paper).
-- **Competing explanation:** the two-composites distinction collapses on close inspection (RESTRICTION circular/false), OR the slice's clause-(iii) composite needs structure external to the non-associative ambient (genuine obstruction -> C and O are independent posits).
-- **Disconfirming observation (= valid negative):** a proof that no clause-(iii) composite for A can be induced by E from h_3(O) without additional input; or that non-associativity of h_3(O) breaks the sequential-product/local-tomography structure clause (iii) needs on the slice.
-- **False progress to reject:** "h_3(O) is non-composable, so the observer can't have a composite either" (conflation); "the slice is M_3(C)^sa so clause (iii) is automatic" without checking the embedding is induced by E; any preservation claim not demonstrated on the actual non-associative structure.
+- **Weakest anchor:** step (b) -- that c is genuinely NOT a polynomial in the pointwise sextet. Must be DEMONSTRATED by orbit/Jacobian on the actual algebra, not asserted. (If it fails, that is the decisive negative.)
+- **Unvalidated assumptions:** that polarizing the cubic norm yields the FULL coupling generating set (closure of the generating set is the hard part of (a)); that the degree-2 invariants of 27 (+) 27 are exactly span{Tr(X^2), Tr(Y^2), Tr(X o Y)}.
+- **Competing explanation:** c IS expressible in the pointwise generators (would kill the Phi mechanism -- test honestly), OR the pair-ring needs generators not obtained by simple polarization of the cubic norm.
+- **Disconfirming observation (= valid negative):** an explicit polynomial expressing Tr(X o Y) in {Tr, Tr^2, det of X and Y}; or a Jacobian showing c is functionally dependent on the pointwise sextet.
+- **False progress to reject:** redefine "reducible" = the invariant ring; "nonlinear, so chaotic"; autonomous/driven conflation; independence asserted without the orbit/Jacobian demonstration.
 
 ### Open Contract Questions
 
-- Does restricting through the bottleneck E preserve clause (iii), or is there an obstruction from the non-associative ambient h_3(O)?
-- Does rem:converse hold exactly as stated (minimal=maximal composite for M_n(C)^sa via BGW)? Confirm against BGW; it is not yet a labeled remark in the live complexification.tex.
-- Is E's interaction with the sequential product (a&b = sqrt(a) b sqrt(a)) controlled, or does non-associativity leak in?
-- Does prior GPD v6.0/v8.0/v11.0 work bear decisively on the embedding question (e.g., V_1 = R bottleneck, M_16(R) observable algebra, C*-observer sequential-product closure)?
+- Does classical invariant theory of several copies of the 27 (F_4/E_6) already give the pair-ring generating set? (Survey target.)
+- Is the coupling-generator set finite and obtained purely by polarizing the cubic norm, or are higher-degree non-polarization generators needed?
+- Is c = Tr(X o Y) functionally independent of the pointwise sextet on h_3(O) (orbit non-constant in c while all pointwise invariants stay constant)? -- the load-bearing (b) check.
+- What exactly does the next milestone need for the (REDUCIBILITY) verdict (driven-dynamics cross-term decomposition + finite-capacity / Breuer argument)?
 
 ## Research Questions
 
@@ -204,11 +223,18 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
+**v16.0 (active -- The (RING) Lemma):**
+
+- [ ] Is R[h_3(O) (+) h_3(O)]^{F_4} generated by the pointwise sextet + cubic-norm-polarization coupling generators, and what is the minimal generating set? -- (RING)(a)
+- [ ] Is c(X,Y) = Tr(X o Y) functionally independent of the six pointwise generators (orbit/Jacobian on h_3(O))? -- (RING)(b)
+- [ ] Is c the unique degree-2 coupling generator (mod scale + pointwise terms)? -- (RING)(c)
+- [ ] What precisely does the (REDUCIBILITY) verdict need (driven-dynamics cross-term decomposition + finite-capacity argument)? -- STATE only, do not prove this milestone
+
 **v14.0 (PAUSED -- pending JMP referee report; see `.gpd/V14-CLOSEOUT.md`):**
 
 - [~] §3.3 Peirce preservation, S4 facial lemma, Thm 5.8 W sequential product -- sealed (C-i)/(C-i)/(B). Phi inert-wrapper (57) abandoned; Lean axiom audit (58) + minimal-composite defense (59) deferred.
 
-**Deferred to v16.0+:**
+**Deferred to future physics-side milestones (v16.0 is consciousness-side):**
 
 - [ ] Can Todorov's F_4-Spin(9) intersection mechanism close gap G6 (so(6) -> G_SM) within self-modeling?
 - [ ] Can Boyle's triality mechanism address gap G7 (3 generations)?
@@ -308,6 +334,15 @@ Natural units (hbar = c = k_B = 1) for the GR/thermodynamic portions. Dimensionl
 See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
+
+**v16.0-critical (The (RING) Lemma -- joint F_4-invariants of 27 (+) 27):**
+
+- Faraut-Koranyi, *Analysis on Symmetric Cones*, Ch. V -- single-state invariant ring R[Tr, Tr^2, det]
+- Springer & Veldkamp, *Octonions, Jordan Algebras and Exceptional Groups*; Springer (1962) -- cubic norm det = N(X), F_4-invariance, polarization
+- Classical invariant theory of several copies of the 27 of F_4/E_6 (survey target) -- may give the pair-ring generators
+- v15.0 octonion harness -- `tests/test_embedding_under_E.py`, `derivations/p5-basin-restriction/embedding-under-E.md` (reuse; exact SymPy h_3(O) machinery)
+- `~/repos/blog/research/phi-inaccessibility-program.md` -- rho_J, Phi, rho/Phi split, Chalmers-gap framing
+- `RhoJ.lean` / DS1; `pathspace_invariants.py` -- rho_J uniqueness + cross-term numerical instance
 
 **v15.0-critical (P5 <-> Basin Restriction Lemma):**
 
@@ -418,4 +453,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-05-24 after v15.0 milestone completion (P5 <-> Basin Restriction Lemma; verdict CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island, through-line survives); v14.0 paused pending JMP referee report_
+_Last updated: 2026-05-24 after starting milestone v16.0 (The (RING) Lemma -- math half of the Chalmers gap; consciousness-side spine, independent of v15.0); v14.0 paused pending JMP referee report_
