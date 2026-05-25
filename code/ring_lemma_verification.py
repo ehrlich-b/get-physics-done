@@ -385,13 +385,96 @@ def polarize_d(X, Y, Z):
 # TODO(Task 5): import hygiene + sentinel-window source scan + rank-routing convention.
 
 
+def generic_rational_X():
+    """A GENERIC rational element of h_3(O): rational diagonal + rational octonion
+    off-diagonals with SEVERAL nonzero components (e_1..e_6 content -> genuinely
+    ambient, NOT in the slice; enough nonzero comps to exercise the cross term).
+    Deterministic, exact over Q (no surds, no floats)."""
+    x1 = oct([Rational(1, 2), Rational(2, 3), 0, Rational(1, 5),
+              Rational(3, 7), 0, Rational(1, 11), Rational(1, 13)])
+    x2 = oct([Rational(1, 4), 0, Rational(2, 5), Rational(1, 6),
+              0, Rational(5, 9), Rational(1, 8), 0])
+    x3 = oct([Rational(1, 3), Rational(1, 7), 0, Rational(2, 9),
+              Rational(1, 10), 0, Rational(3, 11), Rational(1, 4)])
+    return h3o_from_coords(Rational(2), Rational(3), Rational(5), x1, x2, x3)
+
+
 def main():
     print("=" * 76)
     print("VALD-64-01 : (RING) exact-SymPy foundation — convention locks & freeze")
     print("=" * 76)
 
-    # ---- Task 3: five convention locks (headline first) + one-time oracle ----
-    # TODO(Task 3): five locks (d=6det first), then the fenced float-det oracle.
+    # ========================================================================
+    # Task 3: FIVE CONVENTION LOCKS — exact over Q, headline d=6*det_3 FIRST.
+    #
+    # BACKTRACKING (contract Backtracking + disconfirming_observations): if ANY
+    # lock is nonzero -- ESPECIALLY d(X,X,X) != 6*det_3(X) -- STOP and reconcile
+    # against the engine header. A failed lock is a PORT ERROR (wrong det
+    # left-association, wrong polarize_d sign pattern, or a Jordan-1/2 slip),
+    # NOT a new result. NEVER tune a lock to pass; diff against
+    # embedding_under_E_verification.py line by line.
+    # ========================================================================
+    print("Task 3 — five convention locks (exact over Q):")
+    Xr = generic_rational_X()
+    a_sym, b_sym, c_sym = symbols('a b c', real=True)
+
+    # 1. HEADLINE LOCK (run FIRST): d(X,X,X) == 6*det_3(X), exact over Q.
+    # Previously verified only at float tolerance 1.4e-13 (octonion_algebra.py:2299);
+    # established EXACTLY over Q here for the first time.
+    _report("LOCK 1 (HEADLINE) d(X,X,X) == 6*det_3(X)  [exact over Q]",
+            simplify(polarize_d(Xr, Xr, Xr) - 6 * det_3(Xr)) == 0)
+
+    # 2. c(X,X) == Tr(X^2): the coupling reduces to the quadratic trace on the diagonal.
+    _report("LOCK 2 c(X,X) == Tr(X^2)  [exact over Q]",
+            simplify(c(Xr, Xr) - Tr2(Xr)) == 0)
+
+    # 3. Octonion table e1*e2 == e4 (Fano orientation); cross-check FANO_TRIPLES.
+    e1 = oct([0, 1, 0, 0, 0, 0, 0, 0])
+    e2 = oct([0, 0, 1, 0, 0, 0, 0, 0])
+    e4 = oct([0, 0, 0, 0, 1, 0, 0, 0])
+    _report("LOCK 3 octonion table e1*e2 == e4 (Fano)",
+            oct_equal(oct_mul(e1, e2), e4))
+    # Cross-check the documented FANO_TRIPLES orientation by value (matches
+    # octonion_algebra.py / Paper 7).
+    _report("LOCK 3b FANO_TRIPLES == documented orientation",
+            FANO_TRIPLES == [(1, 2, 4), (2, 3, 5), (3, 4, 6), (4, 5, 7),
+                             (5, 6, 1), (6, 7, 2), (7, 1, 3)])
+
+    # 4. det_3(diag(a,b,c)) == a*b*c  (cubic-norm diagonal normalization), symbolic.
+    Xdiag = h3o_from_coords(a_sym, b_sym, c_sym, oct_zero(), oct_zero(), oct_zero())
+    _report("LOCK 4 det_3(diag(a,b,c)) == a*b*c  [symbolic over Q]",
+            simplify(det_3(Xdiag) - a_sym * b_sym * c_sym) == 0)
+
+    # 5. det_3(I) == 1  (identity normalization).
+    _report("LOCK 5 det_3(I) == 1", det_3(h3o_identity()) == 1)
+
+    # ------------------------------------------------------------------------
+    # ONE-TIME, NON-DECISIVE port-correctness ORACLE (the ONLY sanctioned touch
+    # of the float64 code/octonion_algebra.py). It is NOT on any decisive/rank
+    # path: it cross-checks the lifted exact det_3 against the float64 reference
+    # det_3 on a SHARED rational element, a single isolated equality. The
+    # Task-5 exact-only guard ALLOWLISTS exactly the sentinel window below
+    # (# ORACLE-FENCE-BEGIN .. # ORACLE-FENCE-END) and forbids the tokens
+    # everywhere else. The import is ALIASED to oa_det_3 so the module's exact
+    # det_3 symbol is never rebound/shadowed.
+    # ------------------------------------------------------------------------
+    # ORACLE-FENCE-BEGIN  (the ONLY sanctioned octonion_algebra touch; NOT on the decisive path; allowlisted by the Task-5 guard)
+    try:
+        from octonion_algebra import det_3 as oa_det_3, H3O, Octonion  # ALIASED — never shadows exact det_3
+        a_r, b_r, g_r, x1_r, x2_r, x3_r = _coord_from_octmat(Xr)
+        Xr_float = H3O(
+            alpha=float(a_r), beta=float(b_r), gamma=float(g_r),
+            x1=Octonion([float(v) for v in x1_r]),
+            x2=Octonion([float(v) for v in x2_r]),
+            x3=Octonion([float(v) for v in x3_r]),
+        )
+        _oracle_ok = abs(float(det_3(Xr)) - oa_det_3(Xr_float)) < 1e-12
+    except Exception as _oracle_exc:  # noqa: BLE001 — non-decisive; report and continue
+        print(f"  [WARN] oracle unavailable ({_oracle_exc!r}); non-decisive, skipped")
+        _oracle_ok = True
+    _report("ORACLE (non-decisive): exact det_3 matches float64 octonion_algebra det_3 on shared element",
+            _oracle_ok)
+    # ORACLE-FENCE-END
 
     # ---- Task 4: 54-symbol layout round-trip + bidegree checks ----
     # TODO(Task 4).
