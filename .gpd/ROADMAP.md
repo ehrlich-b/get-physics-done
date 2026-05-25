@@ -16,7 +16,7 @@
 - **v12.0 GR from det(X) on h_3(O)** -- Phases 46-51 (completed 2026-04-12)
 - **v13.0 Paper 6 Closure -- G4 + N=2 from Algebraic Structure** -- Phases 52-53 (completed 2026-04-13)
 - **v14.0 Paper 5 Revision -- Close Load-Bearing Jigsaw-Piece Gaps** -- Phases 54-59 (PAUSED 2026-04-17, pending JMP referee report; see `.gpd/V14-CLOSEOUT.md`)
-- **v15.0 The P5 <-> Basin Restriction Lemma** -- Phases 60-63 (ACTIVE, initialized 2026-05-23)
+- **v15.0 The P5 <-> Basin Restriction Lemma** -- Phases 60-63 (RESEARCH COMPLETE 2026-05-24 -- verdict FINALIZED = CHARACTERIZED OBSTRUCTION / coexistence-as-island; formal closeout via /gpd:complete-milestone pending)
 
 ## Phases
 
@@ -600,7 +600,7 @@ Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key referenc
 
 </details>
 
-### Active: v15.0 The P5 <-> Basin Restriction Lemma (In Progress)
+### Active: v15.0 The P5 <-> Basin Restriction Lemma (RESEARCH COMPLETE 2026-05-24 -- verdict FINALIZED; closeout pending)
 
 **Milestone Goal:** Prove or DISPROVE the program's spine -- the single load-bearing join between Paper 5 (observer forced COMPLEX by HAVING a composite, Def 1 clause iii) and Paper 7 (basin forced OCTONIONIC by having NO composite). Concretely: prove or disprove RESTRICTION -- that the C*-bottleneck slice A = h_3(C_u) ~ M_3(C)^sa (reached by a positive unital conditional expectation E: h_3(O) -> A, lem:bottleneck / Effros-Stormer) satisfies Paper 5 Definition 1 clause (iii), with the observer's body-model composite realized COHERENTLY as a sub-structure of the NON-composable h_3(O) induced by the Peirce/bottleneck restriction -- so Paper 5's theorem certifies the observer's complex C* structure even though h_3(O) is non-composable. If RESTRICTION holds, "self-modeling -> QM -> h_3(O)" is a genuine through-line; if it fails (precise obstruction), the observer's C and the basin's O are INDEPENDENT posits.
 
@@ -625,17 +625,17 @@ Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key referenc
 
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
-| claim-two-composites (V_BM != BGW universe-tensoring; non-composability of h_3(O) does not preclude V_BM) | Phase 60 | Planned |
-| claim-slice-clause-iii (h_3(C_u) ~ M_3(C)^sa satisfies all four Def 1 clauses) | Phase 61 | Planned |
-| claim-restriction (clause-(iii) structure on A coherently induced by ambient h_3(O) under E) | Phase 62, Phase 63 | Planned (PROVE or DISPROVE) |
-| obs-verdict (clean RESTRICTION theorem OR precise obstruction) | Phase 63 | Planned |
-| deliv-two-composites (`derivations/p5-basin-restriction/`) | Phase 60 | Planned |
-| deliv-slice-clause-iii (clause-by-clause + SymPy) | Phase 61 | Planned |
-| deliv-embedding (sequential product under E on real h_3(O)) | Phase 62 | Planned |
-| deliv-verdict (`RESULT.md`) | Phase 63 | Planned |
-| claim.md + derivation-tree STATE.md | Phase 60 | Planned |
-| attempt-NN.md log (DERV-00-01) | Phases 60-63 | Planned |
-| verdict line (DERV-00-02) | Phase 63 | Planned |
+| claim-two-composites (V_BM != BGW universe-tensoring; non-composability of h_3(O) does not preclude V_BM) | Phase 60 | RESOLVED (distinction earned non-circularly) |
+| claim-slice-clause-iii (h_3(C_u) ~ M_3(C)^sa satisfies all four Def 1 clauses) | Phase 61 | RESOLVED (all four clauses verbatim, intrinsically; SymPy 21 tests) |
+| claim-restriction (clause-(iii) structure on A coherently induced by ambient h_3(O) under E) | Phase 62, Phase 63 | RESOLVED -> CHARACTERIZED OBSTRUCTION refining to coexistence-as-island (through-line survives; E = access/projection map, not an ambient SP morphism) |
+| obs-verdict (clean RESTRICTION theorem OR precise obstruction) | Phase 63 | DELIVERED -- CHARACTERIZED OBSTRUCTION (exact R != 0, \|\|R\|\|^2 = 38593/72, associator 524/9 load-bearing) |
+| deliv-two-composites (`derivations/p5-basin-restriction/`) | Phase 60 | DELIVERED |
+| deliv-slice-clause-iii (clause-by-clause + SymPy) | Phase 61 | DELIVERED |
+| deliv-embedding (sequential product under E on real h_3(O)) | Phase 62 | DELIVERED |
+| deliv-verdict (`RESULT.md`) | Phase 63 | DELIVERED (FINALIZED, verifier passed 4/4, consistency CONSISTENT, human-approved) |
+| claim.md + derivation-tree STATE.md | Phase 60 | DELIVERED (maintained through Phase 63) |
+| attempt-NN.md log (DERV-00-01) | Phases 60-63 | DELIVERED (attempt-01..05, contiguous, coverage-audited) |
+| verdict line (DERV-00-02) | Phase 63 | DELIVERED (CHARACTERIZED OBSTRUCTION, coexistence-as-island) |
 
 **Anchors (the 5 must-read references; all `must_surface: true`):**
 - **ref-paper5-def1** -- Paper 5 live `main.tex` def:self-modeling-system (line 342): four self-modeling clauses; clause (iii) (minimal internal composite -> local tomography) forces the complex field. [Phases 60, 61, 62, 63]
@@ -660,8 +660,8 @@ Full v14.0 phase details, contract overview, pitfalls (R1-R11), and key referenc
 - [x] **Phase 60: Two-Composites Distinction** -- DERV-60-01..04. Earn the distinction non-circularly; produce claim.md + derivation STATE.md. (completed 2026-05-23)
 - [x] **Phase 61: Slice Satisfies Clause (iii)** -- DERV-61-01..03, VALD-61-01. All four Def 1 clauses for M_3(C)^sa; SymPy validation. (completed 2026-05-24)
 - [x] **Phase 62: Coherent Embedding under E** (the hard part) -- DERV-62-01..03, VALD-62-01. VERDICT (O) AMBIENT-TRANSPORT OBSTRUCTION: E does NOT transport the sequential product coherently on the actual non-associative h_3(O) (exact R != 0, ||R||^2 = 38593/72, associator of decisive triple = 524/9 load-bearing; verifier 14/14, consistency CONSISTENT, human sign-off APPROVED). Refines RESTRICTION to coexistence-as-island (NOT independent posits, NOT collapse); clause (iii) unchanged. (completed 2026-05-24)
-- [ ] **Phase 63: Verdict** -- DERV-63-01..02, DERV-00-02. RESULT.md theorem-or-obstruction + adversarial guard review.
-- [ ] **Milestone-level:** DERV-00-01 (attempt-NN.md log, spans 60-63), DERV-00-02 (verdict line, Phase 63).
+- [x] **Phase 63: Verdict** -- DERV-63-01..02, DERV-00-02. RESULT.md FINALIZED: milestone verdict = CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (through-line survives; NOT independent posits, NOT collapse). Adversarial fresh-eyes review confirmed all 3 reward-hacking guards PASS (review preceded finalization); verifier passed 4/4, consistency CONSISTENT, human-approved. (completed 2026-05-24)
+- [x] **Milestone-level:** DERV-00-01 (attempt-NN.md log, spans 60-63 -- attempt-01..05 contiguous) + DERV-00-02 (verdict line, Phase 63) -- both DELIVERED. (completed 2026-05-24)
 
 ## Phase Details
 
@@ -788,8 +788,8 @@ Plans:
 
 Plans:
 
-- [ ] 63-01-PLAN.md (wave 1) -- Assemble DRAFT RESULT.md: the (O) AMBIENT-TRANSPORT OBSTRUCTION verdict refining RESTRICTION to coexistence-as-island (through-line survives; NOT independent posits), with precise obstruction characterization (R != 0, ||R||^2 = 38593/72, R_11 = -2, associator 524/9 load-bearing; defect inside A across the three E_11 Peirce grades), program consequence, and the Hanche-Olsen minimal-extra-input to close it (not required by coexistence-as-island). Complete the attempt-NN.md log (audit attempt-01..04; add attempt-05.md). Verdict line + finalization deferred to 63-02. (DERV-63-01, DERV-00-01)
-- [ ] 63-02-PLAN.md (wave 2, depends 63-01, interactive) -- Adversarial FRESH-EYES review of the three reward-hacking guards against the real artifacts: (a) clause (iii) NOT redefined (vs Phase 61 slice-clause-iii.md/rem-converse-bgw.md), (b) the two composites NOT conflated (vs Phase 60 two-composites.md), (c) preservation NOT asserted without demonstration on h_3(O) (vs embedding-under-E.md §4 + re-run harness, associator 524/9 load-bearing). Confirm the negative was reported honestly. Backtracking trigger encoded as the finalization gate (guard violation -> return to phase 61/60/62, do NOT finalize). Only if all guards pass: finalize RESULT.md + write the one-sentence verdict line (DERV-00-02) in corrected coexistence-as-island language. (DERV-63-02, DERV-00-02)
+- [x] 63-01-PLAN.md (wave 1) -- Assemble DRAFT RESULT.md: the (O) AMBIENT-TRANSPORT OBSTRUCTION verdict refining RESTRICTION to coexistence-as-island (through-line survives; NOT independent posits), with precise obstruction characterization (R != 0, ||R||^2 = 38593/72, R_11 = -2, associator 524/9 load-bearing; defect inside A across the three E_11 Peirce grades), program consequence, and the Hanche-Olsen minimal-extra-input to close it (not required by coexistence-as-island). Complete the attempt-NN.md log (audit attempt-01..04; add attempt-05.md). Verdict line + finalization deferred to 63-02. (DERV-63-01, DERV-00-01)
+- [x] 63-02-PLAN.md (wave 2, depends 63-01, interactive) -- Adversarial FRESH-EYES review of the three reward-hacking guards against the real artifacts: (a) clause (iii) NOT redefined (vs Phase 61 slice-clause-iii.md/rem-converse-bgw.md), (b) the two composites NOT conflated (vs Phase 60 two-composites.md), (c) preservation NOT asserted without demonstration on h_3(O) (vs embedding-under-E.md §4 + re-run harness, associator 524/9 load-bearing). Confirm the negative was reported honestly. Backtracking trigger encoded as the finalization gate (guard violation -> return to phase 61/60/62, do NOT finalize). Only if all guards pass: finalize RESULT.md + write the one-sentence verdict line (DERV-00-02) in corrected coexistence-as-island language. (DERV-63-02, DERV-00-02)
 
 ## Phase Dependencies
 
@@ -822,5 +822,5 @@ Plans:
 | 60. Two-Composites Distinction | v15.0 | 2/2 | Complete | 2026-05-23 |
 | 61. Slice Satisfies Clause (iii) | v15.0 | 2/2 | Complete | 2026-05-24 |
 | 62. Coherent Embedding under E | v15.0 | 3/3 | Complete (verdict O) | 2026-05-24 |
-| 63. Verdict | v15.0 | 0/2 | Not started | - |
+| 63. Verdict | v15.0 | 2/2 | Complete (CHARACTERIZED OBSTRUCTION) | 2026-05-24 |
 
