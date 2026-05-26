@@ -470,21 +470,202 @@ def run_route1():
 
 
 # ============================================================================
-# main() -- assembled in Task 6. Interim version (Tasks 1-2): pre-registration
-#   then Route 1. Tasks 3-6 add Route 2, the adjudicator, the NEGATIVE
-#   constructor, and the full ordered main().
+# ROUTE 2 (TASK 3, the genuinely NEW content) -- orbit-derivative
+#   separating-direction test over the 52 f_4 generators. Computationally
+#   INDEPENDENT of the 7x54 Jacobian rank.
+#
+# THE ARGUMENT (rigorous): let O_X = F_4 . X be the F_4-orbit of X (Y fixed). Its
+# tangent space at X is T_X O_X = {xi . X : xi in f_4} (the infinitesimal action;
+# for the 27x27 generator M_xi, the tangent is M_xi . v_x on coordinates).
+#   - The pointwise X-invariants {Tr X, Tr X^2, det X} are F_4-invariant (the
+#     certified gate verified D_M f = 0 for all 324 generators), hence CONSTANT on
+#     O_X, so their directional derivative along ANY xi.X is identically 0.
+#   - The pointwise Y-invariants {Tr Y, Tr Y^2, det Y} have zero derivative
+#     trivially because we move ONLY X (delta Y = 0).
+#   - The derivative of c along xi.X is D_xi c = Tr((xi.X) o Y) (linear in the
+#     X-argument; Y held fixed) -- the trace-form pairing of the orbit tangent
+#     xi.X against Y.
+# If c were in R_pt then c would be constant on O_X x {Y}, giving D_xi c = 0 for ALL
+# xi. Exhibiting a SINGLE xi with D_xi c = Tr((xi.X) o Y) != 0 contradicts that =>
+# c functionally INDEPENDENT. The trace form is F_4-equivariant and non-degenerate
+# on the 26 (Springer-Veldkamp), and generic single-copy orbit dim = 24 > 0
+# (certified gate), so a separating xi generically EXISTS -- the computation
+# CONFIRMS non-vanishing at the chosen generic points; it does NOT assume it.
+#
+# This is genuinely independent of Route 1: Route 1 ranks a 7x54 matrix of FULL
+# gradients; Route 2 asks a DIFFERENT question -- does the trace-form pairing of
+# orbit tangents against Y ever fire while the pointwise gradients are orbit-flat.
+# Two faces of the trdeg = 54 - orbit_dim duality (why both are demanded).
+# ============================================================================
+
+def _grad_c_X_block_at(subs_pt):
+    """The X-block (first 27 components) of grad(c) = CANDIDATE_GRADS[6],
+    substituted at the point FIRST (-> 27 rationals). c has bidegree (1,1); its
+    X-block gradient is the cheap contraction route for D_xi c."""
+    return [g.subs(subs_pt) for g in CANDIDATE_GRADS[6][0:27]]
+
+
+def _pointwise_X_grad_blocks_at(subs_pt):
+    """The X-block gradients of the 3 X-pointwise generators {Tr X, Tr X^2, det X}
+    = CANDIDATE_GRADS[0:3], substituted at the point FIRST. Each a length-27
+    rational list. (det X is deg 3; substitute-first controls swell.)"""
+    return [[g.subs(subs_pt) for g in CANDIDATE_GRADS[j][0:27]] for j in range(3)]
+
+
+def route2_separating_direction(f4_basis):
+    """test-route2-separating + test-pointwise-derivs-zero: for each generic pair
+    (X, Y) in TEST_PAIRS, build the length-52 separating vector
+
+        s_i = Tr((xi_i . X) o Y) = E.Tr(E.jordan(X_from_symbols(M_i.v_x), Y_mat))
+
+    over the 52 f_4 generators (the explicit trace-form), AND the cheaper
+    gradient-contraction g_i = grad_X(c).(M_i.v_x); ASSERT s_i == g_i for all i.
+    A separating direction exists iff s is NOT all zero (record the first nonzero
+    index, the witness xi). Also confirm every pointwise generator has ZERO
+    derivative along ALL orbit tangents at the SAME point: X-pointwise via
+    grad_X(f).(M_i.v_x) (CANDIDATE_GRADS[0:3] X-blocks; reuse infinitesimal_action),
+    Y-pointwise by asserting CANDIDATE_GRADS[3:6] X-block == 0 (delta Y = 0).
+
+    Checked at ALL generic pairs (guards fp-route2-false-positive: a single
+    diagonal-locus cancellation cannot mask the verdict).
+
+    Returns (ok, route2_verdict, witness_per_pair)."""
+    print("Task 3 (Route 2) -- orbit-derivative separating direction over 52 f_4 gens:")
+    n_gen = len(f4_basis)
+
+    # The Y-pointwise X-block gradients must be identically zero (delta Y = 0):
+    # {Tr Y, Tr Y^2, det Y} = CANDIDATE_GRADS[3:6]; their X-block [0:27] should be
+    # the zero vector symbolically (they do not depend on the X-symbols).
+    y_pointwise_xblock_zero = True
+    for j in (3, 4, 5):
+        xblock = CANDIDATE_GRADS[j][0:27]
+        if any(simplify(g) != 0 for g in xblock):
+            y_pointwise_xblock_zero = False
+    yzero_ok = _report(
+        "Y-pointwise {Tr Y, Tr Y^2, det Y} X-block gradient == 0 vector "
+        "(delta Y = 0 => zero derivative along an X-only orbit tangent, trivially)  "
+        "[test-pointwise-derivs-zero, Y part]",
+        y_pointwise_xblock_zero)
+
+    witness_per_pair = {}
+    separating_any_pair = False
+    all_forms_agree = True
+    all_xpointwise_zero = True
+    sample_s = None
+    for label, (X27, Y27) in TEST_PAIRS.items():
+        v_x = Matrix([Rational(c) for c in X27])
+        v_y = Matrix([Rational(c) for c in Y27])
+        Y_mat = E.X_from_symbols(list(v_y))
+        subs_pt = {E.xs[k]: Rational(X27[k]) for k in range(27)}
+        subs_pt.update({E.ys[k]: Rational(Y27[k]) for k in range(27)})
+
+        # grad(c) X-block at the point (cheap contraction form) and the 3 X-pointwise
+        # gradient X-blocks at the point.
+        gc_X = _grad_c_X_block_at(subs_pt)
+        gp_X = _pointwise_X_grad_blocks_at(subs_pt)   # [grad Tr X, grad Tr X^2, grad det X]
+
+        s = []
+        forms_agree = True
+        xpointwise_zero = True
+        first_nonzero = None
+        for i, M in enumerate(f4_basis):
+            Mvx = M * v_x                              # the orbit tangent xi_i.X in coords
+            # Explicit trace-form: s_i = Tr((xi_i.X) o Y).
+            T_i = E.X_from_symbols(list(Mvx))
+            s_i = E.Tr(E.jordan(T_i, Y_mat))
+            s_i = simplify(s_i)
+            # Cheaper gradient-contraction: g_i = grad_X(c).(M_i.v_x).
+            g_i = infinitesimal_action(gc_X, M, v_x)
+            g_i = simplify(g_i)
+            if simplify(s_i - g_i) != 0:
+                forms_agree = False
+            s.append(s_i)
+            if first_nonzero is None and s_i != 0:
+                first_nonzero = i
+            # Pointwise X-derivatives along this tangent must vanish.
+            for jj in range(3):
+                d_pt = simplify(infinitesimal_action(gp_X[jj], M, v_x))
+                if d_pt != 0:
+                    xpointwise_zero = False
+
+        separating = any(si != 0 for si in s)
+        separating_any_pair = separating_any_pair or separating
+        all_forms_agree = all_forms_agree and forms_agree
+        all_xpointwise_zero = all_xpointwise_zero and xpointwise_zero
+        witness_per_pair[label] = first_nonzero
+        if sample_s is None and separating:
+            sample_s = (label, s)
+
+        n_nonzero = sum(1 for si in s if si != 0)
+        print(f"  [INFO] {label}: |s|=52, #nonzero(s)={n_nonzero}, witness xi index="
+              f"{first_nonzero}, s[witness]={s[first_nonzero] if first_nonzero is not None else 'n/a'}; "
+              f"trace-form==grad-contraction={forms_agree}; X-pointwise derivs all 0={xpointwise_zero}")
+        _report(
+            f"{label}: separating direction EXISTS (s not all zero; witness "
+            f"xi[{first_nonzero}]) AND all 3 X-pointwise derivs == 0 along all "
+            f"{n_gen} orbit tangents  [test-route2-separating + test-pointwise-derivs-zero]",
+            separating and xpointwise_zero)
+
+    # ROUTE2_VERDICT: "exists" iff a separating direction exists at a generic pair
+    # AND the two forms agreed AND all pointwise derivs vanished everywhere.
+    forms_ok = _report(
+        f"Route-2 two forms AGREE at every pair: explicit Tr((xi.X) o Y) == "
+        f"gradient-contraction grad_X(c).(M.v_x) for all 52 generators "
+        f"(conceptual cross-check on the contraction)  [fp-route2-false-positive guard]",
+        all_forms_agree)
+    xzero_ok = _report(
+        f"all 3 X-pointwise derivs {{Tr X, Tr X^2, det X}} == 0 along ALL orbit "
+        f"tangents at EVERY generic pair (certified F_4-invariance witnessed on the "
+        f"52-basis)  [test-pointwise-derivs-zero, X part]",
+        all_xpointwise_zero)
+
+    route2_verdict = "exists" if (separating_any_pair and all_forms_agree
+                                  and all_xpointwise_zero and y_pointwise_xblock_zero) else "none"
+    verdict_ok = _report(
+        f"ROUTE2_VERDICT == '{route2_verdict}' (separating xi exists at a generic "
+        f"pair AND both forms agree AND all 6 pointwise derivs vanish)  "
+        f"[checked at all {len(TEST_PAIRS)} generic pairs incl. the fresh pair]",
+        route2_verdict == "exists")
+
+    RESULTS["ROUTE2_VERDICT"] = route2_verdict
+    RESULTS["route2_witness_per_pair"] = witness_per_pair
+    if sample_s is not None:
+        RESULTS["route2_sample_s"] = sample_s   # (label, length-52 vector)
+
+    ok = (yzero_ok and forms_ok and xzero_ok and verdict_ok)
+    return ok, route2_verdict, witness_per_pair
+
+
+def run_route2():
+    """Run Route 2. Returns (ok, route2_verdict)."""
+    f4_basis, basis_n = _f4_basis()
+    basis_ok = _report(
+        f"52-independent f_4 basis selected (|basis|={basis_n}; faithful to the "
+        f"full 324 inner derivations)  [reused from the certified gate]",
+        basis_n == 52)
+    sep_ok, route2_verdict, _wp = route2_separating_direction(f4_basis)
+    return (basis_ok and sep_ok), route2_verdict
+
+
+# ============================================================================
+# main() -- assembled in Task 6. Interim version (Tasks 1-3): pre-registration ->
+#   Route 1 -> Route 2. Tasks 4-6 add the adjudicator, the NEGATIVE constructor,
+#   the corrected consistency, and the full ordered main().
 # ============================================================================
 def main():
-    """Interim main (Tasks 1-2): pre-registration -> Route 1. Route 2 + adjudicator
-    + NEGATIVE constructor + the full ordered main() are wired in Tasks 3-6."""
+    """Interim main (Tasks 1-3): pre-registration -> Route 1 -> Route 2. The
+    adjudicator + NEGATIVE constructor + consistency + the full ordered main() are
+    wired in Tasks 4-6."""
     prereg_ok = print_preregistration()
     print("-" * 76)
     route1_ok, spine_rank = run_route1()
     print("-" * 76)
-    print(f"TASKS 1-2: pre-registration + Route 1 done. SPINE_RANK = {spine_rank} "
-          f"({_verdict_label(spine_rank)}). Route 2 + adjudicator wired in Tasks 3-6.")
+    route2_ok, route2_verdict = run_route2()
+    print("-" * 76)
+    print(f"TASKS 1-3: pre-registration + Route 1 (SPINE_RANK={spine_rank}) + Route 2 "
+          f"(ROUTE2_VERDICT={route2_verdict}) done. Adjudicator wired in Tasks 4-6.")
     print("=" * 76)
-    return prereg_ok and route1_ok
+    return prereg_ok and route1_ok and route2_ok
 
 
 if __name__ == "__main__":
