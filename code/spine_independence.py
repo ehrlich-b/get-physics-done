@@ -648,24 +648,177 @@ def run_route2():
 
 
 # ============================================================================
-# main() -- assembled in Task 6. Interim version (Tasks 1-3): pre-registration ->
-#   Route 1 -> Route 2. Tasks 4-6 add the adjudicator, the NEGATIVE constructor,
-#   the corrected consistency, and the full ordered main().
+# TWO-ROUTE ADJUDICATOR (TASK 4, the reward-hacking guard) + corrected
+#   consistency (7 <= 10). The adjudicator emits a verdict ONLY on a DIAGONAL
+#   agreement cell; either off-diagonal cell => NO VERDICT + STOP + nonzero exit.
+# ============================================================================
+
+def adjudicate(spine_rank, route2_verdict):
+    """test-adjudicator: the pre-registered 2x2 agreement table. Report a verdict
+    ONLY on a diagonal cell:
+       (7, exists) => 'c INDEPENDENT (positive pass)'   [trigger NEGATIVE no-op]
+       (6, none)   => 'c DEPENDENT (decisive NEGATIVE)' [trigger NEGATIVE constructor]
+       (7, none) or (6, exists) => NO VERDICT, 'CONTRADICTION -- STOP', nonzero exit
+       any other Route1 (not 6/7) => ANOMALY -> STOP.
+
+    Returns (ok, verdict, trigger_negative_constructor) where verdict is the label
+    (or None on an off-diagonal/anomaly) and trigger_negative_constructor is True
+    only on the (6, none) cell.
+
+    Prints the full 2x2 table with the OBSERVED cell highlighted."""
+    print("Task 4 -- two-route adjudicator (verdict ONLY on a diagonal agreement cell):")
+
+    # The 2x2 table (Route1 rows {7,6} x Route2 cols {exists,none}).
+    cell = (spine_rank, route2_verdict)
+    table = {
+        (7, "exists"): "c INDEPENDENT (positive pass)",
+        (6, "none"): "c DEPENDENT (decisive NEGATIVE, full pass)",
+        (7, "none"): "NO VERDICT -- CONTRADICTION (STOP)",
+        (6, "exists"): "NO VERDICT -- CONTRADICTION (STOP)",
+    }
+    print("  +----------------------+------------------+------------------+")
+    print("  | Route1 \\ Route2       | exists           | none             |")
+    print("  +----------------------+------------------+------------------+")
+    for r1 in (7, 6):
+        cells = []
+        for r2 in ("exists", "none"):
+            lab = "INDEPENDENT" if (r1, r2) == (7, "exists") else \
+                  "DEPENDENT" if (r1, r2) == (6, "none") else "CONTRADICTION"
+            mark = " <== OBSERVED" if (r1, r2) == cell else ""
+            cells.append(f"{lab:<16}")
+        print(f"  | rank {r1}               | {cells[0]} | {cells[1]} |"
+              + (f"   <== OBSERVED ROW (rank {r1})" if r1 == spine_rank else ""))
+    print("  +----------------------+------------------+------------------+")
+    print(f"  [INFO] OBSERVED CELL: (Route1 rank = {spine_rank}, "
+          f"Route2 = '{route2_verdict}')")
+
+    if cell == (7, "exists"):
+        verdict = table[cell]
+        ok = _report(
+            f"VERDICT on diagonal agreement cell (7, exists) => '{verdict}'. Report "
+            f"rank 7 + witness xi + s; baseline==6 and X=Y<=6 controls asserted "
+            f"(Task 2)  [test-adjudicator]",
+            True)
+        RESULTS["VERDICT"] = verdict
+        RESULTS["agreement_cell"] = cell
+        return ok, verdict, False
+    if cell == (6, "none"):
+        verdict = table[cell]
+        ok = _report(
+            f"VERDICT on diagonal agreement cell (6, none) => '{verdict}'. Trigger "
+            f"the NEGATIVE-branch constructor (Task 5)  [test-adjudicator]",
+            True)
+        RESULTS["VERDICT"] = verdict
+        RESULTS["agreement_cell"] = cell
+        return ok, verdict, True
+    if cell in ((7, "none"), (6, "exists")):
+        # Off-diagonal: NO VERDICT + STOP. main() must return nonzero.
+        print("  [CONTRADICTION -- STOP] off-diagonal cell: the two routes DISAGREE. "
+              "NO VERDICT is reported (the reward-hacking guard). Do NOT report, do "
+              "NOT tune. Diff-hint: compare the Route-2 54-wide contraction to the "
+              "gate's check_f4_invariance 54-wide split (wrong gradient block / wrong "
+              "copy), and recheck _pair_not_proportional + distinct diagonals on the "
+              "Route-1 points (a secretly non-generic pair dropping rank).")
+        ok = _report(
+            f"ADJUDICATOR off-diagonal cell {cell} => NO VERDICT + STOP "
+            f"(fp-two-route-mismatch-ignored rejected; main() returns nonzero)  "
+            f"[test-adjudicator]",
+            False)   # FAIL: forces nonzero exit, no verdict.
+        RESULTS["VERDICT"] = None
+        RESULTS["agreement_cell"] = cell
+        return ok, None, False
+    # Anomaly: Route1 rank not in {6,7}.
+    print(f"  [ANOMALY -- STOP] Route-1 rank {spine_rank} not in {{6,7}} "
+          f"(a 7x54 matrix has rank <= 7; this signals a Jacobian/point/builder bug).")
+    ok = _report(
+        f"ADJUDICATOR anomaly: Route-1 rank {spine_rank} not in {{6,7}} => STOP "
+        f"(main() returns nonzero)  [test-adjudicator]",
+        False)
+    RESULTS["VERDICT"] = None
+    RESULTS["agreement_cell"] = cell
+    return ok, None, False
+
+
+def check_corrected_consistency(spine_rank):
+    """test-consistency-7-le-10 (ITEM 4a): assert SPINE_RANK <= ORBIT_DERIVED_TRDEG
+    (== 10, from the Phase-65 GATE pair orbit dim 44 => 54-44=10). Print the
+    CORRECTED statement; explicitly flag the stale roadmap criterion-5 wording
+    'rank 7 saturates trdeg = 54 - orbit_dim = 7' (the forbidden Spin(8)-triality
+    back-of-envelope) as superseded and NOT used.
+
+    Returns ok (bool)."""
+    print("Task 4 -- corrected consistency (ITEM 4a; rank 7 <= trdeg 10):")
+    le_ok = _report(
+        f"SPINE_RANK ({spine_rank}) <= ORBIT_DERIVED_TRDEG ({ORBIT_DERIVED_TRDEG}) "
+        f"[test-consistency-7-le-10]",
+        spine_rank <= ORBIT_DERIVED_TRDEG)
+    print(f"  [STATEMENT] rank {spine_rank} <= trdeg {ORBIT_DERIVED_TRDEG} "
+          f"(CONSISTENT). c is ONE of the FOUR mixed joint invariants "
+          f"{{c, Tr(X^2 o Y), Tr(X o Y^2), Tr(X^2 o Y^2)}}; rank {spine_rank} "
+          f"saturates the {{6 pointwise + c}} SUBSET (a 7x54 matrix maxes at 7) but "
+          f"does NOT saturate the full transcendence degree (3 more independent "
+          f"invariants beyond c).")
+    print(f"  [SUPERSEDED] the roadmap success-criterion-5 wording "
+          f"'rank 7 saturates trdeg = 54 - orbit_dim = 7' is STALE -- it is the "
+          f"FORBIDDEN Spin(8)-triality back-of-envelope (54 - 47 = 7). Phase 65 "
+          f"COMPUTED pair orbit dim = 44 => trdeg = 10, NOT 7. This wording is "
+          f"explicitly NOT used (fp-stale-saturation rejected).")
+    RESULTS["consistency_7_le_10"] = (spine_rank, ORBIT_DERIVED_TRDEG)
+    return le_ok
+
+
+def check_r6_r7_corroboration():
+    """Cheap corroboration: re-confirm the committed Phase-65.1 preview r6==6,
+    r7==7 via the candidate machinery's tier ladder. Printed as CORROBORATION, NOT
+    as the decisive result (the decisive result is THIS phase's pre-registered
+    Route-1 MAX + Route-2). Returns ok (bool)."""
+    print("Task 4 -- r6==6 / r7==7 corroboration (Phase-65.1 preview; NOT decisive):")
+    # check_tier_increments needs max_rank; recompute r6,r7 directly is cheaper and
+    # avoids re-running the full 6->10 ladder. r6 = MAX prefix_rank(6,.), r7 = MAX
+    # prefix_rank(7,.) over PAIR_POINTS (the gate's own pairs, not the fresh pair --
+    # corroborating the committed preview which used PAIR_POINTS).
+    r6 = max(prefix_rank(6, pp) for pp in PAIR_POINTS.values())
+    r7 = max(prefix_rank(7, pp) for pp in PAIR_POINTS.values())
+    ok = _report(
+        f"corroboration: r6 == 6 and r7 == 7 over PAIR_POINTS (matches the committed "
+        f"Phase-65.1 preview (6,7,...))  [observed r6={r6}, r7={r7}; CORROBORATION "
+        f"only, not the decisive result]",
+        r6 == 6 and r7 == 7)
+    RESULTS["corroboration_r6_r7"] = (r6, r7)
+    return ok
+
+
+def run_adjudication(spine_rank, route2_verdict):
+    """Run the adjudicator + consistency + corroboration. Returns
+    (ok, verdict, trigger_negative_constructor)."""
+    adj_ok, verdict, trigger_neg = adjudicate(spine_rank, route2_verdict)
+    consistency_ok = check_corrected_consistency(spine_rank)
+    corrob_ok = check_r6_r7_corroboration()
+    return (adj_ok and consistency_ok and corrob_ok), verdict, trigger_neg
+
+
+# ============================================================================
+# main() -- assembled in Task 6. Interim version (Tasks 1-4): pre-registration ->
+#   Route 1 -> Route 2 -> adjudicator + consistency. Tasks 5-6 add the NEGATIVE
+#   constructor and the full ordered main() with the exact-only guard.
 # ============================================================================
 def main():
-    """Interim main (Tasks 1-3): pre-registration -> Route 1 -> Route 2. The
-    adjudicator + NEGATIVE constructor + consistency + the full ordered main() are
-    wired in Tasks 4-6."""
+    """Interim main (Tasks 1-4): pre-registration -> Route 1 -> Route 2 ->
+    adjudicator + consistency + corroboration. The NEGATIVE constructor + the full
+    ordered main() with the exact-only guard are wired in Tasks 5-6."""
     prereg_ok = print_preregistration()
     print("-" * 76)
     route1_ok, spine_rank = run_route1()
     print("-" * 76)
     route2_ok, route2_verdict = run_route2()
     print("-" * 76)
-    print(f"TASKS 1-3: pre-registration + Route 1 (SPINE_RANK={spine_rank}) + Route 2 "
-          f"(ROUTE2_VERDICT={route2_verdict}) done. Adjudicator wired in Tasks 4-6.")
+    adj_ok, verdict, trigger_neg = run_adjudication(spine_rank, route2_verdict)
+    print("-" * 76)
+    print(f"TASKS 1-4: routes + adjudicator done. VERDICT = {verdict}; "
+          f"trigger_negative_constructor = {trigger_neg}. NEGATIVE constructor + "
+          f"full main() wired in Tasks 5-6.")
     print("=" * 76)
-    return prereg_ok and route1_ok and route2_ok
+    return prereg_ok and route1_ok and route2_ok and adj_ok
 
 
 if __name__ == "__main__":
