@@ -798,14 +798,131 @@ def run_adjudication(spine_rank, route2_verdict):
 
 
 # ============================================================================
-# main() -- assembled in Task 6. Interim version (Tasks 1-4): pre-registration ->
-#   Route 1 -> Route 2 -> adjudicator + consistency. Tasks 5-6 add the NEGATIVE
-#   constructor and the full ordered main() with the exact-only guard.
+# NEGATIVE-BRANCH CONSTRUCTOR (TASK 5, conditional) -- on the (6, none) cell ONLY,
+#   SHIP the explicit pointwise expression for c. On the (7, exists) cell it is a
+#   recorded NO-OP with the c(X,X)=Tr X^2 != (Tr X)^2 foreshadowing. The function
+#   is PRESENT and reachable regardless of which verdict fires (probe-tested in
+#   Task 6).
+#
+# BIDEGREE pins P to ONE candidate: c has bidegree (1,1); the pointwise generators
+# have bidegrees Tr X (1,0), Tr X^2 (2,0), det X (3,0), Tr Y (0,1), Tr Y^2 (0,2),
+# det Y (0,3). The ONLY product of pointwise generators with bidegree (1,1) is
+# (Tr X)(Tr Y) (one degree-1-in-X factor = Tr X; one degree-1-in-Y factor = Tr Y).
+# So necessarily P = a * (Tr X)(Tr Y) for a single rational a.
+# ============================================================================
+
+def negative_branch_constructor(trigger):
+    """test-negative-branch-wired: the conditional NEGATIVE constructor.
+
+    IF trigger (the (6, none) cell fired):
+      1. Evaluate c and m := (Tr X)(Tr Y) at >= 2 generic rational pairs (from
+         TEST_PAIRS, via E.inv_c and E.inv_Tr_X*E.inv_Tr_Y); solve c - a*m = 0 for
+         the rational a at each. If the a's disagree across pairs => no single a,
+         report STOP (the rank-6 finding is then a non-generic-point artifact).
+      2. Verify the IDENTITY (not just the points): assert
+         simplify(E.inv_c - a*E.inv_Tr_X*E.inv_Tr_Y) == 0 as a symbolic identity
+         over Q. If it holds, c = a*(Tr X)(Tr Y) -- print the explicit P with a.
+      3. If NO rational a makes it vanish identically, then c is NOT expressible in
+         the matching-bidegree pointwise product, CONTRADICTING a rank-6 finding --
+         print 'CONTRADICTION: rank-6 finding is a non-generic-point artifact --
+         STOP', force nonzero exit (do NOT report a NEGATIVE).
+
+    ELSE (the (7, exists) positive cell): recorded NO-OP with the foreshadowing
+    c(X,X) = Tr X^2 != (Tr X)^2 (so c differs from (Tr X)(Tr Y) on the diagonal).
+
+    Returns (ok, P_or_none)."""
+    print("Task 5 -- NEGATIVE-branch constructor (conditional; explicit "
+          "P = a*(Tr X)(Tr Y), symbolic identity over Q):")
+    print("  [BIDEGREE] c has bidegree (1,1); the ONLY pointwise product of "
+          "matching bidegree is (Tr X)(Tr Y) => necessarily P = a*(Tr X)(Tr Y) "
+          "for a single rational a.")
+
+    if not trigger:
+        # POSITIVE branch: recorded no-op + foreshadowing on a generic single point.
+        P = SINGLE_COPY_POINTS["P1 (planner spike)"]
+        subs_diag = {E.xs[k]: Rational(P[k]) for k in range(27)}
+        subs_diag.update({E.ys[k]: Rational(P[k]) for k in range(27)})  # X = Y = P
+        c_XX = simplify(E.inv_c.subs(subs_diag))            # c(P,P) = Tr P^2
+        TrX = simplify(E.inv_Tr_X.subs(subs_diag))
+        prod_diag = simplify(TrX * TrX)                     # (Tr P)^2
+        TrP2 = simplify(E.inv_Tr2_X.subs(subs_diag))        # Tr P^2 directly
+        foreshadow_ok = (c_XX == TrP2) and (c_XX != prod_diag)
+        ok = _report(
+            f"NEGATIVE constructor is a recorded NO-OP on the (7, exists) positive "
+            f"cell. Foreshadowing: c(X,X) = Tr X^2 = {TrP2} != (Tr X)^2 = {prod_diag} "
+            f"on the diagonal (c differs from (Tr X)(Tr Y), consistent with rank 7)  "
+            f"[test-negative-branch-wired; no-op]",
+            foreshadow_ok)
+        RESULTS["negative_branch"] = "no-op (rank 7); c(X,X)=Tr X^2 != (Tr X)^2"
+        return ok, None
+
+    # --- NEGATIVE branch (NOT taken on this success path; implemented + reachable). ---
+    print("  [NEGATIVE ACTIVE] rank-6 (6, none) cell fired: solving "
+          "c - a*(Tr X)(Tr Y) for the rational a, then verifying as a symbolic "
+          "identity over Q.")
+    # (1) Solve for a at >= 2 generic pairs. Scan ALL TEST_PAIRS for usable pairs
+    # (m = (Tr X)(Tr Y) != 0; some generic pairs have Tr X = 0 or Tr Y = 0, which
+    # cannot constrain a). Need >= 2 usable pairs for the over-determined check.
+    a_vals = []
+    pairs_used = []
+    for label, (X27, Y27) in TEST_PAIRS.items():
+        subs_pt = {E.xs[k]: Rational(X27[k]) for k in range(27)}
+        subs_pt.update({E.ys[k]: Rational(Y27[k]) for k in range(27)})
+        c_val = simplify(E.inv_c.subs(subs_pt))
+        m_val = simplify((E.inv_Tr_X * E.inv_Tr_Y).subs(subs_pt))
+        if m_val == 0:
+            continue
+        a_vals.append(simplify(c_val / m_val))
+        pairs_used.append(label)
+    consistent_a = (len(set(a_vals)) == 1 and len(a_vals) >= 2)
+    if not consistent_a:
+        print(f"  [CONTRADICTION -- STOP] the candidate a disagrees across pairs "
+              f"({dict(zip(pairs_used, a_vals))}): no single rational a. The rank-6 "
+              f"finding is a non-generic-point artifact -- STOP, re-examine the "
+              f"point; do NOT report a NEGATIVE.")
+        ok = _report(
+            "NEGATIVE constructor: no single rational a across pairs => rank-6 "
+            "finding is a non-generic-point artifact, STOP (nonzero exit)  "
+            "[test-negative-branch-wired]",
+            False)
+        return ok, None
+    a = a_vals[0]
+    # (2) Verify the SYMBOLIC identity over Q (not merely point-matched).
+    identity = simplify(E.inv_c - a * E.inv_Tr_X * E.inv_Tr_Y)
+    if identity == 0:
+        P_expr = f"c = ({a})*(Tr X)(Tr Y)"
+        ok = _report(
+            f"NEGATIVE constructed: {P_expr} verified as a SYMBOLIC identity over Q "
+            f"(a = {a}; point-consistent at {pairs_used})  [test-negative-branch-wired]",
+            True)
+        RESULTS["negative_branch"] = P_expr
+        RESULTS["negative_P"] = P_expr
+        return ok, P_expr
+    # (3) No rational a is an identity => contradicts rank 6.
+    print(f"  [CONTRADICTION -- STOP] a = {a} matches the points but "
+          f"simplify(c - a*(Tr X)(Tr Y)) = {identity} != 0: c is NOT the "
+          f"matching-bidegree pointwise product. This CONTRADICTS a rank-6 finding "
+          f"(rank 6 would force c in R_pt) -- the rank-6 finding is a "
+          f"non-generic-point artifact. STOP; do NOT report a NEGATIVE.")
+    ok = _report(
+        "NEGATIVE constructor: no rational a makes c = a*(Tr X)(Tr Y) a symbolic "
+        "identity => rank-6 finding is a non-generic-point artifact, STOP (nonzero "
+        "exit)  [test-negative-branch-wired]",
+        False)
+    return ok, None
+
+
+# ============================================================================
+# main() -- assembled in Task 6. Interim version (Tasks 1-5): pre-registration ->
+#   Route 1 -> Route 2 -> adjudicator + consistency -> NEGATIVE constructor.
+#   Task 6 adds the exact-only guard, the fresh-pair re-confirmation summary, and
+#   the final ordered main() with the clean-pass-vs-stop exit classifier.
 # ============================================================================
 def main():
-    """Interim main (Tasks 1-4): pre-registration -> Route 1 -> Route 2 ->
-    adjudicator + consistency + corroboration. The NEGATIVE constructor + the full
-    ordered main() with the exact-only guard are wired in Tasks 5-6."""
+    """Interim main (Tasks 1-5): pre-registration -> Route 1 -> Route 2 ->
+    adjudicator + consistency + corroboration -> NEGATIVE constructor. The
+    exact-only guard + fresh-pair re-confirmation + final exit classifier are
+    wired in Task 6."""
     prereg_ok = print_preregistration()
     print("-" * 76)
     route1_ok, spine_rank = run_route1()
@@ -814,11 +931,12 @@ def main():
     print("-" * 76)
     adj_ok, verdict, trigger_neg = run_adjudication(spine_rank, route2_verdict)
     print("-" * 76)
-    print(f"TASKS 1-4: routes + adjudicator done. VERDICT = {verdict}; "
-          f"trigger_negative_constructor = {trigger_neg}. NEGATIVE constructor + "
-          f"full main() wired in Tasks 5-6.")
+    neg_ok, P = negative_branch_constructor(trigger_neg)
+    print("-" * 76)
+    print(f"TASKS 1-5: routes + adjudicator + NEGATIVE constructor done. "
+          f"VERDICT = {verdict}; P = {P}. Exact-only guard + final main() in Task 6.")
     print("=" * 76)
-    return prereg_ok and route1_ok and route2_ok and adj_ok
+    return prereg_ok and route1_ok and route2_ok and adj_ok and neg_ok
 
 
 if __name__ == "__main__":
