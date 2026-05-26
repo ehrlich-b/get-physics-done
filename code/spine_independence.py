@@ -913,30 +913,197 @@ def negative_branch_constructor(trigger):
 
 
 # ============================================================================
-# main() -- assembled in Task 6. Interim version (Tasks 1-5): pre-registration ->
-#   Route 1 -> Route 2 -> adjudicator + consistency -> NEGATIVE constructor.
-#   Task 6 adds the exact-only guard, the fresh-pair re-confirmation summary, and
-#   the final ordered main() with the clean-pass-vs-stop exit classifier.
+# EXACT-ONLY source guard (TASK 6; module-local; fp-float-rank + fp-det3-port-slip)
 # ============================================================================
+# Mirrors orbit_dimension_gate.exact_only_guard / ring_generating_set.exact_only_guard,
+# but scans THIS module's __file__ (importing another module's guard would scan the
+# WRONG file). Asserts on the DECISIVE path:
+#   (a) 0 `import octonion_algebra` / `from octonion_algebra import ...` anywhere
+#       (the float64 module with the (x1 x2)x3 det_3 cross-term bug must NEVER touch
+#       the decisive ranks; this module reuses the FROZEN engine's corrected det_3
+#       via E.);
+#   (b) 0 live np.linalg / numpy.linalg float-rank CALL (a trailing '(' marks a live
+#       call, not a prose mention).
+RANK_ROUTING_CONVENTION = (
+    "Decisive rank via exact_qq_rank = DomainMatrix-over-QQ (exact rational, reused "
+    "from the certified Phase-65 gate); numpy.linalg.matrix_rank / np.linalg.matrix_rank "
+    "FORBIDDEN on the decisive path; octonion_algebra.py FORBIDDEN entirely (buggy det_3)."
+)
+
+
+def exact_only_guard():
+    """Scan THIS module's source for forbidden decisive-path tokens. Returns
+    (ok, detail). ok is True iff 0 octonion_algebra imports AND 0 float-rank calls."""
+    _re_oa_import = re.compile(
+        r"^\s*(from\s+octonion_algebra\s+import\b|import\s+octonion_algebra\b)")
+    _re_float_rank_call = re.compile(r"\b(np|numpy)\.linalg\.matrix_rank\s*\(")
+
+    def _strip_comment(text):
+        in_s, in_d, esc = False, False, False
+        for idx, ch in enumerate(text):
+            if esc:
+                esc = False
+                continue
+            if ch == "\\":
+                esc = True
+                continue
+            if ch == "'" and not in_d:
+                in_s = not in_s
+            elif ch == '"' and not in_s:
+                in_d = not in_d
+            elif ch == "#" and not in_s and not in_d:
+                return text[:idx]
+        return text
+
+    try:
+        with open(__file__, "r") as fh:
+            lines = fh.readlines()
+    except (OSError, NameError):
+        return False, "could not open module source for the guard"
+
+    oa_imports = 0
+    float_rank_hits = []
+    for n, raw in enumerate(lines, start=1):
+        code = _strip_comment(raw)
+        if _re_float_rank_call.search(code):
+            float_rank_hits.append(n)
+        if _re_oa_import.match(code):
+            oa_imports += 1
+
+    ok = (oa_imports == 0) and (float_rank_hits == [])
+    detail = (f"octonion_algebra imports: {oa_imports} (expect 0); "
+              f"float-rank calls: {len(float_rank_hits)} (expect 0)")
+    return ok, detail
+
+
+def fresh_pair_reconfirmation():
+    """Explicit orchestrator/verifier-INDEPENDENT re-confirmation at the FRESH
+    inline pair (NOT a member of PAIR_POINTS), mirroring the Phase-65/65.1
+    hardening. BOTH routes were already evaluated at the fresh pair inside
+    run_route1 / run_route2 (TEST_PAIRS includes it); here we print the fresh-pair
+    results explicitly: Route-1 7x54 rank == 7 AND Route-2 separating xi exists.
+
+    Returns ok (bool)."""
+    print("Task 6 -- FRESH-pair re-confirmation (orchestrator/verifier-independent):")
+    r1_fresh = RESULTS.get("route1_per_pair", {}).get(FRESH_LABEL)
+    witness_fresh = RESULTS.get("route2_witness_per_pair", {}).get(FRESH_LABEL)
+    r1_ok = (r1_fresh == 7)
+    r2_ok = (witness_fresh is not None)
+    ok = _report(
+        f"FRESH pair {FRESH_LABEL}: Route-1 7x54 rank == {r1_fresh} (== 7) AND "
+        f"Route-2 separating xi exists (witness index {witness_fresh}) -- both "
+        f"routes re-confirm the verdict at a pair NOT in PAIR_POINTS",
+        r1_ok and r2_ok)
+    return ok
+
+
+# ============================================================================
+# main() -- the FULL ordered harness + clean-pass-vs-STOP exit classifier (TASK 6)
+# ============================================================================
+# Order: exact-only guard -> pre-registration (Task 1) -> Route 1 (Task 2) ->
+#   Route 2 (Task 3) -> adjudicator + corrected consistency (Task 4) ->
+#   NEGATIVE-branch constructor (Task 5, conditional) -> fresh-pair re-confirmation.
+# main() returns 0 IFF ALL checks pass AND a verdict was emitted on a DIAGONAL
+# agreement cell; returns nonzero on any failed check, any off-diagonal (NO VERDICT)
+# cell, or any STOP. Every check prints a one-line progress marker (watchdog).
+
 def main():
-    """Interim main (Tasks 1-5): pre-registration -> Route 1 -> Route 2 ->
-    adjudicator + consistency + corroboration -> NEGATIVE constructor. The
-    exact-only guard + fresh-pair re-confirmation + final exit classifier are
-    wired in Task 6."""
+    print("=" * 76)
+    print("Phase 66 Plan 01 -- THE SPINE: functional independence of c = Tr(X o Y)")
+    print("  EXACT over Q on the actual non-associative h_3(O). TWO INDEPENDENT")
+    print("  MANDATORY ROUTES (7x54 Jacobian rank + orbit-derivative separating")
+    print("  direction) that must AGREE. Verdict ONLY on a diagonal cell.")
+    print("  SCOPE: FIELD-level functional independence of c ONLY (NOT ring")
+    print("  generation = Phase 68; NOT degree-2 uniqueness = Phase 67).")
+    print("=" * 76)
+
+    # (0) Exact-only guard FIRST (decisive-path discipline must hold before any rank).
+    print("Exact-only guard (decisive-path source scan):")
+    guard_ok, guard_detail = exact_only_guard()
+    _report(f"exact-only guard: no float-rank / no octonion_algebra on the decisive "
+            f"path [{guard_detail}]  [fp-float-rank + fp-det3-port-slip rejected]",
+            guard_ok)
+    print("-" * 76)
+
+    # (1) Pre-registration BEFORE any rank.
     prereg_ok = print_preregistration()
     print("-" * 76)
+
+    # (2) Route 1: 7x54 sub-Jacobian rank + baseline + X=Y control + exactness.
     route1_ok, spine_rank = run_route1()
     print("-" * 76)
+
+    # (3) Route 2: orbit-derivative separating direction (independent of Route 1).
     route2_ok, route2_verdict = run_route2()
     print("-" * 76)
+
+    # (4) Adjudicator (reward-hacking guard) + corrected consistency + corroboration.
     adj_ok, verdict, trigger_neg = run_adjudication(spine_rank, route2_verdict)
     print("-" * 76)
+
+    # (5) NEGATIVE-branch constructor (conditional; no-op on the (7, exists) cell).
     neg_ok, P = negative_branch_constructor(trigger_neg)
     print("-" * 76)
-    print(f"TASKS 1-5: routes + adjudicator + NEGATIVE constructor done. "
-          f"VERDICT = {verdict}; P = {P}. Exact-only guard + final main() in Task 6.")
+
+    # (6) Fresh-pair re-confirmation (both routes at a pair NOT in PAIR_POINTS).
+    fresh_ok = fresh_pair_reconfirmation()
+    print("-" * 76)
+
+    # ------------------------------------------------------------------------
+    # Exit classifier: CLEAN PASS (verdict on a diagonal agreement cell + all
+    # checks green) vs STOP/BUG (off-diagonal NO VERDICT, anomaly, or a failed
+    # check). main() returns 0 IFF a verdict was emitted AND everything passed.
+    # ------------------------------------------------------------------------
+    verdict_emitted = (verdict is not None)
+    clean_pass = (
+        ALL_PASS
+        and guard_ok and prereg_ok and route1_ok and route2_ok
+        and adj_ok and neg_ok and fresh_ok
+        and verdict_emitted
+        and spine_rank in (6, 7)
+    )
+
+    # Final VERDICT + agreement table reprint (bottom-of-main, watchdog).
+    print("FINAL VERDICT")
     print("=" * 76)
-    return prereg_ok and route1_ok and route2_ok and adj_ok and neg_ok
+    if clean_pass and verdict_emitted:
+        cell = RESULTS.get("agreement_cell")
+        witness_p1 = RESULTS.get("route2_witness_per_pair", {})
+        sample = RESULTS.get("route2_sample_s")
+        print(f"  SPINE VERDICT: {verdict}")
+        print(f"  SPINE_RANK = {spine_rank} (Route 1, MAX over {len(TEST_PAIRS)} "
+              f"generic pairs, exact over Q); ROUTE2_VERDICT = {route2_verdict}.")
+        print(f"  TWO-ROUTE AGREEMENT CELL: {cell} (diagonal => verdict valid).")
+        print(f"  Route-2 witness xi index per pair: {witness_p1}")
+        if sample is not None:
+            lbl, s = sample
+            head = ", ".join(str(s[i]) for i in range(min(8, len(s))))
+            print(f"  Route-2 separating vector s at {lbl} (first 8 of 52): [{head}, ...]")
+        if P is not None:
+            print(f"  NEGATIVE P (rank 6 only): {P}")
+        else:
+            print(f"  NEGATIVE branch: recorded no-op (rank 7); "
+                  f"c(X,X) = Tr X^2 != (Tr X)^2.")
+        print(f"  CONSISTENCY: SPINE_RANK {spine_rank} <= ORBIT_DERIVED_TRDEG "
+              f"{ORBIT_DERIVED_TRDEG} (c is 1 of 4 mixed joint invariants; does NOT "
+              f"saturate the full trdeg). Stale 'rank 7 = 54-orbit_dim = 7' wording "
+              f"SUPERSEDED.")
+        print(f"  SCOPE: FIELD-level functional independence of c ONLY "
+              f"(NOT ring generation = Phase 68; NOT degree-2 uniqueness = Phase 67).")
+        print("-" * 76)
+        print(f"OVERALL: CLEAN PASS -- a verdict was emitted on a DIAGONAL two-route "
+              f"agreement cell, all checks green, exact over Q throughout.")
+    else:
+        print(f"  NO VERDICT / STOP. verdict_emitted={verdict_emitted}; "
+              f"agreement_cell={RESULTS.get('agreement_cell')}; SPINE_RANK={spine_rank}; "
+              f"ROUTE2_VERDICT={route2_verdict}.")
+        print(f"  FAILED labels: {FAILED_LABELS}")
+        print("-" * 76)
+        print("OVERALL: STOP / BUG -- either the two routes DISAGREE (off-diagonal "
+              "cell => NO VERDICT, the reward-hacking guard), an anomaly fired, or a "
+              "check failed. Do NOT report a verdict; do NOT tune. See FAIL lines.")
+    print("=" * 76)
+    return clean_pass
 
 
 if __name__ == "__main__":
