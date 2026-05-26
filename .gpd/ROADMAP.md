@@ -31,8 +31,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 | ---------------------- | -------------------- | ---- |
 | Exact-SymPy h_3(O) engine ported + single-state ring R[Tr,Tr^2,det] confirmed (BASE-01) | 64 | Foundation |
 | **GATE: exact generic orbit dimension of F_4 on 27(+)27; anchor 54 - orbit_dim = 7** (BASE-02) | 65 | Chain-critical gate |
-| **(b) c = Tr(X o Y) functionally independent of the six pointwise generators [THE SPINE, reward-hacking-guarded]** (RING-02) | 66 | Chain-critical decisive output |
-| (c) c is the UNIQUE degree-2 coupling generator mod products + pointwise (RING-03) | 67 | Decisive sub-claim |
+| **(b) c = Tr(X o Y) functionally independent of the six pointwise generators [THE SPINE, reward-hacking-guarded]** (RING-02) | 66 | Chain-critical decisive output | Complete    | 2026-05-26 | 67 | Decisive sub-claim |
 | (a) generating set of R[27(+)27]^{F_4} + Hilbert-series completeness certificate (RING-01) | 68 | Decisive sub-claim |
 | (REDUCIBILITY) dynamical bridge STATED (not proved) for next milestone (REDU-01) | 69 | Statement-only deliverable |
 
@@ -58,7 +57,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 
 - [x] **Phase 64: Setup, Conventions, and Exact Engine** -- Port the exact-SymPy h_3(O) engine, build the 54-symbol pair layout + seven base invariants, freeze R_pt, verify convention locks, confirm single-state ring (BASE-01). Phases continue from 64 (v15.0 ended at 63).
 - [ ] **Phase 65: f_4 Construction + Orbit-Dimension GATE** -- Build the 52-generator f_4 = Der(h_3(O)) action, compute the exact generic orbit dimension of F_4 on 27(+)27 via the 52x54 infinitesimal-action rank over Q; verify the consistency anchor 54 - orbit_dim = 7 (BASE-02). GATES Phases 66/67/68.
-- [ ] **Phase 66: (b) Functional Independence of c -- THE SPINE** -- Demonstrate c not in R_pt via the exact 7x54 Jacobian rank over Q at >=3 generic rational points AND the infinitesimal orbit-derivative argument; wire the decisive-NEGATIVE branch (RING-02).
+- [x] **Phase 66: (b) Functional Independence of c -- THE SPINE** -- Demonstrate c not in R_pt via the exact 7x54 Jacobian rank over Q at >=3 generic rational points AND the infinitesimal orbit-derivative argument; wire the decisive-NEGATIVE branch (RING-02). (completed 2026-05-26)
 - [ ] **Phase 67: (c) Degree-2 Uniqueness** -- Show via Sym^2(27(+)27) branching that the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so c is the unique NEW degree-2 coupling generator mod products + pointwise (RING-03). Parallel with Phase 66.
 - [ ] **Phase 68: (a) Generating-Set Completeness Certificate** -- Assemble the candidate generating set and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree <= 6; do NOT assume polarization generates (RING-01).
 - [ ] **Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)** -- Write the precise statement of the (REDUCIBILITY) target for the next milestone: driven dynamics, reducibility definition, cross-term decomposition, autonomous-vs-driven trap, target reduction (REDU-01). Statement only; assert NO irreducibility verdict.
@@ -148,6 +147,8 @@ Plans:
 
 ### Phase 66: (b) Functional Independence of c -- THE SPINE
 
+**RESULT (2026-05-26 — COMPLETE; verification PASSED 4/4 claims / 16/16 acceptance tests, consistency CONSISTENT, confidence HIGH):** THE SPINE DEMONSTRATED — c = Tr(X∘Y) is FUNCTIONALLY INDEPENDENT of the six pointwise generators on the actual non-associative h_3(O) by exact computation over Q. **SPINE_RANK = 7** (positive pass), reached by TWO computationally-independent mandatory routes agreeing on the diagonal cell **(7, exists)**: Route 1 = exact 7×54 sub-Jacobian rank 7 over Q (exact_qq_rank / DomainMatrix over QQ, MAX over 4 PAIR_POINTS + 1 fresh inline pair, rank-stable; 6×54 pointwise baseline == 6 (Garibaldi-Guralnick 3+3); X=Y control == 6; three-exact-domain (7,7,7)+(44,44,44) agree at width 54); Route 2 (NEW, orbit-derivative, independent of the rank) = a separating f_4 direction ξ exists (length-52 s not all zero, witness ξ[0]) while all 6 pointwise derivatives along orbit tangents vanish, with explicit Tr((ξ.X)∘Y) == gradient-contraction for all 52 generators. The two-route adjudicator emits a verdict ONLY on a diagonal agreement cell (off-diagonal ⇒ NO VERDICT + STOP — the reward-hacking guard, probe-verified). Corrected consistency: rank 7 ≤ ORBIT_DERIVED_TRDEG == 10 (c is the FIRST of FOUR mixed joint invariants; rank 7 saturates the {6 pointwise + c} subset but NOT the full trdeg). NEGATIVE branch (rank 6 ⇒ explicit P = a·(Tr X)(Tr Y)) wired + reachable but a recorded no-op on the rank-7 positive (c(X,X)=Tr X²=62 ≠ (Tr X)²=4). All 9 forbidden proxies rejected by concrete guards; exact over Q throughout (0 float-rank, 0 octonion_algebra on the decisive path); orchestrator- AND verifier-independent re-runs reproduced rank 7 at fresh points. RE-DEMONSTRATES (not merely cites) the Phase-65.1 r7==7 preview as this phase's own pre-registered decisive result. NEGATIVE-RESULT-IS-SUCCESS: rank 7 fired and was reported honestly. **SCOPE: FIELD-level functional independence of c ONLY** (NOT ring generation = Phase 68; NOT degree-2 uniqueness = Phase 67). Deliverable: `code/spine_independence.py` (29 PASS/0 FAIL, exit 0, ~14s foreground). _Success-criterion 5 below ("rank 7 saturates trdeg = 54 − orbit_dim = 7") is the STALE pre-GATE wording (the forbidden Spin(8)-triality value); corrected to rank 7 ≤ 10. Criteria 1/2/3/4 all PASS._
+
 **Goal:** It is DEMONSTRATED -- on the actual non-associative h_3(O), by exact computation over Q -- whether c = Tr(X o Y) is functionally independent of the six pointwise generators. This is the load-bearing result and the mathematical content of "the complete third-person (single-frame) record does not determine Phi." The verdict is either independence (Jacobian rank 7) or the decisive NEGATIVE (rank 6, c expressible in the pointwise ring), both full passes.
 
 **Depends on:** Phase 65 (orbit-dimension gate fixes the target rank 7)
@@ -169,10 +170,10 @@ Plans:
 
 **Backtracking:** If the Jacobian rank is unstable across generic points, suspect a non-generic point (re-pick all-nonzero, distinct-spectrum X, Y with X not proportional to Y) before doubting the engine. If the two routes disagree (Jacobian says 7 but the orbit-derivative finds no separating direction, or vice versa), do NOT report a verdict -- isolate the discrepancy (this is the reward-hacking guard: both routes are mandatory). Pre-register the exact test before evaluating, so a NEGATIVE cannot be quietly rerolled.
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 66-01-PLAN.md -- THE SPINE: single pre-registered exact-over-Q harness `code/spine_independence.py` (6 tasks). Pre-register points (>=3 PAIR_POINTS + a fresh pair) + rank test + verdict map; Route 1 = exact 7x54 sub-Jacobian rank over Q (reuse CANDIDATE_GRADS[0:7]/prefix_rank; MAX = verdict 7 vs 6; baseline 6x54==6; X=Y control <=6; three-domain exactness cross-check); Route 2 (NEW) = orbit-derivative separating-direction test over the 52 f_4 generators (s_i = Tr((xi_i.X) o Y) not all zero while the 6 pointwise derivatives vanish); two-route adjudicator (verdict ONLY on agreement; off-diagonal => NO VERDICT + STOP); NEGATIVE-branch constructor (conditional explicit P = a*(Tr X)(Tr Y), symbolically verified); corrected consistency rank 7 <= ORBIT_DERIVED_TRDEG (==10, NOT the stale =7). EXACT over Q; reuses the frozen engine + certified gate machinery; foreground `python -u`, chatty. (wave 1, non-interactive)
+- [x] 66-01-PLAN.md -- THE SPINE: single pre-registered exact-over-Q harness `code/spine_independence.py` (6 tasks). Pre-register points (>=3 PAIR_POINTS + a fresh pair) + rank test + verdict map; Route 1 = exact 7x54 sub-Jacobian rank over Q (reuse CANDIDATE_GRADS[0:7]/prefix_rank; MAX = verdict 7 vs 6; baseline 6x54==6; X=Y control <=6; three-domain exactness cross-check); Route 2 (NEW) = orbit-derivative separating-direction test over the 52 f_4 generators (s_i = Tr((xi_i.X) o Y) not all zero while the 6 pointwise derivatives vanish); two-route adjudicator (verdict ONLY on agreement; off-diagonal => NO VERDICT + STOP); NEGATIVE-branch constructor (conditional explicit P = a*(Tr X)(Tr Y), symbolically verified); corrected consistency rank 7 <= ORBIT_DERIVED_TRDEG (==10, NOT the stale =7). EXACT over Q; reuses the frozen engine + certified gate machinery; foreground `python -u`, chatty. (wave 1, non-interactive)
 
 ### Phase 67: (c) Degree-2 Uniqueness
 
@@ -250,7 +251,7 @@ Plans:
 |-------|-----------|---------|:-:|
 | 64 - Setup + Exact Engine | -- | 65, 69 | Yes |
 | 65 - f_4 + Orbit-Dimension GATE | 64 | 66, 67, 68 | Yes (the GATE) |
-| 66 - (b) Independence of c [SPINE] | 65 | -- | Yes (the SPINE) |
+| 66 - (b) Independence of c [SPINE] | 65 | Complete    | 2026-05-26 |
 | 67 - (c) Degree-2 Uniqueness | 65 | 68 | No (parallel with 66) |
 | 68 - (a) Generating-Set Completeness | 65, 67 | -- | No (last proof phase) |
 | 69 - (REDUCIBILITY) Statement | 64 | -- | No (independent, statement-only) |
@@ -271,8 +272,8 @@ Plans:
 | 64 | Wrong convention / float engine on decisive path | LOW | HIGH | Convention locks (`polarize_d=6det`, `c(X,X)=Tr X^2`) verified before building; exact-only guard against `numpy.linalg.matrix_rank` |
 | 65 | Consistency anchor 54 - orbit_dim != 7 (whole generating-set picture wrong) | LOW-MEDIUM | HIGH | GATE: STOP on failure; single-copy sanity (orbit 24 / Spin(8)) cross-checks the f_4 builder first; `/gpd:research-phase` only on this failure |
 | 65 | Naive Spin(8)-triality back-of-envelope corrupts the orbit dimension | MEDIUM | HIGH | Forbidden proxy: COMPUTE the pair orbit dimension in-harness, never look it up; the three 8's are permuted |
-| 66 | Asserting independence without the demonstration / forced positive over NEGATIVE | MEDIUM | HIGH | Reward-hacking guard: BOTH the exact Jacobian (>=3 generic points) AND the orbit-derivative are mandatory; pre-register the exact test; NEGATIVE (rank 6) is a full pass reported with the explicit c expression |
-| 66 | Non-generic evaluation point fabricates the verdict | MEDIUM | HIGH | >=3 generic rational points (all-nonzero, distinct diagonals, X not proportional to Y); X=Y is NOT an independence-test point |
+| 66 | Asserting independence without the demonstration / forced positive over NEGATIVE | Complete    | 2026-05-26 | Reward-hacking guard: BOTH the exact Jacobian (>=3 generic points) AND the orbit-derivative are mandatory; pre-register the exact test; NEGATIVE (rank 6) is a full pass reported with the explicit c expression |
+| 66 | Non-generic evaluation point fabricates the verdict | Complete    | 2026-05-26 | >=3 generic rational points (all-nonzero, distinct diagonals, X not proportional to Y); X=Y is NOT an independence-test point |
 | 67 | 26-vs-27 confusion / dropping "mod products" | LOW | MEDIUM | Carry 27 = 1 (+) 26 explicitly; exact f_4-kernel nullspace cross-checks the branching count |
 | 68 | Assuming polarization generates (Schwarz: 2-polarization fails in char 0) | MEDIUM | HIGH | (a) is a CERTIFICATION phase: Hilbert-series match degree-by-degree is the completeness certificate; mismatch at a bidegree => missing generator there |
 | 68 | Sage unavailable for the Molien step | MEDIUM | LOW | Scope decision in-plan: external Sage fixture OR pure-SymPy Molien-Weyl residue; phase is last and non-gating |
@@ -287,7 +288,7 @@ Plans:
 | 64. Setup, Conventions, Exact Engine | v16.0 | 1/1 | ✓ Complete | 2026-05-25 |
 | 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 3/3 ran | ✓ GATE computed: trdeg 10 ≠ 7 (backtrack resolved by 65.1) | 2026-05-25 |
 | 65.1 Generating-set count correction (trdeg-10) | v16.0 | 1/1 | ✓ Complete (rank 10, two-route agreement; verified 22/22) | 2026-05-25 |
-| 66. (b) Functional Independence of c [SPINE] | v16.0 | 0/TBD | Pending | - |
+| 66. (b) Functional Independence of c [SPINE] | v16.0 | 1/1 | ✓ Complete (c INDEPENDENT, rank 7, two-route agreement; verified 4/4) | 2026-05-26 |
 | 67. (c) Degree-2 Uniqueness | v16.0 | 0/TBD | Pending | - |
 | 68. (a) Generating-Set Completeness Certificate | v16.0 | 0/TBD | Pending | - |
 | 69. (REDUCIBILITY) State the Dynamical Bridge | v16.0 | 0/TBD | Pending | - |
