@@ -132,6 +132,18 @@ Plans:
 - [x] 65-02-PLAN.md -- Single-copy GATE: F_4 on one 27 -> generic orbit dim 24 (exact QQ rank of the (generators x 27) action at >=2 integer points), stabilizer Spin(8) (52-24=28), trdeg 27-24=3; reproduces Garibaldi-Guralnick -> certifies the builder before the pair value (wave 2, 2 tasks; depends 65-01) — DONE: orbit 24 / Spin(8) 28 / trdeg 3 reproduced in-engine (independently confirmed); builder CERTIFIED.
 - [x] 65-03-PLAN.md -- DECISIVE pair value: select 52-independent basis, compute generic orbit dim of F_4 on 27(+)27 as the exact QQ rank of the 52x54 diagonal-action matrix at >=3 integer pairs (MAX), derive trdeg = 54-orbit_dim, ASSERT the milestone anchor 54-orbit_dim = 7 (orbit 47, stab 5); milestone go/no-go checkpoint (wave 3, 3 tasks incl. checkpoint; depends 65-01, 65-02) — DONE: pair orbit dim = **44** COMPUTED → trdeg = **10 ≠ 7**; anchor refuted as the naive triality value (triple-confirmed); human verdict = BACKTRACK to 65.1. See GATE RESULT note above.
 
+### Phase 65.1: Generating-set count correction: pin down the 3 missing joint invariants (trdeg 10) (INSERTED)
+
+**Why (corrective):** The Phase 65 GATE computed trdeg R[27⊕27]^{F_4} = **10** (pair orbit dim 44), not the naive-anchor 7 — so the "six pointwise + c" set is functionally INCOMPLETE by **3** joint invariants. This phase pins them down so Phases 66/67/68 build on the correct generating set.
+
+**Goal (to be detailed at plan-phase):** Identify and verify, by exact computation over Q, the 3 missing functionally-independent mixed invariants beyond {6 pointwise, c=Tr(X∘Y)}. Concretely: confirm the full 10-candidate set {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c, Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²)} has exact Jacobian rank **10** over Q at ≥3 generic rational points (matching trdeg=10), and that each tier adds independence (6 → 7 → 10). If the natural bidegree candidates fail to realize rank 10 (some dependent / a different monomial needed), report the actual minimal completing set — COMPUTE, do not assume. Reuse the certified f_4 builder + base invariants from `code/orbit_dimension_gate.py` / `code/ring_lemma_verification.py` and the substitute-first / `DomainMatrix`-over-QQ exact-rank recipe. EXACT over Q only (float rank forbidden).
+
+**Depends on:** Phase 65 (orbit-dim GATE → trdeg = 10; certified f_4 builder + base invariants). **Enables:** Phases 66/67/68 (corrected trdeg-10 generating set).
+**Plans:** TBD (run `/gpd:plan-phase 65.1`)
+
+Plans:
+- [ ] TBD (run plan-phase 65.1 to break down)
+
 ### Phase 66: (b) Functional Independence of c -- THE SPINE
 
 **Goal:** It is DEMONSTRATED -- on the actual non-associative h_3(O), by exact computation over Q -- whether c = Tr(X o Y) is functionally independent of the six pointwise generators. This is the load-bearing result and the mathematical content of "the complete third-person (single-frame) record does not determine Phi." The verdict is either independence (Jacobian rank 7) or the decisive NEGATIVE (rank 6, c expressible in the pointwise ring), both full passes.
