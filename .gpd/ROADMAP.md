@@ -169,6 +169,11 @@ Plans:
 
 **Backtracking:** If the Jacobian rank is unstable across generic points, suspect a non-generic point (re-pick all-nonzero, distinct-spectrum X, Y with X not proportional to Y) before doubting the engine. If the two routes disagree (Jacobian says 7 but the orbit-derivative finds no separating direction, or vice versa), do NOT report a verdict -- isolate the discrepancy (this is the reward-hacking guard: both routes are mandatory). Pre-register the exact test before evaluating, so a NEGATIVE cannot be quietly rerolled.
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 66-01-PLAN.md -- THE SPINE: single pre-registered exact-over-Q harness `code/spine_independence.py` (6 tasks). Pre-register points (>=3 PAIR_POINTS + a fresh pair) + rank test + verdict map; Route 1 = exact 7x54 sub-Jacobian rank over Q (reuse CANDIDATE_GRADS[0:7]/prefix_rank; MAX = verdict 7 vs 6; baseline 6x54==6; X=Y control <=6; three-domain exactness cross-check); Route 2 (NEW) = orbit-derivative separating-direction test over the 52 f_4 generators (s_i = Tr((xi_i.X) o Y) not all zero while the 6 pointwise derivatives vanish); two-route adjudicator (verdict ONLY on agreement; off-diagonal => NO VERDICT + STOP); NEGATIVE-branch constructor (conditional explicit P = a*(Tr X)(Tr Y), symbolically verified); corrected consistency rank 7 <= ORBIT_DERIVED_TRDEG (==10, NOT the stale =7). EXACT over Q; reuses the frozen engine + certified gate machinery; foreground `python -u`, chatty. (wave 1, non-interactive)
+
 ### Phase 67: (c) Degree-2 Uniqueness
 
 **Goal:** It is established that c is the UNIQUE degree-2 coupling generator modulo scale, products, and pointwise terms. Concretely, the bidegree-(1,1) trivial part of the invariant ring is shown to be exactly 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, of which Tr(X)Tr(Y) is reducible (a product of pointwise generators), leaving c as the single genuine (irreducible, non-product) degree-2 coupling invariant.
