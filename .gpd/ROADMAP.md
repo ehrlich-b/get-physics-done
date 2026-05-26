@@ -134,6 +134,8 @@ Plans:
 
 ### Phase 65.1: Generating-set count correction: pin down the 3 missing joint invariants (trdeg 10) (INSERTED)
 
+**RESULT (2026-05-25 — COMPLETE, verification PASSED 22/22):** CONFIRMED by exact computation over Q that the 10-candidate set {6 pointwise, c, Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²)} realizes full Jacobian rank **10** (MAX over 4 generic integer pairs, each =10; exact_qq_rank over QQ) = the Phase-65 orbit-derived trdeg 54−44=10 — **two independent routes agree** (invariant-Jacobian here vs orbit-tangent in Phase 65; Derksen-Kemper char-0 dual). The 3 NATURAL mixed trace monomials complete the set (fallback ladder a recorded no-op); tier ladder (6,7,8,9,10), every increment +1; 6-pointwise==6 and +c==7 (Phase-66 SPINE preview) cross-checks hold. All 3 mixed certified genuine F_4 invariants (D_M f=0 for all 52 generators) of bidegree (2,1),(1,2),(2,2). EXACT over Q (exact-only guard PASS; 3 exact domains agree at width 54). Orchestrator- AND verifier-independent fresh-point re-confirmations of rank 10. **SCOPE: FIELD-level (trdeg) completeness only — NOT ring generation (Phase 68).** The corrected trdeg=10 propagates to Phases 66/68; the (b) rank-7 c-independence test is unchanged but no longer saturates trdeg. Deliverable: `code/ring_generating_set.py`. NEGATIVE-RESULT-IS-SUCCESS: this is the contract-sanctioned corrective confirmation the GATE backtrack required.
+
 **Why (corrective):** The Phase 65 GATE computed trdeg R[27⊕27]^{F_4} = **10** (pair orbit dim 44), not the naive-anchor 7 — so the "six pointwise + c" set is functionally INCOMPLETE by **3** joint invariants. This phase pins them down so Phases 66/67/68 build on the correct generating set.
 
 **Goal (to be detailed at plan-phase):** Identify and verify, by exact computation over Q, the 3 missing functionally-independent mixed invariants beyond {6 pointwise, c=Tr(X∘Y)}. Concretely: confirm the full 10-candidate set {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c, Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²)} has exact Jacobian rank **10** over Q at ≥3 generic rational points (matching trdeg=10), and that each tier adds independence (6 → 7 → 10). If the natural bidegree candidates fail to realize rank 10 (some dependent / a different monomial needed), report the actual minimal completing set — COMPUTE, do not assume. Reuse the certified f_4 builder + base invariants from `code/orbit_dimension_gate.py` / `code/ring_lemma_verification.py` and the substitute-first / `DomainMatrix`-over-QQ exact-rank recipe. EXACT over Q only (float rank forbidden).
@@ -142,7 +144,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 65.1-01-PLAN.md — Confirm the 10-candidate set realizes exact Jacobian rank 10 over Q (MAX over ≥3 generic integer pairs; == Phase-65 orbit-derived trdeg, two-route agreement); fine-grained tier ladder 6→7→8→9→10 (6-pointwise==6, +c==7 cross-checks); F_4-invariance + grouping + bidegree gates on the 3 mixed trace monomials; deterministic fallback ladder if a natural candidate is dependent; emit the corrected trdeg-10 generating-set + bidegree-table handoff for Phases 66/68 (FIELD-completeness, NOT ring generation). EXACT over Q; reuses the frozen engine + certified gate machinery.
+- [x] 65.1-01-PLAN.md — Confirm the 10-candidate set realizes exact Jacobian rank 10 over Q (MAX over ≥3 generic integer pairs; == Phase-65 orbit-derived trdeg, two-route agreement); fine-grained tier ladder 6→7→8→9→10 (6-pointwise==6, +c==7 cross-checks); F_4-invariance + grouping + bidegree gates on the 3 mixed trace monomials; deterministic fallback ladder if a natural candidate is dependent; emit the corrected trdeg-10 generating-set + bidegree-table handoff for Phases 66/68 (FIELD-completeness, NOT ring generation). EXACT over Q; reuses the frozen engine + certified gate machinery. — DONE 2026-05-25: rank 10 CONFIRMED (each of 4 generic pairs =10), two-route agreement with orbit-derived trdeg 10; natural three complete the set (no fallback); tier ladder (6,7,8,9,10); F_4-invariance 52/52 ×3; exact-only guard PASS; verification 22/22 PASSED, consistency CONSISTENT.
 
 ### Phase 66: (b) Functional Independence of c -- THE SPINE
 
@@ -278,7 +280,8 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 64. Setup, Conventions, Exact Engine | v16.0 | 1/1 | ✓ Complete | 2026-05-25 |
-| 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 3/3 ran | ◆ GATE computed: trdeg 10 ≠ 7 → backtrack to 65.1 | 2026-05-25 |
+| 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 3/3 ran | ✓ GATE computed: trdeg 10 ≠ 7 (backtrack resolved by 65.1) | 2026-05-25 |
+| 65.1 Generating-set count correction (trdeg-10) | v16.0 | 1/1 | ✓ Complete (rank 10, two-route agreement; verified 22/22) | 2026-05-25 |
 | 66. (b) Functional Independence of c [SPINE] | v16.0 | 0/TBD | Pending | - |
 | 67. (c) Degree-2 Uniqueness | v16.0 | 0/TBD | Pending | - |
 | 68. (a) Generating-Set Completeness Certificate | v16.0 | 0/TBD | Pending | - |
