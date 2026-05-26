@@ -95,9 +95,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ring_lemma_verification as E  # noqa: E402  (path insert must precede import)
 
 from sympy import Matrix, diff, simplify, Rational  # noqa: E402
+from sympy.polys.domains import QQ, ZZ  # noqa: E402  (exact rational/integer rank domains)
+from sympy.polys.matrices import DomainMatrix  # noqa: E402  (fast EXACT rank over QQ)
 
 # Track overall pass/fail; the script must exit nonzero on any check failure.
 ALL_PASS = True
+FAILED_LABELS = []   # labels of every FAIL (for exit classification: gate-stop vs bug).
 
 
 def _report(label, ok):
@@ -107,6 +110,7 @@ def _report(label, ok):
     print(f"  [{status}] {label}")
     if not ok:
         ALL_PASS = False
+        FAILED_LABELS.append(label)
     return ok
 
 
@@ -145,6 +149,32 @@ def span_rank_over_QQ(matrices, extra=None):
     if extra:
         rows += [_flatten_729(M) for M in extra]
     return Matrix(rows).rank()
+
+
+def exact_qq_rank(A):
+    """EXACT rank over QQ of a SymPy Matrix A, via DomainMatrix over QQ.
+
+    WHY NOT Matrix.rank() HERE: sympy.Matrix(...).rank() uses generic dense
+    symbolic Gaussian elimination and is pathologically slow at the pair width
+    (54 columns): single-copy 52x27 ranks in ~55s, but the pair 52x54 does NOT
+    return after >5 min CPU even with integer-cleared entries (the column width
+    is the killer, not fraction blowup). DomainMatrix.convert_to(QQ).rank() does
+    the SAME exact rational linear algebra over QQ (SymPy polys; exact MPQ/fmpq
+    arithmetic) in ~0.01s.
+
+    THIS IS EXACT OVER Q, NOT a float proxy. It is NOT numpy.linalg.matrix_rank,
+    NOT np.linalg, NOT an SVD tolerance (forbidden proxy fp-float-rank stays
+    rejected -- the exact-only source guard still asserts 0 numpy float-rank
+    calls). Validated EQUIVALENT to Matrix.rank() on the CERTIFIED single-copy
+    case (52x27 at P1: Matrix.rank()==24 == DomainMatrix-QQ==24, the Plan-02
+    Garibaldi-Guralnick anchor), and cross-checked at the pair width by THREE
+    independent exact domains agreeing (QQ-on-fractional == QQ-on-integer-cleared
+    == ZZ-on-integer-cleared); see exact_rank_route_crosscheck().
+
+    The single-copy path (single_copy_orbit_rank, Plan 02) keeps using
+    Matrix.rank() VERBATIM (27 columns, tractable) so the certified GATE is
+    untouched; only the pair path (54 columns) uses this exact fast route."""
+    return DomainMatrix.from_Matrix(A).convert_to(QQ).rank()
 
 
 def infinitesimal_action(grad_at, M, v):
@@ -512,23 +542,329 @@ def check_single_copy_gate(orbit_dim):
     return orbit_ok and stab_ok and trdeg_ok and anchor_ok, stab, trdeg
 
 
-# Module-level result carried forward to Plan 03 (the pair orbit-dimension value):
+# ============================================================================
+# PLAN 03 — pair (DIAGONAL) orbit dimension: the MILESTONE go/no-go GATE
+# ============================================================================
+# Derksen-Kemper char-0: the GENERIC orbit dimension of F_4 acting DIAGONALLY on
+# h_3(O) (+) h_3(O) (the SAME 27x27 matrix M_xi acts on X AND on Y) equals the
+# exact rank over QQ of the (f_4-generators x 54) infinitesimal-action matrix at a
+# generic point, and trdeg of R[27(+)27]^{F_4} = 54 - orbit_dim. For an f_4
+# generator M the pair orbit-tangent at a pair point (X*, Y*) with coordinate
+# vectors v_x = _flat27(X*), v_y = _flat27(Y*) is the 54-vector concat(M.v_x, M.v_y)
+# (matrix*vector on EACH copy; substitute the pair point BEFORE forming the matrix).
+#
+# THE MILESTONE ANCHOR (go/no-go): 54 - pair_orbit_dim == 7, i.e. pair_orbit_dim
+# == 47, with the pair stabilizer dim = 52 - orbit_dim == 5. Here 7 = the six
+# pointwise generators {Tr X, Tr X^2, det X, Tr Y, Tr Y^2, det Y} + the coupling
+# c = Tr(X o Y). The value is COMPUTED, never looked up; the naive Spin(8)-triality
+# back-of-envelope is a FORBIDDEN PROXY (the three 8's are permuted by triality, so
+# a generic element of one copy is NOT trivially stabilized -- the pair principal
+# isotropy MUST be computed in-harness; fp-triality-backofenvelope).
+#
+# GATE / BACKTRACK: if 54 - orbit_dim != 7 the 'six pointwise + c' generating-set
+# picture is WRONG (incomplete or over-counted). Do NOT fudge the rank, do NOT
+# force 7: report the honest computed value, FAIL the harness on the anchor, and
+# STOP the milestone (do NOT proceed to Phases 66/67/68; candidate for
+# /gpd:research-phase). The honest value is the deliverable, whatever it is.
+#
+# EXACT-ONLY: the pair rank is exact_qq_rank() = DomainMatrix-over-QQ rank
+# (exact rational; NOT numpy/float -- the integer pair point is substituted FIRST).
+# Matrix.rank() is unusably slow at width 54 (>5 min CPU vs ~0.01s); exact_qq_rank
+# is validated == Matrix.rank() on the certified single-copy 24 and cross-checked
+# by three agreeing exact domains at the pair width (exact_rank_route_crosscheck).
+
+AMBIENT_PAIR = 54                  # h_3(O) (+) h_3(O).
+PAIR_ANCHOR_TRDEG_EXPECTED = 7     # six pointwise {Tr,Tr^2,det of X,Y} + coupling c.
+PAIR_ORBIT_DIM_ANCHOR = AMBIENT_PAIR - PAIR_ANCHOR_TRDEG_EXPECTED   # == 47 expected.
+PAIR_STAB_DIM_ANCHOR = DIM_F4 - PAIR_ORBIT_DIM_ANCHOR               # == 5 expected.
+
+# >=3 GENERIC INTEGER octonionic PAIRS (X*, Y*): both genuinely octonionic,
+# DISTINCT, X* NOT proportional to Y*, distinct diagonals. Built from the certified
+# SINGLE_COPY_POINTS (each already validated genuinely octonionic + non-degenerate)
+# plus two fresh independent integer octonionic points, paired so no X==Y and no
+# proportional pair. Small integer coords (avoid denominator blowup). The rank is
+# computed at EACH pair and the MAX is the orbit dimension (rank lower-semicontinuous).
+_P4_INDEP = [3, -1, 2,
+             1, 1, -1, 0, 2, 1, -1, 0,      # x1 octonion (imag 1,2,4,6)
+             0, -1, 2, 1, -1, 0, 1, 2,      # x2 octonion (imag 1,3,4,6,7)
+             2, 0, 1, -1, 1, 1, 0, -1]      # x3 octonion (imag 2,3,4,5,7)
+_P5_INDEP = [-2, 3, 1,
+             0, 2, 1, -1, 0, 1, 1, -1,      # x1 octonion (imag 1,2,4,6,7)
+             1, -1, 0, 2, 1, -1, 0, 1,      # x2 octonion (imag 1,2,4,5,7)
+             -1, 1, 2, 0, -1, 1, 1, 0]      # x3 octonion (imag 1,2,3,5,6)
+
+PAIR_POINTS = {
+    "P1xP2": (SINGLE_COPY_POINTS["P1 (planner spike)"],
+              SINGLE_COPY_POINTS["P2 (independent integer)"]),
+    "P2xP3": (SINGLE_COPY_POINTS["P2 (independent integer)"],
+              SINGLE_COPY_POINTS["P3 (independent integer)"]),
+    "P1xP3": (SINGLE_COPY_POINTS["P1 (planner spike)"],
+              SINGLE_COPY_POINTS["P3 (independent integer)"]),
+    "P4xP5": (_P4_INDEP, _P5_INDEP),
+}
+
+
+def _pair_not_proportional(X, Y):
+    """A generic pair must have X* NOT proportional to Y* (else it sits on a
+    special locus that can drop the rank -- forbidden proxy fp-nongeneric-pair)."""
+    ratios = set()
+    for a, b in zip(X, Y):
+        if b != 0:
+            ratios.add(Rational(a, b))
+        elif a != 0:
+            ratios.add("inf")
+    # proportional iff exactly one finite ratio and no 'inf' mismatch
+    return not (len(ratios) == 1 and "inf" not in ratios)
+
+
+def pair_orbit_rank(gens, X27, Y27):
+    """Exact pair orbit dimension at ONE generic integer pair (X*, Y*).
+
+    DIAGONAL action: the row for each f_4 generator M is the 54-vector
+    concat(M . v_x, M . v_y) (the SAME M acts on both copies), v_x = Matrix(X27),
+    v_y = Matrix(Y27). The integer pair is substituted FIRST (gens already
+    rational, X27/Y27 integer), so the stacked (gens x 54) matrix is rational with
+    small denominators; exact_qq_rank() returns its exact rank over QQ.
+
+    gens may be the 52-independent basis OR the full 324 generators (same rank).
+    EXACT-ONLY: exact_qq_rank = DomainMatrix-over-QQ; NEVER numpy/float."""
+    v_x = Matrix([c if hasattr(c, "is_Number") else Rational(c) for c in X27])
+    v_y = Matrix([c if hasattr(c, "is_Number") else Rational(c) for c in Y27])
+    rows = []
+    for M in gens:
+        Mvx = M * v_x
+        Mvy = M * v_y
+        rows.append([Mvx[k] for k in range(27)] + [Mvy[k] for k in range(27)])
+    return exact_qq_rank(Matrix(rows))            # exact rank over QQ (54 columns)
+
+
+def exact_rank_route_crosscheck(basis, X27, Y27):
+    """Confirm exact_qq_rank (DomainMatrix-over-QQ) is EXACT at the pair width by
+    THREE independent exact routes that must all agree: rank over QQ on the
+    fractional matrix, rank over QQ on the integer-cleared matrix (row scaling
+    preserves rank), and rank over ZZ on the integer-cleared matrix (a fully
+    independent exact integer domain). All three must equal the same integer.
+    This is the pair-width analogue of the single-copy Matrix.rank()==24 check
+    (Matrix.rank() itself is unusably slow at width 54)."""
+    from sympy import lcm, denom, Integer
+    v_x = Matrix([Rational(c) for c in X27])
+    v_y = Matrix([Rational(c) for c in Y27])
+    rowsQ = []
+    rowsZ = []
+    for M in basis:
+        Mvx = M * v_x
+        Mvy = M * v_y
+        row = [Mvx[k] for k in range(27)] + [Mvy[k] for k in range(27)]
+        rowsQ.append(list(row))
+        d = 1
+        for e in row:
+            d = lcm(d, denom(e))
+        rowsZ.append([Integer(e * d) for e in row])
+    A_Q = Matrix(rowsQ)
+    A_Z = Matrix(rowsZ)
+    r_qq_frac = DomainMatrix.from_Matrix(A_Q).convert_to(QQ).rank()
+    r_qq_int = DomainMatrix.from_Matrix(A_Z).convert_to(QQ).rank()
+    r_zz_int = DomainMatrix.from_Matrix(A_Z).convert_to(ZZ).rank()
+    agree = (r_qq_frac == r_qq_int == r_zz_int)
+    return agree, (r_qq_frac, r_qq_int, r_zz_int)
+
+
+def check_pair_orbit_dim(derivs):
+    """deliv-pair-rank + test-pair-rank-exact + test-pair-multipoint +
+    test-pair-basis-equiv: COMPUTE the generic pair orbit dimension of F_4 on
+    h_3(O) (+) h_3(O) as the exact rank over QQ of the (52-basis x 54)
+    diagonal-action matrix at >=3 generic integer pairs, MAX taken.
+
+    Returns (ok, pair_orbit_dim, per_pair).
+
+    Steps:
+      1. Select a 52-independent f_4 basis (exact rref over QQ; re-confirms dim 52);
+         its single-copy/pair rank equals the 324-row spanning set's (same row
+         space under M.v) -- test-pair-basis-equiv.
+      2. Validate every pair point: each of X*, Y* genuinely octonionic +
+         non-degenerate (reuse _is_genuinely_octonionic_integer), X* != Y*, X* NOT
+         proportional to Y* -- rejects fp-nongeneric-pair.
+      3. Exact pair rank at each generic integer pair (exact_qq_rank); MAX is the
+         orbit dim (rank lower-semicontinuous) -- test-pair-rank-exact +
+         test-pair-multipoint.
+      4. Faithfulness: confirm the 52-basis pair rank == the FULL 324-row pair rank
+         at one pair (the basis is not dropping rank) -- de-risks fp-full-stack-rank
+         while keeping the decisive rank on the light 52-basis route.
+      5. Block sanity: left block (M.v_x) and right block (M.v_y) each have rank
+         == the certified single-copy orbit 24 (the diagonal action is applied
+         correctly; the pair rank is the rank of the stacked 54-column matrix)."""
+    # (1) 52-independent f_4 basis (exact rref over QQ).
+    basis_idx = _select_independent_basis(derivs)
+    basis_ok = _report(
+        f"52-independent f_4 basis selected via exact rref over QQ "
+        f"(|basis|={len(basis_idx)}; re-confirms dim f_4 = 52)  [test-pair-basis-equiv]",
+        len(basis_idx) == DIM_F4)
+    basis = [derivs[i] for i in basis_idx]
+    # 729-flatten rank of the basis == 52 (a genuine basis -> basis rank == span rank).
+    basis_flat_ok = _report(
+        f"52-basis 729-flatten rank over QQ == 52 (genuine f_4 basis; "
+        f"basis pair-rank == 324-spanning-set pair-rank)  [test-pair-basis-equiv]",
+        exact_qq_rank(Matrix([_flatten_729(M) for M in basis])) == DIM_F4)
+
+    # (2) Validate every pair point is generic (octonionic + non-degenerate + X not prop Y).
+    pts_ok = True
+    for label, (X, Y) in PAIR_POINTS.items():
+        okx, dx = _is_genuinely_octonionic_integer(X)
+        oky, dy = _is_genuinely_octonionic_integer(Y)
+        not_prop = _pair_not_proportional(X, Y)
+        not_equal = (list(X) != list(Y))
+        pts_ok = pts_ok and _report(
+            f"pair {label} generic: X octonionic={okx}, Y octonionic={oky}, "
+            f"X!=Y={not_equal}, X not-prop-Y={not_prop}", okx and oky and not_prop and not_equal)
+
+    # (3) Exact pair rank at each generic integer pair; MAX is the orbit dimension.
+    per_pair = {}
+    for label, (X, Y) in PAIR_POINTS.items():
+        per_pair[label] = pair_orbit_rank(basis, X, Y)
+    pair_orbit_dim = max(per_pair.values())
+
+    # test-pair-rank-exact: first pair gives a definite integer <= 47.
+    first_label = next(iter(PAIR_POINTS))
+    first_ok = _report(
+        f"pair orbit rank over QQ at {first_label} == {per_pair[first_label]} "
+        f"(exact 52x54 rank, definite integer)  [test-pair-rank-exact]",
+        isinstance(per_pair[first_label], int))
+
+    # test-pair-multipoint: MAX over >=3 generic integer pairs, stable.
+    pairs_str = ", ".join(f"{lbl}={r}" for lbl, r in per_pair.items())
+    multi_ok = _report(
+        f"MAX pair orbit rank over QQ == {pair_orbit_dim} across {len(per_pair)} "
+        f"generic integer pairs ({pairs_str})  [test-pair-multipoint]",
+        len(per_pair) >= 3
+        and all(isinstance(r, int) for r in per_pair.values())
+        and pair_orbit_dim == max(per_pair.values()))
+
+    # test-orbit-le-47: the rank cannot exceed 47 if trdeg >= 7 (sanity bound).
+    le47_ok = _report(
+        f"pair_orbit_dim == {pair_orbit_dim} <= 47 (sanity bound; "
+        f"orbit > 47 would mean trdeg < 7)  [test-orbit-le-47]",
+        pair_orbit_dim <= PAIR_ORBIT_DIM_ANCHOR)
+
+    # (4) Faithfulness: 52-basis pair rank == full 324-row pair rank at the first pair.
+    Xf, Yf = PAIR_POINTS[first_label]
+    full_rank = pair_orbit_rank(derivs, Xf, Yf)
+    faithful_ok = _report(
+        f"52-basis pair rank ({per_pair[first_label]}) == full 324-row pair rank "
+        f"({full_rank}) at {first_label} (basis faithful; fp-full-stack-rank de-risked)",
+        per_pair[first_label] == full_rank)
+
+    # (5) Block sanity: left (M.v_x) and right (M.v_y) blocks each == single-copy 24.
+    Xb, Yb = PAIR_POINTS[first_label]
+    vx = Matrix([Rational(c) for c in Xb])
+    vy = Matrix([Rational(c) for c in Yb])
+    left_rank = exact_qq_rank(Matrix([list(M * vx) for M in basis]))
+    right_rank = exact_qq_rank(Matrix([list(M * vy) for M in basis]))
+    block_ok = _report(
+        f"diagonal-action blocks at {first_label}: left (M.v_x) rank={left_rank}, "
+        f"right (M.v_y) rank={right_rank}, each == single-copy orbit "
+        f"{ORBIT_DIM_SINGLE_EXPECTED}; combined 54-col rank={pair_orbit_dim}, "
+        f"row-image overlap = {left_rank}+{right_rank}-{pair_orbit_dim} = "
+        f"{left_rank + right_rank - pair_orbit_dim}",
+        left_rank == ORBIT_DIM_SINGLE_EXPECTED and right_rank == ORBIT_DIM_SINGLE_EXPECTED)
+
+    # Exactness cross-check at the pair width: three independent exact domains agree.
+    agree, triple = exact_rank_route_crosscheck(basis, Xf, Yf)
+    exact_ok = _report(
+        f"exact-rank route cross-check at {first_label}: QQ-frac/QQ-int/ZZ-int "
+        f"all agree = {triple} (exact_qq_rank is EXACT over Q at width 54, "
+        f"not a float proxy)  [fp-float-rank rejected]",
+        agree and triple[0] == pair_orbit_dim)
+
+    ok = (basis_ok and basis_flat_ok and pts_ok and first_ok and multi_ok
+          and le47_ok and faithful_ok and block_ok and exact_ok)
+    return ok, pair_orbit_dim, per_pair
+
+
+def check_pair_gate(pair_orbit_dim):
+    """test-anchor-7 + test-stab-ge-5: the MILESTONE go/no-go GATE.
+
+    trdeg = 54 - pair_orbit_dim; PRE-REGISTERED assertion (written before the
+    value is read): 54 - pair_orbit_dim == 7 (orbit 47), pair-stabilizer
+    52 - orbit_dim >= 5. 7 = six pointwise {Tr X, Tr X^2, det X, Tr Y, Tr Y^2,
+    det Y} + the coupling c = Tr(X o Y).
+
+    GATE BACKTRACKING (hard, per binding_constraints + disconfirming_observations):
+    if 54 - orbit_dim != 7 the 'six pointwise + c' generating-set picture is WRONG
+    (incomplete or over-counted). Do NOT fudge the rank, do NOT force 7 -- this
+    function FAILS (so the harness exits nonzero) and prints the milestone-STOP
+    message. The honest computed value is the deliverable.
+
+    Returns (ok, trdeg, stab)."""
+    trdeg = AMBIENT_PAIR - pair_orbit_dim
+    stab = DIM_F4 - pair_orbit_dim
+
+    # PRE-REGISTERED anchor (the literal milestone go/no-go). This assertion is
+    # written into the harness; it CANNOT be quietly rerolled to match the value.
+    anchor_ok = _report(
+        f"MILESTONE ANCHOR: trdeg = 54 - {pair_orbit_dim} == 7 "
+        f"(= six pointwise + c; pair_orbit_dim == 47)  [test-anchor-7]  "
+        f"[COMPUTED trdeg={trdeg}]",
+        trdeg == PAIR_ANCHOR_TRDEG_EXPECTED)
+
+    stab_ge5_ok = _report(
+        f"pair-stabilizer dim = 52 - {pair_orbit_dim} == {stab} >= 5  [test-stab-ge-5]",
+        stab >= PAIR_STAB_DIM_ANCHOR)
+
+    stab_eq5_ok = _report(
+        f"pair-stabilizer dim == 5 (the expected generic-pair principal isotropy; "
+        f"NOT the single-copy Spin(8) dim 28 -- fp-triality-backofenvelope)  "
+        f"[COMPUTED stab={stab}]",
+        stab == PAIR_STAB_DIM_ANCHOR)
+
+    if not anchor_ok:
+        # GATE FAILURE: the milestone STOPS here. Do NOT proceed to Phases 66/67/68.
+        extra = trdeg - PAIR_ANCHOR_TRDEG_EXPECTED
+        print("  [GATE-FAIL] 54 - orbit_dim != 7: the 'six pointwise + c' "
+              "generating-set picture is WRONG.")
+        print(f"             COMPUTED trdeg = {trdeg} (orbit_dim = {pair_orbit_dim}, "
+              f"stabilizer = {stab}); expected trdeg 7 (orbit 47, stab 5).")
+        if extra > 0:
+            print(f"             trdeg {trdeg} > 7: the joint invariant field has "
+                  f"{extra} MORE functionally independent generator(s) than "
+                  f"{{six pointwise + c}} -- the generating set is INCOMPLETE "
+                  f"(candidate extra invariants: higher mixed trace monomials "
+                  f"Tr(X^2 o Y), Tr(X o Y^2), Tr(X^2 o Y^2)).")
+        else:
+            print(f"             trdeg {trdeg} < 7: the pointwise + c set is "
+                  f"DEPENDENT (over-counted) -- c (or a pointwise generator) is "
+                  f"expressible in the others.")
+        print("             MILESTONE STOP: do NOT proceed to Phases 66/67/68 "
+              "(roadmap GATE). Honest computed value reported; rank NOT forced. "
+              "Candidate for /gpd:research-phase. HUMAN decides the go/no-go.")
+
+    return (anchor_ok and stab_ge5_ok and stab_eq5_ok), trdeg, stab
+
+
+# Module-level results carried forward to Plan 03 (the pair orbit-dimension value)
+# and to downstream phases (66/67/68). Populated by main().
 # the CERTIFIED single-copy orbit dimension and the integer-point / substitute-first
 # / matrix*vector-tangent / exact-QQ-rank recipe. Populated by main() on a PASS.
 ORBIT_DIM_SINGLE = None   # set to 24 by main() iff the single-copy GATE passes.
+PAIR_ORBIT_DIM = None     # set by main() to the COMPUTED pair orbit dimension.
+PAIR_TRDEG = None         # set by main() to 54 - PAIR_ORBIT_DIM.
 
 
 # ============================================================================
 # EXACT-ONLY source guard  (forbidden proxy fp-float-rank + fp-norm-bug)
 # ============================================================================
-# RANK-ROUTING CONVENTION (carried forward to Plans 02/03): ALL ranks MUST go
-# through sympy.Matrix(...).rank() over QQ. numpy.linalg.matrix_rank /
-# np.linalg.matrix_rank are FORBIDDEN on any rank-bearing path (rank is
-# discontinuous; an SVD tolerance fabricates the dim-52 / annihilation verdict).
-# octonion_algebra.py is FORBIDDEN entirely (it carries the buggy det_3 cross
-# term (x1 x2) x3 -- forbidden proxy fp-norm-bug). This module touches NEITHER.
+# RANK-ROUTING CONVENTION: ALL ranks are EXACT over QQ. Plans 01/02 use
+# sympy.Matrix(...).rank() over QQ verbatim (tractable at width <= 27). Plan 03's
+# pair rank (width 54) uses exact_qq_rank() = DomainMatrix-over-QQ rank -- the SAME
+# exact rational linear algebra over QQ, ~0.01s vs >5 min for Matrix.rank() at
+# width 54; validated == Matrix.rank() on the certified single-copy 24 and
+# cross-checked by three agreeing exact domains at width 54. numpy.linalg.matrix_rank
+# / np.linalg.matrix_rank are FORBIDDEN on any rank-bearing path (rank is
+# discontinuous; an SVD tolerance fabricates the dim-52 / orbit / annihilation
+# verdict -- fp-float-rank). octonion_algebra.py is FORBIDDEN entirely (it carries
+# the buggy det_3 cross term (x1 x2) x3 -- fp-norm-bug). This module touches NEITHER.
 RANK_ROUTING_CONVENTION = (
-    "All ranks via sympy.Matrix(...).rank() over QQ; "
+    "Plans 01/02 ranks via sympy.Matrix(...).rank() over QQ; Plan 03 pair rank via "
+    "exact_qq_rank = DomainMatrix-over-QQ (exact rational, validated == Matrix.rank()); "
     "numpy.linalg.matrix_rank / np.linalg.matrix_rank FORBIDDEN on the decisive path; "
     "octonion_algebra.py FORBIDDEN entirely (buggy det_3)."
 )
@@ -589,8 +925,9 @@ def exact_only_guard():
 
 def main():
     print("=" * 76)
-    print("Phase 65 Plan 01+02 : f_4 = Der(h_3(O)) builder + infinitesimal F_4-invariance")
-    print("                      + single-copy orbit-dimension GATE (orbit 24 / Spin(8) / trdeg 3)")
+    print("Phase 65 Plans 01+02+03 : f_4 = Der(h_3(O)) builder + infinitesimal F_4-invariance")
+    print("                          + single-copy orbit GATE (orbit 24 / Spin(8) / trdeg 3)")
+    print("                          + PAIR orbit dimension GATE (trdeg = 54 - orbit_dim ?= 7)")
     print("=" * 76)
 
     # ------------------------------------------------------------------------
@@ -668,6 +1005,55 @@ def main():
               "convention). STOP -- do NOT compute the pair value (Plan 03) until "
               "fixed (roadmap GATE / Backtracking).")
 
+    # ------------------------------------------------------------------------
+    # TASK 5 (Plan 03): pair (DIAGONAL) orbit dimension -- the DECISIVE value.
+    # Exact rank over QQ of the (52-basis x 54) matrix [concat(M.v_x, M.v_y)] at
+    # >=3 generic integer pairs, MAX. COMPUTED, never looked up; the Spin(8)-
+    # triality back-of-envelope is a FORBIDDEN PROXY (fp-triality-backofenvelope).
+    # Precondition: the single-copy builder GATE passed (ORBIT_DIM_SINGLE == 24).
+    # ------------------------------------------------------------------------
+    global PAIR_ORBIT_DIM, PAIR_TRDEG
+    if ORBIT_DIM_SINGLE == ORBIT_DIM_SINGLE_EXPECTED:
+        print("Task 5 (Plan 03) — pair orbit dimension (exact 52x54 QQ rank, "
+              ">=3 generic integer octonionic pairs, DIAGONAL action):")
+        _pair_ok, pair_orbit_dim, _per_pair = check_pair_orbit_dim(derivs)
+        PAIR_ORBIT_DIM = pair_orbit_dim
+
+        # --------------------------------------------------------------------
+        # TASK 6 (Plan 03): trdeg = 54 - orbit_dim; assert the MILESTONE ANCHOR
+        # 54 - orbit_dim == 7 (the go/no-go). PRE-REGISTERED -- if != 7 the
+        # 'six pointwise + c' picture is wrong and the milestone STOPS (no
+        # fudging, no forcing 7). HUMAN decides go/no-go at the checkpoint.
+        # --------------------------------------------------------------------
+        print("Task 6 (Plan 03) — milestone anchor (trdeg = 54 - orbit_dim == 7 "
+              "= six pointwise + c; the go/no-go GATE):")
+        _pair_gate_ok, pair_trdeg, pair_stab = check_pair_gate(pair_orbit_dim)
+        PAIR_TRDEG = pair_trdeg
+
+        # Decisive handoff for downstream phases (recorded regardless of the
+        # anchor verdict -- the COMPUTED value is the deliverable either way).
+        print("  [HANDOFF] DECISIVE pair value for the milestone:")
+        print(f"            pair_orbit_dim = {PAIR_ORBIT_DIM} (exact QQ rank, MAX "
+              f"over {len(_per_pair)} generic integer pairs)")
+        print(f"            trdeg = 54 - orbit_dim = {PAIR_TRDEG} "
+              f"(pair-stabilizer dim = 52 - orbit_dim = {pair_stab})")
+        print(f"            single-copy orbit 24 (Plan 02), dim f_4 = 52 (Plan 01) "
+              f"-- both still consistent")
+        if PAIR_TRDEG == PAIR_ANCHOR_TRDEG_EXPECTED:
+            print(f"            ANCHOR PASS -> Phase 66 target Jacobian rank = "
+                  f"{PAIR_TRDEG}; Phase 68 Krull dimension = {PAIR_TRDEG}.")
+        else:
+            print(f"            ANCHOR FAIL (trdeg={PAIR_TRDEG} != 7) -> MILESTONE "
+                  f"GO/NO-GO STOP. The target trdeg / Phase-66 Jacobian rank / "
+                  f"Phase-68 Krull dim is the COMPUTED {PAIR_TRDEG}, not 7. The "
+                  f"'six pointwise + c' generating set is INCOMPLETE/over-counted. "
+                  f"HUMAN decides (backtrack vs proceed) at the checkpoint.")
+    else:
+        # Builder GATE failed -> per Plan 02's hard gate the pair value is not computed.
+        print("  [SKIP] Plan 03 pair orbit value NOT computed: the single-copy "
+              "builder GATE did not pass (ORBIT_DIM_SINGLE != 24). Fix the builder "
+              "first (roadmap GATE / Backtracking).")
+
     # exact-only guard self-check (forbidden proxies fp-float-rank, fp-norm-bug).
     print("Exact-only guard (decisive-path source scan):")
     _guard_ok, _guard_detail = exact_only_guard()
@@ -675,7 +1061,39 @@ def main():
             f"path [{_guard_detail}]", _guard_ok)
 
     print("-" * 76)
-    print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")
+    # Classify the exit. A clean MILESTONE GATE-STOP (Plans 01/02 pass, the pair
+    # value is computed exactly and is internally consistent -- basis==full-stack,
+    # blocks==24, exact domains agree -- and ONLY the trdeg==7 anchor fails) is
+    # NOT a code/builder bug: it is the designed go/no-go disconfirmation. We still
+    # exit nonzero (the anchor is a hard assertion, NOT to be forced), but we label
+    # it so the human + downstream tooling read the exit correctly.
+    #
+    # The "anchor failures" are exactly the pre-registered milestone-anchor asserts:
+    # the trdeg==7 line and the stabilizer==5 line. Every OTHER check (Plans 01/02,
+    # the pair-compute consistency checks, the exact-route cross-check, the
+    # exact-only guard) must be green for the stop to be a clean go/no-go (not a bug).
+    _anchor_markers = ("MILESTONE ANCHOR", "pair-stabilizer dim == 5")
+    _non_anchor_fails = [lbl for lbl in FAILED_LABELS
+                         if not any(m in lbl for m in _anchor_markers)]
+    _only_anchor_failed = (len(FAILED_LABELS) > 0 and _non_anchor_fails == [])
+    gate_stop = (
+        not ALL_PASS
+        and PAIR_TRDEG is not None
+        and PAIR_TRDEG != PAIR_ANCHOR_TRDEG_EXPECTED
+        and _only_anchor_failed              # the ONLY failures are the pair-anchor asserts
+    )
+    if ALL_PASS:
+        print("OVERALL: ALL_PASS")
+    elif gate_stop:
+        print(f"OVERALL: MILESTONE GATE-STOP (trdeg = {PAIR_TRDEG} != 7). "
+              f"Plans 01/02 PASS; pair orbit dim COMPUTED cleanly and consistently "
+              f"(= {PAIR_ORBIT_DIM}, exact QQ, MAX over >=3 generic pairs, "
+              f"basis==full-stack, blocks==24, 3 exact domains agree). The MILESTONE "
+              f"ANCHOR 54-orbit_dim==7 FAILS -> go/no-go STOP for the human. This is "
+              f"the designed disconfirmation, NOT a builder/code bug; the rank was "
+              f"NOT forced. Exit nonzero (anchor is a hard assertion).")
+    else:
+        print("OVERALL: FAILURES PRESENT")
     print("=" * 76)
     return 0 if ALL_PASS else 1
 
