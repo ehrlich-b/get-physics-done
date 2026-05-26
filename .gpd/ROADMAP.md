@@ -139,10 +139,10 @@ Plans:
 **Goal (to be detailed at plan-phase):** Identify and verify, by exact computation over Q, the 3 missing functionally-independent mixed invariants beyond {6 pointwise, c=Tr(X∘Y)}. Concretely: confirm the full 10-candidate set {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c, Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²)} has exact Jacobian rank **10** over Q at ≥3 generic rational points (matching trdeg=10), and that each tier adds independence (6 → 7 → 10). If the natural bidegree candidates fail to realize rank 10 (some dependent / a different monomial needed), report the actual minimal completing set — COMPUTE, do not assume. Reuse the certified f_4 builder + base invariants from `code/orbit_dimension_gate.py` / `code/ring_lemma_verification.py` and the substitute-first / `DomainMatrix`-over-QQ exact-rank recipe. EXACT over Q only (float rank forbidden).
 
 **Depends on:** Phase 65 (orbit-dim GATE → trdeg = 10; certified f_4 builder + base invariants). **Enables:** Phases 66/67/68 (corrected trdeg-10 generating set).
-**Plans:** TBD (run `/gpd:plan-phase 65.1`)
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run plan-phase 65.1 to break down)
+- [ ] 65.1-01-PLAN.md — Confirm the 10-candidate set realizes exact Jacobian rank 10 over Q (MAX over ≥3 generic integer pairs; == Phase-65 orbit-derived trdeg, two-route agreement); fine-grained tier ladder 6→7→8→9→10 (6-pointwise==6, +c==7 cross-checks); F_4-invariance + grouping + bidegree gates on the 3 mixed trace monomials; deterministic fallback ladder if a natural candidate is dependent; emit the corrected trdeg-10 generating-set + bidegree-table handoff for Phases 66/68 (FIELD-completeness, NOT ring generation). EXACT over Q; reuses the frozen engine + certified gate machinery.
 
 ### Phase 66: (b) Functional Independence of c -- THE SPINE
 
