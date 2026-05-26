@@ -2,42 +2,39 @@
   "project_reference": {
     "project_md_updated": "2026-05-24",
     "core_research_question": "Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?",
-    "current_focus": "v16.0 The (RING) Lemma \u2014 the math half of the Chalmers gap (consciousness-side spine), INDEPENDENT of the v15.0 physics-side basin-restriction result (do not entangle). **Decisive deliverable:** (RING) proved \u2014 (a) generating set of R[h_3(O)\u2295h_3(O)]^{F_4}; (b) c(X,Y)=Tr(X\u2218Y) FUNCTIONALLY INDEPENDENT of the six pointwise generators [THE SPINE, reward-hacking-guarded]; (c) c the UNIQUE degree-2 coupling generator. Plus REDU-01: STATE (not prove) the (REDUCIBILITY) dynamical bridge. Acceptance: a clean (RING) characterization with c provably independent, OR a decisive NEGATIVE (c expressible in the pointwise ring) \u2014 BOTH full passes (NEGATIVE-RESULT-IS-SUCCESS; report honestly). Roadmap created (Phases 64-69); next: `/gpd:plan-phase 64`. v14.0 remains PAUSED pending JMP referee report; v15.0 COMPLETE & ARCHIVED (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island, through-line survives)."
+    "current_focus": "v16.0 The (RING) Lemma — the math half of the Chalmers gap (consciousness-side spine), INDEPENDENT of the v15.0 physics-side basin-restriction result (do not entangle). **Decisive deliverable:** (RING) proved — (a) generating set of R[h_3(O)⊕h_3(O)]^{F_4}; (b) c(X,Y)=Tr(X∘Y) FUNCTIONALLY INDEPENDENT of the six pointwise generators [THE SPINE, reward-hacking-guarded]; (c) c the UNIQUE degree-2 coupling generator. Plus REDU-01: STATE (not prove) the (REDUCIBILITY) dynamical bridge. Acceptance: a clean (RING) characterization with c provably independent, OR a decisive NEGATIVE (c expressible in the pointwise ring) — BOTH full passes (NEGATIVE-RESULT-IS-SUCCESS; report honestly). Roadmap created (Phases 64-69); next: `/gpd:plan-phase 64`. v14.0 remains PAUSED pending JMP referee report; v15.0 COMPLETE & ARCHIVED (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island, through-line survives)."
   },
   "project_contract": null,
   "position": {
     "current_phase": "65",
     "current_phase_name": "f_4 Construction + Orbit-Dimension GATE",
     "total_phases": 6,
-    "current_plan": "-",
-    "total_plans_in_phase": null,
+    "current_plan": "65-03 (GATE computed; backtrack to 65.1)",
+    "total_plans_in_phase": 3,
     "status": "Ready to plan",
     "last_activity": "2026-05-25",
-    "last_activity_desc": "Phase 64 (Setup, Conventions, Exact Engine) COMPLETE & VERIFIED \u2014 verifier status `passed`, 32/32 contract targets (28/32 independently confirmed). Frozen exact-SymPy h_3(O) foundation in `code/ring_lemma_verification.py` (assert harness, 25 checks, exit 0): headline lock polarize_d(X,X,X)=6\u00b7det_3(X) established EXACTLY over Q for the first time (was float 1.4e-13); all five convention locks pass; exact-only guard adversarially mutation-tested (catches real octonion_algebra import + np.linalg.matrix_rank, ignores provenance prose, allowlists the single fenced oracle); R_pt FROZEN; single-state ring R[Tr,Tr\u00b2,det] confirmed by citation (FK Ch. II-IV; Ch. V\u2192II-IV correction). BASE-01 satisfied. Next: `/gpd:plan-phase 65` (the orbit-dimension GATE \u2014 chain-critical; 54\u2212orbit_dim=7 is the early go/no-go).",
+    "last_activity_desc": "Phase 65 GATE COMPUTED (BASE-02): F_4 diagonal pair orbit dim on h_3(O)(+)h_3(O) = 44 (exact QQ rank, MAX over generic integer pairs), trdeg = 54-44 = 10 -- NOT the naive-expected 7. Triple-confirmed (executor + orchestrator-independent exact rank at a fresh point + rep-theory Stab chain Spin(8)->Spin(7)->G_2->SU(3), dim 8 -> orbit 52-8=44). Roadmap anchor 7 was the FORBIDDEN Spin(8)-triality back-of-envelope; computed value is 10. Single-copy GATE still passes (orbit 24/Spin(8)/trdeg 3) -> f_4 builder CERTIFIED; discrepancy is the joint generating-set COUNT (six pointwise + c undercounts by 3 mixed invariants: candidates Tr(X^2 o Y), Tr(X o Y^2), Tr(X^2 o Y^2); trdeg 10 = 3+3+4). HUMAN VERDICT at go/no-go = BACKTRACK. NEXT: /gpd:insert-phase 65.1 (corrective -- pin down the 3 missing functionally-independent invariants, Jacobian rank 10 with the full 10-candidate set), then plan+execute, BEFORE Phase 66. (b) SPINE unaffected/strengthened. NEGATIVE-RESULT-IS-SUCCESS.",
     "progress_percent": 17,
     "paused_at": null
   },
   "active_calculations": [
-    "det_3(X), d_{IJK} tensor (106 nonzero), det_2 Minkowski signature (1,3), KKT(h_2(C_u)) = so(4,2), VSR metric G_{IJ} with 26 positive eigenvalues, N=2 MESGT derivation via GST bijection \u2014 see `.gpd/state.json` field `active_calculations` for full list (preserved)."
+    "det_3(X), d_{IJK} tensor (106 nonzero), det_2 Minkowski signature (1,3), KKT(h_2(C_u)) = so(4,2), VSR metric G_{IJ} with 26 positive eigenvalues, N=2 MESGT derivation via GST bijection — see `.gpd/state.json` field `active_calculations` for full list (preserved)."
   ],
   "intermediate_results": [
     "**O(9) quantitative (41-01)**: c_s(O(9),Z^3) = J*sqrt(3/2) = 1.225 Ja (classical), v_LR = 27eJ = 73.4 J, ratio 59.9, BW universality (no SRF number), C(r) = 16/(pi*J*r) d=3. (MEDIUM-HIGH)",
-    "**Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Chain fully self-consistent on O(9)/S^8. (HIGH)",
-    "**Headline convention lock (64-01)**: polarize_d(X,X,X) = 6*det_3(X) established EXACTLY over Q for the first time (det_3(Xr)=631276435001/25971865920; polarize_d=631276435001/4328644320; ratio=6 exactly; was float 1.4e-13). Engine = code/ring_lemma_verification.py (exact-SymPy, ported from embedding_under_E_verification.py). (HIGH)",
-    "**R_pt FROZEN (64-01)**: R_pt = R-subalgebra of R[h_3(O)+h_3(O)]^{F_4} gen by six generators {Tr X, Tr X^2, det X, Tr Y, Tr Y^2, det Y} = R[..X](x)R[..Y]; Tr(X)Tr(Y) IN R_pt; claim (b)='c not in R_pt' STATED (proven in Phase 66, NOT here). Frozen text reusable verbatim by Phases 66/67/68 (anti-Pitfall-7). (HIGH)",
-    "**Single-state ring confirmed (64-01)**: R[h_3(O)]^{F_4} = R[Tr, Tr^2, det] (trdeg 3, degrees 1/2/3) by citation (Faraut-Koranyi Ch. II-IV / Springer; Ch. V->II-IV correction). The 'Observable' single-frame ring = exactly the pointwise single-copy subring (one copy of R_pt). (HIGH -- citation, not re-derived)"
+    "**Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Chain fully self-consistent on O(9)/S^8. (HIGH)"
   ],
   "open_questions": [
-    "Exact generic orbit dimension of F_4 on 27\u229527 (fixes target trdeg / expected Jacobian rank / Hilbert-series Krull dim) \u2014 COMPUTE in-harness; consistency anchor 54 \u2212 orbit_dim = 7. (Phase 65, the GATE; do NOT look it up \u2014 Spin(8)-triality back-of-envelope is a trap.)",
-    "Is c(X,Y) = Tr(X\u2218Y) functionally independent of R_pt (Jacobian rank 7) or expressible in it (rank 6, decisive NEGATIVE)? (Phase 66, THE SPINE; both Jacobian + orbit-derivative routes mandatory; rank 6 = full pass with explicit c expression.)",
-    "Is c the unique degree-2 coupling generator (Sym\u00b2(27\u229527) bidegree-(1,1) part = 2-dim {Tr(X)Tr(Y), c}, mod products)? (Phase 67.)",
-    "Is R[27\u229527]^{F_4} generated by the pointwise sextet + cubic-norm-polarization coupling generators, and is the candidate set complete to total degree \u2264 6 (Hilbert-series certificate)? Are higher trace monomials Tr(X\u00b2\u2218Y), Tr(X\u2218Y\u00b2), Tr(X\u00b2\u2218Y\u00b2) needed or reducible? (Phase 68, (a).)",
-    "Sage availability for the (a) Molien step \u2014 external fixture vs pure-SymPy Molien-Weyl residue (scope decision belongs to the Phase 68 planner; non-gating).",
-    "What precisely does the (REDUCIBILITY) verdict need (driven-dynamics cross-term decomposition + finite-capacity / Breuer argument)? \u2014 STATE only this milestone, do NOT prove. (Phase 69.)",
-    "v15.0 RESOLVED: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (E does NOT transport the sequential product coherently from the non-associative h_3(O), exact R != 0, ||R||\u00b2 = 38593/72, associator 524/9 load-bearing; observer self-certifies M_3(C)^sa QM on the slice A = h_3(C_u) = range E; through-line SURVIVES). INDEPENDENT of v16.0; does NOT bear on the (RING) invariant-theory claim \u2014 do not entangle.",
+    "Exact generic orbit dimension of F_4 on 27⊕27 (fixes target trdeg / expected Jacobian rank / Hilbert-series Krull dim) — COMPUTE in-harness; consistency anchor 54 − orbit_dim = 7. (Phase 65, the GATE; do NOT look it up — Spin(8)-triality back-of-envelope is a trap.)",
+    "Is c(X,Y) = Tr(X∘Y) functionally independent of R_pt (Jacobian rank 7) or expressible in it (rank 6, decisive NEGATIVE)? (Phase 66, THE SPINE; both Jacobian + orbit-derivative routes mandatory; rank 6 = full pass with explicit c expression.)",
+    "Is c the unique degree-2 coupling generator (Sym²(27⊕27) bidegree-(1,1) part = 2-dim {Tr(X)Tr(Y), c}, mod products)? (Phase 67.)",
+    "Is R[27⊕27]^{F_4} generated by the pointwise sextet + cubic-norm-polarization coupling generators, and is the candidate set complete to total degree ≤ 6 (Hilbert-series certificate)? Are higher trace monomials Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²) needed or reducible? (Phase 68, (a).)",
+    "Sage availability for the (a) Molien step — external fixture vs pure-SymPy Molien-Weyl residue (scope decision belongs to the Phase 68 planner; non-gating).",
+    "What precisely does the (REDUCIBILITY) verdict need (driven-dynamics cross-term decomposition + finite-capacity / Breuer argument)? — STATE only this milestone, do NOT prove. (Phase 69.)",
+    "v15.0 RESOLVED: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (E does NOT transport the sequential product coherently from the non-associative h_3(O), exact R != 0, ||R||² = 38593/72, associator 524/9 load-bearing; observer self-certifies M_3(C)^sa QM on the slice A = h_3(C_u) = range E; through-line SURVIVES). INDEPENDENT of v16.0; does NOT bear on the (RING) invariant-theory claim — do not entangle.",
     "RESOLVED (52-01): Boosts = L_{sigma_i} in Str_0 via KKT.",
     "RESOLVED (53-02): N=2 SUSY derived via GST bijection; not assumed.",
-    "RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types \u2014 see state.json.",
+    "RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types — see state.json.",
     "Parked (post-v16.0 physics-side): Todorov F_4-Spin(9) intersection for gap G6 (so(6) -> G_SM); Boyle triality for gap G7 (3 generations); Lambda != 0 mechanism (ungauged MESGT gives Lambda=0 classically)."
   ],
   "performance_metrics": {
@@ -421,10 +418,22 @@
         "files": "3 files"
       },
       {
-        "label": "Phase 64 P64-01",
-        "duration": "~13 min",
-        "tasks": "6",
-        "files": "2"
+        "label": "Phase 65 PP65-01",
+        "duration": "~5 min",
+        "tasks": "2 tasks",
+        "files": "1 file"
+      },
+      {
+        "label": "Phase 65 PP65-02",
+        "duration": "~75 min",
+        "tasks": "2 tasks",
+        "files": "1 file"
+      },
+      {
+        "label": "Phase 65 PP65-03",
+        "duration": "~27 min",
+        "tasks": "3 tasks (2 + go/no-go checkpoint)",
+        "files": "1 file"
       }
     ]
   },
@@ -511,12 +520,12 @@
     },
     {
       "phase": "61, Plan 02",
-      "summary": "VALD-61-01 exact-symbolic evidence produced (code/slice_clause_iii_verification.py + tests/test_slice_clause_iii.py, 21 tests, runtime <1s, independently re-run by orchestrator + verifier). M_3(C)^sa: Jordan rank 3 (three orthogonal rank-1 projective units \u2192 I_3, frame-independent); simple (center = C\u00b7I_3, no nontrivial central idempotent); minimal composite real-dim 81 = 9\u00b79; maximal 162 != 81 (extra classical bit). PHASE 60 OPEN ITEM CLOSED: product-form sequential product \u221aa\u00b7b\u00b7\u221aa factorizes EXACTLY as (a_B&b_B)\u2297(a_M&b_M) on the associative M_9(C)^sa (re-derived by full 9\u00d79 computation, not assumed-from-Luders; sqrt(kron)=kron(sqrt) verified). Stayed on associative slice (no h_3(O) reach",
+      "summary": "VALD-61-01 exact-symbolic evidence produced (code/slice_clause_iii_verification.py + tests/test_slice_clause_iii.py, 21 tests, runtime <1s, independently re-run by orchestrator + verifier). M_3(C)^sa: Jordan rank 3 (three orthogonal rank-1 projective units → I_3, frame-independent); simple (center = C·I_3, no nontrivial central idempotent); minimal composite real-dim 81 = 9·9; maximal 162 != 81 (extra classical bit). PHASE 60 OPEN ITEM CLOSED: product-form sequential product √a·b·√a factorizes EXACTLY as (a_B&b_B)⊗(a_M&b_M) on the associative M_9(C)^sa (re-derived by full 9×9 computation, not assumed-from-Luders; sqrt(kron)=kron(sqrt) verified). Stayed on associative slice (no h_3(O) reach",
       "rationale": "Phase 62). All forbidden proxies rejected; no obstruction, no backtracking."
     },
     {
       "phase": "61, Plan 01",
-      "summary": "Slice A = M_3(C)^sa verified to satisfy ALL FOUR Paper 5 Def 1 clauses as a self-modeler in its own right (intrinsically). (i)/(iv) verified directly (rank 3; simple) citing 61-02; (ii)/(iii) via rem:converse in CORRECTED direct-summand form (V_B=V_M=M_3(C)^sa, \u03c6=id; minimal composite M_9(C)^sa dim 81 a DIRECT SUMMAND of maximal M_9\u2295M_9 dim 162; minimal != maximal, BGW Thm 4.15/Cor 4.16). Clause (iii) checked AS STATED (all four data, minimality in full force). Induced-by-E coherence EXPLICITLY DEFERRED to Phase 62 (no RESTRICTION/E premise used). Stale 'minimal=maximal per BGW' ROADMAP/REQUIREMENTS/contract text flagged + corrected to direct-summand form (REQUIREMENTS DERV-61-03 fixed). Honest positive",
+      "summary": "Slice A = M_3(C)^sa verified to satisfy ALL FOUR Paper 5 Def 1 clauses as a self-modeler in its own right (intrinsically). (i)/(iv) verified directly (rank 3; simple) citing 61-02; (ii)/(iii) via rem:converse in CORRECTED direct-summand form (V_B=V_M=M_3(C)^sa, φ=id; minimal composite M_9(C)^sa dim 81 a DIRECT SUMMAND of maximal M_9⊕M_9 dim 162; minimal != maximal, BGW Thm 4.15/Cor 4.16). Clause (iii) checked AS STATED (all four data, minimality in full force). Induced-by-E coherence EXPLICITLY DEFERRED to Phase 62 (no RESTRICTION/E premise used). Stale 'minimal=maximal per BGW' ROADMAP/REQUIREMENTS/contract text flagged + corrected to direct-summand form (REQUIREMENTS DERV-61-03 fixed). Honest positive",
       "rationale": "not forced. Verification 9/9, 8/8 independently re-derived, human sign-off APPROVED. Milestone verdict UNDECIDED (Phase 63); Phase 62 (induced-by-E on non-associative h_3(O)) is the load-bearing unproved step."
     },
     {
@@ -542,12 +551,12 @@
     {
       "phase": "63",
       "summary": "Plan 01: Milestone verdict ASSEMBLED (DRAFT) = (O) AMBIENT-TRANSPORT OBSTRUCTION refining RESTRICTION to coexistence-as-island; through-line SURVIVES. Equals the verified, human-approved Phase 62 computation (exact R!=0, ||R||^2=38593/72; both routes agree; associator 524/9 load-bearing)",
-      "rationale": "NOT forced. Numbers restated verbatim; Peirce-grade self-check 4+1033/18+3797/8=38593/72 re-verified by orchestrator. Stale 'independent posits/two unconnected foundations/program collapse' phrasing reconciled against corrected coexistence-as-island authority (used only as negated/marked-superseded quotation). Clause (iii) integrity + V_BM distinction preserved. attempt-05.md: complete attempt-01..04 coverage audit + DERV-00-01 structure. Verdict LINE (DERV-00-02) + finalization DEFERRED to 63-02. RESULT.md=DRAFT; milestone verdict UNDECIDED. 6/6 forbidden proxies rejected; no deviations; no PAUSE. \u2014 v15.0 Step 4 of 4. SYNTHESIS not new computation; the (O) outcome is contract-sanctioned (NEGATIVE-RESULT-IS-SUCCESS). Inter-wave gate PASS (convention, identity/Peirce arithmetic, stale-language all clean)."
+      "rationale": "NOT forced. Numbers restated verbatim; Peirce-grade self-check 4+1033/18+3797/8=38593/72 re-verified by orchestrator. Stale 'independent posits/two unconnected foundations/program collapse' phrasing reconciled against corrected coexistence-as-island authority (used only as negated/marked-superseded quotation). Clause (iii) integrity + V_BM distinction preserved. attempt-05.md: complete attempt-01..04 coverage audit + DERV-00-01 structure. Verdict LINE (DERV-00-02) + finalization DEFERRED to 63-02. RESULT.md=DRAFT; milestone verdict UNDECIDED. 6/6 forbidden proxies rejected; no deviations; no PAUSE. — v15.0 Step 4 of 4. SYNTHESIS not new computation; the (O) outcome is contract-sanctioned (NEGATIVE-RESULT-IS-SUCCESS). Inter-wave gate PASS (convention, identity/Peirce arithmetic, stale-language all clean)."
     },
     {
       "phase": "63",
       "summary": "Plan 02: milestone v15.0 verdict FINALIZED = CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (through-line SURVIVES); DERV-00-02 verdict line written, DRAFT removed. Fresh-eyes adversarial review (Task 1, committed FIRST c879fd74 with DRAFT preserved) confirmed all 3 reward-hacking guards PASS against the real Phase 60/61/62 artifacts (clause (iii) verbatim; composites not conflated; preservation demonstrated on generic ambient X,Y with associator 524/9 load-bearing); orchestrator-independent harness re-run exit 0 verdict (O) is_zero_exact=[False,False]; honest-negative confirmed; no backtracking trigger. Human acknowledged option-finalize at the gated backtracking-trigger step. Verdict equals the exact Phase 62 computation",
-      "rationale": "not forced, not over-stated as a collapse; grep-confirmed no affirmative stale phrasing (all 9 hits negated/marked-superseded). 5/5 forbidden proxies rejected. \u2014 ROADMAP Success Criterion 2 satisfied (review preceded finalization \u2014 commit ordering c879fd74 < 93615617); NEGATIVE-RESULT-IS-SUCCESS \u2014 a clean, honestly-reported obstruction is the contract-sanctioned milestone seal. v15.0 Step 4 of 4 COMPLETE."
+      "rationale": "not forced, not over-stated as a collapse; grep-confirmed no affirmative stale phrasing (all 9 hits negated/marked-superseded). 5/5 forbidden proxies rejected. — ROADMAP Success Criterion 2 satisfied (review preceded finalization — commit ordering c879fd74 < 93615617); NEGATIVE-RESULT-IS-SUCCESS — a clean, honestly-reported obstruction is the contract-sanctioned milestone seal. v15.0 Step 4 of 4 COMPLETE."
     },
     {
       "phase": "0",
@@ -555,9 +564,9 @@
       "rationale": "New milestone cycle -- consciousness-side spine (math half of the Chalmers gap), independent of v15.0. Deliverable = (RING) proved: c(X,Y)=Tr(X o Y) functionally independent of the single-state F_4-invariant ring."
     },
     {
-      "phase": "64",
-      "summary": "Phase 64 (Setup, Conventions, Exact Engine) COMPLETE & VERIFIED (verifier passed; 32/32 contract targets, 28/32 independently confirmed). BASE-01 satisfied.",
-      "rationale": "Frozen exact-SymPy h_3(O) foundation in code/ring_lemma_verification.py (assert harness, 25 checks, exit 0). Headline convention lock polarize_d(X,X,X)=6*det_3(X) established EXACTLY over Q for the first time (was float 1.4e-13; det_3(Xr)=631276435001/25971865920, ratio 25971865920/4328644320=6 exactly); all five convention locks pass (c(X,X)=Tr(X^2); e1*e2=e4; det_3(diag)=abc; det_3(I)=1); float-det oracle confirms port |delta|=3.55e-15. R_pt FROZEN (six generators = R[..X](x)R[..Y]; Tr(X)Tr(Y) member; claim (b)='c not in R_pt' STATED not proven). Single-state ring R[Tr,Tr^2,det] confirmed by citation (FK Ch. II-IV; Ch. V->II-IV correction). Exact-only guard adversarially mutation-tested by verifier (catches real octonion_algebra import outside fence + np.linalg.matrix_rank; ignores provenance prose; allowlists single fenced oracle) -- Phases 65-67 inherit a float-free rank guarantee. Scope discipline held: no f_4/orbit/Jacobian/Hilbert/Peirce/c-independence pulled forward; v16.0 not entangled with v15.0. CARRY-FORWARD for Phase 65: (1) reuse jordan/det_3/polarize_d/seven-invariants/54-symbol-layout + rank-routing convention (sympy.Matrix.rank() over QQ) verbatim; (2) verifier suggested hardening the exact-only guard's fence-marker matching to exact stripped-line equality before live rank work (currently 'accidentally correct', no false pass). Orchestrator patched the SUMMARY gpd_return block (was missing)."
+      "phase": "65",
+      "summary": "BASE-02 orbit-dimension GATE COMPUTED: F_4 on h_3(O)(+)h_3(O) diagonal pair orbit dim = 44 (exact QQ rank, MAX over generic integer pairs), so trdeg R[27(+)27]^{F_4} = 54-44 = 10, NOT the naive-expected 7. Triple-confirmed: executor (52-basis==324-stack, 3 exact domains, from-scratch reconstruction), orchestrator-independent exact rank (fresh point, DomainMatrix over QQ -> 44; blocks 24/24, overlap 4), and representation theory (generic Stab chain Spin(8)->Spin(7)->G_2->SU(3), dim 8 -> orbit 52-8=44). The roadmap anchor 7 was exactly the FORBIDDEN Spin(8)-triality back-of-envelope; the COMPUTED value is 10. Single-copy GATE still passes (orbit 24 / Spin(8) 28 / trdeg 3) -> f_4 builder CERTIFIED, so the discrepancy is the joint generating-set COUNT, not the builder. The 'six pointwise + c' set undercounts by 3 mixed invariants (candidates Tr(X^2 o Y), Tr(X o Y^2), Tr(X^2 o Y^2)); trdeg 10 = 3(X)+3(Y)+4 mixed. HUMAN VERDICT at the go/no-go checkpoint = BACKTRACK: pin down the 3 missing functionally-independent joint invariants (Jacobian rank 10 with the full 10-candidate set) in a corrective phase 65.1 BEFORE Phase 66. Result STRENGTHENS the (b) SPINE (pointwise record trdeg 6 determines even less of the joint coupling). NEGATIVE-RESULT-IS-SUCCESS: honest computed value is the deliverable.",
+      "rationale": "Chain-critical GATE; the anchor 7 was the naive triality back-of-envelope (a named forbidden proxy in the contract). Computed trdeg=10 triple-confirmed (two exact-rank routes + pure rep theory). Builder certified by single-copy 24/Spin(8). Human chose backtrack to characterize the 3 missing invariants before the SPINE so Phases 66/67/68 build on the correct trdeg-10 generating set."
     }
   ],
   "approximations": [],
@@ -589,35 +598,35 @@
       "clifford_signature": "Cl(9,0) (positive definite, NOT Cl(0,9))",
       "slice": "A = h_3(C_u) ~ M_3(C)^sa (maximal C*-target inside h_3(O); single F_4-orbit) [v15.0; carried, not v16.0-active]",
       "all_other_convention_fields": "see `.gpd/CONVENTIONS.md`",
-      "group": "F_4 = Aut(h_3(O)) (compact, 52-dim; fixes Tr, trace form, det) \u2014 NOT E_6 = Stab(det). c = Tr(X o Y) is F_4-invariant but NOT E_6-invariant.",
+      "group": "F_4 = Aut(h_3(O)) (compact, 52-dim; fixes Tr, trace form, det) — NOT E_6 = Stab(det). c = Tr(X o Y) is F_4-invariant but NOT E_6-invariant.",
       "rep": "27 = 1 (trivial/Tr direction) (+) 26 (trace-free irreducible).",
       "cubic_norm": "det X = N(X); polarization LOCKED d(X,X,X) = 6*det X (harness polarize_d); c(X,X) = Tr(X^2).",
       "coupling_generator": "c = Tr(X o Y), bidegree (1,1).",
       "arithmetic_field": "EXACT over Q (or Q-adjoin-surds). Ranks via `sympy.Matrix.rank()`, NEVER `numpy.linalg.matrix_rank`.** Warm exact engine = `code/embedding_under_E_verification.py`; the float64 `code/octonion_algebra.py` is a formula reference ONLY, never on the decisive path.",
-      "citation_correction": "single-state ring R[Tr, Tr^2, det] is Faraut-Kor\u00e1nyi Ch. II-IV, NOT Ch. V (Ch. V is the classification)."
+      "citation_correction": "single-state ring R[Tr, Tr^2, det] is Faraut-Korányi Ch. II-IV, NOT Ch. V (Ch. V is the classification)."
     }
   },
   "propagated_uncertainties": [],
   "pending_todos": [],
   "blockers": [
-    "**Harness correction (load-bearing, do NOT trip).** The warm exact engine is `code/embedding_under_E_verification.py` (exact SymPy over Q). The float64 `code/octonion_algebra.py` (399 numpy sites, 0 sympy) is a FORMULA REFERENCE ONLY \u2014 running the decisive ranks in floats fabricates the 6-vs-7 verdict (rank is discontinuous; an SVD tolerance invents the answer). Reuse the float `det_3`/`polarize_d`/f_4-builder formula bodies as a SPEC to re-port to exact SymPy; never call them on the decisive path.",
-    "**Polarization does NOT generate (Reconciliation 1, Schwarz).** Do NOT assume polarizing the single-copy generators yields the pair ring \u2014 the single-copy 2-polarization property fails generically even in char 0. (a) is a CERTIFICATION phase: the bigraded Hilbert-series match is the completeness certificate.",
-    "**The orbit-dimension GATE is the early go/no-go.** 54 \u2212 orbit_dim = 7 must hold; if not, the whole generating-set picture (six pointwise + c) is wrong. COMPUTE the pair orbit dim in-harness \u2014 never look it up (the Spin(8)-triality back-of-envelope is a trap; the three 8's are permuted).",
-    "**The (b) verdict is genuinely open and reward-hacking-guarded.** Rank 7 (independent) and rank 6 (decisive NEGATIVE) are BOTH full passes. Both the exact Jacobian (\u22653 generic rational points) AND the orbit-derivative argument are MANDATORY. Pre-register the exact test; on rank 6, construct and report the explicit pointwise expression for c \u2014 do NOT bury a negative, do NOT force a positive.",
-    "**Tooling:** SymPy 1.14 + NumPy 2.4 only \u2014 no Sage/GAP/Singular/M2/Magma. The (a) Molien step is the only Sage-wanting computation; resolve in-plan (external Sage fixture OR pure-SymPy Molien-Weyl residue), NOT deferred to the executor (who lacks Sage).",
+    "**Harness correction (load-bearing, do NOT trip).** The warm exact engine is `code/embedding_under_E_verification.py` (exact SymPy over Q). The float64 `code/octonion_algebra.py` (399 numpy sites, 0 sympy) is a FORMULA REFERENCE ONLY — running the decisive ranks in floats fabricates the 6-vs-7 verdict (rank is discontinuous; an SVD tolerance invents the answer). Reuse the float `det_3`/`polarize_d`/f_4-builder formula bodies as a SPEC to re-port to exact SymPy; never call them on the decisive path.",
+    "**Polarization does NOT generate (Reconciliation 1, Schwarz).** Do NOT assume polarizing the single-copy generators yields the pair ring — the single-copy 2-polarization property fails generically even in char 0. (a) is a CERTIFICATION phase: the bigraded Hilbert-series match is the completeness certificate.",
+    "**The orbit-dimension GATE is the early go/no-go.** 54 − orbit_dim = 7 must hold; if not, the whole generating-set picture (six pointwise + c) is wrong. COMPUTE the pair orbit dim in-harness — never look it up (the Spin(8)-triality back-of-envelope is a trap; the three 8's are permuted).",
+    "**The (b) verdict is genuinely open and reward-hacking-guarded.** Rank 7 (independent) and rank 6 (decisive NEGATIVE) are BOTH full passes. Both the exact Jacobian (≥3 generic rational points) AND the orbit-derivative argument are MANDATORY. Pre-register the exact test; on rank 6, construct and report the explicit pointwise expression for c — do NOT bury a negative, do NOT force a positive.",
+    "**Tooling:** SymPy 1.14 + NumPy 2.4 only — no Sage/GAP/Singular/M2/Magma. The (a) Molien step is the only Sage-wanting computation; resolve in-plan (external Sage fixture OR pure-SymPy Molien-Weyl residue), NOT deferred to the executor (who lacks Sage).",
     "**Do NOT entangle with v15.0.** The (RING) invariant-theory claim is the consciousness-side spine, INDEPENDENT of the v15.0 physics-side basin-restriction result. v15.0's coexistence-as-island verdict does not bear on this.",
     "**(REDUCIBILITY) is STATEMENT-ONLY.** Assert NO irreducibility verdict; no chaos/NKS; flag the autonomous-vs-driven trap (autonomous F_3-contraction is reducible; irreducibility inherited from the exogenous stream).",
     "**Use LIVE sources only.** `~/repos/blog/...` LIVE copies, NOT stale repo `papers/` copies.",
-    "v15.0 ALL BLOCKERS CLOSED \u2014 milestone research complete & archived (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island; through-line survives). Not a v16.0 blocker.",
-    "Two distinct spin(9) embeddings in M_16(R) \u2014 Krasnov discrepancy (stabilizer dim 10 vs 12). Not v16.0-relevant.",
-    "Quantum SSB remains CONDITIONAL (S_eff=1/2) \u2014 v9.0/v10.0 chain conditionality, not v16.0-relevant.",
+    "v15.0 ALL BLOCKERS CLOSED — milestone research complete & archived (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island; through-line survives). Not a v16.0 blocker.",
+    "Two distinct spin(9) embeddings in M_16(R) — Krasnov discrepancy (stabilizer dim 10 vs 12). Not v16.0-relevant.",
+    "Quantum SSB remains CONDITIONAL (S_eff=1/2) — v9.0/v10.0 chain conditionality, not v16.0-relevant.",
     "v14.0 PAUSED (pending JMP referee report); resumption triggers and full inventory in `.gpd/V14-CLOSEOUT.md`. Not a v16.0 blocker."
   ],
   "session": {
-    "last_date": "2026-05-25",
-    "stopped_at": "Phase 64 (Setup, Conventions, and Exact Engine) COMPLETE & VERIFIED (verifier status passed). Frozen exact-SymPy h_3(O) foundation in code/ring_lemma_verification.py; all five convention locks exact over Q (headline d=6*det_3 first); R_pt frozen; single-state ring confirmed by citation; exact-only guard adversarially verified. BASE-01 satisfied (1/6 phases).",
-    "resume_file": "Next action -- `/gpd:plan-phase 65` (f_4 Construction + Orbit-Dimension GATE -- chain-critical; the consistency anchor 54-orbit_dim=7 is the milestone's early go/no-go). Reuse the Phase 64 frozen engine verbatim."
+    "last_date": "2026-05-24",
+    "stopped_at": "v16.0 milestone STARTED (The (RING) Lemma — math half of the Chalmers gap; consciousness-side spine, independent of v15.0). Literature survey complete (joint F_4-invariants of 27⊕27; SUMMARY.md with embedded ROADMAP INPUT yaml). 6 requirements defined (BASE-01, BASE-02 GATE, RING-01 (a), RING-02 (b) SPINE, RING-03 (c), REDU-01). **Roadmap created: Phases 64-69** (continuing from v15.0's Phase 63), each requirement mapped 1:1, gated ordering preserved (Setup → orbit-dim GATE → (b) SPINE || (c) → (a) last → (REDU) statement). Decisive deliverable = (RING) proved with c provably independent, OR decisive NEGATIVE — both full passes (NEGATIVE-RESULT-IS-SUCCESS). v15.0 COMPLETE & ARCHIVED (tag v15.0); v14.0 remains PAUSED (see V14-CLOSEOUT.md).",
+    "resume_file": "Next action — `/gpd:plan-phase 64` (Setup, Conventions, and Exact Engine). Then 65 (the orbit-dim GATE), then 66 (the (b) SPINE) — both chain-critical."
   },
   "_version": 1,
-  "_synced_at": "2026-05-25T14:57:14.841129+00:00"
+  "_synced_at": "2026-05-26T01:34:13.018985+00:00"
 }

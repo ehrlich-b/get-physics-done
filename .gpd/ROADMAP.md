@@ -102,6 +102,8 @@ Plans:
 
 ### Phase 65: f_4 Construction + Orbit-Dimension GATE
 
+**GATE RESULT (2026-05-25 — all 3 plans executed; human-adjudicated at the go/no-go checkpoint):** The GATE FIRED and the "generating-set picture wrong" branch triggered **by design**. Computed generic pair orbit dim of F_4 on h_3(O)(+)h_3(O) = **44** (exact QQ rank, MAX over generic integer pairs), so **trdeg = 54 − 44 = 10, NOT the anchor-expected 7**. Triple-confirmed: executor (52-basis == 324-stack; three exact domains; from-scratch reconstruction) + orchestrator-independent exact rank at a fresh point (DomainMatrix over QQ → 44; blocks 24/24, overlap 4) + representation theory (generic Stab chain Spin(8)→Spin(7)→G₂→**SU(3)**, dim 8 → orbit 52−8 = 44). The anchor "7" below was exactly the FORBIDDEN Spin(8)-triality back-of-envelope; the computed value is 10. Builder NOT the problem — single-copy GATE reproduced exactly (orbit 24 / Spin(8) 28 / trdeg 3, Garibaldi-Guralnick). trdeg 10 = 3(X) + 3(Y) + **4 mixed** (c = Tr(X∘Y) plus 3 more), so the "six pointwise + c" set undercounts by **3**. **Human verdict = BACKTRACK** → corrective **Phase 65.1** (pin down the 3 missing functionally-independent joint invariants: candidates Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²); confirm full 10-candidate Jacobian rank 10) BEFORE Phase 66. **Corrected target trdeg = 10 propagates to Phases 66/68** (the (b) SPINE rank-7 test for {6 pointwise + c} is unchanged but no longer "saturates"; (b) is unaffected/strengthened). NEGATIVE-RESULT-IS-SUCCESS. _Success-criterion 4 below (the literal "= 7") is the refuted naive expectation; criteria 1/2/3/5 all PASS._
+
 **Goal:** The 52-generator infinitesimal action of f_4 = Der(h_3(O)) is built (closed under commutator, dimension 52 verified) and the exact generic orbit dimension of F_4 acting diagonally on h_3(O) (+) h_3(O) is computed as the rank over Q of the 52x54 infinitesimal-action matrix at a generic rational point. This fixes the target transcendence degree (54 - orbit_dim) and therefore the expected Jacobian rank and Hilbert-series Krull dimension for every downstream phase. The consistency anchor 54 - orbit_dim = 7 is the early go/no-go for the whole milestone.
 
 **Depends on:** Phase 64 (exact engine, pair layout, base invariants)
@@ -126,9 +128,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 65-01-PLAN.md -- Build f_4 = span{[L_a,L_b]} (52 generators as 27x27 over Q via the frozen inner_derivations(); span rank == 52 computed; bracket-closed) + certify infinitesimal F_4-invariance (D_M f = 0 over Q for {Tr,Tr^2,det_3}, all 324 generators, >=3 octonionic points) (wave 1, 2 tasks)
-- [ ] 65-02-PLAN.md -- Single-copy GATE: F_4 on one 27 -> generic orbit dim 24 (exact QQ rank of the (generators x 27) action at >=2 integer points), stabilizer Spin(8) (52-24=28), trdeg 27-24=3; reproduces Garibaldi-Guralnick -> certifies the builder before the pair value (wave 2, 2 tasks; depends 65-01)
-- [ ] 65-03-PLAN.md -- DECISIVE pair value: select 52-independent basis, compute generic orbit dim of F_4 on 27(+)27 as the exact QQ rank of the 52x54 diagonal-action matrix at >=3 integer pairs (MAX), derive trdeg = 54-orbit_dim, ASSERT the milestone anchor 54-orbit_dim = 7 (orbit 47, stab 5); milestone go/no-go checkpoint (wave 3, 3 tasks incl. checkpoint; depends 65-01, 65-02)
+- [x] 65-01-PLAN.md -- Build f_4 = span{[L_a,L_b]} (52 generators as 27x27 over Q via the frozen inner_derivations(); span rank == 52 computed; bracket-closed) + certify infinitesimal F_4-invariance (D_M f = 0 over Q for {Tr,Tr^2,det_3}, all 324 generators, >=3 octonionic points) (wave 1, 2 tasks) — DONE: dim 52 computed, 324/324 invariance, harness exit 0 (independently re-run).
+- [x] 65-02-PLAN.md -- Single-copy GATE: F_4 on one 27 -> generic orbit dim 24 (exact QQ rank of the (generators x 27) action at >=2 integer points), stabilizer Spin(8) (52-24=28), trdeg 27-24=3; reproduces Garibaldi-Guralnick -> certifies the builder before the pair value (wave 2, 2 tasks; depends 65-01) — DONE: orbit 24 / Spin(8) 28 / trdeg 3 reproduced in-engine (independently confirmed); builder CERTIFIED.
+- [x] 65-03-PLAN.md -- DECISIVE pair value: select 52-independent basis, compute generic orbit dim of F_4 on 27(+)27 as the exact QQ rank of the 52x54 diagonal-action matrix at >=3 integer pairs (MAX), derive trdeg = 54-orbit_dim, ASSERT the milestone anchor 54-orbit_dim = 7 (orbit 47, stab 5); milestone go/no-go checkpoint (wave 3, 3 tasks incl. checkpoint; depends 65-01, 65-02) — DONE: pair orbit dim = **44** COMPUTED → trdeg = **10 ≠ 7**; anchor refuted as the naive triality value (triple-confirmed); human verdict = BACKTRACK to 65.1. See GATE RESULT note above.
 
 ### Phase 66: (b) Functional Independence of c -- THE SPINE
 
@@ -264,7 +266,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 64. Setup, Conventions, Exact Engine | v16.0 | 1/1 | ✓ Complete | 2026-05-25 |
-| 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 0/TBD | Pending | - |
+| 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 3/3 ran | ◆ GATE computed: trdeg 10 ≠ 7 → backtrack to 65.1 | 2026-05-25 |
 | 66. (b) Functional Independence of c [SPINE] | v16.0 | 0/TBD | Pending | - |
 | 67. (c) Degree-2 Uniqueness | v16.0 | 0/TBD | Pending | - |
 | 68. (a) Generating-Set Completeness Certificate | v16.0 | 0/TBD | Pending | - |
