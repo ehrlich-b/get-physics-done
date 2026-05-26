@@ -290,19 +290,201 @@ def print_preregistration():
 
 
 # ============================================================================
-# main() -- assembled in Task 6. Stub here so the module imports/runs in Task 1
-#   (prints the pre-registration only; no rank computed yet).
+# ROUTE 1 (TASK 2) -- exact 7x54 sub-Jacobian rank over Q (+ baseline + X=Y
+#   control + three-exact-domain cross-check). REUSE the frozen candidate
+#   machinery: prefix_rank(k, pp) slices CANDIDATE_GRADS[0:k], substitutes the
+#   integer point FIRST (the cached gradients are deliberately un-simplified --
+#   det_3 deg 3 / 54-var swell control, fp-rank-before-substitution rejected),
+#   then exact_qq_rank. CANDIDATE_GRADS[0:7] = {Tr X, Tr X^2, det X, Tr Y, Tr Y^2,
+#   det Y, c} in FIXED order; CANDIDATE_GRADS[0:6] = the pointwise sextet.
+#
+# Derksen-Kemper char-0 criterion: trdeg Q(f_1..f_7) = generic rank of the 7x54
+# Jacobian [d f_i / d z_j]. A 7x54 matrix has rank <= 7, so SPINE_RANK in {7, 6}:
+#   rank 7 <=> the 7 are algebraically (hence functionally) independent <=> c not
+#             in the algebraic closure of R_pt (c INDEPENDENT, the positive);
+#   rank 6 <=> c is dependent on the pointwise sextet (c DEPENDENT, the NEGATIVE).
+# ============================================================================
+
+def route1_spine_rank():
+    """test-route1-rank + test-rank-stability: for each generic pair in TEST_PAIRS
+    (>=3 PAIR_POINTS + the fresh inline pair), compute the 7x54 sub-Jacobian rank
+    prefix_rank(7, pp) (rows = CANDIDATE_GRADS[0:7]; substitute-first then
+    exact_qq_rank). SPINE_RANK = MAX over TEST_PAIRS (rank lower-semicontinuous).
+    Assert the rank is STABLE (the SAME) at every generic pair.
+
+    Returns (ok, spine_rank, per_pair)."""
+    print("Task 2 (Route 1) -- 7x54 sub-Jacobian rank over Q (MAX over TEST_PAIRS):")
+    per_pair = {}
+    for label, pp in TEST_PAIRS.items():
+        r = prefix_rank(7, pp)                 # exact_qq_rank of the 7x54 (substitute-first)
+        per_pair[label] = r
+        print(f"  [INFO] prefix_rank(7, {label}) = {r}  (exact over Q)")
+    spine_rank = max(per_pair.values())
+
+    pairs_str = ", ".join(f"{lbl}={r}" for lbl, r in per_pair.items())
+    print(f"  [INFO] per-pair 7x54 rank: {pairs_str}; SPINE_RANK = MAX = {spine_rank}")
+
+    # SPINE_RANK is a definite integer in {7, 6} (a 7x54 matrix has rank <= 7).
+    definite_ok = _report(
+        f"SPINE_RANK == {spine_rank} is a definite integer in {{6,7}} "
+        f"(MAX over {len(per_pair)} generic pairs via exact_qq_rank; "
+        f"7x54 maxes at 7)  [test-route1-rank]",
+        spine_rank in (6, 7))
+
+    # Rank stability: the SAME rank at every generic pair (a differing pair would
+    # be secretly non-generic -- check _pair_not_proportional + distinct diagonals
+    # before doubting the engine; STOP rather than tune).
+    stable = (len(set(per_pair.values())) == 1)
+    stable_ok = _report(
+        f"7x54 rank STABLE across all {len(per_pair)} generic pairs "
+        f"(all == {spine_rank}; rank lower-semicontinuous, MAX = generic value)  "
+        f"[test-rank-stability]",
+        stable)
+    if not stable:
+        worst = min(per_pair, key=lambda k: per_pair[k])
+        print(f"  [STOP-HINT] rank differs at {worst} (={per_pair[worst]}): that pair "
+              f"is likely secretly NON-generic. Recheck _pair_not_proportional + "
+              f"distinct diagonals BEFORE doubting the engine; do NOT tune.")
+
+    RESULTS["SPINE_RANK"] = spine_rank
+    RESULTS["route1_per_pair"] = per_pair
+    return (definite_ok and stable_ok), spine_rank, per_pair
+
+
+def route1_baseline_six():
+    """test-baseline-6: the 6x54 pointwise-sextet control. prefix_rank(6, pp)
+    (CANDIDATE_GRADS[0:6]) MUST be exactly 6 at every generic pair (3 X-block +
+    3 Y-block; single-copy trdeg 3 + 3, Garibaldi-Guralnick). If != 6 the
+    engine/builder is broken -- STOP, do NOT tune.
+
+    Returns (ok, per_pair)."""
+    print("Task 2 (Route 1) -- 6x54 pointwise-sextet baseline control:")
+    per_pair = {}
+    for label, pp in TEST_PAIRS.items():
+        r = prefix_rank(6, pp)
+        per_pair[label] = r
+        print(f"  [INFO] prefix_rank(6, {label}) = {r}")
+    all_six = all(r == 6 for r in per_pair.values())
+    pairs_str = ", ".join(f"{lbl}={r}" for lbl, r in per_pair.items())
+    ok = _report(
+        f"6x54 pointwise baseline == 6 at EVERY generic pair ({pairs_str}); "
+        f"3 X-block + 3 Y-block (Garibaldi-Guralnick single-copy trdeg 3+3)  "
+        f"[test-baseline-6]",
+        all_six)
+    if not all_six:
+        print("  [HARD-STOP] baseline != 6 at some generic pair: the pointwise-sextet "
+              "independence is certified upstream (single-copy trdeg 3). This is an "
+              "engine/layout/base-invariant BUG -- STOP, do NOT trust any verdict.")
+    RESULTS["baseline_per_pair"] = per_pair
+    return ok, per_pair
+
+
+def route1_xeqy_control():
+    """test-xeqy-control: degeneracy control. Evaluate prefix_rank(7, (P, P)) at a
+    DIAGONAL pair X = Y (P a certified generic single point). MUST be <= 6: X=Y
+    collapses c to Tr X^2 in R_pt, so the {6 pointwise + c} set drops rank. This is
+    a control EXPECTED to fail to reach 7 -- NOT a counterexample, NOT a valid
+    independence-test point (fp-non-generic-point: X=Y is run ONLY as a control).
+
+    Returns (ok, rank_xeqy)."""
+    print("Task 2 (Route 1) -- X=Y degeneracy control (EXPECTED <= 6, NOT a test point):")
+    # P = a certified generic single point from the gate (genuinely octonionic).
+    P = SINGLE_COPY_POINTS["P1 (planner spike)"]
+    r = prefix_rank(7, (P, P))
+    print(f"  [INFO] prefix_rank(7, (P,P)) = {r}  (X=Y diagonal control)")
+    ok = _report(
+        f"X=Y control: prefix_rank(7, (P,P)) == {r} <= 6 (X=Y collapses c to "
+        f"Tr X^2 in R_pt; degenerate, EXCLUDED as a test point -- NOT a "
+        f"counterexample)  [test-xeqy-control]",
+        r <= 6)
+    RESULTS["xeqy_control_rank"] = r
+    return ok, r
+
+
+def _seven_row_jacobian_at(pp):
+    """Build the 7x54 sub-Jacobian at a pair by slicing CANDIDATE_GRADS[0:7] and
+    substituting the integer point FIRST (NOT simplify-ing the symbolic gradient).
+    Equivalent to candidate_jacobian_matrix_at(pp)[0:7, :] but built directly from
+    the cached 7 rows. Returns (A_Q, A_Z) the rational and integer-cleared Matrices."""
+    from sympy import lcm, denom, Integer
+    X27, Y27 = pp
+    subs_pt = {E.xs[k]: Rational(X27[k]) for k in range(27)}
+    subs_pt.update({E.ys[k]: Rational(Y27[k]) for k in range(27)})
+    rowsQ, rowsZ = [], []
+    for grad in CANDIDATE_GRADS[0:7]:
+        row = [g.subs(subs_pt) for g in grad]      # length-54 rational row
+        rowsQ.append(list(row))
+        d = 1
+        for e in row:
+            d = lcm(d, denom(e))
+        rowsZ.append([Integer(e * d) for e in row])
+    return Matrix(rowsQ), Matrix(rowsZ)
+
+
+def route1_exactness_crosscheck():
+    """test-exactness-crosscheck: run the three-exact-domain cross-check on the
+    DECISIVE 7x54 sub-Jacobian at ONE generic pair: QQ-on-fractional ==
+    QQ-on-integer-cleared == ZZ-on-integer-cleared. All three must agree, certifying
+    exact_qq_rank is genuinely EXACT over Q at width 54 -- NOT a float proxy
+    (fp-float-rank rejected). Also confirm the gate's exact_rank_route_crosscheck
+    agrees on ITS object (the 52x54 f_4-tangent rank) as an independent exactness
+    witness reused verbatim.
+
+    Returns ok (bool)."""
+    print("Task 2 (Route 1) -- three-exact-domain cross-check on the 7x54 (width 54):")
+    first_label = next(iter(TEST_PAIRS))
+    pp = TEST_PAIRS[first_label]
+    A_Q, A_Z = _seven_row_jacobian_at(pp)
+    r_qq_frac = DomainMatrix.from_Matrix(A_Q).convert_to(QQ).rank()
+    r_qq_int = DomainMatrix.from_Matrix(A_Z).convert_to(QQ).rank()
+    r_zz_int = DomainMatrix.from_Matrix(A_Z).convert_to(ZZ).rank()
+    seven_agree = (r_qq_frac == r_qq_int == r_zz_int)
+
+    # Independent exactness witness: the gate helper on the f_4-tangent (52x54).
+    X27, Y27 = pp
+    f4_basis, _n = _f4_basis()
+    gate_agree, gate_triple = exact_rank_route_crosscheck(f4_basis, X27, Y27)
+
+    ok = _report(
+        f"THREE-EXACT-DOMAIN at {first_label}: 7x54 candidate Jacobian "
+        f"QQ-frac/QQ-int/ZZ-int = ({r_qq_frac},{r_qq_int},{r_zz_int}) all agree; "
+        f"gate f_4-tangent cross-check {gate_triple} agree={gate_agree} "
+        f"(exact_qq_rank EXACT over Q at width 54, not a float proxy)  "
+        f"[test-exactness-crosscheck; fp-float-rank rejected]",
+        seven_agree and gate_agree)
+    RESULTS["exactness_triple_7x54"] = (r_qq_frac, r_qq_int, r_zz_int)
+    return ok
+
+
+def run_route1():
+    """Run all Route-1 checks in order. Returns (ok, spine_rank)."""
+    spine_ok, spine_rank, _pp = route1_spine_rank()
+    baseline_ok, _bp = route1_baseline_six()
+    xeqy_ok, _rxy = route1_xeqy_control()
+    exact_ok = route1_exactness_crosscheck()
+    # The 7x54 shape is structurally guaranteed (7 cached rows, 54 columns); record.
+    shape_ok = _report(
+        "Route-1 Jacobian shape == 7x54 (rows = 6 pointwise + c; cols = 27 X + 27 Y)",
+        len(CANDIDATE_GRADS[0:7]) == 7 and len(CANDIDATE_GRADS[0]) == 54)
+    return (spine_ok and baseline_ok and xeqy_ok and exact_ok and shape_ok), spine_rank
+
+
+# ============================================================================
+# main() -- assembled in Task 6. Interim version (Tasks 1-2): pre-registration
+#   then Route 1. Tasks 3-6 add Route 2, the adjudicator, the NEGATIVE
+#   constructor, and the full ordered main().
 # ============================================================================
 def main():
-    """Stub for Task 1: print the pre-registration ONLY (no rank computed yet).
-    Tasks 2-6 add Route 1, Route 2, the adjudicator, the NEGATIVE constructor, and
-    the full ordered main()."""
+    """Interim main (Tasks 1-2): pre-registration -> Route 1. Route 2 + adjudicator
+    + NEGATIVE constructor + the full ordered main() are wired in Tasks 3-6."""
     prereg_ok = print_preregistration()
     print("-" * 76)
-    print("TASK 1 ONLY: pre-registration printed; NO rank computed yet "
-          "(Route 1/2 + adjudicator wired in Tasks 2-6).")
+    route1_ok, spine_rank = run_route1()
+    print("-" * 76)
+    print(f"TASKS 1-2: pre-registration + Route 1 done. SPINE_RANK = {spine_rank} "
+          f"({_verdict_label(spine_rank)}). Route 2 + adjudicator wired in Tasks 3-6.")
     print("=" * 76)
-    return prereg_ok
+    return prereg_ok and route1_ok
 
 
 if __name__ == "__main__":
