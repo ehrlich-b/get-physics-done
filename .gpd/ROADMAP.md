@@ -197,6 +197,11 @@ Plans:
 
 **Backtracking:** If the bidegree-(1,1) trivial part comes out with dimension != 2, recheck the 27 = 1 (+) 26 split and whether Tr(X)Tr(Y) was double-counted or dropped (Pitfall 6). If the exact nullspace disagrees with the branching count, trust the exact nullspace and re-derive the irrep arithmetic.
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 67-01-PLAN.md -- Degree-2 uniqueness: single pre-registered exact-over-Q harness `code/degree2_uniqueness.py` (7 tasks). Pre-register integer targets {(1,1)=2, total deg-2=6, quotient=1, Sym^2(27)=378, Sym^2(26)=351} + verdict map; Route A = F_4 branching/Schur count (ROUTE_A_11=2, dimension bookkeeping); Leibniz lift rho(M)=M(x)I+I(x)M + correctness guard (annihilates c, 52/52); invariance gate (D_M f=0 for both (1,1) candidates {c, Tr(X)Tr(Y)}, 52 gens, >=3 octonionic points) BEFORE any count; Route B = exact (1,1)-block f_4-kernel nullspace over QQ (dim 2 via exact_qq_rank) + named-basis identification (Tr(I)Tr(I)=9 != c(I,I)=3); full degree-2 nullspace cross-check (total 6 = blocks (2,0)/(1,1)/(0,2)=2 each); mod-products quotient=1 + frozen-R_pt degree-2 membership decision (Tr(X)Tr(Y) in R_pt, c not in R_pt; bidegree argument, NOT the is_in_Rpt stub which raises); two-route adjudicator (verdict ONLY on agreement; disagreement => trust exact nullspace + STOP); exact-only source guard. EXACT over Q; reuses the frozen engine; foreground `python -u`, chatty. (wave 1, non-interactive)
+
 ### Phase 68: (a) Generating-Set Completeness Certificate
 
 **Goal:** The generating set of R[h_3(O) (+) h_3(O)]^{F_4} is assembled from candidate generators and its completeness is CERTIFIED degree-by-degree via the bigraded Hilbert/Molien series to total degree <= 6. This is a certification phase, not a derivation phase: polarization is used only to PRODUCE candidates, and the Hilbert-series match supplies the completeness certificate that polarization cannot.
