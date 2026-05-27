@@ -13,7 +13,7 @@
 
 ### The (RING) Lemma
 
-- [ ] **RING-01 (a) — generating set**: Establish the generating set of R[h_3(O) ⊕ h_3(O)]^{F_4} (diagonal F_4). Assemble candidate generators — the six pointwise {Tr X, Tr X^2, det X, Tr Y, Tr Y^2, det Y}, the coupling c = Tr(X o Y), the polarized mixed cubics f(X,X,Y), f(X,Y,Y), and any needed higher trace monomials (Tr(X^2 o Y), Tr(X o Y^2), Tr(X^2 o Y^2)) — and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree ≤ 6. Do NOT assume polarization generates (Schwarz: the 2-polarization property can fail in char 0; completeness needs the Hilbert-series certificate).
+- [x] **RING-01 (a) — generating set** (Phase 68, COMPLETE 2026-05-27 — CERTIFIED COMPLETE; the 10-candidate set is a complete + minimal generating set of R[27⊕27]^{F_4} to total degree ≤6 by the exact-over-Q bigraded Hilbert match d_candidate==d_true at all 28 bidegrees, (2,2) Tr(X²∘Y²) decided a GENERATOR, free through deg 6 [first relation, if any, at deg ≥7]; verification PASSED 9/9 targets, two-route + three-method agreement, exact over Q; polarization NOT assumed — the Hilbert match is the certificate): Establish the generating set of R[h_3(O) ⊕ h_3(O)]^{F_4} (diagonal F_4). Assemble candidate generators — the six pointwise {Tr X, Tr X^2, det X, Tr Y, Tr Y^2, det Y}, the coupling c = Tr(X o Y), the polarized mixed cubics f(X,X,Y), f(X,Y,Y), and any needed higher trace monomials (Tr(X^2 o Y), Tr(X o Y^2), Tr(X^2 o Y^2)) — and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree ≤ 6. Do NOT assume polarization generates (Schwarz: the 2-polarization property can fail in char 0; completeness needs the Hilbert-series certificate).
 
 - [x] **RING-02 (b) — functional independence [THE SPINE]** (Phase 66, COMPLETE 2026-05-26 — c INDEPENDENT, rank 7, two-route agreement, exact over Q; verification PASSED 4/4 claims): Prove c = Tr(X o Y) is FUNCTIONALLY INDEPENDENT of the six pointwise generators. Two proofs, both demanded by the reward-hacking guard: (i) exact 7×54 Jacobian rank over Q at ≥3 independent generic rational points (rank 7 = independent); (ii) the infinitesimal orbit-derivative argument (the pointwise invariants are constant on the F_4-orbit of X while c varies, because the trace form is F_4-equivariant and non-degenerate and dim O_X > 0). A rank-6 result for the full set is the decisive NEGATIVE — a full pass — and must be reported with the explicit polynomial expressing c in the pointwise generators.
 
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BASE-02 (GATE) | Phase 65 — f_4 Construction + Orbit-Dimension GATE | Pending |
 | RING-02 (b) [SPINE] | Phase 66 — (b) Functional Independence of c | Verified (passed 2026-05-26 — c INDEPENDENT, rank 7, two-route agreement) |
 | RING-03 (c) | Phase 67 — (c) Degree-2 Uniqueness | Verified (passed 2026-05-26 — c UNIQUE degree-2 coupling gen; (1,1)=2, quotient 1, two-route agreement) |
-| RING-01 (a) | Phase 68 — (a) Generating-Set Completeness Certificate | Pending |
+| RING-01 (a) | Phase 68 — (a) Generating-Set Completeness Certificate | Verified (passed 2026-05-27 — CERTIFIED COMPLETE to deg ≤6; 10 minimal generators, d_candidate==d_true at all 28 bidegrees, (2,2) a GENERATOR, free through deg 6; two-route + three-method agreement, exact over Q) |
 | REDU-01 (STATE only) | Phase 69 — (REDUCIBILITY) State the Dynamical Bridge | Pending |
 
 **Coverage:**

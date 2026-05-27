@@ -33,8 +33,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 | **GATE: exact generic orbit dimension of F_4 on 27(+)27; anchor 54 - orbit_dim = 7** (BASE-02) | 65 | Chain-critical gate |
 | **(b) c = Tr(X o Y) functionally independent of the six pointwise generators [THE SPINE, reward-hacking-guarded]** (RING-02) | 66 | Chain-critical decisive output |
 | (c) c is the UNIQUE degree-2 coupling generator (bidegree-(1,1) trivial part 2-dim = span{Tr(X)Tr(Y), c}, mod products) (RING-03) | 67 | Decisive sub-claim |
-| (a) generating set of R[27(+)27]^{F_4} + Hilbert-series completeness certificate (RING-01) | 68 | Decisive sub-claim |
-| (REDUCIBILITY) dynamical bridge STATED (not proved) for next milestone (REDU-01) | 69 | Statement-only deliverable |
+| (a) generating set of R[27(+)27]^{F_4} + Hilbert-series completeness certificate (RING-01) | 68 | Decisive sub-claim | Complete    | 2026-05-27 | 69 | Statement-only deliverable |
 
 **Acceptance signal (both are full passes -- NEGATIVE-RESULT-IS-SUCCESS):** a clean (RING) characterization with c provably independent (explicit orbit/Jacobian demonstration on the actual algebra), OR a decisive NEGATIVE (c IS expressible in the pointwise generators). Report honestly; do not bury a negative.
 
@@ -60,7 +59,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 - [ ] **Phase 65: f_4 Construction + Orbit-Dimension GATE** -- Build the 52-generator f_4 = Der(h_3(O)) action, compute the exact generic orbit dimension of F_4 on 27(+)27 via the 52x54 infinitesimal-action rank over Q; verify the consistency anchor 54 - orbit_dim = 7 (BASE-02). GATES Phases 66/67/68.
 - [x] **Phase 66: (b) Functional Independence of c -- THE SPINE** -- Demonstrate c not in R_pt via the exact 7x54 Jacobian rank over Q at >=3 generic rational points AND the infinitesimal orbit-derivative argument; wire the decisive-NEGATIVE branch (RING-02). (completed 2026-05-26)
 - [x] **Phase 67: (c) Degree-2 Uniqueness** -- Show via Sym^2(27(+)27) branching that the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so c is the unique NEW degree-2 coupling generator mod products + pointwise (RING-03). Parallel with Phase 66. (completed 2026-05-26 -- c UNIQUE degree-2 coupling gen; (1,1)=2, quotient 1; two-route agreement Schur=2 == exact f_4-kernel nullspace=2)
-- [ ] **Phase 68: (a) Generating-Set Completeness Certificate** -- Assemble the candidate generating set and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree <= 6; do NOT assume polarization generates (RING-01).
+- [x] **Phase 68: (a) Generating-Set Completeness Certificate** -- Assemble the candidate generating set and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree <= 6; do NOT assume polarization generates (RING-01). (completed 2026-05-27)
 - [ ] **Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)** -- Write the precise statement of the (REDUCIBILITY) target for the next milestone: driven dynamics, reducibility definition, cross-term decomposition, autonomous-vs-driven trap, target reduction (REDU-01). Statement only; assert NO irreducibility verdict.
 
 ## Phase Details
@@ -207,6 +206,8 @@ Plans:
 
 ### Phase 68: (a) Generating-Set Completeness Certificate
 
+**RESULT (2026-05-27 — COMPLETE; verification PASSED 9/9 contract targets / 18/18 acceptance tests, 12/12 decisive checks INDEPENDENTLY CONFIRMED, consistency CONSISTENT 11/11, confidence HIGH):** CERTIFIED COMPLETE — the 10-candidate F_4 two-copy set {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c=Tr(X∘Y), Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²)} (bidegrees (1,0),(2,0),(3,0),(0,1),(0,2),(0,3),(1,1),(2,1),(1,2),(2,2)) is a **COMPLETE and MINIMAL generating set** of R[27⊕27]^{F_4} to total degree ≤6, certified by the exact-over-Q bigraded Hilbert match (**d_candidate == d_true at all 28 bidegrees a+b≤6**, exact_qq_rank, 44 saturated generic octonionic pairs) — NOT by assuming polarization generates (Schwarz guard honored; polarize_d PRODUCED the mixed-cubic candidates only). **Plan 01** (`code/molien_bigraded.py`): bigraded Molien series H(s,t) computed exactly via a pure-SymPy Molien-Weyl iterated residue (no Sage, no float grid) — CT_w=1152=|W(F_4)|; calibration gates G1 (single-copy H(s,0)=1/((1-s)(1-s²)(1-s³))=[1,1,2,3,4,5,**7**] — the s⁶ entry is 7, #partitions of 6 into parts≤3; the planned "6" was a gate-caught typo) + G2 (d_(1,1)=2, Phase 67) BOTH pass; the gate also fired on the short/long weight label and pinned the 26's nonzero weights to the norm²=1 roots; **two-route tripwire** Molien == exact-over-Q f_4-kernel as identical integers at all 6 feasible bidegrees incl (2,2)=9 computed IN FULL (142884−142875); Krull=10 (Phase 65, NOT the superseded 7); H(s,t)=H(t,s). Human-verified at the Task-4 blocking checkpoint (orchestrator independently re-ran the harness, exit 0). **Plan 02** (`code/generating_set_certificate.py`): all 10 candidates proven GENUINE generators (in-span-of-lower-products exact test, each +1; spanning distinguished from minimal generating); the **(2,2) diagnostic DECIDED — Tr(X²∘Y²) is a GENERATOR** (8 lower products span 8-dim; +it → 9 = d_true(2,2); seed-independent); three-method agreement (Molien d_true == monomial count == exact_qq_rank d_candidate at all 28 bidegrees). **Honest finding (reported, not forced):** the plethystic log is all {0,+1} at exactly the 10 candidate bidegrees with NO negatives through degree 6 ⇒ the ring is **FREE through total degree 6** — in tension with the Blind E_6-contrast non-free expectation, correctly scoped (the first relation, if non-free, is at total degree ≥7, beyond sub-claim (a)); this is NOT the fp-e6-free-form proxy (d_true was computed independently in Plan 01). Exact over Q throughout (0 float-rank, 0 octonion_algebra on the decisive path; source guards green); all 11 forbidden proxies rejected. Cross-phase coherence: trdeg 10 (65/65.1) ≥ SPINE rank 7 (66) ≥ quotient 1 (67); Krull 10; (1,1)=2; the 10 ring generators == the Phase-65.1 trdeg-10 field-generating count. **CLOSES sub-claim (a) of the (RING) Lemma (RING-01).** NEGATIVE-RESULT-IS-SUCCESS honored (the positive complete verdict is the honest computed outcome; the non-free expectation reported as disconfirmed-within-scope, not forced). _One INFO note (non-blocking): `molien_bigraded.py` internally labels norm²=2 roots "short" and norm²=1 "long" (swapped vs Bourbaki) — transparently documented; the decisive object (the norm²=1 weight set for the 26) is correct and gate-pinned._
+
 **Goal:** The generating set of R[h_3(O) (+) h_3(O)]^{F_4} is assembled from candidate generators and its completeness is CERTIFIED degree-by-degree via the bigraded Hilbert/Molien series to total degree <= 6. This is a certification phase, not a derivation phase: polarization is used only to PRODUCE candidates, and the Hilbert-series match supplies the completeness certificate that polarization cannot.
 
 **Depends on:** Phase 65 (orbit-dimension gate -> Krull dimension), Phase 67 (degree-2 structure)
@@ -232,11 +233,11 @@ Plans:
 
 **Scope decision RESOLVED IN-PLAN (planned 2026-05-27):** PRIMARY = pure-SymPy Molien-Weyl iterated symbolic residue (self-contained, reaches all a+b<=6); CORROBORATION = the exact-over-Q frozen-f_4-kernel route (Phase-67 Route B generalized) at every feasible bidegree a+b<=4 (the reward-hacking tripwire). Sage `WeylCharacterRing('F4')` is an OPTIONAL third witness only and is NOT used (no fixture staged) -- self-containment preserved.
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 68-01-PLAN.md -- Bigraded Hilbert/Molien series H(s,t) to total degree <=6 via pure-SymPy Molien-Weyl iterated residue + calibration gates (G1 single-copy specialization, G2 (1,1)=2) + exact-over-Q f_4-kernel two-route cross-check at a+b<=4 + Krull-pole-order=10 + H(s,t)=H(t,s) symmetry; emits the certified bigraded dimension table d_{a,b} (wave 1, 4 tasks incl. a calibration/two-route checkpoint; interactive)
-- [ ] 68-02-PLAN.md -- Generating-set assembly + completeness/minimality certificate: candidate set (verbatim from 65.1) + candidate-product dimension per bidegree + plethystic-log generator/relation separation + d_true-vs-d_candidate match per bidegree + in-span-of-lower-products minimality test per generator + the (2,2) Tr(X^2 o Y^2) generator-vs-product decision + honest completeness verdict (certified complete to <=6 with the polarization-NOT-assumed note, OR the specific missing-generator bidegree); consumes the Plan-01 dimension table (wave 2, 2 tasks; depends 68-01)
+- [x] 68-01-PLAN.md -- Bigraded Hilbert/Molien series H(s,t) to total degree <=6 via pure-SymPy Molien-Weyl iterated residue + calibration gates (G1 single-copy specialization, G2 (1,1)=2) + exact-over-Q f_4-kernel two-route cross-check at a+b<=4 + Krull-pole-order=10 + H(s,t)=H(t,s) symmetry; emits the certified bigraded dimension table d_{a,b} (wave 1, 4 tasks incl. a calibration/two-route checkpoint; interactive)
+- [x] 68-02-PLAN.md -- Generating-set assembly + completeness/minimality certificate: candidate set (verbatim from 65.1) + candidate-product dimension per bidegree + plethystic-log generator/relation separation + d_true-vs-d_candidate match per bidegree + in-span-of-lower-products minimality test per generator + the (2,2) Tr(X^2 o Y^2) generator-vs-product decision + honest completeness verdict (certified complete to <=6 with the polarization-NOT-assumed note, OR the specific missing-generator bidegree); consumes the Plan-01 dimension table (wave 2, 2 tasks; depends 68-01)
 
 ### Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)
 
@@ -268,8 +269,7 @@ Plans:
 | 64 - Setup + Exact Engine | -- | 65, 69 | Yes |
 | 65 - f_4 + Orbit-Dimension GATE | 64 | 66, 67, 68 | Yes (the GATE) |
 | 66 - (b) Independence of c [SPINE] | 65 | -- | Yes |
-| 67 - (c) Degree-2 Uniqueness | 65 | 68 | No (parallel with 66) |
-| 68 - (a) Generating-Set Completeness | 65, 67 | -- | No (last proof phase) |
+| 67 - (c) Degree-2 Uniqueness | 65 | 68 | No (parallel with 66) | Complete    | 2026-05-27 | 65, 67 | -- | No (last proof phase) |
 | 69 - (REDUCIBILITY) Statement | 64 | -- | No (independent, statement-only) |
 
 **Critical path:** 64 -> 65 -> 66 (the gate then the spine; 3 phases minimum to the decisive result).
@@ -291,8 +291,8 @@ Plans:
 | 66 | Asserting independence without the demonstration / forced positive over NEGATIVE | Complete    | 2026-05-26 | Reward-hacking guard: BOTH the exact Jacobian (>=3 generic points) AND the orbit-derivative are mandatory; pre-register the exact test; NEGATIVE (rank 6) is a full pass reported with the explicit c expression |
 | 66 | Non-generic evaluation point fabricates the verdict | Complete    | 2026-05-26 | >=3 generic rational points (all-nonzero, distinct diagonals, X not proportional to Y); X=Y is NOT an independence-test point |
 | 67 | 26-vs-27 confusion / dropping "mod products" | LOW | MEDIUM | Carry 27 = 1 (+) 26 explicitly; exact f_4-kernel nullspace cross-checks the branching count |
-| 68 | Assuming polarization generates (Schwarz: 2-polarization fails in char 0) | MEDIUM | HIGH | (a) is a CERTIFICATION phase: Hilbert-series match degree-by-degree is the completeness certificate; mismatch at a bidegree => missing generator there |
-| 68 | Sage unavailable for the Molien step | MEDIUM | LOW | Scope decision in-plan: external Sage fixture OR pure-SymPy Molien-Weyl residue; phase is last and non-gating |
+| 68 | Assuming polarization generates (Schwarz: 2-polarization fails in char 0) | Complete    | 2026-05-27 | (a) is a CERTIFICATION phase: Hilbert-series match degree-by-degree is the completeness certificate; mismatch at a bidegree => missing generator there |
+| 68 | Sage unavailable for the Molien step | Complete    | 2026-05-27 | Scope decision in-plan: external Sage fixture OR pure-SymPy Molien-Weyl residue; phase is last and non-gating |
 | 69 | Drift into asserting irreducibility / chaos shortcut | LOW | MEDIUM | STATEMENT-ONLY; autonomous-vs-driven trap flagged; no irreducibility verdict; no NKS |
 
 ## Progress
@@ -306,7 +306,7 @@ Plans:
 | 65.1 Generating-set count correction (trdeg-10) | v16.0 | 1/1 | ✓ Complete (rank 10, two-route agreement; verified 22/22) | 2026-05-25 |
 | 66. (b) Functional Independence of c [SPINE] | v16.0 | 1/1 | ✓ Complete (c INDEPENDENT, rank 7, two-route agreement; verified 4/4) | 2026-05-26 |
 | 67. (c) Degree-2 Uniqueness | v16.0 | 1/1 | ✓ Complete (c UNIQUE degree-2 coupling gen; (1,1)=2 = span{Tr(X)Tr(Y), c}, quotient 1; two-route agreement; verified 7/7) | 2026-05-26 |
-| 68. (a) Generating-Set Completeness Certificate | v16.0 | 0/TBD | Pending | - |
+| 68. (a) Generating-Set Completeness Certificate | v16.0 | Complete    | 2026-05-27 | - |
 | 69. (REDUCIBILITY) State the Dynamical Bridge | v16.0 | 0/TBD | Pending | - |
 
 ## Coverage
