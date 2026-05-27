@@ -230,6 +230,14 @@ Plans:
 
 **Backtracking:** If the Hilbert series shows d_true > d_candidate at some bidegree, a genuinely-new generator is missing there -- add the lowest-degree trace monomial at that bidegree and re-match; do NOT paper over the gap by assuming polarization closes it. If Sage is chosen for the fixture and is unavailable at plan time, fall back to the pure-SymPy Molien-Weyl residue (the scope decision must be resolved in-plan, not deferred to the executor who lacks Sage).
 
+**Scope decision RESOLVED IN-PLAN (planned 2026-05-27):** PRIMARY = pure-SymPy Molien-Weyl iterated symbolic residue (self-contained, reaches all a+b<=6); CORROBORATION = the exact-over-Q frozen-f_4-kernel route (Phase-67 Route B generalized) at every feasible bidegree a+b<=4 (the reward-hacking tripwire). Sage `WeylCharacterRing('F4')` is an OPTIONAL third witness only and is NOT used (no fixture staged) -- self-containment preserved.
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 68-01-PLAN.md -- Bigraded Hilbert/Molien series H(s,t) to total degree <=6 via pure-SymPy Molien-Weyl iterated residue + calibration gates (G1 single-copy specialization, G2 (1,1)=2) + exact-over-Q f_4-kernel two-route cross-check at a+b<=4 + Krull-pole-order=10 + H(s,t)=H(t,s) symmetry; emits the certified bigraded dimension table d_{a,b} (wave 1, 4 tasks incl. a calibration/two-route checkpoint; interactive)
+- [ ] 68-02-PLAN.md -- Generating-set assembly + completeness/minimality certificate: candidate set (verbatim from 65.1) + candidate-product dimension per bidegree + plethystic-log generator/relation separation + d_true-vs-d_candidate match per bidegree + in-span-of-lower-products minimality test per generator + the (2,2) Tr(X^2 o Y^2) generator-vs-product decision + honest completeness verdict (certified complete to <=6 with the polarization-NOT-assumed note, OR the specific missing-generator bidegree); consumes the Plan-01 dimension table (wave 2, 2 tasks; depends 68-01)
+
 ### Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)
 
 **Goal:** The precise statement of the (REDUCIBILITY) dynamical bridge is written for the next milestone -- specifying the driven self-modeling dynamics, the reducibility definition, the cross-term decomposition, the autonomous-vs-driven trap, and the target reduction. This is a STATEMENT-ONLY deliverable: the milestone asserts NO irreducibility verdict and uses NO chaos/NKS argument.
