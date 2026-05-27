@@ -21,7 +21,7 @@
 
 ### Dynamical Bridge (statement only)
 
-- [ ] **REDU-01 (STATE, do NOT prove)**: Write the precise statement of the (REDUCIBILITY) dynamical bridge for the next milestone. Specify the driven self-modeling dynamics X_{k+1} = P_psd((1−eps) X_k^2 + eps S_k); fix the reducibility definition (capacity / reconstructibility — f reducible if reconstructible from the bounded data the diachronic self-model M can hold, dim M < dim B, re-running the law if needed); write the cross-term decomposition Tr(X_k o X_{k+1}) = (1−eps) Tr(X_k^3) [pointwise, reducible] + eps Tr(X_k o S_k) [self-world overlap, the irreducible candidate]; flag the AUTONOMOUS-vs-DRIVEN trap (the autonomous F_3-contraction is reducible; irreducibility is inherited from the exogenous input's unpredictability); state the target reduction (driven gauge-overlap not reconstructible from M's bounded held data → routes to a STRUCTURAL Breuer / finite-capacity argument). Output as "what the next milestone needs." No chaos/NKS; assert NO irreducibility verdict.
+- [x] **REDU-01 (STATE, do NOT prove)** (Phase 69, COMPLETE 2026-05-27 — STATED, not proved; five precisely-typed objects in frozen Phase-64 notation; cross-term decomposition VERIFIED EXACT over Q [5/5 residuals 0, Tr(X o X^2)=2885361604861/14428814400, no float/no rank]; autonomous-vs-driven trap flagged; Breuer-routed target stated as "what the next milestone needs"; NO irreducibility verdict, NO chaos/NKS; verification PASSED 25/25, consistency CONSISTENT): Write the precise statement of the (REDUCIBILITY) dynamical bridge for the next milestone. Specify the driven self-modeling dynamics X_{k+1} = P_psd((1−eps) X_k^2 + eps S_k); fix the reducibility definition (capacity / reconstructibility — f reducible if reconstructible from the bounded data the diachronic self-model M can hold, dim M < dim B, re-running the law if needed); write the cross-term decomposition Tr(X_k o X_{k+1}) = (1−eps) Tr(X_k^3) [pointwise, reducible] + eps Tr(X_k o S_k) [self-world overlap, the irreducible candidate]; flag the AUTONOMOUS-vs-DRIVEN trap (the autonomous F_3-contraction is reducible; irreducibility is inherited from the exogenous input's unpredictability); state the target reduction (driven gauge-overlap not reconstructible from M's bounded held data → routes to a STRUCTURAL Breuer / finite-capacity argument). Output as "what the next milestone needs." No chaos/NKS; assert NO irreducibility verdict.
 
 ## Out of Scope
 
@@ -67,7 +67,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RING-02 (b) [SPINE] | Phase 66 — (b) Functional Independence of c | Verified (passed 2026-05-26 — c INDEPENDENT, rank 7, two-route agreement) |
 | RING-03 (c) | Phase 67 — (c) Degree-2 Uniqueness | Verified (passed 2026-05-26 — c UNIQUE degree-2 coupling gen; (1,1)=2, quotient 1, two-route agreement) |
 | RING-01 (a) | Phase 68 — (a) Generating-Set Completeness Certificate | Verified (passed 2026-05-27 — CERTIFIED COMPLETE to deg ≤6; 10 minimal generators, d_candidate==d_true at all 28 bidegrees, (2,2) a GENERATOR, free through deg 6; two-route + three-method agreement, exact over Q) |
-| REDU-01 (STATE only) | Phase 69 — (REDUCIBILITY) State the Dynamical Bridge | Pending |
+| REDU-01 (STATE only) | Phase 69 — (REDUCIBILITY) State the Dynamical Bridge | ✓ Complete (2026-05-27) |
 
 **Coverage:**
 

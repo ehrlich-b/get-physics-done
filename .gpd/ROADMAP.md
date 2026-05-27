@@ -60,7 +60,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 - [x] **Phase 66: (b) Functional Independence of c -- THE SPINE** -- Demonstrate c not in R_pt via the exact 7x54 Jacobian rank over Q at >=3 generic rational points AND the infinitesimal orbit-derivative argument; wire the decisive-NEGATIVE branch (RING-02). (completed 2026-05-26)
 - [x] **Phase 67: (c) Degree-2 Uniqueness** -- Show via Sym^2(27(+)27) branching that the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so c is the unique NEW degree-2 coupling generator mod products + pointwise (RING-03). Parallel with Phase 66. (completed 2026-05-26 -- c UNIQUE degree-2 coupling gen; (1,1)=2, quotient 1; two-route agreement Schur=2 == exact f_4-kernel nullspace=2)
 - [x] **Phase 68: (a) Generating-Set Completeness Certificate** -- Assemble the candidate generating set and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree <= 6; do NOT assume polarization generates (RING-01). (completed 2026-05-27)
-- [ ] **Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)** -- Write the precise statement of the (REDUCIBILITY) target for the next milestone: driven dynamics, reducibility definition, cross-term decomposition, autonomous-vs-driven trap, target reduction (REDU-01). Statement only; assert NO irreducibility verdict.
+- [x] **Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)** -- Write the precise statement of the (REDUCIBILITY) target for the next milestone: driven dynamics, reducibility definition, cross-term decomposition, autonomous-vs-driven trap, target reduction (REDU-01). Statement only; assert NO irreducibility verdict. (completed 2026-05-27 -- five typed objects in frozen Phase-64 notation; cross-term decomposition Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) + eps Tr(X_k o S_k) verified EXACT over Q (5/5 residuals 0, Tr(X o X^2) = 2885361604861/14428814400); NO irreducibility verdict, NO chaos/NKS, autonomous-vs-driven trap flagged, Breuer-routed target; verified 25/25, consistency CONSISTENT)
 
 ## Phase Details
 
@@ -246,7 +246,7 @@ Plans:
 **Depends on:** Phase 64 (frozen conventions; can be written any time after setup)
 **Requirements:** REDU-01 (STATE, do NOT prove)
 **Plans:** 1 plan
-- [ ] 69-01-PLAN.md -- State the (REDUCIBILITY) dynamical bridge: five typed objects (driven dynamics, autonomous-vs-driven, cross-term decomposition + modulo-P_psd caveat, capacity reducibility definition, Breuer-routed target reduction) in frozen Phase-64 notation; re-run the EXACT-Q decomposition check for the record; assert NO irreducibility verdict.
+- [x] 69-01-PLAN.md -- State the (REDUCIBILITY) dynamical bridge: five typed objects (driven dynamics, autonomous-vs-driven, cross-term decomposition + modulo-P_psd caveat, capacity reducibility definition, Breuer-routed target reduction) in frozen Phase-64 notation; re-run the EXACT-Q decomposition check for the record; assert NO irreducibility verdict. (completed 2026-05-27)
 **Contract Coverage:**
 - Advances: the statement-only deliverable -- "what the next milestone needs" for the (REDUCIBILITY) verdict.
 - Deliverables: the driven self-modeling dynamics X_{k+1} = P_psd((1-eps) X_k^2 + eps S_k); the reducibility definition (capacity / reconstructibility -- f reducible if reconstructible from the bounded data the diachronic self-model M can hold, dim M < dim B, re-running the law if needed); the cross-term decomposition Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) [pointwise, reducible] + eps Tr(X_k o S_k) [self-world overlap, the irreducible candidate]; the explicit autonomous-vs-driven trap flag; the target reduction (driven gauge-overlap not reconstructible from M's bounded held data -> routes to a STRUCTURAL Breuer / finite-capacity argument).
@@ -308,8 +308,8 @@ Plans:
 | 65.1 Generating-set count correction (trdeg-10) | v16.0 | 1/1 | ✓ Complete (rank 10, two-route agreement; verified 22/22) | 2026-05-25 |
 | 66. (b) Functional Independence of c [SPINE] | v16.0 | 1/1 | ✓ Complete (c INDEPENDENT, rank 7, two-route agreement; verified 4/4) | 2026-05-26 |
 | 67. (c) Degree-2 Uniqueness | v16.0 | 1/1 | ✓ Complete (c UNIQUE degree-2 coupling gen; (1,1)=2 = span{Tr(X)Tr(Y), c}, quotient 1; two-route agreement; verified 7/7) | 2026-05-26 |
-| 68. (a) Generating-Set Completeness Certificate | v16.0 | Complete    | 2026-05-27 | - |
-| 69. (REDUCIBILITY) State the Dynamical Bridge | v16.0 | 0/TBD | Pending | - |
+| 68. (a) Generating-Set Completeness Certificate | v16.0 | 2/2 | ✓ Complete (10-candidate set CERTIFIED COMPLETE to deg<=6; d_candidate==d_true all 28 bidegrees; (2,2) a GENERATOR; FREE through deg6; verified 9/9) | 2026-05-27 |
+| 69. (REDUCIBILITY) State the Dynamical Bridge | v16.0 | 1/1 | ✓ Complete (statement-only; 5 typed objects in frozen notation; cross-term decomposition EXACT over Q; NO verdict, NO chaos/NKS; verified 25/25, consistent) | 2026-05-27 |
 
 ## Coverage
 
