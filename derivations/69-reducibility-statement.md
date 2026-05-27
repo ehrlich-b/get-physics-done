@@ -228,3 +228,140 @@ projection). The next milestone must handle the projection correction explicitly
 
 *(Frozen notation throughout. `Tr(X_k^2)` and `Tr(X_k^3)` are Jordan-power traces, never
 `(Tr X_k)^2` or `(Tr X_k)^3`. No irreducibility verdict; no chaos/NKS.)*
+
+---
+
+## 4. Object 4 — Reducibility, defined via capacity / reconstructibility
+
+This is the **finite face of computational irreducibility**, defined via **capacity /
+reconstructibility** (program doc Sec. 9.7, lines 640–654; Sec. 9.1). It is **NOT** a
+chaos notion and **NOT** a ring-membership shortcut.
+
+> **A trajectory-functional `f` is REDUCIBLE for a system iff it is reconstructible
+> from the bounded data the DIACHRONIC self-model `M` can hold (re-running the law if
+> needed), WITHOUT the full body `B`. `f` is IRREDUCIBLE iff computing `f` requires `B`
+> itself** — the full `26`-dim gauge and/or the exogenous input history `S_0, ..., S_k`.
+
+The precise structure of the two objects:
+
+- **`M` = the rank-compressing diachronic self-model** (the metacognitive tower,
+  compressed toward rank-1 as it climbs). `M` holds only the **cheap pointwise
+  invariants** of the self-state — `Tr`, `Tr^2`, `det` (just **3 numbers**) — plus the
+  capacity to **re-run the update law**. `M` does **NOT** hold the `26`-dim gauge
+  directions, and it does **NOT** hold the exogenous input history.
+- **`B` = the full body** — the entire `27`-dim state (equivalently the `26`-dim gauge
+  beyond the trivial direction), and the exogenous input stream the body is actually
+  coupled to.
+- **`dim M < dim B`** — the self-model is a **proper** subsystem, strictly smaller than
+  the whole. This strict inequality is the hinge of the target reduction (Object 5).
+
+Two distinctions that pin the definition (anti-drift, anti-reward-hack):
+
+1. **`M` is the DIACHRONIC self-model, NOT the Paper-5 synchronic order-iso.** Paper 5's
+   clause (ii) is a **synchronic, full-dimensional, lossless order-isomorphism** of the
+   state. `M` here is the **diachronic** tower: **compressed** (`dim M < dim B`), and it
+   accumulates over time by re-running the law. The synchronic/diachronic split (program
+   doc Sec. 9.1) is exactly why they must not be conflated: Paper 5's order-iso loses
+   nothing and is full-dim; `M` is lossy/compressed and lower-dim. Do not confuse the
+   two.
+2. **"Reducible" is the CAPACITY/reconstructibility notion, NOT two things it is often
+   mistaken for.** It is **NOT** "`f` lies in `R[Tr, Tr^2, det]`" (a ring-membership
+   shortcut would trivially predetermine whether the cross-term is in/out of the
+   pointwise ring — a definitional reward-hack we explicitly avoid). It is **NOT**
+   asymptotic Kolmogorov complexity / NKS algorithmic incompressibility (an asymptotic,
+   rule-length notion). It is the **finite** reconstructibility-from-`M` notion:
+   *can the bounded, compressed `M` regenerate `f` by holding its `3` invariants and
+   re-running the law, or does `f` genuinely require the full `B`?*
+
+"Self-modeling = projection onto the reducible sector" is therefore a statement to be
+**EARNED, not asserted by fiat**: `M` can compute only what fits its capacity (the
+pointwise invariant ring + re-running the law). Whether the driven gauge-overlap fits
+that capacity is precisely the open question of Object 5.
+
+---
+
+## 5. Object 5 — The target reduction ("what the next milestone needs")
+
+This object states **what the next milestone needs** to prove. It asserts **NO
+verdict**; it routes the question to a structural argument.
+
+### 5a. The target
+
+From the decomposition (Object 3), the driven overlap splits into a pointwise piece
+`(1-eps) Tr(X_k^3)` (reducible — in `R[Tr, Tr^2, det]`, computable by `M`) and the
+**self-world overlap `eps Tr(X_k o S_k)`** (the irreducible candidate). The
+target of the next milestone:
+
+> **Show that the driven gauge-overlap `eps Tr(X_k o S_k)` is NOT reconstructible from
+> `M`'s bounded held data** (the `3` pointwise invariants + re-running the law) — i.e.
+> that computing it genuinely requires `B` (the full gauge and/or the exogenous input
+> history).
+
+This is **what the next milestone needs**; it is **not** established here. (Object 3's
+EXACT-Q certificate confirms only that the *decomposition* is algebraically correct —
+not that the overlap piece is irreducible.)
+
+### 5b. The licensed route: a STRUCTURAL finite-capacity (Breuer) argument
+
+The target routes to a **structural, finite-capacity** argument — **NOT** a dynamical /
+chaos argument. The anchor is the self-measurement theorem:
+
+> **Breuer 1995.** Thomas Breuer, "The Impossibility of Accurate State
+> Self-Measurements," *Philosophy of Science* **62**(2) (June 1995), pp. 197–214
+> (University of Chicago Press / Philosophy of Science Association).
+>
+> **Theorem (form used here):** A **proper subsystem cannot fully measure/model the
+> whole that contains it**, because it has **strictly fewer degrees of freedom** than
+> the whole; hence distinct global states with identical restrictions to the subsystem
+> are **indistinguishable** to it. (Equivalently: an observer cannot distinguish all
+> present states of a system in which the observer is properly contained — independent
+> of classical vs. quantum, and independent of deterministic vs. stochastic dynamics.)
+>
+> **Hypotheses (the routing conditions):** (i) **proper containment** — the self-model
+> is a proper subsystem of the whole (here `dim M < dim B`); (ii) the discriminating
+> observable lives in the subsystem's algebra only.
+>
+> **Nature:** a **STRUCTURAL / finite-capacity** result (degrees-of-freedom counting +
+> self-reference), **NOT** a dynamical/chaos result — which is exactly why it is the
+> licensed route and why a chaos argument is forbidden.
+
+The routing: with `dim M < dim B` (Object 4), `M` is a proper subsystem; the
+discriminating quantity — the gauge-overlap `eps Tr(X_k o S_k)` — lives in the gauge
+directions that `M` does not hold. Breuer's structural conclusion is then the candidate
+mechanism by which `M` cannot reconstruct the overlap. **Companion structural routes**
+(the structural family the next milestone may draw on; **mention only**, do not lean on
+them here): the **Lawvere** fixed-point "no complete self-model" (already in program doc
+Sec. 9.4), and Breuer's "Ignorance of the Own Past" (for the unbounded
+input-history half). **Breuer 1995 is the primary, finite-capacity anchor.**
+
+### 5c. The autonomous-vs-driven trap, re-flagged FORMALLY
+
+Re-stated formally as a binding constraint on the next milestone's proof:
+
+- The **autonomous** `F_3`-contraction is **REDUCIBLE**: it contracts to a fixed point
+  and is re-runnable from `(S,` the law`)`. Its reconstructibility says **nothing** for
+  or against the driven Stream.
+- Any irreducibility of the **driven** Stream is **INHERITED from the exogenous stream
+  `S_k`'s unpredictability** (the open-system "cannot run without the input you lack"),
+  **NEVER** from chaos / Lyapunov exponents / NKS / sensitive dependence of the
+  algebra. The algebra is a contraction.
+
+So the target reduction must route through finite capacity (Breuer / `dim M < dim B`),
+never through a dynamical-instability argument.
+
+### 5d. Honest residual — this is a TARGET, not a fait accompli
+
+This is stated honestly as a **weakest anchor**. The program doc Sec. 9.6.1 itself
+concedes that the gauge/angle irreducibility **"is not automatic — an integrable flow
+would make them reducible too."** In other words, the structural route is *plausible but
+genuinely unproven*: it is conceivable that the driven gauge dynamics are integrable, in
+which case the overlap would be reducible after all. **This is exactly why this
+milestone only STATES the target and the next milestone must PROVE it.** The target
+reduction is a *candidate route*, not a fait accompli, and the next milestone must
+either close the finite-capacity argument (including handling the integrable-flow
+escape) or report a negative result honestly.
+
+*(No irreducibility verdict is asserted in this object. The reducibility definition is
+the capacity/reconstructibility one. No chaos/NKS argument is used; the route is
+explicitly structural/finite-capacity. The eps-term remains "the self-world overlap /
+the irreducible candidate" — named, not adjudicated.)*
