@@ -365,3 +365,99 @@ escape) or report a negative result honestly.
 the capacity/reconstructibility one. No chaos/NKS argument is used; the route is
 explicitly structural/finite-capacity. The eps-term remains "the self-world overlap /
 the irreducible candidate" — named, not adjudicated.)*
+
+---
+
+## 6. Correctness certificate for the decomposition (Object 3)
+
+The cross-term decomposition of Object 3 was verified **EXACT over Q** against the warm
+engine `code/ring_lemma_verification.py`, via `code/reducibility_decomposition_check.py`.
+**All 5 assertions pass; residuals identically `0`** (no float on any path; no
+`Matrix.rank` — this is a polynomial-identity check, not a rank computation):
+
+| # | Assertion | Residual | Meaning |
+|---|-----------|----------|---------|
+| 1 | `Tr(X o X^2) - Tr(X^3)` | `0` | power-associativity bookkeeping; `Tr(X o X^2) = 2885361604861/14428814400` |
+| 2 | `Tr(X o Y) - [(1-eps) Tr(X^3) + eps Tr(X o S)]` | `0` | THE decomposition, symbolic in `eps`, for `Y = (1-eps)X^2 + eps S` |
+| 3 | `c(X,X) - Tr(X o X)` | `0` | convention-lock sanity: `c(X,X) = Tr(X^2)` (diagonal collapse) |
+| 4 | `Tr(X o S) - Tr(S o X)` | `0` | symmetry of the overlap term |
+| 5 | `Tr(X o (X o X)) - Tr((X o X) o X)` | `0` | power-associativity, both associations |
+
+Script exit code `0`; output `ALL 5 ASSERTIONS PASS (exact over Q).` The recorded
+rational `Tr(X o X^2) = 2885361604861/14428814400` matches the pre-registered benchmark.
+
+**This certifies only that the decomposition is algebraically correct in the frozen
+Phase-64 conventions.** It is a **polynomial-identity bookkeeping check, NOT a proof of
+irreducibility** and NOT a verdict about the driven stream.
+
+---
+
+## 7. Forbidden / out-of-scope (the no-verdict line, made unmistakable)
+
+The following are **explicitly out of scope for THIS statement**. Each is a thing the
+deliverable must NOT do (and does not do); they are the binding forbidden proxies for
+this statement-only milestone.
+
+1. **No irreducibility verdict for the driven stream.** This milestone **STATES** the
+   target; the **NEXT** milestone proves (or refutes) it. Asserting "the gauge-overlap
+   is irreducible" / "we prove incompressibility" here would be false progress
+   (prerequisites unmet). The `eps`-term is **NAMED** "self-world overlap / the
+   irreducible candidate" only.
+2. **No chaos / NKS / Lyapunov / sensitive-dependence argument.** The licensed route is
+   the **structural finite-capacity** one (Breuer / `dim M < dim B`). The autonomous map
+   is a **contraction**, not chaotic; a "nonlinear ⇒ chaotic ⇒ irreducible" move is
+   invalid here (it is the binding failure mode, Pitfall 10).
+3. **No autonomous-vs-driven conflation.** The autonomous `F_3`-contraction is reducible
+   (re-runnable from `(S,` law`)`); it must **NOT** be used to claim or deny
+   irreducibility of the driven Stream, and the driven Stream must not be simulated via
+   the fixed-`S` map to "demonstrate" irreducibility. Any irreducibility is
+   **inherited** from the exogenous stream's unpredictability.
+4. **No redefinition of "reducible" as ring-membership (or as Kolmogorov/NKS).**
+   "Reducible" is the **capacity / reconstructibility** definition (`dim M < dim B`,
+   reconstructible from `M`'s bounded held data by re-running the law) — never collapsed
+   to "`f` lies in `R[Tr, Tr^2, det]`" and never to asymptotic algorithmic
+   incompressibility.
+5. **No baking-in of the relational-experience identity.** The candidate reframe
+   (experience = the irreducible residue of the self-world coupling) is tagged "do NOT
+   bake in yet" (program doc Sec. 9.7, line 656). The `eps`-term may be **named** "the
+   irreducible candidate"; the experience-identity is **not** asserted.
+6. **No silent dropping of the PSD projection.** The decomposition is the
+   **pre-projection** identity, exact **modulo P_psd**; the projection-correction term
+   `Tr(X_k o (X_{k+1} - Y_k))` is carried explicitly (Object 3c), never dropped.
+
+**Scope notes:**
+
+- **Sec. 9 is DEMOTED for its self-inaccessibility framing but RE-PROMOTED for its
+  driven-dynamics content.** This statement presents the **dynamics** (Objects 1–3) as
+  load-bearing and does **NOT** inherit the demoted self-inaccessibility verdict.
+- **Global freeness above total degree 6 is out of scope.** The (RING) certificate
+  (Phase 68) establishes freeness of `R[27 (+) 27]^{F_4}` through total degree 6 only;
+  whether the ring is globally free or has a first relation at total degree ≥ 7 is a
+  separate question, outside this bridge and outside milestone v16.0. (The
+  experience-identity, item 5, is likewise out of scope.)
+
+---
+
+## 8. What the next milestone needs (closing recap)
+
+A future milestone opening this file should take away exactly the following target
+(restated from Object 5; **no verdict is asserted**):
+
+- **Object to analyze:** the driven self-world overlap `eps Tr(X_k o S_k)` — the second
+  piece of the cross-term decomposition `Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) + eps Tr(X_k o S_k)`
+  (modulo `P_psd`; the first piece `(1-eps) Tr(X_k^3)` is pointwise/reducible).
+- **What to show:** that this overlap is **NOT reconstructible** from the diachronic
+  self-model `M`'s bounded held data (`Tr, Tr^2, det` + re-running the law) — i.e. that
+  computing it requires the full body `B` (`dim M < dim B`).
+- **Licensed route:** a **structural, finite-capacity** argument anchored on **Breuer
+  1995** (a proper subsystem cannot fully self-measure the whole; companion: Lawvere's
+  "no complete self-model"). **NOT** chaos/NKS/Lyapunov.
+- **Honest caveat:** the gauge/angle irreducibility is **"not automatic"** (program doc
+  Sec. 9.6.1: an integrable flow would make those directions reducible too). This is a
+  **TARGET, not a fait accompli** — which is why this milestone only STATES it. The next
+  milestone must close the finite-capacity argument (handling the integrable-flow
+  escape) or report a negative result honestly.
+
+*(End of statement. This document asserts **NO irreducibility verdict**; it states the
+next-milestone target, certifies the one owed algebraic identity exact over Q, and holds
+the forbidden-proxy line. Frozen Phase-64 notation throughout.)*
