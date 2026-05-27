@@ -245,6 +245,8 @@ Plans:
 
 **Depends on:** Phase 64 (frozen conventions; can be written any time after setup)
 **Requirements:** REDU-01 (STATE, do NOT prove)
+**Plans:** 1 plan
+- [ ] 69-01-PLAN.md -- State the (REDUCIBILITY) dynamical bridge: five typed objects (driven dynamics, autonomous-vs-driven, cross-term decomposition + modulo-P_psd caveat, capacity reducibility definition, Breuer-routed target reduction) in frozen Phase-64 notation; re-run the EXACT-Q decomposition check for the record; assert NO irreducibility verdict.
 **Contract Coverage:**
 - Advances: the statement-only deliverable -- "what the next milestone needs" for the (REDUCIBILITY) verdict.
 - Deliverables: the driven self-modeling dynamics X_{k+1} = P_psd((1-eps) X_k^2 + eps S_k); the reducibility definition (capacity / reconstructibility -- f reducible if reconstructible from the bounded data the diachronic self-model M can hold, dim M < dim B, re-running the law if needed); the cross-term decomposition Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) [pointwise, reducible] + eps Tr(X_k o S_k) [self-world overlap, the irreducible candidate]; the explicit autonomous-vs-driven trap flag; the target reduction (driven gauge-overlap not reconstructible from M's bounded held data -> routes to a STRUCTURAL Breuer / finite-capacity argument).
