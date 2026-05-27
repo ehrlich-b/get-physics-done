@@ -17,7 +17,7 @@
 
 - [x] **RING-02 (b) — functional independence [THE SPINE]** (Phase 66, COMPLETE 2026-05-26 — c INDEPENDENT, rank 7, two-route agreement, exact over Q; verification PASSED 4/4 claims): Prove c = Tr(X o Y) is FUNCTIONALLY INDEPENDENT of the six pointwise generators. Two proofs, both demanded by the reward-hacking guard: (i) exact 7×54 Jacobian rank over Q at ≥3 independent generic rational points (rank 7 = independent); (ii) the infinitesimal orbit-derivative argument (the pointwise invariants are constant on the F_4-orbit of X while c varies, because the trace form is F_4-equivariant and non-degenerate and dim O_X > 0). A rank-6 result for the full set is the decisive NEGATIVE — a full pass — and must be reported with the explicit polynomial expressing c in the pointwise generators.
 
-- [ ] **RING-03 (c) — degree-2 uniqueness**: Prove c is the UNIQUE degree-2 coupling generator (mod scale, products, and pointwise terms). Decompose Sym^2(27 ⊕ 27) into F_4-irreps; show the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so the only NEW (irreducible, non-product) degree-2 coupling invariant is c. State the "mod products" precisely (Tr(X)Tr(Y) is reducible).
+- [x] **RING-03 (c) — degree-2 uniqueness** (Phase 67, COMPLETE 2026-05-26 — c the UNIQUE degree-2 coupling generator; bidegree-(1,1) trivial part 2-dim = span{Tr(X)Tr(Y), c}, quotient 1; two-route agreement Schur=2 == exact f_4-kernel nullspace=2 over Q; verification PASSED 7/7 claims): Prove c is the UNIQUE degree-2 coupling generator (mod scale, products, and pointwise terms). Decompose Sym^2(27 ⊕ 27) into F_4-irreps; show the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so the only NEW (irreducible, non-product) degree-2 coupling invariant is c. State the "mod products" precisely (Tr(X)Tr(Y) is reducible).
 
 ### Dynamical Bridge (statement only)
 
@@ -65,7 +65,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BASE-01 | Phase 64 — Setup, Conventions, and Exact Engine | Verified (passed 2026-05-25) |
 | BASE-02 (GATE) | Phase 65 — f_4 Construction + Orbit-Dimension GATE | Pending |
 | RING-02 (b) [SPINE] | Phase 66 — (b) Functional Independence of c | Verified (passed 2026-05-26 — c INDEPENDENT, rank 7, two-route agreement) |
-| RING-03 (c) | Phase 67 — (c) Degree-2 Uniqueness | Pending |
+| RING-03 (c) | Phase 67 — (c) Degree-2 Uniqueness | Verified (passed 2026-05-26 — c UNIQUE degree-2 coupling gen; (1,1)=2, quotient 1, two-route agreement) |
 | RING-01 (a) | Phase 68 — (a) Generating-Set Completeness Certificate | Pending |
 | REDU-01 (STATE only) | Phase 69 — (REDUCIBILITY) State the Dynamical Bridge | Pending |
 

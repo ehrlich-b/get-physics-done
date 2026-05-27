@@ -31,7 +31,8 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 | ---------------------- | -------------------- | ---- |
 | Exact-SymPy h_3(O) engine ported + single-state ring R[Tr,Tr^2,det] confirmed (BASE-01) | 64 | Foundation |
 | **GATE: exact generic orbit dimension of F_4 on 27(+)27; anchor 54 - orbit_dim = 7** (BASE-02) | 65 | Chain-critical gate |
-| **(b) c = Tr(X o Y) functionally independent of the six pointwise generators [THE SPINE, reward-hacking-guarded]** (RING-02) | 66 | Chain-critical decisive output | Complete    | 2026-05-26 | 67 | Decisive sub-claim |
+| **(b) c = Tr(X o Y) functionally independent of the six pointwise generators [THE SPINE, reward-hacking-guarded]** (RING-02) | 66 | Chain-critical decisive output |
+| (c) c is the UNIQUE degree-2 coupling generator (bidegree-(1,1) trivial part 2-dim = span{Tr(X)Tr(Y), c}, mod products) (RING-03) | 67 | Decisive sub-claim |
 | (a) generating set of R[27(+)27]^{F_4} + Hilbert-series completeness certificate (RING-01) | 68 | Decisive sub-claim |
 | (REDUCIBILITY) dynamical bridge STATED (not proved) for next milestone (REDU-01) | 69 | Statement-only deliverable |
 
@@ -58,7 +59,7 @@ Authoritative contract: PROJECT.md "Scoping Contract Summary" + REQUIREMENTS.md 
 - [x] **Phase 64: Setup, Conventions, and Exact Engine** -- Port the exact-SymPy h_3(O) engine, build the 54-symbol pair layout + seven base invariants, freeze R_pt, verify convention locks, confirm single-state ring (BASE-01). Phases continue from 64 (v15.0 ended at 63).
 - [ ] **Phase 65: f_4 Construction + Orbit-Dimension GATE** -- Build the 52-generator f_4 = Der(h_3(O)) action, compute the exact generic orbit dimension of F_4 on 27(+)27 via the 52x54 infinitesimal-action rank over Q; verify the consistency anchor 54 - orbit_dim = 7 (BASE-02). GATES Phases 66/67/68.
 - [x] **Phase 66: (b) Functional Independence of c -- THE SPINE** -- Demonstrate c not in R_pt via the exact 7x54 Jacobian rank over Q at >=3 generic rational points AND the infinitesimal orbit-derivative argument; wire the decisive-NEGATIVE branch (RING-02). (completed 2026-05-26)
-- [ ] **Phase 67: (c) Degree-2 Uniqueness** -- Show via Sym^2(27(+)27) branching that the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so c is the unique NEW degree-2 coupling generator mod products + pointwise (RING-03). Parallel with Phase 66.
+- [x] **Phase 67: (c) Degree-2 Uniqueness** -- Show via Sym^2(27(+)27) branching that the bidegree-(1,1) trivial part is 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, so c is the unique NEW degree-2 coupling generator mod products + pointwise (RING-03). Parallel with Phase 66. (completed 2026-05-26 -- c UNIQUE degree-2 coupling gen; (1,1)=2, quotient 1; two-route agreement Schur=2 == exact f_4-kernel nullspace=2)
 - [ ] **Phase 68: (a) Generating-Set Completeness Certificate** -- Assemble the candidate generating set and CERTIFY completeness via the bigraded Hilbert/Molien series degree-by-degree to total degree <= 6; do NOT assume polarization generates (RING-01).
 - [ ] **Phase 69: (REDUCIBILITY) -- State the Dynamical Bridge (do NOT prove)** -- Write the precise statement of the (REDUCIBILITY) target for the next milestone: driven dynamics, reducibility definition, cross-term decomposition, autonomous-vs-driven trap, target reduction (REDU-01). Statement only; assert NO irreducibility verdict.
 
@@ -177,6 +178,8 @@ Plans:
 
 ### Phase 67: (c) Degree-2 Uniqueness
 
+**RESULT (2026-05-26 — COMPLETE; verification PASSED 7/7 claims / 5/5 deliverables / 10/10 acceptance tests, 9/9 decisive checks INDEPENDENTLY CONFIRMED, consistency CONSISTENT, confidence HIGH):** ESTABLISHED by exact computation over Q — **c = Tr(X∘Y) is the UNIQUE degree-2 coupling generator** of R[27⊕27]^{F_4} modulo scale, products, and pointwise terms. The bidegree-(1,1) trivial part is exactly **2-dimensional = span{Tr(X)Tr(Y), c}**; modulo the single reducible product Tr(X)Tr(Y) ∈ R_pt, the genuine-coupling quotient is **1-dimensional = span{c}**. TWO computationally-independent routes AGREE on the multiplicity 2 (the reward-hacking guard; verdict emitted ONLY on agreement, disagreement ⇒ NO VERDICT + trust the exact nullspace + STOP, pre-registered): **Route A** (Schur, LITERATURE-anchored) = dim End_{F_4}(1⊕26) = 1²+1² = 2 (with 27=1⊕26, Sym²(27)=378, Sym²(26)=351=1+26+324 all integer-checked); **Route B** (the self-certifying proof) = exact (1,1)-block f_4-kernel nullspace over QQ = 729 − exact_qq_rank(MᵀC+CM) = 729 − 727 = 2. Named basis {Tr(X)Tr(Y), c} shown to **SPAN** the kernel (in-kernel AND linearly independent, witness Tr(I)Tr(I)=9 ≠ c(I,I)=3) — NOT a bare dimension-match. Full degree-2 dim = 6 (blocks (2,0)=2, (1,1)=2, (0,2)=2). c ∉ R_pt at degree 2 (forced a=1/3 vs a=1); R_pt frozen, "mod products" stated precisely. Leibniz lift ρ(M)=M⊗I+I⊗M (NOT M⊗M — guarded: the wrong lift annihilates c for 0/52 generators vs the correct 52/52); F_4-invariance gate (D_M f=0, 52 gens, ≥3 octonionic points) BEFORE any count. All 8 forbidden proxies REJECTED (exact-only guard adversarially confirmed to fire on planted float-rank / octonion_algebra violations); exact over Q throughout (0 float-rank, 0 octonion_algebra on the decisive path); orchestrator- AND verifier-independent re-runs reproduced the (1,1)=2 nullspace at their own evaluation points/layouts. Cross-phase coherence: quotient 1 = the single genuine new (1,1) invariant = the +c step of the Phase-66 rank-7 SPINE = the lone (1,1) entry of the Phase-65.1 trdeg-10 generating set (trdeg 10 ≥ rank 7 ≥ quotient 1, all consistent). **SCOPE: DEGREE-2 uniqueness ONLY (RING-03)** — distinct from the Phase 66 FIELD-level SPINE (RING-02) and the Phase 68 ring generation / Hilbert series (RING-01); the (1,1)=2 count is the bidegree-(1,1) Hilbert coefficient Phase 68 must reproduce. NEGATIVE-RESULT-IS-SUCCESS framing honored. Deliverable: `code/degree2_uniqueness.py` (29 PASS/0 FAIL, exit 0, ~50s foreground).
+
 **Goal:** It is established that c is the UNIQUE degree-2 coupling generator modulo scale, products, and pointwise terms. Concretely, the bidegree-(1,1) trivial part of the invariant ring is shown to be exactly 2-dimensional = span{Tr(X)Tr(Y), Tr(X o Y)}, of which Tr(X)Tr(Y) is reducible (a product of pointwise generators), leaving c as the single genuine (irreducible, non-product) degree-2 coupling invariant.
 
 **Depends on:** Phase 65 (orbit-dimension gate); runs in PARALLEL with Phase 66 (both depend only on the gate)
@@ -197,10 +200,10 @@ Plans:
 
 **Backtracking:** If the bidegree-(1,1) trivial part comes out with dimension != 2, recheck the 27 = 1 (+) 26 split and whether Tr(X)Tr(Y) was double-counted or dropped (Pitfall 6). If the exact nullspace disagrees with the branching count, trust the exact nullspace and re-derive the irrep arithmetic.
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 67-01-PLAN.md -- Degree-2 uniqueness: single pre-registered exact-over-Q harness `code/degree2_uniqueness.py` (7 tasks). Pre-register integer targets {(1,1)=2, total deg-2=6, quotient=1, Sym^2(27)=378, Sym^2(26)=351} + verdict map; Route A = F_4 branching/Schur count (ROUTE_A_11=2, dimension bookkeeping); Leibniz lift rho(M)=M(x)I+I(x)M + correctness guard (annihilates c, 52/52); invariance gate (D_M f=0 for both (1,1) candidates {c, Tr(X)Tr(Y)}, 52 gens, >=3 octonionic points) BEFORE any count; Route B = exact (1,1)-block f_4-kernel nullspace over QQ (dim 2 via exact_qq_rank) + named-basis identification (Tr(I)Tr(I)=9 != c(I,I)=3); full degree-2 nullspace cross-check (total 6 = blocks (2,0)/(1,1)/(0,2)=2 each); mod-products quotient=1 + frozen-R_pt degree-2 membership decision (Tr(X)Tr(Y) in R_pt, c not in R_pt; bidegree argument, NOT the is_in_Rpt stub which raises); two-route adjudicator (verdict ONLY on agreement; disagreement => trust exact nullspace + STOP); exact-only source guard. EXACT over Q; reuses the frozen engine; foreground `python -u`, chatty. (wave 1, non-interactive)
+- [x] 67-01-PLAN.md -- Degree-2 uniqueness: single pre-registered exact-over-Q harness `code/degree2_uniqueness.py` (7 tasks). Pre-register integer targets {(1,1)=2, total deg-2=6, quotient=1, Sym^2(27)=378, Sym^2(26)=351} + verdict map; Route A = F_4 branching/Schur count (ROUTE_A_11=2, dimension bookkeeping); Leibniz lift rho(M)=M(x)I+I(x)M + correctness guard (annihilates c, 52/52); invariance gate (D_M f=0 for both (1,1) candidates {c, Tr(X)Tr(Y)}, 52 gens, >=3 octonionic points) BEFORE any count; Route B = exact (1,1)-block f_4-kernel nullspace over QQ (dim 2 via exact_qq_rank) + named-basis identification (Tr(I)Tr(I)=9 != c(I,I)=3); full degree-2 nullspace cross-check (total 6 = blocks (2,0)/(1,1)/(0,2)=2 each); mod-products quotient=1 + frozen-R_pt degree-2 membership decision (Tr(X)Tr(Y) in R_pt, c not in R_pt; bidegree argument, NOT the is_in_Rpt stub which raises); two-route adjudicator (verdict ONLY on agreement; disagreement => trust exact nullspace + STOP); exact-only source guard. EXACT over Q; reuses the frozen engine; foreground `python -u`, chatty. (wave 1, non-interactive)
 
 ### Phase 68: (a) Generating-Set Completeness Certificate
 
@@ -256,7 +259,7 @@ Plans:
 |-------|-----------|---------|:-:|
 | 64 - Setup + Exact Engine | -- | 65, 69 | Yes |
 | 65 - f_4 + Orbit-Dimension GATE | 64 | 66, 67, 68 | Yes (the GATE) |
-| 66 - (b) Independence of c [SPINE] | 65 | Complete    | 2026-05-26 |
+| 66 - (b) Independence of c [SPINE] | 65 | -- | Yes |
 | 67 - (c) Degree-2 Uniqueness | 65 | 68 | No (parallel with 66) |
 | 68 - (a) Generating-Set Completeness | 65, 67 | -- | No (last proof phase) |
 | 69 - (REDUCIBILITY) Statement | 64 | -- | No (independent, statement-only) |
@@ -294,7 +297,7 @@ Plans:
 | 65. f_4 Construction + Orbit-Dimension GATE | v16.0 | 3/3 ran | ✓ GATE computed: trdeg 10 ≠ 7 (backtrack resolved by 65.1) | 2026-05-25 |
 | 65.1 Generating-set count correction (trdeg-10) | v16.0 | 1/1 | ✓ Complete (rank 10, two-route agreement; verified 22/22) | 2026-05-25 |
 | 66. (b) Functional Independence of c [SPINE] | v16.0 | 1/1 | ✓ Complete (c INDEPENDENT, rank 7, two-route agreement; verified 4/4) | 2026-05-26 |
-| 67. (c) Degree-2 Uniqueness | v16.0 | 0/TBD | Pending | - |
+| 67. (c) Degree-2 Uniqueness | v16.0 | 1/1 | ✓ Complete (c UNIQUE degree-2 coupling gen; (1,1)=2 = span{Tr(X)Tr(Y), c}, quotient 1; two-route agreement; verified 7/7) | 2026-05-26 |
 | 68. (a) Generating-Set Completeness Certificate | v16.0 | 0/TBD | Pending | - |
 | 69. (REDUCIBILITY) State the Dynamical Bridge | v16.0 | 0/TBD | Pending | - |
 
