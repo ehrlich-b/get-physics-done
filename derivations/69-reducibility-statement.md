@@ -142,3 +142,89 @@ verdict here.
 
 *(No irreducibility verdict is asserted in this object. No chaos/NKS/Lyapunov argument
 appears. The two regimes are kept as two maps.)*
+
+---
+
+## 3. Object 3 — The cross-term decomposition (the algebraic core)
+
+Form the overlap of the current self-state with the next one, `Tr(X_k o X_{k+1})`. For
+the **pre-projection object**
+
+> `Y_k := (1-eps) X_k^2 + eps S_k`     (so that `X_{k+1} = P_psd(Y_k)`),
+
+the overlap decomposes cleanly:
+
+> **`Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) + eps Tr(X_k o S_k)`**   *(holds exactly when `X_{k+1} = Y_k`; see the modulo-`P_psd` caveat in §3c).*
+
+### 3a. The two pieces and what they mean
+
+- **First piece `(1-eps) Tr(X_k^3)` — a POINTWISE invariant ⇒ REDUCIBLE.**
+  `Tr(X_k^3) = Tr(X_k o (X_k o X_k))` is a single-state `F_4` invariant of `X_k`
+  alone. By the established single-state result `R[h_3(O)]^{F_4} = R[Tr, Tr^2, det]`
+  (Phases 64–68; Springer 1962; Faraut–Korányi), `Tr(X_k^3)` lies in the pointwise
+  invariant ring `R[Tr, Tr^2, det]`. It is computable from the cheap pointwise
+  invariants of the *current state* — **reducible** in the capacity sense of Object 4.
+
+- **Second piece `eps Tr(X_k o S_k)` — the self-world OVERLAP ⇒ "the irreducible
+  candidate."** This is the overlap of the current self-state `X_k` with the incoming
+  world `S_k`, in the gauge directions (the `26` trace-free directions where the
+  coupling lives). We **NAME** it the **"self-world overlap / the irreducible
+  candidate"** — and STOP. We do **NOT** assert it is irreducible (prerequisites are
+  unmet; that is the next milestone's burden), and we do **NOT** bake in the
+  relational-experience identity (program doc Sec. 9.7, line 656, tags it "do NOT bake
+  in yet").
+
+### 3b. Algebraic lineage (the only non-trivial step)
+
+The decomposition is **bilinearity + symmetry of `Tr(A o B)` plus a single
+power-associativity identity**:
+
+- `Tr(X_k o Y_k) = Tr(X_k o ((1-eps) X_k^2 + eps S_k)) = (1-eps) Tr(X_k o X_k^2) + eps Tr(X_k o S_k)`
+  — by bilinearity of the Jordan product and linearity of `Tr`.
+- The **ONLY non-trivial step** is power-associativity:
+  `X_k o X_k^2 = X_k^3`, i.e. `X_k o (X_k o X_k) = X_k^3` (well-defined because
+  `h_3(O)` is power-associative, so `X_k o (X_k o X_k) = (X_k o X_k) o X_k`). Hence
+  `Tr(X_k o X_k^2) = Tr(X_k^3)`. This is a cited Albert-algebra fact
+  (Springer–Veldkamp), **not** re-proved here; it is the one identity the canned check
+  of §4 confirms exact over Q.
+- Symmetry: `Tr(X_k o S_k) = Tr(S_k o X_k)` (the Jordan product is commutative; the
+  trace form is symmetric).
+
+**Link to (RING).** The cross-term `Tr(X_k o X_{k+1})` is built from the coupling
+generator `c = Tr(X o Y)` (Phases 66/67): `eps Tr(X_k o S_k) = eps * c(X_k, S_k)`. The
+just-completed (RING) result — `c` is a genuine, functionally-independent,
+unique-degree-2 `F_4` coupling generator that is **NOT** in the pointwise ring `R_pt`
+(Phase 66, the SPINE) — is exactly **why the self-world overlap escapes the pointwise
+invariant ring**: the first piece is pointwise (`Tr(X_k^3) in R[Tr,Tr^2,det]`), but the
+second piece is the coupling `c`, which provably is not a pointwise invariant. (This is
+the static-to-dynamical bridge: the static independence of `c` is what makes the
+overlap piece a *candidate* for being irreducible. It is a candidate, not a verdict.)
+
+### 3c. The "modulo P_psd" caveat (load-bearing — stated honestly, NOT dropped)
+
+*(Caveat label, verbatim: the decomposition of §3 is the pre-projection identity, exact
+**modulo P_psd** — i.e. exact for `Y_k`, with a projection correction otherwise.)*
+
+The clean identity of §3 holds **exactly for the pre-projection object `Y_k`**. The
+actual update applies the PSD-cone projection `X_{k+1} = P_psd(Y_k)`. There are two
+cases:
+
+- **On the PSD interior** (`Y_k` already PSD): the projection does nothing,
+  `X_{k+1} = Y_k`, and the decomposition is **exact** as written.
+- **When the projection bites** (`Y_k` not PSD): the identity acquires a **projection
+  correction**
+
+  > `Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) + eps Tr(X_k o S_k) + Tr(X_k o (X_{k+1} - Y_k))`,
+
+  where `(X_{k+1} - Y_k)` is the PSD-projection displacement.
+
+We carry this correction **modulo `P_psd`** explicitly; we do **NOT** silently write the
+bare identity as if `X_{k+1} = Y_k` always. (The program doc Sec. 9.7, line 623, itself
+writes "(modulo `P_psd`)" — we match that honesty.) Note: the correction term
+`Tr(X_k o (X_{k+1} - Y_k))` is itself a diagonal-Observable-type quantity tied to the
+PSD-boundary geometry; it is **NOT** part of the "irreducible candidate" — but we do not
+over-claim its character either way (this is a STATEMENT, not an analysis of the
+projection). The next milestone must handle the projection correction explicitly.
+
+*(Frozen notation throughout. `Tr(X_k^2)` and `Tr(X_k^3)` are Jordan-power traces, never
+`(Tr X_k)^2` or `(Tr X_k)^3`. No irreducibility verdict; no chaos/NKS.)*
