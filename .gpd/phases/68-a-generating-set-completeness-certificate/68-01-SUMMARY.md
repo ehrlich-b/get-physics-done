@@ -266,9 +266,9 @@ completed: 2026-05-27
 
 **Computed the bigraded Molien series H(s,t) of R[27+27]^{F_4} exactly (no Sage) to total degree <=6 via a pure-SymPy Molien-Weyl iterated residue; passed both calibration gates and confirmed every bidegree a+b<=4 (including the heavy (2,2)) by an independent exact-over-Q f_4-kernel route — yielding the certified dimension table with d_(2,2)=9, Krull=10.**
 
-## Status: AWAITING TASK 4 (blocking human-verify checkpoint)
+## Status: COMPLETE — Task 4 human-verify checkpoint APPROVED (2026-05-27)
 
-Tasks 1-3 are COMPLETE, verified, and committed (`5b53520d`). **Task 4 is a `checkpoint:human-verify` gate marked `gate="blocking"`** — execution STOPS here and returns the decisive structural facts for human adjudication. The orchestrator presents these to the human and spawns a fresh continuation agent after approval. This SUMMARY documents Tasks 1-3; Plan 01 is not fully complete until Task 4 is approved.
+Tasks 1-3 are COMPLETE, verified, and committed (`5b53520d`). **Task 4 (`checkpoint:human-verify`, `gate="blocking"`) was APPROVED by the human** ("Approve & proceed") after the orchestrator independently re-ran `code/molien_bigraded.py` from a clean invocation and reproduced every decisive number (exit 0: CT=1152, G1=[1,1,2,3,4,5,7], G2 d_(1,1)=2, two-route agreement 6/6 incl (2,2)=9, Krull=10, symmetry). The certified bigraded dimension table is released as the decisive handoff to Plan 02. Post-approval cleanup: the stale ASSERT_CONVENTION / REP-DECOMP comments (which still described the rejected norm^2=2 weight choice) were reconciled to the norm^2=1 weights actually used; the harness re-ran CLEAN PASS (exit 0) after the comment fix.
 
 ## Performance
 
