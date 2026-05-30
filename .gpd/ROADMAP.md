@@ -58,7 +58,7 @@ Phase 70 (A0: signature bridge)  →  Phase 71 (A: homogeneity KILL gate)
 - Integer phases (70, 71, 72, 73): planned research work
 - Decimal phases (e.g., 71.1): urgent insertions (marked INSERTED)
 
-- [ ] **Phase 70: A0 — Engine Reconciliation & Signature Bridge** — Certify a single det_3, stand up the bulk-geometry engine, and fix the construction-(ii) signature bridge reducing to exact Minkowski at center
+- [x] **Phase 70: A0 — Engine Reconciliation & Signature Bridge** — Certify a single det_3, stand up the bulk-geometry engine, and fix the construction-(ii) signature bridge reducing to exact Minkowski at center
 - [ ] **Phase 71: A — Homogeneity KILL Gate** — DECISIVE: is the inherited slice metric genuinely position-dependent (route SURVIVES) or x-independent/homogeneous (route DEAD)?
 - [ ] **Phase 72: B — Matter-Sourcing (CONDITIONAL on Phase 71)** — Is the slice curvature sourced by M in V_1/V_{1/2} via the cubic-norm cross-terms, with M=0 flat/pure-Lambda?
 - [ ] **Phase 73: C — Einstein Structure (CONDITIONAL on Phase 72)** — At what honest level does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold for a cross-term-built T_mu_nu?
@@ -216,7 +216,7 @@ Phases execute in strict numeric order with hard gates: 70 -> 71 -> [KILL?] -> 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 0/2 | Planned | - |
+| 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 2/2 | Complete | 2026-05-30 |
 | 71. A — Homogeneity KILL Gate | v17.0 | 0/TBD | Not started | - |
 | 72. B — Matter-Sourcing (conditional) | v17.0 | 0/TBD | Not started | - |
 | 73. C — Einstein Structure (conditional) | v17.0 | 0/TBD | Not started | - |
