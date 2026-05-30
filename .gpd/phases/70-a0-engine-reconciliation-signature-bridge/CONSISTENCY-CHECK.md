@@ -15,24 +15,28 @@ against this authoritative ledger.
 
 ### 1. Cross-term label wrinkle — ADJUDICATED BENIGN (NOT a real inconsistency)
 
-- The ledger (CONVENTIONS.md sec 0/3 + `custom_conventions.cubic_norm_det`) states the
+- The ledger (CONVENTIONS.md sec 0/3 + `custom_conventions.cubic_norm_det`) writes the
   Freudenthal cross-term as `2Re(x2* x0* x1)`; the engine + both plans + 70-01 SUMMARY use
-  `2Re((x2 x1) x3)`. These are the SAME determinant in two index-naming conventions, not a
-  conflict.
-- **Mechanism (verified by me, independently of Wave 1):** the ledger names the three
-  off-diagonal octonions `x0,x1,x2`; the engine names them `x1,x2,x3`. Under that relabel
-  (x0:=x3), the literal conjugated form `2*Re(conj(x2)*conj(x0)*x1)` equals the engine's
-  `2*Re((x2*x1)*x3)` EXACTLY. Independent Cayley-Dickson octonion multiply over Q:
-  **200/200 random rational triples match exactly** (mismatches = 0). This is the standard
-  Freudenthal conjugated cross-term; the engine's docstring + `ref-h3o-tower` reconciliation
-  row already document it as the same det (both = +4 = Cayley-Hamilton norm at the test point).
-- Only the BUGGY unconjugated `(x1 x2) x3` order differs, by exactly N_SSOT - N_buggy = 16 at
-  octonionic_points()[1] (reproduced: full associator nonzero, order discriminator = 8). That
-  is the banned `octonion_algebra.py` order; it is annihilated by only 30/324 inner derivations
-  vs the SSOT's 324/324. The engine imports 0 of octonion_algebra (fence-free guard PASS).
-- Note: cyclic symmetry of the UNconjugated real triple product is a red herring (it happens
-  to hold for unconjugated inputs but is not the operative identity); the correct identity is
-  the conjugation+relabel one above. Verdict unchanged: BENIGN.
+  `2Re((x2 x1) x3)`. These are the SAME determinant, in two index-naming + association
+  conventions — confirmed below against the ENGINE's own `oct_mul` (ground truth), not a
+  hand-rolled multiply.
+- **The correct reading is conjugated-associative.** With the engine relabel x0:=x3, the
+  ledger string parses as `2Re( x2* (x0* x1) )` (conjugate, then associate to the right).
+  Against the engine `oct_mul`: `2Re(x2*(x3* x1)) == 2Re((x2 x1) x3)` EXACTLY on
+  **300/300 random rational triples** (and the docstring-named cyclic rotations
+  `(x3 x2)x1`, `(x1 x3)x2` also equal the SSOT — verified 8/8). The engine docstring states
+  this identity explicitly: "the cyclic rotations (x3 x2) x1 and (x1 x3) x2 are equivalent
+  (same Re), but (x1 x2) x3 is a DIFFERENT cubic form."
+- **Caution recorded for the notation-coordinator (read-order trap):** a naive
+  *left-to-right literal* parse `2Re( (x2* x0*) x1 )` does NOT equal the SSOT — it coincides
+  with the BUGGY `(x1 x2) x3` form (matched the buggy value, differed from SSOT, on 300/300
+  triples). So `2Re(x2* x0* x1)` is only correct under the conjugated-associative reading.
+  This is exactly why the engine pins the unambiguous `(x2 x1) x3` form and certifies it
+  (CH norm + 324/324 inner-derivation annihilation); the buggy order passes only 30/324 and
+  is the banned `octonion_algebra.py` order (off-by-16 at octonionic_points()[1], reproduced).
+- **Verdict:** BENIGN — same F_4-invariant cubic norm under the intended (conjugated) reading.
+  Phase 70 uses the certified engine form throughout, so there is NO inconsistency in the
+  work. The ledger STRING is ambiguous and should be tightened (see recommendation).
 
 ### 2. Metric signature — CONSISTENT
 
@@ -44,18 +48,19 @@ as N/A (pure-algebra cubic-norm sub-phase). Consistent.
 
 ### 3. Potential `−log det` + SSOT engine + octonion_algebra ban — HONORED
 
-`potential = −log det` (NOT bare det) in ledger sec 4 and 70-02 (`convention[1]`, Eq. 70.1,
-`cone_hessian_at_center` computes Hess of `−log(det_3)`). SSOT = `ring_lemma_verification.det_3`
-in ledger; 70-01 certifies a byte-identical verbatim copy (`bulk_geometry_verification.py`,
-sha256 e43d6a3f..., LOCK 0) and 70-02 builds the geometry only on it. `octonion_algebra.py`
-BANNED in ledger sec 7; both plans confirm 0 imports (guard PASS, 0 float-rank). Consistent.
+`potential = −log det` (NOT bare det) in ledger sec 4 and 70-02 (`convention[1]`, Eq. 70.1;
+`cone_hessian_at_center` differentiates `−log(det_3)` twice). SSOT =
+`ring_lemma_verification.det_3` in ledger; 70-01 certifies a byte-identical verbatim copy
+(`bulk_geometry_verification.py`, sha256 e43d6a3f..., LOCK 0) and 70-02 builds the geometry
+only on it. `octonion_algebra.py` BANNED in ledger sec 7; both plans confirm 0 imports
+(fence-free guard PASS, 0 float-rank). Consistent.
 
 ### 4. Construction (ii) signature bridge + exact-over-Q — CONSISTENT
 
 Construction (ii) [eta from `h_2(C_u)`'s own `det_2`; cone-Hessian supplies only `h_mu_nu`]
 USED; construction (i) [Wick-rotate via u=e_7] REJECTED — matches ledger `signature_bridge`
-verbatim, with the same two reasons (unproven C*-bottleneck conjecture + Visser
-arXiv:1702.05572 spurious-curvature). 70-02 honestly flags the Minkowski residual=0 as
+verbatim, same two reasons (unproven C*-bottleneck conjecture + Visser arXiv:1702.05572
+spurious curvature). 70-02 honestly flags the Minkowski residual=0 as
 tautological-by-construction (Note B) and routes decisive content to the Hessian benchmark
 `diag(9,9,18,18)`/det 26244 + index-map slice form `beta*gamma/3 − p^2/3 − q^2/3` — both
 matching the ledger `milestone` test values exactly. Exact-over-Q discipline honored
@@ -70,25 +75,24 @@ Consistent.
   trusted) via the slice det form. H^3 = SL(2,C)/SU(2) target curvature −1 (Totaro −d^2/4,
   d=2) stated, full computation correctly deferred to Phase 71 — matches ledger
   `riemann_ricci_sign`.
-- **Natural units** (ħ=c=k_B=1) consistent; the verdicts are dimensionless geometry, so no
+- **Natural units** (ħ=c=k_B=1) consistent; verdicts are dimensionless geometry, so no
   unit-conversion boundary to mishandle.
 
 ## STATE.md staleness (housekeeping, NON-blocking — does not affect Phase 70 correctness)
 
-`.gpd/STATE.md` lines ~142-171 still carry the v16.0 "Convention Lock" block, which lists
-several RETIRED v16.0 values that contradict the live v17.0 ledger:
-- line ~153 "Coupling convention: J > 0 antiferromagnetic" — RETIRED per ledger
-  `coupling_convention` (now cubic-norm cross-terms C_{(V_0)(V_1)(V_{1/2})}).
-- the block predates the v17.0 cone-geometry conventions generally.
-state.json `convention_lock` and CONVENTIONS.md are the authoritative, mutually-consistent
-v17.0 sources and both SUMMARYs follow them. STATE.md is a stale human-readable mirror only;
-recommend the orchestrator refresh its Convention Lock section to mirror the v17.0 ledger
-(matches the existing MEMORY note about STATE/state.json reconciliation). This is a
-documentation lag, not a physics inconsistency in Phase 70.
+`.gpd/STATE.md` lines ~142-171 still carry the v16.0 "Convention Lock" block with RETIRED
+v16.0 values that contradict the live v17.0 ledger — e.g. line ~153
+"Coupling convention: J > 0 antiferromagnetic" (RETIRED; the ledger `coupling_convention` is
+now the cubic-norm cross-terms C_{(V_0)(V_1)(V_{1/2})}). state.json `convention_lock` and
+CONVENTIONS.md are the authoritative, mutually-consistent v17.0 sources and both SUMMARYs
+follow them; STATE.md is a stale human-readable mirror only. Recommend the orchestrator
+refresh STATE.md's Convention Lock section to the v17.0 ledger (matches the existing MEMORY
+note on STATE/state.json reconciliation). Documentation lag, not a physics inconsistency.
 
 ## Recommendation (non-blocking)
 
-Optionally align CONVENTIONS.md's cross-term wording to the engine-native
-`2Re((x2 x1) x3)` form (or annotate that `2Re(x2* x0* x1)` is the identical Freudenthal
-conjugated form under the x0=x3 relabel) to remove future confusion. Refresh STATE.md's
-Convention Lock block to the v17.0 ledger. Neither affects any Phase-70 verdict.
+Tighten the ledger cross-term wording so it is unambiguous: either adopt the engine-native
+`2Re((x2 x1) x3)` directly, or annotate `2Re(x2* x0* x1)` as the conjugated-associative
+form `2Re( x2*(x0* x1) )` (x0=x3) and warn that the naive left-to-right literal parse
+coincides with the banned buggy order. Refresh STATE.md's Convention Lock block to v17.0.
+Neither affects any Phase-70 verdict.
