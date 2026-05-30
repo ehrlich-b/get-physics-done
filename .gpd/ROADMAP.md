@@ -110,12 +110,12 @@ Plans:
 5. All decisive arithmetic on the KILL verdict is EXACT over Q (no float ranks, no float curvature); the off-center parameter `rho_J(X_bg)` is distinguished from the spacetime coordinate x (which is O(1), the wrong expansion variable).
 
 **Backtracking trigger:** **KILL CONDITION** — if `h_mu_nu(x)` is x-independent (homogeneous), report "Phase A homogeneous — route dead" and STOP; do NOT proceed to Phase 72/73 and do NOT relabel it. If the single-copy orbit anchor (24 / Spin(8)) is not reproduced, the stabilizer computation is not yet trustworthy — re-calibrate before trusting the E_11-stabilizer count. If the x-variation verdict disagrees between the Riemannian restriction and the Lorentzian bridge, that disagreement localizes a coordinate/Wick artifact — return to Phase 70.
-**Plans:** TBD
+**Plans:** 2 plans (wave 1: 71-01; wave 2: 71-02)
 
 Plans:
 
-- [ ] 71-01: TBD (build slice metric g_mu_nu(x); compute curvature-scalar invariants at >= 2 basepoints — the KILL verdict)
-- [ ] 71-02: TBD (dim Stab_{E_6}(E_11) + basepoint-family dim via orbit_dimension_gate.py; reproduce single-copy anchor; totally-geodesic / II check)
+- [ ] 71-01-PLAN.md — Route 1 (primary curvature verdict): benchmark H^3=-1 on the cone-Hessian slice FIRST; extend cone_hessian_at_center to an off-center expansion (rho_J(X_bg), not x); compute R(x), K(x) via hand-rolled Totaro closed form exact over Q at >= 2 distinct generic rational basepoints on the dim-4 h_2(C_u) sub-slice; KILL/SURVIVES verdict reported without softening. [DERV-01, VALD-01]
+- [ ] 71-02-PLAN.md — Route 2 (mandatory cross-check) + CALC-02 + final reconciliation: reproduce single-copy anchor (24/Spin(8) 28) + build e_6=f_4+L(traceless) (78) FIRST; compute dim Stab_{E_6}(E_11)=ker{D->D.E_11} + the (basepoint,slice)-family dim modulo it exact over Q; compute II of the full V_0 (II=0 => totally geodesic => KILL); emit the FINAL reconciled two-route verdict only if Route 1, Route 2, and II AGREE. [CALC-01, CALC-02, VALD-01]
 
 ### Phase 72: B — Matter-Sourcing (CONDITIONAL on Phase 71 surviving)
 
@@ -217,7 +217,7 @@ Phases execute in strict numeric order with hard gates: 70 -> 71 -> [KILL?] -> 7
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 2/2 | Complete | 2026-05-30 |
-| 71. A — Homogeneity KILL Gate | v17.0 | 0/TBD | Not started | - |
+| 71. A — Homogeneity KILL Gate | v17.0 | 0/2 | Planned | - |
 | 72. B — Matter-Sourcing (conditional) | v17.0 | 0/TBD | Not started | - |
 | 73. C — Einstein Structure (conditional) | v17.0 | 0/TBD | Not started | - |
 
