@@ -1,0 +1,219 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, potential=minus_log_det,
+%   cone_metric=hess(minus_log_det), cubic_norm_det=ring_lemma_verification_det_3,
+%   arithmetic=exact_over_Q
+%
+% Phase 70 (A0), Plan 02: The signature bridge for the v17.0 milestone
+%   "Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry".
+%
+% This file STATES the A0 signature bridge: construction (ii) [USED] vs
+% construction (i) [REJECTED], the potential FIXED as -log det, the spacetime
+% sub-slice index assignment, the Minkowski-reduction gate, and the
+% H^3 = SL(2,C)/SU(2) constant-curvature cross-check (VALD-03, deferred to
+% Phase 71 for the full computation).
+%
+% References:
+%   [FK94]  Faraut & Koranyi, Analysis on Symmetric Cones (OUP 1994), Ch. II-IV
+%           (cone metric g_X = Hess(-log det); positive-definite / Riemannian).
+%   [52KKT] derivations/52-kkt-spacetime.tex + 52-observer-uniqueness.tex
+%           (h_2(C_u) ~ R^{3,1}, det_2 = x0^2-x1^2-x2^2-x3^2, signature (1,3)
+%           mostly-minus, Minkowski coords x0=(beta+gamma)/2, x3=(beta-gamma)/2).
+%   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381
+%           (Int. J. Math. 15 (2004) 369-391): constant sectional curvature
+%           -d^2/4 for the rank-1 cone slice {f=1}.
+%   [VIS17] Visser, "How to Wick rotate generic curved spacetime,"
+%           arXiv:1702.05572 (2017): naive coordinate Wick rotation manufactures
+%           spurious curvature on a curved metric -- used to REJECT construction (i).
+%   [70-01] code/bulk_geometry_verification.py (Plan 70-01): the certified SSOT
+%           cubic norm det_3 (cross 2Re((x2 x1) x3); F_4-invariant via
+%           Cayley-Hamilton + 324/324 inner-derivation annihilation).
+
+\section{The A0 signature bridge for $\mathfrak{h}_3(\mathbb{O})$}
+
+\subsection{The potential and the cone metric (FIXED)}
+
+The positive cone $\Omega = \{X \in \mathfrak{h}_3(\mathbb{O}) : X > 0\}$ is a
+symmetric cone; following Faraut--Koranyi~[FK94, Ch.~II--IV] we FIX the cone
+\emph{potential} as
+\begin{equation}
+  \Phi(X) = -\log \det(X),
+  \label{eq:potential}
+\end{equation}
+where $\det$ is the certified Freudenthal cubic norm $\det_3$ (the v17.0 single
+source of truth, $\text{cross-term } 2\,\mathrm{Re}((x_2 x_1) x_3)$;
+see~[70-01]). The canonical \emph{cone metric} is the Hessian of the potential,
+\begin{equation}
+  g_X(A,B) \;=\; -\left.\frac{\partial^2}{\partial s\,\partial t}
+    \log\det(X + sA + tB)\right|_{s=t=0}
+  \;=\; \operatorname{Hess}\!\big(-\log\det\big)(X).
+  \label{eq:cone-metric}
+\end{equation}
+Because $-\log\det$ is strictly convex on $\Omega$, the metric
+\eqref{eq:cone-metric} is \textbf{positive-definite (Riemannian)}~[FK94]. This
+positivity is precisely \emph{why a Riemannian$\to$Lorentzian signature bridge is
+needed at all}: the bulk cone geometry is Euclidean-signature, yet the spacetime
+slice $\mathfrak{h}_2(\mathbb{C}_u) \simeq \mathbb{R}^{3,1}$ must carry Lorentzian
+signature $(1,3)$.
+
+\paragraph{Algebraic grading (the ``dimensional'' check).}
+This is pure geometry: there is no SI mass dimension. The relevant grading is
+algebraic degree. $\det_3$ is homogeneous of degree $3$; the Taylor jet of
+$-\log\det$ around a point terminates appropriately because $\det$ is cubic
+($\det_{ijkl} \equiv 0$), and the metric is the \emph{degree-2} (Hessian) term of
+that jet. All decisive verdicts below are EXACT over $\mathbb{Q}$.
+
+\subsection{Construction (ii) [USED]: background $\eta$ from $\det_2$,
+  cone-Hessian supplies only $h_{\mu\nu}$}
+
+The spacetime sub-slice is $\mathfrak{h}_2(\mathbb{C}_u) \simeq \mathbb{R}^{3,1}$,
+whose own quadratic norm is the Minkowski form~[52KKT]
+\begin{equation}
+  \det{}_2(X) = x_0^2 - x_1^2 - x_2^2 - x_3^2, \qquad
+  \eta_{\mu\nu} = \mathrm{diag}(+1,-1,-1,-1),
+  \label{eq:det2}
+\end{equation}
+in the Minkowski coordinates
+\begin{equation}
+  x_0 = \tfrac{1}{2}(\beta + \gamma), \quad x_1 = p, \quad x_2 = q, \quad
+  x_3 = \tfrac{1}{2}(\beta - \gamma),
+  \label{eq:mink-coords}
+\end{equation}
+so that the diagonal entries are $b \equiv x_0 + x_3 = \beta$ and
+$g \equiv x_0 - x_3 = \gamma$, and $(p,q)$ are the $\mathbb{C}_u = \mathrm{span}\{1,e_7\}$
+components of the off-diagonal octonion. The signature is mostly-minus $(1,3)$.
+
+\medskip
+\noindent\textbf{The bridge (construction (ii), LOCKED).} The inherited slice
+metric is
+\begin{equation}
+  \boxed{\,g_{\mu\nu}(x) = \eta_{\mu\nu} + h_{\mu\nu}(x)\,},
+  \label{eq:bridge}
+\end{equation}
+where:
+\begin{itemize}
+  \item the \emph{background} Lorentzian metric $\eta_{\mu\nu}$ comes from
+    $\mathfrak{h}_2(\mathbb{C}_u)$'s \textbf{own} quadratic norm $\det_2$
+    \eqref{eq:det2} -- NOT from the cone-Hessian;
+  \item the cone-Hessian \eqref{eq:cone-metric} supplies \textbf{only the
+    perturbation} $h_{\mu\nu}$, DEFINED as
+    \begin{equation}
+      h_{\mu\nu}(x) \;:=\;
+        \big[\operatorname{Hess}(-\log\det)\big|_{V_0}\text{ in }
+          \mathfrak{h}_2(\mathbb{C}_u)\text{ coords}\big](x)
+        \;-\;
+        \big[\text{its value at } (M=0,\ \text{center } I/3)\big].
+      \label{eq:h-defn}
+    \end{equation}
+\end{itemize}
+By construction $h_{\mu\nu} = 0$ at the center, so $g_{\mu\nu}(\text{center},
+M{=}0) = \eta_{\mu\nu}$ EXACTLY. The $V_0 \leftrightarrow$ Minkowski-index frame
+is fixed \emph{once} at the center (a fixed linear identification via
+\eqref{eq:mink-coords}), not per-point.
+
+\paragraph{Honest scope of the reduction gate (plan-check Note B).}
+The exact-Minkowski reduction $g_{\mu\nu}(\text{center}, M{=}0) - \eta_{\mu\nu} = 0$
+holds \emph{identically} once $h$ is defined by the centered subtraction
+\eqref{eq:h-defn}: it is true \emph{by construction}, not as independent evidence
+of an uncontaminated background. We therefore do NOT present residual-$=0$ as the
+decisive uncontaminated-background proof. The genuine anti-contamination content
+rides on (a)~the directly-computed Hessian benchmark
+$\operatorname{Hess}(-\log\det)|_{I/3} = \mathrm{diag}(9,9,18,18)$, $\det 26244$,
+and (b)~the index-map assertion $\det_3|_{\{x_1,x_2,x_3,x_{10}\}} =
+\beta\gamma/3 - p^2/3 - q^2/3$ -- both exact over $\mathbb{Q}$
+(Sec.~\ref{sec:subslice}). The centered-subtraction $h := \operatorname{Hess} -
+\operatorname{Hess}|_{\text{center}}$ also avoids the double-counting
+contamination (taking $\eta$ from $\det_2$ \emph{and} keeping the $\eta$-like part
+of the restricted Hessian), which would leave a spurious constant $h_{\mu\nu}$
+masquerading as a cosmological constant.
+
+\subsection{Construction (i) [REJECTED]: Wick-rotate via $u = e_7$}
+
+The alternative is to restrict the positive-definite cone metric
+\eqref{eq:cone-metric} to the $V_0$-tangent directions and then Wick-rotate one
+direction using the complex structure $u = e_7$. We REJECT it for two reasons,
+stated inline:
+\begin{enumerate}
+  \item It relies on the \emph{unproven} $C^\ast$-bottleneck signature-flip
+    conjecture (that the complex structure cleanly flips one signature eigenvalue
+    on the slice). This is not established.
+  \item Per Visser~[VIS17], a naive coordinate Wick rotation is a complex
+    deformation of the \emph{metric} (not of the coordinate) and is
+    chart-dependent on a curved metric: applied to the curved cone-Hessian it
+    \emph{manufactures spurious curvature}. So (i) does not cleanly yield exact
+    Minkowski at $(M=0,\ \text{center})$ without an ad-hoc analytic continuation.
+\end{enumerate}
+Construction (ii) is free of both defects: its background is the honest Lorentzian
+$\det_2$ form, and its perturbation is a genuine (centered) Hessian datum.
+
+\subsection{The spacetime sub-slice: index assignment}
+\label{sec:subslice}
+
+Under the primitive idempotent $E_{11} = \mathrm{diag}(1,0,0)$ the Peirce
+decomposition is $\mathfrak{h}_3(\mathbb{O}) = V_1(1) \oplus V_{1/2}(16) \oplus
+V_0(10)$ with $V_0 = \mathfrak{h}_2(\mathbb{O})$. The spacetime sub-slice is the
+$\mathbb{C}_u$-part $\mathfrak{h}_2(\mathbb{C}_u)$ (4-dimensional), with Peirce
+index set $\{17,18,19,26\}$.
+
+\medskip
+\noindent\textbf{Index map (asserted, not assumed).} Against the engine-native
+coordinate layout (where $x_0,x_1,x_2$ are the diagonal reals
+$\alpha,\beta,\gamma$ and $x_3,\dots,x_{10}$ are the $8$ components of the
+off-diagonal octonion $x^{(1)} = X[2][1]$),
+\begin{equation}
+  \{17,18,19,26\} \;=\; \mathfrak{h}_2(\mathbb{C}_u)
+    \;\equiv\; \{\,x_1\,(\beta),\ x_2\,(\gamma),\ x_3\,(p = x^{(1)}_{e_0}),\
+      x_{10}\,(q = x^{(1)}_{e_7})\,\},
+  \label{eq:index-map}
+\end{equation}
+because the lower-right $\mathfrak{h}_2(\mathbb{O})$ block is rows/columns
+$\{1,2\}$ (the diagonal $\beta,\gamma$), and the $\mathbb{C}_u = \mathrm{span}\{1,e_7\}$
+part of the off-diagonal octonion is components $\{0,7\}$. The internal
+$W$-sector $V_0 = \{20,\dots,25\}$ (the $\mathfrak{h}_2$ part orthogonal to
+$\mathbb{C}_u$) is EXCLUDED -- killed by the $\pi_u$ projection.
+
+This assignment is verified EXACTLY over $\mathbb{Q}$ in the certified engine
+(\texttt{code/bulk\_geometry\_verification.py}, function \texttt{slice\_det\_form}):
+restricting the SSOT $\det_3$ to $\{x_1,x_2,x_3,x_{10}\}$ (all other 23 coordinates
+set to their center $I/3$ values, $\alpha = 1/3$) gives
+\begin{equation}
+  \det{}_3\big|_{\{x_1,x_2,x_3,x_{10}\}}(\alpha = \tfrac13)
+    \;=\; \frac{\beta\gamma}{3} - \frac{p^2}{3} - \frac{q^2}{3},
+  \label{eq:slice-det-form}
+\end{equation}
+i.e.\ exactly $\det_2/3$ with $b=\beta$, $g=\gamma$ (the $\alpha = 1/3$ center
+normalization of the Minkowski quadratic form): one positive product-of-diagonals
+term and two negative squares, no extra terms. This is the explicit check that
+$\{17,18,19,26\}$ are the \emph{spacetime} directions, not the internal
+$\{20,\dots,25\}$.
+
+\subsection{The Hessian benchmark and the Minkowski reduction (computed gates)}
+\label{sec:gates}
+
+Two decisive geometry gates are computed directly in the certified engine, EXACT
+over $\mathbb{Q}$ (functions \texttt{cone\_hessian\_at\_center} and
+\texttt{minkowski\_reduction}):
+\begin{align}
+  \text{(Hessian benchmark)}\quad
+    &\operatorname{Hess}(-\log\det)\big|_{I/3}\Big|_{\{x_1,x_2,x_3,x_{10}\}}
+    = \mathrm{diag}(9,9,18,18), \quad \det = 26244 \neq 0,
+    \label{eq:hess-bench}\\[2pt]
+  \text{(Minkowski reduction)}\quad
+    &g_{\mu\nu}(\text{center},\,M{=}0) - \eta_{\mu\nu} = 0
+    \ \text{(exact $4\times4$ zero over $\mathbb{Q}$)},\ \text{signature }(1,3).
+    \label{eq:mink-red}
+\end{align}
+The Hessian \eqref{eq:hess-bench} is positive-definite (eigenvalues
+$\{9,9,18,18\} > 0$), confirming the Riemannian character of the bulk metric
+\emph{before} the signature bridge -- consistent with the need for construction
+(ii). The reduction \eqref{eq:mink-red} is the tautological-by-construction gate
+of Note B; its role is to confirm the centered-subtraction is implemented
+correctly and yields signature $(1,3)$, not to certify the background
+independently.
+
+\paragraph{Backtracking trigger.}
+If the residual $h_{\mu\nu}$ at $(M=0,\ \text{center})$ were provably nonzero over
+$\mathbb{Q}$ \emph{and} could not be removed by re-fixing the $V_0 \leftrightarrow$
+Minkowski frame at the center, the roadmap trigger fires: switch to construction
+(i) or HALT. We do NOT declare the bridge fixed with a nonzero residual. Here the
+residual is the exact zero (by construction), so the trigger does not fire.

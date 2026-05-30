@@ -890,7 +890,75 @@ def _yn(flag):
 
 
 # ============================================================================
-# 10. main(): re-run the full LOCK harness on the fresh module + reconciliation
+# 10. SIGNATURE-BRIDGE GEOMETRY  (Plan 70-02; SETU-02 / VALD-02)
+# ============================================================================
+# Build the construction-(ii) Lorentzian-slice geometry ON TOP of the certified
+# SSOT det_3 (Sections 1-9; NEVER octonion_algebra.py). The potential is FIXED as
+# -log det (Faraut-Koranyi Ch. II-IV); the cone metric g_X = Hess(-log det) is
+# POSITIVE-DEFINITE (Riemannian) -- which is exactly why a Riemannian->Lorentzian
+# signature bridge is needed. Three decisive gates, ALL EXACT over Q:
+#   (G1) INDEX-MAP:  det_3 restricted to the spacetime sub-slice {17,18,19,26} ==
+#                    engine-native {x1(beta), x2(gamma), x3(p), x10(q)} equals the
+#                    Minkowski slice form beta*gamma/3 - p^2/3 - q^2/3  (Task 1).
+#   (G2) HESSIAN:    Hess(-log det)|_{I/3} restricted to {x1,x2,x3,x10} ==
+#                    diag(9,9,18,18), det 26244  (a NEW computed gate; Task 2).
+#   (G3) MINKOWSKI:  construction-(ii) reduction g(center,M=0) - eta == 0 over Q,
+#                    signature (1,3) mostly-minus  (Task 2; tautological-by-
+#                    construction per plan-check Note B -- see BACKTRACKING_TRIGGER).
+#
+# SPACETIME SUB-SLICE INDEX MAP (engine-native layout, Section 4; do NOT re-index):
+#   x0,x1,x2 = diag(alpha,beta,gamma);  x3..x10 = octonion x1 (8 comps).
+#   The lower-right h_2(O) block is rows/cols {1,2} (diag beta,gamma); the C_u =
+#   span{1,e_7} part of the off-diagonal octonion x1 = X[2][1] is components {0,7}.
+#   => the 4 spacetime sub-slice coords {17,18,19,26} (Peirce labeling of h_2(C_u))
+#      == engine-native symbols {x1=beta, x2=gamma, x3=p (oct-x1 comp e_0),
+#         x10=q (oct-x1 comp e_7)}.  Internal W-sector V_0 = {20..25} is EXCLUDED
+#      (killed by the pi_u projection; it is the h_2 part orthogonal to C_u).
+SLICE_IDX = [1, 2, 10, 3]   # ENGINE-NATIVE indices for (beta, gamma, q, p)  [see note below]
+# NOTE on ordering: we order the 4 sub-slice directions as (beta, gamma, q, p) so
+# the FRAME MAP to Minkowski coords (x0,x1,x2,x3) is the clean 52-kkt one:
+#   x0 = (beta+gamma)/2,  x1 = p,  x2 = q,  x3 = (beta-gamma)/2   (derivations/52-kkt).
+# The index SET {beta,gamma,p,q} = engine {x1,x2,x3,x10} is what matters for the map;
+# the per-test orderings are stated explicitly at each gate.
+
+
+def _center_subs():
+    """Substitution dict sending ALL 27 engine-native X-coords to the center I/3:
+    diagonal alpha=beta=gamma=1/3, every octonion off-diagonal component 0.
+    (rho_J=0, det(I/3)=1/27, Tr(I/3)=1.) Exact over Q."""
+    sub = {xs[k]: Rational(0) for k in range(27)}
+    sub[xs[0]] = Rational(1, 3)
+    sub[xs[1]] = Rational(1, 3)
+    sub[xs[2]] = Rational(1, 3)
+    return sub
+
+
+def slice_det_form():
+    """Restrict the SSOT det_3 to the 4 spacetime sub-slice coords
+    {x1=beta, x2=gamma, x3=p, x10=q} (all 23 spectator coords -> their center I/3
+    value: alpha=1/3, the other octonion comps 0) and return the restricted cubic
+    form as a SymPy expression in fresh symbols (beta, gamma, p, q). EXACT over Q.
+
+    Expected: beta*gamma/3 - p^2/3 - q^2/3  (= det_2/3 with b=beta, g=gamma; the
+    alpha=1/3 center normalization of the h_2(C_u) Minkowski quadratic form). This
+    is the explicit ASSERTION (test-index-map) that {17,18,19,26} are the SPACETIME
+    directions {x1,x2,x3,x10}, NOT the internal W-sector {20..25}."""
+    beta, gamma, p, q = symbols('beta gamma p q', real=True)
+    sub = {xs[k]: Rational(0) for k in range(27)}
+    sub[xs[0]] = Rational(1, 3)   # alpha -> center 1/3 (killed diagonal direction)
+    sub[xs[1]] = beta             # x1  = beta   (free spacetime coord)
+    sub[xs[2]] = gamma            # x2  = gamma  (free spacetime coord)
+    sub[xs[3]] = p                # x3  = oct-x1 comp e_0 = p (free spacetime coord)
+    sub[xs[10]] = q               # x10 = oct-x1 comp e_7 = q (free spacetime coord)
+    form = simplify(inv_det_X.subs(sub))
+    target = simplify(beta * gamma * Rational(1, 3)
+                      - p ** 2 * Rational(1, 3) - q ** 2 * Rational(1, 3))
+    return form, target, (beta, gamma, p, q)
+
+
+# ============================================================================
+# 11. main(): re-run the full LOCK harness on the fresh module + reconciliation
+#     + the Plan 70-02 signature-bridge geometry gates
 # ============================================================================
 
 
@@ -1031,6 +1099,29 @@ def main():
             "(off by 16: N_SSOT - N_buggy == 16) -- fp-wrong-cross-term REJECTED",
             R["re_bug"] == -4 and R["N_bug"] != R["CH"]
             and simplify(R["N_ssot"] - R["N_bug"]) == 16)
+
+    # ========================================================================
+    # PLAN 70-02 SIGNATURE-BRIDGE GEOMETRY GATES (built on the SSOT det_3 above)
+    # ========================================================================
+    print("=" * 78)
+    print("PLAN 70-02 : signature-bridge geometry on the certified det_3")
+    print("  potential = -log det (Riemannian g_X=Hess(-log det)); construction (ii)")
+    print("=" * 78)
+
+    # ------------------------------------------------------------------------
+    # Plan 70-02 Task 1: INDEX-MAP assertion (test-index-map).
+    # det_3 restricted to {x1,x2,x3,x10} == beta*gamma/3 - p^2/3 - q^2/3 over Q.
+    # This ASSERTS that {17,18,19,26} are the SPACETIME (not internal {20..25})
+    # directions -- the reconstruction is checked, not trusted.
+    # ------------------------------------------------------------------------
+    print("Task 1 (70-02) -- spacetime sub-slice INDEX-MAP via the slice det form:")
+    _sform, _starget, _ = slice_det_form()
+    print(f"      det_3|_{{x1,x2,x3,x10}}(alpha=1/3) = {_sform}")
+    print(f"      target  b*g/3 - p^2/3 - q^2/3      = {_starget}")
+    _report("INDEX-MAP det_3 restricted to {x1,x2,x3,x10} == beta*gamma/3 "
+            "- p^2/3 - q^2/3 (exact over Q) -- {17,18,19,26}=={x1,x2,x3,x10}, "
+            "internal {20..25} EXCLUDED",
+            simplify(_sform - _starget) == 0)
 
     print("-" * 78)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")
