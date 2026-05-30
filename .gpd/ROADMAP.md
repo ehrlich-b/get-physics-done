@@ -84,12 +84,12 @@ Phase 70 (A0: signature bridge)  →  Phase 71 (A: homogeneity KILL gate)
 5. The potential is FIXED as `-log det` (not `det`) at the start and the index/coordinate assignment for the V_0 spacetime sub-slice (`{17,18,19,26}`) and signature convention are stated explicitly (so they are not silently mixed downstream).
 
 **Backtracking trigger:** If the cubic-norm cross-term association fails its Cayley-Hamilton / multiplicativity verification, STOP and fix det before ANY geometry. If construction (ii) does not reduce to EXACT Minkowski at (M=0, center), switch to construction (i) or STOP and re-examine the bridge — do not proceed with a contaminated background (a constant offset masquerades as Lambda or position-dependence).
-**Plans:** TBD
+**Plans:** 2 plans (wave 1: 70-01; wave 2: 70-02)
 
 Plans:
 
-- [ ] 70-01: TBD (engine reconciliation: stand up `bulk_geometry_verification.py`; certify det_3 on non-associative data; reproduce ALL_PASS)
-- [ ] 70-02: TBD (signature bridge (ii); reduce-to-Minkowski gate; H^3 sub-slice cross-check)
+- [ ] 70-01-PLAN.md — Engine reconciliation: copy Sections 1-3 of `ring_lemma_verification.py` verbatim into `code/bulk_geometry_verification.py`; certify `det_3` (cross `2Re((x2 x1) x3)`) via LOCK 7a (Cayley-Hamilton norm) + LOCK 7b (324/324 inner-derivation annihilation); three-ordering reconciliation on non-associative e_4..e_7 data; reproduce ALL_PASS. [SETU-01]
+- [ ] 70-02-PLAN.md — Signature bridge (ii): state construction (ii) (eta from h_2(C_u)'s det_2) vs rejected (i); assert sub-slice index map `{17,18,19,26}` == engine-native `{x1,x2,x3,x10}` via slice det form `b*g/3 - p^2/3 - q^2/3`; new gate `Hess(-log det)|_{I/3} = diag(9,9,18,18)`, det 26244; prove exact Minkowski reduction `g(center,M=0) - eta = 0` over Q; state H^3 = SL(2,C)/SU(2) target curvature -1 (Totaro), defer full computation to Phase 71. [SETU-02, VALD-02, VALD-03]
 
 ### Phase 71: A — Homogeneity KILL Gate
 
@@ -216,7 +216,7 @@ Phases execute in strict numeric order with hard gates: 70 -> 71 -> [KILL?] -> 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 0/TBD | Ready to plan | - |
+| 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 0/2 | Planned | - |
 | 71. A — Homogeneity KILL Gate | v17.0 | 0/TBD | Not started | - |
 | 72. B — Matter-Sourcing (conditional) | v17.0 | 0/TBD | Not started | - |
 | 73. C — Einstein Structure (conditional) | v17.0 | 0/TBD | Not started | - |
