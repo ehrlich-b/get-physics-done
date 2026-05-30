@@ -2,11 +2,23 @@
 
 ## What This Is
 
-Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny -- v14.0 is now PAUSED pending the JMP referee report. v15.0 attacked the program's spine: the RESTRICTION lemma joining Paper 5 (observer forced complex by HAVING a composite, clause iii) and Paper 7 (basin forced octonionic by being NON-composable). Verdict: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island -- the bottleneck conditional expectation E does NOT transport the self-modeling sequential product coherently from the non-associative h_3(O) (exact residual R != 0, ||R||^2 = 38593/72, decisive-triple associator 524/9 load-bearing), so E is the access/projection map, not a Jordan/SP morphism on the ambient; but the observer self-certifies its M_3(C)^sa QM on the slice A = h_3(C_u) (all four Def 1 clauses, intrinsically) and that slice sits inside h_3(O) as range E, so the "self-modeling -> QM -> h_3(O)" through-line SURVIVES as the island through-line (NOT independent posits, NOT a program collapse). v16.0 opened (and CLOSED) a parallel consciousness-side line, independent of the physics-side spine: it PROVED the (RING) lemma -- the math half of the Chalmers gap. The inter-frame cross-term c(X,Y) = Tr(X o Y) driving the experiential functional Phi is FUNCTIONALLY INDEPENDENT of (and a genuine, minimal, unique-degree-2 generator beyond) the single-state F_4-invariant ring R[Tr, Tr^2, det], so the complete third-person record of rho provably does not determine Phi. The subfield is mathematical physics / quantum foundations / information geometry.
+Deriving the fundamental laws of physics from the algebraic structure of self-modeling composite processes. v1.0 formalized the experiential measure framework. v2.0 derived QM from a single operational premise (Paper 5). v3.0 derived GR via locality -> area law -> Jacobson (Paper 6). v4.0 found that simple M_n(C) cannot give SM gauge group (structural obstruction). v5.0 derived chirality from h_3(O) via Cl(6), assembling Paper 7 with 9-link chain conditional on Gaps A, B1, B2. v6.0 proved that Gap C cannot be closed algebraically (all 4 Peirce-mediated routes failed -- but those routes looked for complexification internal to h_3(O)). v7.0 derived entropy gradient theorem, Landauer bound on self-modeling, and three-consequence theorem; narrowed Gap C for SM-like observers but did not close it. v8.0 proved basin impossibility theorems for Gap C; Paper 7 complexification claim correct. v9.0 demonstrated the continuum limit mechanism on a Heisenberg toy model: Fisher geometry, emergent Lorentz, BW/KMS, Jacobson -- chain conditionally complete for d>=3. v10.0 proves the self-modeler network in h_3(O) is in the right universality class to close all four Paper 6 gaps unconditionally. v11.0 closed Gap C: C*-observer sequential product extends Cl(9,0) to Cl(9,C), theorem assembled with L1-L9 zero regressions. v12.0 derived Einstein gravity algebraically: V_0 = h_2(O) projected via pi_u to R^{3,1} carries GST magic supergravity with prepotential det(X); Weinberg 1964 forces -R/2 from spin-2 + universal coupling (all algebraic inputs from h_3(O)). Complete SM+GR assembly DAG with 18 nodes verified acyclic. 13 gaps catalogued honestly (chain-critical: N=2 SUSY as input, compact so(3) vs so(3,1)). v13.0 closes the two chain-critical algebraic gaps: V_0 = spacetime derived via operational definition match (OD1-OD7 + KKT(h_2(C_u)) = so(4,2) + F_4 covariance), and N=2 SUSY derived as consequence of Lagrangian uniqueness from det(X) + E_{6(-26)} via GST classification. v14.0 is a Paper 5 revision cycle: Paper 5 is 16+ days with the JMP associate editor (JMP26-AR-00922, Zenodo DOI 10.5281/zenodo.19342703). A jigsaw-piece-level review identified 6 places where the logical chain is visually sound but the author cannot independently reconstruct the argument from primitives; close them before the referee report lands so revisions ship fast and survive scrutiny -- v14.0 is now PAUSED pending the JMP referee report. v15.0 attacked the program's spine: the RESTRICTION lemma joining Paper 5 (observer forced complex by HAVING a composite, clause iii) and Paper 7 (basin forced octonionic by being NON-composable). Verdict: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island -- the bottleneck conditional expectation E does NOT transport the self-modeling sequential product coherently from the non-associative h_3(O) (exact residual R != 0, ||R||^2 = 38593/72, decisive-triple associator 524/9 load-bearing), so E is the access/projection map, not a Jordan/SP morphism on the ambient; but the observer self-certifies its M_3(C)^sa QM on the slice A = h_3(C_u) (all four Def 1 clauses, intrinsically) and that slice sits inside h_3(O) as range E, so the "self-modeling -> QM -> h_3(O)" through-line SURVIVES as the island through-line (NOT independent posits, NOT a program collapse). v16.0 opened (and CLOSED) a parallel consciousness-side line, independent of the physics-side spine: it PROVED the (RING) lemma -- the math half of the Chalmers gap. The inter-frame cross-term c(X,Y) = Tr(X o Y) driving the experiential functional Phi is FUNCTIONALLY INDEPENDENT of (and a genuine, minimal, unique-degree-2 generator beyond) the single-state F_4-invariant ring R[Tr, Tr^2, det], so the complete third-person record of rho provably does not determine Phi. v17.0 opens a fresh PHYSICS-side route to gravity: that gravity is the intrinsic curvature the spacetime Peirce slice V_0 inherits from the h_3(O) symmetric-cone bulk geometry (canonical metric g_X = Hess(-log det X)), sourced by matter in V_1/V_{1/2} via the cubic-norm cross-terms -- explicitly replacing both the abandoned lattice/Fisher route and the circular det/GST/Weinberg supergravity route, with a cheap homogeneity KILL test gating the curvature work. The subfield is mathematical physics / quantum foundations / information geometry.
 
 ## Core Research Question
 
 Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?
+
+## Current Milestone: v17.0 — Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry
+
+**Goal:** Decide whether gravity is intrinsic to the h_3(O) bulk geometry — whether the spacetime Peirce slice V_0 (E_11 fixed) inherits a genuinely position-dependent metric g_mu_nu(x) from the symmetric-cone metric g_X = Hess(-log det X), sourced by matter M in V_1/V_{1/2} via the cubic-norm cross-terms — with a cheap homogeneity KILL test first. A fresh route replacing the abandoned lattice/Fisher route and the circular det/GST/Weinberg supergravity route. No lattice, no posited Lagrangian, no SUSY, no ensemble argument. Physics-side; independent of the v16.0 consciousness-side (RING) line.
+
+**Target results:**
+
+- **Phase A (KILL gate, cheap, first):** state the signature bridge (reduces to EXACT Minkowski at M=0, center); compute h_mu_nu(x) with E_11 fixed; decide homogeneous (route DEAD) vs genuinely position-dependent; compute dim Stab_{E_6}(E_11) and the basepoint-family dimension. A homogeneous result is a clean valuable KILL.
+- **Phase B (only if A survives):** Riemann tensor of g_mu_nu(x); M=0 ⇒ flat/pure-Lambda; show matter sources curvature through the V_0<->V_1/V_{1/2} cross-terms (cross-term on/off test); curvature scale vs ||M|| and rho_J.
+- **Phase C (strong form):** test G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu (T_mu_nu from V_1/V_{1/2} cross-terms) at exact / linear-in-M / no level. "Curved but not Einstein-structured" is an acceptable honest outcome.
+
+**Acceptance:** a decisive homogeneity verdict either way is a full pass; if it survives, an honest matter-sourcing + Einstein-structure level. Report KILL and curved-but-not-Einstein outcomes plainly — the point is to find out, not to confirm.
 
 ## v16.0 Summary (complete 2026-05-27)
 
@@ -82,94 +94,91 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ## Scoping Contract Summary
 
+_Active milestone: v17.0 — Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry (physics-side). Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1, set 2026-05-30)._
+
 ### Contract Coverage
 
-- **(RING) (claim-ring):** R[h_3(O) (+) h_3(O)]^{F_4} (F_4 = Aut(h_3(O)) acting diagonally on 27 (+) 27) is generated by the six pointwise invariants {Tr(X), Tr(X^2), det(X), Tr(Y), Tr(Y^2), det(Y)} TOGETHER WITH finitely many genuinely inter-frame ("coupling") generators whose lowest-degree member is c(X,Y) = Tr(X o Y). PROVE or DISPROVE.
-- **Acceptance signal:** a clean (RING) characterization with c provably independent (explicit orbit/Jacobian demonstration on the actual algebra), OR a decisive NEGATIVE (c IS expressible in the pointwise generators -> kills the Phi mechanism). Both are full passes; report honestly, do not bury a negative.
-- **Decisive sub-claims:** (a) full generating set of R[27 (+) 27]^{F_4} (coupling generators via polarizing the cubic norm); (b) c functionally independent of the six-generator pointwise subring (not a polynomial in them); (c) c the unique degree-2 coupling generator (mod scale + pointwise terms).
-- **Consequence (the Chalmers-gap math half):** "Observable-about-a-single-frame" = exactly the pointwise ring; the inter-frame content Phi integrates (the cross-term) is provably NOT a function of the single-frame Observable data.
-- **False progress to reject:** redefining "reducible"/"pointwise" so c trivially lands in/out of the ring; asserting c's independence without the explicit orbit/Jacobian demonstration on h_3(O); proving the (REDUCIBILITY) verdict (STATE only this milestone); grounding irreducibility in "nonlinear, so chaotic"; conflating the autonomous F_3-contraction with the driven stream.
+- **(BULK-GEOMETRY) (the question):** with a primitive idempotent E_11 fixed, does the spacetime Peirce slice V_0 (and its h_2(C_u) ~ R^{3,1} sub-slice) inherit a genuinely POSITION-DEPENDENT metric g_mu_nu(x) from the symmetric-cone bulk metric g_X = Hess(-log det X), and is its curvature SOURCED by matter M in V_1 + V_{1/2} via the cubic-norm cross-terms -- up to Einstein structure G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu? PROVE or DISPROVE (cheap homogeneity KILL test first).
+- **Acceptance signal:** a decisive Phase-A verdict (genuinely position-dependent -> route SURVIVES; x-independent/homogeneous -> route DEAD, a clean valuable KILL); if it survives, an honest matter-sourcing result (B) and Einstein-structure level (C). "Curved but not Einstein-structured" is a full, acceptable pass; a homogeneous KILL is a full, acceptable pass. Report honestly, do not soften either.
+- **Decisive sub-claims:** (A0) a signature bridge reducing to EXACT Minkowski at (M=0, center); (A) h_mu_nu(x) genuinely x-dependent, NOT removable by Stab_{E_6}(E_11) -- the KILL gate; (B) curvature sourced by M through the V_0<->V_1/V_{1/2} cross-terms (cross-term on/off test); (C) the level (exact / linear-in-M / none) at which G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu.
+- **Consequence (if it survives):** gravity is intrinsic to the h_3(O) bulk cubic-norm geometry -- one observer, one off-center point, no lattice, no posited Lagrangian, no SUSY, no ensemble argument.
+- **False progress to reject:** relabeling a homogeneous (KILL) result "approximately position-dependent"; mistaking a coordinate artifact for curvature; importing supergravity multiplet data / the GST Lagrangian / SUSY closure / Weinberg's theorem as input (the avoided circularity); assuming Einstein form and tuning to it; the buggy cross-term association 2Re(x0(x1 x2)); float ranks/curvatures on decisive verdicts; counting pure-Lambda (M=0) curvature as matter-sourcing.
 
 ### User Guidance To Preserve
 
-- **User-stated framing:** the math half of the Chalmers / Mary gap -- does the complete third-person record (all of rho) determine Phi? Phi needs the cross-term c(X,Y) = Tr(X o Y); (RING) proves c is independent of the single-state F_4-invariant ring R[Tr, Tr^2, det]. INDEPENDENT of v15.0 (do not entangle; v15.0's result does not bear on this invariant-theory claim). "A negative result, cleanly characterized, is a fully acceptable outcome."
-- **User-stated deliverable:** (RING) proved (the ready core) = a full pass. GPD MAY state the cross-term decomposition + capacity reduction as a corollary, but must NOT assert open-system irreducibility without the structural (Breuer / finite-capacity) argument.
-- **Must-use sources:** Faraut-Koranyi Ch. V + Springer/Freudenthal cubic norm (single-state ring); classical invariant theory of several copies of the 27 of F_4/E_6 (SEARCH first -- may give the pair-ring generators); REUSE the warm v15.0 octonion harness (`tests/test_embedding_under_E.py`, `derivations/p5-basin-restriction/embedding-under-E.md` -- exact SymPy h_3(O) arithmetic, Jordan product, F_4/Peirce decomposition); `pathspace_invariants.py`; `RhoJ.lean` / DS1 for rho_J facts. LIVE sources in `~/repos/blog/` (NOT stale `papers/` copies).
-- **Stop / rethink conditions:** if invariant theory shows c IS expressible in the pointwise generators -> decisive NEGATIVE, report it (do not bury). Do not drift into proving (REDUCIBILITY).
-- **Reward-hacking guard:** do NOT redefine "reducible" so it trivially equals the invariant ring; assert irreducibility from "it's nonlinear, so chaotic"; conflate the autonomous F_3-contraction (reducible) with the driven stream; or assert c's independence without the explicit orbit/Jacobian demonstration on the actual algebra.
+- **User-stated framing:** a FRESH route to gravity replacing two dead ones -- the abandoned lattice/Fisher continuum-limit route, and the CIRCULAR det/GST/Weinberg supergravity-Lagrangian route (where -R/2 is fixed by the assumed SUSY closure). The new route: the positive cone of h_3(O) is an intrinsically curved Riemannian symmetric space whose curvature is fixed by the cubic norm alone; a self-modeler is "along for the ride" (E_11 picks the slice, off-center X picks a basepoint). NO observers-make-gravity ensemble argument ("that is woo and is explicitly rejected").
+- **User-stated deliverable:** Phase A first (it is cheap and kills or greenlights everything). "A homogeneous result is a clean, valuable KILL -- report it as such." "A sourced-but-not-Einstein result (B yes, C no) is the most likely real outcome; report it plainly." The point is to find out whether gravity is intrinsic, not to confirm it.
+- **Must-use sources:** Faraut-Koranyi (cone metric g_X = Hess(-log det), symmetric-space structure); Vinberg/Koszul (canonical metric on a convex homogeneous cone); McCrimmon (Peirce, cubic norm, P(X)); Baez 2002 (h_3(O), F_4, OP^2). REUSE: `derivations/52-kkt-spacetime` + `52-observer-uniqueness` (h_2(C_u) ~ R^{3,1} Lorentzian sig from det); the CORRECTED cubic norm in `~/repos/blog/research/qualia-fixed-point/h3o_tower.py`; the warm exact-SymPy h_3(O) engine (`code/embedding_under_E_verification.py`, `code/ring_lemma_verification.py`); `peirce_coupling.py`; `rho_directional_derivatives.py`. LIVE sources in `~/repos/blog/` (NOT stale `papers/` copies).
+- **Stop / rethink conditions:** Phase A homogeneous -> "route dead", STOP (do not proceed to B/C). Cross-term association fails verification -> fix det before ANY geometry. Signature bridge does not reduce to exact Minkowski -> switch construction or STOP. No Einstein structure -> report curved-but-not-Einstein, do not force.
+- **Reward-hacking guard:** decisive homogeneity/curvature verdicts EXACT over Q (never float); use curvature-scalar invariants (not metric components) for the KILL test; keep T_mu_nu and the Einstein test independent of the Einstein conclusion; never import the dead routes' machinery as load-bearing.
 
 ### Scope Boundaries
 
 **In scope**
 
-- Single-state baseline (sanity check): confirm R[Tr, Tr^2, det] is the full single-copy F_4-invariant ring (Faraut-Koranyi / Springer; SymPy corroboration of invariance + generic-orbit separation).
-- Pair invariants (the core): characterize R[27 (+) 27]^{F_4}; polarize the cubic norm for the coupling generators; identify the MINIMAL generating set.
-- (b) c = Tr(X o Y) functionally independent of the pointwise sextet (orbit-dimension / Jacobian-rank argument + SymPy instance).
-- (c) degree-2 uniqueness: degree-2 invariants of 27 (+) 27 spanned by Tr(X^2), Tr(Y^2), Tr(X o Y); the first two are pointwise.
-- STATE (do NOT attempt) the (REDUCIBILITY) dynamical bridge: specify the driven dynamics, fix the reducibility definition, state the target reduction, flag the autonomous-vs-driven trap. Output as "what the next milestone needs."
+- Phase A0 signature bridge: state the Riemannian-cone-Hessian -> Lorentzian-slice map; pick (i) restrict + Wick-rotate via u=e_7, or (ii) background-eta-from-h_2(C_u)-det + cone-Hessian perturbation -- whichever reduces to EXACT Minkowski at (M=0, center).
+- Phase A homogeneity dealbreaker (DECISIVE/KILL, do first): compute h_mu_nu(x) with E_11 fixed; decide x-independent (homogeneous -> DEAD) vs genuinely varying; compute dim Stab_{E_6}(E_11) and the (basepoint, slice) family dimension modulo it.
+- Phase B matter-sourcing (only if A survives): Riemann tensor of g_mu_nu(x); M=0 ⇒ flat/pure-Lambda; M on ⇒ curvature from the cross-terms (cross-term on/off test); curvature scale vs ||M|| and rho_J(X_bg).
+- Phase C Einstein structure (strong form): candidate T_mu_nu from V_1/V_{1/2} cross-term content; test G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu at exact / linear-in-M / no level.
+- Verify the corrected cubic-norm cross-term association (Cayley-Hamilton + multiplicativity) before any geometry.
 
 **Out of scope**
 
-- The irreducibility VERDICT (prerequisites unmet; this milestone STATES it, does not prove it).
-- ID-MOVE "irreducible residue = experience" (Axiom-B, separate track, never "proved" here).
-- Wolfram-as-authority / NKS framing.
-- The frame-quotient half (QRF / no-broadcasting; framework-level identification, separate).
-- Whether Phi is phenomenology; whether rho is "off a brain" (open encoding).
-- The basin-restriction question (v15.0 physics-side spine; separate, does not bear on this).
+- The lattice/Fisher continuum-limit route (`paper6-continuum-limit-prompt.md`) -- ABANDONED; do not import.
+- The det/GST/Weinberg N=2 supergravity-Lagrangian route (derivations 47-*..50-*, 53-*) -- CIRCULAR; do not import as load-bearing (GST scalar-manifold geometry citable for geometry ONLY).
+- Any observers-make-gravity ensemble/thermodynamic argument (Jacobson 1995 = contrast only).
+- Quantizing gravity; dynamics/field equations of M; cosmology.
+- Re-deriving the SOLID standard math (symmetric-cone structure, OP^2 = F_4/Spin(9), h_2(C_u) ~ R^{3,1} Minkowski) -- cite, do not re-derive.
+- Retroactively retracting the v12.0/v13.0 det/GST gravity result -- INDEPENDENT fresh route; the outcome decides which stands.
 
 ### Active Anchor Registry
 
-- **ref-faraut-koranyi:** Faraut-Koranyi, *Analysis on Symmetric Cones*, Ch. V
-  - Why it matters: CRITICAL -- single-state invariant ring R[h_3(O)]^{F_4} = R[Tr, Tr^2, det]; the "Observable" ring = (a)'s pointwise subring
+- **ref-faraut-koranyi:** Faraut & Koranyi, *Analysis on Symmetric Cones* (1994)
+  - Why it matters: CRITICAL -- cone metric g_X = Hess(-log det), characteristic function, symmetric-space structure of det=1 = E_{6(-26)}/F_4
   - Carry forward: planning, execution, verification
   - Required action: read, cite
-
-- **ref-springer-veldkamp:** Springer & Veldkamp, *Octonions, Jordan Algebras and Exceptional Groups*; Springer 1962 cubic norm
-  - Why it matters: CRITICAL -- det = cubic norm N(X), F_4-invariance, polarization to the coupling generators
+- **ref-52-kkt:** `derivations/52-kkt-spacetime.tex` + `52-observer-uniqueness.tex` (prior GPD output)
+  - Why it matters: h_2(C_u) ~ R^{3,1} Minkowski sig (1,3) from det, conformal so(4,2); the signature bridge must reduce to this Minkowski
   - Carry forward: planning, execution, verification
-  - Required action: read, cite
-
-- **ref-27-joint-invariants:** Classical invariant theory of several copies of the 27 of F_4/E_6 (literature SEARCH -- survey target)
-  - Why it matters: may already supply the pair-ring generating set for (a), de-risking the core
-  - Carry forward: planning, execution
-  - Required action: search, use if found
-
-- **ref-v15-harness:** v15.0 octonion harness -- `tests/test_embedding_under_E.py`, `derivations/p5-basin-restriction/embedding-under-E.md` (+ supporting helpers)
-  - Why it matters: exact SymPy h_3(O) matrix arithmetic, Jordan product, F_4/Peirce-grade decomposition, exact residual/zero-testing on generic non-associative data -- exactly what the orbit/Jacobian computations need
-  - Carry forward: planning, execution
-  - Required action: reuse (do NOT re-derive octonion arithmetic from scratch)
-
-- **ref-phi-program:** `~/repos/blog/research/phi-inaccessibility-program.md` (§1-3 ontology/target, §9 the reframe this milestone serves)
-  - Why it matters: defines rho_J, Phi, the rho/Phi split, the Chalmers-gap framing
-  - Carry forward: planning, execution, writing
-  - Required action: read, cite
-
-- **ref-rhoj:** `RhoJ.lean` / DS1 rho_J uniqueness (`~/repos/research/lean/RadicalRelativity/RhoJ.lean`); `pathspace_invariants.py` (`~/repos/blog/research/qualia-fixed-point/`)
-  - Why it matters: single-state invariant facts (rho_J = det*(Tr^2 - 1/3), unique minimal F_4-invariant); numerical instance of c escaping the pointwise ring
+  - Required action: read, reuse
+- **ref-h3o-tower:** `~/repos/blog/research/qualia-fixed-point/h3o_tower.py` -- the CORRECTED cubic norm (cross-term order 2Re(x2* x0* x1))
+  - Why it matters: correct det implementation; the buggy `trip_tracking.py` order must NOT be used
   - Carry forward: planning, execution
   - Required action: read, reuse
+- **ref-warm-engine:** `code/embedding_under_E_verification.py` + `code/ring_lemma_verification.py` -- warm exact-SymPy h_3(O) engine
+  - Why it matters: exact octonion arithmetic (Jordan product, det, Peirce, F_4) for the decisive exact-over-Q curvature/homogeneity computations
+  - Carry forward: planning, execution
+  - Required action: reuse (do NOT rebuild)
+- **ref-baez-octonions / ref-mccrimmon / ref-vinberg-koszul:** Baez 2002 (h_3(O), F_4, OP^2); McCrimmon (Peirce, cubic norm, P(X)); Vinberg/Koszul (canonical cone metric)
+  - Why it matters: the exceptional-Jordan-algebra geometry and Hessian-metric machinery
+  - Carry forward: planning, execution
+  - Required action: read, cite
+- **ref-gst (geometry only) / ref-jacobson-contrast (avoid):** GST 1983-84 (E_{6(-26)}/F_4 scalar manifold -- geometry only, NOT their Lagrangian); Jacobson 1995 (contrast only, ensemble route rejected)
+  - Why it matters: orientation/contrast; both name the routes being avoided
+  - Carry forward: planning
+  - Required action: cite-for-geometry / avoid
 
 ### Carry-Forward Inputs
 
-- Milestone prompt: `~/scratch/get-physics-done/phi-reducibility-lemma-prompt.md` (self-contained; inline definitions authoritative)
-- Warm v15.0 octonion/h_3(O) SymPy harness -- reuse, do not rebuild
-- Research program: `~/repos/blog/research/phi-inaccessibility-program.md` (+ `STATE.md`, `GRAPH.md`)
-- Single-state invariant facts: `RhoJ.lean` / DS1; `pathspace_invariants.py`
+- Milestone prompt: `~/scratch/get-physics-done/paper6-bulk-geometry-prompt.md` (authoritative; conventions + Phase A/B/C + KILL condition binding)
+- Warm exact-SymPy h_3(O) engine -- reuse, do not rebuild
+- `peirce_coupling.py` (Peirce decomposition under E_11) + `rho_directional_derivatives.py` (off-center expansion around I/3)
+- Corrected cubic norm `h3o_tower.py`; prior spacetime derivations `52-*`
 
 ### Skeptical Review
 
-- **Weakest anchor:** step (b) -- that c is genuinely NOT a polynomial in the pointwise sextet. Must be DEMONSTRATED by orbit/Jacobian on the actual algebra, not asserted. (If it fails, that is the decisive negative.)
-- **Unvalidated assumptions:** that polarizing the cubic norm yields the FULL coupling generating set (closure of the generating set is the hard part of (a), Phase 68). [RESOLVED Phase 67 — the degree-2 invariant space of 27 (+) 27 is 6-dimensional (blocks (2,0)/(1,1)/(0,2) each 2-dim), with the bidegree-(1,1) part = span{Tr(X)Tr(Y), Tr(X o Y)} (2-dim, exact over Q) — correcting the earlier 3-element sketch {Tr(X^2), Tr(Y^2), Tr(X o Y)}.]
-- **Competing explanation:** c IS expressible in the pointwise generators (would kill the Phi mechanism -- test honestly), OR the pair-ring needs generators not obtained by simple polarization of the cubic norm.
-- **Disconfirming observation (= valid negative):** an explicit polynomial expressing Tr(X o Y) in {Tr, Tr^2, det of X and Y}; or a Jacobian showing c is functionally dependent on the pointwise sextet.
-- **False progress to reject:** redefine "reducible" = the invariant ring; "nonlinear, so chaotic"; autonomous/driven conflation; independence asserted without the orbit/Jacobian demonstration.
+- **Weakest anchor:** the central conjecture -- that the V_0-slice curvature is gravitational (position-dependent AND matter-sourced) -- is UNPROVEN; the Phase-A homogeneity test may KILL it cheaply. Plus: which signature bridge is correct.
+- **Unvalidated assumptions:** that fixing E_11 breaks homogeneity enough to leave position-dependence; that the bridge gives a clean Lorentzian slice reducing to exact Minkowski; that a sensible T_mu_nu exists from V_1/V_{1/2}.
+- **Competing explanation:** the slice metric is homogeneous (KILL); OR position-dependent but pure-Lambda (not matter-sourced); OR curved-but-not-Einstein (the likely real positive outcome).
+- **Disconfirming observation (= valid negative):** h_mu_nu(x) x-independent (KILL); curvature at M=0 only pure-Lambda with M adding nothing via cross-terms; cross-term on/off makes no difference; no Einstein structure at any level (acceptable -- report curved-but-not-Einstein).
+- **False progress to reject:** relabeling homogeneous as "approximately position-dependent"; coordinate artifact as curvature; importing supergravity/GST/SUSY/Weinberg as input; assuming Einstein form; buggy cross-term; float decisive verdicts; pure-Lambda counted as sourcing.
 
 ### Open Contract Questions
 
-- Does classical invariant theory of several copies of the 27 (F_4/E_6) already give the pair-ring generating set? (Survey target.)
-- Is the coupling-generator set finite and obtained purely by polarizing the cubic norm, or are higher-degree non-polarization generators needed?
-- Is c = Tr(X o Y) functionally independent of the pointwise sextet on h_3(O) (orbit non-constant in c while all pointwise invariants stay constant)? -- the load-bearing (b) check.
-- What exactly does the next milestone need for the (REDUCIBILITY) verdict (driven-dynamics cross-term decomposition + finite-capacity / Breuer argument)?
+- Is h_mu_nu(x) genuinely x-dependent after fixing E_11, or does Stab_{E_6}(E_11) make all (basepoint, slice) pairs isometric (homogeneous -> KILL)?
+- Which signature bridge (Wick-rotate via u vs background-eta + perturbation) reduces to EXACT Minkowski at (M=0, center)?
+- Is the slice curvature SOURCED by V_1/V_{1/2} matter via the cross-terms, or present at M=0 as pure Lambda?
+- Does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold at any level (exact / linear-in-M / not at all)?
 
 ## Research Questions
 
@@ -226,12 +235,19 @@ Arrow of time and thermodynamics of self-modeling. The math is solid but the gap
 
 ### Active
 
-**v16.0 (active -- The (RING) Lemma):**
+**v17.0 (active -- Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry):**
+
+- [ ] **(A0 signature bridge)** Which Riemannian-cone-Hessian -> Lorentzian-slice map -- (i) restrict g_X to V_0 + Wick-rotate via u=e_7, or (ii) background eta from h_2(C_u)'s det + cone-Hessian perturbation -- reduces to EXACT Minkowski at (M=0, center)? -- v17.0
+- [ ] **(A KILL gate)** With E_11 fixed, is the inherited slice metric h_mu_nu(x) genuinely position-dependent, or x-independent/homogeneous (route DEAD)? What are dim Stab_{E_6}(E_11) and the (basepoint, slice) family dimension modulo it? -- v17.0
+- [ ] **(B matter-sourcing, only if A survives)** Is the slice curvature SOURCED by matter M in V_1/V_{1/2} through the cubic-norm cross-terms (cross-term on/off test), with M=0 giving flat/pure-Lambda? -- v17.0
+- [ ] **(C Einstein structure)** At what level (exact / linear-in-M / not at all) does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold for a T_mu_nu built from V_1/V_{1/2} cross-term content? -- v17.0
+
+**v16.0 (COMPLETE & ARCHIVED 2026-05-27 -- The (RING) Lemma):**
 
 - [x] Is R[h_3(O) (+) h_3(O)]^{F_4} generated by the pointwise sextet + cubic-norm-polarization coupling generators, and what is the minimal generating set? -- **YES (to total degree <=6), CERTIFIED COMPLETE.** The MINIMAL generating set is the 10 candidates {6 pointwise, c=Tr(X o Y) (1,1), Tr(X^2 o Y) (2,1), Tr(X o Y^2) (1,2), Tr(X^2 o Y^2) (2,2)} -- a COMPLETE + MINIMAL generating set by the exact-over-Q bigraded Hilbert match (d_candidate==d_true at all 28 bidegrees a+b<=6; exact_qq_rank, 44 saturated generic pairs); all 10 proven genuine generators (in-span-of-lower-products); (2,2) Tr(X^2 o Y^2) is a GENERATOR (8->9). Polarization NOT assumed to generate -- the Hilbert match is the certificate (Schwarz). Two-route (Molien==exact f_4-kernel) + three-method agreement; Krull=10; ring FREE through deg 6 (first relation, if any, at deg >=7; honest tension with the Blind non-free expectation, NOT the fp-e6-free-form proxy). Exact over Q; verification PASSED 9/9. RING-generation scope to deg <=6. -- v16.0 (Phase 68) -- (RING)(a)
 - [x] Is c(X,Y) = Tr(X o Y) functionally independent of the six pointwise generators (orbit/Jacobian on h_3(O))? -- **YES, c INDEPENDENT [THE SPINE].** Exact 7x54 Jacobian rank 7 over Q (MAX over 5 generic pairs, stable; baseline 6, X=Y control 6) AND an orbit-derivative separating f_4 direction (D_xi c != 0 while all 6 pointwise derivatives vanish) -- both mandatory routes agree on cell (7, exists), reward-hacking-guarded; exact over Q; rank 7 <= trdeg 10 (c is 1 of 4 mixed joint invariants). FIELD-level only. -- v16.0 (Phase 66) -- (RING)(b)
 - [x] Is c the unique degree-2 coupling generator (mod scale + pointwise terms)? -- **YES, c the UNIQUE degree-2 coupling generator.** Bidegree-(1,1) trivial part = 2-dim = span{Tr(X)Tr(Y), c} by two agreeing routes (Schur dim End_{F_4}(1⊕26) = 1²+1² = 2 == exact (1,1)-block f_4-kernel nullspace 729−727 = 2 over QQ); full degree-2 dim = 6 (blocks 2/2/2); mod the reducible product Tr(X)Tr(Y) ∈ R_pt, genuine-coupling quotient = 1 = span{c} (named basis shown to SPAN the kernel, not dim-match; c ∉ R_pt at degree 2). Exact over Q; reward-hacking-guarded; verification PASSED 7/7. DEGREE-2 scope only (the (1,1)=2 is the Phase-68 bidegree-(1,1) Hilbert coefficient). -- v16.0 (Phase 67) -- (RING)(c)
-- [ ] What precisely does the (REDUCIBILITY) verdict need (driven-dynamics cross-term decomposition + finite-capacity argument)? -- STATE only, do not prove this milestone
+- [x] What precisely does the (REDUCIBILITY) verdict need (driven-dynamics cross-term decomposition + finite-capacity argument)? -- **STATED (not proved).** Five typed frozen-notation objects; cross-term decomposition Tr(X_k o X_{k+1})=(1-eps)Tr(X_k^3)+eps c(X_k,S_k) verified EXACT over Q; capacity reducibility def; Breuer-routed target. The verdict itself is a future consciousness-side milestone's burden. -- v16.0 (Phase 69) -- (REDUCIBILITY)
 
 **v14.0 (PAUSED -- pending JMP referee report; see `.gpd/V14-CLOSEOUT.md`):**
 
@@ -337,6 +353,19 @@ Natural units (hbar = c = k_B = 1) for the GR/thermodynamic portions. Dimensionl
 See `.gpd/REQUIREMENTS.md` for the detailed requirements specification.
 
 ## Key References
+
+**v17.0-critical (Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry):**
+
+- Faraut & Koranyi, *Analysis on Symmetric Cones* (Oxford, 1994) -- cone metric g_X = Hess(-log det), characteristic function, symmetric-space structure of det=1 = E_{6(-26)}/F_4 [CRITICAL]
+- Vinberg (1963), *The theory of convex homogeneous cones*; Koszul -- canonical (affine/Hessian) metric on a convex homogeneous cone
+- McCrimmon, *A Taste of Jordan Algebras* (Springer, 2004) -- Peirce decomposition, cubic norm, quadratic representation P(X)
+- Baez, *The Octonions* (Bull. AMS 39, 2002) -- h_3(O), F_4, OP^2 = F_4/Spin(9), E_6
+- Gunaydin-Sierra-Townsend (1983-84) -- E_{6(-26)}/F_4 scalar manifold, FOR THE GEOMETRY ONLY (we do NOT adopt their Lagrangian -- that is the dead circular route)
+- Jacobson (1995), *Thermodynamics of spacetime* -- CONTRAST ONLY (the ensemble/thermodynamic route is explicitly rejected)
+- `derivations/52-kkt-spacetime.tex` + `52-observer-uniqueness.tex` -- h_2(C_u) ~ R^{3,1} Minkowski sig (1,3) from det, conformal so(4,2) [REUSE]
+- `~/repos/blog/research/qualia-fixed-point/h3o_tower.py` -- CORRECTED cubic norm (cross-term order 2Re(x2* x0* x1); NOT the buggy trip_tracking.py) [REUSE]
+- Warm exact-SymPy h_3(O) engine: `code/embedding_under_E_verification.py`, `code/ring_lemma_verification.py`; `peirce_coupling.py`; `rho_directional_derivatives.py` [REUSE]
+- Milestone prompt: `~/scratch/get-physics-done/paper6-bulk-geometry-prompt.md` [authoritative spec]
 
 **v16.0-critical (The (RING) Lemma -- joint F_4-invariants of 27 (+) 27):**
 
@@ -460,4 +489,4 @@ Phases 23-25 cancelled. Gap C requires non-algebraic resolution -- motivates v7.
 
 ---
 
-_Last updated: 2026-05-27 after v16.0 milestone completion. The (RING) lemma is PROVED -- c=Tr(X o Y) is a genuine, minimal, functionally-independent, unique-degree-2 generator of R[27⊕27]^{F_4}, so the complete third-person record of rho does not determine Phi. All 6 phases complete (64 engine + 65/65.1 trdeg-10 GATE + 66 SPINE + 67 (c) uniqueness + 68 (a) generating set + 69 (REDUCIBILITY) statement); archived as milestone v16.0 (ROADMAP + REQUIREMENTS + RESEARCH-DIGEST under .gpd/milestones/). (REDUCIBILITY) verdict deferred to the next milestone (statement only this milestone). v14.0 paused pending JMP referee report; v15.0 complete & archived. Next: /gpd:new-milestone_
+_Last updated: 2026-05-30 starting milestone v17.0 — Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry (physics-side; independent of the v16.0 consciousness-side line). Fresh route to gravity replacing the abandoned lattice/Fisher route and the circular det/GST/Weinberg supergravity route: test whether the V_0 spacetime slice (E_11 fixed) inherits a position-dependent metric from the symmetric-cone metric g_X = Hess(-log det), matter-sourced via the cubic-norm cross-terms. Gated A (homogeneity KILL test, cheap, first) → B (matter-sourcing) → C (Einstein structure). Phases continue at 70. Machine-readable contract refreshed in state.json (schema v1, mode approved). v16.0 PROVED (RING) and archived; v14.0 paused pending JMP referee report; v15.0 complete & archived. Next: literature survey + objectives + roadmap, then /gpd:plan-phase 70_
