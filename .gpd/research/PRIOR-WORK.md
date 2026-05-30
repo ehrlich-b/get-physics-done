@@ -1,196 +1,304 @@
-# Prior Work: Joint / Diagonal F4-Invariants of Two Copies of the 27 (Albert algebra h3(O))
+# Prior Work: Intrinsic Curvature of the h_3(O) Bulk and the V_0 Spacetime Slice
 
-**Surveyed:** 2026-05-24
-**Domain:** Classical & computational invariant theory of exceptional groups; Jordan-algebra invariant theory (Albert algebra, F4, E6); polarization of cubic norms
-**Confidence:** HIGH on the structural landscape and citations; MEDIUM-HIGH on the precise verdict for RING-(a)/(b)/(c) (the F4 *polynomial* generating set for two copies is implied by the literature but not, to this survey's knowledge, written out as an explicit minimal generating set with proven independence/uniqueness — see Verdict).
+**Surveyed:** 2026-05-30
+**Domain:** Riemannian/Hessian geometry of symmetric cones; exceptional Jordan algebra h_3(O); geometry (only) of cubic-norm scalar manifolds; emergent-gravity-from-Jordan attempts.
+**Milestone:** v17.0 — "Gravity as intrinsic curvature of the h_3(O) bulk geometry" (fresh route; explicitly NOT lattice/Fisher, NOT det/GST/Weinberg supergravity Lagrangian).
+**Confidence:** HIGH on the established cone/curvature math (Q1, Q2, Q5 mostly resolved by canonical references); HIGH on the novelty flag (Q3 slice-curvature question is unaddressed in the located literature).
+
+> **Scope discipline (per prompt).** This file surveys ONLY what bears on whether the
+> V_0 = h_2(O) Peirce slice inherits position-dependent, matter-sourced curvature from the
+> h_3(O) cubic-norm cone geometry. The two dead routes — (i) lattice/Fisher continuum limit,
+> (ii) det/GST/Weinberg N=2 supergravity *Lagrangian* — are NOT cited as load-bearing. Where a
+> supergravity-adjacent reference is used (de Wit–Van Proeyen, Gunaydin–Sierra–Townsend), ONLY
+> its differential-geometric content (metric, curvature, classification) is taken; their
+> Lagrangian / SUSY content is explicitly excluded.
 
 ---
 
-## TL;DR Verdict for the Roadmapper (read this first)
+## TL;DR for the roadmapper (read this first)
 
-**Is R[h3(O) ⊕ h3(O)]^{F4} explicitly characterized in the literature?**
+1. **The bulk geometry is completely pinned down by a single classical theorem.** The cone metric
+   `g_X = Hess(-log det X)` and the `{det=1}` symmetric space `E6(-26)/F4` are not conjectural —
+   Totaro (2004) gives the *explicit curvature formula* for any Hessian metric and names the
+   octonionic det case as yielding the Riemannian symmetric space `E6/F4` of noncompact type.
+   The curvature depends ONLY on the **third derivative tensor** `C_ijk = ∂³(det)/∂x_i∂x_j∂x_k`
+   (the cubic-norm coefficients). **This is the engine Phase B/C needs — and it already exists.**
 
-- **The E6 analogue R[27 ⊕ 27]^{E6} IS explicitly and cleanly solved.** Blind (J. Lie Theory 21, 2011) proves C[2V]^{E6} is a *polynomial* (free) algebra on **four** generators, all of which are polarizations of the cubic norm `det`: namely `det X`, `det Y`, `f(X,X,Y)`, `f(X,Y,Y)` (Theorem 3.1). This is a PROVEN, citable, exact answer — but for the WRONG group (E6, the det-stabilizer), not F4.
+2. **The homogeneity question (Phase A KILL gate) has a sharp literature anchor.** Whether the
+   slice carries one fixed metric reduces to: *is the V_0 = h_2(O) slice a totally geodesic
+   submanifold of `E6(-26)/F4`, and does the stabilizer of E_11 act transitively on basepoints?*
+   The maximal totally geodesic submanifolds of `E6(-26)/F4` are **completely classified**
+   (Kollross–Rodríguez-Vázquez 2022, Adv. Math., Table 7). The h_2(O) det=1 slice
+   (`SO(9,1)/SO(9)`, dim 9) and its h_2(C_u) sub-slice (`H^3 = SL(2,C)/SU(2) = SO(3,1)/SO(3)`,
+   dim 3) **do NOT appear in that list** (the listed rank-1 piece is the *octonionic* hyperbolic
+   plane `F4(-20)/Spin(9)`, dim 16 — the idempotent direction, not the spacetime slice). This is
+   strong evidence the V_0 slice is **NON-totally-geodesic** (nonzero second fundamental form) →
+   Gauss–Codazzi gives it curvature *different from* the ambient → plausibly position-dependent.
+   **This points toward "survives," not "homogeneous KILL" — but it MUST be computed, not assumed.**
 
-- **The F4 case (your target) is "morally solved but not packaged."** The pieces exist:
-  - Iltyakov (J. Algebra 207, 1998) and Elduque-Iltyakov (Canad. J. Math. 51, 1999) give generating sets for the invariants of a **system of vectors** (several copies) of the 26/27 under the **automorphism group F4**, in terms of **trace polynomials** of the Albert algebra plus Laplace-operator invariants.
-  - The "Artin-Procesi-Iltyakov equality" is known to hold for the split Albert algebra in characteristic 0 for **m ∈ {1, 2} copies** — i.e. for the PAIR, the **field** of rational F4-invariants equals the field of fractions of the trace algebra (so c(X,Y)=Tr(X∘Y) and the pointwise traces generate the function field).
-  - Blind shows the F4 (= K = Aut) invariants of several copies contain the trace subalgebra Tr(pV) and that "extra" non-trace generators (multilinear alternating invariants) first appear only at **9 copies** for the octonionic Albert algebra (V3) — so at **p = 2 there is no alternating obstruction**, strongly indicating the two-copy F4 ring is generated by trace monomials + det-polarizations.
+3. **The exact slice-curvature question appears UNADDRESSED in the literature → this is the novelty.**
+   Nobody located has computed the metric/curvature *induced on a Peirce V_0 sub-block* of a
+   Jordan-algebra cone, nor asked whether matter content in V_1/V_{1/2} sources that curvature via
+   the det cross-terms. See "Open Questions / Novelty" below.
 
-- **What is genuinely OPEN / not found as a single citable statement:** an explicit, *minimal* generating set for the **polynomial** ring R[h3(O)⊕h3(O)]^{F4} with (b) a proof that c(X,Y)=Tr(X∘Y) is functionally independent of the six pointwise generators, and (c) a proof that c is the *unique* degree-2 coupling generator. These are almost certainly derivable by combining Blind's Vust-method + Iltyakov's trace-polynomial generation + a transcendence-degree count, but this survey did not find them stated verbatim.
-
-**Plan implication:** the milestone is **"verify + complete + cite," not "derive from scratch."** Step (a) should be framed as "instantiate Blind's polarization-of-det generators + Iltyakov's trace generators for F4, then prune to a minimal set," step (b)/(c) as short transcendence-degree + degree-counting arguments the executor can do in the exact-SymPy h3(O) harness. See "Open Questions" for the precise residual gaps.
+4. **Prior emergent-gravity-from-octonions attempts exist but take a different (rejected) route.**
+   Castro (octonionic gravity/p-branes) posits a *membrane action* invariant under E6(-26)
+   cubic-form transformations — an action, not intrinsic cone curvature. Singh and
+   Dubois-Violette–Todorov use h_2(O)=10D-Minkowski / h_3(O)-as-quantum-geometry but do not
+   derive gravitational *curvature* from the cone. None preempts the V_0-slice-curvature claim.
 
 ---
 
 ## Key Results
 
-| Result | Expression / Value | Conditions | Source | Year | Confidence |
-|--------|-------------------|------------|--------|------|------------|
-| Single-copy E6 invariants | C[V]^{E6} = C[det] (one generator, degree 3) | V = simple Euclidean Jordan alg. rank 3 over C; G = Stab(det) | Faraut-Korányi 1994 (via G-module decomp.); Springer-Veldkamp 2000; Dickson 1901 (cubic is the unique fundamental invariant) | 1994 | HIGH |
-| Single-copy F4 invariants | R[h3(O)]^{F4} = R[Tr X, Tr(X²), det X] (3 alg.-indep. generators, degrees 1, 2, 3) = coeffs of generic minimal/characteristic polynomial | F4 = Aut(h3(O)) fixes identity ⇒ fixes Tr, trace form, det | Faraut-Korányi 1994 (Jordan-alg. chapters, see notes); Springer 1973; Springer-Veldkamp 2000 | 1994 | HIGH |
-| **Two-copy E6 invariants (THE direct analogue)** | **C[2V]^{E6} = C[det X, det Y, f(X,X,Y), f(X,Y,Y)] — a FREE polynomial algebra on 4 generators (the polarizations of det)** | V simple Euclidean Jordan rank 3 over C; G = Stab(det) ⊇ E6; method generalizes to all rank-3 such V | **Blind, J. Lie Theory 21 (2011) 123-144, Thm 3.1** (= arXiv:0906.5525) | 2011 | HIGH |
-| Three-copy E6 invariants | C[3V]^{E6} = polynomial algebra on 11 generators (10 = polarizations of det; +1 extra f11), except V=Sym(3,C) | same | Blind 2011, §4 (Prop 4.2) | 2011 | HIGH |
-| Polarization identity for the cubic norm | det(aX+bY) = a³ det X + (a²b/2) f(X,X,Y) + (ab²/2) f(X,Y,Y) + b³ det Y; full trilinear f with f(X,X,X)=6 det X | char ≠ 2,3 | Blind 2011, §3; Freudenthal; Springer 1973 ch.4 | 2011 | HIGH |
-| Cross-product / sharp polarization | X×Y := X^# ⊕-style: (X+Y)^# − X^# − Y^# (= n(X+Y)−n(X)−n(Y)); and f(X,Y,Z) = ⟨X×Y, Z⟩ | cubic norm structure, char ≠ 2 | Springer 1973, ch.4 formula (5) p.56; Petersson (Albert alg. notes); McCrimmon | 1973 | HIGH |
-| Trace bilinear form = the degree-2 cross-term c | ⟨X,Y⟩ = Tr(X∘Y) =: c(X,Y) is the (nondegenerate, associative) trace form; F4-invariant; NOT E6-invariant | formally real / cubic Jordan, char ≠ 2,3 | Faraut-Korányi 1994; Petersson survey; standard | — | HIGH |
-| F4 several-copy invariants via trace polynomials | Generators of invariants of a *system of vectors* of the minimal (26) repn of F4 = trace polynomials of the Albert algebra + Laplace-operator invariants | char 0; F4 = Aut(Albert) | **Iltyakov, J. Algebra 207 (1998) 256-271** (= Sydney Res. Rep. 97-23, 1997) | 1998 | MEDIUM-HIGH |
-| F4 several-copy: integral over explicit subalgebra | For V_i, i=1,2 (real/complex H3): C[pV_i]^{Aut} is INTEGRAL over the subalgebra generated by f(x_i,x_j,x_k) and f(x_i×x_j, x_k×x_l, x_m×x_n) | char 0; the i=3 (octonionic Albert) case is harder | **Elduque-Iltyakov, Canad. J. Math. 51 (1999) 506-522**; Blind 2011 §6 | 1999 | MEDIUM-HIGH |
-| Artin-Procesi-Iltyakov equality for Albert alg. | Field of rational F4-invariants = Frac(trace algebra) for the split Albert algebra, char 0, **m ∈ {1,2} copies** | char 0; m ≤ 2 | Iltyakov (& Shestakov); cf. survey refs | — | MEDIUM |
-| Generic stabilizer of F4 on the 26 | s.g.p. = **Spin8** (dim 28); a generic v generates a cubic étale subalgebra E_v, Gv = pointwise stabilizer of E_v ≅ Spin8 | any char; V = Weyl module V(ω4) or L(ω4) | **Garibaldi-Guralnick, arXiv:2105.09486v3, Lemma 8.1** | 2021 | HIGH |
-| Krull dim of invariant ring (transcendence degree) | dim k[V]^G = dim V − dim G when dim V > dim G (generic orbit has dim = dim G − dim Gv) | V irreducible, dim V > dim G | Garibaldi-Guralnick 2021, Thm 1.3 / §11 | 2021 | HIGH |
-| F4 = stabilizer of (Tr, trace form, det); E6 = stabilizer of det alone | identity-component characterization of both groups as polynomial stabilizers | char 0 (& most char) | **Garibaldi-Guralnick, Forum Math. Pi 3 (2015) e3, "Simple groups stabilizing polynomials"**; Chevalley-Schafer (F4) | 2015 | HIGH |
+| # | Result | Expression / Statement | Conditions | Source | Year | Confidence |
+| - | ------ | ---------------------- | ---------- | ------ | ---- | ---------- |
+| Q1 | **Explicit curvature of a Hessian metric** | For `g_ij = f_ij`: `R_ijkl = -(1/4) Σ_pq g^pq (f_jlp f_ikq − f_ilp f_jkq)`. Depends ONLY on 3rd derivatives `f_ijk`. With normalization `g_ij = −1/[d(d−1)] f_ij`: `R_ijkl = −1/[4d²(d−1)²] Σ_pq g^pq(f_jlp f_ikq − f_ilp f_jkq)`. | f homogeneous deg `d>1`, Hessian nondegenerate (index cone). | Totaro, *Curvature of a Hessian metric*, Int. J. Math. 15 (2004), the curvature-tensor formula (§2) and its cone-normalized form; arXiv math/0401381. | 2004 | HIGH |
+| Q1 | **Cone Hessian `Hess(-log det)` ↔ `{det=1}` symmetric space** | `(R × M, dt² ⊕ g_M)` with `M={det=1}` and `g_M = restriction of −∂²(det)/∂x∂x` is **isometric** to `(U, −∂²(log det)/∂x∂x)`. So the −log det cone metric = warped/product of R and the det=1 hypersurface metric (Lemma 2.4, after Loftin Thm 1). | f=det, homogeneous; U = positive cone. | Totaro 2004, Lemma 2.4; Loftin (centroaffine metric). | 2004 | HIGH |
+| Q1 | **h_3(O) det case = `E6(-26)/F4`** | For f = det on octonion-Hermitian 3×3 (n=3), the `{det=1}` hypersurface with the Hessian metric is the **Riemannian symmetric space of noncompact type `E6/F4`** (= `E6(-26)/F4`, dim 26). Parallel cases: `SL(n,R)/SO(n)`, `SL(n,C)/SU(n)`, `SL(n,H)/Sp(n)`. | Cone of positive-definite matrices; reference Vinberg for general homogeneous cones. | Totaro 2004, §2 "Example". | 2004 | HIGH |
+| Q1 | **The bulk is a symmetric cone; canonical (characteristic) metric** | Every symmetric cone `Ω` = cone of squares of a Euclidean (formally real) Jordan algebra; canonical `G`-invariant Riemannian metric `g_X = Hess(−log det X)` (= `Hess(−log φ)`, φ the characteristic function ∝ det^{n/r}). Cone is a symmetric space `G/K` with `G=` connected component of the linear automorphism group (here `E6(-26)`), `K=` stabilizer of basepoint (here `F4`). | Symmetric (self-dual homogeneous) cone. | Faraut & Korányi, *Analysis on Symmetric Cones*, OUP 1994 (esp. Ch. I–III, characteristic function & Riemannian structure); Koszul; Vinberg (1963). | 1994 / 1963 | HIGH |
+| Q2 | **Sectional curvature of `{f=1}` via Clebsch covariant (R³)** | On R³, deg-d homogeneous f: `K(2-plane tangent to M) = d²(d−1)² S(f) f / [4(d−2)² H(f)²]` and the *surface* `K_M = −d²/4 + d²(d−1)² S(f) f² /[4(d−2)² H(f)²]`, with `H(f)=` Hessian determinant, `S(f)=` Clebsch covariant of the cubic-form 3rd-derivative tensor. | R³, Hessian determinant ≠ 0, d>2. | Totaro 2004, **Theorem 3.1** (extends Wilson Thm 5.1); Clebsch covariant from Dolgachev–Kanev. | 2004 | HIGH |
+| Q2 | **Constant negative curvature only for special cubics** | The whole cone metric `−1/[d(d−1)]f_ij` on the rank-1 (R³/Lorentzian-quadratic) and Fermat-type cases has constant curvature `−d²/4`; **higher-rank Jordan cones (incl. h_3(O)) are symmetric but NOT constant-curvature.** | — | Totaro 2004, Cor. 2.3 + Example; Wilson. | 2004 | HIGH |
+| Q2 | **Very special real geometry: curvature from cubic coefficients** | A "very special real" manifold from a cubic norm `N(h)=d_{ijk}h^i h^j h^k` has metric `g_{ij} = −½ ∂_i∂_j ln N` (the same Hess(−log N)) and curvature built algebraically from `d_{ijk}`; the *symmetric* cases are classified, with `h_3(O)`'s det giving the rank-3 `E6(-26)/F4` (26-dim, the "magic" `J_3^O` entry). **Geometry only — Lagrangian NOT used.** | Cubic-norm scalar manifold; "symmetric" = isometry group transitive. | de Wit & Van Proeyen, *Special geometry, cubic polynomials and homogeneous quaternionic spaces*, CMP 149 (1992) 307; arXiv hep-th/9112027. Gunaydin–Sierra–Townsend (1983–84) for the `E6(-26)/F4` identification (GEOMETRY only). | 1992 / 1983-84 | HIGH |
+| Q3 | **Maximal totally geodesic submanifolds of `E6(-26)/F4` — COMPLETE classification** | Table 7 lists them: `Sp(1,3)/Sp(1)×Sp(3)` (dim 12, reflective, Dynkin idx 1); **`F4(-20)/Spin(9)`** = octonionic hyperbolic plane OH² (dim 16, reflective, idx 1); `SL3(C)/SU3` (dim 8, idx 9); `G2(C)/G2` (dim 14, idx 3). | Riemannian symmetric space EIV = `E6(-26)/F4`, rank 3, dim 26. | Kollross & Rodríguez-Vázquez, *Totally geodesic submanifolds in exceptional symmetric spaces*, Adv. Math. (2022), Table 7; arXiv 2202.10775. | 2022 | HIGH |
+| Q3 | **h_2(O) / h_2(C_u) det=1 slices are NOT in that list** | The V_0 = h_2(O) det=1 space `SO(9,1)/SO(9)` (dim 9) and the h_2(C_u)~R^{3,1} sub-slice `H^3=SL(2,C)/SU(2)=SO(3,1)/SO(3)` (dim 3) are absent from the maximal-tot-geod list of `E6(-26)/F4`. ⇒ V_0 slice is (almost certainly) **non-totally-geodesic** → nonzero 2nd fundamental form → Gauss–Codazzi curvature ≠ ambient. | Comparison of Table 7 list against the Peirce-slice candidates. | Inference from Kollross–Rodríguez-Vázquez 2022 Table 7; to be CONFIRMED by direct computation in Phase A. | 2022 | MEDIUM–HIGH (inference) |
+| Q5 | **Stabilizer of a primitive idempotent in F4 = `Spin(9)`** | F4 acts transitively on primitive (rank-1, trace-1) idempotents = Cayley plane `OP² = F4/Spin(9)` (dim 16). `Stab_{F4}(E_11) = Spin(9)`. | h_3(O); F4 = Aut. | Baez, *The Octonions*, BAMS 39 (2002), §3.4 / §4.2 (`OP²=F4/Spin(9)`); standard. | 2002 | HIGH |
+| Q5 | **`E6(-26)` transitive on `{det=1}` positives; stabilizer = F4** | `E6(-26)` (det-preserving group, = Str_0) acts transitively on the det=1 positive cone slice; point-stabilizer = `F4`. So `{det=1} = E6(-26)/F4`. | — | Baez 2002 §4.4; Faraut–Korányi 1994. | 2002 / 1994 | HIGH |
+| Q5 | **Rank > 1 ⇒ sectional curvature NOT constant; flat 2-planes exist** | A noncompact symmetric space of rank `r>1` has sectional curvature `≤0` that **vanishes on certain 2-planes** (the flats of dim r) and is `<0` on others. `E6(-26)/F4` has rank 3. | Standard symmetric-space theory. | Helgason; Eberlein; confirmed in survey notes (Gorodski; Iozzi). | — | HIGH |
 
 ---
 
 ## Foundational Work
 
-### Blind (2011) — "Algèbres de Jordan et théorie des invariants" (J. Lie Theory 21, 123-144; arXiv:0906.5525)
+### Totaro, B. (2004) — *The Curvature of a Hessian Metric* (Int. J. Math. 15; arXiv math/0401381)
 
-**THE single most relevant paper to this milestone.**
+**Key contribution.** THE load-bearing reference for this milestone. Gives (a) the explicit
+Riemann tensor of any Hessian metric `g_ij = ∂²f/∂x_i∂x_j` purely in terms of third derivatives
+`f_ijk` (`R_ijkl = −¼ Σ g^pq(f_jlp f_ikq − f_ilp f_jkq)`); (b) Lemma 2.4 reducing
+`Hess(−log f)` on the cone to a product `R × {f=1}` with the restricted `Hess(f)`-metric — i.e.
+the cone Hessian and the det=1 hypersurface metric are the same geometry up to a flat R factor;
+(c) the explicit Example identifying the octonionic-det `{det=1}` hypersurface as the symmetric
+space `E6/F4` of noncompact type; (d) Theorem 3.1 expressing the sectional curvature of `{f=1}`
+in R³ via the **Clebsch covariant** `S(f)` and Hessian determinant `H(f)` of the cubic.
 
-**Key contribution:** Gives a unified description of C[pV]^G for p ≤ 3, where V is a *simple complex Euclidean Jordan algebra of rank three* and **G = subgroup of GL(V) fixing the determinant** (= E6 for the Albert algebra V3 = H3(O_C); G = SL(3,C)-type for V0=Sym3, SL3×SL3 for V1=M3, Sp6-type for V2=H3(H)). Main results for the **pair**:
-- **Theorem 3.1**: C[2V]^G is a *polynomial* (free) algebra generated by the four polarizations of det: `f(X,X,X)=6 det X`, `f(Y,Y,Y)=6 det Y`, `f(X,X,Y)`, `f(X,Y,Y)`. Proof is the **Vust geometric method**: identify 2V ≅ Hom(C², V), map (X,Y) ↦ [the binary cubic det(aX+bY)] ∈ Sym³(C²), show the induced map 2V//G → Sym³(C²) is a birational, surjective morphism of normal varieties hence an isomorphism. **This method generalizes to rank-3 Jordan algebras of arbitrary type and is exactly the technique the executor should adapt.**
-- §6 discusses p > 3 and the **K = Aut(V) (= F4) case**: C[pV]^K contains the trace subalgebra Tr(pV) (generated by tr u, u a Jordan monomial); for the octonionic V3 there exists a **9-alternating** K-invariant NOT in Tr(pV) — so non-trace generators appear, but only at high p.
+**Method.** Classical pseudo-Riemannian curvature formula (Schouten / O'Neill) specialized to
+Hessian metrics; GL-equivariance via `H(fA)=H(f)det(A)²`, `S(fA)=S(f)det(A)⁴`; warped-product
+(O'Neill) relation between cone curvature and hypersurface curvature (Cor. 2.2).
 
-**Method:** Vust's geometric quotient method + classical invariant theory of ternary quadratic forms (Gordan, Todd, Turnbull) for the V0 case; LIE software for the alternating-invariant detection.
+**Limitations / what it does NOT do.** (i) Theorem 3.1's Clebsch-covariant closed form is
+**only for R³** (n=3 variables) — directly usable for the 3-dim h_2(C_u) det=1 hyperboloid `H^3`,
+but NOT for the full 10-dim V_0 = h_2(O) or 26-dim bulk (there one uses the general 3rd-derivative
+formula). (ii) Totaro studies the *ambient* cone/hypersurface curvature; he does **NOT** compute
+curvature *induced on a sub-block / Peirce slice*. (iii) No matter-sourcing notion.
 
-**Limitations for this milestone:** (1) Works over **C** and with **G = det-stabilizer (E6)**, NOT F4. Your target is the *automorphism group F4* (= the subgroup ALSO fixing the trace/identity), which is strictly smaller, so R[2V]^{F4} ⊇ C[2V]^{E6}|_R is genuinely LARGER and includes trace-form invariants. (2) Does not write out the F4 polynomial generating set for p=2 explicitly (only the E6 one, plus the integral-closure statement for V1,V2 and the abstract trace-subalgebra remark for V3).
+**Relevance.** Supplies the exact curvature engine (depends only on `C_ijk` = cubic-norm 3rd
+derivatives) for Phases B/C, AND certifies that the bulk is symmetric-but-not-constant-curvature
+(so the slice can in principle inherit nontrivial, varying curvature). Phase B should use the
+general formula; the H^3 sub-slice can be cross-checked with Theorem 3.1 + Clebsch covariant.
 
-**Relevance:** Supplies (i) the exact E6 pair answer to contrast against, (ii) the polarization-of-det generators that are the "easy half" of the F4 generators too, (iii) the cross-product/trilinear identities and their precise Springer/FK citations, (iv) the proof technique (Vust). **Use as the backbone reference for step (a).**
+### Faraut, J. & Korányi, A. (1994) — *Analysis on Symmetric Cones* (Oxford Math. Monographs)
 
-### Iltyakov (1998) — "Laplace Operator and Polynomial Invariants" (J. Algebra 207, 256-271; = U. Sydney Res. Rep. 97-23, 1997)
+**Key contribution.** Canonical text. Symmetric cone `Ω` = cone of squares of a Euclidean
+(formally real) Jordan algebra; characteristic function `φ(x) = ∫_Ω e^{−⟨x,y⟩} dy ∝ det(x)^{−n/r}`;
+the `G`-invariant Riemannian metric `g_x = D²(−log φ)(x) ∝ Hess(−log det x)`; `Ω = G/K` a
+Riemannian symmetric space; geodesics, the quadratic representation `P(x)`, and the
+"associative" trace inner product. For h_3(O): `r=3`, `n=27`, `G = E6(-26)`, `K = F4`.
 
-**Key contribution:** Describes **generators of the algebra of invariants of a system of vectors of the minimal (26-dim) irreducible representation of the simple algebraic group of type F4**, expressed via **trace polynomials of the Albert algebra and Laplace operators.** This is the closest published statement to "the F4 several-copy invariant ring."
+**Method.** Jordan-algebraic; builds analysis (spherical functions, Gindikin gamma) on the cone.
 
-**Method:** Trace-polynomial techniques + Laplace operators (a transvectant/Cayley-Ω-process style device producing new invariants from old).
+**Limitations.** A treatise on harmonic analysis — it establishes the symmetric-space/Hessian
+structure and `G`-invariance but does not tabulate sectional curvature by 2-plane, and (like all
+of this literature) does not treat induced metrics on Peirce sub-blocks.
 
-**Limitations for this milestone:** The freely-available abstract does not, by itself, pin down whether the resulting generating set is *minimal*, nor specialize cleanly to p=2 with explicit degrees. **The executor must read the full J. Algebra text** to extract the p=2 generating set and degrees. Confidence MEDIUM-HIGH that several-copy F4 trace-polynomial generation is established; LOW that a ready-made minimal p=2 list is stated.
+**Relevance.** Authoritative citation for everything the milestone marks "already SOLID":
+`g_X = Hess(−log det)`, det=1 = `E6(-26)/F4`, symmetric-cone status. Cite for the convention
+`g_X(A,B) = −∂_s∂_t log det(X+sA+tB)|_0`.
 
-**Relevance:** Direct evidence that the F4 several-copy ring is generated by trace polynomials (+ Laplace invariants). Combined with the m≤2 Artin-Procesi-Iltyakov equality, this is the core support for **RING-(a)** and for **RING-(b)** (c=Tr(X∘Y) is one of the trace monomials and is needed because the pointwise traces alone cannot reconstruct it — see Open Questions for the independence argument).
+### Kollross, A. & Rodríguez-Vázquez, A. (2022) — *Totally geodesic submanifolds in exceptional symmetric spaces* (Adv. Math.; arXiv 2202.10775)
 
-### Elduque-Iltyakov (1999) — "On Polynomial Invariants of Exceptional Simple Algebraic Groups" (Canad. J. Math. 51, 506-522)
+**Key contribution.** Complete classification of **maximal** totally geodesic submanifolds of all
+exceptional Riemannian symmetric spaces, **including `E6(-26)/F4` (EIV)** — see Table 7. For EIV
+the maximal totally geodesic submanifolds are: `Sp(1,3)/Sp(1)×Sp(3)` (dim 12), the octonionic
+hyperbolic plane `F4(-20)/Spin(9)` (dim 16), `SL3(C)/SU3` (dim 8), `G2(C)/G2` (dim 14). Introduces
+a "Dynkin index" invariant and notes reflectivity.
 
-**Key contribution:** For the rank-3 Jordan algebras V_i with i = 1, 2 (i.e. M3, H3(H)), the invariant algebra C[pV_i]^{Aut} is **integral over** the subalgebra generated by `f(x_i,x_j,x_k)` and `f(x_i×x_j, x_k×x_l, x_m×x_n)`. Treats the exceptional (octonionic, i=3) automorphism-group invariants directly.
+**Method.** Lie-algebraic (subalgebra lattices `L(g)`, Dynkin index, reflective submanifolds);
+builds on Chen–Nagano, Klein, Berndt–Olmos.
 
-**Limitations:** "Integral over" is weaker than "generated by"; the octonionic Albert case is the hardest and the statement there is more guarded.
+**Limitations.** Classifies *totally geodesic* (zero second fundamental form) submanifolds only.
+A Peirce V_0 = h_2(O) sub-block is generically NOT one of these, so the paper's direct content is
+the **negative** result: the spacetime slice is not totally geodesic. It does not compute the
+second fundamental form / induced curvature of non-geodesic slices.
 
-**Relevance:** Tells the executor the *shape* of the non-trace coupling generators (transvectant-style f(x×x, x×x, x) terms). For p=2 these higher cross terms either vanish or reduce, which is exactly why the p=2 pair is tractable.
+**Relevance.** This is the decisive reference for Phase A. Because neither `SO(9,1)/SO(9)` (the
+h_2(O) det=1 space) nor `SO(3,1)/SO(3)=H^3` (the h_2(C_u) det=1 space) appears as a maximal
+totally geodesic submanifold of `E6(-26)/F4`, the V_0 slice is almost certainly **non-geodesic**
+→ has a position-dependent second fundamental form → the Gauss equation gives it intrinsic
+curvature that differs from the ambient and varies with the basepoint. That is exactly the
+"survives" branch the milestone hopes for — **but Phase A must confirm it by direct computation,
+since absence-from-the-maximal-list is not a proof of non-geodesic (a non-maximal slice could
+still be totally geodesic inside a larger geodesic submanifold; e.g. check whether the V_0 slice
+sits inside the dim-16 `F4(-20)/Spin(9)` or dim-12 `Sp(1,3)/…` totally geodesic submanifold).**
 
-### Garibaldi-Guralnick (2021) — "Generic Stabilizers for Simple Algebraic Groups" (arXiv:2105.09486v3)
+### de Wit, B. & Van Proeyen, A. (1992) — *Special geometry, cubic polynomials and homogeneous quaternionic spaces* (CMP 149; arXiv hep-th/9112027) — GEOMETRY ONLY
 
-**Key contribution:** (Lemma 8.1) The stabilizer in general position for F4 on its 26-dim Weyl module V(ω4) [or L(ω4)] is **Spin8** (dim 28); a generic v ∈ 26 generates a cubic étale subalgebra E_v and Gv = the pointwise stabilizer of E_v. (Thm 1.3 / §11) For dim V > dim G, dim k[V]^G = dim V − dim G and the generic orbit has dimension dim G − dim Gv.
+**Key contribution.** Classifies cubic norms `N(h) = d_{ijk}h^i h^j h^k` whose invariance group
+acts transitively on the real manifold (the "very special real" / homogeneous cases). The
+Riemannian geometry of such a manifold is the Hessian geometry of `−log N`; curvature is built
+from `d_{ijk}` and its contractions. The symmetric entries include the four "magic"
+Jordan-algebra families `J_3^{R,C,H,O}`, with `J_3^O` (det of 3×3 octonionic Hermitian) giving
+the rank-3, 26-dim space identified with `E6(-26)/F4`.
 
-**Relevance — load-bearing for RING-(b):** Enables the **transcendence-degree count** the executor needs:
-- Single copy of the full 27 = R ⊕ 26: generic Gv (on 26) = Spin8 (28); generic orbit dim = 52 − 28 = 24; so trdeg of R[27]^{F4} = 27 − 24 = **3** ✓ (matches {Tr, Tr², det}).
-- Two copies (X,Y) in 27⊕27 (dim 54): once X is generic, F4_X = Spin8 acts on the second 27; Spin8 on 26 = 8_v ⊕ 8_s ⊕ 8_c ⊕ (2-dim) by triality, and a generic such vector has finite Spin8-stabilizer ⇒ generic F4-stabilizer of the pair is **finite/trivial** ⇒ generic orbit dim = 52 ⇒ **trdeg R[27⊕27]^{F4} = 54 − 52 = 2 over the 6 pointwise invariants?** — NO: trdeg of the WHOLE ring is 54 − 52 = **2**? That count is for the full ring's Krull dimension as 54 − (generic orbit dim). **CAUTION (verify in harness):** the correct statement is Krull dim R[27⊕27]^{F4} = dim(27⊕27) − (generic orbit dim) = 54 − 52 = 2 only if generic orbits are 52-dimensional; but the six pointwise invariants already give trdeg 6, a contradiction — so generic orbits are NOT 52-dim. The resolution: generic F4-orbit on 27⊕27 has dim = 52 − dim(generic pair-stabilizer); the six pointwise + c give 7 functionally independent invariants ⇒ generic orbit dim ≤ 54 − 7 = 47 ⇒ generic pair-stabilizer has dim ≥ 5. **This is precisely the count the executor must do carefully in the exact harness; do not trust the back-of-envelope above — the Spin8-on-(8v⊕8s⊕8c) generic stabilizer is the crux and is itself a triality/G2 question.** The literature value to verify against: the **principal isotropy** of F4 on 2·(27) — flag for the planner as the single most important numerical check.
+**Method.** Algebraic classification of cubic forms + r-map/c-map relations.
 
-**Limitation:** Does not compute the invariant *ring* of two copies; gives the dimension-counting machinery and the single-copy stabilizer only.
+**Limitations / EXPLICIT EXCLUSION.** This paper sits inside the N=2 supergravity literature. We
+take ONLY its differential-geometric statements (which cubic norms are homogeneous/symmetric,
+the curvature-from-`d_{ijk}` structure, the `E6(-26)/F4` identification). We do **NOT** import the
+supergravity Lagrangian, the prepotential-as-action, or any SUSY closure — that is the dead
+det/GST/Weinberg route. Used here purely as independent corroboration that the cubic-norm
+Hessian geometry of h_3(O) is `E6(-26)/F4` and that its curvature is fixed by `d_{ijk}=det`.
 
-### Garibaldi-Guralnick (2015) — "Simple Groups Stabilizing Polynomials" (Forum Math. Pi 3, e3)
+**Relevance.** Cross-checks Totaro's identification from a different (algebraic-classification)
+direction; supplies the "curvature is algebraic in the cubic coefficients" framing for Phase B.
 
-**Key contribution:** Systematic theory of which linear maps fix a polynomial f invariant under simple G acting irreducibly. Core technical result: enumeration of inclusions G < H ≤ SL(V) with dim V/H = dim V/G. Confirms F4 = identity component of Stab(Tr, trace form, det) and E6 = identity component of Stab(det) on the 27 (historical: Chevalley-Schafer for F4).
+### Shima, H. (2007) — *The Geometry of Hessian Structures* (World Scientific); Shima–Yagi (1997)
 
-**Relevance:** Justifies the precise group definitions and the "no bigger group accidentally fixes the same invariants" assurances. Useful for **RING-(c)** uniqueness framing (why the degree-2 coupling generator is forced to be the trace form and not something an enlarged group would also fix).
+**Key contribution.** Systematic theory of Hessian manifolds: Hessian metric `g = ∇dτ`, dual
+flat connections, Hessian sectional curvature, Koszul forms, homogeneous Hessian manifolds. The
+characteristic-function metric on a regular convex cone (incl. symmetric cones) is the motivating
+example.
 
-### Springer (1973) — "Jordan Algebras and Algebraic Groups" (Ergebnisse der Math. 75); Springer-Veldkamp (2000) — "Octonions, Jordan Algebras and Exceptional Groups"
+**Limitations.** General theory; the curvature *of a submanifold with induced Hessian metric*
+(centroaffine/Gauss–Codazzi for slices) is not a focus.
 
-**Key contribution:** The canonical algebraic-group treatment of the cubic norm structure. Defines the adjoint/sharp X^#, the cross product X×Y, the trilinear norm form, and proves f(X,Y,Z) = ⟨X×Y, Z⟩ (Springer 1973, ch.4 formula (5), p.56). Springer-Veldkamp's "Exceptional Groups" chapter establishes F4 = Aut(Albert) and E6 = Stab(det).
-
-**Relevance:** Authoritative source for the **polarization machinery of step (a)** and for the F4/E6 definitions. Springer 1973 is the citation for "f(X,Y,Z)=⟨X×Y,Z⟩"; Springer-Veldkamp for the group identifications.
-
-### Faraut-Korányi (1994) — "Analysis on Symmetric Cones" (Clarendon/Oxford)
-
-**Key contribution:** The standard reference for Euclidean Jordan algebras. Defines the generic minimal polynomial, trace `tr`, trace bilinear form `τ(x,y)=tr(x∘y)`, and determinant/cubic norm `det` (in the Jordan-algebra foundational chapters, II-IV — see Notation note). Establishes C[V]^G = C[det] for G = structure-group-type via the decomposition of C[V] into G-irreducibles. Structure-group result at Prop VIII.3.5 (p.153); relevant determinant theorem Thm IV.2.5 (p.149) [per Blind's internal citations].
-
-**Limitation / quality-gate correction:** The milestone context attributes the single-state ring to **"Faraut-Korányi, Ch. V."** This is **imprecise.** FK **Chapter V is the *classification* of Euclidean Jordan algebras**, NOT the home of the determinant/trace/invariant-ring statements. The cubic norm, trace, and trace form are introduced in the **early Jordan-algebra chapters (II-IV)**, and the invariant-ring fact C[V]^G=C[det] uses **Ch. IV (Thm IV.2.5) and Ch. VIII (Prop VIII.3.5)**. **Cite FK Ch. II-IV (+ VIII) for these, not Ch. V.** (Confidence on the exact theorem/page numbers: MEDIUM — taken from Blind's citations, not re-verified against the book directly; the chapter-level correction is HIGH.)
-
----
-
-## Recent Developments
-
-| Paper | Authors | Year | Advance | Impact on Our Work |
-|-------|---------|------|---------|--------------------|
-| Generic Stabilizers for Simple Algebraic Groups (arXiv:2105.09486) | Garibaldi, Guralnick | 2021 | s.g.p. of F4 on 26 = Spin8, in all characteristics; dim-counting for k[V]^G | Supplies transcendence-degree machinery for RING-(b); the principal-isotropy-of-the-pair count is the key verification |
-| Simple Groups Stabilizing Polynomials (Forum Math. Pi 3, e3) | Garibaldi, Guralnick | 2015 | F4/E6 as polynomial stabilizers; dim V/H = dim V/G enumeration | Pins down group definitions; supports RING-(c) uniqueness |
-| Albert algebras over Z and other rings (Forum Math. Sigma) | Alsaody, et al. (Cambridge Core) | 2010s | Cubic norm structures over general rings | Background only; confirms char-free polarization formulae |
-
----
-
-## Known Limiting Cases (for executor validation)
-
-| Limit | Known Result | Source | Verified By |
-|-------|--------------|--------|-------------|
-| Single copy, F4 | R[27]^{F4} = R[Tr, Tr², det], trdeg 3 | FK 1994; Springer 1973 | Generic-orbit count 27−24=3 (GG 2021) |
-| Single copy, E6 | C[27]^{E6} = C[det], trdeg 1 | Blind 2011; FK 1994; Dickson 1901 | classical |
-| Two copies, E6 | C[2·27]^{E6} = free on 4 det-polarizations (degrees 3,3,3,3) | Blind 2011 Thm 3.1 | Vust method; Gordan/Todd for V0 |
-| Two copies, V0=Sym3(C), G=SL3 | classical: invariants of 2 ternary quadratic forms (Gordan 1882) | Blind 2011 §3; Gordan | classical |
-| Diagonal restriction X=Y | every joint invariant collapses to a single-copy invariant; c(X,X)=Tr(X²) | trivial polarization fact | self-check in harness |
-| Pointwise-only sub-ring | R[Tr X,Tr X²,det X,Tr Y,Tr Y²,det Y] ⊂ R[2·27]^{F4} is a proper subalgebra (trdeg 6) | follows from c independent | RING-(b) target |
-
----
-
-## Open Questions (the residual gaps the milestone must close)
-
-1. **[RING-(a)] Explicit minimal generating set for R[h3(O)⊕h3(O)]^{F4}.** The literature gives (i) the four E6 det-polarizations (Blind) and (ii) "trace polynomials + Laplace invariants generate" for F4 several copies (Iltyakov). What is NOT found verbatim is the *assembled minimal list* for F4, p=2, with degrees. **Status:** very likely = {Tr X, Tr X², det X, Tr Y, Tr Y², det Y} (six pointwise) + the polarized det cross-terms f(X,X,Y), f(X,Y,Y) + the trace-form cross-term c(X,Y)=Tr(X∘Y) + possibly higher trace monomials Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²). The executor should generate candidates by polarizing det and enumerating low-degree Jordan trace monomials, then prove minimality/generation via Hilbert-series matching against a Molien-style computation. **Why open:** no single source packages the F4 p=2 polynomial generators.
-
-2. **[RING-(b)] Functional independence of c(X,Y)=Tr(X∘Y) from the six pointwise generators.** Strongly supported but not stated as a theorem: c is the trace form (F4-invariant, NOT E6-invariant), and the m≤2 Artin-Procesi-Iltyakov equality says the rational F4-invariants = Frac(trace algebra), in which c is a generator not expressible via pointwise traces alone (the pointwise traces only see X and Y separately; c is the genuinely bilinear coupling). **Decisive check:** transcendence-degree / Jacobian-rank argument in the exact harness — show the 7 functions {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c} have generically rank-7 Jacobian (vs rank ≤ 6 for the pointwise six). **Why important:** this is the mathematical content of "the complete third-person record does not determine Φ." **Why open:** the independence is folklore-obvious to specialists but this survey found no explicit citation; treat as PROVABLE-IN-HARNESS, not citable.
-
-3. **[RING-(c)] Uniqueness of c as the degree-2 coupling generator.** The degree-2 part of R[2·27]^{F4}: the F4-invariant quadratic forms on 27⊕27 decompose as (pointwise quadratics Tr X², Tr Y²) ⊕ (cross quadratics). The space of F4-invariant *bilinear* forms pairing the first 27 with the second 27 is **1-dimensional** iff 27 is self-dual and multiplicity-free in 27⊗27 — for F4 the 27 is self-dual and the invariant bilinear pairing is unique up to scale (= the trace form). **Decisive check:** dim Hom_{F4}(27 ⊗ 27, triv) and its symmetric part; equivalently the multiplicity of the trivial in Sym²(27)|_{F4} and in (27⊗27). Garibaldi-Guralnick 2015 (dim V/H = dim V/G enumeration) and standard F4 plethysm give this. **Why open:** needs the explicit F4 plethysm of Sym²(27) — computable, likely in the literature (LiE/branching tables) but not located in this survey.
-
-4. **Exact transcendence degree / principal isotropy of F4 on 27⊕27.** The single most important *numerical* fact to verify (see Garibaldi-Guralnick analysis above). Determines how many algebraically independent generators the ring has (and hence the target Krull dimension for Hilbert-series matching). **Why open:** the back-of-envelope Spin8-triality count is delicate; must be done carefully (the generic Spin8-stabilizer on 8v⊕8s⊕8c ⊕ scalars relates to G2 / a 14-dim group, not obviously trivial).
-
-5. **Char-0 vs formally-real/R subtleties.** Blind and Iltyakov work over C (and use "Euclidean"/formally-real where convenient). The milestone works over R with the *compact* F4. For *polynomial* invariant generation in char 0 this is harmless (R-points of the same reductive group; the invariant ring base-changes), but the executor should confirm no real-vs-complex generator is missed (e.g. compact-F4 vs split-F4 — same complexification, same polynomial invariants). Confidence this is harmless: HIGH.
-
----
-
-## Alternatives Considered (framings NOT to use)
-
-| Framing | Recommended | Alternative | Why not the alternative |
-|---------|-------------|-------------|-------------------------|
-| Which group | **F4 = Aut(h3(O))** (fixes Tr, trace form, det) | E6 = Stab(det) | E6 is the wrong group for the milestone: it does NOT preserve the trace form, so c(X,Y)=Tr(X∘Y) is NOT an E6-invariant. Blind's clean 4-generator E6 answer is a *contrast case*, not the target. |
-| Generators source | **Polarize det (Blind/Vust) + Jordan trace monomials (Iltyakov)** | Pure "Gram-matrix" FFT analogy (scalar products only, as for SO(n)) | F4 ⊂ SO(26) is far smaller than SO(26); the SO FFT (invariants = inner products) gives only c-type quadratics and badly undercounts — you also need the cubic det-polarizations. Use it only as intuition. |
-| Cross-term object | **c(X,Y) = Tr(X∘Y) = the trace bilinear form** | "some new ad hoc coupling" | The coupling is a NAMED, standard object (the nondegenerate associative trace form τ); don't reinvent it. |
-| Proof method for (a) | **Vust geometric quotient method (Blind §3) + Hilbert/Molien matching** | Brute-force Gröbner over the whole 54-dim space | Vust's method is exactly what solved the E6 case and generalizes; brute Gröbner on 54 variables is likely intractable. |
-| det formula | **det X = (1/3) Tr(X^# ∘ X) = (1/3) Tr((X×X)∘X)** via sharp/Freudenthal | expanding the octonionic 3×3 "determinant" by hand each time | The sharp/cross-product form is what polarizes cleanly into the trilinear f and matches Springer/Blind notation. |
+**Relevance.** Vocabulary and general identities (dual connections, Hessian sectional curvature,
+Codazzi/difference tensor `C_ijk`) for METHODS/PITFALLS; secondary to Totaro for the explicit
+formula. Good source for the warning that "a canonical Hessian metric on a convex domain can have
+positive curvature" (Duistermaat) — relevant if the slice curvature comes out positive somewhere.
 
 ---
 
-## Notation Conventions in the Literature (reconcile before the executor starts)
+## Prior Emergent-Gravity-from-Jordan/Octonion Attempts (Q4) — and how the new route differs
 
-| Quantity | Standard Symbol(s) | Variations | Recommended for this project | Reason |
-|----------|--------------------|-----------|------------------------------|--------|
-| Cubic norm / determinant | det X, N(X), n(x) | Blind: `det`; Springer: `N`; physics: `det` | **det X (≡ N(X))** | matches milestone & physics-side papers |
-| Linear trace | Tr X, T(x), tr x | FK: `tr`; Petersson: `T` | **Tr X** | milestone convention |
-| Trace bilinear form (the cross-term c) | Tr(X∘Y), τ(x,y), ⟨x,y⟩, T(x,y), c(X,Y) | Blind: `⟨x,y⟩=tr(x•y)`; FK: `τ`; milestone: `c` | **c(X,Y) = Tr(X∘Y)** | milestone names it c; note c(X,X)=Tr(X²) |
-| Quadratic trace | Tr(X²), S(x), Q(x) | FK: `tr(x²)`; some: `σ2` | **Tr(X²)** (note Tr(X²)=⟨X,X⟩) | milestone convention |
-| Sharp / adjoint | X^#, x^♯ | also "adjoint" | **X^#** | cubic-norm-structure standard |
-| Cross / Freudenthal product | X×Y | Freudenthal product (shifted by trace terms); Blind: `×` from polarizing n | **X×Y := (X+Y)^# − X^# − Y^#** | matches Springer/Blind; trilinear f(X,Y,Z)=⟨X×Y,Z⟩ |
-| Trilinear norm form | f(X,Y,Z), N(X,Y,Z) | Blind: `f`, normalized f(x,x,x)=6 det x | **f(X,Y,Z)**, f(X,X,X)=6 det X | matches Blind Thm 3.1 generators |
-| Jordan product | X∘Y = ½(XY+YX) | X•Y (Blind), X∘Y | **X∘Y** | milestone convention |
+| Author(s) | Vehicle | What they got | Relation to THIS milestone |
+| --------- | ------- | ------------- | -------------------------- |
+| Castro (Perelman), C. — *Exceptional Jordan Strings/Membranes and Octonionic Gravity/p-branes* (IJGMMP, ~2008/2012) and *Exceptional Jordan matrix models, octonionic strings/branes* (J. Geom. Phys. 2021) | A **membrane/p-brane action** in an octonionic-valued spacetime background; large-N exceptional Jordan matrix models. | The membrane action is invariant not under worldvolume diffeos but under rigid `E6(-26)` transformations preserving the **cubic (volume) form** det. An octonionic metric `G_μν` packaging `g_μν` + Maxwell + SU(2). | **Different route — explicitly the kind we avoid.** Gravity enters via a posited action / octonionic metric put in by hand; he does NOT derive Einstein curvature *intrinsically* from the cone Hessian. Shares the cubic-form / `E6(-26)` ingredient, so cite as "prior attempt, action-based, distinct." NOT load-bearing. |
+| Singh, T.P. and collaborators — octonionic / exceptional-Jordan unification (e.g. arXiv 2304.01213; EPJ Plus 2022) | "Trace dynamics" / pre-quantum aikyon program; `h_2(O)`-as-10D-Minkowski with det = Minkowski metric; gravity as emergent low-energy phenomenon. | Identifies spacetime sector with octonionic matrices; aims at SM flavor + emergent classical spacetime; computes coupling/mass ratios. | **Adjacent, not preempting.** Uses the det=Minkowski identification (which we also use for the background `eta` of the h_2(C_u) slice) but does NOT compute *curvature induced on a Peirce slice* nor source it from V_1/V_{1/2}. No conflict; cite for the det↔Minkowski dictionary. |
+| Dubois-Violette, M. & Todorov, I. (2016–18) — *Exceptional quantum geometry and particle physics I, II* (arXiv 1604.01247 and sequel) | `h_3(O)` as the observable algebra of an "almost classical quantum spacetime"; SM gauge group as the subgroup preserving the C⊕(2×2 octonionic) splitting. | `h_2(O) ≅ 10D Minkowski`, pairs of octonions = MW spinors; SM gauge group `(SU(3)×SU(2)×U(1))/Z6`. | **Establishes the algebraic dictionary (Peirce structure, h_2(O)=Minkowski), NOT gravitational curvature.** Strongly supports the milestone's "already SOLID" h_2(O) facts; does not address slice curvature. Cite for the Peirce-decomposition / Minkowski-from-det facts. |
+| Oliveira & Marques (cited via Castro); "Octonionic gravity" tradition | Octonionic generalization of GR's metric. | A metric-level octonionic gravity. | Older, metric-postulated; distinct from intrinsic cone curvature. Mention only as lineage. |
 
-**Caution for the executor:** the **Freudenthal product** A×B = A∘B − ½(A·Tr B + B·Tr A) + ½(Tr A·Tr B − Tr(A∘B)) (as quoted in some sources) and the **sharp-polarization** X×Y = (X+Y)^#−X^#−Y^# differ by trace-term shifts and possibly a factor; both circulate under "×". Fix ONE convention (recommend the sharp-polarization, which gives f(X,Y,Z)=⟨X×Y,Z⟩ directly) and verify f(X,X,X)=6 det X numerically in the harness before building generators.
+**Net (Q4): No prior work derives gravitational curvature from the *intrinsic Hessian geometry of
+the h_3(O) cone restricted to the V_0 spacetime slice*.** Existing octonionic-gravity programs
+either posit an action (Castro), or use h_2(O)=Minkowski as flat background without slice curvature
+(Singh, Dubois-Violette–Todorov). The specific mechanism — matter in V_1/V_{1/2} sourcing V_0-slice
+curvature through the det cross-terms — is not in the located literature.
 
 ---
 
-## Sources (all verified to exist; arXiv/DOI/venue given)
+## Known Limiting Cases (validation anchors for Phases A–C)
 
-- **Blind, B.** "Algèbres de Jordan et théorie des invariants." *J. Lie Theory* **21** (2011) 123-144. Preprint arXiv:0906.5525v2 (2011). — *THE direct analogue: C[2V]^{E6} = free on 4 det-polarizations (Thm 3.1); Vust method; F4-trace-subalgebra remarks (§6).* [HIGH]
-- **Iltyakov, A.V.** "Laplace Operator and Polynomial Invariants." *J. Algebra* **207** (1998) 256-271. (= U. Sydney Math. Res. Rep. 97-23, 1997.) — *F4 several-copy invariants via trace polynomials + Laplace operators.* [MEDIUM-HIGH; read full text for p=2 list]
-- **Iltyakov, A.V.** "On rational Invariants of the Group E6." *Proc. Amer. Math. Soc.* **124** (1996) 3637-3640. — *Rationality of E6 invariant field.* [MEDIUM-HIGH]
-- **Elduque, A.; Iltyakov, A.V.** "On Polynomial Invariants of Exceptional Simple Algebraic Groups." *Canad. J. Math.* **51** (1999) 506-522. — *Integral-closure description of Aut-invariants of several copies of rank-3 Jordan algebras.* [MEDIUM-HIGH]
-- **Garibaldi, S.; Guralnick, R.M.** "Generic Stabilizers for Simple Algebraic Groups." arXiv:2105.09486v3 (2021). — *F4-on-26 s.g.p. = Spin8 (Lemma 8.1); dim k[V]^G = dim V − dim G (Thm 1.3).* [HIGH]
-- **Garibaldi, S.; Guralnick, R.M.** "Simple Groups Stabilizing Polynomials." *Forum Math. Pi* **3** (2015) e3, 41 pp. doi:10.1017/fmp.2015.3. — *F4/E6 as polynomial stabilizers; dim V/H = dim V/G enumeration.* [HIGH]
-- **Garibaldi, S.; Guralnick, R.M.** "Rational subgroups and invariants of F4." *Israel J. Math.* (2019), doi:10.1007/s11856-019-1920-4. — *Subgroup structure of F4 = Aut(Albert); A2/D4 embeddings. Background for which subgroups can fix extra invariants.* [HIGH; abstract verified, full text paywalled]
-- **Springer, T.A.** "Jordan Algebras and Algebraic Groups." Ergebnisse der Math. **75**, Springer, 1973. — *Cubic norm structure; f(X,Y,Z)=⟨X×Y,Z⟩ (ch.4 (5), p.56); structure group (Prop 12.3, p.123).* [HIGH]
-- **Springer, T.A.; Veldkamp, F.D.** "Octonions, Jordan Algebras and Exceptional Groups." Springer Monographs in Math., 2000 (rev. English ed. of 1963 notes). ISBN 3540663371. — *F4=Aut(Albert), E6=Stab(det); ch. "Exceptional Groups."* [HIGH]
-- **Faraut, J.; Korányi, A.** "Analysis on Symmetric Cones." Oxford Math. Monographs, Clarendon Press, 1994. ISBN 0198534779. — *Euclidean Jordan algebras; trace, trace form τ, determinant; C[V]^G=C[det]. NB: cubic norm/trace are in Ch. II-IV, NOT Ch. V (= classification); invariant-ring fact via Thm IV.2.5 p.149 & Prop VIII.3.5 p.153 (page numbers per Blind, MEDIUM confidence).* [HIGH on chapter correction]
-- **Vinberg, E.B.** "On Invariants of a set of matrices." *J. Lie Theory* **6** (1996) 249-269. — *Invariants of several matrices (the Vinberg several-copies reference; structural analogue/method).* [MEDIUM; cited via Blind, not read directly]
-- **Vust, T.** "Sur la théorie des invariants des groupes classiques." *Ann. Inst. Fourier* **26** (1976) 1-31. — *The geometric quotient method Blind uses for the pair.* [HIGH as method source]
-- **Schwarz, G.W.** "Representations of Simple Lie Groups with Regular Rings of Invariants." *Invent. Math.* **49** (1978) 167-191; and "When polarizations generate." *Transform. Groups* **12** (2007) 761-767. — *Tables of coregular representations; when polarizations of single-copy invariants generate the several-copy ring (directly relevant to whether polarizing det+trace suffices).* [HIGH as method/criterion source]
-- **Procesi, C.** "Lie Groups: An Approach through Invariants and Representations." Springer, 2007. — *Thm 1-2, p.386: for p ≥ dim V, several-copy invariants are polarizations of dim-V-copy invariants (Weyl's principle); FFT scaffolding.* [HIGH]
-- **Dickson, L.E.** (1901) — *First realization of the E6-invariant trilinear form on the 27; the cubic is the unique fundamental single-copy E6 invariant.* [HIGH, historical, via multiple secondary sources]
-- **Petersson, H.P.** "Albert Algebras" (Fields Inst. notes 2012) & "A Survey on Albert Algebras" (*Transform. Groups* 2019, doi:10.1007/s00031-017-9471-4). — *Cubic norm structure, sharp, trace form nondegeneracy, cohomological invariants f3,f5 / g3.* [HIGH]
+| Limit | Known Result | Source | Use in validation |
+| ----- | ------------ | ------ | ------------------ |
+| M=0, basepoint = center I/3, h_2(C_u) sub-slice | Background must be **exact Minkowski** `eta_μν` (`−det = t² − |a|² − z²` on 2×2 octonionic Hermitian; the complex sub-slice gives R^{3,1}). | Oregon State *Geometry of the Octonions* (`−det = |a|²+z²−t²`); Dubois-Violette–Todorov; existing GPD `52-kkt-spacetime`. | A0 signature bridge MUST reduce to `eta_μν` here. If not, the bridge construction is wrong. |
+| det=1 hyperboloid of h_2(C_u) | `H^3 = SL(2,C)/SU(2) = SO(3,1)/SO(3)`, **constant negative curvature** `−d²/4` with d=2 ⇒ `K=−1` (rank-1). Computable via Totaro Thm 3.1 + Clebsch covariant. | Totaro 2004 Cor. 2.3 (quadratic-form / rank-1 case); existing GPD `52-*`. | Cross-check the H^3 sub-slice curvature; expect constant `<0` in the M=0 limit. |
+| det=1 hyperboloid of h_2(O) | `SO(9,1)/SO(9)`, rank-1, constant negative curvature (Lorentzian-quadratic case, d=2). | Totaro 2004 Example (Lorentzian quadratic → hyperbolic space). | The full V_0=h_2(O) det=1 background (no matter, no embedding) is `H^9`-type, constant `<0`. Deviation from this when embedded in h_3(O) is the inherited (extrinsic) effect. |
+| Full bulk `E6(-26)/F4`, M arbitrary | Rank-3 symmetric space: `K ≤ 0`, **vanishes on flat 2-planes**, NOT constant. | Helgason; Totaro 2004 (symmetric-but-not-constant). | Phase B: ambient curvature is fixed/homogeneous as a symmetric space; any *position dependence on the slice* must come from the slice's embedding (2nd fundamental form), not from the ambient symmetric-space curvature varying. |
+| Cross-terms switched off (det → block-diagonal `det(V_1)·det(V_0)`) | Curvature should lose its M-sourced part (the V_0↔V_1/V_{1/2} coupling). | (Conjectural — Phase B test.) | Phase B(b) consistency check; if curvature persists with cross-terms off, the mechanism is misattributed. |
 
-### Tool/access notes (per external-tool-failure protocol)
-- WebFetch could not parse several arXiv/garibaldibros PDFs (returned binary artifacts); these were downloaded and read locally via `pdftotext` (Garibaldi-Guralnick 2105.09486, Garibaldi-Guralnick 2015-GG, Blind 0906.5525, Petersson notes). Content quoted above is from the extracted text. The Springer Israel-J.-Math. page is paywalled (auth redirect) — its result is from the verified abstract only. Faraut-Korányi exact theorem/page numbers are taken from Blind's internal citations, not re-verified against the physical book (MEDIUM confidence on page numbers; HIGH on the chapter-attribution correction).
+---
+
+## Open Questions / NOVELTY (what the literature does NOT settle)
+
+1. **[NOVELTY — central] Does restricting `g_X = Hess(−log det)` (or `Hess(det)` on `{det=1}`) to
+   the Peirce V_0 = h_2(O) directions yield a *position-dependent* induced metric `h_μν(x)` once
+   E_11 is fixed?** No located reference computes the induced metric/curvature on a Peirce
+   sub-block of a Jordan-algebra cone. Totaro/Faraut–Korányi treat the ambient cone; Kollross–
+   Rodríguez-Vázquez treat only totally-geodesic (curvature-preserving) submanifolds. **This is the
+   Phase A KILL gate and the milestone's primary novelty.** Status: **UNADDRESSED.**
+
+2. **[NOVELTY] Is the V_0 slice totally geodesic or not?** Strong indirect evidence (it is absent
+   from the maximal-tot-geod list of `E6(-26)/F4`, Kollross–Rodríguez-Vázquez Table 7) says
+   **non-geodesic** → nonzero second fundamental form → Gauss–Codazzi-inherited curvature ≠ ambient.
+   But this is an *inference*, not a theorem (a non-maximal slice could be geodesic inside a larger
+   geodesic submanifold — must rule out V_0 ⊂ {`F4(-20)/Spin(9)`, `Sp(1,3)/…`}). **Must be settled
+   by direct computation of the 2nd fundamental form in Phase A.** Status: **partially constrained.**
+
+3. **[NOVELTY] Is the curvature of `h_μν(x)` sourced specifically by the det cross-terms coupling
+   V_0 to V_1/V_{1/2}?** The general Hessian curvature formula (Totaro) shows curvature = quadratic
+   in `C_ijk = ∂³det`. Whether the *V_0-block* curvature is controlled by the *mixed* components
+   `C_{(V_0)(V_1)(V_{1/2})}` (vs. the pure `C_{(V_0)(V_0)(V_0)}` block) is a structural question
+   about the cubic norm's Peirce-graded components — **not computed anywhere located.** Status:
+   **UNADDRESSED.**
+
+4. **[NOVELTY — strong form] Does `G_μν[h(x)] ∝ T_μν` for any natural `T_μν` built from V_1/V_{1/2}?**
+   Einstein structure of an induced Peirce-slice metric is entirely unstudied. The honest prior
+   expectation (from rank-3 symmetric-space + Gauss–Codazzi heuristics) is "curved, possibly not
+   Einstein." Status: **UNADDRESSED / open.**
+
+5. **Homogeneity via the stabilizer (Phase A(b)).** `Stab_{E6(-26)}(E_11)` and the dimension of the
+   basepoint family modulo it: standard inputs exist (`F4 = Stab` of the det=1 basepoint;
+   `Spin(9) = Stab_{F4}` of the idempotent; idempotent space `OP² = F4/Spin(9)`, dim 16) but the
+   precise non-compact stabilizer of a *primitive idempotent in E6(-26)* (expected: a parabolic-type
+   subgroup with Levi containing `Spin(9,1)`, since `E6(-26) ⊃ Spin(9,1)` and the P1 maximal
+   parabolic of complex/compact E6 has semisimple part `Spin(10)`) and whether it acts transitively
+   on the *(basepoint, slice)* pairs is **not cleanly tabulated** in the located sources. Status:
+   **needs phase-specific lookup / direct computation.**
+
+---
+
+## Notation & Convention Reconciliation Across the Literature
+
+| Quantity | Symbols in literature | Variants / pitfalls | This project's choice | Reason |
+| -------- | --------------------- | ------------------- | --------------------- | ------ |
+| Cubic norm of h_3(O) | `N(X)`, `det(X)`, `n(x)` | "Freudenthal det" with **cross-term** `+2 Re(triple)`; octonion non-associativity makes `2Re(x0(x1 x2))` ≠ `2Re(x2* x0* x1)` (a real prior bug). | `det(X)` = Freudenthal cubic WITH the *verified* cross-term association (`h3o_tower.py`). | Springer: unique F4-invariant cubic; cross-term order is load-bearing. |
+| Cone metric | `g_X`, characteristic/canonical metric, `Hess(−log det)`, `D²(−log φ)` | Normalization factors `−1` vs `−1/[d(d−1)]` (Totaro/Wilson) vs `−n/r` (Faraut–Korányi φ ∝ det^{n/r}). | `g_X(A,B) = −∂_s∂_t log det(X+sA+tB)|_0` (prompt convention). | Matches Faraut–Korányi up to normalization; fix once, track factors. |
+| Curvature constant of rank-1 hyperbolic slices | `−d²/4` (Totaro), `−1` (with d=2), or `−4` (some hyperbolic normalizations) | The `−d²/4` is for the *cone* normalization `−1/[d(d−1)]f`; renormalizing rescales. | State normalization explicitly with every curvature number. | Avoid factor-of-4 errors when comparing H^3 curvature to GR. |
+| Hessian 3rd-derivative tensor | `C_ijk`, `f_ijk`, `d_{ijk}`, "difference/Codazzi tensor", "cubic form" | Factor `½` (`Γ_ijk = f_ijk/2`); sign conventions in `R_ijkl`. | `C_ijk = ∂³det/∂x_i∂x_j∂x_k`; use Totaro's `R_ijkl = −¼ g^pq(f_jlp f_ikq − f_ilp f_jkq)`. | Single explicit formula prevents sign drift. |
+| Bulk symmetric space | `E6(-26)/F4`, `EIV`, `E6/F4` (noncompact), `J_3^O` very-special-real | Compact-dual confusion (`E6/F4` of "outer type" is the *compact* dual); Cartan label EIV. | `E6(-26)/F4`, noncompact type, dim 26, rank 3. | Compact vs noncompact dual have opposite-sign curvature; the cone gives the NONcompact one. |
+| V_0 spacetime sub-slices | `h_2(O)`, `h_2(C_u)`; det=1 spaces `SO(9,1)/SO(9)`, `H^3=SL(2,C)/SU(2)` | `SL(2,C)/SU(2)` ≅ `SO(3,1)/SO(3)` ≅ Riemannian `H^3` vs the Lorentzian `R^{3,1}` cone itself. | Distinguish the *Lorentzian slice* `R^{3,1}` (signature −+++) from the *Riemannian det=1 hyperboloid* `H^3`. | A0 signature bridge depends critically on which object carries the Lorentzian signature. |
+
+---
+
+## Sources
+
+**Load-bearing (cite directly):**
+- **Totaro, B., "The Curvature of a Hessian Metric," Int. J. Math. 15 (2004) 369–391; arXiv:math/0401381.** — Explicit Hessian curvature formula (3rd-derivatives only); Lemma 2.4 (cone ↔ det=1 hypersurface); Example (octonionic det = `E6/F4` noncompact); Theorem 3.1 (Clebsch-covariant sectional curvature on R³). PRIMARY engine for Phases B/C. [Read directly via local pdftotext — HIGH confidence on quoted formulas.]
+- **Faraut, J. & Korányi, A., *Analysis on Symmetric Cones*, Oxford Math. Monographs, OUP 1994.** — Symmetric-cone = Jordan-cone-of-squares; characteristic function; canonical `G`-invariant metric `Hess(−log det)`; `Ω=G/K` symmetric space; `h_3(O)` ⇒ `E6(-26)/F4`. Authoritative for all "already SOLID" cone facts.
+- **Kollross, A. & Rodríguez-Vázquez, A., "Totally geodesic submanifolds in exceptional symmetric spaces," Adv. Math. (2022); arXiv:2202.10775.** — Table 7: complete maximal-tot-geod classification for `E6(-26)/F4`. DECISIVE for Phase A homogeneity / non-geodesic-slice argument. [Read directly via local pdftotext — Table 7 E6(-26)/F4 row quoted verbatim, HIGH confidence.]
+- **de Wit, B. & Van Proeyen, A., "Special geometry, cubic polynomials and homogeneous quaternionic spaces," Commun. Math. Phys. 149 (1992) 307–333; arXiv:hep-th/9112027.** — GEOMETRY ONLY: homogeneous cubic norms, curvature-from-`d_{ijk}`, `J_3^O` ⇒ `E6(-26)/F4`. (Lagrangian/SUSY content explicitly NOT used.)
+- **Baez, J., "The Octonions," Bull. AMS 39 (2002) 145–205; arXiv:math/0105155.** — `F4 = Aut(h_3(O))`, `OP² = F4/Spin(9)`, `Stab_{F4}(idempotent)=Spin(9)`, `E6(-26)` det-preserving, `{det=1}=E6(-26)/F4`. Standard reference for Q5 group facts.
+
+**Supporting / corroborating:**
+- **Shima, H., *The Geometry of Hessian Structures*, World Scientific 2007; Shima–Yagi, "Geometry of Hessian manifolds," Diff. Geom. Appl. 7 (1997) 277.** — General Hessian-manifold theory; dual connections; Hessian sectional curvature; positive-curvature warning (Duistermaat).
+- **Vinberg, E.B., "The theory of convex homogeneous cones," Trans. Moscow Math. Soc. 12 (1963) 340.** — Canonical metric on a homogeneous convex cone (cited by Totaro for the symmetric-cone Example).
+- **Loftin, J. — centroaffine metric of `{f=1}` (cited in Totaro Lemma 2.4).** — Affine-differential-geometry framing of the hypersurface metric; relevant if Phase A uses centroaffine/Gauss–Codazzi machinery for the slice.
+- **Dubois-Violette, M. & Todorov, I., "Exceptional quantum geometry and particle physics," Nucl. Phys. B 938 (2019); arXiv:1604.01247 (+ sequel arXiv:1806.09450).** — `h_2(O)=10D Minkowski`, Peirce decomposition, SM gauge group; det↔Minkowski dictionary (Q4 adjacent, not preempting).
+- **Singh, T.P. et al., e.g. arXiv:2304.01213; EPJ Plus 137 (2022).** — Octonionic emergent-gravity program; det=Minkowski; does not compute slice curvature (Q4 adjacent).
+- **Gunaydin, M., Sierra, G., Townsend, P.K. (1983–84).** — `E6(-26)/F4` as the `J_3^O` scalar manifold (GEOMETRY of the identification ONLY; their N=2 supergravity Lagrangian is the DEAD route and is NOT used).
+- **Kollross & Rodríguez-Vázquez companion / Berndt–Olmos (submanifold geometry of symmetric spaces of noncompact type, arXiv:1901.04552); Gorodski (Riemannian symmetric spaces survey).** — Background on totally geodesic vs non-geodesic submanifolds, reflective submanifolds, flats and rank.
+
+**Explicitly NOT load-bearing (dead routes, per prompt):**
+- `paper6-continuum-limit-prompt.md` (lattice/Fisher) — abandoned, not cited.
+- The det/GST/Weinberg N=2 **supergravity Lagrangian** (GPD derivations `47–50`, `53`) — circular, not cited as a derivation of `−R/2`.
+- Castro's membrane *action* — cited only as a *distinct prior attempt* (action-based), not as a method to adopt.
+- Jacobson 1995 (Einstein eqs. as equation of state) — thermodynamic/ensemble route explicitly rejected; not used.
+
+---
+
+### Status note for orchestrator
+
+Per the spawn contract this run produced ONLY `PRIOR-WORK.md` (a focused literature survey for the
+v17.0 bulk-geometry milestone), overwriting the prior v16.0 PRIOR-WORK.md. The other research files
+(SUMMARY/METHODS/COMPUTATIONAL/PITFALLS) were NOT regenerated and still reflect v16.0 unless a
+separate run refreshes them.
+
+**Verification caveats:** Several arXiv PDFs returned as binary to WebFetch; the two load-bearing
+ones (Totaro math/0401381; Kollross–Rodríguez-Vázquez 2202.10775) were converted locally via
+`pdftotext` and read directly — quoted formulas/tables (Totaro curvature formula, Lemma 2.4,
+Thm 3.1, Example; Kollross–Rodríguez-Vázquez Table 7 E6(-26)/F4 row) are from the actual paper
+text, HIGH confidence. Faraut–Korányi, Baez, de Wit–Van Proeyen statements are from canonical
+knowledge + search corroboration (HIGH for the cited facts). The "V_0 slice not totally geodesic"
+claim is an **inference** from Table 7 (MEDIUM–HIGH) and is flagged for direct computation in Phase A.
+ResearchGate copy of Castro's membrane paper was paywalled (HTTP 403); its framing is corroborated
+via secondary search snippets (MEDIUM confidence on exact venue/year, HIGH on the action-based
+nature).

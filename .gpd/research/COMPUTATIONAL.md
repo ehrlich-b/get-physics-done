@@ -1,291 +1,283 @@
-# Computational Approaches: Exact-Arithmetic Verification of the (RING) Lemma — Joint F_4-Invariants of 27 ⊕ 27
+# Computational Approaches: Bulk-Geometry Curvature of the h_3(O) Symmetric Cone (v17.0)
 
-**Surveyed:** 2026-05-24
-**Domain:** Computational invariant theory / exceptional Jordan algebra h_3(O), F_4 = Aut(h_3(O))
-**Confidence:** HIGH (reuse + algorithm design), MEDIUM (Molien-series completeness step, which depends on a SageMath install that is NOT currently present)
+**Surveyed:** 2026-05-30
+**Domain:** Computational differential geometry on exceptional Jordan-algebra symmetric cones (h_3(O) / Albert algebra); exact symbolic curvature of a 4-dim Lorentzian spacetime slice inherited from g_X = Hess(-log det)
+**Confidence:** HIGH on the reuse path and dim-4 tractability (every claim below was run, not assumed); MEDIUM on the dim-10 budget (one cliff measured, not the full curvature)
 
-> **Scope boundary.** This file covers the computational TOOLS, exact-arithmetic procedures, software, and resource estimates for verifying (RING). The mathematical content of the lemma (what the generators *are*, the proof strategy) lives in METHODS.md / PRIOR-WORK.md.
-
----
-
-## Recommended Stack (1-paragraph summary)
-
-**Primary engine: exact SymPy over Q (and Q-adjoin-surds), built on TOP of the warm octonion/h_3(O) harness already in this repo.** The decisive parts — (b) Jacobian-rank and the orbit-dimension gate, and (c) degree-2 coupling uniqueness — are *linear-algebra-over-Q at random rational points*: they need `Matrix.rank()` over an exact field, NOT floats. The only step that genuinely benefits from a CAS the repo does not have is (a) the **Molien/Hilbert-series completeness check**, which wants SageMath's `WeylCharacterRing("F4")` (plethysm / `symmetric_power` / `invariant_degree`). SymPy is the workhorse for everything that touches the actual algebra; SageMath is an *optional, isolated* second tool used only to produce the target generating-function degrees. **Do NOT use Singular/Macaulay2/Magma Gröbner-basis invariant-ring machinery on the 54 variables** — it is the anti-approach (see below).
+> **Scope boundary.** This file covers computational TOOLS, the EXACT engine to reuse, symbolic-differential-geometry machinery, the exact-vs-numeric boundary, cost/scaling, and verification hooks. Physics methods (the A0 signature bridge, the homogeneity argument, stress-energy construction) live in METHODS.md; the symmetric-cone/Faraut-Koranyi background lives in PRIOR-WORK.md; convention traps live in PITFALLS.md.
 
 ---
 
-## CRITICAL CORRECTION to the spawn context (read first)
+## Recommended Stack
 
-The milestone context states a "warm exact-SymPy octonionic harness already exists … `code/octonion_algebra.py`." **This is half-right and the half that is wrong will bite the executor.**
+**Reuse `code/ring_lemma_verification.py` as the EXACT-over-Q h_3(O) engine; build the slice metric as `g_ij = d_i d_j(-log det_3)` by hand-rolled `sympy.diff`; compute Christoffel/Riemann with a hand-rolled loop (NOT `sympy.diffgeom`); keep matter parameters RATIONAL and slice coordinates symbolic.** This was measured end-to-end: the decisive slice (h_2(C_u), 4 real dim) produces a Minkowski-form det `b*g/3 - p^2/3 - q^2/3`, its `Hess(-log det)` builds in 35 ms, evaluates at the center I/3 to a clean nondegenerate `diag(9,9,18,18)`, and full Christoffel+Riemann with matter turned on (M rational) completes in ~19 s exactly over Q. The whole homogeneity KILL test and the cross-term on/off test are cheap and exact.
 
-- `code/octonion_algebra.py` (5502 lines) is the **float64 NumPy** harness. Its `jordan_product`, `det_3`, `polarize_d`, `_compute_sharp`, `peirce_basis_27`, `to_vector`/`from_vector`, `_g2_derivation_matrix`, `compute_T_b_matrices`, `rescale_to_clifford_generators` are all `np.float64`. It is the **structural reference** (formulas, Fano table, conventions, VERIFIED-result comments), NOT a drop-in exact engine.
-- The **actual warm exact-SymPy harness** is two *other* files that already PORTED the octonion/h_3(O) structure into exact SymPy:
-  - `code/embedding_under_E_verification.py` — has exact-SymPy `FANO_TRIPLES`/`_MUL_TABLE` (e1e2=e4), octonion arithmetic on 8-tuples of SymPy `Rational`, the H3O coordinate layout, the `_mat_mul_h3o` M11..M33 entry formulas, `proj_u`, Peirce projectors — all over `Rational`. It explicitly says: *"PORTS the octonion path to EXACT SymPy (the existing infra is float64 NumPy)."*
-  - `code/slice_clause_iii_verification.py` — exact-SymPy spectral-sqrt + assert-based `_report`/`ALL_PASS`/`sys.exit` harness pattern (VALD-61-01), no pytest.
-  - `code/sp_verification.py`, `code/verify_sequential_product.py` — additional exact-SymPy precedents (`from sympy import Matrix, sqrt, Rational, eye, zeros, simplify`).
+The single hard constraint that shapes everything: **SymPy 1.14 + NumPy only. No Sage/GAP/Singular/Macaulay2/Magma.** The warm engine already honors this (assert-based harness, no pytest, sympy/numpy-only venv), so the entire program stays inside the executor sandbox with no new dependencies.
 
-**Consequence for the executor (who has SymPy + NumPy only, NO web, NO Sage):** the reuse target is the **exact-SymPy octonion block of `embedding_under_E_verification.py`** plus the **float64 formula bodies of `octonion_algebra.py`** as the spec to re-port. Do NOT reuse the float64 functions on the decisive path — float rank is unreliable (see Anti-Approaches and PITFALLS).
+The single load-bearing CORRECTNESS fact: there are **three mutually inconsistent `det` cross-term conventions in this repo**, differing by the octonion associator (measured gap 0.67 on a rational octonionic point). The certified-F_4-invariant exact det is `ring_lemma_verification.det_3`, which uses cross-term order `2*Re((x2 x1) x3)`. The float references (`octonion_algebra.det_3`, `peirce_coupling.H3Matrix.det`) carry the OLD buggy `(x1 x2) x3` order. **Use the engine's `det_3` for all geometry; treat the float dets as wrong on octonionic data.** (Full detail in PITFALLS.md; quantified in "Convention Hazard" below.)
 
 ---
 
-## What to reuse vs. what is a thin new layer
+## EXISTING ASSETS — confirmed by reading and running (not assumed)
 
-| Needed for (RING) | Source (exact provenance) | Status | Action |
+All five named assets were read in full; the exact engine was executed (`ALL_PASS`); det conventions were compared numerically on a genuinely octonionic rational point.
+
+### A1. `code/ring_lemma_verification.py` — THE engine to reuse (PRIMARY)
+
+**Status:** runs clean, `OVERALL: ALL_PASS` (all 5 convention locks + headline `d(X,X,X)==6*det_3` over Q + 324/324 inner-derivation annihilation certifying F_4-invariance). SymPy 1.14.0, Python 3.14.2. Import-safe (`main()` is guarded by `if __name__=="__main__"`), so `from ring_lemma_verification import ...` is clean.
+
+Confirmed public surface (all EXACT over Q; octonion = 8-list of SymPy Rationals; h_3(O) element = 3x3 nested list of octonions):
+
+| Function / object | Signature | What it provides | Use in v17.0 |
 |---|---|---|---|
-| Octonion mult (e1e2=e4) | `embedding_under_E_verification.py` `FANO_TRIPLES`/`_MUL_TABLE`/`oct_mul` (exact SymPy) | **REUSE as-is** | import/copy the exact block |
-| h_3(O) coord layout (α,β,γ,x1,x2,x3) | `octonion_algebra.py` `H3O`; exact mirror in embedding file | **REUSE structure** | port to exact if not already |
-| 3×3 octonion matmul `_mat_mul_h3o` M11..M33 | `octonion_algebra.py:290`; exact mirror in embedding file | **REUSE formulas** | exact version exists in embedding file |
-| `jordan_product` = (1/2)(AB+BA) | `octonion_algebra.py:374` (float); exact pattern in embedding file | **REUSE formula** | use exact matmul + 0.5 (exact Rational) |
-| `det_3` cubic norm (left-assoc (x1*x2)*x3) | `octonion_algebra.py:2152` | **REUSE formula** | re-port to exact SymPy (1 fn) |
-| `polarize_d` (d(X,X,X)=6N) | `octonion_algebra.py:2184` | **REUSE formula** | already validated d(X,X,X)=6·det_3 |
-| `_compute_sharp` X#, `_polarized_sharp` | `octonion_algebra.py:3858/3876` | **REUSE formula** | for X# / mixed-quadratic checks |
-| `_g2_derivation_matrix` (Schafer D=[L,L]+[L,R]+[R,R]) | `octonion_algebra.py:2349` | **REUSE formula** | the 14 g_2 generators, exact |
-| `compute_T_b_matrices` → `rescale_to_clifford_generators` (Spin(9) γ_a) | `octonion_algebra.py:661/938` | **REUSE formula** | the 36 grade-2 Spin(9) generators |
-| `to_vector`/`from_vector` (R^27) | `octonion_algebra.py:268/276` | **REUSE** | basis of the 27-coordinatization |
+| `oct(comps)`, `oct_zero()`, `oct_real(r)` | list[8] | build exact octonions | slice/matter coordinates |
+| `oct_mul`, `oct_add`, `oct_sub`, `oct_scal`, `oct_conj`, `oct_simplify` | octonion arith | Fano `e1 e2 = e4`, NON-associative (`(ab)c != a(bc)` computed independently) | cross-term, associator checks |
+| `h3o_from_coords(alpha,beta,gamma,x1,x2,x3)` | -> 3x3 octmat | build h_3(O) element; layout `x1->X[2][1], x2->X[0][2], x3->X[1][0]` | background X_bg, slice point |
+| `h3o_identity()` | -> I | identity (center = I/3 via `octmat_scal(Rational(1,3), I)`) | center basepoint |
+| `_coord_from_octmat(X)` | -> (a,b,g,x1,x2,x3) | recover coords | round-trip / cross-term reconstruction |
+| `jordan(A,B)` | -> 3x3 octmat | **Jordan product (1/2)(AB+BA)**, lands in h_3(O); the 1/2 is load-bearing | X^o2, X^o3, Cayley-Hamilton |
+| `h3o_matmul(A,B)` | -> 3x3 octmat | raw octonion matmul (non-associative) | inside jordan; sqrt cross-checks |
+| `Tr(X)` | -> scalar | linear trace alpha+beta+gamma, bidegree (1,0) | invariants, CH norm |
+| `Tr2(X)` | -> scalar | `Tr(jordan(X,X))`, bidegree (2,0) | CH norm, S(X) |
+| **`det_3(X)`** | -> scalar | **the certified cubic norm N(X) = abg - a\|x1\|^2 - b\|x2\|^2 - g\|x3\|^2 + 2*Re((x2 x1) x3)** | **g_X = Hess(-log det_3); THE metric source** |
+| `c(X,Y)=Tr(jordan(X,Y))` | -> scalar | coupling, bidegree (1,1) | matter coupling diagnostics |
+| `polarize_d(X,Y,Z)` | -> scalar | symmetric trilinear polarization, `d(X,X,X)=6 det_3` | trilinear cross-term extraction |
+| `cayley_hamilton_norm(X)` | -> scalar | N(X) from `X^o3 - Tr X^o2 + S X - N I = 0` | INDEPENDENT det verification (Hook V1) |
+| `inner_derivations()` | -> [27x27 Matrix] | the 324 nonzero `[L_a,L_b]` spanning f_4 (dim 52) | F_4-invariance certification |
+| `X_from_symbols(s)`, `_flat27(X)`, `_standard_basis_27()` | symbolic 27-coord | symbolic h_3(O), flatten/unflatten | symbolic slice metric |
 
-**Thin NEW layer the executor must write (small, ~150-300 lines exact SymPy):**
+**Cleanest reuse path:** copy `ring_lemma_verification.py` to `code/bulk_geometry_verification.py` (the project's established self-contained-decisive-module pattern — see its own PROVENANCE block, which copied rather than imported the Phase-62 engine), then add only: slice coordinatization, `g_ij = diff(-log(det_3(X(coords))), coords[i], coords[j])`, hand-rolled Christoffel/Riemann, and verification hooks. Do NOT import `octonion_algebra` on the decisive path — the engine's `exact_only_guard()` forbids it and it carries the cross-term bug.
 
-1. **54-real-dim pair coordinatization.** `X = Σ_{i=0}^{26} x_i E_i`, `Y = Σ_{j=0}^{26} y_j E_j` with symbolic `x_i, y_j = symbols('x0:27 y0:27')` and `E_i = peirce_basis_27()` (or the simpler standard basis). A point in 27⊕27 is the 54-tuple `(x_0..x_26, y_0..y_26)`. Provide `pair_from_coords(vec54) -> (H3O_X, H3O_Y)` and a symbolic constructor that returns H3O elements whose entries are SymPy linear forms in the 54 symbols.
-2. **The seven base invariants as SymPy expressions** in those 54 symbols: `Tr X, Tr(X∘X), det_3 X, Tr Y, Tr(Y∘Y), det_3 Y, c = Tr(X∘Y)`. (Tr = α+β+γ; Tr(X∘X)=Tr of `jordan_product(X,X)`; det via the exact `det_3`.)
-3. **The f_4 = Der(h_3(O)) action operator** `D_ξ` on a pair (see next section) — the genuinely new derivation-builder.
-4. **Polarized mixed cubics** f(X,X,Y), f(X,Y,Y) via `polarize_d` (see §6).
+### A2. `code/embedding_under_E_verification.py` — the C_u / Wick-rotation bridge (SECONDARY, for A0(i))
 
----
+The original VALD-62-01 exact-SymPy engine. Same octonion/Jordan core as A1 (A1's core is ported verbatim from here). Import-safe. **Additionally exposes the h_3(C_u) machinery the A0 signature bridge needs:**
 
-## The f_4 (52-generator) action — the "do this FIRST" gate
+| Function | What it provides | Use in v17.0 |
+|---|---|---|
+| `proj_u_exact(a, u_index=7)` | project octonion onto C_u = span{1,e7} | restrict slice to h_2(C_u) |
+| `E(X)` | conditional expectation h_3(O) -> h_3(C_u) (entrywise proj_u) | the slice projector |
+| `cu_to_complex(a)` / `complex_to_cu(z)` | **exact iso C_u ~ C, e7 -> i** | the Wick-rotation hinge (A0(i)) |
+| `slice_to_complex(X)` / `complex_to_slice(Mc)` | h_3(C_u) <-> 3x3 SymPy complex matrix | reduce slice det to a complex 3x3 determinant |
+| `matrix_sqrt_complex`, `slice_sqrt`, `sqrt_ambient` | exact spectral sqrt (CFC principal branch) | basepoint transport (if needed for B/C) |
+| `associator(A,B,C)` | `(AB)C - A(BC)` | confirm non-associativity is live |
+| `peirce_V1/Vhalf/V0` (referenced; structure ported from `octonion_algebra`) | Peirce projectors under E_11 | split matter (V_1, V_{1/2}) from slice (V_0) |
 
-The prior-work scout flagged the **generic orbit dimension** as the gate that fixes the target Krull dimension / transcendence degree, and therefore the *expected* Jacobian rank. Build f_4 = Der(h_3(O)) explicitly, then compute the rank of the infinitesimal-action matrix at a random rational point.
+This is the asset for **A0 construction (i)** (restrict g_X to V_0 and Wick-rotate via u=e7). For the slice-det route (A0(ii)) the engine in A1 already suffices: the C_u sub-slice det is just the engine's `det_3` evaluated with off-diagonals in comps {0,7}, which we measured to be the Minkowski form.
 
-### Building the 52 derivations Der(h_3(O)) = f_4
+### A3. `peirce_coupling.py` (NumPy, h_3(K) for K=R,C,H,O) — REUSE FOR PEIRCE GEOMETRY ONLY; det is BUGGY
 
-The cleanest reuse-driven construction (Tits / Schafer; matches what the harness already has):
+Float-only. `H3Matrix(K, diag, off)` with `.jordan_product`, `.peirce_decompose(eidx=0)` (returns `(V1, V_half, V0)`), `.trace_inner`, `.norm_sq`. The Peirce decomposition and Jordan product are correct and useful for prototyping the V_0/V_{1/2}/V_1 split. **BUT `.det()` (line 441) uses `K.mul(K.mul(x1, x2), x3)` — the buggy `(x1 x2) x3` order; off by the associator on octonionic data.** Do NOT use `.det()` for geometry. Use it only as a fast NumPy sanity-prototyper for Peirce structure, then re-derive everything exactly in the A1 engine.
 
-> **f_4 = g_2 ⊕ (so(3)-traceless part) — concretely, the standard decomposition** Der(h_3(O)) ≅ Der(O) ⊕ {traceless A acting by `[L_A, ·]`}, with the well-known dimension count **14 (g_2) + 26 + 12 = 52**, OR the Spin(9)-adapted **f_4 = so(9) ⊕ Δ_16** (36 + 16 = 52). The repo already has BOTH halves of the Spin(9) route:
+### A4. `peirce_coupling_v2.py` (NumPy) — investigation notes, not load-bearing
 
-- **so(9) part (36 generators):** the grade-2 Clifford bivectors `gammas[a] @ gammas[b]` (a<b) from `rescale_to_clifford_generators(compute_T_b_matrices())` — already used inside `verify_f4_invariance_det3` (octonion_algebra.py:2560-2564). These act on V_{1/2}=R^16 (spinor) and V_0=R^10 (vector) of the Peirce decomposition under E_{11}.
-- **the 16 "boost"/Δ_16 generators** complete so(9) to f_4 (f_4/so(9) is the 16-dim spinor; F_4/Spin(9)=OP^2 is the 16-dim Cayley plane — confirmed: the harness comment at octonion_algebra.py:5147 already records "Orbit = OP^2 = F_4/Spin(9), dim = 52 − 36 = 16").
+`from peirce_coupling import *` (inherits the buggy det but only calls `.jordan_product`/`.peirce_decompose`, never `.det`). Establishes a physics fact directly relevant to scoping the cross-term test: **x1 (in V_0) couples to the observer E_11 ONLY through the cubic determinant trilinear, never through bilinear Jordan products** (`V_0 o V_0 -> V_0`, no V_1 leakage). This is exactly the cross-term mechanism Phase B must isolate. Read for intuition; do not import on the decisive path.
 
-**Recommended construction for the executor (most robust, least bookkeeping):** build the derivation algebra *generatively* and verify it is 52-dimensional, rather than hand-listing a basis.
+### A5. `rho_directional_derivatives.py` (SymPy + NumPy) — REUSE FOR THE OFF-CENTER EXPANSION (B(c))
 
-1. Seed with the **14 g_2 derivations** `_g2_derivation_matrix(i,j)` lifted to act on h_3(O) (acts identically on x1,x2,x3; trivially on the diagonal — exactly the lift used in `verify_f4_invariance_det3`).
-2. Add the **"diagonal-traceless" derivations** `D = [L_A, ·]` for A a traceless h_3(O) element (the inner derivations from Jordan multiplication commutators `D_{A,B} = [L_A, L_B]`). The repo already builds `[L_A, L_B]`-type Jordan-multiplication commutators (octonion_algebra.py:4440 `D_{ij}=[L_{e_i},L_{e_j}]`, and `compute_commutator_algebra` closes a set under brackets).
-3. **Close under commutator** (`compute_commutator_algebra` pattern) and assert the closed Lie algebra has dimension **exactly 52** over Q. Each generator is a 27×27 rational matrix acting on `to_vector(X)`.
+Symbolic + numeric expansion of `rho_J(X) = det(X)(Tr(X^2) - 1/3)` around diagonal states (incl. I/3). Provides:
+- The **exact Hessian-of-det-at-diagonal-state result** (PART 13): off-diagonal Hessian blocks are `d2_i = 4*det - 2*w_i*(sig2 - 1/3)` with `w = (a,b,c)` the eigenvalue opposite slot x_i, in three 8-fold-degenerate blocks. **This is the closed-form second-derivative structure the slice metric inherits at diagonal backgrounds** — a free analytic check on the symbolic Hessian.
+- PART 12: the triple product `2*Re(x1 x2 x3)` enters only at THIRD order (`d3/ds dt du = 2*(sig2-1/3)`), confirming it is a vertex, not a propagator.
+- **CAUTION:** this file uses the real-only cross term `2*d1*d2*d3` (PART 1, line 31) and labels it `(x1 x2) x3`. On REAL directions all orderings agree, so its results are correct; but the labeling perpetuates the buggy order. Reuse the *formulas and the expansion strategy*, re-derive the octonionic cross-term from the A1 engine.
 
-> **Self-check (must pass before trusting anything):** the 52 generators must satisfy `D_ξ (det_3 X) = 0` and `D_ξ (Tr X) = 0` and `D_ξ (Tr X∘X) = 0` for ALL ξ, at a random rational X. This is the *exact* infinitesimal-invariance test (`D_ξ f := ∇f · (D_ξ · vec(X))`, evaluated as a SymPy expression that must `simplify()` to `0`). It REPLACES finite-group sampling and is decisive — no epsilon tolerance.
-
-### Generic orbit dimension on 27 ⊕ 27 (the gate)
-
-The F_4 action on the **pair** is the diagonal action: `D_ξ` acts on X and on Y by the *same* 27×27 matrix `M_ξ`. Build the **52 × 54 infinitesimal-action matrix** `J_orbit` whose ξ-th row is `(M_ξ · x , M_ξ · y)` (a 54-vector) evaluated at a **random rational pair** `(x*, y*) ∈ Q^54`. Then:
+### Convention Hazard (measured) — the one thing that can silently destroy the result
 
 ```
-generic_orbit_dim = J_orbit.rank()      # rank over Q, EXACT
-generic_stabilizer_dim = 52 - generic_orbit_dim
+On a genuinely octonionic rational point (all three off-diags with several nonzero imag comps):
+  ring_lemma det_3  (== 2*Re((x2 x1) x3))  =  24.97779865462204   <- CERTIFIED F_4-invariant (CH + 324/324 derivations)
+  (x1 x2) x3 order  (peirce_coupling, octonion_algebra)            =  24.30616409870177   <- WRONG (old bug)
+  associator gap                                                   =   0.6716...           (NONZERO -> order matters)
 ```
-
-**Anchor / expected value (LITERATURE-CONFIRMED, HIGH confidence):** F_4 on the 26-dim trace-zero rep V(ω₄) has **generic stabilizer Spin(8)** (dim 28), so generic orbit on the 26 is 52−28 = **24** (Garibaldi–Guralnick / Lawther; confirmed via the type-F_4 stabilizer literature, arXiv:2308.08214 and arXiv:1508.02918). On the full 27 = 1 ⊕ 26 the trace direction is fixed pointwise, so a single generic X still has a 24-dim orbit. For a **generic pair** (X,Y) the two points break more stabilizer; the generic orbit dimension is **expected to be larger than 24 and at most min(52, 54)=52**, and the executor must COMPUTE it (do not assume). The transcendence degree of the invariant field is then `54 − generic_orbit_dim`; this is the number of functionally independent invariants — i.e. **the target rank for the (b) Jacobian check.**
-
-> **This is why orbit-dim is the gate:** if `54 − generic_orbit_dim = 7`, then the 7 base invariants {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c} can be a transcendence basis and rank-7 in (b) is the *consistent* expected result. If `54 − generic_orbit_dim ≠ 7`, the whole generating-set claim must be reconsidered before any further work.
+Note `h3o_tower.py` (the prompt's "corrected reference") uses a THIRD spelling `2*Re(conj(x2)(conj(x0) x1))` on a DIFFERENT coordinate labeling (`d/x[0..2]`); it is internally consistent and CH-verified in that file, but it is NOT the same coordinate convention as the engine. **Do not mix labelings.** The engine (A1) is the single source of truth; everything else converts to it or is discarded.
 
 ---
 
-## Numerical Algorithms (all EXACT over Q)
+## Numerical Algorithms
 
-| Algorithm | Problem | Exactness criterion | Cost / Size | Key Reference |
-|---|---|---|---|---|
-| **Lie-algebra closure** (`compute_commutator_algebra` over Q) | Build & verify f_4 (52 gens, 27×27) | `Matrix.rank()` over Q = 52 exactly | 52 matrices 27×27; rank of ≤27²×N | Schafer 1966; harness:857 |
-| **Orbit-dim rank** | rank of 52×54 `J_orbit` at random rational pt | exact `Matrix.rank()` over Q | one 52×54 rank | Derksen–Kemper 2002 §4 |
-| **(b) Jacobian rank** | rank of 7×54 Jacobian of base invariants | exact `Matrix.rank()` over Q (= transcendence degree at generic pt) | one 7×54 rank, repeat ≥3 pts | Jacobian criterion (char 0) |
-| **(c) degree-2 coupling uniqueness** | dim of F_4-invariant degree-2 mixed polynomials | exact nullspace over Q of `D_ξ`-action on Sym²-mixed monomials | linear solve, ~few hundred monomials | linear algebra over Q |
-| **(a) Molien/Hilbert series** | bigraded dim of R[27⊕27]^{F_4} per (d_X,d_Y) | exact rational generating function / integer coeffs | Weyl-integral residue OR Sage plethysm | Molien–Weyl; Hanany et al. 1902.10550 |
+"Numerical" here means symbolic-algebraic algorithms over Q (the decisive path is exact, not floating-point). mpmath enters only as a guarded fallback (see Exact-vs-Numeric).
 
-### Exactness criteria spelled out (per step)
+| Algorithm | Problem | Convergence | Cost per Step | Memory | Key Reference |
+|---|---|---|---|---|---|
+| Hessian of -log det_3 (`sympy.diff` x2) | build slice metric g_ij | exact (not iterative) | dim-4: <0.04 s; dim-10: ~0.2 s (55 entries) | small | this survey (measured) |
+| Symbolic matrix inverse `Matrix.inv()` | g^{ij} (Christoffel needs it) | exact | dim-4 + matter rational: ~3 s; dim-4 fully-symbolic-in-6-vars: TIMEOUT >200 s; dim-10 symbolic: TIMEOUT >200 s | grows fast | this survey (measured) |
+| Hand-rolled Christoffel `Gamma^a_bc` | connection | exact | dim-4 matter-rational: part of the ~19 s total; dim-4 fully-symbolic: TIMEOUT | moderate | MTW / Wald (textbook formula) |
+| Hand-rolled Riemann `R^a_bcd` | curvature | exact | dim-4: ~0.15 s once Gamma is in hand | small | MTW / Wald |
+| `cancel`/`together` per entry | tame expression swell | n/a | the dominant cost; apply once per tensor entry, never `simplify` in a hot loop | n/a | SymPy docs |
+| `sympy.Matrix(...).rank()` over QQ | any rank-bearing check | exact | cheap at these dims | small | engine `RANK_ROUTING_CONVENTION` |
 
-- **Orbit dim & (b) Jacobian:** "rank" means SymPy `Matrix(...).rank()` (or `.rref()` row count) over the field **Q**. Build the Jacobian symbolically (`sympy.Matrix([[sympy.diff(f_k, v) for v in vars54] for f_k in invariants])`), then **substitute a random rational point** `subs({v: Rational(p,q)})` and take `.rank()`. **Never** `numpy.linalg.matrix_rank` — float SVD will return a wrong integer near rank-deficiency (this is the central PITFALL).
-- **Random point hygiene:** draw 54 independent rationals with numerator/denominator in, say, [−97, 97] (use a fixed seed + `Rational`). **Re-check at ≥3 independent random rational points.** Rationale: the Jacobian rank is generic almost everywhere; a single point could accidentally land on the (measure-zero) lower-rank locus. If all 3 agree, the generic rank is established with overwhelming confidence; if they disagree, the *maximum* over points is the generic rank (rank is lower-semicontinuous: it can only DROP on special loci). 3 points is the standard, cheap insurance; 5 if any entry of the invariants is suspiciously sparse.
-- **(c) uniqueness:** enumerate all bidegree-(1,1)-and-(2,0)-and-(0,2) monomials in the 54 vars that could be degree-2 invariants (i.e. quadratics). The F_4-invariant quadratics form the nullspace of the linear map `q ↦ (D_ξ q)_{ξ=1..52}`. Solve over Q. **Decisive claim "c is the unique degree-2 coupling generator"** = the *mixed* (one-X, one-Y) invariant quadratics form a **1-dimensional** space spanned by `Tr(X∘Y)`. (Tr X·Tr Y is also degree-2 mixed but reducible — it is a product of degree-1 invariants Tr X and Tr Y; the executor must quotient by products of lower-degree invariants, i.e. take the **plethystic-logarithm / primitive** part, not the raw invariant count.)
+### Convergence / failure properties
 
-### Convergence / termination
-
-These are finite exact computations — there is no convergence rate, only termination. The only "rate" concern is **SymPy expression swell**: `det_3` of a symbolic 54-variable H3O is a degree-3 polynomial in 54 vars with octonion cross-terms; its symbolic `diff` then `subs(rational)` is fine, but `simplify()` on the full symbolic Jacobian before substitution can blow up. **Substitute the random rational point FIRST, then rank** (rank of a concrete rational matrix is cheap and exact).
-
----
-
-## (a) Hilbert / Molien-series completeness check — the SageMath step
-
-**Goal:** confirm the candidate generating set {6 pointwise + coupling generators} is COMPLETE up to total degree ≤ 6 by matching the **bigraded** (degree-in-X, degree-in-Y) Hilbert series of R[27⊕27]^{F_4} term-by-term.
-
-Two routes; **recommend Route B (character/plethysm in Sage)** because the repo has no numerical contour-integration setup and the plethysm route is exact-integer.
-
-- **Route A — Molien–Weyl integral (no Sage needed, SymPy-only fallback).** For compact F_4, the Hilbert series is the Weyl-integral (Molien–Weyl theorem):
-  `H(t_X, t_Y) = ∫_{F_4} det(1 − t_X ρ(g))^{−1} det(1 − t_Y ρ(g))^{−1} dg`, reduced by the Weyl integration formula to a 4-dimensional (rank-4) torus residue with the F_4 Weyl-denominator/Jacobian. The torus eigenvalues of the 27 are the weights of V(ω₄)⊕(trivial). This is doable in SymPy as **iterated residues / constant-term extraction** in 4 torus variables, but it is fiddly (one must encode the 24 short + long roots of F_4 and the 27 weights). MEDIUM confidence it is worth the bespoke effort.
-- **Route B — character / plethysm degree-by-degree (SageMath, RECOMMENDED).** The dimension of degree-(d_X, d_Y) invariants = multiplicity of the trivial rep in `Sym^{d_X}(27) ⊗ Sym^{d_Y}(27)`. In Sage:
-  ```python
-  F4 = WeylCharacterRing("F4")
-  fw = F4.fundamental_weights()
-  R27 = F4(fw[4]) + F4.one()          # 26 (=V(ω4)) ⊕ 1 (trivial trace dir) = 27
-  # bigraded coefficient (dX, dY):
-  inv = (R27.symmetric_power(dX) * R27.symmetric_power(dY)).invariant_degree()
-  ```
-  `invariant_degree()` returns exactly the multiplicity of the trivial rep (confirmed in the Sage Weyl-character-ring reference). Loop `dX + dY ≤ 6`. The **plethystic logarithm** of the resulting bigraded series gives the *primitive generators* per bidegree; matching that to the candidate set (Tr X at (1,0), Tr Y at (0,1), c at (1,1), Tr X²/det X at (2,0)/(3,0), the mixed cubics at (2,1)/(1,2), …) is the completeness proof up to degree 6. This is exactly the workflow of "Standard Model Plethystics" (Hanany–Khoze–Riley–Torri, arXiv:1902.10550): Molien–Weyl/Hilbert-series + plethystic-log to read off generators and relations (syzygies).
-
-> **Tooling reality (MEDIUM-confidence flag):** SageMath is **NOT installed** in this environment (no `sage` on PATH; only `python3`+`sympy 1.14.0`+`numpy 2.4.2`). The Molien step therefore either (i) requires the orchestrator/user to run a one-off Sage script and PASTE the bigraded integer table into the plan as a fixture (recommended — keeps the executor self-contained), or (ii) the executor implements Route A in pure SymPy. **Do not assume the executor can call Sage.** Recommend (i): a ~30-line Sage snippet, run once, producing the (d_X,d_Y)→multiplicity table for d_X+d_Y≤6, staged as data.
+- **Not iterative** — everything is exact symbolic algebra, so "convergence" = "does the simplifier terminate before the cliff." The failure mode is **expression swell**, not non-convergence.
+- **Known failure mode (measured):** carrying matter parameters AND slice coordinates as free symbols through `Matrix.inv()` blows up (>200 s timeout at dim-4 with 6 symbols; dim-10 symbolic inverse also times out). The metric BUILD and point-EVALUATION are always cheap; the **symbolic inverse is the cliff**.
+- **Mitigation that works (measured):** substitute matter (m1, mu, ...) to small RATIONALS *before* inverting; keep only the 4 slice coordinates symbolic. Full Christoffel+Riemann then completes in ~19 s. For the M-dependence of curvature (B(c)), series-expand in a single matter amplitude `t` to low order rather than carrying it symbolically through the inverse.
+- Use `cancel(together(expr))` (not `simplify`) on each metric/Christoffel entry; `simplify` is far slower and unnecessary for rational functions.
 
 ---
 
 ## Software Ecosystem
 
-### Primary tools
+### Primary Tools
 
-| Tool | Version | Purpose | License | Maturity | Present here? |
-|---|---|---|---|---|---|
-| **SymPy** | **1.14.0** | EXACT arithmetic: octonion/h_3(O) algebra, det_3, f_4 derivations, all rank/nullspace over Q | BSD | stable | **YES** |
-| **NumPy** | **2.4.2** | float64 cross-checks ONLY (random-point generation, sanity scaffolding, the existing octonion_algebra.py) | BSD | stable | **YES** |
-| **SageMath** | 10.x (current ≈10.5, 2025) | F_4 `WeylCharacterRing`, `symmetric_power`, `invariant_degree`, plethysm/branching → the (a) Molien series target | GPL | stable | **NO — must install or run externally** |
+| Tool | Version | Purpose | License | Maturity |
+|---|---|---|---|---|
+| SymPy | **1.14.0** (current latest stable; confirmed installed + via release tracker) | exact symbolic algebra over Q: octonion/Jordan arithmetic, `det_3`, `diff`, `Matrix.inv`, `Matrix.rank` | BSD | stable |
+| NumPy | **2.4.2** (installed; 2.x series) | fast float prototyping of Peirce structure (NON-decisive) | BSD | stable |
+| Python | 3.14.2 | interpreter | PSF | stable |
 
-### Supporting / optional tools
+### Supporting Tools
 
-| Tool | Version | Purpose | When needed |
+| Tool | Version | Purpose | When Needed |
 |---|---|---|---|
-| **LiE** | 2.2.2 | classic Lie-rep tensor/sym-power/plethysm (`sym_tensor`, `plethysm`) — lightweight alt to Sage for (a) | if Sage unavailable and a quick rep-theory check is wanted |
-| **Singular** | 4.4.x | invariant rings of finite groups (`primary_invariants`, `invariant_ring`) | NOT for this problem — see Anti-Approaches |
-| **Macaulay2** | 1.24.x | Gröbner, `InvariantRing` package | NOT for this problem — see Anti-Approaches |
-| **Magma** | 2.28-x | strong invariant-theory + reductive-group machinery | only if a fully independent re-derivation is demanded (commercial; not present) |
+| mpmath | 1.3.0 (installed; SymPy dependency) | high-precision (50-100 digit) curvature as a guarded fallback / float-artifact firewall | only where exact times out AND a verdict is still needed; never on the homogeneity KILL test |
+| `sympy.diffgeom` | bundled with 1.14 | `metric_to_Christoffel_2nd`, `metric_to_Riemann_components`, `metric_to_Ricci_components` exist and work | OPTIONAL cross-check only — see Anti-Approach below |
 
-### Install / setup
+### EXPLICITLY EXCLUDED (per milestone constraint)
 
-```bash
-# Already satisfied for the decisive path:
-python3 -c "import sympy, numpy; print(sympy.__version__, numpy.__version__)"   # 1.14.0 2.4.2
+Sage, GAP, Singular, Macaulay2, Magma. None are available or permitted. The entire program fits in SymPy+NumPy; no Groebner-basis engine is needed for the geometry (the v16.0 milestone established that the project deliberately avoids external CAS).
 
-# Optional, for the (a) Molien step only — run ONCE externally, paste the table:
-# conda create -n sage -c conda-forge sage   # heavy (~2-4 GB); or use a Sage Docker image
-# sage molien_f4.sage  > f4_bigraded_multiplicities.txt
+---
+
+## Anti-Approaches
+
+| Anti-Approach | Why Avoid | What to Do Instead |
+|---|---|---|
+| Use `octonion_algebra.det_3` or `peirce_coupling.H3Matrix.det` for the metric | BUGGY `(x1 x2) x3` cross-term order; off by the associator (measured 0.67) on octonionic data; would corrupt every curvature downstream | Use `ring_lemma_verification.det_3` (certified F_4-invariant: CH norm + 324/324 inner derivations) |
+| `sympy.diffgeom` `metric_to_*` as the PRIMARY curvature path | Finicky (coordinate-function diff fails; `subs` of symbols into coord_functions triggers "more than one coordinate system"; only the base-vector idiom works) AND slower (measured `Christoffel_2nd` 14.2 s vs hand-rolled ~2.9 s; Ricci timed out) | Hand-rolled Christoffel/Riemann loops from the textbook formula on a plain `sympy.Matrix` metric; use diffgeom only as an independent cross-check on ONE point if desired |
+| Carry matter params + slice coords all symbolic through `Matrix.inv()` | Expression swell -> >200 s timeout (measured at dim-4/6-symbols and dim-10) | Substitute matter to rationals before inverting; keep 4 slice coords symbolic; series-expand in matter amplitude for M-dependence |
+| `numpy.linalg.matrix_rank` / float SVD for any rank or curvature verdict | rank/curvature are discontinuous; a float tolerance fabricates the answer; the engine's `exact_only_guard()` forbids it | `sympy.Matrix(...).rank()` over QQ; exact `cancel(...) == 0` tests for flatness |
+| Expect the raw cone Hessian `Hess(-log det)` to be FLAT at M=0 | The cone is an INTRINSICALLY CURVED symmetric space (E_{6(-26)}/F_4 type); measured 60 nonzero Riemann comps at M=0 on the slice | The Minkowski/flat background comes from the A0 signature construction (take eta from h_2(C_u)'s OWN det; let the bulk supply only h_munu), NOT from the bulk Hessian vanishing. See PITFALLS.md. |
+| Single-slot matter for the cross-term on/off test | If only one off-diagonal slot is nonzero, `2*Re((x2 x1) x3) = 0` identically (measured), so the cross-term test is vacuous | Populate all three slots so the triple product is genuinely nonzero (x2,x3 carry V_{1/2} matter, x1 carries the V_0 slice direction); confirmed this is what makes the cubic vertex live (peirce_coupling_v2, rho PART 12) |
+| Rebuild octonion arithmetic / det / Peirce from scratch | weeks of work, re-introduces the cross-term bug the project already paid to fix in Phase 64.1 | Copy `ring_lemma_verification.py` verbatim (the project's self-contained-decisive-module pattern) and extend |
+
+---
+
+## Logical Dependencies
+
+```
+det_3 verified (CH norm == det_3 at octonionic pts; 324/324 inner-derivation annihilation)
+   -> ONLY THEN build any metric           (Hook V1; cheap, run FIRST)
+
+g_X = Hess(-log det_3)  requires  det_3 > 0 on the slice
+   -> reduce-to-Minkowski at (M=0, center)  (Hook V2): slice det = b*g/3 - p^2/3 - q^2/3 (measured),
+      Hess at I/3 = diag(9,9,18,18) nondegenerate
+
+A0 signature bridge (METHODS.md) chooses Lorentzian eta
+   -> required BEFORE any curvature claim   (the raw cone Hessian is Riemannian + curved even at M=0)
+
+Christoffel(g)  requires  g^{ij} = g.inv()
+   -> matter MUST be rational before inv()  (symbolic-matter inverse times out)
+
+Riemann(g)  requires  Christoffel
+   -> Phase A homogeneity test needs only Hess + its x-dependence, NOT Riemann (cheapest gate; do FIRST)
+
+Cross-term ON/OFF (Phase B(b))  requires  all three off-diag slots populated
+   -> single-slot matter makes the cubic vertex vanish identically
 ```
 
 ---
 
-## (6) Polarization of det_3 → mixed cubic coupling generators
+## Recommended Investigation Scope
 
-The mixed cubic invariants f(X,X,Y) and f(X,Y,Y) come from polarizing the cubic norm. The harness **already provides** `polarize_d(X,Y,Z)` (octonion_algebra.py:2184) with the convention `d(X,X,X) = 6·det_3(X)` (VERIFIED, octonion_algebra.py:2299: "d(X,X,X) = 6*N(X): max rel err 1.4e-13").
+Prioritize (cheapest-and-decisive first, matching the milestone's "Phase A kills or greenlights everything"):
 
-- **Convention lock (do this BEFORE building):** verify `polarize_d(X,X,X) == 6 * det_3(X)` exactly (SymPy `simplify(... ) == 0`) at a random rational X. This pins the symmetric trilinear form `d` so that the two mixed cubics are unambiguously:
-  - `f_XXY := d(X,X,Y)` (bidegree (2,1)), and
-  - `f_XYY := d(X,Y,Y)` (bidegree (1,2)).
-- **Sharp-vs-d hazard.** Two distinct but related bilinear/trilinear objects live in the harness: the **sharp / Freudenthal cross product** `_compute_sharp` (X#, `X∘X# = det_3(X)·I`) with its polarization `_polarized_sharp(X,Y) = cross(X,Y)` (octonion_algebra.py:3876), AND the **trace-trilinear** `d` from `polarize_d`. They are related by `d(X,Y,Z) = Tr( cross(X,Y) ∘ Z )` (the harness uses exactly this at octonion_algebra.py:3901, `M_{ab}=Tr(cross(e_a,e_b)∘E)`). **Pick ONE convention** — recommend the **`polarize_d` trilinear** because (i) it is already validated to `6·det`, (ii) it makes F_4-invariance manifest (det_3 is F_4-invariant ⇒ every polarization is), and (iii) the executor never has to chase the X×Y "sharp" sign/normalization convention. Document the choice in an `ASSERT_CONVENTION` header line: `det3_polarization=d(X,X,X)=6*det_3, mixed_cubics=d(X,X,Y)_and_d(X,Y,Y)`.
-- **F_4-invariance is automatic** for `d(·,·,·)` once `D_ξ det_3 = 0` is verified (it is, both numerically in the harness and exactly via the §"do this FIRST" self-check), because `d` is a polarization of `det_3`. Still, run the exact `D_ξ f_XXY = 0` and `D_ξ f_XYY = 0` self-check for all 52 ξ.
+1. **Verify det_3 then reduce-to-Minkowski (Hooks V1, V2).** Reuse `cayley_hamilton_norm` + `inner_derivations` for V1 (already passing in the engine); confirm slice det = Minkowski form and Hess at I/3 = `diag(9,9,18,18)`. **Cost: seconds. Run before anything else.**
+2. **Phase A homogeneity KILL test.** Build `Hess(-log det_3)` on the 4 slice coords with matter and ask whether `h_munu(x)` is x-independent. Needs only the Hessian and its dependence on the slice point — NOT the full Riemann. Compare `Stab_{E_6}(E_11)` dimension against the basepoint-family dimension (reuse `orbit_dimension_gate.py` machinery if a rank computation is wanted; route through `sympy.Matrix.rank()`). **Cost: seconds–minutes, exact over Q.**
+3. **Phase B Riemann with matter (only if A survives).** Matter rational, slice coords symbolic: full Christoffel+Riemann ~19 s (measured). Cross-term ON/OFF by dropping the `2*Re((x2 x1) x3)` term at the expression level (all three slots populated). **Cost: tens of seconds per configuration.**
+4. **Phase B(c) M-dependence.** Series-expand curvature in a single matter amplitude `t` to low order (reuse `rho_directional_derivatives` expansion strategy + its closed-form `d2_i = 4 det - 2 w_i (sig2 - 1/3)` as an analytic check). **Cost: minutes.**
+
+Defer / out of scope for the exact path:
+- **Full dim-10 V_0 symbolic curvature:** the symbolic metric INVERSE times out (>200 s, measured). Feasible only point-evaluated or with all matter rational and heavy `cancel`; treat as a high-precision-mpmath fallback if a dim-10 verdict is ever needed. The decisive physics lives on the 4-dim h_2(C_u) slice, so dim-10 is not on the critical path.
+- **Dim-26 (det=1 hypersurface) curvature:** not tractable symbolically; not needed (the slice is 4-dim).
 
 ---
 
 ## Data Flow
 
 ```
-random rational seed
- -> (54 symbols x0..x26, y0..y26)  +  E_i = peirce_basis_27()          [thin new layer]
- -> exact-SymPy H3O(X), H3O(Y) as linear forms                          [reuse embedding-file octonion block]
- -> base invariants {TrX,TrX²,detX, TrY,TrY²,detY, c=Tr(X∘Y)}           [reuse det_3, jordan_product]
- -> 52 f_4 generators M_ξ (27×27 over Q), closure-verified dim=52       [reuse _g2_derivation_matrix + [L_A,L_B] + compute_commutator_algebra]
- -> GATE: orbit-dim = rank(52×54 J_orbit) at random rational pt         [EXACT rank over Q]  ──► fixes target trdeg = 54 − orbit_dim
- -> (b) rank(7×54 Jacobian) at ≥3 random rational pts                   [EXACT rank over Q]  ──► 7 ⇒ independent; 6 ⇒ NEGATIVE
- -> (c) nullspace of D_ξ on degree-2 mixed monomials, minus reducibles  [EXACT over Q]       ──► dim 1 ⇒ c unique
- -> (6) mixed cubics f(X,X,Y),f(X,Y,Y) via polarize_d; D_ξ f=0 check    [reuse polarize_d]
- -> (a) Sage/LiE bigraded multiplicities (d_X+d_Y≤6) + plethystic log   [EXTERNAL Sage, paste as fixture]  ──► completeness up to deg 6
- -> assert-based _report / ALL_PASS / sys.exit harness                  [reuse slice_clause_iii pattern]
+slice coords (b,g,p,q) [+ matter m1, mu, ...]
+ -> h3o_from_coords(...)  using engine layout (x1->[2][1], x2->[0][2], x3->[1][0])
+ -> det_3(X)   [CERTIFIED cross-term (x2 x1) x3]                     (Intermediate: cubic norm)
+ -> -log(det_3(X))                                                  (potential F)
+ -> g_ij = cancel(diff(F, coords[i], coords[j]))                    (4x4 metric, ~0.04 s)
+ -> [A0 signature bridge: Lorentzian eta + h_munu]  (METHODS.md)    (signature fix)
+ -> [Phase A: is h_munu x-dependent?]  --KILL or GREENLIGHT--
+ -> matter -> rationals; g.inv()                                    (g^{ij}, ~3 s)
+ -> Gamma^a_bc (hand-rolled)                                        (~few s)
+ -> R^a_bcd (hand-rolled)                                           (~0.15 s)
+ -> Ricci, Einstein G_munu (contractions)                          (cheap)
+ -> [cross-term ON/OFF, M-dependence] -> verdict
 ```
 
 ## Computation Order and Dependencies
 
-| Step | Depends On | Produces | Parallelize? |
+| Step | Depends On | Produces | Can Parallelize? |
 |---|---|---|---|
-| Port exact octonion/H3O/det_3 layer | embedding-file + octonion_algebra.py formulas | exact base ops | n/a (foundation) |
-| Build & close f_4 (dim=52 check) | exact base ops | 52 M_ξ over Q | no |
-| **Orbit-dim GATE** | f_4 generators | trdeg target | no (gates everything) |
-| (b) Jacobian rank | base invariants + orbit-dim target | rank ∈ {6,7} verdict | yes (per random point) |
-| (c) degree-2 uniqueness | f_4 generators | dim of mixed quadratic invariants | yes |
-| (6) mixed cubics + invariance | polarize_d + f_4 | f(X,X,Y), f(X,Y,Y) | yes |
-| (a) Molien completeness | external Sage table | bigraded mult ≤ deg 6 | externally, once |
+| det_3 verification (V1) | engine (already passes) | trust in det | no (gate) |
+| slice det + Minkowski check (V2) | det_3 | Minkowski form, diag(9,9,18,18) | no (gate) |
+| A0 signature bridge | V2 | Lorentzian eta + h_munu split | no |
+| Phase A Hessian x-dependence | det_3, A0 | KILL/GREENLIGHT | matter configs parallel |
+| g.inv() (matter rational) | metric | g^{ij} | per-config parallel |
+| Christoffel | g^{ij}, metric | Gamma | per-config parallel |
+| Riemann/Ricci/Einstein | Christoffel | curvature, G_munu | per-config parallel |
+| cross-term ON/OFF | det_3 (with/without cross) | matter-sourcing isolation | parallel |
+
+Parallelism: different matter configurations / the cross-on vs cross-off runs are independent processes — run them as separate `python -u` invocations (the executor's per-process model; see Resource Estimates).
 
 ## Resource Estimates
 
-| Computation | Time (exact SymPy) | Memory | Hardware |
+| Computation | Time (measured/estimated) | Memory | Hardware |
 |---|---|---|---|
-| Exact octonion/det_3 port + smoke tests | minutes (dev) / < 1 s run | trivial | laptop |
-| f_4 build + commutator closure to dim 52 | seconds–1 min (27×27 rational rank, ~hundreds of brackets) | < 200 MB | laptop |
-| Orbit-dim rank (52×54 over Q, random pt) | seconds (one exact rank) | < 100 MB | laptop |
-| (b) Jacobian rank (7×54 over Q) × 3 pts | seconds total | < 100 MB | laptop |
-| (c) degree-2 nullspace over Q | seconds (a few hundred monomials) | < 200 MB | laptop |
-| (6) polarized cubics + 52 invariance checks | seconds–minutes (det_3 symbolic diff swell if not subbing first) | < 500 MB if point-substituted | laptop |
-| (a) Sage bigraded multiplicities ≤ deg 6 | seconds–minutes in Sage | < 1 GB | needs Sage install |
+| Engine self-check (`ring_lemma_verification.py`) | ~60-150 s (324-derivation lock dominates) | <1 GB | 1 core |
+| Slice det + Hess(-log det), dim-4 | <0.05 s | small | 1 core |
+| Eval metric at center I/3 | <0.01 s | small | 1 core |
+| dim-4 full Christoffel+Riemann, MATTER RATIONAL | ~19 s | <1 GB | 1 core |
+| dim-4 M=0 Christoffel+Riemann (flat-background reference) | ~10 s | <1 GB | 1 core |
+| dim-4 fully-symbolic-in-6-vars `g.inv()` | **TIMEOUT >200 s** (avoid) | grows | 1 core |
+| dim-10 V_0 Hess build + eval-at-center | ~0.25 s | small | 1 core |
+| dim-10 V_0 symbolic `g.inv()` | **TIMEOUT >200 s** (avoid; mpmath fallback) | large | 1 core |
+| `sympy.diffgeom` Christoffel_2nd, dim-4 | ~14 s (slower than hand-rolled; cross-check only) | <1 GB | 1 core |
 
-**Bottom line:** the entire decisive verification is a **laptop-minutes, single-core** exact computation. There is no HPC, no GPU, no sign problem. The only "cost" is SymPy expression swell, fully avoided by **substituting the random rational point before taking ranks.**
+**Executor watchdog caveat (project-specific, from MEMORY).** The `gpd-executor` stream-watchdog kills long no-output symbolic runs (~150 s harness, hard kill at 600 s); background resume has stalled before. Long curvature runs should print progress between heavy steps (after metric build, after inverse, after Christoffel) and run foreground with `python -u`. Keep each decisive step under ~150 s of silent compute — the recipe above (matter rational, hand-rolled, `cancel` per entry) stays well inside this.
 
 ## Integration with Existing Code
 
-- **Input format:** H3O elements as `(α,β,γ,x1,x2,x3)` with octonions as 8-tuples — IDENTICAL to `octonion_algebra.py` and the exact embedding-file port. `to_vector`/`from_vector` give the R^27 ↔ H3O bridge for stacking the 54-vector.
-- **Output format:** assert-based PASS/FAIL lines + `sys.exit(0/1)` (the VALD-61 `slice_clause_iii_verification.py` pattern). No pytest on the decisive path (executor venv = sympy/numpy only).
-- **Interface point:** new file `code/ring_lemma_verification.py`, importing the exact octonion block (either `from code.embedding_under_E_verification import oct_mul, ...` or a copied exact block), the `det_3`/`polarize_d`/derivation **formulas** re-ported to exact SymPy. **Do NOT entangle with the v15.0 basin-restriction result** — this is a fresh invariant-theory computation; reuse algebra only.
+- **Input format:** h_3(O) elements as the engine's nested-list-of-octonion-8-lists (NOT the `octonion_algebra.H3O` float dataclass, NOT the `peirce_coupling.H3Matrix` float class). Coordinates are exact SymPy `Rational`/`Symbol`.
+- **Reuse path:** copy `code/ring_lemma_verification.py` -> `code/bulk_geometry_verification.py`; import nothing from `octonion_algebra` (engine guard forbids it); pull the C_u iso (`cu_to_complex`, `slice_to_complex`, `proj_u_exact`) from `embedding_under_E_verification.py` if A0(i) is chosen.
+- **Output format:** assert-based `_report(label, ok)` / `ALL_PASS` / `sys.exit(0/1)` harness (the project standard — no pytest in the executor venv). Curvature verdicts printed as exact rational expressions; flatness as `cancel(R) == 0`.
+- **Interface points:** the slice coordinatization and the `g_ij = diff(-log det_3, ...)` builder are the only genuinely new code; Christoffel/Riemann are ~30 lines of textbook loops.
 
-## Validation Strategy
+## Validation Strategy (Verification Hooks — concrete, with resource estimates)
 
-| Result | Validation method | Benchmark (exact) | Source |
-|---|---|---|---|
-| octonion port correct | e1·e2 == e4; (e1·e2)·e3 ≠ e1·(e2·e3) on a triple | Fano + nonassoc | octonion_algebra.py header |
-| det_3 port correct | det_3(diag(a,b,c)) == a·b·c; det_3(I_3)==1; det_3(E_ii)==0 | exact equalities | octonion_algebra.py:2296 |
-| polarization convention | polarize_d(X,X,X) − 6·det_3(X) `simplify`==0 | exact 0 | octonion_algebra.py:2299 |
-| f_4 correct | dim(closure)==52; D_ξ(det_3)=D_ξ(TrX)=D_ξ(TrX²)=0 ∀ξ | exact 0, dim 52 | Schafer 1966 |
-| orbit-dim sane | 54 − orbit_dim == 7 (consistency with 7 base invariants) | integer match | Garibaldi–Guralnick |
-| (b) verdict | rank stable across ≥3 random rational points | 7 (or decisive 6) | Jacobian criterion |
-| (c) verdict | mixed degree-2 invariant space (mod reducibles) dim==1 | exact 1 | linear algebra/Q |
-| (a) completeness | candidate plethystic-log == Sage bigraded series, d_X+d_Y≤6 | integer-by-integer | 1902.10550 method |
+| Hook | Result | How to validate | Tolerance | Cost |
+|---|---|---|---|---|
+| **V1. det multiplicativity + Cayley-Hamilton** (run BEFORE any geometry) | `det_3 == cayley_hamilton_norm` at octonionic pts; annihilated by all 324 inner derivations | reuse engine LOCK 7a/7b (already passing) | exact `==0` over Q | already in engine; ~60-150 s |
+| **V2. Reduce-to-Minkowski at (M=0, center)** | slice det = `b*g/3 - p^2/3 - q^2/3` (Minkowski form); `Hess(-log det)` at I/3 = `diag(9,9,18,18)`, nondegenerate (det 26244) | build + subst center; compare to `52-kkt-spacetime` Minkowski quadratic | exact over Q | <0.1 s (measured) |
+| **V3. Cross-term ON/OFF** (Phase B(b) isolation) | dropping `2*Re((x2 x1) x3)` from det removes matter-sourced curvature | build det_full and det_nocross; recompute Riemann for each; **populate all 3 slots** or the term is vacuously 0 | exact diff of Riemann components | ~2x the ~19 s curvature run |
+| **V4. M=0 curvature baseline** | the slice curvature at M=0 under the A0 construction (NOT the raw cone, which is curved) | recompute Riemann at M=0 after the A0 eta-subtraction; expect flat or pure-Lambda | exact `==0` (flat) or `==const*g` (Lambda) | ~10 s (measured for raw; A0-corrected similar) |
+| **V5. F_4-residual symmetry of the metric** | metric/curvature invariant under `Stab_{E_6}(E_11)` action | reuse `orbit_dimension_gate.py` / `inner_derivations`; route ranks through `sympy.Matrix.rank()` | exact | minutes |
+| **V6. diffgeom cross-check (optional)** | hand-rolled Riemann == `metric_to_Riemann_components` on one point | run both on a single rational metric | exact match | ~15 s (diffgeom slower) |
 
 ---
 
 ## Open Questions
 
-| Question | Why open | Impact | Approaches |
+| Question | Why Open | Impact on Project | Approaches Being Tried |
 |---|---|---|---|
-| Exact generic orbit dimension of F_4 on 27⊕27 | not a standard textbook number (single-27 is Spin(8), 24-dim; the *pair* is what we need) | fixes the (b) target rank and the whole trdeg | **compute it first** via 52×54 rank over Q |
-| Is SageMath available to the executor? | environment has SymPy/NumPy only; no `sage` on PATH | (a) Molien step blocks if not | run Sage once externally, paste integer table as fixture; OR pure-SymPy Molien–Weyl residue (Route A) |
-| Reducible vs. primitive degree-2 invariants | Tr X·Tr Y is degree-2 mixed but reducible | (c) must count *primitive* generators, not raw invariants | quotient by products of lower-degree invariants (plethystic log) |
-| det_3 symbolic swell in 54 vars | degree-3 in 54 vars with octonion cross-terms | (6)/(b) could be slow if simplified symbolically | substitute random rational point BEFORE rank/diff-evaluation |
+| Which A0 construction reduces exactly to Minkowski at (M=0, center)? | Two candidates (Wick-rotate g_X via u=e7 vs eta from h_2(C_u)'s own det) — both plausible | determines whether curvature is Lorentzian and what "background" means | A0(ii) measured to give Minkowski det directly; A0(i) needs `cu_to_complex`/sqrt machinery (METHODS.md) |
+| Is `h_munu(x)` x-dependent after fixing E_11? | the homogeneity KILL/GREENLIGHT fork; not yet computed | DECIDES whether the route is dead | Phase A Hessian-x-dependence + `Stab_{E_6}(E_11)` dimension count (cheap, exact) |
+| Does dim-10 V_0 curvature ever need to be computed exactly? | symbolic inverse times out (measured) | only matters if the 4-dim slice is insufficient | deferred; mpmath high-precision fallback available if needed |
+| Will `cancel` tame the matter-symbolic Christoffel enough for a low-order series? | swell vs series truncation tradeoff untested | B(c) M-dependence quantification | series-expand in single amplitude `t`; reuse rho-expansion closed forms as a check |
 
-## Anti-Approaches
+---
 
-| Anti-Approach | Why avoid | Do instead |
-|---|---|---|
-| **Gröbner-basis invariant-ring computation on 54 variables** (Singular `invariant_ring`, Macaulay2 `InvariantRing`, Derksen-ideal elimination) | Buchberger/F4 Gröbner is **doubly-exponential in the number of variables**; 54 vars + a continuous reductive group is far outside feasibility (the cyclic-9 ideal in 9 vars was a milestone). The "essential variables" reduction does not apply here. | Use the **Jacobian/orbit-dimension** criterion (b) + **Molien series** (a) — neither needs a Gröbner basis. Generators are *hypothesized* (the 6 + c + cubics) and *verified*, not *computed from scratch*. |
-| **Float64 rank** (`numpy.linalg.matrix_rank`, SVD tolerance) for orbit-dim or (b) Jacobian | Float SVD returns an integer via a heuristic tolerance; near rank-deficiency it can report rank 7 when the true rank is 6 (or vice versa) — **fatally** ambiguous for a decisive NEGATIVE. The existing harness even shows float det_3 noise at 1e-13. | **Exact `Matrix.rank()` over Q** at random *rational* points. Float is acceptable ONLY as a fast pre-screen/scaffold, never as the verdict. |
-| **Finite-group sampling** to check F_4-invariance (apply random group elements, compare) | F_4 is a continuous 52-dim group; finite sampling gives only approximate, tolerance-dependent invariance and can never *prove* invariance. | **Infinitesimal test** `D_ξ f = 0` for all 52 Lie-algebra generators, exact SymPy `simplify == 0`. (The harness's `verify_f4_invariance_det3` uses exp(εD) finite tests — fine as corroboration, but the EXACT decisive test is the Lie-algebra annihilation.) |
-| **Rebuilding octonion/h_3(O) arithmetic from scratch** | wastes effort and risks convention drift (Fano sign, det_3 left-association, Jordan 1/2) | **Reuse** the exact-SymPy octonion block (`embedding_under_E_verification.py`) + the validated `det_3`/`polarize_d`/derivation formulas. |
+## Sources
 
-## Logical Dependencies
-
-```
-exact octonion port (e1e2=e4, nonassoc) -> det_3 (left-assoc (x1*x2)*x3) -> polarize_d (d(X,X,X)=6 det)
-f_4 = Der(h_3(O)) closure (dim 52)  -> orbit-dim rank (52×54/Q)  -> target trdeg = 54 − orbit_dim
-target trdeg == 7  REQUIRED for  (b) Jacobian rank == 7 to be the consistent PASS
-D_ξ det_3 = 0 (exact, all 52)  =>  every polarization d(X,..) is F_4-invariant  (mixed cubics automatic)
-(c) "c unique deg-2 coupling"  ==  dim( mixed deg-2 invariants / reducibles ) == 1   (nullspace of D_ξ over Q)
-(a) plethystic-log of Sage bigraded series  ==  candidate generator bidegrees  (completeness ≤ deg 6)
-```
-
-## Recommended Investigation Scope
-
-Prioritize (in order — the first is the gate):
-1. **Port the exact-SymPy base layer + reproduce the harness's exact validation benchmarks** (det_3 of diag, e1e2=e4, d(X,X,X)=6·det). Cheap, de-risks everything.
-2. **Build f_4 (verify dim 52) and compute the generic orbit dimension** of F_4 on 27⊕27 via exact 52×54 rank — this fixes the target transcendence degree and is the prior-work-flagged "do this FIRST."
-3. **(b) Jacobian rank** (the decisive functional-independence test) and **(c) degree-2 uniqueness** — both pure exact linear algebra over Q, fast.
-4. **(6) mixed cubic generators** via `polarize_d` with the convention lock + exact invariance self-check.
-
-Defer: **(a) Molien/Hilbert-series completeness** to last and treat its SageMath dependency as an **external one-off** (paste the bigraded multiplicity table as a data fixture) — it is the only step needing a tool the executor lacks, and it confirms completeness rather than gating the decisive (b)/(c) verdicts.
-
-## Key References
-
-- Derksen, H. & Kemper, G., *Computational Invariant Theory*, 2nd ed., Springer (2015) — Jacobian criterion for functional independence (char 0), orbit-dimension via infinitesimal action, Derksen ideal. (Kemper ISSAC-2010 tutorial: issac-conference.org/2010/assets/TutorialKemper.pdf; Springer link.springer.com/chapter/10.1007/978-3-031-62127-7_12)
-- Hanany, Khoze, Riley, Torri, *Standard Model Plethystics*, arXiv:1902.10550 — directly analogous: Hilbert/Molien series + plethystic logarithm to read off invariant generators and syzygies for physics gauge-rep invariant rings.
-- Molien–Weyl theorem / Weyl integration formula for compact-Lie-group invariants — Sturmfels invariant-theory notes; "Invariants and relative invariants under compact Lie groups," arXiv:1207.1513.
-- SageMath WeylCharacterRing reference (F4, `symmetric_power`, `invariant_degree`, plethysm/branching): doc.sagemath.org/html/en/reference/combinat/sage/combinat/root_system/weyl_characters.html ; thematic tutorial doc.sagemath.org/html/en/thematic_tutorials/lie/weyl_character_ring.html
-- Springer, T.A., Indag. Math. 24 (1962) 259-265 — uniqueness of the cubic norm on h_3(O) (cited by the harness for det_3).
-- Schafer, R.D., *An Introduction to Nonassociative Algebras* (1966) — derivation formula D_{a,b}=[L_a,L_b]+[L_a,R_b]+[R_a,R_b]; Der(h_3(O))=f_4. (Used by `_g2_derivation_matrix`.)
-- Garibaldi–Guralnick / Lawther, generic stabilizers for F_4 on the 26: arXiv:2308.08214 ("Generic stabilizers for simple algebraic groups"), arXiv:1508.02918 — generic stabilizer Spin(8), generic orbit dim 24 on V(ω₄).
-- Baez, J., "The Octonions," Bull. AMS 39 (2002), math/0105155, Sec. 3.4 — cubic norm / det formula (harness's det_3 reference).
-- In-repo provenance: `code/octonion_algebra.py` (float64 formulas + VERIFIED comments), `code/embedding_under_E_verification.py` (exact-SymPy octonion port), `code/slice_clause_iii_verification.py` (exact-SymPy assert-harness pattern), `code/sp_verification.py` (exact SymPy Matrix/Rational usage).
+- `code/ring_lemma_verification.py` (VALD-64-01, this repo) — the EXACT-over-Q h_3(O) engine; `det_3`, `jordan`, `Tr/Tr2/c`, `cayley_hamilton_norm`, `inner_derivations`, `polarize_d`; ran clean (`ALL_PASS`). Cross-term order `(x2 x1) x3` certified F_4-invariant (CH + 324/324 derivations). **Primary reuse target.**
+- `code/embedding_under_E_verification.py` (VALD-62-01, this repo) — exact C_u machinery: `proj_u_exact`, `E`, `cu_to_complex`/`slice_to_complex`, `matrix_sqrt_complex`/`slice_sqrt`/`sqrt_ambient`, `associator`. The A0(i) bridge.
+- `peirce_coupling.py` / `peirce_coupling_v2.py` (this repo) — correct Peirce decomposition + Jordan product (NumPy); det is BUGGY (`(x1 x2) x3`), use for structure only. v2 establishes x1->E_11 couples only via the cubic vertex.
+- `rho_directional_derivatives.py` (this repo) — closed-form off-diagonal Hessian-of-det at diagonal states `d2_i = 4 det - 2 w_i (sig2-1/3)`; triple product is third-order. Real-only cross term (correct on real directions, mislabeled order).
+- `~/repos/blog/research/qualia-fixed-point/h3o_tower.py` — float reference det with a THIRD cross-term spelling `2*Re(conj(x2)(conj(x0)x1))` on a different coordinate labeling; CH-verified there but not the engine's convention. Do not mix labelings.
+- `code/octonion_algebra.py:2147-2181` (this repo) — float `det_3` with the BUGGY `(x1 x2) x3` order and an (incorrect) "CRITICAL: LEFT-to-right (x1*x2)*x3" comment. Engine's `exact_only_guard()` forbids importing it on the decisive path.
+- [SymPy 1.14.0 diffgeom documentation](https://docs.sympy.org/latest/modules/diffgeom.html) — `metric_to_Christoffel_2nd`, `metric_to_Riemann_components`, `metric_to_Ricci_components` exist; finicky and slower than hand-rolled (measured).
+- [SymPy releases](https://github.com/sympy/sympy/releases) and [python:sympy versions (Repology)](https://repology.org/project/python:sympy/versions) — confirm 1.14.0 is current latest stable (matches installed).
+- Faraut & Koranyi, *Analysis on Symmetric Cones* (OUP 1994) — `g_X = Hess(-log det)` is the canonical cone metric (cited in PRIOR-WORK.md for the geometry; here only as the source of the metric formula being implemented).
+- Misner-Thorne-Wheeler / Wald, *General Relativity* — standard Christoffel `Gamma^a_bc = (1/2) g^{ad}(d_b g_dc + d_c g_db - d_d g_bc)` and Riemann `R^a_bcd` formulas used in the hand-rolled loops.

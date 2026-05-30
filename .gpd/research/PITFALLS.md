@@ -1,344 +1,265 @@
-# Known Pitfalls Research — (RING) Lemma: Joint F_4-Invariants of 27 ⊕ 27
+# Known Pitfalls Research — Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry
 
-**Domain:** Computational invariant theory of the exceptional group F_4 = Aut(h_3(O)) acting diagonally on the Albert algebra 27 = h_3(O); polarization of the cubic norm; Jacobian/orbit-dimension functional-independence proofs.
-**Researched:** 2026-05-24
-**Confidence:** HIGH on the invariant-theory failure modes and citations; HIGH on the five reward-hacking traps (each named verbatim in the milestone prompt and each given a runnable detection test below).
+**Domain:** Riemannian geometry of symmetric cones (Faraut–Koranyi / Vinberg–Koszul), Hessian-of-cubic ("special real") geometry, octonionic Jordan algebra h_3(O), Peirce decomposition under a primitive idempotent, Riemannian→Lorentzian signature bridges, and the distinction between intrinsic bulk curvature and inherited/extrinsic slice curvature.
+**Researched:** 2026-05-30
+**Confidence:** HIGH on the four headline pitfalls named in the milestone prompt (homogeneity trap, octonionic cross-term association, signature/Wick bridge, GST/Weinberg circularity) — each is backed by published mathematics and by the corrected code already in this repo. MEDIUM on the exact form the false-positive will take in Phases B/C (depends on which signature bridge survives Phase A). The reward-hacking signatures are HIGH (each is a named risk in the prompt with a runnable disconfirming check below).
 
-### Scope Boundary
-
-This file is the FAILURE-MODE catalog for proving (RING). It complements METHODS.md (the recommended proof methods) and PRIOR-WORK.md (established results + the literature verdict). It does NOT re-derive R[h_3(O)]^{F_4} = R[Tr, Tr², det], does NOT touch the v15.0 basin-restriction result (the prompt forbids entangling them), and treats (REDUCIBILITY) only insofar as the milestone STATES it (the autonomous-vs-driven trap is a (RING)-adjacent reward-hacking guard, listed below).
-
-### The single sentence to remember
-
-The genuine content of (RING) is NOT "does polarization work?" — it is **"is the 27 of F_4 in the 'good' class where polarizing the single-copy generators actually generates the pair ring (it generically is NOT, even over C — Schwarz), and is the proof of c's independence a DEMONSTRATED exact-arithmetic orbit/Jacobian fact rather than an assertion?"** Get those two right and the milestone is sound; a decisive NEGATIVE (c expressible in the pointwise ring) is an equally acceptable, must-report outcome.
+> **Milestone shape (read first).** v17.0 is a **KILL test**. Phase A asks the single decisive question: *after fixing E_11, is the inherited slice metric genuinely position-dependent, or homogeneous?* Phases B (matter-sourcing) and C (Einstein structure) run **only if A greenlights**. The dominant failure mode of this entire milestone is **fooling ourselves at the Phase A gate** — either a false KILL (gauging away real curvature, or mistaking the symmetric-cone's homogeneity for a slice property) or a false GREENLIGHT (reading a coordinate/Wick artifact as physical curvature). Every pitfall below is tagged with the phase that must guard it. The homogeneity trap (Pitfall 1) and the circularity guards (Pitfall 4) are the two that decide whether this milestone produces a trustworthy verdict.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1 — [(a), THE central trap] Conflating Weyl's polarization theorem (needs dim V = 27 copies) with the "k-polarization property" (polarize the SINGLE copy), and assuming the latter holds in char 0
+### Pitfall 1: THE HOMOGENEITY TRAP — confusing the bulk's homogeneity with a verdict on the slice (Phase A, DECISIVE)
 
 **What goes wrong:**
-Two genuinely different theorems travel under the word "polarization," and the milestone needs to keep them apart.
+The det=1 cone of h_3(O) is the Riemannian symmetric space E_{6(-26)}/F_4 (26-dim). **Every Riemannian symmetric space is homogeneous, geodesically complete, has constant scalar curvature, and has a covariantly constant (parallel) Riemann tensor: ∇R = 0** [Symmetric space, Wikipedia; Helgason; Eschenburg lecture notes]. So the *bulk* curvature scalars are literally the **same number at every point** of the cone, and E_{6(-26)} maps any point to any other isometrically. Two opposite errors both kill the project dishonestly:
 
-- **Weyl's polarization theorem (strong form, Domokos–Kemper Thm 1.3, char 0):** if S generates `K[V^n]^G` for `n = dim V`, then `⟨S⟩_{GL_m}` generates `K[V^m]^G` for all `m ≥ n`. For the 27 this requires **starting from n = 27 copies** — not 1, not 2.
-- **The k-polarization property (Schwarz, arXiv:math/0609078):** `pol_k(V)^G = C[kV]^G`, i.e. polarizing the **single-copy** generators of `C[V]^G` generates the k-copy ring. Schwarz's main theorem is precisely the **classification of which simple G and modules V have this property**, and "most representations do **not** have the 2-polarization property" — *even over C, char 0*. His Example 1.1 (SL_2 on C²) already shows polarizing the single det generator yields only 3 of the 6 generators of `C[4V]^G`.
-
-The trap (and METHODS.md's executive line "polarizing a single-copy generating set DOES yield a generating set for any number of copies" leans toward it) is to assume that because char = 0, polarizing `{Tr, Tr², det}` automatically generates `R[27⊕27]^{F_4}`. That is the **2-polarization property for the 27 of F_4**, which is NOT licensed by char 0 alone — it must be checked, and it may simply be false (in which case there are "genuinely new" generators at bidegrees the single-copy polarizations never reach).
+- **False KILL (over-symmetrizing).** Reasoning "the cone is homogeneous, so the metric looks identical everywhere, so the slice metric is x-independent — route dead." This is wrong because the relevant object is not the bulk metric at a point; it is the metric induced on a *fixed* slice V_0 (with E_11 fixed) as the basepoint moves. Fixing E_11 **breaks** E_{6(-26)} down to Stab_{E_6}(E_11), and the question is whether that smaller group still acts transitively on (basepoint, slice) pairs. Homogeneity of the *full* cone does not imply homogeneity of the *slice-with-fixed-frame* family.
+- **False KILL (gauging away real variation).** Using the residual symmetry Stab_{E_6}(E_11) to transform h_μν(x) to a constant form and declaring it homogeneous — when the transformation needed actually moves E_11 or the slice (i.e. is not in the residual stabilizer). A symmetry you are not allowed to use cannot be used to gauge away the field.
+- **False GREENLIGHT (coordinate artifact).** Computing h_μν(x) in some coordinates, seeing the *components* vary with x, and concluding "position-dependent curvature." Metric components vary under any non-affine coordinate change even on flat space. Component variation is **not** curvature.
 
 **Why it happens:**
-The phrase "Weyl polarization holds in char 0 for all reductive groups" is true (Domokos–Kemper Thm 1.2/1.3) but is about going from **dim-V copies** to more copies. People drop the "from dim V copies" and silently restate it as "from 1 copy," which is a different (often false) claim.
+"Symmetric space" and "homogeneous" are strong, seductive words that tempt a one-line dismissal. Conversely, h_μν component-watching tempts a one-line confirmation. Both skip the only invariant that matters.
 
-**How to avoid:**
-- State which theorem you invoke. If you want generation of the pair ring from single-copy generators, that is the **2-polarization property**, and it requires a CERTIFICATE, not a char-0 hand-wave.
-- The certificate is the **bigraded Hilbert/Molien series match** (METHODS.md): compute `H(s,t) = Σ dim(R[27⊕27]^{F_4})_{(i,j)} sⁱtʲ` by Weyl integration over F_4, and confirm the candidate generator list (six pointwise + c + the mixed det-polarizations f(X,X,Y), f(X,Y,Y) + any trace monomials Tr(X²∘Y), Tr(X∘Y²)) reproduces it coefficient-by-coefficient through total degree ≤ 6.
-- Note PRIOR-WORK's contrast case: Blind (2011) proves the **E_6** pair ring IS free on 4 det-polarizations — but E_6 is the det-stabilizer, a different group; F_4 (which also fixes the trace form) has a strictly LARGER pair ring including the trace-form coupling c. Do not import the E_6 cleanliness to F_4.
+**How to avoid (the clean invariant test — this IS the KILL gate):**
+1. **Decide via curvature SCALARS / curvature TENSOR, never via metric components.** The honest question is: *does the intrinsic curvature of the inherited slice metric depend on the basepoint x?* Compute coordinate-invariant curvature quantities of g_μν(x): the Ricci scalar R(x), the Kretschmann scalar R_{abcd}R^{abcd}(x), and (decisively) check whether ∇R = 0. If all curvature invariants are **x-independent constants**, the slice carries a fixed homogeneous geometry → **KILL**. If a curvature invariant genuinely varies with x (after the stabilizer check below), the route survives.
+2. **Do the honest stabilizer dimension count.** dim E_6 = 78, dim F_4 = 52, dim(E_{6(-26)}/F_4) = 26. The primitive idempotents form OP^2 = F_4/Spin(9), dim 16 (dim Spin(9)=36). Fixing E_11 picks a basepoint of OP^2-type data; compute dim Stab_{E_6}(E_11) and compare to the dimension of the basepoint family (the V_0 directions, ≤10, with the 4-dim h_2(C_u) sub-slice the physical part). If dim(basepoint family) > dim(orbit of Stab_{E_6}(E_11) through a basepoint), there exist **inequivalent** (basepoint, slice) pairs → genuine position dependence is *possible*. If the stabilizer orbit covers the whole family, all pairs are isometric → homogeneous → KILL. Report both dimensions explicitly; do not assert transitivity, compute it.
+3. **Only the residual group may be used to simplify.** Any isometry invoked to put h_μν in normal form must lie in Stab_{E_6}(E_11) AND preserve the slice V_0. Log the group element used and verify it fixes E_11 and maps V_0→V_0 before trusting any "it's just a gauge artifact" claim.
+4. **Use the Totaro / cubic-form curvature invariant as a cross-check.** For a Hessian metric of a cubic form, the full curvature tensor is fixed by the Hessian determinant and the **S-invariant of the cubic** [Totaro, "The curvature of a Hessian metric", math/0401381; "A curvature formula for the complexified index cone of a cubic form", arXiv:1007.2737]. Evaluating these invariants on the slice gives a coordinate-free flat-vs-curved verdict independent of any chart.
 
-**Detection test (runnable):**
-```python
-# Hilbert-series completeness check, bidegree by bidegree, to total degree 6.
-# Ground truth H(s,t): Reynolds/infinitesimal-kernel dimension of invariants in each (i,j).
-# Candidate: dimension reachable by products of the proposed generators in (i,j).
-for i in range(0, 7):
-    for j in range(0, 7 - i):
-        d_true = invariant_dim_bidegree(i, j)          # f_4-kernel on monomials (exact)
-        d_cand = candidate_generated_dim(i, j, gens)   # products of proposed gens
-        assert d_cand == d_true, (i, j, d_cand, d_true)
-# A MISMATCH at any (i,j) with d_true > d_cand  =>  a genuinely-new generator is MISSING
-# at that bidegree  =>  the 2-polarization property FAILS and the candidate list is incomplete.
-```
-Warning sign: any bidegree where the invariant dimension exceeds what the candidate generators produce. That is a missing generator, full stop — not a rounding issue (the kernel computation is exact).
+**Warning signs:**
+- A homogeneity conclusion reached from the *words* "symmetric space" without computing a single curvature scalar. (Red flag.)
+- A "position-dependent" claim supported only by varying metric *components*, with no curvature scalar shown to vary. (Red flag.)
+- A "gauge artifact" dismissal that invokes an E_6 element not verified to be in Stab_{E_6}(E_11). (Red flag.)
+- R(x) and R_{abcd}R^{abcd}(x) computed but only at ONE basepoint x (you cannot detect x-dependence from one point — see Pitfall 11).
 
-**Phase to address:** The (a) generating-set phase. This is its primary risk and its primary deliverable (the Hilbert-series certificate).
+**Phase to address:** **Phase A (the KILL gate itself).** This pitfall *is* Phase A. Get it right or the whole milestone is worthless.
 
 ---
 
-### Pitfall 2 — [(b), reward-hacking guard #1] Asserting c's independence from the orbit/transcendence picture alone, without the exact-arithmetic demonstration on the actual algebra
+### Pitfall 2: OCTONION NON-ASSOCIATIVITY in the cubic-norm cross-term — wrong association silently corrupts every downstream geometry (Phase A prerequisite to everything; Phase B critical)
 
 **What goes wrong:**
-The orbit argument ("fix generic Y, c varies on the F_4-orbit of X while pointwise invariants are constant ⇒ c ∉ R_pt") is *correct as a conceptual proof* but the milestone's reward-hacking guard (PROJECT.md, verbatim) forbids asserting independence "without the explicit orbit/Jacobian demonstration on the actual algebra." A prose orbit argument with no computation is exactly the banned move.
+The cubic norm cross-term `2 Re(triple)` is **association-sensitive** because octonions are non-associative: `(x1·x2)·x3 ≠ x1·(x2·x3)` and `Re((x1 x2) x3) ≠ Re(x1 (x2 x3))` in general. A prior bug in this very project (`trip_tracking.py`) coded `2 Re(x0(x1 x2))` where the milestone states the correct term is `2 Re(x2* x0* x1)`. A wrong association does not throw an error — it returns a plausible number, and **every** Hessian, every curvature, and every cross-term coupling V_0↔V_1/V_{1/2} built on it is silently wrong. Because the geometry is extracted from *derivatives* of det (the Hessian and its derivatives), the error is amplified, not averaged out.
 
 **Why it happens:**
-The orbit argument feels airtight, so it is tempting to skip the machine check. But the argument has load-bearing facts that are NOT self-evident and must be verified on h_3(O): (i) the orbit O_X is actually positive-dimensional at the chosen X; (ii) the trace pairing T(X,Y) = Tr(X∘Y) is genuinely F_4-equivariant and non-degenerate; (iii) c genuinely varies along the orbit (it could, in principle, be orbit-constant for a non-generic Y).
+- Multiple inconsistent-looking conventions coexist in the live repo, all of which are correct for diagonal/real data but differ for genuine octonionic off-diagonal data:
+  - `code/octonion_algebra.py` (lines 2143–2181): `N(X) = αβγ − α|x1|² − β|x2|² − γ|x3|² + 2 Re((x1·x2)·x3)`, with an explicit comment "**LEFT-to-right association (x1·x2)·x3, matching the Sarrus expansion … Do NOT use x1·(x2·x3)**." This is the corrected, gated implementation (ASSERT_CONVENTION `det_3_association=left_to_right_Re((x1*x2)*x3)`).
+  - `rho_directional_derivatives.py` (header): writes `det = abc + 2 Re(x1 x2 x3) − …`, association unparenthesized — *safe only because that module perturbs in REAL directions* (`Re(real·real·real)` is association-free). It must NOT be reused for genuinely octonionic M.
+  - The milestone prompt CAUTION names the correct term as `2 Re(x2* x0* x1)` and the bug as `2 Re(x0(x1 x2))` — a **third labeling** (conjugated, with a different index/slot naming `x0,x1,x2` vs `x1,x2,x3`).
+  These are (intended to be) the SAME physical invariant written in different notations; the danger is treating them as interchangeable code, or "fixing" one to match another and silently changing the physics.
 
-**How to avoid:**
-Do BOTH, exactly as METHODS.md prescribes:
-1. **Algebraic (decisive):** the 7×54 Jacobian of `(Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c)` has rank 7 at a generic rational point.
-2. **Geometric (explanatory):** the infinitesimal orbit-derivative — `d/dt c(exp(tξ)X, Y)|_0 ≠ 0` for some `ξ ∈ f_4`, while every pointwise generator has zero derivative along the same ξ.
+**How to avoid (verify the cross-term BEFORE any geometry — this is a hard gate):**
+1. **Single source of truth.** Use `det_3` from the corrected `code/octonion_algebra.py` for all cubic-norm evaluations on octonionic data. Do not re-derive the cross-term inline; do not import the real-only form from `rho_directional_derivatives.py` for octonionic perturbations.
+2. **Run the association-invariance pre-flight** on genuinely non-associative inputs (off-diagonal octonions with nonzero e_4..e_7 components, NOT just e_0..e_3 which sit in an associative subalgebra): confirm the implemented `det_3` equals the matrix/Sarrus determinant convention and document by how much `Re((x1·x2)·x3)` differs from `Re(x1·(x2·x3))` on a random non-associative triple (it should be NONZERO — if it is zero, your test inputs are accidentally associative and the test is vacuous).
+3. **Multiplicativity check on commuting/associative subsets ONLY.** N(XY)=N(X)N(Y) holds for the cubic norm only when X,Y lie in an associative subalgebra (e.g. a common h_3(C_u) or diagonal). Verify N(XY)=N(X)N(Y) there; do NOT expect it to hold for generic octonionic X,Y and do NOT use a failure on generic inputs as evidence of a bug (that would be a false alarm masking the real convention question).
+4. **Cayley–Hamilton / characteristic-polynomial check.** Verify X satisfies its cubic X³ − Tr(X)X² + S(X)X − N(X)I = 0 (Jordan-algebra Cayley–Hamilton) with the implemented N; this ties N, the trace, and the quadratic invariant S together and catches an inconsistent cross-term.
+5. **Conjugation/order audit for the (V_{1/2},V_{1/2},V_0) block.** The matter coupling lives in the polarized cross-term; when M ∈ V_{1/2} is genuinely octonionic, the *order and conjugation* (`x2* x0* x1` vs `x0 x1 x2`) changes the V_0↔V_{1/2} coupling tensor. Re-derive the polarized d(·,·,·) on the Peirce basis (the `d_ijk_tensor` machinery exists) and confirm the (V_{1/2},V_{1/2},V_0) block matches between the prompt's convention and the code's convention; if they disagree, STOP and reconcile before Phase B.
 
-**Detection test (runnable):**
-```python
-import sympy as sp
-# 54 EXACT symbolic variables; build c and the 6 pointwise invariants on the EXACT layer.
-J = sp.Matrix([[sp.diff(f, v) for v in vars] for f in [g1,g2,g3,g4,g5,g6,c]])  # 7 x 54
-pt = {v: sp.Rational(*rand_small_coprime()) for v in vars}     # generic rational point
-assert J.subs(pt).rank() == 7        # c is independent
-J6 = J[:6, :]
-assert J6.subs(pt).rank() == 6       # the 6 pointwise alone are independent (baseline)
-# Orbit derivative cross-check (exact or high-precision):
-xi = f4_basis[k]                     # one of the 52 f_4 generators
-assert sp.diff(c_along_orbit(xi, t), t).subs(t, 0).subs(pt) != 0   # c varies
-for g in [g1,g2,g3,g4,g5,g6]:
-    assert sp.diff(g_along_orbit(g, xi, t), t).subs(t, 0).subs(pt) == 0  # pointwise constant
-```
-The pair (nonzero orbit-derivative of c, zero orbit-derivative of every pointwise generator) IS the demonstrated independence.
+**Warning signs:**
+- A curvature or coupling result that changes when you swap `(x1·x2)·x3 ↔ x1·(x2·x3)` — means an association choice is load-bearing and must be the documented one (good that you caught it; bad if you didn't test).
+- Any new inline reimplementation of the cubic norm anywhere in Phase A/B code.
+- A "verification" of the cross-term done only on diagonal or e_0..e_3 (quaternionic) data — vacuous, because those subalgebras are associative.
 
-**Phase to address:** The (b) independence phase. This is the milestone's load-bearing, most-guarded result.
+**Phase to address:** **Phase A** must pass the cross-term gate before computing any Hessian (the homogeneity verdict depends on a correct det). **Phase B** is where the association most bites, because M ∈ V_1+V_{1/2} is genuinely octonionic and the cross-terms are the claimed source of curvature.
 
 ---
 
-### Pitfall 3 — [(b), reward-hacking guard #2] Floating-point Jacobian rank — a near-degenerate float matrix gives a FALSE rank drop (false NEGATIVE) or a FALSE full rank (false POSITIVE)
+### Pitfall 3: SIGNATURE / WICK-ROTATION — spurious curvature, double-counted Minkowski, and a bridge that does not reduce to flat space (Phase A sub-task A0, then load-bearing through C)
 
 **What goes wrong:**
-Matrix rank is **discontinuous**. With float arithmetic and a tolerance threshold, a singular value that is "small" gets called zero (spurious rank drop ⇒ falsely concluding c IS dependent, a fabricated NEGATIVE) or a singular value that is "barely nonzero" due to roundoff gets called nonzero (spurious full rank ⇒ falsely concluding c is independent, a fabricated POSITIVE). Either way the conclusion is an artifact of the SVD tolerance, not of the algebra. This is the **single most dangerous numerical trap** because the wrong answer looks like a clean integer rank.
+The bulk metric g_X = Hess(−log det) is **Riemannian (positive-definite)**; physical spacetime is **Lorentzian**. The map between them (sub-task A0) is where false verdicts are manufactured:
+- **Spurious curvature from a naive coordinate Wick rotation.** Substituting t→−it on a generic/curved metric is **coordinate-dependent and can yield complex or unintended-signature metrics**; the *same* space in different slicings gives *different* rotated metrics, and causal structure can silently vanish [Visser, "How to Wick rotate generic curved spacetime", arXiv:1702.05572]. A rotation done this way can generate curvature that is an artifact of the chart, not of the geometry — a direct false GREENLIGHT.
+- **Double-counting the Minkowski background.** Construction (i) [restrict g_X to V_0 and Wick-rotate via u=e_7] and construction (ii) [take η from h_2(C_u)'s own det, let the cone-Hessian supply only h_μν] both have a Minkowski piece. Mixing them — e.g. taking η from h_2(C_u) AND keeping the η-like part of the restricted cone-Hessian — double-counts the flat background and fabricates an h_μν that is really just the background appearing twice.
+- **A bridge that does not reduce to exact Minkowski at (M=0, center).** If the chosen bridge gives g_μν ≠ η_μν exactly when M=0 and x is at the center I/3, then the "perturbation" h_μν is contaminated by a constant offset that will masquerade as either a cosmological constant (Phase B false positive) or position dependence (Phase A false positive).
 
 **Why it happens:**
-- The warm harness `code/octonion_algebra.py` is **float64** (30 `np.float64` sites, no SymPy). Reusing it for the Jacobian — as a loose reading of METHODS.md ("reuse the warm `octonion_algebra.py`") invites — runs the decisive rank check in floats.
-- `np.linalg.matrix_rank` with a default `tol` will silently make the call for you.
-- Octonionic determinants in 54 variables produce large integer coefficients; intermediate float products lose precision fast.
+Wick rotation is folklore-simple in flat space (t→−it) and physicists apply the folklore reflexively to curved/Hessian metrics where it is ill-defined. The two candidate constructions look interchangeable but are not, and the "reduces to Minkowski" check is easy to skip.
 
-**How to avoid:**
-- Run the rank on the **EXACT SymPy layer**, not the float harness. The exact h_3(O) Jordan arithmetic for this project lives in `code/embedding_under_E_verification.py` / `tests/test_embedding_under_E.py` (the v15.0 warm exact harness the prompt points to), NOT in `code/octonion_algebra.py`. Port `jordan_product`/`det_3` to `sympy.Rational` or reuse the embedding-under-E exact layer.
-- Use `Matrix.rank()` over an exact field (Q), never `np.linalg.matrix_rank`.
-- Pick a rational point with small coprime integer entries (e.g. components from {±1, ±2, ±3, ±5}); exact rank at such a point is a theorem, not an estimate.
+**How to avoid (keep the bridge honest):**
+1. **Pick ONE bridge and state it precisely in A0; do not mix.** Per the prompt, select the construction that reduces to exact Minkowski at (M=0, center) and report which. Recommended default: **rotate the metric, not the coordinate**, using the algebra's own complex structure u=e_7 as the distinguished timelike direction (Visser's metric-rotation g_E = g_L + iε (V⊗V)/g_L(V,V) with V the u-direction). This is coordinate-independent and is the natural realization of the C*-bottleneck / Phase 46 mechanism. Construction (ii) (η from det of h_2(C_u), perturbation from the cone-Hessian) is the **cleaner default for keeping the background exact** and is recommended unless A0 shows it fails to capture the V_0↔matter coupling.
+2. **Mandatory reduction test (gate).** Verify symbolically/exactly that at M=0, x=center: g_μν = η_μν with NO residual h_μν (machine-zero / exact-Q zero). If h_μν(center, M=0) ≠ 0, the bridge is contaminated — fix the bridge before drawing ANY conclusion. State eta's signature convention explicitly (this project: mostly-minus via det_2, per `metric_on_h2Cu=mostly_minus_via_det2`, `52-kkt-spacetime`).
+3. **Curvature invariants must be computed in the LORENTZIAN metric, consistently.** Do not compute curvature in the Riemannian cone metric and then "rotate the answer" — rotate first (fix the bridge), then compute curvature scalars of the Lorentzian g_μν(x). Mixing Riemannian-curvature with Lorentzian-interpretation is a category error.
+4. **Cross-check signature independence of the verdict.** The KILL/greenlight verdict (Pitfall 1) is about whether curvature *varies with x*; that question should be answerable in the Riemannian slice metric too (variation of curvature scalars is signature-robust). If the Riemannian restriction is homogeneous but the Lorentzian one looks curved, the curvature came from the rotation → artifact. Compute curvature-scalar x-dependence in BOTH the Riemannian restriction and the Lorentzian bridge; they must agree on *whether* curvature varies. Disagreement localizes the artifact to the bridge.
 
-**Detection test (runnable):**
-```python
-# Confirm you are exact: rank must be identical at the symbolic level and at the point.
-assert J.subs(pt).rank() == J.rank()           # exact: point-rank == generic rank
-# Float canary: if someone reran in floats, the tolerance sensitivity exposes it.
-svals = np.linalg.svd(np.array(J.subs(pt)).astype(float), compute_uv=False)
-gap = svals[6] / svals[7] if len(svals) > 7 else float('inf')  # ratio at the rank boundary
-assert gap > 1e6, "rank boundary is float-fragile; you MUST use exact arithmetic here"
-```
-Warning sign: the rank changes when you tighten or loosen the SVD tolerance. If it does, the result is meaningless — switch to exact.
+**Warning signs:**
+- A nonzero h_μν at (M=0, center). (Bridge contaminated — hard stop.)
+- Curvature that appears only after the Wick rotation and not in the Riemannian restriction. (Rotation artifact.)
+- The verdict (homogeneous vs curved) changes depending on which coordinate chart the rotation is done in. (Ill-defined rotation — Visser's exact warning.)
+- Complex-valued metric components after rotation. (Naive coordinate rotation — switch to metric rotation.)
 
-**Phase to address:** The (b) independence phase. Build/confirm the exact arithmetic layer BEFORE attempting the rank.
+**Phase to address:** **Phase A sub-task A0** must fix and validate the bridge (including the reduction-to-Minkowski gate) before Theorem A. The bridge then propagates as a fixed, documented choice through **B and C**; changing it mid-stream invalidates comparisons.
 
 ---
 
-### Pitfall 4 — [(b), reward-hacking guard #3] Evaluating the Jacobian (or orbit map) at a NON-GENERIC point and drawing a generic conclusion
+### Pitfall 4: CIRCULARITY / QUESTION-BEGGING — smuggling the answer (Einstein form) in via GST/supergravity/Weinberg inputs (Phase C critical; guards needed from Phase A)
 
 **What goes wrong:**
-The Jacobian criterion gives trdeg = rank **at a generic point** = rank on a dense open set. If you evaluate at a special point — X with extra symmetry, X commuting with Y, X or Y with degenerate (repeated) spectrum, a point on the discriminant locus, or X = Y (the diagonal, where c(X,X) = Tr(X²) collapses to a pointwise invariant) — the rank can DROP below the generic value. You would then falsely conclude c is dependent (a fabricated NEGATIVE). Symmetrically, but more rarely, a contrived point could mask a real degeneracy.
+The entire point of this route is to obtain gravity **intrinsically** from the cubic norm, NOT from a posited supergravity action. The dead route (`47-*`,`48-*`,`49-*`,`50-*`,`53-*`) posited the GST / N=2 Maxwell–Einstein supergravity Lagrangian with det as prepotential and *read off* the Einstein term — circular, because in 5D N=2 MESGT the **−½R Einstein–Hilbert coefficient is fixed by the supersymmetry structure**, and the *same* C_IJK tensor that defines the scalar (very special) geometry also fixes the vector couplings and the gravitational term [GST 1984, Nucl. Phys. B242 244; de Wit–Van Proeyen; 5D MESGT Lagrangian reviews]. The deadly subtlety: **the new route shares the SAME geometry** as GST — special-real / Hessian-of-cubic scalar manifolds ARE the 5D N=2 vector-multiplet scalar manifolds [special real geometry ↔ N=2 D=5, multiple refs]. So it is extremely natural to reach for a GST formula "because the geometry matches" and thereby silently re-import the assumed Einstein structure. Concrete circularity modes:
+- **Lagrangian smuggling:** using any GST/supergravity bosonic Lagrangian, its −½R term, or its C_IJK→Einstein dictionary as an input.
+- **Multiplet-data smuggling:** assuming the V_1/V_{1/2} sectors are a SUSY multiplet with prescribed couplings to the metric (the SUSY closure is exactly what fixes −R/2).
+- **Soft-graviton / Weinberg smuggling:** invoking Weinberg's soft-graviton theorem or equivalence-principle universality to *argue* the coupling must be Einsteinian — that assumes the graviton and thus the answer.
+- **Fitting to the target:** defining T_μν and κ, then *tuning* them so G_μν = κT_μν holds, and reporting "Einstein structure confirmed." This is curve-fitting, not derivation.
 
 **Why it happens:**
-"Random" rational points generated carelessly land on special loci more often than intuition suggests: zero components, equal diagonal entries, octonionic off-diagonals that happen to associate, or X proportional to Y. The diagonal X=Y is especially seductive because it is the natural "sanity" point and is *exactly* where c stops being independent (c(X,X) = Tr X²).
+The geometry genuinely coincides with GST's, the literature is GST-shaped, and "Einstein" is the hoped-for answer. Confirmation bias plus a matching reference set makes the circular step feel like legitimate cross-referencing.
 
-**How to avoid:**
-- Evaluate at **≥ 2 (preferably 3) independent random rational points** with generic, all-nonzero, mutually incommensurate-looking entries; require X ≠ λY and distinct diagonal entries.
-- If the rank is the same (7) at all of them, you are generically on the dense open set. If it differs between points, you hit a non-generic point — investigate which.
-- Optional belt-and-suspenders: compute the **symbolic rank over the function field Q(x_a, y_b)** (costlier) to remove the genericity assumption entirely.
-- Explicitly AVOID the diagonal X=Y as a test point for independence (use it only as a separate consistency check that c(X,X) = Tr X² — see Pitfall 11).
+**How to avoid (keep T_μν and the Einstein test independent of the conclusion):**
+1. **Hard input ban (declare it in the plan).** Phase B/C may use ONLY: the cubic norm det (corrected association), its Hessian/derivatives, the Peirce decomposition under E_11, and the chosen signature bridge. **Forbidden inputs:** any supergravity/GST Lagrangian, the −½R coefficient, any SUSY transformation or multiplet assignment, Weinberg's soft theorem, the equivalence principle as a *premise*. GST may be cited **for the geometry of the manifold only** (it is the same E_{6(-26)}/F_4), never for the action or the gravitational coupling. Reference-set restriction: Faraut–Koranyi, Vinberg, Koszul, McCrimmon, Baez, Totaro — the *geometry/Jordan-algebra* literature, not the supergravity-action literature.
+2. **Define T_μν purely from cross-term content, BEFORE computing G_μν.** Build the candidate stress-energy from the V_1/V_{1/2} cross-term data of M (the (V_{1/2},V_{1/2},V_0) coupling tensor) using only algebraic data — fix its normalization κ from something intrinsic (e.g. the cubic-norm normalization), NOT from matching G_μν. Freeze T_μν and κ, THEN test G_μν = κT_μν + Λg_μν. The test must be falsifiable: there must be a possible numeric outcome that says "NO."
+3. **Report the honest level (a/b/c) without forcing.** Per the prompt: exact Einstein, linear-order Einstein, or not-at-all are all acceptable. "**Curved but not Einstein-structured**" is the *most likely real outcome* and is a legitimate, publishable result. Do NOT relabel a near-miss as a win.
+4. **Independence audit (a checklist item):** for every equation used in Phase C, ask "could I have written this down without already knowing the answer is Einstein gravity?" If any step requires the supergravity dictionary, it is circular — flag and remove.
 
-**Detection test (runnable):**
-```python
-ranks = []
-for seed in range(3):
-    pt = generic_rational_point(seed)   # all-nonzero, distinct diagonals, X != lambda*Y
-    ranks.append(J.subs(pt).rank())
-assert ranks == [7, 7, 7], f"rank varies across points {ranks} -> a non-generic point was hit"
-# Diagonal trap canary: this MUST drop to 6, confirming X=Y is non-generic (do NOT use it):
-pt_diag = {**{xv: 2 for xv in x_vars}, **{yv: 2 for yv in y_vars}}  # X = Y
-assert J.subs(pt_diag).rank() <= 6
-```
-Warning sign: rank that depends on the point. Generic conclusions require generic points; two agreeing points are cheap insurance.
+**Warning signs:**
+- Any appearance of "−½", "16πG", a supergravity action, or "SUSY" in the Phase B/C derivation chain.
+- κ or T_μν whose definition references G_μν. (Circular by construction.)
+- A perfect G_μν = κT_μν that only holds at one tuned point or after a free constant was adjusted. (Fitting — see Pitfall 7/11.)
+- Citing GST for anything other than "the manifold is E_{6(-26)}/F_4."
 
-**Phase to address:** The (b) independence phase.
+**Phase to address:** **Phase C** is where circularity is fatal, but the **input ban must be declared at Phase A planning** and enforced throughout. Phase B must define T_μν-precursors from cross-terms only.
 
 ---
 
-### Pitfall 5 — [(b)/(c), reward-hacking guard #4] Getting the orbit dimension / generic stabilizer wrong — the Spin(8)-triality principal-isotropy count corrupts every transcendence-degree statement
+### Pitfall 5: SLICE vs BULK CONFUSION — attributing bulk (constant) curvature to the slice, or mistaking extrinsic curvature for intrinsic gravity (Phase A and B)
 
 **What goes wrong:**
-The orbit argument and any Krull-dimension/Hilbert-series target depend on `dim O_X = 52 − dim Stab_{F_4}(X)` and, for the pair, on the **principal isotropy subgroup of F_4 on 27⊕27**. PRIOR-WORK flags this as "the single most important numerical fact to verify." The naive back-of-envelope ("once X is generic, F_4_X = Spin(8); Spin(8) acts on the second 27, generic vector has finite stabilizer ⇒ pair-stabilizer trivial ⇒ orbit dim 52 ⇒ trdeg = 54−52 = 2") **contradicts** the six pointwise invariants already giving trdeg 6. So the naive count is WRONG, and any argument built on it is corrupted.
-
-The resolution (PRIOR-WORK Open Q #4): the six pointwise + c give 7 functionally independent invariants ⇒ generic orbit dim ≤ 54 − 7 = 47 ⇒ the generic pair-stabilizer has dim ≥ 5. The Spin(8)-on-(8_v ⊕ 8_s ⊕ 8_c ⊕ scalars) generic stabilizer is a delicate triality/G_2-flavored question (a generic Spin(8) orbit configuration relates to a ~14-dim subgroup, NOT the trivial group). Getting this number wrong in either direction sets the wrong Hilbert-series Krull dimension and either hides a missing generator or invents a phantom relation.
+g_μν(x) is the metric *induced on the V_0 slice* by the bulk cone geometry. The slice's **intrinsic** Riemann tensor is NOT simply the bulk Riemann tensor restricted to V_0 directions. By the **Gauss equation**, R^{slice}_{abcd} = (R^{bulk}_{abcd} restricted) + (second-fundamental-form / extrinsic-curvature terms) [Gauss–Codazzi, Wikipedia; do Carmo]. Two failure modes:
+- **Attributing bulk curvature to the slice.** The bulk cone is a symmetric space with *constant* curvature scalars (Pitfall 1). If the slice is **totally geodesic** (second fundamental form II = 0), then R^{slice} = R^{bulk}|_slice = a CONSTANT — i.e. a totally-geodesic slice automatically inherits a homogeneous, x-independent curvature → KILL, and any "position dependence" seen would be an artifact. Whether the V_0 / h_2(C_u) slice is totally geodesic in the cone is a concrete computable question that **directly feeds the Phase A verdict** and must be checked.
+- **Mistaking extrinsic curvature for intrinsic gravity.** If the slice is NOT totally geodesic, the extrinsic-curvature (II) terms contribute to R^{slice}. Reporting those II-driven terms as "matter-sourced gravity" conflates how the slice bends *inside* h_3(O) (embedding data) with intrinsic spacetime curvature (the gravitational claim). The gravitational claim requires the *intrinsic* curvature to vary with x and be sourced by M — not merely that the embedding bends.
 
 **Why it happens:**
-F_4 ≅ Spin(8) + 8_v + 8_s + 8_c (triality) makes the "Spin(8) acts transitively enough" intuition feel safe, but triality means the three 8s are permuted and a generic element of one is NOT generically stabilized trivially by the diagonal Spin(8) action that survives after fixing X.
+"Induced metric" invites the shortcut "restrict the bulk metric and read off the bulk curvature." The Gauss-equation correction is invisible unless you explicitly compute the second fundamental form.
 
 **How to avoid:**
-- Do NOT trust any back-of-envelope stabilizer dimension. **Compute it in the harness**: build the 27×52 infinitesimal-action matrix `[components of ξ_k · X]` for the 52 f_4 generators at a generic rational X; its rank = dim O_X, and `dim Stab(X) = 52 − rank`. Repeat for the pair: the 54×52 matrix `[ξ_k·(X,Y)]`; its rank = generic pair-orbit dimension.
-- Cross-check the two routes: `(generic pair-orbit dim from infinitesimal rank)` must satisfy `54 − (orbit dim) = Krull dim of the invariant ring = trdeg of a maximal algebraically independent subset of generators`. With 7 functionally independent invariants you expect orbit dim ≤ 47.
-- Cite Garibaldi–Guralnick (arXiv:2105.09486, Lemma 8.1: s.g.p. of F_4 on 26 = Spin(8); Thm 1.3: dim k[V]^G = dim V − dim G when dim V > dim G) for the single-copy count, and treat the PAIR principal isotropy as a harness computation, not a literature lookup.
+1. **Compute the second fundamental form of the V_0 (and h_2(C_u)) slice in the cone.** Decide explicitly whether the slice is totally geodesic. If II = 0: the slice curvature equals the bulk's *constant* curvature → expect homogeneity → KILL (and any apparent x-dependence is artifact — recheck Pitfalls 1 and 3). If II ≠ 0: proceed, but track the II contribution separately.
+2. **Decompose R^{slice} via Gauss explicitly:** R^{slice} = R^{bulk}|_slice + (II∧II terms). Attribute any claimed "gravity" to the part that genuinely varies with x AND is sourced by M, not to the ambient-constant part and not to embedding-only II terms that survive at M=0.
+3. **Intrinsic test only.** The gravitational verdict must rest on *intrinsic* curvature invariants of g_μν(x) (Ricci scalar, Kretschmann), which are computed from g_μν alone and are blind to the embedding. Use the bulk/extrinsic decomposition for *diagnosis*, the intrinsic invariants for the *verdict*.
 
-**Detection test (runnable):**
-```python
-# Single-copy sanity: orbit dim should be 24, stabilizer 28 (= dim Spin(8)).
-A1 = infinitesimal_action_matrix(f4_basis, X_generic)        # 27 x 52, exact or hi-precision
-assert A1.rank() == 24 and 52 - A1.rank() == 28               # Spin(8) = 28-dim  (GG 2021)
-# Single-copy trdeg cross-check: 27 - 24 = 3 = #{Tr, Tr^2, det}.
-assert 27 - A1.rank() == 3
-# PAIR: compute, do NOT assume.
-A2 = infinitesimal_action_matrix(f4_basis, (X_generic, Y_generic))  # 54 x 52
-orbit_dim = A2.rank()
-stab_dim  = 52 - orbit_dim
-assert orbit_dim <= 47, "pair-orbit too big -> contradicts 7 independent invariants"
-assert stab_dim  >= 5,  "pair-stabilizer too small -> naive triality count crept in"
-# Krull-dim consistency with the Hilbert-series target:
-assert 54 - orbit_dim == krull_dim_from_hilbert_series
-```
-Warning sign: a pair-orbit dimension of 52 (trivial stabilizer) or any value that makes `54 − orbit_dim < 7`. Both contradict the known independent invariants.
+**Warning signs:**
+- A curvature computed by "restricting the bulk Riemann tensor" with no Gauss-equation / II term anywhere.
+- "Position-dependent curvature" that persists at M=0 (likely extrinsic/embedding, not matter-sourced — see Pitfalls 6 and 10).
+- The totally-geodesic question never asked.
 
-**Phase to address:** A shared dimension-count phase feeding both (b) and the (a) Hilbert-series Krull-dimension target. This is the highest-leverage single computation in the milestone.
+**Phase to address:** **Phase A** (totally-geodesic check feeds the homogeneity verdict directly). **Phase B** (separate II/embedding curvature from M-sourced intrinsic curvature).
 
 ---
 
-### Pitfall 6 — [(b), reward-hacking guard #5] Forcing a positive when the honest outcome is the decisive NEGATIVE (c IS expressible in the pointwise generators)
+### Pitfall 6: FALSE-POSITIVE "curvature appears" that is actually pure cosmological constant (Phase B)
 
 **What goes wrong:**
-The milestone's mechanism (the Chalmers-gap reading: the cross-term escapes the single-frame Observable ring) WANTS c to be independent. That creates pressure to massage the computation toward rank 7 — loosening tolerances, cherry-picking the one rational point that gives 7, re-defining "pointwise ring" to exclude products until c looks new, or quietly dropping a generator that would have spanned c. If the honest exact computation returns rank 6 (c IS in R_pt), that is a **decisive NEGATIVE that kills the mechanism** and MUST be reported, not buried. PROJECT.md: "A negative result, cleanly characterized, is a fully acceptable outcome."
+Turning on M, you observe nonzero Riemann tensor and conclude "matter sources curvature." But a nonzero curvature that is **maximally symmetric** (R_{abcd} ∝ (g_{ac}g_{bd} − g_{ad}g_{bc}), i.e. R_{ab} ∝ g_{ab}, constant R) is a **cosmological constant Λ**, not matter-sourcing. The prompt explicitly anticipates this: Phase B (a) must distinguish "flat (R=0)" from "pure Λ (R=const)" from genuine M-sourced inhomogeneous curvature. Declaring Λ-type curvature as "gravity sourced by matter" is a false positive.
 
 **Why it happens:**
-Confirmation pressure plus a discontinuous, tolerance-sensitive quantity (rank) is the perfect storm for unconscious p-hacking.
+"Nonzero Riemann tensor" feels like success after a KILL-risk Phase A. The maximally-symmetric structure is easy to miss if you only look at "is R_{abcd} ≠ 0."
 
 **How to avoid:**
-- Pre-register the test: exact arithmetic, ≥3 generic rational points, fixed definition of R_pt (the subring generated by `{Tr X, Tr X², det X, Tr Y, Tr Y², det Y}` and their products — see Pitfall 7), report the rank you get.
-- If rank 6: state the NEGATIVE plainly, then DEMONSTRATE the expression (find the explicit polynomial P with c = P(g_1,…,g_6) by solving the linear system in the degree-2 invariant basis) — a constructive negative is far stronger than "rank came out 6."
-- Treat a too-clean positive with suspicion: re-run from scratch on a fresh point and confirm the orbit-derivative of c is genuinely nonzero (Pitfall 2).
+1. **Decompose curvature into Ricci scalar (Λ part), traceless Ricci, and Weyl.** Genuine matter-sourcing must show structure beyond R_{ab} ∝ g_{ab} — a non-constant Ricci scalar, a nonzero traceless Ricci tracking M's distribution, and/or nonzero Weyl. A purely ∝ g_{ab} result with constant coefficient = Λ only.
+2. **The cross-term off-switch test (the prompt's own (b)).** Replace det by the block-diagonal product det(V_1)·det(V_0) (kill the V_0↔V_1/V_{1/2} cross-terms). If the curvature *survives* this off-switch, it is NOT cross-term/matter-sourced — it is intrinsic to the cone (Λ-like) and the matter-sourcing claim fails. Genuine M-sourcing must VANISH when the cross-terms are switched off.
+3. **Scaling test (the prompt's (c)).** Relate the curvature scale to ‖M‖ and ρ_J(X_bg). A true matter source scales with ‖M‖ (vanishes as M→0); a Λ does not. Curvature that persists at M=0 is Λ/intrinsic, not matter.
 
-**Detection test (runnable):**
-```python
-rank = J.subs(generic_pt).rank()
-if rank == 6:
-    # HONEST NEGATIVE: construct the explicit expression and verify it exactly.
-    basis2 = degree2_invariant_basis()          # {Tr X^2, Tr Y^2, (Tr X)^2, (Tr Y)^2, Tr X Tr Y}
-    coeffs = solve_linear(c, basis2)             # exact solve
-    assert sp.simplify(c - sum(k*b for k, b in zip(coeffs, basis2))) == 0
-    report("DECISIVE NEGATIVE: c = " + str(coeffs) + " in the pointwise ring; mechanism killed")
-elif rank == 7:
-    report("c independent; re-verified on fresh point + nonzero orbit-derivative")
-```
-Warning sign: a result that only appears at one special point, or that requires redefining the pointwise ring to obtain. Either is a red flag for a forced positive.
+**Warning signs:**
+- R_{abcd} ∝ (g g − g g) with a constant coefficient. (Pure Λ.)
+- Curvature unchanged by the cross-term off-switch.
+- Curvature that does not vanish as ‖M‖→0.
 
-**Phase to address:** The (b) independence phase, with an explicit "report the verdict either way" gate.
+**Phase to address:** **Phase B** (this is precisely Theorem B parts a–c).
 
 ---
 
-### Pitfall 7 — [reward-hacking guard, definitional] Redefining "reducible"/"pointwise" so the cross-term c trivially lands in (or out of) the invariant ring
+### Pitfall 7: FALSE-POSITIVE Einstein structure from a single tuned point or linearization sleight (Phase C)
 
 **What goes wrong:**
-The entire claim is sensitive to the precise definition of the pointwise (single-frame) subring R_pt. If "pointwise" is silently taken to mean only the linear generators `{Tr X, Tr Y}`, then c is trivially "not pointwise." If it is stretched to include arbitrary smooth functions or an ad-hoc closure, c can be argued either in or out. Both are the banned definitional reward-hack (PROJECT.md: "redefine 'reducible' so it trivially equals the invariant ring").
+Declaring G_μν = κT_μν + Λg_μν "holds" when it was checked at a single basepoint, with a single M, or after κ/Λ were tuned to fit. Or: claiming exact Einstein structure when only the *linear-in-M* relation holds (which is far weaker and often automatic once the right tensor structures are present). Both overstate the result.
 
 **Why it happens:**
-"Pointwise," "reducible," and "single-frame Observable" are used loosely in the narrative; without a frozen algebraic definition the proof can drift to whatever conclusion is wanted.
+One clean data point is psychologically convincing, and the linear order is the easiest to satisfy. The hoped-for answer (Einstein) biases toward over-claiming.
 
 **How to avoid:**
-Freeze ONE definition before any computation and use it everywhere:
-> **R_pt := the R-subalgebra of R[27⊕27]^{F_4} generated by `{Tr X, Tr X², det X, Tr Y, Tr Y², det Y}`** — i.e. all *polynomials* (sums of products) in the six single-state generators. Equivalently R_pt = R[Tr X, Tr X², det X] ⊗ R[Tr Y, Tr Y², det Y].
-The claim "(b) c ∉ R_pt" then means: c is not a polynomial in those six. Products like `Tr(X)Tr(Y)` ARE in R_pt (they are products of single-state generators) — so "c is new" must mean "new modulo products," handled precisely in (c).
+1. **Test over a FAMILY, not a point.** Vary M (direction and magnitude within V_1+V_{1/2}) and the basepoint x; the SAME κ, Λ must work for all. A κ that must be re-tuned per configuration is not a physical constant — it is a fit.
+2. **State the honest order explicitly (a/b/c per prompt).** Exact, linear-only, or none. Linear-order agreement must be reported AS linear-order, not as "Einstein structure." Check at least the next order (M²) before any "exact" claim.
+3. **Predefine κ and Λ.** Fix them from intrinsic data before the test (Pitfall 4.2). If the test then passes across the family with the predefined constants, it is real; if you had to solve for κ to make it pass, it is fitting.
+4. **Falsifiability:** demonstrate a configuration that *could* have failed the Einstein test and report whether it did.
 
-**Detection test (runnable):**
-```python
-# Pin R_pt as the SIX generators' polynomial closure. Verify the boundary cases land correctly:
-assert is_in_Rpt(Tr_X * Tr_Y)        # reducible product -> IN R_pt  (must be True)
-assert is_in_Rpt(Tr_X**2)            # IN R_pt
-assert not is_in_Rpt(c)              # the claim under test (b): c NOT in R_pt
-# Consistency: the test must give the SAME answer regardless of how R_pt is phrased.
-assert is_in_Rpt is frozen_definition  # one definition, used in (a),(b),(c) identically
-```
-Warning sign: the membership predicate for R_pt differs between the (b) section and the (c) section, or the word "pointwise" is used without pointing back to the six-generator definition.
+**Warning signs:**
+- κ or Λ different for different M or different x.
+- "Einstein structure" claimed from one (M, x) pair.
+- "Exact" claimed with only first-order-in-M evidence.
 
-**Phase to address:** A definitions/setup phase preceding (a), (b), (c); the definition must be cited identically in all three.
+**Phase to address:** **Phase C** (Theorem C honesty).
 
 ---
 
-### Pitfall 8 — [(a)] Conflating a SPANNING set of invariants with a minimal GENERATING set, and ignoring the Second Fundamental Theorem (relations) when claiming "minimal" or "new"
+## Moderate Pitfalls
+
+### Pitfall 8: Numerical curvature from catastrophic cancellation — float ranks/curvatures are unreliable here
 
 **What goes wrong:**
-Three distinct notions get blurred:
-- a **spanning set** of a graded piece (e.g. all degree-2 invariants),
-- a **generating set** of the ring (the FFT object — generators whose products span everything),
-- a **minimal generating set** (no generator is a polynomial in the others).
-The Reynolds-operator route (averaging monomials) yields a **redundant** spanning/generating set by design (Derksen–Kemper). Claiming a coupling generator is "new" (not expressible in lower-degree generators + products) requires knowing the **relations** — the Second Fundamental Theorem (SFT) ideal of syzygies. Without it, you can both over-count (list a "generator" that is actually a product of two lower ones) and under-count (miss a generator hidden behind a relation).
-
-**Why it happens:**
-"I found an invariant of degree d that I can't immediately write in terms of the others" is mistaken for "this is a new generator," skipping the check that it is not a polynomial in lower-degree generators.
+Curvature is built from *differences of derivatives* of det (Christoffels ~ ∂g, Riemann ~ ∂Γ + ΓΓ). These are textbook catastrophic-cancellation factories: large nearly-equal terms subtract, and float64 returns noise. The project already flags float ranks/curvatures as unreliable for exactly this reason and works EXACT over Q. The danger: a float curvature scalar that is "1e-12" (really zero → would correctly KILL) read as "small but nonzero" (false greenlight), or a genuine small curvature drowned in 1e-10 float noise (false KILL).
 
 **How to avoid:**
-- Distinguish FFT (generation, in scope) from SFT (full syzygy ideal, OUT of scope — METHODS.md). (RING) needs generation + a degree-2 *minimality* statement only.
-- For minimality at low degree, check whether each candidate generator lies in the subalgebra generated by lower-degree ones (a linear-algebra membership test in that bidegree), NOT a vague "looks irreducible" claim.
-- Use the Hilbert series to detect both over- and under-counting (Pitfall 1).
+- **Work EXACT over Q (SymPy / rationals) for all curvature-deciding quantities.** Restrict octonionic data to rational components so det, Hessian, Christoffels, Riemann are exact. A curvature scalar that is *exactly* 0 over Q is a clean KILL; a curvature scalar that is a nonzero rational is a clean survive. Never decide KILL vs survive on a float magnitude.
+- Use finite-difference float (as in `det3_quadratic_expansion_50`, which uses eps=1e-4 central differences) ONLY as a sanity cross-check against the exact result, never as the verdict. Note the existing `det3_quadratic_expansion_50` already shows the O(eps²) V_0 term = det_2 Gram (Minkowski, massless) — that is the *leading-order* homogeneity signal; Phase A must go to the order where x-dependence could first appear and do it exactly.
+- Watch for eps-dependence: if the finite-difference curvature changes with eps, it is noise-dominated.
 
-**Detection test (runnable):**
-```python
-# Is candidate generator G_d at degree d genuinely new, or a product of lower-degree gens?
-lower_products = span_of_products(gens_below_degree_d, target_bidegree(G_d))  # exact basis
-assert not in_span(G_d, lower_products), "G_d is reducible (a product) -> NOT a new generator"
-# Minimal-generator count must match (Hilbert series of free algebra on gens) vs (true H(s,t)).
-assert hilbert_series(free_on(gens))[:deg 6] == true_hilbert_series[:deg 6]
-```
-Warning sign: a candidate generator whose bidegree already has its dimension fully accounted for by products of lower generators — it is not new.
-
-**Phase to address:** The (a) generating-set phase (minimality sub-step).
+**Phase to address:** All phases; especially the Phase A verdict and the Phase C order-counting.
 
 ---
 
-### Pitfall 9 — [(a)/(c)] Confusing the 26 (trace-free irreducible) with the full 27 (= 1 ⊕ 26), and mishandling the reducible Tr(X)Tr(Y) when counting (1,1) couplings
+### Pitfall 9: rho_J expansion misused — real-direction perturbations hide the octonionic cross-term
 
 **What goes wrong:**
-The F_4 representation on h_3(O) is **27 = 1 ⊕ 26** (trivial ⊕ trace-free irreducible). Two errors follow from blurring these:
-1. **Branching/multiplicity errors in (c):** if you compute Sym²(26) instead of Sym²(27), or forget the trivial summand, the trivial-multiplicity count is wrong. The correct counts (METHODS.md): Sym²(27) has trivial multiplicity 2; the bidegree-(1,1) part 27⊗27 has trivial multiplicity `dim End_{F_4}(1⊕26) = 1 + 1 = 2`, spanned by `Tr(X)Tr(Y)` (reducible product, the 1⊗1 piece) and `Tr(X∘Y)` (the genuine 26⊗26 → 1 coupling). Total degree-2 diagonal invariants = 6.
-2. **Forgetting Tr(X)Tr(Y) is also a bidegree-(1,1) invariant in (c):** there are TWO invariant (1,1) couplings, not one. The uniqueness claim is "c is unique **modulo the reducible product Tr(X)Tr(Y) and the single-state terms**," not "c is the only (1,1) invariant." Stating it without the "mod products" qualifier is false.
-
-**Why it happens:**
-"The 27" and "the 26" are used interchangeably in physics-side prose; the trivial direction (the identity / Tr) is easy to drop.
+`rho_directional_derivatives.py` expands around I/3 using **real** perturbations in the x_i slots (so `Re(x1 x2 x3) = δ1δ2δ3`, association-free). Reusing this module to characterize M ∈ V_1+V_{1/2} when M is genuinely octonionic (components along e_4..e_7) will silently use the wrong (real-only) cross-term and miss exactly the non-associative coupling that is the claimed source of curvature.
 
 **How to avoid:**
-- Always carry 27 = 1 ⊕ 26 explicitly. The "1" is the Tr direction (identity element), the "26" the trace-free part.
-- State (c) precisely: the genuine-coupling space at bidegree (1,1), *after quotienting the reducible product Tr(X)Tr(Y)*, is 1-dimensional = span{c}. Equivalently `dim Hom_{F_4}(26 ⊗ 26, triv)|_{symmetric} = 1` for the trace-free coupling.
-- Cross-check dimensions: Sym²(26) = 1 ⊕ 26 ⊕ 324, dim 351 = 1+26+324 ✓; Sym²(27) = 378.
+- Use `rho_directional_derivatives.py` for the *scalar* off-center expansion (ρ_J around I/3) as intended, but recompute any *cross-term/coupling* quantity with the full octonionic `det_3` from `octonion_algebra.py` (Pitfall 2). Confirm M has nonzero e_4..e_7 components when testing the non-associative coupling, else the test is in an associative subalgebra and vacuous.
 
-**Detection test (runnable):**
-```python
-# Branching/multiplicity must reproduce these exact integers (SageMath WeylCharacterRing('F4')):
-assert mult_trivial(Sym2(rep27)) == 2          # Tr(X)^2 and Tr(X^2)
-assert mult_trivial(tensor(rep27, rep27)) == 2  # Tr(X)Tr(Y) and Tr(X o Y)
-assert dim(Sym2(rep27)) == 378
-assert dim(Sym2(rep26)) == 351
-# The (1,1) genuine-coupling space modulo the product is exactly 1-dim:
-assert dim(span([Tr_XoY])) == 1
-assert is_in_Rpt(Tr_X * Tr_Y)   # the OTHER (1,1) invariant is reducible, in R_pt
-```
-Warning sign: a Sym² dimension that doesn't match {351, 378}, or a (c) statement omitting "modulo Tr(X)Tr(Y)."
-
-**Phase to address:** The (c) degree-2 uniqueness phase.
+**Phase to address:** **Phase B** (off-center expansion and ‖M‖, ρ_J scaling).
 
 ---
 
-### Pitfall 10 — [(REDUCIBILITY), stated-only] Asserting irreducibility from "it's nonlinear, so it's chaotic," and conflating the AUTONOMOUS F_3-contraction (reducible) with the DRIVEN stream (the open-system source of irreducibility)
+### Pitfall 10: "Position-dependence" that is really off-center-ness (ρ_J) of the background, not a field on spacetime
 
 **What goes wrong:**
-The milestone only STATES (REDUCIBILITY); it must not prove the open-system irreducibility, and must not use a chaos argument. Two banned moves (both named in PROJECT.md's reward-hacking guard):
-1. "The self-modeling map is nonlinear ⇒ chaotic ⇒ irreducible." No chaos argument is valid here. The framework is invariant theory + (eventually) a STRUCTURAL finite-capacity / Breuer argument, never NKS/chaos.
-2. Conflating the **autonomous** map `X_{k+1} = P_psd((1−ε)X_k² + εS_k)` with `S_k` fixed (a contraction to a fixed point — REDUCIBLE, reconstructible by re-running from (S, law)) with the **driven** stream where `S_k` is an exogenous input (the genuine open-system source of irreducibility). Using the autonomous map's reconstructibility to claim irreducibility "falsely kills the engine."
-
-The cross-term decomposes (mod P_psd, via X_k∘X_k² = X_k³):
-`Tr(X_k ∘ X_{k+1}) = (1−ε)Tr(X_k³)` [pointwise, reducible] `+ ε Tr(X_k ∘ S_k)` [self-world overlap, the irreducible piece]. Irreducibility is INHERITED from the input's unpredictability, NOT chaos of the autonomous map.
-
-**Why it happens:**
-"Nonlinear ⇒ chaotic ⇒ unpredictable ⇒ irreducible" is a seductive but invalid shortcut; and the autonomous fixed-point map is the natural thing to simulate, so it is easy to mistake its dynamics for the lived (driven) Stream's.
+The background X_bg = I/3 + M is off-center (ρ_J > 0). Moving the basepoint and seeing the metric change could reflect (i) genuine x-dependence of the inherited slice metric (the gravitational claim), or (ii) merely that you evaluated at different off-center points where the homogeneous metric *looks* different in your fixed chart. Conflating the background's off-center-ness with a propagating spacetime field h_μν(x) is a subtle false greenlight feeding Pitfall 1.
 
 **How to avoid:**
-- For THIS milestone, only STATE (REDUCIBILITY): write the cross-term decomposition and the capacity reduction as the precise target, flag the autonomous-vs-driven trap explicitly, and stop. Do not assert the open-system irreducibility.
-- If a corollary is written, it must route to the structural (Breuer / no-proper-subsystem-models-the-whole / finite-capacity) argument — never to chaos or NKS.
+- Separate the roles cleanly: ρ_J(X_bg) parametrizes the *basepoint* (one number characterizing off-center-ness); h_μν(x) is supposed to be a *field over the spacetime coordinate x ∈ V_0*. Test x-dependence at FIXED background off-center-ness, and test curvature-invariant variation (Pitfall 1), not component variation.
+- Use the stabilizer argument (Pitfall 1.2): if Stab_{E_6}(E_11) relates two basepoints, the apparent difference is gauge, not field.
 
-**Detection test (conceptual, with a numerical canary):**
-```python
-# Canary: the AUTONOMOUS map (S fixed) must be shown REDUCIBLE (contraction to a fixed point),
-# i.e. re-runnable from (S, law) -> NOT a source of irreducibility.
-X = X0
-for _ in range(N):
-    X = P_psd((1-eps)*jordan_sq(X) + eps*S_fixed)   # S_fixed constant
-assert converges_to_fixed_point(X)        # autonomous => reducible; do NOT cite as irreducible
-# Statement gate (not a proof): the irreducible piece is eps*Tr(X_k o S_k) with S_k EXOGENOUS;
-# this milestone STATES that and does not assert its incompressibility.
-assert milestone_only_states_reducibility is True
-```
-Warning sign: any sentence of the form "nonlinear/complex ⇒ chaotic ⇒ irreducible," or a simulation of the fixed-`S` map used to argue the lived Stream is irreducible.
+**Phase to address:** **Phase A** (distinguishing field from frame), **Phase B** (ρ_J scaling).
 
-**Phase to address:** The "state the dynamical bridge" phase (final, do-not-attempt-the-verdict).
+---
+
+### Pitfall 11: Single-point sampling cannot detect x-dependence
+
+**What goes wrong:**
+Computing curvature scalars at one basepoint and concluding "homogeneous" (because you have nothing to compare) or "curved" (because the number is nonzero — but a constant nonzero curvature is still homogeneous!). x-dependence is a statement about a *function* of x; one sample determines nothing about variation.
+
+**How to avoid:**
+- Evaluate curvature invariants symbolically as functions of x (exact, preferred), or at a *grid* of ≥3 generic basepoints, and test whether they actually vary. A nonzero-but-constant curvature scalar across all samples = homogeneous (KILL), not survive. Explicitly compute ∂_x(curvature invariant) and check it is not identically zero over Q.
+
+**Phase to address:** **Phase A.**
+
+---
+
+## Minor Pitfalls
+
+### Pitfall 12: Convention drift in the Peirce/spacetime index assignment
+
+**What goes wrong:** The spacetime V_0 indices are a specific subset (`spacetime_V0_indices={17,18,19,26}`, `internal_V0_indices={20..25}` per `octonion_algebra.py` ASSERT_CONVENTION), and the h_2(C_u) sub-slice uses u=e_7. Picking the wrong 4 of the 10 V_0 directions, or a different complex structure, gives a metric that is not the Minkowski slice and breaks the reduction test.
+
+**How to avoid:** Pin the spacetime sub-slice to the documented `{17,18,19,26}` / h_2(C_u) with u=e_7; verify the restricted det_2 on this sub-slice equals the Minkowski quadratic form (per `52-kkt-spacetime`) before building g_μν.
+
+**Phase to address:** Phase A (A0).
+
+### Pitfall 13: Mostly-plus vs mostly-minus signature sign errors in curvature
+
+**What goes wrong:** This project uses mostly-minus via det_2. Curvature-tensor and Einstein-tensor sign conventions (and the sign of Λ) depend on signature and on the Riemann sign convention; a mismatch flips the sign of "the curvature" and can flip a Λ sign.
+
+**How to avoid:** State the Riemann/Ricci sign convention alongside the mostly-minus signature; verify on a known case (e.g. the H^3 = SL(2,C)/SU(2) hyperboloid sub-slice has known constant negative curvature — use it as a signed benchmark).
+
+**Phase to address:** Phase A/B.
 
 ---
 
@@ -346,106 +267,103 @@ Warning sign: any sentence of the form "nonlinear/complex ⇒ chaotic ⇒ irredu
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 | --- | --- | --- | --- |
-| Float `octonion_algebra.py` for the (b) Jacobian rank | Reuse the warm harness; fast | Tolerance-dependent rank ⇒ fabricated positive/negative (Pitfall 3) | NEVER for the decisive rank; OK only for a rough pre-check before the exact run |
-| Single random point for the Jacobian | One substitution | Could be non-generic ⇒ false rank drop (Pitfall 4) | Only as a first look; the certificate needs ≥3 points or symbolic rank |
-| Back-of-envelope Spin(8)-triality stabilizer count | No computation | Wrong Krull dimension ⇒ missing/phantom generators (Pitfall 5) | NEVER as the basis of a claim; compute the infinitesimal-action rank |
-| Reynolds-operator generating set without minimality check | Quick dimension counts | Redundant generators mistaken for minimal (Pitfall 8) | OK as a spanning/dimension cross-check, not as the minimal list |
-| Numerical Haar-average (random exp(f_4)) for invariant dimensions | Fast sanity check | Sampling/conditioning error; not a proof | OK to corroborate the exact f_4-kernel count, never to replace it |
-| Hilbert series only to degree ≤ 4 | Cheaper | A surprise generator could hide at degree 5–6 | Only if a separate argument bounds generator degrees ≤ 4; otherwise go to ≤ 6 |
-| Importing the E_6 4-generator pair result for F_4 | Clean, citable (Blind 2011) | E_6 ≠ F_4; F_4 ring is larger (has c) — wrong ring (Pitfall 1) | NEVER as the F_4 answer; only as a contrast case |
+| Float64 finite-difference curvature | Fast, easy | Catastrophic cancellation → unreliable KILL/survive verdict | ONLY as a cross-check of an exact-Q result; NEVER for the verdict |
+| Real-only perturbations (rho module) for M | Association-free, simple | Misses the non-associative V_0↔V_{1/2} coupling = the claimed source | For the scalar ρ_J expansion only; never for octonionic cross-term coupling |
+| Linearize in M | Tractable Einstein test | Linear agreement is weak/often automatic; not "exact Einstein" | Acceptable as Phase C level (b) IF reported as linear-only, not as a win |
+| Diagonal/quaternionic (e_0..e_3) test data | Easy hand-checks | Lives in an associative subalgebra → association bugs invisible | Sanity checks only; the real test needs e_4..e_7 components |
+| Restrict bulk metric, read bulk curvature | Skips Gauss equation | Ignores second-fundamental-form term; conflates extrinsic/intrinsic | Only if the slice is PROVEN totally geodesic (then verify it gives constant curvature) |
+| Cite GST for the geometry | Legit (same manifold) | One step from citing GST for the action (circular) | Geometry/manifold facts ONLY; never the Lagrangian or −½R |
 
 ## Convention Traps
 
 | Convention Issue | Common Mistake | Correct Approach |
 | --- | --- | --- |
-| Jordan product normalization | Using `XY` (matrix product) where `X∘Y = ½(XY+YX)` is meant; off-by-½ in c = Tr(X∘Y) | Fix `X∘Y = ½(XY+YX)` (harness `jordan_product`); note `Tr(X∘Y) = Re Tr(XY)` for Hermitian X,Y |
-| Trace-form sign / normalization | Sign of the trace bilinear form `τ(X,Y) = Tr(X∘Y)`; some sources use `−` or a factor | Pin `c(X,Y) = Tr(X∘Y)`, positive-definite on the formally-real h_3(O); verify `c(X,X) = Tr(X²) > 0` for X ≠ 0 (harness `det_2`/Gram already fix signs) |
-| det / cubic norm convention | Conflating Jordan `det X = N(X)` with naive octonionic "determinant"; wrong factor in `det X = (1/3)Tr(X#∘X)` | Use the Freudenthal/Springer cubic norm; verify `f(X,X,X) = 6 det X` numerically before polarizing (PRIOR-WORK caution) |
-| Sharp/cross product `×` ambiguity | Freudenthal product vs sharp-polarization `X×Y = (X+Y)#−X#−Y#` differ by trace-term shifts and a factor; both circulate as "×" | Fix the sharp-polarization (gives `f(X,Y,Z) = ⟨X×Y,Z⟩` directly, Springer 1973 ch.4 (5) p.56); verify in harness |
-| 26 vs 27 | Treating "the 27" as irreducible; using Sym²(26) where Sym²(27) is needed | Carry `27 = 1 ⊕ 26`; the 1 is the Tr/identity direction (Pitfall 9) |
-| Group: F_4 vs E_6 | Using E_6 (det-stabilizer) results where F_4 = Aut (also fixes the trace form) is meant | F_4 ⊋-invariants include the trace-form coupling c, which is NOT E_6-invariant (PRIOR-WORK) |
-| Faraut–Korányi citation chapter | Citing "FK Ch. V" for the single-state ring | FK Ch. V is the *classification*; the norm/trace/invariant-ring facts are in Ch. II–IV (+ VIII), per PRIOR-WORK correction |
-| "Polarization" overload | "Weyl polarization holds in char 0" used to mean "from 1 copy" | Weyl's theorem goes from `dim V = 27` copies; "from 1 copy" is the *k-polarization property* (Schwarz), generically false even in char 0 (Pitfall 1) |
+| Cubic-norm cross-term association | Treating `2Re((x1·x2)·x3)`, `2Re(x1·(x2·x3))`, and the prompt's `2Re(x2* x0* x1)` as interchangeable code | Use corrected `det_3` (`octonion_algebra.py`, left-to-right `(x1·x2)·x3`); verify the prompt's conjugated form equals it on non-associative data before trusting either |
+| Real-perturbation det vs octonionic det | Importing `rho_directional_derivatives.py`'s unparenthesized `2Re(x1 x2 x3)` for octonionic M | That form is real-only-safe; for octonionic M use full `det_3` |
+| Metric signature | Mixing mostly-plus and mostly-minus across the Riemannian cone, the det_2 Minkowski form, and curvature conventions | Project standard: mostly-minus via det_2; state Riemann/Ricci sign convention explicitly; benchmark on H^3 |
+| Riemannian vs Lorentzian curvature | Computing curvature in g_X (Riemannian) then "rotating the result" | Fix the signature bridge FIRST, compute curvature in the final Lorentzian g_μν |
+| d(X,X,X) normalization | Forgetting d(X,X,X)=6·N(X) (this project's convention) | Use the gated normalization; C_IJK=(1/6)d_IJK per `octonion_algebra.py` |
+| GST geometry vs GST action | "The manifold is E_{6(-26)}/F_4, so use the GST Lagrangian/−½R" | Manifold identification is fine; the action and gravitational coupling are the forbidden circular input |
+| Wick rotation: coordinate vs metric | t→−it on the curved/Hessian metric | Rotate the metric via the u=e_7 direction (Visser); coordinate rotation is ill-defined here |
 
 ## Numerical Traps
 
 | Trap | Symptoms | Prevention | When It Breaks |
 | --- | --- | --- | --- |
-| Float Jacobian rank | Rank changes with `tol`; integer-looking rank that is an SVD artifact | Exact `sympy.Matrix.rank()` over Q; never `np.linalg.matrix_rank` for the decisive check | Always at the rank boundary for 54-variable octonionic determinants |
-| Non-generic evaluation point | Rank differs between random points; rank 6 at X=Y | ≥3 generic rational points, all-nonzero, distinct diagonals, X ≠ λY | Whenever the point lands on the discriminant / diagonal / commuting locus |
-| Large integer coefficient blow-up | SymPy slows or memory-spikes building det in 54 vars | Substitute the rational point EARLY (before full symbolic expansion) when only the point-rank is needed; or use modular rank over a large prime then lift | Full symbolic cubic-norm expansion on 54 variables |
-| `np.linalg.matrix_rank` default tol on the orbit-action matrix | Wrong orbit dimension ⇒ wrong stabilizer (Pitfall 5) | Exact rank, or high-precision SVD with an explicit, justified gap check | Near-degenerate infinitesimal-action matrices at semi-generic X |
-| Reynolds Haar-average non-convergence | Invariant-dimension estimate fluctuates with sample size | Use the exact f_4-infinitesimal-kernel (`D_ξ f = 0` for all 52 ξ) instead of group sampling | Always — sampling is a cross-check, not a certificate |
-| Modular-arithmetic rank with an unlucky prime | Rank drops at a prime dividing a minor | Use a large random prime AND confirm exact rank agrees; or compute over Q | Rare, but silent — always cross-check the prime |
+| Catastrophic cancellation in Christoffel/Riemann | Curvature scalar ~1e-10..1e-12, eps-dependent | Exact-Q (rational) arithmetic; SymPy | Whenever curvature is decided from float differences of det-derivatives |
+| Float "rank"/"curvature" near a degenerate point | Apparent rank jumps; tiny eigenvalues | Exact-Q rank/curvature; the project already flags floats unreliable | Near the center I/3 and near det→0 (cone boundary) |
+| Vacuous association test (associative inputs) | "Cross-term verified" but on diagonal/e_0..e_3 data | Use e_4..e_7 components so `Re((x1x2)x3)≠Re(x1(x2x3))` | Any test confined to an associative subalgebra |
+| eps-sensitivity of finite-difference Hessian | Mass matrix / curvature changes with eps | Compare to exact polarized result (`_polarized_sharp`) | Higher-derivative (curvature) order, where existing eps=1e-4 may be too coarse |
+| Degenerate metric in Wick rotation | Metric singular/complex at ε=+i | Avoid ε=+i; use Visser's safe continuation | Naive rotation through the degenerate point |
 
 ## Interpretation Mistakes
 
 | Mistake | Risk | Prevention |
 | --- | --- | --- |
-| "rank 7 ⇒ all 7 generators algebraically independent" | False over-claim; the *ring's* Krull dim is `54 − orbit dim`, not 7 | Claim only the true, weaker statement: c ∉ R_pt (trdeg jump 6→7), NOT joint algebraic independence of all 7 (METHODS.md "What NOT to use") |
-| "c is the unique (1,1) invariant" | False — Tr(X)Tr(Y) is also (1,1) | State "unique modulo the reducible product Tr(X)Tr(Y) and single-state terms" (Pitfall 9) |
-| "polarization works in char 0 ⇒ (a) is trivial" | Hides the 2-polarization-property gap (Pitfall 1) | The Hilbert-series certificate IS the content of (a) |
-| "Spin(8) generic stabilizer ⇒ pair-orbit is 52-dim" | Contradicts 7 known invariants; corrupts Krull dim | Compute the pair principal isotropy in the harness (Pitfall 5) |
-| Reading the autonomous fixed-point convergence as "irreducible" | Falsely kills/credits the engine (Pitfall 10) | Autonomous map is REDUCIBLE; irreducibility (if any) is open-system, only STATED |
-| Treating a NEGATIVE (c ∈ R_pt) as a failure to hide | Suppresses a valid, decisive result | A clean negative is a full pass; construct the explicit expression and report it (Pitfall 6) |
-| Equating "functionally independent" with "algebraically independent" | Wrong notion; the claim is "c is not a polynomial in the six" | Use the precise statement c ∉ R_pt; the Jacobian rank-jump is its checkable form (METHODS.md (b)) |
+| "Symmetric space ⇒ slice metric is x-independent" | False KILL of a live route | The slice-with-fixed-E_11 family is a DIFFERENT question; decide by curvature invariants + stabilizer count, not by the word "symmetric" |
+| "Metric components vary with x ⇒ curvature" | False GREENLIGHT | Components vary under coordinate changes even on flat space; use curvature scalars |
+| "Nonzero Riemann ⇒ matter-sourced gravity" | False positive (could be Λ) | Off-switch the cross-terms; check ‖M‖→0 vanishing; decompose Ricci/Weyl |
+| "Restricted bulk metric's curvature = slice gravity" | Conflates extrinsic/intrinsic | Gauss equation: separate II terms; verdict on intrinsic invariants only |
+| "Linear-in-M Einstein relation ⇒ Einstein gravity" | Overclaim | Report the honest order (a/b/c); test M² before "exact" |
+| "Curvature after Wick rotation ⇒ physical" | Rotation artifact | Confirm same curvature-variation verdict in the Riemannian restriction |
+| Softening a homogeneous KILL to "approximately position-dependent" | Dishonest reporting; the prompt explicitly forbids this | A homogeneous result is a clean, valuable KILL — report it as such and STOP |
 
 ## "Looks Correct But Is Not" Checklist
 
-- [ ] **(a) generating set:** Often missing the *completeness certificate* — verify the bigraded Hilbert series matches term-by-term to total degree ≤ 6, not just "we polarized and got some generators."
-- [ ] **(a) minimality:** Often missing the *reducibility check* — verify each "new" generator is not a product of lower-degree ones (in-span test in its bidegree).
-- [ ] **(b) independence:** Often missing the *exact-arithmetic* run — verify the rank is computed over Q (point-rank == symbolic rank), not via float SVD with a tolerance.
-- [ ] **(b) genericity:** Often missing *multiple points* — verify rank 7 at ≥3 independent generic rational points, and that X=Y correctly gives ≤6.
-- [ ] **(b) orbit dimension:** Often missing the *computed* stabilizer — verify the pair-orbit dimension from the infinitesimal-action rank, not a triality back-of-envelope; cross-check `54 − orbit dim = Krull dim`.
-- [ ] **(c) uniqueness:** Often missing the *"modulo products"* qualifier and the *Tr(X)Tr(Y)* term — verify the (1,1) invariant space is 2-dim {Tr(X)Tr(Y), c} and the genuine-coupling quotient is 1-dim.
-- [ ] **Definitions:** Often missing a *frozen* R_pt — verify the same membership predicate for the pointwise ring is used identically in (a), (b), (c).
-- [ ] **Conventions:** Often missing the *f(X,X,X)=6 det X* and *c(X,X)=Tr(X²)* sanity checks — verify both numerically before building anything on the cubic norm.
-- [ ] **(REDUCIBILITY):** Often missing the *autonomous-vs-driven* flag — verify the write-up only STATES it and routes any irreducibility to a structural (Breuer/finite-capacity) argument, never chaos.
+- [ ] **Homogeneity verdict:** Often missing the curvature-scalar x-dependence test and the Stab_{E_6}(E_11) dimension count — verify R(x), Kretschmann(x), ∂_x of each, AND dim(stabilizer orbit) vs dim(basepoint family).
+- [ ] **Cubic norm:** Often missing the non-associative test input — verify `Re((x1x2)x3) ≠ Re(x1(x2x3))` on e_4..e_7 data and that `det_3` matches the prompt's conjugated convention.
+- [ ] **Signature bridge:** Often missing the reduction gate — verify g_μν(center, M=0) = η_μν EXACTLY with zero residual h_μν.
+- [ ] **Slice curvature:** Often missing the second fundamental form — verify whether the slice is totally geodesic and decompose R^{slice} via Gauss.
+- [ ] **Matter-sourcing (B):** Often missing the cross-term off-switch — verify curvature VANISHES when det→det(V_1)·det(V_0) and as ‖M‖→0.
+- [ ] **Einstein test (C):** Often missing family-robustness — verify the SAME predefined κ, Λ work across multiple (M, x), not one tuned point.
+- [ ] **Circularity (C):** Often missing the input audit — verify no −½R, no SUSY, no GST action, no Weinberg soft theorem entered the derivation.
+- [ ] **Exactness:** Often missing exact arithmetic — verify the KILL/survive verdict rests on exact-Q zero/nonzero, not a float magnitude.
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 | --- | --- | --- |
-| Float Jacobian gave wrong rank (P3) | LOW | Port `jordan_product`/`det_3` to `sympy.Rational` (or reuse `embedding_under_E_verification.py`); rerun `Matrix.rank()` over Q |
-| Non-generic point gave rank 6 (P4) | LOW | Regenerate point with all-nonzero, distinct-diagonal, X≠λY entries; rerun at ≥3 points |
-| Wrong stabilizer/Krull dim (P5) | MEDIUM | Recompute the 54×52 infinitesimal-action rank exactly; re-target the Hilbert series to `54 − orbit dim`; re-audit (a) completeness |
-| 2-polarization assumed, generator missing (P1, P8) | MEDIUM–HIGH | Run the bidegree Hilbert-series match; at the first mismatch, find the missing generator by Reynolds-projecting that bidegree; add and recheck |
-| Sym² multiplicity miscount (P9) | LOW | Recompute via `WeylCharacterRing('F4')`; reconcile against {351, 378} and the 6-dim degree-2 invariant total |
-| Forced positive later found spurious (P6) | MEDIUM | Re-run exact on a fresh point + orbit-derivative; if rank is really 6, construct and report the explicit pointwise expression for c |
-| Convention drift (∘ vs matrix product, × ambiguity, det factor) | LOW–MEDIUM | Re-pin conventions; re-verify `f(X,X,X)=6 det X`, `c(X,X)=Tr(X²)`; propagate the fix through all generators |
-| Chaos/NKS argument crept into (REDUCIBILITY) (P10) | LOW | Delete the chaos claim; restate as STATED-only with the structural (Breuer) route flagged |
+| Wrong cross-term association used | HIGH | Recompute det_3 with corrected association; redo ALL Hessians/curvatures downstream (nothing built on the wrong norm survives) |
+| Contaminated signature bridge (h_μν≠0 at M=0,center) | MEDIUM | Re-fix the bridge (switch to construction (ii) or Visser metric-rotation), re-run reduction gate, recompute h_μν |
+| Float-based KILL/survive verdict | MEDIUM | Redo the deciding curvature in exact-Q; the qualitative verdict may flip |
+| Λ mistaken for matter-sourcing | LOW | Apply cross-term off-switch + ‖M‖→0 test; relabel honestly |
+| Single-point homogeneity claim | LOW | Recompute curvature invariants symbolically in x or over a basepoint grid |
+| Circular Einstein "confirmation" | HIGH | Audit inputs; remove any supergravity/SUSY/Weinberg step; redefine κ,T_μν intrinsically; re-test (may downgrade verdict to "curved not Einstein") |
+| Extrinsic curvature reported as gravity | MEDIUM | Compute II; decompose via Gauss; restate verdict on intrinsic invariants |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 | --- | --- | --- |
-| P7 frozen R_pt definition | Setup/Definitions (before a,b,c) | Same membership predicate cited in all three sub-claims; boundary cases (Tr X·Tr Y in, c under test) pass |
-| P1 Weyl-vs-k-polarization; 2-polarization gap | (a) Generating set | Bigraded Hilbert series matches term-by-term to total degree ≤ 6 |
-| P8 spanning vs minimal generating; SFT | (a) Generating set (minimality) | Each generator fails the in-span-of-lower-products test; free-algebra Hilbert series matches |
-| P2 orbit/Jacobian asserted not demonstrated | (b) Independence | Both rank-7 Jacobian AND nonzero orbit-derivative of c present, on the exact algebra |
-| P3 float rank | (b) Independence | `J.subs(pt).rank() == J.rank()` over Q; float gap-ratio canary > 1e6 |
-| P4 non-generic point | (b) Independence | rank == [7,7,7] at 3 points; X=Y gives ≤6 |
-| P5 stabilizer/Krull-dim miscount | Shared dimension-count (feeds a & b) | single-copy: orbit 24 / stab 28 / trdeg 3; pair: orbit ≤ 47, stab ≥ 5, `54−orbit = Krull dim` |
-| P6 forced positive over honest negative | (b) Independence (verdict gate) | Pre-registered exact test; if rank 6, explicit pointwise expression constructed and reported |
-| P9 26-vs-27; reducible (1,1) product | (c) Degree-2 uniqueness | mult_trivial(Sym²27)=2, mult_trivial(27⊗27)=2; Sym² dims {351,378}; (1,1) genuine-coupling quotient = 1-dim |
-| P10 chaos/autonomous-vs-driven | (REDUCIBILITY) statement (final) | Write-up STATES only; autonomous map shown reducible; irreducibility routed to structural argument |
+| 1. Homogeneity trap (false KILL / false greenlight) | **Phase A (gate)** | Curvature scalars as functions of x are constant ⇒ KILL; vary ⇒ survive; stabilizer-orbit dim vs basepoint-family dim computed and reported |
+| 2. Octonion cross-term association | **Phase A (pre-flight), Phase B** | `det_3` matches matrix-determinant on non-associative data; prompt's conjugated form reconciled; Cayley–Hamilton holds |
+| 3. Signature/Wick bridge | **Phase A sub-task A0** | One bridge fixed; g_μν(center,M=0)=η exactly; curvature-variation verdict agrees between Riemannian and Lorentzian |
+| 4. GST/Weinberg circularity | **Phase C (fatal), declared at Phase A** | Input audit shows no −½R/SUSY/GST-action/Weinberg; κ,T_μν defined before G_μν computed |
+| 5. Slice vs bulk / extrinsic curvature | **Phase A, Phase B** | Second fundamental form computed; totally-geodesic question answered; R^{slice} Gauss-decomposed |
+| 6. Λ mistaken for matter-sourcing | **Phase B** | Cross-term off-switch removes curvature; curvature ∝ ‖M‖ and vanishes at M=0 |
+| 7. Tuned-point / linear-order Einstein overclaim | **Phase C** | Same κ,Λ across (M,x) family; honest a/b/c level reported |
+| 8. Float curvature cancellation | **All phases** | Verdict from exact-Q zero/nonzero; float used only as cross-check |
+| 9. rho_J real-perturbation misuse | **Phase B** | Octonionic M (e_4..e_7) uses full det_3, not the real-only form |
+| 10. Off-center-ness vs field | **Phase A, B** | x-dependence at fixed ρ_J; gauge-vs-field separated via stabilizer |
+| 11. Single-point sampling | **Phase A** | Curvature invariants symbolic in x or sampled at ≥3 basepoints |
+| 12. Peirce/spacetime index drift | **Phase A (A0)** | Sub-slice = {17,18,19,26}/h_2(C_u), u=e_7; det_2 restriction = Minkowski form |
+| 13. Signature/Riemann sign | **Phase A/B** | Sign convention stated; benchmarked on H^3 constant negative curvature |
 
 ## Sources
 
-- **G. W. Schwarz**, "When Polarizations Generate," arXiv:math/0609078 (2006); *Transform. Groups* 12 (2007) 761–767. — Classifies which simple G and modules V have the **k-polarization property** `pol_k(V)^G = C[kV]^G`; "most representations do **not** have the 2-polarization property" *even over C*. **THE citation that polarizing single-copy generators need not generate the pair ring in char 0** (Pitfall 1, 8). [verified, text extracted]
-- **M. Domokos, G. Kemper**, "Weyl's Polarization Theorem in Positive Characteristic," arXiv:1803.03602; *Transform. Groups* (2020). — Weyl strong form (Thm 1.3): in char 0, polarizing a generating set of `K[V^n]^G` (n = dim V) generates `K[V^m]^G` for m ≥ n, for all reductive G; weak form (Thm 1.2): `β(K[V^m]^G) ≤ β(K[V^n]^G)`. Confirms the "from dim-V copies" framing and the char-0 validity for reductive (incl. exceptional) groups; positive-characteristic failures and the *separating-invariant* analogue. [verified, text extracted]
-- **J. Draisma, G. Kemper, D. Wehlau**, "Polarization of Separating Invariants," *Canad. J. Math.* — polarizing a SEPARATING set yields a generating set of vector invariants **only in char 0**; a characteristic-free analogue holds for *separating* (not generating) invariants. Sharpens the separating-vs-generating distinction (Pitfall 8). [verified via search summary]
-- **H. Derksen, G. Kemper**, *Computational Invariant Theory*, Springer (2002; 2nd ed. 2015). — Jacobian criterion (char 0: trdeg = generic Jacobian rank; the "dependent ⇒ rank-deficient" direction holds in ALL char, so a rank-7 result is decisive), Reynolds operator yields redundant generators, Derksen algorithm, Hilbert/Molien series. (Pitfalls 2, 3, 8) [canonical reference]
-- **Garibaldi, Guralnick**, "Generic Stabilizers for Simple Algebraic Groups," arXiv:2105.09486 (2021). — s.g.p. of F_4 on the 26 = **Spin(8)** (Lemma 8.1, dim 28); `dim k[V]^G = dim V − dim G` when `dim V > dim G` (Thm 1.3). Anchors the single-copy orbit count (24) and trdeg (3); the PAIR principal isotropy must be computed, not read off (Pitfall 5). [verified in PRIOR-WORK]
-- **B. Blind**, "Algèbres de Jordan et théorie des invariants," *J. Lie Theory* 21 (2011) 123–144 (arXiv:0906.5525). — `C[27⊕27]^{E_6}` is FREE on 4 det-polarizations (Thm 3.1, Vust method). The **E_6 contrast case**; F_4 (= Aut, also fixing the trace form) has a larger pair ring including c — do NOT import the E_6 cleanliness (Pitfall 1, convention trap). [verified in PRIOR-WORK]
-- **A. V. Iltyakov**, "Laplace Operator and Polynomial Invariants," *J. Algebra* 207 (1998) 256–271. — F_4 several-copy invariants via trace polynomials + Laplace operators; m ≤ 2 Artin–Procesi–Iltyakov equality (rational F_4-invariants = Frac(trace algebra)). Supports c being a needed trace-monomial generator (Pitfall 1, 8). [verified in PRIOR-WORK]
-- **T. A. Springer**, *Jordan Algebras and Algebraic Groups*, Ergebnisse der Math. 75, Springer (1973); **Springer–Veldkamp**, *Octonions, Jordan Algebras and Exceptional Groups*, Springer (2000). — cubic norm structure, sharp/cross product, `f(X,Y,Z)=⟨X×Y,Z⟩` (1973, ch.4 (5) p.56); F_4=Aut, E_6=Stab(det). Authority for the convention traps (sharp/× ambiguity, det factor). [verified in PRIOR-WORK]
-- **J. Faraut, A. Korányi**, *Analysis on Symmetric Cones*, Oxford (1994). — Euclidean Jordan algebras; trace, trace form `τ(x,y)=tr(x∘y)`, cubic norm; single-state invariant ring. **Chapter correction:** the norm/trace/invariant-ring facts are in Ch. II–IV (+ VIII), NOT Ch. V (= classification) — per PRIOR-WORK (convention trap). [verified in PRIOR-WORK]
-- **Milestone prompt** (`phi-reducibility-lemma-prompt.md`) and **PROJECT/research context** — the five reward-hacking traps verbatim (redefine reducible/pointwise; nonlinear⇒chaotic; autonomous-vs-driven; assert independence without orbit/Jacobian; force a positive over an honest negative). [authoritative for Pitfalls 2, 6, 7, 10]
-- **Sibling research files** `.gpd/research/METHODS.md` (the proof recipes these pitfalls guard) and `.gpd/research/PRIOR-WORK.md` (literature verdict; Open Q #4 = the pair principal-isotropy count flagged as the single most important numerical check). [internal, HIGH]
-- **Harness reality check** — `code/octonion_algebra.py` is **float64** (no SymPy); the EXACT SymPy h_3(O) layer is `code/embedding_under_E_verification.py` / `tests/test_embedding_under_E.py` (v15.0 warm harness). The (b) rank MUST run on the exact layer (Pitfall 3). [verified by inspection]
+- **Faraut & Koranyi, *Analysis on Symmetric Cones* (1994)** — cone metric g_X = Hess(−log det), symmetric-space structure of the det=1 hypersurface. HIGH (standard reference).
+- **Symmetric space (Wikipedia); Helgason, *Differential Geometry, Lie Groups, and Symmetric Spaces*; Eschenburg, "Lecture Notes on Symmetric Spaces"** — every Riemannian symmetric space is homogeneous, geodesically complete, constant scalar curvature, ∇R = 0. HIGH. (https://en.wikipedia.org/wiki/Symmetric_space)
+- **B. Totaro, "The curvature of a Hessian metric," math/0401381** — full Riemann tensor of a Hessian-of-cubic metric determined by the Hessian determinant and the S-invariant of the cubic; flat/symmetric criteria. HIGH (the coordinate-free curvature test for the homogeneity gate). PDF was not text-extractable via automated fetch; cited from the published abstract/title and corroborating search results — confirm the explicit formula against the journal version (Math. Ann.) when implementing. (https://arxiv.org/pdf/math/0401381)
+- **"A curvature formula for the complexified index cone of a cubic form," arXiv:1007.2737** — explicit curvature of the cubic-form Hessian metric. MEDIUM–HIGH.
+- **M. Visser, "How to Wick rotate generic curved spacetime," arXiv:1702.05572** — naive coordinate Wick rotation is coordinate-dependent and yields complex/unphysical metrics; rotate the metric via a chosen timelike vector field; reduce to flat-space results. HIGH for the signature-bridge pitfall. (https://ar5iv.labs.arxiv.org/html/1702.05572)
+- **Gunaydin, Sierra, Townsend, "The Geometry of N=2 Maxwell–Einstein Supergravity and Jordan Algebras," Nucl. Phys. B242 (1984) 244** — the GST scalar manifold E_{6(-26)}/F_4; the −½R Einstein term and vector couplings are fixed by the SAME C_IJK / SUSY closure (the circular input to avoid). Cite for GEOMETRY ONLY. HIGH. 5D MESGT Lagrangian structure corroborated by hep-th/0304109, hep-th/9912027.
+- **de Wit & Van Proeyen, "Special geometry, cubic polynomials and homogeneous quaternionic spaces," hep-th/9112027 (Commun. Math. Phys. 149 (1992) 307)** — classification of homogeneous special-real manifolds; symmetric (magic, incl. E_{6(-26)}/F_4) vs non-symmetric L(q,P); special-real ↔ N=2 D=5 scalar manifolds. HIGH.
+- **Gauss–Codazzi equations (Wikipedia); do Carmo, *Riemannian Geometry*** — intrinsic submanifold curvature = restricted ambient curvature + second-fundamental-form terms; totally geodesic ⇒ II=0 ⇒ R^{slice}=R^{ambient}|_slice. HIGH. (https://en.wikipedia.org/wiki/Gauss%E2%80%93Codazzi_equations)
+- **Baez, "The Octonions," math/0105155 (2002)** — h_3(O), F_4=Aut, OP^2=F_4/Spin(9) (dim 16), cubic norm det formula and association convention. HIGH.
+- **McCrimmon, *A Taste of Jordan Algebras*** — Peirce decomposition, cubic norm, Cayley–Hamilton, quadratic representation. HIGH.
+- **In-repo (HIGH, local):** `code/octonion_algebra.py` lines 2143–2181 (corrected `det_3`, left-to-right association, ASSERT_CONVENTION block) and `det3_quadratic_expansion_50` (V_0 O(eps²) term = det_2 Gram = massless/homogeneous at leading order — the leading homogeneity signal Phase A must push past); `rho_directional_derivatives.py` (real-perturbation ρ_J expansion — real-only-safe); `peirce_coupling.py` (Peirce decomposition under E_11); phase work `52-kkt-spacetime`, `52-observer-uniqueness` (h_2(C_u)≅R^{3,1}, mostly-minus from det_2, so(4,2)). Prior bug of record: `trip_tracking.py` `2Re(x0(x1 x2))` vs correct `2Re(x2* x0* x1)`.
 
 ---
 
-_Known pitfalls research for: v16.0 (RING) lemma — joint F_4-invariants of 27 ⊕ 27._
-_Researched: 2026-05-24. Confidence HIGH on invariant-theory failure modes and the five reward-hacking traps; the load-bearing refinement is Pitfall 1 (Weyl's theorem needs dim-V copies; the single-copy "2-polarization property" generically FAILS even in char 0 — Schwarz), which sharpens METHODS.md's char-0 claim into a Hilbert-series certificate obligation._
+_Known pitfalls research for: gravity as intrinsic curvature of the h_3(O) symmetric-cone bulk geometry inherited by a Peirce spacetime slice (milestone v17.0)._
+_Researched: 2026-05-30_
