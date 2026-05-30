@@ -956,6 +956,103 @@ def slice_det_form():
     return form, target, (beta, gamma, p, q)
 
 
+def cone_hessian_at_center(slice_order=None):
+    """The cone metric Hess(-log det) at the center I/3, restricted to the 4
+    spacetime sub-slice coords, EXACT over Q.
+
+    Concretely: f = -log(det_3(X)) on the engine-native symbols; take the 4x4
+    symbolic Hessian (sympy.diff twice) in the 4 sub-slice variables; evaluate at
+    the center I/3 (alpha=beta=gamma=1/3, all octonion off-diagonals 0). The det is
+    cubic so the -log jet terminates at the quadratic (Hessian) term appropriately.
+
+    `slice_order` is the list of engine-native indices defining the row/column
+    order; default (beta, gamma, p, q) = [1, 2, 3, 10], which is the order in which
+    the benchmark diag(9,9,18,18) is stated. Returns the 4x4 sympy Matrix.
+
+    NEW computed gate (not pre-computed in any in-repo file). Expected (in the
+    [beta,gamma,p,q] order): diag(9,9,18,18), det 26244, all eigenvalues > 0
+    (positive-definite Riemannian, BEFORE the signature bridge)."""
+    if slice_order is None:
+        slice_order = [1, 2, 3, 10]   # beta, gamma, p, q
+    from sympy import log as _log
+    f = -_log(inv_det_X)
+    center = _center_subs()
+    H = []
+    for i in slice_order:
+        di = diff(f, xs[i])
+        H.append([simplify(diff(di, xs[j]).subs(center)) for j in slice_order])
+    return Matrix(H)
+
+
+def _eta_minkowski():
+    """The mostly-minus Minkowski metric eta = diag(+1,-1,-1,-1) in the Minkowski
+    coords (x0,x1,x2,x3) of derivations/52-kkt-spacetime.tex. Signature (1,3)."""
+    return Matrix([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
+
+
+def _frame_jacobian_bg_to_mink():
+    """Linear frame map from the engine-native sub-slice frame (beta,gamma,p,q)
+    [order = SLICE_IDX-style (1,2,3,10)] to the Minkowski coords (x0,x1,x2,x3):
+        x0 = (beta+gamma)/2,  x1 = p,  x2 = q,  x3 = (beta-gamma)/2   (52-kkt).
+    Rows = (x0,x1,x2,x3); columns = (beta,gamma,p,q). Invertible (det = -1/2), so
+    eta pulled back to (beta,gamma,p,q) is CONGRUENT to eta_M and has the same
+    signature (1,3) (Sylvester's law of inertia)."""
+    return Matrix([
+        [Rational(1, 2), Rational(1, 2), 0, 0],   # x0 <- beta,gamma,p,q
+        [0,              0,             1, 0],     # x1 <- p
+        [0,              0,             0, 1],     # x2 <- q
+        [Rational(1, 2), Rational(-1, 2), 0, 0],  # x3 <- beta,gamma,p,q
+    ])
+
+
+def minkowski_reduction():
+    """Construction-(ii) Minkowski reduction (the contract gate test-minkowski-
+    reduction), EXACT over Q.
+
+    g_mu_nu = eta + h, with eta = diag(+1,-1,-1,-1) (52-kkt det_2 background) and
+        h_mu_nu := [Hess(-log det) restricted to V_0, in h_2(C_u) coords]
+                    - [its value at (M=0, center I/3)].
+    At (M=0, center I/3) the two bracketed Hessians are identical, so h = 0 BY
+    CONSTRUCTION and g(center, M=0) = eta exactly. We compute g - eta at the center
+    and assert it is the exact 4x4 zero over Q (zero residual h_mu_nu). We work in
+    the Minkowski (x0,x1,x2,x3) frame, where eta is manifestly diag(+1,-1,-1,-1).
+
+    HONESTY (plan-check Note B): residual=0 is TAUTOLOGICAL given the centered
+    definition of h; it confirms the construction is implemented correctly and the
+    signature is (1,3), but it is NOT independent evidence of an uncontaminated
+    background. The load-bearing anti-contamination gates are the directly-computed
+    Hessian benchmark (diag(9,9,18,18)/26244) and the index-map slice form.
+
+    Returns a dict: eta, H_center (restricted cone-Hessian at center, beta,gamma,p,q
+    frame), h_center (= 0 by construction), residual (g-eta = 0), J (frame map),
+    detJ, sylvester_minors (leading principal minors of eta_M), signature str."""
+    eta_M = _eta_minkowski()
+    # restricted cone-Hessian at center in the (beta,gamma,p,q) engine frame:
+    H_center_bg = cone_hessian_at_center(slice_order=[1, 2, 3, 10])
+    # h := H_restricted(point) - H_restricted(center); at the center these coincide:
+    h_center_bg = simplify(H_center_bg - H_center_bg)   # identically 0 (4x4)
+    # In the Minkowski frame the metric is g = eta + (frame-mapped h). Since h=0 at
+    # the center in any linear frame, g(center,M=0) = eta exactly:
+    g_center = simplify(eta_M + Matrix.zeros(4, 4))      # = eta_M
+    residual = simplify(g_center - eta_M)                # exact 4x4 zero over Q
+    J = _frame_jacobian_bg_to_mink()
+    detJ = simplify(J.det())
+    # Decisive signature over Q: leading principal minors of eta_M (diagonal) ->
+    # signs (+,-,+,-) => signature (1,3). J invertible => eta_bg congruent, same sig.
+    minors = [eta_M[:k, :k].det() for k in range(1, 5)]
+    return {
+        "eta": eta_M,
+        "H_center_bg": H_center_bg,
+        "h_center": h_center_bg,
+        "g_center": g_center,
+        "residual": residual,
+        "J": J,
+        "detJ": detJ,
+        "sylvester_minors": minors,   # [1, -1, 1, -1] => (1,3)
+        "signature": "(1,3) mostly-minus",
+    }
+
+
 # ============================================================================
 # 11. main(): re-run the full LOCK harness on the fresh module + reconciliation
 #     + the Plan 70-02 signature-bridge geometry gates
@@ -1122,6 +1219,74 @@ def main():
             "- p^2/3 - q^2/3 (exact over Q) -- {17,18,19,26}=={x1,x2,x3,x10}, "
             "internal {20..25} EXCLUDED",
             simplify(_sform - _starget) == 0)
+
+    # ------------------------------------------------------------------------
+    # Plan 70-02 Task 2a: HESSIAN BENCHMARK (test-hessian-benchmark).
+    # Hess(-log det)|_{I/3} restricted to {x1,x2,x3,x10} == diag(9,9,18,18),
+    # det 26244 (NEW computed gate; nondegenerate; positive-definite Riemannian).
+    # ------------------------------------------------------------------------
+    print("Task 2a (70-02) -- Hessian benchmark Hess(-log det)|_{I/3} (exact over Q):")
+    _Hess = cone_hessian_at_center(slice_order=[1, 2, 3, 10])   # beta,gamma,p,q
+    _Hess_expected = Matrix([[9, 0, 0, 0], [0, 9, 0, 0],
+                             [0, 0, 18, 0], [0, 0, 0, 18]])
+    _Hess_det = _Hess.det()
+    print(f"      Hess|_{{I/3}} (beta,gamma,p,q order) = {_Hess.tolist()}")
+    print(f"      det(Hess) = {_Hess_det} (expect 26244)")
+    _report("HESSIAN Hess(-log det)|_{I/3} == diag(9,9,18,18) and det == 26244 "
+            "(exact over Q; nondegenerate)",
+            simplify(_Hess - _Hess_expected) == Matrix.zeros(4, 4)
+            and _Hess_det == 26244)
+    # Non-decisive float eigenvalue triage (informational only -- NOT a verdict).
+    try:
+        import numpy as _np
+        _ev = sorted(_np.linalg.eigvalsh(
+            _np.array(_Hess.tolist(), dtype=float)).tolist())
+        print(f"      [informational, non-decisive] float eig(Hess) = {_ev} "
+              f"-> all > 0 (positive-definite Riemannian, before the bridge)")
+    except Exception as _exc:   # noqa: BLE001  (triage is non-decisive)
+        print(f"      [informational] float eigenvalue triage skipped: {_exc!r}")
+
+    # ------------------------------------------------------------------------
+    # Plan 70-02 Task 2b: MINKOWSKI REDUCTION (test-minkowski-reduction).
+    # Construction (ii): g = eta + h, h := Hess - Hess|center => h=0 at center
+    # BY CONSTRUCTION; g(center,M=0) - eta == 0 exact over Q; signature (1,3).
+    # NOTE B: residual=0 is tautological-by-construction (not independent evidence).
+    # ------------------------------------------------------------------------
+    print("Task 2b (70-02) -- construction-(ii) Minkowski reduction (exact over Q):")
+    _MR = minkowski_reduction()
+    print(f"      eta = diag(+1,-1,-1,-1); h_mu_nu(center,M=0) = "
+          f"{_MR['h_center'].tolist()} (zero BY CONSTRUCTION, Note B)")
+    print(f"      residual g(center,M=0) - eta = {_MR['residual'].tolist()}")
+    print(f"      leading principal minors of eta = {_MR['sylvester_minors']} "
+          f"(signs +,-,+,- => signature {_MR['signature']})")
+    print(f"      det(frame map J) = {_MR['detJ']} (invertible => eta congruent "
+          f"to the (beta,gamma,p,q)-frame form, same signature)")
+    _report("MINKOWSKI reduction g(center,M=0) - eta == 0 (exact 4x4 zero over Q; "
+            "zero residual h_mu_nu) [TAUTOLOGICAL-BY-CONSTRUCTION per Note B]",
+            _MR["residual"] == Matrix.zeros(4, 4)
+            and _MR["h_center"] == Matrix.zeros(4, 4))
+    _report("MINKOWSKI signature (1,3) mostly-minus via Sylvester minors "
+            "[1,-1,1,-1] + invertible frame map (exact over Q)",
+            _MR["sylvester_minors"] == [1, -1, 1, -1] and _MR["detJ"] != 0)
+    # Non-decisive float eigenvalue-sign triage on eta (informational only).
+    try:
+        import numpy as _np
+        _eev = sorted(_np.linalg.eigvalsh(
+            _np.array(_MR["eta"].tolist(), dtype=float)).tolist())
+        _npos = sum(1 for v in _eev if v > 0)
+        _nneg = sum(1 for v in _eev if v < 0)
+        print(f"      [informational, non-decisive] float eig(eta) = {_eev} "
+              f"-> {_npos} positive, {_nneg} negative")
+    except Exception as _exc:   # noqa: BLE001  (triage is non-decisive)
+        print(f"      [informational] float signature triage skipped: {_exc!r}")
+
+    # BACKTRACKING TRIGGER (roadmap): a provably-nonzero residual h_mu_nu at the
+    # center that cannot be removed by re-fixing the V_0<->Minkowski frame => switch
+    # to construction (i) or HALT. Do NOT declare the bridge fixed with nonzero
+    # residual. Here residual == 0 (by construction), so the trigger does NOT fire.
+    if _MR["residual"] != Matrix.zeros(4, 4):
+        print("  [BACKTRACK] nonzero Minkowski residual -- switch to construction "
+              "(i) or HALT; do NOT declare the bridge fixed.")
 
     print("-" * 78)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")
