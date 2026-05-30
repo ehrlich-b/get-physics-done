@@ -82,33 +82,34 @@ Deferred; tracked but not in the v17.0 roadmap.
 
 ## Traceability
 
-Suggested mapping (roadmapper finalizes; phases continue at 70). The Phase-A KILL gate may terminate the milestone before B/C.
+ROADMAP-FINALIZED (gpd-roadmapper, 2026-05-30). Phases 70-73 form a hard-gated chain: A0 (70) → A KILL gate (71) → [STOP if homogeneous] → B (72, conditional) → C (73, conditional). The Phase-71 KILL gate may terminate the milestone before B/C as a full pass (NEGATIVE-RESULT-IS-SUCCESS); a Phase-72 no-M-sourcing result may terminate before C. The suggested mapping was adopted unchanged.
 
-| Requirement | Phase (suggested) | Status |
-| ----------- | ----------------- | ------ |
-| SETU-01 | Phase 70 (A0: setup + bridge) | Pending |
-| SETU-02 | Phase 70 (A0) | Pending |
-| VALD-02 | Phase 70 (A0) | Pending |
-| VALD-03 | Phase 70 (A0) | Pending |
-| DERV-01 | Phase 71 (A: homogeneity) | Pending |
-| CALC-01 | Phase 71 (A) | Pending |
-| CALC-02 | Phase 71 (A) | Pending |
-| VALD-01 | Phase 71 (A — KILL gate) | Pending |
-| DERV-02 | Phase 72 (B: matter-sourcing) | Pending |
-| CALC-03 | Phase 72 (B) | Pending |
-| CALC-04 | Phase 72 (B) | Pending |
-| VALD-04 | Phase 72 (B) | Pending |
-| DERV-03 | Phase 73 (C: Einstein) | Pending |
-| CALC-05 | Phase 73 (C) | Pending |
-| VALD-05 | Phase 73 (C) | Pending |
+| Requirement | Phase | Contract Claim Advanced | Status |
+| ----------- | ----- | ----------------------- | ------ |
+| SETU-01 | Phase 70 (A0: engine reconciliation) | claim-signature-bridge | Pending |
+| SETU-02 | Phase 70 (A0: signature bridge) | claim-signature-bridge | Pending |
+| VALD-02 | Phase 70 (A0: Minkowski reduction) | claim-signature-bridge | Pending |
+| VALD-03 | Phase 70 (A0: H^3 sub-slice check) | claim-signature-bridge | Pending |
+| DERV-01 | Phase 71 (A: slice metric) | claim-homogeneity | Pending |
+| CALC-01 | Phase 71 (A: Stab_{E_6}(E_11)) | claim-homogeneity | Pending |
+| CALC-02 | Phase 71 (A: totally-geodesic) | claim-homogeneity | Pending |
+| VALD-01 | Phase 71 (A — KILL GATE) | claim-homogeneity | Pending |
+| DERV-02 | Phase 72 (B: Riemann via Totaro) [conditional on 71 surviving] | claim-matter-sourcing | Pending |
+| CALC-03 | Phase 72 (B: cross-term on/off) [conditional] | claim-matter-sourcing | Pending |
+| CALC-04 | Phase 72 (B: \|\|M\|\|/rho_J scaling) [conditional] | claim-matter-sourcing | Pending |
+| VALD-04 | Phase 72 (B: center pure-Lambda baseline) [conditional] | claim-matter-sourcing | Pending |
+| DERV-03 | Phase 73 (C: candidate T_mu_nu) [conditional on 72 sourcing] | claim-einstein-structure | Pending |
+| CALC-05 | Phase 73 (C: Einstein-structure test) [conditional] | claim-einstein-structure | Pending |
+| VALD-05 | Phase 73 (C: circularity audit) [conditional] | claim-einstein-structure | Pending |
 
 **Coverage:**
 
 - Primary requirements: 15 total (2 SETU, 3 DERV, 5 CALC, 5 VALD)
-- Mapped to phases: 15 (suggested)
-- Unmapped: 0
+- Mapped to phases: 15/15 — each to exactly one primary phase
+- Unmapped: 0 (no orphans, no duplicates)
+- Contract claims surfaced: 4/4 (claim-signature-bridge, claim-homogeneity, claim-matter-sourcing, claim-einstein-structure)
 
 ---
 
 _Requirements defined: 2026-05-30_
-_Last updated: 2026-05-30 after v17.0 initial definition (literature survey complete; roadmap pending)_
+_Last updated: 2026-05-30 — Traceability finalized by gpd-roadmapper (ROADMAP.md created, Phases 70-73 gated chain)_
