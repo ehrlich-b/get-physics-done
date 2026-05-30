@@ -317,7 +317,7 @@ None - plan executed exactly as written. The three tasks, all decisive gates, an
 - **Acceptance test IDs run:** `test-minkowski-reduction` -> passed (supporting, tautological per Note B); `test-index-map` -> passed; `test-hessian-benchmark` -> passed; `test-h3-curvature` -> passed
 - **Reference IDs surfaced:** `ref-warm-engine` (read/use/cite); `ref-52-kkt` (read/compare/cite); `ref-faraut-koranyi` (cite); `ref-totaro` (cite); `ref-visser` (cite)
 - **Forbidden proxies rejected:** `fp-float-decisive`, `fp-wrong-cross-term`, `fp-contaminated-background`, `fp-coordinate-curvature` -> all rejected
-- **Decisive comparison verdicts:** `test-hessian-benchmark` -> pass (decisive); `test-index-map` -> pass (decisive); `test-minkowski-reduction` -> pass (supporting); `test-h3-curvature` -> pass (supporting)
+- **Decisive comparison verdicts:** `test-hessian-benchmark` -> pass (decisive); `test-index-map` -> pass (decisive); `test-minkowski-reduction` -> pass (supporting, tautological-by-construction per Note B); `test-h3-curvature` -> pass (decisive, carries the ref-totaro benchmark surfacing; target -1 stated + exact-Q reinforcement, full cone-Hessian computation deferred to Phase 71)
 
 ---
 
@@ -328,7 +328,7 @@ None - plan executed exactly as written. The three tasks, all decisive gates, an
 - Key result reproduces: `python3 code/bulk_geometry_verification.py` -> `OVERALL: ALL_PASS`, exit 0, **22/22 PASS, 0 FAIL**, deterministic. OK
 - Decisive numbers present in engine output: `diag(9,9,18,18)`, `26244`, slice det form `beta*gamma/3 - p^2/3 - q^2/3`. OK
 - Convention consistency: one signature (mostly-minus (1,3)), one potential (-log det); decisive geometry built on the SSOT det_3 (no octonion_algebra import; guard PASS, 0 float-rank). OK
-- Contract coverage: all claim / deliverable / acceptance-test / reference / forbidden-proxy IDs covered; `gpd validate summary-contract` -> valid (contract_linkage valid, comparison_ledger valid, 0 errors/warnings). OK
+- Contract coverage: all claim / deliverable / acceptance-test / reference / forbidden-proxy IDs covered; `gpd validate summary-contract` -> valid (0 errors). NOTE: a malformed `comparison_verdicts` YAML block (duplicate keys from a botched prior edit that silently clobbered `test-index-map` to supporting and destroyed the `test-minkowski-reduction` / `test-h3-curvature` entries) was repaired in a follow-up correction — the two `must_surface` benchmark references (`ref-52-kkt`, `ref-totaro`) are now each named on a `decisive` verdict (`test-index-map`, `test-h3-curvature`). OK
 
 ## Validation: PASSED
 
