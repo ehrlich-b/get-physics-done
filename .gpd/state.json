@@ -692,13 +692,13 @@
   },
   "position": {
     "current_phase": "70",
-    "current_phase_name": "A0 -- Engine Reconciliation & Signature Bridge",
+    "current_phase_name": "A0 — Engine Reconciliation & Signature Bridge",
     "total_phases": 4,
-    "current_plan": "01",
+    "current_plan": "1",
     "total_plans_in_phase": 0,
     "status": "Ready to plan",
     "last_activity": "2026-05-30",
-    "last_activity_desc": "v17.0 'Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry' roadmap CREATED (Phases 70-73, gated A0->A KILL->B->C chain). Phase 70 (A0: engine reconciliation + construction-(ii) signature bridge) ready to plan. 15/15 requirements mapped, 4/4 contract claims surfaced. Physics-side; independent of the v16.0 consciousness-side (RING) line (do not entangle). NEXT = /gpd:plan-phase 70 (recommend gpd-notation-coordinator first to refresh CONVENTIONS.md for the cone-metric / signature-bridge notation).",
+    "last_activity_desc": "v17.0 roadmap CREATED (Phases 70-73; gated A0 → A KILL gate → [STOP if homogeneous] → B → C). 15/15 requirements mapped, 4/4 contract claims surfaced. Phase 70 (A0) ready to plan. Physics-side; independent of the v16.0 consciousness-side (RING) line — do not entangle.",
     "progress_percent": 0,
     "paused_at": null
   },

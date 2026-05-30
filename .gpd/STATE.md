@@ -87,7 +87,8 @@ Full log: `.gpd/DECISIONS.md`
 | Perturbative expansion around center I/3 | small matter / near-center; jet terminates (det cubic) | \|\|M\|\|, rho_J(X_bg) | — (not started) | Planned (Phase 72) |
 | Dim-4 h_2(C_u) slice (decisive) vs dim-10 V_0 | symbolic inverse tractable on dim-4 (~19s); dim-10 times out (>200s) | slice dimension | dim-4 | Active (dim-10 = mpmath fallback only, off critical path) |
 
-**Convention Lock (v17.0 — to be formalized in CONVENTIONS.md by gpd-notation-coordinator):**
+**Convention Lock:**
+_(v17.0 — to be formalized in CONVENTIONS.md by gpd-notation-coordinator)_
 
 - Metric signature: mostly-minus (Lorentzian slice via det_2); bulk cone Riemannian (positive-definite). [v16.0's Riemannian-Fisher sign convention is RETIRED — that was the abandoned lattice route.]
 - Natural units: ħ = c = k_B = 1; **exact rational arithmetic over Q (NOT float) on all decisive verdicts**
