@@ -1053,6 +1053,54 @@ def minkowski_reduction():
     }
 
 
+def h3_constant_curvature():
+    """OPTIONAL VALD-03 reinforcement (NOT the decisive Phase-70 gate; the full
+    cone-Hessian curvature is Phase 71). EXACT over Q.
+
+    Compute the Ricci scalar and constant sectional curvature of the STANDARD
+    hyperbolic metric on H^3 = SL(2,C)/SU(2) (the det_2=1 hyperboloid inside
+    h_2(C_u)), in the standard chart
+        ds^2 = dr^2 + sinh^2(r)(dtheta^2 + sin^2(theta) dphi^2).
+    Expected: Ricci scalar R = -6, sectional curvature K = R/(n(n-1)) = -1 (n=3),
+    matching Totaro's -d^2/4 = -1 (d=2, rank-1 complex line C_u).
+
+    This reinforces the TARGET value -1 for the round H^3 metric; it does NOT
+    replace the Phase-71 cone-Hessian curvature computation. Returns (R, K)."""
+    from sympy import sinh, sin, trigsimp
+    r, th, ph = symbols('r theta phi', positive=True)
+    coords = [r, th, ph]
+    g = Matrix([
+        [1, 0, 0],
+        [0, sinh(r) ** 2, 0],
+        [0, 0, sinh(r) ** 2 * sin(th) ** 2],
+    ])
+    ginv = g.inv()
+    n = 3
+
+    def Gamma(a, b, c):
+        s = 0
+        for d in range(n):
+            s += ginv[a, d] * (diff(g[d, b], coords[c])
+                               + diff(g[d, c], coords[b])
+                               - diff(g[b, c], coords[d]))
+        return simplify(Rational(1, 2) * s)
+
+    G = [[[Gamma(a, b, c) for c in range(n)] for b in range(n)] for a in range(n)]
+
+    def Riem(a, b, c, d):
+        s = diff(G[a][b][d], coords[c]) - diff(G[a][b][c], coords[d])
+        for e in range(n):
+            s += G[a][c][e] * G[e][b][d] - G[a][d][e] * G[e][b][c]
+        return simplify(s)
+
+    Ric = Matrix(n, n, lambda b, d: simplify(
+        sum(Riem(a, b, a, d) for a in range(n))))
+    Rscalar = trigsimp(simplify(
+        sum(ginv[b, d] * Ric[b, d] for b in range(n) for d in range(n))))
+    K = simplify(Rscalar / Rational(n * (n - 1)))
+    return Rscalar, K
+
+
 # ============================================================================
 # 11. main(): re-run the full LOCK harness on the fresh module + reconciliation
 #     + the Plan 70-02 signature-bridge geometry gates
@@ -1287,6 +1335,23 @@ def main():
     if _MR["residual"] != Matrix.zeros(4, 4):
         print("  [BACKTRACK] nonzero Minkowski residual -- switch to construction "
               "(i) or HALT; do NOT declare the bridge fixed.")
+
+    # ------------------------------------------------------------------------
+    # Plan 70-02 Task 3: VALD-03 cross-check (H^3 = SL(2,C)/SU(2), curvature -1).
+    # STATED by citation (Totaro -d^2/4 = -1, d=2) -- full cone-Hessian curvature
+    # DEFERRED to Phase 71. Optional reinforcement: the standard H^3 metric has
+    # constant sectional curvature -1 (exact over Q). NOT the decisive Phase-70 gate.
+    # ------------------------------------------------------------------------
+    print("Task 3 (70-02) -- VALD-03 H^3 = SL(2,C)/SU(2) curvature cross-check:")
+    print("      STATED (Totaro arXiv:math/0401381): K = -d^2/4 = -1 (d=2, rank-1 "
+          "complex line C_u); full cone-Hessian curvature DEFERRED to Phase 71.")
+    _R_h3, _K_h3 = h3_constant_curvature()
+    print(f"      [reinforcement, exact over Q, NOT the decisive gate] standard H^3 "
+          f"metric: Ricci scalar R = {_R_h3}, K = R/(n(n-1)) = {_K_h3}")
+    _report("VALD-03 reinforcement: standard H^3 metric has Ricci scalar -6 and "
+            "constant sectional curvature K == -1 (exact over Q) -- reinforces the "
+            "Totaro target -d^2/4 = -1 (full cone-Hessian curvature = Phase 71)",
+            simplify(_R_h3 + 6) == 0 and simplify(_K_h3 + 1) == 0)
 
     print("-" * 78)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")

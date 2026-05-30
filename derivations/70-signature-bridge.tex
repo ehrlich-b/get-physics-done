@@ -217,3 +217,71 @@ $\mathbb{Q}$ \emph{and} could not be removed by re-fixing the $V_0 \leftrightarr
 Minkowski frame at the center, the roadmap trigger fires: switch to construction
 (i) or HALT. We do NOT declare the bridge fixed with a nonzero residual. Here the
 residual is the exact zero (by construction), so the trigger does not fire.
+
+\subsection{VALD-03 cross-check: $H^3 = SL(2,\mathbb{C})/SU(2)$, constant
+  curvature $-1$}
+\label{sec:h3}
+
+As an independent geometric sanity check on the bulk machinery we record the
+following identification (the full constant-curvature \emph{computation} of the
+cone-Hessian slice is DEFERRED to the Phase-71 curvature engine; here we STATE the
+target by citation and optionally reinforce it).
+
+\paragraph{Identification.}
+The $\det = 1$ hyperboloid inside $\mathfrak{h}_2(\mathbb{C}_u)$ -- the forward
+sheet of
+\begin{equation}
+  \det{}_2(X) = x_0^2 - x_1^2 - x_2^2 - x_3^2 = 1
+  \label{eq:h3-hyperboloid}
+\end{equation}
+-- is the $3$-dimensional hyperbolic space
+\begin{equation}
+  H^3 = SL(2,\mathbb{C})/SU(2),
+  \label{eq:h3-identification}
+\end{equation}
+with constant NEGATIVE curvature (52-kkt; standard). The induced metric is the
+standard hyperbolic metric $ds^2 = dr^2 + \sinh^2(r)\,d\Omega_2^2$.
+
+\paragraph{Target value (stated by citation).}
+Totaro~[TOT04] gives, for the Hessian metric of the slice $\{f = 1\}$ of a rank-1
+cone, the \emph{constant sectional curvature}
+\begin{equation}
+  K = -\frac{d^2}{4},
+  \label{eq:totaro}
+\end{equation}
+where $d$ is the dimension/degree parameter of the rank-1 piece. For the rank-1
+complex line $\mathbb{C}_u$ we have $d = 2$, so
+\begin{equation}
+  \boxed{\,K = -\frac{d^2}{4} = -\frac{2^2}{4} = -1\,}
+  \qquad (d = 2,\ \text{rank-1 complex line}).
+  \label{eq:h3-target}
+\end{equation}
+This is the target VALD-03 curvature: $H^3$ has constant sectional curvature $-1$.
+(We adopt Totaro's sign convention, to be used uniformly when the Phase-71 engine
+computes the cone-Hessian curvature; the Riemann/Ricci sign is benchmarked against
+this $-1$ before any physics verdict.)
+
+\paragraph{Scope note (defer to Phase 71).}
+The full constant-sectional-curvature COMPUTATION of the cone-Hessian metric --
+the Riemann tensor of $g_X = \operatorname{Hess}(-\log\det)$ restricted to the slice
+-- uses the Phase-71 curvature engine (Totaro closed form). Phase 70 records the
+identification \eqref{eq:h3-identification} and the target value $-1$ as the
+cross-check to be confirmed there. The cross-check is anchored to an honest
+geometric invariant (constant curvature of $H^3$), NOT to a chart artifact (a
+coordinate-dependent non-constant metric component is not curvature).
+
+\paragraph{Optional reinforcement (exact over $\mathbb{Q}$; not the decisive gate).}
+As a lightweight reinforcement -- \emph{not} the cone-Hessian computation -- we
+verified that the \emph{standard} hyperbolic metric on $H^3$,
+$ds^2 = dr^2 + \sinh^2(r)(d\theta^2 + \sin^2\theta\,d\varphi^2)$, has Ricci scalar
+$R = -6$ and hence constant sectional curvature
+\begin{equation}
+  K = \frac{R}{n(n-1)} = \frac{-6}{3 \cdot 2} = -1
+  \qquad (n = 3),
+  \label{eq:h3-reinforcement}
+\end{equation}
+EXACT over $\mathbb{Q}$ (hand-rolled Christoffel/Riemann/Ricci, $\approx 1.1$\,s).
+This confirms the \emph{target value} $-1$ for the round $H^3$ metric; it does NOT
+replace the Phase-71 cone-Hessian curvature computation, which is the object that
+must independently reproduce $-1$ on the $\det = 1$ slice. The citation-stated
+target \eqref{eq:h3-target} stands as the VALD-03 cross-check regardless.
