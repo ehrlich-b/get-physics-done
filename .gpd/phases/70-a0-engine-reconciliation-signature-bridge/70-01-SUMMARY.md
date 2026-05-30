@@ -132,7 +132,7 @@ comparison_verdicts:
     verdict: pass
     recommended_action: "Proceed to Plan 70-02 — det_3 certified the F_4-invariant generic norm (CH-norm equality + 324/324 annihilation)."
     notes: "det_3 = 3243600188173/129859329600, -24, -42 == CH norm at the 3 points; 324/324 inner derivations annihilate det_3 (dim f_4=52). Also byte-identical to ring_lemma_verification.det_3 (sha256 e43d6a3f...)."
-  - subject_id: claim-cross-term-reconciled
+  - subject_id: test-cross-term-association
     subject_kind: acceptance_test
     subject_role: decisive
     reference_id: ref-warm-engine
