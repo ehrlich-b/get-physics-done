@@ -1102,6 +1102,269 @@ def h3_constant_curvature():
 
 
 # ============================================================================
+# 12. PHASE-71 (A) TOTARO HESSIAN-CURVATURE ENGINE  (Plan 71-01 Task 1)
+# ============================================================================
+# The hand-rolled closed-form Riemann/Ricci/Kretschmann engine for a HESSIAN
+# metric g_ij = d_i d_j Phi (here Phi = -log det_3). Built on the SSOT det_3
+# (Sections 1-9; NEVER octonion_algebra.py). All decisive arithmetic EXACT over Q.
+#
+# WHY THE TOTARO CLOSED FORM (3rd derivatives ONLY).
+# --------------------------------------------------
+# For a Hessian metric g_ij = Phi_{,ij} the metric DERIVATIVE g_ij,k = Phi_{,ijk}
+# =: C_ijk is TOTALLY SYMMETRIC, so the first-kind Christoffel
+#   Gamma_{ijk} = (1/2)(g_ij,k + g_ik,j - g_jk,i) = (1/2) C_ijk
+# (all three terms equal). The Riemann tensor then closes on C alone:
+#   R_ijkl = -(1/4) g^{pq} ( C_jlp C_ikq - C_ilp C_jkq )           (Totaro 2004)
+# Because det_3 is CUBIC, the -log jet TERMINATES: C_ijkl := Phi_{,ijkl} is NOT
+# zero (the -log makes Phi non-polynomial), but the Riemann tensor needs ONLY the
+# 3rd-derivative tensor C_ijk -- the engine never forms 4th derivatives and never
+# calls sympy.diffgeom on the metric (which blows up). (ref-totaro arXiv:math/0401381.)
+#
+# RIEMANN/RICCI SIGN CONVENTION (STATED EXPLICITLY -- pin before any verdict).
+# --------------------------------------------------------------------------
+#   * Lower-index Riemann tensor: R_ijkl = -(1/4) g^{pq}(C_jlp C_ikq - C_ilp C_jkq)
+#     (the PLAN-LOCKED literal token). It is antisymmetric in (i,j), antisymmetric
+#     in (k,l), and symmetric under the pair swap (ij)<->(kl) -- asserted at runtime.
+#   * Ricci tensor:   Ric_jl = g^{ik} R_ijkl   (contract 1st and 3rd slots).
+#   * Ricci SCALAR:   R = g^{jl} Ric_jl = g^{ik} g^{jl} R_ijkl.
+#   * Sectional curvature of the 2-plane span{u,v}:
+#         K(u,v) = R(u,v,u,v) / ( g(u,u) g(v,v) - g(u,v)^2 ),
+#     with R(u,v,u,v) = R_ijkl u^i v^j u^k v^l  (lower-index R contracted on vectors).
+#   * Kretschmann scalar: Kr = R_{ijkl} R^{ijkl}, indices raised with g^{pq}.
+# This sign convention is BENCHMARKED on the cone-Hessian H^3 slice below: it must
+# yield a CONSTANT NEGATIVE sectional curvature (hyperbolic). The sign (negative)
+# is the load-bearing fact the Phase-71 KILL/SURVIVES verdict depends on.
+#
+# BENCHMARK VALUE NOTE (factor-of-2 metric normalization; do NOT fudge).
+# ---------------------------------------------------------------------
+# The plan's frontmatter states the H^3 target as K=-1 (Totaro -d^2/4, d=2). That
+# -1 is the curvature of the ROUND hyperbolic metric ds^2=dr^2+sinh^2(r)dOmega^2
+# (the Phase-70 reinforcement; the centro-affine normalization). The LITERAL
+# cone-Hessian pullback g_ij = Hess(-log det_2) on the {det_2=1} hyperboloid is
+# exactly 2x the round metric at the apex (g_slice|_apex = diag(2,2,2)), and by the
+# scaling law K(c*g)=(1/c)K(g) its constant sectional curvature is K = -1/2, NOT -1.
+# This is VERIFIED two independent ways (the Totaro engine here AND a direct
+# parametrized pullback in dev) and is a METRIC-NORMALIZATION fact, not a sign
+# error or an engine bug. The decisive benchmark below asserts the HONEST
+# cone-Hessian value (CONSTANT, NEGATIVE, exactly -1/2 over Q) and separately
+# cross-checks the round-metric -1 (h3_constant_curvature) plus the exact factor 2.
+# The Riemann/Ricci SIGN is thereby pinned; we do NOT insert a factor to force -1
+# (that would corrupt the very sign convention the verdict relies on).
+
+
+def hessian_metric(Phi, coords):
+    """The Hessian metric g_ij = d^2 Phi / dx_i dx_j as an n x n sympy Matrix.
+    Phi a sympy scalar; coords a list of n sympy symbols. EXACT over Q."""
+    n = len(coords)
+    return Matrix(n, n, lambda i, j: diff(Phi, coords[i], coords[j]))
+
+
+def cubic_form_C(Phi, coords):
+    """The totally-symmetric 3rd-derivative tensor C_ijk = d^3 Phi/dx_i dx_j dx_k
+    (= g_ij,k for the Hessian metric), as a nested list [n][n][n]. EXACT over Q.
+
+    For Phi = -log det_3 (det cubic), C is the cubic-form datum the Totaro Riemann
+    closes on; the engine never forms the 4th-derivative tensor."""
+    n = len(coords)
+    # first derivatives, then second, then third -- reuse to avoid recomputation
+    d1 = [diff(Phi, coords[i]) for i in range(n)]
+    d2 = [[diff(d1[i], coords[j]) for j in range(n)] for i in range(n)]
+    C = [[[diff(d2[i][j], coords[k]) for k in range(n)] for j in range(n)]
+         for i in range(n)]
+    return C
+
+
+def totaro_riemann(ginv, C, n, simp=simplify):
+    """Hand-rolled Totaro closed-form lower-index Riemann tensor of a Hessian metric:
+
+        R_ijkl = -(1/4) sum_{p,q} g^{pq} ( C_jlp C_ikq - C_ilp C_jkq )
+
+    (ref-totaro, arXiv:math/0401381). `ginv` is the inverse metric g^{pq} (n x n
+    sympy Matrix); `C` the totally-symmetric 3rd-derivative tensor (nested list,
+    from cubic_form_C); `n` the dimension. Returns the nested list R[i][j][k][l].
+
+    EXACT over Q. Sign convention as documented in Section 12's header. `simp` is
+    the per-entry simplifier (default sympy.simplify; pass `cancel` for speed when
+    entries are rational functions of a basepoint)."""
+    R = [[[[0] * n for _ in range(n)] for _ in range(n)] for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    s = 0
+                    for p in range(n):
+                        for q in range(n):
+                            s += ginv[p, q] * (C[j][l][p] * C[i][k][q]
+                                               - C[i][l][p] * C[j][k][q])
+                    R[i][j][k][l] = simp(Rational(-1, 4) * s)
+    return R
+
+
+def riemann_symmetry_ok(R, n, simp=simplify):
+    """Assert the algebraic Riemann symmetries (cheap correctness gate on the engine):
+    antisymmetry in (i,j) and (k,l), and pair symmetry (ij)<->(kl). Returns bool."""
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    if simp(R[i][j][k][l] + R[j][i][k][l]) != 0:
+                        return False
+                    if simp(R[i][j][k][l] + R[i][j][l][k]) != 0:
+                        return False
+                    if simp(R[i][j][k][l] - R[k][l][i][j]) != 0:
+                        return False
+    return True
+
+
+def ricci_scalar(R, ginv, n, simp=simplify):
+    """Ricci scalar Rs = g^{ik} g^{jl} R_ijkl (sign convention: Ric_jl = g^{ik}R_ijkl).
+    EXACT over Q."""
+    Rs = 0
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    Rs += ginv[i, k] * ginv[j, l] * R[i][j][k][l]
+    return simp(Rs)
+
+
+def kretschmann(R, ginv, n, simp=simplify):
+    """Kretschmann scalar Kr = R_{ijkl} R^{ijkl}, indices raised with g^{pq}.
+    EXACT over Q. (Quadratic in the lower-index R; O(n^8) contraction -- fine for
+    n=3,4 at a rational basepoint.)"""
+    # Raise all four indices: R^{abcd} = g^{ai} g^{bj} g^{ck} g^{dl} R_ijkl
+    Rup = [[[[0] * n for _ in range(n)] for _ in range(n)] for _ in range(n)]
+    for a in range(n):
+        for b in range(n):
+            for cc in range(n):
+                for d in range(n):
+                    s = 0
+                    for i in range(n):
+                        for j in range(n):
+                            for k in range(n):
+                                for l in range(n):
+                                    s += (ginv[a, i] * ginv[b, j] * ginv[cc, k]
+                                          * ginv[d, l] * R[i][j][k][l])
+                    Rup[a][b][cc][d] = simp(s)
+    Kr = 0
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    Kr += R[i][j][k][l] * Rup[i][j][k][l]
+    return simp(Kr)
+
+
+def sectional_curvature(R, g, u, v, n, simp=simplify):
+    """Sectional curvature K(u,v) = R(u,v,u,v)/(g(u,u)g(v,v)-g(u,v)^2) of the
+    2-plane span{u,v}, with R(u,v,u,v) = R_ijkl u^i v^j u^k v^l (lower-index R on
+    vectors). Returns (K_or_None, denom). EXACT over Q. Returns (None, 0) if the
+    2-plane is degenerate (denom == 0)."""
+    num = 0
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    num += R[i][j][k][l] * u[i] * v[j] * u[k] * v[l]
+    num = simp(num)
+    guu = simp(sum(g[i, j] * u[i] * u[j] for i in range(n) for j in range(n)))
+    gvv = simp(sum(g[i, j] * v[i] * v[j] for i in range(n) for j in range(n)))
+    guv = simp(sum(g[i, j] * u[i] * v[j] for i in range(n) for j in range(n)))
+    den = simp(guu * gvv - guv ** 2)
+    if den == 0:
+        return None, den
+    return simp(num / den), den
+
+
+def _h2cu_cone_potential_4d():
+    """Phi = -log(det_2) of the h_2(C_u) spin-factor in the 4 Minkowski coords
+    (x0,x1,x2,x3), det_2 = x0^2 - x1^2 - x2^2 - x3^2. Returns (Phi, coords).
+
+    This is the EXACT cone-Hessian potential whose {det_2=1} hyperboloid is
+    H^3 = SL(2,C)/SU(2) (52-kkt). The decisive Riemann-sign benchmark below
+    computes the sectional curvature of this cone-Hessian metric on the H^3 slice."""
+    x0, x1, x2, x3 = symbols('x0 x1 x2 x3', real=True)
+    from sympy import log as _log
+    Q = x0 ** 2 - x1 ** 2 - x2 ** 2 - x3 ** 2
+    return -_log(Q), [x0, x1, x2, x3], Q
+
+
+def h3_cone_hessian_benchmark():
+    """RIEMANN-SIGN BENCHMARK (test-h3-benchmark; the Phase-71 HARD GATE, Task 1).
+
+    Compute the sectional curvature of the ACTUAL cone-Hessian metric
+    g_ij = Hess(-log det_2) on the H^3 = {det_2 = 1} slice (NOT the round-metric
+    chart), via the hand-rolled Totaro engine, EXACT over Q. Pins the Riemann/Ricci
+    SIGN convention before any KILL/SURVIVES verdict.
+
+    Returns a dict with:
+      K_sections    : the constant sectional curvature on >=3 distinct slice-tangent
+                      2-planes (g-orthogonal to the radial Euler vector) -- must all
+                      be EQUAL and NEGATIVE.
+      K_value       : that common value (expected -1/2, the honest cone-Hessian value).
+      round_R, round_K : the standard-H^3-metric reinforcement (-6, -1) for the
+                      factor-of-2 cross-check (K_round = 2 * K_coneHessian).
+      sym_ok        : the Riemann algebraic symmetries hold (engine correctness).
+      imag_free     : every K is real (zero imaginary part).
+
+    SIGN is the decisive content: K constant & NEGATIVE pins the convention. The
+    MAGNITUDE -1/2 (vs the round -1) is the cone-Hessian/round factor-of-2
+    normalization documented in Section 12's header (g_slice|_apex = 2*g_round)."""
+    from sympy import cancel
+    Phi, coords, Q = _h2cu_cone_potential_4d()
+    n = 4
+    g = hessian_metric(Phi, coords)
+    C = cubic_form_C(Phi, coords)
+    # 4x4 inverse: matter-free rational functions of the coords -> direct inv is OK
+    # (this is the cone of h_2(C_u), NOT the dim-10 V_0 blowup case).
+    ginv = g.inv().applyfunc(cancel)
+
+    # Pick a rational point ON the slice det_2 = 1 (timelike, forward sheet):
+    #   x0=3/2, x1=1, x2=1/2, x3=0 -> 9/4 - 1 - 1/4 - 0 = 1.
+    pt = {coords[0]: Rational(3, 2), coords[1]: Rational(1),
+          coords[2]: Rational(1, 2), coords[3]: Rational(0)}
+    assert cancel(Q.subs(pt)) == 1, "benchmark point must lie on det_2 = 1"
+
+    g_at = g.subs(pt).applyfunc(cancel)
+    ginv_at = ginv.subs(pt).applyfunc(cancel)
+    # Riemann at the point (rational entries -> cancel is the fast exact simplifier)
+    C_at = [[[cancel(C[i][j][k].subs(pt)) for k in range(n)] for j in range(n)]
+            for i in range(n)]
+    R = totaro_riemann(ginv_at, C_at, n, simp=cancel)
+    sym_ok = riemann_symmetry_ok(R, n, simp=cancel)
+
+    # Slice-tangent vectors: g-orthogonal to the radial Euler vector is equivalent
+    # to dQ . v = 0, i.e. (eta x) . v = 0 with eta x = (x0,-x1,-x2,-x3) at pt
+    # = (3/2, -1, -1/2, 0). Three independent solutions:
+    t1 = [Rational(0), Rational(0), Rational(0), Rational(1)]            # v3 free
+    t2 = [Rational(2), Rational(3), Rational(0), Rational(0)]            # 3/2*2-3=0
+    t3 = [Rational(1), Rational(0), Rational(3), Rational(0)]            # 3/2*1-3/2=0
+    etax = [Rational(3, 2), Rational(-1), Rational(-1, 2), Rational(0)]
+
+    K_sections = []
+    imag_free = True
+    for (u, v) in [(t1, t2), (t1, t3), (t2, t3)]:
+        # confirm tangency (defensive)
+        assert cancel(sum(etax[i] * u[i] for i in range(n))) == 0
+        assert cancel(sum(etax[i] * v[i] for i in range(n))) == 0
+        K, den = sectional_curvature(R, g_at, u, v, n, simp=cancel)
+        K_sections.append(K)
+        if K is not None and getattr(K, "is_real", True) is False:
+            imag_free = False
+
+    K_value = K_sections[0]
+    round_R, round_K = h3_constant_curvature()
+    return {
+        "K_sections": K_sections,
+        "K_value": K_value,
+        "round_R": round_R,
+        "round_K": round_K,
+        "sym_ok": sym_ok,
+        "imag_free": imag_free,
+    }
+
+
+# ============================================================================
 # 11. main(): re-run the full LOCK harness on the fresh module + reconciliation
 #     + the Plan 70-02 signature-bridge geometry gates
 # ============================================================================
@@ -1352,6 +1615,48 @@ def main():
             "constant sectional curvature K == -1 (exact over Q) -- reinforces the "
             "Totaro target -d^2/4 = -1 (full cone-Hessian curvature = Phase 71)",
             simplify(_R_h3 + 6) == 0 and simplify(_K_h3 + 1) == 0)
+
+    # ========================================================================
+    # PHASE 71-01 (A) HOMOGENEITY KILL GATE -- built on the SSOT det_3 above
+    # ========================================================================
+    print("=" * 78)
+    print("PHASE 71-01 : homogeneity KILL gate (Totaro curvature on the cone-Hessian)")
+    print("  R_ijkl = -(1/4) g^{pq}(C_jlp C_ikq - C_ilp C_jkq);  exact over Q")
+    print("=" * 78)
+
+    # ------------------------------------------------------------------------
+    # Phase 71-01 Task 1: RIEMANN-SIGN BENCHMARK (test-h3-benchmark; HARD GATE).
+    # Cone-Hessian H^3 slice sectional curvature: CONSTANT, NEGATIVE, exact over Q.
+    # Pins the Riemann/Ricci sign BEFORE any KILL/SURVIVES verdict is trusted.
+    # ------------------------------------------------------------------------
+    print("Task 1 (71-01) -- Riemann-sign benchmark on the cone-Hessian H^3 slice:")
+    _bench = h3_cone_hessian_benchmark()
+    print(f"      Totaro engine sign convention: R_ijkl = -(1/4) g^pq"
+          f"(C_jlp C_ikq - C_ilp C_jkq); Ric_jl=g^ik R_ijkl; R=g^ik g^jl R_ijkl.")
+    print(f"      sectional K on 3 slice-tangent 2-planes = {_bench['K_sections']}")
+    print(f"      Riemann algebraic symmetries hold: {_bench['sym_ok']}; "
+          f"all K real: {_bench['imag_free']}")
+    print(f"      round-H^3-metric reinforcement: Ricci R = {_bench['round_R']}, "
+          f"K_round = {_bench['round_K']} (cone-Hessian metric = 2x round at apex "
+          f"=> K_coneHessian = K_round/2)")
+    # Decisive: sign convention pinned by a CONSTANT NEGATIVE sectional curvature
+    # on the actual cone-Hessian H^3 slice, exact over Q. The honest cone-Hessian
+    # value is -1/2 (the round-metric -1 is the centro-affine normalization; the
+    # literal pullback is 2x the round metric -- see Section 12 header). We assert
+    # the HONEST value -1/2 and the constancy + negativity (the load-bearing sign).
+    _Ks = _bench["K_sections"]
+    _all_equal = all(simplify(_Ks[0] - k) == 0 for k in _Ks)
+    _all_neg = all((k is not None) and (k < 0) for k in _Ks)
+    _is_half = simplify(_bench["K_value"] - Rational(-1, 2)) == 0
+    _report("BENCHMARK cone-Hessian H^3 slice sectional curvature is CONSTANT "
+            "across >=3 slice-tangent 2-planes AND NEGATIVE (Riemann/Ricci SIGN "
+            "pinned: hyperbolic) [exact over Q]",
+            _all_equal and _all_neg and _bench["sym_ok"] and _bench["imag_free"])
+    _report("BENCHMARK cone-Hessian H^3 slice K == -1/2 (the honest literal "
+            "Hess(-log det_2) pullback) and round-metric reinforcement K == -1 "
+            "with the exact factor-of-2 (K_round = 2 * K_coneHessian) [exact over Q]",
+            _is_half and simplify(_bench["round_K"] + 1) == 0
+            and simplify(_bench["round_K"] - 2 * _bench["K_value"]) == 0)
 
     print("-" * 78)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")

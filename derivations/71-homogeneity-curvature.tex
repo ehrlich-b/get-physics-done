@@ -1,0 +1,137 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, potential=minus_log_det,
+%   cone_metric=hess(minus_log_det), cubic_norm_det=ring_lemma_verification_det_3,
+%   arithmetic=exact_over_Q
+%
+% Phase 71 (A), Plan 01: Route 1 -- the PRIMARY homogeneity KILL verdict of the
+%   v17.0 milestone "Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry".
+%
+% With the primitive idempotent E_11 = diag(1,0,0) fixed, the inherited slice
+% metric g_mu_nu(x) = eta_mu_nu + h_mu_nu(x) on the dim-4 h_2(C_u) sub-slice is
+% built off-center, and a DECISIVE homogeneous-vs-position-dependent verdict is
+% taken from exact-over-Q curvature-SCALAR INVARIANTS R(x), K(x) at >= 2 distinct
+% generic rational basepoints. This file documents:
+%   (Sec 1) the hand-rolled Totaro Hessian-curvature engine + its stated Riemann/
+%           Ricci sign convention;
+%   (Sec 2) the H^3 = SL(2,C)/SU(2) Riemann-sign benchmark on the ACTUAL
+%           cone-Hessian slice metric (the HARD GATE that pins the sign);
+%   (Sec 3) the off-center slice-metric construction (expansion in rho_J(X_bg));
+%   (Sec 4) the >= 2-basepoint invariant comparison and the Route-1 verdict.
+%
+% References:
+%   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381
+%           (Int. J. Math. 15 (2004) 369-391): closed-form Riemann from 3rd
+%           derivatives of the potential; constant sectional curvature -d^2/4.
+%   [FK94]  Faraut & Koranyi, Analysis on Symmetric Cones (OUP 1994), Ch. II-IV:
+%           cone metric g_X = Hess(-log det); inverse metric g^{pq} = P(X).
+%   [McC04] McCrimmon, A Taste of Jordan Algebras (Springer 2004): Peirce
+%           decomposition; quadratic representation P(X) = 2 L(X)^2 - L(X^2).
+%   [52KKT] derivations/52-kkt-spacetime.tex: h_2(C_u) ~ R^{3,1}, mostly-minus
+%           eta from det_2; det=1 hyperboloid = H^3 = SL(2,C)/SU(2).
+%   [70-02] derivations/70-signature-bridge.tex + code/bulk_geometry_verification.py:
+%           construction-(ii) bridge; Hess(-log det)|_{I/3}=diag(9,9,18,18)/26244.
+
+\section{Route 1: the homogeneity KILL gate via cone-Hessian curvature invariants}
+
+\subsection{The Totaro Hessian-curvature engine (3rd derivatives only)}
+\label{sec:totaro-engine}
+
+The cone metric is the Hessian of the potential $\Phi = -\log\det_3$,
+\begin{equation}
+  g_{ij}(X) = \partial_i\partial_j\,\Phi
+            = -\,\partial_i\partial_j\,\log\det_3(X),
+  \label{eq:cone-metric-71}
+\end{equation}
+positive-definite (Riemannian) on the cone~[FK94]. For \emph{any} Hessian metric
+the metric derivative is the totally symmetric cubic form
+\begin{equation}
+  f_{ijk} \;:=\; g_{ij,k} \;=\; \partial_i\partial_j\partial_k\,\Phi,
+  \qquad f_{ijk} = f_{(ijk)}\ \text{(totally symmetric)},
+  \label{eq:cubic-form}
+\end{equation}
+so the first-kind Christoffel symbols collapse,
+$\Gamma_{ijk} = \tfrac12(g_{ij,k}+g_{ik,j}-g_{jk,i}) = \tfrac12 f_{ijk}$, and the
+Riemann tensor closes on $f$ alone. We use Totaro's closed form~[TOT04]:
+\begin{equation}
+  \boxed{\,R_{ijkl} \;=\; -\tfrac14\, g^{pq}\big(f_{jlp}\,f_{ikq} \;-\; f_{ilp}\,f_{jkq}\big)\,}
+  \label{eq:totaro}
+\end{equation}
+i.e.\ in ASCII the LOCKED engine token
+\verb|R_ijkl = -(1/4) g^{pq}(f_jlp f_ikq - f_ilp f_jkq)|.
+Because $\det_3$ is CUBIC, the engine needs only the 3rd-derivative tensor
+$f_{ijk}$ -- it never forms 4th derivatives and never calls \texttt{sympy.diffgeom}
+on the metric (which blows up). The inverse metric $g^{pq}$ is taken either from the
+quadratic representation $P(X) = 2L(X)^2 - L(X^2)$~[McC04,FK94] or by substituting
+the matter coordinates to small rationals \emph{before} inverting; the
+all-symbolic \texttt{g.inv()} is never used (it times out $>200$\,s).
+
+\paragraph{Riemann/Ricci sign convention (STATED explicitly).}
+The lower-index Riemann tensor is \eqref{eq:totaro}; it is antisymmetric in
+$(i,j)$ and in $(k,l)$ and symmetric under the pair swap $(ij)\leftrightarrow(kl)$
+(asserted at runtime). The Ricci tensor is the $(1,3)$-contraction
+$\mathrm{Ric}_{jl} = g^{ik} R_{ijkl}$, the Ricci scalar is
+$R = g^{ik}g^{jl} R_{ijkl}$, the Kretschmann scalar is
+$K = R_{ijkl}R^{ijkl}$ (indices raised with $g^{pq}$), and the sectional curvature
+of the $2$-plane $\mathrm{span}\{u,v\}$ is
+\begin{equation}
+  \mathcal{K}(u,v) = \frac{R_{ijkl}\,u^i v^j u^k v^l}
+                          {g(u,u)\,g(v,v)-g(u,v)^2}.
+  \label{eq:sectional}
+\end{equation}
+This sign convention is pinned by the $H^3$ benchmark below (it must yield a
+\emph{constant negative} sectional curvature). The decisive content for the
+Phase-71 verdict is the \emph{sign} (negative $=$ hyperbolic); the magnitude is
+fixed by the metric normalization (next paragraph).
+
+\subsection{The $H^3$ Riemann-sign benchmark on the cone-Hessian slice (HARD GATE)}
+\label{sec:h3-benchmark}
+
+The $\det_2=1$ hyperboloid inside $\mathfrak{h}_2(\mathbb{C}_u)$ is
+$H^3 = SL(2,\mathbb{C})/SU(2)$~[52KKT], with
+$\det_2 = x_0^2 - x_1^2 - x_2^2 - x_3^2$. We compute the sectional curvature of the
+ACTUAL cone-Hessian metric $g_{ij} = \operatorname{Hess}(-\log\det_2)$ on this
+slice (NOT the round-metric chart), via the engine \eqref{eq:totaro}, EXACT over
+$\mathbb{Q}$, at the rational slice point $(x_0,x_1,x_2,x_3)=(\tfrac32,1,\tfrac12,0)$
+($\det_2 = 1$). On three independent slice-tangent $2$-planes (each $g$-orthogonal
+to the radial Euler vector, equivalently $\eta x\cdot v = 0$) the result is
+\begin{equation}
+  \mathcal{K}_{H^3}^{\text{cone-Hessian}} \;=\; -\tfrac12
+  \qquad\text{(CONSTANT across all three planes, exact over }\mathbb{Q}\text{)}.
+  \label{eq:h3-coneHessian}
+\end{equation}
+
+\paragraph{Sign pinned; magnitude is a metric normalization (factor of 2).}
+The constancy and the NEGATIVE sign in \eqref{eq:h3-coneHessian} pin the
+Riemann/Ricci sign convention: the cone-Hessian $H^3$ slice is hyperbolic, as it
+must be. The MAGNITUDE $-\tfrac12$ (rather than the round value $-1$) is a metric
+normalization: the literal pullback $g_{ij}=\operatorname{Hess}(-\log\det_2)$ on the
+slice equals $2\times$ the round hyperbolic metric at the apex
+($g_{\text{slice}}|_{\text{apex}}=\operatorname{diag}(2,2,2)$), so by the scaling
+law $\mathcal{K}(c\,g) = c^{-1}\mathcal{K}(g)$,
+\begin{equation}
+  \mathcal{K}_{H^3}^{\text{round}} = -1
+  = 2\,\mathcal{K}_{H^3}^{\text{cone-Hessian}},
+  \qquad
+  \big(ds^2_{\text{round}} = dr^2 + \sinh^2 r\,d\Omega_2^2,\ R=-6,\ \mathcal{K}=-1\big).
+  \label{eq:factor2}
+\end{equation}
+The round value $-1$ is Totaro's $-d^2/4$ ($d=2$) in the centro-affine
+normalization (the Phase-70 reinforcement); the cone-Hessian literal pullback is
+the honest $-\tfrac12$. We do NOT insert a factor to force $-1$: that would corrupt
+the very sign convention the verdict relies on. Both values are reproduced exactly
+over $\mathbb{Q}$ in the engine (\texttt{h3\_cone\_hessian\_benchmark} and
+\texttt{h3\_constant\_curvature}), and the engine asserts the Riemann algebraic
+symmetries hold and that every curvature value is real (zero imaginary part -- a
+nonzero imaginary part would signal an octonion cross-term association error;
+the geometry is built on the SSOT $\det_3$, never \texttt{octonion\_algebra.py}).
+
+\paragraph{Backtracking trigger (heeded).}
+If the cone-Hessian $H^3$ benchmark did NOT come out constant-and-negative, the
+Riemann sign / slice metric would be wrong and NO Route-1 verdict could be trusted
+(the roadmap disconfirming-observation trigger). Here it is constant and negative
+($-\tfrac12$) exact over $\mathbb{Q}$, so the sign is pinned and the gate passes.
+
+% --- Sections 3 (off-center slice metric, rho_J(X_bg) expansion) and 4
+% --- (the >= 2-basepoint comparison and the Route 1 verdict) are appended by
+% --- Tasks 2 and 3 of this plan.
