@@ -136,12 +136,12 @@ Plans:
 5. The curvature scale is quantified as a function of `||M||` and the off-center parameter `rho_J(X_bg)` by series-expanding in the matter amplitude (substitute matter to rationals BEFORE any symbolic inverse — the symbolic inverse with matter+coords all symbolic is the >200s cost cliff; keep only the 4 slice coords symbolic); curvature is proportional to `||M||` and vanishes as M -> 0. [CALC-04]
 
 **Backtracking trigger:** If the curvature at M=0 is a pure cosmological constant and turning on M adds nothing through the cross-terms (cross-term on/off makes no difference), then matter does not source the slice curvature — report "position-dependent but pure-Lambda / not matter-sourced" honestly and do NOT proceed to Phase 73 (or proceed only to document the non-Einstein outcome). If a decisive step risks exceeding the ~150s executor silent-compute watchdog, run foreground `python -u` with progress prints between heavy steps.
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 72-01: TBD (Riemann/Ricci via Totaro; M=0 pure-Lambda baseline; Lambda vs matter decomposition)
-- [ ] 72-02: TBD (cross-term on/off isolation; ||M|| and rho_J scaling)
+- [ ] 72-01-PLAN.md (wave 1) — DERV-02 + VALD-04: matter-aware Riemann/Ricci as an explicit function of M via the exact Totaro path (Delta R at FIXED V_0-background), n=4 ricci_decomposition (scalar/traceless-Ricci/Weyl), and the M=0 baseline (center pure-Lambda Einstein R=-3<0 Cartan; off-center matterless Phase-71 R(det_2)). Engine extension + derivations/72-matter-sourcing.tex (72-01 portion).
+- [ ] 72-02-PLAN.md (wave 2, depends_on 72-01) — CALC-03 + CALC-04: the DECISIVE cross-term ON/OFF (full det vs det_3_block) at the same M!=0, Lambda/structure decomposition of Delta R, ||M|| leading-power + det_2 scaling, V_1-inert/V_{1/2}-live channel decomposition, and the Phase-72 verdict gate (SURVIVES => Phase 73 greenlit, OR honest negative => STOP). interactive (verdict checkpoint:decision).
 
 ### Phase 73: C — Einstein Structure (CONDITIONAL on Phase 72 showing M-sourcing)
 
