@@ -1,0 +1,229 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, potential=minus_log_det,
+%   cone_metric=hess(minus_log_det), cubic_norm_det=bulk_geometry_verification_det_3,
+%   curvature_engine=totaro_closed_form, arithmetic=exact_over_Q
+%
+% Phase 70.1 (A0' -- REVISE A0), Plan 01: select the physical spacetime metric --
+%   the Riemannian cone-Hessian g_X = Hess(-log det_3) vs the construction-(ii)
+%   bridge g = eta + h -- and restate the route thesis accordingly, for the v17.0
+%   milestone "Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry".
+%
+% This phase does NOT rebuild the engine, does NOT recompute the Totaro Riemann, and
+% does NOT run a numerical sweep. The engine, det_3 (SSOT), the Totaro curvature
+% method, and the {0,-1,-1,-1} Ricci spectrum are ALREADY certified exact-over-Q
+% (code/bulk_geometry_verification.py; reproduced for THIS phase by
+% .gpd/phases/70.1-.../70.1-01-metric-selection.py, final line
+% METRIC_SELECTION_INPUTS_OK, exit 0). We reuse, we do not re-derive.
+%
+% STATUS: Tasks 1-3 written (headline + Einstein verdict + the two interpretation
+%   analyses). Task 4 is a BLOCKING human-decision checkpoint (ratify the thesis
+%   restatement: cone-Hessian / eta+h / escalate). Tasks 5 (selection verdict) and 6
+%   (consequence propagation to Phases 72/73) are written ONLY AFTER ratification.
+%
+% References (project-consistent tags; cf. 72-matter-sourcing.tex, 70-signature-bridge.tex):
+%   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381
+%           (Int. J. Math. 15 (2004) 369-391), Cor. 2.3 closed form; constant
+%           sectional curvature -d^2/4 for the rank-1 cone slice. PLAN-LOCAL id
+%           ref-totaro (the curvature reference lives in CONVENTIONS.md, not in the
+%           project contract reference list). ALREADY in the warm engine -- cite the
+%           method, do NOT recompute.
+%   [FK94]  Faraut & Koranyi, Analysis on Symmetric Cones (OUP 1994), Ch. II-IV:
+%           g_X = Hess(-log det) positive-definite / Riemannian (WHY a Riemannian ->
+%           Lorentzian bridge is forced at all).
+%   [Besse] A. L. Besse, Einstein Manifolds (Springer 1987): Einstein condition
+%           Ric = lambda g, lambda = R/n (n>=3 => lambda const); traceless-Ricci
+%           S = Ric - (R/n)g, Einstein <=> S == 0; metric cones (Sec 9 / Ch. 1).
+%   [52KKT] derivations/52-kkt-spacetime.tex + 52-observer-uniqueness.tex:
+%           h_2(C_u) ~ R^{3,1}, det_2 = x0^2-x1^2-x2^2-x3^2, signature (1,3)
+%           mostly-minus, Minkowski coords x0=(beta+gamma)/2, x3=(beta-gamma)/2,
+%           timelike x_0 ~ (beta+gamma) = (1,1,0,0); H^3 = SL(2,C)/SU(2).
+%   [h3o]   ~/repos/blog/research/qualia-fixed-point/h3o_tower.py: the corrected
+%           cubic-norm cross-term order (the warm engine det_3 is byte-identical to
+%           the certified SSOT; the buggy (x1 x2)x3 / octonion_algebra.py order is
+%           banned -- fp-wrong-cross-term).
+%   [70-02] derivations/70-signature-bridge.tex + 70-02-SUMMARY.md: construction-(ii)
+%           bridge g = eta + h with h := Hess - Hess|center; Minkowski-reduction gate
+%           flagged tautological-by-construction (Note B); construction (i) REJECTED.
+%   [72-01] derivations/72-matter-sourcing.tex (Sec obstruction, Sec adjudication,
+%           Sec phase70-task): the VALD-04 finding (the non-Einstein M=0 vacuum IS
+%           the result, not a reference choice); reconciliation (a) REJECTED as
+%           fp-relabel, (b) CONDITIONAL; the two-outcome framing this phase resolves.
+%   [FP-cb] Fierz-Pauli / linearized-Einstein on a curved background: the massless
+%           spin-2 gauge (vector) symmetry extends only to an Einstein background
+%           (Ric proportional to g). arXiv:2503.11304 (EPJC 2025); arXiv:1109.1382.
+%           Background-/dimension-agnostic; see Task 3.
+
+\section{Phase 70.1-01: selecting the physical spacetime metric (cone-Hessian vs $\eta+h$)}
+
+\subsection{Conventions and scope (carried verbatim from the v17.0 lock)}
+
+All decisive quantities are EXACT over $\mathbb{Q}$ (no float on any verdict; ranks and
+eigenvalues via \texttt{sympy.Matrix}, \texttt{.eigenvals()}). The cone metric is the
+Hessian of the potential $\Phi=-\log\det_3$, with $\det_3$ the certified Freudenthal
+cubic norm (engine SSOT, cross-term order $2\,\mathrm{Re}((x_2 x_1)x_3)$;
+\texttt{octonion\_algebra.py} banned -- \texttt{fp-wrong-cross-term}). The Riemann
+tensor is the Totaro [TOT04] closed form
+\begin{equation}
+  R_{ijkl} = -\tfrac14\, g^{pq}\big(C_{jlp}C_{ikq}-C_{ilp}C_{jkq}\big),
+  \qquad C_{ijk}=\Phi_{,ijk},
+  \label{eq701:totaro}
+\end{equation}
+with $\mathrm{Ric}_{jl}=g^{ik}R_{ijkl}$, $R=g^{jl}\mathrm{Ric}_{jl}$ (already implemented
+and certified in the warm engine -- not recomputed here). The spacetime sub-slice is
+$h_2(C_u)$, engine-native indices $\{1,2,3,10\}=(\beta,\gamma,p,q)$, mostly-minus
+$(-,+,+,+)$ on the slice, Riemannian positive-definite in the bulk; the center is
+$X_{\mathrm{bg}}=I/3$. The Riemann/Ricci sign is pinned NEGATIVE and constant
+(cone-Hessian-slice $K(p,q)=-\tfrac12$, round $H^3$ $K=-1$; the factor-of-$2$ is BENIGN
+-- the load-bearing fact is the negative SIGN; we do NOT force $-1$:
+\texttt{fp-assume-einstein}).
+
+\paragraph{The one load-bearing question.} Phase 72's first-result gate computed the
+$M=0$ cone-Hessian vacuum exactly over $\mathbb{Q}$ and found it is the non-Einstein
+static product $\mathbb{R}_{\text{time}}\times H^3$ ([72-01], Sec.~obstruction). The
+Riemannian cone-Hessian $g_X=\mathrm{Hess}(-\log\det_3)$ (the route thesis) and the
+Lorentzian construction-(ii) bridge $g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu}$ ([70-02])
+therefore \emph{disagree} about the $M=0$ geometry (cone-Hessian $\to
+\mathbb{R}\times H^3$; $\eta+h\to$ flat Minkowski), and that disagreement IS the
+underdetermination of the A0 signature bridge. This plan selects which object is the
+physical spacetime metric and restates the thesis at its TRUE strength -- OR, if neither
+restatement is defensible, escalates (binding backtracking trigger). The decisive inputs
+below are reproduced by \texttt{70.1-01-metric-selection.py} (imports the warm engine;
+\texttt{main()} not run; final line \texttt{METRIC\_SELECTION\_INPUTS\_OK}; exit $0$,
+$\sim$3.5\,s).
+
+\subsection{Headline: the $M=0$ cone-Hessian vacuum is the non-Einstein static
+            product $\mathbb{R}_{\text{time}}\times H^3$ (reproduced, not re-derived)}
+\label{sec701:headline}
+
+Reproduced EXACT over $\mathbb{Q}$ from the warm engine ([72-01] eq:ricci-center;
+\texttt{70.1-01-metric-selection.py} steps 2--5):
+\begin{equation}
+  g = \mathrm{diag}(9,9,18,18)\ \ (\det g = 26244),\qquad
+  \mathrm{Ric} =
+  \begin{pmatrix} -\tfrac92 & \tfrac92 & 0 & 0\\
+                  \tfrac92 & -\tfrac92 & 0 & 0\\
+                  0 & 0 & -18 & 0\\
+                  0 & 0 & 0 & -18\end{pmatrix},
+  \label{eq701:ricci-center}
+\end{equation}
+\begin{equation}
+  g^{-1}\mathrm{Ric}\ \text{has eigenvalues}\ \{\,0,-1,-1,-1\,\}\
+  (\text{mult } 0{:}1,\ {-1}{:}3),\qquad R = -3.
+  \label{eq701:spectrum}
+\end{equation}
+The coordinate sectional curvatures name the structure:
+\begin{equation}
+  K(e_0,e_1) = 0\ \ (\text{timelike/dilation 2-plane FLAT}),\qquad
+  K(p,q) = K(e_2,e_3) = -\tfrac12\ \ (\text{$H^3$ base}),
+  \label{eq701:sectional}
+\end{equation}
+the $H^3$ value identical to the engine's certified
+\texttt{h3\_cone\_hessian\_benchmark} ($K_{\text{value}}=-\tfrac12$; round-$H^3$
+cross-check $K_{\text{round}}=-1=2\cdot(-\tfrac12)$, the benign factor-of-$2$). The
+eigenvalue-$0$ eigenvector is $(1,1,0,0)=\beta+\gamma$; under the Lorentzian reading
+$h_2(C_u)\simeq\mathbb{R}^{3,1}$ with $\det_2$ Minkowski form
+$\beta\gamma/3-p^2/3-q^2/3$ ([52KKT]), this is the \textbf{timelike $x_0$} direction (the
+$\beta\gamma/3$ block is the hyperbolic $1{+}1$ part; $(1,1)$ its timelike eigenvector).
+So the flat factor of the cone is \emph{time}, and the $M=0$ vacuum is the static product
+$\mathbb{R}_{\text{time}}\times H^3_{\text{space}}$. This spectrum is the HEADLINE: it is
+the VALD-04 finding (negative-result-is-success), reported as such and never papered over.
+
+\paragraph{Inherited and confirmed (carry-forward gates).} The construction-(ii)
+Minkowski reduction (test-minkowski-reduction) is satisfied by the warm engine:
+$g(\text{center},M{=}0)=\eta$ exactly, since $h:=\mathrm{Hess}-\mathrm{Hess}|_{\text{center}}=0$
+at the center by construction ([70-02] Note B; \texttt{70.1-01-metric-selection.py}
+step 6: \texttt{offcenter\_slice\_metric}$\{\}$ gives $h=\mathbf{0}_{4\times4}$,
+$g=\eta_{\mathrm{bg}}$; \texttt{minkowski\_reduction()} residual $=0$, Sylvester minors
+$[1,-1,1,-1]\Rightarrow$ signature $(1,3)$). The corrected cubic-norm cross-term
+(test-cross-term-association) is confirmed via the engine SSOT: $\det_3$ minus the
+block-diagonal norm $\alpha\beta\gamma-\alpha|x_1|^2-\beta|x_2|^2-\gamma|x_3|^2$ equals
+\emph{exactly} $2\,\mathrm{Re}((x_2 x_1)x_3)$, with $\alpha,\beta,\gamma$ absent from the
+triple (\texttt{70.1-01-metric-selection.py} step 8); the buggy $(x_1 x_2)x_3$ /
+\texttt{octonion\_algebra.py} order is excluded ([h3o]; \texttt{fp-wrong-cross-term}).
+
+\subsection{Einstein-condition verdict: the cone-Hessian $M=0$ vacuum is NOT a GR
+            $\Lambda$-vacuum}
+\label{sec701:einstein}
+
+An Einstein space satisfies $\mathrm{Ric}_{\mu\nu}=\lambda\,g_{\mu\nu}$ with
+$\lambda=R/n$ (for $n\ge3$, $\lambda$ is necessarily constant) [Besse]. Equivalently the
+traceless Ricci tensor
+\begin{equation}
+  S_{\mu\nu} := \mathrm{Ric}_{\mu\nu}-\tfrac{R}{n}\,g_{\mu\nu}
+  \qquad\text{satisfies}\qquad
+  \text{Einstein}\iff S_{\mu\nu}\equiv 0
+  \label{eq701:tracelessricci}
+\end{equation}
+[Besse; the Einstein criterion]. For $n=4$ and $R=-3$ the Einstein value is
+\begin{equation}
+  \lambda = \frac{R}{4} = -\frac34,
+  \label{eq701:einstein-value}
+\end{equation}
+so an Einstein space in $n=4$ with $R=-3$ would require \emph{all} Ricci-endomorphism
+eigenvalues to equal $-\tfrac34$. The computed spectrum~\eqref{eq701:spectrum} is
+$\{0,-1,-1,-1\}$, which contains \textbf{no} eigenvalue equal to $-\tfrac34$. Therefore
+the cone-Hessian $M=0$ vacuum is NOT Einstein, hence NOT a GR $\Lambda$-vacuum. The
+direct exact-over-$\mathbb{Q}$ witness is the nonzero traceless Ricci tensor
+(\texttt{70.1-01-metric-selection.py} step 4):
+\begin{equation}
+  S = \mathrm{Ric}-\tfrac{R}{4}\,g
+    = \mathrm{Ric}+\tfrac34\,g
+    =
+  \begin{pmatrix} \tfrac94 & \tfrac92 & 0 & 0\\
+                  \tfrac92 & \tfrac94 & 0 & 0\\
+                  0 & 0 & -\tfrac92 & 0\\
+                  0 & 0 & 0 & -\tfrac92\end{pmatrix}
+  \;\neq\; \mathbf{0},
+  \qquad \operatorname{tr}_g S = g^{\mu\nu}S_{\mu\nu} = 0
+  \label{eq701:S}
+\end{equation}
+(genuinely traceless yet nonzero -- the exact signature of a non-Einstein space). The
+$n=4$ Ricci decomposition reconstruction residual $R_{ijkl}-(\mathrm{Scal}+E+\mathrm{Weyl})=0$
+holds exactly over $\mathbb{Q}$, confirming $S\neq0$ is a genuine curvature fact, not a
+decomposition artifact.
+
+\paragraph{Signature-independence of the verdict.} The eigenvalues
+$\{0,-1,-1,-1\}$ are invariants of the \emph{$(1,1)$} Ricci endomorphism
+$g^{-1}\mathrm{Ric}$, not of the raw $(0,2)$ Ricci components. A change of frame
+(congruence) $P$ acts on the $(0,2)$ tensors by $g\mapsto P^{\!\top}gP$,
+$\mathrm{Ric}\mapsto P^{\!\top}\mathrm{Ric}\,P$, so the endomorphism transforms by
+\emph{similarity},
+\begin{equation}
+  g^{-1}\mathrm{Ric}\;\longmapsto\;(P^{\!\top}gP)^{-1}(P^{\!\top}\mathrm{Ric}\,P)
+  = P^{-1}\,(g^{-1}\mathrm{Ric})\,P,
+  \label{eq701:similarity}
+\end{equation}
+and its eigenvalues are invariant. Converting between the $(-,+,+,+)$ and $(+,-,-,-)$
+labelings is such a congruence, so it does NOT change the verdict; this is verified
+exact over $\mathbb{Q}$ (\texttt{70.1-01-metric-selection.py} step 7: a generic
+invertible rational $P$ leaves the spectrum $\{0,-1,-1,-1\}$ fixed).
+
+\emph{Caution (why the invariant is the $(1,1)$ endomorphism, index raised).} A naive
+\emph{overall} metric sign flip $g\mapsto-g$ is \textbf{not} a congruence and is NOT the
+same as a signature change: it leaves the $(0,2)$ tensor $\mathrm{Ric}_{\mu\nu}$
+unchanged but negates the $(1,1)$ endomorphism $g^{-1}\mathrm{Ric}$ (eigenvalues
+$\{0,-1,-1,-1\}\mapsto\{0,+1,+1,+1\}$, verified over $\mathbb{Q}$ in step 7). This is
+exactly the contract's disconfirming observation -- ``a sign-dependent verdict means the
+$(0,2)$ Ricci components were used without raising the index.'' The verdict we report is
+the \emph{similarity-invariant} $(1,1)$ spectrum~\eqref{eq701:spectrum}, computed with
+the index raised; no verdict in this phase uses the raw $(0,2)$ entries or an overall
+scalar flip.
+
+\paragraph{Explicit rejection of the ``which $\Lambda$ reference?'' baseline.} No
+baseline subtraction turns a non-Einstein vacuum into an Einstein one. Asking ``which
+$\Lambda$ reference?'' presupposes a maximally-symmetric vacuum that this construction
+does not produce ([72-01], Sec.~adjudication; \texttt{fp-assume-einstein}). The spectrum
+$\{0,-1,-1,-1\}$ IS the result -- headline it, do not paper it over. We insert no factor
+to force $\mathrm{Ric}\propto g$ or to force flatness, and we keep $K(p,q)=-\tfrac12$
+(no factor of $2$ to ``match'' $-1$).
+
+\paragraph{Why a metric cone is never Einstein (corroborative, not load-bearing).} The
+dim-$4$ cone-Hessian sub-slice is a metric cone $C(H^3)=\mathbb{R}_{>0}\times H^3$: a
+flat radial (dilation) line over the constant-curvature $H^3$ base. A non-trivial metric
+cone in dimension $n$ has a radial $0$-eigenvalue plus shifted base eigenvalues, here
+$\{0,-1,-1,-1\}$, and is never Einstein [Besse Sec.~9; Gallot]. This EXPLAINS why the
+spectrum has the form it does; the exact-over-$\mathbb{Q}$
+computation~\eqref{eq701:spectrum}--\eqref{eq701:S} \emph{is} the proof. (The radial
+$0$-direction is at once the Riemannian scale modulus $R(X)=R(2X)$ found in Phase 71 and
+-- under the Lorentzian reading -- the timelike $x_0$; the cone's flat factor is time.)
