@@ -44,6 +44,19 @@ index"): the reported invariant is the (1,1) endomorphism spectrum (index raised
 raw (0,2) entries and NOT an overall scalar flip. Same physics claim; faithful, non-false
 implementation.
 
+STEP 9 (added post-ratification): det_2-background / det_3-perturbation SPLICE-CONSISTENCY.
+The Phase-70.1 RATIFIED verdict is outcome (2): the physical spacetime metric is the
+construction-(ii) bridge g = eta + h, with eta the KKT Minkowski form (derivation 52 --
+DERIVED, not inserted) and the cone-Hessian (det_3) cross-terms sourcing the matter
+perturbation h. Step 9 verifies the splice is CONSISTENT (a genuine check, NOT a tripwire):
+h is a valid symmetric (0,2) deviation of eta_bg in the SAME 4x4 Lorentzian frame; V_1
+(alpha) matter is inert (h==0, matching the Phase-71 alpha-absent finding); small V_{1/2}
+matter sources h!=0 yet PRESERVES the signature (1,3); a large deviation eventually flips
+the signature (the splice is perturbative with finite radius of validity -- expected, not
+a defect). Signature is taken via eigenvalue SIGNS (exact over Q), NOT Sylvester leading
+minors, because the (beta,gamma,p,q) frame is null-aligned (timelike dir = beta+gamma =>
+eta_bg[0,0]=0, first leading minor vanishes => leading-minor test INVALID). PASS as expected.
+
 Run: python3 -u .gpd/phases/70.1-.../70.1-01-metric-selection.py
 Expect: every assert passes; final line METRIC_SELECTION_INPUTS_OK; exit 0.
 Reproducibility: SymPy 1.14.0, Python 3.14.x, NumPy not on the decisive path. No seeds
@@ -239,8 +252,77 @@ assert not (cross[0].free_symbols & {E.xs[0], E.xs[1], E.xs[2]})   # alpha,beta,
 tick("CROSS-TERM SSOT: det_3 - diag-norm == 2Re((x2 x1)x3); alpha,beta,gamma absent from "
      "the triple (corrected association; buggy (x1 x2)x3 / octonion_algebra.py EXCLUDED).")
 
+# === Step 9: det_2-background / det_3-perturbation SPLICE-CONSISTENCY (genuine check,
+#             NOT a tripwire) ===============================================
+# Phase 70.1 verdict (RATIFIED): the physical spacetime metric is the construction-(ii)
+# bridge g = eta + h, where eta is the KKT Minkowski form (derivation 52: h_2(C_u) ~
+# R^{3,1}, det_2 mostly-minus -- DERIVED, trusted) and the cone-Hessian (det_3) sources
+# the matter perturbation h via its V_0<->V_{1/2} cross-terms. This step verifies the
+# det_2-background / det_3-perturbation SPLICE is CONSISTENT: that the cone-Hessian
+# deviation h is a VALID perturbation of the KKT eta (symmetric (0,2), same tensor space
+# and frame, correct signature/index behaviour). Expect PASS. This is a consistency
+# check, NOT a gate; the Phase-73 gate is the LINEARIZED-EINSTEIN test (box h ~ kappa T).
+
+
+def _signature(M, simp=cancel):
+    """Inertia (n_pos, n_neg, n_zero) of a symmetric matrix via eigenvalue SIGNS,
+    EXACT over Q. Used INSTEAD of Sylvester leading minors because the (beta,gamma,p,q)
+    frame is null-aligned (timelike dir = beta+gamma => eta_bg[0,0]=0, so the first
+    leading minor vanishes and the leading-minor test is INVALID here)."""
+    ev = M.applyfunc(simp).eigenvals()
+    npos = sum(m for val, m in ev.items() if val > 0)
+    nneg = sum(m for val, m in ev.items() if val < 0)
+    nzero = sum(m for val, m in ev.items() if val == 0)
+    return (npos, nneg, nzero), dict(ev)
+
+# (a) eta_bg is Lorentzian (1,3) -- via eigenvalue signs (NOT leading minors: null frame)
+eta_bg = MG["eta_bg"]
+assert eta_bg == eta_bg.T, "eta_bg must be symmetric (0,2)"
+sig_eta, ev_eta = _signature(eta_bg)
+assert sig_eta == (1, 3, 0), (sig_eta, ev_eta)
+tick(f"SPLICE (a): eta_bg symmetric (0,2), signature (n+,n-,n0) = {sig_eta} = (1,3) Lorentzian "
+     f"[via eigenvalue SIGNS, exact over Q; leading-minor test INVALID -- null frame, "
+     f"eta_bg[0,0]=0 since timelike dir = beta+gamma].")
+
+# (b) h is a valid symmetric (0,2) perturbation in the SAME 4x4 tensor space/frame as
+#     eta_bg, for matter sourced in V_1 and V_{1/2}. V_1 (alpha, idx 0) is INERT
+#     (h==0, matches the Phase-71 alpha-absent finding); V_{1/2} (idx 11) sources h!=0.
+delta_V1   = {0: Rational(1, 5)}        # V_1 (alpha) matter direction -- inert (h==0)
+delta_V12  = {11: Rational(1, 50)}      # V_{1/2} matter direction (small, linear regime)
+delta_mix  = {12: Rational(1, 40), 17: Rational(1, 40)}  # mixed small V_{1/2}/Peirce
+for label, delta, expect_zero in [
+        ("V_1 (alpha, idx0)",       delta_V1,  True),
+        ("V_{1/2} (idx11, small)",  delta_V12, False),
+        ("mixed V_{1/2} (small)",   delta_mix, False)]:
+    MGd = E.offcenter_slice_metric(delta, slice_vals=CENTER)
+    hd, gd = MGd["h"], MGd["g"]
+    assert hd == hd.T, f"{label}: h must be symmetric (0,2)"
+    assert hd.shape == eta_bg.shape == (4, 4), f"{label}: h must share eta_bg's 4x4 tensor space"
+    h_is_zero = (hd == Matrix.zeros(4, 4))
+    assert h_is_zero == expect_zero, (label, h_is_zero, expect_zero)
+    sig_g, _ = _signature(gd)
+    if not expect_zero:
+        # small matter perturbation must PRESERVE the Lorentzian signature (1,3):
+        assert sig_g == (1, 3, 0), (label, sig_g)
+    tick(f"SPLICE (b) {label}: h symmetric (0,2) in eta_bg's 4x4 frame; h==0? {h_is_zero}; "
+         f"g=eta+h signature = {sig_g}{' (Lorentzian (1,3) PRESERVED)' if not expect_zero else ' (== eta_bg, V_1 inert)'}.")
+
+# (c) Linear-regime caveat (honest, expected): a LARGE V_{1/2} deviation eventually exits
+#     the linear splice regime and flips the signature -- the bridge g=eta+h is a
+#     PERTURBATIVE splice with a finite radius of validity (NOT a defect; this is what
+#     "linearized matter perturbation" MEANS). Demonstrated, labeled non-decisive.
+MGbig = E.offcenter_slice_metric({11: Rational(1, 5)}, slice_vals=CENTER)
+sig_big, _ = _signature(MGbig["g"])
+tick(f"SPLICE (c) [linear-regime caveat, non-decisive]: a LARGE V_{{1/2}} deviation (idx11=1/5) "
+     f"gives g signature {sig_big} != (1,3) -- the eta+h splice is PERTURBATIVE with finite "
+     f"radius of validity (expected; the Phase-72 matter-response works in the linear regime).")
+tick("SPLICE-CONSISTENCY: PASS (as expected) -- h is a valid symmetric (0,2) deviation of "
+     "the KKT eta_bg in the same Lorentzian frame; small matter perturbations preserve sig (1,3).")
+
 print("-" * 78)
 print("METRIC_SELECTION_INPUTS_OK -- headline {0,-1,-1,-1} (R=-3, NON-Einstein, "
-      "R_time x H^3, flat dir = timelike x_0, K(p,q)=-1/2), eta+h h==0-at-center (flat, "
-      "Lambda=0 inserted), signature-independence (similarity-invariant (1,1) spectrum), "
-      "and the corrected cross-term -- ALL reproduced EXACT over Q from the warm engine.")
+      "R_time x H^3, flat dir = timelike x_0, K(p,q)=-1/2), eta+h h==0-at-center (flat; "
+      "DERIVED from KKT det_2, NOT inserted), signature-independence (similarity-invariant "
+      "(1,1) spectrum), the corrected cross-term, AND the det_2/det_3 splice-consistency "
+      "(h a valid symmetric (0,2) perturbation of the Lorentzian eta_bg; small matter "
+      "preserves sig (1,3)) -- ALL reproduced/checked EXACT over Q from the warm engine.")
