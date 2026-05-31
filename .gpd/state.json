@@ -691,12 +691,12 @@
     }
   },
   "position": {
-    "current_phase": "72 (HALTED \u2014 backtracking to a reopened Phase 70)",
-    "current_phase_name": "B \u2014 Matter-Sourcing (HALTED at the Wave-1 first-result gate; backtracking trigger #3 honored)",
-    "total_phases": 4,
+    "current_phase": "70.1 (created via revise-phase; awaiting planning) \u2014 Phase 72 remains HALTED pending 70.1's physical-metric verdict",
+    "current_phase_name": "Revise A0 \u2014 select the physical spacetime metric (cone-Hessian vs eta+h bridge)",
+    "total_phases": 5,
     "current_plan": "72-01 (partial \u2014 Task 1 clean, Tasks 2-3 not run; 72-02 not started)",
     "total_plans_in_phase": 2,
-    "status": "Halted \u2014 backtrack to Phase 70 (next: /gpd:revise-phase 70)",
+    "status": "Ready to plan",
     "last_activity": "2026-05-31",
     "last_activity_desc": "Phase 72 (B \u2014 Matter-Sourcing) HALTED at the Wave-1 first-result gate; milestone BACKTRACKS to a reopened Phase 70 (researcher decision; backtracking trigger #3 honored, NOT routed around). The decisive matter cross-term ON/OFF verdict (72-02) was deliberately NOT run. **The real VALD-04 finding (negative-result-is-success):** the dim-4 cone-Hessian M=0 vacuum Hess(-log det_3)|_{I/3}=diag(9,9,18,18) has Ricci-endomorphism eigenvalues {0,-1,-1,-1} EXACT over Q \u2014 R=-3 (matches the Phase-71 anchor) but NOT Einstein (n=4 Einstein needs all eigenvalues -3/4). The eigenvalue-0 direction (1,1,0,0)=\u03b2+\u03b3 is the TIMELIKE x_0 under h_2(C_u)~R^{3,1} (det_2 form \u03b2\u03b3/3-p\u00b2/3-q\u00b2/3; \u03b2\u03b3/3 is the hyperbolic 1+1 block, (1,1) its timelike eigenvector), so the vacuum is a static product R_time\u00d7H\u00b3_space (flat factor = time), K(p,q)=-1/2. A GR \u039b-vacuum MUST be Einstein (Ric\u221dg); no baseline subtraction turns a non-Einstein vacuum Einstein, so \"which \u039b reference\" is the wrong question. Adjudication: (a) det_2=1 H\u00b3 leaf REJECTED as fp-relabel (drops the timelike dir; H\u00b3 is the WRONG symmetric space \u2014 GR's empty hyperbolic-slice vacuum is Milne=flat Minkowski, not H\u00b3; one dim short; manufactures a pass by swapping spacetime for space); (b) construction-(ii) \u03b7+h is the CORRECT vacuum but CONDITIONAL (\u039b=0 inserted by center-subtraction \u2192 Phase-73 circularity tripwire; adopting it ABANDONS the cone-Hessian thesis); (c) CHOSEN = halt + reopen Phase 70. PRESERVED (not what broke): V\u2080\u2194V_{1/2} cross-term 2\u00b7Re((x\u2082x\u2081)x\u2083), \u03b1-absent\u2192V\u2081-inertness, the \u0394R-isolation pipeline + n=4 Ricci decomposition. Engine faithful (4 Phase-71 anchors reproduced exact over Q; 3.4s probe exit 0). Deliverables: derivations/72-matter-sourcing.tex (VALD-04 finding + adjudication + Phase-70 task); .gpd/phases/72-b-matter-sourcing/{PHASE-RECOVERY.md, 72-01-baseline-probe.py}.",
     "progress_percent": 50,
@@ -1195,6 +1195,11 @@
       "phase": "72",
       "summary": "Phase 72 HALTED at Wave-1 first-result gate; backtrack to reopened Phase 70 (trigger #3 honored). VALD-04 finding: M=0 cone-Hessian vacuum is non-Einstein static product R_time x H^3 (Ric eig {0,-1,-1,-1}; flat dir = timelike x_0). A GR Lambda-vacuum must be Einstein, so 'which Lambda reference' is the wrong question. (a) det_2=1 H^3 leaf rejected as fp-relabel; (b) eta+h conditional; (c) chosen = halt+reopen 70. Matter mechanism + DeltaR pipeline preserved.",
       "rationale": "Cone-Hessian M=0 vacuum is non-Einstein; no subtraction fixes that; Phase 70 must select the physical spacetime metric before any matter-sourcing verdict."
+    },
+    {
+      "phase": "70.1",
+      "summary": "Superseded Phase 70 (A0",
+      "rationale": "Engine Reconciliation & Signature Bridge) with Phase 70.1 (select the physical spacetime metric: cone-Hessian vs eta+h bridge) \u2014 Construction-(ii) signature bridge underdetermined: Phase 72's first-result gate found the M=0 cone-Hessian vacuum is the non-Einstein static product R_time x H^3 (Ric eig {0,-1,-1,-1}); the Riemannian cone-Hessian (route thesis) and the Lorentzian eta+h bridge disagree about the M=0 geometry. Phase 70.1 selects which object is the physical spacetime metric and restates the thesis (cone-Hessian => at most linearized spin-2 on a fixed non-Einstein background; or eta+h => flat, Lambda=0 tripwire). Engine/det_3/Hessian-benchmark/index-map PRESERVED (engine is faithful, not what broke); Phase 71 SURVIVES verdict unaffected. A non-Einstein M=0 vacuum IS the negative result, not a reference choice."
     }
   ],
   "approximations": [],
@@ -1250,7 +1255,8 @@
     "v15.0 ALL BLOCKERS CLOSED \u2014 milestone research complete & archived (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island; through-line survives). Not a v16.0 blocker.",
     "Two distinct spin(9) embeddings in M_16(R) \u2014 Krasnov discrepancy (stabilizer dim 10 vs 12). Not v16.0-relevant.",
     "Quantum SSB remains CONDITIONAL (S_eff=1/2) \u2014 v9.0/v10.0 chain conditionality, not v16.0-relevant.",
-    "v14.0 PAUSED (pending JMP referee report); resumption triggers and full inventory in `.gpd/V14-CLOSEOUT.md`. Not a v16.0 blocker."
+    "v14.0 PAUSED (pending JMP referee report); resumption triggers and full inventory in `.gpd/V14-CLOSEOUT.md`. Not a v16.0 blocker.",
+    "Phase 70 results under revision \u2014 superseded by Phase 70.1 (physical-metric selection: cone-Hessian vs eta+h bridge underdetermined). Phase 72 matter-sourcing BLOCKED until 70.1 selects the spacetime metric. The M=0 cone-Hessian vacuum is non-Einstein R_time x H^3 (Ric eig {0,-1,-1,-1}); a GR Lambda-vacuum must be Einstein, so this is the VALD-04 finding, not a reference choice. Engine/det_3/benchmarks PRESERVED; Phase 71 SURVIVES unaffected. NEXT = /gpd:plan-phase 70.1."
   ],
   "session": {
     "last_date": "2026-05-31",
@@ -1258,7 +1264,7 @@
     "resume_file": "Next action -- **/gpd:revise-phase 70** (supersede completed Phase 70; resolve the ONE well-posed question: which object is the physical spacetime metric \u2014 Riemannian cone-Hessian [thesis \u21d2 non-Einstein R\u00d7H\u00b3 vacuum \u21d2 route yields at most linearized spin-2 on a FIXED non-Einstein background, NAMED as such] vs Lorentzian construction-(ii) \u03b7+h [\u21d2 flat; thesis must be restated; \u039b=0 tripwire to Phase 73]; the disagreement = signature bridge underdetermined, Riemannian/Lorentzian tension in CONVENTIONS.md). Discipline: exact over Q; do NOT insert any factor to force Ric\u221dg or flatness; SSOT det_3; headline {0,-1,-1,-1}. Full context: .gpd/phases/72-b-matter-sourcing/PHASE-RECOVERY.md + derivations/72-matter-sourcing.tex (\u00a7adjudication, \u00a7phase70-task). After Phase 70 resolves, re-plan Phase 72 (matter pipeline preserved). Two still-pending NON-BLOCKING follow-ups: (a) record cone-Hessian K=-1/2 alongside round -1 in the riemann_ricci_sign convention text; (b) `gpd sync-state` to refresh STATE.md's stale v16.0 Convention Lock block. v14.0 PAUSED."
   },
   "_version": 1,
-  "_synced_at": "2026-05-31T14:13:11.192100+00:00",
+  "_synced_at": "2026-05-31T14:54:50.056826+00:00",
   "current_position": {
     "current_phase": "72",
     "current_phase_name": "B \u2014 Matter-Sourcing (CONDITIONAL on Phase 71 surviving \u2014 now GREENLIT)",
