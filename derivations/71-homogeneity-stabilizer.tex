@@ -1,0 +1,209 @@
+% 71-homogeneity-stabilizer.tex
+% Phase 71 (A) Plan 02 -- Route 2 (stabilizer transitivity) + CALC-02 (second
+% fundamental form II) on the FULL V_0 family, and the final two-route reconciliation.
+% Fragment (no \documentclass): \input-included by the project master.
+%
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus, fourier_convention=NA, gauge_choice=NA, renormalization_scheme=NA, coupling_convention=cubic_norm_cross_terms
+% Decisive arithmetic EXACT over Q (sympy.Rational/Matrix, DomainMatrix-over-QQ via
+% exact_qq_rank); ranks NEVER via numpy float rank. det_3 = engine SSOT (LOCK 0
+% byte-identity to ring_lemma_verification.py). Group: F_4 = inner_derivations() (52);
+% E_6 = Stab(det); e_6 = f_4 + L(h_3(O)_traceless), dim 78. E_11 = diag(1,0,0).
+% Built on the certified code/bulk_geometry_verification.py (Section 13); orbit/
+% stabilizer machinery reused VERBATIM from code/orbit_dimension_gate.py; NEVER
+% code/octonion_algebra.py.
+
+\section{Route 2 (stabilizer transitivity) and CALC-02 (second fundamental form II)}
+\label{sec:71-homogeneity-stabilizer}
+
+This note is the mandatory, sign-immune cross-check of the Phase~71 homogeneity
+KILL gate. Plan 71-01 (Route~1, curvature invariants on the dim-4 $h_2(\mathbb{C}_u)$
+spacetime sub-slice) returned \textbf{SURVIVES}: the Ricci scalar $R(x)$ and
+Kretschmann scalar $K(x)$ of the inherited cone-Hessian slice metric differ across
+four distinct generic rational basepoints (distinct off-center-ness
+$\rho_J(X_{\mathrm{bg}})$), exact over $\mathbb{Q}$. Route~2 is purely
+group-theoretic / algebraic (no curvature), hence immune to the Riemann-sign and
+Wick hazards of Route~1, and operates on the \emph{full} $V_0$ (basepoint, slice)
+family, closing the dim-4-suffices gap of Plan 71-01.
+
+\subsection{Calibration gates (hard, performed first)}
+
+\paragraph{Peirce decomposition under $E_{11}=\operatorname{diag}(1,0,0)$.}
+The multiplication operator $L_{E_{11}}$ is diagonal in the engine-native basis,
+with eigenvalues the Peirce eigenvalues $\{0,\tfrac12,1\}$. Verified exactly over
+$\mathbb{Q}$:
+\[
+V_1\ (\text{eig }1) = \{0\}\ (1),\qquad
+V_0\ (\text{eig }0) = \{1,\dots,10\}\ (10) = h_2(\mathbb{O}),\qquad
+V_{1/2}\ (\text{eig }\tfrac12) = \{11,\dots,26\}\ (16).
+\]
+The spacetime sub-slice $h_2(\mathbb{C}_u)$ is the index set $\{1,2,3,10\}\subset V_0$.
+
+\paragraph{Single-copy $F_4$ anchor.}
+Before trusting any $E_{11}$ stabilizer count, the certified single-copy calibration
+anchor is reproduced on this engine's $\mathfrak{f}_4 = \operatorname{inner\_derivations}()$
+(via the warm \texttt{orbit\_dimension\_gate} machinery, exact over $\mathbb{Q}$):
+generic single-copy orbit dimension $24$, generic stabilizer $\operatorname{Spin}(8)$
+of dimension $52-24=28$, single-state transcendence degree $27-24=3$
+(Garibaldi--Guralnick / Lawther). The orbit/stabilizer builder is thereby
+\textbf{certified} before the $E_{11}$ count.
+
+\paragraph{The Lie algebra $\mathfrak{e}_6$.}
+By the Koecher--Tits construction (ref-baez-octonions),
+\begin{equation}
+\boxed{\ \mathfrak{e}_6 = \mathfrak{f}_4 + L\bigl(h_3(\mathbb{O})_{\mathrm{traceless}}\bigr),
+\qquad \dim 78 = 52 + 26.\ }
+\label{eq:e6-build}
+\end{equation}
+Here $\mathfrak{f}_4 = \operatorname{Der}(h_3(\mathbb{O}))$ is the span of the $324$
+inner-derivation brackets $[L_a,L_b]$ (span rank $52$, certified $F_4$-invariant by
+the engine LOCK~7a/7b: $\det_3$ equals the Cayley--Hamilton generic norm and is
+annihilated by all $324/324$ inner derivations), and $L(h_3(\mathbb{O})_{\mathrm{traceless}})$
+is the $26$-dimensional space of traceless Jordan multiplication operators
+$L_a(Z)=a\circ Z$ with $\operatorname{Tr} a = 0$ (a traceless basis:
+$\{E_1-E_0,\,E_2-E_0\}\cup\{E_3,\dots,E_{26}\}$). The dimension
+$\dim\mathfrak{e}_6 = 78 = 52+26$ is verified as an exact span rank over $\mathbb{Q}$
+(\texttt{span\_rank\_over\_QQ} / DomainMatrix-over-QQ) of the $78$ generators acting
+on the $27$. The cubic-norm SSOT (LOCK~7a/7b) is reaffirmed \emph{before} the group
+build.
+
+\subsection{$\dim\operatorname{Stab}_{E_6}(E_{11})$ and the slice-preserving subgroup}
+
+The stabilizer of $E_{11}$ in $\mathfrak{e}_6$ is computed exactly over $\mathbb{Q}$
+as the kernel of the linear infinitesimal action $D\mapsto D\cdot E_{11}$:
+\begin{equation}
+\boxed{\ \dim\operatorname{Stab}_{E_6}(E_{11}) = \ker\{D \to D \cdot E_{11}\}
+= 78 - \operatorname{rank}\bigl[D\cdot E_{11}\bigr]_{D\in\mathfrak{e}_6\ \mathrm{basis}}.\ }
+\label{eq:stab-kernel}
+\end{equation}
+The orbit of $E_{11}$ has dimension $\operatorname{rank}[D\cdot E_{11}] = 17$,
+confirmed by two independent exact routes (\texttt{Matrix.rank} and nullspace
+dimension). The number $17$ is exactly the dimension of the \emph{affine cone over
+the Cayley plane} $\mathbb{OP}^2$: $E_{11}$ is a primitive idempotent on the
+rank-$\le 1$ minimal-orbit locus. Hence
+\[
+\dim\operatorname{Stab}_{E_6}(E_{11}) = 78 - 17 = 61,
+\]
+exact over $\mathbb{Q}$, and all $61$ stabilizer generators annihilate $E_{11}$
+($D\cdot E_{11}=0$). \emph{Structural note (recorded honestly):} the contract's
+$\sim 45$ guide is the dimension of the semisimple Levi $\operatorname{Spin}(9,1)$,
+\emph{not} the full parabolic stabilizer of the cone point ($61$); the $\sim 45$ was
+explicitly flagged as a non-decisive sanity guide, and the computed $61$ is
+corroborated by the textbook Cayley-plane dimension $17$.
+
+The Levi expectation \emph{is} recovered by the slice-preserving subgroup. Let
+\[
+\operatorname{Stab}_{V_0} = \{\,D\in\operatorname{Stab}_{E_6}(E_{11}) : D\cdot V_0\subseteq V_0\,\}
+\]
+be the subalgebra preserving the $V_0$ subspace (the elements acting on the
+$(\text{basepoint},\text{slice})$ family as isometries of the induced slice metric).
+Computed as the nullspace of the normal-projection constraints
+$(D\cdot e_b)_a = 0$ for $a$ normal, $b\in V_0$:
+\[
+\dim\operatorname{Stab}_{V_0} = 45 = \dim\operatorname{Spin}(9,1),
+\]
+exactly recovering the structural Levi expectation, with $\operatorname{Spin}(9,1)$
+acting on $V_0 = h_2(\mathbb{O}) \cong \mathbb{R}^{1,9}$ as the vector representation.
+
+\subsection{Route-2 transitivity verdict on the full $V_0$ family}
+
+The orbit dimension of a generic octonionic-integer $V_0$ basepoint under
+$\operatorname{Stab}_{V_0}$, maximised over $\ge 2$ generic points (rank
+lower-semicontinuous), is
+\[
+\dim\bigl(\operatorname{Stab}_{V_0}\!\cdot X_{\mathrm{bg}}\bigr) = 9
+\quad<\quad \dim V_0 = 10 ,
+\]
+exact over $\mathbb{Q}$. The transcendence degree of $\operatorname{Stab}_{V_0}$-invariants
+on $V_0$ is $10-9=1$, and the single modulus is the Lorentzian norm $\det_2$ (the
+radial cone direction $\operatorname{Spin}(9,1)$ preserves). Thus
+$\operatorname{Stab}_{V_0}$ is \emph{not} transitive on the raw $V_0$ cone, but it
+\emph{is} transitive on each $\det_2=\text{const}$ leaf (orbit $9$ $=$ the dimension
+$9$ of the symmetric-space leaf). The single leaf modulus $\det_2$ is the radial
+direction, not an inhomogeneity of the symmetric-space leaf -- consistent with the
+totally-geodesic finding below.
+
+\subsection{CALC-02: second fundamental form $\mathrm{II}$ of $V_0$}
+
+For a Hessian metric $g_{ab}=\partial_a\partial_b\Phi$ ($\Phi=-\log\det_3$), the
+Levi-Civita lowered Christoffel symbol is $\Gamma_{a,bc}=\tfrac12 f_{abc}$ with
+$f_{abc}=\partial_a\partial_b\partial_c\Phi$ totally symmetric (the cubic norm makes
+the jet terminate). The \textbf{second fundamental form} of a submanifold with
+tangent space $T$, evaluated along a $g$-normal vector $n$, is therefore
+\begin{equation}
+\boxed{\ \mathrm{II}^n_{bc} = g(\nabla_b\partial_c, n) = \Gamma_{a,bc}\,n^a
+= \tfrac12\, f_{abc}\, n^a, \qquad b,c\in T,\ n\perp_g T.\ }
+\label{eq:II}
+\end{equation}
+$\mathrm{II}=0$ (for all tangent $b,c$ and all $g$-normal $n$) $\iff$ the submanifold
+is \emph{totally geodesic} $\iff$ $R^{\mathrm{slice}} = R^{\mathrm{ambient}}|_{\mathrm{slice}}$
+(Gauss equation, ref-kollross-rodriguez-vazquez), so the slice inherits the ambient
+symmetric-space curvature. Equation~\eqref{eq:II} needs no metric inverse and
+addresses the \emph{full} $V_0$ tangent space.
+
+\paragraph{Positivity caveat (load-bearing).} $\mathrm{II}$ must be evaluated at a
+\emph{positive-cone} basepoint ($\det_3>0$, $g$ non-degenerate). A pure-$V_0$ point
+($\alpha=0$) lies on the cone boundary ($\det_3=0$, $g$ singular): $V_0$ is not
+inside the open positive cone through the origin. The physical $V_0$ slice passes
+through the positive center $I/3$, with tangent the $V_0$ linear directions.
+
+Computed exactly over $\mathbb{Q}$ at positive-cone basepoints:
+\[
+\mathrm{II}(V_0)\big|_{I/3} = 0,\qquad
+\mathrm{II}(V_0)\big|_{\text{positive }V_0\text{-perturbed}} = 0,\qquad
+\mathrm{II}\bigl(h_2(\mathbb{C}_u)\bigr)\big|_{I/3} = 0,
+\]
+(in each case $\dim(\text{normal})=17=27-10$, $\det_3>0$). Hence $V_0=h_2(\mathbb{O})$
+is \textbf{totally geodesic}: it is a sub-Jordan-algebra sub-cone, and sub-Jordan-algebras
+embed totally geodesically (Faraut--Koranyi). This \emph{overturns} the
+Kollross--Rodriguez-Vazquez Table-7 inference (the research placed the decisive
+weight on this direct computation, not on the absence-from-the-maximal-list
+inference). The vanishing of $\mathrm{II}(h_2(\mathbb{C}_u))$ explains why the Plan
+71-01 $H^3$ benchmark found \emph{constant} curvature $K=-\tfrac12$. By contrast,
+adding a single $V_{1/2}$ matter direction to the tangent gives
+$\mathrm{II}\bigl(V_0\oplus\{11\}\bigr)\big|_{I/3}\neq 0$: \emph{matter} (the
+$V_{1/2}$ sector) sources extrinsic curvature.
+
+\subsection{Final reconciliation: two-route agreement and the STOP}
+\label{sec:71-two-route-agreement}
+
+The pass condition is \textbf{two-route agreement}: Route~1 (curvature invariants),
+Route~2 (stabilizer transitivity), and CALC-02 ($\mathrm{II}$) must give the
+\emph{same} verdict. The three decisive measurements are
+\[
+\text{Route 1 (matter-loaded basepoints): SURVIVES},\quad
+\text{CALC-02 } \mathrm{II}(V_0)=0:\ \text{totally geodesic} \Rightarrow \text{KILL},
+\]
+with Route~2 showing $\operatorname{Stab}_{V_0}=\operatorname{Spin}(9,1)$ transitive
+on each $\det_2$ leaf (consistent with $\mathrm{II}=0$). These do \emph{not}
+co-agree on a single KILL/SURVIVES verdict. Per the contract acceptance test
+\textsf{test-two-route-agreement}, on disagreement the plan must \textbf{STOP and
+localize the error and emit no verdict}. This is precisely the contract's named
+disconfirming observation: ``$\mathrm{II}=0$ (totally geodesic) while Route~1
+reported SURVIVES $\Rightarrow$ contradiction via Gauss $\Rightarrow$ localize the
+error before any verdict.''
+
+\paragraph{Localization (the mathematics is consistent; the routes probe different
+submanifolds).} The matterless geometry is homogeneous: $V_0=h_2(\mathbb{O})$ and its
+$h_2(\mathbb{C}_u)$ spacetime sub-slice are totally geodesic ($\mathrm{II}=0$),
+symmetric-space slices of constant curvature (the $H^3$ benchmark $K=-\tfrac12$ is
+constant) -- a KILL signal. Route-1's SURVIVES arises \emph{entirely} from
+off-center-ness in the $V_{1/2}\oplus V_1$ \emph{matter} directions, where
+$\mathrm{II}\neq 0$ -- which is the Phase-72 matter-sourcing question, not a
+pure-geometry inhomogeneity. The disagreement is curvature-versus-$\mathrm{II}$
+(investigate the matter-versus-geometry split), \emph{not} Riemannian-versus-Lorentzian
+(both pictures see the same matter-sources-curvature structure), so this is
+\emph{not} a return to Phase~70.
+
+\paragraph{Verdict.} \textbf{No Phase-71 KILL/SURVIVES verdict is emitted}: the
+two-route agreement that is part of the pass condition does not hold, so the plan
+stops and returns the localization. The decisive, exact-over-$\mathbb{Q}$ facts
+established here -- $\dim\mathfrak{e}_6=78$, $\dim\operatorname{Stab}_{E_6}(E_{11})=61$,
+$\dim\operatorname{Stab}_{V_0}=45=\dim\operatorname{Spin}(9,1)$, the $V_0$ orbit
+$9<10$, $\mathrm{II}(V_0)=0$ (totally geodesic, matterless), and $\mathrm{II}\neq 0$
+with matter -- are the handoff for resolving the matter-versus-geometry split.
+
+% Required literal tokens present (anti-drift):
+%   e_6 = f_4 + L(h_3(O)_traceless), dim 78 = 52 + 26    [Eq. (e6-build)]
+%   dim Stab_{E_6}(E_11) = ker{D -> D . E_11}            [Eq. (stab-kernel)]
+%   second fundamental form II                            [CALC-02 + Eq. (II)]
+%   two-route agreement                                   [Sec. final reconciliation]
