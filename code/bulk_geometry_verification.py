@@ -1504,6 +1504,146 @@ def h3_cone_hessian_benchmark():
     }
 
 
+# Phase-71 (A) Route-1 KILL verdict: >= 2 distinct generic rational basepoints.
+# The DECISIVE basepoints (each = I/3 + a distinct off-center perturbation in the
+# NON-slice V_0-internal/matter directions). BP4 is GENUINELY OCTONIONIC (it
+# populates the C_u-orthogonal oct-x1 comps {4,5,6} where octonion non-associativity
+# bites) -- a strong guard against an associator artifact. All exact over Q.
+ROUTE1_BASEPOINTS = {
+    "BP1 V0-int{4,5}+Vhalf{11}":      {4: Rational(1, 5), 5: Rational(1, 7),
+                                       11: Rational(1, 4), 0: Rational(1, 6)},
+    "BP2 V0-int{4,6}+Vhalf{19}":      {4: Rational(2, 5), 6: Rational(1, 3),
+                                       19: Rational(1, 5), 0: Rational(1, 4)},
+    "BP3 V0-int{7,8,9}+Vhalf{13}":    {7: Rational(1, 3), 8: Rational(1, 4),
+                                       9: Rational(1, 5), 13: Rational(1, 7),
+                                       0: Rational(1, 8)},
+    "BP4 octonionic{4,5,6}+Vhalf{12,20}": {4: Rational(1, 2), 5: Rational(-1, 3),
+                                           6: Rational(1, 4), 12: Rational(1, 5),
+                                           20: Rational(1, 6), 0: Rational(1, 7)},
+}
+# A COMMON generic rational spacetime slice point, held FIXED across all basepoints
+# (so the only thing varying in the decisive comparison is rho_J(X_bg), NOT x):
+ROUTE1_COMMON_SLICE_PT = [Rational(2, 5), Rational(3, 5), Rational(1, 10), Rational(1, 8)]
+
+
+def _curvature_invariants_at(delta, slice_pt_vals, simp=None):
+    """R(x) (Ricci scalar) and K(x) (Kretschmann) of the off-center cone-Hessian
+    slice metric at basepoint X_bg=I/3+delta, evaluated at the rational spacetime
+    slice point slice_pt_vals=[beta,gamma,p,q]. EXACT over Q.
+
+    Method: keep the 4 slice coords symbolic to form the Hessian metric g_ij and
+    the 3rd-derivative tensor f_ijk = d^3(-log det)/dx^3 (derivatives wrt the slice
+    coords), THEN evaluate g and f at the rational slice point (now everything is
+    rational), invert the 4x4 rational g (NOT the all-symbolic g.inv() blowup), and
+    contract via the Totaro engine. Returns (R, K, det_g, R_is_real, K_is_real)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    from sympy import log as _log
+    n = 4
+    beta, gamma, p, q = symbols('beta gamma p q', real=True)
+    coords = [beta, gamma, p, q]
+    Phi = (-_log(inv_det_X)).subs(_offcenter_subs(delta, slice_symbolic=True))
+    # metric + 3rd-derivative cubic form (slice-coord derivatives), then evaluate
+    g_sym = hessian_metric(Phi, coords)
+    C_sym = cubic_form_C(Phi, coords)
+    pt = {coords[i]: slice_pt_vals[i] for i in range(n)}
+    g_at = g_sym.subs(pt).applyfunc(simp)
+    C_at = [[[simp(C_sym[i][j][k].subs(pt)) for k in range(n)] for j in range(n)]
+            for i in range(n)]
+    ginv = g_at.inv().applyfunc(simp)           # 4x4 RATIONAL inverse (not symbolic)
+    R = totaro_riemann(ginv, C_at, n, simp=simp)
+    Rs = ricci_scalar(R, ginv, n, simp=simp)
+    Kr = kretschmann(R, ginv, n, simp=simp)
+    detg = simp(g_at.det())
+    Rs_real = (getattr(Rs, "is_real", True) is not False)
+    Kr_real = (getattr(Kr, "is_real", True) is not False)
+    return Rs, Kr, detg, Rs_real, Kr_real
+
+
+def route1_curvature_verdict(basepoints=None, slice_pt=None, simp=None):
+    """THE Route-1 homogeneity KILL verdict (test-homogeneity), EXACT over Q.
+
+    For each of >= 2 distinct generic rational basepoints (distinct off-center-ness
+    rho_J(X_bg)), compute the curvature SCALAR INVARIANTS R(x) (Ricci) and K(x)
+    (Kretschmann) of the inherited cone-Hessian slice metric at a COMMON rational
+    spacetime slice point (so only rho_J varies, NOT x). Compare exact over Q.
+
+    VERDICT (instrumented against the three forbidden proxies):
+      * invariants DIFFER across basepoints  => SURVIVES (genuinely position-dependent);
+      * invariants EQUAL across basepoints    => KILL (emit
+        'Phase A homogeneous -- route dead. STOP.'; fp-relabel-homogeneous: no softening).
+      * The decisive quantities R,K are SCALAR INVARIANTS (full 4-index contractions),
+        NOT metric components (defeats fp-coordinate-curvature); the comparison
+        variable is rho_J(X_bg) with the slice point x held FIXED (defeats the
+        spacetime-x trap); every value is exact over Q (defeats fp-float-decisive).
+
+    Returns a dict with per-basepoint (rho_J^2, R, K, det_g, reality flags), the
+    pairwise exact-over-Q differences, the within-basepoint x-dependence diagnostic,
+    and the verdict string."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    if basepoints is None:
+        basepoints = ROUTE1_BASEPOINTS
+    if slice_pt is None:
+        slice_pt = ROUTE1_COMMON_SLICE_PT
+
+    rows = []
+    for name, delta in basepoints.items():
+        Rs, Kr, detg, Rs_real, Kr_real = _curvature_invariants_at(delta, slice_pt, simp=simp)
+        rows.append({
+            "name": name, "delta": delta, "rho_J_sq": rho_J_squared(delta),
+            "R": Rs, "K": Kr, "det_g": detg,
+            "R_real": Rs_real, "K_real": Kr_real,
+            "degenerate": (detg == 0),
+        })
+
+    # Decisive comparison: do the invariants DIFFER across basepoints? (exact over Q)
+    R0, K0 = rows[0]["R"], rows[0]["K"]
+    all_R_equal = all(simp(r["R"] - R0) == 0 for r in rows)
+    all_K_equal = all(simp(r["K"] - K0) == 0 for r in rows)
+    invariants_differ = (not all_R_equal) or (not all_K_equal)
+
+    # all real (zero imaginary part) and nondegenerate (det_g != 0)?
+    all_real = all(r["R_real"] and r["K_real"] for r in rows)
+    none_degenerate = all(not r["degenerate"] for r in rows)
+    # >= 2 DISTINCT basepoints actually used (distinct rho_J): defeats single-bp trap
+    rho_values = [r["rho_J_sq"] for r in rows]
+    distinct_rho = len({simp(rv) for rv in rho_values}) >= 2
+
+    # Supporting diagnostic: within-basepoint x-dependence (is R(x) non-constant in x?)
+    # Compare R at two DIFFERENT slice points for the first basepoint.
+    alt_slice = [Rational(1, 2), Rational(1, 2), Rational(0), Rational(0)]
+    R_x1, _, _, _, _ = _curvature_invariants_at(rows[0]["delta"], slice_pt, simp=simp)
+    R_x2, _, _, _, _ = _curvature_invariants_at(rows[0]["delta"], alt_slice, simp=simp)
+    x_dependent = (simp(R_x1 - R_x2) != 0)
+
+    # pairwise exact-over-Q differences R^(i)-R^(0), K^(i)-K^(0)
+    diffs = [{"name": r["name"], "dR": simp(r["R"] - R0), "dK": simp(r["K"] - K0)}
+             for r in rows[1:]]
+
+    if invariants_differ:
+        verdict = "SURVIVES"
+        verdict_str = ("Route 1 verdict: SURVIVES -- the inherited slice-metric "
+                       "curvature invariants are genuinely position-dependent "
+                       "(differ across >= 2 distinct generic rational basepoints, "
+                       "exact over Q). The route is ALIVE; Phases 72/73 greenlit.")
+    else:
+        verdict = "KILL"
+        verdict_str = "Phase A homogeneous -- route dead. STOP."
+
+    return {
+        "rows": rows, "diffs": diffs,
+        "all_R_equal": all_R_equal, "all_K_equal": all_K_equal,
+        "invariants_differ": invariants_differ,
+        "all_real": all_real, "none_degenerate": none_degenerate,
+        "distinct_rho": distinct_rho, "x_dependent": x_dependent,
+        "verdict": verdict, "verdict_str": verdict_str,
+        "n_basepoints": len(rows),
+    }
+
+
 # ============================================================================
 # 11. main(): re-run the full LOCK harness on the fresh module + reconciliation
 #     + the Plan 70-02 signature-bridge geometry gates
@@ -1834,6 +1974,52 @@ def main():
             "NON-slice (V_0-internal/matter) directions while the slice coords stay "
             "the free spacetime x [exact Q; defeats fp-coordinate-curvature]",
             simplify(_rho_demo) != 0)
+
+    # ------------------------------------------------------------------------
+    # Phase 71-01 Task 3: ROUTE-1 KILL VERDICT (test-homogeneity). R(x), K(x) at
+    # >= 2 distinct generic rational basepoints (distinct rho_J), COMMON slice point.
+    # invariants DIFFER => SURVIVES; EQUAL => KILL (explicit STOP string). Exact Q.
+    # ------------------------------------------------------------------------
+    print("Task 3 (71-01) -- ROUTE-1 KILL verdict: R(x),K(x) at >=2 generic "
+          "rational basepoints (exact over Q):")
+    _V = route1_curvature_verdict()
+    print("      basepoint                              rho_J^2        R (Ricci)"
+          "             K (Kretschmann)        det_g!=0 real")
+    for _r in _V["rows"]:
+        print(f"      {_r['name']:38s} {str(_r['rho_J_sq']):14s} "
+              f"{str(_r['R']):20s}  {str(_r['K']):20s}  "
+              f"{'Y' if not _r['degenerate'] else 'N':8s}"
+              f"{'Y' if (_r['R_real'] and _r['K_real']) else 'N'}")
+    print("      pairwise exact-over-Q differences vs basepoint 1:")
+    for _d in _V["diffs"]:
+        print(f"        {_d['name']:38s} dR = {_d['dR']}   dK = {_d['dK']}")
+    print(f"      within-basepoint x-dependence (R(x1) != R(x2)): {_V['x_dependent']}; "
+          f">=2 distinct rho_J used: {_V['distinct_rho']}; all invariants real: "
+          f"{_V['all_real']}; none degenerate: {_V['none_degenerate']}")
+    print(f"      >>> {_V['verdict_str']}")
+
+    # The decisive gate: a DECISIVE verdict either way, exact over Q, on SCALAR
+    # invariants (not components), comparing rho_J (slice point fixed), all real,
+    # none degenerate, >= 2 distinct basepoints. (KILL branch emits the STOP string.)
+    _report("ROUTE-1 VERDICT decisive (SURVIVES iff invariants differ across >=2 "
+            "distinct generic rational basepoints; KILL iff equal -> explicit STOP "
+            "string) -- on SCALAR invariants R,K (not components), rho_J fixed-x "
+            "comparison, exact over Q, all real, none degenerate, >=2 distinct rho_J",
+            _V["all_real"] and _V["none_degenerate"] and _V["distinct_rho"]
+            and (_V["n_basepoints"] >= 2)
+            and (_V["verdict"] in ("SURVIVES", "KILL")))
+    if _V["verdict"] == "KILL":
+        # KILL branch: the milestone halts. Emit the mandated STOP string (already
+        # printed above) and assert the homogeneity (all invariants equal).
+        _report("ROUTE-1 KILL: invariants EQUAL across all basepoints (homogeneous) "
+                "-- 'Phase A homogeneous -- route dead. STOP.' [exact Q]",
+                _V["all_R_equal"] and _V["all_K_equal"])
+    else:
+        # SURVIVES branch: invariants genuinely differ; report without softening.
+        _report("ROUTE-1 SURVIVES: invariants DIFFER across >=2 basepoints "
+                "(genuinely position-dependent curvature; route ALIVE) [exact Q] -- "
+                "verdict handed to Plan 71-02 for the mandatory two-route cross-check",
+                _V["invariants_differ"])
 
     print("-" * 78)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")

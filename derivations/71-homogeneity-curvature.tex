@@ -132,6 +132,133 @@ Riemann sign / slice metric would be wrong and NO Route-1 verdict could be trust
 (the roadmap disconfirming-observation trigger). Here it is constant and negative
 ($-\tfrac12$) exact over $\mathbb{Q}$, so the sign is pinned and the gate passes.
 
-% --- Sections 3 (off-center slice metric, rho_J(X_bg) expansion) and 4
-% --- (the >= 2-basepoint comparison and the Route 1 verdict) are appended by
-% --- Tasks 2 and 3 of this plan.
+\subsection{The off-center inherited slice metric (expansion in
+  $\rho_J(X_{\mathrm{bg}})$)}
+\label{sec:offcenter}
+
+With $E_{11}=\operatorname{diag}(1,0,0)$ fixed, the Peirce decomposition is
+$\mathfrak{h}_3(\mathbb{O}) = V_1(1)\oplus V_{1/2}(16)\oplus V_0(10)$. In the
+engine-native layout the sectors are
+\begin{equation}
+  V_1 = \{x_0\}\ (\alpha),\quad
+  V_0 = \{x_1,x_2\}\cup\{x_3,\dots,x_{10}\},\quad
+  V_{1/2} = \{x_{11},\dots,x_{18}\}\cup\{x_{19},\dots,x_{26}\},
+  \label{eq:peirce-idx}
+\end{equation}
+with the spacetime sub-slice
+$\mathfrak{h}_2(\mathbb{C}_u)=\{x_1,x_2,x_3,x_{10}\}=(\beta,\gamma,p,q)$ and the
+internal $W$-sector $V_0\ominus\mathbb{C}_u=\{x_4,\dots,x_9\}$ (the oct-$x_1$
+components $e_1,\dots,e_6$).
+
+We build the inherited slice metric off-center by the LOCKED construction (ii)
+bridge~[70-02]:
+\begin{equation}
+  g_{\mu\nu}(x) = \eta_{\mu\nu} + h_{\mu\nu}(x),
+  \qquad
+  h_{\mu\nu} := \big[\operatorname{Hess}(-\log\det)\big|_{V_0}\big]_{X_{\mathrm{bg}}}
+              - \big[\operatorname{Hess}(-\log\det)\big|_{V_0}\big]_{(M=0,\,I/3)},
+  \label{eq:offcenter-bridge}
+\end{equation}
+evaluated at a generic basepoint $X_{\mathrm{bg}} = I/3 + (\text{off-center
+perturbation})$. The off-center perturbation lives in the NON-slice directions
+$\{x_0\}\cup\{x_4,\dots,x_9\}\cup\{x_{11},\dots,x_{26}\}$ (the $V_1$/$V_{1/2}$
+matter and the $V_0$-internal $W$-sector); the four slice coordinates
+$(\beta,\gamma,p,q)$ remain symbolic and are the free spacetime coordinate $x$.
+
+\paragraph{The expansion variable is $\rho_J(X_{\mathrm{bg}})$, NOT the spacetime
+$x$ (defeats fp-coordinate-curvature).}
+The homogeneity is decided by the off-center-ness of the BASEPOINT, measured by the
+$F_4$-invariant
+\begin{equation}
+  \rho_J(X_{\mathrm{bg}})^2 := \operatorname{Tr}(X_{\mathrm{bg}}^2)
+    - \tfrac13\big(\operatorname{Tr} X_{\mathrm{bg}}\big)^2,
+  \qquad \rho_J(I/3) = 0,
+  \label{eq:rhoJ}
+\end{equation}
+which vanishes iff $X_{\mathrm{bg}}\propto I$. The spacetime $x=(\beta,\gamma,p,q)$
+is $O(1)$ and is the WRONG variable: comparing curvature at different $x$ on a
+single curved metric is not the homogeneity test (metric components, and even the
+curvature scalar, vary with $x$ on any inhomogeneous space). The decisive
+comparison (next subsection) varies $\rho_J(X_{\mathrm{bg}})$ with the spacetime
+slice point HELD FIXED.
+
+\paragraph{Center regression (test-center-regression).}
+Setting $X_{\mathrm{bg}}\to I/3$ (perturbation $\to 0$, slice at center) reduces the
+restricted cone-Hessian to the Phase-70 certified value, EXACT over $\mathbb{Q}$:
+\begin{equation}
+  \texttt{cone\_hessian\_offcenter}(I/3) = \operatorname{diag}(9,9,18,18),
+  \quad \det = 26244,
+  \qquad h_{\mu\nu}(\text{center}) = 0,\ \ \rho_J^2(\text{center}) = 0.
+  \label{eq:center-reg}
+\end{equation}
+
+\subsection{Route-1 verdict: $R(x)$, $K(x)$ at $\ge 2$ generic rational basepoints}
+\label{sec:verdict}
+
+We evaluate the curvature SCALAR INVARIANTS -- the Ricci scalar
+$R = g^{ik}g^{jl}R_{ijkl}$ and the Kretschmann scalar $K = R_{ijkl}R^{ijkl}$ (via
+the engine \eqref{eq:totaro}) -- of the off-center slice metric
+\eqref{eq:offcenter-bridge} at $\ge 2$ distinct generic rational basepoints
+(distinct $\rho_J(X_{\mathrm{bg}})$), at a COMMON rational spacetime slice point
+$(\beta,\gamma,p,q)=(\tfrac25,\tfrac35,\tfrac1{10},\tfrac18)$, EXACT over
+$\mathbb{Q}$. (The 4-dim slice Hessian is inverted as a RATIONAL $4\times4$ matrix
+AFTER substituting the rational slice point -- never the all-symbolic
+\texttt{g.inv()} blowup.) Four basepoints, one of them GENUINELY OCTONIONIC
+(populating the $\mathbb{C}_u$-orthogonal directions $x_4,x_5,x_6$ where
+non-associativity bites), give:
+\begin{equation}
+  \begin{array}{lll}
+    \text{BP1}\ (\rho_J^2 = \tfrac{69943}{264600}): & R = -\tfrac{1047519795}{310570129}, &
+       K = \tfrac{199433666279208291}{96453805027076641};\\[4pt]
+    \text{BP2}\ (\rho_J^2 = \tfrac{239}{360}): & R = -\tfrac{130237700283}{50153154601}, &
+       K = \tfrac{2854802323114815643443}{2515338916431807469201};\\[4pt]
+    \text{BP3}\ (\rho_J^2 = \tfrac{168799}{352800}): & R = -\tfrac{29748150983655}{10135417202689}, & \cdots;\\[4pt]
+    \text{BP4 (octonionic)}\ (\rho_J^2 = \tfrac{87881}{88200}): & R = -\tfrac{71861403663}{39975603721}, & \cdots.
+  \end{array}
+  \label{eq:RK-table}
+\end{equation}
+All four invariants are REAL (zero imaginary part -- no octonion cross-term
+association error; built on the SSOT $\det_3$, never \texttt{octonion\_algebra.py})
+and nondegenerate ($\det g \neq 0$). The pairwise differences are nonzero exact
+rationals over $\mathbb{Q}$, e.g.
+\begin{equation}
+  R_{\text{BP2}} - R_{\text{BP1}}
+  = \frac{12088482848688180288}{15576071694189513529} \neq 0.
+  \label{eq:diff}
+\end{equation}
+
+\paragraph{The verdict (instrumented against all three forbidden proxies).}
+The curvature scalar invariants DIFFER across the $\ge 2$ distinct generic rational
+basepoints, exact over $\mathbb{Q}$. Therefore:
+\begin{equation}
+  \boxed{\textbf{Route 1 verdict: SURVIVES}}
+  \label{eq:route1-verdict}
+\end{equation}
+-- the inherited slice metric $g_{\mu\nu}(x)$ has genuinely position-dependent
+curvature invariants; fixing $E_{11}$ leaves a residual structure that is NOT
+homogeneous, so the route to ``gravity as inherited slice curvature'' is ALIVE and
+Phases 72/73 (matter-sourcing, Einstein structure) are greenlit. The verdict is
+reported WITHOUT softening; had the invariants been EQUAL across basepoints the
+verdict would have been the clean valuable KILL, with the engine emitting the
+literal string
+\verb|Phase A homogeneous -- route dead. STOP.| (NEGATIVE-RESULT-IS-SUCCESS). The decisive comparison reads only the
+curvature SCALAR INVARIANTS $R,K$ (full 4-index contractions, NOT metric
+components -- defeating fp-coordinate-curvature); the comparison variable is
+$\rho_J(X_{\mathrm{bg}})$ with the spacetime slice point held FIXED (defeating the
+spacetime-$x$ trap); and every decisive value is EXACT over $\mathbb{Q}$
+(\texttt{sympy.Rational}, $0$ float-rank / float-curvature calls on the decisive
+path -- defeating fp-float-decisive). Within a single basepoint the invariant
+$R(x)$ is additionally confirmed non-constant in $x$ (the slice $4$-manifold is
+genuinely curved).
+
+\paragraph{Hand-off to Plan 71-02 (mandatory two-route cross-check).}
+This Route-1 SURVIVES verdict and its exact-over-$\mathbb{Q}$ evidence
+(\eqref{eq:RK-table}--\eqref{eq:diff}) are handed to Plan 71-02, which produces the
+independent stabilizer-transitivity verdict (is $\mathrm{Stab}_{E_6}(E_{11})$
+transitive on the basepoint family?) plus the totally-geodesic $\mathrm{II}$
+shortcut; the two routes MUST AGREE. Route 1 is curvature-based (and so carries the
+Riemann-sign convention pinned in \S\ref{sec:h3-benchmark}); Route 2 is purely
+algebraic (sign-immune), which is exactly why the agreement is the robustness
+guarantee. A SURVIVES from Route 1 predicts a NON-transitive
+$\mathrm{Stab}_{E_6}(E_{11})$ and a non-vanishing second fundamental form
+$\mathrm{II}\neq 0$ in Plan 71-02.
