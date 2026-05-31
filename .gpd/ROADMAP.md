@@ -119,10 +119,10 @@ Plans:
 5. All decisive arithmetic is exact over Q; `det_3` stays the single source of truth; no factor is inserted to force `Ric∝g` or flatness.
 
 **Backtracking trigger:** If neither restatement is defensible (e.g. the cone-Hessian background turns out not to admit a consistent linearized spin-2 sector, AND `η+h` cannot be justified as the gravitational field without circularity), report that the route's gravitational interpretation is **not established** and escalate — do NOT force a metric choice to keep the milestone alive.
-**Plans:** TBD (run `/gpd:plan-phase 70.1`)
+**Plans:** 1 plan (wave 1: 70.1-01, interactive)
 
 Plans:
-- [ ] TBD (run plan-phase 70.1 to break down)
+- [ ] 70.1-01-PLAN.md — reproduce-and-headline the M=0 cone-Hessian spectrum {0,−1,−1,−1} (R=−3, R_time×H³, NOT Einstein) exact-over-Q from the warm engine; Einstein-condition verdict + signature-independence; linearized-spin-2-on-fixed-non-Einstein-background defensibility + η+h Λ=0-circularity tripwire; interactive thesis-restatement ratification (cone-Hessian / η+h / escalate); consequence propagation to Phases 72/73
 
 ### Phase 71: A — Homogeneity KILL Gate
 
