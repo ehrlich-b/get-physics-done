@@ -342,7 +342,7 @@ $$
 - Verdict independently re-derived via the engine API in a fresh process: SURVIVES, R_BP1=-1047519795/310570129, R_BP4=-71861403663/39975603721, H^3 K=[-1/2,-1/2,-1/2], source guard PASS. OK
 - Decisive numbers present in engine output: the 4-basepoint R/K table, the nonzero pairwise differences, 'Route 1 verdict: SURVIVES'. OK
 - Convention consistency: one signature (mostly-minus), one potential (-log det), one Riemann sign convention (stated + benchmarked); decisive geometry built on the SSOT det_3 (no octonion_algebra import; guard PASS, 0 float-rank/curvature). OK
-- Contract coverage: every claim / deliverable / acceptance-test / reference / forbidden-proxy ID from the PLAN contract appears in contract_results; the 3 decisive/supporting comparison verdicts are recorded. OK
+- Contract coverage: every claim / deliverable / acceptance-test / reference / forbidden-proxy ID from the PLAN contract appears in contract_results; the 4 comparison verdicts (test-homogeneity, test-h3-benchmark, test-center-regression, ref-warm-engine -- all decisive) are recorded; `gpd validate summary-contract` -> valid (0 errors). OK
 
 ## Validation: PASSED
 
