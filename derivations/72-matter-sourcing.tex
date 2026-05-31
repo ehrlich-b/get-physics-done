@@ -9,16 +9,25 @@
 %   baseline, for the v17.0 milestone "Gravity as Intrinsic Curvature of the h_3(O)
 %   Bulk Geometry".
 %
-% STATUS (2026-05-31): 72-01 STOPPED AT THE FIRST-RESULT GATE. The plan's required
-%   first load-bearing result -- "the M=0 center is Einstein (traceless Ricci
-%   S_munu = 0) with R(center) = -3 < 0 (pure-Lambda Cartan)" -- DOES NOT HOLD AS
-%   STATED, and this is the plan's explicit backtracking trigger (disconfirming
-%   observation #3). The finding is decisive, exact-over-Q, and cross-checked
-%   against the engine's own H^3 benchmark: the 4-dim cone-Hessian sub-slice metric
-%   is a METRIC CONE over H^3 (Ricci endomorphism eigenvalues {0,-1,-1,-1}), hence
-%   NOT Einstein in n=4. Per the first-result-gate discipline the matter Delta R(M)
-%   verdict deliverables are NOT produced and no SUMMARY is written that masks this;
-%   the baseline ambiguity is escalated for adjudication (Sec 4).
+% STATUS (2026-05-31): 72-01 STOPPED AT THE FIRST-RESULT GATE; the milestone has
+%   BACKTRACKED to Phase 70 (researcher decision, see Sec on adjudication). The
+%   plan's required first load-bearing result -- "the M=0 center is Einstein
+%   (traceless Ricci S_munu = 0) with R(center) = -3 < 0 (pure-Lambda Cartan)" --
+%   DOES NOT HOLD, and this is the plan's explicit backtracking trigger
+%   (disconfirming observation #3). The finding is decisive, exact-over-Q, and
+%   cross-checked against the engine's own H^3 benchmark: the 4-dim cone-Hessian
+%   sub-slice M=0 vacuum is a static product R x H^3 whose FLAT factor (1,1,0,0) is
+%   the TIMELIKE x_0 direction under h_2(C_u) ~ R^{3,1}; its Ricci endomorphism has
+%   eigenvalues {0,-1,-1,-1}, so it is NOT Einstein in n=4.
+%
+%   THIS NON-EINSTEIN M=0 VACUUM *IS* THE VALD-04 RESULT (negative-result-is-success),
+%   NOT a reference-choice problem. A GR Lambda-vacuum must be Einstein (Ric prop. to
+%   g); no baseline subtraction turns a non-Einstein vacuum into an Einstein one, so
+%   "which Lambda reference" presupposes a maximally-symmetric vacuum this
+%   construction does not produce. The matter Delta R(M) verdict deliverables are NOT
+%   produced (honest-negative discipline; no masking SUMMARY). The matter mechanism
+%   and the Delta-R isolation pipeline are PRESERVED (they are not what broke) and
+%   stand for whichever metric the reopened Phase 70 selects.
 %
 % References:
 %   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381.
@@ -29,7 +38,7 @@
 %   [70-02] derivations/70-signature-bridge.tex + code/bulk_geometry_verification.py:
 %           construction-(ii) bridge; Hess(-log det)|_{I/3} = diag(9,9,18,18)/26244.
 
-\section{Phase 72-01: matter mechanism, Phase-71 regression, and the M=0 baseline obstruction}
+\section{Phase 72-01: matter mechanism, Phase-71 regression, and the M=0 non-Einstein vacuum (VALD-04 finding $\Rightarrow$ backtrack to Phase 70)}
 
 \subsection{Conventions (carried verbatim from the v17.0 lock)}
 
@@ -150,13 +159,20 @@ Ricci tensor is NOT proportional to the metric:
 \end{equation}
 The Ricci endomorphism $g^{-1}\mathrm{Ric}$ has the degenerate spectrum
 $\{0,-1,-1,-1\}$ (so $S_{\mu\nu}\neq0$; the slice is NOT Einstein in $n=4$). The
-eigenvalue-$0$ eigenvector is $(1,1,0,0)$, the $\beta+\gamma$ \emph{dilation /
-overall-scale direction} -- exactly the scale-invariance $R(X)=R(2X)$ found in
-Phase 71 ($\Phi=-\log\det$ shifts by a constant under $X\mapsto cX$, leaving the
-Hessian metric, hence $R$, unchanged). The coordinate sectional curvatures confirm
-the structure: $K(e_0,e_1)=0$ (the dilation 2-plane is flat), the mixed planes are
-$-\tfrac14$, and $K(e_2,e_3)=K(p,q)=-\tfrac12$ -- the $H^3$ base value, identical to
-the engine's certified \texttt{h3\_cone\_hessian\_benchmark}.
+eigenvalue-$0$ eigenvector is $(1,1,0,0)$, the $\beta+\gamma$ direction. On the
+Riemannian cone this is the \emph{dilation / overall-scale} direction -- exactly the
+scale-invariance $R(X)=R(2X)$ found in Phase 71 ($\Phi=-\log\det$ shifts by a constant
+under $X\mapsto cX$, leaving the Hessian metric, hence $R$, unchanged). \emph{But under
+the Lorentzian spacetime reading} $h_2(C_u)\simeq\mathbb{R}^{3,1}$ with the $\det_2$
+Minkowski form $\beta\gamma/3-p^2/3-q^2/3$, the very same $(1,1,0,0)=\beta{+}\gamma$
+direction is the \textbf{timelike $x_0$ direction} (the $\beta\gamma/3$ block is the
+hyperbolic $1{+}1$ part; $(1,1)$ is its positive/timelike eigenvector). So the flat
+factor of the cone is \emph{time}, and the $M=0$ vacuum is a static product
+$\mathbb{R}_{\text{time}}\times H^3_{\text{space}}$. The coordinate sectional
+curvatures confirm the structure: $K(e_0,e_1)=0$ (the timelike/dilation 2-plane is
+flat), the mixed planes are $-\tfrac14$, and $K(e_2,e_3)=K(p,q)=-\tfrac12$ -- the
+$H^3$ base value, identical to the engine's certified
+\texttt{h3\_cone\_hessian\_benchmark}.
 
 \paragraph{Diagnosis (decisive, exact over $\mathbb{Q}$, not an engine bug).} The
 4-dim cone-Hessian sub-slice is a \emph{metric cone} $C(H^3)=\mathbb{R}_{>0}\times H^3$:
@@ -176,42 +192,83 @@ this metric. The two candidate baseline metrics each satisfy only one half:
 \end{itemize}
 Per the disconfirming-observation discipline (this is named obstruction #3) and the
 first-result-gate rule, 72-01 STOPS here: the matter $\Delta R(M)$ verdict is not
-produced, and no result is reported that papers over the baseline inconsistency. The
-clean Task-1 results (Secs~\ref{sec:mechanism}--\ref{sec:regression}) stand; the
-baseline (Sec~\ref{sec:baseline-options}) requires adjudication before the matter
-computation is meaningful.
+produced, and no result is reported that papers over the non-Einstein vacuum. The
+clean Task-1 results (Secs~\ref{sec:mechanism}--\ref{sec:regression}) stand. The
+adjudication (Sec~\ref{sec:adjudication}) records that this non-Einstein $M=0$ vacuum
+\emph{is} the VALD-04 finding and that the milestone backtracks to a reopened Phase 70
+(Sec~\ref{sec:phase70-task}) to decide which object is the physical spacetime metric.
 
-\subsection{Reconciliation options for the baseline (for adjudication)}
-\label{sec:baseline-options}
+\subsection{Adjudication: the non-Einstein vacuum IS the result; the candidate
+            ``baselines'' are not interchangeable (researcher decision, 2026-05-31)}
+\label{sec:adjudication}
 
-The matter-sourcing program is NOT dead -- the obstruction is about which reference
-the maximally-symmetric ($\Lambda$) part is, and on which manifold "Einstein" is
-demanded. Three concrete reconciliations, each leaving the isolation protocol
-(differencing $\Delta R(M)$ at a fixed $V_0$-background) intact:
-\begin{enumerate}
-  \item \textbf{Einstein on the $\det=1$ base, not the 4-dim cone.} The genuine
-        maximally-symmetric reference is the $H^3$ base (the $\det_2=1$ hyperboloid,
-        $E_{6(-26)}/F_4$ Cartan space [FK94]), which IS constant-curvature
-        ($K=-\tfrac12$, Einstein in 3d). The flat dilation direction is a known cone
-        artifact, not "matter". Then the first-result gate should read "the $\det=1$
-        base is Einstein-negative; the 4-dim cone-Hessian carries one extra flat
-        radial direction," and the matter test is whether $\Delta R(M)$ deforms the
-        $H^3$ base away from constant curvature.
-  \item \textbf{Use the construction-(ii) metric $g=\eta+h$ as the decisive metric.}
-        Then the $M=0$ center is flat Minkowski ($\Lambda=0$ at the center), the
-        Phase-71 position-dependence lives entirely in $h$ off-center, and "$R=-3$"
-        is reinterpreted as a cone-Hessian diagnostic, not the construction-(ii)
-        curvature. This changes the $\Lambda<0$ Cartan baseline wording.
-  \item \textbf{Quotient out the dilation direction (project to the traceless /
-        $\det=$const leaf) before the Einstein check.} The decisive spacetime
-        geometry is the $\det_2$-leaf, on which the radial $0$-mode is absent.
-\end{enumerate}
-Option 1 is the cleanest and is consistent with both Phase-71 ($R=R(\det_2)$ varies
-on leaves; scale-invariant) and the literature Cartan/Jordan-Einstein baseline
-(arXiv:2309.02682, negative scalar curvature on the symmetric space). The decisive
-matter verdict (72-02) and the cross-term off-switch are unaffected by the choice;
-only the \emph{baseline subtraction and the $\Lambda$-vs-matter wording} depend on it.
-This is the adjudication 72-01 returns to the orchestrator.
+The obstruction is \textbf{not} a reference choice. A general-relativistic
+$\Lambda$-vacuum \emph{must} be Einstein ($\mathrm{Ric}\propto g$); no baseline
+subtraction turns a non-Einstein vacuum into an Einstein one. So the question ``which
+$\Lambda$ reference?'' already presupposes a maximally-symmetric vacuum that this
+construction \emph{does not produce}. The computed $M=0$ cone-Hessian vacuum is the
+static product $\mathbb{R}_{\text{time}}\times H^3$ with Ricci spectrum
+$\{0,-1,-1,-1\}$ -- and \textbf{that is the VALD-04 finding}
+(negative-result-is-success), to be reported as such, not papered over.
+
+The three ``reconciliations'' previously listed are not on equal footing:
+\begin{itemize}
+  \item[\textbf{(a)}] \textbf{REJECTED -- ``Einstein on the $\det_2=1$ $H^3$ leaf.''}
+        This references 4-dim gravity against the 3-dim \emph{spatial} $\det_2=1$
+        hyperboloid, i.e.\ it \emph{drops the flat $=$ timelike $x_0$ direction}. $H^3$
+        is maximally symmetric but it is the \emph{wrong} symmetric space and one
+        dimension short: GR's empty hyperbolic-slice vacuum is Milne $=$ flat
+        Minkowski, \emph{not} $H^3$. Measuring matter-sourcing against it manufactures
+        a pass by swapping spacetime for a spatial slice -- this is the
+        \texttt{fp-relabel} class of self-deception. Do not take it. (Quotienting the
+        dilation/timelike direction -- old option 3 -- is the same move and is
+        likewise rejected.)
+  \item[\textbf{(b)}] \textbf{CONDITIONAL -- ``$g=\eta+h$ is the decisive metric.''}
+        $\eta+h$ is flat at the center, which \emph{is} GR's correct empty vacuum
+        (right physics, unlike (a)). But it is admissible only with two caveats:
+        (i) the flatness is \emph{inserted} by the center-subtraction, so $\Lambda=0$
+        is built in, not derived -- Phase 73's per-equation circularity audit must
+        carry this tripwire; and (ii) adopting $\eta+h$ as the spacetime metric
+        \emph{abandons} the route thesis ``gravity $=$ curvature of the cone-Hessian,''
+        since the cone-Hessian gives $\mathbb{R}\times H^3$, not flat. Hence (b) is
+        admissible ONLY after a reopened Phase 70 explicitly rules that $\eta+h$ (not
+        the cone-Hessian) is THE spacetime metric and restates the thesis accordingly.
+\end{itemize}
+
+\textbf{DECISION (c): halt the matter-sourcing measurement and reopen Phase 70.} The
+plan's backtracking trigger \#3 has fired; it is honored, not routed around. The
+matter mechanism (Sec~\ref{sec:mechanism}), the non-vacuity preflight
+(Sec~\ref{sec:nonvacuity}), and the $\Delta R$-isolation pipeline
+(Sec~\ref{sec:carryforward}) are PRESERVED and are not what broke; they stand for
+whichever metric Phase 70 selects.
+
+\subsection{Reopened Phase 70: which object is the physical spacetime metric?}
+\label{sec:phase70-task}
+
+The Riemannian cone-Hessian (the thesis metric $\Rightarrow$ a
+$\mathbb{R}\times H^3$, non-Einstein $M=0$ vacuum) and the Lorentzian construction-(ii)
+bridge $\eta+h$ ($\Rightarrow$ a flat $M=0$ vacuum) \emph{disagree about the $M=0$
+geometry}. That disagreement is precisely the construction-(ii) signature bridge being
+\emph{underdetermined} -- the Riemannian/Lorentzian tension already flagged in
+\texttt{CONVENTIONS.md}. The reopened Phase 70 must resolve exactly one question:
+\emph{which object is the physical spacetime metric?}
+\begin{itemize}
+  \item \textbf{If the cone-Hessian (the thesis):} the $M=0$ vacuum is non-Einstein
+        ($\mathbb{R}\times H^3$), so the route does NOT yield GR-with-a-$\Lambda$-vacuum.
+        This must not be papered over with a reference choice. The most the route can
+        then claim is \emph{linearized matter-response} (a spin-2 perturbation) on a
+        FIXED non-Einstein $\mathbb{R}\times H^3$ background -- a strictly weaker result
+        that must be NAMED as such, never relabeled ``GR derived.''
+  \item \textbf{If the $\eta+h$ bridge:} the thesis is wrong as stated and must be
+        restated -- show why the bridge metric (not the cone curvature) is the
+        gravitational field, carry the built-in $\Lambda=0$ tripwire into Phase 73, and
+        (b) becomes the reference.
+\end{itemize}
+
+\paragraph{Discipline for the reopened Phase 70.} Exact over $\mathbb{Q}$; do NOT
+insert any factor to force $\mathrm{Ric}\propto g$ or to force flatness (that corrupts
+the very verdict it feeds); $\det_3$ remains the single source of truth; headline the
+eigenvalues $\{0,-1,-1,-1\}$.
 
 \subsection{What is verified and exact (carry-forward to 72-02)}
 \label{sec:carryforward}
@@ -232,6 +289,8 @@ This is the adjudication 72-01 returns to the orchestrator.
         NON-Einstein ($S_{\mu\nu}\neq0$), which is what surfaced the obstruction.
   \item Isolation helper $\Delta R(M)=R(X_{\mathrm{bg}}+M)-R(X_{\mathrm{bg}})$ at a
         fixed $V_0$-background returns real, nondegenerate, exact-over-$\mathbb{Q}$
-        values, and $\Delta R(M{=}0)=0$ (trivial limit) -- but its decisive
-        interpretation is GATED on the baseline adjudication (Sec~\ref{sec:baseline-options}).
+        values, and $\Delta R(M{=}0)=0$ (trivial limit) -- PRESERVED and unaffected by
+        the backtrack; its decisive interpretation awaits the reopened Phase 70's
+        metric selection (Sec~\ref{sec:phase70-task}). The matter mechanism is not what
+        broke.
 \end{itemize}

@@ -20,7 +20,7 @@ The machine-readable project contract lives in `.gpd/state.json` field `project_
 | ------------- | -------------------- | ---------------- | ------ |
 | **claim-signature-bridge** — a Riemannian-cone-Hessian -> Lorentzian-slice map reducing to EXACT Minkowski at (M=0, center) | Phase 70 (A0) | test-minkowski-reduction, test-cross-term-association | Planned |
 | **claim-homogeneity** — THE KILL GATE: g_mu_nu(x) genuinely position-dependent (SURVIVES) vs x-independent/homogeneous (DEAD) | Phase 71 (A) | test-homogeneity | **Verified — SURVIVES** (2026-05-30) |
-| **claim-matter-sourcing** — slice curvature sourced by M in V_1+V_{1/2} via cubic-norm cross-terms (CONDITIONAL on Phase 71 surviving) | Phase 72 (B) | test-cross-term-onoff, test-lambda-vs-matter | Planned (conditional) |
+| **claim-matter-sourcing** — slice curvature sourced by M in V_1+V_{1/2} via cubic-norm cross-terms (CONDITIONAL on Phase 71 surviving) | Phase 72 (B) | test-cross-term-onoff, test-lambda-vs-matter | **BLOCKED — backtrack to Phase 70** (2026-05-31): the M=0 cone-Hessian vacuum is non-Einstein (R×H³, Ric eig {0,-1,-1,-1}); a GR Λ-vacuum must be Einstein, so the matter verdict is not decidable until Phase 70 selects the physical metric |
 | **claim-einstein-structure** — the honest level (exact / linear-in-M / none) at which G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu holds (CONDITIONAL on Phase 72) | Phase 73 (C) | test-einstein-level | Planned (conditional) |
 
 **Anchors carried through the milestone (must surface where applicable):** ref-prompt (`paper6-bulk-geometry-prompt.md`, authoritative spec), ref-faraut-koranyi (cone metric), ref-52-kkt (`52-kkt-spacetime.tex` + `52-observer-uniqueness.tex`, the Minkowski background), ref-h3o-tower (`h3o_tower.py`, corrected cubic norm), ref-baez-octonions, ref-warm-engine (`ring_lemma_verification.py` + `embedding_under_E_verification.py`), ref-peirce-coupling (`peirce_coupling.py` + `rho_directional_derivatives.py`), ref-mccrimmon, ref-vinberg-koszul, ref-gst (geometry only), ref-jacobson-contrast (avoid).
@@ -60,7 +60,7 @@ Phase 70 (A0: signature bridge)  →  Phase 71 (A: homogeneity KILL gate)
 
 - [x] **Phase 70: A0 — Engine Reconciliation & Signature Bridge** — Certify a single det_3, stand up the bulk-geometry engine, and fix the construction-(ii) signature bridge reducing to exact Minkowski at center
 - [x] **Phase 71: A — Homogeneity KILL Gate** (completed 2026-05-30 — **SURVIVES**: inherited h_2(C_u) slice metric genuinely position-dependent; routes reconciled, II(h_2(C_u))≠0 off-center) — DECISIVE: is the inherited slice metric genuinely position-dependent (route SURVIVES) or x-independent/homogeneous (route DEAD)?
-- [ ] **Phase 72: B — Matter-Sourcing (CONDITIONAL on Phase 71)** — Is the slice curvature sourced by M in V_1/V_{1/2} via the cubic-norm cross-terms, with M=0 flat/pure-Lambda?
+- [ ] **Phase 72: B — Matter-Sourcing (CONDITIONAL on Phase 71)** — Is the slice curvature sourced by M in V_1/V_{1/2} via the cubic-norm cross-terms, with M=0 flat/pure-Lambda? — **HALTED 2026-05-31 (backtrack to Phase 70).** First-result gate (72-01) found the M=0 cone-Hessian vacuum is the non-Einstein static product R_time×H³ (Ric eig {0,-1,-1,-1}; the flat eigenvalue-0 dir is the TIMELIKE x_0). A GR Λ-vacuum must be Einstein (Ric∝g) — this is the real VALD-04 finding (negative-result-is-success), not a reference choice. Reopen Phase 70 to decide which object is the physical spacetime metric (cone-Hessian thesis ⇒ at most linearized spin-2 on a fixed non-Einstein background; or η+h bridge ⇒ flat, thesis restated, Λ=0 tripwire). Matter mechanism + ΔR pipeline PRESERVED. See `.gpd/phases/72-b-matter-sourcing/PHASE-RECOVERY.md`.
 - [ ] **Phase 73: C — Einstein Structure (CONDITIONAL on Phase 72)** — At what honest level does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold for a cross-term-built T_mu_nu?
 
 ## Phase Details
@@ -218,7 +218,7 @@ Phases execute in strict numeric order with hard gates: 70 -> 71 -> [KILL?] -> 7
 | ----- | --------- | -------------- | ------ | --------- |
 | 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 2/2 | Complete | 2026-05-30 |
 | 71. A — Homogeneity KILL Gate | v17.0 | 2/2 | Complete (SURVIVES) | 2026-05-30 |
-| 72. B — Matter-Sourcing (conditional) | v17.0 | 0/TBD | Not started | - |
+| 72. B — Matter-Sourcing (conditional) | v17.0 | 0/2 | HALTED — backtrack to Phase 70 (M=0 vacuum non-Einstein R×H³) | - |
 | 73. C — Einstein Structure (conditional) | v17.0 | 0/TBD | Not started | - |
 
 ---
