@@ -137,7 +137,7 @@ These conventions constrain each other; the interactions below were checked at e
 | Curvature engine uses `f_ijkl=0` | `det` cubic | a degree-3 norm has vanishing 4th derivative | OK — Totaro form valid |
 | mostly-minus slice (−,+,+,+) | slice `det_2` Minkowski form | one timelike + three spacelike directions | OK — `b·g/3 − p^2/3 − q^2/3` |
 | Construction (ii) bridge | `g(center,M=0)=eta` EXACTLY | no spurious constant offset (no fake Lambda / position-dependence) | ENFORCE at Phase 70 (gate) |
-| Riemann sign (TBD) | `H^3` benchmark | constant curvature must be **−1** (not +1) | BENCHMARK at Phase 70 before verdicts |
+| Riemann sign (RESOLVED Phase 71) | `H^3` benchmark | sign pinned NEGATIVE & constant; cone-Hessian-SLICE sectional curvature = **−1/2**, round-metric reinforcement = **−1** (exact factor-of-2: `g_slice|_apex = diag(2,2,2) = 2·g_round`, so `K(2g)=K(g)/2`). Load-bearing fact is the negative constant SIGN, NOT the magnitude; do NOT force −1 | BENCHMARKED Phase 71 (cone-Hessian K=−1/2, round K=−1) |
 
 **Numerical-factor watch list** (convention-determined factors to guard in derivations):
 `1/2` (Jordan product), `6` (polarization `d=6·det`), `1/4` (Totaro Riemann prefactor),

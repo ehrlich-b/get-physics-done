@@ -19,7 +19,7 @@ The machine-readable project contract lives in `.gpd/state.json` field `project_
 | Contract Item | Advanced By Phase(s) | Acceptance Tests | Status |
 | ------------- | -------------------- | ---------------- | ------ |
 | **claim-signature-bridge** — a Riemannian-cone-Hessian -> Lorentzian-slice map reducing to EXACT Minkowski at (M=0, center) | Phase 70 (A0) | test-minkowski-reduction, test-cross-term-association | Planned |
-| **claim-homogeneity** — THE KILL GATE: g_mu_nu(x) genuinely position-dependent (SURVIVES) vs x-independent/homogeneous (DEAD) | Phase 71 (A) | test-homogeneity | Planned |
+| **claim-homogeneity** — THE KILL GATE: g_mu_nu(x) genuinely position-dependent (SURVIVES) vs x-independent/homogeneous (DEAD) | Phase 71 (A) | test-homogeneity | **Verified — SURVIVES** (2026-05-30) |
 | **claim-matter-sourcing** — slice curvature sourced by M in V_1+V_{1/2} via cubic-norm cross-terms (CONDITIONAL on Phase 71 surviving) | Phase 72 (B) | test-cross-term-onoff, test-lambda-vs-matter | Planned (conditional) |
 | **claim-einstein-structure** — the honest level (exact / linear-in-M / none) at which G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu holds (CONDITIONAL on Phase 72) | Phase 73 (C) | test-einstein-level | Planned (conditional) |
 
@@ -59,7 +59,7 @@ Phase 70 (A0: signature bridge)  →  Phase 71 (A: homogeneity KILL gate)
 - Decimal phases (e.g., 71.1): urgent insertions (marked INSERTED)
 
 - [x] **Phase 70: A0 — Engine Reconciliation & Signature Bridge** — Certify a single det_3, stand up the bulk-geometry engine, and fix the construction-(ii) signature bridge reducing to exact Minkowski at center
-- [ ] **Phase 71: A — Homogeneity KILL Gate** — DECISIVE: is the inherited slice metric genuinely position-dependent (route SURVIVES) or x-independent/homogeneous (route DEAD)?
+- [x] **Phase 71: A — Homogeneity KILL Gate** (completed 2026-05-30 — **SURVIVES**: inherited h_2(C_u) slice metric genuinely position-dependent; routes reconciled, II(h_2(C_u))≠0 off-center) — DECISIVE: is the inherited slice metric genuinely position-dependent (route SURVIVES) or x-independent/homogeneous (route DEAD)?
 - [ ] **Phase 72: B — Matter-Sourcing (CONDITIONAL on Phase 71)** — Is the slice curvature sourced by M in V_1/V_{1/2} via the cubic-norm cross-terms, with M=0 flat/pure-Lambda?
 - [ ] **Phase 73: C — Einstein Structure (CONDITIONAL on Phase 72)** — At what honest level does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold for a cross-term-built T_mu_nu?
 
@@ -217,7 +217,7 @@ Phases execute in strict numeric order with hard gates: 70 -> 71 -> [KILL?] -> 7
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 70. A0 — Engine Reconciliation & Signature Bridge | v17.0 | 2/2 | Complete | 2026-05-30 |
-| 71. A — Homogeneity KILL Gate | v17.0 | 0/2 | Planned | - |
+| 71. A — Homogeneity KILL Gate | v17.0 | 2/2 | Complete (SURVIVES) | 2026-05-30 |
 | 72. B — Matter-Sourcing (conditional) | v17.0 | 0/TBD | Not started | - |
 | 73. C — Einstein Structure (conditional) | v17.0 | 0/TBD | Not started | - |
 
