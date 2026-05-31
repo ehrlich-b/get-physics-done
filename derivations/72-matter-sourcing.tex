@@ -1,0 +1,237 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, potential=minus_log_det,
+%   cone_metric=hess(minus_log_det), cubic_norm_det=ring_lemma_verification_det_3,
+%   curvature_engine=totaro_closed_form, arithmetic=exact_over_Q
+%
+% Phase 72 (B -- Matter-Sourcing), Plan 01 (DERV-02 + VALD-04): the matter-aware
+%   Totaro curvature engine on the dim-4 h_2(C_u) spacetime sub-slice and the M=0
+%   baseline, for the v17.0 milestone "Gravity as Intrinsic Curvature of the h_3(O)
+%   Bulk Geometry".
+%
+% STATUS (2026-05-31): 72-01 STOPPED AT THE FIRST-RESULT GATE. The plan's required
+%   first load-bearing result -- "the M=0 center is Einstein (traceless Ricci
+%   S_munu = 0) with R(center) = -3 < 0 (pure-Lambda Cartan)" -- DOES NOT HOLD AS
+%   STATED, and this is the plan's explicit backtracking trigger (disconfirming
+%   observation #3). The finding is decisive, exact-over-Q, and cross-checked
+%   against the engine's own H^3 benchmark: the 4-dim cone-Hessian sub-slice metric
+%   is a METRIC CONE over H^3 (Ricci endomorphism eigenvalues {0,-1,-1,-1}), hence
+%   NOT Einstein in n=4. Per the first-result-gate discipline the matter Delta R(M)
+%   verdict deliverables are NOT produced and no SUMMARY is written that masks this;
+%   the baseline ambiguity is escalated for adjudication (Sec 4).
+%
+% References:
+%   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381.
+%   [FK94]  Faraut & Koranyi, Analysis on Symmetric Cones (OUP 1994), Ch. II-IV.
+%   [McC04] McCrimmon, A Taste of Jordan Algebras (Springer 2004).
+%   [71VER] .gpd/phases/71-a-homogeneity-kill-gate/71-VERIFICATION.md (matterless
+%           regression anchors; cone-Hessian R(center) = -3; K_sect = -1/2).
+%   [70-02] derivations/70-signature-bridge.tex + code/bulk_geometry_verification.py:
+%           construction-(ii) bridge; Hess(-log det)|_{I/3} = diag(9,9,18,18)/26244.
+
+\section{Phase 72-01: matter mechanism, Phase-71 regression, and the M=0 baseline obstruction}
+
+\subsection{Conventions (carried verbatim from the v17.0 lock)}
+
+All decisive quantities are EXACT over $\mathbb{Q}$ (no float on any verdict; ranks
+via \texttt{sympy.Matrix}). The cone metric is the Hessian of the potential
+$\Phi=-\log\det_3$, with $\det_3$ the certified Freudenthal cubic norm (engine SSOT,
+cross-term order $2\,\mathrm{Re}((x_2 x_1)x_3)$; \texttt{octonion\_algebra.py}
+banned). The Riemann tensor is the Totaro closed form
+\begin{equation}
+  R_{ijkl} = -\tfrac14\, g^{pq}\big(C_{jlp}C_{ikq}-C_{ilp}C_{jkq}\big),
+  \qquad C_{ijk}=\Phi_{,ijk},
+  \label{eq:totaro}
+\end{equation}
+with $\mathrm{Ric}_{jl}=g^{ik}R_{ijkl}$, $R=g^{jl}\mathrm{Ric}_{jl}$. The spacetime
+sub-slice is $h_2(C_u)$, engine-native indices $\{1,2,3,10\}=(\beta,\gamma,p,q)$,
+mostly-minus. The center is $X_{\mathrm{bg}}=I/3$.
+
+\subsection{Peirce index map and the unique matter channel (Task 1, CLEAN)}
+\label{sec:mechanism}
+
+Under $E_{11}=\mathrm{diag}(1,0,0)$ the multiplication operator $L_{E_{11}}$ is
+diagonal in the engine-native basis, with Peirce eigenspaces (verified exactly over
+$\mathbb{Q}$ via the $L_{E_{11}}$ spectrum)
+\begin{equation}
+  V_1=\{0\}\ (\alpha),\qquad
+  V_0=\{1,\dots,10\}=h_2(\mathbb{O}),\qquad
+  V_{1/2}=\{11,\dots,26\},
+\end{equation}
+matching the module constants \texttt{SPACETIME\_SLICE\_IDX}$=[1,2,3,10]$,
+\texttt{V\_HALF\_IDX}$=[11..26]$, \texttt{V1\_ALPHA\_IDX}$=[0]$. In the engine layout
+$x_1=X_{21}$ (the $V_0$ octonion, components $\{3..10\}$), $x_2=X_{02}$ ($\{11..18\}$),
+$x_3=X_{10}$ ($\{19..26\}$). The cubic norm is
+\begin{equation}
+  \det_3(X)=\alpha\beta\gamma-\alpha|x_1|^2-\beta|x_2|^2-\gamma|x_3|^2
+            +2\,\mathrm{Re}\big((x_2 x_1)x_3\big).
+  \label{eq:det3}
+\end{equation}
+Subtracting the diagonal-norm part of~\eqref{eq:det3} leaves \emph{exactly}
+$2\,\mathrm{Re}((x_2x_1)x_3)$ (verified as a symbolic identity over $\mathbb{Q}$ on
+the full 27-coordinate $X$). The diagonal $\alpha,\beta,\gamma$ -- including the
+$V_1$ direction $\alpha=x_0$ -- do NOT appear inside the octonion triple; they couple
+only to the squared norms $|x_1|^2,|x_2|^2,|x_3|^2$. Hence:
+\begin{itemize}
+  \item the triple $2\,\mathrm{Re}((x_2x_1)x_3)$ is the \emph{unique} $V_0\!\leftrightarrow\!V_{1/2}$
+        octonion-mixing channel (this is what "cross-terms off" means precisely;
+        the $|x_2|^2,|x_3|^2$ norm couplings to $\alpha,\beta,\gamma$ remain --
+        Open Question 2, stated, not over-claimed);
+  \item $\alpha$ ($V_1$) is absent from the triple, structurally explaining the
+        Phase-71 finding that $V_1$ is inert to the slice curvature.
+\end{itemize}
+The symmetric trilinear polarization of the cubic norm,
+$d(D_{x_2},D_{x_1},D_{x_3})$, on Fano-connected octonionic basis directions
+$(x_1{:}e_4,\,x_2{:}e_5,\,x_3{:}e_7)$ evaluates to $2\neq0$ over $\mathbb{Q}$ (and to
+$0$ when any one slot is zeroed), confirming the cubic vertex coupling matter to
+$V_0$ is genuinely present and not vacuously zero.
+
+\subsection{Non-vacuity preflight: the chosen representative $M$ (Task 1, CLEAN)}
+\label{sec:nonvacuity}
+
+The representative non-vacuous matter placement carried to 72-02 is
+\begin{align}
+  \texttt{bg\_delta} &= \{\,4{:}\tfrac14,\ 7{:}\tfrac15\,\}
+    &&\text{(FIXED $V_0$-internal $x_1$: $e_1,e_4$ content),}\\
+  \texttt{matter\_delta} &= \{\,11{:}\tfrac13,\ 15{:}\tfrac16,\ 19{:}\tfrac13,\ 23{:}\tfrac17\,\}
+    &&\text{($M$ in $V_{1/2}$: $x_2,x_3$ each with $e_0,e_4$).}
+\end{align}
+At $X_{\mathrm{bg}}+M$ all three octonion slots $x_1,x_2,x_3$ are populated, each with
+$e_4$ content (genuinely octonionic / non-associative), and the cross-term is nonzero:
+\begin{equation}
+  2\,\mathrm{Re}\big((x_2 x_1)x_3\big)\Big|_{X_{\mathrm{bg}}+M} = -\tfrac{13}{315}\neq 0
+  \quad\text{(exact over $\mathbb{Q}$).}
+\end{equation}
+This defeats the hollow-triple-product pitfall (Pitfall 3): the cross-term off-switch
+of 72-02 will be a genuine control.
+
+\subsection{Phase-71 matterless regression anchors (Task 1, CLEAN)}
+\label{sec:regression}
+
+Using the verified matterless path \texttt{\_curvature\_invariants\_at(delta, slice\_pt)}
+with zero matter ($\delta$ in $V_0$-internal $\{4..9\}$ only) and the common fixed
+slice point \texttt{ROUTE1\_COMMON\_SLICE\_PT}$=[\tfrac25,\tfrac35,\tfrac1{10},\tfrac18]$,
+the Phase-71 [71VER] Ricci-scalar anchors are reproduced EXACTLY over $\mathbb{Q}$:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+$\delta$ (matterless) & $R$ (Ricci scalar) & status\\
+\hline
+$\{4{:}\tfrac13\}$        & $-73041507/21967969$    & matches [71VER] A(ii)\\
+$\{4{:}\tfrac15,5{:}\tfrac17\}$ & $-521269105/154700283$  & matches [71VER] A(i)\\
+$\{4{:}\tfrac25,6{:}\tfrac13\}$ & $-137053539/48874081$   & matches [71VER] A(i)\\
+$\{7{:}\tfrac13,8{:}\tfrac14,9{:}\tfrac15\}$ & $-114049215/37982569$ & matches [71VER] A(i)\\
+\hline
+\end{tabular}
+\end{center}
+and at the center ($\delta=\{\}$, center slice $[\tfrac13,\tfrac13,0,0]$),
+$R(\text{center})=-3$, $\det g = 26244$. The matter-aware path of 72-01 is therefore a
+faithful extension of the verified matterless engine (regression passes).
+
+\subsection{The M=0 baseline obstruction: the cone-Hessian sub-slice is a metric
+            cone over $H^3$, NOT Einstein (FIRST-RESULT GATE)}
+\label{sec:obstruction}
+
+The plan's required first load-bearing result is that the $M=0$ center be Einstein,
+$S_{\mu\nu}\equiv R_{\mu\nu}-\tfrac{R}{4}g_{\mu\nu}=0$, with $R=-3<0$ (pure-$\Lambda$
+Cartan). Computing the Totaro curvature~\eqref{eq:totaro} of the cone-Hessian metric
+$g_{ij}=\mathrm{Hess}(-\log\det_3)$ restricted to the dim-4 slice at the center
+$X_{\mathrm{bg}}=I/3$ (exact over $\mathbb{Q}$) gives $R=-3$ as required, but the
+Ricci tensor is NOT proportional to the metric:
+\begin{equation}
+  g = \mathrm{diag}(9,9,18,18),\qquad
+  \mathrm{Ric} =
+  \begin{pmatrix} -\tfrac92 & \tfrac92 & 0 & 0\\
+                  \tfrac92 & -\tfrac92 & 0 & 0\\
+                  0 & 0 & -18 & 0\\
+                  0 & 0 & 0 & -18\end{pmatrix},\qquad
+  g^{-1}\mathrm{Ric}\ \text{has eigenvalues}\ \{0,-1,-1,-1\}.
+  \label{eq:ricci-center}
+\end{equation}
+The Ricci endomorphism $g^{-1}\mathrm{Ric}$ has the degenerate spectrum
+$\{0,-1,-1,-1\}$ (so $S_{\mu\nu}\neq0$; the slice is NOT Einstein in $n=4$). The
+eigenvalue-$0$ eigenvector is $(1,1,0,0)$, the $\beta+\gamma$ \emph{dilation /
+overall-scale direction} -- exactly the scale-invariance $R(X)=R(2X)$ found in
+Phase 71 ($\Phi=-\log\det$ shifts by a constant under $X\mapsto cX$, leaving the
+Hessian metric, hence $R$, unchanged). The coordinate sectional curvatures confirm
+the structure: $K(e_0,e_1)=0$ (the dilation 2-plane is flat), the mixed planes are
+$-\tfrac14$, and $K(e_2,e_3)=K(p,q)=-\tfrac12$ -- the $H^3$ base value, identical to
+the engine's certified \texttt{h3\_cone\_hessian\_benchmark}.
+
+\paragraph{Diagnosis (decisive, exact over $\mathbb{Q}$, not an engine bug).} The
+4-dim cone-Hessian sub-slice is a \emph{metric cone} $C(H^3)=\mathbb{R}_{>0}\times H^3$:
+a flat radial (dilation) line times the constant-curvature $H^3$ base. A non-trivial
+metric cone in dimension $n=4$ is never Einstein -- its Ricci endomorphism has a
+radial $0$-eigenvalue and base eigenvalues shifted, here $\{0,-1,-1,-1\}$ -- so the
+\emph{conjunction} the contract demands ("$R=-3$ AND $S_{\mu\nu}=0$") cannot hold for
+this metric. The two candidate baseline metrics each satisfy only one half:
+\begin{itemize}
+  \item the cone-Hessian $g_{ij}=\mathrm{Hess}(-\log\det_3)$ (the metric Phase-71's
+        $R(\text{center})=-3$ anchor refers to) has $R=-3$ but is a cone, hence NOT
+        Einstein ($S_{\mu\nu}\neq0$, eigenvalues $\{0,-1,-1,-1\}$);
+  \item the construction-(ii) inherited metric $g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu}$
+        reduces at the center to the \emph{constant} Minkowski form $g=\eta_{\mathrm{bg}}$
+        ($h=0$ at the center by construction), which is FLAT ($R=0$), trivially
+        Einstein but with $\Lambda=0$, contradicting $R=-3$.
+\end{itemize}
+Per the disconfirming-observation discipline (this is named obstruction #3) and the
+first-result-gate rule, 72-01 STOPS here: the matter $\Delta R(M)$ verdict is not
+produced, and no result is reported that papers over the baseline inconsistency. The
+clean Task-1 results (Secs~\ref{sec:mechanism}--\ref{sec:regression}) stand; the
+baseline (Sec~\ref{sec:baseline-options}) requires adjudication before the matter
+computation is meaningful.
+
+\subsection{Reconciliation options for the baseline (for adjudication)}
+\label{sec:baseline-options}
+
+The matter-sourcing program is NOT dead -- the obstruction is about which reference
+the maximally-symmetric ($\Lambda$) part is, and on which manifold "Einstein" is
+demanded. Three concrete reconciliations, each leaving the isolation protocol
+(differencing $\Delta R(M)$ at a fixed $V_0$-background) intact:
+\begin{enumerate}
+  \item \textbf{Einstein on the $\det=1$ base, not the 4-dim cone.} The genuine
+        maximally-symmetric reference is the $H^3$ base (the $\det_2=1$ hyperboloid,
+        $E_{6(-26)}/F_4$ Cartan space [FK94]), which IS constant-curvature
+        ($K=-\tfrac12$, Einstein in 3d). The flat dilation direction is a known cone
+        artifact, not "matter". Then the first-result gate should read "the $\det=1$
+        base is Einstein-negative; the 4-dim cone-Hessian carries one extra flat
+        radial direction," and the matter test is whether $\Delta R(M)$ deforms the
+        $H^3$ base away from constant curvature.
+  \item \textbf{Use the construction-(ii) metric $g=\eta+h$ as the decisive metric.}
+        Then the $M=0$ center is flat Minkowski ($\Lambda=0$ at the center), the
+        Phase-71 position-dependence lives entirely in $h$ off-center, and "$R=-3$"
+        is reinterpreted as a cone-Hessian diagnostic, not the construction-(ii)
+        curvature. This changes the $\Lambda<0$ Cartan baseline wording.
+  \item \textbf{Quotient out the dilation direction (project to the traceless /
+        $\det=$const leaf) before the Einstein check.} The decisive spacetime
+        geometry is the $\det_2$-leaf, on which the radial $0$-mode is absent.
+\end{enumerate}
+Option 1 is the cleanest and is consistent with both Phase-71 ($R=R(\det_2)$ varies
+on leaves; scale-invariant) and the literature Cartan/Jordan-Einstein baseline
+(arXiv:2309.02682, negative scalar curvature on the symmetric space). The decisive
+matter verdict (72-02) and the cross-term off-switch are unaffected by the choice;
+only the \emph{baseline subtraction and the $\Lambda$-vs-matter wording} depend on it.
+This is the adjudication 72-01 returns to the orchestrator.
+
+\subsection{What is verified and exact (carry-forward to 72-02)}
+\label{sec:carryforward}
+
+\begin{itemize}
+  \item Peirce index map $V_1=\{0\}$, $V_0=\{1..10\}$, $V_{1/2}=\{11..26\}$
+        ($L_{E_{11}}$ diagonal); cross-term $2\,\mathrm{Re}((x_2x_1)x_3)$ the unique
+        $V_0\!\leftrightarrow\!V_{1/2}$ octonion channel; $\alpha$ absent from it.
+        [exact over $\mathbb{Q}$]
+  \item Representative non-vacuous $M$ (\texttt{bg\_delta}, \texttt{matter\_delta}
+        above) with cross-term $-\tfrac{13}{315}\neq0$, all three slots, $e_4$ content.
+  \item Phase-71 matterless $R$ anchors reproduced exactly (regression passes); the
+        common slice point is \texttt{ROUTE1\_COMMON\_SLICE\_PT}, not the (degenerate
+        off-center) center slice.
+  \item $n=4$ Ricci decomposition (scalar + traceless-Ricci + Weyl) implemented and
+        reconstruction-consistent ($R_{ijkl}-(\text{Scal}+E+\text{Weyl})=0$ over
+        $\mathbb{Q}$ at the center); it correctly reports the cone-Hessian center as
+        NON-Einstein ($S_{\mu\nu}\neq0$), which is what surfaced the obstruction.
+  \item Isolation helper $\Delta R(M)=R(X_{\mathrm{bg}}+M)-R(X_{\mathrm{bg}})$ at a
+        fixed $V_0$-background returns real, nondegenerate, exact-over-$\mathbb{Q}$
+        values, and $\Delta R(M{=}0)=0$ (trivial limit) -- but its decisive
+        interpretation is GATED on the baseline adjudication (Sec~\ref{sec:baseline-options}).
+\end{itemize}
