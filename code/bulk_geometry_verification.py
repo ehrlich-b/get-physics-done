@@ -984,6 +984,146 @@ def cone_hessian_at_center(slice_order=None):
     return Matrix(H)
 
 
+# ----------------------------------------------------------------------------
+# PHASE-71 (A) OFF-CENTER SLICE METRIC  (Plan 71-01 Task 2)
+# ----------------------------------------------------------------------------
+# A TRIVIAL extension of cone_hessian_at_center(): swap the center substitution
+# _center_subs() for a generic-basepoint substitution _offcenter_subs(delta) that
+# moves the BASEPOINT off-center (rho_J(X_bg) != 0) while keeping the 4 spacetime
+# sub-slice coords {x1,x2,x3,x10}={beta,gamma,p,q} SYMBOLIC (the free spacetime
+# coordinate x). Built on the SSOT det_3; NEVER octonion_algebra.py.
+#
+# CRITICAL (defeats fp-coordinate-curvature): the off-center perturbation `delta`
+# parameterizes rho_J(X_bg) -- the off-center-ness of the BASEPOINT in the 23
+# NON-slice directions (the V_0-internal W-sector {4..9}=oct-x1 comps e_1..e_6, the
+# V_1 matter alpha={0}, and the V_{1/2} matter {11..18, 19..26}). The 4 slice coords
+# {beta,gamma,p,q} stay symbolic and are the spacetime coordinate x -- they are
+# O(1) and are the WRONG expansion variable for homogeneity; the verdict (Task 3)
+# expands/ compares in rho_J(X_bg), never in x.
+
+# Peirce sectors under E_11 = diag(1,0,0), in the engine-native layout:
+#   V_1     (1-dim)  = {0}                 (alpha; the (0,0) idempotent block)
+#   V_0     (10-dim) = {1,2} U {3..10}     (beta,gamma + oct-x1 = lower-right h_2(O))
+#               of which the SPACETIME sub-slice h_2(C_u) = {1,2,3,10} (beta,gamma,p,q)
+#               and the INTERNAL W-sector V_0 (-) C_u = {4,5,6,7,8,9} (oct-x1 e_1..e_6)
+#   V_{1/2} (16-dim) = {11..18} U {19..26} (oct-x2, oct-x3)
+SPACETIME_SLICE_IDX = [1, 2, 3, 10]          # beta, gamma, p, q
+V0_INTERNAL_W_IDX = [4, 5, 6, 7, 8, 9]       # oct-x1 comps e_1..e_6 (V_0 orthogonal to C_u)
+V_HALF_IDX = list(range(11, 27))             # oct-x2, oct-x3 (V_{1/2} matter)
+V1_ALPHA_IDX = [0]                           # alpha (V_1 matter)
+
+
+def rho_J_squared(delta):
+    """The F_4-invariant off-center-ness rho_J(X_bg)^2 := Tr(X_bg^2) - (Tr X_bg)^2/3
+    of the basepoint X_bg = I/3 + delta (slice coords AT center for this scalar
+    measure: beta=gamma=1/3, p=q=0). Vanishes iff X_bg is a multiple of I (rho_J=0
+    at the center I/3). EXACT over Q. This is the homogeneity EXPANSION/comparison
+    variable (NOT the spacetime coordinate x)."""
+    sub = _offcenter_subs(delta, slice_symbolic=False,
+                          slice_vals=[Rational(1, 3), Rational(1, 3),
+                                      Rational(0), Rational(0)])
+    Xv = X_from_symbols([sub[xs[k]] for k in range(27)])
+    return simplify(Tr2(Xv) - Tr(Xv) ** 2 * Rational(1, 3))
+
+
+def _offcenter_subs(delta, slice_symbolic=True, slice_vals=None):
+    """Substitution dict for the generic off-center basepoint X_bg = I/3 + delta.
+
+    `delta` : dict {engine-native-index -> exact rational value} of the off-center
+              perturbation. For indices 0,1,2 (the diagonal alpha,beta,gamma) the
+              value is ADDED to the center 1/3; for the octonion-component indices
+              (3..26) the value IS the component (center value 0). To keep the
+              perturbation a genuine BASEPOINT move (rho_J), populate the NON-slice
+              directions {0} U {4..9} U {11..26}; do NOT put the off-center-ness into
+              the slice coords {1,2,3,10} (that would be the spacetime-x variable).
+    slice_symbolic : if True (default) the 4 slice coords {1,2,3,10} are left as the
+              symbolic spacetime coordinate (beta,gamma,p,q); if False they take
+              `slice_vals` (a FULL rational basepoint).
+
+    EXACT over Q. Parallel to _center_subs() (which is the delta={} , slice-at-center
+    special case)."""
+    sub = {xs[k]: Rational(0) for k in range(27)}
+    sub[xs[0]] = Rational(1, 3)
+    sub[xs[1]] = Rational(1, 3)
+    sub[xs[2]] = Rational(1, 3)
+    for k, v in (delta or {}).items():
+        sub[xs[k]] = (sub[xs[k]] + v) if k in (0, 1, 2) else v
+    beta, gamma, p, q = symbols('beta gamma p q', real=True)
+    if slice_symbolic:
+        sub[xs[1]] = beta
+        sub[xs[2]] = gamma
+        sub[xs[3]] = p
+        sub[xs[10]] = q
+    else:
+        sub[xs[1]] = slice_vals[0]
+        sub[xs[2]] = slice_vals[1]
+        sub[xs[3]] = slice_vals[2]
+        sub[xs[10]] = slice_vals[3]
+    return sub
+
+
+def cone_hessian_offcenter(delta, slice_order=None, slice_symbolic=True,
+                           slice_vals=None, simp=None):
+    """The cone metric Hess(-log det) restricted to the 4 spacetime sub-slice coords
+    {x1,x2,x3,x10}, evaluated at the off-center basepoint X_bg = I/3 + delta,
+    EXACT over Q. Parallel to cone_hessian_at_center but using _offcenter_subs.
+
+    `slice_symbolic=True` keeps {beta,gamma,p,q} symbolic (the metric as a function
+    of the spacetime point x); `slice_symbolic=False` evaluates at slice_vals (a
+    full rational basepoint). Returns the 4x4 sympy Matrix.
+
+    CENTER REGRESSION: cone_hessian_offcenter({}, slice_symbolic=False,
+    slice_vals=[1/3,1/3,0,0]) == diag(9,9,18,18), det 26244 (the Phase-70 value)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    if slice_order is None:
+        slice_order = [1, 2, 3, 10]
+    from sympy import log as _log
+    f = -_log(inv_det_X)
+    sub = _offcenter_subs(delta, slice_symbolic=slice_symbolic, slice_vals=slice_vals)
+    H = []
+    for i in slice_order:
+        di = diff(f, xs[i])
+        H.append([simp(diff(di, xs[j]).subs(sub)) for j in slice_order])
+    return Matrix(H)
+
+
+def offcenter_slice_metric(delta, slice_vals=None):
+    """The inherited Lorentzian slice metric g_mu_nu = eta + h_mu_nu (construction
+    (ii), Phase-70 LOCKED) at the off-center basepoint X_bg = I/3 + delta, in the
+    engine (beta,gamma,p,q) frame. EXACT over Q.
+
+        h_mu_nu := [cone-Hessian restricted to V_0 at X_bg]
+                    - [its value at (M=0, center I/3)]            (centered subtraction)
+        g_mu_nu := eta + h_mu_nu
+
+    where eta is the (beta,gamma,p,q)-frame pullback of the Minkowski diag(+1,-1,-1,-1)
+    via the 52-kkt frame map. By construction h=0 at the center (delta={}, slice at
+    center). `slice_vals` (rational) gives a full basepoint; default leaves the slice
+    symbolic. Returns dict {g, h, H_bg, H_center, eta_bg, rho_J_sq}.
+
+    NOTE: the DECISIVE curvature invariants (Task 3) are computed from the cone-Hessian
+    metric H_bg directly (the Hessian metric whose Totaro curvature is exact); the
+    eta+h split is the construction-(ii) bookkeeping (h is what makes g->eta at center).
+    The intrinsic curvature of g and of H_bg coincide where h carries all the
+    non-flatness (g = eta + h with eta the constant background)."""
+    from sympy import cancel as _cancel
+    symbolic = slice_vals is None
+    H_bg = cone_hessian_offcenter(delta, slice_symbolic=symbolic, slice_vals=slice_vals)
+    H_center = cone_hessian_at_center(slice_order=[1, 2, 3, 10])   # diag(9,9,18,18)
+    h = (H_bg - H_center).applyfunc(_cancel)
+    # eta in the (beta,gamma,p,q) frame: pull back Minkowski diag(+1,-1,-1,-1) by J.
+    J = _frame_jacobian_bg_to_mink()
+    eta_M = _eta_minkowski()
+    eta_bg = (J.T * eta_M * J).applyfunc(_cancel)
+    g = (eta_bg + h).applyfunc(_cancel)
+    return {
+        "g": g, "h": h, "H_bg": H_bg, "H_center": H_center,
+        "eta_bg": eta_bg, "rho_J_sq": rho_J_squared(delta),
+    }
+
+
 def _eta_minkowski():
     """The mostly-minus Minkowski metric eta = diag(+1,-1,-1,-1) in the Minkowski
     coords (x0,x1,x2,x3) of derivations/52-kkt-spacetime.tex. Signature (1,3)."""
@@ -1657,6 +1797,43 @@ def main():
             "with the exact factor-of-2 (K_round = 2 * K_coneHessian) [exact over Q]",
             _is_half and simplify(_bench["round_K"] + 1) == 0
             and simplify(_bench["round_K"] - 2 * _bench["K_value"]) == 0)
+
+    # ------------------------------------------------------------------------
+    # Phase 71-01 Task 2: OFF-CENTER SLICE METRIC + CENTER REGRESSION
+    # (test-center-regression). The off-center machinery must reduce to the
+    # Phase-70 certified center metric diag(9,9,18,18)/det 26244 at the center.
+    # ------------------------------------------------------------------------
+    print("Task 2 (71-01) -- off-center slice metric + center regression (exact over Q):")
+    _Hreg = cone_hessian_offcenter({}, slice_symbolic=False,
+                                   slice_vals=[Rational(1, 3), Rational(1, 3),
+                                               Rational(0), Rational(0)])
+    _Hreg_expected = Matrix([[9, 0, 0, 0], [0, 9, 0, 0],
+                             [0, 0, 18, 0], [0, 0, 0, 18]])
+    print(f"      cone_hessian_offcenter(I/3) = {_Hreg.tolist()}  det = {_Hreg.det()}")
+    _report("CENTER REGRESSION cone_hessian_offcenter(X_bg=I/3) == diag(9,9,18,18), "
+            "det == 26244 (reduces to the Phase-70 certified center metric) [exact Q]",
+            simplify(_Hreg - _Hreg_expected) == Matrix.zeros(4, 4)
+            and _Hreg.det() == 26244)
+    # h_mu_nu(center) == 0 (construction (ii) centered-subtraction consistency)
+    _MGcenter = offcenter_slice_metric({}, slice_vals=[Rational(1, 3), Rational(1, 3),
+                                                       Rational(0), Rational(0)])
+    print(f"      rho_J^2(center) = {_MGcenter['rho_J_sq']} (expect 0); "
+          f"h_mu_nu(center) = {_MGcenter['h'].tolist()} (expect 4x4 zero)")
+    _report("CENTER REGRESSION h_mu_nu(center) == 0 (construction-(ii) centered "
+            "subtraction) and rho_J^2(center) == 0 (basepoint at I/3) [exact Q]",
+            _MGcenter["h"] == Matrix.zeros(4, 4) and _MGcenter["rho_J_sq"] == 0)
+    # rho_J != 0 at a generic off-center basepoint (the variable is the BASEPOINT
+    # off-center-ness, NOT the spacetime slice coords) -- defeats fp-coordinate-curvature
+    _delta_demo = {4: Rational(1, 5), 5: Rational(1, 7), 11: Rational(1, 4),
+                   0: Rational(1, 6)}
+    _rho_demo = rho_J_squared(_delta_demo)
+    print(f"      generic off-center basepoint (perturb V_0-internal {{4,5}} + "
+          f"V_1/2 {{11}} + alpha): rho_J^2 = {_rho_demo} (!= 0; this is the "
+          f"homogeneity variable, NOT spacetime x)")
+    _report("OFF-CENTER variable rho_J(X_bg) != 0 for a basepoint perturbed in the "
+            "NON-slice (V_0-internal/matter) directions while the slice coords stay "
+            "the free spacetime x [exact Q; defeats fp-coordinate-curvature]",
+            simplify(_rho_demo) != 0)
 
     print("-" * 78)
     print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}")
