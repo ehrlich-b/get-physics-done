@@ -375,46 +375,48 @@ tick(f"  T_sigma is a GENUINE alternative (distinct structure): T[psi](2,2)="
 # T-building functions (psi_scalar, scalar_stress_tensor, sigma_multiplet,
 # sigma_stress_tensor, _x123_field) for forbidden curvature symbols in EXECUTABLE
 # CODE -- comments and string-literal docstrings (which legitimately mention "NO Ric/
-# R/G" as the constraint being honored) are STRIPPED first, so the guard checks usage,
+# R/G" as the constraint being honored). The guard is AST-based, so it checks CODE USE,
 # not documentation (Deviation Rule 1: a comment-mention is not a code-use).
-import re as _re
-import io as _io
-import tokenize as _tokenize
+import ast as _ast
+
+# Forbidden CODE identifiers (curvature / Einstein / supergravity-import symbols). The
+# guard is AST-based: it inspects ast.Name ids and ast.Attribute attrs in the T- and
+# kappa-building functions ONLY -- so it sees CODE USE, never comment/docstring mentions
+# of the constraint (e.g. "NO Ric/R/G", "cite GST for geometry only"). This is the
+# correct fp-assume-einstein / fp-import-supergravity guard (a comment is not a code-use).
+_FORBIDDEN_IDS = {'Ric', 'Ricci', 'Rscalar', 'Riem', 'Riemann', 'Einstein',
+                  'spacetime_curvature_of_g', 'hand_rolled_riemann_of_g', 'totaro_riemann',
+                  'ricci_scalar', 'ricci_decomposition_n4', 'G1', 'G_1',
+                  'GST', 'SUSY', 'Weinberg', 'supergravity', 'octonion_algebra'}
 
 
-def _strip_comments_and_strings(source):
-    """Return `source` with all comments and string literals blanked (replaced by
-    spaces, preserving line structure) so a symbol grep sees only executable code."""
-    out = []
-    try:
-        toks = _tokenize.generate_tokens(_io.StringIO(source).readline)
-        for tok in toks:
-            ttype, tstr = tok.type, tok.string
-            if ttype in (_tokenize.COMMENT, _tokenize.STRING):
-                out.append(_re.sub(r'\S', ' ', tstr))   # blank out, keep length/newlines
-            else:
-                out.append(tstr)
-            out.append(' ')
-    except _tokenize.TokenError:
-        return source
-    return ''.join(out)
+def _forbidden_ids_used(func_node):
+    """The set of _FORBIDDEN_IDS that appear as ast.Name ids or ast.Attribute attrs in
+    the body of `func_node` (CODE only -- comments/docstrings are not in the AST)."""
+    used = set()
+    for nd in _ast.walk(func_node):
+        if isinstance(nd, _ast.Name) and nd.id in _FORBIDDEN_IDS:
+            used.add(nd.id)
+        elif isinstance(nd, _ast.Attribute) and nd.attr in _FORBIDDEN_IDS:
+            used.add(nd.attr)
+    return used
 
 
 _src = open(os.path.abspath(__file__)).read()
-_t_funcs = ['def _x123_field', 'def psi_scalar', 'def scalar_stress_tensor',
-            'def sigma_multiplet', 'def sigma_stress_tensor']
-_forbidden = [r'\bRic\b', r'\bRicci\b', r'\bRscalar\b', r'\bRiem\b', r'\bEinstein\b',
-              r'\bspacetime_curvature_of_g\b', r'\bG1\b', r'\bG_1\b']
-_start = min(_src.index(fn) for fn in _t_funcs)
-_end = _src.index('# --- 3.3 NO-Ric/R/G grep guard')
-_tsrc_code = _strip_comments_and_strings(_src[_start:_end])   # CODE only (no comments/docstrings)
-_hits = {pat: _re.findall(pat, _tsrc_code) for pat in _forbidden}
-_hits = {k: v for k, v in _hits.items() if v}
-tick(f"  NO-Ric/R/G grep over the T-construction CODE (comments/docstrings stripped): "
-     f"forbidden-symbol hits = {_hits}")
-assert not _hits, f"FORBIDDEN curvature symbol USED in T construction (fp-assume-einstein): {_hits}"
-tick("  GUARD: NO Ric/R/G/Einstein/spacetime_curvature symbol USED in the T construction "
-     "(fp-assume-einstein avoided; comment-mentions of the constraint are not code-uses)")
+_tree = _ast.parse(_src)
+_T_BUILD_FUNCS = {'_x123_field', 'psi_scalar', 'scalar_stress_tensor', 'grad',
+                  'divergence_eta', 'sigma_multiplet', 'sigma_stress_tensor'}
+_t_hits = {}
+for _node in _ast.walk(_tree):
+    if isinstance(_node, _ast.FunctionDef) and _node.name in _T_BUILD_FUNCS:
+        _u = _forbidden_ids_used(_node)
+        if _u:
+            _t_hits[_node.name] = sorted(_u)
+tick(f"  AST guard over the T-construction functions {sorted(_T_BUILD_FUNCS)}: "
+     f"forbidden-id uses = {_t_hits}")
+assert not _t_hits, f"FORBIDDEN curvature symbol USED in T construction (fp-assume-einstein): {_t_hits}"
+tick("  GUARD: NO Ric/R/G/Einstein/Riemann/spacetime_curvature/octonion_algebra USED in the "
+     "T construction (fp-assume-einstein avoided; AST -- comment-mentions are not code-uses)")
 
 print("-" * 78)
 print(f"TASK 3 OK -- BOTH T candidates built INDEPENDENTLY of any Einstein form:")
@@ -424,3 +426,153 @@ print(f"  ALTERNATIVE T[V_1/2]: symmetric, conserved (all box phi^a=0), T->0 as 
       f"V_1-inert; genuine 16-field sigma model, G_ab=delta.")
 print(f"  Conservation is EXACT (not merely on-shell): every cross-term scalar channel is "
       f"LINEAR in the slice coords => harmonic => d^mu T_munu = 0 on the nose. NO Ric/R/G.")
+
+
+# ====================================================================== TASK 4
+print("\n" + "#" * 78)
+print("# TASK 4 -- define the coupling kappa INTRINSICALLY and FREEZE it (before the fit)")
+print("#" * 78)
+print("# kappa := (leading-order R-SCALE) / (leading-order T-SCALE) at the ONE reference")
+print("# direction M_0, as an exact rational, then HELD FIXED. NOT -R/2, NOT a per-point")
+print("# tensor fit. The R-SCALE is the FROZEN Phase-72 rational a_4 (a NUMBER, the t^4")
+print("# curvature coefficient -- NOT a live Ric/R/G call); the T-SCALE is the t^4 leading")
+print("# coefficient of the eta_bg-trace of T at the center. The family test in 73-02 then")
+print("# asks whether this SAME kappa works for ALL (M,x); if it must be re-fit per")
+print("# direction, that is the 'linear/leading' or 'none' level, reported honestly.")
+
+# --- 4.0 the FROZEN R-scale (Phase-72 handoff number; NOT a live curvature call) ----
+A4_EXACT = Rational(395268903, 24010000)   # R[g(t M_0)] = a_4 t^4 + O(t^5), from Phase 72
+tick(f"Task 4.0: R-SCALE = frozen Phase-72 a_4 = {A4_EXACT} (the t^4 curvature coefficient, "
+     f"a NUMBER -- no Ric/R/G symbol)")
+
+
+# --- 4.1 kappa_psi (PRIMARY): T-SCALE = t^4 coeff of tr_eta T[psi] at center --------
+tick("Task 4.1: T-SCALE for PRIMARY T[psi] (t^4 coeff of tr_eta T[psi] at center) ...")
+psi_t_for_scale = psi_scalar({k: v * t for k, v in MATTER_L.items()},
+                             {k: v * t for k, v in BG_HALF.items()})
+T_psi_t_scale, _, _ = scalar_stress_tensor(psi_t_for_scale)
+trT_psi_t = cancel(sum(ETA_INV[mu, nu] * T_psi_t_scale[mu, nu]
+                       for mu in range(n) for nu in range(n)))
+trT_psi_t_center = cancel(trT_psi_t.subs(CENTER))
+from sympy import factorial as _fact
+Tscale_psi = cancel(diff(trT_psi_t_center, t, 4).subs(t, 0) / _fact(4))
+psi_lead_ok = all(cancel(diff(trT_psi_t_center, t, k).subs(t, 0)) == 0 for k in (1, 2, 3))
+tick(f"  tr_eta T[psi](t M_0)|center = {trT_psi_t_center}  (starts at t^4? {psi_lead_ok})")
+tick(f"  T-SCALE_psi (t^4 coeff) = {Tscale_psi}")
+assert psi_lead_ok, "tr T[psi] does not start at t^4"
+assert Tscale_psi != 0, "T[psi] scale is zero -- cannot define kappa"
+kappa_psi = cancel(A4_EXACT / Tscale_psi)
+tick(f"  kappa_psi := a_4 / T-SCALE_psi = {A4_EXACT} / ({Tscale_psi}) = {kappa_psi}")
+
+# --- 4.1b RECORD the structurally-matched order of T[psi] (DERV: T[psi] ~ t^4 = R-order) -
+# tr_eta T[psi] starts at t^4 -- the SAME leading order as R[g] = a_4 t^4. So T[psi] is the
+# STRUCTURALLY-MATCHED candidate: a CONSTANT kappa can compare like-with-like (t^4 with t^4).
+PSI_LEAD_POWER = 4
+tick(f"  T[psi] leading order = t^{PSI_LEAD_POWER} == R-order t^4 => STRUCTURALLY MATCHED "
+     f"(constant kappa compares like-for-like).")
+
+# --- 4.2 kappa_sigma (ALTERNATIVE) -- honest leading-order handling -----------------
+# DEVIATION (Rule 3, documented -- a genuine STRUCTURAL finding, NOT forced): the sigma
+# model's eta-trace leads at t^2, NOT t^4. The sigma fields (x2 x1),(x1 x3) contain a
+# matter^1 x slice piece (~t^1) => d phi ~ t^1 => (d phi)^2 ~ t^2, whereas the cross-term
+# scalar psi = 2Re((x2 x1)x3) is matter^2 x slice (~t^2) => d psi ~ t^2 => T[psi] ~ t^4.
+# So T_sigma and the curvature R (~t^4) have DIFFERENT leading orders. We therefore (a)
+# freeze kappa_sigma via T_sigma's OWN leading order (read empirically), and (b) FLAG the
+# t^2-vs-t^4 ORDER MISMATCH as a disconfirming signal for the sigma candidate: a constant
+# kappa cannot match a t^4 curvature to a t^2 stress trace -- the structurally-favorable
+# candidate for the Einstein match is T[psi]. Reported honestly for 73-02, not forced.
+tick("Task 4.2: T-SCALE for ALTERNATIVE sigma T[V_{1/2}] -- find its OWN leading order ...")
+phis_t_for_scale = sigma_multiplet({k: v * t for k, v in MATTER_L.items()},
+                                   {k: v * t for k, v in BG_HALF.items()})
+T_sig_t_scale, _ = sigma_stress_tensor(phis_t_for_scale)
+trT_sig_t = cancel(sum(ETA_INV[mu, nu] * T_sig_t_scale[mu, nu]
+                       for mu in range(n) for nu in range(n)))
+trT_sig_t_center = cancel(trT_sig_t.subs(CENTER))
+# find the leading power empirically (do NOT assume t^4)
+SIG_LEAD_POWER = None
+for kp in (1, 2, 3, 4, 5, 6):
+    ck = cancel(diff(trT_sig_t_center, t, kp).subs(t, 0) / _fact(kp))
+    if ck != 0:
+        SIG_LEAD_POWER = kp
+        Tscale_sig = ck
+        break
+tick(f"  tr_eta T_sigma(t M_0)|center = {trT_sig_t_center}")
+tick(f"  T_sigma OWN leading order = t^{SIG_LEAD_POWER} (T_sigma-SCALE = {Tscale_sig}); "
+     f"R-order = t^4 => ORDER MISMATCH ({SIG_LEAD_POWER} != 4)")
+assert SIG_LEAD_POWER is not None and Tscale_sig != 0, "T_sigma scale vanishes -- cannot define kappa"
+ORDER_MISMATCH_SIGMA = (SIG_LEAD_POWER != PSI_LEAD_POWER)
+# Freeze kappa_sigma via T_sigma's OWN leading scale (so it is a fixed nonzero rational);
+# but carry the order-mismatch flag -- 73-02 must read this as disfavoring the sigma match.
+kappa_sigma = cancel(A4_EXACT / Tscale_sig)
+tick(f"  kappa_sigma := a_4 / [T_sigma OWN-leading-scale] = {A4_EXACT} / ({Tscale_sig}) "
+     f"= {kappa_sigma}  [CARRIES ORDER-MISMATCH FLAG t^{SIG_LEAD_POWER} vs t^4]")
+
+# --- 4.3 freeze + provenance + NOT-(-R/2) / NOT-per-point checks --------------------
+# kappa is one rational from ONE reference direction; NOT -R/2 (that would be -a_4/2 here),
+# NOT a per-point tensor fit. Record provenance for the audit table + 73-02 consumption.
+neg_half_R = cancel(-A4_EXACT / 2)
+tick(f"Task 4.3: NOT -R/2 check: -a_4/2 = {neg_half_R}; kappa_psi = {kappa_psi} "
+     f"(!= -R/2? {kappa_psi != neg_half_R}); kappa_sigma = {kappa_sigma} "
+     f"(!= -R/2? {kappa_sigma != neg_half_R})")
+assert kappa_psi != neg_half_R and kappa_sigma != neg_half_R, "kappa coincides with -R/2"
+assert kappa_psi != 0 and kappa_sigma != 0, "a kappa is zero"
+# Both are finite rationals (no symbol; one reference direction; held fixed):
+for kk, nm in [(kappa_psi, 'kappa_psi'), (kappa_sigma, 'kappa_sigma')]:
+    assert kk.is_rational and len(kk.free_symbols) == 0, f"{nm} not a fixed rational"
+tick("  kappa frozen for BOTH candidates: fixed rationals, one reference direction, "
+     "NOT -R/2, NOT per-point. Provenance recorded for the audit table + 73-02.")
+
+# --- 4.4 AST guard over the KAPPA code (fp-import-supergravity + fp-assume-einstein) -
+# The kappa definition is module-level (the TASK-4 statements). We AST-walk every
+# module-level statement on/after the TASK-4 marker line and check for forbidden-id USES
+# (curvature symbols and GST/SUSY/Weinberg/supergravity imports). a_4 is a frozen NUMBER
+# (Rational literal), NOT a live Ric/R/G call. AST => comment/docstring mentions of the
+# forbidden imports (which legitimately appear as the constraint being honored) are ignored.
+_k_marker = '# ====================================================================== TASK 4'
+_k_line = _src[:_src.index(_k_marker)].count('\n') + 1
+_khits = set()
+for _node in _tree.body:                       # module-level statements only
+    if getattr(_node, 'lineno', 0) >= _k_line and not isinstance(_node, _ast.FunctionDef):
+        _khits |= _forbidden_ids_used(_node)
+tick(f"  AST guard over the KAPPA code (module-level TASK-4 statements): "
+     f"forbidden-id uses = {sorted(_khits)}")
+assert not _khits, f"FORBIDDEN import symbol USED in kappa code: {sorted(_khits)}"
+tick("  GUARD: kappa uses NO GST/SUSY/Weinberg/supergravity coupling and NO live Ric/R/G "
+     "(fp-import-supergravity + fp-assume-einstein avoided; a_4 is a frozen NUMBER)")
+
+print("-" * 78)
+print(f"TASK 4 OK -- kappa FROZEN (exact over Q, one reference direction, held fixed):")
+print(f"  kappa_psi   = {kappa_psi}   (= a_4 / [t^4 tr_eta T[psi]]   = {A4_EXACT} / {Tscale_psi}); "
+      f"T[psi] ~ t^4 == R-order => STRUCTURALLY MATCHED.")
+print(f"  kappa_sigma = {kappa_sigma}   (= a_4 / [t^{SIG_LEAD_POWER} tr_eta T_sigma] = {A4_EXACT} / "
+      f"{Tscale_sig}); T_sigma ~ t^{SIG_LEAD_POWER} != R-order t^4 => ORDER-MISMATCH FLAG carried.")
+print(f"  NOT -R/2 (= {neg_half_R}); NOT a per-point tensor fit; NO GST/SUSY/Weinberg. The")
+print(f"  73-02 family test asks whether THIS kappa works for ALL (M,x) -- a global constant.")
+print(f"  HONEST FINDING (not forced): only T[psi] shares the t^4 curvature order; the sigma")
+print(f"  trace leads at t^{SIG_LEAD_POWER}, so a constant-kappa Einstein match structurally")
+print(f"  FAVORS T[psi]. 73-02 must read the sigma order-mismatch as a disconfirming signal.")
+
+# ---- module-level emission for 73-02 (the frozen RHS) -----------------------------
+PHASE73_HANDOFF = {
+    "T_psi_center": T_psi_center,
+    "T_sigma_center": T_sig_center,
+    "kappa_psi": kappa_psi,
+    "kappa_sigma": kappa_sigma,
+    "a4": A4_EXACT,
+    "Tscale_psi": Tscale_psi,
+    "Tscale_sigma": Tscale_sig,
+    "psi_lead_power": PSI_LEAD_POWER,        # 4 == R-order (structurally matched)
+    "sigma_lead_power": SIG_LEAD_POWER,      # 2 != R-order (order mismatch)
+    "order_mismatch_sigma": ORDER_MISMATCH_SIGMA,
+    "h2_center": HANDOFF,
+    "box_hbar2_center": box_hbar2_center,
+    "lorenz_defect": lorenz_defect,
+    "G1_center": G1_center,
+}
+print("\nPHASE73_HANDOFF (frozen for 73-02): kappa_psi=%s (t^4 matched), kappa_sigma=%s "
+      "(t^%s, ORDER-MISMATCH), a4=%s"
+      % (kappa_psi, kappa_sigma, SIG_LEAD_POWER, A4_EXACT))
+print("=" * 78)
+print("BUILD_T_KAPPA_OK -- Tasks 2,3,4 complete; T (both) + kappa (both) FROZEN exact over "
+      "Q with NO Einstein/G input; order anchors reproduced; the decisive 73-02 test is the "
+      "FULL nonlinear G[g] at O(||M||^4) against kappa T + Lambda g (Lambda=0).")
