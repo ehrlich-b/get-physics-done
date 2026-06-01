@@ -251,3 +251,239 @@ print(f"TASK 1 OK -- full nonlinear G_mu_nu[g] computed exact over Q at {len(fam
       f"{len(dropped)} points dropped for sig flip (not forced). The well-posed test LHS.")
 print(f"FIRST_RESULT_GATE_TASK1: G[g] computed and sig-(1,3)-validated over the family; "
       f"the decisive test LHS is ready for the global (kappa,Lambda) fit (Task 2).")
+
+
+# ============================================================================
+# TASK 2 -- the global (kappa,Lambda) fit  (the can-fail Einstein test)
+# ============================================================================
+print("\n" + "#" * 78)
+print("# TASK 2 -- the SINGLE GLOBAL (kappa,Lambda) fit (the decisive can-fail test)")
+print("#" * 78)
+print("# kappa is FROZEN from 73-01 (NOT a free fit parameter). We TEST whether that same")
+print("# kappa works GLOBALLY, and fit only Lambda as ONE global constant (expected 0).")
+print("# G_munu[g(x)] = kappa T_munu(x) + Lambda g_munu(x) is 10 components x N points.")
+print("# With kappa frozen, define R_munu(x) = G_munu(x) - kappa T_munu(x); the Einstein")
+print("# equation holds iff R_munu(x) = Lambda g_munu(x) for a SINGLE global Lambda across")
+print("# ALL points and components. A single-point match (2 constants vs 10 components at")
+print("# ONE point) is NOT a pass (fp-assume-einstein): the test is GLOBAL consistency.")
+
+
+def T_psi_at(matter, bg, pos_vals, simp=cancel):
+    """The FROZEN PRIMARY T[psi] evaluated at the slice point pos_vals (exact over Q).
+    Uses the 73-01 frozen field builders (psi_scalar -> scalar_stress_tensor), then
+    substitutes the slice coords -- the SAME point x at which G was computed."""
+    psi = psi_scalar(matter, bg)                      # field over (beta,gamma,p,q)
+    Tf, _, _ = scalar_stress_tensor(psi)              # field-valued T_munu on eta_bg
+    sub = {COORDS[i]: pos_vals[i] for i in range(n)}
+    return Tf.applyfunc(lambda e: simp(e.subs(sub)))
+
+
+def T_sigma_at(matter, bg, pos_vals, simp=cancel):
+    """The FROZEN ALTERNATIVE sigma T[V_{1/2}] evaluated at the slice point pos_vals."""
+    phis = sigma_multiplet(matter, bg)
+    Tf, _ = sigma_stress_tensor(phis)
+    sub = {COORDS[i]: pos_vals[i] for i in range(n)}
+    return Tf.applyfunc(lambda e: simp(e.subs(sub)))
+
+
+def lambda_candidate(Rmat, g, simp=cancel):
+    """The per-point Lambda that the TRACE of R = Lambda g forces:
+        Lambda = (1/n) g^{munu} R_munu   (since g^{munu} g_munu = n).
+    Exact over Q. This is the UNIQUE Lambda that can possibly make R = Lambda g; we then
+    test whether R - Lambda g actually vanishes (if not, the point is NOT Einstein)."""
+    ginv = g.inv().applyfunc(simp)
+    trR = simp(sum(ginv[mu, nu] * Rmat[mu, nu] for mu in range(n) for nu in range(n)))
+    return simp(trR / n), ginv
+
+
+def residual_with_lambda(Rmat, g, lam, simp=cancel):
+    """R_munu - Lambda g_munu (exact over Q). Zero matrix <=> R = Lambda g at this point."""
+    return Matrix(n, n, lambda mu, nu: simp(Rmat[mu, nu] - lam * g[mu, nu]))
+
+
+def run_finite_M_fit(Tname, kappa, T_at, simp=cancel):
+    """READING (a) FINITE-M / all-order: for each family point, R = G - kappa T; find the
+    trace-forced per-point Lambda; report the EXACT residual R - Lambda g. Then test the
+    GLOBAL consistency: do ALL points share ONE Lambda with ZERO residual?
+       - all per-point Lambda EQUAL AND all residuals 0  => EXACT Einstein (single global).
+       - else                                            => NOT exact at finite M.
+    Returns dict {lambdas, residual_zero_per_point, global_lambda_consistent,
+                  all_residuals_zero, exact_einstein, max_residual_entries}."""
+    print(f"\n  --- {Tname}: FINITE-M fit (kappa={kappa} FROZEN, solve ONE global Lambda) ---")
+    lambdas = []
+    res_zero = []
+    sample_residuals = {}
+    for f in family:
+        Tm = T_at(f["matter"], f["bg"], f["pos_vals"])
+        Rmat = Matrix(n, n, lambda mu, nu: simp(f["G"][mu, nu] - kappa * Tm[mu, nu]))
+        lam, _ = lambda_candidate(Rmat, f["g"])
+        resid = residual_with_lambda(Rmat, f["g"], lam)
+        is_zero = (resid == zeros(n, n))
+        lambdas.append((f["key"], lam))
+        res_zero.append((f["key"], is_zero))
+        sample_residuals[f["key"]] = resid
+        print(f"    {f['key']}: per-point Lambda = {lam}  ;  R-Lambda*g == 0 ? {is_zero}")
+    # GLOBAL consistency: all per-point Lambda equal?
+    lam_vals = [lv for (_, lv) in lambdas]
+    global_lambda_consistent = all(simp(lv - lam_vals[0]) == 0 for lv in lam_vals)
+    all_res_zero = all(z for (_, z) in res_zero)
+    exact_einstein = global_lambda_consistent and all_res_zero
+    print(f"    => per-point Lambda all EQUAL (single global Lambda)? {global_lambda_consistent}")
+    print(f"    => ALL per-point residuals (R - Lambda g) zero?       {all_res_zero}")
+    print(f"    => EXACT Einstein (single global (kappa,Lambda) reproduces G at finite M)? "
+          f"{exact_einstein}")
+    return {"lambdas": lambdas, "res_zero": res_zero,
+            "global_lambda_consistent": global_lambda_consistent,
+            "all_residuals_zero": all_res_zero, "exact_einstein": exact_einstein,
+            "sample_residuals": sample_residuals}
+
+
+# ---- 2.1 the over-determined GLOBAL Lambda solve (the honest single-constant test) ----
+# Independently of the per-point trace projection, set up the stacked linear system
+#   Lambda * g_munu(x_i) = (G_munu(x_i) - kappa T_munu(x_i))   over ALL (i, mu<=nu),
+# ONE unknown Lambda. Solve by exact linsolve over Q; a single-point solution is NOT
+# accepted -- the system spans the WHOLE family. If inconsistent (no single Lambda),
+# linsolve returns empty => NOT Einstein (reported, not rounded).
+def global_lambda_solve(Tname, kappa, T_at, simp=cancel):
+    from sympy import linsolve, Symbol
+    Lam = Symbol('Lambda_glob', real=True)
+    eqs = []
+    for f in family:
+        Tm = T_at(f["matter"], f["bg"], f["pos_vals"])
+        for mu in range(n):
+            for nu in range(mu, n):                 # symmetric: upper triangle
+                lhs = simp(Lam * f["g"][mu, nu])
+                rhs = simp(f["G"][mu, nu] - kappa * Tm[mu, nu])
+                eqs.append(lhs - rhs)
+    sol = linsolve(eqs, [Lam])
+    consistent = (len(sol) > 0)
+    sol_lambda = (list(sol)[0][0] if consistent else None)
+    print(f"  --- {Tname}: GLOBAL over-determined solve "
+          f"({len(eqs)} equations over the WHOLE family, ONE unknown Lambda) ---")
+    print(f"    single global Lambda consistent across ALL points+components? {consistent}"
+          + (f"  (Lambda = {sol_lambda})" if consistent else "  => NO single Lambda (NOT exact)"))
+    return consistent, sol_lambda
+
+
+# ---- 2.2 the t^4 leading-order fit (reading b) ----
+# With M = t*dir (BG_HALF fixed) at a FIXED slice point, expand G, T, g to the t^4
+# coefficient and test whether a single global (kappa,Lambda) matches the t^4 coefficients
+# across the matter directions (the WEAKER 'linear/leading' level). Report exact residual.
+def leading_t4_coeff(expr, t, simp=cancel):
+    """[t^4] of expr (exact over Q) via the 4th t-derivative at 0 over 4!."""
+    from sympy import diff as _d, factorial as _f
+    return simp(_d(expr, t, 4).subs(t, 0) / _f(4))
+
+
+def run_leading_order_fit(Tname, kappa, T_at, simp=cancel):
+    """READING (b): at each slice position, M = t*dir; extract the t^4 coefficient of
+    G_munu, T_munu, g_munu; test R^(4) = G^(4) - kappa T^(4) =? Lambda g^(4) for a single
+    global Lambda across the directions+positions. Report the exact residual at t^4.
+
+    NOTE: g^(4) is the t^4 coefficient of the metric. Since h^(1)=0 and h starts at t^2,
+    g = eta + h^(2) t^2 + ..., so g^(0)=eta (the leading metric), and g^(4) is the t^4
+    metric correction. The Einstein equation at leading curvature order O(t^4) compares
+    the t^4 curvature G^(4) against kappa T^(4) + Lambda (eta or g^(4))."""
+    from sympy import symbols as _s
+    t = _s('t', real=True, positive=True)
+    print(f"\n  --- {Tname}: LEADING-ORDER (t^4) fit (kappa={kappa} FROZEN) ---")
+    lambdas = []
+    res_zero = []
+    # use the matter directions at the center + one off-center position (t^4 expansions)
+    lead_points = [("D1", DIR1, "X0", POS_CENTER), ("D2", DIR2, "X0", POS_CENTER),
+                   ("D3", DIR3, "X0", POS_CENTER), ("D1", DIR1, "XA", POS_A)]
+    for (dn, dd, pn, pos) in lead_points:
+        matter_t = {k: v * t for k, v in dd.items()}
+        # G^(4): build g(t) curvature symbolically in t is expensive; instead sample G at
+        # several t and fit the t^4 coefficient by finite differencing over Q is unsafe.
+        # Use the exact route: compute G at t-scaled matter for symbolic t via the engine?
+        # The engine needs rational matter. So we extract the t^4 coefficient by computing
+        # G at enough rational t-values and exact polynomial interpolation in t.
+        ts = [Rational(1, 10), Rational(1, 14), Rational(1, 20), Rational(1, 28),
+              Rational(1, 40), Rational(1, 56), Rational(1, 80)]
+        Gcoeffs = {}
+        gcoeffs = {}
+        Tcoeffs = {}
+        # collect G_munu, g_munu, T_munu at each t (exact over Q); interpolate per entry.
+        Gsamples = []
+        gsamples = []
+        Tsamples = []
+        ok_sig = True
+        for tv in ts:
+            mt = {k: v * tv for k, v in dd.items()}
+            res_t = E.spacetime_curvature_of_g(mt, pos, bg_delta=BG_HALF, simp=cancel)
+            if E.eig_signature_count(res_t["g"]) != (1, 3, 0):
+                ok_sig = False
+                break
+            Gsamples.append((tv, einstein_tensor_lower(res_t)))
+            gsamples.append((tv, res_t["g"]))
+            Tsamples.append((tv, T_at(mt, BG_HALF, pos)))
+        if not ok_sig:
+            print(f"    {dn}/{pn}: a sample t flipped signature -- skip leading fit here")
+            continue
+        # exact polynomial interpolation per (mu,nu) entry, read the t^4 coefficient
+        from sympy import interpolate, symbols as _s2
+        tt = _s2('tt')
+
+        def t4coeff(samples, mu, nu):
+            pts = [(tv, M[mu, nu]) for (tv, M) in samples]
+            poly = interpolate(pts, tt)
+            return leading_t4_coeff(poly.subs(tt, t), t) if False else \
+                cancel(poly.diff(tt, 4).subs(tt, 0) / 24)
+
+        G4 = Matrix(n, n, lambda mu, nu: t4coeff(Gsamples, mu, nu))
+        g4 = Matrix(n, n, lambda mu, nu: t4coeff(gsamples, mu, nu))
+        T4 = Matrix(n, n, lambda mu, nu: t4coeff(Tsamples, mu, nu))
+        R4 = Matrix(n, n, lambda mu, nu: cancel(G4[mu, nu] - kappa * T4[mu, nu]))
+        # the leading metric is eta (g^(0)); test R4 = Lambda * eta (the Lambda g term at
+        # leading order multiplies the leading metric eta, since Lambda*g = Lambda*eta + O(t^2))
+        # trace-forced Lambda from eta:  Lambda = (1/n) eta^{munu} R4_munu
+        lam4 = cancel(sum(ETA_INV[mu, nu] * R4[mu, nu] for mu in range(n) for nu in range(n)) / n)
+        resid4 = Matrix(n, n, lambda mu, nu: cancel(R4[mu, nu] - lam4 * ETA_BG[mu, nu]))
+        is_zero = (resid4 == zeros(n, n))
+        lambdas.append((f"{dn}/{pn}", lam4))
+        res_zero.append((f"{dn}/{pn}", is_zero))
+        print(f"    {dn}/{pn}: t^4 Lambda = {lam4} ; R4 - Lambda*eta == 0 ? {is_zero}")
+    lam_vals = [lv for (_, lv) in lambdas]
+    glob_ok = (len(lam_vals) > 0 and all(cancel(lv - lam_vals[0]) == 0 for lv in lam_vals))
+    all_zero = all(z for (_, z) in res_zero) and len(res_zero) > 0
+    leading_einstein = glob_ok and all_zero
+    print(f"    => t^4 per-point Lambda all EQUAL? {glob_ok}; ALL t^4 residuals zero? {all_zero}")
+    print(f"    => Einstein at LEADING (t^4) order (single global (kappa,Lambda))? "
+          f"{leading_einstein}")
+    return {"lambdas": lambdas, "res_zero": res_zero,
+            "global_lambda_consistent": glob_ok, "all_residuals_zero": all_zero,
+            "leading_einstein": leading_einstein}
+
+
+# ---- run BOTH candidates, BOTH readings ----
+tick("Task 2: running the can-fail fit for BOTH T candidates (T[psi] PRIMARY, T_sigma ALT)")
+
+print("\n" + "=" * 78)
+print("CANDIDATE 1: T[psi] (PRIMARY, structurally order-MATCHED t^4)")
+print("=" * 78)
+fitA_psi = run_finite_M_fit("T[psi] finite-M", KAPPA_PSI, T_psi_at)
+solA_psi = global_lambda_solve("T[psi]", KAPPA_PSI, T_psi_at)
+fitB_psi = run_leading_order_fit("T[psi]", KAPPA_PSI, T_psi_at)
+
+print("\n" + "=" * 78)
+print("CANDIDATE 2: T_sigma (ALTERNATIVE, order-MISMATCHED t^2; disfavored by 73-01)")
+print("=" * 78)
+fitA_sig = run_finite_M_fit("T_sigma finite-M", KAPPA_SIGMA, T_sigma_at)
+solA_sig = global_lambda_solve("T_sigma", KAPPA_SIGMA, T_sigma_at)
+fitB_sig = run_leading_order_fit("T_sigma", KAPPA_SIGMA, T_sigma_at)
+
+# ---- 2.3 single-point-match guard (fp-assume-einstein) ----
+print("\n" + "-" * 78)
+print("fp-assume-einstein GUARD: a single-point match is NOT counted as a pass.")
+print("  The verdict uses the GLOBAL over-determined solve (all 12 points x 10 components)")
+print("  AND the per-point Lambda-equality test. kappa was FROZEN in 73-01 before G was")
+print("  computed; Lambda is the ONLY fit constant (expected 0); no per-point tuning; no")
+print("  least-squares rounding of a near-miss. A nonzero residual is reported EXACTLY.")
+print("-" * 78)
+
+print(f"TASK 2 OK -- the can-fail global (kappa,Lambda) fit executed for BOTH candidates:")
+print(f"  T[psi]  : EXACT (finite-M)? {fitA_psi['exact_einstein']}; global-solve consistent? "
+      f"{solA_psi[0]}; LEADING (t^4)? {fitB_psi['leading_einstein']}")
+print(f"  T_sigma : EXACT (finite-M)? {fitA_sig['exact_einstein']}; global-solve consistent? "
+      f"{solA_sig[0]}; LEADING (t^4)? {fitB_sig['leading_einstein']}")
