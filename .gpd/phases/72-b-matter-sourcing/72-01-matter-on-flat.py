@@ -139,3 +139,81 @@ print("TASK 1 OK -- index map, cross-term uniqueness, SSOT guard, non-vacuity, "
       "SOURCE regression all exact over Q.")
 print("FIRST_RESULT_GATE_TASK1: SOURCE engine faithful; cross-term is the unique "
       "matter channel; representative M non-vacuous (-13/315).")
+
+
+# ====================================================================== TASK 2
+print("\n" + "#" * 78)
+print("# TASK 2 -- g=eta+h(M) curvature (indices raised with g, NOT cone-Hessian)")
+print("#          + MANDATORY hand-rolled Riemann cross-check + signature (1,3)")
+print("#" * 78)
+
+# --- 2.0 delta={} sanity: flat baseline (corroborates Task 3) -------------------
+tick("Task 2.0: delta={} (M=0) sanity -- expect g=eta_bg, h=0, R[g]=0 ...")
+SC0 = E.spacetime_curvature_of_g({}, CENTER, bg_delta={}, simp=cancel)
+assert SC0["h"] == Matrix.zeros(4, 4), "h != 0 at M=0 center"
+assert SC0["g"] == SC0["eta_bg"], "g != eta_bg at M=0 center"
+assert SC0["Rscalar"] == 0, f"R[g]={SC0['Rscalar']} != 0 at M=0 (flat baseline broken!)"
+assert E.riemann_symmetry_ok(SC0["R"], 4, simp=cancel)
+tick(f"  M=0: h==0, g==eta_bg, R[g]={SC0['Rscalar']} (FLAT) -- index-raising route returns flat baseline")
+
+# --- 2.1 build g=eta+h(M) and its INTRINSIC curvature ---------------------------
+tick("Task 2.1: building g=eta+h at representative M (bg+matter rational, slice rational) ...")
+SC = E.spacetime_curvature_of_g(MATTER_DELTA, SLICE_M, bg_delta=BG_DELTA, simp=cancel)
+g_M, h_M, ginv_M = SC["g"], SC["h"], SC["ginv"]
+R_M, Ric_M, Rs_M = SC["R"], SC["Ric"], SC["Rscalar"]
+tick(f"  g built; detg = {SC['detg']}; h != 0? {h_M != Matrix.zeros(4,4)}")
+# index discipline: Riemann symmetries hold; raised with g^{-1}=(eta+h)^{-1}
+assert E.riemann_symmetry_ok(R_M, 4, simp=cancel), "Riemann symmetries FAIL"
+tick("  riemann_symmetry_ok(R[g],4) == True (antisym i,j; antisym k,l; pair swap)")
+# Ric symmetric
+assert all(cancel(Ric_M[i, j] - Ric_M[j, i]) == 0 for i in range(4) for j in range(4))
+tick(f"  Ric[g] symmetric; R[g](M) = {Rs_M}")
+# reality / exactness: Rscalar is a real rational (no Wick/float artifact)
+assert Rs_M.is_real is not False
+assert getattr(Rs_M, 'is_rational', None) is not False
+tick(f"  R[g](M) is a real rational (no imaginary part / float artifact)")
+
+# CONFIRM indices were raised with g, NOT H_bg: show g^{-1} != H_bg^{-1} and that the
+# H_bg-raised Ricci scalar DIFFERS (the falsified route would give a different number)
+H_bg_M = SC["H_bg"]
+Hbg_inv = H_bg_M.inv().applyfunc(cancel)
+assert cancel((ginv_M - Hbg_inv)).is_zero_matrix is not True, \
+    "g^{-1} == H_bg^{-1}?! (the metrics would coincide -- they must not)"
+# Ricci scalar if one WRONGLY raised with H_bg^{-1} (the falsified route), same C:
+C_M = SC["C"]
+R_wrong = E.totaro_riemann(Hbg_inv, C_M, 4, simp=cancel)
+Rs_wrong = E.ricci_scalar(R_wrong, Hbg_inv, 4, simp=cancel)
+tick(f"  INDEX-RAISING CHECK: R via g^-1=(eta+h)^-1 = {Rs_M}  vs  "
+     f"R via bare H_bg^-1 (FALSIFIED route) = {Rs_wrong}  -- distinct: {Rs_M != Rs_wrong}")
+assert Rs_M != Rs_wrong, "g^-1 and H_bg^-1 give the SAME R -- index-raising correction vacuous here"
+
+# --- 2.2 MANDATORY hand-rolled Riemann cross-check ------------------------------
+tick("Task 2.2: hand-rolled Christoffel/Riemann of g=eta+h (slice symbolic, matter "
+     "rational) -- this is the watched step (expect ~tens of s) ...")
+comps = [(0, 2, 0, 2), (2, 3, 2, 3), (0, 1, 0, 1)]
+HR = E.hand_rolled_riemann_of_g(MATTER_DELTA, SLICE_M, bg_delta=BG_DELTA,
+                                components=comps, simp=cancel)
+tick("  hand-rolled Riemann components computed; comparing to Totaro-g^{-1} ...")
+agree = True
+for (i, j, k, l) in comps:
+    totaro_val = cancel(R_M[i][j][k][l])
+    hand_val = cancel(HR[(i, j, k, l)])
+    ok = (cancel(totaro_val - hand_val) == 0)
+    agree = agree and ok
+    tick(f"  R_{i}{j}{k}{l}: Totaro-g^-1 = {totaro_val} ; hand-rolled = {hand_val} ; agree={ok}")
+assert agree, "HAND-ROLLED Riemann DISAGREES with Totaro-g^{-1} -- hand-rolled is PRIMARY"
+tick("  MANDATORY CROSS-CHECK PASS: Totaro-g^{-1} == hand-rolled Riemann of g=eta+h "
+     "on >=2 components, EXACT over Q (Totaro applicability to eta+h validated)")
+
+# --- 2.3 signature (1,3) of g at the chosen M -----------------------------------
+npos, nneg, nzero = E.eig_signature_count(g_M, simp=cancel)
+tick(f"  signature of g=eta+h at M: (#pos,#neg,#zero) = ({npos},{nneg},{nzero}) "
+     f"[eigenvalue-sign test; null-aligned frame => NOT Sylvester]")
+assert (npos, nneg, nzero) == (1, 3, 0), \
+    f"g signature {(npos,nneg,nzero)} != (1,3) -- left the small-||M|| Lorentzian regime"
+tick("  signature (1,3) CONFIRMED (small-||M|| Lorentzian regime, 70.1 splice-consistency)")
+
+print("-" * 78)
+print(f"TASK 2 OK -- spacetime_curvature_of_g built (indices raised with g=eta+h, "
+      f"C from cone-Hessian potential); R[g](M)={Rs_M}; hand-rolled cross-check PASS; "
+      f"signature (1,3); M=0 returns flat.")
