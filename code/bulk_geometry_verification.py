@@ -2007,12 +2007,51 @@ def _V0_plus_matter_sub():
 #
 # M=0 FLAT BASELINE (DERIVED from KKT det_2, NOT inserted; NO Lambda tripwire).
 # ---------------------------------------------------------------------------
-# At (M=0, center) h=0 so g=eta_bg, a CONSTANT metric => R=S=Weyl=0 identically.
-# This flatness is DERIVED from the KKT det_2 Minkowski form (eta IS the slice's own
-# causal structure); the centered subtraction h := H_bg - H_center is bookkeeping
-# carrying NO inserted Lambda and NO circularity. The cone-Hessian center's
-# {0,-1,-1,-1} / R=-3 / R_time x H^3 is the SOURCE field's geometry, NOT the
-# spacetime curvature (fp-lambda-as-sourcing forbids quoting it as such).
+# THE OPERATIONAL DEFINITION OF h (B1 -- human-ratified fix, supersedes the centered-H0).
+# ----------------------------------------------------------------------------
+# The matter perturbation is the MATTER-INDUCED DEVIATION of the cone-Hessian source,
+# with the V_0 background partner RETAINED IN BOTH terms (so it cancels):
+#     h(x;M) := H_source(x; bg + M) - H_source(x; bg-only)          (B1, matter-on-flat)
+# where H_source(x; .) = Hess_slice(-log det_3) evaluated at the slice-symbolic point x
+# with the matter/bg substituted. THIS IS A FUNCTION-OF-x SUBTRACTION (subtract the
+# matterless reference AT THE SAME x), NOT the constant centered shift H_center.
+#   * "Matter off" (M=0) => minuend == subtrahend => h(x;0) == 0 IDENTICALLY in x
+#     (verified over Q), so g(x;0) = eta_bg EVERYWHERE => R[g](M=0) = 0 (a genuine FLAT
+#     baseline over a neighbourhood, DERIVED from the KKT det_2 Minkowski eta).
+#   * Because both H_source terms are Hessians (in the SAME slice coords) of two
+#     potentials, h = Hess(Phi_{bg+M} - Phi_{bg}) is itself a Hessian metric, so
+#     g = eta_bg + Hess(Phi_h) is a Hessian metric PLUS a constant: the Totaro closed
+#     form applies with C_ijk = (Phi_{bg+M} - Phi_{bg})_{,ijk} (the DIFFERENCE-potential
+#     cubic form) and indices raised by g^{-1}=(eta+h)^{-1}. MANDATORILY cross-checked
+#     against a hand-rolled Christoffel/Riemann of g (hand_rolled_riemann_of_g); if they
+#     ever disagree, the hand-rolled Riemann of g is PRIMARY (research Open Q1).
+#
+# WHY NOT THE CONSTANT centered subtraction h := H_source(x;M) - H_center (the engine's
+# old offcenter_slice_metric / the 72-RESEARCH literal definition, lines 178-182)?
+# Because H_center = diag(9,9,18,18) is a CONSTANT: h(x;0) = H_source(x;0) - H_center is
+# then NONZERO for x != center (it vanishes only AT the center POINT). So g = eta + that
+# h equals the MATTERLESS CONE-HESSIAN metric (up to constants) and is CURVED at M=0
+# (verified: R[g](M=0)=17496 at the center, large rational off-center) -- i.e. exactly
+# the cone-Hessian-IS-metric thesis that Phase 70.1 FALSIFIED (fp-lambda-as-sourcing).
+# A curved M=0 is the disconfirming observation; B1 is the human-ratified correction
+# pinned by the 70.1 verdict (the M=0 spacetime baseline MUST be flat eta, DERIVED).
+# The cone-Hessian center's {0,-1,-1,-1} / R=-3 / R_time x H^3 is the SOURCE field's
+# geometry, NOT the spacetime curvature (fp-lambda-as-sourcing forbids quoting it).
+
+
+def _matterless_reference_hessian(bg_delta, slice_symbolic=True, slice_vals=None,
+                                  simp=None):
+    """The MATTERLESS-at-same-x reference cone-Hessian H_source(x; bg-only) over the 4
+    slice coords (B1 subtrahend). EXACT over Q. This is cone_hessian_offcenter on the
+    bg-only basepoint (V_0 partner retained, matter OFF), with the slice coords symbolic
+    (default) or rational (slice_vals). Subtracting THIS (not the constant H_center) is
+    what makes h(x;M=0)==0 identically in x => the flat M=0 baseline over a neighbourhood
+    (Phase-70.1 B1)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    return cone_hessian_offcenter(bg_delta or {}, slice_symbolic=slice_symbolic,
+                                  slice_vals=slice_vals, simp=simp)
 
 
 def _matter_basepoint_subs(matter_delta, bg_delta, slice_symbolic=True, slice_vals=None):
@@ -2037,52 +2076,88 @@ def _matter_basepoint_subs(matter_delta, bg_delta, slice_symbolic=True, slice_va
     return _offcenter_subs(full, slice_symbolic=slice_symbolic, slice_vals=slice_vals)
 
 
+def _difference_potential_subs(matter_delta, bg_delta, slice_symbolic=True,
+                               slice_vals=None):
+    """Return (sub_bgM, sub_bg): the two basepoint substitutions for the B1
+    DIFFERENCE potential Phi_h = Phi(bg+M) - Phi(bg). sub_bgM has the V_0 background
+    AND the matter; sub_bg has the V_0 background ONLY (matter OFF). Both carry the
+    same 4 slice coords (symbolic by default; rational if slice_vals). EXACT over Q.
+    Subtracting the bg-only potential AT THE SAME x is the B1 matter-on-flat fix."""
+    sub_bgM = _matter_basepoint_subs(matter_delta, bg_delta,
+                                     slice_symbolic=slice_symbolic, slice_vals=slice_vals)
+    sub_bg = _matter_basepoint_subs({}, bg_delta,
+                                    slice_symbolic=slice_symbolic, slice_vals=slice_vals)
+    return sub_bgM, sub_bg
+
+
 def spacetime_curvature_of_g(matter_delta, slice_vals, bg_delta=None, simp=None):
     """The INTRINSIC curvature of the PHYSICAL spacetime metric g = eta + h(x;M),
     indices raised with g^{-1} = (eta+h)^{-1} (NOT the bare cone-Hessian H_bg^{-1}).
-    EXACT over Q. This is the DERV-02 core (Phase-70.1 re-frame).
+    EXACT over Q. This is the DERV-02 core (Phase-70.1 human-ratified re-frame, B1).
 
-    Pipeline (the one substantive 70.1 change):
-      (a) g = eta_bg + h  via offcenter_slice_metric(full_delta, slice_vals) with
-          full_delta = bg_delta U matter_delta (V_0 partner + matter), slice rational.
-      (b) C_ijk = Phi_{,ijk} from the cone-Hessian potential Phi=-log det_3 (slice
-          coords symbolic, matter+bg rational), evaluated at slice_vals. SAME C as the
-          cone-Hessian source (eta_bg, H_center constant).
+    B1 (matter-on-flat) operational definition of h -- the MATTER-INDUCED DEVIATION
+    of the cone-Hessian source with the V_0 background partner RETAINED IN BOTH terms:
+        h(x;M) := H_source(x; bg + M) - H_source(x; bg-only)        (B1)
+    so h(x;M=0) == 0 IDENTICALLY in x => g(x;0)=eta_bg everywhere => R[g](M=0)=0 over a
+    NEIGHBOURHOOD (the flat baseline, DERIVED from the KKT det_2 Minkowski eta). This
+    SUPERSEDES the old centered subtraction h := H_source - H_center (which is nonzero
+    for x != center and made R[g](M=0)=17496 -- the FALSIFIED cone-Hessian-is-metric
+    framing; see the Section-13 header). NOTE: offcenter_slice_metric still implements
+    the OLD centered h and is NOT used on this decisive path.
+
+    Pipeline (B1):
+      (a) h = H_source(x;bg+M) - H_source(x;bg) over the 4 slice coords (symbolic),
+          then g = eta_bg + h evaluated at the rational slice basepoint slice_vals.
+      (b) C_ijk = (Phi_{bg+M} - Phi_{bg})_{,ijk} -- the DIFFERENCE-potential cubic form
+          (NOT the full Phi_{bg+M}); so C(M=0)=0 identically => curvature vanishes at
+          M=0 on the nose. (eta_bg constant => g_{,ijk}=h_{,ijk}=(Phi_h)_{,ijk}=C_ijk.)
       (c) ginv = g.inv()   == (eta+h)^{-1}, the DECISIVE index-raising metric.
       (d) R = totaro_riemann(ginv, C, 4); Ric_jl = g^{ik}R_ijkl; Rscalar = g^{jl}Ric_jl.
-    Returns dict {g, h, ginv, C, R, Ric, Rscalar, detg, eta_bg, H_bg}.
+    Returns dict {g, h, ginv, C, R, Ric, Rscalar, detg, eta_bg, H_bg, H_ref}.
 
     WATCHDOG: matter+bg are rational BEFORE g.inv() (only the 4 slice coords were
-    symbolic, then substituted) => ~3s inverse, not the >200s all-symbolic cliff."""
+    symbolic, then substituted) => ~few-s inverse, not the >200s all-symbolic cliff."""
     from sympy import cancel as _cancel, log as _log
     if simp is None:
         simp = _cancel
     n = 4
     bg_delta = bg_delta or {}
-    full = {**bg_delta, **(matter_delta or {})}
-    # (a) g = eta + h at the rational slice basepoint
-    MG = offcenter_slice_metric(full, slice_vals=slice_vals)
-    g_at = MG["g"].applyfunc(simp)
-    # (b) cubic form C from the cone-Hessian potential, slice symbolic then evaluated
+    matter_delta = matter_delta or {}
+    full = {**bg_delta, **matter_delta}
     beta, gamma, p, q = symbols('beta gamma p q', real=True)
     coords = [beta, gamma, p, q]
-    Phi = (-_log(inv_det_X)).subs(
-        _matter_basepoint_subs(matter_delta, bg_delta, slice_symbolic=True))
-    C_sym = cubic_form_C(Phi, coords)
     pt = {coords[i]: slice_vals[i] for i in range(n)}
+    # (a) B1 h = H_source(x;bg+M) - H_source(x;bg), both slice-symbolic, eval at slice_vals.
+    #     eta_bg = (beta,gamma,p,q)-frame pullback of Minkowski diag(+1,-1,-1,-1).
+    H_bg_sym = cone_hessian_offcenter(full, slice_symbolic=True, slice_vals=None, simp=simp)
+    H_ref_sym = _matterless_reference_hessian(bg_delta, slice_symbolic=True,
+                                              slice_vals=None, simp=simp)
+    h_sym = (H_bg_sym - H_ref_sym).applyfunc(simp)
+    J = _frame_jacobian_bg_to_mink()
+    eta_bg = (J.T * _eta_minkowski() * J).applyfunc(simp)
+    g_sym = (eta_bg + h_sym).applyfunc(simp)
+    g_at = g_sym.applyfunc(lambda e: simp(e.subs(pt)))
+    h_at = h_sym.applyfunc(lambda e: simp(e.subs(pt)))
+    H_bg_at = H_bg_sym.applyfunc(lambda e: simp(e.subs(pt)))
+    H_ref_at = H_ref_sym.applyfunc(lambda e: simp(e.subs(pt)))
+    # (b) DIFFERENCE-potential cubic form C_ijk = (Phi_{bg+M} - Phi_{bg})_{,ijk}
+    sub_bgM, sub_bg = _difference_potential_subs(matter_delta, bg_delta,
+                                                 slice_symbolic=True)
+    Phi_diff = (-_log(inv_det_X)).subs(sub_bgM) - (-_log(inv_det_X)).subs(sub_bg)
+    C_sym = cubic_form_C(Phi_diff, coords)
     C_at = [[[simp(C_sym[i][j][k].subs(pt)) for k in range(n)] for j in range(n)]
             for i in range(n)]
     # (c) DECISIVE index-raising metric: g^{-1} = (eta+h)^{-1}  (NOT H_bg^{-1})
     detg = simp(g_at.det())
     ginv = g_at.inv().applyfunc(simp)
-    # (d) Totaro Riemann with C from Phi and indices raised by g
+    # (d) Totaro Riemann with C from the DIFFERENCE potential, indices raised by g
     R = totaro_riemann(ginv, C_at, n, simp=simp)
     Ric = Matrix(n, n, lambda j, l: simp(sum(
         ginv[i, k] * R[i][j][k][l] for i in range(n) for k in range(n))))
     Rscalar = simp(sum(ginv[j, l] * Ric[j, l] for j in range(n) for l in range(n)))
-    return {"g": g_at, "h": MG["h"].applyfunc(simp), "ginv": ginv, "C": C_at,
+    return {"g": g_at, "h": h_at, "ginv": ginv, "C": C_at,
             "R": R, "Ric": Ric, "Rscalar": Rscalar, "detg": detg,
-            "eta_bg": MG["eta_bg"], "H_bg": MG["H_bg"]}
+            "eta_bg": eta_bg, "H_bg": H_bg_at, "H_ref": H_ref_at}
 
 
 def hand_rolled_riemann_of_g(matter_delta, slice_vals, bg_delta=None,
@@ -2101,7 +2176,12 @@ def hand_rolled_riemann_of_g(matter_delta, slice_vals, bg_delta=None,
     wrt the slice coords, then evaluated at slice_vals. `components` is a list of
     (i,j,k,l) lower-index tuples to return (default: a spread of nonzero ones).
     Returns dict {(i,j,k,l): R_ijkl, ...}. Independent of the Totaro closed-form
-    assumption => guards its applicability to eta+h (research Open Q1)."""
+    assumption => guards its applicability to eta+h (research Open Q1).
+
+    B1 (matter-on-flat): g = eta_bg + [H_source(x;bg+M) - H_source(x;bg)] -- the SAME
+    matter-induced-deviation h as spacetime_curvature_of_g (NOT the centered
+    H_bg - H_center), so the hand-rolled and Totaro routes are cross-checking the SAME
+    g (a fair cross-check; the falsified centered h is NOT used)."""
     from sympy import cancel as _cancel
     if simp is None:
         simp = _cancel
@@ -2110,45 +2190,66 @@ def hand_rolled_riemann_of_g(matter_delta, slice_vals, bg_delta=None,
     full = {**bg_delta, **(matter_delta or {})}
     beta, gamma, p, q = symbols('beta gamma p q', real=True)
     coords = [beta, gamma, p, q]
-    # g = eta + h with the slice coords SYMBOLIC (matter/bg rational inside H_bg).
-    # Rebuild symbolically (offcenter_slice_metric with slice_vals=None keeps slice
-    # symbolic) on the matter+bg basepoint:
+    # g = eta + h (B1) with the slice coords SYMBOLIC (matter/bg rational inside H_bg).
+    # h = H_source(x;bg+M) - H_source(x;bg-only)  -- matterless reference at the same x.
     H_bg_sym = cone_hessian_offcenter(full, slice_symbolic=True, slice_vals=None, simp=simp)
-    H_center = cone_hessian_at_center(slice_order=[1, 2, 3, 10])
-    h_sym = (H_bg_sym - H_center).applyfunc(simp)
+    H_ref_sym = _matterless_reference_hessian(bg_delta, slice_symbolic=True,
+                                              slice_vals=None, simp=simp)
+    h_sym = (H_bg_sym - H_ref_sym).applyfunc(simp)
     J = _frame_jacobian_bg_to_mink()
     eta_bg = (J.T * _eta_minkowski() * J).applyfunc(simp)
     g_sym = (eta_bg + h_sym).applyfunc(simp)
     pt = {coords[i]: slice_vals[i] for i in range(n)}
-    # Christoffel of the SECOND kind from the symbolic g (then evaluate)
-    ginv_sym = g_sym.inv()
+    # WATCHDOG-SAFE evaluation strategy (exact over Q, NO symbolic matrix inverse):
+    # differentiate g SYMBOLICALLY (cheap: per-entry diff), then EVALUATE g and its
+    # 1st/2nd derivatives at the rational slice point. All subsequent algebra (inverse,
+    # Christoffel, Riemann) is over RATIONAL 4x4 matrices => fast. The fully-symbolic
+    # g_sym.inv() + symbolic d(Christoffel) route is an ~min-scale blow-up (watchdog).
+    dg = [g_sym.applyfunc(lambda e, _c=c: diff(e, coords[_c])) for c in range(n)]
+    ddg = [[g_sym.applyfunc(lambda e, _c=c, _d=d: diff(e, coords[_c], coords[_d]))
+            for d in range(n)] for c in range(n)]
+    g0 = g_sym.applyfunc(lambda e: simp(e.subs(pt)))            # rational g
+    dg0 = [dg[c].applyfunc(lambda e: simp(e.subs(pt))) for c in range(n)]
+    ddg0 = [[ddg[c][d].applyfunc(lambda e: simp(e.subs(pt))) for d in range(n)]
+            for c in range(n)]
+    ginv0 = g0.inv().applyfunc(simp)                            # rational inverse
 
-    def Gamma(a, b, cc):
+    # Christoffel 2nd kind at the point: Gamma^a_bc = (1/2) g^{ad}(d_b g_dc + d_c g_db - d_d g_bc)
+    def Gamma2(a, b, cc):
         s = 0
         for d in range(n):
-            s += ginv_sym[a, d] * (diff(g_sym[d, b], coords[cc])
-                                   + diff(g_sym[d, cc], coords[b])
-                                   - diff(g_sym[b, cc], coords[d]))
-        return Rational(1, 2) * s
+            s += ginv0[a, d] * (dg0[b][d, cc] + dg0[cc][d, b] - dg0[d][b, cc])
+        return simp(Rational(1, 2) * s)
 
-    G = [[[Gamma(a, b, cc) for cc in range(n)] for b in range(n)] for a in range(n)]
+    G = [[[Gamma2(a, b, cc) for cc in range(n)] for b in range(n)] for a in range(n)]
 
-    def Riem_up(a, b, cc, d):
-        s = diff(G[a][b][d], coords[cc]) - diff(G[a][b][cc], coords[d])
+    # Lower-index Levi-Civita Riemann at the point (purely from evaluated g, dg, ddg,
+    # Gamma; INDEPENDENT of the Totaro closed form). The bare second-derivative+Gamma^2
+    # formula yields the OPPOSITE overall sign to the engine's Totaro convention
+    # R_ijkl = -(1/4) g^{pq}(C_jlp C_ikq - C_ilp C_jkq) (Section-12 header, sign pinned
+    # to give K=-1/2 hyperbolic for the H^3 cone-Hessian). VERIFIED: on the matterless
+    # cone-Hessian (a genuine Hessian metric where both routes MUST agree) the ratio
+    # hand/Totaro is a UNIFORM -1 across 9 independent components (diag, mixed,
+    # off-diagonal) with zeros agreeing -- i.e. a single global sign-convention flip,
+    # NOT a component bug. We carry the OVERALL MINUS so the hand-rolled cross-check is
+    # in the SAME convention as the Totaro engine it validates:
+    #   R_{abcd} = -[ (1/2)(d_b d_c g_ad + d_a d_d g_bc - d_b d_d g_ac - d_a d_c g_bd)
+    #               + g_{ef}( Gamma^e_{ac} Gamma^f_{bd} - Gamma^e_{ad} Gamma^f_{bc} ) ].
+    def Riem_low(a, b, cc, d):
+        second = Rational(1, 2) * (ddg0[b][cc][a, d] + ddg0[a][d][b, cc]
+                                   - ddg0[b][d][a, cc] - ddg0[a][cc][b, d])
+        quad = 0
         for e in range(n):
-            s += G[a][cc][e] * G[e][b][d] - G[a][d][e] * G[e][b][cc]
-        return s
+            for f in range(n):
+                quad += g0[e, f] * (G[e][a][cc] * G[f][b][d]
+                                    - G[e][a][d] * G[f][b][cc])
+        return simp(-(second + quad))
 
     if components is None:
         components = [(0, 2, 0, 2), (2, 3, 2, 3), (0, 1, 0, 1), (1, 2, 1, 2)]
     out = {}
     for (i, j, k, l) in components:
-        Rup = Riem_up(i, j, k, l)        # R^i_{jkl}
-        Rlow = sum(g_sym[i, e] * 0 for e in range(0))  # init 0
-        Rlow = 0
-        # Lower the FIRST index: R_{ijkl} = g_{i e} R^e_{jkl}
-        Rlow = sum(g_sym[i, e] * Riem_up(e, j, k, l) for e in range(n))
-        out[(i, j, k, l)] = simp(Rlow.subs(pt))
+        out[(i, j, k, l)] = Riem_low(i, j, k, l)
     return out
 
 
@@ -2193,31 +2294,44 @@ def ricci_decomposition_n4(R, Ric, Rscalar, g, ginv, simp=None):
 
 
 def eig_signature_count(M, simp=None):
-    """Signature (#positive, #negative, #zero) of a symmetric rational Matrix M by
-    EXACT eigenvalue signs over Q (NOT Sylvester leading minors -- the beta,gamma
-    frame is null-aligned so leading minors are invalid). Returns (npos, nneg, nzero)."""
-    from sympy import cancel as _cancel
+    """Signature (#positive, #negative, #zero) of a symmetric rational Matrix M,
+    EXACT over Q (NOT Sylvester leading minors -- the beta,gamma frame is null-aligned
+    so leading minors are invalid). Returns (npos, nneg, nzero).
+
+    A real symmetric matrix has real eigenvalues; its eigenvalues are the (real) roots
+    of its characteristic polynomial. We isolate them EXACTLY with sympy.real_roots
+    (Sturm/Descartes on the exact-over-Q charpoly) and read each root's SIGN exactly
+    (real_roots returns ordered, sign-decidable algebraic numbers). This is robust even
+    when M.eigenvals() returns opaque nested radicals (which is_positive/is_negative may
+    not resolve). Cross-check: #roots (with multiplicity) == dim, and Tr/det signs are
+    consistent. EXACT -- no float verdict (fp-float-decisive)."""
+    from sympy import cancel as _cancel, Symbol, real_roots, Poly, sign as _sign
     if simp is None:
         simp = _cancel
-    ev = M.eigenvals()   # exact over Q (with multiplicity)
+    n = M.shape[0]
+    lam = Symbol('_lam_sig', real=True)
+    # characteristic polynomial det(M - lam I), exact over Q
+    charpoly = Poly((M - lam * M.eye(n)).det(), lam)
+    roots = real_roots(charpoly)        # exact real algebraic roots, with multiplicity
+    assert len(roots) == n, \
+        f"real_roots returned {len(roots)} != dim {n} (symmetric M must have all-real spectrum)"
     npos = nneg = nzero = 0
-    for val, mult in ev.items():
-        v = simp(val)
-        if v == 0:
-            nzero += mult
-        elif v.is_positive:
-            npos += mult
-        elif v.is_negative:
-            nneg += mult
+    for r in roots:
+        s = _sign(r)                    # exact sign of an isolated real algebraic root
+        if s == 0:
+            nzero += 1
+        elif s == 1:
+            npos += 1
+        elif s == -1:
+            nneg += 1
         else:
-            # fall back to a numeric sign of an exact value (still exact input)
-            fv = float(v)
-            if fv > 0:
-                npos += mult
-            elif fv < 0:
-                nneg += mult
+            # last-resort exact comparison (still no float verdict): r vs 0
+            if r > 0:
+                npos += 1
+            elif r < 0:
+                nneg += 1
             else:
-                nzero += mult
+                nzero += 1
     return npos, nneg, nzero
 
 
