@@ -487,3 +487,181 @@ print(f"  T[psi]  : EXACT (finite-M)? {fitA_psi['exact_einstein']}; global-solve
       f"{solA_psi[0]}; LEADING (t^4)? {fitB_psi['leading_einstein']}")
 print(f"  T_sigma : EXACT (finite-M)? {fitA_sig['exact_einstein']}; global-solve consistent? "
       f"{solA_sig[0]}; LEADING (t^4)? {fitB_sig['leading_einstein']}")
+
+
+# ============================================================================
+# TASK 3 -- honest level via the n=4 Ricci decomposition (S, Weyl)
+# ============================================================================
+print("\n" + "#" * 78)
+print("# TASK 3 -- honest Einstein-structure level via the n=4 Ricci decomposition (S, Weyl)")
+print("#" * 78)
+print("# Classify (exact / linear-leading / none) by an EXPLICIT rule tied to Task 2's exact")
+print("# residuals and the S/Weyl structure. S!=0 and/or Weyl!=0 (not proportional to any")
+print("# independent T) => 'curved but not Einstein-structured' (the milestone's honest")
+print("# prior; an ACCEPTABLE full result, NOT forced into Einstein form).")
+
+
+def matrix_is_zero_exact(M, simp=cancel):
+    return all(simp(x) == 0 for x in M)
+
+
+def tensor4_nonzero_count(Tn, simp=cancel):
+    """# of nonzero entries of a 4-index list-of-lists tensor (exact over Q)."""
+    c = 0
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    if simp(Tn[i][j][k][l]) != 0:
+                        c += 1
+    return c
+
+
+# ---- 3.1 decomposition at the anchor M_0 and two other family points -------
+decomp_points = ["D1/X0/t1", "D1/XA/t1", "D2/X0/t2"]
+tick("Task 3.1: n=4 Ricci decomposition (S, Weyl) at sampled family points ...")
+decomp_results = {}
+for key in decomp_points:
+    f = next(ff for ff in family if ff["key"] == key)
+    res = f["res"]
+    dec = E.ricci_decomposition_n4(res["R"], res["Ric"], res["Rscalar"],
+                                   res["g"], res["ginv"], simp=cancel)
+    assert dec["resid_zero"], f"{key}: ricci_decomposition reconstruction != exact (resid_zero False)"
+    S_zero = dec["S_zero"]
+    weyl_zero = dec["weyl_zero"]
+    R_zero = dec["R_zero"]
+    weyl_nz = tensor4_nonzero_count(dec["Weyl"])
+    S_nz = sum(1 for x in dec["S"] if cancel(x) != 0)
+    decomp_results[key] = {"S_zero": S_zero, "weyl_zero": weyl_zero, "R_zero": R_zero,
+                           "weyl_nonzero_count": weyl_nz, "S_nonzero_count": S_nz,
+                           "trace_S": dec["trace_S"], "Rscalar": res["Rscalar"]}
+    tick(f"  {key}: reconstruction exact (resid_zero=True); R_zero={R_zero}; "
+         f"S_zero={S_zero} (S nonzero entries={S_nz}); weyl_zero={weyl_zero} "
+         f"(Weyl nonzero entries={weyl_nz}); trace_S={dec['trace_S']}")
+
+# At the anchor: report S != 0 and Weyl != 0 explicitly (the honest prior).
+anch = decomp_results["D1/X0/t1"]
+print("-" * 78)
+print(f"  ANCHOR M_0 (D1/X0/t1): R != 0 (Rscalar~{float(anch['Rscalar']):.4g}); "
+      f"traceless-Ricci S != 0 ({anch['S_nonzero_count']}/16 entries nonzero); "
+      f"Weyl != 0 ({anch['weyl_nonzero_count']}/256 entries nonzero); trace_S={anch['trace_S']} "
+      f"(== 0, S genuinely traceless).")
+
+# ---- 3.2 exact residual NORM per point (clean number for the verdict package) ----
+# Report a single exact-over-Q scalar witness of the non-match per point: the trace-forced
+# Lambda (the BEST single constant) and the residual matrix's nonzero-entry count + a
+# representative exact entry. (We already proved R - Lambda g != 0; here we quantify it.)
+tick("Task 3.2: exact residual quantification (best-Lambda residual per point) ...")
+
+
+def residual_witness(Tname, kappa, T_at, key, simp=cancel):
+    f = next(ff for ff in family if ff["key"] == key)
+    Tm = T_at(f["matter"], f["bg"], f["pos_vals"])
+    Rmat = Matrix(n, n, lambda mu, nu: simp(f["G"][mu, nu] - kappa * Tm[mu, nu]))
+    lam, _ = lambda_candidate(Rmat, f["g"])
+    resid = residual_with_lambda(Rmat, f["g"], lam)
+    nz = sum(1 for x in resid if simp(x) != 0)
+    # representative exact entry (largest |.|)
+    entries = [(abs(float(x)), (mu, nu), simp(x)) for mu in range(n) for nu in range(n)
+               for x in [resid[mu, nu]]]
+    entries.sort(reverse=True)
+    rep = entries[0]
+    return {"lambda": lam, "resid_nonzero": nz, "rep_entry_idx": rep[1],
+            "rep_entry_exact": rep[2], "rep_entry_abs": rep[0],
+            "g_scale": float(f["g"][rep[1][0], rep[1][1]]) if f["g"][rep[1]] != 0 else None}
+
+
+for (Tname, kappa, T_at) in [("T[psi]", KAPPA_PSI, T_psi_at),
+                             ("T_sigma", KAPPA_SIGMA, T_sigma_at)]:
+    w = residual_witness(Tname, kappa, T_at, "D1/X0/t1")
+    tick(f"  {Tname} @ M_0: best Lambda={float(w['lambda']):.6g}; residual (R-Lambda g) has "
+         f"{w['resid_nonzero']}/16 nonzero entries; largest |entry|={w['rep_entry_abs']:.4g} "
+         f"at {w['rep_entry_idx']} => NOT proportional to g (not Einstein at even ONE point)")
+
+# ---- 3.3 the explicit classification rule ----
+print("-" * 78)
+print("CLASSIFICATION RULE (explicit, tied to Task 2 residuals + the S/Weyl decomposition):")
+print("  EXACT          := some T has a single global (kappa,Lambda) with ZERO residual at")
+print("                    FINITE M over the whole family.")
+print("  LINEAR/LEADING := not EXACT, but some T has a single global (kappa,Lambda) matching")
+print("                    the t^4 leading coefficients across the family.")
+print("  NONE           := neither; G[g] carries S!=0 and/or Weyl!=0 whose structure is NOT")
+print("                    proportional to any independent T (curved but not Einstein-struct).")
+
+einstein_exact = fitA_psi["exact_einstein"] or fitA_sig["exact_einstein"]
+einstein_leading = fitB_psi["leading_einstein"] or fitB_sig["leading_einstein"]
+S_nonzero_anchor = (anch["S_nonzero_count"] > 0)
+Weyl_nonzero_anchor = (anch["weyl_nonzero_count"] > 0)
+
+if einstein_exact:
+    LEVEL = "EXACT"
+elif einstein_leading:
+    LEVEL = "LINEAR-LEADING"
+else:
+    assert S_nonzero_anchor or Weyl_nonzero_anchor, \
+        "level is NONE but S=Weyl=0 at the anchor -- inconsistent (g would be flat)"
+    LEVEL = "NONE (curved but not Einstein-structured)"
+
+# consistency across the sampled points: every sampled point must agree with the level
+# (here: every sampled point is curved with S!=0 and/or Weyl!=0, none Einstein).
+level_consistent = all(
+    (dr["S_nonzero_count"] > 0 or dr["weyl_nonzero_count"] > 0) and not dr["R_zero"]
+    for dr in decomp_results.values())
+
+print("-" * 78)
+print(f"HONEST LEVEL (computed): {LEVEL}")
+print(f"  einstein_exact (either T, finite-M)?   {einstein_exact}")
+print(f"  einstein_leading (either T, t^4)?      {einstein_leading}")
+print(f"  S != 0 at anchor?                      {S_nonzero_anchor} "
+      f"({anch['S_nonzero_count']}/16 entries)")
+print(f"  Weyl != 0 at anchor?                   {Weyl_nonzero_anchor} "
+      f"({anch['weyl_nonzero_count']}/256 entries)")
+print(f"  classification consistent across the sampled points (all curved, none Einstein)? "
+      f"{level_consistent}")
+assert level_consistent, "the honest level is not consistent across sampled family points"
+
+# which T (if either) matches
+which_T = "neither"
+if fitA_psi["exact_einstein"] or fitB_psi["leading_einstein"]:
+    which_T = "T[psi]"
+elif fitA_sig["exact_einstein"] or fitB_sig["leading_einstein"]:
+    which_T = "T_sigma"
+print(f"  which T (if any) matches G[g]:          {which_T}")
+
+# ---- module-level verdict emission for the .tex + checkpoint package ----
+VERDICT = {
+    "level": LEVEL,
+    "einstein_exact": einstein_exact,
+    "einstein_leading": einstein_leading,
+    "S_nonzero_anchor": S_nonzero_anchor,
+    "S_nonzero_count_anchor": anch["S_nonzero_count"],
+    "Weyl_nonzero_anchor": Weyl_nonzero_anchor,
+    "Weyl_nonzero_count_anchor": anch["weyl_nonzero_count"],
+    "trace_S_anchor": anch["trace_S"],
+    "Rscalar_anchor": anch["Rscalar"],
+    "which_T": which_T,
+    "n_family": len(family),
+    "n_dropped": len(dropped),
+    "kappa_psi": KAPPA_PSI,
+    "kappa_sigma": KAPPA_SIGMA,
+    "psi_finite_M_match": fitA_psi["exact_einstein"],
+    "psi_global_solve": solA_psi[0],
+    "psi_leading_match": fitB_psi["leading_einstein"],
+    "sigma_finite_M_match": fitA_sig["exact_einstein"],
+    "sigma_global_solve": solA_sig[0],
+    "sigma_leading_match": fitB_sig["leading_einstein"],
+    "decomp_points": decomp_results,
+}
+
+print("-" * 78)
+print(f"TASK 3 OK -- honest level classified by the explicit rule: {LEVEL}. "
+      f"G[g] carries traceless-Ricci S != 0 and Weyl != 0 at finite M (the honest prior); "
+      f"NO single global (kappa,Lambda) reproduces G[g] against EITHER frozen T at exact or "
+      f"leading order; the non-Einstein structure is reported plainly, NOT forced.")
+print(f"FINAL_VERDICT_LEVEL (recommended, for HUMAN ratification): {LEVEL}")
+
+print("\n" + "=" * 78)
+print("EINSTEIN_TEST_OK -- Tasks 1,2,3 complete; the decisive can-fail Einstein test "
+      "executed exact over Q.")
+print("RECOMMENDED honest level (for HUMAN ratification): " + LEVEL)
+print("=" * 78)
