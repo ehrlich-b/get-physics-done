@@ -153,7 +153,7 @@ Plans:
 ### Phase 72: B — Matter-Sourcing (CONDITIONAL on Phase 71 surviving)
 
 **Goal:** If Phase 71 greenlights (`h_mu_nu` genuinely varies), establish whether matter `M in V_1/V_{1/2}` SOURCES the slice curvature through the cubic-norm cross-terms — the only channel coupling V_0 to matter — with M=0 giving a flat or pure-cosmological-constant baseline. **This phase runs only if Phase 71 SURVIVES.**
-**Depends on:** Phase 71 (the slice metric + a GREENLIGHT homogeneity verdict); **re-gated on Phase 70.1's physical-metric selection** — HALTED 2026-05-31, to be re-scoped after 70.1 (linearized spin-2 perturbation on a fixed non-Einstein R×H³ background if the cone-Hessian is selected, or η+h-bridge curvature if that is selected). Matter mechanism + ΔR pipeline PRESERVED.
+**Depends on:** Phase 71 (the slice metric + a GREENLIGHT homogeneity verdict). **RE-SCOPED MATTER-ON-FLAT 2026-05-31 by Phase 70.1's physical-metric selection (η+h):** the M=0 baseline is flat KKT Minkowski η (R=0, DERIVED from det₂ — NOT inserted, NO Λ tripwire); matter in V_1/V_{1/2} sources h of g=η+h via the det₃ cross-term 2Re((x₂x₁)x₃); the curvature of g is computed with indices raised by g=η+h (NOT the bare cone-Hessian H_bg⁻¹), cross-checked by a hand-rolled Riemann. Matter mechanism + ΔR/decomposition pipeline PRESERVED; the old 72-01/02 plans are SUPERSEDED (archived under `superseded-pre-70.1/`).
 **Requirements:** DERV-02, CALC-03, CALC-04, VALD-04
 **Contract Coverage:**
 - Advances: claim-matter-sourcing
@@ -173,8 +173,8 @@ Plans:
 
 Plans:
 
-- [ ] 72-01-PLAN.md (wave 1) — DERV-02 + VALD-04: matter-aware Riemann/Ricci as an explicit function of M via the exact Totaro path (Delta R at FIXED V_0-background), n=4 ricci_decomposition (scalar/traceless-Ricci/Weyl), and the M=0 baseline (center pure-Lambda Einstein R=-3<0 Cartan; off-center matterless Phase-71 R(det_2)). Engine extension + derivations/72-matter-sourcing.tex (72-01 portion).
-- [ ] 72-02-PLAN.md (wave 2, depends_on 72-01) — CALC-03 + CALC-04: the DECISIVE cross-term ON/OFF (full det vs det_3_block) at the same M!=0, Lambda/structure decomposition of Delta R, ||M|| leading-power + det_2 scaling, V_1-inert/V_{1/2}-live channel decomposition, and the Phase-72 verdict gate (SURVIVES => Phase 73 greenlit, OR honest negative => STOP). interactive (verdict checkpoint:decision).
+- [ ] 72-01-PLAN.md (wave 1) — DERV-02 + VALD-04 (matter-on-flat, build-and-confirm): the curvature of the spacetime metric g=η+h(x;M) as an explicit function of M (Totaro C from the cone-Hessian potential, indices raised with g⁻¹=(η+h)⁻¹ — NOT H_bg⁻¹), MANDATORY hand-rolled Riemann cross-check, the FLAT M=0 baseline (R=S=Weyl=0, DERIVED from KKT det₂ — NO Λ, NO R=-3), n=4 Ricci decomposition of the M≠0 curvature, V_1-inertness, and the Phase-71 cone-Hessian SOURCE-engine regression. Engine extension + derivations/72-matter-sourcing.tex SUPERSEDED to matter-on-flat.
+- [ ] 72-02-PLAN.md (wave 2, depends_on 72-01) — CALC-03 + CALC-04 (decisive controls + verdict): the DECISIVE cross-term ON/OFF (full det₃ vs block-diagonal det_block) at the same non-vacuous M≠0 on the curvature of g=η+h, the ||M||→0 flat-η limiting case + scaling vs ||M|| (empirical leading power) and det₂, the emitted linearized-in-M h⁽¹⁾ for the Phase-73 linearized-Einstein test, and the matter-sourcing VERDICT (three-part conjunction: off-switch kills it AND ||M||→0 recovers flat η AND traceless-Ricci/Weyl present ⇒ SURVIVES/Phase 73 greenlit; OR honest NEGATIVE ⇒ HALT, negative-result-is-success). interactive (verdict checkpoint:decision).
 
 ### Phase 73: C — Einstein Structure (CONDITIONAL on Phase 72 showing M-sourcing)
 
