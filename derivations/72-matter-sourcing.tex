@@ -488,12 +488,16 @@ SURVIVES. Each is assembled from exact-over-$\mathbb{Q}$ evidence:
 \begin{enumerate}
   \item[(i)] \textbf{Cross-term OFF kills (or decisively reduces) the $M$-curvature}
         [\texttt{test-cross-term-onoff}, Sec~\ref{sec:onoff}].
-        \emph{Status: PARTIAL.} The off-switch does NOT flatten $g$
-        ($R[g_{\mathrm{off}}]\approx246.66\neq0$), but it removes $\approx93.8\%$ of the
-        scalar curvature (a $\approx16.3\times$ reduction) at the SAME non-vacuous $M_0$.
-        The residual is the retained $V_{1/2}$ matter self-norms. So the
-        $V_0\!\leftrightarrow\!V_{1/2}$ triple is the DOMINANT source but not the sole one;
-        the off-switch is a DECISIVE REDUCTION, not a kill.
+        \emph{Status: PASS (qualified -- decisive reduction, not kill).} The acceptance
+        criterion is ``\emph{vanishes OR changes decisively}'' (\texttt{test-cross-term-onoff}
+        \texttt{pass\_condition}; ROADMAP success-criterion~3). The off-switch does NOT
+        flatten $g$ ($R[g_{\mathrm{off}}]\approx246.66\neq0$), but it removes $\approx93.8\%$
+        of the scalar curvature (a $\approx16.3\times$ reduction) at the SAME non-vacuous
+        $M_0$ -- a DECISIVE change, so conjunct (i) PASSES under ``changes decisively.''
+        The residual is the retained $V_{1/2}$ matter self-norms $|x_2|^2,|x_3|^2$ (kept in
+        the block-diagonal off-switch by construction). So the
+        $V_0\!\leftrightarrow\!V_{1/2}$ triple is the DOMINANT ($\sim94\%$) but not the
+        EXCLUSIVE source: the off-switch is a decisive reduction, not a total kill.
   \item[(ii)] \textbf{$R[g]\to0$ as $\|M\|\to0$, recovering flat $\eta$}
         [\texttt{test-lambda-vs-matter}, Sec~\ref{sec:limit-scaling}].
         \emph{Status: PASS (clean).} $R[g(M{=}0)]=S=$Weyl$=0$ exactly; $R\sim a_4\|M\|^4$.
@@ -505,31 +509,47 @@ SURVIVES. Each is assembled from exact-over-$\mathbb{Q}$ evidence:
         pure-trace/coordinate artifact. Unambiguous.
 \end{enumerate}
 
-\paragraph{Assessment (awaiting human ratification -- NOT self-ratified).} Conditions
-(ii) and (iii) pass cleanly: matter genuinely curves the flat KKT spacetime slice, the
-curvature is intrinsic (traceless-Ricci $+$ Weyl), and it vanishes correctly as
-$\|M\|\to0$ recovering flat $\eta$. Condition (i) is a DECISIVE REDUCTION ($\sim94\%$)
-rather than a clean kill: the $V_0\!\leftrightarrow\!V_{1/2}$ triple
-$2\,\mathrm{Re}((x_2x_1)x_3)$ is the dominant matter$\to$geometry channel, but the
-$V_{1/2}$ self-norms (kept in the block-diagonal off-switch by construction -- the named
-``$\det(V_1)\det(V_0)$'' channel only removes the TRIPLE) leave a nonzero residual. This
-matches the contract's flagged \texttt{weakest\_anchors} (``the off-switch removes the
-triple but not the self-norm terms''). A further consequential finding: $h^{(1)}=0$, so
-the matter perturbs $g$ at $O(\|M\|^2)$ and the leading curvature is $O(\|M\|^4)$; Phase
-73 must use $h^{(2)}$.
-
-\emph{The verdict reading is a genuine physics judgment for the researcher} (the
-checkpoint:decision): whether a $\approx94\%$ decisive reduction with a self-norm
-residual satisfies conjunction (i). Two honest readings are available:
+\paragraph{VERDICT (human-ratified, checkpoint:decision 2026-06-01): SURVIVES (qualified)
+-- greenlight Phase 73.} The three-part conjunction is satisfied under the contract's
+acceptance criteria, with two caveats recorded at true strength (neither inflated to a
+clean kill nor deflated to a negative):
 \begin{itemize}
-  \item \textbf{SURVIVES (qualified):} (ii) and (iii) clean, (i) a decisive reduction
-        $\Rightarrow$ matter cross-term-sources the dominant share of the spacetime
-        curvature. Greenlight Phase 73 with the $h^{(2)}$ handoff (the test is then a
-        \emph{quadratic-response} linearized-Einstein check, since $h^{(1)}=0$).
-  \item \textbf{QUALIFIED / partial:} the off-switch does not flatten $g$, so the
-        sourcing is ``dominantly but not exclusively'' the triple; if the conjunction is
-        read strictly (off-switch must KILL), this is an honest qualified result, and the
-        $h^{(1)}=0$ finding means the linear linearized-Einstein test is degenerate.
+  \item Conjunct (i) PASSES under ``\emph{vanishes OR changes decisively}''
+        (\texttt{test-cross-term-onoff} \texttt{pass\_condition}; ROADMAP
+        success-criterion~3): switching the $V_0\!\leftrightarrow\!V_{1/2}$ triple OFF
+        removes $\approx93.8\%$ of the scalar curvature ($R[g_{\mathrm{full}}]\approx4008
+        \to R[g_{\mathrm{off}}]\approx247$, a $\approx16.3\times$ reduction) at the SAME
+        non-vacuous $M_0$ -- a decisive change. \textbf{Caveat (a):} this is a DECISIVE
+        REDUCTION, NOT a total kill; the $\approx6\%$ residual $R_{\mathrm{off}}\neq0$ is
+        the retained $V_{1/2}$ matter self-norms $|x_2|^2,|x_3|^2$ (a genuine sub-dominant
+        SECOND channel kept in the block-diagonal off-switch by construction, carrying
+        $S/\mathrm{Weyl}$ too). So matter sources the spacetime curvature DOMINANTLY
+        ($\sim94\%$) but not EXCLUSIVELY via the triple $2\,\mathrm{Re}((x_2x_1)x_3)$. This
+        matches the contract's flagged \texttt{weakest\_anchors} (``the off-switch removes
+        the triple but not the self-norm terms'').
+  \item Conjunct (ii) PASSES cleanly: $R[g]\sim a_4\|M\|^4\to0$ as $\|M\|\to0$, with
+        $R[g(M{=}0)]=S=\mathrm{Weyl}=0$; flat $\eta$ is DERIVED from the KKT $\det_2$ form,
+        NOT a $\Lambda$/$R=-3$ subtraction.
+  \item Conjunct (iii) PASSES cleanly: the $M\neq0$ curvature carries genuine
+        $S_{\mu\nu}\neq0$ AND $\mathrm{Weyl}\neq0$ (for both $g_{\mathrm{full}}$ and
+        $g_{\mathrm{off}}$) -- intrinsic gravity, not a removable pure-trace/coordinate
+        artifact.
 \end{itemize}
-This document records the exact evidence; the SURVIVES/qualified verdict and the
-Phase-73 greenlight/halt decision are pronounced by the researcher.
+Since (ii) and (iii) are clean and (i) passes as a decisive reduction, matter genuinely
+cross-term-sources the dominant share of the curvature of the flat KKT spacetime slice
+$g=\eta+h$. \textbf{Phase 73 is GREENLIT.}
+
+\textbf{Caveat (b) -- Phase 73 is a quadratic-response test.} The consequential finding
+$h^{(1)}_{\mu\nu}=0$ identically (Sec~\ref{sec:emit-h1}) means matter perturbs $g$ at
+$O(\|M\|^2)$ and the leading curvature is $O(\|M\|^4)$, so the linear-in-$M$
+linearized-Einstein test is DEGENERATE. Phase 73 therefore proceeds as a
+\emph{quadratic-response} linearized-Einstein check using the emitted $h^{(2)}$ (with
+$\bar h_{\mu\nu}=h^{(2)}_{\mu\nu}-\tfrac12\eta_{\mu\nu}\,\mathrm{tr}_\eta(h^{(2)})$ and
+$\Box\bar h\sim\kappa T$), NOT a linear-in-$M$ test. The $h^{(2)}$ matrix and the leading
+coefficient $a_4=395268903/24010000$ are the Phase-73 handoff.
+
+This verdict is the human's ratified \texttt{checkpoint:decision} response of 2026-06-01.
+All decisive evidence above is EXACT over $\mathbb{Q}$; no $\Lambda$ tripwire / pure-$\Lambda$
+baseline anywhere; the negative-result-is-success discipline was honored (the result is
+SURVIVES-qualified \emph{on the evidence}, neither relabeled from a negative nor inflated
+past the recorded caveats).
