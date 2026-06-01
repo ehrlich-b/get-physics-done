@@ -2409,6 +2409,115 @@ def eig_signature_count(M, simp=None):
 
 
 # ============================================================================
+# 14. PHASE 73 (C -- EINSTEIN STRUCTURE) EXTENSION  (Plan 73-01)
+# ============================================================================
+# ASSERT_CONVENTION: spacetime metric g = eta_bg + h(x;M), mostly-minus; h^(1)=0
+#   (Phase-72 handoff) so the LEADING metric response is h^(2)(x); exact over Q;
+#   eta_bg is the CONSTANT null-aligned KKT pullback [[0,1/2,0,0],[1/2,0,0,0],
+#   [0,0,-1,0],[0,0,0,-1]] (eta_bg^{-1}=[[0,2,..],[2,0,..],-1,-1]); the box
+#   operator is built FROM eta_bg^{-1} (never a hard-coded diag(-1,1,1,1)).
+#
+# This section adds the h^(2)(x) FIELD (the leading, quadratic-in-||M|| metric
+# response as an EXACT rational function of the 4 slice coords (beta,gamma,p,q))
+# and the d'Alembertian box = eta_bg^{ab} d_a d_b. The matter SOURCE channel is
+# the SAME B1 difference-of-cone-Hessians used in spacetime_curvature_of_g (the
+# matter-on-flat h, NOT the falsified centered h): keeping the slice symbolic
+# instead of substituting the center turns the emitted h^(2) matrix into a field
+# whose center value REGRESSES to the Phase-72 handoff matrix. No Ric/R/G enters
+# the field build (it is purely the cone-Hessian source's t^2-coefficient).
+
+
+def _eta_bg_const(simp=None):
+    """The CONSTANT null-aligned background eta_bg in the (beta,gamma,p,q) frame and
+    its inverse, EXACT over Q. eta_bg = J^T diag(+1,-1,-1,-1) J with J the 52-kkt
+    frame map (x0=(beta+gamma)/2, x1=p, x2=q, x3=(beta-gamma)/2). Both are CONSTANT
+    (zero free symbols), so d(eta_bg)=0 and the box has the flat form everywhere.
+    Returns (eta_bg, eta_bg_inv)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    J = _frame_jacobian_bg_to_mink()
+    eta_bg = (J.T * _eta_minkowski() * J).applyfunc(simp)
+    eta_bg_inv = eta_bg.inv().applyfunc(simp)
+    return eta_bg, eta_bg_inv
+
+
+def h2_field(matter_delta, bg_delta=None, simp=None):
+    """The LEADING (quadratic-in-||M||) metric response h^(2)(x) as a FIELD over the 4
+    slice coords (beta,gamma,p,q), EXACT over Q. h^(1)=0 (Phase-72), so this t^2 term
+    is the leading nonzero perturbation of g = eta_bg + h.
+
+    Reuses the Phase-72 field-extraction pattern (72-02-decisive-controls.py lines
+    ~264-276) but does NOT substitute the center -- the slice stays SYMBOLIC:
+        matter_t = {k: v*t}, bg_t = {k: v*t}, full_t = {**bg_t, **matter_t}
+        h_sym_t = cone_hessian_offcenter(full_t, slice_symbolic=True)
+                  - cone_hessian_offcenter(bg_t,  slice_symbolic=True)     (B1)
+        h2(x)   = (1/2) d^2/dt^2 h_sym_t |_{t=0}                           (per entry)
+    This is the SAME matterless-reference subtraction (B1: H_source(x;bg+M) -
+    H_source(x;bg)) as spacetime_curvature_of_g, so h2_field is the matter-on-flat
+    h, NOT the falsified centered h. h2_field is an EXACT rational function of the
+    slice coords (slice symbols appear in the det_2(V_0)^2 denominator -- a genuine
+    field to all orders in slice displacement, NOT a Taylor truncation).
+
+    REGRESSION: h2_field(MATTER_L, BG_HALF).subs(center) == the Phase-72 handoff
+    matrix [[261/1225,0,99/700,0],[0,9/40,99/700,0],[99/700,99/700,4293/9800,0],
+    [0,0,0,4293/9800]] exactly over Q.
+
+    `matter_delta` : dict {index -> Rational} in the matter sectors (V_1 alpha={0} U
+        V_{1/2}={11..26}); `bg_delta` : the V_0-internal x1 partner ({4..9}). Both are
+        scaled by the amplitude t. NO Ric/R/G enters (pure cone-Hessian source).
+    Returns a 4x4 sympy Matrix of rational functions of (beta,gamma,p,q)."""
+    from sympy import cancel as _cancel, symbols as _symbols, diff as _diff, Rational as _R
+    if simp is None:
+        simp = _cancel
+    bg_delta = bg_delta or {}
+    matter_delta = matter_delta or {}
+    t = _symbols('t', real=True, positive=True)
+    matter_t = {k: v * t for k, v in matter_delta.items()}
+    bg_t = {k: v * t for k, v in bg_delta.items()}
+    full_t = {**bg_t, **matter_t}
+    # B1 difference-of-cone-Hessians, slice SYMBOLIC, symbolic in t (matches 72-02).
+    H_bgM_t = cone_hessian_offcenter(full_t, slice_symbolic=True, slice_vals=None, simp=simp)
+    H_ref_t = cone_hessian_offcenter(bg_t, slice_symbolic=True, slice_vals=None, simp=simp)
+    h_sym_t = (H_bgM_t - H_ref_t).applyfunc(simp)
+    # t^2-coefficient = (1/2) d^2/dt^2 |_{t=0}, slice STILL symbolic => the FIELD.
+    h2 = h_sym_t.applyfunc(lambda e: simp(_R(1, 2) * _diff(e, t, 2).subs(t, 0)))
+    return h2
+
+
+def box(field, simp=None):
+    """The flat-background d'Alembertian box = eta_bg^{ab} d_a d_b on the 4 slice coords
+    (beta,gamma,p,q), EXACT over Q. eta_bg is CONSTANT null-aligned, so
+
+        box f = 4 d_beta d_gamma f - d_p^2 f - d_q^2 f
+
+    (eta_bg^{-1}_{beta,gamma}=2 enters TWICE -- the symmetric off-diagonal -- giving the
+    factor 4; eta_bg^{-1}_{pp}=eta_bg^{-1}_{qq}=-1). The coefficients are READ FROM
+    eta_bg^{-1} (NOT a hard-coded diag(-1,1,1,1)); an internal assertion pins
+    eta_bg^{-1} to the null-aligned form before use. Accepts a scalar sympy expression
+    OR a sympy Matrix (applies box entrywise). Returns the same type."""
+    from sympy import cancel as _cancel, symbols as _symbols, diff as _diff, Matrix as _Matrix
+    if simp is None:
+        simp = _cancel
+    beta, gamma, p, q = _symbols('beta gamma p q', real=True)
+    _, eta_inv = _eta_bg_const(simp=simp)
+    # Pin the null-aligned inverse (build the box from eta_bg^{-1}, never hard-coded diag).
+    assert eta_inv[0, 1] == 2 and eta_inv[1, 0] == 2 and eta_inv[0, 0] == 0 \
+        and eta_inv[1, 1] == 0 and eta_inv[2, 2] == -1 and eta_inv[3, 3] == -1, \
+        f"eta_bg^-1 not the expected null-aligned form: {eta_inv}"
+    c_bg = eta_inv[0, 1] + eta_inv[1, 0]   # = 4 : the (beta,gamma) cross term, both off-diags
+    c_pp = eta_inv[2, 2]                     # = -1
+    c_qq = eta_inv[3, 3]                     # = -1
+
+    def _box_scalar(f):
+        return simp(c_bg * _diff(f, beta, gamma) + c_pp * _diff(f, p, 2) + c_qq * _diff(f, q, 2))
+
+    if isinstance(field, _Matrix):
+        return field.applyfunc(_box_scalar)
+    return _box_scalar(field)
+
+
+# ============================================================================
 # 11. main(): re-run the full LOCK harness on the fresh module + reconciliation
 #     + the Plan 70-02 signature-bridge geometry gates
 # ============================================================================
