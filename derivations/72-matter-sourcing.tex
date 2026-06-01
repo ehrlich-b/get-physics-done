@@ -451,3 +451,85 @@ $\Box\bar h\sim\kappa T$. Since $h^{(1)}=0$, the leading metric response that Ph
 must use is $h^{(2)}$ (the quadratic-in-$\|M\|$ perturbation), NOT a vanishing
 linear-in-$M$ field. Phase 72 emits $h^{(2)}$ and the leading curvature coefficient
 $a_4$; it does NOT perform the Einstein test (\texttt{fp-assume-einstein} guard).
+
+\subsection{Structural reading of the off-switch (why the residual is nonzero)}
+\label{sec:offswitch-structure}
+
+The slice coordinates are the engine indices $\{1,2,3,10\}=(\beta,\gamma,p,q)$, and
+crucially $p=x[3]=x_1[0]$ and $q=x[10]=x_1[7]$ are COMPONENTS of the $V_0$ off-diagonal
+octonion $x_1$. Hence the triple $2\,\mathrm{Re}((x_2x_1)x_3)$ depends on the spacetime
+slice coordinates $p,q$ through $x_1$ (verified: the triple's free symbols include
+$x[3],x[10]$ but NOT $\alpha,\beta,\gamma$). The triple is therefore precisely the
+direct coupling of the $V_{1/2}$ matter $(x_2,x_3)$ to the spacetime coordinates
+$(p,q)$. Two controls (exact over $\mathbb{Q}$) pin the structure:
+\begin{itemize}
+  \item \emph{$V_0$ background partner only, no matter:} $R[g_{\mathrm{full}}]=
+        R[g_{\mathrm{off}}]=0$ (flat). A pure $V_0$-internal move does not curve $g$, and
+        $\det_3=\det_{\mathrm{block}}$ there (the triple needs $x_2,x_3$).
+  \item \emph{$V_{1/2}$ matter only, no $V_0$ partner ($x_1[4..9]=0$):}
+        $R[g_{\mathrm{full}}]\approx18.94\neq R[g_{\mathrm{off}}]\approx21.71$ -- the
+        off-switch STILL changes the curvature, because the matter $(x_2,x_3)$ couples to
+        the slice $(p,q)=x_1$ components through the triple even when the off-slice $x_1$
+        partner is zero.
+\end{itemize}
+\emph{Reading:} the off-switch removes the matter$\leftrightarrow$spacetime-coordinate
+coupling channel (the triple). The residual curvature is the $V_{1/2}$ matter
+self-energy ($|x_2|^2,|x_3|^2$, kept in $\det_{\mathrm{block}}$), which also depends on
+the slice. The $V_0$ partner ENLARGES the triple's coupling (93.8\% removal with it on)
+but is not the only route to it. The triple is the DOMINANT but not the EXCLUSIVE channel
+by which matter curves the spacetime slice.
+
+\section{The matter-sourcing verdict (Plan 72-02, Task 3)}
+\label{sec:verdict}
+
+The matter-sourcing verdict is the CONJUNCTION of three conditions, all required for
+SURVIVES. Each is assembled from exact-over-$\mathbb{Q}$ evidence:
+
+\begin{enumerate}
+  \item[(i)] \textbf{Cross-term OFF kills (or decisively reduces) the $M$-curvature}
+        [\texttt{test-cross-term-onoff}, Sec~\ref{sec:onoff}].
+        \emph{Status: PARTIAL.} The off-switch does NOT flatten $g$
+        ($R[g_{\mathrm{off}}]\approx246.66\neq0$), but it removes $\approx93.8\%$ of the
+        scalar curvature (a $\approx16.3\times$ reduction) at the SAME non-vacuous $M_0$.
+        The residual is the retained $V_{1/2}$ matter self-norms. So the
+        $V_0\!\leftrightarrow\!V_{1/2}$ triple is the DOMINANT source but not the sole one;
+        the off-switch is a DECISIVE REDUCTION, not a kill.
+  \item[(ii)] \textbf{$R[g]\to0$ as $\|M\|\to0$, recovering flat $\eta$}
+        [\texttt{test-lambda-vs-matter}, Sec~\ref{sec:limit-scaling}].
+        \emph{Status: PASS (clean).} $R[g(M{=}0)]=S=$Weyl$=0$ exactly; $R\sim a_4\|M\|^4$.
+        Flat $\eta$ is DERIVED, not subtracted. Unambiguous.
+  \item[(iii)] \textbf{The $M\neq0$ curvature carries genuine traceless-Ricci/Weyl
+        structure} [72-01 + Sec~\ref{sec:onoff}].
+        \emph{Status: PASS (clean).} $S_{\mu\nu}\neq0$ AND Weyl$\neq0$ for the $M\neq0$
+        curvature (and for both $g_{\mathrm{full}}$ and $g_{\mathrm{off}}$); not a
+        pure-trace/coordinate artifact. Unambiguous.
+\end{enumerate}
+
+\paragraph{Assessment (awaiting human ratification -- NOT self-ratified).} Conditions
+(ii) and (iii) pass cleanly: matter genuinely curves the flat KKT spacetime slice, the
+curvature is intrinsic (traceless-Ricci $+$ Weyl), and it vanishes correctly as
+$\|M\|\to0$ recovering flat $\eta$. Condition (i) is a DECISIVE REDUCTION ($\sim94\%$)
+rather than a clean kill: the $V_0\!\leftrightarrow\!V_{1/2}$ triple
+$2\,\mathrm{Re}((x_2x_1)x_3)$ is the dominant matter$\to$geometry channel, but the
+$V_{1/2}$ self-norms (kept in the block-diagonal off-switch by construction -- the named
+``$\det(V_1)\det(V_0)$'' channel only removes the TRIPLE) leave a nonzero residual. This
+matches the contract's flagged \texttt{weakest\_anchors} (``the off-switch removes the
+triple but not the self-norm terms''). A further consequential finding: $h^{(1)}=0$, so
+the matter perturbs $g$ at $O(\|M\|^2)$ and the leading curvature is $O(\|M\|^4)$; Phase
+73 must use $h^{(2)}$.
+
+\emph{The verdict reading is a genuine physics judgment for the researcher} (the
+checkpoint:decision): whether a $\approx94\%$ decisive reduction with a self-norm
+residual satisfies conjunction (i). Two honest readings are available:
+\begin{itemize}
+  \item \textbf{SURVIVES (qualified):} (ii) and (iii) clean, (i) a decisive reduction
+        $\Rightarrow$ matter cross-term-sources the dominant share of the spacetime
+        curvature. Greenlight Phase 73 with the $h^{(2)}$ handoff (the test is then a
+        \emph{quadratic-response} linearized-Einstein check, since $h^{(1)}=0$).
+  \item \textbf{QUALIFIED / partial:} the off-switch does not flatten $g$, so the
+        sourcing is ``dominantly but not exclusively'' the triple; if the conjunction is
+        read strictly (off-switch must KILL), this is an honest qualified result, and the
+        $h^{(1)}=0$ finding means the linear linearized-Einstein test is degenerate.
+\end{itemize}
+This document records the exact evidence; the SURVIVES/qualified verdict and the
+Phase-73 greenlight/halt decision are pronounced by the researcher.
