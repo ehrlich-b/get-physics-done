@@ -1,317 +1,421 @@
 {
   "project_reference": {
-    "project_md_updated": "2026-05-27",
+    "project_md_updated": "2026-06-01",
     "core_research_question": "Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself?",
-    "current_focus": "v17.0 Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry -- ACTIVE (roadmap created 2026-05-30, Phases 70-73). A gated KILL test: A0 (signature bridge, Phase 70) -> A (homogeneity KILL gate, Phase 71, CHEAP+DECISIVE+FIRST) -> [STOP if homogeneous] -> B (matter-sourcing, Phase 72) -> C (Einstein structure, Phase 73). A homogeneous Phase-71 result is a clean valuable KILL (NEGATIVE-RESULT-IS-SUCCESS); B/C are CONDITIONAL on A surviving. Fresh route replacing the abandoned lattice/Fisher route and the circular det/GST/Weinberg supergravity route. Physics-side; INDEPENDENT of the v16.0 consciousness-side (RING) line -- do not entangle. v14.0 remains PAUSED pending JMP referee report; v15.0 and v16.0 COMPLETE & ARCHIVED."
+    "current_focus": "v18.0 Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O) -- ACTIVE (started 2026-06-01; defining objectives, roadmap pending, Phases 74+). Physics-side Lie-sector/Berry-curvature gravity route on a DIFFERENT tensor than v17.0: F=dA+A^A of the Peirce-frame Cartan/MM connection A=omega(+)e (omega = Lorentz Spin(3,1) part of the ambient Spin(9,1); e=pi_u(dE) the V_{1/2} soldering form C_u-reduced to a 4d coframe) = the imaginary part of the self-model QGT (Berry curvature); the v17.0 cone-Hessian (NONE) was the REAL part, so NONE does NOT bind it. Cheap KILL gates first: Phase A (does C_u reduce V_{1/2}(16) to a 4d Lorentzian coframe carrying SO(3,1), forced by (E_11,u)?) -> Phase A.5 (canonical Berry curvature Einstein-shaped, or v17.0 same-wall mismatch?) -> [STOP if KILL/SOFT-KILL] -> Phase B (full Cartan curvature = 4d gravity) -> Phase C (circularity audit: Einstein term FORCED by trace-form vs posited, fp-imported-action). Inherit the v17.0 conventions lock (det SSOT ring_lemma_verification.py det_3; octonion_algebra.py BANNED; exact over Q) + CONVENTIONS.md \u00a76 (Lambda=0, flat M=0 vacuum). Physics-side; INDEPENDENT of the consciousness-side (RING/REDUCIBILITY) line -- do not entangle. v14.0 remains PAUSED pending JMP referee report; v15.0/v16.0/v17.0 COMPLETE & ARCHIVED."
   },
   "project_contract": {
     "schema_version": 1,
     "scope": {
-      "question": "Is gravity intrinsic to the h_3(O) bulk geometry? Concretely: with a primitive idempotent E_11 fixed, does the spacetime Peirce slice V_0 (with its h_2(C_u) ~ R^{3,1} sub-slice) inherit a genuinely POSITION-DEPENDENT metric g_mu_nu(x) from the symmetric-cone bulk metric g_X = Hess(-log det X), and is its curvature SOURCED by matter content M in V_1 + V_{1/2} through the cubic-norm cross-terms -- possibly up to Einstein structure G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu? A cheap homogeneity KILL test decides survival before any expensive curvature work. No lattice, no posited supergravity Lagrangian, no SUSY, no observers-make-gravity ensemble argument.",
+      "question": "Is gravity the curvature of the ANTISYMMETRIC/Lie-sector (Peirce-frame Cartan / MacDowell-Mansouri) connection on h_3(O)? Concretely: with a primitive idempotent E_11 and complex structure u=e_7 fixed, does the C_u bottleneck reduce the 16-dim V_{1/2} soldering form e=dE to a 4-dim LORENTZIAN coframe carrying SO(3,1) (forced, not chosen by hand), and is the curvature F=dA+A^A of the assembled (A)dS Cartan connection A=omega(+)e the 4d gravitational curvature -- position-dependent, V_{1/2}-sourced, and (strong form) Einstein-structured WITHOUT positing an MM/EH action? This is the imaginary part of the self-model QGT (Berry curvature); the v17.0 cone-Hessian (NONE verdict) was the REAL part -- a different tensor, so NONE does NOT bind this route. Cheap KILL gates first: Phase A (coframe reduction) and Phase A.5 (Berry-curvature same-wall) decide survival before any expensive connection machinery. No posited Lagrangian, no SUSY, no thermodynamic/ensemble argument.",
       "in_scope": [
-        "Phase A0 signature bridge: state precisely the map from the Riemannian cone-Hessian g_X = Hess(-log det) to a Lorentzian metric on the h_2(C_u) ~ R^{3,1} slice; compare (i) restrict g_X to V_0-tangent directions then Wick-rotate via the complex structure u = e_7, vs (ii) take background Lorentzian eta from h_2(C_u)'s own det and let the cone-Hessian supply only the perturbation h_mu_nu; pick the one that reduces to EXACT Minkowski at (M=0, center) and report which",
-        "Phase A homogeneity dealbreaker (DECISIVE/KILL, do first -- cheap): with E_11 fixed, compute h_mu_nu(x) explicitly (symbolic or high-precision expansion of g_X around X=I/3 in V_0 directions); decide whether h_mu_nu(x) is x-INDEPENDENT (homogeneous -> route DEAD, STOP) or genuinely VARIES with the spacetime point x; compute dim Stab_{E_6}(E_11) and the dimension of the (basepoint, slice) family modulo that stabilizer; use curvature-scalar invariants (not raw metric components) as the clean test",
-        "Phase B matter-sourcing (only if A shows genuine x-dependence): compute the Riemann tensor of g_mu_nu(x); confirm M=0 gives R=0 (flat) or R=const (pure Lambda); turn on M in V_1+V_{1/2} and show the curvature is GENERATED by the det cross-terms 2Re(...) coupling V_0 to V_1/V_{1/2} (switching off the cross-terms, i.e. replacing det by the block-diagonal product det(V_1)*det(V_0), removes the M-sourced curvature); quantify the curvature scale vs ||M|| and rho_J(X_bg)",
-        "Phase C Einstein structure (strong form): define a candidate stress-energy T_mu_nu from the V_1/V_{1/2} cross-term content of M and test whether G_mu_nu[g(x)] = kappa T_mu_nu + Lambda g_mu_nu holds (a) exactly, (b) at linear order in M, or (c) not at all; report the honest level -- 'curved but not Einstein-structured' is a real and acceptable outcome",
-        "Verify the corrected cubic-norm cross-term association (Cayley-Hamilton + multiplicativity) BEFORE any geometry; reduce-to-Minkowski sanity check at (M=0, center)"
+        "Phase 0 engine recovery + calibration: reload the det SSOT (ring_lemma_verification.py det_3), re-pass its Cayley-Hamilton + 324/324 inner-derivation checks, confirm octonion_algebra.py is not imported on any decisive path; verify EXACTLY the load-bearing tangent fact E_11 o delta = (1/2) delta for delta in V_{1/2}(E_11) and that T_{E_11} OP^2 = V_{1/2}(E_11) (16-dim); reproduce the calibration anchors (single-copy dim 24 / Spin(8)=28 / trdeg 3; e_6=78=52+26; orbit(E_11)=17, Stab_{E_6}(E_11)=61, Stab_{V_0}=45=Spin(9,1)) via orbit_dimension_gate.py before trusting any new stabilizer count",
+        "Phase A coframe-reduction dealbreaker (DECISIVE/KILL, do FIRST -- cheap): apply the Phase-46 C_u / pi_u bottleneck (the same O->C reduction that sent V_0=h_2(O) -> h_2(C_u)=R^{3,1}) to V_{1/2}(16); (a) compute the image dimension exactly (expect 4); (b) compute the signature of the induced coframe pairing via exact Gram eigenvalues over Q (expect Lorentzian (1,3)/mostly-minus); (c) confirm the residual structure group on the 4-dim coframe is (or contains) SO(3,1), FORCED by (E_11,u) and not an arbitrary extra choice. KILL if not 4-dim, or not Lorentzian, or not forced",
+        "Phase A.5 early MM-Einstein / same-wall gate (cheap; before the full connection): compute the canonical Berry curvature F_B of the idempotent field E(x) = imaginary part of the QGT (verify the REAL part reproduces the dead Hess(-log det) as a consistency check); (a) F_B at M=0 -- zero/flat, pure-Lambda (F_B ~ e^e), or other (report the vacuum level; expect flat/pure-Lambda per corrected CONVENTIONS Section 6; do NOT reintroduce Lambda<0); (b) turn on M in V_{1/2} and test whether the matter-sourced part of F_B is transverse/Einstein-shaped vs EM-shaped (U(1)-type), with the M-scaling/tensor-structure/support matched to a V_{1/2} stress-energy T[M] at the SAME order in M (the v17.0 Ph73 lesson: power-counting and support must match); (c) same-wall check vs the cone-Hessian mismatch (support disjoint from T, ~10^3 magnitude/shape mismatch). SOFT KILL if (c) reproduces the cone-Hessian mismatch",
+        "Phase B full Cartan curvature (only if A and A.5 survive): (a) confirm e=pi_u(dE) is a genuine invertible tetrad on the 4d slice (det(e^a_mu) != 0); (b) extract omega = the Lorentz Spin(3,1) part of the ambient Spin(9,1) connection compatible with e (metric/torsion condition or canonical f_4/e_6 reductive split; do NOT use the raw 45-dim Spin(9,1) curvature); (c) assemble A=omega(+)e (so(3,2)/so(4,1)/iso(3,1)) and compute F=dA+A^A -- Lorentz block = R(omega)+Lambda e^e, translation block = torsion de+omega^e; identify R(omega) with the 4d Riemann tensor, cross-check against Totaro/Levi-Civita on >=5 components; (d) vacuum M=0 Lorentz block Einstein/(A)dS (R_munu ~ Lambda g_munu) using the H^3 sign benchmark K=-1/2; then turn on M in V_{1/2} and check the matter-sourced Riemann",
+        "Phase C circularity audit (the GST sin, re-armed): (a) decide whether the MM epsilon-contraction (the Spin(9,1)->SO(3,1) symmetry breaking and the epsilon-tensor) is FIXED by the trace form / cubic-norm pairing on h_3(O), or is an external MM choice; (b) if the Einstein term only appears because an MM action was assumed, report it as fp-imported-action (the GST sin in new clothes); the route WINS only if the Einstein structure falls out of the cubic-norm/trace-form geometry without importing the action"
       ],
       "out_of_scope": [
-        "The lattice/Fisher continuum-limit route (paper6-continuum-limit-prompt.md) -- ABANDONED; do not import its machinery",
-        "The det/GST/Weinberg N=2 supergravity-Lagrangian route (derivations 47-*..50-*, 53-*) -- declared CIRCULAR (the supergravity multiplet data including -R/2 is fixed by the assumed SUSY closure); do not import as load-bearing. GST scalar-manifold geometry E_{6(-26)}/F_4 may be cited FOR THE GEOMETRY ONLY",
-        "Any observers-make-gravity ensemble / thermodynamic argument (Jacobson 1995 used as CONTRAST only, not a route) -- explicitly rejected as woo",
+        "The cone-Hessian bulk-geometry route (paper6-bulk-geometry-prompt.md, v17.0 Phases 70-73) -- the SYMMETRIC (Jordan) sector / REAL part of the QGT, verdict NONE (curved but not Einstein-structured). Here we compute the ANTISYMMETRIC/connection curvature (the imaginary part / Berry curvature) -- a DIFFERENT tensor; do NOT reuse the cone-Hessian Riemann as load-bearing",
+        "The det/GST/Weinberg N=2 supergravity-Lagrangian route (derivations 47-*..50-*, 53-*) -- declared CIRCULAR (the -R/2 Einstein term is the assumed N=2 multiplet's own output); do NOT posit an action -- Phase C audits exactly that. GST E_{6(-26)}/F_4 scalar-manifold GEOMETRY citable for orientation only",
+        "The lattice/Fisher continuum-limit route (paper6-continuum-limit-prompt.md) -- ABANDONED (modeling choice); do not import",
+        "Any thermodynamic/modular/ensemble construction (Jacobson 1995 / Verlinde / Vanchurin / Connes-Rovelli thermal time) -- REJECTED as woo (standing constraint); no entropy, KMS, modular/thermal time, or many-observers arguments anywhere",
+        "Re-deriving the SOLID standard math (OP^2=F_4/Spin(9) and T_E OP^2 = V_{1/2}; QGT real=Fubini-Study / imaginary=Berry curvature; MM gravity = curvature of a broken Cartan connection with F^F giving EH+Lambda; h_2(C_u) ~ R^{3,1} Lorentzian with so(4,2)) -- cite, do not re-derive",
+        "octonion_algebra.py on any decisive path -- BANNED (buggy (x1 x2) x3 order, float, 0.67 associator gap); det SSOT = ring_lemma_verification.py det_3",
         "Quantizing gravity; dynamics / field equations of the matter M; cosmology",
-        "Re-deriving the SOLID standard math (symmetric-cone structure, characteristic function, OP^2 = F_4/Spin(9), h_2(C_u) ~ R^{3,1} Minkowski) -- cite, do not re-derive",
-        "Retroactively retracting the v12.0/v13.0 det/GST gravity result -- this is an INDEPENDENT fresh route; the milestone outcome decides which route stands"
+        "Retroactively retracting the v12.0/v13.0 det/GST or the v17.0 cone-Hessian results -- this is an INDEPENDENT fresh route on a different (Lie-sector) tensor; the outcome stands on its own"
       ],
       "unresolved_questions": [
-        "Is h_mu_nu(x) genuinely x-dependent after fixing E_11, or does Stab_{E_6}(E_11) act transitively enough on (basepoint, slice) pairs to make them all isometric (homogeneous -> KILL)?",
-        "Which signature bridge -- (i) restrict + Wick-rotate via u, or (ii) background-eta-from-h_2(C_u)-det + cone-Hessian perturbation -- reduces to EXACT Minkowski at (M=0, center)?",
-        "Is the slice curvature SOURCED by V_1/V_{1/2} matter via the cross-terms, or already present at M=0 as a pure cosmological constant?",
-        "Does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold at any level (exact / linear-in-M / not at all)?"
+        "Does the C_u bottleneck reduce V_{1/2}(16) to exactly a 4-dim space (paralleling V_0=h_2(O)->h_2(C_u)=R^{3,1}), is the induced coframe pairing Lorentzian (1,3), and is the 4d reduction FORCED by (E_11,u) rather than requiring an arbitrary extra choice? (Phase A KILL gate)",
+        "Is the matter-sourced part of the canonical Berry curvature F_B transverse/Einstein-shaped, or EM-shaped (a generic U(1)-type field strength), and does it inherit the v17.0 cone-Hessian same-wall mismatch (support disjoint from T[M], no order-matching)? (Phase A.5 SOFT KILL)",
+        "Is the Lorentz block of the full Cartan curvature F=dA+A^A the 4d Riemann tensor -- position-dependent, vacuum Einstein/(A)dS at M=0, and V_{1/2}-sourced for M!=0? (Phase B)",
+        "Is the MM epsilon-contraction (hence the Einstein term) FORCED by the h_3(O) trace-form / cubic-norm pairing (STRONG WIN), or does it only appear because an MM/EH action was posited by hand (fp-imported-action, an honest partial NOT a derivation)? (Phase C)"
       ]
     },
     "context_intake": {
       "must_read_refs": [
         "ref-prompt",
-        "ref-faraut-koranyi",
-        "ref-52-kkt",
-        "ref-h3o-tower",
-        "ref-baez-octonions"
+        "ref-wise",
+        "ref-provost-vallee",
+        "ref-mm-1977",
+        "ref-baez-octonions",
+        "ref-52-kkt"
       ],
       "must_include_prior_outputs": [
-        "~/scratch/get-physics-done/paper6-bulk-geometry-prompt.md",
+        "~/scratch/get-physics-done/paper6-cartan-tetrad-prompt.md",
+        "code/ring_lemma_verification.py",
+        "code/orbit_dimension_gate.py",
+        "code/peirce_coupling.py",
         "derivations/52-kkt-spacetime.tex",
         "derivations/52-observer-uniqueness.tex",
-        "~/repos/blog/research/qualia-fixed-point/h3o_tower.py",
-        "code/embedding_under_E_verification.py",
-        "code/ring_lemma_verification.py",
-        "peirce_coupling.py",
-        "rho_directional_derivatives.py"
+        "code/bulk_geometry_verification.py"
       ],
       "user_asserted_anchors": [
-        "The positive cone Omega = {X in h_3(O): X>0} is a symmetric cone; its canonical metric is g_X = Hess(-log det X) (Faraut-Koranyi). The det=1 hypersurface is the Riemannian symmetric space E_{6(-26)}/F_4 (26-dim)",
-        "Primitive idempotents of h_3(O) form the Cayley plane OP^2 = F_4/Spin(9) (16-dim)",
-        "Peirce decomposition under E_11=diag(1,0,0): h_3(O) = V_1(1) + V_{1/2}(16) + V_0(10), V_0 = h_2(O); the complex sub-slice h_2(C_u) ~ R^{3,1} has det = the Minkowski quadratic form, positive cone = forward light cone, det=1 hyperboloid = H^3 = SL(2,C)/SU(2) (existing GPD work: 52-kkt-spacetime, 52-observer-uniqueness)",
-        "Conventions (frozen): jordan_product=(1/2)(XY+YX); octonion Fano e1*e2=e4; complex structure u=e7; cubic_norm = Freudenthal det WITH cross-terms; E_11=diag(1,0,0); cone metric g_X(A,B) = -d/ds d/dt log det(X+sA+tB)|_0 = Hess(-log det); center = I/3 (the F_4-symmetric point, rho_J=0)",
-        "The CONJECTURAL thing to prove or disprove: that the curvature the V_0 slice inherits from the bulk cubic-norm geometry is gravitational -- position-dependent and sourced by matter content in V_1/V_{1/2}. A homogeneous (x-independent) Phase-A result is a clean valuable KILL, to be reported as such"
+        "The space of primitive idempotents of h_3(O) is the Cayley plane OP^2 = F_4/Spin(9) (16-dim, Borel 1950); at a primitive idempotent E the tangent space T_E OP^2 is exactly the Peirce half-eigenspace V_{1/2}(E) (from E o delta = (1/2) delta for delta tangent; McCrimmon). So an idempotent field E(x) has dE that is V_{1/2}-valued = a soldering form / coframe (tetrad)",
+        "Quantum geometric tensor (Provost-Vallee 1980): real part = Fubini-Study metric, imaginary part = Berry curvature. The dead v17.0 cone-Hessian was the REAL part (Fubini-Study/Fisher); this route mines the IMAGINARY part (Berry curvature) -- a genuinely different tensor, so the v17.0 NONE verdict does NOT bind it",
+        "MacDowell-Mansouri gravity = curvature of a Cartan connection broken to the Lorentz subgroup; F^F contraction gives Einstein-Hilbert + Lambda (MM 1977; Wise gr-qc/0611154 for the clean Cartan-geometry statement). The non-compact real form lives in Stab_{E_6}(E_11) with Levi ~ Spin(9,1)",
+        "h_2(C_u) ~ R^{3,1} with Lorentzian det and so(4,2) conformal algebra (existing GPD: 52-kkt-spacetime, 52-observer-uniqueness); spacetime sub-slice indices {17,18,19,26}; the same Phase-46 pi_u O->C bottleneck that sent V_0=h_2(O) -> h_2(C_u) is REUSED for V_{1/2}",
+        "Conventions inherit the v17.0 lock: det SSOT = ring_lemma_verification.py det_3 with cross-term 2Re(x2* x0* x1) (F_4-invariant, Cayley-Hamilton + 324/324 verified); octonion_algebra.py BANNED; octonion mul = Fano e1 e2 = e4; complex structure u = e7; E_11=diag(1,0,0); Peirce V_1(1)=R E_11, V_{1/2}(16)=(1,2),(1,3) octonions, V_0(10)=h_2(O); center = I/3 (rho_J=0). EXACT over Q on every decisive verdict (sympy.Matrix.rank, never numpy)",
+        "CONVENTIONS.md Section 6 is AUTHORITATIVE (corrected 2026-06-01): Lambda=0, the M=0 spacetime vacuum is flat KKT eta (structurally derived, NOT Einstein-negative); the old 'center is Einstein-negative Cartan, Lambda<0' framing is FALSIFIED (that {0,-1,-1,-1}/R x H^3 geometry is the cone-Hessian SOURCE field, not the spacetime metric). Inherit Section 6 as corrected; for THIS route the vacuum Einstein-structure level is to be MEASURED (Phase B(d)/A.5(a)), but the expected vacuum is flat/pure-Lambda, NOT the dead R x H^3 -- do not reintroduce Lambda<0",
+        "CONJECTURAL (the thing to prove or disprove): that the Spin(9)-broken curvature of the Peirce-frame connection, after the C_u reduction of V_{1/2} to a 4-dim Lorentzian coframe, is gravitational and Einstein-structured WITHOUT positing an MM action. A clean Phase-A KILL or a Phase-A.5 same-wall SOFT KILL is a valuable, publishable closure; a forced-coframe-but-imported-action outcome (B yes, C no) is the most likely real result and must be reported as fp-imported-action, NOT a win"
       ],
       "known_good_baselines": [
-        "derivations/52-kkt-spacetime.tex + 52-observer-uniqueness.tex: h_2(C_u) ~ R^{3,1} with Minkowski signature (1,3) from det; conformal algebra so(4,2); observer/idempotent uniqueness",
-        "The CORRECTED cubic norm in ~/repos/blog/research/qualia-fixed-point/h3o_tower.py (cross-term association verified) -- det = abc - a N(x) - b N(y) - c N(z) + 2 Re(triple), correct triple order 2Re(x2* x0* x1), NOT the buggy 2Re(x0(x1 x2)) of trip_tracking.py",
-        "Warm EXACT-SymPy h_3(O) engine: code/embedding_under_E_verification.py, code/ring_lemma_verification.py (Jordan product, det, Peirce decomposition, F_4 action over Q)",
-        "peirce_coupling.py (h_3(K) for K=R,C,H,O; Jordan product; Peirce decomposition under E_11) and rho_directional_derivatives.py (off-center expansion of rho_J around I/3)"
+        "H^3 sign benchmark: the cone-Hessian on the det=1 hyperboloid has sectional curvature K=-1/2 (round-sphere convention K=-1 differs by an exact factor of 2; g_slice|_apex = 2*g_round). Use it to fix sign conventions BEFORE reading any curvature verdict; the load-bearing fact is the negative constant SIGN, not the magnitude",
+        "v17.0 cone-Hessian result (the SYMMETRIC sector / real part of the QGT): NONE -- curved, matter-sourced (~94% via V_0<->V_{1/2} cross-terms), position-dependent, but NOT Einstein-form (no G=kT+Lambda g for any global constants). This route is the ANTISYMMETRIC/Lie sector (imaginary part / Berry curvature), a different tensor; the real-part consistency cross-check should reproduce the cone-Hessian",
+        "det SSOT: code/ring_lemma_verification.py det_3 (F_4-invariant cubic norm; 324/324 inner-derivation annihilation = dim f_4 52; byte-identical to the warm v16.0/v17.0 engine); the buggy 2Re((x1 x2)x3) order is off by 16 and rejected",
+        "derivations/52-kkt-spacetime.tex + 52-observer-uniqueness.tex: h_2(C_u) ~ R^{3,1} Minkowski signature (1,3) from det, conformal so(4,2), the Phase-46 pi_u O->C bottleneck -- REUSE the same C_u reduction for V_{1/2}",
+        "Calibration anchors (reproduce via orbit_dimension_gate.py before any new stabilizer count): single-copy dim 24, Spin(8)=28, trdeg 3; e_6=78=52+26; orbit(E_11)=17, Stab_{E_6}(E_11)=61, Stab_{V_0}=45=Spin(9,1), V_0 orbit 9<10",
+        "The Ph72/73 Totaro + hand-rolled Levi-Civita curvature cross-check harness (code/bulk_geometry_verification.py) -- reuse for the >=5-component Riemann cross-check in Phase B and the real-part QGT consistency check"
       ],
       "context_gaps": [
-        "Whether the intrinsic curvature of the V_0 Peirce slice (homogeneous vs position-dependent once E_11 is fixed) is ADDRESSED anywhere in the symmetric-cone / Jordan-algebra / very-special-geometry literature -- survey target; if unaddressed, that is the novelty",
-        "Whether the Riemannian-cone-Hessian -> Lorentzian-slice signature bridge has a standard form (Wick rotation via u vs background-eta), and which reduces to exact Minkowski",
-        "Whether a sensible candidate T_mu_nu can be built from the V_1/V_{1/2} cross-term content (Phase C input)"
+        "Whether the imaginary part of the QGT (Berry curvature) of the OP^2 = F_4/Spin(9) primitive-idempotent family, or MacDowell-Mansouri gravity from an exceptional Jordan algebra, has been computed anywhere in the literature -- novelty/prior-art survey target; if unaddressed, that is the novelty",
+        "Whether the C_u bottleneck reduces V_{1/2}(16) to exactly 4 Lorentzian dimensions carrying SO(3,1), forced by (E_11,u) (the Phase A KILL -- paralleling the V_0=h_2(O)->h_2(C_u)=R^{3,1} reduction)",
+        "Whether the MM epsilon-contraction is fixed by the h_3(O) trace-form/cubic-norm pairing or is an external MM choice (Phase C decision)"
       ],
       "crucial_inputs": [
-        "The frozen conventions block (jordan product; Fano e1e2=e4; u=e7; det with cross-terms; E_11; Peirce V_1(1)/V_{1/2}(16)/V_0(10); cone metric formula; center I/3)",
-        "The corrected cross-term association 2Re(x2* x0* x1) -- verify by Cayley-Hamilton + multiplicativity before any geometry",
-        "Phase ordering with a HARD KILL gate: A (homogeneity) decides B/C; if A is homogeneous, STOP",
-        "The off-center parameter rho_J(X_bg) measuring distance from the center I/3 (rho_J = 0 at center)"
+        "The inherited v17.0 conventions lock PLUS the new objects block: E(x) primitive-idempotent field over the 4d slice; e=dE the V_{1/2}-valued soldering form (C_u-reduced to a 4-dim coframe, must be invertible); omega the Lorentz Spin(3,1)-connection (sits in Spin(3,1)xSpin(6) subset Spin(9,1)); A=omega(+)e the assembled (A)dS/Poincare Cartan connection (so(3,2)/so(4,1)/iso(3,1), 10-dim); F=dA+A^A its curvature 2-form (= the Berry curvature of E(x)); pi_u the C_u reduction V_{1/2}(16)->4-dim coframe",
+        "Spin(9,1) is the AMBIENT structure group (45-dim); it is NOT itself the 4d gravity connection -- it supplies the Lorentz Spin(3,1) sub-block (->omega) and via its coset/V_{1/2} part the coframe (->e). The gravity content is the 10-dim (A)dS connection A=omega(+)e, never the raw 45-dim Spin(9,1) curvature",
+        "det SSOT = ring_lemma_verification.py det_3; octonion_algebra.py BANNED; all decisive verdicts EXACT over Q (sympy rank, rational/symbolic curvature, never float)",
+        "The load-bearing tangent identity E_11 o delta = (1/2) delta and T_{E_11} OP^2 = V_{1/2}(16) -- verify exactly in Phase 0 before building the soldering form",
+        "Phase ordering with HARD KILL gates: Phase A (coframe reduction: 4-dim AND Lorentzian AND forced) and Phase A.5 (Berry-curvature same-wall) decide B/C; a Phase-A failure or a Phase-A.5 same-wall reproduction is a clean valuable (SOFT) KILL -- report flat, do not relabel 'approximately 4d' or 'approximately Einstein'",
+        "The H^3 sign benchmark K=-1/2 (fix sign conventions before any curvature verdict)"
       ]
     },
     "approach_policy": {
       "formulations": [
-        "Symmetric-cone / Hessian geometry of h_3(O): the canonical metric g_X = Hess(-log det X) on the positive cone Omega",
-        "Peirce decomposition w.r.t. the primitive idempotent E_11; restriction of the bulk geometry to V_0 = h_2(O) and to the h_2(C_u) ~ R^{3,1} sub-slice",
-        "Riemannian -> Lorentzian bridge: (i) restrict + Wick-rotate via the complex structure u=e_7, or (ii) background Minkowski eta from h_2(C_u)'s det + cone-Hessian perturbation h_mu_nu",
-        "Perturbative expansion of g_X around the center X = I/3 organized in ||M|| and the off-center parameter rho_J(X_bg); Gauss-Codazzi for the restricted/induced metric"
+        "Cartan / MacDowell-Mansouri gravity: gravity = curvature of a de Sitter/anti-de Sitter (or Poincare) connection A = omega(+)e broken to the Lorentz subgroup; A valued in so(3,2)/so(4,1)/iso(3,1) (10-dim); F = dA + A^A computed symbolically via the Cartan structure equation",
+        "Peirce-frame connection on OP^2 = F_4/Spin(9): an idempotent field E(x) over the 4d spacetime slice (the KKT h_2(C_u)=R^{3,1} base); its differential dE is V_{1/2}-valued = the soldering form, C_u-reduced via pi_u to a 4-dim coframe (the tetrad)",
+        "Quantum geometric tensor decomposition: real part = Fubini-Study metric (= the dead v17.0 cone-Hessian; reproduced as a consistency check), imaginary part = Berry curvature (= the F_B / F mined by this route)",
+        "C_u reduction pi_u: V_{1/2}(16) -> 4-dim coframe via the SAME Phase-46 O->C bottleneck that sent V_0=h_2(O) -> h_2(C_u)=R^{3,1}; non-compact real form in Stab_{E_6}(E_11), Levi ~ Spin(9,1) \u2283 Spin(3,1)xSpin(6) (Lorentz x internal)"
       ],
       "allowed_estimator_families": [
-        "exact-over-Q symbolic computation (SymPy 1.14) of the slice metric, Christoffels, Riemann/Ricci/Einstein tensors, and curvature-scalar invariants -- required on all DECISIVE verdicts",
-        "high-precision mpmath numerics as a GUARDED fallback for non-decisive checks (never for the homogeneity KILL verdict or the cross-term on/off verdict)",
-        "Lie-algebra / orbit-dimension counts for dim Stab_{E_6}(E_11) and the basepoint family",
-        "reuse of the warm exact h_3(O) engine and the corrected h3o_tower.py cubic norm"
+        "exact-over-Q symbolic computation (SymPy) of the soldering-form image dimension, the Gram-pairing signature eigenvalues, the residual structure-group generators, the connection omega, and the curvature 2-form F=dA+A^A -- required on ALL decisive verdicts",
+        "the Cartan structure equation F = dA + A^A (or Omega = d omega + omega^omega) computed symbolically; the canonical Berry curvature as the imaginary part of the QGT",
+        "Totaro curvature engine + hand-rolled Levi-Civita cross-check on >=5 Riemann components (the Ph72/73 harness) for the Phase-B Riemann identification and the real-part QGT consistency check",
+        "Lie-algebra / orbit-dimension counts (orbit_dimension_gate.py) for dim Stab_{E_6}(E_11), Stab_{V_0}=Spin(9,1), and the residual structure group",
+        "reuse of the warm exact h_3(O) engine and the det SSOT ring_lemma_verification.py det_3 (do not rebuild)"
       ],
       "forbidden_estimator_families": [
-        "float ranks / float curvatures on any decisive verdict (rank and curvature involve derivative cancellations; floats fabricate the answer)",
-        "importing supergravity multiplet data, the GST Lagrangian, the assumed N=2 SUSY closure, or Weinberg's soft-graviton theorem as a load-bearing INPUT (this is the circularity being avoided)",
-        "any observers-make-gravity ensemble / thermodynamic (Jacobson-style) argument",
-        "the buggy cross-term association 2Re(x0(x1 x2)) (use the corrected 2Re(x2* x0* x1))",
-        "assuming Einstein form and fitting/tuning to it; declaring Einstein structure from a single tuned point"
+        "float ranks / float curvatures on any decisive verdict (rank, signature, and curvature involve derivative cancellations; floats fabricate the answer) -- sympy.Matrix.rank only, never numpy",
+        "positing an MM / Einstein-Hilbert action by hand to obtain the Einstein term (fp-imported-action = the GST circularity in new clothes); the Einstein structure must fall out of the cubic-norm/trace-form geometry",
+        "obtaining the 4-dim coframe via an arbitrary extra choice not forced by (E_11,u) (fp-arbitrary-reduction)",
+        "octonion_algebra.py on any decisive path (buggy associator); det SSOT = ring_lemma_verification.py det_3",
+        "reusing the v17.0 cone-Hessian SYMMETRIC-sector Riemann tensor as load-bearing (this route is the antisymmetric/Lie sector -- a different tensor)",
+        "any thermodynamic / modular / ensemble (Jacobson-style / Verlinde / Vanchurin / Connes-Rovelli) argument"
       ],
       "allowed_fit_families": [],
       "forbidden_fit_families": [],
       "stop_and_rethink_conditions": [
-        "Phase A homogeneous (h_mu_nu x-independent) -> route DEAD; report 'Phase A homogeneous - route dead' and STOP; do NOT proceed to B/C and do NOT relabel it 'approximately position-dependent'",
-        "Cubic-norm cross-term association fails its Cayley-Hamilton / multiplicativity verification -> STOP and fix det before ANY geometry",
-        "The chosen signature bridge does not reduce to EXACT Minkowski at (M=0, center) -> switch to the other construction or STOP and re-examine",
-        "Phase C shows no Einstein structure at any level -> ACCEPTABLE; report 'curved but not Einstein-structured', do NOT force Einstein form"
+        "Phase A: the C_u reduction does NOT land on a 4-dim space, OR the coframe is NOT Lorentzian, OR the 4d reduction is NOT forced by (E_11,u) (requires an arbitrary extra choice) -> route DEAD; report 'Phase A: coframe reduction fails [which clause]' and STOP; do NOT relabel 'approximately 4d'",
+        "Phase A.5: the canonical Berry curvature F_B reproduces the cone-Hessian same-wall mismatch (curvature support disjoint from the V_{1/2} stress-energy support; no order-matching possible) -> SOFT KILL; report 'Phase A.5: Lie sector inherits the symmetric-sector mismatch' and recommend STOP before Phase B",
+        "octonion_algebra.py detected on a decisive path, or a float rank/curvature on a decisive verdict -> STOP and switch to the det SSOT / exact-over-Q",
+        "Phase C: the Einstein term appears ONLY because an MM/EH action was posited by hand -> report fp-imported-action (honest partial, NOT a derivation); do NOT relabel it a win",
+        "The real part of the QGT does NOT reproduce the dead Hess(-log det) -> STOP and re-examine the QGT construction before trusting F_B"
       ]
     },
     "observables": [
       {
-        "id": "obs-signature-bridge",
-        "name": "Riemannian->Lorentzian signature bridge",
+        "id": "obs-coframe-reduction",
+        "name": "C_u reduction of the V_{1/2} soldering form to a 4-dim Lorentzian coframe",
         "kind": "proof_obligation",
-        "definition": "An explicit map from the ambient Riemannian cone-Hessian g_X = Hess(-log det) to a Lorentzian metric on the h_2(C_u) ~ R^{3,1} slice, chosen between construction (i) restrict+Wick-rotate-via-u and (ii) background-eta + cone-Hessian-perturbation, that reduces to EXACT Minkowski at (M=0, center)",
-        "regime": "background M=0, basepoint at center I/3",
+        "definition": "The image dimension of pi_u(V_{1/2}(16)) (expect 4), the signature of the induced coframe Gram pairing (expect Lorentzian (1,3), exact eigenvalues over Q), and whether the residual structure group on the 4-dim coframe contains SO(3,1) FORCED by (E_11,u) rather than by an arbitrary extra choice",
+        "regime": "E_11 and complex structure u=e_7 fixed; at/around a primitive idempotent on OP^2",
         "units": null
       },
       {
-        "id": "obs-position-dependence",
-        "name": "Position-dependence of the inherited slice metric",
+        "id": "obs-berry-curvature",
+        "name": "Canonical Berry curvature F_B = imaginary part of the QGT",
         "kind": "proof_obligation",
-        "definition": "Whether h_mu_nu(x) := g_mu_nu(x) - eta_mu_nu genuinely varies with the spacetime point x once E_11 is fixed, decided via curvature-scalar invariants (not raw metric components), together with dim Stab_{E_6}(E_11) and the dimension of the (basepoint, slice) family modulo that stabilizer",
-        "regime": "E_11 fixed; basepoint X_bg = I/3 + M ranging over V_0",
+        "definition": "The Berry curvature F_B of the idempotent field E(x) (curvature of the canonical/tautological connection on the eigenbundle) -- its vacuum structure at M=0 (zero/flat, pure-Lambda ~ e^e, or other), the tensor shape of its matter-sourced part at M!=0 (transverse/Einstein-shaped vs EM-shaped), and whether its real-part counterpart reproduces the dead Hess(-log det)",
+        "regime": "M=0 vacuum and M in V_{1/2} turned on; canonical Grassmann/tautological connection (no metric-compatibility equation)",
         "units": null
       },
       {
-        "id": "obs-matter-sourcing",
-        "name": "Matter-sourcing of slice curvature via cross-terms",
+        "id": "obs-cartan-curvature",
+        "name": "Full Cartan curvature F=dA+A^A of the assembled (A)dS connection",
         "kind": "proof_obligation",
-        "definition": "The Riemann tensor of g_mu_nu(x) as a function of M in V_1+V_{1/2}: M=0 gives flat or pure-Lambda; turning on M generates curvature through the det cross-terms coupling V_0 to V_1/V_{1/2}, with the difference isolated by the cross-term on/off test (block-diagonal det(V_1)*det(V_0))",
-        "regime": "linear and beyond in ||M||; off-center rho_J(X_bg)",
+        "definition": "The curvature 2-form F of A=omega(+)e: its Lorentz block R(omega)+Lambda e^e (identified with the 4d Riemann tensor, cross-checked against Totaro/Levi-Civita on >=5 components), its translation block (torsion de+omega^e), the vacuum (M=0) Einstein/(A)dS level via the H^3 K=-1/2 benchmark, and the matter-sourced Riemann for M in V_{1/2}",
+        "regime": "invertible coframe det(e^a_mu)!=0; M=0 vacuum then M turned on; omega = Spin(3,1) projection of the ambient Spin(9,1) connection",
         "units": null
       },
       {
-        "id": "obs-einstein-structure",
-        "name": "Einstein-structure level",
+        "id": "obs-forced-vs-posited",
+        "name": "Forced (trace-form) vs posited (MM action) Einstein structure",
         "kind": "proof_obligation",
-        "definition": "The honest level (exact / linear-in-M / none) at which G_mu_nu[g(x)] = kappa T_mu_nu + Lambda g_mu_nu holds, for a candidate T_mu_nu built from the V_1/V_{1/2} cross-term content of M",
-        "regime": "exact and linear-in-M",
+        "definition": "Whether the MM epsilon-contraction (the Spin(9,1)->SO(3,1) symmetry breaking and the epsilon-tensor that turns F^F into Einstein-Hilbert+Lambda) is FIXED by the h_3(O) trace form / cubic-norm pairing, or is an external MM choice imported by hand (fp-imported-action)",
+        "regime": "the F^F contraction onto the Lorentz sub-block",
         "units": null
       }
     ],
     "claims": [
       {
-        "id": "claim-signature-bridge",
-        "statement": "There is a precise Riemannian-cone-Hessian -> Lorentzian-slice map (one of the two named constructions) that reduces to EXACT Minkowski eta_mu_nu at (M=0, center); the milestone states which construction and verifies the reduction",
+        "id": "claim-coframe-reduction",
+        "statement": "THE KILL GATE. With (E_11, u) fixed, the C_u bottleneck reduces the 16-dim V_{1/2} soldering form e=dE to a 4-dim coframe that is Lorentzian (signature (1,3)) and carries a residual structure group containing SO(3,1), FORCED by (E_11,u) -- OR it does not (image not 4-dim, or not Lorentzian, or requiring an arbitrary extra choice), in which case the route is DEAD and the KILL is reported flat. Decided by exact image dimension, exact Gram-eigenvalue signature, and a forced-vs-chosen structure-group analysis",
         "observables": [
-          "obs-signature-bridge"
+          "obs-coframe-reduction"
         ],
         "deliverables": [
           "deliv-phaseA"
         ],
         "acceptance_tests": [
-          "test-minkowski-reduction",
-          "test-cross-term-association"
+          "test-coframe-dim",
+          "test-coframe-signature",
+          "test-coframe-forced"
         ],
         "references": [
-          "ref-faraut-koranyi",
-          "ref-52-kkt",
-          "ref-h3o-tower"
-        ]
-      },
-      {
-        "id": "claim-homogeneity",
-        "statement": "THE KILL GATE. With E_11 fixed, the inherited slice metric g_mu_nu(x) is EITHER genuinely position-dependent (h_mu_nu(x) varies with x; route SURVIVES) OR x-independent/homogeneous (one fixed metric, no position-dependent field; route DEAD). Decided by explicit computation of h_mu_nu(x) plus dim Stab_{E_6}(E_11) and the basepoint-family dimension; reported honestly either way, with a homogeneous result a clean valuable KILL",
-        "observables": [
-          "obs-position-dependence"
-        ],
-        "deliverables": [
-          "deliv-phaseA"
-        ],
-        "acceptance_tests": [
-          "test-homogeneity"
-        ],
-        "references": [
-          "ref-faraut-koranyi",
-          "ref-vinberg-koszul",
           "ref-baez-octonions",
-          "ref-mccrimmon"
+          "ref-mccrimmon",
+          "ref-52-kkt",
+          "ref-sharpe"
         ]
       },
       {
-        "id": "claim-matter-sourcing",
-        "statement": "Conditional on Phase A showing genuine x-dependence: the slice curvature is SOURCED by matter M in V_1+V_{1/2} via the cubic-norm cross-terms -- M=0 gives flat or pure-Lambda, and switching off the cross-terms (block-diagonal det) removes the M-sourced curvature; the curvature scale relates to ||M|| and rho_J(X_bg)",
+        "id": "claim-berry-same-wall",
+        "statement": "SOFT KILL gate. The canonical Berry curvature F_B (imaginary part of the QGT; real part reproduces the dead Hess(-log det)) has a vacuum structure at M=0 (flat / pure-Lambda / other) and a matter-sourced part at M!=0 that is EITHER transverse/Einstein-shaped (order, tensor structure, and support matchable to a V_{1/2} stress-energy T[M]) OR EM-shaped and reproducing the v17.0 cone-Hessian same-wall mismatch (support disjoint from T[M], no order-matching) -- in which case the Lie sector inherits the symmetric-sector failure and a STOP is recommended before Phase B",
         "observables": [
-          "obs-matter-sourcing"
+          "obs-berry-curvature"
+        ],
+        "deliverables": [
+          "deliv-phaseA5"
+        ],
+        "acceptance_tests": [
+          "test-berry-real-part",
+          "test-berry-vacuum",
+          "test-berry-shape"
+        ],
+        "references": [
+          "ref-provost-vallee",
+          "ref-wise",
+          "ref-faraut-koranyi"
+        ]
+      },
+      {
+        "id": "claim-cartan-gravity",
+        "statement": "Conditional on A and A.5 surviving: the assembled (A)dS Cartan connection A=omega(+)e has a curvature F=dA+A^A whose Lorentz block is the 4d Riemann tensor (cross-checked against Totaro/Levi-Civita on >=5 components) -- with an invertible coframe, a vacuum (M=0) Einstein/(A)dS level read against the H^3 K=-1/2 benchmark, and a matter-sourced Riemann once M in V_{1/2} is turned on. If so the route SURVIVES as connection-curvature gravity, distinct from the dead metric route",
+        "observables": [
+          "obs-cartan-curvature"
         ],
         "deliverables": [
           "deliv-phaseB"
         ],
         "acceptance_tests": [
-          "test-cross-term-onoff",
-          "test-lambda-vs-matter"
+          "test-coframe-invertible",
+          "test-cartan-curvature",
+          "test-vacuum-einstein"
         ],
         "references": [
-          "ref-faraut-koranyi",
-          "ref-mccrimmon",
-          "ref-peirce-coupling"
+          "ref-mm-1977",
+          "ref-wise",
+          "ref-sharpe"
         ]
       },
       {
-        "id": "claim-einstein-structure",
-        "statement": "The honest level (exact / linear-in-M / not at all) at which G_mu_nu[g(x)] = kappa T_mu_nu + Lambda g_mu_nu holds for a T_mu_nu built from V_1/V_{1/2} cross-term content; 'curved but not Einstein-structured' is an acceptable reported outcome, NOT to be forced into Einstein form",
+        "id": "claim-forced-einstein",
+        "statement": "The circularity audit (the GST sin, re-armed): the MM epsilon-contraction giving Einstein-Hilbert+Lambda is EITHER FORCED by the h_3(O) trace-form / cubic-norm pairing (STRONG WIN -- gravity from the Lie-sector geometry, non-circular) OR appears only because an MM/EH action was posited by hand (fp-imported-action -- an honest partial, NOT a derivation). The honest level is reported either way; a forced-coframe-but-imported-action outcome (B yes, C no) is the most likely real result",
         "observables": [
-          "obs-einstein-structure"
+          "obs-forced-vs-posited"
         ],
         "deliverables": [
           "deliv-phaseC"
         ],
         "acceptance_tests": [
-          "test-einstein-level"
+          "test-forced-vs-posited"
         ],
         "references": [
-          "ref-gst",
-          "ref-jacobson-contrast"
+          "ref-mm-1977",
+          "ref-wise",
+          "ref-gst"
         ]
       }
     ],
     "deliverables": [
       {
+        "id": "deliv-phase0",
+        "kind": "derivation",
+        "path": "derivations/",
+        "description": "Phase 0: engine recovery (det SSOT re-passing CH + 324/324 checks; octonion_algebra.py not imported) + the EXACT tangent identity E_11 o delta = (1/2) delta and T_{E_11} OP^2 = V_{1/2}(16) + the reproduced calibration anchors, with supporting exact-SymPy code",
+        "must_contain": [
+          "det SSOT (ring_lemma_verification.py det_3) re-passes Cayley-Hamilton + 324/324 inner-derivation annihilation; octonion_algebra.py confirmed absent on the decisive path",
+          "exact-over-Q verification of E_11 o delta = (1/2) delta for delta in V_{1/2}(E_11), and that T_{E_11} OP^2 = V_{1/2}(E_11) is 16-dim",
+          "calibration anchors reproduced via orbit_dimension_gate.py (single-copy 24/Spin(8)28/trdeg3; e_6=78; orbit(E_11)=17; Stab_{E_6}(E_11)=61; Stab_{V_0}=45=Spin(9,1))"
+        ]
+      },
+      {
         "id": "deliv-phaseA",
         "kind": "derivation",
         "path": "derivations/",
-        "description": "Phase A: the signature bridge (A0) + the explicit inherited slice metric h_mu_nu(x) with E_11 fixed + the homogeneity verdict (x-dependent vs homogeneous) + dim Stab_{E_6}(E_11) and the basepoint-family dimension, with supporting exact-SymPy code",
+        "description": "Phase A (THE KILL GATE, do first): the C_u reduction of V_{1/2}(16) -- image dimension, induced Gram-pairing signature (exact eigenvalues over Q), and the forced-vs-chosen residual-structure-group analysis -- with a DECISIVE 4d-Lorentzian-and-forced verdict or a flat KILL",
         "must_contain": [
-          "the chosen Riemannian->Lorentzian bridge and the exact-Minkowski reduction at (M=0, center)",
-          "Cayley-Hamilton + multiplicativity verification of the corrected cubic-norm cross-term BEFORE geometry",
-          "h_mu_nu(x) computed explicitly and a DECISIVE homogeneous-vs-position-dependent verdict via curvature-scalar invariants",
-          "dim Stab_{E_6}(E_11) and the dimension of the (basepoint, slice) family modulo that stabilizer",
-          "if homogeneous: an explicit 'route dead' statement and STOP"
+          "exact image dimension of pi_u(V_{1/2}(16)) (expect 4) with the reduction made explicit",
+          "exact Gram-eigenvalue signature of the induced coframe pairing (expect Lorentzian (1,3))",
+          "forced-vs-arbitrary analysis: the residual structure group contains SO(3,1) and is FORCED by (E_11,u), not chosen by hand",
+          "if not 4-dim / not Lorentzian / not forced: an explicit 'Phase A: coframe reduction fails [clause]' KILL and STOP"
+        ]
+      },
+      {
+        "id": "deliv-phaseA5",
+        "kind": "derivation",
+        "path": "derivations/",
+        "description": "Phase A.5 (SOFT KILL, before the full connection): the canonical Berry curvature F_B = imaginary part of the QGT -- the real-part consistency check (reproduces Hess(-log det)), the M=0 vacuum structure, the matter-sourced tensor shape (Einstein-shaped vs EM-shaped), and the same-wall comparison to the v17.0 cone-Hessian mismatch",
+        "must_contain": [
+          "F_B computed as the imaginary part of the QGT; the real part reproduces the dead Hess(-log det) (consistency check)",
+          "F_B at M=0: vacuum level reported (flat / pure-Lambda ~ e^e / other; expected flat/pure-Lambda, no Lambda<0)",
+          "matter-sourced F_B at M!=0: transverse/Einstein-shaped vs EM-shaped, with M-scaling, tensor structure, and support compared to a V_{1/2} stress-energy T[M] at the same order in M",
+          "same-wall verdict: whether F_B reproduces the cone-Hessian mismatch (SOFT KILL) or not"
         ]
       },
       {
         "id": "deliv-phaseB",
         "kind": "derivation",
         "path": "derivations/",
-        "description": "Phase B (only if A survives): the Riemann tensor of g_mu_nu(x); confirmation that M=0 gives flat or pure-Lambda; the cross-term on/off test showing M-sourcing comes from the V_0<->V_1/V_{1/2} cross-terms; curvature scale vs ||M|| and rho_J(X_bg)",
+        "description": "Phase B (only if A and A.5 survive): the assembled (A)dS Cartan connection A=omega(+)e and its curvature F=dA+A^A -- invertible coframe, Spin(3,1) connection omega, Lorentz block = 4d Riemann (Totaro/Levi-Civita cross-check), torsion block, M=0 Einstein/(A)dS level, and the matter-sourced Riemann",
         "must_contain": [
-          "Riemann/Ricci tensor of the inherited slice metric as a function of M",
-          "M=0 baseline (flat or pure Lambda) established",
-          "cross-term on/off comparison (full det vs block-diagonal det(V_1)*det(V_0))",
-          "quantified curvature scale vs ||M|| and off-center rho_J"
+          "e=pi_u(dE) confirmed invertible (det(e^a_mu)!=0) as a genuine soldering form",
+          "omega = the Lorentz Spin(3,1) projection of the ambient Spin(9,1) connection compatible with e (NOT the raw 45-dim curvature)",
+          "F=dA+A^A computed symbolically; Lorentz block identified with the 4d Riemann tensor and cross-checked against Totaro/Levi-Civita on >=5 components; torsion block reported",
+          "M=0 vacuum Einstein/(A)dS level via the H^3 K=-1/2 benchmark; matter-sourced Riemann for M in V_{1/2}"
         ]
       },
       {
         "id": "deliv-phaseC",
         "kind": "derivation",
         "path": "derivations/",
-        "description": "Phase C (strong form, only if B survives): the candidate T_mu_nu from V_1/V_{1/2} cross-term content and the test of G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu at exact / linear-in-M / no level, with the honest verdict",
+        "description": "Phase C (the circularity audit): whether the MM epsilon-contraction (hence the Einstein term) is FORCED by the trace-form/cubic-norm pairing of h_3(O) or is an external MM choice, with the honest verdict (STRONG WIN vs fp-imported-action)",
         "must_contain": [
-          "explicit candidate T_mu_nu construction independent of any assumed Einstein form",
-          "comparison G_mu_nu vs kappa T_mu_nu + Lambda g_mu_nu at exact and linear-in-M order",
-          "honest level reported (exact / linearized / curved-but-not-Einstein)"
+          "an explicit determination of whether the Spin(9,1)->SO(3,1) breaking and the epsilon-tensor are fixed by the h_3(O) trace form / cubic norm",
+          "if the Einstein term only appears via a posited MM action: reported as fp-imported-action (honest partial, NOT a derivation)",
+          "the honest final verdict (KILL / SOFT KILL / SURVIVES / STRONG WIN / fp-imported-action) at true strength"
         ]
       }
     ],
     "acceptance_tests": [
       {
-        "id": "test-minkowski-reduction",
-        "subject": "claim-signature-bridge",
-        "kind": "limiting_case",
-        "procedure": "Evaluate the chosen Riemannian->Lorentzian slice metric at M=0 and basepoint = center I/3; confirm it equals the exact Minkowski metric eta_mu_nu (signature (1,3)) from h_2(C_u)'s own det",
-        "pass_condition": "Exact Minkowski eta_mu_nu recovered at (M=0, center); the bridge construction that achieves this is reported",
-        "evidence_required": [
-          "deliv-phaseA"
-        ],
-        "automation": "automated"
-      },
-      {
-        "id": "test-cross-term-association",
-        "subject": "claim-signature-bridge",
+        "id": "test-tangent-identity",
+        "subject": "claim-coframe-reduction",
         "kind": "consistency",
-        "procedure": "Before any geometry, verify the cubic-norm cross-term association via Cayley-Hamilton on h_3(O) and multiplicativity on associative/commuting subsets, matching the corrected h3o_tower.py (triple order 2Re(x2* x0* x1))",
-        "pass_condition": "det cross-term matches the corrected implementation; the buggy 2Re(x0(x1 x2)) order is explicitly excluded",
+        "procedure": "On the det SSOT engine, verify exactly over Q that E_11 o delta = (1/2) delta for a basis of delta in V_{1/2}(E_11), and that the tangent space to the primitive-idempotent variety at E_11 is exactly V_{1/2}(E_11) (16-dim)",
+        "pass_condition": "E_11 o delta = (1/2) delta holds for all V_{1/2} basis elements and T_{E_11} OP^2 = V_{1/2}(E_11) is 16-dim, exact over Q",
         "evidence_required": [
-          "deliv-phaseA"
+          "deliv-phase0"
         ],
         "automation": "automated"
       },
       {
-        "id": "test-homogeneity",
-        "subject": "claim-homogeneity",
+        "id": "test-calibration",
+        "subject": "claim-coframe-reduction",
+        "kind": "consistency",
+        "procedure": "Reproduce the calibration anchors via orbit_dimension_gate.py and the det SSOT: single-copy dim 24 / Spin(8)=28 / trdeg 3; e_6=78=52+26; orbit(E_11)=17; Stab_{E_6}(E_11)=61; Stab_{V_0}=45=Spin(9,1); det_3 re-passes CH + 324/324 inner-derivation annihilation",
+        "pass_condition": "All calibration anchors reproduced exactly; det SSOT ALL_PASS; octonion_algebra.py absent on the decisive path",
+        "evidence_required": [
+          "deliv-phase0"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-coframe-dim",
+        "subject": "claim-coframe-reduction",
         "kind": "oracle",
-        "procedure": "Compute h_mu_nu(x) on the slice with E_11 fixed (exact-over-Q expansion of g_X around I/3 in V_0 directions); evaluate curvature-scalar invariants at distinct basepoints; independently compute dim Stab_{E_6}(E_11) and the (basepoint, slice) family dimension modulo it; cross-check the two routes",
-        "pass_condition": "A DECISIVE verdict either way -- genuinely position-dependent (invariants differ across basepoints; stabilizer does not act transitively enough) OR homogeneous (KILL) -- reported without softening; exact arithmetic on the decisive comparison",
+        "procedure": "Apply the Phase-46 C_u / pi_u bottleneck to V_{1/2}(16) and compute the exact image dimension over Q",
+        "pass_condition": "A DECISIVE image dimension: exactly 4 (greenlight) or not 4 (KILL), reported without softening; exact over Q",
         "evidence_required": [
           "deliv-phaseA"
         ],
         "automation": "automated"
       },
       {
-        "id": "test-cross-term-onoff",
-        "subject": "claim-matter-sourcing",
+        "id": "test-coframe-signature",
+        "subject": "claim-coframe-reduction",
+        "kind": "oracle",
+        "procedure": "Compute the exact Gram eigenvalues over Q of the induced pairing on the reduced coframe and read off the signature",
+        "pass_condition": "Lorentzian signature (1,3)/mostly-minus (greenlight) or non-Lorentzian (KILL), decided by exact Gram eigenvalues over Q",
+        "evidence_required": [
+          "deliv-phaseA"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-coframe-forced",
+        "subject": "claim-coframe-reduction",
+        "kind": "oracle",
+        "procedure": "Determine the residual structure group preserving the reduced coframe and whether the 4d reduction is forced by (E_11,u) alone or requires an arbitrary extra choice (e.g. a non-canonical projection or basis selection)",
+        "pass_condition": "The residual structure group contains SO(3,1) and the reduction is FORCED by (E_11,u) (greenlight), or it requires an arbitrary extra choice (KILL, fp-arbitrary-reduction)",
+        "evidence_required": [
+          "deliv-phaseA"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-berry-real-part",
+        "subject": "claim-berry-same-wall",
         "kind": "consistency",
-        "procedure": "Compute the slice Riemann tensor with the FULL cubic norm vs with det replaced by the block-diagonal product det(V_1)*det(V_0) (cross-terms switched off), at the same M != 0",
-        "pass_condition": "The M-sourced curvature present with the full norm vanishes (or changes decisively) when the V_0<->V_1/V_{1/2} cross-terms are switched off",
+        "procedure": "Compute the QGT of the self-model state family |psi(x)> at E(x) and confirm its REAL part reproduces the dead Fubini-Study/cone-Hessian Hess(-log det)",
+        "pass_condition": "Re(QGT) matches the v17.0 cone-Hessian Hess(-log det) (consistency); otherwise STOP and re-examine the QGT construction",
+        "evidence_required": [
+          "deliv-phaseA5"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-berry-vacuum",
+        "subject": "claim-berry-same-wall",
+        "kind": "limiting_case",
+        "procedure": "Evaluate the canonical Berry curvature F_B (imaginary part of the QGT) at M=0 and classify the vacuum: zero/flat, pure-Lambda (F_B ~ e^e), or other",
+        "pass_condition": "The M=0 vacuum level is reported (expected flat/pure-Lambda per corrected Section 6; Lambda<0 NOT reintroduced); exact over Q",
+        "evidence_required": [
+          "deliv-phaseA5"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-berry-shape",
+        "subject": "claim-berry-same-wall",
+        "kind": "oracle",
+        "procedure": "Turn on M in V_{1/2}; compute the matter-sourced part of F_B (and the epsilon-contraction of F_B^F_B onto the Lorentz sub-block) and compare its M-scaling, tensor structure, and support against a V_{1/2} stress-energy T[M] at the SAME order in M; check whether it reproduces the v17.0 cone-Hessian same-wall mismatch",
+        "pass_condition": "A decisive verdict: transverse/Einstein-shaped with matchable order/structure/support (SURVIVES to B) OR EM-shaped reproducing the cone-Hessian mismatch (SOFT KILL); exact over Q, no assumed Einstein form",
+        "evidence_required": [
+          "deliv-phaseA5"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-coframe-invertible",
+        "subject": "claim-cartan-gravity",
+        "kind": "consistency",
+        "procedure": "Confirm e=pi_u(dE) is a non-degenerate soldering form on the 4d slice: det(e^a_mu) != 0 (exact over Q)",
+        "pass_condition": "det(e^a_mu) != 0 -- the coframe is a genuine invertible tetrad",
         "evidence_required": [
           "deliv-phaseB"
         ],
         "automation": "automated"
       },
       {
-        "id": "test-lambda-vs-matter",
-        "subject": "claim-matter-sourcing",
-        "kind": "limiting_case",
-        "procedure": "Compute the slice curvature at M=0 and confirm it is zero (flat) or a pure cosmological constant (R = const, Einstein tensor proportional to g); distinguish this from genuine M-sourced curvature",
-        "pass_condition": "M=0 curvature is flat or pure-Lambda and is NOT counted as matter-sourcing; only the M-dependent part counts as sourced",
+        "id": "test-cartan-curvature",
+        "subject": "claim-cartan-gravity",
+        "kind": "consistency",
+        "procedure": "Assemble A=omega(+)e and compute F=dA+A^A symbolically; identify the Lorentz block R(omega) with the 4d Riemann tensor and cross-check against an independent Totaro/Levi-Civita computation on >=5 components; report the torsion block de+omega^e",
+        "pass_condition": "F computed exactly; the Lorentz block matches the independent Totaro/Levi-Civita Riemann on >=5 components exactly over Q; torsion reported",
         "evidence_required": [
           "deliv-phaseB"
         ],
         "automation": "automated"
       },
       {
-        "id": "test-einstein-level",
-        "subject": "claim-einstein-structure",
+        "id": "test-vacuum-einstein",
+        "subject": "claim-cartan-gravity",
+        "kind": "limiting_case",
+        "procedure": "At M=0, test whether the Lorentz block is Einstein/(A)dS (R_munu ~ Lambda g_munu), with sign conventions fixed by the H^3 cone-Hessian benchmark K=-1/2; then turn on M in V_{1/2} and inspect the matter-sourced Riemann",
+        "pass_condition": "The M=0 vacuum Einstein/(A)dS level and Lambda sign/value are reported as MEASURED (expected flat/pure-Lambda, not the dead R x H^3); the H^3 K=-1/2 benchmark is used to pin signs; exact over Q",
+        "evidence_required": [
+          "deliv-phaseB"
+        ],
+        "automation": "automated"
+      },
+      {
+        "id": "test-forced-vs-posited",
+        "subject": "claim-forced-einstein",
         "kind": "oracle",
-        "procedure": "With a candidate T_mu_nu built independently from V_1/V_{1/2} cross-term content, compare G_mu_nu[g(x)] against kappa T_mu_nu + Lambda g_mu_nu at exact order and at linear order in M (kappa, Lambda fit only as global constants, not per-point)",
-        "pass_condition": "The honest level is reported (exact / linear-in-M / none); a no-Einstein-structure result is reported as 'curved but not Einstein-structured', not forced",
+        "procedure": "Determine whether the MM epsilon-contraction (the Spin(9,1)->SO(3,1) breaking and the epsilon-tensor) that turns F^F into Einstein-Hilbert+Lambda is fixed by the h_3(O) trace form / cubic-norm pairing, or is an external MM choice imported by hand",
+        "pass_condition": "A decisive verdict: FORCED by the trace-form/cubic-norm (STRONG WIN) or only via a posited MM action (fp-imported-action, honest partial); reported at true strength, not relabeled a win",
         "evidence_required": [
           "deliv-phaseC"
         ],
@@ -322,18 +426,18 @@
       {
         "id": "ref-prompt",
         "kind": "spec",
-        "locator": "~/scratch/get-physics-done/paper6-bulk-geometry-prompt.md -- authoritative milestone spec: the claim, conventions, Phase A/B/C structure, KILL condition, build-on / stay-distinct lists",
+        "locator": "~/scratch/get-physics-done/paper6-cartan-tetrad-prompt.md -- authoritative milestone spec: the claim, inherited conventions + new objects block, Phase 0/A/A.5/B/C structure, KILL + SOFT KILL conditions, Pass/Fail summary, forbidden proxies, build-on / stay-distinct lists",
         "aliases": [
-          "bulk-geometry prompt",
-          "paper6-bulk-geometry-prompt"
+          "cartan-tetrad prompt",
+          "paper6-cartan-tetrad-prompt"
         ],
         "role": "must_consider",
-        "why_it_matters": "Defines the milestone exactly; the conventions and the Phase-A KILL gate are binding",
+        "why_it_matters": "Defines the milestone exactly; the conventions, the Phase-A KILL gate, the Phase-A.5 SOFT KILL, and the forbidden proxies are binding",
         "applies_to": [
-          "claim-signature-bridge",
-          "claim-homogeneity",
-          "claim-matter-sourcing",
-          "claim-einstein-structure"
+          "claim-coframe-reduction",
+          "claim-berry-same-wall",
+          "claim-cartan-gravity",
+          "claim-forced-einstein"
         ],
         "carry_forward_to": [
           "planning",
@@ -347,19 +451,18 @@
         ]
       },
       {
-        "id": "ref-faraut-koranyi",
+        "id": "ref-mm-1977",
         "kind": "paper",
-        "locator": "Faraut & Koranyi, Analysis on Symmetric Cones (Oxford, 1994) -- cone metric g_X = Hess(-log det), characteristic function, symmetric-space structure of the det=1 hypersurface E_{6(-26)}/F_4",
+        "locator": "MacDowell & Mansouri, Phys. Rev. Lett. 38 (1977) 739 -- gravity as a broken gauge theory of a de Sitter/Lorentz connection; F^F contraction gives Einstein-Hilbert + Lambda",
         "aliases": [
-          "Faraut-Koranyi",
-          "FK94"
+          "MacDowell-Mansouri 1977",
+          "MM 1977"
         ],
         "role": "definition",
-        "why_it_matters": "CRITICAL -- defines the bulk metric whose curvature this milestone restricts to the slice",
+        "why_it_matters": "Defines the MM mechanism this route computes intrinsically; the epsilon-contraction is exactly what Phase C audits for circularity",
         "applies_to": [
-          "claim-signature-bridge",
-          "claim-homogeneity",
-          "claim-matter-sourcing"
+          "claim-cartan-gravity",
+          "claim-forced-einstein"
         ],
         "carry_forward_to": [
           "planning",
@@ -373,40 +476,66 @@
         ]
       },
       {
-        "id": "ref-vinberg-koszul",
+        "id": "ref-wise",
         "kind": "paper",
-        "locator": "Vinberg (1963), The theory of convex homogeneous cones; Koszul -- canonical (affine/Hessian) metric on a convex homogeneous cone",
+        "locator": "D. K. Wise, gr-qc/0611154 -- MacDowell-Mansouri gravity and Cartan geometry (the clean modern statement; THE reference for this route)",
         "aliases": [
-          "Vinberg 1963",
-          "Koszul"
+          "Wise 2006",
+          "Wise gr-qc/0611154"
         ],
-        "role": "method",
-        "why_it_matters": "Canonical-metric and homogeneity machinery underpinning the Phase-A homogeneity test",
+        "role": "definition",
+        "why_it_matters": "The clean Cartan-geometry statement of MM gravity (A=omega(+)e, F=dA+A^A, Lorentz block = R+Lambda e^e, translation block = torsion) -- the structural template for Phase B",
         "applies_to": [
-          "claim-homogeneity"
+          "claim-berry-same-wall",
+          "claim-cartan-gravity",
+          "claim-forced-einstein"
         ],
         "carry_forward_to": [
           "planning",
-          "execution"
+          "execution",
+          "verification"
         ],
-        "must_surface": false,
+        "must_surface": true,
         "required_actions": [
           "read",
           "cite"
         ]
       },
       {
-        "id": "ref-mccrimmon",
+        "id": "ref-provost-vallee",
         "kind": "paper",
-        "locator": "McCrimmon, A Taste of Jordan Algebras (Springer, 2004) -- Peirce decomposition, cubic norm, quadratic representation P(X)",
+        "locator": "Provost & Vallee, Comm. Math. Phys. 76 (1980) 289 -- the quantum geometric tensor: real part = Fubini-Study metric, imaginary part = Berry curvature",
         "aliases": [
-          "McCrimmon"
+          "Provost-Vallee 1980",
+          "QGT"
         ],
         "role": "definition",
-        "why_it_matters": "Peirce decomposition and quadratic representation are the algebraic backbone of the slice construction and the Hessian curvature formulas",
+        "why_it_matters": "Defines the QGT split this route rests on: the dead cone-Hessian was the real part; F_B is the imaginary part (Berry curvature). The real-part consistency check uses this",
         "applies_to": [
-          "claim-homogeneity",
-          "claim-matter-sourcing"
+          "claim-berry-same-wall"
+        ],
+        "carry_forward_to": [
+          "planning",
+          "execution"
+        ],
+        "must_surface": true,
+        "required_actions": [
+          "read",
+          "cite"
+        ]
+      },
+      {
+        "id": "ref-sharpe",
+        "kind": "paper",
+        "locator": "R. W. Sharpe, Differential Geometry: Cartan's Generalization of Klein's Erlangen Program (Springer, 1997) -- Cartan connections, soldering forms",
+        "aliases": [
+          "Sharpe 1997"
+        ],
+        "role": "method",
+        "why_it_matters": "The rigorous definition of a Cartan connection and a soldering form, underpinning the coframe (Phase A) and connection assembly (Phase B)",
+        "applies_to": [
+          "claim-coframe-reduction",
+          "claim-cartan-gravity"
         ],
         "carry_forward_to": [
           "planning",
@@ -421,14 +550,14 @@
       {
         "id": "ref-baez-octonions",
         "kind": "paper",
-        "locator": "Baez, The Octonions (Bull. AMS 39, 2002) -- h_3(O), F_4, OP^2 = F_4/Spin(9), E_6",
+        "locator": "Baez, The Octonions (Bull. AMS 39, 2002) -- h_3(O), F_4, OP^2 = F_4/Spin(9), T_E OP^2 = V_{1/2}",
         "aliases": [
           "Baez 2002"
         ],
         "role": "definition",
-        "why_it_matters": "Canonical reference for the exceptional-Jordan-algebra geometry (OP^2, F_4, E_6) used throughout",
+        "why_it_matters": "Canonical reference for OP^2 = F_4/Spin(9) (16-dim) and the identification of the tangent space with the Peirce half-eigenspace",
         "applies_to": [
-          "claim-homogeneity"
+          "claim-coframe-reduction"
         ],
         "carry_forward_to": [
           "planning",
@@ -441,59 +570,40 @@
         ]
       },
       {
-        "id": "ref-gst",
+        "id": "ref-mccrimmon",
         "kind": "paper",
-        "locator": "Gunaydin-Sierra-Townsend (1983-84) -- very special geometry / magic supergravity scalar manifold E_{6(-26)}/F_4. FOR THE GEOMETRY ONLY; we do NOT adopt their Lagrangian (that is the dead circular route)",
+        "locator": "McCrimmon, A Taste of Jordan Algebras (Springer, 2004) -- Peirce decomposition, primitive idempotents, the E o delta = (1/2) delta tangent identity",
         "aliases": [
-          "GST",
-          "very special geometry"
+          "McCrimmon"
         ],
-        "role": "background",
-        "why_it_matters": "Supplies the scalar-manifold geometry for comparison/orientation only; their Lagrangian is the circularity being avoided",
+        "role": "definition",
+        "why_it_matters": "Source of the load-bearing tangent identity E o delta = (1/2) delta and the Peirce decomposition backbone of the soldering form",
         "applies_to": [
-          "claim-einstein-structure"
+          "claim-coframe-reduction"
         ],
         "carry_forward_to": [
-          "planning"
+          "planning",
+          "execution"
         ],
         "must_surface": false,
         "required_actions": [
-          "cite",
-          "avoid"
-        ]
-      },
-      {
-        "id": "ref-jacobson-contrast",
-        "kind": "paper",
-        "locator": "Jacobson 1995, Thermodynamics of spacetime: the Einstein equation of state -- CONTRAST ONLY; the thermodynamic/ensemble route is explicitly rejected here",
-        "aliases": [
-          "Jacobson 1995"
-        ],
-        "role": "background",
-        "why_it_matters": "Names the ensemble/thermodynamic route this milestone deliberately does NOT take",
-        "applies_to": [
-          "claim-einstein-structure"
-        ],
-        "carry_forward_to": [
-          "planning"
-        ],
-        "must_surface": false,
-        "required_actions": [
-          "avoid"
+          "read",
+          "cite"
         ]
       },
       {
         "id": "ref-52-kkt",
         "kind": "prior_artifact",
-        "locator": "derivations/52-kkt-spacetime.tex + derivations/52-observer-uniqueness.tex -- h_2(C_u) ~ R^{3,1} Minkowski signature (1,3) from det, conformal algebra so(4,2), observer/idempotent uniqueness",
+        "locator": "derivations/52-kkt-spacetime.tex + derivations/52-observer-uniqueness.tex -- h_2(C_u) ~ R^{3,1} Minkowski signature (1,3) from det, conformal so(4,2), and the Phase-46 pi_u O->C bottleneck",
         "aliases": [
           "52-kkt-spacetime",
           "52-observer-uniqueness"
         ],
         "role": "benchmark",
-        "why_it_matters": "Establishes the Lorentzian background of the slice; the signature bridge must reduce to this Minkowski",
+        "why_it_matters": "Establishes the Lorentzian slice and the C_u reduction mechanism; REUSE the same pi_u bottleneck for V_{1/2} (the Phase A reduction parallels V_0->h_2(C_u))",
         "applies_to": [
-          "claim-signature-bridge"
+          "claim-coframe-reduction",
+          "claim-cartan-gravity"
         ],
         "carry_forward_to": [
           "planning",
@@ -507,42 +617,20 @@
         ]
       },
       {
-        "id": "ref-h3o-tower",
+        "id": "ref-ring-lemma-engine",
         "kind": "prior_artifact",
-        "locator": "~/repos/blog/research/qualia-fixed-point/h3o_tower.py -- the CORRECTED cubic norm (cross-term association verified; triple order 2Re(x2* x0* x1))",
+        "locator": "code/ring_lemma_verification.py -- det SSOT (F_4-invariant cubic norm det_3, cross-term 2Re(x2* x0* x1); 324/324 inner-derivation annihilation) + the warm EXACT-SymPy h_3(O) engine (Jordan product, Peirce decomposition, F_4 action over Q)",
         "aliases": [
-          "h3o_tower.py"
+          "ring_lemma_verification.py",
+          "det SSOT",
+          "warm engine"
         ],
         "role": "benchmark",
-        "why_it_matters": "The correct det implementation; the buggy trip_tracking.py order must NOT be used",
+        "why_it_matters": "The exact-over-Q octonion arithmetic and the det SSOT for all decisive computations -- do not rebuild; octonion_algebra.py is BANNED",
         "applies_to": [
-          "claim-signature-bridge",
-          "claim-homogeneity",
-          "claim-matter-sourcing"
-        ],
-        "carry_forward_to": [
-          "planning",
-          "execution"
-        ],
-        "must_surface": true,
-        "required_actions": [
-          "read",
-          "use"
-        ]
-      },
-      {
-        "id": "ref-warm-engine",
-        "kind": "prior_artifact",
-        "locator": "code/embedding_under_E_verification.py + code/ring_lemma_verification.py -- warm EXACT-SymPy h_3(O) engine (Jordan product, det, Peirce decomposition, F_4 action over Q)",
-        "aliases": [
-          "warm engine",
-          "embedding_under_E_verification.py"
-        ],
-        "role": "benchmark",
-        "why_it_matters": "Exact octonion arithmetic to reuse for the decisive exact-over-Q curvature/homogeneity computations -- do not rebuild",
-        "applies_to": [
-          "claim-homogeneity",
-          "claim-matter-sourcing"
+          "claim-coframe-reduction",
+          "claim-berry-same-wall",
+          "claim-cartan-gravity"
         ],
         "carry_forward_to": [
           "planning",
@@ -554,18 +642,16 @@
         ]
       },
       {
-        "id": "ref-peirce-coupling",
+        "id": "ref-orbit-gate",
         "kind": "prior_artifact",
-        "locator": "peirce_coupling.py (h_3(K), K=R,C,H,O; Jordan product; Peirce decomposition under E_11) + rho_directional_derivatives.py (off-center expansion of rho_J around I/3)",
+        "locator": "code/orbit_dimension_gate.py -- stabilizer/orbit-dimension calibration (single-copy 24/Spin(8)28/trdeg3; e_6=78; orbit(E_11)=17; Stab_{E_6}(E_11)=61; Stab_{V_0}=45=Spin(9,1))",
         "aliases": [
-          "peirce_coupling.py",
-          "rho_directional_derivatives.py"
+          "orbit_dimension_gate.py"
         ],
         "role": "benchmark",
-        "why_it_matters": "Peirce decomposition and the off-center rho_J expansion are direct inputs to the Phase-A/B basepoint expansion",
+        "why_it_matters": "Reproduce the calibration anchors before trusting any new stabilizer/structure-group count (Phase 0 + Phase A forced-vs-chosen analysis)",
         "applies_to": [
-          "claim-homogeneity",
-          "claim-matter-sourcing"
+          "claim-coframe-reduction"
         ],
         "carry_forward_to": [
           "planning",
@@ -575,159 +661,275 @@
         "required_actions": [
           "use"
         ]
+      },
+      {
+        "id": "ref-peirce-coupling",
+        "kind": "prior_artifact",
+        "locator": "code/peirce_coupling.py -- Peirce decomposition of h_3(O) under E_11 (V_1(1)/V_{1/2}(16)/V_0(10))",
+        "aliases": [
+          "peirce_coupling.py"
+        ],
+        "role": "benchmark",
+        "why_it_matters": "Direct input to the soldering-form construction (V_{1/2} is the tangent space) and the C_u reduction",
+        "applies_to": [
+          "claim-coframe-reduction",
+          "claim-cartan-gravity"
+        ],
+        "carry_forward_to": [
+          "planning",
+          "execution"
+        ],
+        "must_surface": false,
+        "required_actions": [
+          "use"
+        ]
+      },
+      {
+        "id": "ref-bulk-geometry-prior",
+        "kind": "prior_artifact",
+        "locator": "code/bulk_geometry_verification.py + derivations/{70.1,71,72,73}-*.tex (v17.0) -- the Totaro + hand-rolled Levi-Civita curvature cross-check harness and the cone-Hessian (real-part QGT) result (NONE: curved but not Einstein)",
+        "aliases": [
+          "bulk_geometry_verification.py",
+          "v17.0 cone-Hessian"
+        ],
+        "role": "benchmark",
+        "why_it_matters": "Reuse the Totaro/Levi-Civita Riemann cross-check harness (Phase B) and the cone-Hessian for the real-part QGT consistency check; STAY DISTINCT -- the cone-Hessian is the dead symmetric sector, not load-bearing here",
+        "applies_to": [
+          "claim-berry-same-wall",
+          "claim-cartan-gravity"
+        ],
+        "carry_forward_to": [
+          "planning",
+          "execution",
+          "verification"
+        ],
+        "must_surface": true,
+        "required_actions": [
+          "use"
+        ]
+      },
+      {
+        "id": "ref-gst",
+        "kind": "paper",
+        "locator": "Gunaydin-Sierra-Townsend (1983-84) -- magic supergravity / very special geometry E_{6(-26)}/F_4. FOR THE GEOMETRY ONLY; we do NOT adopt their Lagrangian (that is the dead circular route Phase C guards against)",
+        "aliases": [
+          "GST",
+          "magic supergravity"
+        ],
+        "role": "background",
+        "why_it_matters": "Orientation/contrast for the circularity audit; their posited Lagrangian is exactly the fp-imported-action being avoided",
+        "applies_to": [
+          "claim-forced-einstein"
+        ],
+        "carry_forward_to": [
+          "planning"
+        ],
+        "must_surface": false,
+        "required_actions": [
+          "cite",
+          "avoid"
+        ]
+      },
+      {
+        "id": "ref-faraut-koranyi",
+        "kind": "paper",
+        "locator": "Faraut & Koranyi, Analysis on Symmetric Cones (Oxford, 1994) -- cone metric g_X = Hess(-log det); used ONLY for the real-part QGT (Fubini-Study/cone-Hessian) consistency cross-check",
+        "aliases": [
+          "Faraut-Koranyi",
+          "FK94"
+        ],
+        "role": "background",
+        "why_it_matters": "The real-part QGT consistency check must reproduce this cone-Hessian; not load-bearing for the Lie-sector curvature itself",
+        "applies_to": [
+          "claim-berry-same-wall"
+        ],
+        "carry_forward_to": [
+          "execution",
+          "verification"
+        ],
+        "must_surface": false,
+        "required_actions": [
+          "cite"
+        ]
+      },
+      {
+        "id": "ref-jacobson-contrast",
+        "kind": "paper",
+        "locator": "Jacobson 1995; Connes-Rovelli thermal time -- CONTRAST ONLY; the thermodynamic/modular/ensemble route is explicitly rejected (woo, standing constraint)",
+        "aliases": [
+          "Jacobson 1995",
+          "thermal time"
+        ],
+        "role": "background",
+        "why_it_matters": "Names the ensemble/thermodynamic route this milestone deliberately does NOT take",
+        "applies_to": [
+          "claim-cartan-gravity"
+        ],
+        "carry_forward_to": [
+          "planning"
+        ],
+        "must_surface": false,
+        "required_actions": [
+          "avoid"
+        ]
       }
     ],
     "forbidden_proxies": [
       {
-        "id": "fp-relabel-homogeneous",
-        "subject": "claim-homogeneity",
-        "proxy": "Relabeling an x-independent (homogeneous) Phase-A result as 'approximately position-dependent' to avoid the KILL",
-        "reason": "A homogeneous result is a clean, valuable KILL and must be reported as such; softening it fakes survival of a dead route"
+        "id": "fp-imported-action",
+        "subject": "claim-forced-einstein",
+        "proxy": "Declaring Einstein structure that only appears because an MM/Einstein-Hilbert action was posited by hand (the GST sin in new clothes)",
+        "reason": "The route WINS only if the Einstein term falls out of the cubic-norm/trace-form geometry without importing the action; an imported action is an honest partial (B yes, C no), NOT a derivation"
       },
       {
-        "id": "fp-coordinate-curvature",
-        "subject": "claim-homogeneity",
-        "proxy": "Mistaking a coordinate artifact (non-constant metric components in a bad chart) for genuine position-dependent curvature (false greenlight)",
-        "reason": "Only curvature-scalar invariants decide; metric components can vary by coordinates on a homogeneous space"
-      },
-      {
-        "id": "fp-import-supergravity",
-        "subject": "claim-einstein-structure",
-        "proxy": "Importing supergravity multiplet data, the GST Lagrangian, the assumed N=2 SUSY closure, or Weinberg's soft-graviton theorem as a load-bearing INPUT",
-        "reason": "This is exactly the circularity of the dead det/GST/Weinberg route (where -R/2 is fixed by the assumed SUSY closure); the curvature must be intrinsic"
-      },
-      {
-        "id": "fp-assume-einstein",
-        "subject": "claim-einstein-structure",
-        "proxy": "Assuming Einstein form and fitting/tuning kappa, Lambda per-point to it, or declaring Einstein structure from a single tuned point",
-        "reason": "Begs the question; G = kT + Lambda g must be TESTED with global constants, and curved-but-not-Einstein is an acceptable honest outcome"
-      },
-      {
-        "id": "fp-ensemble-gravity",
-        "subject": "claim-matter-sourcing",
-        "proxy": "Any observers-make-gravity ensemble / thermodynamic (Jacobson-style) argument",
-        "reason": "Explicitly rejected; the curvature must come from the algebra's own cubic-norm geometry, one observer, one off-center point"
-      },
-      {
-        "id": "fp-wrong-cross-term",
-        "subject": "claim-signature-bridge",
-        "proxy": "Using the buggy cubic-norm cross-term association 2Re(x0(x1 x2)) instead of the corrected 2Re(x2* x0* x1)",
-        "reason": "Octonion non-associativity makes the cross-term association-sensitive; the wrong order silently corrupts det and every downstream curvature"
+        "id": "fp-arbitrary-reduction",
+        "subject": "claim-coframe-reduction",
+        "proxy": "A 4-dim coframe obtained by a choice (projection, basis, or extra structure) NOT forced by (E_11, u)",
+        "reason": "A 4d coframe smuggled in by hand is not a result; the reduction must be forced by (E_11,u) alone for the KILL gate to greenlight"
       },
       {
         "id": "fp-float-decisive",
-        "subject": "claim-homogeneity",
-        "proxy": "Computing the decisive homogeneity / curvature verdicts in float (numpy ranks, float curvature)",
-        "reason": "Rank and curvature involve derivative cancellations; float tolerance fabricates the verdict -- decisive checks must be exact over Q"
+        "subject": "claim-coframe-reduction",
+        "proxy": "Any decisive verdict (image dimension, Gram signature, structure group, curvature) resting on floating-point rank or curvature",
+        "reason": "Rank/signature/curvature involve derivative cancellations; float tolerance fabricates the verdict -- decisive checks must be exact over Q (sympy.Matrix.rank, never numpy)"
       },
       {
-        "id": "fp-lambda-as-sourcing",
-        "subject": "claim-matter-sourcing",
-        "proxy": "Counting a pure cosmological-constant (M=0) curvature as matter-sourcing",
-        "reason": "Only the M-dependent part sourced by the V_0<->V_1/V_{1/2} cross-terms counts; a constant background curvature is pure Lambda, not matter"
+        "id": "fp-relabel",
+        "subject": "claim-cartan-gravity",
+        "proxy": "Relabeling 'F satisfies some 2-form equation' as 'F satisfies Einstein' without an independent stress-energy T[M] matched in magnitude, tensor structure, AND M-power",
+        "reason": "The v17.0 Ph73 lesson: a tensor appearing is not Einstein structure; the match must be in order, shape, and support against an independently-built T[M]"
+      },
+      {
+        "id": "fp-relabel-approx-4d",
+        "subject": "claim-coframe-reduction",
+        "proxy": "Relabeling a non-4d or non-Lorentzian or not-forced Phase-A reduction as 'approximately 4d' or 'approximately Lorentzian' to avoid the KILL",
+        "reason": "Negative-result-is-success: a clean Phase-A KILL is a valuable publishable closure; softening it fakes survival of a dead route"
+      },
+      {
+        "id": "fp-reuse-cone-hessian",
+        "subject": "claim-cartan-gravity",
+        "proxy": "Using the v17.0 cone-Hessian symmetric-sector Riemann tensor (the real part of the QGT) as load-bearing for the Lie-sector curvature verdict",
+        "reason": "This route computes the antisymmetric/connection curvature (imaginary part / Berry curvature) -- a different tensor; the cone-Hessian is for the real-part consistency check only"
+      },
+      {
+        "id": "fp-octonion-algebra",
+        "subject": "claim-coframe-reduction",
+        "proxy": "Using octonion_algebra.py (buggy (x1 x2) x3 association, float, 0.67 associator gap) on any decisive path",
+        "reason": "The wrong associator silently corrupts det and every downstream curvature; det SSOT = ring_lemma_verification.py det_3"
+      },
+      {
+        "id": "fp-ensemble-gravity",
+        "subject": "claim-cartan-gravity",
+        "proxy": "Any observers-make-gravity ensemble / thermodynamic / modular (Jacobson / Verlinde / Vanchurin / Connes-Rovelli) argument",
+        "reason": "Explicitly rejected as woo (standing constraint); the curvature must come from the algebra's own Lie-sector connection geometry"
       }
     ],
     "links": [
       {
-        "id": "link-bridge",
-        "source": "claim-signature-bridge",
+        "id": "link-coframe",
+        "source": "claim-coframe-reduction",
         "target": "deliv-phaseA",
         "relation": "supports",
         "verified_by": [
-          "test-minkowski-reduction",
-          "test-cross-term-association"
+          "test-coframe-dim",
+          "test-coframe-signature",
+          "test-coframe-forced"
         ]
       },
       {
-        "id": "link-homogeneity",
-        "source": "claim-homogeneity",
-        "target": "deliv-phaseA",
+        "id": "link-berry",
+        "source": "claim-berry-same-wall",
+        "target": "deliv-phaseA5",
         "relation": "supports",
         "verified_by": [
-          "test-homogeneity"
+          "test-berry-real-part",
+          "test-berry-vacuum",
+          "test-berry-shape"
         ]
       },
       {
-        "id": "link-matter-sourcing",
-        "source": "claim-matter-sourcing",
+        "id": "link-cartan",
+        "source": "claim-cartan-gravity",
         "target": "deliv-phaseB",
         "relation": "supports",
         "verified_by": [
-          "test-cross-term-onoff",
-          "test-lambda-vs-matter"
+          "test-coframe-invertible",
+          "test-cartan-curvature",
+          "test-vacuum-einstein"
         ]
       },
       {
-        "id": "link-einstein",
-        "source": "claim-einstein-structure",
+        "id": "link-forced",
+        "source": "claim-forced-einstein",
         "target": "deliv-phaseC",
         "relation": "supports",
         "verified_by": [
-          "test-einstein-level"
+          "test-forced-vs-posited"
         ]
       }
     ],
     "uncertainty_markers": {
       "weakest_anchors": [
-        "The central conjecture -- that the V_0-slice curvature is gravitational (position-dependent AND matter-sourced) -- is UNPROVEN; it is the thing to prove or disprove, and the Phase-A homogeneity test may KILL it cheaply",
-        "The signature bridge: which of the two constructions (Wick-rotate via u vs background-eta + cone-Hessian perturbation) is the correct Riemannian->Lorentzian map is not yet decided"
+        "The central conjecture -- that the Spin(9)-broken curvature of the Peirce-frame connection, after C_u reduction of V_{1/2} to a 4-dim Lorentzian coframe, is gravitational AND Einstein-structured WITHOUT a posited action -- is UNPROVEN; the Phase-A coframe reduction may KILL it cheaply, and a forced-coframe-but-imported-action outcome (B yes, C no) is the most likely real result (fp-imported-action, an honest partial)",
+        "Whether the C_u bottleneck reduces V_{1/2}(16) to exactly 4 Lorentzian dimensions, and whether the MM epsilon-contraction is fixed by the trace form, are both undecided"
       ],
       "unvalidated_assumptions": [
-        "That fixing the primitive idempotent E_11 breaks the symmetric-cone homogeneity enough to leave genuine position-dependence on the slice",
-        "That the Riemannian->Lorentzian bridge yields a clean Lorentzian slice metric that reduces to exact Minkowski at (M=0, center)",
-        "That a sensible candidate T_mu_nu can be built from the V_1/V_{1/2} cross-term content for the Phase-C Einstein test"
+        "That the Phase-46 C_u bottleneck applied to V_{1/2}(16) lands on exactly 4 dimensions with Lorentzian signature, forced by (E_11,u) (paralleling V_0=h_2(O)->h_2(C_u)=R^{3,1})",
+        "That the matter-sourced Berry curvature F_B is transverse/Einstein-shaped rather than EM-shaped, and does NOT inherit the v17.0 cone-Hessian same-wall mismatch",
+        "That the MM epsilon-contraction (hence the Einstein term) is fixed by the h_3(O) trace-form/cubic-norm pairing rather than being an external MM choice"
       ],
       "competing_explanations": [
-        "The inherited slice metric is homogeneous (one fixed metric) -> KILL; the cheap most-likely-decisive Phase-A outcome to rule in or out first",
-        "Position-dependent but NOT matter-sourced -- curvature present already at M=0 as a pure cosmological constant",
-        "Curved but not Einstein-structured (B yes, C no) -- per the prompt the most likely real positive outcome"
+        "The C_u reduction does not land on a 4-dim Lorentzian space, or requires an arbitrary extra choice -> Phase A KILL (cheap, decisive, first)",
+        "The Lie sector inherits the symmetric-sector mismatch (F_B EM-shaped, support disjoint from T[M]) -> Phase A.5 SOFT KILL",
+        "Forced 4d Lorentzian coframe and a genuine matter-sourced Riemann, but the Einstein term only via a posited MM action -> fp-imported-action (the most likely real outcome)",
+        "The epsilon-contraction is FORCED by the trace form/cubic norm -> STRONG WIN (gravity from h_3(O) Lie-sector geometry, non-circular)"
       ],
       "disconfirming_observations": [
-        "h_mu_nu(x) is x-independent (curvature-scalar invariants equal across basepoints; Stab_{E_6}(E_11) acts transitively on basepoints) -> route DEAD",
-        "All slice curvature at M=0 is a pure cosmological constant and turning on M adds nothing through the cross-terms -> matter does not source it",
-        "Switching the cross-terms off leaves the M-sourced curvature unchanged -> sourcing is not via the V_0<->V_1/V_{1/2} cross-terms",
-        "No Einstein structure at exact or linear order (acceptable; report curved-but-not-Einstein, do not force)"
+        "pi_u(V_{1/2}(16)) image dimension != 4, OR the induced Gram pairing is not Lorentzian (1,3), OR the 4d reduction requires an arbitrary extra choice -> route DEAD (Phase A KILL)",
+        "The matter-sourced F_B is EM-shaped (generic U(1)-type), its support disjoint from a V_{1/2} stress-energy T[M], or no M-power/tensor-structure matching is possible -> SOFT KILL (Lie sector inherits the symmetric-sector mismatch)",
+        "The real part of the QGT does NOT reproduce the dead Hess(-log det) -> the QGT construction is wrong; STOP before trusting F_B",
+        "The Einstein term only appears because an MM/EH action was posited by hand -> fp-imported-action (honest partial, NOT a derivation; report at true strength)"
       ]
     }
   },
   "position": {
-    "current_phase": "72 (re-plan as MATTER-ON-FLAT) — Phase 70.1 COMPLETE (η+h selected as the physical spacetime metric; cone-Hessian-is-metric FALSIFIED)",
-    "current_phase_name": "B — Matter-Sourcing (re-scoped: matter sources h on the flat KKT η background; needs re-plan)",
-    "total_phases": 5,
-    "current_plan": "none (Phase 70.1 complete; Phase 72 awaiting re-plan to the matter-on-flat scope)",
+    "current_phase": "Defining objectives (v18.0; roadmap pending \u2014 Phases 74+)",
+    "current_phase_name": "v18.0 milestone setup \u2014 Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O)",
+    "total_phases": null,
+    "current_plan": "none (defining objectives; roadmap pending)",
     "total_plans_in_phase": 0,
-    "status": "Ready to plan",
-    "last_activity": "2026-05-31",
-    "last_activity_desc": "Phase 70.1 (Revise A0 — physical-metric selection) COMPLETE (1/1 plans; verified PASSED 5/5 HIGH, verifier re-derived the headline via an independent Levi-Civita path; consistency CONSISTENT). VERDICT (human-ratified outcome 2): the physical spacetime metric is the η+h bridge (KKT Minkowski η + matter perturbation h), NOT the cone-Hessian curvature. The \"cone-Hessian IS the metric\" thesis is FALSIFIED (NULL result: M=0 vacuum is the non-Einstein R_time×H³ {0,−1,−1,−1}; spin-2 on a fixed non-Einstein background is non-gauge ⇒ not a graviton). Binding corrections: flat M=0 vacuum is DERIVED from the KKT det₂ form (not an inserted Λ=0 — circularity-tripwire-on-vacuum STRUCK); the route is RESTATED not abandoned (cone-Hessian = matter source via 2Re((x₂x₁)x₃); spacetime = flat KKT η). Phase 72 UNBLOCKED → re-plan as matter-on-flat; Phase 73 re-scoped to the linearized-Einstein can-fail test □h̄~κT. SUPERSEDES the falsified \"center is Einstein, Λ<0\" text (CONVENTIONS.md §6 + ROADMAP VALD-04 #2 — notation-coordinator follow-up). Transition by hand (did NOT run buggy gpd phase complete/state advance). NEXT = re-plan Phase 72.",
-    "progress_percent": 60,
+    "status": "Defining objectives",
+    "last_activity": "2026-06-01",
+    "last_activity_desc": "Started milestone v18.0 (Gravity as the Curvature of the Peirce-Frame Cartan/MacDowell-Mansouri Connection on h_3(O)) \u2014 physics-side Lie-sector/Berry-curvature gravity route. PROJECT.md updated (Current Milestone + Scoping Contract Summary rewritten) and the machine-readable project_contract refreshed to v18.0 (4 claims: claim-coframe-reduction KILL gate / claim-berry-same-wall SOFT KILL / claim-cartan-gravity / claim-forced-einstein; 12 acceptance tests; 8 forbidden proxies incl. fp-imported-action, fp-arbitrary-reduction, fp-relabel). The route computes the ANTISYMMETRIC/Lie-sector connection curvature F=dA+A^A of A=omega(+)e on h_3(O) = the imaginary part of the self-model QGT (Berry curvature); the v17.0 cone-Hessian (NONE: curved but not Einstein) was the REAL part \u2014 a DIFFERENT tensor, so NONE does NOT bind it. Cheap KILL gates first: Phase A (does the C_u/pi_u bottleneck reduce V_{1/2}(16) to a 4d Lorentzian coframe carrying SO(3,1), FORCED by (E_11,u)? KILL if not 4d/not Lorentzian/not forced) \u2192 Phase A.5 (is the canonical Berry curvature Einstein-shaped, or EM-shaped reproducing the v17.0 same-wall mismatch? SOFT KILL). Inherit the v17.0 conventions lock (det SSOT = code/ring_lemma_verification.py det_3, cross-term 2Re(x2* x0* x1); octonion_algebra.py BANNED; exact over Q) + CONVENTIONS.md \u00a76 (Lambda=0, flat M=0 vacuum, do NOT reintroduce Lambda<0). Authoritative spec: ~/scratch/get-physics-done/paper6-cartan-tetrad-prompt.md. Physics-side; INDEPENDENT of the consciousness-side (RING/REDUCIBILITY) line. NEXT = define objectives (REQUIREMENTS.md) \u2192 roadmap (gpd-roadmapper, Phases 74+). v17.0 COMPLETE & ARCHIVED (.gpd/milestones/v17.0/RESEARCH-DIGEST.md + MILESTONES.md).",
+    "progress_percent": 0,
     "paused_at": null
   },
   "active_calculations": [
-    "det_3(X), d_{IJK} tensor (106 nonzero), det_2 Minkowski signature (1,3), KKT(h_2(C_u)) = so(4,2), VSR metric G_{IJ} with 26 positive eigenvalues, N=2 MESGT derivation via GST bijection — see `.gpd/state.json` field `active_calculations` for full list (preserved)."
+    "det_3(X), d_{IJK} tensor (106 nonzero), det_2 Minkowski signature (1,3), KKT(h_2(C_u)) = so(4,2), VSR metric G_{IJ} with 26 positive eigenvalues, N=2 MESGT derivation via GST bijection \u2014 see `.gpd/state.json` field `active_calculations` for full list (preserved)."
   ],
   "intermediate_results": [
     "**O(9) quantitative (41-01)**: c_s(O(9),Z^3) = J*sqrt(3/2) = 1.225 Ja (classical), v_LR = 27eJ = 73.4 J, ratio 59.9, BW universality (no SRF number), C(r) = 16/(pi*J*r) d=3. (MEDIUM-HIGH)",
     "**Derivation chain update (41-02)**: Links (i)-(l) updated with O(9) numbers. c_s=J*sqrt(3/2), rho_s=J/8, v_LR=27eJ, v_LR/c_s~60. Chain fully self-consistent on O(9)/S^8. (HIGH)"
   ],
   "open_questions": [
-    "**RESOLVED-WITH-SURPRISE (Phase 65 GATE):** generic pair orbit dim of F_4 on 27⊕27 = **44** (exact QQ rank, MAX over generic integer pairs), so **trdeg = 54−44 = 10, NOT the naive-anchor 7**. Triple-confirmed (executor + orchestrator-independent exact rank at a fresh point + rep-theory Stab chain Spin(8)→Spin(7)→G₂→SU(3), dim 8). The anchor 7 was exactly the forbidden Spin(8)-triality back-of-envelope; computed value is 10. Single-copy GATE still 24/Spin(8)/trdeg 3 → builder CERTIFIED. trdeg 10 = 3(X)+3(Y)+**4 mixed** (c plus 3 more), so \"six pointwise + c\" undercounts by 3.",
-    "**RESOLVED (Phase 65.1, corrective):** the 3 missing functionally-independent joint invariants are the NATURAL mixed trace monomials Tr(X²∘Y) (2,1), Tr(X∘Y²) (1,2), Tr(X²∘Y²) (2,2) — the full 10-candidate set {6 pointwise, c, +3} realizes exact Jacobian rank **10** over Q (MAX over 4 generic integer pairs, each =10), == the Phase-65 orbit-derived trdeg 54−44=10 (two-route agreement). Tier ladder (6,7,8,9,10), every increment +1 (no candidate redundant; fallback ladder a recorded no-op). All 3 certified genuine F_4 invariants (D_M f=0, all 52 generators); exact-only over Q; verification 22/22 PASSED, consistency CONSISTENT. FIELD-level completeness only (ring generation = Phase 68). The corrected trdeg=10 generating set + bidegree table is the handoff for Phases 66/68. Deliverable: `code/ring_generating_set.py`.",
-    "**RESOLVED (Phase 66, THE SPINE):** c(X,Y) = Tr(X∘Y) is FUNCTIONALLY INDEPENDENT of R_pt — exact Jacobian rank **7** over Q (MAX over 5 generic pairs, stable; baseline 6, X=Y control 6), AND the orbit-derivative route exhibits a separating f_4 direction (D_ξ c ≠ 0 while all 6 pointwise derivatives vanish). Both mandatory routes AGREE on the diagonal cell (7, exists) ⇒ c INDEPENDENT (positive pass). NEGATIVE branch (rank 6 ⇒ explicit P) wired but a recorded no-op. Exact over Q; reward-hacking-guarded (pre-registered points + verdict map; off-diagonal ⇒ STOP); orchestrator- AND verifier-independent re-runs reproduced rank 7 at fresh points. rank 7 ≤ trdeg 10 (c is the FIRST of 4 mixed joint invariants; does NOT saturate the full trdeg) — (b) strengthened, not weakened. Verification PASSED, consistency CONSISTENT. Deliverable: code/spine_independence.py. SCOPE: FIELD-level functional independence ONLY (degree-2 uniqueness = Phase 67; ring generation = Phase 68).",
-    "**RESOLVED (Phase 67, RING-03):** YES — c is the UNIQUE degree-2 coupling generator. Bidegree-(1,1) trivial part = 2-dim = span{Tr(X)Tr(Y), c} by two agreeing routes (Schur dim End_{F_4}(1⊕26)=2 == exact f_4-kernel nullspace 729−727=2 over QQ); modulo the reducible product Tr(X)Tr(Y) ∈ R_pt, the genuine-coupling quotient = 1 = span{c} (named basis shown to SPAN the kernel, not dim-match; c ∉ R_pt at degree 2). Exact over Q; verification PASSED 7/7, consistency CONSISTENT. The (1,1)=2 count is the bidegree-(1,1) Hilbert coefficient Phase 68 must reproduce.",
-    "**RESOLVED (Phase 68, (a) RING-01):** YES — the 10-candidate set IS complete to total degree ≤6, and the higher trace monomials Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²) ARE NEEDED (genuine ring generators, not reducible). CERTIFIED by the exact-over-Q Hilbert match d_candidate==d_true at all 28 bidegrees; (2,2) Tr(X²∘Y²) is a GENERATOR (8→9); the ring is FREE through degree 6 (no syzygies ≤ deg 6; plog all {0,+1}). Polarization NOT assumed (Schwarz; the Hilbert match is the certificate). Cross-consistent: trdeg 10 ≥ rank 7 ≥ quotient 1; Krull 10; (1,1)=2. Deliverables: code/molien_bigraded.py, code/generating_set_certificate.py.",
+    "**RESOLVED-WITH-SURPRISE (Phase 65 GATE):** generic pair orbit dim of F_4 on 27\u229527 = **44** (exact QQ rank, MAX over generic integer pairs), so **trdeg = 54\u221244 = 10, NOT the naive-anchor 7**. Triple-confirmed (executor + orchestrator-independent exact rank at a fresh point + rep-theory Stab chain Spin(8)\u2192Spin(7)\u2192G\u2082\u2192SU(3), dim 8). The anchor 7 was exactly the forbidden Spin(8)-triality back-of-envelope; computed value is 10. Single-copy GATE still 24/Spin(8)/trdeg 3 \u2192 builder CERTIFIED. trdeg 10 = 3(X)+3(Y)+**4 mixed** (c plus 3 more), so \"six pointwise + c\" undercounts by 3.",
+    "**RESOLVED (Phase 65.1, corrective):** the 3 missing functionally-independent joint invariants are the NATURAL mixed trace monomials Tr(X\u00b2\u2218Y) (2,1), Tr(X\u2218Y\u00b2) (1,2), Tr(X\u00b2\u2218Y\u00b2) (2,2) \u2014 the full 10-candidate set {6 pointwise, c, +3} realizes exact Jacobian rank **10** over Q (MAX over 4 generic integer pairs, each =10), == the Phase-65 orbit-derived trdeg 54\u221244=10 (two-route agreement). Tier ladder (6,7,8,9,10), every increment +1 (no candidate redundant; fallback ladder a recorded no-op). All 3 certified genuine F_4 invariants (D_M f=0, all 52 generators); exact-only over Q; verification 22/22 PASSED, consistency CONSISTENT. FIELD-level completeness only (ring generation = Phase 68). The corrected trdeg=10 generating set + bidegree table is the handoff for Phases 66/68. Deliverable: `code/ring_generating_set.py`.",
+    "**RESOLVED (Phase 66, THE SPINE):** c(X,Y) = Tr(X\u2218Y) is FUNCTIONALLY INDEPENDENT of R_pt \u2014 exact Jacobian rank **7** over Q (MAX over 5 generic pairs, stable; baseline 6, X=Y control 6), AND the orbit-derivative route exhibits a separating f_4 direction (D_\u03be c \u2260 0 while all 6 pointwise derivatives vanish). Both mandatory routes AGREE on the diagonal cell (7, exists) \u21d2 c INDEPENDENT (positive pass). NEGATIVE branch (rank 6 \u21d2 explicit P) wired but a recorded no-op. Exact over Q; reward-hacking-guarded (pre-registered points + verdict map; off-diagonal \u21d2 STOP); orchestrator- AND verifier-independent re-runs reproduced rank 7 at fresh points. rank 7 \u2264 trdeg 10 (c is the FIRST of 4 mixed joint invariants; does NOT saturate the full trdeg) \u2014 (b) strengthened, not weakened. Verification PASSED, consistency CONSISTENT. Deliverable: code/spine_independence.py. SCOPE: FIELD-level functional independence ONLY (degree-2 uniqueness = Phase 67; ring generation = Phase 68).",
+    "**RESOLVED (Phase 67, RING-03):** YES \u2014 c is the UNIQUE degree-2 coupling generator. Bidegree-(1,1) trivial part = 2-dim = span{Tr(X)Tr(Y), c} by two agreeing routes (Schur dim End_{F_4}(1\u229526)=2 == exact f_4-kernel nullspace 729\u2212727=2 over QQ); modulo the reducible product Tr(X)Tr(Y) \u2208 R_pt, the genuine-coupling quotient = 1 = span{c} (named basis shown to SPAN the kernel, not dim-match; c \u2209 R_pt at degree 2). Exact over Q; verification PASSED 7/7, consistency CONSISTENT. The (1,1)=2 count is the bidegree-(1,1) Hilbert coefficient Phase 68 must reproduce.",
+    "**RESOLVED (Phase 68, (a) RING-01):** YES \u2014 the 10-candidate set IS complete to total degree \u22646, and the higher trace monomials Tr(X\u00b2\u2218Y), Tr(X\u2218Y\u00b2), Tr(X\u00b2\u2218Y\u00b2) ARE NEEDED (genuine ring generators, not reducible). CERTIFIED by the exact-over-Q Hilbert match d_candidate==d_true at all 28 bidegrees; (2,2) Tr(X\u00b2\u2218Y\u00b2) is a GENERATOR (8\u21929); the ring is FREE through degree 6 (no syzygies \u2264 deg 6; plog all {0,+1}). Polarization NOT assumed (Schwarz; the Hilbert match is the certificate). Cross-consistent: trdeg 10 \u2265 rank 7 \u2265 quotient 1; Krull 10; (1,1)=2. Deliverables: code/molien_bigraded.py, code/generating_set_certificate.py.",
     "**RESOLVED (Phase 68, in-plan):** the Sage-vs-pure-SymPy Molien scope decision was settled as pure-SymPy Molien-Weyl iterated residue (no Sage, no fixture; self-contained). Reproduced CT_w=1152 and the full bigraded table exactly. Non-gating item closed.",
-    "**NEW (post-(a), beyond v16.0 scope):** Is R[27⊕27]^{F_4} GLOBALLY free (a polynomial ring on the 10 generators), or non-free with its first relation at total degree ≥7? The certificate establishes freeness through degree 6 (10 generators == Krull dim 10 is consistent with a polynomial ring); the Blind E_6 contrast suggested ultimate non-freeness. Outside sub-claim (a) scope (would need the Hilbert series past degree 6, where the f_4-kernel cross-check is infeasible).",
-    "**RESOLVED (Phase 69, REDU-01 — STATED, not proved):** What precisely does the (REDUCIBILITY) verdict need? Answer (stated as the next-milestone target): the cross-term decomposition Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) + eps Tr(X_k o S_k) (verified EXACT over Q) + the capacity/finite-capacity Breuer reduction (show eps c(X_k,S_k) is NOT reconstructible from the bounded diachronic M, dim M < dim B). The verdict itself is the NEXT milestone's burden (statement-only by design); this milestone asserts NO verdict, uses NO chaos/NKS. Deliverable: derivations/69-reducibility-statement.md.",
+    "**NEW (post-(a), beyond v16.0 scope):** Is R[27\u229527]^{F_4} GLOBALLY free (a polynomial ring on the 10 generators), or non-free with its first relation at total degree \u22657? The certificate establishes freeness through degree 6 (10 generators == Krull dim 10 is consistent with a polynomial ring); the Blind E_6 contrast suggested ultimate non-freeness. Outside sub-claim (a) scope (would need the Hilbert series past degree 6, where the f_4-kernel cross-check is infeasible).",
+    "**RESOLVED (Phase 69, REDU-01 \u2014 STATED, not proved):** What precisely does the (REDUCIBILITY) verdict need? Answer (stated as the next-milestone target): the cross-term decomposition Tr(X_k o X_{k+1}) = (1-eps) Tr(X_k^3) + eps Tr(X_k o S_k) (verified EXACT over Q) + the capacity/finite-capacity Breuer reduction (show eps c(X_k,S_k) is NOT reconstructible from the bounded diachronic M, dim M < dim B). The verdict itself is the NEXT milestone's burden (statement-only by design); this milestone asserts NO verdict, uses NO chaos/NKS. Deliverable: derivations/69-reducibility-statement.md.",
     "**NEW (next-milestone, beyond v16.0):** Is the driven gauge-overlap eps Tr(X_k o S_k) = eps c(X_k,S_k) genuinely NOT reconstructible from M (irreducible)? Honest residual: program-doc Sec 9.6.1 concedes it \"is not automatic\" (an integrable flow would make it reducible). Route: structural Breuer/finite-capacity (NOT chaos). The modulo-P_psd projection correction Tr(X_k o (X_{k+1}-Y_k)) must be handled in closed form.",
-    "v15.0 RESOLVED: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (E does NOT transport the sequential product coherently from the non-associative h_3(O), exact R != 0, ||R||² = 38593/72, associator 524/9 load-bearing; observer self-certifies M_3(C)^sa QM on the slice A = h_3(C_u) = range E; through-line SURVIVES). INDEPENDENT of v16.0; does NOT bear on the (RING) invariant-theory claim — do not entangle.",
+    "v15.0 RESOLVED: CHARACTERIZED OBSTRUCTION refining RESTRICTION to coexistence-as-island (E does NOT transport the sequential product coherently from the non-associative h_3(O), exact R != 0, ||R||\u00b2 = 38593/72, associator 524/9 load-bearing; observer self-certifies M_3(C)^sa QM on the slice A = h_3(C_u) = range E; through-line SURVIVES). INDEPENDENT of v16.0; does NOT bear on the (RING) invariant-theory claim \u2014 do not entangle.",
     "RESOLVED (52-01): Boosts = L_{sigma_i} in Str_0 via KKT.",
     "RESOLVED (53-02): N=2 SUSY derived via GST bijection; not assumed.",
-    "RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types — see state.json.",
+    "RESOLVED (38-02, 39-01, 39-02): Macroscopic lattice, SSB pattern, Goldstone types \u2014 see state.json.",
     "Parked (post-v16.0 physics-side): Todorov F_4-Spin(9) intersection for gap G6 (so(6) -> G_SM); Boyle triality for gap G7 (3 generations); Lambda != 0 mechanism (ungauged MESGT gives Lambda=0 classically).",
-    "**RESOLVED (Phase 71): SURVIVES** — h_mu_nu(x) IS genuinely position-dependent after fixing E_11. Stab_{E_6}(E_11)=61, but the slice-preserving Stab_{V_0}=45=Spin(9,1) is NON-transitive (orbit 9<10), leaving one genuine modulus = the Stab-invariant det_2. Curvature scalars R(x),K(x) vary exact over Q across distinct-det_2 basepoints (matterless, direction-blind, scale-invariant => genuine, not a coordinate artifact). Reconciled across all three routes (curvature / stabilizer / II) after correcting a 4-dim-sub-slice-vs-10-dim-V_0 conflation: II(h_2(C_u))≠0 OFF-center while II(10-dim V_0)=0. Verifier PASSED (HIGH), consistency CONSISTENT.",
-    "**OPEN — THE REOPENED PHASE-70 QUESTION (Phase 72 backtrack, 2026-05-31):** Which object is the physical spacetime metric — the Riemannian cone-Hessian (thesis \"gravity = curvature of the cone-Hessian\"; ⇒ the M=0 vacuum is the non-Einstein static product R_time×H³, Ric eig {0,-1,-1,-1}, so the route does NOT yield a GR Λ-vacuum and at most claims linearized spin-2 matter-response on a FIXED non-Einstein background — NAMED as such) or the Lorentzian construction-(ii) bridge η+h (⇒ flat M=0 vacuum, but Λ=0 inserted by center-subtraction and the cone-Hessian thesis must be restated)? The two DISAGREE about the M=0 geometry ⇒ the signature bridge is underdetermined (Riemannian/Lorentzian tension in CONVENTIONS.md). Resolve via `/gpd:revise-phase 70`. **A GR Λ-vacuum must be Einstein (Ric∝g); the M=0 cone-Hessian vacuum is NOT (it is R×H³) — that is the VALD-04 finding, not a reference-choice problem.**",
-    "**BLOCKED on the above (Phase 72 matter-sourcing):** Is the slice curvature SOURCED by V_1/V_{1/2} matter via the cross-terms, or already present at M=0 as a pure cosmological constant? — NOT decidable until Phase 70 selects the physical metric (the matter ΔR isolation pipeline + cross-term off-switch are built and PRESERVED; the verdict is gated, not run). NB: a \"pure cosmological constant at M=0\" presupposes an Einstein M=0 vacuum, which the cone-Hessian does NOT provide.",
-    "Does G_mu_nu = kappa T_mu_nu + Lambda g_mu_nu hold at any level (exact / linear-in-M / not at all)? — Phase 73; if the η+h branch is chosen, carry the Λ=0-built-in circularity tripwire here."
+    "**RESOLVED (Phase 71): SURVIVES** \u2014 h_mu_nu(x) IS genuinely position-dependent after fixing E_11. Stab_{E_6}(E_11)=61, but the slice-preserving Stab_{V_0}=45=Spin(9,1) is NON-transitive (orbit 9<10), leaving one genuine modulus = the Stab-invariant det_2. Curvature scalars R(x),K(x) vary exact over Q across distinct-det_2 basepoints (matterless, direction-blind, scale-invariant => genuine, not a coordinate artifact). Reconciled across all three routes (curvature / stabilizer / II) after correcting a 4-dim-sub-slice-vs-10-dim-V_0 conflation: II(h_2(C_u))\u22600 OFF-center while II(10-dim V_0)=0. Verifier PASSED (HIGH), consistency CONSISTENT.",
+    "**RESOLVED (Phase 70.1, 2026-05-31): the physical spacetime metric is the \u03b7+h bridge (KKT Minkowski \u03b7 + matter perturbation h), NOT the cone-Hessian.** Human-ratified outcome 2 (overriding the RESEARCH outcome-1 recommendation). The literal \"cone-Hessian IS the metric\" thesis is FALSIFIED (NULL result: its M=0 vacuum is the non-Einstein R\u00d7H\u00b3 {0,\u22121,\u22121,\u22121}; spin-2 on a fixed non-Einstein background is non-gauge \u21d2 not a graviton). Binding corrections: the flat M=0 vacuum is DERIVED from the KKT det\u2082 form (NOT an inserted \u039b=0 \u2014 circularity-tripwire-on-vacuum STRUCK); the route is RESTATED not abandoned (cone-Hessian = source structure, its V\u2080\u2194V_{1/2} cross-terms 2Re((x\u2082x\u2081)x\u2083) source h; spacetime = flat KKT \u03b7). PRIMARY criterion: \u03b7 matches the slice's det\u2082 Minkowski causal structure (timelike x\u2080=\u03b2+\u03b3); the cone-Hessian makes x\u2080 the flat dilation factor of R\u00d7H\u00b3. Verified 5/5 HIGH (independent Levi-Civita re-derivation), consistency CONSISTENT. fp-relabel (H\u00b3-leaf/timelike-quotient) + \"which \u039b reference\" rejected; construction (i) stays rejected.",
+    "**RESOLVED (Phase 72, 2026-06-01): SURVIVES (qualified).** YES \u2014 V_{1/2} matter dominantly (~94%) cross-term-sources the perturbation h of g=\u03b7+h via 2Re((x\u2082x\u2081)x\u2083) on the flat KKT \u03b7 background. Off-switch R_full\u22484008\u2192R_off\u2248247 (16\u00d7 decisive reduction, passes \"vanishes OR changes decisively\"); M=0 FLAT structurally DERIVED (C\u22610 at M=0); R\u21920 as \u2016M\u2016\u2074; S\u22600 & Weyl\u22600. Two honest caveats: ~6% V_{1/2} self-norm residual (sub-dominant 2nd channel, NOT a clean kill); h\u207d\u00b9\u207e=0 \u21d2 matter at O(\u2016M\u2016\u00b2) \u21d2 Phase 73 is a quadratic-response (h\u207d\u00b2\u207e) test. Verified 9/9 HIGH (independent re-derivation), consistency CONSISTENT. B1 h-definition (matter-induced cone-Hessian deviation) ratified at a checkpoint:decision. Engine (Section 13 of bulk_geometry_verification.py) + \u0394R pipeline + off-switch all built & PRESERVED.",
+    "**RESOLVED (Phase 73, 2026-06-01): NONE \u2014 curved but not Einstein-structured.** The decisive can-fail Einstein test (re-scoped from the gauge-degenerate linear \u25a1h\u0304\u207d\u00b2\u207e~\u03baT to the gauge-invariant FULL nonlinear G_munu[g]=Ric\u2212\u00bdgR at O(\u2016M\u2016\u2074), since G\u207d\u00b9\u207e[h\u207d\u00b2\u207e]=0 makes the linear test degenerate): with T_munu (PRIMARY T[\u03c8=2Re((x\u2082x\u2081)x\u2083)] + ALT \u03c3-model T[V_{1/2}]) and \u03ba frozen from intrinsic V_{1/2} cross-terms BEFORE G (AST-guarded, NO Ric/R/G), the full nonlinear G[g] over a 12-point (M,x) family (all sig (1,3), Totaro==hand-rolled, G first at O(\u2016M\u2016\u2074), Rscalar(M_0)\u22484008) is NOT reproduced by \u03baT+\u039bg for ANY single global (\u03ba,\u039b), against EITHER T, at finite-M OR t\u2074 order (per-point \u039b unequal; best-\u039b residual \u22487209/7190; R not \u221d g at even one point; \u03baT ~10\u00b3 smaller than G & differently structured). n=4: R\u22484008, S\u22600 (10/16), Weyl\u22600 (72/256), trace_S=0, reconstruction exact over Q. \u2016M\u2016\u21920 \u21d2 T,G\u21920. Human-ratified + orchestrator-reproduced exact over Q; circularity audit certifies no GST/SUSY/\u2212R/2/Weinberg/Jacobson import. A DECISIVE full-pass NEGATIVE on the strongest claim (route survived 71+72; curvature genuine but not Einstein-form). CLOSES milestone v17.0."
   ],
   "performance_metrics": {
     "rows": [
@@ -1162,29 +1364,62 @@
         "duration": "~15 min (887s; 2 bounded segments w/ first-result gate)",
         "tasks": "5",
         "files": "2 deliverables (+log,+summary)"
+      },
+      {
+        "label": "Phase 70.1 P70.1-01",
+        "duration": "~40 min (2 bounded segments + blocking decision checkpoint + Correction-1 reconcile)",
+        "tasks": "6",
+        "files": "3 files (.py + .tex + SUMMARY)"
+      },
+      {
+        "label": "Phase 72 P72-01",
+        "duration": "~55 min wall (Task 1 + checkpoint:decision B1 + continuation; 1 lost socket-timeout segment recovered)",
+        "tasks": "3",
+        "files": "4 files (engine, driver, .tex, RESEARCH) + LOG + SUMMARY"
+      },
+      {
+        "label": "Phase 72 P72-02",
+        "duration": "~53 min compute (socket-killed after committing all 3 tasks) + ~8 min docs-finalize segment",
+        "tasks": "3",
+        "files": "2 files (.tex, driver) + SUMMARY"
       }
     ]
   },
   "decisions": [
     {
-      "phase": "72, HALTED — BACKTRACK to Phase 70",
+      "phase": "73, COMPLETE \u2014 RATIFIED VERDICT: NONE (curved but not Einstein-structured)",
+      "summary": "**The decisive can-fail Einstein test",
+      "rationale": "the matter-sourced curvature of the KKT spacetime slice g=\u03b7+h is NOT of Einstein form** (human-ratified 2026-06-01; CLOSES milestone v17.0). Verified PASSED 8/8 (HIGH; the verifier re-ran all 3 drivers \u2014 engine ALL_PASS, BUILD_T_KAPPA_OK, EINSTEIN_TEST_OK \u2014 and independently reproduced every decisive number); consistency CONSISTENT (24 checks; all 72\u219273 and 70.1\u219273 handoffs exact over Q). **BUILD (73-01, DERV-03):** T_munu (PRIMARY single-scalar T[\u03c8=2Re((x\u2082x\u2081)x\u2083)] via det\u2083 SSOT + ALTERNATIVE 16-field \u03c3-model T[V_{1/2}]) and \u03ba (\u03ba_\u03c8=32016781143/5929; \u03ba_\u03c3=395268903/129850) FROZEN from intrinsic V_{1/2} cross-term content BEFORE any curvature \u2014 each symmetric + conserved (\u25a1\u03c8=0, \u03c8 linear-in-slice \u21d2 harmonic) + vanishing at the flat \u2016M\u2016\u21920 vacuum + V_1-inert, with NO Ric/R/G symbol anywhere (AST-guarded). Order anchors reproduced exact over Q (G\u207d\u00b9\u207e[h\u207d\u00b2\u207e]=0, R\u207d\u00b9\u207e=0, box(h\u0304\u207d\u00b2\u207e)(0,0)=\u221276221/2450\u22600, Lorenz defect=[19143/9800,9747/4900,297/350,0]\u22600) \u21d2 the linear \u25a1h\u0304~\u03baT test is GAUGE-DEGENERATE \u21d2 the decisive test is the FULL nonlinear G[g] at O(\u2016M\u2016\u2074). KEY: T[\u03c8]~t\u2074 (order-matched, primary), T_\u03c3~t\u00b2 (ORDER-MISMATCH, disconfirming). **TEST (73-02, CALC-05):** the full nonlinear G_munu[g]=Ric\u2212\u00bdgR over a 12-point (M,x) family (\u22653 dirs \u00d7 \u22653 positions \u00d7 \u22652 amplitudes; all sig (1,3), 6 out-of-splice DROPPED not forced; Totaro==hand-rolled Levi-Civita exact over Q; G first at O(\u2016M\u2016\u2074), G/t\u00b3\u21920; Rscalar(M_0)\u22484008 = the Phase-72 R_full regression) is NOT reproduced by \u03baT+\u039bg for ANY single global (\u03ba,\u039b), against EITHER frozen T, at finite-M OR t\u2074 leading order (per-point \u039b all unequal; the 120-eq over-determined global solve inconsistent; best-\u039b residual largest |entry|\u22487209 (T[\u03c8]) / 7190 (T[\u03c3]); R not \u221d g at even one point; \u03baT ~10\u00b3 smaller than G & differently structured \u2014 G\u2080\u2080\u22486151 but T[\u03c8]\u2080\u2080=0). n=4 Ricci decomposition: R\u22484008, traceless-Ricci S\u22600 (10/16), Weyl\u22600 (72/256), trace_S=0, reconstruction exact over Q. \u2016M\u2016\u21920 \u21d2 T,G\u21920 (can't-fake anchor). **TRUE-STRENGTH framing (binding):** a DECISIVE full-pass NEGATIVE on the milestone's strongest claim (negative-result-is-success) \u2014 the route SURVIVED Phase 71 (homogeneity) + Phase 72 (matter-sourcing), so a curved, matter-sourced, position-dependent spacetime slice stands, but its curvature is NOT Einstein-form; NOT inflated (no leading-order Einstein, no rounding of a near-miss), NOT deflated (\u039b=0 is DERIVED from the KKT det\u2082, NOT an inserted-\u039b circularity). Circularity audit (VALD-05) COMPLETE: no GST/SUSY/\u2212R/2/Weinberg/Jacobson import load-bearing in either plan; the GST-coincidence trap addressed; the stale pre-70.1 SC#2 + \u039b-tripwire wording reconciled. All decisive arithmetic exact over Q (fp-float-decisive rejected); det\u2083 SSOT = bulk_geometry_verification.py (Section 14 h2_field/box added, engine still ALL_PASS; octonion_algebra.py banned, fp-wrong-cross-term rejected); fp-import-supergravity / fp-assume-einstein / fp-ensemble-gravity all rejected. Deliverables: derivations/73-einstein-structure.tex, code/bulk_geometry_verification.py, .gpd/phases/73-\u2026/{73-01-build-T-kappa.py, 73-02-einstein-test.py, 73-01-SUMMARY.md, 73-02-SUMMARY.md, 73-circularity-audit.md, 73-VERIFICATION.md, CONSISTENCY-CHECK.md}. Commits e3b6a236/89a76114/fe562f69/d76745eb/23168138/18a39f99 (73-01) + 611cfd2b/3dd328f0/4abc8338/399d6488/232f1765/a7a94a41 (73-02). Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` \u2014 see [[feedback_gpd_phase_complete_gotcha]]). NEXT = `/gpd:complete-milestone` to archive v17.0."
+    },
+    {
+      "phase": "72, COMPLETE \u2014 RATIFIED VERDICT: SURVIVES (qualified)",
+      "summary": "**Matter in V_{1/2} dominantly (~94%) cross-term-sources the curvature of the flat KKT spacetime slice g=\u03b7+h** (human-ratified 2026-06-01). Verified PASSED 9/9 (HIGH; the verifier independently re-derived EVERY decisive number from its own from-scratch Fano-octonion algebra + difference-potential Hessian, NO engine import); consistency CONSISTENT (11 exact-over-Q spot-checks). **The 3-part conjunction:** (i) cross-term ON/OFF off-switch (det_block = det\u2083 with the triple 2Re((x\u2082x\u2081)x\u2083) dropped) gives R_full\u22484008\u2192R_off\u2248247",
+      "rationale": "a **decisive ~94% / 16\u00d7 REDUCTION, NOT a total kill**; PASSES conjunct (i) under the contract's \"vanishes OR changes decisively\" criterion; the ~6% residual is the retained V_{1/2} self-norms |x\u2082|\u00b2,|x\u2083|\u00b2 (a genuine sub-dominant SECOND channel, kept in the block-diagonal off-switch by construction). (ii) \u2016M\u2016\u21920 recovers flat \u03b7, R~a\u2084\u2016M\u2016\u2074 (a\u2084=395268903/24010000), R[g(M=0)]=S=Weyl=0 \u2014 PASS clean. (iii) S\u22600 AND Weyl\u22600 for M\u22600 (genuine, not a coordinate artifact) \u2014 PASS clean. **M=0 flatness is STRUCTURAL** (the B1 difference potential vanishes identically at M=0 \u21d2 C\u22610 \u21d2 R\u22610 for ANY g\u207b\u00b9 \u2014 the strongest rejection of fp-lambda-as-sourcing; flatness DERIVED, not g-tuned). **B1 h-definition (load-bearing human checkpoint:decision):** h(x;M)=H_source(x;bg+M)\u2212H_source(x;bg-only) (matter-induced cone-Hessian deviation, V_0 partner held fixed so it cancels; \u03b7 = flat Lorentzian det\u2082 Minkowski, sig (1,3)) \u2014 supersedes the engine's literal centered-H0 subtraction which gave a CURVED M=0 (R=17496 = the falsified cone-Hessian-is-metric thesis; this was the disconfirming observation, resolved). **CONSEQUENTIAL: h\u207d\u00b9\u207e=0 identically \u21d2 matter perturbs g at O(\u2016M\u2016\u00b2) \u21d2 the linear-in-M linearized-Einstein test is DEGENERATE; emitted h\u207d\u00b2\u207e for a QUADRATIC-response Phase 73.** Hand-rolled Levi-Civita Riemann == Totaro-g\u207b\u00b9 exact over Q (a benign global Riemann-convention sign flip diagnosed + reconciled). All decisive arithmetic exact over Q (fp-float-decisive rejected); det\u2083 SSOT = bulk_geometry_verification.py byte-identical to ring_lemma_verification (octonion_algebra.py banned, fp-wrong-cross-term rejected); all 7 forbidden proxies rejected. **Two binding qualifications carried to Phase 73 (true-strength framing \u2014 neither inflated to a clean kill nor deflated to negative):** (a) ~6% V_{1/2} self-norm 2nd channel; (b) quadratic-response (h\u207d\u00b2\u207e) test. SUPERSEDED the falsified \"center is Einstein, \u039b<0\" text in CONVENTIONS.md \u00a76 + ROADMAP VALD-04 #2 / CALC-05 (fixed this transition). Deliverables: derivations/72-matter-sourcing.tex, code/bulk_geometry_verification.py (Section 13), .gpd/phases/72-\u2026/{72-01-SUMMARY.md, 72-02-SUMMARY.md, 72-VERIFICATION.md, CONSISTENCY-CHECK.md}. Commits 5f477bbf/e2894163/2827e68e/dbf228c0/5504f0dc (72-01) + 368d2aa4/0bfe9dba/1f5736e7/af82acf6 (72-02). NOTE: two compute-heavy executor agents lost to API socket timeouts (~50 min) but committed task-by-task \u2192 recovered with NO lost work (checkpoint tags kept). Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` \u2014 see [[feedback_gpd_phase_complete_gotcha]]). NEXT = plan Phase 73 (quadratic-response linearized-Einstein test)."
+    },
+    {
+      "phase": "70.1, COMPLETE \u2014 RATIFIED VERDICT",
+      "summary": "**The physical spacetime metric is the construction-(ii) \u03b7+h bridge** (KKT Minkowski \u03b7 + matter perturbation h), NOT the cone-Hessian curvature (human-ratified outcome 2, OVERRIDING the RESEARCH outcome-1 recommendation, with four binding framing corrections). Verified PASSED 5/5 (HIGH; verifier re-derived the headline via an INDEPENDENT Levi-Civita Christoffel/Riemann path, byte-identical to the engine's Totaro closed form); consistency CONSISTENT (spectrum recomputed from scratch). **(1) Option-1 \"cone-Hessian IS the metric\" is FALSIFIED (a NULL result, NOT a weaker-but-honest success):** its M=0 vacuum is the non-Einstein R_time\u00d7H\u00b3 ({0,\u22121,\u22121,\u22121}, R=\u22123, traceless S\u22600, R/4=\u22123/4\u2209spectrum, exact over Q + independently re-derived); a spin-2 field on a fixed non-Einstein background is non-gauge (no linearized-diffeo gauge symmetry off a vacuum background) \u21d2 not a graviton, not gravity. Negative-result-is-success applies to the FALSIFICATION, not to relabeling the surviving fixed-background wave operator a win (fp-overclaim-spin2). **CORRECTION (supersedes the Phase-72-HALTED entry's (b) framing below):** the flat M=0 vacuum is **DERIVED** from the KKT det\u2082 Minkowski form (52KKT: h_2(C_u)~R^{3,1}, det\u2082 mostly-minus), **NOT an inserted \u039b=0**",
+      "rationale": "the centered subtraction h:=Hess\u2212Hess|center==0 is definitional deviation-from-center bookkeeping, NOT the reason for flatness; the \"\u039b=0-inserted circularity tripwire ON THE VACUUM\" framing is STRUCK, and adopting \u03b7+h does NOT abandon the route. **The route is RESTATED:** the cone-Hessian is the source/information structure (its V\u2080\u2194V_{1/2} cross-terms 2\u00b7Re((x\u2082x\u2081)x\u2083) source the perturbation h); spacetime is the KKT slice (flat \u03b7); only the literal \"cone-Hessian IS the metric\" thesis is falsified. PRIMARY decisive criterion: causal/geodesic match to the slice's own det\u2082 Minkowski form (\u03b7 matches the timelike x\u2080=\u03b2+\u03b3 structure; the cone-Hessian makes x\u2080 the flat dilation factor of R\u00d7H\u00b3 = wrong causal structure for spacetime). det\u2082/det\u2083 SPLICE-CONSISTENCY = PASS (h a valid symmetric (0,2) perturbation of the Lorentzian \u03b7_bg; small matter preserves sig (1,3) via eigenvalue-sign signature since the null-aligned \u03b2,\u03b3 frame breaks Sylvester; large deviation flips signature \u21d2 the splice is perturbative \u2014 a consistency check, NOT a gate). **Phase 72 \u2192 re-scope MATTER-ON-FLAT** (M=0 flat KKT baseline; matter sources h via the det\u2083 cross-term; cross-term ON/OFF + \u039b-vs-matter as originally framed; NO \u039b tripwire). **Phase 73 \u2192 the LINEARIZED-EINSTEIN can-fail test** \u25a1h\u0304 ~ \u03baT on the KKT-flat \u03b7 (correct tensor + gauge structure; CAN FAIL = the real gate; NO \u039b=0 tripwire). Reconciliation (a) Einstein-on-H\u00b3-leaf rejected (fp-relabel); construction (i) Wick-via-u=e\u2087 stays rejected; \"which \u039b reference\" rejected (fp-assume-einstein); SSOT det\u2083 = bulk_geometry_verification.py (octonion_algebra.py untouched, fp-wrong-cross-term); all decisive arithmetic exact over Q (fp-float-decisive). SUPERSEDES the falsified \"center is Einstein, \u039b<0\" text in CONVENTIONS.md \u00a76 + ROADMAP VALD-04 criterion #2 (notation-coordinator follow-up, non-blocking; machine-readable state.json lock is clean). Deliverables: derivations/70.1-physical-metric-selection.tex, .gpd/phases/70.1-\u2026/{70.1-01-metric-selection.py, 70.1-01-SUMMARY.md, 70.1-VERIFICATION.md}. Commits 342ee489/10ef1d3e/8aceda76 (Tasks 1-3) + ea5e1df9/626b310f/7a95d728/9075e3a4/16a7f2e3 (Tasks 5-6+SUMMARY) + 8e7b9374 (Correction-1 reconciliation). Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` \u2014 see [[feedback_gpd_phase_complete_gotcha]]). NEXT = re-plan Phase 72 (matter-on-flat)."
+    },
+    {
+      "phase": "72, HALTED \u2014 BACKTRACK to Phase 70",
       "summary": "B",
-      "rationale": "MATTER-SOURCING halted at the Wave-1 first-result gate by researcher decision; backtracking trigger #3 honored (NOT routed around). The decisive cross-term ON/OFF matter verdict (72-02) was NOT run. **THE REAL VALD-04 FINDING (negative-result-is-success):** the dim-4 cone-Hessian M=0 vacuum `Hess(-log det_3)|_{I/3}=diag(9,9,18,18)` has Ricci-endomorphism eigenvalues **{0,-1,-1,-1}** exact over Q — `R=-3` (matches the Phase-71 anchor) but NOT Einstein (n=4 Einstein needs all eigenvalues -3/4). **Crucial reading (corrects my own initial framing):** the eigenvalue-0 direction `(1,1,0,0)=β+γ` is the **TIMELIKE x_0** under `h_2(C_u)~R^{3,1}` (det_2 Minkowski form `βγ/3-p²/3-q²/3`; `βγ/3` is the hyperbolic 1+1 block, `(1,1)` its timelike eigenvector) — NOT merely the Riemannian dilation/scale modulus. So the M=0 vacuum is a static product `R_time × H³_space` (flat factor = time), `K(p,q)=-1/2`. A GR Λ-vacuum MUST be Einstein (Ric∝g); no baseline subtraction turns a non-Einstein vacuum Einstein, so \"which Λ reference\" presupposes a maximally-symmetric vacuum this construction does not produce — THAT is the result. **Adjudication:** (a) det_2=1 H³ leaf **REJECTED as fp-relabel** (references 4d gravity against the 3d *spatial* hyperboloid → drops the timelike dir; H³ is the WRONG symmetric space — GR's empty hyperbolic-slice vacuum is Milne=flat Minkowski, not H³ — and one dim short; manufactures a pass by swapping spacetime for space; quotienting the dilation/timelike dir is the same move, also rejected); (b) construction-(ii) `g=η+h` is the CORRECT empty vacuum (flat at center) but **CONDITIONAL** (Λ=0 *inserted* by center-subtraction, not derived → Phase-73 circularity tripwire; adopting it ABANDONS the route thesis \"gravity = curvature of the cone-Hessian\"); admissible only after a reopened Phase 70 explicitly rules η+h (not the cone-Hessian) is THE spacetime metric and restates the thesis; (c) **CHOSEN = halt + reopen Phase 70.** **Reopened Phase-70 task (one well-posed question):** which object is the physical spacetime metric? — cone-Hessian (thesis ⇒ non-Einstein R×H³ vacuum ⇒ route does NOT yield GR-with-Λ-vacuum; most it can claim = linearized spin-2 matter-response on a FIXED non-Einstein R×H³ background, NAMED as such, never \"GR derived\"), or η+h bridge (⇒ flat; thesis wrong-as-stated, must restate why the bridge metric not the cone curvature is the gravitational field; Λ=0 tripwire to Phase 73; (b) becomes the reference). The disagreement = construction-(ii) signature bridge UNDERDETERMINED (Riemannian/Lorentzian tension already flagged in CONVENTIONS.md). **Discipline:** exact over Q; do NOT insert any factor to force Ric∝g or force flatness; SSOT det_3; headline {0,-1,-1,-1}. **PRESERVED (not what broke):** V₀↔V_{1/2} cross-term `2·Re((x₂x₁)x₃)` (unique octonion channel), α-absent→V₁-inertness, the `ΔR(M)=R(X_bg+M)-R(X_bg)` isolation pipeline + n=4 Ricci decomposition — they stand for whichever metric Phase 70 selects. Engine faithful (4 Phase-71 regression anchors reproduced exact over Q; `72-01-baseline-probe.py` 3.4s exit 0; engine `bulk_geometry_verification.py` deliberately NOT modified — a \"center is Einstein\" gate would spuriously break ALL_PASS and is itself the thing under question). Deliverables: `derivations/72-matter-sourcing.tex` (VALD-04 finding + adjudication + Phase-70 task), `.gpd/phases/72-b-matter-sourcing/{PHASE-RECOVERY.md, 72-01-baseline-probe.py}`. Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` — see [[feedback_gpd_phase_complete_gotcha]]). NEXT = `/gpd:revise-phase 70`."
+      "rationale": "MATTER-SOURCING halted at the Wave-1 first-result gate by researcher decision; backtracking trigger #3 honored (NOT routed around). The decisive cross-term ON/OFF matter verdict (72-02) was NOT run. **THE REAL VALD-04 FINDING (negative-result-is-success):** the dim-4 cone-Hessian M=0 vacuum `Hess(-log det_3)|_{I/3}=diag(9,9,18,18)` has Ricci-endomorphism eigenvalues **{0,-1,-1,-1}** exact over Q \u2014 `R=-3` (matches the Phase-71 anchor) but NOT Einstein (n=4 Einstein needs all eigenvalues -3/4). **Crucial reading (corrects my own initial framing):** the eigenvalue-0 direction `(1,1,0,0)=\u03b2+\u03b3` is the **TIMELIKE x_0** under `h_2(C_u)~R^{3,1}` (det_2 Minkowski form `\u03b2\u03b3/3-p\u00b2/3-q\u00b2/3`; `\u03b2\u03b3/3` is the hyperbolic 1+1 block, `(1,1)` its timelike eigenvector) \u2014 NOT merely the Riemannian dilation/scale modulus. So the M=0 vacuum is a static product `R_time \u00d7 H\u00b3_space` (flat factor = time), `K(p,q)=-1/2`. A GR \u039b-vacuum MUST be Einstein (Ric\u221dg); no baseline subtraction turns a non-Einstein vacuum Einstein, so \"which \u039b reference\" presupposes a maximally-symmetric vacuum this construction does not produce \u2014 THAT is the result. **Adjudication:** (a) det_2=1 H\u00b3 leaf **REJECTED as fp-relabel** (references 4d gravity against the 3d *spatial* hyperboloid \u2192 drops the timelike dir; H\u00b3 is the WRONG symmetric space \u2014 GR's empty hyperbolic-slice vacuum is Milne=flat Minkowski, not H\u00b3 \u2014 and one dim short; manufactures a pass by swapping spacetime for space; quotienting the dilation/timelike dir is the same move, also rejected); (b) construction-(ii) `g=\u03b7+h` is the CORRECT empty vacuum (flat at center) but **CONDITIONAL** (\u039b=0 *inserted* by center-subtraction, not derived \u2192 Phase-73 circularity tripwire; adopting it ABANDONS the route thesis \"gravity = curvature of the cone-Hessian\"); admissible only after a reopened Phase 70 explicitly rules \u03b7+h (not the cone-Hessian) is THE spacetime metric and restates the thesis; (c) **CHOSEN = halt + reopen Phase 70.** **Reopened Phase-70 task (one well-posed question):** which object is the physical spacetime metric? \u2014 cone-Hessian (thesis \u21d2 non-Einstein R\u00d7H\u00b3 vacuum \u21d2 route does NOT yield GR-with-\u039b-vacuum; most it can claim = linearized spin-2 matter-response on a FIXED non-Einstein R\u00d7H\u00b3 background, NAMED as such, never \"GR derived\"), or \u03b7+h bridge (\u21d2 flat; thesis wrong-as-stated, must restate why the bridge metric not the cone curvature is the gravitational field; \u039b=0 tripwire to Phase 73; (b) becomes the reference). The disagreement = construction-(ii) signature bridge UNDERDETERMINED (Riemannian/Lorentzian tension already flagged in CONVENTIONS.md). **Discipline:** exact over Q; do NOT insert any factor to force Ric\u221dg or force flatness; SSOT det_3; headline {0,-1,-1,-1}. **PRESERVED (not what broke):** V\u2080\u2194V_{1/2} cross-term `2\u00b7Re((x\u2082x\u2081)x\u2083)` (unique octonion channel), \u03b1-absent\u2192V\u2081-inertness, the `\u0394R(M)=R(X_bg+M)-R(X_bg)` isolation pipeline + n=4 Ricci decomposition \u2014 they stand for whichever metric Phase 70 selects. Engine faithful (4 Phase-71 regression anchors reproduced exact over Q; `72-01-baseline-probe.py` 3.4s exit 0; engine `bulk_geometry_verification.py` deliberately NOT modified \u2014 a \"center is Einstein\" gate would spuriously break ALL_PASS and is itself the thing under question). Deliverables: `derivations/72-matter-sourcing.tex` (VALD-04 finding + adjudication + Phase-70 task), `.gpd/phases/72-b-matter-sourcing/{PHASE-RECOVERY.md, 72-01-baseline-probe.py}`. Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` \u2014 see [[feedback_gpd_phase_complete_gotcha]]). NEXT = `/gpd:revise-phase 70`."
     },
     {
       "phase": "71, COMPLETE",
       "summary": "A",
-      "rationale": "HOMOGENEITY KILL GATE = **SURVIVES** (route ALIVE; Phases 72/73 greenlit). The inherited h_2(C_u) 4-dim spacetime sub-slice metric is genuinely POSITION-DEPENDENT — curvature scalar invariants R(x),K(x) vary EXACT over Q across distinct basepoints (Route-1 71-01: R = -1047519795/310570129, -130237700283/50153154601, -29748150983655/10135417202689, -71861403663/39975603721 at 4 basepoints). **Two-route reconciliation (the decisive subtlety):** 71-02 initially emitted NO verdict — the executor computed II(h_2(C_u)) ONLY at the center (=0) and read II(10-dim V_0)=0 as a homogeneity KILL-signal, declaring Route-1 (SURVIVES) vs II (KILL) a disagreement, mis-localized as \"matter-sourced, defer to Phase 72.\" The rigorous reconciliation pass (gpd-verifier, PASSED, HIGH) OVERTURNED the no-verdict to a clean SURVIVES: (1) LINCHPIN — II(h_2(C_u))≠0 OFF-center (e.g. 343/2400; matterless), so II(10-dim V_0)=0 does NOT constrain the 4-dim spacetime sub-slice (submanifold conflation); via Gauss the varying induced R is consistent. (2) Position-dependence is MATTERLESS (V_1 alpha leaves R exactly invariant; V_{1/2} weak) — refuting the \"matter-sourced\" claim; pure-V_0-internal basepoints already vary. (3) Genuine-vs-artifact: the modulus is the Stab_{V_0}=Spin(9,1)-invariant det_2 (0/45 generators move it; direction-blind at fixed det_2), R is scale-invariant R(X)=R(2X) (NOT a det=1 chart artifact), distinct-det_2 basepoints genuinely inequivalent => genuine position-dependence, defeating fp-coordinate-curvature. Route-2 (purely algebraic): dim Stab_{E_6}(E_11)=61 (orbit E_11=17=affine cone over Cayley plane OP^2); Stab_{V_0}=45=Spin(9,1) NON-transitive on V_0 (orbit 9<10, single modulus = det_2) — CONSISTENT with SURVIVES (the modulus IS the position-dependence direction). Calibration gates PASS FIRST: single-copy F_4 anchor 24/Spin(8)28/trdeg3, e_6=78=52+26, cubic-norm LOCK 7a/7b. H^3 cone-Hessian benchmark K=-1/2 (constant negative; benign factor-of-2 vs round -1, g_slice|_apex=diag(2,2,2)=2*round; sign pinned, verdict normalization-invariant). All exact over Q; engine code/bulk_geometry_verification.py ALL_PASS exit 0 (41/41), source guard 0 octonion_algebra / 0 float-rank on decisive path. NO Wick/Riemannian-vs-Lorentzian artifact (no return to Phase 70). Verification PASSED (4/4 contract targets, 9/9 physics checks, HIGH); rapid consistency CONSISTENT (22 checks). Deliverables: code/bulk_geometry_verification.py (extended: Totaro curvature engine, off-center slice metric, e_6/Stab/orbit/II machinery), derivations/71-homogeneity-curvature.tex (Route 1), derivations/71-homogeneity-stabilizer.tex (Route 2+II), 71-VERIFICATION.md, CONSISTENCY-CHECK.md. Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` — see [[feedback_gpd_phase_complete_gotcha]]). Two NON-BLOCKING follow-ups for before Phase 72: (a) record cone-Hessian K=-1/2 alongside round -1 in the riemann_ricci_sign convention text; (b) `gpd sync-state` to refresh STATE.md's stale v16.0 Convention Lock block."
+      "rationale": "HOMOGENEITY KILL GATE = **SURVIVES** (route ALIVE; Phases 72/73 greenlit). The inherited h_2(C_u) 4-dim spacetime sub-slice metric is genuinely POSITION-DEPENDENT \u2014 curvature scalar invariants R(x),K(x) vary EXACT over Q across distinct basepoints (Route-1 71-01: R = -1047519795/310570129, -130237700283/50153154601, -29748150983655/10135417202689, -71861403663/39975603721 at 4 basepoints). **Two-route reconciliation (the decisive subtlety):** 71-02 initially emitted NO verdict \u2014 the executor computed II(h_2(C_u)) ONLY at the center (=0) and read II(10-dim V_0)=0 as a homogeneity KILL-signal, declaring Route-1 (SURVIVES) vs II (KILL) a disagreement, mis-localized as \"matter-sourced, defer to Phase 72.\" The rigorous reconciliation pass (gpd-verifier, PASSED, HIGH) OVERTURNED the no-verdict to a clean SURVIVES: (1) LINCHPIN \u2014 II(h_2(C_u))\u22600 OFF-center (e.g. 343/2400; matterless), so II(10-dim V_0)=0 does NOT constrain the 4-dim spacetime sub-slice (submanifold conflation); via Gauss the varying induced R is consistent. (2) Position-dependence is MATTERLESS (V_1 alpha leaves R exactly invariant; V_{1/2} weak) \u2014 refuting the \"matter-sourced\" claim; pure-V_0-internal basepoints already vary. (3) Genuine-vs-artifact: the modulus is the Stab_{V_0}=Spin(9,1)-invariant det_2 (0/45 generators move it; direction-blind at fixed det_2), R is scale-invariant R(X)=R(2X) (NOT a det=1 chart artifact), distinct-det_2 basepoints genuinely inequivalent => genuine position-dependence, defeating fp-coordinate-curvature. Route-2 (purely algebraic): dim Stab_{E_6}(E_11)=61 (orbit E_11=17=affine cone over Cayley plane OP^2); Stab_{V_0}=45=Spin(9,1) NON-transitive on V_0 (orbit 9<10, single modulus = det_2) \u2014 CONSISTENT with SURVIVES (the modulus IS the position-dependence direction). Calibration gates PASS FIRST: single-copy F_4 anchor 24/Spin(8)28/trdeg3, e_6=78=52+26, cubic-norm LOCK 7a/7b. H^3 cone-Hessian benchmark K=-1/2 (constant negative; benign factor-of-2 vs round -1, g_slice|_apex=diag(2,2,2)=2*round; sign pinned, verdict normalization-invariant). All exact over Q; engine code/bulk_geometry_verification.py ALL_PASS exit 0 (41/41), source guard 0 octonion_algebra / 0 float-rank on decisive path. NO Wick/Riemannian-vs-Lorentzian artifact (no return to Phase 70). Verification PASSED (4/4 contract targets, 9/9 physics checks, HIGH); rapid consistency CONSISTENT (22 checks). Deliverables: code/bulk_geometry_verification.py (extended: Totaro curvature engine, off-center slice metric, e_6/Stab/orbit/II machinery), derivations/71-homogeneity-curvature.tex (Route 1), derivations/71-homogeneity-stabilizer.tex (Route 2+II), 71-VERIFICATION.md, CONSISTENCY-CHECK.md. Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance` \u2014 see [[feedback_gpd_phase_complete_gotcha]]). Two NON-BLOCKING follow-ups for before Phase 72: (a) record cone-Hessian K=-1/2 alongside round -1 in the riemann_ricci_sign convention text; (b) `gpd sync-state` to refresh STATE.md's stale v16.0 Convention Lock block."
     },
     {
       "phase": "69, COMPLETE",
       "summary": "(REDUCIBILITY) DYNAMICAL BRIDGE STATED (REDU-01, the LAST phase of v16.0)",
-      "rationale": "STATEMENT-ONLY, NOT proved. Five precisely-typed frozen-notation objects written to derivations/69-reducibility-statement.md: (1) driven map X_{k+1}=P_psd((1-eps)X_k^2+eps S_k); (2) autonomous (contraction/reducible) vs driven (exogenous) as two distinct maps, trap flagged; (3) cross-term decomposition Tr(X_k o X_{k+1})=(1-eps)Tr(X_k^3)+eps Tr(X_k o S_k) (pre-projection Y_k, modulo P_psd with projection-correction named), first piece pointwise/reducible in R[Tr,Tr^2,det], second piece eps Tr(X_k o S_k)=eps c(X_k,S_k) NAMED \"self-world overlap / the irreducible candidate\"; (4) capacity/reconstructibility reducibility def (dim M < dim B, diachronic M holding Tr/Tr^2/det, NOT Paper-5 synchronic order-iso, NOT Kolmogorov/NKS); (5) Breuer-routed target reduction stated as \"what the next milestone needs\" (structural finite-capacity, NOT chaos; Breuer 1995 Phil Sci 62(2) 197-214 inlined). The cross-term decomposition is VERIFIED EXACT over Q (code/reducibility_decomposition_check.py: 5/5 residuals identically 0; Tr(X o X^2)=2885361604861/14428814400; c(X,X)=Tr(X^2); power-assoc both associations; exit 0; no float, no Matrix.rank — polynomial-identity bookkeeping, NOT a proof; reproduced 4×). (RING) LINK: eps Tr(X_k o S_k)=eps c(X_k,S_k) uses the same c that Phase 66 proved functionally independent of R_pt (the SPINE) and Phase 67 proved the unique degree-2 coupling generator — which is WHY the overlap escapes the pointwise ring; the first piece Tr(X_k^3) sits in the single-state ring R[Tr,Tr^2,det] (Phase 68's pointwise/reducible piece). Statement-only constraints ALL honored (Pitfall 10): NO irreducibility verdict, NO chaos/NKS/Lyapunov argument, no autonomous-vs-driven conflation, experience-identity NOT baked in, modulo-P_psd carried. Honest residual foregrounded (Sec 9.6.1: gauge/angle irreducibility \"is not automatic — an integrable flow would make them reducible too\" ⇒ a TARGET, not a fait accompli). Orchestrator AND verifier independently reproduced the EXACT-Q check (python3/sympy 1.14.0). Verification PASSED 25/25 (4 claims, 2 deliverables, 8 acceptance tests, 5 references, 6 forbidden proxies; HIGH); rapid consistency CONSISTENT (14 checks, 0 issues). Deliverables: derivations/69-reducibility-statement.md, code/reducibility_decomposition_check.py. CLOSES milestone v16.0's statement-only deliverable; combined with (RING) (a)+(b)+(c), v16.0 deliverables are COMPLETE (6/6 phases). One non-blocking INFO note: the 7 statement-only acceptance tests are tagged human_review and were settled by the verifier's decisive textual scans (editorial faithfulness to the live program-doc Sec 9.7 is an optional project-lead spot-check, not a gap)."
+      "rationale": "STATEMENT-ONLY, NOT proved. Five precisely-typed frozen-notation objects written to derivations/69-reducibility-statement.md: (1) driven map X_{k+1}=P_psd((1-eps)X_k^2+eps S_k); (2) autonomous (contraction/reducible) vs driven (exogenous) as two distinct maps, trap flagged; (3) cross-term decomposition Tr(X_k o X_{k+1})=(1-eps)Tr(X_k^3)+eps Tr(X_k o S_k) (pre-projection Y_k, modulo P_psd with projection-correction named), first piece pointwise/reducible in R[Tr,Tr^2,det], second piece eps Tr(X_k o S_k)=eps c(X_k,S_k) NAMED \"self-world overlap / the irreducible candidate\"; (4) capacity/reconstructibility reducibility def (dim M < dim B, diachronic M holding Tr/Tr^2/det, NOT Paper-5 synchronic order-iso, NOT Kolmogorov/NKS); (5) Breuer-routed target reduction stated as \"what the next milestone needs\" (structural finite-capacity, NOT chaos; Breuer 1995 Phil Sci 62(2) 197-214 inlined). The cross-term decomposition is VERIFIED EXACT over Q (code/reducibility_decomposition_check.py: 5/5 residuals identically 0; Tr(X o X^2)=2885361604861/14428814400; c(X,X)=Tr(X^2); power-assoc both associations; exit 0; no float, no Matrix.rank \u2014 polynomial-identity bookkeeping, NOT a proof; reproduced 4\u00d7). (RING) LINK: eps Tr(X_k o S_k)=eps c(X_k,S_k) uses the same c that Phase 66 proved functionally independent of R_pt (the SPINE) and Phase 67 proved the unique degree-2 coupling generator \u2014 which is WHY the overlap escapes the pointwise ring; the first piece Tr(X_k^3) sits in the single-state ring R[Tr,Tr^2,det] (Phase 68's pointwise/reducible piece). Statement-only constraints ALL honored (Pitfall 10): NO irreducibility verdict, NO chaos/NKS/Lyapunov argument, no autonomous-vs-driven conflation, experience-identity NOT baked in, modulo-P_psd carried. Honest residual foregrounded (Sec 9.6.1: gauge/angle irreducibility \"is not automatic \u2014 an integrable flow would make them reducible too\" \u21d2 a TARGET, not a fait accompli). Orchestrator AND verifier independently reproduced the EXACT-Q check (python3/sympy 1.14.0). Verification PASSED 25/25 (4 claims, 2 deliverables, 8 acceptance tests, 5 references, 6 forbidden proxies; HIGH); rapid consistency CONSISTENT (14 checks, 0 issues). Deliverables: derivations/69-reducibility-statement.md, code/reducibility_decomposition_check.py. CLOSES milestone v16.0's statement-only deliverable; combined with (RING) (a)+(b)+(c), v16.0 deliverables are COMPLETE (6/6 phases). One non-blocking INFO note: the 7 statement-only acceptance tests are tagged human_review and were settled by the verifier's decisive textual scans (editorial faithfulness to the live program-doc Sec 9.7 is an optional project-lead spot-check, not a gap)."
     },
     {
       "phase": "68, COMPLETE",
       "summary": "(a) GENERATING-SET COMPLETENESS CERTIFICATE (RING-01)",
-      "rationale": "CERTIFIED COMPLETE. The 10-candidate set {Tr X, Tr X², det X, Tr Y, Tr Y², det Y, c=Tr(X∘Y), Tr(X²∘Y), Tr(X∘Y²), Tr(X²∘Y²)} is a COMPLETE + MINIMAL generating set of R[27⊕27]^{F_4} to total degree ≤6 (d_candidate==d_true at all 28 bidegrees, exact_qq_rank over QQ, 44 saturated generic octonionic pairs). Plan 01 (code/molien_bigraded.py): bigraded Molien series H(s,t) via pure-SymPy Molien-Weyl iterated residue (no Sage, no float grid); CT_w=1152=|W(F_4)|; calibration gates G1 (single-copy=[1,1,2,3,4,5,7]) + G2 (d_(1,1)=2) BOTH pass; two-route tripwire Molien==exact-over-Q f_4-kernel at all 6 bidegrees incl (2,2)=9 computed IN FULL (142884−142875); Krull=10 (NOT the superseded 7); H(s,t)=H(t,s). TWO gate-driven plan corrections, both verified mathematically correct: (i) the single-copy s⁶ coefficient is 7 not 6 (#partitions of 6 into parts≤3; the plan/ROADMAP wrote 6 — a typo G1 caught); (ii) the 26's nonzero weights are the norm²=1 roots (±e_i,(±½)⁴), not norm²=2 — G2 fired (norm²=2 gives d_(1,1)=3) and pinned the correct rep-theoretic weight set (the plan's frontmatter mislabeled short/long; the weight-independent f_4-kernel route confirmed the fix at all 6 bidegrees). Human-verified at the Task-4 blocking checkpoint after the orchestrator independently re-ran the harness (exit 0). Plan 02 (code/generating_set_certificate.py): all 10 candidates proven GENUINE generators (in-span-of-lower-products exact test, each +1; spanning distinguished from minimal generating — Pitfall 8); (2,2) Tr(X²∘Y²) DECIDED a GENERATOR (8 lower products span 8-dim, +it → 9=d_true(2,2); seed-independent); three-method agreement (Molien d_true == monomial count == exact_qq_rank d_candidate at all 28 bidegrees). HONEST FINDING: plethystic log all {0,+1} at exactly the 10 candidate bidegrees with NO negatives through degree 6 ⇒ the ring is FREE through total degree 6 — DISCONFIRMS the Blind E_6-contrast non-free expectation WITHIN scope (first relation, if non-free, at total degree ≥7; 10 generators == Krull dim 10 is consistent with a polynomial ring); NOT the fp-e6-free-form proxy (d_true computed independently in Plan 01). Polarization NOT assumed to generate — the bigraded Hilbert match IS the certificate (Schwarz arXiv:math/0609078; polarize_d produced the mixed-cubic candidates only). All 11 forbidden proxies rejected; exact over Q (0 float-rank, 0 octonion_algebra on the decisive path; module-local guards green). Cross-phase: trdeg 10 (65/65.1) ≥ SPINE rank 7 (66) ≥ quotient 1 (67); Krull 10; (1,1)=2 (67); the 10 ring generators == the Phase-65.1 trdeg-10 field-generating count. Verification PASSED (9/9 contract targets, 18/18 acceptance tests, 12/12 decisive checks INDEPENDENTLY CONFIRMED — verifier re-ran both harnesses exit 0 and re-derived CT=1152/(1,1)=2/(2,2)=9/the (2,2) decision with 18 fresh pairs/free-through-6, HIGH); rapid consistency CONSISTENT (11/11). CLOSES sub-claim (a) — combined with (b) Phase 66 and (c) Phase 67, the (RING) characterization is COMPLETE: c=Tr(X∘Y) is a genuine, minimal, functionally-independent, unique-degree-2 generator of the F_4 two-copy invariant ring. NEGATIVE-RESULT-IS-SUCCESS honored (the positive complete verdict is the honest computed outcome; the non-free expectation reported as disconfirmed-within-scope, not forced). One INFO note (non-blocking): molien_bigraded.py internally labels norm²=2 roots \"short\" and norm²=1 \"long\" (swapped vs Bourbaki) — transparently documented in 3 places; the decisive object (norm²=1 weight set for the 26) is correct and gate-pinned; verifier + consistency-checker both confirmed documentation-only."
+      "rationale": "CERTIFIED COMPLETE. The 10-candidate set {Tr X, Tr X\u00b2, det X, Tr Y, Tr Y\u00b2, det Y, c=Tr(X\u2218Y), Tr(X\u00b2\u2218Y), Tr(X\u2218Y\u00b2), Tr(X\u00b2\u2218Y\u00b2)} is a COMPLETE + MINIMAL generating set of R[27\u229527]^{F_4} to total degree \u22646 (d_candidate==d_true at all 28 bidegrees, exact_qq_rank over QQ, 44 saturated generic octonionic pairs). Plan 01 (code/molien_bigraded.py): bigraded Molien series H(s,t) via pure-SymPy Molien-Weyl iterated residue (no Sage, no float grid); CT_w=1152=|W(F_4)|; calibration gates G1 (single-copy=[1,1,2,3,4,5,7]) + G2 (d_(1,1)=2) BOTH pass; two-route tripwire Molien==exact-over-Q f_4-kernel at all 6 bidegrees incl (2,2)=9 computed IN FULL (142884\u2212142875); Krull=10 (NOT the superseded 7); H(s,t)=H(t,s). TWO gate-driven plan corrections, both verified mathematically correct: (i) the single-copy s\u2076 coefficient is 7 not 6 (#partitions of 6 into parts\u22643; the plan/ROADMAP wrote 6 \u2014 a typo G1 caught); (ii) the 26's nonzero weights are the norm\u00b2=1 roots (\u00b1e_i,(\u00b1\u00bd)\u2074), not norm\u00b2=2 \u2014 G2 fired (norm\u00b2=2 gives d_(1,1)=3) and pinned the correct rep-theoretic weight set (the plan's frontmatter mislabeled short/long; the weight-independent f_4-kernel route confirmed the fix at all 6 bidegrees). Human-verified at the Task-4 blocking checkpoint after the orchestrator independently re-ran the harness (exit 0). Plan 02 (code/generating_set_certificate.py): all 10 candidates proven GENUINE generators (in-span-of-lower-products exact test, each +1; spanning distinguished from minimal generating \u2014 Pitfall 8); (2,2) Tr(X\u00b2\u2218Y\u00b2) DECIDED a GENERATOR (8 lower products span 8-dim, +it \u2192 9=d_true(2,2); seed-independent); three-method agreement (Molien d_true == monomial count == exact_qq_rank d_candidate at all 28 bidegrees). HONEST FINDING: plethystic log all {0,+1} at exactly the 10 candidate bidegrees with NO negatives through degree 6 \u21d2 the ring is FREE through total degree 6 \u2014 DISCONFIRMS the Blind E_6-contrast non-free expectation WITHIN scope (first relation, if non-free, at total degree \u22657; 10 generators == Krull dim 10 is consistent with a polynomial ring); NOT the fp-e6-free-form proxy (d_true computed independently in Plan 01). Polarization NOT assumed to generate \u2014 the bigraded Hilbert match IS the certificate (Schwarz arXiv:math/0609078; polarize_d produced the mixed-cubic candidates only). All 11 forbidden proxies rejected; exact over Q (0 float-rank, 0 octonion_algebra on the decisive path; module-local guards green). Cross-phase: trdeg 10 (65/65.1) \u2265 SPINE rank 7 (66) \u2265 quotient 1 (67); Krull 10; (1,1)=2 (67); the 10 ring generators == the Phase-65.1 trdeg-10 field-generating count. Verification PASSED (9/9 contract targets, 18/18 acceptance tests, 12/12 decisive checks INDEPENDENTLY CONFIRMED \u2014 verifier re-ran both harnesses exit 0 and re-derived CT=1152/(1,1)=2/(2,2)=9/the (2,2) decision with 18 fresh pairs/free-through-6, HIGH); rapid consistency CONSISTENT (11/11). CLOSES sub-claim (a) \u2014 combined with (b) Phase 66 and (c) Phase 67, the (RING) characterization is COMPLETE: c=Tr(X\u2218Y) is a genuine, minimal, functionally-independent, unique-degree-2 generator of the F_4 two-copy invariant ring. NEGATIVE-RESULT-IS-SUCCESS honored (the positive complete verdict is the honest computed outcome; the non-free expectation reported as disconfirmed-within-scope, not forced). One INFO note (non-blocking): molien_bigraded.py internally labels norm\u00b2=2 roots \"short\" and norm\u00b2=1 \"long\" (swapped vs Bourbaki) \u2014 transparently documented in 3 places; the decisive object (norm\u00b2=1 weight set for the 26) is correct and gate-pinned; verifier + consistency-checker both confirmed documentation-only."
     },
     {
       "phase": "0",
@@ -1199,12 +1434,12 @@
     {
       "phase": "70.1",
       "summary": "Superseded Phase 70 (A0",
-      "rationale": "Engine Reconciliation & Signature Bridge) with Phase 70.1 (select the physical spacetime metric: cone-Hessian vs eta+h bridge) — Construction-(ii) signature bridge underdetermined: Phase 72's first-result gate found the M=0 cone-Hessian vacuum is the non-Einstein static product R_time x H^3 (Ric eig {0,-1,-1,-1}); the Riemannian cone-Hessian (route thesis) and the Lorentzian eta+h bridge disagree about the M=0 geometry. Phase 70.1 selects which object is the physical spacetime metric and restates the thesis (cone-Hessian => at most linearized spin-2 on a fixed non-Einstein background; or eta+h => flat, Lambda=0 tripwire). Engine/det_3/Hessian-benchmark/index-map PRESERVED (engine is faithful, not what broke); Phase 71 SURVIVES verdict unaffected. A non-Einstein M=0 vacuum IS the negative result, not a reference choice."
+      "rationale": "Engine Reconciliation & Signature Bridge) with Phase 70.1 (select the physical spacetime metric: cone-Hessian vs eta+h bridge) \u2014 Construction-(ii) signature bridge underdetermined: Phase 72's first-result gate found the M=0 cone-Hessian vacuum is the non-Einstein static product R_time x H^3 (Ric eig {0,-1,-1,-1}); the Riemannian cone-Hessian (route thesis) and the Lorentzian eta+h bridge disagree about the M=0 geometry. Phase 70.1 selects which object is the physical spacetime metric and restates the thesis (cone-Hessian => at most linearized spin-2 on a fixed non-Einstein background; or eta+h => flat, Lambda=0 tripwire). Engine/det_3/Hessian-benchmark/index-map PRESERVED (engine is faithful, not what broke); Phase 71 SURVIVES verdict unaffected. A non-Einstein M=0 vacuum IS the negative result, not a reference choice."
     },
     {
-      "phase": "70.1, COMPLETE — RATIFIED VERDICT",
-      "summary": "Physical spacetime metric = the η+h bridge (KKT Minkowski η + matter perturbation h), NOT the cone-Hessian; \"cone-Hessian IS the metric\" thesis FALSIFIED (NULL result, non-Einstein R_time×H³ {0,−1,−1,−1}); route RESTATED (cone-Hessian = matter source); flat vacuum DERIVED from KKT det₂ (no inserted Λ, no vacuum circularity tripwire). Phase 72 → matter-on-flat; Phase 73 → linearized-Einstein can-fail test.",
-      "rationale": "Human-ratified outcome 2 (overriding the RESEARCH outcome-1 recommendation) with four binding framing corrections. Verified 5/5 HIGH (independent Levi-Civita re-derivation), consistency CONSISTENT. Spin-2 on a fixed non-Einstein background is non-gauge ⇒ not a graviton, so option-1 is a falsification (negative-result-is-success), not a weaker-but-honest success. Causal/geodesic match to the slice det₂ Minkowski form selects η. fp-relabel/which-Λ-reference/fp-overclaim-spin2 all rejected; det₃ SSOT; exact over Q. SUPERSEDES the falsified \"center is Einstein, Λ<0\" convention text (notation-coordinator follow-up)."
+      "phase": "0",
+      "summary": "Started milestone v18.0: Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O)",
+      "rationale": "New milestone cycle (physics-side). Fresh Lie-sector/Berry-curvature route to gravity on h_3(O): F=dA+A^A of the Peirce-frame Cartan/MM connection A=omega(+)e, the imaginary part of the self-model QGT. Distinct from the v17.0 cone-Hessian (real part, NONE verdict) -- a different tensor, so NONE does not bind it. Cheap KILL gates first: Phase A (coframe reduction) + Phase A.5 (Berry same-wall). Independent of the consciousness-side line."
     }
   ],
   "approximations": [],
@@ -1236,50 +1471,50 @@
       "clifford_signature": "Cl(9,0) (positive definite, NOT Cl(0,9))",
       "slice": "A = h_3(C_u) ~ M_3(C)^sa (maximal C*-target inside h_3(O); single F_4-orbit) [v15.0; carried, not v16.0-active]",
       "all_other_convention_fields": "see `.gpd/CONVENTIONS.md`",
-      "group": "F_4 = Aut(h_3(O)) (compact, 52-dim; fixes Tr, trace form, det) — NOT E_6 = Stab(det). c = Tr(X o Y) is F_4-invariant but NOT E_6-invariant.",
+      "group": "F_4 = Aut(h_3(O)) (compact, 52-dim; fixes Tr, trace form, det) \u2014 NOT E_6 = Stab(det). c = Tr(X o Y) is F_4-invariant but NOT E_6-invariant.",
       "rep": "27 = 1 (trivial/Tr direction) (+) 26 (trace-free irreducible).",
       "cubic_norm": "det X = N(X); polarization LOCKED d(X,X,X) = 6*det X (harness polarize_d); c(X,X) = Tr(X^2).",
       "coupling_generator": "c = Tr(X o Y), bidegree (1,1).",
       "arithmetic_field": "EXACT over Q (or Q-adjoin-surds). Ranks via `sympy.Matrix.rank()`, NEVER `numpy.linalg.matrix_rank`.** Warm exact engine = `code/embedding_under_E_verification.py`; the float64 `code/octonion_algebra.py` is a formula reference ONLY, never on the decisive path.",
-      "citation_correction": "single-state ring R[Tr, Tr^2, det] is Faraut-Korányi Ch. II-IV, NOT Ch. V (Ch. V is the classification)."
+      "citation_correction": "single-state ring R[Tr, Tr^2, det] is Faraut-Kor\u00e1nyi Ch. II-IV, NOT Ch. V (Ch. V is the classification)."
     }
   },
   "propagated_uncertainties": [],
   "pending_todos": [],
   "blockers": [
-    "**Harness correction (load-bearing, do NOT trip).** The warm exact engine is `code/embedding_under_E_verification.py` (exact SymPy over Q). The float64 `code/octonion_algebra.py` (399 numpy sites, 0 sympy) is a FORMULA REFERENCE ONLY — running the decisive ranks in floats fabricates the 6-vs-7 verdict (rank is discontinuous; an SVD tolerance invents the answer). Reuse the float `det_3`/`polarize_d`/f_4-builder formula bodies as a SPEC to re-port to exact SymPy; never call them on the decisive path.",
-    "**Polarization does NOT generate (Reconciliation 1, Schwarz).** Do NOT assume polarizing the single-copy generators yields the pair ring — the single-copy 2-polarization property fails generically even in char 0. (a) is a CERTIFICATION phase: the bigraded Hilbert-series match is the completeness certificate.",
-    "**The orbit-dimension GATE has FIRED (Phase 65) — and the \"generating-set picture wrong\" branch triggered, as designed.** Computed pair orbit dim = 44 → trdeg = **10, not 7**. The anchor 7 was precisely the forbidden Spin(8)-triality back-of-envelope (the three 8's are permuted; generic Stab descends Spin(8)→Spin(7)→G₂→SU(3), dim 8 → orbit 52−8=44). The \"six pointwise + c\" set is INCOMPLETE by 3 mixed invariants. **Corrected target trdeg = 10 propagates to Phases 66/68.** Action: backtrack to corrective Phase 65.1 (characterize the 3 missing invariants) before Phase 66. Builder is NOT the problem (single-copy 24/Spin(8) reproduced exactly).",
-    "**RESOLVED (Phase 66): the (b) verdict is c INDEPENDENT (rank 7, positive pass).** Both mandatory routes — exact 7×54 Jacobian rank 7 over Q at 5 generic pairs AND the orbit-derivative separating direction — AGREE on the diagonal cell (7, exists). The reward-hacking guard was satisfied: pre-registered points + verdict map, two-route adjudicator (off-diagonal ⇒ STOP), the fully-wired NEGATIVE branch (a no-op here), and orchestrator/verifier-independent re-runs at fresh points. Verification PASSED, consistency CONSISTENT. rank 7 ≤ trdeg 10. No longer open.",
-    "**RESOLVED (Phase 67): the (c) verdict is c the UNIQUE degree-2 coupling generator (mod products + pointwise).** Bidegree-(1,1) trivial part = 2-dim = span{Tr(X)Tr(Y), c} by two agreeing routes (Schur=2 == exact f_4-kernel nullspace 729−727=2 over QQ); quotient = 1 = span{c}; named basis shown to span (not dim-match); c ∉ R_pt at degree 2. Reward-hacking guard satisfied (pre-registered verdict map; disagreement ⇒ trust exact nullspace + STOP); exact-only guard adversarially confirmed to fire; orchestrator/verifier-independent re-runs reproduced (1,1)=2. Verification PASSED 7/7, consistency CONSISTENT. The (1,1)=2 count is the Phase-68 bidegree-(1,1) Hilbert coefficient (forward anchor). No longer open.",
-    "**RESOLVED (Phase 68, (a) RING-01): CERTIFIED COMPLETE.** The 10-candidate set is a complete + minimal generating set to total degree ≤6 (d_candidate==d_true at all 28 bidegrees; (2,2) Tr(X²∘Y²) a GENERATOR; free through deg 6). The \"polarization does NOT generate\" Schwarz blocker was honored — polarize_d produced candidates only; the exact-over-Q bigraded Hilbert match is the certificate. The Sage-scope blocker is resolved: pure-SymPy Molien-Weyl iterated residue (no Sage, no fixture; CT_w=1152 reproduced). Two-route + three-method agreement; Krull=10 (not 7); exact over Q. The (RING) characterization (a)+(b)+(c) is COMPLETE. One INFO note (non-blocking): molien_bigraded.py's internal short/long root labels are swapped vs Bourbaki — documented, gate-pinned, the norm²=1 weight set for the 26 is correct (verifier + consistency-checker confirmed documentation-only). NEW (beyond v16.0 scope): global freeness vs first relation at total degree ≥7. No longer open.",
-    "**Tooling:** SymPy 1.14 + NumPy 2.4 only — no Sage/GAP/Singular/M2/Magma. The (a) Molien step is the only Sage-wanting computation; resolve in-plan (external Sage fixture OR pure-SymPy Molien-Weyl residue), NOT deferred to the executor (who lacks Sage).",
+    "**Harness correction (load-bearing, do NOT trip).** The warm exact engine is `code/embedding_under_E_verification.py` (exact SymPy over Q). The float64 `code/octonion_algebra.py` (399 numpy sites, 0 sympy) is a FORMULA REFERENCE ONLY \u2014 running the decisive ranks in floats fabricates the 6-vs-7 verdict (rank is discontinuous; an SVD tolerance invents the answer). Reuse the float `det_3`/`polarize_d`/f_4-builder formula bodies as a SPEC to re-port to exact SymPy; never call them on the decisive path.",
+    "**Polarization does NOT generate (Reconciliation 1, Schwarz).** Do NOT assume polarizing the single-copy generators yields the pair ring \u2014 the single-copy 2-polarization property fails generically even in char 0. (a) is a CERTIFICATION phase: the bigraded Hilbert-series match is the completeness certificate.",
+    "**The orbit-dimension GATE has FIRED (Phase 65) \u2014 and the \"generating-set picture wrong\" branch triggered, as designed.** Computed pair orbit dim = 44 \u2192 trdeg = **10, not 7**. The anchor 7 was precisely the forbidden Spin(8)-triality back-of-envelope (the three 8's are permuted; generic Stab descends Spin(8)\u2192Spin(7)\u2192G\u2082\u2192SU(3), dim 8 \u2192 orbit 52\u22128=44). The \"six pointwise + c\" set is INCOMPLETE by 3 mixed invariants. **Corrected target trdeg = 10 propagates to Phases 66/68.** Action: backtrack to corrective Phase 65.1 (characterize the 3 missing invariants) before Phase 66. Builder is NOT the problem (single-copy 24/Spin(8) reproduced exactly).",
+    "**RESOLVED (Phase 66): the (b) verdict is c INDEPENDENT (rank 7, positive pass).** Both mandatory routes \u2014 exact 7\u00d754 Jacobian rank 7 over Q at 5 generic pairs AND the orbit-derivative separating direction \u2014 AGREE on the diagonal cell (7, exists). The reward-hacking guard was satisfied: pre-registered points + verdict map, two-route adjudicator (off-diagonal \u21d2 STOP), the fully-wired NEGATIVE branch (a no-op here), and orchestrator/verifier-independent re-runs at fresh points. Verification PASSED, consistency CONSISTENT. rank 7 \u2264 trdeg 10. No longer open.",
+    "**RESOLVED (Phase 67): the (c) verdict is c the UNIQUE degree-2 coupling generator (mod products + pointwise).** Bidegree-(1,1) trivial part = 2-dim = span{Tr(X)Tr(Y), c} by two agreeing routes (Schur=2 == exact f_4-kernel nullspace 729\u2212727=2 over QQ); quotient = 1 = span{c}; named basis shown to span (not dim-match); c \u2209 R_pt at degree 2. Reward-hacking guard satisfied (pre-registered verdict map; disagreement \u21d2 trust exact nullspace + STOP); exact-only guard adversarially confirmed to fire; orchestrator/verifier-independent re-runs reproduced (1,1)=2. Verification PASSED 7/7, consistency CONSISTENT. The (1,1)=2 count is the Phase-68 bidegree-(1,1) Hilbert coefficient (forward anchor). No longer open.",
+    "**RESOLVED (Phase 68, (a) RING-01): CERTIFIED COMPLETE.** The 10-candidate set is a complete + minimal generating set to total degree \u22646 (d_candidate==d_true at all 28 bidegrees; (2,2) Tr(X\u00b2\u2218Y\u00b2) a GENERATOR; free through deg 6). The \"polarization does NOT generate\" Schwarz blocker was honored \u2014 polarize_d produced candidates only; the exact-over-Q bigraded Hilbert match is the certificate. The Sage-scope blocker is resolved: pure-SymPy Molien-Weyl iterated residue (no Sage, no fixture; CT_w=1152 reproduced). Two-route + three-method agreement; Krull=10 (not 7); exact over Q. The (RING) characterization (a)+(b)+(c) is COMPLETE. One INFO note (non-blocking): molien_bigraded.py's internal short/long root labels are swapped vs Bourbaki \u2014 documented, gate-pinned, the norm\u00b2=1 weight set for the 26 is correct (verifier + consistency-checker confirmed documentation-only). NEW (beyond v16.0 scope): global freeness vs first relation at total degree \u22657. No longer open.",
+    "**Tooling:** SymPy 1.14 + NumPy 2.4 only \u2014 no Sage/GAP/Singular/M2/Magma. The (a) Molien step is the only Sage-wanting computation; resolve in-plan (external Sage fixture OR pure-SymPy Molien-Weyl residue), NOT deferred to the executor (who lacks Sage).",
     "**Do NOT entangle with v15.0.** The (RING) invariant-theory claim is the consciousness-side spine, INDEPENDENT of the v15.0 physics-side basin-restriction result. v15.0's coexistence-as-island verdict does not bear on this.",
-    "**RESOLVED (Phase 69, REDU-01): (REDUCIBILITY) is STATEMENT-ONLY — honored fully.** The bridge is STATED, not proved: NO irreducibility verdict, NO chaos/NKS/Lyapunov argument, autonomous-vs-driven trap flagged (autonomous F_3-contraction is reducible/re-runnable; irreducibility, if any, INHERITED from the exogenous stream S_k). The cross-term decomposition is verified EXACT over Q (5/5 residuals 0); the target reduction routes to the structural finite-capacity Breuer argument (dim M < dim B), NOT chaos. Verification PASSED 25/25, consistency CONSISTENT. No longer open. NEW (next-milestone, beyond v16.0 scope): is eps Tr(X_k o S_k)=eps c(X_k,S_k) genuinely NOT reconstructible from M (irreducible)? Honest residual: Sec 9.6.1 concedes it \"is not automatic\"; route is structural Breuer/finite-capacity (NOT chaos); the modulo-P_psd projection correction must be handled in closed form.",
+    "**RESOLVED (Phase 69, REDU-01): (REDUCIBILITY) is STATEMENT-ONLY \u2014 honored fully.** The bridge is STATED, not proved: NO irreducibility verdict, NO chaos/NKS/Lyapunov argument, autonomous-vs-driven trap flagged (autonomous F_3-contraction is reducible/re-runnable; irreducibility, if any, INHERITED from the exogenous stream S_k). The cross-term decomposition is verified EXACT over Q (5/5 residuals 0); the target reduction routes to the structural finite-capacity Breuer argument (dim M < dim B), NOT chaos. Verification PASSED 25/25, consistency CONSISTENT. No longer open. NEW (next-milestone, beyond v16.0 scope): is eps Tr(X_k o S_k)=eps c(X_k,S_k) genuinely NOT reconstructible from M (irreducible)? Honest residual: Sec 9.6.1 concedes it \"is not automatic\"; route is structural Breuer/finite-capacity (NOT chaos); the modulo-P_psd projection correction must be handled in closed form.",
     "**Use LIVE sources only.** `~/repos/blog/...` LIVE copies, NOT stale repo `papers/` copies.",
-    "v15.0 ALL BLOCKERS CLOSED — milestone research complete & archived (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island; through-line survives). Not a v16.0 blocker.",
-    "Two distinct spin(9) embeddings in M_16(R) — Krasnov discrepancy (stabilizer dim 10 vs 12). Not v16.0-relevant.",
-    "Quantum SSB remains CONDITIONAL (S_eff=1/2) — v9.0/v10.0 chain conditionality, not v16.0-relevant.",
+    "v15.0 ALL BLOCKERS CLOSED \u2014 milestone research complete & archived (verdict CHARACTERIZED OBSTRUCTION / coexistence-as-island; through-line survives). Not a v16.0 blocker.",
+    "Two distinct spin(9) embeddings in M_16(R) \u2014 Krasnov discrepancy (stabilizer dim 10 vs 12). Not v16.0-relevant.",
+    "Quantum SSB remains CONDITIONAL (S_eff=1/2) \u2014 v9.0/v10.0 chain conditionality, not v16.0-relevant.",
     "v14.0 PAUSED (pending JMP referee report); resumption triggers and full inventory in `.gpd/V14-CLOSEOUT.md`. Not a v16.0 blocker.",
-    "Phase 70 results under revision — superseded by Phase 70.1 (physical-metric selection: cone-Hessian vs eta+h bridge underdetermined). Phase 72 matter-sourcing BLOCKED until 70.1 selects the spacetime metric. The M=0 cone-Hessian vacuum is non-Einstein R_time x H^3 (Ric eig {0,-1,-1,-1}); a GR Lambda-vacuum must be Einstein, so this is the VALD-04 finding, not a reference choice. Engine/det_3/benchmarks PRESERVED; Phase 71 SURVIVES unaffected. NEXT = /gpd:plan-phase 70.1."
+    "**RESOLVED (Phase 70.1 COMPLETE 2026-05-31):** physical-metric selection made \u2014 **\u03b7+h bridge is the spacetime metric; cone-Hessian-is-metric FALSIFIED** (non-Einstein R\u00d7H\u00b3). Phase 72 matter-sourcing **UNBLOCKED** (re-plan as matter-on-flat). Engine/det_3/benchmarks PRESERVED; Phase 71 SURVIVES unaffected. **Non-blocking notation-coordinator follow-up:** correct the now-falsified \"center is Einstein, \u039b<0\" text in CONVENTIONS.md \u00a76 + ROADMAP VALD-04 criterion #2 (the cone-Hessian center is NOT Einstein, and the cone-Hessian is NOT the spacetime metric anyway); also record cone-Hessian K=\u22121/2 alongside round \u22121 in the riemann_ricci_sign convention text. Machine-readable state.json convention_lock is clean (no \"center is Einstein\" assertion). NEXT = re-plan Phase 72 (matter-on-flat)."
   ],
   "session": {
-    "last_date": "2026-05-31",
-    "stopped_at": "Phase 72 (B — Matter-Sourcing) HALTED at the Wave-1 first-result gate; milestone BACKTRACKS to a reopened Phase 70 (researcher decision; backtracking trigger #3 honored). The decisive matter cross-term ON/OFF verdict (72-02) was NOT run. The real VALD-04 finding (negative-result-is-success): the dim-4 cone-Hessian M=0 vacuum diag(9,9,18,18) has Ricci eig {0,-1,-1,-1} exact over Q — R=-3 but NOT Einstein; the eigenvalue-0 dir (1,1,0,0) is the TIMELIKE x_0 (h_2(C_u)~R^{3,1}, det_2 form βγ/3-p²/3-q²/3), so the vacuum is a static product R_time×H³_space. A GR Λ-vacuum must be Einstein (Ric∝g) — this construction does not produce one. Option (a) det_2=1 H³ leaf REJECTED as fp-relabel (drops timelike dir; wrong/short symmetric space); (b) η+h CONDITIONAL (Λ=0 inserted, abandons cone-Hessian thesis); (c) CHOSEN = halt + reopen Phase 70. Matter mechanism + ΔR pipeline PRESERVED. Phases 70-71 of 4 still marked complete (50%); Phase 72 halted. v14.0 PAUSED.",
-    "resume_file": "Next action -- **/gpd:revise-phase 70** (supersede completed Phase 70; resolve the ONE well-posed question: which object is the physical spacetime metric — Riemannian cone-Hessian [thesis ⇒ non-Einstein R×H³ vacuum ⇒ route yields at most linearized spin-2 on a FIXED non-Einstein background, NAMED as such] vs Lorentzian construction-(ii) η+h [⇒ flat; thesis must be restated; Λ=0 tripwire to Phase 73]; the disagreement = signature bridge underdetermined, Riemannian/Lorentzian tension in CONVENTIONS.md). Discipline: exact over Q; do NOT insert any factor to force Ric∝g or flatness; SSOT det_3; headline {0,-1,-1,-1}. Full context: .gpd/phases/72-b-matter-sourcing/PHASE-RECOVERY.md + derivations/72-matter-sourcing.tex (§adjudication, §phase70-task). After Phase 70 resolves, re-plan Phase 72 (matter pipeline preserved). Two still-pending NON-BLOCKING follow-ups: (a) record cone-Hessian K=-1/2 alongside round -1 in the riemann_ricci_sign convention text; (b) `gpd sync-state` to refresh STATE.md's stale v16.0 Convention Lock block. v14.0 PAUSED."
+    "last_date": "2026-06-01",
+    "stopped_at": "Completed **/gpd:execute-phase 73** (2026-06-01) \u2014 Phase 73 (C \u2014 Einstein Structure) COMPLETE (2/2 plans; verified PASSED 8/8 HIGH \u2014 verifier re-ran all 3 drivers and independently reproduced every decisive number; consistency CONSISTENT, 24 checks). **VERDICT (human-ratified): NONE \u2014 curved but not Einstein-structured. This CLOSES milestone v17.0.** With T_munu (PRIMARY single-scalar T[\u03c8=2Re((x\u2082x\u2081)x\u2083)] + ALT \u03c3-model T[V_{1/2}]) and \u03ba FROZEN from intrinsic V_{1/2} cross-terms BEFORE any curvature (AST-guarded NO Ric/R/G), the full nonlinear G_munu[g] over a 12-point (M,x) family (all sig (1,3), Totaro==hand-rolled, G first at O(\u2016M\u2016\u2074), Rscalar(M_0)\u22484008) is NOT reproduced by \u03baT+\u039bg for ANY single global (\u03ba,\u039b), against EITHER T, at finite-M OR t\u2074 order (best-\u039b residual \u22487209/7190; R not \u221d g at even one point; \u03baT ~10\u00b3 smaller than G). n=4: R\u22484008, S\u22600 (10/16), Weyl\u22600 (72/256), trace_S=0. \u2016M\u2016\u21920 \u21d2 T,G\u21920. A DECISIVE full-pass NEGATIVE on the strongest claim (negative-result-is-success): the route survived 71 (homogeneity) + 72 (matter-sourcing) \u2014 a curved, matter-sourced spacetime slice stands \u2014 but its curvature is NOT Einstein-form. True-strength: not inflated (no leading-order Einstein, no rounding), not deflated (\u039b=0 DERIVED from KKT det\u2082, not inserted). The decisive test was re-scoped from the gauge-degenerate linear \u25a1h\u0304~\u03baT (G\u207d\u00b9\u207e[h\u207d\u00b2\u207e]=0) to the gauge-invariant full nonlinear G[g] at O(\u2016M\u2016\u2074). Circularity audit certifies no GST/SUSY/\u2212R/2/Weinberg/Jacobson import. Transition done BY HAND (did NOT run buggy `gpd phase complete`/`state advance`). NON-BLOCKING follow-up: metric_signature label/glyph reconcile (operationally inert). v14.0 PAUSED.",
+    "resume_file": "Next action \u2014 **`/gpd:new-milestone`** (`/clear` first \u2192 fresh context) to start the next research stage. Milestone v17.0 is COMPLETE & ARCHIVED (2026-06-01; human-ratified verdict NONE \u2014 curved but not Einstein-structured; all 4 phases 70.1/71/72/73 verified HIGH, consistency CONSISTENT; archived to .gpd/milestones/v17.0-ROADMAP.md + v17.0-REQUIREMENTS.md + v17.0/RESEARCH-DIGEST.md; ROADMAP collapsed; REQUIREMENTS retired; tag v17.0). No active milestone, no open gates. v17.0 result for the write-up (paper6-bulk-geometry): the h\u2083(\ud835\udd46) cone geometry yields a curved, matter-sourced, position-dependent Lorentzian slice whose curvature is NOT of Einstein form (no G=\u03baT+\u039bg for any global constants) \u2014 a decisive negative on the strongest claim; derivations/73-einstein-structure.tex + .gpd/phases/73-c-einstein-structure/73-circularity-audit.md carry it. Residual NON-BLOCKING notation-coordinator follow-up: reconcile the metric_signature label/glyph string in state.json/CONVENTIONS \u00a76, and record cone-Hessian K=\u22121/2 alongside round \u22121 in riemann_ricci_sign. v14.0 PAUSED (pending JMP referee)."
   },
   "_version": 1,
-  "_synced_at": "2026-06-01T00:24:33.260327+00:00",
+  "_synced_at": "2026-06-01T23:19:55.977426+00:00",
   "current_position": {
-    "current_phase": "72 (re-plan as MATTER-ON-FLAT) — Phase 70.1 COMPLETE (η+h selected as the physical spacetime metric; cone-Hessian-is-metric FALSIFIED)",
-    "current_phase_name": "B — Matter-Sourcing (re-scoped: matter sources h on the flat KKT η background; needs re-plan)",
+    "current_phase": "Defining objectives (v18.0; roadmap pending \u2014 Phases 74+)",
+    "current_phase_name": "v18.0 milestone setup \u2014 Gravity as the Curvature of the Peirce-Frame (Cartan/MM) Connection on h_3(O)",
     "total_phases": 5,
-    "current_plan": "none (Phase 70.1 complete; Phase 72 awaiting re-plan to the matter-on-flat scope)",
+    "current_plan": "none (defining objectives; roadmap pending)",
     "total_plans_in_phase": 0,
-    "status": "Ready to plan",
-    "last_activity": "2026-05-31",
-    "last_activity_desc": "Phase 70.1 (Revise A0 — physical-metric selection) COMPLETE (1/1 plans; verified PASSED 5/5 HIGH, verifier re-derived the headline via an independent Levi-Civita path; consistency CONSISTENT). VERDICT (human-ratified outcome 2): the physical spacetime metric is the η+h bridge (KKT Minkowski η + matter perturbation h), NOT the cone-Hessian curvature. The \"cone-Hessian IS the metric\" thesis is FALSIFIED (NULL result: M=0 vacuum is the non-Einstein R_time×H³ {0,−1,−1,−1}; spin-2 on a fixed non-Einstein background is non-gauge ⇒ not a graviton). Binding corrections: flat M=0 vacuum is DERIVED from the KKT det₂ form (not an inserted Λ=0 — circularity-tripwire-on-vacuum STRUCK); the route is RESTATED not abandoned (cone-Hessian = matter source via 2Re((x₂x₁)x₃); spacetime = flat KKT η). Phase 72 UNBLOCKED → re-plan as matter-on-flat; Phase 73 re-scoped to the linearized-Einstein can-fail test □h̄~κT. SUPERSEDES the falsified \"center is Einstein, Λ<0\" text (CONVENTIONS.md §6 + ROADMAP VALD-04 #2 — notation-coordinator follow-up). Transition by hand (did NOT run buggy gpd phase complete/state advance). NEXT = re-plan Phase 72.",
-    "progress_percent": 60,
+    "status": "Defining objectives",
+    "last_activity": "2026-06-01",
+    "last_activity_desc": "Started milestone v18.0 (Gravity as the Curvature of the Peirce-Frame Cartan/MacDowell-Mansouri Connection on h_3(O)) \u2014 physics-side Lie-sector/Berry-curvature gravity route. PROJECT.md + machine-readable project_contract refreshed to v18.0 (4 claims: coframe-reduction KILL gate / Berry same-wall SOFT KILL / Cartan-gravity / forced-vs-posited Einstein). The v17.0 cone-Hessian NONE does NOT bind this route (different tensor: imaginary part of the QGT vs the real part). Cheap KILL gates first: Phase A (C_u reduces V_{1/2}(16) to a 4d Lorentzian coframe carrying SO(3,1), forced by (E_11,u)?) and Phase A.5 (canonical Berry curvature Einstein-shaped or same-wall mismatch?). Inherit v17.0 conventions lock (det SSOT ring_lemma_verification.py; octonion_algebra.py BANNED; exact over Q) + CONVENTIONS \u00a76 (Lambda=0). Next: define objectives (REQUIREMENTS.md) \u2192 roadmap (Phases 74+). v17.0 COMPLETE & ARCHIVED.",
+    "progress_percent": 0,
     "paused_at": null
   }
 }
