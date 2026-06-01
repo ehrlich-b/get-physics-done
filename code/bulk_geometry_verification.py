@@ -1127,12 +1127,24 @@ def offcenter_slice_metric(delta, slice_vals=None):
     Hessian metric (eta_bg is a constant Lorentzian background, H_center a constant
     centering shift), so its curvature raises indices with g^{-1}=(eta+h)^{-1}, NOT with
     the bare cone-Hessian H_bg^{-1}. They do NOT coincide in general. The DECISIVE
-    spacetime curvature is computed by spacetime_curvature_of_g() (Section 13), with the
-    cubic form C UNCHANGED (eta_bg, H_center constant => C_ijk = h_{,ijk} = (H_bg)_{,ijk})
-    but indices raised by g, and cross-checked by hand_rolled_riemann_of_g(). The M=0
-    spacetime baseline is FLAT (g=eta_bg constant => R=S=Weyl=0), DERIVED from KKT det_2;
-    the cone-Hessian's R=-3 / {0,-1,-1,-1} / R_time x H^3 is the matter SOURCE field's
-    geometry, NOT the spacetime curvature."""
+    spacetime curvature is computed by spacetime_curvature_of_g() (Section 13), with
+    indices raised by g and cross-checked by hand_rolled_riemann_of_g().
+
+    !!! CENTERED-H0 TRAP -- THIS FUNCTION's h IS NOT THE MATTER-ON-FLAT h (Plan 72-01).
+    This function still implements the CENTERED subtraction h := H_bg - H_center with
+    H_center = diag(9,9,18,18) CONSTANT. That h is ZERO only AT the center POINT; it is
+    NONZERO for x != center, so feeding it to a curvature routine gives R[g](M=0) != 0
+    (verified 17496 at the center via the OLD spacetime_curvature_of_g; a large rational
+    off-center). That is the cone-Hessian SOURCE curvature, the FALSIFIED
+    cone-Hessian-is-metric framing -- NOT a flat spacetime baseline. The CORRECT
+    matter-on-flat metric (Phase-70.1 B1) subtracts the matterless reference AT THE SAME
+    x: h(x;M) := H_source(x;bg+M) - H_source(x;bg-only) (see _matterless_reference_hessian
+    and the Section-13 header), which is ZERO IDENTICALLY in x at M=0 => g=eta_bg over a
+    NEIGHBOURHOOD => R[g](M=0)=0 (the genuine flat baseline). spacetime_curvature_of_g()
+    and hand_rolled_riemann_of_g() now use the B1 h and do NOT call this function on the
+    decisive path. The M=0 spacetime baseline is FLAT (R=S=Weyl=0), DERIVED from KKT
+    det_2; the cone-Hessian's R=-3 / {0,-1,-1,-1} / R_time x H^3 is the matter SOURCE
+    field's geometry, NOT the spacetime curvature."""
     from sympy import cancel as _cancel
     symbolic = slice_vals is None
     H_bg = cone_hessian_offcenter(delta, slice_symbolic=symbolic, slice_vals=slice_vals)

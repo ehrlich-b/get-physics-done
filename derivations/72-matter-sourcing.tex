@@ -2,61 +2,81 @@
 %   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
 %   complex_structure=u_equals_e7, potential=minus_log_det,
 %   cone_metric=hess(minus_log_det), cubic_norm_det=ring_lemma_verification_det_3,
-%   curvature_engine=totaro_closed_form, arithmetic=exact_over_Q
+%   curvature_engine=totaro_closed_form, arithmetic=exact_over_Q,
+%   spacetime_metric=g_eta_plus_h, flat_M0_baseline=derived_from_KKT_det_2
 %
-% Phase 72 (B -- Matter-Sourcing), Plan 01 (DERV-02 + VALD-04): the matter-aware
-%   Totaro curvature engine on the dim-4 h_2(C_u) spacetime sub-slice and the M=0
-%   baseline, for the v17.0 milestone "Gravity as Intrinsic Curvature of the h_3(O)
-%   Bulk Geometry".
+% Phase 72 (B -- Matter-Sourcing), Plan 01 (DERV-02 + VALD-04, re-framed MATTER-ON-FLAT):
+%   the curvature of the PHYSICAL spacetime metric g_munu(x) = eta_munu + h_munu(x;M)
+%   on the FLAT KKT-Minkowski background, for the v17.0 milestone "Gravity as Intrinsic
+%   Curvature of the h_3(O) Bulk Geometry".
 %
-% STATUS (2026-05-31): 72-01 STOPPED AT THE FIRST-RESULT GATE; the milestone has
-%   BACKTRACKED to Phase 70 (researcher decision, see Sec on adjudication). The
-%   plan's required first load-bearing result -- "the M=0 center is Einstein
-%   (traceless Ricci S_munu = 0) with R(center) = -3 < 0 (pure-Lambda Cartan)" --
-%   DOES NOT HOLD, and this is the plan's explicit backtracking trigger
-%   (disconfirming observation #3). The finding is decisive, exact-over-Q, and
-%   cross-checked against the engine's own H^3 benchmark: the 4-dim cone-Hessian
-%   sub-slice M=0 vacuum is a static product R x H^3 whose FLAT factor (1,1,0,0) is
-%   the TIMELIKE x_0 direction under h_2(C_u) ~ R^{3,1}; its Ricci endomorphism has
-%   eigenvalues {0,-1,-1,-1}, so it is NOT Einstein in n=4.
+% STATUS (2026-06-01, SUPERSEDES the 2026-05-31 backtrack STATUS below): per the
+%   Phase-70.1 human-ratified verdict, the PHYSICAL spacetime metric is the
+%   construction-(ii) bridge g = eta + h (eta = flat KKT Minkowski, DERIVED from the
+%   slice's own det_2; the cone-Hessian is the matter SOURCE, NOT the spacetime metric).
+%   The literal "cone-Hessian IS the metric" thesis is FALSIFIED (its M=0 vacuum is the
+%   non-Einstein R_time x H^3 {0,-1,-1,-1}; spin-2 on a fixed non-Einstein background is
+%   non-gauge => not a graviton). THIS PLAN (72-01) builds & confirms the matter-on-flat
+%   curvature machinery: (i) the curvature of g=eta+h(x;M) with indices raised by
+%   g^{-1}=(eta+h)^{-1} (NOT the bare cone-Hessian H_bg^{-1}); (ii) a MANDATORY
+%   hand-rolled Levi-Civita Riemann cross-check of g (agrees with Totaro-g^{-1} exactly
+%   over Q); (iii) the FLAT M=0 baseline R=S=Weyl=0, DERIVED from KKT det_2 (NOT R=-3,
+%   NOT pure-Lambda, NOT R_time x H^3); (iv) the n=4 Ricci decomposition of the M!=0
+%   curvature; (v) V_1-inertness. The decisive cross-term ON/OFF off-switch + the
+%   matter-sourcing VERDICT are Plan 72-02 (NOT pronounced here).
 %
-%   THIS NON-EINSTEIN M=0 VACUUM *IS* THE VALD-04 RESULT (negative-result-is-success),
-%   NOT a reference-choice problem. A GR Lambda-vacuum must be Einstein (Ric prop. to
-%   g); no baseline subtraction turns a non-Einstein vacuum into an Einstein one, so
-%   "which Lambda reference" presupposes a maximally-symmetric vacuum this
-%   construction does not produce. The matter Delta R(M) verdict deliverables are NOT
-%   produced (honest-negative discipline; no masking SUMMARY). The matter mechanism
-%   and the Delta-R isolation pipeline are PRESERVED (they are not what broke) and
-%   stand for whichever metric the reopened Phase 70 selects.
+%   OPERATIONAL DEFINITION OF h (B1, human-ratified). h(x;M) := H_source(x; bg+M) -
+%   H_source(x; bg-only), the matter-induced deviation of the cone-Hessian source with
+%   the V_0 background partner retained in BOTH terms (so it cancels). Then h(x;M=0)==0
+%   IDENTICALLY in x => g=eta_bg over a NEIGHBOURHOOD => R[g](M=0)=0 (a genuine flat
+%   baseline). [A disconfirming observation in Task 2: the OLD CENTERED subtraction
+%   h := H_source(x;M) - H_center, with H_center=diag(9,9,18,18) CONSTANT, gives h!=0
+%   off-center => R[g](M=0)=17496 (CURVED) -- exactly the falsified cone-Hessian-is-metric
+%   framing (fp-lambda-as-sourcing). The B1 same-x subtraction is the human-ratified
+%   correction pinned by the 70.1 verdict.] The cone-Hessian's R=-3 / {0,-1,-1,-1} /
+%   R_time x H^3 is the SOURCE field's geometry, NOT the spacetime curvature.
 %
 % References:
 %   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381.
 %   [FK94]  Faraut & Koranyi, Analysis on Symmetric Cones (OUP 1994), Ch. II-IV.
 %   [McC04] McCrimmon, A Taste of Jordan Algebras (Springer 2004).
-%   [71VER] .gpd/phases/71-a-homogeneity-kill-gate/71-VERIFICATION.md (matterless
+%   [70.1]  .gpd/phases/70.1-.../70.1-01-SUMMARY.md + derivations/70.1-physical-metric-
+%           selection.tex (human-ratified verdict: g=eta+h is the physical metric;
+%           M=0 flat DERIVED from KKT; cone-Hessian = source; Lambda tripwire STRUCK).
+%   [71VER] .gpd/phases/71-a-homogeneity-kill-gate/71-VERIFICATION.md (matterless SOURCE
 %           regression anchors; cone-Hessian R(center) = -3; K_sect = -1/2).
 %   [70-02] derivations/70-signature-bridge.tex + code/bulk_geometry_verification.py:
 %           construction-(ii) bridge; Hess(-log det)|_{I/3} = diag(9,9,18,18)/26244.
 
-\section{Phase 72-01: matter mechanism, Phase-71 regression, and the M=0 non-Einstein vacuum (VALD-04 finding $\Rightarrow$ backtrack to Phase 70)}
+\section{Phase 72-01 (matter-on-flat): the curvature of $g=\eta+h(x;M)$, the flat $M=0$ baseline, and the $n=4$ structure of the $M\neq0$ curvature (build \& confirm)}
 
 \subsection{Conventions (carried verbatim from the v17.0 lock)}
 
 All decisive quantities are EXACT over $\mathbb{Q}$ (no float on any verdict; ranks
-via \texttt{sympy.Matrix}). The cone metric is the Hessian of the potential
-$\Phi=-\log\det_3$, with $\det_3$ the certified Freudenthal cubic norm (engine SSOT,
-cross-term order $2\,\mathrm{Re}((x_2 x_1)x_3)$; \texttt{octonion\_algebra.py}
-banned). The Riemann tensor is the Totaro closed form
+via \texttt{sympy.Matrix}). \textbf{The physical spacetime metric is
+$g_{\mu\nu}(x)=\eta_{\mu\nu}+h_{\mu\nu}(x;M)$} (construction (ii), Phase-70.1
+human-ratified [70.1]): $\eta$ the flat KKT-Minkowski background (the slice's own
+$\det_2$ causal form, DERIVED -- not inserted), $h$ the matter perturbation. The
+\emph{cone-Hessian} $g_X=\mathrm{Hess}(-\log\det_3)$, with $\det_3$ the certified
+Freudenthal cubic norm (engine SSOT, cross-term order $2\,\mathrm{Re}((x_2 x_1)x_3)$;
+\texttt{octonion\_algebra.py} banned), is the matter \emph{SOURCE / information
+structure}, NOT the spacetime metric. The Riemann tensor of $g$ is the Totaro closed
+form
 \begin{equation}
-  R_{ijkl} = -\tfrac14\, g^{pq}\big(C_{jlp}C_{ikq}-C_{ilp}C_{jkq}\big),
-  \qquad C_{ijk}=\Phi_{,ijk},
+  R_{ijkl}[g] = -\tfrac14\, (g^{-1})^{pq}\big(C_{jlp}C_{ikq}-C_{ilp}C_{jkq}\big),
+  \qquad C_{ijk}=(\Phi_{\mathrm{bg}+M}-\Phi_{\mathrm{bg}})_{,ijk},
   \label{eq:totaro}
 \end{equation}
-with $\mathrm{Ric}_{jl}=g^{ik}R_{ijkl}$, $R=g^{jl}\mathrm{Ric}_{jl}$. The spacetime
-sub-slice is $h_2(C_u)$, engine-native indices $\{1,2,3,10\}=(\beta,\gamma,p,q)$,
-mostly-minus. The center is $X_{\mathrm{bg}}=I/3$.
+with $\mathrm{Ric}_{jl}=(g^{-1})^{ik}R_{ijkl}$, $R=(g^{-1})^{jl}\mathrm{Ric}_{jl}$.
+\textbf{The one-line index-raising correction (70.1 re-frame):} indices are raised
+with $g^{-1}=(\eta+h)^{-1}$, NOT the bare cone-Hessian $H_{\mathrm{bg}}^{-1}$; the
+cubic form $C$ is the third-derivative tensor of the \emph{difference potential}
+$\Phi_{\mathrm{bg}+M}-\Phi_{\mathrm{bg}}$ (which vanishes identically at $M=0$, so the
+$M=0$ curvature vanishes on the nose). The spacetime sub-slice is $h_2(C_u)$,
+engine-native indices $\{1,2,3,10\}=(\beta,\gamma,p,q)$, mostly-minus. The background
+basepoint is $X_{\mathrm{bg}}=I/3$ (optionally with a fixed $V_0$-internal partner).
 
-\subsection{Peirce index map and the unique matter channel (Task 1, CLEAN)}
+\subsection{Peirce index map and the unique matter channel (Task 1)}
 \label{sec:mechanism}
 
 Under $E_{11}=\mathrm{diag}(1,0,0)$ the multiplication operator $L_{E_{11}}$ is
@@ -95,7 +115,7 @@ $(x_1{:}e_4,\,x_2{:}e_5,\,x_3{:}e_7)$ evaluates to $2\neq0$ over $\mathbb{Q}$ (a
 $0$ when any one slot is zeroed), confirming the cubic vertex coupling matter to
 $V_0$ is genuinely present and not vacuously zero.
 
-\subsection{Non-vacuity preflight: the chosen representative $M$ (Task 1, CLEAN)}
+\subsection{Non-vacuity preflight: the cross-term representative $M$ (Task 1)}
 \label{sec:nonvacuity}
 
 The representative non-vacuous matter placement carried to 72-02 is
@@ -112,9 +132,14 @@ $e_4$ content (genuinely octonionic / non-associative), and the cross-term is no
   \quad\text{(exact over $\mathbb{Q}$).}
 \end{equation}
 This defeats the hollow-triple-product pitfall (Pitfall 3): the cross-term off-switch
-of 72-02 will be a genuine control.
+of 72-02 will be a genuine control. (Under the $g=\eta+h$ metric this large amplitude
+is OUTSIDE the small-$\|M\|$ Lorentzian regime -- the matter-induced $h$ dominates
+$\eta_{\mathrm{bg}}$ and flips the signature to $(0,4)$, the documented perturbative
+boundary; see Sec~\ref{sec:curv-of-g}. The curvature-of-$g$ confirmation uses a
+\emph{small}-$\|M\|$ representative; this large-$M$ point is retained for the
+cross-term non-vacuity assertion and the 72-02 off-switch.)
 
-\subsection{Phase-71 matterless regression anchors (Task 1, CLEAN)}
+\subsection{Phase-71 matterless SOURCE-engine regression anchors (Task 1)}
 \label{sec:regression}
 
 Using the verified matterless path \texttt{\_curvature\_invariants\_at(delta, slice\_pt)}
@@ -134,141 +159,134 @@ $\{7{:}\tfrac13,8{:}\tfrac14,9{:}\tfrac15\}$ & $-114049215/37982569$ & matches [
 \end{tabular}
 \end{center}
 and at the center ($\delta=\{\}$, center slice $[\tfrac13,\tfrac13,0,0]$),
-$R(\text{center})=-3$, $\det g = 26244$. The matter-aware path of 72-01 is therefore a
-faithful extension of the verified matterless engine (regression passes).
+$R(\text{center})=-3$, $\det g = 26244$. \textbf{These are the cone-Hessian SOURCE
+field's curvatures, NOT the spacetime curvature} (the spacetime metric is $g=\eta+h$,
+flat at $M=0$; $R(\text{center})=-3$ refers to the matterless cone-Hessian source).
+The matter-aware path of 72-01 is a faithful extension of the verified matterless
+SOURCE engine (regression passes), confirming the engine is faithful before $g=\eta+h$
+is built.
 
-\subsection{The M=0 baseline obstruction: the cone-Hessian sub-slice is a metric
-            cone over $H^3$, NOT Einstein (FIRST-RESULT GATE)}
-\label{sec:obstruction}
+\subsection{The operational definition of $h(x;M)$: matter-induced deviation (B1)}
+\label{sec:b1}
 
-The plan's required first load-bearing result is that the $M=0$ center be Einstein,
-$S_{\mu\nu}\equiv R_{\mu\nu}-\tfrac{R}{4}g_{\mu\nu}=0$, with $R=-3<0$ (pure-$\Lambda$
-Cartan). Computing the Totaro curvature~\eqref{eq:totaro} of the cone-Hessian metric
-$g_{ij}=\mathrm{Hess}(-\log\det_3)$ restricted to the dim-4 slice at the center
-$X_{\mathrm{bg}}=I/3$ (exact over $\mathbb{Q}$) gives $R=-3$ as required, but the
-Ricci tensor is NOT proportional to the metric:
+The physical metric is $g_{\mu\nu}(x)=\eta_{\mu\nu}+h_{\mu\nu}(x;M)$. The matter
+perturbation is the \emph{matter-induced deviation} of the cone-Hessian source, with
+the $V_0$ background partner retained in BOTH terms (so it cancels):
 \begin{equation}
-  g = \mathrm{diag}(9,9,18,18),\qquad
-  \mathrm{Ric} =
-  \begin{pmatrix} -\tfrac92 & \tfrac92 & 0 & 0\\
-                  \tfrac92 & -\tfrac92 & 0 & 0\\
-                  0 & 0 & -18 & 0\\
-                  0 & 0 & 0 & -18\end{pmatrix},\qquad
-  g^{-1}\mathrm{Ric}\ \text{has eigenvalues}\ \{0,-1,-1,-1\}.
-  \label{eq:ricci-center}
+  h_{\mu\nu}(x;M)\ :=\ H_{\mathrm{source}}(x;\,\mathrm{bg}+M)\ -\
+                       H_{\mathrm{source}}(x;\,\mathrm{bg\ only}),
+  \qquad H_{\mathrm{source}}(x;\cdot)=\mathrm{Hess}_{\mathrm{slice}}(-\log\det_3),
+  \label{eq:B1}
 \end{equation}
-The Ricci endomorphism $g^{-1}\mathrm{Ric}$ has the degenerate spectrum
-$\{0,-1,-1,-1\}$ (so $S_{\mu\nu}\neq0$; the slice is NOT Einstein in $n=4$). The
-eigenvalue-$0$ eigenvector is $(1,1,0,0)$, the $\beta+\gamma$ direction. On the
-Riemannian cone this is the \emph{dilation / overall-scale} direction -- exactly the
-scale-invariance $R(X)=R(2X)$ found in Phase 71 ($\Phi=-\log\det$ shifts by a constant
-under $X\mapsto cX$, leaving the Hessian metric, hence $R$, unchanged). \emph{But under
-the Lorentzian spacetime reading} $h_2(C_u)\simeq\mathbb{R}^{3,1}$ with the $\det_2$
-Minkowski form $\beta\gamma/3-p^2/3-q^2/3$, the very same $(1,1,0,0)=\beta{+}\gamma$
-direction is the \textbf{timelike $x_0$ direction} (the $\beta\gamma/3$ block is the
-hyperbolic $1{+}1$ part; $(1,1)$ is its positive/timelike eigenvector). So the flat
-factor of the cone is \emph{time}, and the $M=0$ vacuum is a static product
-$\mathbb{R}_{\text{time}}\times H^3_{\text{space}}$. The coordinate sectional
-curvatures confirm the structure: $K(e_0,e_1)=0$ (the timelike/dilation 2-plane is
-flat), the mixed planes are $-\tfrac14$, and $K(e_2,e_3)=K(p,q)=-\tfrac12$ -- the
-$H^3$ base value, identical to the engine's certified
-\texttt{h3\_cone\_hessian\_benchmark}.
+evaluated with the four slice coordinates $(\beta,\gamma,p,q)$ symbolic and the
+matter/background substituted to small rationals. At $M=0$ the minuend equals the
+subtrahend, so $h(x;0)\equiv0$ \textbf{identically in $x$} (verified over
+$\mathbb{Q}$) $\Rightarrow$ $g(x;0)=\eta_{\mathrm{bg}}$ \emph{everywhere}
+$\Rightarrow$ $R[g](M{=}0)=0$ over a NEIGHBOURHOOD -- the genuine flat baseline,
+DERIVED from the KKT $\det_2$ Minkowski $\eta$.
 
-\paragraph{Diagnosis (decisive, exact over $\mathbb{Q}$, not an engine bug).} The
-4-dim cone-Hessian sub-slice is a \emph{metric cone} $C(H^3)=\mathbb{R}_{>0}\times H^3$:
-a flat radial (dilation) line times the constant-curvature $H^3$ base. A non-trivial
-metric cone in dimension $n=4$ is never Einstein -- its Ricci endomorphism has a
-radial $0$-eigenvalue and base eigenvalues shifted, here $\{0,-1,-1,-1\}$ -- so the
-\emph{conjunction} the contract demands ("$R=-3$ AND $S_{\mu\nu}=0$") cannot hold for
-this metric. The two candidate baseline metrics each satisfy only one half:
-\begin{itemize}
-  \item the cone-Hessian $g_{ij}=\mathrm{Hess}(-\log\det_3)$ (the metric Phase-71's
-        $R(\text{center})=-3$ anchor refers to) has $R=-3$ but is a cone, hence NOT
-        Einstein ($S_{\mu\nu}\neq0$, eigenvalues $\{0,-1,-1,-1\}$);
-  \item the construction-(ii) inherited metric $g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu}$
-        reduces at the center to the \emph{constant} Minkowski form $g=\eta_{\mathrm{bg}}$
-        ($h=0$ at the center by construction), which is FLAT ($R=0$), trivially
-        Einstein but with $\Lambda=0$, contradicting $R=-3$.
-\end{itemize}
-Per the disconfirming-observation discipline (this is named obstruction #3) and the
-first-result-gate rule, 72-01 STOPS here: the matter $\Delta R(M)$ verdict is not
-produced, and no result is reported that papers over the non-Einstein vacuum. The
-clean Task-1 results (Secs~\ref{sec:mechanism}--\ref{sec:regression}) stand. The
-adjudication (Sec~\ref{sec:adjudication}) records that this non-Einstein $M=0$ vacuum
-\emph{is} the VALD-04 finding and that the milestone backtracks to a reopened Phase 70
-(Sec~\ref{sec:phase70-task}) to decide which object is the physical spacetime metric.
+\paragraph{Why NOT the centered subtraction (the disconfirming observation).} The
+naive (pre-70.1) definition $h:=H_{\mathrm{source}}(x;M)-H_{\mathrm{center}}$ with
+$H_{\mathrm{center}}=\mathrm{diag}(9,9,18,18)$ a \emph{constant} vanishes only AT the
+center POINT; it is nonzero for $x\neq$ center. Feeding it to the curvature routine
+gives $R[g](M{=}0)=17496$ at the center (a large rational off-center) -- i.e.\ $g$ is
+the matterless CONE-HESSIAN metric, which is CURVED. That is exactly the
+cone-Hessian-is-metric framing Phase 70.1 \textbf{falsified} (forbidden proxy
+\texttt{fp-lambda-as-sourcing}); its $M=0$ vacuum is the non-Einstein
+$\mathbb{R}_{\text{time}}\times H^3$ (Ricci endomorphism $\{0,-1,-1,-1\}$, $R=-3$).
+This curved-$M=0$ was the disconfirming observation in Task 2; the same-$x$
+subtraction~\eqref{eq:B1} is the human-ratified correction pinned by the 70.1 verdict.
+The $\{0,-1,-1,-1\}$ / $R=-3$ / $\mathbb{R}\times H^3$ structure is the cone-Hessian
+SOURCE field's geometry, NOT the spacetime curvature.
 
-\subsection{Adjudication: the non-Einstein vacuum IS the result; the candidate
-            ``baselines'' are not interchangeable (researcher decision, 2026-05-31)}
-\label{sec:adjudication}
+\subsection{The flat $M=0$ baseline (DERIVED from KKT, NOT $\Lambda$)}
+\label{sec:flat-baseline}
 
-The obstruction is \textbf{not} a reference choice. A general-relativistic
-$\Lambda$-vacuum \emph{must} be Einstein ($\mathrm{Ric}\propto g$); no baseline
-subtraction turns a non-Einstein vacuum into an Einstein one. So the question ``which
-$\Lambda$ reference?'' already presupposes a maximally-symmetric vacuum that this
-construction \emph{does not produce}. The computed $M=0$ cone-Hessian vacuum is the
-static product $\mathbb{R}_{\text{time}}\times H^3$ with Ricci spectrum
-$\{0,-1,-1,-1\}$ -- and \textbf{that is the VALD-04 finding}
-(negative-result-is-success), to be reported as such, not papered over.
+With $M=0$ (and the slice at the center $[\tfrac13,\tfrac13,0,0]$) the engine's
+\texttt{minkowski\_reduction} gives $g-\eta=0$ exactly over $\mathbb{Q}$ with signature
+$(1,3)$ (leading minors $[1,-1,1,-1]$ on the Minkowski-frame $\eta$). Applying
+\texttt{spacetime\_curvature\_of\_g} and the $n=4$ Ricci decomposition at $M=0$ yields
+\begin{equation}
+  R[g]=0,\qquad S_{\mu\nu}=0,\qquad C_{ijkl}^{\mathrm{Weyl}}=0
+  \qquad\text{(FLAT, exact over $\mathbb{Q}$),}
+\end{equation}
+confirmed at the center, at an off-center slice point, and with the $V_0$ background
+partner ON (it cancels in~\eqref{eq:B1}). \textbf{This flat baseline is DERIVED from
+the KKT $\det_2$ Minkowski form} (the 52-kkt frame, $h_2(C_u)\simeq\mathbb{R}^{3,1}$),
+not an inserted $\Lambda$: $\eta$ IS the slice's own causal structure, and the B1
+subtraction is matter-deviation bookkeeping carrying no circularity and no $\Lambda$
+tripwire. It is explicitly \textbf{NOT} $R=-3$, NOT pure-$\Lambda$, NOT a Cartan
+vacuum, NOT $\mathbb{R}_{\text{time}}\times H^3$ (those describe the cone-Hessian
+SOURCE). The only ``pure-$\Lambda$'' check is the trivial flat one at $M=0$; there is
+no $R=-3$ spacetime baseline to subtract (forbidden proxy \texttt{fp-lambda-as-sourcing}).
 
-The three ``reconciliations'' previously listed are not on equal footing:
-\begin{itemize}
-  \item[\textbf{(a)}] \textbf{REJECTED -- ``Einstein on the $\det_2=1$ $H^3$ leaf.''}
-        This references 4-dim gravity against the 3-dim \emph{spatial} $\det_2=1$
-        hyperboloid, i.e.\ it \emph{drops the flat $=$ timelike $x_0$ direction}. $H^3$
-        is maximally symmetric but it is the \emph{wrong} symmetric space and one
-        dimension short: GR's empty hyperbolic-slice vacuum is Milne $=$ flat
-        Minkowski, \emph{not} $H^3$. Measuring matter-sourcing against it manufactures
-        a pass by swapping spacetime for a spatial slice -- this is the
-        \texttt{fp-relabel} class of self-deception. Do not take it. (Quotienting the
-        dilation/timelike direction -- old option 3 -- is the same move and is
-        likewise rejected.)
-  \item[\textbf{(b)}] \textbf{CONDITIONAL -- ``$g=\eta+h$ is the decisive metric.''}
-        $\eta+h$ is flat at the center, which \emph{is} GR's correct empty vacuum
-        (right physics, unlike (a)). But it is admissible only with two caveats:
-        (i) the flatness is \emph{inserted} by the center-subtraction, so $\Lambda=0$
-        is built in, not derived -- Phase 73's per-equation circularity audit must
-        carry this tripwire; and (ii) adopting $\eta+h$ as the spacetime metric
-        \emph{abandons} the route thesis ``gravity $=$ curvature of the cone-Hessian,''
-        since the cone-Hessian gives $\mathbb{R}\times H^3$, not flat. Hence (b) is
-        admissible ONLY after a reopened Phase 70 explicitly rules that $\eta+h$ (not
-        the cone-Hessian) is THE spacetime metric and restates the thesis accordingly.
-\end{itemize}
+\subsection{The curvature of $g=\eta+h(M)$ and the mandatory hand-rolled cross-check}
+\label{sec:curv-of-g}
 
-\textbf{DECISION (c): halt the matter-sourcing measurement and reopen Phase 70.} The
-plan's backtracking trigger \#3 has fired; it is honored, not routed around. The
-matter mechanism (Sec~\ref{sec:mechanism}), the non-vacuity preflight
-(Sec~\ref{sec:nonvacuity}), and the $\Delta R$-isolation pipeline
-(Sec~\ref{sec:carryforward}) are PRESERVED and are not what broke; they stand for
-whichever metric Phase 70 selects.
+The curvature of $g$ is computed by~\eqref{eq:totaro}: the cubic form $C$ is the
+third-derivative tensor of the \emph{difference potential}
+$\Phi_{\mathrm{bg}+M}-\Phi_{\mathrm{bg}}$ (since $\eta_{\mathrm{bg}}$ is a constant
+background, $g_{,ijk}=h_{,ijk}=C_{ijk}$), and \textbf{indices are raised with
+$g^{-1}=(\eta+h)^{-1}$, NOT the bare cone-Hessian $H_{\mathrm{bg}}^{-1}$}. The
+index-raising correction is not vacuous: at the representative $M$, the
+$g^{-1}$-raised Ricci scalar and the (falsified) $H_{\mathrm{bg}}^{-1}$-raised one are
+distinct rationals.
 
-\subsection{Reopened Phase 70: which object is the physical spacetime metric?}
-\label{sec:phase70-task}
+\paragraph{Mandatory hand-rolled Levi-Civita cross-check (Totaro applicability to
+$\eta+h$).} Because~\eqref{eq:totaro} is the closed form for a \emph{Hessian} metric
+and $g=\eta+h$ is a Hessian metric plus a constant, its applicability is validated
+\emph{independently} by a hand-rolled Christoffel/Riemann of $g$:
+\begin{equation}
+  \Gamma^a_{bc}=\tfrac12 g^{ad}(\partial_b g_{dc}+\partial_c g_{db}-\partial_d g_{bc}),
+  \qquad
+  R_{abcd}=-\big[\text{(2nd-derivative terms)}+g_{ef}(\Gamma^e_{ac}\Gamma^f_{bd}
+                 -\Gamma^e_{ad}\Gamma^f_{bc})\big],
+\end{equation}
+with the overall minus carried so the hand-rolled tensor is in the \emph{same} sign
+convention as the Totaro engine (the bare Levi-Civita formula yields the opposite
+overall sign; the relative factor was verified to be a uniform $-1$ across nine
+independent components on a genuine Hessian metric, with zeros agreeing -- a single
+convention flip, not a component bug). \textbf{The Totaro-$g^{-1}$ route and the
+hand-rolled Levi-Civita Riemann of $g=\eta+h$ AGREE EXACTLY over $\mathbb{Q}$} on the
+checked components $R_{0202},R_{2323},R_{0101}$ -- validating the Totaro closed form's
+applicability to $\eta+h$ (research Open Q1 resolved positively). Were they to
+disagree, the hand-rolled Riemann would be primary.
 
-The Riemannian cone-Hessian (the thesis metric $\Rightarrow$ a
-$\mathbb{R}\times H^3$, non-Einstein $M=0$ vacuum) and the Lorentzian construction-(ii)
-bridge $\eta+h$ ($\Rightarrow$ a flat $M=0$ vacuum) \emph{disagree about the $M=0$
-geometry}. That disagreement is precisely the construction-(ii) signature bridge being
-\emph{underdetermined} -- the Riemannian/Lorentzian tension already flagged in
-\texttt{CONVENTIONS.md}. The reopened Phase 70 must resolve exactly one question:
-\emph{which object is the physical spacetime metric?}
-\begin{itemize}
-  \item \textbf{If the cone-Hessian (the thesis):} the $M=0$ vacuum is non-Einstein
-        ($\mathbb{R}\times H^3$), so the route does NOT yield GR-with-a-$\Lambda$-vacuum.
-        This must not be papered over with a reference choice. The most the route can
-        then claim is \emph{linearized matter-response} (a spin-2 perturbation) on a
-        FIXED non-Einstein $\mathbb{R}\times H^3$ background -- a strictly weaker result
-        that must be NAMED as such, never relabeled ``GR derived.''
-  \item \textbf{If the $\eta+h$ bridge:} the thesis is wrong as stated and must be
-        restated -- show why the bridge metric (not the cone curvature) is the
-        gravitational field, carry the built-in $\Lambda=0$ tripwire into Phase 73, and
-        (b) becomes the reference.
-\end{itemize}
+\paragraph{Lorentzian regime and the perturbative boundary.} At a \emph{small}-$\|M\|$
+representative (the $V_{1/2}$ matter pattern scaled by $1/10$, slice at the center,
+where the matterless cone-Hessian $\mathrm{diag}(9,9,18,18)$ is comfortably away from
+$\det_3=0$), $g=\eta+h$ keeps signature $(1,3)$ (exact eigenvalue-sign test;
+\texttt{real\_roots} on the characteristic polynomial, since the null-aligned
+$\beta,\gamma$ frame invalidates Sylvester minors) and $R[g](M)\neq0$ -- genuinely
+curved AND Lorentzian. At the large Task-1 cross-term amplitude the induced $h$
+dominates $\eta_{\mathrm{bg}}$ and the signature flips to $(0,4)$: the documented
+perturbative boundary (70.1 splice-consistency), not a failure.
 
-\paragraph{Discipline for the reopened Phase 70.} Exact over $\mathbb{Q}$; do NOT
-insert any factor to force $\mathrm{Ric}\propto g$ or to force flatness (that corrupts
-the very verdict it feeds); $\det_3$ remains the single source of truth; headline the
-eigenvalues $\{0,-1,-1,-1\}$.
+\subsection{$n=4$ Ricci decomposition of the $M\neq0$ curvature; $V_1$-inertness}
+\label{sec:decomp}
+
+The $n=4$ GR decomposition $R_{ijkl}=\mathrm{Scal}_{ijkl}+E_{ijkl}+C^{\mathrm{Weyl}}_{ijkl}$
+(scalar part, traceless-Ricci part, Weyl) is applied to the small-$\|M\|$ curvature,
+exact over $\mathbb{Q}$: the traceless Ricci $S_{\mu\nu}=R_{\mu\nu}-\tfrac{R}{4}g_{\mu\nu}$
+satisfies $\mathrm{tr}_g S=0$, and the reconstruction
+$R_{ijkl}-(\mathrm{Scal}+E+C^{\mathrm{Weyl}})=0$ holds identically. The exposed
+structure is
+\begin{equation}
+  R[g](M)\neq0,\qquad S_{\mu\nu}\neq0,\qquad C^{\mathrm{Weyl}}_{ijkl}\neq0
+  \qquad\text{(all exact over $\mathbb{Q}$).}
+\end{equation}
+The $M\neq0$ curvature therefore carries genuine traceless-Ricci AND Weyl structure --
+not a removable pure-trace or coordinate artifact. (We \emph{expose} this structure;
+the SURVIVES/negative VERDICT and the decisive cross-term off-switch are Plan 72-02,
+NOT pronounced here -- forbidden proxy \texttt{fp-assume-einstein}: no Einstein-fitting
+in Phase 72.)
+
+\paragraph{$V_1$-inertness (structural).} The diagonal $\alpha$ (the $V_1$ direction)
+is absent from the octonion triple $2\,\mathrm{Re}((x_2x_1)x_3)$
+(Sec~\ref{sec:mechanism}); it couples only to the squared norms. Confirmed exactly
+over $\mathbb{Q}$ in 72-01: $V_1(\alpha)$-only matter leaves $R[g]=0$ (flat), whereas
+$V_{1/2}$-only matter gives $R[g]\neq0$. Hence $V_{1/2}$ is the active matter channel
+and $V_1$ is inert; the decisive off-switch quantifies this in 72-02.
 
 \subsection{What is verified and exact (carry-forward to 72-02)}
 \label{sec:carryforward}
@@ -276,21 +294,31 @@ eigenvalues $\{0,-1,-1,-1\}$.
 \begin{itemize}
   \item Peirce index map $V_1=\{0\}$, $V_0=\{1..10\}$, $V_{1/2}=\{11..26\}$
         ($L_{E_{11}}$ diagonal); cross-term $2\,\mathrm{Re}((x_2x_1)x_3)$ the unique
-        $V_0\!\leftrightarrow\!V_{1/2}$ octonion channel; $\alpha$ absent from it.
+        $V_0\!\leftrightarrow\!V_{1/2}$ octonion channel; $\alpha$ ($V_1$) absent.
         [exact over $\mathbb{Q}$]
   \item Representative non-vacuous $M$ (\texttt{bg\_delta}, \texttt{matter\_delta}
-        above) with cross-term $-\tfrac{13}{315}\neq0$, all three slots, $e_4$ content.
-  \item Phase-71 matterless $R$ anchors reproduced exactly (regression passes); the
-        common slice point is \texttt{ROUTE1\_COMMON\_SLICE\_PT}, not the (degenerate
-        off-center) center slice.
+        above) with cross-term $-\tfrac{13}{315}\neq0$, all three slots, $e_4$ content
+        (for the 72-02 off-switch control).
+  \item Phase-71 matterless cone-Hessian SOURCE $R$ anchors reproduced exactly
+        (engine faithful); these are the SOURCE field's curvatures, NOT the spacetime
+        curvature.
+  \item \texttt{spacetime\_curvature\_of\_g} (B1): $g=\eta+h$, $C$ from the difference
+        potential, indices raised by $g^{-1}=(\eta+h)^{-1}$. M=0 FLAT
+        ($R=S=$Weyl$=0$) over a neighbourhood; $R[g](M)\neq0$ at small $\|M\|$;
+        signature $(1,3)$; large $M$ flips signature (perturbative boundary).
+  \item MANDATORY hand-rolled Levi-Civita Riemann of $g=\eta+h$ AGREES with
+        Totaro-$g^{-1}$ exactly over $\mathbb{Q}$ on $\geq3$ components (Totaro
+        applicability to $\eta+h$ validated; convention flip documented).
   \item $n=4$ Ricci decomposition (scalar + traceless-Ricci + Weyl) implemented and
-        reconstruction-consistent ($R_{ijkl}-(\text{Scal}+E+\text{Weyl})=0$ over
-        $\mathbb{Q}$ at the center); it correctly reports the cone-Hessian center as
-        NON-Einstein ($S_{\mu\nu}\neq0$), which is what surfaced the obstruction.
-  \item Isolation helper $\Delta R(M)=R(X_{\mathrm{bg}}+M)-R(X_{\mathrm{bg}})$ at a
-        fixed $V_0$-background returns real, nondegenerate, exact-over-$\mathbb{Q}$
-        values, and $\Delta R(M{=}0)=0$ (trivial limit) -- PRESERVED and unaffected by
-        the backtrack; its decisive interpretation awaits the reopened Phase 70's
-        metric selection (Sec~\ref{sec:phase70-task}). The matter mechanism is not what
-        broke.
+        reconstruction-consistent over $\mathbb{Q}$; the $M\neq0$ curvature has
+        $S_{\mu\nu}\neq0$ AND Weyl$\neq0$ (genuine structure); $M=0$ all-zero. $V_1$
+        inert, $V_{1/2}$ active.
 \end{itemize}
+
+\paragraph{Deferred to Plan 72-02 (NOT pronounced here).} The decisive cross-term
+ON/OFF off-switch (does zeroing $2\,\mathrm{Re}((x_2x_1)x_3)$ remove the $M$-sourced
+curvature of $g$?), the $\|M\|\to0$ controlled limit, the scaling of the curvature
+with $\|M\|$ vs $\det_2$, the emission of $h^{(1)}$ for the Phase-73 linearized-Einstein
+test, and the matter-sourcing VERDICT (SURVIVES/greenlight or honest-NEGATIVE/HALT).
+This plan BUILDS and CONFIRMS the curvature-of-$g$ machinery and the flat baseline; it
+does not pronounce the verdict.

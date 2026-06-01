@@ -255,3 +255,74 @@ print(f"TASK 2 OK -- spacetime_curvature_of_g built (B1; indices raised with g=e
       f"C from the DIFFERENCE potential); R[g](M)={Rs_M} != 0; hand-rolled Levi-Civita "
       f"cross-check PASS exact over Q; signature (1,3) at small M; M=0 FLAT over a "
       f"neighbourhood; large-M flips signature (perturbative boundary).")
+
+
+# ====================================================================== TASK 3
+print("\n" + "#" * 78)
+print("# TASK 3 -- FLAT M=0 baseline (R=S=Weyl=0, DERIVED); n=4 Ricci decomposition")
+print("#          of the M!=0 curvature; V_1-inertness; SOURCE-engine anchor")
+print("#" * 78)
+
+# --- 3.1 FLAT M=0 baseline (DERIVED from KKT det_2, NOT Lambda) ---------------------
+tick("Task 3.1: M=0 flat baseline -- g==eta over Q (minkowski_reduction), R=S=Weyl=0 ...")
+MR = E.minkowski_reduction()
+assert MR["residual"] == Matrix.zeros(4, 4), "minkowski_reduction residual g-eta != 0"
+assert MR["sylvester_minors"] == [1, -1, 1, -1], "eta sylvester minors not (1,3)"
+tick(f"  minkowski_reduction: g(center,M=0)-eta == 0 over Q; signature {MR['signature']}")
+# decompose the M=0 (flat) curvature: every piece must vanish
+SC0c = E.spacetime_curvature_of_g({}, CENTER, bg_delta={}, simp=cancel)
+DEC0 = E.ricci_decomposition_n4(SC0c["R"], SC0c["Ric"], SC0c["Rscalar"],
+                                SC0c["g"], SC0c["ginv"], simp=cancel)
+assert DEC0["R_zero"] and DEC0["S_zero"] and DEC0["weyl_zero"], \
+    "M=0 decomposition not all-zero (flat baseline broken)"
+assert DEC0["resid_zero"], "M=0 decomposition reconstruction residual != 0"
+tick(f"  M=0 decomposition: R_zero={DEC0['R_zero']}, S_zero={DEC0['S_zero']}, "
+     f"Weyl_zero={DEC0['weyl_zero']} -- FLAT (DERIVED from KKT det_2, NOT R=-3/pure-Lambda)")
+
+# --- 3.2 n=4 Ricci decomposition of the M!=0 curvature (expose the structure) -------
+tick("Task 3.2: n=4 Ricci decomposition of the small-||M|| curvature (R, S_munu, Weyl) ...")
+DEC = E.ricci_decomposition_n4(R_M, Ric_M, Rs_M, g_M, ginv_M, simp=cancel)
+assert DEC["trace_S"] == 0, f"trace_g(S) = {DEC['trace_S']} != 0 (decomposition broken)"
+assert DEC["resid_zero"], "R != Scal + E + Weyl (n=4 decomposition reconstruction FAILED)"
+S_nonzero = not DEC["S_zero"]
+W_nonzero = not DEC["weyl_zero"]
+tick(f"  trace_g(S) = 0 (exact); reconstruction R = Scal+E+Weyl exact over Q: {DEC['resid_zero']}")
+tick(f"  M!=0 STRUCTURE: R[g](M) != 0: {Rs_M != 0}; traceless-Ricci S_munu != 0: {S_nonzero}; "
+     f"Weyl C_ijkl != 0: {W_nonzero}")
+tick("  (structure EXPOSED only -- the SURVIVES/negative VERDICT + cross-term off-switch "
+     "are Plan 72-02; NOT pronounced here)")
+
+# --- 3.3 V_1-INERTNESS: alpha (V_1) is absent from the cross-term ------------------
+tick("Task 3.3: V_1-inertness -- V_{1/2}-only vs V_1(alpha)-only vs V_1+V_{1/2} ...")
+# (a) V_{1/2}-only matter (the active channel) -- this is MATTER_L; already R[g]!=0.
+tick(f"  (a) V_{{1/2}}-only (MATTER_L): R[g] != 0 = {Rs_M != 0} (active channel)")
+# (b) V_1(alpha={0})-only matter, same amplitude scale, slice at center:
+alpha_amp = Rational(1, 10)
+SC_v1 = E.spacetime_curvature_of_g({0: alpha_amp}, CENTER, bg_delta={}, simp=cancel)
+v1_flat = (SC_v1["Rscalar"] == 0)
+# structurally: alpha (xs[0]) is absent from the cross-term 2Re((x2 x1)x3)
+acoord = E._coord_from_octmat(E.X_from_symbols(E.xs))
+cross_sym = E.oct_mul(E.oct_mul(acoord[4], acoord[3]), acoord[5])[0]   # (x2 x1)x3 real part
+alpha_in_cross = bool(cross_sym.free_symbols & {E.xs[0]})
+tick(f"  (b) V_1(alpha)-only: R[g] = {SC_v1['Rscalar']} (flat: {v1_flat}); "
+     f"alpha in cross-term triple: {alpha_in_cross} (EXPECT False)")
+assert not alpha_in_cross, "alpha leaked into the cross-term triple (V_1 should be inert)"
+# (c) V_1 + V_{1/2}: the V_1 piece does not ADD curvature beyond V_{1/2} via the triple
+M_both = {**MATTER_L, 0: alpha_amp}
+SC_both = E.spacetime_curvature_of_g(M_both, CENTER, bg_delta={}, simp=cancel)
+tick(f"  (c) V_1+V_{{1/2}}: R[g] = {SC_both['Rscalar']} (curved via the V_{{1/2}} channel)")
+tick("  V_1-inertness: alpha is structurally ABSENT from 2Re((x2 x1)x3) => V_{1/2} is the "
+     "active matter channel (the decisive off-switch quantifies this in 72-02)")
+
+# --- 3.4 Phase-71 SOURCE-engine faithfulness anchor (re-confirm) --------------------
+tick("Task 3.4: Phase-71 SOURCE-engine anchor (engine faithful for the SOURCE field) ...")
+Rsrc, _, _, _, _ = E._curvature_invariants_at({4: Rational(1, 3)}, R1, simp=cancel)
+assert Rsrc == Rational(-73041507, 21967969), "Phase-71 SOURCE anchor R{4:1/3} regressed"
+tick(f"  SOURCE R{{4:1/3}} @ R1 = {Rsrc} (cone-Hessian SOURCE, matches 71-VERIFICATION)")
+
+print("-" * 78)
+print("TASK 3 OK -- M=0 FLAT (R=S=Weyl=0, DERIVED from KKT, NOT pure-Lambda); n=4 Ricci "
+      "decomposition of the M!=0 curvature done (trace_g(S)=0, R=Scal+E+Weyl exact over Q, "
+      "S/Weyl structure exposed); V_1-inert (alpha absent from the triple); V_{1/2} active; "
+      "Phase-71 SOURCE anchor reproduced.")
+print("\nMATTER_ON_FLAT_OK -- Tasks 1-3 build & confirm complete (verdict + off-switch = 72-02).")

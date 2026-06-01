@@ -165,30 +165,49 @@ Convention loading: see agent-infrastructure.md Convention Loading Protocol. Run
 
 ## The h_mu_nu(x; M) operational definition (Phase-72 crux)
 
-**This section answers the one new methodological question the 70.1 re-frame creates: what IS `h_mu_nu(x; M)`, operationally, on the flat `eta` background?** It must satisfy (a) `h = 0` at `(M=0, center)` so `g=eta` (flat); (b) `h` is sourced by matter `M` in `V_1/V_{1/2}` through the cross-term `2Re((x2 x1)x3)`; (c) it is computable EXACTLY over Q with the warm engine.
+> **!!! CORRECTED in Plan 72-01 execution (2026-06-01) — the CENTERED-H0 definition below was a TRAP; use B1.**
+> The centered definition `h := H_source(x;M) - H0` with `H0 = diag(9,9,18,18)` CONSTANT (line 181 below)
+> satisfies `h=0` only AT the center POINT — it is NONZERO for `x != center`, so at `M=0` the metric
+> `g = eta + h(x;0)` is the matterless CONE-HESSIAN metric, which is CURVED (verified `R[g](M=0)=17496` at
+> the center, a large rational off-center). That is exactly the cone-Hessian-is-metric framing **Phase 70.1
+> FALSIFIED** (forbidden proxy `fp-lambda-as-sourcing`). A curved `M=0` was the disconfirming observation
+> in Task 2. **The human-ratified correction (B1, matter-on-flat), pinned by the 70.1 verdict:** subtract the
+> matterless reference cone-Hessian **AT THE SAME x** (V_0 background partner retained in BOTH terms):
+> ```
+> h(x; M) := H_source(x; bg + M) - H_source(x; bg-only)        # B1: matter-induced deviation
+> ```
+> Then `h(x; M=0) == 0 IDENTICALLY in x` (verified over Q) ⟹ `g = eta_bg` over a NEIGHBOURHOOD ⟹
+> `R[g](M=0) = 0` (the genuine FLAT baseline, DERIVED from KKT `det_2`). The curvature engine
+> `spacetime_curvature_of_g` and `hand_rolled_riemann_of_g` (Section 13) now use B1: `h` from the
+> difference of cone-Hessians, the cubic form `C` from the **DIFFERENCE potential** `Phi_bgM - Phi_bg`,
+> and indices raised by `g^{-1}=(eta+h)^{-1}`. The Totaro-`g^{-1}` route and a hand-rolled Levi-Civita
+> Riemann of `g` AGREE EXACTLY over Q (mandatory cross-check PASS). The text below is RETAINED as the
+> honest pre-correction record; read `H0` as `H_source(x;bg-only)` (function-of-x), NOT the constant.
 
-### Definition (unambiguous, engine-grounded)
+**This section answers the one new methodological question the 70.1 re-frame creates: what IS `h_mu_nu(x; M)`, operationally, on the flat `eta` background?** It must satisfy (a) `h = 0` at `M=0` (so `g=eta` flat — and per B1, IDENTICALLY in x, not just at the center point); (b) `h` is sourced by matter `M` in `V_1/V_{1/2}` through the cross-term `2Re((x2 x1)x3)`; (c) it is computable EXACTLY over Q with the warm engine.
 
-The engine already implements the construction-(ii) split in `offcenter_slice_metric(delta, ...)` (l.1109–1141) and `minkowski_reduction` (l.1165). Phase 72's contribution is to **read the existing `delta` argument as the MATTER content** (not a V_0-background move) while **holding the V_0-background at the center**:
+### Definition (CORRECTED to B1 — see the banner above)
+
+The engine implements the OLD centered split in `offcenter_slice_metric(delta, ...)` (l.1109–1147) and `minkowski_reduction` (l.1173). Plan 72-01 **does NOT use that centered `h` on the decisive path**; it uses the B1 matter-induced deviation (matterless reference AT THE SAME x). Phase 72's contribution is to **read the `delta`/`matter_delta` argument as the MATTER content** (not a V_0-background move) while **holding the V_0-background partner fixed in BOTH the matter-ON and matter-OFF cone-Hessians (so it cancels)**:
 
 ```
-X(x; M) = X_center(x) + M,           X_center(x) = I/3 with slice coords {beta,gamma,p,q} live,
+X(x; M) = X_bg(x) + M,               X_bg(x) = I/3 + (fixed V_0 partner), slice coords {beta,gamma,p,q} live,
                                        M in V_1(alpha={0}) ⊕ V_{1/2}({11..26})  [matter only]
 
-H_source(x; M) = Hess_{slice}( -log det_3 )  evaluated at X(x; M)     # the cone-Hessian SOURCE, 4x4 over the slice coords
-H0             = H_source(center, M=0) = cone_hessian_at_center([1,2,3,10]) = diag(9,9,18,18)
+H_source(x; .) = Hess_{slice}( -log det_3 )  evaluated at .            # cone-Hessian SOURCE, 4x4 over slice coords
 
-h_munu(x; M)  := H_source(x; M) - H0           # centered deviation  (engine: H_bg - H_center)
-g_munu(x; M)  := eta_munu + h_munu(x; M)        # physical spacetime metric (eta = KKT Minkowski, l.1144)
+h_munu(x; M)  := H_source(x; bg+M) - H_source(x; bg-only)   # B1 (FIXED): matterless reference AT THE SAME x
+                                                            #   [TRAP, do NOT use: H_source(x;M) - H0 const]
+g_munu(x; M)  := eta_munu + h_munu(x; M)        # physical spacetime metric (eta = KKT Minkowski, l.1152)
 ```
 
-with, in the `det_3` matrix layout, `x1 = X[2][1]` (V_0 octonion, carries the slice `p,q` and the V_0 internal sector), `x2 = X[0][2]`, `x3 = X[1][0]` (V_{1/2} octonions, carry the matter). **Matter `M` enters `H_source` ONLY through the cross-term `2Re((x2 x1)x3)` of `det_3`** (the unique `V_0<->V_{1/2}` channel); `alpha` (V_1) multiplies the diagonal norms and is absent from the triple ⟹ V_1-inertness.
+with, in the `det_3` matrix layout, `x1 = X[2][1]` (V_0 octonion, carries the slice `p,q` and the V_0 internal sector), `x2 = X[0][2]`, `x3 = X[1][0]` (V_{1/2} octonions, carry the matter). **Matter `M` enters `H_source` ONLY through the cross-term `2Re((x2 x1)x3)` of `det_3`** (the unique `V_0<->V_{1/2}` channel); `alpha` (V_1) multiplies the diagonal norms and is absent from the triple ⟹ V_1-inertness (CONFIRMED in 72-01 Task 3: V_1-only matter leaves `R[g]=0`).
 
 ### Why this satisfies (a)/(b)/(c)
 
-- **(a) Flat at (M=0, center).** With `M=0` and `X_bg` at the center, `H_source(center, 0) = H0` exactly, so `h = 0` and `g = eta` — the engine's `minkowski_reduction` confirms `g - eta = 0` over Q, signature (1,3) (l.1194, l.1208). **This flatness is DERIVED from the KKT `det_2` Minkowski form, not inserted** (70.1, Correction 3): `eta` IS the slice's own causal form; the centered subtraction is bookkeeping that makes `g->eta` at the basepoint, carrying NO circularity and NO Lambda tripwire.
-- **(b) Sourced by matter through the cross-term.** Turning on `M` in `V_{1/2}` (with a V_0 `x1` partner) makes the cross-term `2Re((x2 x1)x3) != 0`, which feeds `det_3`, hence `Phi=-log det_3`, hence `H_source`, hence `h = H_source - H0 != 0`. The cross-term OFF-switch (block-diagonal norm) removes exactly this channel ⟹ `h` loses its `M`-source.
-- **(c) Exact over Q.** Everything is rational once matter is substituted to rationals: `H_source` is `Hess(-log det_3)` with the slice coords symbolic and matter rational (the engine's measured ~3s inverse / ~19s curvature regime).
+- **(a) Flat at M=0 (B1: over a NEIGHBOURHOOD, not just the center point).** With `M=0`, `H_source(x;bg+0) == H_source(x;bg)` so `h(x;0) = 0` IDENTICALLY in x ⟹ `g = eta_bg` everywhere ⟹ `R[g](M=0)=0` (confirmed exact over Q at the center, off-center, and with the bg partner ON — 72-01 Task 2.0/2.0b/2.0c). `minkowski_reduction` confirms `g-eta=0` and signature (1,3) at the center (l.1194). **This flatness is DERIVED from the KKT `det_2` Minkowski form, not inserted** (70.1, Correction 3): `eta` IS the slice's own causal form; the B1 subtraction is a deviation-from-matterless bookkeeping carrying NO circularity and NO Lambda tripwire. [The OLD centered `H0`-subtraction gave `h=0` only AT the center point ⟹ a CURVED `M=0` — the falsified framing.]
+- **(b) Sourced by matter through the cross-term.** Turning on `M` in `V_{1/2}` makes the cross-term `2Re((x2 x1)x3) != 0`, which feeds `det_3`, hence `Phi=-log det_3`, hence `H_source(bg+M)`, hence `h = H_source(bg+M) - H_source(bg) != 0`. The cross-term OFF-switch (block-diagonal norm) removes exactly this channel ⟹ `h` loses its `M`-source (the decisive off-switch is Plan 72-02).
+- **(c) Exact over Q.** Everything is rational once matter is substituted to rationals: `H_source` is `Hess(-log det_3)` with the slice coords symbolic and matter rational (measured ~2s inverse / ~few-s Totaro curvature; the hand-rolled Levi-Civita cross-check ~35s — watchdog-safe with the evaluate-then-invert strategy).
 
 ### Which curvature is decisive: curvature of g=eta+h (full nonlinear), with the linearized-in-M piece feeding Phase 73
 
