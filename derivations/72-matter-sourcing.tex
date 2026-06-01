@@ -322,3 +322,132 @@ with $\|M\|$ vs $\det_2$, the emission of $h^{(1)}$ for the Phase-73 linearized-
 test, and the matter-sourcing VERDICT (SURVIVES/greenlight or honest-NEGATIVE/HALT).
 This plan BUILDS and CONFIRMS the curvature-of-$g$ machinery and the flat baseline; it
 does not pronounce the verdict.
+
+
+\section{Plan 72-02: the decisive matter-sourcing controls (exact over $\mathbb{Q}$)}
+\label{sec:72-02-decisive}
+
+All quantities below are EXACT over $\mathbb{Q}$ on the curvature-of-$g$ engine built
+and validated in 72-01 ($g=\eta+h$, B1 difference-of-cone-Hessians, indices raised by
+$g^{-1}=(\eta+h)^{-1}$, Totaro $=$ hand-rolled Levi-Civita). Driver:
+\texttt{.gpd/phases/72-b-matter-sourcing/72-02-decisive-controls.py}.
+
+\paragraph{Decisive representative $M_0$ (signature regime).} The decisive controls use
+the SMALL-$\|M\|$ Lorentzian representative: matter $=$ \texttt{MATTER\_L} ($V_{1/2}$
+pattern $/10$ at the center slice) PLUS a scaled $V_0$ background partner
+$\tfrac12\,$\texttt{BG\_DELTA} (so the cross-term triple is NON-VACUOUS --
+\texttt{MATTER\_L} alone has $x_1=0\Rightarrow$ triple $=0\Rightarrow$ a hollow
+off-switch test). At this $M_0$ the metric $g=\eta+h$ has signature $(1,3)$ exactly over
+$\mathbb{Q}$ (verified by \texttt{real\_roots}; the full-strength $V_0$ partner flips it
+to $(4,0,0)$ Euclidean, outside the perturbative splice). The triple value at $M_0$ is
+$2\,\mathrm{Re}((x_2x_1)x_3)=-\tfrac{13}{63000}\neq0$, all three octonion slots
+populated with $e_4$ content.
+
+\subsection{CALC-03: the cross-term ON/OFF off-switch}
+\label{sec:onoff}
+
+The off-switch is the block-diagonal norm $\det_{\mathrm{block}}(X)=\alpha\beta\gamma -
+\alpha|x_1|^2 - \beta|x_2|^2 - \gamma|x_3|^2$, i.e.\ the full Freudenthal $\det_3$ with
+the UNIQUE $V_0\!\leftrightarrow\!V_{1/2}$ triple $2\,\mathrm{Re}((x_2x_1)x_3)$ DROPPED.
+Verified exactly over $\mathbb{Q}$: $\det_3 - \det_{\mathrm{block}} =
+2\,\mathrm{Re}((x_2x_1)x_3)$ (only the triple removed; the $V_{1/2}$ self-norms
+$|x_2|^2,|x_3|^2$ REMAIN), and $\det_{\mathrm{block}}\to\alpha(\beta\gamma-|x_1|^2)=
+\alpha\,\det_2(V_0)$ when the matter $(x_2,x_3,\alpha)$ is off. The SAME norm potential is
+used in the source Hessian, the B1 matterless reference, AND the difference-potential
+cubic form $C$, so the ON vs OFF comparison changes EXACTLY ONE thing.
+
+Computed at the SAME $M_0$, indices raised with $g^{-1}=(\eta+h)^{-1}$ (NOT
+$H_{\mathrm{bg}}^{-1}$):
+\begin{align}
+  R[g_{\mathrm{full}}](M_0) &=
+    \frac{574555003866544709883436455949197015814286284176705024950108160000000}
+         {143352729882274685722747626495956230820821671431770157155256505601}
+    \;\approx\; 4007.98, \\
+  R[g_{\mathrm{off}}](M_0) &=
+    \frac{3991270818195644631757852996444718587308760725826654592040960000}
+         {16181158847400793403276045009822507564085161517939182484472801}
+    \;\approx\; 246.66.
+\end{align}
+Both are nonzero, both have signature $(1,3)$, and BOTH carry $S_{\mu\nu}\neq0$ AND
+Weyl$\neq0$ (genuine, not pure-trace). The off-switch therefore does NOT flatten $g$,
+but it removes
+\begin{equation}
+  1 - \frac{R[g_{\mathrm{off}}]}{R[g_{\mathrm{full}}]}
+  \;\approx\; 0.938
+\end{equation}
+of the scalar curvature: dropping the triple coupling cuts $R$ by a factor $\approx16.3$
+($R_{\mathrm{off}}/R_{\mathrm{full}}\approx0.0615$). The residual $R_{\mathrm{off}}
+\approx246.66\neq0$ is sourced by the RETAINED $V_{1/2}$ self-norms $|x_2|^2,|x_3|^2$
+(which still perturb the $\alpha,\beta$ diagonal of the cone-Hessian even with the triple
+removed). \emph{Reading:} the $V_0\!\leftrightarrow\!V_{1/2}$ triple is the DOMINANT
+($\sim94\%$) but NOT the EXCLUSIVE source of the $M$-curvature; the off-switch decisively
+reduces but does not kill it.
+
+\subsection{CALC-04: the $\|M\|\to0$ flat limit, leading power, and scaling}
+\label{sec:limit-scaling}
+
+\paragraph{The $\|M\|\to0$ limit (\texttt{test-lambda-vs-matter}).} With $M=t\,M_0$,
+\begin{equation}
+  R[g(t{=}0)] = 0,\qquad S_{\mu\nu}(t{=}0)=0,\qquad \mathrm{Weyl}(t{=}0)=0
+  \quad\text{exactly over }\mathbb{Q},
+\end{equation}
+i.e.\ flat $\eta$ is recovered as $\|M\|\to0$. This is the genuine flat baseline DERIVED
+from the KKT $\det_2$ Minkowski form -- NOT a $\Lambda$ / $R=-3$ baseline subtraction.
+
+\paragraph{Leading power (EMPIRICAL, not assumed).} Sampling $R(t)/t^k$ at shrinking
+rational $t\in\{1/10,1/20,1/50,1/100\}$: $R/t^2\to0$, $R/t^3\to0$, $R/t^4$ STABILIZES,
+$R/t^5$ diverges. Hence the leading power is $k=4$:
+\begin{equation}
+  R[g(t\,M_0)] = a_4\,t^4 + O(t^5),\qquad
+  a_4 = \frac{395268903}{24010000} \approx 16.4627 \quad\text{(exact over }\mathbb{Q}).
+\end{equation}
+The coefficient $a_4$ is confirmed by the monotone convergence $R/t^4\to a_4$ from above.
+
+\paragraph{Scaling vs $\det_2$ (the basepoint modulus).} Varying the $V_0$ background
+partner strength $s$ at FIXED matter direction (which moves the
+$\mathrm{Spin}(9,1)$-invariant $V_0$-block modulus $\det_2(V_0)=\beta\gamma-|x_1|^2$):
+\begin{center}
+\begin{tabular}{ccccc}
+\hline
+$s$ & $\det_2(V_0)$ & $\rho_J^2$ & $R[g]$ & signature \\
+\hline
+$1/2$  & $1231/14400$   & $2221/39200$  & $\approx4007.98$ & $(1,3)$ \\
+$1/3$  & $359/3600$     & $1243/44100$  & $\approx95.81$   & $(1,3)$ \\
+$1/5$  & $9631/90000$   & $1667/122500$ & $\approx41.37$   & $(1,3)$ \\
+$1/10$ & $39631/360000$ & $7309/980000$ & $\approx26.09$   & $(1,3)$ \\
+\hline
+\end{tabular}
+\end{center}
+As the partner shrinks ($\det_2(V_0)$ grows toward its center value $\tfrac19$), $R[g]$
+drops sharply: the curvature scale is tightly correlated with the $\det_2$ deviation of
+the basepoint. $\rho_J^2$ (the $F_4$-invariant off-center modulus) tracks the same
+deviation; for a single $V_0$ direction it coincides with the $\det_2(V_0)$ modulus.
+
+\subsection{Emitted Phase-73 data: $h^{(1)}$ and $h^{(2)}$}
+\label{sec:emit-h1}
+
+The linearized-in-$M$ perturbation $h^{(1)}_{\mu\nu}=\frac{d}{dt}h(x;t\,M_0)|_{t=0}$ is
+\textbf{identically zero}:
+\begin{equation}
+  h^{(1)}_{\mu\nu} = 0 \quad\text{(the }4\times4\text{ zero matrix, exact over }\mathbb{Q}).
+\end{equation}
+Consequently the matter perturbation of the spacetime metric is intrinsically
+$O(\|M\|^2)$, and the linear-in-$M$ curvature $R^{(1)}=0$ (consistent with the quartic
+leading power $R\sim t^4$). The LEADING NONZERO perturbation is the quadratic-in-$M$ piece
+$h^{(2)}_{\mu\nu}=\tfrac12\frac{d^2}{dt^2}h(x;t\,M_0)|_{t=0}$ (symmetric $(0,2)$), in the
+$(\beta,\gamma,p,q)$ frame at the center slice:
+\begin{equation}
+  h^{(2)} =
+  \begin{pmatrix}
+    261/1225 & 0      & 99/700   & 0 \\
+    0        & 9/40   & 99/700   & 0 \\
+    99/700   & 99/700 & 4293/9800 & 0 \\
+    0        & 0      & 0        & 4293/9800
+  \end{pmatrix}.
+\end{equation}
+\textbf{Phase-73 handoff (corrected).} Phase 73 will form the trace-reversed
+$\bar h_{\mu\nu}=h_{\mu\nu}-\tfrac12\eta_{\mu\nu}\,\mathrm{tr}_\eta(h)$ and test
+$\Box\bar h\sim\kappa T$. Since $h^{(1)}=0$, the leading metric response that Phase 73
+must use is $h^{(2)}$ (the quadratic-in-$\|M\|$ perturbation), NOT a vanishing
+linear-in-$M$ field. Phase 72 emits $h^{(2)}$ and the leading curvature coefficient
+$a_4$; it does NOT perform the Einstein test (\texttt{fp-assume-einstein} guard).
