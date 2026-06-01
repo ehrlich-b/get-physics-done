@@ -379,6 +379,38 @@ def det_3(X):
     return a * b * g - a * n1 - b * n2 - g * n3 + 2 * cross[0]
 
 
+def det_3_block(X):
+    """The BLOCK-DIAGONAL cross-term OFF-SWITCH norm (Phase 72-02, CALC-03):
+
+        det_block(X) = alpha*beta*gamma - alpha*|x1|^2 - beta*|x2|^2 - gamma*|x3|^2
+
+    i.e. the full Freudenthal det_3 with the UNIQUE triple coupling 2*Re((x2*x1)*x3)
+    DROPPED. This triple is the only term mixing all three off-diagonal octonions and,
+    by the Peirce grading under E_11 (V_1={0}, V_0={1..10}=alpha,beta,gamma,x1, and
+    V_{1/2}={11..26}=x2,x3), is the UNIQUE V_0<->V_{1/2} channel: x1 in V_0 couples to
+    the V_{1/2} matter (x2,x3) ONLY through 2*Re((x2 x1)x3). (The alpha,beta,gamma
+    diagonal and x1's self-norm |x1|^2 are pure-V_0; |x2|^2,|x3|^2 are V_{1/2}
+    self-norms that remain.)
+
+    OPERATIONAL DEFINITION (research Open Q4, stated explicitly): the off-switch is
+    "det_3 with the V_0<->V_{1/2} triple set to 0". The prompt's schematic
+    "det(V_1)*det(V_0)" product is exactly this block-diagonal form -- the matter
+    self-norms |x2|^2,|x3|^2 are KEPT (they multiply alpha,beta -- the diagonal block);
+    only the TRIPLE coupling that entangles the V_0 partner x1 with BOTH V_{1/2}
+    slots is removed. So det_block does NOT zero the matter; it removes the unique
+    octonionic CHANNEL by which the V_0 partner sources curvature from the V_{1/2}
+    matter.
+
+    REDUCES to det(V_0) when matter (x2,x3,alpha)=0: with x2=x3=0 and alpha free,
+    det_block = alpha*beta*gamma - alpha*|x1|^2 = alpha*(beta*gamma-|x1|^2) =
+    alpha*det_2(V_0-block), and the dropped triple is identically 0 (x2=x3=0). EXACT
+    over Q. Same SSOT _coord_from_octmat / _oct_normsq as det_3 (octonion_algebra.py
+    BANNED)."""
+    a, b, g, x1, x2, x3 = _coord_from_octmat(X)
+    n1, n2, n3 = _oct_normsq(x1), _oct_normsq(x2), _oct_normsq(x3)
+    return a * b * g - a * n1 - b * n2 - g * n3   # 2*Re((x2 x1)x3) DROPPED (off-switch)
+
+
 def Tr2(X):
     """Quadratic trace Tr(X^2) := Tr(X o X)   (bidegree (2,0)).
 
@@ -462,6 +494,11 @@ Ysym = X_from_symbols(ys)
 inv_Tr_X = Tr(Xsym)        # bidegree (1,0)
 inv_Tr2_X = Tr2(Xsym)      # bidegree (2,0)
 inv_det_X = det_3(Xsym)    # bidegree (3,0)
+# Phase 72-02 cross-term OFF-SWITCH potential numerator: the block-diagonal norm
+# (the V_0<->V_{1/2} triple 2Re((x2 x1)x3) dropped). Parallel module-level expression
+# to inv_det_X so the OFF curvature run uses det_block CONSISTENTLY in BOTH the source
+# Hessian (-log det_block) AND the difference-potential cubic form C_block.
+inv_det_X_block = det_3_block(Xsym)   # bidegree (3,0), triple coupling removed
 inv_Tr_Y = Tr(Ysym)        # bidegree (0,1)
 inv_Tr2_Y = Tr2(Ysym)      # bidegree (0,2)
 inv_det_Y = det_3(Ysym)    # bidegree (0,3)
@@ -1080,7 +1117,7 @@ def _offcenter_subs(delta, slice_symbolic=True, slice_vals=None):
 
 
 def cone_hessian_offcenter(delta, slice_order=None, slice_symbolic=True,
-                           slice_vals=None, simp=None):
+                           slice_vals=None, simp=None, norm_potential=None):
     """The cone metric Hess(-log det) restricted to the 4 spacetime sub-slice coords
     {x1,x2,x3,x10}, evaluated at the off-center basepoint X_bg = I/3 + delta,
     EXACT over Q. Parallel to cone_hessian_at_center but using _offcenter_subs.
@@ -1088,6 +1125,12 @@ def cone_hessian_offcenter(delta, slice_order=None, slice_symbolic=True,
     `slice_symbolic=True` keeps {beta,gamma,p,q} symbolic (the metric as a function
     of the spacetime point x); `slice_symbolic=False` evaluates at slice_vals (a
     full rational basepoint). Returns the 4x4 sympy Matrix.
+
+    `norm_potential` (Phase 72-02 off-switch): the cubic-norm expression whose
+    -log Hessian is the source. Default None => the full Freudenthal inv_det_X
+    (cross-term ON). Pass inv_det_X_block for the cross-term OFF-SWITCH (the
+    V_0<->V_{1/2} triple dropped) -- this is the ONLY change between the ON and OFF
+    runs, applied IDENTICALLY here and in the difference-potential cubic form C.
 
     CENTER REGRESSION: cone_hessian_offcenter({}, slice_symbolic=False,
     slice_vals=[1/3,1/3,0,0]) == diag(9,9,18,18), det 26244 (the Phase-70 value)."""
@@ -1097,7 +1140,7 @@ def cone_hessian_offcenter(delta, slice_order=None, slice_symbolic=True,
     if slice_order is None:
         slice_order = [1, 2, 3, 10]
     from sympy import log as _log
-    f = -_log(inv_det_X)
+    f = -_log(inv_det_X if norm_potential is None else norm_potential)
     sub = _offcenter_subs(delta, slice_symbolic=slice_symbolic, slice_vals=slice_vals)
     H = []
     for i in slice_order:
@@ -2052,18 +2095,23 @@ def _V0_plus_matter_sub():
 
 
 def _matterless_reference_hessian(bg_delta, slice_symbolic=True, slice_vals=None,
-                                  simp=None):
+                                  simp=None, norm_potential=None):
     """The MATTERLESS-at-same-x reference cone-Hessian H_source(x; bg-only) over the 4
     slice coords (B1 subtrahend). EXACT over Q. This is cone_hessian_offcenter on the
     bg-only basepoint (V_0 partner retained, matter OFF), with the slice coords symbolic
     (default) or rational (slice_vals). Subtracting THIS (not the constant H_center) is
     what makes h(x;M=0)==0 identically in x => the flat M=0 baseline over a neighbourhood
-    (Phase-70.1 B1)."""
+    (Phase-70.1 B1).
+
+    `norm_potential` (Phase 72-02 off-switch): passed through to cone_hessian_offcenter
+    so the B1 reference subtrahend uses the SAME norm (full inv_det_X or block) as the
+    bg+M term -- the off-switch is applied to BOTH terms of h = H(bg+M) - H(bg)."""
     from sympy import cancel as _cancel
     if simp is None:
         simp = _cancel
     return cone_hessian_offcenter(bg_delta or {}, slice_symbolic=slice_symbolic,
-                                  slice_vals=slice_vals, simp=simp)
+                                  slice_vals=slice_vals, simp=simp,
+                                  norm_potential=norm_potential)
 
 
 def _matter_basepoint_subs(matter_delta, bg_delta, slice_symbolic=True, slice_vals=None):
@@ -2102,10 +2150,19 @@ def _difference_potential_subs(matter_delta, bg_delta, slice_symbolic=True,
     return sub_bgM, sub_bg
 
 
-def spacetime_curvature_of_g(matter_delta, slice_vals, bg_delta=None, simp=None):
+def spacetime_curvature_of_g(matter_delta, slice_vals, bg_delta=None, simp=None,
+                             norm_potential=None):
     """The INTRINSIC curvature of the PHYSICAL spacetime metric g = eta + h(x;M),
     indices raised with g^{-1} = (eta+h)^{-1} (NOT the bare cone-Hessian H_bg^{-1}).
     EXACT over Q. This is the DERV-02 core (Phase-70.1 human-ratified re-frame, B1).
+
+    `norm_potential` (Phase 72-02 CALC-03 off-switch): the cubic-norm expression whose
+    -log Hessian sources h and whose 3rd derivative is the cubic form C. Default None
+    => the full Freudenthal inv_det_X (cross-term ON). Pass inv_det_X_block for the
+    OFF-SWITCH (V_0<->V_{1/2} triple 2Re((x2 x1)x3) dropped). CRITICAL: the SAME norm is
+    used in (a) the bg+M source Hessian, (b) the matterless B1 reference subtrahend, AND
+    (c) the difference-potential cubic form C -- so the ON vs OFF comparison changes
+    EXACTLY ONE thing (the presence of the triple coupling) and nothing else.
 
     B1 (matter-on-flat) operational definition of h -- the MATTER-INDUCED DEVIATION
     of the cone-Hessian source with the V_0 background partner RETAINED IN BOTH terms:
@@ -2141,9 +2198,11 @@ def spacetime_curvature_of_g(matter_delta, slice_vals, bg_delta=None, simp=None)
     pt = {coords[i]: slice_vals[i] for i in range(n)}
     # (a) B1 h = H_source(x;bg+M) - H_source(x;bg), both slice-symbolic, eval at slice_vals.
     #     eta_bg = (beta,gamma,p,q)-frame pullback of Minkowski diag(+1,-1,-1,-1).
-    H_bg_sym = cone_hessian_offcenter(full, slice_symbolic=True, slice_vals=None, simp=simp)
+    H_bg_sym = cone_hessian_offcenter(full, slice_symbolic=True, slice_vals=None, simp=simp,
+                                      norm_potential=norm_potential)
     H_ref_sym = _matterless_reference_hessian(bg_delta, slice_symbolic=True,
-                                              slice_vals=None, simp=simp)
+                                              slice_vals=None, simp=simp,
+                                              norm_potential=norm_potential)
     h_sym = (H_bg_sym - H_ref_sym).applyfunc(simp)
     J = _frame_jacobian_bg_to_mink()
     eta_bg = (J.T * _eta_minkowski() * J).applyfunc(simp)
@@ -2152,10 +2211,12 @@ def spacetime_curvature_of_g(matter_delta, slice_vals, bg_delta=None, simp=None)
     h_at = h_sym.applyfunc(lambda e: simp(e.subs(pt)))
     H_bg_at = H_bg_sym.applyfunc(lambda e: simp(e.subs(pt)))
     H_ref_at = H_ref_sym.applyfunc(lambda e: simp(e.subs(pt)))
-    # (b) DIFFERENCE-potential cubic form C_ijk = (Phi_{bg+M} - Phi_{bg})_{,ijk}
+    # (b) DIFFERENCE-potential cubic form C_ijk = (Phi_{bg+M} - Phi_{bg})_{,ijk}.
+    #     Use the SAME norm potential (full inv_det_X or block) as the source Hessian.
+    _phi_num = inv_det_X if norm_potential is None else norm_potential
     sub_bgM, sub_bg = _difference_potential_subs(matter_delta, bg_delta,
                                                  slice_symbolic=True)
-    Phi_diff = (-_log(inv_det_X)).subs(sub_bgM) - (-_log(inv_det_X)).subs(sub_bg)
+    Phi_diff = (-_log(_phi_num)).subs(sub_bgM) - (-_log(_phi_num)).subs(sub_bg)
     C_sym = cubic_form_C(Phi_diff, coords)
     C_at = [[[simp(C_sym[i][j][k].subs(pt)) for k in range(n)] for j in range(n)]
             for i in range(n)]
