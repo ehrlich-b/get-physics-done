@@ -1120,11 +1120,19 @@ def offcenter_slice_metric(delta, slice_vals=None):
     center). `slice_vals` (rational) gives a full basepoint; default leaves the slice
     symbolic. Returns dict {g, h, H_bg, H_center, eta_bg, rho_J_sq}.
 
-    NOTE: the DECISIVE curvature invariants (Task 3) are computed from the cone-Hessian
-    metric H_bg directly (the Hessian metric whose Totaro curvature is exact); the
-    eta+h split is the construction-(ii) bookkeeping (h is what makes g->eta at center).
-    The intrinsic curvature of g and of H_bg coincide where h carries all the
-    non-flatness (g = eta + h with eta the constant background)."""
+    NOTE [SUPERSEDED by Phase 70.1 -- the old text below was FALSIFIED]. The prior
+    docstring claimed "the DECISIVE curvature is computed from the cone-Hessian metric
+    H_bg directly ... the intrinsic curvature of g and of H_bg COINCIDE." That is the
+    pre-70.1 (cone-Hessian-is-metric) framing and is FALSIFIED: g = eta_bg + h is NOT a
+    Hessian metric (eta_bg is a constant Lorentzian background, H_center a constant
+    centering shift), so its curvature raises indices with g^{-1}=(eta+h)^{-1}, NOT with
+    the bare cone-Hessian H_bg^{-1}. They do NOT coincide in general. The DECISIVE
+    spacetime curvature is computed by spacetime_curvature_of_g() (Section 13), with the
+    cubic form C UNCHANGED (eta_bg, H_center constant => C_ijk = h_{,ijk} = (H_bg)_{,ijk})
+    but indices raised by g, and cross-checked by hand_rolled_riemann_of_g(). The M=0
+    spacetime baseline is FLAT (g=eta_bg constant => R=S=Weyl=0), DERIVED from KKT det_2;
+    the cone-Hessian's R=-3 / {0,-1,-1,-1} / R_time x H^3 is the matter SOURCE field's
+    geometry, NOT the spacetime curvature."""
     from sympy import cancel as _cancel
     symbolic = slice_vals is None
     H_bg = cone_hessian_offcenter(delta, slice_symbolic=symbolic, slice_vals=slice_vals)
@@ -1964,6 +1972,253 @@ def _V0_plus_matter_sub():
     """The center I/3 again (positive); used with a tangent that INCLUDES one V_{1/2}
     matter direction to show that adding matter makes the slice NON-totally-geodesic."""
     return _center_sub()
+
+
+# ============================================================================
+# 13. PHASE 72 (B -- MATTER-ON-FLAT) EXTENSION  (Plan 72-01)
+# ============================================================================
+# Build & confirm the curvature of the PHYSICAL spacetime metric g = eta + h(x;M)
+# on the FLAT KKT-Minkowski background, per the Phase-70.1 human-ratified verdict
+# (g=eta+h IS the spacetime metric; the cone-Hessian is the matter SOURCE, not the
+# metric; cone-Hessian-is-metric FALSIFIED). All decisive arithmetic EXACT over Q.
+#
+# THE LOAD-BEARING INDEX-RAISING CORRECTION (Phase-70.1 re-frame, one line).
+# ------------------------------------------------------------------------
+# The curvature of g = eta + h MUST raise indices with g^{-1} = (eta+h)^{-1}, NOT
+# the bare cone-Hessian H_bg^{-1}. Because eta_bg is a CONSTANT (coordinate-
+# independent) background and H_center is a CONSTANT centering reference, the
+# 3rd-derivative cubic form is unchanged:
+#     C_ijk = g_{,ijk} = (eta_bg + h)_{,ijk} = h_{,ijk} = (H_bg)_{,ijk}
+#           = (cone-Hessian potential Phi=-log det_3)_{,ijk},
+# i.e. C is IDENTICAL to the cone-Hessian source's cubic form. ONLY the inverse
+# metric differs: g^{-1} = (eta_bg + h)^{-1} instead of H_bg^{-1}. So
+#     R_ijkl[g] = -(1/4) (g^{-1})^{pq} ( C_jlp C_ikq - C_ilp C_jkq ),   C from Phi.
+# This SUPERSEDES (and FALSIFIES) the stale docstring of offcenter_slice_metric
+# (lines ~1123-1127, "decisive curvature from H_bg directly ... g and H_bg
+# curvature coincide"). They do NOT coincide: g = eta + h is NOT a Hessian metric
+# (eta_bg is not Hess of anything in the slice coords; H_center shifts it), so its
+# index-raising metric is genuinely different from the cone-Hessian's. The Totaro
+# closed form still applies because the FIRST-KIND Christoffel only sees the metric
+# DERIVATIVE g_{,ij,k} = h_{,ijk} = C_ijk (eta_bg, H_center constant); the closed
+# form's index-raising is whatever metric the connection is compatible with, i.e.
+# g, not H_bg. This is MANDATORILY cross-checked against a hand-rolled
+# Christoffel/Riemann of g=eta+h (hand_rolled_riemann_of_g) -- if they ever
+# disagree, the hand-rolled Riemann of g is PRIMARY (research Open Q1).
+#
+# M=0 FLAT BASELINE (DERIVED from KKT det_2, NOT inserted; NO Lambda tripwire).
+# ---------------------------------------------------------------------------
+# At (M=0, center) h=0 so g=eta_bg, a CONSTANT metric => R=S=Weyl=0 identically.
+# This flatness is DERIVED from the KKT det_2 Minkowski form (eta IS the slice's own
+# causal structure); the centered subtraction h := H_bg - H_center is bookkeeping
+# carrying NO inserted Lambda and NO circularity. The cone-Hessian center's
+# {0,-1,-1,-1} / R=-3 / R_time x H^3 is the SOURCE field's geometry, NOT the
+# spacetime curvature (fp-lambda-as-sourcing forbids quoting it as such).
+
+
+def _matter_basepoint_subs(matter_delta, bg_delta, slice_symbolic=True, slice_vals=None):
+    """Substitution for X(x; M) = (I/3 + V_0-background bg_delta) + matter M, with the
+    V_0-background HELD (default at the center: bg_delta describes a FIXED V_0-internal
+    x1 partner so the cross-term has all three slots) and matter M in V_1(alpha={0}) U
+    V_{1/2}({11..26}). Slice coords {1,2,3,10}=(beta,gamma,p,q) symbolic (default) or
+    rational (slice_vals). EXACT over Q.
+
+    `matter_delta`, `bg_delta`: dicts {engine-native-index -> exact Rational}. The two
+    are merged onto _offcenter_subs; the SPLIT is purely bookkeeping (matter vs the
+    fixed V_0 x1 partner). matter_delta indices MUST lie in V1_ALPHA_IDX U V_HALF_IDX
+    (the matter sectors); bg_delta indices in V0_INTERNAL_W_IDX (the V_0 x1 partner).
+    This is the engine `delta` of _offcenter_subs read as MATTER (Phase-72 contribution)."""
+    for k in (matter_delta or {}):
+        assert k in V1_ALPHA_IDX or k in V_HALF_IDX, \
+            f"matter index {k} not in V_1 U V_1/2 (matter sectors)"
+    for k in (bg_delta or {}):
+        assert k in V0_INTERNAL_W_IDX, \
+            f"bg index {k} not in V_0-internal x1 partner sector {V0_INTERNAL_W_IDX}"
+    full = {**(bg_delta or {}), **(matter_delta or {})}
+    return _offcenter_subs(full, slice_symbolic=slice_symbolic, slice_vals=slice_vals)
+
+
+def spacetime_curvature_of_g(matter_delta, slice_vals, bg_delta=None, simp=None):
+    """The INTRINSIC curvature of the PHYSICAL spacetime metric g = eta + h(x;M),
+    indices raised with g^{-1} = (eta+h)^{-1} (NOT the bare cone-Hessian H_bg^{-1}).
+    EXACT over Q. This is the DERV-02 core (Phase-70.1 re-frame).
+
+    Pipeline (the one substantive 70.1 change):
+      (a) g = eta_bg + h  via offcenter_slice_metric(full_delta, slice_vals) with
+          full_delta = bg_delta U matter_delta (V_0 partner + matter), slice rational.
+      (b) C_ijk = Phi_{,ijk} from the cone-Hessian potential Phi=-log det_3 (slice
+          coords symbolic, matter+bg rational), evaluated at slice_vals. SAME C as the
+          cone-Hessian source (eta_bg, H_center constant).
+      (c) ginv = g.inv()   == (eta+h)^{-1}, the DECISIVE index-raising metric.
+      (d) R = totaro_riemann(ginv, C, 4); Ric_jl = g^{ik}R_ijkl; Rscalar = g^{jl}Ric_jl.
+    Returns dict {g, h, ginv, C, R, Ric, Rscalar, detg, eta_bg, H_bg}.
+
+    WATCHDOG: matter+bg are rational BEFORE g.inv() (only the 4 slice coords were
+    symbolic, then substituted) => ~3s inverse, not the >200s all-symbolic cliff."""
+    from sympy import cancel as _cancel, log as _log
+    if simp is None:
+        simp = _cancel
+    n = 4
+    bg_delta = bg_delta or {}
+    full = {**bg_delta, **(matter_delta or {})}
+    # (a) g = eta + h at the rational slice basepoint
+    MG = offcenter_slice_metric(full, slice_vals=slice_vals)
+    g_at = MG["g"].applyfunc(simp)
+    # (b) cubic form C from the cone-Hessian potential, slice symbolic then evaluated
+    beta, gamma, p, q = symbols('beta gamma p q', real=True)
+    coords = [beta, gamma, p, q]
+    Phi = (-_log(inv_det_X)).subs(
+        _matter_basepoint_subs(matter_delta, bg_delta, slice_symbolic=True))
+    C_sym = cubic_form_C(Phi, coords)
+    pt = {coords[i]: slice_vals[i] for i in range(n)}
+    C_at = [[[simp(C_sym[i][j][k].subs(pt)) for k in range(n)] for j in range(n)]
+            for i in range(n)]
+    # (c) DECISIVE index-raising metric: g^{-1} = (eta+h)^{-1}  (NOT H_bg^{-1})
+    detg = simp(g_at.det())
+    ginv = g_at.inv().applyfunc(simp)
+    # (d) Totaro Riemann with C from Phi and indices raised by g
+    R = totaro_riemann(ginv, C_at, n, simp=simp)
+    Ric = Matrix(n, n, lambda j, l: simp(sum(
+        ginv[i, k] * R[i][j][k][l] for i in range(n) for k in range(n))))
+    Rscalar = simp(sum(ginv[j, l] * Ric[j, l] for j in range(n) for l in range(n)))
+    return {"g": g_at, "h": MG["h"].applyfunc(simp), "ginv": ginv, "C": C_at,
+            "R": R, "Ric": Ric, "Rscalar": Rscalar, "detg": detg,
+            "eta_bg": MG["eta_bg"], "H_bg": MG["H_bg"]}
+
+
+def hand_rolled_riemann_of_g(matter_delta, slice_vals, bg_delta=None,
+                             components=None, simp=None):
+    """MANDATORY independent cross-check of spacetime_curvature_of_g: the lower-index
+    Riemann tensor of g = eta + h(x;M) computed DIRECTLY from g via Christoffel
+    symbols (Levi-Civita), NOT the Totaro shortcut. EXACT over Q. Adapts the
+    h3_constant_curvature hand-rolled template to the dim-4 g=eta+h.
+
+        Gamma^a_bc = (1/2) g^{ad}(d_b g_dc + d_c g_db - d_d g_bc)
+        R^a_bcd    = d_c Gamma^a_bd - d_d Gamma^a_bc
+                     + Gamma^a_ce Gamma^e_bd - Gamma^a_de Gamma^e_bc
+        R_abcd     = g_ae R^e_bcd                                  (lower the index)
+
+    g is built with the 4 slice coords SYMBOLIC (matter+bg rational), differentiated
+    wrt the slice coords, then evaluated at slice_vals. `components` is a list of
+    (i,j,k,l) lower-index tuples to return (default: a spread of nonzero ones).
+    Returns dict {(i,j,k,l): R_ijkl, ...}. Independent of the Totaro closed-form
+    assumption => guards its applicability to eta+h (research Open Q1)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    n = 4
+    bg_delta = bg_delta or {}
+    full = {**bg_delta, **(matter_delta or {})}
+    beta, gamma, p, q = symbols('beta gamma p q', real=True)
+    coords = [beta, gamma, p, q]
+    # g = eta + h with the slice coords SYMBOLIC (matter/bg rational inside H_bg).
+    # Rebuild symbolically (offcenter_slice_metric with slice_vals=None keeps slice
+    # symbolic) on the matter+bg basepoint:
+    H_bg_sym = cone_hessian_offcenter(full, slice_symbolic=True, slice_vals=None, simp=simp)
+    H_center = cone_hessian_at_center(slice_order=[1, 2, 3, 10])
+    h_sym = (H_bg_sym - H_center).applyfunc(simp)
+    J = _frame_jacobian_bg_to_mink()
+    eta_bg = (J.T * _eta_minkowski() * J).applyfunc(simp)
+    g_sym = (eta_bg + h_sym).applyfunc(simp)
+    pt = {coords[i]: slice_vals[i] for i in range(n)}
+    # Christoffel of the SECOND kind from the symbolic g (then evaluate)
+    ginv_sym = g_sym.inv()
+
+    def Gamma(a, b, cc):
+        s = 0
+        for d in range(n):
+            s += ginv_sym[a, d] * (diff(g_sym[d, b], coords[cc])
+                                   + diff(g_sym[d, cc], coords[b])
+                                   - diff(g_sym[b, cc], coords[d]))
+        return Rational(1, 2) * s
+
+    G = [[[Gamma(a, b, cc) for cc in range(n)] for b in range(n)] for a in range(n)]
+
+    def Riem_up(a, b, cc, d):
+        s = diff(G[a][b][d], coords[cc]) - diff(G[a][b][cc], coords[d])
+        for e in range(n):
+            s += G[a][cc][e] * G[e][b][d] - G[a][d][e] * G[e][b][cc]
+        return s
+
+    if components is None:
+        components = [(0, 2, 0, 2), (2, 3, 2, 3), (0, 1, 0, 1), (1, 2, 1, 2)]
+    out = {}
+    for (i, j, k, l) in components:
+        Rup = Riem_up(i, j, k, l)        # R^i_{jkl}
+        Rlow = sum(g_sym[i, e] * 0 for e in range(0))  # init 0
+        Rlow = 0
+        # Lower the FIRST index: R_{ijkl} = g_{i e} R^e_{jkl}
+        Rlow = sum(g_sym[i, e] * Riem_up(e, j, k, l) for e in range(n))
+        out[(i, j, k, l)] = simp(Rlow.subs(pt))
+    return out
+
+
+def ricci_decomposition_n4(R, Ric, Rscalar, g, ginv, simp=None):
+    """The n=4 GR Ricci decomposition of the lower-index Riemann tensor, EXACT over Q
+    (VALD-04 re-framed). Splits R_ijkl = Scal_ijkl + E_ijkl + Weyl_ijkl with
+        traceless Ricci  S_ab    = Ric_ab - (R/n) g_ab            (trace_g S = 0)
+        scalar part      Scal    = (R/(n(n-1))) (g_il g_jk - g_ik g_jl)
+        traceless-Ric    E_ijkl  = (1/(n-2)) (S_il g_jk - S_jl g_ik
+                                               - S_ik g_jl + S_jk g_il)
+        Weyl             C_ijkl  = R_ijkl - Scal_ijkl - E_ijkl.
+    n=4 here. Returns dict {S, trace_S, Scal, E, Weyl, resid_zero, weyl_zero, S_zero,
+    R_zero}. resid_zero asserts the reconstruction R = Scal+E+Weyl exactly over Q.
+
+    Genuine SPACETIME matter-sourcing requires R[g](M)!=0 with S!=0 and/or Weyl!=0
+    tracking M (NOT a pure-trace coordinate artifact). At M=0 (flat g) every piece is
+    0 (S_zero, weyl_zero, R_zero all True)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    n = 4
+    S = Matrix(n, n, lambda a, b: simp(Ric[a, b] - Rscalar / n * g[a, b]))
+    trace_S = simp(sum(ginv[a, b] * S[a, b] for a in range(n) for b in range(n)))
+    coef = Rscalar / Rational(n * (n - 1))
+    Scal = [[[[simp(coef * (g[i, l] * g[j, k] - g[i, k] * g[j, l]))
+               for l in range(n)] for k in range(n)] for j in range(n)] for i in range(n)]
+    E = [[[[simp(Rational(1, n - 2) * (S[i, l] * g[j, k] - S[j, l] * g[i, k]
+                                       - S[i, k] * g[j, l] + S[j, k] * g[i, l]))
+            for l in range(n)] for k in range(n)] for j in range(n)] for i in range(n)]
+    Weyl = [[[[simp(R[i][j][k][l] - Scal[i][j][k][l] - E[i][j][k][l])
+               for l in range(n)] for k in range(n)] for j in range(n)] for i in range(n)]
+    resid_zero = all(
+        simp(R[i][j][k][l] - (Scal[i][j][k][l] + E[i][j][k][l] + Weyl[i][j][k][l])) == 0
+        for i in range(n) for j in range(n) for k in range(n) for l in range(n))
+    weyl_zero = all(Weyl[i][j][k][l] == 0
+                    for i in range(n) for j in range(n) for k in range(n) for l in range(n))
+    S_zero = all(S[a, b] == 0 for a in range(n) for b in range(n))
+    R_zero = (simp(Rscalar) == 0)
+    return {"S": S, "trace_S": trace_S, "Scal": Scal, "E": E, "Weyl": Weyl,
+            "resid_zero": resid_zero, "weyl_zero": weyl_zero, "S_zero": S_zero,
+            "R_zero": R_zero}
+
+
+def eig_signature_count(M, simp=None):
+    """Signature (#positive, #negative, #zero) of a symmetric rational Matrix M by
+    EXACT eigenvalue signs over Q (NOT Sylvester leading minors -- the beta,gamma
+    frame is null-aligned so leading minors are invalid). Returns (npos, nneg, nzero)."""
+    from sympy import cancel as _cancel
+    if simp is None:
+        simp = _cancel
+    ev = M.eigenvals()   # exact over Q (with multiplicity)
+    npos = nneg = nzero = 0
+    for val, mult in ev.items():
+        v = simp(val)
+        if v == 0:
+            nzero += mult
+        elif v.is_positive:
+            npos += mult
+        elif v.is_negative:
+            nneg += mult
+        else:
+            # fall back to a numeric sign of an exact value (still exact input)
+            fv = float(v)
+            if fv > 0:
+                npos += mult
+            elif fv < 0:
+                nneg += mult
+            else:
+                nzero += mult
+    return npos, nneg, nzero
 
 
 # ============================================================================
