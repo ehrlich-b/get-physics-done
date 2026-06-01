@@ -195,12 +195,13 @@ Plans:
 5. The same `kappa, Lambda` work across the (M, x) family (a single-point match is rejected as a tuned-point overclaim; linear-in-M agreement is reported as the weaker level it is).
 
 **Backtracking trigger:** If no Einstein structure holds at exact or linear order, that is ACCEPTABLE — report "curved but not Einstein-structured" and do NOT force Einstein form. If the only way to reach `G = kappa T + Lambda g` is to import GST/SUSY/-R/2/Weinberg, STOP — that is the circularity the milestone exists to avoid; report the honest non-Einstein level instead.
-**Plans:** TBD
+**Plans:** 2 (planned 2026-06-01; checker-PASSED 16/16 dims; both `gpd validate plan-contract` valid)
 
 Plans:
 
-- [ ] 73-01: TBD (construct T_mu_nu + kappa from cross-terms, independent of Einstein form; circularity audit)
-- [ ] 73-02: TBD (Einstein-structure test over an (M,x) family; honest level verdict)
+- [ ] 73-01: BUILD — freeze independent T_mu_nu (PRIMARY single-scalar T[psi=2Re((x2 x1)x3)] + ALT sigma-model T[V_{1/2}]) + intrinsic kappa + the h^(2)(x) FIELD + order-counting anchors + circularity-audit scaffold, all exact over Q, NO Ric/R/G input (DERV-03); wave 1, non-interactive
+- [ ] 73-02: TEST — (M,x)-family decisive Einstein test of the FULL nonlinear G_munu[g]=Ric-(1/2)gR at O(||M||^4) vs kappa T + Lambda g with a single GLOBAL (kappa,Lambda); honest level (exact/linear-in-M/curved-but-not-Einstein) via n=4 S/Weyl; final circularity audit (VALD-05) + HUMAN verdict checkpoint (CALC-05); wave 2, interactive — closes v17.0
+- _Decisive-test re-scope (2026-06-01, research-grounded exact over Q): the literal SC#2 "□h̄^(2) ~ κT" is gauge-degenerate (G^(1)[h^(2)]=0, □h̄^(2) pure gauge since h^(2) not in Lorenz gauge) ⇒ the gauge-invariant decisive test is the FULL nonlinear G[g] at O(||M||^4); □h̄^(2) retained as a documented diagnostic. Λ=0 DERIVED (no tripwire)._
 
 ## Phase Dependencies
 
@@ -254,7 +255,7 @@ Phases execute in strict numeric order with hard gates: 70 -> 71 -> [KILL?] -> 7
 | 70.1 Revise A0 — physical-metric selection (cone-Hessian vs η+h) | v17.0 | 1/1 | **Complete — η+h SELECTED; option-1 cone-Hessian FALSIFIED** (verified 5/5 HIGH) | 2026-05-31 |
 | 71. A — Homogeneity KILL Gate | v17.0 | 2/2 | Complete (SURVIVES) | 2026-05-30 |
 | 72. B — Matter-Sourcing (matter-on-flat) | v17.0 | 2/2 | **Complete — SURVIVES (qualified)** (verified 9/9 HIGH; consistency CONSISTENT) | 2026-06-01 |
-| 73. C — Einstein Structure (conditional) | v17.0 | 0/TBD | Greenlit by 72 — QUADRATIC-response linearized-Einstein test (use h⁽²⁾, h⁽¹⁾=0) | - |
+| 73. C — Einstein Structure (conditional) | v17.0 | 0/2 | Planned (checker-PASSED) — decisive test = full nonlinear G[g] at O(‖M‖⁴) vs κT+Λg over an (M,x) family (linear □h̄⁽²⁾ gauge-degenerate, demoted to diagnostic); honest level, HUMAN verdict | - |
 
 ---
 
