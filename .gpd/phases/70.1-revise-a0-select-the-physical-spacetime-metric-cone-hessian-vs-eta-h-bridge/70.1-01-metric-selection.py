@@ -189,20 +189,28 @@ tick(f"SECTIONAL STRUCTURE: K(e0,e1) = {K[(0, 1)]} (timelike/dilation plane FLAT
 tick(f"  => static product R_time x H^3 (flat factor = time x_0 ~ beta+gamma); "
      f"round-H^3 cross-check K_round = {bench['round_K']} = 2*(-1/2) (factor-of-2 BENIGN).")
 
-# === Step 6: eta+h flatness cross-check (construction-(ii), Lambda=0 inserted) =
+# === Step 6: eta+h flatness cross-check (construction-(ii); flat vacuum DERIVED from KKT) =
+# RATIFIED FRAMING (outcome (2), Correction 1): the M=0 vacuum is flat because eta_bg IS
+# the KKT det_2 Minkowski form (52KKT: h_2(C_u) ~ R^{3,1}, mostly-minus) -- a DERIVED,
+# trusted result, NOT an inserted Lambda. The centered subtraction h:=Hess-Hess|center
+# only makes h a deviation-from-center (definitional bookkeeping); h==0 at center is true
+# as that bookkeeping statement but is NOT the reason for the flatness and carries NO
+# inserted-Lambda / circularity framing.
 MG = E.offcenter_slice_metric({}, slice_vals=CENTER)
 assert MG["h"] == Matrix.zeros(4, 4), MG["h"]
-# g == eta_bg at center (h=0): the bridge reduces to exact Minkowski by construction
+# g == eta_bg at center (h=0): the bridge reduces to the KKT Minkowski eta_bg exactly
 assert MG["g"] == MG["eta_bg"], (MG["g"], MG["eta_bg"])
 mink = E.minkowski_reduction()
 assert mink["residual"] == Matrix.zeros(4, 4), mink["residual"]
 assert mink["h_center"] == Matrix.zeros(4, 4), mink["h_center"]
 assert mink["sylvester_minors"] == [1, -1, 1, -1], mink["sylvester_minors"]
 assert mink["g_center"] == mink["eta"], (mink["g_center"], mink["eta"])
-tick(f"ETA+H CROSS-CHECK: h == 0 (4x4) at (M=0,center) => g = eta_bg, FLAT (R=0, Lambda=0).")
+tick(f"ETA+H CROSS-CHECK: h == 0 (4x4) at (M=0,center) => g = eta_bg = the KKT det_2 "
+     f"Minkowski form, FLAT (R=0). The flat vacuum is DERIVED from KKT (52KKT), NOT inserted.")
 tick(f"  minkowski_reduction(): residual = 0, Sylvester minors {mink['sylvester_minors']} "
-     f"=> signature {mink['signature']}. Lambda=0 is INSERTED by the centered subtraction "
-     f"h:=Hess-Hess|center (TAUTOLOGICAL, not derived).")
+     f"=> signature {mink['signature']}. h:=Hess-Hess|center == 0 at center is the centered "
+     f"deviation-from-center (definitional bookkeeping), NOT the reason for flatness; "
+     f"NO inserted-Lambda / circularity (RATIFIED outcome (2), Correction 1).")
 
 # === Step 7: signature-independence (CORRECT congruence/similarity statement) ==
 # The CONTRACT principle: eigenvalues of the (1,1) endomorphism g^{-1}Ric are
