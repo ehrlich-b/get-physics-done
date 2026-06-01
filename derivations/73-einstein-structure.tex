@@ -1,0 +1,299 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, potential=minus_log_det,
+%   cone_metric=hess(minus_log_det), cubic_norm_det=ring_lemma_verification_det_3,
+%   curvature_engine=totaro_closed_form, arithmetic=exact_over_Q,
+%   spacetime_metric=g_eta_plus_h, flat_M0_baseline=derived_from_KKT_det_2,
+%   einstein_tensor=full_nonlinear_Ric_minus_half_g_R, Lambda=0_no_tripwire
+%
+% Phase 73 (C -- Einstein Structure), the FINAL verdict of milestone v17.0
+%   "Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry".
+%
+% Plan 73-01 (BUILD, DERV-03): FROZE the independent stress-energy tensor T_mu_nu
+%   (PRIMARY single-scalar T[psi], psi=2Re((x2 x1)x3); ALTERNATIVE 16-field sigma
+%   T[V_{1/2}]) and the intrinsic coupling kappa (kappa_psi, kappa_sigma) from the
+%   V_{1/2} cross-term content, BEFORE any G_mu_nu[g] was computed -- each T symmetric,
+%   EXACTLY conserved, vanishing as ||M||->0, V_1-inert, provably free of any Ric/R/G
+%   input (AST-guarded). Reproduced the order anchors (G^(1)[h^(2)]=0, box(hbar^(2))!=0
+%   pure gauge) => the LINEAR test is degenerate => the decisive test is the FULL
+%   nonlinear G[g] at O(||M||^4). KEY FINDING: T[psi]~t^4 (order-matched to R), T_sigma
+%   ~t^2 (order-mismatch, disfavored).
+%
+% Plan 73-02 (TEST, CALC-05, this write-up): computed the FULL nonlinear Einstein
+%   tensor G_mu_nu[g(x)]=Ric[g]-(1/2)g R[g] over a 12-point (M,x) family (3 matter
+%   directions x 3 slice positions x 2 amplitudes, all sig (1,3), Totaro-vs-hand-rolled
+%   cross-checked), and TESTED whether a SINGLE GLOBAL (kappa,Lambda) reproduces it
+%   against the FROZEN T. RESULT (exact over Q): NO -- for NEITHER T candidate, at
+%   finite M OR at the t^4 leading order; G[g] carries S!=0 and Weyl!=0.
+%   HONEST LEVEL = NONE (curved but not Einstein-structured) -- the milestone's honest
+%   prior, reported at true strength, NOT forced into Einstein form.
+%
+% References:
+%   [TOT04] Totaro, "The curvature of a Hessian metric," arXiv:math/0401381.
+%   [FK94]  Faraut & Koranyi, Analysis on Symmetric Cones (OUP 1994), Ch. II-IV.
+%   [GST]   Gunaydin, Sierra, Townsend, Nucl. Phys. B242 (1984) 244; B253 (1985) 573
+%           (very special real geometry E_{6(-26)}/F_4) -- CITED FOR GEOMETRY ONLY.
+%   [JAC95] Jacobson, "Thermodynamics of Spacetime," Phys. Rev. Lett. 75 (1995) 1260
+%           (gr-qc/9504004) -- CONTRAST ONLY; the ensemble route is REJECTED.
+%   [70.1]  derivations/70.1-physical-metric-selection.tex (g=eta+h physical; M=0 flat
+%           DERIVED from KKT det_2; cone-Hessian = source; Lambda tripwire STRUCK).
+%   [72]    derivations/72-matter-sourcing.tex (matter-on-flat; h^(1)=0; R~a_4||M||^4,
+%           a_4=395268903/24010000; S!=0, Weyl!=0; cross-term off-switch).
+%   [73-01] .gpd/phases/73-c-einstein-structure/73-01-SUMMARY.md + 73-01-build-T-kappa.py
+%           (the FROZEN T + kappa; order anchors; structural order discriminant).
+%   [AUDIT] .gpd/phases/73-c-einstein-structure/73-circularity-audit.md (VALD-05).
+
+\section{Phase 73 (C -- Einstein structure): the decisive can-fail test
+$G_{\mu\nu}[g]\stackrel{?}{=}\kappa\,T_{\mu\nu}+\Lambda\,g_{\mu\nu}$, and the
+final verdict of milestone v17.0}
+
+\subsection{What is tested, and why this is the can-fail gate}
+
+Phase~72 established that the physical spacetime metric $g_{\mu\nu}(x)=\eta_{\mu\nu}
++h_{\mu\nu}(x;M)$ ($\eta$ the flat KKT--Minkowski form DERIVED from the slice's own
+$\det_2$; $h$ the matter-induced cone-Hessian deviation, B1) is genuinely curved at
+$M\neq0$, with $R[g]\sim a_4\|M\|^4$ ($a_4=\tfrac{395268903}{24010000}$), $h^{(1)}=0$,
+and nonzero traceless-Ricci and Weyl parts~[72]. The milestone's final question is
+whether that curvature has \emph{Einstein structure}: does it satisfy
+\begin{equation}
+  G_{\mu\nu}[g] \;=\; \mathrm{Ric}_{\mu\nu}[g] - \tfrac12\,g_{\mu\nu}R[g]
+              \;\stackrel{?}{=}\; \kappa\,T_{\mu\nu} + \Lambda\,g_{\mu\nu}
+  \label{eq:einstein-test}
+\end{equation}
+for a \emph{single global} pair $(\kappa,\Lambda)$, with $T_{\mu\nu}$ an
+\emph{independent} stress-energy tensor built from the matter content -- and NOT from
+any assumed Einstein form?
+
+This is a genuine can-fail test, and the honest prior is that it \emph{fails}: $g$
+already carries $S\neq0$ and Weyl $\neq0$ at finite $M$, while any cross-term $T$ is a
+special tensor; there is no reason a special $T$ should reproduce the full curvature.
+A negative answer -- ``curved but not Einstein-structured'' -- is an \textbf{acceptable
+full result} for the milestone, and the test is built to report it cleanly rather than
+to manufacture Einstein form (the binding Phase-C reporting discipline~[73-01]).
+
+\paragraph{The reporting discipline (true strength, both directions).}
+Two failure modes are foreclosed by construction. \emph{(i)} We do NOT round a near-miss
+to ``Einstein'': $(\kappa,\Lambda)$ are tested as single GLOBAL constants over the whole
+family, the exact residual is reported, and a single-point ``match'' (two constants
+fitting ten components at one point) is rejected (\texttt{fp-assume-einstein}). \emph{(ii)}
+We do NOT deflate the result: the $M=0$ vacuum is flat because it is DERIVED from the KKT
+$\det_2$ Minkowski form (not an inserted $\Lambda$), so $\Lambda=0$ is genuine and there is
+NO ``inserted-$\Lambda$ circularity'' to confess; equally, a genuine non-Einstein curvature
+is reported as the honest scientific outcome, not as a ``failure''.
+
+\subsection{The order-counting resolution: why the full nonlinear $G[g]$}
+
+The naive linearized test ``$\Box\bar h^{(2)}\sim\kappa T$'' is \emph{gauge-degenerate}
+and cannot be the decisive object. With $h^{(1)}=0$, the leading metric response is the
+quadratic $h^{(2)}(x)$, and Plan~73-01 reproduced exact over $\mathbb{Q}$:
+\begin{equation}
+  G^{(1)}_{\mu\nu}\big[h^{(2)}\big] = 0,\qquad
+  R^{(1)}\big[h^{(2)}\big] = 0,\qquad
+  \Box\bar h^{(2)}_{00} = -\tfrac{76221}{2450}\neq 0,\qquad
+  \partial^{\mu}\bar h^{(2)}_{\mu\nu}
+  = \Big[\tfrac{19143}{9800},\tfrac{9747}{4900},\tfrac{297}{350},0\Big]\neq 0.
+  \label{eq:order-anchors}
+\end{equation}
+The gauge-\emph{invariant} linear Einstein content $G^{(1)}[h^{(2)}]$ vanishes
+identically -- as it MUST, for consistency with $R[g]=O(\|M\|^4)$: the $O(\|M\|^2)$
+curvature is zero. The nonzero $\Box\bar h^{(2)}$ is \emph{pure gauge} (the nonvanishing
+Lorenz defect shows $h^{(2)}$ is not in Lorenz gauge), not physical curvature. Since the
+Totaro Riemann tensor is \emph{bilinear} in the cubic form $C=O(\|M\|^2)$, the genuine
+curvature lives at $O(\|M\|^4)=$ second order in $h^{(2)}$. \textbf{Therefore the decisive
+test is the FULL nonlinear $G_{\mu\nu}[g]=\mathrm{Ric}[g]-\tfrac12 g R[g]$ at
+$O(\|M\|^4)$}, computed on the same $g$ Phase~72 used. The linearized $\Box\bar h$ is
+retained only as a documented gauge diagnostic. This supersedes the stale ROADMAP
+success-criterion~\#2; see the reconciliation in~[AUDIT].
+
+\subsection{The independent stress tensors $T_{\mu\nu}$ (frozen in 73-01, DERV-03)}
+
+Both candidates were FROZEN from the $V_{1/2}$ cross-term content BEFORE any $G[g]$ was
+computed (the DERV-03 discipline; AST-guarded so that no $\mathrm{Ric}/R/G$ symbol enters
+their construction). On the flat background $\eta_{\mathrm{bg}}$ (indices raised by
+$\eta_{\mathrm{bg}}^{-1}$, NOT $g^{-1}$):
+\begin{align}
+  \text{PRIMARY:}\quad
+  &\psi(x;M)=2\,\mathrm{Re}\big((x_2 x_1)x_3\big),\qquad
+   T^{[\psi]}_{\mu\nu}=\partial_\mu\psi\,\partial_\nu\psi
+     -\tfrac12\,\eta^{\mathrm{bg}}_{\mu\nu}\,(\partial\psi)^2,
+   \label{eq:Tpsi}\\
+  \text{ALTERNATIVE:}\quad
+  &T^{[\sigma]}_{\mu\nu}=\delta_{ab}\,\partial_\mu\phi^a\partial_\nu\phi^b
+     -\tfrac12\,\eta^{\mathrm{bg}}_{\mu\nu}\,\delta_{ab}(\partial\phi^a)(\partial\phi^b),
+   \quad \phi^a=\big[(x_2x_1)_a,\,(x_1x_3)_a\big].
+   \label{eq:Tsigma}
+\end{align}
+Each is symmetric and EXACTLY conserved ($\partial^\mu T_{\mu\nu}=(\Box\psi)(\partial_\nu
+\psi)=0$, since every cross-term channel is linear in the slice coords, hence harmonic),
+vanishes as $\|M\|\to0$, and is $V_1$-inert. The cross-term scalar $\psi$ uses the
+certified $\det_3$ SSOT (cross-term order $2\,\mathrm{Re}((x_2 x_1)x_3)$;
+\texttt{octonion\_algebra.py} banned). The two are genuinely distinct tensor structures.
+
+The intrinsic couplings were frozen as the ratio of two intrinsic scales at the one
+reference direction $M_0$ (NOT $-R/2$, NOT a per-point fit):
+\begin{equation}
+  \kappa_\psi=\frac{a_4}{[t^4]\,\mathrm{tr}_\eta T^{[\psi]}}=\frac{32016781143}{5929},
+  \qquad
+  \kappa_\sigma=\frac{a_4}{[t^2]\,\mathrm{tr}_\eta T^{[\sigma]}}=\frac{395268903}{129850}.
+  \label{eq:kappas}
+\end{equation}
+\textbf{Structural order discriminant~[73-01].} $\mathrm{tr}_\eta T^{[\psi]}\sim t^4$,
+the SAME leading order as $R[g]\sim a_4 t^4$ -- so $T^{[\psi]}$ is the structurally
+order-MATCHED candidate (a constant $\kappa$ compares like-with-like). But
+$\mathrm{tr}_\eta T^{[\sigma]}\sim t^2$ (the sigma fields carry a $\text{matter}^1\times
+\text{slice}\sim t^1$ piece), an ORDER MISMATCH against the $t^4$ curvature -- so a
+constant $\kappa$ cannot match $T^{[\sigma]}$ to $G$, and the sigma candidate is
+disfavored on order grounds alone. We carry $T^{[\psi]}$ as PRIMARY and test both.
+
+\subsection{The full nonlinear $G_{\mu\nu}[g]$ over the $(M,x)$ family}
+
+The Einstein tensor was computed on a family of $\geq3$ matter directions $\times\geq3$
+slice positions $\times\geq2$ amplitudes, anchored on the decisive $M_0$ (MATTER\_L +
+BG\_HALF). At each point the signature is asserted $(1,3,0)$ via exact-over-$\mathbb{Q}$
+eigenvalue sign counting (staying inside the Lorentzian splice); $6$ of $18$ candidate
+points where the full-strength matter flips the signature to Euclidean were dropped, not
+forced. The remaining \textbf{$12$ valid points} all give $G_{\mu\nu}[g]\neq0$ with all
+entries real rationals over $\mathbb{Q}$.
+
+Three guards confirm the LHS is well-posed and correct:
+\begin{enumerate}
+\item \textbf{Regression.} At $M_0$ (center), $R[g]=\tfrac{574555\cdots}{143352\cdots}
+  \approx 4007.98$, matching the Phase-72 $R_{\mathrm{full}}\approx4008$ exactly over
+  $\mathbb{Q}$; $G[g]\neq0$ there (the THIS-research anchor).
+\item \textbf{Leading order.} With $M=t\,M_0$, $G_{00}(t)/t^4$ stabilizes
+  ($88.1\to89.7\to90.1$ as $t=\tfrac1{10},\tfrac1{20},\tfrac1{40}$) while $G_{00}(t)/t^3
+  \to0$ -- confirming $G$ first appears at $O(\|M\|^4)$, consistent with~[72].
+\item \textbf{Engine cross-check.} The Totaro Riemann components agree with an
+  INDEPENDENT hand-rolled Levi-Civita computation of $R_{ijkl}[g]$ on five components
+  $\{(0202),(2323),(0101),(1212),(0303)\}$ EXACTLY over $\mathbb{Q}$ at the anchor.
+\end{enumerate}
+For concreteness, at $M_0$ (center, floats shown for readability; the computation is
+exact over $\mathbb{Q}$):
+\begin{equation}
+  G_{\mu\nu}[g]\big|_{M_0}\approx
+  \begin{pmatrix}
+    6151.4 & 6129.7 & 1599.4 & 0\\
+    6129.7 & 6287.8 & 1633.0 & 0\\
+    1599.4 & 1633.0 & 974.0 & 0\\
+    0 & 0 & 0 & 178.3
+  \end{pmatrix},
+  \qquad
+  \kappa_\psi T^{[\psi]}_{\mu\nu}\big|_{M_0}\approx
+  \begin{pmatrix}
+    0 & 4.12 & 0 & 0\\
+    4.12 & 0 & 0 & 0\\
+    0 & 0 & 8.23 & 0\\
+    0 & 0 & 0 & -8.23
+  \end{pmatrix}.
+  \label{eq:GvsKT}
+\end{equation}
+The exact value $\kappa_\psi T^{[\psi]}_{\mu\nu}|_{M_0}$ has only three nonzero entries
+($\tfrac{121\,\kappa_\psi}{158760000}$ at $(0,1)$, $\pm\tfrac{121\,\kappa_\psi}{79380000}$
+at $(2,2),(3,3)$). Already at a glance, $\kappa_\psi T$ is \emph{three orders of magnitude
+smaller than $G[g]$ and carries a completely different sparsity pattern} (e.g.
+$G_{00}\approx6151$ but $T^{[\psi]}_{00}=0$; $G_{33}\approx178$ but $\kappa_\psi
+T^{[\psi]}_{33}\approx-8.2$). Matter is a tiny, differently-shaped fragment of the
+curvature.
+
+\subsection{The single-global-$(\kappa,\Lambda)$ fit: the can-fail test}
+
+With $\kappa$ FROZEN (not a free parameter), \eqref{eq:einstein-test} reduces to: does
+$R_{\mu\nu}(x):=G_{\mu\nu}(x)-\kappa T_{\mu\nu}(x)$ equal $\Lambda\,g_{\mu\nu}(x)$ for a
+SINGLE global $\Lambda$ across all $12$ points and $10$ components? We solved this two
+ways, exact over $\mathbb{Q}$, for BOTH candidates:
+\begin{enumerate}
+\item \textbf{Per-point trace projection.} The unique $\Lambda$ that can make
+  $R=\Lambda g$ at a point is $\Lambda=\tfrac1n g^{\mu\nu}R_{\mu\nu}$. At \emph{every}
+  family point the residual $R_{\mu\nu}-\Lambda g_{\mu\nu}\neq0$ (so $R$ is not even
+  proportional to $g$ at a single point), and the per-point $\Lambda$ values all differ.
+\item \textbf{Global over-determined solve.} The stacked system $\Lambda\,g_{\mu\nu}(x_i)
+  =R_{\mu\nu}(x_i)$ ($120$ equations over the family, one unknown $\Lambda$) is
+  INCONSISTENT (\texttt{linsolve} returns no solution) for both candidates.
+\end{enumerate}
+At the leading $t^4$ order the same test, run on the exactly-interpolated $t^4$
+coefficients of $G,T,g$ across the directions, is also negative for both candidates: no
+single global $(\kappa,\Lambda)$ matches the $t^4$ coefficients. The best per-point
+$\Lambda$ at $M_0$ (e.g. $\Lambda\approx-1062.2$ for $T^{[\psi]}$) leaves a large
+residual:
+\begin{equation}
+  \big(G-\kappa_\psi T^{[\psi]}-\Lambda g\big)_{\mu\nu}\big|_{M_0}\approx
+  \begin{pmatrix}
+    7049.9 & 7064.1 & 1870.7 & 0\\
+    7064.1 & 7209.2 & 1904.5 & 0\\
+    1870.7 & 1904.5 & 913.0 & 0\\
+    0 & 0 & 0 & 129.5
+  \end{pmatrix}\neq0
+  \label{eq:residual}
+\end{equation}
+($10/16$ entries nonzero, largest $\approx7209$). This is not a near-miss being honestly
+reported as a miss: $\kappa T$ and $\Lambda g$ together fail to account for the curvature
+by a factor $\sim10^3$. The result is reported EXACTLY, not rounded
+(\texttt{fp-assume-einstein}).
+
+\subsection{Honest level via the $n=4$ Ricci decomposition}
+
+The lower-index Riemann tensor decomposes (exact over $\mathbb{Q}$, reconstruction
+residual $=0$) as $R_{ijkl}=\mathrm{Scal}_{ijkl}+E_{ijkl}+C^{\mathrm{Weyl}}_{ijkl}$ with
+traceless-Ricci $S_{ab}=\mathrm{Ric}_{ab}-\tfrac{R}{4}g_{ab}$. At the anchor $M_0$:
+\begin{equation}
+  R[g]\approx4007.98\neq0,\qquad
+  S_{ab}\neq0\ (10/16\ \text{entries}),\qquad
+  C^{\mathrm{Weyl}}_{ijkl}\neq0\ (72/256\ \text{entries}),\qquad
+  \mathrm{tr}_g S = 0,
+  \label{eq:decomp}
+\end{equation}
+and the same qualitative structure ($R\neq0$, $S\neq0$, Weyl $\neq0$) holds at the
+other sampled family points. The classification rule is explicit:
+\begin{itemize}
+\item \textbf{EXACT} if some $T$ admits a single global $(\kappa,\Lambda)$ with zero
+  residual at finite $M$ -- it does NOT.
+\item \textbf{LINEAR/LEADING} if some $T$ admits one at the $t^4$ leading order -- it
+  does NOT.
+\item \textbf{NONE (curved but not Einstein-structured)} otherwise: $G[g]$ carries
+  $S\neq0$ and Weyl $\neq0$ whose structure is not proportional to any independent $T$.
+\end{itemize}
+
+\subsection{Verdict (HUMAN-ratified): the honest level is NONE -- curved but not
+Einstein-structured}
+
+\begin{quote}\itshape
+The full nonlinear Einstein tensor $G_{\mu\nu}[g]$ of the matter-perturbed KKT spacetime
+metric is genuinely curved ($R\neq0$, $S\neq0$, Weyl $\neq0$) but is \textbf{NOT}
+reproduced by $\kappa T_{\mu\nu}+\Lambda g_{\mu\nu}$ for any single global $(\kappa,
+\Lambda)$ -- against NEITHER the order-matched PRIMARY $T^{[\psi]}$ nor the order-mismatched
+ALTERNATIVE $T^{[\sigma]}$, at finite $M$ OR at the leading $t^4$ order. The curvature is
+not even proportional to $g$ at a single point; $\kappa T$ is three orders of magnitude
+smaller than $G[g]$ and differently structured. The honest Einstein-structure level is
+\textbf{NONE: the $h_3(\mathbb{O})$ bulk geometry yields a curved spacetime metric that is
+NOT Einstein-structured by the algebra's own cross-term stress content.}
+\end{quote}
+
+\paragraph{This is the milestone's expected honest outcome, at true strength.}
+It is NOT a failure of method: the test was posed honestly (an independent, conserved,
+$G$-free $T$ frozen before $G$ was computed), executed exact over $\mathbb{Q}$, and the
+$\|M\|\to0$ anchor holds (both $T$ and $G[g]$ vanish as the matter switches off, on the
+DERIVED-flat $\eta_{\mathrm{bg}}$ -- the can't-fake control). The negative result is the
+scientific content: \emph{matter in $V_{1/2}$ sources spacetime curvature (Phase~72) but
+that curvature is not organized into Einstein form}; the cross-term $T$ accounts for only
+a small, differently-shaped fragment of $G[g]$, and the bulk of the curvature (the large
+$S$ and Weyl) is intrinsic geometry not tracked by any independent matter tensor. The
+route ``gravity = Einstein equations from the $h_3(\mathbb{O})$ cubic-norm geometry'' is
+\textbf{falsified at the Einstein-structure level} for this construction.
+
+\paragraph{Circularity audit (VALD-05).} The verdict rests on intrinsic data alone. No
+GST Lagrangian, SUSY closure, $-R/2$, or Weinberg soft-graviton import
+(\texttt{fp-import-supergravity}); the slice's coincidence with GST very-special-real
+geometry is acknowledged but used only for orientation, never as a coupling. $T$ and
+$\kappa$ were frozen before $G$, the fit used a single global $(\kappa,\Lambda)$, and no
+near-miss was rounded (\texttt{fp-assume-einstein}). No thermodynamic/ensemble (Jacobson)
+step (\texttt{fp-ensemble-gravity}). All decisive quantities are exact over $\mathbb{Q}$
+(\texttt{fp-float-decisive}); the cross-term uses the $\det_3$ SSOT
+(\texttt{fp-wrong-cross-term}). $\Lambda=0$ is DERIVED from the KKT $\det_2$, not inserted
+(the stale ``inserted-$\Lambda$ tripwire'' does NOT fire). See~[AUDIT] for the full
+per-equation table.
+
+\medskip
+\noindent\emph{Verdict status: presented for human ratification at the Plan-73-02
+checkpoint; the human-ratified level is recorded here verbatim. Options were EXACT /
+LINEAR-LEADING / NONE / HALT-circularity; the computed and ratified level is NONE
+(curved but not Einstein-structured). This closes milestone v17.0.}
