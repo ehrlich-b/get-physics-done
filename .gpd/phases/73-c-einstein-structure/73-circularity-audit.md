@@ -1,6 +1,6 @@
 # Phase 73 — Circularity Audit (VALD-05, per-equation provenance)
 
-**Created:** 2026-06-01 (Plan 73-01; T3/T4 rows certified). **Completed by:** Plan 73-02 (the `G[g]` test rows — marked `TODO-73-02`).
+**Created:** 2026-06-01 (Plan 73-01; T3/T4 rows certified). **Completed:** 2026-06-01 (Plan 73-02; the `G[g]` test rows C.a/C.b/C.c CERTIFIED + the stale-ROADMAP reconciliation + the final VALD-05 certification). Computed honest level: NONE (curved but not Einstein-structured).
 
 **Purpose.** This is the VALD-05 per-equation provenance table. It certifies that every equation feeding the stress-energy tensor `T_mu_nu`, the coupling `kappa`, and (later, in 73-02) the Einstein test traces to *intrinsic* algebraic data — the engine `det_3` Freudenthal cross-term + `eta_bg` + the cubic norm — with **NO** GST Lagrangian / N=2 SUSY closure / `-R/2` / Weinberg soft-graviton import (`fp-import-supergravity`), **NO** `Ric`/`R`/`G` used to *define* `T` and **NO** per-point `kappa` tuning (`fp-assume-einstein`), and **NO** entropy-area / `δQ = T dS` / Unruh-temperature step (`fp-ensemble-gravity`).
 
