@@ -109,7 +109,7 @@ factors do not enter the verdicts; the binding requirement is **exactness over Q
 |----------|-----------|
 | Matter `M` | `M ∈ V_1 + V_{1/2}`; "off-center-ness" measured by `rho_J(X_bg)`. |
 | Coupling | curvature–matter coupling via the cubic-norm **cross-terms** `C_{(V_0)(V_1)(V_{1/2})}` (vs the pure `C_{(V_0)^3}`); the off-switch test replaces `det` by the block-diagonal product to kill the M-sourced curvature. (v16.0 "J>0 antiferromagnetic" lattice coupling is RETIRED.) |
-| `kappa`, `Lambda` | fitted in **Phase 73** as **GLOBAL** constants. `Lambda ≠ 0`: the center is Einstein with **negative** Ricci (Cartan), so `Lambda < 0` (background Einstein-negative). |
+| `kappa`, `Lambda` | `kappa` fitted in **Phase 73** as a **GLOBAL** constant. **`Lambda = 0`** (SUPERSEDED 2026-06-01 by Phases 70.1+72): the M=0 spacetime vacuum is **flat** KKT η, structurally DERIVED (NOT Einstein-negative). The pre-70.1 "center is Einstein with negative Ricci (Cartan), `Lambda < 0`" framing is FALSIFIED — that `{0,−1,−1,−1}`/`R=−3`/`R×H³` geometry is the cone-Hessian **SOURCE** field, not the spacetime metric `g=η+h`. Phase 73 = QUADRATIC-response linearized-Einstein test (use h⁽²⁾, since h⁽¹⁾=0); no Λ tripwire. |
 
 ---
 
