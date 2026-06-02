@@ -180,12 +180,12 @@ Plans:
 3. `F = dA + A∧A` is computed symbolically; its Lorentz block `R(ω)+Λe∧e` is identified with the 4d Riemann tensor and **cross-checked against an independent Totaro/Levi-Civita computation on ≥5 components, agreeing exactly over Q**; the translation/torsion block `de+ω∧e` is reported (vanishing or matter-sourced).
 4. At M=0 the Lorentz block's Einstein/(A)dS level is read against the K=−1/2 benchmark and Λ's sign/value is reported as MEASURED (expected flat/pure-Λ, NOT the dead R×H³); then with `M ∈ V_{1/2}` on, the matter-sourced Riemann is characterized.
 
-**Plans:** TBD
+**Plans:** 2 plans (2 waves)
 
 Plans:
 
-- [ ] 77-01: TBD (coframe invertibility + ω extraction)
-- [ ] 77-02: TBD (F=dA+A∧A + Riemann cross-check + vacuum + matter-sourced)
+- [ ] 77-01-PLAN.md (wave 1) — FLATNESS SUB-GATE (hard STOP: R[ω]≠0 for M≠0, else trivial death) + B(a) coframe non-degeneracy det(e^a_μ)≠0 + B(b) closed-form Levi-Civita ω(e) (torsion-free, sign-pinned K=−1/2). Exact over Q.
+- [ ] 77-02-PLAN.md (wave 2, depends_on 77-01, interactive) — B(c) assemble A=ω⊕e, F=dA+A∧A, Lorentz/torsion block split + independent Levi-Civita Riemann cross-check (≥5 components exact over Q); B(d) M=0 flat vacuum (Λ measured); B(d) matter-sourcing Einstein test vs an independent AST-guarded T[M] (single global κ,Λ, magnitude+structure+M-power) with a verdict checkpoint.
 
 ### Phase 78: Phase C — Circularity Audit (forced vs posited)
 
