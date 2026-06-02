@@ -146,11 +146,12 @@ Plans:
 3. `F_B` at `M=0` is classified exactly: zero/flat, pure-Λ (`F_B ~ e∧e`), or other (vacuum level reported; expected flat/pure-Λ per CONVENTIONS §6; **Λ<0 is NOT reintroduced**).
 4. With `M ∈ V_{1/2}` turned on, the matter-sourced `F_B` (and the ε-contraction of `F_B∧F_B` onto the Lorentz block) is decided to be **transverse/Einstein-shaped — order, tensor structure, and support matchable to an independently-frozen `V_{1/2}` stress-energy `T[M]` (SURVIVES to B)** — or **EM-shaped (traceless `T^μ_μ=0`, `~F²`) reproducing the v17.0 cone-Hessian mismatch (support disjoint from `T[M]`, no M-power match → SOFT KILL, recommend STOP before B)**, using gauge-invariant scalars.
 
-**Plans:** TBD
+**Plans:** 2 plans (2 waves)
 
 Plans:
 
-- [ ] 76-01: TBD (QGT real-part anchor + Im(QGT) well-definedness + vacuum + Einstein-vs-EM same-wall)
+- [ ] 76-01-PLAN.md — PART 1 (cheap/vacuum, non-interactive): QGT recipe + CP¹ convention pin; VALD-03 (Im(QGT)=F_B well-defined + generically nonzero, born-from-breaking) FIRST; CALC-03 (SOFT Re(QGT)=FS-metric same-character anchor vs cone-Hessian — informative, NOT a KILL); CALC-04 (M=0 vacuum: flat / pure-Λ-Kähler / other). Fixes the vacuum baseline.
+- [ ] 76-02-PLAN.md — PART 2 (decisive/matter, **interactive**, depends_on 76-01): the matter-on E(x;M) over C_u (rank-1 + C_u-faithful + M→0 limit — the biggest modeling gap, its own verified task); VALD-04 decisive same-wall (matter F_B M-series + F_B∧F_B Lorentz-block ε-contraction vs an INDEPENDENTLY-FROZEN T[M], on gauge-invariant scalars, frame-rotation tested) → SURVIVES or SOFT KILL; blocking human-ratification of the milestone-gating verdict (conjunctive with Phase 75 ✓ for the Phase-77 greenlight).
 
 ### Phase 77: Phase B — Full Cartan Curvature = 4d Gravity
 
