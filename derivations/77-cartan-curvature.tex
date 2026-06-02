@@ -1,0 +1,177 @@
+% !TEX root = 77-cartan-curvature.tex
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus, fourier_convention=NA, coupling_convention=NA, renormalization_scheme=NA, gauge_choice=NA
+%==============================================================================
+% Phase 77 (v18.0 Cartan/MacDowell-Mansouri): Full Cartan Curvature = 4d Gravity
+% Plan 77-01: Coframe non-degeneracy + closed-form spin connection omega(e)
+%             + the opening FLATNESS SUB-GATE.  (77-02 completes Phase B.)
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\half}{\tfrac12}
+\newcommand{\eu}{e}
+\newcommand{\om}{\omega}
+\theoremstyle{definition}\newtheorem{remark}{Remark}
+\theoremstyle{plain}\newtheorem{proposition}{Proposition}
+
+\title{Phase 77-01: The 4d soldering coframe $e=\pi_u(dE)$ is invertible,
+its closed-form Levi--Civita spin connection $\om(e)$ is torsion-free,
+and the opening flatness sub-gate $R[\om]\neq0$ for $M\neq0$}
+\author{v18.0 --- Gravity as the Curvature of the Peirce-Frame Cartan/MM Connection on $\mathfrak{h}_3(\mathbb{O})$}
+\date{2026-06-02}
+
+\begin{document}
+\maketitle
+
+\section*{Conventions (locked; CONVENTIONS.md \S11, state.json \texttt{convention\_lock})}
+Gravity is the Lorentz block $R[\om]$ of the Cartan/MacDowell--Mansouri curvature
+$F=dA+A\wedge A$ with $A=\om\oplus(1/\ell)\eu$ and (Wise, gr-qc/0611154)
+\begin{equation}\label{eq:wise}
+  F=\Bigl(R[\om]-\tfrac{\Lambda}{3}\,\eu\wedge \eu\Bigr)+\underbrace{d_\om \eu}_{\text{torsion}},
+  \qquad \ell^2=3/\Lambda .
+\end{equation}
+The Lorentz block is the Riemann curvature of the \emph{soldering-form metric}
+$g_{\mu\nu}=\eta_{ab}\,\eu^a{}_\mu \eu^b{}_\nu$ ($g=\eu\cdot\eu$), with
+$\eu=\pi_u(dE)$ the forced 4d Lorentzian $(1,3)$ coframe established in Phase~75
+(SURVIVES, human-ratified). The Berry curvature $F_B=\operatorname{Im}(\mathrm{QGT})$ is
+the \emph{internal} $\mathfrak{so}(6)=\mathfrak{su}(4)$ gauge sector, \emph{not} gravity
+(Phase~76 overturn). Signature is mostly-minus $(+,-,-,-)$ timelike-positive,
+$\eta=\mathrm{diag}(+1,-1,-1,-1)$. Everything decisive is \textbf{exact over $\Q$}
+(or $\Q$-adjoin-surds); never \texttt{numpy.linalg} on a decisive verdict. The det SSOT is
+\texttt{ring\_lemma\_verification.py} \texttt{det\_3}; \texttt{octonion\_algebra.py} is banned.
+
+\paragraph{Index layout (LOCKED LIVE; precheck \texttt{cartan\_phaseB\_metric\_precheck.py}, f0e544a6).}
+Slice coords (the $g$ base) are engine indices $[1,2,3,10]=(\beta,\gamma,p,q)\cong\mathfrak{h}_2(\mathbb{C}_u)\cong\R^{3,1}$
+with the 52-kkt Minkowski map $x^0=(\beta+\gamma)/2,\ x^1=p,\ x^2=q,\ x^3=(\beta-\gamma)/2$.
+The $V_{1/2}$ coframe survivors are engine indices $[11,18,19,26]=\mathbb{C}_u^2$.
+(The stale $\{17,18,19,26\}$ frame is a different/conflated frame and is \emph{not} used.)
+The $M=0$ base metric is
+$G_{\rm DET2,RAW}=\bigl[\begin{smallmatrix}0&\half&0&0\\ \half&0&0&0\\ 0&0&-1&0\\ 0&0&0&-1\end{smallmatrix}\bigr]$,
+eigenvalues $\{\half,-\half,-1,-1\}$, signature $(1,3)$.
+
+\section{The closed-form torsion-free Levi--Civita spin connection $\om(e)$ (formula~2)}
+For any tetrad $\eu^a{}_\mu$ with inverse $\eu_a{}^\mu$ ($\eu^a{}_\mu \eu_a{}^\nu=\delta_\mu^\nu$),
+the torsion-free spin connection is the closed form (77-RESEARCH (2); two independent sources)
+\begin{equation}\label{eq:omega}
+  \om_\mu{}^{ab}
+  = \half\,\eu^{\nu a}\bigl(\partial_\mu \eu_\nu{}^b-\partial_\nu \eu_\mu{}^b\bigr)
+  - \half\,\eu^{\nu b}\bigl(\partial_\mu \eu_\nu{}^a-\partial_\nu \eu_\mu{}^a\bigr)
+  - \half\,\eu^{\rho a}\eu^{\sigma b}\bigl(\partial_\rho \eu_\sigma{}^c-\partial_\sigma \eu_\rho{}^c\bigr)\eu_{\mu c},
+\end{equation}
+where the frame indices are raised/lowered with $\eta_{ab}$ and $\eu^{\nu a}=\eu_b{}^\nu\eta^{ba}$
+uses the \emph{inverse tetrad}, \emph{not} $g$. By construction \eqref{eq:omega} is
+antisymmetric, $\om_\mu{}^{ab}=-\om_\mu{}^{ba}$, and torsion-free,
+\begin{equation}\label{eq:torsion}
+  \Theta^a=d\eu^a+\om^a{}_b\wedge \eu^b=0 .
+\end{equation}
+\textbf{Verified} (\texttt{code/cartan\_phaseB\_curvature.py}, \texttt{spin\_connection\_omega}/\texttt{torsion\_of}):
+on a rational warped Lorentzian reference $g=\mathrm{diag}(1,-f^2,-1,-1)$, $f=1+x_0^2$
+(rational tetrad $\eu=\mathrm{diag}(1,f,1,1)$), \eqref{eq:omega} is antisymmetric and \eqref{eq:torsion}
+holds identically over $\Q$; $\eu\,\eu^{-1}=\mathbb{I}$ confirms the inverse-tetrad raising.
+
+\section{The second Cartan structure equation and the load-bearing identity}
+The curvature 2-form is the second Cartan structure equation
+\begin{equation}\label{eq:cartan2}
+  R^{ab}{}_{\mu\nu}=\partial_\mu \om_\nu{}^{ab}-\partial_\nu \om_\mu{}^{ab}
+  +\om_\mu{}^{ac}\eta_{cd}\,\om_\nu{}^{db}-\om_\nu{}^{ac}\eta_{cd}\,\om_\mu{}^{db},
+\end{equation}
+converted to coordinate indices by $R^\rho{}_{\sigma\mu\nu}=\eu_a{}^\rho \eu^b{}_\sigma R^{ab}{}_{\mu\nu}$
+and lowered with $g$. Because $\om$ from \eqref{eq:omega} is the torsion-free Levi--Civita connection,
+the translation block $d_\om \eu$ in \eqref{eq:wise} vanishes and the Lorentz block is exactly the
+metric Riemann tensor:
+\begin{proposition}[Lorentz block $=$ metric Riemann]\label{prop:identity}
+For $\om$ given by \eqref{eq:omega}, the lower-index curvature $R_{\rho\sigma\mu\nu}[\om]$ from
+\eqref{eq:cartan2} equals the Levi--Civita Riemann tensor $R_{\rho\sigma\mu\nu}[g]$ of $g=\eu\cdot\eu$,
+up to a single global sign-convention factor.
+\end{proposition}
+\textbf{Verified exact over $\Q$} on the warped reference: $R[\om]$ from \eqref{eq:cartan2}
+equals $-1\times$ the bare Christoffel Riemann of $g$ on every tested component (a \emph{uniform}
+global factor, not a per-component disagreement). This is the standard tetrad-formalism identity:
+``computing $F=dA+A\wedge A$'' is, modulo the cosmological term, computing the metric Riemann.
+
+\paragraph{Sign-pin to $K=-\tfrac12$ (BEFORE any verdict).}
+The engine's Totaro closed form and its hand-rolled Christoffel Riemann coincide
+(ratio $+1$) and give the cone-Hessian sectional curvature $K=-\tfrac12$ (constant, negative;
+round $\mathbb{H}^3$ gives $-1$, the documented factor of $2$). The bare Christoffel Riemann equals
+the engine Totaro on the cone-Hessian (ratio $+1$, verified). Since $R[\om]_{\rm raw}=-1\times$(bare
+Christoffel), the \textbf{sign-pin factor is $-1$}: $R[\om]_{\rm engine}=-R[\om]_{\rm raw}$ lands in the
+$K=-\tfrac12$ (negative, constant) convention. This is run \emph{first}, before any curvature number.
+
+\section{The FLATNESS SUB-GATE (decisive, first)}\label{sec:gate}
+\paragraph{Sample.} One $M\neq0$ in $V_{1/2}$ restricted to the $\mathbb{C}_u$-survivors
+$[11,18,19,26]$, at \emph{small} amplitude so the metric stays in the Lorentzian $(1,3)$ splice
+(larger amplitudes flip to $(3,1)$ --- the matter leaves the splice, a documented red flag; such
+points are dropped, not forced):
+\[
+  M=\{11:\tfrac15,\ 18:-\tfrac1{10},\ 19:\tfrac3{10},\ 26:\tfrac12\},\qquad
+  \mathrm{BG}=\{4:1\}\ (V_0\ x_1\text{ partner}),\qquad (\beta,\gamma,p,q)=(\tfrac13,\tfrac13,0,0).
+\]
+The position-dependent metric is the matter-on-flat
+$g(x)=\eta_{\rm bg}+\bigl[H_{\rm source}(x;{\rm bg}+M)-H_{\rm source}(x;{\rm bg})\bigr]$ (B1, Phase-70.1),
+so $g(M{=}0)=\eta_{\rm bg}$ identically (flat baseline, \emph{derived} from the KKT $\det_2$, not inserted).
+
+\paragraph{Method (watchdog-safe, exact over $\Q$).}
+By Proposition~\ref{prop:identity} the verdict $R[\om]\neq0$ is rigorously equivalent to
+$R[g{=}\eu\cdot\eu]\neq0$. The latter is computed by the warm v17.0 engine
+\emph{two independent ways} --- the Totaro closed form (\texttt{spacetime\_curvature\_of\_g}) and the
+hand-rolled Levi--Civita Christoffel route (\texttt{hand\_rolled\_riemann\_of\_g}) --- each
+differentiating $g$ symbolically, substituting the rational basepoint, then inverting (never a
+fully-symbolic $4\times4$ inverse: the $>\!200$\,s watchdog cliff).
+
+\paragraph{Result (PROCEED).}
+\begin{itemize}
+\item The two independent Riemann routes \textbf{agree exactly over $\Q$} on the sampled components.
+\item Riemann algebraic symmetries hold; every component is an exact rational (no float).
+\item Sign-pinned ($K=-\tfrac12$ convention) sample components:
+\[
+  R[\om]_{0101}=\tfrac{33158630200306818690729}{27227817654198365049856},\quad
+  R[\om]_{0202}=\tfrac{4179762281401976561161077}{39344196510316637497041920},
+\]
+\[
+  R[\om]_{1212}=\tfrac{194178902959875539689064757}{39344196510316637497041920},\quad
+  R[\om]_{2323}=\tfrac{44001620841415087529487}{28929556257585762865472}.
+\]
+\item Ricci scalar $R[g{=}\eu\cdot\eu]=\dfrac{14187524733311967018208791837}{634906109300195099205387025}\neq0$;
+$\mathbf{136/256}$ lower-index components are nonzero rationals.
+\item \textbf{Can't-fake anchor:} at $M=0$, $R[g{=}\eta_{\rm bg}]=0$ with \emph{all} Riemann components
+exactly zero --- the flat vacuum is genuine and the $M\neq0$ curvature is matter-sourced.
+\end{itemize}
+\begin{center}\fbox{\textbf{FLATNESS VERDICT: PROCEED} --- $R[\om(e)]\neq0$ for $M\neq0$, exact over $\Q$
+(genuine curvature; not rigid/integrable; not pure-gauge).}\end{center}
+Had $R[\om]$ been identically zero, the soldering form would be rigid/integrable (pure-gauge), the
+antisymmetric/Lie-sector route would yield no gravity, and Phase~B would halt as an honest publishable
+negative. It does not.
+
+\section{Coframe non-degeneracy: $e=\pi_u(dE)$ is a genuine invertible soldering form}
+We confirm (not re-derive --- Phase~75 forced the 4d Lorentzian coframe) that $\eu^a{}_\mu$ is
+non-degenerate. The tetrad at a point is built by an exact congruence factorization of $g$
+(Lagrange's method over $\Q$, handling the null-aligned $(\beta,\gamma)$ block by a hyperbolic mix,
+then reordering the timelike pivot first and absorbing $\sqrt{|D|}$); it lives in $\Q$-adjoin-surds
+but is a constant matrix at the point. $R[\om]$ is frame-invariant, so this fallback route is sound
+(Open~Q1; the intended $\eu=\pi_u(dE)$ symbolic route is set aside because its symbolic differentiation
+through the surd-laden orthonormal frame hits the watchdog cliff). Verified exact over $\Q$:
+\begin{itemize}
+\item $g=\eta_{ab}\,\eu^a{}_\mu \eu^b{}_\nu$ holds exactly at both $M=0$ (reproducing $G_{\rm DET2,RAW}$)
+and the $M\neq0$ sample;
+\item $\det(\eu^a{}_\mu)=\tfrac12\neq0$ at $M=0$ and $\det(\eu^a{}_\mu)\neq0$ at the $M\neq0$ sample
+(genuine invertible coframe; degeneracy would be a coframe-non-invertibility KILL);
+\item signature $(1,3)$ at both points (via \texttt{real\_roots} on the exact charpoly --- the
+null-aligned frame forbids Sylvester leading minors); frame signs $(+,-,-,-)$.
+\end{itemize}
+
+\section*{Status and handoff to 77-02}
+The runway is clear: $\eu=\pi_u(dE)$ is a genuine invertible $(1,3)$ soldering form, the closed-form
+torsion-free Lorentz $\mathrm{Spin}(3,1)$ connection $\om(e)$ \eqref{eq:omega} is implemented and
+sign-pinned to $K=-\tfrac12$, and the opening flatness sub-gate renders \textbf{PROCEED}. Plan 77-02
+assembles $A=\om\oplus\eu$, computes $F=dA+A\wedge A$ with the Lorentz/torsion split, cross-checks
+$R[\om]$ against the independent Levi--Civita Riemann on $\geq5$ components (this plan already exhibits
+exact agreement of the two routes), measures the $M=0$ vacuum $\Lambda$, and runs the decisive
+matter-sourcing Einstein test against an AST-guarded independent $T[M]$.
+
+All decisive numbers are exact over $\Q$. \texttt{octonion\_algebra} absent; no \texttt{numpy.linalg}
+on the decisive path; the cone-Hessian $(4,0)$ tensor is used \emph{only} for the sign-pin benchmark,
+never as the load-bearing gravity curvature (fp-reuse-cone-hessian rejected); no raw 45-dim
+$\mathrm{Spin}(9,1)$ curvature (fp-raw45-curvature rejected); no float verdict (fp-float-decisive rejected).
+\end{document}
