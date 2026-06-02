@@ -121,11 +121,11 @@ Plans:
 3. The residual structure group preserving the reduced coframe is determined over Q, and it is decided whether it contains SO(3,1) **FORCED by `(E_11,u)` alone (greenlight)** or whether the 4d reduction requires an arbitrary extra choice (**KILL = `fp-arbitrary-reduction`**).
 4. If any clause fails (not 4-dim / not Lorentzian / not forced): an explicit "Phase A: coframe reduction fails [clause]" KILL is reported flat and the route STOPS (a clean, publishable closure).
 
-**Plans:** TBD
+**Plans:** 1 plan (1 wave)
 
 Plans:
 
-- [ ] 75-01: TBD (C_u reduction of V_{1/2}: image dim + Gram signature + forced-vs-arbitrary)
+- [ ] 75-01-PLAN.md -- C_u reduction of V_{1/2}: CALC-01 exact image dim (KILL if !=4) + image(B)==pi_u(V_0) identity; CALC-02 soldering-form-metric signature (1,3) on the R^{3,1} target + Euclidean trace-form foil diag(2,2,2,2) (KILL if not Lorentzian / B not rank 4); VALD-02 forced-vs-arbitrary SO(3,1) residual group over QQ (KILL = fp-arbitrary-reduction); verdict synthesis -> deliv-phaseA (interactive: human ratification of the KILL/greenlight)
 
 ### Phase 76: Phase A.5 — Berry-Curvature Same-Wall Gate (SOFT KILL)
 
