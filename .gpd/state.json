@@ -23,7 +23,8 @@
         "Re-deriving the SOLID standard math (OP^2=F_4/Spin(9) and T_E OP^2 = V_{1/2}; QGT real=Fubini-Study / imaginary=Berry curvature; MM gravity = curvature of a broken Cartan connection with F^F giving EH+Lambda; h_2(C_u) ~ R^{3,1} Lorentzian with so(4,2)) -- cite, do not re-derive",
         "octonion_algebra.py on any decisive path -- BANNED (buggy (x1 x2) x3 order, float, 0.67 associator gap); det SSOT = ring_lemma_verification.py det_3",
         "Quantizing gravity; dynamics / field equations of the matter M; cosmology",
-        "Retroactively retracting the v12.0/v13.0 det/GST or the v17.0 cone-Hessian results -- this is an INDEPENDENT fresh route on a different (Lie-sector) tensor; the outcome stands on its own"
+        "Retroactively retracting the v12.0/v13.0 det/GST or the v17.0 cone-Hessian results -- this is an INDEPENDENT fresh route on a different (Lie-sector) tensor; the outcome stands on its own",
+        "Deriving the Standard Model gauge group / representation -- Paper 7 already HOUSES the SM rep (derive->house discipline); v18.0 scope = GR ONLY (the Lorentz Spin(3,1) block of F). The same ambient Spin(9,1) connection also carries a Spin(6)=SU(4) internal block (Pati-Salam, Phase 48); IF the GR test passes, the gauge-connection / SM-unification angle is a flagged BONUS for a LATER milestone, NOT a v18.0 deliverable."
       ],
       "unresolved_questions": [
         "Does the C_u bottleneck reduce V_{1/2}(16) to exactly a 4-dim space (paralleling V_0=h_2(O)->h_2(C_u)=R^{3,1}), is the induced coframe pairing Lorentzian (1,3), and is the 4d reduction FORCED by (E_11,u) rather than requiring an arbitrary extra choice? (Phase A KILL gate)",
@@ -110,7 +111,7 @@
         "Phase A.5: the canonical Berry curvature F_B reproduces the cone-Hessian same-wall mismatch (curvature support disjoint from the V_{1/2} stress-energy support; no order-matching possible) -> SOFT KILL; report 'Phase A.5: Lie sector inherits the symmetric-sector mismatch' and recommend STOP before Phase B",
         "octonion_algebra.py detected on a decisive path, or a float rank/curvature on a decisive verdict -> STOP and switch to the det SSOT / exact-over-Q",
         "Phase C: the Einstein term appears ONLY because an MM/EH action was posited by hand -> report fp-imported-action (honest partial, NOT a derivation); do NOT relabel it a win",
-        "The real part of the QGT does NOT reproduce the dead Hess(-log det) -> STOP and re-examine the QGT construction before trusting F_B"
+        "If the real part of the QGT differs from the v17.0 Hess(-log det), that is INFORMATIVE not a bug -- Re(QGT) is the FS pullback along E(x), a different construction than the cone-Hessian restriction; diagnose the geometric difference before proceeding. SOFT sanity check, NOT a KILL/HALT on this anchor alone (the genuine A.5 SOFT KILL is the matter-sourced same-wall mismatch vs T[M])."
       ]
     },
     "observables": [
@@ -171,7 +172,7 @@
       },
       {
         "id": "claim-berry-same-wall",
-        "statement": "SOFT KILL gate. The canonical Berry curvature F_B (imaginary part of the QGT; real part reproduces the dead Hess(-log det)) has a vacuum structure at M=0 (flat / pure-Lambda / other) and a matter-sourced part at M!=0 that is EITHER transverse/Einstein-shaped (order, tensor structure, and support matchable to a V_{1/2} stress-energy T[M]) OR EM-shaped and reproducing the v17.0 cone-Hessian same-wall mismatch (support disjoint from T[M], no order-matching) -- in which case the Lie sector inherits the symmetric-sector failure and a STOP is recommended before Phase B",
+        "statement": "SOFT KILL gate. The canonical Berry curvature F_B (imaginary part of the QGT; its real part is the Fubini-Study pullback along E(x), a SOFT sanity check of the same non-Einstein character as the cone-Hessian) has a vacuum structure at M=0 (flat / pure-Lambda / other) and a matter-sourced part at M!=0 that is EITHER transverse/Einstein-shaped (order, tensor structure, and support matchable to a V_{1/2} stress-energy T[M]) OR EM-shaped and reproducing the v17.0 cone-Hessian same-wall mismatch (support disjoint from T[M], no order-matching) -- in which case the Lie sector inherits the symmetric-sector failure and a STOP is recommended before Phase B",
         "observables": [
           "obs-berry-curvature"
         ],
@@ -348,8 +349,8 @@
         "id": "test-berry-real-part",
         "subject": "claim-berry-same-wall",
         "kind": "consistency",
-        "procedure": "Compute the QGT of the self-model state family |psi(x)> at E(x) and confirm its REAL part reproduces the dead Fubini-Study/cone-Hessian Hess(-log det)",
-        "pass_condition": "Re(QGT) matches the v17.0 cone-Hessian Hess(-log det) (consistency); otherwise STOP and re-examine the QGT construction",
+        "procedure": "Compute the QGT of the self-model state family |psi(x)> at E(x) (gauge-invariant projector form Q=Tr(P dP dP)); compare its REAL part (the Fubini-Study metric pulled back along the idempotent field E(x)) against the v17.0 cone-Hessian Hess(-log det)",
+        "pass_condition": "SOFT sanity check (NOT a hard stop): Re(QGT) is a sensible real symmetric metric of the SAME non-Einstein CHARACTER as the v17.0 cone-Hessian. Re(QGT) is the FS pullback along E(x) -- a DIFFERENT construction than the cone-Hessian restriction on the V_0 slice -- so exact equality is a theorem to CHECK, not a gate, and a discrepancy is INFORMATIVE (diagnose why before proceeding). Do NOT KILL or HALT on this anchor alone.",
         "evidence_required": [
           "deliv-phaseA5"
         ],

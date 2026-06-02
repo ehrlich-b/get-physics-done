@@ -2,7 +2,7 @@
 
 **Defined:** 2026-06-01
 **Milestone:** v18.0 (physics-side; Phases 74–78, continuing from v17.0's Phase 73)
-**Core Research Question:** Can the Standard Model + GR be derived from the requirement that a composite system faithfully models itself? — _this milestone tests one route to the GR endpoint: is gravity the curvature of the antisymmetric/Lie-sector (Cartan/MM) Peirce-frame connection on h_3(O)?_
+**Core Research Question (v18.0):** Does the antisymmetric/Lie-sector (Cartan/MM) Peirce-frame connection on h_3(O) yield 4d **EINSTEIN GRAVITY** (the Lorentz Spin(3,1) block)? **Scope = GR.** The same ambient Spin(9,1) connection also carries a Spin(6)=SU(4) internal block (Pati-Salam, Phase 48); if the GR test passes, the gauge-connection / SM-unification angle is a flagged **BONUS for a later milestone, NOT a v18.0 deliverable**. Paper 7 already HOUSES the SM rep (derive→house discipline); this milestone does not attempt to derive it.
 
 > **Framing.** The route mines the **imaginary part of the self-model QGT (Berry curvature)** — the Lie sector — where the dead v17.0 cone-Hessian route was the **real part** (Fubini-Study). A genuinely different tensor, so the v17.0 NONE verdict does NOT bind it. Hard KILL gates first (Phase A coframe reduction, Phase A.5 Berry same-wall) decide survival before the expensive connection machinery. NEGATIVE-RESULT-IS-SUCCESS: a clean KILL/SOFT-KILL is a full, publishable pass; the most likely real outcome is forced-coframe-but-imported-action (B yes, C no), reported as `fp-imported-action`. EXACT over Q on every decisive verdict (Berry sector over Q(i); split Re/Im); det SSOT = `ring_lemma_verification.py` det_3; `octonion_algebra.py` BANNED.
 
@@ -22,7 +22,7 @@
 
 ### Phase A.5 (→ Phase 76): Berry-Curvature Same-Wall Gate — SOFT KILL
 
-- [ ] **CALC-03**: Compute the QGT of the idempotent state family `|ψ(x)⟩` at `E(x)` (projector form `Q=Tr(P ∂P ∂P)`, gauge-invariant) and confirm its REAL part reproduces the dead Fubini-Study/cone-Hessian `Hess(−log det)`. **HARD STOP if it does not (the QGT construction is wrong).**
+- [ ] **CALC-03**: Compute the QGT of the idempotent state family `|ψ(x)⟩` at `E(x)` (projector form `Q=Tr(P ∂P ∂P)`, gauge-invariant); its REAL part should be a sensible real symmetric metric of the SAME non-Einstein CHARACTER as the v17.0 cone-Hessian. **SOFT sanity check, NOT a hard stop:** `Re(QGT)` is the Fubini-Study pullback along `E(x)` — a DIFFERENT construction than the cone-Hessian restriction on the V_0 slice — so a discrepancy is INFORMATIVE (diagnose why), not a bug; do NOT KILL or HALT on this anchor alone.
 - [ ] **VALD-03**: Well-definedness checkpoint (survey-added) — establish that `Im(QGT) = F_B` is a well-defined, generically-NONZERO 2-form on the 4-dim slice AFTER the C_u breaking (OP^2=F_4/Spin(9) carries no invariant 2-form, so a nonzero Berry 2-form must be born from the breaking), BEFORE testing its shape.
 - [ ] **CALC-04**: Classify `F_B` at `M=0` — zero/flat, pure-Λ (`F_B ~ e∧e`), or other (report the vacuum level; expected flat/pure-Λ per CONVENTIONS §6; do NOT reintroduce Λ<0).
 - [ ] **VALD-04**: Same-wall test — with `M∈V_{1/2}` on, decide whether the matter-sourced `F_B` (and the ε-contraction of `F_B∧F_B` onto the Lorentz block) is transverse/Einstein-shaped vs EM-shaped (traceless `T^μ_μ=0`, `~F²`, conformal), matching M-power + tensor-structure + support against an independently-frozen `V_{1/2}` stress-energy `T[M]`; use gauge-invariant scalars (the degenerate-bundle Berry curvature is non-abelian/Wilczek-Zee, gauge-COVARIANT not invariant). **SOFT KILL if it reproduces the v17.0 cone-Hessian mismatch (support disjoint from T[M], no order-matching).**
@@ -66,7 +66,7 @@ Deferred to future work / not in this milestone's roadmap.
 | DERV-02 | Exact over Q | `E_11∘δ=(1/2)δ` for all V_{1/2} basis elements; `dim T_{E_11}OP^2 = 16` |
 | CALC-01/02 | Exact over Q (rank/eigenvalues) | `sympy.Matrix.rank` (never numpy); exact Gram eigenvalues / signature |
 | VALD-02 | Exact over Q | residual-structure-group generators over Q; forced-vs-arbitrary argument |
-| CALC-03 | Exact over Q(i); Re-part exact over Q | `Re(QGT)` byte-matches the cone-Hessian `Hess(−log det)` |
+| CALC-03 | Exact over Q(i); Re/Im split | `Re(QGT)` is a sensible real symmetric metric of the same non-Einstein character as the cone-Hessian (SOFT sanity check — FS pullback vs cone-Hessian restriction; discrepancy informative, NOT a KILL) |
 | VALD-04 | Exact over Q(i); gauge-invariant scalar | M-power + tensor-structure + support match vs independently-frozen T[M]; EM-shaped discriminants (traceless, ~F²) |
 | CALC-05 | Exact over Q | Lorentz block == independent Totaro/Levi-Civita Riemann on ≥5 components |
 | VALD-05 | Exact over Q | K=−1/2 benchmark sign-pin; `R_μν ~ Λg_μν` test |
@@ -106,8 +106,9 @@ Deferred to future work / not in this milestone's roadmap.
 - Primary requirements: 15 total (DERV ×4, CALC ×5, VALD ×6)
 - Mapped to phases: 15
 - Unmapped: 0
+- ROADMAP created 2026-06-01 (Phases 74–78): traceability above matches `.gpd/ROADMAP.md` 1:1 (DERV-01/02 + VALD-01 → 74; CALC-01/02 + VALD-02 → 75; CALC-03/04 + VALD-03/04 → 76; DERV-03/04 + CALC-05 + VALD-05 → 77; VALD-06 → 78). All 4 contract claims, 5 deliverables, 12 acceptance tests surfaced; no orphans.
 
 ---
 
 _Requirements defined: 2026-06-01_
-_Last updated: 2026-06-01 after v18.0 literature survey_
+_Last updated: 2026-06-01 after v18.0 roadmap creation (Phases 74–78)_
