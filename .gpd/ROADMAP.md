@@ -206,11 +206,12 @@ Plans:
 3. If the Einstein term only appears via a posited MM action, it is reported as **`fp-imported-action`** (honest partial, NOT a derivation); Singh/Castro/GST are framed as the contrast class.
 4. The honest final milestone verdict (KILL / SOFT KILL / SURVIVES / STRONG WIN / `fp-imported-action`) is stated at true strength — neither inflated to a win nor softened.
 
-**Plans:** TBD
+**Plans:** 2 plans (2 waves)
 
 Plans:
 
-- [ ] 78-01: TBD (forced-vs-posited: trace-form quadratic-in-F contraction dimension vs ε-contraction)
+- [ ] 78-01-PLAN.md — the decisive forced-vs-posited computation (wave 1, non-interactive): det SSOT re-pass + Tr|frame==η + AST/source input-ban guard; the bare so(3,1)-invariant quadratic-in-curvature 4-form space dim=2 anchor (Euler + Pontryagin) exact over Q; THE decisive trace-form-invariant subspace dimension + ε-reachability + det_3-fixed-normalization read-off
+- [ ] 78-02-PLAN.md — verdict synthesis + contrast + ratification (wave 2, depends_on 78-01, INTERACTIVE): map the decisive triple to the verdict ladder (STRONG WIN xor `fp-imported-action`) + Λ=0 corollary; GST/Singh/Castro imported-action contrast; the milestone-closing v18.0 derivation; **BLOCKING** human ratification of the milestone-headline verdict
 
 ## Backtracking Triggers
 
@@ -245,7 +246,7 @@ Research backtracking is expected; these are the explicit conditions for revisit
 | 75. Phase A — Coframe-Reduction Dealbreaker (KILL) | v18.0 | 1/1 | ✓ Complete (SURVIVES) | 2026-06-02 |
 | 76. Phase A.5 — Berry-Curvature (RETIRED as a gravity gate) | v18.0 | 2/2 | ⚠ Reinterpreted (SOFT KILL overturned 2026-06-02) | 2026-06-02 |
 | 77. Phase B — Full Cartan Curvature = 4d Gravity | v18.0 | 2/2 | ✓ Complete (**NEGATIVE / `fp-imported-action` partial**) | 2026-06-02 |
-| 78. Phase C — Circularity Audit (forced vs posited) | v18.0 | 0/TBD | Ready to plan | - |
+| 78. Phase C — Circularity Audit (forced vs posited) | v18.0 | 0/2 | Planned (2 plans, 2 waves) | - |
 
 **Coverage:** 15/15 objectives mapped (DERV ×4, CALC ×5, VALD ×6) — no orphans, no duplicates. All 4 contract claims, 5 deliverables, and 12 acceptance tests surfaced. All 8 forbidden proxies visible at the phases where they bite.
 
