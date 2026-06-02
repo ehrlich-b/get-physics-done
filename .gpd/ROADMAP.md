@@ -9,7 +9,7 @@ Deriving the fundamental laws of physics from the algebraic structure of self-mo
 - **v15.0 The P5 ↔ Basin Restriction Lemma** — Phases 60–63 (completed 2026-05-24 — CHARACTERIZED OBSTRUCTION / coexistence-as-island; through-line survives)
 - **v16.0 The (RING) Lemma** — Phases 64–69 (completed 2026-05-27 — (RING) (a)+(b)+(c) PROVED)
 - **v17.0 Gravity as Intrinsic Curvature of the h_3(O) Bulk Geometry** — Phases 70–73 (completed 2026-06-01 — **NONE: curved but not Einstein-structured**; the REAL part / cone-Hessian / Jordan sector)
-- **Active: v18.0 Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O)** — Phases 74–78 (physics-side; the ANTISYMMETRIC/Lie sector = Berry curvature = imaginary part of the QGT)
+- **Active: v18.0 Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O)** — Phases 74–78 (physics-side; the antisymmetric/Lie **connection** sector. Gravity = the soldering-form Riemann `R[ω]` = the Lorentz block of `F=dA+A∧A`. NOTE 2026-06-02: the Berry curvature `Im(QGT)` is a *distinct internal gauge* object, NOT gravity — Phase 76 reframed; see the disposition note below.)
 
 ---
 
@@ -23,13 +23,19 @@ This milestone computes the **antisymmetric/Lie-sector** gravitational object ev
 
 > **NEGATIVE-RESULT-IS-SUCCESS (binding reporting discipline).** A clean Phase A KILL (no forced 4d Lorentzian coframe) or a Phase A.5 same-wall SOFT KILL is a **full, publishable closure** — report it flat, never relabel "approximately 4d" or "approximately Einstein". The **most likely real outcome** is a forced coframe but an imported action (B yes, C no): report that as `fp-imported-action`, an honest partial, NOT a win. The point is to find out whether gravity is the Lie-sector connection curvature of h_3(O), not to confirm it. Authoritative spec: `~/scratch/get-physics-done/paper6-cartan-tetrad-prompt.md`.
 
+> **⚠ DISPOSITION UPDATE (2026-06-02) — Phase 76 (A.5) verdict OVERTURNED; milestone re-scoped.** Phase 76 computed the Berry curvature `F_B = Im(QGT)` and proposed a SOFT KILL; Bryan OVERTURNED it — **A.5 tested the wrong object.** The Maxwell stress and the Pontryagin `F_B∧F_B` are *quadratic* in `F_B`; the Einstein–Hilbert object is `ε_{abcd} R^{ab}∧e^c∧e^d`, **linear** in the Riemann `R[ω]` and wedged with the tetrad. "A 2-form's Maxwell stress is traceless in 4d" is a universal tautology that also kills *real* GR ⟹ the discriminant is invalid for gravity. **Corrected framing:** the Berry curvature is the **internal `U(k)` / `so(6)=SU(4)` gauge** sector (a deferred SM-unification bonus, NOT a v18.0 deliverable); **gravity is the soldering-form Riemann `R[ω]`** = the Lorentz block of `F = dA + A∧A`, built from `e = π_u(dE)` (Phase 75). **Consequences:**
+> 1. The A.5 result does NOT gate gravity — **Phase 75 (SURVIVES) alone greenlights Phase B.** The "75 ∧ 76 conjunctive" gate is **RETIRED**.
+> 2. Cheap pre-check DONE (`76-precheck`, exact over Q): `g = e·e` is `(1,3)` Lorentzian = the v17.0 η baseline, **DIFFERENT** from the `(4,0)` cone-Hessian. Base-metric coincidence ≠ Riemann redundancy (different curvature mechanism: soldering/Cartan `ω(e)` vs cone-Hessian cross-terms) ⟹ **Phase B is a genuine, non-redundant test.**
+> 3. **Phase 77 (B) now OPENS with a flatness gate** (the v18.0 analog of the v17.0 homogeneity dealbreaker): build `g = e·e` for a sample `M ≠ 0`, compute `R[ω(e)]`, confirm it is **NONZERO** BEFORE any `G = κT[M]` comparison. The `M=0` vacuum `g=e·e=η` is correctly flat; if `R[ω] = 0` for `M ≠ 0` (rigid / integrable soldering, pure-gauge), the route yields no gravity — **honest trivial death, STOP there.** Only if `R[ω] ≠ 0` proceed to `ω(e) → R[ω] → G` vs the independently-frozen `T[M]` with the v17.0-Ph73 power-counting discipline.
+
 ### Verdict Ladder (decidable conditions)
 
 | Stage | Decidable condition | Verdict |
 | ----- | ------------------- | ------- |
 | Phase A (75) | `dim π_u(V_{1/2}(16)) ≠ 4`, OR Gram signature not Lorentzian (1,3), OR 4d reduction needs an arbitrary choice | **KILL** — route dead, STOP |
-| Phase A.5 (76) | matter-sourced `F_B` EM-shaped (traceless `~F²`) / support disjoint from `T[M]` / no M-power match — reproduces the cone-Hessian same-wall mismatch | **SOFT KILL** — recommend STOP before B |
-| Phase B (77) | A & A.5 survive; `F=dA+A∧A` Lorentz block = 4d Riemann (Totaro/Levi-Civita-cross-checked ≥5 components), V_{1/2}-sourced | **SURVIVES** — connection-curvature gravity, distinct from the dead metric route |
+| Phase A.5 (76) | ~~matter-sourced `F_B` EM-shaped → SOFT KILL~~ **RETIRED AS A GATE (overturned 2026-06-02, see disposition above): A.5 tested the wrong object — `F_B` is the internal `so(6)=SU(4)` gauge curvature, not gravity; the traceless-`~F²` discriminant is a tautology that also kills real GR** | **does NOT gate B** |
+| Phase B (77) — flatness sub-gate | build `g=e·e` for `M≠0`; `R[ω(e)] = 0` (rigid/integrable soldering) | **trivial death** — no gravity, STOP |
+| Phase B (77) | Phase 75 survives; flatness sub-gate passes (`R[ω]≠0` for `M≠0`); `F=dA+A∧A` Lorentz block = 4d Riemann (Totaro/Levi-Civita-cross-checked ≥5 components), V_{1/2}-sourced | **SURVIVES** — connection-curvature gravity, distinct from the dead metric route |
 | Phase C (78) | trace-form-invariant quadratic-in-F contraction space is 1-dim AND equals the ε-contraction with a cubic-norm-fixed normalization | **STRONG WIN** — gravity from h_3(O) Lie-sector geometry, non-circular |
 | Phase C (78) | Einstein term appears only because an MM/EH action was posited by hand | **`fp-imported-action`** — honest partial, NOT a derivation |
 
@@ -40,7 +46,7 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
 | **claim-coframe-reduction** (THE KILL GATE) | Phase 74 (anchors ✓), Phase 75 (decisive ✓) | ✓ **SURVIVES** (2026-06-02): (E_11,u) forces a 4d Lorentzian (1,3) coframe carrying SO(3,1); 3/3 clauses exact over Q; verified HIGH; human-ratified |
-| **claim-berry-same-wall** (SOFT KILL) | Phase 76 | Planned |
+| **claim-berry-same-wall** (~~SOFT KILL gate~~ RETIRED) | Phase 76 | ⚠ **Reinterpreted 2026-06-02** — A.5 tested the wrong object (`F_B` = internal `so(6)=SU(4)` gauge curvature, not gravity). SOFT KILL overturned; does NOT gate Phase B. |
 | **claim-cartan-gravity** | Phase 77 | Planned |
 | **claim-forced-einstein** | Phase 78 | Planned |
 | deliv-phase0 | Phase 74 | ✓ Done (2026-06-02) |
@@ -61,11 +67,11 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 | 74 — Phase 0: Engine, Tangent Identity & Calibration | — | 75, 76 | — | Yes |
 | 75 — Phase A: Coframe-Reduction Dealbreaker | 74 | 77 (greenlight) | **KILL gate** | Yes |
 | 76 — Phase A.5: Berry-Curvature Same-Wall | 74 | 77 (greenlight) | **SOFT KILL gate** | Yes |
-| 77 — Phase B: Full Cartan Curvature = 4d Gravity | 74, **75 survives**, **76 survives** | 78 | — | Yes |
+| 77 — Phase B: Full Cartan Curvature = 4d Gravity | 74, **75 survives** (76 RETIRED as a gate, 2026-06-02) | 78 | **flatness sub-gate** (opens Phase B) | Yes |
 | 78 — Phase C: Circularity Audit (forced vs posited) | 77 | — | — | Yes |
 
-**Critical path:** 74 → {75, 76} → 77 → 78. The gates are *conjunctive*: BOTH Phase 75 (A) and Phase 76 (A.5) must SURVIVE to greenlight Phase 77 (B); a KILL at 75 or a SOFT KILL at 76 ends the milestone as a complete, publishable closure (later phases are NOT mandatory).
-**Parallelizable:** Phases 75 (A) and 76 (A.5) have **no inter-dependency** — both depend only on Phase 74, both are cheap (linear algebra over Q / canonical curvature needing no metric-compatibility equation), and may be planned and executed in parallel. The `Re(QGT)=cone-Hessian` consistency anchor (Phase 76) is the single check that licenses the whole "imaginary part" framing — front-load it.
+**Critical path (updated 2026-06-02):** 74 → 75 → 77 → 78. The "75 ∧ 76 conjunctive gate" is **RETIRED**: Phase 76 (A.5) was overturned as a gravity gate (it tested the Berry / internal-gauge sector, not the tetrad Riemann). **Phase 75 (A, SURVIVES) alone greenlights Phase B (77).** Phase 77 opens with its own **flatness sub-gate** (`R[ω]≠0` for `M≠0`); failure there is an honest trivial death (the v18.0 analog of the v17.0 homogeneity dealbreaker). A KILL at 75 (it survived) or the flatness sub-gate ends the milestone as a publishable closure.
+**Historical note:** Phases 75 (A) and 76 (A.5) were originally planned as parallel cheap gates with no inter-dependency. Phase 76's premise (Berry curvature = the gravity object) proved wrong; its computation is preserved as an internal-gauge-sector observation (deferred SM bonus).
 
 ### Phases
 
@@ -73,7 +79,7 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 
 - [x] **Phase 74: Phase 0 — Engine Recovery, Tangent Identity & Calibration** *(completed 2026-06-02)* — reload the det SSOT, verify `E_11∘δ=(1/2)δ` and `T_{E_11}OP^2=V_{1/2}(16)`, reproduce the calibration anchors + K=−1/2 benchmark. **VERDICT: foundation certified** — det SSOT re-passes (324/324 = dim f_4 52, octonion_algebra.py absent); soldering form dE confirmed V_{1/2}-valued (kernel == span{11..26}); all anchors + K=−1/2 reproduced byte-for-byte; verified 9/9 HIGH.
 - [x] **Phase 75: Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE, do first; cheap)** *(completed 2026-06-02)* — exact image dim of `π_u(V_{1/2}(16))`, exact Gram signature, forced-vs-arbitrary structure group. **VERDICT: SURVIVES** — (E_11,u) forces a 4d Lorentzian (1,3) coframe carrying SO(3,1): dim π_u(V_{1/2})=4 (survivors {11,18,19,26}=C_u²); soldering-form metric (1,3) + B rank 4 (bare trace-form diag(2,2,2,2)=(4,0) reported as the Euclidean OP² FS foil, NOT the verdict); residual 21=so(3,1)[6]⊕so(6)[15], so(3,1) FORCED (the so(6) a trivial-on-spacetime ideal, res/so(6)=so(3,1)). Human-ratified + orchestrator-reproduced; verified HIGH. Greenlight Phase 77 (conjunctive with Phase 76).
-- [ ] **Phase 76: Phase A.5 — Berry-Curvature Same-Wall Gate (SOFT KILL)** — Im(QGT) well-definedness after C_u breaking, `Re(QGT)=Hess(−log det)` anchor, M=0 vacuum, Einstein-vs-EM shape.
+- [x] **Phase 76: Phase A.5 — Berry-Curvature (RETIRED as a gravity gate)** *(executed 2026-06-02; SOFT-KILL verdict OVERTURNED)* — computed `F_B=Im(QGT)` (well-definedness born-from-breaking, M=0 pure-Λ/Kähler vacuum `F_B=−2ω_K`, matter-on EM-shape). The SOFT KILL was overturned: A.5 tested the **wrong object**. `F_B` is the **internal `so(6)=SU(4)` gauge curvature**, not the tetrad Riemann; it does NOT gate gravity (preserved as a deferred SM bonus). See the disposition note above.
 - [ ] **Phase 77: Phase B — Full Cartan Curvature = 4d Gravity (only if A and A.5 survive)** — invertible coframe, Spin(3,1) connection ω, `F=dA+A∧A` Lorentz block = 4d Riemann, vacuum + matter-sourced.
 - [ ] **Phase 78: Phase C — Circularity Audit (forced vs posited)** — is the MM ε-contraction FORCED by the h_3(O) trace-form/cubic-norm, or `fp-imported-action`?
 
@@ -127,9 +133,11 @@ Plans:
 
 - [x] 75-01-PLAN.md -- C_u reduction of V_{1/2}: CALC-01 exact image dim (KILL if !=4) + image(B)==pi_u(V_0) identity; CALC-02 soldering-form-metric signature (1,3) on the R^{3,1} target + Euclidean trace-form foil diag(2,2,2,2) (KILL if not Lorentzian / B not rank 4); VALD-02 forced-vs-arbitrary SO(3,1) residual group over QQ (KILL = fp-arbitrary-reduction); verdict synthesis -> deliv-phaseA (interactive: human ratification of the KILL/greenlight) — ✓ COMPLETE 2026-06-02 (VERDICT: SURVIVES; all 3 clauses exact over Q; verified 1/1 claim + 3/3 tests HIGH; human-ratified + orchestrator-reproduced)
 
-### Phase 76: Phase A.5 — Berry-Curvature Same-Wall Gate (SOFT KILL)
+### Phase 76: Phase A.5 — Berry-Curvature (RETIRED as a gravity gate)
 
-**Goal:** It is decided, cheaply and before any expensive connection machinery, whether the canonical Berry curvature `F_B = Im(QGT)` has Einstein-shaped matter content — or whether the Lie sector inherits the v17.0 cone-Hessian same-wall mismatch (a SOFT KILL).
+> **DISPOSITION (2026-06-02):** Executed (76-01 vacuum + 76-02 matter, both committed, driver 43/43 PASS exact over Q(i), orchestrator-reproduced). The proposed SOFT KILL was **OVERTURNED** by Bryan: A.5 tested the **wrong object** — the Maxwell stress and Pontryagin `F_B∧F_B` are *quadratic* in `F_B`, whereas the Einstein–Hilbert object `ε_{abcd}R^{ab}∧e^c∧e^d` is *linear* in `R[ω]` wedged with the tetrad; and "a 2-form's Maxwell stress is traceless in 4d" is a universal tautology that also kills real GR. **`F_B = Im(QGT)` is the internal `so(6)=SU(4)` gauge curvature, NOT gravity** (preserved as a deferred SM-unification bonus). A.5 does NOT gate Phase B; **Phase 75 (SURVIVES) alone greenlights Phase B**, which now opens with a flatness sub-gate. The original SOFT-KILL goal and success criteria below are retained for the record but are **SUPERSEDED**.
+
+**Goal (SUPERSEDED — see disposition):** It is decided, cheaply and before any expensive connection machinery, whether the canonical Berry curvature `F_B = Im(QGT)` has Einstein-shaped matter content — or whether the Lie sector inherits the v17.0 cone-Hessian same-wall mismatch (a SOFT KILL).
 **Depends on:** Phase 74. (Independent of Phase 75 — may be planned/run in parallel; canonical/tautological Berry curvature needs no metric-compatibility equation.)
 **Requirements:** CALC-03, VALD-03, CALC-04, VALD-04
 **Contract Coverage:**
@@ -155,8 +163,8 @@ Plans:
 
 ### Phase 77: Phase B — Full Cartan Curvature = 4d Gravity
 
-**Goal:** The assembled (A)dS Cartan connection `A=ω⊕e` and its curvature `F=dA+A∧A` are computed, and the Lorentz block is identified — with an independent cross-check — as the 4d Riemann tensor, with its vacuum and matter-sourced structure characterized.
-**Depends on:** Phase 74; **conditional on Phase 75 (A) SURVIVING and Phase 76 (A.5) SURVIVING.** (If either gate KILLs/SOFT-KILLs, this phase does not run.)
+**Goal:** The assembled (A)dS Cartan connection `A=ω⊕e` and its curvature `F=dA+A∧A` are computed, and the Lorentz block is identified — with an independent cross-check — as the 4d Riemann tensor, with its vacuum and matter-sourced structure characterized. **Phase B OPENS with a flatness sub-gate (added 2026-06-02, the v18.0 analog of the v17.0 homogeneity dealbreaker):** build `g=e·e` for a sample `M≠0`, compute `R[ω(e)]`, and confirm it is NONZERO before any `G=κT[M]` comparison. The `M=0` vacuum `g=e·e=η` is correctly flat (76-precheck); if `R[ω]=0` for `M≠0` (rigid / integrable soldering, pure-gauge), the route yields no gravity — honest trivial death, STOP. Only if `R[ω]≠0` proceed.
+**Depends on:** Phase 74 and **Phase 75 (A) SURVIVING** (which it does). *(Updated 2026-06-02: the Phase 76 / A.5 SURVIVING condition is REMOVED — A.5 was retired as a gravity gate, see the disposition note above. Phase 75 alone greenlights this phase.)*
 **Requirements:** DERV-03, DERV-04, CALC-05, VALD-05
 **Contract Coverage:**
 - Advances: `claim-cartan-gravity`.
@@ -166,6 +174,7 @@ Plans:
 - Forbidden proxies to avoid: **`fp-reuse-cone-hessian`** (do NOT reuse the v17.0 symmetric-sector / real-part Riemann as load-bearing — this is the antisymmetric/Lie sector, a different tensor; the cone-Hessian is for the real-part consistency check only); the raw-45-dim-Spin(9,1)-curvature mistake (Spin(9,1) is the AMBIENT group; gravity = the 10-dim `A=ω⊕e`, extract the Spin(3,1) Lorentz block — never the raw 45-dim curvature); `fp-float-decisive`.
 **Success Criteria** (what must be TRUE):
 
+0. **(Flatness sub-gate — opens Phase B; added 2026-06-02; the v18.0 analog of the v17.0 homogeneity dealbreaker.)** `g=e·e` is built for a sample `M≠0` and `R[ω(e)] ≠ 0` is confirmed exact over Q BEFORE any `G=κT` comparison. (`M=0` ⟹ `g=e·e=η` flat, expected; `R[ω]=0` for `M≠0` ⟹ rigid/integrable soldering ⟹ no gravity ⟹ honest trivial death, STOP.)
 1. `e = π_u(dE)` is confirmed a non-degenerate soldering form on the 4d slice: `det(e^a_μ) ≠ 0` exact over Q (a genuine invertible tetrad).
 2. `ω` is extracted as the Lorentz Spin(3,1) part of the ambient Spin(9,1) connection compatible with `e` (metric/torsion condition or the canonical f_4/e_6 reductive split `g=h⊕m`) — NOT the raw 45-dim Spin(9,1) curvature.
 3. `F = dA + A∧A` is computed symbolically; its Lorentz block `R(ω)+Λe∧e` is identified with the 4d Riemann tensor and **cross-checked against an independent Totaro/Levi-Civita computation on ≥5 components, agreeing exactly over Q**; the translation/torsion block `de+ω∧e` is reported (vanishing or matter-sourced).
@@ -208,7 +217,8 @@ Plans:
 Research backtracking is expected; these are the explicit conditions for revisiting earlier work, and the STOP conditions that end the milestone as a publishable closure (NEGATIVE-RESULT-IS-SUCCESS).
 
 - **Phase 75 (A) — KILL / STOP:** the `C_u` reduction does NOT land on a 4-dim space, OR the coframe is NOT Lorentzian, OR the 4d reduction is NOT forced by `(E_11,u)` (requires an arbitrary extra choice). → Report "Phase A: coframe reduction fails [clause]" and STOP. Do NOT relabel "approximately 4d". Phases 76–78 do not become mandatory.
-- **Phase 76 (A.5) — SOFT KILL / STOP:** the canonical Berry curvature `F_B` reproduces the cone-Hessian same-wall mismatch (curvature support disjoint from the `V_{1/2}` stress-energy support; no order-matching possible). → Report "Phase A.5: Lie sector inherits the symmetric-sector mismatch" and recommend STOP before Phase B.
+- **Phase 76 (A.5) — RETIRED as a gate (2026-06-02):** the original SOFT-KILL trigger (matter `F_B` EM-shaped / support-disjoint from `T[M]`) is **VOID** — A.5 tested the wrong object (`F_B` = internal `so(6)=SU(4)` gauge curvature, not gravity; the traceless-Maxwell-stress discriminant is a tautology that also kills real GR). A.5 does NOT stop the route.
+- **Phase 77 (B) — flatness sub-gate / trivial-death STOP (replaces the retired A.5 gate as the cheap pre-B kill):** if `R[ω(e)] = 0` for `M ≠ 0` (rigid / integrable soldering, pure-gauge), the soldering route yields no gravity → honest trivial death, STOP before the `G=κT[M]` comparison.
 - **Phase 76 (A.5) — SOFT sanity check (NOT a stop):** if the real part of the QGT differs from the v17.0 `Hess(−log det)`, that is INFORMATIVE, not a bug — `Re(QGT)` is the Fubini-Study pullback along `E(x)`, a DIFFERENT construction than the cone-Hessian restriction on the V_0 slice; diagnose the geometric difference before proceeding. Do NOT KILL or HALT on this anchor alone. (The genuine A.5 SOFT KILL is the matter-sourced same-wall mismatch vs `T[M]`, below.)
 - **Any phase — arithmetic-hygiene STOP:** `octonion_algebra.py` detected on a decisive path, OR a float rank/curvature on a decisive verdict → STOP and switch to the det SSOT `ring_lemma_verification.py` det_3 / exact-over-Q (`fp-octonion-algebra`, `fp-float-decisive`).
 - **Phase 78 (C) — honest-partial, not a win:** the Einstein term appears ONLY because an MM/EH action was posited by hand → report `fp-imported-action` (the GST sin in new clothes); do NOT relabel it a win. This (B yes, C no) is the most likely real outcome.
@@ -227,14 +237,14 @@ Research backtracking is expected; these are the explicit conditions for revisit
 
 ## Progress
 
-**Execution Order:** Phases execute in numeric order with the conjunctive gate: 74 → {75, 76 in parallel} → [STOP if KILL/SOFT-KILL] → 77 → 78.
+**Execution Order (updated 2026-06-02):** 74 → 75 → [STOP if KILL] → 77 (opens with a flatness sub-gate; STOP if `R[ω]=0` for `M≠0`) → 78. The 75∧76 conjunctive gate is RETIRED — Phase 75 (SURVIVES) alone greenlights 77; Phase 76 (A.5) was reinterpreted (Berry = internal gauge sector, not a gravity gate).
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 74. Phase 0 — Engine, Tangent Identity & Calibration | v18.0 | 1/1 | ✓ Complete | 2026-06-02 |
 | 75. Phase A — Coframe-Reduction Dealbreaker (KILL) | v18.0 | 1/1 | ✓ Complete (SURVIVES) | 2026-06-02 |
-| 76. Phase A.5 — Berry-Curvature Same-Wall (SOFT KILL) | v18.0 | 0/TBD | Not started | - |
-| 77. Phase B — Full Cartan Curvature = 4d Gravity | v18.0 | 0/TBD | Not started | - |
+| 76. Phase A.5 — Berry-Curvature (RETIRED as a gravity gate) | v18.0 | 2/2 | ⚠ Reinterpreted (SOFT KILL overturned 2026-06-02) | 2026-06-02 |
+| 77. Phase B — Full Cartan Curvature = 4d Gravity (greenlit by Phase 75; opens with flatness sub-gate) | v18.0 | 0/TBD | Ready to plan | - |
 | 78. Phase C — Circularity Audit (forced vs posited) | v18.0 | 0/TBD | Not started | - |
 
 **Coverage:** 15/15 objectives mapped (DERV ×4, CALC ×5, VALD ×6) — no orphans, no duplicates. All 4 contract claims, 5 deliverables, and 12 acceptance tests surfaced. All 8 forbidden proxies visible at the phases where they bite.

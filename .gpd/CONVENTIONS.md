@@ -13,7 +13,8 @@ objects added in §11). Prior: v17.0 Phase 70 (A0) — established 2026-05-30.
 adds the §11 Cartan/MM Lie-sector objects. Supersedes the v16.0 (RING)-lemma lock.
 **Subfield:** Mathematical physics / differential geometry of symmetric cones
 (Jordan algebra h_3(O)) with a Lorentzian spacetime slice; v18.0 adds a Cartan /
-MacDowell-Mansouri connection-and-curvature (Berry / imaginary-QGT) layer.
+MacDowell-Mansouri connection-and-curvature layer (gravity = the soldering-form Riemann
+`R[ω]`; the Berry / imaginary-QGT curvature is the distinct internal gauge sector).
 
 ---
 
@@ -187,26 +188,41 @@ These conventions constrain each other; the interactions below were checked at e
 
 ---
 
-## 11. v18.0 Cartan / MacDowell-Mansouri (Berry / imaginary-QGT) layer
+## 11. v18.0 Cartan / MacDowell-Mansouri layer (gravity = soldering-form Riemann `R[ω]`; Berry curvature = internal gauge sector)
 
 The v18.0 milestone studies gravity as the curvature `F = dA + A∧A` of the Peirce-frame
-Cartan / MacDowell-Mansouri (MM) connection `A = ω ⊕ e` on `h_3(O)`. This is the **Lie /
-antisymmetric** sector — the **imaginary** part of the self-model quantum geometric tensor
-(Berry curvature) — and is a **different tensor** from the v17.0 cone-Hessian (the **real**
-part). Therefore the v17.0 `NONE` verdict does **NOT** bind v18.0. All inherited hard locks
-(det SSOT, octonion ban, EXACT over `Q`, `F_4 = Aut(h_3(O))`, `E_11 = diag(1,0,0)`, Peirce
-`{0,1/2,1}`, `V_{1/2} =` engine indices `{11..26}`, `u = e_7`, `T_a = (1/2)γ_a`, `Cl(9,0)`)
-are unchanged. New objects (Phases 75–78):
+Cartan / MacDowell-Mansouri (MM) connection `A = ω ⊕ e` on `h_3(O)`. **The gravitational
+object is the Lorentz block `R[ω]` of `F` — the Riemann curvature of the soldering-form
+metric `g = e·e` built from `e = π_u(dE)`** (Phase 75: a forced 4d Lorentzian `(1,3)`
+coframe carrying `SO(3,1)`). This is the **antisymmetric / Lie connection** sector and is a
+**different tensor** from the v17.0 cone-Hessian (the symmetric / **real**-QGT / Fubini-Study
+sector), so the v17.0 `NONE` verdict does **NOT** bind it.
+
+> **Berry curvature ≠ gravity (corrected 2026-06-02, Phase 76 overturn).** The Berry
+> curvature `F_B = Im(QGT)` is the **eigenbundle `U(k)` gauge curvature** of the
+> primitive-idempotent family — the **internal `so(6)=SU(4)` gauge sector** (Phase 75
+> clause c residual), NOT the tetrad Riemann. The Phase-76 (A.5) SOFT KILL — which tested
+> the Maxwell stress and the Pontryagin `F_B∧F_B` (both *quadratic* in `F_B`) — was
+> OVERTURNED: the Einstein–Hilbert object is `ε_{abcd} R^{ab}∧e^c∧e^d`, **linear** in `R[ω]`
+> and wedged with the tetrad, and "the Maxwell stress of any 2-form is traceless in 4d" is a
+> universal tautology that also kills *real* GR. The gravity gate is therefore the
+> soldering-form `R[ω]` test (**Phase 77 / B**, opened by a flatness gate), not the
+> Berry-curvature shape. `F_B` is a deferred SM-unification bonus for a later milestone, not
+> a v18.0 deliverable.
+
+All inherited hard locks (det SSOT, octonion ban, EXACT over `Q`, `F_4 = Aut(h_3(O))`,
+`E_11 = diag(1,0,0)`, Peirce `{0,1/2,1}`, `V_{1/2} =` engine indices `{11..26}`, `u = e_7`,
+`T_a = (1/2)γ_a`, `Cl(9,0)`) are unchanged. New objects (Phases 75–78):
 
 | Symbol | Definition | Notes / lineage |
 |--------|-----------|-----------------|
 | `e = π_u(dE)` | the `V_{1/2}(E_11)`-valued **soldering (co-)frame**, 16-dim | Phase 74 certified `T_{E_11}OP^2 = V_{1/2}(E_11)` (16-dim; engine indices `{11..26}`). `C_u`-reduced toward a 4d Lorentzian coframe in **Phase 75** (the coframe-reduction KILL gate). |
 | `ω` | the **Lorentz `Spin(3,1)` connection** = the Lorentz block of the ambient `Spin(9,1)` connection | NOT the raw 45-dim `Spin(9,1)` curvature. `Spin(9,1)` is the slice-preserving Levi `Stab_{V_0}` (§5, `dim 45`). |
 | `A = ω ⊕ e` | the **(A)dS Cartan / MacDowell-Mansouri connection** | Wise, gr-qc/0611154: `A = ω + (1/ℓ) e`. |
-| `F = dA + A∧A` | the **curvature 2-form** | Lorentz block `= R[ω] − (Λ/3) e∧e`; translation block `= d_ω e` (torsion). |
+| `F = dA + A∧A` | the **curvature 2-form** — **THE gravitational object** | Lorentz block `= R[ω] − (Λ/3) e∧e` = the Riemann curvature of `g = e·e`; **this** is gravity (tested in Phase 77/B, opened by a flatness gate). Translation block `= d_ω e` (torsion). NOT the Berry curvature. |
 | `π_u` | the `C_u` / Phase-46 **octonion→complex (`O → C_u`) bottleneck reduction** | the same mechanism that reduced `V_0 = h_2(O) → h_2(C_u) ≅ R^{3,1}`; here applied to `V_{1/2}`. `C_u = span{1, e_7}` (consistent with §3). |
-| `QGT`, `Q = Tr(P ∂P ∂P)` | the **quantum geometric tensor** of the rank-1 primitive-idempotent state family `\|ψ(x)⟩` at `E(x)`; computed over `Q(i)` with a **Re/Im split** | `Re(QGT)` = Fubini-Study metric (the **v17.0 cone-Hessian sector**, real part); `Im(QGT) = F_B` = the **Berry curvature** (the **v18.0 Lie sector**, imaginary part). |
-| `Im(QGT) = F_B` | the **Berry curvature** — the v18.0 Lie/antisymmetric sector | v18.0 computes the **imaginary** part. A different tensor than the v17.0 real part ⟹ the v17.0 `NONE` verdict does **NOT** bind it. The `Re(QGT) =` cone-Hessian anchor is a **soft sanity check only** (FS-pullback ≠ cone-Hessian restriction). |
+| `QGT`, `Q = Tr(P ∂P ∂P)` | the **quantum geometric tensor** of the rank-1 primitive-idempotent state family `\|ψ(x)⟩` at `E(x)`; computed over `Q(i)` with a **Re/Im split** | `Re(QGT)` = Fubini-Study metric (the **v17.0 cone-Hessian** / real sector); `Im(QGT) = F_B` = the **Berry curvature** = the **internal `U(k)` / `so(6)=SU(4)` gauge curvature** — **NOT** gravity (see callout above). |
+| `Im(QGT) = F_B` | the **Berry curvature** = the eigenbundle `U(k)` **internal gauge** curvature (the `so(6)=SU(4)` sector, Phase 75 clause c) | **NOT the gravity tensor** (Phase 76 overturn, 2026-06-02). Gravity = the soldering-form Riemann `R[ω]` (Lorentz block of `F`, from `e = π_u(dE)`). `F_B` is a deferred SM-unification bonus, not a v18.0 deliverable. The `Re(QGT) =` cone-Hessian anchor remains a **soft sanity check only** (FS-pullback ≠ cone-Hessian restriction). |
 
 **Cross-convention consistency (v18.0 objects):**
 
@@ -217,6 +233,8 @@ are unchanged. New objects (Phases 75–78):
 | `A = ω ⊕ e`, `F = dA + A∧A` | mostly-minus `(+,−,−,−)` slice | the Lorentz block `R[ω]` and `e∧e` raise/lower with the slice metric (§1) | the 4d coframe target inherits the `(+,−,−,−)` timelike-positive signature |
 | `Im(QGT) = F_B` over `Q(i)` | EXACT over `Q` discipline (§2, §7) | Berry sector computed over `Q(i)` (Re/Im split); ranks via `sympy`, never float | enforce in Phases 75–78 (the `i` is carried symbolically, not as a float) |
 | `Re(QGT)` vs v17.0 cone-Hessian | distinct tensors | imaginary (Lie) vs real (Fubini-Study/Hessian) part — independent verdicts | OK — `NONE` (v17.0) does not bind the Im sector; Re-anchor is a SOFT check |
+| `F_B = Im(QGT)` (Berry) vs gravity `R[ω]` | **distinct objects** | Berry = internal `U(k)`/`so(6)` gauge curvature; gravity = soldering Riemann `R[ω]` (linear-in-`R`; EH `ε_{abcd} R^{ab}∧e^c∧e^d`) | corrected 2026-06-02: A.5 Berry-shape SOFT KILL OVERTURNED (the traceless-Maxwell-stress discriminant is a tautology that also kills real GR); gravity gate = Phase 77/B `R[ω]` test |
+| `g = e·e` vs v17.0 cone-Hessian | **DIFFERENT** (signature) | `g=e·e` is `(1,3)` Lorentzian (= the η baseline); cone-Hessian is `(4,0)` Riemannian | 76-precheck (exact over `Q`): `g=e·e ≠` cone-Hessian, `= η_bg`; base-metric coincidence ≠ Riemann redundancy (different curvature mechanism) ⟹ Phase B is a genuine test |
 
 ---
 
