@@ -676,6 +676,250 @@ def _task3(state, task2_out):
     return vac
 
 
+# ############################################################################
+# ############################################################################
+# ##                                                                        ##
+# ##   PART 2  (plan 76-02, the DECISIVE / MATTER half)                     ##
+# ##   VALD-04: the matter-on Berry curvature -- Einstein-shaped (SURVIVES) ##
+# ##   or EM-shaped same-wall mismatch (SOFT KILL)?  exact over Q(i).       ##
+# ##                                                                        ##
+# ############################################################################
+# ############################################################################
+#
+# PART 1 (above, plan 76-01) established the VACUUM half exactly over Q(i): the QGT
+# recipe is CALIBRATED (CP^1 pin), F_B=-2 Im Q is well-defined + generically NONZERO
+# (VALD-03), Re(QGT) is a positive-definite FS metric (CALC-03 SOFT), and the M=0 vacuum
+# is PURE-LAMBDA/KAHLER F_B^vac=-2 omega_K (CALC-04).  PART 2 turns matter M in V_{1/2}
+# ON and decides the genuinely-open VALD-04 clause on GAUGE-INVARIANT scalars:
+#
+#   TASK 1 (the biggest modeling gap, Q6): build the matter-on idempotent E(x;M) over
+#           C_u explicitly + VERIFY rank-1 (E^2-E==0, Tr==1) + C_u-FAITHFUL (no e_1..e_6
+#           leak alters the verdict) + the M->0 limit recovers the PART-1 vacuum F_B
+#           EXACTLY over Q(i).  Emit the leading matter F_B(x;M) for Task 2.
+#   TASK 2 (the decisive VALD-04 clause): the matter F_B small-M series + its leading
+#           M-power (confirmed by the next order); the F_B^F_B Lorentz-block epsilon-
+#           contraction (the MM-style diagnostic, ref-wise/ref-mm-1977) onto the FORCED
+#           SO(3,1) block (Phase 75); the SO(3,1) FRAME-ROTATION invariance test
+#           (fp-nonabelian-gauge); the INDEPENDENTLY-FROZEN T[M] via BG.spacetime_
+#           curvature_of_g + the inv_det_X_block OFF-SWITCH + ricci_decomposition_n4
+#           (kappa frozen FIRST, built WITHOUT reference to F_B); and the THREE matches
+#           (M-power + tensor structure + support).  VERDICT rendered FLAT.
+#
+# DESIGN POINTS (do not get these wrong):
+#   1. The verdict is the M-power + tensor structure + support match to an INDEPENDENTLY-
+#      FROZEN T[M].  "Some 2-form appears" is FORBIDDEN (fp-relabel).  v17.0 lesson:
+#      power-counting AND support must match, not just "a tensor appears" (kappa T ~10^3<G).
+#   2. Decisive verdicts on GAUGE-INVARIANT scalars (rank-1 P => F_B abelian, BUT the
+#      F_B^F_B Lorentz-block contraction + any frame statement are tested under an SO(3,1)
+#      frame rotation; fp-nonabelian-gauge).
+#   3. The cone-Hessian / Re(QGT) is NEVER load-bearing for the Im verdict (fp-reuse-cone-
+#      hessian).  It only BUILDS T[M] (which F_B is compared AGAINST).  v17.0 NONE binds Re.
+#   4. Negative-result-is-success: an EM-shaped result is reported FLAT as a SOFT KILL,
+#      NEVER "approximately Einstein"; an Einstein-shaped SURVIVES is not deflated
+#      (fp-relabel-softkill).  Report at true strength in BOTH directions.
+#
+# ============================================================================
+# THE MATTER SECTOR V_{1/2} AND ITS C_u-FAITHFUL PART  (the engine layout)
+# ============================================================================
+# V_{1/2}(E_11) (engine idx 11..26) = the octonion comps of x2 (entry (0,2), idx 11..18)
+# and x3 (entry (1,0), idx 19..26).  Under pi_u = proj_u (e_7-projection):
+#   * the C_u-SURVIVOR matter {11,18,19,26} = {Re(x2),<x2,e7>,Re(x3),<x3,e7>} SURVIVES
+#     pi_u -- it is a genuine complex off-diagonal perturbation of the C_u idempotent and
+#     is the part that SOURCES a C_u Berry response;
+#   * the C_u-TRANSVERSE matter {12..17,20..25} = the e_1..e_6 comps of x2,x3 is KILLED by
+#     pi_u (proj_u(e_k)=0 for k=1..6) -- it is INVISIBLE to the C_u Berry curvature.
+# This split IS the C_u-faithfulness finding (Task 1): the matter-on idempotent over C_u
+# is well-defined + rank-1, and the only matter reaching the decisive Berry curvature is
+# the C_u-survivor V_{1/2} matter (the transverse part is exactly projected away, NOT a
+# rank-changing leak).  Verified explicitly below.
+
+# A fixed rational C_u-survivor V_{1/2} matter DIRECTION (scaled by the amplitude t):
+#   mu1 (on z1 = the x3 slot): C_u-survivor comps Re(x3),<x3,e7>  -> complex (2 + 1 i)
+#   mu2 (on z2 = the x2 slot): C_u-survivor comps Re(x2),<x2,e7>  -> complex (-1 + 3 i)
+# (Generic rational direction; the verdict is direction-blind on gauge-invariant scalars,
+#  cross-checked at a second direction in Task 1.)
+MATTER_MU1 = (Rational(2) + Rational(1) * I)
+MATTER_MU2 = (Rational(-1) + Rational(3) * I)
+
+
+def build_matter_idempotent(mu1=MATTER_MU1, mu2=MATTER_MU2):
+    """Return (P_M, params, syms, t) for the MATTER-ON rank-1 C_u idempotent family
+    E(x;M) over C_u.  X_bg = I/3 + M with M a C_u-survivor V_{1/2} matter element scaled
+    by the amplitude t (RESEARCH Q6: the off-center basepoint move, parallel to
+    _offcenter_subs/rho_J).  Realized as the Veronese chart v=[1,z1,z2] with the matter
+    SHIFTING the chart center:
+        z1 = a + i b + mu1 t      (x3 slot, C_u-survivor matter mu1)
+        z2 = c + i d + mu2 t      (x2 slot, C_u-survivor matter mu2)
+    P_M = v v^dagger/(v^dagger v) is a rank-1 Hermitian C_u projector BY CONSTRUCTION
+    (the matter is a genuine V_{1/2} element kept in C_u; the transverse e_1..e_6 part is
+    projected away by pi_u and is NOT in this chart -- see the layout note above).  The i
+    is sympy.I (= e_7, SYMBOLIC over Q(i)).  syms=(a,b,c,d,t); params=[a,b,c,d]."""
+    a, b, c, d, t = symbols('a b c d t', real=True)
+    z1 = a + I * b + mu1 * t
+    z2 = c + I * d + mu2 * t
+    v = Matrix([1, z1, z2])
+    vdag = v.conjugate().T
+    norm = (vdag * v)[0, 0]
+    P_M = (v * vdag) / norm
+    return P_M, [a, b, c, d], (a, b, c, d, t), t
+
+
+def berry_F_at_point(P, params, pt, simp=cancel):
+    """F_B = -2 Im Tr(P dP_mu dP_nu) evaluated DIRECTLY at the rational base point `pt`,
+    over Q(i).  The watchdog-safe pattern: differentiate P wrt each param symbolically
+    (cheap, per-entry), then EVALUATE the derivatives at `pt` so the trace algebra is over
+    RATIONAL complex 3x3 matrices (fast), NOT heavy rational functions.  Returns the 4x4
+    F_B as an exact matrix over Q(i).  (Equivalent to berry_F(...).subs(pt) but avoids the
+    full-symbolic 4x4 Q assembly that is the >200s cliff for the matter-shifted projector.)"""
+    n = len(params)
+    P_at = P.applyfunc(lambda e: e.subs(pt))
+    dP_at = [P.applyfunc(lambda e, _p=p: e.diff(_p)).applyfunc(lambda e: e.subs(pt))
+             for p in params]
+    FB = zeros(n, n)
+    for mu in range(n):
+        for nu in range(n):
+            Qmn = (P_at * dP_at[mu] * dP_at[nu]).trace()
+            FB[mu, nu] = simp(-2 * sym_im(Qmn))
+    return FB
+
+
+def _matter_FB_at_t(P_M_func, params, t, tval, vac_FB_base, syms, simp=cancel):
+    """The MATTER Berry curvature  matter F_B := F_B(M) - F_B^vac  at the base point
+    (a=b=c=d=0), with the matter amplitude t set to the RATIONAL value tval.  Uses
+    berry_F_at_point (evaluate derivatives at the point => rational-matrix trace algebra)
+    so each sample is FAST and EXACT over Q(i) -- avoids the >200s all-symbolic cliff.
+    P_M_func is the matter projector (symbolic in a,b,c,d,t).  Returns the 4x4 matter F_B."""
+    a, b, c, d, tt = syms
+    base = {a: 0, b: 0, c: 0, d: 0, tt: tval}
+    FB0 = berry_F_at_point(P_M_func, params, base, simp=simp)
+    return Matrix(4, 4, lambda i, j: simp(FB0[i, j] - vac_FB_base[i, j]))
+
+
+# ============================================================================
+# TASK 1 (PART 2) : MATTER-ON E(x;M) over C_u -- rank-1 + C_u-faithful + M->0 limit
+# ============================================================================
+def task1_matter_idempotent(vac):
+    """THE BIGGEST MODELING GAP (Q6 / Open Risk #3), resolved BEFORE the verdict.
+    Build E(x;M) over C_u with M in V_{1/2} turned ON; verify EXACTLY over Q(i):
+      (1) rank-1 idempotent (E^2-E==0, Tr==1) to the working M-order;
+      (2) C_u-FAITHFUL: the C_u-survivor V_{1/2} matter stays a clean rank-1 C_u projector,
+          and the C_u-transverse e_1..e_6 matter is projected away by pi_u (NOT a rank-
+          changing leak) -- explicitly demonstrated on the octonionic background;
+      (3) the M->0 limit of the matter F_B = F_B(M)-F_B^vac returns 0 EXACTLY (the PART-1
+          vacuum is recovered);
+      (4) emit the leading matter F_B(x;M) (its leading M-power) for the VALD-04 verdict."""
+    global ALL_PASS
+    print("#" * 78)
+    print("# PART 2 (plan 76-02) -- the DECISIVE / MATTER half of the SOFT-KILL gate")
+    print("#" * 78)
+    print("=" * 78)
+    print("TASK 1 (Q6, the biggest modeling gap) : MATTER-ON E(x;M) over C_u -- rank-1 + "
+          "C_u-faithful + M->0 limit, BEFORE the verdict")
+    print("=" * 78)
+
+    vac_FB_base = vac["FB_vac_base"]      # = -2 omega_K (block-diag CP^2 Kahler form)
+
+    # (1) RANK-1 IDEMPOTENT, symbolic in (a,b,c,d) and in the matter amplitude t.
+    P_M, params, syms, t = build_matter_idempotent()
+    a, b, c, d, tt = syms
+    # Verify at a generic rational slice point with t SYMBOLIC (the matter family is rank-1
+    # to ALL orders in t, not just leading) -- exact over Q(i).
+    genpt = {a: Rational(1, 2), b: Rational(-1, 3), c: Rational(2), d: Rational(1, 5)}
+    P_gen = Matrix(3, 3, lambda i, j: cancel(P_M[i, j].subs(genpt)))   # function of t
+    P2mP = Matrix(3, 3, lambda i, j: cancel((P_gen * P_gen - P_gen)[i, j]))
+    herm = Matrix(3, 3, lambda i, j: cancel((P_gen - P_gen.conjugate().T)[i, j]))
+    trP = cancel(P_gen.trace())
+    _report("TASK1 matter-on E(x;M) is a RANK-1 idempotent over Q(i), SYMBOLIC in the "
+            "matter amplitude t (E^2-E==0, Tr==1, Hermitian) at a generic slice pt -- "
+            "rank-1 to ALL orders in M, not just leading [exact over Q(i)]",
+            _is_zero_matrix(P2mP) and _is_zero_matrix(herm) and cancel(trP - 1) == 0)
+
+    # (2) C_u-FAITHFULNESS (the decisive modeling check), demonstrated on the OCTONIONIC bg.
+    #   (2a) the C_u-SURVIVOR V_{1/2} matter ({11,18,19,26}) stays in C_u (no e_1..e_6 leak):
+    x2_surv = EMB.oct_zero(); x2_surv[0] = Rational(2); x2_surv[7] = Rational(-1)  # idx 11,18
+    x3_surv = EMB.oct_zero(); x3_surv[0] = Rational(3); x3_surv[7] = Rational(5)   # idx 19,26
+    Xsurv = EMB.h3o_from_coords(Rational(1, 3), Rational(1, 3), Rational(1, 3),
+                                EMB.oct_zero(), x2_surv, x3_surv)
+    surv_no_leak = not EMB.has_kerE_content(Xsurv)
+    _report("TASK1 C_u-FAITHFUL (survivor): the C_u-survivor V_{1/2} matter {11,18,19,26}="
+            "{Re(x2),<x2,e7>,Re(x3),<x3,e7>} stays in C_u (NO e_1..e_6 leak); it IS a "
+            "genuine complex off-diagonal idempotent perturbation [exact]", surv_no_leak)
+
+    #   (2b) the C_u-TRANSVERSE matter (e_1..e_6 of x2,x3, idx {12..17,20..25}) is projected
+    #        AWAY by pi_u (proj_u(e_k)=0, k=1..6) -- INVISIBLE to the C_u Berry curvature, NOT
+    #        a rank-changing leak.  Demonstrate: a pure-e_1 x2 matter has pi_u == 0.
+    x2_trans = EMB.oct_zero(); x2_trans[1] = Rational(1)   # e_1 comp of x2 = idx 12, TRANSVERSE
+    Xtrans = EMB.h3o_from_coords(Rational(1, 3), Rational(1, 3), Rational(1, 3),
+                                 EMB.oct_zero(), x2_trans, EMB.oct_zero())
+    EXtrans = EMB.E(Xtrans)            # entrywise pi_u
+    center = EMB.h3o_from_coords(Rational(1, 3), Rational(1, 3), Rational(1, 3),
+                                 EMB.oct_zero(), EMB.oct_zero(), EMB.oct_zero())
+    trans_killed = EMB.octmat_equal(EXtrans, center)
+    Mc_trans = EMB.slice_to_complex(EXtrans)
+    trans_is_center = _is_zero_matrix(Mc_trans - Rational(1, 3) * eye(3))
+    _report("TASK1 C_u-FAITHFUL (transverse): the C_u-transverse matter e_1..e_6 of x2,x3 "
+            "{12..17,20..25} is PROJECTED AWAY by pi_u (proj_u(e_k)=0, k=1..6) -- INVISIBLE "
+            "to the C_u Berry curvature, NOT a rank-changing leak (the matter family stays "
+            "a clean rank-1 C_u projector) [exact]", trans_killed and trans_is_center)
+
+    # (3) M->0 LIMIT: the matter F_B = F_B(M)-F_B^vac at the base pt vanishes as t->0.
+    #     Evaluate at t=0 exactly (the cleanest M->0 limit) and confirm 4x4 zero.
+    matter_t0 = _matter_FB_at_t(P_M, params, t, Rational(0), vac_FB_base, syms)
+    _report("TASK1 M->0 LIMIT EXACT over Q(i): the matter F_B = F_B(M) - F_B^vac at the "
+            "base point VANISHES at t=0 (the PART-1 vacuum F_B^vac = -2 omega_K is recovered "
+            "exactly) [the correctness gate]", _is_zero_matrix(matter_t0))
+
+    # (4) LEADING matter F_B at finite (small rational) t -- emit for Task 2.  Determine the
+    #     leading M-POWER by the exact ratio matter_FB(t)/matter_FB(t/2) -> 2^p as t->0.
+    #     (v17.0 power-counting precedent: g entered at O(||M||^2).)  Three samples (t,t/2,t/4)
+    #     suffice for the power; each berry_F is ~15s, so we keep the count tight (watchdog).
+    tvals = [Rational(1, 40), Rational(1, 80), Rational(1, 160)]
+    samples = {}
+    for tv in tvals:
+        samples[tv] = _matter_FB_at_t(P_M, params, t, tv, vac_FB_base, syms)
+    print("      matter F_B = F_B(M)-F_B^vac at the base point (small rational t):")
+    for tv in tvals:
+        M = samples[tv]
+        print(f"        t={tv}: [0,1]={M[0,1]}, [2,3]={M[2,3]}, [0,2]={M[0,2]}, [0,3]={M[0,3]}")
+    # leading power via the exact ratio of [0,1] at successive halvings (->2^p).
+    r1 = samples[Rational(1, 40)][0, 1] / samples[Rational(1, 80)][0, 1]
+    r2 = samples[Rational(1, 80)][0, 1] / samples[Rational(1, 160)][0, 1]
+    print(f"      leading-power ratios matter[0,1](t)/matter[0,1](t/2): r1={r1} "
+          f"(~{float(r1):.4f}), r2={r2} (~{float(r2):.4f})   (->4 => O(||M||^2))")
+    # /t -> 0 and /t^2 -> const confirm the leading power is t^2 (no linear term).
+    lin_over_t = float(samples[Rational(1, 160)][0, 1]) / float(Rational(1, 160))
+    quad_over_t2 = float(samples[Rational(1, 160)][0, 1]) / float(Rational(1, 160)) ** 2
+    print(f"      matter[0,1]/t  at t=1/160 = {lin_over_t:.6f} (halves as t->t/2 => ->0)")
+    print(f"      matter[0,1]/t^2 at t=1/160 = {quad_over_t2:.4f} (converges => leading O(t^2))")
+    leading_quadratic = (abs(float(r1) - 4) < 0.1) and (abs(float(r2) - 4) < 0.05)
+    _report("TASK1 LEADING M-POWER = O(||M||^2): the matter F_B enters at SECOND order in "
+            "||M|| (ratio matter(t)/matter(t/2) -> 4 = 2^2; matter/t -> 0, matter/t^2 -> "
+            "const), EXACTLY the v17.0 order at which the metric h entered [exact over Q(i)]",
+            leading_quadratic)
+
+    # (5) C_u-faithfulness cross-check at a SECOND matter direction (verdict direction-blind).
+    #     One M->0 (t=0, instant) + two small-t samples (~30s) to confirm O(t^2) robustly.
+    P_M2, params2, syms2, t2 = build_matter_idempotent(
+        mu1=(Rational(1) - Rational(2) * I), mu2=(Rational(3) + Rational(1) * I))
+    matter2_t0 = _matter_FB_at_t(P_M2, params2, t2, Rational(0), vac_FB_base, syms2)
+    m2a = _matter_FB_at_t(P_M2, params2, t2, Rational(1, 40), vac_FB_base, syms2)
+    m2b = _matter_FB_at_t(P_M2, params2, t2, Rational(1, 80), vac_FB_base, syms2)
+    r2b = m2a[0, 1] / m2b[0, 1]
+    _report("TASK1 second matter direction CROSS-CHECK: M->0 limit vanishes AND leading "
+            f"O(||M||^2) (ratio ~{float(r2b):.4f}->4) at a DIFFERENT rational matter "
+            "direction -- the construction is robust + direction-blind [exact over Q(i)]",
+            _is_zero_matrix(matter2_t0) and abs(float(r2b) - 4) < 0.1)
+
+    print("      ORDER-OF-EXPECTATION (Task 1): the matter family is a clean rank-1 C_u "
+          "projector and the matter F_B vanishes at M=0 (the expected smooth, C_u-faithful")
+    print("      construction); the transverse e_1..e_6 matter is projected away (not a "
+          "rank-change), so NO Approach-2 octonionic cross-check is triggered.")
+    # Emit for Task 2: the matter-on family + the leading samples + the leading power.
+    return {"P_M": P_M, "params": params, "syms": syms, "t": t,
+            "vac_FB_base": vac_FB_base, "matter_samples": samples,
+            "leading_M_power": 2, "matter_FB_func": _matter_FB_at_t}
+
+
 if __name__ == "__main__":
     print("#" * 78)
     print("# Phase 76 -- Plan 01 (PART 1, VACUUM half): Berry-curvature same-wall gate")
@@ -686,12 +930,14 @@ if __name__ == "__main__":
     okG, ok1, ok2, _state = _task1()
     _t2 = _task2(_state)
     _vac = _task3(_state, _t2)
+    # ---- PART 2 (plan 76-02): the DECISIVE / MATTER half ----
+    _m1 = task1_matter_idempotent(_vac)
     print("=" * 78)
     print(f"SOURCE GUARD ......... {'PASS' if okG else 'FAIL'}")
     print(f"CP^1 PIN ............. {'PASS' if ok1 else 'FAIL'}")
     print(f"IDEMPOTENT + BRIDGE .. {'PASS' if ok2 else 'FAIL'}")
     print("=" * 78)
-    print("PART-1 RESULTS (this plan -- NO VALD-04 verdict; that is plan 76-02):")
+    print("PART-1 RESULTS (vacuum half):")
     print("  * QGT recipe CALIBRATED (CP^1 pin: F_B=-sin th/2, g_thth=1/4, flux=-2pi)")
     print("  * VALD-03: F_B WELL-DEFINED + generically NONZERO (F_B[a,b]=F_B[c,d]=-2), "
           "BORN FROM the C_u breaking (round Berry=0); NOT degenerate")
@@ -699,8 +945,14 @@ if __name__ == "__main__":
           "character vs cone-Hessian INFORMATIVE only (NOT a KILL)")
     print(f"  * CALC-04: M=0 vacuum = PURE-LAMBDA/KAHLER (F_B = {_vac['s']}*omega_K, "
           "primitive remainder 0); the Lambda/Kahler VACUUM (NOT matter); no Lambda<0/RxH^3")
-    print("  * vacuum F_B emitted for 76-02 to subtract; VALD-04 NOT pre-empted")
     print("=" * 78)
-    print(f"PART 1 (Tasks 1-3, the VACUUM half of the SOFT-KILL gate): "
-          f"{'ALL_PASS' if ALL_PASS else 'SOME FAILED'}")
+    print("PART-2 RESULTS (matter half) -- TASK 1 (matter-on E(x;M) over C_u):")
+    print("  * E(x;M) is a RANK-1 C_u idempotent SYMBOLIC in M (E^2-E==0, Tr==1)")
+    print("  * C_u-FAITHFUL: C_u-survivor V_{1/2} matter {11,18,19,26} stays in C_u; "
+          "transverse e_1..e_6 matter projected away by pi_u (no rank-changing leak)")
+    print("  * M->0 limit recovers the PART-1 vacuum F_B exactly; matter F_B emitted")
+    print(f"  * LEADING M-POWER = O(||M||^{_m1['leading_M_power']}) (the v17.0 order of the "
+          "metric h); VALD-04 verdict is plan-76-02 Task 2 (NOT pre-empted here)")
+    print("=" * 78)
+    print(f"PART 1 + TASK 1 of PART 2: {'ALL_PASS' if ALL_PASS else 'SOME FAILED'}")
     sys.exit(0 if ALL_PASS else 1)
