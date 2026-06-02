@@ -97,11 +97,11 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 3. The calibration anchors are reproduced exactly via `orbit_dimension_gate.py` (single-copy dim 24 / Spin(8)=28 / trdeg 3; e_6=78=52+26; orbit(E_11)=17; Stab_{E_6}(E_11)=61; Stab_{V_0}=45=Spin(9,1)).
 4. The H^3 cone-Hessian sign benchmark K=−1/2 is re-passed (sign conventions pinned BEFORE any curvature verdict downstream).
 
-**Plans:** TBD
+**Plans:** 1 plan (1 wave)
 
 Plans:
 
-- [ ] 74-01: TBD (engine recovery + tangent identity + calibration)
+- [ ] 74-01-PLAN.md — DERV-01 (det SSOT re-pass: CH + 324/324 + source guard) + DERV-02 (exact E_11∘δ=(1/2)δ and Zariski tangent T_{E_11}OP²=V_{1/2}(16), kernel==span(V_HALF_IDX)) + VALD-01 (calibration anchors 24/28/3, 78, 17, 61, 45 + K=−1/2 across the three engines)
 
 ### Phase 75: Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE)
 
@@ -230,7 +230,7 @@ Research backtracking is expected; these are the explicit conditions for revisit
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 74. Phase 0 — Engine, Tangent Identity & Calibration | v18.0 | 0/TBD | Ready to plan | - |
+| 74. Phase 0 — Engine, Tangent Identity & Calibration | v18.0 | 0/1 | Planned | - |
 | 75. Phase A — Coframe-Reduction Dealbreaker (KILL) | v18.0 | 0/TBD | Not started | - |
 | 76. Phase A.5 — Berry-Curvature Same-Wall (SOFT KILL) | v18.0 | 0/TBD | Not started | - |
 | 77. Phase B — Full Cartan Curvature = 4d Gravity | v18.0 | 0/TBD | Not started | - |
