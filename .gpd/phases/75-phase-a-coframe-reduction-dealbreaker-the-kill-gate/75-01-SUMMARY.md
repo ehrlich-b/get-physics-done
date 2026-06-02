@@ -317,3 +317,53 @@ None - no external configuration required (all engines in-repo; Python 3.14.2 / 
 
 _Phase: 75-phase-a-coframe-reduction-dealbreaker-the-kill-gate_
 _Completed: 2026-06-02_
+
+```yaml
+gpd_return:
+  status: completed
+  phase: "75"
+  plan: "01"
+  plan_complete: true
+  tasks_completed: 4
+  tasks_total: 4
+  verdict: "Phase A SURVIVES (human-ratified; orchestrator-reproduced exact over Q) -- greenlight Phase 77 conjunctive with Phase 76"
+  files_written:
+    - code/cartan_phaseA_coframe.py
+    - derivations/75-coframe-reduction.tex
+    - .gpd/phases/75-phase-a-coframe-reduction-dealbreaker-the-kill-gate/75-01-SUMMARY.md
+  checkpoints:
+    - sha: 95226e5b
+      type: compute
+      desc: "Tasks 1-3 driver (CALC-01/CALC-02/VALD-02) -- ALL_PASS exact over Q"
+    - sha: 12737f81
+      type: derive
+      desc: "Task 4 verdict derivation -- SURVIVES, forbidden proxies rejected"
+    - sha: 7229fe45
+      type: docs
+      desc: "75-01-SUMMARY.md -- full contract ledger"
+  contract_results_summary:
+    claim-coframe-reduction: passed
+    deliv-phaseA: passed
+    test-coframe-dim: passed
+    test-coframe-signature: passed
+    test-coframe-forced: passed
+    forbidden_proxies_rejected: [fp-arbitrary-reduction, fp-relabel-approx-4d, fp-float-decisive, fp-octonion-algebra]
+  decisive_results:
+    calc01_image_dim: 4
+    calc01_survivors: "{11,18,19,26}=C_u^2"
+    calc01_V0_limit: 4
+    calc02_soldering_signature: "(1,3)"
+    calc02_B_rank: 4
+    calc02_trace_form_foil: "(4,0) diag(2,2,2,2) [NOT the verdict]"
+    vald02_anchors: "Stab_E6(E11)=61, Stab_V0=45=Spin(9,1)"
+    vald02_residual: "21 = so(3,1)[6] + so(6)[15]"
+    vald02_lorentz_block: "so(3,1) dim 6, Killing sig (3,3), FORCED; so(6) trivial on spacetime"
+  confidence: HIGH
+  duration_seconds: 623
+  issues: []
+  next_actions:
+    - "Orchestrator: apply state advance (Phase 75 complete) + record-metric (Phase 75 P75-01)"
+    - "Run/check Phase 76 (A.5 -- Berry same-wall): the conjunctive partner gate"
+    - "Phase 77 (Phase B) greenlight requires BOTH Phase 75 (SURVIVES) AND Phase 76 to SURVIVE"
+    - "Binding downstream convention: spacetime metric = the soldered (1,3) Lorentzian form (NOT the intrinsic Euclidean OP^2 metric); SO(3,1) is the FORCED Lorentz structure group for the omega connection"
+```
