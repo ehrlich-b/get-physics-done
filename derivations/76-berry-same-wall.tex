@@ -1,0 +1,393 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, primitive_idempotent=E11_diag_1_0_0,
+%   det_ssot=ring_lemma_det_3, qgt=Tr(P_dP_dP)_over_Q(i)_i_symbolic,
+%   berry_curvature_FB=minus2_Im_QGT, fubini_study=Re_QGT, cosmological_constant=Lambda_0
+%
+% Phase 76, Plan 01: Phase A.5 -- THE BERRY-CURVATURE SAME-WALL GATE (SOFT KILL, v18.0)
+%   PART 1 (the VACUUM half).  Conjunctive with Phase 75 (SURVIVES).
+%
+% THIS PLAN (76-01) WRITES PART 1 ONLY:
+%   (a) the QGT recipe + the CP^1 convention pin (F_B = -sin theta/2, g_thth = 1/4);
+%   (b) VALD-03: F_B = Im(QGT) is WELL-DEFINED + generically NONZERO, BORN FROM the
+%       C_u breaking (OP^2 = F_4/Spin(9) isotropy-irreducible => no invariant 2-form
+%       => round Berry = 0);
+%   (c) CALC-03 (SOFT, INFORMATIVE, NEVER a KILL): Re(QGT) = a positive-definite
+%       Fubini-Study metric; its non-Einstein CHARACTER vs the v17.0 cone-Hessian;
+%   (d) CALC-04: the M=0 vacuum class of F_B (pure-Lambda/Kahler).
+% The DECISIVE matter-on VALD-04 (Einstein-vs-EM same-wall) verdict + the explicit
+% SOFT KILL / SURVIVES line are appended by plan 76-02 (depends_on this plan).
+% NO VALD-04 verdict is pre-empted here.
+%
+% Backed exact-over-Q(i) by code/cartan_phaseA5_berry.py (SymPy 1.14.0; ALL_PASS,
+% exit 0).  The imaginary unit i is sympy.I, SYMBOLIC (e_7 -> i); every decisive
+% number is rational/symbolic from sympy diff / re / im / .eigenvals over QQ or
+% Q(i) -- NEVER numpy/float (fp-float-decisive rejected).  octonion_algebra.py is
+% ABSENT on the decisive path (fp-octonion-algebra; runtime source guard).
+%
+% References:
+%   [PV80]  J.P. Provost, G. Vallee, "Riemannian structure on manifolds of quantum
+%             states", Comm. Math. Phys. 76 (1980) 289. The QGT split: Re = Fubini-
+%             Study metric, Im = Berry curvature. THE load-bearing convention -- the
+%             dead route (v17.0) was Re, this route is Im.
+%   [Baez]  J.C. Baez, "The Octonions", math/0105155 (2002), Sec. 3.4. OP^2 =
+%             F_4/Spin(9); isotropy = the unique irreducible 16-dim Spin(9) spinor
+%             rep => isotropy-irreducible => unique invariant symmetric form (FS) and
+%             NO invariant 2-form => round Berry = 0. THE born-from-breaking fact.
+%   [Berger] M. Berger, classification of isotropy-irreducible homogeneous spaces
+%             (an isotropy-irreducible space has a unique invariant metric up to scale).
+%   [FK94]  J. Faraut, A. Koranyi, "Analysis on Symmetric Cones" (1994). The cone
+%             metric g_X = Hess(-log det) underlying the cone-Hessian diag(9,9,18,18)
+%             that CALC-03 SOFT-compares Re(QGT) to (REAL-part character check ONLY).
+%   [v17]   code/bulk_geometry_verification.py (cone_hessian_at_center,
+%             h3_constant_curvature, ricci_decomposition_n4); v17.0 cone-Hessian NONE.
+%             Warm engine for the CALC-03 Re-anchor + the CALC-04 decomposition. The
+%             v17.0 NONE binds ONLY the Re sector, NOT this Im verdict.
+%   [P46/EMB] Phase 46 / code/embedding_under_E_verification.py: slice_to_complex
+%             (e_7 -> i), E, proj_u_exact -- the C_u reduction; the e_7 -> i bridge
+%             that makes Im the literal SymPy imaginary part over Q(i).
+%   [P75]   derivations/75-coframe-reduction.tex / 75-01-SUMMARY.md -- Phase A
+%             SURVIVES: (E_11,u=e_7) forces a 4d Lorentzian (1,3) coframe carrying
+%             SO(3,1); the C_u^2 survivors {11,18,19,26} = the 4 base directions here.
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\Cu}{\mathbb{C}_u}
+\newcommand{\HO}{\mathfrak{h}_3(\mathbb{O})}
+\newcommand{\HCu}{\mathfrak{h}_3(\Cu)}
+\newcommand{\OP}{\mathbb{OP}^2}
+\newcommand{\Spin}{\mathrm{Spin}}
+\newcommand{\SO}{\mathrm{SO}}
+\newcommand{\FB}{F_{\mathrm{B}}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\title{Phase A.5 --- The Berry-Curvature Same-Wall Gate (SOFT KILL)\\
+\large PART 1: The QGT recipe, well-definedness, and the $M=0$ vacuum class}
+\author{v18.0 ``Gravity as the Curvature of the Peirce-Frame Connection on $\HO$''}
+\date{Phase 76, Plan 01 (the vacuum half; conjunctive with Phase 75)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This plan establishes, exactly over $\mathbb{Q}(i)$ and \emph{before any matter is
+turned on}, the vacuum baseline of the canonical Berry curvature
+$\FB = \Im(Q) = -2\,\Im\Tr(P\,\dd P\,\dd P)$ of the rank-$1$ $\Cu$-idempotent family
+$E(x)$ on the $4$-dimensional slice $\{11,18,19,26\}=\Cu^2$ identified in Phase~75.
+We (i) pin the QGT recipe against the $\mathbb{CP}^1$ monopole anchor
+($\FB=-\sin\theta/2$, $g_{\theta\theta}=1/4$, flux $=-2\pi$); (ii) prove (VALD-03)
+that $\FB$ is well-defined and generically nonzero, \emph{born from the $\Cu$
+breaking} of the isotropy-irreducible $\OP=F_4/\Spin(9)$ (which carries no invariant
+$2$-form, so the round Berry curvature vanishes identically); (iii) run the soft,
+informative real-part anchor (CALC-03) showing $\Re(Q)$ is a positive-definite
+Fubini--Study metric, and compare its non-Einstein \emph{character} to the v17.0
+cone-Hessian (a discrepancy is expected and is never a kill); and (iv) classify the
+$M=0$ vacuum (CALC-04) as pure-$\Lambda$/K\"ahler ($\FB=-2\,\omega_K$, primitive
+remainder zero). The decisive matter-on Einstein-vs-EM verdict (VALD-04) and the
+explicit \textsc{soft kill}/\textsc{survives} line are deferred to plan 76-02.
+\end{abstract}
+
+\section{Setup and the two design points}
+\label{sec:setup}
+
+Phase~75 (the coframe-reduction kill gate) \emph{survives}: with the primitive
+idempotent $E_{11}=\mathrm{diag}(1,0,0)$ and the complex structure $u=e_7$ fixed, the
+$\Cu$ bottleneck $\pi_u$ reduces the $16$-dimensional Peirce half-eigenspace
+$V_{1/2}(E_{11})$ to a $4$-dimensional Lorentzian $(1,3)$ coframe carrying
+$\SO(3,1)$, forced by $(E_{11},u)$. The four surviving engine directions are
+$\{11,18,19,26\}=\Cu^2$. These four directions are the differentiation parameters
+$(a,b,c,d)$ throughout this plan.
+
+The v18.0 route computes the \emph{antisymmetric} (Lie/Berry) sector of the
+self-model quantum geometric tensor (QGT), in contrast with the v17.0 route which
+computed the \emph{symmetric} (Fubini--Study/cone-Hessian) sector and returned
+\textsc{none}. By the Provost--Vall\'ee split [PV80], these are the imaginary and
+real parts of one object $Q$; the v17.0 \textsc{none} therefore binds only the real
+part and \emph{does not bind} the Berry verdict computed here.
+
+\begin{definition}[The QGT recipe; convention lock]
+\label{def:qgt}
+For a Hermitian rank-$1$ projector $P=P(x)$ depending on real parameters $x^\mu$,
+\begin{equation}
+  Q_{\mu\nu} \;=\; \Tr\!\big(P\,\partial_\mu P\,\partial_\nu P\big),
+  \qquad
+  g_{\mu\nu} \;=\; \Re Q_{\mu\nu}\ \text{(Fubini--Study)},
+  \qquad
+  \FB{}_{\mu\nu} \;=\; -2\,\Im Q_{\mu\nu}\ \text{(Berry curvature)} .
+  \label{eq:qgt}
+\end{equation}
+\end{definition}
+
+Two design points are load-bearing and must not be gotten wrong.
+
+\begin{remark}[Design point 1: the associative complex product, not the Jordan product]
+\label{rem:assoc}
+The projector $P$ is realized as the complex matrix $P=\texttt{slice\_to\_complex}(E(x))$,
+in which the $\Cu$ entries $a_0+a_7 e_7$ are mapped to $a_0+a_7 i$ ($e_7\mapsto i$,
+$i=\texttt{sympy.I}$ \emph{symbolic}). The products in \eqref{eq:qgt} are the
+\emph{associative} complex matrix products, \emph{not} the Jordan product
+$\circ=\tfrac12(AB+BA)$. This is forced: $\Cu\cong\mathbb{C}$ is the unique associative
+completion that $u=e_7$ provides, so the associative operator product is canonical,
+not chosen. Using $\circ$ inside $P\,\dd P\,\dd P$ would compute a different, wrong
+object (forbidden proxy \texttt{fp-octonion-algebra}). Consequently $\FB$ is the
+\emph{literal} SymPy imaginary part of $Q$.
+\end{remark}
+
+\begin{remark}[Design point 2: the real-part anchor is soft]
+\label{rem:soft}
+The comparison $\Re(Q)$ vs.\ the v17.0 cone-Hessian (CALC-03,
+\S\ref{sec:calc03}) is a \emph{soft, informative diagnostic only}. A discrepancy is
+\emph{expected} --- the Fubini--Study pullback is not the cone-Hessian restriction
+--- and is \emph{never} a kill or halt (forbidden proxy
+\texttt{fp-reuse-cone-hessian}). The v17.0 \textsc{none} binds the real part; this
+phase mines the imaginary part.
+\end{remark}
+
+\section{The $\mathbb{CP}^1$ convention pin}
+\label{sec:cp1}
+
+Before constructing any $\HO$ object we calibrate the sign and the factor of $2$ in
+\eqref{eq:qgt} against the canonical magnetic monopole on
+$\mathbb{CP}^1=S^2$. With
+\begin{equation}
+  P(\theta,\phi)=\frac12
+  \begin{pmatrix} 1+\cos\theta & \sin\theta\,e^{-i\phi}\\[2pt]
+                  \sin\theta\,e^{i\phi} & 1-\cos\theta \end{pmatrix},
+  \qquad P^2=P,\ \ P=P^\dagger,\ \ \Tr P=1,
+\end{equation}
+the recipe \eqref{eq:qgt} gives, exactly,
+\begin{equation}
+  Q_{\theta\theta}=\tfrac14,\qquad
+  Q_{\phi\phi}=\tfrac14\sin^2\theta,\qquad
+  Q_{\theta\phi}=\tfrac{i}{4}\sin\theta,
+  \label{eq:cp1Q}
+\end{equation}
+so that
+\begin{equation}
+  g_{\theta\theta}=\Re Q_{\theta\theta}=\tfrac14,
+  \qquad
+  \FB{}_{\theta\phi}=-2\,\Im Q_{\theta\phi}=-\tfrac12\sin\theta,
+  \qquad
+  \int_{S^2}\FB{}_{\theta\phi}\,\dd\theta\,\dd\phi=-2\pi .
+  \label{eq:cp1FB}
+\end{equation}
+The first-Chern number is $c_1=\tfrac{1}{2\pi}\int_{S^2}\FB=-1$, the standard
+$\mathbb{CP}^1$ monopole. Equations \eqref{eq:cp1Q}--\eqref{eq:cp1FB} pin the sign and
+the factor of $2$ of the entire recipe and confirm that the SymPy $\Re/\Im$ split
+behaves as required. (Verified exactly; \texttt{cartan\_phaseA5\_berry.py},
+\texttt{cp1\_pin}.)
+
+\section{The rank-1 $\Cu$ idempotent family and the $e_7\mapsto i$ bridge}
+\label{sec:family}
+
+On the $\Cu$ chart take
+\begin{equation}
+  v=(1,z_1,z_2)^{\!\top},\qquad z_1=a+ib,\ \ z_2=c+id,
+  \qquad
+  P_{\mathbb{C}}=\frac{vv^\dagger}{v^\dagger v},
+  \label{eq:family}
+\end{equation}
+with $a,b,c,d$ real. Exactly over $\mathbb{Q}(i)$ one verifies $P_{\mathbb{C}}^2=P_{\mathbb{C}}$,
+$P_{\mathbb{C}}=P_{\mathbb{C}}^\dagger$, $\Tr P_{\mathbb{C}}=1$. This $P_{\mathbb{C}}$ \emph{is}
+$\texttt{slice\_to\_complex}$ of the rank-$1$ $\Cu$ idempotent: at any rational test
+point the hand-built $\HCu$ element (with off-diagonal $\Cu$ entries reconstructed
+from the lower-triangular complex entries of $P_{\mathbb{C}}$) maps under
+$\texttt{slice\_to\_complex}$ to exactly $P_{\mathbb{C}}$, and no octonion component
+$e_1,\dots,e_6$ survives (the $\Cu$ projection is faithful; if any did, the
+projection would be mis-implemented and the verdict untrustworthy). The four
+differentiation directions $(a,b,c,d)$ are the $\Cu^2$ survivors $\{11,18,19,26\}$ of
+Phase~75. (Verified; \texttt{task1\_idempotent\_and\_bridge}.)
+
+The $4\times4$ QGT $Q(a,b,c,d)=\big[\Tr(P_{\mathbb{C}}\,\partial_\mu P_{\mathbb{C}}\,
+\partial_\nu P_{\mathbb{C}})\big]_{\mu,\nu\in(a,b,c,d)}$ assembles over $\mathbb{Q}(i)$ with
+$\Re Q$ symmetric and $-2\Im Q$ antisymmetric by construction. At the base point
+$a=b=c=d=0$ ($v=(1,0,0)^\top$, $P=\mathrm{diag}(1,0,0)$),
+\begin{equation}
+  Q(0)=\begin{pmatrix}
+    1 & i & 0 & 0\\ -i & 1 & 0 & 0\\ 0 & 0 & 1 & i\\ 0 & 0 & -i & 1
+  \end{pmatrix},
+  \qquad
+  g(0)=\mathbb{1}_4,
+  \qquad
+  \FB(0)=\begin{pmatrix}
+    0 & -2 & 0 & 0\\ 2 & 0 & 0 & 0\\ 0 & 0 & 0 & -2\\ 0 & 0 & 2 & 0
+  \end{pmatrix}.
+  \label{eq:Qbase}
+\end{equation}
+
+\section{VALD-03: $\FB$ is well-defined, generically nonzero, born from breaking}
+\label{sec:vald03}
+
+\subsection{Born from the $\Cu$ breaking (group theory)}
+
+\begin{proposition}[Round Berry vanishes; the source is the $\Cu$ breaking]
+\label{prop:born}
+$\OP=F_4/\Spin(9)$ is isotropy-irreducible: the isotropy representation is the unique
+irreducible $16$-dimensional real $\Spin(9)$ spinor representation [Baez, Sec.~3.4].
+An isotropy-irreducible homogeneous space admits a unique invariant symmetric
+bilinear form up to scale (the Fubini--Study metric) and \emph{no} invariant
+$2$-form, because an invariant $2$-form is a $\Spin(9)$-invariant element of
+$\Lambda^2 V^*$ for $V$ the (real-type) irreducible spinor, of which there is none
+[Berger]. Hence the round ($F_4$-invariant) Berry curvature vanishes identically.
+Therefore any nonzero $\FB$ is \emph{born from the $\Cu$ breaking}: the
+$\Cu$-reduced isotropy admits the K\"ahler $2$-form, and that is the source of
+$\FB$.
+\end{proposition}
+
+This is the load-bearing structural fact: the Berry $2$-form cannot be an artifact of
+the round geometry --- if it is nonzero it is a genuine consequence of selecting the
+complex line $\Cu\subset\mathbb{O}$.
+
+\subsection{Generically nonzero (exact computation)}
+
+Computing $\FB=-2\Im Q$ from \eqref{eq:family} symbolically over $\mathbb{Q}(i)$:
+
+\begin{lemma}[$\FB$ is well-defined and generically nonzero]
+\label{lem:nonzero}
+$\FB(a,b,c,d)$ is not the identically-zero $4\times4$ matrix. At the base point it is
+the block-diagonal $\mathbb{CP}^2$ K\"ahler form $\FB(0)$ of \eqref{eq:Qbase}
+($\FB{}_{ab}=\FB{}_{cd}=-2$, off-blocks $0$), and it remains nonzero and antisymmetric
+at a generic rational point, e.g.\ $(a,b,c,d)=(\tfrac12,-\tfrac13,2,\tfrac15)$. A
+representative symbolic entry,
+\begin{equation}
+  \FB{}_{ab}(a,b,c,d)=\frac{-2(c^2+d^2+1)}{\big(1+a^2+b^2+c^2+d^2\big)^2},
+  \label{eq:FBsym}
+\end{equation}
+is a nonzero rational function on the slice. (Verified exactly; \texttt{vald03}.)
+\end{lemma}
+
+\begin{remark}[Degeneracy guard; negative-result-is-success]
+\label{rem:degen}
+Had $\FB$ been identically zero on the slice it would be the \emph{degenerate}
+(worse-than-soft-kill) outcome --- no antisymmetric content at all --- and would be
+reported \emph{flat}, never relabelled ``effectively present'' (forbidden proxy
+\texttt{fp-relabel-vacuum}). It is not: $\FB{}_{ab}=\FB{}_{cd}=-2\neq0$.
+\end{remark}
+
+\section{CALC-03: the soft real-part anchor (informative, not a kill)}
+\label{sec:calc03}
+
+The real part $g=\Re Q=\tfrac12\Tr(\dd P\,\dd P)$ is a Fubini--Study metric. At the
+base point $g(0)=\mathbb{1}_4$ (the round $\mathbb{CP}^2$-over-$\Cu$ metric) and it is
+positive-definite there and at a generic rational point (eigenvalues $>0$ exactly over
+$\mathbb{Q}$). This positive-definiteness is the \emph{only} hard check in CALC-03: a
+non-positive-definite $\Re Q$ would mean the QGT construction or the family is wrong,
+and would force a stop before trusting $\Im Q$. It passes.
+
+The non-Einstein \emph{character} of $g$ is then compared --- informatively --- to the
+v17.0 cone-Hessian. The warm engine reproduces the cone-Hessian
+$\mathrm{diag}(9,9,18,18)$ (eigenvalue pattern $9^{(2)},18^{(2)}$) and the round $H^3$
+curvature $K=-1$ ($R=-6$; the Phase-71 cone-Hessian slice has $K=-\tfrac12$). The
+round Fubini--Study $\Re Q$ has the maximally-symmetric pattern $1^{(4)}$ (a single
+eigenvalue of multiplicity $4$: constant holomorphic sectional curvature), which
+differs from the cone-Hessian's $2+2$ split.
+
+\begin{remark}[\texttt{fp-reuse-cone-hessian} guard]
+\label{rem:fpcone}
+This discrepancy is \emph{expected}: the Fubini--Study pullback of the rank-$1$
+projector family is not the cone-metric Hessian $\mathrm{Hess}(-\log\det)$ restricted
+to the slice [FK94]; they are different objects. The comparison is reported as a
+diagnostic and is \emph{never} a kill or halt on this anchor alone. The v17.0
+\textsc{none} verdict is a statement about the real (cone-Hessian) sector and is
+\emph{not} load-bearing for the imaginary (Berry) sector decided here; treating it as
+load-bearing would re-bind to the v17.0 \textsc{none} by sector confusion. The Re
+(symmetric) block is type-separated from the Im (antisymmetric) verdict.
+\end{remark}
+
+\section{CALC-04: the $M=0$ vacuum class of $\FB$}
+\label{sec:calc04}
+
+We classify the vacuum $\FB$ exactly. The $\Cu$ complex structure $J$ on the
+$4$-dimensional tangent space pairs $a\leftrightarrow b$ and $c\leftrightarrow d$
+(from $z_1=a+ib$, $z_2=c+id$), with $J^2=-\mathbb{1}$. The K\"ahler form is
+$\omega_K{}_{\mu\nu}=g(J e_\mu,e_\nu)$; at $M=0$, $g(0)=\mathbb{1}_4$ so $\omega_K$ is
+the standard symplectic form pairing $a\leftrightarrow b$, $c\leftrightarrow d$.
+
+The natural trace/traceless/Weyl analog for a $2$-form is its Lefschetz split into a
+\emph{primitive-scalar} (``trace'') part proportional to $\omega_K$ and a
+\emph{primitive} (``traceless'') remainder:
+\begin{equation}
+  \FB \;=\; s\,\omega_K \;+\; \big(\FB - s\,\omega_K\big),
+  \qquad
+  s=\frac{\langle \FB,\omega_K\rangle}{\langle \omega_K,\omega_K\rangle},
+  \qquad
+  \langle A,B\rangle=\tfrac12\textstyle\sum_{\mu\nu}A_{\mu\nu}B_{\mu\nu}.
+\end{equation}
+
+\begin{proposition}[The $M=0$ vacuum is pure-$\Lambda$/K\"ahler]
+\label{prop:vacuum}
+At $M=0$, $s=-2$ and the primitive remainder $\FB-s\,\omega_K$ vanishes exactly.
+Thus the vacuum Berry curvature is pure-K\"ahler,
+\begin{equation}
+  \FB^{\mathrm{vac}} \;=\; -2\,\omega_K,
+\end{equation}
+the maximally-symmetric $\mathbb{CP}^2$ K\"ahler $2$-form. It is not flat ($\FB\neq0$)
+and carries no ``other'' (primitive) content. (Verified exactly; \texttt{calc04}.)
+\end{proposition}
+
+\begin{remark}[\texttt{fp-relabel-vacuum} guard; Pitfall 4]
+\label{rem:fprelabel}
+The constant $-2\,\omega_K$ is the $\Lambda$/K\"ahler \emph{vacuum} $2$-form, not
+matter curvature: matter must vanish as $M\to0$ (that is the burden of plan 76-02).
+The cosmological constant is \emph{not} reintroduced negative, and the falsified v17.0
+$\mathbb{R}\times H^3$ vacuum (CONVENTIONS \S6) is \emph{not} reintroduced.
+\end{remark}
+
+\paragraph{Hand-off to plan 76-02 (pre-registered).} The vacuum Berry curvature
+$\FB^{\mathrm{vac}}=-2\,\omega_K$ (base value in \eqref{eq:Qbase}) and the symbolic
+slice form $\FB(a,b,c,d)$ (\eqref{eq:FBsym} and companions, computed by
+$\texttt{berry\_F}(P_{\mathbb{C}},(a,b,c,d))$) are emitted so that plan 76-02 may
+\emph{subtract} the vacuum and isolate the matter contribution
+$\FB^{\mathrm{matter}}:=\FB(M)-\FB^{\mathrm{vac}}$, which must vanish as $M\to0$.
+
+\section{Forbidden proxies explicitly rejected (PART 1)}
+\label{sec:fp}
+
+\begin{itemize}
+\item \texttt{fp-reuse-cone-hessian} --- rejected (Remark~\ref{rem:fpcone}): the
+  cone-Hessian / $\Re(Q)$ is the real-part soft consistency check only and is never
+  load-bearing for the imaginary-part verdict; no kill or halt is issued because
+  $\Re(Q)$ differs from the cone-Hessian character.
+\item \texttt{fp-relabel-vacuum} --- rejected (Remarks~\ref{rem:degen},
+  \ref{rem:fprelabel}): an identically-zero $\FB$ would be reported flat (it is not);
+  the constant $-2\,\omega_K$ is named the $\Lambda$/K\"ahler vacuum, not matter; no
+  $\Lambda<0$ / $\mathbb{R}\times H^3$.
+\item \texttt{fp-float-decisive} --- rejected: the imaginary unit is
+  \texttt{sympy.I} (symbolic, $e_7\mapsto i$); every decisive quantity ($\FB$
+  non-vanishing, $\Re Q$ positive-definiteness, the vacuum class, the $\mathbb{CP}^1$
+  pin) is rational/symbolic over $\mathbb{Q}(i)$ via SymPy; no numpy ranks or float
+  eigenvalues are used.
+\item \texttt{fp-octonion-algebra} --- rejected (Remark~\ref{rem:assoc}):
+  \texttt{octonion\_algebra.py} is absent on the decisive path (runtime source guard);
+  det/trace/Jordan primitives come from \texttt{ring\_lemma\_verification.py}; the QGT
+  uses the associative complex matrix product on $\texttt{slice\_to\_complex}(P)$,
+  never the Jordan product.
+\end{itemize}
+
+\section*{PART 2 (plan 76-02) --- stub}
+\addcontentsline{toc}{section}{PART 2 (plan 76-02)}
+
+The decisive matter-on test is appended by plan 76-02 (depends on this plan): build
+and verify the matter-on family $E(x;M)$ over $\Cu$; compute the matter Berry
+curvature $\FB^{\mathrm{matter}}=\FB(M)-\FB^{\mathrm{vac}}$ (which must vanish as
+$M\to0$); and decide VALD-04 --- the \emph{same-wall} Einstein-vs-EM verdict ---
+by comparing the matter $\FB$ against an independently-frozen stress tensor $T[M]$
+through gauge-invariant scalars and frame rotations. The explicit
+\textsc{soft kill}/\textsc{survives} line is emitted \emph{there}. Phase~A.5 is
+\emph{conjunctive} with Phase~75 (\textsc{survives}): both must \textsc{survive} to
+greenlight Phase~B (Phase~77). \emph{No VALD-04 verdict is pre-empted in this plan.}
+
+\end{document}
