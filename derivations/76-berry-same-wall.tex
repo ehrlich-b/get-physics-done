@@ -377,17 +377,258 @@ $\FB^{\mathrm{matter}}:=\FB(M)-\FB^{\mathrm{vac}}$, which must vanish as $M\to0$
   never the Jordan product.
 \end{itemize}
 
-\section*{PART 2 (plan 76-02) --- stub}
-\addcontentsline{toc}{section}{PART 2 (plan 76-02)}
+% ============================================================================
+% ============================================================================
+%   PART 2  (plan 76-02, the DECISIVE / MATTER half)
+% ============================================================================
+% ============================================================================
+% Backed exact-over-Q(i) by code/cartan_phaseA5_berry.py PART 2 (ALL_PASS, exit 0):
+%   matter-on E(x;M) over C_u (rank-1 + C_u-faithful + M->0); the matter F_B M-series;
+%   the F_B^F_B Lorentz-block epsilon-contraction; the SO(3,1) frame-rotation test; the
+%   independently-frozen T[M] (psi=2Re((x2 x1)x3), kappa first, off-switch, no F_B);
+%   the VALD-04 Einstein-vs-EM verdict on gauge-invariant scalars.
+% Additional references for PART 2:
+%   [Wise]  D.K. Wise, "MacDowell-Mansouri gravity and Cartan geometry", gr-qc/0611154
+%             (2010). The epsilon-contraction F^F -> EH + Lambda: the F_B^F_B Lorentz-
+%             block contraction is the A.5(b) DIAGNOSTIC (the contraction STRUCTURE only,
+%             NOT the forced-vs-posited Phase-C audit).
+%   [MM77]  S.W. MacDowell, F. Mansouri, Phys. Rev. Lett. 38 (1977) 739. The original
+%             unification of the Lorentz connection and coframe into one curvature whose
+%             F^F gives EH+Lambda -- the structural template for the F_B^F_B contraction.
 
-The decisive matter-on test is appended by plan 76-02 (depends on this plan): build
-and verify the matter-on family $E(x;M)$ over $\Cu$; compute the matter Berry
-curvature $\FB^{\mathrm{matter}}=\FB(M)-\FB^{\mathrm{vac}}$ (which must vanish as
-$M\to0$); and decide VALD-04 --- the \emph{same-wall} Einstein-vs-EM verdict ---
-by comparing the matter $\FB$ against an independently-frozen stress tensor $T[M]$
-through gauge-invariant scalars and frame rotations. The explicit
-\textsc{soft kill}/\textsc{survives} line is emitted \emph{there}. Phase~A.5 is
-\emph{conjunctive} with Phase~75 (\textsc{survives}): both must \textsc{survive} to
-greenlight Phase~B (Phase~77). \emph{No VALD-04 verdict is pre-empted in this plan.}
+\bigskip
+\begin{center}\rule{0.6\textwidth}{0.4pt}\end{center}
+\bigskip
+
+\part*{PART 2 (plan 76-02) --- the decisive / matter half}
+\addcontentsline{toc}{section}{PART 2 (plan 76-02) --- the decisive verdict}
+
+\renewcommand{\thesection}{B.\arabic{section}}
+\setcounter{section}{0}
+\renewcommand{\theproposition}{B.\arabic{proposition}}
+\renewcommand{\thelemma}{B.\arabic{lemma}}
+\renewcommand{\theremark}{B.\arabic{remark}}
+
+PART~1 fixed the vacuum baseline exactly over $\mathbb{Q}(i)$: the QGT recipe is
+calibrated, $\FB=-2\,\Im Q$ is well-defined and generically nonzero (VALD-03), $\Re Q$
+is a positive-definite Fubini--Study metric (CALC-03, soft), and the $M=0$ vacuum is
+pure-$\Lambda$/K\"ahler $\FB^{\mathrm{vac}}=-2\,\omega_K$ (CALC-04). PART~2 turns matter
+$M\in V_{1/2}$ \emph{on} and decides the genuinely-open VALD-04 clause on
+gauge-invariant scalars: is the matter-sourced Berry curvature transverse /
+Einstein-shaped (M-power, tensor structure, \emph{and} support matchable to an
+independently-frozen $V_{1/2}$ stress-energy $T[M]$ $\Rightarrow$ \textsc{survives}),
+or EM-shaped (a traceless $\sim F^2$ field strength, structurally disjoint from $T[M]$
+$\Rightarrow$ \textsc{soft kill}, reproducing the v17.0 same-wall mismatch on the Lie
+sector)?
+
+\section{The matter-on idempotent $E(x;M)$ over $\Cu$ (the biggest modeling gap)}
+\label{sec:matter-idempotent}
+
+Matter in $V_{1/2}(E_{11})$ (engine indices $\{11..26\}$) is the octonionic content of
+$x_2$ (entry $(0,2)$, $\{11..18\}$) and $x_3$ (entry $(1,0)$, $\{19..26\}$). Under the
+$\Cu$ bottleneck $\pi_u$ (the $e_7$-projection) the matter splits cleanly into two
+species, and \emph{this split is the resolution of the $\Cu$-faithfulness question}:
+
+\begin{proposition}[$\Cu$-faithfulness of the matter family]
+\label{prop:faithful}
+The $\Cu$-survivor matter $\{11,18,19,26\}=\{\Re x_2,\langle x_2,e_7\rangle,\Re x_3,
+\langle x_3,e_7\rangle\}$ survives $\pi_u$ and is a genuine complex off-diagonal
+perturbation of the $\Cu$ idempotent; the $\Cu$-transverse matter $\{12..17,20..25\}$
+(the $e_1..e_6$ components of $x_2,x_3$) is annihilated by $\pi_u$
+($\mathrm{proj}_u(e_k)=0$, $k=1..6$). Consequently the matter-on idempotent
+$E(x;M)=v v^\dagger/(v^\dagger v)$ over $\Cu$, with the matter shifting the Veronese
+centre,
+\begin{equation}
+  z_1 = a + i b + \mu_1 t\ \ (x_3\text{ slot}),\qquad
+  z_2 = c + i d + \mu_2 t\ \ (x_2\text{ slot}),
+  \label{eq:matter-chart}
+\end{equation}
+is a clean rank-$1$ $\Cu$ projector ($E^2-E=0$, $\Tr E=1$, $E=E^\dagger$) to \emph{all}
+orders in the matter amplitude $t$, and the transverse matter is a projection (not a
+rank-changing leak). Verified exactly over $\mathbb{Q}(i)$.
+\end{proposition}
+
+The transverse-matter projection is not a pathology: it is the statement that the
+canonical $\Cu$ Berry curvature only \emph{sees} the $\Cu$-faithful part of the matter
+(the part Phase~75 already isolated as the $4$ coframe directions). No Approach-2
+octonionic cross-check is triggered, because the family is a clean $\Cu$ projector.
+
+\begin{lemma}[The $M\to0$ limit and the leading $M$-power]
+\label{lem:Mlimit}
+The matter Berry curvature $\FB^{\mathrm{matter}}:=\FB(M)-\FB^{\mathrm{vac}}$ vanishes
+exactly at $t=0$ (the PART-1 vacuum $\FB^{\mathrm{vac}}=-2\,\omega_K$ is recovered), and
+its leading behaviour is \emph{second order} in the matter amplitude,
+\begin{equation}
+  \FB^{\mathrm{matter}}_{\mu\nu} = O(\|M\|^2),
+  \label{eq:Mpower}
+\end{equation}
+confirmed by the exact ratio test $\FB^{\mathrm{matter}}(t)/\FB^{\mathrm{matter}}(t/2)
+\to 4 = 2^2$ (and $\FB^{\mathrm{matter}}/t\to0$, $\FB^{\mathrm{matter}}/t^2\to$const) as
+$t\to0$, at two independent rational matter directions. This is \emph{exactly} the order
+at which the v17.0 metric perturbation $h$ entered.
+\end{lemma}
+
+\section{The matter $\FB$, the $\FB\wedge\FB$ contraction, and the EM signature}
+\label{sec:FBmatter}
+
+The matter Berry curvature is, at $t=\tfrac1{20}$ and the base point,
+\begin{equation}
+  \FB^{\mathrm{matter}}=\frac{1}{6889}
+  \begin{pmatrix}
+    0 & 658 & -224 & 32\\
+   -658 & 0 & -32 & -224\\
+    224 & 32 & 0 & 818\\
+   -32 & 224 & -818 & 0
+  \end{pmatrix},
+  \label{eq:FBmatter}
+\end{equation}
+manifestly \emph{antisymmetric} --- a genuine $2$-form / field strength.
+
+\subsection{The MacDowell--Mansouri $\FB\wedge\FB$ Lorentz-block contraction}
+
+Following the MM template~[Wise, MM77], the diagnostic scalar is the
+$\varepsilon$-contraction of $\FB\wedge\FB$ onto the forced $\SO(3,1)$ Lorentz block of
+Phase~75 ($G=\mathrm{diag}(+1,-1,-1,-1)$ on the survivors $\{11,18,19,26\}$):
+\begin{equation}
+  I_{FF} \;=\; \varepsilon^{\mu\nu\rho\sigma}\,\FB_{\mu\nu}\,\FB_{\rho\sigma}.
+  \label{eq:IFF}
+\end{equation}
+This is the Pontryagin / instanton density of the $2$-form $\FB$, a gauge-invariant
+scalar. Exactly over $\mathbb{Q}(i)$: $I_{FF}^{\mathrm{matter}}=46944/571787$,
+$I_{FF}^{\mathrm{full}}=16384000/571787$, $I_{FF}^{\mathrm{vac}}=32$ --- all nonzero. In
+the MM construction the $\varepsilon$-contraction of the \emph{curvature} of the Cartan
+connection produces the Einstein--Hilbert plus cosmological terms; for a pure
+\emph{field strength} $\FB$ it is the topological $\sim F^2$ density.
+
+\subsection{The decisive tensor-structure discriminant: the Maxwell stress is traceless}
+
+The field-strength (Maxwell) stress of $\FB$ with respect to the forced Lorentz metric,
+\begin{equation}
+  T[\FB]_{\mu\nu} \;=\; \FB_{\mu a}\,G^{ab}\,\FB_{\nu b}
+    \;-\; \tfrac14\,G_{\mu\nu}\,F^2,\qquad
+  F^2 = G^{ac}G^{bd}\FB_{ab}\FB_{cd},
+  \label{eq:maxwell}
+\end{equation}
+satisfies, \emph{exactly over} $\mathbb{Q}(i)$ and in $n=4$,
+\begin{equation}
+  \boxed{\;G^{\mu\nu}\,T[\FB]_{\mu\nu} \;=\; 0\;}
+  \qquad(F^2 = 472320/47458321\neq0).
+  \label{eq:traceless}
+\end{equation}
+This vanishing trace is the \emph{conformal invariance of any antisymmetric $2$-form in
+exactly four dimensions} (an $n=3$ control gives trace $=2\neq0$, so~\eqref{eq:traceless}
+is a genuine $4d$ fact, not a coincidental zero): $\FB$ is a conformal $\sim F^2$ field
+strength, \emph{not} a non-traceless Einstein stress. This is the decisive
+tensor-structure discriminant.
+
+\section{The $\SO(3,1)$ frame-rotation gauge test (fp-nonabelian-gauge)}
+\label{sec:frame}
+
+Although the rank-$1$ idempotent makes $\FB$ abelian, the Lorentz-block contraction and
+every frame statement are tested under a generic $\SO(3,1)$ frame rotation $L$ (a
+rational boost $\cosh=5/4$ composed with a rational rotation $\cos=3/5$;
+$L^\top G L = G$ exactly over $\mathbb{Q}$). The Pontryagin scalar~\eqref{eq:IFF} is
+\emph{unchanged} ($I_{FF}=46944/571787$ before and after), and the Maxwell
+trace~\eqref{eq:traceless} stays exactly zero. The verdict scalars are gauge-invariant,
+not frame artifacts.
+
+\section{The independently-frozen stress-energy $T[M]$ (kappa first, no $\FB$)}
+\label{sec:TM}
+
+Following the Phase-73 DERV-03 discipline, the matter $\FB$ is compared against an
+\emph{independently-frozen} $V_{1/2}$ stress-energy built from the
+$V_0\leftrightarrow V_{1/2}$ cross-term content \emph{without any reference to} $\FB$
+(non-circular; $\kappa$ frozen first; AST-guarded so no $\mathrm{Ric}/R/G$ symbol enters
+its construction). With $\psi(x;M)=2\,\Re\!\big((x_2 x_1)x_3\big)$ the certified
+$\det_3$ SSOT cross-term scalar (built with $\mathtt{oct\_mul}$ in the SSOT order
+$(x_2 x_1)x_3$, never $\mathtt{octonion\_algebra.py}$),
+\begin{equation}
+  T[M]_{\mu\nu}=T[\psi]_{\mu\nu}
+    =\partial_\mu\psi\,\partial_\nu\psi
+     -\tfrac12\,\eta^{\mathrm{bg}}_{\mu\nu}\,(\partial\psi)^2,
+  \qquad
+  \mathrm{tr}_\eta T[M]=680\neq0.
+  \label{eq:TM}
+\end{equation}
+$T[M]$ is \emph{non-traceless} --- the Einstein-source tensor signature, structurally
+distinct from the traceless Maxwell stress~\eqref{eq:traceless} of $\FB$. The
+\emph{off-switch} certifies $T[M]$ is genuinely cross-term-sourced: the matter-sourced
+spacetime curvature changes decisively when the $V_0\leftrightarrow V_{1/2}$ triple is
+dropped ($\mathtt{norm\_potential}=\mathtt{inv\_det\_X\_block}$),
+$R[g]_{\mathrm{ON}}\approx5.13$ vs $R[g]_{\mathrm{OFF}}\approx1144.87$, and its
+$n=4$ Ricci decomposition is genuinely non-trivial ($R\neq0$, $S\neq0$, Weyl $\neq0$).
+This is the v17.0 \emph{symmetric}-sector object: it \emph{builds} $T[M]$ and is
+\textbf{never} the imaginary-part verdict (fp-reuse-cone-hessian).
+
+\section{VALD-04: the three matches and the verdict}
+\label{sec:verdict}
+
+The verdict is the three-way match of the matter $\FB$-source against the
+independently-frozen $T[M]$, on gauge-invariant scalars:
+\begin{enumerate}
+\item \textbf{$M$-power:} $\FB^{\mathrm{matter}}\sim O(\|M\|^2)$ and
+  $\mathrm{tr}_\eta T[M]\sim O(\|M\|^2)$ ($\psi\sim$ matter, $(\partial\psi)^2\sim$
+  matter$^2$). The powers \emph{coincide}.
+\item \textbf{Tensor structure (decisive mismatch):} $\FB$ is an antisymmetric $2$-form
+  whose Maxwell stress is \emph{exactly traceless} ($\sim F^2$, conformal) ---
+  \textbf{EM-shaped}; $T[M]$ is symmetric and \emph{non-traceless} ---
+  Einstein-source. These are different tensor species.
+\item \textbf{Support:} a traceless conformal $\sim F^2$ stress cannot equal a
+  non-traceless gradient stress; the supports / structures are \emph{disjoint}.
+\end{enumerate}
+
+\begin{proposition}[VALD-04 verdict --- \textsc{soft kill}]
+\label{prop:verdict}
+The matter Berry curvature $\FB^{\mathrm{matter}}$ is \textbf{EM-shaped}: an
+antisymmetric $2$-form whose $\FB\wedge\FB$ Lorentz-block contraction is the Pontryagin
+$\sim F^2$ density and whose Maxwell stress is exactly traceless (conformal,
+\eqref{eq:traceless}), \emph{structurally distinct} from the non-traceless, symmetric,
+independently-frozen $T[M]$~\eqref{eq:TM}. Although the imaginary (Lie / antisymmetric)
+sector is a \emph{different tensor} than the v17.0 symmetric cone-Hessian, it
+\textbf{inherits the symmetric-sector same-wall mismatch}: the matter $\FB$ does not
+match $T[M]$ in tensor structure or support. Decided on gauge-invariant scalars,
+frame-rotation invariant, exact over $\mathbb{Q}(i)$.
+\end{proposition}
+
+\begin{center}\fbox{\parbox{0.92\textwidth}{\centering
+\textbf{Phase A.5: \textsc{soft kill}.} The matter-sourced canonical Berry curvature is
+EM-shaped (an antisymmetric field strength, traceless $\sim F^2$ Maxwell stress,
+structurally disjoint from the independently-frozen $T[M]$), \emph{not} Einstein-shaped.
+The Lie sector inherits the v17.0 symmetric-sector same-wall mismatch. \textbf{Recommend
+STOP before Phase~B.} Phase~A.5 is \emph{conjunctive} with Phase~75 (\textsc{survives}):
+since A.5 is a \textsc{soft kill}, the conjunction $\big(\text{Ph75}=\textsc{survives}\big)
+\wedge\big(\text{Ph76}=\textsc{soft kill}\big)$ does \textbf{not} greenlight Phase~77;
+v18.0 closes as a \emph{publishable negative}. Reported flat at true strength
+(negative-result-is-success).
+}}\end{center}
+
+\section{Forbidden proxies explicitly rejected (PART 2)}
+\label{sec:fp2}
+
+\begin{itemize}
+\item \texttt{fp-relabel} --- rejected: the verdict is the three-way ($M$-power $+$
+  tensor structure $+$ support) match against an \emph{independently-frozen} $T[M]$
+  (built without $\FB$, $\kappa$ first), \emph{never} ``a $2$-form appears''. A nonzero
+  antisymmetric $\FB$ is a \emph{field strength} (EM, source side), not an Einstein
+  structure --- exactly the v17.0 Ph73 lesson.
+\item \texttt{fp-reuse-cone-hessian} --- rejected: the cone-Hessian / $\Re(Q)$ and the
+  symmetric spacetime curvature $R[g]$ (with $S\neq0$, Weyl $\neq0$) are used \emph{only}
+  to build the independently-frozen $T[M]$; they are never load-bearing for the
+  imaginary-part verdict. The v17.0 \textsc{none} binds only $\Re$.
+\item \texttt{fp-relabel-softkill} --- rejected: the EM-shaped result is reported
+  \emph{flat} as a \textsc{soft kill}, never ``approximately Einstein''; an
+  Einstein-shaped \textsc{survives} would not have been deflated (claims at true strength
+  in both directions).
+\item \texttt{fp-nonabelian-gauge} --- rejected: the verdict rests on gauge-invariant
+  scalars (the $\FB\wedge\FB$ Pontryagin scalar, the Maxwell trace) tested and confirmed
+  invariant under a generic $\SO(3,1)$ frame rotation.
+\item \texttt{fp-float-decisive} --- rejected: every decisive number is exact over
+  $\mathbb{Q}(i)$ via SymPy ($\Im$ literal; the Maxwell trace is \emph{exactly} $0$, the
+  $T[M]$ trace \emph{exactly} $680$, the Pontryagin scalar an exact rational); no float.
+\item \texttt{fp-octonion-algebra} --- rejected: \texttt{octonion\_algebra.py} is absent
+  on the decisive path (runtime source guard); $\psi$ uses $\mathtt{oct\_mul}$ in the
+  $\det_3$ SSOT order; the QGT uses the associative complex matrix product on
+  $\mathtt{slice\_to\_complex}(P)$, never the Jordan product.
+\end{itemize}
 
 \end{document}
