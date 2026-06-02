@@ -47,17 +47,17 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 | ------------- | -------------------- | ------ |
 | **claim-coframe-reduction** (THE KILL GATE) | Phase 74 (anchors ✓), Phase 75 (decisive ✓) | ✓ **SURVIVES** (2026-06-02): (E_11,u) forces a 4d Lorentzian (1,3) coframe carrying SO(3,1); 3/3 clauses exact over Q; verified HIGH; human-ratified |
 | **claim-berry-same-wall** (~~SOFT KILL gate~~ RETIRED) | Phase 76 | ⚠ **Reinterpreted 2026-06-02** — A.5 tested the wrong object (`F_B` = internal `so(6)=SU(4)` gauge curvature, not gravity). SOFT KILL overturned; does NOT gate Phase B. |
-| **claim-cartan-gravity** | Phase 77 | Planned |
-| **claim-forced-einstein** | Phase 78 | Planned |
+| **claim-cartan-gravity** | Phase 77 | ⚠ **Phase B partial / NEGATIVE** (2026-06-02): `R[ω]` of `g=e·e` is a genuine matter-sourced 4d curvature (6/6-component independent Levi-Civita cross-check exact over Q, torsion=0); M=0 vacuum flat (Λ=0 measured); but `G[g]` is **NOT** Einstein-form `κT+Λg` for any single global `(κ,Λ)` vs an AST-guarded order-matched `T[M]` (per-point Λ varies; 180-eq solve inconsistent; support 16 vs 6; both T candidates; t⁴ order-match satisfied) → **`fp-imported-action` partial**. Human-ratified; verified passed 4/4, HIGH |
+| **claim-forced-einstein** | Phase 78 | Planned (decisive remaining question: is the MM ε-contraction FORCED or `fp-imported-action`?) |
 | deliv-phase0 | Phase 74 | ✓ Done (2026-06-02) |
 | deliv-phaseA | Phase 75 | ✓ Done (2026-06-02) |
-| deliv-phaseA5 | Phase 76 | Planned |
-| deliv-phaseB | Phase 77 | Planned |
+| deliv-phaseA5 | Phase 76 | Executed (retired as a gate) |
+| deliv-phaseB | Phase 77 | ✓ Done (2026-06-02) |
 | deliv-phaseC | Phase 78 | Planned |
 | test-tangent-identity, test-calibration | Phase 74 | ✓ Done (2026-06-02) |
 | test-coframe-dim, test-coframe-signature, test-coframe-forced | Phase 75 | ✓ Done (2026-06-02) |
-| test-berry-real-part, test-berry-vacuum, test-berry-shape | Phase 76 | Planned |
-| test-coframe-invertible, test-cartan-curvature, test-vacuum-einstein | Phase 77 | Planned |
+| test-berry-real-part, test-berry-vacuum, test-berry-shape | Phase 76 | Executed (gate retired) |
+| test-flatness-gate, test-coframe-invertible, test-cartan-curvature, test-vacuum-einstein | Phase 77 | ✓ Done (2026-06-02) |
 | test-forced-vs-posited | Phase 78 | Planned |
 
 ### Phase Dependencies
@@ -80,8 +80,8 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 - [x] **Phase 74: Phase 0 — Engine Recovery, Tangent Identity & Calibration** *(completed 2026-06-02)* — reload the det SSOT, verify `E_11∘δ=(1/2)δ` and `T_{E_11}OP^2=V_{1/2}(16)`, reproduce the calibration anchors + K=−1/2 benchmark. **VERDICT: foundation certified** — det SSOT re-passes (324/324 = dim f_4 52, octonion_algebra.py absent); soldering form dE confirmed V_{1/2}-valued (kernel == span{11..26}); all anchors + K=−1/2 reproduced byte-for-byte; verified 9/9 HIGH.
 - [x] **Phase 75: Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE, do first; cheap)** *(completed 2026-06-02)* — exact image dim of `π_u(V_{1/2}(16))`, exact Gram signature, forced-vs-arbitrary structure group. **VERDICT: SURVIVES** — (E_11,u) forces a 4d Lorentzian (1,3) coframe carrying SO(3,1): dim π_u(V_{1/2})=4 (survivors {11,18,19,26}=C_u²); soldering-form metric (1,3) + B rank 4 (bare trace-form diag(2,2,2,2)=(4,0) reported as the Euclidean OP² FS foil, NOT the verdict); residual 21=so(3,1)[6]⊕so(6)[15], so(3,1) FORCED (the so(6) a trivial-on-spacetime ideal, res/so(6)=so(3,1)). Human-ratified + orchestrator-reproduced; verified HIGH. Greenlight Phase 77 (conjunctive with Phase 76).
 - [x] **Phase 76: Phase A.5 — Berry-Curvature (RETIRED as a gravity gate)** *(executed 2026-06-02; SOFT-KILL verdict OVERTURNED)* — computed `F_B=Im(QGT)` (well-definedness born-from-breaking, M=0 pure-Λ/Kähler vacuum `F_B=−2ω_K`, matter-on EM-shape). The SOFT KILL was overturned: A.5 tested the **wrong object**. `F_B` is the **internal `so(6)=SU(4)` gauge curvature**, not the tetrad Riemann; it does NOT gate gravity (preserved as a deferred SM bonus). See the disposition note above.
-- [ ] **Phase 77: Phase B — Full Cartan Curvature = 4d Gravity (only if A and A.5 survive)** — invertible coframe, Spin(3,1) connection ω, `F=dA+A∧A` Lorentz block = 4d Riemann, vacuum + matter-sourced.
-- [ ] **Phase 78: Phase C — Circularity Audit (forced vs posited)** — is the MM ε-contraction FORCED by the h_3(O) trace-form/cubic-norm, or `fp-imported-action`?
+- [x] **Phase 77: Phase B — Full Cartan Curvature = 4d Gravity** *(completed 2026-06-02)* — flatness sub-gate PROCEED (`R[ω]≠0` for `M≠0`, 136/256 nonzero exact/Q; M=0 baseline flat); invertible coframe `det(e)≠0` sig (1,3); closed-form torsion-free `ω(e)`; `F=dA+A∧A` Lorentz block = 4d Riemann (6/6-component independent Levi-Civita cross-check exact/Q); M=0 vacuum flat, Λ=0 measured. **VERDICT: NEGATIVE / `fp-imported-action` partial** — `G[g]` is NOT Einstein-form `κT+Λg` for any single global `(κ,Λ)` vs an AST-guarded order-matched `T[M]` (two-axis failure: global-Λ inconsistency + tensor support 16-vs-6; both T candidates; t⁴ order-match satisfied → structural, not a near-miss). A curved, matter-sourced, position-dependent Lorentzian slice that is NOT Einstein-structured without a posited action. Mirrors v17.0 Ph73 NONE on a DIFFERENT tensor (antisymmetric/Lie `R[ω]` vs symmetric/real cone-Hessian) ⇒ an INDEPENDENT negative; v17.0 NONE does not bind it. Human-ratified; verified passed 4/4 HIGH; consistency CONSISTENT.
+- [ ] **Phase 78: Phase C — Circularity Audit (forced vs posited)** — is the MM ε-contraction FORCED by the h_3(O) trace-form/cubic-norm, or `fp-imported-action`? *(The Phase 77 NEGATIVE makes this the decisive remaining v18.0 question: is the Einstein term recoverable only via a posited action?)*
 
 ## Phase Details
 
@@ -184,8 +184,8 @@ Plans:
 
 Plans:
 
-- [ ] 77-01-PLAN.md (wave 1) — FLATNESS SUB-GATE (hard STOP: R[ω]≠0 for M≠0, else trivial death) + B(a) coframe non-degeneracy det(e^a_μ)≠0 + B(b) closed-form Levi-Civita ω(e) (torsion-free, sign-pinned K=−1/2). Exact over Q.
-- [ ] 77-02-PLAN.md (wave 2, depends_on 77-01, interactive) — B(c) assemble A=ω⊕e, F=dA+A∧A, Lorentz/torsion block split + independent Levi-Civita Riemann cross-check (≥5 components exact over Q); B(d) M=0 flat vacuum (Λ measured); B(d) matter-sourcing Einstein test vs an independent AST-guarded T[M] (single global κ,Λ, magnitude+structure+M-power) with a verdict checkpoint.
+- [x] 77-01-PLAN.md (wave 1) — FLATNESS SUB-GATE + B(a) coframe non-degeneracy + B(b) closed-form Levi-Civita ω(e) — ✓ COMPLETE 2026-06-02 (**PROCEED**: R[ω]≠0 for M≠0, 136/256 nonzero exact/Q, Ricci scalar ≠0; M=0 baseline flat; det(e)=1/2 sig (1,3); ω(e) torsion-free antisymmetric sign-pinned K=−1/2; R[ω]==metric Levi-Civita Riemann identity verified. Tetrad via the contract-sanctioned Lagrange-congruence fallback over Q — π_u(dE) symbolic route hit the watchdog cliff; frame-invariant so verdict unaffected).
+- [x] 77-02-PLAN.md (wave 2, depends_on 77-01, interactive) — B(c) F=dA+A∧A Lorentz/torsion split + ≥5-component independent Levi-Civita Riemann cross-check; B(d) M=0 vacuum + matter-sourcing Einstein test — ✓ COMPLETE 2026-06-02 (**VERDICT: NEGATIVE / `fp-imported-action` partial**, human-ratified; F=dA+A∧A torsion=0, Lorentz block == Levi-Civita Riemann of g=e·e on 6/6 components exact/Q; M=0 flat Λ=0 measured; G[g] NOT Einstein-form for any single global (κ,Λ) vs AST-guarded T[M] — two-axis failure, both T, t⁴ order-match satisfied; 18 sig-(1,3) family points, 0 dropped).
 
 ### Phase 78: Phase C — Circularity Audit (forced vs posited)
 
@@ -237,15 +237,15 @@ Research backtracking is expected; these are the explicit conditions for revisit
 
 ## Progress
 
-**Execution Order (updated 2026-06-02):** 74 → 75 → [STOP if KILL] → 77 (opens with a flatness sub-gate; STOP if `R[ω]=0` for `M≠0`) → 78. The 75∧76 conjunctive gate is RETIRED — Phase 75 (SURVIVES) alone greenlights 77; Phase 76 (A.5) was reinterpreted (Berry = internal gauge sector, not a gravity gate).
+**Execution Order (updated 2026-06-02):** 74 ✓ → 75 ✓ (SURVIVES) → 77 ✓ (flatness sub-gate PROCEED `R[ω]≠0`; **verdict NEGATIVE / `fp-imported-action` partial** — curved + matter-sourced but not Einstein-without-an-action) → **78 (NEXT, the final phase)**. The 75∧76 conjunctive gate is RETIRED — Phase 75 (SURVIVES) alone greenlit 77; Phase 76 (A.5) was reinterpreted (Berry = internal gauge sector, not a gravity gate). The Phase 77 NEGATIVE elevates Phase 78 (C — forced-vs-posited) to the decisive remaining v18.0 question.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 74. Phase 0 — Engine, Tangent Identity & Calibration | v18.0 | 1/1 | ✓ Complete | 2026-06-02 |
 | 75. Phase A — Coframe-Reduction Dealbreaker (KILL) | v18.0 | 1/1 | ✓ Complete (SURVIVES) | 2026-06-02 |
 | 76. Phase A.5 — Berry-Curvature (RETIRED as a gravity gate) | v18.0 | 2/2 | ⚠ Reinterpreted (SOFT KILL overturned 2026-06-02) | 2026-06-02 |
-| 77. Phase B — Full Cartan Curvature = 4d Gravity (greenlit by Phase 75; opens with flatness sub-gate) | v18.0 | 0/TBD | Ready to plan | - |
-| 78. Phase C — Circularity Audit (forced vs posited) | v18.0 | 0/TBD | Not started | - |
+| 77. Phase B — Full Cartan Curvature = 4d Gravity | v18.0 | 2/2 | ✓ Complete (**NEGATIVE / `fp-imported-action` partial**) | 2026-06-02 |
+| 78. Phase C — Circularity Audit (forced vs posited) | v18.0 | 0/TBD | Ready to plan | - |
 
 **Coverage:** 15/15 objectives mapped (DERV ×4, CALC ×5, VALD ×6) — no orphans, no duplicates. All 4 contract claims, 5 deliverables, and 12 acceptance tests surfaced. All 8 forbidden proxies visible at the phases where they bite.
 
