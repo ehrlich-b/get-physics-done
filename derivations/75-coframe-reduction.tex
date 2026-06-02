@@ -1,0 +1,266 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, primitive_idempotent=E11_diag_1_0_0,
+%   det_ssot=ring_lemma_det_3, killing_form=B(X,Y)=Tr(ad_X_ad_Y)
+%
+% Phase 75, Plan 01: Phase A -- THE COFRAME-REDUCTION DEALBREAKER (the KILL gate, v18.0)
+%
+% THE VERDICT: Phase A SURVIVES. With (E_11, u=e_7) fixed, the C_u bottleneck pi_u
+% reduces the 16-dim Peirce half-eigenspace V_{1/2}(E_11) -- the values of the
+% soldering form e = dE on OP^2 = F_4/Spin(9) -- to a 4-dim coframe that is
+% Lorentzian (1,3) and carries a residual structure group containing SO(3,1),
+% FORCED by (E_11, u) alone. All three clauses decided EXACTLY over Q.
+% Greenlight Phase 77 (conjunctive with Phase 76 / A.5: BOTH must SURVIVE).
+%
+% Backed exact-over-Q by code/cartan_phaseA_coframe.py (SymPy 1.14.0; ALL_PASS,
+% exit 0). Every decisive number is a rational/integer from sympy.Matrix.rank/
+% .eigenvals/.nullspace over QQ -- NEVER numpy/float (fp-float-decisive rejected).
+%
+% References:
+%   [P46]   Phase 46 SUMMARY -- pi_u (the C_u/O->C_u bottleneck), det_2, V_0 closure.
+%   [52KKT] derivations/52-kkt-spacetime.tex -- V_0 = h_2(O) -> h_2(C_u) ~= R^{3,1};
+%             det_2 (1,3), G=diag(+1,-1,-1,-1) Eq.46.4; SO(3,1) boosts B_i=L_{sigma_i}
+%             ([B_i,B_j]=-eps_ijk J_k, Killing sig (3,3)). The (1,3) det_2 SOLDERING TARGET.
+%   [52OU]  derivations/52-observer-uniqueness.tex -- OD3: V_{1/2} x V_{1/2} -> V_0
+%             surjective, rank 10 on V_0 / rank 4 on pi_u(V_0) (= the soldering bilinear B);
+%             Uniqueness Thm: pi_u(V_0)=h_2(C_u) the UNIQUE 4-dim JSpin(3) image of pi_u.
+%   [P48]   Phase 48 SUMMARY -- Spin(9,1) ⊃ Spin(3,1) x Spin(6) (Lorentz x internal split).
+%   [P74]   Phase 74 SUMMARY -- T_{E_11}OP^2 = V_{1/2}(E_11) (dim 16, idx 11..26);
+%             E_11 o delta = (1/2)delta; calibration anchors 17/61/45; det SSOT.
+%   [Sha97] R.W. Sharpe, "Differential Geometry: Cartan's Generalization of Klein's
+%             Erlangen Program" (1997) -- the soldering-form metric g = e^* eta.
+%   [Bae02] Baez, "The Octonions", math/0105155 (2002) -- OP^2 = F_4/Spin(9),
+%             T_E OP^2 = V_{1/2}; OP^2 a compact Riemannian symmetric space.
+%   [PV80]  Provost & Vallee, CMP 76 (1980) 289 -- QGT real part = Fubini-Study metric.
+%   [McC04] McCrimmon, "A Taste of Jordan Algebras" (2004) -- Peirce, E o delta=(1/2)delta.
+
+\section{Phase A: The Coframe-Reduction Dealbreaker (the KILL gate)}
+
+\subsection{Statement and what is decided}
+
+This is the cheapest, most decisive gate of milestone v18.0: pure exact linear
+algebra over $\mathbb{Q}$ on small matrices, no calculus, no curvature. With the
+pair $(E_{11}, u=e_7)$ fixed (the primitive idempotent $E_{11}=\mathrm{diag}(1,0,0)$
+and the complex structure $u=e_7$, $\mathbb{C}_u=\mathrm{span}\{1,e_7\}$), the
+question is whether the $\mathbb{C}_u$ bottleneck
+\[
+  \pi_u \;:\; \mathbb{O} \longrightarrow \mathbb{C}_u, \qquad
+  \pi_u(a) = a_0 + a_7\, e_7 \quad (\text{keep octonion comps }0,7;\ \text{kill }1\ldots 6),
+\]
+applied entrywise (the literal Phase-46 map [P46], engine \texttt{E()}/
+\texttt{proj\_u\_exact}) reduces the 16-dimensional Peirce half-eigenspace
+$V_{1/2}(E_{11})$ -- the space of values of the soldering form $e=dE$ on
+$\mathrm{OP}^2=F_4/\mathrm{Spin}(9)$ [Bae02, P74] -- to a \emph{4-dim coframe}
+that is \emph{Lorentzian $(1,3)$} and carries a residual structure group
+\emph{containing $\mathrm{SO}(3,1)$ FORCED by $(E_{11},u)$}.
+
+The verdict is conjunctive over three clauses, each decided exactly over $\mathbb{Q}$:
+\begin{itemize}
+  \item[(a)] \textbf{CALC-01} -- the exact image dimension of $\pi_u(V_{1/2}(16))$ is $4$;
+  \item[(b)] \textbf{CALC-02} -- the induced coframe pairing has Lorentzian signature
+        $(1,3)$ on the $\mathbb{R}^{3,1}$ soldering target, with the soldering bilinear
+        surjective (rank $4$);
+  \item[(c)] \textbf{VALD-02} -- the residual structure group contains $\mathfrak{so}(3,1)$,
+        FORCED by $(E_{11},u)$ with no extra free parameters tracing to a frame choice.
+\end{itemize}
+If all three pass, Phase A SURVIVES and greenlights Phase 77. If \emph{any} clause
+fails -- image not $4$-dim, or not Lorentzian, or requiring an arbitrary extra choice --
+the route is DEAD and the KILL is reported flat: ``Phase A: coframe reduction fails
+[clause]'' (negative-result-is-success; a clean KILL is a publishable closure).
+
+The engine-native $27$-coordinate layout
+$[\alpha(0),\beta(1),\gamma(2),x_1(3\!:\!10),x_2(11\!:\!18),x_3(19\!:\!26)]$ gives the
+Peirce grading under $E_{11}$ (reproduced in [P74]): $V_1=\{0\}$, $V_0=\{1,\ldots,10\}$,
+$V_{1/2}=\{11,\ldots,26\}$.
+
+\subsection{Clause (a): exact image dimension (CALC-01)}
+
+Building the $16$ basis elements of $V_{1/2}(E_{11})$ (engine indices $11\ldots 26$,
+the off-diagonal Peirce entries $x_2,x_3$) and applying $\pi_u$ entrywise, the image
+matrix $M$ (columns $\pi_u(b_k)$ in $27$-flat coordinates) has
+\begin{equation}
+  \boxed{\;\dim \pi_u\!\big(V_{1/2}(16)\big) \;=\; \mathrm{rank}_{\mathbb{Q}}(M) \;=\; 4\;}
+  \qquad (\text{exact over }\mathbb{Q},\ \text{zero tolerance}),
+\end{equation}
+spanned by the engine flat-coordinates
+\[
+  \{11,18,19,26\} \;=\; \{\,\mathrm{Re}(x_2),\ \langle x_2,e_7\rangle,\ \mathrm{Re}(x_3),\ \langle x_3,e_7\rangle\,\}
+  \;=\; \mathbb{C}_u^{\,2}.
+\]
+No octonion component $e_1\ldots e_6$ of $x_2$ or $x_3$ survives (the $\mathbb{C}_u$
+projection keeps only comps $0,7$, verified: the survivor set contains none of
+$\{12\ldots17,20\ldots25\}$). The dimension is the exact analog of the $V_0$
+reduction: where $V_0$'s single $\mathfrak{h}_2(\mathbb{O})$ off-diagonal entry $x_1$
+reduces to $\mathbb{C}_u$ ($2$-dim), here the \emph{two} Peirce off-diagonal entries
+each reduce to $\mathbb{C}_u$, giving $2\times 2 = 4$.
+
+\emph{$V_0$-limit cross-check.} The same $\pi_u$ applied to $V_0=\mathfrak{h}_2(\mathbb{O})$
+(idx $1\ldots10$) gives $\dim \pi_u(V_0)=\mathrm{rank}_{\mathbb{Q}}=4$, reproducing the
+validated $10\to 4$ reduction $\mathfrak{h}_2(\mathbb{O})\to\mathfrak{h}_2(\mathbb{C}_u)
+\cong\mathbb{R}^{3,1}$ of [52KKT].
+
+\textbf{Clause (a): PASS} -- the image is EXACTLY $4$-dimensional. (KILL clause (a)
+would be $\dim\neq 4$; it does not arise. No $4$-dim sub-piece is ever selected --
+the $4$ is earned by the exact rank.)
+
+\subsection{Clause (b): the induced coframe signature (CALC-02) -- the crux}
+
+\paragraph{The single most important design point.} The bare Jordan trace form on
+the reduced coframe is \emph{not} the coframe metric. Computing
+$\mathrm{Gram}_{ij}=\mathrm{Tr}(\delta_i\circ\delta_j)$ over the $4$ surviving
+directions gives, exact over $\mathbb{Q}$,
+\begin{equation}
+  \mathrm{Gram} \;=\; \mathrm{diag}(2,2,2,2), \qquad
+  \text{signature } (4,0)\ \text{EUCLIDEAN}.
+\end{equation}
+This is the compact Fubini--Study metric of $\mathrm{OP}^2=F_4/\mathrm{Spin}(9)$, a
+\emph{Riemannian} symmetric space [Bae02] carrying no invariant Lorentzian form
+($\mathrm{Re}(\mathrm{QGT})=$ Fubini--Study [PV80]). Reading the verdict here would
+manufacture a spurious ``not Lorentzian'' KILL (Pitfall 1, the Euclidean trap). We
+report $\mathrm{diag}(2,2,2,2)$ transparently as the \textbf{diagnostic foil} and it
+is \emph{never} the verdict.
+
+\paragraph{The verdict pairing: the soldering-form metric.} The geometrically correct
+pairing is the soldering-form (tetrad) metric $g=e^{*}\eta$ [Sha97]: the pullback of
+the model-space $\mathbb{R}^{3,1}$ metric through the soldering form. It is realized
+exactly over $\mathbb{Q}$ by the Peirce soldering bilinear
+\begin{equation}
+  B(\delta,\delta') \;=\; \big(\delta\circ\delta'\big)\big|_{V_0}
+  \;:\; V_{1/2}\times V_{1/2} \longrightarrow V_0\cong\mathbb{R}^{3,1},
+\end{equation}
+the OD3 map of [52OU]. Mapping the $V_0$ part to Minkowski coordinates
+$x_0=(\beta+\gamma)/2,\ x_1=\mathrm{Re}(x_1),\ x_2=\langle x_1,u\rangle,\
+x_3=(\beta-\gamma)/2$ [52KKT, Eq.46.4]:
+\begin{align}
+  &\textbf{Surjectivity:}\quad
+    \mathrm{rank}_{\mathbb{Q}}\big(B \to \mathbb{R}^{3,1}\big) = 4
+    \quad (= \text{OD3 rank-}4\text{-on-}\pi_u(V_0)\ \text{[52OU]}); \\[2pt]
+  &\textbf{Target signature:}\quad
+    \det{}_2 = x_0^2 - x_1^2 - x_2^2 - x_3^2,\quad G=\mathrm{diag}(+1,-1,-1,-1),
+    \quad \text{signature } \boxed{(1,3)}; \\[2pt]
+  &\textbf{Null cone:}\quad
+    n(\delta)=B(\delta,\delta)\ \text{satisfies}\ \det{}_2\big(n(\delta)\big)\equiv 0
+    \ \text{(Brahmagupta--Fibonacci)},\ \ x_0=\tfrac12\|\delta\|^2\ge 0.
+\end{align}
+The signature $(1,3)$ is read on the $\mathbb{R}^{3,1}$ \emph{target}, the validated
+$\det_2$ benchmark; in the raw $\{\beta,\gamma,p,q\}$ coordinates the $\det_2$ Gram
+$\beta\gamma-p^2-q^2$ has eigenvalues $\{\tfrac12,-\tfrac12,-1,-1\}$, also signature
+$(1,3)$ -- the two frames agree. The identity $\det_2(\delta\circ\delta)\equiv 0$ is
+the \emph{forward light cone} ($x_0=\tfrac12\|\delta\|^2\ge 0$), NOT a degenerate
+metric (Pitfall 3): the coframe directions solder to the forward null cone, which is
+correct physics.
+
+\emph{Solders to THE spacetime.} The image of $B$ is literally $\pi_u(V_0)$, not a
+same-signature look-alike:
+$\mathrm{rank}_{\mathbb{Q}}\big[\,\mathrm{image}(B)\mid \pi_u(V_0)\,\big]=4$ (the
+$V_{1/2}$-analog of the [P74] $\mathrm{rank}[\ker\mid V_{\text{half}}]$ identity).
+
+\textbf{Clause (b): PASS} -- the soldering target is Lorentzian $(1,3)$ and $B$ is
+rank-$4$ surjective. The honest framing (which defeats $\mathtt{fp\text{-}relabel}$):
+$V_{1/2}$ is \emph{not} intrinsically Lorentzian (its intrinsic OP$^2$ metric is the
+Euclidean foil); the coframe $e=\pi_u(dE)$ \emph{solders} the $4$-dim $\pi_u(V_{1/2})$
+onto the Lorentzian $\mathbb{R}^{3,1}$ -- exactly what a tetrad does. (KILL clause (b)
+would be a non-$(1,3)$ target or $B$ rank $<4$; no Wick rotation is invoked.)
+
+\subsection{Clause (c): forced-vs-arbitrary residual structure group (VALD-02)}
+
+This is the genuinely-open clause (MEDIUM confidence \emph{a priori}): it is
+\emph{measured} via an exact residual-group rank over $\mathbb{Q}$, not assumed by
+analogy to the $V_0$ Uniqueness Theorem.
+
+\paragraph{Calibration anchors first.} Before any new count (the v16.0 ``naive $7$
+refuted by orbit method'' precedent), the anchors are reproduced exactly over
+$\mathbb{Q}$: $\dim\mathrm{Stab}_{E_6}(E_{11})=61$ (orbit$(E_{11})=17$) and
+$\dim\mathrm{Stab}_{V_0}=45=\dim\mathrm{Spin}(9,1)$ (matching [P74] VALD-01).
+
+\paragraph{Canonicality of the $4$-space (no basis selection).} The surviving $4$-space
+$\pi_u(V_{1/2})=\mathrm{span}\{11,18,19,26\}$ is exactly the eigenvalue-$1$ space of
+the $\mathbb{C}_u$ projector $\mathrm{proj}_u$ acting on $V_{1/2}$: $\mathrm{proj}_u|_{V_{1/2}}$
+is idempotent with eigenvalues $\{1\!:\!4,\ 0\!:\!12\}$, so the eigenvalue-$1$ space
+is $4$-dimensional. $\mathrm{proj}_u$ is determined by $u=e_7$ \emph{alone}, and
+$V_{1/2}$ by $E_{11}$ \emph{alone}; the image was computed by RANK (clause (a)), not by
+choosing $4$ of $16$ directions.
+
+\paragraph{The residual structure group.} The residual algebra preserving the reduced
+coframe is the subalgebra of $\mathrm{Stab}_{V_0}=\mathfrak{spin}(9,1)$ that also
+preserves the $\mathbb{C}_u$ $4$-space $\pi_u(V_0)$ (equivalently commutes with the
+$\mathbb{C}_u$ split). Computed as the exact nullspace over $\mathbb{Q}$ of the
+constraint ``$D\cdot e_b$ has no component in the internal $W$-directions $\{4\ldots9\}$
+for $b$ in the $\mathbb{C}_u$ $4$-space $\{1,2,3,10\}$'':
+\begin{equation}
+  \dim(\text{residual}) \;=\; 21 \;=\; \underbrace{\mathfrak{so}(3,1)}_{6}\ \oplus\
+  \underbrace{\mathfrak{so}(6)}_{15},
+\end{equation}
+the block-diagonal Lorentz $\times$ internal part of the split
+$\mathrm{Spin}(9,1)\supset\mathrm{Spin}(3,1)\times\mathrm{Spin}(6)$ [P48].
+
+\paragraph{$\mathrm{SO}(3,1)$ is FORCED.} The residual action on the $\mathbb{C}_u$
+$4$-space spans dimension $6=\dim\mathfrak{so}(3,1)$; every such block satisfies
+$A^{\mathsf T}g+gA=0$ (it kills the $\det_2$ form $g$, the $(1,3)$ Lorentzian metric in
+$\{\beta,\gamma,p,q\}$), so it is $\mathfrak{so}(3,1)$, not a generic $\mathfrak{gl}(4)$.
+Its Killing form has signature
+\begin{equation}
+  \mathrm{sig}\big(B(X,Y)=\mathrm{Tr}(\mathrm{ad}_X\mathrm{ad}_Y)\big) = (3,3),
+  \quad\text{non-degenerate} \;\Longrightarrow\; \mathfrak{so}(3,1),
+\end{equation}
+matching the [52KKT] boosts $B_i=L_{\sigma_i}$ ($[B_i,B_j]=-\varepsilon_{ijk}J_k$,
+Killing sig $(3,3)$) and landing on the $\mathrm{Spin}(3,1)$ $4$d vector of
+$\mathrm{Spin}(9,1)\supset\mathrm{Spin}(3,1)\times\mathrm{Spin}(6)$ -- NOT the
+$\mathrm{Spin}(6)$ internal directions. The $\mathfrak{so}(6)$ summand acts
+\emph{trivially} on the spacetime $4$-space; it is the canonical internal gauge sector
+(the [P48] $\mathrm{Spin}(6)$), NOT extra Lorentz freedom and NOT an arbitrary frame
+choice.
+
+\textbf{Clause (c): PASS} -- $\mathrm{SO}(3,1)$ is FORCED by $(E_{11},u)$ alone, with
+no extra free parameters tracing to a frame choice. (KILL clause (c) $=
+\mathtt{fp\text{-}arbitrary\text{-}reduction}$ would be $\mathrm{SO}(3,1)$ appearing
+only after an arbitrary input, or extra Lorentz free parameters; it does not arise.)
+
+\subsection{Verdict}
+
+\begin{equation}
+  \boxed{
+    \begin{array}{l}
+    \textbf{Phase A SURVIVES.}\ \ \text{With } (E_{11},u=e_7) \text{ fixed, } \pi_u
+    \text{ reduces } V_{1/2}(16) \text{ to a } 4\text{-dim} \\[2pt]
+    \text{coframe that is Lorentzian } (1,3) \text{ and carries a residual structure
+    group} \\[2pt]
+    \text{containing } \mathrm{SO}(3,1),\ \text{FORCED by } (E_{11},u). \quad
+    \textbf{Greenlight Phase 77.}
+    \end{array}
+  }
+\end{equation}
+The three decidable numbers: $\dim\pi_u(V_{1/2})=4$; soldering target signature
+$(1,3)$ with $B$ rank $4$; residual algebra $\dim 21 = \mathfrak{so}(3,1)_6\oplus
+\mathfrak{so}(6)_{15}$ with the $\mathfrak{so}(3,1)$ Lorentz block FORCED. Phase A is a
+conjunctive gate with Phase 76 (A.5): BOTH must SURVIVE to greenlight Phase B (77).
+
+\subsection{Forbidden proxies explicitly rejected}
+
+\begin{itemize}
+  \item $\mathtt{fp\text{-}arbitrary\text{-}reduction}$ -- REJECTED. The $4$ and
+    $\mathrm{SO}(3,1)$ are EARNED by exact rank (clause (a)) and the forced
+    residual-group computation (clause (c)): the $4$-space is the canonical
+    $\mathbb{C}_u$-projector eigenspace; no $4$-of-$16$ direction selection, no
+    non-canonical projection, no Wick rotation, no arbitrary $\mathrm{SO}(3,1)$ frame.
+  \item $\mathtt{fp\text{-}relabel\text{-}approx\text{-}4d}$ -- REJECTED. Every clause
+    passes at true strength; nothing is relabeled ``approximately $4$d'' or
+    ``approximately Lorentzian''. (Had a clause failed, it would be reported as a flat
+    KILL -- negative-result-is-success.)
+  \item $\mathtt{fp\text{-}float\text{-}decisive}$ -- REJECTED. Every decisive number
+    (image dimension, Gram signatures, soldering-map rank, residual-group dimension,
+    Killing signature) is a rational/integer from \texttt{sympy.Matrix.rank}/
+    \texttt{.eigenvals}/\texttt{.nullspace} over $\mathbb{Q}$. Float is triage-only.
+    The exact cancellation $\det_2(\delta\circ\delta)\equiv 0$ is identical, not
+    ``approximately zero''.
+  \item $\mathtt{fp\text{-}octonion\text{-}algebra}$ -- REJECTED. The det SSOT is
+    \texttt{ring\_lemma\_verification.py} \texttt{det\_3}; octonion/Jordan primitives
+    come from \texttt{bulk\_geometry\_verification.py}; the $\mathbb{C}_u$ map from
+    \texttt{embedding\_under\_E\_verification.py}. The banned \texttt{octonion\_algebra.py}
+    is absent on the decisive path (not in \texttt{sys.modules}; the single aliased
+    \texttt{import det\_3 as oa\_det\_3} oracle inside \texttt{ring\_lemma} is the
+    sanctioned in-fence float reference, never shadowing the exact primitive).
+\end{itemize}
+
+All results above are produced by code/cartan\_phaseA\_coframe.py (SymPy 1.14.0,
+exit 0, ALL\_PASS), reusing the warm exact-over-$\mathbb{Q}$ engines and the det SSOT.
