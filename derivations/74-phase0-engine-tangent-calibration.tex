@@ -1,0 +1,337 @@
+% ============================================================================
+% Phase 74 (v18.0 Cartan/MacDowell-Mansouri) -- Plan 01
+% Phase 0: Engine recovery, the exact tangent identity, and calibration
+% ============================================================================
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus, fourier_convention=NA, coupling_convention=NA, renormalization_scheme=NA, gauge_choice=NA
+%
+% Deliverable deliv-phase0 (contract claim-coframe-reduction).
+% Supporting exact-SymPy code: code/cartan_phase0_tangent.py (the new Jacobian-kernel
+% tangent check + the three-engine re-pass/assert driver).
+%
+% This is a STANDALONE article-class fragment. To compile:
+%   pdflatex 74-phase0-engine-tangent-calibration.tex
+% ============================================================================
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\newcommand{\hO}{\mathfrak{h}_3(\mathbb{O})}
+\newcommand{\OP}{\mathbb{OP}^2}
+\newcommand{\Eoneone}{E_{11}}
+\newcommand{\Vhalf}{V_{1/2}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Stab}{\operatorname{Stab}}
+\newcommand{\jord}{\circ}
+\newcommand{\fr}{\mathfrak{f}_4}
+\newcommand{\er}{\mathfrak{e}_6}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+\title{Phase 0 (v18.0): Engine Recovery, the Exact Soldering-Form Tangent
+Identity $T_{\Eoneone}\OP=\Vhalf(\Eoneone)$, and Calibration}
+\author{Get-Physics-Done milestone v18.0 --- Phase 74, Plan 01}
+\date{2026-06-01}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This is the foundational re-certification + calibration phase of the v18.0
+Cartan/MacDowell--Mansouri gravity programme on the exceptional Jordan algebra
+$\hO$. We establish three results, all \emph{exactly over $\mathbb{Q}$} (no
+floating point on any decisive path):
+\textbf{(DERV-01)} the determinant single-source-of-truth (SSOT), the
+$F_4$-invariant cubic norm $\det_3$ of \texttt{ring\_lemma\_verification.py},
+re-passes its Cayley--Hamilton generic-norm lock and its $324/324$
+inner-derivation annihilation ($=\dim\fr=52$), with the source guard certifying
+that the buggy float engine \texttt{octonion\_algebra.py} is \emph{absent} on the
+decisive path;
+\textbf{(DERV-02)} the load-bearing soldering-form fact, namely $\Eoneone\jord
+\delta=\tfrac12\delta$ for a basis of $\delta\in\Vhalf(\Eoneone)$ (Peirce
+half-eigenspace) \emph{and} that the Zariski tangent space to the
+primitive-idempotent variety $\{X\jord X=X\}$ at $\Eoneone$ equals
+$\Vhalf(\Eoneone)$, of dimension $16$ (Jacobian rank $11$; kernel
+$=\operatorname{span}\{11,\dots,26\}$; the index-set identity, not merely the
+dimension; $16=17-1$ against $\dim\mathrm{orbit}(\Eoneone)=17$); and
+\textbf{(VALD-01)} the reproduction of the v17.0 calibration anchors
+(single-copy generic orbit $24$ / $\mathrm{Spin}(8)=28$ / transcendence degree
+$3$; $\dim\er=78=52+26$; $\dim\mathrm{orbit}(\Eoneone)=17$;
+$\dim\Stab_{E_6}(\Eoneone)=61$; $\dim\Stab_{V_0}=45=\dim\mathrm{Spin}(9,1)$) and
+the cone-Hessian sectional-curvature sign benchmark $K=-\tfrac12$ (with the round
+$\mathbb{H}^3$ value $K=-1$ as the exact factor-of-two cross-check). Every
+verdict is reported as an exact rational/integer equality. This phase does
+\emph{not} perform the Phase-75 $C_u/\pi_u$ coframe reduction, the Phase-76 Berry
+curvature, the Phase-77 Cartan connection, or the Phase-78 circularity audit; it
+\emph{supplies} the two consistency anchors (\texttt{test-tangent-identity},
+\texttt{test-calibration}) on which those phases depend.
+\end{abstract}
+
+\section{Convention lock}
+\label{sec:conventions}
+All computations use the v18.0 convention lock (inherited verbatim from v17.0;
+see \texttt{.gpd/CONVENTIONS.md} and \texttt{.gpd/state.json}
+\texttt{convention\_lock}):
+\begin{itemize}
+  \item \textbf{Arithmetic:} EXACT over $\mathbb{Q}$. All ranks, nullspaces,
+    eigenvalues, and zero-tests via \texttt{sympy.Matrix.rank}/\texttt{.nullspace}
+    over $\mathbb{Q}\mathbb{Q}$; \emph{never} \texttt{numpy}/floating point on any
+    decisive path (forbidden proxy \texttt{fp-float-decisive}: a derivative
+    cancellation under float tolerance can fabricate or destroy a rank).
+    \texttt{mpmath} is permitted for triage only, never for a verdict.
+  \item \textbf{Octonion multiplication:} Fano plane with $e_1 e_2 = e_4$.
+  \item \textbf{Complex structure:} $u=e_7$.
+  \item \textbf{Primitive idempotent:} $\Eoneone=\mathrm{diag}(1,0,0)$.
+  \item \textbf{Jordan product:} $a\jord b=\tfrac12(ab+ba)$; Peirce eigenvalues
+    $\{0,\tfrac12,1\}$.
+  \item \textbf{Determinant SSOT:} $\det_3$ of \texttt{ring\_lemma\_verification.py}
+    --- the $F_4$-invariant cubic norm. The cyclic-rotation cross-term variant
+    $2\,\mathrm{Re}((x_1 x_2)x_3)$ is the documented \textbf{bug} (off by $16$;
+    annihilated by only $30$ of the $324$ inner derivations) and is REJECTED. The
+    float engine \texttt{octonion\_algebra.py} (associator gap $\approx 0.67$) is
+    \textbf{banned} on every decisive path (forbidden proxy
+    \texttt{fp-octonion-algebra}).
+  \item \textbf{Metric signature:} mostly-minus $(-,+,+,+)$ on the
+    $\mathfrak{h}_2(\mathbb{C}_u)$ $\det_2$ Lorentzian slice; the bulk cone
+    metric is Riemannian (positive-definite).
+  \item \textbf{Units:} natural, $\hbar=k_B=1$.
+  \item \textbf{Engine $27$-coordinate layout:} $V_1=\{0\}$ ($\alpha$);
+    $V_0=\{1,\dots,10\}$; $\Vhalf=\{11,\dots,26\}$
+    (\texttt{V\_HALF\_IDX}$=\texttt{list(range(11,27))}$).
+\end{itemize}
+
+\paragraph{Reproducibility.} Python 3.14.2, SymPy 1.14.0. All decisive
+computations are deterministic and exact over $\mathbb{Q}$; no random seed enters
+any decisive path (generic-point sampling inside the engines uses fixed integer
+points). Engines are run unbuffered (\texttt{python -u}).
+
+\section{DERV-01: Determinant SSOT re-certification}
+\label{sec:derv01}
+The $F_4$-invariant cubic norm $\det_3\colon\hO\to\mathbb{R}$ (equivalently the
+generic norm of the Jordan algebra) is the single source of truth for every
+downstream curvature in the milestone. We re-certify the warm engine
+\texttt{ring\_lemma\_verification.py} verbatim --- it is not re-derived. Running
+the engine unbuffered yields exit code $0$ and \texttt{OVERALL: ALL\_PASS}, with
+the following load-bearing locks (all exact over $\mathbb{Q}$).
+
+\begin{proposition}[LOCK 7a --- Cayley--Hamilton generic norm]
+\label{prop:lock7a}
+At three independent octonionic test points $P$,
+\begin{equation}
+\det_3(P)\;=\;N(P),\qquad
+N(X):\ X^{\jord 3}-\Tr(X)\,X^{\jord 2}+S(X)\,X-N(X)\,I=0,\quad
+S(X)=\tfrac12\!\left(\Tr(X)^2-\Tr(X^{\jord 2})\right),
+\end{equation}
+i.e.\ $\det_3$ is exactly the unique cubic (generic) norm of the Jordan algebra.
+\end{proposition}
+
+\begin{proposition}[LOCK 7b --- $F_4$-invariance via $324/324$ annihilation]
+\label{prop:lock7b}
+Every one of the $324$ inner derivations $[L_a,L_b]$ (whose span is
+$\mathrm{Der}(\hO)=\fr$, $\dim\fr=52$) annihilates $\det_3$:
+\begin{equation}
+D_\xi\,\det_3=0
+\quad\text{for all }\xi\in\{[L_a,L_b]\},
+\qquad
+\#\{\text{annihilating}\}=324=324 .
+\end{equation}
+The count is $\mathbf{324/324}$, \emph{not} $30$: a count of $30$ is the signature
+of the buggy $2\,\mathrm{Re}((x_1 x_2)x_3)$ association and would indicate engine
+drift.
+\end{proposition}
+
+\begin{proposition}[Source guard --- no banned engine, no float on the decisive
+path]
+\label{prop:guard}
+The source-token guard \texttt{exact\_only\_guard()} reports
+\begin{quote}
+\texttt{octonion\_algebra imports: 1 in-fence (expect 1), 0 outside (expect 0);
+float-rank calls: 0 (expect 0)}.
+\end{quote}
+The single in-fence import is the sanctioned oracle (a float reference
+cross-check, \emph{not} on the decisive path); the load-bearing assertions are
+$\mathbf{0}$ outside-fence imports and $\mathbf{0}$ float-rank calls. Thus
+\texttt{fp-octonion-algebra} and \texttt{fp-float-decisive} are both rejected by
+construction.
+\end{proposition}
+
+\section{DERV-02: The soldering form is $\Vhalf$-valued ---
+$T_{\Eoneone}\OP=\Vhalf(\Eoneone)$}
+\label{sec:derv02}
+
+The Cayley plane $\OP=F_4/\mathrm{Spin}(9)$ is the variety of trace-one primitive
+idempotents (rank-one projections) of $\hO$; it has dimension $16$ (Baez
+2002, \S 3.4). Its tangent space at an idempotent $E$ is the Peirce
+half-eigenspace $\Vhalf(E)$ (McCrimmon). We \emph{cite} these standard facts; the
+deliverable is the exact-over-$\mathbb{Q}$ machine verification of both clauses at
+$E=\Eoneone$.
+
+\subsection{Clause (a): the Peirce half-eigenspace identity}
+The left Jordan-multiplication operator $L_{\Eoneone}$ is diagonal in the
+engine-native basis with eigenvalues the Peirce values $\{0,\tfrac12,1\}$,
+inducing the index split
+\begin{equation}
+V_1(\Eoneone)=\{0\},\qquad
+V_0(\Eoneone)=\{1,\dots,10\}\;(\cong\mathfrak{h}_2(\mathbb{O})),\qquad
+\Vhalf(\Eoneone)=\{11,\dots,26\}\quad(\dim 16).
+\end{equation}
+
+\begin{lemma}[half-eigenspace identity, exact over $\mathbb{Q}$]
+\label{lem:half}
+For every $\delta$ in the $\Vhalf(\Eoneone)$ basis $\{b_{11},\dots,b_{26}\}$,
+\begin{equation}
+\Eoneone\jord\delta=\tfrac12\,\delta
+\qquad\text{(exact equality over }\mathbb{Q}\text{)} .
+\end{equation}
+All $16$ basis elements satisfy this component-wise octonion equality.
+\end{lemma}
+
+\subsection{Clause (b): the Zariski tangent of the primitive-idempotent variety}
+The rank-one locus (affine cone over $\OP$) is cut out by the single quadratic
+Jordan equation $X^{\jord 2}=\Tr(X)\,X$ (Manivel, arXiv:0907.2784); with the
+trace-one normalisation this is the idempotent equation
+\begin{equation}
+F(X):=X\jord X-X=0 .
+\end{equation}
+Linearising at $\Eoneone$ (the Jordan product is symmetric) gives
+\begin{equation}
+DF_{\Eoneone}(b)=2\,(\Eoneone\jord b)-b .
+\end{equation}
+We form the $27\times 27$ Jacobian $J$ whose $k$-th column is the flattened
+$DF_{\Eoneone}(b_k)$ over the standard basis, and compute its kernel exactly over
+$\mathbb{Q}$.
+
+\begin{theorem}[soldering-form tangent identity]
+\label{thm:tangent}
+Over $\mathbb{Q}$,
+\begin{equation}
+\operatorname{rank} J=11=27-16,
+\qquad
+\dim\ker J=16,
+\qquad
+\ker J=\operatorname{span}\{e_{11},\dots,e_{26}\}=\Vhalf(\Eoneone) .
+\end{equation}
+The kernel \emph{equals} $\Vhalf(\Eoneone)$ (the index-set identity: every kernel
+vector has zero component on $V_0=\{1,\dots,10\}$ and $V_1=\{0\}$), not merely a
+$16$-dimensional subspace. Consequently the Zariski tangent space to the
+primitive-idempotent variety at $\Eoneone$ is exactly $T_{\Eoneone}\OP=
+\Vhalf(\Eoneone)$, of dimension $16$. This is consistent with the affine-cone
+cross-check
+\begin{equation}
+16=17-1=\dim\mathrm{orbit}(\Eoneone)-1
+\end{equation}
+(the projective $\OP$ tangent is the affine cone over $\OP$ of dimension
+$17$ minus the one scale direction; see \S\ref{sec:vald01}).
+\end{theorem}
+
+\noindent\textit{Remark (smoothness).} The bare equation $X\jord X=X$ cuts out all
+idempotents (ranks $0,1,2,3$). The Zariski tangent at $\Eoneone$ is nevertheless
+exactly the $16$-dimensional $\Vhalf$ because $\Eoneone$ is a smooth point of the
+rank-one stratum and the strata do not meet it tangentially at first order; the
+independent anchor $\dim\mathrm{orbit}(\Eoneone)=17$ certifies the projective
+tangent is $17-1=16$. The optional sharp-equation cut $X^{\#}=0$ (rank $\le 1$)
+is a referee-proof confirmation and is deferred (not required: the $X\jord X=X$
+kernel already gives the exact $16$-dimensional $\Vhalf$).
+
+\paragraph{Geometric consequence.} The soldering form $dE$ at $\Eoneone$ is
+$\Vhalf(\Eoneone)$-valued. This is the geometric premise on which the Phase-75
+coframe reduction, the Phase-76 Berry curvature, and the Phase-77 Cartan
+connection stand.
+
+\section{VALD-01: Calibration anchors and the $K=-\tfrac12$ sign benchmark}
+\label{sec:vald01}
+The v17.0 calibration anchors are reproduced exactly over $\mathbb{Q}$, each from
+its named engine (the anchors are split across two engines, not one).
+
+\subsection{Single-copy anchor (\texttt{orbit\_dimension\_gate.py})}
+The generic orbit of $F_4$ acting on one copy of $\hO$, computed in-engine as the
+maximal exact-$\mathbb{Q}$ rank of the infinitesimal action over $\ge 2$ generic
+integer points (the naive $\mathrm{Spin}(8)$-triality hand-count is a forbidden
+proxy --- the value is computed, never looked up):
+\begin{equation}
+\dim\mathrm{orbit}_{\mathrm{single}}=24,
+\qquad
+\dim\Stab=52-24=28=\dim\mathrm{Spin}(8),
+\qquad
+\mathrm{trdeg}=27-24=3
+\end{equation}
+($\mathrm{trdeg}\,3=\mathbb{R}[\Tr,\Tr^2,\det]$, degrees $1/2/3$). The gate
+hard-fails if the orbit dimension is not $24$.
+
+\subsection{$\er$, orbit, stabilizers, and curvature
+(\texttt{bulk\_geometry\_verification.py})}
+By Koecher--Tits, $\er=\fr\oplus L(\hO_{\text{traceless}})$, and the assembled
+$E_6$ Lie algebra is genuine:
+\begin{align}
+\dim\er&=78=52+26, \\
+\dim\mathrm{orbit}(\Eoneone)&=17 \quad(\text{the affine cone over }\OP), \\
+\dim\Stab_{E_6}(\Eoneone)&=78-17=61, \\
+\dim\Stab_{V_0}&=45=\dim\mathrm{Spin}(9,1)\quad(\text{the slice-preserving Levi}).
+\end{align}
+All are exact span-ranks / kernels over $\mathbb{Q}$.
+
+\subsection{Cone-Hessian sign benchmark}
+On the $\{\det_2=1\}$ hyperboloid the cone-Hessian metric
+$g=\operatorname{Hess}(-\log\det_2)$ has constant negative sectional curvature
+\begin{equation}
+\boxed{\,K=-\tfrac12\,},
+\qquad\text{with the round }\mathbb{H}^3\text{ value }K_{\text{round}}=-1,
+\qquad K_{\text{round}}=2K
+\end{equation}
+(the exact factor of two is the documented normalisation
+$g_{\text{slice}}|_{\text{apex}}=2\,g_{\text{round}}$; the load-bearing fact is
+the \emph{negative-constant sign}, which pins the Riemann/Ricci sign convention
+before any downstream curvature verdict). The benchmark is verified to be
+constant across $\ge 3$ slice-tangent $2$-planes and negative, with the algebraic
+Riemann symmetries holding and all sectional curvatures real, exact over
+$\mathbb{Q}$. A value of $+\tfrac12$ or $-1$ for the cone-Hessian $K$ would be a
+sign/normalisation slip and is excluded.
+
+\section{Summary of exact verdicts}
+\label{sec:summary}
+\begin{center}
+\begin{tabular}{lll}
+\hline
+Quantity & Exact value & Source engine \\
+\hline
+$\det_3=$ CH generic norm (LOCK 7a) & holds at $3$ octonionic pts & \texttt{ring\_lemma} \\
+inner-derivation annihilation (LOCK 7b) & $324/324=\dim\fr=52$ & \texttt{ring\_lemma} \\
+source guard & $0$ outside-fence, $0$ float-rank & \texttt{ring\_lemma} \\
+$\Eoneone\jord\delta$ & $=\tfrac12\delta$ ($16/16$) & \texttt{cartan\_phase0\_tangent} \\
+$\operatorname{rank}J$ & $11$ & \texttt{cartan\_phase0\_tangent} \\
+$\dim\ker J=\dim T_{\Eoneone}\OP$ & $16$ & \texttt{cartan\_phase0\_tangent} \\
+$\ker J$ & $=\Vhalf=\{11,\dots,26\}$ & \texttt{cartan\_phase0\_tangent} \\
+$16=17-1$ cross-check & holds & (both) \\
+single-copy orbit / $\Stab$ / trdeg & $24$ / $28$ / $3$ & \texttt{orbit\_dimension\_gate} \\
+$\dim\er$ & $78=52+26$ & \texttt{bulk\_geometry} \\
+$\dim\mathrm{orbit}(\Eoneone)$ & $17$ & \texttt{bulk\_geometry} \\
+$\dim\Stab_{E_6}(\Eoneone)$ & $61$ & \texttt{bulk\_geometry} \\
+$\dim\Stab_{V_0}$ & $45=\dim\mathrm{Spin}(9,1)$ & \texttt{bulk\_geometry} \\
+cone-Hessian $K$ & $-\tfrac12$ ($K_{\text{round}}=-1=2K$) & \texttt{bulk\_geometry} \\
+\hline
+\end{tabular}
+\end{center}
+Every entry is an exact rational/integer equality; none is reported as
+``approximately'' (forbidden proxy \texttt{fp-relabel-approx} rejected).
+
+\begin{thebibliography}{9}
+\bibitem{Baez2002} J.~C.~Baez, \emph{The Octonions}, Bull.\ Amer.\ Math.\ Soc.\
+\textbf{39} (2002) 145--205, arXiv:math/0105155, \S 3.4 (the Cayley plane
+$\OP=F_4/\mathrm{Spin}(9)$, $\dim 16$; $T_E\OP=\Vhalf(E)$).
+\bibitem{McCrimmon} K.~McCrimmon, \emph{A Taste of Jordan Algebras}, Springer,
+2004 (Peirce decomposition; primitive idempotents; the tangent identity
+$E\jord\delta=\tfrac12\delta$).
+\bibitem{Manivel} L.~Manivel, \emph{On the derived category of the Cayley plane},
+J.\ Algebra, arXiv:0907.2784 (2011) (the rank-one locus cut out by
+$X^2=\Tr(X)\,X$; the $E_6$ orbit stratification rank $3/2/1$).
+\bibitem{KKT52} \emph{In-program derivations:} \texttt{derivations/52-kkt-spacetime.tex}
+and \texttt{derivations/52-observer-uniqueness.tex}
+($\mathfrak{h}_2(\mathbb{C}_u)\cong\mathbb{R}^{3,1}$, $\det_2$ Minkowski signature
+$(1,3)$; the Phase-46 $\pi_u\colon\mathbb{O}\to\mathbb{C}$ bottleneck) --- the
+benchmark for which the Phase-0 tangent identity is the prerequisite (the
+reduction itself is Phase 75, \emph{not} performed here).
+\end{thebibliography}
+
+\end{document}

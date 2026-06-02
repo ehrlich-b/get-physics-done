@@ -272,20 +272,51 @@ def vald01():
     print("=" * 78)
 
     # --- single-copy anchor: orbit_dimension_gate.py ---
+    # IMPORTANT (driver correctness, not a VALD-01 anchor failure): this engine is
+    # the v16.0 RING gate. By DESIGN it exits NONZERO -- its `test-anchor-7`
+    # (pair-orbit trdeg == 7) is a milestone go/no-go assertion that FAILS because
+    # the COMPUTED pair trdeg is 10 (orbit 44), the documented v16.0 result
+    # (triple-confirmed; see MEMORY project_v16_ring_lemma). That nonzero exit is
+    # UNRELATED to the VALD-01 single-copy anchor, which PASSES cleanly inside it.
+    # The decisive VALD-01 condition is therefore the explicit single-copy PASS
+    # lines (test-single-copy-24 / test-stabilizer-28 / test-trdeg-3) + the source
+    # guard, NOT the overall exit code. We assert those lines directly and verify
+    # the only FAILs present are the expected v16.0 pair-anchor lines.
     print("  orbit_dimension_gate.py (single-copy 24 / Spin(8)=28 / trdeg 3) ...")
     rc_g, out_g = _run_engine("code/orbit_dimension_gate.py")
-    print(f"      orbit_dimension_gate.py exit code = {rc_g} (expect 0)")
-    gate_pass = (rc_g == 0) and ("ALL_PASS" in out_g) and ("FAILURES PRESENT" not in out_g)
-    # The gate hard-fails if orbit_dim != 24; assert the three single-copy lines.
-    sc_orbit = ("orbit 24" in out_g) or ("orbit_dim = 24" in out_g) or ("== 24" in out_g)
-    sc_spin8 = ("Spin(8)" in out_g) and ("28" in out_g)
-    sc_trdeg = ("trdeg" in out_g) and ("== 3" in out_g)
-    _report("orbit_dimension_gate.py exit 0 + ALL_PASS (single-copy GATE; hard-fails "
-            "if orbit_dim != 24) [exact_qq_rank over QQ, no float]", gate_pass)
-    _report("SINGLE-COPY anchor: generic orbit dim == 24 (MAX over >=2 generic "
-            "points), stabilizer == 52-24 == 28 == dim Spin(8), trdeg == 27-24 == 3 "
-            "(= R[Tr, Tr^2, det]) -- COMPUTED in-engine, not looked up [exact Q]",
-            gate_pass and sc_orbit and sc_spin8 and sc_trdeg)
+    print(f"      orbit_dimension_gate.py exit code = {rc_g} (DESIGNED nonzero: the "
+          f"v16.0 RING pair-anchor test-anchor-7 fails by design; the single-copy "
+          f"anchor below is what VALD-01 needs and it PASSES)")
+    # The three single-copy anchor PASS lines (each an engine `_report` hard check).
+    sc_24 = "[PASS]" in out_g and "single-copy orbit rank over QQ == 24" in out_g
+    sc_multi = "[PASS]" in out_g and "MAX single-copy orbit rank over QQ == 24" in out_g
+    sc_orbit = ("[PASS] orbit_dim == 24 (single-copy generic orbit" in out_g)
+    sc_spin8 = ("[PASS] stabilizer dim = 52 - 24 == 28 == dim Spin(8)" in out_g)
+    sc_trdeg = ("[PASS] single-state trdeg = 27 - 24 == 3" in out_g)
+    sc_certified = ("Garibaldi-Guralnick / Lawther single-copy anchor (orbit 24 "
+                    "/ Spin(8) 28 / trdeg 3) REPRODUCED in-engine" in out_g)
+    # Source guard inside this engine: 0 octonion_algebra, 0 float-rank.
+    g_guard = ("[PASS] exact-only guard: no float-rank / no octonion_algebra on "
+               "decisive path" in out_g) and ("float-rank calls: 0 (expect 0)" in out_g)
+    # Confirm the ONLY FAILs are the expected, designed v16.0 pair-anchor lines
+    # (test-anchor-7 / pair-stabilizer == 5). Any OTHER FAIL would be true drift.
+    fail_lines = [ln for ln in out_g.splitlines() if "[FAIL]" in ln]
+    expected_fail_markers = ("test-anchor-7", "pair-stabilizer dim == 5")
+    only_expected_fails = all(any(m in ln for m in expected_fail_markers)
+                              for ln in fail_lines)
+    single_copy_ok = (sc_24 and sc_multi and sc_orbit and sc_spin8 and sc_trdeg
+                      and sc_certified and g_guard and only_expected_fails)
+    _report("SINGLE-COPY anchor (orbit_dimension_gate.py): generic orbit dim == 24 "
+            "(MAX over 3 generic integer points), stabilizer == 52-24 == 28 == dim "
+            "Spin(8), trdeg == 27-24 == 3 (= R[Tr, Tr^2, det]); 0 octonion_algebra, "
+            "0 float-rank -- COMPUTED in-engine, not looked up [exact Q]",
+            sc_24 and sc_multi and sc_orbit and sc_spin8 and sc_trdeg and sc_certified
+            and g_guard)
+    _report("orbit_dimension_gate.py nonzero exit is the DESIGNED v16.0 RING "
+            "pair-anchor gate-stop (test-anchor-7: pair trdeg 10 != 7), NOT engine "
+            "drift: the only FAILs are the expected pair-anchor lines; the VALD-01 "
+            "single-copy anchor is unaffected", only_expected_fails)
+    gate_pass = single_copy_ok
 
     # --- e_6 / orbit(E_11) / stabilizers / K: bulk_geometry_verification.py ---
     print("  bulk_geometry_verification.py (e_6=78; orbit(E_11)=17; Stab=61; "
@@ -317,7 +348,7 @@ def vald01():
             "load-bearing) WITH round_K = -1 factor-2 cross-check (g_slice|_apex "
             "= 2*g_round); NOT +1/2, NOT -1 [exact rationals over Q]", K_half)
 
-    ok = (gate_pass and sc_orbit and sc_spin8 and sc_trdeg
+    ok = (single_copy_ok
           and bulk_pass and e6_ok and orbit17_stab61 and stabV0_45 and K_half)
     if ok:
         print("      VALD-01 PASS: single-copy 24/Spin(8)=28/trdeg 3; e_6=78=52+26; "
