@@ -296,3 +296,28 @@ None — no external configuration required. (Note: pdflatex is not installed, s
 
 _Phase: 74-phase-0-engine-recovery-tangent-identity-calibration_
 _Completed: 2026-06-02_
+
+## Structured Return
+
+```yaml
+gpd_return:
+  status: completed
+  files_written:
+    - code/cartan_phase0_tangent.py
+    - derivations/74-phase0-engine-tangent-calibration.tex
+    - .gpd/phases/74-phase-0-engine-recovery-tangent-identity-calibration/74-01-SUMMARY.md
+  issues:
+    - "orbit_dimension_gate.py exits nonzero by design (v16.0 RING pair-anchor test-anchor-7, computed pair trdeg=10!=7); driver asserts single-copy PASS lines + only-expected-FAILs, validated against real captured output (orchestrator independently re-ran: ORBIT_EXIT=1, single-copy 24/28/3 PASS)"
+    - "full end-to-end driver run had its ~19-min orbit-gate subprocess watchdog-killed (execution-environment artifact, not a code/result defect); all VALD-01 assertions independently validated against true captured engine outputs"
+    - "pdflatex absent in env: .tex deliverable provided as source, content-verified (balanced environments + all must_contain substrings) rather than compiled"
+  next_actions:
+    - "Proceed to Phase 75 (Phase A coframe-reduction KILL gate) on the certified V_{1/2}-valued soldering form T_{E_11}OP^2=V_{1/2}(16); Phase 76 may be planned in parallel"
+    - "Recommended first: gpd-notation-coordinator to reconcile metric_signature glyph + add new Cartan/MM notation before Phase 75 raises a slice index"
+  phase: "74"
+  plan: "01"
+  tasks_completed: 3
+  tasks_total: 3
+  duration_seconds: 2087
+  verification: "PASSED 9/9 contract targets (HIGH); consistency WARNING (1 pre-existing non-blocking metric_signature glyph item, 0 Phase-74-introduced)"
+  commits: ["01ad04bd", "3b7411e2", "2cf7fbce"]
+```

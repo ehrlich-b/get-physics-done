@@ -895,14 +895,14 @@
     }
   },
   "position": {
-    "current_phase": "Defining objectives (v18.0; roadmap pending — Phases 74+)",
-    "current_phase_name": "v18.0 milestone setup — Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O)",
-    "total_phases": null,
-    "current_plan": "none (defining objectives; roadmap pending)",
+    "current_phase": "75",
+    "current_phase_name": "Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE) (v18.0)",
+    "total_phases": 5,
+    "current_plan": "none (Phase 74 COMPLETE & verified; Phase 75 ready to plan — may be planned/run in parallel with Phase 76 per the conjunctive gate)",
     "total_plans_in_phase": 0,
-    "status": "Defining objectives",
-    "last_activity": "2026-06-01",
-    "last_activity_desc": "Started milestone v18.0 (Gravity as the Curvature of the Peirce-Frame Cartan/MacDowell-Mansouri Connection on h_3(O)) — physics-side Lie-sector/Berry-curvature gravity route. PROJECT.md updated (Current Milestone + Scoping Contract Summary rewritten) and the machine-readable project_contract refreshed to v18.0 (4 claims: claim-coframe-reduction KILL gate / claim-berry-same-wall SOFT KILL / claim-cartan-gravity / claim-forced-einstein; 12 acceptance tests; 8 forbidden proxies incl. fp-imported-action, fp-arbitrary-reduction, fp-relabel). The route computes the ANTISYMMETRIC/Lie-sector connection curvature F=dA+A^A of A=omega(+)e on h_3(O) = the imaginary part of the self-model QGT (Berry curvature); the v17.0 cone-Hessian (NONE: curved but not Einstein) was the REAL part — a DIFFERENT tensor, so NONE does NOT bind it. Cheap KILL gates first: Phase A (does the C_u/pi_u bottleneck reduce V_{1/2}(16) to a 4d Lorentzian coframe carrying SO(3,1), FORCED by (E_11,u)? KILL if not 4d/not Lorentzian/not forced) → Phase A.5 (is the canonical Berry curvature Einstein-shaped, or EM-shaped reproducing the v17.0 same-wall mismatch? SOFT KILL). Inherit the v17.0 conventions lock (det SSOT = code/ring_lemma_verification.py det_3, cross-term 2Re(x2* x0* x1); octonion_algebra.py BANNED; exact over Q) + CONVENTIONS.md §6 (Lambda=0, flat M=0 vacuum, do NOT reintroduce Lambda<0). Authoritative spec: ~/scratch/get-physics-done/paper6-cartan-tetrad-prompt.md. Physics-side; INDEPENDENT of the consciousness-side (RING/REDUCIBILITY) line. NEXT = define objectives (REQUIREMENTS.md) → roadmap (gpd-roadmapper, Phases 74+). v17.0 COMPLETE & ARCHIVED (.gpd/milestones/v17.0/RESEARCH-DIGEST.md + MILESTONES.md).",
+    "status": "Ready to plan",
+    "last_activity": "2026-06-02",
+    "last_activity_desc": "Completed /gpd:execute-phase 74 (2026-06-02) — Phase 0 (Engine Recovery, Tangent Identity & Calibration) COMPLETE, 1/1 plan (74-01), all 3 tasks exact over Q. Verified PASSED 9/9 contract targets (HIGH) — the gpd-verifier independently re-derived DERV-02 from its OWN octonion algebra (no engine import), reproducing E_11∘δ=(1/2)δ for 16/16 V_{1/2} basis elements, Jacobian rank 11, kernel == span{11..26} with zero V_0/V_1 leak (Pitfall-2 index-set identity), 16=17−1; consistency WARNING (1 PRE-EXISTING non-blocking metric_signature label/glyph item; 0 Phase-74-introduced). DERV-01: det SSOT re-certified (CH + 324/324 = dim f_4 52; octonion_algebra.py absent on decisive path: 0 outside-fence, 0 float-rank). DERV-02: the soldering form dE is V_{1/2}-valued (T_{E_11}OP^2 = V_{1/2}(E_11), 16-dim). VALD-01: calibration anchors 24/Spin(8)=28/trdeg 3; e_6=78; orbit(E_11)=17; Stab_E6=61; Stab_V0=45=Spin(9,1); K=−1/2 (round_K=−1) reproduced byte-for-byte. KEY GOTCHA: orbit_dimension_gate.py exits NONZERO BY DESIGN (v16.0 RING pair-anchor test-anchor-7, computed pair trdeg=10≠7) — NOT engine drift; single-copy anchor passes inside it (orchestrator independently re-ran: ORBIT_EXIT=1, single-copy 24/28/3 PASS). Commits 01ad04bd/3b7411e2/2cf7fbce. Transition done BY HAND. NEXT = /gpd:plan-phase 75 (∥ 76); recommended first: gpd-notation-coordinator (metric_signature glyph reconcile to 'mostly-minus (+,−,−,−)' + new Cartan/MM notation e=π_u(dE), ω, A=ω⊕e, F=dA+A∧A, π_u, Berry/QGT Re/Im).",
     "progress_percent": 0,
     "paused_at": null
   },
@@ -1384,6 +1384,12 @@
         "duration": "~53 min compute (socket-killed after committing all 3 tasks) + ~8 min docs-finalize segment",
         "tasks": "3",
         "files": "2 files (.tex, driver) + SUMMARY"
+      },
+      {
+        "label": "Phase 74 P74-01",
+        "duration": "~35 min wall (orbit_dimension_gate.py ~19 min + bulk_geometry_verification.py ~3 min exact-QQ; 1 watchdog-killed full-driver run recovered via captured outputs)",
+        "tasks": "3",
+        "files": "3"
       }
     ]
   },
@@ -1442,6 +1448,11 @@
       "phase": "0",
       "summary": "Started milestone v18.0: Gravity as the Curvature of the Peirce-Frame (Cartan/MacDowell-Mansouri) Connection on h_3(O)",
       "rationale": "New milestone cycle (physics-side). Fresh Lie-sector/Berry-curvature route to gravity on h_3(O): F=dA+A^A of the Peirce-frame Cartan/MM connection A=omega(+)e, the imaginary part of the self-model QGT. Distinct from the v17.0 cone-Hessian (real part, NONE verdict) -- a different tensor, so NONE does not bind it. Cheap KILL gates first: Phase A (coframe reduction) + Phase A.5 (Berry same-wall). Independent of the consciousness-side line."
+    },
+    {
+      "phase": "74",
+      "summary": "Phase 0 foundation re-certified: det SSOT re-passes CH + 324/324 = dim f_4 52 (octonion_algebra.py absent on the decisive path); the soldering form dE is V_{1/2}-valued (T_{E_11}OP^2 = V_{1/2}(E_11), 16-dim, kernel == span{11..26}, E_11∘δ=(1/2)δ for all 16); calibration anchors 24/28/3, 78, 17, 61, 45 + K=−1/2 (round_K=−1) reproduced byte-for-byte across three engines. Verified 9/9 HIGH; consistency WARNING (pre-existing metric_signature glyph only).",
+      "rationale": "A weaker rigor in the foundation would propagate silently into every downstream curvature verdict (Phases 75–78); all results exact over Q, fp-octonion-algebra/fp-float-decisive/fp-relabel-approx rejected. orbit_dimension_gate.py designed-nonzero-exit (v16.0 RING pair-anchor trdeg=10≠7) handled by asserting the single-copy PASS lines + only-expected-FAILs, not the overall exit code."
     }
   ],
   "approximations": [],
@@ -1506,16 +1517,16 @@
     "resume_file": "Next action — **`/gpd:new-milestone`** (`/clear` first → fresh context) to start the next research stage. Milestone v17.0 is COMPLETE & ARCHIVED (2026-06-01; human-ratified verdict NONE — curved but not Einstein-structured; all 4 phases 70.1/71/72/73 verified HIGH, consistency CONSISTENT; archived to .gpd/milestones/v17.0-ROADMAP.md + v17.0-REQUIREMENTS.md + v17.0/RESEARCH-DIGEST.md; ROADMAP collapsed; REQUIREMENTS retired; tag v17.0). No active milestone, no open gates. v17.0 result for the write-up (paper6-bulk-geometry): the h₃(𝕆) cone geometry yields a curved, matter-sourced, position-dependent Lorentzian slice whose curvature is NOT of Einstein form (no G=κT+Λg for any global constants) — a decisive negative on the strongest claim; derivations/73-einstein-structure.tex + .gpd/phases/73-c-einstein-structure/73-circularity-audit.md carry it. Residual NON-BLOCKING notation-coordinator follow-up: reconcile the metric_signature label/glyph string in state.json/CONVENTIONS §6, and record cone-Hessian K=−1/2 alongside round −1 in riemann_ricci_sign. v14.0 PAUSED (pending JMP referee)."
   },
   "_version": 1,
-  "_synced_at": "2026-06-01T23:19:55.977426+00:00",
+  "_synced_at": "2026-06-02T02:02:17.618896+00:00",
   "current_position": {
-    "current_phase": "Defining objectives (v18.0; roadmap pending — Phases 74+)",
-    "current_phase_name": "v18.0 milestone setup — Gravity as the Curvature of the Peirce-Frame (Cartan/MM) Connection on h_3(O)",
+    "current_phase": "75",
+    "current_phase_name": "Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE) (v18.0)",
     "total_phases": 5,
-    "current_plan": "none (defining objectives; roadmap pending)",
+    "current_plan": "none (Phase 74 COMPLETE & verified; Phase 75 ready to plan — may be planned/run in parallel with Phase 76 per the conjunctive gate)",
     "total_plans_in_phase": 0,
-    "status": "Defining objectives",
-    "last_activity": "2026-06-01",
-    "last_activity_desc": "Started milestone v18.0 (Gravity as the Curvature of the Peirce-Frame Cartan/MacDowell-Mansouri Connection on h_3(O)) — physics-side Lie-sector/Berry-curvature gravity route. PROJECT.md + machine-readable project_contract refreshed to v18.0 (4 claims: coframe-reduction KILL gate / Berry same-wall SOFT KILL / Cartan-gravity / forced-vs-posited Einstein). The v17.0 cone-Hessian NONE does NOT bind this route (different tensor: imaginary part of the QGT vs the real part). Cheap KILL gates first: Phase A (C_u reduces V_{1/2}(16) to a 4d Lorentzian coframe carrying SO(3,1), forced by (E_11,u)?) and Phase A.5 (canonical Berry curvature Einstein-shaped or same-wall mismatch?). Inherit v17.0 conventions lock (det SSOT ring_lemma_verification.py; octonion_algebra.py BANNED; exact over Q) + CONVENTIONS §6 (Lambda=0). Next: define objectives (REQUIREMENTS.md) → roadmap (Phases 74+). v17.0 COMPLETE & ARCHIVED.",
+    "status": "Ready to plan",
+    "last_activity": "2026-06-02",
+    "last_activity_desc": "Completed /gpd:execute-phase 74 (2026-06-02) — Phase 0 (Engine Recovery, Tangent Identity & Calibration) COMPLETE, 1/1 plan (74-01), all 3 tasks exact over Q. Verified PASSED 9/9 contract targets (HIGH) — the gpd-verifier independently re-derived DERV-02 from its OWN octonion algebra (no engine import), reproducing E_11∘δ=(1/2)δ for 16/16 V_{1/2} basis elements, Jacobian rank 11, kernel == span{11..26} with zero V_0/V_1 leak (Pitfall-2 index-set identity), 16=17−1; consistency WARNING (1 PRE-EXISTING non-blocking metric_signature label/glyph item; 0 Phase-74-introduced). DERV-01: det SSOT re-certified (CH + 324/324 = dim f_4 52; octonion_algebra.py absent on decisive path: 0 outside-fence, 0 float-rank). DERV-02: the soldering form dE is V_{1/2}-valued (T_{E_11}OP^2 = V_{1/2}(E_11), 16-dim). VALD-01: calibration anchors 24/Spin(8)=28/trdeg 3; e_6=78; orbit(E_11)=17; Stab_E6=61; Stab_V0=45=Spin(9,1); K=−1/2 (round_K=−1) reproduced byte-for-byte. KEY GOTCHA: orbit_dimension_gate.py exits NONZERO BY DESIGN (v16.0 RING pair-anchor test-anchor-7, computed pair trdeg=10≠7) — NOT engine drift; single-copy anchor passes inside it (orchestrator independently re-ran: ORBIT_EXIT=1, single-copy 24/28/3 PASS). Commits 01ad04bd/3b7411e2/2cf7fbce. Transition done BY HAND. NEXT = /gpd:plan-phase 75 (∥ 76); recommended first: gpd-notation-coordinator (metric_signature glyph reconcile to 'mostly-minus (+,−,−,−)' + new Cartan/MM notation e=π_u(dE), ω, A=ω⊕e, F=dA+A∧A, π_u, Berry/QGT Re/Im).",
     "progress_percent": 0,
     "paused_at": null
   }

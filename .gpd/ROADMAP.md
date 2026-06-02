@@ -39,16 +39,16 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 
 | Contract Item | Advanced By Phase(s) | Status |
 | ------------- | -------------------- | ------ |
-| **claim-coframe-reduction** (THE KILL GATE) | Phase 74 (anchors), Phase 75 (decisive) | Planned |
+| **claim-coframe-reduction** (THE KILL GATE) | Phase 74 (anchors ✓), Phase 75 (decisive) | Phase 74 anchors DONE (2026-06-02); Phase 75 decisive pending |
 | **claim-berry-same-wall** (SOFT KILL) | Phase 76 | Planned |
 | **claim-cartan-gravity** | Phase 77 | Planned |
 | **claim-forced-einstein** | Phase 78 | Planned |
-| deliv-phase0 | Phase 74 | Planned |
+| deliv-phase0 | Phase 74 | ✓ Done (2026-06-02) |
 | deliv-phaseA | Phase 75 | Planned |
 | deliv-phaseA5 | Phase 76 | Planned |
 | deliv-phaseB | Phase 77 | Planned |
 | deliv-phaseC | Phase 78 | Planned |
-| test-tangent-identity, test-calibration | Phase 74 | Planned |
+| test-tangent-identity, test-calibration | Phase 74 | ✓ Done (2026-06-02) |
 | test-coframe-dim, test-coframe-signature, test-coframe-forced | Phase 75 | Planned |
 | test-berry-real-part, test-berry-vacuum, test-berry-shape | Phase 76 | Planned |
 | test-coframe-invertible, test-cartan-curvature, test-vacuum-einstein | Phase 77 | Planned |
@@ -71,7 +71,7 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 
 **Phase Numbering:** Integer phases (74–78) are planned research work (continuing across milestones from v17.0's Phase 73 — numbering never restarts). Decimal phases (e.g. 75.1) are urgent insertions, marked INSERTED.
 
-- [ ] **Phase 74: Phase 0 — Engine Recovery, Tangent Identity & Calibration** — reload the det SSOT, verify `E_11∘δ=(1/2)δ` and `T_{E_11}OP^2=V_{1/2}(16)`, reproduce the calibration anchors + K=−1/2 benchmark.
+- [x] **Phase 74: Phase 0 — Engine Recovery, Tangent Identity & Calibration** *(completed 2026-06-02)* — reload the det SSOT, verify `E_11∘δ=(1/2)δ` and `T_{E_11}OP^2=V_{1/2}(16)`, reproduce the calibration anchors + K=−1/2 benchmark. **VERDICT: foundation certified** — det SSOT re-passes (324/324 = dim f_4 52, octonion_algebra.py absent); soldering form dE confirmed V_{1/2}-valued (kernel == span{11..26}); all anchors + K=−1/2 reproduced byte-for-byte; verified 9/9 HIGH.
 - [ ] **Phase 75: Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE, do first; cheap)** — exact image dim of `π_u(V_{1/2}(16))`, exact Gram signature, forced-vs-arbitrary structure group.
 - [ ] **Phase 76: Phase A.5 — Berry-Curvature Same-Wall Gate (SOFT KILL)** — Im(QGT) well-definedness after C_u breaking, `Re(QGT)=Hess(−log det)` anchor, M=0 vacuum, Einstein-vs-EM shape.
 - [ ] **Phase 77: Phase B — Full Cartan Curvature = 4d Gravity (only if A and A.5 survive)** — invertible coframe, Spin(3,1) connection ω, `F=dA+A∧A` Lorentz block = 4d Riemann, vacuum + matter-sourced.
@@ -101,7 +101,7 @@ Machine-readable contract: `.gpd/state.json` field `project_contract` (schema v1
 
 Plans:
 
-- [ ] 74-01-PLAN.md — DERV-01 (det SSOT re-pass: CH + 324/324 + source guard) + DERV-02 (exact E_11∘δ=(1/2)δ and Zariski tangent T_{E_11}OP²=V_{1/2}(16), kernel==span(V_HALF_IDX)) + VALD-01 (calibration anchors 24/28/3, 78, 17, 61, 45 + K=−1/2 across the three engines)
+- [x] 74-01-PLAN.md — DERV-01 (det SSOT re-pass: CH + 324/324 + source guard) + DERV-02 (exact E_11∘δ=(1/2)δ and Zariski tangent T_{E_11}OP²=V_{1/2}(16), kernel==span(V_HALF_IDX)) + VALD-01 (calibration anchors 24/28/3, 78, 17, 61, 45 + K=−1/2 across the three engines) — ✓ COMPLETE 2026-06-02 (verified 9/9 HIGH; exact over Q)
 
 ### Phase 75: Phase A — Coframe-Reduction Dealbreaker (THE KILL GATE)
 
@@ -230,7 +230,7 @@ Research backtracking is expected; these are the explicit conditions for revisit
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 74. Phase 0 — Engine, Tangent Identity & Calibration | v18.0 | 0/1 | Planned | - |
+| 74. Phase 0 — Engine, Tangent Identity & Calibration | v18.0 | 1/1 | ✓ Complete | 2026-06-02 |
 | 75. Phase A — Coframe-Reduction Dealbreaker (KILL) | v18.0 | 0/TBD | Not started | - |
 | 76. Phase A.5 — Berry-Curvature Same-Wall (SOFT KILL) | v18.0 | 0/TBD | Not started | - |
 | 77. Phase B — Full Cartan Curvature = 4d Gravity | v18.0 | 0/TBD | Not started | - |
