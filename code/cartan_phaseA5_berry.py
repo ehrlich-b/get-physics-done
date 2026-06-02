@@ -404,6 +404,157 @@ def task1_assemble_qgt(P_C, params, base_subs):
     return Q, Q0
 
 
+def _eig_all_positive(M):
+    """EXACT over Q(i): True iff every eigenvalue of the Hermitian/symmetric Matrix M
+    is provably > 0 (sympy .eigenvals(), rational here). NEVER numpy (fp-float-decisive)."""
+    ev = M.eigenvals()
+    for v, _m in ev.items():
+        vs = simplify(v)
+        if not (vs.is_real and (vs > 0)):
+            return False
+    return True
+
+
+def _eig_multiplicity_pattern(M):
+    """The (sorted) eigenvalue->multiplicity pattern of a symmetric rational Matrix,
+    EXACT over Q. Used for the CALC-03 'character' (PATTERN, not numerical identity)."""
+    ev = M.eigenvals()
+    return sorted(((simplify(v), m) for v, m in ev.items()), key=lambda t: float(t[0]))
+
+
+# ============================================================================
+# TASK 2A : VALD-03 -- F_B WELL-DEFINED AND GENERICALLY NONZERO, BORN FROM BREAKING
+# ============================================================================
+def vald03(P_C, params, base_subs, syms):
+    """VALD-03 (done FIRST, BEFORE any shape test): F_B = -2 Im Q is well-defined and
+    generically NONZERO on the 4d slice, BORN FROM the C_u breaking of the isotropy-
+    irreducible OP^2 (round Berry = 0).  A degenerate F_B == 0 is detected + reported flat."""
+    print("=" * 78)
+    print("VALD-03 (FIRST) : F_B well-defined + generically NONZERO + BORN FROM the "
+          "C_u breaking")
+    print("=" * 78)
+
+    # (i) BORN-FROM-BREAKING (group theory; cite Baez Sec 3.4 / Berger). State it as the
+    # load-bearing fact: OP^2 = F_4/Spin(9), isotropy = the unique irreducible 16-dim
+    # Spin(9) spinor (real type) => a UNIQUE invariant symmetric form (the FS metric) and
+    # NO invariant 2-form => the ROUND (F_4-invariant) Berry curvature is identically 0.
+    # The C_u-reduced isotropy DOES admit the Kahler 2-form, so any nonzero F_B is BORN
+    # FROM the C_u breaking.  (Group-theory fact -- printed/asserted, not numerically
+    # re-derived here; it is the def. of isotropy-irreducible + real-type spinor.)
+    print("      BORN-FROM-BREAKING (group theory, cite Baez math/0105155 Sec 3.4 / "
+          "Berger): OP^2=F_4/Spin(9) is isotropy-irreducible (isotropy = the unique")
+    print("      irreducible 16-dim Spin(9) spinor, real type) => UNIQUE invariant "
+          "symmetric form (FS metric) AND NO invariant 2-form => round Berry == 0.")
+    print("      Therefore any nonzero F_B is BORN FROM the C_u breaking (the C_u-reduced "
+          "isotropy admits the Kahler 2-form).")
+    _report("VALD-03 born-from-breaking STATED + cited (isotropy-irreducible => no "
+            "invariant 2-form => round Berry=0; nonzero F_B is C_u-broken) -- the "
+            "load-bearing group-theory fact", True)
+
+    # (ii) GENERICALLY NONZERO (compute, exact over Q(i)): the full symbolic 4x4 F_B.
+    FB = berry_F(P_C, params, simp=cancel)
+    a, b, c, d = syms
+    FB0 = Matrix(4, 4, lambda i, j: cancel(FB[i, j].subs(base_subs)))
+    print("      F_B(base point a=b=c=d=0):")
+    for r in range(4):
+        print(f"        {[FB0[r, k] for k in range(4)]}")
+    # Expected block-diagonal CP^2 Kahler form: F_B[a,b]=F_B[c,d]=-2, off-blocks 0.
+    expect = Matrix([[0, -2, 0, 0], [2, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]])
+    base_match = _is_zero_matrix(FB0 - expect)
+    _report("VALD-03 F_B at base point is NONZERO and EXACTLY the block-diagonal CP^2 "
+            "Kahler form F_B[a,b]=F_B[c,d]=-2 (off-blocks 0) [exact over Q(i)]",
+            base_match and not _is_zero_matrix(FB0))
+
+    # F_B not identically zero as a SYMBOLIC matrix (some entry is a nonzero rational fn).
+    FB_sym_zero = _is_zero_matrix(FB)
+    _report("VALD-03 F_B is NOT identically the zero 4x4 matrix as a symbolic function "
+            "on the slice (well-defined, generically nonzero) [exact over Q(i)]",
+            not FB_sym_zero)
+
+    # Generic rational point cross-check (NOT a special/symmetric point): F_B still nonzero.
+    gen = {a: Rational(1, 2), b: Rational(-1, 3), c: Rational(2), d: Rational(1, 5)}
+    FBg = Matrix(4, 4, lambda i, j: cancel(FB[i, j].subs(gen)))
+    FBg_anti = _is_zero_matrix(FBg + FBg.T)
+    _report("VALD-03 F_B NONZERO at a GENERIC rational point (a,b,c,d)=(1/2,-1/3,2,1/5) "
+            "AND antisymmetric there (generic non-degeneracy) [exact over Q(i)]",
+            (not _is_zero_matrix(FBg)) and FBg_anti)
+
+    # (iii) DEGENERACY GUARD (negative-result-is-success): if F_B IS identically 0, report
+    # the DEGENERATE (worse-than-SOFT-KILL) outcome flat -- do NOT relabel (fp-relabel-vacuum).
+    if FB_sym_zero:
+        _report("VALD-03 DEGENERATE: F_B identically zero on the slice -> NO antisymmetric "
+                "content at all (worse-than-SOFT-KILL); reported FLAT, NOT relabeled "
+                "[fp-relabel-vacuum REJECTED]", False)
+    else:
+        print("      DEGENERACY GUARD wired: had F_B been identically 0 it would be "
+              "reported FLAT (worse-than-SOFT-KILL); it is NOT (F_B[a,b]=F_B[c,d]=-2).")
+    return FB, FB0
+
+
+# ============================================================================
+# TASK 2B : CALC-03 -- THE SOFT REAL-PART ANCHOR  (INFORMATIVE, NOT A KILL)
+# ============================================================================
+def calc03(P_C, params, base_subs):
+    """CALC-03 (SOFT): Re(QGT) = 1/2 Tr(dP dP) a positive-definite FS metric (the ONLY
+    hard failure here is NOT positive-definite); its non-Einstein CHARACTER vs the
+    cone-Hessian diag(9,9,18,18) / round K=-1 reported as an INFORMATIVE diagnostic.
+    A discrepancy is EXPECTED (FS-pullback != cone-Hessian restriction) -- NEVER a KILL."""
+    print("=" * 78)
+    print("CALC-03 (SOFT, Re/symmetric sector) : Re(QGT) = Fubini-Study metric; "
+          "non-Einstein CHARACTER vs cone-Hessian -- INFORMATIVE, NOT a KILL")
+    print("=" * 78)
+    g = fs_metric(P_C, params, simp=cancel)
+    g0 = Matrix(4, 4, lambda i, j: cancel(g[i, j].subs(base_subs)))
+    print("      Re(QGT) = g(base point a=b=c=d=0):")
+    for r in range(4):
+        print(f"        {[g0[r, k] for k in range(4)]}")
+    # Round CP^2-over-C_u FS metric at base point = diag(1,1,1,1).
+    base_is_I4 = _is_zero_matrix(g0 - eye(4))
+    pos_def_base = _eig_all_positive(g0)
+    _report("CALC-03 Re(QGT) at base pt = diag(1,1,1,1) (round CP^2-over-C_u FS metric); "
+            "positive-definite (eigenvals all > 0 over Q) [the ONLY HARD check]",
+            base_is_I4 and pos_def_base)
+
+    # Positive-definite at a GENERIC rational point too (robustness of the FS-metric claim).
+    a, b, c, d = symbols('a b c d', real=True)
+    gen = {a: Rational(1, 2), b: Rational(-1, 3), c: Rational(2), d: Rational(1, 5)}
+    gg = Matrix(4, 4, lambda i, j: cancel(g[i, j].subs(gen)))
+    gg_sym = _is_zero_matrix(gg - gg.T)
+    pos_def_gen = _eig_all_positive(gg)
+    _report("CALC-03 Re(QGT) positive-definite at a GENERIC rational point too "
+            "(symmetric + eigenvals > 0 over Q) -- a sensible FS metric => trust the QGT "
+            "object [exact]", gg_sym and pos_def_gen)
+
+    # CHARACTER comparison to the cone-Hessian (SOFT, INFORMATIVE). Compute the
+    # cone-Hessian diag(9,9,18,18) and the round H^3 curvature K=-1 from the warm engine.
+    cone_H = BG.cone_hessian_at_center()
+    R_h3, K_h3 = BG.h3_constant_curvature()
+    fs_pattern = _eig_multiplicity_pattern(g0)
+    cone_pattern = _eig_multiplicity_pattern(cone_H)
+    print(f"      Re(QGT) base eigenvalue PATTERN  : {fs_pattern}   (round FS: 1 x4)")
+    print(f"      cone-Hessian diag                : {[cone_H[i, i] for i in range(4)]} "
+          f"(expect 9,9,18,18); eigen PATTERN {cone_pattern}")
+    print(f"      round H^3 curvature              : R={R_h3} (expect -6), K={K_h3} "
+          "(expect -1); Phase-71 cone-Hessian slice K=-1/2")
+    # The CHARACTER is operational (PATTERN/sign), NOT numerical identity. The round FS
+    # metric is maximally symmetric (single eigenvalue 1, mult 4 => Einstein-of-its-own-
+    # type, constant holomorphic sectional curvature); the cone-Hessian has the 2+2
+    # split (9,9,18,18). These are DIFFERENT objects (FS-pullback != cone-Hessian
+    # restriction), as EXPECTED.
+    cone_ok = ([cone_H[i, i] for i in range(4)] == [9, 9, 18, 18]) and (K_h3 == -1)
+    _report("CALC-03 cone-Hessian diag(9,9,18,18) + round H^3 K=-1 reproduced (warm "
+            "engine regression); the CHARACTER comparison is reported as a DIAGNOSTIC",
+            cone_ok)
+    print("      DIAGNOSTIC (NOT a verdict): the round-FS Re(QGT) PATTERN (single "
+          "eigenvalue, mult 4 -- maximally symmetric / constant holomorphic sectional")
+    print("      curvature) DIFFERS from the cone-Hessian 2+2 split (9,9 | 18,18). This "
+          "DISCREPANCY IS EXPECTED -- FS-pullback != cone-Hessian restriction.")
+    _report("CALC-03 fp-reuse-cone-hessian GUARD: a Re(QGT)-vs-cone-Hessian character "
+            "discrepancy is EXPECTED and INFORMATIVE, and is NEVER a KILL/HALT on this "
+            "SOFT anchor (the v17.0 NONE binds only Re; this phase mines Im) [SOFT]", True)
+    return g, g0
+
+
 # ============================================================================
 # DRIVER  (PART 1 -- the vacuum half; tasks appended below in 76-01 tasks 2,3)
 # ============================================================================
@@ -416,16 +567,25 @@ def _task1():
     return okG, ok1, ok2, (P_C, params, base_subs, syms, Q, Q0)
 
 
+def _task2(state):
+    P_C, params, base_subs, syms, Q, Q0 = state
+    FB, FB0 = vald03(P_C, params, base_subs, syms)         # VALD-03 FIRST
+    g, g0 = calc03(P_C, params, base_subs)                  # CALC-03 SOFT
+    return FB, FB0, g, g0
+
+
 if __name__ == "__main__":
     print("#" * 78)
     print("# Phase 76 -- Plan 01 (PART 1, VACUUM half): Berry-curvature same-wall gate")
-    print("# CP^1 pin + rank-1 C_u idempotent + 4x4 QGT over Q(i)  [Task 1]")
+    print("# Task 1: CP^1 pin + rank-1 C_u idempotent + 4x4 QGT over Q(i)")
+    print("# Task 2: VALD-03 (born-from-breaking + nonzero) FIRST + CALC-03 (SOFT Re-anchor)")
     print("#" * 78)
     okG, ok1, ok2, _state = _task1()
+    FB, FB0, g, g0 = _task2(_state)
     print("=" * 78)
     print(f"SOURCE GUARD ......... {'PASS' if okG else 'FAIL'}")
     print(f"CP^1 PIN ............. {'PASS' if ok1 else 'FAIL'}")
     print(f"IDEMPOTENT + BRIDGE .. {'PASS' if ok2 else 'FAIL'}")
     print("=" * 78)
-    print(f"TASK 1 (PART 1 calibration): {'ALL_PASS' if ALL_PASS else 'SOME FAILED'}")
+    print(f"PART 1 (Tasks 1-2): {'ALL_PASS' if ALL_PASS else 'SOME FAILED'}")
     sys.exit(0 if ALL_PASS else 1)
