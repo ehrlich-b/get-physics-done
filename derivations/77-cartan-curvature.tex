@@ -3,7 +3,11 @@
 %==============================================================================
 % Phase 77 (v18.0 Cartan/MacDowell-Mansouri): Full Cartan Curvature = 4d Gravity
 % Plan 77-01: Coframe non-degeneracy + closed-form spin connection omega(e)
-%             + the opening FLATNESS SUB-GATE.  (77-02 completes Phase B.)
+%             + the opening FLATNESS SUB-GATE.
+% Plan 77-02: F=dA+A^A assembly + >=5-component Riemann cross-check + M=0 vacuum
+%             (Lambda measured) + the genuine matter-sourcing Einstein gate.
+%             VERDICT: NEGATIVE / fp-imported-action partial (curved + matter-
+%             sourced, but NOT Einstein-without-an-action). [awaiting ratification]
 %==============================================================================
 \documentclass[11pt]{article}
 \usepackage{amsmath,amssymb,amsthm}
@@ -174,4 +178,164 @@ All decisive numbers are exact over $\Q$. \texttt{octonion\_algebra} absent; no 
 on the decisive path; the cone-Hessian $(4,0)$ tensor is used \emph{only} for the sign-pin benchmark,
 never as the load-bearing gravity curvature (fp-reuse-cone-hessian rejected); no raw 45-dim
 $\mathrm{Spin}(9,1)$ curvature (fp-raw45-curvature rejected); no float verdict (fp-float-decisive rejected).
+
+%==============================================================================
+\part*{Plan 77-02: $F=dA+A\wedge A$ assembly, the $\geq5$-component Riemann
+cross-check, the $M=0$ vacuum, and the genuine matter-sourcing Einstein gate}
+%==============================================================================
+\setcounter{section}{0}
+\renewcommand{\thesection}{B.\arabic{section}}
+
+All 77-02 results are produced by \texttt{code/cartan\_phaseB\_einstein.py}
+(foreground, \texttt{python3 -u}, exact over $\Q$; reuses the 77-01 driver
+\texttt{code/cartan\_phaseB\_curvature.py} + \texttt{bulk\_geometry\_verification.py} +
+\texttt{ring\_lemma\_verification.py}).
+
+\section{$A=\om\oplus \eu$ assembled; $F=dA+A\wedge A$; Lorentz / torsion split (Task~1)}
+The $(A)$dS Cartan / MacDowell--Mansouri connection $A=\om+(1/\ell)\eu$ is represented as a
+$5\times5$ matrix on the $(n{+}1)$-dim $\mathfrak{iso}(3,1)/\mathfrak{so}(3,2)/\mathfrak{so}(4,1)$
+module (frame indices $a=0\ldots3$ plus the transvection direction $4$):
+\begin{equation}\label{eq:Amatrix}
+  A_\mu=\begin{pmatrix} \om_\mu{}^a{}_b & \eu^a{}_\mu\\[2pt]
+  -\tfrac{\Lambda}{3}\,\eu_{b\mu} & 0\end{pmatrix},
+  \qquad \om_\mu{}^a{}_b=\om_\mu{}^{ac}\eta_{cb}\ (\text{mixed Lorentz}),
+\end{equation}
+with $\Lambda$ carried symbolically so the cosmological term is visible; the physical value
+$\Lambda=0$ (Sec.~B.3) collapses $A$ to Poincar\'e $\mathfrak{iso}(3,1)$. The curvature is the
+component-matrix
+\begin{equation}\label{eq:Fcomm}
+  F_{\mu\nu}=\partial_\mu A_\nu-\partial_\nu A_\mu+[A_\mu,A_\nu],
+\end{equation}
+where the matrix commutator $[A_\mu,A_\nu]$ \emph{is} the $A\wedge A$ term (\texttt{sympy.diffgeom}
+has no matrix-valued connection wedge; the component-matrix curvature is hand-rolled). Splitting
+$F_{\mu\nu}$ per Wise~\eqref{eq:wise}:
+\begin{itemize}
+\item \textbf{Lorentz ($\mathfrak{so}(3,1)$) block} (the $4\times4$ $a,b$ part)
+  $=R[\om]^a{}_{b\,\mu\nu}-\tfrac{\Lambda}{3}(\eu\wedge \eu)^a{}_{b\,\mu\nu}$, mixed-index;
+\item \textbf{translation ($\R^{3,1}$) block} (the transvection column $F_{\mu\nu}{}^a{}_4$)
+  $=(d_\om \eu)^a{}_{\mu\nu}$ --- the \emph{torsion}.
+\end{itemize}
+\textbf{Verified exact over $\Q$} (on the rational warped Lorentzian reference of Sec.~1, surd-free,
+watchdog-safe; the assembly mechanics are frame-universal):
+\begin{enumerate}
+\item the Lorentz block of $A$ is antisymmetric under $\eta$ ($\mathfrak{so}(3,1)$); the transvection
+column is $\eu^a{}_\mu$;
+\item the \textbf{torsion block $d_\om \eu=0$ exactly} (Levi--Civita $\om$ is torsion-free; cross-checked
+by the standalone $\Theta^a$ of \eqref{eq:torsion});
+\item converting the Lorentz block via $R^\rho{}_{\sigma\mu\nu}=\eu_a{}^\rho \eu^b{}_\sigma
+R[\om]^a{}_{b\,\mu\nu}$ at $\Lambda=0$, the $F$-commutator lower-index Riemann equals (raw sign) the
+\emph{bare Christoffel} Levi--Civita Riemann of $g=\eu\cdot\eu$ --- the convention-independent ground
+truth --- and equals the sign-pinned second-Cartan-structure $R[\om]$ (the two assembly paths agree);
+\item the formal-$\Lambda$ part of the Lorentz block is exactly $-\tfrac{\Lambda}{3}(\eu\wedge \eu)^a{}_b$
+(the Wise $-(\Lambda/3)\eu\wedge \eu$ cosmological term is correctly identified).
+\end{enumerate}
+\begin{remark}[Mixed vs.\ both-up index: a caught bug]
+The $5\times5$ connection Lorentz block is the \emph{mixed} $\om_\mu{}^a{}_b$, so the $F$-commutator
+Lorentz block is the mixed frame curvature $R^a{}_{b\,\mu\nu}$ (not both-up $R^{ab}$). The conversion
+to $R^\rho{}_{\sigma\mu\nu}$ contracts $\eu_a{}^\rho \eu^b{}_\sigma R^a{}_{b\,\mu\nu}$, and the
+$\eu\wedge \eu$ term is likewise mixed, $(\eu\wedge \eu)^a{}_b=\eu^a{}_\mu \eu_{b\nu}-\eu^a{}_\nu \eu_{b\mu}$.
+An initial both-up treatment disagreed with the Christoffel ground truth; the index fix (documented as a
+Rule-1 deviation) restores exact agreement.
+\end{remark}
+
+\section{$R[\om]$ $=$ the independent Levi--Civita Riemann of $g$ on $\geq5$ components (Task~2)}
+This is the headline cross-check \texttt{test-cartan-curvature}: it certifies the assembly
+\emph{mechanics} (independent \emph{methods}, not independent \emph{physics} --- the genuine physics
+gate is Sec.~B.4). On the matter sample $M=\{11{:}\tfrac15,18{:}{-}\tfrac1{10},19{:}\tfrac3{10},
+26{:}\tfrac12\}$, $\mathrm{BG}=\{4{:}1\}$, slice center, the metric Levi--Civita Riemann $R[g{=}\eu\cdot\eu]$
+is computed by the Totaro closed form (\texttt{spacetime\_curvature\_of\_g}) and cross-checked against the
+\emph{independent} hand-rolled Christoffel route (\texttt{hand\_rolled\_riemann\_of\_g}, fed $g=\eu\cdot\eu$,
+\emph{not} the cone-Hessian --- fp-reuse-cone-hessian rejected). The two routes \textbf{agree exactly over
+$\Q$ on $6/6$ named components} (sign-pinned, $K=-\tfrac12$):
+\[
+  R_{0101}=\tfrac{33158630200306818690729}{27227817654198365049856},\quad
+  R_{0202}=\tfrac{4179762281401976561161077}{39344196510316637497041920},\quad
+  R_{2323}=\tfrac{44001620841415087529487}{28929556257585762865472},
+\]
+\[
+  R_{1212}=\tfrac{194178902959875539689064757}{39344196510316637497041920},\quad
+  R_{0303}=\tfrac{144131055958956801824289}{462872900121372205847552},\quad
+  R_{1313}=\tfrac{2379415063940998720976097}{462872900121372205847552}.
+\]
+By the Task-1 assembly identity (the $F=dA+A\wedge A$ Lorentz block at $\Lambda=0$ equals the bare
+Christoffel Riemann, exact over $\Q$) the same $\geq5$-component agreement holds for the Cartan $F$-route.
+Riemann algebraic symmetries hold on the matter $R[\om]$ (\texttt{riemann\_symmetry\_ok}). A mismatch would
+be an $\om$-extraction or index-conversion \emph{bug} (debug; not a physics result); none occurs.
+
+\section{The $M=0$ vacuum: flat, $\Lambda=0$ MEASURED, sign-pinned $K=-\tfrac12$ (Task~3)}
+Setting $M=0$: $g=\eu\cdot\eu$ reduces to the constant $(1,3)$ baseline $G_{\rm DET2,RAW}$, and
+\begin{itemize}
+\item $R[\om](M{=}0)=0$ \textbf{exactly over $\Q$} (all $256$ lower-index components zero); Ricci scalar $0$;
+\item the full Einstein tensor $G_{\mu\nu}[g](M{=}0)=\mathrm{Ric}-\tfrac12 g R=0$ exactly;
+\item $\Lambda$ is \textbf{MEASURED}, not assumed: $G_{\mu\nu}=\Lambda\,g_{\mu\nu}$ with $G=0$ and $g$
+invertible forces $\Lambda=\tfrac14 g^{\mu\nu}G_{\mu\nu}=0$ (residual $G-\Lambda g$ exactly zero).
+\end{itemize}
+This is the \emph{flat KKT $\eta$ vacuum}, \textbf{derived} from the $\det_2$ Minkowski form
+(CONVENTIONS~\S6) --- \emph{not} the falsified $\R\times\mathbb{H}^3$ / $\Lambda<0$ geometry of the v17.0
+cone-Hessian (Phase~70.1). The whole read is in the $K=-\tfrac12$ convention (sign-pin factor $-1$,
+benchmark re-run first).
+
+\section{The genuine physics gate: matter-sourced Einstein test vs an independent $T[M]$ (Task~4)}
+This is where \texttt{fp-relabel} bites; we replicate the \texttt{derivations/73} discipline exactly.
+
+\paragraph{Independent, AST-guarded $T[M]$ (frozen before $G$).}
+The PRIMARY stress-energy is the single-scalar
+\begin{equation}\label{eq:Tpsi}
+  T^{[\psi]}_{\mu\nu}=\partial_\mu\psi\,\partial_\nu\psi-\half\,\eta^{\rm bg}_{\mu\nu}(\partial\psi)^2,
+  \qquad \psi=2\,\mathrm{Re}\bigl((x_2 x_1)x_3\bigr)\ \ (\det_3\ \text{SSOT}),
+\end{equation}
+with the ALTERNATIVE $\sigma$-model $T^{[\sigma]}$ on the $16$-field $V_{1/2}$ multiplet
+$\phi^a=[(x_2x_1)_a,(x_1x_3)_a]$, $G_{ab}=\delta_{ab}$. An \textbf{AST guard} asserts that \emph{no}
+$\mathrm{Ric}/R/G/$Riemann/curvature symbol enters the construction of $T$ (it inspects code-use, not
+comment/docstring mentions); $T$ is frozen \emph{before} $G[g]$ is computed. For this sample
+$\psi=\tfrac{11p}{50}-\tfrac{7q}{50}$ (real, linear in the slice $\Rightarrow$ $\Box\psi=0$, hence
+$T^{[\psi]}$ is exactly conserved), $T^{[\psi]}\to0$ as $\|M\|\to0$, and $T$ is $V_1$-inert.
+
+\paragraph{Power-counting $M=t\,M_0$ (the order-match test).}
+The curvature is $R[g]\sim t^4$ (the ratio $R/t^4$ stabilizes; $R/t^3\to0$), and
+$\mathrm{tr}_\eta T^{[\psi]}(t)=\tfrac{17}{250}t^4$ --- the \textbf{same leading order} $t^4$, so $T^{[\psi]}$
+is the structurally order-matched candidate (a constant $\kappa$ compares like-with-like). The
+$\sigma$-trace leads at $t^2$ (an order mismatch, disfavoring it on order grounds).
+
+\paragraph{The single global $(\kappa,\Lambda)$ fit (can-fail).}
+With $\kappa$ \emph{frozen} from the leading-order $R$/$T$ scale ratio
+($\kappa_\psi=a_4/[t^4\,\mathrm{tr}_\eta T^{[\psi]}]$, an exact rational $\neq-R/2$, not per-point), we
+test the full nonlinear $G_{\mu\nu}[g]=\kappa\,T_{\mu\nu}+\Lambda\,g_{\mu\nu}$ over an $(M,x)$ family
+(3 $V_{1/2}$ directions $\times$ 3 slice positions $\times$ 2 amplitudes $=18$ valid points, all
+signature $(1,3)$, $0$ dropped). Defining $\mathcal R_{\mu\nu}=G_{\mu\nu}-\kappa T_{\mu\nu}$ and the
+trace-forced per-point $\Lambda=\tfrac14 g^{\mu\nu}\mathcal R_{\mu\nu}$, Einstein holds iff
+$\mathcal R-\Lambda g=0$ for a \emph{single global} $\Lambda$. The result, \textbf{exact over $\Q$}:
+\begin{itemize}
+\item per-point $\Lambda$ \textbf{varies} (e.g.\ T$[\psi]$: $-7.07$ at $D1/X0/t1$, $-25.7$ at $D1/XA/t1$,
+$0.28$ at $D2/X0/t1$); \textbf{every} residual $\mathcal R-\Lambda g\neq0$;
+\item the over-determined global solve ($180$ equations, one $\Lambda$) is \textbf{inconsistent} ---
+no single global $\Lambda$ --- for \emph{both} $T^{[\psi]}$ and $T^{[\sigma]}$;
+\item \textbf{tensor-structure mismatch:} $G[g]$ is supported on all $16$ components while
+$\kappa T^{[\psi]}$ is supported on only $6$ (\{$01,10,22,23,32,33$\}); the matter stress is a thin
+fragment of $G$ (the v17.0 $G_{00}\!\neq\!0$, $T_{00}\!=\!0$ phenomenon recurs);
+\item the $n{=}4$ Ricci decomposition gives traceless-Ricci $S\neq0$ ($16/16$) and Weyl $\neq0$
+($136/256$) at the anchor, $\mathrm{tr}\,S=0$, reconstruction $R=\mathrm{Scal}+E+\mathrm{Weyl}$ exact
+over $\Q$.
+\end{itemize}
+
+\begin{center}\fbox{\parbox{0.92\textwidth}{\centering\textbf{PHASE B VERDICT (at TRUE STRENGTH):
+NEGATIVE / fp-imported-action partial.}\\ The soldering-form curvature $R[\om]$ of $g=\eu\cdot\eu$ is
+genuine (Sec.~B.1--B.2, $\geq5$-component cross-check exact over $\Q$), the $M=0$ vacuum is flat with
+$\Lambda=0$ measured (Sec.~B.3), and matter genuinely sources curvature ($R[g]\sim t^4\neq0$, $S\neq0$,
+Weyl$\neq0$). \emph{But} $G_{\mu\nu}[g]$ is \textbf{not} of Einstein form $\kappa T_{\mu\nu}+\Lambda
+g_{\mu\nu}$ for any single global $(\kappa,\Lambda)$ against an independently-built, order-matched
+$T[M]$ --- a decisive full-pass negative on the strongest claim. The route survives 75 (coframe) and
+77-01 (flatness): a curved, matter-sourced, position-dependent Lorentzian slice that is
+\emph{not Einstein-structured without a posited action}. Einstein structure, if any, would require the
+MM/EH action --- the Phase~78/C forced-vs-posited audit. This is the contract's most-likely outcome;
+it is reported at true strength, not inflated, not relabeled.}}\end{center}
+
+\paragraph{Forbidden proxies (all rejected).}
+\texttt{fp-relabel}: the Einstein verdict rests on an AST-guarded independent $T[M]$ matched (or not) in
+magnitude $+$ tensor structure $+$ $M$-power; no $2$-form decomposition is relabeled as Einstein.
+\texttt{fp-imported-action}: no MM/EH action is posited; $F=dA+A\wedge A$ is intrinsic (the action audit
+is Phase~78/C). \texttt{fp-reuse-cone-hessian}: the load-bearing tensor is $R[\om]$ of the $(1,3)$
+$g=\eu\cdot\eu$; the $(4,0)$ cone-Hessian is the sign-pin benchmark only. \texttt{fp-float-decisive}:
+every decisive number is exact over $\Q$; \texttt{real\_roots} for signature. \texttt{fp-raw45-curvature}:
+the $10$-dim $A=\om\oplus \eu$ Lorentz block, never the raw $45$-dim $\mathrm{Spin}(9,1)$ curvature.
 \end{document}

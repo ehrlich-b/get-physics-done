@@ -515,6 +515,225 @@ def closed_form_omega_demo(pin):
     return {"antisym": antisym, "torsion_free": tors == 0, "identity_ok": identity_ok}
 
 
+# ============================================================================
+# 5. PLAN 77-02 TASK 1 : assemble A = omega (+) e, compute F = dA + A^A,
+#    separate Lorentz / torsion blocks, convert to R_{rho sigma mu nu} of g=e.e.
+#    CALC-05 / success criterion 3. EXACT over Q at the rational basepoint.
+# ============================================================================
+#
+# THE (A)dS CARTAN / MACDOWELL-MANSOURI CONNECTION (Wise gr-qc/0611154):
+#   A = omega + (1/l) e ,   l^2 = 3/Lambda  (l formal; Lambda MEASURED downstream).
+#   Matrix rep on the (n+1)=5-dim (A)dS/Poincare module (frame indices a=0..3 + the
+#   transvection direction 4): in the so(3,2)/so(4,1)/iso(3,1) basis,
+#       A_mu = [[ omega_mu^a_b ,   (1/l) e^a_mu ],
+#               [ s*(1/l) e_b^? ,        0      ]]
+#   where omega_mu^a_b = omega_mu^{ac} eta_cb (mixed Lorentz), and the bottom row carries
+#   the transvection with s = -Lambda/3 * l^2 = -1 (AdS, so(3,2)) / +1 (dS, so(4,1)) /
+#   0 (Poincare iso(3,1), Lambda=0). We CARRY s symbolically as Lam (=Lambda) so the
+#   Lorentz block of F shows the -(Lambda/3) e^e term explicitly; the PHYSICAL value
+#   Lambda=0 (77-01 / CONVENTIONS sec 6, the flat KKT vacuum) collapses it to Poincare.
+#
+#   F_{mu nu} = d_mu A_nu - d_nu A_mu + [A_mu, A_nu]   (component-matrix; [.,.] IS the A^A
+#   wedge term -- sympy.diffgeom has no matrix-valued connection wedge, hand-rolled).
+#   Wise decomposition:
+#       Lorentz (so(3,1)) block  = R[omega] - (Lambda/3) e^e     (the 4x4 a,b block)
+#       translation (R^{3,1}) blk = d_omega e = de + omega^e  (TORSION; the a4/4b entries)
+#   The translation block VANISHES for the torsion-free Levi-Civita omega (formula 2).
+#
+# This is the bookkeeping the contract requires (test-cartan-curvature's assembly half);
+# the genuine content is whether that R[omega] is Einstein (Task 4). Never the raw 45-dim
+# Spin(9,1) curvature (fp-raw45-curvature); no posited action (fp-imported-action).
+
+Lam = Symbol('Lambda', real=True)   # formal cosmological constant; PHYSICAL value 0 (measured)
+
+
+def assemble_A(W, E, etaf=ETA, lam=Lam):
+    """A_mu as a 5x5 (A)dS/Poincare connection matrix in the so(3,2)/so(4,1)/iso(3,1)
+    basis (frame a=0..3 + transvection 4). Lorentz block A_mu[a][b]=omega_mu^{ac} eta_cb;
+    transvection column A_mu[a][4]=e^a_mu; transvection row A_mu[4][b]=-(lam/3) e_b^mu-dual
+    realized as -(lam/3) eta_bc e^c_mu (so the bottom-row * top-column commutator yields
+    the -(lam/3) e^e Lorentz term). l absorbed (formal; reinstated only in the e^e coeff).
+    Returns a list A[mu] of 5x5 sympy Matrices. EXACT over Q (+ formal lam)."""
+    A = []
+    for mu in range(N):
+        M = Matrix.zeros(N + 1, N + 1)
+        for a in range(N):
+            for b in range(N):
+                M[a, b] = sum(W[mu][a][c] * etaf[c, b] for c in range(N))  # omega_mu^a_b
+            M[a, N] = E[a, mu]                                              # e^a_mu (transvection col)
+        for b in range(N):
+            # transvection row: -(Lambda/3) e_{b mu} = -(Lambda/3) eta_bc e^c_mu
+            M[N, b] = -(lam / 3) * sum(etaf[b, c] * E[c, mu] for c in range(N))
+        A.append(M)
+    return A
+
+
+def curvature_F(A, coords):
+    """F_{mu nu} = d_mu A_nu - d_nu A_mu + [A_mu, A_nu] (matrix commutator = the A^A term),
+    component-matrix curvature. Returns F[mu][nu] (5x5 sympy Matrices). EXACT over Q."""
+    F = [[None] * N for _ in range(N)]
+    for mu in range(N):
+        for nu in range(N):
+            dterm = A[nu].applyfunc(lambda e: diff(e, coords[mu])) \
+                - A[mu].applyfunc(lambda e: diff(e, coords[nu]))
+            comm = A[mu] * A[nu] - A[nu] * A[mu]      # [A_mu, A_nu] -- the A^A wedge term
+            F[mu][nu] = (dterm + comm).applyfunc(cancel)
+    return F
+
+
+def split_blocks(F, lam=Lam):
+    """Split F[mu][nu] into the Lorentz (so(3,1)) block (4x4 a,b) and the translation
+    (R^{3,1}) torsion block (the a-th transvection column F[mu][nu][a][4]). Returns
+    (Lor, Tors) with Lor[mu][nu][a][b] = R[omega]_munu^{ab}-(lam/3)(e^e)_munu^{ab} and
+    Tors[mu][nu][a] = (d_omega e)^a_munu (= 0 for Levi-Civita). EXACT over Q."""
+    Lor = [[[[cancel(F[mu][nu][a, b]) for b in range(N)] for a in range(N)]
+            for nu in range(N)] for mu in range(N)]
+    Tors = [[[cancel(F[mu][nu][a, N]) for a in range(N)] for nu in range(N)]
+            for mu in range(N)]
+    return Lor, Tors
+
+
+def riemann_lower_from_F(Lor, E, Einv, g, etaf=ETA, lam_value=Rational(0)):
+    """Convert the Lorentz block to the lower-index Riemann tensor of g=e.e.
+
+    The 5x5 connection Lorentz block A_mu[a][b]=omega_mu^a_b is MIXED (one up a, one
+    down b), so the F-commutator Lorentz block Lor[mu][nu][a][b] is the MIXED frame
+    curvature R^a_{b mu nu} (NOT both-up R^{ab}). The (A)dS transvection adds
+    -(Lambda/3)(e^e)^a_b with (e^e)^a_b = e^a_mu e_{b nu} - e^a_nu e_{b mu} in MIXED form
+    (e_{b nu}=eta_bc e^c_nu). The conversion to the coordinate Riemann is the standard
+    mixed-frame contraction:
+       R^a_{b mu nu} = Lor_munu^a_b + (lam/3)(e^e)^a_b   [strip cosm.; at PHYSICAL lam=0
+                                                          the Lorentz block IS R(omega)^a_b],
+       R^rho_{sig mu nu} = e_a^rho e^b_sig R^a_{b mu nu}   [e_a^rho=Einv, e^b_sig=E],
+       R_{rho sig mu nu} = g_{rho lam} R^lam_{sig mu nu}.
+    Returns the lower-index nested list R[rho][sig][mu][nu] (RAW sign; caller applies pin).
+    EXACT over Q. lam_value substituted for the formal Lambda (PHYSICAL 0 = Poincare)."""
+    def e_wedge_e_mixed(a, b, mu, nu):     # (e^e)^a_b_munu = e^a_mu e_{b nu} - e^a_nu e_{b mu}
+        e_b_nu = sum(etaf[b, c] * E[c, nu] for c in range(N))
+        e_b_mu = sum(etaf[b, c] * E[c, mu] for c in range(N))
+        return E[a, mu] * e_b_nu - E[a, nu] * e_b_mu
+
+    def Rmixed(a, b, mu, nu):              # strip the -(lam/3) e^e term -> pure R(omega)^a_b
+        val = Lor[mu][nu][a][b] + (lam_value / 3) * e_wedge_e_mixed(a, b, mu, nu)
+        return cancel(val.subs(Lam, lam_value) if hasattr(val, "subs") else val)
+
+    R = [[[[0] * N for _ in range(N)] for _ in range(N)] for _ in range(N)]
+    for rho in range(N):
+        for sig in range(N):
+            for mu in range(N):
+                for nu in range(N):
+                    s = 0
+                    for lam in range(N):
+                        # R^lam_{sig mu nu} = e_a^lam e^b_sig R^a_{b mu nu}
+                        Rlam = sum(Einv[lam, a] * E[b, sig] * Rmixed(a, b, mu, nu)
+                                   for a in range(N) for b in range(N))
+                        s += g[rho, lam] * Rlam
+                    R[rho][sig][mu][nu] = cancel(s)
+    return R
+
+
+def task1_assemble_and_F(pin):
+    """Task 1: assemble A=omega(+)e, compute F=dA+A^A, separate Lorentz/torsion blocks,
+    convert to R_{rho sigma mu nu}. Done on a RATIONAL warped-Lorentzian tetrad reference
+    (surd-free, exact over Q, watchdog-safe) -- the assembly MECHANICS are frame-universal
+    (the matter tetrad e0 is surd-laden and its symbolic dA hits the >200s cliff; the
+    matter R[omega] verdict is delivered by the provably-equal metric-Riemann route, as in
+    77-01). Verifies: torsion block = 0 (Levi-Civita), Lorentz block at PHYSICAL Lambda=0
+    == metric Levi-Civita Riemann of g=e.e (the assembly is correct)."""
+    print("=" * 78)
+    print("TASK 1 (77-02, B(c)) : assemble A=omega(+)e ; F=dA+A^A ; Lorentz/torsion split ; R_{rho sig mu nu}")
+    print("=" * 78)
+    x = symbols('x0 x1 x2 x3', real=True)
+    f = 1 + x[0] ** 2                      # rational warped Lorentzian tetrad reference
+    E = Matrix.diag(1, f, 1, 1)
+    g = (E.T * ETA * E).applyfunc(cancel)
+    W, Einv = spin_connection_omega(E, list(x))
+
+    tick("assembling A=omega(+)e (5x5 iso(3,1)/so(3,2)/so(4,1) rep; Lambda formal) ...")
+    A = assemble_A(W, E)
+    # the algebra: A_mu[a][b] antisymmetric in the Lorentz block under eta (so(3,1))?
+    lor_so31 = all(cancel(sum(A[mu][a, c] * ETA[c, b] + A[mu][b, c] * ETA[c, a]
+                  for c in range(N))) == 0 for mu in range(N) for a in range(N) for b in range(N))
+    _report("A Lorentz block in so(3,1): omega_mu^{ab} antisymmetric under eta (A=omega(+)e "
+            "assembled; transvection column = e^a_mu) [exact Q]", lor_so31)
+
+    tick("computing F_{mu nu}=d_mu A_nu - d_nu A_mu + [A_mu,A_nu] (commutator = A^A term) ...")
+    F = curvature_F(A, list(x))
+    Lor, Tors = split_blocks(F)
+
+    # Torsion block d_omega e = 0 (Levi-Civita). Check at the PHYSICAL Lambda=0 (the transvection
+    # row carries the formal Lambda; torsion is the e-column, Lambda-independent here).
+    tors_zero = all(cancel(Tors[mu][nu][a].subs(Lam, 0)) == 0
+                    for mu in range(N) for nu in range(N) for a in range(N))
+    _report("TRANSLATION (torsion) block d_omega e = de + omega^e == 0 exactly over Q "
+            "(Levi-Civita omega is torsion-free; nonzero would be a 77-01 omega bug) [exact Q]",
+            tors_zero)
+
+    # Independent torsion cross-check via the standalone torsion_of (formula 1):
+    tors2 = torsion_of(W, E, list(x))
+    _report("torsion cross-check (standalone Theta^a = de + omega^e via formula 1) == 0 [exact Q]",
+            tors2 == 0)
+
+    tick("converting the Lorentz block -> R_{rho sigma mu nu} of g=e.e (formula 4) at Lambda=0 ...")
+    R_fromF = riemann_lower_from_F(Lor, E, Einv, g, lam_value=Rational(0))
+
+    # The Lorentz block at PHYSICAL Lambda=0 IS R(omega). Confirm it equals the closed-form
+    # riemann_from_omega route (same omega, two assembly paths: 5x5 commutator vs 2nd Cartan
+    # structure eq). NOTE: my F-commutator route produces the RAW second-Cartan-structure sign
+    # (== bare Christoffel, ground truth), whereas riemann_from_omega is in the ENGINE convention
+    # (a uniform global -1, the documented sign-pin factor). So R_fromF == pin * R_omega exactly.
+    R_omega = riemann_from_omega(W, E, Einv, list(x), g)
+    comps = [(0, 1, 0, 1), (0, 1, 1, 0), (1, 2, 1, 2), (0, 2, 0, 2), (2, 3, 2, 3)]
+    assembly_ok = all(cancel(R_fromF[c[0]][c[1]][c[2]][c[3]] - pin * R_omega[c[0]][c[1]][c[2]][c[3]]) == 0
+                      for c in comps)
+    _report("F=dA+A^A Lorentz block (5x5 commutator route, Lambda=0) == sign-pinned 2nd-Cartan-"
+            "structure R(omega) (closed-form route) on the tested components [exact Q] -- the A^A "
+            "commutator IS the curvature (uniform sign-pin factor reconciled)", assembly_ok)
+
+    # GROUND-TRUTH check: the F-commutator Riemann (RAW sign) == bare Christoffel Riemann of g,
+    # the convention-independent textbook lower-index Levi-Civita Riemann (NO engine sign baked in).
+    ginv = g.inv()
+    Gam = [[[cancel(Rational(1, 2) * sum(ginv[aa, d] * (diff(g[d, bb], x[cc]) + diff(g[d, cc], x[bb])
+            - diff(g[bb, cc], x[d])) for d in range(N))) for cc in range(N)] for bb in range(N)]
+           for aa in range(N)]
+
+    def Rbare(rho, sig, mu, nu):
+        return cancel(sum(g[rho, lm] * (diff(Gam[lm][sig][nu], x[mu]) - diff(Gam[lm][sig][mu], x[nu])
+                      + sum(Gam[lm][mu][e] * Gam[e][sig][nu] - Gam[lm][nu][e] * Gam[e][sig][mu]
+                            for e in range(N))) for lm in range(N)))
+    ground_ok = all(cancel(R_fromF[c[0]][c[1]][c[2]][c[3]] - Rbare(*c)) == 0 for c in comps)
+    _report("F-commutator Riemann (RAW second-Cartan-structure sign) == bare Christoffel "
+            "Levi-Civita Riemann of g=e.e (convention-independent ground truth) [exact Q]",
+            ground_ok)
+
+    # Show the e^e term is what the formal Lambda multiplies in the Lorentz block (Wise):
+    # Lor at symbolic Lambda minus Lor at Lambda=0 should be -(Lambda/3)(e^e)^a_b (MIXED form).
+    def ee_mixed(a, b, mu, nu):
+        e_b_nu = sum(ETA[b, c] * E[c, nu] for c in range(N))
+        e_b_mu = sum(ETA[b, c] * E[c, mu] for c in range(N))
+        return E[a, mu] * e_b_nu - E[a, nu] * e_b_mu
+    ee_term_ok = True
+    for (mu, nu, a, b) in [(0, 1, 0, 1), (1, 2, 1, 2), (0, 2, 0, 2)]:
+        full = Lor[mu][nu][a][b]
+        at0 = cancel(full.subs(Lam, 0)) if hasattr(full, "subs") else full
+        delta = cancel((full - at0) + (Lam / 3) * ee_mixed(a, b, mu, nu)) \
+            if hasattr(full, "subs") else 0
+        if cancel(delta) != 0:
+            ee_term_ok = False
+    _report("Wise Lorentz block = R(omega) - (Lambda/3) e^e: the formal-Lambda part of the "
+            "Lorentz block == -(Lambda/3)(e^e)^a_b exactly [exact Q] -- e^e term identified",
+            ee_term_ok)
+
+    print("      sign-pinned R_{rho sig mu nu} (from F, Lambda=0) sample components (K=-1/2 conv):")
+    for c in comps[:3]:
+        v = pin * R_fromF[c[0]][c[1]][c[2]][c[3]]
+        print(f"        R_{c[0]}{c[1]}{c[2]}{c[3]} = {cancel(v)}")
+    return {"lor_so31": lor_so31, "tors_zero": tors_zero, "tors2_zero": tors2 == 0,
+            "assembly_ok": assembly_ok, "ground_ok": ground_ok, "ee_term_ok": ee_term_ok,
+            "R_fromF_sample": {f"{c[0]}{c[1]}{c[2]}{c[3]}": str(cancel(pin * R_fromF[c[0]][c[1]][c[2]][c[3]]))
+                               for c in comps[:3]}}
+
+
 def main():
     print("#" * 78)
     print("# Phase 77-01 : COFRAME NON-DEGENERACY + omega(e) + FLATNESS SUB-GATE  (v18.0 Cartan/MM)")
