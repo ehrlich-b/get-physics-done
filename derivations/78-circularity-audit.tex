@@ -1,0 +1,327 @@
+% !TEX root = 78-circularity-audit.tex
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus, fourier_convention=NA, coupling_convention=NA, renormalization_scheme=NA, gauge_choice=NA
+%==============================================================================
+% Phase 78 (v18.0 Cartan/MacDowell-Mansouri): Circularity Audit -- forced vs posited
+% Plan 78-01: THE DECISIVE forced-vs-posited computation (this file, STARTED here):
+%   (1) the bare so(3,1)-invariant quad-in-curvature 4-form space dim=2 anchor
+%       (Euler eps R^R + Pontryagin R^R), exact over Q;
+%   (2) Tr(X o Y)|frame: the bare-trace (4,0) Fubini-Study FOIL vs the soldered (1,3)
+%       eta -- the trace form supplies the symmetric frame metric (=> the Pontryagin
+%       source, and up to orientation a volume sqrt|eta| eps);
+%   (3) THE DECISIVE trace-form-invariant subspace dimension + eps-reachability (both
+%       routes) + det_3-fixed-vs-free normalization -> the decisive triple.
+%   The input ban (no posited MM/EH action) is declared and AST/source-guarded.
+% Plan 78-02 (NOT here): the verdict-ladder synthesis, the GST/Singh/Castro contrast,
+%   and the BLOCKING human ratification (the FINAL v18.0 verdict).
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\OO}{\mathbb{O}}
+\newcommand{\half}{\tfrac12}
+\newcommand{\eu}{e}
+\newcommand{\om}{\omega}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\so}{\mathfrak{so}}
+\newcommand{\hh}{\mathfrak{h}}
+\DeclareMathOperator{\Pf}{Pf}
+\theoremstyle{definition}\newtheorem{remark}{Remark}
+\theoremstyle{plain}\newtheorem{proposition}{Proposition}
+\theoremstyle{plain}\newtheorem{lemma}{Lemma}
+
+\title{Phase 78-01: The MacDowell--Mansouri $\varepsilon$-contraction is \emph{not}
+forced by the $\hh_3(\OO)$ trace form / cubic norm --- the decisive
+forced-vs-posited dimension count (exact over $\Q$)}
+\author{v18.0 --- Gravity as the Curvature of the Peirce-Frame Cartan/MM Connection on $\hh_3(\OO)$}
+\date{2026-06-02}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We compute, exact over $\Q$, the decisive integer that settles whether the
+MacDowell--Mansouri (MM) $\varepsilon$-contraction --- the $\mathrm{Spin}(9,1)\to
+\mathrm{SO}(3,1)$ symmetry breaking plus the $\varepsilon$-tensor that turns the
+Cartan curvature term $F\wedge F$ into Einstein--Hilbert $+\,\Lambda$ --- is
+\emph{forced} by the intrinsic $\hh_3(\OO)$ trace form $\langle X,Y\rangle=\Tr(X\circ
+Y)$ and cubic norm $\det\nolimits_3$, or appears \emph{only} because an MM/EH action
+was posited by hand ($\texttt{fp-imported-action}$). The audited object is the
+\emph{linear-in-Riemann} Einstein--Hilbert term
+$\varepsilon_{abcd}R^{ab}\wedge \eu^c\wedge \eu^d$ (the cross-term of the
+$\varepsilon F\wedge F$ square), \emph{not} a quadratic-in-$F$ Pontryagin/Maxwell
+stress (the overturned Phase-76 tautology). We find: (i) the bare
+$\so(3,1)$-invariant quadratic-in-curvature $4$-form space is exactly
+$2$-dimensional (Euler $+$ Pontryagin); (ii) the trace form supplies the symmetric
+frame metric $\eta$, hence the Pontryagin contraction is reachable; (iii)
+$\varepsilon$ is reachable \emph{only} as the metric volume form $\sqrt{|\det\eta|}\,
+\varepsilon$, whose orientation is a discrete choice not fixed by the symmetric
+$\Tr/\det\nolimits_3$ data, and the cubic norm $\det\nolimits_3$ \emph{vanishes
+identically} on the soldered Lorentz $4$-block so it supplies no orientation and no
+normalization. The decisive triple is therefore
+$\bigl(\dim=1\text{ (}\eta\text{-tensorial, Pontryagin only)}\,/\,2\text{ (admitting
+the volume form, }\varepsilon\text{ non-unique})\,;\ \varepsilon\text{-in-span }=\,$
+YES only via the volume form$\,;\ \text{normalization }=$ free/imported$\bigr)$ ---
+the input to the $\texttt{fp-imported-action}$ verdict, reported at true strength.
+The final verdict ladder and human ratification are Plan~78-02.
+\end{abstract}
+
+\section*{Conventions (locked; CONVENTIONS.md \S0,\S1,\S6,\S11; state.json \texttt{convention\_lock})}
+Everything decisive is \textbf{exact over $\Q$} (\texttt{sympy.Matrix.rank}/
+\texttt{nullspace} over \texttt{QQ}); never \texttt{numpy.linalg}, never float on the
+decisive dimension/rank/identity ($\texttt{fp-float-decisive}$). The det SSOT is
+\texttt{ring\_lemma\_verification.py} $\det\nolimits_3$ --- the \emph{unique}
+$F_4$-invariant cubic norm (cross-term $2\,\mathrm{Re}((x_2x_1)x_3)$, $x_2$ before
+$x_1$; $324/324$ inner-derivation annihilation, Phase~64.1/65) ---
+\texttt{octonion\_algebra.py} is banned. The trace form is
+$c(X,Y)=\Tr(X\circ Y)=\Tr(\mathrm{jordan}(X,Y))$, $\mathrm{jordan}=\half(AB+BA)$,
+$F_4$-invariant. Signature mostly-minus $(+,-,-,-)$, frame metric
+$\eta=\mathrm{diag}(+1,-1,-1,-1)$. Gravity is the Lorentz block $R[\om]$ of
+$F=dA+A\wedge A$, $A=\om\oplus(1/\ell)\eu$, with (Wise, gr-qc/0611154)
+\begin{equation}\label{eq:wise}
+  F=\Bigl(R[\om]-\tfrac{\Lambda}{3}\,\eu\wedge \eu\Bigr)+d_\om \eu .
+\end{equation}
+The residual structure group is $\so(3,1)[6]$, \emph{forced} by $(E_{11},u)$
+(Phase~75 SURVIVES; residual $21=\so(3,1)[6]\oplus\so(6)[15]$, the $\so(6)$ a
+trivial-on-spacetime ideal). The invariant count is at the \emph{broken}
+$\so(3,1)$ level: the $\mathrm{Spin}(9,1)\to\mathrm{SO}(3,1)$ breaking is exactly the
+``by hand'' step under audit. At the Phase-77-measured vacuum $\Lambda=0$ the
+$\varepsilon F\wedge F$ action is the pure Gauss--Bonnet/Euler topological term;
+we do not reintroduce $\Lambda<0$.
+
+\paragraph{The audited object (anti-tautology; \texttt{fp-wrong-object}).}
+Substituting $F^{ab}=R^{ab}-\tfrac{\Lambda}{3}\eu^a\wedge \eu^b$ into
+$\varepsilon_{abcd}F^{ab}\wedge F^{cd}$ and expanding,
+\begin{equation}\label{eq:ehexpand}
+  \varepsilon_{abcd}F^{ab}\wedge F^{cd}
+  =\underbrace{\varepsilon_{abcd}R^{ab}\wedge R^{cd}}_{\text{Gauss--Bonnet (topological)}}
+   -\tfrac{2\Lambda}{3}\underbrace{\varepsilon_{abcd}R^{ab}\wedge \eu^c\wedge \eu^d}_{\text{Einstein--Hilbert (LINEAR in }R)}
+   +\tfrac{\Lambda^2}{9}\,\varepsilon_{abcd}\eu^a\wedge \eu^b\wedge \eu^c\wedge \eu^d .
+\end{equation}
+The Einstein--Hilbert term is \emph{linear} in the Riemann curvature $R[\om]$, wedged
+with the tetrad; it is \emph{not} the quadratic $R\wedge R$ Pontryagin piece. The
+$\varepsilon$ whose forced-vs-posited status we audit is the one producing this
+linear-in-$R$ term. (At $\Lambda=0$ only $R\wedge R$ survives, manifestly topological
+--- a second, independent reason the audit lands on $\texttt{fp-imported-action}$.)
+
+\medskip\noindent\emph{Driver:} \texttt{code/cartan\_phaseC\_contraction.py}
+(exact over $\Q$; reuses the warm engines \texttt{ring\_lemma\_verification},
+\texttt{cartan\_phaseA\_coframe}, \texttt{cartan\_phaseB\_curvature},
+\texttt{orbit\_dimension\_gate}; no \texttt{octonion\_algebra}, no
+\texttt{numpy.linalg} on the decisive path). All numerals below are reproduced by
+that driver.
+
+%==============================================================================
+\section{Task 1 --- the certified intrinsic toolkit and the input ban}
+%==============================================================================
+
+\subsection{The det SSOT re-pass}
+We re-pass the cheap algebraic identities of the cubic norm (the $F_4$-uniqueness
+certificate being the $324/324$ inner-derivation annihilation of Phase~64.1/65,
+cited): $\det\nolimits_3(I)=1$; $\det\nolimits_3(\mathrm{diag}(a,b,c))=abc$
+(symbolic over $\Q$); and the polarization headline
+\begin{equation}
+  d(X,X,X)=6\,\det\nolimits_3(X)\qquad(\text{exact over }\Q),
+\end{equation}
+with $d(X,Y,Z)=N(X{+}Y{+}Z)-N(X{+}Y)-N(X{+}Z)-N(Y{+}Z)+N(X)+N(Y)+N(Z)$ the
+symmetric trilinear polarization of $N=\det\nolimits_3$. The driver confirms
+$\det\nolimits_3(\mathrm{diag}(2,3,5))=30$ and $\texttt{octonion\_algebra}\notin
+\texttt{sys.modules}$ on the decisive path.
+
+\subsection{The two frame trace-form metrics: the $(4,0)$ FOIL and the soldered $(1,3)$ $\eta$}
+There are two distinct ``trace-form'' metrics on the $4$-frame, and keeping them apart
+is essential.
+
+\begin{remark}[the Euclidean Fubini--Study foil, transparency only]
+The \emph{bare} Jordan trace Gram on the raw frame directions
+$\{\beta,\gamma,p,q\}=$ engine indices $[1,2,3,10]$ is
+\begin{equation}
+  \bigl[\Tr(\mathrm{jordan}(\eu_i,\eu_j))\bigr]=\mathrm{diag}(1,1,2,2),
+  \qquad\text{signature }(4,0).
+\end{equation}
+This is the compact $\mathrm{OP}^2=F_4/\mathrm{Spin}(9)$ Fubini--Study metric (the
+real part of the QGT). It is reported as the diagnostic FOIL and is \emph{never} the
+spacetime metric (Phase~75).
+\end{remark}
+
+\begin{lemma}[the soldered frame metric is the $\det_2$ Lorentzian $\eta$]\label{lem:eta}
+The physical frame metric is the soldering bilinear $B(\delta,\delta')=(\delta\circ
+\delta')|_{V_0}$ projected onto $V_0\cong\R^{3,1}$, equivalently the $\det_2$ form
+$\det\nolimits_2=x_0^2-x_1^2-x_2^2-x_3^2$ in the $52$-kkt Minkowski coordinates
+$x^0=(\beta+\gamma)/2,\ x^1=p,\ x^2=q,\ x^3=(\beta-\gamma)/2$. Its raw Gram
+$G_{\rm DET2,RAW}$ has eigenvalues $\{\half,-\half,-1,-1\}$, signature $(1,3)$, and in
+the orthonormal frame equals $\eta=\mathrm{diag}(+1,-1,-1,-1)$. The change of basis
+$T$ ($v_{\rm on}=Tv_{\rm raw}$) satisfies $G_{\rm DET2,RAW}=T^{\!\top}\eta\,T$ (exact
+over $\Q$).
+\end{lemma}
+
+It is this soldered $\eta$ --- the symmetric frame metric supplied by the (projected)
+trace/Jordan structure --- that gives (a) the Pontryagin contraction
+$\eta^{ac}\eta^{bd}$ and (b), \emph{up to orientation}, a volume form
+$\sqrt{|\det\eta|}\,\varepsilon$. Everything in Tasks~2--3 is in this orthonormal
+frame; the invariant-tensor dimension is conjugation-invariant, so the decisive
+integer is frame-independent.
+
+\subsection{The hard input ban}
+The forced determination may use \emph{only} $\Tr(X\circ Y)$, $\det\nolimits_3$, the
+Peirce decomposition under $E_{11}$, the $\mathbb{C}_u/\pi_u$ reduction, the
+$(E_{11},u)$-forced $\so(3,1)$ structure, and standard differential geometry. The
+driver's \texttt{input\_ban\_guard()} (mirroring
+\texttt{cartan\_phaseB\_einstein.ast\_guard\_T}/\texttt{source\_guard}) asserts that
+\emph{no} load-bearing posited MM/EH action, no $\int\varepsilon F\wedge F$ as an
+assumed action, no ``$-1/2$''/``$16\pi G$'' coupling, no SUSY/MM symbol, no
+\texttt{octonion\_algebra}, and no \texttt{numpy.linalg} appears on the decisive path
+(AST for identifiers; source-string with docstring/comment/string-literal stripping
+for coefficient phrases; runtime for \texttt{sys.modules}). The guard passes on the
+decisive functions and still catches a genuine load-bearing violation (verified).
+
+%==============================================================================
+\section{Task 2 --- the bare invariant space is $2$-dimensional (the sanity anchor)}
+%==============================================================================
+
+\subsection{The $(E_{11},u)$-forced $\so(3,1)$ on the frame}
+Mirroring \texttt{cartan\_phaseA\_coframe.vald02} (exact over $\Q$): from the
+calibration anchors $\dim\mathrm{Stab}_{E_6}(E_{11})=61$ and
+$\dim\mathrm{Stab}_{V_0}=45=\dim\mathrm{Spin}(9,1)$, the residual structure group is
+the nullspace over $\Q$ of $\{\mathrm{Stab}_{V_0}\text{ preserving the }\mathbb{C}_u$
+$4$-space$\}$, of dimension $21=\so(3,1)[6]\oplus\so(6)[15]$. Restricting to the
+$\mathbb{C}_u$ $4$-space $[1,2,3,10]$ and taking the $6$ independent generators
+$L^{(k)}$ gives the Lorentz block: each kills $G_{\rm DET2,RAW}$ ($A^{\!\top}G+GA=0$),
+and in the orthonormal frame each kills $\eta$. These $6$ forced generators span
+\emph{exactly} the canonical Lorentz algebra $\so(\eta)=\{A:A^{\!\top}\eta+\eta A=0\}$
+($\dim=6$, $\dim(\so(\eta)+\text{forced})=6$), re-confirming Phase~75.
+
+\subsection{The invariance nullspace}
+A quadratic-in-curvature $4$-form is $T_{abcd}\,R^{ab}\wedge R^{cd}$ with $T_{abcd}$
+antisymmetric in $(a,b)$ and in $(c,d)$ and symmetric under $(ab)\leftrightarrow(cd)$
+(the two $2$-forms commute). This is a $21$-dimensional parameter space ($6$ antisym
+pairs, a symmetric $6\times6$). Imposing $\so(3,1)$-invariance,
+\begin{equation}
+  (\delta_g T)_{abcd}=-\bigl[g^e{}_a T_{ebcd}+g^e{}_b T_{aecd}
+  +g^e{}_c T_{abed}+g^e{}_d T_{abce}\bigr]=0
+  \quad\forall\,g\in\so(3,1),
+\end{equation}
+the exact nullspace over $\Q$ has
+\begin{equation}\boxed{\ \dim_{\rm bare}=2\ }\qquad(\text{Euler}+\text{Pontryagin}).\end{equation}
+
+\begin{remark}[the anchor is a hard gate]
+If $\dim_{\rm bare}\neq2$ the $\so(3,1)$ setup would be buggy --- the baseline
+\emph{must} be Euler $+$ Pontryagin (standard $4$d topology; Nieh--Yan is torsionful,
+excluded for the Levi--Civita $\om$). The driver halts before any verdict in that
+case. Here $\dim_{\rm bare}=2$, so the audit proceeds.
+\end{remark}
+
+\subsection{Identification and independence}
+The two known invariants
+\begin{equation}
+  \text{Euler: } T^{\rm E}_{abcd}=\varepsilon_{abcd},\qquad
+  \text{Pontryagin: } T^{\rm P}_{abcd}=\eta_{ac}\eta_{bd}-\eta_{ad}\eta_{bc},
+\end{equation}
+both lie in the bare invariant space, and $\operatorname{rank}\{T^{\rm E},T^{\rm
+P}\}=2$ --- they are independent and \emph{span} the $2$-dimensional space.
+Contracting them with two generic algebraic-curvature tensors (full Riemann
+pair-symmetries) gives two-by-two value matrices of rank $2$ (e.g.\ on one generic
+curvature, Euler $=-2528/49$, Pontryagin $=416/49$), certifying they are distinct,
+linearly-independent invariants. (The Phase-77 \emph{diagonal} warped-reference
+$R[\om]$ --- a genuine Lorentz-block Riemann of $g=\eu\cdot\eu$ but curved in a single
+$2$-plane --- gives Pontryagin $\equiv0$, the exact and expected fact that the
+Pontryagin density vanishes on diagonal metrics; the independence is therefore
+certified on the generic curvature, not on this special $R$.)
+
+\medskip\noindent\emph{Conclusion of Task~2.} Among quadratic-in-curvature
+invariants $\varepsilon$ is \emph{not} unique: the bare space is already
+$2$-dimensional. Forced-ness now hinges on whether the trace-form restriction
+collapses $2\to1$ \emph{and} singles out $\varepsilon$ over Pontryagin \emph{and}
+fixes the normalization.
+
+%==============================================================================
+\section{Task 3 --- the decisive trace-form-invariant subspace}
+%==============================================================================
+The decisive question is which of the bare invariants are buildable from the
+\emph{intrinsic} data alone: the symmetric bilinear $\eta=\Tr|_{\rm frame}$
+(Lemma~\ref{lem:eta}) and the symmetric trilinear $\det\nolimits_3$ (its polarization
+$d$), with the $(E_{11},u)$-forced structures, and \emph{no} posited $\varepsilon$.
+
+\subsection{Pontryagin is reachable; $\varepsilon$ is not a tensorial function of $\eta$}
+The Pontryagin tensor $\eta_{ac}\eta_{bd}-\eta_{ad}\eta_{bc}$ is a pure $\eta$-product;
+$\mathrm{span}\{T^{\rm P}\}$ has dimension $1$. The remaining $\eta$-product
+$\eta_{ab}\eta_{cd}$ is symmetric in $(ab)$ and dies under the antisymmetrization, so
+the $\eta$-tensorial invariant subspace is exactly $\mathrm{span}\{T^{\rm P}\}$. The
+totally antisymmetric $\varepsilon_{abcd}$ is \emph{not} a polynomial in the symmetric
+$\eta$ (the driver confirms $\varepsilon\notin\mathrm{span}\{T^{\rm P}\}$): no
+contraction of symmetric tensors yields the antisymmetric orientation tensor.
+
+\subsection{The cubic norm supplies no orientation: $\det_3$ vanishes on the Lorentz block}
+\begin{proposition}[$\det\nolimits_3|_{\mathbb{C}_u\text{-block}}\equiv0$]\label{prop:det3}
+The restriction of $\det\nolimits_3$ (equivalently its polarization $d$) to the four
+soldered $V_0\cong\R^{3,1}$ frame directions $\{\beta,\gamma,p,q\}=[1,2,3,10]$ is
+identically zero. Concretely, for the $\hh_3(\OO)$ layout the cubic norm is
+\begin{equation}
+  N(X)=\alpha\beta\gamma-\alpha|x_1|^2-\beta|x_2|^2-\gamma|x_3|^2+2\,\mathrm{Re}((x_2x_1)x_3),
+\end{equation}
+and on the block $\{\beta,\gamma,p=\mathrm{Re}(x_1),q=\langle x_1,e_7\rangle\}$ every
+surviving term needs $\alpha$ (the $|x_1|^2$ term multiplies $\alpha$, not $\beta$;
+the $\alpha\beta\gamma$ term needs $\alpha$), and $\alpha$ is \emph{outside} the
+block. Hence $N|_{\rm block}\equiv0$, and the symmetric trilinear $d|_{\rm block}=0$
+in all $64$ components (exact over $\Q$).
+\end{proposition}
+A symmetric trilinear that \emph{vanishes} on the block supplies no symmetric metric,
+no antisymmetric $2$-form, no Pfaffian, and no orientation there. The $\det\nolimits_3$
+route to $\varepsilon$ (route (b): a polarization/orientation on the Peirce block) is
+therefore closed. The only orientation available is the metric volume form.
+
+\subsection{$\varepsilon$ via the metric volume form (route a): reachable but non-unique and orientation-ambiguous}
+A non-degenerate metric fixes a volume form up to orientation:
+$\varepsilon_{abcd}=\sqrt{|\det g|}\,[abcd]$. In the orthonormal frame
+$\det\eta=-1$, so $\sqrt{|\det\eta|}=1$: the $\varepsilon$ tensor is numerically
+reachable from $\eta$ \emph{provided} an orientation (a discrete sign $[abcd]$) is
+chosen. The normalization $\sqrt{|\det\eta|}=1$ is fixed by $\eta$; the orientation
+($\varepsilon$ vs $-\varepsilon$) is \emph{not} fixed by the symmetric $\eta$ alone
+--- it is precisely the ``broken by hand'' choice. Admitting the metric volume form,
+$\mathrm{span}\{T^{\rm P},\varepsilon\}$ has dimension $2$: \emph{both} Pontryagin and
+$\varepsilon$ are reachable, so $\varepsilon$ is one choice among several.
+
+\subsection{The decisive dimension and the normalization}
+Collecting:
+\begin{align}
+  \dim(\text{trace-form-invariant subspace}) &= 1
+  &&(\eta\text{-tensorial only: }\mathrm{span}\{T^{\rm P}\};\ \varepsilon\text{ unreachable}),\\
+  &= 2 &&(\text{admitting the volume form: }\mathrm{span}\{T^{\rm P},\varepsilon\};\ \varepsilon\text{ non-unique}).
+\end{align}
+Neither reading is a STRONG WIN. A strictly $1$-dimensional subspace whose generator
+is $\varepsilon$ (not Pontryagin) with a $\det\nolimits_3$-fixed normalization would
+be required; instead the $1$-dimensional $\eta$-tensorial subspace is Pontryagin
+(\emph{not} $\varepsilon$), and admitting $\varepsilon$ makes the subspace
+$2$-dimensional. As for the gravitational normalization ($\to 1/16\pi G$): by
+Proposition~\ref{prop:det3} $\det\nolimits_3$ vanishes on the Lorentz block, so it
+fixes \emph{nothing} about the $\varepsilon$-contraction's scale; the Einstein
+coupling is free/imported.
+
+\subsection{The decisive triple (input to the 78-02 verdict ladder)}
+\begin{equation}\boxed{
+\begin{array}{l}
+\dim(\text{trace-form-invariant subspace}) = 1\ (\eta\text{-tensorial})\ /\ 2\ (\text{with volume form}),\\[2pt]
+\varepsilon\text{-in-span} = \text{YES, only via the metric volume form (orientation a discrete,}\\
+\qquad\text{non-intrinsic choice; }\det\nolimits_3\text{ supplies no }\varepsilon\text{); not singled out over Pontryagin},\\[2pt]
+\text{normalization} = \text{free/imported }(\det\nolimits_3\equiv0\text{ on the Lorentz block}).
+\end{array}}
+\end{equation}
+In every reading the STRONG-WIN condition (\,$\dim=1$ \emph{and} generator
+$=\varepsilon$ \emph{and} normalization $\det\nolimits_3$-fixed, all three\,) fails.
+The decisive input to Plan~78-02 is therefore $\texttt{fp-imported-action}$ --- the
+high / most-likely outcome --- stated here at true strength: the MM
+$\varepsilon$-contraction (and its normalization) is \emph{not} forced by the
+$\hh_3(\OO)$ trace form / cubic norm; the symmetric intrinsic data give the symmetric
+Pontryagin invariant for free but never single out the antisymmetric $\varepsilon$
+with a fixed coupling. The Einstein term, recoverable only from a posited
+$\int\varepsilon F\wedge F$, is an imported action.
+
+\paragraph{Deferred to Plan~78-02 (with the BLOCKING human ratification).}
+The verdict-ladder synthesis (STRONG WIN xor $\texttt{fp-imported-action}$), the
+$\Lambda=0$ corollary (at the measured vacuum even the posited $\varepsilon$-action is
+the topological Gauss--Bonnet term), the GST/Singh/Castro ``imported-action'' contrast
+class, and the milestone-closing ratification --- these complete the audit and close
+milestone~v18.0. This file is started here and completed in 78-02.
+
+\end{document}
