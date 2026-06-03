@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 # ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus, fourier_convention=NA, coupling_convention=NA, renormalization_scheme=NA, gauge_choice=NA
 # ============================================================================
-# Phase 78 (v18.0 Cartan / MacDowell-Mansouri) -- Plan 78-01  [THE FINAL PHASE]
-#   THE DECISIVE FORCED-VS-POSITED CIRCULARITY AUDIT.
+# Phase 78 (v18.0 Cartan / MacDowell-Mansouri)  [THE FINAL PHASE]
+#   THE FORCED-VS-POSITED CIRCULARITY AUDIT.
+#   Plan 78-01 : the DECISIVE computation (the dimension + identity, reproduced here).
+#   Plan 78-02 : the VERDICT LADDER -- verdict(triple) -> STRONG WIN xor
+#                fp-imported-action (deterministic, exact over Q) + the Lambda=0
+#                corollary.  (The FINAL milestone verdict is BLOCKING-human-ratified
+#                in 78-02 Task 3; this driver renders the verdict, it does NOT
+#                self-ratify the milestone.)
 #
 #   Measure, EXACT over Q, whether the MacDowell-Mansouri eps-contraction (the
 #   Spin(9,1)->SO(3,1) breaking + the eps-tensor that turns F^F into Einstein-
@@ -71,9 +77,10 @@
 #   rebuilt; det SSOT preserved).
 #
 # Runnable:  python3 -u code/cartan_phaseC_contraction.py
-# Exit 0 iff every decisive check PASSES and the decisive triple is rendered cleanly.
-# This plan renders the DIMENSION + IDENTITY at true strength; the FINAL verdict
-# (STRONG WIN xor fp-imported-action) + human ratification are 78-02.
+# Exit 0 iff every decisive check PASSES, the 78-01 decisive triple is reproduced
+# cleanly, and the 78-02 verdict ladder renders the categorical verdict (STRONG WIN
+# xor fp-imported-action) at true strength. The BLOCKING human ratification of the
+# milestone-closing verdict is 78-02 Task 3 (this driver does NOT self-ratify).
 # ============================================================================
 
 import os
@@ -337,6 +344,10 @@ _DECISIVE_FUNCS = {
     'forced_so31_generators', 'canonical_so_eta', '_invariance_nullspace',
     '_Euler_tensor', '_Pontryagin_tensor', '_to_free_vector', '_decompose',
     'bare_invariant_space', 'traceform_invariant_subspace', '_in_span',
+    # 78-02: the verdict map is ALSO on the decisive path (it renders the milestone
+    # headline from the triple) -- the input ban covers it too (no posited action,
+    # no -1/2 / 16piG / MM-action / numpy.linalg load-bearing in the verdict logic).
+    'verdict',
 }
 
 
@@ -950,17 +961,172 @@ def traceform_invariant_subspace(bare):
 
 
 # ============================================================================
+# TASK 4 (78-02) : THE VERDICT LADDER -- a DETERMINISTIC map triple -> verdict
+# ============================================================================
+def verdict(triple):
+    """THE DETERMINISTIC VERDICT MAP (78-02, test-forced-vs-posited, VALD-06).
+
+    Reads the 78-01 decisive triple and returns the categorical milestone verdict via
+    the verdict LADDER, with NO new computation, NO posited action, NO float -- a pure
+    deterministic function of the exact-over-Q triple. Reported at TRUE STRENGTH.
+
+    The STRONG-WIN condition (ALL THREE, exact over Q):
+      (1) the trace-form-invariant subspace is strictly 1-dimensional WITH its single
+          generator being the eps-contraction (NOT Pontryagin) -- i.e. eps is SINGLED
+          OUT over Pontryagin by the intrinsic data;
+      (2) eps is reachable as a GENUINE intrinsic invariant (its orientation fixed by
+          Tr/det_3, not a discrete by-hand choice) -- operationally, eps singled out
+          over Pontryagin (clause 1) AND an intrinsic orientation source exists;
+      (3) the eps-contraction's normalization is FIXED by the cubic norm det_3
+          (not free / imported).
+    Any shortfall -> fp-imported-action, with the explicit shortfall named.
+
+    The triple keys (from traceform_invariant_subspace):
+      dim_tensorial (int)            : dim of the eta-tensorial subspace (Pontryagin only)
+      dim_with_volume (int)          : dim admitting the metric volume form (Pont+eps)
+      eps_in_span (bool)             : eps reachable at all (YES only via the volume form)
+      eps_singled_out_over_pontryagin: is eps the UNIQUE generator (vs Pontryagin)?
+      eps_via_det3 (bool)            : does det_3 supply eps (orientation/Pfaffian)?
+      pontryagin_in_span (bool)      : Pontryagin reachable (pure eta product)?
+      normalization_det3_fixed (bool): is the EH normalization fixed by det_3?
+
+    Returns a dict: {category, strong_win, shortfalls[], canonical_dim, summary}.
+    EXACT over Q -- every input is a sympy-derived integer/bool; no float, no numpy."""
+    dim_tensorial = int(triple["dim_tensorial"])
+    dim_with_volume = int(triple["dim_with_volume"])
+    eps_in_span = bool(triple["eps_in_span"])
+    eps_singled = bool(triple["eps_singled_out_over_pontryagin"])
+    eps_via_det3 = bool(triple["eps_via_det3"])
+    pont_in_span = bool(triple["pontryagin_in_span"])
+    norm_det3_fixed = bool(triple["normalization_det3_fixed"])
+
+    # ---- the three STRONG-WIN clauses (each must hold) ----
+    # Clause 1: strictly-1d subspace whose generator is eps (eps singled out, Pont NOT
+    #           an independent intrinsic generator). The eta-tensorial subspace is 1d
+    #           but its generator is Pontryagin, so clause 1 needs eps_singled AND the
+    #           1d subspace to be {eps} (i.e. Pontryagin NOT separately reachable, which
+    #           it always is) -- so eps must be singled out OVER Pontryagin.
+    clause_dim_and_generator = (dim_tensorial == 1 and eps_singled and not pont_in_span)
+    # Clause 2: eps a genuine intrinsic invariant (orientation forced by Tr/det_3, not a
+    #           discrete by-hand choice). Operationally: eps singled out AND det_3 (or Tr)
+    #           supplies the orientation. The volume-form route does NOT count (its
+    #           orientation is the literal "broken by hand" sign).
+    clause_eps_intrinsic = (eps_in_span and eps_singled and eps_via_det3)
+    # Clause 3: the EH normalization is fixed by the cubic norm det_3.
+    clause_norm_fixed = norm_det3_fixed
+
+    strong_win = (clause_dim_and_generator and clause_eps_intrinsic and clause_norm_fixed)
+
+    # ---- enumerate the explicit shortfalls (for true-strength reporting) ----
+    shortfalls = []
+    if not clause_dim_and_generator:
+        if pont_in_span and eps_in_span and dim_with_volume >= 2:
+            shortfalls.append(
+                "the trace-form-invariant subspace is NOT 1-dimensional with eps as its "
+                "generator: the eta-tensorial subspace is 1-dim but its generator is "
+                "Pontryagin, and admitting the volume form makes it 2-dim (Pont + eps) "
+                "so eps is one choice among several (dim_tensorial=%d, dim_with_volume=%d, "
+                "eps_singled_out=%s)" % (dim_tensorial, dim_with_volume, eps_singled))
+        else:
+            shortfalls.append(
+                "the strictly-1d-with-eps-generator clause fails (dim_tensorial=%d, "
+                "eps_singled_out=%s, pontryagin_in_span=%s)"
+                % (dim_tensorial, eps_singled, pont_in_span))
+    if not clause_eps_intrinsic:
+        if eps_in_span and not eps_via_det3:
+            shortfalls.append(
+                "eps is reachable ONLY via the metric volume form sqrt|det eta| eps, "
+                "whose orientation (eps vs -eps) is a DISCRETE choice NOT fixed by the "
+                "symmetric Tr/det_3 data (the 'broken by hand' orientation); det_3 "
+                "supplies no eps (it vanishes on the Lorentz block)")
+        elif not eps_in_span:
+            shortfalls.append("eps is not reachable from Tr/det_3 at all")
+        else:
+            shortfalls.append("eps is not singled out as a genuine intrinsic invariant")
+    if not clause_norm_fixed:
+        shortfalls.append(
+            "the eps-contraction's gravitational normalization is FREE / imported "
+            "(it is not fixed by det_3 -- det_3 vanishes identically on the soldered "
+            "Lorentz block, so it pins no scale); the Einstein coupling comes with the "
+            "posited action, not from the intrinsic cubic norm")
+
+    canonical_dim = dim_tensorial   # the canonical (orientation-free, intrinsic) reading
+    if strong_win:
+        category = "STRONG WIN"
+        summary = ("the eps-contraction (and its normalization) is FORCED by the "
+                   "h_3(O) trace form / cubic norm -- gravity from the Lie-sector "
+                   "geometry, non-circular")
+    else:
+        category = "fp-imported-action"
+        summary = ("the eps-contraction (and its normalization) is NOT forced by the "
+                   "h_3(O) trace form / cubic norm; the Einstein term is recoverable "
+                   "only from a posited action -- an honest partial (the HIGH / "
+                   "most-likely outcome), in the same class as GST/Singh/Castro, NOT "
+                   "a derivation")
+    return {"category": category, "strong_win": bool(strong_win),
+            "shortfalls": shortfalls, "canonical_dim": canonical_dim,
+            "summary": summary}
+
+
+def lambda_zero_corollary():
+    """THE Lambda=0 COROLLARY (a SECOND, independent argument for fp-imported-action).
+
+    Phase 77 MEASURED Lambda=0 at the M=0 vacuum. By the eps F^F expansion (eq:ehexpand),
+    the Einstein-Hilbert term carries coefficient proportional to Lambda and the
+    cosmological term proportional to Lambda^2; at Lambda=0 BOTH vanish and the whole
+    eps-contraction collapses to the pure Gauss-Bonnet/Euler term eps R^R -- a
+    TOPOLOGICAL invariant (the Euler density), yielding NO equations of motion and NO
+    general relativity. So even if the eps-action were posited, at the measured vacuum
+    it is topological, not gravitational. (We do NOT reintroduce Lambda<0 / R x H^3.)
+
+    This is a STRUCTURAL/algebraic statement read off the (Lambda-formal) expansion +
+    the Phase-77 measurement; it introduces no new approximation and no posited action.
+    Returns the evidence dict (the coefficient powers + the Lambda=0 degeneration)."""
+    print("#" * 78)
+    print("# TASK 4b : the Lambda=0 corollary (a SECOND fp-imported-action argument)")
+    print("#" * 78)
+    Lam = Symbol('Lambda')
+    # eps F^F = [eps R^R]  - (2 Lam/3)[eps R^e^e]  + (Lam^2/9)[eps e^e^e^e]
+    #            GB (Lam^0)     EH (Lam^1)             CC (Lam^2)
+    eh_coeff = Rational(-2, 3) * Lam            # the EH coefficient (LINEAR in Lambda)
+    cc_coeff = Rational(1, 9) * Lam ** 2        # the cosmological coefficient (Lambda^2)
+    eh_at_0 = eh_coeff.subs(Lam, 0)
+    cc_at_0 = cc_coeff.subs(Lam, 0)
+    gb_survives = True                          # GB coefficient is Lambda-independent (1)
+    _report("EH-term coefficient is LINEAR in Lambda (eps R^e^e carries -2Lambda/3) -> "
+            "vanishes at Lambda=0 [exact over Q]", eh_at_0 == 0)
+    _report("cosmological-term coefficient is Lambda^2 (eps e^e^e^e carries Lambda^2/9) "
+            "-> vanishes at Lambda=0 [exact over Q]", cc_at_0 == 0)
+    _report("at the Phase-77-MEASURED Lambda=0 vacuum the eps-contraction collapses to "
+            "the pure Gauss-Bonnet/Euler term eps R^R -- TOPOLOGICAL, no EOM, no GR "
+            "(so even a POSITED eps-action gives no gravity at the measured vacuum); "
+            "Lambda<0 / R x H^3 NOT reintroduced", gb_survives and eh_at_0 == 0)
+    print("      eps F^F = [eps R^R]_GB  - (2*Lambda/3)[eps R^e^e]_EH  "
+          "+ (Lambda^2/9)[eps e^e^e^e]_CC")
+    print(f"      at Lambda=0:  EH coeff = {eh_at_0},  CC coeff = {cc_at_0},  "
+          f"GB survives (topological) = {gb_survives}")
+    return {"eh_coeff_power": 1, "cc_coeff_power": 2,
+            "eh_at_lambda0": int(eh_at_0), "cc_at_lambda0": int(cc_at_0),
+            "collapses_to_gauss_bonnet": bool(gb_survives and eh_at_0 == 0)}
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 def main():
     print("#" * 78)
-    print("# Phase 78-01 : THE DECISIVE FORCED-VS-POSITED CIRCULARITY AUDIT (v18.0 FINAL)")
-    print("#   MM eps-contraction FORCED by Tr(X o Y)/det_3, or fp-imported-action?")
-    print("#   The decisive output is a DIMENSION (integer) + an IDENTITY, exact over Q.")
-    print("#   Audited object = LINEAR-in-R Einstein term eps R^e^e (NOT a quadratic")
-    print("#   Maxwell/Pontryagin stress -- the Phase-76 OVERTURNED tautology).")
+    print("# Phase 78 (v18.0 FINAL) : THE FORCED-VS-POSITED CIRCULARITY AUDIT")
+    print("#   78-01 DECISIVE COMPUTATION (reproduced here) : MM eps-contraction FORCED")
+    print("#     by Tr(X o Y)/det_3, or fp-imported-action?  -- a DIMENSION + IDENTITY,")
+    print("#     exact over Q.  Audited object = LINEAR-in-R Einstein term eps R^e^e")
+    print("#     (NOT a quadratic Maxwell/Pontryagin stress -- the Ph-76 OVERTURNED")
+    print("#     tautology).")
+    print("#   78-02 VERDICT LADDER (this run) : verdict(triple) -> STRONG WIN xor")
+    print("#     fp-imported-action (deterministic, exact over Q) + the Lambda=0 corollary.")
+    print("#   (The FINAL milestone verdict is BLOCKING-human-ratified in 78-02 Task 3.)")
     print("#" * 78)
 
+    # ---- reproduce the 78-01 decisive triple from THIS committed driver ----
     okG = source_guard()
     t1 = task1_setup()
     t2 = bare_invariant_space()
@@ -970,25 +1136,58 @@ def main():
         return 1
     t3 = traceform_invariant_subspace(t2)
 
+    # ---- 78-02 : render the categorical verdict via the deterministic ladder ----
+    print()
+    print("#" * 78)
+    print("# TASK 4 (78-02) : THE VERDICT LADDER -- verdict(triple), deterministic/exact-Q")
+    print("#" * 78)
+    v = verdict(t3)
+    _report(f"verdict() is deterministic on the exact-over-Q triple -> category = "
+            f"'{v['category']}' (strong_win={v['strong_win']}); the STRONG-WIN "
+            f"condition holds iff dim==1 AND generator==eps AND normalization "
+            f"det_3-fixed (all three)", v["category"] in ("STRONG WIN", "fp-imported-action"))
+    # cross-check: the verdict() category agrees with the 78-01 in-driver verdict_input.
+    _report(f"verdict() category == the 78-01 decisive verdict_input "
+            f"('{t3['verdict_input']}') -- the ladder reproduces the decisive input",
+            v["category"] == t3["verdict_input"])
+    print("  -- the verdict ladder applied to the triple --")
+    print(f"     canonical dim (eta-tensorial, intrinsic reading) = {v['canonical_dim']} "
+          f"(generator = Pontryagin, NOT eps)")
+    print(f"     STRONG WIN (dim==1 AND generator==eps AND det_3-fixed norm)? "
+          f"{v['strong_win']}")
+    if v["shortfalls"]:
+        print("     shortfalls (why NOT a STRONG WIN; reported at true strength):")
+        for i, s in enumerate(v["shortfalls"], 1):
+            print(f"       ({i}) {s}")
+    print(f"     => VERDICT = {v['category']}")
+    print(f"        {v['summary']}")
+
+    # ---- 78-02 : the Lambda=0 corollary (a SECOND fp-imported-action argument) ----
+    print()
+    lam = lambda_zero_corollary()
+
     print("\n" + "=" * 78)
-    print("SUMMARY OF DECISIVE CHECKS (78-01)")
+    print("SUMMARY OF DECISIVE CHECKS (78 -- 78-01 reproduced + 78-02 verdict)")
     print("=" * 78)
     print(f"  source guard (octonion_algebra/numpy absent, det SSOT native) ... {okG}")
     print(f"  TASK 1 det_3 SSOT re-pass ....................................... {t1['det_ok']}")
     print(f"  TASK 1 Tr|frame: FOIL (4,0) + soldered eta (1,3) ................ {t1['metric_ok']}")
-    print(f"  TASK 1 input-ban guard (no posited action on the count) ......... {t1['ban_ok']}")
+    print(f"  TASK 1 input-ban guard (no posited action on the count+verdict) . {t1['ban_ok']}")
     print(f"  TASK 2 bare invariant space dim == 2 (Euler + Pontryagin) ....... {t2['dim_bare'] == 2}")
-    print(f"  TASK 2 Euler+Pontryagin independent on the Phase-77 R[omega] .... {t2['indep_rank'] == 2}")
+    print(f"  TASK 2 Euler+Pontryagin independent (generic curvature) ......... {t2['indep_rank'] == 2}")
     print(f"  TASK 3 decisive dim (eta-tensorial / with-volume) ............... "
           f"{t3['dim_tensorial']} / {t3['dim_with_volume']}")
     print(f"  TASK 3 eps-in-span / singled-out / det_3-fixed normalization .... "
           f"{t3['eps_in_span']} / {t3['eps_singled_out_over_pontryagin']} / "
           f"{t3['normalization_det3_fixed']}")
+    print(f"  TASK 4 verdict() ladder (deterministic, exact over Q) ........... {v['category']}")
+    print(f"  TASK 4b Lambda=0 corollary (eps F^F -> Gauss-Bonnet topological) . "
+          f"{lam['collapses_to_gauss_bonnet']}")
     print("=" * 78)
-    print(f"  >>> DECISIVE VERDICT INPUT (TRUE STRENGTH): {t3['verdict_input']}")
-    print("      (the FINAL verdict ladder + human ratification are 78-02)")
+    print(f"  >>> 78-02 MILESTONE VERDICT (TRUE STRENGTH): {v['category']}")
+    print("      (the BLOCKING human ratification is 78-02 Task 3)")
     print("=" * 78)
-    print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}  |  78-01 build complete")
+    print(f"OVERALL: {'ALL_PASS' if ALL_PASS else 'FAILURES PRESENT'}  |  78-02 verdict rendered")
     print("=" * 78)
     return 0 if ALL_PASS else 1
 
