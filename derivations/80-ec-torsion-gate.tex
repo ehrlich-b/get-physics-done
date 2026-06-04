@@ -1,0 +1,151 @@
+% ASSERT_CONVENTION: natural_units=dimensionless, metric_signature=mostly_minus,
+%   jordan_product=(1/2)(ab+ba), octonion_basis=fano_e1e2=e4,
+%   complex_structure=u_equals_e7, peirce_decomposition=under_E11,
+%   det3_normalization=d(X,X,X)=6*det_3(X),
+%   spacetime_block_engine_indices={1,2,3,10}, Vhalf_engine_indices={11..26},
+%   det_SSOT=ring_lemma_verification.py
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\h}{\mathfrak{h}}
+\newcommand{\so}{\mathfrak{so}}
+\newcommand{\Oo}{\mathbb{O}}
+\newcommand{\RR}{\mathbb{R}}
+\title{Gate 0: does Einstein--Cartan torsion sourced by chiral $V_{1/2}$ spin
+close the v18 Einstein gap on $\h_3(\Oo)$?}
+\date{2026-06-04 \quad (milestone v20.0, Phase 80; a fail-fast Gate-0 cheap kill)}
+\begin{document}
+\maketitle
+
+\section{The un-run gap}
+
+The v18.0 milestone (Phase 77) computed the curvature of the Peirce-frame
+Cartan/MacDowell--Mansouri connection $A=\omega\oplus e$ on $\h_3(\Oo)$, with the
+soldering coframe $e=\pi_u(dE)$ reduced to a $4$d Lorentzian $(1,3)$ frame and
+$\omega$ the $\so(3,1)$ connection, and found $G[g]\neq\kappa T+\Lambda g$ for any
+single global $(\kappa,\Lambda)$. Crucially, \textbf{Phase 77 set torsion to zero
+by hand}: it used the torsion-free Levi-Civita $\omega(e)$ (verified $d_\omega e=0$).
+The Einstein--Cartan (EC) version --- where the chiral $V_{1/2}$ spinor matter
+\emph{sources} torsion through the algebra's own intrinsic cubic coupling, the
+$96$-entry block $C_{(V_{1/2})(V_{1/2})(V_0)}$ --- had never been computed. Because EC
+splits the field content into the symmetric Einstein equation \emph{plus} an
+independent algebraic spin--torsion equation, and the v18 defect was a
+tensor-support mismatch on exactly the antisymmetric components torsion feeds, this
+was the last un-run corner of the gravity program. Gate 0 is the cheap
+exact-over-$\mathbb{Q}$ kill that decides whether the EC route can even begin.
+
+\section{The spin current is the algebra's own coupling (the bridge)}
+
+The intrinsic coupling is $C_{IJK}=\tfrac16 d_{IJK}$ with $d$ the polarization of the
+$F_4$-invariant cubic norm $\det_3$ (det SSOT \texttt{ring\_lemma\_verification.py};
+\texttt{octonion\_algebra.py} is not imported on any path). Restricting to two
+$V_{1/2}$ indices $i,j$ (engine $[11..26]$) and one spacetime $V_0$ index
+$a\in\{1,2,3,10\}=\{\beta,\gamma,x_1@e_0,x_1@e_7\}$:
+\begin{equation}
+C_{ija}=\tfrac16\,\mathrm{polarize\_d}(e_i,e_j,e_a)
+   \;=\; \mathrm{const}\cdot\big(\eta\cdot B(e_i,e_j)\big)_a,
+   \qquad \mathrm{const}=-\tfrac23 \ \text{(exact over }\mathbb{Q}),
+\end{equation}
+where $B(\delta,\delta')=\pi_u\!\big(\delta\circ\delta'\big)\big|_{V_0}
+= \mathrm{to\_mink}\big(\mathrm{jordan}(E\delta,E\delta')\big)$ is the Peirce
+\emph{soldering bilinear}. So the spin current is the $\pi_u$-soldered Jordan product
+itself --- the algebra's own coupling, not an inserted bilinear. The chirality
+structure (Phase 50, reproduced exactly over $\mathbb{Q}$): the timelike
+$(\beta{+}\gamma)$ direction is chirality-\emph{even} ($-1/3$ for all $16$); the
+$(\beta{-}\gamma)$ direction is the chirality \emph{sign-split} ($-1/3$ on the
+$x_2$-block, $+1/3$ on the $x_3$-block); $x_1@e_7$ ($=u$) carries the $e_7$-linked
+off-diagonal $x_2\!\leftrightarrow\! x_3$ pairing $|C|=1/3$.
+
+\section{Gate 0: the three checks}
+
+Two cross-checking definitions of the torsion source, both exact over $\mathbb{Q}$ at
+the v18 Phase-77 sample $M=\{11{:}\tfrac15,18{:}-\tfrac1{10},19{:}\tfrac3{10},
+26{:}\tfrac12\}$:
+\begin{align}
+\text{(Def-A, soldering current)}\quad & S^a[\phi]=\textstyle\sum_{i,j}C_{ija}\phi^i\phi^j
+   =\big[\mathrm{to\_mink}(\mathrm{jordan}(E\phi,E\phi))\big]^a,\\
+\text{(Def-B, spin tensor)}\quad & s^{ab}{}_c[\phi]
+   =\big[\mathrm{to\_mink}(\mathrm{jordan}(E\phi,E(\Sigma^{ab}\!\cdot\phi)))\big]_c,
+\end{align}
+with $\Sigma^{ab}|_{V_{1/2}}$ the $16{\times}16$ blocks of the residual $\so(3,1)$
+generators forced by $(E_{11},u)$ (Phase 75; residual
+$21=\so(3,1)[6]\oplus\so(6)[15]$, the $\so(6)$ a spacetime-trivial ideal).
+
+\begin{description}
+\item[G0a (nonzero) --- PASS.] $S^a=[\tfrac{39}{200},\tfrac{11}{100},-\tfrac{7}{100},
+\tfrac{29}{200}]$; all six $\Sigma^{ab}$ give nonzero $s^{ab}{}_c$; the generic
+$16$-symbol current is not identically zero. The algebra genuinely sources torsion.
+\item[G0b (chirality-tracking) --- PASS.] Under the $8\!\leftrightarrow\!8$ chirality
+flip ($x_2$-block $\leftrightarrow x_3$-block), the $(\beta{-}\gamma)$ component flips
+sign while the universal timelike $(\beta{+}\gamma)$ stays even --- driven by the
+$C_{i,i}^{(\beta-\gamma)}=\mp1/3$ split and the $e_7$-linked pairing. \emph{Not}
+parity-blind: the torsion-free v18 reading is genuinely superseded.
+\item[G0c.1 (coefficient read, not posited) --- PASS.] Every coefficient is
+$\tfrac16\,\mathrm{polarize\_d}$/soldering, with no inserted constant; an AST/source
+guard is clean over all decisive functions and \emph{fires} on an injected
+$\kappa=8\pi G$ (not a no-op).
+\item[G0c.2 (does the algebra fix the coupling?) --- FAIL.] See Theorem~1.
+\end{description}
+
+\section{The decisive gate: the coupling is imported}
+
+\begin{theorem}[The EC coupling is not fixed by $\h_3(\Oo)$]
+The constant $c$ relating the spin current $S$ to a geometric torsion
+$T^a=d_\omega e^a$ is not supplied by any $\h_3(\Oo)$ invariant.
+\end{theorem}
+
+\begin{proof}
+The soldering form $e=\pi_u(dE)$ carries no intrinsic length: $\h_3(\Oo)$ is a graded
+\emph{dimensionless} algebra, so $e\mapsto\lambda e$ is a rescaling freedom. Under it,
+exact over $\mathbb{Q}$: $g=e\!\cdot\!e\mapsto\lambda^2 g$ (so $\det_2(g)\mapsto
+\lambda^8\det_2 g$, verified at $\lambda=2,\tfrac32$); the geometric torsion
+$T^a=d_\omega e^a\mapsto\lambda^1 T^a$ ($\omega$ scale-invariant); and the soldering
+current $S^a$, quadratic in the $V_{1/2}$ sector, $\mapsto\lambda^2 S^a$. Hence the
+Cartan coupling $c=T/S$ has weight $\lambda^{-1}$: it is dimensionful ($1/\text{length}^2$).
+But $R[\h_3(\Oo)]^{F_4}$ is the \emph{free polynomial ring} on
+$\{\Tr\ (\deg 1),\ \Tr_2\ (\deg 2),\ \det_3\ (\deg 3)\}$ (Springer; Hilbert series
+$H(s)=1/((1-s)(1-s^2)(1-s^3))$, plethystic log $s+s^2+s^3$, the v16 RING
+certificate). All generators carry \emph{positive} weight (verified
+$\Tr\sim\lambda,\ \Tr_2\sim\lambda^2,\ \det_3\sim\lambda^3$ by direct
+$X\!\mapsto\!\lambda X$ substitution), so every invariant --- a polynomial in them ---
+has non-negative weight; none has the weight $-1$ the coupling needs. The only
+negative-weight escape, a $\det_3$ quotient, is non-polynomial and identically
+singular on the soldered Lorentz block: $\det_3\equiv0$ on $\{1,2,3,10\}$ (verified for
+a generic symbolic survivor --- the same fact as v18 Phase 78). Therefore $c$ is a
+free parameter; the EC $\kappa=8\pi G$ enters only through a posited
+Einstein--Cartan--Palatini action.
+\end{proof}
+
+\begin{remark}[Why the bridge constant $-2/3$ does not rescue it]
+$-2/3$ is a \emph{weight-$0$} ratio (it relates two quadratic-in-$V_{1/2}$ objects,
+$S$ and the soldering bilinear), so it fixes the spin current's \emph{shape} but not
+the geometric coupling's \emph{scale}. The v18 Phase-77 ``freeze $\kappa$ from the
+cross-terms'' precedent was likewise a same-weight shape ratio fixed at a reference
+point, not an algebra-forced dynamical coupling.
+\end{remark}
+
+\section{Verdict}
+
+\textbf{\texttt{fp-imported-action}.} A genuine, nonzero, chirality-tracking,
+algebra-\emph{shaped} $V_{1/2}$ spin--torsion current exists (G0a/G0b/G0c.1 pass; the
+v18 torsion-free reading is superseded --- torsion is real), but no $\h_3(\Oo)$
+object fixes the geometric-torsion \emph{coupling} (G0c.2; the EC $\kappa$ is
+dimensionful and every algebra invariant has non-negative weight), so the dynamics
+comes only with a posited action --- the same honest-partial class as v18 Phase
+77/78 and GST/Singh/Castro. Per the fail-fast ladder, $G0c$ failure stops at Gate 0
+(no Gate 1, no requirements/roadmap). The deterministic \texttt{verdict()} ladder is
+non-hardwired (the ``no negative-weight invariant'' boolean is derived from the ring
+grading); verifier-hardened HIGH ($33/33$ independently re-derived, exact over
+$\mathbb{Q}$), human-ratified. This completes the gravity triangulation to four
+corners: v17 symmetric/cone-Hessian $\to$ NONE; v18 Lie-Cartan/MM torsion-free $\to$
+\texttt{fp-imported-action}; v19 antisymmetric/$u$-orientation $\to$
+\texttt{fp-no-intrinsic-orientation}; v20 EC torsion (spin-sourced) $\to$
+\texttt{fp-imported-action}. The spin current lives exactly on the antisymmetric
+components torsion feeds --- the last place gravity could hide --- and the algebra
+sources its shape but never its dynamical coupling.
+
+\end{document}
