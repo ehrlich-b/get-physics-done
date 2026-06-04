@@ -1,0 +1,264 @@
+% !TEX root = 79-orientation-gate.tex
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus, fourier_convention=NA, coupling_convention=NA, renormalization_scheme=NA, gauge_choice=NA
+%==============================================================================
+% v19.0 (Orientation-forcing) -- GATE A: the cheap orientation kill.
+% THE ONLY phase of v19.0 (a quick Gate-A negative; no Gates B/C/D, no roadmap).
+% This file = the complete Gate-A derivation, with the (1,3) PARITY OBSTRUCTION
+% foregrounded as the decisive, CONSTRUCTION-INDEPENDENT reason -- not "u fails".
+%   Section 2  THE THEOREM: a (1,3) Lorentzian 4-metric admits NO compatible
+%              almost-complex structure (odd time-parity obstruction). Two proofs:
+%              the J-invariant-2-plane parity argument and the so(3,1) sum-of-squares.
+%              => NO complex-structure orientation source (u=e_7 or any other) can
+%              supply the eps the MM contraction needs. Phase-78 clause C2 stands.
+%   Section 3  The u-specific instance (one case of the theorem): J from u=e_7 on the
+%              slice is rank 2, J^2=diag(0,-1,-1,0); the {x0,x3} timelike plane is
+%              frozen because u.(real diagonal)=e_7 leaves h_3(O); omega_K degenerate
+%              (Pf=0) => omega_K^omega_K=0 => no volume form => C2 NOT repaired.
+%   Section 4  Triangulation: on the Euclidean (4,0) V_{1/2} C_u^2 foil, u DOES give a
+%              genuine compatible J (Pf=4 != 0) -- u orients the internal/Euclidean
+%              OP^2 foil cleanly, the WRONG space.
+%   Section 5  fp-imported-orientation guard; the residual (discrete-chirality) thread.
+%   Section 6  Closing synthesis: v19.0 is the THIRD FACE of one structural fact --
+%              the program's complex/antisymmetric "i" (u=e_7) is internal-gauge-
+%              natured, and Lorentzian spacetime structurally rejects it.
+% Decisive arithmetic exact over Q (code/cartan_gateA_orientation.py); independently
+% reproduced by a DIFFERENT construction (M_2(C) representation + an so(3,1) solve),
+% HIGH confidence (code/cartan_gateA_verify_independent.py, 79-GATE-A-VERIFICATION.md).
+% Reported at TRUE STRENGTH; human-ratified at the Gate-A blocking checkpoint.
+%==============================================================================
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\OO}{\mathbb{O}}
+\newcommand{\Cu}{\mathbb{C}_u}
+\newcommand{\half}{\tfrac12}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\so}{\mathfrak{so}}
+\newcommand{\hh}{\mathfrak{h}}
+\newcommand{\id}{\mathbb{1}}
+\DeclareMathOperator{\Pf}{Pf}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\sig}{sig}
+\theoremstyle{plain}\newtheorem{theorem}{Theorem}
+\theoremstyle{plain}\newtheorem{proposition}{Proposition}
+\theoremstyle{plain}\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}\newtheorem{remark}{Remark}
+
+\title{Gate A: a Lorentzian $(1,3)$ slice admits \emph{no} compatible complex
+structure --- the orientation $\varepsilon$ that MacDowell--Mansouri needs is
+\emph{not} fixed by the complex structure $u=e_7$ (exact over $\Q$)}
+\author{v19.0 --- Orientation-forcing: can the forced antisymmetric datum $u=e_7$
+repair Phase-78 clause C2?}
+\date{2026-06-03 (Gate-A kill; verifier-hardened, human-ratified)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Milestone v18.0/Phase~78 returned \texttt{fp-imported-action}: the MacDowell--Mansouri
+(MM) $\varepsilon$-contraction (hence the Einstein--Hilbert term) is not forced by the
+$\hh_3(\OO)$ trace form $\Tr(X\circ Y)$ or cubic norm $\det\nolimits_3$, because those data
+are \emph{symmetric} and the orientation $\varepsilon$ is \emph{antisymmetric}; concretely
+$\varepsilon$ was reachable only as the orientation-ambiguous metric volume form
+$\sqrt{|\det\eta|}\,\varepsilon$, whose sign is a by-hand choice (clause~C2). The present
+milestone tests the one \emph{forced antisymmetric} datum Phase~78 left untouched: the
+complex structure $u=e_7$ ($u^2=-1$) that defines the spacetime slice $h_2(\Cu)\cong\R^{3,1}$.
+A complex structure canonically orients a complex manifold, so $u$ is exactly an
+antisymmetric object that might fix the sign $\eta$ could not. We decide this exactly over
+$\Q$. The result is a \emph{quick Gate-A kill}, for a reason deeper than ``$u$ happens to
+fail'': \textbf{a pseudo-Riemannian $4$-metric of signature $(1,3)$ admits no compatible
+almost-complex structure at all}---a compatible $J$ ($J^2=-\id$, $\eta$-orthogonal) pairs
+the axes into $J$-invariant $2$-planes on each of which $\eta$ is conformal, forcing
+\emph{even} counts of both signs, whereas $(1,3)$ has $n_+=1,\,n_-=3$, both odd. Hence
+\emph{no} complex-structure orientation source---$u=e_7$ or any other---can supply
+$\varepsilon$. The $u$-specific computation is one instance: $u$ complexifies only the
+off-diagonal \emph{spatial} $\Cu$-plane (the slice's $J$ has $\rank 2$,
+$J^2=\mathrm{diag}(0,-1,-1,0)$, the timelike $\{x_0,x_3\}$ plane frozen because
+$u\cdot(\text{real diagonal})=e_7\notin\hh_3(\OO)$), so the K\"ahler form is degenerate
+($\Pf=0$) and $\omega_K\wedge\omega_K=0$. By triangulation, $u$ \emph{does} orient the
+Euclidean $(4,0)$ $V_{1/2}$ coframe foil cleanly ($\Pf=4$)---the wrong (internal) space.
+Phase-78 clause~C2 \emph{survives}; the forced-antisymmetric-data route is dead at Gate~A:
+$\boxed{\texttt{fp-no-intrinsic-orientation}}$. This is the third face of one structural
+fact---the program's antisymmetric ``$i$'' ($u=e_7$) is internal-gauge-natured and
+Lorentzian spacetime rejects it---and it grounds the ``gravity is separate'' reading.
+\end{abstract}
+
+%------------------------------------------------------------------------------
+\section{Setup: the Phase-78 shortfall and the hypothesis}
+%------------------------------------------------------------------------------
+Conventions are inherited verbatim from v18.0 (CONVENTIONS.md / \texttt{state.json}
+\texttt{convention\_lock}): octonion Fano $e_1e_2=e_4$; complex structure $u=e_7$,
+$\Cu=\mathrm{span}\{1,e_7\}$; primitive idempotent $E_{11}=\mathrm{diag}(1,0,0)$; Peirce
+$\{0,\half,1\}$ with engine indices $V_1=\{0\}$, $V_0=\{1\ldots10\}$,
+$V_{1/2}=\{11\ldots26\}$; the spacetime slice $h_2(\Cu)\cong\R^{3,1}$ is the
+engine-native $4$-space $\{1,2,3,10\}=\{\beta,\gamma,p=\mathrm{Re}(x_1),q=\langle
+x_1,e_7\rangle\}$ with mostly-minus $\eta=\mathrm{diag}(+1,-1,-1,-1)$ in Minkowski
+coordinates $x_0=\half(\beta+\gamma),\,x_1=p,\,x_2=q,\,x_3=\half(\beta-\gamma)$. Determinant
+SSOT $=$ \texttt{code/ring\_lemma\_verification.py det\_3}; \texttt{octonion\_algebra.py}
+banned; all decisive arithmetic exact over $\Q$ ($u=e_7$ is a \emph{real} octonion unit, so
+the $\Cu$ complex structure is realized over $\Q$ directly---no $\Q(i)$ needed).
+
+\medskip
+Phase~78 established (exact over $\Q$) that the MM $\varepsilon$-contraction
+$\varepsilon_{abcd}R^{ab}\wedge e^c\wedge e^d$ fails to be forced on three counts, all
+because the audited data ($\Tr(X\circ Y)$, $\det\nolimits_3$) is \emph{symmetric}:
+(C1) the bare $\so(3,1)$-invariant quad-curvature $4$-form space is already $2$-dimensional
+(Euler~$+$~Pontryagin); (C2) $\varepsilon$ is reachable only via the
+orientation-ambiguous $\sqrt{|\det\eta|}\,\varepsilon$, sign by hand; (C3)
+$\det\nolimits_3\equiv0$ identically on the soldered Lorentz block $\{1,2,3,10\}$, so the
+normalization is free. This milestone asks: does the forced \emph{antisymmetric} datum
+$u=e_7$ repair~C2 (and possibly C3 via the chiral $V_{1/2}$)? The Gate-A question is the
+cheap kill: \emph{does $u$ induce a sign-definite orientation on the $(1,3)$ slice?}
+
+%------------------------------------------------------------------------------
+\section{The theorem: a $(1,3)$ metric admits no compatible complex structure}
+%------------------------------------------------------------------------------
+We foreground the decisive fact, which is independent of \emph{how} any $J$ is built.
+
+\begin{theorem}[Odd time-parity obstruction]\label{thm:parity}
+Let $\eta$ be a non-degenerate symmetric bilinear form on $\R^4$ of signature $(1,3)$.
+There is no endomorphism $J$ with $J^2=-\id$ that is $\eta$-compatible in either equivalent
+sense: $J\in\so(3,1)$ (i.e.\ $J^{\mathsf T}\eta+\eta J=0$), or $J\in\mathrm{SO}(3,1)$ (i.e.\
+$\eta(JX,JY)=\eta(X,Y)$).
+\end{theorem}
+
+\begin{proof}
+First, on the space of $J$ with $J^2=-\id$ the two compatibility notions coincide: if
+$J^{\mathsf T}\eta+\eta J=0$ then $\eta(JX,JY)=X^{\mathsf T}J^{\mathsf T}\eta JY=
+-X^{\mathsf T}\eta J^2Y=X^{\mathsf T}\eta Y=\eta(X,Y)$, so $J\in\so(3,1)$ with $J^2=-\id$
+forces $J\in\mathrm{SO}(3,1)$.
+
+\emph{Parity argument.} Suppose $J^2=-\id$ and $\eta(JX,JY)=\eta(X,Y)$. For any $v\neq0$ the
+plane $P_v=\mathrm{span}\{v,Jv\}$ is $J$-invariant, and $\eta(v,Jv)=\eta(Jv,J^2v)=
+-\eta(v,Jv)$ gives $\eta(v,Jv)=0$, while $\eta(Jv,Jv)=\eta(v,v)$; hence $\eta|_{P_v}=
+\mathrm{diag}(a,a)$ with $a=\eta(v,v)$, contributing $(2,0)$ if $a>0$ or $(0,2)$ if $a<0$.
+Decomposing $\R^4$ into two such $\eta$-orthogonal $J$-planes, the number of positive
+eigenvalues of $\eta$ is even and the number of negative eigenvalues is even. But $(1,3)$
+has $n_+=1$ and $n_-=3$, both odd---a contradiction. (Non-degeneracy excludes the
+degenerate $a=0$ plane.)
+\end{proof}
+
+\begin{proposition}[Computational confirmation, exact over $\Q$]\label{prop:sumsq}
+Write a general element of $\so(3,1)$ as $J=\eta A$ with $A$ antisymmetric
+($6$ parameters). Imposing $J^2=-\id$ over $\Q$ yields no real solution; in particular the
+$(0,0)$ entry reduces to $J^2_{00}=a^2+b^2+c^2$ (the three boost parameters), which cannot
+equal $-1$ over $\R$. A discriminating positive control confirms the test is not vacuous:
+the Euclidean form $(4,0)$ \emph{does} admit an explicit compatible $J$.
+\end{proposition}
+
+This is the decisive content of Gate~A: \textbf{no complex-structure orientation source can
+supply $\varepsilon$ on a Lorentzian $(1,3)$ slice}, $u=e_7$ included. Sections~3--4 exhibit
+$u$ as one concrete instance and locate the orientation $u$ actually does carry.
+
+%------------------------------------------------------------------------------
+\section{The $u$-specific instance: $u$ complexifies only the spatial off-diagonal}
+%------------------------------------------------------------------------------
+Construct the endomorphism induced by $u=e_7$ on the slice via the literal $\pi_u$
+mechanism: act on each octonion entry by $u$, then read the result back in slice
+coordinates. On the off-diagonal $\Cu$-entry $x_1=p+q\,e_7$ this is the standard
+$\Cu$ rotation $u\cdot x_1=-q+p\,e_7$, i.e.\ $(p,q)\mapsto(-q,p)$. On the real diagonal
+$\{\beta,\gamma\}$ there is \emph{no} action: $u\cdot\beta=\beta\,e_7$ has vanishing
+real part and is not a Hermitian diagonal---$u$ carries the diagonal \emph{out} of
+$\hh_3(\OO)$. Hence, exact over $\Q$,
+\[
+J_{\text{slice}}=\begin{pmatrix}0&&&\\&0&&\\&&0&-1\\&&1&0\end{pmatrix}_{\{\beta,\gamma,p,q\}},
+\qquad
+J_{\text{slice}}^2=\mathrm{diag}(0,-1,-1,0)\;(\text{Minkowski }\{x_0,x_1,x_2,x_3\}),
+\qquad \rank J_{\text{slice}}=2 .
+\]
+So $J^2\neq-\id_4$: $u$ complexifies only the $\{x_1,x_2\}$ off-diagonal \emph{purely
+spatial} plane ($\eta=(-,-)$ there), while the $\{x_0,x_3\}$ plane carrying the timelike
+$x_0$ is frozen. (Complexifying $\{x_0,x_3\}$ would rotate time into space, which a spatial
+octonion unit $e_7$ structurally cannot do---this is Theorem~\ref{thm:parity} made concrete.)
+
+The induced K\"ahler form $\omega_K(X,Y)=\eta(JX,Y)$ is therefore degenerate:
+$\rank\omega_K=2$ and the Pfaffian $\Pf(\omega_K)=0$, so
+\[
+\omega_K\wedge\omega_K=2\,\Pf(\omega_K)\,\mathrm{vol}=0 .
+\]
+There is no $u$-induced volume form on the $(1,3)$ slice, hence no $u$-fixed sign for
+$\varepsilon$: \textbf{Phase-78 clause~C2 is not repaired.} The construction was
+cross-validated by a second, independent representation $M_2(\Cu)\cong M_2(\mathbb{C})$
+($e_7\mapsto i$, multiply the Hermitian $2\times2$ block by $i\,\id_2$, project back),
+which produces the \emph{identical} $J$ (verifier; HIGH confidence).
+
+%------------------------------------------------------------------------------
+\section{Triangulation: $u$ cleanly orients the Euclidean $(4,0)$ foil --- the wrong space}
+%------------------------------------------------------------------------------
+On the $V_{1/2}$ survivors $\{11,18,19,26\}=\Cu^2$ (the off-diagonal entries $x_2,x_3$
+restricted to $\Cu$), $u$ acts as the standard complex structure on \emph{two} genuine
+$\Cu$-lines, giving $J^2=-\id_4$. The induced metric there is the bare-trace Gram
+$\mathrm{diag}(2,2,2,2)$, signature $(4,0)$---the compact $\OO P^2=F_4/\mathrm{Spin}(9)$
+Fubini--Study metric (the ``foil'' identified in Phase~75). The K\"ahler form is
+non-degenerate, $\Pf(\omega_K)=4\neq0$, so $u$ \emph{does} force an orientation here. But
+this is the internal/Euclidean coframe-\emph{value} space, not the Lorentzian spacetime
+slice where $\varepsilon_{abcd}R^{ab}\wedge e^c\wedge e^d$ lives. The orientation $u$
+supplies is exactly the orientation-ambiguous Euclidean one Phase~78 already had---C2 is not
+helped.
+
+%------------------------------------------------------------------------------
+\section{Guards and the residual (discrete-chirality) thread}
+%------------------------------------------------------------------------------
+\paragraph{\texttt{fp-imported-orientation} guard.} The only operator reaching $J^2=-\id$
+on the slice is a ``keep / pair the diagonal'' map ($\beta\leftrightarrow\gamma$), which is
+\emph{not} the action of $u$ (it is a Weyl swap of $E_{22},E_{33}$, unrelated to $e_7$), and
+even it fails $J^2=-\id$ unless tuned. Asserting or sign-picking such a pairing would be the
+imported orientation under audit, exactly as a posited action was in Phase~78. No
+$u$-intrinsic repair exists.
+
+\paragraph{Residual thread (open question; not pursued).} Theorem~\ref{thm:parity} forecloses
+\emph{continuous} complex-structure orientation sources. It does \emph{not} formally
+foreclose a \emph{discrete} parity datum: the chiral $V_{1/2}$ $8+8$ split (Phase~50,
+$C_{i,i,18}=-\tfrac16$ for $i=1\ldots8$, $+\tfrac16$ for $i=9\ldots16$, $e_7$-linked) can in
+principle fix a sign where a continuous $J$ cannot. We do not pursue it here, and we expect it
+to inherit the same disease one level up: is the $8\leftrightarrow8$ labeling \emph{forced},
+or swappable by an $F_4/\mathrm{Spin}$ automorphism (i.e.\ gauge)? If gauge, it orients
+nothing intrinsically. Logged as an open question only.
+
+%------------------------------------------------------------------------------
+\section{Closing synthesis: the antisymmetric ``$i$'' is internal-gauge-natured}
+%------------------------------------------------------------------------------
+v19.0 is not merely ``another dead route.'' It is the third face of a single structural fact
+about where the program's complex/antisymmetric structure lives. Three intrinsic routes to
+gravity from $\hh_3(\OO)$, on three different tensors, have now each returned a decisive
+negative for the \emph{same} underlying reason:
+\[
+\begin{array}{lll}
+\text{v17.0: symmetric}/V_0\ (\text{cone-Hessian},\ \mathrm{Re}\,\text{QGT}) &\longrightarrow& \texttt{NONE (curved, not Einstein)}\\[2pt]
+\text{v18.0: Lie}/V_0\ (\text{Cartan--MM},\ \text{torsion-free}) &\longrightarrow& \texttt{fp-imported-action}\\[2pt]
+\text{v19.0: antisymmetric}/u\ (\text{complex-structure orientation}) &\longrightarrow& \texttt{fp-no-intrinsic-orientation}
+\end{array}
+\]
+These are three faces of: \emph{the algebra's ``$i$''---the complex structure $u=e_7$ and
+the antisymmetric/Berry sector---is internal-gauge-natured, and Lorentzian spacetime
+structurally rejects it.} This converges with two earlier findings. (i) Phase~76: the Berry
+curvature $\mathrm{Im}(\mathrm{QGT})$ is the internal $\so(6)=\mathrm{SU}(4)$ gauge curvature,
+not gravity. (ii) Gate-A here: $u$ orients the Euclidean $\OO P^2$ foil cleanly while leaving
+the $(1,3)$ slice un-oriented. The holomorphic/complex structure is at home in the
+Euclidean/self-dual ``internal'' half and walls off at full Lorentzian dynamics---the
+Penrose/twistor shape. The publishable closure is therefore not ``$u$ failed'' but: the
+exceptional algebra's complex structure belongs to the internal gauge sector, which is
+precisely why the intrinsic-gravity routes fall short and \emph{why gravity is separate}
+(the Penrose/'t~Hooft reading), now grounded by closing the last unexploited data class.
+
+%------------------------------------------------------------------------------
+\section*{Verdict}
+%------------------------------------------------------------------------------
+\noindent\textbf{Gate~A (human-ratified at the blocking checkpoint; verifier-hardened, HIGH):}
+$\boxed{\texttt{fp-no-intrinsic-orientation}}$ --- the complex structure $u=e_7$ does not
+fix a sign-definite orientation on the $(1,3)$ spacetime slice. Decisively, no compatible
+complex structure exists there at all (Theorem~\ref{thm:parity}); $u$ in particular
+complexifies only the spatial off-diagonal $\Cu$-plane and the Euclidean coframe foil. The
+orientation $\varepsilon$ that the MacDowell--Mansouri contraction requires is \emph{not}
+forced by $u$; Phase-78 clause~C2 survives. The forced-antisymmetric-data route is dead at
+Gate~A. No Gates B/C/D, no requirements, no roadmap (negative-result-is-success). This
+closes milestone v19.0.
+
+\medskip\noindent\emph{Reproducibility.} Driver \texttt{code/cartan\_gateA\_orientation.py}
+(exact over $\Q$, exit~$1$ = kill); independent re-derivation by a different construction
+\texttt{code/cartan\_gateA\_verify\_independent.py} with report
+\texttt{derivations/79-GATE-A-VERIFICATION.md} (HIGH).
+
+\end{document}
