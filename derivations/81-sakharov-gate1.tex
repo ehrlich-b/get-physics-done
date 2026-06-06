@@ -1,0 +1,316 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   fourier_convention=physics, coupling_convention=alpha_s,
+%   renormalization_scheme=MSbar, gauge_choice=Feynman,
+%   spinor_trace=4_in_d4, tr_gamma_munu=0, heat_kernel_a1=E_plus_R_over_6,
+%   one_loop_sign=boson_minus_half_Trlog_fermion_plus_half_Trlog,
+%   squared_Dirac=Lichnerowicz_E_eq_minus_R_over_4_minus_half_gamma_munu_F,
+%   spacetime_block_engine_indices={1,2,3,10}, Vhalf_engine_indices={11,18,19,26},
+%   scheme=proper_time_cutoff_vacuum_Casimir_NO_thermodynamics,
+%   det_SSOT=ring_lemma_verification.py, harness=bulk_geometry_verification.py+cartan_phaseB_curvature.py
+%
+% NOTE: pdflatex is NOT available in this execution environment (checked: `which
+% pdflatex` -> not found). This source is well-formed (balanced environments, all
+% \ref/\eqref resolve to defined \label targets) but was NOT compiled in-env. Compile
+% downstream with `pdflatex 81-sakharov-gate1.tex` (no exotic packages required).
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\STr}{\mathrm{STr}}
+\newcommand{\h}{\mathfrak{h}}
+\newcommand{\Oo}{\mathbb{O}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\Rt}{R^{\mathrm{target}}}
+\title{Gate 1: the $V_{1/2}$ heat-kernel coefficient $a_1$ is a clean $\int R$
+on the soldered metric $g=e\!\cdot\!e$ over $\h_3(\Oo)$}
+\date{2026-06-06 \quad (milestone v21.0, Phase 81; Gate 1 of the Sakharov ladder, run after Gate 0 SURVIVED)}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We verify, exactly over $\QQ$, that the Seeley--DeWitt coefficient $a_1$ obtained by
+integrating out the $V_{1/2}=\mathbf{16}$ chiral Weyl fermions on the soldered Lorentzian
+slice $g=e\!\cdot\!e$ of the exceptional Jordan algebra $\h_3(\Oo)$ is genuinely
+proportional to the Ricci scalar $R[g]$ --- it is \emph{not} contaminated by a gauge
+$\tr(F^2)$ term, by a wave-map target-curvature term, or by an octonionic-associator /
+torsion correction. The single structural fact is that $a_1=\tr(E+\tfrac{1}{6}R)$ carries
+\emph{only} the endomorphism $E$ and the scalar curvature $R\cdot\mathbb{1}$; every
+$R_{\mu\nu}^2,\,R_{\mu\nu\rho\sigma}^2,\,R^2,\,\Box R,\,\tr F^2$ invariant lives one order
+up, in $a_2$. The three candidate contamination channels are each ruled out: (i) the
+internal gauge field strength drops out of $a_1$ because $\tr\gamma^{\mu\nu}=0$; (ii) the
+wave-map target-curvature channel is absent because $V_{1/2}=\mathbf{16}$ of $\mathrm{Spin}(10)$
+is a \emph{linear} spinor representation (flat target, $\Rt\equiv 0$); and (iii) the
+soldering connection $\omega(e)$ is the torsion-free Levi--Civita connection (a
+\emph{checked}, not assumed, fact: the torsion $2$-form vanishes identically over $\QQ$ on a
+position-dependent tetrad), so the fluctuation operator is Laplace-type and $a_1$ has the
+standard Gilkey form. The per-Dirac coefficient is $a_1=-\tfrac13 R$, the residual after
+stripping the $R$-term is \emph{exactly} zero, and the read-off is $c_1=\STr/(4\pi)^2=
+1/(6\pi^2)$, giving a candidate $\kappa^{-1}=c_1\Lambda_f^2$ and $G=3\pi/(8\Lambda_f^2)>0$
+(consistent with the Gate-0 sign; $\Lambda_f$ is the Gate-3 scale, not pinned here). The
+verdict is \textbf{PASS} ($a_1$ clean $\propto R$); Gate 1 does not kill, and the predicted
+real death is deferred to Gate 2 (the v18 $16$-vs-$6$ tensor-support mismatch).
+\end{abstract}
+
+\section{The question and the structural theorem}\label{sec:setup}
+
+Gate 0 of the v21.0 Sakharov ladder established (exactly over $\QQ$, verifier-hardened,
+human-ratified) that the spin-weighted supertrace of the integrated-out $V_{1/2}$ sector is
+$\STr=+8/3>0$, so the induced Newton constant is positive in the proper-time / cutoff
+\emph{vacuum} scheme (Casimir-category; zero temperature; no thermodynamics). Gate 1 asks the
+next question in the menu: is the induced curvature term \emph{clean}? That is, does the
+Seeley--DeWitt expansion of the one-loop effective action produce a term proportional to the
+spacetime Ricci scalar $R[g]$ --- the genuine Einstein--Hilbert structure --- or is it
+polluted by an invariant that is not $\int R$, which would mean the route does not induce
+\emph{gravity} at all but some other curvature functional?
+
+The decisive lever is a theorem of Gilkey. For a Laplace-type operator $D^2=-(\nabla^2+E)$
+on a vector bundle over a $d$-dimensional Riemannian manifold, the heat-kernel
+(Seeley--DeWitt) coefficient at coincidence is
+\begin{equation}\label{eq:gilkey-a1}
+a_1(x,x)=\tr\!\left(E(x)+\tfrac{1}{6}R(x)\,\mathbb{1}\right),
+\end{equation}
+where $E$ is the bundle endomorphism, $R$ is the scalar curvature, $\mathbb{1}$ is the
+bundle identity, and the trace is over the bundle indices (Vassilevich,
+\textit{Phys.\ Rept.}\ \textbf{388} (2003) 279, \S4.3; Gilkey, \textit{Invariance Theory}).
+The content of \eqref{eq:gilkey-a1} that drives this gate is \emph{structural}:
+\begin{proposition}[$a_1$ carries only $E$ and $R$]\label{prop:a1-structure}
+The coefficient $a_1$ contains \emph{only} the endomorphism $E$ and the scalar curvature
+$R\cdot\mathbb{1}$. No quadratic curvature invariant
+($R_{\mu\nu}^2$, $R_{\mu\nu\rho\sigma}^2$, $R^2$, $\Box R$) and no gauge invariant
+$\tr F^2$ appears in $a_1$; all of these first appear one order up, in $a_2$ (Gilkey's
+$a_4$).
+\end{proposition}
+Consequently, $a_1$ can fail to be a clean $\int R$ \emph{only} if the endomorphism $E$
+itself carries a non-$R$ curvature invariant that survives the bundle trace with a nonzero
+coefficient. There are exactly three candidate channels for such a contaminant, which we
+treat in \S\S\ref{sec:gauge}--\ref{sec:torsion}, and dispatch in
+\S\ref{sec:residual}--\S\ref{sec:verdict}.
+
+\paragraph{Conventions (inherited, locked).} Metric signature mostly-minus
+$(+,-,-,-)$; the soldered spacetime metric is $g=e\cdot e$ with $e=\pi_u(dE)$ on the
+$\h_3(\Oo)$ Peirce slice (engine indices $\{1,2,3,10\}$), and the $V_{1/2}$ matter survivors
+live on $\{11,18,19,26\}$. The $d=4$ Dirac spinor trace is $\tr\mathbb{1}=4=2^{d/2}$, and a
+Weyl fermion is half the Dirac bundle. The squared Dirac operator is the Lichnerowicz form
+$(i\gamma\!\cdot\!\nabla)^2=\nabla^2-R/4$, augmented by minimal gauge coupling (\S\ref{sec:gauge}).
+All arithmetic is exact over $\QQ$ (and $\QQ\!\cdot\!\pi$ for the read-off); no float appears
+on any decisive path.
+
+\section{Channel 1: the gauge field strength drops out of $a_1$}\label{sec:gauge}
+
+The minimally gauge-coupled squared Dirac operator is the Lichnerowicz--Weitzenb\"ock form
+\begin{equation}\label{eq:lich-gauge}
+(i\slashed{D})^2=-\nabla^2+\tfrac14 R+\tfrac12\,\gamma^{\mu\nu}F_{\mu\nu},
+\qquad\Longrightarrow\qquad
+E=-\tfrac14 R-\tfrac12\,\gamma^{\mu\nu}F_{\mu\nu},
+\end{equation}
+where $\nabla$ is the spacetime$+$gauge covariant derivative and $F_{\mu\nu}$ is the internal
+field strength (here the $\mathfrak{so}(6)=\mathfrak{su}(4)$ curvature identified in
+Phase~76 as the Berry / $\mathrm{Im}\,\mathrm{QGT}$ sector --- \emph{not} gravity).
+Taking the bundle trace of $E+\tfrac16 R$ over the spinor$\otimes$gauge indices, the two
+pieces of $E$ behave very differently:
+\begin{align}
+\tr\!\left(-\tfrac14 R\right)&=\tr(\mathbb{1})\cdot\left(-\tfrac14 R\right)=4\cdot\left(-\tfrac14 R\right)=-R\quad\text{(per Dirac)},\label{eq:lich-trace}\\
+\tr\!\left(-\tfrac12\gamma^{\mu\nu}F_{\mu\nu}\right)&=-\tfrac12 F_{\mu\nu}\,\tr(\gamma^{\mu\nu})=0,\label{eq:F-trace}
+\end{align}
+because $\tr\gamma^{\mu\nu}=0$ identically: the antisymmetrized product of two distinct
+gamma matrices is traceless in any dimension. Hence \emph{the gauge field strength drops out
+of $a_1$}. The $\tr(F^2)$-type terms --- which would arise from $\tr(\gamma^{\mu\nu}
+\gamma^{\rho\sigma})F_{\mu\nu}F_{\rho\sigma}\propto F^2$ --- appear only in $a_2$, through the
+$\tfrac12\tr E^2$ piece, and merely renormalize the gauge kinetic term; they are irrelevant
+to the induced Einstein--Hilbert coefficient. Combining \eqref{eq:lich-trace}--\eqref{eq:F-trace}
+with the universal $+\tfrac16 R$ of \eqref{eq:gilkey-a1},
+\begin{equation}\label{eq:a1-dirac}
+a_1^{\text{Dirac}}=\tr\!\left(E+\tfrac16 R\right)
+=4\left(-\tfrac14+\tfrac16\right)R
+=4\cdot\left(-\tfrac{1}{12}\right)R
+=-\tfrac13\,R,
+\end{equation}
+a clean multiple of $R$, with the per-Dirac-component coefficient $-\tfrac14+\tfrac16=-\tfrac{1}{12}$
+and the per-Weyl coefficient $-\tfrac16$ (half the Dirac bundle). These reproduce the Gate-0
+bundle values: with the Fermi statistics sign $s=-1$, the Weyl signed contribution is
+$(-1)\cdot(-\tfrac16)=+\tfrac16$ and the Dirac signed contribution is $(-1)\cdot(-\tfrac13)=+\tfrac13$,
+summing to $\STr=16\cdot(+\tfrac16)=+\tfrac83$.
+
+\section{Channel 2: the wave-map target-curvature term is absent (linear rep)}\label{sec:wavemap}
+
+The prompt writes the matter kinetic functional as $\langle DM,DM\rangle$ (``wave-map /
+Dirac''). This is the one channel that requires genuine physical input, because a
+\emph{nonlinear} sigma-model $\phi:\text{spacetime}\to M_{\mathrm{target}}$ into a
+\emph{curved} target injects into the one-loop fluctuation endomorphism a term proportional
+to the \emph{target} Riemann tensor contracted with background gradients (Friedan,
+\textit{Ann.\ Phys.}\ \textbf{163} (1985) 318; Alvarez-Gaum\'e--Freedman--Mukhi,
+\textit{Ann.\ Phys.}\ \textbf{134} (1981) 85):
+\begin{equation}\label{eq:wavemap-contam}
+E\;\supset\;-\,\Rt_{abcd}(\bar\phi)\,\partial_\mu\bar\phi^{\,b}\,\partial^\mu\bar\phi^{\,d}.
+\end{equation}
+This endomorphism is proportional to $\Rt(\partial\bar\phi)^2$, which is \emph{not}
+proportional to the spacetime Ricci scalar $R[g]$. Traced into $a_1$ it would leave a
+surviving non-$R$ invariant with generically nonzero coefficient, so $a_1$ would fail to be
+a clean $\int R$ and the gate would die.
+
+The decisive physical fact is that this channel is \emph{absent} for $V_{1/2}$:
+\begin{lemma}[flat target]\label{lem:linear-rep}
+$V_{1/2}=\mathbf{16}$ of $\mathrm{Spin}(10)$ is a \emph{linear} spinor representation --- one
+Standard-Model generation of spin-$\tfrac12$ fermions (Paper~7; the $\h_3(\Oo)$ Peirce
+half-eigenspace). The field is a section of a \emph{flat} fermionic bundle (the $16$-dimensional
+spinor representation, equipped with the constant $\mathrm{Spin}(10)$-invariant bilinear)
+twisted by the spacetime spin connection $\omega(e)$ and the internal $\mathrm{SU}(4)$ gauge
+connection. The soldering $e=\pi_u(dE)$ acts \emph{linearly} on $V_{1/2}$; there is no curved
+coset target. Hence the target Riemann tensor vanishes identically, $\Rt\equiv 0$, and the
+contaminant \eqref{eq:wavemap-contam} is identically absent.
+\end{lemma}
+A linear representation is a vector space, hence flat: its ``target metric'' is the constant
+invariant form. The word ``wave-map'' in the prompt is the generic name for the kinetic
+functional $\langle DM,DM\rangle$; for a linear representation this is just the
+(gauge$+$gravity)-twisted Dirac/Klein--Gordon kinetic term, with a flat target. Only a
+genuine \emph{coset} sigma-model (e.g.\ an $E_6/(\cdots)$ scalar manifold) would inject target
+curvature, and $V_{1/2}$ is not of that type. We verify computationally that the detection
+machinery is \emph{not} a blind spot: feeding a synthetic curved-target term into $a_1$ produces
+a nonzero $\partial a_1/\partial \Rt=-4\neq0$, confirming that the absence reported above is a
+genuine finding rather than an undetectable case (the residual test of \S\ref{sec:residual}).
+
+\section{Channel 3: the operator is Laplace-type (torsion-free, checked)}\label{sec:torsion}
+
+The structural theorem \eqref{eq:gilkey-a1} presupposes that the fluctuation operator is
+\emph{Laplace-type}, $D^2=-(\nabla^2+E)$ with $\nabla$ metric-compatible. This is the one
+assumption that must be \emph{checked} rather than assumed, because the underlying algebra is
+non-associative: a leftover octonionic-associator term in the covariant derivative $D$ of
+$\langle DM,DM\rangle$ would render the operator non-Laplace-type, and the heat-kernel
+coefficient of a non-Laplace-type operator does not reduce to $\tr(E+\tfrac16 R)$. Equally, a
+nonzero torsion would add a $\propto T^2$ correction.
+
+Milestone v18 (Phase~77) established, exactly over $\QQ$, that the soldering connection
+$\omega(e)$ built from the tetrad $e=\pi_u(dE)$ (with $g=e\cdot e$) is the \emph{torsion-free}
+Levi--Civita connection, and that the second-Cartan-structure curvature $R[\omega]$ equals the
+metric Levi--Civita Riemann tensor of $g$ on every sampled component. We re-confirm the
+torsion-free property here on a genuinely position-dependent tetrad, using the same harness
+routines: with the rational warped-Lorentzian frame $e^a{}_\mu(x)=\mathrm{diag}(1,1+x_0^2,1,1)$,
+the closed-form Levi--Civita connection
+\begin{equation}\label{eq:omega-formula}
+\omega_\mu{}^{ab}=\tfrac12 e^{\nu a}\!\left(\partial_\mu e_\nu^{\,b}-\partial_\nu e_\mu^{\,b}\right)
+-\tfrac12 e^{\nu b}\!\left(\partial_\mu e_\nu^{\,a}-\partial_\nu e_\mu^{\,a}\right)
+-\tfrac12 e^{\rho a}e^{\sigma b}\!\left(\partial_\rho e_\sigma^{\,c}-\partial_\sigma e_\rho^{\,c}\right)e_{\mu c}
+\end{equation}
+is antisymmetric, $\omega^{ab}=-\omega^{ba}$, and the torsion $2$-form
+\begin{equation}\label{eq:torsion}
+\Theta^a{}_{\mu\nu}=\partial_\mu e^a_\nu-\partial_\nu e^a_\mu
++\omega_\mu{}^a{}_b\,e^b_\nu-\omega_\nu{}^a{}_b\,e^b_\mu
+\end{equation}
+vanishes \emph{identically} over $\QQ$. Because the tetrad carries genuine $x_0$-dependence,
+this is a non-trivial test: a non-Levi--Civita connection would yield a nonzero $\Theta$.
+Hence the matter covariant derivative $D$ in $\langle DM,DM\rangle$ is the standard
+metric-compatible $\nabla$ (plus the gauge connection), the operator is Laplace-type, and
+$a_1$ has the standard Gilkey form with no associator and no $T^2$ correction.
+
+\begin{remark}[distinct from the v20 Einstein--Cartan torsion]
+The torsion that vanishes here is that of the \emph{matter Laplacian's} connection, the
+Levi--Civita $\omega(e)$. It is a different object from the \emph{geometric} Einstein--Cartan
+torsion of $e$ sourced by the chiral spin current, which milestone v20 found to be nonzero.
+The two refer to different connections; the v20 finding does not reintroduce a $T^2$ term in
+the matter heat kernel.
+\end{remark}
+
+\section{The $a_1\propto R$ residual test (decisive, exact over $\QQ$)}\label{sec:residual}
+
+Assembling \eqref{eq:a1-dirac} with the (vanishing) channels of \S\S\ref{sec:gauge}--\ref{sec:torsion},
+the full symbolic $a_1$ (carrying the gauge magnitude $F$ and a placeholder target-curvature
+$\Rt$ for the synthetic test) is
+\begin{equation}\label{eq:a1-full}
+a_1=\tr(E+\tfrac16 R)= -\tfrac13\,R+0\cdot F+0\cdot \Rt .
+\end{equation}
+Decomposing $a_1$ into its coefficients on the curvature monomials it \emph{could} carry, and
+forming the residual after stripping the wanted $R$-term, we find exactly over $\QQ$:
+\begin{equation}\label{eq:residual}
+\frac{\partial a_1}{\partial R}=-\tfrac13,\qquad
+\frac{\partial a_1}{\partial F}=0,\qquad
+\frac{\partial a_1}{\partial \Rt}=0,\qquad
+a_1-\Big(\tfrac{\partial a_1}{\partial R}\Big)R=0,
+\end{equation}
+and $a_1$ is first-order in $R$ (degree $\le 1$), so no $R^2$, $\Box R$, or $R_{\mu\nu}^2$ piece
+is present (consistent with Proposition~\ref{prop:a1-structure}). The residual is
+\emph{exactly} zero: the only curvature structure surviving the bundle trace in $a_1$ is
+$R\cdot(\text{scalar rational})$. As a guard against a blind spot, the same decomposition
+applied to a synthetically contaminated $a_1$ (with the curved-target term of
+\eqref{eq:wavemap-contam} switched on) returns $\partial a_1/\partial\Rt=-4\neq0$ and flags a
+nonzero non-$R$ residual --- the test fires on contamination.
+
+\section{Read-off of $c_1$ and the induced coupling}\label{sec:c1}
+
+With $\STr=+8/3$ from Gate 0 and the explicit $(4\pi)^{-2}$ prefactor of the
+quadratically-divergent $a_1$ term in $W=\pm\tfrac12\Tr\log D^2$, the induced Newton coupling is
+\begin{equation}\label{eq:c1}
+\frac{1}{16\pi G}=c_1\,\Lambda_f^2,\qquad
+c_1=\frac{\STr}{(4\pi)^2}=\frac{8/3}{16\pi^2}=\frac{1}{6\pi^2},
+\end{equation}
+a rational multiple of $\pi^{-2}$, exact over $\QQ\!\cdot\!\pi$. The candidate induced
+gravitational coupling, pinned up to the Gate-3 scale $\Lambda_f$ (the $\rho_J$ fixed-point
+scale, out of scope here), is therefore
+\begin{equation}\label{eq:kappa-G}
+\kappa^{-1}\equiv\frac{1}{16\pi G}=\frac{1}{6\pi^2}\,\Lambda_f^2,
+\qquad
+G=\frac{1}{16\pi c_1\Lambda_f^2}=\frac{3\pi}{8\,\Lambda_f^2}>0,
+\end{equation}
+positive, consistent with the Gate-0 sign. The dimensionless content delivered by Gate 1 is
+$c_1=1/(6\pi^2)$; the numerical magnitude awaits $\Lambda_f$ at Gate 3.
+
+\section{Verdict}\label{sec:verdict}
+
+The verdict is a deterministic function of three computed flags --- the non-$R$ residual, the
+torsion, and the linearity of the representation --- not a hardwired label. The mapping is
+\begin{equation}\label{eq:verdict}
+\text{Gate 1}=
+\begin{cases}
+\text{DEAD (}a_1\text{ not clean }\propto R\text{)} & \text{if a non-}R\text{ invariant survives in }a_1,\\
+\text{DEAD (non-Laplace-type)} & \text{if the connection has torsion / an associator,}\\
+\text{DEAD (curved-target wave-map)} & \text{if }V_{1/2}\text{ is a curved sigma-model,}\\
+\text{PASS (}a_1\text{ clean }\propto R\text{)} & \text{otherwise.}
+\end{cases}
+\end{equation}
+The computed inputs are: non-$R$ residual $=0$ (\S\ref{sec:residual}), torsion $=0$
+(\S\ref{sec:torsion}), linear representation / flat target (\S\ref{sec:wavemap}). All three
+clean clauses hold, so
+\begin{equation}\label{eq:pass}
+\boxed{\ \text{Gate 1: PASS}\quad a_1=c_1\,\Lambda_f^2\,R=\frac{1}{6\pi^2}\,\Lambda_f^2\,R\quad(\text{clean }\propto R)\ }
+\end{equation}
+The three contamination channels are each independently demonstrated to be detectable
+(synthetic injections flip the verdict to the corresponding DEAD branch), pre-empting a
+hardwired-boolean false positive. Gate 1 therefore does \emph{not} kill the route: with a
+positive sign (Gate 0) and a clean Einstein--Hilbert coefficient (Gate 1, here), the route
+lives to Gate 2 --- the v18 tensor-support mismatch, the predicted real death (the induced
+scalar $\kappa$ cannot repair the $16$-vs-$6$ component mismatch between $G[g]$ and $\kappa T$,
+because a scalar coupling cannot change tensor rank).
+
+\paragraph{Strength of the claim.} This is a PASS at true strength of \emph{the second of four
+gates}, not a claim that ``Sakharov induced gravity works.'' Gate 1 certifies only that the
+induced curvature term is a clean $\int R$; it makes no statement about whether the closure
+$G[g]=\kappa T[M]$ holds (Gates 2--3). The $a_1=E+R/6$ structure is textbook (Gilkey;
+Vassilevich), the three channel arguments are exact over $\QQ$ with the wave-map channel
+ruled out by the linearity of the $\mathbf{16}$, and the one genuine risk (Laplace-type) is
+checked, not assumed.
+
+\section*{Sources}
+\begin{itemize}
+\item P.\ Gilkey, \textit{Invariance Theory, the Heat Equation, and the Atiyah--Singer
+Index Theorem} --- the coefficient $a_2(x,x)=E+R/6$ (the $a_1$ structure: only $E$ and $R$),
+and $a_4$ (where $R_{\mu\nu}^2,R_{\mu\nu\rho\sigma}^2,R^2,\Box R,F^2$ live).
+\item D.\ V.\ Vassilevich, ``Heat kernel expansion: user's manual,'' \textit{Phys.\ Rept.}\
+\textbf{388} (2003) 279 (hep-th/0306138), \S2 (Laplace-type requirement), \S4.3
+($a_2=E+R/6$, the spinor/gauge endomorphisms, $\tr\gamma^{\mu\nu}=0$).
+\item D.\ Friedan, ``Nonlinear models in $2+\varepsilon$ dimensions,'' \textit{Ann.\ Phys.}\
+\textbf{163} (1985) 318 --- the sigma-model background-field heat kernel and the
+target-Riemann endomorphism $\Rt(\partial\bar\phi)^2$.
+\item L.\ Alvarez-Gaum\'e, D.\ Z.\ Freedman, S.\ Mukhi, \textit{Ann.\ Phys.}\ \textbf{134}
+(1981) 85 --- the background-field method for sigma-model one-loop.
+\item Frolov \& Fursaev, hep-th/9607104 --- the induced-$G$ weights cross-checked at Gate 0
+($\STr=+8/3$).
+\item \texttt{code/cartan\_phaseB\_curvature.py} (v18 Ph77) --- the torsion-free Levi--Civita
+$\omega(e)$ and $R[\omega]=$ metric Riemann, exact over $\QQ$ (the \S\ref{sec:torsion} fact).
+\item \texttt{code/bulk\_geometry\_verification.py} --- the exact-over-$\QQ$ $R[g=e\cdot e]\neq0$
+anchor on the matter-bearing sample.
+\end{itemize}
+
+\end{document}
