@@ -1,0 +1,260 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   fourier_convention=physics, coupling_convention=alpha_s,
+%   renormalization_scheme=MSbar, gauge_choice=Feynman,
+%   spinor_trace=4_in_d4, heat_kernel_a1=E_plus_R_over_6,
+%   one_loop_sign=boson_minus_half_Trlog_fermion_plus_half_Trlog,
+%   squared_Dirac=Lichnerowicz_E_eq_minus_R_over_4,
+%   spacetime_block_engine_indices={1,2,3,10}, Vhalf_engine_indices={11..26},
+%   scheme=proper_time_cutoff_vacuum_Casimir_NO_thermodynamics,
+%   det_SSOT=ring_lemma_verification.py, harness=bulk_geometry_verification.py
+%
+% NOTE: pdflatex is NOT available in this execution environment (checked: `which
+% pdflatex` -> not found). This source is well-formed (balanced environments, all
+% \ref/\eqref resolve to defined \label targets) but was NOT compiled in-env. Compile
+% downstream with `pdflatex 81-sakharov-gate0.tex` (no exotic packages required).
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\STr}{\mathrm{STr}}
+\newcommand{\h}{\mathfrak{h}}
+\newcommand{\Oo}{\mathbb{O}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\tr}{\mathrm{tr}}
+\title{Gate 0: the SIGN of the Sakharov induced Newton constant from the chiral
+$V_{1/2}$ matter on the soldered metric $g=e\!\cdot\!e$ over $\h_3(\Oo)$}
+\date{2026-06-06 \quad (milestone v21.0, Phase 81; a fail-fast Gate-0 cheap kill)}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We compute, exactly over $\QQ$, the sign of the one-loop induced Newton constant
+obtained by integrating out the $V_{1/2}=\mathbf{16}$ chiral Weyl fermions (no bosonic
+partners) on the soldered Lorentzian slice $g=e\!\cdot\!e$ of the exceptional Jordan
+algebra $\h_3(\Oo)$, in Sakharov's proper-time / cutoff \emph{vacuum} scheme
+(Casimir-category; zero temperature; no thermodynamics). The spin-weighted supertrace
+is $\STr=+8/3>0$, so the induced $1/(16\pi G)>0$ and the induced $G>0$ (attractive
+gravity). The single load-bearing fact is that a Dirac fermion carries \emph{two}
+relative minus signs --- Fermi statistics and the Lichnerowicz endomorphism $E=-R/4$
+--- which \emph{cancel}, giving the same (positive) sign as a minimal scalar. We
+cross-check the entire sign chain against the published Frolov--Fursaev induced-$G$
+weights (Dirac:scalar $=2:1$, Weyl:scalar $=1:1$, conformal scalar $=0$) and they agree
+exactly. Gate 0 therefore does \emph{not} kill the route: the verdict is
+\textbf{SURVIVES} $(G>0)$, with \texttt{sign\_forced=False} (the scheme is a choice;
+Adler) and \texttt{circularity=False} (no bosonic partners imported). The predicted
+real death is deferred to Gate 2 (the v18 tensor-support mismatch).
+\end{abstract}
+
+\section{The question and the scheme}\label{sec:setup}
+
+The gravity-from-$\h_3(\Oo)$ program has four sealed negative corners (milestones
+v17--v20). The Sakharov route is the fifth and last live test: rather than
+\emph{positing} an Einstein--Hilbert action, one asks whether integrating out the
+$V_{1/2}$ matter on the soldered background $g=e\!\cdot\!e$ \emph{induces} one with the
+right sign and tensor structure. The gates run in order, stopping at the first failure;
+Gate 0 is the cheapest, deciding only the \emph{sign} of the induced $G$.
+
+We work strictly in Sakharov's original framework: the zero-temperature one-loop
+\emph{vacuum} effective action (Casimir-category). No entropy, horizon, ensemble, or
+equation of state enters; those belong to the rejected thermodynamic route. The
+one-loop effective action of a fluctuation operator $D^2$ is
+\begin{equation}\label{eq:Weff}
+W[g]=\mp\tfrac12\,\Tr\log D^2
+   =\pm\tfrac12\int_{\delta}^{\infty}\frac{d\tau}{\tau}\,\Tr\, e^{-\tau D^2},
+\end{equation}
+with the upper sign for bosons and the lower for fermions (the locked convention:
+$W_{\rm bos}=-\tfrac12\Tr\log D^2$, $W_{\rm ferm}=+\tfrac12\Tr\log D^2$, from the
+Gaussian integrals $\det^{-1/2}$ vs $\det^{+1}$). The proper-time lower cutoff
+$\delta=\Lambda^{-2}$ is the regulator.
+
+\section{The heat-kernel coefficient and the induced $1/G$}\label{sec:a1}
+
+For a Laplace-type operator $D^2=-(\nabla^2+E)$ the Seeley--DeWitt expansion
+$\Tr\,e^{-\tau D^2}\sim(4\pi\tau)^{-d/2}\sum_k\tau^k\!\int\! a_k\sqrt{g}$ has, at
+coincidence in any dimension,
+\begin{equation}\label{eq:a1}
+a_1(x,x)=E(x)+\tfrac16 R(x)
+\end{equation}
+(Vassilevich, \emph{Heat kernel expansion: user's manual}, Phys.\ Rept.\ 388 (2003) 279,
+hep-th/0306138, \S4.3; Gilkey). In $d=4$ the $a_1$ term carries the quadratic
+divergence: $\int_\delta(d\tau/\tau)\,\tau^{-1}=\delta^{-1}\equiv\Lambda^2$. Hence
+\begin{equation}\label{eq:induced}
+\frac{1}{16\pi G}=\frac{\Lambda^2}{(4\pi)^2}\,\STr,
+\qquad
+\STr=\sum_{\text{fields}} s_i\,\tr_i\!\big(E_i+\tfrac16 R\big),
+\end{equation}
+where $s=+1$ (boson) / $s=-1$ (fermion) is the statistics sign from \eqref{eq:Weff}.
+The common prefactor $\Lambda^2/(4\pi)^2>0$ is field-independent, so
+$\mathrm{sign}(G)=\mathrm{sign}(\STr)$. The absolute sign is anchored by the standard
+Sakharov normalization in which a \emph{minimal scalar} gives $G>0$, i.e.\ coefficient
+$+1/6$ (Sakharov 1967; Visser, gr-qc/0204062).
+
+The bundle-traced curvature coefficient $\tr(E+R/6)$, stripped of the universal $R$, is
+a pure rational for each field. We build it from primitives $(E,\;\tr\mathbf{1},\;s)$ so
+that every sign is auditable.
+
+\subsection*{(a) Real scalar (non-minimal $\xi$)}
+$E=-\xi R$, $\tr\mathbf{1}=1$, $s=+1$:
+\begin{equation}\label{eq:scalar}
+\tr\!\big(E+\tfrac16 R\big)=\big(\tfrac16-\xi\big)R
+\quad\Longrightarrow\quad
+\text{signed contribution }=\big(\tfrac16-\xi\big).
+\end{equation}
+Minimal ($\xi=0$): $+1/6$. Conformal ($\xi=\tfrac16$): exactly $0$ --- a conformal
+scalar induces no $1/G$ (a famous check). For $\xi>1/6$ the contribution is negative:
+the scalar sign is dialable by $\xi$.
+
+\subsection*{(b) Dirac fermion --- the crux (two minus signs cancel)}
+The locked squared Dirac operator is the Lichnerowicz form
+$(i\gamma\!\cdot\!\nabla)^2=\nabla^2-\tfrac14 R$, so in $D^2=-(\nabla^2+E)$ the
+endomorphism is $E=-\tfrac14 R$, and the $d=4$ spinor trace is $\tr\mathbf{1}=4$. Thus
+\begin{equation}\label{eq:dirac-bundle}
+\tr\!\big(E+\tfrac16 R\big)=4\big(-\tfrac14+\tfrac16\big)R
+   =4\cdot\big(-\tfrac{1}{12}\big)R=-\tfrac13 R,
+\end{equation}
+which is \emph{negative}. This is minus sign \#2 (the Lichnerowicz endomorphism). Minus
+sign \#1 is the statistics factor $s=-1$. Their product is the signed contribution
+\begin{equation}\label{eq:dirac-signed}
+s\cdot\tr\!\big(E+\tfrac16 R\big)=(-1)\cdot\big(-\tfrac13\big)=+\tfrac13,
+\end{equation}
+\emph{positive}: a Dirac fermion induces $1/(16\pi G)$ with the \emph{same} sign as a
+minimal scalar, and twice the magnitude. The naive ``fermion $=$ minus $=$ anti-gravity''
+shortcut keeps only minus \#1 and so produces a spurious $G<0$; it forgets that the
+Lichnerowicz coupling already makes the bundle coefficient negative.
+
+\subsection*{(b$'$) Weyl fermion}
+A Weyl fermion has half the Dirac degrees of freedom, the same $E=-R/4$, and the same
+statistics $s=-1$: bundle coefficient $-\tfrac16$, signed contribution
+\begin{equation}\label{eq:weyl}
+(-1)\cdot\big(-\tfrac13\big)\cdot\tfrac12=+\tfrac16.
+\end{equation}
+
+\subsection*{(c) Massless vector (circularity sub-check only)}
+For completeness, a massless vector (vector minus two ghost scalars, the standard
+gauge/ghost bookkeeping) has net bundle coefficient $-\tfrac13$ and $s=+1$, hence signed
+contribution $-\tfrac13$: the \emph{opposite} sign. The boson that gives $G<0$ is the
+\textbf{vector}, not the fermion. This number is gauge/ghost-convention dependent
+(medium confidence) and is \emph{not} in $V_{1/2}$; it matters only for the circularity
+sub-check (\S\ref{sec:flags}) and is to be reconfirmed against Visser's Table~1.
+
+\begin{remark}[Do not double-count the statistics sign]\label{rem:double}
+The $\pm\tfrac12\Tr\log$ convention in \eqref{eq:Weff} \emph{is} the statistics sign;
+the factor $s=\pm1$ in \eqref{eq:induced} is the same sign expressed once. Using both
+the $+\tfrac12$ fermionic $\Tr\log$ \emph{and} a separate $s=-1$ would double-flip to a
+spurious $G<0$. We use it exactly once, as $s$.
+\end{remark}
+
+\section{The supertrace for $V_{1/2}$}\label{sec:str}
+
+The Peirce decomposition of $\h_3(\Oo)$ is $V_1(\mathbf{1})\oplus
+V_{1/2}(\mathbf{16})\oplus V_0(\mathbf{10})$, with $V_{1/2}=\mathbf{16}$ of $\mathrm{Spin}(10)$
+$=$ one Standard-Model generation $=$ $16$ complex Weyl fermions and \emph{no} bosonic
+partners (Paper 7; the harness Peirce half-eigenspace, engine indices $\{11..26\}$).
+Therefore the supertrace \eqref{eq:induced} over this sector is purely fermionic:
+\begin{equation}\label{eq:str}
+\STr=16\cdot\Big(+\tfrac16\Big)=+\tfrac83
+\quad\Big(=8\cdot\big(+\tfrac13\big)\ \text{counting $16$ Weyl as $8$ Dirac}\Big).
+\end{equation}
+Both counts agree exactly over $\QQ$. Since $\STr=+\tfrac83>0$,
+\begin{equation}\label{eq:Gsign}
+\frac{1}{16\pi G}=\frac{\Lambda^2}{(4\pi)^2}\cdot\frac83>0
+\quad\Longrightarrow\quad G>0\quad\text{(attractive).}
+\end{equation}
+
+\section{Independent cross-check: Frolov--Fursaev}\label{sec:ff}
+
+Frolov \& Fursaev (\emph{Statistical Origin of Black Hole Entropy in Induced Gravity},
+hep-th/9607104) give the explicit induced-$G$ formula
+\begin{equation}\label{eq:ff}
+\frac1G=\frac{1}{12\pi}\Big[\sum_s(1-6\xi_s)\,m_s^2\ln m_s^2
+   +2\sum_D m_d^2\ln m_d^2\Big].
+\end{equation}
+Reading off the per-field weight (normalized to a minimal scalar $=1$): minimal scalar
+$(1-6\cdot0)=1$, conformal scalar $(1-6\cdot\tfrac16)=0$, Dirac $=2$, Weyl $=1$. These
+are exactly the heat-kernel signed contributions of \S\ref{sec:a1} after normalizing by
+the minimal scalar's $+1/6$:
+\begin{equation}\label{eq:match}
+\frac{+1/6}{+1/6}=1,\quad \frac{0}{+1/6}=0,\quad \frac{+1/3}{+1/6}=2,\quad
+\frac{+1/6}{+1/6}=1.
+\end{equation}
+The two independent derivations agree term by term, confirming the sign bookkeeping
+(in particular the two-minus cancellation \eqref{eq:dirac-signed}). Replacing the
+infrared $m^2\ln m^2$ by the leading cutoff divergence $-\Lambda^2$ gives the cutoff
+version with the same weights.
+
+\section{The flags: circularity and forced-ness}\label{sec:flags}
+
+\paragraph{Circularity (\texttt{circularity=False}).} The positivity \eqref{eq:Gsign}
+arises from the fermions' \emph{own} Lichnerowicz endomorphism $E=-R/4$: the statistics
+minus and the negative bundle coefficient $-1/3$ cancel to $+1/3$ per Dirac. No
+$V_0$/bosonic supergravity partner is imported ($n_{\rm boson}=0$ in \eqref{eq:str}).
+Hence the route does \emph{not} collapse into the circular GST structure (KILL D is not
+triggered). Had $\STr$ instead come out $\le 0$ and required added bosons to reach
+$G>0$, that branch would set \texttt{circularity=True} (DEAD-by-circularity); it is a
+recorded no-op here.
+
+\paragraph{Forced-ness (\texttt{sign\_forced=False}).} Two reasons. (a) The sign is
+regularization-dependent: Adler (\emph{Rev.\ Mod.\ Phys.}\ 54 (1982) 729) states the
+induced Newton constant is ``not positive in general,'' and the cutoff-vs-zeta scheme
+can flip the \emph{scalar} sign; we \emph{commit} to Sakharov's proper-time/cutoff
+vacuum scheme, but that commitment is a choice. (b) Any scalar wave-map admixture would
+carry a tunable $\xi$ via \eqref{eq:scalar}, dialable to either sign. Inspecting the
+actual matter model: $V_{1/2}=\mathbf{16}$ of $\mathrm{Spin}(10)$ is a chiral spinor,
+i.e.\ purely fermionic, so it carries \emph{no} $\xi$ (Lichnerowicz fixes $E=-R/4$).
+Thus the fermion sign \emph{is} forced \emph{within} the scheme, but because the scheme
+itself is a choice, the overall report is \texttt{sign\_forced=False}.
+
+\section{The curvature anchor}\label{sec:anchor}
+
+The induced term \eqref{eq:induced} is proportional to $R[g]$; if $R$ vanished
+identically the induced Einstein--Hilbert coefficient would be vacuous. Reusing the warm
+v18 (Phase 77) harness \texttt{bulk\_geometry\_verification.spacetime\_curvature\_of\_g}
+on the locked slice (spacetime block engine indices $\{1,2,3,10\}$, $V_{1/2}$ matter
+survivors $\{11,18,19,26\}$, $\eta=\mathrm{diag}(+1,-1,-1,-1)$), with a rational matter
+sample $M\neq0$, gives a nonzero exact rational
+\begin{equation}\label{eq:Ranchor}
+R[g=e\!\cdot\!e]\Big|_{M\neq0}
+=\frac{14187524733311967018208791837}{634906109300195099205387025}\neq0,
+\qquad
+R[g=e\!\cdot\!e]\Big|_{M=0}=0,
+\end{equation}
+both exact over $\QQ$. The $M=0$ baseline is the (B1-derived) flat Minkowski vacuum, so
+the induced term has the correct flat-vacuum reference. (The clean statement
+$a_1\propto R$, free of non-associativity or wave-map target-curvature contamination,
+is Gate 1's responsibility and is not asserted here.)
+
+\section{Verdict}\label{sec:verdict}
+
+\begin{proposition}[Gate 0]\label{prop:gate0}
+In Sakharov's proper-time/cutoff vacuum scheme, integrating out the $V_{1/2}=\mathbf{16}$
+chiral Weyl fermions on $g=e\!\cdot\!e$ induces a Newton constant with
+$\STr=+8/3>0$, hence $G>0$ (attractive). The sign is not forced
+(\texttt{sign\_forced=False}; scheme choice plus potential $\xi$ freedom) and is not
+circular (\texttt{circularity=False}; the fermions self-supply the positive sign).
+Verdict: \textbf{SURVIVES}.
+\end{proposition}
+
+The deterministic verdict map is a pure function of the exact-over-$\QQ$ inputs:
+$\STr<0\to$ DEAD $(G<0)$; $\STr>0$ and circular $\to$ DEAD-by-circularity; $\STr>0$ and
+non-circular $\to$ SURVIVES $(G>0)$; $\STr=0\to$ INCONCLUSIVE. It is not hardwired: a
+synthetic $\STr=-8/3$ returns DEAD, the computed $\STr=+8/3$ returns SURVIVES (both are
+self-tested in the driver, pre-empting the v20 hardcoded-boolean failure).
+
+This contradicts the prompt's prior expectation (``DEAD at Gate 0, wrong sign''), which
+rested on the Akama/Adler folklore. That folklore tracks the statistics sign
+\emph{alone}; with the Lichnerowicz endomorphism included consistently, the net fermion
+sign is positive (\S\ref{sec:a1}), in agreement with Frolov--Fursaev's explicit $+2$
+weight (\S\ref{sec:ff}). The honest, scheme-aware statement is $G>0$ in this scheme,
+unforced --- not ``Sakharov works'' (it only passes the cheapest gate).
+
+\paragraph{Ledger consequence.} Gate 0 does not kill on sign. The route lives to Gate 1
+($a_1\propto R$), and the predicted real death is Gate 2: a scalar induced $\kappa$
+cannot repair the v18 tensor-support mismatch ($G$ has $16$ independent components,
+$\kappa T$ has $6$). Gates 1--3 are not run here (fail-fast). All decisive quantities
+are exact over $\QQ$; no floats appear on any decisive path; the driver output is
+byte-identical across repeated runs.
+
+\end{document}
