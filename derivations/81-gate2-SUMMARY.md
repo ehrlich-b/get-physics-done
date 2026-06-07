@@ -89,13 +89,15 @@ This is a DEAD at true strength of **the third of four gates** — the milestone
 
 ## What it means for the selection-law ledger
 
-**Route C / kind-4 (induced action) gravity is DEAD for h_3(O).** The Sakharov-induced scalar κ — having survived the sign (Gate 0) and curvature-cleanliness (Gate 1) gates — cannot repair the v18 16-vs-6 tensor-support mismatch (Gate 2), exactly as the ledger predicted. **The six-kind selection-law menu (read-off / intrinsic-curvature / enlarge / induced / constraint / spectral·thermo) is now EXHAUSTED for h_3(O).**
+**Induced-EINSTEIN gravity (Route C / kind-4) is DEAD for h_3(O).** The Sakharov-induced scalar κ — having survived the sign (Gate 0) and curvature-cleanliness (Gate 1) gates — cannot repair the v18 16-vs-6 tensor-support mismatch (Gate 2), exactly as the ledger predicted.
+
+**Scope (precise, not overclaimed):** Gate 2 kills the LEADING induced term — the scalar κ ∝ Λ_f² from the heat-kernel a_1, which is exactly Sakharov's "induced gravity" claim (the ∫R Einstein–Hilbert term). It does NOT address the sub-leading a_2 → higher-derivative invariants (R², C² ∝ Λ_f⁰): those are 4-derivative tensors, not scalar × T, so they are a DIFFERENT, weaker, out-of-scope object. So the honest statement is "induced **Einstein** gravity does not close," NOT "no induced-action gravity of any kind." With that scope, the six-kind selection-law menu (read-off / intrinsic-curvature / enlarge / induced / constraint / spectral·thermo) is EXHAUSTED for induced-**Einstein** gravity; an induced higher-derivative theory is the one untested (and weaker) residual.
 
 Per `selection-law-ledger.md` §6, the redirect is FORCED by exhaustion (not chosen out of fatigue):
 - **(A) Accept the program's real scope** — self-modeling forces the spacetime arena + QM (Paper 5) + the SM matter content (Paper 7), but the gravitational LAW is genuinely **separate** (imported; Penrose/'t Hooft territory). Outcome = "QM + Standard Model on flat KKT spacetime, gravity its own thing" = **incomplete-TOE, not failed-program.** This is the verdict the v17/v18/v19/v20 four-corner triangulation already supports, now sealed by the induced-action close-out.
 - **(B) Find a selection-law kind NOT on the six-kind menu** — a high bar (genuinely new physics); must route to a published mechanism the menu missed, not to a story.
 
-Combined gravity verdict across the program: v17 NONE / v18 fp-imported-action / v19 fp-no-intrinsic-orientation / v20 fp-imported-action / **v21 Gate-2 DEAD (induced-action support mismatch)** — every metric-selection kind tried fails. **Gravity is separate.**
+Combined gravity verdict across the program: v17 NONE / v18 fp-imported-action / v19 fp-no-intrinsic-orientation / v20 fp-imported-action / **v21 Gate-2 DEAD (induced-Einstein support mismatch)** — every metric-selection kind tried fails to produce forced Einstein gravity (modulo the untested induced-higher-derivative residual). **Gravity is separate.**
 
 ---
 
@@ -106,7 +108,7 @@ Combined gravity verdict across the program: v17 NONE / v18 fp-imported-action /
 | **Gate 0 (SIGN)** | DONE | SURVIVES (G>0, STr=+8/3, unforced, circularity=False) |
 | **Gate 1 (a_1 ∝ R)** | DONE | PASS (a_1=-R/3 clean ∝ R; c_1=1/(6π²); G=3π/(8Λ_f²)>0) |
 | **Gate 2 (SUPPORT MISMATCH)** | **DONE** | **DEAD** (induced scalar κ=6π²/Λ_f² does NOT repair the v18 16-vs-6; n_G=16/n_T=6 reproduced; all 3 single-global solves EmptySet; Λ_f-independent) |
-| **Gate 3 (CLOSURE)** | NOT RUN | Gate 2 DEAD ⇒ six-kind menu exhausted; redirect per ledger §6 |
+| **Gate 3 (CLOSURE)** | NOT RUN | Gate 2 DEAD ⇒ induced-Einstein menu exhausted (a_2 higher-derivative residual untested); redirect per ledger §6 |
 
 ---
 
