@@ -1,0 +1,252 @@
+% ASSERT_CONVENTION: natural_units=natural, metric_signature=mostly_minus,
+%   fourier_convention=physics, coupling_convention=alpha_s,
+%   renormalization_scheme=MSbar, gauge_choice=Feynman,
+%   metric_g=e_dot_e_signature_1_3, gravity=Lorentz_block_R_omega,
+%   einstein_tensor=Ric_minus_half_g_R, induced_kappa=6pi2_over_Lambda_f2_c1_eq_1_over_6pi2,
+%   support_definition=count_of_nonzero_4x4_lower_index_entries_at_matter_bearing_anchor,
+%   spacetime_block_engine_indices={1,2,3,10}, Vhalf_engine_indices={11,18,19,26},
+%   scheme=proper_time_cutoff_vacuum_Casimir_NO_thermodynamics,
+%   det_SSOT=ring_lemma_verification.py, harness=cartan_phaseB_einstein.py+bulk_geometry_verification.py
+%
+% NOTE: pdflatex is NOT available in this execution environment (checked: `which
+% pdflatex` -> not found). This source is well-formed (balanced environments, all
+% \ref/\eqref resolve to defined \label targets, braces balanced) but was NOT compiled
+% in-env. Compile downstream with `pdflatex 81-sakharov-gate2.tex` (no exotic packages).
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\STr}{\mathrm{STr}}
+\newcommand{\h}{\mathfrak{h}}
+\newcommand{\Oo}{\mathbb{O}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\supp}{\mathrm{supp}}
+\newcommand{\eu}{e}
+\title{Gate 2: the induced scalar $\kappa$ does not repair the $16$-vs-$6$
+tensor-support mismatch on $g=e\!\cdot\!e$ over $\h_3(\Oo)$}
+\date{2026-06-06 \quad (milestone v21.0, Phase 81; the milestone-decisive gate of the Sakharov ladder, run after Gate 0 SURVIVED and Gate 1 PASSED)}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We test, exactly over $\QQ$ on matter-bearing configurations, whether the scalar Newton
+coupling $\kappa$ induced by integrating out the $V_{1/2}=\mathbf{16}$ Weyl fermions
+(Sakharov; $\kappa=6\pi^2/\Lambda_f^2$ from Gate~1's $c_1=1/(6\pi^2)$) repairs the
+tensor-support mismatch that killed v18 Phase~77. v18 established---verifier-hardened, exact
+over $\QQ$---that on the soldered Lorentzian background $g=\eu\!\cdot\!\eu$ the full nonlinear
+Einstein tensor $G_{\mu\nu}[g]=\mathrm{Ric}_{\mu\nu}-\tfrac12 g_{\mu\nu}R$ and an independent,
+AST-guarded stress tensor $T[M]$ do not satisfy $G=\kappa T+\Lambda g$ for any single global
+$(\kappa,\Lambda)$. We reproduce the exact v18 counts: at the matter-bearing anchor $M_0$
+($\rho>0$, $R[g]\neq0$), $G[g]$ is supported on all $\mathbf{16}$ entries of the $4\times4$
+lower-index array while the matter stress $\kappa T^{[\psi]}$ is supported on only $\mathbf{6}$
+($\{01,10,22,23,32,33\}$). A scalar $\kappa$ multiplies $T$ by a number and therefore cannot
+change which components are nonzero: $\supp(\kappa T)=\supp(T)$ identically (verified for the
+induced $\kappa$, a symbolic free scalar, and a rational panel). The decisive obstruction is
+not naive support coverage---$g$ is dense, so $\supp(\kappa T+\Lambda g)$ is the full $16$---but
+the $\mathbf{10}$ \emph{off-$T$} entries (where $G\neq0$ but $T=0$): there the equation collapses
+to $G_{\mu\nu}=\Lambda g_{\mu\nu}$, requiring a single scalar $\Lambda$ to equal $4$ distinct
+values $G_{\mu\nu}/g_{\mu\nu}$ simultaneously, \emph{independently of $\kappa$}. Consequently the
+single-global solve is inconsistent (\textsf{EmptySet}) for the induced $\kappa$, for $\kappa$
+free, and for the v18 frozen rational $\kappa$ alike. The verdict is \textbf{DEAD}: the induced
+scalar $\kappa$ does not repair the mismatch; the route dies exactly where v18 died, and the
+conclusion is $\Lambda_f$-independent. This exhausts the six-kind selection-law menu for
+$\h_3(\Oo)$.
+\end{abstract}
+
+\section{Background: the constructed-vs-extremized gap}\label{sec:background}
+
+v18 (Cartan/MacDowell--Mansouri) constructed the soldering $(1,3)$ coframe $\eu=\pi_u(dE)$ on
+the exceptional Jordan algebra $\h_3(\Oo)$, with Peirce decomposition $V_1(1)\oplus
+V_{1/2}(16)\oplus V_0(10)$ and $V_0\to\h_2(\mathbb{C}_u)\cong\RR^{3,1}$. The metric
+$g_{\mu\nu}=\eu_\mu\cdot\eu_\nu$ is genuinely matter-curved (Phase~77: $R[g]\sim t^4\neq0$ for
+$M=t\,M_0$, right Lorentzian signature, flat $M=0$ vacuum). Gravity is the soldering Riemann
+$R[\omega]$, the Lorentz block of the Cartan curvature $F=dA+A\wedge A$ with $A=\omega\oplus
+\tfrac{1}{\ell}\eu$ (Wise, gr-qc/0611154); v18 verified $R[\omega]$ equals the metric
+Levi--Civita Riemann of $g$ on $\geq5$ components exactly over $\QQ$, with torsion $=0$.
+
+The v18 \emph{negative} result was a closure failure: the \emph{constructed} curvature
+$G_{\mu\nu}[g]$ is not of the \emph{extremized} (Einstein) form $\kappa T_{\mu\nu}+\Lambda
+g_{\mu\nu}$ for any single global $(\kappa,\Lambda)$ against an independently built,
+order-matched, AST-guarded stress tensor $T[M]$. Two faces of the same failure: (i) the
+trace-forced per-point $\Lambda=\tfrac14 g^{\mu\nu}(G-\kappa T)_{\mu\nu}$ varies across the
+$(M,x)$ family and the over-determined global solve is inconsistent; and (ii) a
+\textbf{tensor-support mismatch}---$G[g]$ is supported on all $16$ entries while $\kappa
+T^{[\psi]}$ is a thin $6$-entry fragment. This is the constructed-vs-extremized gap.
+
+A Molien argument forbids $\kappa$ as a global $F_4$-invariant \emph{function} (the ring
+$\RR[\Tr,\Tr^2,\det]$ is positively graded), but \emph{not} as a constant cutoff scale.
+Sakharov's $\kappa^{-1}\sim\Lambda_f^2$ is a scale, so it is immune to the Molien kill. Gate~0
+(SIGN) found the induced $G>0$ ($\STr=+8/3$, unforced) and Gate~1 ($a_1\propto R$) found the
+induced Einstein--Hilbert coefficient clean, $c_1=1/(6\pi^2)$, $G=3\pi/(8\Lambda_f^2)>0$. The
+candidate induced coupling is the scalar
+\begin{equation}\label{eq:induced-kappa}
+\kappa^{-1}=c_1\,\Lambda_f^2=\frac{\Lambda_f^2}{6\pi^2}
+\quad\Longrightarrow\quad
+\kappa=\frac{6\pi^2}{\Lambda_f^2}\in\RR_{>0},
+\end{equation}
+with $\Lambda_f$ the $\rho_J$ fixed-point scale (Gate~3 scope; carried symbolic). \emph{Gate~2
+asks whether this induced scalar $\kappa$ repairs the $16$-vs-$6$ mismatch.}
+
+\section{The support of a tensor and the v18 counts}\label{sec:support}
+
+\paragraph{Definition (support).} For a $4\times4$ lower-index tensor $S_{\mu\nu}$ on the
+$(1,3)$ slice, define
+\begin{equation}\label{eq:supp-def}
+\supp(S)=\{(\mu,\nu)\in\{0,1,2,3\}^2 : S_{\mu\nu}\neq0\},\qquad n_S=|\supp(S)|.
+\end{equation}
+This is the count of \emph{nonzero entries} of the $4\times4$ array---\emph{not} ``ten
+independent symmetric slots'', and not a coordinate accident: it is the structural statement
+that a symmetric scalar stress is rank/support-deficient relative to the full curvature. We
+reproduce the actual integers; we do not assume them.
+
+\paragraph{Reproduction (exact over $\QQ$).} At the matter-bearing anchor $M_0=\{e_{11}\!:\!
+\tfrac15, e_{18}\!:\!-\tfrac1{10}, e_{19}\!:\!\tfrac3{10}, e_{26}\!:\!\tfrac12\}$ (the
+$V_{1/2}$ survivors $[11,18,19,26]$) with the $V_0$ partner $\{e_4\!:\!1\}$ at the slice
+center $[\tfrac13,\tfrac13,0,0]$, the warm v18 harness
+(\texttt{cartan\_phaseB\_einstein.curvature\_at}) gives
+\begin{equation}\label{eq:R-nonzero}
+R[g=\eu\!\cdot\!\eu]\big|_{M_0}=\frac{14187524733311967018208791837}{634906109300195099205387025}\neq0,
+\end{equation}
+confirming the anchor is matter-bearing ($\rho>0$, differentiated---the \emph{opposite} of a
+matter-free check). The primary independent scalar stress is built from
+$\psi=2\,\mathrm{Re}\big((x_2x_1)x_3\big)=\tfrac{11p}{50}-\tfrac{7q}{50}$ (AST-guarded: no
+$\mathrm{Ric}/R/G$ enters its construction), $T^{[\psi]}_{\mu\nu}=\partial_\mu\psi\,\partial_\nu
+\psi-\tfrac12\eta_{\mu\nu}(\partial\psi)^2$. The supports are, exactly over $\QQ$,
+\begin{align}
+\supp(G[g])&=\{00,01,02,03,10,11,12,13,20,21,22,23,30,31,32,33\}, & n_G&=\mathbf{16},
+\label{eq:nG}\\
+\supp(T^{[\psi]})&=\{01,10,22,23,32,33\}, & n_T&=\mathbf{6}.
+\label{eq:nT}
+\end{align}
+This reproduces the verifier-hardened v18 Phase-77 headline \emph{exactly}: $n_G=16$, $n_T=6$,
+with $\supp(T^{[\psi]})=\{01,10,22,23,32,33\}$.
+
+\section{A scalar cannot change tensor support}\label{sec:scalar-inv}
+
+\begin{lemma}[Scalar invariance of support]\label{lem:scalar-inv}
+For any nonzero scalar $\kappa$ and any tensor $T$, $\supp(\kappa T)=\supp(T)$.
+\end{lemma}
+\begin{proof}
+$(\kappa T)_{\mu\nu}=\kappa\,T_{\mu\nu}$; since $\kappa\neq0$, $(\kappa T)_{\mu\nu}\neq0
+\iff T_{\mu\nu}\neq0$. \end{proof}
+
+Computed (not asserted) over $\QQ$: for the induced $\kappa=6\pi^2/\Lambda_f^2$ of
+\eqref{eq:induced-kappa}, for a symbolic free scalar $\kappa$, and for a fixed-seed rational
+panel of eight nonzero scalars, $\supp(\kappa T^{[\psi]})=\supp(T^{[\psi]})$ with $n=6$ in every
+case. In particular the induced scalar's effect on the support is \emph{independent of
+$\Lambda_f$}---which is the whole point: no value of the Gate-3 scale can change which
+components the matter stress occupies.
+
+\paragraph{Why naive support coverage is not the obstruction.} The metric $g=\eu\!\cdot\!\eu$
+is \emph{dense}: at the anchor all $16$ entries are nonzero, so
+\begin{equation}
+\supp(\kappa T+\Lambda g)=\supp(T)\cup\supp(g)=\{00,\dots,33\}\quad(\text{all }16).
+\end{equation}
+Adding the cosmological term $\Lambda g$ \emph{does} reach every component as a support set. The
+obstruction is therefore not that $\kappa T+\Lambda g$ fails to cover $\supp(G)$; it is that it
+cannot \emph{equal} $G$, which the next section makes precise.
+
+\section{The decisive off-$T$ over-determination}\label{sec:offT}
+
+\begin{proposition}[Off-$T$ block]\label{prop:offT}
+Let $\mathcal{O}=\supp(G)\setminus\supp(T)$ be the entries where $G\neq0$ but $T=0$. On
+$\mathcal{O}$ the Einstein equation $G_{\mu\nu}=\kappa T_{\mu\nu}+\Lambda g_{\mu\nu}$ reduces to
+$G_{\mu\nu}=\Lambda g_{\mu\nu}$, independently of $\kappa$. A single scalar $\Lambda$ solves
+this iff the ratios $\{G_{\mu\nu}/g_{\mu\nu}:(\mu,\nu)\in\mathcal{O}\}$ are all equal.
+\end{proposition}
+\begin{proof}
+For $(\mu,\nu)\in\mathcal{O}$, $T_{\mu\nu}=0$, so $\kappa T_{\mu\nu}=0$ for any scalar
+$\kappa$; the equation is $G_{\mu\nu}=\Lambda g_{\mu\nu}$. Since $g_{\mu\nu}\neq0$ there
+(g is dense), $\Lambda=G_{\mu\nu}/g_{\mu\nu}$; consistency across $\mathcal{O}$ requires a single
+value. \end{proof}
+
+Exactly over $\QQ$ at the anchor, $\mathcal{O}$ has $\mathbf{10}$ entries
+($\{00,02,03,11,12,13,20,21,30,31\}$), and the required ratios $G_{\mu\nu}/g_{\mu\nu}$ take
+$\mathbf{4}$ \emph{distinct} values---so \emph{no single scalar $\Lambda$ works}, and $\kappa$
+has dropped out entirely. The matter coupling is irrelevant on the off-$T$ block; the failure is
+purely a property of $G$ versus $g$. This is the precise sense in which a scalar coupling cannot
+repair a tensor-rank mismatch.
+
+\section{The single-global solve is inconsistent}\label{sec:solve}
+
+We solve $G_{\mu\nu}=\kappa T_{\mu\nu}+\Lambda g_{\mu\nu}$ for one global $(\kappa,\Lambda)$
+over the matter-bearing family ($3$ $V_{1/2}$ directions $\times$ $3$ slice positions $\times$
+$2$ amplitudes $=18$ valid signature-$(1,3)$ points, $0$ dropped), using the independent
+AST-guarded $T^{[\psi]}$. The over-determined linear systems give, exactly over $\QQ$:
+\begin{itemize}
+\item \textbf{both $(\kappa,\Lambda)$ free} ($180$ equations, $2$ unknowns): \textsf{EmptySet}
+---no global linear-in-$T$ Einstein closure exists \emph{at all}; this is the strongest test.
+\item \textbf{$\kappa=6\pi^2/\Lambda_f^2$ induced} ($\Lambda$, $\Lambda_f$ free): every
+per-point residual $G-\kappa T-\Lambda g\neq0$ and the global $\Lambda$ solve is
+\textsf{EmptySet}. The induced-$\kappa$ solve is a \emph{restriction} of the both-free solve
+(with $\kappa$ pinned to one value); since the both-free solve is already empty, the restricted
+one cannot be consistent---a scalar induced $\kappa$ cannot enlarge an empty solution space.
+\item \textbf{v18 frozen rational $\kappa_\psi=a_4/[t^4\,\mathrm{tr}_\eta T^{[\psi]}]$} (the
+exact object v18 used, an explicit rational): \textsf{EmptySet}, reproducing the v18 negative.
+\end{itemize}
+All three agree: inconsistent, with the $16$-vs-$6$ support mismatch. The induced scalar
+\emph{reproduces}, not \emph{repairs}, the v18 failure.
+
+\section{The verdict}\label{sec:verdict}
+
+\begin{proposition}[Gate~2 verdict, non-hardwired]\label{prop:verdict}
+The categorical verdict is a deterministic function of the reproduced inputs $(n_G,n_T)$, the
+containment $\supp(G)\subseteq\supp(\kappa T)$, and the single-global solve consistency:
+\textbf{SURVIVES} iff $\supp(G)\subseteq\supp(\kappa T)$ and the solve is consistent (the induced
+scalar repairs the mismatch); \textbf{DEAD} otherwise. With the computed inputs $n_G=16$,
+$n_T=6$, $\supp(G)\not\subseteq\supp(\kappa T)$, and the solve \textsf{EmptySet}, the verdict is
+\textbf{DEAD}.
+\end{proposition}
+
+The verdict boolean is derived from the inputs, never a hardcoded literal; three self-tests
+confirm it is non-hardwired (synthetic matching supports $+$ consistent solve $\to$ SURVIVES;
+the real mismatched supports $+$ inconsistent solve $\to$ DEAD; a literal-detector confirms two
+input sets give two categories), pre-empting the v20 hardcoded-decisive-boolean bug.
+
+\begin{center}\fbox{\parbox{0.93\textwidth}{\centering\textbf{GATE~2 VERDICT: DEAD.} The induced
+scalar $\kappa=6\pi^2/\Lambda_f^2$ does \emph{not} repair the v18 $16$-vs-$6$ tensor-support
+mismatch. The constructed-vs-extremized gap is a tensor-\emph{rank} fact: on the $10$ off-$T$
+entries where $G\neq0$ but $T=0$, the equation forces a single scalar $\Lambda$ to take $4$
+distinct values, \emph{independently of $\kappa$}. The single-global $(\kappa,\Lambda)$ solve is
+\textsf{EmptySet} for the induced $\kappa$, for $\kappa$ free, and for the v18 frozen rational
+$\kappa$. The conclusion is $\Lambda_f$-independent. The Sakharov route dies exactly where v18
+died.}}\end{center}
+
+\paragraph{Honest framing.} Gate~2 DEAD is the predicted outcome (the ledger's expected real
+cause of death). A scalar coupling cannot change tensor rank, so it was structurally expected to
+fail; we confirmed it exactly over $\QQ$ on matter-bearing profiles. Had the induced $\kappa$
+instead made $G=\kappa T+\Lambda g$ consistent, that would have been a major surprise (a scalar
+repairing a rank mismatch) and Gate~3 (CLOSURE) would have had to run; the non-hardwired verdict
+machinery would have reported SURVIVES at true strength. The math says DEAD.
+
+\paragraph{Consequence for the selection-law ledger.} With Gate~2 DEAD, Route~C / kind-4
+(induced-action) gravity is dead: the Sakharov-induced scalar $\kappa$, having survived the sign
+(Gate~0) and curvature-cleanliness (Gate~1) gates, cannot supply the tensor structure the
+extremized Einstein equation demands. The six-kind selection-law menu is exhausted for
+$\h_3(\Oo)$; the program redirects per \texttt{selection-law-ledger.md} \S6. Combined with the
+v17/v18/v19/v20 gravity triangulation (NONE / fp-imported-action / fp-no-intrinsic-orientation /
+fp-imported-action), this grounds the conclusion that \emph{gravity is separate}: the $\h_3(\Oo)$
+observer algebra forces a curved, matter-sourced, position-dependent Lorentzian slice, but not
+the Einstein dynamics---neither by a posited action, by intrinsic orientation, by the spin
+current, nor (now) by an induced one-loop effective action.
+
+\paragraph{Forbidden proxies (all rejected).}
+\texttt{fp-deflated-matter-free}: the entire computation is on matter-bearing profiles
+($\rho>0$, $R[g]\neq0$, differentiated $\psi$)---never the $M=0$ deflated check.
+\texttt{fp-relabel}: the support counts and solve use the AST-guarded independent $T[M]$ (no
+$\mathrm{Ric}/R/G$ in its construction), reused verbatim from v18. \texttt{fp-hardwired-verdict}:
+the DEAD category is derived from $(n_G,n_T)$ and the solve result, proven non-literal by three
+self-tests. \texttt{fp-float-decisive}: every decisive number is exact over $\QQ$;
+\texttt{real\_roots} for signature. \texttt{octonion\_algebra}: banned (buggy float associator);
+the det SSOT is \texttt{ring\_lemma\_verification.det\_3}.
+
+\paragraph{Reproducibility.} SymPy 1.14.0, Python 3.14.2, macOS Darwin 24.6.0; no RNG on any
+decisive path (one fixed-seed rational panel for the non-decisive scalar sweep). The driver
+\texttt{code/sakharov\_gate2\_support.py} runs foreground \texttt{python3 -u}, exits $0$, and is
+byte-identical across runs on every decisive value.
+
+\end{document}
