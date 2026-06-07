@@ -363,3 +363,126 @@ This is the **cheapest** gate (the ledger calls it "hours, exact over Q"). No he
 
 **Research date:** 2026-06-06
 **Valid until:** physics stable indefinitely; exact citation strings (equation/table numbers) to be re-confirmed by the web-enabled verifier; harness API stable as of v18.0.
+
+---
+
+# Gate 1 — a_1 ∝ R (contamination criteria)
+
+**Researched:** 2026-06-06 (extension; Gate 0 ratified G>0, STr=+8/3, verifier-hardened HIGH within-scheme)
+**Status of upstream gate:** Gate 0 SURVIVED. This section grounds Gate 1 ONLY. Gate 2 (support mismatch) and Gate 3 (closure) remain out of scope.
+**Consumer:** `gpd-executor` (NO WEB) extending `code/sakharov_gate0_sign.py` → `code/sakharov_gate1_a1propR.py` (or a Gate-1 block), exact over Q; then `gpd-verifier` (HAS WEB).
+
+## BOTTOM LINE (Gate 1)
+
+**Expected Gate-1 verdict: PASS (a_1 is clean ∝ R).** The single most load-bearing fact: **the Seeley-DeWitt a_1 coefficient is `tr(E + R/6)` and structurally contains ONLY the endomorphism `E` and the scalar curvature `R·I` — never `R_{μν}²`, `R_{μνρσ}²`, `R²`, `□R`, or `tr F²`, all of which live one order up in `a_2`** (Gilkey; Vassilevich §4.3). So the only way Gate 1 can DIE is if the *endomorphism `E` itself* carries a non-`R` curvature invariant that survives the bundle trace with nonzero coefficient. For a **linear** Dirac field (the correct interpretation of `V_{1/2}=16` of Spin(10)) the gauge field-strength term in `E` traces to zero (`tr γ^{μν}=0`) and the Lichnerowicz term is `-R/4` — pure `R`. **The only genuine Gate-1 risk is the nonlinear wave-map channel** (a curved sigma-model *target* would inject a target-curvature term into `E` that is NOT ∝ spacetime `R`); this risk is **absent** because `V_{1/2}` is a linear 16-dim spinor representation, not a coset sigma-model. The executor's DEAD criterion: a non-`R` curvature invariant surviving in `a_1` with nonzero coefficient. Expected: none ⇒ PASS, with `c_1 = 1/(6π²)` (exact), candidate `κ⁻¹ = (1/(6π²))Λ_f²`.
+
+## Q1 — Gauge / internal field strength does NOT contaminate a_1
+
+**Minimally gauge-coupled squared Dirac operator** (Lichnerowicz-Weitzenböck with a gauge connection):
+`(i\slashed{D})² = -∇² + R/4 + (1/2)γ^{μν}F_{μν}`,
+where `∇` is the spacetime+gauge covariant derivative and `F_{μν}` is the internal (here so(6)=SU(4)) field strength. In Laplace-type form `D² = -(∇² + E)`:
+`E = -R/4 - (1/2)γ^{μν}F_{μν}`.
+
+The a_1 coefficient is `a_1 = tr(E + R/6)` (bundle trace over spinor ⊗ gauge indices). The two pieces of `E`:
+- `-R/4`: traces to `tr(1)·(-R/4) = 4·(-R/4) = -R` per Dirac (the Gate-0 term, ∝ R). ✓
+- `-(1/2)γ^{μν}F_{μν}`: **`tr(γ^{μν}) = 0`** identically (the antisymmetric product of two distinct gamma matrices is traceless in any dimension). Therefore `tr(γ^{μν}F_{μν}) = F_{μν} tr(γ^{μν}) = 0`. **The gauge field-strength term DROPS OUT of a_1.** ✓
+
+The `tr F²`-type terms (i.e. `tr(γ^{μν}γ^{ρσ})F_{μν}F_{ρσ} ∝ F²`) appear only in the NEXT coefficient `a_2` (the `∫F²` / `∫R²` order), because `a_2 ⊃ (1/2)tr E² + …` and `E²` contains `(γ^{μν}F_{μν})² ∝ F²`. So gauge coupling leaves **a_1 clean ∝ R** and only renormalizes the gauge kinetic term (`∫F²`) and the curvature-squared terms at the `a_2` level — irrelevant to the induced Einstein-Hilbert `∫R` coefficient. (Ref: Gilkey, *Invariance Theory…*, the `a_2(x,x)=E+R/6` formula and the `a_4` structure; Vassilevich hep-th/0306138 §4.3 eqs. for `a_2` and §4 for `a_4`.)
+
+**Per-Weyl / per-Dirac a_1 R-coefficient (the Gate-0 value, restated exact over Q):**
+- per Dirac **component** (per spinor index): `(E+R/6)` coeff `= -1/4 + 1/6 = **-1/12**`.
+- per **Dirac** (4 components): `4·(-1/12) = **-1/3**`.
+- per **Weyl** (half the Dirac bundle): `**-1/6**`.
+These are the bundle-traced curvature coefficients *before* the statistics sign; with `s=-1` they give the Gate-0 signed contributions `+1/3` (Dirac), `+1/6` (Weyl). **This `-1/12`-per-component is universal on ANY Riemannian background**: a_1 contains only `E` and `R·I`, so changing the background metric changes the *value* of `R` but never introduces a `R_{μν}²`/`R_{μνρσ}²`/`R²`/`□R` structure into a_1 (those are strictly `a_2`). The a_1 R-coefficient is a pure number times `R`, background-independent. (Ref: Gilkey; Vassilevich §4.3.)
+
+**Gate-1 implication of Q1:** the internal SU(4) (Berry/Im-QGT) gauge sector — which Phase 76 correctly identified as NOT gravity — also does NOT pollute the induced `∫R`; it lives in `a_2`. So the gauge structure is doubly irrelevant to Gate 1.
+
+## Q2 — Wave-map / nonlinear-sigma-model contamination (the REAL Gate-1 risk)
+
+The prompt writes the matter action as "wave-map / Dirac". Two sharply different interpretations, with different Gate-1 outcomes:
+
+**(Interpretation A — LINEAR Dirac field; the CORRECT one for V_{1/2}):** `V_{1/2}=16` of Spin(10) is a **linear spinor representation** — one SM generation of spin-1/2 fermions (Paper 7, exact over Q). The field is a section of a **flat** fermionic bundle (the 16-dim spinor rep) twisted by the spacetime spin connection `ω(e)` and the internal SU(4) gauge connection. There is **no curved target manifold** — the rep is a vector space, its "target metric" is the constant Spin(10)-invariant bilinear, flat. Therefore the fluctuation operator is the standard twisted Dirac operator, `E = -R/4 - (1/2)γ^{μν}F_{μν}`, and (by Q1) **a_1 = tr(E+R/6) is clean ∝ R. No target-curvature contamination.** ✓ This is the expected case.
+
+**(Interpretation B — NONLINEAR wave-map into a CURVED target `M_target`; the risk to rule out):** if instead the integrated-out field were a nonlinear sigma-model map `φ: spacetime → M_target` with `M_target` a *curved* coset (e.g. an `E_6/(…)` GST scalar manifold), the one-loop fluctuation operator about a background `φ̄` is `D² = -(∇² + E)` with
+`E ⊃ -R^{target}_{abcd}(φ̄) ∂_μφ̄^b ∂^μφ̄^d` (Riemann-normal-coordinate expansion of the sigma-model; the background-field method, Friedan / Alvarez-Gaumé-Freedman-Mukhi).
+This endomorphism term is proportional to the **TARGET Riemann tensor contracted with background field gradients `(∂φ̄)²`** — it is **NOT proportional to the spacetime Ricci scalar `R[g]`**. Traced into `a_1 = tr(E+R/6)` it would leave a surviving non-`R` invariant `∝ R^{target}(∂φ̄)²` with (generically) nonzero coefficient ⇒ **a_1 NOT clean ∝ R ⇒ Gate 1 DEAD.**
+
+**(a) Which applies to V_{1/2}=16 of Spin(10) on g=e·e?** **Interpretation A (LINEAR, flat target).** The 16 is a linear representation, not a coset; the relevant "target" is a flat vector space with a constant invariant form. *Expected: NO target-curvature term in a_1.* The "wave-map" wording in the prompt is the generic name for the kinetic functional `⟨DM,DM⟩`; for a linear rep this is just the (gauge+gravity-)twisted Dirac/Klein-Gordon kinetic term, target-flat.
+
+**(b) If there IS any nonlinearity, what non-R invariant appears and how does the executor detect it?** The contaminant is `E ⊃ R^{target}_{abcd}(φ̄)\,∂_μφ̄^b ∂^μφ̄^d` (a target-curvature × background-gradient endomorphism). **Detection (the executor's concrete Gate-1 check):** form the candidate endomorphism `E` of the actual `V_{1/2}` fluctuation operator and take its bundle trace `tr E`; then verify `tr(E+R/6)` collapses to `(scalar rational)·R[g]` and to NOTHING ELSE. Concretely, exact over Q on the locked slice:
+  - confirm `E = -R/4 - (1/2)γ^{μν}F_{μν}` (the linear-Dirac form), i.e. that `E` contains no `(∂φ̄)²`-weighted target-curvature piece;
+  - confirm `tr(E + R/6) = (-1/12 per component)·R` (Q1 value) with **zero** residual proportional to any non-`R` invariant (`R_{μν}`, `R_{μνρσ}`, `F`, or a `(∂φ̄)²·R^{target}` structure).
+  - **DEAD criterion (made precise):** a nonzero-coefficient term in `a_1` whose curvature structure is NOT `R[g]·I` — specifically a surviving target-curvature term `∝ R^{target}(∂φ̄)²`, an F-term that failed to trace away (it cannot, by `tr γ^{μν}=0` — see Q1), or any `R_{μν}/R_{μνρσ}` piece (which cannot occur in a_1 by Gilkey's theorem — its presence would signal a non-Laplace-type operator, see Q3).
+
+(Refs: Friedan, "Nonlinear models in 2+ε dimensions," Ann.Phys. 163 (1985) 318 — sigma-model background-field heat-kernel and the target-Riemann endomorphism; Alvarez-Gaumé, Freedman, Mukhi, Ann.Phys. 134 (1981) 85; Gilkey/Vassilevich for the a_1 = E+R/6 structure.)
+
+## Q3 — Non-associativity / soldering (one paragraph)
+
+v18 Phase 77 established, **exact over Q**, that the soldering connection `ω(e)` built from the tetrad `e=π_u(dE)` (with `g=e·e`) is the **torsion-free Levi-Civita connection**, and that `R[ω] == the metric Levi-Civita Riemann of g=e·e` on every sampled component (`code/cartan_phaseB_curvature.py` header lines 28-42; cross-checked two ways, Totaro `spacetime_curvature_of_g` and hand-rolled Christoffel `hand_rolled_riemann_of_g`). The implication for Gate 1: **the V_{1/2} kinetic operator sits on a standard torsion-free Riemannian background, so its heat kernel is the standard Gilkey form** `a_1 = tr(E+R/6)` with **no associator and no torsion corrections** — there is no `∝ T²` (torsion-squared) term because the matter Laplacian's connection is Levi-Civita (T=0), and no octonionic associator term because the soldered background is an ordinary (associative) pseudo-Riemannian manifold once `g=e·e` is fixed. **The ONE thing the executor must CHECK rather than assume:** that the derivative `D` in `⟨DM,DM⟩` is the metric-compatible Levi-Civita `∇` (plus the gauge connection) — i.e. that no leftover octonionic/associator term sneaks into `D` and makes the fluctuation operator **non-Laplace-type** (a non-Laplace-type operator would invalidate the `a_1 = E+R/6` form and is itself a DEAD signal: heat-kernel coefficients for non-minimal/non-Laplace operators do not reduce to `tr(E+R/6)`). Note this torsion is distinct from v20's *geometric* Einstein-Cartan torsion of `e` sourced by the spin current; for the matter Laplacian the relevant connection is Levi-Civita, so v20's torsion finding does not reintroduce a `T²` term here. (Ref: harness header lines 28-42; Vassilevich §2 on the Laplace-type requirement; Gilkey on torsion-free backgrounds.)
+
+## Q4 — Read off c_1 (exact over Q)
+
+With `STr = +8/3` (Gate 0) and the explicit `(4π)⁻²` prefactor of the quadratically-divergent a_1 term:
+
+`1/(16πG) = c_1 Λ_f²`, where `c_1 = (1/(4π)²)·STr = (1/(4π)²)·(8/3) = (8/3)/(16π²) = **1/(6π²)**` (exact over Q·π).
+
+Equivalently, building STr from the per-Weyl R-coefficient: `c_1 = (1/(4π)²)·(per-Weyl R-coeff `-1/6`)·(statistics `-1`)·(16 Weyl) = (1/(4π)²)·(+8/3) = 1/(6π²)`. The `(4π)⁻²` and the sign are explicit and consistent with the Gate-0 `STr=+8/3` normalization (positive ⇒ `c_1>0` ⇒ `G>0`).
+
+**Candidate induced coupling (pinned up to the Gate-3 scale `Λ_f`):**
+- `κ⁻¹ ≡ 1/(16πG) = c_1 Λ_f² = (1/(6π²)) Λ_f²` (exact; units `Λ_f²`).
+- `G = 1/(16π c_1 Λ_f²) = 3π/(8 Λ_f²)` (exact; **POSITIVE**, consistent with Gate 0).
+
+The numerical scale `Λ_f` (from the ρ_J fixed point — `det X`, `Tr X²`) is pinned only at **Gate 3** and is out of scope here. Gate 1 delivers the **dimensionless** `c_1 = 1/(6π²)`.
+
+**Executor note (transcription target, exact):**
+```python
+from sympy import Rational, pi
+per_dirac_component = Rational(-1,4) + Rational(1,6)   # = -1/12  (E=-R/4, +R/6)
+per_weyl_Rcoeff     = Rational(1,2) * 4 * per_dirac_component   # = -1/6
+STr = 16 * Rational(-1) * per_weyl_Rcoeff              # = +8/3  (16 Weyl, statistics -1)
+c1  = STr / (4*pi)**2                                   # = 1/(6*pi**2)
+# kappa_inv = c1 * Lambda_f**2 ; G = 1/(16*pi*c1*Lambda_f**2) = 3*pi/(8*Lambda_f**2)  (POSITIVE)
+assert c1 == Rational(1,6)/pi**2
+```
+
+## Q5 — One-line DEAD vs PASS criterion (non-hardwired)
+
+**PASS** iff the only curvature structure surviving the bundle trace in `a_1 = tr(E+R/6)` is `R[g]·(scalar rational coefficient)` — i.e. `a_1 = c·R` with `c = (1/(4π)²)·STr` and **no other invariant** present.
+**DEAD** iff a non-`R` curvature invariant survives in `a_1` with nonzero coefficient — concretely: (i) a target-curvature term `∝ R^{target}(∂φ̄)²` (nonlinear wave-map, Q2-B), (ii) an associator/torsion term `∝ T²` or a non-Laplace-type structure (Q3), or (iii) an `F`-term that fails to trace away (cannot happen for linear Dirac, `tr γ^{μν}=0`, Q1 — its appearance would itself signal a modeling error).
+The executor's verdict boolean MUST be **derived** from inspecting the actual `E` of the `V_{1/2}` operator and asserting `tr(E+R/6)` is exactly `(rational)·R` with zero non-`R` residual — never a literal `PASS`. Expected: **PASS** (linear Dirac, flat target, torsion-free Levi-Civita background ⇒ `a_1 = (1/(6π²))Λ_f²·R`, clean).
+
+## Gate-1 validation checks (executor MUST emit)
+
+| Check | Validates | Expected |
+| --- | --- | --- |
+| `tr(γ^{μν}) = 0` ⇒ F-term absent from a_1 | gauge non-contamination (Q1) | F drops out; gauge → a_2 only |
+| per-Dirac-component coeff `= -1/12`; per-Weyl `= -1/6` | Gate-0/Gate-1 consistency | exact over Q |
+| `E = -R/4 - (1/2)γ^{μν}F_{μν}` (linear-Dirac form), no `(∂φ̄)²·R^{target}` piece | target flat (Q2-A) | no target-curvature term |
+| background is torsion-free Levi-Civita; `D=∇` metric-compatible | Laplace-type, no associator/T² (Q3) | standard Gilkey a_1 |
+| `a_1 = (rational)·R`, zero non-R residual | the gate itself (Q5) | clean ∝ R |
+| `c_1 = 1/(6π²)` exact; `G=3π/(8Λ_f²)>0` | read-off (Q4) | exact over Q·π; positive |
+| no `R_{μν}`, `R_{μνρσ}`, `R²`, `□R`, `F²` in a_1 | Gilkey a_1-vs-a_2 structure | all such terms are a_2, absent from a_1 |
+
+## Gate-1 pitfalls
+
+- **Putting `tr F²` / `R²` terms in a_1.** They are strictly `a_2`. If your a_1 has them, you mislabeled the coefficient order. (Gilkey; Vassilevich §4.3.)
+- **Assuming `⟨DM,DM⟩` is automatically Laplace-type.** CHECK that `D` is the metric-compatible `∇` (+gauge); a leftover octonionic associator term would make it non-Laplace-type and invalidate `a_1=E+R/6` (Q3). This is the one non-obvious assumption.
+- **Treating "wave-map" as implying a curved target.** For the linear 16 of Spin(10) the target is flat; only a genuine *coset* sigma-model injects target curvature (Q2). Do not manufacture a curved-target contaminant where the rep is linear.
+- **Hardwiring the PASS verdict.** Derive it from `tr(E+R/6)` being exactly `(rational)·R` (Q5); print the residual.
+- **Float / thermodynamics.** Banned, as in Gate 0.
+
+## Gate-1 sources (each tied to the claim it supports)
+
+- **Gilkey, *Invariance Theory, the Heat Equation, and the Atiyah-Singer Index Theorem*** — `a_2(x,x)=E+R/6` (a_1 structure: only `E` and `R`); `a_4` (where `R_{μν}²,R_{μνρσ}²,R²,□R,F²` live). Supports Q1, Q3, Q5.
+- **Vassilevich, "Heat kernel expansion: user's manual," Phys.Rept. 388 (2003) 279 (hep-th/0306138)** — §2 Laplace-type requirement (Q3); §4.3 `a_2=E+R/6` and the gauge/spinor endomorphisms, `tr γ^{μν}=0` ⇒ F not in a_1 (Q1). *(PDF binary-unparseable by the research web tool; verifier to confirm §/eq numbers; the structural facts are textbook-standard.)*
+- **Friedan, "Nonlinear models in 2+ε dimensions," Ann.Phys. 163 (1985) 318** — sigma-model background-field heat kernel; the target-Riemann endomorphism `E ⊃ R^{target}(∂φ̄)²` (Q2-B).
+- **Alvarez-Gaumé, Freedman, Mukhi, Ann.Phys. 134 (1981) 85** — background-field method for sigma-model one-loop (Q2-B).
+- **`code/cartan_phaseB_curvature.py` (v18 Ph77, prior artifact)** — torsion-free Levi-Civita `ω(e)`, `R[ω]==metric Riemann` exact over Q (Q3 background fact).
+
+## Gate-1 confidence breakdown
+
+- a_1 = E+R/6 structure; F-term traces away; a_1 background-independent ∝ R: **HIGH** (Gilkey/Vassilevich, textbook).
+- V_{1/2} linear ⇒ flat target ⇒ no target-curvature contaminant: **HIGH** (16 of Spin(10) is a linear rep, Paper 7).
+- Torsion-free Levi-Civita background ⇒ no associator/T²: **HIGH** (harness-established exact over Q); the *one* check (D is Laplace-type) is **MEDIUM until the executor inspects the actual D**.
+- `c_1 = 1/(6π²)`, `G=3π/(8Λ_f²)>0`: **HIGH** (exact, consistent with Gate 0).
+- Citation strings (§/eq numbers): **MEDIUM** — verifier (web) to confirm.
