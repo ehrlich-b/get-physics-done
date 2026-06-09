@@ -290,3 +290,189 @@ fully consistent with the pre-registered wrinkle (compact, not a kill) and the s
 routing verdict (`RESIDUAL-SURVIVES → Gate 1`). It is reported here, not silently
 adopted; the load-bearing Gate-0 number is **dim 1**, verified three independent
 ways. No deviation in scope, conventions, or the gate boundary (Gates 1/2/3 not run).
+
+---
+
+# GATE 1 — the canonicalization sweep (does anything force uniqueness?)
+
+**Scope of this section:** Gate 1 only (the four program-native compatibility
+conditions imposed on the identification `g`, recomputing the surviving slice
+residual at each step). **Gate 2 is NOT run** — the orchestrator routes next.
+Same guards: source guard (PASS), no `octonion_algebra.py`, no `numpy` on the
+decisive path, exact over Q, no `κ`/`Λ`/physical constants.
+Driver: `PYTHONPATH=code python3 -u code/kkt_gluing_holonomy.py gate1` → exit 0, ALL_PASS.
+
+## G1.0 Setup — the residual carrier and the Peirce structure
+
+The Gate-0 residual is the slice action of `r_12 = {D ∈ f_4 : D·E_11 = 0, D·E_22 = 0}`
+= `so(8)` (dim 28), whose slice action on `h_2(C_u)(E_11)` is `so(2) ≅ u(1)` (dim 1,
+the `C_u = span{1,e_7}` phase rotation in the `{p,q}` plane). Each Gate-1 condition
+carves a **subalgebra** `R^(i) ⊆ R^(i-1)`; because every condition is **linear** in
+`D`, the surviving residual is the span of the `r_12` generators passing the test,
+and its slice residual is recomputed by `slice_residual`.
+
+**Peirce structure under the standard frame** (exact eigenspaces of `L_E`):
+
+| | `V_1` (eig 1) | `V_{1/2}` (eig 1/2) | `V_0` (eig 0) |
+|---|---|---|---|
+| `E_11` | `{0}` = `α` | `{11..26}` = `x2 ⊕ x3` | `{1..10}` = `β,γ,x1` |
+| `E_22` | `{1}` = `β` | `{3..10, 19..26}` = `x1 ⊕ x3` | `{0,2,11..18}` |
+
+- **Spacetime slice `{1,2,3,10}` ⊂ V_0(E_11)** (confirmed).
+- **SHARED V_{1/2} channel** `= V_{1/2}(E_11) ∩ V_{1/2}(E_22) = {19..26}` = the **`x3`
+  octonion slot** (the `(1,0)`/`(0,1)` block that *connects* `E_11` and `E_22`). This
+  is the "shared channel each observer assigns sequential-product data to" in
+  condition 4.
+
+## G1.1 The four conditions (prompt verbatim) and their exact status
+
+### Condition 1 — u-alignment — **AUTOMATIC** (kept 28/28, slice_dim 1)
+
+`g` maps `u = e_7` of `E_11`'s slice to `u'` of `E_22`'s slice (`g` intertwines
+`π_u, π_u'`). At the residual level: `D`'s slice action must **commute with the `C_u`
+complex structure `J`** (mult-by-`e_7` on `C_u`, i.e. the `{p,q}` rotation
+`p ↦ q, q ↦ −p`). Test: `[D_slice, J_slice] = 0`.
+
+**Result: AUTOMATIC.** All 28 `r_12` generators pass; slice residual stays **1**. The
+structural reason (verified exactly): the surviving `so(2)` generator acts as
+`e_3 ↦ −e_10`, `e_10 ↦ +e_3` and **touches nothing else** in `V_0` (`β,γ` fixed,
+internal-W `{4..9}` untouched) — it **is** the `C_u` phase, a power of `J`, so it
+trivially commutes with `J`. (Exactly the prompt's anticipated relation: "the so(2)
+IS the `C_u` phase, which commutes with mult-by-`e_7`, so naively `u`-related
+conditions may not cut it.")
+
+### Condition 2 — det_2 isometry — **AUTOMATIC** (verified, not assumed)
+
+The slice action preserves the `det_2` Minkowski form. Test: the 4×4 slice block is
+`so(3,1)`-valued (`η·A + Aᵀ·η = 0` in Minkowski coords, `η = diag(+1,−1,−1,−1)`).
+
+**Result: AUTOMATIC** (verified per the prompt's "should be automatic from `F_4 ⊂
+Aut`; verify, don't assume"). The single nonzero slice block (the `so(2)` rotation)
+is `so(3,1)`-valued; slice residual stays **1**.
+
+### Condition 3 — Peirce-block preservation — **AUTOMATIC** (verified)
+
+`g` maps `V_{1/2}(E_11) → V_{1/2}(E_22)` and `V_1 → V_1`. At the residual level:
+`D` preserves each Peirce space of `E_11` (`V_1 → V_1`, `V_{1/2} → V_{1/2}`,
+`V_0 → V_0`).
+
+**Result: AUTOMATIC** (verified per the prompt's "automatic given `g·E_11 = E_22`;
+verify exactly"). All 28 `r_12` generators preserve all three Peirce spaces, because
+`D·E_11 = 0 ⟹ [D, L_{E_11}] = 0 ⟹ D` preserves every eigenspace of `L_{E_11}`. Slice
+residual stays **1**.
+
+### Condition 4 — interface intertwining — **AUTOMATIC, but NON-VACUOUS** (the only condition with modeling content)
+
+**The exact operator equation (derived from Peirce structure alone):**
+
+> For all `x, y ∈ V_{1/2}(E_11)`:
+> `Π_{V_0(E_11)}( (Dx)∘y + x∘(Dy) ) = D( Π_{V_0(E_11)}( x∘y ) )`
+
+i.e. **`D` is an infinitesimal derivation of the Peirce quadratic map**
+`Q_11(x,y) = Π_{V_0(E_11)}(x∘y) : V_{1/2}(E_11) × V_{1/2}(E_11) → V_0(E_11)` — the
+canonical "sequential-product data each observer assigns to the `V_{1/2}` channel."
+The Peirce-0 projector `Π_{V_0(E_11)}` is the exact spectral projector onto the
+eigenvalue-0 space of `L_{E_11}` (`peirce_proj`, Lagrange interpolation over Q).
+
+The **cross-frame** form (the full "computed in `E_11`'s frame, pushed through `g`,
+equal those in `E_22`'s frame") is
+`g(Q_11(x,y)) = Q_22(g(x), g(y))` with `g = P·exp(tD)`. This **splits**:
+- the `P`-part: `P` intertwines `Q_11 ↔ Q_22` **exactly** (since `P ∈ Aut(h_3(O))`;
+  verified on all 16×16 `V_{1/2}(E_11)` basis pairs over Q);
+- the residual-`D` part: the boxed derivation equation above.
+
+**Flagged modeling choices** (the verifier must re-derive from Peirce structure
+alone):
+1. **`Q = Π_{V_0}(x∘y)`** (the Peirce-0 component of the Jordan product) is taken as
+   *the* "sequential-product data." This is the canonical Peirce quadratic map
+   `V_{1/2} × V_{1/2} → V_0` (McCrimmon; the Peirce multiplication rules) — **not** a
+   hand-picked form. The `V_1`-component `Π_{V_1}(x∘y)` is the complementary
+   "norm/length" datum; the `V_0`-component is the genuinely *inter-frame* channel
+   (it lands in the shared slice arena), which is why it is the faithfulness-relevant
+   one.
+2. **Default channel = full `V_{1/2}(E_11) = {11..26}`** (the strongest form). Testing
+   only the shared sub-channel `{19..26}` gives the **same** result (any `f_4`
+   derivation preserves every Peirce product).
+3. **Infinitesimal (Lie-algebra) reading** of "intertwines" — consistent with the
+   whole Gate-0/Gate-1 residual-as-subalgebra treatment.
+
+**NON-VACUITY (the condition has teeth — demonstrated, not asserted):**
+- `P` (a genuine automorphism) **passes** the cross-frame `Q_11 ↔ Q_22` intertwining
+  exactly.
+- a **non-derivation** map (`P` plus a spurious `x2(idx11) → x3(idx19)`
+  cross-channel `V_{1/2}` coupling) **FAILS** the intertwining.
+
+So the equation is a real constraint that *could* have obstructed.
+
+**Result: AUTOMATIC for the residual.** All 28 `r_12` generators satisfy it (tested
+exactly on all 256 `V_{1/2}(E_11)` basis pairs). The **honest reason** the `so(2)`
+survives: `r_12 ⊂ Der(h_3(O))` (every element is a global Jordan derivation, so
+`D(x∘y) = Dx∘y + x∘Dy` identically), and every `D ∈ r_12` fixes `E_11` (so commutes
+with `Π_{V_0(E_11)}`). Hence both sides of the boxed equation are identically
+`Π_{V_0(E_11)}(D(x∘y))`. This is **not** a vacuous test (it rejects non-derivations);
+it is auto-satisfied *specifically because the residual lives in the frame-fixing
+derivation algebra* — which is exactly the program-native statement that the
+algebraic freedom respects all Peirce-product data.
+
+## G1.2 The residual chain (exact over Q)
+
+| Step | Condition added | kept gens | slice residual | iso type |
+|---|---|---|---|---|
+| `R_12` | (start) | 28/28 | **dim 1** | `so(2) ≅ u(1)` |
+| `R^(1)` | + u-alignment | 28/28 | **dim 1** | `so(2)` |
+| `R^(2)` | + det_2 isometry | 28/28 | **dim 1** | `so(2)` |
+| `R^(3)` | + Peirce-block | 28/28 | **dim 1** | `so(2)` |
+| `R^(4)` | + interface intertwining | 28/28 | **dim 1** | `so(2)` |
+
+> **Chain: `R_12 ⊇ R^(1) ⊇ R^(2) ⊇ R^(3) ⊇ R^(4)` = `1 ⊇ 1 ⊇ 1 ⊇ 1 ⊇ 1`.**
+> Every condition is **AUTOMATIC**; **none** cuts the residual. The cumulative
+> residual after all four is `so(2) ≅ u(1)` (dim 1) — the `C_u` phase.
+
+**Independent cross-check (different code path):** building `D(t) = Σ_k t_k·gens_k`
+symbolically and imposing conditions 1–2 as **linear equations on the 4×4 slice
+block** gives a constraint matrix of **rank 0** (no rows — the `so(2)` block already
+commutes with `J` and is already `so(3,1)`-valued); conditions 3–4 add **no rows**
+(every generator already passes them). The joint-linear-nullspace surviving slice
+residual is **dim 1**, confirming the generator-filtering result.
+
+## G1.3 Verdict / routing (deterministic, non-hardwired ladder)
+
+`gate1_verdict()` derives its branch from the **computed** final cumulative
+`slice_dim` (not a literal), with self-tests proving each branch fires (all PASS):
+
+- `final_slice_dim == 0` → `CANONICAL` (a condition forced uniqueness → Gate 2 with
+  the canonical `g`'s). **Not** taken.
+- `final_slice_dim > 0` → `RESIDUAL-SURVIVES` (freedom survives all four → the 2-point
+  independence result → Gate 2 sweeping the residual classes). **Taken**
+  (`final_slice_dim = 1`).
+
+> **GATE-1 VERDICT: `RESIDUAL-SURVIVES`.** No program-native compatibility condition
+> (u-alignment, det_2 isometry, Peirce-block preservation, interface intertwining)
+> cuts the `so(2) ≅ u(1)` `C_u`-phase residual to triviality. This **is** the
+> two-point independence result at the canonicalization level: the identification
+> `E_11 → E_22` is **NOT canonically unique** — a residual `U(1)` slice freedom
+> persists after every faithfulness-proxy condition. **Routing: record the surviving
+> `so(2)`; proceed to Gate 2** (three-point holonomy — does the loop
+> `g_31 ∘ g_23 ∘ g_12` force the identity, sweep a set, or force a nontrivial `h`?).
+
+**Anti-overclaim (binding):** this proves only that the four conditions do not force
+a canonical flat identification at the **two-point** level; it does **NOT** prove
+independence around the loop (Gate 2), does **NOT** produce a metric law / `G = κT` /
+dynamics, does **NOT** establish the No-Absolute-Objects "bridge" clamp (that remains
+an argued, separately-attacked claim — `substrate-dictionary-gravity.md` §9.2), and
+does **NOT** touch the exhausted v17–v21 / Sakharov six-kind menu. No `κ`, `Λ`, or
+physical constant entered. The compactness of the `so(2)` residual is the
+pre-registered Phase-48 fact (boosts are metric-side, never inside `Spin(9)`), not
+evidence either way about boosts.
+
+## G1.4 Honest condition tally (per the prompt's request)
+
+| Condition | Status | Cuts the so(2)? | Notes |
+|---|---|---|---|
+| 1. u-alignment | **AUTOMATIC** | No | the residual IS the `C_u` phase ⟹ commutes with `J` |
+| 2. det_2 isometry | **AUTOMATIC** | No | slice block is `so(3,1)`-valued (`F_4 ⊂ Aut`); verified |
+| 3. Peirce-block preservation | **AUTOMATIC** | No | `D·E_11 = 0 ⟹` preserves all Peirce spaces; verified |
+| 4. interface intertwining | **AUTOMATIC** (non-vacuous) | No | `r_12 ⊂ Der` preserves all Peirce products; teeth demonstrated |
+
+All four automatic; the `so(2)` survives every one. The exact operator equation for
+condition 4 is in §G1.1; its non-vacuity (teeth) is demonstrated there.
