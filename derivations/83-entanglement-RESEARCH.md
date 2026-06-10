@@ -307,3 +307,195 @@ functional A can be (a polynomial in `{α, Tr_{V_0}, Q_vector, Q_spinor, det_3}`
 pins the face/entropy convention. It does **NOT** test the two-term balance (that is
 Gate 2), does **NOT** claim λ≠0 is forced, and makes **no** geometric/Einstein/J5
 claim. No κ, no Λ, no G = κT appears. LIVE/DEAD is undecided until Gate 2.
+
+---
+---
+
+# Gate 1 (calibration) + Gate 2 (THE TEST) — appended after Gate-0 verifier-hardening
+
+**Status: Gate 1 PASS (the §8.1 tautology, zero evidence). Gate 2 VERDICT = DEAD at
+degree ≤ 3.** Gate 3 NOT run (LIVE-only; orchestrator routes). Exact over Q (log
+symbolic), source-guarded. Driver: `code/entanglement_two_term.py` (`gate1()`,
+`gate2()`; self-tested, verdict ladder non-hardwired).
+
+## 6. GATE 1 — calibration: X = I/3 is the unconstrained fixed-trace maximum of S_face
+
+The pre-registered tautology (carries ZERO evidence; the setup-soundness check). Done by
+expanding `S_face^{(rank2)}(I/3 + εH)` to O(ε²) for a **general 27-dim** perturbation `H`,
+exact over Q. The eigenvalue degeneracy at I/3 (the rank-2 corner has coincident
+eigenvalues 1/3, 1/3) makes the von Neumann entropy non-analytic; this is handled by the
+`ε > 0` series (the `√(ε²·…) = ε·√(…)` branch), and the ε² coefficient simplifies to a
+**polynomial** Fisher form (the residual `√` pieces cancel — verified).
+
+**Results (exact over Q):**
+
+- `S_face(I/3) = log 2` (rank-2 face; rank-1 face is trivial S ≡ 0).
+- **δS_face = 0 in ALL 27 tangent directions at I/3** — the order-ε¹ term is identically
+  zero as a polynomial in all `h_0…h_26`. (S_face depends only on the face block
+  `{1..10}`; coords `{0}` and `{11..26}` never appear ⇒ δ = 0 there trivially.) This is
+  the §8.1 degeneracy: `K = (log 3)·I`, first variations vanish.
+- **Face Hessian negative-semidefinite ⇒ I/3 is the MAX.** The order-ε² form is
+  `δ²S_face = (9/4)[−(h_β − h_γ)² − 4(h_3²+…+h_10²)]`, with eigenvalues (on the 10-dim
+  face block):
+
+  | eigenvalue | multiplicity | direction |
+  |------------|--------------|-----------|
+  | `0`   | 1 | the scale-invariant face-trace `(β+γ)` |
+  | `−9/2`| 1 | the `(β−γ)` traceless-diagonal |
+  | `−9`  | 8 | the x1-octonion directions `{3..10}` |
+
+  All ≤ 0 ⇒ I/3 is the unconstrained fixed-trace maximum. The single zero eigenvalue is
+  the entropy's scale-invariance (the face-trace direction).
+
+**Gate 1 PASS.** The setup is sound. Per the pre-registration this proves **nothing**
+about the route — the one-term extremum IS the tautology this run exists to go beyond.
+
+## 7. GATE 2 — THE TEST: exhaustive forced-λ non-degenerate-competition sweep
+
+**The candidate set.** Every degree-≤3 monomial in the Gate-0 generators
+`{α(1), T=β+γ(1), Q_v(2), Q_s(2), det_3(3)}` — **16 monomials** total:
+
+```
+  deg 1 (2):  α ; T
+  deg 2 (5):  α² ; α·T ; T² ; Q_v ; Q_s
+  deg 3 (9):  α³ ; α²·T ; α·T² ; T³ ; Q_v·α ; Q_v·T ; Q_s·α ; Q_s·T ; det_3
+```
+
+**The constraint set** (bug-guard #3: `Tr X² = 1/3` is BANNED — it is the faithful
+branch; imposing it as a constraint would trivialize the test):
+`{ fixed Tr=α+β+γ, fixed Tr_face=β+γ, no constraint, fixed det=det_3 }`. **16 × 4 = 64
+cells.**
+
+### The linchpin and the criticality system
+
+Gate 1 established `∇S_face(I/3) = 0` exactly. So the first-order criticality condition
+
+```
+   δ(S_face + λA) − μ·δg = 0   at I/3
+   ⟺   ∇S_face(I/3) + λ·∇A(I/3) − μ·∇g(I/3) = 0
+   ⟺   λ·∇A(I/3) − μ·∇g(I/3) = 0          (27-vector equation; ∇S_face = 0)
+```
+
+**`(λ, μ) = (0, 0)` ALWAYS solves this** (I/3 is already critical for S_face alone). So
+**λ = 0 is always allowed**, and λ ≠ 0 is **never FORCED**. This was verified
+**candidate-by-candidate** (the system was actually solved with `linsolve`, not assumed):
+
+### Candidate gradients at I/3 (exact over Q)
+
+| generator | ∇(·) at I/3 (nonzero coords) | note |
+|-----------|------------------------------|------|
+| `α` | `e_0` | diagonal |
+| `T = β+γ` | `e_1 + e_2` | diagonal |
+| `Q_v` | `−⅓(e_1 + e_2)` | ∝ ∇T (x1-quadratic vanishes at origin) |
+| `Q_s` | `0` | **gradient vanishes** (purely quadratic in x2,x3) |
+| `det_3` | `⅑(e_0 + e_1 + e_2)` | ∝ ∇Tr |
+| `Tr` (constraint) | `e_0 + e_1 + e_2` | diagonal |
+| `Tr_face` (constraint) | `e_1 + e_2` | diagonal |
+
+**Every candidate gradient at I/3 lies in the 3-dim DIAGONAL subspace `span{e_0,e_1,e_2}`.**
+
+### The 64-cell verdict — three failure modes, all → NOT FORCED
+
+Solving each cell's `λ∇A − μ∇g = 0` (exact `linsolve`):
+
+1. **Tautology** (∇A ≠ 0, no constraint): `λ∇A = 0` forces `λ = 0`. (e.g. `α|none`:
+   solset `{(0,)}`.)
+2. **λ-glaze** (∇A = 0, i.e. `Q_s` and its multiples `Q_s·α`, `Q_s·T`): λ is **free** ⇒
+   DEAD (bug-guard #2: a free λ is DEAD, not LIVE). (solset `{(λ, 0)}`.)
+3. **Constraint-absorbed** (∇A ∥ ∇g): the solution `(λ,μ)` is a 1-parameter family
+   **including (0,0)** ⇒ λ = 0 allowed. (e.g. `det|fixed_Tr`: solset `{(9μ, μ)}`;
+   `Q_v|fixed_Tr_face`: `{(−3μ, μ)}`; `det|fixed_det`: `{(μ, μ)}`.)
+
+In **all 64 cells**, (λ,μ)=(0,0) solves the criticality ⇒ **λ ≠ 0 is NOT forced** in any
+cell.
+
+### VERDICT: DEAD at degree ≤ 3
+
+**No candidate × constraint forces a non-degenerate competing λ ≠ 0.** The verdict is
+DERIVED (the driver's DEAD/LIVE boolean = `not any_forced`, computed from the 64 solves,
+not hardcoded).
+
+### The precise obstruction pattern
+
+```
+  ∇S_face(I/3) = 0  (Gate 1, exact)
+     ⟹  (λ,μ) = (0,0) solves criticality in EVERY cell
+     ⟹  λ = 0 always allowed  ⟹  no forced two-term balance.
+
+  Moreover: every candidate gradient at I/3 lies in span{e_0,e_1,e_2} (diagonal),
+  while the S_face Fisher curvature lives on the TRACELESS face block (β−γ and x1).
+  ⟹  the A-gradients pull only along diagonal/trace directions; there is no shared
+      block on which the A-term and S-term could compete (no Jacobson saddle).
+```
+
+The deepest statement: **a forced two-term balance requires `∇S_face ≠ 0`, but I/3 is
+the entropy MAXIMUM so `∇S_face = 0` necessarily.** The faithful point being the
+vacuum/max (the route's own §4 identification) is *precisely what makes a forced balance
+impossible there.* This is the §8.1/§8.2 deflation made exact over Q: the one-term
+extremum is a tautology; Einstein lives in the *second* term's variation, and there is
+no native second term that the faithful point can be forced to balance against.
+
+### Note on the 2nd-order structure (why DEAD is first-order, not second-order)
+
+Some candidate Hessians DO touch the Fisher block at I/3 (`Q_v`, `Q_v·T`, `Q_v·α` have
+positive x1-block curvature; `det_3` has `−2/3` on the β−γ direction). So second-order
+*structure* exists on the shared block. But it is **never triggered**: because
+`∇S_face = 0`, the functional `S_face + λA` is critical at I/3 with λ = 0, and no
+equation forces λ away from 0. The competition would only matter for a *forced* balance,
+which never arises. Hence the obstruction is **first-order** (vanishing entropy
+gradient), not a second-order misalignment.
+
+## 8. Bug-guards (binding) — status
+
+- **#1 VACUITY (no designed-in trivial pass):** SATISFIED. The forced-λ routine is
+  GENERAL and **non-hardwired** — fed a hypothetical off-faithful input (`∇S_face ≠ 0`,
+  not ∥ ∇g) it returns `forced = True`; at I/3 (`∇S_face = 0`) it returns `False`. So
+  LIVE is detectable in principle, and the DEAD answer is a SUBSTANTIVE fact about I/3,
+  not a rigged routine. (Self-test in `gate2()`.) The gate does NOT collapse to the
+  first-law δS = δ⟨K⟩ identity — it tests the SECOND term (the λA balance), not the first
+  law.
+- **#2 λ-glaze:** SATISFIED. A free λ (∇A = 0, the `Q_s` family) is recorded as DEAD, not
+  LIVE.
+- **#3 constraint-smuggling (`Tr X² = 1/3` BANNED):** SATISFIED. Asserted absent from the
+  constraint set.
+- **#4 normalization (compress-then-normalize ρ_face):** SATISFIED. The pinned Gate-0
+  convention is used throughout; Gate 1 confirmed it does not manufacture spurious
+  criticality (δS_face = 0, no spurious linear term).
+- **#5 u-alignment:** N/A — no inter-face map is used in Gate 1/2 (all work is at I/3 on a
+  single face; no bare transposition / antiholomorphic conjugation enters).
+
+## 9. Anti-overclaim (binding) + §8.5/§8.5a notes
+
+- **DEAD at degree ≤ 3 ≠ absolute DEAD.** Higher degree remains, with a naturalness
+  penalty (said once, not inflated). The candidate space was exhaustive **through degree
+  3** (the Gate-0 closure); degree ≥ 4 invariants exist but are increasingly unnatural as
+  a "geometric/volume" second term.
+- **LIVE would have been ≠ Einstein/gravity/J5-won.** This is moot (verdict is DEAD), but
+  for the record: the test was the FIBER SHADOW of J5 only; the geometric/base matching
+  stays gated on the base/format object.
+- **§8.5 contact (noted, not a resurrection):** the I/3 2nd-order object `δ²S_face ∝
+  −Tr(h²)` is the SAME Fisher–Bures object v17 built and that died — STATE-side. This run
+  confirms it is the right object on the wrong side of the state/event divide; it does not
+  resurrect v17.
+- **§8.5a (the MODIFIED Jacobson target):** the J5 target is the CGM/Speranza R^(2Δ)
+  modified conjecture, not the naive 2015 form. **No contact is forced here** — the DEAD
+  verdict is about the *existence of a native second term on the fiber*, which is upstream
+  of any R^(2Δ) / relevant-operator question (those live on the un-built emergent QFT, the
+  base/format object). The fiber simply carries no forced competing geometric term at the
+  faithful point.
+- No κ, no Λ, no G = κT anywhere in Gate 1 or Gate 2.
+
+## 10. Flagged choices / deviations (Gate 1/2)
+
+- **No deviation from the brief.** Gate 1 + Gate 2 executed as specified; Gate 3 NOT run
+  (DEAD verdict ⇒ LIVE-only Gate 3 is correctly skipped).
+- **Degenerate-eigenvalue handling:** the von Neumann entropy is non-analytic at I/3
+  (coincident face eigenvalues). Handled rigorously by the `ε > 0` series expansion; the
+  ε² Fisher coefficient is a genuine polynomial (residual `√` terms cancel under
+  `simplify` — verified). Flagged for the verifier: an independent re-derivation could
+  confirm `δS_face = 0` (all 27 dirs) and the Hessian eigenvalues `{0, −9/2, −9×8}` via a
+  direct perturbation of the 2×2 corner eigenvalues, or via the relative-entropy /
+  Bures-metric route.
+- **Verdict is structural and over Q:** the DEAD conclusion rests on the exact fact
+  `∇S_face(I/3) = 0` (Gate 1) plus the exact candidate gradients (all diagonal). Both are
+  reproducible exactly; no floating point, no approximation.
