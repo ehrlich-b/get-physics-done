@@ -476,3 +476,118 @@ evidence either way about boosts.
 
 All four automatic; the `so(2)` survives every one. The exact operator equation for
 condition 4 is in §G1.1; its non-vacuity (teeth) is demonstrated there.
+
+## G2 — Gate 2: three-point holonomy (THE DECISIVE GATE)
+
+Driver: `PYTHONPATH=code python3 -u code/kkt_gluing_holonomy.py gate2` → **exit 0,
+ALL_PASS**. Independent verification: `derivations/82-GATE-2-VERIFICATION.md` (built
+from scratch through a DIFFERENT code path — own octonion algebra from the Fano table,
+own `f_4`, own nullspaces; **HIGH**, none of the load-bearing checks failed).
+
+Standard frame `E_11, E_22, E_33`; pairwise identifications `g_12, g_23, g_31`; loop
+`h = g_31 ∘ g_23 ∘ g_12 ∈ Stab(E_11)`; read its 4d slice action on `h_2(C_u)(E_11)`.
+
+### G2.1 The FIRED bug-guard: the bare transpositions are INADMISSIBLE (the predicted spurious LIVE-B)
+
+The prompt pre-registered LIVE-B as "the most likely executor bug … verify the
+identifications were not mis-normalized." A first pass used the bare frame
+**transpositions** `τ_ij` (swap `i↔j`) as base identifications and returned **LIVE-B**
+(base loop `diag(1,1,−1,−1)`, a spatial π-rotation; the three residual phases co-axial,
+unable to cancel it). That pass was **wrong** for a structural reason:
+
+- `τ_01` carries an octonion **conjugation**: it maps `u = e_7 → −e_7` (verified exact:
+  `e_7` in the `x1` slot → `−e_7` in the `x2` slot). So `τ` **fails Gate-1 condition 1
+  (u-alignment)** and is **NOT an admissible identification**.
+- Equivalently `τ_01`'s slice map **anti-intertwines** the `C_u` complex structure
+  `J`: `L_τ · J = − J · L_τ` (antiholomorphic), whereas an admissible (u-aligned) map
+  must satisfy `L · J = + J · L`.
+
+Because the slice `h_2(C_u)` is **defined** by `u` via `π_u` (Phase 46), u-alignment is
+the correct admissibility condition; the transpositions are discarded. **Monotonicity:**
+even admitting them would only *enlarge* the holonomy set (the u-aligned loop remains
+admissible), so it could never *restore* DEAD. The bug-guard fires; we proceed with the
+admissible identifications.
+
+### G2.2 The admissible base: the u-aligned 3-cycle ρ (flat)
+
+`ρ = conj(·, σ)` with `σ = (0→2, 1→0, 2→1)` — the **u-aligned** 3-cycle automorphism
+`E_11 → E_22 → E_33 → E_11`. Verified exact over Q: `ρ` is a genuine automorphism, cycles
+the frame, **preserves `u = e_7`** (`e_7 → +e_7`; holomorphic, `L_ρ · J = + J · L_ρ`), and
+has **order 3** (`ρ³ = I_27`). Its slice maps `L_ρ` carry each leg with no leak and
+preserve `det_2`. Taking `g_12 = g_23 = g_31 = ρ`, the **base loop is FLAT**:
+`h_slice(ρ³) = I` — the canonical u-aligned gluing has trivial holonomy.
+
+### G2.3 The structural reduction (the load-bearing argument)
+
+> Every residual element fixes **both** endpoint idempotents **and** is an automorphism,
+> so it automatically intertwines **all** purely-algebraic data — Gate-1 conditions 1–4
+> can **never** eliminate it. Therefore **LIVE-vs-DEAD reduces to one question: does the
+> joint endpoint stabilizer act NONTRIVIALLY on the `h_2(C_u)` slice?**
+
+Computed exact over Q: `r_12 = {D ∈ f_4 : D·E_11 = 0 ∧ D·E_22 = 0} = so(8)` (dim 28); its
+slice action on `h_2(C_u)(E_11)` is a **genuine nontrivial compact `SO(2)`** (dim 1, the
+`C_u` phase `⟨J_rot⟩`). So the reduction answers **nontrivial ⟹ LIVE**.
+
+### G2.4 The decisive computation: h(φ) flat at φ=0, nontrivial otherwise → LIVE-A
+
+With the u-aligned `ρ` base and the residual `C_u` phases `A_i(φ_i)` turned on,
+`h(φ) = L_ρ·A_3·L_ρ·A_2·L_ρ·A_1` (4×4, exact over Q, symbolic `(c_i, s_i)`, `c²+s²=1`):
+
+- `h(φ)` genuinely **VARIES** with the phases;
+- `h(0) = I` — the pure `ρ`-loop is **FLAT** ⟹ **identity REACHABLE**;
+- a single residual phase gives `h ≠ I` ⟹ **nontrivial REACHABLE**;
+- `h(φ) ∈ SO(3,1)` (`det_2`-isometry) for **all** `φ`.
+
+> **GATE-2 VERDICT: `LIVE-A` — INDEPENDENCE PROVED.** With admissible (u-aligned)
+> identifications the three-point gluing holonomy is an **UNFORCED** choice: flat at the
+> canonical `ρ`-base and nontrivial under the residual `C_u` phase. The algebra does
+> **NOT** force a canonical flat identification between distinct observers' KKT slices.
+
+### G2.5 The reachable holonomy group (so(3) add-on, non-blocking)
+
+The admissible `ρ`-loop with the joint-stabilizer residual reaches only a **single
+`SO(2)`** (the `C_u` plane; the three conjugated phase-generators span rank 1, all
+co-axial), **NOT** full `SO(3)`. The freedom is exactly **one internal `u`-phase** = a
+spatial `SO(2) ≅ U(1)`.
+
+### G2.6 Anti-overclaim (binding)
+
+This proves **INDEPENDENCE ONLY.** The freedom found is one internal `u`-phase acting as
+a spatial `SO(2)/U(1)` — **gauge-flavored** (Berry / MacDowell–Mansouri-shaped, U(1)-shaped,
+**NOT metric-shaped**). It is **NOT** "the dictionary's degrees of freedom": a tetrad
+needs frame-gluing (boost) freedom, and boosts are never algebra-internal (Phase 48); the
+**bridge clamp** (No-Absolute-Objects) is untouched — an argued, separately-attacked claim
+(`substrate-dictionary-gravity.md` §9.2). The result produces **no** metric law, `G = κT`,
+or dynamics, and does **NOT** reopen the exhausted v17–v21 / Sakharov six-kind menu; the
+v12/v13 Einstein result is untouched. No `κ`, `Λ`, or physical constant entered anywhere.
+
+---
+
+## Milestone verdict (one paragraph, v21 format)
+
+**v22.0 (KKT-Slice Gluing Freedom & Three-Point Holonomy) — VERDICT: LIVE-A, INDEPENDENCE
+PROVED.** Running the fail-fast gates cheapest-first (executor + independent verifier,
+different code paths, exact over Q): **Gate 0** computed the identification space — the
+residual after fixing endpoints is the joint frame stabilizer `so(8)` whose slice action on
+`h_2(C_u)` is a nontrivial compact `SO(2)` (the `C_u = span{1,e_7}` phase); the exact
+conjugating automorphism `P` replaced Phase 52's numeric one. **Gate 1** swept the four
+program-native compatibility conditions (u-alignment, det_2 isometry, Peirce-block,
+interface intertwining) and found **all four automatic** — none cuts the `SO(2)` (a
+structural consequence: the residual is a frame-fixing automorphism, so it intertwines all
+algebraic data). **Gate 2** computed the three-point loop holonomy: a first pass on the
+**inadmissible** u-flipping transpositions returned the pre-registered spurious **LIVE-B**;
+corrected to the **admissible** u-aligned 3-cycle `ρ` (`ρ³ = I`, flat base), the holonomy is
+flat at `φ = 0` and nontrivial under the residual `C_u` phase ⟹ **LIVE-A**. **What it
+establishes:** the axioms do **not** force a canonical flat gluing between observers' local
+KKT slices — the independence half of the implementation-dictionary route, in exact
+arithmetic. **What it leaves open:** the freedom is a single gauge-flavored `U(1)` (the `C_u`
+phase, `SO(2)` not full `SO(3)`, U(1)-shaped not metric-shaped), so it is **not** a
+tetrad/frame-gluing field; and the **No-Absolute-Objects "bridge"** — that the model's law
+may contain only forced/certified structure — remains an **argued** clamp (attacked
+separately in-repo), not proved here. **No promotion past independence:** no metric law, no
+`G = κT`, no dynamics; the v17–v21 six-kind metric-selection menu stays exhausted; the
+v12/v13 Einstein result is untouched. All decisive arithmetic exact over Q; Gate 0/1
+verifier-hardened HIGH; Gate 2 independently verified HIGH (the spurious LIVE-B caught and
+LIVE-A confirmed through a from-scratch code path). Deliverables:
+`code/kkt_gluing_holonomy.py`, `derivations/82-kkt-gluing-RESEARCH.md`,
+`derivations/82-GATE-{0,1,2}-SUMMARY.md`, `derivations/82-GATE-{0,1,2}-VERIFICATION.md`.

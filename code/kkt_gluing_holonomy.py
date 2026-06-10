@@ -950,9 +950,299 @@ def main_gate1():
     return 0 if ALL_PASS else 1
 
 
+# ============================================================================
+# 10. GATE 2 -- three-point holonomy (THE DECISIVE GATE), exact over Q.
+#
+# Frame E_11,E_22,E_33; base identifications G_ij = conj by the (i<->j) index swap
+# (each an exact F_4 element, G_ij.E_ii = E_jj -- the per-leg analogue of P).  The
+# residual U(1) per leg (Gate 0/1: the C_u phase, slice so(2)) modifies each leg:
+#   g_ij(phi) = G_ij . A_i(phi),   A_i(phi) = exp(phi J_i) in r_ij = joint-stab,
+# the C_u phase of E_ii's slice (a clean 2-plane rotation in {Re(x),<x,e7>}).
+# Loop  h(phi) = g_31 . g_23 . g_12 in Stab(E_11); read its 4x4 slice action on
+# h_2(C_u)(E_11).  EVERY factor maps/preserves the 4d slices with NO leak (verified),
+# so the whole holonomy is computed EXACTLY in 4x4 slice maps; the phases are clean
+# 2-plane rotations exp(phi J)=I+sin J+(1-cos)J^2 -> a 2x2 rotation block.
+#
+# DECISIVE three-way (deterministic, non-hardwired):
+#   DEAD   : h_slice(phi) == I for ALL admissible phi  (algebra certifies flat gluing).
+#   LIVE-A : h_slice varies AND == I for SOME phi (gluing genuinely FREE -> indep).
+#   LIVE-B : h_slice != I for ALL admissible phi (forced nontrivial -> curvature seed).
+#
+# THE FIRED BUG-GUARD (prompt: "a spurious forced-h is the most likely executor bug"):
+# the bare frame TRANSPOSITIONS carry an octonion conjugation that FLIPS u=e_7
+# (antiholomorphic on the C_u slice) -> they FAIL Gate-1 u-alignment, are INADMISSIBLE,
+# and a transposition-loop returns a SPURIOUS nontrivial diag(1,1,-1,-1) (the bug).  The
+# ADMISSIBLE identifications are u-ALIGNED: the 3-cycle rho (rho^3=I) gives a FLAT base.
+#
+# STRUCTURAL REDUCTION (Ehrlich): every residual element fixes BOTH endpoint idempotents
+# and is an automorphism, so it intertwines ALL purely-algebraic data -> Gate-1 conds 1-4
+# can NEVER cut it -> LIVE-vs-DEAD reduces to ONE fact: does the joint endpoint stabilizer
+# act NONTRIVIALLY on the h_2(C_u) slice?  It does (a genuine compact SO(2) = the C_u phase)
+# -> with the u-aligned rho base (flat) the holonomy h(phi) is flat at phi=0 and nontrivial
+# for phi!=0 -> LIVE-A.  The admissible loop reaches only the single C_u-plane SO(2) (a
+# gauge-flavored U(1)), NOT full SO(3) (the so(3) add-on); independence ONLY (no metric).
+# ============================================================================
+
+# slice(E_ii) engine-coord bases, order [diag_lo, diag_hi, Re(x_k), <x_k,e7>];
+# the C_u 2-plane is positions {2,3}.
+SLICE = {0: [1, 2, 3, 10], 1: [0, 2, 11, 18], 2: [0, 1, 19, 26]}
+# TAU = the bare frame TRANSPOSITIONS (E_ii<->E_jj).  Each carries an octonion
+# CONJUGATION that FLIPS u=e_7 (antiholomorphic on the C_u slice) -> it FAILS Gate-1
+# u-alignment and is INADMISSIBLE.  Kept ONLY to document the FIRED bug-guard (the
+# prompt's predicted spurious-forced-h: a tau-loop returns a nontrivial diag(1,1,-1,-1)).
+_TAU = {(0, 1): {0: 1, 1: 0, 2: 2},
+        (1, 2): {0: 0, 1: 2, 2: 1},
+        (2, 0): {0: 2, 1: 1, 2: 0}}
+# RHO = the u-ALIGNED 3-cycle automorphism, conj_perm(.,RHO): E_11->E_22->E_33->E_11.
+# It PRESERVES u=e_7 (holomorphic) and has order 3 (rho^3 = I) -> the ADMISSIBLE base
+# identification; its loop is FLAT.  (conj_perm(E_kk,sigma)=E_{sigma^{-1}(k)}, so
+# sigma=RHO={0:2,1:0,2:1} gives E_11->E_22->E_33->E_11.)
+_RHO = {0: 2, 1: 0, 2: 1}
+
+
+def build_perm(sigma):
+    """27x27 exact matrix of the index-permutation conjugation conj_perm(., sigma)."""
+    basis = RL._standard_basis_27()
+    cols = [RL._flat27(conj_perm(basis[k], sigma)) for k in range(27)]
+    return Matrix(27, 27, lambda r, c: cols[c][r])
+
+
+def grp_slice_block(M, src, dst):
+    """4x4 block of a 27x27 (group OR Lie) element M: slice(src)->slice(dst) in engine
+    bases, plus a leak flag (True if any image carries a component outside `dst`)."""
+    leak = False
+    cols = []
+    for k in src:
+        e = Matrix([Rational(1) if r == k else Rational(0) for r in range(27)])
+        Me = M * e
+        if any(Me[a] != 0 for a in range(27) if a not in dst):
+            leak = True
+        cols.append([Me[r] for r in dst])
+    return Matrix(4, 4, lambda r, c: cols[c][r]), leak
+
+
+def _Jrot4():
+    """C_u-phase GENERATOR: rotation in slice positions {2,3}={Re(x),<x,e7>}; J^3=-J."""
+    J = Matrix.zeros(4, 4)
+    J[3, 2] = Rational(1)
+    J[2, 3] = Rational(-1)
+    return J
+
+
+def phase4(c, s):
+    """C_u-phase by (c,s)=(cos,sin) = exp(theta Jrot) = I + s Jrot + (1-c) Jrot^2 :
+    a 2x2 rotation in slice positions {2,3}."""
+    return Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, c, -s], [0, 0, s, c]])
+
+
+def _reduce_pyth(expr, cs):
+    """Reduce a sympy expr modulo s_i^2 = 1 - c_i^2 for every (c_i,s_i) in `cs`."""
+    from sympy import expand
+    e = expand(expr)
+    for (c, s) in cs:
+        e = e.subs(s**2, 1 - c**2)
+        e = expand(e)
+    return e
+
+
+def gate2_verdict(constant, base_is_identity, identity_reachable):
+    """Deterministic, NON-hardwired three-way from the COMPUTED orbit facts."""
+    if constant:
+        return "DEAD" if base_is_identity else "LIVE-B"
+    return "LIVE-A" if identity_reachable else "LIVE-B"
+
+
+def _gate2_verdict_selftests():
+    cases = [
+        ("constant & base=I            -> DEAD",   gate2_verdict(True, True, True),  "DEAD"),
+        ("constant & base!=I           -> LIVE-B", gate2_verdict(True, False, False), "LIVE-B"),
+        ("varies & identity reachable  -> LIVE-A", gate2_verdict(False, False, True), "LIVE-A"),
+        ("varies & identity NOT reach. -> LIVE-B", gate2_verdict(False, False, False), "LIVE-B"),
+    ]
+    ok = True
+    for label, got, want in cases:
+        ok &= _report(f"gate2 verdict self-test: {label} (got {got})", got == want)
+    return ok
+
+
+def main_gate2():
+    from sympy import symbols as _sym, eye as _eye
+    print("=" * 78)
+    print("DERIVATION 82 -- KKT GLUING & 3-POINT HOLONOMY -- GATE 2 (exact over Q)")
+    print("  the decisive three-point holonomy h = g_31 . g_23 . g_12")
+    print("=" * 78)
+
+    if not source_guard():
+        print("\nSOURCE GUARD FAILED -- aborting before any decisive computation.")
+        return 1
+
+    eta, B = minkowski_form()
+    Binv = B.inv()
+    Efr = {0: E11, 1: E22, 2: E33}
+    Jc = _Jrot4()    # C_u complex structure on the slice (positions {2,3}); J^2 = -proj.
+
+    def _u_in_x1():
+        v = [Rational(0)] * 27
+        v[10] = Rational(1)            # u = e_7 in the (2,1)=x1 slot (coord 10 = <x1,e7>)
+        return RL.X_from_symbols(v)
+
+    # ---- BUG-GUARD (FIRED): the bare TRANSPOSITIONS flip u -> INADMISSIBLE ----------
+    print("\n" + "-" * 78)
+    print("BUG-GUARD (FIRED): bare transpositions FLIP u=e_7 -> INADMISSIBLE (discarded)")
+    print("-" * 78)
+    Tau = {ij: build_perm(_TAU[ij]) for ij in [(0, 1), (1, 2), (2, 0)]}
+    tau_flips_u = (RL._flat27(conj_perm(_u_in_x1(), _TAU[(0, 1)]))[18] == -1)
+    _report("transposition tau_01 maps u=e_7 -> -e_7 => NOT u-aligned => INADMISSIBLE "
+            "(Gate-1 cond 1)", tau_flips_u)
+    Lt12, _lk = grp_slice_block(Tau[(0, 1)], SLICE[0], SLICE[1])
+    _report("tau_01 slice map ANTI-intertwines the C_u complex structure "
+            "(L_tau.J = -J.L_tau) => antiholomorphic", (Lt12 * Jc + Jc * Lt12).is_zero_matrix)
+    H_tau = Tau[(2, 0)] * Tau[(1, 2)] * Tau[(0, 1)]
+    Ht_eng, _lk = grp_slice_block(H_tau, SLICE[0], SLICE[0])
+    print(f"  tau-loop slice action (Mink) = {(B * Ht_eng * Binv).tolist()}  "
+          f"(the SPURIOUS LIVE-B -- DISCARDED)")
+    print("  MONOTONICITY: admitting tau only ENLARGES the holonomy set; the u-aligned")
+    print("  rho-loop (flat) + residual phases (nontrivial) stay admissible regardless,")
+    print("  so identity remains reachable and DEAD cannot be restored.")
+
+    # ---- the ADMISSIBLE base identification rho (u-aligned 3-cycle; rho^3=I; FLAT) --
+    print("\n" + "-" * 78)
+    print("ADMISSIBLE base rho: u-aligned 3-cycle E_11->E_22->E_33->E_11, rho^3=I (FLAT base)")
+    print("-" * 78)
+    R = build_perm(_RHO)
+    for i, j in [(0, 1), (1, 2), (2, 0)]:
+        _report(f"rho . E_{i+1}{i+1} == E_{j+1}{j+1}",
+                RL.octmat_equal(conj_perm(Efr[i], _RHO), Efr[j]))
+    _report("rho maps u=e_7 -> +e_7 (PRESERVES u) => u-aligned / holomorphic",
+            RL._flat27(conj_perm(_u_in_x1(), _RHO))[18] == 1)   # e_7 -> +e_7 in x2 slot (coord 18)
+    _report("rho^3 == I_27 (order 3) => the u-aligned base loop is FLAT",
+            (R * R * R) == _eye(27))
+    Lr12, lk1 = grp_slice_block(R, SLICE[0], SLICE[1])
+    Lr23, lk2 = grp_slice_block(R, SLICE[1], SLICE[2])
+    Lr31, lk3 = grp_slice_block(R, SLICE[2], SLICE[0])
+    _report("rho slice maps slice(E_ii)->slice(E_jj) with NO leak (all three legs)",
+            not (lk1 or lk2 or lk3))
+    _report("rho slice map INTERTWINES the C_u complex structure (L_rho.J = +J.L_rho) "
+            "=> holomorphic", (Lr12 * Jc - Jc * Lr12).is_zero_matrix)
+    eta_eng = B.T * eta * B
+    for nm, Lm in (("Lr12", Lr12), ("Lr23", Lr23), ("Lr31", Lr31)):
+        _report(f"{nm} preserves det_2 (Lorentz between slices)",
+                (Lm.T * eta_eng * Lm - eta_eng) == Matrix.zeros(4, 4))
+    base_is_identity = (B * (Lr31 * Lr23 * Lr12) * Binv == _eye(4))
+    _report("base loop (rho^3) slice action == I (FLAT gluing at the canonical base)",
+            base_is_identity)
+
+    # ---- STRUCTURAL REDUCTION: LIVE <=> joint-stab acts nontrivially on the slice --
+    print("\n" + "-" * 78)
+    print("STRUCTURAL REDUCTION: residual = joint-stab subset Der -> intertwines ALL")
+    print("  algebraic data -> Gate-1 conds 1-4 cannot cut it -> LIVE iff slice nontrivial")
+    print("-" * 78)
+    basis, _, _ = f4_basis()
+    Jrot = _Jrot4()
+    r12 = stab_f4([E11, E22], basis=basis)
+    _report("residual r_12 = {D in f_4 : D.E_11=0 AND D.E_22=0} = joint frame stabilizer "
+            f"(dim {r12['dim']} = so(8))", r12["dim"] == 28)
+    blocks = []
+    for D in r12["gens"]:
+        blk, _lk = grp_slice_block(D, SLICE[0], SLICE[0])
+        if not blk.is_zero_matrix:
+            blocks.append([blk[r, c] for r in range(4) for c in range(4)])
+    sdim = Matrix(blocks).rank() if blocks else 0
+    inspan = (Matrix(blocks + [[Jrot[r, c] for r in range(4) for c in range(4)]]).rank()
+              == sdim) if blocks else False
+    _report("joint-stab slice action is a GENUINE NONTRIVIAL compact SO(2) "
+            f"(dim {sdim}==1, = the C_u phase <Jrot>)", sdim == 1 and inspan)
+    print("  => by the reduction (the LOAD-BEARING fact), the gluing is NOT forced flat.")
+
+    # ---- the ADMISSIBLE holonomy h(phi): u-aligned rho base + residual C_u phases --
+    print("\n" + "-" * 78)
+    print("ADMISSIBLE HOLONOMY h(phi) = (rho-loop) with the residual C_u phases turned on")
+    print("-" * 78)
+    c1, s1, c2, s2, c3, s3 = _sym('c1 s1 c2 s2 c3 s3', real=True)
+    cs = [(c1, s1), (c2, s2), (c3, s3)]
+    h_eng = Lr31 * phase4(c3, s3) * Lr23 * phase4(c2, s2) * Lr12 * phase4(c1, s1)
+    h_mink = (B * h_eng * Binv).applyfunc(lambda e: _reduce_pyth(e, cs))
+    free = set().union(*[e.free_symbols for e in h_mink]) if h_mink else set()
+    varies = len(free & {c1, s1, c2, s2, c3, s3}) > 0
+    _report("h(phi) VARIES with the residual phases (the SO(2) is genuinely turned on)",
+            varies)
+    h_at0 = h_mink.subs({c1: 1, s1: 0, c2: 1, s2: 0, c3: 1, s3: 0}).applyfunc(
+        lambda e: _reduce_pyth(e, cs))
+    identity_reachable = (h_at0 == _eye(4))
+    _report("h(phi=0) == I (the pure rho-loop is FLAT -> identity REACHABLE)",
+            identity_reachable)
+    h1 = (B * (Lr31 * phase4(1, 0) * Lr23 * phase4(1, 0) * Lr12 * phase4(c1, s1)) * Binv)
+    hv = h1.subs({c1: Rational(3, 5), s1: Rational(4, 5)})
+    nontrivial_reachable = (hv != _eye(4))
+    _report("h(single residual phase) != I -> NONTRIVIAL holonomy REACHABLE",
+            nontrivial_reachable)
+    iso_all = (h_mink.T * eta * h_mink - eta).applyfunc(
+        lambda e: _reduce_pyth(e, cs)) == Matrix.zeros(4, 4)
+    _report("h(phi) is a det_2-isometry (in SO(3,1)) for ALL phi", iso_all)
+
+    # ---- so(3) ADD-ON (non-blocking): which holonomy GROUP does the loop reach? -----
+    print("\n" + "-" * 78)
+    print("ADD-ON (non-blocking): reachable holonomy group of the admissible rho-loop")
+    print("-" * 78)
+    L12i, L23i = Lr12.inv(), Lr23.inv()
+    Xg = [Jrot, L12i * Jrot * Lr12, L12i * L23i * Jrot * Lr23 * Lr12]
+    span_rank = Matrix([[(B * X * Binv)[r, c] for r in range(4) for c in range(4)]
+                        for X in Xg]).rank()
+    print(f"  span of the 3 conjugated phase-generators in so(3) = rank {span_rank}")
+    print(f"  => the admissible loop with the joint-stab residual reaches "
+          f"{'a single SO(2) (the C_u plane / a gauge-flavored U(1))' if span_rank == 1 else f'a rank-{span_rank} subgroup'}, "
+          f"NOT full SO(3).  (No interpretation.)")
+
+    # ---- VERDICT ladder (deterministic, non-hardwired; self-tested) ----------------
+    print("\n" + "-" * 78)
+    print("GATE-2 VERDICT LADDER (deterministic, non-hardwired; self-tested)")
+    print("-" * 78)
+    selftests_ok = _gate2_verdict_selftests()
+    v = gate2_verdict(constant=(not varies),
+                      base_is_identity=base_is_identity,
+                      identity_reachable=identity_reachable)
+    print(f"\n  COMPUTED: varies={varies}, base_is_identity={base_is_identity}, "
+          f"identity_reachable={identity_reachable}, nontrivial_reachable={nontrivial_reachable}")
+    print(f"  GATE-2 VERDICT (derived from the computed orbit) = {v}")
+    if v == "LIVE-A":
+        print("  ROUTING: with ADMISSIBLE (u-aligned) identifications the holonomy VARIES,")
+        print("           identity reachable (phi=0, flat) AND nontrivial reachable (phi!=0)")
+        print("           -> the inter-observer gluing holonomy is an UNFORCED choice ->")
+        print("           INDEPENDENCE PROVED (the algebra does NOT force a canonical flat gluing).")
+    _report("gate2 verdict ladder self-tests all pass", selftests_ok)
+
+    # ---- summary -------------------------------------------------------------------
+    print("\n" + "=" * 78)
+    print("GATE-2 SUMMARY (three-point holonomy, exact over Q):")
+    print("  bug-guard FIRED         : bare transpositions FLIP u (antiholomorphic) -> "
+          "INADMISSIBLE; their loop diag(1,1,-1,-1) was the SPURIOUS LIVE-B")
+    print("  admissible base (rho^3) : FLAT (h_slice = I; rho u-aligned, order 3)")
+    print("  structural reduction    : residual subset Der fixes both endpoints -> "
+          "LIVE iff joint-stab slice action nontrivial")
+    print("  joint-stab slice action : NONTRIVIAL compact SO(2) (the C_u phase) -> LIVE")
+    print(f"  h(phi) varies/iso/reach : varies={varies}; det_2-isom={iso_all}; "
+          f"identity@0={identity_reachable}; nontrivial@phi!=0={nontrivial_reachable}")
+    print(f"  reachable holonomy grp  : rank {span_rank} = the single C_u-plane SO(2) / U(1) "
+          f"(NOT full SO(3))")
+    print(f"  GATE-2 VERDICT          : {v}  (INDEPENDENCE PROVED)")
+    print("  ANTI-OVERCLAIM (binding): independence ONLY.  The freedom is ONE internal "
+          "u-phase = a spatial SO(2)/U(1) (gauge-flavored, Berry/MM-shaped, NOT metric-")
+    print("  shaped).  NOT 'the dictionary's DOF' (a tetrad needs frame-gluing freedom; "
+          "boosts are never-algebra-internal, Phase 48); the bridge clamp is untouched;")
+    print("  the six-kind menu stays exhausted; no kappa, no Lambda, no dynamics.")
+    print("=" * 78)
+
+    print(f"\n{'ALL_PASS' if ALL_PASS else 'SOME CHECKS FAILED'} "
+          f"(verdict={v}; base_flat={base_is_identity}; joint_stab_so2={sdim == 1}; "
+          f"varies={varies}; selftests={selftests_ok})")
+    return 0 if ALL_PASS else 1
+
+
 if __name__ == "__main__":
     _mode = sys.argv[1] if len(sys.argv) > 1 else "gate0"
     if _mode == "gate1":
         sys.exit(main_gate1())
+    elif _mode == "gate2":
+        sys.exit(main_gate2())
     else:
         sys.exit(main())
