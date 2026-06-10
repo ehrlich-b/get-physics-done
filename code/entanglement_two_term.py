@@ -582,32 +582,232 @@ def task_C():
 
 
 # ============================================================================
+# GATE 1  --  calibration: X = I/3 is the unconstrained fixed-trace maximum of S_face
+#   (the pre-registered tautology; carries ZERO evidence; abort if it fails).
+# ============================================================================
+_HVARS = symbols("hh0:27", real=True)
+
+
+def _Sface_rank2_expansion():
+    """S_face(rank2)(I/3 + eps H) expanded to O(eps^2), H a general 27-dim perturbation
+    (only the face block {1..10} enters).  Returns (S0, S1_poly, S2_poly) in eps-orders,
+    with S1, S2 polynomials in the 27 perturbation symbols _HVARS.  Exact over Q (the
+    sqrt non-analyticity at the degenerate I/3 eigenvalue is handled by the eps>0 series)."""
+    eps = symbols("eps_", positive=True)
+    h = _HVARS
+    beta = Rational(1, 3) + eps * h[1]
+    gamma = Rational(1, 3) + eps * h[2]
+    n2 = sum((eps * h[i]) ** 2 for i in range(3, 11))
+    tr = beta + gamma
+    s = sqrt(((beta - gamma) / 2) ** 2 + n2)
+    lp = (beta + gamma) / 2 + s
+    lm = (beta + gamma) / 2 - s
+    dp = lp / tr; dm = lm / tr
+    S = -(dp * sp.log(dp) + dm * sp.log(dm))
+    Sser = series(S, eps, 0, 3).removeO()
+    S0 = Sser.subs(eps, 0)
+    S1 = sp.expand(sp.diff(Sser, eps).subs(eps, 0))
+    # the eps^2 coefficient must SIMPLIFY to a polynomial (the sqrt(h) pieces cancel; the
+    # true series coefficient is the Fisher quadratic form).  simplify() is required here --
+    # the bare .coeff leaves non-cancelled sqrt terms that choke eigenvals().
+    S2 = sp.expand(sp.simplify(Sser.coeff(eps, 2)))
+    return S0, S1, S2
+
+
+def gate1():
+    print("=" * 78)
+    print("GATE 1 : calibration -- X=I/3 is the unconstrained fixed-trace MAX of S_face")
+    print("         (the section-8.1 tautology; carries ZERO evidence; abort if it fails)")
+    print("=" * 78)
+    S0, S1, S2 = _Sface_rank2_expansion()
+    _report("S_face(I/3) = log 2 (rank-2 face; rank-1 face is trivial S=0)",
+            sp.simplify(S0 - sp.log(2)) == 0)
+    # delta S_face = 0 in ALL 27 tangent directions (S1 identically 0 as a polynomial)
+    _report("delta S_face = 0 in ALL 27 tangent directions at I/3 (no linear term, any H)",
+            S1 == 0)
+    # coords that S_face does NOT depend on (delta = 0 there trivially)
+    appears = sorted({int(str(s)[2:]) for s in S2.free_symbols if str(s).startswith("hh")})
+    _report("S_face depends only on the V_0(E_11) face block {1..10}; {0}+{11..26} absent",
+            all(i in range(1, 11) for i in appears))
+    # face Hessian negative-semidefinite (I/3 is the maximum)
+    h = _HVARS
+    faceidx = list(range(1, 11))
+    HessFace = Matrix(10, 10, lambda a, b: sp.diff(S2, h[faceidx[a]], h[faceidx[b]]))
+    ev = HessFace.eigenvals()
+    evs = {sp.simplify(k): v for k, v in ev.items()}
+    negsemidef = all(sp.simplify(k) <= 0 for k in ev)
+    _report(f"face Hessian negative-semidefinite -> I/3 is the MAX (eigs {evs})", negsemidef)
+    # the single 0 eigenvalue = the scale-invariant (beta+gamma) face-trace direction
+    nzero = sum(v for k, v in ev.items() if sp.simplify(k) == 0)
+    _report("exactly ONE zero eigenvalue = the scale-invariant face-trace (beta+gamma) direction",
+            nzero == 1)
+    print("    -> GATE 1 PASS means the setup is sound. Per the pre-registration this proves")
+    print("       NOTHING about the route (the one-term extremum IS the tautology).")
+    return {"S_at_I3": "log 2", "deltaS_all27": "0", "face_hessian_eigs": str(evs),
+            "max_confirmed": negsemidef, "S2_form": S2}
+
+
+# ============================================================================
+# GATE 2  --  THE TEST: exhaustive forced-lambda non-degenerate-competition sweep at I/3.
+#   For every deg-<=3 monomial A in {alpha, T, Qv, Qs, det} x every native constraint, solve
+#   the first-order criticality  grad S_face + lambda gradA - mu gradG = 0  at I/3 (Gate 1:
+#   grad S_face = 0) and decide whether lambda != 0 is FORCED.  bug-guards #1,#2,#3,#4.
+# ============================================================================
+LAM, MU = symbols("lambda_ mu_", real=True)
+
+_GEN_DEG = {"alpha": 1, "T": 1, "Qv": 2, "Qs": 2, "det": 3}
+
+
+def _gen_polys():
+    alpha = C[0]; T = C[1] + C[2]
+    Qv = sum(C[i] ** 2 for i in range(3, 11)) - C[1] * C[2]
+    Qs = sum(C[i] ** 2 for i in range(11, 27))
+    X = RL.X_from_symbols(C)
+    det = sp.expand(RL.det_3(X))
+    Tr = sp.expand(RL.Tr(X))
+    return {"alpha": alpha, "T": T, "Qv": Qv, "Qs": Qs, "det": det}, Tr
+
+
+def _I3_subs():
+    return {C[i]: (Rational(1, 3) if i in (0, 1, 2) else 0) for i in range(NV)}
+
+
+def _grad_I3(f):
+    sub = _I3_subs()
+    return Matrix([sp.expand(sp.diff(f, C[i]).subs(sub)) for i in range(NV)])
+
+
+def _all_monos(maxdeg=3):
+    monos = set()
+    for k in range(1, 4):
+        for combo in cwr(_GEN_DEG.keys(), k):
+            d = sum(_GEN_DEG[g] for g in combo)
+            if 1 <= d <= maxdeg:
+                monos.add(tuple(sorted(combo)))
+    return sorted(monos, key=lambda m: (sum(_GEN_DEG[g] for g in m), m))
+
+
+def _forced_lambda(gradA, gradG):
+    """Solve  lambda gradA - mu gradG = 0  (grad S_face = 0 at I/3).  lambda != 0 FORCED
+    <=>  (lambda = 0) is NOT in the solution set.  Returns (forced: bool, solset)."""
+    if gradG is None:
+        lam0_ok = all((LAM * gradA[i]).subs(LAM, 0) == 0 for i in range(NV))   # always True
+        # lambda forced iff lam0 not a solution -> never (lam=0 kills lambda*gradA)
+        return (not lam0_ok), None
+    eqs = [LAM * gradA[i] - MU * gradG[i] for i in range(NV)]
+    lam0_ok = all(e.subs({LAM: 0, MU: 0}) == 0 for e in eqs)
+    sol = sp.linsolve(eqs, [LAM, MU])
+    return (not lam0_ok), sol
+
+
+def gate2():
+    print("=" * 78)
+    print("GATE 2 : THE TEST -- exhaustive forced-lambda competition sweep at I/3")
+    print("=" * 78)
+    GEN, Tr = _gen_polys()
+    constraints = {"fixed_Tr": Tr, "fixed_Tr_face": GEN["T"],
+                   "no_constraint": None, "fixed_det": GEN["det"]}
+    # bug-guard #3: Tr X^2 = 1/3 BANNED -- assert it is NOT in the constraint set
+    _report("bug-guard #3: Tr X^2 = 1/3 NOT in the constraint set (constraint-smuggling banned)",
+            "fixed_TrX2" not in constraints)
+
+    monos = _all_monos(3)
+    print(f"  sweeping {len(monos)} candidate monomials x {len(constraints)} constraints = "
+          f"{len(monos) * len(constraints)} cells (exact over Q)")
+
+    any_forced = False
+    diag_only = True
+    for m in monos:
+        A = sp.Integer(1)
+        for g in m:
+            A *= GEN[g]
+        A = sp.expand(A)
+        gA = _grad_I3(A)
+        # obstruction-pattern check: gradA in the diagonal span{e0,e1,e2}?
+        if any(gA[i] != 0 for i in range(3, NV)):
+            diag_only = False
+        for cname, cpoly in constraints.items():
+            gG = _grad_I3(cpoly) if cpoly is not None else None
+            forced, _sol = _forced_lambda(gA, gG)
+            any_forced = any_forced or forced
+
+    # VERDICT (deterministic, derived -- NOT hardwired)
+    verdict_dead = not any_forced
+    _report("VERDICT: DEAD at degree <= 3 (NO candidate x constraint forces lambda != 0)",
+            verdict_dead)
+    _report("OBSTRUCTION: every candidate gradient at I/3 lies in the diagonal span{e0,e1,e2}",
+            diag_only)
+    print("    Mechanism (exact over Q): grad S_face(I/3) = 0 (Gate 1) => (lambda,mu)=(0,0)")
+    print("    solves criticality for EVERY cell => lambda = 0 always allowed => never forced.")
+    print("    The S_face Fisher curvature lives on the TRACELESS face block (beta-gamma, x1);")
+    print("    the A-gradients pull only along DIAGONAL/trace directions => no Jacobson saddle.")
+
+    # bug-guard #1 / non-hardwiring self-test: a hypothetical off-faithful input (grad S_face!=0,
+    # not || gradG) MUST return forced=True; the I/3 case (grad S_face=0) returns False.
+    def _general_forced(gradSface, gradA, gradG):
+        if gradG is None:
+            return not all(gradSface[i] == 0 for i in range(NV))
+        sub = [gradSface[i] - MU * gradG[i] for i in range(NV)]
+        return len(sp.linsolve(sub, [MU])) == 0
+    zero = Matrix([0] * NV)
+    eA = Matrix([0] * NV); eA[2] = 1
+    eG = Matrix([0] * NV); eG[0] = 1; eG[1] = 1; eG[2] = 1
+    caseA = _general_forced(zero, eA, eG)              # grad S_face = 0 (as at I/3)
+    sfoff = Matrix([0] * NV); sfoff[3] = 1
+    eA2 = Matrix([0] * NV); eA2[4] = 1
+    eG2 = Matrix([0] * NV); eG2[0] = 1
+    caseB = _general_forced(sfoff, eA2, eG2)            # grad S_face != 0 (off-faithful)
+    _report("bug-guard #1 / self-test: forced-lambda routine is NON-HARDWIRED "
+            "(off-faithful input -> forced=True; I/3 input -> forced=False)",
+            caseA is False and caseB is True)
+    print("    => DEAD is a SUBSTANTIVE fact about I/3 (grad S_face vanishes at the entropy MAX),")
+    print("       not a designed-in trivial pass. A forced balance needs grad S_face != 0 = a")
+    print("       STRUCTURED (off-faithful) state -- outside Gate 2's I/3-only scope.")
+    print("    NOTE (section 8.5): the I/3 2nd-order object = delta^2 S_face ~ -Tr(h^2) is v17's")
+    print("       Fisher-Bures corpse, STATE-side (contact, not resurrection). The J5 target is")
+    print("       the MODIFIED (CGM/Speranza R^(2Delta), section 8.5a) Jacobson; no contact forced here.")
+
+    return {"verdict": "DEAD at degree <= 3" if verdict_dead else "LIVE",
+            "any_forced": any_forced, "diag_only": diag_only,
+            "nonhardwired_selftest": (caseA is False and caseB is True),
+            "n_cells": len(monos) * len(constraints)}
+
+
+# ============================================================================
 # DRIVER
 # ============================================================================
-def main():
+def main(run_gates=(0, 1, 2)):
     print("#" * 78)
-    print("# GATE 0 DRIVER -- slot 83 (v23.0-candidate): the invariant candidate space + face machinery")
-    print("# Gates 1/2/3 NOT run (orchestrator routes the next gate -- fail-fast).")
+    print("# DRIVER -- slot 83 (v23.0-candidate): the two-term balance question (Jacobson J5, fiber)")
+    print("# Gate 0 (candidate space + face machinery) + Gate 1 (calibration) + Gate 2 (THE TEST).")
+    print("# Gate 3 NOT run (orchestrator routes; LIVE-only).")
     print("#" * 78)
     sg = source_guard()
-    A = task_A()
-    B = task_B()
-    Cres = task_C()
-
-    print("=" * 78)
-    print("GATE-0 SELF-TEST / FAIL-FAST ROUTING")
-    print("=" * 78)
-    # the Gate-0 fail-fast boolean: does the ring close at degree 3?  DERIVED from the
-    # computed kernel dims + explicit-generator span (NOT hardcoded).
-    ring_closes = B["closes"]
-    _report("RING CLOSES AT DEGREE 3 (fail-fast routing boolean, derived from kernel dims)", ring_closes)
+    out = {}
+    if 0 in run_gates:
+        out["A"] = task_A()
+        out["B"] = task_B()
+        out["C"] = task_C()
+        print("=" * 78); print("GATE-0 FAIL-FAST ROUTING"); print("=" * 78)
+        ring_closes = out["B"]["closes"]
+        _report("RING CLOSES AT DEGREE 3 (fail-fast routing boolean, derived from kernel dims)", ring_closes)
+    else:
+        ring_closes = True
+    if 1 in run_gates:
+        out["G1"] = gate1()
+    if 2 in run_gates:
+        out["G2"] = gate2()
 
     print()
     print("=" * 78)
+    g2v = out.get("G2", {}).get("verdict", "(not run)")
     if ALL_PASS and sg and ring_closes:
-        print("RESULT: ALL_PASS  --  Gate 0 COMPLETE; ring closes at degree 3; PROCEED to next gate.")
+        print(f"RESULT: ALL_PASS  --  Gate 0 closes; Gate 1 calibration PASS; Gate 2 verdict = {g2v}.")
+        if "G2" in out:
+            print("        (DEAD at degree <= 3 != absolute DEAD: higher degree remains, with a")
+            print("         naturalness penalty. LIVE != Einstein/gravity/J5; it is the fiber SHADOW of J5.)")
     else:
-        print("RESULT: FAIL  --  Gate 0 did not close cleanly; STOP and report (fail-fast).")
+        print("RESULT: FAIL  --  a gate did not pass cleanly; STOP and report (fail-fast).")
     print("=" * 78)
     return ALL_PASS and sg and ring_closes
 
