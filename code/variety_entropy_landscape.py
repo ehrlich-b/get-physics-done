@@ -450,6 +450,56 @@ def _live_structure(generic_summary, Xgen):
 
 
 # ----------------------------------------------------------------------------
+# GATE 3 : geometry contact  (EXPLORATORY, NON-BLOCKING -- design input for v25)
+#   compare the landscape's critical structure with the canonical (Borel) OP^2
+#   geometry restricted to each family.  NO law/balance/fixed-volume claims;
+#   the v24.0 verdict (LIVE) does NOT depend on anything computed here.
+# ----------------------------------------------------------------------------
+def _real_roots(expr, t):
+    rts = sp.solve(sp.numer(sp.together(sp.cancel(expr))), t)
+    return [r for r in rts if r.is_real]
+
+
+def gate3():
+    print("=" * 78)
+    print("GATE 3 : geometry contact -- landscape critical structure vs canonical Borel")
+    print("         (EXPLORATORY, NON-BLOCKING; design input for v25 = J5-on-the-variety;")
+    print("          NO law/balance claims; the v24.0 LIVE verdict is INDEPENDENT of this)")
+    print("=" * 78)
+    t = symbols("t")
+    E11 = KK.E_ii(0)
+    Xgen = state_generic()
+    # canonical F_4-invariant 'transition probability' to E_11 (Fubini-Study cos^2 distance):
+    #   c11(t) = Tr(p(t) o E_11).  The Borel metric is F_4-invariant -> it sees only this
+    #   amplitude, NOT the octonion direction.  Distinguished geodesic pts: dc11/dt = 0.
+    for fname, cfg in FAMILIES.items():
+        p = family(t, cfg["j"], cfg["k"])
+        c11 = sp.cancel(RL.Tr(RL.jordan(p, E11)))
+        geo_crit = sorted(_real_roots(sp.diff(c11, t), t), key=lambda z: float(z))
+        _, _, r = face_coeffs(p, Xgen)
+        land = _real_roots(sp.diff(r, t), t)
+        land_rat = sorted([z for z in land if z.is_rational], key=lambda z: float(z))
+        n_gen = len(land) - len(land_rat)
+        coincide = (set(land_rat) == set(geo_crit)) and (n_gen == 0)
+        print(f"  {fname:24s} [{cfg['kind']:9s}]:")
+        print(f"      canonical Borel distinguished pts (dc11/dt=0): {geo_crit}   [c11 = {c11}]")
+        print(f"      landscape critical pts (dr/dt=0, generic X): {land_rat}"
+              f" + {n_gen} generic(matter-eigenframe) root(s)")
+        print(f"      -> landscape-critical == canonical-geometry: {coincide}")
+    print()
+    print("  OBSERVATION (exploratory; v25 design input, NOT a v24.0 claim):")
+    print("  the canonical Borel geometry is F_4-invariant and direction-BLIND -- its")
+    print("  distinguished points are {-1,0,1} (=E_11,E_22) for EVERY family.  The matter")
+    print("  landscape's critical points coincide with the canonical geometry ONLY along the")
+    print("  matter-decoupled (real) direction; along the matter-COUPLED directions (e_7,e_1)")
+    print("  they DEPART and track the matter eigenframe.  => the matter-entropy landscape and")
+    print("  the canonical geometry are GENUINELY DISTINCT structures on the variety (agreeing")
+    print("  only where matter is blind), so a J5-on-the-variety balance would be a real")
+    print("  two-structure competition, not a tautology.  Filed as design input for v25.")
+    return True
+
+
+# ----------------------------------------------------------------------------
 def main(run=(0, 1, 2)):
     print("#" * 78)
     print("# variety_entropy_landscape.py  --  v24.0  (exact over Q; verdict = char-poly constancy)")
@@ -467,6 +517,8 @@ def main(run=(0, 1, 2)):
             return results
     if 2 in run:
         results["gate2"] = gate2()
+    if 3 in run:
+        results["gate3"] = gate3()
     print(f"\n[{time.time() - _t0:6.1f}s] checks: {sum(PASS)}/{len(PASS)} PASS")
     return results
 
