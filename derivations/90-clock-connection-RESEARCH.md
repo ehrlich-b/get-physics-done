@@ -63,10 +63,17 @@ background ⟨R(v,w)𝒦, D⟩ (trap #13). The decisive computation found:
 4. **trap #13 calibration (Gate 1, mandatory).** The canonical transport's own holonomy is
    genuinely nonzero — the recorded v22 slot-82 slice holonomy h(φ) is flat at φ=0 (h(0)=I)
    and nontrivial at φ≠0 (the Fubini–Study background). The background machinery has teeth; it
-   is NOT vacuous. Yet for the matter clock the subtracted curvature is exactly 0: the Bott
-   background ⟨R𝒦, D⟩ = naive da = 0 (the FS holonomy paired with this face-valued clock
-   vanishes), while ⟨R·Y, D⟩ ≠ 0 for a generic face field Y. The spectrum-matched diagonal
-   reference (v24 direction-blind) gives zero subtracted holonomy (co-diagonalization stratum).
+   is NOT vacuous. Concretely (gpd-verifier, direct mixed exterior derivative on a generic
+   2-surface): the **raw da of a_X⁽²⁾ is itself NONZERO and equals the canonical FS/Bott
+   background** ⟨R(v,w)𝒦, D⟩ EXACTLY (e.g. 2201/6930 for a dense test M; −3404/385 for another —
+   the direct curl and the nested commutator agree to the digit), so the **background-subtracted
+   curvature F⁽²⁾ = da − ⟨R𝒦, D⟩ = 0** — a structural identity for any in-face (V₀) field, hence
+   not the discriminating content. The discriminating, gauge-invariant, load-bearing statement is
+   the **EXACTNESS** a_X⁽²⁾ = dχ ⟹ ∮a = 0 (no matter-forced holonomy), proven exactly in the
+   sqrt-free engine along all four cut families with NO truncation. (A naive low-order read returns
+   "raw da = 0", but that is an O(ε²/η²) truncation artifact — the bundle's Bott curvature first
+   enters ∇D at second order; the verdict never rests on a numerically-computed raw da.) The
+   spectrum-matched diagonal reference (v24 direction-blind) gives zero subtracted holonomy.
 
 5. **Loop route (Stokes, independent).** ∮ a_X⁽²⁾ = ∮ dχ = 0 around any closed face-loop — an
    exact 1-form has zero holonomy. Corroborates the local F⁽²⁾ = 0 globally.

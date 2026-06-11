@@ -33,9 +33,14 @@ so F⁽²⁾ = d(a_X⁽²⁾) = d(dχ) = 0 identically.
 
 4. **trap #13 is honored and genuine.** The canonical transport's own holonomy is nonzero
    (the recorded v22 slot-82 slice holonomy h(φ≠0) ≠ I, h(0)=I — the Fubini–Study background).
-   The background-subtraction has teeth: ⟨R·Y,D⟩ ≠ 0 for a generic face field Y, while for the
-   matter clock the subtracted curvature is exactly 0. The spectrum-matched diagonal reference
-   (v24 direction-blind) gives zero subtracted holonomy (co-diagonalization stratum).
+   The background-subtraction has teeth: the **raw da of a_X⁽²⁾ is itself nonzero and equals the
+   canonical FS/Bott background** ⟨R(v,w)𝒦, D⟩ exactly (2201/6930 for a dense test M, verified by
+   direct mixed exterior derivative == nested commutator), so the background-subtracted
+   F⁽²⁾ = da − ⟨R𝒦,D⟩ = 0 (a structural identity for in-face V₀ fields). The discriminating,
+   gauge-invariant, load-bearing statement is the EXACTNESS a_X⁽²⁾ = dχ ⟹ ∮a = 0 — matter forces
+   no holonomy. The spectrum-matched diagonal reference (v24 direction-blind) gives zero
+   subtracted holonomy. (A naive low-order "raw da = 0" is an O(ε²) truncation artifact; the
+   verdict rests on the exactness, never on a computed raw da.)
 
 ## The payload
 
