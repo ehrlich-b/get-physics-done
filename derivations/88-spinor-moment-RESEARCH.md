@@ -122,7 +122,7 @@ generator.)
 The v22-unforced gluing U(1) now has matter-pinned TOPOLOGICAL data: the zeros (WHERE = the
 matter eigenframe), the indices/weights (HOW MUCH), both X-determined. What remains UNFORCED
 is the LOCAL FORM of the gluing — whether there is a canonical matter-aligned connection and
-what selects it — the v29 fork, NOT claimed here. **The vacuum pins nothing (`s ≡ 0`):
+what selects it — the v30 fork, NOT claimed here. **The vacuum pins nothing (`s ≡ 0`):
 matter is what creates the topological skeleton.** This is connection-KINEMATICS on the
 candidate BASE — NOT gravity, NOT a metric law, NOT a selection law; the v18/v20 Cartan/MM
 corpse stays buried; "matter-pinned" refers to the topological class only.

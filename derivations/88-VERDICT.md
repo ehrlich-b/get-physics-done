@@ -21,9 +21,9 @@ v22-unforced gluing U(1) circle (slot 82, Spin(8), the C_u phase) acts on the V_
 +J_Cu and on the J_{1/2} tangent as −½J_Cu — v28's object is the v22-U(1)'s action on the
 base tangent. **E4 (the reading, fenced):** the v22-unforced U(1) now carries matter-pinned
 TOPOLOGICAL data (zeros = the matter eigenframe, indices/weights, X-determined); the LOCAL
-FORM of the gluing stays unforced (the v29 fork). The vacuum pins nothing (s≡0) — matter
+FORM of the gluing stays unforced (the v30 fork). The vacuum pins nothing (s≡0) — matter
 creates the topological skeleton. **Scope:** connection-KINEMATICS on the candidate BASE —
 NOT gravity, NOT a metric law, NOT a selection law (the v18/v20 Cartan/MM corpse stays
 buried); "matter-pinned" = the topological class only; no Einstein, no Newton constant, no
-G=κT, no dark-matter or geodesic-motion language; signature OPEN. *(The Gate-5 v29 ledger is
+G=κT, no dark-matter or geodesic-motion language; signature OPEN. *(The Gate-5 v30 ledger is
 stated separately and carries no claims.)*

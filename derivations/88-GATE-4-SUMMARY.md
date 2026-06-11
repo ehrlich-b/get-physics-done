@@ -17,7 +17,7 @@ IDENTICAL (3) — χ is dimension-blind.
 The v22-unforced gluing U(1) now carries matter-pinned TOPOLOGICAL data: the zeros (WHERE =
 the matter eigenframe) and the indices/weights (HOW MUCH), both X-determined. What remains
 UNFORCED is the LOCAL FORM of the gluing (a canonical matter-aligned connection? what selects
-it) — the v29 fork, NOT claimed here. **The vacuum pins nothing (s ≡ 0): matter creates the
+it) — the v30 fork, NOT claimed here. **The vacuum pins nothing (s ≡ 0): matter creates the
 topological skeleton.** Connection-KINEMATICS on the candidate BASE — NO gravity, NO metric
 law, NO selection law (the v18/v20 Cartan/MM corpse stays buried); "matter-pinned" = the
 topological class only.

@@ -19,7 +19,7 @@ phi_X(p)=<X,p>).  CLAIMS (exact over Q/Q(t)):
      the C_u-winding decomposition at each cut zero (the extracted new numbers); the v25
      cross-check Delta phi(E_11) = 4(x_2+x_3-2x_1) = -12(phi-phibar).
   E4 (reading, fenced): the v22-unforced U(1) now has matter-pinned TOPOLOGICAL data
-     (zeros + indices, X-determined); the LOCAL FORM of the gluing remains unforced (v29).
+     (zeros + indices, X-determined); the LOCAL FORM of the gluing remains unforced (v30).
 
 GATE 0 (the v22 dictionary, fail-fast): the v22 slice-SO(2) circle (slot 82) acts on
 J_{1/2}(E_11) cap h_3(C_u) as a NONZERO multiple of the C_u complex structure (= "the C_u
@@ -362,7 +362,7 @@ def gate4():
     print("  The v22-unforced gluing U(1) now carries matter-pinned TOPOLOGICAL data: the zeros")
     print("  (WHERE = the matter eigenframe) and the indices/weights (HOW MUCH), both X-determined.")
     print("  What remains UNFORCED is the LOCAL FORM of the gluing (is there a canonical matter-")
-    print("  aligned connection, what selects it) -- the v29 fork, NOT claimed here.  The VACUUM")
+    print("  aligned connection, what selects it) -- the v30 fork, NOT claimed here.  The VACUUM")
     print("  pins nothing (s==0): matter is what creates the topological skeleton.  This is")
     print("  connection-KINEMATICS on the candidate BASE -- NO gravity, NO metric law, NO selection")
     print("  law (the v18/v20 Cartan/MM corpse stays buried); 'matter-pinned' = topological class.")
@@ -371,20 +371,20 @@ def gate4():
 
 
 # ----------------------------------------------------------------------------
-# GATE 5 -- the v29 ledger (exploratory, non-blocking)
+# GATE 5 -- the v30 ledger (exploratory, non-blocking)
 # ----------------------------------------------------------------------------
 def gate5():
     print("=" * 78)
-    print("GATE 5 : v29 ledger (EXPLORATORY, NON-BLOCKING; NO claims)")
+    print("GATE 5 : v30 ledger (EXPLORATORY, NON-BLOCKING; NO claims)")
     print("=" * 78)
-    print("  (i) the FORM-SELECTION fork (v29): given the matter-pinned topological class, is")
+    print("  (i) the FORM-SELECTION fork (v30): given the matter-pinned topological class, is")
     print("      there a CANONICAL matter-aligned connection on the cut tangent? existence/")
     print("      uniqueness as an exact question; what functional would SELECT it (flag any")
     print("      import -- a metric/action would be a fence breach). The genuine open question.")
     print("  (ii) claim-2 contact: K_face = -log rho_face explicit in (m,q) (consumption note).")
     print("  (iii) covariant statement of the v27 balance law along the matter field's flow")
     print("      lines (a derivative-of-the-law question) -- priced only.")
-    print("  Filed for v29. No verdicts.")
+    print("  Filed for v30. No verdicts.")
     return True
 
 
