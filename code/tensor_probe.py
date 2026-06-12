@@ -1609,6 +1609,21 @@ def gate3_bilinears():
                   f"{b3_def_agree}); TT dim={b3_def_val} (1<=dim<=8 Boucetta lambda=12 (1,1) "
                   f"multiplicity, NOT exceeding => no under-spanning) [{audit_ok}]", audit_ok)
 
+    # --- 3.generic  GUARD 4 (generic M): the verdict is direction-INDEPENDENT.  Cross-check on a
+    #     dense generic matter (all 8 params nonzero, off the diagonal stratum): B1 control consistent
+    #     AND B3 inconsistent (LIVE) -- not an artifact of the sparse single-generator direction. ---
+    _log("3.generic GUARD-4 dense-matter cross-check (B1 control + B3, generic M) ...")
+    Mden = _M_rat()
+    phid = cancel(phi_field(Mden))
+    B1d = cov_hessian(phid, g, ginv, simp=together)
+    B3d = grad_bilinear(phid, simp=together)
+    c_b1d, _ = york_solve(B1d, g, ginv)
+    c_b3d, _ = york_solve(B3d, g, ginv)
+    gen_ok = c_b1d and (not c_b3d) == B3_tt
+    ok &= _report(f"3.generic GUARD-4 (dense generic M): B1 control consistent={c_b1d}, B3 consistent="
+                  f"{c_b3d} => B3 TT-residue present={not c_b3d} (== sparse verdict {B3_tt}: "
+                  f"direction-independent) [{gen_ok}]", gen_ok)
+
     print(f"\n  GATE 3 (bilinear sector): {'ALL PASS' if ok else 'FAIL'}")
     print(f"  [VERDICT CENTER]: B3 (= B6) TT-residue present = {B3_tt}, dim = {b3_def_val}, type = "
           f"lambda=12 (1,1)-Hermitian => {'LIVE (a matter-sourced tensor mode exists)' if B3_tt else 'DEAD'}")

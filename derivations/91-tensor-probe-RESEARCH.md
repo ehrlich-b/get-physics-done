@@ -208,20 +208,98 @@ the λ=32 dim-27 (2,0)/(0,2)-TT (§4)? For φ_Y with holomorphic gradient (Matsu
 
 ---
 
-## 7. Per-member results  *(executor/verifier fill from the exact computation)*
+## 7. Per-member results  *(from the exact computation, executor)*
 
-_TBD — Gate 2 (B2,B4,B5) and Gate 3 (B3,B6): TT-residue per member, the SU(3)-isotypic type
-carrying it (if LIVE), the (ω,f) certificate (if DEAD), the dimension audit per block._
+**Method (the York split solver, V1).** For each member h: solve `h = δ*ω + f·g` over Q by the
+**matched-monomial route** (`york_solve`) — build δ*ω + f·g over the COMPLETE certified
+gauge+conformal span, bring h − δ*ω − f·g over a common ρ-power, require every (z,z̄)-monomial
+coefficient to vanish (a linear system over Q). The complete gauge image is spanned (by linearity
+of δ*) by δ* of {φ_A dφ_B (holo-only), φ_A d̄φ_B (antiholo-only)}, φ_A over the 8 su(3) generators
++ identity (φ_id = Tr(p) = 1 ⇒ bare dφ_B and the Killing forms i(dφ−d̄φ) included; holo/antiholo
+coefficients INDEPENDENT); conformal = {φ_A φ_B · g}. CONSISTENT ⇒ DEAD; INCONSISTENT ⇒ TT present.
 
-## 8. Verdict, payload / certificates, scope  *(fill at Gate 4)*
+| member | object | deg | TT-residue | certificate / note |
+|---|---|---|---|---|
+| **B1** (control) | ∇∇φ_Y | 1 | **0 (pure gauge)** | (ω,f) = (dφ_Y, ¼Δφ_Y); york_solve consistent + symbolic reconstruction EXACT (Trap #14) |
+| **B2** | ∇∇G_M | 2 | **0 (pure gauge)** | (ω,f) = (dG_M, ¼ΔG_M); universal identity ∇∇f=δ*(df) + 3 exact chart pts |
+| **B4** | ∇∇χ | 2 | **0 (pure gauge)** | (ω,f) = (dχ, ¼Δχ); χ=−(9/2)⟨M,p⟩⟨M,D_p⟩ (v30); same universal identity |
+| **B5** | ∇∇R_M | 2 | **0 (pure gauge)** | (ω,f) = (dR_M, ¼ΔR_M); R_M cut (α,β,λ₂)=(2/5,3/20,32); same identity |
+| **B3** | dφ_M⊗dφ_M | 2 | **≠ 0 (TT present)** | york_solve INCONSISTENT; reduction δ*(φ dφ)=dφ⊗dφ+φ∇∇φ ⇒ TT(B3)=−TT(φ∇∇φ) |
+| **B6** | π_{1/2}M tangent stress | 2 | **≠ 0 (= B3)** | PIN: s_M=π_{1/2}^{(p)}M=dφ_M (v28) ⇒ B6=s_M⊗s_M=dφ_M⊗dφ_M; tr_g(B3)=2\|π_{1/2}M\|² (v27) |
 
-_TBD — V3 (the fork) + V4 (the fenced reading); one sentence stating which world._
+**The B6 pin (stated and frozen at Gate 3).** The π_{1/2}M tangent bilinear whose trace is the v27
+|π_{1/2}M|² is, using the v28 certification s_M = π_{1/2}^{(p)}M = dφ_M (the moment gradient), the
+gradient bilinear s_M⊗s_M = dφ_M⊗dφ_M. The trace identity tr_g(dφ⊗dφ) = 2g^{ab̄}∂_aφ∂_b̄φ = 2|∇φ|²
+= 2|π_{1/2}M|² (verified exact, ratio = 2) certifies it. **B6 COINCIDES with B3** — reported
+transparently; the same verdict object and the same LIVE result.
 
-## 9. v32 ledger (Gate 5, exploratory, NO claims)  *(fill at Gate 5)*
+### The dimension audit (Trap #15, MANDATORY for LIVE)
 
-_TBD — IF LIVE: the sourced Lichnerowicz Δ_L response law, the lapse/00 assembly, the OP²
-extension (Spin(9), NOT Kähler — price, don't assume). IF DEAD: fork-A consequence (floor =
-ceiling), higher-degree reopening (priced), OP² status._
+Exact rank deficit of B3 against the COMPLETE gauge+conformal image (off-reality-slice modular
+point-sampling, two primes cross-checked; independently confirmed by exact-Q rank, no sampling):
+
+| quantity | value | meaning |
+|---|---|---|
+| dim(gauge+conf image) | **181** (two primes agree) | the complete longitudinal+conformal span |
+| **B1-control deficit** | **0** | a Hessian IS in the gauge image (the control fires correctly) |
+| **B3 deficit** | **1** (two primes agree) | B3 sticks out by 1 dim ⇒ TT-residue dim = 1 (this M-direction) |
+| isotypic type | **λ=12 (1,1)-Hermitian** | (2,0)+(0,2) jointly gauge ⇒ residue in the J-invariant sector |
+
+**TT dim = 1 ≤ Boucetta multiplicity dim-8** (the λ=12 (1,1) primitive, Table VIII) ⇒ the deficit
+does NOT exceed the genuine TT multiplicity ⇒ **no under-spanning** (the fake-LIVE failure mode is
+excluded). A single su(3)-generator matter direction projects onto a 1-dimensional slice of the
+dim-8 multiplet.
+
+**A diagnosed-and-rejected pitfall.** An intermediate audit using **reality-slice** points (z=z̄)
+FALSELY reported B3 in-span — the 2-real-dim slice does not separate the 4 independent Wirtinger
+monomials (aliasing). The B1 control caught it (spurious nonzero B1 deficits off s01). Fix:
+**off-slice** points (z,z̄ independent). All reported numbers use off-slice sampling with the B1
+control passing; the exact-Q rank (no sampling) independently gives dim=118 (s01), deficit=1.
+
+**Generic-M robustness (Guard 4).** LIVE on the sparse single-generator s01, on a dense generic M
+(all 8 params nonzero, off the diagonal stratum), and on a second dense M — york_solve(B1)
+consistent and york_solve(B3) inconsistent in every case. Direction-independent; co-diagonalization
+strata and the v24 diagonal reference carry zero weight.
+
+## 8. Verdict, payload, scope
+
+**VERDICT = LIVE.** `verdict({B2:0, B4:0, B5:0, B3:1, B6:1}) = ('LIVE', ['B3','B6'])`.
+
+**Payload.** Matter forces a rank-2 transverse-traceless deformation of the cut metric — the
+**λ=12 (1,1) Hermitian primitive** sourced by the bilinear of the matter's tangent moment
+s_M = dφ_M. The v27–v30 two-scalar (Nordström-class) gravity ceiling is broken at the
+λ₁-threshold: the program's first matter-forced TENSOR structure. The TT residue lives exactly at
+the moment fields' own threshold (λ₁=12), in the unique low-level (1,1) TT mode on CP².
+
+**One sentence (which world).** On the compact Kähler–Einstein cut, the certified matter bilinear
+B3 = dφ_M⊗dφ_M (= the pinned π_{1/2}M tangent stress B6) carries a nonzero transverse-traceless
+residue in the λ=12 (1,1) Hermitian sector — **matter sources a genuine metric tensor mode
+(LIVE)**; the Einstein selection law (Block C) remains open and is not claimed.
+
+**Scope / fence (binding).** LIVE = "a matter-sourced tensor MODE exists" — NOT "Einstein gravity
+derived". Block C (the selection law, the κ value) NOT claimed. No Einstein-equation / Newton-
+constant / G=κT / dark-matter / geodesic language. Frozen FS geometry USED, not derived. The
+v18/v20 MM corpse stays buried (BASE deformation complex, not a fiber spacetime connection). The
+v18 Ph77 / v21 16-vs-6 rank wall is a Block-C statement (full nonlinear G[g]=κT+Λg with one global
+(κ,Λ)); LIVE is the strictly weaker upstream existence of a TT mode — not in tension.
+
+## 9. v32 ledger (Gate 5, exploratory, NO claims — priced only)
+
+IF LIVE (this branch):
+- **The sourced Lichnerowicz response law.** Does the λ=12 (1,1) TT-part satisfy a Δ_L-type
+  equation (Δ_L h_TT = source) with the v26 source content (TrM², R_M)? The λ=12 eigenvalue of
+  the Lichnerowicz Laplacian on the (1,1) primitive is the natural left-hand side. PRICE: this is
+  a NEW computation (the Δ_L action on the extracted TT mode vs the v26 source); not done here.
+- **The lapse/00 assembly.** Einstein-FORM needs the scalar (lapse/conformal) + the new tensor
+  pieces assembled into the 00 and ij blocks of a 4d G_{μν}. PRICE: requires the cut → 4d-slice
+  embedding (the v17/v18 soldering), NOT the CP² deformation complex alone.
+- **The OP² extension.** OP² = h₃(O) is the full base; it is **NOT Kähler** (Spin(9) holonomy, no
+  global complex structure — cf. v19 no-intrinsic-orientation). The Matsushima/λ₁-threshold
+  mechanism is Kähler-specific; the OP² tensor-harmonic content (Spin(9) isotypic) differs.
+  PRICE: a separate Spin(9) bookkeeping; do NOT assume the CP² LIVE lifts to OP².
+- **The κ / selection law (Block C).** Untouched. Whether a single global κ closes the full
+  nonlinear Einstein equation is exactly the v18 Ph77 / v21 wall — relocated upstream of, not
+  resolved by, the TT-existence result.
 
 ---
 
