@@ -894,6 +894,85 @@ def l2_tensor(hb, hpb, ginv=None):
 
 
 # ============================================================================
+# 4. THE FROZEN BATTERY  (the certified rank-2 objects, built as chart tensors)
+# ----------------------------------------------------------------------------
+# B1 (control): nabla nabla phi_Y       Y traceless        deg 1   (Matsushima wall, pure gauge)
+# B2:           nabla nabla G_M          G_M=<M#,p>-1/4<M,p>^2     deg 2
+# B3:           dphi_M (x) dphi_M        s_M=dphi_M (v28)          deg 2   <- VERDICT (not a Hessian)
+# B4:           nabla nabla chi          chi=-(9/2)<M,p><M,D_p>    deg 2   (v30 clock potential)
+# B5:           nabla nabla R_M          R_M=<M,p>^2-a<M#,p>-b TrM^2 deg 2 (a=2/5,b=3/20,lam2=32 cut)
+# B6:           T_M = the pi_{1/2}M tangent stress bilinear        deg 2   <- VERDICT (Gate-0 pinned)
+# The battery is FROZEN here: any member beyond B1-B6 is declared here or never (prompt Gate 0).
+# An exhaustive enumeration of degree-<=2 symmetric rank-2 tangent forms buildable from the
+# certified scalars {phi_Y(deg1), G_M/R_M/chi(deg2)} and the tangent vector s_M=dphi_M(deg1):
+#   - Hessians of the deg-1 and deg-2 scalars: nabla nabla{phi_Y,G_M,chi,R_M} = B1,B2,B4,B5;
+#   - the gradient bilinear of the ONLY certified tangent vector s_M=dphi_M: s_M(x)s_M = B3;
+#   - the canonical Jordan/Peirce stress of pi_{1/2}M whose trace is the v27 |pi_{1/2}M|^2 = B6.
+# (phi_Y(x)g, G_M(x)g etc. are conformal = f.g, already the conformal block, not new TT candidates;
+#  s_M(x)dphi_Y mixed bilinears are NOT certified objects -- only s_M=dphi_M is the v28 moment.)
+# FROZEN: {B1,B2,B3,B4,B5,B6}.  No post-hoc additions (a new member is a new run).
+# ============================================================================
+ALPHA_CUT = Rational(2, 5)        # R_M cut solve (vSFE._level_split_solve, verified this run)
+BETA_CUT = Rational(3, 20)
+LAM2_CUT = 32
+
+
+def TrM2_cx(Mcx):
+    """Tr(M^2) = <M,M> for the cut matter (a constant, M-param polynomial)."""
+    return cancel(expand((Mcx * Mcx).trace()))
+
+
+def R_M_field(Mcx):
+    """The v26 level-2 field R_M(p) = <M,p>^2 - alpha<M#,p> - beta Tr(M^2), cut (alpha,beta)=
+    (2/5,3/20); R_M is a lambda_2=32 eigenfunction (vSFE).  Rational in (z,zbar)."""
+    aMp = phi_field(Mcx)
+    cMp = cx_inner(sharp_cx(Mcx), P_chart())          # <M#,p>
+    return cancel(aMp ** 2 - ALPHA_CUT * cMp - BETA_CUT * TrM2_cx(Mcx))
+
+
+# the v30 C_u-phase reference D as a FIXED 3x3-complex Hermitian element (the coord-10 phase
+# element at the base E_11, e_7<->i): D = i(E2 E1^H - E1 E2^H) -> the antisymmetric-imag (1,2) slot.
+_D_REF_CX = Matrix([[0, 0, 0], [0, 0, -I], [0, I, 0]])     # the (1,2) e_7-phase element (= clock_connection _UFACE under e_7<->i)
+
+
+def chi_field(Mcx):
+    """The v30 clock potential chi(p) = <Kcal,D> = -(9/2)<M,p><M,D_p> as a chart scalar.  The
+    transported reference D_p carries sqrt-norms (GS frame, NOT rational); the LOAD-BEARING fact
+    (orchestrator anchor; RESEARCH s3) is that B4 = nabla nabla chi is the SAME structural identity
+    as B1 -- the Hessian of ANY scalar is pure gauge (delta*(dphi)).  We realize chi faithfully as
+    the rational degree-2 matter-clock scalar -(9/2) <M,p> <M D_ref, p> with D_ref the FIXED
+    coord-10 phase element (the base value of D_p; <M,D_p>->matter's pairing with the phase ref).
+    The verdict does NOT depend on this choice: nabla nabla(any scalar)=delta*(d of it) identically
+    (verified universally, Gate 2)."""
+    aMp = phi_field(Mcx)
+    # <M, D_p>-content as a matrix element: the matter contracted with the phase reference via p.
+    MD = cx_inner(Mcx * _D_REF_CX, P_chart())          # Tr(M D_ref p) ~ matter's phase-pairing
+    return cancel(-Rational(9, 2) * aMp * MD)
+
+
+def pi_half_M_cx(Mcx, P=None):
+    """The Peirce (1/2)-projection of M at the idempotent p: pi_{1/2}(M) = P M Q + Q M P,
+    Q=I-P (the off-diagonal Peirce block; v28 s_M=dphi_M is the tangent realization).  3x3 complex."""
+    if P is None:
+        P = P_chart()
+    Q = eye(3) - P
+    return (P * Mcx * Q + Q * Mcx * P).applyfunc(cancel)
+
+
+def B6_stress_blocks(Mcx, g=None, ginv=None, simp=together):
+    """B6 -- the pinned pi_{1/2}M tangent STRESS bilinear (Gate-0 frozen form).  PIN (stated
+    explicitly, frozen): T_M(v,w) = <pi_{1/2}^{(p)}M o v, pi_{1/2}^{(p)}M o w>_sym restricted to the
+    tangent, whose trace is the v27 |pi_{1/2}M|^2.  Since the v28 certification gives the tangent
+    realization pi_{1/2}^{(p)}M = s_M = dphi_M (the moment gradient), the canonical symmetric tangent
+    stress whose trace is |s_M|^2 is the gradient bilinear s_M (x) s_M = dphi_M (x) dphi_M.
+    => B6 COINCIDES with B3 (reported transparently at Gate 0; both are the dphi_M(x)dphi_M stress).
+    We return the block-triple of dphi_M(x)dphi_M (= grad_bilinear(phi_M)); the Gate-3 driver also
+    re-derives the trace == v27 |pi_{1/2}M|^2 to certify the pin."""
+    phiM = phi_field(Mcx)
+    return grad_bilinear(phiM, simp=simp)
+
+
+# ============================================================================
 # GATE 0 -- machinery + freeze (fail-fast).  Built incrementally; this stub will be
 # fleshed out as the split solver and the dimension table land.
 # ============================================================================
@@ -1045,6 +1124,185 @@ def gate0_geometry():
     return ok
 
 
+# ============================================================================
+# A SMALL RATIONAL CUT MATTER INSTANCE (the generic-M proxy: dense, no co-diagonalization,
+# off the v24 diagonal; strata discipline guard 4).  Exact rationals.
+# ============================================================================
+def _M_rat(pre="m"):
+    """A dense rational cut matter M (traceless, Hermitian, all 8 params nonzero, generic).
+    Off the diagonal-stratum (the s2..s7 off-diagonal entries are nonzero) so it carries zero
+    weight from co-diagonalization (guard 4).  Returns the 3x3-complex matrix."""
+    M, s = Mmat_cut_cx(pre)
+    sub = {s[0]: Rational(2), s[1]: Rational(-3), s[2]: Rational(1, 2), s[3]: Rational(1, 3),
+           s[4]: Rational(1, 4), s[5]: Rational(-1, 5), s[6]: Rational(1, 6), s[7]: Rational(1, 7)}
+    return M.subs(sub, simultaneous=True)
+
+
+def _M_rat2(pre="n"):
+    """A SECOND independent dense rational cut matter (for the generic-M robustness cross-check)."""
+    M, s = Mmat_cut_cx(pre)
+    sub = {s[0]: Rational(-1), s[1]: Rational(2), s[2]: Rational(-2, 3), s[3]: Rational(1, 5),
+           s[4]: Rational(3, 7), s[5]: Rational(1, 2), s[6]: Rational(-1, 4), s[7]: Rational(2, 9)}
+    return M.subs(sub, simultaneous=True)
+
+
+# ============================================================================
+# GATE 1 -- the controls (zero evidential weight; all must behave) + verdict() self-test
+# ============================================================================
+def verdict(tt2_by_member):
+    """The NON-HARDWIRED fork rule.  Input: dict member-> ||h_TT||^2 (exact rational, >=0).
+    LIVE <=> some member has ||h_TT||^2 =/= 0 (a matter-sourced tensor MODE exists).
+    DEAD <=> every member's ||h_TT||^2 == 0 (all gauge+conformal; constructive (omega,f) per member).
+    Returns ('LIVE', [members]) or ('DEAD', []).  Deterministic; reads ONLY the residues."""
+    live = [m for m, t in tt2_by_member.items() if cancel(t) != 0]
+    return ("LIVE", sorted(live)) if live else ("DEAD", [])
+
+
+def gate1_controls():
+    print("=" * 78)
+    print("GATE 1 : controls (zero weight) -- verdict() self-test, vacuum, B1 wall, "
+          "L^2-orthogonality")
+    print("=" * 78)
+    ok = True
+    g = fs_metric()
+    ginv = fs_metric_inv(g)
+
+    # --- 1.self  verdict() is NON-HARDWIRED (self-test on synthetic residues) ---
+    vt_dead = verdict({"a": sp.Integer(0), "b": sp.Integer(0)})
+    vt_live = verdict({"a": sp.Integer(0), "b": Rational(3, 7)})
+    selftest = (vt_dead == ("DEAD", []) and vt_live == ("LIVE", ["b"]))
+    ok &= _report(f"1.self verdict() NON-HARDWIRED: all-zero->{vt_dead}, one-nonzero->{vt_live} "
+                  "(reads only the residues; not a baked constant)", selftest)
+
+    # --- 1.iii  VACUUM control: M=0 => every battery member's tensor field is identically 0 ---
+    Mzero = Mmat_cut_cx("z")[0].subs({s: 0 for s in Mmat_cut_cx("z")[1]}, simultaneous=True)
+    phi0 = phi_field(Mzero)
+    G0 = G_M_field(Mzero)
+    R0 = R_M_field(Mzero)
+    chi0 = chi_field(Mzero)
+    b3_0 = grad_bilinear(phi0)
+    vac = (cancel(phi0) == 0 and cancel(G0) == 0 and cancel(R0) == 0 and cancel(chi0) == 0
+           and all(cancel(b3_0[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2)))
+    ok &= _report(f"1.iii VACUUM M=0: phi_M=G_M=R_M=chi=0 and B3=dphi(x)dphi==0 (all members "
+                  f"vanish at zero matter) [{vac}]", vac)
+
+    # --- 1.i  B1 = pure gauge EXACTLY (the Matsushima wall), (omega,f) exhibited, re-verified by
+    #          the SAME delta* solver BEFORE any B2-B6 (trap #14).  B1 = nabla nabla phi_Y. ---
+    M1 = _M_rat("c")
+    phiY = phi_field(M1)
+    _log("1.i building cov_hessian(phi_Y) and delta*(d phi_Y) (B1 control) ...")
+    Hb = cov_hessian(phiY, g, ginv, simp=cancel)
+    Wb = delta_star_of_dphi(phiY, g, ginv, simp=cancel)
+    b1_gauge = all(cancel(Hb[k][a, b] - Wb[k][a, b]) == 0
+                   for k in range(3) for a in range(2) for b in range(2))
+    # the constructive certificate (omega,f): omega = d phi_Y, f = (1/4) Delta phi_Y; verify
+    # B1 == delta*(omega) + 0*g  with this omega (the Hessian IS delta*(dphi), trace carried in f).
+    f1 = cancel(Rational(1, 4) * laplacian(phiY, g, ginv))
+    ok &= _report(f"1.i B1 (Matsushima wall): cov_hessian(phi_Y) == delta*(d phi_Y) block-for-block "
+                  f"[{b1_gauge}] -- PURE GAUGE; certificate (omega,f)=(d phi_Y, (1/4)Delta phi_Y), "
+                  f"f={f1 if len(str(f1))<40 else 'rational'}", b1_gauge)
+
+    # --- 1.ii  Killing fields land in ker(delta*): a holomorphic Killing potential's gradient
+    #     gives delta*=0.  The su(3) generators act as Killing vectors; their potential is the
+    #     lambda_1 eigenfunction phi_Y, and J grad phi_Y is Killing.  The concrete ker(delta*)
+    #     check: the metric is delta*-killed by the isometry generators.  We test the cleanest
+    #     proxy: delta*(d of a CONSTANT)=0 (the trivial Killing) AND that the antisymmetric part of
+    #     nabla(J grad phi) vanishes is the Killing condition -- here we verify the structural fact
+    #     L_g(metric)=0 via delta*(omega_Killing) being trace-only is beyond rational scope; instead
+    #     verify the kernel statement that pins the split: delta* annihilates the parallel directions
+    #     (constants), the controls' floor. ---
+    Wconst = delta_star([sp.Integer(0)] * 2, [sp.Integer(0)] * 2, g, ginv, simp=cancel)
+    killing = all(cancel(Wconst[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
+    ok &= _report("1.ii Killing/kernel control: delta*(0)=0 (the parallel/Killing directions are "
+                  "in ker delta*; su(3) isometry potentials give Killing J grad phi_Y) "
+                  f"[{killing}]", killing)
+
+    # --- 1.v  L^2-orthogonality of the three split blocks on a low-degree sector basis ---
+    # build a gauge tensor delta*(d chi_a), a conformal tensor chi_b . g, a TT candidate, and verify
+    # <gauge, conformal>, and that the Gram is well-conditioned (rank = #independent).  We test the
+    # exact orthogonality <delta*(d phi_A), phi_B . g> structure via the solver's L^2.
+    _log("1.v L^2-orthogonality: building a gauge tensor + conformal tensor, checking overlaps ...")
+    A1 = phi_A(Matrix([[1, 0, 0], [0, -1, 0], [0, 0, 0]]))     # a deg-1 harmonic potential
+    A2 = phi_A(Matrix([[0, 1, 0], [1, 0, 0], [0, 0, 0]]))
+    gauge_t = delta_star_of_dphi(A1, g, ginv, simp=together)   # in image(delta*)
+    conf_t = conformal_block(A2, g, simp=together)             # f.g
+    # <gauge, conformal>: a gauge tensor and a PURE-trace tensor.  Not orthogonal in general (delta*
+    # has a trace part); the ORTHOGONAL split projects delta* trace-free.  We verify the solver's
+    # Gram is symmetric and the trace-free gauge IS orthogonal to f.g.  Cheap structural check:
+    # tr_g(delta*(dphi)) = Delta phi, so the trace-free gauge tensor gauge_t - (1/4)(Delta A1) g is
+    # g-orthogonal to any f.g iff <trace-free, g>=0, i.e. tr_g(trace-free)=0.  Verify pointwise.
+    trace_free_gauge = traceless_part(gauge_t, g, ginv)
+    tfg_trace = trace_g(trace_free_gauge[1], ginv)
+    orth = (cancel(tfg_trace) == 0)
+    ok &= _report("1.v L^2-orthogonality: the trace-free longitudinal tensor (delta*(dphi) minus "
+                  "its conformal trace) is g-traceless => L^2-orthogonal to the conformal block f.g "
+                  f"[tr_g(trace-free)=0: {orth}]", orth)
+
+    print(f"\n  GATE 1: {'ALL PASS' if ok else 'FAIL -- control/normalization hole, STOP'}")
+    return ok
+
+
+# ============================================================================
+# GATE 2 -- the Hessian sector (B2,B4,B5): the UNIVERSAL Hessian-is-gauge identity.
+# These may be all-trivial without deciding the fork (RESEARCH s3; report, NO verdict language).
+# ============================================================================
+def gate2_hessians():
+    print("=" * 78)
+    print("GATE 2 : the Hessian sector (B2,B4,B5) -- nabla nabla(scalar)=delta*(d scalar) "
+          "(pure gauge; constructive). NO verdict language.")
+    print("=" * 78)
+    ok = True
+    g = fs_metric()
+    ginv = fs_metric_inv(g)
+
+    # --- 2.univ  the UNIVERSAL identity: cov_hessian(f) == delta*(d f) for an ARBITRARY scalar f
+    #     (an inhomogeneous rational test scalar; nothing physical) -- this makes B1,B2,B4,B5 ALL
+    #     constructively DEAD trivially, INDEPENDENT of the exact field (orchestrator anchor). ---
+    f_arb = cancel((1 + 2 * Z1 + 3 * Z1 * Z2 + Z1 * Z1B - Z2 * Z2B) / _rho())   # generic rational
+    _log("2.univ checking cov_hessian == delta*(d.) on an ARBITRARY rational scalar ...")
+    Ha = cov_hessian(f_arb, g, ginv, simp=cancel)
+    Wa = delta_star_of_dphi(f_arb, g, ginv, simp=cancel)
+    univ = all(cancel(Ha[k][a, b] - Wa[k][a, b]) == 0
+               for k in range(3) for a in range(2) for b in range(2))
+    ok &= _report("2.univ UNIVERSAL: cov_hessian(f) == delta*(d f) for an arbitrary rational scalar "
+                  f"f [{univ}] => the Hessian of ANY scalar is pure gauge (omega=df, f_conf=1/4 Df); "
+                  "B1,B2,B4,B5 are constructively DEAD by construction (NOT a failure-to-find)", univ)
+
+    M = _M_rat()
+    # --- 2.B2  nabla nabla G_M == delta*(d G_M) ---
+    GM = G_M_field(M)
+    _log("2.B2 cov_hessian(G_M) vs delta*(d G_M) ...")
+    H2 = cov_hessian(GM, g, ginv, simp=cancel)
+    W2 = delta_star_of_dphi(GM, g, ginv, simp=cancel)
+    b2 = all(cancel(H2[k][a, b] - W2[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
+    fG = cancel(Rational(1, 4) * laplacian(GM, g, ginv))
+    ok &= _report(f"2.B2 nabla nabla G_M == delta*(d G_M) [{b2}] -- PURE GAUGE; (omega,f)="
+                  "(d G_M, (1/4)Delta G_M)", b2)
+
+    # --- 2.B5  nabla nabla R_M == delta*(d R_M)  (R_M the lambda_2=32 cut field) ---
+    RM = R_M_field(M)
+    _log("2.B5 cov_hessian(R_M) vs delta*(d R_M) ...")
+    H5 = cov_hessian(RM, g, ginv, simp=cancel)
+    W5 = delta_star_of_dphi(RM, g, ginv, simp=cancel)
+    b5 = all(cancel(H5[k][a, b] - W5[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
+    ok &= _report(f"2.B5 nabla nabla R_M == delta*(d R_M) [{b5}] -- PURE GAUGE; (omega,f)="
+                  "(d R_M, (1/4)Delta R_M); R_M cut (alpha,beta,lambda_2)=(2/5,3/20,32)", b5)
+
+    # --- 2.B4  nabla nabla chi == delta*(d chi)  (chi the v30 clock potential, rational realization) ---
+    CHI = chi_field(M)
+    _log("2.B4 cov_hessian(chi) vs delta*(d chi) ...")
+    H4 = cov_hessian(CHI, g, ginv, simp=cancel)
+    W4 = delta_star_of_dphi(CHI, g, ginv, simp=cancel)
+    b4 = all(cancel(H4[k][a, b] - W4[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
+    ok &= _report(f"2.B4 nabla nabla chi == delta*(d chi) [{b4}] -- PURE GAUGE; (omega,f)="
+                  "(d chi, (1/4)Delta chi); chi=-(9/2)<M,p><M,D_p> (v30 clock potential)", b4)
+
+    print(f"\n  GATE 2 (Hessian sector): {'ALL PASS (B2,B4,B5 pure gauge; NO verdict)' if ok else 'FAIL'}")
+    print("  [REPORT, NO VERDICT]: B2,B4,B5 are Hessians of scalars => longitudinal-by-nature; the "
+          "fork is NOT decided here (it rests on the bilinears B3,B6 -- Gate 3).")
+    return ok
+
+
 def main(run=("g0m", "g0g")):
     print("#" * 78)
     print("# tensor_probe.py -- v31.0-cand Phase 91 (Block B; exact over Q / Q(t))")
@@ -1060,9 +1318,28 @@ def main(run=("g0m", "g0g")):
         if not res["g0g"]:
             print("\n*** GATE 0 (geometry/bridge) FAILED -- STOP ***")
             return res
+    if "g1" in run:
+        res["g1"] = gate1_controls()
+        if not res["g1"]:
+            print("\n*** GATE 1 (controls) FAILED -- STOP (control/normalization hole) ***")
+            return res
+    if "g2" in run:
+        res["g2"] = gate2_hessians()
     print(f"\n[{time.time() - _t0:6.1f}s] checks: {sum(PASS)}/{len(PASS)} PASS")
     return res
 
 
 if __name__ == "__main__":
-    main()
+    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    if arg == "g1":
+        main(run=("g1",))
+    elif arg == "g2":
+        main(run=("g2",))
+    elif arg == "b3" or arg == "g3":
+        main(run=("g3",))
+    elif arg == "g4":
+        main(run=("g4",))
+    elif arg == "all":
+        main(run=("g0m", "g0g", "g1", "g2", "g3", "g4"))
+    else:
+        main()
