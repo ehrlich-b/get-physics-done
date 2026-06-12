@@ -499,6 +499,26 @@ def G_M_field(Mcx):
     return cancel(cx_inner(Msharp, P_chart()) - Rational(1, 4) * phi_field(Mcx) ** 2)
 
 
+def grad_bilinear(phi, simp=together):
+    """The symmetric gradient bilinear dphi (x) dphi (= s_X (x) s_X for phi=phi_X, since
+    s_X = dphi_X is the v28 spinor moment) as block-triple (H20,H11,H02):
+      H20[a,b] = d_a phi d_b phi
+      H11[a,b] = d_a phi d_bbar phi   (Hermitian; the (1,1) part)
+      H02[a,b] = d_abar phi d_bbar phi
+    NB: this is a genuine symmetric 2-tensor (omega (x) omega for the exact 1-form omega=dphi);
+    NOT a Hessian -- this is the verdict object B3.  simp: per-entry simplifier (default
+    together)."""
+    da = [dz(phi, a) for a in range(2)]
+    dab = [dzb(phi, a) for a in range(2)]
+    H20 = zeros(2, 2); H11 = zeros(2, 2); H02 = zeros(2, 2)
+    for a in range(2):
+        for b in range(2):
+            H20[a, b] = simp(da[a] * da[b])
+            H11[a, b] = simp(da[a] * dab[b])
+            H02[a, b] = simp(dab[a] * dab[b])
+    return H20, H11, H02
+
+
 # ============================================================================
 # 3c. EXACT L^2 INTEGRATION ON CP^2 (Fubini-Study)  -- the split solver's inner product
 # ----------------------------------------------------------------------------
@@ -572,100 +592,20 @@ def l2_scalar(f):
 _S1, _S2 = symbols("S1 S2", nonnegative=True)
 
 
-def l2_scalar_pts(f, Khint=None, degbound=None):
-    """EXACT L^2 integral of a scalar f = num/rho^K over CP^2, computed by EXACT
-    roots-of-unity phase-averaging + rational-radius interpolation (NO symbolic expand of the
-    numerator -- the field-tensor-friendly path).  f is a rational function in (z,zbar) with a
-    pure rho-power denominator.  Returns an exact Rational.
-
-    Method: the phase-average P(s1,s2) (matched part) is a polynomial in s=(|z1|^2,|z2|^2) of
-    degree <= degbound; we evaluate P at a grid of rational (s1,s2) by averaging f over a grid of
-    roots-of-unity phases (exact cyclotomic sums collapse to rationals for matched monomials), fit
-    the polynomial coefficients by an exact linear solve, then radial-integrate via _mono_integral.
-    """
-    f = together(f)
-    num, den = sp.fraction(f)
-    k, const = _rho_power_of(sp.expand(den))
-    K = k + 3
-    num = num / const
-    # degree bound of the numerator polynomial in each of z1,z2 (and conjugates): need #phases
-    P = sp.Poly(sp.expand(num), Z1, Z2, Z1B, Z2B) if degbound is None else None
-    # use a safe degree bound: total degree in z1 (=in z1b for matched) etc.
-    if degbound is None:
-        d1 = max([t[0] for t in P.monoms()] + [t[2] for t in P.monoms()] + [0])
-        d2 = max([t[1] for t in P.monoms()] + [t[3] for t in P.monoms()] + [0])
-    else:
-        d1, d2 = degbound
-    # phase average at fixed radii (r1,r2): average over N1 x N2 roots of unity (N>d to resolve).
-    N1 = d1 + 1
-    N2 = d2 + 1
-    fl = sp.lambdify((Z1, Z2, Z1B, Z2B), num, modules="sympy")  # exact via sympy
-    # matched part as function of (s1,s2)=(r1^2,r2^2); fit polynomial of degree (d1//2,d2//2) in s
-    ms1 = d1 // 2
-    ms2 = d2 // 2
-    # sample s-grid (rational): (ms1+1)x(ms2+1) points
-    s1pts = [Rational(i + 1, ms1 + 2) for i in range(ms1 + 1)]
-    s2pts = [Rational(j + 1, ms2 + 2) for j in range(ms2 + 1)]
-
-    def phase_avg(s1v, s2v):
-        # average num over N1 x N2 roots of unity for z1,z2 at radii sqrt(s1),sqrt(s2)
-        r1 = sp.sqrt(s1v); r2 = sp.sqrt(s2v)
-        acc = sp.Integer(0)
-        for p in range(N1):
-            w1 = sp.exp(2 * sp.pi * I * p / N1)
-            for q in range(N2):
-                w2 = sp.exp(2 * sp.pi * I * q / N2)
-                z1v = r1 * w1; z2v = r2 * w2
-                acc += fl(z1v, z2v, sp.conjugate(z1v), sp.conjugate(z2v))
-        return sp.nsimplify(sp.simplify(acc / (N1 * N2)))
-
-    # build the (ms1+1)(ms2+1) linear system for the s-polynomial coefficients
-    rows = []; rhs = []
-    coeff_idx = [(a, b) for a in range(ms1 + 1) for b in range(ms2 + 1)]
-    for s1v in s1pts:
-        for s2v in s2pts:
-            rows.append([s1v ** a * s2v ** b for (a, b) in coeff_idx])
-            rhs.append(phase_avg(s1v, s2v))
-    Am = Matrix(rows); bvec = Matrix(rhs)
-    coeffs = Am.solve(bvec)
-    total = sp.Integer(0)
-    for idx, (a, b) in enumerate(coeff_idx):
-        total += coeffs[idx] * _mono_integral(a, b, K)
-    return cancel(total)
-
-
 def _phase_average(num):
     """Return the U(2)-phase-averaged matched part of a polynomial num(z1,z2,z1b,z2b) as a
-    polynomial in S1=|z1|^2, S2=|z2|^2 (exact).  Method: substitute z_a = w_a (a phase) and
-    z_abar = sbar_a/w_a with s_a=z_a z_abar, then the matched part is the w1^0 w2^0 coefficient,
-    which equals num with z_a z_abar -> S_a on matched monomials and 0 on unmatched.  We compute
-    it by the substitution z1b->S1/z1, z2b->S2/z2 and taking the (z1^0 z2^0) Laurent coefficient.
-    To avoid full expansion of huge products we operate on num already partially factored."""
-    e = num.subs({Z1B: _S1 / Z1, Z2B: _S2 / Z2})
-    e = sp.together(e)
-    enum, eden = sp.fraction(e)
-    # eden is a monomial z1^p z2^q (from the S/z substitution); the matched (z1^0 z2^0) part of
-    # enum/eden = coeff of z1^p z2^q in enum (as a polynomial in z1,z2 with S-coefficients).
-    enum = sp.expand(enum)
-    pz = sp.Poly(eden, Z1, Z2)
-    if len(pz.terms()) != 1:
-        # denominator not a pure monomial -> fall back to direct matched extraction
-        return _phase_average_direct(num)
-    (dp, dq), dc = pz.terms()[0]
-    P = sp.Poly(enum, Z1, Z2)
-    matched = P.coeff_monomial(Z1 ** dp * Z2 ** dq) / dc
-    return sp.expand(matched)
-
-
-def _phase_average_direct(num):
-    """Fallback: expand and keep matched monomials directly (used only if the substitution
-    denominator is not a monomial)."""
-    total = sp.Integer(0)
-    poly = sp.Poly(sp.expand(num), Z1, Z2, Z1B, Z2B)
-    for (a1, a2, b1, b2), coeff in poly.terms():
+    polynomial in S1=|z1|^2, S2=|z2|^2 (exact).  Keeps only matched monomials z1^a z2^b z1b^a z2b^b
+    -> S1^a S2^b (the rest integrate to zero by U(2) angular symmetry).  Uses
+    as_coefficients_dict (faster than Poly for the matched-monomial sieve)."""
+    cd = sp.expand(num).as_coefficients_dict()
+    terms = {}
+    for mono, coeff in cd.items():
+        pd = mono.as_powers_dict()        # {Z1: a1, Z2: a2, Z1B: b1, Z2B: b2} (missing -> 0)
+        a1 = int(pd.get(Z1, 0)); a2 = int(pd.get(Z2, 0))
+        b1 = int(pd.get(Z1B, 0)); b2 = int(pd.get(Z2B, 0))
         if a1 == b1 and a2 == b2:
-            total += coeff * _S1 ** a1 * _S2 ** a2
-    return sp.expand(total)
+            terms[(a1, a2)] = terms.get((a1, a2), sp.Integer(0)) + coeff
+    return sum(c * _S1 ** a * _S2 ** b for (a, b), c in terms.items())
 
 
 # ----------------------------------------------------------------------------
@@ -710,6 +650,59 @@ def tensor_dot_point(hb, hpb, ginv=None, simp=cancel):
                     t += gu(a, c) * gu(b, d) * H20[a, b] * P02[c, d]      # h(2,0).h'(0,2)
                     t += gu(c, a) * gu(d, b) * H02[a, b] * P20[c, d]      # h(0,2).h'(2,0)
     return simp(2 * s11 + t)
+
+
+def grad_contract(phi, psi, ginv=None):
+    """The scalar P(phi,psi) = g^{a bbar} d_a phi d_bbar psi (a low-degree scalar field).  The
+    building block for L^2 inner products of GRADIENT bilinears -- contracting the metric with the
+    gradients FIRST keeps everything low-degree (vs contracting full tensors).  ginv[b,a]=g^{a bbar}."""
+    if ginv is None:
+        ginv = fs_metric_inv()
+    s = sp.Integer(0)
+    for a in range(2):
+        for b in range(2):
+            s += ginv[b, a] * dz(phi, a) * dzb(psi, b)
+    return together(s)
+
+
+def _P(phi, psi, ginv):
+    """g^{a bbar} d_a phi d_bbar psi (low-degree scalar)."""
+    gu = lambda a, b: ginv[b, a]
+    return sum(gu(a, b) * dz(phi, a) * dzb(psi, b) for a in range(2) for b in range(2))
+
+
+def _Q(phi, psi, ginv):
+    """g^{a cbar} d_a phi d_cbar psi -- same as _P but pairs holo(phi) with antiholo(psi).
+    (identical structure to _P; kept separate for readability of the (2,0).(0,2) term.)"""
+    gu = lambda a, b: ginv[b, a]
+    return sum(gu(a, c) * dz(phi, a) * dzb(psi, c) for a in range(2) for c in range(2))
+
+
+def l2_gradbilinear(phi, psi, alpha, beta, ginv=None):
+    """EXACT L^2 inner product < dphi (x) dpsi , dalpha (x) dbeta > over CP^2 (FS), up to pi^2,
+    computed via PRE-CONTRACTED scalars P=g^{a bbar}d_a()d_bbar() (LOW degree -- the speed win:
+    metric+gradient contracted to scalars BEFORE multiplying, avoiding full-tensor degree blow-up).
+    The symmetric bilinear (verified == l2_tensor on grad_bilinear, Gate 1):
+      <dphi(x)dpsi, dalpha(x)dbeta> = P(phi,alpha)P(psi,beta) + P(phi,beta)P(psi,alpha)   [(1,1)]
+            + P(phi,...)-(2,0).(0,2) pieces handled by the explicit metric form.
+    For the verdict we use the DIAGONAL ||dphi(x)dphi||^2 and overlaps with gauge/conformal."""
+    if ginv is None:
+        ginv = fs_metric_inv()
+    # The 4-index metric contractions FACTOR into products of the scalar P=g^{a bbar}d() d_bbar()
+    # because the (a,d) and (c,b) sums are independent.  This is the speed win (each P is a small
+    # low-degree scalar; we multiply scalars, never high-degree tensors):
+    #   (1,1): 2 * P(phi,beta) * P(alpha,psi)
+    #   (2,0).(0,2):  Q2(phi,psi; alpha,beta) + conj,  where the g^{a cbar}g^{b dbar} sum factors
+    #                 as [g^{a cbar} dphi_a dalpha_cbar][g^{b dbar} dpsi_b dbeta_dbar]
+    #                 = P(phi,alpha) * P(psi,beta).
+    Pfb = _P(phi, beta, ginv); Pap = _P(alpha, psi, ginv)
+    Pfa = _P(phi, alpha, ginv); Psb = _P(psi, beta, ginv)
+    # conj-partner of the (2,0).(0,2): [g^{c abar} dphi_abar dalpha_c][g^{d bbar} dpsi_bbar dbeta_d]
+    # = conj-structure = P(alpha,phi)*P(beta,psi) (swap holo/antiholo roles)
+    Paf = _P(alpha, phi, ginv); Pbs = _P(beta, psi, ginv)
+    s11 = 2 * Pfb * Pap
+    t = Pfa * Psb + Paf * Pbs
+    return l2_scalar(together(s11 + t))
 
 
 def l2_tensor(hb, hpb, ginv=None):
