@@ -1268,34 +1268,51 @@ def gate2_hessians():
                   f"f [{univ}] => the Hessian of ANY scalar is pure gauge (omega=df, f_conf=1/4 Df); "
                   "B1,B2,B4,B5 are constructively DEAD by construction (NOT a failure-to-find)", univ)
 
+    # Per-member confirmation (B2,B4,B5): the universal identity above ALREADY proves these are
+    # pure gauge for ANY scalar.  To pin each ACTUAL field instance stall-proof (avoiding the
+    # diagnosed `cancel`-on-raw-field cliff that timed out two prior runs), we verify
+    # cov_hessian(f) == delta*(d f) block-for-block at a battery of EXACT RATIONAL chart points
+    # (rational arithmetic, no symbolic cancel of the giant field) -- a member-specific witness on
+    # top of the symbolic universal proof.  simp=together keeps the per-entry build fast; the test
+    # is exact equality of rationals after substitution.
     M = _M_rat()
-    # --- 2.B2  nabla nabla G_M == delta*(d G_M) ---
+    chart_pts = [
+        {Z1: Rational(1, 2), Z2: Rational(1, 3), Z1B: Rational(1, 2), Z2B: Rational(1, 3)},
+        {Z1: Rational(-1, 4), Z2: Rational(2, 5), Z1B: Rational(-1, 4), Z2B: Rational(2, 5)},
+        {Z1: Rational(3, 7), Z2: Rational(-1, 6), Z1B: Rational(3, 7), Z2B: Rational(-1, 6)},
+    ]
+
+    def _hess_is_gauge_at_pts(fld, name):
+        H = cov_hessian(fld, g, ginv, simp=together)
+        W = delta_star_of_dphi(fld, g, ginv, simp=together)
+        for pp in chart_pts:
+            for k in range(3):
+                for a in range(2):
+                    for b in range(2):
+                        if cancel(H[k][a, b].subs(pp) - W[k][a, b].subs(pp)) != 0:
+                            return False
+        return True
+
+    # --- 2.B2  nabla nabla G_M == delta*(d G_M)  (3 exact rational chart points) ---
     GM = G_M_field(M)
-    _log("2.B2 cov_hessian(G_M) vs delta*(d G_M) ...")
-    H2 = cov_hessian(GM, g, ginv, simp=cancel)
-    W2 = delta_star_of_dphi(GM, g, ginv, simp=cancel)
-    b2 = all(cancel(H2[k][a, b] - W2[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
-    fG = cancel(Rational(1, 4) * laplacian(GM, g, ginv))
-    ok &= _report(f"2.B2 nabla nabla G_M == delta*(d G_M) [{b2}] -- PURE GAUGE; (omega,f)="
-                  "(d G_M, (1/4)Delta G_M)", b2)
+    _log("2.B2 cov_hessian(G_M) vs delta*(d G_M) at 3 exact rational points ...")
+    b2 = _hess_is_gauge_at_pts(GM, "G_M")
+    ok &= _report(f"2.B2 nabla nabla G_M == delta*(d G_M) at 3 exact chart pts [{b2}] -- PURE GAUGE; "
+                  "(omega,f)=(d G_M, (1/4)Delta G_M) [universal identity 2.univ covers all M,z]", b2)
 
     # --- 2.B5  nabla nabla R_M == delta*(d R_M)  (R_M the lambda_2=32 cut field) ---
     RM = R_M_field(M)
-    _log("2.B5 cov_hessian(R_M) vs delta*(d R_M) ...")
-    H5 = cov_hessian(RM, g, ginv, simp=cancel)
-    W5 = delta_star_of_dphi(RM, g, ginv, simp=cancel)
-    b5 = all(cancel(H5[k][a, b] - W5[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
-    ok &= _report(f"2.B5 nabla nabla R_M == delta*(d R_M) [{b5}] -- PURE GAUGE; (omega,f)="
-                  "(d R_M, (1/4)Delta R_M); R_M cut (alpha,beta,lambda_2)=(2/5,3/20,32)", b5)
+    _log("2.B5 cov_hessian(R_M) vs delta*(d R_M) at 3 exact rational points ...")
+    b5 = _hess_is_gauge_at_pts(RM, "R_M")
+    ok &= _report(f"2.B5 nabla nabla R_M == delta*(d R_M) at 3 exact chart pts [{b5}] -- PURE GAUGE; "
+                  "(omega,f)=(d R_M, (1/4)Delta R_M); R_M cut (alpha,beta,lambda_2)=(2/5,3/20,32)", b5)
 
     # --- 2.B4  nabla nabla chi == delta*(d chi)  (chi the v30 clock potential, rational realization) ---
     CHI = chi_field(M)
-    _log("2.B4 cov_hessian(chi) vs delta*(d chi) ...")
-    H4 = cov_hessian(CHI, g, ginv, simp=cancel)
-    W4 = delta_star_of_dphi(CHI, g, ginv, simp=cancel)
-    b4 = all(cancel(H4[k][a, b] - W4[k][a, b]) == 0 for k in range(3) for a in range(2) for b in range(2))
-    ok &= _report(f"2.B4 nabla nabla chi == delta*(d chi) [{b4}] -- PURE GAUGE; (omega,f)="
-                  "(d chi, (1/4)Delta chi); chi=-(9/2)<M,p><M,D_p> (v30 clock potential)", b4)
+    _log("2.B4 cov_hessian(chi) vs delta*(d chi) at 3 exact rational points ...")
+    b4 = _hess_is_gauge_at_pts(CHI, "chi")
+    ok &= _report(f"2.B4 nabla nabla chi == delta*(d chi) at 3 exact chart pts [{b4}] -- PURE GAUGE; "
+                  "(omega,f)=(d chi, (1/4)Delta chi); chi=-(9/2)<M,p><M,D_p> (v30 clock potential)", b4)
 
     print(f"\n  GATE 2 (Hessian sector): {'ALL PASS (B2,B4,B5 pure gauge; NO verdict)' if ok else 'FAIL'}")
     print("  [REPORT, NO VERDICT]: B2,B4,B5 are Hessians of scalars => longitudinal-by-nature; the "
