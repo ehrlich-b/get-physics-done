@@ -511,12 +511,51 @@ def _independent_cols(G):
     return chosen
 
 
-# (A hand-rolled covariant divergence operator was prototyped but FAILED the delta(g)=0 sanity
-#  check -- the 2-tensor covariant-derivative index bookkeeping is error-prone -- so the verdict
-#  uses the VERIFIED L^2-Gram York projection (york_tt_residue) instead, with the gauge/conformal
-#  span built from moment-field potentials and a dimension audit for completeness.  Inner products
-#  involving the decisive gradient bilinears use the factored-scalar l2_gradbilinear; conformal
-#  overlaps use the trace = |grad|^2 scalar route; both are fast and independently verified.)
+def divergence(hb, g=None, ginv=None, Gam=None):
+    """The (negative) covariant divergence (delta h)_b = -g^{mu nu} nabla_mu h_{nu b} of a
+    symmetric 2-tensor (block-triple H20,H11,H02), returned as a 1-form (om_hol[b], om_ahol[b]).
+    Kahler complex form (mixed Christoffels vanish; g^{a bbar}=ginv[b,a]):
+      (delta h)_b = -[ g^{a cbar} nabla_a h_{cbar b} + g^{cbar a} nabla_cbar h_{a b} ]
+    with h_{cbar b}=H11[b,c] (Hermitian (1,1)), h_{a b}=H20[a,b]; the holo index b gets a
+    holo-Christoffel, the antiholo derivative gets none on holo indices.  VERIFIED: delta(g)=0
+    (metric covariantly constant) -- this is the sanity check that pins the index bookkeeping
+    (it FAILED before the Christoffel transpose fix; passes after)."""
+    if g is None:
+        g = fs_metric()
+    if ginv is None:
+        ginv = fs_metric_inv(g)
+    if Gam is None:
+        Gam = christoffel_hol(g, ginv)
+    GamB = _christoffel_antihol(g, ginv)
+    H20, H11, H02 = hb
+    gu = lambda a, b: ginv[b, a]          # g^{a bbar}
+    om_hol = [sp.Integer(0)] * 2
+    om_ahol = [sp.Integer(0)] * 2
+    for b in range(2):
+        s = sp.Integer(0)
+        for a in range(2):
+            for c in range(2):
+                term = dz(H11[b, c], a)
+                for e in range(2):
+                    term -= Gam[e][a][b] * H11[e, c]
+                s += gu(a, c) * term                 # g^{a cbar} nabla_a h_{cbar b}
+        for a in range(2):
+            for c in range(2):
+                s += gu(a, c) * dzb(H20[a, b], c)    # g^{cbar a} nabla_cbar h_{a b}
+        om_hol[b] = together(-s)
+    for b in range(2):
+        s = sp.Integer(0)
+        for a in range(2):
+            for c in range(2):
+                term = dzb(H11[c, b], a)
+                for e in range(2):
+                    term -= GamB[e][a][b] * H11[c, e]
+                s += gu(c, a) * term
+        for a in range(2):
+            for c in range(2):
+                s += gu(c, a) * dz(H02[a, b], c)
+        om_ahol[b] = together(-s)
+    return om_hol, om_ahol
 
 
 # ============================================================================
